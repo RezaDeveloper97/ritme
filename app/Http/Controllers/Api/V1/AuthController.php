@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -13,9 +13,9 @@ class AuthController extends Controller
 {
     /**
      * @OA\Post(
-     *     path="/auth/register",
+     *     path="/v1/auth/register",
      *     summary="Register a new user",
-     *     tags={"Authentication"},
+     *     tags={"V1 - Authentication"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -89,9 +89,9 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/auth/login",
+     *     path="/v1/auth/login",
      *     summary="Login user and get token",
-     *     tags={"Authentication"},
+     *     tags={"V1 - Authentication"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -163,9 +163,9 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/auth/logout",
+     *     path="/v1/auth/logout",
      *     summary="Logout user (revoke token)",
-     *     tags={"Authentication"},
+     *     tags={"V1 - Authentication"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Response(
      *         response=200,
@@ -193,9 +193,9 @@ class AuthController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/auth/user",
+     *     path="/v1/auth/user",
      *     summary="Get authenticated user info",
-     *     tags={"Authentication"},
+     *     tags={"V1 - Authentication"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Response(
      *         response=200,

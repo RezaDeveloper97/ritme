@@ -15,13 +15,13 @@
         }
     ],
     "paths": {
-        "/auth/register": {
+        "/v1/auth/register": {
             "post": {
                 "tags": [
-                    "Authentication"
+                    "V1 - Authentication"
                 ],
                 "summary": "Register a new user",
-                "operationId": "08136088c4862c313b35d6518bab8d3a",
+                "operationId": "58fb87dce972174198f99707c002431d",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -132,13 +132,13 @@
                 }
             }
         },
-        "/auth/login": {
+        "/v1/auth/login": {
             "post": {
                 "tags": [
-                    "Authentication"
+                    "V1 - Authentication"
                 ],
                 "summary": "Login user and get token",
-                "operationId": "99d66635c4992aeaa6aa44ff653d0563",
+                "operationId": "3ff5fdf1e87b064055e72ef143ecc7c5",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -235,13 +235,13 @@
                 }
             }
         },
-        "/auth/logout": {
+        "/v1/auth/logout": {
             "post": {
                 "tags": [
-                    "Authentication"
+                    "V1 - Authentication"
                 ],
                 "summary": "Logout user (revoke token)",
-                "operationId": "6abf3b64a4bc7838d56346f05a5153af",
+                "operationId": "5df06d8bf07ab28923f168580a1b2323",
                 "responses": {
                     "200": {
                         "description": "Logout successful",
@@ -274,13 +274,13 @@
                 ]
             }
         },
-        "/auth/user": {
+        "/v1/auth/user": {
             "get": {
                 "tags": [
-                    "Authentication"
+                    "V1 - Authentication"
                 ],
                 "summary": "Get authenticated user info",
-                "operationId": "32d03117b496ae02c2543b61438d24ad",
+                "operationId": "0c469dfd9f10dc2617bae7576b743ced",
                 "responses": {
                     "200": {
                         "description": "User info retrieved successfully",
@@ -358,8 +358,8 @@
     },
     "tags": [
         {
-            "name": "Authentication",
-            "description": "Authentication"
+            "name": "V1 - Authentication",
+            "description": "V1 - Authentication"
         }
     ],
     "security": [
