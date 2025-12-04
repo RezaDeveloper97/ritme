@@ -17,6 +17,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Password Grant Client
+    |--------------------------------------------------------------------------
+    |
+    | These are the client ID and secret for the Password Grant Client.
+    | Create it with: php artisan passport:client --password
+    |
+    */
+
+    'password_client' => [
+        'id' => env('PASSPORT_PASSWORD_CLIENT_ID'),
+        'secret' => env('PASSPORT_PASSWORD_CLIENT_SECRET'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Encryption Keys
     |--------------------------------------------------------------------------
     |
