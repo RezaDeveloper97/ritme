@@ -7,7 +7,10 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
+use Laravel\Passport\RefreshTokenRepository;
+use Laravel\Passport\TokenRepository;
 
 class AuthController extends Controller
 {
@@ -90,7 +93,7 @@ class AuthController extends Controller
     /**
      * @OA\Post(
      *     path="/v1/auth/login",
-     *     summary="Login user and get token",
+     *     summary="Login user and get tokens",
      *     tags={"V1 - Authentication"},
      *     @OA\RequestBody(
      *         required=true,
@@ -112,7 +115,10 @@ class AuthController extends Controller
      *                     @OA\Property(property="name", type="string", example="John Doe"),
      *                     @OA\Property(property="email", type="string", example="john@example.com")
      *                 ),
-     *                 @OA\Property(property="token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9...")
+     *                 @OA\Property(property="access_token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9..."),
+     *                 @OA\Property(property="refresh_token", type="string", example="def50200..."),
+     *                 @OA\Property(property="token_type", type="string", example="Bearer"),
+     *                 @OA\Property(property="expires_in", type="integer", example=31536000)
      *             )
      *         )
      *     ),
@@ -149,14 +155,114 @@ class AuthController extends Controller
         }
 
         $user = Auth::user();
-        $token = $user->createToken('auth_token')->accessToken;
+
+        // Get tokens via Password Grant
+        $response = Http::asForm()->post(config('app.url') . '/oauth/token', [
+            'grant_type' => 'password',
+            'client_id' => config('passport.password_client.id'),
+            'client_secret' => config('passport.password_client.secret'),
+            'username' => $request->email,
+            'password' => $request->password,
+            'scope' => '',
+        ]);
+
+        if ($response->failed()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Could not create tokens'
+            ], 500);
+        }
+
+        $tokens = $response->json();
 
         return response()->json([
             'success' => true,
             'message' => 'Login successful',
             'data' => [
                 'user' => $user,
-                'token' => $token
+                'access_token' => $tokens['access_token'],
+                'refresh_token' => $tokens['refresh_token'],
+                'token_type' => 'Bearer',
+                'expires_in' => $tokens['expires_in']
+            ]
+        ]);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/auth/refresh",
+     *     summary="Refresh access token",
+     *     tags={"V1 - Authentication"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"refresh_token"},
+     *             @OA\Property(property="refresh_token", type="string", example="def50200...")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Token refreshed successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Token refreshed successfully"),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="access_token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9..."),
+     *                 @OA\Property(property="refresh_token", type="string", example="def50200..."),
+     *                 @OA\Property(property="token_type", type="string", example="Bearer"),
+     *                 @OA\Property(property="expires_in", type="integer", example=31536000)
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Invalid refresh token",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Invalid refresh token")
+     *         )
+     *     )
+     * )
+     */
+    public function refresh(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'refresh_token' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $response = Http::asForm()->post(config('app.url') . '/oauth/token', [
+            'grant_type' => 'refresh_token',
+            'refresh_token' => $request->refresh_token,
+            'client_id' => config('passport.password_client.id'),
+            'client_secret' => config('passport.password_client.secret'),
+            'scope' => '',
+        ]);
+
+        if ($response->failed()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid refresh token'
+            ], 401);
+        }
+
+        $tokens = $response->json();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Token refreshed successfully',
+            'data' => [
+                'access_token' => $tokens['access_token'],
+                'refresh_token' => $tokens['refresh_token'],
+                'token_type' => 'Bearer',
+                'expires_in' => $tokens['expires_in']
             ]
         ]);
     }
