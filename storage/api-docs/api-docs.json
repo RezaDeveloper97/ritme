@@ -15,6 +15,494 @@
         }
     ],
     "paths": {
+        "/api/v1/health-logs": {
+            "get": {
+                "tags": [
+                    "Daily Health Log"
+                ],
+                "summary": "دریافت لیست لاگ‌های سلامت",
+                "operationId": "e750c89657bedba860e180ec26fa001e",
+                "parameters": [
+                    {
+                        "name": "from_date",
+                        "in": "query",
+                        "description": "از تاریخ (YYYY-MM-DD)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "to_date",
+                        "in": "query",
+                        "description": "تا تاریخ (YYYY-MM-DD)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "لیست لاگ‌ها",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Daily Health Log"
+                ],
+                "summary": "ثبت یا ویرایش لاگ سلامت روزانه",
+                "operationId": "670d64de7bbb406fbf5163b9eeb793aa",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "log_date"
+                                ],
+                                "properties": {
+                                    "log_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2024-12-07"
+                                    },
+                                    "bleeding_intensity": {
+                                        "type": "string",
+                                        "enum": [
+                                            "low",
+                                            "medium",
+                                            "high",
+                                            "very_high"
+                                        ]
+                                    },
+                                    "blood_color": {
+                                        "type": "string",
+                                        "enum": [
+                                            "bright_red",
+                                            "red",
+                                            "dark_red",
+                                            "brown"
+                                        ]
+                                    },
+                                    "has_clots": {
+                                        "type": "boolean"
+                                    },
+                                    "spotting": {
+                                        "type": "boolean"
+                                    },
+                                    "bleeding_smell": {
+                                        "type": "string",
+                                        "enum": [
+                                            "normal",
+                                            "slightly_unusual",
+                                            "strong_unpleasant"
+                                        ]
+                                    },
+                                    "headache_intensity": {
+                                        "type": "string",
+                                        "enum": [
+                                            "low",
+                                            "medium",
+                                            "high"
+                                        ]
+                                    },
+                                    "stomach_ache_intensity": {
+                                        "type": "string",
+                                        "enum": [
+                                            "low",
+                                            "medium",
+                                            "high"
+                                        ]
+                                    },
+                                    "pelvic_pain_intensity": {
+                                        "type": "string",
+                                        "enum": [
+                                            "low",
+                                            "medium",
+                                            "high"
+                                        ]
+                                    },
+                                    "breast_pain_intensity": {
+                                        "type": "string",
+                                        "enum": [
+                                            "low",
+                                            "medium",
+                                            "high"
+                                        ]
+                                    },
+                                    "back_pain_intensity": {
+                                        "type": "string",
+                                        "enum": [
+                                            "low",
+                                            "medium",
+                                            "high"
+                                        ]
+                                    },
+                                    "ovarian_pain_intensity": {
+                                        "type": "string",
+                                        "enum": [
+                                            "low",
+                                            "medium",
+                                            "high"
+                                        ]
+                                    },
+                                    "nausea_intensity": {
+                                        "type": "string",
+                                        "enum": [
+                                            "low",
+                                            "medium",
+                                            "high"
+                                        ]
+                                    },
+                                    "bloating_intensity": {
+                                        "type": "string",
+                                        "enum": [
+                                            "low",
+                                            "medium",
+                                            "high"
+                                        ]
+                                    },
+                                    "diarrhea": {
+                                        "type": "boolean"
+                                    },
+                                    "constipation": {
+                                        "type": "boolean"
+                                    },
+                                    "appetite_change": {
+                                        "type": "string",
+                                        "enum": [
+                                            "loss",
+                                            "gain",
+                                            "normal"
+                                        ]
+                                    },
+                                    "food_craving": {
+                                        "type": "boolean"
+                                    },
+                                    "breast_sensitivity_intensity": {
+                                        "type": "string",
+                                        "enum": [
+                                            "low",
+                                            "medium",
+                                            "high"
+                                        ]
+                                    },
+                                    "vaginal_dryness": {
+                                        "type": "boolean"
+                                    },
+                                    "vaginal_burning": {
+                                        "type": "boolean"
+                                    },
+                                    "vaginal_itching": {
+                                        "type": "boolean"
+                                    },
+                                    "vaginal_smell_change": {
+                                        "type": "boolean"
+                                    },
+                                    "urination_change": {
+                                        "type": "string",
+                                        "enum": [
+                                            "increase",
+                                            "decrease",
+                                            "normal"
+                                        ]
+                                    },
+                                    "urination_burning_intensity": {
+                                        "type": "string",
+                                        "enum": [
+                                            "low",
+                                            "medium",
+                                            "high"
+                                        ]
+                                    },
+                                    "acne": {
+                                        "type": "boolean"
+                                    },
+                                    "oily_skin": {
+                                        "type": "boolean"
+                                    },
+                                    "hair_loss": {
+                                        "type": "boolean"
+                                    },
+                                    "swelling": {
+                                        "type": "boolean"
+                                    },
+                                    "fatigue": {
+                                        "type": "boolean"
+                                    },
+                                    "dizziness": {
+                                        "type": "boolean"
+                                    },
+                                    "hot_flashes": {
+                                        "type": "boolean"
+                                    },
+                                    "chills": {
+                                        "type": "boolean"
+                                    },
+                                    "moods": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "enum": [
+                                                "happy",
+                                                "calm",
+                                                "angry",
+                                                "anxious",
+                                                "sad",
+                                                "frustrated",
+                                                "sensitive",
+                                                "bored"
+                                            ]
+                                        }
+                                    },
+                                    "sleep_duration": {
+                                        "type": "string",
+                                        "enum": [
+                                            "0_3",
+                                            "3_6",
+                                            "6_9",
+                                            "9_plus"
+                                        ]
+                                    },
+                                    "sleep_quality": {
+                                        "type": "string",
+                                        "enum": [
+                                            "good",
+                                            "medium",
+                                            "bad"
+                                        ]
+                                    },
+                                    "sexual_activity_level": {
+                                        "type": "string",
+                                        "enum": [
+                                            "low",
+                                            "medium",
+                                            "high",
+                                            "very_high"
+                                        ]
+                                    },
+                                    "weight": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 65.5
+                                    },
+                                    "basal_body_temperature": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 36.5
+                                    },
+                                    "discharge_color": {
+                                        "type": "string",
+                                        "example": "سفید"
+                                    },
+                                    "discharge_texture": {
+                                        "type": "string",
+                                        "enum": [
+                                            "watery",
+                                            "creamy",
+                                            "egg_white",
+                                            "thick"
+                                        ]
+                                    },
+                                    "discharge_amount": {
+                                        "type": "string",
+                                        "enum": [
+                                            "low",
+                                            "medium",
+                                            "high"
+                                        ]
+                                    },
+                                    "discharge_smell": {
+                                        "type": "string",
+                                        "enum": [
+                                            "normal",
+                                            "slightly_unusual",
+                                            "strong_unpleasant"
+                                        ]
+                                    },
+                                    "discharge_itching": {
+                                        "type": "boolean"
+                                    },
+                                    "discharge_burning": {
+                                        "type": "boolean"
+                                    },
+                                    "frequent_urination": {
+                                        "type": "boolean"
+                                    },
+                                    "medications": {
+                                        "properties": {
+                                            "painkillers": {
+                                                "type": "string",
+                                                "example": "ایبوپروفن"
+                                            },
+                                            "hormonal_pills": {
+                                                "type": "string",
+                                                "example": "LD"
+                                            },
+                                            "antibiotics": {
+                                                "type": "string"
+                                            },
+                                            "supplements": {
+                                                "type": "string",
+                                                "example": "آهن"
+                                            }
+                                        },
+                                        "type": "object"
+                                    },
+                                    "notes": {
+                                        "type": "string",
+                                        "example": "امروز احساس خوبی داشتم"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "لاگ با موفقیت ثبت/ویرایش شد",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/health-logs/{date}": {
+            "get": {
+                "tags": [
+                    "Daily Health Log"
+                ],
+                "summary": "دریافت لاگ یک روز خاص",
+                "operationId": "d6422e01225409d3ecf75ff50ef3db43",
+                "parameters": [
+                    {
+                        "name": "date",
+                        "in": "path",
+                        "description": "تاریخ (YYYY-MM-DD)",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "اطلاعات لاگ"
+                    },
+                    "404": {
+                        "description": "لاگی یافت نشد"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Daily Health Log"
+                ],
+                "summary": "حذف لاگ یک روز",
+                "operationId": "30eb2967656997ad4543d9d042f3c264",
+                "parameters": [
+                    {
+                        "name": "date",
+                        "in": "path",
+                        "description": "تاریخ (YYYY-MM-DD)",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "لاگ با موفقیت حذف شد"
+                    },
+                    "404": {
+                        "description": "لاگی یافت نشد"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/health-logs/enums": {
+            "get": {
+                "tags": [
+                    "Daily Health Log"
+                ],
+                "summary": "دریافت مقادیر enum برای فرم",
+                "operationId": "06a07dd7fc8dbc7afc3d7a743cb57487",
+                "responses": {
+                    "200": {
+                        "description": "لیست مقادیر enum"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/v1/auth/send-otp": {
             "post": {
                 "tags": [
@@ -690,6 +1178,10 @@
         }
     },
     "tags": [
+        {
+            "name": "Daily Health Log",
+            "description": "پایش سلامت روزانه"
+        },
         {
             "name": "V1 - OTP Authentication",
             "description": "V1 - OTP Authentication"
