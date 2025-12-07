@@ -1,6 +1,7 @@
 <?php
 
-use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\OtpAuthController;
+use App\Http\Controllers\Api\V1\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -16,18 +17,21 @@ use Illuminate\Support\Facades\Route;
 
 // API Version 1
 Route::prefix('v1')->group(function () {
-    // Public routes
+    // Public routes - OTP Authentication
     Route::prefix('auth')->group(function () {
-        Route::post('/register', [AuthController::class, 'register']);
-        Route::post('/login', [AuthController::class, 'login']);
-        Route::post('/refresh', [AuthController::class, 'refresh']);
+        Route::post('/send-otp', [OtpAuthController::class, 'sendOtp']);
+        Route::post('/verify-otp', [OtpAuthController::class, 'verifyOtp']);
     });
 
     // Protected routes
     Route::middleware('auth:api')->group(function () {
         Route::prefix('auth')->group(function () {
-            Route::post('/logout', [AuthController::class, 'logout']);
-            Route::get('/user', [AuthController::class, 'user']);
+            Route::post('/logout', [OtpAuthController::class, 'logout']);
+            Route::get('/user', [OtpAuthController::class, 'user']);
         });
+
+        // Profile routes
+        Route::get('/profile', [ProfileController::class, 'show']);
+        Route::post('/profile', [ProfileController::class, 'store']);
     });
 });

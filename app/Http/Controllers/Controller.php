@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
  *     version="1.0.0",
  *     title="Ritme Salamat API",
  *     description="API Documentation for Ritme Salamat Application",
+ *
  *     @OA\Contact(
  *         email="support@ritmesalamat.com"
  *     )
