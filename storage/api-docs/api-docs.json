@@ -10,8 +10,8 @@
     },
     "servers": [
         {
-            "url": "/api/v1",
-            "description": "API Server V1"
+            "url": "/api/v1/",
+            "description": "API Server"
         }
     ],
     "paths": {
@@ -364,15 +364,23 @@
                                             "bad"
                                         ]
                                     },
-                                    "sexual_activity_level": {
-                                        "description": "Sexual activity level",
-                                        "type": "string",
-                                        "enum": [
-                                            "low",
-                                            "medium",
-                                            "high",
-                                            "very_high"
-                                        ]
+                                    "sexual_activities": {
+                                        "description": "Sexual activity indicators (can select multiple)",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "enum": [
+                                                "high_desire",
+                                                "protected_intercourse",
+                                                "unprotected_intercourse",
+                                                "no_desire",
+                                                "dryness",
+                                                "burning",
+                                                "pain_during_intercourse",
+                                                "bleeding_after_intercourse",
+                                                "lubricant_use"
+                                            ]
+                                        }
                                     },
                                     "weight": {
                                         "description": "Body weight in kg",
@@ -796,16 +804,21 @@
                                                         "bad"
                                                     ]
                                                 },
-                                                "sexual_activity_level": {
+                                                "sexual_activities": {
                                                     "type": "array",
                                                     "items": {
                                                         "type": "string"
                                                     },
                                                     "example": [
-                                                        "low",
-                                                        "medium",
-                                                        "high",
-                                                        "very_high"
+                                                        "high_desire",
+                                                        "protected_intercourse",
+                                                        "unprotected_intercourse",
+                                                        "no_desire",
+                                                        "dryness",
+                                                        "burning",
+                                                        "pain_during_intercourse",
+                                                        "bleeding_after_intercourse",
+                                                        "lubricant_use"
                                                     ]
                                                 },
                                                 "discharge_texture": {
@@ -1787,14 +1800,22 @@
                         ],
                         "nullable": true
                     },
-                    "sexual_activity_level": {
-                        "type": "string",
-                        "enum": [
-                            "low",
-                            "medium",
-                            "high",
-                            "very_high"
-                        ],
+                    "sexual_activities": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "high_desire",
+                                "protected_intercourse",
+                                "unprotected_intercourse",
+                                "no_desire",
+                                "dryness",
+                                "burning",
+                                "pain_during_intercourse",
+                                "bleeding_after_intercourse",
+                                "lubricant_use"
+                            ]
+                        },
                         "nullable": true
                     },
                     "weight": {
