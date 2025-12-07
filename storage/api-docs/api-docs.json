@@ -10,19 +10,19 @@
     },
     "servers": [
         {
-            "url": "/api",
-            "description": "API Server"
+            "url": "/api/v1",
+            "description": "API Server V1"
         }
     ],
     "paths": {
-        "/v1/health-logs": {
+        "/health-logs": {
             "get": {
                 "tags": [
-                    "V1 - Daily Health Log"
+                    "Daily Health Log"
                 ],
                 "summary": "Get health logs list",
                 "description": "Retrieve paginated list of user's daily health logs with optional date filtering",
-                "operationId": "36e695178eef79203a3eea3484081359",
+                "operationId": "2f30871f9f912fc76f3afa21ca479428",
                 "parameters": [
                     {
                         "name": "from_date",
@@ -103,11 +103,11 @@
             },
             "post": {
                 "tags": [
-                    "V1 - Daily Health Log"
+                    "Daily Health Log"
                 ],
                 "summary": "Create or update daily health log",
                 "description": "Create a new health log or update existing one for the specified date. Each user can have only one log per day.",
-                "operationId": "b84ff80f21a3798ac0d8202e51ae7335",
+                "operationId": "76380ab6bee56a49e5f713cb4586c755",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -525,14 +525,14 @@
                 ]
             }
         },
-        "/v1/health-logs/{date}": {
+        "/health-logs/{date}": {
             "get": {
                 "tags": [
-                    "V1 - Daily Health Log"
+                    "Daily Health Log"
                 ],
                 "summary": "Get health log by date",
                 "description": "Retrieve a specific health log entry for the given date",
-                "operationId": "af679156baa0396b9b30e8496fc43fa0",
+                "operationId": "9bae7402aee11c6fe86cdad34265a4af",
                 "parameters": [
                     {
                         "name": "date",
@@ -598,11 +598,11 @@
             },
             "delete": {
                 "tags": [
-                    "V1 - Daily Health Log"
+                    "Daily Health Log"
                 ],
                 "summary": "Delete health log",
                 "description": "Delete a health log entry for the specified date",
-                "operationId": "b938e4946bd62bde502ee0d23da3d88f",
+                "operationId": "ec3cbe0522ca3127b79de5ded766de78",
                 "parameters": [
                     {
                         "name": "date",
@@ -668,14 +668,14 @@
                 ]
             }
         },
-        "/v1/health-logs/enums": {
+        "/health-logs/enums": {
             "get": {
                 "tags": [
-                    "V1 - Daily Health Log"
+                    "Daily Health Log"
                 ],
                 "summary": "Get enum values for forms",
                 "description": "Retrieve all available enum values for dropdown fields in the health log form",
-                "operationId": "e9338bb85eb7584d34f23af8688632aa",
+                "operationId": "5f761c817c67c01c30a6f10edfe913cd",
                 "responses": {
                     "200": {
                         "description": "Enum values retrieved successfully",
@@ -862,14 +862,14 @@
                 ]
             }
         },
-        "/v1/auth/send-otp": {
+        "/auth/send-otp": {
             "post": {
                 "tags": [
-                    "V1 - OTP Authentication"
+                    "Auth"
                 ],
-                "summary": "Send OTP for login/register (unified)",
+                "summary": "Send OTP for login/register",
                 "description": "Sends a 4-digit OTP to the mobile number. Creates new user if not exists.",
-                "operationId": "aa689586aa49f799902ffc52db56f9c0",
+                "operationId": "c3ee211854f053cb89199b71625a0d5f",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -1001,14 +1001,14 @@
                 }
             }
         },
-        "/v1/auth/verify-otp": {
+        "/auth/verify-otp": {
             "post": {
                 "tags": [
-                    "V1 - OTP Authentication"
+                    "Auth"
                 ],
                 "summary": "Verify OTP and get access token",
                 "description": "Verifies the OTP code and returns access token. Creates user if new.",
-                "operationId": "e887452ec74c615d12ad67aff3f0f386",
+                "operationId": "33e37d9d8e1d4221d55ce41419ae3ad7",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -1157,13 +1157,13 @@
                 }
             }
         },
-        "/v1/auth/logout": {
+        "/auth/logout": {
             "post": {
                 "tags": [
-                    "V1 - OTP Authentication"
+                    "Auth"
                 ],
-                "summary": "Logout user (revoke token)",
-                "operationId": "5f65ed895bbc4d1f462ce6879c2cd695",
+                "summary": "Logout user",
+                "operationId": "08c68f6400c7654d0b7268b5e28cb6d8",
                 "responses": {
                     "200": {
                         "description": "Logout successful",
@@ -1196,13 +1196,13 @@
                 ]
             }
         },
-        "/v1/auth/user": {
+        "/auth/user": {
             "get": {
                 "tags": [
-                    "V1 - OTP Authentication"
+                    "Auth"
                 ],
-                "summary": "Get authenticated user info",
-                "operationId": "b52d148a150aacbc23d9cc70f0de9a92",
+                "summary": "Get authenticated user",
+                "operationId": "8d486eaa761e554829e72d528e60c53d",
                 "responses": {
                     "200": {
                         "description": "User info retrieved successfully",
@@ -1266,14 +1266,14 @@
                 ]
             }
         },
-        "/v1/profile": {
+        "/profile": {
             "get": {
                 "tags": [
-                    "V1 - Profile"
+                    "Profile"
                 ],
                 "summary": "Get user profile",
                 "description": "Retrieve the authenticated user's profile information",
-                "operationId": "a4250ed84ad86c58b9be22561e5a8c26",
+                "operationId": "7addf8d5759285de730066dc9e6ffce6",
                 "responses": {
                     "200": {
                         "description": "Profile retrieved successfully",
@@ -1359,11 +1359,11 @@
             },
             "post": {
                 "tags": [
-                    "V1 - Profile"
+                    "Profile"
                 ],
                 "summary": "Create or update user profile",
                 "description": "Create or update the authenticated user's profile information including menstrual cycle data",
-                "operationId": "a8da6bc812a01ab5432f7107beae584a",
+                "operationId": "df0f4e2a0885e2999baa496b7ce2f301",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -1895,16 +1895,16 @@
     },
     "tags": [
         {
-            "name": "V1 - Daily Health Log",
-            "description": "V1 - Daily Health Log"
+            "name": "Auth",
+            "description": "Authentication endpoints"
         },
         {
-            "name": "V1 - OTP Authentication",
-            "description": "V1 - OTP Authentication"
+            "name": "Profile",
+            "description": "User profile management"
         },
         {
-            "name": "V1 - Profile",
-            "description": "V1 - Profile"
+            "name": "Daily Health Log",
+            "description": "Daily health tracking"
         }
     ],
     "security": [

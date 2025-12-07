@@ -12,10 +12,10 @@ class ProfileController extends Controller
 {
     /**
      * @OA\Get(
-     *     path="/v1/profile",
+     *     path="/profile",
      *     summary="Get user profile",
      *     description="Retrieve the authenticated user's profile information",
-     *     tags={"V1 - Profile"},
+     *     tags={"Profile"},
      *     security={{"bearerAuth":{}}},
      *
      *     @OA\Response(
@@ -65,10 +65,10 @@ class ProfileController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/v1/profile",
+     *     path="/profile",
      *     summary="Create or update user profile",
      *     description="Create or update the authenticated user's profile information including menstrual cycle data",
-     *     tags={"V1 - Profile"},
+     *     tags={"Profile"},
      *     security={{"bearerAuth":{}}},
      *
      *     @OA\RequestBody(

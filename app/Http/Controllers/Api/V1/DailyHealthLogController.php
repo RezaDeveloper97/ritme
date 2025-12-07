@@ -12,10 +12,10 @@ class DailyHealthLogController extends Controller
 {
     /**
      * @OA\Get(
-     *     path="/v1/health-logs",
+     *     path="/health-logs",
      *     summary="Get health logs list",
      *     description="Retrieve paginated list of user's daily health logs with optional date filtering",
-     *     tags={"V1 - Daily Health Log"},
+     *     tags={"Daily Health Log"},
      *     security={{"bearerAuth":{}}},
      *
      *     @OA\Parameter(
@@ -76,10 +76,10 @@ class DailyHealthLogController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/v1/health-logs",
+     *     path="/health-logs",
      *     summary="Create or update daily health log",
      *     description="Create a new health log or update existing one for the specified date. Each user can have only one log per day.",
-     *     tags={"V1 - Daily Health Log"},
+     *     tags={"Daily Health Log"},
      *     security={{"bearerAuth":{}}},
      *
      *     @OA\RequestBody(
@@ -210,10 +210,10 @@ class DailyHealthLogController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/v1/health-logs/{date}",
+     *     path="/health-logs/{date}",
      *     summary="Get health log by date",
      *     description="Retrieve a specific health log entry for the given date",
-     *     tags={"V1 - Daily Health Log"},
+     *     tags={"Daily Health Log"},
      *     security={{"bearerAuth":{}}},
      *
      *     @OA\Parameter(
@@ -269,10 +269,10 @@ class DailyHealthLogController extends Controller
 
     /**
      * @OA\Delete(
-     *     path="/v1/health-logs/{date}",
+     *     path="/health-logs/{date}",
      *     summary="Delete health log",
      *     description="Delete a health log entry for the specified date",
-     *     tags={"V1 - Daily Health Log"},
+     *     tags={"Daily Health Log"},
      *     security={{"bearerAuth":{}}},
      *
      *     @OA\Parameter(
@@ -330,10 +330,10 @@ class DailyHealthLogController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/v1/health-logs/enums",
+     *     path="/health-logs/enums",
      *     summary="Get enum values for forms",
      *     description="Retrieve all available enum values for dropdown fields in the health log form",
-     *     tags={"V1 - Daily Health Log"},
+     *     tags={"Daily Health Log"},
      *     security={{"bearerAuth":{}}},
      *
      *     @OA\Response(

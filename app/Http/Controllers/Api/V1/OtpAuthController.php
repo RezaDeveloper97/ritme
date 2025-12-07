@@ -14,10 +14,10 @@ class OtpAuthController extends Controller
 {
     /**
      * @OA\Post(
-     *     path="/v1/auth/send-otp",
-     *     summary="Send OTP for login/register (unified)",
+     *     path="/auth/send-otp",
+     *     summary="Send OTP for login/register",
      *     description="Sends a 4-digit OTP to the mobile number. Creates new user if not exists.",
-     *     tags={"V1 - OTP Authentication"},
+     *     tags={"Auth"},
      *
      *     @OA\RequestBody(
      *         required=true,
@@ -159,10 +159,10 @@ class OtpAuthController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/v1/auth/verify-otp",
+     *     path="/auth/verify-otp",
      *     summary="Verify OTP and get access token",
      *     description="Verifies the OTP code and returns access token. Creates user if new.",
-     *     tags={"V1 - OTP Authentication"},
+     *     tags={"Auth"},
      *
      *     @OA\RequestBody(
      *         required=true,
@@ -327,9 +327,9 @@ class OtpAuthController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/v1/auth/logout",
-     *     summary="Logout user (revoke token)",
-     *     tags={"V1 - OTP Authentication"},
+     *     path="/auth/logout",
+     *     summary="Logout user",
+     *     tags={"Auth"},
      *     security={{"bearerAuth":{}}},
      *
      *     @OA\Response(
@@ -361,9 +361,9 @@ class OtpAuthController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/v1/auth/user",
-     *     summary="Get authenticated user info",
-     *     tags={"V1 - OTP Authentication"},
+     *     path="/auth/user",
+     *     summary="Get authenticated user",
+     *     tags={"Auth"},
      *     security={{"bearerAuth":{}}},
      *
      *     @OA\Response(

@@ -14,8 +14,8 @@ namespace App\Http\Controllers;
  * )
  *
  * @OA\Server(
- *     url="/api",
- *     description="API Server"
+ *     url="/api/v1",
+ *     description="API Server V1"
  * )
  *
  * @OA\SecurityScheme(
@@ -24,6 +24,21 @@ namespace App\Http\Controllers;
  *     scheme="bearer",
  *     bearerFormat="JWT",
  *     description="Enter JWT Bearer token"
+ * )
+ *
+ * @OA\Tag(
+ *     name="Auth",
+ *     description="Authentication endpoints"
+ * )
+ *
+ * @OA\Tag(
+ *     name="Profile",
+ *     description="User profile management"
+ * )
+ *
+ * @OA\Tag(
+ *     name="Daily Health Log",
+ *     description="Daily health tracking"
  * )
  */
 abstract class Controller
