@@ -324,4 +324,81 @@ class OtpAuthController extends Controller
             ],
         ]);
     }
+
+    /**
+     * @OA\Post(
+     *     path="/v1/auth/logout",
+     *     summary="Logout user (revoke token)",
+     *     tags={"V1 - OTP Authentication"},
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Logout successful",
+     *
+     *         @OA\JsonContent(
+     *
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Successfully logged out")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
+     */
+    public function logout(Request $request): JsonResponse
+    {
+        $request->user()->token()->revoke();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Successfully logged out',
+        ]);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/v1/auth/user",
+     *     summary="Get authenticated user info",
+     *     tags={"V1 - OTP Authentication"},
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="User info retrieved successfully",
+     *
+     *         @OA\JsonContent(
+     *
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="user", type="object",
+     *                     @OA\Property(property="id", type="integer", example=1),
+     *                     @OA\Property(property="name", type="string", nullable=true, example="Sara"),
+     *                     @OA\Property(property="mobile", type="string", example="09123456789"),
+     *                     @OA\Property(property="mobile_verified_at", type="string", format="date-time"),
+     *                     @OA\Property(property="created_at", type="string", format="date-time"),
+     *                     @OA\Property(property="updated_at", type="string", format="date-time")
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
+     */
+    public function user(Request $request): JsonResponse
+    {
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'user' => $request->user(),
+            ],
+        ]);
+    }
 }
