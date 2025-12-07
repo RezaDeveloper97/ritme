@@ -21,7 +21,7 @@
                     "V1 - OTP Authentication"
                 ],
                 "summary": "Send OTP for login/register (unified)",
-                "description": "Sends a 4-digit OTP to the mobile number. Creates new user if not exists.",
+                "description": "Sends a 4-digit OTP to the mobile number. Creates new user if not exists. Use is_test=true for testing (OTP will be 1111).",
                 "operationId": "aa689586aa49f799902ffc52db56f9c0",
                 "requestBody": {
                     "required": true,
@@ -36,6 +36,11 @@
                                         "description": "Iranian mobile number (11 digits)",
                                         "type": "string",
                                         "example": "09123456789"
+                                    },
+                                    "is_test": {
+                                        "description": "Test mode - skips SMS and uses 1111 as OTP",
+                                        "type": "boolean",
+                                        "example": true
                                     }
                                 },
                                 "type": "object"
