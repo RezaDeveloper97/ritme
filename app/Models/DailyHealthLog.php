@@ -8,6 +8,7 @@ use App\Enums\DischargeTexture;
 use App\Enums\Intensity;
 use App\Enums\Mood;
 use App\Enums\PainIntensity;
+use App\Enums\SexualActivity;
 use App\Enums\SleepDuration;
 use App\Enums\SleepQuality;
 use App\Enums\Smell;
@@ -56,7 +57,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  *     @OA\Property(property="moods", type="array", nullable=true, @OA\Items(type="string", enum={"happy","calm","angry","anxious","sad","frustrated","sensitive","bored"})),
  *     @OA\Property(property="sleep_duration", type="string", nullable=true, enum={"0_3","3_6","6_9","9_plus"}),
  *     @OA\Property(property="sleep_quality", type="string", nullable=true, enum={"good","medium","bad"}),
- *     @OA\Property(property="sexual_activity_level", type="string", nullable=true, enum={"low","medium","high","very_high"}),
+ *     @OA\Property(property="sexual_activities", type="array", nullable=true, @OA\Items(type="string", enum={"high_desire","protected_intercourse","unprotected_intercourse","no_desire","dryness","burning","pain_during_intercourse","bleeding_after_intercourse","lubricant_use"})),
  *     @OA\Property(property="weight", type="number", format="float", nullable=true, example=65.5),
  *     @OA\Property(property="basal_body_temperature", type="number", format="float", nullable=true, example=36.5),
  *     @OA\Property(property="discharge_color", type="string", nullable=true),
@@ -83,14 +84,14 @@ class DailyHealthLog extends Model
         'user_id',
         'log_date',
 
-        // 1. قاعدگی و خون‌ریزی
+        // 1. Menstruation & Bleeding
         'bleeding_intensity',
         'blood_color',
         'has_clots',
         'spotting',
         'bleeding_smell',
 
-        // 2. علائم - دردها
+        // 2. Symptoms - Pains
         'headache_intensity',
         'stomach_ache_intensity',
         'pelvic_pain_intensity',
@@ -98,7 +99,7 @@ class DailyHealthLog extends Model
         'back_pain_intensity',
         'ovarian_pain_intensity',
 
-        // 2. علائم - گوارشی
+        // 2. Symptoms - Digestive
         'nausea_intensity',
         'bloating_intensity',
         'diarrhea',
@@ -106,7 +107,7 @@ class DailyHealthLog extends Model
         'appetite_change',
         'food_craving',
 
-        // 2. علائم - سینه و تناسلی
+        // 2. Symptoms - Breast & Genital
         'breast_sensitivity_intensity',
         'vaginal_dryness',
         'vaginal_burning',
@@ -115,33 +116,33 @@ class DailyHealthLog extends Model
         'urination_change',
         'urination_burning_intensity',
 
-        // 2. علائم - پوست و مو
+        // 2. Symptoms - Skin & Hair
         'acne',
         'oily_skin',
         'hair_loss',
         'swelling',
 
-        // 2. علائم - انرژی و عمومی
+        // 2. Symptoms - Energy & General
         'fatigue',
         'dizziness',
         'hot_flashes',
         'chills',
 
-        // 3. مود و احساسات
+        // 3. Mood & Emotions
         'moods',
 
-        // 4. خواب
+        // 4. Sleep
         'sleep_duration',
         'sleep_quality',
 
-        // 5. فعالیت جنسی
-        'sexual_activity_level',
+        // 5. Sexual Activity
+        'sexual_activities',
 
-        // 6. علائم حیاتی
+        // 6. Vital Signs
         'weight',
         'basal_body_temperature',
 
-        // 7. ترشحات واژن
+        // 7. Vaginal Discharge
         'discharge_color',
         'discharge_texture',
         'discharge_amount',
@@ -149,13 +150,13 @@ class DailyHealthLog extends Model
         'discharge_itching',
         'discharge_burning',
 
-        // 8. گوارش و ادراری
+        // 8. Digestive & Urinary
         'frequent_urination',
 
-        // 9. دارو و مکمل
+        // 9. Medications & Supplements
         'medications',
 
-        // 10. یادداشت
+        // 10. Notes
         'notes',
     ];
 
@@ -192,6 +193,7 @@ class DailyHealthLog extends Model
 
             // JSON
             'moods' => 'array',
+            'sexual_activities' => 'array',
             'medications' => 'array',
         ];
     }
@@ -218,7 +220,7 @@ class DailyHealthLog extends Model
             'moods' => Mood::values(),
             'sleep_duration' => SleepDuration::values(),
             'sleep_quality' => SleepQuality::values(),
-            'sexual_activity_level' => Intensity::values(),
+            'sexual_activities' => SexualActivity::values(),
             'discharge_texture' => DischargeTexture::values(),
             'discharge_amount' => Amount::values(),
             'discharge_smell' => Smell::values(),

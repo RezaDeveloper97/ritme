@@ -131,7 +131,7 @@ class DailyHealthLogController extends Controller
      *             @OA\Property(property="sleep_duration", type="string", enum={"0_3","3_6","6_9","9_plus"}, description="Sleep duration in hours"),
      *             @OA\Property(property="sleep_quality", type="string", enum={"good","medium","bad"}, description="Sleep quality"),
      *
-     *             @OA\Property(property="sexual_activity_level", type="string", enum={"low","medium","high","very_high"}, description="Sexual activity level"),
+     *             @OA\Property(property="sexual_activities", type="array", @OA\Items(type="string", enum={"high_desire","protected_intercourse","unprotected_intercourse","no_desire","dryness","burning","pain_during_intercourse","bleeding_after_intercourse","lubricant_use"}), description="Sexual activity indicators (can select multiple)"),
      *
      *             @OA\Property(property="weight", type="number", format="float", example=65.5, description="Body weight in kg"),
      *             @OA\Property(property="basal_body_temperature", type="number", format="float", example=36.5, description="Basal body temperature (BBT) in Celsius"),
@@ -351,7 +351,7 @@ class DailyHealthLogController extends Controller
      *                 @OA\Property(property="moods", type="array", @OA\Items(type="string"), example={"happy","calm","angry","anxious","sad","frustrated","sensitive","bored"}),
      *                 @OA\Property(property="sleep_duration", type="array", @OA\Items(type="string"), example={"0_3","3_6","6_9","9_plus"}),
      *                 @OA\Property(property="sleep_quality", type="array", @OA\Items(type="string"), example={"good","medium","bad"}),
-     *                 @OA\Property(property="sexual_activity_level", type="array", @OA\Items(type="string"), example={"low","medium","high","very_high"}),
+     *                 @OA\Property(property="sexual_activities", type="array", @OA\Items(type="string"), example={"high_desire","protected_intercourse","unprotected_intercourse","no_desire","dryness","burning","pain_during_intercourse","bleeding_after_intercourse","lubricant_use"}),
      *                 @OA\Property(property="discharge_texture", type="array", @OA\Items(type="string"), example={"watery","creamy","egg_white","thick"}),
      *                 @OA\Property(property="discharge_amount", type="array", @OA\Items(type="string"), example={"low","medium","high"}),
      *                 @OA\Property(property="discharge_smell", type="array", @OA\Items(type="string"), example={"normal","slightly_unusual","strong_unpleasant"})

@@ -14,8 +14,8 @@ namespace App\Http\Controllers;
  * )
  *
  * @OA\Server(
- *     url="/api/v1",
- *     description="API Server V1"
+ *     url="/api/v1/",
+ *     description="API Server"
  * )
  *
  * @OA\SecurityScheme(

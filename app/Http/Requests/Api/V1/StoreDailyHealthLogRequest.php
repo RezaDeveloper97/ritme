@@ -8,6 +8,7 @@ use App\Enums\DischargeTexture;
 use App\Enums\Intensity;
 use App\Enums\Mood;
 use App\Enums\PainIntensity;
+use App\Enums\SexualActivity;
 use App\Enums\SleepDuration;
 use App\Enums\SleepQuality;
 use App\Enums\Smell;
@@ -32,12 +33,13 @@ class StoreDailyHealthLogRequest extends FormRequest
         $sleepQualityValues = SleepQuality::values();
         $moodValues = Mood::values();
         $dischargeTextureValues = DischargeTexture::values();
+        $sexualActivityValues = SexualActivity::values();
 
         return [
             'log_date' => ['required', 'date', 'before_or_equal:today'],
 
             // =========================================
-            // 1. قاعدگی و خون‌ریزی
+            // 1. Menstruation & Bleeding
             // =========================================
             'bleeding_intensity' => ['nullable', Rule::in($intensityValues)],
             'blood_color' => ['nullable', Rule::in($bloodColorValues)],
@@ -46,7 +48,7 @@ class StoreDailyHealthLogRequest extends FormRequest
             'bleeding_smell' => ['nullable', Rule::in($smellValues)],
 
             // =========================================
-            // 2. علائم - دردها
+            // 2. Symptoms - Pains
             // =========================================
             'headache_intensity' => ['nullable', Rule::in($painIntensityValues)],
             'stomach_ache_intensity' => ['nullable', Rule::in($painIntensityValues)],
@@ -56,7 +58,7 @@ class StoreDailyHealthLogRequest extends FormRequest
             'ovarian_pain_intensity' => ['nullable', Rule::in($painIntensityValues)],
 
             // =========================================
-            // 2. علائم - گوارشی
+            // 2. Symptoms - Digestive
             // =========================================
             'nausea_intensity' => ['nullable', Rule::in($painIntensityValues)],
             'bloating_intensity' => ['nullable', Rule::in($painIntensityValues)],
@@ -66,7 +68,7 @@ class StoreDailyHealthLogRequest extends FormRequest
             'food_craving' => ['nullable', 'boolean'],
 
             // =========================================
-            // 2. علائم - سینه و تناسلی
+            // 2. Symptoms - Breast & Genital
             // =========================================
             'breast_sensitivity_intensity' => ['nullable', Rule::in($painIntensityValues)],
             'vaginal_dryness' => ['nullable', 'boolean'],
@@ -77,7 +79,7 @@ class StoreDailyHealthLogRequest extends FormRequest
             'urination_burning_intensity' => ['nullable', Rule::in($painIntensityValues)],
 
             // =========================================
-            // 2. علائم - پوست و مو
+            // 2. Symptoms - Skin & Hair
             // =========================================
             'acne' => ['nullable', 'boolean'],
             'oily_skin' => ['nullable', 'boolean'],
@@ -85,7 +87,7 @@ class StoreDailyHealthLogRequest extends FormRequest
             'swelling' => ['nullable', 'boolean'],
 
             // =========================================
-            // 2. علائم - انرژی و عمومی
+            // 2. Symptoms - Energy & General
             // =========================================
             'fatigue' => ['nullable', 'boolean'],
             'dizziness' => ['nullable', 'boolean'],
@@ -93,30 +95,31 @@ class StoreDailyHealthLogRequest extends FormRequest
             'chills' => ['nullable', 'boolean'],
 
             // =========================================
-            // 3. مود و احساسات
+            // 3. Mood & Emotions
             // =========================================
             'moods' => ['nullable', 'array'],
             'moods.*' => ['required', Rule::in($moodValues)],
 
             // =========================================
-            // 4. خواب
+            // 4. Sleep
             // =========================================
             'sleep_duration' => ['nullable', Rule::in($sleepDurationValues)],
             'sleep_quality' => ['nullable', Rule::in($sleepQualityValues)],
 
             // =========================================
-            // 5. فعالیت جنسی
+            // 5. Sexual Activity
             // =========================================
-            'sexual_activity_level' => ['nullable', Rule::in($intensityValues)],
+            'sexual_activities' => ['nullable', 'array'],
+            'sexual_activities.*' => ['required', Rule::in($sexualActivityValues)],
 
             // =========================================
-            // 6. علائم حیاتی
+            // 6. Vital Signs
             // =========================================
             'weight' => ['nullable', 'numeric', 'min:20', 'max:300'],
             'basal_body_temperature' => ['nullable', 'numeric', 'min:35', 'max:42'],
 
             // =========================================
-            // 7. ترشحات واژن
+            // 7. Vaginal Discharge
             // =========================================
             'discharge_color' => ['nullable', 'string', 'max:50'],
             'discharge_texture' => ['nullable', Rule::in($dischargeTextureValues)],
@@ -126,12 +129,12 @@ class StoreDailyHealthLogRequest extends FormRequest
             'discharge_burning' => ['nullable', 'boolean'],
 
             // =========================================
-            // 8. گوارش و ادراری
+            // 8. Digestive & Urinary
             // =========================================
             'frequent_urination' => ['nullable', 'boolean'],
 
             // =========================================
-            // 9. دارو و مکمل‌ها
+            // 9. Medications & Supplements
             // =========================================
             'medications' => ['nullable', 'array'],
             'medications.painkillers' => ['nullable', 'string', 'max:255'],
@@ -140,7 +143,7 @@ class StoreDailyHealthLogRequest extends FormRequest
             'medications.supplements' => ['nullable', 'string', 'max:255'],
 
             // =========================================
-            // 10. یادداشت
+            // 10. Notes
             // =========================================
             'notes' => ['nullable', 'string', 'max:2000'],
         ];
@@ -149,14 +152,14 @@ class StoreDailyHealthLogRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'log_date.required' => 'تاریخ الزامی است',
-            'log_date.date' => 'فرمت تاریخ نامعتبر است',
-            'log_date.before_or_equal' => 'تاریخ نمی‌تواند در آینده باشد',
-            'weight.min' => 'وزن باید حداقل ۲۰ کیلوگرم باشد',
-            'weight.max' => 'وزن نمی‌تواند بیشتر از ۳۰۰ کیلوگرم باشد',
-            'basal_body_temperature.min' => 'دمای بدن باید حداقل ۳۵ درجه باشد',
-            'basal_body_temperature.max' => 'دمای بدن نمی‌تواند بیشتر از ۴۲ درجه باشد',
-            'notes.max' => 'یادداشت نمی‌تواند بیشتر از ۲۰۰۰ کاراکتر باشد',
+            'log_date.required' => 'Date is required',
+            'log_date.date' => 'Invalid date format',
+            'log_date.before_or_equal' => 'Date cannot be in the future',
+            'weight.min' => 'Weight must be at least 20 kg',
+            'weight.max' => 'Weight cannot exceed 300 kg',
+            'basal_body_temperature.min' => 'Temperature must be at least 35°C',
+            'basal_body_temperature.max' => 'Temperature cannot exceed 42°C',
+            'notes.max' => 'Notes cannot exceed 2000 characters',
         ];
     }
 }
