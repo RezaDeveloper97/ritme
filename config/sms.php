@@ -13,7 +13,18 @@ return [
     |
     */
 
-    'default' => env('SMS_PROVIDER', 'kavenegar'),
+    'default' => env('SMS_PROVIDER', 'smsir'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Fallback Providers
+    |--------------------------------------------------------------------------
+    |
+    | If the default provider fails, these providers will be tried in order.
+    |
+    */
+
+    'fallback' => ['kavenegar'],
 
     /*
     |--------------------------------------------------------------------------
@@ -28,6 +39,13 @@ return [
 
     'providers' => [
 
+        'smsir' => [
+            'driver' => 'smsir',
+            'api_key' => env('SMSIR_API_KEY'),
+            'template_id' => env('SMSIR_TEMPLATE_ID', 511293),
+            'line_number' => env('SMSIR_LINE_NUMBER'),
+        ],
+
         'kavenegar' => [
             'driver' => 'kavenegar',
             'api_key' => env('KAVENEGAR_API_KEY'),
@@ -36,14 +54,6 @@ return [
                 'login_otp' => env('KAVENEGAR_TEMPLATE_LOGIN_OTP', 'login-otp'),
             ],
         ],
-
-        // Future providers can be added here
-        // 'melipayamak' => [
-        //     'driver' => 'melipayamak',
-        //     'username' => env('MELIPAYAMAK_USERNAME'),
-        //     'password' => env('MELIPAYAMAK_PASSWORD'),
-        //     'sender' => env('MELIPAYAMAK_SENDER'),
-        // ],
 
     ],
 
