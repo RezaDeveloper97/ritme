@@ -883,6 +883,11 @@
                                         "description": "Iranian mobile number (11 digits)",
                                         "type": "string",
                                         "example": "09123456789"
+                                    },
+                                    "is_test": {
+                                        "description": "Test mode - skips SMS and uses 1111 as OTP",
+                                        "type": "boolean",
+                                        "example": true
                                     }
                                 },
                                 "type": "object"

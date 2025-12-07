@@ -25,7 +25,8 @@ class OtpAuthController extends Controller
      *         @OA\JsonContent(
      *             required={"mobile"},
      *
-     *             @OA\Property(property="mobile", type="string", example="09123456789", description="Iranian mobile number (11 digits)")
+     *             @OA\Property(property="mobile", type="string", example="09123456789", description="Iranian mobile number (11 digits)"),
+     *             @OA\Property(property="is_test", type="boolean", example=true, description="Test mode - skips SMS and uses 1111 as OTP")
      *         )
      *     ),
      *
@@ -86,6 +87,7 @@ class OtpAuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'mobile' => ['required', 'string', 'regex:/^09[0-9]{9}$/'],
+            'is_test' => ['nullable', 'boolean'],
         ], [
             'mobile.regex' => 'Mobile number must be a valid Iranian mobile number (e.g., 09123456789)',
         ]);
@@ -99,31 +101,34 @@ class OtpAuthController extends Controller
         }
 
         $mobile = $request->mobile;
+        $isTest = $request->boolean('is_test', false);
         $resendAfter = config('sms.otp.resend_after', 60);
 
-        // Check for recent OTP requests (rate limiting)
-        $recentOtp = OtpVerification::where('mobile', $mobile)
-            ->where('created_at', '>', now()->subSeconds($resendAfter))
-            ->first();
+        // Check for recent OTP requests (rate limiting) - skip in test mode
+        if (! $isTest) {
+            $recentOtp = OtpVerification::where('mobile', $mobile)
+                ->where('created_at', '>', now()->subSeconds($resendAfter))
+                ->first();
 
-        if ($recentOtp) {
-            $retryAfter = $resendAfter - now()->diffInSeconds($recentOtp->created_at);
+            if ($recentOtp) {
+                $retryAfter = $resendAfter - now()->diffInSeconds($recentOtp->created_at);
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Please wait before requesting a new OTP',
-                'data' => [
-                    'retry_after' => $retryAfter,
-                ],
-            ], 429);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Please wait before requesting a new OTP',
+                    'data' => [
+                        'retry_after' => $retryAfter,
+                    ],
+                ], 429);
+            }
         }
 
         // Check if user exists
         $user = User::where('mobile', $mobile)->first();
         $isNewUser = ! $user;
 
-        // Generate OTP
-        $otpCode = SmsService::generateOtp(config('sms.otp.length', 4));
+        // Generate OTP - use 1111 in test mode
+        $otpCode = $isTest ? '1111' : SmsService::generateOtp(config('sms.otp.length', 4));
         $expiresIn = config('sms.otp.expires_in', 2);
 
         // Delete old OTPs for this mobile
@@ -136,20 +141,22 @@ class OtpAuthController extends Controller
             'expires_at' => now()->addMinutes($expiresIn),
         ]);
 
-        // Send OTP via SMS
-        $smsService = new SmsService;
-        $sent = $smsService->sendOtp($mobile, $otpCode, 'login_otp');
+        // Send OTP via SMS - skip in test mode
+        if (! $isTest) {
+            $smsService = new SmsService;
+            $sent = $smsService->sendOtp($mobile, $otpCode, 'login_otp');
 
-        if (! $sent) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to send OTP. Please try again.',
-            ], 500);
+            if (! $sent) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to send OTP. Please try again.',
+                ], 500);
+            }
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'OTP sent successfully',
+            'message' => $isTest ? 'OTP set to 1111 (test mode)' : 'OTP sent successfully',
             'data' => [
                 'new_user' => $isNewUser,
                 'expires_in' => $expiresIn * 60, // seconds
