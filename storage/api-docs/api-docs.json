@@ -445,6 +445,558 @@
                     }
                 ]
             }
+        },
+        "/v1/auth/send-otp": {
+            "post": {
+                "tags": [
+                    "V1 - OTP Authentication"
+                ],
+                "summary": "Send OTP for login/register (unified)",
+                "description": "Sends a 4-digit OTP to the mobile number. Creates new user if not exists.",
+                "operationId": "aa689586aa49f799902ffc52db56f9c0",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "mobile"
+                                ],
+                                "properties": {
+                                    "mobile": {
+                                        "description": "Iranian mobile number (11 digits)",
+                                        "type": "string",
+                                        "example": "09123456789"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OTP sent successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "OTP sent successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "new_user": {
+                                                    "description": "True if this is a new user registration",
+                                                    "type": "boolean",
+                                                    "example": true
+                                                },
+                                                "expires_in": {
+                                                    "description": "OTP expiration time in seconds",
+                                                    "type": "integer",
+                                                    "example": 120
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Validation failed"
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Too many requests",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Please wait before requesting a new OTP"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "retry_after": {
+                                                    "type": "integer",
+                                                    "example": 30
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "SMS sending failed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Failed to send OTP. Please try again."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/auth/verify-otp": {
+            "post": {
+                "tags": [
+                    "V1 - OTP Authentication"
+                ],
+                "summary": "Verify OTP and get access token",
+                "description": "Verifies the OTP code and returns access token. Creates user if new.",
+                "operationId": "e887452ec74c615d12ad67aff3f0f386",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "mobile",
+                                    "code"
+                                ],
+                                "properties": {
+                                    "mobile": {
+                                        "type": "string",
+                                        "example": "09123456789"
+                                    },
+                                    "code": {
+                                        "description": "4-digit OTP code",
+                                        "type": "string",
+                                        "example": "1234"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OTP verified successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Login successful"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "user": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "name": {
+                                                            "type": "string",
+                                                            "example": null,
+                                                            "nullable": true
+                                                        },
+                                                        "mobile": {
+                                                            "type": "string",
+                                                            "example": "09123456789"
+                                                        },
+                                                        "mobile_verified_at": {
+                                                            "type": "string",
+                                                            "format": "date-time"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "new_user": {
+                                                    "type": "boolean",
+                                                    "example": true
+                                                },
+                                                "access_token": {
+                                                    "type": "string",
+                                                    "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9..."
+                                                },
+                                                "token_type": {
+                                                    "type": "string",
+                                                    "example": "Bearer"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "OTP expired or invalid",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "OTP has expired"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error or invalid code",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Invalid OTP code"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Too many attempts",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Too many attempts. Please request a new OTP."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/profile": {
+            "get": {
+                "tags": [
+                    "V1 - Profile"
+                ],
+                "summary": "Get user profile",
+                "description": "Retrieve the authenticated user's profile information",
+                "operationId": "a4250ed84ad86c58b9be22561e5a8c26",
+                "responses": {
+                    "200": {
+                        "description": "Profile retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "user": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "name": {
+                                                            "type": "string",
+                                                            "example": "Sara",
+                                                            "nullable": true
+                                                        },
+                                                        "mobile": {
+                                                            "type": "string",
+                                                            "example": "09123456789"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "profile": {
+                                                    "properties": {
+                                                        "birthday": {
+                                                            "type": "string",
+                                                            "format": "date",
+                                                            "example": "1995-05-15"
+                                                        },
+                                                        "weight": {
+                                                            "type": "number",
+                                                            "format": "float",
+                                                            "example": 60.5
+                                                        },
+                                                        "height": {
+                                                            "type": "integer",
+                                                            "example": 165
+                                                        },
+                                                        "period_duration": {
+                                                            "type": "integer",
+                                                            "example": 5
+                                                        },
+                                                        "cycle_duration": {
+                                                            "type": "integer",
+                                                            "example": 28
+                                                        },
+                                                        "last_period_start": {
+                                                            "type": "string",
+                                                            "format": "date",
+                                                            "example": "2024-12-01"
+                                                        }
+                                                    },
+                                                    "type": "object",
+                                                    "nullable": true
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "V1 - Profile"
+                ],
+                "summary": "Create or update user profile",
+                "description": "Create or update the authenticated user's profile information including menstrual cycle data",
+                "operationId": "a8da6bc812a01ab5432f7107beae584a",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "description": "User's name",
+                                        "type": "string",
+                                        "example": "Sara"
+                                    },
+                                    "birthday": {
+                                        "description": "Date of birth",
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "1995-05-15"
+                                    },
+                                    "weight": {
+                                        "description": "Weight in kg",
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 60.5
+                                    },
+                                    "height": {
+                                        "description": "Height in cm",
+                                        "type": "integer",
+                                        "example": 165
+                                    },
+                                    "period_duration": {
+                                        "description": "How long does your period usually last? (days)",
+                                        "type": "integer",
+                                        "example": 5
+                                    },
+                                    "cycle_duration": {
+                                        "description": "How long does your cycle usually last? (days)",
+                                        "type": "integer",
+                                        "example": 28
+                                    },
+                                    "last_period_start": {
+                                        "description": "When did your last period start?",
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2024-12-01"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Profile updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Profile updated successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "user": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "name": {
+                                                            "type": "string",
+                                                            "example": "Sara"
+                                                        },
+                                                        "mobile": {
+                                                            "type": "string",
+                                                            "example": "09123456789"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "profile": {
+                                                    "properties": {
+                                                        "birthday": {
+                                                            "type": "string",
+                                                            "format": "date",
+                                                            "example": "1995-05-15"
+                                                        },
+                                                        "weight": {
+                                                            "type": "number",
+                                                            "format": "float",
+                                                            "example": 60.5
+                                                        },
+                                                        "height": {
+                                                            "type": "integer",
+                                                            "example": 165
+                                                        },
+                                                        "period_duration": {
+                                                            "type": "integer",
+                                                            "example": 5
+                                                        },
+                                                        "cycle_duration": {
+                                                            "type": "integer",
+                                                            "example": 28
+                                                        },
+                                                        "last_period_start": {
+                                                            "type": "string",
+                                                            "format": "date",
+                                                            "example": "2024-12-01"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Validation failed"
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
         }
     },
     "components": {
@@ -463,6 +1015,14 @@
         {
             "name": "V1 - Authentication",
             "description": "V1 - Authentication"
+        },
+        {
+            "name": "V1 - OTP Authentication",
+            "description": "V1 - OTP Authentication"
+        },
+        {
+            "name": "V1 - Profile",
+            "description": "V1 - Profile"
         }
     ],
     "security": [
