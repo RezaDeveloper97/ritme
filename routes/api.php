@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\DailyHealthLogController;
 use App\Http\Controllers\Api\V1\OtpAuthController;
 use App\Http\Controllers\Api\V1\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -33,5 +34,14 @@ Route::prefix('v1')->group(function () {
         // Profile routes
         Route::get('/profile', [ProfileController::class, 'show']);
         Route::post('/profile', [ProfileController::class, 'store']);
+
+        // Daily Health Log routes
+        Route::prefix('health-logs')->group(function () {
+            Route::get('/enums', [DailyHealthLogController::class, 'enums']);
+            Route::get('/', [DailyHealthLogController::class, 'index']);
+            Route::post('/', [DailyHealthLogController::class, 'store']);
+            Route::get('/{date}', [DailyHealthLogController::class, 'show']);
+            Route::delete('/{date}', [DailyHealthLogController::class, 'destroy']);
+        });
     });
 });

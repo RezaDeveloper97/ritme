@@ -56,4 +56,12 @@ class User extends Authenticatable
     {
         return $this->hasOne(UserProfile::class);
     }
+
+    /**
+     * Get the user's daily health logs
+     */
+    public function dailyHealthLogs(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(DailyHealthLog::class);
+    }
 }
