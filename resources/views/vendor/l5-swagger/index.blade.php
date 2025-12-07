@@ -123,17 +123,13 @@
 <script src="{{ l5_swagger_asset($documentation, 'swagger-ui-standalone-preset.js') }}"></script>
 <script>
     window.onload = function() {
-        const urls = [];
-
-        @foreach($urlsToDocs as $title => $url)
-            urls.push({name: "{{ $title }}", url: "{{ $url }}"});
-        @endforeach
+        // Use direct URL to the JSON file
+        const jsonUrl = window.location.origin + '/docs/api-docs.json';
 
         // Build a system
         const ui = SwaggerUIBundle({
             dom_id: '#swagger-ui',
-            urls: urls,
-            "urls.primaryName": "{{ $documentationTitle }}",
+            url: jsonUrl,
             operationsSorter: {!! isset($operationsSorter) ? '"' . $operationsSorter . '"' : 'null' !!},
             configUrl: {!! isset($configUrl) ? '"' . $configUrl . '"' : 'null' !!},
             validatorUrl: {!! isset($validatorUrl) ? '"' . $validatorUrl . '"' : 'null' !!},
