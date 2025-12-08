@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\StoreDailyHealthLogRequest;
 use App\Jobs\CalculateCycleDataJob;
 use App\Models\DailyHealthLog;
+use App\Services\HealthEngine\CycleHistoryService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -193,6 +194,7 @@ class DailyHealthLogController extends Controller
     {
         $validated = $request->validated();
         $user = $request->user();
+        $locale = $request->header('Accept-Language', 'en');
 
         $log = DailyHealthLog::updateOrCreate(
             [
@@ -204,14 +206,26 @@ class DailyHealthLogController extends Controller
 
         $isNew = $log->wasRecentlyCreated;
 
-        // Trigger recalculation if user has profile with cycle data
-        $this->triggerRecalculationIfNeeded($user, $request->header('Accept-Language', 'en'));
+        // Check for luteal spotting warning
+        $warning = CycleHistoryService::getSpottingWarning($user, $log, $locale);
 
-        return response()->json([
+        // Update cycle history if new period started
+        CycleHistoryService::checkAndUpdatePeriodStart($user, $log);
+
+        // Trigger recalculation if user has profile with cycle data
+        $this->triggerRecalculationIfNeeded($user, $locale);
+
+        $response = [
             'success' => true,
             'message' => $isNew ? 'Health log created successfully' : 'Health log updated successfully',
             'data' => $log,
-        ], $isNew ? 201 : 200);
+        ];
+
+        if ($warning) {
+            $response['warning'] = $warning;
+        }
+
+        return response()->json($response, $isNew ? 201 : 200);
     }
 
     /**
