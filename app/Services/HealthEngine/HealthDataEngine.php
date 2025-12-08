@@ -1,0 +1,785 @@
+<?php
+
+namespace App\Services\HealthEngine;
+
+use App\Enums\CalculationStatus;
+use App\Enums\CyclePhase;
+use App\Enums\CycleSubphase;
+use App\Enums\CycleVariability;
+use App\Models\CycleCalculation;
+use App\Models\CycleHistory;
+use App\Models\DailyHealthLog;
+use App\Models\User;
+use App\Models\UserProfile;
+use Carbon\Carbon;
+use Illuminate\Support\Collection;
+
+class HealthDataEngine
+{
+    /**
+     * Base probability by day relative to ovulation
+     */
+    private const BASE_PROBABILITY_MAP = [
+        -5 => 0.10,
+        -4 => 0.15,
+        -3 => 0.18,
+        -2 => 0.25,
+        -1 => 0.30,
+        0 => 0.33,
+        1 => 0.12,
+    ];
+
+    /**
+     * Age factor ranges
+     */
+    private const AGE_FACTORS = [
+        [20, 29, 1.0],
+        [30, 34, 0.85],
+        [35, 37, 0.70],
+        [38, 40, 0.55],
+        [41, 100, 0.35],
+    ];
+
+    /**
+     * Positive symptom multipliers
+     */
+    private const POSITIVE_SYMPTOMS = [
+        'ewcm' => 1.30,          // Egg White Cervical Mucus
+        'ovulation_cramps' => 1.20,
+        'high_libido' => 1.15,
+        'watery_discharge' => 1.10,
+        'abdominal_heaviness' => 1.05,
+    ];
+
+    /**
+     * Negative symptom multipliers
+     */
+    private const NEGATIVE_SYMPTOMS = [
+        'pms' => 0.8,
+        'dry_mucus' => 0.75,
+        'luteal_spotting' => 0.7,
+    ];
+
+    private User $user;
+    private ?UserProfile $profile;
+    private string $locale;
+
+    public function __construct(User $user, string $locale = 'en')
+    {
+        $this->user = $user;
+        $this->profile = $user->profile;
+        $this->locale = $locale;
+    }
+
+    /**
+     * Calculate data for a specific date
+     */
+    public function calculateForDate(Carbon $date): array
+    {
+        if (!$this->profile || !$this->profile->last_period_start) {
+            return $this->getEmptyCalculation($date);
+        }
+
+        $dailyLog = $this->getDailyLog($date);
+        $cycleHistories = $this->getCycleHistories();
+
+        // Core calculations
+        $cycleDay = $this->calculateCycleDay($date);
+        $cycleLength = $this->getEffectiveCycleLength($cycleHistories);
+        $cycleLengths = $this->getCycleLengths($cycleHistories);
+        $variability = $this->calculateVariability($cycleLengths);
+        $ovulationDay = $this->calculateOvulationDay($cycleLength);
+
+        // Phase detection
+        $phase = $this->determinePhase($cycleDay, $ovulationDay, $cycleLength);
+        $subphase = $this->determineSubphase($cycleDay, $ovulationDay, $cycleLength);
+
+        // Windows detection
+        $isFertileWindow = $this->isInFertileWindow($cycleDay, $ovulationDay);
+        $isPmsWindow = $this->isInPmsWindow($cycleDay, $cycleLength);
+        $isPeriodTomorrow = $this->isPeriodTomorrow($cycleDay, $cycleLength, $variability);
+        $isLutealSpotting = $this->detectLutealSpotting($cycleDay, $dailyLog);
+
+        // Score calculations
+        $cycleScore = $this->calculateCycleScore($variability, $dailyLog);
+        $ageFactor = $this->calculateAgeFactor();
+        $dayFromOvulation = $cycleDay - $ovulationDay;
+        $baseProbability = $this->getBaseProbability($dayFromOvulation);
+        $symptomScore = $this->calculateSymptomScore($dailyLog, $isPmsWindow, $isLutealSpotting);
+        $finalProbability = $this->calculateFinalProbability(
+            $baseProbability,
+            $ageFactor,
+            $cycleScore,
+            $symptomScore
+        );
+
+        // Generate text flags and daily tips
+        $textFlags = $this->generateTextFlags(
+            $phase,
+            $subphase,
+            $isFertileWindow,
+            $isPmsWindow,
+            $isPeriodTomorrow,
+            $finalProbability,
+            $variability
+        );
+        $dailyTips = $this->generateDailyTips($phase, $subphase, $dailyLog);
+
+        return [
+            'calculation_date' => $date->toDateString(),
+            'cycle_day' => $cycleDay,
+            'phase' => $phase->value,
+            'subphase' => $subphase->value,
+            'estimated_ovulation_day' => $ovulationDay,
+            'cycle_length_used' => $cycleLength,
+            'is_fertile_window' => $isFertileWindow,
+            'is_pms_window' => $isPmsWindow,
+            'is_period_tomorrow' => $isPeriodTomorrow,
+            'is_luteal_spotting' => $isLutealSpotting,
+            'cycle_score' => round($cycleScore, 4),
+            'age_factor' => round($ageFactor, 4),
+            'base_probability' => round($baseProbability, 4),
+            'symptom_score' => round($symptomScore, 4),
+            'final_probability' => round($finalProbability * 100, 2),
+            'cycle_variability' => $variability->value,
+            'uncertainty_range' => $variability->uncertaintyRange(),
+            'text_flags' => $textFlags,
+            'daily_tips' => $dailyTips,
+            'source_profile_data' => $this->getProfileSnapshot(),
+            'source_daily_log_data' => $dailyLog?->toArray(),
+        ];
+    }
+
+    /**
+     * Calculate cycle day from LMP
+     */
+    public function calculateCycleDay(Carbon $date): int
+    {
+        $lmp = Carbon::parse($this->profile->last_period_start);
+        return $lmp->diffInDays($date) + 1;
+    }
+
+    /**
+     * Get effective cycle length based on history
+     */
+    public function getEffectiveCycleLength(Collection $histories): int
+    {
+        if ($histories->isEmpty()) {
+            return $this->profile->cycle_duration ?? 28;
+        }
+
+        $lengths = $histories->pluck('cycle_length')->filter()->values();
+
+        if ($lengths->count() >= 3) {
+            // Use median for 3+ cycles
+            $sorted = $lengths->sort()->values();
+            $count = $sorted->count();
+            $middle = (int) floor($count / 2);
+
+            if ($count % 2 === 0) {
+                return (int) (($sorted[$middle - 1] + $sorted[$middle]) / 2);
+            }
+            return $sorted[$middle];
+        }
+
+        // Use average for 1-2 cycles
+        return (int) round($lengths->avg());
+    }
+
+    /**
+     * Get cycle lengths from history
+     */
+    private function getCycleLengths(Collection $histories): array
+    {
+        return $histories->pluck('cycle_length')
+            ->filter()
+            ->take(6)
+            ->values()
+            ->toArray();
+    }
+
+    /**
+     * Calculate variability based on standard deviation
+     */
+    public function calculateVariability(array $cycleLengths): CycleVariability
+    {
+        if (count($cycleLengths) < 2) {
+            return CycleVariability::REGULAR;
+        }
+
+        $mean = array_sum($cycleLengths) / count($cycleLengths);
+        $squaredDiffs = array_map(fn($x) => pow($x - $mean, 2), $cycleLengths);
+        $stdDev = sqrt(array_sum($squaredDiffs) / count($cycleLengths));
+
+        return CycleVariability::fromStdDev($stdDev);
+    }
+
+    /**
+     * Calculate ovulation day (cycle_length - 14)
+     */
+    public function calculateOvulationDay(int $cycleLength): int
+    {
+        return $cycleLength - 14;
+    }
+
+    /**
+     * Determine current phase
+     */
+    public function determinePhase(int $cycleDay, int $ovulationDay, int $cycleLength): CyclePhase
+    {
+        $bleedingLength = $this->profile->period_duration ?? 5;
+
+        if ($cycleDay <= $bleedingLength) {
+            return CyclePhase::MENSTRUATION;
+        }
+
+        if ($cycleDay <= 12) {
+            return CyclePhase::FOLLICULAR;
+        }
+
+        if ($cycleDay >= 13 && $cycleDay <= 15) {
+            return CyclePhase::OVULATION;
+        }
+
+        return CyclePhase::LUTEAL;
+    }
+
+    /**
+     * Determine detailed subphase
+     */
+    public function determineSubphase(int $cycleDay, int $ovulationDay, int $cycleLength): CycleSubphase
+    {
+        $bleedingLength = $this->profile->period_duration ?? 5;
+
+        // Menstruation: day 1 to end of bleeding
+        if ($cycleDay <= $bleedingLength) {
+            return CycleSubphase::MENSTRUATION;
+        }
+
+        // Early Follicular: 6 to ovulation-4
+        if ($cycleDay <= ($ovulationDay - 4)) {
+            return CycleSubphase::EARLY_FOLLICULAR;
+        }
+
+        // Late Follicular: ovulation-3 to ovulation-1
+        if ($cycleDay < $ovulationDay) {
+            return CycleSubphase::LATE_FOLLICULAR;
+        }
+
+        // Ovulation window: ovulation day +/- 1
+        if ($cycleDay >= $ovulationDay && $cycleDay <= $ovulationDay + 1) {
+            return CycleSubphase::OVULATION_WINDOW;
+        }
+
+        // Early Luteal: +1 to +4 after ovulation
+        if ($cycleDay <= $ovulationDay + 4) {
+            return CycleSubphase::EARLY_LUTEAL;
+        }
+
+        // Mid Luteal: +5 to +8 after ovulation
+        if ($cycleDay <= $ovulationDay + 8) {
+            return CycleSubphase::MID_LUTEAL;
+        }
+
+        // Late Luteal (PMS): +9 to end
+        return CycleSubphase::LATE_LUTEAL;
+    }
+
+    /**
+     * Check if in fertile window (ovulation - 5 to ovulation + 1)
+     */
+    public function isInFertileWindow(int $cycleDay, int $ovulationDay): bool
+    {
+        return $cycleDay >= ($ovulationDay - 5) && $cycleDay <= ($ovulationDay + 1);
+    }
+
+    /**
+     * Check if in PMS window (cycle_length - 6 to end)
+     */
+    public function isInPmsWindow(int $cycleDay, int $cycleLength): bool
+    {
+        return $cycleDay >= ($cycleLength - 6);
+    }
+
+    /**
+     * Check if period is tomorrow
+     */
+    public function isPeriodTomorrow(int $cycleDay, int $cycleLength, CycleVariability $variability): bool
+    {
+        $uncertainty = $variability->uncertaintyRange();
+        $expectedPeriodDay = $cycleLength;
+
+        return $cycleDay >= ($expectedPeriodDay - $uncertainty - 1)
+            && $cycleDay <= ($expectedPeriodDay + $uncertainty - 1);
+    }
+
+    /**
+     * Detect luteal phase spotting
+     */
+    public function detectLutealSpotting(int $cycleDay, ?DailyHealthLog $log): bool
+    {
+        if (!$log) {
+            return false;
+        }
+
+        // Spotting in luteal phase (day 15-28)
+        return $cycleDay >= 15 && $cycleDay <= 28 && $log->spotting === true;
+    }
+
+    /**
+     * Calculate CycleScore
+     */
+    public function calculateCycleScore(CycleVariability $variability, ?DailyHealthLog $log): float
+    {
+        // Base: cycle-model-only
+        $score = 0.60;
+
+        // Add based on variability
+        $score += match($variability) {
+            CycleVariability::REGULAR => 0.10,
+            CycleVariability::SEMI_IRREGULAR => 0.05,
+            CycleVariability::IRREGULAR => 0,
+        };
+
+        // Add for strong fertile signals
+        if ($log && $this->hasStrongFertileSignals($log)) {
+            $score += 0.10;
+        }
+
+        // Cap for irregular cycles
+        if ($variability === CycleVariability::IRREGULAR) {
+            $score = min($score, 0.40);
+        }
+
+        // Maximum cap
+        return min($score, 0.85);
+    }
+
+    /**
+     * Check for strong fertile signals (EWCM, ovulation cramps, etc.)
+     */
+    private function hasStrongFertileSignals(?DailyHealthLog $log): bool
+    {
+        if (!$log) {
+            return false;
+        }
+
+        // EWCM (egg white cervical mucus)
+        if ($log->discharge_texture === 'egg_white') {
+            return true;
+        }
+
+        // Ovulation cramps (ovarian pain)
+        if ($log->ovarian_pain_intensity !== null) {
+            return true;
+        }
+
+        // High libido
+        if (is_array($log->sexual_activities) && in_array('high_desire', $log->sexual_activities)) {
+            return true;
+        }
+
+        // Watery discharge
+        if ($log->discharge_texture === 'watery') {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Calculate age factor
+     */
+    public function calculateAgeFactor(): float
+    {
+        if (!$this->profile || !$this->profile->birthday) {
+            return 1.0;
+        }
+
+        $age = Carbon::parse($this->profile->birthday)->age;
+
+        foreach (self::AGE_FACTORS as [$minAge, $maxAge, $factor]) {
+            if ($age >= $minAge && $age <= $maxAge) {
+                return $factor;
+            }
+        }
+
+        return 0.35;
+    }
+
+    /**
+     * Get base probability by day from ovulation
+     */
+    public function getBaseProbability(int $dayFromOvulation): float
+    {
+        return self::BASE_PROBABILITY_MAP[$dayFromOvulation] ?? 0.0;
+    }
+
+    /**
+     * Calculate symptom score
+     */
+    public function calculateSymptomScore(?DailyHealthLog $log, bool $isPmsWindow, bool $isLutealSpotting): float
+    {
+        if (!$log) {
+            return 1.0;
+        }
+
+        $positiveScore = 1.0;
+        $negativeMultiplier = 1.0;
+
+        // Positive symptoms
+        if ($log->discharge_texture === 'egg_white') {
+            $positiveScore += (self::POSITIVE_SYMPTOMS['ewcm'] - 1);
+        }
+
+        if ($log->ovarian_pain_intensity !== null) {
+            $positiveScore += (self::POSITIVE_SYMPTOMS['ovulation_cramps'] - 1);
+        }
+
+        if (is_array($log->sexual_activities) && in_array('high_desire', $log->sexual_activities)) {
+            $positiveScore += (self::POSITIVE_SYMPTOMS['high_libido'] - 1);
+        }
+
+        if ($log->discharge_texture === 'watery') {
+            $positiveScore += (self::POSITIVE_SYMPTOMS['watery_discharge'] - 1);
+        }
+
+        if ($log->bloating_intensity !== null) {
+            $positiveScore += (self::POSITIVE_SYMPTOMS['abdominal_heaviness'] - 1);
+        }
+
+        // Cap positive score at 1.4
+        $positiveScore = min($positiveScore, 1.4);
+
+        // Negative symptoms
+        if ($isPmsWindow) {
+            $negativeMultiplier = min($negativeMultiplier, self::NEGATIVE_SYMPTOMS['pms']);
+        }
+
+        if ($log->vaginal_dryness === true) {
+            $negativeMultiplier = min($negativeMultiplier, self::NEGATIVE_SYMPTOMS['dry_mucus']);
+        }
+
+        if ($isLutealSpotting) {
+            $negativeMultiplier = min($negativeMultiplier, self::NEGATIVE_SYMPTOMS['luteal_spotting']);
+        }
+
+        // Return the higher impact (positive boost or negative reduction)
+        return max($positiveScore, $negativeMultiplier);
+    }
+
+    /**
+     * Calculate final pregnancy probability
+     */
+    public function calculateFinalProbability(
+        float $baseProbability,
+        float $ageFactor,
+        float $cycleScore,
+        float $symptomScore
+    ): float {
+        $result = $baseProbability * $ageFactor * $cycleScore * $symptomScore;
+        return min($result, 0.35); // Cap at 35%
+    }
+
+    /**
+     * Generate text flags for today page
+     */
+    public function generateTextFlags(
+        CyclePhase $phase,
+        CycleSubphase $subphase,
+        bool $isFertileWindow,
+        bool $isPmsWindow,
+        bool $isPeriodTomorrow,
+        float $finalProbability,
+        CycleVariability $variability
+    ): array {
+        $flags = [];
+        $locale = $this->locale;
+
+        // Fertility status
+        if ($isFertileWindow) {
+            $flags['fertility_status'] = [
+                'en' => 'You are in your fertile window. Pregnancy chance is higher.',
+                'fa' => 'شما در پنجره باروری هستید. احتمال بارداری بیشتر است.',
+            ];
+        }
+
+        // Probability message
+        $probPercent = round($finalProbability * 100, 1);
+        $flags['probability_message'] = [
+            'en' => "Today's pregnancy probability is {$probPercent}%.",
+            'fa' => "احتمال بارداری امروز {$probPercent}٪ است.",
+        ];
+
+        // PMS warning
+        if ($isPmsWindow) {
+            $flags['pms_warning'] = [
+                'en' => 'You are in the PMS window. You may experience mood changes and physical symptoms.',
+                'fa' => 'شما در دوره PMS هستید. ممکن است تغییرات خلقی و علائم جسمی را تجربه کنید.',
+            ];
+        }
+
+        // Period prediction
+        if ($isPeriodTomorrow) {
+            $uncertainty = $variability->uncertaintyRange();
+            $flags['period_prediction'] = [
+                'en' => "Your period may start soon (±{$uncertainty} days based on your cycle regularity).",
+                'fa' => "پریود شما ممکن است به زودی شروع شود (±{$uncertainty} روز بر اساس نظم سیکل شما).",
+            ];
+        }
+
+        // Phase info
+        $flags['phase_info'] = [
+            'en' => "Current phase: {$phase->label('en')} ({$subphase->label('en')})",
+            'fa' => "فاز فعلی: {$phase->label('fa')} ({$subphase->label('fa')})",
+        ];
+
+        return $flags;
+    }
+
+    /**
+     * Generate daily tips based on phase and symptoms
+     */
+    public function generateDailyTips(CyclePhase $phase, CycleSubphase $subphase, ?DailyHealthLog $log): array
+    {
+        $tips = [];
+
+        // Phase-specific tips
+        $tips = array_merge($tips, $this->getPhaseBasedTips($phase, $subphase));
+
+        // Symptom-specific tips
+        if ($log) {
+            $tips = array_merge($tips, $this->getSymptomBasedTips($log));
+        }
+
+        return $tips;
+    }
+
+    /**
+     * Get tips based on current phase
+     */
+    private function getPhaseBasedTips(CyclePhase $phase, CycleSubphase $subphase): array
+    {
+        $tips = [];
+
+        switch ($phase) {
+            case CyclePhase::MENSTRUATION:
+                $tips[] = [
+                    'type' => 'hydration',
+                    'en' => 'Stay hydrated and drink plenty of water.',
+                    'fa' => 'آب کافی بنوشید و هیدراته بمانید.',
+                ];
+                $tips[] = [
+                    'type' => 'warmth',
+                    'en' => 'Apply a warm compress to your lower abdomen to relieve cramps.',
+                    'fa' => 'کمپرس گرم روی شکم قرار دهید تا دردها کاهش یابد.',
+                ];
+                $tips[] = [
+                    'type' => 'rest',
+                    'en' => 'Get enough rest and avoid strenuous activities.',
+                    'fa' => 'استراحت کافی داشته باشید و از فعالیت‌های سنگین اجتناب کنید.',
+                ];
+                $tips[] = [
+                    'type' => 'nutrition',
+                    'en' => 'Eat iron-rich foods like spinach and red meat.',
+                    'fa' => 'غذاهای غنی از آهن مثل اسفناج و گوشت قرمز بخورید.',
+                ];
+                break;
+
+            case CyclePhase::FOLLICULAR:
+                $tips[] = [
+                    'type' => 'energy',
+                    'en' => 'Your energy levels are rising. Great time for new projects!',
+                    'fa' => 'سطح انرژی شما در حال افزایش است. زمان مناسبی برای پروژه‌های جدید!',
+                ];
+                $tips[] = [
+                    'type' => 'exercise',
+                    'en' => 'Perfect time for high-intensity workouts.',
+                    'fa' => 'زمان مناسبی برای ورزش‌های سنگین است.',
+                ];
+                break;
+
+            case CyclePhase::OVULATION:
+                $tips[] = [
+                    'type' => 'fertility',
+                    'en' => 'Peak fertility days. If trying to conceive, this is the best time.',
+                    'fa' => 'روزهای اوج باروری. اگر قصد بارداری دارید، بهترین زمان است.',
+                ];
+                $tips[] = [
+                    'type' => 'energy',
+                    'en' => 'You may feel more confident and social.',
+                    'fa' => 'ممکن است احساس اعتماد به نفس و اجتماعی بودن بیشتری داشته باشید.',
+                ];
+                break;
+
+            case CyclePhase::LUTEAL:
+                if ($subphase === CycleSubphase::LATE_LUTEAL) {
+                    $tips[] = [
+                        'type' => 'pms',
+                        'en' => 'PMS symptoms may appear. Practice self-care and relaxation.',
+                        'fa' => 'علائم PMS ممکن است ظاهر شوند. مراقبت از خود و آرامش را تمرین کنید.',
+                    ];
+                    $tips[] = [
+                        'type' => 'nutrition',
+                        'en' => 'Reduce salt and caffeine intake to minimize bloating.',
+                        'fa' => 'مصرف نمک و کافئین را کاهش دهید تا نفخ کم شود.',
+                    ];
+                    $tips[] = [
+                        'type' => 'mood',
+                        'en' => 'Take breaks and practice deep breathing if feeling irritable.',
+                        'fa' => 'استراحت کنید و اگر احساس تحریک‌پذیری دارید تنفس عمیق تمرین کنید.',
+                    ];
+                } else {
+                    $tips[] = [
+                        'type' => 'nutrition',
+                        'en' => 'Focus on foods rich in magnesium and vitamin B6.',
+                        'fa' => 'روی غذاهای غنی از منیزیم و ویتامین B6 تمرکز کنید.',
+                    ];
+                }
+                break;
+        }
+
+        return $tips;
+    }
+
+    /**
+     * Get tips based on reported symptoms
+     */
+    private function getSymptomBasedTips(?DailyHealthLog $log): array
+    {
+        $tips = [];
+
+        if (!$log) {
+            return $tips;
+        }
+
+        // Headache tips
+        if ($log->headache_intensity !== null) {
+            $tips[] = [
+                'type' => 'pain_relief',
+                'en' => 'For headaches: rest in a dark room and stay hydrated.',
+                'fa' => 'برای سردرد: در اتاق تاریک استراحت کنید و آب بنوشید.',
+            ];
+        }
+
+        // Cramps tips
+        if ($log->pelvic_pain_intensity !== null || $log->stomach_ache_intensity !== null) {
+            $tips[] = [
+                'type' => 'pain_relief',
+                'en' => 'For cramps: try a warm bath or heating pad.',
+                'fa' => 'برای کرامپ: حمام گرم یا پد گرم‌کننده امتحان کنید.',
+            ];
+        }
+
+        // Sleep issues
+        if ($log->sleep_quality === 'bad') {
+            $tips[] = [
+                'type' => 'sleep',
+                'en' => 'Try to maintain a regular sleep schedule and avoid screens before bed.',
+                'fa' => 'سعی کنید برنامه خواب منظم داشته باشید و قبل از خواب از صفحه نمایش استفاده نکنید.',
+            ];
+        }
+
+        // Mood support
+        if (is_array($log->moods) && (in_array('anxious', $log->moods) || in_array('sad', $log->moods))) {
+            $tips[] = [
+                'type' => 'mental_health',
+                'en' => 'Take time for activities you enjoy. Consider light exercise or meditation.',
+                'fa' => 'وقتی برای فعالیت‌های مورد علاقه‌تان بگذارید. ورزش سبک یا مدیتیشن را در نظر بگیرید.',
+            ];
+        }
+
+        // Bloating
+        if ($log->bloating_intensity !== null) {
+            $tips[] = [
+                'type' => 'digestion',
+                'en' => 'Reduce salt intake and eat smaller, frequent meals.',
+                'fa' => 'مصرف نمک را کم کنید و وعده‌های کوچک و مکرر بخورید.',
+            ];
+        }
+
+        // Fatigue
+        if ($log->fatigue === true) {
+            $tips[] = [
+                'type' => 'energy',
+                'en' => 'Listen to your body. Take short breaks and prioritize rest.',
+                'fa' => 'به بدنتان گوش دهید. استراحت‌های کوتاه داشته باشید و استراحت را اولویت قرار دهید.',
+            ];
+        }
+
+        return $tips;
+    }
+
+    /**
+     * Get daily log for a specific date
+     */
+    private function getDailyLog(Carbon $date): ?DailyHealthLog
+    {
+        return $this->user->dailyHealthLogs()
+            ->whereDate('log_date', $date)
+            ->first();
+    }
+
+    /**
+     * Get cycle histories for the user
+     */
+    private function getCycleHistories(): Collection
+    {
+        return CycleHistory::where('user_id', $this->user->id)
+            ->orderBy('period_start_date', 'desc')
+            ->take(6)
+            ->get();
+    }
+
+    /**
+     * Get profile data snapshot
+     */
+    private function getProfileSnapshot(): array
+    {
+        if (!$this->profile) {
+            return [];
+        }
+
+        return [
+            'birthday' => $this->profile->birthday?->toDateString(),
+            'period_duration' => $this->profile->period_duration,
+            'cycle_duration' => $this->profile->cycle_duration,
+            'last_period_start' => $this->profile->last_period_start?->toDateString(),
+        ];
+    }
+
+    /**
+     * Return empty calculation when no profile data available
+     */
+    private function getEmptyCalculation(Carbon $date): array
+    {
+        return [
+            'calculation_date' => $date->toDateString(),
+            'cycle_day' => null,
+            'phase' => null,
+            'subphase' => null,
+            'estimated_ovulation_day' => null,
+            'cycle_length_used' => null,
+            'is_fertile_window' => false,
+            'is_pms_window' => false,
+            'is_period_tomorrow' => false,
+            'is_luteal_spotting' => false,
+            'cycle_score' => null,
+            'age_factor' => null,
+            'base_probability' => null,
+            'symptom_score' => null,
+            'final_probability' => null,
+            'cycle_variability' => null,
+            'uncertainty_range' => null,
+            'text_flags' => [
+                'incomplete_profile' => [
+                    'en' => 'Please complete your profile to get cycle predictions.',
+                    'fa' => 'لطفاً پروفایل خود را کامل کنید تا پیش‌بینی سیکل را دریافت کنید.',
+                ],
+            ],
+            'daily_tips' => [],
+            'source_profile_data' => null,
+            'source_daily_log_data' => null,
+        ];
+    }
+}

@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Enums\CalculationStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\StoreDailyHealthLogRequest;
+use App\Jobs\CalculateCycleDataJob;
 use App\Models\DailyHealthLog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -190,10 +192,11 @@ class DailyHealthLogController extends Controller
     public function store(StoreDailyHealthLogRequest $request): JsonResponse
     {
         $validated = $request->validated();
+        $user = $request->user();
 
         $log = DailyHealthLog::updateOrCreate(
             [
-                'user_id' => $request->user()->id,
+                'user_id' => $user->id,
                 'log_date' => $validated['log_date'],
             ],
             $validated
@@ -201,11 +204,40 @@ class DailyHealthLogController extends Controller
 
         $isNew = $log->wasRecentlyCreated;
 
+        // Trigger recalculation if user has profile with cycle data
+        $this->triggerRecalculationIfNeeded($user, $request->header('Accept-Language', 'en'));
+
         return response()->json([
             'success' => true,
             'message' => $isNew ? 'Health log created successfully' : 'Health log updated successfully',
             'data' => $log,
         ], $isNew ? 201 : 200);
+    }
+
+    /**
+     * Trigger recalculation if profile has cycle data
+     */
+    private function triggerRecalculationIfNeeded($user, string $locale): void
+    {
+        $profile = $user->profile;
+
+        if (!$profile || !$profile->last_period_start) {
+            return;
+        }
+
+        // Don't trigger if already processing
+        if ($profile->calculation_status === CalculationStatus::PROCESSING->value) {
+            return;
+        }
+
+        // Increment version and dispatch job
+        $newVersion = ($profile->calculation_version ?? 0) + 1;
+
+        $profile->update([
+            'calculation_status' => CalculationStatus::PROCESSING->value,
+        ]);
+
+        CalculateCycleDataJob::dispatch($user->id, $newVersion, $locale);
     }
 
     /**

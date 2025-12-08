@@ -18,6 +18,10 @@ class UserProfile extends Model
         'period_duration',
         'cycle_duration',
         'last_period_start',
+        'calculation_status',
+        'calculation_started_at',
+        'calculation_completed_at',
+        'calculation_version',
     ];
 
     protected function casts(): array
@@ -29,6 +33,9 @@ class UserProfile extends Model
             'period_duration' => 'integer',
             'cycle_duration' => 'integer',
             'last_period_start' => 'date',
+            'calculation_started_at' => 'datetime',
+            'calculation_completed_at' => 'datetime',
+            'calculation_version' => 'integer',
         ];
     }
 

@@ -40,6 +40,11 @@ namespace App\Http\Controllers;
  *     name="Daily Health Log",
  *     description="Daily health tracking"
  * )
+ *
+ * @OA\Tag(
+ *     name="Cycle Calculation",
+ *     description="Cycle data calculation and fertility prediction engine"
+ * )
  */
 abstract class Controller
 {
