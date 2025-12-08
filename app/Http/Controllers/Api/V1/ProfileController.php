@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Enums\CalculationStatus;
 use App\Http\Controllers\Controller;
+use App\Jobs\CalculateCycleDataJob;
 use App\Models\UserProfile;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -170,8 +172,16 @@ class ProfileController extends Controller
             'last_period_start',
         ]);
 
+        // Check if cycle-related data changed
+        $cycleFieldsChanged = $this->hasCycleFieldsChanged($profile, $profileData);
+
         $profile->fill($profileData);
         $profile->save();
+
+        // Trigger recalculation if cycle data changed and profile has required data
+        if ($cycleFieldsChanged && $profile->last_period_start) {
+            $this->triggerRecalculation($user, $profile, $request->header('Accept-Language', 'en'));
+        }
 
         return response()->json([
             'success' => true,
@@ -179,7 +189,54 @@ class ProfileController extends Controller
             'data' => [
                 'user' => $user->fresh(),
                 'profile' => $profile->fresh(),
+                'calculation_status' => $profile->calculation_status ?? CalculationStatus::PENDING->value,
             ],
         ]);
+    }
+
+    /**
+     * Check if cycle-related fields have changed
+     */
+    private function hasCycleFieldsChanged(UserProfile $profile, array $newData): bool
+    {
+        $cycleFields = ['birthday', 'period_duration', 'cycle_duration', 'last_period_start'];
+
+        foreach ($cycleFields as $field) {
+            if (isset($newData[$field])) {
+                $oldValue = $profile->getOriginal($field);
+                $newValue = $newData[$field];
+
+                // Convert dates to comparable format
+                if ($oldValue instanceof \Carbon\Carbon) {
+                    $oldValue = $oldValue->toDateString();
+                }
+
+                if ($oldValue != $newValue) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Trigger background recalculation of cycle data
+     */
+    private function triggerRecalculation($user, UserProfile $profile, string $locale): void
+    {
+        // Don't trigger if already processing
+        if ($profile->calculation_status === CalculationStatus::PROCESSING->value) {
+            return;
+        }
+
+        // Increment version and dispatch job
+        $newVersion = ($profile->calculation_version ?? 0) + 1;
+
+        $profile->update([
+            'calculation_status' => CalculationStatus::PROCESSING->value,
+        ]);
+
+        CalculateCycleDataJob::dispatch($user->id, $newVersion, $locale);
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\CycleCalculationController;
 use App\Http\Controllers\Api\V1\DailyHealthLogController;
 use App\Http\Controllers\Api\V1\OtpAuthController;
 use App\Http\Controllers\Api\V1\ProfileController;
@@ -42,6 +43,16 @@ Route::prefix('v1')->group(function () {
             Route::post('/', [DailyHealthLogController::class, 'store']);
             Route::get('/{date}', [DailyHealthLogController::class, 'show']);
             Route::delete('/{date}', [DailyHealthLogController::class, 'destroy']);
+        });
+
+        // Cycle Calculation routes (Health Data Engine)
+        Route::prefix('cycle')->group(function () {
+            Route::get('/enums', [CycleCalculationController::class, 'enums']);
+            Route::get('/status', [CycleCalculationController::class, 'status']);
+            Route::get('/today', [CycleCalculationController::class, 'today']);
+            Route::get('/date/{date}', [CycleCalculationController::class, 'forDate']);
+            Route::get('/month/{year}/{month}', [CycleCalculationController::class, 'month']);
+            Route::post('/recalculate', [CycleCalculationController::class, 'recalculate']);
         });
     });
 });
