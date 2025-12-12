@@ -69,19 +69,19 @@
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">تاریخ تولد</label>
-                            <input type="date" name="birthday" id="birthday" value="{{ $profile->birthday ?? '' }}"
+                            <input type="date" name="birthday" id="birthday" value="{{ $profile?->birthday ? \Carbon\Carbon::parse($profile->birthday)->format('Y-m-d') : '' }}"
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">وزن (کیلوگرم)</label>
-                                <input type="number" name="weight" id="weight" value="{{ $profile->weight ?? '' }}" step="0.1"
+                                <input type="number" name="weight" id="weight" value="{{ $profile?->weight ?? '' }}" step="0.1"
                                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">قد (سانتی‌متر)</label>
-                                <input type="number" name="height" id="height" value="{{ $profile->height ?? '' }}"
+                                <input type="number" name="height" id="height" value="{{ $profile?->height ?? '' }}"
                                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                             </div>
                         </div>
@@ -89,19 +89,19 @@
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">طول پریود (روز)</label>
-                                <input type="number" name="period_duration" id="period_duration" value="{{ $profile->period_duration ?? '' }}" min="1" max="15"
+                                <input type="number" name="period_duration" id="period_duration" value="{{ $profile?->period_duration ?? '' }}" min="1" max="15"
                                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">طول سایکل (روز)</label>
-                                <input type="number" name="cycle_duration" id="cycle_duration" value="{{ $profile->cycle_duration ?? '' }}" min="15" max="60"
+                                <input type="number" name="cycle_duration" id="cycle_duration" value="{{ $profile?->cycle_duration ?? '' }}" min="15" max="60"
                                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                             </div>
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">تاریخ شروع آخرین پریود</label>
-                            <input type="date" name="last_period_start" id="last_period_start" value="{{ $profile->last_period_start ?? '' }}"
+                            <input type="date" name="last_period_start" id="last_period_start" value="{{ $profile?->last_period_start ? \Carbon\Carbon::parse($profile->last_period_start)->format('Y-m-d') : '' }}"
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                         </div>
 
