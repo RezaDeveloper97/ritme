@@ -80,4 +80,44 @@ class User extends Authenticatable
     {
         return $this->hasMany(CycleHistory::class);
     }
+
+    /**
+     * Get the user's pregnancy profile
+     */
+    public function pregnancyProfile(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(PregnancyProfile::class);
+    }
+
+    /**
+     * Get the user's pregnancy symptom logs
+     */
+    public function pregnancySymptomLogs(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PregnancySymptomLog::class);
+    }
+
+    /**
+     * Get the user's pregnancy weekly logs
+     */
+    public function pregnancyWeeklyLogs(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PregnancyWeeklyLog::class);
+    }
+
+    /**
+     * Get the user's pregnancy fetal movements
+     */
+    public function pregnancyFetalMovements(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PregnancyFetalMovement::class);
+    }
+
+    /**
+     * Get the user's pregnancy alerts
+     */
+    public function pregnancyAlerts(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PregnancyAlert::class);
+    }
 }
