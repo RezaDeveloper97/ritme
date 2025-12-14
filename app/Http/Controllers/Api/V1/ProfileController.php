@@ -84,7 +84,7 @@ class ProfileController extends Controller
      *             @OA\Property(property="height", type="integer", example=165, description="Height in cm"),
      *             @OA\Property(property="period_duration", type="integer", example=5, description="How long does your period usually last? (days)"),
      *             @OA\Property(property="cycle_duration", type="integer", example=28, description="How long does your cycle usually last? (days)"),
-     *             @OA\Property(property="last_period_start", type="string", format="date", example="2024-12-01", description="When did your last period start?")
+     *             @OA\Property(property="last_period_start", type="string", format="date", example="2024-12-01", description="When did your last period start? Defaults to today if not provided")
      *         )
      *     ),
      *
@@ -171,6 +171,11 @@ class ProfileController extends Controller
             'cycle_duration',
             'last_period_start',
         ]);
+
+        // Default last_period_start to today if not provided and profile doesn't have one
+        if (!isset($profileData['last_period_start']) && !$profile->last_period_start) {
+            $profileData['last_period_start'] = now()->toDateString();
+        }
 
         // Check if cycle-related data changed
         $cycleFieldsChanged = $this->hasCycleFieldsChanged($profile, $profileData);

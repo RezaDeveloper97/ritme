@@ -160,20 +160,24 @@ class HealthDataEngine
      * 1. Most recent confirmed period in cycle history
      * 2. Profile's last_period_start date
      *
-     * The cycle day never goes negative - it wraps around based on cycle length.
+     * For dates before last_period_start: extrapolate backwards based on cycle length
      */
     public function calculateCycleDay(Carbon $date, int $cycleLength, Collection $cycleHistories): int
     {
         // Find the most relevant cycle start date
         $cycleStartDate = $this->findRelevantCycleStart($date, $cycleLength, $cycleHistories);
 
-        // Calculate days since cycle start
-        $daysSinceCycleStart = $cycleStartDate->diffInDays($date);
+        // Calculate days since cycle start (signed: negative if date is before cycle start)
+        $daysSinceCycleStart = $cycleStartDate->diffInDays($date, false);
 
-        // If the date is before the cycle start, this shouldn't happen in normal use
-        // but we handle it by returning day 1
+        // If the date is before the cycle start date, extrapolate backwards
         if ($daysSinceCycleStart < 0) {
-            return 1;
+            // Calculate how many days before the cycle start
+            $daysBefore = abs($daysSinceCycleStart);
+            // Calculate which day of the previous cycle(s) we're in
+            $cycleDay = $cycleLength - ($daysBefore % $cycleLength);
+            // If we land exactly on cycle length, it means day 1 of the current cycle start
+            return $cycleDay === $cycleLength ? $cycleLength : $cycleDay;
         }
 
         // Calculate cycle day with wrapping (1 to cycleLength)
@@ -208,26 +212,29 @@ class HealthDataEngine
                 $periodStart = Carbon::parse($relevantPeriod->period_start_date);
 
                 // Check if this period is still the "current" cycle
-                // If more than one cycle length has passed, we need to calculate predicted starts
-                $daysSincePeriod = $periodStart->diffInDays($date);
+                // Using signed difference to handle edge cases
+                $daysSincePeriod = $periodStart->diffInDays($date, false);
 
-                if ($daysSincePeriod < $cycleLength) {
+                if ($daysSincePeriod >= 0 && $daysSincePeriod < $cycleLength) {
                     // We're still in the cycle that started with this period
                     return $periodStart;
                 }
 
-                // More than one cycle has passed - calculate the predicted cycle start
-                // based on this period start
-                $completeCycles = (int) floor($daysSincePeriod / $cycleLength);
-                return $periodStart->copy()->addDays($completeCycles * $cycleLength);
+                if ($daysSincePeriod >= $cycleLength) {
+                    // More than one cycle has passed - calculate the predicted cycle start
+                    $completeCycles = (int) floor($daysSincePeriod / $cycleLength);
+                    return $periodStart->copy()->addDays($completeCycles * $cycleLength);
+                }
             }
         }
 
-        // No relevant history, use LMP and calculate predicted cycle start
-        $daysSinceLmp = $lmp->diffInDays($date);
+        // No relevant history or date is before all history, use LMP
+        // Using signed difference
+        $daysSinceLmp = $lmp->diffInDays($date, false);
 
         if ($daysSinceLmp < 0) {
-            // Date is before LMP, return LMP as the start
+            // Date is before LMP - return LMP as the reference point
+            // The cycle day calculation will handle backwards extrapolation
             return $lmp;
         }
 
