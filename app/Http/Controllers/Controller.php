@@ -45,6 +45,26 @@ namespace App\Http\Controllers;
  *     name="Cycle Calculation",
  *     description="Cycle data calculation and fertility prediction engine"
  * )
+ *
+ * @OA\Tag(
+ *     name="Pregnancy",
+ *     description="Pregnancy mode management and onboarding"
+ * )
+ *
+ * @OA\Tag(
+ *     name="Pregnancy Symptoms",
+ *     description="Daily pregnancy symptom tracking"
+ * )
+ *
+ * @OA\Tag(
+ *     name="Pregnancy Weekly",
+ *     description="Weekly pregnancy monitoring and content"
+ * )
+ *
+ * @OA\Tag(
+ *     name="Pregnancy Alerts",
+ *     description="Pregnancy health alerts and emergency notifications"
+ * )
  */
 abstract class Controller
 {
