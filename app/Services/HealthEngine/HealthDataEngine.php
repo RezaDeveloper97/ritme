@@ -83,9 +83,9 @@ class HealthDataEngine
         $dailyLog = $this->getDailyLog($date);
         $cycleHistories = $this->getCycleHistories();
 
-        // Core calculations
-        $cycleDay = $this->calculateCycleDay($date);
+        // Core calculations - get cycle length first, then calculate cycle day
         $cycleLength = $this->getEffectiveCycleLength($cycleHistories);
+        $cycleDay = $this->calculateCycleDay($date, $cycleLength, $cycleHistories);
         $cycleLengths = $this->getCycleLengths($cycleHistories);
         $variability = $this->calculateVariability($cycleLengths);
         $ovulationDay = $this->calculateOvulationDay($cycleLength);
@@ -151,12 +151,94 @@ class HealthDataEngine
     }
 
     /**
-     * Calculate cycle day from LMP
+     * Calculate cycle day with proper wrapping based on cycle length
+     *
+     * The cycle day is always between 1 and cycle_length.
+     * When cycle_length days pass, a new cycle starts at day 1.
+     *
+     * Priority for determining cycle start:
+     * 1. Most recent confirmed period in cycle history
+     * 2. Profile's last_period_start date
+     *
+     * The cycle day never goes negative - it wraps around based on cycle length.
      */
-    public function calculateCycleDay(Carbon $date): int
+    public function calculateCycleDay(Carbon $date, int $cycleLength, Collection $cycleHistories): int
+    {
+        // Find the most relevant cycle start date
+        $cycleStartDate = $this->findRelevantCycleStart($date, $cycleLength, $cycleHistories);
+
+        // Calculate days since cycle start
+        $daysSinceCycleStart = $cycleStartDate->diffInDays($date);
+
+        // If the date is before the cycle start, this shouldn't happen in normal use
+        // but we handle it by returning day 1
+        if ($daysSinceCycleStart < 0) {
+            return 1;
+        }
+
+        // Calculate cycle day with wrapping (1 to cycleLength)
+        // Day 1 is the first day, when days = 0, cycle day = 1
+        // When days = cycleLength, new cycle starts at day 1
+        $cycleDay = ($daysSinceCycleStart % $cycleLength) + 1;
+
+        return $cycleDay;
+    }
+
+    /**
+     * Find the most relevant cycle start date for a given date
+     *
+     * This finds the actual period start that applies to the given date,
+     * or calculates the predicted cycle start based on LMP and cycle length.
+     */
+    private function findRelevantCycleStart(Carbon $date, int $cycleLength, Collection $cycleHistories): Carbon
     {
         $lmp = Carbon::parse($this->profile->last_period_start);
-        return $lmp->diffInDays($date) + 1;
+
+        // If we have cycle histories, find the most recent period start before or on the date
+        if ($cycleHistories->isNotEmpty()) {
+            $relevantPeriod = $cycleHistories
+                ->filter(function ($history) use ($date) {
+                    $periodStart = Carbon::parse($history->period_start_date);
+                    return $periodStart->lte($date);
+                })
+                ->sortByDesc('period_start_date')
+                ->first();
+
+            if ($relevantPeriod) {
+                $periodStart = Carbon::parse($relevantPeriod->period_start_date);
+
+                // Check if this period is still the "current" cycle
+                // If more than one cycle length has passed, we need to calculate predicted starts
+                $daysSincePeriod = $periodStart->diffInDays($date);
+
+                if ($daysSincePeriod < $cycleLength) {
+                    // We're still in the cycle that started with this period
+                    return $periodStart;
+                }
+
+                // More than one cycle has passed - calculate the predicted cycle start
+                // based on this period start
+                $completeCycles = (int) floor($daysSincePeriod / $cycleLength);
+                return $periodStart->copy()->addDays($completeCycles * $cycleLength);
+            }
+        }
+
+        // No relevant history, use LMP and calculate predicted cycle start
+        $daysSinceLmp = $lmp->diffInDays($date);
+
+        if ($daysSinceLmp < 0) {
+            // Date is before LMP, return LMP as the start
+            return $lmp;
+        }
+
+        if ($daysSinceLmp < $cycleLength) {
+            // Still in first cycle
+            return $lmp;
+        }
+
+        // Calculate which cycle we're in and when it started
+        $completeCycles = (int) floor($daysSinceLmp / $cycleLength);
+        return $lmp->copy()->addDays($completeCycles * $cycleLength);
     }
 
     /**
