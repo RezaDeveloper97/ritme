@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\UserProfile;
-use App\Models\CycleCalculation;
 use App\Services\HealthEngine\HealthDataEngine;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -71,6 +70,11 @@ class TestPageController extends Controller
             'last_period_start',
         ]);
 
+        // Default last_period_start to today if not provided and profile doesn't have one
+        if (!isset($profileData['last_period_start']) && !$profile->last_period_start) {
+            $profileData['last_period_start'] = now()->toDateString();
+        }
+
         $profile->fill($profileData);
         $profile->save();
 
@@ -116,27 +120,13 @@ class TestPageController extends Controller
             $startDate = Carbon::createFromDate($year, $month, 1)->startOfMonth();
             $endDate = $startDate->copy()->endOfMonth();
 
-            // Get stored calculations
-            $calculations = CycleCalculation::where('user_id', $user->id)
-                ->whereBetween('calculation_date', [$startDate, $endDate])
-                ->orderBy('calculation_date')
-                ->get()
-                ->keyBy(fn($c) => $c->calculation_date->toDateString());
-
+            // Always calculate fresh to ensure correct cycle_day values
             $monthData = [];
             $currentDate = $startDate->copy();
 
             while ($currentDate <= $endDate) {
                 $dateStr = $currentDate->toDateString();
-
-                if ($calculations->has($dateStr)) {
-                    $calc = $calculations[$dateStr];
-                    $monthData[$dateStr] = $this->localizeCalculation($calc->toArray(), $locale);
-                } else {
-                    // Calculate on-the-fly
-                    $monthData[$dateStr] = $engine->calculateForDate($currentDate);
-                }
-
+                $monthData[$dateStr] = $engine->calculateForDate($currentDate);
                 $currentDate->addDay();
             }
 
