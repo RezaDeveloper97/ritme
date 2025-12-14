@@ -8,7 +8,6 @@ use App\Enums\CycleSubphase;
 use App\Enums\CycleVariability;
 use App\Http\Controllers\Controller;
 use App\Jobs\CalculateCycleDataJob;
-use App\Models\CycleCalculation;
 use App\Services\HealthEngine\HealthDataEngine;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -193,30 +192,13 @@ class CycleCalculationController extends Controller
         $status = $profile?->calculation_status ?? CalculationStatus::PENDING->value;
         $isRecalculating = $status === CalculationStatus::PROCESSING->value;
 
-        // Get stored calculations
-        $calculations = CycleCalculation::where('user_id', $user->id)
-            ->whereBetween('calculation_date', [$startDate, $endDate])
-            ->orderBy('calculation_date')
-            ->get()
-            ->keyBy(fn($c) => $c->calculation_date->toDateString());
-
-        // If no calculations exist or recalculating, calculate on-the-fly
+        // Always calculate fresh to ensure correct cycle_day values
         $engine = new HealthDataEngine($user, $locale);
         $result = [];
 
         $currentDate = $startDate->copy();
         while ($currentDate <= $endDate) {
-            $dateStr = $currentDate->toDateString();
-
-            if ($calculations->has($dateStr)) {
-                $calc = $calculations[$dateStr];
-                // Localize text_flags based on locale
-                $result[] = $this->localizeCalculation($calc->toArray(), $locale);
-            } else {
-                // Calculate on-the-fly
-                $result[] = $engine->calculateForDate($currentDate);
-            }
-
+            $result[] = $engine->calculateForDate($currentDate);
             $currentDate->addDay();
         }
 
@@ -463,6 +445,7 @@ class CycleCalculationController extends Controller
 
     /**
      * Get calculation for a specific date
+     * Always calculates fresh to ensure correct cycle_day values
      */
     private function getCalculationForDate($user, Carbon $date, string $locale): JsonResponse
     {
@@ -470,24 +453,8 @@ class CycleCalculationController extends Controller
         $status = $profile?->calculation_status ?? CalculationStatus::PENDING->value;
         $isRecalculating = $status === CalculationStatus::PROCESSING->value;
 
-        // Try to get from stored calculations first
-        $calculation = CycleCalculation::where('user_id', $user->id)
-            ->where('calculation_date', $date)
-            ->orderBy('version', 'desc')
-            ->first();
-
-        if ($calculation) {
-            return response()->json([
-                'success' => true,
-                'data' => [
-                    'calculation' => $this->localizeCalculation($calculation->toArray(), $locale),
-                    'calculation_status' => $status,
-                    'is_recalculating' => $isRecalculating,
-                ],
-            ]);
-        }
-
-        // Calculate on-the-fly if not stored
+        // Always calculate fresh to ensure correct cycle_day values
+        // The stored calculations may have stale data from old calculation logic
         $engine = new HealthDataEngine($user, $locale);
         $calculationData = $engine->calculateForDate($date);
 
