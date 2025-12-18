@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Enums\CalculationStatus;
+use App\Enums\SubscriptionType;
+use App\Enums\UserGoal;
 use App\Http\Controllers\Controller;
 use App\Jobs\CalculateCycleDataJob;
 use App\Models\UserProfile;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class ProfileController extends Controller
 {
@@ -84,7 +87,9 @@ class ProfileController extends Controller
      *             @OA\Property(property="height", type="integer", example=165, description="Height in cm"),
      *             @OA\Property(property="period_duration", type="integer", example=5, description="How long does your period usually last? (days)"),
      *             @OA\Property(property="cycle_duration", type="integer", example=28, description="How long does your cycle usually last? (days)"),
-     *             @OA\Property(property="last_period_start", type="string", format="date", example="2024-12-01", description="When did your last period start? Defaults to today if not provided")
+     *             @OA\Property(property="last_period_start", type="string", format="date", example="2024-12-01", description="When did your last period start? Defaults to today if not provided"),
+     *             @OA\Property(property="user_goal", type="string", example="non_ttc", enum={"ttc","non_ttc"}, description="User goal: ttc (Trying to Conceive) or non_ttc"),
+     *             @OA\Property(property="subscription_type", type="string", example="free", enum={"free","premium"}, description="Subscription type")
      *         )
      *     ),
      *
@@ -142,6 +147,8 @@ class ProfileController extends Controller
             'period_duration' => 'nullable|integer|min:1|max:15',
             'cycle_duration' => 'nullable|integer|min:15|max:60',
             'last_period_start' => 'nullable|date|before_or_equal:today',
+            'user_goal' => ['nullable', Rule::in(UserGoal::values())],
+            'subscription_type' => ['nullable', Rule::in(SubscriptionType::values())],
         ]);
 
         if ($validator->fails()) {
@@ -170,6 +177,8 @@ class ProfileController extends Controller
             'period_duration',
             'cycle_duration',
             'last_period_start',
+            'user_goal',
+            'subscription_type',
         ]);
 
         // Default last_period_start to today if not provided and profile doesn't have one

@@ -6,9 +6,18 @@ use App\Enums\CalculationStatus;
 use App\Enums\CyclePhase;
 use App\Enums\CycleSubphase;
 use App\Enums\CycleVariability;
+use App\Enums\OverrideType;
+use App\Enums\SubscriptionType;
+use App\Enums\UserGoal;
 use App\Http\Controllers\Controller;
 use App\Jobs\CalculateCycleDataJob;
+use App\Models\DailyHealthLog;
 use App\Services\HealthEngine\HealthDataEngine;
+use App\Services\MatrixEngine\CorrelationEngine;
+use App\Services\MatrixEngine\MatrixMessageEngine;
+use App\Services\MatrixEngine\NutritionSleepModule;
+use App\Services\MatrixEngine\PatternRecognitionEngine;
+use App\Services\MatrixEngine\TTCMatrixEngine;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -439,6 +448,268 @@ class CycleCalculationController extends Controller
                 'subphases' => $subphases,
                 'variability' => $variability,
                 'calculation_status' => $status,
+            ],
+        ]);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/cycle/matrix-messages",
+     *     summary="Get personalized matrix messages",
+     *     description="Retrieve personalized messages based on cycle phase, symptoms, and user goal (TTC/Non-TTC). Includes Layer 1&2 (Base Matrix), Layer 3 (Correlation Engine), Layer 4 (Pattern Recognition), and supplementary modules (Nutrition & Sleep).",
+     *     tags={"Cycle Calculation"},
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\Parameter(
+     *         name="date",
+     *         in="query",
+     *         description="Date for messages (YYYY-MM-DD). Defaults to today.",
+     *         required=false,
+     *         @OA\Schema(type="string", format="date", example="2024-12-15")
+     *     ),
+     *     @OA\Parameter(
+     *         name="Accept-Language",
+     *         in="header",
+     *         description="Language for messages (en, fa)",
+     *         required=false,
+     *         @OA\Schema(type="string", default="fa", enum={"en","fa"})
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Matrix messages retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="date", type="string", format="date", example="2024-12-15"),
+     *                 @OA\Property(property="user_goal", type="string", example="non_ttc"),
+     *                 @OA\Property(property="subscription_type", type="string", example="free"),
+     *                 @OA\Property(property="cycle_info", type="object",
+     *                     @OA\Property(property="phase", type="string", example="follicular"),
+     *                     @OA\Property(property="subphase", type="string", example="early_follicular"),
+     *                     @OA\Property(property="cycle_day", type="integer", example=8),
+     *                     @OA\Property(property="is_fertile_window", type="boolean", example=false),
+     *                     @OA\Property(property="is_pms_window", type="boolean", example=false)
+     *                 ),
+     *                 @OA\Property(property="matrix_message", type="object",
+     *                     @OA\Property(property="phase", type="string", example="follicular"),
+     *                     @OA\Property(property="override_type", type="string", example="normal"),
+     *                     @OA\Property(property="short_message", type="string"),
+     *                     @OA\Property(property="long_message", type="string"),
+     *                     @OA\Property(property="action_suggestion", type="string"),
+     *                     @OA\Property(property="dos", type="array", @OA\Items(type="string")),
+     *                     @OA\Property(property="donts", type="array", @OA\Items(type="string"))
+     *                 ),
+     *                 @OA\Property(property="correlations", type="array", @OA\Items(type="object",
+     *                     @OA\Property(property="type", type="string"),
+     *                     @OA\Property(property="insight_message", type="string"),
+     *                     @OA\Property(property="action", type="string")
+     *                 )),
+     *                 @OA\Property(property="patterns", type="array", @OA\Items(type="object",
+     *                     @OA\Property(property="pattern_type", type="string"),
+     *                     @OA\Property(property="alert_level", type="string"),
+     *                     @OA\Property(property="message", type="string")
+     *                 )),
+     *                 @OA\Property(property="nutrition_sleep_tips", type="object",
+     *                     @OA\Property(property="nutrition", type="object"),
+     *                     @OA\Property(property="sleep", type="object"),
+     *                     @OA\Property(property="exercise", type="object")
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=400,
+     *         description="Profile not complete",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Please complete your profile first")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
+     */
+    public function matrixMessages(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $locale = $request->header('Accept-Language', 'fa');
+        $profile = $user->profile;
+
+        if (!$profile || !$profile->last_period_start) {
+            return response()->json([
+                'success' => false,
+                'message' => $locale === 'fa'
+                    ? 'لطفاً ابتدا پروفایل خود را تکمیل کنید'
+                    : 'Please complete your profile first',
+            ], 400);
+        }
+
+        // Get target date
+        $date = $request->query('date')
+            ? Carbon::parse($request->query('date'))
+            : Carbon::today();
+
+        // Get cycle calculation data
+        $healthEngine = new HealthDataEngine($user, $locale);
+        $cycleData = $healthEngine->calculateForDate($date);
+
+        // Check if we have valid cycle data
+        if (!isset($cycleData['phase']) || !$cycleData['phase']) {
+            return response()->json([
+                'success' => false,
+                'message' => $locale === 'fa'
+                    ? 'اطلاعات سیکل موجود نیست'
+                    : 'Cycle information not available',
+            ], 400);
+        }
+
+        // Get phase and subphase enums
+        $phase = CyclePhase::from($cycleData['phase']);
+        $subphase = CycleSubphase::from($cycleData['subphase']);
+        $cycleDay = $cycleData['cycle_day'];
+        $isFertileWindow = $cycleData['is_fertile_window'] ?? false;
+        $isPmsWindow = $cycleData['is_pms_window'] ?? false;
+
+        // Get daily health log
+        $dailyLog = DailyHealthLog::where('user_id', $user->id)
+            ->whereDate('log_date', $date)
+            ->first();
+
+        // Determine user goal and subscription
+        $isTTC = $profile->isTTC();
+        $isPremium = $profile->isPremium();
+        $userGoal = $profile->user_goal ?? UserGoal::NON_TTC->value;
+        $subscriptionType = $profile->subscription_type ?? SubscriptionType::FREE->value;
+
+        // Get matrix message based on user goal
+        if ($isTTC) {
+            $matrixEngine = new TTCMatrixEngine($user, $locale);
+            $matrixMessage = $matrixEngine->getMatrixMessage($phase, $subphase, $cycleDay, $dailyLog, $isFertileWindow);
+        } else {
+            $matrixEngine = new MatrixMessageEngine($user, $locale);
+            $matrixMessage = $matrixEngine->getMatrixMessage($phase, $subphase, $cycleDay, $dailyLog);
+        }
+
+        // Get correlations (Layer 3)
+        $correlationEngine = new CorrelationEngine($user, $locale);
+        $correlations = $correlationEngine->analyzeCorrelations($phase, $subphase, $dailyLog, $isTTC);
+
+        // Filter correlations based on subscription
+        if (!$isPremium) {
+            $correlations = array_filter($correlations, fn($c) => !($c['is_premium_only'] ?? false));
+            $correlations = array_values($correlations);
+        }
+
+        // Get patterns (Layer 4 - Premium only)
+        $patterns = [];
+        if ($isPremium) {
+            $patternEngine = new PatternRecognitionEngine($user, $locale);
+            $patterns = $patternEngine->analyzePatterns($isTTC);
+        }
+
+        // Get nutrition and sleep tips
+        $nutritionSleepModule = new NutritionSleepModule($user, $locale);
+        $nutritionSleepTips = $nutritionSleepModule->getTips($phase, $subphase, $dailyLog, $isTTC);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'date' => $date->toDateString(),
+                'user_goal' => $userGoal,
+                'subscription_type' => $subscriptionType,
+                'cycle_info' => [
+                    'phase' => $phase->value,
+                    'phase_label' => $phase->label($locale),
+                    'subphase' => $subphase->value,
+                    'subphase_label' => $subphase->label($locale),
+                    'cycle_day' => $cycleDay,
+                    'is_fertile_window' => $isFertileWindow,
+                    'is_pms_window' => $isPmsWindow,
+                    'estimated_ovulation_day' => $cycleData['estimated_ovulation_day'] ?? null,
+                    'cycle_length_used' => $cycleData['cycle_length_used'] ?? null,
+                ],
+                'matrix_message' => $matrixMessage,
+                'correlations' => $correlations,
+                'patterns' => $patterns,
+                'nutrition_sleep_tips' => $nutritionSleepTips,
+            ],
+        ]);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/cycle/matrix-enums",
+     *     summary="Get matrix enum values",
+     *     description="Retrieve all available enum values for user goals, subscription types, and override types",
+     *     tags={"Cycle Calculation"},
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\Parameter(
+     *         name="Accept-Language",
+     *         in="header",
+     *         description="Language for labels (en, fa)",
+     *         required=false,
+     *         @OA\Schema(type="string", default="fa", enum={"en","fa"})
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Matrix enum values retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="user_goals", type="array", @OA\Items(type="object",
+     *                     @OA\Property(property="value", type="string"),
+     *                     @OA\Property(property="label", type="string")
+     *                 )),
+     *                 @OA\Property(property="subscription_types", type="array", @OA\Items(type="object",
+     *                     @OA\Property(property="value", type="string"),
+     *                     @OA\Property(property="label", type="string")
+     *                 )),
+     *                 @OA\Property(property="override_types", type="array", @OA\Items(type="object",
+     *                     @OA\Property(property="value", type="string"),
+     *                     @OA\Property(property="label", type="string")
+     *                 ))
+     *             )
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated"
+     *     )
+     * )
+     */
+    public function matrixEnums(Request $request): JsonResponse
+    {
+        $locale = $request->header('Accept-Language', 'fa');
+
+        $userGoals = collect(UserGoal::cases())->map(fn($g) => [
+            'value' => $g->value,
+            'label' => $g->label($locale),
+        ])->values();
+
+        $subscriptionTypes = collect(SubscriptionType::cases())->map(fn($s) => [
+            'value' => $s->value,
+            'label' => $s->label($locale),
+        ])->values();
+
+        $overrideTypes = collect(OverrideType::cases())->map(fn($o) => [
+            'value' => $o->value,
+            'label' => $o->label($locale),
+        ])->values();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'user_goals' => $userGoals,
+                'subscription_types' => $subscriptionTypes,
+                'override_types' => $overrideTypes,
             ],
         ]);
     }

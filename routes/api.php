@@ -57,6 +57,10 @@ Route::prefix('v1')->group(function () {
             Route::get('/date/{date}', [CycleCalculationController::class, 'forDate']);
             Route::get('/month/{year}/{month}', [CycleCalculationController::class, 'month']);
             Route::post('/recalculate', [CycleCalculationController::class, 'recalculate']);
+
+            // Matrix Messages (Personalized Phase-based Messages)
+            Route::get('/matrix-messages', [CycleCalculationController::class, 'matrixMessages']);
+            Route::get('/matrix-enums', [CycleCalculationController::class, 'matrixEnums']);
         });
 
         // Pregnancy Mode routes
