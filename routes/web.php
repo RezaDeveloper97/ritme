@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\TestMatrixController;
 use App\Http\Controllers\TestPageController;
 use App\Http\Controllers\TestPregnancyController;
 use Illuminate\Support\Facades\Route;
@@ -53,4 +54,13 @@ Route::prefix('test-pregnancy')->group(function () {
     Route::post('/alerts/{id}/read', [TestPregnancyController::class, 'markAlertAsRead']);
     Route::post('/alerts/read-all', [TestPregnancyController::class, 'markAllAlertsAsRead']);
     Route::post('/alerts/{id}/dismiss', [TestPregnancyController::class, 'dismissAlert']);
+});
+
+// Test Matrix Routes (for testing matrix message APIs)
+Route::prefix('test-matrix')->group(function () {
+    Route::get('/', [TestMatrixController::class, 'index']);
+    Route::get('/enums', [TestMatrixController::class, 'getEnums']);
+    Route::get('/messages', [TestMatrixController::class, 'getMatrixMessages']);
+    Route::get('/profile', [TestMatrixController::class, 'getProfile']);
+    Route::post('/profile', [TestMatrixController::class, 'updateProfile']);
 });
