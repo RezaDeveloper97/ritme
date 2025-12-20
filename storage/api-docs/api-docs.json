@@ -1540,6 +1540,325 @@
                     }
                 ]
             }
+        },
+        "/cycle/matrix-messages": {
+            "get": {
+                "tags": [
+                    "Cycle Calculation"
+                ],
+                "summary": "Get personalized matrix messages",
+                "description": "Retrieve personalized messages based on cycle phase, symptoms, and user goal (TTC/Non-TTC). Includes Layer 1&2 (Base Matrix), Layer 3 (Correlation Engine), Layer 4 (Pattern Recognition), and supplementary modules (Nutrition & Sleep).",
+                "operationId": "getMatrixMessages",
+                "parameters": [
+                    {
+                        "name": "date",
+                        "in": "query",
+                        "description": "Date for messages (YYYY-MM-DD). Defaults to today.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date",
+                            "example": "2024-12-15"
+                        }
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "description": "Language for messages (en, fa)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "fa",
+                            "enum": ["en", "fa"]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Matrix messages retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "date": {
+                                                    "type": "string",
+                                                    "format": "date",
+                                                    "example": "2024-12-15"
+                                                },
+                                                "user_goal": {
+                                                    "type": "string",
+                                                    "example": "non_ttc"
+                                                },
+                                                "subscription_type": {
+                                                    "type": "string",
+                                                    "example": "free"
+                                                },
+                                                "cycle_info": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "phase": {
+                                                            "type": "string",
+                                                            "example": "follicular"
+                                                        },
+                                                        "phase_label": {
+                                                            "type": "string",
+                                                            "example": "Follicular Phase"
+                                                        },
+                                                        "subphase": {
+                                                            "type": "string",
+                                                            "example": "early_follicular"
+                                                        },
+                                                        "subphase_label": {
+                                                            "type": "string",
+                                                            "example": "Early Follicular"
+                                                        },
+                                                        "cycle_day": {
+                                                            "type": "integer",
+                                                            "example": 8
+                                                        },
+                                                        "is_fertile_window": {
+                                                            "type": "boolean",
+                                                            "example": false
+                                                        },
+                                                        "is_pms_window": {
+                                                            "type": "boolean",
+                                                            "example": false
+                                                        },
+                                                        "estimated_ovulation_day": {
+                                                            "type": "integer",
+                                                            "example": 14,
+                                                            "nullable": true
+                                                        },
+                                                        "cycle_length_used": {
+                                                            "type": "integer",
+                                                            "example": 28,
+                                                            "nullable": true
+                                                        }
+                                                    }
+                                                },
+                                                "matrix_message": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "phase": {
+                                                            "type": "string",
+                                                            "example": "follicular"
+                                                        },
+                                                        "override_type": {
+                                                            "type": "string",
+                                                            "example": "normal"
+                                                        },
+                                                        "short_message": {
+                                                            "type": "string"
+                                                        },
+                                                        "long_message": {
+                                                            "type": "string"
+                                                        },
+                                                        "action_suggestion": {
+                                                            "type": "string"
+                                                        },
+                                                        "dos": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "donts": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "string"
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "correlations": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "type": {
+                                                                "type": "string"
+                                                            },
+                                                            "insight_message": {
+                                                                "type": "string"
+                                                            },
+                                                            "action": {
+                                                                "type": "string"
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "patterns": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "pattern_type": {
+                                                                "type": "string"
+                                                            },
+                                                            "alert_level": {
+                                                                "type": "string"
+                                                            },
+                                                            "message": {
+                                                                "type": "string"
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "nutrition_sleep_tips": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "nutrition": {
+                                                            "type": "object"
+                                                        },
+                                                        "sleep": {
+                                                            "type": "object"
+                                                        },
+                                                        "exercise": {
+                                                            "type": "object"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Profile not complete",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Please complete your profile first"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/cycle/matrix-enums": {
+            "get": {
+                "tags": [
+                    "Cycle Calculation"
+                ],
+                "summary": "Get matrix enum values",
+                "description": "Retrieve all available enum values for user goals, subscription types, and override types",
+                "operationId": "getMatrixEnums",
+                "parameters": [
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "description": "Language for labels (en, fa)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "fa",
+                            "enum": ["en", "fa"]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Matrix enum values retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "user_goals": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "value": {
+                                                                "type": "string"
+                                                            },
+                                                            "label": {
+                                                                "type": "string"
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "subscription_types": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "value": {
+                                                                "type": "string"
+                                                            },
+                                                            "label": {
+                                                                "type": "string"
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "override_types": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "value": {
+                                                                "type": "string"
+                                                            },
+                                                            "label": {
+                                                                "type": "string"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
         }
     },
     "components": {
@@ -1931,6 +2250,10 @@
         {
             "name": "Daily Health Log",
             "description": "Daily health tracking"
+        },
+        {
+            "name": "Cycle Calculation",
+            "description": "Cycle data calculation, fertility prediction engine, and personalized matrix messages"
         }
     ],
     "security": [
