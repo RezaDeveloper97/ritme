@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\CycleCalculationController;
 use App\Http\Controllers\Api\V1\DailyHealthLogController;
+use App\Http\Controllers\Api\V1\MessageController;
 use App\Http\Controllers\Api\V1\OtpAuthController;
 use App\Http\Controllers\Api\V1\PregnancyAlertController;
 use App\Http\Controllers\Api\V1\PregnancyProfileController;
@@ -102,6 +103,13 @@ Route::prefix('v1')->group(function () {
             Route::post('/alerts/{id}/read', [PregnancyAlertController::class, 'markAsRead']);
             Route::post('/alerts/read-all', [PregnancyAlertController::class, 'markAllAsRead']);
             Route::post('/alerts/{id}/dismiss', [PregnancyAlertController::class, 'dismiss']);
+        });
+
+        // Unified Message System (works for both cycle and pregnancy modes)
+        Route::prefix('messages')->group(function () {
+            Route::get('/daily', [MessageController::class, 'daily']);
+            Route::get('/enums', [MessageController::class, 'enums']);
+            Route::get('/mode', [MessageController::class, 'mode']);
         });
     });
 });

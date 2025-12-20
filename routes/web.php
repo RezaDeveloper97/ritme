@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\TestMatrixController;
+use App\Http\Controllers\TestMessageController;
 use App\Http\Controllers\TestPageController;
 use App\Http\Controllers\TestPregnancyController;
 use Illuminate\Support\Facades\Route;
@@ -56,9 +57,18 @@ Route::prefix('test-pregnancy')->group(function () {
     Route::post('/alerts/{id}/dismiss', [TestPregnancyController::class, 'dismissAlert']);
 });
 
-// Test Matrix Routes (for testing matrix message APIs)
+// Test Message System Routes (unified messaging for cycle and pregnancy)
+Route::prefix('test-message')->group(function () {
+    Route::get('/', [TestMessageController::class, 'index']);
+    Route::get('/enums', [TestMessageController::class, 'getEnums']);
+    Route::get('/daily', [TestMessageController::class, 'getDailyMessages']);
+    Route::get('/mode', [TestMessageController::class, 'getMode']);
+    Route::post('/profile', [TestMessageController::class, 'updateProfile']);
+});
+
+// Legacy: Test Matrix Routes (redirects to new message system)
 Route::prefix('test-matrix')->group(function () {
-    Route::get('/', [TestMatrixController::class, 'index']);
+    Route::get('/', fn() => redirect('/test-message'));
     Route::get('/enums', [TestMatrixController::class, 'getEnums']);
     Route::get('/messages', [TestMatrixController::class, 'getMatrixMessages']);
     Route::get('/profile', [TestMatrixController::class, 'getProfile']);
