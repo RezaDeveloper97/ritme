@@ -139,73 +139,121 @@ class ProfileController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'nullable|string|max:255',
-            'birthday' => 'nullable|date|before:today',
-            'weight' => 'nullable|numeric|min:20|max:300',
-            'height' => 'nullable|integer|min:50|max:250',
-            'period_duration' => 'nullable|integer|min:1|max:15',
-            'cycle_duration' => 'nullable|integer|min:15|max:60',
-            'last_period_start' => 'nullable|date|before_or_equal:today',
-            'user_goal' => ['nullable', Rule::in(UserGoal::values())],
-            'subscription_type' => ['nullable', Rule::in(SubscriptionType::values())],
-        ]);
+        try {
+            $user = $request->user();
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthenticated. Please provide a valid Bearer token.',
+                ], 401);
+            }
 
-        if ($validator->fails()) {
+            $allowedFields = [
+                'name', 'birthday', 'weight', 'height', 'period_duration',
+                'cycle_duration', 'last_period_start', 'user_goal', 'subscription_type',
+            ];
+            $unknownFields = array_diff(array_keys($request->all()), $allowedFields);
+            if (!empty($unknownFields)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unknown field(s) in request: ' . implode(', ', $unknownFields),
+                    'allowed_fields' => $allowedFields,
+                ], 422);
+            }
+
+            $validator = Validator::make($request->all(), [
+                'name' => 'nullable|string|max:255',
+                'birthday' => 'nullable|date|before:today',
+                'weight' => 'nullable|numeric|min:20|max:300',
+                'height' => 'nullable|integer|min:50|max:250',
+                'period_duration' => 'nullable|integer|min:1|max:15',
+                'cycle_duration' => 'nullable|integer|min:15|max:60',
+                'last_period_start' => 'nullable|date|before_or_equal:today',
+                'user_goal' => ['nullable', Rule::in(UserGoal::values())],
+                'subscription_type' => ['nullable', Rule::in(SubscriptionType::values())],
+            ], [
+                'birthday.before' => 'Birthday must be a date before today.',
+                'weight.min' => 'Weight must be at least 20 kg.',
+                'weight.max' => 'Weight must not exceed 300 kg.',
+                'height.min' => 'Height must be at least 50 cm.',
+                'height.max' => 'Height must not exceed 250 cm.',
+                'period_duration.min' => 'Period duration must be at least 1 day.',
+                'period_duration.max' => 'Period duration must not exceed 15 days.',
+                'cycle_duration.min' => 'Cycle duration must be at least 15 days.',
+                'cycle_duration.max' => 'Cycle duration must not exceed 60 days.',
+                'last_period_start.before_or_equal' => 'Last period start cannot be in the future.',
+                'user_goal.in' => 'user_goal must be one of: ' . implode(', ', UserGoal::values()),
+                'subscription_type.in' => 'subscription_type must be one of: ' . implode(', ', SubscriptionType::values()),
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed: ' . $validator->errors()->first(),
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
+
+            if ($request->has('name')) {
+                $user->update(['name' => $request->name]);
+            }
+
+            $profile = $user->profile ?: new UserProfile(['user_id' => $user->id]);
+
+            $profileData = $request->only([
+                'birthday',
+                'weight',
+                'height',
+                'period_duration',
+                'cycle_duration',
+                'last_period_start',
+                'user_goal',
+                'subscription_type',
+            ]);
+
+            if (!isset($profileData['last_period_start']) && !$profile->last_period_start) {
+                $profileData['last_period_start'] = now()->toDateString();
+            }
+
+            $cycleFieldsChanged = $this->hasCycleFieldsChanged($profile, $profileData);
+
+            $profile->fill($profileData);
+            $profile->save();
+
+            if ($cycleFieldsChanged && $profile->last_period_start) {
+                $this->triggerRecalculation($user, $profile, $request->header('Accept-Language', 'en'));
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Profile updated successfully',
+                'data' => [
+                    'user' => $user->fresh(),
+                    'profile' => $profile->fresh(),
+                    'calculation_status' => $profile->calculation_status ?? CalculationStatus::PENDING->value,
+                ],
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
+                'message' => 'Validation failed: ' . collect($e->errors())->flatten()->first(),
+                'errors' => $e->errors(),
             ], 422);
+        } catch (\Illuminate\Database\QueryException $e) {
+            \Log::error('Profile store DB error', ['error' => $e->getMessage(), 'user_id' => $request->user()?->id]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Database error while saving profile.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Please try again later.',
+            ], 500);
+        } catch (\Throwable $e) {
+            \Log::error('Profile store error', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'An unexpected error occurred while updating your profile.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Please try again later.',
+            ], 500);
         }
-
-        $user = $request->user();
-
-        // Update user name if provided
-        if ($request->has('name')) {
-            $user->update(['name' => $request->name]);
-        }
-
-        // Get or create profile
-        $profile = $user->profile ?: new UserProfile(['user_id' => $user->id]);
-
-        // Update profile fields
-        $profileData = $request->only([
-            'birthday',
-            'weight',
-            'height',
-            'period_duration',
-            'cycle_duration',
-            'last_period_start',
-            'user_goal',
-            'subscription_type',
-        ]);
-
-        // Default last_period_start to today if not provided and profile doesn't have one
-        if (!isset($profileData['last_period_start']) && !$profile->last_period_start) {
-            $profileData['last_period_start'] = now()->toDateString();
-        }
-
-        // Check if cycle-related data changed
-        $cycleFieldsChanged = $this->hasCycleFieldsChanged($profile, $profileData);
-
-        $profile->fill($profileData);
-        $profile->save();
-
-        // Trigger recalculation if cycle data changed and profile has required data
-        if ($cycleFieldsChanged && $profile->last_period_start) {
-            $this->triggerRecalculation($user, $profile, $request->header('Accept-Language', 'en'));
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Profile updated successfully',
-            'data' => [
-                'user' => $user->fresh(),
-                'profile' => $profile->fresh(),
-                'calculation_status' => $profile->calculation_status ?? CalculationStatus::PENDING->value,
-            ],
-        ]);
     }
 
     /**
