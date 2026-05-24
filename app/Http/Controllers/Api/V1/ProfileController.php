@@ -139,12 +139,15 @@ class ProfileController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        $locale = $this->resolveLocale($request);
+        app()->setLocale($locale);
+
         try {
             $user = $request->user();
             if (!$user) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Unauthenticated. Please provide a valid Bearer token.',
+                    'message' => __('profile.unauthenticated'),
                 ], 401);
             }
 
@@ -156,7 +159,7 @@ class ProfileController extends Controller
             if (!empty($unknownFields)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Unknown field(s) in request: ' . implode(', ', $unknownFields),
+                    'message' => __('profile.unknown_fields', ['fields' => implode(', ', $unknownFields)]),
                     'allowed_fields' => $allowedFields,
                 ], 422);
             }
@@ -172,24 +175,32 @@ class ProfileController extends Controller
                 'user_goal' => ['nullable', Rule::in(UserGoal::values())],
                 'subscription_type' => ['nullable', Rule::in(SubscriptionType::values())],
             ], [
-                'birthday.before' => 'Birthday must be a date before today.',
-                'weight.min' => 'Weight must be at least 20 kg.',
-                'weight.max' => 'Weight must not exceed 300 kg.',
-                'height.min' => 'Height must be at least 50 cm.',
-                'height.max' => 'Height must not exceed 250 cm.',
-                'period_duration.min' => 'Period duration must be at least 1 day.',
-                'period_duration.max' => 'Period duration must not exceed 15 days.',
-                'cycle_duration.min' => 'Cycle duration must be at least 15 days.',
-                'cycle_duration.max' => 'Cycle duration must not exceed 60 days.',
-                'last_period_start.before_or_equal' => 'Last period start cannot be in the future.',
-                'user_goal.in' => 'user_goal must be one of: ' . implode(', ', UserGoal::values()),
-                'subscription_type.in' => 'subscription_type must be one of: ' . implode(', ', SubscriptionType::values()),
+                'name.string' => __('profile.errors.name_string'),
+                'name.max' => __('profile.errors.name_max'),
+                'birthday.date' => __('profile.errors.birthday_date'),
+                'birthday.before' => __('profile.errors.birthday_before'),
+                'weight.numeric' => __('profile.errors.weight_numeric'),
+                'weight.min' => __('profile.errors.weight_min'),
+                'weight.max' => __('profile.errors.weight_max'),
+                'height.integer' => __('profile.errors.height_integer'),
+                'height.min' => __('profile.errors.height_min'),
+                'height.max' => __('profile.errors.height_max'),
+                'period_duration.integer' => __('profile.errors.period_duration_integer'),
+                'period_duration.min' => __('profile.errors.period_duration_min'),
+                'period_duration.max' => __('profile.errors.period_duration_max'),
+                'cycle_duration.integer' => __('profile.errors.cycle_duration_integer'),
+                'cycle_duration.min' => __('profile.errors.cycle_duration_min'),
+                'cycle_duration.max' => __('profile.errors.cycle_duration_max'),
+                'last_period_start.date' => __('profile.errors.last_period_start_date'),
+                'last_period_start.before_or_equal' => __('profile.errors.last_period_start_before_or_equal'),
+                'user_goal.in' => __('profile.errors.user_goal_in', ['values' => implode(', ', UserGoal::values())]),
+                'subscription_type.in' => __('profile.errors.subscription_type_in', ['values' => implode(', ', SubscriptionType::values())]),
             ]);
 
             if ($validator->fails()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Validation failed: ' . $validator->errors()->first(),
+                    'message' => __('profile.validation_failed', ['first' => $validator->errors()->first()]),
                     'errors' => $validator->errors(),
                 ], 422);
             }
@@ -221,12 +232,12 @@ class ProfileController extends Controller
             $profile->save();
 
             if ($cycleFieldsChanged && $profile->last_period_start) {
-                $this->triggerRecalculation($user, $profile, $request->header('Accept-Language', 'en'));
+                $this->triggerRecalculation($user, $profile, $locale);
             }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Profile updated successfully',
+                'message' => __('profile.updated'),
                 'data' => [
                     'user' => $user->fresh(),
                     'profile' => $profile->fresh(),
@@ -236,24 +247,36 @@ class ProfileController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation failed: ' . collect($e->errors())->flatten()->first(),
+                'message' => __('profile.validation_failed', ['first' => collect($e->errors())->flatten()->first()]),
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Illuminate\Database\QueryException $e) {
             \Log::error('Profile store DB error', ['error' => $e->getMessage(), 'user_id' => $request->user()?->id]);
             return response()->json([
                 'success' => false,
-                'message' => 'Database error while saving profile.',
-                'error' => config('app.debug') ? $e->getMessage() : 'Please try again later.',
+                'message' => __('profile.db_error'),
+                'error' => config('app.debug') ? $e->getMessage() : __('profile.try_again'),
             ], 500);
         } catch (\Throwable $e) {
             \Log::error('Profile store error', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return response()->json([
                 'success' => false,
-                'message' => 'An unexpected error occurred while updating your profile.',
-                'error' => config('app.debug') ? $e->getMessage() : 'Please try again later.',
+                'message' => __('profile.unexpected_error'),
+                'error' => config('app.debug') ? $e->getMessage() : __('profile.try_again'),
             ], 500);
         }
+    }
+
+    /**
+     * Resolve locale from Accept-Language header (supports values like "fa", "en", "fa-IR").
+     */
+    private function resolveLocale(Request $request): string
+    {
+        $header = $request->header('Accept-Language', 'en');
+        $primary = strtolower(strtok($header, ',;'));
+        $primary = explode('-', $primary)[0];
+
+        return in_array($primary, ['fa', 'en'], true) ? $primary : 'en';
     }
 
     /**
