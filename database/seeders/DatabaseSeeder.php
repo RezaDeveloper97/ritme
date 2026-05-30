@@ -21,5 +21,14 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+
+        // Home page content (idempotent)
+        $this->call([
+            TaskTemplateSeeder::class,
+            ArticleSeeder::class,
+            AffirmationSeeder::class,
+            ChallengeSeeder::class,
+            HomeDemoSeeder::class,
+        ]);
     }
 }

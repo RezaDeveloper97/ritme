@@ -6,7 +6,7 @@ use App\Enums\SubscriptionType;
 use App\Enums\UserGoal;
 use App\Models\DailyHealthLog;
 use App\Models\User;
-use App\Services\HealthDataEngine;
+use App\Services\HealthEngine\HealthDataEngine;
 use App\Services\MessageSystem\Contracts\MessageEngineInterface;
 use App\Services\MessageSystem\Engines\CycleMessageEngine;
 use App\Services\MessageSystem\Engines\PregnancyMessageEngine;

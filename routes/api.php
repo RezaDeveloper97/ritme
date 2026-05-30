@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\CycleCalculationController;
 use App\Http\Controllers\Api\V1\DailyHealthLogController;
+use App\Http\Controllers\Api\V1\HomeController;
 use App\Http\Controllers\Api\V1\MessageController;
 use App\Http\Controllers\Api\V1\OtpAuthController;
 use App\Http\Controllers\Api\V1\PregnancyAlertController;
@@ -110,6 +111,21 @@ Route::prefix('v1')->group(function () {
             Route::get('/daily', [MessageController::class, 'daily']);
             Route::get('/enums', [MessageController::class, 'enums']);
             Route::get('/mode', [MessageController::class, 'mode']);
+        });
+
+        // Home Page (aggregated dashboard + per-section endpoints + actions)
+        Route::prefix('home')->group(function () {
+            Route::get('/', [HomeController::class, 'index']);
+            Route::get('/sections/{section}', [HomeController::class, 'section']);
+
+            // Section actions
+            Route::post('/tasks/{task}/toggle', [HomeController::class, 'toggleTask']);
+            Route::post('/challenges/{challenge}/toggle', [HomeController::class, 'toggleChallenge']);
+
+            // Notifications (header bell)
+            Route::get('/notifications', [HomeController::class, 'notifications']);
+            Route::post('/notifications/read-all', [HomeController::class, 'markAllNotificationsRead']);
+            Route::post('/notifications/{notification}/read', [HomeController::class, 'markNotificationRead']);
         });
     });
 });

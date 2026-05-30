@@ -5,6 +5,7 @@ namespace App\Http\Requests\Api\V1;
 use App\Enums\Amount;
 use App\Enums\BloodColor;
 use App\Enums\DischargeTexture;
+use App\Enums\EnergyLevel;
 use App\Enums\Intensity;
 use App\Enums\Mood;
 use App\Enums\PainIntensity;
@@ -117,6 +118,11 @@ class StoreDailyHealthLogRequest extends FormRequest
             // =========================================
             'weight' => ['nullable', 'numeric', 'min:20', 'max:300'],
             'basal_body_temperature' => ['nullable', 'numeric', 'min:35', 'max:42'],
+            'heart_rate' => ['nullable', 'integer', 'min:30', 'max:250'],
+            'systolic_pressure' => ['nullable', 'integer', 'min:50', 'max:300'],
+            'diastolic_pressure' => ['nullable', 'integer', 'min:30', 'max:200'],
+            'blood_sugar' => ['nullable', 'numeric', 'min:20', 'max:600'],
+            'energy_level' => ['nullable', Rule::in(EnergyLevel::values())],
 
             // =========================================
             // 7. Vaginal Discharge
@@ -159,6 +165,14 @@ class StoreDailyHealthLogRequest extends FormRequest
             'weight.max' => 'Weight cannot exceed 300 kg',
             'basal_body_temperature.min' => 'Temperature must be at least 35°C',
             'basal_body_temperature.max' => 'Temperature cannot exceed 42°C',
+            'heart_rate.min' => 'Heart rate must be at least 30 bpm',
+            'heart_rate.max' => 'Heart rate cannot exceed 250 bpm',
+            'systolic_pressure.min' => 'Systolic pressure must be at least 50 mmHg',
+            'systolic_pressure.max' => 'Systolic pressure cannot exceed 300 mmHg',
+            'diastolic_pressure.min' => 'Diastolic pressure must be at least 30 mmHg',
+            'diastolic_pressure.max' => 'Diastolic pressure cannot exceed 200 mmHg',
+            'blood_sugar.min' => 'Blood sugar must be at least 20 mg/dl',
+            'blood_sugar.max' => 'Blood sugar cannot exceed 600 mg/dl',
             'notes.max' => 'Notes cannot exceed 2000 characters',
         ];
     }

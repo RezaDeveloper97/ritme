@@ -60,6 +60,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  *     @OA\Property(property="sexual_activities", type="array", nullable=true, @OA\Items(type="string", enum={"high_desire","protected_intercourse","unprotected_intercourse","no_desire","dryness","burning","pain_during_intercourse","bleeding_after_intercourse","lubricant_use"})),
  *     @OA\Property(property="weight", type="number", format="float", nullable=true, example=65.5),
  *     @OA\Property(property="basal_body_temperature", type="number", format="float", nullable=true, example=36.5),
+ *     @OA\Property(property="heart_rate", type="integer", nullable=true, example=72, description="Resting heart rate (bpm)"),
+ *     @OA\Property(property="systolic_pressure", type="integer", nullable=true, example=120, description="Systolic blood pressure (mmHg)"),
+ *     @OA\Property(property="diastolic_pressure", type="integer", nullable=true, example=80, description="Diastolic blood pressure (mmHg)"),
+ *     @OA\Property(property="blood_sugar", type="number", format="float", nullable=true, example=95.0, description="Blood sugar (mg/dl)"),
+ *     @OA\Property(property="energy_level", type="string", nullable=true, enum={"very_low","low","medium","high","very_high"}),
  *     @OA\Property(property="discharge_color", type="string", nullable=true),
  *     @OA\Property(property="discharge_texture", type="string", nullable=true, enum={"watery","creamy","egg_white","thick"}),
  *     @OA\Property(property="discharge_amount", type="string", nullable=true, enum={"low","medium","high"}),
@@ -141,6 +146,13 @@ class DailyHealthLog extends Model
         // 6. Vital Signs
         'weight',
         'basal_body_temperature',
+        'heart_rate',
+        'systolic_pressure',
+        'diastolic_pressure',
+        'blood_sugar',
+
+        // Energy
+        'energy_level',
 
         // 7. Vaginal Discharge
         'discharge_color',
@@ -190,6 +202,12 @@ class DailyHealthLog extends Model
             // Decimals
             'weight' => 'decimal:2',
             'basal_body_temperature' => 'decimal:2',
+            'blood_sugar' => 'decimal:1',
+
+            // Integers
+            'heart_rate' => 'integer',
+            'systolic_pressure' => 'integer',
+            'diastolic_pressure' => 'integer',
 
             // JSON
             'moods' => 'array',

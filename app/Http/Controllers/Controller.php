@@ -65,6 +65,11 @@ namespace App\Http\Controllers;
  *     name="Pregnancy Alerts",
  *     description="Pregnancy health alerts and emergency notifications"
  * )
+ *
+ * @OA\Tag(
+ *     name="Home",
+ *     description="Aggregated home page: server-driven sections, per-section endpoints and section actions"
+ * )
  */
 abstract class Controller
 {

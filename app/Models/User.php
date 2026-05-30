@@ -120,4 +120,39 @@ class User extends Authenticatable
     {
         return $this->hasMany(PregnancyAlert::class);
     }
+
+    /**
+     * Get the user's daily task completions (home page checklist)
+     */
+    public function taskCompletions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(UserTaskCompletion::class);
+    }
+
+    /**
+     * Get the user's challenge completions
+     */
+    public function challengeCompletions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(UserChallengeCompletion::class);
+    }
+
+    /**
+     * Get the user's reminders (doctor, medication, ...)
+     */
+    public function reminders(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Reminder::class);
+    }
+
+    /**
+     * Get the user's in-app notifications.
+     *
+     * Named appNotifications() to avoid overriding the Notifiable trait's
+     * polymorphic notifications() relation.
+     */
+    public function appNotifications(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(UserNotification::class);
+    }
 }
