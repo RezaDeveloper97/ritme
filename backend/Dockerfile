@@ -17,10 +17,18 @@ RUN composer dump-autoload --optimize
 # ---- Runtime ----------------------------------------------------------------
 FROM php:8.4-apache AS runtime
 
-# install-php-extensions handles system deps and phpredis (pecl.php.net is EOL).
-ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
-RUN chmod +x /usr/local/bin/install-php-extensions \
- && install-php-extensions pdo_mysql bcmath opcache pcntl intl zip redis
+# Core extensions via docker-php-ext-install; phpredis built from the GitHub
+# source tarball because pecl.php.net sits behind a CDN unreachable from here.
+ARG PHPREDIS_VERSION=6.3.0
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends libicu-dev libzip-dev \
+ && docker-php-ext-install -j"$(nproc)" pdo_mysql bcmath opcache pcntl intl zip \
+ && curl -fsSL "https://github.com/phpredis/phpredis/archive/refs/tags/${PHPREDIS_VERSION}.tar.gz" -o /tmp/phpredis.tar.gz \
+ && mkdir -p /usr/src/phpredis \
+ && tar xzf /tmp/phpredis.tar.gz -C /usr/src/phpredis --strip-components=1 \
+ && cd /usr/src/phpredis && phpize && ./configure && make -j"$(nproc)" && make install \
+ && docker-php-ext-enable redis \
+ && rm -rf /usr/src/phpredis /tmp/phpredis.tar.gz /var/lib/apt/lists/*
 
 # Serve Laravel's public/ and let its .htaccess handle routing.
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
