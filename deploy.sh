@@ -13,7 +13,9 @@ cd "$(dirname "$0")"
 SERVER="root@62.60.198.240"
 SSH_KEY="$HOME/.ssh/id_ed25519"
 API_BASE_URL="http://ritmeapp.ir/api/v1"
-OTP_TEST_MODE="false"
+# Test mode ON for now: SMS.ir gateway is failing, so login accepts 1111
+# instead of sending a real OTP. Flip back to "false" once SMS works.
+OTP_TEST_MODE="true"
 
 echo "==> Building backend (linux/amd64)..."
 docker build --platform linux/amd64 -t ritme-backend:latest ./backend
