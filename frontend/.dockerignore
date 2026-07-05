@@ -1,0 +1,32 @@
+# Build context hygiene — keep the image small and the build reproducible.
+node_modules
+.next
+out
+build
+dist
+coverage
+
+# VCS / tooling
+.git
+.gitignore
+.claude
+.vscode
+.idea
+
+# Local env & secrets (image gets NEXT_PUBLIC_* via build args instead)
+.env
+.env*.local
+
+# Large repo artifacts that must never enter the build context
+ritme-build.tar.gz
+ritme.fig
+sample
+docs
+
+# Misc
+*.tsbuildinfo
+npm-debug.log*
+.DS_Store
+Dockerfile
+.dockerignore
+README.md

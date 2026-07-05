@@ -1,0 +1,12 @@
+{
+  "appName": "ریتمی",
+  "actions": {
+    "save": "ذخیره",
+    "cancel": "انصراف",
+    "continue": "ادامه"
+  },
+  "locale": {
+    "fa": "فارسی",
+    "en": "English"
+  }
+}

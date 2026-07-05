@@ -1,0 +1,70 @@
+{
+  "title": "Cycle",
+  "subtitle": "An overview of your current cycle.",
+  "tagline": "Your body's rhythm",
+  "updating": "Updating your cycle…",
+  "recalculate": "Recalculate",
+  "unavailable": "—",
+  "days": "{n, plural, one{# day} other{# days}}",
+  "dayN": "Day {n, number}",
+  "percent": "{n, number}%",
+  "basedOn": "Based on your current cycle",
+  "status": {
+    "cycleDayLabel": "Cycle day",
+    "ofN": "of {n, number}",
+    "phaseLabel": "Current phase",
+    "fertility": "Today's conception chance",
+    "pms": "Pre-menstrual window",
+    "fertileWindow": "You're in your fertile window"
+  },
+  "phaseLabel": {
+    "period": "Period",
+    "follicular": "Follicular",
+    "fertile": "Fertility window",
+    "ovulation": "Ovulation",
+    "luteal": "Luteal"
+  },
+  "phaseDesc": {
+    "period": "Menstruation days — your body is renewing itself. Focus on rest and good nutrition.",
+    "follicular": "After your period, energy usually rises as your body prepares for ovulation.",
+    "fertile": "Your fertile window — the days when the chance of conception is higher.",
+    "ovulation": "Your estimated ovulation day — the peak of the fertile window.",
+    "luteal": "From ovulation to your next period — you may notice pre-menstrual signs."
+  },
+  "timeline": {
+    "title": "Upcoming events",
+    "window": "Fertility window",
+    "ovulation": "Ovulation",
+    "nextPeriod": "Next period"
+  },
+  "summary": {
+    "title": "Cycle summary",
+    "length": "Cycle length",
+    "ovulationDay": "Ovulation day",
+    "phase": "Current phase",
+    "variability": "Cycle regularity",
+    "viewMore": "Open calendar"
+  },
+  "variability": {
+    "regular": "Regular",
+    "irregular": "Irregular",
+    "unknown": "Being assessed"
+  },
+  "cycles": {
+    "title": "My cycles",
+    "current": "Current cycle",
+    "startedOn": "Started on",
+    "addPrevious": "Add previous cycles",
+    "summary": "Cycle summary"
+  },
+  "smartTip": {
+    "title": "Smart tip",
+    "body": "Knowing your cycle phases helps you understand your body's needs and align your day with its rhythm.",
+    "quote": "Every cycle is a fresh chance to listen to your body."
+  },
+  "empty": {
+    "title": "No cycle logged yet",
+    "body": "Log your period details to see your cycle overview.",
+    "cta": "Start period"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "stepOf": "{step} / 7",
+  "continue": "Continue",
+  "finish": "Finish",
+  "helper": "Help us get to know you better",
+
+  "name": {
+    "title": "What is your name?",
+    "subtitle": "What should we call you?",
+    "label": "Full name",
+    "placeholder": "e.g. Isabella"
+  },
+  "gender": {
+    "title": "What is your gender?",
+    "subtitle": "Help us understand you better",
+    "female": "Female",
+    "male": "Male",
+    "skip": "Prefer not to say"
+  },
+  "birthday": {
+    "title": "What is your date of birth?",
+    "subtitle": "Help us get to know you better"
+  },
+  "weight": {
+    "title": "What is your weight?",
+    "subtitle": "Help us get to know you better"
+  },
+  "height": {
+    "title": "What is your height?",
+    "subtitle": "Help us get to know you better"
+  },
+  "periodLen": {
+    "title": "How many days does your period usually last?",
+    "subtitle": "Help us get to know you better",
+    "unit": "days"
+  },
+  "cycleLen": {
+    "title": "When did your last period start?",
+    "subtitle": "Help us get to know you better",
+    "hint": "Select the day your last period began"
+  },
+  "settingUp": {
+    "title": "We are setting up your personalised calendar…",
+    "subtitle": "Help us get to know you better",
+    "wait": "Please wait a few seconds…"
+  }
+}

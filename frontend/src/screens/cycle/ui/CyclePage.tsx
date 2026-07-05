@@ -1,0 +1,475 @@
+'use client';
+
+import { useFormatter, useLocale, useTranslations } from 'next-intl';
+import { useEffect, useState } from 'react';
+
+import {
+  deriveCyclePredictions,
+  useCycleStatus,
+  useCycleToday,
+  useRecalculateCycle,
+  type CycleCalculation,
+  type CyclePhase,
+  type CyclePredictions,
+} from '@/entities/cycle';
+import { useDailyMessage, type DailyMessage } from '@/entities/message';
+import { Link } from '@/shared/i18n';
+import type { Locale } from '@/shared/i18n';
+import { addDays, formatJalaliDayMonth, today } from '@/shared/lib/date';
+import { DropSolid, Icon, StatusBar } from '@/shared/ui';
+import { BottomNav } from '@/widgets/bottom-nav';
+
+type T = ReturnType<typeof useTranslations>;
+
+// Per-phase accent colors, shared with the calendar/home palette so a phase
+// reads the same everywhere. Follicular/luteal are the calm "between events"
+// violet; the active phases keep their signal colors.
+const PHASE_COLOR: Record<CyclePhase, { c: string; bg: string }> = {
+  period: { c: '#E91E63', bg: '#FCE7F3' },
+  follicular: { c: '#7C7CF0', bg: '#F3F0FF' },
+  fertile: { c: '#F5A623', bg: '#FEF3C6' },
+  ovulation: { c: '#34C77B', bg: '#E7F8EF' },
+  luteal: { c: '#7C7CF0', bg: '#F3F0FF' },
+};
+
+const clampPct = (v: number) => Math.min(100, Math.max(0, v));
+
+// Cycle regularity comes back as a free-form string (or null). Narrow it to the
+// three labels we actually translate; anything unknown reads as "being assessed".
+function variabilityKey(raw: string | null): 'regular' | 'irregular' | 'unknown' {
+  if (raw === 'regular' || raw === 'irregular') return raw;
+  return 'unknown';
+}
+
+// ── Header (title + recalculate) ───────────────────────────────
+function CycleHeader({
+  t, tagline, onRecalculate, recalculating,
+}: {
+  t: T;
+  tagline: string;
+  onRecalculate: () => void;
+  recalculating: boolean;
+}) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 18px 10px' }}>
+      <button className="iconbtn" style={{ background: 'rgba(255,255,255,.6)' }}>
+        <Icon name="bell" size={20} />
+      </button>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontWeight: 900, fontSize: 20, color: 'var(--brand-deep)' }}>{t('title')}</div>
+        <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 1 }}>{tagline}</div>
+      </div>
+      <button
+        className="iconbtn"
+        style={{ background: 'rgba(255,255,255,.6)', color: 'var(--brand)', opacity: recalculating ? 0.5 : 1 }}
+        onClick={onRecalculate}
+        disabled={recalculating}
+        aria-label={t('recalculate')}
+      >
+        <Icon name={recalculating ? 'loader' : 'refresh'} size={20} />
+      </button>
+    </div>
+  );
+}
+
+// ── Status hero: cycle-day ring + phase ────────────────────────
+function CycleStatusCard({
+  t, pred, calc, phaseDesc,
+}: {
+  t: T;
+  pred: CyclePredictions;
+  calc: CycleCalculation;
+  phaseDesc: string;
+}) {
+  const format = useFormatter();
+  const { c, bg } = PHASE_COLOR[pred.phase];
+  const ringPct = clampPct((pred.cycleDay / pred.cycleLength) * 100);
+
+  return (
+    <div style={{ padding: '2px 16px 0' }}>
+      <div
+        className="card"
+        style={{ padding: '18px 16px', background: 'linear-gradient(135deg,#FFFFFF 0%,#FFF6FA 100%)' }}
+      >
+        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--brand)', textAlign: 'start', marginBottom: 14 }}>
+          {t('basedOn')}
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          {/* Cycle-day donut. Fill proportion = today's day within the cycle. */}
+          <div
+            style={{
+              position: 'relative',
+              width: 104,
+              height: 104,
+              flex: '0 0 104px',
+              borderRadius: '50%',
+              background: `conic-gradient(${c} ${ringPct * 3.6}deg, var(--line) 0deg)`,
+            }}
+          >
+            <div
+              style={{
+                position: 'absolute',
+                inset: 9,
+                borderRadius: '50%',
+                background: '#fff',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 1,
+              }}
+            >
+              <span style={{ fontSize: 30, fontWeight: 900, color: 'var(--ink)', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+                {format.number(pred.cycleDay)}
+              </span>
+              <span style={{ fontSize: 10, color: 'var(--muted)', fontWeight: 600 }}>
+                {t('status.ofN', { n: pred.cycleLength })}
+              </span>
+            </div>
+          </div>
+
+          <div style={{ flex: 1, textAlign: 'start' }}>
+            <div style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 600, marginBottom: 4 }}>
+              {t('status.phaseLabel')}
+            </div>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: bg, color: c, borderRadius: 20, padding: '5px 12px' }}>
+              <DropSolid size={14} color={c} />
+              <span style={{ fontSize: 13, fontWeight: 800 }}>{t(`phaseLabel.${pred.phase}`)}</span>
+            </div>
+
+            <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+              <div style={{ flex: 1, background: '#FFF1F7', borderRadius: 12, padding: '8px 10px' }}>
+                <div style={{ fontSize: 10, color: 'var(--muted)', fontWeight: 600 }}>{t('status.fertility')}</div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--brand)', marginTop: 2 }}>
+                  {t('percent', { n: pred.fertilityPercent })}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Fertile-window / PMS status line, only when relevant. */}
+        {(pred.isFertileWindow || calc.isPmsWindow) && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 14, background: 'var(--line)', borderRadius: 12, padding: '9px 12px' }}>
+            <span style={{ color: pred.isFertileWindow ? '#F5A623' : '#7C7CF0' }}>
+              <Icon name="info" size={16} />
+            </span>
+            <span style={{ flex: 1, textAlign: 'start', fontSize: 12, fontWeight: 700, color: 'var(--ink)' }}>
+              {pred.isFertileWindow ? t('status.fertileWindow') : t('status.pms')}
+            </span>
+          </div>
+        )}
+
+        <p className="sub" style={{ textAlign: 'start', margin: '14px 2px 0', lineHeight: 1.9 }}>
+          {phaseDesc}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ── Timeline: linear cycle bar + upcoming events ───────────────
+function CycleTimeline({
+  t, pred, calc, windowDate, ovulationDate, nextPeriodDate,
+}: {
+  t: T;
+  pred: CyclePredictions;
+  calc: CycleCalculation;
+  windowDate: string;
+  ovulationDate: string;
+  nextPeriodDate: string;
+}) {
+  const len = pred.cycleLength;
+  const at = (day: number) => clampPct((day / len) * 100);
+  const ovulation = calc.estimatedOvulationDay;
+  const fertileStart = ovulation - 4; // FERTILE_WINDOW_LEAD_DAYS in the entity
+  const todayPos = at(pred.cycleDay);
+
+  const rows = [
+    { l: t('timeline.window'), d: windowDate, c: '#F5A623', bg: '#FEF3C6' },
+    { l: t('timeline.ovulation'), d: ovulationDate, c: '#34C77B', bg: '#E7F8EF' },
+    { l: t('timeline.nextPeriod'), d: nextPeriodDate, c: '#E91E63', bg: '#FCE7F3' },
+  ];
+
+  return (
+    <div style={{ padding: '14px 16px 0' }}>
+      <div className="card" style={{ padding: '16px 14px' }}>
+        <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)', textAlign: 'start', marginBottom: 16 }}>
+          {t('timeline.title')}
+        </div>
+
+        {/* Left→right timeline regardless of locale — a cycle always runs
+            day 1 → day N, so pin the bar to LTR (§12-safe: not layout chrome). */}
+        <div dir="ltr" style={{ position: 'relative', height: 10, borderRadius: 99, background: 'var(--line)', overflow: 'visible', marginBottom: 26 }}>
+          {/* Fertile band */}
+          <span
+            style={{
+              position: 'absolute', top: 0, bottom: 0,
+              left: `${at(fertileStart)}%`, width: `${at(ovulation + 1) - at(fertileStart)}%`,
+              background: '#FEF3C6', borderRadius: 99,
+            }}
+          />
+          {/* Progress up to today */}
+          <span
+            style={{
+              position: 'absolute', top: 0, bottom: 0, left: 0, width: `${todayPos}%`,
+              background: 'linear-gradient(90deg,#F06292,#E91E63)', borderRadius: 99, opacity: 0.85,
+            }}
+          />
+          {/* Ovulation tick */}
+          <span
+            style={{
+              position: 'absolute', top: '50%', left: `${at(ovulation)}%`,
+              width: 10, height: 10, marginTop: -5, marginLeft: -5,
+              borderRadius: '50%', background: '#34C77B', border: '2px solid #fff',
+            }}
+          />
+          {/* Today marker */}
+          <span
+            style={{
+              position: 'absolute', top: -5, left: `${todayPos}%`,
+              width: 4, height: 20, marginLeft: -2, borderRadius: 2, background: 'var(--brand)',
+            }}
+          />
+        </div>
+
+        {rows.map((r, i) => (
+          <div
+            key={r.l}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '11px 2px',
+              ...(i < rows.length - 1 ? { borderBottom: '1px solid var(--line)' } : {}),
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span className="dot" style={{ background: r.bg, color: r.c }}>
+                <DropSolid size={16} color={r.c} />
+              </span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)' }}>{r.l}</span>
+            </div>
+            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--muted)', fontVariantNumeric: 'tabular-nums' }}>{r.d}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Cycle summary ──────────────────────────────────────────────
+function CycleSummaryCard({
+  t, pred, calc,
+}: {
+  t: T;
+  pred: CyclePredictions;
+  calc: CycleCalculation;
+}) {
+  const rows: [string, string][] = [
+    [t('summary.length'), t('days', { n: pred.cycleLength })],
+    [t('summary.ovulationDay'), t('dayN', { n: calc.estimatedOvulationDay })],
+    [t('summary.phase'), t(`phaseLabel.${pred.phase}`)],
+    [t('summary.variability'), t(`variability.${variabilityKey(calc.cycleVariability)}`)],
+  ];
+
+  return (
+    <div style={{ padding: '14px 16px 0' }}>
+      <div className="card" style={{ padding: '16px 14px' }}>
+        <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)', textAlign: 'start', marginBottom: 4 }}>
+          {t('summary.title')}
+        </div>
+        {rows.map(([label, val], i) => (
+          <div
+            key={label}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '12px 2px',
+              ...(i < rows.length - 1 ? { borderBottom: '1px solid var(--line)' } : {}),
+            }}
+          >
+            <span style={{ fontSize: 13, color: 'var(--muted)', fontWeight: 600 }}>{label}</span>
+            <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--ink)', fontVariantNumeric: 'tabular-nums' }}>{val}</span>
+          </div>
+        ))}
+        <div style={{ paddingTop: 14 }}>
+          <Link href="/calendar" className="btn btn-primary" style={{ borderRadius: 14, textDecoration: 'none' }}>
+            {t('summary.viewMore')}
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── My cycles ──────────────────────────────────────────────────
+function MyCycles({
+  t, pred, cycleStartDate,
+}: {
+  t: T;
+  pred: CyclePredictions;
+  cycleStartDate: string;
+}) {
+  return (
+    <div style={{ padding: '14px 16px 0' }}>
+      <div className="card" style={{ padding: '16px 14px' }}>
+        <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)', textAlign: 'start', marginBottom: 4 }}>
+          {t('cycles.title')}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 2px 14px' }}>
+          <span className="dot" style={{ width: 40, height: 40, background: '#FCE7F3', color: 'var(--brand)' }}>
+            <DropSolid size={18} color="var(--brand)" />
+          </span>
+          <div style={{ textAlign: 'start' }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)' }}>
+              {t('cycles.current')}: {t('dayN', { n: pred.cycleDay })}
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 3 }}>
+              {t('cycles.startedOn')} {cycleStartDate}
+            </div>
+          </div>
+        </div>
+        <Link
+          href="/log"
+          className="btn btn-ghost"
+          style={{ height: 44, borderRadius: 14, gap: 8, fontSize: 13, textDecoration: 'none' }}
+        >
+          <Icon name="plus" size={16} /> {t('cycles.addPrevious')}
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+// ── Smart tip (educational, non-diagnostic — §11) ──────────────
+function SmartTip({ t, body, quote }: { t: T; body: string; quote: string }) {
+  return (
+    <div style={{ padding: '14px 16px 0' }}>
+      <div className="card" style={{ padding: '14px 12px' }}>
+        <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--ink)', textAlign: 'start', marginBottom: 10 }}>
+          {t('smartTip.title')}
+        </div>
+        <p className="sub" style={{ textAlign: 'start', margin: '0 2px 14px' }}>{body}</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'linear-gradient(90deg,#FFF0F7,#F3F0FF)', borderRadius: 12, padding: 12 }}>
+          <span style={{ color: 'var(--ritme-pink)' }}>
+            <Icon name="sparkle" size={20} fill="currentColor" strokeWidth={0} />
+          </span>
+          <span style={{ flex: 1, textAlign: 'start', fontSize: 12.5, fontWeight: 700, color: 'var(--ink)' }}>
+            {quote}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Empty state (no cycle logged yet) ──────────────────────────
+function EmptyState({ t }: { t: T }) {
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, padding: 24 }}>
+      <span
+        style={{
+          width: 72, height: 72, borderRadius: '50%', background: '#fff', color: 'var(--brand)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 10px 30px rgba(17,32,47,.08)',
+        }}
+      >
+        <Icon name="drop" size={30} fill="currentColor" strokeWidth={0} />
+      </span>
+      <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>{t('empty.title')}</div>
+      <p className="sub" style={{ textAlign: 'center', margin: 0, maxWidth: 260 }}>{t('empty.body')}</p>
+      <Link href="/log" className="btn btn-primary" style={{ width: 'auto', padding: '0 26px', borderRadius: 14, textDecoration: 'none' }}>
+        {t('empty.cta')}
+      </Link>
+    </div>
+  );
+}
+
+// ── Main export ────────────────────────────────────────────────
+export function CyclePage() {
+  const t = useTranslations('cycle');
+  const loc = useLocale() as Locale;
+
+  // Server render has no query data yet, so the server always emits the "loading"
+  // shell. Gate the data/empty branches on mount so the first client render
+  // matches the server HTML and hydration doesn't mismatch (§ React hydration).
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  // Server state (§8) — today's cycle calculation + personalized message.
+  const todayQuery = useCycleToday();
+  const todayData = todayQuery.data;
+  const { data: daily } = useDailyMessage();
+  const recalc = useRecalculateCycle();
+
+  const calc = todayData?.calculation ?? null;
+  const pred = calc ? deriveCyclePredictions(calc) : null;
+
+  // While the backend recalculates, poll status and refetch today's calc once
+  // it settles so the screen reflects the fresh result without a manual reload.
+  const recalculating = Boolean(todayData?.isRecalculating) || recalc.isPending;
+  const { data: status } = useCycleStatus({ poll: recalculating });
+  const settled = status ? !status.is_processing : false;
+  useEffect(() => {
+    if (recalculating && settled) {
+      void todayQuery.refetch();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recalculating, settled]);
+
+  // Turn day-offsets into Jalali dates only here, at the display boundary (§7).
+  const base = today();
+  const fmt = (offset: number) => formatJalaliDayMonth(addDays(base, offset), loc);
+
+  const message: DailyMessage | undefined = daily;
+  const phaseDesc = message?.primary.longMessage
+    || (pred ? t(`phaseDesc.${pred.phase}`) : '');
+  const smartTipBody = message?.primary.longMessage || t('smartTip.body');
+  const smartTipQuote = message?.primary.actionSuggestion || t('smartTip.quote');
+
+  return (
+    <div className="view" style={{ background: 'var(--page)' }}>
+      <div className="home-grad" style={{ position: 'absolute', top: 0, insetInlineStart: 0, insetInlineEnd: 0, height: 300 }} />
+
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        <StatusBar />
+      </div>
+
+      <div className="scroll" style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column' }}>
+        <CycleHeader
+          t={t}
+          tagline={t('tagline')}
+          onRecalculate={() => recalc.mutate()}
+          recalculating={recalculating}
+        />
+
+        {recalculating && (
+          <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--muted)', padding: '0 16px 4px' }}>
+            {t('updating')}
+          </div>
+        )}
+
+        {mounted && calc && pred ? (
+          <>
+            <CycleStatusCard t={t} pred={pred} calc={calc} phaseDesc={phaseDesc} />
+            <CycleTimeline
+              t={t}
+              pred={pred}
+              calc={calc}
+              windowDate={fmt(Math.max(0, pred.daysUntilFertileWindow))}
+              ovulationDate={fmt(Math.max(0, pred.daysUntilOvulation))}
+              nextPeriodDate={fmt(pred.daysUntilNextPeriod)}
+            />
+            <CycleSummaryCard t={t} pred={pred} calc={calc} />
+            <MyCycles t={t} pred={pred} cycleStartDate={fmt(-(pred.cycleDay - 1))} />
+            <SmartTip t={t} body={smartTipBody} quote={smartTipQuote} />
+            <div style={{ height: 26 }} />
+          </>
+        ) : (
+          mounted && !todayQuery.isLoading && <EmptyState t={t} />
+        )}
+      </div>
+
+      <BottomNav />
+    </div>
+  );
+}

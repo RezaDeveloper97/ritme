@@ -1,0 +1,52 @@
+import fsd from '@feature-sliced/steiger-plugin';
+import { defineConfig } from 'steiger';
+
+// Feature-Sliced Design boundary linter. See CLAUDE.md §3 for the rules this
+// enforces (downward-only imports, no sibling cross-imports, public API).
+export default defineConfig([
+  ...fsd.configs.recommended,
+  {
+    // Tests live next to the code they cover; they are not slices.
+    ignores: ['**/*.test.ts', '**/*.test.tsx'],
+  },
+  {
+    // The route-composition layer is named `screens` (not `pages`) so the
+    // Next.js build doesn't mistake it for the legacy Pages Router. steiger
+    // only recognizes `pages` as a layer name, so references coming FROM
+    // screens are invisible to it — these slices are all consumed by screens.
+    files: [
+      './src/entities/user/**',
+      './src/features/auth/**',
+      './src/widgets/bottom-nav/**',
+    ],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
+    // `entities/cycle` is a canonical domain entity (CLAUDE.md §5) that will be
+    // consumed by more screens as cycle/API wiring lands. Don't nag about it
+    // having a single reference today.
+    files: ['./src/entities/cycle/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
+    // `entities/message` maps the API's `messages` endpoint group (CLAUDE.md
+    // §8.1: daily personalized messages + current mode). The home screen is its
+    // first consumer; mode-awareness and the pregnancy screens will follow.
+    files: ['./src/entities/message/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
+    // `entities/health-log` maps the API's `health-logs` endpoint group
+    // (CLAUDE.md §8.1: daily health log CRUD + form enums). The Add Log screen
+    // is its first consumer; the calendar day-sheet and insights will follow.
+    files: ['./src/entities/health-log/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
+    // `features/switch-locale` is a canonical feature (CLAUDE.md §5). The
+    // profile screen is its first consumer; onboarding and the app header are
+    // expected to reuse it. Don't nag about the single reference today.
+    files: ['./src/features/switch-locale/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+]);

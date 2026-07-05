@@ -1,0 +1,47 @@
+{
+  "title": "Profile",
+  "guest": "Ritme user",
+  "editProfile": "Edit profile",
+  "noPhone": "No phone number saved",
+  "sections": {
+    "account": "Account",
+    "app": "App",
+    "privacy": "Privacy & data",
+    "support": "Support"
+  },
+  "rows": {
+    "personalInfo": "Personal info",
+    "healthPrefs": "Cycle & health preferences",
+    "reminders": "Reminders",
+    "notifications": "Notifications",
+    "language": "App language",
+    "appearance": "Appearance & theme",
+    "privacyPolicy": "Privacy policy",
+    "exportData": "Export my data",
+    "deleteAccount": "Delete account",
+    "help": "Help & support",
+    "about": "About Ritme",
+    "terms": "Terms & conditions"
+  },
+  "health": {
+    "title": "Cycle & health",
+    "cycleDuration": "Cycle length",
+    "periodDuration": "Period length",
+    "lastPeriod": "Last period start",
+    "birthday": "Date of birth",
+    "weight": "Weight",
+    "height": "Height",
+    "days": "{days, plural, one {# day} other {# days}}",
+    "kg": "{value} kg",
+    "cm": "{value} cm",
+    "empty": "Not set",
+    "notSetUp": "You haven't completed your health info yet"
+  },
+  "language": {
+    "fa": "فارسی",
+    "en": "English"
+  },
+  "logout": "Log out",
+  "loggingOut": "Logging out…",
+  "version": "Version {version}"
+}

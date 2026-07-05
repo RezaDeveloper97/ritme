@@ -1,0 +1,61 @@
+{
+  "title": "Calendar",
+  "subtitle": "See your cycle days and predictions here.",
+  "soon": "This section is coming soon.",
+  "fullMonth": "Full month",
+  "weekView": "Week",
+  "edit": "Edit",
+  "today": "Today",
+  "phaseLabel": "Phase",
+  "weekdays": {
+    "sat": "Sa",
+    "sun": "Su",
+    "mon": "Mo",
+    "tue": "Tu",
+    "wed": "We",
+    "thu": "Th",
+    "fri": "Fr"
+  },
+  "legend": {
+    "period": "Period",
+    "fertile": "Fertile window",
+    "ovulation": "Ovulation"
+  },
+  "phase": {
+    "period": "Period days",
+    "follicular": "Follicular phase",
+    "fertile": "Fertile window",
+    "ovulation": "Ovulation",
+    "luteal": "Luteal phase"
+  },
+  "day": {
+    "cycleDay": "Cycle day {n}",
+    "chanceLabel": "Chance of pregnancy",
+    "logMood": "Log this day"
+  },
+  "chance": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High"
+  },
+  "smartTip": {
+    "title": "Smart tip",
+    "body": "During the luteal phase your body may want more rest and nutrients. Magnesium-rich foods and enough sleep can help you feel your best.",
+    "quote": "Listen to your body's rhythm — each day has its own story."
+  },
+  "sheet": {
+    "title": "How are you feeling today?",
+    "subtitle": "Log symptoms, mood and more for this day.",
+    "moodTitle": "Mood",
+    "moods": {
+      "happy": "Happy",
+      "calm": "Calm",
+      "energetic": "Energetic",
+      "tired": "Tired",
+      "sad": "Sad",
+      "irritable": "Irritable"
+    },
+    "save": "Save",
+    "close": "Close"
+  }
+}

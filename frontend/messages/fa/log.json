@@ -1,0 +1,179 @@
+{
+  "title": "ثبت روزانه",
+  "subtitle": "هرچه امروز تجربه کردی را ثبت کن تا ریتمی بهتر بشناسدت.",
+  "today": "امروز",
+  "prevDay": "روز قبل",
+  "nextDay": "روز بعد",
+  "loading": "در حال بارگذاری…",
+  "save": "ذخیرهٔ ثبت امروز",
+  "saving": "در حال ذخیره…",
+  "saved": "ثبت شد",
+  "saveError": "ذخیره نشد؛ دوباره تلاش کن.",
+  "sheetHint": "موردی که مربوط به توست را انتخاب کن.",
+  "done": "تمام",
+  "clear": "پاک کردن",
+  "none": "ثبت نشده",
+  "selected": "{count, plural, one {# مورد} other {# مورد}}",
+  "recordThis": "ثبت این مورد",
+  "yes": "بله",
+  "categories": {
+    "bleeding": "خونریزی",
+    "pain": "درد و علائم",
+    "digestion": "گوارش و اشتها",
+    "mood": "خلق‌وخو",
+    "sleep": "خواب",
+    "body": "پوست و بدن",
+    "discharge": "ترشحات",
+    "intimate": "دستگاه ادراری و تناسلی",
+    "sexual": "فعالیت جنسی",
+    "measure": "اندازه‌گیری",
+    "notes": "یادداشت"
+  },
+  "categoryHint": {
+    "bleeding": "شدت، رنگ و ویژگی خونریزی",
+    "pain": "شدت دردها و علائم جسمی",
+    "digestion": "اشتها و وضعیت گوارش",
+    "mood": "حال‌وهوای امروزت",
+    "sleep": "مدت و کیفیت خواب",
+    "body": "احساس بدنی و وضعیت پوست",
+    "discharge": "بافت، مقدار و بوی ترشحات",
+    "intimate": "علائم ادراری و تناسلی",
+    "sexual": "میل و فعالیت جنسی",
+    "measure": "وزن و دمای پایهٔ بدن",
+    "notes": "هر چیز دیگری که می‌خواهی به یاد بماند"
+  },
+  "fields": {
+    "bleeding_intensity": "شدت خونریزی",
+    "blood_color": "رنگ خون",
+    "bleeding_smell": "بوی خونریزی",
+    "has_clots": "لخته",
+    "spotting": "لکه‌بینی",
+    "headache_intensity": "سردرد",
+    "stomach_ache_intensity": "دل‌درد",
+    "pelvic_pain_intensity": "درد لگن",
+    "breast_pain_intensity": "درد سینه",
+    "back_pain_intensity": "کمردرد",
+    "ovarian_pain_intensity": "درد تخمدان",
+    "nausea_intensity": "تهوع",
+    "bloating_intensity": "نفخ",
+    "breast_sensitivity_intensity": "حساسیت سینه",
+    "urination_burning_intensity": "سوزش ادرار",
+    "appetite_change": "تغییر اشتها",
+    "diarrhea": "اسهال",
+    "constipation": "یبوست",
+    "food_craving": "هوس غذایی",
+    "moods": "خلق‌وخو",
+    "sleep_duration": "مدت خواب",
+    "sleep_quality": "کیفیت خواب",
+    "acne": "جوش",
+    "oily_skin": "پوست چرب",
+    "hair_loss": "ریزش مو",
+    "swelling": "ورم",
+    "fatigue": "خستگی",
+    "dizziness": "سرگیجه",
+    "hot_flashes": "گرگرفتگی",
+    "chills": "لرز",
+    "discharge_texture": "بافت ترشح",
+    "discharge_amount": "مقدار ترشح",
+    "discharge_smell": "بوی ترشح",
+    "discharge_itching": "خارش ترشح",
+    "discharge_burning": "سوزش ترشح",
+    "frequent_urination": "تکرر ادرار",
+    "vaginal_dryness": "خشکی واژن",
+    "vaginal_burning": "سوزش واژن",
+    "vaginal_itching": "خارش واژن",
+    "vaginal_smell_change": "تغییر بوی واژن",
+    "urination_change": "تغییر دفع ادرار",
+    "sexual_activities": "فعالیت جنسی",
+    "weight": "وزن",
+    "basal_body_temperature": "دمای پایهٔ بدن",
+    "notes": "یادداشت"
+  },
+  "units": {
+    "kg": "کیلوگرم",
+    "celsius": "درجهٔ سانتی‌گراد"
+  },
+  "notesPlaceholder": "امروز چطور بود؟ هر نکته‌ای که دوست داری بنویس…",
+  "enums": {
+    "bleeding_intensity": {
+      "low": "کم",
+      "medium": "متوسط",
+      "high": "زیاد",
+      "very_high": "خیلی زیاد"
+    },
+    "blood_color": {
+      "bright_red": "قرمز روشن",
+      "red": "قرمز",
+      "dark_red": "قرمز تیره",
+      "brown": "قهوه‌ای"
+    },
+    "bleeding_smell": {
+      "normal": "معمولی",
+      "slightly_unusual": "کمی غیرعادی",
+      "strong_unpleasant": "تند و ناخوشایند"
+    },
+    "pain_intensity": {
+      "low": "کم",
+      "medium": "متوسط",
+      "high": "زیاد"
+    },
+    "appetite_change": {
+      "loss": "کاهش",
+      "gain": "افزایش",
+      "normal": "معمولی"
+    },
+    "urination_change": {
+      "increase": "افزایش",
+      "decrease": "کاهش",
+      "normal": "معمولی"
+    },
+    "moods": {
+      "happy": "شاد",
+      "calm": "آرام",
+      "angry": "عصبانی",
+      "anxious": "مضطرب",
+      "sad": "غمگین",
+      "frustrated": "کلافه",
+      "sensitive": "حساس",
+      "bored": "بی‌حوصله"
+    },
+    "sleep_duration": {
+      "0_3": "۰ تا ۳ ساعت",
+      "3_6": "۳ تا ۶ ساعت",
+      "6_9": "۶ تا ۹ ساعت",
+      "9_plus": "بیش از ۹ ساعت"
+    },
+    "sleep_quality": {
+      "good": "خوب",
+      "medium": "متوسط",
+      "bad": "بد"
+    },
+    "sexual_activities": {
+      "high_desire": "میل زیاد",
+      "protected_intercourse": "رابطهٔ محافظت‌شده",
+      "unprotected_intercourse": "رابطهٔ محافظت‌نشده",
+      "no_desire": "بی‌میلی",
+      "dryness": "خشکی",
+      "burning": "سوزش",
+      "pain_during_intercourse": "درد هنگام رابطه",
+      "bleeding_after_intercourse": "خونریزی پس از رابطه",
+      "lubricant_use": "استفاده از لوبریکنت"
+    },
+    "discharge_texture": {
+      "watery": "آبکی",
+      "creamy": "کرمی",
+      "egg_white": "شفاف و کش‌دار",
+      "thick": "غلیظ"
+    },
+    "discharge_amount": {
+      "low": "کم",
+      "medium": "متوسط",
+      "high": "زیاد"
+    },
+    "discharge_smell": {
+      "normal": "معمولی",
+      "slightly_unusual": "کمی غیرعادی",
+      "strong_unpleasant": "تند و ناخوشایند"
+    }
+  }
+}

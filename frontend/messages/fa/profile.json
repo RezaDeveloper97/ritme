@@ -1,0 +1,47 @@
+{
+  "title": "پروفایل",
+  "guest": "کاربر ریتمی",
+  "editProfile": "ویرایش پروفایل",
+  "noPhone": "شماره‌ای ثبت نشده",
+  "sections": {
+    "account": "حساب کاربری",
+    "app": "برنامه",
+    "privacy": "حریم خصوصی و داده‌ها",
+    "support": "پشتیبانی"
+  },
+  "rows": {
+    "personalInfo": "اطلاعات شخصی",
+    "healthPrefs": "تنظیمات چرخه و سلامت",
+    "reminders": "یادآورها",
+    "notifications": "اعلان‌ها",
+    "language": "زبان برنامه",
+    "appearance": "ظاهر و پوسته",
+    "privacyPolicy": "حریم خصوصی",
+    "exportData": "دریافت خروجی داده‌ها",
+    "deleteAccount": "حذف حساب",
+    "help": "راهنما و پشتیبانی",
+    "about": "درباره‌ ریتمی",
+    "terms": "قوانین و مقررات"
+  },
+  "health": {
+    "title": "چرخه و سلامت",
+    "cycleDuration": "طول چرخه",
+    "periodDuration": "طول پریود",
+    "lastPeriod": "شروع آخرین پریود",
+    "birthday": "تاریخ تولد",
+    "weight": "وزن",
+    "height": "قد",
+    "days": "{days} روز",
+    "kg": "{value} کیلوگرم",
+    "cm": "{value} سانتی‌متر",
+    "empty": "ثبت نشده",
+    "notSetUp": "هنوز اطلاعات سلامتت رو کامل نکرده‌ای"
+  },
+  "language": {
+    "fa": "فارسی",
+    "en": "English"
+  },
+  "logout": "خروج از حساب",
+  "loggingOut": "در حال خروج…",
+  "version": "نسخه {version}"
+}

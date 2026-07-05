@@ -1,0 +1,131 @@
+{
+  "title": "Welcome to Ritme",
+  "subtitle": "Your women's health companion",
+  "todayIs": "Today: {date}",
+  "cta": "Get started",
+  "tagline": "Your health companion",
+
+  "days": "{n, plural, one{# day} other{# days}}",
+  "percent": "{n, number}%",
+  "updating": "Updating your cycle…",
+  "unavailable": "—",
+
+  "phaseLabel": {
+    "period": "Period",
+    "follicular": "Follicular",
+    "fertile": "Fertility window",
+    "ovulation": "Ovulation",
+    "luteal": "Luteal"
+  },
+
+  "nextPeriod": {
+    "label": "Until next period",
+    "fertility": "Fertility",
+    "phase": "Current phase: Luteal",
+    "currentPhase": "Current phase: {phase}",
+    "startDate": "Next period starts on {date}",
+    "phaseDesc": "Your body is preparing for a new cycle. You may experience mood swings, fatigue or sensitivity — take care of yourself and rest a little.",
+    "showMore": "Show more",
+    "close": "Close"
+  },
+
+  "startPeriod": "Start period",
+
+  "phases": {
+    "window": "Fertility window",
+    "ovulation": "Ovulation",
+    "nextPeriod": "Next period in"
+  },
+
+  "recommendations": {
+    "title": "Today's recommendations",
+    "iron": "Iron intake",
+    "ironDesc": "Eat iron-rich foods today",
+    "omega": "Omega-3 intake",
+    "omegaDesc": "Eat omega-rich foods today"
+  },
+
+  "tasks": {
+    "title": "Today's tasks",
+    "progress": "Today's progress",
+    "temp": "Log body temperature",
+    "water": "Drink 8 glasses of water",
+    "vitamin": "Take vitamin D",
+    "walk": "30 minutes of walking",
+    "percent": "{n}%"
+  },
+
+  "challenge": {
+    "title": "Today's challenge",
+    "item": "Log body temperature",
+    "desc": "Great week so far! Keep it up."
+  },
+
+  "reminder": {
+    "doctor": "Doctor reminder",
+    "medicine": "Medication reminder",
+    "doctorName": "Dr. Smith",
+    "specialty": "OB/GYN specialist"
+  },
+
+  "smartTip": {
+    "title": "Smart tip",
+    "body": "In the luteal phase, your body needs extra care. Don't forget whole grains and vegetables.",
+    "quote": "Every day is a new opportunity to take care of yourself."
+  },
+
+  "weekSummary": {
+    "title": "Week summary",
+    "viewAll": "View all",
+    "mood": "Mood",
+    "sleep": "Sleep",
+    "energy": "Energy",
+    "sleepHours": "6.5 hrs",
+    "desc": "Great week so far! Keep it up."
+  },
+
+  "todayStatus": {
+    "title": "Today's status",
+    "viewAll": "View all",
+    "normal": "Normal",
+    "bp": "Blood pressure",
+    "glucose": "Blood sugar",
+    "hr": "Heart rate"
+  },
+
+  "articles": {
+    "title": "Based on your current cycle",
+    "readMore": "View more",
+    "article1": "Blood clots during period — what do they mean?",
+    "min": "{n} min"
+  },
+
+  "cycles": {
+    "title": "My cycles",
+    "current": "Current cycle",
+    "day": "Day 1",
+    "dayN": "Day {n, number}",
+    "startedOn": "Started on",
+    "addPrevious": "Add previous cycles"
+  },
+
+  "cycleSummary": {
+    "title": "Cycle summary",
+    "length": "Previous cycle length",
+    "duration": "Previous period duration",
+    "variation": "Cycle length variation",
+    "viewMore": "View more"
+  },
+
+  "week": {
+    "sat": "Sat",
+    "sun": "Sun",
+    "mon": "Mon",
+    "tue": "Tue",
+    "wed": "Wed",
+    "thu": "Thu",
+    "fri": "Fri",
+    "fullMonth": "Full month",
+    "close": "Close"
+  }
+}

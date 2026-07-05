@@ -1,0 +1,12 @@
+{
+  "appName": "Ritme",
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "continue": "Continue"
+  },
+  "locale": {
+    "fa": "فارسی",
+    "en": "English"
+  }
+}

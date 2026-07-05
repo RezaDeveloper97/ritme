@@ -1,0 +1,179 @@
+{
+  "title": "Daily log",
+  "subtitle": "Record what you felt today so Ritme gets to know you better.",
+  "today": "Today",
+  "prevDay": "Previous day",
+  "nextDay": "Next day",
+  "loading": "Loading…",
+  "save": "Save today's log",
+  "saving": "Saving…",
+  "saved": "Saved",
+  "saveError": "Couldn't save; please try again.",
+  "sheetHint": "Pick whatever applies to you.",
+  "done": "Done",
+  "clear": "Clear",
+  "none": "Not recorded",
+  "selected": "{count, plural, one {# item} other {# items}}",
+  "recordThis": "Record this",
+  "yes": "Yes",
+  "categories": {
+    "bleeding": "Bleeding",
+    "pain": "Pain & symptoms",
+    "digestion": "Digestion & appetite",
+    "mood": "Mood",
+    "sleep": "Sleep",
+    "body": "Skin & body",
+    "discharge": "Discharge",
+    "intimate": "Urinary & vaginal",
+    "sexual": "Sexual activity",
+    "measure": "Measurements",
+    "notes": "Notes"
+  },
+  "categoryHint": {
+    "bleeding": "Intensity, color and character of bleeding",
+    "pain": "Intensity of pains and physical symptoms",
+    "digestion": "Appetite and digestion",
+    "mood": "How you feel today",
+    "sleep": "Sleep duration and quality",
+    "body": "Body sensations and skin",
+    "discharge": "Texture, amount and smell",
+    "intimate": "Urinary and vaginal symptoms",
+    "sexual": "Desire and sexual activity",
+    "measure": "Weight and basal body temperature",
+    "notes": "Anything else you want to remember"
+  },
+  "fields": {
+    "bleeding_intensity": "Bleeding intensity",
+    "blood_color": "Blood color",
+    "bleeding_smell": "Bleeding smell",
+    "has_clots": "Clots",
+    "spotting": "Spotting",
+    "headache_intensity": "Headache",
+    "stomach_ache_intensity": "Stomach ache",
+    "pelvic_pain_intensity": "Pelvic pain",
+    "breast_pain_intensity": "Breast pain",
+    "back_pain_intensity": "Back pain",
+    "ovarian_pain_intensity": "Ovarian pain",
+    "nausea_intensity": "Nausea",
+    "bloating_intensity": "Bloating",
+    "breast_sensitivity_intensity": "Breast sensitivity",
+    "urination_burning_intensity": "Burning urination",
+    "appetite_change": "Appetite change",
+    "diarrhea": "Diarrhea",
+    "constipation": "Constipation",
+    "food_craving": "Food craving",
+    "moods": "Mood",
+    "sleep_duration": "Sleep duration",
+    "sleep_quality": "Sleep quality",
+    "acne": "Acne",
+    "oily_skin": "Oily skin",
+    "hair_loss": "Hair loss",
+    "swelling": "Swelling",
+    "fatigue": "Fatigue",
+    "dizziness": "Dizziness",
+    "hot_flashes": "Hot flashes",
+    "chills": "Chills",
+    "discharge_texture": "Discharge texture",
+    "discharge_amount": "Discharge amount",
+    "discharge_smell": "Discharge smell",
+    "discharge_itching": "Discharge itching",
+    "discharge_burning": "Discharge burning",
+    "frequent_urination": "Frequent urination",
+    "vaginal_dryness": "Vaginal dryness",
+    "vaginal_burning": "Vaginal burning",
+    "vaginal_itching": "Vaginal itching",
+    "vaginal_smell_change": "Vaginal smell change",
+    "urination_change": "Urination change",
+    "sexual_activities": "Sexual activity",
+    "weight": "Weight",
+    "basal_body_temperature": "Basal body temperature",
+    "notes": "Notes"
+  },
+  "units": {
+    "kg": "kg",
+    "celsius": "°C"
+  },
+  "notesPlaceholder": "How was today? Write anything you'd like…",
+  "enums": {
+    "bleeding_intensity": {
+      "low": "Light",
+      "medium": "Medium",
+      "high": "Heavy",
+      "very_high": "Very heavy"
+    },
+    "blood_color": {
+      "bright_red": "Bright red",
+      "red": "Red",
+      "dark_red": "Dark red",
+      "brown": "Brown"
+    },
+    "bleeding_smell": {
+      "normal": "Normal",
+      "slightly_unusual": "Slightly unusual",
+      "strong_unpleasant": "Strong, unpleasant"
+    },
+    "pain_intensity": {
+      "low": "Mild",
+      "medium": "Moderate",
+      "high": "Severe"
+    },
+    "appetite_change": {
+      "loss": "Decreased",
+      "gain": "Increased",
+      "normal": "Normal"
+    },
+    "urination_change": {
+      "increase": "Increased",
+      "decrease": "Decreased",
+      "normal": "Normal"
+    },
+    "moods": {
+      "happy": "Happy",
+      "calm": "Calm",
+      "angry": "Angry",
+      "anxious": "Anxious",
+      "sad": "Sad",
+      "frustrated": "Frustrated",
+      "sensitive": "Sensitive",
+      "bored": "Bored"
+    },
+    "sleep_duration": {
+      "0_3": "0–3 hours",
+      "3_6": "3–6 hours",
+      "6_9": "6–9 hours",
+      "9_plus": "9+ hours"
+    },
+    "sleep_quality": {
+      "good": "Good",
+      "medium": "Medium",
+      "bad": "Poor"
+    },
+    "sexual_activities": {
+      "high_desire": "High desire",
+      "protected_intercourse": "Protected intercourse",
+      "unprotected_intercourse": "Unprotected intercourse",
+      "no_desire": "No desire",
+      "dryness": "Dryness",
+      "burning": "Burning",
+      "pain_during_intercourse": "Pain during intercourse",
+      "bleeding_after_intercourse": "Bleeding after intercourse",
+      "lubricant_use": "Lubricant use"
+    },
+    "discharge_texture": {
+      "watery": "Watery",
+      "creamy": "Creamy",
+      "egg_white": "Egg white",
+      "thick": "Thick"
+    },
+    "discharge_amount": {
+      "low": "Light",
+      "medium": "Medium",
+      "high": "Heavy"
+    },
+    "discharge_smell": {
+      "normal": "Normal",
+      "slightly_unusual": "Slightly unusual",
+      "strong_unpleasant": "Strong, unpleasant"
+    }
+  }
+}
