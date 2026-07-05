@@ -1,0 +1,113 @@
+name: ritme
+
+# Data safety: mysql-data / redis-data / backend-storage are named volumes.
+# `docker compose build` / `up --build` / `down` never touch them — data is
+# only lost with an explicit `docker compose down -v`.
+
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-ritme_salamat}
+      MYSQL_USER: ${DB_USERNAME:-ritme}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?set DB_ROOT_PASSWORD in .env}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    ports:
+      # Host port 3307 so it doesn't clash with a locally installed MySQL.
+      - "3307:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    # AOF persistence so queued jobs / cache survive container restarts.
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment: &backend-env
+      APP_NAME: Ritme
+      APP_ENV: ${APP_ENV:-local}
+      APP_DEBUG: ${APP_DEBUG:-true}
+      APP_KEY: ${APP_KEY:?set APP_KEY in .env (echo "APP_KEY=base64:$(openssl rand -base64 32)")}
+      APP_URL: ${APP_URL:-http://localhost:8080}
+      LOG_CHANNEL: stderr
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_DATABASE: ${DB_DATABASE:-ritme_salamat}
+      DB_USERNAME: ${DB_USERNAME:-ritme}
+      DB_PASSWORD: ${DB_PASSWORD}
+      REDIS_CLIENT: phpredis
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      CACHE_STORE: redis
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
+      SMS_PROVIDER: ${SMS_PROVIDER:-smsir}
+      SMSIR_API_KEY: ${SMSIR_API_KEY:-}
+      SMSIR_TEMPLATE_ID: ${SMSIR_TEMPLATE_ID:-511293}
+      SMSIR_LINE_NUMBER: ${SMSIR_LINE_NUMBER:-}
+      KAVENEGAR_API_KEY: ${KAVENEGAR_API_KEY:-}
+      KAVENEGAR_SENDER: ${KAVENEGAR_SENDER:-}
+      RUN_MIGRATIONS: "true"
+    volumes:
+      - backend-storage:/var/www/html/storage
+    ports:
+      - "8080:80"
+
+  queue:
+    build: ./backend
+    restart: unless-stopped
+    command: ["php", "artisan", "queue:work", "--tries=3", "--sleep=3"]
+    depends_on:
+      backend:
+        condition: service_started
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      <<: *backend-env
+      RUN_MIGRATIONS: "false"
+    volumes:
+      - backend-storage:/var/www/html/storage
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Inlined into the browser bundle at build time — must be a URL the
+        # user's browser can reach (hence localhost, not the service name).
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8080/api/v1}
+        NEXT_PUBLIC_OTP_TEST_MODE: ${NEXT_PUBLIC_OTP_TEST_MODE:-true}
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+
+volumes:
+  mysql-data:
+  redis-data:
+  backend-storage:

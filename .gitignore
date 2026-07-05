@@ -1,3 +1,6 @@
+# Compose secrets live in the root .env
+/.env
+
 .DS_Store
 .idea/
 .vscode/

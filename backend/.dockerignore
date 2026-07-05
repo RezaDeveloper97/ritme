@@ -1,0 +1,19 @@
+# Dependencies are installed inside the image.
+vendor/
+node_modules/
+
+# Local env & secrets — config comes from container env vars.
+.env
+.env.backup
+.env.production
+
+# VCS / IDE / tooling
+.git
+.idea/
+.vscode/
+.phpunit.cache/
+.phpunit.result.cache
+
+# Noise
+*.log
+.DS_Store
