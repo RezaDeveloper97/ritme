@@ -47,10 +47,8 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
         <NextIntlClientProvider locale={locale} messages={messages}>
           <AppProviders>
             <div className="stage">
-              <div className="device">
-                <div className="screen">
-                  {children}
-                </div>
+              <div className="app-shell">
+                {children}
               </div>
             </div>
           </AppProviders>

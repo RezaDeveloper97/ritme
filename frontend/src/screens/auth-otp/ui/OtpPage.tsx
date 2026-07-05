@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 
 import { useRouter } from '@/shared/i18n';
-import { HomeIndicator, Icon, NavBack, StatusBar } from '@/shared/ui';
+import { Icon, NavBack } from '@/shared/ui';
 import { toAsciiDigits, toPersianDigits } from '@/shared/lib/phone';
 import { useOnboardingStore } from '@/entities/user';
 import { authErrorKey, useSendOtp, useVerifyOtp } from '@/features/auth';
@@ -87,7 +87,6 @@ export function OtpPage() {
 
   return (
     <div className="view" style={{ background: '#fff' }}>
-      <StatusBar />
 
       <div className="hdr">
         <NavBack onClick={() => router.back()} />
@@ -152,7 +151,6 @@ export function OtpPage() {
         </button>
       </div>
 
-      <HomeIndicator />
     </div>
   );
 }

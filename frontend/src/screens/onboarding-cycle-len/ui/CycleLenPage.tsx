@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 
 import { useRouter } from '@/shared/i18n';
-import { HomeIndicator,  JalaliCalendar, NavBack, StatusBar } from '@/shared/ui';
+import { JalaliCalendar, NavBack } from '@/shared/ui';
 import { useOnboardingStore } from '@/entities/user';
 
 const FA = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
@@ -16,7 +16,6 @@ export function CycleLenPage() {
 
   return (
     <div className="view" style={{ background: '#fff' }}>
-      <StatusBar />
       <div className="hdr">
         <NavBack onClick={() => router.back()} />
         <span className="stepcount">{faNum(7)}<span style={{ opacity: .5 }}> / ۷</span></span>
@@ -38,7 +37,6 @@ export function CycleLenPage() {
           {t('finish')}
         </button>
       </div>
-      <HomeIndicator />
     </div>
   );
 }

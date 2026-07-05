@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import { useRouter } from '@/shared/i18n';
-import { HomeIndicator, Icon, NavBack, StatusBar } from '@/shared/ui';
+import { Icon, NavBack } from '@/shared/ui';
 import { isValidMobile, normalizeMobile, toPersianDigits } from '@/shared/lib/phone';
 import { useOnboardingStore } from '@/entities/user';
 import { authErrorKey, useSendOtp } from '@/features/auth';
@@ -37,7 +37,6 @@ export function SignupPage() {
 
   return (
     <div className="view" style={{ background: '#fff' }}>
-      <StatusBar />
 
       {/*
        * RTL (fa): first child → RIGHT, second child → LEFT.
@@ -109,7 +108,6 @@ export function SignupPage() {
         </button>
       </div>
 
-      <HomeIndicator />
     </div>
   );
 }

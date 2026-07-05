@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 
 import { useRouter } from '@/shared/i18n';
-import { HomeIndicator, NavBack, StatusBar } from '@/shared/ui';
+import { NavBack } from '@/shared/ui';
 import { useOnboardingStore, type Gender } from '@/entities/user';
 
 const FA = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
@@ -57,7 +57,6 @@ export function GenderPage() {
 
   return (
     <div className="view" style={{ background: '#fff' }}>
-      <StatusBar />
       <div className="hdr">
         <NavBack onClick={() => router.back()} />
         <span className="stepcount">{faNum(2)}<span style={{ opacity: .5 }}> / ۷</span></span>
@@ -103,7 +102,6 @@ export function GenderPage() {
           {t('continue')}
         </button>
       </div>
-      <HomeIndicator />
     </div>
   );
 }

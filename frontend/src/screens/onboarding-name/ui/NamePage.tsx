@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 import { useRouter } from '@/shared/i18n';
-import { HomeIndicator, Icon, NavBack, StatusBar } from '@/shared/ui';
+import { Icon, NavBack } from '@/shared/ui';
 import { useOnboardingStore } from '@/entities/user';
 
 const FA = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
@@ -28,7 +28,6 @@ export function NamePage() {
 
   return (
     <div className="view" style={{ background: '#fff' }}>
-      <StatusBar />
       <div className="hdr">
         <NavBack onClick={() => router.back()} />
         <span className="stepcount">{faNum(1)}<span style={{ opacity: .5 }}> / ۷</span></span>
@@ -61,7 +60,6 @@ export function NamePage() {
           {t('continue')}
         </button>
       </div>
-      <HomeIndicator />
     </div>
   );
 }

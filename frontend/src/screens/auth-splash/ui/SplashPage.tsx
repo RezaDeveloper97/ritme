@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { useEffect } from 'react';
 
-import { Icon, StatusBar } from '@/shared/ui';
+import { Icon } from '@/shared/ui';
 import { useRouter } from '@/shared/i18n';
 
 export function SplashPage() {
@@ -36,7 +36,6 @@ export function SplashPage() {
           <circle cx="43" cy="43" r="14.5" fill="#fff" />
         </svg>
       </div>
-      <StatusBar tone="light" />
 
       <div
         style={{

@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 
 import { useRouter } from '@/shared/i18n';
-import { HomeIndicator,  NavBack, StatusBar, WheelPicker } from '@/shared/ui';
+import { NavBack, WheelPicker } from '@/shared/ui';
 import { useOnboardingStore } from '@/entities/user';
 
 const FA = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
@@ -18,7 +18,6 @@ export function PeriodLenPage() {
 
   return (
     <div className="view" style={{ background: '#fff' }}>
-      <StatusBar />
       <div className="hdr">
         <NavBack onClick={() => router.back()} />
         <span className="stepcount">{faNum(6)}<span style={{ opacity: .5 }}> / ۷</span></span>
@@ -45,7 +44,6 @@ export function PeriodLenPage() {
           {t('continue')}
         </button>
       </div>
-      <HomeIndicator />
     </div>
   );
 }

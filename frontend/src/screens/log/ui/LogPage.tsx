@@ -14,7 +14,7 @@ import {
 } from '@/entities/health-log';
 import type { Locale } from '@/shared/i18n';
 import { addDays, diffInDays, formatJalaliDayMonth, toApiDate, today } from '@/shared/lib/date';
-import { Icon, StatusBar, type IconName } from '@/shared/ui';
+import { Icon, type IconName } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
 
 import { CategorySheet } from './CategorySheet';
@@ -195,7 +195,6 @@ export function LogPage() {
 
   return (
     <div className="view" style={{ background: 'var(--page)' }}>
-      <StatusBar />
 
       <div className="scroll">
         <div style={{ padding: '6px 20px 0', textAlign: 'start' }}>

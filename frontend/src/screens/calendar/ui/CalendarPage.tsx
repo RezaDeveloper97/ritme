@@ -16,7 +16,7 @@ import {
   todayJalali,
   type JalaliMonthCell,
 } from '@/shared/lib/date';
-import { Icon, StatusBar } from '@/shared/ui';
+import { Icon } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
 
 // Demo cycle so the calendar renders meaningful phases until it is wired to the
@@ -300,7 +300,6 @@ export function CalendarPage() {
       <div className="home-grad" style={{ position: 'absolute', top: 0, insetInlineStart: 0, insetInlineEnd: 0, height: 260 }} />
 
       <div style={{ position: 'relative', zIndex: 1 }}>
-        <StatusBar />
       </div>
 
       <div className="scroll" style={{ position: 'relative', zIndex: 1 }}>

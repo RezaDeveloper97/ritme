@@ -19,7 +19,7 @@ import {
   todayJalali,
   type JalaliMonthCell,
 } from '@/shared/lib/date';
-import { DropSolid, Icon, StatusBar } from '@/shared/ui';
+import { DropSolid, Icon } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
 
 const FA = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
@@ -647,7 +647,6 @@ export function HomePage() {
       <div className="home-grad" style={{ position: 'absolute', inset: 0 }} />
 
       <div style={{ position: 'relative', zIndex: 1 }}>
-        <StatusBar />
       </div>
 
       <div className="scroll" style={{ position: 'relative', zIndex: 1 }}>

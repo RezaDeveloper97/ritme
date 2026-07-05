@@ -4,7 +4,6 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 
 import { useRouter } from '@/shared/i18n';
-import { StatusBar } from '@/shared/ui';
 
 const FA = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
 const faNum = (n: string | number) => String(n).replace(/[0-9]/g, d => FA[Number(d)]);
@@ -38,7 +37,6 @@ export function SettingUpPage() {
 
   return (
     <div className="view" style={{ background: '#fff' }}>
-      <StatusBar />
       <div className="scroll" style={{ padding: '80px 22px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
         <div className="titr" style={{ fontSize: 19, lineHeight: 1.7 }}>{t('title')}</div>
         <p className="sub" style={{ margin: '12px 0 50px' }}>{t('subtitle')}</p>

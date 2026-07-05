@@ -16,7 +16,7 @@ import { useDailyMessage, type DailyMessage } from '@/entities/message';
 import { Link } from '@/shared/i18n';
 import type { Locale } from '@/shared/i18n';
 import { addDays, formatJalaliDayMonth, today } from '@/shared/lib/date';
-import { DropSolid, Icon, StatusBar } from '@/shared/ui';
+import { DropSolid, Icon } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
 
 type T = ReturnType<typeof useTranslations>;
@@ -431,7 +431,6 @@ export function CyclePage() {
       <div className="home-grad" style={{ position: 'absolute', top: 0, insetInlineStart: 0, insetInlineEnd: 0, height: 300 }} />
 
       <div style={{ position: 'relative', zIndex: 1 }}>
-        <StatusBar />
       </div>
 
       <div className="scroll" style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column' }}>

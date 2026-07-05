@@ -8,7 +8,7 @@ import { useLogout } from '@/features/auth';
 import { useSwitchLocale } from '@/features/switch-locale';
 import { formatJalali } from '@/shared/lib/date';
 import { type Locale, useRouter } from '@/shared/i18n';
-import { Icon, type IconName, StatusBar } from '@/shared/ui';
+import { Icon, type IconName } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
 
 const APP_VERSION = '1.0.0';
@@ -167,7 +167,6 @@ export function ProfilePage() {
 
   return (
     <div className="view" style={{ background: 'var(--page)' }}>
-      <StatusBar />
 
       <div className="scroll" style={{ paddingBottom: 24 }}>
         <div style={{ padding: '8px 20px 4px' }}>

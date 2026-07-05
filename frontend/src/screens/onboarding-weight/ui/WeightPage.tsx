@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 
 import { useRouter } from '@/shared/i18n';
-import { HomeIndicator,  NavBack, RulerPicker, StatusBar } from '@/shared/ui';
+import { NavBack, RulerPicker } from '@/shared/ui';
 import { useOnboardingStore, type WeightUnit } from '@/entities/user';
 
 const FA = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
@@ -22,7 +22,6 @@ export function WeightPage() {
 
   return (
     <div className="view" style={{ background: '#fff' }}>
-      <StatusBar />
       <div className="hdr">
         <NavBack onClick={() => router.back()} />
         <span className="stepcount">{faNum(4)}<span style={{ opacity: .5 }}> / ۷</span></span>
@@ -53,7 +52,6 @@ export function WeightPage() {
           {t('continue')}
         </button>
       </div>
-      <HomeIndicator />
     </div>
   );
 }
