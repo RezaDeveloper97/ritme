@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\V1\PregnancyProfileController;
 use App\Http\Controllers\Api\V1\PregnancySymptomController;
 use App\Http\Controllers\Api\V1\PregnancyWeeklyController;
 use App\Http\Controllers\Api\V1\ProfileController;
+use App\Http\Controllers\Api\V1\ReminderController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -41,6 +42,17 @@ Route::prefix('v1')->group(function () {
         // Profile routes
         Route::get('/profile', [ProfileController::class, 'show']);
         Route::post('/profile', [ProfileController::class, 'store']);
+        Route::get('/profile/export', [ProfileController::class, 'export']);
+        Route::delete('/account', [ProfileController::class, 'destroyAccount']);
+
+        // Reminder routes
+        Route::prefix('reminders')->group(function () {
+            Route::get('/enums', [ReminderController::class, 'enums']);
+            Route::get('/', [ReminderController::class, 'index']);
+            Route::post('/', [ReminderController::class, 'store']);
+            Route::put('/{id}', [ReminderController::class, 'update']);
+            Route::delete('/{id}', [ReminderController::class, 'destroy']);
+        });
 
         // Daily Health Log routes
         Route::prefix('health-logs')->group(function () {

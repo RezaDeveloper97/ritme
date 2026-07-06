@@ -2,6 +2,12 @@ import { z } from 'zod';
 
 import type { AuthUser, UserProfile } from '../model/types';
 
+/** A number the API may serialize as a numeric string; null stays null. */
+const numberish = z
+  .union([z.number(), z.string().transform((v) => Number(v))])
+  .nullable()
+  .default(null);
+
 /**
  * Validate the API `user` object at the boundary (CLAUDE.md §10) and map its
  * snake_case fields onto our camelCase domain type. Extra fields the endpoint
@@ -40,8 +46,10 @@ export const userProfileSchema = z
     profile: z
       .object({
         birthday: z.string().nullable().default(null),
-        weight: z.number().nullable().default(null),
-        height: z.number().nullable().default(null),
+        // Laravel serializes decimal casts as strings ("60.00") — accept both
+        // representations without turning null into 0.
+        weight: numberish,
+        height: numberish,
         period_duration: z.number().nullable().default(null),
         cycle_duration: z.number().nullable().default(null),
         last_period_start: z.string().nullable().default(null),

@@ -43,5 +43,11 @@
   },
   "logout": "خروج از حساب",
   "loggingOut": "در حال خروج…",
-  "version": "نسخه {version}"
+  "version": "نسخه {version}",
+  "appearance": {
+    "system": "خودکار",
+    "light": "روشن",
+    "dark": "تیره"
+  },
+  "exporting": "در حال آماده‌سازی خروجی…"
 }

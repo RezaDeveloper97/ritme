@@ -32,7 +32,7 @@ class UserProfile extends Model
     {
         return [
             'birthday' => 'date',
-            'weight' => 'decimal:2',
+            'weight' => 'float',
             'height' => 'integer',
             'period_duration' => 'integer',
             'cycle_duration' => 'integer',

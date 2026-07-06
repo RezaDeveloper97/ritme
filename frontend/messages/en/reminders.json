@@ -1,0 +1,50 @@
+{
+  "title": "Reminders",
+  "back": "Back",
+  "loading": "Loading your reminders…",
+  "loadError": "Couldn't load reminders. Please try again later.",
+  "empty": {
+    "title": "No reminders yet",
+    "subtitle": "Set a reminder for a doctor visit, medication, or anything you don't want to forget."
+  },
+  "add": "Add reminder",
+  "types": {
+    "doctor": "Doctor visit",
+    "medication": "Medication",
+    "appointment": "Appointment",
+    "custom": "Custom"
+  },
+  "recurrence": {
+    "none": "One-time",
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "monthly": "Monthly"
+  },
+  "recurrenceAt": "{recurrence} at {time}",
+  "row": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "toggle": "Turn reminder on or off",
+    "delete": "Delete reminder"
+  },
+  "confirmDelete": {
+    "question": "Delete this reminder?",
+    "yes": "Delete",
+    "no": "Cancel",
+    "deleting": "Deleting…"
+  },
+  "form": {
+    "title": "New reminder",
+    "typeLabel": "Reminder type",
+    "titleLabel": "Title",
+    "titlePlaceholder": "e.g. Gynecologist appointment",
+    "subtitleLabel": "Short note (optional)",
+    "subtitlePlaceholder": "e.g. Bring the test results",
+    "recurrenceLabel": "Repeat",
+    "timeLabel": "Reminder time",
+    "submit": "Save reminder",
+    "submitting": "Saving…",
+    "cancel": "Cancel",
+    "error": "Couldn't save. Please try again."
+  }
+}

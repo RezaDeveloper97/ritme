@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import type { ReactNode } from 'react';
 
 import { getDirection, isLocale, routing } from '@/shared/i18n';
+import { ThemeApplier, themeInitScript } from '@/shared/theme';
 
 import '../globals.css';
 import { AppProviders } from '../providers';
@@ -44,8 +45,10 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
   return (
     <html lang={locale} dir={getDirection(locale)} suppressHydrationWarning>
       <body className={vazirmatn.className}>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <NextIntlClientProvider locale={locale} messages={messages}>
           <AppProviders>
+            <ThemeApplier />
             <div className="stage">
               <div className="app-shell">
                 {children}

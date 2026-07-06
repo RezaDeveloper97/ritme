@@ -43,5 +43,11 @@
   },
   "logout": "Log out",
   "loggingOut": "Logging out…",
-  "version": "Version {version}"
+  "version": "Version {version}",
+  "appearance": {
+    "system": "Auto",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "exporting": "Preparing export…"
 }

@@ -1,13 +1,15 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import type { CSSProperties, ReactNode } from 'react';
+import { type CSSProperties, type ReactNode, useState } from 'react';
 
 import { useUserProfile } from '@/entities/user';
 import { useLogout } from '@/features/auth';
+import { DeleteAccountConfirm, useExportData } from '@/features/manage-account';
 import { useSwitchLocale } from '@/features/switch-locale';
 import { formatJalali } from '@/shared/lib/date';
 import { type Locale, useRouter } from '@/shared/i18n';
+import { type ThemePreference, useThemeStore } from '@/shared/theme';
 import { Icon, type IconName } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
 
@@ -133,6 +135,9 @@ export function ProfilePage() {
   const { data: profile } = useUserProfile();
   const logout = useLogout();
   const { locale, switchLocale, isPending: switching } = useSwitchLocale();
+  const { theme, setTheme } = useThemeStore();
+  const { exportData, isPending: exporting } = useExportData();
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   const user = profile;
   const health = profile?.health;
@@ -162,6 +167,11 @@ export function ProfilePage() {
 
   // Two locales: tapping the language row flips to the other one.
   const toggleLocale = () => switchLocale(locale === 'fa' ? 'en' : 'fa');
+
+  // Appearance cycles through the three preferences on each tap.
+  const THEME_ORDER: ThemePreference[] = ['system', 'light', 'dark'];
+  const cycleTheme = () =>
+    setTheme(THEME_ORDER[(THEME_ORDER.indexOf(theme) + 1) % THEME_ORDER.length]);
 
   const chevron = <Chevron loc={loc} />;
 
@@ -220,6 +230,7 @@ export function ProfilePage() {
               className="iconbtn"
               style={{ color: 'var(--brand)', flexShrink: 0 }}
               aria-label={t('editProfile')}
+              onClick={() => router.push('/profile/personal')}
             >
               <Icon name="pencil" size={18} />
             </button>
@@ -275,13 +286,13 @@ export function ProfilePage() {
 
         {/* Account */}
         <Group title={t('sections.account')}>
-          <Row icon="user" label={t('rows.personalInfo')} trailing={chevron} />
+          <Row icon="user" label={t('rows.personalInfo')} trailing={chevron} onClick={() => router.push('/profile/personal')} />
           <Divider />
-          <Row icon="heart" label={t('rows.healthPrefs')} trailing={chevron} />
+          <Row icon="heart" label={t('rows.healthPrefs')} trailing={chevron} onClick={() => router.push('/profile/health')} />
           <Divider />
-          <Row icon="alarm" label={t('rows.reminders')} trailing={chevron} />
+          <Row icon="alarm" label={t('rows.reminders')} trailing={chevron} onClick={() => router.push('/profile/reminders')} />
           <Divider />
-          <Row icon="bell" label={t('rows.notifications')} trailing={chevron} />
+          <Row icon="bell" label={t('rows.notifications')} trailing={chevron} onClick={() => router.push('/profile/notifications')} />
         </Group>
 
         {/* App */}
@@ -301,25 +312,43 @@ export function ProfilePage() {
             }
           />
           <Divider />
-          <Row icon="moon" label={t('rows.appearance')} trailing={chevron} />
+          <Row
+            icon="moon"
+            label={t('rows.appearance')}
+            onClick={cycleTheme}
+            trailing={
+              <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--brand)' }}>
+                  {t(`appearance.${theme}`)}
+                </span>
+                {chevron}
+              </span>
+            }
+          />
         </Group>
 
         {/* Privacy & data (§11 — export & delete are first-class) */}
         <Group title={t('sections.privacy')}>
-          <Row icon="shield" label={t('rows.privacyPolicy')} trailing={chevron} />
+          <Row icon="shield" label={t('rows.privacyPolicy')} trailing={chevron} onClick={() => router.push('/profile/info/privacy')} />
           <Divider />
-          <Row icon="download" label={t('rows.exportData')} trailing={chevron} />
+          <Row
+            icon="download"
+            label={exporting ? t('exporting') : t('rows.exportData')}
+            trailing={chevron}
+            onClick={() => exportData()}
+            disabled={exporting}
+          />
           <Divider />
-          <Row icon="trash" label={t('rows.deleteAccount')} danger trailing={chevron} />
+          <Row icon="trash" label={t('rows.deleteAccount')} danger trailing={chevron} onClick={() => setDeleteOpen(true)} />
         </Group>
 
         {/* Support */}
         <Group title={t('sections.support')}>
-          <Row icon="info" label={t('rows.help')} trailing={chevron} />
+          <Row icon="info" label={t('rows.help')} trailing={chevron} onClick={() => router.push('/profile/info/help')} />
           <Divider />
-          <Row icon="sparkle" label={t('rows.about')} trailing={chevron} />
+          <Row icon="sparkle" label={t('rows.about')} trailing={chevron} onClick={() => router.push('/profile/info/about')} />
           <Divider />
-          <Row icon="book" label={t('rows.terms')} trailing={chevron} />
+          <Row icon="book" label={t('rows.terms')} trailing={chevron} onClick={() => router.push('/profile/info/terms')} />
         </Group>
 
         {/* Logout */}
@@ -339,6 +368,8 @@ export function ProfilePage() {
           {t('version', { version: localizeNum(APP_VERSION, loc) })}
         </div>
       </div>
+
+      <DeleteAccountConfirm open={deleteOpen} onClose={() => setDeleteOpen(false)} />
 
       <BottomNav />
     </div>

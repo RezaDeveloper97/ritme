@@ -22,6 +22,20 @@ export default defineConfig([
     rules: { 'fsd/insignificant-slice': 'off' },
   },
   {
+    // Profile-section slices consumed by the profile-* screens (and by each
+    // other one layer up) — invisible to steiger for the same reason as the
+    // block above (references coming FROM `screens` don't count).
+    files: [
+      './src/features/edit-profile/**',
+      './src/features/manage-account/**',
+      './src/features/manage-reminders/**',
+      './src/features/read-notifications/**',
+      './src/entities/reminder/**',
+      './src/entities/notification/**',
+    ],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
     // `entities/cycle` is a canonical domain entity (CLAUDE.md §5) that will be
     // consumed by more screens as cycle/API wiring lands. Don't nag about it
     // having a single reference today.

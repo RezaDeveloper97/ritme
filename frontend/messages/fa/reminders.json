@@ -1,0 +1,50 @@
+{
+  "title": "یادآورها",
+  "back": "بازگشت",
+  "loading": "در حال دریافت یادآورها…",
+  "loadError": "دریافت یادآورها ممکن نشد. کمی بعد دوباره امتحان کن.",
+  "empty": {
+    "title": "هنوز یادآوری نداری",
+    "subtitle": "برای وقت دکتر، دارو یا هر چیز دیگری که نباید فراموش شود، یادآور بگذار."
+  },
+  "add": "افزودن یادآور",
+  "types": {
+    "doctor": "ویزیت دکتر",
+    "medication": "دارو",
+    "appointment": "قرار",
+    "custom": "دلخواه"
+  },
+  "recurrence": {
+    "none": "یک‌بار",
+    "daily": "هر روز",
+    "weekly": "هفتگی",
+    "monthly": "ماهانه"
+  },
+  "recurrenceAt": "{recurrence} ساعت {time}",
+  "row": {
+    "active": "فعال",
+    "inactive": "غیرفعال",
+    "toggle": "فعال یا غیرفعال کردن یادآور",
+    "delete": "حذف یادآور"
+  },
+  "confirmDelete": {
+    "question": "این یادآور حذف شود؟",
+    "yes": "حذف",
+    "no": "انصراف",
+    "deleting": "در حال حذف…"
+  },
+  "form": {
+    "title": "یادآور جدید",
+    "typeLabel": "نوع یادآور",
+    "titleLabel": "عنوان",
+    "titlePlaceholder": "مثلاً نوبت دکتر زنان",
+    "subtitleLabel": "توضیح کوتاه (اختیاری)",
+    "subtitlePlaceholder": "مثلاً همراه با آزمایش‌ها",
+    "recurrenceLabel": "تکرار",
+    "timeLabel": "ساعت یادآوری",
+    "submit": "ذخیره یادآور",
+    "submitting": "در حال ذخیره…",
+    "cancel": "انصراف",
+    "error": "ذخیره نشد. دوباره امتحان کن."
+  }
+}

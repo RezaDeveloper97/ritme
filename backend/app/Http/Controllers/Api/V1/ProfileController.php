@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Enums\CalculationStatus;
 use App\Enums\SubscriptionType;
 use App\Enums\UserGoal;
+use App\Http\Controllers\Concerns\ResolvesLocale;
 use App\Http\Controllers\Controller;
 use App\Jobs\CalculateCycleDataJob;
 use App\Models\UserProfile;
@@ -15,6 +16,8 @@ use Illuminate\Validation\Rule;
 
 class ProfileController extends Controller
 {
+    use ResolvesLocale;
+
     /**
      * @OA\Get(
      *     path="/profile",
@@ -268,15 +271,96 @@ class ProfileController extends Controller
     }
 
     /**
-     * Resolve locale from Accept-Language header (supports values like "fa", "en", "fa-IR").
+     * @OA\Get(
+     *     path="/profile/export",
+     *     summary="Export all personal data",
+     *     description="Returns a full JSON export of the authenticated user's data (account, profile, health logs, cycle history, pregnancy data, reminders) for data-portability.",
+     *     tags={"Profile"},
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Export generated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="exported_at", type="string", format="date-time"),
+     *                 @OA\Property(property="account", type="object"),
+     *                 @OA\Property(property="profile", type="object", nullable=true),
+     *                 @OA\Property(property="health_logs", type="array", @OA\Items(type="object")),
+     *                 @OA\Property(property="cycle_histories", type="array", @OA\Items(type="object")),
+     *                 @OA\Property(property="pregnancy", type="object"),
+     *                 @OA\Property(property="reminders", type="array", @OA\Items(type="object"))
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
      */
-    private function resolveLocale(Request $request): string
+    public function export(Request $request): JsonResponse
     {
-        $header = $request->header('Accept-Language', 'en');
-        $primary = strtolower(strtok($header, ',;'));
-        $primary = explode('-', $primary)[0];
+        $user = $request->user();
 
-        return in_array($primary, ['fa', 'en'], true) ? $primary : 'en';
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'exported_at' => now()->toIso8601String(),
+                'account' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'mobile' => $user->mobile,
+                    'created_at' => $user->created_at?->toIso8601String(),
+                ],
+                'profile' => $user->profile,
+                'health_logs' => $user->dailyHealthLogs()->orderBy('log_date')->get(),
+                'cycle_histories' => $user->cycleHistories()->orderBy('period_start_date')->get(),
+                'pregnancy' => [
+                    'profile' => $user->pregnancyProfile,
+                    'symptom_logs' => $user->pregnancySymptomLogs()->orderBy('log_date')->get(),
+                    'weekly_logs' => $user->pregnancyWeeklyLogs()->orderBy('pregnancy_week')->get(),
+                    'fetal_movements' => $user->pregnancyFetalMovements()->get(),
+                ],
+                'reminders' => $user->reminders()->get(),
+            ],
+        ]);
+    }
+
+    /**
+     * @OA\Delete(
+     *     path="/account",
+     *     summary="Delete account and all personal data",
+     *     description="Permanently deletes the authenticated user's account together with every related record (profile, health logs, cycle data, pregnancy data, reminders, notifications) and revokes all access tokens. Irreversible.",
+     *     tags={"Profile"},
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Account deleted",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
+     */
+    public function destroyAccount(Request $request): JsonResponse
+    {
+        $locale = $this->resolveLocale($request);
+        $user = $request->user();
+
+        // Revoke every issued token before removing the account so no orphaned
+        // credentials survive the delete.
+        $user->tokens()->each(fn ($token) => $token->revoke());
+
+        $user->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => $locale === 'fa'
+                ? 'حساب کاربری و همه داده‌های شما حذف شد'
+                : 'Your account and all associated data have been deleted',
+        ]);
     }
 
     /**

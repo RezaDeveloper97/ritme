@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Http\Controllers\Concerns\ResolvesLocale;
 use App\Http\Controllers\Controller;
 use App\Services\MessageSystem\Core\MessageManager;
 use App\Services\MessageSystem\Enums\MessageMode;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 /**
  * @OA\Tag(
@@ -17,6 +19,8 @@ use Illuminate\Http\Request;
  */
 class MessageController extends Controller
 {
+    use ResolvesLocale;
+
     /**
      * @OA\Get(
      *     path="/messages/daily",
@@ -98,18 +102,28 @@ class MessageController extends Controller
     public function daily(Request $request): JsonResponse
     {
         $user = $request->user();
-        $locale = $request->header('Accept-Language', 'fa');
+        $locale = $this->resolveLocale($request);
 
-        // Get date parameter
+        $validator = Validator::make($request->query(), [
+            'date' => 'nullable|date_format:Y-m-d',
+            'mode' => 'nullable|in:' . implode(',', array_column(MessageMode::cases(), 'value')),
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $locale === 'fa' ? 'پارامترهای ورودی نامعتبر است' : 'Invalid query parameters',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
         $date = $request->query('date')
-            ? Carbon::parse($request->query('date'))
+            ? Carbon::createFromFormat('Y-m-d', $request->query('date'))->startOfDay()
             : Carbon::today();
 
-        // Get optional mode override
-        $forceMode = null;
-        if ($request->query('mode')) {
-            $forceMode = MessageMode::tryFrom($request->query('mode'));
-        }
+        $forceMode = $request->query('mode')
+            ? MessageMode::from($request->query('mode'))
+            : null;
 
         // Create message manager
         $manager = new MessageManager($user, $locale);
@@ -190,7 +204,7 @@ class MessageController extends Controller
     public function enums(Request $request): JsonResponse
     {
         $user = $request->user();
-        $locale = $request->header('Accept-Language', 'fa');
+        $locale = $this->resolveLocale($request);
 
         $manager = new MessageManager($user, $locale);
         $enums = $manager->getEnums();
@@ -242,7 +256,7 @@ class MessageController extends Controller
     public function mode(Request $request): JsonResponse
     {
         $user = $request->user();
-        $locale = $request->header('Accept-Language', 'fa');
+        $locale = $this->resolveLocale($request);
         $profile = $user->profile;
 
         $manager = new MessageManager($user, $locale);

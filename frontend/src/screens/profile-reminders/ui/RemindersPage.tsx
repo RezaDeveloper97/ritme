@@ -1,0 +1,531 @@
+'use client';
+
+import { useLocale, useTranslations } from 'next-intl';
+import { type FormEvent, useState } from 'react';
+
+import {
+  type Reminder,
+  type ReminderRecurrence,
+  type ReminderType,
+  useReminderEnums,
+  useReminders,
+} from '@/entities/reminder';
+import {
+  useCreateReminder,
+  useDeleteReminder,
+  useUpdateReminder,
+} from '@/features/manage-reminders';
+import { formatJalali } from '@/shared/lib/date';
+import { type Locale, useRouter } from '@/shared/i18n';
+import { Icon, type IconName, NavBack } from '@/shared/ui';
+
+const FA = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+const localizeNum = (value: string, loc: Locale) =>
+  loc === 'fa' ? value.replace(/[0-9]/g, (d) => FA[Number(d)]) : value;
+
+/** Row icon per reminder type (visual language mirrors the profile rows). */
+const TYPE_ICON: Record<ReminderType, IconName> = {
+  doctor: 'stetho',
+  medication: 'pill',
+  appointment: 'calendar',
+  custom: 'bell',
+};
+
+const ALL_TYPES: ReminderType[] = ['doctor', 'medication', 'appointment', 'custom'];
+const ALL_RECURRENCES: ReminderRecurrence[] = ['none', 'daily', 'weekly', 'monthly'];
+
+// Hairline between rows, inset past the icon (logical start — RTL-safe).
+function Divider() {
+  return <div style={{ height: 1, background: 'var(--line)', marginInlineStart: 60 }} />;
+}
+
+// RTL-safe on/off switch: the knob is positioned with a logical inset, so it
+// travels the correct way in both directions (CLAUDE.md §12).
+function Toggle({
+  on,
+  disabled,
+  label,
+  onToggle,
+}: {
+  on: boolean;
+  disabled?: boolean;
+  label: string;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={on}
+      aria-label={label}
+      onClick={onToggle}
+      disabled={disabled}
+      style={{
+        position: 'relative',
+        width: 44,
+        height: 26,
+        borderRadius: 13,
+        border: 0,
+        padding: 0,
+        flexShrink: 0,
+        background: on ? 'var(--brand)' : '#D6DBE0',
+        cursor: disabled ? 'default' : 'pointer',
+        opacity: disabled ? 0.55 : 1,
+        transition: 'background .2s ease',
+      }}
+    >
+      <span
+        style={{
+          position: 'absolute',
+          top: 2,
+          insetInlineStart: on ? 20 : 2,
+          width: 22,
+          height: 22,
+          borderRadius: '50%',
+          background: '#fff',
+          boxShadow: '0 1px 3px rgba(17,32,47,.25)',
+          transition: 'inset-inline-start .2s ease',
+        }}
+      />
+    </button>
+  );
+}
+
+// ── One reminder row ──────────────────────────────────────────
+function ReminderRow({
+  reminder,
+  loc,
+  confirming,
+  onAskDelete,
+  onCancelDelete,
+  onConfirmDelete,
+  onToggleActive,
+  togglePending,
+  deletePending,
+}: {
+  reminder: Reminder;
+  loc: Locale;
+  confirming: boolean;
+  onAskDelete: () => void;
+  onCancelDelete: () => void;
+  onConfirmDelete: () => void;
+  onToggleActive: () => void;
+  togglePending: boolean;
+  deletePending: boolean;
+}) {
+  const t = useTranslations('reminders');
+
+  // Second line: the optional subtitle plus a human schedule summary.
+  const scheduleText = (() => {
+    if (reminder.recurrence !== 'none') {
+      const label = t(`recurrence.${reminder.recurrence}`);
+      return reminder.recurrenceTime
+        ? t('recurrenceAt', {
+            recurrence: label,
+            time: localizeNum(reminder.recurrenceTime, loc),
+          })
+        : label;
+    }
+    // One-off: show the Jalali date when there is one (§7 — never raw Gregorian).
+    return reminder.scheduledAt
+      ? formatJalali(new Date(reminder.scheduledAt), loc)
+      : null;
+  })();
+
+  const secondLine = [reminder.subtitle, scheduleText].filter(Boolean).join(' · ');
+
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 14px' }}>
+        <span
+          style={{
+            width: 34,
+            height: 34,
+            borderRadius: 11,
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'var(--line)',
+            color: 'var(--brand)',
+            opacity: reminder.isActive ? 1 : 0.55,
+          }}
+        >
+          <Icon name={TYPE_ICON[reminder.type]} size={19} />
+        </span>
+
+        <div style={{ flex: 1, minWidth: 0, textAlign: 'start' }}>
+          <div
+            style={{
+              fontSize: 14,
+              fontWeight: 600,
+              color: reminder.isActive ? 'var(--ink)' : 'var(--muted)',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {reminder.title}
+          </div>
+          {secondLine ? (
+            <div
+              style={{
+                fontSize: 12,
+                color: 'var(--muted)',
+                marginTop: 2,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {secondLine}
+            </div>
+          ) : null}
+        </div>
+
+        <Toggle
+          on={reminder.isActive}
+          disabled={togglePending || deletePending}
+          label={t('row.toggle')}
+          onToggle={onToggleActive}
+        />
+
+        <button
+          type="button"
+          className="iconbtn"
+          aria-label={t('row.delete')}
+          onClick={confirming ? onCancelDelete : onAskDelete}
+          disabled={deletePending}
+          style={{ color: '#E5484D', flexShrink: 0, opacity: deletePending ? 0.55 : 1 }}
+        >
+          <Icon name={confirming ? 'x' : 'trash'} size={18} />
+        </button>
+      </div>
+
+      {confirming ? (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '0 14px 12px',
+            marginInlineStart: 46,
+          }}
+        >
+          <span style={{ flex: 1, fontSize: 13, color: 'var(--muted)', textAlign: 'start' }}>
+            {deletePending ? t('confirmDelete.deleting') : t('confirmDelete.question')}
+          </span>
+          <button
+            type="button"
+            onClick={onConfirmDelete}
+            disabled={deletePending}
+            style={{
+              border: 0,
+              borderRadius: 10,
+              padding: '6px 14px',
+              fontSize: 13,
+              fontWeight: 700,
+              font: 'inherit',
+              background: 'rgba(229,72,77,.1)',
+              color: '#E5484D',
+              cursor: deletePending ? 'default' : 'pointer',
+              opacity: deletePending ? 0.55 : 1,
+            }}
+          >
+            {t('confirmDelete.yes')}
+          </button>
+          <button
+            type="button"
+            onClick={onCancelDelete}
+            disabled={deletePending}
+            style={{
+              border: 0,
+              borderRadius: 10,
+              padding: '6px 14px',
+              fontSize: 13,
+              fontWeight: 700,
+              font: 'inherit',
+              background: 'var(--line)',
+              color: 'var(--ink)',
+              cursor: deletePending ? 'default' : 'pointer',
+            }}
+          >
+            {t('confirmDelete.no')}
+          </button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+// ── Inline "new reminder" form ────────────────────────────────
+function AddReminderForm({ onDone }: { onDone: () => void }) {
+  const t = useTranslations('reminders');
+  const { data: enums } = useReminderEnums();
+  const create = useCreateReminder();
+
+  const [type, setType] = useState<ReminderType>('doctor');
+  const [title, setTitle] = useState('');
+  const [subtitle, setSubtitle] = useState('');
+  const [recurrence, setRecurrence] = useState<ReminderRecurrence>('none');
+  const [time, setTime] = useState('08:00');
+  const [failed, setFailed] = useState(false);
+
+  // Prefer the backend-localized labels from /reminders/enums; fall back to
+  // the slice's own i18n keys until (or if) they load.
+  const typeOptions =
+    enums && enums.types.length > 0
+      ? enums.types.map((o) => ({ value: o.value, label: o.label }))
+      : ALL_TYPES.map((v) => ({ value: v, label: t(`types.${v}`) }));
+  const recurrenceOptions =
+    enums && enums.recurrences.length > 0
+      ? enums.recurrences.map((o) => ({ value: o.value, label: o.label }))
+      : ALL_RECURRENCES.map((v) => ({ value: v, label: t(`recurrence.${v}`) }));
+
+  const canSubmit = title.trim().length > 0 && !create.isPending;
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    if (!canSubmit) return;
+    setFailed(false);
+    create.mutate(
+      {
+        type,
+        title: title.trim(),
+        subtitle: subtitle.trim() ? subtitle.trim() : undefined,
+        recurrence,
+        recurrenceTime: recurrence !== 'none' && time ? time : undefined,
+      },
+      {
+        onSuccess: onDone,
+        onError: () => setFailed(true),
+      },
+    );
+  };
+
+  const selectStyle = {
+    width: '100%',
+    border: 0,
+    background: 'transparent',
+    font: 'inherit',
+    fontSize: 15,
+    color: 'var(--ink)',
+    outline: 'none',
+  } as const;
+
+  return (
+    <form onSubmit={handleSubmit} className="card" style={{ padding: 16, marginTop: 12 }}>
+      <div
+        style={{
+          fontSize: 14,
+          fontWeight: 800,
+          color: 'var(--ink)',
+          textAlign: 'start',
+          marginBottom: 12,
+        }}
+      >
+        {t('form.title')}
+      </div>
+
+      <label className="lbl">{t('form.typeLabel')}</label>
+      <div className="field" style={{ marginBottom: 12 }}>
+        <select
+          value={type}
+          onChange={(e) => setType(e.target.value as ReminderType)}
+          style={selectStyle}
+        >
+          {typeOptions.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <label className="lbl">{t('form.titleLabel')}</label>
+      <div className="field" style={{ marginBottom: 12 }}>
+        <input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder={t('form.titlePlaceholder')}
+          maxLength={120}
+        />
+      </div>
+
+      <label className="lbl">{t('form.subtitleLabel')}</label>
+      <div className="field" style={{ marginBottom: 12 }}>
+        <input
+          value={subtitle}
+          onChange={(e) => setSubtitle(e.target.value)}
+          placeholder={t('form.subtitlePlaceholder')}
+          maxLength={160}
+        />
+      </div>
+
+      <label className="lbl">{t('form.recurrenceLabel')}</label>
+      <div className="field" style={{ marginBottom: 12 }}>
+        <select
+          value={recurrence}
+          onChange={(e) => setRecurrence(e.target.value as ReminderRecurrence)}
+          style={selectStyle}
+        >
+          {recurrenceOptions.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {recurrence !== 'none' ? (
+        <>
+          <label className="lbl">{t('form.timeLabel')}</label>
+          <div className="field" style={{ marginBottom: 12 }}>
+            <input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
+          </div>
+        </>
+      ) : null}
+
+      {failed ? (
+        <div style={{ fontSize: 13, color: '#E5484D', textAlign: 'start', marginBottom: 10 }}>
+          {t('form.error')}
+        </div>
+      ) : null}
+
+      <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+        <button
+          type="submit"
+          className="btn btn-primary"
+          disabled={!canSubmit}
+          style={{ flex: 1 }}
+        >
+          {create.isPending ? t('form.submitting') : t('form.submit')}
+        </button>
+        <button
+          type="button"
+          className="btn btn-soft"
+          onClick={onDone}
+          disabled={create.isPending}
+          style={{ flexShrink: 0 }}
+        >
+          {t('form.cancel')}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+// ── The screen ────────────────────────────────────────────────
+export function RemindersPage() {
+  const t = useTranslations('reminders');
+  const loc = useLocale() as Locale;
+  const router = useRouter();
+
+  const { data: reminders, isLoading, isError } = useReminders();
+  const update = useUpdateReminder();
+  const remove = useDeleteReminder();
+
+  const [showForm, setShowForm] = useState(false);
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+
+  const handleToggle = (r: Reminder) => {
+    if (update.isPending) return;
+    update.mutate({ id: r.id, isActive: !r.isActive });
+  };
+
+  const handleDelete = (id: string) => {
+    if (remove.isPending) return;
+    remove.mutate(id, { onSettled: () => setConfirmingId(null) });
+  };
+
+  return (
+    <div className="view" style={{ background: 'var(--page)' }}>
+      <div className="hdr">
+        <NavBack onClick={() => router.back()} label={t('back')} />
+        <span style={{ fontSize: 17, fontWeight: 800, color: 'var(--ink)' }}>{t('title')}</span>
+        <button
+          type="button"
+          className="iconbtn"
+          aria-label={showForm ? t('form.cancel') : t('add')}
+          onClick={() => setShowForm((v) => !v)}
+          style={{ color: 'var(--brand)' }}
+        >
+          <Icon name={showForm ? 'x' : 'plus'} size={22} />
+        </button>
+      </div>
+
+      <div className="scroll" style={{ padding: '4px 18px 24px' }}>
+        {showForm ? <AddReminderForm onDone={() => setShowForm(false)} /> : null}
+
+        {isLoading ? (
+          <div
+            className="card"
+            style={{ marginTop: 12, padding: 24, textAlign: 'center', color: 'var(--muted)', fontSize: 14 }}
+          >
+            {t('loading')}
+          </div>
+        ) : isError ? (
+          <div
+            className="card"
+            style={{ marginTop: 12, padding: 24, textAlign: 'center', color: 'var(--muted)', fontSize: 14 }}
+          >
+            {t('loadError')}
+          </div>
+        ) : reminders && reminders.length > 0 ? (
+          <div
+            className="card"
+            style={{ marginTop: 12, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+          >
+            {reminders.map((r, i) => (
+              <div key={r.id}>
+                {i > 0 ? <Divider /> : null}
+                <ReminderRow
+                  reminder={r}
+                  loc={loc}
+                  confirming={confirmingId === r.id}
+                  onAskDelete={() => setConfirmingId(r.id)}
+                  onCancelDelete={() => setConfirmingId(null)}
+                  onConfirmDelete={() => handleDelete(r.id)}
+                  onToggleActive={() => handleToggle(r)}
+                  togglePending={update.isPending && update.variables?.id === r.id}
+                  deletePending={remove.isPending && remove.variables === r.id}
+                />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="card" style={{ marginTop: 12, padding: '32px 24px', textAlign: 'center' }}>
+            <span
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: '50%',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'var(--pink-soft)',
+                color: 'var(--brand)',
+              }}
+            >
+              <Icon name="bell" size={26} />
+            </span>
+            <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)', marginTop: 14 }}>
+              {t('empty.title')}
+            </div>
+            <div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 6, lineHeight: 1.7 }}>
+              {t('empty.subtitle')}
+            </div>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => setShowForm(true)}
+              style={{ marginTop: 18 }}
+            >
+              {t('add')}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

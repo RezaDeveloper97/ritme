@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Http\Controllers\Concerns\ResolvesLocale;
 use App\Http\Controllers\Controller;
 use App\Models\Challenge;
 use App\Models\TaskTemplate;
@@ -17,6 +18,8 @@ use Illuminate\Http\Request;
 
 class HomeController extends Controller
 {
+    use ResolvesLocale;
+
     public function __construct(
         private readonly HomePageService $homePage,
     ) {}
@@ -476,12 +479,4 @@ class HomeController extends Controller
     /**
      * Resolve locale from Accept-Language header (supports "fa-IR" etc).
      */
-    private function resolveLocale(Request $request): string
-    {
-        $header = $request->header('Accept-Language', 'fa');
-        $primary = strtolower(strtok($header, ',;'));
-        $primary = explode('-', $primary)[0];
-
-        return in_array($primary, ['fa', 'en'], true) ? $primary : 'fa';
-    }
 }
