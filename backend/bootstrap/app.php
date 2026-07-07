@@ -32,7 +32,11 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         // Web guests hitting a guarded admin page are sent to the admin login.
-        $middleware->redirectGuestsTo(fn () => route('admin.login'));
+        // API requests (Accept: application/json OR /api/*) must still get a
+        // 401 rather than a redirect, so only redirect non-API web requests.
+        $middleware->redirectGuestsTo(
+            fn ($request) => $request->is('api/*') ? null : route('admin.login')
+        );
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
