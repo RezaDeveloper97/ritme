@@ -9,7 +9,6 @@ import { DeleteAccountConfirm, useExportData } from '@/features/manage-account';
 import { useSwitchLocale } from '@/features/switch-locale';
 import { formatJalali } from '@/shared/lib/date';
 import { type Locale, useRouter } from '@/shared/i18n';
-import { type ThemePreference, useThemeStore } from '@/shared/theme';
 import { Icon, type IconName } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
 
@@ -135,7 +134,6 @@ export function ProfilePage() {
   const { data: profile } = useUserProfile();
   const logout = useLogout();
   const { locale, switchLocale, isPending: switching } = useSwitchLocale();
-  const { theme, setTheme } = useThemeStore();
   const { exportData, isPending: exporting } = useExportData();
   const [deleteOpen, setDeleteOpen] = useState(false);
 
@@ -167,11 +165,6 @@ export function ProfilePage() {
 
   // Two locales: tapping the language row flips to the other one.
   const toggleLocale = () => switchLocale(locale === 'fa' ? 'en' : 'fa');
-
-  // Appearance cycles through the three preferences on each tap.
-  const THEME_ORDER: ThemePreference[] = ['system', 'light', 'dark'];
-  const cycleTheme = () =>
-    setTheme(THEME_ORDER[(THEME_ORDER.indexOf(theme) + 1) % THEME_ORDER.length]);
 
   const chevron = <Chevron loc={loc} />;
 
@@ -306,20 +299,6 @@ export function ProfilePage() {
               <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--brand)' }}>
                   {t(`language.${locale}`)}
-                </span>
-                {chevron}
-              </span>
-            }
-          />
-          <Divider />
-          <Row
-            icon="moon"
-            label={t('rows.appearance')}
-            onClick={cycleTheme}
-            trailing={
-              <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--brand)' }}>
-                  {t(`appearance.${theme}`)}
                 </span>
                 {chevron}
               </span>

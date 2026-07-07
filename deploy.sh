@@ -27,9 +27,23 @@ docker build --platform linux/amd64 \
   -t ritme-frontend:latest ./frontend
 
 echo "==> Transferring images to ${SERVER}..."
-docker save ritme-backend:latest ritme-frontend:latest \
-  | gzip \
-  | ssh -i "${SSH_KEY}" "${SERVER}" 'gunzip | docker load'
+# Estimate uncompressed size so the progress bar can show a percentage.
+EST_BYTES=$(docker image inspect ritme-backend:latest ritme-frontend:latest \
+  --format '{{.Size}}' 2>/dev/null | awk '{s+=$1} END {print s}')
+
+if command -v pv >/dev/null 2>&1; then
+  # pv shows transferred / ETA / % (based on the uncompressed estimate).
+  docker save ritme-backend:latest ritme-frontend:latest \
+    | pv -s "${EST_BYTES:-0}" -N "images" \
+    | gzip \
+    | ssh -i "${SSH_KEY}" "${SERVER}" 'gunzip | docker load'
+else
+  echo "    (install 'pv' — brew install pv — for a live progress bar)"
+  echo "    total image size: $(( ${EST_BYTES:-0} / 1024 / 1024 )) MB"
+  docker save ritme-backend:latest ritme-frontend:latest \
+    | gzip \
+    | ssh -i "${SSH_KEY}" "${SERVER}" 'gunzip | docker load'
+fi
 
 echo "==> Updating compose files and restarting stack..."
 ssh -i "${SSH_KEY}" "${SERVER}" \

@@ -30,4 +30,4 @@ export function ThemeApplier() {
  * <script> in the root layout (server component), so it must stay a plain
  * string with no imports.
  */
-export const themeInitScript = `(function(){try{var t=localStorage.getItem('ritme_theme');var d=t==='dark'||(t!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.dataset.theme=d?'dark':'light';}catch(e){}})();`;
+export const themeInitScript = `(function(){try{document.documentElement.dataset.theme='light';}catch(e){}})();`;

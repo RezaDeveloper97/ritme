@@ -37,10 +37,27 @@ export const cycleCalculationSchema = z
     }),
   );
 
+/**
+ * The backend always sends a calculation *object*; when the profile is
+ * incomplete (no `last_period_start`) it returns an "empty" one with null core
+ * fields plus an `incomplete_profile` text flag (see the API's
+ * `HealthDataEngine::getEmptyCalculation`). Collapse that sentinel to `null`
+ * here so the boundary parser (§10) doesn't throw on the null fields — every
+ * consumer already treats a null `calculation` as "no data yet" and shows the
+ * onboarding / "unavailable" state. Any other malformed shape still throws.
+ */
+const isEmptyCalculation = (v: unknown): boolean =>
+  !!v && typeof v === 'object' && (v as { cycle_day?: unknown }).cycle_day == null;
+
+const nullableCalculationSchema = z.preprocess(
+  (v) => (isEmptyCalculation(v) ? null : v),
+  cycleCalculationSchema.nullable(),
+);
+
 /** `{ calculation, calculation_status, is_recalculating }` — today / by-date. */
 export const cycleCalculationEnvelopeSchema = z
   .object({
-    calculation: cycleCalculationSchema.nullable().default(null),
+    calculation: nullableCalculationSchema.default(null),
     calculation_status: z.string().default('completed'),
     is_recalculating: z.boolean().default(false),
   })
@@ -67,13 +84,15 @@ const monthSummarySchema = z
 /** `{ calculations[], month_summary, … }` — a month of calculations. */
 export const cycleMonthEnvelopeSchema = z
   .object({
-    calculations: z.array(cycleCalculationSchema).default([]),
+    // Days before `last_period_start` (or any incomplete day) come back as the
+    // same empty-calculation sentinel — drop those rather than throwing.
+    calculations: z.array(nullableCalculationSchema).default([]),
     calculation_status: z.string().default('completed'),
     is_recalculating: z.boolean().default(false),
     month_summary: monthSummarySchema.optional(),
   })
   .transform((e) => ({
-    calculations: e.calculations,
+    calculations: e.calculations.filter((c): c is CycleCalculation => c !== null),
     calculationStatus: e.calculation_status,
     isRecalculating: e.is_recalculating,
     monthSummary: e.month_summary ?? null,

@@ -13,15 +13,12 @@ export const THEME_KEY = 'ritme_theme';
 
 const isBrowser = (): boolean => typeof window !== 'undefined';
 
-function resolve(pref: ThemePreference): 'light' | 'dark' {
-  if (pref !== 'system') return pref;
-  if (!isBrowser()) return 'light';
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}
-
-export function applyTheme(pref: ThemePreference): void {
+// Dark mode is disabled for now — the app is light-only. The preference
+// machinery is kept so it can be re-enabled later, but everything resolves to
+// 'light' regardless of the stored value or OS setting.
+export function applyTheme(_pref: ThemePreference): void {
   if (!isBrowser()) return;
-  document.documentElement.dataset.theme = resolve(pref);
+  document.documentElement.dataset.theme = 'light';
 }
 
 function readStored(): ThemePreference {
