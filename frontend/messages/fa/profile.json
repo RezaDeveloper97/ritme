@@ -7,7 +7,8 @@
     "account": "حساب کاربری",
     "app": "برنامه",
     "privacy": "حریم خصوصی و داده‌ها",
-    "support": "پشتیبانی"
+    "support": "پشتیبانی",
+    "mode": "حالت اپلیکیشن"
   },
   "rows": {
     "personalInfo": "اطلاعات شخصی",
@@ -49,5 +50,13 @@
     "light": "روشن",
     "dark": "تیره"
   },
-  "exporting": "در حال آماده‌سازی خروجی…"
+  "exporting": "در حال آماده‌سازی خروجی…",
+  "mode": {
+    "switchToPregnancy": "تغییر به حالت بارداری",
+    "pregnancyTracker": "پیگیری بارداری",
+    "switchToCycle": "بازگشت به حالت چرخه",
+    "switching": "در حال تغییر…",
+    "cycleActive": "حالت چرخه فعال است",
+    "pregnancyActive": "حالت بارداری فعال است"
+  }
 }

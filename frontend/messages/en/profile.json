@@ -7,7 +7,8 @@
     "account": "Account",
     "app": "App",
     "privacy": "Privacy & data",
-    "support": "Support"
+    "support": "Support",
+    "mode": "App mode"
   },
   "rows": {
     "personalInfo": "Personal info",
@@ -49,5 +50,13 @@
     "light": "Light",
     "dark": "Dark"
   },
-  "exporting": "Preparing export…"
+  "exporting": "Preparing export…",
+  "mode": {
+    "switchToPregnancy": "Switch to pregnancy mode",
+    "pregnancyTracker": "Pregnancy tracker",
+    "switchToCycle": "Back to cycle mode",
+    "switching": "Switching…",
+    "cycleActive": "Cycle mode is active",
+    "pregnancyActive": "Pregnancy mode is active"
+  }
 }

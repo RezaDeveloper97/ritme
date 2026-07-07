@@ -3,6 +3,8 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { type CSSProperties, type ReactNode, useState } from 'react';
 
+import { useUserMode } from '@/entities/message';
+import { useDeactivatePregnancy } from '@/entities/pregnancy';
 import { useUserProfile } from '@/entities/user';
 import { useLogout } from '@/features/auth';
 import { DeleteAccountConfirm, useExportData } from '@/features/manage-account';
@@ -132,6 +134,8 @@ export function ProfilePage() {
   const loc = useLocale() as Locale;
   const router = useRouter();
   const { data: profile } = useUserProfile();
+  const { data: userMode } = useUserMode();
+  const deactivatePregnancy = useDeactivatePregnancy();
   const logout = useLogout();
   const { locale, switchLocale, isPending: switching } = useSwitchLocale();
   const { exportData, isPending: exporting } = useExportData();
@@ -165,6 +169,15 @@ export function ProfilePage() {
 
   // Two locales: tapping the language row flips to the other one.
   const toggleLocale = () => switchLocale(locale === 'fa' ? 'en' : 'fa');
+
+  // App mode (CLAUDE.md §1). Entering pregnancy mode routes to /pregnancy,
+  // which activates and runs onboarding via its own gate; leaving it flips the
+  // backend mode back to cycle in place.
+  const isPregnancy = userMode?.mode === 'pregnancy';
+  const switchToCycle = () => {
+    if (deactivatePregnancy.isPending) return;
+    deactivatePregnancy.mutate();
+  };
 
   const chevron = <Chevron loc={loc} />;
 
@@ -229,6 +242,37 @@ export function ProfilePage() {
             </button>
           </div>
         </section>
+
+        {/* App mode — the visible entry point for switching between cycle and
+            pregnancy mode (§1). In cycle mode this is how the user starts
+            pregnancy tracking; in pregnancy mode it links to the tracker and
+            offers a way back. */}
+        <Group title={t('sections.mode')}>
+          {isPregnancy ? (
+            <>
+              <Row
+                icon="heart"
+                label={t('mode.pregnancyTracker')}
+                trailing={chevron}
+                onClick={() => router.push('/pregnancy')}
+              />
+              <Divider />
+              <Row
+                icon="refresh"
+                label={deactivatePregnancy.isPending ? t('mode.switching') : t('mode.switchToCycle')}
+                onClick={switchToCycle}
+                disabled={deactivatePregnancy.isPending}
+              />
+            </>
+          ) : (
+            <Row
+              icon="heart"
+              label={t('mode.switchToPregnancy')}
+              trailing={chevron}
+              onClick={() => router.push('/pregnancy')}
+            />
+          )}
+        </Group>
 
         {/* Cycle & health — the user's profile data from GET /profile. When the
             account has no health profile yet, a single hint row stands in for
