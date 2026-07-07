@@ -43,6 +43,12 @@ if [ "$RUN_MIGRATIONS" = "true" ]; then
   fi
 
   php artisan storage:link || true
+
+  # Idempotent essential data: the initial admin (credentials from ADMIN_SEED_*)
+  # and the editable smart-message content. Both use firstOrCreate, so existing
+  # rows / admin edits are never overwritten.
+  php artisan db:seed --class=Database\\Seeders\\AdminSeeder --force || true
+  php artisan db:seed --class=Database\\Seeders\\MessageContentSeeder --force || true
 fi
 
 exec "$@"

@@ -250,14 +250,24 @@ class HealthDataEngine
 
     /**
      * Get effective cycle length based on history
+     *
+     * Always returns a positive integer. Every downstream calculation divides by
+     * this value (cycle-day wrapping, ovulation, PMS window), so a 0 here throws
+     * DivisionByZeroError and 500s the whole cycle/message pipeline. Guard the two
+     * ways it can reach 0: a profile `cycle_duration` of 0 (the `?? 28` fallback
+     * only covers null), and histories whose `cycle_length` values are all null
+     * (empty `->avg()` returns null → `(int) 0`).
      */
     public function getEffectiveCycleLength(Collection $histories): int
     {
-        if ($histories->isEmpty()) {
-            return $this->profile->cycle_duration ?? 28;
-        }
+        // Profile fallback: `?:` also rejects 0, unlike `??` which only rejects null.
+        $fallback = (int) ($this->profile->cycle_duration ?: 28);
 
         $lengths = $histories->pluck('cycle_length')->filter()->values();
+
+        if ($lengths->isEmpty()) {
+            return max($fallback, 1);
+        }
 
         if ($lengths->count() >= 3) {
             // Use median for 3+ cycles
@@ -265,14 +275,15 @@ class HealthDataEngine
             $count = $sorted->count();
             $middle = (int) floor($count / 2);
 
-            if ($count % 2 === 0) {
-                return (int) (($sorted[$middle - 1] + $sorted[$middle]) / 2);
-            }
-            return $sorted[$middle];
+            $median = $count % 2 === 0
+                ? (int) round(($sorted[$middle - 1] + $sorted[$middle]) / 2)
+                : (int) $sorted[$middle];
+
+            return max($median, 1);
         }
 
         // Use average for 1-2 cycles
-        return (int) round($lengths->avg());
+        return max((int) round($lengths->avg()), 1);
     }
 
     /**

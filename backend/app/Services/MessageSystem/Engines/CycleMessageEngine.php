@@ -7,11 +7,13 @@ use App\Enums\CycleSubphase;
 use App\Enums\OverrideType;
 use App\Models\User;
 use App\Services\MessageSystem\Contracts\MessageEngineInterface;
+use App\Services\MessageSystem\Contracts\ProvidesMessageContent;
 use App\Services\MessageSystem\Core\MessageContext;
 use App\Services\MessageSystem\Core\MessageResult;
 use App\Services\MessageSystem\Enums\MessageMode;
+use App\Services\MessageSystem\Support\MessageContentRepository;
 
-class CycleMessageEngine implements MessageEngineInterface
+class CycleMessageEngine implements MessageEngineInterface, ProvidesMessageContent
 {
     public function __construct(
         private readonly User $user,
@@ -51,6 +53,11 @@ class CycleMessageEngine implements MessageEngineInterface
                 'label' => $o->label($locale),
             ])->values()->toArray(),
         ];
+    }
+
+    private function content(): MessageContentRepository
+    {
+        return app(MessageContentRepository::class);
     }
 
     /**
@@ -125,32 +132,38 @@ class CycleMessageEngine implements MessageEngineInterface
     }
 
     /**
-     * Get Non-TTC base message for phase
+     * Get Non-TTC base message for phase (DB-editable, falls back to defaults)
      */
     private function getNonTTCBaseMessage(CyclePhase $phase, MessageContext $context): array
     {
-        $messages = $this->getNonTTCMessages();
-        $phaseMessages = $messages[$phase->value] ?? $messages['default'];
+        $messages = self::nonTtcMessages();
+        $itemKey = array_key_exists($phase->value, $messages) ? $phase->value : 'default';
+        $fallback = self::slice($messages[$itemKey], $this->locale);
+
+        $p = $this->content()->resolve('cycle_base_non_ttc', $itemKey, $this->locale, $fallback);
 
         return [
             'phase' => $phase->value,
             'phase_label' => $phase->label($this->locale),
             'cycle_day' => $context->cycleDay,
-            'short_message' => $phaseMessages['short'][$this->locale] ?? $phaseMessages['short']['fa'],
-            'long_message' => $phaseMessages['long'][$this->locale] ?? $phaseMessages['long']['fa'],
-            'action_suggestion' => $phaseMessages['action'][$this->locale] ?? $phaseMessages['action']['fa'],
-            'dos' => $phaseMessages['dos'][$this->locale] ?? $phaseMessages['dos']['fa'],
-            'donts' => $phaseMessages['donts'][$this->locale] ?? $phaseMessages['donts']['fa'],
+            'short_message' => $p['short'] ?? '',
+            'long_message' => $p['long'] ?? '',
+            'action_suggestion' => $p['action'] ?? '',
+            'dos' => $p['dos'] ?? [],
+            'donts' => $p['donts'] ?? [],
         ];
     }
 
     /**
-     * Get TTC base message for phase
+     * Get TTC base message for phase (DB-editable, falls back to defaults)
      */
     private function getTTCBaseMessage(CyclePhase $phase, MessageContext $context): array
     {
-        $messages = $this->getTTCMessages();
-        $phaseMessages = $messages[$phase->value] ?? $messages['default'];
+        $messages = self::ttcMessages();
+        $itemKey = array_key_exists($phase->value, $messages) ? $phase->value : 'default';
+        $fallback = self::slice($messages[$itemKey], $this->locale);
+
+        $p = $this->content()->resolve('cycle_base_ttc', $itemKey, $this->locale, $fallback);
 
         $isFertile = $context->isFertileWindow ?? false;
 
@@ -168,34 +181,35 @@ class CycleMessageEngine implements MessageEngineInterface
             'cycle_day' => $context->cycleDay,
             'is_fertile_window' => $isFertile,
             'fertility_info' => $fertilityInfo,
-            'short_message' => $phaseMessages['short'][$this->locale] ?? $phaseMessages['short']['fa'],
-            'long_message' => $phaseMessages['long'][$this->locale] ?? $phaseMessages['long']['fa'],
-            'action_suggestion' => $phaseMessages['action'][$this->locale] ?? $phaseMessages['action']['fa'],
-            'dos' => $phaseMessages['dos'][$this->locale] ?? $phaseMessages['dos']['fa'],
-            'donts' => $phaseMessages['donts'][$this->locale] ?? $phaseMessages['donts']['fa'],
-            'ttc_tips' => $phaseMessages['ttc_tips'][$this->locale] ?? $phaseMessages['ttc_tips']['fa'] ?? [],
+            'short_message' => $p['short'] ?? '',
+            'long_message' => $p['long'] ?? '',
+            'action_suggestion' => $p['action'] ?? '',
+            'dos' => $p['dos'] ?? [],
+            'donts' => $p['donts'] ?? [],
+            'ttc_tips' => $p['ttc_tips'] ?? [],
         ];
     }
 
     /**
-     * Get override message for specific type
+     * Get override message for specific type (DB-editable, falls back to defaults)
      */
     private function getOverrideMessageForType(OverrideType $type, ?CyclePhase $phase, MessageContext $context): array
     {
-        $overrides = $this->getOverrideMessages();
-        $override = $overrides[$type->value] ?? null;
-
-        if (!$override) {
+        $overrides = self::overrideMessages();
+        if (!isset($overrides[$type->value])) {
             return [];
         }
+
+        $fallback = self::slice($overrides[$type->value], $this->locale);
+        $p = $this->content()->resolve('cycle_override', $type->value, $this->locale, $fallback);
 
         return [
             'override_type' => $type->value,
             'override_label' => $type->label($this->locale),
-            'override_message' => $override['message'][$this->locale] ?? $override['message']['fa'],
-            'override_action' => $override['action'][$this->locale] ?? $override['action']['fa'],
-            'override_dos' => $override['dos'][$this->locale] ?? $override['dos']['fa'],
-            'override_donts' => $override['donts'][$this->locale] ?? $override['donts']['fa'],
+            'override_message' => $p['message'] ?? '',
+            'override_action' => $p['action'] ?? '',
+            'override_dos' => $p['dos'] ?? [],
+            'override_donts' => $p['donts'] ?? [],
         ];
     }
 
@@ -222,9 +236,45 @@ class CycleMessageEngine implements MessageEngineInterface
     }
 
     /**
-     * Non-TTC message database
+     * Reduce a bilingual entry (every field is ['fa'=>..,'en'=>..]) to one locale.
      */
-    private function getNonTTCMessages(): array
+    private static function slice(array $entry, string $locale): array
+    {
+        $out = [];
+        foreach ($entry as $field => $val) {
+            $out[$field] = is_array($val) ? ($val[$locale] ?? $val['fa'] ?? null) : $val;
+        }
+        return $out;
+    }
+
+    /**
+     * @inheritDoc — seed/fallback source for all cycle message text.
+     */
+    public static function contentDefaults(): array
+    {
+        $out = [];
+        foreach (self::nonTtcMessages() as $key => $entry) {
+            foreach (['fa', 'en'] as $loc) {
+                $out['cycle_base_non_ttc'][$key][$loc] = self::slice($entry, $loc);
+            }
+        }
+        foreach (self::ttcMessages() as $key => $entry) {
+            foreach (['fa', 'en'] as $loc) {
+                $out['cycle_base_ttc'][$key][$loc] = self::slice($entry, $loc);
+            }
+        }
+        foreach (self::overrideMessages() as $key => $entry) {
+            foreach (['fa', 'en'] as $loc) {
+                $out['cycle_override'][$key][$loc] = self::slice($entry, $loc);
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * Non-TTC message database (seed/fallback)
+     */
+    private static function nonTtcMessages(): array
     {
         return [
             'menstruation' => [
@@ -341,9 +391,9 @@ class CycleMessageEngine implements MessageEngineInterface
     }
 
     /**
-     * TTC message database
+     * TTC message database (seed/fallback)
      */
-    private function getTTCMessages(): array
+    private static function ttcMessages(): array
     {
         return [
             'menstruation' => [
@@ -480,9 +530,9 @@ class CycleMessageEngine implements MessageEngineInterface
     }
 
     /**
-     * Override message database
+     * Override message database (seed/fallback)
      */
-    private function getOverrideMessages(): array
+    private static function overrideMessages(): array
     {
         return [
             'pain' => [

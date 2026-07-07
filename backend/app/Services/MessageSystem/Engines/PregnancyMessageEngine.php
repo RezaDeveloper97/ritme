@@ -4,11 +4,13 @@ namespace App\Services\MessageSystem\Engines;
 
 use App\Models\User;
 use App\Services\MessageSystem\Contracts\MessageEngineInterface;
+use App\Services\MessageSystem\Contracts\ProvidesMessageContent;
 use App\Services\MessageSystem\Core\MessageContext;
 use App\Services\MessageSystem\Core\MessageResult;
 use App\Services\MessageSystem\Enums\MessageMode;
+use App\Services\MessageSystem\Support\MessageContentRepository;
 
-class PregnancyMessageEngine implements MessageEngineInterface
+class PregnancyMessageEngine implements MessageEngineInterface, ProvidesMessageContent
 {
     public function __construct(
         private readonly User $user,
@@ -41,6 +43,11 @@ class PregnancyMessageEngine implements MessageEngineInterface
         ];
     }
 
+    private function content(): MessageContentRepository
+    {
+        return app(MessageContentRepository::class);
+    }
+
     /**
      * Get base message for the current pregnancy week (Layer 1)
      */
@@ -65,13 +72,13 @@ class PregnancyMessageEngine implements MessageEngineInterface
             'trimester' => $trimester,
             'trimester_label' => $this->getTrimesterLabel($trimester ?? 1),
             'gestational_age' => $context->getGestationalAgeString(),
-            'short_message' => $weekSpecific['short'][$this->locale] ?? $trimesterMessage['short'][$this->locale],
-            'long_message' => $weekSpecific['long'][$this->locale] ?? $trimesterMessage['long'][$this->locale],
-            'action_suggestion' => $weekSpecific['action'][$this->locale] ?? $trimesterMessage['action'][$this->locale],
-            'dos' => $trimesterMessage['dos'][$this->locale] ?? [],
-            'donts' => $trimesterMessage['donts'][$this->locale] ?? [],
-            'baby_development' => $weekSpecific['baby'][$this->locale] ?? null,
-            'body_changes' => $weekSpecific['body'][$this->locale] ?? null,
+            'short_message' => $weekSpecific['short'] ?? $trimesterMessage['short'] ?? '',
+            'long_message' => $weekSpecific['long'] ?? $trimesterMessage['long'] ?? '',
+            'action_suggestion' => $weekSpecific['action'] ?? $trimesterMessage['action'] ?? '',
+            'dos' => $trimesterMessage['dos'] ?? [],
+            'donts' => $trimesterMessage['donts'] ?? [],
+            'baby_development' => $weekSpecific['baby'] ?? null,
+            'body_changes' => $weekSpecific['body'] ?? null,
         ];
     }
 
@@ -99,23 +106,21 @@ class PregnancyMessageEngine implements MessageEngineInterface
      */
     private function determinePregnancyOverride(array $symptoms, int $trimester): ?array
     {
-        $overrides = $this->getPregnancyOverrides();
-
         // Check for severe symptoms first
         if (in_array('nausea', $symptoms) || in_array('vomiting', $symptoms)) {
-            return $overrides['nausea'] ?? null;
+            return $this->getOverrideForType('nausea');
         }
 
         if (in_array('fatigue', $symptoms) || in_array('low_energy', $symptoms)) {
-            return $overrides['fatigue'] ?? null;
+            return $this->getOverrideForType('fatigue');
         }
 
         if (in_array('backache', $symptoms)) {
-            return $overrides['backache'] ?? null;
+            return $this->getOverrideForType('backache');
         }
 
         if (in_array('mood_anxious', $symptoms) || in_array('mood_sad', $symptoms)) {
-            return $overrides['anxiety'] ?? null;
+            return $this->getOverrideForType('anxiety');
         }
 
         return null;
@@ -131,28 +136,140 @@ class PregnancyMessageEngine implements MessageEngineInterface
         };
     }
 
+    /**
+     * Get default message when no pregnancy week is available (DB-editable, falls back to defaults)
+     */
     private function getDefaultMessage(): array
     {
+        $fallback = self::slice(self::baseMessages()['default'], $this->locale);
+        $p = $this->content()->resolve('pregnancy_base', 'default', $this->locale, $fallback);
+
         return [
             'week' => null,
             'trimester' => null,
-            'short_message' => $this->locale === 'fa'
-                ? 'به دوران بارداری خوش آمدید'
-                : 'Welcome to your pregnancy journey',
-            'long_message' => $this->locale === 'fa'
-                ? 'برای دریافت پیام‌های شخصی‌سازی شده، لطفاً اطلاعات بارداری را تکمیل کنید.'
-                : 'Please complete your pregnancy information to receive personalized messages.',
-            'action_suggestion' => $this->locale === 'fa'
-                ? 'پروفایل بارداری را تکمیل کنید'
-                : 'Complete your pregnancy profile',
+            'short_message' => $p['short'] ?? '',
+            'long_message' => $p['long'] ?? '',
+            'action_suggestion' => $p['action'] ?? '',
             'dos' => [],
             'donts' => [],
         ];
     }
 
+    /**
+     * Get trimester-based message (DB-editable, falls back to defaults)
+     */
     private function getTrimesterMessage(int $trimester): array
     {
-        $messages = [
+        $messages = self::trimesterMessages();
+        $key = array_key_exists($trimester, $messages) ? $trimester : 1;
+        $fallback = self::slice($messages[$key], $this->locale);
+
+        return $this->content()->resolve('pregnancy_trimester', (string) $key, $this->locale, $fallback);
+    }
+
+    /**
+     * Get week-specific milestone message (DB-editable, falls back to defaults)
+     */
+    private function getWeekSpecificMessage(int $week): array
+    {
+        $milestones = self::weekMilestones();
+
+        // Find closest milestone or return empty
+        $closest = null;
+        $minDiff = 100;
+        foreach (array_keys($milestones) as $milestone) {
+            $diff = abs($week - $milestone);
+            if ($diff < $minDiff && $diff <= 2) {
+                $minDiff = $diff;
+                $closest = $milestone;
+            }
+        }
+
+        if ($closest !== null) {
+            $fallback = self::slice($milestones[$closest], $this->locale);
+
+            return $this->content()->resolve('pregnancy_week', (string) $closest, $this->locale, $fallback);
+        }
+
+        return [
+            'short' => $this->locale === 'fa' ? "هفته {$week} بارداری" : "Week {$week} of pregnancy",
+            'long' => null,
+            'action' => null,
+            'baby' => null,
+            'body' => null,
+        ];
+    }
+
+    /**
+     * Get pregnancy override message for specific type (DB-editable, falls back to defaults)
+     */
+    private function getOverrideForType(string $type): ?array
+    {
+        $overrides = self::overrideMessages();
+        if (!isset($overrides[$type])) {
+            return null;
+        }
+
+        $fallback = self::slice($overrides[$type], $this->locale);
+        $p = $this->content()->resolve('pregnancy_override', $type, $this->locale, $fallback);
+
+        return [
+            'override_type' => $type,
+            'override_label' => $p['label'] ?? '',
+            'override_message' => $p['message'] ?? '',
+            'override_action' => $p['action'] ?? '',
+            'override_dos' => $p['dos'] ?? [],
+            'override_donts' => $p['donts'] ?? [],
+        ];
+    }
+
+    /**
+     * Reduce a bilingual entry (every field is ['fa'=>..,'en'=>..]) to one locale.
+     */
+    private static function slice(array $entry, string $locale): array
+    {
+        $out = [];
+        foreach ($entry as $field => $val) {
+            $out[$field] = is_array($val) ? ($val[$locale] ?? $val['fa'] ?? null) : $val;
+        }
+        return $out;
+    }
+
+    /**
+     * @inheritDoc — seed/fallback source for all pregnancy message text.
+     */
+    public static function contentDefaults(): array
+    {
+        $out = [];
+        foreach (self::trimesterMessages() as $key => $entry) {
+            foreach (['fa', 'en'] as $loc) {
+                $out['pregnancy_trimester'][(string) $key][$loc] = self::slice($entry, $loc);
+            }
+        }
+        foreach (self::weekMilestones() as $key => $entry) {
+            foreach (['fa', 'en'] as $loc) {
+                $out['pregnancy_week'][(string) $key][$loc] = self::slice($entry, $loc);
+            }
+        }
+        foreach (self::overrideMessages() as $key => $entry) {
+            foreach (['fa', 'en'] as $loc) {
+                $out['pregnancy_override'][(string) $key][$loc] = self::slice($entry, $loc);
+            }
+        }
+        foreach (self::baseMessages() as $key => $entry) {
+            foreach (['fa', 'en'] as $loc) {
+                $out['pregnancy_base'][(string) $key][$loc] = self::slice($entry, $loc);
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * Trimester message database (seed/fallback)
+     */
+    private static function trimesterMessages(): array
+    {
+        return [
             1 => [
                 'short' => [
                     'fa' => 'سه‌ماهه اول: زمان تشکیل پایه‌ها',
@@ -220,14 +337,14 @@ class PregnancyMessageEngine implements MessageEngineInterface
                 ],
             ],
         ];
-
-        return $messages[$trimester] ?? $messages[1];
     }
 
-    private function getWeekSpecificMessage(int $week): array
+    /**
+     * Week milestone message database (seed/fallback)
+     */
+    private static function weekMilestones(): array
     {
-        // Key milestone weeks
-        $milestones = [
+        return [
             4 => [
                 'short' => ['fa' => 'جنین به دیواره رحم چسبیده است', 'en' => 'Embryo has implanted'],
                 'baby' => ['fa' => 'جنین به اندازه دانه خشخاش است', 'en' => 'Embryo is poppy seed sized'],
@@ -264,93 +381,124 @@ class PregnancyMessageEngine implements MessageEngineInterface
                 'body' => ['fa' => 'علائم زایمان را بشناسید', 'en' => 'Know the signs of labor'],
             ],
         ];
-
-        // Find closest milestone or return empty
-        $closest = null;
-        $minDiff = 100;
-        foreach (array_keys($milestones) as $milestone) {
-            $diff = abs($week - $milestone);
-            if ($diff < $minDiff && $diff <= 2) {
-                $minDiff = $diff;
-                $closest = $milestone;
-            }
-        }
-
-        return $milestones[$closest] ?? [
-            'short' => ['fa' => "هفته {$week} بارداری", 'en' => "Week {$week} of pregnancy"],
-            'long' => ['fa' => null, 'en' => null],
-            'action' => ['fa' => null, 'en' => null],
-            'baby' => ['fa' => null, 'en' => null],
-            'body' => ['fa' => null, 'en' => null],
-        ];
     }
 
-    private function getPregnancyOverrides(): array
+    /**
+     * Pregnancy override message database (seed/fallback)
+     */
+    private static function overrideMessages(): array
     {
         return [
             'nausea' => [
-                'override_type' => 'nausea',
-                'override_label' => $this->locale === 'fa' ? 'تهوع' : 'Nausea',
-                'override_message' => $this->locale === 'fa'
-                    ? 'تهوع بارداری ناراحت‌کننده است اما معمولاً نشانه بارداری سالم است.'
-                    : 'Pregnancy nausea is uncomfortable but usually a sign of healthy pregnancy.',
-                'override_action' => $this->locale === 'fa'
-                    ? 'غذاهای کوچک و مکرر، زنجبیل'
-                    : 'Small frequent meals, ginger',
-                'override_dos' => $this->locale === 'fa'
-                    ? ['غذای کوچک قبل از بلند شدن', 'زنجبیل', 'لیمو', 'غذاهای خشک']
-                    : ['Small meal before getting up', 'Ginger', 'Lemon', 'Dry foods'],
-                'override_donts' => $this->locale === 'fa'
-                    ? ['بوی قوی', 'غذای چرب', 'معده خالی']
-                    : ['Strong smells', 'Fatty food', 'Empty stomach'],
+                'label' => [
+                    'fa' => 'تهوع',
+                    'en' => 'Nausea',
+                ],
+                'message' => [
+                    'fa' => 'تهوع بارداری ناراحت‌کننده است اما معمولاً نشانه بارداری سالم است.',
+                    'en' => 'Pregnancy nausea is uncomfortable but usually a sign of healthy pregnancy.',
+                ],
+                'action' => [
+                    'fa' => 'غذاهای کوچک و مکرر، زنجبیل',
+                    'en' => 'Small frequent meals, ginger',
+                ],
+                'dos' => [
+                    'fa' => ['غذای کوچک قبل از بلند شدن', 'زنجبیل', 'لیمو', 'غذاهای خشک'],
+                    'en' => ['Small meal before getting up', 'Ginger', 'Lemon', 'Dry foods'],
+                ],
+                'donts' => [
+                    'fa' => ['بوی قوی', 'غذای چرب', 'معده خالی'],
+                    'en' => ['Strong smells', 'Fatty food', 'Empty stomach'],
+                ],
             ],
             'fatigue' => [
-                'override_type' => 'fatigue',
-                'override_label' => $this->locale === 'fa' ? 'خستگی' : 'Fatigue',
-                'override_message' => $this->locale === 'fa'
-                    ? 'خستگی در بارداری طبیعی است. بدن شما سخت کار می‌کند.'
-                    : 'Fatigue in pregnancy is normal. Your body is working hard.',
-                'override_action' => $this->locale === 'fa'
-                    ? 'استراحت بیشتر و خواب کافی'
-                    : 'More rest and adequate sleep',
-                'override_dos' => $this->locale === 'fa'
-                    ? ['چرت کوتاه', 'خواب زود', 'آهن کافی']
-                    : ['Short naps', 'Early sleep', 'Adequate iron'],
-                'override_donts' => $this->locale === 'fa'
-                    ? ['بی‌خوابی', 'کار زیاد', 'استرس']
-                    : ['Sleep deprivation', 'Overwork', 'Stress'],
+                'label' => [
+                    'fa' => 'خستگی',
+                    'en' => 'Fatigue',
+                ],
+                'message' => [
+                    'fa' => 'خستگی در بارداری طبیعی است. بدن شما سخت کار می‌کند.',
+                    'en' => 'Fatigue in pregnancy is normal. Your body is working hard.',
+                ],
+                'action' => [
+                    'fa' => 'استراحت بیشتر و خواب کافی',
+                    'en' => 'More rest and adequate sleep',
+                ],
+                'dos' => [
+                    'fa' => ['چرت کوتاه', 'خواب زود', 'آهن کافی'],
+                    'en' => ['Short naps', 'Early sleep', 'Adequate iron'],
+                ],
+                'donts' => [
+                    'fa' => ['بی‌خوابی', 'کار زیاد', 'استرس'],
+                    'en' => ['Sleep deprivation', 'Overwork', 'Stress'],
+                ],
             ],
             'backache' => [
-                'override_type' => 'backache',
-                'override_label' => $this->locale === 'fa' ? 'کمردرد' : 'Back Pain',
-                'override_message' => $this->locale === 'fa'
-                    ? 'کمردرد با رشد شکم شایع می‌شود. وضعیت بدنی درست کمک می‌کند.'
-                    : 'Back pain becomes common as belly grows. Good posture helps.',
-                'override_action' => $this->locale === 'fa'
-                    ? 'کمربند بارداری و تمرینات کششی'
-                    : 'Pregnancy belt and stretching exercises',
-                'override_dos' => $this->locale === 'fa'
-                    ? ['کمربند بارداری', 'شنا', 'ماساژ', 'کفش راحت']
-                    : ['Pregnancy belt', 'Swimming', 'Massage', 'Comfortable shoes'],
-                'override_donts' => $this->locale === 'fa'
-                    ? ['کفش پاشنه بلند', 'ایستادن طولانی', 'بلند کردن سنگین']
-                    : ['High heels', 'Standing long', 'Heavy lifting'],
+                'label' => [
+                    'fa' => 'کمردرد',
+                    'en' => 'Back Pain',
+                ],
+                'message' => [
+                    'fa' => 'کمردرد با رشد شکم شایع می‌شود. وضعیت بدنی درست کمک می‌کند.',
+                    'en' => 'Back pain becomes common as belly grows. Good posture helps.',
+                ],
+                'action' => [
+                    'fa' => 'کمربند بارداری و تمرینات کششی',
+                    'en' => 'Pregnancy belt and stretching exercises',
+                ],
+                'dos' => [
+                    'fa' => ['کمربند بارداری', 'شنا', 'ماساژ', 'کفش راحت'],
+                    'en' => ['Pregnancy belt', 'Swimming', 'Massage', 'Comfortable shoes'],
+                ],
+                'donts' => [
+                    'fa' => ['کفش پاشنه بلند', 'ایستادن طولانی', 'بلند کردن سنگین'],
+                    'en' => ['High heels', 'Standing long', 'Heavy lifting'],
+                ],
             ],
             'anxiety' => [
-                'override_type' => 'anxiety',
-                'override_label' => $this->locale === 'fa' ? 'اضطراب' : 'Anxiety',
-                'override_message' => $this->locale === 'fa'
-                    ? 'اضطراب در بارداری شایع است. صحبت کردن کمک می‌کند.'
-                    : 'Anxiety in pregnancy is common. Talking helps.',
-                'override_action' => $this->locale === 'fa'
-                    ? 'تنفس عمیق و صحبت با کسی'
-                    : 'Deep breathing and talking to someone',
-                'override_dos' => $this->locale === 'fa'
-                    ? ['تنفس عمیق', 'یوگا', 'صحبت با همسر', 'کلاس آمادگی']
-                    : ['Deep breathing', 'Yoga', 'Talk to partner', 'Preparation class'],
-                'override_donts' => $this->locale === 'fa'
-                    ? ['خبرهای منفی', 'انزوا', 'کافئین زیاد']
-                    : ['Negative news', 'Isolation', 'Too much caffeine'],
+                'label' => [
+                    'fa' => 'اضطراب',
+                    'en' => 'Anxiety',
+                ],
+                'message' => [
+                    'fa' => 'اضطراب در بارداری شایع است. صحبت کردن کمک می‌کند.',
+                    'en' => 'Anxiety in pregnancy is common. Talking helps.',
+                ],
+                'action' => [
+                    'fa' => 'تنفس عمیق و صحبت با کسی',
+                    'en' => 'Deep breathing and talking to someone',
+                ],
+                'dos' => [
+                    'fa' => ['تنفس عمیق', 'یوگا', 'صحبت با همسر', 'کلاس آمادگی'],
+                    'en' => ['Deep breathing', 'Yoga', 'Talk to partner', 'Preparation class'],
+                ],
+                'donts' => [
+                    'fa' => ['خبرهای منفی', 'انزوا', 'کافئین زیاد'],
+                    'en' => ['Negative news', 'Isolation', 'Too much caffeine'],
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * Base/default message database (seed/fallback)
+     */
+    private static function baseMessages(): array
+    {
+        return [
+            'default' => [
+                'short' => [
+                    'fa' => 'به دوران بارداری خوش آمدید',
+                    'en' => 'Welcome to your pregnancy journey',
+                ],
+                'long' => [
+                    'fa' => 'برای دریافت پیام‌های شخصی‌سازی شده، لطفاً اطلاعات بارداری را تکمیل کنید.',
+                    'en' => 'Please complete your pregnancy information to receive personalized messages.',
+                ],
+                'action' => [
+                    'fa' => 'پروفایل بارداری را تکمیل کنید',
+                    'en' => 'Complete your pregnancy profile',
+                ],
             ],
         ];
     }

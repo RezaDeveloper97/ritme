@@ -71,6 +71,15 @@ services:
       KAVENEGAR_API_KEY: ${KAVENEGAR_API_KEY:-}
       KAVENEGAR_SENDER: ${KAVENEGAR_SENDER:-}
       RUN_MIGRATIONS: "true"
+      # Serves the Blade admin panel at /admin on the SAME domain. The proxy
+      # must route /admin -> backend (see proxy.conf). To later move the panel
+      # to its own subdomain, split this into a dedicated `admin` service
+      # (same image, ADMIN_PANEL_ENABLED=true, RUN_MIGRATIONS=false) and point
+      # admin.<domain> at it — the /admin routes work unchanged either way.
+      ADMIN_PANEL_ENABLED: ${ADMIN_PANEL_ENABLED:-true}
+      ADMIN_SEED_EMAIL: ${ADMIN_SEED_EMAIL:-admin@ritmeapp.ir}
+      ADMIN_SEED_PASSWORD: ${ADMIN_SEED_PASSWORD:-admin1234}
+      ADMIN_SEED_NAME: ${ADMIN_SEED_NAME:-مدیر ارشد}
     volumes:
       - backend-storage:/var/www/html/storage
     ports:

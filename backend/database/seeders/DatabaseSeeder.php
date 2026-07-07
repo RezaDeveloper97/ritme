@@ -24,10 +24,12 @@ class DatabaseSeeder extends Seeder
 
         // Home page content (idempotent)
         $this->call([
+            AdminSeeder::class,
             TaskTemplateSeeder::class,
             ArticleSeeder::class,
             AffirmationSeeder::class,
             ChallengeSeeder::class,
+            MessageContentSeeder::class,
             HomeDemoSeeder::class,
         ]);
     }

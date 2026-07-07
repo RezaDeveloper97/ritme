@@ -306,6 +306,14 @@ class OtpAuthController extends Controller
         $user = User::where('mobile', $mobile)->first();
         $isNewUser = ! $user;
 
+        // Blocked users may not obtain new access tokens.
+        if ($user && $user->blocked_at) {
+            return response()->json([
+                'success' => false,
+                'message' => 'حساب کاربری شما مسدود شده است.',
+            ], 403);
+        }
+
         if (! $user) {
             $user = User::create([
                 'mobile' => $mobile,

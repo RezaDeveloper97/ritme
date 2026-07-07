@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\MessageSystem\Support\MessageContentRepository;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Passport\Passport;
 
@@ -12,7 +13,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Singleton so its per-request lookup cache is shared across all engines.
+        $this->app->singleton(MessageContentRepository::class);
     }
 
     /**

@@ -64,8 +64,12 @@ class CalculateCycleDataJob implements ShouldQueue
             ]);
 
             Log::info("CalculateCycleDataJob: Completed calculations for user {$this->userId}, version {$this->version}");
-        } catch (\Exception $e) {
-            // Mark as failed
+        } catch (\Throwable $e) {
+            // Catch \Throwable, not just \Exception: engine math can raise Errors
+            // (e.g. DivisionByZeroError). If only \Exception is caught, an Error
+            // escapes here and the status is never reset — leaving the profile
+            // stuck on "processing" so recalculate forever returns "already in
+            // progress". \Throwable covers both Exception and Error.
             $profile->update([
                 'calculation_status' => CalculationStatus::FAILED->value,
             ]);
