@@ -1,6 +1,7 @@
+import type { AppMode } from '@/entities/message';
 import type { IconName } from '@/shared/ui';
 
-export type NavKey = 'today' | 'calendar' | 'log' | 'cycle' | 'profile';
+export type NavKey = 'today' | 'calendar' | 'log' | 'cycle' | 'pregnancy' | 'profile';
 
 export interface NavItem {
   /** Stable key; also the message key under the `nav` i18n namespace. */
@@ -24,3 +25,21 @@ export const NAV_ITEMS: NavItem[] = [
   { key: 'cycle', href: '/cycle', icon: 'refresh' },
   { key: 'profile', href: '/profile', icon: 'user' },
 ];
+
+/**
+ * Mode is a first-class concept (CLAUDE.md §1), so the nav adapts: in pregnancy
+ * mode the «cycle» tab becomes the week-by-week pregnancy tracker and the log
+ * FAB records pregnancy logs. Everything else stays identical between modes.
+ */
+export function navItemsForMode(mode: AppMode | undefined): NavItem[] {
+  if (mode !== 'pregnancy') return NAV_ITEMS;
+  return NAV_ITEMS.map((item) => {
+    if (item.key === 'cycle') {
+      return { key: 'pregnancy', href: '/pregnancy', icon: 'heart' } as NavItem;
+    }
+    if (item.key === 'log') {
+      return { ...item, href: '/pregnancy/log' };
+    }
+    return item;
+  });
+}

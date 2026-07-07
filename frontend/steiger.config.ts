@@ -57,6 +57,17 @@ export default defineConfig([
     rules: { 'fsd/insignificant-slice': 'off' },
   },
   {
+    // `entities/pregnancy` + the pregnancy features/screens map the API's
+    // `pregnancy` endpoint group (CLAUDE.md §8.1: mode, onboarding, weekly
+    // content & logs, symptoms, fetal movement, alerts). Consumed only from
+    // `screens`, which steiger can't see (same reason as the blocks above).
+    files: [
+      './src/entities/pregnancy/**',
+      './src/features/track-pregnancy/**',
+    ],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
     // `features/switch-locale` is a canonical feature (CLAUDE.md §5). The
     // profile screen is its first consumer; onboarding and the app header are
     // expected to reuse it. Don't nag about the single reference today.

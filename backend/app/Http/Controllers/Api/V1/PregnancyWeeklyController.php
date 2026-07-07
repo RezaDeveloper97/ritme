@@ -396,6 +396,13 @@ class PregnancyWeeklyController extends Controller
      *         @OA\Schema(type="integer", minimum=1, maximum=40, example=12)
      *     ),
      *     @OA\Parameter(
+     *         name="locale",
+     *         in="query",
+     *         description="Language for content (en, fa). Takes precedence over Accept-Language.",
+     *         required=false,
+     *         @OA\Schema(type="string", default="en", enum={"en","fa"})
+     *     ),
+     *     @OA\Parameter(
      *         name="Accept-Language",
      *         in="header",
      *         description="Language for content (en, fa)",
@@ -421,7 +428,11 @@ class PregnancyWeeklyController extends Controller
      */
     public function content(Request $request, int $week): JsonResponse
     {
-        $locale = $request->header('Accept-Language', 'en');
+        // Browsers forbid JS from overriding the Accept-Language header, so the
+        // SPA passes the active app locale as an explicit `?locale=` query param
+        // which takes precedence over the header for content resolution.
+        $locale = $request->query('locale', $request->header('Accept-Language', 'en'));
+        $locale = in_array($locale, ['fa', 'en'], true) ? $locale : 'en';
 
         if ($week < 1 || $week > 40) {
             return response()->json([

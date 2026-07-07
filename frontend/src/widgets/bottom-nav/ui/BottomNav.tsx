@@ -2,10 +2,11 @@
 
 import { useTranslations } from 'next-intl';
 
+import { useUserMode } from '@/entities/message';
 import { Link, usePathname } from '@/shared/i18n';
 import { Icon } from '@/shared/ui';
 
-import { NAV_ITEMS } from '../model/nav-items';
+import { navItemsForMode } from '../model/nav-items';
 
 /**
  * Floating bottom navigation shared across the main tabs. Highlights the tab
@@ -16,10 +17,12 @@ import { NAV_ITEMS } from '../model/nav-items';
 export function BottomNav() {
   const t = useTranslations('nav');
   const pathname = usePathname();
+  const modeQuery = useUserMode();
+  const items = navItemsForMode(modeQuery.data?.mode);
 
   return (
     <nav className="tabbar" aria-label={t('label')}>
-      {NAV_ITEMS.map((item) => {
+      {items.map((item) => {
         if (item.fab) {
           return (
             <Link

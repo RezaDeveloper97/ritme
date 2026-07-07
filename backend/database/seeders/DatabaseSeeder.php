@@ -30,6 +30,7 @@ class DatabaseSeeder extends Seeder
             AffirmationSeeder::class,
             ChallengeSeeder::class,
             MessageContentSeeder::class,
+            PregnancyWeeklyContentSeeder::class,
             HomeDemoSeeder::class,
         ]);
     }

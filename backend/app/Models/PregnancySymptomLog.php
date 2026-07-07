@@ -92,7 +92,7 @@ class PregnancySymptomLog extends Model
     protected function casts(): array
     {
         return [
-            'log_date' => 'date',
+            'log_date' => 'date:Y-m-d',
 
             // Booleans
             'has_nausea' => 'boolean',
