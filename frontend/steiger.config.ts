@@ -63,4 +63,15 @@ export default defineConfig([
     files: ['./src/features/switch-locale/**'],
     rules: { 'fsd/insignificant-slice': 'off' },
   },
+  {
+    // Home-page promo banners: the `banner-slideshow` widget is mounted in the
+    // home screen (three slots), and `entities/banner` feeds it. Both are
+    // consumed only from `screens`, which steiger can't see (same reason as the
+    // blocks above), so their references look like zero/one.
+    files: [
+      './src/entities/banner/**',
+      './src/widgets/banner-slideshow/**',
+    ],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
 ]);

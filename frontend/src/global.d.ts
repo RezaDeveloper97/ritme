@@ -1,5 +1,6 @@
 import type enAccount from '../messages/en/account.json';
 import type enAuth from '../messages/en/auth.json';
+import type enBanners from '../messages/en/banners.json';
 import type enCalendar from '../messages/en/calendar.json';
 import type enCommon from '../messages/en/common.json';
 import type enCycle from '../messages/en/cycle.json';
@@ -21,6 +22,7 @@ type Messages = {
   common: typeof enCommon;
   home: typeof enHome;
   auth: typeof enAuth;
+  banners: typeof enBanners;
   onboarding: typeof enOnboarding;
   nav: typeof enNav;
   calendar: typeof enCalendar;

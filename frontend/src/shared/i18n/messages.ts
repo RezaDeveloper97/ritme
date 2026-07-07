@@ -4,6 +4,7 @@ import type { Locale } from './routing';
 
 import enAccount from '../../../messages/en/account.json';
 import enAuth from '../../../messages/en/auth.json';
+import enBanners from '../../../messages/en/banners.json';
 import enCalendar from '../../../messages/en/calendar.json';
 import enCommon from '../../../messages/en/common.json';
 import enCycle from '../../../messages/en/cycle.json';
@@ -18,6 +19,7 @@ import enProfileInfo from '../../../messages/en/profile-info.json';
 import enReminders from '../../../messages/en/reminders.json';
 import faAccount from '../../../messages/fa/account.json';
 import faAuth from '../../../messages/fa/auth.json';
+import faBanners from '../../../messages/fa/banners.json';
 import faCalendar from '../../../messages/fa/calendar.json';
 import faCommon from '../../../messages/fa/common.json';
 import faCycle from '../../../messages/fa/cycle.json';
@@ -36,6 +38,7 @@ const messages = {
     common: faCommon,
     home: faHome,
     auth: faAuth,
+    banners: faBanners,
     onboarding: faOnboarding,
     nav: faNav,
     calendar: faCalendar,
@@ -52,6 +55,7 @@ const messages = {
     common: enCommon,
     home: enHome,
     auth: enAuth,
+    banners: enBanners,
     onboarding: enOnboarding,
     nav: enNav,
     calendar: enCalendar,

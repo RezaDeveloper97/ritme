@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AffirmationController;
 use App\Http\Controllers\Admin\ArticleController;
 use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\ChallengeController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\MessageContentController;
@@ -64,6 +65,9 @@ Route::middleware(['auth:admin', 'admin.active'])->group(function () {
 
     Route::post('challenges/{challenge}/toggle', [ChallengeController::class, 'toggle'])->name('challenges.toggle');
     Route::resource('challenges', ChallengeController::class)->except('show');
+
+    Route::post('banners/{banner}/toggle', [BannerController::class, 'toggle'])->name('banners.toggle');
+    Route::resource('banners', BannerController::class)->except('show');
 
     Route::post('task-templates/{taskTemplate}/toggle', [TaskTemplateController::class, 'toggle'])->name('task-templates.toggle');
     Route::resource('task-templates', TaskTemplateController::class)->except('show')->parameters(['task-templates' => 'taskTemplate']);

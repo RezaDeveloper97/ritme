@@ -20,6 +20,7 @@ import {
   type JalaliMonthCell,
 } from '@/shared/lib/date';
 import { DropSolid, Icon } from '@/shared/ui';
+import { BannerSlideshow } from '@/widgets/banner-slideshow';
 import { BottomNav } from '@/widgets/bottom-nav';
 
 const FA = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
@@ -657,11 +658,14 @@ export function HomePage() {
           </div>
         )}
         <WeekStrip calOpen={calOpen} onToggle={() => setCalOpen(v => !v)} loc={loc} t={t} />
+        {/* Admin-managed promo slot — renders nothing until a banner is active */}
+        <BannerSlideshow position="home_top" />
         <NextPeriodCard t={t} pred={pred} nextPeriodDate={nextPeriodDate} phaseLabel={phaseLabel} phaseDesc={phaseDesc} />
         <StartPeriodBtn label={t('startPeriod')} />
         <PhaseRows t={t} windowDate={windowDate} ovulationDate={ovulationDate} nextPeriodDate={nextPeriodDate} />
         <MiniCards t={t} pred={pred} />
         <Recommendations t={t} dos={dos} />
+        <BannerSlideshow position="home_middle" />
         <TodayTasks t={t} />
         <Challenge t={t} />
         <ReminderCards t={t} />
@@ -670,6 +674,7 @@ export function HomePage() {
         <TodayStatus t={t} />
         <Articles t={t} />
         <MyCycles t={t} pred={pred} cycleStartDate={cycleStartDate} />
+        <BannerSlideshow position="home_bottom" />
         <CycleSummary t={t} pred={pred} />
         <div style={{ height: 26 }} />
       </div>

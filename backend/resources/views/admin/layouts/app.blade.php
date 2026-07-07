@@ -26,6 +26,7 @@
             <a class="nav-link {{ request()->routeIs('admin.challenges.*') ? 'active' : '' }}" href="{{ route('admin.challenges.index') }}">چالش‌ها</a>
             <a class="nav-link {{ request()->routeIs('admin.task-templates.*') ? 'active' : '' }}" href="{{ route('admin.task-templates.index') }}">کارهای روزانه</a>
             <a class="nav-link {{ request()->routeIs('admin.pregnancy-weeks.*') ? 'active' : '' }}" href="{{ route('admin.pregnancy-weeks.index') }}">محتوای هفتگی بارداری</a>
+            <a class="nav-link {{ request()->routeIs('admin.banners.*') ? 'active' : '' }}" href="{{ route('admin.banners.index') }}">بنرها و تبلیغات</a>
         @endif
 
         @if (Route::has('admin.messages.index'))

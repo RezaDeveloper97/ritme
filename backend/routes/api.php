@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\BannerController;
 use App\Http\Controllers\Api\V1\CycleCalculationController;
 use App\Http\Controllers\Api\V1\DailyHealthLogController;
 use App\Http\Controllers\Api\V1\HomeController;
@@ -38,6 +39,9 @@ Route::prefix('v1')->group(function () {
             Route::post('/logout', [OtpAuthController::class, 'logout']);
             Route::get('/user', [OtpAuthController::class, 'user']);
         });
+
+        // Home-page banners / promotions (grouped by slot)
+        Route::get('/banners', [BannerController::class, 'index']);
 
         // Profile routes
         Route::get('/profile', [ProfileController::class, 'show']);
