@@ -29,7 +29,10 @@
     "close": "بستن"
   },
 
-  "startPeriod": "شروع پریود",
+  "selectedDay": {
+    "today": "اطلاعات امروز",
+    "date": "اطلاعات {date}"
+  },
 
   "phases": {
     "window": "پنجره باروری",

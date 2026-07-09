@@ -13,10 +13,12 @@ export type {
 export {
   cycleKeys,
   useCycleToday,
+  useCycleForDate,
   useCycleStatus,
   useCycleMonth,
   useRecalculateCycle,
   fetchCycleToday,
+  fetchCycleForDate,
   fetchCycleStatus,
   fetchCycleMonth,
 } from './api/queries';

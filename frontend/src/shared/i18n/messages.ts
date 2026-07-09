@@ -10,6 +10,7 @@ import enCommon from '../../../messages/en/common.json';
 import enCycle from '../../../messages/en/cycle.json';
 import enHome from '../../../messages/en/home.json';
 import enLog from '../../../messages/en/log.json';
+import enLogPeriod from '../../../messages/en/log-period.json';
 import enNav from '../../../messages/en/nav.json';
 import enNotifications from '../../../messages/en/notifications.json';
 import enOnboarding from '../../../messages/en/onboarding.json';
@@ -26,6 +27,7 @@ import faCommon from '../../../messages/fa/common.json';
 import faCycle from '../../../messages/fa/cycle.json';
 import faHome from '../../../messages/fa/home.json';
 import faLog from '../../../messages/fa/log.json';
+import faLogPeriod from '../../../messages/fa/log-period.json';
 import faNav from '../../../messages/fa/nav.json';
 import faNotifications from '../../../messages/fa/notifications.json';
 import faOnboarding from '../../../messages/fa/onboarding.json';
@@ -53,6 +55,7 @@ const messages = {
     notifications: faNotifications,
     account: faAccount,
     log: faLog,
+    logPeriod: faLogPeriod,
   },
   en: {
     common: enCommon,
@@ -71,6 +74,7 @@ const messages = {
     notifications: enNotifications,
     account: enAccount,
     log: enLog,
+    logPeriod: enLogPeriod,
   },
 } as const;
 

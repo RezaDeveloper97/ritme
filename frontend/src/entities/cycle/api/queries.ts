@@ -50,6 +50,30 @@ export function useCycleToday() {
   });
 }
 
+/** GET /cycle/date/{date} — a specific day's phase, fertility window and probability. */
+export async function fetchCycleForDate(
+  date: string,
+): Promise<CycleCalculationEnvelope> {
+  const { data } = await apiClient.get<ApiEnvelope<unknown>>(`/cycle/date/${date}`);
+  return cycleCalculationEnvelopeSchema.parse(data.data);
+}
+
+/**
+ * Reads one day's cycle calculation (§8) — powers the home calendar, where
+ * tapping a day shows that day's info. `date` is Gregorian `YYYY-MM-DD` at the
+ * API boundary (§7); pass `enabled: false` (e.g. for today, served by
+ * {@link useCycleToday}) to skip the request.
+ */
+export function useCycleForDate(date: string, enabled = true) {
+  return useQuery({
+    queryKey: cycleKeys.date(date),
+    queryFn: () => fetchCycleForDate(date),
+    enabled: enabled && isAuthenticated(),
+    staleTime: 5 * 60_000,
+    retry: false,
+  });
+}
+
 /** GET /cycle/status — whether calculations are currently being processed. */
 export async function fetchCycleStatus(): Promise<CycleStatus> {
   const { data } = await apiClient.get<ApiEnvelope<unknown>>('/cycle/status');

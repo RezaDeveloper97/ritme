@@ -5,16 +5,20 @@ import { useState } from 'react';
 
 import {
   deriveCyclePredictions,
+  useCycleForDate,
   useCycleToday,
   type CyclePredictions,
 } from '@/entities/cycle';
 import { useDailyMessage, type DailyMessage } from '@/entities/message';
+import { StartPeriodButton } from '@/features/log-period';
 import type { Locale } from '@/shared/i18n';
 import {
   addDays,
   formatJalaliDayMonth,
   formatJalaliMonthLabel,
   jalaliMonthMatrix,
+  toApiDate,
+  toJalali,
   today,
   todayJalali,
   type JalaliMonthCell,
@@ -66,29 +70,43 @@ const WEEK_KEYS = ['sat', 'sun', 'mon', 'tue', 'wed', 'thu', 'fri'] as const;
 
 // Figma «TodayCalender»: white card (r12). Closed → weekday names + the
 // current week only. Open → the whole month grid, rows in calendar order.
+// Tapping a day selects it so the connected info card below shows that day.
 function WeekRow({
-  days, todayDay, loc,
+  days, todayDay, selectedDay, loc, onSelect,
 }: {
   days: (JalaliMonthCell | null)[];
   todayDay: number;
+  selectedDay: number | null;
   loc: Locale;
+  onSelect: (cell: JalaliMonthCell) => void;
 }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
       {days.map((cell, i) => {
         const isToday = cell?.day === todayDay;
+        const isSelected = cell != null && cell.day === selectedDay && !isToday;
         return (
           <div key={i} style={{ display: 'flex', justifyContent: 'center', flex: 1 }}>
-            <span style={{
-              width: 34, height: 34, borderRadius: '50%',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 14, fontVariantNumeric: 'tabular-nums',
-              ...(isToday
-                ? { background: 'var(--brand)', color: '#fff', fontWeight: 700, boxShadow: '0 8px 16px -6px rgba(233,30,99,.6)' }
-                : cell ? { background: '#F9FAFB', color: '#364153', fontWeight: 600 } : {}),
-            }}>
+            <button
+              type="button"
+              disabled={!cell}
+              onClick={cell ? () => onSelect(cell) : undefined}
+              aria-pressed={isToday || isSelected}
+              style={{
+                width: 34, height: 34, borderRadius: '50%', padding: 0,
+                border: isSelected ? '2px solid var(--brand)' : '2px solid transparent',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 14, fontFamily: 'inherit', fontVariantNumeric: 'tabular-nums',
+                cursor: cell ? 'pointer' : 'default',
+                ...(isToday
+                  ? { background: 'var(--brand)', color: '#fff', fontWeight: 700, boxShadow: '0 8px 16px -6px rgba(233,30,99,.6)' }
+                  : isSelected
+                    ? { background: '#FFF0F6', color: 'var(--brand)', fontWeight: 700 }
+                    : cell ? { background: '#F9FAFB', color: '#364153', fontWeight: 600 } : { background: 'transparent' }),
+              }}
+            >
               {cell ? localizeNum(cell.day, loc) : ''}
-            </span>
+            </button>
           </div>
         );
       })}
@@ -97,21 +115,27 @@ function WeekRow({
 }
 
 function WeekStrip({
-  calOpen, onToggle, loc, t,
+  calOpen, onToggle, loc, t, selectedDay, onSelect,
 }: {
   calOpen: boolean;
   onToggle: () => void;
   loc: Locale;
   t: T;
+  selectedDay: number | null;
+  onSelect: (cell: JalaliMonthCell) => void;
 }) {
   const tj = todayJalali();
   const weeks = jalaliMonthMatrix(tj.year, tj.month);
   const monthLabel = formatJalaliMonthLabel(tj.year, tj.month, loc);
-  const currentIdx = Math.max(0, weeks.findIndex(w => w.some(c => c?.day === tj.day)));
+  // Show the week that contains the selected day (falls back to today's week).
+  const selIdx = weeks.findIndex(w => w.some(c => c?.day === selectedDay));
+  const todayIdx = weeks.findIndex(w => w.some(c => c?.day === tj.day));
+  const currentIdx = Math.max(0, selIdx >= 0 ? selIdx : todayIdx);
 
   return (
-    <div style={{ padding: '2px 16px 0' }}>
-      <div style={{ background: '#fff', borderRadius: 12, padding: '12px 14px' }}>
+    // Top half of the connected calendar↔info card unit — flat bottom so it
+    // butts against the pink info panel below (no own margin/radius).
+    <div style={{ background: '#fff', padding: '12px 14px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
           <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--brand)' }}>{monthLabel}</span>
           <button
@@ -149,26 +173,27 @@ function WeekStrip({
         {calOpen ? (
           <div className="cal-drop" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {weeks.map((week, i) => (
-              <WeekRow key={i} days={week} todayDay={tj.day} loc={loc} />
+              <WeekRow key={i} days={week} todayDay={tj.day} selectedDay={selectedDay} loc={loc} onSelect={onSelect} />
             ))}
           </div>
         ) : (
-          <WeekRow days={weeks[currentIdx] ?? []} todayDay={tj.day} loc={loc} />
+          <WeekRow days={weeks[currentIdx] ?? []} todayDay={tj.day} selectedDay={selectedDay} loc={loc} onSelect={onSelect} />
         )}
-      </div>
     </div>
   );
 }
 
 // ── Next period hero card ──────────────────────────────────────
 function NextPeriodCard({
-  t, pred, nextPeriodDate, phaseLabel, phaseDesc,
+  t, pred, nextPeriodDate, phaseLabel, phaseDesc, isToday, selectedDateLabel,
 }: {
   t: T;
   pred: CyclePredictions | null;
   nextPeriodDate: string | null;
   phaseLabel: string;
   phaseDesc: string;
+  isToday: boolean;
+  selectedDateLabel: string;
 }) {
   const [expanded, setExpanded] = useState(true);
   const daysValue = pred ? t('days', { n: pred.daysUntilNextPeriod }) : t('unavailable');
@@ -176,12 +201,17 @@ function NextPeriodCard({
   // cycle progress for the single bar (Figma Frame 65)
   const pct = pred ? Math.min(100, Math.round((pred.cycleDay / pred.cycleLength) * 100)) : 0;
   return (
+    // Bottom half of the connected calendar↔info unit — fills the wrapper
+    // (no own margin/radius); the wrapper owns the rounding + shadow.
     <div style={{
-      margin: '16px 16px 0', borderRadius: 12,
       background: 'linear-gradient(135deg,#E91E63 0%,#F06292 100%)',
-      color: '#fff', boxShadow: '0 18px 34px -16px rgba(233,30,99,.7)',
-      padding: 12,
+      color: '#fff', padding: 12,
     }}>
+      {/* Which day the info below reflects — updates as the user taps a day. */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '2px 4px 8px', fontSize: 12, fontWeight: 700, opacity: .95 }}>
+        <Icon name="calendar" size={14} stroke="#fff" />
+        {isToday ? t('selectedDay.today') : t('selectedDay.date', { date: selectedDateLabel })}
+      </div>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10, padding: '4px 4px 0' }}>
         <div style={{ textAlign: 'start', flex: 1, paddingTop: 4 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 15, fontWeight: 700, opacity: .92 }}>
@@ -232,17 +262,6 @@ function NextPeriodCard({
           <Icon name="chevronDown" size={14} style={{ transform: expanded ? undefined : 'rotate(180deg)' }} />
         </button>
       </div>
-    </div>
-  );
-}
-
-// ── Start period button ────────────────────────────────────────
-function StartPeriodBtn({ label }: { label: string }) {
-  return (
-    <div style={{ padding: '16px 16px 0' }}>
-      <button className="btn" style={{ height: 40, borderRadius: 14, gap: 8, fontSize: 14, background: '#fff', border: '1px solid #FCE7F3', color: 'var(--brand)', fontWeight: 600 }}>
-        <Icon name="drop" size={16} fill="var(--brand)" strokeWidth={0} /> {label}
-      </button>
     </div>
   );
 }
@@ -619,6 +638,9 @@ export function HomePage() {
   const t = useTranslations('home');
   const loc = useLocale() as Locale;
   const [calOpen, setCalOpen] = useState(false);
+  // The day the user tapped in the mini calendar (defaults to today). Only the
+  // connected info card reflects it; the rest of the page stays on today.
+  const [selectedDate, setSelectedDate] = useState<Date>(() => today());
 
   // Server state (§8) — cycle math + personalized message for today.
   const { data: todayData } = useCycleToday();
@@ -635,12 +657,33 @@ export function HomePage() {
   const windowDate = pred ? fmt(Math.max(0, pred.daysUntilFertileWindow)) : null;
   const cycleStartDate = pred ? fmt(-(pred.cycleDay - 1)) : null;
 
-  const phaseLabel = pred ? t(`phaseLabel.${pred.phase}`) : '';
   const message: DailyMessage | undefined = daily;
-  const phaseDesc = message?.primary.longMessage || t('nextPeriod.phaseDesc');
   const smartTipBody = message?.primary.longMessage || t('smartTip.body');
   const smartTipQuote = message?.primary.actionSuggestion || t('smartTip.quote');
   const dos = message?.primary.dos ?? [];
+
+  // ── Selected-day info for the connected calendar↔info card ──
+  const selApiDate = toApiDate(selectedDate);
+  const isToday = selApiDate === toApiDate(base);
+  const selJalali = toJalali(selectedDate);
+  const monthJalali = todayJalali();
+  const selectedDay =
+    selJalali.year === monthJalali.year && selJalali.month === monthJalali.month
+      ? selJalali.day
+      : null;
+
+  // A tapped past/future day loads its own calculation + message; today reuses
+  // the queries above (same cache keys — no extra fetch).
+  const { data: dateData } = useCycleForDate(selApiDate, !isToday);
+  const { data: infoMessage } = useDailyMessage(isToday ? undefined : selApiDate);
+
+  const infoCalc = (isToday ? todayData : dateData)?.calculation ?? null;
+  const infoPred = infoCalc ? deriveCyclePredictions(infoCalc) : null;
+  const infoFmt = (offset: number) => formatJalaliDayMonth(addDays(selectedDate, offset), loc);
+  const infoNextPeriodDate = infoPred ? infoFmt(infoPred.daysUntilNextPeriod) : null;
+  const infoPhaseLabel = infoPred ? t(`phaseLabel.${infoPred.phase}`) : '';
+  const infoPhaseDesc = infoMessage?.primary.longMessage || t('nextPeriod.phaseDesc');
+  const selectedDateLabel = formatJalaliDayMonth(selectedDate, loc);
 
   return (
     <div className="view">
@@ -657,11 +700,32 @@ export function HomePage() {
             {t('updating')}
           </div>
         )}
-        <WeekStrip calOpen={calOpen} onToggle={() => setCalOpen(v => !v)} loc={loc} t={t} />
+        {/* Connected unit: the mini calendar butts directly against the info
+            card below it, and tapping a day updates that card (§ home request). */}
+        <div style={{ padding: '2px 16px 0' }}>
+          <div style={{ borderRadius: 16, overflow: 'hidden', boxShadow: '0 18px 34px -18px rgba(233,30,99,.55)' }}>
+            <WeekStrip
+              calOpen={calOpen}
+              onToggle={() => setCalOpen(v => !v)}
+              loc={loc}
+              t={t}
+              selectedDay={selectedDay}
+              onSelect={(cell) => setSelectedDate(cell.date)}
+            />
+            <NextPeriodCard
+              t={t}
+              pred={infoPred}
+              nextPeriodDate={infoNextPeriodDate}
+              phaseLabel={infoPhaseLabel}
+              phaseDesc={infoPhaseDesc}
+              isToday={isToday}
+              selectedDateLabel={selectedDateLabel}
+            />
+          </div>
+        </div>
         {/* Admin-managed promo slot — renders nothing until a banner is active */}
         <BannerSlideshow position="home_top" />
-        <NextPeriodCard t={t} pred={pred} nextPeriodDate={nextPeriodDate} phaseLabel={phaseLabel} phaseDesc={phaseDesc} />
-        <StartPeriodBtn label={t('startPeriod')} />
+        <StartPeriodButton />
         <PhaseRows t={t} windowDate={windowDate} ovulationDate={ovulationDate} nextPeriodDate={nextPeriodDate} />
         <MiniCards t={t} pred={pred} />
         <Recommendations t={t} dos={dos} />

@@ -6,6 +6,7 @@ import type enCommon from '../messages/en/common.json';
 import type enCycle from '../messages/en/cycle.json';
 import type enHome from '../messages/en/home.json';
 import type enLog from '../messages/en/log.json';
+import type enLogPeriod from '../messages/en/log-period.json';
 import type enNav from '../messages/en/nav.json';
 import type enNotifications from '../messages/en/notifications.json';
 import type enOnboarding from '../messages/en/onboarding.json';
@@ -36,6 +37,7 @@ type Messages = {
   notifications: typeof enNotifications;
   account: typeof enAccount;
   log: typeof enLog;
+  logPeriod: typeof enLogPeriod;
 };
 
 declare global {

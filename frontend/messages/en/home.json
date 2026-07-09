@@ -29,7 +29,10 @@
     "close": "Close"
   },
 
-  "startPeriod": "Start period",
+  "selectedDay": {
+    "today": "Today's info",
+    "date": "Info for {date}"
+  },
 
   "phases": {
     "window": "Fertility window",

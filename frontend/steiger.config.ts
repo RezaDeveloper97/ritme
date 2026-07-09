@@ -68,6 +68,13 @@ export default defineConfig([
     rules: { 'fsd/insignificant-slice': 'off' },
   },
   {
+    // `features/log-period` is a canonical feature (CLAUDE.md §5): the "start
+    // period" action on the home screen. Consumed only from `screens`, which
+    // steiger can't see (same reason as the blocks above).
+    files: ['./src/features/log-period/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
     // `features/switch-locale` is a canonical feature (CLAUDE.md §5). The
     // profile screen is its first consumer; onboarding and the app header are
     // expected to reuse it. Don't nag about the single reference today.

@@ -25,6 +25,18 @@ apiClient.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  // Tell the API which locale to answer in (§6). The backend localizes
+  // messages/phase text off `Accept-Language`; without this the browser's own
+  // header (often `en`) leaks through and Persian users get English copy. The
+  // active locale lives on `<html lang>` (set per-request by the locale
+  // layout); default to the product default `fa` when it's unavailable.
+  const lang =
+    typeof document !== 'undefined' && document.documentElement.lang
+      ? document.documentElement.lang
+      : 'fa';
+  config.headers['Accept-Language'] = lang;
+
   return config;
 });
 

@@ -9,6 +9,7 @@ use App\Enums\CycleVariability;
 use App\Enums\OverrideType;
 use App\Enums\SubscriptionType;
 use App\Enums\UserGoal;
+use App\Http\Controllers\Concerns\ResolvesLocale;
 use App\Http\Controllers\Controller;
 use App\Jobs\CalculateCycleDataJob;
 use App\Models\DailyHealthLog;
@@ -24,6 +25,8 @@ use Illuminate\Http\Request;
 
 class CycleCalculationController extends Controller
 {
+    use ResolvesLocale;
+
     /**
      * @OA\Get(
      *     path="/cycle/today",
@@ -62,7 +65,7 @@ class CycleCalculationController extends Controller
     public function today(Request $request): JsonResponse
     {
         $user = $request->user();
-        $locale = $request->header('Accept-Language', 'en');
+        $locale = $this->resolveLocale($request);
         $today = Carbon::today();
 
         return $this->getCalculationForDate($user, $today, $locale);
@@ -113,7 +116,7 @@ class CycleCalculationController extends Controller
     public function forDate(Request $request, string $date): JsonResponse
     {
         $user = $request->user();
-        $locale = $request->header('Accept-Language', 'en');
+        $locale = $this->resolveLocale($request);
 
         try {
             $targetDate = Carbon::parse($date);
@@ -184,7 +187,7 @@ class CycleCalculationController extends Controller
     public function month(Request $request, int $year, int $month): JsonResponse
     {
         $user = $request->user();
-        $locale = $request->header('Accept-Language', 'en');
+        $locale = $this->resolveLocale($request);
         $profile = $user->profile;
 
         if ($month < 1 || $month > 12) {
@@ -258,7 +261,7 @@ class CycleCalculationController extends Controller
     public function status(Request $request): JsonResponse
     {
         $user = $request->user();
-        $locale = $request->header('Accept-Language', 'en');
+        $locale = $this->resolveLocale($request);
         $profile = $user->profile;
 
         if (!$profile) {
@@ -329,7 +332,7 @@ class CycleCalculationController extends Controller
     public function recalculate(Request $request): JsonResponse
     {
         $user = $request->user();
-        $locale = $request->header('Accept-Language', 'en');
+        $locale = $this->resolveLocale($request);
         $profile = $user->profile;
 
         if (!$profile) {
@@ -417,7 +420,7 @@ class CycleCalculationController extends Controller
      */
     public function enums(Request $request): JsonResponse
     {
-        $locale = $request->header('Accept-Language', 'en');
+        $locale = $this->resolveLocale($request);
 
         $phases = collect(CyclePhase::cases())->map(fn($p) => [
             'value' => $p->value,
