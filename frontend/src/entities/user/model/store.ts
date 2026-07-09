@@ -3,6 +3,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+import type { JalaliParts } from '@/shared/lib/date';
+
 import type { Gender, HeightUnit, JalaliBirth, WeightUnit } from './types';
 
 interface OnboardingStore {
@@ -15,7 +17,8 @@ interface OnboardingStore {
   heightUnit: HeightUnit;
   height: number;
   periodLen: number;
-  lastPeriodDay: number;
+  cycleDuration: number;
+  lastPeriod: JalaliParts | null;
 
   setPhone: (phone: string) => void;
   setName: (name: string) => void;
@@ -26,7 +29,8 @@ interface OnboardingStore {
   setHeight: (height: number) => void;
   setHeightUnit: (unit: HeightUnit) => void;
   setPeriodLen: (len: number) => void;
-  setLastPeriodDay: (day: number) => void;
+  setCycleDuration: (len: number) => void;
+  setLastPeriod: (date: JalaliParts) => void;
 }
 
 export const useOnboardingStore = create<OnboardingStore>()(
@@ -41,7 +45,8 @@ export const useOnboardingStore = create<OnboardingStore>()(
       heightUnit: 'cm',
       height: 165,
       periodLen: 5,
-      lastPeriodDay: 0,
+      cycleDuration: 28,
+      lastPeriod: null,
 
       setPhone: (phone) => set({ phone }),
       setName: (name) => set({ name }),
@@ -52,7 +57,8 @@ export const useOnboardingStore = create<OnboardingStore>()(
       setHeight: (height) => set({ height }),
       setHeightUnit: (heightUnit) => set({ heightUnit }),
       setPeriodLen: (periodLen) => set({ periodLen }),
-      setLastPeriodDay: (lastPeriodDay) => set({ lastPeriodDay }),
+      setCycleDuration: (cycleDuration) => set({ cycleDuration }),
+      setLastPeriod: (lastPeriod) => set({ lastPeriod }),
     }),
     { name: 'ritme-onboarding' },
   ),

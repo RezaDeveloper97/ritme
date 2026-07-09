@@ -1,3 +1,5 @@
+import type { JalaliParts } from '@/shared/lib/date';
+
 /**
  * The authenticated account as returned by the Auth endpoints
  * (`/auth/verify-otp`, `/auth/user`). Mirrors the OpenAPI `user` object — this
@@ -67,5 +69,8 @@ export interface OnboardingData {
   heightUnit: HeightUnit;
   height: number;
   periodLen: number;
-  lastPeriodDay: number;
+  /** Typical cycle length in days (API `cycle_duration`, validated 15–60). */
+  cycleDuration: number;
+  /** Start date of the last period, or `null` until the user picks it. */
+  lastPeriod: JalaliParts | null;
 }

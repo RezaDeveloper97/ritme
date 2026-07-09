@@ -24,7 +24,7 @@ export function WeightPage() {
     <div className="view" style={{ background: '#fff' }}>
       <div className="hdr">
         <NavBack onClick={() => router.back()} />
-        <span className="stepcount">{faNum(4)}<span style={{ opacity: .5 }}> / ۷</span></span>
+        <span className="stepcount">{faNum(4)}<span style={{ opacity: .5 }}> / ۸</span></span>
       </div>
 
       <div className="scroll" style={{ padding: '8px 22px 0', display: 'flex', flexDirection: 'column' }}>

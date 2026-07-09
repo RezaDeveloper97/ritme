@@ -5,6 +5,8 @@ import jalaliday from 'jalaliday';
 import { useLocale } from 'next-intl';
 import { useState } from 'react';
 
+import type { JalaliParts } from '@/shared/lib/date';
+
 import { Icon } from './Icon';
 
 dayjs.extend(jalaliday as Parameters<typeof dayjs.extend>[0]);
@@ -20,8 +22,10 @@ const FA = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
 const faNum = (n: string | number) => String(n).replace(/[0-9]/g, d => FA[Number(d)]);
 
 interface JalaliCalendarProps {
-  selectedDay: number;
-  onSelect: (day: number) => void;
+  /** The currently-selected full Jalali date, or `null` if nothing is picked. */
+  value: JalaliParts | null;
+  /** Reports the full picked date (year/month/day), not just the day number. */
+  onSelect: (value: JalaliParts) => void;
 }
 
 function getDaysInJalaliMonth(year: number, month: number): number {
@@ -38,7 +42,7 @@ function getJalaliMonthOffset(year: number, month: number): number {
 }
 
 /** Jalali month calendar for selecting the last period date. */
-export function JalaliCalendar({ selectedDay, onSelect }: JalaliCalendarProps) {
+export function JalaliCalendar({ value, onSelect }: JalaliCalendarProps) {
   const locale = useLocale();
   const isRtl = locale === 'fa';
 
@@ -108,8 +112,15 @@ export function JalaliCalendar({ selectedDay, onSelect }: JalaliCalendarProps) {
         {Array.from({ length: offset }, (_, i) => <span key={`pad-${i}`} />)}
         {Array.from({ length: daysInMonth }, (_, i) => {
           const d = i + 1;
+          // Highlight only when the selection falls inside the month on screen,
+          // so navigating months doesn't leave a stale highlight on a same-numbered day.
+          const isSelected = value?.year === year && value?.month === month && value?.day === d;
           return (
-            <button key={d} className={`cday${selectedDay === d ? ' on' : ''}`} onClick={() => onSelect(d)}>
+            <button
+              key={d}
+              className={`cday${isSelected ? ' on' : ''}`}
+              onClick={() => onSelect({ year, month, day: d })}
+            >
               {faNum(d)}
             </button>
           );

@@ -1,5 +1,5 @@
 {
-  "stepOf": "{step} / 7",
+  "stepOf": "{step} / 8",
   "continue": "Continue",
   "finish": "Finish",
   "helper": "Help us get to know you better",
@@ -32,6 +32,11 @@
   "periodLen": {
     "title": "How many days does your period usually last?",
     "subtitle": "Help us get to know you better",
+    "unit": "days"
+  },
+  "cycleDuration": {
+    "title": "How long is your cycle, usually?",
+    "subtitle": "The gap between the start of two periods; if unsure, 28 days is typical",
     "unit": "days"
   },
   "cycleLen": {

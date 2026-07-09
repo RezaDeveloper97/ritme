@@ -3,6 +3,8 @@
 import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 
+import { useOnboardingStore } from '@/entities/user';
+import { onboardingToProfileInput, useUpdateProfile } from '@/features/edit-profile';
 import { useRouter } from '@/shared/i18n';
 
 const FA = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
@@ -13,18 +15,31 @@ const CIRCUMFERENCE = 553;
 export function SettingUpPage() {
   const t = useTranslations('onboarding.settingUp');
   const router = useRouter();
+  const update = useUpdateProfile();
+  const onboarding = useOnboardingStore();
   const [pct, setPct] = useState(0);
+  const [ringDone, setRingDone] = useState(false);
   const ringRef = useRef<SVGCircleElement>(null);
+  const savedRef = useRef(false);
 
+  // Persist the collected answers to the profile exactly once. The guard keeps
+  // React 18 StrictMode's double-invoke from firing two POSTs.
+  useEffect(() => {
+    if (savedRef.current) return;
+    savedRef.current = true;
+    update.mutate(onboardingToProfileInput(onboarding));
+    // Run once on mount; the persisted store values are stable by then.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // The progress ring is a reassurance animation, independent of the request.
   useEffect(() => {
     let p = 0;
     const id = setInterval(() => {
       p += 2;
       if (p > 100) {
         clearInterval(id);
-        // Mark onboarded via cookie
-        document.cookie = 'ritme_onboarded=1; path=/; max-age=31536000; SameSite=Lax';
-        router.replace('/home');
+        setRingDone(true);
         return;
       }
       setPct(p);
@@ -33,7 +48,16 @@ export function SettingUpPage() {
       }
     }, 45);
     return () => clearInterval(id);
-  }, [router]);
+  }, []);
+
+  // Leave for home only once the ring has finished AND the save has settled, so
+  // the profile is written before the home screen refetches it. On error we
+  // still proceed — the user can adjust everything later in their profile.
+  useEffect(() => {
+    if (!ringDone || update.isPending) return;
+    document.cookie = 'ritme_onboarded=1; path=/; max-age=31536000; SameSite=Lax';
+    router.replace('/home');
+  }, [ringDone, update.isPending, router]);
 
   return (
     <div className="view" style={{ background: '#fff' }}>
