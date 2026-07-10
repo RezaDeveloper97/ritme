@@ -1,0 +1,51 @@
+<resources>
+    <string name="app_name">ریتمی</string>
+
+    <!-- Login: mobile + captcha -->
+    <string name="login_title">ورود به ریتمی</string>
+    <string name="login_subtitle">برای ورود یا ثبت‌نام، شمارهٔ موبایل خود را وارد کنید</string>
+    <string name="login_captcha_subtitle">تصویر امنیتی را وارد کنید</string>
+    <string name="login_phone_label">شمارهٔ موبایل</string>
+    <string name="login_phone_placeholder">۰۹۱۲۳۴۵۶۷۸۹</string>
+    <string name="login_submit">ادامه</string>
+    <string name="login_captcha_label">کد تصویر</string>
+    <string name="login_captcha_submit">تأیید</string>
+    <string name="login_otp_sent">کد تأیید برای شما ارسال شد</string>
+
+    <!-- Login errors -->
+    <string name="login_error_invalid_phone">شمارهٔ موبایل معتبر نیست</string>
+    <string name="login_error_wrong_captcha">کد تصویر نادرست است. دوباره تلاش کنید</string>
+    <string name="login_error_network">اتصال اینترنت برقرار نیست</string>
+    <string name="login_error_server">خطا در ارتباط با سرور. دوباره تلاش کنید</string>
+    <string name="login_error_unexpected">خطایی رخ داد. دوباره تلاش کنید</string>
+
+    <!-- Password step -->
+    <string name="password_title">ورود با رمز عبور</string>
+    <string name="password_subtitle">رمز عبور حساب %1$s را وارد کنید</string>
+    <string name="password_label">رمز عبور</string>
+    <string name="password_show">نمایش</string>
+    <string name="password_hide">پنهان</string>
+    <string name="password_submit">ورود</string>
+    <string name="password_use_otp">ورود با کد یک‌بارمصرف</string>
+    <string name="auth_error_wrong_credential">اطلاعات ورود نادرست است</string>
+
+    <!-- OTP step -->
+    <string name="otp_title">کد تأیید</string>
+    <string name="otp_subtitle">کد ارسال‌شده به %1$s را وارد کنید</string>
+    <string name="otp_label">کد تأیید</string>
+    <string name="otp_submit">تأیید و ورود</string>
+    <string name="otp_resend">ارسال دوبارهٔ کد</string>
+    <string name="otp_error_wrong_code">کد وارد‌شده نادرست است</string>
+
+    <!-- Home -->
+    <string name="home_greeting">خوش آمدید 👋</string>
+    <string name="home_greeting_named">سلام %1$s 👋</string>
+    <string name="home_subtitle">سرویس مورد نظر خود را انتخاب کنید</string>
+    <string name="home_services_title">خدمات ریتمی</string>
+
+    <!-- Crash recovery -->
+    <string name="recovery_message">مشکلی پیش آمد؛ شما را به آخرین صفحه بازگرداندیم</string>
+
+    <!-- Accessibility -->
+    <string name="cd_app_logo">نشان ریتمی</string>
+</resources>

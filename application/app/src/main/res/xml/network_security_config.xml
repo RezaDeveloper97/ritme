@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The Ritme backend currently serves its API over plain HTTP (port 80); HTTPS/443 is not
+  enabled on the server yet. Android blocks cleartext traffic by default (API 28+), so we
+  opt it in ONLY for the Ritme host/IP here rather than globally, keeping every other
+  destination HTTPS-only. Remove this file (and the manifest reference) once the server
+  has a valid TLS cert and BASE_URL moves back to https.
+-->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">ritmeapp.ir</domain>
+        <domain includeSubdomains="false">62.60.198.240</domain>
+    </domain-config>
+</network-security-config>

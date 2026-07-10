@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Dark override of the pre-Compose window theme. Uses the plain (dark) platform
+         Material theme so the splash/window background tracks the system dark setting
+         without pulling in AppCompat/Material Components (CLAUDE.md §3/§5c).
+         @color/ritme_background resolves to the values-night/ variant automatically. -->
+    <style name="Theme.Ritme" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/ritme_background</item>
+    </style>
+</resources>

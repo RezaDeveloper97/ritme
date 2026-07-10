@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Pre-Compose window theme. Compose draws the real UI via RitmeTheme; this only
+         controls the window/splash background before the first frame. The platform has
+         no Material.DayNight theme, so we use the light Material theme here and override
+         it in values-night/ (no AppCompat/Material Components dependency — CLAUDE.md §3/§5c). -->
+    <style name="Theme.Ritme" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/ritme_background</item>
+    </style>
+</resources>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ============================================================
+         Dark-theme overrides for the Ritme palette. Same token NAMES as
+         values/colors.xml so `colorResource(...)` resolves the correct value
+         per system theme automatically — no light/dark branching in Kotlin.
+         Brand identity stays pink; only neutrals/containers shift. CLAUDE.md §5c.
+         Values mirror the web frontend dark tokens (globals.css).
+         ============================================================ -->
+
+    <!-- Neutrals (dark) -->
+    <color name="ritme_ink">#FFECF1F6</color>
+    <color name="ritme_ink_muted">#FF93A0AC</color>
+    <color name="ritme_surface">#FF16202A</color>
+    <color name="ritme_background">#FF0D141B</color>
+    <color name="ritme_outline">#FF2C3742</color>
+
+    <!-- Soft pink surface, darkened for dark mode -->
+    <color name="ritme_pink_container">#FF3A2230</color>
+
+    <!-- Semantic, nudged lighter for contrast on dark surfaces -->
+    <color name="ritme_error">#FFE5675F</color>
+    <color name="ritme_info">#FF5B9BE0</color>
+</resources>
