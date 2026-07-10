@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
@@ -22,6 +23,11 @@ const vazirmatn = localFont({
   variable: '--font-vazirmatn',
   display: 'swap',
 });
+
+export const metadata: Metadata = {
+  title: 'ریتمی',
+  description: 'ریتمی — همراه سلامت زنان',
+};
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
