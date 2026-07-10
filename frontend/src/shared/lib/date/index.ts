@@ -7,6 +7,7 @@ export {
   today,
   todayJalali,
   toApiDate,
+  fromApiDate,
   jalaliMonthMatrix,
   shiftJalaliMonth,
   addDays,

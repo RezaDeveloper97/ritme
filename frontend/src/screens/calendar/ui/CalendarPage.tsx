@@ -4,7 +4,7 @@ import { useFormatter, useLocale, useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 
 import { cycleDayInfo, type CyclePhase } from '@/entities/cycle';
-import type { Locale } from '@/shared/i18n';
+import { useRouter, type Locale } from '@/shared/i18n';
 import {
   addDays,
   diffInDays,
@@ -12,12 +12,15 @@ import {
   formatJalaliMonthLabel,
   jalaliMonthMatrix,
   shiftJalaliMonth,
+  toApiDate,
   today,
   todayJalali,
   type JalaliMonthCell,
 } from '@/shared/lib/date';
 import { Icon } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
+
+import { DayLogSummary } from './DayLogSummary';
 
 // Demo cycle so the calendar renders meaningful phases until it is wired to the
 // backend (cycle group in §8.1). Cycle started 3 days ago → «today» is cycle
@@ -36,8 +39,6 @@ const PHASE_STYLE: Partial<Record<CyclePhase, { bg: string; color: string }>> = 
   fertile: { bg: '#FEF3C6', color: '#F5A623' },
   ovulation: { bg: '#E7F8EF', color: '#22B07D' },
 };
-
-const MOOD_KEYS = ['happy', 'calm', 'energetic', 'tired', 'sad', 'irritable'] as const;
 
 const isSameDay = (a: Date, b: Date) => diffInDays(a, b) === 0;
 
@@ -162,10 +163,9 @@ interface DayDetailProps {
   t: T;
   locale: Locale;
   selectedDate: Date;
-  onLog: () => void;
 }
 
-function DayDetail({ t, locale, selectedDate, onLog }: DayDetailProps) {
+function DayDetail({ t, locale, selectedDate }: DayDetailProps) {
   const info = cycleDayInfo(selectedDate, DEMO_CYCLE);
   const phaseStyle = PHASE_STYLE[info.phase] ?? { bg: '#F3F0FF', color: '#7C7CF0' };
   const isToday = isSameDay(selectedDate, today());
@@ -203,10 +203,6 @@ function DayDetail({ t, locale, selectedDate, onLog }: DayDetailProps) {
           <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--steel)', marginTop: 3 }}>{t(`chance.${info.pregnancyChance}`)}</div>
         </div>
       </div>
-
-      <button className="btn btn-ghost" onClick={onLog} style={{ height: 46, borderRadius: 14, gap: 8, fontSize: 14, marginTop: 14 }}>
-        <Icon name="plus" size={16} /> {t('day.logMood')}
-      </button>
     </div>
   );
 }
@@ -231,50 +227,12 @@ function SmartTip({ t }: { t: T }) {
   );
 }
 
-// ── Log-mood bottom sheet ──────────────────────────────────────
-interface MoodSheetProps {
-  t: T;
-  locale: Locale;
-  selectedDate: Date;
-  onClose: () => void;
-}
-
-function MoodSheet({ t, locale, selectedDate, onClose }: MoodSheetProps) {
-  const [mood, setMood] = useState<string | null>(null);
-
-  return (
-    <div className="sheet-backdrop" onClick={onClose}>
-      <div className="sheet" onClick={(e) => e.stopPropagation()}>
-        <div className="sheet-grip" />
-        <div style={{ textAlign: 'start', marginBottom: 4 }}>
-          <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--ink)' }}>{t('sheet.title')}</div>
-          <p className="sub" style={{ margin: '6px 0 0' }}>{t('sheet.subtitle')}</p>
-        </div>
-
-        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--muted)', textAlign: 'start', margin: '18px 2px 10px' }}>
-          {t('sheet.moodTitle')} · {formatJalaliDayMonth(selectedDate, locale)}
-        </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          {MOOD_KEYS.map((m) => (
-            <button key={m} className={`chip${mood === m ? ' on' : ''}`} onClick={() => setMood((v) => (v === m ? null : m))}>
-              {t(`sheet.moods.${m}`)}
-            </button>
-          ))}
-        </div>
-
-        <button className="btn btn-primary" onClick={onClose} style={{ borderRadius: 14, marginTop: 22 }}>
-          {t('sheet.save')}
-        </button>
-      </div>
-    </div>
-  );
-}
-
 // ── Main export ────────────────────────────────────────────────
 export function CalendarPage() {
   const t = useTranslations('calendar');
   const locale = useLocale() as Locale;
   const format = useFormatter();
+  const router = useRouter();
   const isRtl = locale === 'fa';
 
   const [{ year, month }, setView] = useState(() => {
@@ -282,8 +240,12 @@ export function CalendarPage() {
     return { year: j.year, month: j.month };
   });
   const [selectedDate, setSelectedDate] = useState<Date>(() => today());
-  const [fullMonth, setFullMonth] = useState(false);
-  const [sheetOpen, setSheetOpen] = useState(false);
+  // Full month is the default view (open); the toggle can still collapse to a
+  // single week.
+  const [fullMonth, setFullMonth] = useState(true);
+
+  // Editing a day hands off to the full log screen, seeded with that day.
+  const openLog = () => router.push(`/log?date=${toApiDate(selectedDate)}`);
 
   const weeks = useMemo(() => jalaliMonthMatrix(year, month), [year, month]);
 
@@ -298,9 +260,6 @@ export function CalendarPage() {
   return (
     <div className="view" style={{ background: 'var(--page)' }}>
       <div className="home-grad" style={{ position: 'absolute', top: 0, insetInlineStart: 0, insetInlineEnd: 0, height: 260 }} />
-
-      <div style={{ position: 'relative', zIndex: 1 }}>
-      </div>
 
       <div className="scroll" style={{ position: 'relative', zIndex: 1 }}>
         <div style={{ padding: '6px 20px 0', textAlign: 'start' }}>
@@ -350,7 +309,11 @@ export function CalendarPage() {
         </div>
 
         <div style={{ padding: '14px 16px 0' }}>
-          <DayDetail t={t} locale={locale} selectedDate={selectedDate} onLog={() => setSheetOpen(true)} />
+          <DayDetail t={t} locale={locale} selectedDate={selectedDate} />
+        </div>
+
+        <div style={{ padding: '14px 16px 0' }}>
+          <DayLogSummary tCal={t} selectedDate={selectedDate} onEdit={openLog} />
         </div>
 
         <div style={{ padding: '14px 16px 0' }}>
@@ -361,10 +324,6 @@ export function CalendarPage() {
       </div>
 
       <BottomNav />
-
-      {sheetOpen && (
-        <MoodSheet t={t} locale={locale} selectedDate={selectedDate} onClose={() => setSheetOpen(false)} />
-      )}
     </div>
   );
 }

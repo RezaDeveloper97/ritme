@@ -38,24 +38,15 @@
     "medium": "Medium",
     "high": "High"
   },
+  "dayLog": {
+    "title": "This day's log",
+    "edit": "Edit",
+    "emptyTitle": "Nothing logged for this day",
+    "emptySubtitle": "Log symptoms, mood and more for {date}."
+  },
   "smartTip": {
     "title": "Smart tip",
     "body": "During the luteal phase your body may want more rest and nutrients. Magnesium-rich foods and enough sleep can help you feel your best.",
     "quote": "Listen to your body's rhythm — each day has its own story."
-  },
-  "sheet": {
-    "title": "How are you feeling today?",
-    "subtitle": "Log symptoms, mood and more for this day.",
-    "moodTitle": "Mood",
-    "moods": {
-      "happy": "Happy",
-      "calm": "Calm",
-      "energetic": "Energetic",
-      "tired": "Tired",
-      "sad": "Sad",
-      "irritable": "Irritable"
-    },
-    "save": "Save",
-    "close": "Close"
   }
 }

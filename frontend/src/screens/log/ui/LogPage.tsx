@@ -1,6 +1,7 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
+import { useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 
 import {
@@ -13,7 +14,7 @@ import {
   type HealthLogInput,
 } from '@/entities/health-log';
 import type { Locale } from '@/shared/i18n';
-import { addDays, diffInDays, formatJalaliDayMonth, toApiDate, today } from '@/shared/lib/date';
+import { addDays, diffInDays, formatJalaliDayMonth, fromApiDate, toApiDate, today } from '@/shared/lib/date';
 import { Icon, type IconName } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
 
@@ -146,7 +147,16 @@ export function LogPage() {
   const locale = useLocale() as Locale;
   const isRtl = locale === 'fa';
 
-  const [date, setDate] = useState<Date>(() => today());
+  // Opened from the calendar with `?date=YYYY-MM-DD` to edit a specific day;
+  // absent (or a future date) falls back to today. Only the initial value is
+  // read — after mount the in-screen day switcher owns the date.
+  const searchParams = useSearchParams();
+  const [date, setDate] = useState<Date>(() => {
+    const param = searchParams.get('date');
+    if (!param) return today();
+    const parsed = fromApiDate(param);
+    return diffInDays(parsed, today()) > 0 ? today() : parsed;
+  });
   const apiDate = useMemo(() => toApiDate(date), [date]);
 
   const enumsQuery = useHealthLogEnums();

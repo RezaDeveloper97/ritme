@@ -95,6 +95,15 @@ export function toApiDate(date: Date): string {
   return dayjs(date).format('YYYY-MM-DD');
 }
 
+/**
+ * Parse the API's Gregorian `YYYY-MM-DD` back into a start-of-day Date — the
+ * inverse of {@link toApiDate}. Used when a date crosses back in from a route
+ * query (e.g. opening the log editor on a specific calendar day).
+ */
+export function fromApiDate(value: string): Date {
+  return dayjs(value).startOf('day').toDate();
+}
+
 /** Today's Jalali parts. */
 export function todayJalali(): JalaliParts {
   return toJalali(today());
