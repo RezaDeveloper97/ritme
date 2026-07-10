@@ -1,0 +1,28 @@
+{
+  "region": "Introducing Ritme",
+  "brand": "Ritme",
+  "skip": "Skip",
+  "next": "Continue",
+  "start": "Set up Ritme",
+  "startHint": "It takes under a minute. We ask a few simple questions about your age, cycle, and how you generally feel so we can tune Ritme to you.",
+  "disclaimer": "Ritme uses data analysis and AI models to personalize its suggestions, but it is not a substitute for diagnosis or a doctor's visit. If your symptoms are severe or worrying, please talk to a health professional.",
+  "goToSlide": "Go to slide {n}",
+  "slideOfCount": "Slide {n} of {total}",
+  "slides": {
+    "intro": {
+      "title": "Know your body's rhythm, feel better",
+      "body": "Ritme is a women's health app that helps you see your menstrual cycle, mood, sleep, and energy together — and understand the rhythm your body has each day.",
+      "note": "Ritme is here to help you treat your body a little more easily, knowingly, and kindly every day."
+    },
+    "track": {
+      "title": "More than period dates — your patterns matter",
+      "body": "In Ritme you don't just mark your period days. Your daily mood, aches, sleep, and energy are logged alongside your cycle, so you can understand why some days feel more tired, sensitive, or on edge.",
+      "bullet1": "See symptoms like cramps, bloating, headaches, and mood swings on your body's calendar.",
+      "bullet2": "Learn what — like short sleep or stress — affects your body the most."
+    },
+    "smart": {
+      "title": "Smart insights, made for your body",
+      "body": "Ritme isn't just a logbook. By bringing your own patterns together, it builds insights that are about you."
+    }
+  }
+}

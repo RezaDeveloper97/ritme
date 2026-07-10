@@ -5,14 +5,22 @@ import { useEffect } from 'react';
 
 import { Icon } from '@/shared/ui';
 import { useRouter } from '@/shared/i18n';
+import { hasSeenIntro } from '@/shared/session';
 
 export function SplashPage() {
   const t = useTranslations('auth.splash');
   const router = useRouter();
 
+  // First-time visitors see the welcome intro before signup; once they've seen
+  // it, the splash goes straight to signup. Decided per render so a fresh visit
+  // (localStorage cleared) shows the intro again.
+  const next = () => router.replace(hasSeenIntro() ? '/signup' : '/welcome');
+
   useEffect(() => {
-    const timer = setTimeout(() => router.replace('/signup'), 2200);
+    const timer = setTimeout(next, 2200);
     return () => clearTimeout(timer);
+    // `next` reads only refs/router; re-running on router identity is enough.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 
   return (
@@ -26,7 +34,7 @@ export function SplashPage() {
         height: '100%',
         overflow: 'hidden',
       }}
-      onClick={() => router.replace('/signup')}
+      onClick={next}
     >
       {/* Figma: faint concentric-circles mark peeking from the top corner */}
       <div aria-hidden style={{ position: 'absolute', top: -60, insetInlineEnd: -40, opacity: .12, pointerEvents: 'none' }}>

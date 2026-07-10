@@ -92,4 +92,11 @@ export default defineConfig([
     ],
     rules: { 'fsd/insignificant-slice': 'off' },
   },
+  {
+    // `widgets/intro-carousel` is the pre-signup welcome slideshow, mounted only
+    // by the `welcome` screen — invisible to steiger (same reason as the blocks
+    // above), so its single reference reads as zero.
+    files: ['./src/widgets/intro-carousel/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
 ]);

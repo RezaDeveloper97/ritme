@@ -9,7 +9,7 @@ const intlMiddleware = createMiddleware(routing);
 // Public auth screens — reachable without a session. Everything else under a
 // locale prefix requires the auth flag cookie (set on verify-otp, §8.1). The
 // cookie is a value-less flag, never the token itself (§11).
-const PUBLIC_SEGMENTS = ['splash', 'signup', 'otp'];
+const PUBLIC_SEGMENTS = ['splash', 'welcome', 'signup', 'otp'];
 
 /** Strips the leading `/fa` or `/en` locale prefix, returning the first path segment. */
 function firstSegment(pathname: string): string {

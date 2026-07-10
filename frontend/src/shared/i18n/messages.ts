@@ -19,6 +19,7 @@ import enProfile from '../../../messages/en/profile.json';
 import enProfileEdit from '../../../messages/en/profile-edit.json';
 import enProfileInfo from '../../../messages/en/profile-info.json';
 import enReminders from '../../../messages/en/reminders.json';
+import enWelcome from '../../../messages/en/welcome.json';
 import faAccount from '../../../messages/fa/account.json';
 import faAuth from '../../../messages/fa/auth.json';
 import faBanners from '../../../messages/fa/banners.json';
@@ -36,6 +37,7 @@ import faProfile from '../../../messages/fa/profile.json';
 import faProfileEdit from '../../../messages/fa/profile-edit.json';
 import faProfileInfo from '../../../messages/fa/profile-info.json';
 import faReminders from '../../../messages/fa/reminders.json';
+import faWelcome from '../../../messages/fa/welcome.json';
 
 const messages = {
   fa: {
@@ -56,6 +58,7 @@ const messages = {
     account: faAccount,
     log: faLog,
     logPeriod: faLogPeriod,
+    welcome: faWelcome,
   },
   en: {
     common: enCommon,
@@ -75,6 +78,7 @@ const messages = {
     account: enAccount,
     log: enLog,
     logPeriod: enLogPeriod,
+    welcome: enWelcome,
   },
 } as const;
 
