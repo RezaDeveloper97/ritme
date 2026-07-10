@@ -40,6 +40,11 @@
     "nextPeriod": "پریود بعدی در"
   },
 
+  "pms": {
+    "label": "دوره PMS",
+    "range": "{from} تا {to}"
+  },
+
   "recommendations": {
     "title": "توصیه‌های امروز",
     "iron": "مصرف آهن",

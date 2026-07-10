@@ -304,27 +304,23 @@ function PhaseRows({
   );
 }
 
-// ── Mini stat cards ────────────────────────────────────────────
-function MiniCards({ t, pred }: { t: T; pred: CyclePredictions | null }) {
-  const dash = t('unavailable');
-  const cards = [
-    { l: t('phases.nextPeriod'), v: pred ? t('days', { n: pred.daysUntilNextPeriod }) : dash, c: '#FB64B6', bg: '#FFEBF5' },
-    { l: t('phases.ovulation'),  v: pred ? t('days', { n: Math.max(0, pred.daysUntilOvulation) }) : dash, c: '#34C77B', bg: '#E7F8EF' },
-    { l: t('phases.window'),     v: pred ? t('days', { n: Math.max(0, pred.daysUntilFertileWindow) }) : dash, c: '#F5A623', bg: '#FFF3DF' },
-  ];
-  // Figma mini «Card»: 143px, icon bubble 44 (r20), value inside a tinted chip.
+// ── PMS window box ─────────────────────────────────────────────
+// Shows the predicted PMS days (the short run before the next period) as a
+// Jalali date range, e.g. «۷ تا ۱۰ اسفند». Derived from predictions (§7 —
+// formatted at the display boundary), no extra API call.
+function PmsBox({ t, dateRange }: { t: T; dateRange: string | null }) {
   return (
-    <div className="scroll-x" style={{ padding: '16px 16px 0' }}>
-      <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-start', minWidth: 'min-content' }}>
-        {cards.map(c => (
-          <div key={c.l} style={{ width: 143, flex: '0 0 143px', background: '#fff', border: '1px solid #EEEEEE', borderRadius: 16, padding: 16, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-            <span className="dot" style={{ width: 44, height: 44, borderRadius: 20, background: c.bg, color: c.c }}>
-              <DropSolid size={22} color={c.c} />
-            </span>
-            <span style={{ fontSize: 13, color: '#6C6C6C', fontWeight: 700 }}>{c.l}</span>
-            <span style={{ background: c.bg, borderRadius: 12, padding: '6px 14px', fontSize: 15, fontWeight: 700, color: '#4C5853', fontVariantNumeric: 'tabular-nums' }}>{c.v}</span>
-          </div>
-        ))}
+    <div style={{ padding: '16px 16px 0' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#fff', borderRadius: 16, padding: '14px 16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span className="dot" style={{ width: 40, height: 40, borderRadius: 20, background: '#F3E8FF', color: '#A91EE9' }}>
+            <DropSolid size={18} color="#A91EE9" />
+          </span>
+          <span style={{ fontSize: 14, fontWeight: 700, color: '#707983' }}>{t('pms.label')}</span>
+        </div>
+        <span style={{ background: '#F3E8FF', borderRadius: 12, padding: '8px 14px', fontSize: 13, fontWeight: 700, color: '#7E22CE', fontVariantNumeric: 'tabular-nums', textAlign: 'center' }}>
+          {dateRange ?? t('unavailable')}
+        </span>
       </div>
     </div>
   );
@@ -656,6 +652,9 @@ export function HomePage() {
   const ovulationDate = pred ? fmt(Math.max(0, pred.daysUntilOvulation)) : null;
   const windowDate = pred ? fmt(Math.max(0, pred.daysUntilFertileWindow)) : null;
   const cycleStartDate = pred ? fmt(-(pred.cycleDay - 1)) : null;
+  const pmsRange = pred
+    ? t('pms.range', { from: fmt(pred.daysUntilPmsStart), to: fmt(pred.daysUntilPmsEnd) })
+    : null;
 
   const message: DailyMessage | undefined = daily;
   const smartTipBody = message?.primary.longMessage || t('smartTip.body');
@@ -726,8 +725,8 @@ export function HomePage() {
         {/* Admin-managed promo slot — renders nothing until a banner is active */}
         <BannerSlideshow position="home_top" />
         <StartPeriodButton />
+        <PmsBox t={t} dateRange={pmsRange} />
         <PhaseRows t={t} windowDate={windowDate} ovulationDate={ovulationDate} nextPeriodDate={nextPeriodDate} />
-        <MiniCards t={t} pred={pred} />
         <Recommendations t={t} dos={dos} />
         <BannerSlideshow position="home_middle" />
         <TodayTasks t={t} />

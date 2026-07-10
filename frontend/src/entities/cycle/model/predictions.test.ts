@@ -42,6 +42,18 @@ describe('deriveCyclePredictions', () => {
     expect(p.cycleLength).toBe(28);
   });
 
+  it('derives the PMS window as the days before the next period', () => {
+    const p = deriveCyclePredictions(makeCalc()); // next period in 20 days
+    expect(p.daysUntilPmsEnd).toBe(19); // day before next period
+    expect(p.daysUntilPmsStart).toBe(16); // 4-day window
+  });
+
+  it('clamps the PMS window to today when a period is imminent', () => {
+    const p = deriveCyclePredictions(makeCalc({ cycleDay: 28, cycleLength: 28 }));
+    expect(p.daysUntilPmsEnd).toBe(0);
+    expect(p.daysUntilPmsStart).toBe(0);
+  });
+
   it('never reports a negative days-until-next-period', () => {
     const p = deriveCyclePredictions(makeCalc({ cycleDay: 30, cycleLength: 28 }));
     expect(p.daysUntilNextPeriod).toBe(0);

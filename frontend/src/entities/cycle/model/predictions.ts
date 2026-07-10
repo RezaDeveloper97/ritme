@@ -3,6 +3,9 @@ import type { CycleCalculation, CyclePhase, CyclePredictions } from './types';
 /** Days before ovulation the fertile window is considered to open. */
 const FERTILE_WINDOW_LEAD_DAYS = 4;
 
+/** Length of the PMS window (the run of days ending the day before next period). */
+const PMS_WINDOW_DAYS = 4;
+
 const KNOWN_PHASES: readonly CyclePhase[] = [
   'period',
   'follicular',
@@ -31,6 +34,10 @@ export function normalizePhase(phase: string): CyclePhase {
 export function deriveCyclePredictions(calc: CycleCalculation): CyclePredictions {
   const daysUntilNextPeriod = Math.max(0, calc.cycleLength - calc.cycleDay);
   const daysUntilOvulation = calc.estimatedOvulationDay - calc.cycleDay;
+  // PMS is the short run of days ending the day before the next period. Clamp to
+  // today so an imminent/overdue period never yields a negative window.
+  const daysUntilPmsEnd = Math.max(0, daysUntilNextPeriod - 1);
+  const daysUntilPmsStart = Math.max(0, daysUntilNextPeriod - PMS_WINDOW_DAYS);
 
   return {
     cycleDay: calc.cycleDay,
@@ -40,6 +47,8 @@ export function deriveCyclePredictions(calc: CycleCalculation): CyclePredictions
     daysUntilNextPeriod,
     daysUntilOvulation,
     daysUntilFertileWindow: daysUntilOvulation - FERTILE_WINDOW_LEAD_DAYS,
+    daysUntilPmsStart,
+    daysUntilPmsEnd,
     isPeriodTomorrow: calc.isPeriodTomorrow,
     isFertileWindow: calc.isFertileWindow,
   };

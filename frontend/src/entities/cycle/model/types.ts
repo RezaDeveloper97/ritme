@@ -77,6 +77,10 @@ export interface CyclePredictions {
   daysUntilOvulation: number;
   /** Days from today until the fertile window opens (may be negative/zero). */
   daysUntilFertileWindow: number;
+  /** Days from today to the first PMS day (the run of days before next period). */
+  daysUntilPmsStart: number;
+  /** Days from today to the last PMS day (the day before next period). */
+  daysUntilPmsEnd: number;
   isPeriodTomorrow: boolean;
   isFertileWindow: boolean;
 }

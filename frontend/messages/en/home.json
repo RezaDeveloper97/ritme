@@ -40,6 +40,11 @@
     "nextPeriod": "Next period in"
   },
 
+  "pms": {
+    "label": "PMS window",
+    "range": "{from} – {to}"
+  },
+
   "recommendations": {
     "title": "Today's recommendations",
     "iron": "Iron intake",
