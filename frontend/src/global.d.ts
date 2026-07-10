@@ -4,6 +4,7 @@ import type enBanners from '../messages/en/banners.json';
 import type enCalendar from '../messages/en/calendar.json';
 import type enCommon from '../messages/en/common.json';
 import type enCycle from '../messages/en/cycle.json';
+import type enDayTasks from '../messages/en/day-tasks.json';
 import type enHome from '../messages/en/home.json';
 import type enLog from '../messages/en/log.json';
 import type enLogPeriod from '../messages/en/log-period.json';
@@ -31,6 +32,7 @@ type Messages = {
   nav: typeof enNav;
   calendar: typeof enCalendar;
   cycle: typeof enCycle;
+  dayTasks: typeof enDayTasks;
   profile: typeof enProfile;
   profileEdit: typeof enProfileEdit;
   profileInfo: typeof enProfileInfo;

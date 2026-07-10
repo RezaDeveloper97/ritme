@@ -99,4 +99,12 @@ export default defineConfig([
     files: ['./src/widgets/intro-carousel/**'],
     rules: { 'fsd/insignificant-slice': 'off' },
   },
+  {
+    // `widgets/day-tasks` is the day-scoped planner (doctor/medication
+    // reminders + to-dos), mounted by the `log` and `home` screens — invisible
+    // to steiger (same reason as the blocks above), so its references read as
+    // zero.
+    files: ['./src/widgets/day-tasks/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
 ]);

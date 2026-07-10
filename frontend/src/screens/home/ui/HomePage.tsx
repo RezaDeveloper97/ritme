@@ -26,6 +26,7 @@ import {
 import { DropSolid, Icon } from '@/shared/ui';
 import { BannerSlideshow } from '@/widgets/banner-slideshow';
 import { BottomNav } from '@/widgets/bottom-nav';
+import { DayTasks } from '@/widgets/day-tasks';
 
 const FA = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
 const faNum = (n: string | number) => String(n).replace(/[0-9]/g, d => FA[Number(d)]);
@@ -339,53 +340,6 @@ function Recommendations({ t, dos }: { t: T; dos: string[] }) {
   );
 }
 
-// ── Today tasks (local UI state — no API counterpart in the spec) ──
-const INITIAL_TASKS = [
-  { done: true },
-  { done: true },
-  { done: false },
-  { done: false },
-];
-
-function TodayTasks({ t }: { t: T }) {
-  const LABELS = [t('tasks.temp'), t('tasks.water'), t('tasks.vitamin'), t('tasks.walk')];
-  const [tasks, setTasks] = useState(INITIAL_TASKS.map((x, i) => ({ ...x, label: LABELS[i] })));
-
-  const toggle = (i: number) => setTasks(prev => prev.map((tk, k) => k === i ? { ...tk, done: !tk.done } : tk));
-  const done = tasks.filter(tk => tk.done).length;
-  const pct = Math.round((done / tasks.length) * 100);
-
-  return (
-    <div style={{ padding: '14px 16px 0' }}>
-      <div className="card" style={{ padding: '14px 12px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-          <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--ink)' }}>{t('tasks.title')}</span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: 'var(--steel)' }}>
-            {faNum(done)}/{faNum(tasks.length)}
-            <Icon name="checkCircle" size={16} stroke="var(--green)" />
-          </span>
-        </div>
-
-        {tasks.map((tk, i) => (
-          <div key={i} onClick={() => toggle(i)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '9px 2px', cursor: 'pointer' }}>
-            <span style={{ fontSize: 14, fontWeight: 600, color: tk.done ? '#AEB6BF' : 'var(--ink)', textDecoration: tk.done ? 'line-through' : undefined }}>{tk.label}</span>
-            <span className={`cbx${tk.done ? ' on' : ''}`}>
-              <Icon name="check" size={14} stroke="#fff" />
-            </span>
-          </div>
-        ))}
-
-        <div style={{ height: 1, background: 'var(--line)', margin: '14px 0 12px' }} />
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--muted)' }}>{t('tasks.progress')}</span>
-          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--steel)' }}>{t('tasks.percent', { n: faNum(pct) })}</span>
-        </div>
-        <div className="bar"><i style={{ width: `${pct}%` }} /></div>
-      </div>
-    </div>
-  );
-}
-
 // ── Smart tip (from /messages/daily) ───────────────────────────
 function SmartTip({ t, body, quote }: { t: T; body: string; quote: string }) {
   return (
@@ -488,30 +442,6 @@ function Challenge({ t }: { t: T }) {
           ✨ {t('challenge.desc')}
         </div>
       </div>
-    </div>
-  );
-}
-
-// ── Reminder cards (no API counterpart — static) ───────────────
-function ReminderCards({ t }: { t: T }) {
-  const items = [
-    { icon: 'stetho' as const, title: t('reminder.doctor'), sub: `${t('reminder.doctorName')} · ${t('reminder.specialty')}`, c: '#7C7CF0', bg: '#F3F0FF' },
-    { icon: 'pill'   as const, title: t('reminder.medicine'), sub: undefined, c: 'var(--brand)', bg: '#FFEBF5' },
-  ];
-  return (
-    <div style={{ padding: '14px 16px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
-      {items.map(it => (
-        <div key={it.title} className="card" style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span className="dot" style={{ width: 40, height: 40, background: it.bg, color: it.c }}>
-            <Icon name={it.icon} size={20} stroke="currentColor" />
-          </span>
-          <div style={{ flex: 1, textAlign: 'start' }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)' }}>{it.title}</div>
-            {it.sub && <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 3 }}>{it.sub}</div>}
-          </div>
-          <span style={{ color: 'var(--muted)' }}><Icon name="alarm" size={18} stroke="currentColor" /></span>
-        </div>
-      ))}
     </div>
   );
 }
@@ -710,9 +640,10 @@ export function HomePage() {
         <PhaseRows t={t} windowDate={windowDate} ovulationDate={ovulationDate} pmsRange={pmsRange} nextPeriodDate={nextPeriodDate} />
         <Recommendations t={t} dos={dos} />
         <BannerSlideshow position="home_middle" />
-        <TodayTasks t={t} />
+        {/* Today's doctor/medication reminders and to-dos — same source as the
+            daily-log day planner, so items set there appear here (§ home request). */}
+        <DayTasks date={base} />
         <Challenge t={t} />
-        <ReminderCards t={t} />
         <SmartTip t={t} body={smartTipBody} quote={smartTipQuote} />
         <WeekSummary t={t} />
         <TodayStatus t={t} />

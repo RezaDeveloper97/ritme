@@ -1,0 +1,17 @@
+{
+  "title": "Tasks & reminders for this day",
+  "subtitle": "Add a medication, a doctor visit, or anything you need to do on this day.",
+  "types": {
+    "custom": "Task",
+    "doctor": "Doctor",
+    "medication": "Medication"
+  },
+  "placeholder": "Write a task for this day…",
+  "add": "Add",
+  "adding": "Adding…",
+  "empty": "Nothing planned for this day yet.",
+  "progress": "{done, number}/{total, number} done",
+  "toggle": "Toggle done",
+  "delete": "Delete",
+  "error": "That didn't work; please try again."
+}

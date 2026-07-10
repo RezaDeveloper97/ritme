@@ -17,6 +17,7 @@ import type { Locale } from '@/shared/i18n';
 import { addDays, diffInDays, formatJalaliDayMonth, fromApiDate, toApiDate, today } from '@/shared/lib/date';
 import { Icon, type IconName } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
+import { DayTasks } from '@/widgets/day-tasks';
 
 import { CategorySheet } from './CategorySheet';
 
@@ -270,6 +271,9 @@ export function LogPage() {
             />
           ))}
         </div>
+
+        {/* Doctor / medication reminders and to-dos set for the day being edited. */}
+        <DayTasks date={date} />
 
         <div style={{ height: 24 }} />
       </div>
