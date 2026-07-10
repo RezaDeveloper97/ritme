@@ -268,17 +268,19 @@ function NextPeriodCard({
 
 // ── Phase rows ─────────────────────────────────────────────────
 function PhaseRows({
-  t, windowDate, ovulationDate, nextPeriodDate,
+  t, windowDate, ovulationDate, pmsRange, nextPeriodDate,
 }: {
   t: T;
   windowDate: string | null;
   ovulationDate: string | null;
+  pmsRange: string | null;
   nextPeriodDate: string | null;
 }) {
   const dash = t('unavailable');
   const rows = [
     { l: t('phases.window'),     d: windowDate ?? dash,     c: '#F5A623', bg: '#FEF3C6' },
     { l: t('phases.ovulation'),  d: ovulationDate ?? dash,  c: '#34C77B', bg: '#F0FDFA' },
+    { l: t('pms.label'),         d: pmsRange ?? dash,       c: '#A91EE9', bg: '#F3E8FF' },
     { l: t('phases.nextPeriod'), d: nextPeriodDate ?? dash, c: '#FB64B6', bg: '#FCE7F3' },
   ];
   // Figma «Card»: label + 30px icon bubble on the start side, the date inside
@@ -299,28 +301,6 @@ function PhaseRows({
             </span>
           </div>
         ))}
-      </div>
-    </div>
-  );
-}
-
-// ── PMS window box ─────────────────────────────────────────────
-// Shows the predicted PMS days (the short run before the next period) as a
-// Jalali date range, e.g. «۷ تا ۱۰ اسفند». Derived from predictions (§7 —
-// formatted at the display boundary), no extra API call.
-function PmsBox({ t, dateRange }: { t: T; dateRange: string | null }) {
-  return (
-    <div style={{ padding: '16px 16px 0' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#fff', borderRadius: 16, padding: '14px 16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span className="dot" style={{ width: 40, height: 40, borderRadius: 20, background: '#F3E8FF', color: '#A91EE9' }}>
-            <DropSolid size={18} color="#A91EE9" />
-          </span>
-          <span style={{ fontSize: 14, fontWeight: 700, color: '#707983' }}>{t('pms.label')}</span>
-        </div>
-        <span style={{ background: '#F3E8FF', borderRadius: 12, padding: '8px 14px', fontSize: 13, fontWeight: 700, color: '#7E22CE', fontVariantNumeric: 'tabular-nums', textAlign: 'center' }}>
-          {dateRange ?? t('unavailable')}
-        </span>
       </div>
     </div>
   );
@@ -725,8 +705,7 @@ export function HomePage() {
         {/* Admin-managed promo slot — renders nothing until a banner is active */}
         <BannerSlideshow position="home_top" />
         <StartPeriodButton />
-        <PmsBox t={t} dateRange={pmsRange} />
-        <PhaseRows t={t} windowDate={windowDate} ovulationDate={ovulationDate} nextPeriodDate={nextPeriodDate} />
+        <PhaseRows t={t} windowDate={windowDate} ovulationDate={ovulationDate} pmsRange={pmsRange} nextPeriodDate={nextPeriodDate} />
         <Recommendations t={t} dos={dos} />
         <BannerSlideshow position="home_middle" />
         <TodayTasks t={t} />
