@@ -143,6 +143,7 @@ export function ProfilePage() {
 
   const user = profile;
   const health = profile?.health;
+  const bmi = profile?.bmi;
 
   // These fallbacks must depend ONLY on the fetched value — never on loading
   // state. `useUserProfile` is gated on `isAuthenticated()` (which reads
@@ -317,9 +318,49 @@ export function ProfilePage() {
                 label={t('health.height')}
                 trailing={<StatValue>{measureOrEmpty('cm', health?.height)}</StatValue>}
               />
+              {/* BMI is server-computed from weight+height; the row is present
+                  only once both are set (§11 — shown, never logged). */}
+              {bmi ? (
+                <>
+                  <Divider />
+                  <Row
+                    icon="chart"
+                    label={t('health.bmi')}
+                    trailing={
+                      <StatValue>
+                        {t('health.bmiValue', {
+                          value: localizeNum(bmi.value, loc),
+                          category: bmi.categoryLabel,
+                        })}
+                      </StatValue>
+                    }
+                  />
+                </>
+              ) : null}
             </>
           )}
         </Group>
+
+        {/* Supportive, band-specific BMI message. The backend owns this copy
+            (admin-editable) and returns it already localized; we only render
+            it. Not medical advice (§11). */}
+        {bmi ? (
+          <section style={{ padding: '0 18px', marginTop: 14 }}>
+            <div className="card" style={{ padding: 16 }}>
+              <p
+                style={{
+                  fontSize: 13.5,
+                  lineHeight: 2,
+                  color: 'var(--muted)',
+                  margin: 0,
+                  textAlign: 'start',
+                }}
+              >
+                {bmi.message}
+              </p>
+            </div>
+          </section>
+        ) : null}
 
         {/* Account */}
         <Group title={t('sections.account')}>

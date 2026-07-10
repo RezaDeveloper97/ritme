@@ -1,6 +1,8 @@
 export { useOnboardingStore } from './model/store';
 export type {
   AuthUser,
+  Bmi,
+  BmiCategory,
   ChronicCondition,
   HealthProfile,
   HeightUnit,

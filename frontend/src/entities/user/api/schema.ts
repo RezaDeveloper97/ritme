@@ -58,6 +58,19 @@ export const userProfileSchema = z
       })
       .nullable()
       .default(null),
+    // Server-computed BMI + localized message. Absent/null until height and
+    // weight are both set.
+    bmi: z
+      .object({
+        value: numberish,
+        // Validate the band against the closed enum at the boundary (§10)
+        // rather than trusting a cast downstream.
+        category: z.enum(['underweight', 'normal', 'overweight', 'obese']),
+        category_label: z.string(),
+        message: z.string(),
+      })
+      .nullable()
+      .default(null),
   })
   .transform(
     (r): UserProfile => ({
@@ -76,5 +89,14 @@ export const userProfileSchema = z
             chronicConditions: (r.profile.chronic_conditions ?? []) as ChronicCondition[],
           }
         : null,
+      bmi:
+        r.bmi && r.bmi.value != null
+          ? {
+              value: r.bmi.value,
+              category: r.bmi.category,
+              categoryLabel: r.bmi.category_label,
+              message: r.bmi.message,
+            }
+          : null,
     }),
   );

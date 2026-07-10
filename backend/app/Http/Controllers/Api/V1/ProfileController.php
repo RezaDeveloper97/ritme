@@ -11,6 +11,7 @@ use App\Http\Controllers\Concerns\ResolvesLocale;
 use App\Http\Controllers\Controller;
 use App\Jobs\CalculateCycleDataJob;
 use App\Models\UserProfile;
+use App\Services\BmiService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -48,6 +49,12 @@ class ProfileController extends Controller
      *                     @OA\Property(property="period_duration", type="integer", example=5),
      *                     @OA\Property(property="cycle_duration", type="integer", example=28),
      *                     @OA\Property(property="last_period_start", type="string", format="date", example="2024-12-01")
+     *                 ),
+     *                 @OA\Property(property="bmi", type="object", nullable=true, description="Computed BMI; null when height/weight are missing",
+     *                     @OA\Property(property="value", type="number", format="float", example=22.1),
+     *                     @OA\Property(property="category", type="string", enum={"underweight","normal","overweight","obese"}, example="normal"),
+     *                     @OA\Property(property="category_label", type="string", example="طبیعی"),
+     *                     @OA\Property(property="message", type="string", example="بر اساس قد و وزن وارد شده، در محدوده‌ی وزنی طبیعی قرار می‌گیری...")
      *                 )
      *             )
      *         )
@@ -59,8 +66,9 @@ class ProfileController extends Controller
      *     )
      * )
      */
-    public function show(Request $request): JsonResponse
+    public function show(Request $request, BmiService $bmi): JsonResponse
     {
+        $locale = $this->resolveLocale($request);
         $user = $request->user();
         $profile = $user->profile;
 
@@ -69,6 +77,9 @@ class ProfileController extends Controller
             'data' => [
                 'user' => $user,
                 'profile' => $profile,
+                // Computed body-mass index + supportive message; null when the
+                // profile has no height/weight yet so the client omits the card.
+                'bmi' => $profile ? $bmi->forProfile($profile, $locale) : null,
             ],
         ]);
     }

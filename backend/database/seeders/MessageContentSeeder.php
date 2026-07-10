@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\MessageContent;
+use App\Services\BmiService;
 use App\Services\MessageSystem\Engines\CycleMessageEngine;
 use App\Services\MessageSystem\Engines\PregnancyMessageEngine;
 use App\Services\MessageSystem\Layers\CorrelationLayer;
@@ -27,6 +28,7 @@ class MessageContentSeeder extends Seeder
         ExerciseModule::class,
         CorrelationLayer::class,
         PatternLayer::class,
+        BmiService::class,
     ];
 
     public function run(): void

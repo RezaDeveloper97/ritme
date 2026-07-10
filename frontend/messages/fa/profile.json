@@ -32,6 +32,8 @@
     "birthday": "تاریخ تولد",
     "weight": "وزن",
     "height": "قد",
+    "bmi": "شاخص توده بدنی (BMI)",
+    "bmiValue": "{value} · {category}",
     "days": "{days} روز",
     "kg": "{value} کیلوگرم",
     "cm": "{value} سانتی‌متر",

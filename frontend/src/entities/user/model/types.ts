@@ -40,6 +40,25 @@ export interface HealthProfile {
   chronicConditions: ChronicCondition[];
 }
 
+/** WHO body-mass-index band. Mirrors the backend `BmiCategory` enum. */
+export type BmiCategory = 'underweight' | 'normal' | 'overweight' | 'obese';
+
+/**
+ * Computed body-mass index for the profile, as returned by `GET /profile`. The
+ * server owns the maths and the band-specific, admin-editable {@link message}
+ * (already localized to the request locale), so the client only displays it.
+ * Sensitive data (§11) — shown, never logged.
+ */
+export interface Bmi {
+  /** BMI value, rounded to one decimal. */
+  value: number;
+  category: BmiCategory;
+  /** Localized band name, e.g. «طبیعی» / «Normal». */
+  categoryLabel: string;
+  /** Localized supportive paragraph for the band. */
+  message: string;
+}
+
 /**
  * The full `GET /profile` payload: account identity flattened together with the
  * optional {@link HealthProfile}. Distinct from {@link AuthUser} (which carries
@@ -50,6 +69,8 @@ export interface UserProfile {
   name: string | null;
   mobile: string;
   health: HealthProfile | null;
+  /** Computed BMI, or `null` when height/weight are not set yet. */
+  bmi: Bmi | null;
 }
 
 /**
