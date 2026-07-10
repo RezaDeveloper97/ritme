@@ -30,6 +30,12 @@
     <color name="ritme_error">#FFD64545</color>
     <color name="ritme_info">#FF2E7CD6</color>
 
+    <!-- Cycle-phase surfaces (web calendar/home phase palette) -->
+    <color name="ritme_period_container">#FFFCE7F3</color>   <!-- period day bg -->
+    <color name="ritme_fertile_container">#FFFEF3C6</color>  <!-- fertile-window day bg -->
+    <color name="ritme_ovulation_container">#FFE7F8EF</color><!-- ovulation day bg -->
+    <color name="ritme_violet_container">#FFF3E8FF</color>   <!-- PMS chip bg -->
+
     <!-- Dark theme -->
     <color name="ritme_background_dark">#FF0D141B</color>
     <color name="ritme_surface_dark">#FF16202A</color>

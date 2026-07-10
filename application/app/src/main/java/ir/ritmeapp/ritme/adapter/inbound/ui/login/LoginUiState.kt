@@ -20,8 +20,8 @@ sealed interface LoginStatus {
     data object Submitting : LoginStatus
     data class Error(val key: LoginErrorKey, val serverMessage: String? = null) : LoginStatus
 
-    /** A code was sent — advance to the OTP step for this mobile number. */
-    data class Validated(val mobileNational: String) : LoginStatus
+    /** A code was sent — advance to the OTP step for this mobile number. [newUser] gates onboarding. */
+    data class Validated(val mobileNational: String, val newUser: Boolean) : LoginStatus
 }
 
 /** Error categories the UI maps to localized copy (keeps user-facing strings out of the VM). */

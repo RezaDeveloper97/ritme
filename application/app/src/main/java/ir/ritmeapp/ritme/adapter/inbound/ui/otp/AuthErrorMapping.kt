@@ -14,5 +14,6 @@ fun AppError.toOtpError(): OtpStatus.Error = when (this) {
     is AppError.Network, is AppError.Timeout -> OtpStatus.Error(AuthErrorKey.Network)
     is AppError.Http -> OtpStatus.Error(AuthErrorKey.WrongCode, message)
     is AppError.Validation -> OtpStatus.Error(AuthErrorKey.WrongCode)
-    is AppError.Parsing, is AppError.Unexpected -> OtpStatus.Error(AuthErrorKey.Unexpected)
+    is AppError.Parsing, is AppError.Storage, is AppError.Unexpected ->
+        OtpStatus.Error(AuthErrorKey.Unexpected)
 }

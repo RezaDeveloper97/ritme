@@ -1,8 +1,7 @@
 package ir.ritmeapp.ritme.adapter.inbound.ui.login
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,7 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -31,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -54,7 +54,7 @@ import ir.ritmeapp.ritme.platform.crash.Breadcrumbs
  */
 @Composable
 fun LoginScreen(
-    onValidated: (mobile: String) -> Unit,
+    onValidated: (mobile: String, newUser: Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val container = LocalAppContainer.current
@@ -72,7 +72,7 @@ fun LoginScreen(
     LaunchedEffect(state.status) {
         val status = state.status
         if (status is LoginStatus.Validated) {
-            onValidated(status.mobileNational)
+            onValidated(status.mobileNational, status.newUser)
             viewModel.onValidatedHandled()
         }
     }
@@ -109,7 +109,7 @@ private fun LoginContent(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Spacer(Modifier.height(72.dp))
-            BrandMark(colors)
+            BrandMark()
             Spacer(Modifier.height(28.dp))
             Text(
                 text = stringResource(R.string.login_title),
@@ -133,20 +133,14 @@ private fun LoginContent(
 }
 
 @Composable
-private fun BrandMark(colors: RitmeColors) {
-    Box(
+private fun BrandMark() {
+    Image(
+        painter = painterResource(R.drawable.ritme_logo),
+        contentDescription = stringResource(R.string.cd_app_logo),
         modifier = Modifier
-            .size(88.dp)
-            .clip(CircleShape)
-            .background(colors.pink),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = "ری",
-            style = MaterialTheme.typography.headlineLarge,
-            color = colors.onPink,
-        )
-    }
+            .size(104.dp)
+            .clip(RoundedCornerShape(26.dp)),
+    )
 }
 
 @Composable

@@ -43,9 +43,677 @@
     <string name="home_subtitle">سرویس مورد نظر خود را انتخاب کنید</string>
     <string name="home_services_title">خدمات ریتمی</string>
 
+    <!-- Home dashboard -->
+    <string name="home_tagline">ریتم بدنت، هر روز</string>
+    <string name="home_updating">در حال به‌روزرسانی…</string>
+    <string name="home_error">بارگذاری اطلاعات انجام نشد</string>
+    <string name="home_retry">تلاش دوباره</string>
+    <string name="home_unavailable">—</string>
+    <string name="home_no_cycle">هنوز اطلاعات سیکل کافی نداریم. با ثبت پریود، تحلیل شخصی‌ات شروع می‌شود.</string>
+
+    <string name="week_sat">ش</string>
+    <string name="week_sun">ی</string>
+    <string name="week_mon">د</string>
+    <string name="week_tue">س</string>
+    <string name="week_wed">چ</string>
+    <string name="week_thu">پ</string>
+    <string name="week_fri">ج</string>
+    <string name="week_full_month">کل ماه</string>
+    <string name="week_close">بستن</string>
+
+    <string name="phase_menstruation">قاعدگی</string>
+    <string name="phase_follicular">فولیکولار</string>
+    <string name="phase_ovulation">تخمک‌گذاری</string>
+    <string name="phase_luteal">لوتئال</string>
+
+    <string name="cycle_next_period_label">تا پریود بعدی</string>
+    <string name="cycle_days">%1$s روز</string>
+    <string name="cycle_next_period_date">شروع تخمینی: %1$s</string>
+    <string name="cycle_current_phase">فاز فعلی</string>
+    <string name="cycle_fertility">احتمال بارداری</string>
+    <string name="cycle_today_label">امروز</string>
+    <string name="cycle_show_more">توضیح بیشتر</string>
+    <string name="cycle_show_less">بستن</string>
+
+    <string name="phases_window">پنجرهٔ باروری</string>
+    <string name="phases_ovulation">تخمک‌گذاری</string>
+    <string name="phases_pms">پیش از قاعدگی</string>
+    <string name="phases_next_period">پریود بعدی</string>
+
+    <string name="reco_title">توصیه‌های امروز</string>
+    <string name="reco_default_1">مصرف آهن را جدی بگیر</string>
+    <string name="reco_default_2">امگا-۳ فراموش نشود</string>
+
+    <string name="smarttip_title">نکتهٔ هوشمند</string>
+    <string name="smarttip_default_body">هر روز کمی به بدنت گوش بده؛ الگوها خودشان را نشان می‌دهند.</string>
+    <string name="smarttip_default_quote">امروز یک لیوان آب بیشتر بنوش.</string>
+
+    <string name="tasks_title">وظایف امروز</string>
+    <string name="tasks_temp">ثبت دمای بدن</string>
+    <string name="tasks_water">۸ لیوان آب</string>
+    <string name="tasks_vitamin">مصرف ویتامین</string>
+    <string name="tasks_walk">۳۰ دقیقه پیاده‌روی</string>
+    <string name="tasks_progress">پیشرفت</string>
+    <string name="tasks_empty">برای امروز کاری ثبت نشده است.</string>
+
+    <!-- Day planner: doctor/medication reminders + to-dos scoped to a day (log + home) -->
+    <string name="daytasks_title">کارها و یادآورهای این روز</string>
+    <string name="daytasks_subtitle">دارو، ویزیت دکتر یا هر کاری که برای این روز داری را ثبت کن.</string>
+    <string name="daytasks_placeholder">یک کار برای این روز بنویس…</string>
+    <string name="daytasks_add">افزودن</string>
+    <string name="daytasks_adding">در حال افزودن…</string>
+    <string name="daytasks_empty">برای این روز هنوز کاری ثبت نکرده‌ای.</string>
+    <string name="daytasks_progress">%1$s/%2$s انجام شد</string>
+    <string name="daytasks_error">انجام نشد؛ دوباره تلاش کن.</string>
+    <string name="daytasks_type_custom">کار</string>
+    <string name="daytasks_toggle">علامت انجام‌شدن</string>
+
+    <string name="cycles_title">سیکل‌های من</string>
+    <string name="cycles_current_day">روز %1$s سیکل</string>
+    <string name="cycles_started">شروع: %1$s</string>
+    <string name="cycles_add_previous">افزودن سیکل قبلی</string>
+
+    <string name="cyclesummary_title">خلاصهٔ سیکل</string>
+    <string name="cyclesummary_length">طول سیکل</string>
+    <string name="cyclesummary_view_more">مشاهدهٔ بیشتر</string>
+
+    <string name="nav_today">امروز</string>
+    <string name="nav_calendar">تقویم</string>
+    <string name="nav_log">ثبت</string>
+    <string name="nav_cycle">سیکل</string>
+    <string name="nav_profile">پروفایل</string>
+
     <!-- Crash recovery -->
     <string name="recovery_message">مشکلی پیش آمد؛ شما را به آخرین صفحه بازگرداندیم</string>
 
     <!-- Accessibility -->
     <string name="cd_app_logo">نشان ریتمی</string>
+
+    <!-- Welcome / intro carousel -->
+    <string name="intro_skip">رد کردن</string>
+    <string name="intro_next">ادامه</string>
+    <string name="intro_start">بزن بریم</string>
+    <string name="intro_1_title">ریتم بدنت را بشناس، حالت را بهتر کن</string>
+    <string name="intro_1_body">ریتمی به تو کمک می‌کند سیکل قاعدگی، حال‌وهوای روانی، خواب و انرژی‌ات را کنار هم ببینی و بفهمی بدنت هر روز چه ریتمی دارد.</string>
+    <string name="intro_2_title">فقط تاریخ پریود نیست؛ الگوی حال و علائمت هم مهم است</string>
+    <string name="intro_2_body">حال روزانه، دردها، خواب و انرژی‌ات را کنار سیکل ثبت کن تا بفهمی چرا بعضی روزها خسته‌تر یا حساس‌تری.</string>
+    <string name="intro_2_bullet_1">علائمی مثل درد، نفخ و نوسان خلق را روی تقویم بدنت ببین</string>
+    <string name="intro_2_bullet_2">بفهم چه چیزهایی (مثل خواب کم یا استرس) بیشتر روی بدنت اثر می‌گذارند</string>
+    <string name="intro_3_title">تحلیل هوشمند، مخصوص بدن تو</string>
+    <string name="intro_3_body">ریتمی فقط یک دفترچه ثبت نیست؛ با تحلیل داده‌ها توصیه‌هایی متناسب با بدن خودت به تو می‌دهد.</string>
+    <string name="intro_3_disclaimer">ریتمی جایگزین تشخیص یا ویزیت پزشک نیست. اگر علائم شدید یا نگران‌کننده داری، حتماً با متخصص سلامت مشورت کن.</string>
+    <string name="intro_3_hint">کمتر از ۱ دقیقه طول می‌کشد؛ چند سؤال ساده می‌پرسیم تا ریتمی را برای خودت تنظیم کنیم.</string>
+
+    <!-- Onboarding wizard -->
+    <string name="onboarding_continue">ادامه</string>
+    <string name="onboarding_finish">تکمیل و ورود</string>
+    <string name="onboarding_step_counter">%1$s از %2$s</string>
+    <string name="onboarding_submit_error">ثبت اطلاعات انجام نشد. دوباره تلاش کن</string>
+
+    <string name="onboarding_name_title">اسمت چیه؟</string>
+    <string name="onboarding_name_subtitle">دوست داری ریتمی چطور صدات کنه؟</string>
+    <string name="onboarding_name_placeholder">نام</string>
+
+    <string name="onboarding_birthday_title">تاریخ تولدت کِی بوده؟</string>
+    <string name="onboarding_birthday_subtitle">برای تحلیل دقیق‌تر بدنت لازمه</string>
+
+    <string name="onboarding_weight_title">وزنت چقدره؟</string>
+    <string name="onboarding_weight_unit">کیلوگرم</string>
+
+    <string name="onboarding_height_title">قدت چقدره؟</string>
+    <string name="onboarding_height_unit">سانتی‌متر</string>
+
+    <string name="onboarding_intention_title">هدفت از ریتمی چیه؟</string>
+    <string name="onboarding_intention_subtitle">می‌تونی بعداً تغییرش بدی</string>
+    <string name="intention_avoiding">نمی‌خوام باردار بشم</string>
+    <string name="intention_trying">می‌خوام باردار بشم</string>
+    <string name="intention_pregnant">الان باردارم</string>
+    <string name="intention_unsure">فقط می‌خوام بدنم رو بشناسم</string>
+
+    <string name="onboarding_period_title">پریودت معمولاً چند روز طول می‌کشه؟</string>
+    <string name="onboarding_cycle_title">طول سیکلت معمولاً چند روزه؟</string>
+    <string name="onboarding_cycle_subtitle">از اولین روز یک پریود تا اولین روز پریود بعدی</string>
+    <string name="onboarding_days_unit">روز</string>
+
+    <string name="onboarding_last_period_title">آخرین پریودت کِی شروع شد؟</string>
+    <string name="onboarding_last_period_subtitle">اولین روز آخرین پریودت رو انتخاب کن</string>
+
+    <string name="onboarding_conditions_title">بیماری خاصی داری؟</string>
+    <string name="onboarding_conditions_subtitle">اختیاری — هر چی داری انتخاب کن</string>
+    <string name="condition_pcos">تخمدان پلی‌کیستیک (PCOS)</string>
+    <string name="condition_hypothyroidism">کم‌کاری تیروئید</string>
+    <string name="condition_hyperthyroidism">پرکاری تیروئید</string>
+    <string name="condition_hypertension">فشار خون بالا</string>
+    <string name="condition_heart_disease">بیماری قلبی</string>
+    <string name="condition_diabetes">دیابت</string>
+
+    <!-- Shared actions -->
+    <string name="action_back">بازگشت</string>
+    <string name="action_save">ذخیره</string>
+    <string name="action_cancel">انصراف</string>
+    <string name="action_retry">تلاش دوباره</string>
+    <string name="action_done">تمام</string>
+    <string name="action_edit">ویرایش</string>
+    <string name="action_delete">حذف</string>
+    <string name="error_generic">مشکلی پیش آمد. لطفاً دوباره تلاش کنید.</string>
+    <string name="loading">در حال بارگذاری…</string>
+    <string name="value_empty">ثبت نشده</string>
+
+    <string name="nav_pregnancy">بارداری</string>
+
+    <!-- Calendar screen -->
+    <string name="calendar_title">تقویم</string>
+    <string name="calendar_subtitle">روزهای دوره و پیش‌بینی‌ها را این‌جا ببین.</string>
+    <string name="calendar_full_month">ماه کامل</string>
+    <string name="calendar_week_view">هفته</string>
+    <string name="calendar_today">امروز</string>
+    <string name="calendar_prev_month">ماه قبل</string>
+    <string name="calendar_next_month">ماه بعد</string>
+    <string name="calendar_legend_period">پریود</string>
+    <string name="calendar_legend_fertile">پنجرهٔ باروری</string>
+    <string name="calendar_legend_ovulation">تخمک‌گذاری</string>
+    <string name="calendar_phase_label">فاز</string>
+    <string name="calendar_cycle_day">سیکل روز %1$s</string>
+    <string name="calendar_chance_label">احتمال باردار بودن</string>
+    <string name="calendar_chance_low">کم</string>
+    <string name="calendar_chance_medium">متوسط</string>
+    <string name="calendar_chance_high">زیاد</string>
+    <string name="calendar_phase_period">روزهای پریود</string>
+    <string name="calendar_phase_follicular">فاز فولیکولار</string>
+    <string name="calendar_phase_fertile">پنجرهٔ باروری</string>
+    <string name="calendar_phase_ovulation">تخمک‌گذاری</string>
+    <string name="calendar_phase_luteal">فاز لوتئال</string>
+    <string name="calendar_daylog_title">ثبت‌های این روز</string>
+    <string name="calendar_daylog_empty_title">برای این روز چیزی ثبت نشده</string>
+    <string name="calendar_daylog_empty_subtitle">علائم، خلق‌وخو و موارد دیگرِ %1$s را ثبت کن.</string>
+    <string name="calendar_smarttip_body">در فاز لوتئال ممکن است بدنت به استراحت و مواد مغذی بیشتری نیاز داشته باشد. غذاهای غنی از منیزیم و خواب کافی می‌توانند به احساس بهتر کمک کنند.</string>
+    <string name="calendar_smarttip_quote">به ریتم بدنت گوش بده؛ هر روز داستان خودش را دارد.</string>
+
+    <!-- Daily health log screen -->
+    <string name="log_title">ثبت روزانه</string>
+    <string name="log_subtitle">هرچه امروز تجربه کردی را ثبت کن تا ریتمی بهتر بشناسدت.</string>
+    <string name="log_today">امروز</string>
+    <string name="log_prev_day">روز قبل</string>
+    <string name="log_next_day">روز بعد</string>
+    <string name="log_save">ذخیرهٔ ثبت امروز</string>
+    <string name="log_saving">در حال ذخیره…</string>
+    <string name="log_saved">ثبت شد</string>
+    <string name="log_save_error">ذخیره نشد؛ دوباره تلاش کن.</string>
+    <string name="log_sheet_hint">موردی که مربوط به توست را انتخاب کن.</string>
+    <string name="log_selected_count">%1$s مورد</string>
+    <string name="log_yes">بله</string>
+    <string name="log_notes_placeholder">امروز چطور بود؟ هر نکته‌ای که دوست داری بنویس…</string>
+    <string name="log_unit_kg">کیلوگرم</string>
+    <string name="log_unit_celsius">درجهٔ سانتی‌گراد</string>
+
+    <string name="log_cat_bleeding">خونریزی</string>
+    <string name="log_cat_pain">درد و علائم</string>
+    <string name="log_cat_digestion">گوارش و اشتها</string>
+    <string name="log_cat_mood">خلق‌وخو</string>
+    <string name="log_cat_sleep">خواب</string>
+    <string name="log_cat_body">پوست و بدن</string>
+    <string name="log_cat_discharge">ترشحات</string>
+    <string name="log_cat_intimate">دستگاه ادراری و تناسلی</string>
+    <string name="log_cat_sexual">فعالیت جنسی</string>
+    <string name="log_cat_measure">اندازه‌گیری</string>
+    <string name="log_cat_notes">یادداشت</string>
+
+    <string name="log_hint_bleeding">شدت، رنگ و ویژگی خونریزی</string>
+    <string name="log_hint_pain">شدت دردها و علائم جسمی</string>
+    <string name="log_hint_digestion">اشتها و وضعیت گوارش</string>
+    <string name="log_hint_mood">حال‌وهوای امروزت</string>
+    <string name="log_hint_sleep">مدت و کیفیت خواب</string>
+    <string name="log_hint_body">احساس بدنی و وضعیت پوست</string>
+    <string name="log_hint_discharge">بافت، مقدار و بوی ترشحات</string>
+    <string name="log_hint_intimate">علائم ادراری و تناسلی</string>
+    <string name="log_hint_sexual">میل و فعالیت جنسی</string>
+    <string name="log_hint_measure">وزن و دمای پایهٔ بدن</string>
+    <string name="log_hint_notes">هر چیز دیگری که می‌خواهی به یاد بماند</string>
+
+    <string name="log_field_bleeding_intensity">شدت خونریزی</string>
+    <string name="log_field_blood_color">رنگ خون</string>
+    <string name="log_field_bleeding_smell">بوی خونریزی</string>
+    <string name="log_field_has_clots">لخته</string>
+    <string name="log_field_spotting">لکه‌بینی</string>
+    <string name="log_field_headache">سردرد</string>
+    <string name="log_field_stomach_ache">دل‌درد</string>
+    <string name="log_field_pelvic_pain">درد لگن</string>
+    <string name="log_field_breast_pain">درد سینه</string>
+    <string name="log_field_back_pain">کمردرد</string>
+    <string name="log_field_ovarian_pain">درد تخمدان</string>
+    <string name="log_field_nausea">تهوع</string>
+    <string name="log_field_bloating">نفخ</string>
+    <string name="log_field_breast_sensitivity">حساسیت سینه</string>
+    <string name="log_field_urination_burning">سوزش ادرار</string>
+    <string name="log_field_appetite_change">تغییر اشتها</string>
+    <string name="log_field_diarrhea">اسهال</string>
+    <string name="log_field_constipation">یبوست</string>
+    <string name="log_field_food_craving">هوس غذایی</string>
+    <string name="log_field_moods">خلق‌وخو</string>
+    <string name="log_field_sleep_duration">مدت خواب</string>
+    <string name="log_field_sleep_quality">کیفیت خواب</string>
+    <string name="log_field_acne">جوش</string>
+    <string name="log_field_oily_skin">پوست چرب</string>
+    <string name="log_field_hair_loss">ریزش مو</string>
+    <string name="log_field_swelling">ورم</string>
+    <string name="log_field_fatigue">خستگی</string>
+    <string name="log_field_dizziness">سرگیجه</string>
+    <string name="log_field_hot_flashes">گرگرفتگی</string>
+    <string name="log_field_chills">لرز</string>
+    <string name="log_field_discharge_texture">بافت ترشح</string>
+    <string name="log_field_discharge_amount">مقدار ترشح</string>
+    <string name="log_field_discharge_smell">بوی ترشح</string>
+    <string name="log_field_discharge_itching">خارش ترشح</string>
+    <string name="log_field_discharge_burning">سوزش ترشح</string>
+    <string name="log_field_frequent_urination">تکرر ادرار</string>
+    <string name="log_field_vaginal_dryness">خشکی واژن</string>
+    <string name="log_field_vaginal_burning">سوزش واژن</string>
+    <string name="log_field_vaginal_itching">خارش واژن</string>
+    <string name="log_field_vaginal_smell_change">تغییر بوی واژن</string>
+    <string name="log_field_urination_change">تغییر دفع ادرار</string>
+    <string name="log_field_sexual_activities">فعالیت جنسی</string>
+    <string name="log_field_weight">وزن</string>
+    <string name="log_field_bbt">دمای پایهٔ بدن</string>
+    <string name="log_field_notes">یادداشت</string>
+
+    <string name="log_val_low">کم</string>
+    <string name="log_val_medium">متوسط</string>
+    <string name="log_val_high">زیاد</string>
+    <string name="log_val_very_high">خیلی زیاد</string>
+    <string name="log_val_bright_red">قرمز روشن</string>
+    <string name="log_val_red">قرمز</string>
+    <string name="log_val_dark_red">قرمز تیره</string>
+    <string name="log_val_brown">قهوه‌ای</string>
+    <string name="log_val_smell_normal">معمولی</string>
+    <string name="log_val_smell_slightly_unusual">کمی غیرعادی</string>
+    <string name="log_val_smell_strong_unpleasant">تند و ناخوشایند</string>
+    <string name="log_val_appetite_loss">کاهش</string>
+    <string name="log_val_appetite_gain">افزایش</string>
+    <string name="log_val_appetite_normal">معمولی</string>
+    <string name="log_val_urination_increase">افزایش</string>
+    <string name="log_val_urination_decrease">کاهش</string>
+    <string name="log_val_urination_normal">معمولی</string>
+    <string name="log_val_mood_happy">شاد</string>
+    <string name="log_val_mood_calm">آرام</string>
+    <string name="log_val_mood_angry">عصبانی</string>
+    <string name="log_val_mood_anxious">مضطرب</string>
+    <string name="log_val_mood_sad">غمگین</string>
+    <string name="log_val_mood_frustrated">کلافه</string>
+    <string name="log_val_mood_sensitive">حساس</string>
+    <string name="log_val_mood_bored">بی‌حوصله</string>
+    <string name="log_val_sleep_0_3">۰ تا ۳ ساعت</string>
+    <string name="log_val_sleep_3_6">۳ تا ۶ ساعت</string>
+    <string name="log_val_sleep_6_9">۶ تا ۹ ساعت</string>
+    <string name="log_val_sleep_9_plus">بیش از ۹ ساعت</string>
+    <string name="log_val_sleep_good">خوب</string>
+    <string name="log_val_sleep_medium">متوسط</string>
+    <string name="log_val_sleep_bad">بد</string>
+    <string name="log_val_sex_high_desire">میل زیاد</string>
+    <string name="log_val_sex_protected">رابطهٔ محافظت‌شده</string>
+    <string name="log_val_sex_unprotected">رابطهٔ محافظت‌نشده</string>
+    <string name="log_val_sex_no_desire">بی‌میلی</string>
+    <string name="log_val_sex_dryness">خشکی</string>
+    <string name="log_val_sex_burning">سوزش</string>
+    <string name="log_val_sex_pain">درد هنگام رابطه</string>
+    <string name="log_val_sex_bleeding_after">خونریزی پس از رابطه</string>
+    <string name="log_val_sex_lubricant">استفاده از لوبریکنت</string>
+    <string name="log_val_discharge_watery">آبکی</string>
+    <string name="log_val_discharge_creamy">کرمی</string>
+    <string name="log_val_discharge_egg_white">شفاف و کش‌دار</string>
+    <string name="log_val_discharge_thick">غلیظ</string>
+
+    <!-- Cycle screen -->
+    <string name="cycle_screen_title">چرخه</string>
+    <string name="cycle_screen_tagline">ریتمِ بدن تو</string>
+    <string name="cycle_updating">در حال به‌روزرسانی چرخهٔ تو…</string>
+    <string name="cycle_recalculate">محاسبهٔ دوباره</string>
+    <string name="cycle_based_on">بر اساس سیکل فعلی تو</string>
+    <string name="cycle_of_n">از %1$s</string>
+    <string name="cycle_phase_label">فاز کنونی</string>
+    <string name="cycle_fertility_today">احتمال باروری امروز</string>
+    <string name="cycle_pms_window">پنجرهٔ پیش از قاعدگی</string>
+    <string name="cycle_fertile_window_now">در پنجرهٔ باروری هستی</string>
+    <string name="cycle_timeline_title">رویدادهای پیش‌رو</string>
+    <string name="cycle_timeline_window">پنجرهٔ باروری</string>
+    <string name="cycle_timeline_ovulation">تخمک‌گذاری</string>
+    <string name="cycle_timeline_next_period">پریود بعدی</string>
+    <string name="cycle_summary_title">خلاصهٔ سیکل</string>
+    <string name="cycle_summary_length">طول سیکل</string>
+    <string name="cycle_summary_ovulation_day">روز تخمک‌گذاری</string>
+    <string name="cycle_summary_day_n">روز %1$s</string>
+    <string name="cycle_summary_phase">فاز کنونی</string>
+    <string name="cycle_summary_view_calendar">مشاهدهٔ تقویم</string>
+    <string name="cycle_variability_label">نظم سیکل</string>
+    <string name="cycle_variability_regular">منظم</string>
+    <string name="cycle_variability_irregular">نامنظم</string>
+    <string name="cycle_variability_unknown">در حال بررسی</string>
+    <string name="cycle_desc_period">روزهای قاعدگی؛ بدنت در حال پاک‌سازی و بازسازی است. به استراحت و تغذیهٔ خوب توجه کن.</string>
+    <string name="cycle_desc_follicular">پس از قاعدگی، انرژی معمولاً بالا می‌رود و بدن برای تخمک‌گذاری آماده می‌شود.</string>
+    <string name="cycle_desc_ovulation">روز تخمک‌گذاری تخمینی؛ بیشترین احتمال باروری در این بازه است.</string>
+    <string name="cycle_desc_luteal">پس از تخمک‌گذاری تا قاعدگی بعدی؛ ممکن است نشانه‌های پیش از قاعدگی را تجربه کنی.</string>
+    <string name="cycle_smarttip_body">شناختن فازهای چرخه کمک می‌کند نیازهای بدنت را بهتر بشناسی و برنامهٔ روزانه‌ات را با ریتم بدن هماهنگ کنی.</string>
+    <string name="cycle_smarttip_quote">هر چرخه یک فرصت تازه برای گوش دادن به بدن توست.</string>
+    <string name="cycle_empty_title">هنوز سیکلی ثبت نشده</string>
+    <string name="cycle_empty_body">برای دیدن نمای چرخه، اطلاعات دورهٔ خود را ثبت کن.</string>
+    <string name="cycle_empty_cta">شروع پریود</string>
+
+    <!-- Start-period action + banners (Home) -->
+    <string name="start_period">شروع پریود</string>
+    <string name="start_period_confirm">برای تأیید دوباره بزنید</string>
+    <string name="start_period_pending">در حال ثبت…</string>
+    <string name="start_period_error">ثبت انجام نشد. دوباره تلاش کنید.</string>
+    <string name="banners_region">بنرهای تبلیغاتی</string>
+
+    <!-- Home static sections (mirrors the web home) -->
+    <string name="challenge_title">چالش امروز</string>
+    <string name="challenge_item">ثبت دمای بدن</string>
+    <string name="challenge_desc">این هفته روند خوبی داشتی! به همین منوال ادامه بده.</string>
+    <string name="reminder_doctor">یادآور دکتر</string>
+    <string name="reminder_medicine">یادآور دارو</string>
+    <string name="reminder_doctor_name">دکتر عابدزاده</string>
+    <string name="reminder_specialty">متخصص زنان و زایمان</string>
+    <string name="weeksummary_title">خلاصه هفته</string>
+    <string name="weeksummary_mood">روحیه</string>
+    <string name="weeksummary_mood_value">۸۱٪</string>
+    <string name="weeksummary_sleep">خواب</string>
+    <string name="weeksummary_sleep_value">۶٫۵ ساعت</string>
+    <string name="weeksummary_energy">انرژی</string>
+    <string name="weeksummary_energy_value">۷۳٪</string>
+    <string name="todaystatus_title">وضعیت امروز</string>
+    <string name="todaystatus_normal">نرمال</string>
+    <string name="todaystatus_bp">فشار خون</string>
+    <string name="todaystatus_glucose">قند خون</string>
+    <string name="todaystatus_hr">ضربان قلب</string>
+    <string name="articles_title">بر اساس سیکل فعلی شما</string>
+    <string name="articles_read_more">مشاهده بیشتر</string>
+    <string name="articles_article1">لخته‌های خون در دوران پریود؛ معنی آن چیست؟</string>
+    <string name="articles_min">%1$s دقیقه</string>
+    <string name="cyclesummary_duration">مدت پریود قبلی</string>
+    <string name="cyclesummary_variation">نوسان طول سیکل</string>
+
+    <!-- Profile hub -->
+    <string name="profile_title">پروفایل</string>
+    <string name="profile_guest">کاربر ریتمی</string>
+    <string name="profile_no_phone">شماره‌ای ثبت نشده</string>
+    <string name="profile_section_mode">حالت اپلیکیشن</string>
+    <string name="profile_section_health">چرخه و سلامت</string>
+    <string name="profile_section_account">حساب کاربری</string>
+    <string name="profile_section_privacy">حریم خصوصی و داده‌ها</string>
+    <string name="profile_section_support">پشتیبانی</string>
+    <string name="profile_row_personal">اطلاعات شخصی</string>
+    <string name="profile_row_health">تنظیمات چرخه و سلامت</string>
+    <string name="profile_row_reminders">یادآورها</string>
+    <string name="profile_row_notifications">اعلان‌ها</string>
+    <string name="profile_row_privacy">حریم خصوصی</string>
+    <string name="profile_row_export">دریافت خروجی داده‌ها</string>
+    <string name="profile_row_delete">حذف حساب</string>
+    <string name="profile_row_help">راهنما و پشتیبانی</string>
+    <string name="profile_row_about">درباره‌ ریتمی</string>
+    <string name="profile_row_terms">قوانین و مقررات</string>
+    <string name="profile_mode_to_pregnancy">تغییر به حالت بارداری</string>
+    <string name="profile_mode_tracker">پیگیری بارداری</string>
+    <string name="profile_mode_to_cycle">بازگشت به حالت چرخه</string>
+    <string name="profile_mode_switching">در حال تغییر…</string>
+    <string name="profile_health_cycle">طول چرخه</string>
+    <string name="profile_health_period">طول پریود</string>
+    <string name="profile_health_last_period">شروع آخرین پریود</string>
+    <string name="profile_health_birthday">تاریخ تولد</string>
+    <string name="profile_health_weight">وزن</string>
+    <string name="profile_health_height">قد</string>
+    <string name="profile_health_bmi">شاخص توده بدنی (BMI)</string>
+    <string name="profile_health_days">%1$s روز</string>
+    <string name="profile_health_kg">%1$s کیلوگرم</string>
+    <string name="profile_health_cm">%1$s سانتی‌متر</string>
+    <string name="profile_health_not_set_up">هنوز اطلاعات سلامتت رو کامل نکرده‌ای</string>
+    <string name="profile_logout">خروج از حساب</string>
+    <string name="profile_logging_out">در حال خروج…</string>
+    <string name="profile_version">نسخه %1$s</string>
+    <string name="profile_exporting">در حال آماده‌سازی خروجی…</string>
+    <string name="profile_export_error">دریافت اطلاعات انجام نشد. لطفاً دوباره تلاش کنید.</string>
+
+    <!-- Delete account -->
+    <string name="delete_title">حذف حساب کاربری</string>
+    <string name="delete_warning">با حذف حساب، همهٔ اطلاعات شما — از جمله پروفایل، سوابق دوره، اطلاعات بارداری و گزارش‌های سلامتی — برای همیشه پاک می‌شود و امکان بازیابی آن وجود ندارد. اگر می‌خواهید نسخه‌ای از داده‌هایتان را نگه دارید، پیش از حذف، آن‌ها را دریافت کنید.</string>
+    <string name="delete_confirm">حذف دائمی حساب</string>
+    <string name="delete_deleting">در حال حذف…</string>
+    <string name="delete_error">حذف حساب انجام نشد. لطفاً دوباره تلاش کنید.</string>
+
+    <!-- Personal / health edit -->
+    <string name="edit_personal_title">اطلاعات شخصی</string>
+    <string name="edit_name_label">نام</string>
+    <string name="edit_name_placeholder">نام شما</string>
+    <string name="edit_birthday_label">تاریخ تولد</string>
+    <string name="edit_weight_label">وزن</string>
+    <string name="edit_height_label">قد</string>
+    <string name="edit_save">ذخیره تغییرات</string>
+    <string name="edit_saving">در حال ذخیره…</string>
+    <string name="edit_saved">ذخیره شد</string>
+    <string name="edit_health_title">تنظیمات چرخه و سلامت</string>
+    <string name="edit_cycle_label">طول چرخه</string>
+    <string name="edit_period_label">طول پریود</string>
+    <string name="edit_last_period_label">تاریخ شروع آخرین پریود</string>
+    <string name="edit_last_period_hint">روزی که آخرین پریودتان آغاز شد را انتخاب کنید</string>
+    <string name="edit_error_birthday_future">تاریخ تولد باید پیش از امروز باشد.</string>
+    <string name="edit_error_last_period_future">تاریخ شروع آخرین پریود نمی‌تواند در آینده باشد.</string>
+
+    <!-- Reminders -->
+    <string name="reminders_title">یادآورها</string>
+    <string name="reminders_empty_title">هنوز یادآوری نداری</string>
+    <string name="reminders_empty_subtitle">برای وقت دکتر، دارو یا هر چیز دیگری که نباید فراموش شود، یادآور بگذار.</string>
+    <string name="reminders_add">افزودن یادآور</string>
+    <string name="reminder_type_doctor">ویزیت دکتر</string>
+    <string name="reminder_type_medication">دارو</string>
+    <string name="reminder_type_appointment">قرار</string>
+    <string name="reminder_type_custom">دلخواه</string>
+    <string name="recurrence_none">یک‌بار</string>
+    <string name="recurrence_daily">هر روز</string>
+    <string name="recurrence_weekly">هفتگی</string>
+    <string name="recurrence_monthly">ماهانه</string>
+    <string name="reminder_recurrence_at">%1$s ساعت %2$s</string>
+    <string name="reminder_delete_question">این یادآور حذف شود؟</string>
+    <string name="reminder_form_title">یادآور جدید</string>
+    <string name="reminder_form_type">نوع یادآور</string>
+    <string name="reminder_form_title_label">عنوان</string>
+    <string name="reminder_form_title_placeholder">مثلاً نوبت دکتر زنان</string>
+    <string name="reminder_form_subtitle_label">توضیح کوتاه (اختیاری)</string>
+    <string name="reminder_form_subtitle_placeholder">مثلاً همراه با آزمایش‌ها</string>
+    <string name="reminder_form_recurrence">تکرار</string>
+    <string name="reminder_form_time">ساعت یادآوری</string>
+    <string name="reminder_form_submit">ذخیره یادآور</string>
+    <string name="reminder_form_error">ذخیره نشد. دوباره امتحان کن.</string>
+
+    <!-- Notifications -->
+    <string name="notifications_title">اعلان‌ها</string>
+    <string name="notifications_mark_all">خواندن همه</string>
+    <string name="notifications_empty_title">اعلانی نداری</string>
+    <string name="notifications_empty_body">هر وقت خبر تازه‌ای باشه، همین‌جا بهت می‌گیم.</string>
+    <string name="notifications_today">امروز</string>
+    <string name="notifications_yesterday">دیروز</string>
+    <string name="notifications_days_ago">%1$s روز پیش</string>
+
+    <!-- Info pages (static, mirrors web profile-info) -->
+    <string name="info_privacy_title">حریم خصوصی</string>
+    <string name="info_terms_title">قوانین و مقررات</string>
+    <string name="info_about_title">دربارهٔ ریتمی</string>
+    <string name="info_help_title">راهنما</string>
+
+    <string name="info_privacy_h1">تعهد ما به شما</string>
+    <string name="info_privacy_b1">ریتمی برای ثبت خصوصی‌ترین اطلاعات سلامتی شما ساخته شده است؛ بنابراین حفظ حریم خصوصی، پیش‌فرض ماست، نه یک گزینه. ما تنها حداقل اطلاعاتی را جمع‌آوری می‌کنیم که برای کارکرد برنامه لازم است و هیچ داده‌ای را «برای روز مبادا» ذخیره نمی‌کنیم.</string>
+    <string name="info_privacy_h2">داده‌های شما فروخته نمی‌شود</string>
+    <string name="info_privacy_b2">اطلاعات شما هرگز به هیچ شخص یا شرکتی فروخته یا اجاره داده نمی‌شود و برای تبلیغات استفاده نخواهد شد. داده‌های شما فقط برای ارائهٔ خدمات ریتمی به خود شما به کار می‌رود.</string>
+    <string name="info_privacy_h3">داده‌های سلامتی، محرمانه می‌ماند</string>
+    <string name="info_privacy_b3">تاریخ‌های دوره، علائم، وضعیت بارداری و پیش‌بینی‌ها هرگز در گزارش‌های فنی، ابزارهای تحلیلی یا گزارش خطا ثبت نمی‌شوند و با هیچ سرویس شخص ثالثی به اشتراک گذاشته نمی‌شوند. دسترسی به این داده‌ها تنها با ورود امن شما به حساب کاربری ممکن است.</string>
+    <string name="info_privacy_h4">حق دریافت و حذف داده‌ها</string>
+    <string name="info_privacy_b4">شما مالک داده‌های خود هستید. هر زمان بخواهید می‌توانید از بخش پروفایل، نسخهٔ کامل اطلاعات خود را در قالب یک فایل دریافت کنید یا حساب کاربری و همهٔ داده‌های آن را برای همیشه حذف کنید. حذف حساب، فوری و غیرقابل بازگشت است.</string>
+
+    <string name="info_terms_h1">اطلاع‌رسانی، نه توصیهٔ پزشکی</string>
+    <string name="info_terms_b1">محتوا و پیش‌بینی‌های ریتمی — از جمله پیش‌بینی زمان دوره، تخمک‌گذاری و محتوای هفته‌های بارداری — صرفاً جنبهٔ اطلاع‌رسانی دارد و جایگزین معاینه، تشخیص یا توصیهٔ پزشک نیست. برای هر تصمیم مرتبط با سلامتی، لطفاً با پزشک یا ماما مشورت کنید.</string>
+    <string name="info_terms_h2">استفادهٔ صحیح از برنامه</string>
+    <string name="info_terms_b2">ریتمی برای استفادهٔ شخصی شماست. لطفاً اطلاعات را صادقانه و برای حساب خودتان ثبت کنید، از حساب دیگران استفاده نکنید و تلاشی برای دسترسی غیرمجاز به سامانه یا داده‌های دیگر کاربران نداشته باشید.</string>
+    <string name="info_terms_h3">حساب کاربری و ورود با کد یک‌بارمصرف</string>
+    <string name="info_terms_b3">ورود به ریتمی با شمارهٔ موبایل و کد یک‌بارمصرف (OTP) انجام می‌شود. مسئولیت حفظ امنیت شمارهٔ موبایل و دستگاه شما با خودتان است؛ کد ورود را در اختیار دیگران قرار ندهید.</string>
+    <string name="info_terms_h4">حذف اطلاعات</string>
+    <string name="info_terms_b4">هر زمان بخواهید می‌توانید حساب کاربری خود را از بخش پروفایل حذف کنید. با حذف حساب، همهٔ داده‌های شما از سرورهای ما پاک می‌شود و نشست‌های فعال شما باطل می‌گردد.</string>
+
+    <string name="info_about_h1">ریتمی چیست؟</string>
+    <string name="info_about_b1">ریتمی یک همراه خصوصی برای سلامت زنان است؛ برنامه‌ای برای شناخت بهتر ریتم بدن، ثبت روزانهٔ حال و علائم، و دریافت پیش‌بینی‌ها و محتوای متناسب با شرایط شما.</string>
+    <string name="info_about_h2">دو حالت: چرخه و بارداری</string>
+    <string name="info_about_b2">در حالت چرخه، ریتمی دوره‌های قاعدگی را ثبت می‌کند و زمان تقریبی دورهٔ بعدی و تخمک‌گذاری را پیش‌بینی می‌کند. در حالت بارداری، هفته‌به‌هفته همراه شماست: محتوای متناسب با هر هفته، یادآورها و امکان ثبت علائم و حرکات جنین. این پیش‌بینی‌ها و محتوا جنبهٔ اطلاع‌رسانی دارند و جایگزین نظر پزشک نیستند.</string>
+    <string name="info_about_h3">نسخهٔ برنامه</string>
+    <string name="info_about_b3">شما در حال استفاده از نسخهٔ ۱٫۰٫۰ ریتمی هستید. ما به‌طور مرتب برنامه را بهبود می‌دهیم؛ نظرات شما در این مسیر بسیار ارزشمند است.</string>
+
+    <string name="info_help_h1">خانه</string>
+    <string name="info_help_b1">در صفحهٔ خانه، خلاصه‌ای از وضعیت امروز خود را می‌بینید: روز چرخه یا هفتهٔ بارداری، پیش‌بینی‌های نزدیک و پیام روزانهٔ متناسب با شرایط شما.</string>
+    <string name="info_help_h2">تقویم</string>
+    <string name="info_help_b2">تقویم شمسی، دوره‌های ثبت‌شده و روزهای پیش‌بینی‌شده را نمایش می‌دهد. با لمس هر روز می‌توانید جزئیات همان روز را ببینید یا اطلاعات آن را ویرایش کنید.</string>
+    <string name="info_help_h3">ثبت روزانه</string>
+    <string name="info_help_b3">از بخش ثبت، می‌توانید هر روز حال عمومی، علائم، میزان خونریزی و سایر موارد را ثبت کنید. ثبت منظم، دقت پیش‌بینی‌ها را بالا می‌برد.</string>
+    <string name="info_help_h4">پروفایل</string>
+    <string name="info_help_b4">در پروفایل می‌توانید اطلاعات فردی و سلامتی خود را ویرایش کنید، نسخه‌ای از داده‌هایتان را دریافت کنید یا حساب خود را حذف کنید.</string>
+    <string name="info_help_h5">پشتیبانی</string>
+    <string name="info_help_b5">اگر پرسشی دارید یا با مشکلی روبه‌رو شدید، از طریق ایمیل support@ritmesalamat.com با ما در تماس باشید؛ در اسرع وقت پاسخ‌گوی شما خواهیم بود.</string>
+
+    <!-- Pregnancy tracker -->
+    <string name="preg_title">بارداری</string>
+    <string name="preg_subtitle">هفته به هفته کنار تو و کودکت</string>
+    <string name="preg_not_active_title">به حالت بارداری خوش آمدی</string>
+    <string name="preg_not_active_body">با فعال‌کردن حالت بارداری، مسیر هفته‌به‌هفتهٔ رشد کودکت و تغییرات بدنت را دنبال می‌کنی و مراقبت‌های هر هفته را می‌بینی.</string>
+    <string name="preg_not_active_cta">شروع حالت بارداری</string>
+    <string name="preg_activating">در حال فعال‌سازی…</string>
+    <string name="preg_week_of">هفتهٔ %1$s از ۴۰</string>
+    <string name="preg_ga_value">%1$s هفته و %2$s روز</string>
+    <string name="preg_trimester_1">سه‌ماههٔ اول</string>
+    <string name="preg_trimester_2">سه‌ماههٔ دوم</string>
+    <string name="preg_trimester_3">سه‌ماههٔ سوم</string>
+    <string name="preg_due_label">تاریخ تقریبی زایمان</string>
+    <string name="preg_due_countdown">%1$s روز تا زایمان</string>
+    <string name="preg_confidence_label">دقت تخمین</string>
+    <string name="preg_confidence_high">زیاد</string>
+    <string name="preg_confidence_medium">متوسط</string>
+    <string name="preg_confidence_low">کم</string>
+    <string name="preg_progress">%1$s٪ از مسیر</string>
+    <string name="preg_week_label">هفتهٔ %1$s</string>
+    <string name="preg_high_risk">بارداری پرخطر</string>
+    <string name="preg_action_symptoms">ثبت علائم روزانه</string>
+    <string name="preg_action_weekly">چکاپ هفتگی</string>
+    <string name="preg_action_movement">حرکات جنین</string>
+    <string name="preg_week_current">هفتهٔ فعلی</string>
+    <string name="preg_week_prev">هفتهٔ قبل</string>
+    <string name="preg_week_next">هفتهٔ بعد</string>
+    <string name="preg_no_content">محتوای این هفته هنوز آماده نشده است.</string>
+    <string name="preg_faq_title">پرسش‌های پرتکرار این هفته</string>
+    <string name="preg_module_fetal">رشد جنین</string>
+    <string name="preg_module_mother">تغییرات بدن مادر</string>
+    <string name="preg_module_adaptation">سازگاری بدن مادر</string>
+    <string name="preg_module_emotional">وضعیت احساسی و روانی</string>
+    <string name="preg_module_nutrition">تغذیهٔ کلیدی این هفته</string>
+    <string name="preg_module_activity">تحرک و فعالیت مناسب</string>
+    <string name="preg_module_dos">باید‌ها و نبایدها</string>
+    <string name="preg_module_care">برنامهٔ مراقبتی این هفته</string>
+    <string name="preg_module_tests">آزمایش‌ها و چکاپ‌های رایج</string>
+    <string name="preg_alerts_title">هشدارها</string>
+    <string name="preg_alerts_empty">هشداری وجود ندارد. همه‌چیز خوب پیش می‌رود.</string>
+    <string name="preg_alerts_mark_all">علامت‌گذاری همه به‌عنوان خوانده‌شده</string>
+    <string name="preg_alerts_dismiss">بستن</string>
+    <string name="preg_alerts_unread">خوانده‌نشده</string>
+    <string name="preg_alerts_recommended">اقدامات پیشنهادی</string>
+    <string name="preg_alerts_raised">%1$s هشدار تازه ثبت شد</string>
+
+    <!-- Pregnancy onboarding -->
+    <string name="preg_ob_title">بیایید بارداری‌ات را تنظیم کنیم</string>
+    <string name="preg_ob_subtitle">برای محاسبهٔ سن بارداری و تاریخ تقریبی زایمان، یکی از روش‌های زیر را انتخاب کن.</string>
+    <string name="preg_ob_source_label">مبنای محاسبهٔ سن بارداری</string>
+    <string name="preg_ob_source_lmp">اولین روز آخرین قاعدگی</string>
+    <string name="preg_ob_source_ultrasound">سونوگرافی</string>
+    <string name="preg_ob_source_manual">ورود دستی هفته</string>
+    <string name="preg_ob_hint_lmp">اگر تاریخ آخرین قاعدگی‌ات را می‌دانی، دقیق‌ترین گزینهٔ ساده است.</string>
+    <string name="preg_ob_hint_ultrasound">بر پایهٔ نتیجهٔ سونوگرافی؛ دقیق‌ترین روش.</string>
+    <string name="preg_ob_hint_manual">اگر هفتهٔ بارداری‌ات را از پزشک می‌دانی.</string>
+    <string name="preg_ob_lmp_date">اولین روز آخرین قاعدگی</string>
+    <string name="preg_ob_ultrasound_date">تاریخ سونوگرافی</string>
+    <string name="preg_ob_ultrasound_age">سن بارداری در سونوگرافی</string>
+    <string name="preg_ob_manual_age">هفتهٔ بارداری فعلی</string>
+    <string name="preg_ob_weeks">هفته</string>
+    <string name="preg_ob_days">روز</string>
+    <string name="preg_ob_history_title">سابقهٔ بارداری</string>
+    <string name="preg_ob_miscarriage">سابقهٔ سقط جنین</string>
+    <string name="preg_ob_high_risk">سابقهٔ بارداری پرخطر</string>
+    <string name="preg_ob_conditions_title">بیماری‌های زمینه‌ای</string>
+    <string name="preg_ob_cond_hypertension">فشار خون مزمن</string>
+    <string name="preg_ob_cond_diabetes">دیابت</string>
+    <string name="preg_ob_cond_hypothyroidism">کم‌کاری تیروئید</string>
+    <string name="preg_ob_cond_hyperthyroidism">پرکاری تیروئید</string>
+    <string name="preg_ob_cond_none">هیچ‌کدام</string>
+    <string name="preg_ob_blood_type">گروه خونی</string>
+    <string name="preg_ob_rh">فاکتور Rh</string>
+    <string name="preg_ob_rh_positive">مثبت</string>
+    <string name="preg_ob_rh_negative">منفی</string>
+    <string name="preg_ob_optional">اختیاری</string>
+    <string name="preg_ob_submit">تکمیل و شروع</string>
+    <string name="preg_ob_submitting">در حال ثبت…</string>
+    <string name="preg_ob_select_source">لطفاً یک روش را انتخاب کن.</string>
+    <string name="preg_ob_fill_required">لطفاً فیلدهای لازم را کامل کن.</string>
+
+    <!-- Pregnancy log -->
+    <string name="preg_log_title">ثبت روزانهٔ بارداری</string>
+    <string name="preg_log_subtitle">علائم امروزت را ثبت کن تا ریتمی مراقبت بهتری پیشنهاد دهد.</string>
+    <string name="preg_log_tab_symptoms">علائم روزانه</string>
+    <string name="preg_log_tab_weekly">چکاپ هفتگی</string>
+    <string name="preg_log_tab_movement">حرکات جنین</string>
+    <string name="preg_log_severity">شدت</string>
+    <string name="severity_mild">خفیف</string>
+    <string name="severity_moderate">متوسط</string>
+    <string name="severity_severe">شدید</string>
+    <string name="preg_group_common">علائم رایج</string>
+    <string name="preg_group_aches">درد‌ها و فشار‌ها</string>
+    <string name="preg_group_warning">علائم هشداردهنده</string>
+    <string name="preg_critical_hint">در صورت مشاهدهٔ این علائم حتماً با پزشکت تماس بگیر.</string>
+    <string name="preg_sym_nausea">تهوع</string>
+    <string name="preg_sym_vomiting">استفراغ</string>
+    <string name="preg_sym_fatigue">خستگی</string>
+    <string name="preg_sym_headache">سردرد</string>
+    <string name="preg_sym_dizziness">سرگیجه</string>
+    <string name="preg_sym_breast_pain">درد سینه</string>
+    <string name="preg_sym_lower_abdominal_pain">درد زیر شکم</string>
+    <string name="preg_sym_cramping">گرفتگی و انقباض</string>
+    <string name="preg_sym_back_pain">کمردرد</string>
+    <string name="preg_sym_pelvic_pressure">فشار در ناحیهٔ لگن</string>
+    <string name="preg_sym_spotting">لکه‌بینی</string>
+    <string name="preg_sym_bleeding">خونریزی</string>
+    <string name="preg_sym_fluid_leakage">خروج مایع از واژن</string>
+    <string name="preg_sym_severe_sudden_pain">درد شدید و ناگهانی</string>
+    <string name="preg_weekly_week">چکاپ هفتهٔ %1$s</string>
+    <string name="preg_weekly_weight">وزن (کیلوگرم)</string>
+    <string name="preg_weekly_swelling">ورم دارم</string>
+    <string name="preg_weekly_swelling_where">محل ورم</string>
+    <string name="preg_swelling_feet">پاها</string>
+    <string name="preg_swelling_hands">دست‌ها</string>
+    <string name="preg_swelling_face">صورت</string>
+    <string name="preg_weekly_breath">تنگی نفس</string>
+    <string name="preg_weekly_bp_device">دستگاه فشارخون دارم</string>
+    <string name="preg_weekly_systolic">فشار سیستولیک (بالا)</string>
+    <string name="preg_weekly_diastolic">فشار دیاستولیک (پایین)</string>
+    <string name="preg_weekly_fasting">قند خون ناشتا</string>
+    <string name="preg_weekly_postmeal">قند خون دو ساعت بعد از غذا</string>
+    <string name="preg_weekly_mood">حال کلی</string>
+    <string name="preg_mood_good">خوب</string>
+    <string name="preg_mood_moderate">متوسط</string>
+    <string name="preg_mood_poor">بد</string>
+    <string name="preg_mental_anxiety">اضطراب</string>
+    <string name="preg_mental_mood_swings">نوسان خلقی</string>
+    <string name="preg_mental_depression">احساس افسردگی</string>
+    <string name="preg_movement_status">وضعیت حرکات</string>
+    <string name="preg_move_not_felt_yet">هنوز حس نکرده‌ام</string>
+    <string name="preg_move_felt">حس کردم</string>
+    <string name="preg_move_normal">طبیعی</string>
+    <string name="preg_move_reduced">کاهش‌یافته</string>
+    <string name="preg_move_increased">افزایش‌یافته</string>
+    <string name="preg_move_none">بدون حرکت</string>
+    <string name="preg_movement_count">تعداد حرکات</string>
+    <string name="preg_movement_first">زمان اولین حرکت</string>
+    <string name="preg_movement_last">زمان آخرین حرکت</string>
+    <string name="preg_movement_tracking_from">شمارش حرکات جنین معمولاً از هفتهٔ ۲۴ اهمیت پیدا می‌کند.</string>
+    <string name="preg_movement_not_yet">کمی زود است؛ به‌زودی حرکات کودکت را حس می‌کنی.</string>
+    <string name="preg_notes">یادداشت</string>
+    <string name="preg_notes_placeholder">هر نکتهٔ دیگری که می‌خواهی به یاد بماند…</string>
 </resources>

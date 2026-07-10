@@ -21,4 +21,10 @@
     <!-- Semantic, nudged lighter for contrast on dark surfaces -->
     <color name="ritme_error">#FFE5675F</color>
     <color name="ritme_info">#FF5B9BE0</color>
+
+    <!-- Cycle-phase surfaces, darkened -->
+    <color name="ritme_period_container">#FF3A2230</color>
+    <color name="ritme_fertile_container">#FF3A3222</color>
+    <color name="ritme_ovulation_container">#FF1E332A</color>
+    <color name="ritme_violet_container">#FF2E2440</color>
 </resources>

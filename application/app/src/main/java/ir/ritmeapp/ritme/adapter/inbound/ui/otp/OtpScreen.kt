@@ -60,7 +60,7 @@ fun OtpScreen(
     LaunchedEffect(Unit) {
         Breadcrumbs.add("screen:otp:enter")
         container.safeScreenTracker.record(
-            SafeScreen(Destination.Login.route, null, System.currentTimeMillis()),
+            SafeScreen(Destination.Otp.ROUTE, mobile, System.currentTimeMillis()),
         )
     }
 

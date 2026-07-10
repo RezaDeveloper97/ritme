@@ -38,6 +38,10 @@ fun RitmeTheme(
         warning = colorResource(R.color.ritme_warning),
         error = colorResource(R.color.ritme_error),
         info = colorResource(R.color.ritme_info),
+        periodContainer = colorResource(R.color.ritme_period_container),
+        fertileContainer = colorResource(R.color.ritme_fertile_container),
+        ovulationContainer = colorResource(R.color.ritme_ovulation_container),
+        violetContainer = colorResource(R.color.ritme_violet_container),
         onPink = colorResource(R.color.white),
         onAccent = colorResource(R.color.ritme_on_accent),
     )

@@ -25,6 +25,11 @@ data class RitmeColors(
     val warning: Color,
     val error: Color,
     val info: Color,
+    /** Soft surfaces behind cycle-phase markers (calendar days, phase chips). */
+    val periodContainer: Color,
+    val fertileContainer: Color,
+    val ovulationContainer: Color,
+    val violetContainer: Color,
     /** White content drawn on top of brand pink (buttons, headers). */
     val onPink: Color,
     /** Dark content drawn on top of the light accent accent; constant across themes. */

@@ -47,7 +47,7 @@ class LoginViewModel(
                 viewModelScope.launch {
                     when (val result = sendOtp(parsed.value)) {
                         is AppResult.Success -> _state.update {
-                            it.copy(status = LoginStatus.Validated(parsed.value.national))
+                            it.copy(status = LoginStatus.Validated(parsed.value.national, result.value.newUser))
                         }
 
                         is AppResult.Failure -> _state.update {
@@ -74,5 +74,6 @@ internal fun AppError.toStatus(): LoginStatus.Error = when (this) {
     is AppError.Network, is AppError.Timeout -> LoginStatus.Error(LoginErrorKey.Network)
     is AppError.Http -> LoginStatus.Error(LoginErrorKey.Server, message)
     is AppError.Validation -> LoginStatus.Error(LoginErrorKey.InvalidPhone)
-    is AppError.Parsing, is AppError.Unexpected -> LoginStatus.Error(LoginErrorKey.Unexpected)
+    is AppError.Parsing, is AppError.Storage, is AppError.Unexpected ->
+        LoginStatus.Error(LoginErrorKey.Unexpected)
 }
