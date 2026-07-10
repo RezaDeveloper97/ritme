@@ -30,5 +30,8 @@ return [
         'last_period_start_before_or_equal' => 'Last period start cannot be in the future.',
         'user_goal_in' => 'user_goal must be one of: :values',
         'subscription_type_in' => 'subscription_type must be one of: :values',
+        'pregnancy_intention_in' => 'pregnancy_intention must be one of: :values',
+        'chronic_conditions_array' => 'Chronic conditions must be a list.',
+        'chronic_conditions_in' => 'Each chronic condition must be one of: :values',
     ],
 ];

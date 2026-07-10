@@ -3,7 +3,13 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { type ApiEnvelope, apiClient } from '@/shared/api';
-import { type UserProfile, userKeys, userProfileSchema } from '@/entities/user';
+import {
+  type ChronicCondition,
+  type PregnancyIntention,
+  type UserProfile,
+  userKeys,
+  userProfileSchema,
+} from '@/entities/user';
 
 /**
  * Partial update payload for `POST /profile` — the API accepts any subset of
@@ -27,6 +33,10 @@ export interface UpdateProfileInput {
   cycle_duration?: number;
   /** Start of the last period, Gregorian `YYYY-MM-DD`, not in the future. */
   last_period_start?: string;
+  /** Pregnancy intention stated at onboarding; the API derives `user_goal`. */
+  pregnancy_intention?: PregnancyIntention;
+  /** Optional self-reported chronic conditions. */
+  chronic_conditions?: ChronicCondition[];
 }
 
 /**

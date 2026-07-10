@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 
 import { useRouter } from '@/shared/i18n';
 import { NavBack, RulerPicker } from '@/shared/ui';
-import { useOnboardingStore, type WeightUnit } from '@/entities/user';
+import { nextOnboardingRoute, stepPosition, useOnboardingStore, type WeightUnit } from '@/entities/user';
 
 const FA = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
 const faNum = (n: string | number) => String(n).replace(/[0-9]/g, d => FA[Number(d)]);
@@ -12,7 +12,8 @@ const faNum = (n: string | number) => String(n).replace(/[0-9]/g, d => FA[Number
 export function WeightPage() {
   const t = useTranslations('onboarding');
   const router = useRouter();
-  const { weight, weightUnit, setWeight, setWeightUnit } = useOnboardingStore();
+  const { weight, weightUnit, intention, setWeight, setWeightUnit } = useOnboardingStore();
+  const step = stepPosition('weight', intention);
 
   const switchUnit = (u: WeightUnit) => {
     setWeightUnit(u);
@@ -24,13 +25,14 @@ export function WeightPage() {
     <div className="view" style={{ background: '#fff' }}>
       <div className="hdr">
         <NavBack onClick={() => router.back()} />
-        <span className="stepcount">{faNum(4)}<span style={{ opacity: .5 }}> / ۸</span></span>
+        <span className="stepcount">{faNum(step.index)}<span style={{ opacity: .5 }}> / {faNum(step.total)}</span></span>
       </div>
 
       <div className="scroll" style={{ padding: '8px 22px 0', display: 'flex', flexDirection: 'column' }}>
         <div style={{ textAlign: 'start', margin: '6px 0' }}>
           <div className="titr">{t('weight.title')}</div>
           <p className="sub" style={{ margin: '10px 0 0' }}>{t('weight.subtitle')}</p>
+          <p className="sub" style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--muted)' }}>{t('weight.helper')}</p>
         </div>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '8px 0' }}>
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 30 }}>
@@ -48,7 +50,7 @@ export function WeightPage() {
       </div>
 
       <div style={{ padding: '14px 16px 8px' }}>
-        <button className="btn btn-primary" onClick={() => router.push('/onboarding/height')}>
+        <button className="btn btn-primary" onClick={() => router.push(nextOnboardingRoute('weight', intention))}>
           {t('continue')}
         </button>
       </div>

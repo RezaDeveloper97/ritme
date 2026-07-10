@@ -9,12 +9,22 @@ function baseData(overrides: Partial<OnboardingData> = {}): OnboardingData {
   return {
     phone: '09120000000',
     name: 'Sara',
-    gender: 'female',
     birth: { d: 15, m: 3, y: 1373 },
     weightUnit: 'kg',
     weight: 60,
     heightUnit: 'cm',
     height: 165,
+    intention: 'avoiding',
+    pregnancyBasis: {
+      source: null,
+      lmp: null,
+      ultrasoundDate: null,
+      ultrasoundWeeks: null,
+      ultrasoundDays: null,
+      manualWeeks: null,
+      manualDays: null,
+    },
+    chronicConditions: [],
     periodLen: 5,
     cycleDuration: 28,
     lastPeriod: { year: 1403, month: 1, day: 10 },
@@ -62,6 +72,22 @@ describe('onboardingToProfileInput', () => {
 
   it('omits the last period when it was never picked', () => {
     const payload = onboardingToProfileInput(baseData({ lastPeriod: null }));
+    expect(payload.last_period_start).toBeUndefined();
+  });
+
+  it('sends the intention and chronic conditions', () => {
+    const payload = onboardingToProfileInput(
+      baseData({ intention: 'trying', chronicConditions: ['pcos', 'diabetes'] }),
+    );
+    expect(payload.pregnancy_intention).toBe('trying');
+    expect(payload.chronic_conditions).toEqual(['pcos', 'diabetes']);
+  });
+
+  it('omits cycle fields for pregnant users', () => {
+    const payload = onboardingToProfileInput(baseData({ intention: 'pregnant' }));
+    expect(payload.pregnancy_intention).toBe('pregnant');
+    expect(payload.period_duration).toBeUndefined();
+    expect(payload.cycle_duration).toBeUndefined();
     expect(payload.last_period_start).toBeUndefined();
   });
 });

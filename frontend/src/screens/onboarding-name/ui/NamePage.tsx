@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 
 import { useRouter } from '@/shared/i18n';
 import { Icon, NavBack } from '@/shared/ui';
-import { useOnboardingStore } from '@/entities/user';
+import { nextOnboardingRoute, stepPosition, useOnboardingStore } from '@/entities/user';
 
 const FA = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
 const faNum = (n: string | number) => String(n).replace(/[0-9]/g, d => FA[Number(d)]);
@@ -13,24 +13,25 @@ const faNum = (n: string | number) => String(n).replace(/[0-9]/g, d => FA[Number
 export function NamePage() {
   const t = useTranslations('onboarding');
   const router = useRouter();
-  const { name, setName } = useOnboardingStore();
+  const { name, intention, setName } = useOnboardingStore();
   const [value, setValue] = useState(name);
 
   useEffect(() => { setValue(name); }, [name]);
 
+  const step = stepPosition('name', intention);
   const canContinue = value.trim().length > 0;
 
   const handleNext = () => {
     if (!canContinue) return;
     setName(value.trim());
-    router.push('/onboarding/gender');
+    router.push(nextOnboardingRoute('name', intention));
   };
 
   return (
     <div className="view" style={{ background: '#fff' }}>
       <div className="hdr">
         <NavBack onClick={() => router.back()} />
-        <span className="stepcount">{faNum(1)}<span style={{ opacity: .5 }}> / ۸</span></span>
+        <span className="stepcount">{faNum(step.index)}<span style={{ opacity: .5 }}> / {faNum(step.total)}</span></span>
       </div>
 
       <div className="scroll" style={{ padding: '8px 22px 0', display: 'flex', flexDirection: 'column' }}>

@@ -1,11 +1,11 @@
 import { setRequestLocale } from 'next-intl/server';
 
-import { GenderPage } from '@/screens/onboarding-gender';
+import { IntentionPage } from '@/screens/onboarding-intention';
 
 interface Props { params: Promise<{ locale: string }> }
 
-export default async function GenderRoute({ params }: Props) {
+export default async function IntentionRoute({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
-  return <GenderPage />;
+  return <IntentionPage />;
 }

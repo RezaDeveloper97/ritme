@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Enums\CalculationStatus;
+use App\Enums\ChronicCondition;
+use App\Enums\PregnancyIntention;
 use App\Enums\SubscriptionType;
 use App\Enums\UserGoal;
 use App\Http\Controllers\Concerns\ResolvesLocale;
@@ -92,7 +94,9 @@ class ProfileController extends Controller
      *             @OA\Property(property="cycle_duration", type="integer", example=28, description="How long does your cycle usually last? (days)"),
      *             @OA\Property(property="last_period_start", type="string", format="date", example="2024-12-01", description="When did your last period start? Defaults to today if not provided"),
      *             @OA\Property(property="user_goal", type="string", example="non_ttc", enum={"ttc","non_ttc"}, description="User goal: ttc (Trying to Conceive) or non_ttc"),
-     *             @OA\Property(property="subscription_type", type="string", example="free", enum={"free","premium"}, description="Subscription type")
+     *             @OA\Property(property="subscription_type", type="string", example="free", enum={"free","premium"}, description="Subscription type"),
+     *             @OA\Property(property="pregnancy_intention", type="string", example="avoiding", enum={"avoiding","pregnant","trying","unsure"}, description="Pregnancy intention captured at onboarding; derives user_goal (trying=ttc)"),
+     *             @OA\Property(property="chronic_conditions", type="array", @OA\Items(type="string", enum={"pcos","hypothyroidism","hyperthyroidism","hypertension","heart_disease","diabetes"}), description="Optional self-reported chronic conditions")
      *         )
      *     ),
      *
@@ -147,7 +151,7 @@ class ProfileController extends Controller
 
         try {
             $user = $request->user();
-            if (!$user) {
+            if (! $user) {
                 return response()->json([
                     'success' => false,
                     'message' => __('profile.unauthenticated'),
@@ -157,9 +161,10 @@ class ProfileController extends Controller
             $allowedFields = [
                 'name', 'birthday', 'weight', 'height', 'period_duration',
                 'cycle_duration', 'last_period_start', 'user_goal', 'subscription_type',
+                'pregnancy_intention', 'chronic_conditions',
             ];
             $unknownFields = array_diff(array_keys($request->all()), $allowedFields);
-            if (!empty($unknownFields)) {
+            if (! empty($unknownFields)) {
                 return response()->json([
                     'success' => false,
                     'message' => __('profile.unknown_fields', ['fields' => implode(', ', $unknownFields)]),
@@ -177,6 +182,9 @@ class ProfileController extends Controller
                 'last_period_start' => 'nullable|date|before_or_equal:today',
                 'user_goal' => ['nullable', Rule::in(UserGoal::values())],
                 'subscription_type' => ['nullable', Rule::in(SubscriptionType::values())],
+                'pregnancy_intention' => ['nullable', Rule::in(PregnancyIntention::values())],
+                'chronic_conditions' => ['nullable', 'array'],
+                'chronic_conditions.*' => [Rule::in(ChronicCondition::values())],
             ], [
                 'name.string' => __('profile.errors.name_string'),
                 'name.max' => __('profile.errors.name_max'),
@@ -198,6 +206,9 @@ class ProfileController extends Controller
                 'last_period_start.before_or_equal' => __('profile.errors.last_period_start_before_or_equal'),
                 'user_goal.in' => __('profile.errors.user_goal_in', ['values' => implode(', ', UserGoal::values())]),
                 'subscription_type.in' => __('profile.errors.subscription_type_in', ['values' => implode(', ', SubscriptionType::values())]),
+                'pregnancy_intention.in' => __('profile.errors.pregnancy_intention_in', ['values' => implode(', ', PregnancyIntention::values())]),
+                'chronic_conditions.array' => __('profile.errors.chronic_conditions_array'),
+                'chronic_conditions.*.in' => __('profile.errors.chronic_conditions_in', ['values' => implode(', ', ChronicCondition::values())]),
             ]);
 
             if ($validator->fails()) {
@@ -223,9 +234,22 @@ class ProfileController extends Controller
                 'last_period_start',
                 'user_goal',
                 'subscription_type',
+                'pregnancy_intention',
+                'chronic_conditions',
             ]);
 
-            if (!isset($profileData['last_period_start']) && !$profile->last_period_start) {
+            // Keep the cycle engine's user_goal aligned with the stated intention,
+            // unless the caller set user_goal explicitly. Only "trying" is TTC.
+            if ($request->has('pregnancy_intention') && ! $request->has('user_goal')) {
+                $profileData['user_goal'] = $request->pregnancy_intention === PregnancyIntention::TRYING->value
+                    ? UserGoal::TTC->value
+                    : UserGoal::NON_TTC->value;
+            }
+
+            // Don't seed a bogus period start for pregnant users — period tracking
+            // is disabled in pregnancy mode.
+            $isPregnant = ($profileData['pregnancy_intention'] ?? $profile->pregnancy_intention) === PregnancyIntention::PREGNANT->value;
+            if (! $isPregnant && ! isset($profileData['last_period_start']) && ! $profile->last_period_start) {
                 $profileData['last_period_start'] = now()->toDateString();
             }
 
@@ -255,6 +279,7 @@ class ProfileController extends Controller
             ], 422);
         } catch (\Illuminate\Database\QueryException $e) {
             \Log::error('Profile store DB error', ['error' => $e->getMessage(), 'user_id' => $request->user()?->id]);
+
             return response()->json([
                 'success' => false,
                 'message' => __('profile.db_error'),
@@ -262,6 +287,7 @@ class ProfileController extends Controller
             ], 500);
         } catch (\Throwable $e) {
             \Log::error('Profile store error', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+
             return response()->json([
                 'success' => false,
                 'message' => __('profile.unexpected_error'),
@@ -281,7 +307,9 @@ class ProfileController extends Controller
      *     @OA\Response(
      *         response=200,
      *         description="Export generated successfully",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="data", type="object",
      *                 @OA\Property(property="exported_at", type="string", format="date-time"),
@@ -294,6 +322,7 @@ class ProfileController extends Controller
      *             )
      *         )
      *     ),
+     *
      *     @OA\Response(response=401, description="Unauthenticated")
      * )
      */
@@ -336,11 +365,14 @@ class ProfileController extends Controller
      *     @OA\Response(
      *         response=200,
      *         description="Account deleted",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string")
      *         )
      *     ),
+     *
      *     @OA\Response(response=401, description="Unauthenticated")
      * )
      */

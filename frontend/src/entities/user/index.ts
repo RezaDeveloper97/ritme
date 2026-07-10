@@ -1,14 +1,25 @@
 export { useOnboardingStore } from './model/store';
 export type {
   AuthUser,
-  Gender,
+  ChronicCondition,
   HealthProfile,
   HeightUnit,
   JalaliBirth,
+  OnboardingAgeSource,
   OnboardingData,
+  PregnancyBasis,
+  PregnancyIntention,
   UserProfile,
   WeightUnit,
 } from './model/types';
+export {
+  nextOnboardingRoute,
+  onboardingRoute,
+  onboardingSteps,
+  SETTING_UP_ROUTE,
+  stepPosition,
+  type OnboardingStepKey,
+} from './model/steps';
 export {
   fetchCurrentUser,
   fetchUserProfile,

@@ -17,6 +17,10 @@ const clamp = (value: number, lo: number, hi: number): number =>
  * (CLAUDE.md §7); any date the API would reject — a birthday not before today,
  * or a future last-period date — is dropped rather than sent. This is sensitive
  * health data (§11): it is submitted, never logged.
+ *
+ * The flow branches on {@link OnboardingData.intention}: pregnant users skip the
+ * cycle questions entirely, so their cycle fields are omitted (period tracking
+ * is disabled in pregnancy mode).
  */
 export function onboardingToProfileInput(o: OnboardingData): UpdateProfileInput {
   const todayStr = toApiDate(today());
@@ -34,12 +38,18 @@ export function onboardingToProfileInput(o: OnboardingData): UpdateProfileInput 
   const heightCm = o.heightUnit === 'ft' ? o.height * 30.48 : o.height;
   payload.height = clamp(Math.round(heightCm), 50, 250);
 
-  payload.period_duration = clamp(Math.round(o.periodLen), 1, 15);
-  payload.cycle_duration = clamp(Math.round(o.cycleDuration), 15, 60);
+  if (o.intention) payload.pregnancy_intention = o.intention;
+  payload.chronic_conditions = o.chronicConditions;
 
-  if (o.lastPeriod) {
-    const lastPeriodStart = jalaliPartsToApiDate(o.lastPeriod);
-    if (lastPeriodStart <= todayStr) payload.last_period_start = lastPeriodStart;
+  // Cycle questions are only asked (and only meaningful) off the pregnant branch.
+  if (o.intention !== 'pregnant') {
+    payload.period_duration = clamp(Math.round(o.periodLen), 1, 15);
+    payload.cycle_duration = clamp(Math.round(o.cycleDuration), 15, 60);
+
+    if (o.lastPeriod) {
+      const lastPeriodStart = jalaliPartsToApiDate(o.lastPeriod);
+      if (lastPeriodStart <= todayStr) payload.last_period_start = lastPeriodStart;
+    }
   }
 
   return payload;

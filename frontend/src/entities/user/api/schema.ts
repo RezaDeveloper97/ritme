@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import type { AuthUser, UserProfile } from '../model/types';
+import type { AuthUser, ChronicCondition, PregnancyIntention, UserProfile } from '../model/types';
 
 /** A number the API may serialize as a numeric string; null stays null. */
 const numberish = z
@@ -53,6 +53,8 @@ export const userProfileSchema = z
         period_duration: z.number().nullable().default(null),
         cycle_duration: z.number().nullable().default(null),
         last_period_start: z.string().nullable().default(null),
+        pregnancy_intention: z.string().nullable().default(null),
+        chronic_conditions: z.array(z.string()).nullable().default([]),
       })
       .nullable()
       .default(null),
@@ -70,6 +72,8 @@ export const userProfileSchema = z
             periodDuration: r.profile.period_duration,
             cycleDuration: r.profile.cycle_duration,
             lastPeriodStart: r.profile.last_period_start,
+            pregnancyIntention: r.profile.pregnancy_intention as PregnancyIntention | null,
+            chronicConditions: (r.profile.chronic_conditions ?? []) as ChronicCondition[],
           }
         : null,
     }),

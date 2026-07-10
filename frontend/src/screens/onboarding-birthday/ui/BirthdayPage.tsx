@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 
 import { useRouter } from '@/shared/i18n';
 import { NavBack, WheelPicker } from '@/shared/ui';
-import { useOnboardingStore } from '@/entities/user';
+import { nextOnboardingRoute, stepPosition, useOnboardingStore } from '@/entities/user';
 
 const FA = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
 const faNum = (n: string | number) => String(n).replace(/[0-9]/g, d => FA[Number(d)]);
@@ -16,13 +16,14 @@ const YEARS  = Array.from({ length: 60 }, (_, i) => faNum(1340 + i));
 export function BirthdayPage() {
   const t = useTranslations('onboarding');
   const router = useRouter();
-  const { birth, setBirth } = useOnboardingStore();
+  const { birth, intention, setBirth } = useOnboardingStore();
+  const step = stepPosition('birthday', intention);
 
   return (
     <div className="view" style={{ background: '#fff' }}>
       <div className="hdr">
         <NavBack onClick={() => router.back()} />
-        <span className="stepcount">{faNum(3)}<span style={{ opacity: .5 }}> / ۸</span></span>
+        <span className="stepcount">{faNum(step.index)}<span style={{ opacity: .5 }}> / {faNum(step.total)}</span></span>
       </div>
 
       <div className="scroll" style={{ padding: '8px 22px 0', display: 'flex', flexDirection: 'column' }}>
@@ -50,7 +51,7 @@ export function BirthdayPage() {
       </div>
 
       <div style={{ padding: '14px 16px 8px' }}>
-        <button className="btn btn-primary" onClick={() => router.push('/onboarding/weight')}>
+        <button className="btn btn-primary" onClick={() => router.push(nextOnboardingRoute('birthday', intention))}>
           {t('continue')}
         </button>
       </div>

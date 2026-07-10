@@ -5,17 +5,10 @@
   "helper": "Help us get to know you better",
 
   "name": {
-    "title": "What is your name?",
-    "subtitle": "What should we call you?",
-    "label": "Full name",
+    "title": "What should we call you on Ritme?",
+    "subtitle": "You'll see this name in the app and we'll use it to address you",
+    "label": "Display name",
     "placeholder": "e.g. Isabella"
-  },
-  "gender": {
-    "title": "What is your gender?",
-    "subtitle": "Help us understand you better",
-    "female": "Female",
-    "male": "Male",
-    "skip": "Prefer not to say"
   },
   "birthday": {
     "title": "What is your date of birth?",
@@ -23,11 +16,42 @@
   },
   "weight": {
     "title": "What is your weight?",
-    "subtitle": "Help us get to know you better"
+    "subtitle": "Help us get to know you better",
+    "helper": "This is used for weight and general-health analysis, and it is confidential."
   },
   "height": {
     "title": "What is your height?",
-    "subtitle": "Help us get to know you better"
+    "subtitle": "Help us get to know you better",
+    "helper": "This is used for weight and general-health analysis, and it is confidential."
+  },
+  "intention": {
+    "title": "Where are you with pregnancy right now?",
+    "subtitle": "We'll personalise your plan based on your answer",
+    "options": {
+      "avoiding": "Not planning a pregnancy right now",
+      "pregnant": "I am pregnant",
+      "trying": "I'm trying to conceive",
+      "unsure": "Not sure yet"
+    }
+  },
+  "pregnancyBasis": {
+    "title": "How should we date your pregnancy?",
+    "subtitle": "Choose one of the methods below",
+    "source": {
+      "lmp": "First day of last period",
+      "ultrasound": "Ultrasound",
+      "manual": "Enter the week manually"
+    },
+    "sourceHint": {
+      "lmp": "If you know your last period date, this is the simple accurate option.",
+      "ultrasound": "Based on your ultrasound result; the most accurate method.",
+      "manual": "If you know your pregnancy week from your doctor."
+    },
+    "weeks": "Weeks",
+    "days": "Days",
+    "note": "During pregnancy, Ritme focuses more on your mood, sleep and general care, and period tracking is turned off.",
+    "selectSource": "Please choose a method",
+    "fillRequired": "Please enter the week"
   },
   "periodLen": {
     "title": "How many days does your period usually last?",
@@ -44,9 +68,22 @@
     "subtitle": "Help us get to know you better",
     "hint": "Select the day your last period began"
   },
+  "conditions": {
+    "title": "Do you have any chronic conditions?",
+    "subtitle": "This section is optional — share as much as you like to make your recommendations more accurate.",
+    "items": {
+      "pcos": "Polycystic ovary syndrome (PCOS)",
+      "hypothyroidism": "Hypothyroidism",
+      "hyperthyroidism": "Hyperthyroidism",
+      "hypertension": "High blood pressure",
+      "heart_disease": "Heart disease",
+      "diabetes": "Diabetes (type 1, 2 or gestational)"
+    }
+  },
   "settingUp": {
     "title": "We are setting up your personalised calendar…",
     "subtitle": "Help us get to know you better",
-    "wait": "Please wait a few seconds…"
+    "wait": "Please wait a few seconds…",
+    "disclaimer": "Ritme is not a substitute for a doctor or counsellor visit. The information you enter is used to personalise recommendations and help you understand your own body. If you have severe or worrying symptoms, be sure to contact a health professional."
   }
 }

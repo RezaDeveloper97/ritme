@@ -30,5 +30,8 @@ return [
         'last_period_start_before_or_equal' => 'تاریخ شروع آخرین پریود نمی‌تواند در آینده باشد.',
         'user_goal_in' => 'مقدار user_goal باید یکی از این موارد باشد: :values',
         'subscription_type_in' => 'مقدار subscription_type باید یکی از این موارد باشد: :values',
+        'pregnancy_intention_in' => 'مقدار pregnancy_intention باید یکی از این موارد باشد: :values',
+        'chronic_conditions_array' => 'بیماری‌های مزمن باید به صورت فهرست ارسال شوند.',
+        'chronic_conditions_in' => 'هر بیماری مزمن باید یکی از این موارد باشد: :values',
     ],
 ];
