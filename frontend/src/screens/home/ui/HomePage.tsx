@@ -681,7 +681,7 @@ export function HomePage() {
         )}
         {/* Connected unit: the mini calendar butts directly against the info
             card below it, and tapping a day updates that card (§ home request). */}
-        <div style={{ padding: '2px 16px 0' }}>
+        <div style={{ padding: '2px 16px 0', display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div style={{ borderRadius: 16, overflow: 'hidden', boxShadow: '0 18px 34px -18px rgba(233,30,99,.55)' }}>
             <WeekStrip
               calOpen={calOpen}
@@ -691,6 +691,8 @@ export function HomePage() {
               selectedDay={selectedDay}
               onSelect={(cell) => setSelectedDate(cell.date)}
             />
+          </div>
+          <div style={{ borderRadius: 16, overflow: 'hidden', boxShadow: '0 18px 34px -18px rgba(233,30,99,.55)' }}>
             <NextPeriodCard
               t={t}
               pred={infoPred}
