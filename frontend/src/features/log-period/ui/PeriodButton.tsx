@@ -5,19 +5,27 @@ import { useState } from 'react';
 
 import { Icon } from '@/shared/ui';
 
-import { useStartPeriod } from '../api/mutations';
+import { useEndPeriod, usePeriodStatus, useStartPeriod } from '../api/mutations';
 
 /**
- * "Start period" action on the home screen. Logging a period re-anchors the
+ * Period action on the home screen. It reads the current period state and
+ * flips between "Start period" and "End period": when a period is ongoing it
+ * offers to end it, otherwise to start one. Logging a period re-anchors the
  * whole cycle, so an accidental tap is costly — the button asks for a second
  * confirming tap before it commits (a lightweight guard that needs no modal).
  * While the request is in flight it's disabled; failures surface an inline
  * retry hint. All copy is i18n'd and RTL-safe (CLAUDE.md §6, §12).
  */
-export function StartPeriodButton() {
+export function PeriodButton() {
   const t = useTranslations('logPeriod');
-  const { mutate, isPending, isError } = useStartPeriod();
+  const { data: status } = usePeriodStatus();
+  const start = useStartPeriod();
+  const end = useEndPeriod();
   const [confirming, setConfirming] = useState(false);
+
+  const active = status?.active ?? false;
+  const action = active ? end : start;
+  const { isPending, isError } = action;
 
   const commit = () => {
     if (isPending) return;
@@ -25,14 +33,16 @@ export function StartPeriodButton() {
       setConfirming(true);
       return;
     }
-    mutate(undefined, { onSettled: () => setConfirming(false) });
+    action.mutate(undefined, { onSettled: () => setConfirming(false) });
   };
 
   const label = isPending
     ? t('pending')
     : confirming
       ? t('confirm')
-      : t('start');
+      : active
+        ? t('end')
+        : t('start');
 
   return (
     <div style={{ padding: '16px 16px 0' }}>

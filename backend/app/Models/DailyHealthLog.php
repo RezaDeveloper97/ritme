@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @OA\Schema(
  *     schema="DailyHealthLog",
  *     type="object",
+ *
  *     @OA\Property(property="id", type="integer", example=1),
  *     @OA\Property(property="user_id", type="integer", example=1),
  *     @OA\Property(property="log_date", type="string", format="date", example="2024-12-07"),
@@ -175,7 +176,12 @@ class DailyHealthLog extends Model
     protected function casts(): array
     {
         return [
-            'log_date' => 'date',
+            // date:Y-m-d (not plain 'date') so repeated same-day upserts match the
+            // existing row on every DB — a plain 'date' cast serializes with a time
+            // component that SQLite stores verbatim, making updateOrCreate re-insert
+            // and hit the unique(user_id, log_date) constraint. It also returns clean
+            // Y-m-d strings the frontend keys its per-date cache on.
+            'log_date' => 'date:Y-m-d',
 
             // Booleans
             'has_clots' => 'boolean',

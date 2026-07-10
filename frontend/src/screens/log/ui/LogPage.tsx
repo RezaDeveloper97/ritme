@@ -2,7 +2,7 @@
 
 import { useLocale, useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   LOG_CATEGORIES,
@@ -177,6 +177,27 @@ export function LogPage() {
     if (logQuery.data) setDraft(logQuery.data);
   }, [logQuery.data]);
 
+  // ── Auto-save ────────────────────────────────────────────────
+  // Every edit persists on its own — there is no manual save. Rapid changes
+  // (wheel scrubbing, typing) are coalesced into one per-field patch, so we hit
+  // the upsert endpoint once the user pauses rather than on every keystroke.
+  const pendingRef = useRef<Record<string, unknown>>({});
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saveRef = useRef(save);
+  saveRef.current = save;
+
+  const flush = useCallback((forDate: string) => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    const patch = pendingRef.current;
+    if (Object.keys(patch).length === 0) return;
+    pendingRef.current = {};
+    // Deselected fields carry `null` so the upsert clears them server-side.
+    saveRef.current.mutate({ log_date: forDate, ...patch });
+  }, []);
+
   const handleChange = (key: HealthLogField, value: unknown) => {
     setDraft((d) => {
       const next = { ...d };
@@ -184,32 +205,53 @@ export function LogPage() {
       else (next as Record<string, unknown>)[key] = value;
       return next;
     });
-    save.reset();
+    pendingRef.current[key] = value === undefined ? null : value;
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => flush(apiDate), 350);
   };
 
+  // Never lose a pending patch: flush before the day changes and on unmount.
+  useEffect(() => () => flush(apiDate), [apiDate, flush]);
+
   const shiftDay = (delta: number) => {
+    flush(apiDate);
     setDate((d) => addDays(d, delta));
-    save.reset();
   };
   const canGoNext = diffInDays(date, today()) < 0;
 
   const openCategory = openKey ? LOG_CATEGORIES.find((c) => c.key === openKey) ?? null : null;
-  const totalFilled = LOG_CATEGORIES.reduce((n, c) => n + filledCount(c, draft), 0);
 
-  const handleSave = () => {
-    if (totalFilled === 0) return;
-    save.mutate({ ...draft, log_date: apiDate });
-  };
-
-  const saveLabel = save.isPending ? t('saving') : save.isSuccess ? t('saved') : t('save');
+  const status = save.isPending ? t('saving') : save.isError ? t('saveError') : save.isSuccess ? t('autoSaved') : null;
 
   return (
     <div className="view" style={{ background: 'var(--page)' }}>
 
       <div className="scroll">
-        <div style={{ padding: '6px 20px 0', textAlign: 'start' }}>
-          <div className="titr">{t('title')}</div>
-          <p className="sub" style={{ margin: '6px 0 0' }}>{t('subtitle')}</p>
+        <div style={{ padding: '6px 20px 0', textAlign: 'start', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
+          <div style={{ flex: 1 }}>
+            <div className="titr">{t('title')}</div>
+            <p className="sub" style={{ margin: '6px 0 0' }}>{t('subtitle')}</p>
+          </div>
+          {status && (
+            <span
+              style={{
+                fontSize: 11.5,
+                fontWeight: 700,
+                whiteSpace: 'nowrap',
+                marginTop: 4,
+                padding: '4px 10px',
+                borderRadius: 20,
+                color: save.isError ? 'var(--brand)' : 'var(--muted)',
+                background: save.isError ? '#FFF1F7' : 'var(--card)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 5,
+              }}
+            >
+              {save.isSuccess && !save.isError ? <Icon name="check" size={13} /> : null}
+              {status}
+            </span>
+          )}
         </div>
 
         <div style={{ padding: '14px 16px 0' }}>
@@ -229,25 +271,7 @@ export function LogPage() {
           ))}
         </div>
 
-        {save.isError && (
-          <p style={{ color: 'var(--brand)', fontSize: 12.5, fontWeight: 700, textAlign: 'center', margin: '14px 16px 0' }}>
-            {t('saveError')}
-          </p>
-        )}
-
         <div style={{ height: 24 }} />
-      </div>
-
-      <div style={{ padding: '10px 16px 4px', background: 'var(--page)' }}>
-        <button
-          className="btn btn-primary"
-          onClick={handleSave}
-          disabled={totalFilled === 0 || save.isPending}
-          style={{ borderRadius: 16 }}
-        >
-          {save.isSuccess ? <Icon name="check" size={18} /> : null}
-          {saveLabel}
-        </button>
       </div>
 
       <BottomNav />

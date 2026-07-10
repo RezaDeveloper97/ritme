@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\DailyHealthLogController;
 use App\Http\Controllers\Api\V1\HomeController;
 use App\Http\Controllers\Api\V1\MessageController;
 use App\Http\Controllers\Api\V1\OtpAuthController;
+use App\Http\Controllers\Api\V1\PeriodLogController;
 use App\Http\Controllers\Api\V1\PregnancyAlertController;
 use App\Http\Controllers\Api\V1\PregnancyProfileController;
 use App\Http\Controllers\Api\V1\PregnancySymptomController;
@@ -75,6 +76,11 @@ Route::prefix('v1')->group(function () {
             Route::get('/date/{date}', [CycleCalculationController::class, 'forDate']);
             Route::get('/month/{year}/{month}', [CycleCalculationController::class, 'month']);
             Route::post('/recalculate', [CycleCalculationController::class, 'recalculate']);
+
+            // Period logging (start / end an actual period)
+            Route::get('/period/status', [PeriodLogController::class, 'status']);
+            Route::post('/period/start', [PeriodLogController::class, 'start']);
+            Route::post('/period/end', [PeriodLogController::class, 'end']);
 
             // Matrix Messages (Personalized Phase-based Messages)
             Route::get('/matrix-messages', [CycleCalculationController::class, 'matrixMessages']);

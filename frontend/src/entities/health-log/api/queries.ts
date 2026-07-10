@@ -66,20 +66,57 @@ export function useHealthLog(date: string) {
 }
 
 /**
+ * Merge a patch onto a cached day's log. `null` clears a field (the user
+ * deselected it); `undefined`/`null` values never linger in the draft (§8 —
+ * cache mirrors the saved shape). `log_date` is always preserved.
+ */
+function mergeLogPatch(
+  base: HealthLogInput | null | undefined,
+  patch: HealthLogInput,
+): HealthLogInput {
+  const next = { ...(base ?? { log_date: patch.log_date }), log_date: patch.log_date } as unknown as Record<string, unknown>;
+  for (const [key, value] of Object.entries(patch)) {
+    if (key === 'log_date') continue;
+    if (value === null || value === undefined) delete next[key];
+    else next[key] = value;
+  }
+  return next as unknown as HealthLogInput;
+}
+
+/**
  * POST /health-logs — create or update a day's log (the endpoint upserts by
- * `log_date`). On success we invalidate that day so the form reflects the saved
- * state. Cycle recalculation is a separate concern and stays out of this slice
- * (no sibling-entity coupling — §12).
+ * `log_date` and merges only the fields present in the body, so we send small
+ * per-field patches for instant auto-save). Optimistic: the cache updates the
+ * moment the user taps an option, then reconciles with the server's saved
+ * state; a failed save rolls back. Cycle recalculation is the backend's job and
+ * stays out of this slice (no sibling-entity coupling — §12).
  */
 export function useSaveHealthLog() {
   const queryClient = useQueryClient();
-  return useMutation<HealthLogInput, unknown, HealthLogInput>({
+  return useMutation<
+    HealthLogInput,
+    unknown,
+    HealthLogInput,
+    { key: readonly unknown[]; previous: HealthLogInput | null | undefined }
+  >({
     mutationFn: async (input) => {
       const { data } = await apiClient.post<ApiEnvelope<unknown>>('/health-logs', input);
       return dailyHealthLogSchema.parse(data.data);
     },
-    onSuccess: (_result, input) => {
-      queryClient.invalidateQueries({ queryKey: healthLogKeys.date(input.log_date) });
+    onMutate: async (input) => {
+      const key = healthLogKeys.date(input.log_date);
+      await queryClient.cancelQueries({ queryKey: key });
+      const previous = queryClient.getQueryData<HealthLogInput | null>(key);
+      queryClient.setQueryData<HealthLogInput | null>(key, (old) => mergeLogPatch(old, input));
+      return { key, previous };
+    },
+    onError: (_error, _input, context) => {
+      if (context) queryClient.setQueryData(context.key, context.previous);
+    },
+    onSuccess: (result, input) => {
+      // Adopt the server's canonical saved state (nulls already stripped). Key on
+      // the request's date — the exact string the cache and screen already use.
+      queryClient.setQueryData(healthLogKeys.date(input.log_date), result);
     },
   });
 }

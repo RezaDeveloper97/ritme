@@ -8,6 +8,7 @@
   "save": "Save today's log",
   "saving": "Saving…",
   "saved": "Saved",
+  "autoSaved": "Saved automatically",
   "saveError": "Couldn't save; please try again.",
   "sheetHint": "Pick whatever applies to you.",
   "done": "Done",

@@ -312,9 +312,12 @@ export function CalendarPage() {
           <DayDetail t={t} locale={locale} selectedDate={selectedDate} />
         </div>
 
-        <div style={{ padding: '14px 16px 0' }}>
-          <DayLogSummary tCal={t} selectedDate={selectedDate} onEdit={openLog} />
-        </div>
+        {/* Future days can't have logged data, so hide the log-this-day section entirely. */}
+        {diffInDays(selectedDate, today()) <= 0 && (
+          <div style={{ padding: '14px 16px 0' }}>
+            <DayLogSummary tCal={t} selectedDate={selectedDate} onEdit={openLog} />
+          </div>
+        )}
 
         <div style={{ padding: '14px 16px 0' }}>
           <SmartTip t={t} />

@@ -10,7 +10,7 @@ import {
   type CyclePredictions,
 } from '@/entities/cycle';
 import { useDailyMessage, type DailyMessage } from '@/entities/message';
-import { StartPeriodButton } from '@/features/log-period';
+import { PeriodButton } from '@/features/log-period';
 import type { Locale } from '@/shared/i18n';
 import {
   addDays,
@@ -706,7 +706,7 @@ export function HomePage() {
         </div>
         {/* Admin-managed promo slot — renders nothing until a banner is active */}
         <BannerSlideshow position="home_top" />
-        <StartPeriodButton />
+        <PeriodButton />
         <PhaseRows t={t} windowDate={windowDate} ovulationDate={ovulationDate} pmsRange={pmsRange} nextPeriodDate={nextPeriodDate} />
         <Recommendations t={t} dos={dos} />
         <BannerSlideshow position="home_middle" />
