@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import Image from 'next/image';
 import { useEffect } from 'react';
 
 import { Icon } from '@/shared/ui';
@@ -53,17 +54,18 @@ export function SplashPage() {
         }}
       >
         {/* App icon */}
-        <div
+        <Image
+          src="/logo.webp"
+          alt=""
+          aria-hidden
+          width={84}
+          height={84}
+          priority
           style={{
             width: 84, height: 84, borderRadius: 26,
-            background: 'rgba(255,255,255,.16)',
-            backdropFilter: 'blur(6px)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: '0 18px 40px -12px rgba(0,0,0,.4)',
           }}
-        >
-          <Icon name="sparkle" size={46} fill="#fff" strokeWidth={0} />
-        </div>
+        />
 
         <div style={{ fontWeight: 900, fontSize: 34, letterSpacing: 1, marginTop: 6 }}>ریـتمی</div>
         <div style={{ fontSize: 13, opacity: .92, fontWeight: 500 }}>{t('tagline')}</div>
