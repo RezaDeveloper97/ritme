@@ -4,6 +4,8 @@ export {
   formatJalaliNumeric,
   formatJalaliDayMonth,
   formatJalaliMonthLabel,
+  formatJalaliYear,
+  jalaliMonthName,
   today,
   todayJalali,
   toApiDate,

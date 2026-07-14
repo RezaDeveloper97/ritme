@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { deriveCyclePredictions, normalizePhase } from './predictions';
+import { calcToPhase, cycleDayMarker, deriveCyclePredictions, normalizePhase } from './predictions';
 import type { CycleCalculation } from './types';
 
 function makeCalc(overrides: Partial<CycleCalculation> = {}): CycleCalculation {
   return {
+    calculationDate: '2026-01-08',
     cycleDay: 8,
     phase: 'follicular',
     subphase: null,
@@ -25,9 +26,51 @@ describe('normalizePhase', () => {
     expect(normalizePhase('period')).toBe('period');
   });
 
+  it('maps the backend "menstruation" phase to "period"', () => {
+    expect(normalizePhase('menstruation')).toBe('period');
+  });
+
   it('falls back to luteal for unknown backend strings', () => {
     expect(normalizePhase('some_future_phase')).toBe('luteal');
     expect(normalizePhase('')).toBe('luteal');
+  });
+});
+
+describe('calcToPhase', () => {
+  it('surfaces the fertile window as its own phase', () => {
+    expect(calcToPhase(makeCalc({ phase: 'follicular', isFertileWindow: true }))).toBe('fertile');
+  });
+
+  it('lets period and ovulation win over the fertile flag', () => {
+    expect(calcToPhase(makeCalc({ phase: 'menstruation', isFertileWindow: true }))).toBe('period');
+    expect(calcToPhase(makeCalc({ phase: 'ovulation', isFertileWindow: true }))).toBe('ovulation');
+  });
+
+  it('passes non-fertile phases through', () => {
+    expect(calcToPhase(makeCalc({ phase: 'luteal', isFertileWindow: false }))).toBe('luteal');
+    expect(calcToPhase(makeCalc({ phase: 'follicular', isFertileWindow: false }))).toBe('follicular');
+  });
+});
+
+describe('cycleDayMarker', () => {
+  it('marks period and ovulation from the phase', () => {
+    expect(cycleDayMarker(makeCalc({ phase: 'menstruation' }))).toBe('period');
+    expect(cycleDayMarker(makeCalc({ phase: 'ovulation' }))).toBe('ovulation');
+  });
+
+  it('marks the fertile and PMS windows', () => {
+    expect(cycleDayMarker(makeCalc({ phase: 'follicular', isFertileWindow: true }))).toBe('fertile');
+    expect(cycleDayMarker(makeCalc({ phase: 'luteal', isPmsWindow: true }))).toBe('pms');
+  });
+
+  it('prioritizes period/ovulation over the window flags', () => {
+    expect(cycleDayMarker(makeCalc({ phase: 'ovulation', isFertileWindow: true }))).toBe('ovulation');
+    expect(cycleDayMarker(makeCalc({ phase: 'menstruation', isPmsWindow: true }))).toBe('period');
+  });
+
+  it('returns null for a plain follicular/luteal day', () => {
+    expect(cycleDayMarker(makeCalc({ phase: 'follicular' }))).toBeNull();
+    expect(cycleDayMarker(makeCalc({ phase: 'luteal' }))).toBeNull();
   });
 });
 

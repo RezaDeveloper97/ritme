@@ -72,6 +72,29 @@ class CycleCalculationApiTest extends TestCase
     }
 
     /**
+     * A period length >= the cycle length is physiologically impossible and used
+     * to paint every day of the month as menstruation (a solid period block on
+     * the calendar). The engine now falls back to the default, so the month must
+     * contain non-menstruation phases.
+     */
+    public function test_month_is_not_all_menstruation_when_period_exceeds_cycle(): void
+    {
+        $this->actingUser([
+            'cycle_duration' => 15,
+            'period_duration' => 15,
+            'last_period_start' => now()->startOfMonth()->toDateString(),
+        ]);
+
+        $now = now();
+        $response = $this->getJson("/api/v1/cycle/month/{$now->year}/{$now->month}")->assertOk();
+
+        $phases = collect($response->json('data.calculations'))->pluck('phase')->unique();
+
+        $this->assertGreaterThan(1, $phases->count(), 'Calendar month should not be a single solid phase.');
+        $this->assertContains('follicular', $phases->all());
+    }
+
+    /**
      * The recalculate job must complete (not hang on "processing") even with the
      * degenerate data. Tests use the sync queue, so the job runs inline.
      */

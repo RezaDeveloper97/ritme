@@ -11,6 +11,10 @@ import type { CycleCalculation, MonthSummary } from '../model/types';
  */
 export const cycleCalculationSchema = z
   .object({
+    // Gregorian `YYYY-MM-DD` the backend stamps on every calculation. The
+    // calendar keys each day cell by this so a filtered/sparse month array still
+    // maps to the right dates (§7 — converted to Jalali only for display).
+    calculation_date: z.string(),
     cycle_day: z.number(),
     phase: z.string(),
     subphase: z.string().nullable().default(null),
@@ -24,6 +28,7 @@ export const cycleCalculationSchema = z
   })
   .transform(
     (c): CycleCalculation => ({
+      calculationDate: c.calculation_date,
       cycleDay: c.cycle_day,
       phase: c.phase,
       subphase: c.subphase,

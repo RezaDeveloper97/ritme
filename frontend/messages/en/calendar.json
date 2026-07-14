@@ -6,6 +6,11 @@
   "weekView": "Week",
   "edit": "Edit",
   "today": "Today",
+  "logPeriodCta": "Log period",
+  "jumpToMonth": "Jump to another month",
+  "goToToday": "Go to today",
+  "recalculating": "Updating your cycle…",
+  "close": "Close",
   "phaseLabel": "Phase",
   "weekdays": {
     "sat": "Sa",
@@ -19,14 +24,17 @@
   "legend": {
     "period": "Period",
     "fertile": "Fertile window",
-    "ovulation": "Ovulation"
+    "ovulation": "Ovulation",
+    "pms": "PMS"
   },
+  "startPeriodHere": "Start period on this day",
   "phase": {
     "period": "Period days",
     "follicular": "Follicular phase",
     "fertile": "Fertile window",
     "ovulation": "Ovulation",
-    "luteal": "Luteal phase"
+    "luteal": "Luteal phase",
+    "pms": "PMS"
   },
   "day": {
     "cycleDay": "Cycle day {n}",
@@ -48,5 +56,8 @@
     "title": "Smart tip",
     "body": "During the luteal phase your body may want more rest and nutrients. Magnesium-rich foods and enough sleep can help you feel your best.",
     "quote": "Listen to your body's rhythm — each day has its own story."
-  }
+  },
+  "editThisPeriod": "Edit this period",
+  "removeThisDay": "Not a period day",
+  "addToPeriod": "Add to period days"
 }

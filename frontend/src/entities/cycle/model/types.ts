@@ -9,6 +9,14 @@ export type CyclePhase =
 /** Relative likelihood of conception on a given day. Informational only (§11). */
 export type PregnancyChance = 'low' | 'medium' | 'high';
 
+/**
+ * The colored marker a calendar day gets. Unlike {@link CyclePhase} this is a
+ * display concern: the fertile window and PMS window are flags the backend sets
+ * *within* the follicular/luteal phases, but the calendar surfaces them as their
+ * own colors. A day with no marker reads as neutral.
+ */
+export type CycleDayMarker = 'period' | 'fertile' | 'ovulation' | 'pms';
+
 /** The parameters that define a user's cycle. Gregorian at this boundary (§7). */
 export interface CycleConfig {
   /** First day of the current/reference period (day 1 of the cycle). */
@@ -33,6 +41,8 @@ export interface CycleDayInfo {
  * by the zod boundary parser; probabilities are informational only (§11).
  */
 export interface CycleCalculation {
+  /** Gregorian `YYYY-MM-DD` this calculation is for (§7 — display in Jalali). */
+  calculationDate: string;
   /** 1-based day within the current cycle. */
   cycleDay: number;
   /** Raw phase string from the API (normalized to `CyclePhase` in selectors). */

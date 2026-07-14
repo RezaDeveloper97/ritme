@@ -2,11 +2,9 @@
 
 namespace App\Services\HealthEngine;
 
-use App\Enums\CalculationStatus;
 use App\Enums\CyclePhase;
 use App\Enums\CycleSubphase;
 use App\Enums\CycleVariability;
-use App\Models\CycleCalculation;
 use App\Models\CycleHistory;
 use App\Models\DailyHealthLog;
 use App\Models\User;
@@ -61,7 +59,9 @@ class HealthDataEngine
     ];
 
     private User $user;
+
     private ?UserProfile $profile;
+
     private string $locale;
 
     public function __construct(User $user, string $locale = 'en')
@@ -76,7 +76,7 @@ class HealthDataEngine
      */
     public function calculateForDate(Carbon $date): array
     {
-        if (!$this->profile || !$this->profile->last_period_start) {
+        if (! $this->profile || ! $this->profile->last_period_start) {
             return $this->getEmptyCalculation($date);
         }
 
@@ -91,8 +91,12 @@ class HealthDataEngine
         $ovulationDay = $this->calculateOvulationDay($cycleLength);
 
         // Phase detection
-        $phase = $this->determinePhase($cycleDay, $ovulationDay, $cycleLength);
-        $subphase = $this->determineSubphase($cycleDay, $ovulationDay, $cycleLength);
+        // Prefer the bleeding length the user actually logged for this cycle's
+        // period (start→end) over the profile default, so an edited end date
+        // is reflected on the calendar immediately.
+        $loggedBleeding = $this->loggedBleedingLength($date, $cycleLength, $cycleHistories);
+        $phase = $this->determinePhase($cycleDay, $ovulationDay, $cycleLength, $loggedBleeding);
+        $subphase = $this->determineSubphase($cycleDay, $ovulationDay, $cycleLength, $loggedBleeding);
 
         // Windows detection
         $isFertileWindow = $this->isInFertileWindow($cycleDay, $ovulationDay);
@@ -176,6 +180,7 @@ class HealthDataEngine
             $daysBefore = abs($daysSinceCycleStart);
             // Calculate which day of the previous cycle(s) we're in
             $cycleDay = $cycleLength - ($daysBefore % $cycleLength);
+
             // If we land exactly on cycle length, it means day 1 of the current cycle start
             return $cycleDay === $cycleLength ? $cycleLength : $cycleDay;
         }
@@ -203,6 +208,7 @@ class HealthDataEngine
             $relevantPeriod = $cycleHistories
                 ->filter(function ($history) use ($date) {
                     $periodStart = Carbon::parse($history->period_start_date);
+
                     return $periodStart->lte($date);
                 })
                 ->sortByDesc('period_start_date')
@@ -223,6 +229,7 @@ class HealthDataEngine
                 if ($daysSincePeriod >= $cycleLength) {
                     // More than one cycle has passed - calculate the predicted cycle start
                     $completeCycles = (int) floor($daysSincePeriod / $cycleLength);
+
                     return $periodStart->copy()->addDays($completeCycles * $cycleLength);
                 }
             }
@@ -245,6 +252,7 @@ class HealthDataEngine
 
         // Calculate which cycle we're in and when it started
         $completeCycles = (int) floor($daysSinceLmp / $cycleLength);
+
         return $lmp->copy()->addDays($completeCycles * $cycleLength);
     }
 
@@ -263,7 +271,7 @@ class HealthDataEngine
         // Profile fallback: `?:` also rejects 0, unlike `??` which only rejects null.
         $fallback = (int) ($this->profile->cycle_duration ?: 28);
 
-        $lengths = $histories->pluck('cycle_length')->filter()->values();
+        $lengths = $this->plausibleCycleLengths($histories);
 
         if ($lengths->isEmpty()) {
             return max($fallback, 1);
@@ -291,11 +299,24 @@ class HealthDataEngine
      */
     private function getCycleLengths(Collection $histories): array
     {
-        return $histories->pluck('cycle_length')
-            ->filter()
+        return $this->plausibleCycleLengths($histories)
             ->take(6)
             ->values()
             ->toArray();
+    }
+
+    /**
+     * History cycle lengths that are physiologically plausible (15–60 days,
+     * matching the profile validation bounds). Periods logged a few days apart
+     * — e.g. correcting a mis-tapped start — produce gaps like 4 or 8 days;
+     * treating those as real cycle lengths collapses the effective cycle and
+     * paints the whole calendar as menstruation, so they're ignored here.
+     */
+    private function plausibleCycleLengths(Collection $histories): Collection
+    {
+        return $histories->pluck('cycle_length')
+            ->filter(fn ($length) => $length !== null && $length >= 15 && $length <= 60)
+            ->values();
     }
 
     /**
@@ -308,7 +329,7 @@ class HealthDataEngine
         }
 
         $mean = array_sum($cycleLengths) / count($cycleLengths);
-        $squaredDiffs = array_map(fn($x) => pow($x - $mean, 2), $cycleLengths);
+        $squaredDiffs = array_map(fn ($x) => pow($x - $mean, 2), $cycleLengths);
         $stdDev = sqrt(array_sum($squaredDiffs) / count($cycleLengths));
 
         return CycleVariability::fromStdDev($stdDev);
@@ -323,11 +344,46 @@ class HealthDataEngine
     }
 
     /**
+     * Effective bleeding (menstruation) length in days, guarded so it can never
+     * span the whole cycle. A period longer than the cycle is physiologically
+     * impossible and — before this guard — painted every day of the month as
+     * "menstruation" (a solid period block on the calendar). When the stored
+     * value is implausible (>= cycle length, e.g. from a bad client/legacy
+     * onboarding), fall back to the 5-day default instead of trusting it.
+     */
+    private function effectiveBleedingLength(int $cycleLength, ?int $logged = null): int
+    {
+        $bleeding = $logged ?? $this->profile->period_duration ?? 5;
+
+        if ($bleeding >= $cycleLength) {
+            return max(1, min(5, $cycleLength - 1));
+        }
+
+        return max(1, $bleeding);
+    }
+
+    /**
+     * The bleeding length the user actually logged for the cycle containing
+     * `$date` (the record anchoring that cycle), or null when the period is
+     * still open / unlogged — then the profile default applies.
+     */
+    private function loggedBleedingLength(Carbon $date, int $cycleLength, Collection $cycleHistories): ?int
+    {
+        $cycleStart = $this->findRelevantCycleStart($date, $cycleLength, $cycleHistories);
+
+        $record = $cycleHistories->first(
+            fn ($history) => Carbon::parse($history->period_start_date)->isSameDay($cycleStart)
+        );
+
+        return $record?->bleeding_length;
+    }
+
+    /**
      * Determine current phase
      */
-    public function determinePhase(int $cycleDay, int $ovulationDay, int $cycleLength): CyclePhase
+    public function determinePhase(int $cycleDay, int $ovulationDay, int $cycleLength, ?int $loggedBleeding = null): CyclePhase
     {
-        $bleedingLength = $this->profile->period_duration ?? 5;
+        $bleedingLength = $this->effectiveBleedingLength($cycleLength, $loggedBleeding);
 
         if ($cycleDay <= $bleedingLength) {
             return CyclePhase::MENSTRUATION;
@@ -347,9 +403,9 @@ class HealthDataEngine
     /**
      * Determine detailed subphase
      */
-    public function determineSubphase(int $cycleDay, int $ovulationDay, int $cycleLength): CycleSubphase
+    public function determineSubphase(int $cycleDay, int $ovulationDay, int $cycleLength, ?int $loggedBleeding = null): CycleSubphase
     {
-        $bleedingLength = $this->profile->period_duration ?? 5;
+        $bleedingLength = $this->effectiveBleedingLength($cycleLength, $loggedBleeding);
 
         // Menstruation: day 1 to end of bleeding
         if ($cycleDay <= $bleedingLength) {
@@ -418,7 +474,7 @@ class HealthDataEngine
      */
     public function detectLutealSpotting(int $cycleDay, ?DailyHealthLog $log): bool
     {
-        if (!$log) {
+        if (! $log) {
             return false;
         }
 
@@ -435,7 +491,7 @@ class HealthDataEngine
         $score = 0.60;
 
         // Add based on variability
-        $score += match($variability) {
+        $score += match ($variability) {
             CycleVariability::REGULAR => 0.10,
             CycleVariability::SEMI_IRREGULAR => 0.05,
             CycleVariability::IRREGULAR => 0,
@@ -460,7 +516,7 @@ class HealthDataEngine
      */
     private function hasStrongFertileSignals(?DailyHealthLog $log): bool
     {
-        if (!$log) {
+        if (! $log) {
             return false;
         }
 
@@ -492,7 +548,7 @@ class HealthDataEngine
      */
     public function calculateAgeFactor(): float
     {
-        if (!$this->profile || !$this->profile->birthday) {
+        if (! $this->profile || ! $this->profile->birthday) {
             return 1.0;
         }
 
@@ -520,7 +576,7 @@ class HealthDataEngine
      */
     public function calculateSymptomScore(?DailyHealthLog $log, bool $isPmsWindow, bool $isLutealSpotting): float
     {
-        if (!$log) {
+        if (! $log) {
             return 1.0;
         }
 
@@ -578,6 +634,7 @@ class HealthDataEngine
         float $symptomScore
     ): float {
         $result = $baseProbability * $ageFactor * $cycleScore * $symptomScore;
+
         return min($result, 0.35); // Cap at 35%
     }
 
@@ -749,7 +806,7 @@ class HealthDataEngine
     {
         $tips = [];
 
-        if (!$log) {
+        if (! $log) {
             return $tips;
         }
 
@@ -836,7 +893,7 @@ class HealthDataEngine
      */
     private function getProfileSnapshot(): array
     {
-        if (!$this->profile) {
+        if (! $this->profile) {
             return [];
         }
 

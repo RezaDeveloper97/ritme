@@ -75,6 +75,16 @@ export function formatJalaliDayMonth(date: Date, locale: Locale): string {
   return localizeDigits(`${day} ${monthName}`, locale);
 }
 
+/** Name of a Jalali month (1–12), e.g. «فروردین» (fa) / "Farvardin" (en). */
+export function jalaliMonthName(month: number, locale: Locale): string {
+  return JALALI_MONTHS[locale][month - 1];
+}
+
+/** A Jalali year with localized digits, e.g. «۱۴۰۵» (fa) / "1405" (en). */
+export function formatJalaliYear(year: number, locale: Locale): string {
+  return localizeDigits(String(year), locale);
+}
+
 /** Month name + year for a Jalali month, e.g. «دی ۱۴۰۳» (fa) / "Dey 1403" (en). */
 export function formatJalaliMonthLabel(year: number, month: number, locale: Locale): string {
   const monthName = JALALI_MONTHS[locale][month - 1];

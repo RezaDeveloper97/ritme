@@ -254,6 +254,221 @@ class PeriodLogController extends Controller
     }
 
     /**
+     * @OA\Get(
+     *     path="/cycle/period/history",
+     *     summary="List logged periods",
+     *     description="All periods the user has logged (newest first), so the client can render and edit real logged ranges as opposed to predictions.",
+     *     tags={"Cycle"},
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Logged periods",
+     *
+     *         @OA\JsonContent(
+     *
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="periods", type="array",
+     *
+     *                     @OA\Items(type="object",
+     *
+     *                         @OA\Property(property="id", type="integer", example=12),
+     *                         @OA\Property(property="period_start_date", type="string", format="date", example="2024-12-01"),
+     *                         @OA\Property(property="period_end_date", type="string", format="date", nullable=true, example="2024-12-05")
+     *                     )
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
+     */
+    public function history(Request $request): JsonResponse
+    {
+        $periods = CycleHistory::where('user_id', $request->user()->id)
+            ->orderBy('period_start_date', 'desc')
+            ->get()
+            ->map(fn (CycleHistory $p) => [
+                'id' => $p->id,
+                'period_start_date' => $p->period_start_date?->toDateString(),
+                'period_end_date' => $p->period_end_date?->toDateString(),
+            ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => ['periods' => $periods],
+        ]);
+    }
+
+    /**
+     * @OA\Put(
+     *     path="/cycle/period/{period}",
+     *     summary="Edit a logged period",
+     *     description="Moves a logged period's start and/or end date, then re-anchors the cycle and recalculates predictions.",
+     *     tags={"Cycle"},
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\Parameter(name="period", in="path", required=true, @OA\Schema(type="integer")),
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *
+     *         @OA\JsonContent(
+     *             required={"start_date"},
+     *
+     *             @OA\Property(property="start_date", type="string", format="date", example="2024-12-02"),
+     *             @OA\Property(property="end_date", type="string", format="date", nullable=true, example="2024-12-06", description="Omit/null to leave the period ongoing")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(response=200, description="Period updated"),
+     *     @OA\Response(response=404, description="Period not found"),
+     *     @OA\Response(response=422, description="Validation error"),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
+     */
+    public function update(Request $request, int $period): JsonResponse
+    {
+        $locale = $this->resolveLocale($request);
+        app()->setLocale($locale);
+
+        $validator = Validator::make($request->all(), [
+            'start_date' => 'required|date|before_or_equal:today',
+            'end_date' => 'nullable|date|after_or_equal:start_date|before_or_equal:today',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first(),
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $user = $request->user();
+        $record = CycleHistory::where('user_id', $user->id)->find($period);
+
+        if (! $record) {
+            return response()->json([
+                'success' => false,
+                'message' => $locale === 'fa' ? 'پریود مورد نظر پیدا نشد.' : 'Period not found.',
+            ], 404);
+        }
+
+        $startDate = Carbon::parse($request->input('start_date'))->startOfDay();
+        $endDate = $request->filled('end_date')
+            ? Carbon::parse($request->input('end_date'))->startOfDay()
+            : null;
+
+        $record->update([
+            'period_start_date' => $startDate,
+            'period_end_date' => $endDate?->toDateString(),
+            'bleeding_length' => $endDate ? $startDate->diffInDays($endDate) + 1 : null,
+        ]);
+
+        $this->recomputeCycleLengths($user->id);
+        $this->reanchor($user, $locale);
+
+        return response()->json([
+            'success' => true,
+            'message' => __('profile.updated'),
+            'data' => [
+                'id' => $record->id,
+                'period_start_date' => $record->period_start_date?->toDateString(),
+                'period_end_date' => $record->period_end_date?->toDateString(),
+            ],
+        ]);
+    }
+
+    /**
+     * @OA\Delete(
+     *     path="/cycle/period/{period}",
+     *     summary="Delete a logged period",
+     *     description="Removes a logged period, re-anchors the cycle on the most recent remaining period and recalculates predictions.",
+     *     tags={"Cycle"},
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\Parameter(name="period", in="path", required=true, @OA\Schema(type="integer")),
+     *
+     *     @OA\Response(response=200, description="Period deleted"),
+     *     @OA\Response(response=404, description="Period not found"),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
+     */
+    public function destroy(Request $request, int $period): JsonResponse
+    {
+        $locale = $this->resolveLocale($request);
+        app()->setLocale($locale);
+
+        $user = $request->user();
+        $record = CycleHistory::where('user_id', $user->id)->find($period);
+
+        if (! $record) {
+            return response()->json([
+                'success' => false,
+                'message' => $locale === 'fa' ? 'پریود مورد نظر پیدا نشد.' : 'Period not found.',
+            ], 404);
+        }
+
+        $record->delete();
+
+        $this->recomputeCycleLengths($user->id);
+        $this->reanchor($user, $locale);
+
+        return response()->json([
+            'success' => true,
+            'message' => __('profile.updated'),
+            'data' => ['deleted' => true],
+        ]);
+    }
+
+    /**
+     * Recompute each record's cycle_length (gap to the previous period start)
+     * after an edit or delete shuffled the timeline, so variability and the
+     * effective cycle length stay truthful.
+     */
+    private function recomputeCycleLengths(int $userId): void
+    {
+        $records = CycleHistory::where('user_id', $userId)
+            ->orderBy('period_start_date')
+            ->get();
+
+        $previousStart = null;
+        foreach ($records as $record) {
+            $start = Carbon::parse($record->period_start_date)->startOfDay();
+            $length = $previousStart?->diffInDays($start);
+            if ($record->cycle_length !== $length) {
+                $record->update(['cycle_length' => $length]);
+            }
+            $previousStart = $start;
+        }
+    }
+
+    /**
+     * Point the engine's anchor (profile LMP) at the most recent remaining
+     * logged period — or clear it when none are left — then recalculate.
+     */
+    private function reanchor($user, string $locale): void
+    {
+        $profile = $user->profile;
+        if (! $profile) {
+            return;
+        }
+
+        $latest = CycleHistory::where('user_id', $user->id)
+            ->orderBy('period_start_date', 'desc')
+            ->first();
+
+        $profile->update([
+            'last_period_start' => $latest?->period_start_date?->toDateString(),
+        ]);
+
+        $this->triggerRecalculation($user, $profile, $locale);
+    }
+
+    /**
      * The user's currently-ongoing period: the most recent record that has no
      * end date yet and started within the ongoing window.
      */

@@ -3,5 +3,30 @@
   "end": "End period",
   "confirm": "Tap again to confirm",
   "pending": "Saving…",
-  "error": "Couldn't save. Please try again."
+  "error": "Couldn't save. Please try again.",
+  "editor": {
+    "title": "Log period days",
+    "hint": "Tap or drag across the days you had bleeding.",
+    "count": "{n, plural, one {# day selected} other {# days selected}}",
+    "selectPrompt": "Select one or more days",
+    "save": "Save",
+    "saving": "Saving…",
+    "error": "Couldn't save. Please try again.",
+    "weekdays": {
+      "sat": "Sa",
+      "sun": "Su",
+      "mon": "Mo",
+      "tue": "Tu",
+      "wed": "We",
+      "thu": "Th",
+      "fri": "Fr"
+    },
+    "editTitle": "Edit period",
+    "saveChanges": "Save changes",
+    "delete": "Delete this period",
+    "confirmDelete": "Yes, delete",
+    "deleting": "Deleting…",
+    "cancel": "Cancel",
+    "close": "Close"
+  }
 }

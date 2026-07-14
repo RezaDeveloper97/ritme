@@ -81,6 +81,9 @@ Route::prefix('v1')->group(function () {
             Route::get('/period/status', [PeriodLogController::class, 'status']);
             Route::post('/period/start', [PeriodLogController::class, 'start']);
             Route::post('/period/end', [PeriodLogController::class, 'end']);
+            Route::get('/period/history', [PeriodLogController::class, 'history']);
+            Route::put('/period/{period}', [PeriodLogController::class, 'update']);
+            Route::delete('/period/{period}', [PeriodLogController::class, 'destroy']);
 
             // Matrix Messages (Personalized Phase-based Messages)
             Route::get('/matrix-messages', [CycleCalculationController::class, 'matrixMessages']);

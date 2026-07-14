@@ -17,6 +17,9 @@ import { isAuthenticated } from '@/shared/session';
  */
 const periodStatusKey = ['period-status'] as const;
 
+/** Query key for the logged-period history, outside `cycleKeys.all` like status. */
+const periodHistoryKey = ['period-history'] as const;
+
 const periodStatusSchema = z.object({
   active: z.boolean(),
   period_start_date: z.string().nullable().optional(),
@@ -54,6 +57,9 @@ function useInvalidateCycle() {
     void queryClient.invalidateQueries({ queryKey: cycleKeys.all });
     void queryClient.invalidateQueries({ queryKey: messageKeys.all });
     void queryClient.invalidateQueries({ queryKey: userKeys.all });
+    // The logged-period list changed too — without this the calendar keeps a
+    // stale history and re-offers "start period" right after one was logged.
+    void queryClient.invalidateQueries({ queryKey: periodHistoryKey });
   };
 }
 
@@ -82,6 +88,94 @@ export function useStartPeriod() {
       queryClient.setQueryData(periodStatusKey, status);
       invalidate();
     },
+  });
+}
+
+/**
+ * Log a whole bleeding range in one action (the calendar's "mark period days"
+ * flow). `start` re-anchors the cycle on the backend — which cascades every
+ * future prediction — and `end` (when the range is finished) closes it. Both
+ * dates cross the boundary as Gregorian `YYYY-MM-DD` from `@/shared/lib/date`
+ * (§7) and are never logged (§11). Runs start→end sequentially because the end
+ * endpoint operates on the period the start call just anchored.
+ */
+export function useLogPeriodRange() {
+  const queryClient = useQueryClient();
+  const invalidate = useInvalidateCycle();
+  return useMutation<PeriodStatus, unknown, { start: string; end?: string }>({
+    mutationFn: async ({ start, end }) => {
+      let status = await postPeriod('/cycle/period/start', start);
+      if (end) status = await postPeriod('/cycle/period/end', end);
+      return status;
+    },
+    onSuccess: (status) => {
+      queryClient.setQueryData(periodStatusKey, status);
+      invalidate();
+    },
+  });
+}
+
+const loggedPeriodSchema = z.object({
+  id: z.number(),
+  period_start_date: z.string(),
+  period_end_date: z.string().nullable(),
+});
+
+export type LoggedPeriod = z.infer<typeof loggedPeriodSchema>;
+
+/**
+ * GET /cycle/period/history — every period the user actually logged (as opposed
+ * to predictions), so the calendar can offer "edit this period" on its days.
+ */
+export function usePeriodHistory() {
+  return useQuery({
+    queryKey: periodHistoryKey,
+    queryFn: async (): Promise<LoggedPeriod[]> => {
+      const { data } = await apiClient.get<ApiEnvelope<{ periods: unknown }>>('/cycle/period/history');
+      return z.array(loggedPeriodSchema).parse(data.data?.periods ?? []);
+    },
+    enabled: isAuthenticated(),
+    staleTime: 60_000,
+  });
+}
+
+/** Invalidate the caches a period edit/delete touches (history + everything cyclic). */
+function useInvalidateAfterEdit() {
+  const queryClient = useQueryClient();
+  const invalidate = useInvalidateCycle();
+  return () => {
+    void queryClient.invalidateQueries({ queryKey: periodHistoryKey });
+    void queryClient.invalidateQueries({ queryKey: periodStatusKey });
+    invalidate();
+  };
+}
+
+/**
+ * PUT /cycle/period/{id} — move a logged period's start/end. The backend
+ * re-anchors the cycle and regenerates all predictions. Dates are Gregorian
+ * `YYYY-MM-DD` from `@/shared/lib/date` (§7) and never logged (§11).
+ */
+export function useUpdatePeriod() {
+  const invalidateAll = useInvalidateAfterEdit();
+  return useMutation<void, unknown, { id: number; start: string; end?: string | null }>({
+    mutationFn: async ({ id, start, end }) => {
+      await apiClient.put(`/cycle/period/${id}`, { start_date: start, end_date: end ?? null });
+    },
+    onSuccess: invalidateAll,
+  });
+}
+
+/**
+ * DELETE /cycle/period/{id} — remove a logged period entirely. The backend
+ * re-anchors on the most recent remaining period (or clears the anchor).
+ */
+export function useDeletePeriod() {
+  const invalidateAll = useInvalidateAfterEdit();
+  return useMutation<void, unknown, { id: number }>({
+    mutationFn: async ({ id }) => {
+      await apiClient.delete(`/cycle/period/${id}`);
+    },
+    onSuccess: invalidateAll,
   });
 }
 
