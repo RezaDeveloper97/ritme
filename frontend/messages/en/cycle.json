@@ -66,5 +66,17 @@
     "title": "No cycle logged yet",
     "body": "Log your period details to see your cycle overview.",
     "cta": "Start period"
+  },
+  "values": {
+    "title": "Cycle length",
+    "logged": "Logged cycle length",
+    "suggestion": "Based on your recent logs, your cycle looks closer to {n, number} days.",
+    "syncCta": "Update to {n, number} days",
+    "basedOn": "Current prediction is based on: {source}",
+    "source": {
+      "recent_valid_cycles": "your recent logs",
+      "profile": "your profile",
+      "default": "default values"
+    }
   }
 }

@@ -32,6 +32,7 @@ import ir.ritmeapp.ritme.adapter.outbound.network.AuthGatewayAdapter
 import ir.ritmeapp.ritme.adapter.outbound.network.BannerGatewayAdapter
 import ir.ritmeapp.ritme.adapter.outbound.network.CrashReportUploader
 import ir.ritmeapp.ritme.adapter.outbound.network.CycleGatewayAdapter
+import ir.ritmeapp.ritme.adapter.outbound.network.PeriodLogGatewayAdapter
 import ir.ritmeapp.ritme.adapter.outbound.network.HealthLogGatewayAdapter
 import ir.ritmeapp.ritme.adapter.outbound.network.MessageGatewayAdapter
 import ir.ritmeapp.ritme.adapter.outbound.network.ModeGatewayAdapter
@@ -67,12 +68,14 @@ import ir.ritmeapp.ritme.domain.port.inbound.PregnancyTrackerUseCase
 import ir.ritmeapp.ritme.domain.port.inbound.SaveProfileUseCase
 import ir.ritmeapp.ritme.domain.port.inbound.SendOtpUseCase
 import ir.ritmeapp.ritme.domain.port.inbound.ShouldShowIntroUseCase
+import ir.ritmeapp.ritme.domain.port.inbound.ManagePeriodsUseCase
 import ir.ritmeapp.ritme.domain.port.inbound.StartPeriodUseCase
 import ir.ritmeapp.ritme.domain.port.inbound.VerifyOtpUseCase
 import ir.ritmeapp.ritme.domain.port.outbound.AppPreferences
 import ir.ritmeapp.ritme.domain.port.outbound.AuthGateway
 import ir.ritmeapp.ritme.domain.port.outbound.BannerGateway
 import ir.ritmeapp.ritme.domain.port.outbound.CycleGateway
+import ir.ritmeapp.ritme.domain.port.outbound.PeriodLogGateway
 import ir.ritmeapp.ritme.domain.port.outbound.DiagnosticsReportUploader
 import ir.ritmeapp.ritme.domain.port.outbound.HealthLogGateway
 import ir.ritmeapp.ritme.domain.port.outbound.MessageGateway
@@ -101,6 +104,7 @@ import ir.ritmeapp.ritme.domain.usecase.SaveProfileInteractor
 import ir.ritmeapp.ritme.domain.usecase.SendOtpInteractor
 import ir.ritmeapp.ritme.domain.usecase.SessionStatusInteractor
 import ir.ritmeapp.ritme.domain.usecase.ShouldShowIntroInteractor
+import ir.ritmeapp.ritme.domain.usecase.ManagePeriodsInteractor
 import ir.ritmeapp.ritme.domain.usecase.StartPeriodInteractor
 import ir.ritmeapp.ritme.domain.usecase.TrackingModeInteractor
 import ir.ritmeapp.ritme.domain.usecase.VerifyOtpInteractor
@@ -137,6 +141,7 @@ class AppContainer(application: Application) {
     private val tokenStore: TokenStore = SharedPrefsTokenStore(appContext)
     private val profileGateway: ProfileGateway = ProfileGatewayAdapter(httpClient, tokenStore)
     private val cycleGateway: CycleGateway = CycleGatewayAdapter(httpClient, tokenStore)
+    private val periodLogGateway: PeriodLogGateway = PeriodLogGatewayAdapter(httpClient, tokenStore)
     private val messageGateway: MessageGateway = MessageGatewayAdapter(httpClient, tokenStore)
     private val bannerGateway: BannerGateway = BannerGatewayAdapter(httpClient, tokenStore)
     private val reminderGateway: ReminderGateway = ReminderGatewayAdapter(httpClient, tokenStore)
@@ -166,7 +171,8 @@ class AppContainer(application: Application) {
     private val cycleInsightsUseCase: CycleInsightsUseCase = CycleInsightsInteractor(cycleGateway)
     private val healthLogUseCase: HealthLogUseCase = HealthLogInteractor(healthLogGateway)
     private val getTrackingModeUseCase: GetTrackingModeUseCase = TrackingModeInteractor(modeGateway, appPreferences)
-    private val startPeriodUseCase: StartPeriodUseCase = StartPeriodInteractor(profileGateway)
+    private val startPeriodUseCase: StartPeriodUseCase = StartPeriodInteractor(periodLogGateway)
+    private val managePeriodsUseCase: ManagePeriodsUseCase = ManagePeriodsInteractor(periodLogGateway)
     private val getBannersUseCase: GetBannersUseCase = GetBannersInteractor(bannerGateway)
     private val getUserProfileUseCase: GetUserProfileUseCase = GetUserProfileInteractor(profileGateway)
     private val logoutUseCase: LogoutUseCase = LogoutInteractor(sessionGateway, tokenStore)
@@ -238,7 +244,15 @@ class AppContainer(application: Application) {
     }
 
     fun calendarViewModelFactory(): ViewModelProvider.Factory = viewModelFactory {
-        initializer { CalendarViewModel(cycleInsightsUseCase, healthLogUseCase, getTrackingModeUseCase, todayJalali()) }
+        initializer {
+            CalendarViewModel(
+                cycleInsightsUseCase,
+                healthLogUseCase,
+                getTrackingModeUseCase,
+                managePeriodsUseCase,
+                todayJalali(),
+            )
+        }
     }
 
     fun cycleViewModelFactory(): ViewModelProvider.Factory = viewModelFactory {

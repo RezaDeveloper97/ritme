@@ -94,3 +94,90 @@ export interface CyclePredictions {
   isPeriodTomorrow: boolean;
   isFertileWindow: boolean;
 }
+
+/** How a day's information was derived — drives the daily card's framing (spec §18). */
+export type DataStatus = 'actual' | 'predicted' | 'needs_confirmation' | 'incomplete';
+
+/** Calendar-based fertility level on the daily card (spec §17). Informational only (§11). */
+export type FertilityLevel = 'very_low' | 'low' | 'medium' | 'high' | 'very_high';
+
+/** How much to trust a prediction (spec §18). */
+export type ConfidenceLevel = 'high' | 'medium' | 'low';
+
+/** A daily-card call to action — `type` is a stable code, `label` is localized. */
+export interface CardAction {
+  type: string;
+  label: string;
+}
+
+/**
+ * The backend-rendered day-status card (spec §19). The client only renders it and
+ * never re-implements the Cycle Engine's title rules.
+ */
+export interface DailyCard {
+  title: string;
+  subtitle: string;
+  dataStatus: DataStatus;
+  fertilityLevel: FertilityLevel;
+  fertilityLabel: string;
+  badges: string[];
+  primaryAction: CardAction | null;
+  secondaryActions: CardAction[];
+}
+
+/** Upcoming period / ovulation / fertile-window forecast (spec §13). Gregorian dates (§7). */
+export interface CycleForecast {
+  nextPeriodStart: string;
+  nextPeriodEnd: string;
+  estimatedOvulationDate: string;
+  fertileWindowStart: string;
+  fertileWindowEnd: string;
+  /** Which layer the forecast is based on: recent_valid_cycles | profile | default. */
+  source: string;
+  confidence: ConfidenceLevel;
+  confidenceReasons: string[];
+}
+
+/** One layer of the profile / calculated / effective values (spec §12). */
+export interface CycleValueLayer {
+  cycleLength: number | null;
+  periodDuration: number | null;
+}
+
+export interface CalculatedValues extends CycleValueLayer {
+  /** Number of valid cycles behind the calculated values (null until ≥3 exist). */
+  basedOnCycles: number | null;
+}
+
+export interface EffectiveValues extends CycleValueLayer {
+  source: string;
+  periodDurationSource: string;
+}
+
+/** Confidence + regularity read-out for the day (spec §18). */
+export interface CycleDataQuality {
+  confidence: ConfidenceLevel;
+  confidenceReasons: string[];
+  regularityStatus: string;
+  isIrregularPossible: boolean;
+  missingPeriodEnd: boolean;
+}
+
+/**
+ * The full render-ready daily payload (spec §19), served under `data.cycle_view`.
+ * Core fields are null when the profile is incomplete (no anchor yet).
+ */
+export interface CycleView {
+  date: string;
+  cycleDay: number | null;
+  phase: string | null;
+  subphase: string | null;
+  fertilityLevel: FertilityLevel | null;
+  dataStatus: DataStatus | null;
+  forecast: CycleForecast | null;
+  profileValues: CycleValueLayer;
+  calculatedValues: CalculatedValues;
+  effectiveValues: EffectiveValues;
+  dataQuality: CycleDataQuality;
+  dailyCard: DailyCard | null;
+}

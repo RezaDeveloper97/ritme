@@ -212,6 +212,14 @@
     <string name="calendar_legend_period">پریود</string>
     <string name="calendar_legend_fertile">پنجرهٔ باروری</string>
     <string name="calendar_legend_ovulation">تخمک‌گذاری</string>
+    <string name="calendar_legend_pms">پی‌ام‌اس</string>
+    <string name="calendar_phase_pms">پی‌ام‌اس</string>
+    <string name="calendar_start_period_here">شروع پریود از این روز</string>
+    <string name="calendar_add_to_period">افزودن به روزهای پریود</string>
+    <string name="calendar_remove_period_day">پریود نبودم</string>
+    <string name="calendar_go_today">برو به امروز</string>
+    <string name="calendar_prev_year">سال قبل</string>
+    <string name="calendar_next_year">سال بعد</string>
     <string name="calendar_phase_label">فاز</string>
     <string name="calendar_cycle_day">سیکل روز %1$s</string>
     <string name="calendar_chance_label">احتمال باردار بودن</string>

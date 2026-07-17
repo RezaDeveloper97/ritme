@@ -1,7 +1,11 @@
 import type { CycleCalculation, CycleDayMarker, CyclePhase, CyclePredictions } from './types';
 
-/** Days before ovulation the fertile window is considered to open. */
-const FERTILE_WINDOW_LEAD_DAYS = 4;
+/**
+ * Days before ovulation the fertile window opens — matches the backend
+ * (`isInFertileWindow`: ovulation − 5 … ovulation + 1) so the label and the
+ * calendar's fertile-colored cells agree.
+ */
+const FERTILE_WINDOW_LEAD_DAYS = 5;
 
 /** Length of the PMS window (the run of days ending the day before next period). */
 const PMS_WINDOW_DAYS = 4;
@@ -69,7 +73,9 @@ export function cycleDayMarker(calc: CycleCalculation): CycleDayMarker | null {
  * calculation can't produce nonsense like a negative "days until next period".
  */
 export function deriveCyclePredictions(calc: CycleCalculation): CyclePredictions {
-  const daysUntilNextPeriod = Math.max(0, calc.cycleLength - calc.cycleDay);
+  // +1: the next period starts on cycle day cycleLength+1, not cycleLength, so the
+  // offset reaches the next period start (matches the backend forecast date).
+  const daysUntilNextPeriod = Math.max(0, calc.cycleLength - calc.cycleDay + 1);
   const daysUntilOvulation = calc.estimatedOvulationDay - calc.cycleDay;
   // PMS is the short run of days ending the day before the next period. Clamp to
   // today so an imminent/overdue period never yields a negative window.

@@ -244,7 +244,7 @@ function NextPeriodCard({
 
       {/* single cycle-progress bar (Figma Frame 65) */}
       <div style={{ height: 10, borderRadius: 99, background: 'rgba(255,255,255,.3)', border: '1px solid rgba(255,255,255,.55)', margin: '14px 4px 12px', overflow: 'hidden' }}>
-        <div style={{ height: '100%', width: `${pct}%`, borderRadius: 99, background: '#fff', marginInlineStart: 'auto' }} />
+        <div style={{ height: '100%', width: `${pct}%`, borderRadius: 99, background: '#fff' }} />
       </div>
 
       {/* phase explanation box (Figma Frame 66 — #F96C9C) */}
@@ -583,7 +583,7 @@ export function HomePage() {
 
   // A tapped past/future day loads its own calculation + message; today reuses
   // the queries above (same cache keys — no extra fetch).
-  const { data: dateData } = useCycleForDate(selApiDate, !isToday);
+  const { data: dateData, isFetching: dateFetching } = useCycleForDate(selApiDate, !isToday);
   const { data: infoMessage } = useDailyMessage(isToday ? undefined : selApiDate);
 
   const infoCalc = (isToday ? todayData : dateData)?.calculation ?? null;
@@ -591,7 +591,12 @@ export function HomePage() {
   const infoFmt = (offset: number) => formatJalaliDayMonth(addDays(selectedDate, offset), loc);
   const infoNextPeriodDate = infoPred ? infoFmt(infoPred.daysUntilNextPeriod) : null;
   const infoPhaseLabel = infoPred ? t(`phaseLabel.${infoPred.phase}`) : '';
-  const infoPhaseDesc = infoMessage?.primary.longMessage || t('nextPeriod.phaseDesc');
+  // Short line here; the SmartTip below carries the long one, so the same paragraph
+  // isn't shown twice (§ no duplicate copy).
+  const infoPhaseDesc = infoMessage?.primary.shortMessage || t('nextPeriod.phaseDesc');
+  // Selecting a past/future day fetches its data; dim the card meanwhile so the
+  // placeholder values read as "loading", not as a broken empty state (§ loading).
+  const infoLoading = !isToday && dateFetching && !dateData;
   const selectedDateLabel = formatJalaliDayMonth(selectedDate, loc);
 
   return (
@@ -622,7 +627,7 @@ export function HomePage() {
               onSelect={(cell) => setSelectedDate(cell.date)}
             />
           </div>
-          <div style={{ borderRadius: 16, overflow: 'hidden', boxShadow: '0 18px 34px -18px rgba(233,30,99,.55)' }}>
+          <div style={{ borderRadius: 16, overflow: 'hidden', boxShadow: '0 18px 34px -18px rgba(233,30,99,.55)', opacity: infoLoading ? 0.55 : 1, transition: 'opacity .15s ease' }}>
             <NextPeriodCard
               t={t}
               pred={infoPred}

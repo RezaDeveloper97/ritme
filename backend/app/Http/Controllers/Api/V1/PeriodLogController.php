@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Enums\CalculationStatus;
+use App\Enums\DataQualityFlag;
+use App\Enums\DataSource;
 use App\Http\Controllers\Concerns\ResolvesLocale;
 use App\Http\Controllers\Controller;
 use App\Jobs\CalculateCycleDataJob;
@@ -24,12 +26,19 @@ class PeriodLogController extends Controller
 {
     use ResolvesLocale;
 
-    /**
-     * How many days after a period start we still consider it "ongoing" (i.e.
-     * the End-period action applies to it). Guards against an old un-closed
-     * record staying active forever.
-     */
-    private const ONGOING_WINDOW_DAYS = 15;
+    /** A period longer than this is unusual — allowed, but flagged and warned (§16). */
+    private const LONG_PERIOD_DAYS = 10;
+
+    /** Cycle gaps outside this range read as irregular outliers (§8, §16). */
+    private const MIN_PLAUSIBLE_CYCLE_DAYS = 21;
+
+    private const MAX_PLAUSIBLE_CYCLE_DAYS = 45;
+
+    /** A new start closer than this to the previous one gets a stronger warning (§16). */
+    private const CLOSE_START_DAYS = 14;
+
+    /** An open period older than this is no longer "ongoing" and won't block a new start (§4). */
+    private const HARD_CAP_DAYS = 12;
 
     /**
      * @OA\Get(
@@ -119,22 +128,47 @@ class PeriodLogController extends Controller
             : now()->startOfDay();
 
         // Reuse the record for this exact day if it already exists (idempotent
-        // re-tap), otherwise create a fresh one. Avoid updateOrCreate on the
-        // date column — SQLite's date cast makes its match unreliable.
+        // re-tap / estimate promotion), otherwise create a fresh one. Avoid
+        // updateOrCreate on the date column — SQLite's date cast makes it unreliable.
         $period = CycleHistory::where('user_id', $user->id)
             ->whereDate('period_start_date', $startDate->toDateString())
             ->first();
 
+        // Block a new start while a genuinely-ongoing period is still open (spec §3/§16.6):
+        // the user must close the previous bleed first rather than stack two open periods.
+        if ($blocker = $this->blockingOpenPeriod($user->id, $startDate)) {
+            return response()->json([
+                'success' => false,
+                'message' => $locale === 'fa'
+                    ? 'پایان پریود قبلی هنوز ثبت نشده است. ابتدا پایان آن را مشخص کن.'
+                    : 'Your previous period has no end date yet. Please log its end first.',
+                'code' => 'previous_period_open',
+                'data' => ['open_period_start' => $blocker->period_start_date?->toDateString()],
+            ], 422);
+        }
+
+        // Reject a start that lands inside another logged period's range (spec §16.2).
+        // The same-day record (if any) is the reuse target, not an overlap.
+        if ($this->overlapsExistingPeriod($user->id, $startDate, $startDate, $period?->id)) {
+            return response()->json([
+                'success' => false,
+                'message' => $locale === 'fa'
+                    ? 'این تاریخ با یک پریود ثبت‌شدهٔ دیگر همپوشانی دارد. لطفاً یکی از بازه‌ها را ویرایش کن.'
+                    : 'This date overlaps another logged period. Please edit one of the ranges.',
+                'code' => 'period_overlap',
+            ], 422);
+        }
+
         if ($period) {
-            // Starting a period means it's ongoing again — clear any end that a
-            // previous "end period" wrote for this same day, so the record is a
-            // genuinely open period the End action can later close.
-            if ($period->period_end_date !== null || $period->bleeding_length !== null) {
-                $period->update([
-                    'period_end_date' => null,
-                    'bleeding_length' => null,
-                ]);
-            }
+            // Logging a start promotes an onboarding estimate on this day into a real,
+            // user-confirmed period (spec §1) and reopens it so End can close it.
+            $period->update([
+                'period_end_date' => null,
+                'bleeding_length' => null,
+                'is_confirmed' => true,
+                'is_estimated' => false,
+                'source' => DataSource::USER_LOGGED->value,
+            ]);
         } else {
             // Cycle length = gap from the previous period start, if any.
             $previous = CycleHistory::where('user_id', $user->id)
@@ -151,8 +185,17 @@ class PeriodLogController extends Controller
                 'period_start_date' => $startDate,
                 'cycle_length' => $cycleLength,
                 'is_confirmed' => true,
+                'source' => DataSource::USER_LOGGED->value,
+                'data_quality_flags' => $this->qualityFlags($cycleLength, null),
             ]);
         }
+
+        // Real logged data supersedes the onboarding seed — drop any remaining
+        // estimates (other than the record we just wrote) so they can't linger.
+        CycleHistory::where('user_id', $user->id)
+            ->where('is_estimated', true)
+            ->where('id', '!=', $period->id)
+            ->delete();
 
         // Re-anchor the cycle engine on this period start and recalculate.
         $profile = $user->profile;
@@ -168,6 +211,7 @@ class PeriodLogController extends Controller
                 'active' => true,
                 'period_start_date' => $period->period_start_date?->toDateString(),
                 'period_end_date' => $period->period_end_date?->toDateString(),
+                'warnings' => $this->periodWarnings($period->cycle_length, $period->bleeding_length, $locale),
             ],
         ]);
     }
@@ -237,9 +281,11 @@ class PeriodLogController extends Controller
             ], 422);
         }
 
+        $bleedingLength = $startDate->diffInDays($endDate) + 1;
         $period->update([
             'period_end_date' => $endDate->toDateString(),
-            'bleeding_length' => $startDate->diffInDays($endDate) + 1,
+            'bleeding_length' => $bleedingLength,
+            'data_quality_flags' => $this->qualityFlags($period->cycle_length, $bleedingLength),
         ]);
 
         return response()->json([
@@ -249,6 +295,7 @@ class PeriodLogController extends Controller
                 'active' => false,
                 'period_start_date' => $period->period_start_date?->toDateString(),
                 'period_end_date' => $period->period_end_date?->toDateString(),
+                'warnings' => $this->periodWarnings($period->cycle_length, $bleedingLength, $locale),
             ],
         ]);
     }
@@ -287,13 +334,17 @@ class PeriodLogController extends Controller
      */
     public function history(Request $request): JsonResponse
     {
+        // Estimates (the onboarding seed) are not user-managed periods — they render as
+        // predictions and are excluded here so the client only lists real logged ranges.
         $periods = CycleHistory::where('user_id', $request->user()->id)
+            ->where('is_estimated', false)
             ->orderBy('period_start_date', 'desc')
             ->get()
             ->map(fn (CycleHistory $p) => [
                 'id' => $p->id,
                 'period_start_date' => $p->period_start_date?->toDateString(),
                 'period_end_date' => $p->period_end_date?->toDateString(),
+                'source' => $p->source,
             ]);
 
         return response()->json([
@@ -362,6 +413,17 @@ class PeriodLogController extends Controller
             ? Carbon::parse($request->input('end_date'))->startOfDay()
             : null;
 
+        // The edited range must not collide with another logged period (spec §16.2).
+        if ($this->overlapsExistingPeriod($user->id, $startDate, $endDate ?? $startDate, $record->id)) {
+            return response()->json([
+                'success' => false,
+                'message' => $locale === 'fa'
+                    ? 'این بازه با یک پریود ثبت‌شدهٔ دیگر همپوشانی دارد. لطفاً یکی از بازه‌ها را ویرایش کن.'
+                    : 'This range overlaps another logged period. Please edit one of the ranges.',
+                'code' => 'period_overlap',
+            ], 422);
+        }
+
         $record->update([
             'period_start_date' => $startDate,
             'period_end_date' => $endDate?->toDateString(),
@@ -371,6 +433,12 @@ class PeriodLogController extends Controller
         $this->recomputeCycleLengths($user->id);
         $this->reanchor($user, $locale);
 
+        // Recompute quality flags against the re-anchored cycle length and edited duration.
+        $record->refresh();
+        $record->update([
+            'data_quality_flags' => $this->qualityFlags($record->cycle_length, $record->bleeding_length),
+        ]);
+
         return response()->json([
             'success' => true,
             'message' => __('profile.updated'),
@@ -378,6 +446,7 @@ class PeriodLogController extends Controller
                 'id' => $record->id,
                 'period_start_date' => $record->period_start_date?->toDateString(),
                 'period_end_date' => $record->period_end_date?->toDateString(),
+                'warnings' => $this->periodWarnings($record->cycle_length, $record->bleeding_length, $locale),
             ],
         ]);
     }
@@ -469,16 +538,133 @@ class PeriodLogController extends Controller
     }
 
     /**
-     * The user's currently-ongoing period: the most recent record that has no
-     * end date yet and started within the ongoing window.
+     * The user's currently-ongoing period: the most recent record that still has no
+     * end date. No age window — a long-open period stays endable so the End action
+     * agrees with the daily card's "log period end" prompt (spec §4).
      */
     private function ongoingPeriod(int $userId): ?CycleHistory
     {
         return CycleHistory::where('user_id', $userId)
             ->whereNull('period_end_date')
-            ->whereDate('period_start_date', '>=', now()->subDays(self::ONGOING_WINDOW_DAYS)->toDateString())
             ->orderBy('period_start_date', 'desc')
             ->first();
+    }
+
+    /**
+     * A genuinely-ongoing period that should block a new Start on a different day
+     * (spec §3/§16.6): a real, open (null-end) record whose start is recent enough
+     * (within the hard cap of today) that the user could still be bleeding. Old
+     * start-only records — the correction/backfill flow — are deliberately NOT
+     * blocking, and estimates (which carry an end) never are.
+     */
+    private function blockingOpenPeriod(int $userId, Carbon $startDate): ?CycleHistory
+    {
+        return CycleHistory::where('user_id', $userId)
+            ->whereNull('period_end_date')
+            ->where('is_estimated', false)
+            ->whereDate('period_start_date', '!=', $startDate->toDateString())
+            ->whereDate('period_start_date', '>=', now()->subDays(self::HARD_CAP_DAYS)->toDateString())
+            ->orderBy('period_start_date', 'desc')
+            ->first();
+    }
+
+    /**
+     * Whether [start, end] intersects another logged period's actual range (spec §16.2).
+     * Open periods and estimates count only as their single start day — their assumed
+     * bleed length is not treated as occupied, so the correction flow (starts logged a
+     * few days apart) and the onboarding seed don't produce phantom overlaps.
+     */
+    private function overlapsExistingPeriod(int $userId, Carbon $start, Carbon $end, ?int $excludeId): bool
+    {
+        $others = CycleHistory::where('user_id', $userId)
+            ->where('is_estimated', false)
+            ->when($excludeId !== null, fn ($q) => $q->where('id', '!=', $excludeId))
+            ->get();
+
+        foreach ($others as $other) {
+            $otherStart = Carbon::parse($other->period_start_date)->startOfDay();
+            $otherEnd = $other->period_end_date
+                ? Carbon::parse($other->period_end_date)->startOfDay()
+                : $otherStart;
+
+            // Standard interval overlap: startA <= endB AND startB <= endA.
+            if ($start->lte($otherEnd) && $otherStart->lte($end)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Non-fatal data-quality flags implied by a period's own bleeding length and the
+     * gap to the previous period (§8, §16). Stored on the record so predictions can
+     * hold outliers out of the medians while keeping them visible in history.
+     *
+     * @return array<string>
+     */
+    private function qualityFlags(?int $cycleLength, ?int $bleedingLength): array
+    {
+        $flags = [];
+
+        if ($bleedingLength !== null && $bleedingLength > self::LONG_PERIOD_DAYS) {
+            $flags[] = DataQualityFlag::LONG_PERIOD->value;
+        }
+        if ($bleedingLength === 1) {
+            $flags[] = DataQualityFlag::SHORT_PERIOD->value;
+        }
+        if ($cycleLength !== null && ($cycleLength < self::MIN_PLAUSIBLE_CYCLE_DAYS || $cycleLength > self::MAX_PLAUSIBLE_CYCLE_DAYS)) {
+            $flags[] = DataQualityFlag::IRREGULAR_CYCLE->value;
+        }
+
+        return $flags;
+    }
+
+    /**
+     * Non-blocking warnings for unusual but allowed data (§16): logging is never
+     * blocked — the user is simply informed and the record is flagged.
+     *
+     * @return array<array{type: string, message: string}>
+     */
+    private function periodWarnings(?int $cycleLength, ?int $bleedingLength, string $locale): array
+    {
+        $warnings = [];
+
+        if ($bleedingLength !== null && $bleedingLength > self::LONG_PERIOD_DAYS) {
+            $warnings[] = [
+                'type' => DataQualityFlag::LONG_PERIOD->value,
+                'message' => $locale === 'fa'
+                    ? 'این بازه طولانی‌تر از معمول است. اگر مطمئنی، می‌توانی آن را ثبت کنی.'
+                    : 'This range is longer than usual. You can still log it if you are sure.',
+            ];
+        }
+
+        if ($bleedingLength === 1) {
+            $warnings[] = [
+                'type' => DataQualityFlag::SHORT_PERIOD->value,
+                'message' => $locale === 'fa'
+                    ? 'آیا این خون‌ریزی واقعاً پریود بود یا لکه‌بینی؟ می‌توانی همچنان ثبتش کنی.'
+                    : 'Was this really a period or spotting? You can still log it.',
+            ];
+        }
+
+        if ($cycleLength !== null && $cycleLength > 0 && $cycleLength < self::CLOSE_START_DAYS) {
+            $warnings[] = [
+                'type' => 'close_to_previous',
+                'message' => $locale === 'fa'
+                    ? 'این تاریخ خیلی نزدیک به پریود قبلی است. مطمئنی این یک پریود جدید است و ادامهٔ خون‌ریزی قبلی نیست؟'
+                    : 'This is very close to your previous period. Are you sure it is a new period and not continued bleeding?',
+            ];
+        } elseif ($cycleLength !== null && ($cycleLength < self::MIN_PLAUSIBLE_CYCLE_DAYS || $cycleLength > self::MAX_PLAUSIBLE_CYCLE_DAYS)) {
+            $warnings[] = [
+                'type' => DataQualityFlag::IRREGULAR_CYCLE->value,
+                'message' => $locale === 'fa'
+                    ? 'این فاصله با الگوی معمول چرخه‌ها متفاوت است و ممکن است روی دقت پیش‌بینی اثر بگذارد.'
+                    : 'This gap differs from your usual cycle pattern and may affect prediction accuracy.',
+            ];
+        }
+
+        return $warnings;
     }
 
     /**

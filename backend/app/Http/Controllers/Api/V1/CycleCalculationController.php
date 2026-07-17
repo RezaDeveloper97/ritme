@@ -40,16 +40,20 @@ class CycleCalculationController extends Controller
      *         in="header",
      *         description="Language for text responses (en, fa)",
      *         required=false,
+     *
      *         @OA\Schema(type="string", default="en", enum={"en","fa"})
      *     ),
      *
      *     @OA\Response(
      *         response=200,
      *         description="Today's cycle calculation retrieved successfully",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="data", type="object",
      *                 @OA\Property(property="calculation", ref="#/components/schemas/CycleCalculation"),
+     *                 @OA\Property(property="cycle_view", type="object", description="Render-ready daily payload (spec §19): daily_card, predictions, profile/calculated/effective_values, data_status, fertility_level, data_quality"),
      *                 @OA\Property(property="calculation_status", type="string", example="completed"),
      *                 @OA\Property(property="is_recalculating", type="boolean", example=false)
      *             )
@@ -84,23 +88,29 @@ class CycleCalculationController extends Controller
      *         in="path",
      *         description="Date (YYYY-MM-DD)",
      *         required=true,
+     *
      *         @OA\Schema(type="string", format="date", example="2024-12-15")
      *     ),
+     *
      *     @OA\Parameter(
      *         name="Accept-Language",
      *         in="header",
      *         description="Language for text responses (en, fa)",
      *         required=false,
+     *
      *         @OA\Schema(type="string", default="en", enum={"en","fa"})
      *     ),
      *
      *     @OA\Response(
      *         response=200,
      *         description="Cycle calculation retrieved successfully",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="data", type="object",
      *                 @OA\Property(property="calculation", ref="#/components/schemas/CycleCalculation"),
+     *                 @OA\Property(property="cycle_view", type="object", description="Render-ready daily payload (spec §19): daily_card, predictions, profile/calculated/effective_values, data_status, fertility_level, data_quality"),
      *                 @OA\Property(property="calculation_status", type="string", example="completed"),
      *                 @OA\Property(property="is_recalculating", type="boolean", example=false)
      *             )
@@ -143,27 +153,34 @@ class CycleCalculationController extends Controller
      *         in="path",
      *         description="Year",
      *         required=true,
+     *
      *         @OA\Schema(type="integer", example=2024)
      *     ),
+     *
      *     @OA\Parameter(
      *         name="month",
      *         in="path",
      *         description="Month (1-12)",
      *         required=true,
+     *
      *         @OA\Schema(type="integer", example=12)
      *     ),
+     *
      *     @OA\Parameter(
      *         name="Accept-Language",
      *         in="header",
      *         description="Language for text responses (en, fa)",
      *         required=false,
+     *
      *         @OA\Schema(type="string", default="en", enum={"en","fa"})
      *     ),
      *
      *     @OA\Response(
      *         response=200,
      *         description="Monthly cycle calculations retrieved successfully",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="data", type="object",
      *                 @OA\Property(property="calculations", type="array", @OA\Items(ref="#/components/schemas/CycleCalculation")),
@@ -239,7 +256,9 @@ class CycleCalculationController extends Controller
      *     @OA\Response(
      *         response=200,
      *         description="Status retrieved successfully",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="data", type="object",
      *                 @OA\Property(property="status", type="string", example="completed"),
@@ -264,7 +283,7 @@ class CycleCalculationController extends Controller
         $locale = $this->resolveLocale($request);
         $profile = $user->profile;
 
-        if (!$profile) {
+        if (! $profile) {
             return response()->json([
                 'success' => true,
                 'data' => [
@@ -304,7 +323,9 @@ class CycleCalculationController extends Controller
      *     @OA\Response(
      *         response=200,
      *         description="Recalculation triggered successfully",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="Recalculation started"),
      *             @OA\Property(property="data", type="object",
@@ -317,7 +338,9 @@ class CycleCalculationController extends Controller
      *     @OA\Response(
      *         response=400,
      *         description="Recalculation already in progress",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean", example=false),
      *             @OA\Property(property="message", type="string", example="Calculation already in progress")
      *         )
@@ -335,7 +358,7 @@ class CycleCalculationController extends Controller
         $locale = $this->resolveLocale($request);
         $profile = $user->profile;
 
-        if (!$profile) {
+        if (! $profile) {
             return response()->json([
                 'success' => false,
                 'message' => $locale === 'fa'
@@ -382,13 +405,16 @@ class CycleCalculationController extends Controller
      *         in="header",
      *         description="Language for labels (en, fa)",
      *         required=false,
+     *
      *         @OA\Schema(type="string", default="en", enum={"en","fa"})
      *     ),
      *
      *     @OA\Response(
      *         response=200,
      *         description="Enum values retrieved successfully",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="data", type="object",
      *                 @OA\Property(property="phases", type="array", @OA\Items(type="object",
@@ -422,24 +448,24 @@ class CycleCalculationController extends Controller
     {
         $locale = $this->resolveLocale($request);
 
-        $phases = collect(CyclePhase::cases())->map(fn($p) => [
+        $phases = collect(CyclePhase::cases())->map(fn ($p) => [
             'value' => $p->value,
             'label' => $p->label($locale),
             'description' => $p->description($locale),
         ])->values();
 
-        $subphases = collect(CycleSubphase::cases())->map(fn($s) => [
+        $subphases = collect(CycleSubphase::cases())->map(fn ($s) => [
             'value' => $s->value,
             'label' => $s->label($locale),
         ])->values();
 
-        $variability = collect(CycleVariability::cases())->map(fn($v) => [
+        $variability = collect(CycleVariability::cases())->map(fn ($v) => [
             'value' => $v->value,
             'label' => $v->label($locale),
             'uncertainty_range' => $v->uncertaintyRange(),
         ])->values();
 
-        $status = collect(CalculationStatus::cases())->map(fn($s) => [
+        $status = collect(CalculationStatus::cases())->map(fn ($s) => [
             'value' => $s->value,
             'label' => $s->label($locale),
         ])->values();
@@ -468,20 +494,25 @@ class CycleCalculationController extends Controller
      *         in="query",
      *         description="Date for messages (YYYY-MM-DD). Defaults to today.",
      *         required=false,
+     *
      *         @OA\Schema(type="string", format="date", example="2024-12-15")
      *     ),
+     *
      *     @OA\Parameter(
      *         name="Accept-Language",
      *         in="header",
      *         description="Language for messages (en, fa)",
      *         required=false,
+     *
      *         @OA\Schema(type="string", default="fa", enum={"en","fa"})
      *     ),
      *
      *     @OA\Response(
      *         response=200,
      *         description="Matrix messages retrieved successfully",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="data", type="object",
      *                 @OA\Property(property="date", type="string", format="date", example="2024-12-15"),
@@ -525,7 +556,9 @@ class CycleCalculationController extends Controller
      *     @OA\Response(
      *         response=400,
      *         description="Profile not complete",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean", example=false),
      *             @OA\Property(property="message", type="string", example="Please complete your profile first")
      *         )
@@ -543,7 +576,7 @@ class CycleCalculationController extends Controller
         $locale = $request->header('Accept-Language', 'fa');
         $profile = $user->profile;
 
-        if (!$profile || !$profile->last_period_start) {
+        if (! $profile || ! $profile->last_period_start) {
             return response()->json([
                 'success' => false,
                 'message' => $locale === 'fa'
@@ -562,7 +595,7 @@ class CycleCalculationController extends Controller
         $cycleData = $healthEngine->calculateForDate($date);
 
         // Check if we have valid cycle data
-        if (!isset($cycleData['phase']) || !$cycleData['phase']) {
+        if (! isset($cycleData['phase']) || ! $cycleData['phase']) {
             return response()->json([
                 'success' => false,
                 'message' => $locale === 'fa'
@@ -603,8 +636,8 @@ class CycleCalculationController extends Controller
         $correlations = $correlationEngine->analyzeCorrelations($phase, $subphase, $dailyLog, $isTTC);
 
         // Filter correlations based on subscription
-        if (!$isPremium) {
-            $correlations = array_filter($correlations, fn($c) => !($c['is_premium_only'] ?? false));
+        if (! $isPremium) {
+            $correlations = array_filter($correlations, fn ($c) => ! ($c['is_premium_only'] ?? false));
             $correlations = array_values($correlations);
         }
 
@@ -657,13 +690,16 @@ class CycleCalculationController extends Controller
      *         in="header",
      *         description="Language for labels (en, fa)",
      *         required=false,
+     *
      *         @OA\Schema(type="string", default="fa", enum={"en","fa"})
      *     ),
      *
      *     @OA\Response(
      *         response=200,
      *         description="Matrix enum values retrieved successfully",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="data", type="object",
      *                 @OA\Property(property="user_goals", type="array", @OA\Items(type="object",
@@ -692,17 +728,17 @@ class CycleCalculationController extends Controller
     {
         $locale = $request->header('Accept-Language', 'fa');
 
-        $userGoals = collect(UserGoal::cases())->map(fn($g) => [
+        $userGoals = collect(UserGoal::cases())->map(fn ($g) => [
             'value' => $g->value,
             'label' => $g->label($locale),
         ])->values();
 
-        $subscriptionTypes = collect(SubscriptionType::cases())->map(fn($s) => [
+        $subscriptionTypes = collect(SubscriptionType::cases())->map(fn ($s) => [
             'value' => $s->value,
             'label' => $s->label($locale),
         ])->values();
 
-        $overrideTypes = collect(OverrideType::cases())->map(fn($o) => [
+        $overrideTypes = collect(OverrideType::cases())->map(fn ($o) => [
             'value' => $o->value,
             'label' => $o->label($locale),
         ])->values();
@@ -732,10 +768,20 @@ class CycleCalculationController extends Controller
         $engine = new HealthDataEngine($user, $locale);
         $calculationData = $engine->calculateForDate($date);
 
+        // Render-ready spec §19 payload (daily card, predictions, three-layer values,
+        // confidence) assembled alongside the raw calc. Kept under a separate key so
+        // existing `calculation` consumers are unaffected.
+        // Reference "today" as the Tehran calendar day (the client sends its local date),
+        // so a request near midnight doesn't render the user's real today as a future day.
+        $today = Carbon::parse(Carbon::now('Asia/Tehran')->toDateString());
+        $cycleView = (new \App\Services\HealthEngine\CycleDayViewBuilder)
+            ->build($user, $date, $today, $locale, $calculationData);
+
         return response()->json([
             'success' => true,
             'data' => [
                 'calculation' => $calculationData,
+                'cycle_view' => $cycleView,
                 'calculation_status' => $status,
                 'is_recalculating' => $isRecalculating,
             ],

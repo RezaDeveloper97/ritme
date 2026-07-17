@@ -6,7 +6,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   calcToPhase,
   cycleDayMarker,
+  DailyStatusCard,
   normalizePhase,
+  useCycleForDate,
   useCycleMonth,
   useCycleStatus,
   type CycleCalculation,
@@ -17,6 +19,7 @@ import { useUserProfile } from '@/entities/user';
 import {
   PeriodEditor,
   useDeletePeriod,
+  useEndPeriod,
   usePeriodHistory,
   useStartPeriod,
   useUpdatePeriod,
@@ -39,6 +42,7 @@ import {
   todayJalali,
   type JalaliMonthCell,
 } from '@/shared/lib/date';
+import { getApiErrorMessage } from '@/shared/api';
 import { Icon, Sheet } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
 
@@ -125,13 +129,15 @@ interface MonthNavProps {
   onToggle: () => void;
   toggleLabel: string;
   jumpLabel: string;
+  prevMonthLabel: string;
+  nextMonthLabel: string;
 }
 
-function MonthNav({ label, isRtl, onPrev, onNext, onJump, fullMonth, onToggle, toggleLabel, jumpLabel }: MonthNavProps) {
+function MonthNav({ label, isRtl, onPrev, onNext, onJump, fullMonth, onToggle, toggleLabel, jumpLabel, prevMonthLabel, nextMonthLabel }: MonthNavProps) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 4px 14px' }}>
-      {/* First child → RIGHT in RTL = previous month */}
-      <button className="iconbtn" onClick={isRtl ? onPrev : onNext} aria-label={isRtl ? 'ماه قبل' : 'Next month'}>
+      {/* First child → RIGHT in RTL = previous month; label follows the action. */}
+      <button className="iconbtn" onClick={isRtl ? onPrev : onNext} aria-label={isRtl ? prevMonthLabel : nextMonthLabel}>
         <Icon name={isRtl ? 'chevronRight' : 'chevronLeft'} size={20} />
       </button>
 
@@ -155,8 +161,8 @@ function MonthNav({ label, isRtl, onPrev, onNext, onJump, fullMonth, onToggle, t
         </button>
       </div>
 
-      {/* Last child → LEFT in RTL = next month */}
-      <button className="iconbtn" onClick={isRtl ? onNext : onPrev} aria-label={isRtl ? 'ماه بعد' : 'Previous month'}>
+      {/* Last child → LEFT in RTL = next month; label follows the action. */}
+      <button className="iconbtn" onClick={isRtl ? onNext : onPrev} aria-label={isRtl ? nextMonthLabel : prevMonthLabel}>
         <Icon name={isRtl ? 'chevronLeft' : 'chevronRight'} size={20} />
       </button>
     </div>
@@ -236,20 +242,28 @@ interface DayCellProps {
   onSelect: (date: Date) => void;
   dayNumber: string;
   marker: CycleDayMarker | null;
+  /** Whether the day is inside a real logged period (vs an engine prediction). */
+  isLogged: boolean;
+  /** Full spoken label (date + cycle state) for screen readers — the visible digit is aria-hidden. */
+  ariaLabel: string;
 }
 
-function DayCell({ cell, selectedDate, onSelect, dayNumber, marker }: DayCellProps) {
+function DayCell({ cell, selectedDate, onSelect, dayNumber, marker, isLogged, ariaLabel }: DayCellProps) {
   if (!cell) return <span />;
 
   const markerStyle = marker ? MARKER_STYLE[marker] : undefined;
   const selected = isSameDay(cell.date, selectedDate);
   const isToday = isSameDay(cell.date, today());
-  // A period day still in the future is a prediction → hollow ring, not fill.
-  const isPredicted = marker === 'period' && diffInDays(cell.date, today()) > 0;
+  // A period marker the user hasn't actually logged is a prediction → hollow ring,
+  // not a solid fill (spec §12: predicted periods must read differently from real ones).
+  const isPredicted = marker === 'period' && !isLogged;
 
   return (
     <button
       onClick={() => onSelect(cell.date)}
+      aria-label={ariaLabel}
+      aria-pressed={selected}
+      aria-current={isToday ? 'date' : undefined}
       style={{
         position: 'relative',
         height: 40,
@@ -268,7 +282,7 @@ function DayCell({ cell, selectedDate, onSelect, dayNumber, marker }: DayCellPro
         fontVariantNumeric: 'tabular-nums',
       }}
     >
-      {dayNumber}
+      <span aria-hidden>{dayNumber}</span>
       {isToday && (
         <span
           style={{
@@ -312,9 +326,11 @@ interface DayDetailProps {
   selectedDate: Date;
   calc: CycleCalculation | undefined;
   marker: CycleDayMarker | null;
+  /** Phase/chance tiles — hidden when the richer daily status card is shown below. */
+  showTiles?: boolean;
 }
 
-function DayDetail({ t, locale, selectedDate, calc, marker }: DayDetailProps) {
+function DayDetail({ t, locale, selectedDate, calc, marker, showTiles = true }: DayDetailProps) {
   const phase = calc ? calcToPhase(calc) : undefined;
   const style = (marker && MARKER_STYLE[marker]) ?? NEUTRAL_STYLE;
   const isToday = isSameDay(selectedDate, today());
@@ -347,7 +363,7 @@ function DayDetail({ t, locale, selectedDate, calc, marker }: DayDetailProps) {
         )}
       </div>
 
-      {phase && labelKey && (
+      {showTiles && phase && labelKey && (
         <div style={{ display: 'flex', gap: 10 }}>
           <div style={{ flex: 1, background: style.bg, borderRadius: 12, padding: '10px 12px', textAlign: 'start' }}>
             <div style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 600 }}>{t('phaseLabel')}</div>
@@ -402,6 +418,9 @@ export function CalendarPage() {
   const [editorOpen, setEditorOpen] = useState(false);
   // Watch the backend recalculation only right after we trigger one.
   const [watching, setWatching] = useState(false);
+  // Transient message surfaced when a period edit is rejected by the backend
+  // (overlap, previous period still open, …) — spec §16 validation feedback.
+  const [actionError, setActionError] = useState<string | null>(null);
   // Optimistic paint/clear layer applied immediately after any period change
   // (quick start, edit, delete), until the fresh month data catches up.
   const [overlay, setOverlay] = useState<Overlay | null>(null);
@@ -412,6 +431,7 @@ export function CalendarPage() {
   const periodDuration = profileQuery.data?.health?.periodDuration ?? DEFAULT_PERIOD_DAYS;
 
   const startPeriod = useStartPeriod();
+  const endPeriod = useEndPeriod();
   const updatePeriod = useUpdatePeriod();
   const deletePeriod = useDeletePeriod();
   const historyQuery = usePeriodHistory();
@@ -467,6 +487,17 @@ export function CalendarPage() {
     return c ? cycleDayMarker(c) : null;
   };
 
+  // Spoken label for a day cell (§ a11y): the Jalali date plus its cycle state and
+  // today/selected context, so screen-reader users get more than a bare digit.
+  const dayAriaLabel = (date: Date): string => {
+    const parts = [formatJalaliDayMonth(date, locale)];
+    const marker = markerFor(date);
+    if (marker) parts.push(t(`legend.${marker}`));
+    if (isSameDay(date, today())) parts.push(t('today'));
+    if (isSameDay(date, selectedDate)) parts.push(t('selectedDay'));
+    return parts.join('، ');
+  };
+
   // The logged (real, user-entered) period covering a date, if any — this is
   // what the day sheet offers to edit. An open period covers its start plus the
   // profile's usual bleeding length.
@@ -479,6 +510,16 @@ export function CalendarPage() {
       if (iso >= p.period_start_date && iso <= end) return p;
     }
     return null;
+  };
+
+  // A period-colored day is "actual" only when the user really logged it (or is
+  // optimistically painting it right now); otherwise the engine merely predicted
+  // it, so the cell renders as a hollow prediction (spec §12).
+  const isActualPeriodDay = (date: Date): boolean => {
+    const iso = toApiDate(date);
+    if (overlay?.paint.has(iso)) return true;
+    if (overlay?.clear.has(iso)) return false;
+    return loggedPeriodFor(date) !== null;
   };
 
   // Last day a logged period visibly covers (open periods run for the profile's
@@ -564,7 +605,7 @@ export function CalendarPage() {
     startPeriod.mutate(
       { date: iso },
       // Roll back the optimistic fill if the re-anchor fails.
-      { onError: () => { setOverlay(null); setWatching(false); } },
+      { onError: onMutationError },
     );
   };
 
@@ -584,7 +625,7 @@ export function CalendarPage() {
     setWatching(true);
     updatePeriod.mutate(
       { id: target.period.id, start: target.newStart, end: target.newEnd },
-      { onError: () => { setOverlay(null); setWatching(false); } },
+      { onError: onMutationError },
     );
   };
 
@@ -595,7 +636,7 @@ export function CalendarPage() {
   const removeDayHere = (period: LoggedPeriod) => {
     const iso = toApiDate(selectedDate);
     const effEnd = effectiveEndOf(period);
-    const rollback = { onError: () => { setOverlay(null); setWatching(false); } };
+    const rollback = { onError: onMutationError };
     const overlayFor = (cleared: string[]) => ({
       paint: new Set<string>(),
       clear: new Set(cleared),
@@ -691,9 +732,96 @@ export function CalendarPage() {
   };
 
   const selectedCalc = calcMap.get(toApiDate(selectedDate));
+  // The rich, backend-rendered day card (spec §19) for the selected day. Fetched
+  // per-date because the month grid's calculations don't carry the daily_card.
+  const selectedDayView = useCycleForDate(toApiDate(selectedDate));
+  const selectedDailyCard = selectedDayView.data?.cycleView?.dailyCard ?? null;
+
+  // Roll back an optimistic overlay and surface the backend's rejection message
+  // (e.g. "close the previous period first", "overlaps another period").
+  const onMutationError = (error: unknown) => {
+    setOverlay(null);
+    setWatching(false);
+    setActionError(getApiErrorMessage(error) ?? t('actionFailed'));
+  };
+
+  // Auto-dismiss the error banner a few seconds after it appears.
+  useEffect(() => {
+    if (!actionError) return;
+    const id = setTimeout(() => setActionError(null), 5000);
+    return () => clearTimeout(id);
+  }, [actionError]);
+
+  // Dispatch a daily-card CTA (spec §19) to the real action — the backend already
+  // picked the right CTA for this day's state, so the client just routes it.
+  const handleCardAction = (type: string) => {
+    const iso = toApiDate(selectedDate);
+    switch (type) {
+      case 'log_period_start':
+      case 'confirm_period_start':
+        startPeriodHere();
+        break;
+      case 'log_period_end':
+        // Mirror startPeriodHere's feedback: close the sheet, show the recalculating
+        // banner while the backend re-derives, and roll that back on failure.
+        setDaySheetOpen(false);
+        setWatching(true);
+        endPeriod.mutate(
+          { date: iso },
+          { onError: onMutationError },
+        );
+        break;
+      case 'log_symptoms':
+      case 'complete_day':
+      case 'view_details':
+        openLog();
+        break;
+      case 'set_reminder':
+        router.push('/profile/reminders');
+        break;
+      case 'period_not_started':
+      case 'still_bleeding':
+        setDaySheetOpen(false);
+        break;
+      default:
+        // Any CTA type this build doesn't special-case still does something useful
+        // rather than being a silent dead button — the day log is always sensible.
+        openLog();
+        break;
+    }
+  };
+
+  // A card-triggered period mutation is in flight → disable the card's CTAs.
+  const cardActionPending = startPeriod.isPending || endPeriod.isPending;
+
+  // The card's per-date query is loading with nothing cached yet → show a skeleton
+  // in the card slot instead of flashing the fallback tiles then swapping them out.
+  const cardPending = selectedDayView.isPending;
+
+  // Does the card already offer a given action? Used to suppress the calendar's own
+  // duplicate buttons, so the user never sees two affordances for the same thing.
+  const cardOffers = (...types: string[]): boolean =>
+    selectedDailyCard != null &&
+    [selectedDailyCard.primaryAction, ...selectedDailyCard.secondaryActions].some(
+      (a) => a != null && types.includes(a.type),
+    );
+  const cardOffersStart = cardOffers('log_period_start', 'confirm_period_start');
+  // The card's filled primary is the sheet's hero button; standalone period buttons
+  // demote to a soft style so there's never more than one filled-pink CTA at once.
+  const cardHasPrimary = selectedDailyCard?.primaryAction != null;
+
   const selectedMarker = markerFor(selectedDate);
   const selectedLoggedPeriod = loggedPeriodFor(selectedDate);
   const selectedExtendTarget = selectedLoggedPeriod ? null : extendTargetFor(selectedDate);
+  // Unmarking an interior day of a period truncates it to end the day before — it
+  // removes this day AND every later one (a period is contiguous), so the button
+  // says "end period here" instead of the misleading "not a period day" (§ honesty).
+  const removeDayIsInterior =
+    selectedLoggedPeriod != null &&
+    (() => {
+      const iso = toApiDate(selectedDate);
+      return iso !== selectedLoggedPeriod.period_start_date && iso !== effectiveEndOf(selectedLoggedPeriod);
+    })();
   // "Start period" only where no logged period is nearby — a day close to one
   // extends it instead, so two periods can't be started days apart.
   const canStartHere =
@@ -717,14 +845,16 @@ export function CalendarPage() {
             <div className="titr">{t('title')}</div>
             <p className="sub" style={{ margin: '6px 0 0' }}>{t('subtitle')}</p>
           </div>
-          <button
+          {/* Header "log period" chip removed — the day card's own CTAs now cover
+              starting/ending a period, so this standalone editor entry was redundant. */}
+          {/* <button
             className="chip on"
             onClick={() => setEditorOpen(true)}
             style={{ padding: '8px 14px', fontSize: 13, gap: 6, flexShrink: 0, marginTop: 2 }}
           >
             <Icon name="drop" size={14} fill="currentColor" strokeWidth={0} />
             {t('logPeriodCta')}
-          </button>
+          </button> */}
         </div>
 
         {isRecalculating && (
@@ -748,6 +878,8 @@ export function CalendarPage() {
               onToggle={() => setFullMonth((v) => !v)}
               toggleLabel={fullMonth ? t('weekView') : t('fullMonth')}
               jumpLabel={t('jumpToMonth')}
+              prevMonthLabel={t('prevMonth')}
+              nextMonthLabel={t('nextMonth')}
             />
 
             <div className="cal-grid" style={{ marginBottom: 6 }}>
@@ -774,6 +906,8 @@ export function CalendarPage() {
                       onSelect={onDaySelect}
                       dayNumber={cell ? format.number(cell.day) : ''}
                       marker={cell ? markerFor(cell.date) : null}
+                      isLogged={cell ? isActualPeriodDay(cell.date) : false}
+                      ariaLabel={cell ? dayAriaLabel(cell.date) : ''}
                     />
                   ))}
                 </div>
@@ -794,7 +928,36 @@ export function CalendarPage() {
 
       {/* Day detail sheet — everything logged/predicted for the tapped day. */}
       <Sheet open={daySheetOpen} onClose={() => setDaySheetOpen(false)} labelledBy="day-sheet-title">
-        <DayDetail t={t} locale={locale} selectedDate={selectedDate} calc={selectedCalc} marker={selectedMarker} />
+        {/* Tiles are the fallback only once the day query has settled with no rich
+            card — they don't flash in and get swapped out while it's still loading. */}
+        <DayDetail t={t} locale={locale} selectedDate={selectedDate} calc={selectedCalc} marker={selectedMarker} showTiles={!cardPending && !selectedDailyCard} />
+
+        {/* Backend-rendered status card (spec §19): the smart, actionable hero —
+            rule-based title, subtitle, fertility read-out and the right CTAs for
+            this day's state (dispatched via handleCardAction). */}
+        {selectedDailyCard && (
+          <div style={{ marginTop: 14 }}>
+            <DailyStatusCard card={selectedDailyCard} onAction={handleCardAction} pending={cardActionPending} />
+          </div>
+        )}
+
+        {/* Skeleton reserving the card's space while its per-date query loads, so the
+            sheet height stays stable instead of popping the card in. */}
+        {cardPending && !selectedDailyCard && (
+          <div className="card" aria-hidden style={{ marginTop: 14, minHeight: 118, opacity: 0.45 }} />
+        )}
+
+        {/* The day query failed → a calm retry rather than a silently bare sheet. */}
+        {!cardPending && !selectedDailyCard && selectedDayView.isError && (
+          <button
+            className="btn"
+            onClick={() => selectedDayView.refetch()}
+            style={{ marginTop: 14, borderRadius: 14, gap: 8, background: 'var(--line)', color: 'var(--steel)', fontWeight: 800 }}
+          >
+            <Icon name="refresh" size={16} />
+            {t('retry')}
+          </button>
+        )}
 
         {/* This day belongs to a logged period → edit the range, or unmark
             just this day with one tap. */}
@@ -815,33 +978,40 @@ export function CalendarPage() {
               style={{ flex: 1, borderRadius: 14, gap: 8, background: 'var(--line)', color: 'var(--steel)', fontWeight: 800 }}
             >
               <Icon name="x" size={16} />
-              {t('removeThisDay')}
+              {removeDayIsInterior ? t('endPeriodHere') : t('removeThisDay')}
             </button>
           </div>
         )}
 
-        {/* This day sits just outside a logged period → extend it to here. */}
+        {/* This day sits just outside a logged period → extend it to here. Demoted to
+            a soft style when the card already shows a filled primary, so the sheet
+            never has two competing pink buttons. */}
         {selectedExtendTarget && (
           <button
-            className="btn btn-primary"
+            className={cardHasPrimary ? 'btn' : 'btn btn-primary'}
             onClick={() => addToPeriodHere(selectedExtendTarget)}
             disabled={mutating}
-            style={{ borderRadius: 14, marginTop: 14, gap: 8 }}
+            style={cardHasPrimary
+              ? { borderRadius: 14, marginTop: 14, gap: 8, background: '#FCE7F3', color: '#E91E63', fontWeight: 800 }
+              : { borderRadius: 14, marginTop: 14, gap: 8 }}
           >
-            <Icon name="drop" size={16} fill="#fff" strokeWidth={0} />
+            <Icon name="drop" size={16} fill={cardHasPrimary ? 'currentColor' : '#fff'} strokeWidth={0} />
             {t('addToPeriod')}
           </button>
         )}
 
-        {/* Quick "this is where my period started" action → fills cells + regenerates. */}
-        {canStartHere && (
+        {/* Quick "this is where my period started" action → fills cells + regenerates.
+            Hidden when the card already offers a start action, to avoid duplicates. */}
+        {canStartHere && !cardOffersStart && (
           <button
-            className="btn btn-primary"
+            className={cardHasPrimary ? 'btn' : 'btn btn-primary'}
             onClick={startPeriodHere}
             disabled={startPeriod.isPending}
-            style={{ borderRadius: 14, marginTop: 14, gap: 8 }}
+            style={cardHasPrimary
+              ? { borderRadius: 14, marginTop: 14, gap: 8, background: '#FCE7F3', color: '#E91E63', fontWeight: 800 }
+              : { borderRadius: 14, marginTop: 14, gap: 8 }}
           >
-            <Icon name="drop" size={16} fill="#fff" strokeWidth={0} />
+            <Icon name="drop" size={16} fill={cardHasPrimary ? 'currentColor' : '#fff'} strokeWidth={0} />
             {t('startPeriodHere')}
           </button>
         )}
@@ -874,6 +1044,34 @@ export function CalendarPage() {
         editing={editingPeriod}
         onSaved={onEditorSaved}
       />
+
+      {/* Transient validation feedback (spec §16): a period edit the backend rejected
+          — surfaced instead of a silent rollback, auto-dismissed after a few seconds. */}
+      {actionError && (
+        <div
+          role="alert"
+          onClick={() => setActionError(null)}
+          style={{
+            position: 'fixed',
+            insetInlineStart: 16,
+            insetInlineEnd: 16,
+            bottom: 88,
+            zIndex: 50,
+            background: '#D64545',
+            color: '#fff',
+            borderRadius: 14,
+            padding: '12px 16px',
+            fontSize: 13,
+            fontWeight: 700,
+            lineHeight: 1.6,
+            textAlign: 'start',
+            boxShadow: '0 12px 28px -10px rgba(214,69,69,.6)',
+            cursor: 'pointer',
+          }}
+        >
+          {actionError}
+        </div>
+      )}
 
       <BottomNav />
     </div>

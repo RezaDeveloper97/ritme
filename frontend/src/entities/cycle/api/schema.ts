@@ -1,6 +1,20 @@
 import { z } from 'zod';
 
-import type { CycleCalculation, MonthSummary } from '../model/types';
+import type {
+  CalculatedValues,
+  CardAction,
+  ConfidenceLevel,
+  CycleCalculation,
+  CycleDataQuality,
+  CycleForecast,
+  CycleValueLayer,
+  CycleView,
+  DailyCard,
+  DataStatus,
+  EffectiveValues,
+  FertilityLevel,
+  MonthSummary,
+} from '../model/types';
 
 /**
  * Validate the API's `CycleCalculation` at the boundary (CLAUDE.md §10) and map
@@ -59,15 +73,168 @@ const nullableCalculationSchema = z.preprocess(
   cycleCalculationSchema.nullable(),
 );
 
-/** `{ calculation, calculation_status, is_recalculating }` — today / by-date. */
+// --- Rich daily payload (spec §19), served under `cycle_view` -----------------
+// Enum-valued fields are parsed as strings and cast to their union types: an
+// unexpected new backend value should degrade gracefully, not throw the whole
+// envelope (which would blank the screen). Health copy stays out of logs (§11).
+
+const cardActionSchema = z
+  .object({ type: z.string(), label: z.string() })
+  .transform((a): CardAction => ({ type: a.type, label: a.label }));
+
+const dailyCardSchema = z
+  .object({
+    title: z.string(),
+    subtitle: z.string().default(''),
+    data_status: z.string(),
+    // Coerce unknown enum values to a safe default at the boundary rather than
+    // letting them reach the renderer — belt-and-braces with the component fallback.
+    fertility_level: z
+      .enum(['very_low', 'low', 'medium', 'high', 'very_high'])
+      .catch('low'),
+    fertility_label: z.string().default(''),
+    badges: z.array(z.string()).default([]),
+    primary_action: cardActionSchema.nullable().default(null),
+    secondary_actions: z.array(cardActionSchema).default([]),
+  })
+  .transform(
+    (c): DailyCard => ({
+      title: c.title,
+      subtitle: c.subtitle,
+      dataStatus: c.data_status as DataStatus,
+      fertilityLevel: c.fertility_level,
+      fertilityLabel: c.fertility_label,
+      badges: c.badges,
+      primaryAction: c.primary_action,
+      secondaryActions: c.secondary_actions,
+    }),
+  );
+
+const forecastSchema = z
+  .object({
+    next_period_start: z.string(),
+    next_period_end: z.string(),
+    estimated_ovulation_date: z.string(),
+    fertile_window_start: z.string(),
+    fertile_window_end: z.string(),
+    source: z.string().default('profile'),
+    confidence: z.string().default('low'),
+    confidence_reasons: z.array(z.string()).default([]),
+  })
+  .transform(
+    (p): CycleForecast => ({
+      nextPeriodStart: p.next_period_start,
+      nextPeriodEnd: p.next_period_end,
+      estimatedOvulationDate: p.estimated_ovulation_date,
+      fertileWindowStart: p.fertile_window_start,
+      fertileWindowEnd: p.fertile_window_end,
+      source: p.source,
+      confidence: p.confidence as ConfidenceLevel,
+      confidenceReasons: p.confidence_reasons,
+    }),
+  );
+
+const valueLayerFields = {
+  cycle_length: z.number().nullable().default(null),
+  period_duration: z.number().nullable().default(null),
+};
+
+const profileValuesSchema = z
+  .object(valueLayerFields)
+  .transform(
+    (v): CycleValueLayer => ({
+      cycleLength: v.cycle_length,
+      periodDuration: v.period_duration,
+    }),
+  );
+
+const calculatedValuesSchema = z
+  .object({ ...valueLayerFields, based_on_cycles: z.number().nullable().default(null) })
+  .transform(
+    (v): CalculatedValues => ({
+      cycleLength: v.cycle_length,
+      periodDuration: v.period_duration,
+      basedOnCycles: v.based_on_cycles,
+    }),
+  );
+
+const effectiveValuesSchema = z
+  .object({
+    ...valueLayerFields,
+    source: z.string().default('default'),
+    period_duration_source: z.string().default('default'),
+  })
+  .transform(
+    (v): EffectiveValues => ({
+      cycleLength: v.cycle_length,
+      periodDuration: v.period_duration,
+      source: v.source,
+      periodDurationSource: v.period_duration_source,
+    }),
+  );
+
+const dataQualitySchema = z
+  .object({
+    confidence: z.string().default('low'),
+    confidence_reasons: z.array(z.string()).default([]),
+    regularity_status: z.string().default('not_enough_data'),
+    is_irregular_possible: z.boolean().default(false),
+    missing_period_end: z.boolean().default(false),
+  })
+  .transform(
+    (q): CycleDataQuality => ({
+      confidence: q.confidence as ConfidenceLevel,
+      confidenceReasons: q.confidence_reasons,
+      regularityStatus: q.regularity_status,
+      isIrregularPossible: q.is_irregular_possible,
+      missingPeriodEnd: q.missing_period_end,
+    }),
+  );
+
+/** The `cycle_view` object (spec §19): daily card + forecast + three-layer values. */
+export const cycleViewSchema = z
+  .object({
+    date: z.string(),
+    cycle_day: z.number().nullable().default(null),
+    phase: z.string().nullable().default(null),
+    subphase: z.string().nullable().default(null),
+    fertility_level: z.string().nullable().default(null),
+    data_status: z.string().nullable().default(null),
+    predictions: forecastSchema.nullable().default(null),
+    profile_values: profileValuesSchema,
+    calculated_values: calculatedValuesSchema,
+    effective_values: effectiveValuesSchema,
+    data_quality: dataQualitySchema,
+    daily_card: dailyCardSchema.nullable().default(null),
+  })
+  .transform(
+    (v): CycleView => ({
+      date: v.date,
+      cycleDay: v.cycle_day,
+      phase: v.phase,
+      subphase: v.subphase,
+      fertilityLevel: v.fertility_level as FertilityLevel | null,
+      dataStatus: v.data_status as DataStatus | null,
+      forecast: v.predictions,
+      profileValues: v.profile_values,
+      calculatedValues: v.calculated_values,
+      effectiveValues: v.effective_values,
+      dataQuality: v.data_quality,
+      dailyCard: v.daily_card,
+    }),
+  );
+
+/** `{ calculation, cycle_view, calculation_status, is_recalculating }` — today / by-date. */
 export const cycleCalculationEnvelopeSchema = z
   .object({
     calculation: nullableCalculationSchema.default(null),
+    cycle_view: cycleViewSchema.nullable().default(null),
     calculation_status: z.string().default('completed'),
     is_recalculating: z.boolean().default(false),
   })
   .transform((e) => ({
     calculation: e.calculation,
+    cycleView: e.cycle_view,
     calculationStatus: e.calculation_status,
     isRecalculating: e.is_recalculating,
   }));

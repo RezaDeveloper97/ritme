@@ -4,6 +4,7 @@ import { useFormatter, useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 import {
+  CycleValuesCard,
   deriveCyclePredictions,
   useCycleStatus,
   useCycleToday,
@@ -13,7 +14,7 @@ import {
   type CyclePredictions,
 } from '@/entities/cycle';
 import { useDailyMessage, type DailyMessage } from '@/entities/message';
-import { Link } from '@/shared/i18n';
+import { Link, useRouter } from '@/shared/i18n';
 import type { Locale } from '@/shared/i18n';
 import { addDays, formatJalaliDayMonth, today } from '@/shared/lib/date';
 import { DropSolid, Icon } from '@/shared/ui';
@@ -183,7 +184,7 @@ function CycleTimeline({
   const len = pred.cycleLength;
   const at = (day: number) => clampPct((day / len) * 100);
   const ovulation = calc.estimatedOvulationDay;
-  const fertileStart = ovulation - 4; // FERTILE_WINDOW_LEAD_DAYS in the entity
+  const fertileStart = ovulation - 5; // matches the backend fertile window (ovulation − 5)
   const todayPos = at(pred.cycleDay);
 
   const rows = [
@@ -388,6 +389,7 @@ function EmptyState({ t }: { t: T }) {
 export function CyclePage() {
   const t = useTranslations('cycle');
   const loc = useLocale() as Locale;
+  const router = useRouter();
 
   // Server render has no query data yet, so the server always emits the "loading"
   // shell. Gate the data/empty branches on mount so the first client render
@@ -421,7 +423,9 @@ export function CyclePage() {
   const fmt = (offset: number) => formatJalaliDayMonth(addDays(base, offset), loc);
 
   const message: DailyMessage | undefined = daily;
-  const phaseDesc = message?.primary.longMessage
+  // Status card uses the short line, the smart tip uses the long one — otherwise the
+  // same paragraph shows twice on the page (§ no duplicate copy).
+  const phaseDesc = message?.primary.shortMessage
     || (pred ? t(`phaseDesc.${pred.phase}`) : '');
   const smartTipBody = message?.primary.longMessage || t('smartTip.body');
   const smartTipQuote = message?.primary.actionSuggestion || t('smartTip.quote');
@@ -459,6 +463,42 @@ export function CyclePage() {
               nextPeriodDate={fmt(pred.daysUntilNextPeriod)}
             />
             <CycleSummaryCard t={t} pred={pred} calc={calc} />
+            {todayData?.cycleView && (
+              <CycleValuesCard
+                title={t('values.title')}
+                loggedLabel={t('values.logged')}
+                loggedValue={
+                  todayData.cycleView.profileValues.cycleLength != null
+                    ? t('days', { n: todayData.cycleView.profileValues.cycleLength })
+                    : t('unavailable')
+                }
+                suggestion={
+                  todayData.cycleView.calculatedValues.cycleLength != null &&
+                  todayData.cycleView.profileValues.cycleLength != null &&
+                  todayData.cycleView.calculatedValues.cycleLength !==
+                    todayData.cycleView.profileValues.cycleLength
+                    ? {
+                        text: t('values.suggestion', {
+                          n: todayData.cycleView.calculatedValues.cycleLength,
+                        }),
+                        ctaLabel: t('values.syncCta', {
+                          n: todayData.cycleView.calculatedValues.cycleLength,
+                        }),
+                        onSync: () => router.push('/profile/health'),
+                      }
+                    : null
+                }
+                basedOnText={t('values.basedOn', {
+                  source: t(
+                    todayData.cycleView.effectiveValues.source === 'recent_valid_cycles'
+                      ? 'values.source.recent_valid_cycles'
+                      : todayData.cycleView.effectiveValues.source === 'profile'
+                        ? 'values.source.profile'
+                        : 'values.source.default',
+                  ),
+                })}
+              />
+            )}
             <MyCycles t={t} pred={pred} cycleStartDate={fmt(-(pred.cycleDay - 1))} />
             <SmartTip t={t} body={smartTipBody} quote={smartTipQuote} />
             <div style={{ height: 26 }} />

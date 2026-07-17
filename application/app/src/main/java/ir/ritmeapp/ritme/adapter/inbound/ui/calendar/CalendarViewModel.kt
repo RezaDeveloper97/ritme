@@ -5,14 +5,19 @@ import androidx.lifecycle.viewModelScope
 import ir.ritmeapp.ritme.domain.model.AppResult
 import ir.ritmeapp.ritme.domain.model.CycleDaySnapshot
 import ir.ritmeapp.ritme.domain.model.JalaliDate
+import ir.ritmeapp.ritme.domain.model.LoggedPeriod
+import ir.ritmeapp.ritme.domain.model.PeriodDayAction
+import ir.ritmeapp.ritme.domain.model.PeriodDayRules
 import ir.ritmeapp.ritme.domain.model.getOrNull
 import ir.ritmeapp.ritme.domain.port.inbound.CycleInsightsUseCase
 import ir.ritmeapp.ritme.domain.port.inbound.GetTrackingModeUseCase
 import ir.ritmeapp.ritme.domain.port.inbound.HealthLogUseCase
+import ir.ritmeapp.ritme.domain.port.inbound.ManagePeriodsUseCase
 import ir.ritmeapp.ritme.platform.crash.Breadcrumbs
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,12 +27,14 @@ import kotlinx.coroutines.launch
 /**
  * Calendar state machine. A displayed Jalali month maps onto one or two Gregorian months;
  * both are fetched concurrently and merged into one ISO-keyed day map. Selecting a day
- * loads that day's saved health log for the recap card.
+ * loads that day's saved health log, and the logged-period history decides which quick
+ * period edit (start / extend / unmark) the day detail offers.
  */
 class CalendarViewModel(
     private val cycleInsights: CycleInsightsUseCase,
     private val healthLog: HealthLogUseCase,
     private val getTrackingMode: GetTrackingModeUseCase,
+    private val managePeriods: ManagePeriodsUseCase,
     today: JalaliDate,
 ) : ViewModel() {
 
@@ -38,8 +45,16 @@ class CalendarViewModel(
 
     private var dayLogJob: Job? = null
 
+    /**
+     * The logged periods, kept out of UI state (the grid renders backend snapshots; this
+     * list only decides the selected day's action). Null until the first load succeeds —
+     * no action is offered while unknown, so a stale empty list can't create duplicates.
+     */
+    private var periods: List<LoggedPeriod>? = null
+
     init {
         loadMonth()
+        loadPeriods()
         loadDayLog(today)
         viewModelScope.launch {
             getTrackingMode().getOrNull()?.let { mode -> _state.update { it.copy(mode = mode) } }
@@ -53,6 +68,15 @@ class CalendarViewModel(
             is CalendarIntent.SelectDay -> selectDay(intent.day)
             CalendarIntent.ToggleView -> _state.update { it.copy(monthView = !it.monthView) }
             CalendarIntent.Retry -> loadMonth()
+            is CalendarIntent.PickMonth -> jumpTo(intent.year, intent.month)
+            CalendarIntent.JumpToToday -> {
+                val today = _state.value.today
+                _state.update { it.copy(selected = today) }
+                jumpTo(today.year, today.month)
+                loadDayLog(today)
+                refreshSelectedAction()
+            }
+            CalendarIntent.ApplyPeriodAction -> applyPeriodAction()
         }
     }
 
@@ -67,9 +91,66 @@ class CalendarViewModel(
         loadMonth()
     }
 
+    private fun jumpTo(year: Int, month: Int) {
+        _state.update { it.copy(year = year, month = month) }
+        loadMonth()
+    }
+
     private fun selectDay(day: JalaliDate) {
         _state.update { it.copy(selected = day) }
         loadDayLog(day)
+        refreshSelectedAction()
+    }
+
+    /** Recomputes the quick edit offered for the selected day from the known periods. */
+    private fun refreshSelectedAction() {
+        val known = periods
+        _state.update { current ->
+            current.copy(
+                selectedAction = if (known == null) {
+                    PeriodDayAction.None
+                } else {
+                    PeriodDayRules.actionFor(
+                        day = current.selected.toGregorian(),
+                        today = current.today.toGregorian(),
+                        periods = known,
+                    )
+                },
+            )
+        }
+    }
+
+    /** Executes the offered action, then re-syncs history + month from the backend. */
+    private fun applyPeriodAction() {
+        val current = _state.value
+        val action = current.selectedAction
+        if (action is PeriodDayAction.None || current.periodSaving) return
+        viewModelScope.launch {
+            Breadcrumbs.add("calendar:period_action")
+            _state.update { it.copy(periodSaving = true) }
+            val result = managePeriods.apply(action, current.selected.toGregorian())
+            if (result is AppResult.Success) {
+                awaitRecalculation()
+                loadPeriods()
+                reloadMonthInPlace()
+            }
+            _state.update { it.copy(periodSaving = false) }
+        }
+    }
+
+    /** Gives the backend's async recalculation a moment so the refetched month is fresh. */
+    private suspend fun awaitRecalculation() {
+        repeat(MAX_RECALC_POLLS) {
+            if (cycleInsights.isRecalculating().getOrNull() != true) return
+            delay(RECALC_POLL_MS)
+        }
+    }
+
+    private fun loadPeriods() {
+        viewModelScope.launch {
+            managePeriods.history().getOrNull()?.let { periods = it }
+            refreshSelectedAction()
+        }
     }
 
     private fun loadMonth() {
@@ -82,6 +163,15 @@ class CalendarViewModel(
                 if (current.year != snapshot.year || current.month != snapshot.month) return@update current
                 current.copy(loading = false, isError = days == null, days = days ?: current.days)
             }
+        }
+    }
+
+    /** Refetches the shown month's data without flashing the loading state (post-edit). */
+    private suspend fun reloadMonthInPlace() {
+        val snapshot = _state.value
+        val days = fetchJalaliMonth(snapshot.year, snapshot.month) ?: return
+        _state.update { current ->
+            if (current.year != snapshot.year || current.month != snapshot.month) current else current.copy(days = days)
         }
     }
 
@@ -112,5 +202,10 @@ class CalendarViewModel(
                 )
             }
         }
+    }
+
+    private companion object {
+        const val MAX_RECALC_POLLS = 6
+        const val RECALC_POLL_MS = 500L
     }
 }

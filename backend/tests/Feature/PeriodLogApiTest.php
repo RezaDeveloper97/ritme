@@ -312,12 +312,12 @@ class PeriodLogApiTest extends TestCase
         $this->assertSame('menstruation', $phase);
         $this->assertSame(1, $cycleDay);
 
-        // Ovulation lands on cycle day 14 (28 − 14) of the current cycle…
-        [$phase] = $phaseOn($start->copy()->addDays(13));
+        // Ovulation lands on cycle day 15 (next period − 14) of the current cycle…
+        [$phase] = $phaseOn($start->copy()->addDays(14));
         $this->assertSame('ovulation', $phase);
 
-        // …and recurs in the predicted next cycle too (day 14 there).
-        [$phase] = $phaseOn($start->copy()->addDays(28 + 13));
+        // …and recurs in the predicted next cycle too (day 15 there).
+        [$phase] = $phaseOn($start->copy()->addDays(28 + 14));
         $this->assertSame('ovulation', $phase);
 
         // The late luteal days before the next period read as PMS (the
@@ -332,5 +332,114 @@ class PeriodLogApiTest extends TestCase
 
         $this->postJson('/api/v1/cycle/period/start', ['date' => now()->addDay()->toDateString()])
             ->assertStatus(422);
+    }
+
+    public function test_started_period_is_tagged_user_logged(): void
+    {
+        $user = $this->actingUser();
+        $this->postJson('/api/v1/cycle/period/start', ['date' => now()->toDateString()])->assertOk();
+
+        $record = CycleHistory::where('user_id', $user->id)->latest('period_start_date')->first();
+        $this->assertSame('user_logged', $record->source);
+    }
+
+    public function test_long_period_is_flagged_and_warned_but_still_saved(): void
+    {
+        $user = $this->actingUser();
+        $this->postJson('/api/v1/cycle/period/start', ['date' => now()->subDays(12)->toDateString()])->assertOk();
+
+        $response = $this->postJson('/api/v1/cycle/period/end', ['date' => now()->toDateString()])->assertOk();
+
+        $warnings = collect($response->json('data.warnings'))->pluck('type');
+        $this->assertContains('long_period_flag', $warnings->all());
+
+        $record = CycleHistory::where('user_id', $user->id)->latest('period_start_date')->first();
+        $this->assertContains('long_period_flag', $record->data_quality_flags ?? []);
+    }
+
+    public function test_cycle_gap_far_from_usual_is_flagged_and_warned(): void
+    {
+        $user = $this->actingUser();
+        $this->postJson('/api/v1/cycle/period/start', ['date' => now()->subDays(50)->toDateString()])->assertOk();
+
+        $response = $this->postJson('/api/v1/cycle/period/start', ['date' => now()->subDays(1)->toDateString()])->assertOk();
+
+        $warnings = collect($response->json('data.warnings'))->pluck('type');
+        $this->assertContains('irregular_cycle_flag', $warnings->all());
+
+        $record = CycleHistory::where('user_id', $user->id)->latest('period_start_date')->first();
+        $this->assertContains('irregular_cycle_flag', $record->data_quality_flags ?? []);
+    }
+
+    public function test_a_long_open_period_can_still_be_ended(): void
+    {
+        $this->actingUser();
+        // Started 20 days ago and never closed — well past the old 15-day window.
+        $this->postJson('/api/v1/cycle/period/start', ['date' => now()->subDays(20)->toDateString()])->assertOk();
+
+        // Both status and End must still treat it as ongoing (regression: the window
+        // made them deny it while the daily card asked to "log period end").
+        $this->getJson('/api/v1/cycle/period/status')->assertJsonPath('data.active', true);
+        $this->postJson('/api/v1/cycle/period/end', ['date' => now()->subDays(15)->toDateString()])
+            ->assertOk()
+            ->assertJsonPath('data.active', false);
+    }
+
+    public function test_new_start_is_blocked_while_a_recent_period_is_open(): void
+    {
+        $this->actingUser();
+        // A period opened 3 days ago with no end — genuinely still bleeding.
+        $this->postJson('/api/v1/cycle/period/start', ['date' => now()->subDays(3)->toDateString()])->assertOk();
+
+        // Starting a new one today must be blocked with the "close previous first" message.
+        $this->postJson('/api/v1/cycle/period/start', ['date' => now()->toDateString()])
+            ->assertStatus(422)
+            ->assertJsonPath('code', 'previous_period_open');
+
+        // Once the previous period is closed, a new start is allowed.
+        $this->postJson('/api/v1/cycle/period/end', ['date' => now()->subDays(1)->toDateString()])->assertOk();
+        $this->postJson('/api/v1/cycle/period/start', ['date' => now()->toDateString()])->assertOk();
+    }
+
+    public function test_old_start_only_records_do_not_block_a_new_start(): void
+    {
+        // The correction/backfill flow: logging start-only records days apart is allowed
+        // because the old ones are past the hard cap (not genuinely ongoing).
+        $this->actingUser();
+        $this->postJson('/api/v1/cycle/period/start', ['date' => now()->subDays(40)->toDateString()])->assertOk();
+
+        $this->postJson('/api/v1/cycle/period/start', ['date' => now()->subDays(10)->toDateString()])
+            ->assertOk();
+    }
+
+    public function test_start_inside_another_logged_period_is_rejected_as_overlap(): void
+    {
+        $this->actingUser();
+        // A closed period 10→6 days ago.
+        $this->postJson('/api/v1/cycle/period/start', ['date' => now()->subDays(10)->toDateString()])->assertOk();
+        $this->postJson('/api/v1/cycle/period/end', ['date' => now()->subDays(6)->toDateString()])->assertOk();
+
+        // Starting a new period on a day inside that closed range must be rejected.
+        $this->postJson('/api/v1/cycle/period/start', ['date' => now()->subDays(8)->toDateString()])
+            ->assertStatus(422)
+            ->assertJsonPath('code', 'period_overlap');
+    }
+
+    public function test_update_into_another_period_range_is_rejected_as_overlap(): void
+    {
+        $user = $this->actingUser();
+        // Two non-overlapping closed periods.
+        $this->postJson('/api/v1/cycle/period/start', ['date' => now()->subDays(35)->toDateString()])->assertOk();
+        $this->postJson('/api/v1/cycle/period/end', ['date' => now()->subDays(31)->toDateString()])->assertOk();
+        $this->postJson('/api/v1/cycle/period/start', ['date' => now()->subDays(6)->toDateString()])->assertOk();
+        $this->postJson('/api/v1/cycle/period/end', ['date' => now()->subDays(2)->toDateString()])->assertOk();
+
+        $recent = CycleHistory::where('user_id', $user->id)->orderByDesc('period_start_date')->first();
+
+        // Dragging the recent period back onto the older one's range must be rejected.
+        $this->putJson("/api/v1/cycle/period/{$recent->id}", [
+            'start_date' => now()->subDays(33)->toDateString(),
+            'end_date' => now()->subDays(30)->toDateString(),
+        ])->assertStatus(422)->assertJsonPath('code', 'period_overlap');
     }
 }

@@ -6,6 +6,11 @@
   "weekView": "هفته",
   "edit": "ویرایش",
   "today": "امروز",
+  "selectedDay": "انتخاب‌شده",
+  "prevMonth": "ماه قبل",
+  "nextMonth": "ماه بعد",
+  "retry": "تلاش دوباره",
+  "actionFailed": "مشکلی پیش آمد. لطفاً دوباره تلاش کن.",
   "logPeriodCta": "ثبت پریود",
   "jumpToMonth": "رفتن به ماه دیگر",
   "goToToday": "برو به امروز",
@@ -59,5 +64,6 @@
   },
   "editThisPeriod": "ویرایش این پریود",
   "removeThisDay": "پریود نبودم",
+  "endPeriodHere": "پایان پریود از این روز",
   "addToPeriod": "افزودن به روزهای پریود"
 }

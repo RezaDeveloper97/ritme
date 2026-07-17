@@ -4,14 +4,17 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Enums\CalculationStatus;
 use App\Enums\ChronicCondition;
+use App\Enums\DataSource;
 use App\Enums\PregnancyIntention;
 use App\Enums\SubscriptionType;
 use App\Enums\UserGoal;
 use App\Http\Controllers\Concerns\ResolvesLocale;
 use App\Http\Controllers\Controller;
 use App\Jobs\CalculateCycleDataJob;
+use App\Models\CycleHistory;
 use App\Models\UserProfile;
 use App\Services\BmiService;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -269,6 +272,13 @@ class ProfileController extends Controller
             $profile->fill($profileData);
             $profile->save();
 
+            // Seed the onboarding estimate cycle from the profile the first time we have
+            // an anchor (spec §1) — tagged as an estimate so it's never mistaken for a
+            // real logged period and never feeds the prediction medians.
+            if (! $isPregnant && $profile->last_period_start) {
+                $this->seedOnboardingEstimate($user->id, $profile);
+            }
+
             if ($cycleFieldsChanged && $profile->last_period_start) {
                 $this->triggerRecalculation($user, $profile, $locale);
             }
@@ -430,6 +440,33 @@ class ProfileController extends Controller
         }
 
         return false;
+    }
+
+    /**
+     * Seed the onboarding-estimate cycle record from the profile (spec §1). Runs only
+     * when the user has no cycle history yet, so it never overwrites real logged data
+     * or re-seeds on later profile edits. The record is an estimate (is_estimated,
+     * source=onboarding_estimate, is_confirmed=false): excluded from prediction medians
+     * and promoted to a real log if the user later confirms a period on that day.
+     */
+    private function seedOnboardingEstimate(int $userId, UserProfile $profile): void
+    {
+        if (CycleHistory::where('user_id', $userId)->exists()) {
+            return;
+        }
+
+        $start = Carbon::parse($profile->last_period_start)->startOfDay();
+        $duration = (int) ($profile->period_duration ?: 5);
+
+        CycleHistory::create([
+            'user_id' => $userId,
+            'period_start_date' => $start->toDateString(),
+            'period_end_date' => $start->copy()->addDays(max(1, $duration) - 1)->toDateString(),
+            'bleeding_length' => max(1, $duration),
+            'is_confirmed' => false,
+            'is_estimated' => true,
+            'source' => DataSource::ONBOARDING_ESTIMATE->value,
+        ]);
     }
 
     /**

@@ -23,10 +23,16 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -60,8 +66,10 @@ import ir.ritmeapp.ritme.domain.model.HealthLogCategory
 import ir.ritmeapp.ritme.domain.model.HealthLogField
 import ir.ritmeapp.ritme.domain.model.HealthLogValue
 import ir.ritmeapp.ritme.domain.model.JalaliDate
+import ir.ritmeapp.ritme.domain.model.PeriodDayAction
 import ir.ritmeapp.ritme.domain.model.SafeScreen
 import ir.ritmeapp.ritme.platform.crash.Breadcrumbs
+import kotlin.math.abs
 
 private val WEEKDAY_RES = intArrayOf(
     R.string.week_sat, R.string.week_sun, R.string.week_mon, R.string.week_tue,
@@ -126,7 +134,7 @@ fun CalendarScreen(
                 }
                 item(key = "calendar") { CalendarCard(state, viewModel::onIntent, colors) }
                 item(key = "legend") { Legend(colors) }
-                item(key = "detail") { DayDetailCard(state, colors) }
+                item(key = "detail") { DayDetailCard(state, viewModel::onIntent, colors) }
                 item(key = "daylog") {
                     DayLogCard(
                         state = state,
@@ -150,6 +158,25 @@ private fun CalendarCard(state: CalendarUiState, onIntent: (CalendarIntent) -> U
         listOf(weeks.firstOrNull { week -> week.any { it == state.selected } } ?: weeks.first())
     }
 
+    // Tapping the month title opens the quick month/year picker.
+    var pickerOpen by remember { mutableStateOf(false) }
+    if (pickerOpen) {
+        MonthYearPickerDialog(
+            year = state.year,
+            month = state.month,
+            onPick = { y, m ->
+                pickerOpen = false
+                onIntent(CalendarIntent.PickMonth(y, m))
+            },
+            onToday = {
+                pickerOpen = false
+                onIntent(CalendarIntent.JumpToToday)
+            },
+            onDismiss = { pickerOpen = false },
+            colors = colors,
+        )
+    }
+
     SurfaceCard {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             // RTL: the start chevron goes back one month.
@@ -162,7 +189,11 @@ private fun CalendarCard(state: CalendarUiState, onIntent: (CalendarIntent) -> U
                 color = colors.ink,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(10.dp))
+                    .clickable { pickerOpen = true }
+                    .padding(vertical = 4.dp),
             )
             ViewToggle(state.monthView, { onIntent(CalendarIntent.ToggleView) }, colors)
             Spacer(Modifier.width(6.dp))
@@ -190,7 +221,25 @@ private fun CalendarCard(state: CalendarUiState, onIntent: (CalendarIntent) -> U
                 CircularProgressIndicator(color = colors.pink)
             }
         } else {
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+                // Horizontal swipe on the grid flips months, like the web calendar.
+                // RTL: dragging toward the left (dx < 0) advances to the NEXT month.
+                modifier = Modifier.pointerInput(Unit) {
+                    var dragged = 0f
+                    detectHorizontalDragGestures(
+                        onDragStart = { dragged = 0f },
+                        onHorizontalDrag = { _, dragAmount -> dragged += dragAmount },
+                        onDragEnd = {
+                            if (abs(dragged) > SWIPE_THRESHOLD_PX) {
+                                onIntent(
+                                    if (dragged < 0) CalendarIntent.NextMonth else CalendarIntent.PreviousMonth,
+                                )
+                            }
+                        },
+                    )
+                },
+            ) {
                 visibleWeeks.forEach { week ->
                     Row(Modifier.fillMaxWidth()) {
                         week.forEach { cell ->
@@ -279,7 +328,90 @@ private fun dayColors(snapshot: CycleDaySnapshot?, colors: RitmeColors): Pair<Co
     snapshot.phase == CyclePhase.MENSTRUATION -> colors.periodContainer to colors.pink
     snapshot.phase == CyclePhase.OVULATION -> colors.ovulationContainer to colors.success
     snapshot.isFertileWindow -> colors.fertileContainer to colors.warning
+    snapshot.isPmsWindow -> colors.violetContainer to colors.accent
     else -> colors.background to colors.ink
+}
+
+/**
+ * Quick month/year jump, opened by tapping the month title: year arrows over a 3×4 grid
+ * of Jalali months, plus a "back to today" action.
+ */
+@Composable
+private fun MonthYearPickerDialog(
+    year: Int,
+    month: Int,
+    onPick: (Int, Int) -> Unit,
+    onToday: () -> Unit,
+    onDismiss: () -> Unit,
+    colors: RitmeColors,
+) {
+    var browseYear by remember(year) { mutableIntStateOf(year) }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Box(Modifier.clip(RoundedCornerShape(20.dp)).background(colors.surface).padding(16.dp)) {
+            Column {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    // RTL: the start chevron steps one year back.
+                    HeaderIconButton(R.drawable.ic_chevron_right, stringResource(R.string.calendar_prev_year), {
+                        browseYear -= 1
+                    })
+                    Text(
+                        text = browseYear.toPersianDigits(),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = colors.ink,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.weight(1f),
+                    )
+                    HeaderIconButton(R.drawable.ic_chevron_left, stringResource(R.string.calendar_next_year), {
+                        browseYear += 1
+                    })
+                }
+                Spacer(Modifier.height(12.dp))
+                for (row in 0 until 4) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        for (column in 0 until 3) {
+                            val m = row * 3 + column + 1
+                            val isCurrent = m == month && browseYear == year
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(if (isCurrent) colors.pinkContainer else colors.background)
+                                    .clickable { onPick(browseYear, m) }
+                                    .padding(vertical = 10.dp),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Text(
+                                    text = JalaliDate.MONTH_NAMES[m - 1],
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = if (isCurrent) colors.pink else colors.ink,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(8.dp))
+                }
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(colors.pinkContainer)
+                        .clickable(onClick = onToday)
+                        .padding(vertical = 10.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = stringResource(R.string.calendar_go_today),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = colors.pink,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -291,6 +423,7 @@ private fun Legend(colors: RitmeColors) {
         LegendItem(colors.pink, stringResource(R.string.calendar_legend_period), colors)
         LegendItem(colors.warning, stringResource(R.string.calendar_legend_fertile), colors)
         LegendItem(colors.success, stringResource(R.string.calendar_legend_ovulation), colors)
+        LegendItem(colors.accent, stringResource(R.string.calendar_legend_pms), colors)
     }
 }
 
@@ -304,7 +437,7 @@ private fun LegendItem(dot: Color, label: String, colors: RitmeColors) {
 }
 
 @Composable
-private fun DayDetailCard(state: CalendarUiState, colors: RitmeColors) {
+private fun DayDetailCard(state: CalendarUiState, onIntent: (CalendarIntent) -> Unit, colors: RitmeColors) {
     val snapshot = state.selectedSnapshot
     SurfaceCard {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -352,6 +485,51 @@ private fun DayDetailCard(state: CalendarUiState, colors: RitmeColors) {
                 modifier = Modifier.weight(1f),
             )
         }
+        PeriodActionButton(state, onIntent, colors)
+    }
+}
+
+/**
+ * The one quick period edit offered for the selected day (mirrors the web day sheet):
+ * far from any logged period → start one; just next to one → extend it; inside one →
+ * unmark this day. [PeriodDayAction.None] renders nothing.
+ */
+@Composable
+private fun PeriodActionButton(state: CalendarUiState, onIntent: (CalendarIntent) -> Unit, colors: RitmeColors) {
+    val label = when (state.selectedAction) {
+        is PeriodDayAction.StartNew -> stringResource(R.string.calendar_start_period_here)
+        is PeriodDayAction.Extend -> stringResource(R.string.calendar_add_to_period)
+        is PeriodDayAction.RemoveDay -> stringResource(R.string.calendar_remove_period_day)
+        is PeriodDayAction.None -> return
+    }
+    val emphasized = state.selectedAction !is PeriodDayAction.RemoveDay
+    Spacer(Modifier.height(12.dp))
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(
+                if (emphasized) Brush.verticalGradient(listOf(colors.pink, colors.accent))
+                else Brush.verticalGradient(listOf(colors.background, colors.background)),
+            )
+            .clickable(enabled = !state.periodSaving) { onIntent(CalendarIntent.ApplyPeriodAction) }
+            .padding(vertical = 12.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        if (state.periodSaving) {
+            CircularProgressIndicator(
+                color = if (emphasized) colors.onPink else colors.pink,
+                modifier = Modifier.size(18.dp),
+                strokeWidth = 2.dp,
+            )
+        } else {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelLarge,
+                color = if (emphasized) colors.onPink else colors.inkMuted,
+                fontWeight = FontWeight.Bold,
+            )
+        }
     }
 }
 
@@ -372,6 +550,7 @@ private fun phaseLabel(snapshot: CycleDaySnapshot?): String = when {
     snapshot?.phase == CyclePhase.MENSTRUATION -> stringResource(R.string.calendar_phase_period)
     snapshot?.phase == CyclePhase.OVULATION -> stringResource(R.string.calendar_phase_ovulation)
     snapshot?.isFertileWindow == true -> stringResource(R.string.calendar_phase_fertile)
+    snapshot?.isPmsWindow == true -> stringResource(R.string.calendar_phase_pms)
     snapshot?.phase == CyclePhase.FOLLICULAR -> stringResource(R.string.calendar_phase_follicular)
     snapshot?.phase == CyclePhase.LUTEAL -> stringResource(R.string.calendar_phase_luteal)
     else -> stringResource(R.string.home_unavailable)
@@ -537,3 +716,6 @@ private fun SmartTipCard(colors: RitmeColors) {
 
 private const val LOW_CHANCE_MAX = 10.0
 private const val MEDIUM_CHANCE_MAX = 22.0
+
+/** Horizontal drag past this many px flips the month (matches the web swipe feel). */
+private const val SWIPE_THRESHOLD_PX = 90f

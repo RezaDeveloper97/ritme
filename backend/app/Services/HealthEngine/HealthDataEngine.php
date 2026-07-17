@@ -58,17 +58,40 @@ class HealthDataEngine
         'luteal_spotting' => 0.7,
     ];
 
+    /** Fixed luteal-phase length (days) — the MVP ovulation model (§2). */
+    private const LUTEAL_LENGTH = 14;
+
+    /**
+     * Ovulation never falls before this cycle day. Without a floor a short cycle
+     * (e.g. a 15-day one) would put ovulation on day 1, collapsing the follicular
+     * phase; cycles in the valid 21–45 range are unaffected (their O is already ≥7).
+     */
+    private const MIN_OVULATION_DAY = 7;
+
     private User $user;
 
     private ?UserProfile $profile;
 
     private string $locale;
 
+    private CycleMetricsCalculator $metricsCalculator;
+
+    private CyclePhaseMapper $phaseMapper;
+
+    /**
+     * Effective bleeding length (days) for the cycle being calculated — set from the
+     * three-layer metrics at the top of calculateForDate so phase/subphase detection
+     * uses the learned/median period duration rather than only the raw profile value.
+     */
+    private int $effectivePeriodDuration = 5;
+
     public function __construct(User $user, string $locale = 'en')
     {
         $this->user = $user;
         $this->profile = $user->profile;
         $this->locale = $locale;
+        $this->metricsCalculator = new CycleMetricsCalculator;
+        $this->phaseMapper = new CyclePhaseMapper;
     }
 
     /**
@@ -83,11 +106,16 @@ class HealthDataEngine
         $dailyLog = $this->getDailyLog($date);
         $cycleHistories = $this->getCycleHistories();
 
-        // Core calculations - get cycle length first, then calculate cycle day
-        $cycleLength = $this->getEffectiveCycleLength($cycleHistories);
+        // Core calculations. Effective cycle length, period duration and variability
+        // all come from the same three-layer metrics (§6–8, §12): the median of the
+        // last three valid cycles when available, else the profile baseline, else a
+        // default. This is what replaced the old "average of 1–2 cycles" behaviour.
+        $metrics = $this->metricsCalculator->calculate($cycleHistories, $this->profile);
+        $this->effectivePeriodDuration = $metrics->effectivePeriodDuration;
+
+        $cycleLength = $metrics->effectiveCycleLength;
         $cycleDay = $this->calculateCycleDay($date, $cycleLength, $cycleHistories);
-        $cycleLengths = $this->getCycleLengths($cycleHistories);
-        $variability = $this->calculateVariability($cycleLengths);
+        $variability = $metrics->variability;
         $ovulationDay = $this->calculateOvulationDay($cycleLength);
 
         // Phase detection
@@ -257,66 +285,15 @@ class HealthDataEngine
     }
 
     /**
-     * Get effective cycle length based on history
-     *
-     * Always returns a positive integer. Every downstream calculation divides by
-     * this value (cycle-day wrapping, ovulation, PMS window), so a 0 here throws
-     * DivisionByZeroError and 500s the whole cycle/message pipeline. Guard the two
-     * ways it can reach 0: a profile `cycle_duration` of 0 (the `?? 28` fallback
-     * only covers null), and histories whose `cycle_length` values are all null
-     * (empty `->avg()` returns null → `(int) 0`).
+     * Effective cycle length via the shared three-layer metrics (§7): the median of
+     * the last three valid cycles when available, else the profile baseline, else 28.
+     * Kept as a public entry point for callers that only need the length. Never
+     * returns 0 — every downstream calculation (cycle-day wrapping, ovulation, PMS
+     * window) divides by it, so a 0 would raise DivisionByZeroError.
      */
     public function getEffectiveCycleLength(Collection $histories): int
     {
-        // Profile fallback: `?:` also rejects 0, unlike `??` which only rejects null.
-        $fallback = (int) ($this->profile->cycle_duration ?: 28);
-
-        $lengths = $this->plausibleCycleLengths($histories);
-
-        if ($lengths->isEmpty()) {
-            return max($fallback, 1);
-        }
-
-        if ($lengths->count() >= 3) {
-            // Use median for 3+ cycles
-            $sorted = $lengths->sort()->values();
-            $count = $sorted->count();
-            $middle = (int) floor($count / 2);
-
-            $median = $count % 2 === 0
-                ? (int) round(($sorted[$middle - 1] + $sorted[$middle]) / 2)
-                : (int) $sorted[$middle];
-
-            return max($median, 1);
-        }
-
-        // Use average for 1-2 cycles
-        return max((int) round($lengths->avg()), 1);
-    }
-
-    /**
-     * Get cycle lengths from history
-     */
-    private function getCycleLengths(Collection $histories): array
-    {
-        return $this->plausibleCycleLengths($histories)
-            ->take(6)
-            ->values()
-            ->toArray();
-    }
-
-    /**
-     * History cycle lengths that are physiologically plausible (15–60 days,
-     * matching the profile validation bounds). Periods logged a few days apart
-     * — e.g. correcting a mis-tapped start — produce gaps like 4 or 8 days;
-     * treating those as real cycle lengths collapses the effective cycle and
-     * paints the whole calendar as menstruation, so they're ignored here.
-     */
-    private function plausibleCycleLengths(Collection $histories): Collection
-    {
-        return $histories->pluck('cycle_length')
-            ->filter(fn ($length) => $length !== null && $length >= 15 && $length <= 60)
-            ->values();
+        return $this->metricsCalculator->calculate($histories, $this->profile)->effectiveCycleLength;
     }
 
     /**
@@ -340,7 +317,10 @@ class HealthDataEngine
      */
     public function calculateOvulationDay(int $cycleLength): int
     {
-        return $cycleLength - 14;
+        // +1 so the 1-based ovulation cycle day matches the date-based ovulation used by
+        // CyclePredictionService (next_period_start − 14 = cycle day cycleLength−13),
+        // keeping the phase engine, predictions and the calendar fertile window in step (§2).
+        return max($cycleLength - self::LUTEAL_LENGTH + 1, self::MIN_OVULATION_DAY);
     }
 
     /**
@@ -353,7 +333,7 @@ class HealthDataEngine
      */
     private function effectiveBleedingLength(int $cycleLength, ?int $logged = null): int
     {
-        $bleeding = $logged ?? $this->profile->period_duration ?? 5;
+        $bleeding = $logged ?? $this->effectivePeriodDuration;
 
         if ($bleeding >= $cycleLength) {
             return max(1, min(5, $cycleLength - 1));
@@ -385,19 +365,7 @@ class HealthDataEngine
     {
         $bleedingLength = $this->effectiveBleedingLength($cycleLength, $loggedBleeding);
 
-        if ($cycleDay <= $bleedingLength) {
-            return CyclePhase::MENSTRUATION;
-        }
-
-        if ($cycleDay <= 12) {
-            return CyclePhase::FOLLICULAR;
-        }
-
-        if ($cycleDay >= 13 && $cycleDay <= 15) {
-            return CyclePhase::OVULATION;
-        }
-
-        return CyclePhase::LUTEAL;
+        return $this->phaseMapper->phaseFor($cycleDay, $ovulationDay, $bleedingLength);
     }
 
     /**
@@ -407,38 +375,7 @@ class HealthDataEngine
     {
         $bleedingLength = $this->effectiveBleedingLength($cycleLength, $loggedBleeding);
 
-        // Menstruation: day 1 to end of bleeding
-        if ($cycleDay <= $bleedingLength) {
-            return CycleSubphase::MENSTRUATION;
-        }
-
-        // Early Follicular: 6 to ovulation-4
-        if ($cycleDay <= ($ovulationDay - 4)) {
-            return CycleSubphase::EARLY_FOLLICULAR;
-        }
-
-        // Late Follicular: ovulation-3 to ovulation-1
-        if ($cycleDay < $ovulationDay) {
-            return CycleSubphase::LATE_FOLLICULAR;
-        }
-
-        // Ovulation window: ovulation day +/- 1
-        if ($cycleDay >= $ovulationDay && $cycleDay <= $ovulationDay + 1) {
-            return CycleSubphase::OVULATION_WINDOW;
-        }
-
-        // Early Luteal: +1 to +4 after ovulation
-        if ($cycleDay <= $ovulationDay + 4) {
-            return CycleSubphase::EARLY_LUTEAL;
-        }
-
-        // Mid Luteal: +5 to +8 after ovulation
-        if ($cycleDay <= $ovulationDay + 8) {
-            return CycleSubphase::MID_LUTEAL;
-        }
-
-        // Late Luteal (PMS): +9 to end
-        return CycleSubphase::LATE_LUTEAL;
+        return $this->phaseMapper->subphaseFor($cycleDay, $ovulationDay, $cycleLength, $bleedingLength);
     }
 
     /**
@@ -770,7 +707,7 @@ class HealthDataEngine
                 break;
 
             case CyclePhase::LUTEAL:
-                if ($subphase === CycleSubphase::LATE_LUTEAL) {
+                if ($subphase === CycleSubphase::LATE_LUTEAL || $subphase === CycleSubphase::PMS_POSSIBLE) {
                     $tips[] = [
                         'type' => 'pms',
                         'en' => 'PMS symptoms may appear. Practice self-care and relaxation.',
@@ -882,9 +819,11 @@ class HealthDataEngine
      */
     private function getCycleHistories(): Collection
     {
+        // Full history (no ->take cap): CycleMetricsCalculator internally limits itself to
+        // the last 3 valid cycles, and CycleDayViewBuilder loads the full history too — a
+        // cap here made the effective values in `calculation` and `cycle_view` disagree.
         return CycleHistory::where('user_id', $this->user->id)
             ->orderBy('period_start_date', 'desc')
-            ->take(6)
             ->get();
     }
 

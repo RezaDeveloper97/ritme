@@ -76,6 +76,18 @@ object ApiConfig {
     /** Whole-month calculations + summary for the calendar screen. */
     fun cycleMonthPath(year: Int, month: Int): String = "$V1/cycle/month/$year/$month"
 
+    /** Records that a period started on a date (`{date}`); re-anchors the cycle. */
+    const val PERIOD_START_PATH = "$V1/cycle/period/start"
+
+    /** Closes the ongoing period with an end date (`{date}`). */
+    const val PERIOD_END_PATH = "$V1/cycle/period/end"
+
+    /** Every logged period, newest first (`data.periods[]`). */
+    const val PERIOD_HISTORY_PATH = "$V1/cycle/period/history"
+
+    /** `PUT` move a logged period's start/end · `DELETE` remove it entirely. */
+    fun periodPath(periodId: Long): String = "$V1/cycle/period/$periodId"
+
     /** Kicks off the async cycle recalculation. */
     const val CYCLE_RECALCULATE_PATH = "$V1/cycle/recalculate"
 

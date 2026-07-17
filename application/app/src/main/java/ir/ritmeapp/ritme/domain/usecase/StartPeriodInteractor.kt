@@ -2,18 +2,18 @@ package ir.ritmeapp.ritme.domain.usecase
 
 import ir.ritmeapp.ritme.domain.model.AppResult
 import ir.ritmeapp.ritme.domain.model.JalaliDate
-import ir.ritmeapp.ritme.domain.model.OnboardingAnswers
 import ir.ritmeapp.ritme.domain.port.inbound.StartPeriodUseCase
-import ir.ritmeapp.ritme.domain.port.outbound.ProfileGateway
+import ir.ritmeapp.ritme.domain.port.outbound.PeriodLogGateway
 
 /**
- * Default [StartPeriodUseCase]: a period start is recorded as a partial profile update of
- * `last_period_start` only — the backend re-anchors and recalculates the cycle from it.
+ * Default [StartPeriodUseCase]: records the start through the dedicated period-log
+ * endpoint (idempotent per day, creates a history record the calendar can edit) —
+ * not the old partial-profile-update hack.
  */
 class StartPeriodInteractor(
-    private val profileGateway: ProfileGateway,
+    private val periodLogGateway: PeriodLogGateway,
 ) : StartPeriodUseCase {
 
     override suspend fun invoke(startDay: JalaliDate): AppResult<Unit> =
-        profileGateway.saveProfile(OnboardingAnswers(lastPeriod = startDay))
+        periodLogGateway.start(startDay.toGregorian())
 }

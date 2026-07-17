@@ -2,37 +2,72 @@
 
 namespace App\Enums;
 
+/**
+ * Fine-grained cycle sub-phase (spec §16–17). Twelve states walk the cycle from
+ * menstruation through the fertile ramp, ovulation and the luteal wind-down to a
+ * possible-PMS and finally an expected-period marker. Positioned relative to the
+ * estimated ovulation day, so they stay correct for non-28-day cycles.
+ */
 enum CycleSubphase: string
 {
     case MENSTRUATION = 'menstruation';
     case EARLY_FOLLICULAR = 'early_follicular';
-    case LATE_FOLLICULAR = 'late_follicular';
-    case OVULATION_WINDOW = 'ovulation_window';
+    case MID_FOLLICULAR = 'mid_follicular';
+    case FERTILE_RISING = 'fertile_rising';
+    case HIGH_FERTILITY = 'high_fertility';
+    case OVULATION_LIKELY = 'ovulation_likely';
+    case POST_OVULATION = 'post_ovulation';
     case EARLY_LUTEAL = 'early_luteal';
     case MID_LUTEAL = 'mid_luteal';
     case LATE_LUTEAL = 'late_luteal';
+    case PMS_POSSIBLE = 'pms_possible';
+    case PERIOD_EXPECTED = 'period_expected';
 
     public function label(string $locale = 'en'): string
     {
-        return match($locale) {
-            'fa' => match($this) {
+        return match ($locale) {
+            'fa' => match ($this) {
                 self::MENSTRUATION => 'قاعدگی',
                 self::EARLY_FOLLICULAR => 'فولیکولار اولیه',
-                self::LATE_FOLLICULAR => 'فولیکولار پایانی',
-                self::OVULATION_WINDOW => 'پنجره تخمک‌گذاری',
+                self::MID_FOLLICULAR => 'فولیکولار میانی',
+                self::FERTILE_RISING => 'افزایش باروری',
+                self::HIGH_FERTILITY => 'باروری بالا',
+                self::OVULATION_LIKELY => 'احتمال تخمک‌گذاری',
+                self::POST_OVULATION => 'پس از تخمک‌گذاری',
                 self::EARLY_LUTEAL => 'لوتئال اولیه',
                 self::MID_LUTEAL => 'لوتئال میانی',
-                self::LATE_LUTEAL => 'لوتئال پایانی (PMS)',
+                self::LATE_LUTEAL => 'لوتئال پایانی',
+                self::PMS_POSSIBLE => 'احتمال پی‌ام‌اس',
+                self::PERIOD_EXPECTED => 'انتظار پریود',
             },
-            default => match($this) {
+            default => match ($this) {
                 self::MENSTRUATION => 'Menstruation',
                 self::EARLY_FOLLICULAR => 'Early Follicular',
-                self::LATE_FOLLICULAR => 'Late Follicular',
-                self::OVULATION_WINDOW => 'Ovulation Window',
+                self::MID_FOLLICULAR => 'Mid Follicular',
+                self::FERTILE_RISING => 'Rising Fertility',
+                self::HIGH_FERTILITY => 'High Fertility',
+                self::OVULATION_LIKELY => 'Ovulation Likely',
+                self::POST_OVULATION => 'Post-Ovulation',
                 self::EARLY_LUTEAL => 'Early Luteal',
                 self::MID_LUTEAL => 'Mid Luteal',
-                self::LATE_LUTEAL => 'Late Luteal (PMS)',
+                self::LATE_LUTEAL => 'Late Luteal',
+                self::PMS_POSSIBLE => 'Possible PMS',
+                self::PERIOD_EXPECTED => 'Period Expected',
             },
+        };
+    }
+
+    /**
+     * Calendar-based fertility level for this sub-phase (spec §17 mapping table).
+     * A cycle-timing estimate only — never a diagnosis.
+     */
+    public function fertilityLevel(): FertilityLevel
+    {
+        return match ($this) {
+            self::OVULATION_LIKELY => FertilityLevel::VERY_HIGH,
+            self::HIGH_FERTILITY => FertilityLevel::HIGH,
+            self::FERTILE_RISING, self::POST_OVULATION => FertilityLevel::MEDIUM,
+            default => FertilityLevel::LOW,
         };
     }
 

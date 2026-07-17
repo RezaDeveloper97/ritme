@@ -6,6 +6,11 @@
   "weekView": "Week",
   "edit": "Edit",
   "today": "Today",
+  "selectedDay": "Selected",
+  "prevMonth": "Previous month",
+  "nextMonth": "Next month",
+  "retry": "Try again",
+  "actionFailed": "Something went wrong. Please try again.",
   "logPeriodCta": "Log period",
   "jumpToMonth": "Jump to another month",
   "goToToday": "Go to today",
@@ -59,5 +64,6 @@
   },
   "editThisPeriod": "Edit this period",
   "removeThisDay": "Not a period day",
+  "endPeriodHere": "End period on this day",
   "addToPeriod": "Add to period days"
 }

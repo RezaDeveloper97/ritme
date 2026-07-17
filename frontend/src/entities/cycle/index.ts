@@ -1,6 +1,10 @@
 // Public API of the `cycle` entity. Import only from here (CLAUDE.md §3.3).
 export { cycleDayInfo } from './model/phase';
 export { deriveCyclePredictions, normalizePhase, calcToPhase, cycleDayMarker } from './model/predictions';
+export { DailyStatusCard } from './ui/DailyStatusCard';
+export type { DailyStatusCardProps } from './ui/DailyStatusCard';
+export { CycleValuesCard } from './ui/CycleValuesCard';
+export type { CycleValuesCardProps, CycleValuesSuggestion } from './ui/CycleValuesCard';
 export type {
   CycleConfig,
   CycleDayInfo,
@@ -10,6 +14,17 @@ export type {
   CycleCalculation,
   MonthSummary,
   CyclePredictions,
+  CycleView,
+  DailyCard,
+  CardAction,
+  CycleForecast,
+  CycleValueLayer,
+  CalculatedValues,
+  EffectiveValues,
+  CycleDataQuality,
+  DataStatus,
+  FertilityLevel,
+  ConfidenceLevel,
 } from './model/types';
 export {
   cycleKeys,

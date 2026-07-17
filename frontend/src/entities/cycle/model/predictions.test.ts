@@ -77,9 +77,9 @@ describe('cycleDayMarker', () => {
 describe('deriveCyclePredictions', () => {
   it('derives day offsets from the calculation', () => {
     const p = deriveCyclePredictions(makeCalc());
-    expect(p.daysUntilNextPeriod).toBe(20); // 28 - 8
+    expect(p.daysUntilNextPeriod).toBe(21); // 28 - 8 + 1 (next period is cycle day 29)
     expect(p.daysUntilOvulation).toBe(6); // 14 - 8
-    expect(p.daysUntilFertileWindow).toBe(2); // 6 - 4 lead days
+    expect(p.daysUntilFertileWindow).toBe(1); // 6 - 5 lead days
     expect(p.fertilityPercent).toBe(20); // rounded
     expect(p.cycleDay).toBe(8);
     expect(p.cycleLength).toBe(28);
@@ -87,8 +87,8 @@ describe('deriveCyclePredictions', () => {
 
   it('derives the PMS window as the days before the next period', () => {
     const p = deriveCyclePredictions(makeCalc()); // next period in 20 days
-    expect(p.daysUntilPmsEnd).toBe(19); // day before next period
-    expect(p.daysUntilPmsStart).toBe(16); // 4-day window
+    expect(p.daysUntilPmsEnd).toBe(20); // day before next period
+    expect(p.daysUntilPmsStart).toBe(17); // 4-day window
   });
 
   it('clamps the PMS window to today when a period is imminent', () => {
