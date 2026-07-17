@@ -47,7 +47,8 @@ fi
 
 echo "==> Updating compose files and restarting stack..."
 ssh -i "${SSH_KEY}" "${SERVER}" \
-  'cd /opt/ritme && git pull --ff-only && docker compose up -d --no-build'
+  'cd /opt/ritme --ff-only && docker compose up -d --no-build'
+#  'cd /opt/ritme && git pull --ff-only && docker compose up -d --no-build'
 
 echo "==> Verifying..."
 sleep 5
