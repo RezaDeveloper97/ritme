@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\V1\HomeController;
 use App\Http\Controllers\Api\V1\MessageController;
 use App\Http\Controllers\Api\V1\OtpAuthController;
 use App\Http\Controllers\Api\V1\PeriodLogController;
+use App\Http\Controllers\Api\V1\PhaseContentController;
 use App\Http\Controllers\Api\V1\PregnancyAlertController;
 use App\Http\Controllers\Api\V1\PregnancyProfileController;
 use App\Http\Controllers\Api\V1\PregnancySymptomController;
@@ -88,6 +89,9 @@ Route::prefix('v1')->group(function () {
             // Matrix Messages (Personalized Phase-based Messages)
             Route::get('/matrix-messages', [CycleCalculationController::class, 'matrixMessages']);
             Route::get('/matrix-enums', [CycleCalculationController::class, 'matrixEnums']);
+
+            // Phase Details educational content (DB-driven, admin-editable)
+            Route::get('/phase-content/{phase}', [PhaseContentController::class, 'show']);
         });
 
         // Pregnancy Mode routes

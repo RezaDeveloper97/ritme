@@ -15,6 +15,7 @@ import enLogPeriod from '../../../messages/en/log-period.json';
 import enNav from '../../../messages/en/nav.json';
 import enNotifications from '../../../messages/en/notifications.json';
 import enOnboarding from '../../../messages/en/onboarding.json';
+import enPhaseDetails from '../../../messages/en/phase-details.json';
 import enPregnancy from '../../../messages/en/pregnancy.json';
 import enProfile from '../../../messages/en/profile.json';
 import enProfileEdit from '../../../messages/en/profile-edit.json';
@@ -34,6 +35,7 @@ import faLogPeriod from '../../../messages/fa/log-period.json';
 import faNav from '../../../messages/fa/nav.json';
 import faNotifications from '../../../messages/fa/notifications.json';
 import faOnboarding from '../../../messages/fa/onboarding.json';
+import faPhaseDetails from '../../../messages/fa/phase-details.json';
 import faPregnancy from '../../../messages/fa/pregnancy.json';
 import faProfile from '../../../messages/fa/profile.json';
 import faProfileEdit from '../../../messages/fa/profile-edit.json';
@@ -48,6 +50,7 @@ const messages = {
     auth: faAuth,
     banners: faBanners,
     onboarding: faOnboarding,
+    phaseDetails: faPhaseDetails,
     pregnancy: faPregnancy,
     nav: faNav,
     calendar: faCalendar,
@@ -69,6 +72,7 @@ const messages = {
     auth: enAuth,
     banners: enBanners,
     onboarding: enOnboarding,
+    phaseDetails: enPhaseDetails,
     pregnancy: enPregnancy,
     nav: enNav,
     calendar: enCalendar,

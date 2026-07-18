@@ -9,6 +9,7 @@
   "dayN": "روز {n, number}",
   "percent": "{n, number}٪",
   "basedOn": "بر اساس سیکل فعلی تو",
+  "phaseDetailsCta": "جزئیات این فاز",
   "status": {
     "cycleDayLabel": "روز سیکل",
     "ofN": "از {n, number}",

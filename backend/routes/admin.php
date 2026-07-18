@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\ChallengeController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\MessageContentController;
+use App\Http\Controllers\Admin\PhaseContentController;
 use App\Http\Controllers\Admin\PregnancyWeekController;
 use App\Http\Controllers\Admin\TaskTemplateController;
 use App\Http\Controllers\Admin\UserController;
@@ -73,6 +74,8 @@ Route::middleware(['auth:admin', 'admin.active'])->group(function () {
     Route::resource('task-templates', TaskTemplateController::class)->except('show')->parameters(['task-templates' => 'taskTemplate']);
 
     Route::resource('pregnancy-weeks', PregnancyWeekController::class)->except('show')->parameters(['pregnancy-weeks' => 'pregnancyWeek']);
+
+    Route::resource('phase-contents', PhaseContentController::class)->except('show')->parameters(['phase-contents' => 'phaseContent']);
 
     // Smart messages (editable, moderated)
     Route::get('messages', [MessageContentController::class, 'index'])->name('messages.index');

@@ -43,6 +43,14 @@ export default defineConfig([
     rules: { 'fsd/insignificant-slice': 'off' },
   },
   {
+    // `entities/phase-content` maps the DB-driven Phase Details content
+    // (GET /cycle/phase-content/{phase}). Its only consumer is the
+    // `phase-details` screen, and references coming FROM `screens` are
+    // invisible to steiger (same reason as the blocks above).
+    files: ['./src/entities/phase-content/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
     // `entities/message` maps the API's `messages` endpoint group (CLAUDE.md
     // §8.1: daily personalized messages + current mode). The home screen is its
     // first consumer; mode-awareness and the pregnancy screens will follow.

@@ -75,12 +75,13 @@ function CycleHeader({
 
 // ── Status hero: cycle-day ring + phase ────────────────────────
 function CycleStatusCard({
-  t, pred, calc, phaseDesc,
+  t, pred, calc, phaseDesc, subphase,
 }: {
   t: T;
   pred: CyclePredictions;
   calc: CycleCalculation;
   phaseDesc: string;
+  subphase: string | null;
 }) {
   const format = useFormatter();
   const { c, bg } = PHASE_COLOR[pred.phase];
@@ -165,6 +166,19 @@ function CycleStatusCard({
         <p className="sub" style={{ textAlign: 'start', margin: '14px 2px 0', lineHeight: 1.9 }}>
           {phaseDesc}
         </p>
+
+        {/* Deep-link into the full educational content for the current phase.
+            Only shown once the engine has a confident sub-phase; the target
+            reads that phase from live cycle data, never from the URL (§11). */}
+        {subphase && (
+          <Link
+            href="/cycle/phase"
+            className="btn btn-ghost"
+            style={{ height: 44, borderRadius: 14, marginTop: 14, gap: 8, fontSize: 13, textDecoration: 'none' }}
+          >
+            <Icon name="info" size={16} /> {t('phaseDetailsCta')}
+          </Link>
+        )}
       </div>
     </div>
   );
@@ -453,7 +467,7 @@ export function CyclePage() {
 
         {mounted && calc && pred ? (
           <>
-            <CycleStatusCard t={t} pred={pred} calc={calc} phaseDesc={phaseDesc} />
+            <CycleStatusCard t={t} pred={pred} calc={calc} phaseDesc={phaseDesc} subphase={todayData?.cycleView?.subphase ?? null} />
             <CycleTimeline
               t={t}
               pred={pred}

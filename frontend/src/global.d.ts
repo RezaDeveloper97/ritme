@@ -11,6 +11,7 @@ import type enLogPeriod from '../messages/en/log-period.json';
 import type enNav from '../messages/en/nav.json';
 import type enNotifications from '../messages/en/notifications.json';
 import type enOnboarding from '../messages/en/onboarding.json';
+import type enPhaseDetails from '../messages/en/phase-details.json';
 import type enPregnancy from '../messages/en/pregnancy.json';
 import type enProfile from '../messages/en/profile.json';
 import type enProfileEdit from '../messages/en/profile-edit.json';
@@ -28,6 +29,7 @@ type Messages = {
   auth: typeof enAuth;
   banners: typeof enBanners;
   onboarding: typeof enOnboarding;
+  phaseDetails: typeof enPhaseDetails;
   pregnancy: typeof enPregnancy;
   nav: typeof enNav;
   calendar: typeof enCalendar;

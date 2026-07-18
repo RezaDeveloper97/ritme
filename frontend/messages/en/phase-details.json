@@ -1,0 +1,17 @@
+{
+  "title": "Phase details",
+  "subtitle": "What matters in this phase of your cycle",
+  "loading": "Loading…",
+  "fallback": "There is no content available for this phase right now.",
+  "sections": {
+    "symptom_prediction": "Symptom prediction",
+    "vaginal_discharge": "Vaginal discharge",
+    "fertility": "Fertility",
+    "hormonal_changes": "Hormonal changes",
+    "sex_tips": "Intimacy tips",
+    "nutrition": "Nutrition",
+    "exercise": "Exercise",
+    "skin_care": "Skin care",
+    "sleep": "Sleep"
+  }
+}

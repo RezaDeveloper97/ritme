@@ -31,6 +31,7 @@ class DatabaseSeeder extends Seeder
             ChallengeSeeder::class,
             MessageContentSeeder::class,
             PregnancyWeeklyContentSeeder::class,
+            PhaseContentSeeder::class,
             HomeDemoSeeder::class,
         ]);
     }

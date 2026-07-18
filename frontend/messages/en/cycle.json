@@ -9,6 +9,7 @@
   "dayN": "Day {n, number}",
   "percent": "{n, number}%",
   "basedOn": "Based on your current cycle",
+  "phaseDetailsCta": "Read more about this phase",
   "status": {
     "cycleDayLabel": "Cycle day",
     "ofN": "of {n, number}",
