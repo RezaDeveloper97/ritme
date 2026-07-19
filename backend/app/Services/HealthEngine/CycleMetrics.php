@@ -30,11 +30,17 @@ final class CycleMetrics
         public readonly RegularityStatus $regularityStatus,
         public readonly CycleVariability $variability,
         public readonly array $recentValidCycleLengths,
+        /** v1.1 §27: max−min of the last ≤3 valid cycle lengths; null with fewer than 2. */
+        public readonly ?int $cycleVariabilityRange = null,
+        public readonly bool $hasShortCycleOutlier = false,
+        public readonly bool $hasLongCycleOutlier = false,
+        /** Cycle gaps exist in history but every one of them is an outlier (§28.3). */
+        public readonly bool $onlyOutlierHistory = false,
     ) {}
 
     /**
      * The spec §19 three-layer values block for the API payload. `based_on_cycles`
-     * stays null until at least three valid cycles exist (calculated values undefined).
+     * reports how many valid cycles fed the median (v1.1 §9: 1–3 records suffice).
      */
     public function toApiArray(): array
     {
@@ -46,7 +52,7 @@ final class CycleMetrics
             'calculated_values' => [
                 'cycle_length' => $this->calculatedCycleLength,
                 'period_duration' => $this->calculatedPeriodDuration,
-                'based_on_cycles' => $this->validCyclesCount >= 3 ? $this->validCyclesCount : null,
+                'based_on_cycles' => $this->validCyclesCount > 0 ? $this->validCyclesCount : null,
             ],
             'effective_values' => [
                 'cycle_length' => $this->effectiveCycleLength,

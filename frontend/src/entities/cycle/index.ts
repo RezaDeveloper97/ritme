@@ -25,6 +25,12 @@ export type {
   DataStatus,
   FertilityLevel,
   ConfidenceLevel,
+  MainPhase,
+  CycleFertilityLevel,
+  DataQualityLevel,
+  ResolutionSource,
+  CycleAnchors,
+  CycleEngineMetrics,
 } from './model/types';
 export {
   cycleKeys,

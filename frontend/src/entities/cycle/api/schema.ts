@@ -4,16 +4,21 @@ import type {
   CalculatedValues,
   CardAction,
   ConfidenceLevel,
+  CycleAnchors,
   CycleCalculation,
   CycleDataQuality,
+  CycleEngineMetrics,
+  CycleFertilityLevel,
   CycleForecast,
   CycleValueLayer,
   CycleView,
   DailyCard,
+  DataQualityLevel,
   DataStatus,
   EffectiveValues,
-  FertilityLevel,
+  MainPhase,
   MonthSummary,
+  ResolutionSource,
 } from '../model/types';
 
 /**
@@ -173,7 +178,7 @@ const effectiveValuesSchema = z
     }),
   );
 
-const dataQualitySchema = z
+const dataQualityDetailsSchema = z
   .object({
     confidence: z.string().default('low'),
     confidence_reasons: z.array(z.string()).default([]),
@@ -191,20 +196,75 @@ const dataQualitySchema = z
     }),
   );
 
-/** The `cycle_view` object (spec §19): daily card + forecast + three-layer values. */
+/** The v1.1 anchors block (task.md §10, §35): current period + sources + predictions. */
+const anchorsSchema = z
+  .object({
+    current_period_start: z.string().nullable().default(null),
+    current_period_start_source: z.string().default('unknown'),
+    current_period_end: z.string().nullable().default(null),
+    current_period_end_source: z.string().default('unknown'),
+    current_period_end_is_confirmed: z.boolean().default(false),
+    predicted_next_period_start: z.string().nullable().default(null),
+    estimated_ovulation_date: z.string().nullable().default(null),
+  })
+  .transform(
+    (a): CycleAnchors => ({
+      currentPeriodStart: a.current_period_start,
+      currentPeriodStartSource: a.current_period_start_source,
+      currentPeriodEnd: a.current_period_end,
+      currentPeriodEndSource: a.current_period_end_source,
+      currentPeriodEndIsConfirmed: a.current_period_end_is_confirmed,
+      predictedNextPeriodStart: a.predicted_next_period_start,
+      estimatedOvulationDate: a.estimated_ovulation_date,
+    }),
+  );
+
+/** The v1.1 effective-metrics block (task.md §9, §27, §35). */
+const engineMetricsSchema = z
+  .object({
+    effective_cycle_length: z.number(),
+    effective_period_length: z.number(),
+    cycle_variability: z.number().nullable().default(null),
+  })
+  .transform(
+    (m): CycleEngineMetrics => ({
+      effectiveCycleLength: m.effective_cycle_length,
+      effectivePeriodLength: m.effective_period_length,
+      cycleVariability: m.cycle_variability,
+    }),
+  );
+
+/**
+ * The `cycle_view` object: the v1.1 engine status (task.md §35) merged with the
+ * legacy render keys (daily card, forecast, three-layer values). New fields are
+ * optional-with-defaults so an older backend still parses.
+ */
 export const cycleViewSchema = z
   .object({
     date: z.string(),
     cycle_day: z.number().nullable().default(null),
     phase: z.string().nullable().default(null),
     subphase: z.string().nullable().default(null),
+    main_phase: z.string().nullable().default(null),
     fertility_level: z.string().nullable().default(null),
     data_status: z.string().nullable().default(null),
+    days_to_ovulation: z.number().nullable().default(null),
+    days_to_period: z.number().nullable().default(null),
+    days_late: z.number().nullable().default(null),
+    anchors: anchorsSchema.nullable().default(null),
+    metrics: engineMetricsSchema.nullable().default(null),
+    confidence: z.string().nullable().default(null),
+    confidence_reasons: z.array(z.string()).default([]),
+    data_quality: z.string().nullable().default(null),
+    data_quality_details: dataQualityDetailsSchema.nullable().default(null),
+    resolution_source: z.string().nullable().default(null),
+    is_predicted: z.boolean().default(false),
+    requires_user_input: z.boolean().default(false),
+    warnings: z.array(z.string()).default([]),
     predictions: forecastSchema.nullable().default(null),
     profile_values: profileValuesSchema,
     calculated_values: calculatedValuesSchema,
     effective_values: effectiveValuesSchema,
-    data_quality: dataQualitySchema,
     daily_card: dailyCardSchema.nullable().default(null),
   })
   .transform(
@@ -213,13 +273,26 @@ export const cycleViewSchema = z
       cycleDay: v.cycle_day,
       phase: v.phase,
       subphase: v.subphase,
-      fertilityLevel: v.fertility_level as FertilityLevel | null,
+      mainPhase: v.main_phase as MainPhase | null,
+      fertilityLevel: v.fertility_level as CycleFertilityLevel | null,
       dataStatus: v.data_status as DataStatus | null,
+      daysToOvulation: v.days_to_ovulation,
+      daysToPeriod: v.days_to_period,
+      daysLate: v.days_late,
+      anchors: v.anchors,
+      metrics: v.metrics,
+      confidence: v.confidence as ConfidenceLevel | null,
+      confidenceReasons: v.confidence_reasons,
+      dataQuality: v.data_quality as DataQualityLevel | null,
+      dataQualityDetails: v.data_quality_details,
+      resolutionSource: v.resolution_source as ResolutionSource | null,
+      isPredicted: v.is_predicted,
+      requiresUserInput: v.requires_user_input,
+      warnings: v.warnings,
       forecast: v.predictions,
       profileValues: v.profile_values,
       calculatedValues: v.calculated_values,
       effectiveValues: v.effective_values,
-      dataQuality: v.data_quality,
       dailyCard: v.daily_card,
     }),
   );

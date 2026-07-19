@@ -11,10 +11,11 @@ use App\Models\UserProfile;
 use Carbon\Carbon;
 
 /**
- * Assembles the spec §19 daily payload for one date from all the engine pieces: the
- * three-layer metrics (§12), the Start-anchored prediction (§13), the open-period
- * state (§4), the confidence model (§18) and the render-ready daily card (§"card
- * content"). This is the single place the API stitches them together, keeping the
+ * Assembles the daily payload for one date from all the engine pieces: the v1.1
+ * status resolver (task.md §35 — the authoritative main_phase/subphase, anchors,
+ * warnings and quality/confidence read-outs), the three-layer metrics, the
+ * Start-anchored prediction, the open-period state and the render-ready daily
+ * card. This is the single place the API stitches them together, keeping the
  * per-day {@see HealthDataEngine} calc (which also feeds persistence) untouched.
  */
 class CycleDayViewBuilder
@@ -29,6 +30,8 @@ class CycleDayViewBuilder
 
     private DailyCardBuilder $cards;
 
+    private CycleStatusResolver $resolver;
+
     public function __construct()
     {
         $this->metrics = new CycleMetricsCalculator;
@@ -36,6 +39,7 @@ class CycleDayViewBuilder
         $this->openPeriods = new OpenPeriodEvaluator;
         $this->confidence = new CycleConfidenceCalculator;
         $this->cards = new DailyCardBuilder;
+        $this->resolver = new CycleStatusResolver;
     }
 
     /**
@@ -50,13 +54,16 @@ class CycleDayViewBuilder
 
         $metrics = $this->metrics->calculate($histories, $profile);
 
-        // No anchor yet (incomplete profile) → serve just the three-layer values.
-        if ($baseCalc['cycle_day'] === null) {
-            return $this->emptyView($selectedDate, $metrics);
-        }
-
         $selected = $selectedDate->copy()->startOfDay();
         $ref = $today->copy()->startOfDay();
+
+        // The v1.1 engine status (task.md §35) — the authoritative resolve.
+        $status = $this->resolver->resolve($histories, $profile, $selected, $ref, $metrics);
+
+        // No anchor yet (incomplete profile) → serve just the three-layer values.
+        if ($baseCalc['cycle_day'] === null) {
+            return $this->emptyView($metrics, $status);
+        }
 
         $lastConfirmedStart = $this->lastConfirmedStart($histories, $profile, $ref);
 
@@ -96,27 +103,25 @@ class CycleDayViewBuilder
         $confidence = $this->confidence->forPrediction($metrics, $openState->pastHardCap);
         $layers = $metrics->toApiArray();
 
-        return [
-            'date' => $selected->toDateString(),
-            'cycle_day' => (int) $baseCalc['cycle_day'],
-            'phase' => $baseCalc['phase'],
-            'subphase' => $baseCalc['subphase'],
-            // Take the fertility level from the card so it always matches what the
-            // user sees (the card forces "low" on real/ongoing period days, where the
-            // raw sub-phase mapping would otherwise still read the predicted position).
-            'fertility_level' => $card->fertilityLevel->value,
+        // v1.1 fields first (§35: date, cycle_day, main_phase, subphase,
+        // fertility_level, days_*, anchors, metrics, confidence, data_quality,
+        // resolution_source, warnings…), then the legacy render keys on top.
+        return array_merge($status->toApiArray(), [
+            'phase' => $status->mainPhase->legacyPhase()?->value,
             'data_status' => $card->dataStatus->value,
             'predictions' => array_merge($prediction->toApiArray(), $confidence->toApiArray()),
             'profile_values' => $layers['profile_values'],
             'calculated_values' => $layers['calculated_values'],
             'effective_values' => $layers['effective_values'],
-            'data_quality' => array_merge($confidence->toApiArray(), [
+            // Pre-v1.1 clients read this object where `data_quality` (now the §28
+            // string grade) used to live.
+            'data_quality_details' => array_merge($confidence->toApiArray(), [
                 'regularity_status' => $metrics->regularityStatus->value,
                 'is_irregular_possible' => $metrics->regularityStatus === RegularityStatus::IRREGULAR_POSSIBLE,
                 'missing_period_end' => $openState->endOverdue,
             ]),
             'daily_card' => $card->toApiArray(),
-        ];
+        ]);
     }
 
     /**
@@ -206,22 +211,18 @@ class CycleDayViewBuilder
         return [null, false];
     }
 
-    private function emptyView(Carbon $selectedDate, CycleMetrics $metrics): array
+    private function emptyView(CycleMetrics $metrics, CycleStatus $status): array
     {
         $layers = $metrics->toApiArray();
 
-        return [
-            'date' => $selectedDate->toDateString(),
-            'cycle_day' => null,
+        return array_merge($status->toApiArray(), [
             'phase' => null,
-            'subphase' => null,
-            'fertility_level' => null,
             'data_status' => null,
             'predictions' => null,
             'profile_values' => $layers['profile_values'],
             'calculated_values' => $layers['calculated_values'],
             'effective_values' => $layers['effective_values'],
-            'data_quality' => [
+            'data_quality_details' => [
                 'confidence' => ConfidenceLevel::LOW->value,
                 'confidence_reasons' => [CycleConfidenceCalculator::REASON_PROFILE_ONLY],
                 'regularity_status' => $metrics->regularityStatus->value,
@@ -229,6 +230,6 @@ class CycleDayViewBuilder
                 'missing_period_end' => false,
             ],
             'daily_card' => null,
-        ];
+        ]);
     }
 }

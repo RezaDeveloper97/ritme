@@ -84,7 +84,7 @@ class PhaseContentController extends Controller
             ], 422);
         }
 
-        $content = PhaseContent::getByPhase($phase);
+        $content = PhaseContent::getByPhase($this->contentKeyFor($subphase));
         if ($content === null) {
             return response()->json([
                 'success' => false,
@@ -110,5 +110,21 @@ class PhaseContentController extends Controller
                 'sections' => $sections,
             ],
         ]);
+    }
+
+    /**
+     * Content rows are seeded under the pre-v1.1 sub-phase keys; the v1.1 spec
+     * values (task.md §14) reuse the closest existing content instead of
+     * requiring a reseed.
+     */
+    private function contentKeyFor(CycleSubphase $subphase): string
+    {
+        return match ($subphase) {
+            CycleSubphase::MENSTRUAL,
+            CycleSubphase::MENSTRUAL_POSSIBLE => CycleSubphase::MENSTRUATION->value,
+            CycleSubphase::LATE_FOLLICULAR_TRANSITION => CycleSubphase::MID_FOLLICULAR->value,
+            CycleSubphase::UNKNOWN => CycleSubphase::PERIOD_EXPECTED->value,
+            default => $subphase->value,
+        };
     }
 }

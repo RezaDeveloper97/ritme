@@ -45,11 +45,30 @@ class CycleViewApiTest extends TestCase
         $this->assertArrayHasKey('title', $view['daily_card']);
         $this->assertArrayHasKey('fertility_level', $view['daily_card']);
         $this->assertContains($view['data_status'], ['actual', 'predicted', 'needs_confirmation', 'incomplete']);
-        $this->assertContains($view['fertility_level'], ['very_low', 'low', 'medium', 'high', 'very_high']);
+        $this->assertContains($view['fertility_level'], ['none', 'low', 'medium', 'high', 'peak', 'unknown']);
         $this->assertArrayHasKey('next_period_start', $view['predictions']);
         $this->assertArrayHasKey('estimated_ovulation_date', $view['predictions']);
-        $this->assertContains($view['data_quality']['confidence'], ['high', 'medium', 'low']);
-        $this->assertIsArray($view['data_quality']['confidence_reasons']);
+
+        // v1.1 fields (task.md §35).
+        $this->assertContains($view['main_phase'], ['menstrual', 'follicular', 'fertile', 'luteal', 'period_expected', 'unknown']);
+        $this->assertContains($view['data_quality'], ['good', 'partial', 'poor', 'insufficient']);
+        $this->assertContains($view['confidence'], ['high', 'medium', 'low', 'unknown']);
+        $this->assertIsArray($view['confidence_reasons']);
+        $this->assertIsArray($view['warnings']);
+        $this->assertIsBool($view['requires_user_input']);
+        $this->assertIsBool($view['is_predicted']);
+        $this->assertArrayHasKey('current_period_start', $view['anchors']);
+        $this->assertArrayHasKey('current_period_start_source', $view['anchors']);
+        $this->assertArrayHasKey('current_period_end_is_confirmed', $view['anchors']);
+        $this->assertArrayHasKey('predicted_next_period_start', $view['anchors']);
+        $this->assertArrayHasKey('estimated_ovulation_date', $view['anchors']);
+        $this->assertSame($view['effective_values']['cycle_length'], $view['metrics']['effective_cycle_length']);
+        $this->assertArrayHasKey('cycle_variability', $view['metrics']);
+        $this->assertArrayHasKey('resolution_source', $view);
+
+        // The pre-v1.1 quality object stays available for older clients.
+        $this->assertContains($view['data_quality_details']['confidence'], ['high', 'medium', 'low']);
+        $this->assertIsArray($view['data_quality_details']['confidence_reasons']);
     }
 
     public function test_effective_values_fall_back_to_the_profile_without_enough_cycles(): void

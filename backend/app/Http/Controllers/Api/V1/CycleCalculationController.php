@@ -470,6 +470,11 @@ class CycleCalculationController extends Controller
             'label' => $s->label($locale),
         ])->values();
 
+        $mainPhases = collect(\App\Enums\MainPhase::cases())->map(fn ($p) => [
+            'value' => $p->value,
+            'label' => $p->label($locale),
+        ])->values();
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -477,6 +482,12 @@ class CycleCalculationController extends Controller
                 'subphases' => $subphases,
                 'variability' => $variability,
                 'calculation_status' => $status,
+                // v1.1 engine enums (task.md §13, §26, §28–§32).
+                'main_phases' => $mainPhases,
+                'fertility_levels' => \App\Enums\FertilityLevel::values(),
+                'resolution_sources' => \App\Enums\ResolutionSource::values(),
+                'data_quality_levels' => \App\Enums\DataQualityLevel::values(),
+                'warnings' => \App\Enums\CycleWarning::values(),
             ],
         ]);
     }

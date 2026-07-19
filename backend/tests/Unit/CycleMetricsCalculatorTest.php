@@ -57,21 +57,36 @@ class CycleMetricsCalculatorTest extends TestCase
         $this->assertSame(RegularityStatus::NOT_ENOUGH_DATA, $metrics->regularityStatus);
     }
 
-    public function test_uses_profile_not_average_with_fewer_than_three_cycles(): void
+    public function test_uses_median_of_two_valid_cycles_over_the_profile(): void
     {
-        // Two valid 30-day cycles, but the profile says 28. The spec forbids
-        // averaging/weighting below 3 cycles — effective must be the profile's 28.
+        // v1.1 (task.md §9): with 1–3 valid records the median of those records
+        // wins; the profile is only a fallback when zero valid records exist.
         $metrics = $this->metricsFor([
             $this->period('2026-01-01'),
             $this->period('2026-01-31'),
             $this->period('2026-03-02'),
         ], $this->profile(28, 5));
 
-        $this->assertSame(28, $metrics->effectiveCycleLength);
-        $this->assertSame(EffectiveSource::PROFILE, $metrics->cycleLengthSource);
-        $this->assertNull($metrics->calculatedCycleLength);
+        $this->assertSame(30, $metrics->effectiveCycleLength);
+        $this->assertSame(EffectiveSource::RECENT_VALID_CYCLES, $metrics->cycleLengthSource);
+        $this->assertSame(30, $metrics->calculatedCycleLength);
         $this->assertSame(2, $metrics->validCyclesCount);
+        $this->assertSame(0, $metrics->cycleVariabilityRange); // 30 − 30
         $this->assertSame(RegularityStatus::NOT_ENOUGH_DATA, $metrics->regularityStatus);
+    }
+
+    public function test_single_valid_cycle_is_used_as_is_and_variability_is_null(): void
+    {
+        // §9: one valid record → that value; §27: variability needs ≥2 cycles.
+        $metrics = $this->metricsFor([
+            $this->period('2026-01-01'),
+            $this->period('2026-01-30'), // +29
+        ], $this->profile(28, 5));
+
+        $this->assertSame(29, $metrics->effectiveCycleLength);
+        $this->assertSame(EffectiveSource::RECENT_VALID_CYCLES, $metrics->cycleLengthSource);
+        $this->assertSame(1, $metrics->validCyclesCount);
+        $this->assertNull($metrics->cycleVariabilityRange);
     }
 
     public function test_uses_median_of_last_three_valid_cycles(): void
@@ -107,8 +122,8 @@ class CycleMetricsCalculatorTest extends TestCase
 
     public function test_period_duration_is_calculated_independently_of_cycle_length(): void
     {
-        // Only two cycles (→ cycle falls back to profile) but three valid durations
-        // (→ duration uses the learned median). Proves the two are independent (§7).
+        // Two valid cycle gaps but three valid durations — each median is fed
+        // from its own record set (§9): the two are independent.
         $metrics = $this->metricsFor([
             $this->period('2026-01-01', '2026-01-04'), // duration 4
             $this->period('2026-01-31', '2026-02-04'), // duration 5
@@ -116,8 +131,8 @@ class CycleMetricsCalculatorTest extends TestCase
         ], $this->profile(28, 9));
 
         $this->assertSame(2, $metrics->validCyclesCount);
-        $this->assertNull($metrics->calculatedCycleLength);
-        $this->assertSame(EffectiveSource::PROFILE, $metrics->cycleLengthSource);
+        $this->assertSame(30, $metrics->calculatedCycleLength); // median of [30, 30]
+        $this->assertSame(EffectiveSource::RECENT_VALID_CYCLES, $metrics->cycleLengthSource);
 
         $this->assertSame(3, $metrics->validPeriodDurationsCount);
         $this->assertSame(5, $metrics->calculatedPeriodDuration); // median of [4,5,6]
@@ -134,9 +149,9 @@ class CycleMetricsCalculatorTest extends TestCase
         ], $this->profile(28, 5));
 
         $this->assertSame(1, $metrics->validPeriodDurationsCount);
-        $this->assertNull($metrics->calculatedPeriodDuration); // fewer than 3 valid
-        $this->assertSame(5, $metrics->effectivePeriodDuration); // profile fallback
-        $this->assertSame(EffectiveSource::PROFILE, $metrics->periodDurationSource);
+        $this->assertSame(5, $metrics->calculatedPeriodDuration); // the single valid record (§9)
+        $this->assertSame(5, $metrics->effectivePeriodDuration);
+        $this->assertSame(EffectiveSource::RECENT_VALID_CYCLES, $metrics->periodDurationSource);
     }
 
     public function test_unconfirmed_periods_are_ignored(): void

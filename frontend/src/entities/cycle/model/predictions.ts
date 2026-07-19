@@ -25,6 +25,9 @@ const KNOWN_PHASES: readonly CyclePhase[] = [
  */
 const PHASE_ALIASES: Record<string, CyclePhase> = {
   menstruation: 'period',
+  // v1.1 engine main-phase values (task.md §13).
+  menstrual: 'period',
+  period_expected: 'luteal',
 };
 
 /**

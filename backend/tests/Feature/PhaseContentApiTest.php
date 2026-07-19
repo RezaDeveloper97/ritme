@@ -101,9 +101,10 @@ class PhaseContentApiTest extends TestCase
     {
         $this->seed(PhaseContentSeeder::class);
 
-        $this->assertCount(count(CycleSubphase::cases()), PhaseContent::all());
+        $this->assertCount(count(CycleSubphase::contentBacked()), PhaseContent::all());
 
-        foreach (CycleSubphase::values() as $phase) {
+        foreach (CycleSubphase::contentBacked() as $subphase) {
+            $phase = $subphase->value;
             $row = PhaseContent::getByPhase($phase);
             $this->assertNotNull($row, "missing seeded content for {$phase}");
             foreach (PhaseContent::SECTIONS as $section) {
@@ -126,5 +127,23 @@ class PhaseContentApiTest extends TestCase
         // All nine sections come back, and the copy is the verbatim spec text.
         $this->assertCount(9, $sections);
         $this->assertStringContainsString('شروع پریود', $sections['symptom_prediction']);
+    }
+
+    public function test_v11_subphase_values_alias_onto_existing_content(): void
+    {
+        $this->actingUser();
+        $this->seed(PhaseContentSeeder::class);
+
+        // task.md §14 values without their own seeded rows reuse the closest
+        // existing content instead of 404ing.
+        $data = $this->getJson('/api/v1/cycle/phase-content/menstrual?locale=fa')
+            ->assertOk()
+            ->json('data');
+
+        $this->assertSame('menstrual', $data['phase']);
+        $this->assertCount(9, $data['sections']);
+
+        $this->getJson('/api/v1/cycle/phase-content/menstrual_possible?locale=fa')->assertOk();
+        $this->getJson('/api/v1/cycle/phase-content/late_follicular_transition?locale=fa')->assertOk();
     }
 }

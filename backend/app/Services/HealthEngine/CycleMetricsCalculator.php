@@ -14,10 +14,12 @@ use Illuminate\Support\Collection;
  * period history and profile: cycle length and period duration are computed
  * **independently**, each from its own set of valid records.
  *
- * MVP rules (§7): with three or more valid cycles the effective value is the median
- * of the last three; with fewer, it falls back to the profile value (no averaging,
- * no weighting) and finally a system default. A "valid" cycle is 21–45 days between
- * two user-confirmed starts; a valid period duration is 2–10 days (§8).
+ * v1.1 rules (task.md §9): the effective value is the median of the last (up to)
+ * three valid records — with two records the median of those two, with one that
+ * value itself. Only when no valid record exists does it fall back to the profile
+ * value and finally a system default. A "valid" cycle is 21–45 days between two
+ * user-confirmed starts; a valid period duration is 2–10 days (§8). Predicted or
+ * assumed data never enters these medians.
  */
 class CycleMetricsCalculator
 {
@@ -48,14 +50,15 @@ class CycleMetricsCalculator
             ->sortBy(fn ($history) => Carbon::parse($history->period_start_date)->timestamp)
             ->values();
 
-        $validCycleLengths = $this->validCycleLengths($confirmed);
+        [$validCycleLengths, $outlierFlags] = $this->cycleLengths($confirmed);
         $validDurations = $this->validPeriodDurations($confirmed);
 
         $recentCycles = array_slice($validCycleLengths, -self::RECENT_WINDOW);
         $recentDurations = array_slice($validDurations, -self::RECENT_WINDOW);
 
-        $calculatedCycle = count($recentCycles) >= self::RECENT_WINDOW ? $this->median($recentCycles) : null;
-        $calculatedDuration = count($recentDurations) >= self::RECENT_WINDOW ? $this->median($recentDurations) : null;
+        // §9: median of whatever valid records exist (1–3); fallback only at zero.
+        $calculatedCycle = $recentCycles === [] ? null : $this->median($recentCycles);
+        $calculatedDuration = $recentDurations === [] ? null : $this->median($recentDurations);
 
         // `?:` also rejects a stored 0, which would otherwise divide-by-zero downstream.
         $profileCycle = ($profile && $profile->cycle_duration) ? (int) $profile->cycle_duration : null;
@@ -78,32 +81,64 @@ class CycleMetricsCalculator
             regularityStatus: RegularityStatus::fromCycleLengths($recentCycles),
             variability: $this->variability(array_slice($validCycleLengths, -self::VARIABILITY_WINDOW)),
             recentValidCycleLengths: array_values($recentCycles),
+            cycleVariabilityRange: $this->variabilityRange($recentCycles),
+            hasShortCycleOutlier: $outlierFlags['short'],
+            hasLongCycleOutlier: $outlierFlags['long'],
+            onlyOutlierHistory: $outlierFlags['only_outliers'],
         );
     }
 
     /**
-     * Cycle lengths (start→next start) between consecutive confirmed periods that
-     * fall in the valid 21–45 day range, oldest→newest. Deriving from the start
-     * dates — rather than the stored `cycle_length` — keeps this a pure function of
-     * the logged timeline and matches the spec definition (§6).
+     * Cycle lengths (start→next start) between consecutive confirmed periods,
+     * oldest→newest, split into the valid 21–45 day range and outlier flags (§7:
+     * outliers only affect warnings/confidence/data_quality, never predictions).
+     * Deriving from the start dates — rather than the stored `cycle_length` —
+     * keeps this a pure function of the logged timeline (§6).
      *
-     * @return array<int>
+     * @return array{0: array<int>, 1: array{short: bool, long: bool, only_outliers: bool}}
      */
-    private function validCycleLengths(Collection $confirmed): array
+    private function cycleLengths(Collection $confirmed): array
     {
         $starts = $confirmed
             ->map(fn ($history) => Carbon::parse($history->period_start_date)->startOfDay())
             ->values();
 
         $lengths = [];
+        $short = false;
+        $long = false;
+        $total = 0;
         for ($i = 1; $i < $starts->count(); $i++) {
             $length = (int) $starts[$i - 1]->diffInDays($starts[$i]);
-            if ($length >= self::VALID_CYCLE_MIN && $length <= self::VALID_CYCLE_MAX) {
+            $total++;
+            if ($length < self::VALID_CYCLE_MIN) {
+                $short = true;
+            } elseif ($length > self::VALID_CYCLE_MAX) {
+                $long = true;
+            } else {
                 $lengths[] = $length;
             }
         }
 
-        return $lengths;
+        return [$lengths, [
+            'short' => $short,
+            'long' => $long,
+            'only_outliers' => $total > 0 && $lengths === [],
+        ]];
+    }
+
+    /**
+     * v1.1 cycle variability (task.md §27): the spread (max − min) of the last
+     * (up to) three valid cycle lengths, or null when fewer than two exist.
+     *
+     * @param  array<int>  $recentLengths
+     */
+    private function variabilityRange(array $recentLengths): ?int
+    {
+        if (count($recentLengths) < 2) {
+            return null;
+        }
+
+        return max($recentLengths) - min($recentLengths);
     }
 
     /**

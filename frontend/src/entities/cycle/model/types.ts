@@ -101,8 +101,55 @@ export type DataStatus = 'actual' | 'predicted' | 'needs_confirmation' | 'incomp
 /** Calendar-based fertility level on the daily card (spec §17). Informational only (§11). */
 export type FertilityLevel = 'very_low' | 'low' | 'medium' | 'high' | 'very_high';
 
-/** How much to trust a prediction (spec §18). */
-export type ConfidenceLevel = 'high' | 'medium' | 'low';
+/** How much to trust a prediction. `unknown` = no resolvable anchor (v1.1 §29). */
+export type ConfidenceLevel = 'high' | 'medium' | 'low' | 'unknown';
+
+/** v1.1 engine main phase (task.md §13) — the authoritative classification. */
+export type MainPhase =
+  | 'menstrual'
+  | 'follicular'
+  | 'fertile'
+  | 'luteal'
+  | 'period_expected'
+  | 'unknown';
+
+/** v1.1 fertility level for `cycle_view.fertility_level` (task.md §26). Informational (§11). */
+export type CycleFertilityLevel = 'none' | 'low' | 'medium' | 'high' | 'peak' | 'unknown';
+
+/** Deterministic data-quality grade of the engine output (task.md §28). */
+export type DataQualityLevel = 'good' | 'partial' | 'poor' | 'insufficient';
+
+/** The primary source the engine resolved the day from (task.md §30). */
+export type ResolutionSource =
+  | 'user_logged'
+  | 'user_logged_with_assumed_end'
+  | 'prediction'
+  | 'onboarding_based'
+  | 'default_based'
+  | 'unknown';
+
+/**
+ * The v1.1 anchors block (task.md §10, §35): the resolved current period with
+ * explicit sources, plus the predicted next start and ovulation estimate.
+ * Gregorian dates at this boundary (§7).
+ */
+export interface CycleAnchors {
+  currentPeriodStart: string | null;
+  currentPeriodStartSource: string;
+  currentPeriodEnd: string | null;
+  currentPeriodEndSource: string;
+  currentPeriodEndIsConfirmed: boolean;
+  predictedNextPeriodStart: string | null;
+  estimatedOvulationDate: string | null;
+}
+
+/** The v1.1 effective metrics block (task.md §9, §27, §35). */
+export interface CycleEngineMetrics {
+  effectiveCycleLength: number;
+  effectivePeriodLength: number;
+  /** max − min of the last ≤3 valid cycle lengths; null with fewer than 2. */
+  cycleVariability: number | null;
+}
 
 /** A daily-card call to action — `type` is a stable code, `label` is localized. */
 export interface CardAction {
@@ -164,20 +211,41 @@ export interface CycleDataQuality {
 }
 
 /**
- * The full render-ready daily payload (spec §19), served under `data.cycle_view`.
- * Core fields are null when the profile is incomplete (no anchor yet).
+ * The full render-ready daily payload, served under `data.cycle_view`: the v1.1
+ * engine status (task.md §35 — main phase, day counters, anchors, warnings,
+ * quality/confidence) merged with the legacy render keys (daily card, forecast,
+ * three-layer values). Core fields are null when no anchor exists yet.
  */
 export interface CycleView {
   date: string;
   cycleDay: number | null;
+  /** Legacy 4-phase value derived from `mainPhase`; null when unknown. */
   phase: string | null;
   subphase: string | null;
-  fertilityLevel: FertilityLevel | null;
+  mainPhase: MainPhase | null;
+  fertilityLevel: CycleFertilityLevel | null;
   dataStatus: DataStatus | null;
+  /** Days until the estimated ovulation (negative once passed); null when unresolved (§34). */
+  daysToOvulation: number | null;
+  /** Days until the predicted next period, floored at 0 (§22.1). */
+  daysToPeriod: number | null;
+  /** Days past the predicted period start, floored at 0 (§22.1). */
+  daysLate: number | null;
+  anchors: CycleAnchors | null;
+  metrics: CycleEngineMetrics | null;
+  confidence: ConfidenceLevel | null;
+  confidenceReasons: string[];
+  /** v1.1 deterministic grade (§28); the old quality object is `dataQualityDetails`. */
+  dataQuality: DataQualityLevel | null;
+  dataQualityDetails: CycleDataQuality | null;
+  resolutionSource: ResolutionSource | null;
+  isPredicted: boolean;
+  requiresUserInput: boolean;
+  /** Stable warning codes (§32) — soft signals, never blocking. */
+  warnings: string[];
   forecast: CycleForecast | null;
   profileValues: CycleValueLayer;
   calculatedValues: CalculatedValues;
   effectiveValues: EffectiveValues;
-  dataQuality: CycleDataQuality;
   dailyCard: DailyCard | null;
 }
