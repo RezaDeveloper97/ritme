@@ -11,5 +11,6 @@ export {
   usePeriodHistory,
   useUpdatePeriod,
   useDeletePeriod,
+  useReconcilePeriods,
 } from './api/mutations';
-export type { PeriodStatus, LoggedPeriod } from './api/mutations';
+export type { PeriodStatus, LoggedPeriod, PeriodSegment } from './api/mutations';

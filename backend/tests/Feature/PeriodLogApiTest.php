@@ -401,6 +401,18 @@ class PeriodLogApiTest extends TestCase
         $this->postJson('/api/v1/cycle/period/start', ['date' => now()->toDateString()])->assertOk();
     }
 
+    public function test_backfilling_a_period_before_an_open_one_is_allowed(): void
+    {
+        $this->actingUser();
+        // A recent, genuinely-ongoing period (opened 3 days ago, no end).
+        $this->postJson('/api/v1/cycle/period/start', ['date' => now()->subDays(3)->toDateString()])->assertOk();
+
+        // Backfilling an OLDER period (before the open one) must NOT be blocked —
+        // the open period is still the most recent ongoing bleed.
+        $this->postJson('/api/v1/cycle/period/start', ['date' => now()->subDays(35)->toDateString()])
+            ->assertOk();
+    }
+
     public function test_old_start_only_records_do_not_block_a_new_start(): void
     {
         // The correction/backfill flow: logging start-only records days apart is allowed

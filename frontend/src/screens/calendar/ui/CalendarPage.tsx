@@ -1049,14 +1049,13 @@ export function CalendarPage() {
         onSaved={onEditorSaved}
       />
 
-      {/* Full-screen toggle editor opened from the header. Pre-fills the logged
-          period covering the selected day (edit mode) or opens empty to create. */}
+      {/* Full-screen toggle editor opened from the header. Pre-fills every logged
+          period and reconciles the whole selection on save. */}
       <PeriodDateEditor
         open={dateEditorOpen}
         onClose={() => setDateEditorOpen(false)}
         initialDateIso={toApiDate(selectedDate)}
-        editing={selectedLoggedPeriod}
-        onSaved={onEditorSaved}
+        onSaved={() => setWatching(true)}
       />
 
       {/* Transient validation feedback (spec §16): a period edit the backend rejected

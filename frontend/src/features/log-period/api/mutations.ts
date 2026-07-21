@@ -179,6 +179,79 @@ export function useDeletePeriod() {
   });
 }
 
+/** A contiguous run of bleeding days the toggle editor wants persisted. */
+export interface PeriodSegment {
+  start: string;
+  end: string;
+}
+
+/**
+ * Reconcile the toggle editor's selection against the user's logged history in
+ * one action. The selection arrives already grouped into contiguous `segments`
+ * (each a single period); this diffs them against `existing` periods and issues
+ * the minimal set of create / update / delete calls:
+ *
+ *  - a segment overlapping no logged period → create it,
+ *  - a segment overlapping one → move that period onto it (only if it changed),
+ *  - a segment overlapping several → keep the first, delete the rest (a merge),
+ *  - a logged period no segment covers → delete it.
+ *
+ * A segment ending before today is recorded finished (start+end); one ending
+ * today stays ongoing (start only), and a period left exactly as it was is
+ * skipped — so an untouched open period keeps its ongoing status. Deletes run
+ * first to free the overlap guard, then updates, then creates. Every date is
+ * Gregorian `YYYY-MM-DD` from `@/shared/lib/date` (§7) and never logged (§11).
+ */
+export function useReconcilePeriods() {
+  const invalidateAll = useInvalidateAfterEdit();
+  return useMutation<void, unknown, { segments: PeriodSegment[]; existing: LoggedPeriod[] }>({
+    mutationFn: async ({ segments, existing }) => {
+      const todayIso = toApiDate(today());
+      const effEnd = (p: LoggedPeriod) => p.period_end_date ?? p.period_start_date;
+      const overlaps = (seg: PeriodSegment, s: string, e: string) => seg.start <= e && s <= seg.end;
+
+      const claimed = new Set<number>();
+      const deletes: number[] = [];
+      const updates: { id: number; start: string; end: string | null }[] = [];
+      const creates: PeriodSegment[] = [];
+
+      for (const seg of segments) {
+        const hits = existing.filter((p) => overlaps(seg, p.period_start_date, effEnd(p)));
+        if (hits.length === 0) {
+          creates.push(seg);
+          continue;
+        }
+        const [keep, ...rest] = hits;
+        claimed.add(keep!.id);
+        for (const r of rest) {
+          claimed.add(r.id);
+          deletes.push(r.id);
+        }
+        // Untouched (range unchanged) → leave the record alone, preserving an
+        // open period's ongoing status. Otherwise move it onto the segment.
+        const unchanged = keep!.period_start_date === seg.start && effEnd(keep!) === seg.end;
+        if (!unchanged) {
+          const finished = seg.end < todayIso;
+          updates.push({ id: keep!.id, start: seg.start, end: finished ? seg.end : null });
+        }
+      }
+      for (const p of existing) if (!claimed.has(p.id)) deletes.push(p.id);
+
+      for (const id of [...new Set(deletes)]) {
+        await apiClient.delete(`/cycle/period/${id}`);
+      }
+      for (const u of updates) {
+        await apiClient.put(`/cycle/period/${u.id}`, { start_date: u.start, end_date: u.end });
+      }
+      for (const c of creates) {
+        await postPeriod('/cycle/period/start', c.start);
+        if (c.end < todayIso) await postPeriod('/cycle/period/end', c.end);
+      }
+    },
+    onSuccess: invalidateAll,
+  });
+}
+
 /**
  * POST /cycle/period/end — close the ongoing period with an end date (defaults
  * to today). Writes the returned status into the cache so the button flips back

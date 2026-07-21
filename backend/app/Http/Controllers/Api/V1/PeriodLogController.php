@@ -556,13 +556,19 @@ class PeriodLogController extends Controller
      * (within the hard cap of today) that the user could still be bleeding. Old
      * start-only records — the correction/backfill flow — are deliberately NOT
      * blocking, and estimates (which carry an end) never are.
+     *
+     * Only an open period that started BEFORE the attempted start blocks it: that
+     * is the genuine "stacking a newer bleed on an unclosed older one" case. A new
+     * start that lands *earlier* than the open period is a historical backfill —
+     * the open period is still the most recent ongoing one, so allowing it doesn't
+     * create two competing ongoing periods (previously this wrongly 422'd backfills).
      */
     private function blockingOpenPeriod(int $userId, Carbon $startDate): ?CycleHistory
     {
         return CycleHistory::where('user_id', $userId)
             ->whereNull('period_end_date')
             ->where('is_estimated', false)
-            ->whereDate('period_start_date', '!=', $startDate->toDateString())
+            ->whereDate('period_start_date', '<', $startDate->toDateString())
             ->whereDate('period_start_date', '>=', now()->subDays(self::HARD_CAP_DAYS)->toDateString())
             ->orderBy('period_start_date', 'desc')
             ->first();
