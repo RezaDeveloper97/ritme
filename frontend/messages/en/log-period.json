@@ -28,5 +28,15 @@
     "deleting": "Deleting…",
     "cancel": "Cancel",
     "close": "Close"
+  },
+  "dateEditor": {
+    "title": "Edit Period Date",
+    "hint": "Tap on date to log your period",
+    "save": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "close": "Close",
+    "error": "Couldn't save. Please try again.",
+    "open": "Edit period date"
   }
 }

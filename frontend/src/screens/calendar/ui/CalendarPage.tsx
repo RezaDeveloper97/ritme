@@ -17,6 +17,7 @@ import {
 } from '@/entities/cycle';
 import { useUserProfile } from '@/entities/user';
 import {
+  PeriodDateEditor,
   PeriodEditor,
   useDeletePeriod,
   useEndPeriod,
@@ -402,6 +403,7 @@ function SmartTip({ t }: { t: T }) {
 // ── Main export ────────────────────────────────────────────────
 export function CalendarPage() {
   const t = useTranslations('calendar');
+  const tLogPeriod = useTranslations('logPeriod');
   const locale = useLocale() as Locale;
   const format = useFormatter();
   const router = useRouter();
@@ -416,6 +418,8 @@ export function CalendarPage() {
   const [daySheetOpen, setDaySheetOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
+  // The full-screen "Edit Period Date" toggle editor (opened from the header button).
+  const [dateEditorOpen, setDateEditorOpen] = useState(false);
   // Watch the backend recalculation only right after we trigger one.
   const [watching, setWatching] = useState(false);
   // Transient message surfaced when a period edit is rejected by the backend
@@ -845,16 +849,16 @@ export function CalendarPage() {
             <div className="titr">{t('title')}</div>
             <p className="sub" style={{ margin: '6px 0 0' }}>{t('subtitle')}</p>
           </div>
-          {/* Header "log period" chip removed — the day card's own CTAs now cover
-              starting/ending a period, so this standalone editor entry was redundant. */}
-          {/* <button
+          {/* Full-screen "Edit Period Date" toggle editor — tap days on/off to mark
+              the bleeding range, saved as one period (§ contiguous range). */}
+          <button
             className="chip on"
-            onClick={() => setEditorOpen(true)}
+            onClick={() => setDateEditorOpen(true)}
             style={{ padding: '8px 14px', fontSize: 13, gap: 6, flexShrink: 0, marginTop: 2 }}
           >
-            <Icon name="drop" size={14} fill="currentColor" strokeWidth={0} />
-            {t('logPeriodCta')}
-          </button> */}
+            <Icon name="pencil" size={14} />
+            {tLogPeriod('dateEditor.open')}
+          </button>
         </div>
 
         {isRecalculating && (
@@ -1042,6 +1046,16 @@ export function CalendarPage() {
         onClose={() => { setEditorOpen(false); setEditingPeriod(null); }}
         initialDateIso={toApiDate(selectedDate)}
         editing={editingPeriod}
+        onSaved={onEditorSaved}
+      />
+
+      {/* Full-screen toggle editor opened from the header. Pre-fills the logged
+          period covering the selected day (edit mode) or opens empty to create. */}
+      <PeriodDateEditor
+        open={dateEditorOpen}
+        onClose={() => setDateEditorOpen(false)}
+        initialDateIso={toApiDate(selectedDate)}
+        editing={selectedLoggedPeriod}
         onSaved={onEditorSaved}
       />
 
