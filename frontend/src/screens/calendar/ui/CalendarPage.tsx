@@ -839,6 +839,12 @@ export function CalendarPage() {
     !historyQuery.isPending;
   const mutating = updatePeriod.isPending || deletePeriod.isPending;
 
+  // A month entirely in the future has no days the user could have bled on, so
+  // the "edit period date" button is disabled there.
+  const currentJalali = todayJalali();
+  const isFutureMonth =
+    year > currentJalali.year || (year === currentJalali.year && month > currentJalali.month);
+
   return (
     <div className="view" style={{ background: 'var(--page)' }}>
       <div className="home-grad" style={{ position: 'absolute', top: 0, insetInlineStart: 0, insetInlineEnd: 0, height: 260 }} />
@@ -854,7 +860,8 @@ export function CalendarPage() {
           <button
             className="chip on"
             onClick={() => setDateEditorOpen(true)}
-            style={{ padding: '8px 14px', fontSize: 13, gap: 6, flexShrink: 0, marginTop: 2 }}
+            disabled={isFutureMonth}
+            style={{ padding: '8px 14px', fontSize: 13, gap: 6, flexShrink: 0, marginTop: 2, opacity: isFutureMonth ? 0.45 : 1, cursor: isFutureMonth ? 'default' : 'pointer' }}
           >
             <Icon name="pencil" size={14} />
             {tLogPeriod('dateEditor.open')}
@@ -1049,12 +1056,12 @@ export function CalendarPage() {
         onSaved={onEditorSaved}
       />
 
-      {/* Full-screen toggle editor opened from the header. Pre-fills every logged
-          period and reconciles the whole selection on save. */}
+      {/* Full-screen toggle editor opened from the header. Opens on the month the
+          calendar is showing, pre-fills every logged period, and reconciles on save. */}
       <PeriodDateEditor
         open={dateEditorOpen}
         onClose={() => setDateEditorOpen(false)}
-        initialDateIso={toApiDate(selectedDate)}
+        initialView={{ year, month }}
         onSaved={() => setWatching(true)}
       />
 

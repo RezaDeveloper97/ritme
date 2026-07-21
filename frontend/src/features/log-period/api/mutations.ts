@@ -7,7 +7,7 @@ import { cycleKeys } from '@/entities/cycle';
 import { messageKeys } from '@/entities/message';
 import { userKeys } from '@/entities/user';
 import { type ApiEnvelope, apiClient } from '@/shared/api';
-import { today, toApiDate } from '@/shared/lib/date';
+import { addDays, fromApiDate, today, toApiDate } from '@/shared/lib/date';
 import { isAuthenticated } from '@/shared/session';
 
 /**
@@ -196,19 +196,30 @@ export interface PeriodSegment {
  *  - a segment overlapping several → keep the first, delete the rest (a merge),
  *  - a logged period no segment covers → delete it.
  *
- * A segment ending before today is recorded finished (start+end); one ending
- * today stays ongoing (start only), and a period left exactly as it was is
- * skipped — so an untouched open period keeps its ongoing status. Deletes run
- * first to free the overlap guard, then updates, then creates. Every date is
- * Gregorian `YYYY-MM-DD` from `@/shared/lib/date` (§7) and never logged (§11).
+ * An open (ongoing) period only stores its start, but reads as a full bleed of
+ * `periodDuration` days everywhere else — so it's matched over that same span
+ * (clamped to today) and the editor's pre-fill lines up with the calendar. Every
+ * selected day is persisted: a multi-day segment records its real end (even when
+ * that's today), while a lone "today" stays ongoing. A period left exactly as it
+ * was is skipped, keeping an untouched open period ongoing. Deletes run first to
+ * free the overlap guard, then updates, then creates. Every date is Gregorian
+ * `YYYY-MM-DD` from `@/shared/lib/date` (§7) and never logged (§11).
  */
 export function useReconcilePeriods() {
   const invalidateAll = useInvalidateAfterEdit();
-  return useMutation<void, unknown, { segments: PeriodSegment[]; existing: LoggedPeriod[] }>({
-    mutationFn: async ({ segments, existing }) => {
+  return useMutation<void, unknown, { segments: PeriodSegment[]; existing: LoggedPeriod[]; periodDuration: number }>({
+    mutationFn: async ({ segments, existing, periodDuration }) => {
       const todayIso = toApiDate(today());
-      const effEnd = (p: LoggedPeriod) => p.period_end_date ?? p.period_start_date;
+      const clampToday = (iso: string) => (iso > todayIso ? todayIso : iso);
+      // How far a logged period visibly reaches: its recorded end, or (while open)
+      // the profile's usual bleed length, never past today. Mirrors the calendar.
+      const effEnd = (p: LoggedPeriod) =>
+        p.period_end_date ??
+        clampToday(toApiDate(addDays(fromApiDate(p.period_start_date), Math.max(0, periodDuration - 1))));
       const overlaps = (seg: PeriodSegment, s: string, e: string) => seg.start <= e && s <= seg.end;
+      // A lone "today" is still ongoing (no end); anything else records its last day.
+      const endForSegment = (seg: PeriodSegment) =>
+        seg.start === todayIso && seg.end === todayIso ? null : seg.end;
 
       const claimed = new Set<number>();
       const deletes: number[] = [];
@@ -231,8 +242,7 @@ export function useReconcilePeriods() {
         // open period's ongoing status. Otherwise move it onto the segment.
         const unchanged = keep!.period_start_date === seg.start && effEnd(keep!) === seg.end;
         if (!unchanged) {
-          const finished = seg.end < todayIso;
-          updates.push({ id: keep!.id, start: seg.start, end: finished ? seg.end : null });
+          updates.push({ id: keep!.id, start: seg.start, end: endForSegment(seg) });
         }
       }
       for (const p of existing) if (!claimed.has(p.id)) deletes.push(p.id);
@@ -245,7 +255,8 @@ export function useReconcilePeriods() {
       }
       for (const c of creates) {
         await postPeriod('/cycle/period/start', c.start);
-        if (c.end < todayIso) await postPeriod('/cycle/period/end', c.end);
+        const end = endForSegment(c);
+        if (end !== null) await postPeriod('/cycle/period/end', end);
       }
     },
     onSuccess: invalidateAll,

@@ -6,3 +6,4 @@
 .vscode/
 Thumbs.db
 task.md
+.deploy-images.tar.gz
