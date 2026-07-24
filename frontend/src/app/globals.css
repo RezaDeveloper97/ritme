@@ -225,15 +225,6 @@ body {
   background: linear-gradient(135deg, #FDF2F8 0%, #FAF5FF 100%);
 }
 .tab.on .ic { color: var(--pink); }
-.tab.on::after {
-  content: "";
-  position: absolute;
-  bottom: 4px;
-  width: 28px;
-  height: 3px;
-  border-radius: 99px;
-  background: linear-gradient(90deg, #E91E63 0%, #BA68C8 100%);
-}
 .fab {
   flex: 0 0 auto;
   width: 56px;
@@ -364,6 +355,42 @@ body {
 .chip.on {
   border-color: var(--brand); background: var(--surface-2); color: var(--brand);
 }
+
+/* ── Calendar loading overlay (first load / refetch) ── */
+.cal-loader-overlay {
+  position: absolute; inset: 0; z-index: 5;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+  background: rgba(255, 255, 255, .74);
+  backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+  border-radius: inherit;
+  animation: fadeIn .25s ease;
+}
+.cal-loader { position: relative; width: 64px; height: 64px; }
+.cal-loader-orbit { position: absolute; inset: 0; animation: spin 1.5s linear infinite; }
+.cal-loader-orbit span {
+  position: absolute; width: 10px; height: 10px; border-radius: 50%;
+  animation: calLoaderDot 1.5s ease-in-out infinite;
+}
+.cal-loader-orbit span:nth-child(1) { top: 0;    left: 50%; margin-left: -5px; background: #E91E63; }
+.cal-loader-orbit span:nth-child(2) { top: 50%;  right: 0;  margin-top: -5px;  background: #F5A623; animation-delay: .35s; }
+.cal-loader-orbit span:nth-child(3) { bottom: 0; left: 50%; margin-left: -5px; background: #22B07D; animation-delay: .7s; }
+.cal-loader-orbit span:nth-child(4) { top: 50%;  left: 0;   margin-top: -5px;  background: #8B5CF6; animation-delay: 1.05s; }
+@keyframes calLoaderDot {
+  0%, 100% { transform: scale(1);    opacity: .55; }
+  50%      { transform: scale(1.45); opacity: 1; }
+}
+.cal-loader-core {
+  position: absolute; inset: 12px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; background: #FCE7F3; color: #E91E63;
+  box-shadow: 0 6px 18px -6px rgba(233, 30, 99, .5);
+  animation: calLoaderPulse 1.5s ease-in-out infinite;
+}
+@keyframes calLoaderPulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.12); }
+}
+.cal-loader-label { font-size: 12.5px; font-weight: 700; color: var(--brand); }
 
 /* ── Calendar drop-down (WeekStrip → full month view) ── */
 @keyframes calDrop {

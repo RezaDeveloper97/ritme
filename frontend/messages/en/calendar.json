@@ -15,6 +15,7 @@
   "jumpToMonth": "Jump to another month",
   "goToToday": "Go to today",
   "recalculating": "Updating your cycle…",
+  "loadingCalendar": "Updating your calendar…",
   "close": "Close",
   "phaseLabel": "Phase",
   "weekdays": {

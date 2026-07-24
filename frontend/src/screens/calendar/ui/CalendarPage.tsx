@@ -300,6 +300,25 @@ function DayCell({ cell, selectedDate, onSelect, dayNumber, marker, isLogged, ar
   );
 }
 
+// ── Loading overlay over the month grid ────────────────────────
+// Animated, on-brand loader (pulsing drop + orbiting legend-colored dots)
+// shown while month data is being fetched or the cycle is recalculating.
+function CalendarLoader({ label }: { label: string }) {
+  return (
+    <div className="cal-loader-overlay" role="status" aria-live="polite">
+      <div className="cal-loader" aria-hidden>
+        <div className="cal-loader-orbit">
+          <span /><span /><span /><span />
+        </div>
+        <span className="cal-loader-core">
+          <Icon name="drop" size={20} fill="currentColor" strokeWidth={0} />
+        </span>
+      </div>
+      <span className="cal-loader-label">{label}</span>
+    </div>
+  );
+}
+
 // ── Legend ─────────────────────────────────────────────────────
 function Legend({ t }: { t: T }) {
   const items: { key: CycleDayMarker }[] = [
@@ -839,6 +858,12 @@ export function CalendarPage() {
     !historyQuery.isPending;
   const mutating = updatePeriod.isPending || deletePeriod.isPending;
 
+  // The month grid is being (re)loaded — first visit, a stale refetch after
+  // coming back, or the backend recalculating after a period change. The
+  // animated overlay covers the card until fresh cells are ready.
+  const calendarLoading =
+    monthA.isPending || monthB.isPending || monthA.isFetching || monthB.isFetching || isRecalculating;
+
   // A month entirely in the future has no days the user could have bled on, so
   // the "edit period date" button is disabled there.
   const currentJalali = todayJalali();
@@ -878,7 +903,8 @@ export function CalendarPage() {
         )}
 
         <div style={{ padding: '14px 16px 0' }}>
-          <div className="card" style={{ padding: '14px 14px 16px' }}>
+          <div className="card" style={{ padding: '14px 14px 16px', position: 'relative' }}>
+            {calendarLoading && <CalendarLoader label={t('loadingCalendar')} />}
             <MonthNav
               label={formatJalaliMonthLabel(year, month, locale)}
               isRtl={isRtl}
