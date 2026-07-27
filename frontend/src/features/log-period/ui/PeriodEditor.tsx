@@ -20,8 +20,8 @@ import { useDeletePeriod, useLogPeriodRange, useUpdatePeriod, type LoggedPeriod 
 
 const WEEKDAY_KEYS = ['sat', 'sun', 'mon', 'tue', 'wed', 'thu', 'fri'] as const;
 
-const PERIOD_COLOR = '#E91E63';
-const PERIOD_BG = '#FCE7F3';
+const PERIOD_COLOR = 'var(--brand)';
+const PERIOD_BG = 'var(--pink-bg)';
 
 /**
  * What just changed, so the caller can paint the calendar optimistically the

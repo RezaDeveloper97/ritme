@@ -158,8 +158,8 @@ export function WeeklyForm({ t }: { t: T }) {
       </div>
 
       {save.isSuccess && save.data.length > 0 && (
-        <div className="card" style={{ marginTop: 12, padding: '12px 13px', borderInlineStart: '3px solid #E9662E', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Icon name="flame" size={16} style={{ color: '#E9662E' }} />
+        <div className="card" style={{ marginTop: 12, padding: '12px 13px', borderInlineStart: '3px solid var(--orange)', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Icon name="flame" size={16} style={{ color: 'var(--orange)' }} />
           <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)' }}>{t('alerts.raised', { n: save.data.length })}</span>
         </div>
       )}

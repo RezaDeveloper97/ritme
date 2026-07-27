@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Auth (signup / OTP) copy, matched exactly to the React source of truth
+  (frontend messages/fa/auth.json). Kept in a dedicated file so it never
+  collides with the central strings.xml keys.
+-->
+<resources>
+
+    <!-- ── Phone signup (React auth.signup.*) ── -->
+    <string name="auth_signup_title">همین امروز عضو ریتمی شو</string>
+    <string name="auth_signup_subtitle">برای ورود یا ثبت‌نام شماره‌ی موبایل خود را وارد کنید</string>
+    <string name="auth_phone_label">شماره موبایل</string>
+    <string name="auth_phone_placeholder">۰۹۱۲ ۳۴۵ ۶۷۸۹</string>
+    <string name="auth_signup_submit">دریافت کد تأیید</string>
+    <string name="auth_signup_sending">در حال ارسال کد…</string>
+
+    <!-- Terms acceptance sentence (React auth.signup.terms/termsLink) -->
+    <string name="auth_terms_prefix">ثبت‌نام به منزله‌ی قبول </string>
+    <string name="auth_terms_link">قوانین و مقررات</string>
+    <string name="auth_terms_suffix"> و حریم خصوصی است.</string>
+
+    <!-- ── OTP step (React auth.otp.*) ── -->
+    <string name="auth_otp_title">کد یکبار مصرف 🔐</string>
+    <string name="auth_otp_subtitle">کد یکبار مصرف به شماره‌ی %1$s ارسال شد</string>
+    <string name="auth_otp_edit_phone">ویرایش شماره موبایل</string>
+    <string name="auth_otp_resend_timer">ارسال مجدد کد تا %1$s</string>
+    <string name="auth_otp_resend">ارسال مجدد کد</string>
+    <string name="auth_otp_submit">تأیید کد</string>
+    <string name="auth_otp_verifying">در حال بررسی…</string>
+
+    <!-- ── Shared auth errors (React auth.errors.*) ── -->
+    <string name="auth_error_invalid_code">کد وارد شده صحیح نیست یا منقضی شده است</string>
+    <string name="auth_error_too_many">تعداد تلاش‌ها زیاد است؛ کمی بعد دوباره امتحان کنید</string>
+    <string name="auth_error_network">ارتباط برقرار نشد؛ اتصال اینترنت را بررسی کنید</string>
+    <string name="auth_error_generic">خطایی رخ داد؛ لطفاً دوباره تلاش کنید</string>
+
+</resources>

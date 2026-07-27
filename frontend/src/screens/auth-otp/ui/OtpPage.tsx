@@ -86,7 +86,7 @@ export function OtpPage() {
   const pad = (n: number) => String(n).padStart(2, '0');
 
   return (
-    <div className="view" style={{ background: '#fff' }}>
+    <div className="view" style={{ background: 'var(--surface)' }}>
 
       <div className="hdr">
         <NavBack onClick={() => router.back()} />
@@ -127,7 +127,7 @@ export function OtpPage() {
         </div>
 
         {verifyOtp.isError && (
-          <p className="sub" style={{ color: '#E5484D', marginTop: 18 }}>
+          <p className="sub" style={{ color: 'var(--danger)', marginTop: 18 }}>
             {t(`errors.${authErrorKey(verifyOtp.error)}`)}
           </p>
         )}

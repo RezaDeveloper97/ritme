@@ -115,4 +115,28 @@ export default defineConfig([
     files: ['./src/widgets/day-tasks/**'],
     rules: { 'fsd/insignificant-slice': 'off' },
   },
+  {
+    // «چالش امروز»: the `today-challenge` widget is mounted by the home screen
+    // and `features/complete-challenge` is the tick that records a completion.
+    // Both are consumed only from `screens`, which steiger can't see (same
+    // reason as the blocks above), so their references read as zero/one.
+    files: [
+      './src/entities/challenge/**',
+      './src/widgets/today-challenge/**',
+      './src/features/complete-challenge/**',
+    ],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
+    // «خلاصه هفته»: `entities/wellbeing` holds the weekly mood/sleep/energy
+    // scores and `widgets/week-summary` renders them on the home feed. Both are
+    // consumed only from `screens` (home mounts the widget, the log screen
+    // invalidates the entity's cache), which steiger can't see — same reason as
+    // the blocks above.
+    files: [
+      './src/entities/wellbeing/**',
+      './src/widgets/week-summary/**',
+    ],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
 ]);

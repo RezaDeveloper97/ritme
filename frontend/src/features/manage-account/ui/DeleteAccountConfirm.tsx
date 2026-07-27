@@ -8,7 +8,7 @@ import { Icon } from '@/shared/ui';
 
 import { useDeleteAccount } from '../api/mutations';
 
-const DANGER = '#E5484D';
+const DANGER = 'var(--danger)';
 
 interface DeleteAccountConfirmProps {
   open: boolean;
@@ -105,7 +105,7 @@ export function DeleteAccountConfirm({ open, onClose }: DeleteAccountConfirmProp
               fontWeight: 700,
               cursor: deleteAccount.isPending ? 'default' : 'pointer',
               background: DANGER,
-              color: '#fff',
+              color: 'var(--on-accent)',
               opacity: deleteAccount.isPending ? 0.65 : 1,
             }}
           >

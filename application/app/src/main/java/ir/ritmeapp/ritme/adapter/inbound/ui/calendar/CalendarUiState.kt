@@ -30,12 +30,33 @@ data class CalendarUiState(
     val selectedAction: PeriodDayAction = PeriodDayAction.None,
     /** A period mutation is in flight — action buttons disable and the grid shows progress. */
     val periodSaving: Boolean = false,
+    /** True while the tapped day's detail sheet is open (web `daySheetOpen`). */
+    val daySheetOpen: Boolean = false,
+    /** The backend is re-deriving the cycle after a period edit — drives the top banner. */
+    val isRecalculating: Boolean = false,
+    /**
+     * ISO `yyyy-MM-dd` days covered by a REAL logged period (vs an engine prediction).
+     * A period-colored day not in this set is only predicted, so the grid draws it as a
+     * hollow ring rather than a solid fill (web spec §12).
+     */
+    val loggedPeriodDays: Set<String> = emptySet(),
 ) {
     /** The cycle snapshot behind one Jalali day cell, if the month data covers it. */
     fun snapshotFor(day: JalaliDate): CycleDaySnapshot? = days[day.toIso()]
 
     /** The selected day's snapshot for the detail card. */
     val selectedSnapshot: CycleDaySnapshot? get() = snapshotFor(selected)
+
+    /** Whether [day] is inside a real logged period (a solid period cell, not a prediction). */
+    fun isLoggedPeriodDay(day: JalaliDate): Boolean = day.toIso() in loggedPeriodDays
+
+    /** True when the shown Jalali month is entirely in the future (no day could be bled on). */
+    val isFutureMonth: Boolean
+        get() = year > today.year || (year == today.year && month > today.month)
+
+    /** True when the selected day is after today — future days can't carry logged data. */
+    val selectedIsFuture: Boolean
+        get() = selected.toJdn() > today.toJdn()
 }
 
 /** Everything the user can do on the calendar screen. */
@@ -54,4 +75,13 @@ sealed interface CalendarIntent {
 
     /** Execute the period edit currently offered for the selected day. */
     data object ApplyPeriodAction : CalendarIntent
+
+    /** Dismiss the tapped-day detail sheet without acting. */
+    data object CloseDaySheet : CalendarIntent
+}
+
+/** One-shot side effects (§4 Effect) — surfaced once, never replayed on recomposition. */
+sealed interface CalendarEffect {
+    /** A period edit the backend rejected → show its Persian message as a toast. */
+    data class ShowError(val message: String) : CalendarEffect
 }

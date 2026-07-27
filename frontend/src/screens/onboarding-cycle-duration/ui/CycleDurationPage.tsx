@@ -21,7 +21,7 @@ export function CycleDurationPage() {
   const step = stepPosition('cycleDuration', intention);
 
   return (
-    <div className="view" style={{ background: '#fff' }}>
+    <div className="view" style={{ background: 'var(--surface)' }}>
       <div className="hdr">
         <NavBack onClick={() => router.back()} />
         <span className="stepcount">{faNum(step.index)}<span style={{ opacity: .5 }}> / {faNum(step.total)}</span></span>
@@ -34,7 +34,7 @@ export function CycleDurationPage() {
         </div>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '8px 0' }}>
           <div style={{ display: 'flex', justifyContent: 'center', position: 'relative' }}>
-            <div className="wheel-band" style={{ width: 150, left: '50%', transform: 'translateX(-50%)' }} />
+            <div className="wheel-band" style={{ width: 150, marginInline: 'auto' }} />
             <WheelPicker
               id="wC" items={ITEMS} selectedIndex={cycleDuration - MIN} width={150}
               onChange={i => setCycleDuration(i + MIN)}

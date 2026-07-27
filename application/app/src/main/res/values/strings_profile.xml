@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Profile hub — keys unique to this screen (web `profile` namespace). -->
+    <string name="profile_section_app">برنامه</string>
+    <string name="profile_row_language">زبان برنامه</string>
+    <string name="profile_language_fa">فارسی</string>
+</resources>

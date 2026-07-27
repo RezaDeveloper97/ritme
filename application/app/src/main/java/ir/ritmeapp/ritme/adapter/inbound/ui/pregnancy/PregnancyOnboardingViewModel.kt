@@ -29,10 +29,10 @@ data class PregnancyOnboardingUiState(
     val source: PregnancyAgeSource? = null,
     val lmpDate: JalaliDate,
     val ultrasoundDate: JalaliDate,
-    val ultrasoundWeeks: Int = DEFAULT_WEEKS,
-    val ultrasoundDays: Int = 0,
-    val manualWeeks: Int = DEFAULT_WEEKS,
-    val manualDays: Int = 0,
+    val ultrasoundWeeks: Int? = null,
+    val ultrasoundDays: Int? = null,
+    val manualWeeks: Int? = null,
+    val manualDays: Int? = null,
     val hasMiscarriageHistory: Boolean = false,
     val hasHighRiskHistory: Boolean = false,
     val conditions: List<String> = emptyList(),
@@ -42,7 +42,6 @@ data class PregnancyOnboardingUiState(
     val error: PregnancyOnboardingError = PregnancyOnboardingError.NONE,
 ) {
     companion object {
-        const val DEFAULT_WEEKS = 8
         const val MAX_WEEKS = 42
         const val MAX_EXTRA_DAYS = 6
 
@@ -59,10 +58,10 @@ sealed interface PregnancyOnboardingIntent {
     data class SourceSelected(val source: PregnancyAgeSource) : PregnancyOnboardingIntent
     data class LmpChanged(val date: JalaliDate) : PregnancyOnboardingIntent
     data class UltrasoundDateChanged(val date: JalaliDate) : PregnancyOnboardingIntent
-    data class UltrasoundWeeksChanged(val weeks: Int) : PregnancyOnboardingIntent
-    data class UltrasoundDaysChanged(val days: Int) : PregnancyOnboardingIntent
-    data class ManualWeeksChanged(val weeks: Int) : PregnancyOnboardingIntent
-    data class ManualDaysChanged(val days: Int) : PregnancyOnboardingIntent
+    data class UltrasoundWeeksChanged(val weeks: Int?) : PregnancyOnboardingIntent
+    data class UltrasoundDaysChanged(val days: Int?) : PregnancyOnboardingIntent
+    data class ManualWeeksChanged(val weeks: Int?) : PregnancyOnboardingIntent
+    data class ManualDaysChanged(val days: Int?) : PregnancyOnboardingIntent
     data class MiscarriageToggled(val value: Boolean) : PregnancyOnboardingIntent
     data class HighRiskToggled(val value: Boolean) : PregnancyOnboardingIntent
     data class ConditionToggled(val condition: String) : PregnancyOnboardingIntent
@@ -134,6 +133,15 @@ class PregnancyOnboardingViewModel(
             _state.update { it.copy(error = PregnancyOnboardingError.SELECT_SOURCE) }
             return
         }
+        val weeksMissing = when (source) {
+            PregnancyAgeSource.LMP -> false
+            PregnancyAgeSource.ULTRASOUND -> snapshot.ultrasoundWeeks == null
+            PregnancyAgeSource.MANUAL -> snapshot.manualWeeks == null
+        }
+        if (weeksMissing) {
+            _state.update { it.copy(error = PregnancyOnboardingError.FILL_REQUIRED) }
+            return
+        }
         viewModelScope.launch {
             Breadcrumbs.add("pregnancy:onboarding_submit")
             _state.update { it.copy(submitting = true, error = PregnancyOnboardingError.NONE) }
@@ -142,9 +150,9 @@ class PregnancyOnboardingViewModel(
                 lmpDate = snapshot.lmpDate.takeIf { source == PregnancyAgeSource.LMP },
                 ultrasoundDate = snapshot.ultrasoundDate.takeIf { source == PregnancyAgeSource.ULTRASOUND },
                 ultrasoundWeeks = snapshot.ultrasoundWeeks.takeIf { source == PregnancyAgeSource.ULTRASOUND },
-                ultrasoundDays = snapshot.ultrasoundDays.takeIf { source == PregnancyAgeSource.ULTRASOUND },
+                ultrasoundDays = (snapshot.ultrasoundDays ?: 0).takeIf { source == PregnancyAgeSource.ULTRASOUND },
                 manualWeeks = snapshot.manualWeeks.takeIf { source == PregnancyAgeSource.MANUAL },
-                manualDays = snapshot.manualDays.takeIf { source == PregnancyAgeSource.MANUAL },
+                manualDays = (snapshot.manualDays ?: 0).takeIf { source == PregnancyAgeSource.MANUAL },
                 hasMiscarriageHistory = snapshot.hasMiscarriageHistory,
                 hasHighRiskHistory = snapshot.hasHighRiskHistory,
                 preExistingConditions = snapshot.conditions,

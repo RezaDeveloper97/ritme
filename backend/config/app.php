@@ -60,12 +60,14 @@ return [
     |--------------------------------------------------------------------------
     |
     | Here you may specify the default timezone for your application, which
-    | will be used by the PHP date and date-time functions. The timezone
-    | is set to "UTC" by default as it is suitable for most use cases.
+    | will be used by the PHP date and date-time functions. Ritme is a
+    | date-driven product for Iranian users: the cycle engine's "today"
+    | (Carbon::today()) must be the user's calendar day, so running in UTC made
+    | the app show the previous day between 00:00 and 03:30 Tehran time.
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => env('APP_TIMEZONE', 'Asia/Tehran'),
 
     /*
     |--------------------------------------------------------------------------

@@ -3,6 +3,7 @@ package ir.ritmeapp.ritme.adapter.inbound.ui.profile
 import android.content.Intent
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,7 +22,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -61,8 +61,11 @@ import ir.ritmeapp.ritme.platform.crash.Breadcrumbs
 
 /**
  * The profile hub (web `/profile`): identity card, app-mode switch, the health snapshot, the
- * account/privacy/support row groups, logout, and the destructive delete-account flow behind a
- * confirmation sheet. Data comes from `GET /profile` + `GET /messages/mode`.
+ * account/app/privacy/support row groups, logout, and the destructive delete-account flow behind
+ * a confirmation sheet. Data comes from `GET /profile` + `GET /messages/mode`.
+ *
+ * Mirrors the web page 1:1 (§5c): the whole page is composed immediately with empty placeholder
+ * values (no first-paint spinner); rows are icon-chip lists split by inset hairlines.
  */
 @Composable
 fun ProfileScreen(
@@ -102,13 +105,6 @@ fun ProfileScreen(
         containerColor = colors.background,
         bottomBar = { RitmeBottomBar(active = RitmeTab.PROFILE, mode = state.mode, onNavigate = onNavigate) },
     ) { padding ->
-        if (state.loading && state.profile == null) {
-            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = colors.pink)
-            }
-            return@Scaffold
-        }
-
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
@@ -121,7 +117,7 @@ fun ProfileScreen(
                     color = colors.ink,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center,
+                    textAlign = TextAlign.Start,
                 )
             }
             item(key = "identity") {
@@ -141,15 +137,37 @@ fun ProfileScreen(
                     NavRow(R.drawable.ic_user, stringResource(R.string.profile_row_personal), colors) {
                         onOpenSubScreen(Destination.ProfilePersonal)
                     }
-                    NavRow(R.drawable.ic_refresh, stringResource(R.string.profile_row_health), colors) {
+                    RowDivider(colors)
+                    NavRow(R.drawable.ic_heart, stringResource(R.string.profile_row_health), colors) {
                         onOpenSubScreen(Destination.ProfileHealth)
                     }
+                    RowDivider(colors)
                     NavRow(R.drawable.ic_alarm, stringResource(R.string.profile_row_reminders), colors) {
                         onOpenSubScreen(Destination.ProfileReminders)
                     }
+                    RowDivider(colors)
                     NavRow(R.drawable.ic_bell, stringResource(R.string.profile_row_notifications), colors) {
                         onOpenSubScreen(Destination.ProfileNotifications)
                     }
+                }
+            }
+            item(key = "app") {
+                RowGroup(stringResource(R.string.profile_section_app), colors) {
+                    // Locale switching is Persian-only for now — the row is rendered for web parity
+                    // but does not toggle the app language (see screen KDoc / summary note).
+                    NavRow(
+                        icon = R.drawable.ic_globe,
+                        label = stringResource(R.string.profile_row_language),
+                        colors = colors,
+                        trailing = {
+                            Text(
+                                text = stringResource(R.string.profile_language_fa),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = colors.pink,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        },
+                    )
                 }
             }
             item(key = "privacy") {
@@ -157,6 +175,7 @@ fun ProfileScreen(
                     NavRow(R.drawable.ic_shield, stringResource(R.string.profile_row_privacy), colors) {
                         onOpenSubScreen(Destination.ProfileInfo(InfoTopic.PRIVACY))
                     }
+                    RowDivider(colors)
                     NavRow(
                         icon = R.drawable.ic_download,
                         label = if (state.exporting) {
@@ -174,6 +193,7 @@ fun ProfileScreen(
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                         )
                     }
+                    RowDivider(colors)
                     NavRow(
                         icon = R.drawable.ic_trash,
                         label = stringResource(R.string.profile_row_delete),
@@ -187,40 +207,34 @@ fun ProfileScreen(
                     NavRow(R.drawable.ic_info, stringResource(R.string.profile_row_help), colors) {
                         onOpenSubScreen(Destination.ProfileInfo(InfoTopic.HELP))
                     }
-                    NavRow(R.drawable.ic_heart, stringResource(R.string.profile_row_about), colors) {
+                    RowDivider(colors)
+                    NavRow(R.drawable.ic_sparkle, stringResource(R.string.profile_row_about), colors) {
                         onOpenSubScreen(Destination.ProfileInfo(InfoTopic.ABOUT))
                     }
+                    RowDivider(colors)
                     NavRow(R.drawable.ic_book_open, stringResource(R.string.profile_row_terms), colors) {
                         onOpenSubScreen(Destination.ProfileInfo(InfoTopic.TERMS))
                     }
                 }
             }
             item(key = "logout") {
-                SurfaceCard(Modifier.clickable { viewModel.onIntent(ProfileIntent.Logout) }) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_logout),
-                            contentDescription = null,
-                            tint = colors.error,
-                            modifier = Modifier.size(20.dp),
-                        )
-                        Spacer(Modifier.width(10.dp))
-                        Text(
-                            text = if (state.loggingOut) {
-                                stringResource(R.string.profile_logging_out)
-                            } else {
-                                stringResource(R.string.profile_logout)
-                            },
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = colors.error,
-                            fontWeight = FontWeight.Bold,
-                        )
-                    }
+                RowCard(colors) {
+                    NavRow(
+                        icon = R.drawable.ic_logout,
+                        label = if (state.loggingOut) {
+                            stringResource(R.string.profile_logging_out)
+                        } else {
+                            stringResource(R.string.profile_logout)
+                        },
+                        colors = colors,
+                        danger = true,
+                        chevron = false,
+                    ) { viewModel.onIntent(ProfileIntent.Logout) }
                 }
             }
             item(key = "version") {
                 Text(
-                    text = stringResource(R.string.profile_version, "۱٫۰٫۰"),
+                    text = stringResource(R.string.profile_version, "1.0.0".toPersianDigits()),
                     style = MaterialTheme.typography.labelSmall,
                     color = colors.inkMuted,
                     modifier = Modifier.fillMaxWidth(),
@@ -241,17 +255,17 @@ private fun IdentityCard(profile: UserProfile?, onEdit: () -> Unit, colors: Ritm
     SurfaceCard {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
-                Modifier.size(52.dp).clip(CircleShape).background(colors.pinkContainer),
+                Modifier.size(60.dp).clip(CircleShape).background(colors.pinkContainer),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_user),
                     contentDescription = null,
                     tint = colors.pink,
-                    modifier = Modifier.size(24.dp),
+                    modifier = Modifier.size(30.dp),
                 )
             }
-            Spacer(Modifier.width(12.dp))
+            Spacer(Modifier.width(14.dp))
             Column(Modifier.weight(1f)) {
                 Text(
                     text = profile?.account?.name?.takeIf { it.isNotBlank() }
@@ -267,8 +281,9 @@ private fun IdentityCard(profile: UserProfile?, onEdit: () -> Unit, colors: Ritm
                     color = colors.inkMuted,
                 )
             }
+            // Borderless edit affordance (web `.iconbtn`): transparent, brand-pink pencil.
             Box(
-                Modifier.size(38.dp).clip(CircleShape).background(colors.background).clickable(onClick = onEdit),
+                Modifier.size(38.dp).clip(CircleShape).clickable(onClick = onEdit),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
@@ -294,6 +309,7 @@ private fun ModeGroup(
             NavRow(R.drawable.ic_heart, stringResource(R.string.profile_mode_tracker), colors) {
                 onNavigate(Destination.Pregnancy)
             }
+            RowDivider(colors)
             NavRow(
                 icon = R.drawable.ic_refresh,
                 label = if (state.switchingMode) {
@@ -302,6 +318,8 @@ private fun ModeGroup(
                     stringResource(R.string.profile_mode_to_cycle)
                 },
                 colors = colors,
+                // Action row: no disclosure chevron (mirrors web).
+                chevron = false,
             ) { onIntent(ProfileIntent.SwitchToCycleMode) }
         } else {
             NavRow(R.drawable.ic_heart, stringResource(R.string.profile_mode_to_pregnancy), colors) {
@@ -315,31 +333,41 @@ private fun ModeGroup(
 private fun HealthGroup(profile: UserProfile?, colors: RitmeColors) {
     val health = profile?.health
     RowGroup(stringResource(R.string.profile_section_health), colors) {
-        if (health == null) {
-            Text(
-                stringResource(R.string.profile_health_not_set_up),
-                style = MaterialTheme.typography.labelMedium,
-                color = colors.inkMuted,
-                modifier = Modifier.padding(16.dp),
+        // When the account has no health profile yet, a single hint row stands in for the stats.
+        if (profile != null && health == null) {
+            NavRow(
+                icon = R.drawable.ic_heart,
+                label = stringResource(R.string.profile_health_not_set_up),
+                colors = colors,
+                chevron = false,
             )
             return@RowGroup
         }
-        ValueRow(stringResource(R.string.profile_health_cycle), daysValue(health.cycleDuration), colors)
-        ValueRow(stringResource(R.string.profile_health_period), daysValue(health.periodDuration), colors)
-        ValueRow(
+        StatRow(R.drawable.ic_refresh, stringResource(R.string.profile_health_cycle), daysValue(health?.cycleDuration), colors)
+        RowDivider(colors)
+        StatRow(R.drawable.ic_drop, stringResource(R.string.profile_health_period), daysValue(health?.periodDuration), colors)
+        RowDivider(colors)
+        StatRow(
+            icon = R.drawable.ic_calendar,
             label = stringResource(R.string.profile_health_last_period),
-            value = health.lastPeriodStart?.toJalali()?.formatFull() ?: stringResource(R.string.value_empty),
+            value = health?.lastPeriodStart?.toJalali()?.formatFull() ?: stringResource(R.string.value_empty),
             colors = colors,
         )
-        ValueRow(
+        RowDivider(colors)
+        StatRow(
+            icon = R.drawable.ic_sparkle,
             label = stringResource(R.string.profile_health_birthday),
-            value = health.birthday?.toJalali()?.formatFull() ?: stringResource(R.string.value_empty),
+            value = health?.birthday?.toJalali()?.formatFull() ?: stringResource(R.string.value_empty),
             colors = colors,
         )
-        ValueRow(stringResource(R.string.profile_health_weight), weightValue(health), colors)
-        ValueRow(stringResource(R.string.profile_health_height), heightValue(health), colors)
-        profile.bmi?.let { bmi ->
-            ValueRow(
+        RowDivider(colors)
+        StatRow(R.drawable.ic_chart, stringResource(R.string.profile_health_weight), weightValue(health), colors)
+        RowDivider(colors)
+        StatRow(R.drawable.ic_walk, stringResource(R.string.profile_health_height), heightValue(health), colors)
+        profile?.bmi?.let { bmi ->
+            RowDivider(colors)
+            StatRow(
+                icon = R.drawable.ic_chart,
                 label = stringResource(R.string.profile_health_bmi),
                 value = "${formatDecimal(bmi.value)} · ${bmi.categoryLabel.ifBlank { bmi.category }}",
                 colors = colors,
@@ -354,12 +382,12 @@ private fun daysValue(days: Int?): String = days
     ?: stringResource(R.string.value_empty)
 
 @Composable
-private fun weightValue(health: HealthProfile): String = health.weightKg
+private fun weightValue(health: HealthProfile?): String = health?.weightKg
     ?.let { stringResource(R.string.profile_health_kg, formatDecimal(it)) }
     ?: stringResource(R.string.value_empty)
 
 @Composable
-private fun heightValue(health: HealthProfile): String = health.heightCm
+private fun heightValue(health: HealthProfile?): String = health?.heightCm
     ?.let { stringResource(R.string.profile_health_cm, it.toPersianDigits()) }
     ?: stringResource(R.string.value_empty)
 
@@ -369,7 +397,7 @@ private fun formatDecimal(value: Double): String {
     return text.toPersianDigits()
 }
 
-/** A titled white group of rows (web's grouped list cards). */
+/** A titled group: muted heading + the shared row card (web's grouped list section). */
 @Composable
 private fun RowGroup(title: String, colors: RitmeColors, content: @Composable () -> Unit) {
     Column {
@@ -380,15 +408,33 @@ private fun RowGroup(title: String, colors: RitmeColors, content: @Composable ()
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(horizontal = 6.dp, vertical = 6.dp),
         )
-        Column(
-            Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp))
-                .background(colors.surface),
-        ) {
-            content()
-        }
+        RowCard(colors, content)
     }
+}
+
+/** The rounded white surface that holds a run of rows (web `.card`). */
+@Composable
+private fun RowCard(colors: RitmeColors, content: @Composable () -> Unit) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(colors.surface),
+    ) {
+        content()
+    }
+}
+
+/** Hairline between rows, inset past the icon chip (logical start — RTL-safe). */
+@Composable
+private fun RowDivider(colors: RitmeColors) {
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .height(1.dp)
+            .padding(start = 60.dp)
+            .background(colors.outline),
+    )
 }
 
 @Composable
@@ -397,22 +443,27 @@ private fun NavRow(
     label: String,
     colors: RitmeColors,
     danger: Boolean = false,
-    onClick: () -> Unit,
+    chevron: Boolean = true,
+    trailing: (@Composable () -> Unit)? = null,
+    onClick: (() -> Unit)? = null,
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 14.dp, vertical = 12.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+            .padding(horizontal = 14.dp, vertical = 13.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
-            Modifier.size(34.dp).clip(CircleShape)
-                .background(if (danger) colors.periodContainer else colors.background),
+            Modifier.size(34.dp).clip(RoundedCornerShape(11.dp))
+                .background(if (danger) colors.periodContainer else colors.outline),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 painter = painterResource(icon),
                 contentDescription = null,
-                tint = if (danger) colors.error else colors.inkMuted,
-                modifier = Modifier.size(17.dp),
+                tint = if (danger) colors.error else colors.pink,
+                modifier = Modifier.size(19.dp),
             )
         }
         Spacer(Modifier.width(12.dp))
@@ -420,28 +471,48 @@ private fun NavRow(
             text = label,
             style = MaterialTheme.typography.bodyMedium,
             color = if (danger) colors.error else colors.ink,
+            fontWeight = FontWeight.SemiBold,
             modifier = Modifier.weight(1f),
         )
-        Icon(
-            // RTL: the forward affordance points toward the text end.
-            painter = painterResource(R.drawable.ic_chevron_left),
-            contentDescription = null,
-            tint = colors.outline,
-            modifier = Modifier.size(16.dp),
-        )
+        if (trailing != null || chevron) {
+            Spacer(Modifier.width(12.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                trailing?.invoke()
+                if (chevron) {
+                    Icon(
+                        // RTL: the forward affordance points toward the text end.
+                        painter = painterResource(R.drawable.ic_chevron_left),
+                        contentDescription = null,
+                        tint = colors.inkMuted,
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
+            }
+        }
     }
 }
 
+/** A static health stat row: icon chip + label + a muted, right-aligned value (web `StatValue`). */
 @Composable
-private fun ValueRow(label: String, value: String, colors: RitmeColors) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(label, style = MaterialTheme.typography.bodyMedium, color = colors.inkMuted)
-        Text(value, style = MaterialTheme.typography.bodyMedium, color = colors.ink, fontWeight = FontWeight.Bold)
-    }
+private fun StatRow(@DrawableRes icon: Int, label: String, value: String, colors: RitmeColors) {
+    NavRow(
+        icon = icon,
+        label = label,
+        colors = colors,
+        chevron = false,
+        trailing = {
+            Text(
+                text = value,
+                style = MaterialTheme.typography.bodyMedium,
+                color = colors.inkMuted,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.End,
+            )
+        },
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -451,22 +522,19 @@ private fun DeleteAccountSheet(state: ProfileUiState, onIntent: (ProfileIntent) 
         onDismissRequest = { onIntent(ProfileIntent.CloseDeleteSheet) },
         containerColor = colors.surface,
     ) {
-        Column(
-            Modifier.fillMaxWidth().padding(horizontal = 20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
             Box(
-                Modifier.size(52.dp).clip(CircleShape).background(colors.periodContainer),
+                Modifier.size(46.dp).clip(RoundedCornerShape(14.dp)).background(colors.periodContainer),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_trash),
                     contentDescription = null,
                     tint = colors.error,
-                    modifier = Modifier.size(24.dp),
+                    modifier = Modifier.size(22.dp),
                 )
             }
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(14.dp))
             Text(
                 stringResource(R.string.delete_title),
                 style = MaterialTheme.typography.titleMedium,
@@ -478,17 +546,16 @@ private fun DeleteAccountSheet(state: ProfileUiState, onIntent: (ProfileIntent) 
                 stringResource(R.string.delete_warning),
                 style = MaterialTheme.typography.bodyMedium,
                 color = colors.inkMuted,
-                textAlign = TextAlign.Center,
             )
             if (state.deleteError) {
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(10.dp))
                 Text(
                     stringResource(R.string.delete_error),
                     style = MaterialTheme.typography.labelSmall,
                     color = colors.error,
                 )
             }
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(18.dp))
             Button(
                 onClick = { onIntent(ProfileIntent.ConfirmDelete) },
                 enabled = !state.deleting,
@@ -505,16 +572,24 @@ private fun DeleteAccountSheet(state: ProfileUiState, onIntent: (ProfileIntent) 
                     fontWeight = FontWeight.Bold,
                 )
             }
-            Spacer(Modifier.height(8.dp))
-            Text(
-                text = stringResource(R.string.action_cancel),
-                style = MaterialTheme.typography.bodyMedium,
-                color = colors.inkMuted,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(12.dp))
-                    .clickable { onIntent(ProfileIntent.CloseDeleteSheet) }
-                    .padding(10.dp),
-            )
+            Spacer(Modifier.height(10.dp))
+            // Outlined, equal-weight Cancel (web's second full-width button).
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(46.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .border(1.dp, colors.outline, RoundedCornerShape(14.dp))
+                    .clickable(enabled = !state.deleting) { onIntent(ProfileIntent.CloseDeleteSheet) },
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = stringResource(R.string.action_cancel),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = colors.ink,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
             Spacer(Modifier.height(16.dp))
         }
     }

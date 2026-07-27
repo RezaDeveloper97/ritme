@@ -172,7 +172,7 @@ function HealthForm({ profile }: { profile: UserProfile }) {
         {errorMessage ? (
           <p
             role="alert"
-            style={{ fontSize: 13, color: '#E5484D', textAlign: 'center', margin: '0 0 8px' }}
+            style={{ fontSize: 13, color: 'var(--danger)', textAlign: 'center', margin: '0 0 8px' }}
           >
             {errorMessage}
           </p>

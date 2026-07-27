@@ -779,6 +779,11 @@ class CycleCalculationController extends Controller
         $engine = new HealthDataEngine($user, $locale);
         $calculationData = $engine->calculateForDate($date);
 
+        // The engine stores bilingual `{en, fa}` blobs in `daily_tips`/`text_flags`;
+        // collapse them to the request locale so clients get render-ready strings
+        // (`daily_tips` becomes a list of `{type, text}`) instead of raw dictionaries.
+        $calculationData = $this->localizeCalculation($calculationData, $locale);
+
         // Render-ready spec §19 payload (daily card, predictions, three-layer values,
         // confidence) assembled alongside the raw calc. Kept under a separate key so
         // existing `calculation` consumers are unaffected.

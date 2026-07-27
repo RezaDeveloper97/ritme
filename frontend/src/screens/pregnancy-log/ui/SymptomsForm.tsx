@@ -109,7 +109,7 @@ export function SymptomsForm({ t }: { t: T }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <Icon name="calendar" size={15} />
           <span style={{ fontSize: 14.5, fontWeight: 800, color: 'var(--ink)' }}>{formatJalaliDayMonth(date, locale)}</span>
-          {isToday && <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--brand)', background: '#FFF1F7', borderRadius: 20, padding: '2px 9px' }}>{t('log.today')}</span>}
+          {isToday && <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--brand)', background: 'var(--surface-2)', borderRadius: 20, padding: '2px 9px' }}>{t('log.today')}</span>}
         </div>
         <button className="iconbtn" onClick={() => canGoNext && shiftDay(1)} disabled={!canGoNext} aria-label={t('log.nextDay')} style={{ opacity: canGoNext ? 1 : 0.3 }}>
           <Icon name={isRtl ? 'chevronLeft' : 'chevronRight'} size={20} />
@@ -124,7 +124,7 @@ export function SymptomsForm({ t }: { t: T }) {
               key={group.key}
               title={t(`log.symptomGroups.${group.key}`)}
               hint={warning ? t('log.criticalHint') : undefined}
-              accent={warning ? '#E5484D' : undefined}
+              accent={warning ? 'var(--danger)' : undefined}
               icon={warning ? 'shield' : 'sparkle'}
             >
               <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -134,7 +134,7 @@ export function SymptomsForm({ t }: { t: T }) {
                   return (
                     <div key={key} style={{ padding: '8px 0', borderBottom: '1px solid var(--line)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                        <span style={{ fontSize: 13.5, fontWeight: 700, color: critical ? '#C13438' : 'var(--ink)' }}>
+                        <span style={{ fontSize: 13.5, fontWeight: 700, color: critical ? 'var(--danger-deep)' : 'var(--ink)' }}>
                           {dyn(`log.symptoms.${key}`)}
                         </span>
                         <Toggle on={on} onClick={() => toggleSymptom(key)} />
@@ -162,8 +162,8 @@ export function SymptomsForm({ t }: { t: T }) {
       </div>
 
       {alertsRaised > 0 && (
-        <div className="card" style={{ marginTop: 12, padding: '12px 13px', borderInlineStart: '3px solid #E9662E', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Icon name="flame" size={16} style={{ color: '#E9662E' }} />
+        <div className="card" style={{ marginTop: 12, padding: '12px 13px', borderInlineStart: '3px solid var(--orange)', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Icon name="flame" size={16} style={{ color: 'var(--orange)' }} />
           <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)' }}>{t('alerts.raised', { n: alertsRaised })}</span>
         </div>
       )}

@@ -1,5 +1,6 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import { useLocale, useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -13,6 +14,7 @@ import {
   type HealthLogField,
   type HealthLogInput,
 } from '@/entities/health-log';
+import { wellbeingKeys } from '@/entities/wellbeing';
 import type { Locale } from '@/shared/i18n';
 import { addDays, diffInDays, formatJalaliDayMonth, fromApiDate, toApiDate, today } from '@/shared/lib/date';
 import { Icon, type IconName } from '@/shared/ui';
@@ -24,17 +26,17 @@ import { CategorySheet } from './CategorySheet';
 // Presentation-only mapping (icon + accent) for each category. Colors are a UI
 // concern, so they live here rather than in the entity's model config.
 const CATEGORY_STYLE: Record<string, { icon: IconName; color: string; soft: string }> = {
-  bleeding: { icon: 'drop', color: '#E91E63', soft: '#FCE7F3' },
-  pain: { icon: 'zap', color: '#F5A623', soft: '#FEF3C6' },
-  digestion: { icon: 'glass', color: '#22B07D', soft: '#E7F8EF' },
-  mood: { icon: 'smile', color: '#A91EE9', soft: '#F5E9FE' },
-  sleep: { icon: 'moon', color: '#5B6BE1', soft: '#EAECFF' },
-  body: { icon: 'sparkle', color: '#E9662E', soft: '#FDEBE2' },
-  discharge: { icon: 'drop', color: '#2E9BE9', soft: '#E3F1FD' },
-  intimate: { icon: 'shield', color: '#0E9C8A', soft: '#DFF5F1' },
-  sexual: { icon: 'heart', color: '#E9276E', soft: '#FDE4EE' },
-  measure: { icon: 'thermo', color: '#6D7A87', soft: '#EDF0F3' },
-  notes: { icon: 'pencil', color: '#707983', soft: '#EFF2F4' },
+  bleeding: { icon: 'drop', color: 'var(--brand)', soft: 'var(--pink-bg)' },
+  pain: { icon: 'zap', color: 'var(--amber)', soft: 'var(--amber-soft)' },
+  digestion: { icon: 'glass', color: 'var(--green)', soft: 'var(--green-tint)' },
+  mood: { icon: 'smile', color: 'var(--violet)', soft: 'var(--violet-soft)' },
+  sleep: { icon: 'moon', color: 'var(--indigo-deep)', soft: 'var(--indigo-soft)' },
+  body: { icon: 'sparkle', color: 'var(--orange)', soft: 'var(--orange-soft)' },
+  discharge: { icon: 'drop', color: 'var(--blue)', soft: 'var(--blue-soft)' },
+  intimate: { icon: 'shield', color: 'var(--teal)', soft: 'var(--teal-soft)' },
+  sexual: { icon: 'heart', color: 'var(--rose)', soft: 'var(--pink-bg)' },
+  measure: { icon: 'thermo', color: 'var(--muted)', soft: 'var(--line-2)' },
+  notes: { icon: 'pencil', color: 'var(--muted)', soft: 'var(--line)' },
 };
 
 type T = ReturnType<typeof useTranslations>;
@@ -89,7 +91,7 @@ function DaySwitcher({ t, locale, date, isRtl, onShift, canGoNext }: DaySwitcher
           {formatJalaliDayMonth(date, locale)}
         </span>
         {isToday && (
-          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--brand)', background: '#FFF1F7', borderRadius: 20, padding: '3px 10px' }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--brand)', background: 'var(--surface-2)', borderRadius: 20, padding: '3px 10px' }}>
             {t('today')}
           </span>
         )}
@@ -163,6 +165,7 @@ export function LogPage() {
   const enumsQuery = useHealthLogEnums();
   const logQuery = useHealthLog(apiDate);
   const save = useSaveHealthLog();
+  const queryClient = useQueryClient();
 
   const [draft, setDraft] = useState<HealthLogInput>(() => ({ log_date: apiDate }));
   const [openKey, setOpenKey] = useState<string | null>(null);
@@ -187,6 +190,15 @@ export function LogPage() {
   const saveRef = useRef(save);
   saveRef.current = save;
 
+  // The home "خلاصه هفته" card is scored server-side from these logs, so a
+  // saved patch makes it stale. Composing the two entities is this screen's job
+  // — the health-log slice stays free of sibling coupling (§3.3).
+  const invalidateWeeklyWellbeing = useCallback(() => {
+    void queryClient.invalidateQueries({ queryKey: wellbeingKeys.all });
+  }, [queryClient]);
+  const invalidateRef = useRef(invalidateWeeklyWellbeing);
+  invalidateRef.current = invalidateWeeklyWellbeing;
+
   const flush = useCallback((forDate: string) => {
     if (timerRef.current) {
       clearTimeout(timerRef.current);
@@ -196,7 +208,10 @@ export function LogPage() {
     if (Object.keys(patch).length === 0) return;
     pendingRef.current = {};
     // Deselected fields carry `null` so the upsert clears them server-side.
-    saveRef.current.mutate({ log_date: forDate, ...patch });
+    saveRef.current.mutate(
+      { log_date: forDate, ...patch },
+      { onSuccess: () => invalidateRef.current() },
+    );
   }, []);
 
   const handleChange = (key: HealthLogField, value: unknown) => {
@@ -243,7 +258,7 @@ export function LogPage() {
                 padding: '4px 10px',
                 borderRadius: 20,
                 color: save.isError ? 'var(--brand)' : 'var(--muted)',
-                background: save.isError ? '#FFF1F7' : 'var(--card)',
+                background: save.isError ? 'var(--surface-2)' : 'var(--line)',
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 5,

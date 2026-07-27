@@ -70,15 +70,15 @@ function Rhythm({ grad, soft }: { grad: string; soft: string }) {
       <circle cx={cx} cy={cy} r="22" fill={`url(#${grad})`} stroke="none" />
       {/* Orbiting chips */}
       <Chip x={cx} y={cy - 58} grad={grad}>
-        <path d="M0 3.4a3 3 0 0 0-5-2l-.6.6-.6-.6a3 3 0 1 0-4.2 4.2L-5 9l5-5" fill="#fff" stroke="none" transform="translate(2.6 -1.6)" />
+        <path d="M0 3.4a3 3 0 0 0-5-2l-.6.6-.6-.6a3 3 0 1 0-4.2 4.2L-5 9l5-5" fill="var(--on-accent)" stroke="none" transform="translate(2.6 -1.6)" />
       </Chip>
       <Chip x={cx - 50} y={cy + 30} grad={grad}>
-        <path d="M4 .6A5 5 0 1 1 -1.2 -4 4 4 0 0 0 4 .6z" fill="#fff" stroke="none" transform="translate(-1 0)" />
+        <path d="M4 .6A5 5 0 1 1 -1.2 -4 4 4 0 0 0 4 .6z" fill="var(--on-accent)" stroke="none" transform="translate(-1 0)" />
       </Chip>
       <Chip x={cx + 50} y={cy + 30} grad={grad}>
-        <path d="M-4.5 1c1 1.4 2.6 2.2 4.5 2.2S3.5 2.4 4.5 1" stroke="#fff" strokeWidth="1.6" />
-        <circle cx="-2.4" cy="-2.2" r="1" fill="#fff" stroke="none" />
-        <circle cx="2.4" cy="-2.2" r="1" fill="#fff" stroke="none" />
+        <path d="M-4.5 1c1 1.4 2.6 2.2 4.5 2.2S3.5 2.4 4.5 1" stroke="var(--on-accent)" strokeWidth="1.6" />
+        <circle cx="-2.4" cy="-2.2" r="1" fill="var(--on-accent)" stroke="none" />
+        <circle cx="2.4" cy="-2.2" r="1" fill="var(--on-accent)" stroke="none" />
       </Chip>
     </g>
   );
@@ -182,8 +182,8 @@ function Insight({ grad, soft }: { grad: string; soft: string }) {
       {/* AI spark chip */}
       <g transform="translate(168 40)">
         <circle r="16" fill={`url(#${grad})`} />
-        <path d="M0 -8l2 6 6 2-6 2-2 6-2-6-6-2 6-2z" fill="#fff" />
-        <path d="M8 4l1 3 3 1-3 1-1 3-1-3-3-1 3-1z" fill="#fff" opacity="0.9" />
+        <path d="M0 -8l2 6 6 2-6 2-2 6-2-6-6-2 6-2z" fill="var(--on-accent)" />
+        <path d="M8 4l1 3 3 1-3 1-1 3-1-3-3-1 3-1z" fill="var(--on-accent)" opacity="0.9" />
       </g>
     </g>
   );

@@ -3,6 +3,7 @@ package ir.ritmeapp.ritme.adapter.inbound.ui.navigation
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -57,11 +58,13 @@ fun RitmeBottomBar(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 10.dp)
-            .shadow(12.dp, RoundedCornerShape(36.dp))
+            // Web `.tabbar`: side + bottom margin only (no top gap), soft shadow, 1px border.
+            .padding(start = 12.dp, end = 12.dp, bottom = 12.dp)
+            .shadow(8.dp, RoundedCornerShape(36.dp))
             .clip(RoundedCornerShape(36.dp))
             .background(colors.surface)
-            .padding(horizontal = 6.dp, vertical = 8.dp),
+            .border(1.dp, colors.outline, RoundedCornerShape(36.dp))
+            .padding(horizontal = 14.dp, vertical = 7.dp),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -94,10 +97,11 @@ fun RitmeBottomBar(
 @Composable
 private fun TabItem(@DrawableRes icon: Int, @StringRes label: Int, isActive: Boolean, onClick: () -> Unit) {
     val colors = LocalRitmeColors.current
-    val activeBrush = Brush.linearGradient(listOf(colors.pinkContainer, colors.background))
+    // Web `.tab.on`: pale-pink → pale-lavender background.
+    val activeBrush = Brush.linearGradient(listOf(colors.pinkContainer, colors.tabActiveEnd))
     Column(
         modifier = Modifier
-            .clip(RoundedCornerShape(14.dp))
+            .clip(RoundedCornerShape(22.dp))
             .then(if (isActive) Modifier.background(activeBrush) else Modifier)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
@@ -110,8 +114,9 @@ private fun TabItem(@DrawableRes icon: Int, @StringRes label: Int, isActive: Boo
         Icon(
             painter = painterResource(icon),
             contentDescription = null,
-            tint = if (isActive) colors.pink else colors.inkMuted,
-            modifier = Modifier.size(22.dp),
+            // Web: active icon is light pink (--pink), inactive is steel (#58636E).
+            tint = if (isActive) colors.pinkLight else colors.steel,
+            modifier = Modifier.size(24.dp),
         )
         Spacer(Modifier.height(3.dp))
         Text(
@@ -123,11 +128,11 @@ private fun TabItem(@DrawableRes icon: Int, @StringRes label: Int, isActive: Boo
         Spacer(Modifier.height(2.dp))
         Box(
             Modifier
-                .width(26.dp)
+                .width(28.dp)
                 .height(3.dp)
                 .clip(RoundedCornerShape(99.dp))
                 .background(
-                    if (isActive) Brush.linearGradient(listOf(colors.pink, colors.accent))
+                    if (isActive) Brush.linearGradient(listOf(colors.pink, colors.violetGrad))
                     else Brush.linearGradient(listOf(colors.surface, colors.surface)),
                 ),
         )
@@ -137,29 +142,22 @@ private fun TabItem(@DrawableRes icon: Int, @StringRes label: Int, isActive: Boo
 @Composable
 private fun LogFab(onClick: () -> Unit) {
     val colors = LocalRitmeColors.current
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(
-            modifier = Modifier
-                .offset(y = (-10).dp)
-                .size(52.dp)
-                .shadow(8.dp, CircleShape)
-                .clip(CircleShape)
-                .background(Brush.verticalGradient(listOf(colors.pink, colors.accent)))
-                .clickable(onClick = onClick),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.ic_plus),
-                contentDescription = stringResource(R.string.nav_log),
-                tint = colors.onPink,
-                modifier = Modifier.size(24.dp),
-            )
-        }
-        Text(
-            text = stringResource(R.string.nav_log),
-            style = MaterialTheme.typography.labelSmall,
-            color = colors.inkMuted,
-            modifier = Modifier.offset(y = (-8).dp),
+    // Web `.fab`: a raised gradient circle with only the plus icon (no caption).
+    Box(
+        modifier = Modifier
+            .offset(y = (-10).dp)
+            .size(56.dp)
+            .shadow(10.dp, CircleShape)
+            .clip(CircleShape)
+            .background(Brush.verticalGradient(listOf(colors.pink, colors.violetGrad)))
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.ic_plus),
+            contentDescription = stringResource(R.string.nav_log),
+            tint = colors.onPink,
+            modifier = Modifier.size(26.dp),
         )
     }
 }

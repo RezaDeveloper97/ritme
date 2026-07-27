@@ -25,6 +25,7 @@ class Challenge extends Model
     use HasLocalizedContent;
 
     protected $fillable = [
+        'slug',
         'title',
         'description',
         'cycle_phase',

@@ -2,16 +2,24 @@
 
 namespace App\Services\HomePage\Sections;
 
-use App\Models\Challenge;
+use App\Services\Challenges\DailyChallengeService;
 use App\Services\HomePage\HomeContext;
 use App\Services\HomePage\HomeSection;
 
 /**
- * Section 7 — "چالش امروز": one daily challenge chosen deterministically per
- * day, with completion state and an encouraging status message.
+ * Section 7 — "چالش امروز": one daily challenge chosen per user/day by
+ * {@see DailyChallengeService} (phase + recent-log signal + streak-based
+ * difficulty + no repeats), with completion state and streak.
  */
 class ChallengeSection extends AbstractHomeSection
 {
+    private DailyChallengeService $challenges;
+
+    public function __construct(?DailyChallengeService $challenges = null)
+    {
+        $this->challenges = $challenges ?? new DailyChallengeService;
+    }
+
     public function key(): string
     {
         return 'challenge';
@@ -24,41 +32,23 @@ class ChallengeSection extends AbstractHomeSection
 
     public function build(HomeContext $context): ?HomeSection
     {
-        $challenges = Challenge::query()
-            ->active()
-            ->forPhase($context->phase())
-            ->orderBy('sort_order')
-            ->orderBy('id')
-            ->get();
+        $payload = $this->challenges->payload(
+            user: $context->user,
+            date: $context->date,
+            locale: $context->locale,
+            phase: $context->phase(),
+            recentLogs: $context->recentLogs(3),
+        );
 
-        if ($challenges->isEmpty()) {
+        if ($payload === null) {
             return null;
         }
-
-        // Deterministic pick: stable for the whole day, rotates across days.
-        $challenge = $challenges[$context->date->dayOfYear % $challenges->count()];
-
-        $isCompleted = $context->user->challengeCompletions()
-            ->where('challenge_id', $challenge->id)
-            ->whereDate('completion_date', $context->date)
-            ->exists();
-
-        $statusMessage = $isCompleted
-            ? $context->t('عالی! امروز این چالش رو انجام دادی، با همین روند ادامه بده', 'Great! You completed today\'s challenge, keep it up')
-            : $challenge->localized('description', $context->locale);
 
         return new HomeSection(
             key: $this->key(),
             type: 'challenge',
             title: $context->t('چالش امروز', "Today's challenge"),
-            data: [
-                'id' => $challenge->id,
-                'title' => $challenge->localized('title', $context->locale),
-                'description' => $challenge->localized('description', $context->locale),
-                'difficulty' => $challenge->difficulty,
-                'is_completed' => $isCompleted,
-                'status_message' => $statusMessage,
-            ],
+            data: $payload,
             order: $this->order(),
         );
     }

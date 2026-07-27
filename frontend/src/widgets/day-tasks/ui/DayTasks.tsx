@@ -104,7 +104,7 @@ export function DayTasks({ date }: { date: Date }) {
                   display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer',
                   borderRadius: 10, padding: '6px 10px', fontFamily: 'inherit', fontSize: 12, fontWeight: 700,
                   border: on ? '1px solid var(--brand)' : '1px solid var(--line)',
-                  background: on ? '#FFF0F6' : '#fff',
+                  background: on ? 'var(--surface-2)' : 'var(--surface)',
                   color: on ? 'var(--brand)' : 'var(--steel)',
                 }}
               >
@@ -144,11 +144,11 @@ export function DayTasks({ date }: { date: Date }) {
             const done = !r.isActive;
             return (
               <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 2px' }}>
-                <span className="dot" style={{ width: 32, height: 32, flex: '0 0 auto', background: '#FCE7F3', color: 'var(--brand)' }}>
+                <span className="dot" style={{ width: 32, height: 32, flex: '0 0 auto', background: 'var(--pink-bg)', color: 'var(--brand)' }}>
                   <Icon name={TYPE_ICON[r.type]} size={16} stroke="currentColor" />
                 </span>
                 <div style={{ flex: 1, textAlign: 'start', minWidth: 0 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: done ? '#AEB6BF' : 'var(--ink)', textDecoration: done ? 'line-through' : undefined, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: done ? 'var(--muted-soft)' : 'var(--ink)', textDecoration: done ? 'line-through' : undefined, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {r.title}
                   </div>
                   {r.subtitle && (
@@ -163,7 +163,7 @@ export function DayTasks({ date }: { date: Date }) {
                   className={`cbx${done ? ' on' : ''}`}
                   style={{ appearance: 'none', WebkitAppearance: 'none', padding: 0, flex: '0 0 auto' }}
                 >
-                  <Icon name="check" size={14} stroke="#fff" />
+                  <Icon name="check" size={14} stroke="var(--on-accent)" />
                 </button>
                 <button
                   type="button"

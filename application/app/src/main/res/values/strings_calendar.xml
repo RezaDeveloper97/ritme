@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Calendar-screen strings added for React parity. Keys that already exist in the shared
+  strings.xml (e.g. calendar_*, action_save, action_cancel, log_saving, week_close, log_yes)
+  are reused there and NOT redefined here — a duplicate name across files is a build error.
+-->
+<resources>
+    <!-- Header chip + full-screen period-date editor (web logPeriod.dateEditor.*). -->
+    <string name="calendar_edit_period_date">ویرایش تاریخ پریود</string>
+    <string name="calendar_editor_hint">برای ثبت پریود روی تاریخ بزنید</string>
+    <string name="calendar_editor_error">ثبت انجام نشد. دوباره تلاش کنید.</string>
+
+    <!-- Day sheet period actions (web calendar.editThisPeriod / endPeriodHere). -->
+    <string name="calendar_edit_this_period">ویرایش این پریود</string>
+    <string name="calendar_end_period_here">پایان پریود از این روز</string>
+
+    <!-- Recalculating banner + rejected-edit toast (web calendar.recalculating / actionFailed). -->
+    <string name="calendar_recalculating">در حال به‌روزرسانی چرخه…</string>
+    <string name="calendar_action_failed">مشکلی پیش آمد. لطفاً دوباره تلاش کن.</string>
+</resources>

@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\AffirmationController;
 use App\Http\Controllers\Admin\ArticleController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\BannerController;
+use App\Http\Controllers\Admin\ChallengeCompletionController;
 use App\Http\Controllers\Admin\ChallengeController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\MessageContentController;
@@ -64,6 +65,7 @@ Route::middleware(['auth:admin', 'admin.active'])->group(function () {
     Route::post('affirmations/{affirmation}/toggle', [AffirmationController::class, 'toggle'])->name('affirmations.toggle');
     Route::resource('affirmations', AffirmationController::class)->except('show');
 
+    Route::get('challenge-completions', [ChallengeCompletionController::class, 'index'])->name('challenge-completions.index');
     Route::post('challenges/{challenge}/toggle', [ChallengeController::class, 'toggle'])->name('challenges.toggle');
     Route::resource('challenges', ChallengeController::class)->except('show');
 

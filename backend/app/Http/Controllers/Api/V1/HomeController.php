@@ -6,9 +6,9 @@ use App\Http\Controllers\Concerns\ResolvesLocale;
 use App\Http\Controllers\Controller;
 use App\Models\Challenge;
 use App\Models\TaskTemplate;
-use App\Models\UserChallengeCompletion;
 use App\Models\UserNotification;
 use App\Models\UserTaskCompletion;
+use App\Services\Challenges\DailyChallengeService;
 use App\Services\HomePage\HomeContext;
 use App\Services\HomePage\HomePageService;
 use App\Services\MessageSystem\Enums\MessageMode;
@@ -22,6 +22,7 @@ class HomeController extends Controller
 
     public function __construct(
         private readonly HomePageService $homePage,
+        private readonly DailyChallengeService $challenges,
     ) {}
 
     /**
@@ -37,20 +38,25 @@ class HomeController extends Controller
      *         in="query",
      *         description="Reference date (YYYY-MM-DD). Defaults to today.",
      *         required=false,
+     *
      *         @OA\Schema(type="string", format="date", example="2026-05-30")
      *     ),
+     *
      *     @OA\Parameter(
      *         name="Accept-Language",
      *         in="header",
      *         description="Language for text responses (en, fa)",
      *         required=false,
+     *
      *         @OA\Schema(type="string", default="fa", enum={"en","fa"})
      *     ),
      *
      *     @OA\Response(
      *         response=200,
      *         description="Home page assembled successfully",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="data", type="object",
      *                 @OA\Property(property="mode", type="string", example="cycle"),
@@ -96,46 +102,57 @@ class HomeController extends Controller
      *         in="path",
      *         required=true,
      *         description="Section key (e.g. header, week_calendar, next_period, cycle_prediction, recommendations, tasks, challenge, doctor_reminder, medication_reminder, smart_tip, affirmation, weekly_summary, vitals, status_charts, articles, my_cycles, cycle_summary)",
+     *
      *         @OA\Schema(type="string", example="tasks")
      *     ),
+     *
      *     @OA\Parameter(
      *         name="date",
      *         in="query",
      *         required=false,
+     *
      *         @OA\Schema(type="string", format="date")
      *     ),
+     *
      *     @OA\Parameter(
      *         name="Accept-Language",
      *         in="header",
      *         required=false,
+     *
      *         @OA\Schema(type="string", default="fa", enum={"en","fa"})
      *     ),
      *
      *     @OA\Response(
      *         response=200,
      *         description="Section retrieved (data may be null if the section has nothing to show)",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="data", type="object",
      *                 @OA\Property(property="section", ref="#/components/schemas/HomeSection", nullable=true)
      *             )
      *         )
      *     ),
+     *
      *     @OA\Response(
      *         response=404,
      *         description="Unknown section key",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean", example=false),
      *             @OA\Property(property="message", type="string"),
      *             @OA\Property(property="available_sections", type="array", @OA\Items(type="string"))
      *         )
      *     ),
+     *
      *     @OA\Response(response=401, description="Unauthenticated")
      * )
      */
     public function section(Request $request, string $section): JsonResponse
     {
-        if (!$this->homePage->hasSection($section)) {
+        if (! $this->homePage->hasSection($section)) {
             $locale = $this->resolveLocale($request);
 
             return response()->json([
@@ -169,7 +186,9 @@ class HomeController extends Controller
      *     @OA\Response(
      *         response=200,
      *         description="Task toggled",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="data", type="object",
      *                 @OA\Property(property="task_id", type="integer", example=3),
@@ -182,6 +201,7 @@ class HomeController extends Controller
      *             )
      *         )
      *     ),
+     *
      *     @OA\Response(response=401, description="Unauthenticated"),
      *     @OA\Response(response=404, description="Task not found")
      * )
@@ -224,7 +244,7 @@ class HomeController extends Controller
      * @OA\Post(
      *     path="/home/challenges/{challenge}/toggle",
      *     summary="Toggle today's completion of a challenge",
-     *     description="Marks the given daily challenge as completed/uncompleted for today.",
+     *     description="Marks the given daily challenge as completed/uncompleted for today and returns the refreshed streak state.",
      *     tags={"Home"},
      *     security={{"bearerAuth":{}}},
      *
@@ -234,14 +254,29 @@ class HomeController extends Controller
      *     @OA\Response(
      *         response=200,
      *         description="Challenge toggled",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="data", type="object",
      *                 @OA\Property(property="challenge_id", type="integer", example=2),
-     *                 @OA\Property(property="is_completed", type="boolean", example=true)
+     *                 @OA\Property(property="is_completed", type="boolean", example=true),
+     *                 @OA\Property(property="streak", type="integer", example=4, description="Consecutive days with at least one completed challenge"),
+     *                 @OA\Property(property="longest_streak", type="integer", example=11),
+     *                 @OA\Property(property="week_days", type="array", description="Last 7 days, oldest first",
+     *
+     *                     @OA\Items(type="object",
+     *
+     *                         @OA\Property(property="date", type="string", format="date"),
+     *                         @OA\Property(property="is_completed", type="boolean"),
+     *                         @OA\Property(property="is_today", type="boolean")
+     *                     )
+     *                 ),
+     *                 @OA\Property(property="status_message", type="string", nullable=true)
      *             )
      *         )
      *     ),
+     *
      *     @OA\Response(response=401, description="Unauthenticated"),
      *     @OA\Response(response=404, description="Challenge not found")
      * )
@@ -250,31 +285,22 @@ class HomeController extends Controller
     {
         $user = $request->user();
         $today = Carbon::today();
+        $locale = $this->resolveLocale($request);
 
-        $existing = UserChallengeCompletion::query()
-            ->where('user_id', $user->id)
-            ->where('challenge_id', $challenge->id)
-            ->whereDate('completion_date', $today)
-            ->first();
-
-        if ($existing) {
-            $existing->delete();
-            $isCompleted = false;
-        } else {
-            UserChallengeCompletion::create([
-                'user_id' => $user->id,
-                'challenge_id' => $challenge->id,
-                'completion_date' => $today,
-                'completed_at' => now(),
-            ]);
-            $isCompleted = true;
-        }
+        $isCompleted = $this->challenges->toggle($user, $challenge, $today);
+        $streak = $this->challenges->currentStreak($user, $today);
 
         return response()->json([
             'success' => true,
             'data' => [
                 'challenge_id' => $challenge->id,
                 'is_completed' => $isCompleted,
+                'streak' => $streak,
+                'longest_streak' => $this->challenges->longestStreak($user),
+                'week_days' => $this->challenges->weekDays($user, $today),
+                'status_message' => $isCompleted
+                    ? $this->challenges->completedMessage($streak, $locale)
+                    : null,
             ],
         ]);
     }
@@ -293,7 +319,9 @@ class HomeController extends Controller
      *     @OA\Response(
      *         response=200,
      *         description="Notifications retrieved",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="data", type="object",
      *                 @OA\Property(property="unread_count", type="integer", example=2),
@@ -302,6 +330,7 @@ class HomeController extends Controller
      *             )
      *         )
      *     ),
+     *
      *     @OA\Response(response=401, description="Unauthenticated")
      * )
      */
@@ -353,13 +382,16 @@ class HomeController extends Controller
      *     @OA\Response(
      *         response=200,
      *         description="Marked as read",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="data", type="object",
      *                 @OA\Property(property="unread_count", type="integer", example=1)
      *             )
      *         )
      *     ),
+     *
      *     @OA\Response(response=401, description="Unauthenticated"),
      *     @OA\Response(response=404, description="Notification not found")
      * )
@@ -370,7 +402,7 @@ class HomeController extends Controller
 
         abort_if($notification->user_id !== $user->id, 404);
 
-        if (!$notification->isRead()) {
+        if (! $notification->isRead()) {
             $notification->update(['read_at' => now()]);
         }
 
@@ -392,13 +424,16 @@ class HomeController extends Controller
      *     @OA\Response(
      *         response=200,
      *         description="All marked as read",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="data", type="object",
      *                 @OA\Property(property="marked", type="integer", example=2)
      *             )
      *         )
      *     ),
+     *
      *     @OA\Response(response=401, description="Unauthenticated")
      * )
      */

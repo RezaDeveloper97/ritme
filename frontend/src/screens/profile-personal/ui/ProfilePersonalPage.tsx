@@ -94,7 +94,7 @@ function PersonalForm({ profile }: { profile: UserProfile }) {
               placeholder={t('personal.namePlaceholder')}
               onChange={(e) => setName(e.target.value)}
             />
-            <span style={{ color: '#A9B2BC' }}>
+            <span style={{ color: 'var(--muted-soft)' }}>
               <Icon name="pencil" size={18} />
             </span>
           </div>
@@ -149,7 +149,7 @@ function PersonalForm({ profile }: { profile: UserProfile }) {
         {errorMessage ? (
           <p
             role="alert"
-            style={{ fontSize: 13, color: '#E5484D', textAlign: 'center', margin: '0 0 8px' }}
+            style={{ fontSize: 13, color: 'var(--danger)', textAlign: 'center', margin: '0 0 8px' }}
           >
             {errorMessage}
           </p>

@@ -1,0 +1,11 @@
+{
+  "title": "چالش امروز",
+  "streak": "{n, plural, other {# روز پیاپی}}",
+  "longestStreak": "بیشترین سابقه: {n, plural, other {# روز}}",
+  "weekLabel": "هفت روز گذشته",
+  "difficulty": {
+    "easy": "آسان",
+    "medium": "متوسط",
+    "hard": "چالش‌برانگیز"
+  }
+}

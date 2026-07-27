@@ -126,9 +126,16 @@ class HealthDataEngine
         $phase = $this->determinePhase($cycleDay, $ovulationDay, $cycleLength, $loggedBleeding);
         $subphase = $this->determineSubphase($cycleDay, $ovulationDay, $cycleLength, $loggedBleeding);
 
-        // Windows detection
-        $isFertileWindow = $this->isInFertileWindow($cycleDay, $ovulationDay);
-        $isPmsWindow = $this->isInPmsWindow($cycleDay, $cycleLength);
+        // Windows detection.
+        // A bleeding day is only that — it can never also be a PMS day (the
+        // pre-menstrual tail of the cycle) or a fertile day. On a short cycle the
+        // fertile window (around ovulation = length−14) can otherwise reach back
+        // into the bleeding days, and the PMS window (length−6) can abut them.
+        // Menstruation always wins, so a day is period OR one of these windows,
+        // never both — on the calendar and in every downstream read of the flags.
+        $isPeriodDay = $phase === CyclePhase::MENSTRUATION;
+        $isFertileWindow = $this->isInFertileWindow($cycleDay, $ovulationDay) && ! $isPeriodDay;
+        $isPmsWindow = $this->isInPmsWindow($cycleDay, $cycleLength) && ! $isPeriodDay;
         $isPeriodTomorrow = $this->isPeriodTomorrow($cycleDay, $cycleLength, $variability);
         $isLutealSpotting = $this->detectLutealSpotting($cycleDay, $dailyLog);
 
@@ -691,6 +698,16 @@ class HealthDataEngine
                     'en' => 'Perfect time for high-intensity workouts.',
                     'fa' => 'زمان مناسبی برای ورزش‌های سنگین است.',
                 ];
+                $tips[] = [
+                    'type' => 'nutrition',
+                    'en' => 'Add protein and fresh vegetables to rebuild your energy stores.',
+                    'fa' => 'پروتئین و سبزیجات تازه بخورید تا ذخیره انرژی‌تان دوباره پر شود.',
+                ];
+                $tips[] = [
+                    'type' => 'mental_health',
+                    'en' => 'A good window for planning and learning something new.',
+                    'fa' => 'فرصت خوبی برای برنامه‌ریزی و یادگیری چیزهای تازه است.',
+                ];
                 break;
 
             case CyclePhase::OVULATION:
@@ -703,6 +720,16 @@ class HealthDataEngine
                     'type' => 'energy',
                     'en' => 'You may feel more confident and social.',
                     'fa' => 'ممکن است احساس اعتماد به نفس و اجتماعی بودن بیشتری داشته باشید.',
+                ];
+                $tips[] = [
+                    'type' => 'hydration',
+                    'en' => 'Drink water regularly — hydration supports cervical fluid.',
+                    'fa' => 'مرتب آب بنوشید؛ هیدراته بودن به کیفیت ترشحات کمک می‌کند.',
+                ];
+                $tips[] = [
+                    'type' => 'sleep',
+                    'en' => 'Keep a steady sleep schedule to support hormone balance.',
+                    'fa' => 'برنامه خواب منظمی داشته باشید تا تعادل هورمونی حفظ شود.',
                 ];
                 break;
 
@@ -728,6 +755,21 @@ class HealthDataEngine
                         'type' => 'nutrition',
                         'en' => 'Focus on foods rich in magnesium and vitamin B6.',
                         'fa' => 'روی غذاهای غنی از منیزیم و ویتامین B6 تمرکز کنید.',
+                    ];
+                    $tips[] = [
+                        'type' => 'exercise',
+                        'en' => 'Switch to gentler movement like yoga, pilates or walking.',
+                        'fa' => 'به حرکات ملایم‌تر مثل یوگا، پیلاتس یا پیاده‌روی رو بیاورید.',
+                    ];
+                    $tips[] = [
+                        'type' => 'sleep',
+                        'en' => 'Go to bed a little earlier — energy dips in this phase.',
+                        'fa' => 'کمی زودتر بخوابید؛ در این فاز انرژی کم‌کم افت می‌کند.',
+                    ];
+                    $tips[] = [
+                        'type' => 'mental_health',
+                        'en' => 'A good time to finish what you started rather than begin new things.',
+                        'fa' => 'زمان خوبی برای تمام‌کردن کارهای نیمه‌تمام است تا شروع کارهای جدید.',
                     ];
                 }
                 break;

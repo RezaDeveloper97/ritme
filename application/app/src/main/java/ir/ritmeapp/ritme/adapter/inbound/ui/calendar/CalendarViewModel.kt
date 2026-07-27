@@ -16,19 +16,21 @@ import ir.ritmeapp.ritme.domain.port.inbound.ManagePeriodsUseCase
 import ir.ritmeapp.ritme.platform.crash.Breadcrumbs
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /**
  * Calendar state machine. A displayed Jalali month maps onto one or two Gregorian months;
- * both are fetched concurrently and merged into one ISO-keyed day map. Selecting a day
- * loads that day's saved health log, and the logged-period history decides which quick
- * period edit (start / extend / unmark) the day detail offers.
+ * both are fetched concurrently and merged into one ISO-keyed day map. Selecting a day opens
+ * the day-detail sheet and loads that day's saved health log, and the logged-period history
+ * decides which quick period edit (start / extend / unmark) the day sheet offers.
  */
 class CalendarViewModel(
     private val cycleInsights: CycleInsightsUseCase,
@@ -43,12 +45,16 @@ class CalendarViewModel(
     )
     val state: StateFlow<CalendarUiState> = _state.asStateFlow()
 
+    private val _effects = Channel<CalendarEffect>(Channel.BUFFERED)
+    val effects = _effects.receiveAsFlow()
+
     private var dayLogJob: Job? = null
 
     /**
      * The logged periods, kept out of UI state (the grid renders backend snapshots; this
-     * list only decides the selected day's action). Null until the first load succeeds —
-     * no action is offered while unknown, so a stale empty list can't create duplicates.
+     * list decides the selected day's action and which cells are real vs predicted). Null
+     * until the first load succeeds — no action is offered while unknown, so a stale empty
+     * list can't create duplicates.
      */
     private var periods: List<LoggedPeriod>? = null
 
@@ -77,6 +83,7 @@ class CalendarViewModel(
                 refreshSelectedAction()
             }
             CalendarIntent.ApplyPeriodAction -> applyPeriodAction()
+            CalendarIntent.CloseDaySheet -> _state.update { it.copy(daySheetOpen = false) }
         }
     }
 
@@ -96,8 +103,9 @@ class CalendarViewModel(
         loadMonth()
     }
 
+    /** Tapping a day selects it, opens the detail sheet, and loads its log + offered action. */
     private fun selectDay(day: JalaliDate) {
-        _state.update { it.copy(selected = day) }
+        _state.update { it.copy(selected = day, daySheetOpen = true) }
         loadDayLog(day)
         refreshSelectedAction()
     }
@@ -127,14 +135,22 @@ class CalendarViewModel(
         if (action is PeriodDayAction.None || current.periodSaving) return
         viewModelScope.launch {
             Breadcrumbs.add("calendar:period_action")
-            _state.update { it.copy(periodSaving = true) }
-            val result = managePeriods.apply(action, current.selected.toGregorian())
-            if (result is AppResult.Success) {
-                awaitRecalculation()
-                loadPeriods()
-                reloadMonthInPlace()
+            // Mirror the web: close the sheet immediately and show the recalculating banner.
+            _state.update { it.copy(periodSaving = true, daySheetOpen = false) }
+            when (val result = managePeriods.apply(action, current.selected.toGregorian())) {
+                is AppResult.Success -> {
+                    _state.update { it.copy(isRecalculating = true) }
+                    awaitRecalculation()
+                    loadPeriods()
+                    reloadMonthInPlace()
+                    _state.update { it.copy(isRecalculating = false, periodSaving = false) }
+                }
+
+                is AppResult.Failure -> {
+                    _state.update { it.copy(periodSaving = false, isRecalculating = false) }
+                    _effects.send(CalendarEffect.ShowError(result.error.message))
+                }
             }
-            _state.update { it.copy(periodSaving = false) }
         }
     }
 
@@ -148,8 +164,24 @@ class CalendarViewModel(
 
     private fun loadPeriods() {
         viewModelScope.launch {
-            managePeriods.history().getOrNull()?.let { periods = it }
+            managePeriods.history().getOrNull()?.let { loaded ->
+                periods = loaded
+                _state.update { it.copy(loggedPeriodDays = loggedDaysOf(loaded)) }
+            }
             refreshSelectedAction()
+        }
+    }
+
+    /** Every ISO day covered by a real logged period (open periods run the default bleed). */
+    private fun loggedDaysOf(periods: List<LoggedPeriod>): Set<String> = buildSet {
+        periods.forEach { period ->
+            val start = period.start.toJalali()
+            val endJdn = period.coveredEnd(PeriodDayRules.DEFAULT_BLEED_DAYS).toJalali().toJdn()
+            var cursor = start
+            while (cursor.toJdn() <= endJdn) {
+                add(cursor.toIso())
+                cursor = cursor.addDays(1)
+            }
         }
     }
 

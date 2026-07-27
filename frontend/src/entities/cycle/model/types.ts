@@ -36,6 +36,16 @@ export interface CycleDayInfo {
 }
 
 /**
+ * A phase/symptom-driven tip for the day, already localized by the backend.
+ * `type` is a stable category code (`nutrition`, `sleep`, …) the UI maps to an
+ * icon and a translated label. Display-only health copy — never log it (§11).
+ */
+export interface CycleDailyTip {
+  type: string;
+  text: string;
+}
+
+/**
  * The backend's per-day cycle calculation (a subset of the API's
  * `CycleCalculation` schema — CLAUDE.md §8.1). camelCase domain shape produced
  * by the zod boundary parser; probabilities are informational only (§11).
@@ -60,6 +70,8 @@ export interface CycleCalculation {
   fertilityPercent: number;
   /** e.g. "regular" / "irregular"; null when unknown. */
   cycleVariability: string | null;
+  /** Today's recommendations for this day; empty when the engine has none. */
+  dailyTips: CycleDailyTip[];
 }
 
 /** Summary counts for a month's worth of calculations. */

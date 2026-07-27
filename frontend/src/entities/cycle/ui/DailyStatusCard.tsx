@@ -1,22 +1,7 @@
 'use client';
 
-import type { DailyCard, FertilityLevel } from '../model/types';
-
-/**
- * Brand-token colour per calendar fertility level (spec §17 read-out). Purely a
- * presentation choice; the level itself is informational, never diagnostic (§11).
- * Foregrounds are darkened to clear WCAG AA (≥4.5:1) on their pale backgrounds.
- */
-const FERTILITY_COLOR: Record<FertilityLevel, { bg: string; fg: string }> = {
-  very_high: { bg: '#FFE3F0', fg: '#A6005A' },
-  high: { bg: '#FFF1F7', fg: '#B4004E' },
-  medium: { bg: '#FFF4E5', fg: '#8A5200' },
-  low: { bg: 'var(--line, #EEF1F4)', fg: '#47555F' },
-  very_low: { bg: 'var(--line, #EEF1F4)', fg: '#5B6B7B' },
-};
-
-/** Neutral style for a fertility level the backend added that this build doesn't know. */
-const FERTILITY_FALLBACK = FERTILITY_COLOR.low;
+import { fertilityBadgeStyle } from '../model/fertilityStyle';
+import type { DailyCard } from '../model/types';
 
 export interface DailyStatusCardProps {
   card: DailyCard;
@@ -38,9 +23,9 @@ export interface DailyStatusCardProps {
  */
 export function DailyStatusCard({ card, onAction, showActions = true, pending = false, className }: DailyStatusCardProps) {
   const { primaryAction, secondaryActions } = card;
-  // Fall back to a neutral style for an unknown level — never crash the day sheet
+  // Falls back to a neutral style for an unknown level — never crash the day sheet
   // on a fertility value a newer backend added (the boundary parser stays lenient).
-  const fertility = FERTILITY_COLOR[card.fertilityLevel] ?? FERTILITY_FALLBACK;
+  const fertility = fertilityBadgeStyle(card.fertilityLevel);
 
   return (
     <div className={className ?? 'card'} style={{ padding: '16px 14px', textAlign: 'start' }}>
@@ -104,8 +89,8 @@ export function DailyStatusCard({ card, onAction, showActions = true, pending = 
                 border: 'none',
                 cursor: pending ? 'default' : 'pointer',
                 opacity: pending ? 0.6 : 1,
-                background: 'var(--brand, #E91E63)',
-                color: '#fff',
+                background: 'var(--brand)',
+                color: 'var(--on-accent)',
                 fontSize: 13.5,
                 fontWeight: 700,
                 borderRadius: 12,

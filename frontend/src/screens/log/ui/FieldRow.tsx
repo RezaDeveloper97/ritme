@@ -55,7 +55,7 @@ function Switch({ on, onClick }: { on: boolean; onClick: () => void }) {
         cursor: 'pointer',
         padding: 3,
         flex: '0 0 auto',
-        background: on ? 'var(--brand)' : '#D8DEE5',
+        background: on ? 'var(--brand)' : 'var(--track)',
         display: 'flex',
         justifyContent: on ? 'flex-end' : 'flex-start',
         transition: 'background .18s',
@@ -66,7 +66,7 @@ function Switch({ on, onClick }: { on: boolean; onClick: () => void }) {
           width: 22,
           height: 22,
           borderRadius: '50%',
-          background: '#fff',
+          background: 'var(--surface)',
           boxShadow: '0 1px 3px rgba(0,0,0,.25)',
         }}
       />

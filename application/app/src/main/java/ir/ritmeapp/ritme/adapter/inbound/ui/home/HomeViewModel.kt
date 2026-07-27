@@ -8,6 +8,7 @@ import ir.ritmeapp.ritme.domain.model.AppResult
 import ir.ritmeapp.ritme.domain.model.JalaliDate
 import ir.ritmeapp.ritme.domain.model.Reminder
 import ir.ritmeapp.ritme.domain.model.ReminderDraft
+import ir.ritmeapp.ritme.domain.model.ReminderType
 import ir.ritmeapp.ritme.domain.model.getOrNull
 import ir.ritmeapp.ritme.domain.port.inbound.GetBannersUseCase
 import ir.ritmeapp.ritme.domain.port.inbound.GetHomeDashboardUseCase
@@ -53,6 +54,32 @@ class HomeViewModel(
     }
 
     fun onRetry() = load()
+
+    /**
+     * Adds a to-do/reminder to today's day-planner (web `DayTasks` add). Mirrors the web widget:
+     * the new item is scheduled for today so it surfaces both here and on the daily-log planner.
+     */
+    fun onAddTask(type: ReminderType, title: String) {
+        val clean = title.trim()
+        if (clean.isEmpty()) return
+        viewModelScope.launch {
+            Breadcrumbs.add("home:task:add")
+            val draft = ReminderDraft(type = type, title = clean, scheduledAt = today.toIso())
+            manageReminders.create(draft).getOrNull()?.let { created ->
+                _state.update { it.copy(reminders = it.reminders + created) }
+            }
+        }
+    }
+
+    /** Removes a day-planner item (web `DayTasks` delete). */
+    fun onDeleteTask(reminder: Reminder) {
+        viewModelScope.launch {
+            Breadcrumbs.add("home:task:delete")
+            if (manageReminders.delete(reminder.id) is AppResult.Success) {
+                _state.update { s -> s.copy(reminders = s.reminders.filterNot { it.id == reminder.id }) }
+            }
+        }
+    }
 
     /** Checks a today's task/reminder off (or back on) — done maps to an inactive reminder. */
     fun onToggleTask(reminder: Reminder) {

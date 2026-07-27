@@ -25,17 +25,17 @@ const enumLabel = (t: TLog, enumKey: string, value: string): string =>
 
 // Presentation-only accent per category (mirrors the log screen palette).
 const CATEGORY_ACCENT: Record<string, string> = {
-  bleeding: '#E91E63',
-  pain: '#F5A623',
-  digestion: '#22B07D',
-  mood: '#A91EE9',
-  sleep: '#5B6BE1',
-  body: '#E9662E',
-  discharge: '#2E9BE9',
-  intimate: '#0E9C8A',
-  sexual: '#E9276E',
-  measure: '#6D7A87',
-  notes: '#707983',
+  bleeding: 'var(--brand)',
+  pain: 'var(--amber)',
+  digestion: 'var(--green)',
+  mood: 'var(--violet)',
+  sleep: 'var(--indigo-deep)',
+  body: 'var(--orange)',
+  discharge: 'var(--blue)',
+  intimate: 'var(--teal)',
+  sexual: 'var(--rose)',
+  measure: 'var(--muted)',
+  notes: 'var(--muted)',
 };
 
 interface FieldLine {
@@ -201,7 +201,7 @@ export function DayLogSummary({ tCal, selectedDate, onEdit }: DayLogSummaryProps
             cursor: 'pointer',
             textAlign: 'start',
             fontFamily: 'inherit',
-            background: 'linear-gradient(90deg,#FFF0F7,#F3F0FF)',
+            background: 'linear-gradient(90deg,var(--surface-2),var(--indigo-soft))',
             border: 'none',
           }}
         >

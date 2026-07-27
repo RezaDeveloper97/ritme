@@ -28,8 +28,8 @@ export function SplashPage() {
     <div
       className="view"
       style={{
-        background: 'linear-gradient(160deg,#E91E63 0%,#BA68C8 100%)',
-        color: '#fff',
+        background: 'linear-gradient(160deg,var(--brand) 0%,var(--purple) 100%)',
+        color: 'var(--on-accent)',
         cursor: 'pointer',
         position: 'relative',
         height: '100%',
@@ -40,9 +40,9 @@ export function SplashPage() {
       {/* Figma: faint concentric-circles mark peeking from the top corner */}
       <div aria-hidden style={{ position: 'absolute', top: -60, insetInlineEnd: -40, opacity: .12, pointerEvents: 'none' }}>
         <svg width="180" height="180" viewBox="0 0 86 86" fill="none">
-          <circle cx="43" cy="43" r="36" stroke="#fff" strokeWidth="1.5" />
-          <circle cx="43" cy="43" r="25" stroke="#fff" strokeWidth="1.5" />
-          <circle cx="43" cy="43" r="14.5" fill="#fff" />
+          <circle cx="43" cy="43" r="36" stroke="var(--on-accent)" strokeWidth="1.5" />
+          <circle cx="43" cy="43" r="25" stroke="var(--on-accent)" strokeWidth="1.5" />
+          <circle cx="43" cy="43" r="14.5" fill="var(--on-accent)" />
         </svg>
       </div>
 
@@ -74,12 +74,12 @@ export function SplashPage() {
       {/* Bottom */}
       <div
         style={{
-          position: 'absolute', bottom: 30, left: 0, right: 0,
+          position: 'absolute', bottom: 30, insetInline: 0,
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
         }}
       >
         <span style={{ animation: 'spin 1s linear infinite', display: 'inline-flex', opacity: .95 }}>
-          <Icon name="loader" size={24} stroke="#fff" />
+          <Icon name="loader" size={24} stroke="var(--on-accent)" />
         </span>
         <span style={{ fontSize: 10, opacity: .8 }}>{t('copyright')}</span>
       </div>

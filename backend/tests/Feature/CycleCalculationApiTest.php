@@ -95,6 +95,43 @@ class CycleCalculationApiTest extends TestCase
     }
 
     /**
+     * A bleeding day (menstruation phase) must never also be flagged as a PMS
+     * day or a fertile day. On a short cycle the fertile window (around
+     * ovulation = length−14) reaches back into the early bleeding days, so
+     * without the engine guard those days come back flagged as both — which the
+     * calendar would then paint as two conflicting phases on one date.
+     */
+    public function test_period_days_are_not_also_pms_or_fertile(): void
+    {
+        // 22-day cycle, 7-day period: ovulation ≈ cycle day 9, so the fertile
+        // window (cd 4–10) overlaps the bleeding days (cd 1–7) unless guarded.
+        $this->actingUser([
+            'cycle_duration' => 22,
+            'period_duration' => 7,
+            'last_period_start' => now()->startOfMonth()->toDateString(),
+        ]);
+
+        $now = now();
+        $days = $this->getJson("/api/v1/cycle/month/{$now->year}/{$now->month}")
+            ->assertOk()
+            ->json('data.calculations');
+
+        $periodDays = collect($days)->where('phase', 'menstruation');
+        $this->assertNotEmpty($periodDays, 'Expected the month to contain bleeding days.');
+
+        foreach ($periodDays as $day) {
+            $this->assertFalse(
+                (bool) $day['is_pms_window'],
+                "Day {$day['calculation_date']} is a period day but is also flagged as PMS.",
+            );
+            $this->assertFalse(
+                (bool) $day['is_fertile_window'],
+                "Day {$day['calculation_date']} is a period day but is also flagged as fertile.",
+            );
+        }
+    }
+
+    /**
      * The recalculate job must complete (not hang on "processing") even with the
      * degenerate data. Tests use the sync queue, so the job runs inline.
      */

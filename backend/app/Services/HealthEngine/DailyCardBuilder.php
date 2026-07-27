@@ -78,6 +78,14 @@ class DailyCardBuilder
             if ($daysUntilPeriod < 0) {
                 return $this->periodOverdue(-$daysUntilPeriod, $locale);
             }
+
+            // 2b) A *predicted* bleeding day (any day of a rolled-forward predicted
+            //     period window) with nothing logged. Without this the card fell
+            //     through to the generic "day X of your cycle" and offered no way to
+            //     say "it started here" — exactly the day the user needs it most.
+            if ($this->isMenstrualSubphase($subphase)) {
+                return $this->predictedPeriodDay($cycleDay, $isToday, $locale);
+            }
         }
 
         // 3) Otherwise it's a prediction: a period countdown, a fertile/ovulation window
@@ -160,6 +168,37 @@ class DailyCardBuilder
             secondaryActions: [
                 $this->action(self::ACTION_PERIOD_NOT_STARTED, 'هنوز شروع نشده', 'Not started yet'),
                 $this->detailsAction(false, true, $locale),
+            ],
+        );
+    }
+
+    /** Predicted bleeding days are the ones a user confirms — never a silent dead card. */
+    private function isMenstrualSubphase(CycleSubphase $subphase): bool
+    {
+        return in_array($subphase, [
+            CycleSubphase::MENSTRUATION,
+            CycleSubphase::MENSTRUAL,
+            CycleSubphase::MENSTRUAL_POSSIBLE,
+        ], true);
+    }
+
+    private function predictedPeriodDay(int $cycleDay, bool $isToday, string $locale): DailyCard
+    {
+        return new DailyCard(
+            title: $this->t($locale,
+                'روز '.$this->num($cycleDay, $locale).' پریود پیش‌بینی‌شده',
+                'Day '.$cycleDay.' of your predicted period'),
+            subtitle: $this->t($locale,
+                'این فقط یک پیش‌بینی است. اگر پریودت از این روز شروع شده، ثبتش کن تا تقویم دقیق‌تر شود.',
+                'This is only a prediction. If your period started on this day, log it to keep your calendar accurate.'),
+            dataStatus: DataStatus::NEEDS_CONFIRMATION,
+            fertilityLevel: FertilityLevel::LOW,
+            fertilityLabel: FertilityLevel::LOW->label($locale),
+            badges: $this->badges($cycleDay, DataStatus::NEEDS_CONFIRMATION, $locale),
+            primaryAction: $this->action(self::ACTION_CONFIRM_PERIOD_START, 'پریودم از این روز شروع شد', 'My period started this day'),
+            secondaryActions: [
+                $this->action(self::ACTION_PERIOD_NOT_STARTED, 'شروع نشده بود', "It didn't start"),
+                $this->detailsAction(! $isToday, $isToday, $locale),
             ],
         );
     }

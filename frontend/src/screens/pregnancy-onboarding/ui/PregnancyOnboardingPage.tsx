@@ -142,10 +142,10 @@ export function PregnancyOnboardingPage() {
                       textAlign: 'start',
                       cursor: 'pointer',
                       border: on ? '2px solid var(--brand)' : '1px solid var(--line)',
-                      background: on ? '#FFF1F7' : 'var(--surface)',
+                      background: on ? 'var(--surface-2)' : 'var(--surface)',
                     }}
                   >
-                    <span className="dot" style={{ width: 20, height: 20, marginTop: 2, background: on ? 'var(--brand)' : '#D8DEE5', color: '#fff' }}>
+                    <span className="dot" style={{ width: 20, height: 20, marginTop: 2, background: on ? 'var(--brand)' : 'var(--track)', color: 'var(--on-accent)' }}>
                       {on && <Icon name="check" size={13} />}
                     </span>
                     <span>

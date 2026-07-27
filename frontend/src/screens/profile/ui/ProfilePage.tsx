@@ -39,7 +39,7 @@ function Row({
   onClick?: () => void;
   disabled?: boolean;
 }) {
-  const color = danger ? '#E5484D' : 'var(--ink)';
+  const color = danger ? 'var(--danger)' : 'var(--ink)';
   const inner = (
     <>
       <span
@@ -52,7 +52,7 @@ function Row({
           alignItems: 'center',
           justifyContent: 'center',
           background: danger ? 'rgba(229,72,77,.1)' : 'var(--line)',
-          color: danger ? '#E5484D' : 'var(--brand)',
+          color: danger ? 'var(--danger)' : 'var(--brand)',
         }}
       >
         <Icon name={icon} size={19} />

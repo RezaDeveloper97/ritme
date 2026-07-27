@@ -3,6 +3,7 @@ import { z } from 'zod';
 import type {
   CalculatedValues,
   CardAction,
+  CycleDailyTip,
   ConfidenceLevel,
   CycleAnchors,
   CycleCalculation,
@@ -28,6 +29,15 @@ import type {
  * (`age_factor`, `symptom_score`, …) are intentionally dropped — they're not
  * shown to users and must not leak into logs or state (§11).
  */
+/**
+ * One phase/symptom-driven tip from the engine. The backend localizes `text` to
+ * the request locale; `type` is a stable category code the UI maps to an icon
+ * and a translated label. Health copy is display-only and never logged (§11).
+ */
+const dailyTipSchema = z
+  .object({ type: z.string().default('general'), text: z.string() })
+  .transform((t): CycleDailyTip => ({ type: t.type, text: t.text }));
+
 export const cycleCalculationSchema = z
   .object({
     // Gregorian `YYYY-MM-DD` the backend stamps on every calculation. The
@@ -44,6 +54,16 @@ export const cycleCalculationSchema = z
     is_period_tomorrow: z.boolean().default(false),
     final_probability: z.number().default(0),
     cycle_variability: z.string().nullable().default(null),
+    // Tolerate the pre-localization shape (`{type, en, fa}`) an older backend
+    // still sends by dropping entries without a `text` rather than throwing.
+    daily_tips: z
+      .array(z.unknown())
+      .default([])
+      .transform((tips) =>
+        tips
+          .map((t) => dailyTipSchema.safeParse(t))
+          .flatMap((r) => (r.success ? [r.data] : [])),
+      ),
   })
   .transform(
     (c): CycleCalculation => ({
@@ -58,6 +78,7 @@ export const cycleCalculationSchema = z
       isPeriodTomorrow: c.is_period_tomorrow,
       fertilityPercent: c.final_probability,
       cycleVariability: c.cycle_variability,
+      dailyTips: c.daily_tips,
     }),
   );
 

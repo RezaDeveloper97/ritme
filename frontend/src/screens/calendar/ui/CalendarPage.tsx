@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   calcToPhase,
   cycleDayMarker,
+  cycleMarkerStyle,
   DailyStatusCard,
   normalizePhase,
   useCycleForDate,
@@ -51,16 +52,12 @@ import { DayLogSummary } from './DayLogSummary';
 
 const WEEKDAY_KEYS = ['sat', 'sun', 'mon', 'tue', 'wed', 'thu', 'fri'] as const;
 
-// Colors for each calendar marker. Follicular/luteal days carry no marker and
-// read as neutral. Kept in sync with the legend below.
-const MARKER_STYLE: Record<CycleDayMarker, { bg: string; color: string }> = {
-  period: { bg: '#FCE7F3', color: '#E91E63' },
-  fertile: { bg: '#FEF3C6', color: '#F5A623' },
-  ovulation: { bg: '#E7F8EF', color: '#22B07D' },
-  pms: { bg: '#EDE9FE', color: '#8B5CF6' },
-};
+// Colors for each calendar marker — shared with the home mini calendar so both
+// surfaces stay in sync. Follicular/luteal days carry no marker and read as
+// neutral. The legend below uses the same source.
+const MARKER_STYLE = cycleMarkerStyle;
 
-const NEUTRAL_STYLE = { bg: '#F3F0FF', color: '#7C7CF0' };
+const NEUTRAL_STYLE = { bg: 'var(--indigo-soft)', color: 'var(--indigo)' };
 
 // Fallback bleeding length when the profile hasn't recorded one (matches the
 // backend default), used to optimistically fill cells on a quick period start.
@@ -377,7 +374,7 @@ function DayDetail({ t, locale, selectedDate, calc, marker, showTiles = true }: 
           </div>
         </div>
         {isToday && (
-          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--brand)', background: '#FFF1F7', borderRadius: 20, padding: '4px 12px' }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--brand)', background: 'var(--surface-2)', borderRadius: 20, padding: '4px 12px' }}>
             {t('today')}
           </span>
         )}
@@ -407,8 +404,8 @@ function SmartTip({ t }: { t: T }) {
         {t('smartTip.title')}
       </div>
       <p className="sub" style={{ textAlign: 'start', margin: '0 2px 14px' }}>{t('smartTip.body')}</p>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'linear-gradient(90deg,#FFF0F7,#F3F0FF)', borderRadius: 12, padding: 12 }}>
-        <span style={{ color: 'var(--ritme-pink)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'linear-gradient(90deg,var(--surface-2),var(--indigo-soft))', borderRadius: 12, padding: 12 }}>
+        <span style={{ color: 'var(--pink)' }}>
           <Icon name="sparkle" size={20} fill="currentColor" strokeWidth={0} />
         </span>
         <span style={{ flex: 1, textAlign: 'start', fontSize: 12.5, fontWeight: 700, color: 'var(--ink)' }}>
@@ -846,10 +843,13 @@ export function CalendarPage() {
       return iso !== selectedLoggedPeriod.period_start_date && iso !== effectiveEndOf(selectedLoggedPeriod);
     })();
   // "Start period" only where no logged period is nearby — a day close to one
-  // extends it instead, so two periods can't be started days apart.
+  // extends it instead, so two periods can't be started days apart. A *predicted*
+  // period day still offers it: the prediction is exactly what the user confirms
+  // or corrects, so gating on the pink marker made the predicted start day — the
+  // one day the action matters most — the only day it was missing.
   const canStartHere =
     diffInDays(selectedDate, today()) <= 0 &&
-    selectedMarker !== 'period' &&
+    !isActualPeriodDay(selectedDate) &&
     !selectedLoggedPeriod &&
     !selectedExtendTarget &&
     gapToNearestLoggedPeriod(selectedDate) >= NEW_PERIOD_MIN_GAP_DAYS &&
@@ -895,7 +895,7 @@ export function CalendarPage() {
 
         {isRecalculating && (
           <div style={{ padding: '10px 16px 0' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#FFF1F7', color: 'var(--brand)', borderRadius: 12, padding: '8px 12px', fontSize: 12.5, fontWeight: 700 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--surface-2)', color: 'var(--brand)', borderRadius: 12, padding: '8px 12px', fontSize: 12.5, fontWeight: 700 }}>
               <Icon name="sparkle" size={14} fill="currentColor" strokeWidth={0} />
               {t('recalculating')}
             </div>
@@ -1003,7 +1003,7 @@ export function CalendarPage() {
             <button
               className="btn"
               onClick={() => editPeriod(selectedLoggedPeriod)}
-              style={{ flex: 1, borderRadius: 14, gap: 8, background: '#FCE7F3', color: '#E91E63', fontWeight: 800 }}
+              style={{ flex: 1, borderRadius: 14, gap: 8, background: 'var(--pink-bg)', color: 'var(--brand)', fontWeight: 800 }}
             >
               <Icon name="drop" size={16} fill="currentColor" strokeWidth={0} />
               {t('editThisPeriod')}
@@ -1029,10 +1029,10 @@ export function CalendarPage() {
             onClick={() => addToPeriodHere(selectedExtendTarget)}
             disabled={mutating}
             style={cardHasPrimary
-              ? { borderRadius: 14, marginTop: 14, gap: 8, background: '#FCE7F3', color: '#E91E63', fontWeight: 800 }
+              ? { borderRadius: 14, marginTop: 14, gap: 8, background: 'var(--pink-bg)', color: 'var(--brand)', fontWeight: 800 }
               : { borderRadius: 14, marginTop: 14, gap: 8 }}
           >
-            <Icon name="drop" size={16} fill={cardHasPrimary ? 'currentColor' : '#fff'} strokeWidth={0} />
+            <Icon name="drop" size={16} fill={cardHasPrimary ? 'currentColor' : 'var(--on-accent)'} strokeWidth={0} />
             {t('addToPeriod')}
           </button>
         )}
@@ -1045,10 +1045,10 @@ export function CalendarPage() {
             onClick={startPeriodHere}
             disabled={startPeriod.isPending}
             style={cardHasPrimary
-              ? { borderRadius: 14, marginTop: 14, gap: 8, background: '#FCE7F3', color: '#E91E63', fontWeight: 800 }
+              ? { borderRadius: 14, marginTop: 14, gap: 8, background: 'var(--pink-bg)', color: 'var(--brand)', fontWeight: 800 }
               : { borderRadius: 14, marginTop: 14, gap: 8 }}
           >
-            <Icon name="drop" size={16} fill={cardHasPrimary ? 'currentColor' : '#fff'} strokeWidth={0} />
+            <Icon name="drop" size={16} fill={cardHasPrimary ? 'currentColor' : 'var(--on-accent)'} strokeWidth={0} />
             {t('startPeriodHere')}
           </button>
         )}
@@ -1103,8 +1103,8 @@ export function CalendarPage() {
             insetInlineEnd: 16,
             bottom: 88,
             zIndex: 50,
-            background: '#D64545',
-            color: '#fff',
+            background: 'var(--danger)',
+            color: 'var(--on-accent)',
             borderRadius: 14,
             padding: '12px 16px',
             fontSize: 13,

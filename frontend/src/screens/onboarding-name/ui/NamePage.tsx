@@ -28,7 +28,7 @@ export function NamePage() {
   };
 
   return (
-    <div className="view" style={{ background: '#fff' }}>
+    <div className="view" style={{ background: 'var(--surface)' }}>
       <div className="hdr">
         <NavBack onClick={() => router.back()} />
         <span className="stepcount">{faNum(step.index)}<span style={{ opacity: .5 }}> / {faNum(step.total)}</span></span>
@@ -48,8 +48,8 @@ export function NamePage() {
                 value={value}
                 onChange={e => setValue(e.target.value)}
               />
-              <span style={{ color: '#A9B2BC' }}>
-                <Icon name="pencil" size={18} stroke="#A9B2BC" />
+              <span style={{ color: 'var(--muted-soft)' }}>
+                <Icon name="pencil" size={18} stroke="var(--muted-soft)" />
               </span>
             </div>
           </div>

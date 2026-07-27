@@ -2,16 +2,24 @@
 
 namespace App\Services\HomePage\Sections;
 
-use App\Models\CycleHistory;
 use App\Services\HomePage\HomeContext;
 use App\Services\HomePage\HomeSection;
 
 /**
- * Section 16 — "سیکل‌های من": current cycle day & start date plus a list of
- * previous recorded cycles.
+ * Section 16 — "سیکل‌های من": where the user is in the current cycle, plus the
+ * cycles behind it with the length each one actually ran.
+ *
+ * Every number here is derived: the current cycle comes from the engine (so it
+ * agrees with the rest of the page), and each previous cycle's length is the
+ * gap to the period that followed it (see
+ * {@see \App\Services\HomePage\Support\CycleHistoryDigest}) rather than a
+ * stored column that is only sometimes populated.
  */
 class MyCyclesSection extends AbstractHomeSection
 {
+    /** Enough history for the list to feel complete without paging the payload. */
+    private const PREVIOUS_LIMIT = 12;
+
     public function key(): string
     {
         return 'my_cycles';
@@ -32,20 +40,17 @@ class MyCyclesSection extends AbstractHomeSection
         $calc = $context->cycleData();
         $cycleStart = $context->currentCycleStart();
 
-        if (!$calc || !$cycleStart) {
+        if (! $calc || ! $cycleStart) {
             return null;
         }
 
-        $histories = $context->cycleHistories();
+        $digest = $context->cycleHistoryDigest();
+        $metrics = $context->cycleMetrics();
 
-        $previous = $histories->take(6)->map(fn (CycleHistory $h) => [
-            'id' => $h->id,
-            'period_start_date' => $h->period_start_date?->toDateString(),
-            'period_end_date' => $h->period_end_date?->toDateString(),
-            'cycle_length' => $h->cycle_length,
-            'bleeding_length' => $h->bleeding_length,
-            'is_confirmed' => (bool) $h->is_confirmed,
-        ])->all();
+        // The engine anchors the current cycle; the logged row starting on that
+        // same day (when there is one) carries the bleed the user recorded.
+        $currentRecord = $digest->startingOn($cycleStart);
+        $previous = $digest->previous(self::PREVIOUS_LIMIT);
 
         return new HomeSection(
             key: $this->key(),
@@ -53,15 +58,27 @@ class MyCyclesSection extends AbstractHomeSection
             title: $context->t('سیکل‌های من', 'My cycles'),
             data: [
                 'current' => [
+                    'id' => $currentRecord['id'] ?? null,
                     'cycle_day' => $calc['cycle_day'],
                     'started_at' => $cycleStart->toDateString(),
-                    'cycle_length' => $calc['cycle_length_used'] ?? null,
+                    'period_end_date' => $currentRecord['period_end_date'] ?? null,
+                    'period_length' => $currentRecord['period_length'] ?? null,
+                    'is_ongoing' => $currentRecord === null ? false : $currentRecord['is_ongoing'],
+                    // The length predictions run on, and where it came from — a
+                    // learned median, the profile baseline, or the system default.
+                    'cycle_length' => $calc['cycle_length_used'] ?? $metrics->effectiveCycleLength,
+                    'cycle_length_source' => $metrics->cycleLengthSource->value,
                 ],
-                'previous_count' => $histories->count(),
+                'previous_count' => count($digest->previous()),
                 'previous' => $previous,
+                'averages' => [
+                    'cycle_length' => $digest->averageCycleLength(),
+                    'period_length' => $digest->averagePeriodLength(),
+                    'based_on_cycles' => count($digest->validCycleLengths()),
+                ],
             ],
             order: $this->order(),
-            action: $this->action('view_previous', $context->t('نمایش سیکل‌های قبلی', 'Show previous cycles')),
+            action: $this->action('add_previous', $context->t('ثبت سیکل‌های قبلی', 'Add previous cycles')),
         );
     }
 }

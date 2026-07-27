@@ -1,0 +1,11 @@
+{
+  "title": "Today's challenge",
+  "streak": "{n, plural, one {# day streak} other {# day streak}}",
+  "longestStreak": "Longest streak: {n, plural, one {# day} other {# days}}",
+  "weekLabel": "The last seven days",
+  "difficulty": {
+    "easy": "Easy",
+    "medium": "Medium",
+    "hard": "Challenging"
+  }
+}

@@ -6,6 +6,7 @@ import enAccount from '../../../messages/en/account.json';
 import enAuth from '../../../messages/en/auth.json';
 import enBanners from '../../../messages/en/banners.json';
 import enCalendar from '../../../messages/en/calendar.json';
+import enChallenge from '../../../messages/en/challenge.json';
 import enCommon from '../../../messages/en/common.json';
 import enCycle from '../../../messages/en/cycle.json';
 import enDayTasks from '../../../messages/en/day-tasks.json';
@@ -26,6 +27,7 @@ import faAccount from '../../../messages/fa/account.json';
 import faAuth from '../../../messages/fa/auth.json';
 import faBanners from '../../../messages/fa/banners.json';
 import faCalendar from '../../../messages/fa/calendar.json';
+import faChallenge from '../../../messages/fa/challenge.json';
 import faCommon from '../../../messages/fa/common.json';
 import faCycle from '../../../messages/fa/cycle.json';
 import faDayTasks from '../../../messages/fa/day-tasks.json';
@@ -55,6 +57,7 @@ const messages = {
     nav: faNav,
     calendar: faCalendar,
     cycle: faCycle,
+    challenge: faChallenge,
     dayTasks: faDayTasks,
     profile: faProfile,
     profileEdit: faProfileEdit,
@@ -77,6 +80,7 @@ const messages = {
     nav: enNav,
     calendar: enCalendar,
     cycle: enCycle,
+    challenge: enChallenge,
     dayTasks: enDayTasks,
     profile: enProfile,
     profileEdit: enProfileEdit,

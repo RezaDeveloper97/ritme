@@ -44,7 +44,7 @@ function ActivateGate({ t }: { t: T }) {
   return (
     <Shell>
       <div style={{ padding: '40px 22px 0', textAlign: 'center' }}>
-        <div className="dot" style={{ width: 72, height: 72, margin: '0 auto 18px', background: '#FFF1F7', color: 'var(--brand)' }}>
+        <div className="dot" style={{ width: 72, height: 72, margin: '0 auto 18px', background: 'var(--surface-2)', color: 'var(--brand)' }}>
           <Icon name="heart" size={34} />
         </div>
         <h1 className="titr" style={{ fontSize: 20 }}>{t('notActive.title')}</h1>
@@ -118,7 +118,7 @@ export function PregnancyPage() {
     <div className="view" style={{ background: 'var(--page)' }}>
       <div className="scroll">
         {/* Hero */}
-        <div className="home-grad" style={{ padding: '18px 18px 22px', color: '#fff' }}>
+        <div className="home-grad" style={{ padding: '18px 18px 22px', color: 'var(--on-accent)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontSize: 13, fontWeight: 700, opacity: 0.92 }}>{t('title')}</span>
             {status?.isHighRisk && (
@@ -129,7 +129,7 @@ export function PregnancyPage() {
           </div>
 
           <div style={{ marginTop: 14, display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div className="dot" style={{ width: 62, height: 62, background: 'rgba(255,255,255,.2)', color: '#fff', flex: '0 0 auto' }}>
+            <div className="dot" style={{ width: 62, height: 62, background: 'rgba(255,255,255,.2)', color: 'var(--on-accent)', flex: '0 0 auto' }}>
               <Icon name="heart" size={30} />
             </div>
             <div style={{ textAlign: 'start' }}>
@@ -146,7 +146,7 @@ export function PregnancyPage() {
           {progress && (
             <div style={{ marginTop: 16 }}>
               <div style={{ height: 8, borderRadius: 20, background: 'rgba(255,255,255,.28)', overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${progress.progressPct}%`, background: '#fff', borderRadius: 20 }} />
+                <div style={{ height: '100%', width: `${progress.progressPct}%`, background: 'var(--on-accent)', borderRadius: 20 }} />
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 7, fontSize: 11.5, fontWeight: 600, opacity: 0.95 }}>
                 <span>{t('progress', { percent: progress.progressPct })}</span>
@@ -188,9 +188,9 @@ export function PregnancyPage() {
 
         {/* Quick actions */}
         <div style={{ padding: '12px 16px 0', display: 'flex', gap: 10 }}>
-          <ActionTile icon="plus" label={t('actions.logSymptoms')} color="#E91E63" onClick={() => goToLog('symptoms')} />
-          <ActionTile icon="stetho" label={t('actions.weeklyCheckup')} color="#5B6BE1" onClick={() => goToLog('weekly')} />
-          <ActionTile icon="heart" label={t('actions.fetalMovement')} color="#22B07D" onClick={() => goToLog('movement')} />
+          <ActionTile icon="plus" label={t('actions.logSymptoms')} color="var(--brand)" onClick={() => goToLog('symptoms')} />
+          <ActionTile icon="stetho" label={t('actions.weeklyCheckup')} color="var(--indigo-deep)" onClick={() => goToLog('weekly')} />
+          <ActionTile icon="heart" label={t('actions.fetalMovement')} color="var(--green)" onClick={() => goToLog('movement')} />
         </div>
 
         {/* Week browser */}

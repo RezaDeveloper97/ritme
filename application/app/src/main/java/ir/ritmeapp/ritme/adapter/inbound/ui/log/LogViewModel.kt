@@ -12,7 +12,10 @@ import ir.ritmeapp.ritme.domain.model.getOrNull
 import ir.ritmeapp.ritme.domain.port.inbound.HealthLogUseCase
 import ir.ritmeapp.ritme.domain.port.inbound.ManageRemindersUseCase
 import ir.ritmeapp.ritme.platform.crash.Breadcrumbs
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,8 +24,10 @@ import kotlinx.coroutines.launch
 
 /**
  * Daily-log screen state machine. Day switching reloads the saved log for that day and
- * replaces the draft; edits mutate only the draft until [LogIntent.Save] upserts it.
- * Future days are unreachable (the next-day intent stops at today).
+ * replaces the draft. Edits mutate the draft and auto-save on their own: a change schedules a
+ * debounced upsert (like the web), and a pending edit is always flushed before the day changes
+ * and on teardown so nothing is lost. Future days are unreachable (the next-day intent stops at
+ * today).
  */
 class LogViewModel(
     private val healthLog: HealthLogUseCase,
@@ -37,6 +42,10 @@ class LogViewModel(
     val state: StateFlow<LogUiState> = _state.asStateFlow()
 
     private var loadJob: Job? = null
+    private var saveJob: Job? = null
+
+    /** True while the draft holds edits the server hasn't received yet (mirrors the web pending patch). */
+    private var hasPendingEdits = false
 
     init {
         refreshTodayFlag()
@@ -51,7 +60,6 @@ class LogViewModel(
             is LogIntent.OpenCategory -> _state.update { it.copy(openCategory = intent.category) }
             LogIntent.CloseSheet -> _state.update { it.copy(openCategory = null) }
             is LogIntent.SetValue -> setValue(intent)
-            LogIntent.Save -> save()
             is LogIntent.NewTaskTitleChanged -> _state.update { it.copy(newTaskTitle = intent.title, taskError = false) }
             is LogIntent.NewTaskTypeChanged -> _state.update { it.copy(newTaskType = intent.type) }
             LogIntent.AddTask -> addTask()
@@ -69,7 +77,9 @@ class LogViewModel(
     private fun moveDay(delta: Int) {
         val target = _state.value.date.addDays(delta)
         if (target.toJdn() > today.toJdn()) return
-        _state.update { it.copy(date = target, values = emptyMap(), saveState = LogSaveState.IDLE) }
+        // Never lose an unsaved edit: flush the day being left before its draft is replaced.
+        flushAutoSave()
+        _state.update { it.copy(date = target, values = emptyMap()) }
         refreshTodayFlag()
         loadDay(target)
     }
@@ -97,21 +107,50 @@ class LogViewModel(
         _state.update { current ->
             val values = current.values.toMutableMap()
             if (intent.value == null) values.remove(intent.field) else values[intent.field] = intent.value
-            current.copy(values = values, saveState = LogSaveState.IDLE)
+            current.copy(values = values)
+        }
+        scheduleAutoSave()
+    }
+
+    /** Coalesce rapid edits (chip taps, wheel scrubbing) into one upsert once the user pauses. */
+    private fun scheduleAutoSave() {
+        hasPendingEdits = true
+        saveJob?.cancel()
+        saveJob = viewModelScope.launch {
+            delay(AUTO_SAVE_DEBOUNCE_MS)
+            persist(_state.value)
         }
     }
 
-    private fun save() {
+    /** Persist any pending edit immediately (before the day changes) — a no-op when nothing is dirty. */
+    private fun flushAutoSave() {
+        if (!hasPendingEdits) return
         val snapshot = _state.value
-        if (!snapshot.canSave) return
-        viewModelScope.launch {
-            Breadcrumbs.add("log:save")
-            _state.update { it.copy(saveState = LogSaveState.SAVING) }
-            val result = healthLog.save(DailyHealthLog(snapshot.date.toGregorian(), snapshot.values))
-            _state.update {
-                it.copy(saveState = if (result is AppResult.Success) LogSaveState.SAVED else LogSaveState.ERROR)
+        saveJob?.cancel()
+        saveJob = viewModelScope.launch { persist(snapshot) }
+    }
+
+    private suspend fun persist(snapshot: LogUiState) {
+        hasPendingEdits = false
+        Breadcrumbs.add("log:autosave")
+        _state.update { it.copy(saveState = LogSaveState.SAVING) }
+        val result = healthLog.save(DailyHealthLog(snapshot.date.toGregorian(), snapshot.values))
+        _state.update {
+            it.copy(saveState = if (result is AppResult.Success) LogSaveState.SAVED else LogSaveState.ERROR)
+        }
+    }
+
+    override fun onCleared() {
+        // viewModelScope is already cancelled here, so a final pending edit is flushed on an
+        // independent short-lived scope (best-effort teardown save, mirroring the web unmount flush).
+        if (hasPendingEdits) {
+            hasPendingEdits = false
+            val snapshot = _state.value
+            CoroutineScope(Dispatchers.IO).launch {
+                healthLog.save(DailyHealthLog(snapshot.date.toGregorian(), snapshot.values))
             }
         }
+        super.onCleared()
     }
 
     private fun loadReminders() {
@@ -169,5 +208,10 @@ class LogViewModel(
                 _state.update { current -> current.copy(reminders = current.reminders.filterNot { it.id == id }) }
             }
         }
+    }
+
+    private companion object {
+        /** Pause after an edit before the draft is upserted, matching the web's 350ms debounce. */
+        const val AUTO_SAVE_DEBOUNCE_MS = 350L
     }
 }

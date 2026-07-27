@@ -84,7 +84,7 @@ export function MovementForm({ t }: { t: T }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <Icon name="calendar" size={15} />
           <span style={{ fontSize: 14.5, fontWeight: 800, color: 'var(--ink)' }}>{formatJalaliDayMonth(date, locale)}</span>
-          {isToday && <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--brand)', background: '#FFF1F7', borderRadius: 20, padding: '2px 9px' }}>{t('log.today')}</span>}
+          {isToday && <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--brand)', background: 'var(--surface-2)', borderRadius: 20, padding: '2px 9px' }}>{t('log.today')}</span>}
         </div>
         <button className="iconbtn" onClick={() => canGoNext && shiftDay(1)} disabled={!canGoNext} aria-label={t('log.nextDay')} style={{ opacity: canGoNext ? 1 : 0.3 }}>
           <Icon name={isRtl ? 'chevronLeft' : 'chevronRight'} size={20} />
@@ -123,8 +123,8 @@ export function MovementForm({ t }: { t: T }) {
       </div>
 
       {save.isSuccess && save.data.length > 0 && (
-        <div className="card" style={{ marginTop: 12, padding: '12px 13px', borderInlineStart: '3px solid #E5484D', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Icon name="shield" size={16} style={{ color: '#E5484D' }} />
+        <div className="card" style={{ marginTop: 12, padding: '12px 13px', borderInlineStart: '3px solid var(--danger)', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Icon name="shield" size={16} style={{ color: 'var(--danger)' }} />
           <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)' }}>{t('alerts.raised', { n: save.data.length })}</span>
         </div>
       )}

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ir.ritmeapp.ritme.domain.model.AppError
 import ir.ritmeapp.ritme.domain.model.AppResult
+import ir.ritmeapp.ritme.adapter.inbound.ui.foundation.toAsciiDigits
 import ir.ritmeapp.ritme.domain.model.PhoneNumber
 import ir.ritmeapp.ritme.domain.port.inbound.SendOtpUseCase
 import ir.ritmeapp.ritme.platform.crash.Breadcrumbs
@@ -26,7 +27,9 @@ class LoginViewModel(
     val state: StateFlow<LoginUiState> = _state.asStateFlow()
 
     fun onPhoneChanged(raw: String) {
-        val sanitized = raw.filter { it.isDigit() || it == '+' }.take(MAX_PHONE_LENGTH)
+        // Normalize Persian/Arabic digits to ASCII so a number typed on a Persian keyboard
+        // validates and is sent correctly (the backend speaks ASCII).
+        val sanitized = raw.toAsciiDigits().filter { it in '0'..'9' || it == '+' }.take(MAX_PHONE_LENGTH)
         _state.update {
             it.copy(
                 phoneInput = sanitized,
@@ -34,6 +37,11 @@ class LoginViewModel(
                 status = if (it.status is LoginStatus.Error) LoginStatus.Idle else it.status,
             )
         }
+    }
+
+    /** Toggles acceptance of the terms & conditions — the CTA stays disabled until this is true. */
+    fun onTermsChanged(accepted: Boolean) {
+        _state.update { it.copy(termsAccepted = accepted) }
     }
 
     fun onSubmit() {
@@ -69,10 +77,21 @@ class LoginViewModel(
     }
 }
 
-/** Maps a transport/domain failure onto the closed set of UI error categories. */
+private const val STATUS_TOO_MANY_REQUESTS = 429
+
+/**
+ * Maps a transport/domain failure onto the closed set of UI error categories, mirroring the web
+ * `authErrorKey`: 429 → "too many attempts", any other non-2xx → a calm generic message. The raw
+ * server string is never surfaced to the user (§11).
+ */
 internal fun AppError.toStatus(): LoginStatus.Error = when (this) {
     is AppError.Network, is AppError.Timeout -> LoginStatus.Error(LoginErrorKey.Network)
-    is AppError.Http -> LoginStatus.Error(LoginErrorKey.Server, message)
+    is AppError.Http ->
+        if (statusCode == STATUS_TOO_MANY_REQUESTS) {
+            LoginStatus.Error(LoginErrorKey.TooMany)
+        } else {
+            LoginStatus.Error(LoginErrorKey.Server)
+        }
     is AppError.Validation -> LoginStatus.Error(LoginErrorKey.InvalidPhone)
     is AppError.Parsing, is AppError.Storage, is AppError.Unexpected ->
         LoginStatus.Error(LoginErrorKey.Unexpected)

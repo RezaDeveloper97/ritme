@@ -162,6 +162,33 @@ class DailyCardBuilderTest extends TestCase
         $this->assertSame(DataStatus::PREDICTED, $card->dataStatus);
     }
 
+    public function test_predicted_period_day_offers_confirming_the_start(): void
+    {
+        // A rolled-forward predicted bleeding day in the past: the prediction the
+        // user is looking at is the one thing they can correct, so the card must
+        // offer "it started here" instead of a generic complete-this-day.
+        $card = $this->card([
+            'selected' => '2026-06-01', 'today' => '2026-07-15', 'cycleDay' => 1,
+            'nextStart' => '2026-07-28', 'subphase' => CycleSubphase::MENSTRUAL,
+        ]);
+
+        $this->assertSame(DataStatus::NEEDS_CONFIRMATION, $card->dataStatus);
+        $this->assertSame('Day 1 of your predicted period', $card->title);
+        $this->assertSame(self::actionTypes($card), ['confirm_period_start', 'period_not_started', 'view_details']);
+    }
+
+    public function test_predicted_period_day_in_the_future_stays_a_prediction(): void
+    {
+        // Future days can't have started yet — no confirm CTA there (§"future days").
+        $card = $this->card([
+            'selected' => '2026-08-25', 'today' => '2026-07-15', 'cycleDay' => 2,
+            'nextStart' => '2026-07-28', 'subphase' => CycleSubphase::MENSTRUAL,
+        ]);
+
+        $this->assertSame(DataStatus::PREDICTED, $card->dataStatus);
+        $this->assertSame('set_reminder', $card->primaryAction['type']);
+    }
+
     public function test_future_day_never_says_not_started_and_offers_a_reminder(): void
     {
         $card = $this->card([

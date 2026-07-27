@@ -30,7 +30,8 @@ data class ReminderFormState(
     val canSubmit: Boolean get() = title.isNotBlank()
 
     companion object {
-        const val DEFAULT_HOUR = 9
+        // Web `AddReminderForm` defaults the time input to 08:00.
+        const val DEFAULT_HOUR = 8
     }
 }
 
@@ -46,6 +47,8 @@ data class RemindersUiState(
     val formError: Boolean = false,
     val confirmingDeleteId: Long? = null,
     val deleting: Boolean = false,
+    /** The reminder whose active-toggle request is in flight (its row disables meanwhile). */
+    val togglingId: Long? = null,
 )
 
 sealed interface RemindersIntent {
@@ -127,8 +130,10 @@ class RemindersViewModel(
     }
 
     private fun toggleActive(reminder: Reminder) {
+        if (_state.value.togglingId != null) return
         viewModelScope.launch {
             Breadcrumbs.add("reminders:toggle")
+            _state.update { it.copy(togglingId = reminder.id) }
             val draft = ReminderDraft(
                 type = reminder.type,
                 title = reminder.title,
@@ -140,10 +145,15 @@ class RemindersViewModel(
                 isActive = !reminder.isActive,
             )
             val updated = reminders.update(reminder.id, draft).getOrNull()
-            if (updated != null) {
-                _state.update { current ->
-                    current.copy(reminders = current.reminders.map { if (it.id == updated.id) updated else it })
-                }
+            _state.update { current ->
+                current.copy(
+                    togglingId = null,
+                    reminders = if (updated != null) {
+                        current.reminders.map { if (it.id == updated.id) updated else it }
+                    } else {
+                        current.reminders
+                    },
+                )
             }
         }
     }

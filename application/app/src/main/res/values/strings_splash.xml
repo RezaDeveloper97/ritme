@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Startup splash (mirrors web auth.splash) -->
+    <string name="splash_tagline">همراه سلامتی شما</string>
+    <string name="splash_copyright">تمامی حقوق محفوظ است ۱۴۰۵</string>
+</resources>

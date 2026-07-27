@@ -24,6 +24,7 @@
             <a class="nav-link {{ request()->routeIs('admin.articles.*') ? 'active' : '' }}" href="{{ route('admin.articles.index') }}">مقالات</a>
             <a class="nav-link {{ request()->routeIs('admin.affirmations.*') ? 'active' : '' }}" href="{{ route('admin.affirmations.index') }}">تأکیدات مثبت</a>
             <a class="nav-link {{ request()->routeIs('admin.challenges.*') ? 'active' : '' }}" href="{{ route('admin.challenges.index') }}">چالش‌ها</a>
+            <a class="nav-link {{ request()->routeIs('admin.challenge-completions.*') ? 'active' : '' }}" href="{{ route('admin.challenge-completions.index') }}">انجام چالش‌ها</a>
             <a class="nav-link {{ request()->routeIs('admin.task-templates.*') ? 'active' : '' }}" href="{{ route('admin.task-templates.index') }}">کارهای روزانه</a>
             <a class="nav-link {{ request()->routeIs('admin.pregnancy-weeks.*') ? 'active' : '' }}" href="{{ route('admin.pregnancy-weeks.index') }}">محتوای هفتگی بارداری</a>
             <a class="nav-link {{ request()->routeIs('admin.phase-contents.*') ? 'active' : '' }}" href="{{ route('admin.phase-contents.index') }}">محتوای فازهای چرخه</a>

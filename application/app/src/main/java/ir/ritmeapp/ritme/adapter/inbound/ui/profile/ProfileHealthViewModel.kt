@@ -10,9 +10,11 @@ import ir.ritmeapp.ritme.domain.model.getOrNull
 import ir.ritmeapp.ritme.domain.port.inbound.GetUserProfileUseCase
 import ir.ritmeapp.ritme.domain.port.inbound.SaveProfileUseCase
 import ir.ritmeapp.ritme.platform.crash.Breadcrumbs
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -28,7 +30,7 @@ data class ProfileHealthUiState(
 ) {
     companion object {
         const val DEFAULT_CYCLE_DAYS = 28
-        const val DEFAULT_PERIOD_DAYS = 5
+        const val DEFAULT_PERIOD_DAYS = 6
         const val MIN_CYCLE_DAYS = 15
         const val MAX_CYCLE_DAYS = 60
         const val MIN_PERIOD_DAYS = 1
@@ -51,6 +53,9 @@ class ProfileHealthViewModel(
 
     private val _state = MutableStateFlow(ProfileHealthUiState(lastPeriod = today))
     val state: StateFlow<ProfileHealthUiState> = _state.asStateFlow()
+
+    private val _effects = Channel<ProfileEditEffect>(Channel.BUFFERED)
+    val effects = _effects.receiveAsFlow()
 
     init {
         viewModelScope.launch {
@@ -75,13 +80,7 @@ class ProfileHealthViewModel(
                 _state.update { it.copy(periodDuration = intent.days, saveState = EditSaveState.IDLE) }
 
             is ProfileHealthIntent.LastPeriodChanged ->
-                _state.update {
-                    it.copy(
-                        lastPeriod = intent.value,
-                        lastPeriodInFuture = intent.value.toJdn() > today.toJdn(),
-                        saveState = EditSaveState.IDLE,
-                    )
-                }
+                _state.update { it.copy(lastPeriod = intent.value, saveState = EditSaveState.IDLE) }
 
             ProfileHealthIntent.Save -> save()
         }
@@ -89,10 +88,16 @@ class ProfileHealthViewModel(
 
     private fun save() {
         val snapshot = _state.value
-        if (snapshot.lastPeriodInFuture || snapshot.saveState == EditSaveState.SAVING) return
+        if (snapshot.saveState == EditSaveState.SAVING) return
+        // Web HealthForm.handleSave runs the future-date check on press (not eagerly),
+        // surfacing the localized error only after the user taps Save.
+        if (snapshot.lastPeriod.toJdn() > today.toJdn()) {
+            _state.update { it.copy(lastPeriodInFuture = true, saveState = EditSaveState.IDLE) }
+            return
+        }
         viewModelScope.launch {
             Breadcrumbs.add("profile:save_health")
-            _state.update { it.copy(saveState = EditSaveState.SAVING) }
+            _state.update { it.copy(lastPeriodInFuture = false, saveState = EditSaveState.SAVING) }
             val result = saveProfile(
                 OnboardingAnswers(
                     periodDuration = snapshot.periodDuration,
@@ -100,8 +105,10 @@ class ProfileHealthViewModel(
                     lastPeriod = snapshot.lastPeriod,
                 ),
             )
-            _state.update {
-                it.copy(saveState = if (result is AppResult.Success) EditSaveState.SAVED else EditSaveState.ERROR)
+            if (result is AppResult.Success) {
+                _effects.send(ProfileEditEffect.NavigateBack)
+            } else {
+                _state.update { it.copy(saveState = EditSaveState.ERROR) }
             }
         }
     }

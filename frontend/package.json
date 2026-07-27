@@ -10,7 +10,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "fsd:lint": "steiger ./src"
+    "fsd:lint": "steiger ./src",
+    "lint:styles": "node scripts/check-styles.mjs",
+    "lint:styles:accept": "node scripts/check-styles.mjs --update-baseline"
   },
   "dependencies": {
     "next": "^15.1.6",

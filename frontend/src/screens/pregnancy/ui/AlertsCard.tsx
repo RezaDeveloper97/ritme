@@ -14,9 +14,9 @@ import { Icon, type IconName } from '@/shared/ui';
 type T = ReturnType<typeof useTranslations>;
 
 const LEVEL_STYLE: Record<AlertLevel, { icon: IconName; color: string; soft: string }> = {
-  info: { icon: 'info', color: '#2E9BE9', soft: '#E3F1FD' },
-  warning: { icon: 'flame', color: '#E9662E', soft: '#FDEBE2' },
-  emergency: { icon: 'shield', color: '#E5484D', soft: '#FCE7E7' },
+  info: { icon: 'info', color: 'var(--blue)', soft: 'var(--blue-soft)' },
+  warning: { icon: 'flame', color: 'var(--orange)', soft: 'var(--orange-soft)' },
+  emergency: { icon: 'shield', color: 'var(--danger)', soft: 'var(--danger-soft)' },
 };
 
 function AlertRow({ alert, t, onRead, onDismiss }: { alert: PregnancyAlert; t: T; onRead: () => void; onDismiss: () => void }) {

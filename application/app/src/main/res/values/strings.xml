@@ -421,23 +421,20 @@
     <string name="reminder_doctor_name">دکتر عابدزاده</string>
     <string name="reminder_specialty">متخصص زنان و زایمان</string>
     <string name="weeksummary_title">خلاصه هفته</string>
+    <string name="weeksummary_subtitle">بر اساس فاز فعلی سیکل شما</string>
     <string name="weeksummary_mood">روحیه</string>
-    <string name="weeksummary_mood_value">۸۱٪</string>
     <string name="weeksummary_sleep">خواب</string>
-    <string name="weeksummary_sleep_value">۶٫۵ ساعت</string>
     <string name="weeksummary_energy">انرژی</string>
-    <string name="weeksummary_energy_value">۷۳٪</string>
+    <string name="home_percent">%1$s٪</string>
     <string name="todaystatus_title">وضعیت امروز</string>
-    <string name="todaystatus_normal">نرمال</string>
-    <string name="todaystatus_bp">فشار خون</string>
-    <string name="todaystatus_glucose">قند خون</string>
-    <string name="todaystatus_hr">ضربان قلب</string>
+    <string name="todaystatus_phase">فاز چرخه</string>
+    <string name="todaystatus_fertility">باروری</string>
+    <string name="todaystatus_cycle_day">روز سیکل</string>
     <string name="articles_title">بر اساس سیکل فعلی شما</string>
     <string name="articles_read_more">مشاهده بیشتر</string>
     <string name="articles_article1">لخته‌های خون در دوران پریود؛ معنی آن چیست؟</string>
     <string name="articles_min">%1$s دقیقه</string>
-    <string name="cyclesummary_duration">مدت پریود قبلی</string>
-    <string name="cyclesummary_variation">نوسان طول سیکل</string>
+    <string name="cyclesummary_ovulation">روز تخمک‌گذاری</string>
 
     <!-- Profile hub -->
     <string name="profile_title">پروفایل</string>

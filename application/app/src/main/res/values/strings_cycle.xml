@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Cycle screen — "my cycles" card copy, matched to the web (messages/fa/cycle.json). -->
+    <string name="cycle_current_full">سیکل فعلی: روز %1$s</string>
+    <string name="cycle_started_on">شروع شده در %1$s</string>
+    <string name="cycle_add_previous">ثبت سیکل‌های قبلی</string>
+</resources>

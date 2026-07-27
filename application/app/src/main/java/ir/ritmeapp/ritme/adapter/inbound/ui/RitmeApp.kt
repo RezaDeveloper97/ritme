@@ -1,5 +1,7 @@
 package ir.ritmeapp.ritme.adapter.inbound.ui
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.SnackbarHost
@@ -8,12 +10,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import ir.ritmeapp.ritme.R
+import kotlinx.coroutines.delay
 import ir.ritmeapp.ritme.adapter.inbound.ui.navigation.RitmeNavHost
 import ir.ritmeapp.ritme.adapter.inbound.ui.navigation.Destination
 import ir.ritmeapp.ritme.adapter.inbound.ui.navigation.LocalAppContainer
@@ -42,12 +47,37 @@ fun RitmeApp(
             value = resolveStartDestination(container)
         }
 
-        when (val destination = start) {
-            null -> StartupSplash(Modifier.fillMaxSize())
-            else -> AuthenticatedShell(start = destination, recovery = recovery)
+        // Hold the splash for a minimum time so the brand always shows briefly (web parity:
+        // ~2.2s), while the start destination resolves off the main thread. A tap skips the
+        // remaining hold, so an impatient returning user isn't blocked once data is ready.
+        var minHoldElapsed by remember { mutableStateOf(false) }
+        var skipped by remember { mutableStateOf(false) }
+        LaunchedEffect(Unit) {
+            delay(SPLASH_MIN_HOLD_MILLIS)
+            minHoldElapsed = true
+        }
+
+        val resolved = start
+        if (resolved != null && (minHoldElapsed || skipped)) {
+            AuthenticatedShell(start = resolved, recovery = recovery)
+        } else {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = { skipped = true },
+                    ),
+            ) {
+                StartupSplash(Modifier.fillMaxSize())
+            }
         }
     }
 }
+
+/** Minimum time the brand splash stays up on a cold start, mirroring the web's ~2.2s hold. */
+private const val SPLASH_MIN_HOLD_MILLIS = 2200L
 
 @Composable
 private fun AuthenticatedShell(

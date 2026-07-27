@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Welcome / intro-carousel copy, synced verbatim with the web source of truth
+  (frontend/messages/fa/welcome.json). Keys unique to the welcome area live here so
+  the central strings.xml is never redefined. Reused-as-is keys (intro_skip, intro_next,
+  intro_3_title, app_name) stay in strings.xml.
+-->
+<resources>
+    <!-- CTA -->
+    <string name="welcome_start">شروع تنظیم ریتمی</string>
+
+    <!-- Slide 1: intro -->
+    <string name="welcome_intro_title">ریتم بدنت را بشناس، حال‌ات را بهتر کن</string>
+    <string name="welcome_intro_body">ریتمی یک اپ سلامت زنان است که کمک می‌کند سیکل قاعدگی، حال‌وهوای روانی، خواب و انرژی‌ات را کنار هم ببینی و بفهمی بدنت هر روز چه ریتمی دارد.</string>
+    <string name="welcome_intro_note">هدف ریتمی این است که هر روز کمی راحت‌تر، آگاه‌تر و مهربان‌تر با بدنت رفتار کنی.</string>
+
+    <!-- Slide 2: track -->
+    <string name="welcome_track_title">فقط تاریخ پریود نیست؛ الگوی حال‌ات هم مهم است</string>
+    <string name="welcome_track_body">در ریتمی فقط روزهای پریود را علامت نمی‌زنی؛ حال‌وهوای روزانه، دردها، خواب و انرژی هم کنار سیکل ثبت می‌شود تا بفهمی چرا بعضی روزها خسته‌تر، حساس‌تر یا بی‌حوصله‌تری.</string>
+    <string name="welcome_track_bullet1">علائمی مثل درد، نفخ، سردرد و نوسان خلق را روی تقویم بدنت ببین.</string>
+    <string name="welcome_track_bullet2">بفهم چه چیزهایی مثل خواب کم یا استرس بیشتر روی بدنت اثر می‌گذارند.</string>
+
+    <!-- Slide 3: smart -->
+    <string name="welcome_smart_body">ریتمی فقط یک دفترچه‌ی ثبت نیست؛ با کنار هم گذاشتن الگوهای تو، بینش‌هایی می‌سازد که به خودِ تو مربوط است.</string>
+    <string name="welcome_disclaimer">ریتمی از تحلیل داده و مدل‌های هوش مصنوعی برای شخصی‌سازی توصیه‌ها استفاده می‌کند، اما جایگزین تشخیص یا ویزیت پزشک نیست. اگر علائم شدید یا نگران‌کننده داری، حتماً با متخصص سلامت مشورت کن.</string>
+    <string name="welcome_start_hint">کمتر از ۱ دقیقه طول می‌کشد؛ چند سؤال ساده درباره‌ی سن، سیکل و حال‌وهوای کلی‌ات می‌پرسیم تا ریتمی را برای خودت تنظیم کنیم.</string>
+</resources>

@@ -4,7 +4,12 @@ export type {
   UserMode,
   PrimaryMessage,
   DailyMessage,
+  MessageCorrelation,
+  MessagePattern,
+  SupplementTips,
 } from './model/types';
+export type { SmartTip, SmartTipSource } from './lib/smart-tip';
+export { selectSmartTip } from './lib/smart-tip';
 export {
   messageKeys,
   useUserMode,

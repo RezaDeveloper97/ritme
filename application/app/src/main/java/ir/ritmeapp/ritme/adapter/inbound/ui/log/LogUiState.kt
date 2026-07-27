@@ -8,7 +8,7 @@ import ir.ritmeapp.ritme.domain.model.JalaliDate
 import ir.ritmeapp.ritme.domain.model.Reminder
 import ir.ritmeapp.ritme.domain.model.ReminderType
 
-/** Where the save action currently stands (drives the sticky button's label). */
+/** Where auto-save currently stands (drives the header status pill: saving / saved / error). */
 enum class LogSaveState { IDLE, SAVING, SAVED, ERROR }
 
 /**
@@ -30,9 +30,6 @@ data class LogUiState(
     val addingTask: Boolean = false,
     val taskError: Boolean = false,
 ) {
-    /** Save is only offered once something is filled. */
-    val canSave: Boolean get() = values.isNotEmpty() && saveState != LogSaveState.SAVING
-
     /** The «{n} مورد» badge per category card. */
     fun countIn(category: HealthLogCategory): Int = values.keys.count { it.category == category }
 
@@ -57,9 +54,8 @@ sealed interface LogIntent {
     data class OpenCategory(val category: HealthLogCategory) : LogIntent
     data object CloseSheet : LogIntent
 
-    /** Sets or clears (null) one field's value in the draft. */
+    /** Sets or clears (null) one field's value in the draft; each edit auto-saves (debounced). */
     data class SetValue(val field: HealthLogField, val value: HealthLogValue?) : LogIntent
-    data object Save : LogIntent
 
     // ── Day planner: doctor/medication reminders + to-dos for the edited day ──
     data class NewTaskTitleChanged(val title: String) : LogIntent

@@ -34,6 +34,36 @@ data class RitmeColors(
     val onPink: Color,
     /** Dark content drawn on top of the light accent accent; constant across themes. */
     val onAccent: Color,
+    // ── Extended tokens mirroring specific web gradients / phase colors ──
+    /** Orchid gradient end (#BA68C8): splash/hero/FAB/active-tab underline. */
+    val violetGrad: Color,
+    /** Home full-page backdrop gradient stops (pink → mint, web `.home-grad`). */
+    val homeGradStart: Color,
+    val homeGradEnd: Color,
+    /** Active-tab background lavender end (web `.tab.on`). */
+    val tabActiveEnd: Color,
+    /** Steel used for inactive tab icons / soft-button labels (web #58636E). */
+    val steel: Color,
+    /** Ovulation / recommendation green accent (web --green-dot #34C77B). */
+    val greenDot: Color,
+    /** Deeper pink for the home hero phase-explanation box (web #F96C9C). */
+    val phasePink: Color,
+    /** Ovulation tile background (web #F0FDFA). */
+    val mintContainer: Color,
+    /** Today-status "normal" chip (web #D0FBFF bg / #478F96 ink). */
+    val cyanContainer: Color,
+    val cyanInk: Color,
+    /** Ruler-picker tick marks (web `.tk .line` #D5DBE2 minor / #9AA4AF major). */
+    val tickMinor: Color,
+    val tickMajor: Color,
+    /** Primary-button 1px border (web .btn-primary border #FE87B0). */
+    val pinkBorder: Color,
+    /** Primary-button disabled fill (web .btn-primary:disabled #F4D4E1). */
+    val pinkDisabled: Color,
+    /** Ghost-button border (web .btn-ghost border #FAD5E6). */
+    val pinkGhostBorder: Color,
+    /** Text-field placeholder (web input::placeholder #A9B2BC). */
+    val placeholder: Color,
 )
 
 /** Provided by [RitmeTheme]; reading it outside the theme is a programming error. */

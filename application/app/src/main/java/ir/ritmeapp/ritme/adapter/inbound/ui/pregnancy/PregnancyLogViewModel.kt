@@ -65,7 +65,8 @@ data class MovementDraft(
 @Immutable
 data class PregnancyLogUiState(
     val tab: PregnancyLogTab,
-    val week: Int = 1,
+    /** Null until `/pregnancy/status` resolves the current gestational week (weekly tab shows a loading card). */
+    val week: Int? = null,
     val fetalTrackingActive: Boolean = false,
     val date: JalaliDate,
     val isToday: Boolean = true,
@@ -113,13 +114,17 @@ class PregnancyLogViewModel(
     init {
         viewModelScope.launch {
             val status = tracker.status().getOrNull()
+            val resolvedWeek = status?.currentWeek?.coerceIn(1, PregnancyStatus.TOTAL_WEEKS)
+            val trackingWeek = resolvedWeek ?: DEFAULT_MOVEMENT_WEEK
             _state.update {
                 it.copy(
-                    week = (status?.currentWeek ?: 1).coerceIn(1, PregnancyStatus.TOTAL_WEEKS),
-                    fetalTrackingActive = status?.fetalMovementTrackingActive ?: false,
+                    week = resolvedWeek,
+                    // Mirror the web: when the status flag isn't set, fall back to «week ≥ 18».
+                    fetalTrackingActive = status?.fetalMovementTrackingActive == true ||
+                        trackingWeek >= FETAL_TRACKING_FROM_WEEK,
                 )
             }
-            prefillWeekly(_state.value.week)
+            resolvedWeek?.let { prefillWeekly(it) }
         }
         prefillSymptoms(today)
     }
@@ -241,6 +246,7 @@ class PregnancyLogViewModel(
 
     private fun saveWeekly() {
         val snapshot = _state.value
+        val week = snapshot.week ?: return
         if (!snapshot.weekly.hasAnything || snapshot.weeklySave == LogSaveState.SAVING) return
         viewModelScope.launch {
             Breadcrumbs.add("pregnancy_log:save_weekly")
@@ -248,17 +254,18 @@ class PregnancyLogViewModel(
             val draft = snapshot.weekly
             val result = logs.saveWeeklyLog(
                 PregnancyWeeklyLog(
-                    week = snapshot.week,
+                    week = week,
                     date = today.toGregorian(),
                     weightKg = draft.weightKg,
                     hasSwelling = draft.hasSwelling,
                     swellingLocations = draft.swellingLocations,
                     hasShortnessOfBreath = draft.hasShortnessOfBreath,
                     hasBloodPressureDevice = draft.hasBpDevice,
+                    // Only the cuff readings depend on owning a device; blood-sugar is always kept.
                     systolicPressure = draft.systolic.takeIf { draft.hasBpDevice },
                     diastolicPressure = draft.diastolic.takeIf { draft.hasBpDevice },
-                    fastingBloodSugar = draft.fastingSugar.takeIf { draft.hasBpDevice },
-                    postMealBloodSugar = draft.postMealSugar.takeIf { draft.hasBpDevice },
+                    fastingBloodSugar = draft.fastingSugar,
+                    postMealBloodSugar = draft.postMealSugar,
                     overallMood = draft.mood,
                     anxietySeverity = draft.anxiety,
                     moodSwingsSeverity = draft.moodSwings,
@@ -283,7 +290,7 @@ class PregnancyLogViewModel(
             val result = logs.saveFetalMovement(
                 FetalMovementLog(
                     date = snapshot.date.toGregorian(),
-                    week = snapshot.week,
+                    week = snapshot.week ?: DEFAULT_MOVEMENT_WEEK,
                     movementStatus = status,
                     movementCount = draft.count,
                     firstMovementTime = draft.firstTime,
@@ -297,3 +304,9 @@ class PregnancyLogViewModel(
         }
     }
 }
+
+/** Movement is day-scoped and always saveable; when the week is still unknown, anchor on week 1. */
+private const val DEFAULT_MOVEMENT_WEEK = 1
+
+/** The web's fallback threshold for fetal-movement tracking when the status flag is absent. */
+private const val FETAL_TRACKING_FROM_WEEK = 18

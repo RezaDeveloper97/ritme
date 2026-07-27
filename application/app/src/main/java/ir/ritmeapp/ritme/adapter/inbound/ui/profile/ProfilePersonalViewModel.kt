@@ -10,15 +10,23 @@ import ir.ritmeapp.ritme.domain.model.getOrNull
 import ir.ritmeapp.ritme.domain.port.inbound.GetUserProfileUseCase
 import ir.ritmeapp.ritme.domain.port.inbound.SaveProfileUseCase
 import ir.ritmeapp.ritme.platform.crash.Breadcrumbs
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 /** Save progress shared by both profile edit forms. */
-enum class EditSaveState { IDLE, SAVING, SAVED, ERROR }
+enum class EditSaveState { IDLE, SAVING, ERROR }
+
+/** One-shot effects shared by both profile edit forms (MVI §4 — off a channel, not state). */
+sealed interface ProfileEditEffect {
+    /** A successful save; the screen pops back to the profile, mirroring web `router.back()`. */
+    data object NavigateBack : ProfileEditEffect
+}
 
 /** The personal-info form (name / birthday / weight / height), prefilled from `GET /profile`. */
 @Immutable
@@ -57,9 +65,13 @@ class ProfilePersonalViewModel(
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(
-        ProfilePersonalUiState(birthday = JalaliDate(DEFAULT_BIRTH_YEAR, 1, 1)),
+        // Mirror web PersonalForm: a user with no saved birthday starts 25 years back.
+        ProfilePersonalUiState(birthday = JalaliDate(today.year - DEFAULT_BIRTH_AGE_YEARS, 1, 1)),
     )
     val state: StateFlow<ProfilePersonalUiState> = _state.asStateFlow()
+
+    private val _effects = Channel<ProfileEditEffect>(Channel.BUFFERED)
+    val effects = _effects.receiveAsFlow()
 
     init {
         viewModelScope.launch {
@@ -82,13 +94,7 @@ class ProfilePersonalViewModel(
                 _state.update { it.copy(name = intent.value, saveState = EditSaveState.IDLE) }
 
             is ProfilePersonalIntent.BirthdayChanged ->
-                _state.update {
-                    it.copy(
-                        birthday = intent.value,
-                        birthdayInFuture = intent.value.toJdn() >= today.toJdn(),
-                        saveState = EditSaveState.IDLE,
-                    )
-                }
+                _state.update { it.copy(birthday = intent.value, saveState = EditSaveState.IDLE) }
 
             is ProfilePersonalIntent.WeightChanged ->
                 _state.update { it.copy(weightKg = intent.kg, saveState = EditSaveState.IDLE) }
@@ -102,10 +108,16 @@ class ProfilePersonalViewModel(
 
     private fun save() {
         val snapshot = _state.value
-        if (snapshot.birthdayInFuture || snapshot.saveState == EditSaveState.SAVING) return
+        if (snapshot.saveState == EditSaveState.SAVING) return
+        // Web PersonalForm.handleSave runs the future-date check on press (not eagerly),
+        // surfacing the localized error only after the user taps Save.
+        if (snapshot.birthday.toJdn() >= today.toJdn()) {
+            _state.update { it.copy(birthdayInFuture = true, saveState = EditSaveState.IDLE) }
+            return
+        }
         viewModelScope.launch {
             Breadcrumbs.add("profile:save_personal")
-            _state.update { it.copy(saveState = EditSaveState.SAVING) }
+            _state.update { it.copy(birthdayInFuture = false, saveState = EditSaveState.SAVING) }
             val result = saveProfile(
                 OnboardingAnswers(
                     name = snapshot.name.trim().takeIf { it.isNotEmpty() },
@@ -114,13 +126,15 @@ class ProfilePersonalViewModel(
                     heightCm = snapshot.heightCm,
                 ),
             )
-            _state.update {
-                it.copy(saveState = if (result is AppResult.Success) EditSaveState.SAVED else EditSaveState.ERROR)
+            if (result is AppResult.Success) {
+                _effects.send(ProfileEditEffect.NavigateBack)
+            } else {
+                _state.update { it.copy(saveState = EditSaveState.ERROR) }
             }
         }
     }
 
     private companion object {
-        const val DEFAULT_BIRTH_YEAR = 1375
+        const val DEFAULT_BIRTH_AGE_YEARS = 25
     }
 }

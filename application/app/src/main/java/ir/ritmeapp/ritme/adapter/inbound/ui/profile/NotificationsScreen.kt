@@ -1,6 +1,7 @@
 package ir.ritmeapp.ritme.adapter.inbound.ui.profile
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,10 +16,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -30,11 +29,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ir.ritmeapp.ritme.R
@@ -51,9 +52,13 @@ import ir.ritmeapp.ritme.domain.model.GregorianDate
 import ir.ritmeapp.ritme.domain.model.SafeScreen
 import ir.ritmeapp.ritme.platform.crash.Breadcrumbs
 
+/** Web `--pink-soft` (#FFCFCF): the unread-row wash and empty-state badge tint. */
+private val PinkSoft = Color(0xFFFFCFCF) // TODO token (--pink-soft)
+
 /**
- * The notifications inbox (web `/profile/notifications`): unread-highlighted rows with relative
- * Jalali time labels; tapping an unread row marks it read, «خواندن همه» clears everything.
+ * The notifications inbox (web `/profile/notifications`): one bordered card of divider-separated
+ * rows, unread rows tinted pink with a filled status dot; tapping an unread row marks it read,
+ * «خواندن همه» clears everything.
  */
 @Composable
 fun NotificationsScreen(
@@ -72,6 +77,9 @@ fun NotificationsScreen(
         )
     }
 
+    // Newest first regardless of backend ordering (ISO strings sort lexically, like the web).
+    val items = state.page?.items.orEmpty().sortedByDescending { it.createdAt }
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = colors.background,
@@ -81,40 +89,68 @@ fun NotificationsScreen(
                 onBack = onBack,
                 trailing = {
                     if ((state.page?.unreadCount ?: 0) > 0) {
-                        Text(
-                            text = stringResource(R.string.notifications_mark_all),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = colors.pink,
-                            fontWeight = FontWeight.Bold,
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(5.dp),
                             modifier = Modifier
                                 .clip(RoundedCornerShape(10.dp))
                                 .clickable { viewModel.onIntent(NotificationsIntent.MarkAllRead) }
                                 .padding(horizontal = 8.dp, vertical = 6.dp),
-                        )
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_check_circle),
+                                contentDescription = null,
+                                tint = colors.pink,
+                                modifier = Modifier.size(16.dp),
+                            )
+                            Text(
+                                text = stringResource(R.string.notifications_mark_all),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = colors.pink,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
                     }
                 },
             )
         },
     ) { padding ->
-        val items = state.page?.items.orEmpty()
         when {
-            state.loading -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = colors.pink)
-            }
+            // Web renders nothing while the query is pending and there are no items yet.
+            items.isEmpty() && state.loading ->
+                Box(Modifier.fillMaxSize().padding(padding))
 
             items.isEmpty() -> EmptyInbox(colors, Modifier.padding(padding))
 
             else -> LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(padding),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(start = 18.dp, end = 18.dp, top = 8.dp, bottom = 24.dp),
             ) {
-                items(items, key = { it.id }) { notification ->
-                    NotificationRow(
-                        notification = notification,
-                        onTap = { viewModel.onIntent(NotificationsIntent.MarkRead(notification.id)) },
-                        colors = colors,
-                    )
+                item(key = "card") {
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(colors.surface)
+                            .border(1.dp, colors.outline, RoundedCornerShape(16.dp)),
+                    ) {
+                        items.forEachIndexed { index, notification ->
+                            if (index > 0) {
+                                Box(
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(start = 35.dp)
+                                        .height(1.dp)
+                                        .background(colors.outline),
+                                )
+                            }
+                            NotificationRow(
+                                notification = notification,
+                                onTap = { viewModel.onIntent(NotificationsIntent.MarkRead(notification.id)) },
+                                colors = colors,
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -124,27 +160,36 @@ fun NotificationsScreen(
 @Composable
 private fun EmptyInbox(colors: RitmeColors, modifier: Modifier = Modifier) {
     Column(
-        modifier.fillMaxSize().padding(32.dp),
+        modifier
+            .fillMaxSize()
+            .padding(start = 32.dp, end = 32.dp, top = 72.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
     ) {
-        Icon(
-            painter = painterResource(R.drawable.ic_bell),
-            contentDescription = null,
-            tint = colors.pink,
-            modifier = Modifier.size(36.dp),
-        )
-        Spacer(Modifier.height(12.dp))
+        Box(
+            Modifier
+                .size(64.dp)
+                .clip(CircleShape)
+                .background(PinkSoft),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_bell),
+                contentDescription = null,
+                tint = colors.pink,
+                modifier = Modifier.size(30.dp),
+            )
+        }
+        Spacer(Modifier.height(8.dp))
         Text(
             stringResource(R.string.notifications_empty_title),
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.titleMedium.copy(fontSize = 15.sp),
             color = colors.ink,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.ExtraBold,
         )
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(6.dp))
         Text(
             stringResource(R.string.notifications_empty_body),
-            style = MaterialTheme.typography.labelMedium,
+            style = MaterialTheme.typography.labelMedium.copy(fontSize = 13.sp, lineHeight = 23.sp),
             color = colors.inkMuted,
             textAlign = TextAlign.Center,
         )
@@ -156,41 +201,46 @@ private fun NotificationRow(notification: AppNotification, onTap: () -> Unit, co
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            .background(if (notification.isRead) colors.surface else colors.pinkContainer)
+            .background(if (notification.isRead) Color.Transparent else PinkSoft)
             .clickable(enabled = !notification.isRead, onClick = onTap)
-            .padding(14.dp),
+            .padding(horizontal = 14.dp, vertical = 13.dp),
         verticalAlignment = Alignment.Top,
     ) {
-        if (!notification.isRead) {
-            Box(
-                Modifier
-                    .padding(top = 6.dp)
-                    .size(8.dp)
-                    .clip(CircleShape)
-                    .background(colors.pink),
-            )
-            Spacer(Modifier.width(8.dp))
-        }
+        // Status dot on every row: filled brand when unread, an outlined placeholder when read,
+        // so titles stay aligned across both states.
+        Box(
+            Modifier
+                .padding(top = 6.dp)
+                .size(9.dp)
+                .clip(CircleShape)
+                .then(
+                    if (notification.isRead) {
+                        Modifier.border(1.dp, colors.outline, CircleShape)
+                    } else {
+                        Modifier.background(colors.pink)
+                    },
+                ),
+        )
+        Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
             Text(
                 text = notification.title,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
                 color = colors.ink,
-                fontWeight = if (notification.isRead) FontWeight.Normal else FontWeight.Bold,
+                fontWeight = if (notification.isRead) FontWeight.SemiBold else FontWeight.ExtraBold,
             )
             if (notification.body.isNotBlank()) {
-                Spacer(Modifier.height(2.dp))
+                Spacer(Modifier.height(3.dp))
                 Text(
                     text = notification.body,
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelMedium.copy(fontSize = 13.sp, lineHeight = 22.sp),
                     color = colors.inkMuted,
                 )
             }
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(6.dp))
             Text(
                 text = relativeTimeLabel(notification.createdAt),
-                style = MaterialTheme.typography.labelSmall,
+                style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
                 color = colors.inkMuted,
             )
         }

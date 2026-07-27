@@ -114,6 +114,56 @@ class CycleViewApiTest extends TestCase
         $this->assertMatchesRegularExpression('/[^\x00-\x7F]/u', $view['daily_card']['title']);
     }
 
+    public function test_daily_tips_are_collapsed_to_the_request_locale(): void
+    {
+        $this->actingUser();
+
+        foreach (['fa' => '/[^\x00-\x7F]/u', 'en' => '/[A-Za-z]/'] as $locale => $pattern) {
+            $tips = $this->getJson('/api/v1/cycle/today', ['Accept-Language' => $locale])
+                ->assertOk()->json('data.calculation.daily_tips');
+
+            $this->assertNotEmpty($tips, "no daily tips for locale {$locale}");
+
+            foreach ($tips as $tip) {
+                // Render-ready `{type, text}` — never the raw bilingual blob.
+                $this->assertSame(['type', 'text'], array_keys($tip));
+                $this->assertMatchesRegularExpression($pattern, $tip['text']);
+            }
+        }
+    }
+
+    /**
+     * Every phase the engine can report must offer more than a single tip, or
+     * the home screen's "today's recommendations" card renders near-empty.
+     */
+    public function test_every_cycle_phase_yields_several_daily_tips(): void
+    {
+        // Day 3 = menstruation, 8 = follicular, 15 = ovulation, 18 = early luteal,
+        // 26 = late luteal — one probe per branch of the phase tip table.
+        foreach ([3, 8, 15, 18, 26] as $i => $cycleDay) {
+            // A fresh user per probe — `mobile` is unique, and Passport::actingAs
+            // would otherwise hand back a stale profile relation.
+            $user = User::factory()->create(['mobile' => '091200010'.$i]);
+            UserProfile::create([
+                'user_id' => $user->id,
+                'birthday' => '1995-05-15',
+                'period_duration' => 5,
+                'cycle_duration' => 28,
+                'last_period_start' => now()->subDays($cycleDay - 1)->toDateString(),
+            ]);
+            Passport::actingAs($user);
+
+            $tips = $this->getJson('/api/v1/cycle/today', ['Accept-Language' => 'fa'])
+                ->assertOk()->json('data.calculation.daily_tips');
+
+            $this->assertGreaterThanOrEqual(
+                3,
+                count($tips),
+                "cycle day {$cycleDay} produced only ".count($tips).' tip(s)'
+            );
+        }
+    }
+
     public function test_incomplete_profile_still_carries_three_layer_values(): void
     {
         $user = User::factory()->create(['mobile' => '09120000009']);

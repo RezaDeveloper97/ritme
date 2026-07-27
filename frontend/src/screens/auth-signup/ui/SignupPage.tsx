@@ -36,7 +36,7 @@ export function SignupPage() {
   };
 
   return (
-    <div className="view" style={{ background: '#fff' }}>
+    <div className="view" style={{ background: 'var(--surface)' }}>
 
       {/*
        * RTL (fa): first child → RIGHT, second child → LEFT.
@@ -51,7 +51,7 @@ export function SignupPage() {
         {/* Figma «Titr»: 16px bold + sparkle, right-aligned in RTL */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8, marginTop: 8 }}>
           <span className="titr" style={{ fontSize: 16 }}>{t('signup.title')}</span>
-          <span style={{ color: 'var(--ritme-pink)' }}>
+          <span style={{ color: 'var(--pink)' }}>
             <Icon name="sparkle" size={22} fill="currentColor" strokeWidth={0} />
           </span>
         </div>
@@ -69,7 +69,7 @@ export function SignupPage() {
             dir="ltr"
             style={{ textAlign: 'start' }}
           />
-          <span style={{ color: '#A9B2BC' }}>
+          <span style={{ color: 'var(--muted-soft)' }}>
             <Icon name="user" size={18} />
           </span>
         </div>
@@ -91,12 +91,12 @@ export function SignupPage() {
             و حریم خصوصی است.
           </span>
           <span className={`cbx pink${terms ? ' on' : ''}`}>
-            <Icon name="check" size={13} stroke="#fff" />
+            <Icon name="check" size={13} stroke="var(--on-accent)" />
           </span>
         </div>
 
         {sendOtp.isError && (
-          <p className="sub" style={{ color: '#E5484D', textAlign: 'start', marginTop: 16 }}>
+          <p className="sub" style={{ color: 'var(--danger)', textAlign: 'start', marginTop: 16 }}>
             {t(`errors.${authErrorKey(sendOtp.error)}`)}
           </p>
         )}

@@ -103,18 +103,18 @@ export function SettingUpPage() {
   }, [ringDone, saveDone, isPregnant, router]);
 
   return (
-    <div className="view" style={{ background: '#fff' }}>
+    <div className="view" style={{ background: 'var(--surface)' }}>
       <div className="scroll" style={{ padding: '80px 22px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
         <div className="titr" style={{ fontSize: 19, lineHeight: 1.7 }}>{t('title')}</div>
         <p className="sub" style={{ margin: '12px 0 40px' }}>{t('subtitle')}</p>
 
         <div style={{ position: 'relative', width: 200, height: 200 }}>
           <svg width="200" height="200" viewBox="0 0 200 200" style={{ transform: 'rotate(-90deg)' }}>
-            <circle cx="100" cy="100" r="88" fill="none" stroke="#E6EAF0" strokeWidth="13" />
+            <circle cx="100" cy="100" r="88" fill="none" stroke="var(--field-border)" strokeWidth="13" />
             <circle
               ref={ringRef}
               cx="100" cy="100" r="88" fill="none"
-              stroke="var(--ritme-pink)" strokeWidth="13" strokeLinecap="round"
+              stroke="var(--pink)" strokeWidth="13" strokeLinecap="round"
               strokeDasharray={CIRCUMFERENCE} strokeDashoffset={CIRCUMFERENCE}
             />
           </svg>
@@ -123,7 +123,7 @@ export function SettingUpPage() {
           </div>
         </div>
 
-        <p className="sub" style={{ margin: '40px 0 0', fontSize: 12, color: 'var(--muted, #8A94A0)', lineHeight: 1.8, maxWidth: 340 }}>
+        <p className="sub" style={{ margin: '40px 0 0', fontSize: 12, color: 'var(--muted)', lineHeight: 1.8, maxWidth: 340 }}>
           {t('disclaimer')}
         </p>
       </div>

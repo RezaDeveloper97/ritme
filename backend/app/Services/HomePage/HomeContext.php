@@ -6,7 +6,10 @@ use App\Models\DailyHealthLog;
 use App\Models\PregnancyProfile;
 use App\Models\User;
 use App\Models\UserProfile;
+use App\Services\HealthEngine\CycleMetrics;
+use App\Services\HealthEngine\CycleMetricsCalculator;
 use App\Services\HealthEngine\HealthDataEngine;
+use App\Services\HomePage\Support\CycleHistoryDigest;
 use App\Services\MessageSystem\Core\MessageManager;
 use App\Services\MessageSystem\Core\MessageResult;
 use App\Services\MessageSystem\Enums\MessageMode;
@@ -30,14 +33,23 @@ final class HomeContext
     private array $cycleDataByDate = [];
 
     private bool $dailyLogLoaded = false;
+
     private ?DailyHealthLog $dailyLog = null;
 
     /** @var array<int, Collection> recent logs memoized per window size */
     private array $recentLogsByWindow = [];
 
+    /** @var array<string, Collection> logs memoized per "from..to" range */
+    private array $logsByRange = [];
+
     private ?Collection $cycleHistories = null;
 
+    private ?CycleHistoryDigest $cycleHistoryDigest = null;
+
+    private ?CycleMetrics $cycleMetrics = null;
+
     private bool $messagesLoaded = false;
+
     private ?MessageResult $messages = null;
 
     public function __construct(
@@ -60,6 +72,20 @@ final class HomeContext
     public function t(string $fa, string $en): string
     {
         return $this->isFa() ? $fa : $en;
+    }
+
+    /**
+     * A number written in the locale's own digits, for interpolation into
+     * sentences the client shows verbatim — a Persian sentence carrying Latin
+     * digits reads as a rendering glitch next to the rest of the app.
+     */
+    public function num(int|float $value): string
+    {
+        $text = (string) $value;
+
+        return $this->isFa()
+            ? strtr($text, ['0' => '۰', '1' => '۱', '2' => '۲', '3' => '۳', '4' => '۴', '5' => '۵', '6' => '۶', '7' => '۷', '8' => '۸', '9' => '۹'])
+            : $text;
     }
 
     public function isCycleMode(): bool
@@ -100,7 +126,7 @@ final class HomeContext
      */
     public function cycleData(): ?array
     {
-        if (!$this->hasCycleData()) {
+        if (! $this->hasCycleData()) {
             return null;
         }
 
@@ -114,7 +140,7 @@ final class HomeContext
 
     public function dailyLog(): ?DailyHealthLog
     {
-        if (!$this->dailyLogLoaded) {
+        if (! $this->dailyLogLoaded) {
             $this->dailyLog = $this->user->dailyHealthLogs()
                 ->whereDate('log_date', $this->date)
                 ->first();
@@ -131,9 +157,25 @@ final class HomeContext
      */
     public function recentLogs(int $days = 7): Collection
     {
-        return $this->recentLogsByWindow[$days] ??= $this->user->dailyHealthLogs()
-            ->whereDate('log_date', '>=', $this->date->copy()->subDays($days - 1))
-            ->whereDate('log_date', '<=', $this->date)
+        return $this->recentLogsByWindow[$days] ??= $this->logsBetween(
+            $this->date->copy()->subDays($days - 1),
+            $this->date
+        );
+    }
+
+    /**
+     * Logs in an arbitrary inclusive date window, ordered ascending. Used by
+     * sections that compare a window against the one before it.
+     *
+     * @return Collection<int, DailyHealthLog>
+     */
+    public function logsBetween(Carbon $from, Carbon $to): Collection
+    {
+        $key = $from->toDateString().'..'.$to->toDateString();
+
+        return $this->logsByRange[$key] ??= $this->user->dailyHealthLogs()
+            ->whereDate('log_date', '>=', $from)
+            ->whereDate('log_date', '<=', $to)
             ->orderBy('log_date')
             ->get();
     }
@@ -151,6 +193,26 @@ final class HomeContext
     }
 
     /**
+     * Per-cycle facts (real length and bleed duration of each recorded cycle)
+     * derived from that same history. Memoized — several sections read it.
+     */
+    public function cycleHistoryDigest(): CycleHistoryDigest
+    {
+        return $this->cycleHistoryDigest ??= CycleHistoryDigest::fromHistories($this->cycleHistories());
+    }
+
+    /**
+     * The engine's three-layer cycle metrics (effective length/duration,
+     * regularity, variability spread) for this user. Sections use it so the
+     * numbers they show are the ones predictions were actually built from.
+     */
+    public function cycleMetrics(): CycleMetrics
+    {
+        return $this->cycleMetrics ??= (new CycleMetricsCalculator)
+            ->calculate($this->cycleHistories(), $this->profile);
+    }
+
+    /**
      * Unified MessageSystem result (Layer 1-4 + supplements), or null if it
      * cannot be produced. Failures are swallowed so message issues never break
      * the whole page.
@@ -164,7 +226,7 @@ final class HomeContext
         $this->messagesLoaded = true;
 
         try {
-            if ($this->isCycleMode() && !$this->hasCycleData()) {
+            if ($this->isCycleMode() && ! $this->hasCycleData()) {
                 return $this->messages = null;
             }
 

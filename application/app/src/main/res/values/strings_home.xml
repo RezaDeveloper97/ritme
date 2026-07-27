@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Home header (web HomeHeader: elongated brand + tagline, bare icons) -->
+    <string name="home_header_title">ریـــــتمی</string>
+    <string name="home_header_tagline">همراه سلامتی شما</string>
+
+    <!-- Hero: which day the info card reflects (web selectedDay.*) -->
+    <string name="home_selected_today">اطلاعات امروز</string>
+    <string name="home_selected_date">اطلاعات %1$s</string>
+
+    <!-- Hero: next-period + phase ring (web nextPeriod.*) -->
+    <string name="home_next_period_start">پریود بعدی شروع می‌شود در %1$s</string>
+    <string name="home_current_phase">فاز فعلی: %1$s</string>
+    <string name="home_current_phase_default">فاز فعلی: لوتیال</string>
+    <string name="home_fertility_short">باروری</string>
+    <string name="home_show_more">مشاهده‌ی بیشتر</string>
+    <string name="home_phase_desc">بدنت در حال آماده‌سازی برای شروع چرخه‌ی تازه است. در این مرحله ممکن است نوسان خلق‌و‌خو، خستگی یا حساسیت داشته باشی — مراقب خودت باش و کمی استراحت کن.</string>
+
+    <!-- Phase labels derived from the cycle phase (web home.phaseLabel.*) -->
+    <string name="home_phase_label_menstruation">قاعدگی</string>
+    <string name="home_phase_label_follicular">فولیکولار</string>
+    <string name="home_phase_label_ovulation">تخمک‌گذاری</string>
+    <string name="home_phase_label_luteal">لوتیال</string>
+
+    <!-- Calendar full-month toggle (web week.fullMonth) -->
+    <string name="home_full_month">ماه کامل</string>
+
+    <!-- Phase rows (web phases.* / pms.label) -->
+    <string name="home_phase_window">پنجره باروری</string>
+    <string name="home_phase_ovulation">تخمک گذاری</string>
+    <string name="home_phase_pms">دوره PMS</string>
+    <string name="home_phase_next_period">پریود بعدی در</string>
+
+    <!-- Recommendations fallback items (web recommendations.*) -->
+    <string name="home_reco_iron">مصرف آهن</string>
+    <string name="home_reco_iron_desc">امروز غذاهای غنی از آهن بخورید</string>
+    <string name="home_reco_omega">مصرف امگا ۳</string>
+    <string name="home_reco_omega_desc">امروز غذاهای غنی از امگا بخورید</string>
+
+    <!-- Smart-tip fallback body/quote (web smartTip.body / smartTip.quote) -->
+    <string name="home_smarttip_body">در فاز لوتئال، بدنت به مراقبت بیشتری نیاز دارد. غلات کامل و سبزیجات را فراموش نکن.</string>
+    <string name="home_smarttip_quote">هر روز فرصتی تازه برای مراقبت از خودت است.</string>
+
+    <!-- Section "view all" action (web weekSummary.viewAll / todayStatus.viewAll) -->
+    <string name="home_view_all">مشاهده کامل</string>
+
+    <!-- My cycles (web cycles.*) -->
+    <string name="home_cycles_current_day">سیکل فعلی: روز %1$s</string>
+    <string name="home_cycles_current_day_default">سیکل فعلی: روز ۱</string>
+    <string name="home_cycles_started_on">شروع شده در %1$s</string>
+    <string name="home_cycles_add_previous">ثبت سیکل‌های قبلی</string>
+
+    <!-- Day-tasks interactive planner (web dayTasks.*) -->
+    <string name="home_daytasks_type_doctor">دکتر</string>
+    <string name="home_daytasks_type_medication">دارو</string>
+    <string name="home_daytasks_delete">حذف</string>
+
+</resources>

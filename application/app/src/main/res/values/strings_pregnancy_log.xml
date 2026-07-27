@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Pregnancy log — input placeholders (mirror the web NumberField / time-input hints). -->
+    <string name="preg_weight_placeholder">۶۵</string>
+    <string name="preg_count_placeholder">۱۰</string>
+    <string name="preg_time_placeholder">--:--</string>
+</resources>

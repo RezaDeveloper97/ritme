@@ -11,15 +11,15 @@ type T = ReturnType<typeof useTranslations>;
 // Presentation-only icon + accent per content module (a UI concern, kept out of
 // the entity model).
 const MODULE_STYLE: Record<ContentModuleKey, { icon: IconName; color: string }> = {
-  fetalDevelopment: { icon: 'heart', color: '#E9276E' },
-  motherBodyChanges: { icon: 'sparkle', color: '#A91EE9' },
-  bodyAdaptation: { icon: 'refresh', color: '#5B6BE1' },
-  emotionalStatus: { icon: 'smile', color: '#E9662E' },
-  keyNutrition: { icon: 'glass', color: '#22B07D' },
-  physicalActivity: { icon: 'walk', color: '#0E9C8A' },
-  dosAndDonts: { icon: 'checkCircle', color: '#2E9BE9' },
-  carePlan: { icon: 'stetho', color: '#E91E63' },
-  testsAndCheckups: { icon: 'chart', color: '#6D7A87' },
+  fetalDevelopment: { icon: 'heart', color: 'var(--rose)' },
+  motherBodyChanges: { icon: 'sparkle', color: 'var(--violet)' },
+  bodyAdaptation: { icon: 'refresh', color: 'var(--indigo-deep)' },
+  emotionalStatus: { icon: 'smile', color: 'var(--orange)' },
+  keyNutrition: { icon: 'glass', color: 'var(--green)' },
+  physicalActivity: { icon: 'walk', color: 'var(--teal)' },
+  dosAndDonts: { icon: 'checkCircle', color: 'var(--blue)' },
+  carePlan: { icon: 'stetho', color: 'var(--brand)' },
+  testsAndCheckups: { icon: 'chart', color: 'var(--muted)' },
 };
 
 function AccordionItem({

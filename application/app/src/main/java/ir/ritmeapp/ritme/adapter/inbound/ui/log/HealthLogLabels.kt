@@ -2,6 +2,8 @@ package ir.ritmeapp.ritme.adapter.inbound.ui.log
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.compose.runtime.Immutable
+import androidx.compose.ui.graphics.Color
 import ir.ritmeapp.ritme.R
 import ir.ritmeapp.ritme.domain.model.HealthLogCategory
 import ir.ritmeapp.ritme.domain.model.HealthLogField
@@ -49,12 +51,86 @@ internal fun HealthLogCategory.iconRes(): Int = when (this) {
     HealthLogCategory.DIGESTION -> R.drawable.ic_glass
     HealthLogCategory.MOOD -> R.drawable.ic_smile
     HealthLogCategory.SLEEP -> R.drawable.ic_moon
-    HealthLogCategory.BODY -> R.drawable.ic_user
+    HealthLogCategory.BODY -> R.drawable.ic_sparkle
     HealthLogCategory.DISCHARGE -> R.drawable.ic_drop
     HealthLogCategory.INTIMATE -> R.drawable.ic_shield
     HealthLogCategory.SEXUAL -> R.drawable.ic_heart
     HealthLogCategory.MEASURE -> R.drawable.ic_thermo
     HealthLogCategory.NOTES -> R.drawable.ic_pencil
+}
+
+/** A category card's icon color plus its soft circular background (mirrors web `CATEGORY_STYLE`). */
+@Immutable
+internal data class CategoryPalette(val icon: Color, val soft: Color)
+
+/**
+ * The per-category color pair the web assigns each log section. Color is a UI concern, so it lives
+ * here rather than in the locale-free domain. These hexes mirror `CATEGORY_STYLE` in the web
+ * `LogPage`; most are one-off accents with no design token yet.
+ */
+internal fun HealthLogCategory.palette(): CategoryPalette = when (this) {
+    // TODO token: mirror the web CATEGORY_STYLE hexes; promote to design tokens when available.
+    HealthLogCategory.BLEEDING -> CategoryPalette(Color(0xFFE91E63), Color(0xFFFCE7F3))
+    HealthLogCategory.PAIN -> CategoryPalette(Color(0xFFF5A623), Color(0xFFFEF3C6))
+    HealthLogCategory.DIGESTION -> CategoryPalette(Color(0xFF22B07D), Color(0xFFE7F8EF))
+    HealthLogCategory.MOOD -> CategoryPalette(Color(0xFFA91EE9), Color(0xFFF5E9FE))
+    HealthLogCategory.SLEEP -> CategoryPalette(Color(0xFF5B6BE1), Color(0xFFEAECFF))
+    HealthLogCategory.BODY -> CategoryPalette(Color(0xFFE9662E), Color(0xFFFDEBE2))
+    HealthLogCategory.DISCHARGE -> CategoryPalette(Color(0xFF2E9BE9), Color(0xFFE3F1FD))
+    HealthLogCategory.INTIMATE -> CategoryPalette(Color(0xFF0E9C8A), Color(0xFFDFF5F1))
+    HealthLogCategory.SEXUAL -> CategoryPalette(Color(0xFFE9276E), Color(0xFFFDE4EE))
+    HealthLogCategory.MEASURE -> CategoryPalette(Color(0xFF6D7A87), Color(0xFFEDF0F3))
+    HealthLogCategory.NOTES -> CategoryPalette(Color(0xFF707983), Color(0xFFEFF2F4))
+}
+
+/**
+ * The field render order inside a category's sheet, matching the web `LOG_CATEGORIES` config
+ * exactly. The domain enum's grouping order differs for a few categories, so the UI layer owns
+ * display order (it can't touch the locale-free domain catalog).
+ */
+internal fun HealthLogCategory.orderedFields(): List<HealthLogField> = when (this) {
+    HealthLogCategory.BLEEDING -> listOf(
+        HealthLogField.BLEEDING_INTENSITY, HealthLogField.BLOOD_COLOR, HealthLogField.BLEEDING_SMELL,
+        HealthLogField.HAS_CLOTS, HealthLogField.SPOTTING,
+    )
+
+    HealthLogCategory.PAIN -> listOf(
+        HealthLogField.HEADACHE, HealthLogField.STOMACH_ACHE, HealthLogField.PELVIC_PAIN,
+        HealthLogField.OVARIAN_PAIN, HealthLogField.BACK_PAIN, HealthLogField.BREAST_PAIN,
+        HealthLogField.BREAST_SENSITIVITY, HealthLogField.NAUSEA, HealthLogField.BLOATING,
+    )
+
+    HealthLogCategory.DIGESTION -> listOf(
+        HealthLogField.APPETITE_CHANGE, HealthLogField.FOOD_CRAVING,
+        HealthLogField.DIARRHEA, HealthLogField.CONSTIPATION,
+    )
+
+    HealthLogCategory.MOOD -> listOf(HealthLogField.MOODS)
+
+    HealthLogCategory.SLEEP -> listOf(HealthLogField.SLEEP_DURATION, HealthLogField.SLEEP_QUALITY)
+
+    HealthLogCategory.BODY -> listOf(
+        HealthLogField.FATIGUE, HealthLogField.DIZZINESS, HealthLogField.HOT_FLASHES,
+        HealthLogField.CHILLS, HealthLogField.SWELLING, HealthLogField.ACNE,
+        HealthLogField.OILY_SKIN, HealthLogField.HAIR_LOSS,
+    )
+
+    HealthLogCategory.DISCHARGE -> listOf(
+        HealthLogField.DISCHARGE_TEXTURE, HealthLogField.DISCHARGE_AMOUNT, HealthLogField.DISCHARGE_SMELL,
+        HealthLogField.DISCHARGE_ITCHING, HealthLogField.DISCHARGE_BURNING,
+    )
+
+    HealthLogCategory.INTIMATE -> listOf(
+        HealthLogField.URINATION_CHANGE, HealthLogField.URINATION_BURNING, HealthLogField.FREQUENT_URINATION,
+        HealthLogField.VAGINAL_DRYNESS, HealthLogField.VAGINAL_BURNING, HealthLogField.VAGINAL_ITCHING,
+        HealthLogField.VAGINAL_SMELL_CHANGE,
+    )
+
+    HealthLogCategory.SEXUAL -> listOf(HealthLogField.SEXUAL_ACTIVITIES)
+
+    HealthLogCategory.MEASURE -> listOf(HealthLogField.WEIGHT, HealthLogField.BASAL_BODY_TEMPERATURE)
+
+    HealthLogCategory.NOTES -> listOf(HealthLogField.NOTES)
 }
 
 @StringRes

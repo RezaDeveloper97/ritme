@@ -66,7 +66,7 @@ export function PregnancyBasisPage() {
   };
 
   return (
-    <div className="view" style={{ background: '#fff' }}>
+    <div className="view" style={{ background: 'var(--surface)' }}>
       <div className="hdr">
         <NavBack onClick={() => router.back()} />
         <span className="stepcount">{faNum(step.index)}<span style={{ opacity: .5 }}> / {faNum(step.total)}</span></span>
@@ -94,8 +94,8 @@ export function PregnancyBasisPage() {
                   borderRadius: 16,
                   textAlign: 'start',
                   cursor: 'pointer',
-                  border: `2px solid ${on ? 'var(--ritme-pink, #FB64B6)' : '#EBEEF2'}`,
-                  background: on ? '#FFF0F7' : '#fff',
+                  border: `2px solid ${on ? 'var(--pink)' : 'var(--line-2)'}`,
+                  background: on ? 'var(--surface-2)' : 'var(--surface)',
                   transition: '.18s',
                 }}
               >
@@ -103,16 +103,16 @@ export function PregnancyBasisPage() {
                   style={{
                     flex: '0 0 auto', width: 22, height: 22, borderRadius: '50%', marginTop: 1,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: on ? 'var(--ritme-pink, #FB64B6)' : '#EBEEF2', color: '#fff',
+                    background: on ? 'var(--pink)' : 'var(--line-2)', color: 'var(--on-accent)',
                   }}
                 >
                   {on && <Icon name="check" size={14} />}
                 </span>
                 <span>
-                  <span style={{ display: 'block', fontSize: 14.5, fontWeight: 800, color: on ? 'var(--ritme-pink, #FB64B6)' : 'var(--ink)' }}>
+                  <span style={{ display: 'block', fontSize: 14.5, fontWeight: 800, color: on ? 'var(--pink)' : 'var(--ink)' }}>
                     {t(`pregnancyBasis.source.${src}`)}
                   </span>
-                  <span style={{ display: 'block', fontSize: 12, color: 'var(--muted, #8A94A0)', marginTop: 3 }}>
+                  <span style={{ display: 'block', fontSize: 12, color: 'var(--muted)', marginTop: 3 }}>
                     {t(`pregnancyBasis.sourceHint.${src}`)}
                   </span>
                 </span>
@@ -150,12 +150,12 @@ export function PregnancyBasisPage() {
           </div>
         )}
 
-        <p className="sub" style={{ margin: '18px 0 0', fontSize: 12, color: 'var(--muted, #8A94A0)', lineHeight: 1.7 }}>
+        <p className="sub" style={{ margin: '18px 0 0', fontSize: 12, color: 'var(--muted)', lineHeight: 1.7 }}>
           {t('pregnancyBasis.note')}
         </p>
 
         {error && (
-          <p style={{ color: 'var(--ritme-pink, #FB64B6)', fontSize: 12.5, fontWeight: 700, textAlign: 'center', margin: '12px 0 0' }}>{error}</p>
+          <p style={{ color: 'var(--pink)', fontSize: 12.5, fontWeight: 700, textAlign: 'center', margin: '12px 0 0' }}>{error}</p>
         )}
 
         <div style={{ height: 12 }} />

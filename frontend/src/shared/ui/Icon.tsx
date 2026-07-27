@@ -7,7 +7,7 @@ export type IconName =
   | 'book' | 'alarm' | 'pill' | 'flame' | 'info' | 'x'
   | 'user' | 'chart' | 'grid' | 'arrowL' | 'refresh'
   | 'walk' | 'thermo' | 'glass' | 'stetho'
-  | 'home' | 'bookOpen'
+  | 'home' | 'bookOpen' | 'apple' | 'brain'
   | 'globe' | 'shield' | 'logout' | 'download' | 'trash';
 
 const PATHS: Record<IconName, string> = {
@@ -48,6 +48,8 @@ const PATHS: Record<IconName, string> = {
   shield:       '<path d="M12 3l7 3v5c0 4.4-3 8.2-7 10-4-1.8-7-5.6-7-10V6z"/><path d="M9.2 12l2 2 3.6-4"/>',
   logout:       '<path d="M15 3h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-3"/><path d="M10 17l5-5-5-5M15 12H3"/>',
   download:     '<path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 20h16"/>',
+  apple:        '<path d="M12 8c-1.2-1-2.6-1.4-4-1-2 .6-3 2.7-3 5.2 0 3.6 2.3 8 4.6 8 .9 0 1.6-.4 2.4-.4s1.5.4 2.4.4c2.3 0 4.6-4.4 4.6-8 0-2.5-1-4.6-3-5.2-1.4-.4-2.8 0-4 1z"/><path d="M12 8c0-2.2 1.3-4 3.5-4.5"/>',
+  brain:        '<path d="M9.5 4a2.5 2.5 0 0 0-2.4 3.2A2.6 2.6 0 0 0 5 9.8c0 .9.4 1.7 1.1 2.2A2.6 2.6 0 0 0 5.4 14c0 1.2.8 2.2 2 2.5A2.5 2.5 0 0 0 12 18V5.9A2 2 0 0 0 9.5 4z"/><path d="M14.5 4a2.5 2.5 0 0 1 2.4 3.2A2.6 2.6 0 0 1 19 9.8c0 .9-.4 1.7-1.1 2.2.4.5.7 1.2.7 2 0 1.2-.8 2.2-2 2.5A2.5 2.5 0 0 1 12 18"/>',
   trash:        '<path d="M4 7h16M9 7V5a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 5v2M6 7l1 12.5A1.5 1.5 0 0 0 8.5 21h7a1.5 1.5 0 0 0 1.5-1.5L18 7"/>',
 };
 

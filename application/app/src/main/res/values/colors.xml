@@ -36,10 +36,43 @@
     <color name="ritme_ovulation_container">#FFE7F8EF</color><!-- ovulation day bg -->
     <color name="ritme_violet_container">#FFF3E8FF</color>   <!-- PMS chip bg -->
 
+    <!-- ============================================================
+         Extended tokens mirroring specific web gradients / phase colors
+         (globals.css + screen inline styles). Added centrally so screens
+         read them via LocalRitmeColors, never a raw hex. See ritme-brand.
+         ============================================================ -->
+    <!-- Gradient stops -->
+    <color name="ritme_violet_grad">#FFBA68C8</color>       <!-- orchid gradient end: splash/hero/FAB/tab underline (web #BA68C8) -->
+    <color name="ritme_home_grad_start">#FFFFE5EA</color>   <!-- home backdrop top (web .home-grad start) -->
+    <color name="ritme_home_grad_end">#FFCFF9EB</color>     <!-- home backdrop bottom, mint (web .home-grad end) -->
+    <color name="ritme_tab_active_end">#FFFAF5FF</color>    <!-- active-tab bg lavender end (web .tab.on) -->
+    <!-- Neutrals / accents -->
+    <color name="ritme_steel">#FF58636E</color>            <!-- inactive tab icon / .btn-soft label (web #58636E/steel) -->
+    <color name="ritme_green_dot">#FF34C77B</color>        <!-- ovulation / recommendation accent (web green-dot #34C77B) -->
+    <color name="ritme_phase_pink">#FFF96C9C</color>       <!-- hero phase-explanation box pink (web #F96C9C) -->
+    <!-- Extra phase container(s) not already present -->
+    <color name="ritme_mint_container">#FFF0FDFA</color>   <!-- ovulation tile bg (web #F0FDFA) -->
+    <!-- Today-status "normal" chip (web #D0FBFF / #478F96) -->
+    <color name="ritme_cyan_container">#FFD0FBFF</color>
+    <color name="ritme_cyan_ink">#FF478F96</color>
+    <!-- Ruler picker tick marks (web .tk .line #D5DBE2 minor / #9AA4AF major) -->
+    <color name="ritme_tick_minor">#FFD5DBE2</color>
+    <color name="ritme_tick_major">#FF9AA4AF</color>
+    <!-- Button / field shades (web .btn-primary border #FE87B0, disabled #F4D4E1;
+         .btn-ghost border #FAD5E6; field placeholder #A9B2BC) -->
+    <color name="ritme_pink_border">#FFFE87B0</color>
+    <color name="ritme_pink_disabled">#FFF4D4E1</color>
+    <color name="ritme_pink_ghost_border">#FFFAD5E6</color>
+    <color name="ritme_placeholder">#FFA9B2BC</color>
+
     <!-- Dark theme -->
     <color name="ritme_background_dark">#FF0D141B</color>
     <color name="ritme_surface_dark">#FF16202A</color>
     <color name="ritme_ink_dark">#FFECF1F6</color>
+
+    <!-- Pre-Compose window background. Light-only (no values-night variant) so the very
+         first frame matches the web's light-only appearance even on a dark device. -->
+    <color name="ritme_window_bg">#FFEFF2F4</color>
 
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>

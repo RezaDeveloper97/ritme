@@ -52,7 +52,7 @@ export function PregnancyLogPage({ initialTab }: { initialTab?: string }) {
                   fontSize: 12.5,
                   fontWeight: 700,
                   background: tab === tb ? 'var(--brand)' : 'transparent',
-                  color: tab === tb ? '#fff' : 'var(--muted)',
+                  color: tab === tb ? 'var(--on-accent)' : 'var(--muted)',
                 }}
               >
                 {t(`log.tabs.${tb}`)}

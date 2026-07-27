@@ -16,6 +16,7 @@ function makeCalc(overrides: Partial<CycleCalculation> = {}): CycleCalculation {
     isPeriodTomorrow: false,
     fertilityPercent: 19.89,
     cycleVariability: 'regular',
+    dailyTips: [],
     ...overrides,
   };
 }

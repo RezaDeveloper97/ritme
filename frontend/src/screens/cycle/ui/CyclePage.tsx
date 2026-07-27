@@ -26,11 +26,11 @@ type T = ReturnType<typeof useTranslations>;
 // reads the same everywhere. Follicular/luteal are the calm "between events"
 // violet; the active phases keep their signal colors.
 const PHASE_COLOR: Record<CyclePhase, { c: string; bg: string }> = {
-  period: { c: '#E91E63', bg: '#FCE7F3' },
-  follicular: { c: '#7C7CF0', bg: '#F3F0FF' },
-  fertile: { c: '#F5A623', bg: '#FEF3C6' },
-  ovulation: { c: '#34C77B', bg: '#E7F8EF' },
-  luteal: { c: '#7C7CF0', bg: '#F3F0FF' },
+  period: { c: 'var(--brand)', bg: 'var(--pink-bg)' },
+  follicular: { c: 'var(--indigo)', bg: 'var(--indigo-soft)' },
+  fertile: { c: 'var(--amber)', bg: 'var(--amber-soft)' },
+  ovulation: { c: 'var(--green-dot)', bg: 'var(--green-tint)' },
+  luteal: { c: 'var(--indigo)', bg: 'var(--indigo-soft)' },
 };
 
 const clampPct = (v: number) => Math.min(100, Math.max(0, v));
@@ -91,7 +91,7 @@ function CycleStatusCard({
     <div style={{ padding: '2px 16px 0' }}>
       <div
         className="card"
-        style={{ padding: '18px 16px', background: 'linear-gradient(135deg,#FFFFFF 0%,#FFF6FA 100%)' }}
+        style={{ padding: '18px 16px', background: 'linear-gradient(135deg,var(--surface) 0%,var(--surface-2) 100%)' }}
       >
         <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--brand)', textAlign: 'start', marginBottom: 14 }}>
           {t('basedOn')}
@@ -114,7 +114,7 @@ function CycleStatusCard({
                 position: 'absolute',
                 inset: 9,
                 borderRadius: '50%',
-                background: '#fff',
+                background: 'var(--surface)',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
@@ -141,7 +141,7 @@ function CycleStatusCard({
             </div>
 
             <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-              <div style={{ flex: 1, background: '#FFF1F7', borderRadius: 12, padding: '8px 10px' }}>
+              <div style={{ flex: 1, background: 'var(--surface-2)', borderRadius: 12, padding: '8px 10px' }}>
                 <div style={{ fontSize: 10, color: 'var(--muted)', fontWeight: 600 }}>{t('status.fertility')}</div>
                 <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--brand)', marginTop: 2 }}>
                   {t('percent', { n: pred.fertilityPercent })}
@@ -154,7 +154,7 @@ function CycleStatusCard({
         {/* Fertile-window / PMS status line, only when relevant. */}
         {(pred.isFertileWindow || calc.isPmsWindow) && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 14, background: 'var(--line)', borderRadius: 12, padding: '9px 12px' }}>
-            <span style={{ color: pred.isFertileWindow ? '#F5A623' : '#7C7CF0' }}>
+            <span style={{ color: pred.isFertileWindow ? 'var(--amber)' : 'var(--indigo)' }}>
               <Icon name="info" size={16} />
             </span>
             <span style={{ flex: 1, textAlign: 'start', fontSize: 12, fontWeight: 700, color: 'var(--ink)' }}>
@@ -202,9 +202,9 @@ function CycleTimeline({
   const todayPos = at(pred.cycleDay);
 
   const rows = [
-    { l: t('timeline.window'), d: windowDate, c: '#F5A623', bg: '#FEF3C6' },
-    { l: t('timeline.ovulation'), d: ovulationDate, c: '#34C77B', bg: '#E7F8EF' },
-    { l: t('timeline.nextPeriod'), d: nextPeriodDate, c: '#E91E63', bg: '#FCE7F3' },
+    { l: t('timeline.window'), d: windowDate, c: 'var(--amber)', bg: 'var(--amber-soft)' },
+    { l: t('timeline.ovulation'), d: ovulationDate, c: 'var(--green-dot)', bg: 'var(--green-tint)' },
+    { l: t('timeline.nextPeriod'), d: nextPeriodDate, c: 'var(--brand)', bg: 'var(--pink-bg)' },
   ];
 
   return (
@@ -222,14 +222,14 @@ function CycleTimeline({
             style={{
               position: 'absolute', top: 0, bottom: 0,
               left: `${at(fertileStart)}%`, width: `${at(ovulation + 1) - at(fertileStart)}%`,
-              background: '#FEF3C6', borderRadius: 99,
+              background: 'var(--amber-soft)', borderRadius: 99,
             }}
           />
           {/* Progress up to today */}
           <span
             style={{
               position: 'absolute', top: 0, bottom: 0, left: 0, width: `${todayPos}%`,
-              background: 'linear-gradient(90deg,#F06292,#E91E63)', borderRadius: 99, opacity: 0.85,
+              background: 'linear-gradient(90deg,var(--blush),var(--brand))', borderRadius: 99, opacity: 0.85,
             }}
           />
           {/* Ovulation tick */}
@@ -237,7 +237,7 @@ function CycleTimeline({
             style={{
               position: 'absolute', top: '50%', left: `${at(ovulation)}%`,
               width: 10, height: 10, marginTop: -5, marginLeft: -5,
-              borderRadius: '50%', background: '#34C77B', border: '2px solid #fff',
+              borderRadius: '50%', background: 'var(--green-dot)', border: '2px solid var(--surface)',
             }}
           />
           {/* Today marker */}
@@ -331,7 +331,7 @@ function MyCycles({
           {t('cycles.title')}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 2px 14px' }}>
-          <span className="dot" style={{ width: 40, height: 40, background: '#FCE7F3', color: 'var(--brand)' }}>
+          <span className="dot" style={{ width: 40, height: 40, background: 'var(--pink-bg)', color: 'var(--brand)' }}>
             <DropSolid size={18} color="var(--brand)" />
           </span>
           <div style={{ textAlign: 'start' }}>
@@ -364,8 +364,8 @@ function SmartTip({ t, body, quote }: { t: T; body: string; quote: string }) {
           {t('smartTip.title')}
         </div>
         <p className="sub" style={{ textAlign: 'start', margin: '0 2px 14px' }}>{body}</p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'linear-gradient(90deg,#FFF0F7,#F3F0FF)', borderRadius: 12, padding: 12 }}>
-          <span style={{ color: 'var(--ritme-pink)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'linear-gradient(90deg,var(--surface-2),var(--indigo-soft))', borderRadius: 12, padding: 12 }}>
+          <span style={{ color: 'var(--pink)' }}>
             <Icon name="sparkle" size={20} fill="currentColor" strokeWidth={0} />
           </span>
           <span style={{ flex: 1, textAlign: 'start', fontSize: 12.5, fontWeight: 700, color: 'var(--ink)' }}>
@@ -383,7 +383,7 @@ function EmptyState({ t }: { t: T }) {
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, padding: 24 }}>
       <span
         style={{
-          width: 72, height: 72, borderRadius: '50%', background: '#fff', color: 'var(--brand)',
+          width: 72, height: 72, borderRadius: '50%', background: 'var(--surface)', color: 'var(--brand)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           boxShadow: '0 10px 30px rgba(17,32,47,.08)',
         }}

@@ -3,6 +3,7 @@ package ir.ritmeapp.ritme.adapter.inbound.ui.home
 import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,11 +11,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -83,15 +82,16 @@ fun BannerSlideshow(
             }
         }
         if (banners.size > 1) {
-            Spacer(Modifier.height(6.dp))
-            Row(Modifier.align(Alignment.CenterHorizontally)) {
+            Spacer(Modifier.height(10.dp))
+            Row(Modifier.align(Alignment.CenterHorizontally), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 repeat(banners.size) { index ->
+                    val active = index == pagerState.currentPage
                     Box(
                         Modifier
-                            .padding(horizontal = 3.dp)
-                            .size(if (index == pagerState.currentPage) 8.dp else 6.dp)
-                            .clip(CircleShape)
-                            .background(if (index == pagerState.currentPage) colors.pink else colors.outline),
+                            .height(8.dp)
+                            .width(if (active) 20.dp else 8.dp)
+                            .clip(RoundedCornerShape(99.dp))
+                            .background(if (active) colors.pink else colors.outline),
                     )
                 }
             }

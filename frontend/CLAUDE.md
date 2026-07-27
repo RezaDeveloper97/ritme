@@ -282,10 +282,19 @@ npm run lint         # ESLint
 npm run typecheck    # tsc --noEmit
 npm run test         # unit tests (domain logic, date layer)
 npm run fsd:lint     # FSD boundary check (e.g. steiger ./src)  ← run before done
+npm run lint:styles  # style gate: no static style props / hex / unknown vars (§10.1)
+npm run lint:styles:accept   # re-baseline after you REDUCE violations
 ```
 
-**Definition of done for any change:** `typecheck`, `lint`, and `fsd:lint` all
-pass, and new domain logic has tests.
+**Definition of done for any change:** `typecheck`, `lint`, `fsd:lint` and
+`lint:styles` all pass, and new domain logic has tests.
+
+`lint:styles` is a **ratchet**: `scripts/styles-baseline.json` records the
+violations each file still carries, and the gate fails only when a file goes
+*above* its baseline. So legacy screens don't block you, but a clean file (like
+`screens/home`) can never regress. When you clean a file up, run
+`lint:styles:accept` to lock the lower number in. A `PostToolUse` hook
+(`.claude/hooks/style-gate.sh`) runs the same check on every `.tsx` write.
 
 ---
 
@@ -296,14 +305,63 @@ pass, and new domain logic has tests.
   the two roles separate so UI stays reusable and testable.
 - **Naming:** components `PascalCase`, hooks `useX`, files for components match
   the component name. Slices and segments are `kebab-case` folders.
-- **Styling:** Tailwind only, and **logical utilities** (`ms-4`, `pe-2`,
-  `text-start`, `inset-inline-start-0`). See §12 — hardcoded `left`/`right`
-  breaks RTL and is a bug here.
+- **Styling:** classes in `src/app/globals.css` — **never a `style` prop.** See
+  §10.1. Use **logical properties** everywhere (`margin-inline-start`,
+  `inset-inline-start`, `text-align: start`); hardcoded `left`/`right` breaks
+  RTL and is a bug here (§12).
+- **Colours:** always a CSS variable from the `:root` block in `globals.css`
+  (`var(--brand)`, `var(--muted-2)`, `var(--pink-bg)`). **Never a hex literal.**
+  A hex bypasses the `[data-theme="dark"]` overrides, so it silently breaks dark
+  mode — the single most common visual bug this codebase has had. If no token
+  fits, add one to *both* `:root` and `[data-theme="dark"]` first.
 - **Types:** prefer explicit return types on exported functions; model domain
   shapes as `type`/`interface` in the entity's `model/`. Validate external data
   (API responses, form input) with `zod` at the boundary.
 - **No barrel imports across layers** except a slice's own `index.ts` (§3.3).
 - **Comments:** explain *why*, not *what*. The architecture explains the *what*.
+
+### 10.1 No inline styles
+
+`style={{ … }}` is **not** how this app is styled. Every static rule belongs in
+a class in `src/app/globals.css`.
+
+Why this is a hard rule and not a preference:
+
+- **`:hover`, `:focus-visible`, `:disabled`, `:not(:last-child)` and media
+  queries cannot be expressed inline at all.** The app shipped with almost no
+  keyboard focus affordance purely because of this — an accessibility defect,
+  not a style opinion.
+- A `style` object is a **new object identity on every render**, so it defeats
+  `React.memo` on any child that receives it.
+- Inline styles **re-ship in every HTML response** instead of being cached once
+  as CSS, and they force `style-src 'unsafe-inline'` in the CSP.
+- The same card/pill/row gets **re-typed in each screen** and then drifts.
+
+**The one allowed exception: a value that comes from data.** A marker colour, a
+percentage offset, a gradient angle — anything the component cannot know until
+it has the data. Keep the geometry in the class and pass only the datum:
+
+```tsx
+// ✅ correct — class holds the shape, inline holds the datum
+<span className="home-bar-fill" style={{ width: `${todayPos}%` }} />
+
+// ❌ wrong — static geometry inlined
+<span style={{ position: 'absolute', top: 0, bottom: 0, left: 0,
+               borderRadius: 99, width: `${todayPos}%` }} />
+```
+
+Prefer a **modifier class** over a conditional inline value when the states are
+known up front (`is-open`, `is-loading`, `has-action`), and prefer driving
+visuals from an ARIA attribute you already set — e.g.
+`.toggle[aria-expanded="true"] .chev { transform: rotate(180deg); }` — so the
+state is declared once.
+
+`src/screens/home/ui/HomePage.tsx` is the reference implementation: 110 inline
+style objects reduced to 13, all of them data-driven.
+
+**Enforcement:** `npm run lint:styles` fails on a static `style` prop or a hex
+literal. A `PostToolUse` hook runs it automatically on every `.tsx` write, and
+it is part of the definition of done (§9).
 
 ---
 
@@ -340,7 +398,14 @@ why.
   import (`shared` importing from `features`, etc.).
 - ❌ Hardcoded user-facing strings (bypassing `next-intl`).
 - ❌ Hardcoded `margin-left` / `right: 0` / `text-align: left` — use logical
-  properties / Tailwind logical utilities.
+  properties (`margin-inline-start`, `inset-inline-end`, `text-align: start`).
+- ❌ `style={{ … }}` for anything static — put it in a class (§10.1). Only a
+  value that comes from data may be inline.
+- ❌ Hex colour literals (`'#E91E63'`, `#fff`) anywhere in `src/` — use a token
+  from `globals.css`, or add one. A hex does not flip in dark mode.
+- ❌ `var(--some-name)` for a variable that isn't declared in `globals.css`.
+  It silently resolves to nothing: `color` inherits, `background` goes
+  transparent. This shipped to production once already.
 - ❌ Calling the date library or `Date` formatting directly outside
   `shared/lib/date`; showing Gregorian dates to users.
 - ❌ Putting server data into Zustand/`useState` instead of TanStack Query.

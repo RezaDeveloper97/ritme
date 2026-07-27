@@ -35,7 +35,7 @@ export function ConditionsPage() {
   const step = stepPosition('conditions', intention);
 
   return (
-    <div className="view" style={{ background: '#fff' }}>
+    <div className="view" style={{ background: 'var(--surface)' }}>
       <div className="hdr">
         <NavBack onClick={() => router.back()} />
         <span className="stepcount">{faNum(step.index)}<span style={{ opacity: .5 }}> / {faNum(step.total)}</span></span>
@@ -63,8 +63,8 @@ export function ConditionsPage() {
                   borderRadius: 14,
                   textAlign: 'start',
                   cursor: 'pointer',
-                  border: `2px solid ${on ? 'var(--ritme-pink, #FB64B6)' : '#EBEEF2'}`,
-                  background: on ? '#FFF0F7' : '#fff',
+                  border: `2px solid ${on ? 'var(--pink)' : 'var(--line-2)'}`,
+                  background: on ? 'var(--surface-2)' : 'var(--surface)',
                   transition: '.18s',
                 }}
               >
@@ -72,14 +72,14 @@ export function ConditionsPage() {
                   style={{
                     flex: '0 0 auto', width: 22, height: 22, borderRadius: 7,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: on ? 'var(--ritme-pink, #FB64B6)' : '#fff',
-                    border: `2px solid ${on ? 'var(--ritme-pink, #FB64B6)' : '#D8DEE5'}`,
-                    color: '#fff',
+                    background: on ? 'var(--pink)' : 'var(--surface)',
+                    border: `2px solid ${on ? 'var(--pink)' : 'var(--track)'}`,
+                    color: 'var(--on-accent)',
                   }}
                 >
                   {on && <Icon name="check" size={13} />}
                 </span>
-                <span style={{ fontSize: 14.5, fontWeight: 700, color: on ? 'var(--ritme-pink, #FB64B6)' : 'var(--ink)' }}>
+                <span style={{ fontSize: 14.5, fontWeight: 700, color: on ? 'var(--pink)' : 'var(--ink)' }}>
                   {t(`conditions.items.${c}`)}
                 </span>
               </button>

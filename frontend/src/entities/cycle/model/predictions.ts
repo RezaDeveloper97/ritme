@@ -5,10 +5,13 @@ import type { CycleCalculation, CycleDayMarker, CyclePhase, CyclePredictions } f
  * (`isInFertileWindow`: ovulation − 5 … ovulation + 1) so the label and the
  * calendar's fertile-colored cells agree.
  */
-const FERTILE_WINDOW_LEAD_DAYS = 5;
+export const FERTILE_WINDOW_LEAD_DAYS = 5;
+
+/** Days the fertile window stays open after ovulation (matches the backend). */
+export const FERTILE_WINDOW_TRAIL_DAYS = 1;
 
 /** Length of the PMS window (the run of days ending the day before next period). */
-const PMS_WINDOW_DAYS = 4;
+export const PMS_WINDOW_DAYS = 4;
 
 const KNOWN_PHASES: readonly CyclePhase[] = [
   'period',

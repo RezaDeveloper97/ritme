@@ -23,7 +23,7 @@ import { usePeriodHistory, useReconcilePeriods, type PeriodSegment } from '../ap
 
 const WEEKDAY_KEYS = ['sat', 'sun', 'mon', 'tue', 'wed', 'thu', 'fri'] as const;
 
-const PERIOD_COLOR = '#E91E63';
+const PERIOD_COLOR = 'var(--brand)';
 
 // Fallback bleed length when the profile hasn't recorded one — matches the
 // calendar so an open period pre-fills to the same span the user sees there.
@@ -243,7 +243,7 @@ export function PeriodDateEditor({ open, onClose, initialView, onSaved }: Period
                 justifyContent: 'center',
                 fontSize: 'clamp(9px, 2.6vw, 11px)',
                 fontWeight: 800,
-                color: isSelected ? '#fff' : 'transparent',
+                color: isSelected ? 'var(--on-accent)' : 'transparent',
                 background: isSelected ? PERIOD_COLOR : 'var(--surface)',
                 border: isSelected ? 'none' : '1.5px solid var(--line)',
               }}
@@ -274,7 +274,7 @@ export function PeriodDateEditor({ open, onClose, initialView, onSaved }: Period
       <div
         style={{
           background: 'linear-gradient(180deg, var(--brand-deep), var(--brand))',
-          color: '#fff',
+          color: 'var(--on-accent)',
           padding: '12px clamp(12px, 4vw, 18px) 0',
           flexShrink: 0,
         }}
@@ -289,7 +289,7 @@ export function PeriodDateEditor({ open, onClose, initialView, onSaved }: Period
               borderRadius: '50%',
               border: 'none',
               background: 'rgba(0,0,0,.18)',
-              color: '#fff',
+              color: 'var(--on-accent)',
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -392,7 +392,7 @@ export function PeriodDateEditor({ open, onClose, initialView, onSaved }: Period
               borderRadius: 999,
               border: 'none',
               background: 'var(--green)',
-              color: '#fff',
+              color: 'var(--on-accent)',
               fontFamily: 'inherit',
               fontSize: 'clamp(14px, 4vw, 16px)',
               fontWeight: 800,

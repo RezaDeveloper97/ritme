@@ -68,7 +68,7 @@ function Toggle({
         border: 0,
         padding: 0,
         flexShrink: 0,
-        background: on ? 'var(--brand)' : '#D6DBE0',
+        background: on ? 'var(--brand)' : 'var(--track)',
         cursor: disabled ? 'default' : 'pointer',
         opacity: disabled ? 0.55 : 1,
         transition: 'background .2s ease',
@@ -82,7 +82,7 @@ function Toggle({
           width: 22,
           height: 22,
           borderRadius: '50%',
-          background: '#fff',
+          background: 'var(--surface)',
           boxShadow: '0 1px 3px rgba(17,32,47,.25)',
           transition: 'inset-inline-start .2s ease',
         }}
@@ -196,7 +196,7 @@ function ReminderRow({
           aria-label={t('row.delete')}
           onClick={confirming ? onCancelDelete : onAskDelete}
           disabled={deletePending}
-          style={{ color: '#E5484D', flexShrink: 0, opacity: deletePending ? 0.55 : 1 }}
+          style={{ color: 'var(--danger)', flexShrink: 0, opacity: deletePending ? 0.55 : 1 }}
         >
           <Icon name={confirming ? 'x' : 'trash'} size={18} />
         </button>
@@ -227,7 +227,7 @@ function ReminderRow({
               fontWeight: 700,
               font: 'inherit',
               background: 'rgba(229,72,77,.1)',
-              color: '#E5484D',
+              color: 'var(--danger)',
               cursor: deletePending ? 'default' : 'pointer',
               opacity: deletePending ? 0.55 : 1,
             }}
@@ -387,7 +387,7 @@ function AddReminderForm({ onDone }: { onDone: () => void }) {
       ) : null}
 
       {failed ? (
-        <div style={{ fontSize: 13, color: '#E5484D', textAlign: 'start', marginBottom: 10 }}>
+        <div style={{ fontSize: 13, color: 'var(--danger)', textAlign: 'start', marginBottom: 10 }}>
           {t('form.error')}
         </div>
       ) : null}

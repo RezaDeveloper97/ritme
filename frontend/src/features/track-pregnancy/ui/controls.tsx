@@ -67,9 +67,9 @@ export function Chip({
       onClick={onClick}
       style={
         on && danger
-          ? { background: '#E5484D', borderColor: '#E5484D', color: '#fff' }
+          ? { background: 'var(--danger)', borderColor: 'var(--danger)', color: 'var(--on-accent)' }
           : danger
-            ? { borderColor: '#F3C5C7', color: '#C13438' }
+            ? { borderColor: 'var(--danger-line)', color: 'var(--danger-deep)' }
             : undefined
       }
     >
@@ -94,13 +94,13 @@ export function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
         cursor: 'pointer',
         padding: 3,
         flex: '0 0 auto',
-        background: on ? 'var(--brand)' : '#D8DEE5',
+        background: on ? 'var(--brand)' : 'var(--track)',
         display: 'flex',
         justifyContent: on ? 'flex-end' : 'flex-start',
         transition: 'background .15s',
       }}
     >
-      <span style={{ width: 22, height: 22, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 2px rgba(0,0,0,.2)' }} />
+      <span style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--on-accent)', boxShadow: '0 1px 2px rgba(0,0,0,.2)' }} />
     </button>
   );
 }
@@ -125,7 +125,7 @@ export function FieldRow({
         padding: '9px 0',
       }}
     >
-      <span style={{ fontSize: 13.5, fontWeight: 700, color: danger ? '#C13438' : 'var(--ink)', textAlign: 'start' }}>
+      <span style={{ fontSize: 13.5, fontWeight: 700, color: danger ? 'var(--danger-deep)' : 'var(--ink)', textAlign: 'start' }}>
         {label}
       </span>
       {children}

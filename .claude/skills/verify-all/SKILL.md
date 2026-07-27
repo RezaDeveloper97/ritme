@@ -1,6 +1,6 @@
 ---
 name: verify-all
-description: Run the full Ritme verification suite — backend tests+style, frontend typecheck+lint+FSD rules+unit tests — and report a pass/fail table. Use before commits and always before deploy.
+description: Run the full Ritme verification suite — backend tests+style, frontend typecheck+lint+FSD rules+style gate+unit tests — and report a pass/fail table. Use before commits and always before deploy.
 ---
 
 # Verify everything
@@ -14,8 +14,14 @@ cd backend && vendor/bin/pint --test && php artisan test
 
 ## Frontend
 ```bash
-cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run test
+cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run test
 ```
+
+`lint:styles` enforces CLAUDE.md §10.1 (no static `style` props, no hex colour
+literals, no `var(--x)` for an undeclared x). It is a ratchet against
+`frontend/scripts/styles-baseline.json`, so it only fails on a *regression*. If
+a file legitimately improved, run `npm run lint:styles:accept` to re-baseline —
+never re-baseline to silence a genuine new violation.
 
 If this is pre-deploy, also run `npm run build` in frontend — the production build catches errors dev mode doesn't, and a failed build wastes a full deploy cycle.
 

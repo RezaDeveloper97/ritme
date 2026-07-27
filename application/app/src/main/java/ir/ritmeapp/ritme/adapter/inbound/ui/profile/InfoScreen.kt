@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import ir.ritmeapp.ritme.R
 import ir.ritmeapp.ritme.adapter.inbound.ui.foundation.ScreenHeader
 import ir.ritmeapp.ritme.adapter.inbound.ui.foundation.SurfaceCard
@@ -99,21 +100,22 @@ fun InfoScreen(
     ) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            contentPadding = PaddingValues(start = 18.dp, end = 18.dp, top = 4.dp, bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             items(sections, key = { it.heading }) { section ->
                 SurfaceCard {
                     Text(
                         text = stringResource(section.heading),
-                        style = MaterialTheme.typography.titleSmall,
+                        style = MaterialTheme.typography.titleSmall.copy(fontSize = 14.5.sp),
                         color = colors.ink,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.ExtraBold,
                     )
-                    Spacer(Modifier.height(6.dp))
+                    Spacer(Modifier.height(8.dp))
+                    // Airy paragraph rhythm to match the web's lineHeight:2 on 13.5px body text.
                     Text(
                         text = stringResource(section.body),
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.5.sp, lineHeight = 27.sp),
                         color = colors.inkMuted,
                     )
                 }

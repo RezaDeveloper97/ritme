@@ -34,7 +34,7 @@ export function IntentionPage() {
   };
 
   return (
-    <div className="view" style={{ background: '#fff' }}>
+    <div className="view" style={{ background: 'var(--surface)' }}>
       <div className="hdr">
         <NavBack onClick={() => router.back()} />
         <span className="stepcount">{faNum(step.index)}<span style={{ opacity: .5 }}> / {faNum(step.total)}</span></span>
@@ -62,8 +62,8 @@ export function IntentionPage() {
                   borderRadius: 16,
                   textAlign: 'start',
                   cursor: 'pointer',
-                  border: `2px solid ${on ? 'var(--ritme-pink, #FB64B6)' : '#EBEEF2'}`,
-                  background: on ? '#FFF0F7' : '#fff',
+                  border: `2px solid ${on ? 'var(--pink)' : 'var(--line-2)'}`,
+                  background: on ? 'var(--surface-2)' : 'var(--surface)',
                   transition: '.18s',
                 }}
               >
@@ -76,13 +76,13 @@ export function IntentionPage() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    background: on ? 'var(--ritme-pink, #FB64B6)' : '#EBEEF2',
-                    color: '#fff',
+                    background: on ? 'var(--pink)' : 'var(--line-2)',
+                    color: 'var(--on-accent)',
                   }}
                 >
                   {on && <Icon name="check" size={14} />}
                 </span>
-                <span style={{ fontSize: 15, fontWeight: 700, color: on ? 'var(--ritme-pink, #FB64B6)' : 'var(--ink)' }}>
+                <span style={{ fontSize: 15, fontWeight: 700, color: on ? 'var(--pink)' : 'var(--ink)' }}>
                   {t(`intention.options.${opt}`)}
                 </span>
               </button>

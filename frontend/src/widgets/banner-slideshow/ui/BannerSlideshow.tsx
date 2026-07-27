@@ -144,7 +144,7 @@ export function BannerSlideshow({ position }: Props) {
                       aspectRatio: '2 / 1',
                       objectFit: 'cover',
                       borderRadius: 12,
-                      background: '#F3F4F6',
+                      background: 'var(--surface-3)',
                     }}
                   />
                 </BannerLink>
@@ -179,7 +179,7 @@ export function BannerSlideshow({ position }: Props) {
                     border: 0,
                     padding: 0,
                     cursor: 'pointer',
-                    background: active ? 'var(--brand)' : '#D8DCE2',
+                    background: active ? 'var(--brand)' : 'var(--track)',
                     transition: 'width .25s ease, background .25s ease',
                   }}
                 />

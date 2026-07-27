@@ -56,8 +56,8 @@ export function CycleValuesCard({
             style={{
               border: 'none',
               cursor: 'pointer',
-              background: 'var(--brand, #E91E63)',
-              color: '#fff',
+              background: 'var(--brand)',
+              color: 'var(--on-accent)',
               fontSize: 13,
               fontWeight: 700,
               borderRadius: 10,

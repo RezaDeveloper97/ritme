@@ -134,6 +134,7 @@ private fun DestinationContent(destination: Destination, navigator: Navigator) {
         is Destination.PregnancyLog -> PregnancyLogScreen(
             initialTab = destination.tab,
             onBack = { navigator.pop() },
+            onNavigate = { target -> tabNavigate(navigator, target) },
         )
     }
 }

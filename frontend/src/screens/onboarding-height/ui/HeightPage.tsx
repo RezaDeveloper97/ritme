@@ -24,7 +24,7 @@ export function HeightPage() {
   const [min, max] = heightUnit === 'cm' ? [120, 220] : [4, 7];
 
   return (
-    <div className="view" style={{ background: '#fff' }}>
+    <div className="view" style={{ background: 'var(--surface)' }}>
       <div className="hdr">
         <NavBack onClick={() => router.back()} />
         <span className="stepcount">{faNum(step.index)}<span style={{ opacity: .5 }}> / {faNum(step.total)}</span></span>

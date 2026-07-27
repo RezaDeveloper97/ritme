@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Auto-save status pill (web log.autoSaved) — distinct from the manual "ثبت شد". -->
+    <string name="log_auto_saved">ذخیره شد</string>
+
+    <!-- Day-planner type chip label for a doctor visit (web dayTasks.types.doctor). -->
+    <string name="daytasks_type_doctor">دکتر</string>
+</resources>

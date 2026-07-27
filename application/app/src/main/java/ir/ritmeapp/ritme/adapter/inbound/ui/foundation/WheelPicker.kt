@@ -1,5 +1,7 @@
 package ir.ritmeapp.ritme.adapter.inbound.ui.foundation
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
@@ -8,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,9 +20,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
@@ -82,6 +84,15 @@ fun WheelPicker(
     }
 
     Box(modifier = modifier.height(itemHeight * visibleCount), contentAlignment = Alignment.Center) {
+        // Selection band behind the values (web `.wheel-band`): a pink-tinted rounded slot.
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(itemHeight)
+                .clip(RoundedCornerShape(12.dp))
+                .background(colors.pinkLight.copy(alpha = 0.10f))
+                .border(1.dp, colors.pinkLight.copy(alpha = 0.30f), RoundedCornerShape(12.dp)),
+        )
         LazyColumn(
             state = listState,
             flingBehavior = flingBehavior,
@@ -99,7 +110,8 @@ fun WheelPicker(
                     Text(
                         text = label(index),
                         textAlign = TextAlign.Center,
-                        color = if (isCentered) colors.pink else colors.inkMuted,
+                        // Web `.wi`: centered value is dark ink/bold; the rest is a light gray.
+                        color = if (isCentered) colors.ink else colors.ink.copy(alpha = 0.28f),
                         style = if (isCentered) {
                             MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
                         } else {
@@ -110,19 +122,6 @@ fun WheelPicker(
             }
             items(count = half, key = { "bottom_$it" }) { SpacerRow(itemHeight) }
         }
-
-        // Two hairlines marking the selection slot, drawn over the list without consuming touches.
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .height(itemHeight)
-                .drawWithContent {
-                    drawContent()
-                    val stroke = 1.dp.toPx()
-                    drawRect(colors.outline, Offset(0f, 0f), Size(size.width, stroke))
-                    drawRect(colors.outline, Offset(0f, size.height - stroke), Size(size.width, stroke))
-                },
-        )
     }
 }
 

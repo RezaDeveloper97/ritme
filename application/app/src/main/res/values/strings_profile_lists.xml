@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Strings unique to the profile list sub-screens (notifications / reminders / info).
+     Copy mirrors the web fa namespaces (reminders.json) exactly. Keys that already
+     exist in strings.xml (titles, form labels, type/recurrence labels, action_*) are
+     reused there and must NOT be redefined here. -->
+<resources>
+    <!-- reminders: states not previously modeled on Android (web `reminders` namespace) -->
+    <string name="reminders_loading">در حال دریافت یادآورها…</string>
+    <string name="reminders_load_error">دریافت یادآورها ممکن نشد. کمی بعد دوباره امتحان کن.</string>
+    <string name="reminder_delete_deleting">در حال حذف…</string>
+</resources>
