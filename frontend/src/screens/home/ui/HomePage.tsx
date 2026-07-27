@@ -50,6 +50,7 @@ import {
   todayJalali,
   type JalaliMonthCell,
 } from '@/shared/lib/date';
+import { useMounted } from '@/shared/lib/use-mounted';
 import { DropSolid, Icon, type IconName } from '@/shared/ui';
 import { BannerSlideshow } from '@/widgets/banner-slideshow';
 import { BottomNav } from '@/widgets/bottom-nav';
@@ -241,11 +242,11 @@ const LEGEND_KEYS: CycleDayMarker[] = ['period', 'fertile', 'ovulation', 'pms'];
 
 function CalendarLegend({ t }: { t: T }) {
   return (
-    <div className="home-legend">
+    <div className="legend">
       {LEGEND_KEYS.map(key => (
-        <span key={key} className="home-legend-item">
-          <span className="home-legend-dot" style={{ background: cycleMarkerStyle[key].color }} />
-          <span className="home-legend-label">{t(`legend.${key}`)}</span>
+        <span key={key} className="legend-item">
+          <span className="legend-dot" style={{ background: cycleMarkerStyle[key].color }} />
+          <span className="legend-label">{t(`legend.${key}`)}</span>
         </span>
       ))}
     </div>
@@ -391,52 +392,49 @@ function NextPeriodCard({
         )}
       </div>
       <div className="home-hero-main">
-        <div className="home-hero-left">
-          <div className="home-hero-days">
-            {cardTitle || t('nextPeriod.label')}
-          </div>
-          {nextPeriodDate && (
-            <div className="home-hero-date">
-              {t('nextPeriod.startDate', { date: nextPeriodDate })}
-            </div>
-          )}
-        </div>
 
-        {/* Cycle-day ring (ported from the cycle screen): the day number inside a
-            progress donut, with the fertility figure kept below it as a pill. */}
-        <div className="home-hero-right">
-          <div className="home-hero-phase">
-            <div className="home-hero-phase-label">
-              {highlights.length > 0
-                ? t('nextPeriod.phasePrefix')
-                : pred
-                  ? t('nextPeriod.currentPhase', { phase: phaseLabel })
-                  : t('nextPeriod.phase')}
+        <div className="home-hero-cols">
+          <div className="home-hero-left">
+            {/* Phase + day highlights lead the card as their own full-width row, so
+            they read as the headline state rather than a label above the ring. */}
+            <div className="home-hero-phase">
+              <div className="home-hero-phase-label">
+                {highlights.length > 0
+                    ? t('nextPeriod.phasePrefix')
+                    : pred
+                        ? t('nextPeriod.currentPhase', { phase: phaseLabel })
+                        : t('nextPeriod.phase')}
+              </div>
+              <DayHighlights t={t} items={highlights} />
             </div>
-            <DayHighlights t={t} items={highlights} />
+            <div className="home-hero-days">{cardTitle || t('nextPeriod.label')}</div>
           </div>
-          {/* The sweep angle is the datum here, so it stays inline. */}
-          <div
-            className="home-ring"
-            style={{ background: `conic-gradient(var(--on-accent) ${ringPct * 3.6}deg, rgba(255,255,255,.32) 0deg)` }}
-          >
-            <div className="home-ring-core">
-              <span className="home-ring-day">
-                {cycleDay != null ? t('cycleDay.value', { n: cycleDay }) : t('unavailable')}
-              </span>
-              <span className="home-ring-of">
-                {cycleLength != null ? t('cycleDay.ofN', { n: cycleLength }) : t('cycleDay.label')}
-              </span>
+
+          {/* Cycle-day ring (ported from the cycle screen): the day number inside a
+              progress donut, with the fertility figure kept below it as a pill. */}
+          <div className="home-hero-right">
+            {/* The sweep angle is the datum here, so it stays inline. */}
+            <div
+              className="home-ring"
+              style={{ background: `conic-gradient(var(--on-accent) ${ringPct * 3.6}deg, rgba(255,255,255,.32) 0deg)` }}
+            >
+              <div className="home-ring-core">
+                <span className="home-ring-day">
+                  {cycleDay != null ? t('cycleDay.value', { n: cycleDay }) : t('unavailable')}
+                </span>
+                <span className="home-ring-of">
+                  {cycleLength != null ? t('cycleDay.ofN', { n: cycleLength }) : t('cycleDay.label')}
+                </span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* phase explanation box (Figma Frame 66 — var(--pink-mid)) */}
-      {expanded && (
-        <div className="home-phase-desc">
-          {phaseDesc}
-        </div>
+      {phaseDesc && (
+          <div className="home-phase-desc">
+            {phaseDesc}
+          </div>
       )}
 
       {/* Deep-link into the phase's full educational content (ported from the
@@ -469,18 +467,18 @@ function CycleTimelineBar({ pred, ovulationDay }: { pred: CyclePredictions; ovul
 
   return (
     // Only the positions along the bar stay inline — they are the data.
-    <div dir="ltr" className="home-bar">
+    <div dir="ltr" className="cyclebar">
       {/* Fertile band */}
       <span
-        className="home-bar-band"
+        className="cyclebar-band"
         style={{ left: `${at(fertileStart)}%`, width: `${at(ovulationDay + 1) - at(fertileStart)}%` }}
       />
       {/* Progress up to today */}
-      <span className="home-bar-fill" style={{ width: `${todayPos}%` }} />
+      <span className="cyclebar-fill" style={{ width: `${todayPos}%` }} />
       {/* Ovulation tick */}
-      <span className="home-bar-tick" style={{ left: `${at(ovulationDay)}%` }} />
+      <span className="cyclebar-tick" style={{ left: `${at(ovulationDay)}%` }} />
       {/* Today marker */}
-      <span className="home-bar-now" style={{ left: `${todayPos}%` }} />
+      <span className="cyclebar-now" style={{ left: `${todayPos}%` }} />
     </div>
   );
 }
@@ -516,7 +514,7 @@ function PhaseRows({
   return (
     <div className="sec">
       <div className="home-panel">
-        <div className="home-panel-title">
+        <div className="card-titr">
           {t('timeline.title')}
         </div>
 
@@ -543,9 +541,9 @@ function PhaseRows({
             The divider is `:not(:last-child)`, so no index maths. */}
         <div className="home-facts">
           {facts.map(([label, value]) => (
-            <div key={label} className="home-fact">
-              <span className="home-fact-label">{label}</span>
-              <span className="home-fact-value">{value}</span>
+            <div key={label} className="data-row">
+              <span className="data-row-label">{label}</span>
+              <span className="data-row-value">{value}</span>
             </div>
           ))}
         </div>
@@ -605,7 +603,7 @@ function Recommendations({ t, tips, dos }: { t: T; tips: CycleDailyTip[]; dos: s
 
   return (
     <div className="sec">
-      <div className="card home-card-pad">
+      <div className="card pad-card-sm">
         <div className="home-rec-title">
           {t('recommendations.title')}
         </div>
@@ -647,7 +645,7 @@ function SmartTip({
 
   return (
     <div className="sec-tight">
-      <div className="card home-card-pad">
+      <div className="card pad-card-sm">
         <div className="home-tip-head">
           <span className="home-tip-title">
             {t('smartTip.title')}
@@ -667,11 +665,11 @@ function SmartTip({
               {tip.body}
             </p>
             {tip.action && (
-              <div className="home-tip-action">
-                <span className="home-tip-action-icon">
+              <div className="tip-action">
+                <span className="tip-action-icon">
                   <Icon name="sparkle" size={20} fill="currentColor" strokeWidth={0} />
                 </span>
-                <span className="home-tip-action-text">
+                <span className="tip-action-text">
                   {tip.action}
                 </span>
               </div>
@@ -776,6 +774,12 @@ export function HomePage() {
   const t = useTranslations('home');
   const loc = useLocale() as Locale;
   const router = useRouter();
+  // This route is statically prerendered, so anything derived from "now" would
+  // be frozen at build time in the server HTML and disagree with the client on
+  // the next day — a hydration text mismatch (React #418). The whole screen is
+  // date-driven, so it renders only after mount; its data is client-fetched
+  // anyway, so nothing meaningful is lost from the prerendered HTML.
+  const mounted = useMounted();
   const [calOpen, setCalOpen] = useState(false);
   // The day the user tapped in the mini calendar (defaults to today). Only the
   // connected info card reflects it; the rest of the page stays on today.
@@ -888,12 +892,21 @@ export function HomePage() {
   const infoLoading = !isToday && dateFetching && !dateData;
   const selectedDateLabel = formatJalaliDayMonth(selectedDate, loc);
 
+  // Server pass / first client render: backdrop only, so both sides match.
+  if (!mounted) {
+    return (
+      <div className="view">
+        <div className="home-grad home-grad-fill" />
+      </div>
+    );
+  }
+
   return (
     <div className="view">
       {/* Full-page gradient backdrop (Figma: #FFE5EA → #CFF9EB) */}
       <div className="home-grad home-grad-fill" />
 
-      <div className="scroll home-scroll">
+      <div className="scroll page-scroll">
         <HomeHeader
           tagline={t('tagline')}
           onRecalculate={() => recalc.mutate()}
@@ -901,7 +914,7 @@ export function HomePage() {
           recalculateLabel={t('recalculate')}
         />
         {recalculating && (
-          <div className="home-updating">
+          <div className="page-updating">
             {t('updating')}
           </div>
         )}
@@ -1002,7 +1015,7 @@ export function HomePage() {
         <MyCyclesCard />
         <BannerSlideshow position="home_bottom" />
         <CycleSummaryCard />
-        <div className="home-tail" />
+        <div className="page-tail" />
       </div>
 
       <BottomNav />

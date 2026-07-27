@@ -66,19 +66,19 @@ export function PregnancyBasisPage() {
   };
 
   return (
-    <div className="view" style={{ background: 'var(--surface)' }}>
+    <div className="view onb-page">
       <div className="hdr">
         <NavBack onClick={() => router.back()} />
-        <span className="stepcount">{faNum(step.index)}<span style={{ opacity: .5 }}> / {faNum(step.total)}</span></span>
+        <span className="stepcount">{faNum(step.index)}<span className="onb-dim"> / {faNum(step.total)}</span></span>
       </div>
 
-      <div className="scroll" style={{ padding: '8px 22px 0' }}>
-        <div style={{ textAlign: 'start', margin: '6px 0' }}>
+      <div className="scroll onb-body">
+        <div className="onb-intro">
           <div className="titr">{t('pregnancyBasis.title')}</div>
-          <p className="sub" style={{ margin: '10px 0 0' }}>{t('pregnancyBasis.subtitle')}</p>
+          <p className="sub onb-intro-sub">{t('pregnancyBasis.subtitle')}</p>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 16 }}>
+        <div className="onb-stack is-spaced">
           {SOURCES.map((src) => {
             const on = source === src;
             return (
@@ -109,10 +109,10 @@ export function PregnancyBasisPage() {
                   {on && <Icon name="check" size={14} />}
                 </span>
                 <span>
-                  <span style={{ display: 'block', fontSize: 14.5, fontWeight: 800, color: on ? 'var(--pink)' : 'var(--ink)' }}>
+                  <span className="onb-choice-t" style={{ color: on ? 'var(--pink)' : 'var(--ink)' }}>
                     {t(`pregnancyBasis.source.${src}`)}
                   </span>
-                  <span style={{ display: 'block', fontSize: 12, color: 'var(--muted)', marginTop: 3 }}>
+                  <span className="onb-choice-h">
                     {t(`pregnancyBasis.sourceHint.${src}`)}
                   </span>
                 </span>
@@ -122,46 +122,46 @@ export function PregnancyBasisPage() {
         </div>
 
         {source === 'lmp' && (
-          <div style={{ marginTop: 16 }}>
+          <div className="onb-mt16">
             <JalaliDateWheels idPrefix="lmp" value={lmp} onChange={setLmp} minYear={thisYear - 1} maxYear={thisYear} />
           </div>
         )}
 
         {source === 'ultrasound' && (
-          <div style={{ marginTop: 16 }}>
+          <div className="onb-mt16">
             <JalaliDateWheels idPrefix="scan" value={scanDate} onChange={setScanDate} minYear={thisYear - 1} maxYear={thisYear} />
-            <div style={{ marginTop: 14 }}>
+            <div className="onb-mt14">
               <NumberField label={t('pregnancyBasis.weeks')} value={scanWeeks} onChange={setScanWeeks} min={1} max={42} />
             </div>
-            <div style={{ marginTop: 12 }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', display: 'block', marginBottom: 8 }}>{t('pregnancyBasis.days')}</span>
+            <div className="onb-mt12">
+              <span className="onb-sublabel">{t('pregnancyBasis.days')}</span>
               <Segmented options={dayOptions} value={scanDays != null ? String(scanDays) : undefined} onChange={(v) => setScanDays(v == null ? undefined : Number(v))} />
             </div>
           </div>
         )}
 
         {source === 'manual' && (
-          <div style={{ marginTop: 16 }}>
+          <div className="onb-mt16">
             <NumberField label={t('pregnancyBasis.weeks')} value={manualWeeks} onChange={setManualWeeks} min={1} max={42} />
-            <div style={{ marginTop: 12 }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', display: 'block', marginBottom: 8 }}>{t('pregnancyBasis.days')}</span>
+            <div className="onb-mt12">
+              <span className="onb-sublabel">{t('pregnancyBasis.days')}</span>
               <Segmented options={dayOptions} value={manualDays != null ? String(manualDays) : undefined} onChange={(v) => setManualDays(v == null ? undefined : Number(v))} />
             </div>
           </div>
         )}
 
-        <p className="sub" style={{ margin: '18px 0 0', fontSize: 12, color: 'var(--muted)', lineHeight: 1.7 }}>
+        <p className="sub onb-note is-sub">
           {t('pregnancyBasis.note')}
         </p>
 
         {error && (
-          <p style={{ color: 'var(--pink)', fontSize: 12.5, fontWeight: 700, textAlign: 'center', margin: '12px 0 0' }}>{error}</p>
+          <p className="onb-error is-pink is-spaced">{error}</p>
         )}
 
-        <div style={{ height: 12 }} />
+        <div className="onb-tail" />
       </div>
 
-      <div style={{ padding: '14px 16px 8px' }}>
+      <div className="onb-actions">
         <button className="btn btn-primary" onClick={handleNext}>
           {t('continue')}
         </button>

@@ -1,5 +1,7 @@
 'use client';
 
+import clsx from 'clsx';
+
 import type { ReactNode } from 'react';
 
 import { Icon, type IconName } from '@/shared/ui';
@@ -27,21 +29,21 @@ export function PgCard({
   children: ReactNode;
 }) {
   return (
-    <section className="card" style={{ padding: '14px 15px', textAlign: 'start' }}>
+    <section className="card fld-card">
       {title && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: hint ? 4 : 12 }}>
+        <div className={clsx('fld-card-hd', hint && 'has-hint')}>
           {icon && (
             <span
-              className="dot"
-              style={{ width: 30, height: 30, background: (accent ?? 'var(--brand)') + '1A', color: accent ?? 'var(--brand)' }}
+              className="dot fld-card-dot"
+              style={{ background: (accent ?? 'var(--brand)') + '1A', color: accent ?? 'var(--brand)' }}
             >
               <Icon name={icon} size={16} />
             </span>
           )}
-          <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>{title}</span>
+          <span className="fld-card-title">{title}</span>
         </div>
       )}
-      {hint && <p className="sub" style={{ margin: '0 0 12px', fontSize: 12.5 }}>{hint}</p>}
+      {hint && <p className="sub fld-card-hint">{hint}</p>}
       {children}
     </section>
   );
@@ -100,7 +102,7 @@ export function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
         transition: 'background .15s',
       }}
     >
-      <span style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--on-accent)', boxShadow: '0 1px 2px rgba(0,0,0,.2)' }} />
+      <span className="fld-switch-knob" />
     </button>
   );
 }
@@ -116,16 +118,8 @@ export function FieldRow({
   children: ReactNode;
 }) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: 12,
-        padding: '9px 0',
-      }}
-    >
-      <span style={{ fontSize: 13.5, fontWeight: 700, color: danger ? 'var(--danger-deep)' : 'var(--ink)', textAlign: 'start' }}>
+    <div className="fld-row">
+      <span className="fld-row-label" style={{ color: danger ? 'var(--danger-deep)' : 'var(--ink)' }}>
         {label}
       </span>
       {children}
@@ -144,7 +138,7 @@ export function Segmented({
   onChange: (value: string | undefined) => void;
 }) {
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+    <div className="fld-chips">
       {options.map((opt) => (
         <Chip
           key={opt.value}
@@ -176,12 +170,12 @@ export function NumberField({
   step?: number;
 }) {
   return (
-    <label style={{ display: 'block', textAlign: 'start' }}>
-      <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', display: 'block', marginBottom: 6 }}>
+    <label className="fld-label">
+      <span className="fld-label-t">
         {label}
       </span>
       <input
-        className="field"
+        className="field fld-input"
         type="number"
         inputMode="decimal"
         value={value ?? ''}
@@ -193,7 +187,6 @@ export function NumberField({
           const v = e.target.value;
           onChange(v === '' ? undefined : Number(v));
         }}
-        style={{ width: '100%' }}
       />
     </label>
   );
@@ -212,17 +205,16 @@ export function NotesField({
   placeholder?: string;
 }) {
   return (
-    <label style={{ display: 'block', textAlign: 'start' }}>
-      <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', display: 'block', marginBottom: 6 }}>
+    <label className="fld-label">
+      <span className="fld-label-t">
         {label}
       </span>
       <textarea
-        className="field"
+        className="field fld-textarea"
         rows={3}
         value={value ?? ''}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value === '' ? undefined : e.target.value)}
-        style={{ width: '100%', resize: 'none', fontFamily: 'inherit' }}
       />
     </label>
   );

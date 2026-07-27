@@ -1,5 +1,7 @@
 'use client';
 
+import clsx from 'clsx';
+
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -102,21 +104,21 @@ export function SymptomsForm({ t }: { t: T }) {
   return (
     <>
       {/* Day switcher */}
-      <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px' }}>
+      <div className="card plog-daynav">
         <button className="iconbtn" onClick={() => shiftDay(-1)} aria-label={t('log.prevDay')}>
           <Icon name={isRtl ? 'chevronRight' : 'chevronLeft'} size={20} />
         </button>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div className="plog-daynav-mid">
           <Icon name="calendar" size={15} />
-          <span style={{ fontSize: 14.5, fontWeight: 800, color: 'var(--ink)' }}>{formatJalaliDayMonth(date, locale)}</span>
-          {isToday && <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--brand)', background: 'var(--surface-2)', borderRadius: 20, padding: '2px 9px' }}>{t('log.today')}</span>}
+          <span className="plog-daynav-date">{formatJalaliDayMonth(date, locale)}</span>
+          {isToday && <span className="plog-today">{t('log.today')}</span>}
         </div>
-        <button className="iconbtn" onClick={() => canGoNext && shiftDay(1)} disabled={!canGoNext} aria-label={t('log.nextDay')} style={{ opacity: canGoNext ? 1 : 0.3 }}>
+        <button className="iconbtn" onClick={() => canGoNext && shiftDay(1)} disabled={!canGoNext} aria-label={t('log.nextDay')}>
           <Icon name={isRtl ? 'chevronLeft' : 'chevronRight'} size={20} />
         </button>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
+      <div className="plog-stack is-spaced">
         {SYMPTOM_GROUPS.map((group) => {
           const warning = group.key === 'warning';
           return (
@@ -127,20 +129,20 @@ export function SymptomsForm({ t }: { t: T }) {
               accent={warning ? 'var(--danger)' : undefined}
               icon={warning ? 'shield' : 'sparkle'}
             >
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <div className="plog-rows">
                 {group.symptoms.map((key) => {
                   const on = !!draft[`has_${key}`];
                   const critical = isCriticalSymptom(key);
                   return (
-                    <div key={key} style={{ padding: '8px 0', borderBottom: '1px solid var(--line)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                        <span style={{ fontSize: 13.5, fontWeight: 700, color: critical ? 'var(--danger-deep)' : 'var(--ink)' }}>
+                    <div key={key} className="plog-row">
+                      <div className="plog-row-top">
+                        <span className={clsx('plog-row-name', critical && 'is-critical')}>
                           {dyn(`log.symptoms.${key}`)}
                         </span>
                         <Toggle on={on} onClick={() => toggleSymptom(key)} />
                       </div>
                       {on && (
-                        <div style={{ marginTop: 8 }}>
+                        <div className="plog-row-extra">
                           <Segmented
                             options={severityOptions}
                             value={typeof draft[`${key}_severity`] === 'string' ? (draft[`${key}_severity`] as string) : undefined}
@@ -162,16 +164,16 @@ export function SymptomsForm({ t }: { t: T }) {
       </div>
 
       {alertsRaised > 0 && (
-        <div className="card" style={{ marginTop: 12, padding: '12px 13px', borderInlineStart: '3px solid var(--orange)', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Icon name="flame" size={16} style={{ color: 'var(--orange)' }} />
-          <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)' }}>{t('alerts.raised', { n: alertsRaised })}</span>
+        <div className="card plog-note">
+          <Icon name="flame" size={16} className="plog-note-icon" />
+          <span className="plog-note-text">{t('alerts.raised', { n: alertsRaised })}</span>
         </div>
       )}
       {save.isError && (
-        <p style={{ color: 'var(--brand)', fontSize: 12.5, fontWeight: 700, textAlign: 'center', marginTop: 12 }}>{t('log.saveError')}</p>
+        <p className="plog-error">{t('log.saveError')}</p>
       )}
 
-      <button className="btn btn-primary" onClick={handleSave} disabled={!filled || save.isPending} style={{ borderRadius: 16, marginTop: 16 }}>
+      <button className="btn btn-primary plog-save" onClick={handleSave} disabled={!filled || save.isPending}>
         {save.isSuccess ? <Icon name="check" size={18} /> : null}
         {saveLabel}
       </button>

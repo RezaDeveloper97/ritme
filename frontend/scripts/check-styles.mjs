@@ -146,6 +146,14 @@ if (update) {
   process.exit(0);
 }
 
+// `--list` ignores the baseline and prints everything still outstanding — the
+// working view while cleaning a file up.
+if (args.includes('--list')) {
+  for (const f of all) console.log(`${f.rel}:${f.line}  ${f.msg}`);
+  console.log(`\n${all.length} findings in ${Object.keys(counts).length} files`);
+  process.exit(0);
+}
+
 const baseline = existsSync(BASELINE) ? JSON.parse(readFileSync(BASELINE, 'utf8')) : {};
 let failed = false;
 const improved = [];

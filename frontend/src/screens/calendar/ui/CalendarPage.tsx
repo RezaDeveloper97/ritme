@@ -1,5 +1,7 @@
 'use client';
 
+
+import clsx from 'clsx';
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -133,26 +135,21 @@ interface MonthNavProps {
 
 function MonthNav({ label, isRtl, onPrev, onNext, onJump, fullMonth, onToggle, toggleLabel, jumpLabel, prevMonthLabel, nextMonthLabel }: MonthNavProps) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 4px 14px' }}>
+    <div className="cal-nav">
       {/* First child → RIGHT in RTL = previous month; label follows the action. */}
       <button className="iconbtn" onClick={isRtl ? onPrev : onNext} aria-label={isRtl ? prevMonthLabel : nextMonthLabel}>
         <Icon name={isRtl ? 'chevronRight' : 'chevronLeft'} size={20} />
       </button>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div className="cal-nav-mid">
         {/* Tapping the label jumps back to the current month. */}
-        <button
-          onClick={onJump}
-          aria-label={jumpLabel}
-          style={{ fontSize: 16, fontWeight: 800, color: 'var(--ink)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: 4 }}
-        >
+        <button className="cal-nav-label" onClick={onJump} aria-label={jumpLabel}>
           {label}
           <Icon name="chevronDown" size={14} />
         </button>
         <button
           onClick={onToggle}
-          className={`chip${fullMonth ? ' on' : ''}`}
-          style={{ padding: '5px 12px', fontSize: 12 }}
+          className={clsx('chip', 'cal-nav-toggle', fullMonth && 'on')}
         >
           <Icon name={fullMonth ? 'grid' : 'calendar'} size={13} />
           {toggleLabel}
@@ -189,7 +186,7 @@ function MonthYearPicker({ t, locale, isRtl, open, onClose, year, month, onPick,
 
   return (
     <Sheet open={open} onClose={onClose} labelledBy="month-picker-title">
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+      <div className="cal-pick-head">
         {/* First child → RIGHT in RTL = previous year */}
         <button
           className="iconbtn"
@@ -198,7 +195,7 @@ function MonthYearPicker({ t, locale, isRtl, open, onClose, year, month, onPick,
         >
           <Icon name={isRtl ? 'chevronRight' : 'chevronLeft'} size={20} />
         </button>
-        <div id="month-picker-title" style={{ fontSize: 17, fontWeight: 800, color: 'var(--ink)', fontVariantNumeric: 'tabular-nums' }}>
+        <div id="month-picker-title" className="cal-pick-year">
           {formatJalaliYear(browseYear, locale)}
         </div>
         <button
@@ -210,15 +207,14 @@ function MonthYearPicker({ t, locale, isRtl, open, onClose, year, month, onPick,
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+      <div className="cal-pick-grid">
         {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => {
           const isCurrent = m === month && browseYear === year;
           return (
             <button
               key={m}
-              className={`chip${isCurrent ? ' on' : ''}`}
+              className={clsx('chip', 'cal-pick-month', isCurrent && 'on')}
               onClick={() => onPick(browseYear, m)}
-              style={{ justifyContent: 'center', padding: '10px 0', fontSize: 13, fontWeight: 700, borderRadius: 12 }}
             >
               {jalaliMonthName(m, locale)}
             </button>
@@ -226,7 +222,7 @@ function MonthYearPicker({ t, locale, isRtl, open, onClose, year, month, onPick,
         })}
       </div>
 
-      <button className="btn" onClick={onToday} style={{ borderRadius: 14, marginTop: 14, fontWeight: 800 }}>
+      <button className="btn cal-pick-today" onClick={onToday}>
         {t('goToToday')}
       </button>
     </Sheet>
@@ -325,11 +321,11 @@ function Legend({ t }: { t: T }) {
     { key: 'pms' },
   ];
   return (
-    <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', padding: '4px 4px 0' }}>
+    <div className="legend">
       {items.map((it) => (
-        <span key={it.key} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ width: 10, height: 10, borderRadius: '50%', background: MARKER_STYLE[it.key].color }} />
-          <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--muted)' }}>{t(`legend.${it.key}`)}</span>
+        <span key={it.key} className="legend-item">
+          <span className="legend-dot" style={{ background: MARKER_STYLE[it.key].color }} />
+          <span className="legend-label">{t(`legend.${it.key}`)}</span>
         </span>
       ))}
     </div>
@@ -356,39 +352,39 @@ function DayDetail({ t, locale, selectedDate, calc, marker, showTiles = true }: 
   const labelKey = marker ?? phase;
 
   return (
-    <div style={{ padding: '4px 2px 2px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span className="dot" style={{ width: 42, height: 42, background: style.bg, color: style.color }}>
+    <div className="cal-day-card">
+      <div className="cal-day-top">
+        <div className="cal-day-left">
+          <span className="dot cal-day-dot" style={{ background: style.bg, color: style.color }}>
             <Icon name="drop" size={20} fill="currentColor" strokeWidth={0} />
           </span>
-          <div style={{ textAlign: 'start' }}>
-            <div id="day-sheet-title" style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>
+          <div className="text-start">
+            <div id="day-sheet-title" className="cal-day-title">
               {formatJalaliDayMonth(selectedDate, locale)}
             </div>
             {calc && (
-              <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>
+              <div className="cal-day-sub">
                 {t('day.cycleDay', { n: calc.cycleDay })}
               </div>
             )}
           </div>
         </div>
         {isToday && (
-          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--brand)', background: 'var(--surface-2)', borderRadius: 20, padding: '4px 12px' }}>
+          <span className="cal-day-chip">
             {t('today')}
           </span>
         )}
       </div>
 
       {showTiles && phase && labelKey && (
-        <div style={{ display: 'flex', gap: 10 }}>
-          <div style={{ flex: 1, background: style.bg, borderRadius: 12, padding: '10px 12px', textAlign: 'start' }}>
-            <div style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 600 }}>{t('phaseLabel')}</div>
-            <div style={{ fontSize: 13, fontWeight: 800, color: style.color, marginTop: 3 }}>{t(`phase.${labelKey}`)}</div>
+        <div className="cal-day-stats">
+          <div className="cal-day-stat" style={{ background: style.bg }}>
+            <div className="cal-day-stat-l">{t('phaseLabel')}</div>
+            <div className="cal-day-stat-v" style={{ color: style.color }}>{t(`phase.${labelKey}`)}</div>
           </div>
-          <div style={{ flex: 1, background: 'var(--line)', borderRadius: 12, padding: '10px 12px', textAlign: 'start' }}>
-            <div style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 600 }}>{t('day.chanceLabel')}</div>
-            <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--steel)', marginTop: 3 }}>{t(`chance.${chanceKey(phase)}`)}</div>
+          <div className="cal-day-stat">
+            <div className="cal-day-stat-l">{t('day.chanceLabel')}</div>
+            <div className="cal-day-stat-v">{t(`chance.${chanceKey(phase)}`)}</div>
           </div>
         </div>
       )}
@@ -399,16 +395,16 @@ function DayDetail({ t, locale, selectedDate, calc, marker, showTiles = true }: 
 // ── Smart tip (educational, non-diagnostic — §11) ──────────────
 function SmartTip({ t }: { t: T }) {
   return (
-    <div className="card" style={{ padding: '14px 12px' }}>
-      <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--ink)', textAlign: 'start', marginBottom: 10 }}>
+    <div className="card pad-card-sm">
+      <div className="cal-tip-title">
         {t('smartTip.title')}
       </div>
-      <p className="sub" style={{ textAlign: 'start', margin: '0 2px 14px' }}>{t('smartTip.body')}</p>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'linear-gradient(90deg,var(--surface-2),var(--indigo-soft))', borderRadius: 12, padding: 12 }}>
-        <span style={{ color: 'var(--pink)' }}>
+      <p className="sub cal-tip-body">{t('smartTip.body')}</p>
+      <div className="tip-action">
+        <span className="tip-action-icon">
           <Icon name="sparkle" size={20} fill="currentColor" strokeWidth={0} />
         </span>
-        <span style={{ flex: 1, textAlign: 'start', fontSize: 12.5, fontWeight: 700, color: 'var(--ink)' }}>
+        <span className="tip-action-text">
           {t('smartTip.quote')}
         </span>
       </div>
@@ -871,22 +867,21 @@ export function CalendarPage() {
     year > currentJalali.year || (year === currentJalali.year && month > currentJalali.month);
 
   return (
-    <div className="view" style={{ background: 'var(--page)' }}>
-      <div className="home-grad" style={{ position: 'absolute', top: 0, insetInlineStart: 0, insetInlineEnd: 0, height: 260 }} />
+    <div className="view cal-page">
+      <div className="home-grad cal-grad" />
 
-      <div className="scroll" style={{ position: 'relative', zIndex: 1 }}>
-        <div style={{ padding: '6px 20px 0', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
-          <div style={{ textAlign: 'start' }}>
+      <div className="scroll page-scroll">
+        <div className="cal-hdr">
+          <div className="cal-hdr-txt">
             <div className="titr">{t('title')}</div>
-            <p className="sub" style={{ margin: '6px 0 0' }}>{t('subtitle')}</p>
+            <p className="sub cal-hdr-sub">{t('subtitle')}</p>
           </div>
           {/* Full-screen "Edit Period Date" toggle editor — tap days on/off to mark
               the bleeding range, saved as one period (§ contiguous range). */}
           <button
-            className="chip on"
+            className="chip on cal-edit-btn"
             onClick={() => setDateEditorOpen(true)}
             disabled={isFutureMonth}
-            style={{ padding: '8px 14px', fontSize: 13, gap: 6, flexShrink: 0, marginTop: 2, opacity: isFutureMonth ? 0.45 : 1, cursor: isFutureMonth ? 'default' : 'pointer' }}
           >
             <Icon name="pencil" size={14} />
             {tLogPeriod('dateEditor.open')}
@@ -894,16 +889,16 @@ export function CalendarPage() {
         </div>
 
         {isRecalculating && (
-          <div style={{ padding: '10px 16px 0' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--surface-2)', color: 'var(--brand)', borderRadius: 12, padding: '8px 12px', fontSize: 12.5, fontWeight: 700 }}>
+          <div className="cal-note">
+            <div className="cal-note-box">
               <Icon name="sparkle" size={14} fill="currentColor" strokeWidth={0} />
               {t('recalculating')}
             </div>
           </div>
         )}
 
-        <div style={{ padding: '14px 16px 0' }}>
-          <div className="card" style={{ padding: '14px 14px 16px', position: 'relative' }}>
+        <div className="sec-tight">
+          <div className="card cal-grid-card">
             {calendarLoading && <CalendarLoader label={t('loadingCalendar')} />}
             <MonthNav
               label={formatJalaliMonthLabel(year, month, locale)}
@@ -919,9 +914,9 @@ export function CalendarPage() {
               nextMonthLabel={t('nextMonth')}
             />
 
-            <div className="cal-grid" style={{ marginBottom: 6 }}>
+            <div className="cal-grid cal-legend-wrap">
               {WEEKDAY_KEYS.map((k) => (
-                <span key={k} style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 700, textAlign: 'center' }}>
+                <span key={k} className="cal-weekday">
                   {t(`weekdays.${k}`)}
                 </span>
               ))}
@@ -931,7 +926,7 @@ export function CalendarPage() {
               onTouchStart={onTouchStart}
               onTouchMove={onTouchMove}
               onTouchEnd={onTouchEnd}
-              style={{ display: 'flex', flexDirection: 'column', gap: 4 }}
+              className="cal-log-list"
             >
               {displayWeeks.map((week, wi) => (
                 <div key={wi} className="cal-grid">
@@ -951,16 +946,16 @@ export function CalendarPage() {
               ))}
             </div>
 
-            <div style={{ height: 1, background: 'var(--line)', margin: '14px 0' }} />
+            <div className="cal-rule" />
             <Legend t={t} />
           </div>
         </div>
 
-        <div style={{ padding: '14px 16px 0' }}>
+        <div className="sec-tight">
           <SmartTip t={t} />
         </div>
 
-        <div style={{ height: 26 }} />
+        <div className="page-tail" />
       </div>
 
       {/* Day detail sheet — everything logged/predicted for the tapped day. */}
@@ -973,7 +968,7 @@ export function CalendarPage() {
             rule-based title, subtitle, fertility read-out and the right CTAs for
             this day's state (dispatched via handleCardAction). */}
         {selectedDailyCard && (
-          <div style={{ marginTop: 14 }}>
+          <div className="cal-mt">
             <DailyStatusCard card={selectedDailyCard} onAction={handleCardAction} pending={cardActionPending} />
           </div>
         )}
@@ -981,15 +976,14 @@ export function CalendarPage() {
         {/* Skeleton reserving the card's space while its per-date query loads, so the
             sheet height stays stable instead of popping the card in. */}
         {cardPending && !selectedDailyCard && (
-          <div className="card" aria-hidden style={{ marginTop: 14, minHeight: 118, opacity: 0.45 }} />
+          <div className="card cal-skeleton" aria-hidden />
         )}
 
         {/* The day query failed → a calm retry rather than a silently bare sheet. */}
         {!cardPending && !selectedDailyCard && selectedDayView.isError && (
           <button
-            className="btn"
+            className="btn cal-log-cta"
             onClick={() => selectedDayView.refetch()}
-            style={{ marginTop: 14, borderRadius: 14, gap: 8, background: 'var(--line)', color: 'var(--steel)', fontWeight: 800 }}
           >
             <Icon name="refresh" size={16} />
             {t('retry')}
@@ -999,20 +993,18 @@ export function CalendarPage() {
         {/* This day belongs to a logged period → edit the range, or unmark
             just this day with one tap. */}
         {selectedLoggedPeriod && (
-          <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
+          <div className="cal-actions">
             <button
-              className="btn"
+              className="btn cal-action is-primary"
               onClick={() => editPeriod(selectedLoggedPeriod)}
-              style={{ flex: 1, borderRadius: 14, gap: 8, background: 'var(--pink-bg)', color: 'var(--brand)', fontWeight: 800 }}
             >
               <Icon name="drop" size={16} fill="currentColor" strokeWidth={0} />
               {t('editThisPeriod')}
             </button>
             <button
-              className="btn"
+              className="btn cal-action is-neutral"
               onClick={() => removeDayHere(selectedLoggedPeriod)}
               disabled={mutating}
-              style={{ flex: 1, borderRadius: 14, gap: 8, background: 'var(--line)', color: 'var(--steel)', fontWeight: 800 }}
             >
               <Icon name="x" size={16} />
               {removeDayIsInterior ? t('endPeriodHere') : t('removeThisDay')}
@@ -1041,12 +1033,9 @@ export function CalendarPage() {
             Hidden when the card already offers a start action, to avoid duplicates. */}
         {canStartHere && !cardOffersStart && (
           <button
-            className={cardHasPrimary ? 'btn' : 'btn btn-primary'}
+            className={clsx('btn', 'cal-start', cardHasPrimary ? 'is-secondary' : 'btn-primary')}
             onClick={startPeriodHere}
             disabled={startPeriod.isPending}
-            style={cardHasPrimary
-              ? { borderRadius: 14, marginTop: 14, gap: 8, background: 'var(--pink-bg)', color: 'var(--brand)', fontWeight: 800 }
-              : { borderRadius: 14, marginTop: 14, gap: 8 }}
           >
             <Icon name="drop" size={16} fill={cardHasPrimary ? 'currentColor' : 'var(--on-accent)'} strokeWidth={0} />
             {t('startPeriodHere')}
@@ -1055,7 +1044,7 @@ export function CalendarPage() {
 
         {/* Future days can't have logged data, so hide the log section entirely. */}
         {diffInDays(selectedDate, today()) <= 0 && (
-          <div style={{ marginTop: 14 }}>
+          <div className="cal-mt">
             <DayLogSummary tCal={t} selectedDate={selectedDate} onEdit={openLog} />
           </div>
         )}
@@ -1096,24 +1085,8 @@ export function CalendarPage() {
       {actionError && (
         <div
           role="alert"
+          className="cal-toast"
           onClick={() => setActionError(null)}
-          style={{
-            position: 'fixed',
-            insetInlineStart: 16,
-            insetInlineEnd: 16,
-            bottom: 88,
-            zIndex: 50,
-            background: 'var(--danger)',
-            color: 'var(--on-accent)',
-            borderRadius: 14,
-            padding: '12px 16px',
-            fontSize: 13,
-            fontWeight: 700,
-            lineHeight: 1.6,
-            textAlign: 'start',
-            boxShadow: '0 12px 28px -10px rgba(214,69,69,.6)',
-            cursor: 'pointer',
-          }}
         >
           {actionError}
         </div>

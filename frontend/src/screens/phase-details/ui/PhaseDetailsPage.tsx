@@ -47,47 +47,38 @@ export function PhaseDetailsPage() {
     !loading && (subphase === null || query.isError || sections.length === 0);
 
   return (
-    <div className="view" style={{ background: 'var(--page)' }}>
+    <div className="view pd-page">
       <div className="hdr">
         <NavBack onClick={() => router.back()} />
-        <span style={{ flex: 1, fontSize: 16, fontWeight: 800, color: 'var(--ink)', textAlign: 'start' }}>
+        <span className="pd-title">
           {title}
         </span>
       </div>
 
-      <div className="scroll" style={{ padding: '4px 18px 24px' }}>
+      <div className="scroll pd-scroll">
         {!loading && !showFallback && (
-          <p style={{ fontSize: 12, color: 'var(--muted)', margin: '6px 2px 0', textAlign: 'start' }}>
+          <p className="pd-sub">
             {t('subtitle')}
           </p>
         )}
 
         {loading ? (
-          <div style={{ padding: '48px 0', textAlign: 'center', color: 'var(--muted)', fontSize: 13 }}>
+          <div className="pd-loading">
             {t('loading')}
           </div>
         ) : showFallback ? (
-          <section className="card" style={{ padding: 22, marginTop: 14, textAlign: 'center' }}>
-            <p style={{ fontSize: 13.5, lineHeight: 2, color: 'var(--muted)', margin: 0 }}>
+          <section className="card pd-fallback">
+            <p className="pd-fallback-text">
               {t('fallback')}
             </p>
           </section>
         ) : (
           sections.map((key) => (
-            <section key={key} className="card" style={{ padding: 18, marginTop: 14 }}>
-              <h2 style={{ fontSize: 14.5, fontWeight: 800, color: 'var(--ink)', margin: 0, textAlign: 'start' }}>
+            <section key={key} className="card pd-section">
+              <h2 className="pd-h2">
                 {t(`sections.${key}`)}
               </h2>
-              <p
-                style={{
-                  fontSize: 13.5,
-                  lineHeight: 2,
-                  color: 'var(--muted)',
-                  margin: '8px 0 0',
-                  textAlign: 'start',
-                  whiteSpace: 'pre-line',
-                }}
-              >
+              <p className="pd-body">
                 {content?.sections[key]}
               </p>
             </section>

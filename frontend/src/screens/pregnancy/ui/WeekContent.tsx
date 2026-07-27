@@ -38,31 +38,21 @@ function AccordionItem({
   onToggle: () => void;
 }) {
   return (
-    <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+    <div className="card acc">
       <button
         type="button"
+        className="acc-head"
         onClick={onToggle}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 11,
-          width: '100%',
-          padding: '13px 14px',
-          background: 'transparent',
-          border: 0,
-          cursor: 'pointer',
-          textAlign: 'start',
-          fontFamily: 'inherit',
-        }}
+        aria-expanded={open}
       >
-        <span className="dot" style={{ width: 34, height: 34, background: color + '1A', color }}>
+        <span className="dot acc-dot" style={{ background: color + '1A', color }}>
           <Icon name={icon} size={17} />
         </span>
-        <span style={{ flex: 1, fontSize: 14, fontWeight: 800, color: 'var(--ink)' }}>{title}</span>
-        <Icon name="chevronDown" size={18} style={{ color: 'var(--muted)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }} />
+        <span className="acc-title">{title}</span>
+        <Icon name="chevronDown" size={18} className="acc-chev" />
       </button>
       {open && (
-        <div style={{ padding: '0 14px 14px', fontSize: 13.5, lineHeight: 2, color: 'var(--ink)', whiteSpace: 'pre-line', textAlign: 'start' }}>
+        <div className="acc-body">
           {body}
         </div>
       )}
@@ -82,14 +72,14 @@ export function WeekContent({ content, t }: { content: WeeklyContent | null; t: 
 
   if (!content || modules.length === 0) {
     return (
-      <div className="card" style={{ padding: '18px 14px', textAlign: 'center', color: 'var(--muted)', fontSize: 13 }}>
+      <div className="card wc-empty">
         {t('content.noContent')}
       </div>
     );
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div className="wc-list">
       {modules.map(({ key, body }) => {
         const style = MODULE_STYLE[key];
         return (
@@ -106,24 +96,25 @@ export function WeekContent({ content, t }: { content: WeeklyContent | null; t: 
       })}
 
       {content.faq.length > 0 && (
-        <div style={{ marginTop: 4 }}>
-          <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--ink)', margin: '4px 2px 8px', textAlign: 'start' }}>
+        <div className="wc-faq">
+          <div className="wc-faq-title">
             {t('content.faqTitle')}
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div className="wc-faq-list">
             {content.faq.map((item, i) => (
-              <div key={i} className="card" style={{ padding: 0, overflow: 'hidden' }}>
+              <div key={i} className="card acc">
                 <button
                   type="button"
+                  className="acc-head wc-faq-head"
                   onClick={() => setOpenFaq((f) => (f === i ? null : i))}
-                  style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '12px 14px', background: 'transparent', border: 0, cursor: 'pointer', textAlign: 'start', fontFamily: 'inherit' }}
+                  aria-expanded={openFaq === i}
                 >
-                  <Icon name="info" size={16} style={{ color: 'var(--brand)' }} />
-                  <span style={{ flex: 1, fontSize: 13.5, fontWeight: 700, color: 'var(--ink)' }}>{item.question}</span>
-                  <Icon name="chevronDown" size={16} style={{ color: 'var(--muted)', transform: openFaq === i ? 'rotate(180deg)' : 'none' }} />
+                  <Icon name="info" size={16} className="wc-faq-icon" />
+                  <span className="wc-faq-q">{item.question}</span>
+                  <Icon name="chevronDown" size={16} className="acc-chev" />
                 </button>
                 {openFaq === i && (
-                  <div style={{ padding: '0 14px 13px', fontSize: 13, lineHeight: 1.9, color: 'var(--muted)', textAlign: 'start' }}>
+                  <div className="wc-faq-a">
                     {item.answer}
                   </div>
                 )}

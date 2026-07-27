@@ -84,16 +84,16 @@ export function WeeklyForm({ t }: { t: T }) {
   const saveLabel = save.isPending ? t('log.saving') : save.isSuccess ? t('log.saved') : t('log.save');
 
   if (week == null) {
-    return <div className="card" style={{ padding: '18px 14px', textAlign: 'center', color: 'var(--muted)', fontSize: 13 }}>{t('loading')}</div>;
+    return <div className="card plog-empty">{t('loading')}</div>;
   }
 
   return (
     <>
-      <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--ink)', margin: '0 2px 12px', textAlign: 'start' }}>
+      <div className="plog-group is-spaced">
         {t('log.weekly.weekLabel', { week })}
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div className="plog-stack">
         <PgCard title={t('log.weekly.weight')} icon="chart">
           <NumberField label="" value={draft.weight} onChange={(v) => set('weight', v)} min={30} max={200} step={0.1} placeholder="65" />
         </PgCard>
@@ -103,9 +103,9 @@ export function WeeklyForm({ t }: { t: T }) {
             <Toggle on={!!draft.has_swelling} onClick={() => { set('has_swelling', draft.has_swelling ? undefined : true); if (draft.has_swelling) set('swelling_locations', undefined); }} />
           </FieldRow>
           {draft.has_swelling && (
-            <div style={{ marginTop: 6 }}>
-              <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--muted)', display: 'block', marginBottom: 8 }}>{t('log.weekly.swellingWhere')}</span>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <div className="plog-mt6">
+              <span className="plog-sublabel">{t('log.weekly.swellingWhere')}</span>
+              <div className="plog-chips">
                 {swellingLocs.map((loc) => (
                   <Chip key={loc} on={(draft.swelling_locations ?? []).includes(loc)} label={dyn(`log.weekly.swellingLocations.${loc}`)} onClick={() => toggleSwellingLoc(loc)} />
                 ))}
@@ -122,24 +122,24 @@ export function WeeklyForm({ t }: { t: T }) {
             <Toggle on={!!draft.has_blood_pressure_device} onClick={() => set('has_blood_pressure_device', draft.has_blood_pressure_device ? undefined : true)} />
           </FieldRow>
           {draft.has_blood_pressure_device && (
-            <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
-              <div style={{ flex: 1 }}><NumberField label={t('log.weekly.systolic')} value={draft.systolic_pressure} onChange={(v) => set('systolic_pressure', v)} min={60} max={250} /></div>
-              <div style={{ flex: 1 }}><NumberField label={t('log.weekly.diastolic')} value={draft.diastolic_pressure} onChange={(v) => set('diastolic_pressure', v)} min={40} max={150} /></div>
+            <div className="plog-pair">
+              <div><NumberField label={t('log.weekly.systolic')} value={draft.systolic_pressure} onChange={(v) => set('systolic_pressure', v)} min={60} max={250} /></div>
+              <div><NumberField label={t('log.weekly.diastolic')} value={draft.diastolic_pressure} onChange={(v) => set('diastolic_pressure', v)} min={40} max={150} /></div>
             </div>
           )}
-          <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
-            <div style={{ flex: 1 }}><NumberField label={t('log.weekly.fastingSugar')} value={draft.fasting_blood_sugar} onChange={(v) => set('fasting_blood_sugar', v)} min={40} max={400} /></div>
-            <div style={{ flex: 1 }}><NumberField label={t('log.weekly.postMealSugar')} value={draft.post_meal_blood_sugar} onChange={(v) => set('post_meal_blood_sugar', v)} min={40} max={500} /></div>
+          <div className="plog-pair is-lower">
+            <div><NumberField label={t('log.weekly.fastingSugar')} value={draft.fasting_blood_sugar} onChange={(v) => set('fasting_blood_sugar', v)} min={40} max={400} /></div>
+            <div><NumberField label={t('log.weekly.postMealSugar')} value={draft.post_meal_blood_sugar} onChange={(v) => set('post_meal_blood_sugar', v)} min={40} max={500} /></div>
           </div>
         </PgCard>
 
         <PgCard title={t('log.weekly.moodLabel')} icon="smile">
           <Segmented options={moodOptions} value={draft.overall_mood} onChange={(v) => set('overall_mood', v)} />
-          <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column' }}>
+          <div className="plog-rows is-spaced">
             {WEEKLY_MENTAL.map(({ flag, severity }) => {
               const on = !!draft[flag as keyof WeeklyLogInput];
               return (
-                <div key={flag} style={{ padding: '8px 0', borderTop: '1px solid var(--line)' }}>
+                <div key={flag} className="plog-row is-topline">
                   <FieldRow label={dyn(`log.weekly.mental.${flag}`)}>
                     <Toggle on={on} onClick={() => { const willOff = on; set(flag as keyof WeeklyLogInput, willOff ? undefined : (true as never)); if (willOff) set(severity as keyof WeeklyLogInput, undefined); }} />
                   </FieldRow>
@@ -158,14 +158,14 @@ export function WeeklyForm({ t }: { t: T }) {
       </div>
 
       {save.isSuccess && save.data.length > 0 && (
-        <div className="card" style={{ marginTop: 12, padding: '12px 13px', borderInlineStart: '3px solid var(--orange)', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Icon name="flame" size={16} style={{ color: 'var(--orange)' }} />
-          <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)' }}>{t('alerts.raised', { n: save.data.length })}</span>
+        <div className="card plog-note">
+          <Icon name="flame" size={16} className="plog-note-icon" />
+          <span className="plog-note-text">{t('alerts.raised', { n: save.data.length })}</span>
         </div>
       )}
-      {save.isError && <p style={{ color: 'var(--brand)', fontSize: 12.5, fontWeight: 700, textAlign: 'center', marginTop: 12 }}>{t('log.saveError')}</p>}
+      {save.isError && <p className="plog-error">{t('log.saveError')}</p>}
 
-      <button className="btn btn-primary" onClick={handleSave} disabled={!filled || save.isPending} style={{ borderRadius: 16, marginTop: 16 }}>
+      <button className="btn btn-primary plog-save" onClick={handleSave} disabled={!filled || save.isPending}>
         {save.isSuccess ? <Icon name="check" size={18} /> : null}
         {saveLabel}
       </button>

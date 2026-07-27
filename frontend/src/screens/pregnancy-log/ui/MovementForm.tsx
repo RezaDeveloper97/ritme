@@ -77,42 +77,42 @@ export function MovementForm({ t }: { t: T }) {
 
   return (
     <>
-      <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', marginBottom: 12 }}>
+      <div className="card plog-daynav is-spaced">
         <button className="iconbtn" onClick={() => shiftDay(-1)} aria-label={t('log.prevDay')}>
           <Icon name={isRtl ? 'chevronRight' : 'chevronLeft'} size={20} />
         </button>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div className="plog-daynav-mid">
           <Icon name="calendar" size={15} />
-          <span style={{ fontSize: 14.5, fontWeight: 800, color: 'var(--ink)' }}>{formatJalaliDayMonth(date, locale)}</span>
-          {isToday && <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--brand)', background: 'var(--surface-2)', borderRadius: 20, padding: '2px 9px' }}>{t('log.today')}</span>}
+          <span className="plog-daynav-date">{formatJalaliDayMonth(date, locale)}</span>
+          {isToday && <span className="plog-today">{t('log.today')}</span>}
         </div>
-        <button className="iconbtn" onClick={() => canGoNext && shiftDay(1)} disabled={!canGoNext} aria-label={t('log.nextDay')} style={{ opacity: canGoNext ? 1 : 0.3 }}>
+        <button className="iconbtn" onClick={() => canGoNext && shiftDay(1)} disabled={!canGoNext} aria-label={t('log.nextDay')}>
           <Icon name={isRtl ? 'chevronLeft' : 'chevronRight'} size={20} />
         </button>
       </div>
 
       {!trackingActive && (
-        <div className="card" style={{ padding: '12px 13px', marginBottom: 12, display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-          <Icon name="info" size={16} style={{ color: 'var(--brand)', marginTop: 2 }} />
-          <span style={{ fontSize: 12.5, lineHeight: 1.8, color: 'var(--muted)' }}>{t('log.movement.notYet')}</span>
+        <div className="card plog-hint">
+          <Icon name="info" size={16} className="plog-hint-icon" />
+          <span className="plog-hint-text">{t('log.movement.notYet')}</span>
         </div>
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div className="plog-stack">
         <PgCard title={t('log.movement.statusLabel')} icon="heart">
           <Segmented options={statusOptions} value={draft.movement_status || undefined} onChange={(v) => set('movement_status', v ?? '')} />
         </PgCard>
 
         <PgCard title={t('log.movement.count')} icon="chart" hint={t('log.movement.trackingFrom')}>
           <NumberField label="" value={draft.movement_count} onChange={(v) => set('movement_count', v)} min={0} max={100} placeholder="10" />
-          <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
-            <label style={{ flex: 1, textAlign: 'start' }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', display: 'block', marginBottom: 6 }}>{t('log.movement.firstTime')}</span>
-              <input className="field" type="time" value={draft.first_movement_time ?? ''} onChange={(e) => set('first_movement_time', e.target.value || undefined)} style={{ width: '100%' }} />
+          <div className="plog-pair is-lower">
+            <label className="fld-label">
+              <span className="fld-label-t">{t('log.movement.firstTime')}</span>
+              <input className="field fld-input" type="time" value={draft.first_movement_time ?? ''} onChange={(e) => set('first_movement_time', e.target.value || undefined)} />
             </label>
-            <label style={{ flex: 1, textAlign: 'start' }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', display: 'block', marginBottom: 6 }}>{t('log.movement.lastTime')}</span>
-              <input className="field" type="time" value={draft.last_movement_time ?? ''} onChange={(e) => set('last_movement_time', e.target.value || undefined)} style={{ width: '100%' }} />
+            <label className="fld-label">
+              <span className="fld-label-t">{t('log.movement.lastTime')}</span>
+              <input className="field fld-input" type="time" value={draft.last_movement_time ?? ''} onChange={(e) => set('last_movement_time', e.target.value || undefined)} />
             </label>
           </div>
         </PgCard>
@@ -123,14 +123,14 @@ export function MovementForm({ t }: { t: T }) {
       </div>
 
       {save.isSuccess && save.data.length > 0 && (
-        <div className="card" style={{ marginTop: 12, padding: '12px 13px', borderInlineStart: '3px solid var(--danger)', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Icon name="shield" size={16} style={{ color: 'var(--danger)' }} />
-          <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)' }}>{t('alerts.raised', { n: save.data.length })}</span>
+        <div className="card plog-note is-danger">
+          <Icon name="shield" size={16} className="plog-note-icon is-danger" />
+          <span className="plog-note-text">{t('alerts.raised', { n: save.data.length })}</span>
         </div>
       )}
-      {save.isError && <p style={{ color: 'var(--brand)', fontSize: 12.5, fontWeight: 700, textAlign: 'center', marginTop: 12 }}>{t('log.saveError')}</p>}
+      {save.isError && <p className="plog-error">{t('log.saveError')}</p>}
 
-      <button className="btn btn-primary" onClick={handleSave} disabled={!filled || save.isPending} style={{ borderRadius: 16, marginTop: 16 }}>
+      <button className="btn btn-primary plog-save" onClick={handleSave} disabled={!filled || save.isPending}>
         {save.isSuccess ? <Icon name="check" size={18} /> : null}
         {saveLabel}
       </button>

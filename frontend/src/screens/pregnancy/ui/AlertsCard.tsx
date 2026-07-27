@@ -31,32 +31,32 @@ function AlertRow({ alert, t, onRead, onDismiss }: { alert: PregnancyAlert; t: T
         opacity: alert.isRead ? 0.7 : 1,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-        <span className="dot" style={{ width: 28, height: 28, background: style.soft, color: style.color }}>
+      <div className="alert-head">
+        <span className="dot alert-dot" style={{ background: style.soft, color: style.color }}>
           <Icon name={style.icon} size={15} />
         </span>
-        <span style={{ flex: 1, fontSize: 13.5, fontWeight: 800, color: 'var(--ink)' }}>{alert.title}</span>
+        <span className="alert-title">{alert.title}</span>
         {!alert.isRead && (
-          <span style={{ fontSize: 10.5, fontWeight: 700, color: style.color, background: style.soft, borderRadius: 20, padding: '2px 8px' }}>
+          <span className="alert-badge" style={{ color: style.color, background: style.soft }}>
             {t('alerts.unreadBadge')}
           </span>
         )}
       </div>
-      <p style={{ margin: '8px 0 0', fontSize: 12.5, lineHeight: 1.8, color: 'var(--muted)' }}>{alert.message}</p>
+      <p className="alert-msg">{alert.message}</p>
       {alert.recommendedActions.length > 0 && (
-        <ul style={{ margin: '8px 0 0', paddingInlineStart: 18, fontSize: 12, color: 'var(--ink)', lineHeight: 1.9 }}>
+        <ul className="alert-actions">
           {alert.recommendedActions.map((a, i) => (
             <li key={i}>{a}</li>
           ))}
         </ul>
       )}
-      <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+      <div className="alert-btns">
         {!alert.isRead && (
-          <button type="button" className="btn btn-soft" onClick={onRead} style={{ height: 32, fontSize: 12, padding: '0 12px', width: 'auto' }}>
+          <button type="button" className="btn btn-soft alert-btn" onClick={onRead}>
             <Icon name="check" size={14} />
           </button>
         )}
-        <button type="button" className="btn btn-ghost" onClick={onDismiss} style={{ height: 32, fontSize: 12, padding: '0 12px', width: 'auto' }}>
+        <button type="button" className="btn btn-ghost alert-btn" onClick={onDismiss}>
           {t('alerts.dismiss')}
         </button>
       </div>
@@ -76,22 +76,22 @@ export function AlertsCard({ t }: { t: T }) {
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '2px 2px 10px' }}>
-        <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>{t('alerts.title')}</span>
+      <div className="alerts-head">
+        <span className="alerts-title">{t('alerts.title')}</span>
         {hasUnread && (
-          <button type="button" onClick={() => markAll.mutate()} style={{ background: 'none', border: 0, color: 'var(--brand)', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+          <button type="button" className="alerts-markall" onClick={() => markAll.mutate()}>
             {t('alerts.markAllRead')}
           </button>
         )}
       </div>
 
       {alerts.length === 0 ? (
-        <div className="card" style={{ padding: '16px 14px', textAlign: 'center', color: 'var(--muted)', fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-          <Icon name="checkCircle" size={16} style={{ color: 'var(--green)' }} />
+        <div className="card alerts-empty">
+          <Icon name="checkCircle" size={16} className="alerts-empty-icon" />
           {t('alerts.empty')}
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+        <div className="alerts-list">
           {alerts.map((alert) => (
             <AlertRow
               key={alert.id}

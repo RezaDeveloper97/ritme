@@ -24,7 +24,7 @@ type T = ReturnType<typeof useTranslations>;
 // ── Loading / gate shells ──────────────────────────────────────
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="view" style={{ background: 'var(--page)' }}>
+    <div className="view preg-page">
       <div className="scroll">{children}</div>
       <BottomNav />
     </div>
@@ -43,13 +43,13 @@ function ActivateGate({ t }: { t: T }) {
 
   return (
     <Shell>
-      <div style={{ padding: '40px 22px 0', textAlign: 'center' }}>
-        <div className="dot" style={{ width: 72, height: 72, margin: '0 auto 18px', background: 'var(--surface-2)', color: 'var(--brand)' }}>
+      <div className="preg-gate">
+        <div className="dot preg-gate-dot">
           <Icon name="heart" size={34} />
         </div>
-        <h1 className="titr" style={{ fontSize: 20 }}>{t('notActive.title')}</h1>
-        <p className="sub" style={{ margin: '10px 0 24px', lineHeight: 2 }}>{t('notActive.body')}</p>
-        <button className="btn btn-primary" onClick={start} disabled={activate.isPending} style={{ borderRadius: 16 }}>
+        <h1 className="titr preg-gate-title">{t('notActive.title')}</h1>
+        <p className="sub preg-gate-body">{t('notActive.body')}</p>
+        <button className="btn btn-primary preg-gate-cta" onClick={start} disabled={activate.isPending}>
           {activate.isPending ? t('notActive.activating') : t('notActive.cta')}
         </button>
       </div>
@@ -63,13 +63,12 @@ function ActionTile({ icon, label, color, onClick }: { icon: IconName; label: st
     <button
       type="button"
       onClick={onClick}
-      className="card"
-      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '14px 8px', cursor: 'pointer', fontFamily: 'inherit', flex: 1 }}
+      className="card preg-action"
     >
-      <span className="dot" style={{ width: 40, height: 40, background: color + '1A', color }}>
+      <span className="dot preg-action-dot" style={{ background: color + '1A', color }}>
         <Icon name={icon} size={20} />
       </span>
-      <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink)', textAlign: 'center', lineHeight: 1.4 }}>{label}</span>
+      <span className="preg-action-label">{label}</span>
     </button>
   );
 }
@@ -101,7 +100,7 @@ export function PregnancyPage() {
   if (!mounted || statusQuery.isLoading || profileQuery.isLoading) {
     return (
       <Shell>
-        <div style={{ padding: '60px 0', textAlign: 'center', color: 'var(--muted)' }}>{t('loading')}</div>
+        <div className="preg-loading">{t('loading')}</div>
       </Shell>
     );
   }
@@ -115,27 +114,27 @@ export function PregnancyPage() {
   const isCurrent = progress != null && week === progress.currentWeek;
 
   return (
-    <div className="view" style={{ background: 'var(--page)' }}>
+    <div className="view preg-page">
       <div className="scroll">
         {/* Hero */}
-        <div className="home-grad" style={{ padding: '18px 18px 22px', color: 'var(--on-accent)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: 13, fontWeight: 700, opacity: 0.92 }}>{t('title')}</span>
+        <div className="home-grad preg-hero">
+          <div className="preg-hero-top">
+            <span className="preg-hero-title">{t('title')}</span>
             {status?.isHighRisk && (
-              <span style={{ fontSize: 11, fontWeight: 800, background: 'rgba(255,255,255,.22)', borderRadius: 20, padding: '3px 10px' }}>
+              <span className="preg-hero-badge">
                 {t('highRiskBadge')}
               </span>
             )}
           </div>
 
-          <div style={{ marginTop: 14, display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div className="dot" style={{ width: 62, height: 62, background: 'rgba(255,255,255,.2)', color: 'var(--on-accent)', flex: '0 0 auto' }}>
+          <div className="preg-hero-row">
+            <div className="dot preg-hero-dot">
               <Icon name="heart" size={30} />
             </div>
-            <div style={{ textAlign: 'start' }}>
-              <div style={{ fontSize: 22, fontWeight: 900 }}>{progress ? t('hero.weekOf', { week: progress.currentWeek }) : ''}</div>
+            <div className="text-start">
+              <div className="preg-hero-week">{progress ? t('hero.weekOf', { week: progress.currentWeek }) : ''}</div>
               {ga?.weeks != null && (
-                <div style={{ fontSize: 13, fontWeight: 600, opacity: 0.95, marginTop: 3 }}>
+                <div className="preg-hero-ga">
                   {t('hero.gaValue', { weeks: ga.weeks, days: ga.days ?? 0 })}
                 </div>
               )}
@@ -144,11 +143,11 @@ export function PregnancyPage() {
 
           {/* Progress bar across 40 weeks */}
           {progress && (
-            <div style={{ marginTop: 16 }}>
-              <div style={{ height: 8, borderRadius: 20, background: 'rgba(255,255,255,.28)', overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${progress.progressPct}%`, background: 'var(--on-accent)', borderRadius: 20 }} />
+            <div className="preg-prog">
+              <div className="preg-prog-track">
+                <div className="preg-prog-fill" style={{ width: `${progress.progressPct}%` }} />
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 7, fontSize: 11.5, fontWeight: 600, opacity: 0.95 }}>
+              <div className="preg-prog-meta">
                 <span>{t('progress', { percent: progress.progressPct })}</span>
                 <span>{t(`trimester.t${progress.trimester}`)}</span>
               </div>
@@ -157,77 +156,77 @@ export function PregnancyPage() {
         </div>
 
         {/* Due date + confidence */}
-        <div style={{ padding: '14px 16px 0', display: 'flex', gap: 10 }}>
+        <div className="preg-tiles">
           {due && (
-            <div className="card" style={{ flex: 1, padding: '12px 13px', textAlign: 'start' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--muted)', fontSize: 11.5, fontWeight: 700 }}>
+            <div className="card preg-tile">
+              <div className="preg-tile-head">
                 <Icon name="calendar" size={13} /> {t('due.label')}
               </div>
-              <div style={{ fontSize: 14.5, fontWeight: 800, color: 'var(--ink)', marginTop: 5 }}>
+              <div className="preg-tile-val">
                 {pickBilingual(due.formatted, locale)}
               </div>
-              <div style={{ fontSize: 12, color: 'var(--brand)', fontWeight: 700, marginTop: 3 }}>
+              <div className="preg-tile-sub is-brand">
                 {t('due.countdown', { n: due.daysRemaining })}
               </div>
             </div>
           )}
           {ga?.confidenceLevel && (
-            <div className="card" style={{ flex: 1, padding: '12px 13px', textAlign: 'start' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--muted)', fontSize: 11.5, fontWeight: 700 }}>
+            <div className="card preg-tile">
+              <div className="preg-tile-head">
                 <Icon name="info" size={13} /> {t('confidence.label')}
               </div>
-              <div style={{ fontSize: 14.5, fontWeight: 800, color: 'var(--ink)', marginTop: 5 }}>
+              <div className="preg-tile-val">
                 {t(`confidence.${ga.confidenceLevel === 'high' ? 'high' : ga.confidenceLevel === 'low' ? 'low' : 'medium'}`)}
               </div>
               {ga.uncertaintyDays != null && (
-                <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 3 }}>±{ga.uncertaintyDays}</div>
+                <div className="preg-tile-sub">±{ga.uncertaintyDays}</div>
               )}
             </div>
           )}
         </div>
 
         {/* Quick actions */}
-        <div style={{ padding: '12px 16px 0', display: 'flex', gap: 10 }}>
+        <div className="preg-actions">
           <ActionTile icon="plus" label={t('actions.logSymptoms')} color="var(--brand)" onClick={() => goToLog('symptoms')} />
           <ActionTile icon="stetho" label={t('actions.weeklyCheckup')} color="var(--indigo-deep)" onClick={() => goToLog('weekly')} />
           <ActionTile icon="heart" label={t('actions.fetalMovement')} color="var(--green)" onClick={() => goToLog('movement')} />
         </div>
 
         {/* Week browser */}
-        <div style={{ padding: '18px 16px 0' }}>
-          <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px' }}>
-            <button className="iconbtn" aria-label={t('weekPicker.prev')} disabled={week <= 1} onClick={() => setSelectedWeek(Math.max(1, week - 1))} style={{ opacity: week <= 1 ? 0.3 : 1 }}>
+        <div className="preg-weeknav">
+          <div className="card preg-weeknav-card">
+            <button className="iconbtn" aria-label={t('weekPicker.prev')} disabled={week <= 1} onClick={() => setSelectedWeek(Math.max(1, week - 1))}>
               <Icon name={isRtl ? 'chevronRight' : 'chevronLeft'} size={20} />
             </button>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>{t('weekLabel', { week })}</div>
+            <div className="preg-weeknav-mid">
+              <div className="preg-weeknav-week">{t('weekLabel', { week })}</div>
               {!isCurrent && (
-                <button onClick={() => progress && setSelectedWeek(progress.currentWeek)} style={{ background: 'none', border: 0, color: 'var(--brand)', fontSize: 11.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginTop: 2 }}>
+                <button className="preg-weeknav-now" onClick={() => progress && setSelectedWeek(progress.currentWeek)}>
                   {t('weekPicker.current')}
                 </button>
               )}
             </div>
-            <button className="iconbtn" aria-label={t('weekPicker.next')} disabled={week >= TOTAL_WEEKS} onClick={() => setSelectedWeek(Math.min(TOTAL_WEEKS, week + 1))} style={{ opacity: week >= TOTAL_WEEKS ? 0.3 : 1 }}>
+            <button className="iconbtn" aria-label={t('weekPicker.next')} disabled={week >= TOTAL_WEEKS} onClick={() => setSelectedWeek(Math.min(TOTAL_WEEKS, week + 1))}>
               <Icon name={isRtl ? 'chevronLeft' : 'chevronRight'} size={20} />
             </button>
           </div>
         </div>
 
         {/* Weekly content */}
-        <div style={{ padding: '12px 16px 0' }}>
+        <div className="preg-content">
           {contentQuery.isLoading ? (
-            <div className="card" style={{ padding: '18px 14px', textAlign: 'center', color: 'var(--muted)', fontSize: 13 }}>{t('loading')}</div>
+            <div className="card preg-content-load">{t('loading')}</div>
           ) : (
             <WeekContent content={contentQuery.data ?? null} t={t} />
           )}
         </div>
 
         {/* Alerts */}
-        <div style={{ padding: '20px 16px 0' }}>
+        <div className="preg-alerts">
           <AlertsCard t={t} />
         </div>
 
-        <div style={{ height: 24 }} />
+        <div className="preg-tail" />
       </div>
 
       <BottomNav />

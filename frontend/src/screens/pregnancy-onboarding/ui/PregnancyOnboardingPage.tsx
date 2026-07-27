@@ -112,20 +112,20 @@ export function PregnancyOnboardingPage() {
   const conditionOptions = enums.data?.preExistingConditions ?? CONDITIONS;
 
   return (
-    <div className="view" style={{ background: 'var(--page)' }}>
+    <div className="view pon-page">
       <div className="scroll">
-        <div style={{ padding: '10px 20px 0', textAlign: 'start' }}>
+        <div className="onb-hdr">
           <button className="iconbtn" onClick={() => router.back()} aria-label={t('back')}>
             <Icon name={isRtl ? 'chevronRight' : 'chevronLeft'} size={20} />
           </button>
-          <div className="titr" style={{ marginTop: 8 }}>{t('onboarding.title')}</div>
-          <p className="sub" style={{ margin: '6px 0 0' }}>{t('onboarding.subtitle')}</p>
+          <div className="titr onb-titr">{t('onboarding.title')}</div>
+          <p className="sub onb-sub">{t('onboarding.subtitle')}</p>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '16px 16px 0' }}>
+        <div className="pon-stack">
           {/* Dating method */}
           <PgCard title={t('onboarding.ageSourceLabel')} icon="calendar">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div className="pon-choices">
               {ageSources.map((src) => {
                 const on = ageSource === src;
                 return (
@@ -145,14 +145,14 @@ export function PregnancyOnboardingPage() {
                       background: on ? 'var(--surface-2)' : 'var(--surface)',
                     }}
                   >
-                    <span className="dot" style={{ width: 20, height: 20, marginTop: 2, background: on ? 'var(--brand)' : 'var(--track)', color: 'var(--on-accent)' }}>
+                    <span className="dot pon-choice-dot" style={{ background: on ? 'var(--brand)' : 'var(--track)' }}>
                       {on && <Icon name="check" size={13} />}
                     </span>
                     <span>
-                      <span style={{ display: 'block', fontSize: 14, fontWeight: 800, color: 'var(--ink)' }}>
+                      <span className="pon-choice-t">
                         {dyn(`onboarding.ageSource.${src}`)}
                       </span>
-                      <span style={{ display: 'block', fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>
+                      <span className="pon-choice-h">
                         {dyn(`onboarding.ageSourceHint.${src}`)}
                       </span>
                     </span>
@@ -172,15 +172,15 @@ export function PregnancyOnboardingPage() {
           {ageSource === 'ultrasound' && (
             <PgCard title={t('onboarding.ultrasoundDate')}>
               <JalaliDateWheels idPrefix="scan" value={scanDate} onChange={setScanDate} minYear={thisJalaliYear - 1} maxYear={thisJalaliYear} />
-              <div style={{ marginTop: 12 }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>{t('onboarding.ultrasoundAge')}</span>
-                <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
-                  <div style={{ flex: 1 }}>
+              <div className="onb-mt12">
+                <span className="pon-sublabel">{t('onboarding.ultrasoundAge')}</span>
+                <div className="pon-pair">
+                  <div>
                     <NumberField label={t('onboarding.weeks')} value={scanWeeks} onChange={setScanWeeks} min={1} max={42} />
                   </div>
                 </div>
-                <div style={{ marginTop: 10 }}>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', display: 'block', marginBottom: 8 }}>{t('onboarding.days')}</span>
+                <div className="onb-mt10">
+                  <span className="pon-sublabel is-block">{t('onboarding.days')}</span>
                   <Segmented options={dayOptions} value={scanDays != null ? String(scanDays) : undefined} onChange={(v) => setScanDays(v == null ? undefined : Number(v))} />
                 </div>
               </div>
@@ -190,8 +190,8 @@ export function PregnancyOnboardingPage() {
           {ageSource === 'manual' && (
             <PgCard title={t('onboarding.manualAge')}>
               <NumberField label={t('onboarding.weeks')} value={manualWeeks} onChange={setManualWeeks} min={1} max={42} />
-              <div style={{ marginTop: 10 }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', display: 'block', marginBottom: 8 }}>{t('onboarding.days')}</span>
+              <div className="onb-mt10">
+                <span className="pon-sublabel is-block">{t('onboarding.days')}</span>
                 <Segmented options={dayOptions} value={manualDays != null ? String(manualDays) : undefined} onChange={(v) => setManualDays(v == null ? undefined : Number(v))} />
               </div>
             </PgCard>
@@ -199,19 +199,19 @@ export function PregnancyOnboardingPage() {
 
           {/* History */}
           <PgCard title={t('onboarding.history.title')} icon="shield">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0' }}>
-              <span style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--ink)' }}>{t('onboarding.history.miscarriage')}</span>
+            <div className="pon-toggle-row">
+              <span className="pon-toggle-lbl">{t('onboarding.history.miscarriage')}</span>
               <Toggle on={miscarriage} onClick={() => setMiscarriage((v) => !v)} />
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0' }}>
-              <span style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--ink)' }}>{t('onboarding.history.highRisk')}</span>
+            <div className="pon-toggle-row">
+              <span className="pon-toggle-lbl">{t('onboarding.history.highRisk')}</span>
               <Toggle on={highRisk} onClick={() => setHighRisk((v) => !v)} />
             </div>
           </PgCard>
 
           {/* Conditions */}
           <PgCard title={t('onboarding.conditions.title')} icon="stetho" hint={t('onboarding.optional')}>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            <div className="pon-chips">
               {conditionOptions.map((c) => (
                 <Chip key={c} on={conditions.includes(c)} label={dyn(`onboarding.conditions.${c}`)} onClick={() => toggleCondition(c)} />
               ))}
@@ -220,14 +220,14 @@ export function PregnancyOnboardingPage() {
 
           {/* Blood group + Rh */}
           <PgCard title={t('onboarding.bloodTypeLabel')} icon="drop" hint={t('onboarding.optional')}>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            <div className="pon-chips">
               {bloodTypes.map((b) => (
                 <Chip key={b} on={bloodType === b} label={b} onClick={() => setBloodType(bloodType === b ? undefined : b)} />
               ))}
             </div>
-            <div style={{ marginTop: 12 }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)', display: 'block', marginBottom: 8 }}>{t('onboarding.rhLabel')}</span>
-              <div style={{ display: 'flex', gap: 8 }}>
+            <div className="onb-mt12">
+              <span className="pon-sublabel is-block">{t('onboarding.rhLabel')}</span>
+              <div className="pon-chips is-row">
                 {rhFactors.map((r) => (
                   <Chip key={r} on={rhFactor === r} label={dyn(`onboarding.rh.${r}`)} onClick={() => setRhFactor(rhFactor === r ? undefined : r)} />
                 ))}
@@ -236,15 +236,15 @@ export function PregnancyOnboardingPage() {
           </PgCard>
 
           {error && (
-            <p style={{ color: 'var(--brand)', fontSize: 12.5, fontWeight: 700, textAlign: 'center', margin: 0 }}>{error}</p>
+            <p className="onb-error">{error}</p>
           )}
         </div>
 
-        <div style={{ height: 20 }} />
+        <div className="pon-tail" />
       </div>
 
-      <div style={{ padding: '10px 16px 4px', background: 'var(--page)' }}>
-        <button className="btn btn-primary" onClick={handleSubmit} disabled={onboard.isPending} style={{ borderRadius: 16 }}>
+      <div className="pon-footer">
+        <button className="btn btn-primary onb-cta" onClick={handleSubmit} disabled={onboard.isPending}>
           {onboard.isPending ? t('onboarding.submitting') : t('onboarding.submit')}
         </button>
       </div>

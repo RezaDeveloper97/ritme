@@ -1,5 +1,7 @@
 'use client';
 
+import clsx from 'clsx';
+
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
@@ -23,37 +25,25 @@ export function PregnancyLogPage({ initialTab }: { initialTab?: string }) {
   );
 
   return (
-    <div className="view" style={{ background: 'var(--page)' }}>
+    <div className="view plog-page">
       <div className="scroll">
-        <div style={{ padding: '10px 20px 0', textAlign: 'start' }}>
-          <Link href="/pregnancy" className="iconbtn" aria-label={t('back')} style={{ display: 'inline-flex' }}>
+        <div className="plog-hdr">
+          <Link href="/pregnancy" className="iconbtn plog-back" aria-label={t('back')}>
             <Icon name="chevronRight" size={20} />
           </Link>
-          <div className="titr" style={{ marginTop: 8 }}>{t('log.title')}</div>
-          <p className="sub" style={{ margin: '6px 0 0' }}>{t('log.subtitle')}</p>
+          <div className="titr plog-titr">{t('log.title')}</div>
+          <p className="sub plog-sub">{t('log.subtitle')}</p>
         </div>
 
         {/* Tab switcher */}
-        <div style={{ padding: '14px 16px 0' }}>
-          <div className="seg" style={{ display: 'flex', gap: 4 }}>
+        <div className="sec-tight">
+          <div className="seg plog-tabs">
             {TABS.map((tb) => (
               <button
                 key={tb}
                 type="button"
                 onClick={() => setTab(tb)}
-                className={tab === tb ? 'on' : ''}
-                style={{
-                  flex: 1,
-                  padding: '9px 6px',
-                  borderRadius: 12,
-                  border: 0,
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                  fontSize: 12.5,
-                  fontWeight: 700,
-                  background: tab === tb ? 'var(--brand)' : 'transparent',
-                  color: tab === tb ? 'var(--on-accent)' : 'var(--muted)',
-                }}
+                className={clsx('plog-tab', tab === tb && 'on')}
               >
                 {t(`log.tabs.${tb}`)}
               </button>
@@ -61,13 +51,13 @@ export function PregnancyLogPage({ initialTab }: { initialTab?: string }) {
           </div>
         </div>
 
-        <div style={{ padding: '14px 16px 0' }}>
+        <div className="sec-tight">
           {tab === 'symptoms' && <SymptomsForm t={t} />}
           {tab === 'weekly' && <WeeklyForm t={t} />}
           {tab === 'movement' && <MovementForm t={t} />}
         </div>
 
-        <div style={{ height: 24 }} />
+        <div className="plog-tail" />
       </div>
 
       <BottomNav />

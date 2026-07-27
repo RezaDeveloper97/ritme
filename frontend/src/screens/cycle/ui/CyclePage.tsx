@@ -52,17 +52,17 @@ function CycleHeader({
   recalculating: boolean;
 }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 18px 10px' }}>
-      <button className="iconbtn" style={{ background: 'rgba(255,255,255,.6)' }}>
+    <div className="cyc-hdr">
+      <button className="iconbtn cyc-hdr-btn">
         <Icon name="bell" size={20} />
       </button>
-      <div style={{ textAlign: 'center' }}>
-        <div style={{ fontWeight: 900, fontSize: 20, color: 'var(--brand-deep)' }}>{t('title')}</div>
-        <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 1 }}>{tagline}</div>
+      <div className="cyc-brand">
+        <div className="cyc-title">{t('title')}</div>
+        <div className="cyc-tagline">{tagline}</div>
       </div>
+      {/* Dimming while recalculating comes from `.iconbtn:disabled`. */}
       <button
-        className="iconbtn"
-        style={{ background: 'rgba(255,255,255,.6)', color: 'var(--brand)', opacity: recalculating ? 0.5 : 1 }}
+        className="iconbtn cyc-hdr-btn is-brand"
         onClick={onRecalculate}
         disabled={recalculating}
         aria-label={t('recalculate')}
@@ -88,62 +88,42 @@ function CycleStatusCard({
   const ringPct = clampPct((pred.cycleDay / pred.cycleLength) * 100);
 
   return (
-    <div style={{ padding: '2px 16px 0' }}>
-      <div
-        className="card"
-        style={{ padding: '18px 16px', background: 'linear-gradient(135deg,var(--surface) 0%,var(--surface-2) 100%)' }}
-      >
-        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--brand)', textAlign: 'start', marginBottom: 14 }}>
+    <div className="cyc-hero-wrap">
+      <div className="card cyc-hero">
+        <div className="cyc-basedon">
           {t('basedOn')}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          {/* Cycle-day donut. Fill proportion = today's day within the cycle. */}
+        <div className="cyc-hero-row">
+          {/* Cycle-day donut. Fill proportion = today's day within the cycle,
+              so the sweep and the phase colour are the only inline values. */}
           <div
-            style={{
-              position: 'relative',
-              width: 104,
-              height: 104,
-              flex: '0 0 104px',
-              borderRadius: '50%',
-              background: `conic-gradient(${c} ${ringPct * 3.6}deg, var(--line) 0deg)`,
-            }}
+            className="cyc-donut"
+            style={{ background: `conic-gradient(${c} ${ringPct * 3.6}deg, var(--line) 0deg)` }}
           >
-            <div
-              style={{
-                position: 'absolute',
-                inset: 9,
-                borderRadius: '50%',
-                background: 'var(--surface)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 1,
-              }}
-            >
-              <span style={{ fontSize: 30, fontWeight: 900, color: 'var(--ink)', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
+            <div className="cyc-donut-core">
+              <span className="cyc-donut-day">
                 {format.number(pred.cycleDay)}
               </span>
-              <span style={{ fontSize: 10, color: 'var(--muted)', fontWeight: 600 }}>
+              <span className="cyc-donut-of">
                 {t('status.ofN', { n: pred.cycleLength })}
               </span>
             </div>
           </div>
 
-          <div style={{ flex: 1, textAlign: 'start' }}>
-            <div style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 600, marginBottom: 4 }}>
+          <div className="cyc-hero-side">
+            <div className="cyc-phase-lbl">
               {t('status.phaseLabel')}
             </div>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: bg, color: c, borderRadius: 20, padding: '5px 12px' }}>
+            <div className="cyc-phase-chip" style={{ background: bg, color: c }}>
               <DropSolid size={14} color={c} />
-              <span style={{ fontSize: 13, fontWeight: 800 }}>{t(`phaseLabel.${pred.phase}`)}</span>
+              <span className="cyc-phase-name">{t(`phaseLabel.${pred.phase}`)}</span>
             </div>
 
-            <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-              <div style={{ flex: 1, background: 'var(--surface-2)', borderRadius: 12, padding: '8px 10px' }}>
-                <div style={{ fontSize: 10, color: 'var(--muted)', fontWeight: 600 }}>{t('status.fertility')}</div>
-                <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--brand)', marginTop: 2 }}>
+            <div className="cyc-stats">
+              <div className="cyc-stat">
+                <div className="cyc-stat-lbl">{t('status.fertility')}</div>
+                <div className="cyc-stat-val">
                   {t('percent', { n: pred.fertilityPercent })}
                 </div>
               </div>
@@ -153,17 +133,17 @@ function CycleStatusCard({
 
         {/* Fertile-window / PMS status line, only when relevant. */}
         {(pred.isFertileWindow || calc.isPmsWindow) && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 14, background: 'var(--line)', borderRadius: 12, padding: '9px 12px' }}>
+          <div className="cyc-note">
             <span style={{ color: pred.isFertileWindow ? 'var(--amber)' : 'var(--indigo)' }}>
               <Icon name="info" size={16} />
             </span>
-            <span style={{ flex: 1, textAlign: 'start', fontSize: 12, fontWeight: 700, color: 'var(--ink)' }}>
+            <span className="cyc-note-text">
               {pred.isFertileWindow ? t('status.fertileWindow') : t('status.pms')}
             </span>
           </div>
         )}
 
-        <p className="sub" style={{ textAlign: 'start', margin: '14px 2px 0', lineHeight: 1.9 }}>
+        <p className="sub cyc-desc">
           {phaseDesc}
         </p>
 
@@ -171,11 +151,7 @@ function CycleStatusCard({
             Only shown once the engine has a confident sub-phase; the target
             reads that phase from live cycle data, never from the URL (§11). */}
         {subphase && (
-          <Link
-            href="/cycle/phase"
-            className="btn btn-ghost"
-            style={{ height: 44, borderRadius: 14, marginTop: 14, gap: 8, fontSize: 13, textDecoration: 'none' }}
-          >
+          <Link href="/cycle/phase" className="btn btn-ghost cyc-cta">
             <Icon name="info" size={16} /> {t('phaseDetailsCta')}
           </Link>
         )}
@@ -208,63 +184,38 @@ function CycleTimeline({
   ];
 
   return (
-    <div style={{ padding: '14px 16px 0' }}>
-      <div className="card" style={{ padding: '16px 14px' }}>
-        <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)', textAlign: 'start', marginBottom: 16 }}>
+    <div className="sec-tight">
+      <div className="card pad-card">
+        <div className="card-titr">
           {t('timeline.title')}
         </div>
 
         {/* Left→right timeline regardless of locale — a cycle always runs
-            day 1 → day N, so pin the bar to LTR (§12-safe: not layout chrome). */}
-        <div dir="ltr" style={{ position: 'relative', height: 10, borderRadius: 99, background: 'var(--line)', overflow: 'visible', marginBottom: 26 }}>
+            day 1 → day N, so pin the bar to LTR (§12-safe: not layout chrome).
+            Shares `.cyclebar*` with the home screen's copy of this chart. */}
+        <div dir="ltr" className="cyclebar is-roomy">
           {/* Fertile band */}
           <span
-            style={{
-              position: 'absolute', top: 0, bottom: 0,
-              left: `${at(fertileStart)}%`, width: `${at(ovulation + 1) - at(fertileStart)}%`,
-              background: 'var(--amber-soft)', borderRadius: 99,
-            }}
+            className="cyclebar-band"
+            style={{ left: `${at(fertileStart)}%`, width: `${at(ovulation + 1) - at(fertileStart)}%` }}
           />
           {/* Progress up to today */}
-          <span
-            style={{
-              position: 'absolute', top: 0, bottom: 0, left: 0, width: `${todayPos}%`,
-              background: 'linear-gradient(90deg,var(--blush),var(--brand))', borderRadius: 99, opacity: 0.85,
-            }}
-          />
+          <span className="cyclebar-fill" style={{ width: `${todayPos}%` }} />
           {/* Ovulation tick */}
-          <span
-            style={{
-              position: 'absolute', top: '50%', left: `${at(ovulation)}%`,
-              width: 10, height: 10, marginTop: -5, marginLeft: -5,
-              borderRadius: '50%', background: 'var(--green-dot)', border: '2px solid var(--surface)',
-            }}
-          />
+          <span className="cyclebar-tick" style={{ left: `${at(ovulation)}%` }} />
           {/* Today marker */}
-          <span
-            style={{
-              position: 'absolute', top: -5, left: `${todayPos}%`,
-              width: 4, height: 20, marginLeft: -2, borderRadius: 2, background: 'var(--brand)',
-            }}
-          />
+          <span className="cyclebar-now" style={{ left: `${todayPos}%` }} />
         </div>
 
-        {rows.map((r, i) => (
-          <div
-            key={r.l}
-            style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '11px 2px',
-              ...(i < rows.length - 1 ? { borderBottom: '1px solid var(--line)' } : {}),
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        {rows.map(r => (
+          <div key={r.l} className="cyc-event">
+            <div className="cyc-event-left">
               <span className="dot" style={{ background: r.bg, color: r.c }}>
                 <DropSolid size={16} color={r.c} />
               </span>
-              <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)' }}>{r.l}</span>
+              <span className="cyc-event-name">{r.l}</span>
             </div>
-            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--muted)', fontVariantNumeric: 'tabular-nums' }}>{r.d}</span>
+            <span className="cyc-event-date">{r.d}</span>
           </div>
         ))}
       </div>
@@ -288,26 +239,19 @@ function CycleSummaryCard({
   ];
 
   return (
-    <div style={{ padding: '14px 16px 0' }}>
-      <div className="card" style={{ padding: '16px 14px' }}>
-        <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)', textAlign: 'start', marginBottom: 4 }}>
+    <div className="sec-tight">
+      <div className="card pad-card">
+        <div className="card-titr is-tight">
           {t('summary.title')}
         </div>
-        {rows.map(([label, val], i) => (
-          <div
-            key={label}
-            style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '12px 2px',
-              ...(i < rows.length - 1 ? { borderBottom: '1px solid var(--line)' } : {}),
-            }}
-          >
-            <span style={{ fontSize: 13, color: 'var(--muted)', fontWeight: 600 }}>{label}</span>
-            <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--ink)', fontVariantNumeric: 'tabular-nums' }}>{val}</span>
+        {rows.map(([label, val]) => (
+          <div key={label} className="data-row">
+            <span className="data-row-label">{label}</span>
+            <span className="data-row-value">{val}</span>
           </div>
         ))}
-        <div style={{ paddingTop: 14 }}>
-          <Link href="/calendar" className="btn btn-primary" style={{ borderRadius: 14, textDecoration: 'none' }}>
+        <div className="cyc-more-wrap">
+          <Link href="/calendar" className="btn btn-primary cyc-more-cta">
             {t('summary.viewMore')}
           </Link>
         </div>
@@ -325,29 +269,25 @@ function MyCycles({
   cycleStartDate: string;
 }) {
   return (
-    <div style={{ padding: '14px 16px 0' }}>
-      <div className="card" style={{ padding: '16px 14px' }}>
-        <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)', textAlign: 'start', marginBottom: 4 }}>
+    <div className="sec-tight">
+      <div className="card pad-card">
+        <div className="card-titr is-tight">
           {t('cycles.title')}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 2px 14px' }}>
-          <span className="dot" style={{ width: 40, height: 40, background: 'var(--pink-bg)', color: 'var(--brand)' }}>
+        <div className="cyc-cycles-row">
+          <span className="dot cyc-cycles-dot">
             <DropSolid size={18} color="var(--brand)" />
           </span>
-          <div style={{ textAlign: 'start' }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)' }}>
+          <div className="text-start">
+            <div className="cyc-cycles-name">
               {t('cycles.current')}: {t('dayN', { n: pred.cycleDay })}
             </div>
-            <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 3 }}>
+            <div className="cyc-cycles-sub">
               {t('cycles.startedOn')} {cycleStartDate}
             </div>
           </div>
         </div>
-        <Link
-          href="/log"
-          className="btn btn-ghost"
-          style={{ height: 44, borderRadius: 14, gap: 8, fontSize: 13, textDecoration: 'none' }}
-        >
+        <Link href="/log" className="btn btn-ghost cyc-add-cta">
           <Icon name="plus" size={16} /> {t('cycles.addPrevious')}
         </Link>
       </div>
@@ -358,17 +298,17 @@ function MyCycles({
 // ── Smart tip (educational, non-diagnostic — §11) ──────────────
 function SmartTip({ t, body, quote }: { t: T; body: string; quote: string }) {
   return (
-    <div style={{ padding: '14px 16px 0' }}>
-      <div className="card" style={{ padding: '14px 12px' }}>
-        <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--ink)', textAlign: 'start', marginBottom: 10 }}>
+    <div className="sec-tight">
+      <div className="card pad-card-sm">
+        <div className="cyc-tip-title">
           {t('smartTip.title')}
         </div>
-        <p className="sub" style={{ textAlign: 'start', margin: '0 2px 14px' }}>{body}</p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'linear-gradient(90deg,var(--surface-2),var(--indigo-soft))', borderRadius: 12, padding: 12 }}>
-          <span style={{ color: 'var(--pink)' }}>
+        <p className="sub cyc-tip-body">{body}</p>
+        <div className="tip-action">
+          <span className="tip-action-icon">
             <Icon name="sparkle" size={20} fill="currentColor" strokeWidth={0} />
           </span>
-          <span style={{ flex: 1, textAlign: 'start', fontSize: 12.5, fontWeight: 700, color: 'var(--ink)' }}>
+          <span className="tip-action-text">
             {quote}
           </span>
         </div>
@@ -380,19 +320,13 @@ function SmartTip({ t, body, quote }: { t: T; body: string; quote: string }) {
 // ── Empty state (no cycle logged yet) ──────────────────────────
 function EmptyState({ t }: { t: T }) {
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, padding: 24 }}>
-      <span
-        style={{
-          width: 72, height: 72, borderRadius: '50%', background: 'var(--surface)', color: 'var(--brand)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 10px 30px rgba(17,32,47,.08)',
-        }}
-      >
+    <div className="cyc-empty">
+      <span className="cyc-empty-icon">
         <Icon name="drop" size={30} fill="currentColor" strokeWidth={0} />
       </span>
-      <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>{t('empty.title')}</div>
-      <p className="sub" style={{ textAlign: 'center', margin: 0, maxWidth: 260 }}>{t('empty.body')}</p>
-      <Link href="/log" className="btn btn-primary" style={{ width: 'auto', padding: '0 26px', borderRadius: 14, textDecoration: 'none' }}>
+      <div className="cyc-empty-title">{t('empty.title')}</div>
+      <p className="sub cyc-empty-body">{t('empty.body')}</p>
+      <Link href="/log" className="btn btn-primary cyc-empty-cta">
         {t('empty.cta')}
       </Link>
     </div>
@@ -445,13 +379,10 @@ export function CyclePage() {
   const smartTipQuote = message?.primary.actionSuggestion || t('smartTip.quote');
 
   return (
-    <div className="view" style={{ background: 'var(--page)' }}>
-      <div className="home-grad" style={{ position: 'absolute', top: 0, insetInlineStart: 0, insetInlineEnd: 0, height: 300 }} />
+    <div className="view cyc-page">
+      <div className="home-grad cyc-grad" />
 
-      <div style={{ position: 'relative', zIndex: 1 }}>
-      </div>
-
-      <div className="scroll" style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column' }}>
+      <div className="scroll page-scroll cyc-scroll">
         <CycleHeader
           t={t}
           tagline={t('tagline')}
@@ -460,7 +391,7 @@ export function CyclePage() {
         />
 
         {recalculating && (
-          <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--muted)', padding: '0 16px 4px' }}>
+          <div className="page-updating">
             {t('updating')}
           </div>
         )}
@@ -515,7 +446,7 @@ export function CyclePage() {
             )}
             <MyCycles t={t} pred={pred} cycleStartDate={fmt(-(pred.cycleDay - 1))} />
             <SmartTip t={t} body={smartTipBody} quote={smartTipQuote} />
-            <div style={{ height: 26 }} />
+            <div className="page-tail" />
           </>
         ) : (
           mounted && !todayQuery.isLoading && <EmptyState t={t} />

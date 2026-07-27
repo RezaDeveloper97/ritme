@@ -1,5 +1,7 @@
 'use client';
 
+import clsx from 'clsx';
+
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
 
 import {
@@ -127,21 +129,20 @@ export function DayLogSummary({ tCal, selectedDate, onEdit }: DayLogSummaryProps
   const hasEntries = groups.length > 0;
 
   return (
-    <div className="card" style={{ padding: '16px 14px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: hasEntries ? 14 : 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ color: 'var(--brand)' }}>
+    <div className="card pad-card">
+      <div className={clsx('dls-head', hasEntries && 'has-entries')}>
+        <div className="dls-head-left">
+          <span className="dls-head-icon">
             <Icon name="pencil" size={16} />
           </span>
-          <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>
+          <div className="dls-title">
             {tCal('dayLog.title')}
           </div>
         </div>
         {hasEntries && (
           <button
-            className="chip"
+            className="chip dls-edit"
             onClick={onEdit}
-            style={{ padding: '5px 12px', fontSize: 12, gap: 6 }}
           >
             <Icon name="pencil" size={13} />
             {tCal('dayLog.edit')}
@@ -150,34 +151,29 @@ export function DayLogSummary({ tCal, selectedDate, onEdit }: DayLogSummaryProps
       </div>
 
       {logQuery.isLoading ? (
-        <div style={{ padding: '18px 0', textAlign: 'center', color: 'var(--muted)', fontSize: 13 }}>
+        <div className="dls-loading">
           {tLog('loading')}
         </div>
       ) : hasEntries ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div className="dls-groups">
           {groups.map((group) => (
             <div key={group.key}>
               <div
-                style={{
-                  fontSize: 12,
-                  fontWeight: 800,
-                  color: CATEGORY_ACCENT[group.key] ?? 'var(--muted)',
-                  textAlign: 'start',
-                  marginBottom: 8,
-                }}
+                className="dls-group-name"
+                style={{ color: CATEGORY_ACCENT[group.key] ?? 'var(--muted)' }}
               >
                 {tLog(`categories.${group.key}`)}
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div className="dls-lines">
                 {group.lines.map((line) => (
                   <div
                     key={line.label}
-                    style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 }}
+                    className="dls-line"
                   >
-                    <span style={{ fontSize: 13, color: 'var(--muted)', fontWeight: 600, textAlign: 'start' }}>
+                    <span className="dls-line-label">
                       {line.label}
                     </span>
-                    <span style={{ fontSize: 13.5, color: 'var(--ink)', fontWeight: 700, textAlign: 'end' }}>
+                    <span className="dls-line-value">
                       {line.value}
                     </span>
                   </div>
@@ -190,30 +186,17 @@ export function DayLogSummary({ tCal, selectedDate, onEdit }: DayLogSummaryProps
         // Empty day → gentle prompt to log (Figma "How are you feeling today?").
         <button
           onClick={onEdit}
-          className="card"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 12,
-            padding: '14px 14px',
-            width: '100%',
-            marginTop: 14,
-            cursor: 'pointer',
-            textAlign: 'start',
-            fontFamily: 'inherit',
-            background: 'linear-gradient(90deg,var(--surface-2),var(--indigo-soft))',
-            border: 'none',
-          }}
+          className="card dls-empty"
         >
-          <div style={{ flex: 1, textAlign: 'start' }}>
-            <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--ink)' }}>
+          <div className="dls-empty-body">
+            <div className="dls-empty-title">
               {tCal('dayLog.emptyTitle')}
             </div>
-            <div style={{ fontSize: 12.5, color: 'var(--muted)', marginTop: 3 }}>
+            <div className="dls-empty-sub">
               {tCal('dayLog.emptySubtitle', { date: formatJalaliDayMonth(selectedDate, locale) })}
             </div>
           </div>
-          <span className="fab" style={{ width: 42, height: 42, flexShrink: 0 }}>
+          <span className="fab dls-empty-dot">
             <Icon name="plus" size={20} className="ic" />
           </span>
         </button>
