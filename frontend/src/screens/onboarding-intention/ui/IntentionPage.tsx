@@ -34,19 +34,19 @@ export function IntentionPage() {
   };
 
   return (
-    <div className="view" style={{ background: 'var(--surface)' }}>
+    <div className="view onb-page">
       <div className="hdr">
         <NavBack onClick={() => router.back()} />
-        <span className="stepcount">{faNum(step.index)}<span style={{ opacity: .5 }}> / {faNum(step.total)}</span></span>
+        <span className="stepcount">{faNum(step.index)}<span className="onb-dim"> / {faNum(step.total)}</span></span>
       </div>
 
-      <div className="scroll" style={{ padding: '8px 22px 0', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ textAlign: 'start', margin: '6px 0' }}>
+      <div className="scroll onb-body">
+        <div className="onb-intro">
           <div className="titr">{t('intention.title')}</div>
-          <p className="sub" style={{ margin: '10px 0 0' }}>{t('intention.subtitle')}</p>
+          <p className="sub onb-intro-sub">{t('intention.subtitle')}</p>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 18 }}>
+        <div className="onb-stack is-lg">
           {OPTIONS.map((opt) => {
             const on = intention === opt;
             return (

@@ -1,5 +1,7 @@
 'use client';
 
+import clsx from 'clsx';
+
 import { useFormatter, useTranslations } from 'next-intl';
 
 import type { FieldDef, HealthLogEnums, HealthLogField } from '@/entities/health-log';
@@ -25,7 +27,7 @@ interface FieldRowProps {
 // ── Small building blocks ──────────────────────────────────────
 function FieldLabel({ children }: { children: string }) {
   return (
-    <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--ink)', textAlign: 'start' }}>
+    <div className="lfr-label">
       {children}
     </div>
   );
@@ -61,15 +63,7 @@ function Switch({ on, onClick }: { on: boolean; onClick: () => void }) {
         transition: 'background .18s',
       }}
     >
-      <span
-        style={{
-          width: 22,
-          height: 22,
-          borderRadius: '50%',
-          background: 'var(--surface)',
-          boxShadow: '0 1px 3px rgba(0,0,0,.25)',
-        }}
-      />
+      <span className="lfr-knob" />
     </button>
   );
 }
@@ -80,9 +74,9 @@ function ChipsField({ field, enums, value, onChange, t }: FieldRowProps & { t: T
   const options = enums?.[field.control.enumKey] ?? [];
   const enumKey = field.control.enumKey;
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div className="lfr-stack">
       <FieldLabel>{t(`fields.${field.key}`)}</FieldLabel>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+      <div className="lfr-chips">
         {options.map((opt) => (
           <Chip
             key={opt}
@@ -109,7 +103,7 @@ function MultiField({ field, enums, value, onChange, t }: FieldRowProps & { t: T
     onChange(field.key, next.length ? next : undefined);
   };
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+    <div className="lfr-chips">
       {options.map((opt) => (
         <Chip key={opt} on={selected.includes(opt)} label={enumLabel(t, enumKey, opt)} onClick={() => toggle(opt)} />
       ))}
@@ -123,22 +117,14 @@ function DegreeField({ field, enums, value, onChange, t }: FieldRowProps & { t: 
   const options = enums?.[field.control.enumKey] ?? [];
   const enumKey = field.control.enumKey;
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: 10,
-      }}
-    >
+    <div className="lfr-row">
       <FieldLabel>{t(`fields.${field.key}`)}</FieldLabel>
-      <div className="seg" style={{ flex: '0 0 auto', padding: 3 }}>
+      <div className="seg lfr-seg">
         {options.map((opt) => (
           <button
             key={opt}
             type="button"
-            className={value === opt ? 'on' : ''}
-            style={{ padding: '0 12px', height: 30, fontSize: 12.5 }}
+            className={clsx('lfr-seg-btn', value === opt && 'on')}
             onClick={() => onChange(field.key, value === opt ? undefined : opt)}
           >
             {enumLabel(t, enumKey, opt)}
@@ -153,7 +139,7 @@ function DegreeField({ field, enums, value, onChange, t }: FieldRowProps & { t: 
 function BoolField({ field, value, onChange, t }: FieldRowProps & { t: T }) {
   const on = value === true;
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+    <div className="lfr-row">
       <FieldLabel>{t(`fields.${field.key}`)}</FieldLabel>
       <Switch on={on} onClick={() => onChange(field.key, on ? undefined : true)} />
     </div>
@@ -184,8 +170,8 @@ function MeasureField({ field, value, onChange, t }: FieldRowProps & { t: T }) {
     : Math.round((defaultValue - min) / step);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+    <div className="lfr-group">
+      <div className="lfr-row">
         <FieldLabel>{t(`fields.${field.key}`)}</FieldLabel>
         <Switch
           on={active}
@@ -193,7 +179,7 @@ function MeasureField({ field, value, onChange, t }: FieldRowProps & { t: T }) {
         />
       </div>
       {active && (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+        <div className="lfr-stepper">
           <WheelPicker
             id={`measure-${field.key}`}
             items={items}
@@ -201,7 +187,7 @@ function MeasureField({ field, value, onChange, t }: FieldRowProps & { t: T }) {
             width={120}
             onChange={(i) => onChange(field.key, valueAt(i))}
           />
-          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--muted)' }}>
+          <span className="lfr-stepper-v">
             {t(`units.${unit}`)}
           </span>
         </div>
@@ -218,17 +204,7 @@ function NoteField({ field, value, onChange, t }: FieldRowProps & { t: T }) {
       onChange={(e) => onChange(field.key, e.target.value.trim() ? e.target.value : undefined)}
       placeholder={t('notesPlaceholder')}
       rows={4}
-      className="field"
-      style={{
-        height: 'auto',
-        minHeight: 96,
-        padding: 14,
-        alignItems: 'flex-start',
-        resize: 'none',
-        fontFamily: 'inherit',
-        textAlign: 'start',
-        lineHeight: 1.8,
-      }}
+      className="field lfr-textarea"
     />
   );
 }

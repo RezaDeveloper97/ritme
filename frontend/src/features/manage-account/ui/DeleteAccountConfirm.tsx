@@ -45,21 +45,11 @@ export function DeleteAccountConfirm({ open, onClose }: DeleteAccountConfirmProp
       role="dialog"
       aria-modal="true"
       aria-label={t('delete.title')}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 60,
-        display: 'flex',
-        alignItems: 'flex-end',
-        justifyContent: 'center',
-        background: 'rgba(17,24,28,.45)',
-        padding: 16,
-      }}
+      className="del-backdrop"
       onClick={handleClose}
     >
       <div
-        className="card"
-        style={{ width: '100%', maxWidth: 420, padding: 22, textAlign: 'start' }}
+        className="card del-card"
         onClick={(event) => event.stopPropagation()}
       >
         <span
@@ -77,10 +67,10 @@ export function DeleteAccountConfirm({ open, onClose }: DeleteAccountConfirmProp
           <Icon name="trash" size={22} />
         </span>
 
-        <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--ink)', marginTop: 14 }}>
+        <div className="del-title">
           {t('delete.title')}
         </div>
-        <p style={{ fontSize: 13.5, lineHeight: 1.9, color: 'var(--muted)', margin: '8px 0 0' }}>
+        <p className="del-body">
           {t('delete.warning')}
         </p>
 
@@ -90,7 +80,7 @@ export function DeleteAccountConfirm({ open, onClose }: DeleteAccountConfirmProp
           </p>
         ) : null}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 18 }}>
+        <div className="del-btns">
           <button
             type="button"
             onClick={handleConfirm}

@@ -1,5 +1,7 @@
 'use client';
 
+import clsx from 'clsx';
+
 import { useLocale, useTranslations } from 'next-intl';
 import { type FormEvent, useState } from 'react';
 
@@ -36,7 +38,7 @@ const ALL_RECURRENCES: ReminderRecurrence[] = ['none', 'daily', 'weekly', 'month
 
 // Hairline between rows, inset past the icon (logical start — RTL-safe).
 function Divider() {
-  return <div style={{ height: 1, background: 'var(--line)', marginInlineStart: 60 }} />;
+  return <div className="prof-divider" />;
 }
 
 // RTL-safe on/off switch: the knob is positioned with a logical inset, so it
@@ -136,48 +138,17 @@ function ReminderRow({
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 14px' }}>
-        <span
-          style={{
-            width: 34,
-            height: 34,
-            borderRadius: 11,
-            flexShrink: 0,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'var(--line)',
-            color: 'var(--brand)',
-            opacity: reminder.isActive ? 1 : 0.55,
-          }}
-        >
+      <div className="rem-row">
+        <span className={clsx('rem-row-icon', !reminder.isActive && 'is-off')}>
           <Icon name={TYPE_ICON[reminder.type]} size={19} />
         </span>
 
-        <div style={{ flex: 1, minWidth: 0, textAlign: 'start' }}>
-          <div
-            style={{
-              fontSize: 14,
-              fontWeight: 600,
-              color: reminder.isActive ? 'var(--ink)' : 'var(--muted)',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-            }}
-          >
+        <div className="rem-row-body">
+          <div className={clsx('rem-row-title', !reminder.isActive && 'is-off')}>
             {reminder.title}
           </div>
           {secondLine ? (
-            <div
-              style={{
-                fontSize: 12,
-                color: 'var(--muted)',
-                marginTop: 2,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
-            >
+            <div className="rem-row-sub">
               {secondLine}
             </div>
           ) : null}
@@ -203,16 +174,8 @@ function ReminderRow({
       </div>
 
       {confirming ? (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            padding: '0 14px 12px',
-            marginInlineStart: 46,
-          }}
-        >
-          <span style={{ flex: 1, fontSize: 13, color: 'var(--muted)', textAlign: 'start' }}>
+        <div className="rem-confirm">
+          <span className="rem-confirm-q">
             {deletePending ? t('confirmDelete.deleting') : t('confirmDelete.question')}
           </span>
           <button
@@ -314,21 +277,13 @@ function AddReminderForm({ onDone }: { onDone: () => void }) {
   } as const;
 
   return (
-    <form onSubmit={handleSubmit} className="card" style={{ padding: 16, marginTop: 12 }}>
-      <div
-        style={{
-          fontSize: 14,
-          fontWeight: 800,
-          color: 'var(--ink)',
-          textAlign: 'start',
-          marginBottom: 12,
-        }}
-      >
+    <form onSubmit={handleSubmit} className="card rem-form">
+      <div className="rem-form-title">
         {t('form.title')}
       </div>
 
       <label className="lbl">{t('form.typeLabel')}</label>
-      <div className="field" style={{ marginBottom: 12 }}>
+      <div className="field rem-form-field">
         <select
           value={type}
           onChange={(e) => setType(e.target.value as ReminderType)}
@@ -343,7 +298,7 @@ function AddReminderForm({ onDone }: { onDone: () => void }) {
       </div>
 
       <label className="lbl">{t('form.titleLabel')}</label>
-      <div className="field" style={{ marginBottom: 12 }}>
+      <div className="field rem-form-field">
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -353,7 +308,7 @@ function AddReminderForm({ onDone }: { onDone: () => void }) {
       </div>
 
       <label className="lbl">{t('form.subtitleLabel')}</label>
-      <div className="field" style={{ marginBottom: 12 }}>
+      <div className="field rem-form-field">
         <input
           value={subtitle}
           onChange={(e) => setSubtitle(e.target.value)}
@@ -363,7 +318,7 @@ function AddReminderForm({ onDone }: { onDone: () => void }) {
       </div>
 
       <label className="lbl">{t('form.recurrenceLabel')}</label>
-      <div className="field" style={{ marginBottom: 12 }}>
+      <div className="field rem-form-field">
         <select
           value={recurrence}
           onChange={(e) => setRecurrence(e.target.value as ReminderRecurrence)}
@@ -380,33 +335,31 @@ function AddReminderForm({ onDone }: { onDone: () => void }) {
       {recurrence !== 'none' ? (
         <>
           <label className="lbl">{t('form.timeLabel')}</label>
-          <div className="field" style={{ marginBottom: 12 }}>
+          <div className="field rem-form-field">
             <input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
           </div>
         </>
       ) : null}
 
       {failed ? (
-        <div style={{ fontSize: 13, color: 'var(--danger)', textAlign: 'start', marginBottom: 10 }}>
+        <div className="rem-form-error">
           {t('form.error')}
         </div>
       ) : null}
 
-      <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+      <div className="rem-form-btns">
         <button
           type="submit"
-          className="btn btn-primary"
+          className="btn btn-primary rem-form-submit"
           disabled={!canSubmit}
-          style={{ flex: 1 }}
         >
           {create.isPending ? t('form.submitting') : t('form.submit')}
         </button>
         <button
           type="button"
-          className="btn btn-soft"
+          className="btn btn-soft rem-form-cancel"
           onClick={onDone}
           disabled={create.isPending}
-          style={{ flexShrink: 0 }}
         >
           {t('form.cancel')}
         </button>
@@ -439,43 +392,33 @@ export function RemindersPage() {
   };
 
   return (
-    <div className="view" style={{ background: 'var(--page)' }}>
+    <div className="view rem-page">
       <div className="hdr">
         <NavBack onClick={() => router.back()} label={t('back')} />
-        <span style={{ fontSize: 17, fontWeight: 800, color: 'var(--ink)' }}>{t('title')}</span>
+        <span className="rem-title">{t('title')}</span>
         <button
           type="button"
-          className="iconbtn"
+          className="iconbtn rem-add"
           aria-label={showForm ? t('form.cancel') : t('add')}
           onClick={() => setShowForm((v) => !v)}
-          style={{ color: 'var(--brand)' }}
         >
           <Icon name={showForm ? 'x' : 'plus'} size={22} />
         </button>
       </div>
 
-      <div className="scroll" style={{ padding: '4px 18px 24px' }}>
+      <div className="scroll rem-scroll">
         {showForm ? <AddReminderForm onDone={() => setShowForm(false)} /> : null}
 
         {isLoading ? (
-          <div
-            className="card"
-            style={{ marginTop: 12, padding: 24, textAlign: 'center', color: 'var(--muted)', fontSize: 14 }}
-          >
+          <div className="card rem-state">
             {t('loading')}
           </div>
         ) : isError ? (
-          <div
-            className="card"
-            style={{ marginTop: 12, padding: 24, textAlign: 'center', color: 'var(--muted)', fontSize: 14 }}
-          >
+          <div className="card rem-state">
             {t('loadError')}
           </div>
         ) : reminders && reminders.length > 0 ? (
-          <div
-            className="card"
-            style={{ marginTop: 12, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
-          >
+          <div className="card rem-list">
             {reminders.map((r, i) => (
               <div key={r.id}>
                 {i > 0 ? <Divider /> : null}
@@ -494,32 +437,20 @@ export function RemindersPage() {
             ))}
           </div>
         ) : (
-          <div className="card" style={{ marginTop: 12, padding: '32px 24px', textAlign: 'center' }}>
-            <span
-              style={{
-                width: 56,
-                height: 56,
-                borderRadius: '50%',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'var(--pink-soft)',
-                color: 'var(--brand)',
-              }}
-            >
+          <div className="card rem-empty">
+            <span className="rem-empty-icon">
               <Icon name="bell" size={26} />
             </span>
-            <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)', marginTop: 14 }}>
+            <div className="rem-empty-title">
               {t('empty.title')}
             </div>
-            <div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 6, lineHeight: 1.7 }}>
+            <div className="rem-empty-sub">
               {t('empty.subtitle')}
             </div>
             <button
               type="button"
-              className="btn btn-primary"
+              className="btn btn-primary rem-empty-cta"
               onClick={() => setShowForm(true)}
-              style={{ marginTop: 18 }}
             >
               {t('add')}
             </button>

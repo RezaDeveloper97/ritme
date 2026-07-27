@@ -92,7 +92,7 @@ export function BannerSlideshow({ position }: Props) {
   }
 
   return (
-    <div style={{ padding: '16px 16px 0' }}>
+    <div className="sec">
       <div
         role="group"
         aria-roledescription="carousel"
@@ -125,27 +125,20 @@ export function BannerSlideshow({ position }: Props) {
             }}
           >
             {banners.map((banner) => (
-              <div key={banner.id} style={{ flex: '0 0 100%', minWidth: 0 }}>
+              <div key={banner.id} className="bs-slide">
                 <BannerLink
                   linkUrl={banner.linkUrl}
                   linkType={banner.linkType}
                   swipeGuard={swipeGuard}
                   ariaLabel={banner.title ?? undefined}
-                  style={{ display: 'block' }}
+                  className="bs-link"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={banner.imageUrl}
                     alt={banner.title ?? ''}
                     draggable={false}
-                    style={{
-                      display: 'block',
-                      width: '100%',
-                      aspectRatio: '2 / 1',
-                      objectFit: 'cover',
-                      borderRadius: 12,
-                      background: 'var(--surface-3)',
-                    }}
+                    className="bs-img"
                   />
                 </BannerLink>
               </div>
@@ -155,14 +148,7 @@ export function BannerSlideshow({ position }: Props) {
 
         {/* Dots */}
         {count > 1 && (
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              gap: 6,
-              marginTop: 10,
-            }}
-          >
+          <div className="bs-dots">
             {banners.map((banner, i) => {
               const active = i === index;
               return (

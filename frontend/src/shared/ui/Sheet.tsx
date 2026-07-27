@@ -68,7 +68,7 @@ export function Sheet({ open, onClose, children, labelledBy }: SheetProps) {
         />
         {/* Cap the height so a tall sheet scrolls internally instead of
             overflowing past the top of the screen. */}
-        <div style={{ maxHeight: '78vh', overflowY: 'auto' }}>{children}</div>
+        <div className="sheet-scroll">{children}</div>
       </div>
     </div>
   );

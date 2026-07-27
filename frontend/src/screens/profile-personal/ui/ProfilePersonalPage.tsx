@@ -24,7 +24,7 @@ const MIN_BIRTH_YEAR = 1330;
 // Section title styled like ProfilePage's Group headers (13px, muted, bold).
 function SectionLabel({ children }: { children: string }) {
   return (
-    <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--muted)', margin: '0 4px 8px' }}>
+    <div className="prof-group-t">
       {children}
     </div>
   );
@@ -84,9 +84,9 @@ function PersonalForm({ profile }: { profile: UserProfile }) {
 
   return (
     <>
-      <div className="scroll" style={{ paddingBottom: 12 }}>
+      <div className="scroll prof-edit-scroll">
         {/* Name */}
-        <section style={{ padding: '0 18px', marginTop: 12 }}>
+        <section className="prof-group is-tight">
           <SectionLabel>{t('personal.nameLabel')}</SectionLabel>
           <div className="field">
             <input
@@ -94,16 +94,16 @@ function PersonalForm({ profile }: { profile: UserProfile }) {
               placeholder={t('personal.namePlaceholder')}
               onChange={(e) => setName(e.target.value)}
             />
-            <span style={{ color: 'var(--muted-soft)' }}>
+            <span className="placeholder-soft">
               <Icon name="pencil" size={18} />
             </span>
           </div>
         </section>
 
         {/* Birthday (Jalali wheels, §7) */}
-        <section style={{ padding: '0 18px', marginTop: 20 }}>
+        <section className="prof-group">
           <SectionLabel>{t('personal.birthdayLabel')}</SectionLabel>
-          <div className="card" style={{ padding: '14px 10px' }}>
+          <div className="card prof-wheel-card">
             <JalaliDateWheels
               idPrefix="pp-birth"
               value={birth}
@@ -115,9 +115,9 @@ function PersonalForm({ profile }: { profile: UserProfile }) {
         </section>
 
         {/* Weight */}
-        <section style={{ padding: '0 18px', marginTop: 20 }}>
+        <section className="prof-group">
           <SectionLabel>{t('personal.weightLabel')}</SectionLabel>
-          <div className="card" style={{ padding: '18px 10px 10px' }}>
+          <div className="card prof-wheel-card is-tall">
             <RulerPicker
               min={30}
               max={200}
@@ -130,9 +130,9 @@ function PersonalForm({ profile }: { profile: UserProfile }) {
         </section>
 
         {/* Height */}
-        <section style={{ padding: '0 18px', marginTop: 20 }}>
+        <section className="prof-group">
           <SectionLabel>{t('personal.heightLabel')}</SectionLabel>
-          <div className="card" style={{ padding: '18px 10px 10px' }}>
+          <div className="card prof-wheel-card is-tall">
             <RulerPicker
               min={100}
               max={220}
@@ -145,12 +145,9 @@ function PersonalForm({ profile }: { profile: UserProfile }) {
         </section>
       </div>
 
-      <div style={{ padding: '6px 16px 8px' }}>
+      <div className="prof-edit-actions">
         {errorMessage ? (
-          <p
-            role="alert"
-            style={{ fontSize: 13, color: 'var(--danger)', textAlign: 'center', margin: '0 0 8px' }}
-          >
+          <p role="alert" className="prof-edit-error">
             {errorMessage}
           </p>
         ) : null}
@@ -173,21 +170,21 @@ export function ProfilePersonalPage() {
   const { data: profile } = useUserProfile();
 
   return (
-    <div className="view" style={{ background: 'var(--page)' }}>
+    <div className="view prof-page">
       <div className="hdr">
         <NavBack onClick={() => router.back()} label={t('back')} />
-        <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--ink)' }}>
+        <span className="prof-edit-title">
           {t('personal.title')}
         </span>
         {/* Spacer mirroring the back button keeps the title centered (RTL-safe). */}
-        <span style={{ width: 40 }} aria-hidden />
+        <span className="prof-hdr-spacer" aria-hidden />
       </div>
 
       {profile ? (
         <PersonalForm profile={profile} />
       ) : (
-        <div className="scroll" style={{ padding: '24px 18px' }}>
-          <p style={{ fontSize: 14, color: 'var(--muted)', textAlign: 'center' }}>{t('loading')}</p>
+        <div className="scroll prof-edit-loading">
+          <p className="prof-edit-loading-t">{t('loading')}</p>
         </div>
       )}
     </div>

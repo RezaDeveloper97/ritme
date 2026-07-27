@@ -1,5 +1,7 @@
 'use client';
 
+import clsx from 'clsx';
+
 import { useLocale, useTranslations } from 'next-intl';
 
 import {
@@ -59,44 +61,26 @@ export function WeekSummaryCard({ date }: { date?: string }) {
     : t('subtitle');
 
   return (
-    <div style={{ padding: '16px 16px 0' }}>
-      <div
-        aria-busy={isLoading}
-        style={{
-          background: 'var(--surface)',
-          border: '1px solid var(--teal-soft)',
-          borderRadius: 12,
-          padding: '14px 12px',
-          opacity: isLoading ? 0.6 : 1,
-          transition: 'opacity .15s ease',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-          <span style={{ flex: 1, fontSize: 14, fontWeight: 800, color: 'var(--ink)', textAlign: 'start' }}>
+    <div className="sec">
+      <div aria-busy={isLoading} className="ws-card">
+        <div className="ws-head">
+          <span className="ws-title">
             {t('title')}
           </span>
           <Link
             href="/log"
-            style={{ fontSize: 12, fontWeight: 700, color: 'var(--brand)', textDecoration: 'none' }}
+            className="ws-link"
           >
             {t('viewAll')}
           </Link>
         </div>
 
-        <div
-          style={{
-            fontSize: 12,
-            color: 'var(--muted)',
-            fontWeight: 600,
-            textAlign: 'start',
-            margin: '-4px 2px 12px',
-          }}
-        >
+        <div className="ws-sub">
           {subtitle}
           {week && week.loggedDays > 0 && <> · {t('loggedDays', { n: week.loggedDays })}</>}
         </div>
 
-        <div style={{ display: 'flex', gap: 12 }}>
+        <div className="ws-tiles">
           {metrics.map((metric) => {
             const { icon, color } = TILE[metric.key];
             const trend = wellbeingTrend(metric.delta);
@@ -104,40 +88,13 @@ export function WeekSummaryCard({ date }: { date?: string }) {
             return (
               <div
                 key={metric.key}
-                style={{
-                  flex: 1,
-                  background: 'var(--surface-3)',
-                  borderRadius: 12,
-                  padding: '12px 8px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: 8,
-                }}
+                className="ws-tile"
               >
-                <span
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: '50%',
-                    background: 'var(--surface)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color,
-                  }}
-                >
+                <span className="ws-tile-ic" style={{ color }}>
                   <Icon name={icon} size={20} stroke="currentColor" />
                 </span>
-                <span style={{ fontSize: 12, color: 'var(--ink)', fontWeight: 700 }}>{t(metric.key)}</span>
-                <span
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: 'var(--ink-2)',
-                    fontVariantNumeric: 'tabular-nums',
-                  }}
-                >
+                <span className="ws-tile-l">{t(metric.key)}</span>
+                <span className="ws-tile-v">
                   {metric.percent === null ? dash : t('percent', { n: metric.percent })}
                 </span>
                 {trend && metric.delta !== null && (
@@ -156,10 +113,7 @@ export function WeekSummaryCard({ date }: { date?: string }) {
                   >
                     <span
                       aria-hidden="true"
-                      style={{
-                        display: 'flex',
-                        transform: trend === 'up' ? 'rotate(180deg)' : undefined,
-                      }}
+                      className={clsx('ws-trend', trend === 'up' && 'is-up')}
                     >
                       <Icon name="chevronDown" size={12} stroke="currentColor" />
                     </span>
@@ -171,18 +125,7 @@ export function WeekSummaryCard({ date }: { date?: string }) {
           })}
         </div>
 
-        <div
-          style={{
-            marginTop: 12,
-            background: 'linear-gradient(90deg,var(--pink-bg),var(--violet-soft))',
-            borderRadius: 12,
-            padding: '10px 12px',
-            textAlign: 'center',
-            fontSize: 12,
-            fontWeight: 600,
-            color: 'var(--steel)',
-          }}
-        >
+        <div className="ws-note">
           {isError ? (
             t('error')
           ) : isLoading && !week ? (
@@ -190,7 +133,7 @@ export function WeekSummaryCard({ date }: { date?: string }) {
           ) : nothingLogged || nothingScored ? (
             <>
               ✨ {nothingScored ? t('tone.unscored') : t('tone.none')}{' '}
-              <Link href="/log" style={{ color: 'var(--brand)', fontWeight: 800, textDecoration: 'none' }}>
+              <Link href="/log" className="ws-note-cta">
                 {nothingScored ? t('unscoredCta') : t('emptyCta')}
               </Link>
             </>

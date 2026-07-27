@@ -50,6 +50,7 @@ import {
   todayJalali,
   type JalaliMonthCell,
 } from '@/shared/lib/date';
+import { useCookieBoolean } from '@/shared/lib/cookie-state';
 import { useMounted } from '@/shared/lib/use-mounted';
 import { DropSolid, Icon, type IconName } from '@/shared/ui';
 import { BannerSlideshow } from '@/widgets/banner-slideshow';
@@ -316,30 +317,29 @@ function WeekStrip({
   );
 }
 
-// Icon + accent for each day-highlight badge on the pink info card.
-const HIGHLIGHT_META: Record<CycleDayHighlight, { icon: 'drop' | 'heart' | 'sparkle' | 'info' | 'calendar'; color: string }> = {
-  period: { icon: 'drop', color: 'var(--brand)' },
-  fertile: { icon: 'heart', color: 'var(--amber)' },
-  ovulation: { icon: 'sparkle', color: 'var(--green-dot)' },
-  pms: { icon: 'info', color: 'var(--indigo)' },
-  period_tomorrow: { icon: 'calendar', color: 'var(--brand)' },
+// Icon per day-highlight badge on the pink info card. The pills themselves are
+// frosted white-on-brand (Apple material), so the icon shape — not a colour —
+// carries the identity; accents like amber/indigo never read well on the red.
+const HIGHLIGHT_ICONS: Record<CycleDayHighlight, IconName> = {
+  period: 'drop',
+  fertile: 'heart',
+  ovulation: 'sparkle',
+  pms: 'info',
+  period_tomorrow: 'calendar',
 };
 
-// White translucent pills that surface every notable state of the selected day
-// (fertile window, PMS, ovulation, imminent period) on top of the pink card.
+// Frosted translucent pills that surface every notable state of the selected
+// day (fertile window, PMS, ovulation, imminent period) on top of the red card.
 function DayHighlights({ t, items }: { t: T; items: CycleDayHighlight[] }) {
   if (items.length === 0) return null;
   return (
     <div className="home-highlights">
-      {items.map(code => {
-        const m = HIGHLIGHT_META[code];
-        return (
-          <span key={code} className="home-highlight" style={{ color: m.color }}>
-            <Icon name={m.icon} size={13} stroke="currentColor" />
-            {t(`dayStatus.${code}`)}
-          </span>
-        );
-      })}
+      {items.map(code => (
+        <span key={code} className="home-highlight">
+          <Icon name={HIGHLIGHT_ICONS[code]} size={13} stroke="currentColor" />
+          {t(`dayStatus.${code}`)}
+        </span>
+      ))}
     </div>
   );
 }
@@ -366,7 +366,9 @@ function NextPeriodCard({
   selectedDateLabel: string;
   showPhaseDetails: boolean;
 }) {
-  const [expanded, setExpanded] = useState(true);
+  // Expanded by default, but once the user closes it the choice sticks across
+  // visits (and re-opening sticks too) — a UI preference, no health data in it.
+  const [expanded, setExpanded] = useCookieBoolean('ritme_home_hero_expanded', true);
   const daysValue = daysUntilNextPeriod != null ? t('days', { n: daysUntilNextPeriod }) : t('unavailable');
   // Ring fill = how far the selected day sits into its own cycle, same reading as
   // the cycle screen's day donut (day X of N) rather than a bare fertility number.
@@ -380,52 +382,51 @@ function NextPeriodCard({
     <div className="home-hero">
       {/* Which day the info below reflects — updates as the user taps a day. */}
       <div className="home-hero-daybar">
-        <Icon name="calendar" size={14} stroke="var(--on-accent)" />
-        {isToday ? t('selectedDay.today') : t('selectedDay.date', { date: selectedDateLabel })}
+        <span className="home-hero-daychip">
+          <Icon name="calendar" size={13} stroke="var(--on-accent)" />
+          {isToday ? t('selectedDay.today') : t('selectedDay.date', { date: selectedDateLabel })}
+        </span>
         {fertilityBadge && (
-          <span
-            className="home-hero-fert"
-            style={{ background: fertilityBadge.style.bg, color: fertilityBadge.style.fg }}
-          >
-            {fertilityBadge.label}
+          // The badge alone reads as a bare "high/low"; the caption says what the
+          // level is *of* — a cycle-timing estimate, not a diagnosis.
+          <span className="home-hero-fert-group">
+            <span className="home-hero-fert-caption">{t('fertility.caption')}</span>
+            <span
+              className="home-hero-fert"
+              style={{ background: fertilityBadge.style.bg, color: fertilityBadge.style.fg }}
+            >
+              {fertilityBadge.label}
+            </span>
           </span>
         )}
       </div>
-      <div className="home-hero-main">
 
-        <div className="home-hero-cols">
-          <div className="home-hero-left">
-            {/* Phase + day highlights lead the card as their own full-width row, so
-            they read as the headline state rather than a label above the ring. */}
-            <div className="home-hero-phase">
-              <div className="home-hero-phase-label">
-                {highlights.length > 0
-                    ? t('nextPeriod.phasePrefix')
-                    : pred
-                        ? t('nextPeriod.currentPhase', { phase: phaseLabel })
-                        : t('nextPeriod.phase')}
-              </div>
-              <DayHighlights t={t} items={highlights} />
-            </div>
-            <div className="home-hero-days">{cardTitle || t('nextPeriod.label')}</div>
+      {/* Type ramp: small phase overline → the engine headline → state pills,
+          with the cycle-day ring sitting beside the whole stack. */}
+      <div className="home-hero-cols">
+        <div className="home-hero-left">
+          <div className="home-hero-overline">
+            {pred ? t('nextPeriod.currentPhase', { phase: phaseLabel }) : t('nextPeriod.phase')}
           </div>
+          <div className="home-hero-days">{cardTitle || t('nextPeriod.label')}</div>
+          <DayHighlights t={t} items={highlights} />
+        </div>
 
-          {/* Cycle-day ring (ported from the cycle screen): the day number inside a
-              progress donut, with the fertility figure kept below it as a pill. */}
-          <div className="home-hero-right">
-            {/* The sweep angle is the datum here, so it stays inline. */}
-            <div
-              className="home-ring"
-              style={{ background: `conic-gradient(var(--on-accent) ${ringPct * 3.6}deg, rgba(255,255,255,.32) 0deg)` }}
-            >
-              <div className="home-ring-core">
-                <span className="home-ring-day">
-                  {cycleDay != null ? t('cycleDay.value', { n: cycleDay }) : t('unavailable')}
-                </span>
-                <span className="home-ring-of">
-                  {cycleLength != null ? t('cycleDay.ofN', { n: cycleLength }) : t('cycleDay.label')}
-                </span>
-              </div>
+        {/* Cycle-day ring (ported from the cycle screen): the day number inside
+            a progress donut over a frosted core. */}
+        <div className="home-hero-right">
+          {/* The sweep angle is the datum here, so it stays inline. */}
+          <div
+            className="home-ring"
+            style={{ background: `conic-gradient(var(--on-accent) ${ringPct * 3.6}deg, rgba(255,255,255,.26) 0deg)` }}
+          >
+            <div className="home-ring-core">
+              <span className="home-ring-day">
+                {cycleDay != null ? t('cycleDay.value', { n: cycleDay }) : t('unavailable')}
+              </span>
+              <span className="home-ring-of">
+                {cycleLength != null ? t('cycleDay.ofN', { n: cycleLength }) : t('cycleDay.label')}
+              </span>
             </div>
           </div>
         </div>
@@ -439,11 +440,17 @@ function NextPeriodCard({
 
       {/* Deep-link into the phase's full educational content (ported from the
           cycle screen). Only once the engine has a confident sub-phase; the
-          target reads the phase from live cycle data, never from the URL (§11). */}
-      {expanded && showPhaseDetails && (
-        <Link href="/cycle/phase" className="home-phase-cta">
-          <Icon name="info" size={15} /> {t('phaseDetailsCta')}
-        </Link>
+          target reads the phase from live cycle data, never from the URL (§11).
+          Always rendered so the open/close animates; kept out of the tab order
+          while collapsed. */}
+      {showPhaseDetails && (
+        <div className={clsx('home-cta-reveal', expanded && 'is-open')} aria-hidden={!expanded}>
+          <div className="home-cta-reveal-inner">
+            <Link href="/cycle/phase" className="home-phase-cta" tabIndex={expanded ? undefined : -1}>
+              <Icon name="info" size={15} /> {t('phaseDetailsCta')}
+            </Link>
+          </div>
+        </div>
       )}
 
       <div className="home-more-wrap">

@@ -37,39 +37,30 @@ export function CycleValuesCard({
   basedOnText,
 }: CycleValuesCardProps) {
   return (
-    <div className="card" style={{ margin: '0 16px 14px', padding: '16px 14px', textAlign: 'start' }}>
-      <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--ink)', marginBottom: 12 }}>{title}</div>
+    <div className="card cvc">
+      <div className="cvc-title">{title}</div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
-        <span style={{ fontSize: 13, color: 'var(--muted)' }}>{loggedLabel}</span>
-        <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--ink)' }}>{loggedValue}</span>
+      <div className="cvc-row">
+        <span className="cvc-row-l">{loggedLabel}</span>
+        <span className="cvc-row-v">{loggedValue}</span>
       </div>
 
       {suggestion && (
-        <div style={{ marginTop: 12, background: 'var(--line)', borderRadius: 12, padding: 12 }}>
-          <p style={{ fontSize: 12.5, color: 'var(--steel)', margin: '0 0 10px', lineHeight: 1.7 }}>
+        <div className="cvc-sugg">
+          <p className="cvc-sugg-t">
             {suggestion.text}
           </p>
           <button
             type="button"
             onClick={suggestion.onSync}
-            style={{
-              border: 'none',
-              cursor: 'pointer',
-              background: 'var(--brand)',
-              color: 'var(--on-accent)',
-              fontSize: 13,
-              fontWeight: 700,
-              borderRadius: 10,
-              padding: '9px 14px',
-            }}
+            className="cvc-sugg-cta"
           >
             {suggestion.ctaLabel}
           </button>
         </div>
       )}
 
-      <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 12 }}>{basedOnText}</div>
+      <div className="cvc-note">{basedOnText}</div>
     </div>
   );
 }

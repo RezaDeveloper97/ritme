@@ -28,19 +28,19 @@ export function NamePage() {
   };
 
   return (
-    <div className="view" style={{ background: 'var(--surface)' }}>
+    <div className="view onb-page">
       <div className="hdr">
         <NavBack onClick={() => router.back()} />
-        <span className="stepcount">{faNum(step.index)}<span style={{ opacity: .5 }}> / {faNum(step.total)}</span></span>
+        <span className="stepcount">{faNum(step.index)}<span className="onb-dim"> / {faNum(step.total)}</span></span>
       </div>
 
-      <div className="scroll" style={{ padding: '8px 22px 0', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ textAlign: 'start', margin: '6px 0' }}>
+      <div className="scroll onb-body">
+        <div className="onb-intro">
           <div className="titr">{t('name.title')}</div>
-          <p className="sub" style={{ margin: '10px 0 0' }}>{t('name.subtitle')}</p>
+          <p className="sub onb-intro-sub">{t('name.subtitle')}</p>
         </div>
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '8px 0' }}>
-          <div style={{ marginTop: 8 }}>
+        <div className="onb-center">
+          <div className="onb-mt8">
             <label className="lbl">{t('name.label')}</label>
             <div className="field">
               <input
@@ -48,7 +48,7 @@ export function NamePage() {
                 value={value}
                 onChange={e => setValue(e.target.value)}
               />
-              <span style={{ color: 'var(--muted-soft)' }}>
+              <span className="placeholder-soft">
                 <Icon name="pencil" size={18} stroke="var(--muted-soft)" />
               </span>
             </div>
@@ -56,7 +56,7 @@ export function NamePage() {
         </div>
       </div>
 
-      <div style={{ padding: '14px 16px 8px' }}>
+      <div className="onb-actions">
         <button className="btn btn-primary" disabled={!canContinue} onClick={handleNext}>
           {t('continue')}
         </button>

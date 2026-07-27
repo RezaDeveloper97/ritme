@@ -16,24 +16,24 @@ export function CycleLenPage() {
   const step = stepPosition('cycleLen', intention);
 
   return (
-    <div className="view" style={{ background: 'var(--surface)' }}>
+    <div className="view onb-page">
       <div className="hdr">
         <NavBack onClick={() => router.back()} />
-        <span className="stepcount">{faNum(step.index)}<span style={{ opacity: .5 }}> / {faNum(step.total)}</span></span>
+        <span className="stepcount">{faNum(step.index)}<span className="onb-dim"> / {faNum(step.total)}</span></span>
       </div>
 
-      <div className="scroll" style={{ padding: '8px 22px 0', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ textAlign: 'start', margin: '6px 0' }}>
+      <div className="scroll onb-body">
+        <div className="onb-intro">
           <div className="titr">{t('cycleLen.title')}</div>
-          <p className="sub" style={{ margin: '10px 0 0' }}>{t('cycleLen.subtitle')}</p>
+          <p className="sub onb-intro-sub">{t('cycleLen.subtitle')}</p>
         </div>
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '8px 0' }}>
+        <div className="onb-center">
           <JalaliCalendar value={lastPeriod} onSelect={setLastPeriod} />
-          <p className="sub" style={{ textAlign: 'center', marginTop: 16 }}>{t('cycleLen.hint')}</p>
+          <p className="sub onb-center-text">{t('cycleLen.hint')}</p>
         </div>
       </div>
 
-      <div style={{ padding: '14px 16px 8px' }}>
+      <div className="onb-actions">
         <button className="btn btn-primary" onClick={() => router.push(nextOnboardingRoute('cycleLen', intention))}>
           {t('continue')}
         </button>

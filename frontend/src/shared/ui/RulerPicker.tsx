@@ -59,11 +59,11 @@ export function RulerPicker({ min, max, value, unit, onChange, toDisplay }: Rule
 
   return (
     <>
-      <div style={{ textAlign: 'center', marginBottom: 16 }}>
-        <span style={{ fontSize: 48, fontWeight: 800, color: 'var(--ink)', fontVariantNumeric: 'tabular-nums' }}>
+      <div className="rp-readout">
+        <span className="rp-value">
           {display}
         </span>
-        <span style={{ fontSize: 15, color: 'var(--muted)', marginInlineStart: 6 }}>{unit}</span>
+        <span className="rp-unit">{unit}</span>
       </div>
       <div className="ruler-wrap">
         <div className="rpoint" />

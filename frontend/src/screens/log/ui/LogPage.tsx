@@ -1,5 +1,7 @@
 'use client';
 
+import clsx from 'clsx';
+
 import { useQueryClient } from '@tanstack/react-query';
 import { useLocale, useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
@@ -75,23 +77,22 @@ function DaySwitcher({ t, locale, date, isRtl, onShift, canGoNext }: DaySwitcher
       onClick={() => canGoNext && onShift(1)}
       disabled={!canGoNext}
       aria-label={t('nextDay')}
-      style={{ opacity: canGoNext ? 1 : 0.3 }}
     >
       <Icon name={isRtl ? 'chevronLeft' : 'chevronRight'} size={20} />
     </button>
   );
 
   return (
-    <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px' }}>
+    <div className="card log-daynav">
       {/* First child sits at the inline-start (right in RTL) */}
       {isRtl ? prev : next}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div className="log-daynav-mid">
         <Icon name="calendar" size={16} />
-        <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>
+        <span className="log-daynav-date">
           {formatJalaliDayMonth(date, locale)}
         </span>
         {isToday && (
-          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--brand)', background: 'var(--surface-2)', borderRadius: 20, padding: '3px 10px' }}>
+          <span className="log-today">
             {t('today')}
           </span>
         )}
@@ -115,23 +116,13 @@ function CategoryCard({ t, category, count, isRtl, onOpen }: CategoryCardProps) 
   return (
     <button
       onClick={onOpen}
-      className="card"
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 12,
-        padding: '13px 14px',
-        width: '100%',
-        cursor: 'pointer',
-        textAlign: 'start',
-        fontFamily: 'inherit',
-      }}
+      className="card log-cat"
     >
-      <span className="dot" style={{ width: 42, height: 42, background: style.soft, color: style.color }}>
+      <span className="dot log-cat-dot" style={{ background: style.soft, color: style.color }}>
         <Icon name={style.icon} size={20} />
       </span>
-      <div style={{ flex: 1, textAlign: 'start' }}>
-        <div style={{ fontSize: 14.5, fontWeight: 800, color: 'var(--ink)' }}>
+      <div className="log-cat-body">
+        <div className="log-cat-t">
           {t(`categories.${category.key}`)}
         </div>
         <div style={{ fontSize: 12, color: count ? style.color : 'var(--muted)', marginTop: 3, fontWeight: count ? 700 : 500 }}>
@@ -139,7 +130,7 @@ function CategoryCard({ t, category, count, isRtl, onOpen }: CategoryCardProps) 
         </div>
       </div>
       {/* Disclosure chevron points toward the reading-end (left in RTL). */}
-      <Icon name={isRtl ? 'chevronLeft' : 'chevronRight'} size={18} style={{ color: 'var(--muted)' }} />
+      <Icon name={isRtl ? 'chevronLeft' : 'chevronRight'} size={18} className="log-cat-chev" />
     </button>
   );
 }
@@ -240,41 +231,27 @@ export function LogPage() {
   const status = save.isPending ? t('saving') : save.isError ? t('saveError') : save.isSuccess ? t('autoSaved') : null;
 
   return (
-    <div className="view" style={{ background: 'var(--page)' }}>
+    <div className="view log-page">
 
       <div className="scroll">
-        <div style={{ padding: '6px 20px 0', textAlign: 'start', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
-          <div style={{ flex: 1 }}>
+        <div className="log-hdr">
+          <div className="log-hdr-txt">
             <div className="titr">{t('title')}</div>
-            <p className="sub" style={{ margin: '6px 0 0' }}>{t('subtitle')}</p>
+            <p className="sub log-hdr-sub">{t('subtitle')}</p>
           </div>
           {status && (
-            <span
-              style={{
-                fontSize: 11.5,
-                fontWeight: 700,
-                whiteSpace: 'nowrap',
-                marginTop: 4,
-                padding: '4px 10px',
-                borderRadius: 20,
-                color: save.isError ? 'var(--brand)' : 'var(--muted)',
-                background: save.isError ? 'var(--surface-2)' : 'var(--line)',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 5,
-              }}
-            >
+            <span className={clsx('log-status', save.isError && 'is-error')}>
               {save.isSuccess && !save.isError ? <Icon name="check" size={13} /> : null}
               {status}
             </span>
           )}
         </div>
 
-        <div style={{ padding: '14px 16px 0' }}>
+        <div className="sec-tight">
           <DaySwitcher t={t} locale={locale} date={date} isRtl={isRtl} onShift={shiftDay} canGoNext={canGoNext} />
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '14px 16px 0' }}>
+        <div className="log-cats">
           {LOG_CATEGORIES.map((category) => (
             <CategoryCard
               key={category.key}
@@ -290,7 +267,7 @@ export function LogPage() {
         {/* Doctor / medication reminders and to-dos set for the day being edited. */}
         <DayTasks date={date} />
 
-        <div style={{ height: 24 }} />
+        <div className="log-tail" />
       </div>
 
       <BottomNav />

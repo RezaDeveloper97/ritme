@@ -35,19 +35,19 @@ export function ConditionsPage() {
   const step = stepPosition('conditions', intention);
 
   return (
-    <div className="view" style={{ background: 'var(--surface)' }}>
+    <div className="view onb-page">
       <div className="hdr">
         <NavBack onClick={() => router.back()} />
-        <span className="stepcount">{faNum(step.index)}<span style={{ opacity: .5 }}> / {faNum(step.total)}</span></span>
+        <span className="stepcount">{faNum(step.index)}<span className="onb-dim"> / {faNum(step.total)}</span></span>
       </div>
 
-      <div className="scroll" style={{ padding: '8px 22px 0' }}>
-        <div style={{ textAlign: 'start', margin: '6px 0' }}>
+      <div className="scroll onb-scroll">
+        <div className="onb-intro">
           <div className="titr">{t('conditions.title')}</div>
-          <p className="sub" style={{ margin: '10px 0 0', lineHeight: 1.7 }}>{t('conditions.subtitle')}</p>
+          <p className="sub onb-intro-sub is-loose">{t('conditions.subtitle')}</p>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 16 }}>
+        <div className="onb-stack is-spaced">
           {CONDITIONS.map((c) => {
             const on = chronicConditions.includes(c);
             return (
@@ -87,10 +87,10 @@ export function ConditionsPage() {
           })}
         </div>
 
-        <div style={{ height: 12 }} />
+        <div className="onb-tail" />
       </div>
 
-      <div style={{ padding: '14px 16px 8px' }}>
+      <div className="onb-actions">
         <button className="btn btn-primary" onClick={() => router.push(nextOnboardingRoute('conditions', intention))}>
           {t('finish')}
         </button>

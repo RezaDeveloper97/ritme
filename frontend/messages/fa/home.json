@@ -43,6 +43,10 @@
     "date": "اطلاعات {date}"
   },
 
+  "fertility": {
+    "caption": "شانس بارداری"
+  },
+
   "phases": {
     "window": "پنجره باروری",
     "ovulation": "تخمک گذاری",

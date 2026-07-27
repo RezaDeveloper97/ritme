@@ -45,7 +45,7 @@ export function PeriodButton() {
         : t('start');
 
   return (
-    <div style={{ padding: '16px 16px 0' }}>
+    <div className="sec">
       <button
         className="btn"
         onClick={commit}
@@ -76,7 +76,7 @@ export function PeriodButton() {
       {isError && (
         <p
           role="alert"
-          style={{ margin: '8px 2px 0', fontSize: 12, fontWeight: 600, color: 'var(--brand)', textAlign: 'start' }}
+          className="ped-note is-error"
         >
           {t('error')}
         </p>

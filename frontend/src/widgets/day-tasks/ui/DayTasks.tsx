@@ -1,5 +1,7 @@
 'use client';
 
+import clsx from 'clsx';
+
 import { useLocale, useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 
@@ -77,21 +79,21 @@ export function DayTasks({ date }: { date: Date }) {
   };
 
   return (
-    <div style={{ padding: '14px 16px 0' }}>
-      <div className="card" style={{ padding: '14px 12px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-          <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--ink)' }}>{t('title')}</span>
+    <div className="sec-tight">
+      <div className="card pad-card-sm">
+        <div className="dt-head">
+          <span className="dt-title">{t('title')}</span>
           {dayItems.length > 0 && (
-            <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: 'var(--steel)' }}>
+            <span className="dt-progress">
               {t('progress', { done: localizeNum(doneCount, loc), total: localizeNum(dayItems.length, loc) })}
               <Icon name="checkCircle" size={16} stroke="var(--green)" />
             </span>
           )}
         </div>
-        <p className="sub" style={{ textAlign: 'start', margin: '0 2px 12px' }}>{t('subtitle')}</p>
+        <p className="sub dt-sub">{t('subtitle')}</p>
 
         {/* Type picker + text field + add button */}
-        <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+        <div className="dt-types">
           {ADD_TYPES.map((it) => {
             const on = type === it.value;
             return (
@@ -100,13 +102,7 @@ export function DayTasks({ date }: { date: Date }) {
                 type="button"
                 onClick={() => setType(it.value)}
                 aria-pressed={on}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer',
-                  borderRadius: 10, padding: '6px 10px', fontFamily: 'inherit', fontSize: 12, fontWeight: 700,
-                  border: on ? '1px solid var(--brand)' : '1px solid var(--line)',
-                  background: on ? 'var(--surface-2)' : 'var(--surface)',
-                  color: on ? 'var(--brand)' : 'var(--steel)',
-                }}
+                className="dt-type"
               >
                 <Icon name={it.icon} size={14} stroke="currentColor" />
                 {t(`types.${it.value}`)}
@@ -114,8 +110,8 @@ export function DayTasks({ date }: { date: Date }) {
             );
           })}
         </div>
-        <div style={{ display: 'flex', gap: 8, marginBottom: dayItems.length ? 14 : 4 }}>
-          <div className="field" style={{ flex: 1, height: 42 }}>
+        <div className={clsx('dt-add-row', dayItems.length > 0 && 'has-items')}>
+          <div className="field dt-add-field">
             <input
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
@@ -128,31 +124,30 @@ export function DayTasks({ date }: { date: Date }) {
             type="button"
             onClick={submit}
             disabled={!draft.trim() || create.isPending}
-            className="btn btn-primary"
-            style={{ width: 'auto', padding: '0 16px', height: 42, opacity: !draft.trim() || create.isPending ? 0.5 : 1 }}
+            className="btn btn-primary dt-add-btn"
           >
             {create.isPending ? t('adding') : t('add')}
           </button>
         </div>
 
         {dayItems.length === 0 ? (
-          <p style={{ textAlign: 'center', fontSize: 12.5, color: 'var(--muted)', padding: '8px 0 2px' }}>
+          <p className="dt-empty">
             {t('empty')}
           </p>
         ) : (
           dayItems.map((r) => {
             const done = !r.isActive;
             return (
-              <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 2px' }}>
-                <span className="dot" style={{ width: 32, height: 32, flex: '0 0 auto', background: 'var(--pink-bg)', color: 'var(--brand)' }}>
+              <div key={r.id} className="dt-row">
+                <span className="dot dt-row-dot">
                   <Icon name={TYPE_ICON[r.type]} size={16} stroke="currentColor" />
                 </span>
-                <div style={{ flex: 1, textAlign: 'start', minWidth: 0 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: done ? 'var(--muted-soft)' : 'var(--ink)', textDecoration: done ? 'line-through' : undefined, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div className="dt-row-body">
+                  <div className={clsx('dt-row-t', done && 'is-done')}>
                     {r.title}
                   </div>
                   {r.subtitle && (
-                    <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>{r.subtitle}</div>
+                    <div className="dt-row-s">{r.subtitle}</div>
                   )}
                 </div>
                 <button
@@ -160,8 +155,7 @@ export function DayTasks({ date }: { date: Date }) {
                   onClick={() => update.mutate({ id: r.id, isActive: done })}
                   aria-label={t('toggle')}
                   aria-pressed={done}
-                  className={`cbx${done ? ' on' : ''}`}
-                  style={{ appearance: 'none', WebkitAppearance: 'none', padding: 0, flex: '0 0 auto' }}
+                  className={clsx('cbx', 'dt-check', done && 'on')}
                 >
                   <Icon name="check" size={14} stroke="var(--on-accent)" />
                 </button>
@@ -169,8 +163,7 @@ export function DayTasks({ date }: { date: Date }) {
                   type="button"
                   onClick={() => remove.mutate(r.id)}
                   aria-label={t('delete')}
-                  className="iconbtn"
-                  style={{ color: 'var(--muted)', flex: '0 0 auto' }}
+                  className="iconbtn dt-del"
                 >
                   <Icon name="trash" size={16} stroke="currentColor" />
                 </button>

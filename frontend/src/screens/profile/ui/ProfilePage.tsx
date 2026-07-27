@@ -91,11 +91,11 @@ function Row({
 // ── A grouped card of rows ────────────────────────────────────
 function Group({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section style={{ padding: '0 18px', marginTop: 20 }}>
-      <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--muted)', margin: '0 4px 8px' }}>
+    <section className="prof-group">
+      <div className="prof-group-t">
         {title}
       </div>
-      <div className="card" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div className="card prof-card">
         {children}
       </div>
     </section>
@@ -104,7 +104,7 @@ function Group({ title, children }: { title: string; children: ReactNode }) {
 
 // Hairline between rows, inset past the icon (logical start — RTL-safe).
 function Divider() {
-  return <div style={{ height: 1, background: 'var(--line)', marginInlineStart: 60 }} />;
+  return <div className="prof-divider" />;
 }
 
 // Direction-aware disclosure chevron: points "into" the row (§12 — logical, not
@@ -114,7 +114,7 @@ function Chevron({ loc }: { loc: Locale }) {
     <Icon
       name={loc === 'fa' ? 'chevronLeft' : 'chevronRight'}
       size={18}
-      style={{ color: 'var(--muted)', flexShrink: 0 }}
+      className="prof-chev"
     />
   );
 }
@@ -123,7 +123,7 @@ function Chevron({ loc }: { loc: Locale }) {
 // (in ink) stays dominant; `--` while the profile is still loading.
 function StatValue({ children }: { children: ReactNode }) {
   return (
-    <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--muted)', textAlign: 'end' }}>
+    <span className="prof-stat">
       {children}
     </span>
   );
@@ -183,59 +183,29 @@ export function ProfilePage() {
   const chevron = <Chevron loc={loc} />;
 
   return (
-    <div className="view" style={{ background: 'var(--page)' }}>
+    <div className="view prof-page">
 
-      <div className="scroll" style={{ paddingBottom: 24 }}>
-        <div style={{ padding: '8px 20px 4px' }}>
+      <div className="scroll prof-scroll">
+        <div className="prof-hdr">
           <div className="titr">{t('title')}</div>
         </div>
 
         {/* Identity card */}
-        <section style={{ padding: '0 18px', marginTop: 12 }}>
-          <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 14, padding: 16 }}>
-            <span
-              style={{
-                width: 60,
-                height: 60,
-                borderRadius: '50%',
-                flexShrink: 0,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'var(--pink-soft)',
-                color: 'var(--brand)',
-              }}
-            >
+        <section className="prof-group is-tight">
+          <div className="card prof-id">
+            <span className="prof-avatar">
               <Icon name="user" size={30} />
             </span>
-            <div style={{ flex: 1, minWidth: 0, textAlign: 'start' }}>
-              <div
-                style={{
-                  fontSize: 16,
-                  fontWeight: 800,
-                  color: 'var(--ink)',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }}
-              >
+            <div className="prof-id-body">
+              <div className="prof-id-name">
                 {user?.name ?? t('guest')}
               </div>
-              <div
-                style={{
-                  fontSize: 13,
-                  color: 'var(--muted)',
-                  marginTop: 3,
-                  direction: 'ltr',
-                  textAlign: 'start',
-                }}
-              >
+              <div className="prof-id-phone">
                 {user?.mobile ? localizeNum(user.mobile, loc) : t('noPhone')}
               </div>
             </div>
             <button
-              className="iconbtn"
-              style={{ color: 'var(--brand)', flexShrink: 0 }}
+              className="iconbtn prof-id-edit"
               aria-label={t('editProfile')}
               onClick={() => router.push('/profile/personal')}
             >
@@ -345,17 +315,9 @@ export function ProfilePage() {
             (admin-editable) and returns it already localized; we only render
             it. Not medical advice (§11). */}
         {bmi ? (
-          <section style={{ padding: '0 18px', marginTop: 14 }}>
-            <div className="card" style={{ padding: 16 }}>
-              <p
-                style={{
-                  fontSize: 13.5,
-                  lineHeight: 2,
-                  color: 'var(--muted)',
-                  margin: 0,
-                  textAlign: 'start',
-                }}
-              >
+          <section className="prof-group is-mid">
+            <div className="card prof-note-card">
+              <p className="prof-note">
                 {bmi.message}
               </p>
             </div>
@@ -381,8 +343,8 @@ export function ProfilePage() {
             onClick={toggleLocale}
             disabled={switching}
             trailing={
-              <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--brand)' }}>
+              <span className="prof-inline">
+                <span className="prof-inline-t">
                   {t(`language.${locale}`)}
                 </span>
                 {chevron}
@@ -416,8 +378,8 @@ export function ProfilePage() {
         </Group>
 
         {/* Logout */}
-        <section style={{ padding: '0 18px', marginTop: 20 }}>
-          <div className="card" style={{ overflow: 'hidden' }}>
+        <section className="prof-group">
+          <div className="card prof-card is-plain">
             <Row
               icon="logout"
               label={logout.isPending ? t('loggingOut') : t('logout')}
@@ -428,7 +390,7 @@ export function ProfilePage() {
           </div>
         </section>
 
-        <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--muted)', marginTop: 18 }}>
+        <div className="prof-version">
           {t('version', { version: localizeNum(APP_VERSION, loc) })}
         </div>
       </div>

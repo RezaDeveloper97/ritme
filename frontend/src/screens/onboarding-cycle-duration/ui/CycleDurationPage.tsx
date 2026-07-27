@@ -21,20 +21,20 @@ export function CycleDurationPage() {
   const step = stepPosition('cycleDuration', intention);
 
   return (
-    <div className="view" style={{ background: 'var(--surface)' }}>
+    <div className="view onb-page">
       <div className="hdr">
         <NavBack onClick={() => router.back()} />
-        <span className="stepcount">{faNum(step.index)}<span style={{ opacity: .5 }}> / {faNum(step.total)}</span></span>
+        <span className="stepcount">{faNum(step.index)}<span className="onb-dim"> / {faNum(step.total)}</span></span>
       </div>
 
-      <div className="scroll" style={{ padding: '8px 22px 0', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ textAlign: 'start', margin: '6px 0' }}>
+      <div className="scroll onb-body">
+        <div className="onb-intro">
           <div className="titr">{t('cycleDuration.title')}</div>
-          <p className="sub" style={{ margin: '10px 0 0' }}>{t('cycleDuration.subtitle')}</p>
+          <p className="sub onb-intro-sub">{t('cycleDuration.subtitle')}</p>
         </div>
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '8px 0' }}>
-          <div style={{ display: 'flex', justifyContent: 'center', position: 'relative' }}>
-            <div className="wheel-band" style={{ width: 150, marginInline: 'auto' }} />
+        <div className="onb-center">
+          <div className="prof-wheel-center">
+            <div className="wheel-band prof-wheel-band" />
             <WheelPicker
               id="wC" items={ITEMS} selectedIndex={cycleDuration - MIN} width={150}
               onChange={i => setCycleDuration(i + MIN)}
@@ -43,7 +43,7 @@ export function CycleDurationPage() {
         </div>
       </div>
 
-      <div style={{ padding: '14px 16px 8px' }}>
+      <div className="onb-actions">
         <button className="btn btn-primary" onClick={() => router.push(nextOnboardingRoute('cycleDuration', intention))}>
           {t('continue')}
         </button>

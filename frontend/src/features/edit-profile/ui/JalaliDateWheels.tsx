@@ -63,7 +63,7 @@ export function JalaliDateWheels({ idPrefix, value, onChange, minYear, maxYear }
   );
 
   return (
-    <div style={{ display: 'flex', gap: 8, justifyContent: 'center', position: 'relative' }}>
+    <div className="jdw-row">
       <div className="wheel-band" />
       <WheelPicker
         id={`${idPrefix}-day`}

@@ -43,23 +43,18 @@ export function TodayChallengeCard() {
   const caption = challenge.statusMessage ?? challenge.description;
 
   return (
-    <div style={{ padding: '14px 16px 0' }}>
-      <div className="card" style={{ padding: '14px 12px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-          <span style={{ color: 'var(--amber)' }}>
+    <div className="sec-tight">
+      <div className="card pad-card-sm">
+        <div className="tc-head">
+          <span className="tc-flame">
             <Icon name="flame" size={18} stroke="currentColor" />
           </span>
-          <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--ink)' }}>{t('title')}</span>
-          <span style={{ flex: 1 }} />
+          <span className="tc-title">{t('title')}</span>
+          <span className="tc-spacer" />
           {challenge.streak > 0 && (
             <span
               title={t('longestStreak', { n: challenge.longestStreak })}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 4,
-                background: 'var(--amber-tint)', color: 'var(--amber-deep)',
-                borderRadius: 999, padding: '3px 9px',
-                fontSize: 11.5, fontWeight: 800,
-              }}
+              className="tc-streak"
             >
               <Icon name="flame" size={13} stroke="currentColor" />
               {t('streak', { n: challenge.streak })}
@@ -84,11 +79,11 @@ export function TodayChallengeCard() {
             transition: 'background .15s, border-color .15s',
           }}
         >
-          <span style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-            <span style={{ color: 'var(--brand)', flex: '0 0 auto' }}>
+          <span className="tc-item-l">
+            <span className="tc-item-ic">
               <Icon name={icon} size={18} stroke="currentColor" />
             </span>
-            <span style={{ minWidth: 0 }}>
+            <span className="tc-item-b">
               <span
                 style={{
                   display: 'block', fontSize: 14, fontWeight: 700, color: 'var(--ink)',
@@ -116,7 +111,7 @@ export function TodayChallengeCard() {
 
         {/* Seven-day strip — the "سابقه" the streak is built from. */}
         <div
-          style={{ display: 'flex', gap: 6, justifyContent: 'space-between', marginTop: 12 }}
+          className="tc-week"
           aria-label={t('weekLabel')}
         >
           {challenge.weekDays.map((day) => (
@@ -135,12 +130,7 @@ export function TodayChallengeCard() {
 
         {caption && (
           <div
-            style={{
-              marginTop: 14,
-              background: 'linear-gradient(90deg,var(--pink-bg),var(--violet-soft))',
-              borderRadius: 12, padding: '8px 12px', textAlign: 'center',
-              fontSize: 12, fontWeight: 600, color: 'var(--steel)',
-            }}
+            className="tc-caption"
           >
             ✨ {caption}
           </div>

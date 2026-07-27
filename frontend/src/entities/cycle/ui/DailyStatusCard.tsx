@@ -1,5 +1,7 @@
 'use client';
 
+import clsx from 'clsx';
+
 import { fertilityBadgeStyle } from '../model/fertilityStyle';
 import type { DailyCard } from '../model/types';
 
@@ -28,48 +30,28 @@ export function DailyStatusCard({ card, onAction, showActions = true, pending = 
   const fertility = fertilityBadgeStyle(card.fertilityLevel);
 
   return (
-    <div className={className ?? 'card'} style={{ padding: '16px 14px', textAlign: 'start' }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
-        <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--ink)', margin: 0, lineHeight: 1.5 }}>
+    <div className={clsx(className ?? 'card', 'dsc')}>
+      <div className="dsc-head">
+        <h3 className="dsc-title">
           {card.title}
         </h3>
         {card.fertilityLabel && (
-          <span
-            style={{
-              flexShrink: 0,
-              fontSize: 11,
-              fontWeight: 700,
-              borderRadius: 20,
-              padding: '4px 10px',
-              background: fertility.bg,
-              color: fertility.fg,
-            }}
-          >
+          <span className="dsc-fert" style={{ background: fertility.bg, color: fertility.fg }}>
             {card.fertilityLabel}
           </span>
         )}
       </div>
 
       {card.subtitle && (
-        <p style={{ fontSize: 13, color: 'var(--muted)', margin: '8px 0 0', lineHeight: 1.7 }}>
+        <p className="dsc-sub">
           {card.subtitle}
         </p>
       )}
 
       {card.badges.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
+        <div className="dsc-badges">
           {card.badges.map((badge) => (
-            <span
-              key={badge}
-              style={{
-                fontSize: 11,
-                fontWeight: 600,
-                color: 'var(--steel)',
-                background: 'var(--line)',
-                borderRadius: 8,
-                padding: '4px 10px',
-              }}
-            >
+            <span key={badge} className="dsc-badge">
               {badge}
             </span>
           ))}
@@ -77,7 +59,7 @@ export function DailyStatusCard({ card, onAction, showActions = true, pending = 
       )}
 
       {showActions && (primaryAction || secondaryActions.length > 0) && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 16 }}>
+        <div className="dsc-actions">
           {primaryAction && (
             <button
               type="button"

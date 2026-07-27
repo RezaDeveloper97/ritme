@@ -22,21 +22,21 @@ export function WeightPage() {
   };
 
   return (
-    <div className="view" style={{ background: 'var(--surface)' }}>
+    <div className="view onb-page">
       <div className="hdr">
         <NavBack onClick={() => router.back()} />
-        <span className="stepcount">{faNum(step.index)}<span style={{ opacity: .5 }}> / {faNum(step.total)}</span></span>
+        <span className="stepcount">{faNum(step.index)}<span className="onb-dim"> / {faNum(step.total)}</span></span>
       </div>
 
-      <div className="scroll" style={{ padding: '8px 22px 0', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ textAlign: 'start', margin: '6px 0' }}>
+      <div className="scroll onb-body">
+        <div className="onb-intro">
           <div className="titr">{t('weight.title')}</div>
-          <p className="sub" style={{ margin: '10px 0 0' }}>{t('weight.subtitle')}</p>
-          <p className="sub" style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--muted)' }}>{t('weight.helper')}</p>
+          <p className="sub onb-intro-sub">{t('weight.subtitle')}</p>
+          <p className="sub onb-hint">{t('weight.helper')}</p>
         </div>
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '8px 0' }}>
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 30 }}>
-            <div className="seg" style={{ width: 170 }}>
+        <div className="onb-center">
+          <div className="onb-ruler-wrap">
+            <div className="seg onb-ruler">
               <button className={weightUnit === 'lb' ? 'on' : ''} onClick={() => switchUnit('lb')}>lb</button>
               <button className={weightUnit === 'kg' ? 'on' : ''} onClick={() => switchUnit('kg')}>kg</button>
             </div>
@@ -49,7 +49,7 @@ export function WeightPage() {
         </div>
       </div>
 
-      <div style={{ padding: '14px 16px 8px' }}>
+      <div className="onb-actions">
         <button className="btn btn-primary" onClick={() => router.push(nextOnboardingRoute('weight', intention))}>
           {t('continue')}
         </button>

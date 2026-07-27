@@ -92,24 +92,16 @@ export function IntroCarousel({ onComplete }: Props) {
   }
 
   return (
-    <div className="view" style={{ background: 'var(--surface)' }}>
+    <div className="view onb-page">
       {/* Top bar: brand mark + skip */}
-      <div className="hdr" style={{ height: 56 }}>
-        <span style={{ fontWeight: 900, fontSize: 18, color: 'var(--brand)', letterSpacing: 0.5 }}>
+      <div className="hdr ic-hdr">
+        <span className="ic-brand">
           {t('brand')}
         </span>
         <button
           type="button"
           onClick={onComplete}
-          style={{
-            border: 0,
-            background: 'transparent',
-            color: 'var(--muted)',
-            fontSize: 14,
-            fontWeight: 600,
-            padding: '6px 8px',
-            cursor: 'pointer',
-          }}
+          className="ic-skip"
         >
           {t('skip')}
         </button>
@@ -144,7 +136,7 @@ export function IntroCarousel({ onComplete }: Props) {
           }}
         >
           {INTRO_SLIDES.map((slide, i) => (
-            <div key={slide.id} style={{ flex: '0 0 100%', minWidth: 0, height: '100%' }}>
+            <div key={slide.id} className="ic-slide">
               <SlidePanel slide={slide} dir={dir} active={i === index} uid={slide.id} />
             </div>
           ))}
@@ -157,8 +149,8 @@ export function IntroCarousel({ onComplete }: Props) {
       </span>
 
       {/* Footer: progress dots + primary CTA */}
-      <div style={{ padding: '10px 22px 22px' }}>
-        <div style={{ display: 'flex', direction: 'ltr', justifyContent: 'center', gap: 6, marginBottom: 16 }}>
+      <div className="ic-foot">
+        <div className="ic-dots">
           {INTRO_SLIDES.map((slide, i) => {
             const on = i === index;
             return (
@@ -206,26 +198,10 @@ function SlidePanel({
   return (
     <div
       dir={dir}
-      className="scroll"
-      style={{
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        padding: '4px 26px 8px',
-      }}
+      className="scroll ic-panel"
     >
       {/* Illustration with a soft, theme-aware halo */}
-      <div
-        style={{
-          flex: '0 0 auto',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: 190,
-          padding: '10px 0',
-          background: 'radial-gradient(58% 58% at 50% 46%, var(--surface-2), transparent)',
-        }}
-      >
+      <div className="ic-media">
         <span
           style={{
             display: 'flex',
@@ -246,25 +222,24 @@ function SlidePanel({
       </div>
 
       {/* Copy */}
-      <div style={{ marginTop: 6 }}>
-        <h2 className="titr" style={{ fontSize: 23, fontWeight: 900, lineHeight: 1.4 }}>
+      <div className="ic-copy">
+        <h2 className="titr ic-title">
           {t(`slides.${slide.id}.title`)}
         </h2>
-        <p className="sub" style={{ margin: '12px 0 0', fontSize: 14 }}>
+        <p className="sub ic-body">
           {t(`slides.${slide.id}.body`)}
         </p>
 
         {slide.id === 'intro' && (
           <p
-            className="sub"
-            style={{ margin: '16px 0 0', fontSize: 13, color: 'var(--brand-deep)', fontWeight: 600 }}
+            className="sub ic-note"
           >
             {t('slides.intro.note')}
           </p>
         )}
 
         {slide.bullets && (
-          <ul style={{ listStyle: 'none', margin: '18px 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <ul className="ic-bullets">
             <Bullet icon="heart">{t('slides.track.bullet1')}</Bullet>
             <Bullet icon="moon">{t('slides.track.bullet2')}</Bullet>
           </ul>
@@ -272,10 +247,10 @@ function SlidePanel({
 
         {slide.disclaimer && (
           <>
-            <p style={{ margin: '18px 0 0', fontSize: 12.5, lineHeight: 1.8, color: 'var(--muted)' }}>
+            <p className="ic-disc">
               {t('disclaimer')}
             </p>
-            <p style={{ margin: '14px 0 0', fontSize: 13, lineHeight: 1.8, color: 'var(--slate)', fontWeight: 600 }}>
+            <p className="ic-hint">
               {t('startHint')}
             </p>
           </>
@@ -287,23 +262,11 @@ function SlidePanel({
 
 function Bullet({ icon, children }: { icon: 'heart' | 'moon'; children: React.ReactNode }) {
   return (
-    <li style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-      <span
-        style={{
-          flex: '0 0 auto',
-          width: 34,
-          height: 34,
-          borderRadius: 12,
-          background: 'var(--surface-2)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: 'var(--brand)',
-        }}
-      >
+    <li className="ic-bullet">
+      <span className="ic-bullet-ic">
         <Icon name={icon} size={18} stroke="var(--brand)" />
       </span>
-      <span style={{ fontSize: 13.5, lineHeight: 1.7, color: 'var(--slate)', paddingTop: 6 }}>
+      <span className="ic-bullet-t">
         {children}
       </span>
     </li>

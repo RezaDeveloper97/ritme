@@ -43,6 +43,10 @@
     "date": "Info for {date}"
   },
 
+  "fertility": {
+    "caption": "Chance of pregnancy"
+  },
+
   "phases": {
     "window": "Fertility window",
     "ovulation": "Ovulation",

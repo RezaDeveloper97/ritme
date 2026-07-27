@@ -25,20 +25,9 @@ export function SplashPage() {
   }, [router]);
 
   return (
-    <div
-      className="view"
-      style={{
-        background: 'linear-gradient(160deg,var(--brand) 0%,var(--purple) 100%)',
-        color: 'var(--on-accent)',
-        cursor: 'pointer',
-        position: 'relative',
-        height: '100%',
-        overflow: 'hidden',
-      }}
-      onClick={next}
-    >
+    <div className="view splash" onClick={next}>
       {/* Figma: faint concentric-circles mark peeking from the top corner */}
-      <div aria-hidden style={{ position: 'absolute', top: -60, insetInlineEnd: -40, opacity: .12, pointerEvents: 'none' }}>
+      <div aria-hidden className="splash-mark">
         <svg width="180" height="180" viewBox="0 0 86 86" fill="none">
           <circle cx="43" cy="43" r="36" stroke="var(--on-accent)" strokeWidth="1.5" />
           <circle cx="43" cy="43" r="25" stroke="var(--on-accent)" strokeWidth="1.5" />
@@ -46,13 +35,7 @@ export function SplashPage() {
         </svg>
       </div>
 
-      <div
-        style={{
-          position: 'absolute', inset: 0,
-          display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center', gap: 14,
-        }}
-      >
+      <div className="splash-center">
         {/* App icon */}
         <Image
           src="/logo.webp"
@@ -61,27 +44,19 @@ export function SplashPage() {
           width={84}
           height={84}
           priority
-          style={{
-            width: 84, height: 84, borderRadius: 26,
-            boxShadow: '0 18px 40px -12px rgba(0,0,0,.4)',
-          }}
+          className="splash-logo"
         />
 
-        <div style={{ fontWeight: 900, fontSize: 34, letterSpacing: 1, marginTop: 6 }}>ریـتمی</div>
-        <div style={{ fontSize: 13, opacity: .92, fontWeight: 500 }}>{t('tagline')}</div>
+        <div className="splash-name">ریـتمی</div>
+        <div className="splash-tagline">{t('tagline')}</div>
       </div>
 
       {/* Bottom */}
-      <div
-        style={{
-          position: 'absolute', bottom: 30, insetInline: 0,
-          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
-        }}
-      >
-        <span style={{ animation: 'spin 1s linear infinite', display: 'inline-flex', opacity: .95 }}>
+      <div className="splash-bottom">
+        <span className="splash-spinner">
           <Icon name="loader" size={24} stroke="var(--on-accent)" />
         </span>
-        <span style={{ fontSize: 10, opacity: .8 }}>{t('copyright')}</span>
+        <span className="splash-copy">{t('copyright')}</span>
       </div>
     </div>
   );

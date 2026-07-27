@@ -180,12 +180,12 @@ export function PeriodEditor({ open, onClose, initialDateIso, editing, onSaved }
 
   return (
     <Sheet open={open} onClose={onClose} labelledBy="period-editor-title">
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-        <div style={{ textAlign: 'start' }}>
-          <div id="period-editor-title" style={{ fontSize: 17, fontWeight: 800, color: 'var(--ink)' }}>
+      <div className="ped-head">
+        <div className="text-start">
+          <div id="period-editor-title" className="ped-head-t">
             {editing ? t('editor.editTitle') : t('editor.title')}
           </div>
-          <p className="sub" style={{ margin: '4px 0 0' }}>{t('editor.hint')}</p>
+          <p className="sub ped-head-s">{t('editor.hint')}</p>
         </div>
         <button className="iconbtn" onClick={onClose} aria-label={t('editor.close')}>
           <Icon name="x" size={20} />
@@ -193,11 +193,11 @@ export function PeriodEditor({ open, onClose, initialDateIso, editing, onSaved }
       </div>
 
       {/* Month navigation. First flex child sits on the RIGHT in RTL = prev. */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '16px 0 10px' }}>
+      <div className="ped-nav">
         <button className="iconbtn" onClick={() => goMonth(locale === 'fa' ? -1 : 1)} aria-label={locale === 'fa' ? 'ماه قبل' : 'Next month'}>
           <Icon name={locale === 'fa' ? 'chevronRight' : 'chevronLeft'} size={20} />
         </button>
-        <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>
+        <span className="ped-month">
           {formatJalaliMonthLabel(view.year, view.month, locale)}
         </span>
         <button className="iconbtn" onClick={() => goMonth(locale === 'fa' ? 1 : -1)} aria-label={locale === 'fa' ? 'ماه بعد' : 'Previous month'}>
@@ -205,9 +205,9 @@ export function PeriodEditor({ open, onClose, initialDateIso, editing, onSaved }
         </button>
       </div>
 
-      <div className="cal-grid" style={{ marginBottom: 6 }}>
+      <div className="cal-grid ped-weekdays">
         {WEEKDAY_KEYS.map((k) => (
-          <span key={k} style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 700, textAlign: 'center' }}>
+          <span key={k} className="ped-weekday">
             {t(`editor.weekdays.${k}`)}
           </span>
         ))}
@@ -217,7 +217,7 @@ export function PeriodEditor({ open, onClose, initialDateIso, editing, onSaved }
         onPointerMove={onGridPointerMove}
         onPointerUp={endPaint}
         onPointerLeave={endPaint}
-        style={{ display: 'flex', flexDirection: 'column', gap: 4, touchAction: 'none' }}
+        className="ped-weeks"
       >
         {weeks.map((week, wi) => (
           <div key={wi} className="cal-grid">
@@ -258,16 +258,15 @@ export function PeriodEditor({ open, onClose, initialDateIso, editing, onSaved }
         ))}
       </div>
 
-      <div style={{ margin: '16px 2px 0', fontSize: 13, fontWeight: 700, color: 'var(--muted)', textAlign: 'start' }}>
+      <div className="ped-summary">
         {range ? t('editor.count', { n: selectedCount }) : t('editor.selectPrompt')}
       </div>
 
       <button
-        className="btn btn-primary"
+        className="btn btn-primary ped-save"
         onClick={onSave}
         disabled={!range || isPending}
         aria-busy={isPending}
-        style={{ borderRadius: 14, marginTop: 12, opacity: !range || isPending ? 0.6 : 1 }}
       >
         {isPending ? t('editor.saving') : editing ? t('editor.saveChanges') : t('editor.save')}
       </button>
@@ -277,26 +276,24 @@ export function PeriodEditor({ open, onClose, initialDateIso, editing, onSaved }
         <button
           onClick={() => setConfirmingDelete(true)}
           disabled={isPending}
-          style={{ background: 'none', border: 'none', color: PERIOD_COLOR, fontFamily: 'inherit', fontSize: 13.5, fontWeight: 800, padding: '12px 0 2px', cursor: 'pointer' }}
+          className="ped-del-link"
         >
           {t('editor.delete')}
         </button>
       )}
       {editing && confirmingDelete && (
-        <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+        <div className="ped-actions">
           <button
-            className="btn"
+            className="btn ped-confirm"
             onClick={onDelete}
             disabled={isPending}
-            style={{ flex: 1, borderRadius: 14, background: PERIOD_BG, color: PERIOD_COLOR, fontWeight: 800 }}
           >
             {remove.isPending ? t('editor.deleting') : t('editor.confirmDelete')}
           </button>
           <button
-            className="btn"
+            className="btn ped-cancel"
             onClick={() => setConfirmingDelete(false)}
             disabled={isPending}
-            style={{ flex: 1, borderRadius: 14, background: 'var(--line)', color: 'var(--ink)', fontWeight: 800 }}
           >
             {t('editor.cancel')}
           </button>
@@ -304,7 +301,7 @@ export function PeriodEditor({ open, onClose, initialDateIso, editing, onSaved }
       )}
 
       {isError && (
-        <p role="alert" style={{ margin: '8px 2px 0', fontSize: 12, fontWeight: 600, color: 'var(--brand)', textAlign: 'start' }}>
+        <p role="alert" className="ped-note is-error">
           {t('editor.error')}
         </p>
       )}

@@ -75,8 +75,8 @@ export function JalaliCalendar({ value, onSelect }: JalaliCalendarProps) {
    * In LTR layout (en) the positions swap automatically with flex.
    */
   return (
-    <div className="card" style={{ padding: '16px 14px', marginTop: 2 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+    <div className="card jcal">
+      <div className="jcal-nav">
         {/* First child → RIGHT in RTL = "prev month" */}
         <button
           className="iconbtn"
@@ -86,7 +86,7 @@ export function JalaliCalendar({ value, onSelect }: JalaliCalendarProps) {
           <Icon name={isRtl ? 'chevronRight' : 'chevronLeft'} size={20} />
         </button>
 
-        <span style={{ fontWeight: 800, fontSize: 15, color: 'var(--ink)' }}>
+        <span className="jcal-month">
           {FA_MONTHS[month - 1]} {faNum(year)}
         </span>
 
@@ -101,9 +101,9 @@ export function JalaliCalendar({ value, onSelect }: JalaliCalendarProps) {
       </div>
 
       {/* Day-of-week headers */}
-      <div className="cal-grid" style={{ marginBottom: 8 }}>
+      <div className="cal-grid jcal-weekdays">
         {DAY_NAMES.map(w => (
-          <span key={w} style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 700, textAlign: 'center' }}>{w}</span>
+          <span key={w} className="jcal-weekday">{w}</span>
         ))}
       </div>
 

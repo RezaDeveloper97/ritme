@@ -20,19 +20,19 @@ export function BirthdayPage() {
   const step = stepPosition('birthday', intention);
 
   return (
-    <div className="view" style={{ background: 'var(--surface)' }}>
+    <div className="view onb-page">
       <div className="hdr">
         <NavBack onClick={() => router.back()} />
-        <span className="stepcount">{faNum(step.index)}<span style={{ opacity: .5 }}> / {faNum(step.total)}</span></span>
+        <span className="stepcount">{faNum(step.index)}<span className="onb-dim"> / {faNum(step.total)}</span></span>
       </div>
 
-      <div className="scroll" style={{ padding: '8px 22px 0', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ textAlign: 'start', margin: '6px 0' }}>
+      <div className="scroll onb-body">
+        <div className="onb-intro">
           <div className="titr">{t('birthday.title')}</div>
-          <p className="sub" style={{ margin: '10px 0 0' }}>{t('birthday.subtitle')}</p>
+          <p className="sub onb-intro-sub">{t('birthday.subtitle')}</p>
         </div>
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '8px 0' }}>
-          <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 4, position: 'relative' }}>
+        <div className="onb-center">
+          <div className="onb-wheels">
             <div className="wheel-band" />
             <WheelPicker
               id="wD" items={DAYS} selectedIndex={birth.d - 1} width={56}
@@ -50,7 +50,7 @@ export function BirthdayPage() {
         </div>
       </div>
 
-      <div style={{ padding: '14px 16px 8px' }}>
+      <div className="onb-actions">
         <button className="btn btn-primary" onClick={() => router.push(nextOnboardingRoute('birthday', intention))}>
           {t('continue')}
         </button>

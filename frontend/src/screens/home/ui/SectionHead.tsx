@@ -15,8 +15,8 @@ export function SectionHead({
   onAction?: () => void;
 }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '0 2px 12px' }}>
-      <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--ink)' }}>{title}</span>
+    <div className="sec-head-row">
+      <span className="sec-head-t">{title}</span>
       {action ? (
         <button
           type="button"

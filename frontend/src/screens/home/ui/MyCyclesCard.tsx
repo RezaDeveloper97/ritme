@@ -1,5 +1,7 @@
 'use client';
 
+import clsx from 'clsx';
+
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
@@ -39,20 +41,20 @@ export function MyCyclesCard() {
   const hasMore = previousCount > COLLAPSED_COUNT;
 
   return (
-    <div style={{ padding: '16px 16px 0' }}>
-      <div className="card" style={{ padding: '16px 14px' }}>
+    <div className="sec">
+      <div className="card pad-card">
         <SectionHead title={t('cycles.title')} />
 
         {/* Current cycle — day number, when it began, and how the bleed went. */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '4px 2px 12px' }}>
-          <span className="dot" style={{ width: 40, height: 40, background: 'var(--pink-bg)', color: 'var(--brand)', flex: '0 0 auto' }}>
+        <div className="myc-current">
+          <span className="dot myc-dot">
             <DropSolid size={18} color="var(--brand)" />
           </span>
-          <div style={{ textAlign: 'start', flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)' }}>
+          <div className="myc-current-b">
+            <div className="myc-current-t">
               {t('cycles.current')}: {t('cycles.dayN', { n: current.cycle_day })}
             </div>
-            <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 3 }}>
+            <div className="myc-current-s">
               {t('cycles.startedOn')} {formatJalali(start, loc)}
             </div>
           </div>
@@ -65,7 +67,7 @@ export function MyCyclesCard() {
 
         {/* Averages only appear once they summarize more than one cycle. */}
         {averages.based_on_cycles > 1 && (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, padding: '0 2px 12px' }}>
+          <div className="myc-stats">
             {averages.cycle_length !== null && (
               <Stat label={t('cycles.avgCycle')} value={t('days', { n: averages.cycle_length })} />
             )}
@@ -75,24 +77,24 @@ export function MyCyclesCard() {
           </div>
         )}
 
-        <div style={{ height: 1, background: 'var(--line)', margin: '2px 0 12px' }} />
+        <div className="myc-rule" />
 
         {/* Previous cycles */}
         {previousCount === 0 ? (
-          <p style={{ margin: '0 2px 12px', fontSize: 12, color: 'var(--muted)', textAlign: 'start', lineHeight: 1.7 }}>
+          <p className="myc-none">
             {t('cycles.none')}
           </p>
         ) : (
           <>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '0 2px 8px' }}>
-              <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)' }}>
+            <div className="myc-prev-head">
+              <span className="myc-prev-t">
                 {t('cycles.previousTitle')}
               </span>
-              <span style={{ fontSize: 11, color: 'var(--muted)', fontVariantNumeric: 'tabular-nums' }}>
+              <span className="myc-prev-count">
                 {t('cycles.recorded', { n: previousCount })}
               </span>
             </div>
-            <ul style={{ listStyle: 'none', margin: '0 0 10px', padding: 0, display: 'grid', gap: 6 }}>
+            <ul className="myc-list">
               {visible.map(cycle => (
                 <PreviousCycleRow key={cycle.id} cycle={cycle} loc={loc} t={t} />
               ))}
@@ -100,8 +102,8 @@ export function MyCyclesCard() {
             {hasMore && (
               <button
                 type="button"
+                className="myc-more"
                 onClick={() => setExpanded(v => !v)}
-                style={{ background: 'none', border: 0, padding: '0 2px 10px', fontSize: 12.5, fontWeight: 700, color: 'var(--brand)', cursor: 'pointer' }}
               >
                 {expanded ? t('cycles.showLess') : t('cycles.showAll', { n: previousCount })}
               </button>
@@ -110,11 +112,11 @@ export function MyCyclesCard() {
         )}
 
         {/* Figma Frame 21: divider + pink inline action with add-circle icon */}
-        <div style={{ height: 1, background: 'var(--line)', margin: '2px 0 12px' }} />
+        <div className="myc-rule" />
         <button
           type="button"
+          className="myc-add"
           onClick={() => setEditorOpen(true)}
-          style={{ display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'center', gap: 8, background: 'none', border: 0, cursor: 'pointer', color: 'var(--pink-vivid)', fontSize: 14, fontWeight: 700, padding: '2px 0' }}
         >
           <Icon name="plus" size={18} stroke="currentColor" />
           {section.action?.label ?? t('cycles.addPrevious')}
@@ -149,21 +151,11 @@ function PreviousCycleRow({
     : formatJalali(start, loc);
 
   return (
-    <li
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        background: 'var(--surface-3)',
-        border: '1px solid var(--line)',
-        borderRadius: 10,
-        padding: '9px 10px',
-      }}
-    >
-      <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--brand)', flex: '0 0 auto' }} />
-      <div style={{ flex: 1, minWidth: 0, textAlign: 'start' }}>
-        <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)' }}>{dates}</div>
-        <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>
+    <li className="myc-row">
+      <span className="myc-row-dot" />
+      <div className="myc-row-b">
+        <div className="myc-row-t">{dates}</div>
+        <div className="myc-row-s">
           {cycle.period_length !== null
             ? t('cycles.periodDays', { n: cycle.period_length })
             : t('cycles.periodUnknown')}
@@ -179,19 +171,7 @@ function PreviousCycleRow({
 function Chip({ children, tone }: { children: React.ReactNode; tone?: 'brand' }) {
   const brand = tone === 'brand';
   return (
-    <span
-      style={{
-        flex: '0 0 auto',
-        fontSize: 11,
-        fontWeight: 700,
-        borderRadius: 6,
-        padding: '3px 8px',
-        whiteSpace: 'nowrap',
-        fontVariantNumeric: 'tabular-nums',
-        color: brand ? 'var(--brand-strong)' : 'var(--teal-deep)',
-        background: brand ? 'var(--pink-bg)' : 'var(--teal-tint)',
-      }}
-    >
+    <span className={clsx('myc-chip', brand && 'is-brand')}>
       {children}
     </span>
   );
@@ -199,19 +179,9 @@ function Chip({ children, tone }: { children: React.ReactNode; tone?: 'brand' })
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <span
-      style={{
-        display: 'inline-flex',
-        alignItems: 'baseline',
-        gap: 6,
-        background: 'var(--surface-3)',
-        borderRadius: 8,
-        padding: '6px 10px',
-        fontSize: 11.5,
-      }}
-    >
-      <span style={{ color: 'var(--muted)', fontWeight: 600 }}>{label}</span>
-      <span style={{ color: 'var(--ink)', fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{value}</span>
+    <span className="myc-stat">
+      <span className="myc-stat-l">{label}</span>
+      <span className="myc-stat-v">{value}</span>
     </span>
   );
 }
@@ -219,13 +189,13 @@ function Stat({ label, value }: { label: string; value: string }) {
 /** Placeholder with the same rhythm as the real card, so the page doesn't jump. */
 function MyCyclesSkeleton({ title }: { title: string }) {
   return (
-    <div style={{ padding: '16px 16px 0' }}>
-      <div className="card" style={{ padding: '16px 14px' }}>
+    <div className="sec">
+      <div className="card pad-card">
         <SectionHead title={title} />
-        <div aria-hidden style={{ display: 'grid', gap: 10 }}>
-          <span className="skeleton-line" style={{ height: 40, borderRadius: 12 }} />
-          <span className="skeleton-line" style={{ height: 44, borderRadius: 10 }} />
-          <span className="skeleton-line" style={{ height: 44, borderRadius: 10, width: '92%' }} />
+        <div aria-hidden className="myc-skel">
+          <span className="skeleton-line myc-skel-a" />
+          <span className="skeleton-line myc-skel-b" />
+          <span className="skeleton-line myc-skel-c" />
         </div>
       </div>
     </div>

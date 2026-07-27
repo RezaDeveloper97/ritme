@@ -36,7 +36,7 @@ export function SignupPage() {
   };
 
   return (
-    <div className="view" style={{ background: 'var(--surface)' }}>
+    <div className="view onb-page">
 
       {/*
        * RTL (fa): first child → RIGHT, second child → LEFT.
@@ -47,16 +47,16 @@ export function SignupPage() {
         <span />
       </div>
 
-      <div className="scroll" style={{ padding: '18px 22px' }}>
+      <div className="scroll auth-body">
         {/* Figma «Titr»: 16px bold + sparkle, right-aligned in RTL */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8, marginTop: 8 }}>
-          <span className="titr" style={{ fontSize: 16 }}>{t('signup.title')}</span>
-          <span style={{ color: 'var(--pink)' }}>
+        <div className="signup-titr-row">
+          <span className="titr signup-titr">{t('signup.title')}</span>
+          <span className="signup-spark">
             <Icon name="sparkle" size={22} fill="currentColor" strokeWidth={0} />
           </span>
         </div>
 
-        <p className="sub" style={{ fontSize: 14, textAlign: 'start', margin: '12px 0 32px' }}>{t('signup.subtitle')}</p>
+        <p className="sub signup-sub">{t('signup.subtitle')}</p>
 
         <label className="lbl">{t('signup.phoneLabel')}</label>
         <div className="field">
@@ -67,9 +67,9 @@ export function SignupPage() {
             value={toPersianDigits(phone)}
             onChange={e => handlePhone(e.target.value)}
             dir="ltr"
-            style={{ textAlign: 'start' }}
+            className="signup-input"
           />
-          <span style={{ color: 'var(--muted-soft)' }}>
+          <span className="placeholder-soft">
             <Icon name="user" size={18} />
           </span>
         </div>
@@ -78,16 +78,13 @@ export function SignupPage() {
         <div
           role="button"
           tabIndex={0}
-          style={{
-            display: 'flex', alignItems: 'flex-start', gap: 10,
-            marginTop: 26, cursor: 'pointer', justifyContent: 'flex-end',
-          }}
+          className="signup-terms"
           onClick={() => setTerms(v => !v)}
           onKeyDown={e => e.key === 'Enter' && setTerms(v => !v)}
         >
-          <span className="sub" style={{ textAlign: 'start', flex: 1 }}>
+          <span className="sub signup-terms-t">
             ثبت‌نام به منزله‌ی قبول{' '}
-            <b style={{ color: 'var(--brand)', fontWeight: 700 }}>{t('signup.termsLink')}</b>{' '}
+            <b className="signup-terms-link">{t('signup.termsLink')}</b>{' '}
             و حریم خصوصی است.
           </span>
           <span className={`cbx pink${terms ? ' on' : ''}`}>
@@ -96,13 +93,13 @@ export function SignupPage() {
         </div>
 
         {sendOtp.isError && (
-          <p className="sub" style={{ color: 'var(--danger)', textAlign: 'start', marginTop: 16 }}>
+          <p className="sub auth-error">
             {t(`errors.${authErrorKey(sendOtp.error)}`)}
           </p>
         )}
       </div>
 
-      <div style={{ padding: '14px 16px 8px' }}>
+      <div className="onb-actions">
         <button className="btn btn-primary" disabled={!isValid || sendOtp.isPending} onClick={handleSubmit}>
           {sendOtp.isPending ? t('signup.sending') : t('signup.submit')}
         </button>

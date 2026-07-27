@@ -200,7 +200,7 @@ export function PeriodDateEditor({ open, onClose, initialView, onSaved }: Period
         ? '1.5px dashed var(--ink)'
         : '1.5px solid var(--line)';
     return (
-      <div key={ci} style={{ display: 'flex', justifyContent: 'center' }}>
+      <div key={ci} className="pde-daycell">
         <button
           onClick={() => toggle(iso)}
           disabled={isFuture}
@@ -261,55 +261,29 @@ export function PeriodDateEditor({ open, onClose, initialView, onSaved }: Period
       role="dialog"
       aria-modal="true"
       aria-labelledby="period-date-editor-title"
-      style={{
-        position: 'absolute',
-        inset: 0,
-        zIndex: 60,
-        display: 'flex',
-        flexDirection: 'column',
-        background: 'var(--surface)',
-      }}
+      className="pde"
     >
       {/* Pink header: close on the inline-start, centered title, weekday row. */}
-      <div
-        style={{
-          background: 'linear-gradient(180deg, var(--brand-deep), var(--brand))',
-          color: 'var(--on-accent)',
-          padding: '12px clamp(12px, 4vw, 18px) 0',
-          flexShrink: 0,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, minHeight: 40 }}>
+      <div className="pde-head">
+        <div className="pde-head-row">
           <button
             onClick={onClose}
             aria-label={t('dateEditor.close')}
-            style={{
-              width: 38,
-              height: 38,
-              borderRadius: '50%',
-              border: 'none',
-              background: 'rgba(0,0,0,.18)',
-              color: 'var(--on-accent)',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              flexShrink: 0,
-            }}
+            className="pde-close"
           >
             <Icon name="x" size={20} />
           </button>
           <div
             id="period-date-editor-title"
-            style={{ flex: 1, textAlign: 'center', fontSize: 'clamp(15px, 4.4vw, 18px)', fontWeight: 800, marginInlineEnd: 38 }}
+            className="pde-title"
           >
             {t('dateEditor.title')}
           </div>
         </div>
 
-        <div className="cal-grid" style={{ padding: '10px 0 9px' }}>
+        <div className="cal-grid pde-weekdays">
           {WEEKDAY_KEYS.map((k) => (
-            <span key={k} style={{ fontSize: 'clamp(9px, 2.6vw, 11px)', fontWeight: 700, textAlign: 'center', opacity: 0.85 }}>
+            <span key={k} className="pde-weekday">
               {t(`editor.weekdays.${k}`)}
             </span>
           ))}
@@ -317,30 +291,21 @@ export function PeriodDateEditor({ open, onClose, initialView, onSaved }: Period
       </div>
 
       {/* One continuous vertical scroll of months (newest at the bottom). */}
-      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', background: 'var(--surface)' }}>
+      <div className="pde-scroll">
         {months.map((m) => (
           <div
             key={monthKey(m.year, m.month)}
             ref={(el) => {
               monthRefs.current.set(monthKey(m.year, m.month), el);
             }}
-            style={{ scrollMarginTop: 0 }}
+            className="pde-month"
           >
-            <div
-              style={{
-                padding: '12px clamp(12px, 4vw, 18px)',
-                background: 'var(--line)',
-                fontSize: 'clamp(15px, 4.2vw, 17px)',
-                fontWeight: 800,
-                color: 'var(--ink)',
-                textAlign: 'start',
-              }}
-            >
+            <div className="pde-month-t">
               {formatJalaliMonthLabel(m.year, m.month, locale)}
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(8px, 2.4vw, 14px)', padding: 'clamp(12px, 4vw, 20px) clamp(8px, 3vw, 16px)' }}>
+            <div className="pde-weeks">
               {m.weeks.map((week, wi) => (
-                <div key={wi} className="cal-grid" style={{ gap: 'clamp(6px, 2vw, 12px) 2px' }}>
+                <div key={wi} className="cal-grid pde-week">
                   {week.map((cell, ci) => renderDay(cell, ci))}
                 </div>
               ))}
@@ -350,20 +315,11 @@ export function PeriodDateEditor({ open, onClose, initialView, onSaved }: Period
       </div>
 
       {/* Footer: hint + Cancel / Save. */}
-      <div style={{ flexShrink: 0, background: 'var(--surface)', borderTop: '1px solid var(--line)' }}>
-        <div
-          style={{
-            background: 'var(--surface-2)',
-            color: 'var(--brand)',
-            textAlign: 'center',
-            fontSize: 'clamp(12px, 3.2vw, 13px)',
-            fontWeight: 700,
-            padding: '11px 16px',
-          }}
-        >
+      <div className="pde-foot">
+        <div className="pde-hint">
           {isError ? t('dateEditor.error') : t('dateEditor.hint')}
         </div>
-        <div style={{ display: 'flex', gap: 'clamp(8px, 3vw, 12px)', padding: '12px clamp(12px, 4vw, 16px)', paddingBottom: 'calc(12px + env(safe-area-inset-bottom))' }}>
+        <div className="pde-actions">
           <button
             onClick={onClose}
             disabled={isPending}

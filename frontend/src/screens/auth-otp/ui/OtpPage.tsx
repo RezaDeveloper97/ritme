@@ -86,24 +86,23 @@ export function OtpPage() {
   const pad = (n: number) => String(n).padStart(2, '0');
 
   return (
-    <div className="view" style={{ background: 'var(--surface)' }}>
+    <div className="view onb-page">
 
       <div className="hdr">
         <NavBack onClick={() => router.back()} />
         <span />
       </div>
 
-      <div className="scroll" style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <div style={{ width: '100%', textAlign: 'start' }}>
+      <div className="scroll auth-body is-centered">
+        <div className="otp-head">
           <div className="titr">{t('otp.title')}</div>
-          <p className="sub" style={{ margin: '12px 0 0' }}>
+          <p className="sub otp-sub">
             {t('otp.subtitle', { phone: toPersianDigits(phone || '۰۹۱۲۳۴۵۶۷۸۹') })}
           </p>
         </div>
 
         <button
-          className="btn-soft"
-          style={{ width: 'auto', padding: '0 14px', margin: '16px 0 30px', display: 'flex', alignItems: 'center', gap: 6 }}
+          className="btn-soft otp-edit"
           onClick={() => router.back()}
         >
           <Icon name="pencil" size={15} />
@@ -111,7 +110,7 @@ export function OtpPage() {
         </button>
 
         {/* OTP inputs — LTR so digit order is left-to-right */}
-        <div dir="ltr" style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+        <div dir="ltr" className="otp-row">
           {digits.map((d, i) => (
             <input
               key={i}
@@ -127,14 +126,14 @@ export function OtpPage() {
         </div>
 
         {verifyOtp.isError && (
-          <p className="sub" style={{ color: 'var(--danger)', marginTop: 18 }}>
+          <p className="sub otp-error">
             {t(`errors.${authErrorKey(verifyOtp.error)}`)}
           </p>
         )}
 
-        <div className="sub" style={{ marginTop: 26, display: 'flex', alignItems: 'center', gap: 6 }}>
+        <div className="sub otp-resend">
           {canResend ? (
-            <b style={{ color: 'var(--brand)', cursor: 'pointer' }} onClick={handleResend}>
+            <b className="otp-resend-b" onClick={handleResend}>
               {t('otp.resend')}
             </b>
           ) : (
@@ -145,7 +144,7 @@ export function OtpPage() {
         </div>
       </div>
 
-      <div style={{ padding: '14px 16px 8px' }}>
+      <div className="onb-actions">
         <button className="btn btn-primary" disabled={!isComplete || verifyOtp.isPending} onClick={handleVerify}>
           {verifyOtp.isPending ? t('otp.verifying') : t('otp.submit')}
         </button>

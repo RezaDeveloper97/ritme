@@ -1,5 +1,7 @@
 'use client';
 
+import clsx from 'clsx';
+
 import { useLocale, useTranslations } from 'next-intl';
 
 import { type AppNotification, useNotifications } from '@/entities/notification';
@@ -37,31 +39,16 @@ function NotificationRow({
           border: item.isRead ? '1px solid var(--line)' : 'none',
         }}
       />
-      <span style={{ flex: 1, minWidth: 0, textAlign: 'start' }}>
-        <span
-          style={{
-            display: 'block',
-            fontSize: 14,
-            fontWeight: item.isRead ? 600 : 800,
-            color: 'var(--ink)',
-          }}
-        >
+      <span className="notif-body">
+        <span className={clsx('notif-row-t', item.isRead && 'is-read')}>
           {item.title}
         </span>
         {item.body ? (
-          <span
-            style={{
-              display: 'block',
-              fontSize: 13,
-              lineHeight: 1.7,
-              color: 'var(--muted)',
-              marginTop: 3,
-            }}
-          >
+          <span className="notif-row-b">
             {item.body}
           </span>
         ) : null}
-        <span style={{ display: 'block', fontSize: 11, color: 'var(--muted)', marginTop: 6 }}>
+        <span className="notif-row-time">
           {timeLabel}
         </span>
       </span>
@@ -93,7 +80,7 @@ function NotificationRow({
 
 // Hairline between rows, inset past the unread dot (logical start — RTL-safe).
 function Divider() {
-  return <div style={{ height: 1, background: 'var(--line)', marginInlineStart: 35 }} />;
+  return <div className="notif-divider" />;
 }
 
 export function NotificationsPage() {
@@ -134,11 +121,11 @@ export function NotificationsPage() {
   };
 
   return (
-    <div className="view" style={{ background: 'var(--page)' }}>
+    <div className="view prof-page">
       <div className="hdr">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <div className="notif-hdr-left">
           <NavBack onClick={() => router.back()} label={t('back')} />
-          <span style={{ fontSize: 17, fontWeight: 800, color: 'var(--ink)' }}>
+          <span className="notif-title">
             {t('title')}
           </span>
         </div>
@@ -167,15 +154,12 @@ export function NotificationsPage() {
         ) : null}
       </div>
 
-      <div className="scroll" style={{ paddingBottom: 24 }}>
+      <div className="scroll notif-scroll">
         {items.length > 0 ? (
-          <section style={{ padding: '8px 18px 0' }}>
-            <div
-              className="card"
-              style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
-            >
+          <section className="notif-section">
+            <div className="card notif-list">
               {items.map((item, index) => (
-                <div key={item.id} style={{ display: 'contents' }}>
+                <div key={item.id} className="notif-item">
                   {index > 0 ? <Divider /> : null}
                   <NotificationRow
                     item={item}
@@ -187,35 +171,14 @@ export function NotificationsPage() {
             </div>
           </section>
         ) : isPending ? null : (
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              textAlign: 'center',
-              padding: '72px 32px 0',
-              gap: 6,
-            }}
-          >
-            <span
-              style={{
-                width: 64,
-                height: 64,
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'var(--pink-soft)',
-                color: 'var(--brand)',
-                marginBottom: 8,
-              }}
-            >
+          <div className="notif-empty">
+            <span className="notif-empty-icon">
               <Icon name="bell" size={30} />
             </span>
-            <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--ink)' }}>
+            <div className="notif-empty-t">
               {t('empty.title')}
             </div>
-            <p style={{ fontSize: 13, color: 'var(--muted)', margin: 0, lineHeight: 1.8 }}>
+            <p className="notif-empty-b">
               {t('empty.body')}
             </p>
           </div>

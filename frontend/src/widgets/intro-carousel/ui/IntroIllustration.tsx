@@ -27,7 +27,7 @@ export function IntroIllustration({ variant, accentFrom, accentTo, uid }: Props)
       viewBox="0 0 220 176"
       width="100%"
       role="presentation"
-      style={{ display: 'block', maxWidth: 300, height: 'auto' }}
+      className="intro-illus"
     >
       <defs>
         <linearGradient id={grad} x1="0" y1="0" x2="1" y2="1">

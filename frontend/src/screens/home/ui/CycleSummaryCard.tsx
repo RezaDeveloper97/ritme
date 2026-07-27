@@ -33,25 +33,25 @@ export function CycleSummaryCard() {
   const { items, has_history: hasHistory } = section.data;
 
   return (
-    <div style={{ padding: '16px 16px 0' }}>
-      <div style={{ background: 'var(--surface)', borderRadius: 12, padding: '16px 14px' }}>
+    <div className="sec">
+      <div className="csum-card">
         <SectionHead title={section.title ?? t('cycleSummary.title')} />
 
         {/* Figma Frame 41: rows live inside a bordered box */}
-        <div style={{ border: '1px solid var(--line)', borderRadius: 12, padding: '2px 14px' }}>
-          {items.map((item, i) => (
-            <SummaryRow key={item.key} item={item} t={t} last={i === items.length - 1} />
+        <div className="csum-list">
+          {items.map((item) => (
+            <SummaryRow key={item.key} item={item} t={t} />
           ))}
         </div>
 
         {!hasHistory && (
-          <p style={{ margin: '12px 2px 0', fontSize: 11.5, color: 'var(--muted)', textAlign: 'start', lineHeight: 1.7 }}>
+          <p className="csum-note">
             {t('cycleSummary.empty')}
           </p>
         )}
 
-        <div style={{ paddingTop: 14 }}>
-          <Link href="/cycle" className="btn btn-primary" style={{ height: 40, textDecoration: 'none' }}>
+        <div className="csum-cta-wrap">
+          <Link href="/cycle" className="btn btn-primary csum-cta">
             {section.action?.label ?? t('cycleSummary.viewMore')}
           </Link>
         </div>
@@ -63,36 +63,25 @@ export function CycleSummaryCard() {
 function SummaryRow({
   item,
   t,
-  last,
 }: {
   item: CycleSummaryItem;
   t: ReturnType<typeof useTranslations>;
-  last: boolean;
 }) {
   const tone = STATUS_TONE[item.status];
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'space-between',
-        gap: 12,
-        padding: '12px 2px',
-        ...(last ? {} : { borderBottom: '1px solid var(--line)' }),
-      }}
-    >
-      <div style={{ textAlign: 'start', minWidth: 0 }}>
-        <div style={{ fontSize: 14, color: 'var(--muted-2)', fontWeight: 700 }}>{item.label}</div>
+    <div className="csum-row">
+      <div className="csum-row-l">
+        <div className="csum-row-lbl">{item.label}</div>
         {item.hint && (
-          <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 4, lineHeight: 1.6 }}>{item.hint}</div>
+          <div className="csum-row-sub">{item.hint}</div>
         )}
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flex: '0 0 auto' }}>
-        <span style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--ink)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+      <div className="csum-row-r">
+        <span className="csum-row-val">
           {formatValue(item, t)}
         </span>
-        <span style={{ fontSize: 10.5, fontWeight: 700, color: tone.fg, background: tone.bg, borderRadius: 5, padding: '2px 7px', whiteSpace: 'nowrap' }}>
+        <span className="csum-row-tag" style={{ color: tone.fg, background: tone.bg }}>
           {item.status_label}
         </span>
       </div>
@@ -116,10 +105,10 @@ function formatValue(item: CycleSummaryItem, t: ReturnType<typeof useTranslation
 /** Placeholder rows while the summary loads — same height as the real ones. */
 function CycleSummarySkeleton({ title }: { title: string }) {
   return (
-    <div style={{ padding: '16px 16px 0' }}>
-      <div style={{ background: 'var(--surface)', borderRadius: 12, padding: '16px 14px' }}>
+    <div className="sec">
+      <div className="csum-card">
         <SectionHead title={title} />
-        <div aria-hidden style={{ display: 'grid', gap: 10, border: '1px solid var(--line)', borderRadius: 12, padding: 14 }}>
+        <div aria-hidden className="csum-skel">
           {['100%', '96%', '88%'].map(width => (
             <span key={width} className="skeleton-line" style={{ width, height: 20 }} />
           ))}
