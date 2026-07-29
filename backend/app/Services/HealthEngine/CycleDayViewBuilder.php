@@ -97,6 +97,7 @@ class CycleDayViewBuilder
             $openState,
             $loggedDay,
             $loggedClosed,
+            $status->estimatedOvulationDate,
             $locale,
         );
 

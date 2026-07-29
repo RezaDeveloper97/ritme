@@ -32,8 +32,6 @@
     "birthday": "Date of birth",
     "weight": "Weight",
     "height": "Height",
-    "bmi": "Body mass index (BMI)",
-    "bmiValue": "{value} · {category}",
     "days": "{days, plural, one {# day} other {# days}}",
     "kg": "{value} kg",
     "cm": "{value} cm",

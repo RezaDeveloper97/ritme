@@ -59,8 +59,6 @@ import { DayTasks } from '@/widgets/day-tasks';
 import { TodayChallengeCard } from '@/widgets/today-challenge';
 import { WeekSummaryCard } from '@/widgets/week-summary';
 
-import { CycleSummaryCard } from './CycleSummaryCard';
-import { MyCyclesCard } from './MyCyclesCard';
 import { SectionHead } from './SectionHead';
 
 const FA = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
@@ -346,7 +344,7 @@ function DayHighlights({ t, items }: { t: T; items: CycleDayHighlight[] }) {
 
 // ── Next period hero card ──────────────────────────────────────
 function NextPeriodCard({
-  t, pred, highlights, daysUntilNextPeriod, cycleDay, cycleLength, nextPeriodDate, phaseLabel, phaseDesc, cardTitle, fertilityBadge, isToday, selectedDateLabel, showPhaseDetails,
+  t, pred, highlights, daysUntilNextPeriod, cycleDay, cycleLength, nextPeriodDate, phaseLabel, phaseDesc, cardTitle, fertilityBadge, isToday, selectedDateLabel, showPhaseDetails, loading,
 }: {
   t: T;
   pred: CyclePredictions | null;
@@ -365,28 +363,43 @@ function NextPeriodCard({
   isToday: boolean;
   selectedDateLabel: string;
   showPhaseDetails: boolean;
+  /** A tapped day's data is still in flight — blank the values out to dashes. */
+  loading: boolean;
 }) {
   // Expanded by default, but once the user closes it the choice sticks across
   // visits (and re-opening sticks too) — a UI preference, no health data in it.
   const [expanded, setExpanded] = useCookieBoolean('ritme_home_hero_expanded', true);
   const daysValue = daysUntilNextPeriod != null ? t('days', { n: daysUntilNextPeriod }) : t('unavailable');
+  // While the tapped day loads, every datum drops to its null/dash fallback
+  // instead of showing the previous day's numbers as if they were this day's.
+  const shownCycleDay = loading ? null : cycleDay;
+  const shownCycleLength = loading ? null : cycleLength;
   // Ring fill = how far the selected day sits into its own cycle, same reading as
   // the cycle screen's day donut (day X of N) rather than a bare fertility number.
   const ringPct =
-    cycleDay != null && cycleLength
-      ? Math.min(100, Math.max(0, (cycleDay / cycleLength) * 100))
+    shownCycleDay != null && shownCycleLength
+      ? Math.min(100, Math.max(0, (shownCycleDay / shownCycleLength) * 100))
       : 0;
   return (
     // Bottom half of the connected calendar↔info unit — fills the wrapper
     // (no own margin/radius); the wrapper owns the rounding + shadow.
     <div className="home-hero">
+      {/* Fetch-in-flight overlay for a tapped day — indicator only, the values
+          underneath already read as dashes. */}
+      {loading && (
+        <div className="home-hero-busy" aria-hidden>
+          <span className="home-hero-busy-chip">
+            <Icon name="loader" size={20} className="home-hero-busy-icon" />
+          </span>
+        </div>
+      )}
       {/* Which day the info below reflects — updates as the user taps a day. */}
       <div className="home-hero-daybar">
         <span className="home-hero-daychip">
           <Icon name="calendar" size={13} stroke="var(--on-accent)" />
           {isToday ? t('selectedDay.today') : t('selectedDay.date', { date: selectedDateLabel })}
         </span>
-        {fertilityBadge && (
+        {!loading && fertilityBadge && (
           // The badge alone reads as a bare "high/low"; the caption says what the
           // level is *of* — a cycle-timing estimate, not a diagnosis.
           <span className="home-hero-fert-group">
@@ -406,26 +419,33 @@ function NextPeriodCard({
       <div className="home-hero-cols">
         <div className="home-hero-left">
           <div className="home-hero-overline">
-            {pred ? t('nextPeriod.currentPhase', { phase: phaseLabel }) : t('nextPeriod.phase')}
+            {loading
+              ? t('unavailable')
+              : pred
+                ? t('nextPeriod.currentPhase', { phase: phaseLabel })
+                : t('nextPeriod.phase')}
           </div>
-          <div className="home-hero-days">{cardTitle || t('nextPeriod.label')}</div>
-          <DayHighlights t={t} items={highlights} />
+          <div className="home-hero-days">
+            {loading ? t('unavailable') : cardTitle || t('nextPeriod.label')}
+          </div>
+          <DayHighlights t={t} items={loading ? [] : highlights} />
         </div>
 
         {/* Cycle-day ring (ported from the cycle screen): the day number inside
             a progress donut over a frosted core. */}
         <div className="home-hero-right">
-          {/* The sweep angle is the datum here, so it stays inline. */}
+          {/* Only the sweep angle (the datum) crosses inline; the gradient and
+              ring geometry live in the class. */}
           <div
             className="home-ring"
-            style={{ background: `conic-gradient(var(--on-accent) ${ringPct * 3.6}deg, rgba(255,255,255,.26) 0deg)` }}
+            style={{ '--ring-sweep': `${ringPct * 3.6}deg` } as React.CSSProperties}
           >
             <div className="home-ring-core">
               <span className="home-ring-day">
-                {cycleDay != null ? t('cycleDay.value', { n: cycleDay }) : t('unavailable')}
+                {shownCycleDay != null ? t('cycleDay.value', { n: shownCycleDay }) : t('unavailable')}
               </span>
               <span className="home-ring-of">
-                {cycleLength != null ? t('cycleDay.ofN', { n: cycleLength }) : t('cycleDay.label')}
+                {shownCycleLength != null ? t('cycleDay.ofN', { n: shownCycleLength }) : t('cycleDay.label')}
               </span>
             </div>
           </div>
@@ -434,7 +454,7 @@ function NextPeriodCard({
 
       {phaseDesc && (
           <div className="home-phase-desc">
-            {phaseDesc}
+            {loading ? t('unavailable') : phaseDesc}
           </div>
       )}
 
@@ -954,6 +974,7 @@ export function HomePage() {
               isToday={isToday}
               selectedDateLabel={selectedDateLabel}
               showPhaseDetails={isToday && Boolean(todayData?.cycleView?.subphase)}
+              loading={infoLoading}
             />
           </div>
         </div>
@@ -1019,9 +1040,7 @@ export function HomePage() {
         <WeekSummaryCard />
         <TodayStatus t={t} pred={pred} />
         <Articles t={t} />
-        <MyCyclesCard />
         <BannerSlideshow position="home_bottom" />
-        <CycleSummaryCard />
         <div className="page-tail" />
       </div>
 

@@ -3,7 +3,6 @@
 import { useTranslations } from 'next-intl';
 
 import { useCycleSummarySection, type CycleSummaryItem } from '@/entities/cycle';
-import { Link } from '@/shared/i18n';
 
 import { SectionHead } from './SectionHead';
 
@@ -24,7 +23,7 @@ const STATUS_TONE: Record<CycleSummaryItem['status'], { fg: string; bg: string }
  * logged. Statuses are descriptive, never diagnostic (§11).
  */
 export function CycleSummaryCard() {
-  const t = useTranslations('home');
+  const t = useTranslations('cycle');
   const { data: section, isLoading } = useCycleSummarySection();
 
   if (isLoading) return <CycleSummarySkeleton title={t('cycleSummary.title')} />;
@@ -49,12 +48,6 @@ export function CycleSummaryCard() {
             {t('cycleSummary.empty')}
           </p>
         )}
-
-        <div className="csum-cta-wrap">
-          <Link href="/cycle" className="btn btn-primary csum-cta">
-            {section.action?.label ?? t('cycleSummary.viewMore')}
-          </Link>
-        </div>
       </div>
     </div>
   );
@@ -109,9 +102,9 @@ function CycleSummarySkeleton({ title }: { title: string }) {
       <div className="csum-card">
         <SectionHead title={title} />
         <div aria-hidden className="csum-skel">
-          {['100%', '96%', '88%'].map(width => (
-            <span key={width} className="skeleton-line" style={{ width, height: 20 }} />
-          ))}
+          <span className="skeleton-line csum-skel-a" />
+          <span className="skeleton-line csum-skel-b" />
+          <span className="skeleton-line csum-skel-c" />
         </div>
       </div>
     </div>

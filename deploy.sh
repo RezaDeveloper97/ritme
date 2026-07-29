@@ -78,6 +78,11 @@ echo "==> Cleaning up staged image files..."
 rm -f "$LOCAL_TAR"
 ssh "${SSH_OPTS[@]}" "${SERVER}" "rm -f '${REMOTE_TAR}'" || true
 
+# Each docker load leaves the previous image untagged on disk; without this the
+# 18 GB root disk fills after a few deploys and the backend dies with ENOSPC.
+echo "==> Pruning old (dangling) images on the server..."
+ssh "${SSH_OPTS[@]}" "${SERVER}" "docker image prune -f" || true
+
 echo "==> Verifying..."
 sleep 5
 ssh "${SSH_OPTS[@]}" "${SERVER}" "cd ${REMOTE_DIR} && docker compose ps --format '{{.Service}}: {{.Status}}'"

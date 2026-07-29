@@ -143,7 +143,6 @@ export function ProfilePage() {
 
   const user = profile;
   const health = profile?.health;
-  const bmi = profile?.bmi;
 
   // These fallbacks must depend ONLY on the fetched value — never on loading
   // state. `useUserProfile` is gated on `isAuthenticated()` (which reads
@@ -288,41 +287,11 @@ export function ProfilePage() {
                 label={t('health.height')}
                 trailing={<StatValue>{measureOrEmpty('cm', health?.height)}</StatValue>}
               />
-              {/* BMI is server-computed from weight+height; the row is present
-                  only once both are set (§11 — shown, never logged). */}
-              {bmi ? (
-                <>
-                  <Divider />
-                  <Row
-                    icon="chart"
-                    label={t('health.bmi')}
-                    trailing={
-                      <StatValue>
-                        {t('health.bmiValue', {
-                          value: localizeNum(bmi.value, loc),
-                          category: bmi.categoryLabel,
-                        })}
-                      </StatValue>
-                    }
-                  />
-                </>
-              ) : null}
+              {/* BMI and its supportive message now live on the analysis
+                  screen, next to the rest of the user's own numbers. */}
             </>
           )}
         </Group>
-
-        {/* Supportive, band-specific BMI message. The backend owns this copy
-            (admin-editable) and returns it already localized; we only render
-            it. Not medical advice (§11). */}
-        {bmi ? (
-          <section className="prof-group is-mid">
-            <div className="card prof-note-card">
-              <p className="prof-note">
-                {bmi.message}
-              </p>
-            </div>
-          </section>
-        ) : null}
 
         {/* Account */}
         <Group title={t('sections.account')}>

@@ -9,7 +9,6 @@
   "updating": "Updating your cycle…",
   "unavailable": "—",
   "dateRange": "{from} – {to}",
-
   "phaseLabel": {
     "period": "Period",
     "follicular": "Follicular",
@@ -17,7 +16,6 @@
     "ovulation": "Ovulation",
     "luteal": "Luteal"
   },
-
   "phaseDescription": {
     "period": "Menstrual days — the body sheds the uterine lining and energy is often lower.",
     "follicular": "After the period the body prepares for ovulation and energy gradually rises.",
@@ -25,7 +23,6 @@
     "ovulation": "The estimated ovulation day — the highest chance of conception.",
     "luteal": "After ovulation until the next period — mood swings or fatigue are common."
   },
-
   "nextPeriod": {
     "label": "Until next period",
     "fertility": "Fertility",
@@ -37,26 +34,21 @@
     "showMore": "Show more",
     "close": "Close"
   },
-
   "selectedDay": {
     "today": "Today's info",
     "date": "Info for {date}"
   },
-
   "fertility": {
     "caption": "Chance of pregnancy"
   },
-
   "phases": {
     "window": "Fertility window",
     "ovulation": "Ovulation",
     "nextPeriod": "Next period in"
   },
-
   "pms": {
     "label": "PMS window"
   },
-
   "dayStatus": {
     "period": "Period",
     "fertile": "Fertility window",
@@ -64,7 +56,6 @@
     "pms": "PMS window",
     "period_tomorrow": "Period tomorrow"
   },
-
   "recommendations": {
     "title": "Today's recommendations",
     "fallbackTitle": "Tip",
@@ -88,7 +79,6 @@
     "omega": "Omega-3 intake",
     "omegaDesc": "Eat omega-rich foods today"
   },
-
   "tasks": {
     "title": "Today's tasks",
     "progress": "Today's progress",
@@ -98,26 +88,22 @@
     "walk": "30 minutes of walking",
     "percent": "{n}%"
   },
-
   "challenge": {
     "title": "Today's challenge",
     "item": "Log body temperature",
     "desc": "Great week so far! Keep it up."
   },
-
   "reminder": {
     "doctor": "Doctor reminder",
     "medicine": "Medication reminder",
     "doctorName": "Dr. Smith",
     "specialty": "OB/GYN specialist"
   },
-
   "smartTip": {
     "title": "Smart tip",
     "body": "In the luteal phase, your body needs extra care. Don't forget whole grains and vegetables.",
     "quote": "Every day is a new opportunity to take care of yourself."
   },
-
   "weekSummary": {
     "title": "Week summary",
     "subtitle": "Average of the last 7 days",
@@ -146,7 +132,6 @@
     "loading": "Working out this week's summary…",
     "error": "This week's summary isn't available right now."
   },
-
   "todayStatus": {
     "title": "Today's status",
     "viewAll": "View all",
@@ -158,39 +143,15 @@
     "glucose": "Blood sugar",
     "hr": "Heart rate"
   },
-
   "articles": {
     "title": "Based on your current cycle",
     "readMore": "View more",
     "article1": "Blood clots during period — what do they mean?",
     "min": "{n} min"
   },
-
   "cycles": {
-    "title": "My cycles",
-    "current": "Current cycle",
-    "dayN": "Day {n, number}",
-    "startedOn": "Started on",
-    "addPrevious": "Add previous cycles",
-    "ongoing": "Ongoing",
-    "periodDays": "{n, plural, one{# day of period} other{# days of period}}",
-    "periodUnknown": "Period length not recorded",
-    "avgCycle": "Average cycle",
-    "avgPeriod": "Average period",
-    "previousTitle": "Previous cycles",
-    "recorded": "{n, plural, one{# recorded cycle} other{# recorded cycles}}",
-    "showAll": "Show all ({n, number})",
-    "showLess": "Show less",
-    "none": "No previous cycles yet. Add your past periods to see how long your cycles run."
+    "dayN": "Day {n, number}"
   },
-
-  "cycleSummary": {
-    "title": "Cycle summary",
-    "viewMore": "View more",
-    "dayRange": "{from, number} to {to, number} days",
-    "empty": "Once you have one complete cycle on record, this summary fills in with your own numbers."
-  },
-
   "week": {
     "sat": "Sat",
     "sun": "Sun",
@@ -202,32 +163,26 @@
     "fullMonth": "Full month",
     "close": "Close"
   },
-
   "legend": {
     "period": "Period",
     "fertile": "Fertile window",
     "ovulation": "Ovulation",
     "pms": "PMS"
   },
-
   "recalculate": "Recalculate",
   "phaseDetailsCta": "Read more about this phase",
-
   "cycleDay": {
     "label": "Cycle day",
     "value": "{n, number}",
     "ofN": "of {n, number}"
   },
-
   "timeline": {
     "title": "Upcoming events"
   },
-
   "cycleFacts": {
     "length": "Cycle length",
     "ovulationDay": "Ovulation day"
   },
-
   "values": {
     "title": "Cycle length",
     "logged": "Logged cycle length",

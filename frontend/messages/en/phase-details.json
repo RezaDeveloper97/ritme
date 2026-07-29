@@ -1,6 +1,7 @@
 {
   "title": "Phase details",
   "subtitle": "What matters in this phase of your cycle",
+  "currentPhase": "Your current phase",
   "loading": "Loading…",
   "fallback": "There is no content available for this phase right now.",
   "sections": {

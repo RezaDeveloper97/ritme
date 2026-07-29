@@ -652,12 +652,30 @@ body {
 /* Hero (next-period) card — a red material card: a light glow falling from the
    top edge over a deep→soft brand gradient, with frosted white chips on top. */
 .home-hero {
+  position: relative;
   background:
     radial-gradient(130% 90% at 50% -25%, rgba(255, 255, 255, .28), rgba(255, 255, 255, 0) 58%),
     linear-gradient(150deg, var(--rose) 0%, var(--brand) 48%, var(--blush) 100%);
   color: var(--on-accent);
   padding: 14px 14px 10px;
 }
+/* Fetch-in-flight overlay: a centered frosted chip with a spinner. It doesn't
+   swallow taps — the dimmed card underneath stays interactive. */
+.home-hero-busy {
+  position: absolute; inset: 0; z-index: 1;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none;
+}
+.home-hero-busy-chip {
+  display: flex; align-items: center; justify-content: center;
+  width: 42px; height: 42px; border-radius: 50%;
+  background: rgba(255, 255, 255, .22);
+  border: 1px solid rgba(255, 255, 255, .38);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 10px 24px -10px rgba(0, 0, 0, .35);
+}
+.home-hero-busy-icon { animation: spin 1s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .home-hero-busy-icon { animation: none; } }
 .home-hero-daybar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-bottom: 12px; }
 /* Frosted date chip — same material family as the highlight pills below. */
 .home-hero-daychip {
@@ -684,8 +702,16 @@ body {
 .home-hero-days     { font-size: 22px; font-weight: 800; line-height: 1.55; margin-top: 4px; text-wrap: balance; }
 .home-hero-right    { flex-shrink: 0; }
 
-/* Cycle-day ring — white sweep over a frosted core */
-.home-ring      { position: relative; width: 92px; height: 92px; flex: 0 0 92px; border-radius: 50%; box-shadow: 0 12px 26px -12px rgba(0, 0, 0, .38); }
+/* Cycle-day ring — the white sweep is a true annulus (masked pseudo-element),
+   so a complete cycle reads as a full ring, never a solid white disc. The
+   sweep angle arrives as `--ring-sweep` from data. */
+.home-ring { position: relative; width: 92px; height: 92px; flex: 0 0 92px; border-radius: 50%; }
+.home-ring::before {
+  content: ""; position: absolute; inset: 0; border-radius: 50%;
+  background: conic-gradient(var(--on-accent) var(--ring-sweep, 0deg), rgba(255, 255, 255, .26) 0deg);
+  -webkit-mask: radial-gradient(closest-side, transparent calc(100% - 7px), black calc(100% - 6px));
+          mask: radial-gradient(closest-side, transparent calc(100% - 7px), black calc(100% - 6px));
+}
 .home-ring-core {
   position: absolute; inset: 7px; border-radius: 50%;
   background: rgba(255, 255, 255, .14);
@@ -832,6 +858,7 @@ body {
 .cyc-scroll  { display: flex; flex-direction: column; }
 
 .cyc-hdr     { display: flex; align-items: center; justify-content: space-between; padding: 6px 18px 10px; }
+.cyc-hdr.is-solo { justify-content: center; }
 .cyc-hdr-btn { background: rgba(255, 255, 255, .6); }
 .cyc-hdr-btn.is-brand { color: var(--brand); }
 .cyc-brand   { text-align: center; }
@@ -994,17 +1021,74 @@ body {
 .dls-empty-sub  { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
 .dls-empty-dot  { width: 42px; height: 42px; flex-shrink: 0; }
 
-/* Phase-details screen */
-.pd-page     { background: var(--page); }
-.pd-title    { flex: 1; font-size: 16px; font-weight: 800; color: var(--ink); text-align: start; }
-.pd-scroll   { padding: 4px 18px 24px; }
-.pd-sub      { font-size: 12px; color: var(--muted); margin: 6px 2px 0; text-align: start; }
-.pd-loading  { padding: 48px 0; text-align: center; color: var(--muted); font-size: 13px; }
-.pd-fallback { padding: 22px; margin-top: 14px; text-align: center; }
-.pd-fallback-text { font-size: 13.5px; line-height: 2; color: var(--muted); margin: 0; }
-.pd-section  { padding: 18px; margin-top: 14px; }
-.pd-h2       { font-size: 14.5px; font-weight: 800; color: var(--ink); margin: 0; text-align: start; }
-.pd-body     { font-size: 13.5px; line-height: 2; color: var(--muted); margin: 8px 0 0; text-align: start; white-space: pre-line; }
+/* Phase-details screen (/cycle/phase) */
+.pd-page       { background: var(--page); }
+.pd-grad       { position: absolute; top: 0; inset-inline-start: 0; inset-inline-end: 0; height: 320px; }
+.pd-hdr        { position: relative; }
+.pd-title      { flex: 1; font-size: 16px; font-weight: 800; color: var(--ink); text-align: center; }
+.pd-hdr-spacer { width: 40px; flex: 0 0 auto; }
+.pd-scroll     { position: relative; padding: 4px 18px 8px; }
+
+/* Hero — saturated brand card naming the phase, kin to the home info card */
+.pd-hero {
+  position: relative; overflow: hidden;
+  margin-top: 8px;
+  border-radius: 20px;
+  padding: 18px;
+  background: linear-gradient(135deg, var(--brand) 0%, var(--pink-vivid) 60%, var(--pink) 100%);
+  color: var(--on-accent);
+  box-shadow: 0 18px 34px -20px rgba(233, 30, 99, .6);
+  text-align: start;
+}
+.pd-hero-deco     { position: absolute; border-radius: 50%; background: rgba(255, 255, 255, .13); }
+.pd-hero-deco-a   { width: 132px; height: 132px; top: -58px; inset-inline-end: -34px; }
+.pd-hero-deco-b   { width: 72px; height: 72px; bottom: -30px; inset-inline-start: 18%; }
+.pd-hero-row      { position: relative; display: flex; align-items: center; gap: 12px; }
+.pd-hero-b        { flex: 1; min-width: 0; }
+.pd-hero-overline { font-size: 11px; font-weight: 700; opacity: .85; }
+.pd-hero-name     { font-size: 22px; font-weight: 900; margin-top: 4px; }
+.pd-hero-badge {
+  width: 44px; height: 44px; border-radius: 50%; flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255, 255, 255, .18);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .25);
+}
+.pd-hero-sub { position: relative; font-size: 12px; line-height: 1.9; margin: 10px 0 0; opacity: .92; }
+
+/* Section cards — colored icon badge + title, prose below */
+.pd-section  { padding: 16px; margin-top: 12px; }
+.pd-sec-head { display: flex; align-items: center; gap: 10px; }
+.pd-badge {
+  width: 38px; height: 38px; border-radius: 13px; flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: center;
+}
+.pd-badge.is-blue   { color: var(--blue);        background: var(--blue-soft); }
+.pd-badge.is-teal   { color: var(--teal);        background: var(--teal-soft); }
+.pd-badge.is-pink   { color: var(--brand);       background: var(--pink-bg); }
+.pd-badge.is-amber  { color: var(--amber-deep);  background: var(--amber-soft); }
+.pd-badge.is-rose   { color: var(--rose);        background: var(--pink-bg); }
+.pd-badge.is-green  { color: var(--green);       background: var(--green-soft); }
+.pd-badge.is-orange { color: var(--orange);      background: var(--orange-soft); }
+.pd-badge.is-violet { color: var(--violet);      background: var(--violet-soft); }
+.pd-badge.is-indigo { color: var(--indigo-deep); background: var(--indigo-soft); }
+.pd-h2   { font-size: 14.5px; font-weight: 800; color: var(--ink); margin: 0; text-align: start; flex: 1; min-width: 0; }
+.pd-body { font-size: 13.5px; line-height: 2; color: var(--muted); margin: 10px 2px 0; text-align: start; white-space: pre-line; }
+
+/* Loading skeleton — same rhythm as the loaded page */
+.pd-skel               { display: grid; gap: 12px; margin-top: 8px; }
+.pd-skel-hero          { height: 116px; border-radius: 20px; }
+.pd-skel-card          { height: 96px; border-radius: 16px; }
+.pd-skel-card.is-short { height: 72px; }
+
+/* Fallback — calm centered empty state */
+.pd-empty { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 64px 24px 24px; }
+.pd-empty-icon {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: var(--surface); color: var(--brand);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 10px 30px rgba(17, 32, 47, .08);
+}
+.pd-empty-text { font-size: 13.5px; line-height: 2; color: var(--muted); margin: 0; text-align: center; max-width: 260px; }
 
 /* ══════════════════════════════════════════════════════════════════
    Pregnancy screens
@@ -1495,6 +1579,17 @@ body {
 .csum-row-r   { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
 .csum-row-val { font-size: 13.5px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
 .csum-skel    { display: grid; gap: 10px; border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+/* Analysis: BMI card */
+.bmi-row        { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+.bmi-val        { font-size: 26px; font-weight: 900; color: var(--ink); font-variant-numeric: tabular-nums; }
+.bmi-cat        { font-size: 11px; font-weight: 700; border-radius: 6px; padding: 3px 9px; white-space: nowrap; }
+.bmi-cat.is-ok  { color: var(--green-deep); background: var(--green-soft); }
+.bmi-cat.is-warn{ color: var(--amber-deep); background: var(--amber-soft); }
+.bmi-note       { font-size: 13.5px; line-height: 2; color: var(--muted); margin: 10px 0 0; text-align: start; }
+
+.csum-skel-a  { height: 20px; }
+.csum-skel-b  { height: 20px; width: 96%; }
+.csum-skel-c  { height: 20px; width: 88%; }
 .csum-row     { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 12px 2px; }
 .csum-row + .csum-row { border-top: 1px solid var(--line); }
 .csum-row-r   { flex: 0 0 auto; gap: 4px; }

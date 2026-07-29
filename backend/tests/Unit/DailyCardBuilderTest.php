@@ -39,6 +39,7 @@ class DailyCardBuilderTest extends TestCase
             $o['open'] ?? OpenPeriodState::none(),
             $o['loggedDay'] ?? null,
             $o['loggedClosed'] ?? false,
+            isset($o['ovulation']) ? Carbon::parse($o['ovulation']) : null,
             $o['locale'] ?? 'en',
         );
     }
@@ -151,14 +152,30 @@ class DailyCardBuilderTest extends TestCase
         $this->assertSame(FertilityLevel::VERY_HIGH, $card->fertilityLevel);
     }
 
-    public function test_plain_cycle_day_is_the_default(): void
+    public function test_plain_day_counts_down_to_the_fertile_window(): void
     {
+        // A gray in-between day headlines its next event (fertile window opens
+        // ovulation − 5 = 2026-07-09) instead of "day X of your cycle".
         $card = $this->card([
             'selected' => '2026-07-08', 'today' => '2026-07-08', 'cycleDay' => 8,
             'ovulation' => '2026-07-14', 'nextStart' => '2026-07-28',
         ]);
 
-        $this->assertSame('Day 8 of your cycle', $card->title);
+        $this->assertSame('1 day(s) to your fertile window', $card->title);
+        $this->assertSame(DataStatus::PREDICTED, $card->dataStatus);
+    }
+
+    public function test_plain_day_past_the_window_counts_down_to_the_period(): void
+    {
+        // Past ovulation with the period still >7 days out: the next event is
+        // the period, so the headline counts down to it.
+        $card = $this->card([
+            'selected' => '2026-07-18', 'today' => '2026-07-18', 'cycleDay' => 18,
+            'ovulation' => '2026-07-14', 'nextStart' => '2026-07-28',
+            'subphase' => CycleSubphase::EARLY_LUTEAL,
+        ]);
+
+        $this->assertSame('10 day(s) to your next period', $card->title);
         $this->assertSame(DataStatus::PREDICTED, $card->dataStatus);
     }
 

@@ -49,6 +49,7 @@ class DailyCardBuilder
         OpenPeriodState $openPeriod,
         ?int $loggedPeriodDay,
         bool $loggedPeriodClosed,
+        ?Carbon $estimatedOvulation = null,
         string $locale = 'en',
     ): DailyCard {
         // Set once for the whole card build so every action()/t()/num() below resolves
@@ -92,7 +93,7 @@ class DailyCardBuilder
         //    (driven by the sub-phase, so the title, fertility level and phase always
         //    agree — the ovulation *date* used elsewhere can be off by a day), or a
         //    plain cycle day.
-        return $this->predictedDay($cycleDay, $subphase, $daysUntilPeriod, $isFuture, $isToday, $locale);
+        return $this->predictedDay($cycleDay, $subphase, $daysUntilPeriod, $isFuture, $isToday, $sel, $estimatedOvulation, $locale);
     }
 
     private function actualPeriodDay(int $cycleDay, int $periodDay, string $locale): DailyCard
@@ -232,8 +233,17 @@ class DailyCardBuilder
         int $daysUntilPeriod,
         bool $isFuture,
         bool $isToday,
+        Carbon $selectedDate,
+        ?Carbon $estimatedOvulation,
         string $locale,
     ): DailyCard {
+        // A plain day should headline its *next* event, not "day X of your cycle":
+        // days until the fertile window opens (ovulation − 5, matching the window
+        // shown everywhere else), used when the window is still ahead of this day.
+        $daysToFertile = $estimatedOvulation !== null
+            ? (int) $selectedDate->diffInDays($estimatedOvulation->copy()->subDays(5)->startOfDay(), false)
+            : null;
+
         [$title, $subtitle] = match (true) {
             $daysUntilPeriod >= 3 && $daysUntilPeriod <= 7 => [
                 $this->t($locale, 'حدود '.$this->num($daysUntilPeriod, $locale).' روز تا پریود بعدی', 'About '.$daysUntilPeriod.' days to your next period'),
@@ -262,6 +272,17 @@ class DailyCardBuilder
             $subphase === CycleSubphase::POST_OVULATION => [
                 $this->t($locale, 'احتمالاً از پنجره باروری عبور کرده‌ای', "You've likely passed your fertile window"),
                 $this->fertileNote($locale),
+            ],
+            // Plain in-between days headline the countdown to their next event —
+            // the fertile window if it's still ahead, otherwise the next period —
+            // instead of the uninformative "day X of your cycle".
+            $daysToFertile !== null && $daysToFertile > 0 => [
+                $this->t($locale, $this->num($daysToFertile, $locale).' روز تا پنجره باروری', $daysToFertile.' day(s) to your fertile window'),
+                $this->t($locale, 'بر اساس پیش‌بینی چرخه، پنجره باروری از حدود '.$this->num($daysToFertile, $locale).' روز دیگر شروع می‌شود.', 'Based on your cycle prediction, your fertile window starts in about '.$daysToFertile.' day(s).'),
+            ],
+            $daysUntilPeriod > 7 => [
+                $this->t($locale, $this->num($daysUntilPeriod, $locale).' روز تا پریود بعدی', $daysUntilPeriod.' day(s) to your next period'),
+                $this->t($locale, 'بر اساس پیش‌بینی، پریود بعدی حدود '.$this->num($daysUntilPeriod, $locale).' روز دیگر شروع می‌شود.', 'Based on the prediction, your next period starts in about '.$daysUntilPeriod.' day(s).'),
             ],
             $isFuture && $daysUntilPeriod <= 0 => [
                 $this->t($locale, 'روز '.$this->num($cycleDay, $locale).' چرخه پیش‌بینی‌شده', 'Day '.$cycleDay.' of the predicted cycle'),

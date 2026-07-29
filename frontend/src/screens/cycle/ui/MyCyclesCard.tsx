@@ -26,7 +26,7 @@ const COLLAPSED_COUNT = 3;
  * dash rather than a guess, and the list stays empty until real periods exist.
  */
 export function MyCyclesCard() {
-  const t = useTranslations('home');
+  const t = useTranslations('cycle');
   const loc = useLocale() as Locale;
   const { data: section, isLoading } = useMyCyclesSection();
   const [expanded, setExpanded] = useState(false);
