@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 
+import { articleKeys } from '@/entities/article';
 import { cycleKeys } from '@/entities/cycle';
 import { messageKeys } from '@/entities/message';
 import { userKeys } from '@/entities/user';
@@ -60,6 +61,9 @@ function useInvalidateCycle() {
     // The logged-period list changed too — without this the calendar keeps a
     // stale history and re-offers "start period" right after one was logged.
     void queryClient.invalidateQueries({ queryKey: periodHistoryKey });
+    // Home articles are chosen by the phase the user is in, which the new
+    // period just moved — drop them so the row matches the fresh cycle.
+    void queryClient.invalidateQueries({ queryKey: articleKeys.all });
   };
 }
 

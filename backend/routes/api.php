@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\ArticleController;
 use App\Http\Controllers\Api\V1\BannerController;
 use App\Http\Controllers\Api\V1\CycleCalculationController;
 use App\Http\Controllers\Api\V1\DailyHealthLogController;
@@ -44,6 +45,10 @@ Route::prefix('v1')->group(function () {
 
         // Home-page banners / promotions (grouped by slot)
         Route::get('/banners', [BannerController::class, 'index']);
+
+        // Educational article library (admin-published): list + single read
+        Route::get('/articles', [ArticleController::class, 'index']);
+        Route::get('/articles/{slug}', [ArticleController::class, 'show']);
 
         // Profile routes
         Route::get('/profile', [ProfileController::class, 'show']);

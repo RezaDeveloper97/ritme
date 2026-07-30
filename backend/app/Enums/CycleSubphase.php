@@ -106,6 +106,51 @@ enum CycleSubphase: string
     }
 
     /**
+     * The canonical sub-phase this one is content-equivalent to.
+     *
+     * The v1.1 additions (task.md §14) are alternative spellings or in-between
+     * states of phases that already exist, so content, tags and lookups all
+     * collapse onto the {@see contentBacked()} key instead of being duplicated.
+     */
+    public function canonical(): self
+    {
+        return match ($this) {
+            self::MENSTRUAL, self::MENSTRUAL_POSSIBLE => self::MENSTRUATION,
+            self::LATE_FOLLICULAR_TRANSITION => self::MID_FOLLICULAR,
+            self::UNKNOWN => self::PERIOD_EXPECTED,
+            default => $this,
+        };
+    }
+
+    /**
+     * The single source of truth for the phase list offered across the admin
+     * panel — the "محتوای فازهای چرخه" page and every content form that tags a
+     * row with a phase read from here, so adding or removing a case below
+     * updates all of them at once.
+     *
+     * Only canonical phases are offered: the aliased ones share another phase's
+     * label ("قاعدگی" twice) and its content, so picking between them would be
+     * a coin flip with no effect.
+     *
+     * @return array<int, array{value: string, label: string}>
+     */
+    public static function options(string $locale = 'fa'): array
+    {
+        return array_map(
+            fn (self $case): array => ['value' => $case->value, 'label' => $case->label($locale)],
+            self::contentBacked(),
+        );
+    }
+
+    /**
+     * Human label for a stored phase key, or null when the key is unknown.
+     */
+    public static function labelFor(?string $value, string $locale = 'fa'): ?string
+    {
+        return $value === null ? null : self::tryFrom($value)?->label($locale);
+    }
+
+    /**
      * The sub-phases that have their own seeded educational content. The v1.1
      * additions (menstrual, menstrual_possible, late_follicular_transition,
      * unknown) are aliased onto these by the phase-content endpoint.

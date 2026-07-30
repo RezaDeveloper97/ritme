@@ -3,6 +3,7 @@ import type { AbstractIntlMessages } from 'next-intl';
 import type { Locale } from './routing';
 
 import enAccount from '../../../messages/en/account.json';
+import enArticles from '../../../messages/en/articles.json';
 import enAuth from '../../../messages/en/auth.json';
 import enBanners from '../../../messages/en/banners.json';
 import enCalendar from '../../../messages/en/calendar.json';
@@ -24,6 +25,7 @@ import enProfileInfo from '../../../messages/en/profile-info.json';
 import enReminders from '../../../messages/en/reminders.json';
 import enWelcome from '../../../messages/en/welcome.json';
 import faAccount from '../../../messages/fa/account.json';
+import faArticles from '../../../messages/fa/articles.json';
 import faAuth from '../../../messages/fa/auth.json';
 import faBanners from '../../../messages/fa/banners.json';
 import faCalendar from '../../../messages/fa/calendar.json';
@@ -68,6 +70,7 @@ const messages = {
     log: faLog,
     logPeriod: faLogPeriod,
     welcome: faWelcome,
+    articles: faArticles,
   },
   en: {
     common: enCommon,
@@ -91,6 +94,7 @@ const messages = {
     log: enLog,
     logPeriod: enLogPeriod,
     welcome: enWelcome,
+    articles: enArticles,
   },
 } as const;
 

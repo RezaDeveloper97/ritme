@@ -5,7 +5,8 @@
 @section('content')
     <div class="card">
         <div class="card-head">
-            <h2>فازهای چرخه (۱۲ فاز)</h2>
+            {{-- Count is derived, not hard-coded: the list follows CycleSubphase::options(). --}}
+            <h2>فازهای چرخه ({{ count($phases) }} فاز)</h2>
             <div class="spacer"></div>
             <span class="muted">سبز = محتوا دارد</span>
         </div>
@@ -20,7 +21,7 @@
                         </a>
                     @else
                         <a class="btn" style="flex-direction:column;padding:14px 8px"
-                           href="{{ route('admin.phase-contents.create', ['phase' => $p['key']]) }}">
+                           href="{{ route('admin.phase-contents.create', ['phase' => $p['value']]) }}">
                             <strong style="font-size:14px">{{ $p['label'] }}</strong>
                             <span style="font-size:11px" class="muted">افزودن</span>
                         </a>

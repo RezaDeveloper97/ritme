@@ -43,6 +43,8 @@
     "pms": "PMS"
   },
   "day": {
+    "actionsLabel": "Actions",
+    "logLabel": "This day's log",
     "cycleDay": "Cycle day {n}",
     "chanceLabel": "Chance of pregnancy",
     "logMood": "Log this day"

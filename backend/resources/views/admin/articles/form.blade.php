@@ -10,7 +10,8 @@
 
     <div class="card">
         <div class="card-body">
-            <form method="POST" action="{{ $isEdit ? route('admin.articles.update', $article) : route('admin.articles.store') }}">
+            <form method="POST" enctype="multipart/form-data"
+                  action="{{ $isEdit ? route('admin.articles.update', $article) : route('admin.articles.store') }}">
                 @csrf
                 @if ($isEdit) @method('PUT') @endif
 
@@ -26,19 +27,44 @@
                     </div>
 
                     <x-admin.bilingual name="title" label="عنوان" :value="$article->title" required />
-                    <x-admin.bilingual name="excerpt" label="خلاصه" :value="$article->excerpt" type="textarea" />
-                    <x-admin.bilingual name="body" label="متن کامل" :value="$article->body" type="textarea" />
+                    <x-admin.bilingual name="excerpt" label="خلاصه" :value="$article->excerpt" type="editor" />
+                    <x-admin.bilingual name="body" label="متن کامل" :value="$article->body" type="editor" />
 
-                    @include('admin.partials.phase-select', ['selected' => $article->cycle_phase, 'phases' => $phases])
+                    @include('admin.partials.phase-multi-select', ['selected' => $article->cycle_phases ?? [], 'phases' => $phases])
 
                     <div class="field">
                         <label for="read_time_minutes">زمان مطالعه (دقیقه)</label>
                         <input type="number" id="read_time_minutes" name="read_time_minutes" value="{{ old('read_time_minutes', $article->read_time_minutes) }}" min="1" max="120">
                     </div>
-                    <div class="field">
-                        <label for="image_url">آدرس تصویر</label>
-                        <input type="text" id="image_url" name="image_url" dir="ltr" value="{{ old('image_url', $article->image_url) }}">
+
+                    <div class="field full">
+                        <label for="image">تصویر مقاله</label>
+                        <span class="hint">
+                            فقط فایل تصویری (JPG، PNG یا WebP)، حداکثر ۸ مگابایت.
+                            تصویر پس از آپلود به‌صورت خودکار بهینه و حداکثر تا {{ $maxImageWidth }} پیکسل کوچک می‌شود.
+                        </span>
+                        @if ($article->image_url)
+                            <img src="{{ $article->image_url }}" alt=""
+                                 style="width:100%;max-width:320px;aspect-ratio:16/9;object-fit:cover;border-radius:12px;border:1px solid var(--border);margin:6px 0">
+                        @endif
+                        <input type="file" id="image" name="image" accept="image/jpeg,image/png,image/webp">
+                        @error('image') <span class="err">{{ $message }}</span> @enderror
+
+                        @if ($article->image_path)
+                            <div class="switch-row" style="margin-top:6px">
+                                <input type="checkbox" id="remove_image" name="remove_image" value="1">
+                                <label for="remove_image" style="margin:0;font-weight:500">حذف تصویر فعلی</label>
+                            </div>
+                        @endif
                     </div>
+
+                    <div class="field full">
+                        <label for="image_url">یا آدرس تصویر (لینک خارجی — اختیاری)</label>
+                        <input type="text" id="image_url" name="image_url" dir="ltr" value="{{ old('image_url', $article->getRawOriginal('image_url')) }}">
+                        <span class="hint">اگر فایلی آپلود شود، همان نمایش داده می‌شود و این آدرس نادیده گرفته می‌شود.</span>
+                        @error('image_url') <span class="err">{{ $message }}</span> @enderror
+                    </div>
+
                     <div class="field">
                         <label for="sort_order">ترتیب نمایش</label>
                         <input type="number" id="sort_order" name="sort_order" value="{{ old('sort_order', $article->sort_order ?? 0) }}">

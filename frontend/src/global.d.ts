@@ -1,4 +1,5 @@
 import type enAccount from '../messages/en/account.json';
+import type enArticles from '../messages/en/articles.json';
 import type enAuth from '../messages/en/auth.json';
 import type enBanners from '../messages/en/banners.json';
 import type enCalendar from '../messages/en/calendar.json';
@@ -46,6 +47,7 @@ type Messages = {
   log: typeof enLog;
   logPeriod: typeof enLogPeriod;
   welcome: typeof enWelcome;
+  articles: typeof enArticles;
 };
 
 declare global {

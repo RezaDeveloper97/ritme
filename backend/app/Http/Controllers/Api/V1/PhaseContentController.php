@@ -119,12 +119,6 @@ class PhaseContentController extends Controller
      */
     private function contentKeyFor(CycleSubphase $subphase): string
     {
-        return match ($subphase) {
-            CycleSubphase::MENSTRUAL,
-            CycleSubphase::MENSTRUAL_POSSIBLE => CycleSubphase::MENSTRUATION->value,
-            CycleSubphase::LATE_FOLLICULAR_TRANSITION => CycleSubphase::MID_FOLLICULAR->value,
-            CycleSubphase::UNKNOWN => CycleSubphase::PERIOD_EXPECTED->value,
-            default => $subphase->value,
-        };
+        return $subphase->canonical()->value;
     }
 }

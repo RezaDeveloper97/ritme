@@ -22,7 +22,9 @@ FROM php:8.4-apache AS runtime
 ARG PHPREDIS_VERSION=6.3.0
 RUN apt-get update \
  && apt-get install -y --no-install-recommends libicu-dev libzip-dev \
- && docker-php-ext-install -j"$(nproc)" pdo_mysql bcmath opcache pcntl intl zip \
+      libjpeg62-turbo-dev libpng-dev libwebp-dev libfreetype6-dev \
+ && docker-php-ext-configure gd --with-jpeg --with-webp --with-freetype \
+ && docker-php-ext-install -j"$(nproc)" pdo_mysql bcmath opcache pcntl intl zip gd \
  && curl -fsSL "https://github.com/phpredis/phpredis/archive/refs/tags/${PHPREDIS_VERSION}.tar.gz" -o /tmp/phpredis.tar.gz \
  && mkdir -p /usr/src/phpredis \
  && tar xzf /tmp/phpredis.tar.gz -C /usr/src/phpredis --strip-components=1 \
@@ -44,6 +46,14 @@ RUN { \
       echo 'opcache.max_accelerated_files=20000'; \
       echo 'opcache.validate_timestamps=0'; \
     } > /usr/local/etc/php/conf.d/opcache-prod.ini
+
+# Admin image uploads: PHP's 2M default would reject a normal phone photo
+# before validation ever runs, and GD needs headroom to resize one.
+RUN { \
+      echo 'upload_max_filesize=10M'; \
+      echo 'post_max_size=12M'; \
+      echo 'memory_limit=256M'; \
+    } > /usr/local/etc/php/conf.d/uploads.ini
 
 WORKDIR /var/www/html
 COPY --from=vendor --chown=www-data:www-data /app /var/www/html

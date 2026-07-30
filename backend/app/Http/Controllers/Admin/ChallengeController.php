@@ -25,7 +25,7 @@ class ChallengeController extends Controller
     {
         return view('admin.challenges.form', [
             'challenge' => new Challenge(['is_active' => true]),
-            'phases' => CyclePhase::cases(),
+            'phases' => CyclePhase::options(),
             'difficulties' => self::DIFFICULTIES,
         ]);
     }
@@ -41,7 +41,7 @@ class ChallengeController extends Controller
     {
         return view('admin.challenges.form', [
             'challenge' => $challenge,
-            'phases' => CyclePhase::cases(),
+            'phases' => CyclePhase::options(),
             'difficulties' => self::DIFFICULTIES,
         ]);
     }
@@ -74,7 +74,7 @@ class ChallengeController extends Controller
             'title.fa' => ['required', 'string'],
             'title.en' => ['nullable', 'string'],
             'description' => ['nullable', 'array'],
-            'cycle_phase' => ['nullable', Rule::in(array_column(CyclePhase::cases(), 'value'))],
+            'cycle_phase' => ['nullable', Rule::in(CyclePhase::values())],
             'category' => ['nullable', 'string', 'max:255'],
             'difficulty' => ['nullable', Rule::in(self::DIFFICULTIES)],
             'sort_order' => ['nullable', 'integer'],

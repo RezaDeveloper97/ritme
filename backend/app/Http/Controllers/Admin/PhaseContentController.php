@@ -33,11 +33,19 @@ class PhaseContentController extends Controller
     public function index(): View
     {
         $existing = PhaseContent::pluck('id', 'phase');
-        $phases = collect(CycleSubphase::cases())->map(fn (CycleSubphase $p) => [
-            'key' => $p->value,
-            'label' => $p->label('fa'),
-            'id' => $existing[$p->value] ?? null,
+        $phases = collect(CycleSubphase::options())->map(fn (array $option) => $option + [
+            'id' => $existing[$option['value']] ?? null,
         ]);
+
+        // A row stored under a non-canonical key (seeded before the aliases were
+        // collapsed) still needs a way in, or it would be unreachable here.
+        $orphans = $existing->keys()->diff($phases->pluck('value'))->map(fn (string $phase) => [
+            'value' => $phase,
+            'label' => (CycleSubphase::labelFor($phase) ?? $phase).' (قدیمی)',
+            'id' => $existing[$phase],
+        ]);
+
+        $phases = $phases->concat($orphans);
 
         return view('admin.phase-contents.index', compact('phases'));
     }
@@ -50,7 +58,7 @@ class PhaseContentController extends Controller
         return view('admin.phase-contents.form', [
             'content' => new PhaseContent(['phase' => $phase]),
             'fields' => self::FIELDS,
-            'phases' => CycleSubphase::cases(),
+            'phases' => CycleSubphase::options(),
         ]);
     }
 
@@ -66,7 +74,7 @@ class PhaseContentController extends Controller
         return view('admin.phase-contents.form', [
             'content' => $phaseContent,
             'fields' => self::FIELDS,
-            'phases' => CycleSubphase::cases(),
+            'phases' => CycleSubphase::options(),
         ]);
     }
 

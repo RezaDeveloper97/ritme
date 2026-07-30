@@ -23,7 +23,7 @@ class AffirmationController extends Controller
     {
         return view('admin.affirmations.form', [
             'affirmation' => new Affirmation(['is_active' => true]),
-            'phases' => CyclePhase::cases(),
+            'phases' => CyclePhase::options(),
         ]);
     }
 
@@ -38,7 +38,7 @@ class AffirmationController extends Controller
     {
         return view('admin.affirmations.form', [
             'affirmation' => $affirmation,
-            'phases' => CyclePhase::cases(),
+            'phases' => CyclePhase::options(),
         ]);
     }
 
@@ -69,7 +69,7 @@ class AffirmationController extends Controller
             'text' => ['required', 'array'],
             'text.fa' => ['required', 'string'],
             'text.en' => ['nullable', 'string'],
-            'cycle_phase' => ['nullable', Rule::in(array_column(CyclePhase::cases(), 'value'))],
+            'cycle_phase' => ['nullable', Rule::in(CyclePhase::values())],
             'sort_order' => ['nullable', 'integer'],
         ]);
 

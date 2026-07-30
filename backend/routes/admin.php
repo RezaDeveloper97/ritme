@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AccountController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AffirmationController;
 use App\Http\Controllers\Admin\ArticleController;
+use App\Http\Controllers\Admin\AssetController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\ChallengeCompletionController;
@@ -35,6 +36,12 @@ Route::get('style.css', fn () => Response::file(public_path('assets/admin.css'),
     'Content-Type' => 'text/css',
     'Cache-Control' => 'public, max-age=86400',
 ]))->name('style');
+
+// Bundled CKEditor 4 build (public, same reasoning as the stylesheet). The
+// editor resolves its own plugins/skins/lang relative to this URL.
+Route::get('ckeditor/{path}', [AssetController::class, 'ckeditor'])
+    ->where('path', '.*')
+    ->name('ckeditor');
 
 // Guest
 Route::get('login', [AuthController::class, 'showLogin'])->name('login');

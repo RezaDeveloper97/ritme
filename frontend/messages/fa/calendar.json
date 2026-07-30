@@ -43,6 +43,8 @@
     "pms": "پی‌ام‌اس"
   },
   "day": {
+    "actionsLabel": "اقدام‌ها",
+    "logLabel": "ثبت‌های این روز",
     "cycleDay": "سیکل روز {n}",
     "chanceLabel": "احتمال باردار بودن",
     "logMood": "ثبت حال این روز"

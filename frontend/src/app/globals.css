@@ -833,9 +833,12 @@ body {
 .home-articles-title { font-size: 17px; font-weight: 700; color: var(--ink); text-align: start; margin-bottom: 16px; }
 .home-articles-track { display: flex; gap: 16px; min-width: min-content; }
 .home-article        { width: 162px; flex: 0 0 162px; display: flex; flex-direction: column; gap: 4px; }
-.home-article-cover  { height: 130px; border-radius: 12px; background: linear-gradient(135deg, var(--surface-2), var(--indigo-soft)); display: flex; align-items: center; justify-content: center; color: var(--pink); }
-.home-article-name   { font-size: 13.5px; font-weight: 700; color: var(--ink); text-align: start; line-height: 1.55; padding: 8px 0 0; }
+.home-article-cover  { height: 130px; border-radius: 12px; background: linear-gradient(135deg, var(--surface-2), var(--indigo-soft)); display: flex; align-items: center; justify-content: center; color: var(--pink); overflow: hidden; }
+.home-article-img    { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* Real titles vary in length — clamp so every card in the row lines up. */
+.home-article-name   { font-size: 13.5px; font-weight: 700; color: var(--ink); text-align: start; line-height: 1.55; padding: 8px 0 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .home-article-meta   { display: flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
+.home-article-skel   { height: 130px; border-radius: 12px; }
 .home-articles-cta   { margin-top: 18px; height: 40px; }
 
 /* Today status */
@@ -957,6 +960,32 @@ body {
 .cal-day-stat-l  { font-size: 11px; color: var(--muted); font-weight: 600; }
 .cal-day-stat-v  { font-size: 13px; font-weight: 800; color: var(--steel); margin-top: 3px; }
 
+/* Selected-day panel (inline under the calendar grid) */
+.cal-day-panel { animation: cal-day-in .22s ease-out; }
+.cal-day-group + .cal-day-group {
+  margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line);
+}
+.cal-day-group-label {
+  font-size: 11px; font-weight: 800; letter-spacing: .02em;
+  color: var(--muted); text-align: start; margin-bottom: 10px;
+}
+.cal-day-group > :first-child,
+.cal-day-group .cal-actions,
+.cal-day-group .cal-skeleton,
+.cal-day-group .cal-log-cta { margin-top: 0; }
+.cal-day-group .cal-actions + .cal-day-btn,
+.cal-day-group .cal-actions + .cal-start { margin-top: 10px; }
+.cal-day-btn { border-radius: 14px; gap: 8px; width: 100%; }
+.cal-day-btn.is-soft { background: var(--pink-bg); color: var(--brand); font-weight: 800; }
+
+@keyframes cal-day-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cal-day-panel { animation: none; }
+}
+
 /* Tip card */
 .cal-tip-title { font-size: 14px; font-weight: 800; color: var(--ink); text-align: start; margin-bottom: 10px; }
 .cal-tip-body  { text-align: start; margin: 0 2px 14px; }
@@ -969,6 +998,48 @@ body {
 .cal-legend-hint { font-size: 11px; color: var(--muted); font-weight: 700; text-align: start; }
 .cal-log-list { display: flex; flex-direction: column; gap: 4px; }
 .cal-rule     { height: 1px; background: var(--line); margin: 14px 0; }
+
+/* ── Scroll-driven month → week collapse (iOS-calendar style) ──────
+   Scrolling down folds the month grid to the active week's single row;
+   the card pins to the top of the scroll while folded and unfolds again
+   at the very top. One shared duration/curve so height, slide, fade and
+   the tail spacer move as a single choreographed piece. */
+/* Browser scroll anchoring fights the fold: as the grid's height animates
+   down it keeps "correcting" scrollTop back toward the top, which re-expands
+   the card in a loop. The page manages its own geometry, so opt out. */
+.cal-page .page-scroll { overflow-anchor: none; }
+
+.cal-weeks {
+  overflow: hidden;
+  transition: height .42s cubic-bezier(.32, .72, 0, 1);
+}
+.cal-weeks .cal-log-list { transition: transform .42s cubic-bezier(.32, .72, 0, 1); }
+
+/* Inactive weeks fade while the month slides up behind the fold; visibility
+   flips only after the fade so they leave the tab order without popping. */
+.cal-week-row { transition: opacity .28s ease, visibility 0s; }
+.cal-week-row.is-off { opacity: 0; visibility: hidden; transition: opacity .28s ease, visibility 0s .42s; }
+
+/* Legend + rule fold with the grid (0fr row trick — no measuring). */
+.cal-extras {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows .42s cubic-bezier(.32, .72, 0, 1), opacity .28s ease;
+}
+.cal-extras.is-collapsed { grid-template-rows: 0fr; opacity: 0; }
+.cal-extras-inner { overflow: hidden; min-height: 0; }
+
+.cal-tail { transition: height .42s cubic-bezier(.32, .72, 0, 1); }
+
+@media (prefers-reduced-motion: reduce) {
+  .cal-sticky-card,
+  .cal-weeks,
+  .cal-weeks .cal-log-list,
+  .cal-week-row,
+  .cal-week-row.is-off,
+  .cal-extras,
+  .cal-tail { transition: none; }
+}
 .cal-mt       { margin-top: 14px; }
 .cal-skeleton { margin-top: 14px; min-height: 118px; opacity: .45; }
 .cal-log-cta  { margin-top: 14px; border-radius: 14px; gap: 8px; background: var(--line); }
@@ -1820,3 +1891,163 @@ body {
 .ic-bullet  { display: flex; align-items: flex-start; gap: 12px; }
 .ic-bullet-ic { flex: 0 0 auto; width: 34px; height: 34px; border-radius: 12px; background: var(--surface-2); display: flex; align-items: center; justify-content: center; color: var(--brand); }
 .ic-bullet-t  { font-size: 13.5px; line-height: 1.7; color: var(--slate); padding-top: 6px; }
+
+/* ══════════════════════════════════════════════════════════════════
+   Article library (screens/articles) + article page (screens/article)
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── Shared card (entities/article) ── */
+.ac {
+  display: flex; flex-direction: column; gap: 8px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+  padding: 10px; text-decoration: none; color: inherit;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.ac:active { transform: translateY(1px); }
+.ac:focus-visible { outline: none; box-shadow: var(--ring); }
+.ac-cover {
+  position: relative; height: 118px; border-radius: 12px; overflow: hidden;
+  background: linear-gradient(135deg, var(--surface-2), var(--indigo-soft));
+  display: flex; align-items: center; justify-content: center; color: var(--pink);
+}
+.ac-img   { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ac-tag {
+  position: absolute; top: 8px; inset-inline-start: 8px;
+  background: var(--surface); color: var(--brand);
+  font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px;
+  max-width: calc(100% - 16px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.ac-body    { display: flex; flex-direction: column; gap: 6px; padding: 0 2px 2px; }
+.ac-title {
+  margin: 0; font-size: 14px; font-weight: 800; line-height: 1.6; color: var(--ink); text-align: start;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.ac-excerpt {
+  margin: 0; font-size: 12.5px; line-height: 1.8; color: var(--muted-2); text-align: start;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.ac-meta {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 12px; font-weight: 700; color: var(--ink-3);
+}
+/* Compact variant — the related rail on the article page. */
+.ac-compact          { width: 168px; flex: 0 0 168px; }
+.ac-compact .ac-cover{ height: 96px; }
+.ac-compact .ac-title{ font-size: 13px; }
+
+/* ── Library screen ── */
+.ar-page       { background: var(--page); }
+/* Fades out instead of ending on a hard line: the grid below sits on the page
+   colour, so the flat home gradient would leave a visible seam. */
+.ar-grad       { position: absolute; top: 0; inset-inline-start: 0; inset-inline-end: 0; height: 260px;
+                 background: linear-gradient(180deg, var(--home-grad-1) 0%, transparent 100%); }
+.ar-hdr        { position: relative; }
+.ar-hdr-title  { flex: 1; font-size: 16px; font-weight: 800; color: var(--ink); text-align: center; }
+.ar-hdr-spacer { width: 36px; flex: 0 0 auto; }
+.ar-scroll     { position: relative; padding: 0 18px; }
+.ar-subtitle   { margin: 0 2px 14px; font-size: 12.5px; line-height: 1.8; color: var(--muted-2); text-align: start; }
+.ar-search     { height: 46px; border-radius: 14px; color: var(--muted-2); }
+.ar-search input { font-size: 14px; }
+.ar-search input::-webkit-search-cancel-button { display: none; }
+.ar-search-clear {
+  border: 0; background: transparent; padding: 4px; cursor: pointer;
+  color: var(--muted-2); display: flex; align-items: center; border-radius: 8px;
+}
+.ar-search-clear:focus-visible { outline: none; box-shadow: var(--ring); }
+.ar-chips-wrap { margin: 12px -18px 0; padding: 0 18px; }
+.ar-chips      { display: flex; gap: 8px; min-width: min-content; padding-bottom: 2px; }
+.ar-chip {
+  flex: 0 0 auto; height: 34px; padding: 0 14px; border-radius: 999px;
+  border: 1px solid var(--line-2); background: var(--surface);
+  font-family: inherit; font-size: 12.5px; font-weight: 700; color: var(--muted-2);
+  cursor: pointer; white-space: nowrap;
+}
+.ar-chip.is-active { background: var(--brand); border-color: var(--brand-line); color: var(--on-accent); }
+.ar-chip:focus-visible { outline: none; box-shadow: var(--ring); }
+.ar-count { margin: 16px 2px 10px; font-size: 12px; font-weight: 700; color: var(--muted-3); text-align: start; }
+.ar-grid  { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 4px; }
+.ar-grid[aria-busy="true"] { opacity: .55; transition: opacity .2s ease; }
+.ar-more  { margin: 18px 0 4px; }
+
+.ar-skel-card  { display: flex; flex-direction: column; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 10px; }
+.ar-skel-cover { height: 118px; border-radius: 12px; }
+.ar-skel-line  { height: 11px; }
+.ar-skel-line.is-short { width: 60%; }
+
+.ar-empty       { padding: 44px 12px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.ar-empty-icon  { width: 62px; height: 62px; border-radius: 50%; background: var(--pink-bg); color: var(--brand); display: flex; align-items: center; justify-content: center; }
+.ar-empty-title { margin: 14px 0 0; font-size: 15px; font-weight: 800; color: var(--ink); }
+.ar-empty-text  { margin: 8px 0 0; font-size: 13px; line-height: 1.9; color: var(--muted-2); max-width: 260px; }
+.ar-empty-cta   { margin-top: 18px; width: auto; padding: 0 22px; }
+
+/* ── Article page ── */
+.art-page     { background: var(--page); }
+.art-grad     { position: absolute; top: 0; inset-inline-start: 0; inset-inline-end: 0; height: 220px;
+                background: linear-gradient(180deg, var(--home-grad-1) 0%, transparent 100%); }
+.art-hdr      { position: relative; }
+.art-hdr-link { font-size: 12.5px; font-weight: 700; color: var(--brand); text-decoration: none; padding: 6px 8px; border-radius: 10px; }
+.art-hdr-link:focus-visible { outline: none; box-shadow: var(--ring); }
+.art-scroll   { position: relative; padding: 0 18px; }
+.art-cover    { border-radius: 18px; overflow: hidden; background: var(--surface-3); }
+.art-cover-img{ display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; }
+.art-head     { margin-top: 16px; }
+.art-tag      { display: inline-block; background: var(--pink-bg); color: var(--brand); font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: 999px; }
+.art-title    { margin: 10px 0 0; font-size: 21px; font-weight: 900; line-height: 1.6; color: var(--ink); text-align: start; }
+.art-meta     { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 10px; }
+.art-meta-item{ display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; color: var(--muted-2); }
+.art-excerpt  { margin: 14px 0 0; font-size: 13.5px; line-height: 2; color: var(--ink-3); text-align: start; }
+
+/* Body copy authored in the admin editor. The API allowlists its tags, so the
+   selectors below are the full set it can produce. */
+.art-body           { margin-top: 18px; font-size: 14px; line-height: 2.1; color: var(--ink-2); text-align: start; }
+.art-body p         { margin: 0 0 14px; }
+.art-body h1,
+.art-body h2,
+.art-body h3,
+.art-body h4        { margin: 24px 0 10px; font-weight: 800; line-height: 1.6; color: var(--ink); }
+.art-body h1        { font-size: 18px; }
+.art-body h2        { font-size: 17px; }
+.art-body h3        { font-size: 15.5px; }
+.art-body h4        { font-size: 14.5px; }
+/* Tailwind's preflight strips list markers — put them back for body copy. */
+.art-body ul        { margin: 0 0 14px; padding-inline-start: 22px; list-style: disc outside; }
+.art-body ol        { margin: 0 0 14px; padding-inline-start: 22px; list-style: decimal outside; }
+.art-body li::marker{ color: var(--brand); }
+.art-body li        { margin-bottom: 8px; }
+.art-body a         { color: var(--brand); text-decoration: underline; }
+.art-body img       { max-width: 100%; height: auto; border-radius: 14px; display: block; margin: 14px 0; }
+.art-body blockquote{ margin: 14px 0; padding: 12px 14px; background: var(--surface-3); border-inline-start: 3px solid var(--brand-line-soft); border-radius: 12px; color: var(--ink-3); }
+.art-body pre       { overflow-x: auto; background: var(--surface-3); border-radius: 12px; padding: 12px; direction: ltr; text-align: start; }
+.art-body code      { font-size: 12.5px; }
+.art-body hr        { border: 0; border-top: 1px solid var(--line); margin: 20px 0; }
+.art-body figure    { margin: 14px 0; }
+.art-body figcaption{ font-size: 12px; color: var(--muted-3); text-align: center; margin-top: 6px; }
+.art-body table     { width: 100%; border-collapse: collapse; font-size: 12.5px; display: block; overflow-x: auto; }
+.art-body th,
+.art-body td        { border: 1px solid var(--line); padding: 8px; text-align: start; }
+.art-nobody         { margin: 20px 0 0; font-size: 13px; color: var(--muted-2); text-align: start; }
+
+.art-disclaimer {
+  display: flex; align-items: flex-start; gap: 8px; margin: 20px 0 0;
+  background: var(--surface-3); border-radius: 12px; padding: 10px 12px;
+  font-size: 12px; line-height: 1.9; color: var(--muted-2); text-align: start;
+}
+.art-related       { margin-top: 26px; }
+.art-related-title { margin: 0 2px 12px; font-size: 15px; font-weight: 800; color: var(--ink); text-align: start; }
+.art-related-track { display: flex; gap: 12px; min-width: min-content; padding-bottom: 4px; }
+
+.art-missing       { padding: 54px 12px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.art-missing-icon  { width: 62px; height: 62px; border-radius: 50%; background: var(--pink-bg); color: var(--brand); display: flex; align-items: center; justify-content: center; }
+.art-missing-title { margin: 14px 0 0; font-size: 16px; font-weight: 800; color: var(--ink); }
+.art-missing-text  { margin: 8px 0 0; font-size: 13px; line-height: 1.9; color: var(--muted-2); max-width: 260px; }
+.art-missing-cta   { margin-top: 20px; width: auto; padding: 0 22px; text-decoration: none; }
+
+.art-skel        { padding-top: 4px; display: flex; flex-direction: column; gap: 12px; }
+.art-skel-cover  { height: 190px; border-radius: 18px; }
+.art-skel-title  { height: 20px; width: 80%; }
+.art-skel-line   { height: 12px; }
+.art-skel-line.is-short { width: 55%; }
+
+/* The home row's cards are links now — keep them looking like cards. */
+.home-article { text-decoration: none; color: inherit; }
+.home-article:focus-visible { outline: none; box-shadow: var(--ring); border-radius: 12px; }

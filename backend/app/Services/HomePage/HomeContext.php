@@ -138,6 +138,15 @@ final class HomeContext
         return $this->cycleData()['phase'] ?? null;
     }
 
+    /**
+     * Fine-grained sub-phase (CycleSubphase key) for the context date — the
+     * granularity admin content is tagged with.
+     */
+    public function subphase(): ?string
+    {
+        return $this->cycleData()['subphase'] ?? null;
+    }
+
     public function dailyLog(): ?DailyHealthLog
     {
         if (! $this->dailyLogLoaded) {

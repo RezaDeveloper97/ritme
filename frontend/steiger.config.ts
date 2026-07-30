@@ -139,4 +139,12 @@ export default defineConfig([
     ],
     rules: { 'fsd/insignificant-slice': 'off' },
   },
+  {
+    // «بر اساس سیکل فعلی شما»: `entities/article` serves the phase-matched
+    // articles the home screen renders (and whose cache `log-period` drops).
+    // The home screen is its main consumer and references coming FROM
+    // `screens` are invisible to steiger — same reason as the blocks above.
+    files: ['./src/entities/article/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
 ]);

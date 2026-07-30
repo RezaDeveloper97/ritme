@@ -4,6 +4,7 @@ import clsx from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 
+import { useCycleArticles } from '@/entities/article';
 import {
   CycleValuesCard,
   cycleDayMarker,
@@ -730,32 +731,84 @@ function SmartTipSkeleton() {
   );
 }
 
-// ── Cycle-based articles (no article endpoint in the spec — static) ──
-function Articles({ t }: { t: T }) {
-  // Figma «Frame 36»: white card, 18px title, 162px blog cards, primary CTA.
+// ── Cycle-based articles (published from the admin panel) ─────────
+// Figma «Frame 36»: white card, 18px title, 162px blog cards, primary CTA.
+// The list comes from `GET /home/sections/articles`, which returns what an
+// admin tagged for the phase the user is in today (plus general articles), so
+// nothing here is hardcoded. The whole section disappears when there is
+// nothing published for this phase.
+function Articles({ t, locale }: { t: T; locale: Locale }) {
+  const { data, isPending } = useCycleArticles();
+  const articles = data?.articles ?? [];
+
+  if (isPending) return <ArticlesSkeleton t={t} />;
+  if (articles.length === 0) return null;
+
   return (
     <div className="sec">
       <div className="home-articles">
-        <div className="home-articles-title">
-          {t('articles.title')}
+        {/* The backend words and localizes the heading; the message file is
+            the fallback for when the section omits it. */}
+        <div className="home-articles-title">{data?.title ?? t('articles.title')}</div>
+        <div className="scroll-x">
+          <div className="home-articles-track">
+            {articles.map(article => (
+              // The card opens the article page; the slug is public content, so
+              // unlike the cycle phase it is safe to carry in the URL (§11).
+              <Link key={article.id} href={`/articles/${article.slug}`} className="home-article">
+                <div className="home-article-cover">
+                  {article.imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={article.imageUrl}
+                      alt=""
+                      loading="lazy"
+                      draggable={false}
+                      className="home-article-img"
+                    />
+                  ) : (
+                    <Icon name="bookOpen" size={30} stroke="currentColor" />
+                  )}
+                </div>
+                <div className="home-article-name">{article.title}</div>
+                {(article.readTimeMinutes !== null || article.category) && (
+                  <div className="home-article-meta">
+                    <Icon name="bookOpen" size={16} stroke="currentColor" />
+                    {article.readTimeMinutes !== null
+                      ? t('articles.min', { n: localizeNum(article.readTimeMinutes, locale) })
+                      : article.category}
+                  </div>
+                )}
+              </Link>
+            ))}
+          </div>
         </div>
+        <Link href="/articles" className="btn btn-primary home-articles-cta">
+          {t('articles.readMore')}
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+/** Placeholder cards while the articles load — same rhythm as the real row. */
+function ArticlesSkeleton({ t }: { t: T }) {
+  return (
+    <div className="sec">
+      <div className="home-articles" aria-hidden>
+        <div className="home-articles-title">{t('articles.title')}</div>
         <div className="scroll-x">
           <div className="home-articles-track">
             {[0, 1, 2].map(i => (
               <div key={i} className="home-article">
-                <div className="home-article-cover">
-                  <Icon name="bookOpen" size={30} stroke="currentColor" />
-                </div>
-                <div className="home-article-name">{t('articles.article1')}</div>
-                <div className="home-article-meta">
-                  <Icon name="bookOpen" size={16} stroke="currentColor" />
-                  {t('articles.min', { n: faNum(9) })}
-                </div>
+                <span className="skeleton-line home-article-skel" />
+                {['90%', '55%'].map(width => (
+                  <span key={width} className="skeleton-line" style={{ width }} />
+                ))}
               </div>
             ))}
           </div>
         </div>
-        <button className="btn btn-primary home-articles-cta">{t('articles.readMore')}</button>
       </div>
     </div>
   );
@@ -1039,7 +1092,7 @@ export function HomePage() {
         <SmartTip t={t} tip={smartTip} phaseLabel={smartTipPhase} loading={dailyLoading} />
         <WeekSummaryCard />
         <TodayStatus t={t} pred={pred} />
-        <Articles t={t} />
+        <Articles t={t} locale={loc} />
         <BannerSlideshow position="home_bottom" />
         <div className="page-tail" />
       </div>

@@ -9,9 +9,7 @@ import {
   calcToPhase,
   cycleDayMarker,
   cycleMarkerStyle,
-  DailyStatusCard,
   normalizePhase,
-  useCycleForDate,
   useCycleMonth,
   useCycleStatus,
   type CycleCalculation,
@@ -23,7 +21,6 @@ import {
   PeriodDateEditor,
   PeriodEditor,
   useDeletePeriod,
-  useEndPeriod,
   usePeriodHistory,
   useStartPeriod,
   useUpdatePeriod,
@@ -92,6 +89,21 @@ interface Overlay {
 
 // Horizontal drag past this many px switches month (mobile swipe).
 const SWIPE_THRESHOLD_PX = 40;
+
+// Vertical pitch of one calendar week row (40px cell + 4px flex gap).
+const WEEK_ROW_PX = 44;
+
+// Scroll-driven collapse thresholds. Deliberately asymmetric (hysteresis):
+// the grid folds only once the user is clearly scrolling away, and unfolds
+// only when they're back at the very top — a single shared threshold would
+// let the state flutter around it.
+const COLLAPSE_AT_PX = 48;
+const EXPAND_AT_PX = 6;
+
+// Approximate height of the rule + legend block that folds away with the
+// grid, compensated at the page tail (see the tail spacer below).
+const EXTRAS_PX = 56;
+const PAGE_TAIL_PX = 26;
 
 // A day this close to an existing logged period reads as part of the SAME
 // bleed — tapping it extends that period instead of starting a new one, so
@@ -392,26 +404,6 @@ function DayDetail({ t, locale, selectedDate, calc, marker, showTiles = true }: 
   );
 }
 
-// ── Smart tip (educational, non-diagnostic — §11) ──────────────
-function SmartTip({ t }: { t: T }) {
-  return (
-    <div className="card pad-card-sm">
-      <div className="cal-tip-title">
-        {t('smartTip.title')}
-      </div>
-      <p className="sub cal-tip-body">{t('smartTip.body')}</p>
-      <div className="tip-action">
-        <span className="tip-action-icon">
-          <Icon name="sparkle" size={20} fill="currentColor" strokeWidth={0} />
-        </span>
-        <span className="tip-action-text">
-          {t('smartTip.quote')}
-        </span>
-      </div>
-    </div>
-  );
-}
-
 // ── Main export ────────────────────────────────────────────────
 export function CalendarPage() {
   const t = useTranslations('calendar');
@@ -427,7 +419,6 @@ export function CalendarPage() {
   });
   const [selectedDate, setSelectedDate] = useState<Date>(() => today());
   const [fullMonth, setFullMonth] = useState(true);
-  const [daySheetOpen, setDaySheetOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
   // The full-screen "Edit Period Date" toggle editor (opened from the header button).
@@ -447,7 +438,6 @@ export function CalendarPage() {
   const periodDuration = profileQuery.data?.health?.periodDuration ?? DEFAULT_PERIOD_DAYS;
 
   const startPeriod = useStartPeriod();
-  const endPeriod = useEndPeriod();
   const updatePeriod = useUpdatePeriod();
   const deletePeriod = useDeletePeriod();
   const historyQuery = usePeriodHistory();
@@ -578,11 +568,41 @@ export function CalendarPage() {
     return nearest;
   };
 
-  const displayWeeks = useMemo(() => {
-    if (fullMonth) return weeks;
-    const withSelected = weeks.find((w) => w.some((c) => c && isSameDay(c.date, selectedDate)));
-    return [withSelected ?? weeks[0]];
-  }, [weeks, fullMonth, selectedDate]);
+  // ── Scroll-driven collapse (iOS-calendar style) ──────────────
+  // Scrolling down folds the month grid to the active week's strip (the card
+  // stays pinned via sticky); returning to the top unfolds it. The manual
+  // week-view toggle reuses the same folded state, so it animates too.
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [scrollCollapsed, setScrollCollapsed] = useState(false);
+  // Extra tail height while folded — only as much as a short page needs so the
+  // fold can't shrink the scroll range under the expand threshold (which would
+  // re-expand the card in a loop). Long pages get 0 → no dead space at the end.
+  const [tailPad, setTailPad] = useState(0);
+  const onPageScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const y = el.scrollTop;
+    const next = scrollCollapsed ? y > EXPAND_AT_PX : y > COLLAPSE_AT_PX;
+    if (next === scrollCollapsed) return;
+    if (next) {
+      const delta = (weeks.length - 1) * WEEK_ROW_PX + EXTRAS_PX;
+      const roomAfterFold = el.scrollHeight - delta - el.clientHeight;
+      setTailPad(Math.max(0, COLLAPSE_AT_PX + 12 - roomAfterFold));
+    } else {
+      setTailPad(0);
+    }
+    setScrollCollapsed(next);
+  };
+  const collapsed = !fullMonth || scrollCollapsed;
+
+  // The week the folded strip shows: the selected day's week, else today's,
+  // else the first (e.g. after jumping to a month containing neither).
+  const activeWeekIndex = useMemo(() => {
+    const bySelected = weeks.findIndex((w) => w.some((c) => c && isSameDay(c.date, selectedDate)));
+    if (bySelected >= 0) return bySelected;
+    const byToday = weeks.findIndex((w) => w.some((c) => c && isSameDay(c.date, today())));
+    return byToday >= 0 ? byToday : 0;
+  }, [weeks, selectedDate]);
 
   const goMonth = (delta: number) => setView((v) => shiftJalaliMonth(v.year, v.month, delta));
   const goToday = () => {
@@ -600,7 +620,6 @@ export function CalendarPage() {
 
   const selectDay = (date: Date) => {
     setSelectedDate(date);
-    setDaySheetOpen(true);
   };
 
   // Quick period logging: tapping "start here" re-anchors the cycle on `date`,
@@ -616,7 +635,6 @@ export function CalendarPage() {
       expectPeriod: true,
       since: dataFreshness,
     });
-    setDaySheetOpen(false);
     setWatching(true);
     startPeriod.mutate(
       { date: iso },
@@ -637,7 +655,6 @@ export function CalendarPage() {
       expectPeriod: true,
       since: dataFreshness,
     });
-    setDaySheetOpen(false);
     setWatching(true);
     updatePeriod.mutate(
       { id: target.period.id, start: target.newStart, end: target.newEnd },
@@ -661,7 +678,6 @@ export function CalendarPage() {
       since: dataFreshness,
     });
 
-    setDaySheetOpen(false);
     setWatching(true);
     if (iso === period.period_start_date && iso === effEnd) {
       setOverlay(overlayFor([iso]));
@@ -698,10 +714,9 @@ export function CalendarPage() {
     setWatching(true);
   };
 
-  // Open the editor on a specific logged period (from the day sheet).
+  // Open the editor on a specific logged period (from the day panel).
   const editPeriod = (period: LoggedPeriod) => {
     setEditingPeriod(period);
-    setDaySheetOpen(false);
     setEditorOpen(true);
   };
 
@@ -748,10 +763,6 @@ export function CalendarPage() {
   };
 
   const selectedCalc = calcMap.get(toApiDate(selectedDate));
-  // The rich, backend-rendered day card (spec §19) for the selected day. Fetched
-  // per-date because the month grid's calculations don't carry the daily_card.
-  const selectedDayView = useCycleForDate(toApiDate(selectedDate));
-  const selectedDailyCard = selectedDayView.data?.cycleView?.dailyCard ?? null;
 
   // Roll back an optimistic overlay and surface the backend's rejection message
   // (e.g. "close the previous period first", "overlaps another period").
@@ -767,64 +778,6 @@ export function CalendarPage() {
     const id = setTimeout(() => setActionError(null), 5000);
     return () => clearTimeout(id);
   }, [actionError]);
-
-  // Dispatch a daily-card CTA (spec §19) to the real action — the backend already
-  // picked the right CTA for this day's state, so the client just routes it.
-  const handleCardAction = (type: string) => {
-    const iso = toApiDate(selectedDate);
-    switch (type) {
-      case 'log_period_start':
-      case 'confirm_period_start':
-        startPeriodHere();
-        break;
-      case 'log_period_end':
-        // Mirror startPeriodHere's feedback: close the sheet, show the recalculating
-        // banner while the backend re-derives, and roll that back on failure.
-        setDaySheetOpen(false);
-        setWatching(true);
-        endPeriod.mutate(
-          { date: iso },
-          { onError: onMutationError },
-        );
-        break;
-      case 'log_symptoms':
-      case 'complete_day':
-      case 'view_details':
-        openLog();
-        break;
-      case 'set_reminder':
-        router.push('/profile/reminders');
-        break;
-      case 'period_not_started':
-      case 'still_bleeding':
-        setDaySheetOpen(false);
-        break;
-      default:
-        // Any CTA type this build doesn't special-case still does something useful
-        // rather than being a silent dead button — the day log is always sensible.
-        openLog();
-        break;
-    }
-  };
-
-  // A card-triggered period mutation is in flight → disable the card's CTAs.
-  const cardActionPending = startPeriod.isPending || endPeriod.isPending;
-
-  // The card's per-date query is loading with nothing cached yet → show a skeleton
-  // in the card slot instead of flashing the fallback tiles then swapping them out.
-  const cardPending = selectedDayView.isPending;
-
-  // Does the card already offer a given action? Used to suppress the calendar's own
-  // duplicate buttons, so the user never sees two affordances for the same thing.
-  const cardOffers = (...types: string[]): boolean =>
-    selectedDailyCard != null &&
-    [selectedDailyCard.primaryAction, ...selectedDailyCard.secondaryActions].some(
-      (a) => a != null && types.includes(a.type),
-    );
-  const cardOffersStart = cardOffers('log_period_start', 'confirm_period_start');
-  // The card's filled primary is the sheet's hero button; standalone period buttons
-  // demote to a soft style so there's never more than one filled-pink CTA at once.
-  const cardHasPrimary = selectedDailyCard?.primaryAction != null;
 
   const selectedMarker = markerFor(selectedDate);
   const selectedLoggedPeriod = loggedPeriodFor(selectedDate);
@@ -870,7 +823,7 @@ export function CalendarPage() {
     <div className="view cal-page">
       <div className="home-grad cal-grad" />
 
-      <div className="scroll page-scroll">
+      <div className="scroll page-scroll" ref={scrollRef} onScroll={onPageScroll}>
         <div className="cal-hdr">
           <div className="cal-hdr-txt">
             <div className="titr">{t('title')}</div>
@@ -926,129 +879,130 @@ export function CalendarPage() {
               onTouchStart={onTouchStart}
               onTouchMove={onTouchMove}
               onTouchEnd={onTouchEnd}
-              className="cal-log-list"
+              className="cal-weeks"
+              // Folded → one row tall; open → every week row (count varies 5–6).
+              style={{ height: (collapsed ? 1 : weeks.length) * WEEK_ROW_PX - 4 }}
             >
-              {displayWeeks.map((week, wi) => (
-                <div key={wi} className="cal-grid">
-                  {week.map((cell, ci) => (
-                    <DayCell
-                      key={ci}
-                      cell={cell}
-                      selectedDate={selectedDate}
-                      onSelect={onDaySelect}
-                      dayNumber={cell ? format.number(cell.day) : ''}
-                      marker={cell ? markerFor(cell.date) : null}
-                      isLogged={cell ? isActualPeriodDay(cell.date) : false}
-                      ariaLabel={cell ? dayAriaLabel(cell.date) : ''}
-                    />
-                  ))}
-                </div>
-              ))}
+              <div
+                className="cal-log-list"
+                // Slides the whole month up so the active week lands on the
+                // strip's single visible row while the others fold away.
+                style={{ transform: collapsed ? `translateY(-${activeWeekIndex * WEEK_ROW_PX}px)` : 'none' }}
+              >
+                {weeks.map((week, wi) => (
+                  <div
+                    key={wi}
+                    className={clsx('cal-grid', 'cal-week-row', collapsed && wi !== activeWeekIndex && 'is-off')}
+                    aria-hidden={collapsed && wi !== activeWeekIndex}
+                  >
+                    {week.map((cell, ci) => (
+                      <DayCell
+                        key={ci}
+                        cell={cell}
+                        selectedDate={selectedDate}
+                        onSelect={onDaySelect}
+                        dayNumber={cell ? format.number(cell.day) : ''}
+                        marker={cell ? markerFor(cell.date) : null}
+                        isLogged={cell ? isActualPeriodDay(cell.date) : false}
+                        ariaLabel={cell ? dayAriaLabel(cell.date) : ''}
+                      />
+                    ))}
+                  </div>
+                ))}
+              </div>
             </div>
 
-            <div className="cal-rule" />
-            <Legend t={t} />
+            <div className={clsx('cal-extras', collapsed && 'is-collapsed')}>
+              <div className="cal-extras-inner">
+                <div className="cal-rule" />
+                <Legend t={t} />
+              </div>
+            </div>
           </div>
         </div>
 
+        {/* Selected-day panel — everything logged/predicted for the tapped day,
+            inline under the grid (no sheet) and split into labelled groups. */}
         <div className="sec-tight">
-          <SmartTip t={t} />
+          <div className="card pad-card cal-day-panel" aria-live="polite">
+            <section className="cal-day-group">
+              {/* Tiles are the fallback only once the day query has settled with no rich
+                  card — they don't flash in and get swapped out while it's still loading. */}
+              <DayDetail t={t} locale={locale} selectedDate={selectedDate} calc={selectedCalc} marker={selectedMarker} />
+            </section>
+
+            {/* Everything that mutates this day's period range, kept in one group so
+                the actions read as a set rather than a stack of loose buttons. */}
+            {(selectedLoggedPeriod || selectedExtendTarget || canStartHere) && (
+              <section className="cal-day-group">
+                <div className="cal-day-group-label">{t('day.actionsLabel')}</div>
+
+                {/* This day belongs to a logged period → edit the range, or unmark
+                    just this day with one tap. */}
+                {selectedLoggedPeriod && (
+                  <div className="cal-actions">
+                    <button
+                      className="btn cal-action is-primary"
+                      onClick={() => editPeriod(selectedLoggedPeriod)}
+                    >
+                      <Icon name="drop" size={16} fill="currentColor" strokeWidth={0} />
+                      {t('editThisPeriod')}
+                    </button>
+                    <button
+                      className="btn cal-action is-neutral"
+                      onClick={() => removeDayHere(selectedLoggedPeriod)}
+                      disabled={mutating}
+                    >
+                      <Icon name="x" size={16} />
+                      {removeDayIsInterior ? t('endPeriodHere') : t('removeThisDay')}
+                    </button>
+                  </div>
+                )}
+
+                {/* This day sits just outside a logged period → extend it to here.
+                    Demoted to a soft style when the card already shows a filled
+                    primary, so the panel never has two competing pink buttons. */}
+                {selectedExtendTarget && (
+                  <button
+                    className="btn btn-primary cal-day-btn"
+                    onClick={() => addToPeriodHere(selectedExtendTarget)}
+                    disabled={mutating}
+                  >
+                    <Icon name="drop" size={16} fill="var(--on-accent)" strokeWidth={0} />
+                    {t('addToPeriod')}
+                  </button>
+                )}
+
+                {/* Quick "this is where my period started" action → fills cells +
+                    regenerates every downstream prediction. */}
+                {canStartHere && (
+                  <button
+                    className="btn btn-primary cal-start"
+                    onClick={startPeriodHere}
+                    disabled={startPeriod.isPending}
+                  >
+                    <Icon name="drop" size={16} fill="var(--on-accent)" strokeWidth={0} />
+                    {t('startPeriodHere')}
+                  </button>
+                )}
+              </section>
+            )}
+
+            {/* Future days can't have logged data, so hide the log section entirely. */}
+            {diffInDays(selectedDate, today()) <= 0 && (
+              <section className="cal-day-group">
+                <div className="cal-day-group-label">{t('day.logLabel')}</div>
+                <DayLogSummary tCal={t} selectedDate={selectedDate} onEdit={openLog} />
+              </section>
+            )}
+          </div>
         </div>
 
-        <div className="page-tail" />
+        <div
+          className="page-tail cal-tail"
+          style={{ height: PAGE_TAIL_PX + (fullMonth && scrollCollapsed ? tailPad : 0) }}
+        />
       </div>
-
-      {/* Day detail sheet — everything logged/predicted for the tapped day. */}
-      <Sheet open={daySheetOpen} onClose={() => setDaySheetOpen(false)} labelledBy="day-sheet-title">
-        {/* Tiles are the fallback only once the day query has settled with no rich
-            card — they don't flash in and get swapped out while it's still loading. */}
-        <DayDetail t={t} locale={locale} selectedDate={selectedDate} calc={selectedCalc} marker={selectedMarker} showTiles={!cardPending && !selectedDailyCard} />
-
-        {/* Backend-rendered status card (spec §19): the smart, actionable hero —
-            rule-based title, subtitle, fertility read-out and the right CTAs for
-            this day's state (dispatched via handleCardAction). */}
-        {selectedDailyCard && (
-          <div className="cal-mt">
-            <DailyStatusCard card={selectedDailyCard} onAction={handleCardAction} pending={cardActionPending} />
-          </div>
-        )}
-
-        {/* Skeleton reserving the card's space while its per-date query loads, so the
-            sheet height stays stable instead of popping the card in. */}
-        {cardPending && !selectedDailyCard && (
-          <div className="card cal-skeleton" aria-hidden />
-        )}
-
-        {/* The day query failed → a calm retry rather than a silently bare sheet. */}
-        {!cardPending && !selectedDailyCard && selectedDayView.isError && (
-          <button
-            className="btn cal-log-cta"
-            onClick={() => selectedDayView.refetch()}
-          >
-            <Icon name="refresh" size={16} />
-            {t('retry')}
-          </button>
-        )}
-
-        {/* This day belongs to a logged period → edit the range, or unmark
-            just this day with one tap. */}
-        {selectedLoggedPeriod && (
-          <div className="cal-actions">
-            <button
-              className="btn cal-action is-primary"
-              onClick={() => editPeriod(selectedLoggedPeriod)}
-            >
-              <Icon name="drop" size={16} fill="currentColor" strokeWidth={0} />
-              {t('editThisPeriod')}
-            </button>
-            <button
-              className="btn cal-action is-neutral"
-              onClick={() => removeDayHere(selectedLoggedPeriod)}
-              disabled={mutating}
-            >
-              <Icon name="x" size={16} />
-              {removeDayIsInterior ? t('endPeriodHere') : t('removeThisDay')}
-            </button>
-          </div>
-        )}
-
-        {/* This day sits just outside a logged period → extend it to here. Demoted to
-            a soft style when the card already shows a filled primary, so the sheet
-            never has two competing pink buttons. */}
-        {selectedExtendTarget && (
-          <button
-            className={cardHasPrimary ? 'btn' : 'btn btn-primary'}
-            onClick={() => addToPeriodHere(selectedExtendTarget)}
-            disabled={mutating}
-            style={cardHasPrimary
-              ? { borderRadius: 14, marginTop: 14, gap: 8, background: 'var(--pink-bg)', color: 'var(--brand)', fontWeight: 800 }
-              : { borderRadius: 14, marginTop: 14, gap: 8 }}
-          >
-            <Icon name="drop" size={16} fill={cardHasPrimary ? 'currentColor' : 'var(--on-accent)'} strokeWidth={0} />
-            {t('addToPeriod')}
-          </button>
-        )}
-
-        {/* Quick "this is where my period started" action → fills cells + regenerates.
-            Hidden when the card already offers a start action, to avoid duplicates. */}
-        {canStartHere && !cardOffersStart && (
-          <button
-            className={clsx('btn', 'cal-start', cardHasPrimary ? 'is-secondary' : 'btn-primary')}
-            onClick={startPeriodHere}
-            disabled={startPeriod.isPending}
-          >
-            <Icon name="drop" size={16} fill={cardHasPrimary ? 'currentColor' : 'var(--on-accent)'} strokeWidth={0} />
-            {t('startPeriodHere')}
-          </button>
-        )}
-
-        {/* Future days can't have logged data, so hide the log section entirely. */}
-        {diffInDays(selectedDate, today()) <= 0 && (
-          <div className="cal-mt">
-            <DayLogSummary tCal={t} selectedDate={selectedDate} onEdit={openLog} />
-          </div>
-        )}
-      </Sheet>
 
       {/* Quick month/year jump — tap the month label to open. */}
       <MonthYearPicker

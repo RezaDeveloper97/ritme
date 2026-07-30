@@ -24,7 +24,7 @@ class TaskTemplateController extends Controller
     {
         return view('admin.task-templates.form', [
             'task' => new TaskTemplate(['is_active' => true]),
-            'phases' => CyclePhase::cases(),
+            'phases' => CyclePhase::options(),
             'categories' => TaskCategory::cases(),
         ]);
     }
@@ -40,7 +40,7 @@ class TaskTemplateController extends Controller
     {
         return view('admin.task-templates.form', [
             'task' => $taskTemplate,
-            'phases' => CyclePhase::cases(),
+            'phases' => CyclePhase::options(),
             'categories' => TaskCategory::cases(),
         ]);
     }
@@ -76,7 +76,7 @@ class TaskTemplateController extends Controller
             'description' => ['nullable', 'array'],
             'category' => ['required', Rule::in(array_column(TaskCategory::cases(), 'value'))],
             'icon' => ['nullable', 'string', 'max:255'],
-            'cycle_phase' => ['nullable', Rule::in(array_column(CyclePhase::cases(), 'value'))],
+            'cycle_phase' => ['nullable', Rule::in(CyclePhase::values())],
             'sort_order' => ['nullable', 'integer'],
         ]);
 

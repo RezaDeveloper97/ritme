@@ -28,7 +28,14 @@
                             <tr>
                                 <td>{{ $article->id }}</td>
                                 <td class="wrap">{{ $article->title['fa'] ?? '—' }}</td>
-                                <td>{{ $article->cycle_phase ?: '—' }}</td>
+                                {{-- Same labels as the phase picker; falls back to the raw key for legacy values. --}}
+                                <td class="wrap">
+                                    @forelse ($article->cycle_phases ?? [] as $phase)
+                                        <span class="badge">{{ \App\Enums\CycleSubphase::labelFor($phase) ?? \App\Enums\CyclePhase::labelFor($phase) ?? $phase }}</span>
+                                    @empty
+                                        <span class="muted">همه فازها</span>
+                                    @endforelse
+                                </td>
                                 <td>{{ $article->category ?: '—' }}</td>
                                 <td>
                                     @if ($article->is_published)

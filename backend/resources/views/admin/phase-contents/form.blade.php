@@ -30,7 +30,7 @@
                         @else
                             <select id="phase" name="phase" required>
                                 @foreach ($phases as $p)
-                                    <option value="{{ $p->value }}" @selected(old('phase', $content->phase) === $p->value)>{{ $p->label('fa') }}</option>
+                                    <option value="{{ $p['value'] }}" @selected(old('phase', $content->phase) === $p['value'])>{{ $p['label'] }}</option>
                                 @endforeach
                             </select>
                         @endif
