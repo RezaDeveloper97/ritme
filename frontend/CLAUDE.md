@@ -41,7 +41,7 @@ and UX must be **private by default, respectful, and medically careful**. See
 | Server state       | **TanStack Query** (`@tanstack/react-query`)                  |
 | Client state       | **Zustand** (UI/ephemeral state only)                         |
 | Forms + validation | **react-hook-form** + **zod**                                 |
-| Dates / calendar   | **Jalali (Shamsi)** via a centralized date layer (§7)         |
+| Dates / calendar   | **Locale-aware** (Jalali for `fa`, Gregorian for `en`) via a centralized date layer (§7) |
 | HTTP               | single shared `axios`/`fetch` client in `shared/api`          |
 
 > **TODO for the team:** pin exact versions in `package.json` and fill in the
@@ -191,16 +191,26 @@ return <h2>دوره بعدی تا {count} روز دیگر</h2>; // hardcoded, un
 
 ---
 
-## 7. Dates & calendar (Jalali — critical)
+## 7. Dates & calendar (locale-aware — critical)
 
-Iranian users think in the **Jalali (Shamsi)** calendar. Getting this wrong is a
-correctness bug in a product whose entire job is tracking dates.
+Iranian users think in the **Jalali (Shamsi)** calendar; English-speaking users
+think in the **Gregorian** one. Getting this wrong is a correctness bug in a
+product whose entire job is tracking dates.
 
-- **All user-facing dates are Jalali.** Gregorian may exist internally/at the
-  API boundary, but never shown raw to the user.
+- **The calendar follows the locale.** `fa` → Jalali, `en` → Gregorian —
+  everywhere, with no exceptions: the home mini-calendar, the calendar screen,
+  birthday and last-period wheels, month labels, weekday column order
+  (Saturday-first in Jalali, Sunday-first in Gregorian) and digits (Persian in
+  `fa`, Latin in `en`). Raw ISO/Gregorian strings may exist internally and at
+  the API boundary, but are never shown raw to the user.
+- **Calendar *parts* are meaningless without their locale.** `toParts`,
+  `todayParts`, `monthMatrix`, `daysInCalendarMonth` and `partsToDate` all take
+  a `Locale`; anything that *persists* parts (e.g. the onboarding store) must
+  persist the locale beside them and re-express them with `convertParts` when
+  the user switches language.
 - **One centralized date layer:** `shared/lib/date`. Wrap the date library
   (e.g. `dayjs` + a Jalali plugin) there and expose helpers like
-  `formatJalali()`, `toJalali()`, `addDays()`, `diffInDays()`. Components and
+  `formatLongDate()`, `toParts()`, `addDays()`, `diffInDays()`. Components and
   features import **only** from `shared/lib/date` — never call the underlying
   library or `new Date().toLocale...` directly anywhere else.
 - **Persian digits** are a formatting concern handled in that layer (and/or via
@@ -238,9 +248,11 @@ The backend is a separate service. **The full API is documented as an OpenAPI
 3.0 spec** you should treat as the source of truth for endpoints, request/
 response shapes, enums, and auth:
 
-- **Spec (OpenAPI/Swagger JSON):** `http://ritmeapp.ir/docs/api-docs.json`
-  (title: *Ritme Salamat API*, version `1.0.0`). Fetch it over plain `http`
-  (the host does not serve `https`).
+- **Spec (OpenAPI/Swagger JSON):** `https://ritmeapp.ir/docs/api-docs.json`
+  (title: *Ritme Salamat API*, version `1.0.0`). The host serves `https` (TLS
+  terminates at the nginx proxy; `http` 301-redirects). **Never point the app
+  at an `http://` API** — the PWA is served over https, so an http API call is
+  mixed content and the browser blocks it.
 - **Base URL:** all endpoints are under **`/api/v1/`**.
 - **Auth:** JWT **bearer** token in the `Authorization` header
   (`Authorization: Bearer <token>`). Login is **OTP-based**: `POST
@@ -265,7 +277,7 @@ Conventions to mirror from the spec: many resources are **keyed by date**
 (`/pregnancy/weekly/{week}`, `/pregnancy/content/{week}`), and several groups
 expose an **`/enums`** endpoint that drives form options — fetch those via
 TanStack Query and derive types from them rather than hardcoding option lists.
-Dates cross this boundary in the API's format; convert to Jalali only in
+Dates cross this boundary in the API's format; convert to the display calendar only in
 `shared/lib/date` for display (§7). Remember §11: never log health payloads.
 
 ---
@@ -287,7 +299,8 @@ npm run lint:styles:accept   # re-baseline after you REDUCE violations
 ```
 
 **Definition of done for any change:** `typecheck`, `lint`, `fsd:lint` and
-`lint:styles` all pass, and new domain logic has tests.
+`lint:styles` all pass, and new domain logic has tests. For any change that
+touches UI/colours, additionally run the **`check-colors` skill** (§10.2).
 
 `lint:styles` is a **ratchet**: `scripts/styles-baseline.json` records the
 violations each file still carries, and the gate fails only when a file goes
@@ -362,6 +375,66 @@ style objects reduced to 13, all of them data-driven.
 **Enforcement:** `npm run lint:styles` fails on a static `style` prop or a hex
 literal. A `PostToolUse` hook runs it automatically on every `.tsx` write, and
 it is part of the definition of done (§9).
+
+### 10.2 Colour palette — the Ritme brand system (non-negotiable)
+
+The app has exactly **three brand hues + three neutrals**. Every colour on
+screen must trace back to one of these groups via a token in `globals.css`.
+Do not introduce new hues; status colours (danger/success/warning) and the
+amber fertile-window marker are the only sanctioned exceptions.
+
+| Group | Value | Tokens | Use for | Never for |
+| ----- | ----- | ------ | ------- | --------- |
+| **Primary / Brand gradient** | `#7B61FF → #FF6FAE` | `--gradient-brand`, `--grad-start`, `--grad-end` (solid fallback: `--brand`) | Main CTAs ("Log Symptom" etc.), FAB, active progress bars, active bottom-nav tab, hero/branding headers, loading animation | Large surfaces, body text, more than ~2 elements per screen — scarcity is what makes it read as premium |
+| **Secondary / Data accent** | turquoise `#3DD6F3` | `--data`, `--data-deep` (text-safe), `--data-soft` (surface) | Data & active/new states only: current cycle status, new-notification dots, ovulation-day marker, insight lines ("Fertile window starts today"), algorithmic prediction curves in charts | Decoration, buttons, backgrounds unrelated to data |
+| **Background / Canvas** | lavender `#F2ECFF` | `--page` (dark: deep-lavender) | App/page background, onboarding & long-read screens, calm "breathing" space | Text, borders on white |
+| **Neutral: white** | `#FFFFFF` | `--surface`, `--on-accent` | Cards, modals/sheets, text & icons on gradient/saturated fills | — |
+| **Neutral: dark gray** | `#2F2F35` | `--ink`, `--ink-2` | Primary text, headings, active icons | — |
+| **Neutral: mid/light grays** | ramp | `--muted*`, `--ink-3`, `--line*`, `--track`, `--field-border` | Secondary text, dividers, inactive icons, borders | — |
+
+#### Menstruation (period) — the one sanctioned red
+
+Period days are the single deliberate exception to the palette. **Bleeding days
+must read as red on every calendar surface.** Users have decades of convention
+attached to that colour; a purple or pink period day is a comprehension bug, not
+a style choice. The red is *tuned to the theme* — it sits at the rose end of the
+brand gradient rather than being a raw fire-engine red — so it belongs to the
+system instead of fighting it.
+
+- Tokens: `--period` (`#E8436F`, marker / dot / accent), `--period-deep`
+  (text-safe on light), `--period-soft` (day-cell surface), plus the
+  intensity steps `--period-soft-faint` / `--period-soft-strong`. All flip in
+  dark mode.
+- **Scope:** calendar period markers and period-specific indicators (day cells,
+  legend dot, period badges/labels) — defined once in
+  `entities/cycle/model/markers.ts`, which both the calendar screen and the home
+  mini-calendar read from. Never re-define a period colour in a component.
+- **Do not** use `--period*` for general UI (buttons, headers, generic pink
+  tints — those stay on the brand gradient / `--pink-bg`), and **do not** use a
+  brand-gradient or turquoise colour for a period day.
+- Turquoise still owns ovulation, amber still owns the fertile window, violet
+  still owns PMS — red is *only* menstruation.
+
+Hard rules:
+
+- **The gradient is scarce by design.** If a screen already shows the gradient
+  twice, the next element takes a neutral or a soft tint (`--pink-bg`,
+  `--surface-2`), not the gradient again.
+- **Turquoise means "this is data"** (measured, detected, or predicted by the
+  algorithm). If the element isn't data or an active/new state, turquoise is
+  the wrong colour.
+- **Red means menstruation** — nothing else may be red except genuine
+  error/danger states (`--danger*`).
+- **Never re-introduce the legacy pink-brand palette** (`#E91E63` era) or any
+  off-palette hue. Retheming happens by changing token *values* in
+  `globals.css`, never by adding parallel colour systems.
+- All the §10 rules still apply: tokens only, no hex literals in `src/`, every
+  token defined in both `:root` and `[data-theme="dark"]`.
+
+**Enforcement:** run the **`check-colors` skill** (`/check-colors`) after any
+change that touches colours, styles, or new UI — it audits token conformance,
+off-palette hues, and dark-mode coverage. It is part of the definition of done
+for UI work (§9).
 
 ---
 

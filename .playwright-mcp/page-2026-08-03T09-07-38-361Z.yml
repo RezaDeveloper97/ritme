@@ -1,0 +1,43 @@
+- generic [ref=f25e4]:
+  - generic [ref=f25e5]:
+    - button "برگرد" [ref=f25e6] [cursor=pointer]
+    - generic [ref=f25e9]:
+      - text: "3"
+      - generic [ref=f25e10]: / 8
+  - generic [ref=f25e11]:
+    - generic [ref=f25e12]:
+      - generic [ref=f25e13]: What is your weight?
+      - paragraph [ref=f25e14]: Help us get to know you better
+      - paragraph [ref=f25e15]: This is used for weight and general-health analysis, and it is confidential.
+    - generic [ref=f25e16]:
+      - generic [ref=f25e18]:
+        - button "lb" [ref=f25e19] [cursor=pointer]
+        - button "kg" [ref=f25e20] [cursor=pointer]
+      - generic [ref=f25e21]: 60.0kg
+      - generic [ref=f25e24]:
+        - generic [ref=f25e25]: "30"
+        - generic [ref=f25e36]: "35"
+        - generic [ref=f25e47]: "40"
+        - generic [ref=f25e58]: "45"
+        - generic [ref=f25e69]: "50"
+        - generic [ref=f25e80]: "55"
+        - generic [ref=f25e91]: "60"
+        - generic [ref=f25e102]: "65"
+        - generic [ref=f25e113]: "70"
+        - generic [ref=f25e124]: "75"
+        - generic [ref=f25e135]: "80"
+        - generic [ref=f25e146]: "85"
+        - generic [ref=f25e157]: "90"
+        - generic [ref=f25e168]: "95"
+        - generic [ref=f25e179]: "100"
+        - generic [ref=f25e190]: "105"
+        - generic [ref=f25e201]: "110"
+        - generic [ref=f25e212]: "115"
+        - generic [ref=f25e223]: "120"
+        - generic [ref=f25e234]: "125"
+        - generic [ref=f25e245]: "130"
+        - generic [ref=f25e256]: "135"
+        - generic [ref=f25e267]: "140"
+        - generic [ref=f25e278]: "145"
+        - generic [ref=f25e289]: "150"
+  - button "Continue" [ref=f25e293] [cursor=pointer]

@@ -3,53 +3,55 @@
 
 import clsx from 'clsx';
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
+import { useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   calcToPhase,
   cycleDayMarker,
+  cycleMarkerBg,
   cycleMarkerStyle,
+  markerIntensityByDate,
   normalizePhase,
   useCycleMonth,
   useCycleStatus,
   type CycleCalculation,
   type CycleDayMarker,
   type CyclePhase,
+  type MarkerIntensity,
 } from '@/entities/cycle';
 import { useUserProfile } from '@/entities/user';
 import {
   PeriodDateEditor,
-  PeriodEditor,
   useDeletePeriod,
   usePeriodHistory,
   useStartPeriod,
   useUpdatePeriod,
   type LoggedPeriod,
-  type PeriodSaveInfo,
 } from '@/features/log-period';
 import { useRouter, type Locale } from '@/shared/i18n';
 import {
   addDays,
   diffInDays,
-  formatJalaliDayMonth,
-  formatJalaliMonthLabel,
-  formatJalaliYear,
+  formatDayMonth,
+  formatMonthLabel,
+  formatYear,
   fromApiDate,
-  jalaliMonthMatrix,
-  jalaliMonthName,
-  shiftJalaliMonth,
+  monthMatrix,
+  monthName,
+  shiftMonth,
   toApiDate,
+  toParts,
   today,
-  todayJalali,
-  type JalaliMonthCell,
+  todayParts,
+  weekdayKeys,
+  type MonthCell,
 } from '@/shared/lib/date';
 import { getApiErrorMessage } from '@/shared/api';
 import { Icon, Sheet } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
 
 import { DayLogSummary } from './DayLogSummary';
-
-const WEEKDAY_KEYS = ['sat', 'sun', 'mon', 'tue', 'wed', 'thu', 'fri'] as const;
 
 // Colors for each calendar marker — shared with the home mini calendar so both
 // surfaces stay in sync. Follicular/luteal days carry no marker and read as
@@ -208,7 +210,7 @@ function MonthYearPicker({ t, locale, isRtl, open, onClose, year, month, onPick,
           <Icon name={isRtl ? 'chevronRight' : 'chevronLeft'} size={20} />
         </button>
         <div id="month-picker-title" className="cal-pick-year">
-          {formatJalaliYear(browseYear, locale)}
+          {formatYear(browseYear, locale)}
         </div>
         <button
           className="iconbtn"
@@ -228,7 +230,7 @@ function MonthYearPicker({ t, locale, isRtl, open, onClose, year, month, onPick,
               className={clsx('chip', 'cal-pick-month', isCurrent && 'on')}
               onClick={() => onPick(browseYear, m)}
             >
-              {jalaliMonthName(m, locale)}
+              {monthName(m, locale)}
             </button>
           );
         })}
@@ -243,26 +245,35 @@ function MonthYearPicker({ t, locale, isRtl, open, onClose, year, month, onPick,
 
 // ── One day cell ───────────────────────────────────────────────
 interface DayCellProps {
-  cell: JalaliMonthCell | null;
+  cell: MonthCell | null;
   selectedDate: Date;
   onSelect: (date: Date) => void;
   dayNumber: string;
   marker: CycleDayMarker | null;
+  /** Tint depth for the marker — graded by the day's conception probability. */
+  intensity: MarkerIntensity;
   /** Whether the day is inside a real logged period (vs an engine prediction). */
   isLogged: boolean;
   /** Full spoken label (date + cycle state) for screen readers — the visible digit is aria-hidden. */
   ariaLabel: string;
 }
 
-function DayCell({ cell, selectedDate, onSelect, dayNumber, marker, isLogged, ariaLabel }: DayCellProps) {
+function DayCell({ cell, selectedDate, onSelect, dayNumber, marker, intensity, isLogged, ariaLabel }: DayCellProps) {
   if (!cell) return <span />;
 
   const markerStyle = marker ? MARKER_STYLE[marker] : undefined;
+  const markerBg = marker ? cycleMarkerBg[marker][intensity] : undefined;
   const selected = isSameDay(cell.date, selectedDate);
   const isToday = isSameDay(cell.date, today());
   // A period marker the user hasn't actually logged is a prediction → hollow ring,
   // not a solid fill (spec §12: predicted periods must read differently from real ones).
   const isPredicted = marker === 'period' && !isLogged;
+
+  // Selection dresses the cell in ITS OWN marker colour (deeper fill, ring and
+  // glow), falling back to the brand purple on neutral days.
+  const accent = markerStyle ? markerStyle.color : 'var(--brand)';
+  const baseBg = markerBg && !isPredicted ? markerBg : 'transparent';
+  const selectedBg = marker && !isPredicted ? cycleMarkerBg[marker].strong : baseBg;
 
   return (
     <button
@@ -272,10 +283,12 @@ function DayCell({ cell, selectedDate, onSelect, dayNumber, marker, isLogged, ar
       aria-current={isToday ? 'date' : undefined}
       style={{
         position: 'relative',
+        width: 40,
         height: 40,
-        border: selected ? '2px solid var(--brand)' : '2px solid transparent',
-        borderRadius: 14,
-        background: markerStyle && !isPredicted ? markerStyle.bg : 'transparent',
+        justifySelf: 'center',
+        border: selected ? `2px solid ${accent}` : '2px solid transparent',
+        borderRadius: '50%',
+        background: selected ? selectedBg : baseBg,
         color: markerStyle ? markerStyle.color : 'var(--ink)',
         fontFamily: 'inherit',
         fontSize: 14,
@@ -284,7 +297,10 @@ function DayCell({ cell, selectedDate, onSelect, dayNumber, marker, isLogged, ar
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        boxShadow: isPredicted && markerStyle ? `inset 0 0 0 1.5px ${markerStyle.color}` : undefined,
+        boxShadow: [
+          isPredicted && markerStyle ? `inset 0 0 0 1.5px ${markerStyle.color}` : null,
+          selected ? `0 4px 12px color-mix(in srgb, ${accent} 35%, transparent)` : null,
+        ].filter(Boolean).join(', ') || undefined,
         fontVariantNumeric: 'tabular-nums',
       }}
     >
@@ -327,10 +343,10 @@ function CalendarLoader({ label }: { label: string }) {
 // ── Legend ─────────────────────────────────────────────────────
 function Legend({ t }: { t: T }) {
   const items: { key: CycleDayMarker }[] = [
+    { key: 'pms' },
     { key: 'period' },
     { key: 'fertile' },
     { key: 'ovulation' },
-    { key: 'pms' },
   ];
   return (
     <div className="legend">
@@ -372,7 +388,7 @@ function DayDetail({ t, locale, selectedDate, calc, marker, showTiles = true }: 
           </span>
           <div className="text-start">
             <div id="day-sheet-title" className="cal-day-title">
-              {formatJalaliDayMonth(selectedDate, locale)}
+              {formatDayMonth(selectedDate, locale)}
             </div>
             {calc && (
               <div className="cal-day-sub">
@@ -414,15 +430,23 @@ export function CalendarPage() {
   const isRtl = locale === 'fa';
 
   const [{ year, month }, setView] = useState(() => {
-    const j = todayJalali();
+    const j = todayParts(locale);
     return { year: j.year, month: j.month };
   });
   const [selectedDate, setSelectedDate] = useState<Date>(() => today());
   const [fullMonth, setFullMonth] = useState(true);
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [editorOpen, setEditorOpen] = useState(false);
-  // The full-screen "Edit Period Date" toggle editor (opened from the header button).
+  // The full-screen "Edit Period Date" toggle editor (opened from the header button,
+  // from a logged day's "edit this period" action, or via ?editDates=1 when
+  // deep-linked from the home screen).
   const [dateEditorOpen, setDateEditorOpen] = useState(false);
+  // Month the editor should open on — set when opening it on a specific logged
+  // period; null means "the month the calendar is showing".
+  const [dateEditorView, setDateEditorView] = useState<{ year: number; month: number } | null>(null);
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    if (searchParams.get('editDates') === '1') setDateEditorOpen(true);
+  }, [searchParams]);
   // Watch the backend recalculation only right after we trigger one.
   const [watching, setWatching] = useState(false);
   // Transient message surfaced when a period edit is rejected by the backend
@@ -431,8 +455,6 @@ export function CalendarPage() {
   // Optimistic paint/clear layer applied immediately after any period change
   // (quick start, edit, delete), until the fresh month data catches up.
   const [overlay, setOverlay] = useState<Overlay | null>(null);
-  // The logged period the editor is currently editing (null = create mode).
-  const [editingPeriod, setEditingPeriod] = useState<LoggedPeriod | null>(null);
 
   const profileQuery = useUserProfile();
   const periodDuration = profileQuery.data?.health?.periodDuration ?? DEFAULT_PERIOD_DAYS;
@@ -449,12 +471,13 @@ export function CalendarPage() {
 
   const openLog = () => router.push(`/log?date=${toApiDate(selectedDate)}`);
 
-  const weeks = useMemo(() => jalaliMonthMatrix(year, month), [year, month]);
+  const weeks = useMemo(() => monthMatrix(year, month, locale), [year, month, locale]);
 
-  // A Jalali month spans at most two Gregorian months; fetch both and merge.
+  // A displayed month can span two Gregorian months (always, for Jalali; never
+  // for Gregorian); fetch both and merge.
   // Each calculation carries its own date, so overlap is harmless.
   const realCells = useMemo(
-    () => weeks.flat().filter((c): c is JalaliMonthCell => c !== null),
+    () => weeks.flat().filter((c): c is MonthCell => c !== null),
     [weeks],
   );
   const gA = gregYearMonth(realCells[0]?.date ?? today());
@@ -493,10 +516,16 @@ export function CalendarPage() {
     return c ? cycleDayMarker(c) : null;
   };
 
-  // Spoken label for a day cell (§ a11y): the Jalali date plus its cycle state and
+  // Tint depth per day, graded by conception probability within each marker
+  // group (overlay-painted days have no calculation yet → medium).
+  const intensityMap = useMemo(() => markerIntensityByDate(calcMap.values()), [calcMap]);
+  const intensityFor = (date: Date): MarkerIntensity =>
+    intensityMap.get(toApiDate(date)) ?? 'medium';
+
+  // Spoken label for a day cell (§ a11y): the localized date plus its cycle state and
   // today/selected context, so screen-reader users get more than a bare digit.
   const dayAriaLabel = (date: Date): string => {
-    const parts = [formatJalaliDayMonth(date, locale)];
+    const parts = [formatDayMonth(date, locale)];
     const marker = markerFor(date);
     if (marker) parts.push(t(`legend.${marker}`));
     if (isSameDay(date, today())) parts.push(t('today'));
@@ -604,15 +633,15 @@ export function CalendarPage() {
     return byToday >= 0 ? byToday : 0;
   }, [weeks, selectedDate]);
 
-  const goMonth = (delta: number) => setView((v) => shiftJalaliMonth(v.year, v.month, delta));
+  const goMonth = (delta: number) => setView((v) => shiftMonth(v.year, v.month, delta));
   const goToday = () => {
-    const j = todayJalali();
+    const j = todayParts(locale);
     setView({ year: j.year, month: j.month });
     setSelectedDate(today());
     setPickerOpen(false);
   };
 
-  // Month/year quick-picker: jump straight to any Jalali month.
+  // Month/year quick-picker: jump straight to any month.
   const pickMonth = (pickedYear: number, pickedMonth: number) => {
     setView({ year: pickedYear, month: pickedMonth });
     setPickerOpen(false);
@@ -699,25 +728,12 @@ export function CalendarPage() {
 
   // Editor saved/deleted a period: paint the new range and un-paint the old one
   // immediately, then watch the backend recalculation replace the overlay.
-  const onEditorSaved = (info: PeriodSaveInfo) => {
-    const paint = new Set(info.saved ? isoRange(info.saved.start, info.saved.end) : []);
-    const clear = new Set(
-      (info.cleared ? isoRange(info.cleared.start, info.cleared.end) : []).filter((d) => !paint.has(d)),
-    );
-    setOverlay({
-      paint,
-      clear,
-      confirmIso: info.saved?.start ?? info.cleared?.start ?? toApiDate(today()),
-      expectPeriod: !!info.saved,
-      since: dataFreshness,
-    });
-    setWatching(true);
-  };
-
-  // Open the editor on a specific logged period (from the day panel).
+  // Open the full-screen date editor on a specific logged period (from the day
+  // panel) — same editor as the header button, but scrolled to that period's month.
   const editPeriod = (period: LoggedPeriod) => {
-    setEditingPeriod(period);
-    setEditorOpen(true);
+    const j = toParts(fromApiDate(period.period_start_date), locale);
+    setDateEditorView({ year: j.year, month: j.month });
+    setDateEditorOpen(true);
   };
 
   // ── Swipe between months (RTL puts "next" on the left) ───────
@@ -815,9 +831,9 @@ export function CalendarPage() {
 
   // A month entirely in the future has no days the user could have bled on, so
   // the "edit period date" button is disabled there.
-  const currentJalali = todayJalali();
+  const currentCal = todayParts(locale);
   const isFutureMonth =
-    year > currentJalali.year || (year === currentJalali.year && month > currentJalali.month);
+    year > currentCal.year || (year === currentCal.year && month > currentCal.month);
 
   return (
     <div className="view cal-page">
@@ -833,7 +849,7 @@ export function CalendarPage() {
               the bleeding range, saved as one period (§ contiguous range). */}
           <button
             className="chip on cal-edit-btn"
-            onClick={() => setDateEditorOpen(true)}
+            onClick={() => { setDateEditorView(null); setDateEditorOpen(true); }}
             disabled={isFutureMonth}
           >
             <Icon name="pencil" size={14} />
@@ -854,7 +870,7 @@ export function CalendarPage() {
           <div className="card cal-grid-card">
             {calendarLoading && <CalendarLoader label={t('loadingCalendar')} />}
             <MonthNav
-              label={formatJalaliMonthLabel(year, month, locale)}
+              label={formatMonthLabel(year, month, locale)}
               isRtl={isRtl}
               onPrev={() => goMonth(-1)}
               onNext={() => goMonth(1)}
@@ -868,7 +884,7 @@ export function CalendarPage() {
             />
 
             <div className="cal-grid cal-legend-wrap">
-              {WEEKDAY_KEYS.map((k) => (
+              {weekdayKeys(locale).map((k) => (
                 <span key={k} className="cal-weekday">
                   {t(`weekdays.${k}`)}
                 </span>
@@ -903,6 +919,7 @@ export function CalendarPage() {
                         onSelect={onDaySelect}
                         dayNumber={cell ? format.number(cell.day) : ''}
                         marker={cell ? markerFor(cell.date) : null}
+                        intensity={cell ? intensityFor(cell.date) : 'medium'}
                         isLogged={cell ? isActualPeriodDay(cell.date) : false}
                         ariaLabel={cell ? dayAriaLabel(cell.date) : ''}
                       />
@@ -990,8 +1007,9 @@ export function CalendarPage() {
 
             {/* Future days can't have logged data, so hide the log section entirely. */}
             {diffInDays(selectedDate, today()) <= 0 && (
+              // The summary card carries its own title, so the group label
+              // would just repeat it — keep only the separating rule.
               <section className="cal-day-group">
-                <div className="cal-day-group-label">{t('day.logLabel')}</div>
                 <DayLogSummary tCal={t} selectedDate={selectedDate} onEdit={openLog} />
               </section>
             )}
@@ -1017,20 +1035,13 @@ export function CalendarPage() {
         onToday={goToday}
       />
 
-      <PeriodEditor
-        open={editorOpen}
-        onClose={() => { setEditorOpen(false); setEditingPeriod(null); }}
-        initialDateIso={toApiDate(selectedDate)}
-        editing={editingPeriod}
-        onSaved={onEditorSaved}
-      />
-
-      {/* Full-screen toggle editor opened from the header. Opens on the month the
-          calendar is showing, pre-fills every logged period, and reconciles on save. */}
+      {/* Full-screen toggle editor opened from the header or a logged day's "edit this
+          period" action. Opens on the requested month (else the one the calendar is
+          showing), pre-fills every logged period, and reconciles on save. */}
       <PeriodDateEditor
         open={dateEditorOpen}
-        onClose={() => setDateEditorOpen(false)}
-        initialView={{ year, month }}
+        onClose={() => { setDateEditorOpen(false); setDateEditorView(null); }}
+        initialView={dateEditorView ?? { year, month }}
         onSaved={() => setWatching(true)}
       />
 

@@ -71,7 +71,7 @@ class TestPageController extends Controller
         ]);
 
         // Default last_period_start to today if not provided and profile doesn't have one
-        if (!isset($profileData['last_period_start']) && !$profile->last_period_start) {
+        if (! isset($profileData['last_period_start']) && ! $profile->last_period_start) {
             $profileData['last_period_start'] = now()->toDateString();
         }
 
@@ -151,7 +151,7 @@ class TestPageController extends Controller
     {
         $user = User::where('mobile', self::TEST_MOBILE)->first();
 
-        if (!$user) {
+        if (! $user) {
             $user = User::create([
                 'name' => 'Test User',
                 'mobile' => self::TEST_MOBILE,
@@ -179,21 +179,7 @@ class TestPageController extends Controller
         }
 
         if (isset($calculation['daily_tips']) && is_array($calculation['daily_tips'])) {
-            $localizedTips = [];
-            foreach ($calculation['daily_tips'] as $tip) {
-                if (is_array($tip) && isset($tip[$locale])) {
-                    $localizedTips[] = [
-                        'type' => $tip['type'] ?? 'general',
-                        'text' => $tip[$locale],
-                    ];
-                } elseif (is_array($tip) && isset($tip['en'])) {
-                    $localizedTips[] = [
-                        'type' => $tip['type'] ?? 'general',
-                        'text' => $tip['en'],
-                    ];
-                }
-            }
-            $calculation['daily_tips'] = $localizedTips;
+            $calculation['daily_tips'] = (new DailyTipLocalizer)->localize($calculation['daily_tips'], $locale);
         }
 
         return $calculation;

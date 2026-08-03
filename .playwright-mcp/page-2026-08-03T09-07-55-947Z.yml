@@ -1,0 +1,43 @@
+- generic [ref=f26e4]:
+  - generic [ref=f26e5]:
+    - button "برگرد" [ref=f26e6] [cursor=pointer]
+    - generic [ref=f26e9]:
+      - text: ۳
+      - generic [ref=f26e10]: / ۸
+  - generic [ref=f26e11]:
+    - generic [ref=f26e12]:
+      - generic [ref=f26e13]: وزنت چقدره؟
+      - paragraph [ref=f26e14]: کمکمون کن بهتر بشناسیمت
+      - paragraph [ref=f26e15]: این اطلاعات فقط برای تحلیل وزن و سلامت عمومی‌ات استفاده می‌شه و پیش خودمون می‌مونه.
+    - generic [ref=f26e16]:
+      - generic [ref=f26e18]:
+        - button "lb" [ref=f26e19] [cursor=pointer]
+        - button "kg" [ref=f26e20] [cursor=pointer]
+      - generic [ref=f26e21]: ۶۰.۰kg
+      - generic [ref=f26e24]:
+        - generic [ref=f26e25]: ۳۰
+        - generic [ref=f26e36]: ۳۵
+        - generic [ref=f26e47]: ۴۰
+        - generic [ref=f26e58]: ۴۵
+        - generic [ref=f26e69]: ۵۰
+        - generic [ref=f26e80]: ۵۵
+        - generic [ref=f26e91]: ۶۰
+        - generic [ref=f26e102]: ۶۵
+        - generic [ref=f26e113]: ۷۰
+        - generic [ref=f26e124]: ۷۵
+        - generic [ref=f26e135]: ۸۰
+        - generic [ref=f26e146]: ۸۵
+        - generic [ref=f26e157]: ۹۰
+        - generic [ref=f26e168]: ۹۵
+        - generic [ref=f26e179]: ۱۰۰
+        - generic [ref=f26e190]: ۱۰۵
+        - generic [ref=f26e201]: ۱۱۰
+        - generic [ref=f26e212]: ۱۱۵
+        - generic [ref=f26e223]: ۱۲۰
+        - generic [ref=f26e234]: ۱۲۵
+        - generic [ref=f26e245]: ۱۳۰
+        - generic [ref=f26e256]: ۱۳۵
+        - generic [ref=f26e267]: ۱۴۰
+        - generic [ref=f26e278]: ۱۴۵
+        - generic [ref=f26e289]: ۱۵۰
+  - button "ادامه" [ref=f26e293] [cursor=pointer]

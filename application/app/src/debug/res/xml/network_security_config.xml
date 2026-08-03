@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Debug-only override: in addition to the production Ritme host, allow cleartext to the
-  emulator's host loopback (10.0.2.2) so debug builds can talk to the local dev backend
-  (backend on :8010, test OTP 1111). Never shipped — release keeps the main config.
+  Debug-only override: production ritmeapp.ir is HTTPS and needs no exemption, but debug
+  builds also talk to the local dev backend over the emulator's host loopback (10.0.2.2,
+  backend on :8010, test OTP 1111) and occasionally the bare server IP, neither of which
+  has a usable certificate. Never shipped — release keeps the main config.
 -->
 <network-security-config>
     <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="true">ritmeapp.ir</domain>
         <domain includeSubdomains="false">62.60.198.240</domain>
         <domain includeSubdomains="false">10.0.2.2</domain>
     </domain-config>

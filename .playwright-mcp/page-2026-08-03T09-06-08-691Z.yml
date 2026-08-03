@@ -1,0 +1,22 @@
+- generic [ref=f22e4]:
+  - generic [ref=f22e5]:
+    - button "برگرد" [ref=f22e6] [cursor=pointer]
+    - generic [ref=f22e9]:
+      - text: "5"
+      - generic [ref=f22e10]: / 8
+  - generic [ref=f22e11]:
+    - generic [ref=f22e12]:
+      - generic [ref=f22e13]: How many days does your period usually last?
+      - paragraph [ref=f22e14]: Help us get to know you better
+    - generic [ref=f22e17]:
+      - generic [ref=f22e19]: 1 day
+      - generic [ref=f22e20]: 2 days
+      - generic [ref=f22e21]: 3 days
+      - generic [ref=f22e22]: 4 days
+      - generic [ref=f22e23]: 5 days
+      - generic [ref=f22e24]: 6 days
+      - generic [ref=f22e25]: 7 days
+      - generic [ref=f22e26]: 8 days
+      - generic [ref=f22e27]: 9 days
+      - generic [ref=f22e28]: 10 days
+  - button "Continue" [ref=f22e31] [cursor=pointer]

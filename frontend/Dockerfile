@@ -27,7 +27,7 @@ COPY . .
 # NEXT_PUBLIC_* values are inlined into the bundle at build time. They are
 # public config only (no secrets / no health data — CLAUDE.md §11). Defaults
 # mirror .env.example; override with --build-arg for other environments.
-ARG NEXT_PUBLIC_API_BASE_URL=http://ritmeapp.ir/api/v1
+ARG NEXT_PUBLIC_API_BASE_URL=https://ritmeapp.ir/api/v1
 ARG NEXT_PUBLIC_OTP_TEST_MODE=true
 ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL \
     NEXT_PUBLIC_OTP_TEST_MODE=$NEXT_PUBLIC_OTP_TEST_MODE \

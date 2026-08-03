@@ -1,0 +1,22 @@
+- generic [ref=f23e4]:
+  - generic [ref=f23e5]:
+    - button "برگرد" [ref=f23e6] [cursor=pointer]
+    - generic [ref=f23e9]:
+      - text: ۵
+      - generic [ref=f23e10]: / ۸
+  - generic [ref=f23e11]:
+    - generic [ref=f23e12]:
+      - generic [ref=f23e13]: پریودت معمولاً چند روز طول می‌کشه؟
+      - paragraph [ref=f23e14]: کمکمون کن بهتر بشناسیمت
+    - generic [ref=f23e17]:
+      - generic [ref=f23e19]: 1 روز
+      - generic [ref=f23e20]: 2 روز
+      - generic [ref=f23e21]: 3 روز
+      - generic [ref=f23e22]: 4 روز
+      - generic [ref=f23e23]: 5 روز
+      - generic [ref=f23e24]: 6 روز
+      - generic [ref=f23e25]: 7 روز
+      - generic [ref=f23e26]: 8 روز
+      - generic [ref=f23e27]: 9 روز
+      - generic [ref=f23e28]: 10 روز
+  - button "ادامه" [ref=f23e31] [cursor=pointer]

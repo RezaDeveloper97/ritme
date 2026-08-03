@@ -1,58 +1,50 @@
 'use client';
 
-import dayjs from 'dayjs';
-import jalaliday from 'jalaliday';
-import { useLocale } from 'next-intl';
-import { useState } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
+import { useMemo, useState } from 'react';
 
-import type { JalaliParts } from '@/shared/lib/date';
+import {
+  daysInCalendarMonth,
+  type DateParts,
+  formatMonthLabel,
+  formatNumber,
+  monthMatrix,
+  todayParts,
+  weekdayLabels,
+} from '@/shared/lib/date';
+import type { Locale } from '@/shared/i18n';
 
 import { Icon } from './Icon';
 
-dayjs.extend(jalaliday as Parameters<typeof dayjs.extend>[0]);
-
-const FA_MONTHS = [
-  'فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور',
-  'مهر','آبان','آذر','دی','بهمن','اسفند',
-] as const;
-
-const DAY_NAMES = ['ش','ی','د','س','چ','پ','ج'] as const;
-
-const FA = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
-const faNum = (n: string | number) => String(n).replace(/[0-9]/g, d => FA[Number(d)]);
-
-interface JalaliCalendarProps {
-  /** The currently-selected full Jalali date, or `null` if nothing is picked. */
-  value: JalaliParts | null;
+interface CalendarPickerProps {
+  /** The currently-selected full date, or `null` if nothing is picked. */
+  value: DateParts | null;
   /** Reports the full picked date (year/month/day), not just the day number. */
-  onSelect: (value: JalaliParts) => void;
+  onSelect: (value: DateParts) => void;
 }
 
-function getDaysInJalaliMonth(year: number, month: number): number {
-  if (month <= 6) return 31;
-  if (month <= 11) return 30;
-  return 29;
-}
-
-function getJalaliMonthOffset(year: number, month: number): number {
-  const d = (dayjs() as unknown as { calendar: (c: string) => typeof dayjs['prototype'] })
-    .calendar('jalali')
-    .year(year).month(month - 1).date(1).day();
-  return (d + 1) % 7;
-}
-
-/** Jalali month calendar for selecting the last period date. */
-export function JalaliCalendar({ value, onSelect }: JalaliCalendarProps) {
-  const locale = useLocale();
+/**
+ * Month calendar for selecting a date, rendered in the calendar the user's
+ * locale reads — Jalali for `fa`, Gregorian for `en` (CLAUDE.md §7). The parts
+ * it reports are therefore in that calendar too.
+ */
+export function CalendarPicker({ value, onSelect }: CalendarPickerProps) {
+  const locale = useLocale() as Locale;
+  const t = useTranslations('common');
   const isRtl = locale === 'fa';
 
-  const now = dayjs() as unknown as { calendar: (c: string) => { year: () => number; month: () => number } };
-  const j = now.calendar('jalali');
-  const [year, setYear] = useState(j.year());
-  const [month, setMonth] = useState(j.month() + 1);
+  const now = todayParts(locale);
+  const [year, setYear] = useState(now.year);
+  const [month, setMonth] = useState(now.month);
 
-  const daysInMonth = getDaysInJalaliMonth(year, month);
-  const offset = getJalaliMonthOffset(year, month);
+  // Length and weekday alignment both come from the date layer (§7) — Esfand is
+  // 29 or 30 days depending on the leap year, and the first weekday can't be
+  // derived from the month number.
+  const daysInMonth = daysInCalendarMonth(year, month, locale);
+  const offset = useMemo(
+    () => monthMatrix(year, month, locale)[0]!.findIndex((cell) => cell !== null),
+    [year, month, locale],
+  );
 
   const prevMonth = () => {
     if (month === 1) { setYear(y => y - 1); setMonth(12); }
@@ -81,20 +73,18 @@ export function JalaliCalendar({ value, onSelect }: JalaliCalendarProps) {
         <button
           className="iconbtn"
           onClick={isRtl ? prevMonth : nextMonth}
-          aria-label={isRtl ? 'ماه قبل' : 'Next month'}
+          aria-label={isRtl ? t('calendar.prevMonth') : t('calendar.nextMonth')}
         >
           <Icon name={isRtl ? 'chevronRight' : 'chevronLeft'} size={20} />
         </button>
 
-        <span className="jcal-month">
-          {FA_MONTHS[month - 1]} {faNum(year)}
-        </span>
+        <span className="jcal-month">{formatMonthLabel(year, month, locale)}</span>
 
         {/* Last child → LEFT in RTL = "next month" */}
         <button
           className="iconbtn"
           onClick={isRtl ? nextMonth : prevMonth}
-          aria-label={isRtl ? 'ماه بعد' : 'Previous month'}
+          aria-label={isRtl ? t('calendar.nextMonth') : t('calendar.prevMonth')}
         >
           <Icon name={isRtl ? 'chevronLeft' : 'chevronRight'} size={20} />
         </button>
@@ -102,7 +92,7 @@ export function JalaliCalendar({ value, onSelect }: JalaliCalendarProps) {
 
       {/* Day-of-week headers */}
       <div className="cal-grid jcal-weekdays">
-        {DAY_NAMES.map(w => (
+        {weekdayLabels(locale).map(w => (
           <span key={w} className="jcal-weekday">{w}</span>
         ))}
       </div>
@@ -121,7 +111,7 @@ export function JalaliCalendar({ value, onSelect }: JalaliCalendarProps) {
               className={`cday${isSelected ? ' on' : ''}`}
               onClick={() => onSelect({ year, month, day: d })}
             >
-              {faNum(d)}
+              {formatNumber(d, locale)}
             </button>
           );
         })}

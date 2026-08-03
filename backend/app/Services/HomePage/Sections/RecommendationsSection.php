@@ -2,47 +2,21 @@
 
 namespace App\Services\HomePage\Sections;
 
+use App\Enums\RecommendationType;
 use App\Services\HomePage\HomeContext;
 use App\Services\HomePage\HomeSection;
 
 /**
- * Section 5 — "توصیه‌های امروز": phase & symptom driven daily tips coming from
- * the HealthDataEngine (daily_tips), each mapped to a display icon.
+ * Section 5 — "توصیه‌های امروز": the admin-managed daily recommendations the
+ * HealthDataEngine resolved for today (`daily_tips`), each carrying its category
+ * icon and title.
+ *
+ * Icons and default titles come from {@see RecommendationType} — the same table
+ * the admin form and the cycle-calculation payload read, so a category is
+ * described in exactly one place.
  */
 class RecommendationsSection extends AbstractHomeSection
 {
-    private const TYPE_ICONS = [
-        'nutrition' => 'apple',
-        'hydration' => 'water-glass',
-        'warmth' => 'heat',
-        'rest' => 'bed',
-        'energy' => 'bolt',
-        'exercise' => 'walking',
-        'fertility' => 'heart',
-        'pms' => 'flower',
-        'mood' => 'smile',
-        'mental_health' => 'brain',
-        'pain_relief' => 'bandage',
-        'sleep' => 'moon',
-        'digestion' => 'stomach',
-    ];
-
-    private const TYPE_LABELS = [
-        'nutrition' => ['fa' => 'تغذیه', 'en' => 'Nutrition'],
-        'hydration' => ['fa' => 'آب‌رسانی', 'en' => 'Hydration'],
-        'warmth' => ['fa' => 'گرما درمانی', 'en' => 'Warmth'],
-        'rest' => ['fa' => 'استراحت', 'en' => 'Rest'],
-        'energy' => ['fa' => 'انرژی', 'en' => 'Energy'],
-        'exercise' => ['fa' => 'ورزش', 'en' => 'Exercise'],
-        'fertility' => ['fa' => 'باروری', 'en' => 'Fertility'],
-        'pms' => ['fa' => 'پی‌ام‌اس', 'en' => 'PMS'],
-        'mood' => ['fa' => 'خلق‌وخو', 'en' => 'Mood'],
-        'mental_health' => ['fa' => 'سلامت روان', 'en' => 'Mental health'],
-        'pain_relief' => ['fa' => 'تسکین درد', 'en' => 'Pain relief'],
-        'sleep' => ['fa' => 'خواب', 'en' => 'Sleep'],
-        'digestion' => ['fa' => 'گوارش', 'en' => 'Digestion'],
-    ];
-
     public function key(): string
     {
         return 'recommendations';
@@ -69,18 +43,19 @@ class RecommendationsSection extends AbstractHomeSection
         $tagTypes = [];
 
         foreach (array_slice($tips, 0, 6) as $tip) {
-            $type = $tip['type'] ?? 'general';
+            $type = $tip['type'] ?? RecommendationType::GENERAL->value;
             $text = $this->pick($tip, $context->locale);
-            if (!$text) {
+            if (! $text) {
                 continue;
             }
 
             $tagTypes[$type] = true;
             $items[] = [
                 'type' => $type,
-                'icon' => self::TYPE_ICONS[$type] ?? 'sparkle',
-                'title' => $this->pick(self::TYPE_LABELS[$type] ?? null, $context->locale)
-                    ?? $context->t('توصیه', 'Tip'),
+                'icon' => RecommendationType::iconFor($type),
+                // An admin-set title wins; otherwise the category's own label.
+                'title' => $this->pick($tip['title'] ?? null, $context->locale)
+                    ?? RecommendationType::labelFor($type, $context->locale),
                 'text' => $text,
             ];
         }
@@ -91,7 +66,7 @@ class RecommendationsSection extends AbstractHomeSection
 
         $tags = array_map(fn ($type) => [
             'type' => $type,
-            'icon' => self::TYPE_ICONS[$type] ?? 'sparkle',
+            'icon' => RecommendationType::iconFor($type),
         ], array_keys($tagTypes));
 
         return new HomeSection(

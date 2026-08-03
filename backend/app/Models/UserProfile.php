@@ -30,15 +30,22 @@ class UserProfile extends Model
         'calculation_version',
     ];
 
+    /**
+     * `birthday` and `last_period_start` are calendar days, not instants, so
+     * they serialize as `Y-m-d`. A plain `date` cast serializes to an ISO
+     * instant in UTC, and with the app on Asia/Tehran (+03:30) that turned
+     * 1995-01-15 into `1995-01-14T20:30:00Z` — clients reading the date part
+     * got the previous day.
+     */
     protected function casts(): array
     {
         return [
-            'birthday' => 'date',
+            'birthday' => 'date:Y-m-d',
             'weight' => 'float',
             'height' => 'integer',
             'period_duration' => 'integer',
             'cycle_duration' => 'integer',
-            'last_period_start' => 'date',
+            'last_period_start' => 'date:Y-m-d',
             'chronic_conditions' => 'array',
             'calculation_started_at' => 'datetime',
             'calculation_completed_at' => 'datetime',

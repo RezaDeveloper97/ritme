@@ -2,8 +2,7 @@
 export { challengeKeys, useTodayChallenge, fetchTodayChallenge } from './api/queries';
 export { challengeToggleSchema } from './api/schema';
 export type {
-  ChallengeDay,
-  ChallengeDifficulty,
+  ChallengeCycleDayRange,
   ChallengeToggleResult,
   TodayChallenge,
 } from './model/types';

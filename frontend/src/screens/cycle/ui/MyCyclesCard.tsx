@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { useMyCyclesSection, type CycleRecord } from '@/entities/cycle';
 import { PeriodDateEditor } from '@/features/log-period';
 import type { Locale } from '@/shared/i18n';
-import { formatJalali, formatJalaliDayMonth, fromApiDate, toJalali } from '@/shared/lib/date';
+import { formatLongDate, formatDayMonth, fromApiDate, toParts } from '@/shared/lib/date';
 import { DropSolid, Icon } from '@/shared/ui';
 
 import { SectionHead } from './SectionHead';
@@ -55,7 +55,7 @@ export function MyCyclesCard() {
               {t('cycles.current')}: {t('cycles.dayN', { n: current.cycle_day })}
             </div>
             <div className="myc-current-s">
-              {t('cycles.startedOn')} {formatJalali(start, loc)}
+              {t('cycles.startedOn')} {formatLongDate(start, loc)}
             </div>
           </div>
           {current.is_ongoing ? (
@@ -123,12 +123,12 @@ export function MyCyclesCard() {
         </button>
       </div>
 
-      {/* The same editor the calendar uses — it opens on the current Jalali month
+      {/* The same editor the calendar uses — it opens on the current month
           and scrolls back through the past year, so older periods can be added. */}
       <PeriodDateEditor
         open={editorOpen}
         onClose={() => setEditorOpen(false)}
-        initialView={{ year: toJalali(start).year, month: toJalali(start).month }}
+        initialView={{ year: toParts(start, loc).year, month: toParts(start, loc).month }}
       />
     </div>
   );
@@ -147,8 +147,8 @@ function PreviousCycleRow({
   const start = fromApiDate(cycle.period_start_date);
   const end = cycle.period_end_date ? fromApiDate(cycle.period_end_date) : null;
   const dates = end
-    ? t('dateRange', { from: formatJalaliDayMonth(start, loc), to: formatJalali(end, loc) })
-    : formatJalali(start, loc);
+    ? t('dateRange', { from: formatDayMonth(start, loc), to: formatLongDate(end, loc) })
+    : formatLongDate(start, loc);
 
   return (
     <li className="myc-row">

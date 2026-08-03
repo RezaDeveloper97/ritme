@@ -17,6 +17,13 @@ export type PregnancyChance = 'low' | 'medium' | 'high';
  */
 export type CycleDayMarker = 'period' | 'fertile' | 'ovulation' | 'pms';
 
+/**
+ * Visual weight of a day's marker tint. Graded by the day's conception
+ * probability relative to the other days carrying the same marker, so e.g.
+ * fertile-window cells deepen toward ovulation. Informational only (§11).
+ */
+export type MarkerIntensity = 'faint' | 'medium' | 'strong';
+
 /** The parameters that define a user's cycle. Gregorian at this boundary (§7). */
 export interface CycleConfig {
   /** First day of the current/reference period (day 1 of the cycle). */
@@ -38,10 +45,16 @@ export interface CycleDayInfo {
 /**
  * A phase/symptom-driven tip for the day, already localized by the backend.
  * `type` is a stable category code (`nutrition`, `sleep`, …) the UI maps to an
- * icon and a translated label. Display-only health copy — never log it (§11).
+ * icon. Display-only health copy — never log it (§11).
+ *
+ * `title` is the localized heading the backend resolved — an admin's override
+ * from the recommendations panel, else the category's own label. It is optional
+ * so an older backend (which sent only `type` + `text`) still parses; the UI
+ * falls back to its own translated category label then.
  */
 export interface CycleDailyTip {
   type: string;
+  title?: string;
   text: string;
 }
 
@@ -51,7 +64,7 @@ export interface CycleDailyTip {
  * by the zod boundary parser; probabilities are informational only (§11).
  */
 export interface CycleCalculation {
-  /** Gregorian `YYYY-MM-DD` this calculation is for (§7 — display in Jalali). */
+  /** Gregorian `YYYY-MM-DD` this calculation is for (§7 — display localized). */
   calculationDate: string;
   /** 1-based day within the current cycle. */
   cycleDay: number;
@@ -83,7 +96,7 @@ export interface MonthSummary {
 
 /**
  * Values the home screen derives from today's `CycleCalculation`. Offsets are
- * whole days from *today* — the UI turns them into Jalali dates through
+ * whole days from *today* — the UI turns them into localized dates through
  * `shared/lib/date` (§7), so this stays pure and locale-free.
  */
 export interface CyclePredictions {

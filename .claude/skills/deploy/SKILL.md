@@ -23,7 +23,7 @@ This builds both images `--platform linux/amd64`, streams them (`docker save | g
 1. If there are new migrations:
    `ssh -i ~/.ssh/id_ed25519 root@62.60.198.240 'cd /opt/ritme && docker compose exec -T backend php artisan migrate --force'`
 2. New seeders (content/messages/banners) must also be run manually the same way (`db:seed --class=...`). Seeders are written idempotent — safe to re-run.
-3. Verify: `curl -s http://ritmeapp.ir/up` (health) and `curl -s http://ritmeapp.ir/api/v1/banners` or another public endpoint; open http://ritmeapp.ir for the frontend.
+3. Verify: `curl -s https://ritmeapp.ir/up` (health) and `curl -s https://ritmeapp.ir/api/v1/banners` or another public endpoint; open https://ritmeapp.ir for the frontend.
 4. If something is wrong, check logs: `ssh ... 'cd /opt/ritme && docker compose logs --tail=100 backend frontend proxy'`
 
 ## Notes

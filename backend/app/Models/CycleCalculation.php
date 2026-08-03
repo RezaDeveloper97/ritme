@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @OA\Schema(
  *     schema="CycleCalculation",
  *     type="object",
+ *
  *     @OA\Property(property="id", type="integer", example=1),
  *     @OA\Property(property="user_id", type="integer", example=1),
  *     @OA\Property(property="calculation_date", type="string", format="date", example="2024-12-07"),
@@ -31,7 +32,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  *     @OA\Property(property="cycle_variability", type="string", example="regular"),
  *     @OA\Property(property="uncertainty_range", type="integer", example=1),
  *     @OA\Property(property="text_flags", type="object"),
- *     @OA\Property(property="daily_tips", type="object"),
+ *     @OA\Property(property="daily_tips", type="array", description="Localized daily recommendations (admin-managed)",
+ *
+ *         @OA\Items(type="object",
+ *
+ *             @OA\Property(property="type", type="string", example="nutrition"),
+ *             @OA\Property(property="title", type="string", example="تغذیه"),
+ *             @OA\Property(property="icon", type="string", example="apple"),
+ *             @OA\Property(property="text", type="string")
+ *         )
+ *     ),
  *     @OA\Property(property="created_at", type="string", format="date-time"),
  *     @OA\Property(property="updated_at", type="string", format="date-time")
  * )

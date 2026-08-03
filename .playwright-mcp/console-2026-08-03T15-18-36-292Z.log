@@ -1,0 +1,5 @@
+[     486ms] [INFO] Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner. @ https://ritmeapp.ir/fa/signup:0
+[    9473ms] [ERROR] Failed to load resource: the server responded with a status of 422 () @ https://ritmeapp.ir/api/v1/auth/send-otp:0
+[    9549ms] [ERROR] Failed to load resource: the server responded with a status of 422 () @ https://ritmeapp.ir/api/v1/auth/verify-otp:0
+[   24760ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ https://ritmeapp.ir/api/v1/auth/send-otp:0
+[   25047ms] [ERROR] Failed to load resource: the server responded with a status of 422 () @ https://ritmeapp.ir/api/v1/auth/verify-otp:0

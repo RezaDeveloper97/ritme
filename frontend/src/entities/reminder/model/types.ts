@@ -6,7 +6,7 @@ export type ReminderRecurrence = 'none' | 'daily' | 'weekly' | 'monthly';
 
 /**
  * A user reminder (GET /reminders). Dates cross the boundary as Gregorian
- * ISO strings and are converted to Jalali only for display (CLAUDE.md §7).
+ * ISO strings and are converted to the locale's calendar for display (§7).
  * Content is personal health context — never log it (§11).
  */
 export interface Reminder {

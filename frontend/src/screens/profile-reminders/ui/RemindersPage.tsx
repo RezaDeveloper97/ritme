@@ -17,7 +17,7 @@ import {
   useDeleteReminder,
   useUpdateReminder,
 } from '@/features/manage-reminders';
-import { formatJalali } from '@/shared/lib/date';
+import { formatLongDate } from '@/shared/lib/date';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { Icon, type IconName, NavBack } from '@/shared/ui';
 
@@ -128,9 +128,9 @@ function ReminderRow({
           })
         : label;
     }
-    // One-off: show the Jalali date when there is one (§7 — never raw Gregorian).
+    // One-off: show the localized date when there is one (§7 — never raw ISO).
     return reminder.scheduledAt
-      ? formatJalali(new Date(reminder.scheduledAt), loc)
+      ? formatLongDate(new Date(reminder.scheduledAt), loc)
       : null;
   })();
 

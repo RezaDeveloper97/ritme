@@ -39,7 +39,7 @@ class ChallengeCompletionController extends Controller
             ));
 
         $completions = $filtered()
-            ->with(['user:id,name,mobile', 'challenge:id,title,difficulty'])
+            ->with(['user:id,name,mobile', 'challenge:id,title'])
             ->orderByDesc('completion_date')
             ->orderByDesc('id')
             ->paginate(30)

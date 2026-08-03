@@ -17,19 +17,32 @@ interface CategorySheetProps {
   enums: HealthLogEnums | undefined;
   draft: HealthLogInput;
   onChange: (key: HealthLogField, value: unknown) => void;
-  onClose: () => void;
+  /** Discard this sheet's edits and close. */
+  onCancel: () => void;
+  /** Send this sheet's edits to the server and close. */
+  onSubmit: () => void;
+  isSaving: boolean;
 }
 
 /**
  * Bottom sheet for one log category (the Figma "Add Log" step sheets). Edits
- * write straight into the shared draft, so closing keeps every change — there's
- * no per-sheet save. RTL-safe and fully i18n'd (CLAUDE.md §6, §12).
+ * stay in the local draft while the sheet is open; only "ثبت" (submit) pushes
+ * them to the server, so the user stays in control of what gets recorded.
+ * RTL-safe and fully i18n'd (CLAUDE.md §6, §12).
  */
-export function CategorySheet({ category, enums, draft, onChange, onClose }: CategorySheetProps) {
+export function CategorySheet({
+  category,
+  enums,
+  draft,
+  onChange,
+  onCancel,
+  onSubmit,
+  isSaving,
+}: CategorySheetProps) {
   const t = useTranslations('log');
 
   return (
-    <div className="sheet-backdrop" onClick={onClose}>
+    <div className="sheet-backdrop" onClick={onCancel}>
       <div className="sheet" onClick={(e) => e.stopPropagation()}>
         <div className="sheet-grip" />
 
@@ -40,7 +53,7 @@ export function CategorySheet({ category, enums, draft, onChange, onClose }: Cat
             </div>
             <p className="sub cats-head-s">{t('sheetHint')}</p>
           </div>
-          <button className="iconbtn" onClick={onClose} aria-label={t('done')}>
+          <button className="iconbtn" onClick={onCancel} aria-label={t('close')}>
             <Icon name="x" size={20} />
           </button>
         </div>
@@ -63,8 +76,12 @@ export function CategorySheet({ category, enums, draft, onChange, onClose }: Cat
             )}
         </div>
 
-        <button className="btn btn-primary cats-done" onClick={onClose}>
-          {t('done')}
+        <button
+          className="btn btn-primary cats-done"
+          onClick={onSubmit}
+          disabled={!enums || isSaving}
+        >
+          {isSaving ? t('saving') : t('submit')}
         </button>
       </div>
     </div>

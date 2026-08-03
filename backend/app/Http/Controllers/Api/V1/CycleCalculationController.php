@@ -13,6 +13,7 @@ use App\Http\Controllers\Concerns\ResolvesLocale;
 use App\Http\Controllers\Controller;
 use App\Jobs\CalculateCycleDataJob;
 use App\Models\DailyHealthLog;
+use App\Services\HealthEngine\DailyTipLocalizer;
 use App\Services\HealthEngine\HealthDataEngine;
 use App\Services\MatrixEngine\CorrelationEngine;
 use App\Services\MatrixEngine\MatrixMessageEngine;
@@ -781,7 +782,8 @@ class CycleCalculationController extends Controller
 
         // The engine stores bilingual `{en, fa}` blobs in `daily_tips`/`text_flags`;
         // collapse them to the request locale so clients get render-ready strings
-        // (`daily_tips` becomes a list of `{type, text}`) instead of raw dictionaries.
+        // (`daily_tips` becomes a list of `{type, title, icon, text}`) instead of raw
+        // dictionaries.
         $calculationData = $this->localizeCalculation($calculationData, $locale);
 
         // Render-ready spec §19 payload (daily card, predictions, three-layer values,
@@ -824,21 +826,7 @@ class CycleCalculationController extends Controller
 
         // Extract localized text from daily_tips
         if (isset($calculation['daily_tips']) && is_array($calculation['daily_tips'])) {
-            $localizedTips = [];
-            foreach ($calculation['daily_tips'] as $tip) {
-                if (is_array($tip) && isset($tip[$locale])) {
-                    $localizedTips[] = [
-                        'type' => $tip['type'] ?? 'general',
-                        'text' => $tip[$locale],
-                    ];
-                } elseif (is_array($tip) && isset($tip['en'])) {
-                    $localizedTips[] = [
-                        'type' => $tip['type'] ?? 'general',
-                        'text' => $tip['en'],
-                    ];
-                }
-            }
-            $calculation['daily_tips'] = $localizedTips;
+            $calculation['daily_tips'] = (new DailyTipLocalizer)->localize($calculation['daily_tips'], $locale);
         }
 
         return $calculation;

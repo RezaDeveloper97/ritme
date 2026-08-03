@@ -8,7 +8,7 @@ export {
   cycleProgressPercent,
 } from './model/schedule';
 export type { CycleSchedule } from './model/schedule';
-export { cycleMarkerStyle } from './model/markers';
+export { cycleMarkerStyle, cycleMarkerBg, markerIntensityByDate } from './model/markers';
 export { fertilityBadgeStyle } from './model/fertilityStyle';
 export type { FertilityBadgeStyle } from './model/fertilityStyle';
 export { deriveDayHighlights } from './model/highlights';
@@ -22,6 +22,7 @@ export type {
   CycleDayInfo,
   CyclePhase,
   CycleDayMarker,
+  MarkerIntensity,
   PregnancyChance,
   CycleCalculation,
   CycleDailyTip,

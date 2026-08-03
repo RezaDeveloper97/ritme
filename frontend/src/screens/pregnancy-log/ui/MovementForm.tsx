@@ -12,7 +12,7 @@ import {
 } from '@/entities/pregnancy';
 import { NotesField, NumberField, PgCard, Segmented } from '@/features/track-pregnancy';
 import type { Locale } from '@/shared/i18n';
-import { addDays, diffInDays, formatJalaliDayMonth, toApiDate, today } from '@/shared/lib/date';
+import { addDays, diffInDays, formatDayMonth, toApiDate, today } from '@/shared/lib/date';
 import { Icon } from '@/shared/ui';
 
 type T = ReturnType<typeof useTranslations>;
@@ -83,7 +83,7 @@ export function MovementForm({ t }: { t: T }) {
         </button>
         <div className="plog-daynav-mid">
           <Icon name="calendar" size={15} />
-          <span className="plog-daynav-date">{formatJalaliDayMonth(date, locale)}</span>
+          <span className="plog-daynav-date">{formatDayMonth(date, locale)}</span>
           {isToday && <span className="plog-today">{t('log.today')}</span>}
         </div>
         <button className="iconbtn" onClick={() => canGoNext && shiftDay(1)} disabled={!canGoNext} aria-label={t('log.nextDay')}>

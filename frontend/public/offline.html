@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#F2ECFF" />
+  <title>ریتمی — آفلاین</title>
+  <style>
+    /* Standalone offline page: served straight from the SW cache, so it cannot
+       depend on app CSS. Values mirror the globals.css light tokens. */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #F2ECFF;
+      color: #2F2F35;
+      font-family: Vazirmatn, system-ui, -apple-system, sans-serif;
+      text-align: center;
+      padding: 24px;
+    }
+    .card {
+      background: #FFFFFF;
+      border-radius: 24px;
+      padding: 40px 32px;
+      max-width: 360px;
+      box-shadow: 0 8px 32px rgba(123, 97, 255, 0.12);
+    }
+    .card img { width: 96px; height: 96px; border-radius: 24px; margin-bottom: 20px; }
+    h1 { font-size: 20px; font-weight: 700; margin-bottom: 10px; }
+    p { font-size: 14px; color: #6B6B76; line-height: 1.9; margin-bottom: 24px; }
+    button {
+      font: inherit;
+      font-weight: 600;
+      color: #FFFFFF;
+      background: linear-gradient(135deg, #7B61FF 0%, #FF6FAE 100%);
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 32px;
+      cursor: pointer;
+    }
+    @media (prefers-color-scheme: dark) {
+      body { background: #131022; color: #F3F1FA; }
+      .card { background: #1C1830; box-shadow: none; }
+      p { color: #A9A4BC; }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <img src="/icons/icon-192.png" alt="ریتمی" />
+    <h1>اتصال اینترنت برقرار نیست</h1>
+    <p>به نظر می‌رسد آفلاین هستید. لطفاً اتصال خود را بررسی کنید و دوباره تلاش کنید.</p>
+    <button onclick="location.reload()">تلاش دوباره</button>
+  </div>
+</body>
+</html>

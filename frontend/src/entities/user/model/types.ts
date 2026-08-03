@@ -1,4 +1,5 @@
-import type { JalaliParts } from '@/shared/lib/date';
+import type { Locale } from '@/shared/i18n';
+import type { DateParts } from '@/shared/lib/date';
 
 /**
  * The authenticated account as returned by the Auth endpoints
@@ -18,7 +19,7 @@ export interface AuthUser {
  * (OpenAPI `profile` object). This is sensitive cycle data (CLAUDE.md §11) —
  * never log it. Every field is nullable: a freshly-registered account has no
  * profile yet, and the backend may omit individual values. Dates arrive in the
- * API's format (Gregorian ISO) and are converted to Jalali only for display
+ * API's format (Gregorian ISO) and are converted to the locale's calendar for display
  * (§7).
  */
 export interface HealthProfile {
@@ -100,16 +101,25 @@ export type OnboardingAgeSource = 'lmp' | 'ultrasound' | 'manual';
 export interface PregnancyBasis {
   source: OnboardingAgeSource | null;
   /** First day of the last menstrual period. */
-  lmp: JalaliParts | null;
-  ultrasoundDate: JalaliParts | null;
+  lmp: DateParts | null;
+  ultrasoundDate: DateParts | null;
   ultrasoundWeeks: number | null;
   ultrasoundDays: number | null;
   manualWeeks: number | null;
   manualDays: number | null;
 }
 
-export interface JalaliBirth {
+/**
+ * The birthday collected by the onboarding wheels, in the parts of whichever
+ * calendar the user's locale reads (see {@link OnboardingData.locale}).
+ *
+ * `m` is **1-based** (1 = فروردین / January), matching {@link DateParts} — the
+ * shape the API mapper converts from. It used to hold the raw 0-based wheel
+ * index, which silently shifted every saved birthday back one month.
+ */
+export interface BirthParts {
   d: number;
+  /** Month, 1–12 (1 = Farvardin / January). */
   m: number;
   y: number;
 }
@@ -120,7 +130,14 @@ export type HeightUnit = 'cm' | 'ft';
 export interface OnboardingData {
   phone: string;
   name: string;
-  birth: JalaliBirth;
+  /**
+   * The locale whose calendar every date below is expressed in. Onboarding
+   * answers outlive a language switch (they are persisted), so the calendar
+   * they were entered in has to travel with them — otherwise «۱۳۷۳» would be
+   * re-read as a Gregorian year the moment the user switches to English.
+   */
+  locale: Locale;
+  birth: BirthParts;
   weightUnit: WeightUnit;
   weight: number;
   heightUnit: HeightUnit;
@@ -135,5 +152,5 @@ export interface OnboardingData {
   /** Typical cycle length in days (API `cycle_duration`, validated 15–60). */
   cycleDuration: number;
   /** Start date of the last period, or `null` until the user picks it. */
-  lastPeriod: JalaliParts | null;
+  lastPeriod: DateParts | null;
 }

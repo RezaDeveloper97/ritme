@@ -1,27 +1,31 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import { useMemo } from 'react';
 
-import { useRouter } from '@/shared/i18n';
+import { type Locale, useRouter } from '@/shared/i18n';
+import { formatNumber } from '@/shared/lib/date';
 import { NavBack, WheelPicker } from '@/shared/ui';
 import { nextOnboardingRoute, stepPosition, useOnboardingStore } from '@/entities/user';
 
-const FA = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
-const faNum = (n: string | number) => String(n).replace(/[0-9]/g, d => FA[Number(d)]);
 
-const ITEMS = Array.from({ length: 10 }, (_, i) => `${faNum(i + 1)} روز`);
 
 export function PeriodLenPage() {
   const t = useTranslations('onboarding');
+  const loc = useLocale() as Locale;
   const router = useRouter();
   const { periodLen, intention, setPeriodLen } = useOnboardingStore();
   const step = stepPosition('periodLen', intention);
+  const items = useMemo(
+    () => Array.from({ length: 10 }, (_, i) => t('dayCount', { days: i + 1 })),
+    [t],
+  );
 
   return (
     <div className="view onb-page">
       <div className="hdr">
         <NavBack onClick={() => router.back()} />
-        <span className="stepcount">{faNum(step.index)}<span className="onb-dim"> / {faNum(step.total)}</span></span>
+        <span className="stepcount">{formatNumber(step.index, loc)}<span className="onb-dim"> / {formatNumber(step.total, loc)}</span></span>
       </div>
 
       <div className="scroll onb-body">
@@ -33,7 +37,7 @@ export function PeriodLenPage() {
           <div className="prof-wheel-center">
             <div className="wheel-band prof-wheel-band" />
             <WheelPicker
-              id="wP" items={ITEMS} selectedIndex={periodLen - 1} width={150}
+              id="wP" items={items} selectedIndex={periodLen - 1} width={150}
               onChange={i => setPeriodLen(i + 1)}
             />
           </div>

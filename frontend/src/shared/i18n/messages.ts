@@ -19,6 +19,7 @@ import enNotifications from '../../../messages/en/notifications.json';
 import enOnboarding from '../../../messages/en/onboarding.json';
 import enPhaseDetails from '../../../messages/en/phase-details.json';
 import enPregnancy from '../../../messages/en/pregnancy.json';
+import enPwa from '../../../messages/en/pwa.json';
 import enProfile from '../../../messages/en/profile.json';
 import enProfileEdit from '../../../messages/en/profile-edit.json';
 import enProfileInfo from '../../../messages/en/profile-info.json';
@@ -41,6 +42,7 @@ import faNotifications from '../../../messages/fa/notifications.json';
 import faOnboarding from '../../../messages/fa/onboarding.json';
 import faPhaseDetails from '../../../messages/fa/phase-details.json';
 import faPregnancy from '../../../messages/fa/pregnancy.json';
+import faPwa from '../../../messages/fa/pwa.json';
 import faProfile from '../../../messages/fa/profile.json';
 import faProfileEdit from '../../../messages/fa/profile-edit.json';
 import faProfileInfo from '../../../messages/fa/profile-info.json';
@@ -70,6 +72,7 @@ const messages = {
     log: faLog,
     logPeriod: faLogPeriod,
     welcome: faWelcome,
+    pwa: faPwa,
     articles: faArticles,
   },
   en: {
@@ -94,6 +97,7 @@ const messages = {
     log: enLog,
     logPeriod: enLogPeriod,
     welcome: enWelcome,
+    pwa: enPwa,
     articles: enArticles,
   },
 } as const;

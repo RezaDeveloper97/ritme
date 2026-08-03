@@ -2,26 +2,26 @@
 
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 import { useUserProfile } from '@/entities/user';
 import { type Locale } from '@/shared/i18n';
 import {
   addDays,
   diffInDays,
-  formatJalaliMonthLabel,
+  formatMonthLabel,
   fromApiDate,
-  jalaliMonthMatrix,
-  shiftJalaliMonth,
+  monthMatrix,
+  shiftMonth,
   toApiDate,
-  toJalali,
+  toParts,
   today,
-  type JalaliMonthCell,
+  weekdayKeys,
+  type MonthCell,
 } from '@/shared/lib/date';
 import { Icon } from '@/shared/ui';
 
 import { usePeriodHistory, useReconcilePeriods, type PeriodSegment } from '../api/mutations';
-
-const WEEKDAY_KEYS = ['sat', 'sun', 'mon', 'tue', 'wed', 'thu', 'fri'] as const;
 
 const PERIOD_COLOR = 'var(--brand)';
 
@@ -36,13 +36,13 @@ const MONTHS_BACK = 12;
 interface PeriodDateEditorProps {
   open: boolean;
   onClose: () => void;
-  /** Jalali month to open on — the month the calendar is currently showing. */
+  /** Month to open on (locale's calendar) — the month the calendar is showing. */
   initialView?: { year: number; month: number };
   /** Fired after a successful save, before the editor closes (to show recalculating). */
   onSaved?: () => void;
 }
 
-/** Serialize a Jalali month to a stable key / ordinal (all Jalali years have 12 months). */
+/** Serialize a month to a stable key / ordinal (both calendars have 12 months). */
 const monthKey = (y: number, m: number) => `${y}-${m}`;
 const monthOrd = (y: number, m: number) => y * 12 + (m - 1);
 
@@ -86,10 +86,20 @@ export function PeriodDateEditor({ open, onClose, initialView, onSaved }: Period
   const locale = useLocale() as Locale;
   const format = useFormatter();
   const todayIso = toApiDate(today());
-  const currentJ = toJalali(today());
+  const currentJ = toParts(today(), locale);
 
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
   const monthRefs = useRef<Map<string, HTMLDivElement | null>>(new Map());
+
+  // The editor is `position: absolute; inset: 0`, so it must live directly under
+  // the phone frame — mounted in place it would resolve against whatever scroll
+  // container the caller sits in (the cycle screen's `.scroll`) and render off
+  // screen. Portalling to `.app-shell` makes it full-screen from any call site.
+  const [host, setHost] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    if (!open) return;
+    setHost(document.querySelector<HTMLElement>('.app-shell') ?? document.body);
+  }, [open]);
 
   const historyQuery = usePeriodHistory();
   const profileQuery = useUserProfile();
@@ -102,19 +112,19 @@ export function PeriodDateEditor({ open, onClose, initialView, onSaved }: Period
   // MONTHS_BACK before today) up to the current month — never a full future one.
   const openMonth = initialView ?? currentJ;
   const months = useMemo(() => {
-    const prevOfOpen = shiftJalaliMonth(openMonth.year, openMonth.month, -1);
-    const back = shiftJalaliMonth(currentJ.year, currentJ.month, -MONTHS_BACK);
+    const prevOfOpen = shiftMonth(openMonth.year, openMonth.month, -1);
+    const back = shiftMonth(currentJ.year, currentJ.month, -MONTHS_BACK);
     const startOrd = Math.min(monthOrd(prevOfOpen.year, prevOfOpen.month), monthOrd(back.year, back.month));
     const endOrd = monthOrd(currentJ.year, currentJ.month);
-    const list: { year: number; month: number; weeks: (JalaliMonthCell | null)[][] }[] = [];
+    const list: { year: number; month: number; weeks: (MonthCell | null)[][] }[] = [];
     for (let o = startOrd; o <= endOrd; o += 1) {
       const year = Math.floor(o / 12);
       const month = (o % 12) + 1;
-      list.push({ year, month, weeks: jalaliMonthMatrix(year, month) });
+      list.push({ year, month, weeks: monthMatrix(year, month, locale) });
     }
     return list;
      
-  }, [openMonth.year, openMonth.month, currentJ.year, currentJ.month]);
+  }, [openMonth.year, openMonth.month, currentJ.year, currentJ.month, locale]);
 
   // Every logged period day, so the editor opens showing what's already recorded.
   // An open (ongoing) period only stores its start, so it fills to the profile's
@@ -141,10 +151,10 @@ export function PeriodDateEditor({ open, onClose, initialView, onSaved }: Period
 
   // Jump the scroll to the opened month so the user lands where the calendar was.
   useEffect(() => {
-    if (!open) return;
+    if (!open || !host) return;
     monthRefs.current.get(monthKey(openMonth.year, openMonth.month))?.scrollIntoView({ block: 'start' });
-     
-  }, [open, openMonth.year, openMonth.month]);
+
+  }, [open, host, openMonth.year, openMonth.month]);
 
   // Badge value per day: its 1-based position within its own contiguous run, so a
   // one-day gap restarts the numbering (day N *of that period*).
@@ -162,12 +172,31 @@ export function PeriodDateEditor({ open, onClose, initialView, onSaved }: Period
     return map;
   }, [selected]);
 
+  // Tapping an empty day that starts a NEW run pre-fills the user's usual bleed
+  // length forward from it (day 1 → `periodDuration` days), because a period is
+  // a range, not a single day — the common case is then only trimming the tail.
+  // Extending an existing run (tapping a day touching one) stays a single-day
+  // toggle, so manual fine-tuning is never overwritten. The fill stops at today
+  // and at any already-selected day, so it can't reach into the future or
+  // silently swallow the gap before another period.
   const toggle = (iso: string) => {
     if (iso > todayIso) return; // never select the future
     setSelected((prev) => {
       const next = new Set(prev);
-      if (next.has(iso)) next.delete(iso);
-      else next.add(iso);
+      if (next.has(iso)) {
+        next.delete(iso);
+        return next;
+      }
+      const date = fromApiDate(iso);
+      const touchesRun =
+        prev.has(toApiDate(addDays(date, -1))) || prev.has(toApiDate(addDays(date, 1)));
+      next.add(iso);
+      if (touchesRun) return next;
+      for (let i = 1; i < Math.max(1, periodDuration); i += 1) {
+        const dayIso = toApiDate(addDays(date, i));
+        if (dayIso > todayIso || prev.has(dayIso)) break;
+        next.add(dayIso);
+      }
       return next;
     });
   };
@@ -185,9 +214,9 @@ export function PeriodDateEditor({ open, onClose, initialView, onSaved }: Period
     );
   };
 
-  if (!open) return null;
+  if (!open || !host) return null;
 
-  const renderDay = (cell: JalaliMonthCell | null, ci: number) => {
+  const renderDay = (cell: MonthCell | null, ci: number) => {
     if (!cell) return <span key={ci} />;
     const iso = toApiDate(cell.date);
     const isFuture = iso > todayIso;
@@ -256,7 +285,7 @@ export function PeriodDateEditor({ open, onClose, initialView, onSaved }: Period
     );
   };
 
-  return (
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
@@ -282,7 +311,7 @@ export function PeriodDateEditor({ open, onClose, initialView, onSaved }: Period
         </div>
 
         <div className="cal-grid pde-weekdays">
-          {WEEKDAY_KEYS.map((k) => (
+          {weekdayKeys(locale).map((k) => (
             <span key={k} className="pde-weekday">
               {t(`editor.weekdays.${k}`)}
             </span>
@@ -301,7 +330,7 @@ export function PeriodDateEditor({ open, onClose, initialView, onSaved }: Period
             className="pde-month"
           >
             <div className="pde-month-t">
-              {formatJalaliMonthLabel(m.year, m.month, locale)}
+              {formatMonthLabel(m.year, m.month, locale)}
             </div>
             <div className="pde-weeks">
               {m.weeks.map((week, wi) => (
@@ -317,7 +346,7 @@ export function PeriodDateEditor({ open, onClose, initialView, onSaved }: Period
       {/* Footer: hint + Cancel / Save. */}
       <div className="pde-foot">
         <div className="pde-hint">
-          {isError ? t('dateEditor.error') : t('dateEditor.hint')}
+          {isError ? t('dateEditor.error') : t('dateEditor.hint', { days: periodDuration })}
         </div>
         <div className="pde-actions">
           <button
@@ -347,7 +376,7 @@ export function PeriodDateEditor({ open, onClose, initialView, onSaved }: Period
               height: 52,
               borderRadius: 999,
               border: 'none',
-              background: 'var(--green)',
+              background: 'var(--gradient-brand)',
               color: 'var(--on-accent)',
               fontFamily: 'inherit',
               fontSize: 'clamp(14px, 4vw, 16px)',
@@ -360,6 +389,7 @@ export function PeriodDateEditor({ open, onClose, initialView, onSaved }: Period
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    host,
   );
 }

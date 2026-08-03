@@ -37,13 +37,12 @@ export function CycleValuesCard({
   basedOnText,
 }: CycleValuesCardProps) {
   return (
-    <div className="card cvc">
-      <div className="cvc-title">{title}</div>
-
-      <div className="cvc-row">
-        <span className="cvc-row-l">{loggedLabel}</span>
-        <span className="cvc-row-v">{loggedValue}</span>
+    <section className="cvc">
+      <div className="cvc-head">
+        <span className="cvc-title">{title}</span>
+        <span className="cvc-value">{loggedValue}</span>
       </div>
+      <div className="cvc-label">{loggedLabel}</div>
 
       {suggestion && (
         <div className="cvc-sugg">
@@ -61,6 +60,6 @@ export function CycleValuesCard({
       )}
 
       <div className="cvc-note">{basedOnText}</div>
-    </div>
+    </section>
   );
 }

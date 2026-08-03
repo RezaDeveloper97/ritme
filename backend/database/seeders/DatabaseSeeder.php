@@ -30,6 +30,7 @@ class DatabaseSeeder extends Seeder
             AffirmationSeeder::class,
             ChallengeSeeder::class,
             MessageContentSeeder::class,
+            RecommendationSeeder::class,
             PregnancyWeeklyContentSeeder::class,
             PhaseContentSeeder::class,
             HomeDemoSeeder::class,

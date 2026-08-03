@@ -30,19 +30,32 @@ import type {
  * shown to users and must not leak into logs or state (§11).
  */
 /**
- * One phase/symptom-driven tip from the engine. The backend localizes `text` to
- * the request locale; `type` is a stable category code the UI maps to an icon
- * and a translated label. Health copy is display-only and never logged (§11).
+ * One phase/symptom-driven tip from the engine. The backend localizes `text` and
+ * `title` to the request locale; `type` is a stable category code the UI maps to
+ * an icon. `title` is optional — the recommendations are admin-managed, and an
+ * older backend sent none. Health copy is display-only and never logged (§11).
  */
 const dailyTipSchema = z
-  .object({ type: z.string().default('general'), text: z.string() })
-  .transform((t): CycleDailyTip => ({ type: t.type, text: t.text }));
+  .object({
+    type: z.string().default('general'),
+    // `nullish`, not `optional`: a parse failure here would drop the whole tip
+    // (the list is `safeParse`d per item), so an explicit null must cost the
+    // heading, never the advice. Blank titles collapse to undefined so the
+    // "present means non-empty" contract holds for callers.
+    title: z.string().nullish(),
+    text: z.string(),
+  })
+  .transform((t): CycleDailyTip => ({
+    type: t.type,
+    title: t.title?.trim() || undefined,
+    text: t.text,
+  }));
 
 export const cycleCalculationSchema = z
   .object({
     // Gregorian `YYYY-MM-DD` the backend stamps on every calculation. The
     // calendar keys each day cell by this so a filtered/sparse month array still
-    // maps to the right dates (§7 — converted to Jalali only for display).
+    // maps to the right dates (§7 — converted to the locale's calendar only for display).
     calculation_date: z.string(),
     cycle_day: z.number(),
     phase: z.string(),

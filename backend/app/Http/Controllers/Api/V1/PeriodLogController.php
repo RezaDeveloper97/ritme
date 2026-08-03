@@ -218,6 +218,112 @@ class PeriodLogController extends Controller
 
     /**
      * @OA\Post(
+     *     path="/cycle/period",
+     *     summary="Log a complete period range",
+     *     description="Creates a logged period from an explicit start (and optional end) date in one call. Unlike start+end, this never depends on which period is currently ongoing, so a client reconciling several ranges at once can't close the wrong one.",
+     *     tags={"Cycle"},
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *
+     *         @OA\JsonContent(
+     *             required={"start_date"},
+     *
+     *             @OA\Property(property="start_date", type="string", format="date", example="2026-03-21"),
+     *             @OA\Property(property="end_date", type="string", format="date", nullable=true, example="2026-03-25", description="Omit/null to leave the period ongoing")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(response=200, description="Period created"),
+     *     @OA\Response(response=422, description="Validation error / overlap"),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
+     */
+    public function store(Request $request): JsonResponse
+    {
+        $locale = $this->resolveLocale($request);
+        app()->setLocale($locale);
+
+        $validator = Validator::make($request->all(), [
+            'start_date' => 'required|date|before_or_equal:today',
+            'end_date' => 'nullable|date|after_or_equal:start_date|before_or_equal:today',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first(),
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $user = $request->user();
+        $startDate = Carbon::parse($request->input('start_date'))->startOfDay();
+        $endDate = $request->filled('end_date')
+            ? Carbon::parse($request->input('end_date'))->startOfDay()
+            : null;
+
+        // Same-day record → reuse it (idempotent re-save, and promotes an
+        // onboarding estimate into a real logged period, like start() does).
+        $period = CycleHistory::where('user_id', $user->id)
+            ->whereDate('period_start_date', $startDate->toDateString())
+            ->first();
+
+        if ($this->overlapsExistingPeriod($user->id, $startDate, $endDate ?? $startDate, $period?->id)) {
+            return response()->json([
+                'success' => false,
+                'message' => $locale === 'fa'
+                    ? 'این بازه با یک پریود ثبت‌شدهٔ دیگر همپوشانی دارد. لطفاً یکی از بازه‌ها را ویرایش کن.'
+                    : 'This range overlaps another logged period. Please edit one of the ranges.',
+                'code' => 'period_overlap',
+            ], 422);
+        }
+
+        $attributes = [
+            'period_start_date' => $startDate,
+            'period_end_date' => $endDate?->toDateString(),
+            'bleeding_length' => $endDate ? $startDate->diffInDays($endDate) + 1 : null,
+            'is_confirmed' => true,
+            'is_estimated' => false,
+            'source' => DataSource::USER_LOGGED->value,
+        ];
+
+        if ($period) {
+            $period->update($attributes);
+        } else {
+            $period = CycleHistory::create($attributes + ['user_id' => $user->id]);
+        }
+
+        // Real logged data supersedes the onboarding seed (same rule as start()).
+        CycleHistory::where('user_id', $user->id)
+            ->where('is_estimated', true)
+            ->where('id', '!=', $period->id)
+            ->delete();
+
+        $this->recomputeCycleLengths($user->id);
+        $this->reanchor($user, $locale);
+
+        $period->refresh();
+        $period->update([
+            'data_quality_flags' => $this->qualityFlags($period->cycle_length, $period->bleeding_length),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => __('profile.updated'),
+            'data' => [
+                'id' => $period->id,
+                'active' => $period->period_end_date === null,
+                'period_start_date' => $period->period_start_date?->toDateString(),
+                'period_end_date' => $period->period_end_date?->toDateString(),
+                'warnings' => $this->periodWarnings($period->cycle_length, $period->bleeding_length, $locale),
+            ],
+        ]);
+    }
+
+    /**
+     * @OA\Post(
      *     path="/cycle/period/end",
      *     summary="Mark the ongoing period as ended",
      *     description="Closes the current ongoing period with an end date (defaults to today) and records the bleeding length.",

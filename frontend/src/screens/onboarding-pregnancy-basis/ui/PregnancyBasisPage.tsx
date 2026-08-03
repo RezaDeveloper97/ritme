@@ -1,10 +1,10 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 
-import { useRouter } from '@/shared/i18n';
-import { todayJalali, type JalaliParts } from '@/shared/lib/date';
+import { type Locale, useRouter } from '@/shared/i18n';
+import { formatNumber, todayParts, type DateParts } from '@/shared/lib/date';
 import { Icon, NavBack } from '@/shared/ui';
 import {
   nextOnboardingRoute,
@@ -12,11 +12,8 @@ import {
   useOnboardingStore,
   type OnboardingAgeSource,
 } from '@/entities/user';
-import { JalaliDateWheels } from '@/features/edit-profile';
+import { DateWheels } from '@/features/edit-profile';
 import { NumberField, Segmented } from '@/features/track-pregnancy';
-
-const FA = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
-const faNum = (n: string | number) => String(n).replace(/[0-9]/g, d => FA[Number(d)]);
 
 const SOURCES: OnboardingAgeSource[] = ['lmp', 'ultrasound', 'manual'];
 
@@ -28,14 +25,15 @@ const SOURCES: OnboardingAgeSource[] = ['lmp', 'ultrasound', 'manual'];
  */
 export function PregnancyBasisPage() {
   const t = useTranslations('onboarding');
+  const loc = useLocale() as Locale;
   const router = useRouter();
   const { intention, pregnancyBasis, setPregnancyBasis } = useOnboardingStore();
   const step = stepPosition('pregnancyBasis', intention);
 
-  const thisYear = todayJalali().year;
+  const thisYear = todayParts(loc).year;
   const [source, setSource] = useState<OnboardingAgeSource | null>(pregnancyBasis.source);
-  const [lmp, setLmp] = useState<JalaliParts>(pregnancyBasis.lmp ?? todayJalali());
-  const [scanDate, setScanDate] = useState<JalaliParts>(pregnancyBasis.ultrasoundDate ?? todayJalali());
+  const [lmp, setLmp] = useState<DateParts>(pregnancyBasis.lmp ?? todayParts(loc));
+  const [scanDate, setScanDate] = useState<DateParts>(pregnancyBasis.ultrasoundDate ?? todayParts(loc));
   const [scanWeeks, setScanWeeks] = useState<number | undefined>(pregnancyBasis.ultrasoundWeeks ?? undefined);
   const [scanDays, setScanDays] = useState<number | undefined>(pregnancyBasis.ultrasoundDays ?? undefined);
   const [manualWeeks, setManualWeeks] = useState<number | undefined>(pregnancyBasis.manualWeeks ?? undefined);
@@ -43,8 +41,8 @@ export function PregnancyBasisPage() {
   const [error, setError] = useState<string | null>(null);
 
   const dayOptions = useMemo(
-    () => Array.from({ length: 7 }, (_, i) => ({ value: String(i), label: faNum(i) })),
-    [],
+    () => Array.from({ length: 7 }, (_, i) => ({ value: String(i), label: formatNumber(i, loc) })),
+    [loc],
   );
 
   const handleNext = () => {
@@ -69,7 +67,7 @@ export function PregnancyBasisPage() {
     <div className="view onb-page">
       <div className="hdr">
         <NavBack onClick={() => router.back()} />
-        <span className="stepcount">{faNum(step.index)}<span className="onb-dim"> / {faNum(step.total)}</span></span>
+        <span className="stepcount">{formatNumber(step.index, loc)}<span className="onb-dim"> / {formatNumber(step.total, loc)}</span></span>
       </div>
 
       <div className="scroll onb-body">
@@ -123,13 +121,13 @@ export function PregnancyBasisPage() {
 
         {source === 'lmp' && (
           <div className="onb-mt16">
-            <JalaliDateWheels idPrefix="lmp" value={lmp} onChange={setLmp} minYear={thisYear - 1} maxYear={thisYear} />
+            <DateWheels idPrefix="lmp" value={lmp} onChange={setLmp} minYear={thisYear - 1} maxYear={thisYear} />
           </div>
         )}
 
         {source === 'ultrasound' && (
           <div className="onb-mt16">
-            <JalaliDateWheels idPrefix="scan" value={scanDate} onChange={setScanDate} minYear={thisYear - 1} maxYear={thisYear} />
+            <DateWheels idPrefix="scan" value={scanDate} onChange={setScanDate} minYear={thisYear - 1} maxYear={thisYear} />
             <div className="onb-mt14">
               <NumberField label={t('pregnancyBasis.weeks')} value={scanWeeks} onChange={setScanWeeks} min={1} max={42} />
             </div>

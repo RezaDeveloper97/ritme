@@ -5,6 +5,7 @@ namespace App\Services\HealthEngine;
 use App\Enums\CyclePhase;
 use App\Enums\CycleSubphase;
 use App\Enums\CycleVariability;
+use App\Enums\SexualDesire;
 use App\Models\CycleHistory;
 use App\Models\DailyHealthLog;
 use App\Models\User;
@@ -78,6 +79,8 @@ class HealthDataEngine
 
     private CyclePhaseMapper $phaseMapper;
 
+    private RecommendationRepository $recommendations;
+
     /**
      * Effective bleeding length (days) for the cycle being calculated — set from the
      * three-layer metrics at the top of calculateForDate so phase/subphase detection
@@ -85,13 +88,16 @@ class HealthDataEngine
      */
     private int $effectivePeriodDuration = 5;
 
-    public function __construct(User $user, string $locale = 'en')
+    public function __construct(User $user, string $locale = 'en', ?RecommendationRepository $recommendations = null)
     {
         $this->user = $user;
         $this->profile = $user->profile;
         $this->locale = $locale;
         $this->metricsCalculator = new CycleMetricsCalculator;
         $this->phaseMapper = new CyclePhaseMapper;
+        // Resolved from the container (a singleton) rather than constructed, so
+        // every engine in a request shares one load of the recommendation set.
+        $this->recommendations = $recommendations ?? app(RecommendationRepository::class);
     }
 
     /**
@@ -475,7 +481,7 @@ class HealthDataEngine
         }
 
         // High libido
-        if (is_array($log->sexual_activities) && in_array('high_desire', $log->sexual_activities)) {
+        if ($this->hasHighLibido($log)) {
             return true;
         }
 
@@ -485,6 +491,21 @@ class HealthDataEngine
         }
 
         return false;
+    }
+
+    /**
+     * Above-baseline libido — a fertile-window signal.
+     *
+     * Current logs answer this with sexual_desire; logs written before the
+     * question was split out carry it inside the sexual_activities list.
+     */
+    private function hasHighLibido(DailyHealthLog $log): bool
+    {
+        if ($log->sexual_desire === SexualDesire::HIGHER->value) {
+            return true;
+        }
+
+        return is_array($log->sexual_activities) && in_array('high_desire', $log->sexual_activities);
     }
 
     /**
@@ -536,7 +557,7 @@ class HealthDataEngine
             $positiveScore += (self::POSITIVE_SYMPTOMS['ovulation_cramps'] - 1);
         }
 
-        if (is_array($log->sexual_activities) && in_array('high_desire', $log->sexual_activities)) {
+        if ($this->hasHighLibido($log)) {
             $positiveScore += (self::POSITIVE_SYMPTOMS['high_libido'] - 1);
         }
 
@@ -639,16 +660,23 @@ class HealthDataEngine
     }
 
     /**
-     * Generate daily tips based on phase and symptoms
+     * Generate daily tips based on phase and symptoms.
+     *
+     * The content is admin-managed (the "توصیه‌های امروز" page in the panel),
+     * resolved through {@see RecommendationRepository}. The hardcoded copy below
+     * is only the fallback for an install whose recommendations table has never
+     * been seeded — once any recommendation exists, the database is the single
+     * source of truth, so deactivating every row genuinely hides the section
+     * instead of silently resurrecting the built-in text.
      */
     public function generateDailyTips(CyclePhase $phase, CycleSubphase $subphase, ?DailyHealthLog $log): array
     {
-        $tips = [];
+        if ($this->recommendations->hasContent()) {
+            return $this->recommendations->forDay($phase, $subphase, $log);
+        }
 
-        // Phase-specific tips
-        $tips = array_merge($tips, $this->getPhaseBasedTips($phase, $subphase));
+        $tips = $this->getPhaseBasedTips($phase, $subphase);
 
-        // Symptom-specific tips
         if ($log) {
             $tips = array_merge($tips, $this->getSymptomBasedTips($log));
         }

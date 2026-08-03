@@ -139,6 +139,17 @@ final class HomeContext
     }
 
     /**
+     * 1-based day of the current cycle for the context date, or null when the
+     * cycle isn't known — the granularity challenge content is tagged with.
+     */
+    public function cycleDay(): ?int
+    {
+        $day = $this->cycleData()['cycle_day'] ?? null;
+
+        return $day === null ? null : (int) $day;
+    }
+
+    /**
      * Fine-grained sub-phase (CycleSubphase key) for the context date — the
      * granularity admin content is tagged with.
      */

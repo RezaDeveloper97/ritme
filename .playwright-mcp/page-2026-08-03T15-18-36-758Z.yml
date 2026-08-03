@@ -1,0 +1,10 @@
+- generic [active] [ref=f2e1]:
+  - generic [ref=f2e4]:
+    - button "برگرد" [ref=f2e6] [cursor=pointer]
+    - generic [ref=f2e9]:
+      - generic [ref=f2e10]: همین امروز عضو ریتمی شو
+      - paragraph [ref=f2e16]: برای ورود یا ثبت‌نام، شماره موبایلت رو بنویس
+      - generic [ref=f2e17]: شماره موبایل
+      - textbox "۰۹۱۲ ۳۴۵ ۶۷۸۹" [ref=f2e19]
+    - button "کد تأیید رو برام بفرست" [disabled] [ref=f2e25]
+  - alert [ref=f2e26]

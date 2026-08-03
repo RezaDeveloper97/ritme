@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\MessageContentController;
 use App\Http\Controllers\Admin\PhaseContentController;
 use App\Http\Controllers\Admin\PregnancyWeekController;
+use App\Http\Controllers\Admin\RecommendationController;
 use App\Http\Controllers\Admin\TaskTemplateController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Response;
@@ -75,6 +76,9 @@ Route::middleware(['auth:admin', 'admin.active'])->group(function () {
     Route::get('challenge-completions', [ChallengeCompletionController::class, 'index'])->name('challenge-completions.index');
     Route::post('challenges/{challenge}/toggle', [ChallengeController::class, 'toggle'])->name('challenges.toggle');
     Route::resource('challenges', ChallengeController::class)->except('show');
+
+    Route::post('recommendations/{recommendation}/toggle', [RecommendationController::class, 'toggle'])->name('recommendations.toggle');
+    Route::resource('recommendations', RecommendationController::class)->except('show');
 
     Route::post('banners/{banner}/toggle', [BannerController::class, 'toggle'])->name('banners.toggle');
     Route::resource('banners', BannerController::class)->except('show');

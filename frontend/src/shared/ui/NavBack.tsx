@@ -18,7 +18,7 @@ export function NavBack({ onClick, label }: NavBackProps) {
   const locale = useLocale();
   const iconName = locale === 'fa' ? 'chevronRight' : 'chevronLeft';
   return (
-    <button className="iconbtn" onClick={onClick} aria-label={label ?? 'بازگشت'}>
+    <button className="iconbtn" onClick={onClick} aria-label={label ?? 'برگرد'}>
       <Icon name={iconName} size={24} />
     </button>
   );

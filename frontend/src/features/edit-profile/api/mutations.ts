@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
+import { cycleKeys } from '@/entities/cycle';
 import { type ApiEnvelope, apiClient } from '@/shared/api';
 import {
   type ChronicCondition,
@@ -55,6 +56,10 @@ export function useUpdateProfile() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: userKeys.profile() });
       void queryClient.invalidateQueries({ queryKey: userKeys.current() });
+      // Cycle length / last period feed every prediction, so the engine's
+      // read-outs must refetch too — otherwise the home screen keeps nudging
+      // the user to sync a value they just synced.
+      void queryClient.invalidateQueries({ queryKey: cycleKeys.all });
     },
   });
 }

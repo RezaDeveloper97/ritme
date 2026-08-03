@@ -1,16 +1,16 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 
-import { useRouter } from '@/shared/i18n';
+import { type Locale, useRouter } from '@/shared/i18n';
+import { formatNumber } from '@/shared/lib/date';
 import { NavBack, RulerPicker } from '@/shared/ui';
 import { nextOnboardingRoute, stepPosition, useOnboardingStore, type WeightUnit } from '@/entities/user';
 
-const FA = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
-const faNum = (n: string | number) => String(n).replace(/[0-9]/g, d => FA[Number(d)]);
 
 export function WeightPage() {
   const t = useTranslations('onboarding');
+  const loc = useLocale() as Locale;
   const router = useRouter();
   const { weight, weightUnit, intention, setWeight, setWeightUnit } = useOnboardingStore();
   const step = stepPosition('weight', intention);
@@ -25,7 +25,7 @@ export function WeightPage() {
     <div className="view onb-page">
       <div className="hdr">
         <NavBack onClick={() => router.back()} />
-        <span className="stepcount">{faNum(step.index)}<span className="onb-dim"> / {faNum(step.total)}</span></span>
+        <span className="stepcount">{formatNumber(step.index, loc)}<span className="onb-dim"> / {formatNumber(step.total, loc)}</span></span>
       </div>
 
       <div className="scroll onb-body">
@@ -44,7 +44,7 @@ export function WeightPage() {
           <RulerPicker
             min={30} max={150} value={weight} unit={weightUnit}
             onChange={setWeight}
-            toDisplay={v => faNum(v.toFixed(1))}
+            toDisplay={v => formatNumber(v.toFixed(1), loc)}
           />
         </div>
       </div>

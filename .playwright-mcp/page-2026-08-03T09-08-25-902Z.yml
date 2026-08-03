@@ -1,0 +1,36 @@
+- generic [ref=f28e4]:
+  - generic [ref=f28e6]:
+    - generic [ref=f28e8]:
+      - generic [ref=f28e9]: Analysis
+      - generic [ref=f28e10]: A look at your body's patterns
+    - generic [ref=f28e12]:
+      - generic [ref=f28e13]:
+        - generic [ref=f28e14]: Week summary
+        - link "View all" [ref=f28e15] [cursor=pointer]:
+          - /url: /en/log
+      - generic [ref=f28e16]: Average of the last 7 days
+      - generic [ref=f28e17]:
+        - generic [ref=f28e18]:
+          - generic [ref=f28e23]: Mood
+          - generic [ref=f28e24]: —
+        - generic [ref=f28e25]:
+          - generic [ref=f28e29]: Sleep
+          - generic [ref=f28e30]: —
+        - generic [ref=f28e31]:
+          - generic [ref=f28e35]: Energy
+          - generic [ref=f28e36]: —
+      - generic [ref=f28e37]:
+        - text: ✨ Nothing logged for this week yet.
+        - link "Log how you feel" [ref=f28e38] [cursor=pointer]:
+          - /url: /en/log
+  - navigation "Main navigation" [ref=f28e40]:
+    - link "Today" [ref=f28e41] [cursor=pointer]:
+      - /url: /en/home
+    - link "Calendar" [ref=f28e46] [cursor=pointer]:
+      - /url: /en/calendar
+    - link "Log" [ref=f28e51] [cursor=pointer]:
+      - /url: /en/log
+    - link "Analysis" [ref=f28e54] [cursor=pointer]:
+      - /url: /en/cycle
+    - link "Profile" [ref=f28e59] [cursor=pointer]:
+      - /url: /en/profile

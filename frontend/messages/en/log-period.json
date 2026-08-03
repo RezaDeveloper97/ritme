@@ -31,7 +31,7 @@
   },
   "dateEditor": {
     "title": "Edit Period Date",
-    "hint": "Tap on date to log your period",
+    "hint": "Tap the first day of your period to mark {days} days automatically; tap any day to adjust",
     "save": "Save",
     "saving": "Saving…",
     "cancel": "Cancel",

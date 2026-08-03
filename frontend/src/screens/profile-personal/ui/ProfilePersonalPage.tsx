@@ -5,21 +5,20 @@ import { useState } from 'react';
 
 import { type UserProfile, useUserProfile } from '@/entities/user';
 import {
-  JalaliDateWheels,
-  jalaliPartsToApiDate,
+  DateWheels,
+  datePartsToApiDate,
   type UpdateProfileInput,
   useUpdateProfile,
 } from '@/features/edit-profile';
 import { getApiErrorMessage } from '@/shared/api';
 import { type Locale, useRouter } from '@/shared/i18n';
-import { type JalaliParts, toApiDate, today, toJalali, todayJalali } from '@/shared/lib/date';
+import { birthYearRange, type DateParts, toApiDate, today, toParts, todayParts } from '@/shared/lib/date';
 import { Icon, NavBack, RulerPicker } from '@/shared/ui';
 
 const FA = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
 const localizeNum = (value: string | number, loc: Locale) =>
   loc === 'fa' ? String(value).replace(/[0-9]/g, (d) => FA[Number(d)]) : String(value);
 
-const MIN_BIRTH_YEAR = 1330;
 
 // Section title styled like ProfilePage's Group headers (13px, muted, bold).
 function SectionLabel({ children }: { children: string }) {
@@ -43,14 +42,16 @@ function PersonalForm({ profile }: { profile: UserProfile }) {
   const update = useUpdateProfile();
 
   const health = profile.health;
-  const nowJalali = todayJalali();
+  const nowParts = todayParts(loc);
+  const birthYears = birthYearRange(loc);
 
   const [name, setName] = useState(profile.name ?? '');
-  const [birth, setBirth] = useState<JalaliParts>(() =>
-    // Birthday crosses the API as Gregorian ISO; edit it in Jalali (§7).
+  const [birth, setBirth] = useState<DateParts>(() =>
+    // Birthday crosses the API as Gregorian ISO; edit it in the calendar the
+    // user's locale reads — Jalali for fa, Gregorian for en (§7).
     health?.birthday
-      ? toJalali(new Date(health.birthday))
-      : { year: nowJalali.year - 25, month: 1, day: 1 },
+      ? toParts(new Date(health.birthday), loc)
+      : { year: nowParts.year - 25, month: 1, day: 1 },
   );
   const [weight, setWeight] = useState(health?.weight ?? 60);
   const [height, setHeight] = useState(health?.height ?? 165);
@@ -60,7 +61,7 @@ function PersonalForm({ profile }: { profile: UserProfile }) {
     if (update.isPending) return;
     setLocalError(null);
 
-    const birthday = jalaliPartsToApiDate(birth);
+    const birthday = datePartsToApiDate(birth, loc);
     // The API requires the birthday to be strictly before today; catch it
     // client-side so the user gets a localized message instead of a 422.
     if (birthday >= toApiDate(today())) {
@@ -100,16 +101,16 @@ function PersonalForm({ profile }: { profile: UserProfile }) {
           </div>
         </section>
 
-        {/* Birthday (Jalali wheels, §7) */}
+        {/* Birthday — wheels follow the locale's calendar (§7) */}
         <section className="prof-group">
           <SectionLabel>{t('personal.birthdayLabel')}</SectionLabel>
           <div className="card prof-wheel-card">
-            <JalaliDateWheels
+            <DateWheels
               idPrefix="pp-birth"
               value={birth}
               onChange={setBirth}
-              minYear={MIN_BIRTH_YEAR}
-              maxYear={nowJalali.year}
+              minYear={birthYears.min}
+              maxYear={nowParts.year}
             />
           </div>
         </section>

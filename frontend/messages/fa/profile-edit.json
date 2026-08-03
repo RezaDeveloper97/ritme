@@ -1,12 +1,12 @@
 {
-  "back": "بازگشت",
+  "back": "برگرد",
   "loading": "در حال بارگذاری…",
   "save": "ذخیره تغییرات",
   "saving": "در حال ذخیره…",
   "personal": {
     "title": "اطلاعات شخصی",
-    "nameLabel": "نام",
-    "namePlaceholder": "نام شما",
+    "nameLabel": "اسم",
+    "namePlaceholder": "اسمت",
     "birthdayLabel": "تاریخ تولد",
     "weightLabel": "وزن",
     "heightLabel": "قد",
@@ -17,9 +17,9 @@
     "title": "تنظیمات چرخه و سلامت",
     "cycleLabel": "طول چرخه",
     "periodLabel": "طول پریود",
-    "lastPeriodLabel": "تاریخ شروع آخرین پریود",
-    "lastPeriodHint": "روزی که آخرین پریودتان آغاز شد را انتخاب کنید",
-    "dayCount": "{days} روز"
+    "lastPeriodLabel": "شروع آخرین پریود",
+    "lastPeriodHint": "روزی که آخرین پریودت شروع شد رو انتخاب کن",
+    "dayCount": "{days, plural, other {# روز}}"
   },
   "months": {
     "m1": "فروردین",
@@ -36,8 +36,8 @@
     "m12": "اسفند"
   },
   "errors": {
-    "generic": "مشکلی پیش آمد. لطفاً دوباره تلاش کنید.",
-    "birthdayFuture": "تاریخ تولد باید پیش از امروز باشد.",
-    "lastPeriodFuture": "تاریخ شروع آخرین پریود نمی‌تواند در آینده باشد."
+    "generic": "یه مشکلی پیش اومد. دوباره امتحان کن.",
+    "birthdayFuture": "تاریخ تولد باید قبل از امروز باشه.",
+    "lastPeriodFuture": "شروع آخرین پریود نمی‌تونه توی آینده باشه."
   }
 }

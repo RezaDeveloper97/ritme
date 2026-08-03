@@ -1,0 +1,118 @@
+- generic [ref=f27e4]:
+  - generic [ref=f27e6]:
+    - generic [ref=f27e7]:
+      - generic [ref=f27e8]:
+        - generic [ref=f27e9]: Calendar
+        - paragraph [ref=f27e10]: See your cycle days and predictions here.
+      - button "Edit period date" [ref=f27e11] [cursor=pointer]
+    - generic [ref=f27e15]:
+      - status [ref=f27e16]:
+        - generic [ref=f27e26]: Updating your calendar…
+      - generic [ref=f27e27]:
+        - button "Next month" [ref=f27e28] [cursor=pointer]
+        - generic [ref=f27e31]:
+          - button "Jump to another month" [ref=f27e32] [cursor=pointer]: August 2026
+          - button "Week" [ref=f27e35] [cursor=pointer]
+        - button "Previous month" [ref=f27e41] [cursor=pointer]
+      - generic [ref=f27e44]:
+        - generic [ref=f27e45]: Su
+        - generic [ref=f27e46]: Mo
+        - generic [ref=f27e47]: Tu
+        - generic [ref=f27e48]: We
+        - generic [ref=f27e49]: Th
+        - generic [ref=f27e50]: Fr
+        - generic [ref=f27e51]: Sa
+      - generic [ref=f27e53]:
+        - button "1 August" [ref=f27e61] [cursor=pointer]:
+          - generic [ref=f27e62]: "1"
+        - generic [ref=f27e63]:
+          - button "2 August" [ref=f27e64] [cursor=pointer]:
+            - generic [ref=f27e65]: "2"
+          - button "3 August، Today، Selected" [pressed] [ref=f27e66] [cursor=pointer]:
+            - generic [ref=f27e67]: "3"
+          - button "4 August" [ref=f27e69] [cursor=pointer]:
+            - generic [ref=f27e70]: "4"
+          - button "5 August" [ref=f27e71] [cursor=pointer]:
+            - generic [ref=f27e72]: "5"
+          - button "6 August" [ref=f27e73] [cursor=pointer]:
+            - generic [ref=f27e74]: "6"
+          - button "7 August" [ref=f27e75] [cursor=pointer]:
+            - generic [ref=f27e76]: "7"
+          - button "8 August" [ref=f27e77] [cursor=pointer]:
+            - generic [ref=f27e78]: "8"
+        - generic [ref=f27e79]:
+          - button "9 August" [ref=f27e80] [cursor=pointer]:
+            - generic [ref=f27e81]: "9"
+          - button "10 August" [ref=f27e82] [cursor=pointer]:
+            - generic [ref=f27e83]: "10"
+          - button "11 August" [ref=f27e84] [cursor=pointer]:
+            - generic [ref=f27e85]: "11"
+          - button "12 August" [ref=f27e86] [cursor=pointer]:
+            - generic [ref=f27e87]: "12"
+          - button "13 August" [ref=f27e88] [cursor=pointer]:
+            - generic [ref=f27e89]: "13"
+          - button "14 August" [ref=f27e90] [cursor=pointer]:
+            - generic [ref=f27e91]: "14"
+          - button "15 August" [ref=f27e92] [cursor=pointer]:
+            - generic [ref=f27e93]: "15"
+        - generic [ref=f27e94]:
+          - button "16 August" [ref=f27e95] [cursor=pointer]:
+            - generic [ref=f27e96]: "16"
+          - button "17 August" [ref=f27e97] [cursor=pointer]:
+            - generic [ref=f27e98]: "17"
+          - button "18 August" [ref=f27e99] [cursor=pointer]:
+            - generic [ref=f27e100]: "18"
+          - button "19 August" [ref=f27e101] [cursor=pointer]:
+            - generic [ref=f27e102]: "19"
+          - button "20 August" [ref=f27e103] [cursor=pointer]:
+            - generic [ref=f27e104]: "20"
+          - button "21 August" [ref=f27e105] [cursor=pointer]:
+            - generic [ref=f27e106]: "21"
+          - button "22 August" [ref=f27e107] [cursor=pointer]:
+            - generic [ref=f27e108]: "22"
+        - generic [ref=f27e109]:
+          - button "23 August" [ref=f27e110] [cursor=pointer]:
+            - generic [ref=f27e111]: "23"
+          - button "24 August" [ref=f27e112] [cursor=pointer]:
+            - generic [ref=f27e113]: "24"
+          - button "25 August" [ref=f27e114] [cursor=pointer]:
+            - generic [ref=f27e115]: "25"
+          - button "26 August" [ref=f27e116] [cursor=pointer]:
+            - generic [ref=f27e117]: "26"
+          - button "27 August" [ref=f27e118] [cursor=pointer]:
+            - generic [ref=f27e119]: "27"
+          - button "28 August" [ref=f27e120] [cursor=pointer]:
+            - generic [ref=f27e121]: "28"
+          - button "29 August" [ref=f27e122] [cursor=pointer]:
+            - generic [ref=f27e123]: "29"
+        - generic [ref=f27e124]:
+          - button "30 August" [ref=f27e125] [cursor=pointer]:
+            - generic [ref=f27e126]: "30"
+          - button "31 August" [ref=f27e127] [cursor=pointer]:
+            - generic [ref=f27e128]: "31"
+      - generic [ref=f27e137]:
+        - generic [ref=f27e138]: PMS
+        - generic [ref=f27e141]: Period
+        - generic [ref=f27e144]: Fertile window
+        - generic [ref=f27e147]: Ovulation
+    - generic [ref=f27e151]:
+      - generic [ref=f27e154]:
+        - generic [ref=f27e155]: 3 August
+        - generic [ref=f27e161]: Today
+      - generic [ref=f27e163]:
+        - generic [ref=f27e164]: This day's log
+        - button "Nothing logged for this day Log symptoms, mood and more for 3 August." [ref=f27e171] [cursor=pointer]:
+          - generic [ref=f27e172]:
+            - generic [ref=f27e173]: Nothing logged for this day
+            - generic [ref=f27e174]: Log symptoms, mood and more for 3 August.
+  - navigation "Main navigation" [ref=f27e179]:
+    - link "Today" [ref=f27e180] [cursor=pointer]:
+      - /url: /en/home
+    - link "Calendar" [ref=f27e185] [cursor=pointer]:
+      - /url: /en/calendar
+    - link "Log" [ref=f27e190] [cursor=pointer]:
+      - /url: /en/log
+    - link "Analysis" [ref=f27e193] [cursor=pointer]:
+      - /url: /en/cycle
+    - link "Profile" [ref=f27e198] [cursor=pointer]:
+      - /url: /en/profile

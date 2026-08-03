@@ -25,6 +25,12 @@
 
 * { box-sizing: border-box; }
 
+/* Layout classes below set `display: flex`, which outranks the UA stylesheet's
+   `[hidden] { display: none }` — so without this, setting `element.hidden` on a
+   .field or .check-item does nothing. Any script that filters a form (e.g. the
+   recommendation sub-phase picker) relies on it. */
+[hidden] { display: none !important; }
+
 html, body {
   margin: 0;
   padding: 0;

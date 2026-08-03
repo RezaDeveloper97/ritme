@@ -1,100 +1,110 @@
 {
   "title": "ثبت روزانه",
-  "subtitle": "هرچه امروز تجربه کردی را ثبت کن تا ریتمی بهتر بشناسدت.",
+  "subtitle": "هرچی امروز تجربه کردی رو ثبت کن تا ریتمی بهتر بشناسدت.",
   "today": "امروز",
   "prevDay": "روز قبل",
   "nextDay": "روز بعد",
   "loading": "در حال بارگذاری…",
-  "save": "ذخیرهٔ ثبت امروز",
+  "save": "ثبت امروز رو ذخیره کن",
   "saving": "در حال ذخیره…",
   "saved": "ثبت شد",
   "autoSaved": "ذخیره شد",
-  "saveError": "ذخیره نشد؛ دوباره تلاش کن.",
-  "sheetHint": "موردی که مربوط به توست را انتخاب کن.",
+  "saveError": "ذخیره نشد؛ دوباره امتحان کن.",
+  "sheetHint": "هرچی به خودت مربوطه رو انتخاب کن.",
   "done": "تمام",
+  "submit": "ثبت",
+  "close": "بستن",
   "clear": "پاک کردن",
   "none": "ثبت نشده",
   "selected": "{count, plural, one {# مورد} other {# مورد}}",
-  "recordThis": "ثبت این مورد",
-  "yes": "بله",
+  "recordThis": "این مورد رو ثبت کن",
+  "yes": "آره",
   "categories": {
     "bleeding": "خونریزی",
     "pain": "درد و علائم",
-    "digestion": "گوارش و اشتها",
+    "digestion": "اشتها و انرژی",
     "mood": "خلق‌وخو",
     "sleep": "خواب",
-    "body": "پوست و بدن",
+    "exercise": "ورزش",
+    "body": "پوست و مو",
     "discharge": "ترشحات",
     "intimate": "دستگاه ادراری و تناسلی",
     "sexual": "فعالیت جنسی",
-    "measure": "اندازه‌گیری",
+    "weight": "اندازه‌گیری وزن",
+    "temperature": "اندازه‌گیری دما",
     "notes": "یادداشت"
   },
   "categoryHint": {
     "bleeding": "شدت، رنگ و ویژگی خونریزی",
     "pain": "شدت دردها و علائم جسمی",
-    "digestion": "اشتها و وضعیت گوارش",
-    "mood": "حال‌وهوای امروزت",
+    "digestion": "اشتها، انرژی و حال عمومی بدن",
+    "mood": "امروز حالت چطوره",
     "sleep": "مدت و کیفیت خواب",
-    "body": "احساس بدنی و وضعیت پوست",
-    "discharge": "بافت، مقدار و بوی ترشحات",
+    "exercise": "نوع، مدت و شدت فعالیت بدنی",
+    "body": "وضعیت پوست و مو",
+    "discharge": "بافت، مقدار، رنگ و بوی ترشحات",
     "intimate": "علائم ادراری و تناسلی",
-    "sexual": "میل و فعالیت جنسی",
-    "measure": "وزن و دمای پایهٔ بدن",
-    "notes": "هر چیز دیگری که می‌خواهی به یاد بماند"
+    "sexual": "میل، رابطه و تجربه‌اش",
+    "weight": "ثبت وزن بدن",
+    "temperature": "ثبت دمای پایهٔ بدن",
+    "notes": "هر چیز دیگه‌ای که دوست داری یادت بمونه"
   },
   "fields": {
     "bleeding_intensity": "شدت خونریزی",
     "blood_color": "رنگ خون",
     "bleeding_smell": "بوی خونریزی",
-    "has_clots": "لخته",
+    "clots_amount": "لختهٔ خون",
     "spotting": "لکه‌بینی",
-    "headache_intensity": "سردرد",
-    "stomach_ache_intensity": "دل‌درد",
+    "stomach_ache_intensity": "گرفتگی یا درد شکم",
     "pelvic_pain_intensity": "درد لگن",
-    "breast_pain_intensity": "درد سینه",
+    "ovarian_pain_intensity": "درد یک‌طرفهٔ پایین شکم",
     "back_pain_intensity": "کمردرد",
-    "ovarian_pain_intensity": "درد تخمدان",
+    "headache_intensity": "سردرد",
+    "breast_pain_intensity": "حساسیت یا درد سینه",
     "nausea_intensity": "تهوع",
     "bloating_intensity": "نفخ",
-    "breast_sensitivity_intensity": "حساسیت سینه",
-    "urination_burning_intensity": "سوزش ادرار",
-    "appetite_change": "تغییر اشتها",
     "diarrhea": "اسهال",
     "constipation": "یبوست",
+    "appetite_change": "تغییر اشتها",
     "food_craving": "هوس غذایی",
-    "moods": "خلق‌وخو",
-    "sleep_duration": "مدت خواب",
-    "sleep_quality": "کیفیت خواب",
-    "acne": "جوش",
-    "oily_skin": "پوست چرب",
-    "hair_loss": "ریزش مو",
-    "swelling": "ورم",
     "fatigue": "خستگی",
     "dizziness": "سرگیجه",
     "hot_flashes": "گرگرفتگی",
     "chills": "لرز",
+    "swelling": "ورم",
+    "moods": "حال‌وهوای امروز",
+    "sleep_duration": "مدت خواب",
+    "sleep_quality": "کیفیت خواب",
+    "exercise_type": "نوع ورزش",
+    "exercise_duration": "مدت ورزش",
+    "exercise_intensity": "شدت ورزش",
+    "acne": "جوش",
+    "oily_skin": "پوست چرب",
+    "hair_loss": "ریزش مو",
     "discharge_texture": "بافت ترشح",
     "discharge_amount": "مقدار ترشح",
+    "discharge_color": "رنگ ترشح",
     "discharge_smell": "بوی ترشح",
-    "discharge_itching": "خارش ترشح",
-    "discharge_burning": "سوزش ترشح",
     "frequent_urination": "تکرر ادرار",
+    "urination_burning_intensity": "سوزش ادرار",
+    "urination_change": "تغییر میزان ادرار",
     "vaginal_dryness": "خشکی واژن",
-    "vaginal_burning": "سوزش واژن",
-    "vaginal_itching": "خارش واژن",
+    "vaginal_burning_intensity": "سوزش واژن",
+    "vaginal_itching_intensity": "خارش واژن",
     "vaginal_smell_change": "تغییر بوی واژن",
-    "urination_change": "تغییر دفع ادرار",
-    "sexual_activities": "فعالیت جنسی",
+    "sexual_desire": "میل جنسی",
+    "intercourse_type": "رابطهٔ جنسی",
+    "sexual_activities": "حین یا بعد از رابطه",
     "weight": "وزن",
     "basal_body_temperature": "دمای پایهٔ بدن",
     "notes": "یادداشت"
   },
   "units": {
     "kg": "کیلوگرم",
-    "celsius": "درجهٔ سانتی‌گراد"
+    "celsius": "درجهٔ سانتی‌گراد",
+    "minutes": "دقیقه"
   },
-  "notesPlaceholder": "امروز چطور بود؟ هر نکته‌ای که دوست داری بنویس…",
+  "notesPlaceholder": "امروز چطور بود؟ هر چی دوست داری بنویس…",
   "enums": {
     "bleeding_intensity": {
       "low": "کم",
@@ -110,8 +120,14 @@
     },
     "bleeding_smell": {
       "normal": "معمولی",
-      "slightly_unusual": "کمی غیرعادی",
-      "strong_unpleasant": "تند و ناخوشایند"
+      "slightly_unusual": "متفاوت از همیشه",
+      "strong_unpleasant": "تند یا ناخوشایند"
+    },
+    "clots_amount": {
+      "none": "نداشتم",
+      "low": "کم",
+      "medium": "متوسط",
+      "high": "زیاد"
     },
     "pain_intensity": {
       "low": "کم",
@@ -120,13 +136,8 @@
     },
     "appetite_change": {
       "loss": "کاهش",
-      "gain": "افزایش",
-      "normal": "معمولی"
-    },
-    "urination_change": {
-      "increase": "افزایش",
-      "decrease": "کاهش",
-      "normal": "معمولی"
+      "normal": "معمولی",
+      "gain": "افزایش"
     },
     "moods": {
       "happy": "شاد",
@@ -135,7 +146,7 @@
       "anxious": "مضطرب",
       "sad": "غمگین",
       "frustrated": "کلافه",
-      "sensitive": "حساس",
+      "sensitive": "زودرنج",
       "bored": "بی‌حوصله"
     },
     "sleep_duration": {
@@ -149,16 +160,21 @@
       "medium": "متوسط",
       "bad": "بد"
     },
-    "sexual_activities": {
-      "high_desire": "میل زیاد",
-      "protected_intercourse": "رابطهٔ محافظت‌شده",
-      "unprotected_intercourse": "رابطهٔ محافظت‌نشده",
-      "no_desire": "بی‌میلی",
-      "dryness": "خشکی",
-      "burning": "سوزش",
-      "pain_during_intercourse": "درد هنگام رابطه",
-      "bleeding_after_intercourse": "خونریزی پس از رابطه",
-      "lubricant_use": "استفاده از لوبریکنت"
+    "exercise_type": {
+      "walking": "پیاده‌روی",
+      "running": "دویدن",
+      "cycling": "دوچرخه",
+      "gym": "باشگاه / تمرین قدرتی",
+      "yoga": "یوگا / پیلاتس",
+      "swimming": "شنا",
+      "dance": "رقص",
+      "team_sport": "ورزش تیمی",
+      "other": "سایر"
+    },
+    "exercise_intensity": {
+      "low": "کم",
+      "medium": "متوسط",
+      "high": "زیاد"
     },
     "discharge_texture": {
       "watery": "آبکی",
@@ -171,10 +187,38 @@
       "medium": "متوسط",
       "high": "زیاد"
     },
+    "discharge_color": {
+      "clear": "شفاف",
+      "white": "سفید",
+      "yellow": "زرد",
+      "green": "سبز",
+      "gray": "خاکستری",
+      "pink_bloody": "صورتی / خونی"
+    },
     "discharge_smell": {
       "normal": "معمولی",
-      "slightly_unusual": "کمی غیرعادی",
-      "strong_unpleasant": "تند و ناخوشایند"
+      "slightly_unusual": "متفاوت از همیشه",
+      "strong_unpleasant": "تند یا ناخوشایند"
+    },
+    "urination_change": {
+      "decrease": "کاهش",
+      "increase": "افزایش"
+    },
+    "sexual_desire": {
+      "lower": "کمتر از معمول",
+      "normal": "معمولی",
+      "higher": "بیشتر از معمول"
+    },
+    "intercourse_type": {
+      "protected": "رابطهٔ محافظت‌شده",
+      "unprotected": "رابطهٔ محافظت‌نشده"
+    },
+    "sexual_activities": {
+      "dryness": "خشکی هنگام رابطه",
+      "burning": "سوزش هنگام رابطه",
+      "pain_during_intercourse": "درد هنگام رابطه",
+      "bleeding_after_intercourse": "خونریزی پس از رابطه",
+      "lubricant_use": "استفاده از لوبریکانت"
     }
   }
 }

@@ -169,14 +169,17 @@
     "pms": "PMS"
   },
   "recalculate": "Recalculate",
-  "phaseDetailsCta": "Read more about this phase",
+  "phaseDetailsCta": "Read more",
   "cycleDay": {
     "label": "Cycle day",
     "value": "{n, number}",
     "ofN": "of {n, number}"
   },
   "timeline": {
-    "title": "Upcoming events"
+    "title": "Upcoming events",
+    "inDays": "in {n, number} days",
+    "today": "today",
+    "ongoing": "in progress"
   },
   "cycleFacts": {
     "length": "Cycle length",

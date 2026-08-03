@@ -437,6 +437,71 @@ class PeriodLogApiTest extends TestCase
             ->assertJsonPath('code', 'period_overlap');
     }
 
+    public function test_store_creates_a_closed_period_in_one_call(): void
+    {
+        $user = $this->actingUser();
+        $start = now()->subDays(35)->toDateString();
+        $end = now()->subDays(31)->toDateString();
+
+        $this->postJson('/api/v1/cycle/period', ['start_date' => $start, 'end_date' => $end])
+            ->assertOk()
+            ->assertJsonPath('data.active', false)
+            ->assertJsonPath('data.period_start_date', $start)
+            ->assertJsonPath('data.period_end_date', $end);
+
+        $this->assertDatabaseHas('cycle_histories', [
+            'user_id' => $user->id,
+            'bleeding_length' => 5,
+        ]);
+    }
+
+    public function test_store_closes_the_range_it_created_not_the_ongoing_period(): void
+    {
+        // The period-date editor's failure mode: an open (ongoing) period exists,
+        // and an older range is added. start+end would have closed the *ongoing*
+        // period with an end date before its start (422).
+        $this->actingUser();
+        $this->postJson('/api/v1/cycle/period/start', ['date' => now()->subDays(2)->toDateString()])->assertOk();
+
+        $start = now()->subDays(35)->toDateString();
+        $end = now()->subDays(31)->toDateString();
+        $this->postJson('/api/v1/cycle/period', ['start_date' => $start, 'end_date' => $end])
+            ->assertOk()
+            ->assertJsonPath('data.period_end_date', $end);
+
+        // The recent period is untouched and still ongoing.
+        $this->getJson('/api/v1/cycle/period/status')->assertOk()->assertJsonPath('data.active', true);
+    }
+
+    public function test_store_without_end_date_leaves_the_period_ongoing(): void
+    {
+        $this->actingUser();
+
+        $this->postJson('/api/v1/cycle/period', ['start_date' => now()->toDateString()])
+            ->assertOk()
+            ->assertJsonPath('data.active', true)
+            ->assertJsonPath('data.period_end_date', null);
+    }
+
+    public function test_store_rejects_an_overlapping_or_inverted_range(): void
+    {
+        $this->actingUser();
+        $this->postJson('/api/v1/cycle/period', [
+            'start_date' => now()->subDays(10)->toDateString(),
+            'end_date' => now()->subDays(6)->toDateString(),
+        ])->assertOk();
+
+        $this->postJson('/api/v1/cycle/period', [
+            'start_date' => now()->subDays(8)->toDateString(),
+            'end_date' => now()->subDays(4)->toDateString(),
+        ])->assertStatus(422)->assertJsonPath('code', 'period_overlap');
+
+        $this->postJson('/api/v1/cycle/period', [
+            'start_date' => now()->subDays(20)->toDateString(),
+            'end_date' => now()->subDays(25)->toDateString(),
+        ])->assertStatus(422);
+    }
+
     public function test_update_into_another_period_range_is_rejected_as_overlap(): void
     {
         $user = $this->actingUser();

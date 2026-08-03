@@ -2,13 +2,13 @@
 
 namespace App\Services\MatrixEngine;
 
+use App\Enums\ClotsAmount;
 use App\Enums\CyclePhase;
 use App\Enums\CycleSubphase;
 use App\Enums\OverrideType;
 use App\Models\DailyHealthLog;
 use App\Models\User;
 use App\Models\UserProfile;
-use Carbon\Carbon;
 
 /**
  * Matrix Message Engine - Layer 1 & 2
@@ -19,7 +19,9 @@ use Carbon\Carbon;
 class MatrixMessageEngine
 {
     private User $user;
+
     private ?UserProfile $profile;
+
     private string $locale;
 
     public function __construct(User $user, string $locale = 'fa')
@@ -65,7 +67,7 @@ class MatrixMessageEngine
      */
     private function detectOverrideType(CyclePhase $phase, ?DailyHealthLog $log): OverrideType
     {
-        if (!$log) {
+        if (! $log) {
             return OverrideType::NORMAL;
         }
 
@@ -126,7 +128,9 @@ class MatrixMessageEngine
 
     private function hasSeverePain(?DailyHealthLog $log): bool
     {
-        if (!$log) return false;
+        if (! $log) {
+            return false;
+        }
 
         return $log->stomach_ache_intensity === 'high'
             || $log->pelvic_pain_intensity === 'high'
@@ -135,29 +139,42 @@ class MatrixMessageEngine
 
     private function hasHeavyFlow(?DailyHealthLog $log): bool
     {
-        if (!$log) return false;
+        if (! $log) {
+            return false;
+        }
+
+        // clots_amount is the current answer; has_clots is what older logs carry.
+        $hasClots = $log->clots_amount !== null
+            ? $log->clots_amount !== ClotsAmount::NONE->value
+            : $log->has_clots === true;
 
         return ($log->bleeding_intensity === 'very_high' || $log->bleeding_intensity === 'high')
-            && $log->has_clots === true;
+            && $hasClots;
     }
 
     private function hasSadMood(?DailyHealthLog $log): bool
     {
-        if (!$log || !is_array($log->moods)) return false;
+        if (! $log || ! is_array($log->moods)) {
+            return false;
+        }
 
         return in_array('sad', $log->moods);
     }
 
     private function hasAngryMood(?DailyHealthLog $log): bool
     {
-        if (!$log || !is_array($log->moods)) return false;
+        if (! $log || ! is_array($log->moods)) {
+            return false;
+        }
 
         return in_array('angry', $log->moods) || in_array('frustrated', $log->moods);
     }
 
     private function hasDischargeChange(?DailyHealthLog $log): bool
     {
-        if (!$log) return false;
+        if (! $log) {
+            return false;
+        }
 
         return $log->discharge_texture !== null
             || $log->discharge_amount === 'high';
@@ -165,7 +182,9 @@ class MatrixMessageEngine
 
     private function hasStress(?DailyHealthLog $log): bool
     {
-        if (!$log || !is_array($log->moods)) return false;
+        if (! $log || ! is_array($log->moods)) {
+            return false;
+        }
 
         return in_array('anxious', $log->moods);
     }

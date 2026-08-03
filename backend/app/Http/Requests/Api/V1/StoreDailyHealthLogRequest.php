@@ -4,12 +4,18 @@ namespace App\Http\Requests\Api\V1;
 
 use App\Enums\Amount;
 use App\Enums\BloodColor;
+use App\Enums\ClotsAmount;
+use App\Enums\DischargeColor;
 use App\Enums\DischargeTexture;
 use App\Enums\EnergyLevel;
+use App\Enums\ExerciseIntensity;
+use App\Enums\ExerciseType;
 use App\Enums\Intensity;
+use App\Enums\IntercourseType;
 use App\Enums\Mood;
 use App\Enums\PainIntensity;
 use App\Enums\SexualActivity;
+use App\Enums\SexualDesire;
 use App\Enums\SleepDuration;
 use App\Enums\SleepQuality;
 use App\Enums\Smell;
@@ -21,6 +27,20 @@ class StoreDailyHealthLogRequest extends FormRequest
     public function authorize(): bool
     {
         return true;
+    }
+
+    /**
+     * `exercise_type` became multi-select; clients still on the single-value
+     * build (and older saved payloads) send a bare string. Wrapping it here
+     * keeps one shape past this point instead of branching in every consumer.
+     */
+    protected function prepareForValidation(): void
+    {
+        $type = $this->input('exercise_type');
+
+        if (is_string($type)) {
+            $this->merge(['exercise_type' => $type === '' ? null : [$type]]);
+        }
     }
 
     public function rules(): array
@@ -44,7 +64,8 @@ class StoreDailyHealthLogRequest extends FormRequest
             // =========================================
             'bleeding_intensity' => ['nullable', Rule::in($intensityValues)],
             'blood_color' => ['nullable', Rule::in($bloodColorValues)],
-            'has_clots' => ['nullable', 'boolean'],
+            'has_clots' => ['nullable', 'boolean'], // legacy, superseded by clots_amount
+            'clots_amount' => ['nullable', Rule::in(ClotsAmount::values())],
             'spotting' => ['nullable', 'boolean'],
             'bleeding_smell' => ['nullable', Rule::in($smellValues)],
 
@@ -73,8 +94,10 @@ class StoreDailyHealthLogRequest extends FormRequest
             // =========================================
             'breast_sensitivity_intensity' => ['nullable', Rule::in($painIntensityValues)],
             'vaginal_dryness' => ['nullable', 'boolean'],
-            'vaginal_burning' => ['nullable', 'boolean'],
+            'vaginal_burning' => ['nullable', 'boolean'], // legacy, superseded by the *_intensity fields
+            'vaginal_burning_intensity' => ['nullable', Rule::in($painIntensityValues)],
             'vaginal_itching' => ['nullable', 'boolean'],
+            'vaginal_itching_intensity' => ['nullable', Rule::in($painIntensityValues)],
             'vaginal_smell_change' => ['nullable', 'boolean'],
             'urination_change' => ['nullable', Rule::in(['increase', 'decrease', 'normal'])],
             'urination_burning_intensity' => ['nullable', Rule::in($painIntensityValues)],
@@ -108,10 +131,23 @@ class StoreDailyHealthLogRequest extends FormRequest
             'sleep_quality' => ['nullable', Rule::in($sleepQualityValues)],
 
             // =========================================
+            // 4b. Exercise
+            // =========================================
+            'exercise_type' => ['nullable', 'array'],
+            'exercise_type.*' => ['required', Rule::in(ExerciseType::values())],
+            'exercise_duration' => ['nullable', 'integer', 'min:1', 'max:600'],
+            'exercise_intensity' => ['nullable', Rule::in(ExerciseIntensity::values())],
+
+            // =========================================
             // 5. Sexual Activity
             // =========================================
+            // The full legacy value list stays accepted so previously saved logs
+            // can still be re-sent; the form now offers only the "during/after"
+            // subset plus the two dedicated questions below.
             'sexual_activities' => ['nullable', 'array'],
             'sexual_activities.*' => ['required', Rule::in($sexualActivityValues)],
+            'sexual_desire' => ['nullable', Rule::in(SexualDesire::values())],
+            'intercourse_type' => ['nullable', Rule::in(IntercourseType::values())],
 
             // =========================================
             // 6. Vital Signs
@@ -127,7 +163,7 @@ class StoreDailyHealthLogRequest extends FormRequest
             // =========================================
             // 7. Vaginal Discharge
             // =========================================
-            'discharge_color' => ['nullable', 'string', 'max:50'],
+            'discharge_color' => ['nullable', Rule::in(DischargeColor::values())],
             'discharge_texture' => ['nullable', Rule::in($dischargeTextureValues)],
             'discharge_amount' => ['nullable', Rule::in($amountValues)],
             'discharge_smell' => ['nullable', Rule::in($smellValues)],
@@ -173,6 +209,8 @@ class StoreDailyHealthLogRequest extends FormRequest
             'diastolic_pressure.max' => 'Diastolic pressure cannot exceed 200 mmHg',
             'blood_sugar.min' => 'Blood sugar must be at least 20 mg/dl',
             'blood_sugar.max' => 'Blood sugar cannot exceed 600 mg/dl',
+            'exercise_duration.min' => 'Exercise duration must be at least 1 minute',
+            'exercise_duration.max' => 'Exercise duration cannot exceed 600 minutes',
             'notes.max' => 'Notes cannot exceed 2000 characters',
         ];
     }

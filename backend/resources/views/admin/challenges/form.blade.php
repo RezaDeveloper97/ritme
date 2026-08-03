@@ -15,19 +15,10 @@
                 <div class="form-grid">
                     <x-admin.bilingual name="title" label="عنوان" :value="$challenge->title" required />
                     <x-admin.bilingual name="description" label="توضیحات" :value="$challenge->description" type="textarea" />
-                    @include('admin.partials.phase-select', ['selected' => $challenge->cycle_phase, 'phases' => $phases])
+                    @include('admin.partials.cycle-day-range', ['challenge' => $challenge, 'maxCycleDay' => $maxCycleDay])
                     <div class="field">
                         <label for="category">دسته</label>
                         <input type="text" id="category" name="category" value="{{ old('category', $challenge->category) }}">
-                    </div>
-                    <div class="field">
-                        <label for="difficulty">سطح سختی</label>
-                        <select id="difficulty" name="difficulty">
-                            <option value="">—</option>
-                            @foreach ($difficulties as $d)
-                                <option value="{{ $d }}" @selected(old('difficulty', $challenge->difficulty) === $d)>{{ ['easy'=>'آسان','medium'=>'متوسط','hard'=>'سخت'][$d] }}</option>
-                            @endforeach
-                        </select>
                     </div>
                     <div class="field">
                         <label for="sort_order">ترتیب نمایش</label>

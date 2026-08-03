@@ -272,11 +272,10 @@ class ProfileController extends Controller
             $profile->fill($profileData);
             $profile->save();
 
-            // Seed the onboarding estimate cycle from the profile the first time we have
-            // an anchor (spec §1) — tagged as an estimate so it's never mistaken for a
-            // real logged period and never feeds the prediction medians.
+            // Record the onboarding-declared period as a real logged period, so the
+            // calendar paints those days exactly as if the user had logged them.
             if (! $isPregnant && $profile->last_period_start) {
-                $this->seedOnboardingEstimate($user->id, $profile);
+                $this->syncOnboardingPeriodLog($user->id, $profile);
             }
 
             if ($cycleFieldsChanged && $profile->last_period_start) {
@@ -443,30 +442,46 @@ class ProfileController extends Controller
     }
 
     /**
-     * Seed the onboarding-estimate cycle record from the profile (spec §1). Runs only
-     * when the user has no cycle history yet, so it never overwrites real logged data
-     * or re-seeds on later profile edits. The record is an estimate (is_estimated,
-     * source=onboarding_estimate, is_confirmed=false): excluded from prediction medians
-     * and promoted to a real log if the user later confirms a period on that day.
+     * Turn the period the user declared during onboarding (LMP + period duration) into
+     * a real, confirmed CycleHistory record — the days they entered must read on the
+     * calendar exactly as if they had logged that period themselves.
+     *
+     * Runs only while that seed is the user's whole history: as soon as any other
+     * period exists, the user owns their history and this never touches it again.
+     * Re-running it (the user goes back a step, or edits the profile before logging
+     * anything) re-syncs the same row instead of stacking duplicates. A period whose
+     * declared end is still in the future is left open, exactly like a period the user
+     * starts but hasn't ended yet.
      */
-    private function seedOnboardingEstimate(int $userId, UserProfile $profile): void
+    private function syncOnboardingPeriodLog(int $userId, UserProfile $profile): void
     {
-        if (CycleHistory::where('user_id', $userId)->exists()) {
+        $histories = CycleHistory::where('user_id', $userId)->get();
+        $seed = $histories->firstWhere('source', DataSource::USER_PROFILE_CONFIRMED->value);
+
+        // Anything the user logged (or an older estimate row) means hands off.
+        if ($histories->isNotEmpty() && ($seed === null || $histories->count() > 1)) {
             return;
         }
 
         $start = Carbon::parse($profile->last_period_start)->startOfDay();
-        $duration = (int) ($profile->period_duration ?: 5);
+        $duration = max(1, (int) ($profile->period_duration ?: 5));
+        $end = $start->copy()->addDays($duration - 1);
+        $isOngoing = $end->gt(Carbon::today());
 
-        CycleHistory::create([
-            'user_id' => $userId,
+        $attributes = [
             'period_start_date' => $start->toDateString(),
-            'period_end_date' => $start->copy()->addDays(max(1, $duration) - 1)->toDateString(),
-            'bleeding_length' => max(1, $duration),
-            'is_confirmed' => false,
-            'is_estimated' => true,
-            'source' => DataSource::ONBOARDING_ESTIMATE->value,
-        ]);
+            'period_end_date' => $isOngoing ? null : $end->toDateString(),
+            'bleeding_length' => $isOngoing ? null : $duration,
+            'is_confirmed' => true,
+            'is_estimated' => false,
+            'source' => DataSource::USER_PROFILE_CONFIRMED->value,
+        ];
+
+        if ($seed) {
+            $seed->update($attributes);
+        } else {
+            CycleHistory::create($attributes + ['user_id' => $userId]);
+        }
     }
 
     /**

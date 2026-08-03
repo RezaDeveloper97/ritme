@@ -18,7 +18,8 @@ export const challengeKeys = {
  * GET /home/sections/challenge — today's challenge for this user.
  *
  * Returns `null` when no challenge is available (empty or fully inactive pool),
- * which the card treats as "render nothing".
+ * which the card treats as "render nothing". The pick is made against the
+ * user's cycle day, so it can differ from one day of the cycle to the next.
  */
 export async function fetchTodayChallenge(date?: string): Promise<TodayChallenge | null> {
   const { data } = await apiClient.get<ApiEnvelope<unknown>>('/home/sections/challenge', {

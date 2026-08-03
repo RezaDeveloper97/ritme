@@ -21,7 +21,7 @@
     <string name="ob_name_title">دوست داری توی ریتمی با چه اسمی صدایت کنیم؟</string>
     <string name="ob_name_subtitle">همین اسم را در برنامه می‌بینی و با آن صدایت می‌کنیم</string>
     <string name="ob_name_label">اسم نمایشی</string>
-    <string name="ob_name_placeholder">مثلاً ایسابلا</string>
+    <string name="ob_name_placeholder">مثلاً سامه</string>
 
     <!-- Birthday -->
     <string name="ob_birthday_title">تاریخ تولد شما؟</string>

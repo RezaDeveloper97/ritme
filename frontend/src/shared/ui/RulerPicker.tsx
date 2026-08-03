@@ -1,6 +1,10 @@
 'use client';
 
+import { useLocale } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
+
+import type { Locale } from '@/shared/i18n';
+import { formatNumber } from '@/shared/lib/date';
 
 interface RulerPickerProps {
   min: number;
@@ -11,15 +15,16 @@ interface RulerPickerProps {
   toDisplay?: (v: number) => string;
 }
 
-const FA = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-const faNum = (n: string | number) =>
-  String(n).replace(/[0-9]/g, (d) => FA[Number(d)]);
-
 /** Horizontal scroll-snap ruler for weight / height input. */
 export function RulerPicker({ min, max, value, unit, onChange, toDisplay }: RulerPickerProps) {
+  const loc = useLocale() as Locale;
   const rulerRef = useRef<HTMLDivElement>(null);
   const TICK_W = 12;
-  const [display, setDisplay] = useState(toDisplay ? toDisplay(value) : faNum(value.toFixed(1)));
+  // The scroll handler is bound once, so it reads the formatter from a ref
+  // rather than the mount-render closure (digits differ per locale).
+  const fmtRef = useRef((v: number) => (toDisplay ? toDisplay(v) : formatNumber(v.toFixed(1), loc)));
+  fmtRef.current = (v: number) => (toDisplay ? toDisplay(v) : formatNumber(v.toFixed(1), loc));
+  const [display, setDisplay] = useState(() => fmtRef.current(value));
 
   useEffect(() => {
     const el = rulerRef.current;
@@ -30,7 +35,7 @@ export function RulerPicker({ min, max, value, unit, onChange, toDisplay }: Rule
     const update = () => {
       const idx = Math.round(el.scrollLeft / TICK_W);
       const v = Math.max(min, Math.min(max, min + idx));
-      setDisplay(toDisplay ? toDisplay(v) : faNum(v.toFixed(1)));
+      setDisplay(fmtRef.current(v));
       onChange(v);
     };
     const onScroll = () => {
@@ -52,7 +57,7 @@ export function RulerPicker({ min, max, value, unit, onChange, toDisplay }: Rule
     ticks.push(
       <div key={i} className={`tk${major ? ' major' : ''}`}>
         <div className="line" />
-        <div className="num">{major ? faNum(i) : ''}</div>
+        <div className="num">{major ? formatNumber(i, loc) : ''}</div>
       </div>,
     );
   }

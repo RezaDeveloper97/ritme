@@ -16,15 +16,21 @@ export const healthLogEnumsSchema = z
     bleeding_intensity: enumList,
     blood_color: enumList,
     bleeding_smell: enumList,
+    clots_amount: enumList,
     pain_intensity: enumList,
     appetite_change: enumList,
     urination_change: enumList,
     moods: enumList,
     sleep_duration: enumList,
     sleep_quality: enumList,
+    exercise_type: enumList,
+    exercise_intensity: enumList,
     sexual_activities: enumList,
+    sexual_desire: enumList,
+    intercourse_type: enumList,
     discharge_texture: enumList,
     discharge_amount: enumList,
+    discharge_color: enumList,
     discharge_smell: enumList,
   })
   .transform((e): HealthLogEnums => e);
@@ -33,6 +39,11 @@ const enumValue = z.string().nullish();
 const flag = z.boolean().nullish();
 const stringList = z.array(z.string()).nullish();
 const measure = z.coerce.number().nullish();
+/** Multi-select now; logs written before that hold a single activity string. */
+const exerciseTypes = z
+  .union([z.string(), z.array(z.string())])
+  .nullish()
+  .transform((v) => (typeof v === 'string' ? [v] : v));
 
 /**
  * GET /health-logs/{date} → `DailyHealthLog`. We validate only the fields the
@@ -46,6 +57,7 @@ export const dailyHealthLogSchema = z
     blood_color: enumValue,
     bleeding_smell: enumValue,
     has_clots: flag,
+    clots_amount: enumValue,
     spotting: flag,
     headache_intensity: enumValue,
     stomach_ache_intensity: enumValue,
@@ -64,6 +76,9 @@ export const dailyHealthLogSchema = z
     moods: stringList,
     sleep_duration: enumValue,
     sleep_quality: enumValue,
+    exercise_type: exerciseTypes,
+    exercise_duration: measure,
+    exercise_intensity: enumValue,
     acne: flag,
     oily_skin: flag,
     hair_loss: flag,
@@ -74,16 +89,21 @@ export const dailyHealthLogSchema = z
     chills: flag,
     discharge_texture: enumValue,
     discharge_amount: enumValue,
+    discharge_color: enumValue,
     discharge_smell: enumValue,
     discharge_itching: flag,
     discharge_burning: flag,
     frequent_urination: flag,
     vaginal_dryness: flag,
     vaginal_burning: flag,
+    vaginal_burning_intensity: enumValue,
     vaginal_itching: flag,
+    vaginal_itching_intensity: enumValue,
     vaginal_smell_change: flag,
     urination_change: enumValue,
     sexual_activities: stringList,
+    sexual_desire: enumValue,
+    intercourse_type: enumValue,
     weight: measure,
     basal_body_temperature: measure,
     notes: z.string().nullish(),

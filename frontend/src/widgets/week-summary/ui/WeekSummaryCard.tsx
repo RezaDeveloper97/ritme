@@ -11,7 +11,7 @@ import {
   type WellbeingMetricKey,
 } from '@/entities/wellbeing';
 import { Link, type Locale } from '@/shared/i18n';
-import { formatJalaliDayMonth, fromApiDate } from '@/shared/lib/date';
+import { formatDayMonth, fromApiDate } from '@/shared/lib/date';
 import { Icon, type IconName } from '@/shared/ui';
 
 /** Tile presentation per metric — a UI concern, so it stays out of the entity. */
@@ -55,8 +55,8 @@ export function WeekSummaryCard({ date }: { date?: string }) {
 
   const subtitle = week
     ? t('range', {
-        from: formatJalaliDayMonth(fromApiDate(week.from), locale),
-        to: formatJalaliDayMonth(fromApiDate(week.to), locale),
+        from: formatDayMonth(fromApiDate(week.from), locale),
+        to: formatDayMonth(fromApiDate(week.to), locale),
       })
     : t('subtitle');
 

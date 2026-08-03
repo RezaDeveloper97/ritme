@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 
 import { useRouter } from '@/shared/i18n';
@@ -12,6 +12,7 @@ import { authErrorKey, useSendOtp, useVerifyOtp } from '@/features/auth';
 export function OtpPage() {
   const t = useTranslations('auth');
   const router = useRouter();
+  const locale = useLocale();
   const phone = useOnboardingStore(s => s.phone);
 
   const verifyOtp = useVerifyOtp();
@@ -61,7 +62,12 @@ export function OtpPage() {
       {
         onSuccess: ({ newUser }) => {
           // New accounts continue into onboarding; returning users go home.
-          router.replace(newUser ? '/onboarding/name' : '/home');
+          // Both targets sit behind the auth middleware and the session cookie
+          // was written moments ago, so this crosses the auth boundary with a
+          // full document navigation rather than a client-side transition —
+          // the latter can be served from the App Router cache populated while
+          // the visitor was still signed out, bouncing them back here.
+          window.location.replace(`/${locale}${newUser ? '/onboarding/name' : '/home'}`);
         },
         onError: () => {
           setDigits(['', '', '', '']);

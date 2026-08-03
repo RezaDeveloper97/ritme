@@ -8,7 +8,7 @@ import { z } from 'zod';
  * Privacy: never place secrets or any health data in public env — see §11.
  */
 const envSchema = z.object({
-  apiBaseUrl: z.string().url().default('http://ritmeapp.ir/api/v1'),
+  apiBaseUrl: z.string().url().default('https://ritmeapp.ir/api/v1'),
   // Test mode asks the backend to skip real SMS and accept `1111` as the OTP
   // (see the Auth group in the OpenAPI spec). Defaults to ON while we are not in
   // production so the login flow is exercisable without a live SMS gateway; set

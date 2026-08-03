@@ -1,16 +1,16 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 
-import { useRouter } from '@/shared/i18n';
-import { JalaliCalendar, NavBack } from '@/shared/ui';
+import { type Locale, useRouter } from '@/shared/i18n';
+import { formatNumber } from '@/shared/lib/date';
+import { CalendarPicker, NavBack } from '@/shared/ui';
 import { nextOnboardingRoute, stepPosition, useOnboardingStore } from '@/entities/user';
 
-const FA = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
-const faNum = (n: string | number) => String(n).replace(/[0-9]/g, d => FA[Number(d)]);
 
 export function CycleLenPage() {
   const t = useTranslations('onboarding');
+  const loc = useLocale() as Locale;
   const router = useRouter();
   const { lastPeriod, intention, setLastPeriod } = useOnboardingStore();
   const step = stepPosition('cycleLen', intention);
@@ -19,7 +19,7 @@ export function CycleLenPage() {
     <div className="view onb-page">
       <div className="hdr">
         <NavBack onClick={() => router.back()} />
-        <span className="stepcount">{faNum(step.index)}<span className="onb-dim"> / {faNum(step.total)}</span></span>
+        <span className="stepcount">{formatNumber(step.index, loc)}<span className="onb-dim"> / {formatNumber(step.total, loc)}</span></span>
       </div>
 
       <div className="scroll onb-body">
@@ -28,7 +28,7 @@ export function CycleLenPage() {
           <p className="sub onb-intro-sub">{t('cycleLen.subtitle')}</p>
         </div>
         <div className="onb-center">
-          <JalaliCalendar value={lastPeriod} onSelect={setLastPeriod} />
+          <CalendarPicker value={lastPeriod} onSelect={setLastPeriod} />
           <p className="sub onb-center-text">{t('cycleLen.hint')}</p>
         </div>
       </div>

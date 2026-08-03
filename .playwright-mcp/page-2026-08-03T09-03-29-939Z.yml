@@ -1,0 +1,58 @@
+- generic [ref=f16e4]:
+  - generic [ref=f16e5]:
+    - button "برگرد" [ref=f16e6] [cursor=pointer]
+    - generic [ref=f16e9]:
+      - text: ۷
+      - generic [ref=f16e10]: / ۸
+  - generic [ref=f16e11]:
+    - generic [ref=f16e12]:
+      - generic [ref=f16e13]: When did your last period start?
+      - paragraph [ref=f16e14]: Help us get to know you better
+    - generic [ref=f16e15]:
+      - generic [ref=f16e16]:
+        - generic [ref=f16e17]:
+          - button "Next month" [ref=f16e18] [cursor=pointer]
+          - generic [ref=f16e21]: August 2026
+          - button "Previous month" [ref=f16e22] [cursor=pointer]
+        - generic [ref=f16e25]:
+          - generic [ref=f16e26]: Su
+          - generic [ref=f16e27]: Mo
+          - generic [ref=f16e28]: Tu
+          - generic [ref=f16e29]: We
+          - generic [ref=f16e30]: Th
+          - generic [ref=f16e31]: Fr
+          - generic [ref=f16e32]: Sa
+        - generic [ref=f16e33]:
+          - button "1" [ref=f16e40] [cursor=pointer]
+          - button "2" [ref=f16e41] [cursor=pointer]
+          - button "3" [ref=f16e42] [cursor=pointer]
+          - button "4" [ref=f16e43] [cursor=pointer]
+          - button "5" [ref=f16e44] [cursor=pointer]
+          - button "6" [ref=f16e45] [cursor=pointer]
+          - button "7" [ref=f16e46] [cursor=pointer]
+          - button "8" [ref=f16e47] [cursor=pointer]
+          - button "9" [ref=f16e48] [cursor=pointer]
+          - button "10" [ref=f16e49] [cursor=pointer]
+          - button "11" [ref=f16e50] [cursor=pointer]
+          - button "12" [ref=f16e51] [cursor=pointer]
+          - button "13" [ref=f16e52] [cursor=pointer]
+          - button "14" [ref=f16e53] [cursor=pointer]
+          - button "15" [ref=f16e54] [cursor=pointer]
+          - button "16" [ref=f16e55] [cursor=pointer]
+          - button "17" [ref=f16e56] [cursor=pointer]
+          - button "18" [ref=f16e57] [cursor=pointer]
+          - button "19" [ref=f16e58] [cursor=pointer]
+          - button "20" [ref=f16e59] [cursor=pointer]
+          - button "21" [ref=f16e60] [cursor=pointer]
+          - button "22" [ref=f16e61] [cursor=pointer]
+          - button "23" [ref=f16e62] [cursor=pointer]
+          - button "24" [ref=f16e63] [cursor=pointer]
+          - button "25" [ref=f16e64] [cursor=pointer]
+          - button "26" [ref=f16e65] [cursor=pointer]
+          - button "27" [ref=f16e66] [cursor=pointer]
+          - button "28" [ref=f16e67] [cursor=pointer]
+          - button "29" [ref=f16e68] [cursor=pointer]
+          - button "30" [ref=f16e69] [cursor=pointer]
+          - button "31" [ref=f16e70] [cursor=pointer]
+      - paragraph [ref=f16e71]: Select the day your last period began
+  - button "Continue" [ref=f16e73] [cursor=pointer]

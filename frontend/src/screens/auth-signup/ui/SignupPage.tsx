@@ -17,9 +17,11 @@ export function SignupPage() {
 
   // phone is always stored as ASCII digits for reliable validation
   const [phone, setPhoneLocal] = useState('');
-  const [terms, setTerms] = useState(false);
 
-  const isValid = isValidMobile(phone) && terms;
+  // Terms consent lives on the first onboarding step instead: at this point we
+  // still don't know whether this number belongs to an existing account, and
+  // returning users shouldn't have to re-accept on every sign-in.
+  const isValid = isValidMobile(phone);
 
   const handlePhone = (v: string) => {
     setPhoneLocal(normalizeMobile(v));
@@ -71,24 +73,6 @@ export function SignupPage() {
           />
           <span className="placeholder-soft">
             <Icon name="user" size={18} />
-          </span>
-        </div>
-
-        {/* Terms checkbox */}
-        <div
-          role="button"
-          tabIndex={0}
-          className="signup-terms"
-          onClick={() => setTerms(v => !v)}
-          onKeyDown={e => e.key === 'Enter' && setTerms(v => !v)}
-        >
-          <span className="sub signup-terms-t">
-            ثبت‌نام به منزله‌ی قبول{' '}
-            <b className="signup-terms-link">{t('signup.termsLink')}</b>{' '}
-            و حریم خصوصی است.
-          </span>
-          <span className={`cbx pink${terms ? ' on' : ''}`}>
-            <Icon name="check" size={13} stroke="var(--on-accent)" />
           </span>
         </div>
 

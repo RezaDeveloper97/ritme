@@ -14,8 +14,8 @@ import { type ApiEnvelope, apiClient } from '@/shared/api';
  * Tick today's challenge off (or undo it).
  *
  * The checkbox must feel instant, so the cache flips optimistically and is then
- * reconciled with the server's authoritative streak. The previous value is kept
- * so a failed request rolls the card back rather than leaving a false tick.
+ * reconciled with the server's answer. The previous value is kept so a failed
+ * request rolls the card back rather than leaving a false tick.
  */
 export function useToggleChallenge(date?: string) {
   const queryClient = useQueryClient();
@@ -39,7 +39,7 @@ export function useToggleChallenge(date?: string) {
       const previous = queryClient.getQueryData<TodayChallenge | null>(key);
 
       queryClient.setQueryData<TodayChallenge | null>(key, (current) =>
-        current ? optimistic(current) : current,
+        current ? { ...current, isCompleted: !current.isCompleted } : current,
       );
 
       return { previous };
@@ -51,34 +51,8 @@ export function useToggleChallenge(date?: string) {
 
     onSuccess: (result) => {
       queryClient.setQueryData<TodayChallenge | null>(key, (current) =>
-        current
-          ? {
-              ...current,
-              isCompleted: result.isCompleted,
-              streak: result.streak,
-              longestStreak: result.longestStreak,
-              weekDays: result.weekDays,
-              statusMessage: result.statusMessage ?? current.description,
-            }
-          : current,
+        current ? { ...current, isCompleted: result.isCompleted } : current,
       );
     },
   });
-}
-
-/**
- * Local guess at the post-toggle state: flip the tick, move today's dot, and
- * step the streak by one in the matching direction (never below zero).
- */
-function optimistic(current: TodayChallenge): TodayChallenge {
-  const isCompleted = !current.isCompleted;
-
-  return {
-    ...current,
-    isCompleted,
-    streak: Math.max(0, current.streak + (isCompleted ? 1 : -1)),
-    weekDays: current.weekDays.map((day) =>
-      day.isToday ? { ...day, isCompleted } : day,
-    ),
-  };
 }

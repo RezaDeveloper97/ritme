@@ -2,7 +2,7 @@ import type { OnboardingData } from '@/entities/user';
 import { toApiDate, today } from '@/shared/lib/date';
 
 import type { UpdateProfileInput } from '../api/mutations';
-import { jalaliPartsToApiDate } from './jalaliToApiDate';
+import { datePartsToApiDate } from './datePartsToApiDate';
 
 const clamp = (value: number, lo: number, hi: number): number =>
   Math.min(hi, Math.max(lo, value));
@@ -13,8 +13,10 @@ const clamp = (value: number, lo: number, hi: number): number =>
  *
  * Values are converted to the API's canonical units (kg, cm) and clamped to its
  * validation ranges (weight 20–300, height 50–250, period 1–15, cycle 15–60) so
- * a stray wheel value can't trigger a 422. Dates cross the boundary as Gregorian
- * (CLAUDE.md §7); any date the API would reject — a birthday not before today,
+ * a stray wheel value can't trigger a 422. Date parts are interpreted in
+ * `o.locale`'s calendar (Jalali for fa, Gregorian for en) and cross the boundary
+ * as Gregorian (CLAUDE.md §7); any date the API would reject — a birthday not
+ * before today,
  * or a future last-period date — is dropped rather than sent. This is sensitive
  * health data (§11): it is submitted, never logged.
  *
@@ -29,7 +31,10 @@ export function onboardingToProfileInput(o: OnboardingData): UpdateProfileInput 
   const name = o.name.trim();
   if (name) payload.name = name;
 
-  const birthday = jalaliPartsToApiDate({ year: o.birth.y, month: o.birth.m, day: o.birth.d });
+  const birthday = datePartsToApiDate(
+    { year: o.birth.y, month: o.birth.m, day: o.birth.d },
+    o.locale,
+  );
   if (birthday < todayStr) payload.birthday = birthday;
 
   const weightKg = o.weightUnit === 'lb' ? o.weight / 2.205 : o.weight;
@@ -47,7 +52,7 @@ export function onboardingToProfileInput(o: OnboardingData): UpdateProfileInput 
     payload.cycle_duration = clamp(Math.round(o.cycleDuration), 15, 60);
 
     if (o.lastPeriod) {
-      const lastPeriodStart = jalaliPartsToApiDate(o.lastPeriod);
+      const lastPeriodStart = datePartsToApiDate(o.lastPeriod, o.locale);
       if (lastPeriodStart <= todayStr) payload.last_period_start = lastPeriodStart;
     }
   }

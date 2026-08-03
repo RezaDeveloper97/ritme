@@ -7,9 +7,9 @@ use App\Services\HomePage\HomeContext;
 use App\Services\HomePage\HomeSection;
 
 /**
- * Section 7 — "چالش امروز": one daily challenge chosen per user/day by
- * {@see DailyChallengeService} (phase + recent-log signal + streak-based
- * difficulty + no repeats), with completion state and streak.
+ * Section 7 — "چالش امروز": one admin-authored task chosen per user/day by
+ * {@see DailyChallengeService} (cycle day + recent-log signal + no repeats),
+ * with nothing attached to it but a "done" flag.
  */
 class ChallengeSection extends AbstractHomeSection
 {
@@ -36,7 +36,7 @@ class ChallengeSection extends AbstractHomeSection
             user: $context->user,
             date: $context->date,
             locale: $context->locale,
-            phase: $context->phase(),
+            cycleDay: $context->cycleDay(),
             recentLogs: $context->recentLogs(3),
         );
 

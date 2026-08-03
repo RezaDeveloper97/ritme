@@ -3,13 +3,14 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { type CSSProperties, type ReactNode, useState } from 'react';
 
-import { useUserMode } from '@/entities/message';
-import { useDeactivatePregnancy } from '@/entities/pregnancy';
+// Pregnancy postponed — kept for the commented-out mode section below:
+// import { useUserMode } from '@/entities/message';
+// import { useDeactivatePregnancy } from '@/entities/pregnancy';
 import { useUserProfile } from '@/entities/user';
 import { useLogout } from '@/features/auth';
-import { DeleteAccountConfirm, useExportData } from '@/features/manage-account';
+import { QuickEditSheet, type QuickEditField } from '@/features/edit-profile';
 import { useSwitchLocale } from '@/features/switch-locale';
-import { formatJalali } from '@/shared/lib/date';
+import { formatLongDate } from '@/shared/lib/date';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { Icon, type IconName } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
@@ -129,17 +130,28 @@ function StatValue({ children }: { children: ReactNode }) {
   );
 }
 
+// Trailing content for a stat row the user can tap to edit: the value plus a
+// small pencil so the row reads as actionable rather than as a read-only fact.
+function EditableValue({ children }: { children: ReactNode }) {
+  return (
+    <span className="prof-inline">
+      <StatValue>{children}</StatValue>
+      <Icon name="pencil" size={15} className="prof-chev" />
+    </span>
+  );
+}
+
 export function ProfilePage() {
   const t = useTranslations('profile');
   const loc = useLocale() as Locale;
   const router = useRouter();
   const { data: profile } = useUserProfile();
-  const { data: userMode } = useUserMode();
-  const deactivatePregnancy = useDeactivatePregnancy();
+  // const { data: userMode } = useUserMode();
+  // const deactivatePregnancy = useDeactivatePregnancy();
   const logout = useLogout();
   const { locale, switchLocale, isPending: switching } = useSwitchLocale();
-  const { exportData, isPending: exporting } = useExportData();
-  const [deleteOpen, setDeleteOpen] = useState(false);
+  // Which stat row is being edited in the quick-edit sheet (null = closed).
+  const [editing, setEditing] = useState<QuickEditField | null>(null);
 
   const user = profile;
   const health = profile?.health;
@@ -151,9 +163,9 @@ export function ProfilePage() {
   // the server and the first client render `health` is undefined, so both emit
   // the "not set" label, then the client re-renders once data arrives.
   // Dates cross the API boundary in Gregorian ISO and are only ever shown as
-  // Jalali (§7), converted here via the shared date layer.
-  const jalaliOrEmpty = (iso: string | null | undefined) =>
-    iso ? formatJalali(new Date(iso), loc) : t('health.empty');
+  // the locale's calendar (§7), converted here via the shared date layer.
+  const localDateOrEmpty = (iso: string | null | undefined) =>
+    iso ? formatLongDate(new Date(iso), loc) : t('health.empty');
   // A count of days, formatted through ICU so digits localize per locale (§6).
   const daysOrEmpty = (value: number | null | undefined) =>
     value != null ? t('health.days', { days: value }) : t('health.empty');
@@ -173,11 +185,12 @@ export function ProfilePage() {
   // App mode (CLAUDE.md §1). Entering pregnancy mode routes to /pregnancy,
   // which activates and runs onboarding via its own gate; leaving it flips the
   // backend mode back to cycle in place.
-  const isPregnancy = userMode?.mode === 'pregnancy';
-  const switchToCycle = () => {
-    if (deactivatePregnancy.isPending) return;
-    deactivatePregnancy.mutate();
-  };
+  // TEMPORARILY DISABLED with the mode section below (pregnancy postponed):
+  // const isPregnancy = userMode?.mode === 'pregnancy';
+  // const switchToCycle = () => {
+  //   if (deactivatePregnancy.isPending) return;
+  //   deactivatePregnancy.mutate();
+  // };
 
   const chevron = <Chevron loc={loc} />;
 
@@ -213,10 +226,11 @@ export function ProfilePage() {
           </div>
         </section>
 
-        {/* App mode — the visible entry point for switching between cycle and
-            pregnancy mode (§1). In cycle mode this is how the user starts
-            pregnancy tracking; in pregnancy mode it links to the tracker and
-            offers a way back. */}
+        {/* App mode — TEMPORARILY HIDDEN. Pregnancy mode is postponed, so the
+            switch/tracker entry point is commented out rather than deleted; the
+            backend, routes and pregnancy slices are all still in place. Restore
+            this block (and `isPregnancy`/`switchToCycle` above) to bring it back.
+
         <Group title={t('sections.mode')}>
           {isPregnancy ? (
             <>
@@ -243,6 +257,7 @@ export function ProfilePage() {
             />
           )}
         </Group>
+        */}
 
         {/* Cycle & health — the user's profile data from GET /profile. When the
             account has no health profile yet, a single hint row stands in for
@@ -255,37 +270,42 @@ export function ProfilePage() {
               <Row
                 icon="refresh"
                 label={t('health.cycleDuration')}
-                trailing={<StatValue>{daysOrEmpty(health?.cycleDuration)}</StatValue>}
+                trailing={<EditableValue>{daysOrEmpty(health?.cycleDuration)}</EditableValue>}
+                onClick={() => setEditing('cycleDuration')}
               />
               <Divider />
               <Row
                 icon="drop"
                 label={t('health.periodDuration')}
-                trailing={<StatValue>{daysOrEmpty(health?.periodDuration)}</StatValue>}
+                trailing={<EditableValue>{daysOrEmpty(health?.periodDuration)}</EditableValue>}
+                onClick={() => setEditing('periodDuration')}
               />
               <Divider />
               <Row
                 icon="calendar"
                 label={t('health.lastPeriod')}
-                trailing={<StatValue>{jalaliOrEmpty(health?.lastPeriodStart)}</StatValue>}
+                trailing={<StatValue>{localDateOrEmpty(health?.lastPeriodStart)}</StatValue>}
               />
               <Divider />
               <Row
                 icon="sparkle"
                 label={t('health.birthday')}
-                trailing={<StatValue>{jalaliOrEmpty(health?.birthday)}</StatValue>}
+                trailing={<EditableValue>{localDateOrEmpty(health?.birthday)}</EditableValue>}
+                onClick={() => setEditing('birthday')}
               />
               <Divider />
               <Row
                 icon="chart"
                 label={t('health.weight')}
-                trailing={<StatValue>{measureOrEmpty('kg', health?.weight)}</StatValue>}
+                trailing={<EditableValue>{measureOrEmpty('kg', health?.weight)}</EditableValue>}
+                onClick={() => setEditing('weight')}
               />
               <Divider />
               <Row
                 icon="walk"
                 label={t('health.height')}
-                trailing={<StatValue>{measureOrEmpty('cm', health?.height)}</StatValue>}
+                trailing={<EditableValue>{measureOrEmpty('cm', health?.height)}</EditableValue>}
+                onClick={() => setEditing('height')}
               />
               {/* BMI and its supportive message now live on the analysis
                   screen, next to the rest of the user's own numbers. */}
@@ -295,12 +315,11 @@ export function ProfilePage() {
 
         {/* Account */}
         <Group title={t('sections.account')}>
-          <Row icon="user" label={t('rows.personalInfo')} trailing={chevron} onClick={() => router.push('/profile/personal')} />
-          <Divider />
-          <Row icon="heart" label={t('rows.healthPrefs')} trailing={chevron} onClick={() => router.push('/profile/health')} />
-          <Divider />
-          <Row icon="alarm" label={t('rows.reminders')} trailing={chevron} onClick={() => router.push('/profile/reminders')} />
-          <Divider />
+          {/* Personal-info and cycle/health-settings rows hidden per product
+              request; the same fields are editable inline above. */}
+          {/* Reminders row temporarily hidden per product request. */}
+          {/* <Row icon="alarm" label={t('rows.reminders')} trailing={chevron} onClick={() => router.push('/profile/reminders')} />
+          <Divider /> */}
           <Row icon="bell" label={t('rows.notifications')} trailing={chevron} onClick={() => router.push('/profile/notifications')} />
         </Group>
 
@@ -325,16 +344,6 @@ export function ProfilePage() {
         {/* Privacy & data (§11 — export & delete are first-class) */}
         <Group title={t('sections.privacy')}>
           <Row icon="shield" label={t('rows.privacyPolicy')} trailing={chevron} onClick={() => router.push('/profile/info/privacy')} />
-          <Divider />
-          <Row
-            icon="download"
-            label={exporting ? t('exporting') : t('rows.exportData')}
-            trailing={chevron}
-            onClick={() => exportData()}
-            disabled={exporting}
-          />
-          <Divider />
-          <Row icon="trash" label={t('rows.deleteAccount')} danger trailing={chevron} onClick={() => setDeleteOpen(true)} />
         </Group>
 
         {/* Support */}
@@ -364,7 +373,19 @@ export function ProfilePage() {
         </div>
       </div>
 
-      <DeleteAccountConfirm open={deleteOpen} onClose={() => setDeleteOpen(false)} />
+      {/* Tap-to-edit sheet for the stat rows above; saving invalidates the
+          profile query so the row re-renders with the new value. */}
+      <QuickEditSheet
+        field={editing}
+        values={{
+          cycleDuration: health?.cycleDuration,
+          periodDuration: health?.periodDuration,
+          birthday: health?.birthday,
+          weight: health?.weight,
+          height: health?.height,
+        }}
+        onClose={() => setEditing(null)}
+      />
 
       <BottomNav />
     </div>

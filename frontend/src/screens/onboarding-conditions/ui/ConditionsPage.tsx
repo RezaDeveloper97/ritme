@@ -1,8 +1,9 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 
-import { useRouter } from '@/shared/i18n';
+import { type Locale, useRouter } from '@/shared/i18n';
+import { formatNumber } from '@/shared/lib/date';
 import { Icon, NavBack } from '@/shared/ui';
 import {
   nextOnboardingRoute,
@@ -11,8 +12,6 @@ import {
   type ChronicCondition,
 } from '@/entities/user';
 
-const FA = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
-const faNum = (n: string | number) => String(n).replace(/[0-9]/g, d => FA[Number(d)]);
 
 const CONDITIONS: ChronicCondition[] = [
   'pcos',
@@ -30,6 +29,7 @@ const CONDITIONS: ChronicCondition[] = [
  */
 export function ConditionsPage() {
   const t = useTranslations('onboarding');
+  const loc = useLocale() as Locale;
   const router = useRouter();
   const { intention, chronicConditions, toggleCondition } = useOnboardingStore();
   const step = stepPosition('conditions', intention);
@@ -38,7 +38,7 @@ export function ConditionsPage() {
     <div className="view onb-page">
       <div className="hdr">
         <NavBack onClick={() => router.back()} />
-        <span className="stepcount">{faNum(step.index)}<span className="onb-dim"> / {faNum(step.total)}</span></span>
+        <span className="stepcount">{formatNumber(step.index, loc)}<span className="onb-dim"> / {formatNumber(step.total, loc)}</span></span>
       </div>
 
       <div className="scroll onb-scroll">

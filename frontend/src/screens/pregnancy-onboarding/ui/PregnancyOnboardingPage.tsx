@@ -9,10 +9,10 @@ import {
   type AgeSource,
   type OnboardingInput,
 } from '@/entities/pregnancy';
-import { JalaliDateWheels, jalaliPartsToApiDate } from '@/features/edit-profile';
+import { DateWheels, datePartsToApiDate } from '@/features/edit-profile';
 import { Chip, NumberField, PgCard, Segmented, Toggle } from '@/features/track-pregnancy';
 import { useRouter, type Locale } from '@/shared/i18n';
-import { todayJalali, type JalaliParts } from '@/shared/lib/date';
+import { todayParts, type DateParts } from '@/shared/lib/date';
 import { Icon } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
 
@@ -37,8 +37,8 @@ export function PregnancyOnboardingPage() {
   const onboard = useCompleteOnboarding();
 
   const [ageSource, setAgeSource] = useState<AgeSource | undefined>(undefined);
-  const [lmp, setLmp] = useState<JalaliParts>(() => todayJalali());
-  const [scanDate, setScanDate] = useState<JalaliParts>(() => todayJalali());
+  const [lmp, setLmp] = useState<DateParts>(() => todayParts(locale));
+  const [scanDate, setScanDate] = useState<DateParts>(() => todayParts(locale));
   const [scanWeeks, setScanWeeks] = useState<number | undefined>();
   const [scanDays, setScanDays] = useState<number | undefined>();
   const [manualWeeks, setManualWeeks] = useState<number | undefined>();
@@ -50,7 +50,7 @@ export function PregnancyOnboardingPage() {
   const [rhFactor, setRhFactor] = useState<string | undefined>();
   const [error, setError] = useState<string | null>(null);
 
-  const thisJalaliYear = todayJalali().year;
+  const thisYear = todayParts(locale).year;
   const dayOptions = useMemo(
     () => Array.from({ length: 7 }, (_, i) => ({ value: String(i), label: String(i) })),
     [],
@@ -71,13 +71,13 @@ export function PregnancyOnboardingPage() {
     }
     const base: OnboardingInput = { age_source: ageSource };
     if (ageSource === 'lmp') {
-      base.lmp_date = jalaliPartsToApiDate(lmp);
+      base.lmp_date = datePartsToApiDate(lmp, locale);
     } else if (ageSource === 'ultrasound') {
       if (scanWeeks == null) {
         setError(t('onboarding.fillRequired'));
         return null;
       }
-      base.ultrasound_date = jalaliPartsToApiDate(scanDate);
+      base.ultrasound_date = datePartsToApiDate(scanDate, locale);
       base.ultrasound_weeks = scanWeeks;
       base.ultrasound_days = scanDays ?? 0;
     } else {
@@ -165,13 +165,13 @@ export function PregnancyOnboardingPage() {
           {/* Conditional dating inputs */}
           {ageSource === 'lmp' && (
             <PgCard title={t('onboarding.lmpDate')}>
-              <JalaliDateWheels idPrefix="lmp" value={lmp} onChange={setLmp} minYear={thisJalaliYear - 1} maxYear={thisJalaliYear} />
+              <DateWheels idPrefix="lmp" value={lmp} onChange={setLmp} minYear={thisYear - 1} maxYear={thisYear} />
             </PgCard>
           )}
 
           {ageSource === 'ultrasound' && (
             <PgCard title={t('onboarding.ultrasoundDate')}>
-              <JalaliDateWheels idPrefix="scan" value={scanDate} onChange={setScanDate} minYear={thisJalaliYear - 1} maxYear={thisJalaliYear} />
+              <DateWheels idPrefix="scan" value={scanDate} onChange={setScanDate} minYear={thisYear - 1} maxYear={thisYear} />
               <div className="onb-mt12">
                 <span className="pon-sublabel">{t('onboarding.ultrasoundAge')}</span>
                 <div className="pon-pair">

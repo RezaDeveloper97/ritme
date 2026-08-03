@@ -244,12 +244,11 @@ class HomeController extends Controller
      * @OA\Post(
      *     path="/home/challenges/{challenge}/toggle",
      *     summary="Toggle today's completion of a challenge",
-     *     description="Marks the given daily challenge as completed/uncompleted for today and returns the refreshed streak state.",
+     *     description="Marks the given daily challenge as completed/uncompleted for today.",
      *     tags={"Home"},
      *     security={{"bearerAuth":{}}},
      *
      *     @OA\Parameter(name="challenge", in="path", required=true, description="Challenge id", @OA\Schema(type="integer")),
-     *     @OA\Parameter(name="Accept-Language", in="header", required=false, @OA\Schema(type="string", default="fa", enum={"en","fa"})),
      *
      *     @OA\Response(
      *         response=200,
@@ -260,19 +259,7 @@ class HomeController extends Controller
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="data", type="object",
      *                 @OA\Property(property="challenge_id", type="integer", example=2),
-     *                 @OA\Property(property="is_completed", type="boolean", example=true),
-     *                 @OA\Property(property="streak", type="integer", example=4, description="Consecutive days with at least one completed challenge"),
-     *                 @OA\Property(property="longest_streak", type="integer", example=11),
-     *                 @OA\Property(property="week_days", type="array", description="Last 7 days, oldest first",
-     *
-     *                     @OA\Items(type="object",
-     *
-     *                         @OA\Property(property="date", type="string", format="date"),
-     *                         @OA\Property(property="is_completed", type="boolean"),
-     *                         @OA\Property(property="is_today", type="boolean")
-     *                     )
-     *                 ),
-     *                 @OA\Property(property="status_message", type="string", nullable=true)
+     *                 @OA\Property(property="is_completed", type="boolean", example=true)
      *             )
      *         )
      *     ),
@@ -283,24 +270,13 @@ class HomeController extends Controller
      */
     public function toggleChallenge(Request $request, Challenge $challenge): JsonResponse
     {
-        $user = $request->user();
-        $today = Carbon::today();
-        $locale = $this->resolveLocale($request);
-
-        $isCompleted = $this->challenges->toggle($user, $challenge, $today);
-        $streak = $this->challenges->currentStreak($user, $today);
+        $isCompleted = $this->challenges->toggle($request->user(), $challenge, Carbon::today());
 
         return response()->json([
             'success' => true,
             'data' => [
                 'challenge_id' => $challenge->id,
                 'is_completed' => $isCompleted,
-                'streak' => $streak,
-                'longest_streak' => $this->challenges->longestStreak($user),
-                'week_days' => $this->challenges->weekDays($user, $today),
-                'status_message' => $isCompleted
-                    ? $this->challenges->completedMessage($streak, $locale)
-                    : null,
             ],
         ]);
     }

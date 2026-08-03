@@ -88,6 +88,9 @@ Route::prefix('v1')->group(function () {
             Route::post('/period/start', [PeriodLogController::class, 'start']);
             Route::post('/period/end', [PeriodLogController::class, 'end']);
             Route::get('/period/history', [PeriodLogController::class, 'history']);
+            // Whole-range create — used by the period-date editor, which reconciles
+            // several ranges at once and must not depend on the "ongoing" period.
+            Route::post('/period', [PeriodLogController::class, 'store']);
             Route::put('/period/{period}', [PeriodLogController::class, 'update']);
             Route::delete('/period/{period}', [PeriodLogController::class, 'destroy']);
 

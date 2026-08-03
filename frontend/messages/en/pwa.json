@@ -1,0 +1,14 @@
+{
+  "softTitle": "A new version is available",
+  "updateAction": "Update",
+  "updateNow": "Update now",
+  "updating": "Updating…",
+  "forcedTitle": "Update required",
+  "forcedBody": "This version is no longer supported. Please update to keep using Ritme.",
+  "installTitle": "Install the Ritme app",
+  "installBody": "Install Ritme on your home screen for quick access.",
+  "installAction": "Install app",
+  "iosStep1": "1. Tap the Share button in Safari's bottom bar",
+  "iosStep2": "2. Choose \"Add to Home Screen\"",
+  "dismiss": "Dismiss"
+}

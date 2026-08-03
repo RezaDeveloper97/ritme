@@ -1,5 +1,6 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import { useLocale } from 'next-intl';
 import { useTransition } from 'react';
 
@@ -28,10 +29,19 @@ export function useSwitchLocale(): SwitchLocale {
   const locale = useLocale() as Locale;
   const router = useRouter();
   const pathname = usePathname();
+  const queryClient = useQueryClient();
   const [isPending, startTransition] = useTransition();
 
   const switchLocale = (next: Locale) => {
     if (next === locale) return;
+    // Every API payload is server-localized: the client sends Accept-Language
+    // from the document's `lang` (shared/api), so a cached response belongs to
+    // the locale it was fetched under. Switching is a client-side navigation,
+    // so the cache survives it — without this the user would keep reading
+    // Persian cycle tips and daily messages under /en until each key goes
+    // stale. A deliberate language change is rare enough that refetching
+    // everything is the right trade.
+    queryClient.clear();
     startTransition(() => {
       router.replace(pathname, { locale: next });
     });

@@ -1,0 +1,5 @@
+- generic [ref=f5e4]:
+  - generic [ref=f5e5]:
+    - button "Back" [ref=f5e6] [cursor=pointer]
+    - generic [ref=f5e9]: Personal info
+  - paragraph [ref=f5e11]: Loading…

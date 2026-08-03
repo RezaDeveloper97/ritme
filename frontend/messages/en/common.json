@@ -8,5 +8,9 @@
   "locale": {
     "fa": "فارسی",
     "en": "English"
+  },
+  "calendar": {
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month"
   }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Services\MatrixEngine;
 
+use App\Enums\IntercourseType;
 use App\Models\CycleHistory;
 use App\Models\DailyHealthLog;
 use App\Models\User;
@@ -19,8 +20,11 @@ use Illuminate\Support\Collection;
 class PatternRecognitionEngine
 {
     private User $user;
+
     private ?UserProfile $profile;
+
     private string $locale;
+
     private const MINIMUM_CYCLES_FOR_PATTERN = 3;
 
     public function __construct(User $user, string $locale = 'fa')
@@ -39,7 +43,7 @@ class PatternRecognitionEngine
         $isPremium = $this->profile?->isPremium() ?? false;
 
         // Pattern recognition is primarily a premium feature
-        if (!$isPremium) {
+        if (! $isPremium) {
             return [];
         }
 
@@ -47,7 +51,7 @@ class PatternRecognitionEngine
         $healthLogs = $this->getHealthLogs();
 
         // General patterns (Non-TTC)
-        if (!$isTTC) {
+        if (! $isTTC) {
             $patterns = array_merge($patterns, $this->getGeneralPatterns($cycleHistories, $healthLogs));
         } else {
             // TTC-specific patterns
@@ -281,7 +285,10 @@ class PatternRecognitionEngine
     {
         // Simplified - look for sad/anxious moods in logs
         $pmddCount = $healthLogs->filter(function ($log) {
-            if (!is_array($log->moods)) return false;
+            if (! is_array($log->moods)) {
+                return false;
+            }
+
             return in_array('sad', $log->moods) || in_array('anxious', $log->moods);
         })->count();
 
@@ -303,8 +310,11 @@ class PatternRecognitionEngine
             // Assuming ovulation is cycle_length - 14, luteal phase is 14 days normally
             // Short luteal = less than 10 days
             $cycleLength = $history->cycle_length;
-            if (!$cycleLength) return false;
+            if (! $cycleLength) {
+                return false;
+            }
             $lutealPhase = 14; // Estimated
+
             return $lutealPhase < 10;
         });
 
@@ -360,7 +370,15 @@ class PatternRecognitionEngine
     private function detectIntercourseTiming(Collection $healthLogs, Collection $cycleHistories): ?array
     {
         $intercourseL = $healthLogs->filter(function ($log) {
-            if (!is_array($log->sexual_activities)) return false;
+            // Current logs answer this with intercourse_type; older ones carry it
+            // inside the sexual_activities multi-select.
+            if ($log->intercourse_type === IntercourseType::UNPROTECTED->value) {
+                return true;
+            }
+            if (! is_array($log->sexual_activities)) {
+                return false;
+            }
+
             return in_array('unprotected_intercourse', $log->sexual_activities);
         });
 

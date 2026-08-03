@@ -1,17 +1,17 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import { type UserProfile, useUserProfile } from '@/entities/user';
 import {
-  JalaliDateWheels,
-  jalaliPartsToApiDate,
+  DateWheels,
+  datePartsToApiDate,
   useUpdateProfile,
 } from '@/features/edit-profile';
 import { getApiErrorMessage } from '@/shared/api';
-import { useRouter } from '@/shared/i18n';
-import { type JalaliParts, toApiDate, today, toJalali, todayJalali } from '@/shared/lib/date';
+import { type Locale, useRouter } from '@/shared/i18n';
+import { type DateParts, toApiDate, today, toParts, todayParts } from '@/shared/lib/date';
 import { NavBack, WheelPicker } from '@/shared/ui';
 
 // API bounds for the two durations (POST /profile validation).
@@ -74,11 +74,12 @@ function DaysWheel({
  */
 function HealthForm({ profile }: { profile: UserProfile }) {
   const t = useTranslations('profileEdit');
+  const loc = useLocale() as Locale;
   const router = useRouter();
   const update = useUpdateProfile();
 
   const health = profile.health;
-  const nowJalali = todayJalali();
+  const nowParts = todayParts(loc);
 
   const [cycleDuration, setCycleDuration] = useState(() =>
     clamp(health?.cycleDuration ?? 28, CYCLE_MIN, CYCLE_MAX),
@@ -86,9 +87,10 @@ function HealthForm({ profile }: { profile: UserProfile }) {
   const [periodDuration, setPeriodDuration] = useState(() =>
     clamp(health?.periodDuration ?? 6, PERIOD_MIN, PERIOD_MAX),
   );
-  const [lastPeriod, setLastPeriod] = useState<JalaliParts>(() =>
-    // The API stores Gregorian ISO; the user always edits in Jalali (§7).
-    health?.lastPeriodStart ? toJalali(new Date(health.lastPeriodStart)) : todayJalali(),
+  const [lastPeriod, setLastPeriod] = useState<DateParts>(() =>
+    // The API stores Gregorian ISO; the user edits in the calendar their locale
+    // reads — Jalali for fa, Gregorian for en (§7).
+    health?.lastPeriodStart ? toParts(new Date(health.lastPeriodStart), loc) : todayParts(loc),
   );
   const [localError, setLocalError] = useState<string | null>(null);
 
@@ -96,7 +98,7 @@ function HealthForm({ profile }: { profile: UserProfile }) {
     if (update.isPending) return;
     setLocalError(null);
 
-    const lastPeriodStart = jalaliPartsToApiDate(lastPeriod);
+    const lastPeriodStart = datePartsToApiDate(lastPeriod, loc);
     // The API rejects future dates; catch it client-side so the user gets a
     // localized message instead of a raw 422.
     if (lastPeriodStart > toApiDate(today())) {
@@ -150,16 +152,16 @@ function HealthForm({ profile }: { profile: UserProfile }) {
           </div>
         </section>
 
-        {/* Last period start (Jalali, §7) */}
+        {/* Last period start — in the locale's calendar (§7) */}
         <section className="prof-group">
           <SectionLabel>{t('health.lastPeriodLabel')}</SectionLabel>
           <div className="card prof-wheel-card">
-            <JalaliDateWheels
+            <DateWheels
               idPrefix="ph-last"
               value={lastPeriod}
               onChange={setLastPeriod}
-              minYear={nowJalali.year - 1}
-              maxYear={nowJalali.year}
+              minYear={nowParts.year - 1}
+              maxYear={nowParts.year}
             />
           </div>
           <p className="prof-hint">

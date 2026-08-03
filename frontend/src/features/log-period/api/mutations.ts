@@ -200,6 +200,9 @@ export interface PeriodSegment {
  *  - a segment overlapping several → keep the first, delete the rest (a merge),
  *  - a logged period no segment covers → delete it.
  *
+ * Creates go through `POST /cycle/period` (start + end in one call) rather than
+ * start-then-end, so a range can never be closed against a different period.
+ *
  * An open (ongoing) period only stores its start, but reads as a full bleed of
  * `periodDuration` days everywhere else — so it's matched over that same span
  * (clamped to today) and the editor's pre-fill lines up with the calendar. Every
@@ -258,9 +261,11 @@ export function useReconcilePeriods() {
         await apiClient.put(`/cycle/period/${u.id}`, { start_date: u.start, end_date: u.end });
       }
       for (const c of creates) {
-        await postPeriod('/cycle/period/start', c.start);
-        const end = endForSegment(c);
-        if (end !== null) await postPeriod('/cycle/period/end', end);
+        // One call per range: `/period/start` + `/period/end` would close whichever
+        // period the backend considers *ongoing* — with several ranges in flight (or
+        // an untouched open period) that is not the one just created, and the end
+        // date then lands before its start (422).
+        await apiClient.post('/cycle/period', { start_date: c.start, end_date: endForSegment(c) });
       }
     },
     onSuccess: invalidateAll,

@@ -56,6 +56,7 @@
   },
   "dayLog": {
     "title": "This day's log",
+    "count": "{count, plural, one {# entry logged} other {# entries logged}}",
     "edit": "Edit",
     "emptyTitle": "Nothing logged for this day",
     "emptySubtitle": "Log symptoms, mood and more for {date}."

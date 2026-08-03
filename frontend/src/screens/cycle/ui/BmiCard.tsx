@@ -11,18 +11,26 @@ const FA = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
 const localizeNum = (value: string | number, loc: Locale) =>
   loc === 'fa' ? String(value).replace(/[0-9]/g, (d) => FA[Number(d)]) : String(value);
 
-/** Band accent, matching how the summary rows read a value against a range. */
-const BAND_TONE: Record<BmiCategory, string> = {
-  underweight: 'is-warn',
-  normal: 'is-ok',
-  overweight: 'is-warn',
-  obese: 'is-warn',
+/** Per-band accent class; sets `--bmi-accent` / `--bmi-soft` for scale + pill. */
+const BAND_CLASS: Record<BmiCategory, string> = {
+  underweight: 'is-under',
+  normal: 'is-normal',
+  overweight: 'is-over',
+  obese: 'is-obese',
 };
+
+/** Visible span of the scale. WHO band edges (18.5 / 25 / 30) fall inside it. */
+const SCALE_MIN = 15;
+const SCALE_MAX = 35;
+
+const BANDS: BmiCategory[] = ['underweight', 'normal', 'overweight', 'obese'];
 
 /**
  * «شاخص توده بدنی (BMI)» — the server-computed index with its band and the
  * supportive, band-specific paragraph the backend owns (admin-editable, already
- * localized). Descriptive, never diagnostic (§11): shown, never logged.
+ * localized). The linear scale is decorative reinforcement of the value+label
+ * text, so it is aria-hidden. Descriptive, never diagnostic (§11): shown,
+ * never logged.
  */
 export function BmiCard() {
   const t = useTranslations('cycle');
@@ -32,6 +40,12 @@ export function BmiCard() {
 
   if (!bmi) return null;
 
+  // Keep the pin fully on the track even for out-of-scale values.
+  const pos = Math.min(
+    97,
+    Math.max(3, ((bmi.value - SCALE_MIN) / (SCALE_MAX - SCALE_MIN)) * 100),
+  );
+
   return (
     <div className="sec">
       <div className="card pad-card">
@@ -39,7 +53,31 @@ export function BmiCard() {
 
         <div className="bmi-row">
           <span className="bmi-val">{localizeNum(bmi.value, loc)}</span>
-          <span className={`bmi-cat ${BAND_TONE[bmi.category]}`}>{bmi.categoryLabel}</span>
+          <span className={`bmi-cat ${BAND_CLASS[bmi.category]}`}>{bmi.categoryLabel}</span>
+        </div>
+
+        <div className="bmi-scale" aria-hidden="true">
+          <div className="bmi-track">
+            <div className="bmi-band">
+              {BANDS.map((band) => (
+                <span
+                  key={band}
+                  className={`bmi-seg ${BAND_CLASS[band]}${band === bmi.category ? ' is-active' : ''}`}
+                />
+              ))}
+            </div>
+            <span
+              className={`bmi-pin ${BAND_CLASS[bmi.category]}`}
+              style={{ insetInlineStart: `${pos}%` }}
+            >
+              <span className="bmi-dot" />
+            </span>
+          </div>
+          <div className="bmi-ticks">
+            <span className="bmi-tick bmi-tick-a">{localizeNum('18.5', loc)}</span>
+            <span className="bmi-tick bmi-tick-b">{localizeNum(25, loc)}</span>
+            <span className="bmi-tick bmi-tick-c">{localizeNum(30, loc)}</span>
+          </div>
         </div>
 
         <p className="bmi-note">{bmi.message}</p>

@@ -2,69 +2,96 @@
 
 @theme {
   --font-sans: "Vazirmatn", "Tahoma", system-ui, sans-serif;
-  --color-brand:      #E91E63;
-  --color-brand-deep: #E60076;
-  --color-ritme-pink: #FB64B6;
-  --color-ink:        #11202F;
-  --color-muted:      #707983;
-  --color-steel:      #404D58;
-  --color-line:       #EFF2F4;
-  --color-page:       #EFF2F4;
+  --color-brand:      #7B61FF;
+  --color-brand-deep: #6A4FE8;
+  --color-ritme-pink: #FF6FAE;
+  --color-ink:        #2F2F35;
+  --color-muted:      #6F6F78;
+  --color-steel:      #4E4E59;
+  --color-line:       #E7E1F4;
+  --color-page:       #F2ECFF;
   --color-green:      #22B07D;
   --color-green-dot:  #34C77B;
   --color-amber:      #F5A623;
-  --color-violet:     #A91EE9;
+  --color-violet:     #7B61FF;
 }
 
 /* ── CSS variables (used in inline styles & legacy classes) ── */
 :root {
-  --brand:      #E91E63;
-  --brand-deep: #E60076;
-  --pink:       #FB64B6;
-  --pink-soft:  #FFCFCF;
-  --ink:        #11202F;
-  --muted:      #707983;
-  --slate:      #334155;
-  --steel:      #404D58;
-  --line:       #EFF2F4;
-  --page:       #EFF2F4;
+  /* ── Ritme palette (see CLAUDE.md §10.2 — the ONLY brand hues allowed) ──
+     Primary accent  = the purple→rose gradient (#7B61FF → #FF6FAE), sparingly.
+     Data accent     = turquoise #3DD6F3, only for data / active / insight.
+     Canvas          = lavender #F2ECFF; surfaces are pure white.
+     Text            = dark gray #2F2F35 + a gray ramp for secondary/dividers. */
+  --brand:      #7B61FF;
+  --brand-deep: #6A4FE8;
+  --pink:       #FF6FAE;
+  --pink-soft:  #FFD9E9;
+  --ink:        #2F2F35;
+  --muted:      #6F6F78;
+  --slate:      #45454F;
+  --steel:      #4E4E59;
+  --line:       #E7E1F4;
+  --page:       #F2ECFF;
   --green:      #22B07D;
   --green-dot:  #34C77B;
   --amber:      #F5A623;
-  --violet:     #A91EE9;
+  --violet:     #7B61FF;
   --surface:    #fff;
-  --surface-2:  #FFF1F7;
-  --field-border: #E6EAF0;
+  --surface-2:  #F4F0FF;
+  --field-border: #E3DDF2;
+
+  /* ── Primary/Brand gradient (use SPARINGLY: main CTAs, active progress,
+     active tab, hero/branding elements — nothing else) ── */
+  --grad-start: #7B61FF;
+  --grad-end:   #FF6FAE;
+  --gradient-brand: linear-gradient(135deg, var(--grad-start) 0%, var(--grad-end) 100%);
+
+  /* ── Secondary/Data accent (turquoise): current cycle state, new/active
+     badges, ovulation-day data, insights, algorithmic prediction curves ── */
+  --data:       #3DD6F3;
+  --data-deep:  #0FA3C9;  /* text-safe turquoise on light surfaces */
+  --data-soft:  #E3F9FE;  /* soft turquoise surface */
+
+  /* ── Menstruation (period) — the ONE red in the system. Users read bleeding
+     days as red; that convention outranks the brand palette, so period keeps a
+     red that is tuned to the rose end of the gradient rather than a raw red.
+     Calendar period markers ONLY — see CLAUDE.md §10.2. ── */
+  --period:      #E8436F;  /* period marker / dot */
+  --period-deep: #C92C57;  /* text-safe red on light surfaces */
+  --period-soft: #FFE4EC;  /* period day-cell surface */
 
   /* ── Neutral text ramp (strongest → faintest) ── */
-  --ink-2:      #2D2D2D;  /* strong body text */
-  --ink-3:      #58636E;  /* medium body text, pill values */
-  --muted-2:    #6A7282;  /* secondary labels, weekday names */
-  --muted-3:    #8A9098;  /* tertiary / description text */
-  --muted-soft: #A9B2BC;  /* placeholder, disabled, completed */
+  --ink-2:      #2F2F35;  /* strong body text */
+  --ink-3:      #5A5A66;  /* medium body text, pill values */
+  --muted-2:    #6F6F78;  /* secondary labels, weekday names */
+  --muted-3:    #8B8B96;  /* tertiary / description text */
+  --muted-soft: #ACACB8;  /* placeholder, disabled, completed */
 
   /* ── Lines, tracks, faint surfaces ── */
-  --line-2:     #EBEEF2;  /* unselected control border */
-  --track:      #D8DEE5;  /* switch track (off), progress rail */
-  --surface-3:  #F9FAFB;  /* inner panel, faint tile */
+  --line-2:     #EBE5F6;  /* unselected control border */
+  --track:      #DBD4EC;  /* switch track (off), progress rail */
+  --surface-3:  #FAF8FF;  /* inner panel, faint tile */
 
   /* Text/icons sitting ON a saturated fill. Deliberately does NOT flip in
      dark mode — the fill underneath stays saturated, so the label stays white. */
   --on-accent:  #fff;
 
   /* ── Brand tints ── */
-  --pink-bg:      #FCE7F3;  /* soft pink avatar / pill background */
-  --pink-mid:     #F96C9C;
-  --pink-vivid:   #F6339A;
-  --blush:        #F06292;
-  --rose:         #E9276E;
-  --brand-strong: #B3175B;
-  --purple:       #BA68C8;  /* far end of the splash gradient */
-  --brand-line:      #FE87B0;  /* hairline on filled brand controls */
-  --brand-line-soft: #FAD5E6;  /* hairline on ghost brand controls */
-  --brand-disabled:  #F4D4E1;  /* filled brand control, disabled */
-  --home-grad-1:     #FFE5EA;  /* home page backdrop, top */
-  --home-grad-2:     #CFF9EB;  /* home page backdrop, bottom */
+  --pink-bg:      #ECE6FF;  /* soft purple avatar / pill background */
+  --pink-mid:     #9B85FF;
+  --pink-vivid:   #8A6BFF;
+  --blush:        #FF8FC0;
+  --rose:         #FF5FA5;
+  --rose-deep:    #D8407E;  /* text-safe rose on light surfaces */
+  --rose-grad:    linear-gradient(135deg, var(--rose-deep) 0%, var(--pink) 100%);
+  --brand-strong: #5B41E6;
+  --purple:       #FF6FAE;  /* far end of the brand gradient */
+  --brand-line:      #A794FF;  /* hairline on filled brand controls */
+  --brand-line-soft: #DDD6FA;  /* hairline on ghost brand controls */
+  --brand-disabled:  #D6CEF4;  /* filled brand control, disabled */
+  --home-grad-1:     #F2ECFF;  /* home page backdrop, top (lavender) */
+  --home-grad-2:     #E3F9FE;  /* home page backdrop, bottom (soft turquoise) */
 
   /* ── Status: danger ── */
   --danger:      #E5484D;
@@ -84,51 +111,79 @@
   --amber-tint: #FFF4E5;
 
   /* ── Category accents + their soft surfaces ── */
-  --violet-soft: #F5E9FE;
-  --indigo:      #7C7CF0;
-  --indigo-deep: #5B6BE1;
-  --indigo-soft: #F3F0FF;
-  --teal:        #0E9C8A;
-  --teal-deep:   #478F96;
-  --teal-soft:   #F0FDFA;
-  --teal-tint:   #D0FBFF;
+  --violet-soft: #ECE6FF;
+  --indigo:      #8D7BF5;
+  --indigo-deep: #6A5AE0;
+  --indigo-soft: #F0EDFF;
+  --teal:        #0FA3C9;
+  --teal-deep:   #0C87A7;
+  --teal-soft:   #E9FAFE;
+  --teal-tint:   #CFF4FC;
   --orange:      #E9662E;
   --orange-soft: #FDEBE2;
-  --blue:        #2E9BE9;
-  --blue-soft:   #E3F1FD;
+  --blue:        #19BFE8;
+  --blue-soft:   #E3F6FD;
+
+  /* ── Cycle marker intensity ramp (calendar day cells) ──
+     Each marker tint gets a faint and a strong step around its base tint,
+     graded by the day's conception probability. Derived with color-mix from
+     tokens that already flip in dark mode, so no dark overrides are needed. */
+  --pink-bg-faint:      color-mix(in srgb, var(--pink-bg) 45%, var(--surface));
+  --pink-bg-strong:     color-mix(in srgb, var(--brand) 30%, var(--pink-bg));
+  --amber-soft-faint:   color-mix(in srgb, var(--amber-soft) 45%, var(--surface));
+  --amber-soft-strong:  color-mix(in srgb, var(--amber) 30%, var(--amber-soft));
+  --green-tint-faint:   color-mix(in srgb, var(--green-tint) 45%, var(--surface));
+  --green-tint-strong:  color-mix(in srgb, var(--green) 30%, var(--green-tint));
+  --violet-soft-faint:  color-mix(in srgb, var(--violet-soft) 45%, var(--surface));
+  --violet-soft-strong: color-mix(in srgb, var(--violet) 30%, var(--violet-soft));
+  --data-soft-faint:    color-mix(in srgb, var(--data-soft) 45%, var(--surface));
+  --data-soft-strong:   color-mix(in srgb, var(--data) 30%, var(--data-soft));
+  --period-soft-faint:  color-mix(in srgb, var(--period-soft) 45%, var(--surface));
+  --period-soft-strong: color-mix(in srgb, var(--period) 30%, var(--period-soft));
 }
 
 /* Dark appearance — variables flipped via <html data-theme="dark">
    (set from the profile "appearance" setting; see shared/theme). */
 [data-theme="dark"] {
-  --ink:        #ECF1F6;
-  --muted:      #93A0AC;
-  --slate:      #C4CEd8;
-  --steel:      #B6C0CA;
-  --line:       #232C36;
-  --page:       #0D141B;
-  --pink-soft:  #3A2230;
-  --surface:    #16202A;
-  --surface-2:  #2A1E28;
-  --field-border: #2C3742;
+  --ink:        #EDECF2;
+  --muted:      #A0A0AC;
+  --slate:      #C9C9D5;
+  --steel:      #B9B9C6;
+  --line:       #2A2440;
+  --page:       #131022;
+  --pink-soft:  #3A2438;
+  --surface:    #1B172B;
+  --surface-2:  #251E3E;
+  --field-border: #322A4C;
 
   /* Neutral ramp inverts: text lightens, lines/surfaces darken. */
-  --ink-2:      #E9EEF3;
-  --ink-3:      #C2CBD5;
-  --muted-2:    #98A3B0;
-  --muted-3:    #7E8996;
-  --muted-soft: #69747F;
-  --line-2:     #28323C;
-  --track:      #39434E;
-  --surface-3:  #1B2530;
+  --ink-2:      #ECEBF2;
+  --ink-3:      #C7C5D6;
+  --muted-2:    #9C9AAF;
+  --muted-3:    #817F94;
+  --muted-soft: #6A6880;
+  --line-2:     #2C2545;
+  --track:      #3D3560;
+  --surface-3:  #211C36;
 
   /* --on-accent is intentionally absent: it must stay #fff in both themes. */
 
   /* Soft tinted surfaces become dark tints of the same hue; the saturated
      accents that sit on them are lightened so contrast survives the flip. */
-  --pink-bg:      #3A2233;
-  --pink-mid:     #8E3459;
-  --brand-strong: #F583B4;
+  --pink-bg:      #2C2450;
+  --pink-mid:     #7462C9;
+  --rose:         #FF7FB6;
+  --rose-deep:    #FF9AC4;
+  --brand-strong: #B3A5FF;
+
+  /* Data accent: turquoise already reads well on dark; deepen the soft tint. */
+  --data-deep:  #5FDCF5;
+  --data-soft:  #10303B;
+
+  /* Period red: lighten so it stays legible, soft surface becomes a dark tint. */
+  --period:      #FF6D91;
+  --period-deep: #FF8FAB;
+  --period-soft: #3E1B29;
 
   --danger-deep: #F58A8D;
   --danger-line: #5A3033;
@@ -142,27 +197,47 @@
   --amber-soft: #3A2F14;
   --amber-tint: #3A2C18;
 
-  --violet-soft: #2C1F3A;
-  --indigo-deep: #93A0F5;
-  --indigo-soft: #20223C;
-  --teal:        #2ECFB6;
-  --teal-deep:   #6FD3DC;
-  --teal-soft:   #12302C;
-  --teal-tint:   #123037;
+  --violet-soft: #2A2148;
+  --indigo-deep: #A79BFF;
+  --indigo-soft: #232045;
+  --teal:        #3DD6F3;
+  --teal-deep:   #6FDCF0;
+  --teal-soft:   #0F2E38;
+  --teal-tint:   #0F3140;
   --orange-soft: #3A2519;
-  --blue-soft:   #16273A;
+  --blue-soft:   #14293A;
 
-  --brand-line:      #7A3350;
-  --brand-line-soft: #4A2536;
-  --brand-disabled:  #4A2A38;
-  --home-grad-1:     #1A1016;
-  --home-grad-2:     #0E1A18;
+  --brand-line:      #5A4BA8;
+  --brand-line-soft: #3A3060;
+  --brand-disabled:  #3C3563;
+  --home-grad-1:     #1B1430;
+  --home-grad-2:     #0E2530;
 }
 [data-theme="dark"] body { background: var(--page); }
 
 
 * { -webkit-tap-highlight-color: transparent; }
 html, body { margin: 0; }
+
+/* ── Native-app feel: no text selection, no pinch/double-tap zoom, no tap flash ──
+   Inputs stay selectable so typing/editing still works normally. */
+html {
+  touch-action: pan-x pan-y;      /* blocks pinch-zoom & double-tap zoom on iOS */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  overscroll-behavior: none;
+}
+body {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;    /* no long-press image/link menu */
+  -webkit-tap-highlight-color: transparent;
+}
+input, textarea, [contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
 body {
   font-family: var(--font-sans, "Vazirmatn", system-ui, sans-serif);
   background: var(--page);
@@ -171,7 +246,7 @@ body {
 
 /* ── App shell (mobile-width column, centered on desktop) ── */
 .stage {
-  min-height: 100dvh;
+  min-height: var(--app-vh, 100dvh);
   display: flex;
   align-items: stretch;
   justify-content: center;
@@ -181,7 +256,9 @@ body {
   position: relative;
   width: 100%;
   max-width: 420px;
-  height: 100dvh;
+  /* --app-vh tracks the visual viewport so the bottom action bar rides above
+     the mobile keyboard instead of hiding behind it (see ViewportHeight). */
+  height: var(--app-vh, 100dvh);
   background: var(--surface);
   overflow: hidden;
   padding-top: env(safe-area-inset-top);
@@ -215,9 +292,9 @@ body {
   gap: 8px; width: 100%;
 }
 .btn-primary {
-  background: var(--brand); color: var(--on-accent);
+  background: var(--gradient-brand); color: var(--on-accent);
   border: 1px solid var(--brand-line);
-  box-shadow: 0 10px 22px -10px rgba(233,30,99,.7);
+  box-shadow: 0 10px 22px -10px rgba(123,97,255,.7);
 }
 .btn-primary:active   { transform: translateY(1px); }
 .btn-primary:disabled { background: var(--brand-disabled); color: var(--on-accent); box-shadow: none; cursor: default; }
@@ -239,7 +316,7 @@ body {
   display: flex; align-items: center; padding: 0 16px; gap: 10px;
   font-size: 15px; color: var(--ink);
 }
-.field:focus-within { border-color: var(--pink); box-shadow: 0 0 0 4px rgba(251,100,182,.12); }
+.field:focus-within { border-color: var(--brand); box-shadow: 0 0 0 4px rgba(123,97,255,.12); }
 .field input {
   border: 0; outline: 0; background: transparent; flex: 1;
   font-family: inherit; font-size: 15px;
@@ -304,7 +381,15 @@ body {
   border: 1px solid var(--line);
   border-radius: 36px;
   box-shadow: 0 8px 30px rgba(17, 32, 47, .12);
+  /* Liquid-glass drag: horizontal pointer moves must reach JS. */
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
+.tabbar.dragging { cursor: grabbing; }
+.tabbar.dragging .tab,
+.tabbar.dragging .fab { pointer-events: none; }
 .tab {
   position: relative;
   flex: 1;
@@ -327,23 +412,131 @@ body {
 }
 .tab .ic { color: var(--ink-3); }
 .tab.on {
-  color: var(--brand-deep);
+  color: var(--on-accent);
   font-weight: 800;
-  background: linear-gradient(135deg, var(--pink-bg) 0%, var(--violet-soft) 100%);
+  background: var(--gradient-brand);
 }
-.tab.on .ic { color: var(--pink); }
+.tab.on .ic { color: var(--on-accent); }
+/* ── Gooey nav highlight ──
+   The active-tab gradient is a "goo blob" living under an SVG metaball filter
+   together with an echo circle behind the FAB: when the highlight crosses the
+   center "+" it melts into the FAB and is squeezed out the other side. The
+   blob/echo geometry is driven per-frame from JS (widgets/bottom-nav). */
+.tabbar:has(.goo) .tab.on {
+  background: transparent;
+  /* delay the white text until the blob has (mostly) arrived */
+  transition: color .15s ease .18s;
+}
+.goo-defs { position: absolute; width: 0; height: 0; }
+.goo {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  filter: url(#nav-goo);
+  z-index: 0;
+}
+.goo-blob {
+  position: absolute;
+  top: 7px;
+  height: 56px;
+  /* half the height → a perfect circle at the FAB's 56px diameter */
+  border-radius: 28px;
+  background: var(--gradient-brand);
+  opacity: 0;
+  /* Bottom-anchored so the velocity-driven skew reads as jelly leaning,
+     top lagging behind the base while it moves. */
+  transform-origin: 50% 100%;
+  will-change: left, width, transform, opacity;
+}
+.goo-fab-echo {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--gradient-brand);
+  opacity: 0;
+  will-change: opacity;
+}
+/* ── Liquid-glass selection bubble ──
+   Tapping the tab that is already active inflates a glass lens over the goo
+   blob (iOS 26 style): backdrop blur bends the gradient underneath, inset
+   shadows fake a specular top edge + darker bottom rim, and two hue-tinted
+   inner rims (brand violet / data turquoise) read as chromatic aberration.
+   Sits OUTSIDE .goo — the metaball filter would smear the glass edges. */
+.goo-lens {
+  position: absolute;
+  top: 7px;
+  height: 56px;
+  border-radius: 28px;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 2;
+  /* Colorless lens: no white wash, no saturate — the brand gradient
+     underneath must keep its exact colour; only blur bends it. */
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  background: linear-gradient(160deg,
+    rgba(255, 255, 255, .14),
+    rgba(255, 255, 255, 0) 40%,
+    rgba(255, 255, 255, .06));
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, .55),
+    inset 0 -7px 10px -7px rgba(47, 47, 53, .30),
+    0 10px 22px -8px rgba(123, 97, 255, .40);
+  will-change: transform, opacity;
+}
+[data-theme="dark"] .goo-lens {
+  background: linear-gradient(160deg,
+    rgba(255, 255, 255, .10),
+    rgba(255, 255, 255, 0) 40%,
+    rgba(255, 255, 255, .04));
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, .35),
+    inset 0 -7px 10px -7px rgba(0, 0, 0, .45),
+    0 10px 22px -8px rgba(0, 0, 0, .5);
+}
+.goo-lens.pop {
+  animation: nav-lens-pop .54s cubic-bezier(.34, 1.4, .64, 1) both;
+}
+/* While dragging, the glass lens rides the finger; a short transition on
+   left/width makes the glass lag a touch behind, reading as thick liquid. */
+.goo-lens.drag {
+  opacity: 1;
+  animation: none;
+  transition: left .16s cubic-bezier(.25, 1, .4, 1), width .16s ease;
+}
+.goo-blob.jelly {
+  animation: nav-blob-jelly .54s ease-out both;
+}
+@keyframes nav-lens-pop {
+  0%   { opacity: 0; transform: scale(.7); }
+  16%  { opacity: 1; }
+  45%  { opacity: 1; transform: scale(1.2); }
+  68%  { opacity: .95; transform: scale(1.03); }
+  84%  { opacity: .8; transform: scale(1.08); }
+  100% { opacity: 0; transform: scale(1); }
+}
+@keyframes nav-blob-jelly {
+  0%, 100% { transform: scale(1, 1); }
+  30%  { transform: scale(1.1, .8); }
+  55%  { transform: scale(.94, 1.1); }
+  75%  { transform: scale(1.03, .95); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .goo-lens.pop,
+  .goo-blob.jelly { animation: none; }
+}
+.tabbar .tab { z-index: 1; }
+.tabbar .fab { position: relative; z-index: 1; will-change: transform; }
 .fab {
   flex: 0 0 auto;
   width: 56px;
   height: 56px;
-  margin-top: -8px;
   border-radius: 50%;
-  background: linear-gradient(180deg, var(--brand) 0%, var(--purple) 100%);
+  background: var(--gradient-brand);
   color: var(--on-accent);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 12px 24px -6px rgba(233, 30, 99, .55);
+  box-shadow: 0 12px 24px -6px rgba(123, 97, 255, .55);
 }
 .fab .ic { color: var(--on-accent); }
 
@@ -354,7 +547,7 @@ body {
   font-family: var(--font-sans, "Vazirmatn", inherit); color: var(--ink);
   outline: none; background: var(--surface);
 }
-.otp-box:focus  { border-color: var(--pink); box-shadow: 0 0 0 4px rgba(251,100,182,.14); }
+.otp-box:focus  { border-color: var(--brand); box-shadow: 0 0 0 4px rgba(123,97,255,.14); }
 .otp-box.filled { border-color: var(--brand); background: var(--surface-2); }
 
 /* ── Wheel picker ── */
@@ -374,8 +567,8 @@ body {
 .wi.on  { color: var(--ink); font-weight: 800; font-size: 22px; }
 .wheel-band {
   position: absolute; top: 88px; inset-inline-start: 0; inset-inline-end: 0; height: 44px;
-  border-radius: 12px; background: rgba(251,100,182,.10);
-  border: 1px solid rgba(251,100,182,.30); pointer-events: none; z-index: 0;
+  border-radius: 12px; background: rgba(123,97,255,.10);
+  border: 1px solid rgba(123,97,255,.30); pointer-events: none; z-index: 0;
 }
 
 /* ── Horizontal ruler ── */
@@ -417,10 +610,10 @@ body {
 .bar { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; }
 .bar > i {
   display: block; height: 100%; border-radius: 99px;
-  background: linear-gradient(90deg, var(--blush), var(--violet));
+  background: linear-gradient(90deg, var(--grad-start), var(--grad-end));
 }
 
-/* ── Home gradient (Figma: #FFE5EA → #CFF9EB, full page) ── */
+/* ── Home gradient (lavender → soft turquoise, full page) ── */
 .home-grad {
   background: linear-gradient(180deg, var(--home-grad-1) 0%, var(--home-grad-2) 100%);
 }
@@ -490,7 +683,7 @@ body {
   position: absolute; inset: 12px;
   display: flex; align-items: center; justify-content: center;
   border-radius: 50%; background: var(--pink-bg); color: var(--brand);
-  box-shadow: 0 6px 18px -6px rgba(233, 30, 99, .5);
+  box-shadow: 0 6px 18px -6px rgba(123, 97, 255, .5);
   animation: calLoaderPulse 1.5s ease-in-out infinite;
 }
 @keyframes calLoaderPulse {
@@ -512,7 +705,7 @@ body {
 /* ── Content skeleton (placeholder lines while a card's data loads) ── */
 .skeleton-line {
   display: block; height: 12px; border-radius: 6px;
-  background: linear-gradient(90deg, var(--surface-2) 25%, rgba(233, 30, 99, .12) 37%, var(--surface-2) 63%);
+  background: linear-gradient(90deg, var(--surface-2) 25%, rgba(123, 97, 255, .12) 37%, var(--surface-2) 63%);
   background-size: 400% 100%;
   animation: skeletonShimmer 1.4s ease infinite;
 }
@@ -531,7 +724,7 @@ body {
    app had almost no keyboard affordance before. :focus-visible only
    paints for keyboard/AT navigation, so pointer users see no ring.
    ══════════════════════════════════════════════════════════════════ */
-:root { --ring: 0 0 0 3px rgba(233, 30, 99, .38); }
+:root { --ring: 0 0 0 3px rgba(123, 97, 255, .38); }
 
 .btn:focus-visible,
 .iconbtn:focus-visible,
@@ -542,7 +735,7 @@ body {
   box-shadow: var(--ring);
 }
 /* The primary button already carries a drop shadow — keep it under the ring. */
-.btn-primary:focus-visible { box-shadow: var(--ring), 0 10px 22px -10px rgba(233, 30, 99, .7); }
+.btn-primary:focus-visible { box-shadow: var(--ring), 0 10px 22px -10px rgba(123, 97, 255, .7); }
 
 .btn:hover:not(:disabled),
 .iconbtn:hover:not(:disabled) { filter: brightness(.96); }
@@ -644,7 +837,7 @@ body {
 .home-cal-unit  { padding: 2px 16px 0; display: flex; flex-direction: column; gap: 14px; }
 .home-cal-shell {
   border-radius: 16px; overflow: hidden;
-  box-shadow: 0 18px 34px -18px rgba(233, 30, 99, .55);
+  box-shadow: 0 18px 34px -18px rgba(123, 97, 255, .55);
   transition: opacity .15s ease;
 }
 .home-cal-shell.is-loading { opacity: .55; }
@@ -655,7 +848,7 @@ body {
   position: relative;
   background:
     radial-gradient(130% 90% at 50% -25%, rgba(255, 255, 255, .28), rgba(255, 255, 255, 0) 58%),
-    linear-gradient(150deg, var(--rose) 0%, var(--brand) 48%, var(--blush) 100%);
+    linear-gradient(150deg, var(--grad-start) 0%, var(--grad-end) 100%);
   color: var(--on-accent);
   padding: 14px 14px 10px;
 }
@@ -751,6 +944,8 @@ body {
 }
 .home-cta-reveal.is-open { grid-template-rows: 1fr; opacity: 1; }
 .home-cta-reveal-inner   { overflow: hidden; min-height: 0; }
+.home-cta-row { display: flex; gap: 8px; }
+.home-cta-half { flex: 1 1 50%; margin-top: 12px; }
 .home-phase-cta  {
   display: flex; align-items: center; justify-content: center; gap: 6px;
   margin-top: 12px; height: 40px; border-radius: 12px; text-decoration: none;
@@ -791,39 +986,95 @@ body {
 /* Timeline bar (chart — pinned LTR, see CycleTimelineBar) */
 .cyclebar      { position: relative; height: 10px; border-radius: 99px; background: var(--line); margin-bottom: 22px; }
 .cyclebar-band { position: absolute; top: 0; bottom: 0; background: var(--amber-soft); border-radius: 99px; }
-.cyclebar-fill { position: absolute; top: 0; bottom: 0; left: 0; background: linear-gradient(90deg, var(--blush), var(--brand)); border-radius: 99px; opacity: .85; }
+.cyclebar-fill { position: absolute; top: 0; bottom: 0; left: 0; background: linear-gradient(90deg, var(--grad-start), var(--grad-end)); border-radius: 99px; opacity: .85; }
 .cyclebar-tick { position: absolute; top: 50%; width: 10px; height: 10px; margin-top: -5px; margin-left: -5px; border-radius: 50%; background: var(--green-dot); border: 2px solid var(--surface); }
 .cyclebar-now  { position: absolute; top: -5px; width: 4px; height: 20px; margin-left: -2px; border-radius: 2px; background: var(--brand); }
 
-/* Upcoming-events panel */
-.home-panel       { background: var(--surface); border-radius: 16px; padding: 16px; }
-.home-phase-row   { display: flex; align-items: center; justify-content: space-between; }
-.home-phase-row + .home-phase-row { margin-top: 14px; }
-.home-phase-left  { display: flex; align-items: center; gap: 12px; }
-.home-phase-label { font-size: 14px; font-weight: 700; color: var(--muted); }
-.home-phase-chip  { border-radius: 12px; padding: 8px 14px; font-size: 13px; font-weight: 700; color: var(--ink-3); font-variant-numeric: tabular-nums; min-width: 76px; text-align: center; }
-.home-facts       { border-top: 1px solid var(--line); margin-top: 16px; padding-top: 4px; }
+/* Upcoming-events panel — «جادهٔ چرخه»: the events as stations on a vertical
+   rail. Each node sits on the line wearing its phase colour; the end-side chip
+   carries the planner's number — the countdown, not just the date. */
+.home-panel { background: var(--surface); border-radius: 16px; padding: 16px; }
+.ev-list    { position: relative; margin-top: 2px; }
+/* The rail runs through the node centres (logical inset → RTL-safe). */
+.ev-list::before {
+  content: ''; position: absolute; top: 18px; bottom: 18px;
+  inset-inline-start: 14px; width: 2px; border-radius: 2px;
+  background: var(--line-2);
+}
+.ev-row  { position: relative; display: flex; align-items: center; gap: 12px; padding-block: 8px; }
+/* White halo lifts the node off the rail. */
+.ev-node { width: 30px; height: 30px; flex: 0 0 auto; box-shadow: 0 0 0 3px var(--surface); }
+.ev-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; text-align: start; }
+.ev-label { font-size: 13.5px; font-weight: 700; color: var(--ink-2); }
+.ev-date  { font-size: 12px; color: var(--muted-3); font-variant-numeric: tabular-nums; }
+.ev-count {
+  flex: 0 0 auto; border-radius: 999px; padding: 5px 11px;
+  font-size: 11.5px; font-weight: 800; font-variant-numeric: tabular-nums;
+}
 
-/* Recommendations */
-.home-rec-title { font-size: 16px; font-weight: 800; color: var(--pink); text-align: start; margin-bottom: 12px; }
-.home-rec-item  { display: flex; align-items: center; gap: 12px; background: linear-gradient(90deg, var(--pink-bg), var(--green-tint)); border-radius: 8px; padding: 12px; margin-bottom: 8px; }
-.home-rec-badge { width: 36px; height: 36px; border-radius: 50%; background: var(--surface); display: flex; align-items: center; justify-content: center; flex: 0 0 auto; color: var(--green-mid); }
-.home-rec-body  { flex: 1; text-align: start; }
-.home-rec-name  { font-size: 15px; font-weight: 600; color: var(--ink-2); }
-.home-rec-desc  { font-size: 12.5px; color: var(--muted-3); margin-top: 4px; }
+/* Recommendations — quiet tinted rows (restraint §16.6): the loud per-row
+   gradient competed with the hero; identity now comes from the brand badge. */
+/* Turquoise harmony: these rows are engine-resolved output (§10.2 "turquoise
+   means this is data"), so the row surface, the leading rule and the category
+   badge all sit on the data hue instead of the brand pink. */
+.home-rec-title { font-size: 15px; font-weight: 800; color: var(--ink); text-align: start; margin-bottom: 14px; }
+.home-rec-item  {
+  display: flex; align-items: flex-start; gap: 12px;
+  background: var(--data-soft-faint);
+  border: 1px solid color-mix(in srgb, var(--data) 18%, transparent);
+  border-inline-start: 3px solid color-mix(in srgb, var(--data) 55%, transparent);
+  border-radius: 14px; padding: 12px 14px;
+}
+.home-rec-item + .home-rec-item { margin-top: 10px; }
+.home-rec-badge { width: 38px; height: 38px; border-radius: 50%; background: var(--data-soft); display: flex; align-items: center; justify-content: center; flex: 0 0 auto; color: var(--data-deep); }
+.home-rec-body  { flex: 1; text-align: start; align-self: center; }
+.home-rec-name  { font-size: 14px; font-weight: 700; color: var(--ink-2); line-height: 1.5; }
+.home-rec-desc  { font-size: 12.5px; color: var(--muted-3); margin-top: 4px; line-height: 1.7; }
 
 /* Smart tip */
-.home-tip-head   { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-.home-tip-title  { font-size: 14px; font-weight: 800; color: var(--ink); text-align: start; }
-.home-tip-chip   { font-size: 11px; font-weight: 700; color: var(--pink); background: var(--surface-2); border-radius: 999px; padding: 3px 9px; }
-.home-tip-body   { text-align: start; margin: 0 2px; }
+/* Smart tip — «هالهٔ هوش». The engine's own voice gets the page's single
+   animated gradient hairline: brand → rose → turquoise (turquoise = data,
+   §10.2-sanctioned, because this card IS algorithmic output). Inside stays
+   calm white so the aura reads as a frame, not a shout. */
+@property --tip-angle { syntax: '<angle>'; inherits: false; initial-value: 135deg; }
+.home-tip-card {
+  border: 1.5px solid transparent;
+  background:
+    linear-gradient(var(--surface), var(--surface)) padding-box,
+    conic-gradient(from var(--tip-angle),
+      var(--grad-start), var(--grad-end), var(--data), var(--grad-start)) border-box;
+  box-shadow: 0 14px 34px -24px var(--grad-start);
+  animation: tip-aurora 9s linear infinite;
+}
+@keyframes tip-aurora { to { --tip-angle: 495deg; } }
+.home-tip-head   { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+/* Engine mark: a tiny gradient sparkle coin — the only gradient fill inside,
+   small enough to stay jewelry rather than decoration. */
+.home-tip-badge {
+  width: 26px; height: 26px; border-radius: 50%; flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--gradient-brand); color: var(--on-accent);
+}
+.home-tip-title  { font-size: 15px; font-weight: 800; color: var(--ink); text-align: start; }
+/* Phase chip speaks turquoise: it is the engine's detected state (data). */
+.home-tip-chip   { font-size: 11px; font-weight: 800; color: var(--data-deep); background: var(--data-soft); border-radius: 999px; padding: 4px 10px; }
+.home-tip-body   { text-align: start; margin: 0 2px; line-height: 1.9; }
 .home-tip-body.has-action { margin-bottom: 14px; }
-.tip-action { display: flex; align-items: center; gap: 10px; background: linear-gradient(90deg, var(--surface-2), var(--indigo-soft)); border-radius: 12px; padding: 12px; }
-.tip-action-icon { color: var(--pink); }
-.tip-action-text { flex: 1; text-align: start; font-size: 12.5px; font-weight: 700; color: var(--ink); }
-.home-tip-extras { list-style: none; margin: 12px 2px 0; padding: 0; display: grid; gap: 8px; }
-.home-tip-extra  { display: flex; align-items: flex-start; gap: 8px; text-align: start; font-size: 12.5px; color: var(--muted); }
-.home-tip-bullet { width: 5px; height: 5px; border-radius: 50%; background: var(--pink); flex: 0 0 auto; margin-top: 6px; }
+.tip-action { display: flex; align-items: center; gap: 12px; background: linear-gradient(90deg, var(--surface-2), var(--indigo-soft)); border-radius: 14px; padding: 12px 14px; }
+.tip-action-icon {
+  width: 34px; height: 34px; border-radius: 50%; flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--surface); color: var(--brand);
+}
+.tip-action-text { flex: 1; text-align: start; font-size: 13px; font-weight: 700; color: var(--ink); line-height: 1.7; }
+.home-tip-extras { list-style: none; margin: 14px 2px 0; padding: 0; display: grid; gap: 10px; }
+.home-tip-extra  { display: flex; align-items: flex-start; gap: 10px; text-align: start; font-size: 12.5px; color: var(--muted); line-height: 1.7; }
+.home-tip-bullet { width: 6px; height: 6px; border-radius: 50%; background: var(--gradient-brand); flex: 0 0 auto; margin-top: 6px; }
+
+/* Browsers without @property (or reduced motion) keep a static aura. */
+@media (prefers-reduced-motion: reduce) {
+  .home-tip-card { animation: none; }
+}
 .home-tip-extra span:last-child { flex: 1; }
 .home-skel       { display: grid; gap: 8px; }
 .home-skel-block { height: 44px; border-radius: 12px; margin-top: 6px; }
@@ -850,7 +1101,6 @@ body {
 
 /* Page chrome */
 .home-grad-fill { position: absolute; inset: 0; }
-.home-values    { padding-top: 16px; }
 .page-tail      { height: 26px; }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -1067,19 +1317,69 @@ body {
 }
 
 /* Day-log summary (calendar sheet) */
+/* The whole block reads as its own surface, set apart from the day sections
+   above it — the calendar sheet stacks a lot of small rows, so the summary
+   needs its own edge to stop looking like more of the same list. */
+.dls.has-entries {
+  padding: 4px 4px 6px;
+  border-radius: 20px;
+  background: var(--surface-3);
+  box-shadow: 0 10px 26px -18px rgba(17, 24, 39, .28);
+}
 .dls-head       { display: flex; align-items: center; justify-content: space-between; }
-.dls-head.has-entries { margin-bottom: 14px; }
-.dls-head-left  { display: flex; align-items: center; gap: 8px; }
-.dls-head-icon  { color: var(--brand); }
+.dls-head.has-entries { margin-bottom: 6px; padding: 10px 10px 4px; }
+.dls-head-left  { display: flex; align-items: center; gap: 10px; }
+.dls-head-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; flex-shrink: 0;
+  border-radius: 10px; color: var(--brand); background: var(--surface-2);
+}
+.dls-head-text  { display: flex; flex-direction: column; gap: 2px; text-align: start; }
 .dls-title      { font-size: 15px; font-weight: 800; color: var(--ink); }
+.dls-subtitle   { font-size: 11.5px; font-weight: 600; color: var(--muted-3); }
 .dls-edit       { padding: 5px 12px; font-size: 12px; gap: 6px; }
 .dls-loading    { padding: 18px 0; text-align: center; color: var(--muted); font-size: 13px; }
-.dls-groups     { display: flex; flex-direction: column; gap: 14px; }
-.dls-group-name { font-size: 12px; font-weight: 800; text-align: start; margin-bottom: 8px; }
-.dls-lines      { display: flex; flex-direction: column; gap: 6px; }
-.dls-line       { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-.dls-line-label { font-size: 13px; color: var(--muted); font-weight: 600; text-align: start; }
-.dls-line-value { font-size: 13.5px; color: var(--ink); font-weight: 700; text-align: end; }
+.dls-groups     { display: flex; flex-direction: column; gap: 8px; }
+
+/* One tinted panel per category. Every colour derives from --dls-accent (set
+   from data), so the tints follow the theme instead of being hand-picked. */
+.dls-group {
+  border-radius: 16px;
+  padding: 11px 12px 12px;
+  background: color-mix(in srgb, var(--dls-accent) 6%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--dls-accent) 16%, transparent);
+}
+.dls-group-head { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; }
+.dls-group-dot {
+  width: 7px; height: 7px; flex-shrink: 0;
+  border-radius: 50%; background: var(--dls-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--dls-accent) 18%, transparent);
+}
+.dls-group-name {
+  font-size: 12px; font-weight: 800; text-align: start;
+  color: var(--dls-accent);
+}
+.dls-lines      { display: flex; flex-direction: column; }
+.dls-line {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 5px 0;
+}
+.dls-line + .dls-line {
+  border-top: 1px solid color-mix(in srgb, var(--dls-accent) 12%, transparent);
+}
+.dls-line-label { font-size: 12.5px; color: var(--muted-2); font-weight: 600; text-align: start; }
+.dls-line-value {
+  font-size: 12.5px; font-weight: 800; text-align: end;
+  color: color-mix(in srgb, var(--dls-accent) 72%, var(--ink));
+  background: color-mix(in srgb, var(--dls-accent) 12%, var(--surface));
+  border-radius: 999px; padding: 3px 10px;
+  max-width: 62%; overflow-wrap: anywhere; line-height: 1.55;
+}
+.dls-line.is-long { flex-direction: column; align-items: stretch; gap: 5px; }
+.dls-line.is-long .dls-line-value {
+  max-width: 100%; text-align: start;
+  border-radius: 12px; padding: 7px 10px; font-weight: 700;
+}
 .dls-empty {
   display: flex; align-items: center; gap: 12px; padding: 14px;
   width: 100%; margin-top: 14px; cursor: pointer; text-align: start;
@@ -1108,7 +1408,7 @@ body {
   padding: 18px;
   background: linear-gradient(135deg, var(--brand) 0%, var(--pink-vivid) 60%, var(--pink) 100%);
   color: var(--on-accent);
-  box-shadow: 0 18px 34px -20px rgba(233, 30, 99, .6);
+  box-shadow: 0 18px 34px -20px rgba(123, 97, 255, .6);
   text-align: start;
 }
 .pd-hero-deco     { position: absolute; border-radius: 50%; background: rgba(255, 255, 255, .13); }
@@ -1493,6 +1793,11 @@ body {
 .prof-edit-loading-t { font-size: 14px; color: var(--muted); text-align: center; }
 .placeholder-soft  { color: var(--muted-soft); }
 
+/* Quick-edit sheet — one profile value edited in place from its stat row. */
+.prof-quick-t       { font-size: 16px; font-weight: 800; color: var(--ink); text-align: center; margin: 0 0 4px; }
+.prof-quick-body    { padding: 10px 8px 4px; }
+.prof-quick-actions { padding: 8px 4px 4px; }
+
 /* Notifications screen */
 .notif-hdr-left { display: flex; align-items: center; gap: 6px; }
 .notif-title    { font-size: 17px; font-weight: 800; color: var(--ink); }
@@ -1653,10 +1958,41 @@ body {
 /* Analysis: BMI card */
 .bmi-row        { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
 .bmi-val        { font-size: 26px; font-weight: 900; color: var(--ink); font-variant-numeric: tabular-nums; }
-.bmi-cat        { font-size: 11px; font-weight: 700; border-radius: 6px; padding: 3px 9px; white-space: nowrap; }
-.bmi-cat.is-ok  { color: var(--green-deep); background: var(--green-soft); }
-.bmi-cat.is-warn{ color: var(--amber-deep); background: var(--amber-soft); }
+.bmi-cat        { font-size: 11px; font-weight: 700; border-radius: 6px; padding: 3px 9px; white-space: nowrap;
+                  color: var(--bmi-deep); background: var(--bmi-soft); }
 .bmi-note       { font-size: 13.5px; line-height: 2; color: var(--muted); margin: 10px 0 0; text-align: start; }
+
+/* WHO band accents, shared by the pill, the scale segments and the pin. */
+.bmi-cat.is-under,  .bmi-scale .is-under  { --bmi-accent: var(--blue);   --bmi-soft: var(--blue-soft);   --bmi-deep: var(--indigo-deep); }
+.bmi-cat.is-normal, .bmi-scale .is-normal { --bmi-accent: var(--green);  --bmi-soft: var(--green-soft);  --bmi-deep: var(--green-deep); }
+.bmi-cat.is-over,   .bmi-scale .is-over   { --bmi-accent: var(--amber);  --bmi-soft: var(--amber-soft);  --bmi-deep: var(--amber-deep); }
+.bmi-cat.is-obese,  .bmi-scale .is-obese  { --bmi-accent: var(--danger); --bmi-soft: var(--danger-soft); --bmi-deep: var(--danger-deep); }
+
+/* Linear BMI scale: 4 soft band segments (active band saturated) + a pin. */
+.bmi-scale  { margin-top: 16px; }
+.bmi-track  { position: relative; height: 10px; }
+.bmi-band   { display: flex; gap: 2px; height: 100%; border-radius: 99px; overflow: hidden; }
+.bmi-seg    { background: var(--bmi-soft); }
+.bmi-seg.is-active { background: var(--bmi-accent); }
+/* Segment widths on a 15–35 scale: edges at 18.5 / 25 / 30. */
+.bmi-seg.is-under  { width: 17.5%; }
+.bmi-seg.is-normal { width: 32.5%; }
+.bmi-seg.is-over   { width: 25%; }
+.bmi-seg.is-obese  { width: 25%; }
+/* Zero-width flex wrapper so the dot self-centers on its position in both
+   directions — no direction-dependent translate needed. */
+.bmi-pin    { position: absolute; top: 50%; transform: translateY(-50%); width: 0;
+              display: flex; justify-content: center; }
+.bmi-dot    { flex: none; width: 16px; height: 16px; border-radius: 50%;
+              background: var(--bmi-accent); border: 3px solid var(--surface);
+              box-shadow: 0 1px 4px rgba(17, 32, 47, .28); }
+.bmi-ticks  { position: relative; height: 16px; margin-top: 6px; }
+.bmi-tick   { position: absolute; top: 0; width: 0; display: flex; justify-content: center;
+              font-size: 10.5px; font-weight: 700; color: var(--muted-3);
+              font-variant-numeric: tabular-nums; white-space: nowrap; }
+.bmi-tick-a { inset-inline-start: 17.5%; }
+.bmi-tick-b { inset-inline-start: 50%; }
+.bmi-tick-c { inset-inline-start: 75%; }
 
 .csum-skel-a  { height: 20px; }
 .csum-skel-b  { height: 20px; width: 96%; }
@@ -1719,8 +2055,12 @@ body {
 /* ══════════════════════════════════════════════════════════════════
    Period date editor (full-screen month scroller)
    ══════════════════════════════════════════════════════════════════ */
-.pde        { position: absolute; inset: 0; z-index: 60; display: flex; flex-direction: column; background: var(--surface); }
-.pde-head   { background: linear-gradient(180deg, var(--brand-deep), var(--brand)); color: var(--on-accent); padding: 12px clamp(12px, 4vw, 18px) 0; flex-shrink: 0; }
+/* The period-date editor is a period surface, so it wears the rose end of the
+   brand gradient instead of the violet end (§10.2). Scoped token override so
+   the inline data-driven colours in PeriodDateEditor follow along. */
+.pde        { position: absolute; inset: 0; z-index: 60; display: flex; flex-direction: column; background: var(--surface);
+              --brand: var(--rose-deep); --brand-deep: var(--rose-deep); --gradient-brand: var(--rose-grad); }
+.pde-head   { background: linear-gradient(180deg, var(--rose-deep), var(--rose)); color: var(--on-accent); padding: 12px clamp(12px, 4vw, 18px) 0; flex-shrink: 0; }
 .pde-head-row { display: flex; align-items: center; gap: 10px; min-height: 40px; }
 .pde-close  {
   width: 38px; height: 38px; border-radius: 50%; border: none;
@@ -1768,19 +2108,40 @@ body {
 /* ══════════════════════════════════════════════════════════════════
    Entity cards (cycle)
    ══════════════════════════════════════════════════════════════════ */
-.cvc         { margin: 0 16px 14px; padding: 16px 14px; text-align: start; }
-.cvc-title   { font-size: 14px; font-weight: 800; color: var(--ink); margin-bottom: 12px; }
-.cvc-row     { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
-.cvc-row-l   { font-size: 13px; color: var(--muted); }
-.cvc-row-v   { font-size: 14px; font-weight: 800; color: var(--ink); }
-.cvc-sugg    { margin-top: 12px; background: var(--line); border-radius: 12px; padding: 12px; }
-.cvc-sugg-t  { font-size: 12.5px; color: var(--steel); margin: 0 0 10px; line-height: 1.7; }
+/* §12 value layers. Lives inside the upcoming-events panel where the two cycle
+   facts used to sit, so it carries its own hairline separator instead of a card
+   frame. Hierarchy is weight + size (Apple type rules): the number leads, its
+   label sits under it as a quiet caption. */
+.cvc         { border-top: 1px solid var(--line); margin-top: 20px; padding-top: 18px; text-align: start; }
+.cvc-head    { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+/* Quiet overline: the section name recedes so the number leads the read. */
+.cvc-title   { font-size: 13px; font-weight: 700; color: var(--ink-2); letter-spacing: -.01em; }
+/* The value is a fact in a list, not a hero number — it sits at the scale of
+   the other stats on this panel rather than shouting from the card. */
+.cvc-value   { font-size: 15px; font-weight: 800; color: var(--ink); line-height: 1.2; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+.cvc-label   { font-size: 12px; color: var(--muted-3); margin-top: 6px; line-height: 1.6; }
+.cvc-sugg    { margin-top: 16px; background: var(--surface-2); border: 1px solid var(--line-2); border-radius: 14px; padding: 14px; }
+.cvc-sugg-t  { font-size: 13px; color: var(--ink-2); margin: 0 0 12px; line-height: 1.8; }
 .cvc-sugg-cta{
   border: none; cursor: pointer; background: var(--brand); color: var(--on-accent);
-  font-size: 13px; font-weight: 700; border-radius: 10px; padding: 9px 14px;
+  font-size: 13px; font-weight: 700; border-radius: 999px; padding: 10px 18px;
+  transition: transform .18s cubic-bezier(.22,.61,.36,1), opacity .18s ease;
 }
+/* Feedback on press, not on release (fluid-interfaces §1). */
+.cvc-sugg-cta:active { transform: scale(.97); opacity: .92; }
 .cvc-sugg-cta:focus-visible { outline: none; box-shadow: var(--ring); }
-.cvc-note    { font-size: 11px; color: var(--muted); margin-top: 12px; }
+/* "prediction is based on: …" is algorithm provenance — data, so it carries the
+   turquoise tint (§10.2) as a quiet inline chip rather than another grey line. */
+.cvc-note    {
+  display: inline-block; font-size: 11.5px; font-weight: 600;
+  color: var(--data-deep); background: var(--data-soft-faint);
+  border-radius: 999px; padding: 5px 11px; margin-top: 14px; line-height: 1.6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cvc-sugg-cta { transition: opacity .18s ease; }
+  .cvc-sugg-cta:active { transform: none; }
+}
 
 .dsc         { padding: 16px 14px; text-align: start; }
 .dsc-head    { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
@@ -1835,17 +2196,63 @@ body {
 .dt-check    { appearance: none; -webkit-appearance: none; padding: 0; flex: 0 0 auto; }
 .dt-del      { color: var(--muted); flex: 0 0 auto; }
 
-/* Today challenge */
-.tc-head    { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
-.tc-flame   { color: var(--amber); }
-.tc-title   { font-size: 14px; font-weight: 800; color: var(--ink); }
+/* Today challenge — one task, one tick. There is no streak, score or history
+   here by product decision, so nothing on this card competes with the task
+   itself; the only motion is the springy pop when the tick lands. */
+.tc-head    { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.tc-mark    {
+  width: 30px; height: 30px; border-radius: 50%; flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--pink-bg); color: var(--brand);
+}
+.tc-title   { font-size: 15px; font-weight: 800; color: var(--ink); }
+/* Which cycle day the pick was made for — turquoise because it is cycle data,
+   not decoration (§10.2). Quiet by design: it is context, not a reward. */
+.tc-day-chip {
+  flex: 0 0 auto; white-space: nowrap;
+  font-size: 11px; font-weight: 800;
+  color: var(--data-deep); background: var(--data-soft-faint);
+  border-radius: 999px; padding: 3px 9px;
+}
 .tc-spacer  { flex: 1; }
-.tc-streak  { display: flex; align-items: center; gap: 4px; background: var(--amber-tint); color: var(--amber-deep); border-radius: 999px; padding: 3px 9px; font-size: 11.5px; font-weight: 800; }
-.tc-item-l  { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.tc-item-ic { color: var(--brand); flex: 0 0 auto; }
+/* The challenge itself: a pressable tile. Rest = quiet tinted row (same family
+   as the recommendations); done = green wash. Feedback on press (§1). */
+.tc-item {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; gap: 10px; text-align: start; cursor: pointer; font-family: inherit;
+  border: 1.5px solid var(--line-2); background: var(--surface-2);
+  border-radius: 14px; padding: 12px 14px;
+  transition: background .2s ease, border-color .2s ease,
+              transform .18s cubic-bezier(.22,.61,.36,1);
+}
+.tc-item:active { transform: scale(.98); }
+.tc-item:disabled { cursor: default; opacity: .7; }
+.tc-item:focus-visible { outline: none; box-shadow: var(--ring); }
+.tc-item.is-done { background: var(--green-tint); border-color: var(--green); }
+.tc-item-l  { display: flex; align-items: center; gap: 12px; min-width: 0; }
+/* Icon bubble — same identity dot as the recommendation rows, flipping to the
+   success green once the challenge is done. */
+.tc-item-ic {
+  flex: 0 0 auto; width: 38px; height: 38px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--pink-bg); color: var(--brand);
+  transition: background .2s ease, color .2s ease;
+}
+.tc-item.is-done .tc-item-ic { background: var(--surface); color: var(--green-deep); }
 .tc-item-b  { min-width: 0; }
-.tc-week    { display: flex; gap: 6px; justify-content: space-between; margin-top: 12px; }
-.tc-caption { margin-top: 14px; background: linear-gradient(90deg, var(--pink-bg), var(--violet-soft)); border-radius: 12px; padding: 8px 12px; text-align: center; font-size: 12px; font-weight: 600; color: var(--steel); }
+.tc-item-t  { display: block; font-size: 14px; font-weight: 700; color: var(--ink); line-height: 1.5; transition: color .2s ease; }
+.tc-item.is-done .tc-item-t { text-decoration: line-through; color: var(--muted); }
+/* The tick pops in with a spring the instant the challenge
+   is marked done (feedback on the causal event, fluid-interfaces §13). */
+.tc-item.is-done .cbx { animation: tc-forge .45s cubic-bezier(.22, 1.4, .36, 1); }
+@keyframes tc-forge { 0% { transform: scale(.55); } 60% { transform: scale(1.18); } 100% { transform: scale(1); } }
+.tc-caption { margin-top: 14px; background: linear-gradient(90deg, var(--pink-bg), var(--violet-soft)); border-radius: 12px; padding: 10px 12px; text-align: center; font-size: 12px; font-weight: 600; color: var(--steel); line-height: 1.7; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tc-item { transition: background .2s ease, border-color .2s ease; }
+  .tc-item:active { transform: none; }
+  .tc-item.is-done .cbx { animation: none; }
+}
 
 /* Week summary */
 .ws-card    { background: var(--surface); border: 1px solid var(--teal-soft); border-radius: 12px; padding: 14px 12px; transition: opacity .15s ease; }
@@ -2051,3 +2458,139 @@ body {
 /* The home row's cards are links now — keep them looking like cards. */
 .home-article { text-decoration: none; color: inherit; }
 .home-article:focus-visible { outline: none; box-shadow: var(--ring); border-radius: 12px; }
+
+/* ---------------------------------------------------------------------------
+   PWA — update system + install prompt (shared/pwa)
+   --------------------------------------------------------------------------- */
+
+/* Soft-update toast & install banner: floats above the bottom nav. */
+.pwa-toast,
+.pwa-install {
+  position: fixed;
+  inset-inline-start: 16px;
+  inset-inline-end: 16px;
+  bottom: 88px;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 12px 16px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14);
+  animation: pwa-rise 0.3s ease;
+}
+@keyframes pwa-rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.pwa-toast-text,
+.pwa-install-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  color: var(--ink);
+  text-align: start;
+}
+.pwa-toast-text strong,
+.pwa-install-text strong { font-size: 14px; font-weight: 700; }
+.pwa-install-text span { color: var(--muted-2); line-height: 1.8; }
+.pwa-notes { color: var(--muted-2); font-size: 12px; line-height: 1.8; }
+
+.pwa-toast-actions { display: flex; align-items: center; gap: 6px; }
+
+.pwa-btn-primary {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--on-accent);
+  background: var(--gradient-brand);
+  border: 0;
+  border-radius: 999px;
+  padding: 9px 18px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.pwa-btn-primary:focus-visible { outline: none; box-shadow: var(--ring); }
+.pwa-btn-primary:disabled { opacity: 0.6; cursor: default; }
+
+.pwa-btn-dismiss {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted-2);
+  cursor: pointer;
+}
+.pwa-btn-dismiss:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.pwa-install-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  background: var(--pink-bg);
+  color: var(--brand);
+}
+
+.pwa-install-ios { align-items: flex-start; }
+.pwa-ios-step { display: flex; align-items: center; gap: 6px; }
+.pwa-step-icon { display: inline-flex; color: var(--brand); }
+
+/* Forced-update screen: blocks the whole app, cannot be dismissed. */
+.pwa-forced {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--page);
+}
+.pwa-forced-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  background: var(--surface);
+  border-radius: 24px;
+  padding: 36px 28px;
+  max-width: 340px;
+  width: 100%;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+}
+.pwa-forced-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--pink-bg);
+  color: var(--brand);
+}
+.pwa-forced-title { margin: 18px 0 0; font-size: 18px; font-weight: 800; color: var(--ink); }
+.pwa-forced-body { margin: 10px 0 0; font-size: 13px; line-height: 2; color: var(--muted-2); }
+.pwa-forced-card .pwa-notes { margin-top: 8px; }
+.pwa-forced-card .pwa-btn-primary { margin-top: 24px; width: 100%; padding: 12px 18px; font-size: 14px; }
+
+/* While the forced screen is up, nothing behind it may scroll. */
+body.pwa-locked { overflow: hidden; }
+
+/* UpdateGate renders directly before InstallPrompt at the app root; when an
+   update UI is up (toast or forced screen), the install banner yields. */
+.pwa-toast ~ .pwa-install,
+.pwa-forced ~ .pwa-install { display: none; }

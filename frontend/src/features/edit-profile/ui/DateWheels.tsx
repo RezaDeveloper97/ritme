@@ -1,37 +1,34 @@
 'use client';
 
-import { useLocale, useTranslations } from 'next-intl';
+import { useLocale } from 'next-intl';
 import { useEffect, useMemo, useRef } from 'react';
 
-import type { JalaliParts } from '@/shared/lib/date';
+import { allMonthNames, type DateParts, formatNumber } from '@/shared/lib/date';
 import type { Locale } from '@/shared/i18n';
 import { WheelPicker } from '@/shared/ui';
 
-const FA = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-const localizeNum = (value: string | number, loc: Locale) =>
-  loc === 'fa' ? String(value).replace(/[0-9]/g, (d) => FA[Number(d)]) : String(value);
-
-interface JalaliDateWheelsProps {
+interface DateWheelsProps {
   /** Unique prefix for the underlying wheel ids (one instance per screen). */
   idPrefix: string;
-  value: JalaliParts;
-  onChange: (value: JalaliParts) => void;
-  /** First selectable Jalali year (inclusive). */
+  value: DateParts;
+  onChange: (value: DateParts) => void;
+  /** First selectable year (inclusive), in the locale's calendar. */
   minYear: number;
-  /** Last selectable Jalali year (inclusive). */
+  /** Last selectable year (inclusive), in the locale's calendar. */
   maxYear: number;
 }
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
 /**
- * Day / month / year wheel triplet for picking a Jalali date — the same
- * interaction as the onboarding birthday step, packaged for the edit-profile
- * forms. Month names come from the `profileEdit` namespace and digits localize
- * per locale (CLAUDE.md §6); the wheels never show a Gregorian date (§7).
+ * Day / month / year wheel triplet for picking a date — the same interaction as
+ * the onboarding birthday step, packaged for the edit-profile forms.
+ *
+ * The wheels speak the calendar the user's locale reads: Jalali months and
+ * years for `fa`, Gregorian for `en`. Month names and digits both come from the
+ * date layer (CLAUDE.md §6, §7) so the two calendars can never be mixed.
  */
-export function JalaliDateWheels({ idPrefix, value, onChange, minYear, maxYear }: JalaliDateWheelsProps) {
-  const t = useTranslations('profileEdit');
+export function DateWheels({ idPrefix, value, onChange, minYear, maxYear }: DateWheelsProps) {
   const loc = useLocale() as Locale;
 
   // WheelPicker binds its scroll handler once on mount, so the callbacks below
@@ -41,24 +38,18 @@ export function JalaliDateWheels({ idPrefix, value, onChange, minYear, maxYear }
   useEffect(() => {
     valueRef.current = value;
   }, [value]);
-  const emit = (patch: Partial<JalaliParts>) => {
+  const emit = (patch: Partial<DateParts>) => {
     valueRef.current = { ...valueRef.current, ...patch };
     onChange(valueRef.current);
   };
 
-  // Static keys so the typed-message check can verify every month exists (§6).
-  const months = [
-    t('months.m1'), t('months.m2'), t('months.m3'), t('months.m4'),
-    t('months.m5'), t('months.m6'), t('months.m7'), t('months.m8'),
-    t('months.m9'), t('months.m10'), t('months.m11'), t('months.m12'),
-  ];
-
+  const months = useMemo(() => [...allMonthNames(loc)], [loc]);
   const days = useMemo(
-    () => Array.from({ length: 31 }, (_, i) => localizeNum(i + 1, loc)),
+    () => Array.from({ length: 31 }, (_, i) => formatNumber(i + 1, loc)),
     [loc],
   );
   const years = useMemo(
-    () => Array.from({ length: maxYear - minYear + 1 }, (_, i) => localizeNum(minYear + i, loc)),
+    () => Array.from({ length: maxYear - minYear + 1 }, (_, i) => formatNumber(minYear + i, loc)),
     [loc, minYear, maxYear],
   );
 

@@ -14,15 +14,21 @@ export type EnumKey =
   | 'bleeding_intensity'
   | 'blood_color'
   | 'bleeding_smell'
+  | 'clots_amount'
   | 'pain_intensity'
   | 'appetite_change'
   | 'urination_change'
   | 'moods'
   | 'sleep_duration'
   | 'sleep_quality'
+  | 'exercise_type'
+  | 'exercise_intensity'
   | 'sexual_activities'
+  | 'sexual_desire'
+  | 'intercourse_type'
   | 'discharge_texture'
   | 'discharge_amount'
+  | 'discharge_color'
   | 'discharge_smell';
 
 /** Available option values for each enum, as returned by the API. */
@@ -41,7 +47,9 @@ export interface HealthLogInput {
   bleeding_intensity?: string;
   blood_color?: string;
   bleeding_smell?: string;
+  /** @deprecated presence-only; the form now records {@link clots_amount}. */
   has_clots?: boolean;
+  clots_amount?: string;
   spotting?: boolean;
 
   // ── Pain & physical symptoms (all use the `pain_intensity` enum) ──
@@ -69,6 +77,13 @@ export interface HealthLogInput {
   sleep_duration?: string;
   sleep_quality?: string;
 
+  // ── Exercise ──
+  /** A workout day can be several activities (walk + gym). */
+  exercise_type?: string[];
+  /** Minutes of activity. */
+  exercise_duration?: number;
+  exercise_intensity?: string;
+
   // ── Skin & body ──
   acne?: boolean;
   oily_skin?: boolean;
@@ -80,6 +95,7 @@ export interface HealthLogInput {
   chills?: boolean;
 
   // ── Discharge ──
+  discharge_color?: string;
   discharge_texture?: string;
   discharge_amount?: string;
   discharge_smell?: string;
@@ -89,12 +105,19 @@ export interface HealthLogInput {
 
   // ── Intimate / urinary ──
   vaginal_dryness?: boolean;
+  /** @deprecated presence-only; the form now records {@link vaginal_burning_intensity}. */
   vaginal_burning?: boolean;
+  vaginal_burning_intensity?: string;
+  /** @deprecated presence-only; the form now records {@link vaginal_itching_intensity}. */
   vaginal_itching?: boolean;
+  vaginal_itching_intensity?: string;
   vaginal_smell_change?: boolean;
   urination_change?: string;
 
   // ── Sexual activity ──
+  sexual_desire?: string;
+  intercourse_type?: string;
+  /** Experiences during/after intercourse. */
   sexual_activities?: string[];
 
   // ── Measurements ──
@@ -117,7 +140,22 @@ export type FieldControl =
   | { kind: 'degree'; enumKey: EnumKey } // single-select intensity (segmented)
   | { kind: 'multi'; enumKey: EnumKey } // multi-select from an enum
   | { kind: 'bool' } // on/off toggle
-  | { kind: 'measure'; unit: 'kg' | 'celsius'; min: number; max: number; step: number }
+  /**
+   * A number picked from a wheel. `default` is the value the wheel opens on
+   * when nothing is recorded yet; without it the middle of the range is used.
+   * `alwaysOn` drops the enable switch so the wheel is immediately usable —
+   * for fields that are the whole point of their sheet (weight, BBT), where an
+   * extra toggle is just a step between the user and the number.
+   */
+  | {
+      kind: 'measure';
+      unit: 'kg' | 'celsius' | 'minutes';
+      min: number;
+      max: number;
+      step: number;
+      default?: number;
+      alwaysOn?: boolean;
+    }
   | { kind: 'note' }; // free-text
 
 export interface FieldDef {
@@ -135,11 +173,13 @@ export type CategoryKey =
   | 'digestion'
   | 'mood'
   | 'sleep'
+  | 'exercise'
   | 'body'
   | 'discharge'
   | 'intimate'
   | 'sexual'
-  | 'measure'
+  | 'weight'
+  | 'temperature'
   | 'notes';
 
 /** A logical group of fields, shown as one card and edited in one bottom sheet. */

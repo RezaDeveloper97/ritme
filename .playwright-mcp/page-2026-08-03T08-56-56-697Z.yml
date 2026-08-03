@@ -1,0 +1,5 @@
+- generic [ref=f6e4]:
+  - generic [ref=f6e5]:
+    - button "Back" [ref=f6e6] [cursor=pointer]
+    - generic [ref=f6e9]: Cycle & health settings
+  - paragraph [ref=f6e11]: Loading…

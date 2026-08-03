@@ -3,6 +3,8 @@
 import { useTranslations } from 'next-intl';
 
 import { BottomNav } from '@/widgets/bottom-nav';
+import { SmartTipCard } from '@/widgets/smart-tip';
+import { WeekSummaryCard } from '@/widgets/week-summary';
 
 import { BmiCard } from './BmiCard';
 import { CycleSummaryCard } from './CycleSummaryCard';
@@ -27,8 +29,12 @@ export function CyclePage() {
           </div>
         </div>
 
+        {/* Order per product: my cycles → smart tip → cycle summary →
+            week summary → BMI. */}
         <MyCyclesCard />
+        <SmartTipCard />
         <CycleSummaryCard />
+        <WeekSummaryCard />
         <BmiCard />
         <div className="page-tail" />
       </div>

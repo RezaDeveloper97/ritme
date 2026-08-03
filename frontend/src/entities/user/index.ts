@@ -1,4 +1,5 @@
 export { useOnboardingStore } from './model/store';
+export { OnboardingCalendarSync } from './ui/OnboardingCalendarSync';
 export type {
   AuthUser,
   Bmi,
@@ -6,7 +7,7 @@ export type {
   ChronicCondition,
   HealthProfile,
   HeightUnit,
-  JalaliBirth,
+  BirthParts,
   OnboardingAgeSource,
   OnboardingData,
   PregnancyBasis,

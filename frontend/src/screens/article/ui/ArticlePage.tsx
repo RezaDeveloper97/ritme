@@ -6,7 +6,7 @@ import { ArticleCard, useArticle } from '@/entities/article';
 import { getApiErrorStatus } from '@/shared/api';
 import { Link, useRouter } from '@/shared/i18n';
 import type { Locale } from '@/shared/i18n';
-import { formatJalali, fromApiDate } from '@/shared/lib/date';
+import { formatLongDate, fromApiDate } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
 import { Icon, NavBack } from '@/shared/ui';
 
@@ -100,7 +100,7 @@ export function ArticlePage({ slug }: ArticlePageProps) {
                   <span className="art-meta-item">
                     <Icon name="calendar" size={15} stroke="currentColor" />
                     {t('detail.publishedOn', {
-                      date: formatJalali(fromApiDate(article.publishedAt), locale),
+                      date: formatLongDate(fromApiDate(article.publishedAt), locale),
                     })}
                   </span>
                 )}

@@ -18,10 +18,10 @@ import {
 } from '@/entities/health-log';
 import { wellbeingKeys } from '@/entities/wellbeing';
 import type { Locale } from '@/shared/i18n';
-import { addDays, diffInDays, formatJalaliDayMonth, fromApiDate, toApiDate, today } from '@/shared/lib/date';
+import { addDays, diffInDays, formatDayMonth, fromApiDate, toApiDate, today } from '@/shared/lib/date';
 import { Icon, type IconName } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
-import { DayTasks } from '@/widgets/day-tasks';
+// import { DayTasks } from '@/widgets/day-tasks';
 
 import { CategorySheet } from './CategorySheet';
 
@@ -33,11 +33,13 @@ const CATEGORY_STYLE: Record<string, { icon: IconName; color: string; soft: stri
   digestion: { icon: 'glass', color: 'var(--green)', soft: 'var(--green-tint)' },
   mood: { icon: 'smile', color: 'var(--violet)', soft: 'var(--violet-soft)' },
   sleep: { icon: 'moon', color: 'var(--indigo-deep)', soft: 'var(--indigo-soft)' },
+  exercise: { icon: 'walk', color: 'var(--green)', soft: 'var(--green-soft)' },
   body: { icon: 'sparkle', color: 'var(--orange)', soft: 'var(--orange-soft)' },
   discharge: { icon: 'drop', color: 'var(--blue)', soft: 'var(--blue-soft)' },
   intimate: { icon: 'shield', color: 'var(--teal)', soft: 'var(--teal-soft)' },
   sexual: { icon: 'heart', color: 'var(--rose)', soft: 'var(--pink-bg)' },
-  measure: { icon: 'thermo', color: 'var(--muted)', soft: 'var(--line-2)' },
+  weight: { icon: 'chart', color: 'var(--muted)', soft: 'var(--line-2)' },
+  temperature: { icon: 'thermo', color: 'var(--muted)', soft: 'var(--line-2)' },
   notes: { icon: 'pencil', color: 'var(--muted)', soft: 'var(--line)' },
 };
 
@@ -89,7 +91,7 @@ function DaySwitcher({ t, locale, date, isRtl, onShift, canGoNext }: DaySwitcher
       <div className="log-daynav-mid">
         <Icon name="calendar" size={16} />
         <span className="log-daynav-date">
-          {formatJalaliDayMonth(date, locale)}
+          {formatDayMonth(date, locale)}
         </span>
         {isToday && (
           <span className="log-today">
@@ -160,6 +162,8 @@ export function LogPage() {
 
   const [draft, setDraft] = useState<HealthLogInput>(() => ({ log_date: apiDate }));
   const [openKey, setOpenKey] = useState<string | null>(null);
+  // Draft as it was when the sheet opened — restored if the user cancels.
+  const snapshotRef = useRef<HealthLogInput | null>(null);
 
   // Reset to an empty draft the moment the day changes; the prefill effect below
   // repopulates it once that day's saved log settles.
@@ -172,10 +176,10 @@ export function LogPage() {
     if (logQuery.data) setDraft(logQuery.data);
   }, [logQuery.data]);
 
-  // ── Auto-save ────────────────────────────────────────────────
-  // Every edit persists on its own — there is no manual save. Rapid changes
-  // (wheel scrubbing, typing) are coalesced into one per-field patch, so we hit
-  // the upsert endpoint once the user pauses rather than on every keystroke.
+  // ── Saving ───────────────────────────────────────────────────
+  // Edits accumulate into one per-field patch. While a category sheet is open
+  // the patch is held back and only sent when the user taps "ثبت"; outside a
+  // sheet it still flushes on a short debounce so nothing is lost.
   const pendingRef = useRef<Record<string, unknown>>({});
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const saveRef = useRef(save);
@@ -214,7 +218,35 @@ export function LogPage() {
     });
     pendingRef.current[key] = value === undefined ? null : value;
     if (timerRef.current) clearTimeout(timerRef.current);
+    // Inside a sheet the submit button owns the save.
+    if (openKey) return;
     timerRef.current = setTimeout(() => flush(apiDate), 350);
+  };
+
+  const openCategory = openKey ? LOG_CATEGORIES.find((c) => c.key === openKey) ?? null : null;
+
+  const handleOpenCategory = (key: string) => {
+    flush(apiDate);
+    snapshotRef.current = draft;
+    setOpenKey(key);
+  };
+
+  /** Discard everything typed in the open sheet and close it. */
+  const handleCancelSheet = () => {
+    const snapshot = snapshotRef.current;
+    if (snapshot && openCategory) {
+      for (const field of openCategory.fields) delete pendingRef.current[field.key];
+      setDraft(snapshot);
+    }
+    snapshotRef.current = null;
+    setOpenKey(null);
+  };
+
+  /** Send the sheet's edits to the server, then close. */
+  const handleSubmitSheet = () => {
+    flush(apiDate);
+    snapshotRef.current = null;
+    setOpenKey(null);
   };
 
   // Never lose a pending patch: flush before the day changes and on unmount.
@@ -225,8 +257,6 @@ export function LogPage() {
     setDate((d) => addDays(d, delta));
   };
   const canGoNext = diffInDays(date, today()) < 0;
-
-  const openCategory = openKey ? LOG_CATEGORIES.find((c) => c.key === openKey) ?? null : null;
 
   const status = save.isPending ? t('saving') : save.isError ? t('saveError') : save.isSuccess ? t('autoSaved') : null;
 
@@ -259,13 +289,14 @@ export function LogPage() {
               category={category}
               count={filledCount(category, draft)}
               isRtl={isRtl}
-              onOpen={() => setOpenKey(category.key)}
+              onOpen={() => handleOpenCategory(category.key)}
             />
           ))}
         </div>
 
-        {/* Doctor / medication reminders and to-dos set for the day being edited. */}
-        <DayTasks date={date} />
+        {/* Doctor / medication reminders and to-dos set for the day being edited.
+            Temporarily hidden per product request. */}
+        {/* <DayTasks date={date} /> */}
 
         <div className="log-tail" />
       </div>
@@ -278,7 +309,9 @@ export function LogPage() {
           enums={enumsQuery.data}
           draft={draft}
           onChange={handleChange}
-          onClose={() => setOpenKey(null)}
+          onCancel={handleCancelSheet}
+          onSubmit={handleSubmitSheet}
+          isSaving={save.isPending}
         />
       )}
     </div>

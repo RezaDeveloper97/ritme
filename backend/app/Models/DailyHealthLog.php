@@ -4,11 +4,17 @@ namespace App\Models;
 
 use App\Enums\Amount;
 use App\Enums\BloodColor;
+use App\Enums\ClotsAmount;
+use App\Enums\DischargeColor;
 use App\Enums\DischargeTexture;
+use App\Enums\ExerciseIntensity;
+use App\Enums\ExerciseType;
 use App\Enums\Intensity;
+use App\Enums\IntercourseType;
 use App\Enums\Mood;
 use App\Enums\PainIntensity;
 use App\Enums\SexualActivity;
+use App\Enums\SexualDesire;
 use App\Enums\SleepDuration;
 use App\Enums\SleepQuality;
 use App\Enums\Smell;
@@ -25,7 +31,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  *     @OA\Property(property="log_date", type="string", format="date", example="2024-12-07"),
  *     @OA\Property(property="bleeding_intensity", type="string", nullable=true, enum={"low","medium","high","very_high"}),
  *     @OA\Property(property="blood_color", type="string", nullable=true, enum={"bright_red","red","dark_red","brown"}),
- *     @OA\Property(property="has_clots", type="boolean", nullable=true),
+ *     @OA\Property(property="has_clots", type="boolean", nullable=true, description="Legacy presence-only clotting flag; superseded by clots_amount"),
+ *     @OA\Property(property="clots_amount", type="string", nullable=true, enum={"none","low","medium","high"}),
  *     @OA\Property(property="spotting", type="boolean", nullable=true),
  *     @OA\Property(property="bleeding_smell", type="string", nullable=true, enum={"normal","slightly_unusual","strong_unpleasant"}),
  *     @OA\Property(property="headache_intensity", type="string", nullable=true, enum={"low","medium","high"}),
@@ -42,8 +49,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  *     @OA\Property(property="food_craving", type="boolean", nullable=true),
  *     @OA\Property(property="breast_sensitivity_intensity", type="string", nullable=true, enum={"low","medium","high"}),
  *     @OA\Property(property="vaginal_dryness", type="boolean", nullable=true),
- *     @OA\Property(property="vaginal_burning", type="boolean", nullable=true),
- *     @OA\Property(property="vaginal_itching", type="boolean", nullable=true),
+ *     @OA\Property(property="vaginal_burning", type="boolean", nullable=true, description="Legacy presence-only flag; superseded by vaginal_burning_intensity"),
+ *     @OA\Property(property="vaginal_burning_intensity", type="string", nullable=true, enum={"low","medium","high"}),
+ *     @OA\Property(property="vaginal_itching", type="boolean", nullable=true, description="Legacy presence-only flag; superseded by vaginal_itching_intensity"),
+ *     @OA\Property(property="vaginal_itching_intensity", type="string", nullable=true, enum={"low","medium","high"}),
  *     @OA\Property(property="vaginal_smell_change", type="boolean", nullable=true),
  *     @OA\Property(property="urination_change", type="string", nullable=true, enum={"increase","decrease","normal"}),
  *     @OA\Property(property="urination_burning_intensity", type="string", nullable=true, enum={"low","medium","high"}),
@@ -58,7 +67,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  *     @OA\Property(property="moods", type="array", nullable=true, @OA\Items(type="string", enum={"happy","calm","angry","anxious","sad","frustrated","sensitive","bored"})),
  *     @OA\Property(property="sleep_duration", type="string", nullable=true, enum={"0_3","3_6","6_9","9_plus"}),
  *     @OA\Property(property="sleep_quality", type="string", nullable=true, enum={"good","medium","bad"}),
+ *     @OA\Property(property="exercise_type", type="array", nullable=true, @OA\Items(type="string", enum={"walking","running","cycling","gym","yoga","swimming","dance","team_sport","other"})),
+ *     @OA\Property(property="exercise_duration", type="integer", nullable=true, example=45, description="Exercise duration in minutes"),
+ *     @OA\Property(property="exercise_intensity", type="string", nullable=true, enum={"low","medium","high"}),
  *     @OA\Property(property="sexual_activities", type="array", nullable=true, @OA\Items(type="string", enum={"high_desire","protected_intercourse","unprotected_intercourse","no_desire","dryness","burning","pain_during_intercourse","bleeding_after_intercourse","lubricant_use"})),
+ *     @OA\Property(property="sexual_desire", type="string", nullable=true, enum={"lower","normal","higher"}),
+ *     @OA\Property(property="intercourse_type", type="string", nullable=true, enum={"protected","unprotected"}),
  *     @OA\Property(property="weight", type="number", format="float", nullable=true, example=65.5),
  *     @OA\Property(property="basal_body_temperature", type="number", format="float", nullable=true, example=36.5),
  *     @OA\Property(property="heart_rate", type="integer", nullable=true, example=72, description="Resting heart rate (bpm)"),
@@ -66,7 +80,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  *     @OA\Property(property="diastolic_pressure", type="integer", nullable=true, example=80, description="Diastolic blood pressure (mmHg)"),
  *     @OA\Property(property="blood_sugar", type="number", format="float", nullable=true, example=95.0, description="Blood sugar (mg/dl)"),
  *     @OA\Property(property="energy_level", type="string", nullable=true, enum={"very_low","low","medium","high","very_high"}),
- *     @OA\Property(property="discharge_color", type="string", nullable=true),
+ *     @OA\Property(property="discharge_color", type="string", nullable=true, enum={"clear","white","yellow","green","gray","pink_bloody"}),
  *     @OA\Property(property="discharge_texture", type="string", nullable=true, enum={"watery","creamy","egg_white","thick"}),
  *     @OA\Property(property="discharge_amount", type="string", nullable=true, enum={"low","medium","high"}),
  *     @OA\Property(property="discharge_smell", type="string", nullable=true, enum={"normal","slightly_unusual","strong_unpleasant"}),
@@ -94,6 +108,7 @@ class DailyHealthLog extends Model
         'bleeding_intensity',
         'blood_color',
         'has_clots',
+        'clots_amount',
         'spotting',
         'bleeding_smell',
 
@@ -117,7 +132,9 @@ class DailyHealthLog extends Model
         'breast_sensitivity_intensity',
         'vaginal_dryness',
         'vaginal_burning',
+        'vaginal_burning_intensity',
         'vaginal_itching',
+        'vaginal_itching_intensity',
         'vaginal_smell_change',
         'urination_change',
         'urination_burning_intensity',
@@ -141,8 +158,15 @@ class DailyHealthLog extends Model
         'sleep_duration',
         'sleep_quality',
 
+        // 4b. Exercise
+        'exercise_type',
+        'exercise_duration',
+        'exercise_intensity',
+
         // 5. Sexual Activity
         'sexual_activities',
+        'sexual_desire',
+        'intercourse_type',
 
         // 6. Vital Signs
         'weight',
@@ -214,9 +238,11 @@ class DailyHealthLog extends Model
             'heart_rate' => 'integer',
             'systolic_pressure' => 'integer',
             'diastolic_pressure' => 'integer',
+            'exercise_duration' => 'integer',
 
             // JSON
             'moods' => 'array',
+            'exercise_type' => 'array',
             'sexual_activities' => 'array',
             'medications' => 'array',
         ];
@@ -239,14 +265,30 @@ class DailyHealthLog extends Model
             'pain_intensity' => PainIntensity::values(),
             'nausea_intensity' => PainIntensity::values(),
             'bloating_intensity' => PainIntensity::values(),
-            'appetite_change' => ['loss', 'gain', 'normal'],
-            'urination_change' => ['increase', 'decrease', 'normal'],
+            'clots_amount' => ClotsAmount::values(),
+            // Ordered least → most, the way the form reads them.
+            'appetite_change' => ['loss', 'normal', 'gain'],
+            'urination_change' => ['decrease', 'increase'],
             'moods' => Mood::values(),
             'sleep_duration' => SleepDuration::values(),
             'sleep_quality' => SleepQuality::values(),
-            'sexual_activities' => SexualActivity::values(),
+            'exercise_type' => ExerciseType::values(),
+            'exercise_intensity' => ExerciseIntensity::values(),
+            'sexual_desire' => SexualDesire::values(),
+            'intercourse_type' => IntercourseType::values(),
+            // Only the "during / after intercourse" experiences: desire and
+            // protection are their own questions now. Older logs may still hold
+            // the retired values, which simply render as unselected.
+            'sexual_activities' => [
+                SexualActivity::DRYNESS->value,
+                SexualActivity::BURNING->value,
+                SexualActivity::PAIN_DURING_INTERCOURSE->value,
+                SexualActivity::BLEEDING_AFTER_INTERCOURSE->value,
+                SexualActivity::LUBRICANT_USE->value,
+            ],
             'discharge_texture' => DischargeTexture::values(),
             'discharge_amount' => Amount::values(),
+            'discharge_color' => DischargeColor::values(),
             'discharge_smell' => Smell::values(),
         ];
     }

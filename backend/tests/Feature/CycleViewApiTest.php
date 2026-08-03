@@ -125,9 +125,14 @@ class CycleViewApiTest extends TestCase
             $this->assertNotEmpty($tips, "no daily tips for locale {$locale}");
 
             foreach ($tips as $tip) {
-                // Render-ready `{type, text}` — never the raw bilingual blob.
-                $this->assertSame(['type', 'text'], array_keys($tip));
+                // Render-ready `{type, title, icon, text}` — never the raw
+                // bilingual blob. `title` and `icon` let a client show an
+                // admin-defined recommendation without shipping its own copy
+                // of the category table.
+                $this->assertSame(['type', 'title', 'icon', 'text'], array_keys($tip));
                 $this->assertMatchesRegularExpression($pattern, $tip['text']);
+                $this->assertMatchesRegularExpression($pattern, $tip['title']);
+                $this->assertNotEmpty($tip['icon']);
             }
         }
     }

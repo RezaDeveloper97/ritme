@@ -7,6 +7,11 @@ import type { PregnancyIntention } from './types';
  * hardcoding its own "next" route or step number (which is what made the old
  * fixed 8-step flow brittle).
  *
+ * TEMPORARILY SINGLE-BRANCH: pregnancy mode is postponed and hidden from the
+ * frontend, so the intention question and the pregnancy dating-basis step are
+ * commented out below and every user walks the cycle branch. Restore the two
+ * marked blocks (plus `HEAD`'s `'intention'`) to bring pregnancy back.
+ *
  * Two branches share a common head, then diverge:
  * - `pregnant`     → dating basis, then optional conditions.
  * - anything else  → the cycle questions, then optional conditions.
@@ -42,15 +47,20 @@ const STEP_ROUTES: Record<OnboardingStepKey, string> = {
 /** Where the flow lands after the last step: the save/progress screen. */
 export const SETTING_UP_ROUTE = '/onboarding/setting-up';
 
-const HEAD: OnboardingStepKey[] = ['name', 'birthday', 'weight', 'height', 'intention'];
+// Pregnancy postponed: 'intention' (the "how do you relate to pregnancy?"
+// question) is dropped from the head. Restore it to re-enable the branch.
+// const HEAD: OnboardingStepKey[] = ['name', 'birthday', 'weight', 'height', 'intention'];
+const HEAD: OnboardingStepKey[] = ['name', 'birthday', 'weight', 'height'];
 
 /**
  * The ordered step keys for the given intention. Before the intention step is
  * answered (`null`), we assume the cycle branch so the shared head steps still
  * have a stable position/total to display.
  */
-export function onboardingSteps(intention: PregnancyIntention | null): OnboardingStepKey[] {
-  if (intention === 'pregnant') return [...HEAD, 'pregnancyBasis', 'conditions'];
+export function onboardingSteps(_intention: PregnancyIntention | null): OnboardingStepKey[] {
+  // Pregnancy postponed: the pregnant branch is disabled, so the intention no
+  // longer affects the sequence. Restore with:
+  // if (intention === 'pregnant') return [...HEAD, 'pregnancyBasis', 'conditions'];
   return [...HEAD, 'periodLen', 'cycleDuration', 'cycleLen', 'conditions'];
 }
 

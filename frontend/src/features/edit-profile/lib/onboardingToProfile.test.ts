@@ -9,6 +9,7 @@ function baseData(overrides: Partial<OnboardingData> = {}): OnboardingData {
   return {
     phone: '09120000000',
     name: 'Sara',
+    locale: 'fa',
     birth: { d: 15, m: 3, y: 1373 },
     weightUnit: 'kg',
     weight: 60,
@@ -44,6 +45,15 @@ describe('onboardingToProfileInput', () => {
     // Dates are serialized as Gregorian ISO for the API boundary (§7).
     expect(payload.birthday).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(payload.last_period_start).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  // `birth.m` is a 1-based Jalali month. It used to hold the raw 0-based wheel
+  // index, so every birthday was saved a month early — the picked year matched
+  // but the month and day did not.
+  it('keeps the picked Jalali birthday intact (month is 1-based)', () => {
+    // ۲۵ دی ۱۳۷۳ === 1995-01-15.
+    const payload = onboardingToProfileInput(baseData({ birth: { d: 25, m: 10, y: 1373 } }));
+    expect(payload.birthday).toBe('1995-01-15');
   });
 
   it('converts imperial units to the API canonical units (kg, cm)', () => {

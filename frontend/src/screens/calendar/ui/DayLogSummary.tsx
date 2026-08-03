@@ -1,5 +1,7 @@
 'use client';
 
+import type { CSSProperties } from 'react';
+
 import clsx from 'clsx';
 
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
@@ -12,7 +14,7 @@ import {
   type HealthLogInput,
 } from '@/entities/health-log';
 import type { Locale } from '@/shared/i18n';
-import { formatJalaliDayMonth, toApiDate } from '@/shared/lib/date';
+import { formatDayMonth, toApiDate } from '@/shared/lib/date';
 import { Icon } from '@/shared/ui';
 
 type TCal = ReturnType<typeof useTranslations>;
@@ -36,7 +38,8 @@ const CATEGORY_ACCENT: Record<string, string> = {
   discharge: 'var(--blue)',
   intimate: 'var(--teal)',
   sexual: 'var(--rose)',
-  measure: 'var(--muted)',
+  weight: 'var(--muted)',
+  temperature: 'var(--muted)',
   notes: 'var(--muted)',
 };
 
@@ -127,16 +130,24 @@ export function DayLogSummary({ tCal, selectedDate, onEdit }: DayLogSummaryProps
     : [];
 
   const hasEntries = groups.length > 0;
+  const entryCount = groups.reduce((sum, g) => sum + g.lines.length, 0);
 
   return (
-    <div className="card pad-card">
+    <div className={clsx('card pad-card dls', hasEntries && 'has-entries')}>
       <div className={clsx('dls-head', hasEntries && 'has-entries')}>
         <div className="dls-head-left">
           <span className="dls-head-icon">
-            <Icon name="pencil" size={16} />
+            <Icon name="pencil" size={15} />
           </span>
-          <div className="dls-title">
-            {tCal('dayLog.title')}
+          <div className="dls-head-text">
+            <div className="dls-title">
+              {tCal('dayLog.title')}
+            </div>
+            {hasEntries && (
+              <div className="dls-subtitle">
+                {tCal('dayLog.count', { count: entryCount })}
+              </div>
+            )}
           </div>
         </div>
         {hasEntries && (
@@ -156,31 +167,44 @@ export function DayLogSummary({ tCal, selectedDate, onEdit }: DayLogSummaryProps
         </div>
       ) : hasEntries ? (
         <div className="dls-groups">
-          {groups.map((group) => (
-            <div key={group.key}>
-              <div
-                className="dls-group-name"
-                style={{ color: CATEGORY_ACCENT[group.key] ?? 'var(--muted)' }}
-              >
-                {tLog(`categories.${group.key}`)}
-              </div>
+          {groups.map((group) => {
+            const groupName = tLog(`categories.${group.key}`);
+            return (
+            <section
+              key={group.key}
+              className="dls-group"
+              // Accent drives the panel tint, dot and value pills via color-mix,
+              // so one variable keeps light/dark themes in sync.
+              style={{ '--dls-accent': CATEGORY_ACCENT[group.key] ?? 'var(--muted)' } as CSSProperties}
+            >
+              <header className="dls-group-head">
+                <span className="dls-group-dot" />
+                <span className="dls-group-name">{groupName}</span>
+              </header>
               <div className="dls-lines">
                 {group.lines.map((line) => (
                   <div
                     key={line.label}
-                    className="dls-line"
+                    // Notes and multi-selects can run long; those stack the
+                    // value under its label instead of squeezing a wide pill.
+                    className={clsx('dls-line', line.value.length > 24 && 'is-long')}
                   >
-                    <span className="dls-line-label">
-                      {line.label}
-                    </span>
+                    {/* Single-field categories (notes) name the same thing as
+                        their panel — don't print the label twice. */}
+                    {line.label !== groupName && (
+                      <span className="dls-line-label">
+                        {line.label}
+                      </span>
+                    )}
                     <span className="dls-line-value">
                       {line.value}
                     </span>
                   </div>
                 ))}
               </div>
-            </div>
-          ))}
+            </section>
+            );
+          })}
         </div>
       ) : (
         // Empty day → gentle prompt to log (Figma "How are you feeling today?").
@@ -193,7 +217,7 @@ export function DayLogSummary({ tCal, selectedDate, onEdit }: DayLogSummaryProps
               {tCal('dayLog.emptyTitle')}
             </div>
             <div className="dls-empty-sub">
-              {tCal('dayLog.emptySubtitle', { date: formatJalaliDayMonth(selectedDate, locale) })}
+              {tCal('dayLog.emptySubtitle', { date: formatDayMonth(selectedDate, locale) })}
             </div>
           </div>
           <span className="fab dls-empty-dot">

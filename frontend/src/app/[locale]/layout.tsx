@@ -1,11 +1,14 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import localFont from 'next/font/local';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import type { ReactNode } from 'react';
 
+import { OnboardingCalendarSync } from '@/entities/user';
 import { getDirection, isLocale, routing } from '@/shared/i18n';
+import { NoZoom, ViewportHeight } from '@/shared/lib/viewport';
+import { InstallPrompt, UpdateGate } from '@/shared/pwa';
 import { ThemeApplier, themeInitScript } from '@/shared/theme';
 
 import '../globals.css';
@@ -27,6 +30,28 @@ const vazirmatn = localFont({
 export const metadata: Metadata = {
   title: 'ریتمی',
   description: 'ریتمی — همراه سلامت زنان',
+  applicationName: 'ریتمی',
+  manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    title: 'ریتمی',
+    statusBarStyle: 'default',
+  },
+};
+
+// theme-color meta cannot reference CSS variables; these hex values mirror
+// --page in globals.css :root / [data-theme="dark"] (baselined exception).
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  minimumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#F2ECFF' },
+    { media: '(prefers-color-scheme: dark)', color: '#131022' },
+  ],
 };
 
 export function generateStaticParams() {
@@ -55,6 +80,11 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
         <NextIntlClientProvider locale={locale} messages={messages}>
           <AppProviders>
             <ThemeApplier />
+            <OnboardingCalendarSync />
+            <ViewportHeight />
+            <NoZoom />
+            <UpdateGate />
+            <InstallPrompt />
             <div className="stage">
               <div className="app-shell">
                 {children}

@@ -16,7 +16,7 @@ cd "$(dirname "$0")"
 
 SERVER="root@62.60.198.240"
 SSH_KEY="$HOME/.ssh/id_ed25519"
-API_BASE_URL="http://ritmeapp.ir/api/v1"
+API_BASE_URL="https://ritmeapp.ir/api/v1"
 # Test mode ON for now: SMS.ir gateway is failing, so login accepts 1111
 # instead of sending a real OTP. Flip back to "false" once SMS works.
 OTP_TEST_MODE="true"
@@ -86,6 +86,6 @@ ssh "${SSH_OPTS[@]}" "${SERVER}" "docker image prune -f" || true
 echo "==> Verifying..."
 sleep 5
 ssh "${SSH_OPTS[@]}" "${SERVER}" "cd ${REMOTE_DIR} && docker compose ps --format '{{.Service}}: {{.Status}}'"
-curl -s -o /dev/null -m 15 -w "http://ritmeapp.ir -> %{http_code}\n" http://ritmeapp.ir/ || true
+curl -s -o /dev/null -m 15 -w "https://ritmeapp.ir -> %{http_code}\n" https://ritmeapp.ir/ || true
 
 echo "✅ Deploy done."

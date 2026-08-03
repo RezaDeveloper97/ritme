@@ -1,0 +1,62 @@
+- generic [ref=f4e4]:
+  - generic [ref=f4e5]:
+    - generic [ref=f4e6]: Profile
+    - generic [ref=f4e9]:
+      - generic [ref=f4e14]:
+        - generic [ref=f4e15]: Ritme user
+        - generic [ref=f4e16]: No phone number saved
+      - button "Edit profile" [ref=f4e17] [cursor=pointer]
+    - generic [ref=f4e20]:
+      - generic [ref=f4e21]: Cycle & health
+      - generic [ref=f4e22]:
+        - button "Cycle length Not set" [ref=f4e23] [cursor=pointer]:
+          - generic [ref=f4e27]: Cycle length
+          - generic [ref=f4e28]: Not set
+        - button "Period length Not set" [ref=f4e33] [cursor=pointer]:
+          - generic [ref=f4e37]: Period length
+          - generic [ref=f4e38]: Not set
+        - generic [ref=f4e43]:
+          - generic [ref=f4e48]: Last period start
+          - generic [ref=f4e49]: Not set
+        - button "Date of birth Not set" [ref=f4e51] [cursor=pointer]:
+          - generic [ref=f4e56]: Date of birth
+          - generic [ref=f4e57]: Not set
+        - button "Weight Not set" [ref=f4e62] [cursor=pointer]:
+          - generic [ref=f4e67]: Weight
+          - generic [ref=f4e68]: Not set
+        - button "Height Not set" [ref=f4e73] [cursor=pointer]:
+          - generic [ref=f4e78]: Height
+          - generic [ref=f4e79]: Not set
+    - generic [ref=f4e83]:
+      - generic [ref=f4e84]: Account
+      - generic [ref=f4e85]:
+        - button "Personal info" [ref=f4e86] [cursor=pointer]
+        - button "Cycle & health preferences" [ref=f4e95] [cursor=pointer]
+        - button "Notifications" [ref=f4e103] [cursor=pointer]
+    - generic [ref=f4e111]:
+      - generic [ref=f4e112]: App
+      - button "App language English" [ref=f4e114] [cursor=pointer]:
+        - generic [ref=f4e119]: App language
+        - generic [ref=f4e120]: English
+    - generic [ref=f4e124]:
+      - generic [ref=f4e125]: Privacy & data
+      - button "Privacy policy" [ref=f4e127] [cursor=pointer]
+    - generic [ref=f4e135]:
+      - generic [ref=f4e136]: Support
+      - generic [ref=f4e137]:
+        - button "Help & support" [ref=f4e138] [cursor=pointer]
+        - button "About Ritme" [ref=f4e147] [cursor=pointer]
+        - button "Terms & conditions" [ref=f4e156] [cursor=pointer]
+    - button "Log out" [ref=f4e165] [cursor=pointer]
+    - generic [ref=f4e171]: Version 1.0.0
+  - navigation "Main navigation" [ref=f4e172]:
+    - link "Today" [ref=f4e173] [cursor=pointer]:
+      - /url: /en/home
+    - link "Calendar" [ref=f4e178] [cursor=pointer]:
+      - /url: /en/calendar
+    - link "Log" [ref=f4e183] [cursor=pointer]:
+      - /url: /en/log
+    - link "Analysis" [ref=f4e186] [cursor=pointer]:
+      - /url: /en/cycle
+    - link "Profile" [ref=f4e191] [cursor=pointer]:
+      - /url: /en/profile

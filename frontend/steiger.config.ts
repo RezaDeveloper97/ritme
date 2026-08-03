@@ -18,6 +18,7 @@ export default defineConfig([
       './src/entities/user/**',
       './src/features/auth/**',
       './src/widgets/bottom-nav/**',
+      './src/widgets/smart-tip/**',
     ],
     rules: { 'fsd/insignificant-slice': 'off' },
   },

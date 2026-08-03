@@ -75,7 +75,7 @@ export function cycleDayMarker(calc: CycleCalculation): CycleDayMarker | null {
 /**
  * Turn today's raw calculation into the day-offsets and labels the home screen
  * renders. Pure and locale-free (CLAUDE.md §7) — the UI formats the offsets as
- * Jalali dates. Offsets are clamped to sane bounds so a slightly stale
+ * localized dates. Offsets are clamped to sane bounds so a slightly stale
  * calculation can't produce nonsense like a negative "days until next period".
  */
 export function deriveCyclePredictions(calc: CycleCalculation): CyclePredictions {

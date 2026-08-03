@@ -1,30 +1,30 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 
 import { useOnboardingStore, type PregnancyBasis } from '@/entities/user';
 import { useActivatePregnancy, useCompleteOnboarding, type OnboardingInput } from '@/entities/pregnancy';
-import { jalaliPartsToApiDate, onboardingToProfileInput, useUpdateProfile } from '@/features/edit-profile';
-import { useRouter } from '@/shared/i18n';
-
-const FA = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
-const faNum = (n: string | number) => String(n).replace(/[0-9]/g, d => FA[Number(d)]);
+import { datePartsToApiDate, onboardingToProfileInput, useUpdateProfile } from '@/features/edit-profile';
+import { type Locale } from '@/shared/i18n';
+import { formatNumber } from '@/shared/lib/date';
+import { getAuthToken, setAuthToken } from '@/shared/session';
 
 const CIRCUMFERENCE = 553;
 
 /**
  * Turn the collected dating basis into the pregnancy onboarding body. Returns
  * null when no source was chosen (the pregnancy screen's activation gate will
- * then prompt for it later). Dates cross the boundary as Gregorian (§7).
+ * then prompt for it later). The stored parts are in `locale`'s calendar; they
+ * cross the boundary as Gregorian (§7).
  */
-function buildPregnancyOnboarding(basis: PregnancyBasis): OnboardingInput | null {
+function buildPregnancyOnboarding(basis: PregnancyBasis, locale: Locale): OnboardingInput | null {
   if (!basis.source) return null;
   const input: OnboardingInput = { age_source: basis.source };
   if (basis.source === 'lmp' && basis.lmp) {
-    input.lmp_date = jalaliPartsToApiDate(basis.lmp);
+    input.lmp_date = datePartsToApiDate(basis.lmp, locale);
   } else if (basis.source === 'ultrasound') {
-    if (basis.ultrasoundDate) input.ultrasound_date = jalaliPartsToApiDate(basis.ultrasoundDate);
+    if (basis.ultrasoundDate) input.ultrasound_date = datePartsToApiDate(basis.ultrasoundDate, locale);
     if (basis.ultrasoundWeeks != null) input.ultrasound_weeks = basis.ultrasoundWeeks;
     input.ultrasound_days = basis.ultrasoundDays ?? 0;
   } else if (basis.source === 'manual') {
@@ -36,7 +36,7 @@ function buildPregnancyOnboarding(basis: PregnancyBasis): OnboardingInput | null
 
 export function SettingUpPage() {
   const t = useTranslations('onboarding.settingUp');
-  const router = useRouter();
+  const locale = useLocale() as Locale;
   const update = useUpdateProfile();
   const activate = useActivatePregnancy();
   const completeOnboarding = useCompleteOnboarding();
@@ -61,7 +61,7 @@ export function SettingUpPage() {
         await update.mutateAsync(onboardingToProfileInput(onboarding));
         if (onboarding.intention === 'pregnant') {
           await activate.mutateAsync();
-          const pregnancy = buildPregnancyOnboarding(onboarding.pregnancyBasis);
+          const pregnancy = buildPregnancyOnboarding(onboarding.pregnancyBasis, onboarding.locale);
           if (pregnancy) await completeOnboarding.mutateAsync(pregnancy);
         }
       } catch {
@@ -96,11 +96,21 @@ export function SettingUpPage() {
   // Leave only once the ring has finished AND the save has settled, so the
   // profile is written before the next screen refetches it. Pregnant users land
   // in pregnancy mode; everyone else on home.
+  //
+  // This last hop is a **full document navigation**, not `router.replace`: the
+  // target is behind the auth middleware, and a client-side transition can be
+  // answered from the App Router's cache — including a redirect-to-signup
+  // cached from before the session cookie existed — which dumped freshly
+  // registered users back on the phone-number screen even though reloading
+  // took them straight in. The auth cookie is also re-asserted first, so the
+  // request the middleware sees always carries it.
   useEffect(() => {
     if (!ringDone || !saveDone) return;
     document.cookie = 'ritme_onboarded=1; path=/; max-age=31536000; SameSite=Lax';
-    router.replace(isPregnant ? '/pregnancy' : '/home');
-  }, [ringDone, saveDone, isPregnant, router]);
+    const token = getAuthToken();
+    if (token) setAuthToken(token);
+    window.location.replace(`/${locale}${isPregnant ? '/pregnancy' : '/home'}`);
+  }, [ringDone, saveDone, isPregnant, locale]);
 
   return (
     <div className="view onb-page">
@@ -119,7 +129,7 @@ export function SettingUpPage() {
             />
           </svg>
           <div className="setup-ring-pct">
-            {faNum(pct)}٪
+            {formatNumber(pct, locale)}٪
           </div>
         </div>
 

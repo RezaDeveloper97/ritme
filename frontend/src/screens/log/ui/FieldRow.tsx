@@ -103,10 +103,13 @@ function MultiField({ field, enums, value, onChange, t }: FieldRowProps & { t: T
     onChange(field.key, next.length ? next : undefined);
   };
   return (
-    <div className="lfr-chips">
-      {options.map((opt) => (
-        <Chip key={opt} on={selected.includes(opt)} label={enumLabel(t, enumKey, opt)} onClick={() => toggle(opt)} />
-      ))}
+    <div className="lfr-stack">
+      <FieldLabel>{t(`fields.${field.key}`)}</FieldLabel>
+      <div className="lfr-chips">
+        {options.map((opt) => (
+          <Chip key={opt} on={selected.includes(opt)} label={enumLabel(t, enumKey, opt)} onClick={() => toggle(opt)} />
+        ))}
+      </div>
     </div>
   );
 }
@@ -163,8 +166,14 @@ function MeasureField({ field, value, onChange, t }: FieldRowProps & { t: T }) {
     format.number(valueAt(i), { maximumFractionDigits: step < 1 ? 1 : 0 }),
   );
 
+  // `alwaysOn` fields (weight, BBT) skip the enable switch: the wheel is the
+  // whole sheet, so it stays live and its value is committed by "ثبت" like any
+  // other draft edit — closing without submitting still records nothing.
+  const alwaysOn = field.control.alwaysOn === true;
   const active = typeof value === 'number';
-  const defaultValue = round((min + max) / 2, step);
+  // The wheel opens on the field's own sensible starting point (30 min of
+  // exercise), falling back to the middle of the range.
+  const defaultValue = field.control.default ?? valueAt(Math.round((count - 1) / 2));
   const selectedIndex = active
     ? Math.max(0, Math.min(count - 1, Math.round(((value as number) - min) / step)))
     : Math.round((defaultValue - min) / step);
@@ -173,12 +182,14 @@ function MeasureField({ field, value, onChange, t }: FieldRowProps & { t: T }) {
     <div className="lfr-group">
       <div className="lfr-row">
         <FieldLabel>{t(`fields.${field.key}`)}</FieldLabel>
-        <Switch
-          on={active}
-          onClick={() => onChange(field.key, active ? undefined : defaultValue)}
-        />
+        {!alwaysOn && (
+          <Switch
+            on={active}
+            onClick={() => onChange(field.key, active ? undefined : defaultValue)}
+          />
+        )}
       </div>
-      {active && (
+      {(alwaysOn || active) && (
         <div className="lfr-stepper">
           <WheelPicker
             id={`measure-${field.key}`}

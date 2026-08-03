@@ -9,7 +9,7 @@ import {
   useMarkAllNotificationsRead,
   useMarkNotificationRead,
 } from '@/features/read-notifications';
-import { diffInDays, formatJalali, today } from '@/shared/lib/date';
+import { diffInDays, formatLongDate, today } from '@/shared/lib/date';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { Icon, NavBack } from '@/shared/ui';
 
@@ -93,7 +93,7 @@ export function NotificationsPage() {
   const markAllRead = useMarkAllNotificationsRead();
 
   // The screen never shows the raw ISO timestamp: near dates render as calm
-  // relative labels, older ones as full Jalali dates (§7).
+  // relative labels, older ones as full localized dates (§7).
   const timeLabel = (iso: string) => {
     const date = new Date(iso);
     if (Number.isNaN(date.getTime())) return '';
@@ -101,7 +101,7 @@ export function NotificationsPage() {
     if (days <= 0) return t('time.today');
     if (days === 1) return t('time.yesterday');
     if (days < 7) return t('time.daysAgo', { days });
-    return formatJalali(date, loc);
+    return formatLongDate(date, loc);
   };
 
   // Newest first, regardless of backend ordering (ISO strings sort lexically).

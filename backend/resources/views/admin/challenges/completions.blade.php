@@ -82,7 +82,6 @@
                                 </td>
                                 <td>{{ $row->user?->mobile ?: '—' }}</td>
                                 <td class="wrap">{{ $row->challenge?->title['fa'] ?? '—' }}</td>
-                                <td>{{ $row->challenge?->difficulty ?: '—' }}</td>
                                 <td>{{ $row->completion_date?->format('Y-m-d') }}</td>
                             </tr>
                         @empty

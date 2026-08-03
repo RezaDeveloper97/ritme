@@ -6,11 +6,11 @@ package ir.ritmeapp.ritme.adapter.outbound.network
  * [ir.ritmeapp.ritme.adapter.outbound.network.http.HttpClient] serves auth and diagnostics.
  */
 object ApiConfig {
-    // Ritme production origin (Laravel backend). Served over plain HTTP for now — the
-    // server has no TLS/443 yet, so HTTPS fails to connect. Cleartext to this host is
-    // opted in via res/xml/network_security_config.xml. Move back to https once TLS is live.
+    // Ritme production origin (Laravel backend), TLS-terminated at the nginx proxy.
+    // Must stay https: the server 301-redirects http → https, and a 301 on a POST is
+    // rewritten to a GET by the HTTP stack, silently dropping the request body.
     // For local dev point this at http://10.0.2.2:8010 (emulator → host :8010, test OTP 1111).
-    const val BASE_URL = "http://ritmeapp.ir"
+    const val BASE_URL = "https://ritmeapp.ir"
 
     // Ritme API is versioned under /api/v1 (backend/routes/api.php).
     private const val V1 = "/api/v1"

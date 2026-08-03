@@ -2,26 +2,26 @@
   "title": "پروفایل",
   "guest": "کاربر ریتمی",
   "editProfile": "ویرایش پروفایل",
-  "noPhone": "شماره‌ای ثبت نشده",
+  "noPhone": "شماره‌ای ثبت نکردی",
   "sections": {
     "account": "حساب کاربری",
-    "app": "برنامه",
+    "app": "اپ",
     "privacy": "حریم خصوصی و داده‌ها",
     "support": "پشتیبانی",
-    "mode": "حالت اپلیکیشن"
+    "mode": "حالت اپ"
   },
   "rows": {
     "personalInfo": "اطلاعات شخصی",
     "healthPrefs": "تنظیمات چرخه و سلامت",
     "reminders": "یادآورها",
     "notifications": "اعلان‌ها",
-    "language": "زبان برنامه",
+    "language": "زبان اپ",
     "appearance": "ظاهر و پوسته",
     "privacyPolicy": "حریم خصوصی",
-    "exportData": "دریافت خروجی داده‌ها",
+    "exportData": "گرفتن خروجی داده‌ها",
     "deleteAccount": "حذف حساب",
     "help": "راهنما و پشتیبانی",
-    "about": "درباره‌ ریتمی",
+    "about": "درباره ریتمی",
     "terms": "قوانین و مقررات"
   },
   "health": {
@@ -36,7 +36,7 @@
     "kg": "{value} کیلوگرم",
     "cm": "{value} سانتی‌متر",
     "empty": "ثبت نشده",
-    "notSetUp": "هنوز اطلاعات سلامتت رو کامل نکرده‌ای"
+    "notSetUp": "هنوز اطلاعات سلامتت رو کامل نکردی"
   },
   "language": {
     "fa": "فارسی",
@@ -50,13 +50,13 @@
     "light": "روشن",
     "dark": "تیره"
   },
-  "exporting": "در حال آماده‌سازی خروجی…",
+  "exporting": "داریم خروجی رو آماده می‌کنیم…",
   "mode": {
-    "switchToPregnancy": "تغییر به حالت بارداری",
+    "switchToPregnancy": "برو به حالت بارداری",
     "pregnancyTracker": "پیگیری بارداری",
-    "switchToCycle": "بازگشت به حالت چرخه",
+    "switchToCycle": "برگرد به حالت چرخه",
     "switching": "در حال تغییر…",
-    "cycleActive": "حالت چرخه فعال است",
-    "pregnancyActive": "حالت بارداری فعال است"
+    "cycleActive": "حالت چرخه روشنه",
+    "pregnancyActive": "حالت بارداری روشنه"
   }
 }

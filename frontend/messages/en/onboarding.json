@@ -3,12 +3,12 @@
   "continue": "Continue",
   "finish": "Finish",
   "helper": "Help us get to know you better",
-
   "name": {
     "title": "What should we call you on Ritme?",
     "subtitle": "You'll see this name in the app and we'll use it to address you",
     "label": "Display name",
-    "placeholder": "e.g. Isabella"
+    "placeholder": "e.g. Sameh",
+    "terms": "By continuing you accept the <link>Terms & Conditions</link> and privacy policy."
   },
   "birthday": {
     "title": "What is your date of birth?",
@@ -85,5 +85,6 @@
     "subtitle": "Help us get to know you better",
     "wait": "Please wait a few seconds…",
     "disclaimer": "Ritme is not a substitute for a doctor or counsellor visit. The information you enter is used to personalise recommendations and help you understand your own body. If you have severe or worrying symptoms, be sure to contact a health professional."
-  }
+  },
+  "dayCount": "{days, plural, one {# day} other {# days}}"
 }
