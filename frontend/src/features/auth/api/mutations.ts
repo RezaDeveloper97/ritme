@@ -3,9 +3,20 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { type ApiEnvelope, apiClient } from '@/shared/api';
-import { clearAuthToken, setAuthToken } from '@/shared/session';
+import {
+  clearAuthToken,
+  clearOnboardingPending,
+  getOnboardingPending,
+  setAuthToken,
+  setOnboardingPending,
+} from '@/shared/session';
 import { env } from '@/shared/config';
-import { authUserSchema, type AuthUser, userKeys } from '@/entities/user';
+import {
+  authUserSchema,
+  resetOnboardingFor,
+  type AuthUser,
+  userKeys,
+} from '@/entities/user';
 
 /**
  * The OTP login/registration actions (CLAUDE.md §8.1). One backend account
@@ -44,6 +55,13 @@ interface VerifyOtpInput {
 interface VerifyOtpResult {
   user: AuthUser;
   newUser: boolean;
+  /**
+   * Whether this account ever finished signup onboarding. Distinct from
+   * `newUser`, which only reports that the account was created by *this*
+   * verification: someone who abandoned the flow last time is a returning user
+   * with nothing registered, and must be sent back into it.
+   */
+  profileCompleted: boolean;
 }
 
 /**
@@ -56,7 +74,12 @@ export function useVerifyOtp() {
   return useMutation<VerifyOtpResult, unknown, VerifyOtpInput>({
     mutationFn: async ({ mobile, code }) => {
       const { data } = await apiClient.post<
-        ApiEnvelope<{ user: unknown; new_user: boolean; access_token: string }>
+        ApiEnvelope<{
+          user: unknown;
+          new_user: boolean;
+          profile_completed?: boolean;
+          access_token: string;
+        }>
       >('/auth/verify-otp', { mobile, code });
 
       const token = data.data?.access_token;
@@ -64,10 +87,25 @@ export function useVerifyOtp() {
       setAuthToken(token);
 
       const user = authUserSchema.parse(data.data?.user);
-      return { user, newUser: data.data?.new_user ?? false };
+      return {
+        user,
+        newUser: data.data?.new_user ?? false,
+        profileCompleted: data.data?.profile_completed ?? false,
+      };
     },
-    onSuccess: ({ user }) => {
+    onSuccess: ({ user, profileCompleted }) => {
       queryClient.setQueryData(userKeys.current(), user);
+      // Answers are persisted per device; a different account signing in on this
+      // one must not inherit them (nor a stale resume position).
+      const switchedAccount = resetOnboardingFor(user.id);
+      if (profileCompleted) {
+        clearOnboardingPending();
+        return;
+      }
+      // Resume where this device left off, unless the answers just belonged to
+      // someone else — then the flow starts over.
+      const resumeAt = switchedAccount ? null : getOnboardingPending();
+      setOnboardingPending(resumeAt ?? 'name');
     },
   });
 }

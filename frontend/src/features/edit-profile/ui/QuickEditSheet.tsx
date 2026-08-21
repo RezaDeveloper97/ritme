@@ -16,20 +16,32 @@ import {
   toParts,
   todayParts,
 } from '@/shared/lib/date';
-import { RulerPicker, Sheet, WheelPicker } from '@/shared/ui';
+import { AppSheet } from '@/shared/sheet';
+import { RulerPicker, WheelPicker } from '@/shared/ui';
 
 import { useUpdateProfile, type UpdateProfileInput } from '../api/mutations';
 import { datePartsToApiDate } from '../lib/datePartsToApiDate';
+import { DateWheels } from './DateWheels';
 
 /** The single profile value a quick-edit sheet is opened for. */
-export type QuickEditField = 'cycleDuration' | 'periodDuration' | 'birthday' | 'weight' | 'height';
+export type QuickEditField =
+  | 'name'
+  | 'cycleDuration'
+  | 'periodDuration'
+  | 'birthday'
+  | 'lastPeriod'
+  | 'weight'
+  | 'height';
 
 /** Current values the sheet seeds its picker from (all optional — see fallbacks). */
 export interface QuickEditValues {
+  name?: string | null;
   cycleDuration?: number | null;
   periodDuration?: number | null;
   /** Gregorian ISO from the API; edited in the locale's calendar (CLAUDE.md §7). */
   birthday?: string | null;
+  /** Gregorian ISO from the API; edited in the locale's calendar (CLAUDE.md §7). */
+  lastPeriodStart?: string | null;
   weight?: number | null;
   height?: number | null;
 }
@@ -43,6 +55,7 @@ const WEIGHT_MIN = 30;
 const WEIGHT_MAX = 200;
 const HEIGHT_MIN = 100;
 const HEIGHT_MAX = 220;
+const NAME_MAX = 255; // mirrors the API's `name` validation
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
@@ -167,6 +180,7 @@ function QuickEditForm({
   const update = useUpdateProfile();
   const now = todayParts(loc);
 
+  const [name, setName] = useState(() => values.name ?? '');
   const [cycleDuration, setCycleDuration] = useState(() =>
     clamp(values.cycleDuration ?? 28, CYCLE_MIN, CYCLE_MAX),
   );
@@ -178,14 +192,19 @@ function QuickEditForm({
       ? toParts(new Date(values.birthday), loc)
       : { year: now.year - 25, month: 1, day: 1 },
   );
+  const [lastPeriod, setLastPeriod] = useState<DateParts>(() =>
+    values.lastPeriodStart ? toParts(new Date(values.lastPeriodStart), loc) : now,
+  );
   const [weight, setWeight] = useState(() => clamp(values.weight ?? 60, WEIGHT_MIN, WEIGHT_MAX));
   const [height, setHeight] = useState(() => clamp(values.height ?? 165, HEIGHT_MIN, HEIGHT_MAX));
   const [localError, setLocalError] = useState<string | null>(null);
 
   const titleKey = {
+    name: 'personal.nameLabel',
     cycleDuration: 'health.cycleLabel',
     periodDuration: 'health.periodLabel',
     birthday: 'personal.birthdayLabel',
+    lastPeriod: 'health.lastPeriodLabel',
     weight: 'personal.weightLabel',
     height: 'personal.heightLabel',
   } as const;
@@ -196,7 +215,16 @@ function QuickEditForm({
     setLocalError(null);
 
     let payload: UpdateProfileInput;
-    if (field === 'cycleDuration') {
+    if (field === 'name') {
+      const trimmed = name.trim();
+      // The API accepts a null name, but an account with no name at all just
+      // renders as "guest" everywhere — so require one here.
+      if (trimmed.length === 0) {
+        setLocalError(t('errors.nameRequired'));
+        return;
+      }
+      payload = { name: trimmed };
+    } else if (field === 'cycleDuration') {
       payload = { cycle_duration: cycleDuration };
     } else if (field === 'periodDuration') {
       payload = { period_duration: periodDuration };
@@ -204,6 +232,15 @@ function QuickEditForm({
       payload = { weight: Math.round(weight) };
     } else if (field === 'height') {
       payload = { height: Math.round(height) };
+    } else if (field === 'lastPeriod') {
+      const lastPeriodStart = datePartsToApiDate(lastPeriod, loc);
+      // The API rejects a future start date; catch it client-side so the user
+      // gets a localized message instead of a raw 422.
+      if (lastPeriodStart > toApiDate(today())) {
+        setLocalError(t('errors.lastPeriodFuture'));
+        return;
+      }
+      payload = { last_period_start: lastPeriodStart };
     } else {
       const birthday = datePartsToApiDate(birth, loc);
       // The API requires a birthday strictly before today; catch it client-side
@@ -222,12 +259,42 @@ function QuickEditForm({
     localError ?? (update.isError ? (getApiErrorMessage(update.error) ?? t('errors.generic')) : null);
 
   return (
-    <Sheet open onClose={onClose} labelledBy="prof-quick-title">
-      <h2 id="prof-quick-title" className="prof-quick-t">
-        {title}
-      </h2>
-
+    // Half: one value, one picker — the sheet takes only the height its picker
+    // needs and never scrolls (see AppSheet).
+    <AppSheet
+      open
+      onClose={onClose}
+      size="half"
+      title={title}
+      footer={
+        <>
+          {errorMessage ? (
+            <p role="alert" className="prof-edit-error">
+              {errorMessage}
+            </p>
+          ) : null}
+          <button className="btn btn-primary" onClick={handleSave} disabled={update.isPending}>
+            {update.isPending ? t('saving') : t('save')}
+          </button>
+        </>
+      }
+    >
       <div className="prof-quick-body">
+        {field === 'name' ? (
+          <div className="field">
+            <input
+              autoFocus
+              value={name}
+              maxLength={NAME_MAX}
+              placeholder={t('personal.namePlaceholder')}
+              onChange={(e) => setName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSave();
+              }}
+            />
+          </div>
+        ) : null}
+
         {field === 'cycleDuration' ? (
           <DaysWheel
             id="pq-cycle"
@@ -254,6 +321,16 @@ function QuickEditForm({
           <BirthWheels value={birth} onChange={setBirth} loc={loc} />
         ) : null}
 
+        {field === 'lastPeriod' ? (
+          <DateWheels
+            idPrefix="pq-last"
+            value={lastPeriod}
+            onChange={setLastPeriod}
+            minYear={now.year - 1}
+            maxYear={now.year}
+          />
+        ) : null}
+
         {field === 'weight' ? (
           <RulerPicker
             min={WEIGHT_MIN}
@@ -276,17 +353,6 @@ function QuickEditForm({
           />
         ) : null}
       </div>
-
-      <div className="prof-quick-actions">
-        {errorMessage ? (
-          <p role="alert" className="prof-edit-error">
-            {errorMessage}
-          </p>
-        ) : null}
-        <button className="btn btn-primary" onClick={handleSave} disabled={update.isPending}>
-          {update.isPending ? t('saving') : t('save')}
-        </button>
-      </div>
-    </Sheet>
+    </AppSheet>
   );
 }

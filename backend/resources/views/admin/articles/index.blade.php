@@ -27,7 +27,7 @@
                         @forelse ($articles as $article)
                             <tr>
                                 <td>{{ $article->id }}</td>
-                                <td class="wrap">{{ $article->title['fa'] ?? '—' }}</td>
+                                <td class="wrap">{{ $article->localized('title') ?? '—' }}</td>
                                 {{-- Same labels as the phase picker; falls back to the raw key for legacy values. --}}
                                 <td class="wrap">
                                     @forelse ($article->cycle_phases ?? [] as $phase)

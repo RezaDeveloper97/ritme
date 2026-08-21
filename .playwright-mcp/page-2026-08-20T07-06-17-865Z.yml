@@ -1,0 +1,16 @@
+- generic [ref=e3]:
+  - generic [ref=e5]:
+    - generic [ref=e6]: ریتمه
+    - paragraph [ref=e8]: ورود به پنل مدیریت
+    - generic [ref=e9]:
+      - generic [ref=e10]:
+        - generic [ref=e11]: ایمیل
+        - textbox "ایمیل" [active] [ref=e12]
+      - generic [ref=e13]:
+        - generic [ref=e14]: رمز عبور
+        - textbox "رمز عبور" [ref=e15]
+      - generic [ref=e16]:
+        - checkbox "مرا به خاطر بسپار" [ref=e17]
+        - generic [ref=e18]: مرا به خاطر بسپار
+      - button "ورود" [ref=e19] [cursor=pointer]
+  - paragraph [ref=e20]: ریتمه — همراه چرخه‌ی تو

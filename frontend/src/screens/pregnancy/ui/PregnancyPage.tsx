@@ -12,7 +12,7 @@ import {
   useWeeklyContent,
   TOTAL_WEEKS,
 } from '@/entities/pregnancy';
-import { useRouter, type Locale } from '@/shared/i18n';
+import { useDirection, useRouter, type Locale } from '@/shared/i18n';
 import { Icon, type IconName } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
 
@@ -77,7 +77,7 @@ function ActionTile({ icon, label, color, onClick }: { icon: IconName; label: st
 export function PregnancyPage() {
   const t = useTranslations('pregnancy');
   const locale = useLocale() as Locale;
-  const isRtl = locale === 'fa';
+  const isRtl = useDirection() === 'rtl';
   const router = useRouter();
 
   const [mounted, setMounted] = useState(false);

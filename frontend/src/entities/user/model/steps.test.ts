@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  isOnboardingStep,
   nextOnboardingRoute,
   onboardingRoute,
+  onboardingStepFromPath,
   onboardingSteps,
   SETTING_UP_ROUTE,
   stepPosition,
@@ -44,5 +46,41 @@ describe('nextOnboardingRoute', () => {
   it('lands on the setting-up screen after the last step', () => {
     expect(nextOnboardingRoute('conditions', null)).toBe(SETTING_UP_ROUTE);
     expect(nextOnboardingRoute('conditions', 'avoiding')).toBe(SETTING_UP_ROUTE);
+  });
+});
+
+// The resume gate reads a path (middleware) or writes one (the tracker), so
+// both directions of the route↔key mapping have to hold for an interrupted
+// signup to come back to the step it stopped on.
+describe('onboardingStepFromPath', () => {
+  it('reads the step key out of a locale-prefixed path', () => {
+    expect(onboardingStepFromPath('/fa/onboarding/period-len')).toBe('periodLen');
+    expect(onboardingStepFromPath('/en/onboarding/name')).toBe('name');
+  });
+
+  it('accepts a path with no locale prefix', () => {
+    expect(onboardingStepFromPath('/onboarding/height')).toBe('height');
+  });
+
+  it('returns null outside the flow — including the save screen, which is not a step', () => {
+    expect(onboardingStepFromPath('/fa/home')).toBeNull();
+    expect(onboardingStepFromPath('/fa/onboarding/setting-up')).toBeNull();
+    expect(onboardingStepFromPath('/fa/onboarding')).toBeNull();
+  });
+
+  it('round-trips every step key through its route', () => {
+    for (const key of onboardingSteps(null)) {
+      expect(onboardingStepFromPath(`/fa${onboardingRoute(key)}`)).toBe(key);
+    }
+  });
+});
+
+describe('isOnboardingStep', () => {
+  it('accepts known keys and rejects anything else read back from the cookie', () => {
+    expect(isOnboardingStep('name')).toBe(true);
+    expect(isOnboardingStep('cycleLen')).toBe(true);
+    expect(isOnboardingStep('')).toBe(false);
+    expect(isOnboardingStep('settingUp')).toBe(false);
+    expect(isOnboardingStep('toString')).toBe(false);
   });
 });

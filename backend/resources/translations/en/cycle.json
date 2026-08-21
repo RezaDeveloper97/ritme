@@ -1,0 +1,32 @@
+{
+  "title": "Analysis",
+  "tagline": "A look at your body's patterns",
+  "days": "{n, plural, one{# day} other{# days}}",
+  "unavailable": "—",
+  "dateRange": "{from} – {to}",
+  "cycles": {
+    "title": "My cycles",
+    "current": "Current cycle",
+    "dayN": "Day {n, number}",
+    "startedOn": "Started on",
+    "addPrevious": "Add previous cycles",
+    "ongoing": "Ongoing",
+    "periodDays": "{n, plural, one{# day of period} other{# days of period}}",
+    "periodUnknown": "Period length not recorded",
+    "avgCycle": "Average cycle",
+    "avgPeriod": "Average period",
+    "previousTitle": "Previous cycles",
+    "recorded": "{n, plural, one{# recorded cycle} other{# recorded cycles}}",
+    "showAll": "Show all ({n, number})",
+    "showLess": "Show less",
+    "none": "No previous cycles yet. Add your past periods to see how long your cycles run."
+  },
+  "cycleSummary": {
+    "title": "Cycle summary",
+    "dayRange": "{from, number} to {to, number} days",
+    "empty": "Once you have one complete cycle on record, this summary fills in with your own numbers."
+  },
+  "bmi": {
+    "title": "Body mass index (BMI)"
+  }
+}

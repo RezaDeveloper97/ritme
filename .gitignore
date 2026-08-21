@@ -7,3 +7,7 @@
 Thumbs.db
 task.md
 .deploy-images.tar.gz
+
+# Server-only deploy state (TLS material + ACME webroot), created on the host.
+/ssl/
+/certbot-www/

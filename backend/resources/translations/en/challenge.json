@@ -1,0 +1,10 @@
+{
+  "title": "Today's challenge",
+  "cycleDay": "Cycle day {n}",
+  "range": {
+    "any": "This challenge is suggested on any day of your cycle",
+    "between": "For cycle days {from}–{to}",
+    "from": "From cycle day {n} onwards",
+    "to": "Up to cycle day {n}"
+  }
+}

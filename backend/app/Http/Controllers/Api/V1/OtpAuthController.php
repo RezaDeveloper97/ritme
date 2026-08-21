@@ -198,6 +198,7 @@ class OtpAuthController extends Controller
      *                     @OA\Property(property="mobile_verified_at", type="string", format="date-time")
      *                 ),
      *                 @OA\Property(property="new_user", type="boolean", example=true),
+     *                 @OA\Property(property="profile_completed", type="boolean", example=false, description="False while signup onboarding is unfinished"),
      *                 @OA\Property(property="access_token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9..."),
      *                 @OA\Property(property="token_type", type="string", example="Bearer")
      *             )
@@ -334,6 +335,11 @@ class OtpAuthController extends Controller
             'data' => [
                 'user' => $user->fresh(),
                 'new_user' => $isNewUser,
+                // `new_user` only says the account was created just now. A user
+                // who abandoned onboarding after a previous verification is not
+                // "new", yet still has no registration to speak of — this is
+                // what the client gates the onboarding flow on.
+                'profile_completed' => $user->hasCompletedProfile(),
                 'access_token' => $token,
                 'token_type' => 'Bearer',
             ],
@@ -413,6 +419,7 @@ class OtpAuthController extends Controller
             'success' => true,
             'data' => [
                 'user' => $request->user(),
+                'profile_completed' => $request->user()->hasCompletedProfile(),
             ],
         ]);
     }

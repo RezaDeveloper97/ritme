@@ -84,6 +84,13 @@ export default defineConfig([
     rules: { 'fsd/insignificant-slice': 'off' },
   },
   {
+    // `entities/language` maps GET /languages — the locales the app currently
+    // ships (CLAUDE.md §6). `features/switch-locale` is its consumer today;
+    // one reference is enough for a slice this foundational.
+    files: ['./src/entities/language/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
     // `features/switch-locale` is a canonical feature (CLAUDE.md §5). The
     // profile screen is its first consumer; onboarding and the app header are
     // expected to reuse it. Don't nag about the single reference today.
@@ -138,6 +145,13 @@ export default defineConfig([
       './src/entities/wellbeing/**',
       './src/widgets/week-summary/**',
     ],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
+    // `entities/privacy` maps GET /privacy — the admin-managed privacy-policy
+    // boxes rendered by the `profile-info` sheet. Consumed only from `screens`,
+    // which steiger can't see (same reason as the blocks above).
+    files: ['./src/entities/privacy/**'],
     rules: { 'fsd/insignificant-slice': 'off' },
   },
   {

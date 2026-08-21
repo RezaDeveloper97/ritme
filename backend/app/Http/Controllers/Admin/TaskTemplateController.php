@@ -6,6 +6,7 @@ use App\Enums\CyclePhase;
 use App\Enums\TaskCategory;
 use App\Http\Controllers\Controller;
 use App\Models\TaskTemplate;
+use App\Support\Translatable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -70,10 +71,10 @@ class TaskTemplateController extends Controller
     {
         $data = $request->validate([
             'key' => ['required', 'string', 'max:255', Rule::unique('task_templates', 'key')->ignore($task)],
-            'title' => ['required', 'array'],
-            'title.fa' => ['required', 'string'],
-            'title.en' => ['nullable', 'string'],
-            'description' => ['nullable', 'array'],
+            ...Translatable::rulesFor([
+                'title' => ['required' => true],
+                'description' => ['required' => false],
+            ]),
             'category' => ['required', Rule::in(array_column(TaskCategory::cases(), 'value'))],
             'icon' => ['nullable', 'string', 'max:255'],
             'cycle_phase' => ['nullable', Rule::in(CyclePhase::values())],

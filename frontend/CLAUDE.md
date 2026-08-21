@@ -20,8 +20,11 @@ The app switches between these two modes; `mode` is a first-class domain
 concept, not a feature flag bolted on later.
 
 **Primary audience:** Persian-speaking (Iranian) users. Persian (`fa`) is the
-default locale and the default text direction is **RTL**. English (`en`) is a
-secondary locale.
+default locale and the default text direction is **RTL**. English (`en`) ships
+alongside it — but the app is **multi-language by design**: the set of locales
+lives in the backend's `languages` table and admins add more (with their own
+RTL/LTR direction) without a code change. See §6; nothing may hardcode a
+locale list.
 
 **Product character:** This is intimate, personal health software. Code, copy,
 and UX must be **private by default, respectful, and medically careful**. See
@@ -138,6 +141,45 @@ Before writing a component or module, decide its layer:
 When in doubt, push it **down**, not up. Code is cheaper to promote later than
 to untangle.
 
+### 4.1 Routes vs sheets — where a screen appears
+
+The app has **exactly five routed screens**: the bottom-nav tabs (`/home`,
+`/calendar`, `/log`, `/cycle`, `/profile`), plus the sign-up + onboarding flow
+(`/splash`, `/welcome`, `/signup`, `/otp`, `/onboarding/*`) and the pregnancy
+section. **Every other screen is a sheet** — a panel that rises from the bottom
+over whatever the user was already looking at. Do not add a route for one.
+
+- **Open one:** `openSheet('<id>', arg?)` from `@/shared/sheet`. The id comes
+  from `src/app/sheets/registry.tsx`; `arg` is one short, non-sensitive string
+  (an info topic, an article slug) — it rides in the query string, so never a
+  cycle phase or anything else covered by §11.
+- **Add one:** write the screen in `screens/<name>` exporting a `*Sheet`
+  component that renders **content only** — no `.view`, no `.hdr`/`NavBack`, no
+  `<BottomNav />`. The sheet chrome (grip, title, close, scroll) belongs to
+  `AppSheet`. Then add an entry to `SHEET_REGISTRY` with its `size` and `Title`.
+- **The registry is the one place allowed to import `screens` from `app`.**
+  `shared/sheet` only ever deals in string ids, so the FSD direction holds.
+
+Sheets are addressed by `?sheet=<id>` and stack, so the hardware/browser back
+button dismisses the top one and deep links work. Navigating to another route
+closes them.
+
+**The two sizes are different layouts, not two numbers** (see `AppSheet`):
+
+| Size | Height | Scrolling |
+| ---- | ------ | --------- |
+| `half` | `auto`, from a 42% floor — **the content sets it** | Never. More content makes the panel *taller*. Only if it would outgrow the screen does the body become scrollable, as a last resort. |
+| `full` | fixed, 92% of the shell | The body scrolls inside the panel. |
+
+Pick `half` for one decision or a short form (a picker, a log category), `full`
+for long copy or a list. A `half` sheet with `max-height` on its own content is
+a bug: it re-introduces the inner scrollbar the size exists to avoid.
+
+`AppSheet` is also the primitive for **inline** sheets that aren't routed at all
+(`QuickEditSheet`, the calendar month picker, the log `CategorySheet`) — pass
+`open`/`onClose` yourself. There is no second sheet implementation; don't add
+one.
+
 ---
 
 ## 5. Domain model (current entities)
@@ -166,19 +208,93 @@ Representative higher-layer slices:
 
 i18n is part of the architecture, not a translation afterthought.
 
+### 6.1 The rule: locales are data, never code
+
+**The set of languages the app ships lives in the backend's `languages` table
+and is edited from the admin panel (`/admin/languages`). No code anywhere may
+enumerate locales.** Persian (`fa`) is the seeded default and renders RTL;
+English (`en`) is the second seeded row. Neither is special-cased — they are
+rows, and an admin can add, deactivate, reorder or re-default any of them.
+
+Concretely, this is forbidden:
+
+```ts
+// ❌ never — breaks the moment an admin adds a language
+const LOCALES = ['fa', 'en'];
+const isRtl = locale === 'fa';
+const label = locale === 'fa' ? 'فارسی' : 'English';
+```
+
+and this is how each of those is written instead:
+
+```ts
+// ✅ the live list, resolved at runtime
+const { codes, defaultLocale } = await getLocaleRegistry();   // server / middleware
+const { data: languages } = useLanguages();                    // client
+
+// ✅ direction is a property of the language row, not of "is it Persian"
+const isRtl = useDirection() === 'rtl';
+
+// ✅ the endonym comes from the registry
+const label = languages.find((l) => l.code === locale)?.name;
+```
+
+The one deliberate exception is **Persian digits** (`۱۲۳`) and the **Jalali
+calendar**, which really are Persian-specific: `locale === 'fa'` is correct
+there, and `shared/lib/date` documents the fallback every other locale takes
+(Gregorian, Latin digits, English month names) until data for it is added.
+
+### 6.2 How a new language reaches the app
+
+1. An admin creates it in `/admin/languages` with a code, endonym, English name
+   and **direction (RTL/LTR)**.
+2. The backend generates that locale's UI-string files under
+   `storage/app/translations/<code>/`, copied from the default language so the
+   app is fully usable immediately, plus its `lang/<code>/` PHP files and its
+   own copy of the editable smart-message rows (unapproved, pending review).
+3. The admin translates strings namespace by namespace in
+   `/admin/languages/<id>/translations`.
+4. The frontend reads `GET /languages` and `GET /languages/<code>/messages` at
+   runtime. **No frontend rebuild is needed** — the new locale gets its URL
+   prefix, `<html dir>`, message bundle and an entry in the language picker.
+
+Every content form in the admin panel grows an input for the new locale
+automatically, because they all render `<x-admin.translatable>` and validate
+through `App\Support\Translatable::rules()`.
+
+### 6.3 Fallback, everywhere
+
+A key or field nobody has translated yet renders **the default language's
+text**, never a blank. This holds at every layer — `TranslationStore`,
+`Translatable::pick()`, the frontend's message merge — so a language is safe to
+add before it is finished, and a key added to the app tomorrow doesn't break the
+languages added yesterday.
+
+Consequently **only the default language is `required`** on an admin content
+form; every other locale's input is optional.
+
+### 6.4 Mechanics
+
 - **Library:** `next-intl`, integrated with the App Router and RSC so strings
-  render on the server and don't bloat the client bundle.
-- **Locales:** `fa` (default) and `en`. **Locale lives in the URL path**
-  (`/fa/...`, `/en/...`) for SEO and shareable links.
+  render on the server and don't bloat the client bundle. Its *routing*
+  middleware is deliberately NOT used — it needs the locale list fixed at build
+  time. `src/middleware.ts` and `shared/i18n/navigation` do the prefixing
+  instead, off the runtime registry.
+- **Locale lives in the URL path** (`/fa/...`, `/en/...`, `/ar/...`) for SEO and
+  shareable links. An unprefixed URL is redirected using the `NEXT_LOCALE`
+  cookie, else the default language.
+- **Bundled floor.** `fa` and `en` messages are compiled in
+  (`shared/i18n/bundled`) so the app renders during a backend outage and at
+  build time. `frontend/messages/**` is the source of truth for them — after
+  editing keys there, run `php artisan translations:import` in the backend so
+  languages created later inherit the new keys.
 - **Namespaces per slice.** Each feature/widget owns its message namespace and
-  loads it lazily. Do NOT dump every string into one giant `common.json` and
-  do NOT ship all locales to the client.
+  loads it lazily. Do NOT dump every string into one giant `common.json`.
 - **ICU MessageFormat** for plurals, gender, and number/date formatting. Persian
   has different plural rules than English — write messages with ICU, never
   string-concatenate translated fragments.
-- **Type-safe keys.** Message keys are typed; a wrong key is a compile error,
-  not a runtime blank. Never hardcode user-facing text in components — every
-  visible string goes through the translator.
+- **Never hardcode user-facing text** in components — every visible string goes
+  through the translator.
 
 ```tsx
 // ✅ correct
@@ -189,6 +305,13 @@ return <h2>{t('nextPeriodIn', { days: count })}</h2>;
 return <h2>دوره بعدی تا {count} روز دیگر</h2>; // hardcoded, untranslatable
 ```
 
+### 6.5 Direction
+
+Prefer CSS **logical** properties (`ms-`, `pe-`, `text-start`) so layout follows
+`<html dir>` with no JavaScript. Reach for `useDirection()` only where the
+direction has to enter JS — swipe/transform math, a chevron that must point
+"forward". Never branch on the locale code for this.
+
 ---
 
 ## 7. Dates & calendar (locale-aware — critical)
@@ -197,12 +320,17 @@ Iranian users think in the **Jalali (Shamsi)** calendar; English-speaking users
 think in the **Gregorian** one. Getting this wrong is a correctness bug in a
 product whose entire job is tracking dates.
 
-- **The calendar follows the locale.** `fa` → Jalali, `en` → Gregorian —
-  everywhere, with no exceptions: the home mini-calendar, the calendar screen,
-  birthday and last-period wheels, month labels, weekday column order
-  (Saturday-first in Jalali, Sunday-first in Gregorian) and digits (Persian in
-  `fa`, Latin in `en`). Raw ISO/Gregorian strings may exist internally and at
-  the API boundary, but are never shown raw to the user.
+- **The calendar follows the locale.** `fa` → Jalali, every other locale →
+  Gregorian — everywhere, with no exceptions: the home mini-calendar, the
+  calendar screen, birthday and last-period wheels, month labels, weekday
+  column order (Saturday-first in Jalali, Sunday-first in Gregorian) and digits
+  (Persian in `fa`, Latin elsewhere). Raw ISO/Gregorian strings may exist
+  internally and at the API boundary, but are never shown raw to the user.
+- **Calendar data is hand-written, so it lags the language list (§6).** Month
+  and weekday names exist for `fa` and `en`; a language an admin adds reads its
+  dates through the Gregorian/English tables until names for it are added to
+  `shared/lib/date`. That fallback is explicit in `calendarLocale()` — never
+  index a name table by a raw `Locale`, or a new language renders `undefined`.
 - **Calendar *parts* are meaningless without their locale.** `toParts`,
   `todayParts`, `monthMatrix`, `daysInCalendarMonth` and `partsToDate` all take
   a `Locale`; anything that *persists* parts (e.g. the onboarding store) must
@@ -248,12 +376,16 @@ The backend is a separate service. **The full API is documented as an OpenAPI
 3.0 spec** you should treat as the source of truth for endpoints, request/
 response shapes, enums, and auth:
 
-- **Spec (OpenAPI/Swagger JSON):** `https://ritmeapp.ir/docs/api-docs.json`
+- **Spec (OpenAPI/Swagger JSON):** `https://api.ritme.app/docs/api-docs.json`
   (title: *Ritme Salamat API*, version `1.0.0`). The host serves `https` (TLS
   terminates at the nginx proxy; `http` 301-redirects). **Never point the app
   at an `http://` API** — the PWA is served over https, so an http API call is
   mixed content and the browser blocks it.
-- **Base URL:** all endpoints are under **`/api/v1/`**.
+- **Base URL:** `https://api.ritme.app/api/v1/`. The frontend is served from a
+  **different origin** (`web.ritme.app`), so every browser call is cross-origin
+  and depends on the API's CORS allow-list (`backend/config/cors.php`). Adding a
+  new frontend origin means adding it there too. The admin panel lives on a
+  third hostname, `adpanell.ritme.app`.
 - **Auth:** JWT **bearer** token in the `Authorization` header
   (`Authorization: Bearer <token>`). Login is **OTP-based**: `POST
   /auth/send-otp` → `POST /auth/verify-otp` returns the access token. The shared
@@ -470,6 +602,10 @@ why.
 - ❌ Importing a lower layer from a higher one's perspective, i.e. any upward
   import (`shared` importing from `features`, etc.).
 - ❌ Hardcoded user-facing strings (bypassing `next-intl`).
+- ❌ Enumerating locales in code — `['fa', 'en']`, `locale === 'fa' ? … : …`
+  for direction or labels, a `Record<Locale, …>` name table. The language list
+  is data (§6). The only legitimate `locale === 'fa'` checks are Persian digits
+  and the Jalali calendar.
 - ❌ Hardcoded `margin-left` / `right: 0` / `text-align: left` — use logical
   properties (`margin-inline-start`, `inset-inline-end`, `text-align: start`).
 - ❌ `style={{ … }}` for anything static — put it in a class (§10.1). Only a

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\CyclePhase;
 use App\Http\Controllers\Controller;
 use App\Models\Affirmation;
+use App\Support\Translatable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -66,9 +67,7 @@ class AffirmationController extends Controller
     private function validated(Request $request): array
     {
         $data = $request->validate([
-            'text' => ['required', 'array'],
-            'text.fa' => ['required', 'string'],
-            'text.en' => ['nullable', 'string'],
+            ...Translatable::rules('text'),
             'cycle_phase' => ['nullable', Rule::in(CyclePhase::values())],
             'sort_order' => ['nullable', 'integer'],
         ]);

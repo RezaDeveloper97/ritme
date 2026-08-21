@@ -44,9 +44,11 @@ if [ "$RUN_MIGRATIONS" = "true" ]; then
 
   php artisan storage:link || true
 
-  # Idempotent essential data: the initial admin (credentials from ADMIN_SEED_*),
-  # the editable smart-message content and the daily recommendations. All use
-  # firstOrCreate, so existing rows / admin edits are never overwritten.
+  # Idempotent essential data: the language registry, the initial admin
+  # (credentials from ADMIN_SEED_*), the editable smart-message content and the
+  # daily recommendations. All use firstOrCreate, so existing rows / admin edits
+  # are never overwritten.
+  php artisan db:seed --class=Database\\Seeders\\LanguageSeeder --force || true
   php artisan db:seed --class=Database\\Seeders\\AdminSeeder --force || true
   php artisan db:seed --class=Database\\Seeders\\MessageContentSeeder --force || true
   php artisan db:seed --class=Database\\Seeders\\RecommendationSeeder --force || true

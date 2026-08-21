@@ -11,7 +11,8 @@ import { useLogout } from '@/features/auth';
 import { QuickEditSheet, type QuickEditField } from '@/features/edit-profile';
 import { useSwitchLocale } from '@/features/switch-locale';
 import { formatLongDate } from '@/shared/lib/date';
-import { type Locale, useRouter } from '@/shared/i18n';
+import { openSheet } from '@/shared/sheet';
+import { useDirection, useRouter, type Locale } from '@/shared/i18n';
 import { Icon, type IconName } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
 
@@ -109,11 +110,13 @@ function Divider() {
 }
 
 // Direction-aware disclosure chevron: points "into" the row (§12 — logical, not
-// hardcoded left/right). RTL forward = left, LTR forward = right.
-function Chevron({ loc }: { loc: Locale }) {
+// hardcoded left/right). RTL forward = left, LTR forward = right. Read from the
+// active language's direction, not from "is it Persian" — any RTL language an
+// admin adds (CLAUDE.md §6) points the same way.
+function Chevron() {
   return (
     <Icon
-      name={loc === 'fa' ? 'chevronLeft' : 'chevronRight'}
+      name={useDirection() === 'rtl' ? 'chevronLeft' : 'chevronRight'}
       size={18}
       className="prof-chev"
     />
@@ -149,7 +152,10 @@ export function ProfilePage() {
   // const { data: userMode } = useUserMode();
   // const deactivatePregnancy = useDeactivatePregnancy();
   const logout = useLogout();
-  const { locale, switchLocale, isPending: switching } = useSwitchLocale();
+  const { locale, languages, isPending: switching } = useSwitchLocale();
+  // Labelled in its own language — that is how a language picker reads.
+  const activeLanguageName =
+    languages.find((language) => language.code === locale)?.name ?? locale;
   // Which stat row is being edited in the quick-edit sheet (null = closed).
   const [editing, setEditing] = useState<QuickEditField | null>(null);
 
@@ -179,8 +185,7 @@ export function ProfilePage() {
     });
   };
 
-  // Two locales: tapping the language row flips to the other one.
-  const toggleLocale = () => switchLocale(locale === 'fa' ? 'en' : 'fa');
+
 
   // App mode (CLAUDE.md §1). Entering pregnancy mode routes to /pregnancy,
   // which activates and runs onboarding via its own gate; leaving it flips the
@@ -192,7 +197,7 @@ export function ProfilePage() {
   //   deactivatePregnancy.mutate();
   // };
 
-  const chevron = <Chevron loc={loc} />;
+  const chevron = <Chevron />;
 
   return (
     <div className="view prof-page">
@@ -219,7 +224,7 @@ export function ProfilePage() {
             <button
               className="iconbtn prof-id-edit"
               aria-label={t('editProfile')}
-              onClick={() => router.push('/profile/personal')}
+              onClick={() => setEditing('name')}
             >
               <Icon name="pencil" size={18} />
             </button>
@@ -284,7 +289,10 @@ export function ProfilePage() {
               <Row
                 icon="calendar"
                 label={t('health.lastPeriod')}
-                trailing={<StatValue>{localDateOrEmpty(health?.lastPeriodStart)}</StatValue>}
+                trailing={
+                  <EditableValue>{localDateOrEmpty(health?.lastPeriodStart)}</EditableValue>
+                }
+                onClick={() => setEditing('lastPeriod')}
               />
               <Divider />
               <Row
@@ -318,23 +326,23 @@ export function ProfilePage() {
           {/* Personal-info and cycle/health-settings rows hidden per product
               request; the same fields are editable inline above. */}
           {/* Reminders row temporarily hidden per product request. */}
-          {/* <Row icon="alarm" label={t('rows.reminders')} trailing={chevron} onClick={() => router.push('/profile/reminders')} />
+          {/* <Row icon="alarm" label={t('rows.reminders')} trailing={chevron} onClick={() => openSheet('reminders')} />
           <Divider /> */}
-          <Row icon="bell" label={t('rows.notifications')} trailing={chevron} onClick={() => router.push('/profile/notifications')} />
+          <Row icon="bell" label={t('rows.notifications')} trailing={chevron} onClick={() => openSheet('notifications')} />
         </Group>
 
         {/* App */}
         <Group title={t('sections.app')}>
+          {/* The app can ship any number of languages (CLAUDE.md §6), so this
+              opens a picker rather than toggling between two. */}
           <Row
             icon="globe"
             label={t('rows.language')}
-            onClick={toggleLocale}
+            onClick={() => openSheet('language')}
             disabled={switching}
             trailing={
               <span className="prof-inline">
-                <span className="prof-inline-t">
-                  {t(`language.${locale}`)}
-                </span>
+                <span className="prof-inline-t">{activeLanguageName}</span>
                 {chevron}
               </span>
             }
@@ -343,16 +351,16 @@ export function ProfilePage() {
 
         {/* Privacy & data (§11 — export & delete are first-class) */}
         <Group title={t('sections.privacy')}>
-          <Row icon="shield" label={t('rows.privacyPolicy')} trailing={chevron} onClick={() => router.push('/profile/info/privacy')} />
+          <Row icon="shield" label={t('rows.privacyPolicy')} trailing={chevron} onClick={() => openSheet('info', 'privacy')} />
         </Group>
 
         {/* Support */}
         <Group title={t('sections.support')}>
-          <Row icon="info" label={t('rows.help')} trailing={chevron} onClick={() => router.push('/profile/info/help')} />
+          <Row icon="info" label={t('rows.help')} trailing={chevron} onClick={() => openSheet('info', 'help')} />
           <Divider />
-          <Row icon="sparkle" label={t('rows.about')} trailing={chevron} onClick={() => router.push('/profile/info/about')} />
+          <Row icon="sparkle" label={t('rows.about')} trailing={chevron} onClick={() => openSheet('info', 'about')} />
           <Divider />
-          <Row icon="book" label={t('rows.terms')} trailing={chevron} onClick={() => router.push('/profile/info/terms')} />
+          <Row icon="book" label={t('rows.terms')} trailing={chevron} onClick={() => openSheet('info', 'terms')} />
         </Group>
 
         {/* Logout */}
@@ -378,9 +386,11 @@ export function ProfilePage() {
       <QuickEditSheet
         field={editing}
         values={{
+          name: user?.name,
           cycleDuration: health?.cycleDuration,
           periodDuration: health?.periodDuration,
           birthday: health?.birthday,
+          lastPeriodStart: health?.lastPeriodStart,
           weight: health?.weight,
           height: health?.height,
         }}

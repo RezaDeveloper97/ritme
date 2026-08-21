@@ -1,0 +1,102 @@
+- generic [ref=f3e2]:
+  - complementary [ref=f3e3]:
+    - generic [ref=f3e6]:
+      - text: ریتمه
+      - generic [ref=f3e7]: پنل مدیریت
+    - generic [ref=f3e8]: عمومی
+    - link "داشبورد" [ref=f3e9] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin
+    - link "مدیریت کاربران" [ref=f3e15] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/users
+    - generic [ref=f3e20]: محتوا
+    - link "مقالات" [ref=f3e21] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/articles
+    - link "تأکیدات مثبت" [ref=f3e25] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/affirmations
+    - link "چالش‌ها" [ref=f3e29] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/challenges
+    - link "انجام چالش‌ها" [ref=f3e32] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/challenge-completions
+    - link "کارهای روزانه" [ref=f3e36] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/task-templates
+    - link "محتوای هفتگی بارداری" [ref=f3e40] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/pregnancy-weeks
+    - link "محتوای فازهای چرخه" [ref=f3e44] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/phase-contents
+    - link "توصیه‌های امروز" [ref=f3e47] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/recommendations
+    - link "بنرها و تبلیغات" [ref=f3e51] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/banners
+    - link "راهنما و صفحات متنی" [ref=f3e56] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/info-sections
+    - generic [ref=f3e61]: پیام‌های هوشمند
+    - link "پیام‌ها" [ref=f3e62] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/messages
+    - generic [ref=f3e65]: حساب
+    - link "تغییر رمز عبور" [ref=f3e66] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/account/password
+    - link "مدیریت ادمین‌ها" [ref=f3e70] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/admins
+    - button "خروج" [ref=f3e76] [cursor=pointer]
+  - generic [ref=f3e80]:
+    - generic [ref=f3e81]:
+      - heading "ویرایش باکس — راهنما و پشتیبانی" [level=1] [ref=f3e82]
+      - generic [ref=f3e83]:
+        - generic [ref=f3e84]: م
+        - generic [ref=f3e85]: مدیر ارشد
+        - generic [ref=f3e86]: ارشد
+    - generic [ref=f3e87]:
+      - link "→ بازگشت به راهنما و پشتیبانی" [ref=f3e89] [cursor=pointer]:
+        - /url: http://127.0.0.1:8010/admin/info-sections?group=help
+      - generic [ref=f3e92]:
+        - generic [ref=f3e93]:
+          - generic [ref=f3e94]:
+            - generic [ref=f3e95]: صفحه
+            - combobox "صفحه" [ref=f3e96]:
+              - option "راهنما و پشتیبانی" [selected]
+              - option "حریم خصوصی"
+              - option "قوانین و شرایط"
+              - option "درباره ریتمی"
+            - generic [ref=f3e97]: باکس در همین صفحه از اپ نمایش داده می‌شود.
+          - generic [ref=f3e98]:
+            - generic [ref=f3e99]: عنوان باکس
+            - generic [ref=f3e100]:
+              - generic [ref=f3e101]:
+                - generic [ref=f3e102]: فارسی
+                - textbox [ref=f3e103]: پشتیبانی
+              - generic [ref=f3e104]:
+                - generic [ref=f3e105]: English
+                - textbox [ref=f3e106]: Support
+          - generic [ref=f3e107]:
+            - generic [ref=f3e108]: متن باکس
+            - generic [ref=f3e109]:
+              - generic [ref=f3e110]:
+                - generic [ref=f3e111]: فارسی
+                - textbox [ref=f3e112]: اگه سؤالی داری یا به مشکلی خوردی، برامون بنویس؛ هر چه زودتر جوابت رو می‌دیم.
+              - generic [ref=f3e113]:
+                - generic [ref=f3e114]: English
+                - textbox [ref=f3e115]: If you have a question or run into a problem, write to us and we'll get back to you as soon as we can.
+          - generic [ref=f3e116]:
+            - generic [ref=f3e117]: دکمه تماس (اختیاری)
+            - generic [ref=f3e118]: "اگر می‌خواهید زیر متن یک دکمه باشد، هم برچسب و هم آدرس را پر کنید؛ در غیر این صورت هر دو را خالی بگذارید. مثال آدرس: mailto:support@ritmesalamat.com، tel:+982112345678، https://t.me/ritme"
+          - generic [ref=f3e119]:
+            - generic [ref=f3e120]: برچسب دکمه
+            - generic [ref=f3e121]:
+              - generic [ref=f3e122]:
+                - generic [ref=f3e123]: فارسی
+                - textbox [ref=f3e124]: ارسال ایمیل به پشتیبانی
+              - generic [ref=f3e125]:
+                - generic [ref=f3e126]: English
+                - textbox [ref=f3e127]: Email support
+          - generic [ref=f3e128]:
+            - generic [ref=f3e129]: آدرس دکمه
+            - textbox "آدرس دکمه" [ref=f3e130]:
+              - /placeholder: mailto:support@ritmesalamat.com
+              - text: mailto:support@ritmesalamat.com
+          - generic [ref=f3e131]:
+            - generic [ref=f3e132]: ترتیب نمایش
+            - spinbutton "ترتیب نمایش" [ref=f3e133]: "50"
+          - generic [ref=f3e134]:
+            - checkbox "فعال" [checked] [ref=f3e135]
+            - generic [ref=f3e136]: فعال
+        - button "ذخیره تغییرات" [ref=f3e138] [cursor=pointer]

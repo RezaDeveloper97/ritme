@@ -8,6 +8,7 @@ use App\Enums\ConfidenceLevel;
 use App\Enums\PreExistingCondition;
 use App\Enums\PregnancyAgeSource;
 use App\Enums\RhFactor;
+use App\Http\Controllers\Concerns\ResolvesLocale;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\StorePregnancyProfileRequest;
 use App\Http\Requests\Api\V1\UpdatePregnancyProfileRequest;
@@ -19,6 +20,8 @@ use Illuminate\Http\Request;
 
 class PregnancyProfileController extends Controller
 {
+    use ResolvesLocale;
+
     /**
      * @OA\Post(
      *     path="/pregnancy/activate",
@@ -55,7 +58,7 @@ class PregnancyProfileController extends Controller
     public function activate(Request $request): JsonResponse
     {
         $user = $request->user();
-        $locale = $request->header('Accept-Language', 'en');
+        $locale = $this->resolveLocale($request);
 
         // Create or update pregnancy profile
         $profile = PregnancyProfile::updateOrCreate(
@@ -112,7 +115,7 @@ class PregnancyProfileController extends Controller
     public function deactivate(Request $request): JsonResponse
     {
         $user = $request->user();
-        $locale = $request->header('Accept-Language', 'en');
+        $locale = $this->resolveLocale($request);
 
         $profile = $user->pregnancyProfile;
 
@@ -193,7 +196,7 @@ class PregnancyProfileController extends Controller
     public function onboarding(StorePregnancyProfileRequest $request): JsonResponse
     {
         $user = $request->user();
-        $locale = $request->header('Accept-Language', 'en');
+        $locale = $this->resolveLocale($request);
         $validated = $request->validated();
 
         // Determine confidence level based on source
@@ -294,7 +297,7 @@ class PregnancyProfileController extends Controller
     public function show(Request $request): JsonResponse
     {
         $user = $request->user();
-        $locale = $request->header('Accept-Language', 'en');
+        $locale = $this->resolveLocale($request);
         $profile = $user->pregnancyProfile;
 
         if (!$profile) {
@@ -373,7 +376,7 @@ class PregnancyProfileController extends Controller
     public function update(UpdatePregnancyProfileRequest $request): JsonResponse
     {
         $user = $request->user();
-        $locale = $request->header('Accept-Language', 'en');
+        $locale = $this->resolveLocale($request);
         $profile = $user->pregnancyProfile;
 
         if (!$profile) {
@@ -469,7 +472,7 @@ class PregnancyProfileController extends Controller
     public function confirm(Request $request): JsonResponse
     {
         $user = $request->user();
-        $locale = $request->header('Accept-Language', 'en');
+        $locale = $this->resolveLocale($request);
         $profile = $user->pregnancyProfile;
 
         if (!$profile) {
@@ -534,7 +537,7 @@ class PregnancyProfileController extends Controller
     public function status(Request $request): JsonResponse
     {
         $user = $request->user();
-        $locale = $request->header('Accept-Language', 'en');
+        $locale = $this->resolveLocale($request);
 
         $calculationService = new PregnancyCalculationService($user, $locale);
         $status = $calculationService->getPregnancyStatus();
@@ -575,7 +578,7 @@ class PregnancyProfileController extends Controller
      */
     public function enums(Request $request): JsonResponse
     {
-        $locale = $request->header('Accept-Language', 'en');
+        $locale = $this->resolveLocale($request);
 
         $ageSources = collect(PregnancyAgeSource::cases())->map(fn($s) => [
             'value' => $s->value,

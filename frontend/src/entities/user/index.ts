@@ -1,5 +1,6 @@
-export { useOnboardingStore } from './model/store';
+export { resetOnboardingFor, useOnboardingStore } from './model/store';
 export { OnboardingCalendarSync } from './ui/OnboardingCalendarSync';
+export { OnboardingResumeTracker } from './ui/OnboardingResumeTracker';
 export type {
   AuthUser,
   Bmi,
@@ -16,8 +17,10 @@ export type {
   WeightUnit,
 } from './model/types';
 export {
+  isOnboardingStep,
   nextOnboardingRoute,
   onboardingRoute,
+  onboardingStepFromPath,
   onboardingSteps,
   SETTING_UP_ROUTE,
   stepPosition,

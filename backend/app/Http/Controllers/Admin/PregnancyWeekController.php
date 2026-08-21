@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\PregnancyWeeklyContent;
+use App\Support\Translatable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -79,7 +80,9 @@ class PregnancyWeekController extends Controller
             'week_number' => ['required', 'integer', 'min:1', 'max:42', Rule::unique('pregnancy_weekly_content', 'week_number')->ignore($week)],
         ];
         foreach (array_keys(self::FIELDS) as $field) {
-            $rules[$field] = ['nullable', 'array'];
+            // One optional input per active language (App\Support\Translatable),
+            // so a locale added in /admin/languages is validated here too.
+            $rules += Translatable::rules($field, required: false);
         }
 
         return $request->validate($rules);

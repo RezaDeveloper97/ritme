@@ -1,0 +1,64 @@
+# Production overlay for the Ritme stack — used as:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# (see deploy.sh). It fronts backend+frontend with an nginx `proxy` container
+# on :80/:443 and keeps every other service off the public interface.
+
+services:
+  # `!override` is required on every ports list: compose MERGES sequences
+  # across files, so without it the base file's "3307:3306" (all interfaces)
+  # is kept alongside the loopback mapping and the bind fails with
+  # "address already in use".
+  mysql:
+    # This VPS exposes a generic "Common KVM processor" with no SSE4.2/POPCNT,
+    # i.e. x86-64-v1 only. Every official mysql image (8.0 and 8.4 alike) is
+    # linked against a glibc that hard-requires x86-64-v2 and dies at startup
+    # with "Fatal glibc error: CPU does not support x86-64-v2". MariaDB's
+    # Ubuntu-based image runs on the baseline ISA, so prod uses it instead.
+    # (Local dev keeps mysql:8.4 — the wire protocol and Laravel's `mysql`
+    # driver are compatible; if the provider ever enables CPU passthrough this
+    # override can go away.)
+    image: mariadb:11.4
+    healthcheck:
+      # MariaDB 11.4 dropped the mysql* command symlinks, so the base file's
+      # `mysqladmin ping` would never succeed here.
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    ports: !override
+      # Loopback only — the DB must never be reachable from the internet.
+      - "127.0.0.1:3307:3306"
+
+  backend:
+    ports: !override
+      - "127.0.0.1:8080:80"
+
+  frontend:
+    ports: !override
+      - "127.0.0.1:3000:3000"
+
+  proxy:
+    image: nginx:alpine
+    restart: unless-stopped
+    depends_on:
+      - backend
+      - frontend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # proxy.conf is the HTTP-only config. enable-https.sh flips PROXY_CONF in
+      # the server .env to ./deploy/proxy-ssl.conf once a certificate exists —
+      # swapping via env keeps both files pristine so rsync never clobbers the
+      # choice on the next deploy.
+      - ${PROXY_CONF:-./deploy/proxy.conf}:/etc/nginx/conf.d/default.conf:ro
+      # Shared fragments. Only *.conf is auto-loaded from conf.d, so these .inc
+      # files are pulled in explicitly by the active config and never become
+      # server blocks of their own.
+      - ./deploy/proxy-params.inc:/etc/nginx/conf.d/proxy-params.inc:ro
+      - ./deploy/acme.inc:/etc/nginx/conf.d/acme.inc:ro
+      - ./deploy/vhost-api.inc:/etc/nginx/conf.d/vhost-api.inc:ro
+      - ./deploy/vhost-admin.inc:/etc/nginx/conf.d/vhost-admin.inc:ro
+      - ./deploy/vhost-web.inc:/etc/nginx/conf.d/vhost-web.inc:ro
+      - ./certbot-www:/var/www/certbot:ro
+      - ./ssl:/etc/nginx/ssl:ro

@@ -1,0 +1,59 @@
+- generic [ref=f8e4]:
+  - generic [ref=f8e5]:
+    - generic [ref=f8e6]: Profile
+    - generic [ref=f8e9]:
+      - generic [ref=f8e14]:
+        - generic [ref=f8e15]: Ritme user
+        - generic [ref=f8e16]: No phone number saved
+      - button "Edit profile" [ref=f8e17] [cursor=pointer]
+    - generic [ref=f8e20]:
+      - generic [ref=f8e21]: Cycle & health
+      - generic [ref=f8e22]:
+        - button "Cycle length Not set" [ref=f8e23] [cursor=pointer]:
+          - generic [ref=f8e27]: Cycle length
+          - generic [ref=f8e28]: Not set
+        - button "Period length Not set" [ref=f8e33] [cursor=pointer]:
+          - generic [ref=f8e37]: Period length
+          - generic [ref=f8e38]: Not set
+        - button "Last period start Not set" [ref=f8e43] [cursor=pointer]:
+          - generic [ref=f8e48]: Last period start
+          - generic [ref=f8e49]: Not set
+        - button "Date of birth Not set" [ref=f8e54] [cursor=pointer]:
+          - generic [ref=f8e59]: Date of birth
+          - generic [ref=f8e60]: Not set
+        - button "Weight Not set" [ref=f8e65] [cursor=pointer]:
+          - generic [ref=f8e70]: Weight
+          - generic [ref=f8e71]: Not set
+        - button "Height Not set" [ref=f8e76] [cursor=pointer]:
+          - generic [ref=f8e81]: Height
+          - generic [ref=f8e82]: Not set
+    - generic [ref=f8e86]:
+      - generic [ref=f8e87]: Account
+      - button "Notifications" [ref=f8e89] [cursor=pointer]
+    - generic [ref=f8e97]:
+      - generic [ref=f8e98]: App
+      - button "App language English" [ref=f8e100] [cursor=pointer]:
+        - generic [ref=f8e105]: App language
+        - generic [ref=f8e106]: English
+    - generic [ref=f8e110]:
+      - generic [ref=f8e111]: Privacy & data
+      - button "Privacy policy" [ref=f8e113] [cursor=pointer]
+    - generic [ref=f8e121]:
+      - generic [ref=f8e122]: Support
+      - generic [ref=f8e123]:
+        - button "Help & support" [ref=f8e124] [cursor=pointer]
+        - button "About Ritme" [ref=f8e133] [cursor=pointer]
+        - button "Terms & conditions" [ref=f8e142] [cursor=pointer]
+    - button "Log out" [ref=f8e151] [cursor=pointer]
+    - generic [ref=f8e157]: Version 1.0.0
+  - navigation "Main navigation" [ref=f8e158]:
+    - link "Today" [ref=f8e159] [cursor=pointer]:
+      - /url: /en/home
+    - link "Calendar" [ref=f8e164] [cursor=pointer]:
+      - /url: /en/calendar
+    - link "Log" [ref=f8e169] [cursor=pointer]:
+      - /url: /en/log
+    - link "Analysis" [ref=f8e172] [cursor=pointer]:
+      - /url: /en/cycle
+    - link "Profile" [ref=f8e177] [cursor=pointer]:
+      - /url: /en/profile

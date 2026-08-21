@@ -50,6 +50,20 @@ class User extends Authenticatable
     }
 
     /**
+     * Has this account finished the signup onboarding flow?
+     *
+     * There is no dedicated column: onboarding ends by writing the name onto
+     * the user and the health answers onto `user_profiles`, so the pair of them
+     * *is* the completion signal. Clients use it to decide whether a verified
+     * mobile lands on the app or back in the onboarding steps — a token alone
+     * proves the number, not that registration was ever finished.
+     */
+    public function hasCompletedProfile(): bool
+    {
+        return filled($this->name) && $this->profile()->exists();
+    }
+
+    /**
      * Get the user's profile
      */
     public function profile(): \Illuminate\Database\Eloquent\Relations\HasOne

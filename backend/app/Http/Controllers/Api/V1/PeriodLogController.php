@@ -247,7 +247,9 @@ class PeriodLogController extends Controller
 
         $validator = Validator::make($request->all(), [
             'start_date' => 'required|date|before_or_equal:today',
-            'end_date' => 'nullable|date|after_or_equal:start_date|before_or_equal:today',
+            // The end may sit in the future: the date editor lets a run starting on or before
+            // today extend across the user's usual bleed length, and those days count as logged.
+            'end_date' => 'nullable|date|after_or_equal:start_date',
         ]);
 
         if ($validator->fails()) {
@@ -493,7 +495,9 @@ class PeriodLogController extends Controller
 
         $validator = Validator::make($request->all(), [
             'start_date' => 'required|date|before_or_equal:today',
-            'end_date' => 'nullable|date|after_or_equal:start_date|before_or_equal:today',
+            // The end may sit in the future: the date editor lets a run starting on or before
+            // today extend across the user's usual bleed length, and those days count as logged.
+            'end_date' => 'nullable|date|after_or_equal:start_date',
         ]);
 
         if ($validator->fails()) {

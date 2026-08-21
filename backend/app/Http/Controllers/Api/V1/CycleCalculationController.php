@@ -585,7 +585,7 @@ class CycleCalculationController extends Controller
     public function matrixMessages(Request $request): JsonResponse
     {
         $user = $request->user();
-        $locale = $request->header('Accept-Language', 'fa');
+        $locale = $this->resolveLocale($request);
         $profile = $user->profile;
 
         if (! $profile || ! $profile->last_period_start) {
@@ -738,7 +738,7 @@ class CycleCalculationController extends Controller
      */
     public function matrixEnums(Request $request): JsonResponse
     {
-        $locale = $request->header('Accept-Language', 'fa');
+        $locale = $this->resolveLocale($request);
 
         $userGoals = collect(UserGoal::cases())->map(fn ($g) => [
             'value' => $g->value,

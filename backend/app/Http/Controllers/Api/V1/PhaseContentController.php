@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Enums\CycleSubphase;
+use App\Http\Controllers\Concerns\ResolvesLocale;
 use App\Http\Controllers\Controller;
 use App\Models\PhaseContent;
 use Illuminate\Http\JsonResponse;
@@ -15,6 +16,8 @@ use Illuminate\Http\Request;
  */
 class PhaseContentController extends Controller
 {
+    use ResolvesLocale;
+
     /**
      * @OA\Get(
      *     path="/cycle/phase-content/{phase}",
@@ -73,7 +76,7 @@ class PhaseContentController extends Controller
     {
         // Browsers forbid JS from overriding Accept-Language, so the SPA passes
         // the active locale as an explicit `?locale=` query param which wins.
-        $locale = $request->query('locale', $request->header('Accept-Language', 'fa'));
+        $locale = $this->resolveLocale($request);
         $locale = in_array($locale, ['fa', 'en'], true) ? $locale : 'fa';
 
         $subphase = CycleSubphase::tryFrom($phase);

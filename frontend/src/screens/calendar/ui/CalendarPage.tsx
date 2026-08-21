@@ -29,7 +29,7 @@ import {
   useUpdatePeriod,
   type LoggedPeriod,
 } from '@/features/log-period';
-import { useRouter, type Locale } from '@/shared/i18n';
+import { useDirection, useRouter, type Locale } from '@/shared/i18n';
 import {
   addDays,
   diffInDays,
@@ -48,7 +48,8 @@ import {
   type MonthCell,
 } from '@/shared/lib/date';
 import { getApiErrorMessage } from '@/shared/api';
-import { Icon, Sheet } from '@/shared/ui';
+import { AppSheet } from '@/shared/sheet';
+import { Icon } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
 
 import { DayLogSummary } from './DayLogSummary';
@@ -199,7 +200,9 @@ function MonthYearPicker({ t, locale, isRtl, open, onClose, year, month, onPick,
   }, [open, year]);
 
   return (
-    <Sheet open={open} onClose={onClose} labelledBy="month-picker-title">
+    // Half: a year strip and twelve month chips — a fixed, short amount of
+    // content that should size to itself rather than scroll (see AppSheet).
+    <AppSheet open={open} onClose={onClose} size="half">
       <div className="cal-pick-head">
         {/* First child → RIGHT in RTL = previous year */}
         <button
@@ -239,7 +242,7 @@ function MonthYearPicker({ t, locale, isRtl, open, onClose, year, month, onPick,
       <button className="btn cal-pick-today" onClick={onToday}>
         {t('goToToday')}
       </button>
-    </Sheet>
+    </AppSheet>
   );
 }
 
@@ -427,7 +430,7 @@ export function CalendarPage() {
   const locale = useLocale() as Locale;
   const format = useFormatter();
   const router = useRouter();
-  const isRtl = locale === 'fa';
+  const isRtl = useDirection() === 'rtl';
 
   const [{ year, month }, setView] = useState(() => {
     const j = todayParts(locale);
@@ -562,6 +565,15 @@ export function CalendarPage() {
   const effectiveEndOf = (p: LoggedPeriod): string =>
     p.period_end_date ?? toApiDate(addDays(fromApiDate(p.period_start_date), periodDuration - 1));
 
+  // Last day of a period that has actually happened. An ongoing period paints
+  // forward to its usual bleed length, but those days are still ahead — every
+  // edit has to be expressed in days the API accepts (never in the future).
+  const realEndOf = (p: LoggedPeriod): string => {
+    const end = effectiveEndOf(p);
+    const todayIso = toApiDate(today());
+    return end > todayIso ? todayIso : end;
+  };
+
   // A logged period the selected day could EXTEND (the day sits within
   // EXTEND_GAP_DAYS just before its start or after its end). When one exists,
   // the day sheet offers "add to period days" instead of "start period".
@@ -694,10 +706,17 @@ export function CalendarPage() {
   // Unmark the tapped day of a logged period. Removing the first day moves the
   // start forward; any other day truncates the period to the day before it
   // (days are contiguous, so "this day wasn't period" ends the bleed there);
-  // a single-day period is deleted outright.
+  // a period with nothing left in the past is deleted outright.
+  //
+  // "Nothing left" is judged against the period's days that have ACTUALLY
+  // happened (`realEndOf`), not its visible span: an ongoing period started
+  // today already covers the next few days on the calendar, and moving its start
+  // to tomorrow is both meaningless and rejected by the API ("start date … before
+  // or equal to today"), which is exactly how that English 422 reached the user.
   const removeDayHere = (period: LoggedPeriod) => {
     const iso = toApiDate(selectedDate);
     const effEnd = effectiveEndOf(period);
+    const realEnd = realEndOf(period);
     const rollback = { onError: onMutationError };
     const overlayFor = (cleared: string[]) => ({
       paint: new Set<string>(),
@@ -708,8 +727,8 @@ export function CalendarPage() {
     });
 
     setWatching(true);
-    if (iso === period.period_start_date && iso === effEnd) {
-      setOverlay(overlayFor([iso]));
+    if (iso === period.period_start_date && iso >= realEnd) {
+      setOverlay(overlayFor(isoRange(iso, effEnd)));
       deletePeriod.mutate({ id: period.id }, rollback);
     } else if (iso === period.period_start_date) {
       setOverlay(overlayFor([iso]));
@@ -805,8 +824,13 @@ export function CalendarPage() {
     selectedLoggedPeriod != null &&
     (() => {
       const iso = toApiDate(selectedDate);
-      return iso !== selectedLoggedPeriod.period_start_date && iso !== effectiveEndOf(selectedLoggedPeriod);
+      return iso !== selectedLoggedPeriod.period_start_date && iso !== realEndOf(selectedLoggedPeriod);
     })();
+  // The remaining days of an ongoing period are painted before they happen, and
+  // a day that hasn't happened can't be "not a period day" yet — so that action
+  // is offered only up to today (editing the period is still available).
+  const canRemoveSelectedDay =
+    selectedLoggedPeriod != null && diffInDays(selectedDate, today()) <= 0;
   // "Start period" only where no logged period is nearby — a day close to one
   // extends it instead, so two periods can't be started days apart. A *predicted*
   // period day still offers it: the prediction is exactly what the user confirms
@@ -829,11 +853,12 @@ export function CalendarPage() {
   const calendarLoading =
     monthA.isPending || monthB.isPending || monthA.isFetching || monthB.isFetching || isRecalculating;
 
-  // A month entirely in the future has no days the user could have bled on, so
-  // the "edit period date" button is disabled there.
+  // The editor renders history up to next month (a run starting today can spill
+  // into it), so the button stays available there and is disabled only further
+  // out, where it would have nothing to open on.
   const currentCal = todayParts(locale);
-  const isFutureMonth =
-    year > currentCal.year || (year === currentCal.year && month > currentCal.month);
+  const monthsAhead = (year - currentCal.year) * 12 + (month - currentCal.month);
+  const isFutureMonth = monthsAhead > 1;
 
   return (
     <div className="view cal-page">
@@ -965,14 +990,16 @@ export function CalendarPage() {
                       <Icon name="drop" size={16} fill="currentColor" strokeWidth={0} />
                       {t('editThisPeriod')}
                     </button>
-                    <button
-                      className="btn cal-action is-neutral"
-                      onClick={() => removeDayHere(selectedLoggedPeriod)}
-                      disabled={mutating}
-                    >
-                      <Icon name="x" size={16} />
-                      {removeDayIsInterior ? t('endPeriodHere') : t('removeThisDay')}
-                    </button>
+                    {canRemoveSelectedDay && (
+                      <button
+                        className="btn cal-action is-neutral"
+                        onClick={() => removeDayHere(selectedLoggedPeriod)}
+                        disabled={mutating}
+                      >
+                        <Icon name="x" size={16} />
+                        {removeDayIsInterior ? t('endPeriodHere') : t('removeThisDay')}
+                      </button>
+                    )}
                   </div>
                 )}
 
@@ -1035,9 +1062,10 @@ export function CalendarPage() {
         onToday={goToday}
       />
 
-      {/* Full-screen toggle editor opened from the header or a logged day's "edit this
-          period" action. Opens on the requested month (else the one the calendar is
-          showing), pre-fills every logged period, and reconciles on save. */}
+      {/* Toggle editor opened from the header or a logged day's "edit this period"
+          action, as a sheet over the calendar. Opens on the requested month (else the
+          one the calendar is showing), pre-fills every logged period, and reconciles
+          on save. */}
       <PeriodDateEditor
         open={dateEditorOpen}
         onClose={() => { setDateEditorOpen(false); setDateEditorView(null); }}

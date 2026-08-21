@@ -18,6 +18,8 @@ class DashboardController extends Controller
         $stats = [
             'users' => User::count(),
             'users_blocked' => User::whereNotNull('blocked_at')->count(),
+            'users_new_week' => User::where('created_at', '>=', now()->subDays(7))->count(),
+            'users_new_today' => User::where('created_at', '>=', now()->startOfDay())->count(),
             'articles' => Article::count(),
             'affirmations' => Affirmation::count(),
             'challenges' => Challenge::count(),

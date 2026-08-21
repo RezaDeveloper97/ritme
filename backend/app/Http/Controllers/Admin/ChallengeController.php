@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Challenge;
+use App\Support\Translatable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -121,10 +122,10 @@ class ChallengeController extends Controller
     private function validated(Request $request): array
     {
         $data = $request->validate([
-            'title' => ['required', 'array'],
-            'title.fa' => ['required', 'string'],
-            'title.en' => ['nullable', 'string'],
-            'description' => ['nullable', 'array'],
+            ...Translatable::rulesFor([
+                'title' => ['required' => true],
+                'description' => ['required' => false],
+            ]),
             'cycle_day_from' => ['nullable', 'integer', 'min:1', 'max:'.Challenge::MAX_CYCLE_DAY],
             // A range that ends before it starts would silently match nothing.
             'cycle_day_to' => ['nullable', 'integer', 'min:1', 'max:'.Challenge::MAX_CYCLE_DAY, 'gte:cycle_day_from'],

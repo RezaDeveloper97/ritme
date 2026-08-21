@@ -5,6 +5,8 @@ use App\Http\Controllers\Api\V1\BannerController;
 use App\Http\Controllers\Api\V1\CycleCalculationController;
 use App\Http\Controllers\Api\V1\DailyHealthLogController;
 use App\Http\Controllers\Api\V1\HomeController;
+use App\Http\Controllers\Api\V1\InfoController;
+use App\Http\Controllers\Api\V1\LanguageController;
 use App\Http\Controllers\Api\V1\MessageController;
 use App\Http\Controllers\Api\V1\OtpAuthController;
 use App\Http\Controllers\Api\V1\PeriodLogController;
@@ -35,6 +37,20 @@ Route::prefix('v1')->group(function () {
         Route::post('/send-otp', [OtpAuthController::class, 'sendOtp']);
         Route::post('/verify-otp', [OtpAuthController::class, 'verifyOtp']);
     });
+
+    // The locales the app ships, and their UI strings. Public and read before
+    // sign-in: the client picks a language and renders its interface first.
+    // Reading these at runtime is what lets a language added in the admin
+    // panel show up in the app with no frontend rebuild.
+    Route::get('/languages', [LanguageController::class, 'index']);
+    Route::get('/languages/{code}/messages', [LanguageController::class, 'messages']);
+
+    // Admin-managed text screens: help/support, privacy, terms, about. Public
+    // on purpose: they have to be readable before anyone signs in, and they
+    // contain no user data.
+    Route::get('/info/{group}', [InfoController::class, 'show']);
+    // Legacy alias for clients shipped before /info/{group} existed.
+    Route::get('/privacy', [InfoController::class, 'privacy']);
 
     // Protected routes
     Route::middleware('auth:api')->group(function () {

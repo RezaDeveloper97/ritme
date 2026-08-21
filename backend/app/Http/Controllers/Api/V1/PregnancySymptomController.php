@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Enums\SymptomSeverity;
+use App\Http\Controllers\Concerns\ResolvesLocale;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\StorePregnancySymptomLogRequest;
 use App\Models\PregnancySymptomLog;
@@ -14,6 +15,8 @@ use Illuminate\Http\Request;
 
 class PregnancySymptomController extends Controller
 {
+    use ResolvesLocale;
+
     /**
      * @OA\Get(
      *     path="/pregnancy/symptoms",
@@ -156,7 +159,7 @@ class PregnancySymptomController extends Controller
     public function store(StorePregnancySymptomLogRequest $request): JsonResponse
     {
         $user = $request->user();
-        $locale = $request->header('Accept-Language', 'en');
+        $locale = $this->resolveLocale($request);
         $validated = $request->validated();
 
         // Create or update log
@@ -224,7 +227,7 @@ class PregnancySymptomController extends Controller
     public function show(Request $request, string $date): JsonResponse
     {
         $user = $request->user();
-        $locale = $request->header('Accept-Language', 'en');
+        $locale = $this->resolveLocale($request);
 
         try {
             $targetDate = Carbon::parse($date);
@@ -297,7 +300,7 @@ class PregnancySymptomController extends Controller
     public function destroy(Request $request, string $date): JsonResponse
     {
         $user = $request->user();
-        $locale = $request->header('Accept-Language', 'en');
+        $locale = $this->resolveLocale($request);
 
         try {
             $targetDate = Carbon::parse($date);
@@ -360,7 +363,7 @@ class PregnancySymptomController extends Controller
      */
     public function enums(Request $request): JsonResponse
     {
-        $locale = $request->header('Accept-Language', 'en');
+        $locale = $this->resolveLocale($request);
 
         $severity = collect(SymptomSeverity::cases())->map(fn($s) => [
             'value' => $s->value,

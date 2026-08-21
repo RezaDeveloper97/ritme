@@ -12,7 +12,7 @@ import {
   todayParts,
   weekdayLabels,
 } from '@/shared/lib/date';
-import type { Locale } from '@/shared/i18n';
+import { useDirection, type Locale } from '@/shared/i18n';
 
 import { Icon } from './Icon';
 
@@ -31,7 +31,7 @@ interface CalendarPickerProps {
 export function CalendarPicker({ value, onSelect }: CalendarPickerProps) {
   const locale = useLocale() as Locale;
   const t = useTranslations('common');
-  const isRtl = locale === 'fa';
+  const isRtl = useDirection() === 'rtl';
 
   const now = todayParts(locale);
   const [year, setYear] = useState(now.year);

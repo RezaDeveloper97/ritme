@@ -45,7 +45,7 @@
                             <tr>
                                 <td>{{ $item->id }}</td>
                                 <td>{{ \App\Enums\RecommendationType::labelFor($item->type) }}</td>
-                                <td class="wrap" style="max-width:360px">{{ \Illuminate\Support\Str::limit($item->text['fa'] ?? $item->text['en'] ?? '—', 90) }}</td>
+                                <td class="wrap" style="max-width:360px">{{ \Illuminate\Support\Str::limit($item->localized('text') ?? '—', 90) }}</td>
                                 <td>{{ \App\Enums\CyclePhase::labelFor($item->cycle_phase) ?? 'همه فازها' }}</td>
                                 <td class="wrap muted" style="max-width:200px">
                                     @forelse ($item->cycle_subphases ?? [] as $sub)

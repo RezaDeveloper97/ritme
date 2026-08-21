@@ -1,0 +1,59 @@
+- generic [ref=f5e4]:
+  - generic [ref=f5e5]:
+    - generic [ref=f5e6]: پروفایل
+    - generic [ref=f5e9]:
+      - generic [ref=f5e14]:
+        - generic [ref=f5e15]: کاربر ریتمی
+        - generic [ref=f5e16]: شماره‌ای ثبت نکردی
+      - button "ویرایش پروفایل" [ref=f5e17] [cursor=pointer]
+    - generic [ref=f5e20]:
+      - generic [ref=f5e21]: چرخه و سلامت
+      - generic [ref=f5e22]:
+        - button "طول چرخه ثبت نشده" [ref=f5e23] [cursor=pointer]:
+          - generic [ref=f5e27]: طول چرخه
+          - generic [ref=f5e28]: ثبت نشده
+        - button "طول پریود ثبت نشده" [ref=f5e33] [cursor=pointer]:
+          - generic [ref=f5e37]: طول پریود
+          - generic [ref=f5e38]: ثبت نشده
+        - button "شروع آخرین پریود ثبت نشده" [ref=f5e43] [cursor=pointer]:
+          - generic [ref=f5e48]: شروع آخرین پریود
+          - generic [ref=f5e49]: ثبت نشده
+        - button "تاریخ تولد ثبت نشده" [ref=f5e54] [cursor=pointer]:
+          - generic [ref=f5e59]: تاریخ تولد
+          - generic [ref=f5e60]: ثبت نشده
+        - button "وزن ثبت نشده" [ref=f5e65] [cursor=pointer]:
+          - generic [ref=f5e70]: وزن
+          - generic [ref=f5e71]: ثبت نشده
+        - button "قد ثبت نشده" [ref=f5e76] [cursor=pointer]:
+          - generic [ref=f5e81]: قد
+          - generic [ref=f5e82]: ثبت نشده
+    - generic [ref=f5e86]:
+      - generic [ref=f5e87]: حساب کاربری
+      - button "اعلان‌ها" [ref=f5e89] [cursor=pointer]
+    - generic [ref=f5e97]:
+      - generic [ref=f5e98]: اپ
+      - button "زبان اپ فارسی" [ref=f5e100] [cursor=pointer]:
+        - generic [ref=f5e105]: زبان اپ
+        - generic [ref=f5e106]: فارسی
+    - generic [ref=f5e110]:
+      - generic [ref=f5e111]: حریم خصوصی و داده‌ها
+      - button "حریم خصوصی" [ref=f5e113] [cursor=pointer]
+    - generic [ref=f5e121]:
+      - generic [ref=f5e122]: پشتیبانی
+      - generic [ref=f5e123]:
+        - button "راهنما و پشتیبانی" [ref=f5e124] [cursor=pointer]
+        - button "درباره ریتمی" [ref=f5e133] [cursor=pointer]
+        - button "قوانین و مقررات" [ref=f5e142] [cursor=pointer]
+    - button "خروج از حساب" [ref=f5e151] [cursor=pointer]
+    - generic [ref=f5e157]: نسخه ۱.۰.۰
+  - navigation "ناوبری اصلی" [ref=f5e158]:
+    - link "امروز" [ref=f5e159] [cursor=pointer]:
+      - /url: /fa/home
+    - link "تقویم" [ref=f5e164] [cursor=pointer]:
+      - /url: /fa/calendar
+    - link "ثبت" [ref=f5e169] [cursor=pointer]:
+      - /url: /fa/log
+    - link "تحلیل" [ref=f5e172] [cursor=pointer]:
+      - /url: /fa/cycle
+    - link "پروفایل" [ref=f5e177] [cursor=pointer]:
+      - /url: /fa/profile

@@ -20,7 +20,7 @@
                             <tr>
                                 <td>{{ $item->id }}</td>
                                 <td dir="ltr">{{ $item->key }}</td>
-                                <td class="wrap">{{ $item->title['fa'] ?? '—' }}</td>
+                                <td class="wrap">{{ $item->localized('title') ?? '—' }}</td>
                                 <td>{{ $item->category }}</td>
                                 <td>{{ $item->cycle_phase ?: '—' }}</td>
                                 <td>@if ($item->is_active)<span class="badge green">فعال</span>@else<span class="badge">غیرفعال</span>@endif</td>

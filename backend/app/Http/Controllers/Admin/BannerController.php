@@ -6,6 +6,7 @@ use App\Enums\BannerLinkType;
 use App\Enums\BannerPosition;
 use App\Http\Controllers\Controller;
 use App\Models\Banner;
+use App\Support\Translatable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -102,9 +103,7 @@ class BannerController extends Controller
     private function validated(Request $request, ?Banner $banner): array
     {
         $data = $request->validate([
-            'title' => ['nullable', 'array'],
-            'title.fa' => ['nullable', 'string', 'max:255'],
-            'title.en' => ['nullable', 'string', 'max:255'],
+            ...Translatable::rules('title', required: false, extra: ['max:255']),
             // Required on create, optional on edit (keep the existing image).
             'image' => [
                 $banner ? 'nullable' : 'required',

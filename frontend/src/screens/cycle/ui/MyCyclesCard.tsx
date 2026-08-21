@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { useMyCyclesSection, type CycleRecord } from '@/entities/cycle';
 import { PeriodDateEditor } from '@/features/log-period';
 import type { Locale } from '@/shared/i18n';
-import { formatLongDate, formatDayMonth, fromApiDate, toParts } from '@/shared/lib/date';
+import { formatLongDate, formatDayMonth, fromApiDate } from '@/shared/lib/date';
 import { DropSolid, Icon } from '@/shared/ui';
 
 import { SectionHead } from './SectionHead';
@@ -123,12 +123,12 @@ export function MyCyclesCard() {
         </button>
       </div>
 
-      {/* The same editor the calendar uses — it opens on the current month
-          and scrolls back through the past year, so older periods can be added. */}
+      {/* The same editor the calendar uses. No `initialView`: opened from here
+          (as from home) it lands on today's month — where the user is — and
+          scrolls back through the past year for older periods. */}
       <PeriodDateEditor
         open={editorOpen}
         onClose={() => setEditorOpen(false)}
-        initialView={{ year: toParts(start, loc).year, month: toParts(start, loc).month }}
       />
     </div>
   );

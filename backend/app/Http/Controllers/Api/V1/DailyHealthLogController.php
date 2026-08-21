@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Enums\CalculationStatus;
+use App\Http\Controllers\Concerns\ResolvesLocale;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\StoreDailyHealthLogRequest;
 use App\Jobs\CalculateCycleDataJob;
@@ -13,6 +14,8 @@ use Illuminate\Http\Request;
 
 class DailyHealthLogController extends Controller
 {
+    use ResolvesLocale;
+
     /**
      * @OA\Get(
      *     path="/health-logs",
@@ -198,7 +201,7 @@ class DailyHealthLogController extends Controller
     {
         $validated = $request->validated();
         $user = $request->user();
-        $locale = $request->header('Accept-Language', 'en');
+        $locale = $this->resolveLocale($request);
 
         $log = DailyHealthLog::updateOrCreate(
             [

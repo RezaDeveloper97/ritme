@@ -205,10 +205,11 @@ export interface PeriodSegment {
  *
  * An open (ongoing) period only stores its start, but reads as a full bleed of
  * `periodDuration` days everywhere else — so it's matched over that same span
- * (clamped to today) and the editor's pre-fill lines up with the calendar. Every
- * selected day is persisted: a multi-day segment records its real end (even when
- * that's today), while a lone "today" stays ongoing. A period left exactly as it
- * was is skipped, keeping an untouched open period ongoing. Deletes run first to
+ * (clamped to today) and the editor's pre-fill lines up with the calendar. Any
+ * run reaching today is persisted as ongoing (no end date) so its remaining days
+ * still count as bleeding; only a run the user closed before today records an end.
+ * A period left exactly as it was is skipped, keeping an untouched open period
+ * ongoing. Deletes run first to
  * free the overlap guard, then updates, then creates. Every date is Gregorian
  * `YYYY-MM-DD` from `@/shared/lib/date` (§7) and never logged (§11).
  */
@@ -217,16 +218,18 @@ export function useReconcilePeriods() {
   return useMutation<void, unknown, { segments: PeriodSegment[]; existing: LoggedPeriod[]; periodDuration: number }>({
     mutationFn: async ({ segments, existing, periodDuration }) => {
       const todayIso = toApiDate(today());
-      const clampToday = (iso: string) => (iso > todayIso ? todayIso : iso);
       // How far a logged period visibly reaches: its recorded end, or (while open)
-      // the profile's usual bleed length, never past today. Mirrors the calendar.
+      // the profile's usual bleed length — which may run past today. Mirrors the
+      // editor, where those still-to-come days are selected and editable.
       const effEnd = (p: LoggedPeriod) =>
         p.period_end_date ??
-        clampToday(toApiDate(addDays(fromApiDate(p.period_start_date), Math.max(0, periodDuration - 1))));
+        toApiDate(addDays(fromApiDate(p.period_start_date), Math.max(0, periodDuration - 1)));
       const overlaps = (seg: PeriodSegment, s: string, e: string) => seg.start <= e && s <= seg.end;
-      // A lone "today" is still ongoing (no end); anything else records its last day.
-      const endForSegment = (seg: PeriodSegment) =>
-        seg.start === todayIso && seg.end === todayIso ? null : seg.end;
+      // A run ending exactly on today is left ongoing (no end date), so it isn't
+      // cut short while the user may still be bleeding. A run the user extended
+      // into the future records that future end verbatim — those days were
+      // explicitly marked, so they must persist exactly as selected.
+      const endForSegment = (seg: PeriodSegment) => (seg.end === todayIso ? null : seg.end);
 
       const claimed = new Set<number>();
       const deletes: number[] = [];

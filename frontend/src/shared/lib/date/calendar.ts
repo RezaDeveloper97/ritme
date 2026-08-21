@@ -17,12 +17,27 @@ dayjs.extend(jalaliday);
 /** Which calendar a locale reads dates in. */
 export type CalendarSystem = 'jalali' | 'gregorian';
 
-/** fa → Jalali (Shamsi), en → Gregorian. */
+/** fa → Jalali (Shamsi), everything else → Gregorian. */
 export function calendarSystem(locale: Locale): CalendarSystem {
   return locale === 'fa' ? 'jalali' : 'gregorian';
 }
 
-const JALALI_MONTHS: Record<Locale, readonly string[]> = {
+/**
+ * The locales this module carries month and weekday names for.
+ *
+ * The app can ship any number of languages (CLAUDE.md §6), but calendar data is
+ * hand-written, not generated — so a language added in the admin panel reads
+ * its dates through the English tables and the Gregorian calendar until names
+ * for it are added here. That is a deliberate, visible fallback: a missing
+ * month name would otherwise render as `undefined`.
+ */
+type CalendarLocale = 'fa' | 'en';
+
+function calendarLocale(locale: Locale): CalendarLocale {
+  return locale === 'fa' ? 'fa' : 'en';
+}
+
+const JALALI_MONTHS: Record<CalendarLocale, readonly string[]> = {
   fa: [
     'فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور',
     'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند',
@@ -33,7 +48,7 @@ const JALALI_MONTHS: Record<Locale, readonly string[]> = {
   ],
 };
 
-const GREGORIAN_MONTHS: Record<Locale, readonly string[]> = {
+const GREGORIAN_MONTHS: Record<CalendarLocale, readonly string[]> = {
   fa: [
     'ژانویه', 'فوریه', 'مارس', 'آوریل', 'مه', 'ژوئن',
     'ژوئیه', 'اوت', 'سپتامبر', 'اکتبر', 'نوامبر', 'دسامبر',
@@ -45,7 +60,8 @@ const GREGORIAN_MONTHS: Record<Locale, readonly string[]> = {
 };
 
 function monthNames(locale: Locale): readonly string[] {
-  return calendarSystem(locale) === 'jalali' ? JALALI_MONTHS[locale] : GREGORIAN_MONTHS[locale];
+  const key = calendarLocale(locale);
+  return calendarSystem(locale) === 'jalali' ? JALALI_MONTHS[key] : GREGORIAN_MONTHS[key];
 }
 
 const PERSIAN_DIGITS = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
@@ -210,7 +226,7 @@ export function weekdayKeys(locale: Locale): readonly WeekdayKey[] {
   return calendarSystem(locale) === 'jalali' ? WEEKDAY_KEYS : GREGORIAN_WEEKDAY_KEYS;
 }
 
-const WEEKDAY_SHORT: Record<Locale, Record<WeekdayKey, string>> = {
+const WEEKDAY_SHORT: Record<CalendarLocale, Record<WeekdayKey, string>> = {
   fa: { sat: 'ش', sun: 'ی', mon: 'د', tue: 'س', wed: 'چ', thu: 'پ', fri: 'ج' },
   en: { sat: 'Sa', sun: 'Su', mon: 'Mo', tue: 'Tu', wed: 'We', thu: 'Th', fri: 'Fr' },
 };
@@ -221,7 +237,8 @@ const WEEKDAY_SHORT: Record<Locale, Record<WeekdayKey, string>> = {
  * translator; this is for `shared` components with no namespace of their own.
  */
 export function weekdayLabels(locale: Locale): string[] {
-  return weekdayKeys(locale).map((key) => WEEKDAY_SHORT[locale][key]);
+  const table = WEEKDAY_SHORT[calendarLocale(locale)];
+  return weekdayKeys(locale).map((key) => table[key]);
 }
 
 /** Column index (0–6) of `date` in the locale's weekday grid. */
@@ -303,6 +320,16 @@ export function convertParts(parts: DateParts, from: Locale, to: Locale): DatePa
 export function birthYearRange(locale: Locale): { min: number; max: number } {
   const max = todayParts(locale).year - 6;
   return { min: max - 59, max };
+}
+
+/**
+ * Selectable year span for a "last period" wheel in the locale's calendar:
+ * this year and the previous one. A start date older than that is not a last
+ * period any more, and a future year would only invite an invalid answer.
+ */
+export function recentYearRange(locale: Locale): { min: number; max: number } {
+  const max = todayParts(locale).year;
+  return { min: max - 1, max };
 }
 
 /** A new date `days` days after `date` (use a negative number to subtract). */

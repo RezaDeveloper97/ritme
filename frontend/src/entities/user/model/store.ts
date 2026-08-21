@@ -16,6 +16,12 @@ import type {
 } from './types';
 
 interface OnboardingStore {
+  /**
+   * The account these answers belong to. The store is persisted per device, so
+   * without an owner a second person signing in on the same phone would inherit
+   * the first one's half-finished answers.
+   */
+  userId: number | null;
   phone: string;
   name: string;
   /** Calendar the stored date parts are expressed in — see `syncCalendar`. */
@@ -32,6 +38,11 @@ interface OnboardingStore {
   cycleDuration: number;
   lastPeriod: DateParts | null;
 
+  /**
+   * Claim the store for `userId`, wiping the answers when they belonged to a
+   * different account. Returns whether a wipe happened.
+   */
+  claimFor: (userId: number) => boolean;
   setPhone: (phone: string) => void;
   setName: (name: string) => void;
   setBirth: (birth: BirthParts) => void;
@@ -64,25 +75,44 @@ const emptyBasis: PregnancyBasis = {
   manualDays: null,
 };
 
+/** The unanswered starting point — also what `claimFor` resets to. */
+const emptyAnswers = {
+  phone: '',
+  name: '',
+  // fa is the default locale (CLAUDE.md §6), so the seeded birthday below
+  // is Jalali; `syncCalendar` converts it if the user starts in English.
+  locale: 'fa' as Locale,
+  birth: { d: 25, m: 10, y: 1373 },
+  weightUnit: 'kg' as WeightUnit,
+  weight: 60,
+  heightUnit: 'cm' as HeightUnit,
+  height: 165,
+  intention: null,
+  pregnancyBasis: emptyBasis,
+  chronicConditions: [] as ChronicCondition[],
+  periodLen: 5,
+  cycleDuration: 28,
+  lastPeriod: null,
+};
+
 export const useOnboardingStore = create<OnboardingStore>()(
   persist(
-    (set) => ({
-      phone: '',
-      name: '',
-      // fa is the default locale (CLAUDE.md §6), so the seeded birthday below
-      // is Jalali; `syncCalendar` converts it if the user starts in English.
-      locale: 'fa',
-      birth: { d: 25, m: 10, y: 1373 },
-      weightUnit: 'kg',
-      weight: 60,
-      heightUnit: 'cm',
-      height: 165,
-      intention: null,
-      pregnancyBasis: emptyBasis,
-      chronicConditions: [],
-      periodLen: 5,
-      cycleDuration: 28,
-      lastPeriod: null,
+    (set, get) => ({
+      userId: null,
+      ...emptyAnswers,
+
+      claimFor: (userId) => {
+        const previous = get().userId;
+        if (previous === userId) return false;
+        // A first-ever run has no owner yet — adopt the answers in progress
+        // instead of throwing away what the visitor just typed.
+        if (previous === null || previous === undefined) {
+          set({ userId });
+          return false;
+        }
+        set({ userId, ...emptyAnswers });
+        return true;
+      },
 
       setPhone: (phone) => set({ phone }),
       setName: (name) => set({ name }),
@@ -141,3 +171,12 @@ export const useOnboardingStore = create<OnboardingStore>()(
     },
   ),
 );
+
+/**
+ * Bind the persisted answers to `userId`, clearing them if they belonged to
+ * another account. Callable outside React (the auth mutation runs before any
+ * onboarding screen mounts). Returns true when a wipe happened.
+ */
+export function resetOnboardingFor(userId: number): boolean {
+  return useOnboardingStore.getState().claimFor(userId);
+}

@@ -8,7 +8,7 @@ import type {
   HealthLogField,
   HealthLogInput,
 } from '@/entities/health-log';
-import { Icon } from '@/shared/ui';
+import { AppSheet } from '@/shared/sheet';
 
 import { FieldRow } from './FieldRow';
 
@@ -42,48 +42,42 @@ export function CategorySheet({
   const t = useTranslations('log');
 
   return (
-    <div className="sheet-backdrop" onClick={onCancel}>
-      <div className="sheet" onClick={(e) => e.stopPropagation()}>
-        <div className="sheet-grip" />
-
-        <div className="cats-head">
-          <div className="text-start">
-            <div className="cats-head-t">
-              {t(`categories.${category.key}`)}
-            </div>
-            <p className="sub cats-head-s">{t('sheetHint')}</p>
-          </div>
-          <button className="iconbtn" onClick={onCancel} aria-label={t('close')}>
-            <Icon name="x" size={20} />
-          </button>
-        </div>
-
-        <div className="cats-body">
-          {enums
-            ? category.fields.map((field) => (
-                <FieldRow
-                  key={field.key}
-                  field={field}
-                  enums={enums}
-                  value={draft[field.key]}
-                  onChange={onChange}
-                />
-              ))
-            : (
-              <div className="cats-empty">
-                {t('loading')}
-              </div>
-            )}
-        </div>
-
+    // Half: a handful of field rows that should size to themselves. A category
+    // with many options grows the sheet rather than scrolling it (see AppSheet).
+    <AppSheet
+      open
+      onClose={onCancel}
+      size="half"
+      title={t(`categories.${category.key}`)}
+      footer={
         <button
-          className="btn btn-primary cats-done"
+          className="btn btn-primary"
           onClick={onSubmit}
           disabled={!enums || isSaving}
         >
           {isSaving ? t('saving') : t('submit')}
         </button>
+      }
+    >
+      <p className="sub cats-head-s">{t('sheetHint')}</p>
+
+      <div className="cats-body">
+        {enums
+          ? category.fields.map((field) => (
+              <FieldRow
+                key={field.key}
+                field={field}
+                enums={enums}
+                value={draft[field.key]}
+                onChange={onChange}
+              />
+            ))
+          : (
+            <div className="cats-empty">
+              {t('loading')}
+            </div>
+          )}
       </div>
-    </div>
+    </AppSheet>
   );
 }

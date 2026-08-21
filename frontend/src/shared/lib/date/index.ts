@@ -16,6 +16,7 @@ export {
   partsToDate,
   convertParts,
   birthYearRange,
+  recentYearRange,
   monthMatrix,
   daysInCalendarMonth,
   shiftMonth,

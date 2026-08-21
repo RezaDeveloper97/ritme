@@ -1,0 +1,79 @@
+- generic [ref=f1e1]:
+  - generic [active]:
+    - generic [ref=f1e184]:
+      - generic [ref=f1e185]:
+        - navigation [ref=f1e187]:
+          - button [disabled] [ref=f1e188]:
+            - img "previous" [ref=f1e189]
+          - generic [ref=f1e191]:
+            - generic [ref=f1e192]: 1/
+            - text: "1"
+          - button [disabled] [ref=f1e193]:
+            - img "next" [ref=f1e194]
+        - link "Next.js 15.5.18 (outdated) Webpack" [ref=f1e197] [cursor=pointer]:
+          - /url: https://nextjs.org/docs/messages/version-staleness
+          - generic "An outdated version detected (latest is 16.3.1), upgrade is highly recommended!" [ref=f1e200]: Next.js 15.5.18 (outdated)
+          - generic [ref=f1e201]: Webpack
+      - dialog "Runtime TypeError" [ref=f1e203]:
+        - generic [ref=f1e206]:
+          - generic [ref=f1e207]:
+            - generic [ref=f1e208]:
+              - generic [ref=f1e209]: Runtime TypeError
+              - generic [ref=f1e211]:
+                - button "Copy Error Info" [ref=f1e212] [cursor=pointer]
+                - button "No related documentation found" [disabled] [ref=f1e215]
+                - link "Learn more about enabling Node.js inspector for server code with Chrome DevTools" [ref=f1e218] [cursor=pointer]:
+                  - /url: https://nextjs.org/docs/app/building-your-application/configuring/debugging#server-side-code
+            - paragraph [ref=f1e228]: Cannot read properties of undefined (reading '6')
+          - generic [ref=f1e229]:
+            - generic [ref=f1e230]:
+              - paragraph [ref=f1e232]:
+                - generic [ref=f1e238]: src/shared/lib/date/calendar.ts (102:53) @ formatLongDate
+                - button "Open in editor" [ref=f1e239] [cursor=pointer]
+              - generic [ref=f1e244]:
+                - generic [ref=f1e245]: "100 | export function formatLongDate(date: Date, locale: Locale): string {"
+                - generic [ref=f1e246]: "101 | const { year, month, day } = toParts(date, locale);"
+                - generic [ref=f1e247]: "> 102 | return localizeDigits(`${day} ${monthNames(locale)[month - 1]} ${year}`, locale);"
+                - generic [ref=f1e248]: "| ^"
+                - generic [ref=f1e249]: "103 | }"
+                - generic [ref=f1e250]: 104 |
+                - generic [ref=f1e251]: 105 | /** Numeric date, e.g. «۱۴۰۵/۰۳/۰۹» (fa) or "2026/06/09" (en). */
+            - generic [ref=f1e252]:
+              - generic [ref=f1e253]:
+                - paragraph [ref=f1e254]:
+                  - text: Call Stack
+                  - generic [ref=f1e255]: "17"
+                - button "Show 13 ignore-listed frame(s)" [ref=f1e256] [cursor=pointer]
+              - generic [ref=f1e259]:
+                - generic [ref=f1e260]:
+                  - text: formatLongDate
+                  - button "Open formatLongDate in editor" [ref=f1e261] [cursor=pointer]
+                - text: src/shared/lib/date/calendar.ts (102:53)
+              - generic [ref=f1e264]:
+                - generic [ref=f1e265]:
+                  - text: localDateOrEmpty
+                  - button "Open localDateOrEmpty in editor" [ref=f1e266] [cursor=pointer]
+                - text: src/screens/profile/ui/ProfilePage.tsx (172:25)
+              - generic [ref=f1e269]:
+                - generic [ref=f1e270]:
+                  - text: ProfilePage
+                  - button "Open ProfilePage in editor" [ref=f1e271] [cursor=pointer]
+                - text: src/screens/profile/ui/ProfilePage.tsx (291:35)
+              - generic [ref=f1e274]:
+                - generic [ref=f1e275]:
+                  - text: ProfileRoute
+                  - button "Open ProfileRoute in editor" [ref=f1e276] [cursor=pointer]
+                - text: src/app/[locale]/profile/page.tsx (12:10)
+        - generic [ref=f1e279]:
+          - generic [ref=f1e280]: "1"
+          - generic [ref=f1e281]: "2"
+    - generic [ref=f1e286] [cursor=pointer]:
+      - button "Open Next.js Dev Tools" [ref=f1e287]
+      - generic [ref=f1e291]:
+        - button "Open issues overlay" [ref=f1e292]:
+          - generic [ref=f1e293]:
+            - generic [ref=f1e294]: "0"
+            - generic [ref=f1e295]: "1"
+          - generic [ref=f1e296]: Issue
+        - button "Collapse issues badge" [ref=f1e297]
+  - 'heading "Application error: a client-side exception has occurred while loading 127.0.0.1 (see the browser console for more information)." [level=2] [ref=f1e302]'

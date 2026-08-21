@@ -8,6 +8,7 @@ use App\Enums\RecommendationTrigger;
 use App\Enums\RecommendationType;
 use App\Http\Controllers\Controller;
 use App\Models\Recommendation;
+use App\Support\Translatable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -128,12 +129,10 @@ class RecommendationController extends Controller
     {
         $data = $request->validate([
             'type' => ['required', Rule::in(RecommendationType::values())],
-            'title' => ['nullable', 'array'],
-            'title.fa' => ['nullable', 'string', 'max:255'],
-            'title.en' => ['nullable', 'string', 'max:255'],
-            'text' => ['required', 'array'],
-            'text.fa' => ['required', 'string', 'max:2000'],
-            'text.en' => ['nullable', 'string', 'max:2000'],
+            ...Translatable::rulesFor([
+                'title' => ['required' => false, 'extra' => ['max:255']],
+                'text' => ['required' => true, 'extra' => ['max:2000']],
+            ]),
             'cycle_phase' => ['nullable', Rule::in(CyclePhase::values())],
             'cycle_subphases' => ['nullable', 'array'],
             // Restricted to the sub-phases the chosen phase can actually reach:

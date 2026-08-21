@@ -1,2 +1,2 @@
-// Public API of the `profile-reminders` screen (CLAUDE.md §3.3).
-export { RemindersPage } from './ui/RemindersPage';
+// Public API of the `profile-reminders` screen. Import only from here (§3.3).
+export { RemindersSheet } from './ui/RemindersSheet';

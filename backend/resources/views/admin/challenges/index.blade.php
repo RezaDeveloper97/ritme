@@ -36,7 +36,7 @@
                         @forelse ($challenges as $item)
                             <tr>
                                 <td>{{ $item->id }}</td>
-                                <td class="wrap">{{ $item->title['fa'] ?? '—' }}</td>
+                                <td class="wrap">{{ $item->localized('title') ?? '—' }}</td>
                                 <td>
                                     <span class="badge {{ $item->isDayTargeted() ? 'pink' : '' }}">{{ $item->cycleDayLabel() }}</span>
                                 </td>

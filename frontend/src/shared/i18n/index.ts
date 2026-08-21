@@ -1,16 +1,28 @@
 // Public API of the i18n foundation. `request.ts` and `messages.ts` are
 // internal (wired up by the next-intl plugin) and intentionally not exported.
 export {
-  routing,
+  BUNDLED_LOCALES,
+  DEFAULT_LOCALE,
+  isBundledLocale,
+  type BundledLocale,
+} from './bundled';
+export {
+  getLocaleRegistry,
+  getSupportedLocales,
+  getDefaultLocale,
   getDirection,
-  localeDirection,
-  isLocale,
+  isSupportedLocale,
+  resolveLocale,
   type Locale,
-} from './routing';
+  type LocaleInfo,
+  type LocaleRegistry,
+} from './registry';
+export { DirectionProvider, useDirection } from './direction';
 export {
   Link,
-  redirect,
   usePathname,
   useRouter,
-  getPathname,
+  localizeHref,
+  stripLocale,
+  LOCALE_COOKIE,
 } from './navigation';

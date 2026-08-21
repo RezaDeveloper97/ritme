@@ -11,7 +11,7 @@ import {
   type FetalMovementInput,
 } from '@/entities/pregnancy';
 import { NotesField, NumberField, PgCard, Segmented } from '@/features/track-pregnancy';
-import type { Locale } from '@/shared/i18n';
+import { useDirection, type Locale } from '@/shared/i18n';
 import { addDays, diffInDays, formatDayMonth, toApiDate, today } from '@/shared/lib/date';
 import { Icon } from '@/shared/ui';
 
@@ -22,7 +22,7 @@ type DynT = (key: string) => string;
  *  raises alerts on save. */
 export function MovementForm({ t }: { t: T }) {
   const locale = useLocale() as Locale;
-  const isRtl = locale === 'fa';
+  const isRtl = useDirection() === 'rtl';
   const dyn = t as unknown as DynT;
 
   const statusQuery = usePregnancyStatus();

@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
 
         // Home page content (idempotent)
         $this->call([
+            LanguageSeeder::class,
             AdminSeeder::class,
             TaskTemplateSeeder::class,
             ArticleSeeder::class,
@@ -33,6 +34,7 @@ class DatabaseSeeder extends Seeder
             RecommendationSeeder::class,
             PregnancyWeeklyContentSeeder::class,
             PhaseContentSeeder::class,
+            InfoSectionSeeder::class,
             HomeDemoSeeder::class,
         ]);
     }

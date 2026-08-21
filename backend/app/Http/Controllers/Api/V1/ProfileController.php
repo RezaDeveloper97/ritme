@@ -12,8 +12,10 @@ use App\Http\Controllers\Concerns\ResolvesLocale;
 use App\Http\Controllers\Controller;
 use App\Jobs\CalculateCycleDataJob;
 use App\Models\CycleHistory;
+use App\Models\User;
 use App\Models\UserProfile;
 use App\Services\BmiService;
+use App\Services\TelegramNotifier;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -234,7 +236,12 @@ class ProfileController extends Controller
             }
 
             if ($request->has('name')) {
+                $previousName = $user->name;
                 $user->update(['name' => $request->name]);
+
+                if ($previousName !== $user->name) {
+                    $this->notifyNameChanged($user, $previousName);
+                }
             }
 
             $profile = $user->profile ?: new UserProfile(['user_id' => $user->id]);
@@ -502,5 +509,20 @@ class ProfileController extends Controller
         ]);
 
         CalculateCycleDataJob::dispatch($user->id, $newVersion, $locale);
+    }
+
+    /**
+     * Announce a display-name change on the ops Telegram channel.
+     * Best-effort: never blocks or fails the profile update. Only the account
+     * id and the name itself are sent — no health data (CLAUDE.md privacy rules).
+     */
+    private function notifyNameChanged(User $user, ?string $previousName): void
+    {
+        app(TelegramNotifier::class)->send(implode("\n", [
+            '✏️ <b>تغییر نام کاربر</b>',
+            'شناسه: <code>'.$user->id.'</code>',
+            'قبلی: '.e($previousName ?? '—'),
+            'جدید: '.e($user->name ?? '—'),
+        ]));
     }
 }

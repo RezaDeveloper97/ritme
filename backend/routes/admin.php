@@ -10,11 +10,14 @@ use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\ChallengeCompletionController;
 use App\Http\Controllers\Admin\ChallengeController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\InfoSectionController;
+use App\Http\Controllers\Admin\LanguageController;
 use App\Http\Controllers\Admin\MessageContentController;
 use App\Http\Controllers\Admin\PhaseContentController;
 use App\Http\Controllers\Admin\PregnancyWeekController;
 use App\Http\Controllers\Admin\RecommendationController;
 use App\Http\Controllers\Admin\TaskTemplateController;
+use App\Http\Controllers\Admin\TranslationController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Route;
@@ -37,6 +40,14 @@ Route::get('style.css', fn () => Response::file(public_path('assets/admin.css'),
     'Content-Type' => 'text/css',
     'Cache-Control' => 'public, max-age=86400',
 ]))->name('style');
+
+// Bundled Persian webfont (public). Kept under "/admin" for the same reason as
+// the stylesheet — the production server has no CDN access, so the font ships
+// with the image and is referenced relatively from style.css.
+Route::get('fonts/{file}', fn (string $file) => Response::file(
+    public_path('assets/fonts/'.basename($file)),
+    ['Content-Type' => 'font/woff2', 'Cache-Control' => 'public, max-age=31536000, immutable']
+))->where('file', '[A-Za-z0-9._-]+\.woff2')->name('font');
 
 // Bundled CKEditor 4 build (public, same reasoning as the stylesheet). The
 // editor resolves its own plugins/skins/lang relative to this URL.
@@ -90,12 +101,27 @@ Route::middleware(['auth:admin', 'admin.active'])->group(function () {
 
     Route::resource('phase-contents', PhaseContentController::class)->except('show')->parameters(['phase-contents' => 'phaseContent']);
 
+    // Text screens (help & support, privacy, terms, about) — one row per box
+    Route::post('info-sections/{infoSection}/toggle', [InfoSectionController::class, 'toggle'])->name('info-sections.toggle');
+    Route::resource('info-sections', InfoSectionController::class)->except('show')->parameters(['info-sections' => 'infoSection']);
+
     // Smart messages (editable, moderated)
     Route::get('messages', [MessageContentController::class, 'index'])->name('messages.index');
     Route::get('messages/{message}/edit', [MessageContentController::class, 'edit'])->name('messages.edit');
     Route::put('messages/{message}', [MessageContentController::class, 'update'])->name('messages.update');
     Route::post('messages/{message}/approve', [MessageContentController::class, 'approve'])->name('messages.approve');
     Route::post('messages/{message}/toggle', [MessageContentController::class, 'toggle'])->name('messages.toggle');
+
+    // Languages: the registry every other multi-language behaviour reads.
+    // Restricted to super admins — adding a locale writes files and grows
+    // every content form in the panel.
+    Route::middleware('admin.super')->group(function () {
+        Route::post('languages/{language}/toggle', [LanguageController::class, 'toggle'])->name('languages.toggle');
+        Route::post('languages/{language}/regenerate', [LanguageController::class, 'regenerate'])->name('languages.regenerate');
+        Route::get('languages/{language}/translations', [TranslationController::class, 'index'])->name('languages.translations.index');
+        Route::put('languages/{language}/translations', [TranslationController::class, 'update'])->name('languages.translations.update');
+        Route::resource('languages', LanguageController::class)->except('show');
+    });
 
     // Admin account management (super admins only)
     Route::middleware('admin.super')->group(function () {

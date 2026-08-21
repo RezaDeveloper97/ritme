@@ -17,7 +17,7 @@
                     <option value="">همه چالش‌ها</option>
                     @foreach ($challenges as $item)
                         <option value="{{ $item->id }}" @selected((string) $challengeId === (string) $item->id)>
-                            {{ $item->title['fa'] ?? ('#' . $item->id) }}
+                            {{ $item->localized('title') ?? ('#' . $item->id) }}
                         </option>
                     @endforeach
                 </select>
@@ -48,7 +48,7 @@
                     <tbody>
                         @forelse ($perChallenge as $row)
                             <tr>
-                                <td class="wrap">{{ $row->challenge?->title['fa'] ?? ('#' . $row->challenge_id) }}</td>
+                                <td class="wrap">{{ $row->challenge?->localized('title') ?? ('#' . $row->challenge_id) }}</td>
                                 <td>{{ number_format($row->completions) }}</td>
                                 <td>{{ number_format($row->users) }}</td>
                             </tr>
@@ -81,7 +81,7 @@
                                     @endif
                                 </td>
                                 <td>{{ $row->user?->mobile ?: '—' }}</td>
-                                <td class="wrap">{{ $row->challenge?->title['fa'] ?? '—' }}</td>
+                                <td class="wrap">{{ $row->challenge?->localized('title') ?? '—' }}</td>
                                 <td>{{ $row->completion_date?->format('Y-m-d') }}</td>
                             </tr>
                         @empty

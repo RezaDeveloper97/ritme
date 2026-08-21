@@ -46,7 +46,7 @@
                         <input type="number" id="sort_order" name="sort_order" value="{{ old('sort_order', $banner->sort_order ?? 0) }}">
                     </div>
 
-                    <x-admin.bilingual name="title" label="عنوان / متن جایگزین (اختیاری)" :value="$banner->title" />
+                    <x-admin.translatable name="title" label="عنوان / متن جایگزین (اختیاری)" :value="$banner->title" />
 
                     <div class="field">
                         <label for="link_type">نوع لینک</label>

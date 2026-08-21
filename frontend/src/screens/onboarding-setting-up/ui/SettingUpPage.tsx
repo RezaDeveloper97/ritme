@@ -8,7 +8,7 @@ import { useActivatePregnancy, useCompleteOnboarding, type OnboardingInput } fro
 import { datePartsToApiDate, onboardingToProfileInput, useUpdateProfile } from '@/features/edit-profile';
 import { type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
-import { getAuthToken, setAuthToken } from '@/shared/session';
+import { clearOnboardingPending, getAuthToken, setAuthToken } from '@/shared/session';
 
 const CIRCUMFERENCE = 553;
 
@@ -106,7 +106,9 @@ export function SettingUpPage() {
   // request the middleware sees always carries it.
   useEffect(() => {
     if (!ringDone || !saveDone) return;
-    document.cookie = 'ritme_onboarded=1; path=/; max-age=31536000; SameSite=Lax';
+    // Registration is done — drop the resume marker, or the middleware would
+    // keep herding this session back into the flow it just finished.
+    clearOnboardingPending();
     const token = getAuthToken();
     if (token) setAuthToken(token);
     window.location.replace(`/${locale}${isPregnant ? '/pregnancy' : '/home'}`);

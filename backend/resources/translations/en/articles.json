@@ -1,0 +1,38 @@
+{
+  "title": "Articles",
+  "back": "Back",
+  "subtitle": "Educational reads about your cycle, body and health",
+  "searchPlaceholder": "Search articles",
+  "clearSearch": "Clear search",
+  "allCategories": "All",
+  "count": "{n, plural, one {# article} other {# articles}}",
+  "min": "{n, number} min read",
+  "loadMore": "Load more",
+  "loading": "Loading…",
+  "empty": {
+    "title": "Nothing published yet",
+    "text": "New reads will show up here soon."
+  },
+  "noResults": {
+    "title": "No matches",
+    "text": "Try a different wording, or clear the filters.",
+    "reset": "Clear filters"
+  },
+  "error": {
+    "title": "Couldn't load the articles",
+    "text": "Check your connection and try again.",
+    "retry": "Try again"
+  },
+  "detail": {
+    "publishedOn": "Published {date}",
+    "related": "Related reads",
+    "backToList": "All articles",
+    "noBody": "This article has no text yet.",
+    "disclaimer": "This is educational content and not a substitute for medical advice.",
+    "notFound": {
+      "title": "This article isn't available",
+      "text": "It may have been removed, or the link may be wrong.",
+      "cta": "Back to articles"
+    }
+  }
+}

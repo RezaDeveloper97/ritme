@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'default' => env('SMS_PROVIDER', 'smsir'),
+    'default' => env('SMS_PROVIDER', 'kavenegar'),
 
     /*
     |--------------------------------------------------------------------------
@@ -24,7 +24,7 @@ return [
     |
     */
 
-    'fallback' => ['kavenegar'],
+    'fallback' => ['smsir'],
 
     /*
     |--------------------------------------------------------------------------
@@ -51,7 +51,8 @@ return [
             'api_key' => env('KAVENEGAR_API_KEY'),
             'sender' => env('KAVENEGAR_SENDER'),
             'templates' => [
-                'login_otp' => env('KAVENEGAR_TEMPLATE_LOGIN_OTP', 'login-otp'),
+                // Kavenegar lookup template: «کد ورود %token ریتمی»
+                'login_otp' => env('KAVENEGAR_TEMPLATE_LOGIN_OTP', '1507703'),
             ],
         ],
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import {
   type PointerEvent as ReactPointerEvent,
   useEffect,
@@ -8,7 +8,7 @@ import {
   useState,
 } from 'react';
 
-import { getDirection, isLocale } from '@/shared/i18n';
+import { useDirection } from '@/shared/i18n';
 import { Icon } from '@/shared/ui';
 
 import { INTRO_SLIDES, type IntroSlide } from '../model/slides';
@@ -33,8 +33,7 @@ interface Props {
  */
 export function IntroCarousel({ onComplete }: Props) {
   const t = useTranslations('welcome');
-  const locale = useLocale();
-  const dir = getDirection(isLocale(locale) ? locale : 'fa');
+  const dir = useDirection();
   const count = INTRO_SLIDES.length;
 
   const [index, setIndex] = useState(0);

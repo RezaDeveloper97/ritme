@@ -19,7 +19,7 @@
                         @forelse ($affirmations as $item)
                             <tr>
                                 <td>{{ $item->id }}</td>
-                                <td class="wrap">{{ $item->text['fa'] ?? '—' }}</td>
+                                <td class="wrap">{{ $item->localized('text') ?? '—' }}</td>
                                 <td>{{ $item->cycle_phase ?: '—' }}</td>
                                 <td>@if ($item->is_active)<span class="badge green">فعال</span>@else<span class="badge">غیرفعال</span>@endif</td>
                                 <td>{{ $item->sort_order }}</td>

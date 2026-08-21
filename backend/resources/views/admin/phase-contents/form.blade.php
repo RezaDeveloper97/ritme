@@ -41,7 +41,7 @@
                 @foreach ($fields as $field => $label)
                     <hr style="border:0;border-top:1px solid var(--border);margin:18px 0 6px">
                     <div class="form-grid">
-                        <x-admin.bilingual :name="$field" :label="$label" :value="$content->{$field}" type="textarea" />
+                        <x-admin.translatable :name="$field" :label="$label" :value="$content->{$field}" type="textarea" />
                     </div>
                 @endforeach
 

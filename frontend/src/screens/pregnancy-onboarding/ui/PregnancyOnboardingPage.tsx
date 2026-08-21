@@ -11,7 +11,7 @@ import {
 } from '@/entities/pregnancy';
 import { DateWheels, datePartsToApiDate } from '@/features/edit-profile';
 import { Chip, NumberField, PgCard, Segmented, Toggle } from '@/features/track-pregnancy';
-import { useRouter, type Locale } from '@/shared/i18n';
+import { useDirection, useRouter, type Locale } from '@/shared/i18n';
 import { todayParts, type DateParts } from '@/shared/lib/date';
 import { Icon } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
@@ -29,7 +29,7 @@ type DynT = (key: string) => string;
 export function PregnancyOnboardingPage() {
   const t = useTranslations('pregnancy');
   const locale = useLocale() as Locale;
-  const isRtl = locale === 'fa';
+  const isRtl = useDirection() === 'rtl';
   const router = useRouter();
   const dyn = t as unknown as DynT;
 

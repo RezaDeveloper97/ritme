@@ -17,7 +17,7 @@ import {
   type HealthLogInput,
 } from '@/entities/health-log';
 import { wellbeingKeys } from '@/entities/wellbeing';
-import type { Locale } from '@/shared/i18n';
+import { useDirection, type Locale } from '@/shared/i18n';
 import { addDays, diffInDays, formatDayMonth, fromApiDate, toApiDate, today } from '@/shared/lib/date';
 import { Icon, type IconName } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
@@ -141,7 +141,7 @@ function CategoryCard({ t, category, count, isRtl, onOpen }: CategoryCardProps) 
 export function LogPage() {
   const t = useTranslations('log');
   const locale = useLocale() as Locale;
-  const isRtl = locale === 'fa';
+  const isRtl = useDirection() === 'rtl';
 
   // Opened from the calendar with `?date=YYYY-MM-DD` to edit a specific day;
   // absent (or a future date) falls back to today. Only the initial value is

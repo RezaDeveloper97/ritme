@@ -1,0 +1,73 @@
+{
+  "title": "Calendar",
+  "subtitle": "See your cycle days and predictions here.",
+  "soon": "This section is coming soon.",
+  "fullMonth": "Full month",
+  "weekView": "Week",
+  "edit": "Edit",
+  "today": "Today",
+  "selectedDay": "Selected",
+  "prevMonth": "Previous month",
+  "nextMonth": "Next month",
+  "retry": "Try again",
+  "actionFailed": "Something went wrong. Please try again.",
+  "logPeriodCta": "Log period",
+  "jumpToMonth": "Jump to another month",
+  "goToToday": "Go to today",
+  "recalculating": "Updating your cycle…",
+  "loadingCalendar": "Updating your calendar…",
+  "close": "Close",
+  "phaseLabel": "Phase",
+  "weekdays": {
+    "sat": "Sa",
+    "sun": "Su",
+    "mon": "Mo",
+    "tue": "Tu",
+    "wed": "We",
+    "thu": "Th",
+    "fri": "Fr"
+  },
+  "legend": {
+    "period": "Period",
+    "fertile": "Fertile window",
+    "ovulation": "Ovulation",
+    "pms": "PMS"
+  },
+  "startPeriodHere": "Start period on this day",
+  "phase": {
+    "period": "Period days",
+    "follicular": "Follicular phase",
+    "fertile": "Fertile window",
+    "ovulation": "Ovulation",
+    "luteal": "Luteal phase",
+    "pms": "PMS"
+  },
+  "day": {
+    "actionsLabel": "Actions",
+    "logLabel": "This day's log",
+    "cycleDay": "Cycle day {n}",
+    "chanceLabel": "Chance of pregnancy",
+    "logMood": "Log this day"
+  },
+  "chance": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High"
+  },
+  "dayLog": {
+    "title": "This day's log",
+    "count": "{count, plural, one {# entry logged} other {# entries logged}}",
+    "edit": "Edit",
+    "emptyTitle": "Nothing logged for this day",
+    "emptySubtitle": "Log symptoms, mood and more for {date}."
+  },
+  "smartTip": {
+    "title": "Smart tip",
+    "body": "During the luteal phase your body may want more rest and nutrients. Magnesium-rich foods and enough sleep can help you feel your best.",
+    "quote": "Listen to your body's rhythm — each day has its own story."
+  },
+  "editThisPeriod": "Edit this period",
+  "removeThisDay": "Not a period day",
+  "endPeriodHere": "End period on this day",
+  "addToPeriod": "Add to period days"
+}

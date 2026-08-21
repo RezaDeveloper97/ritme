@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Services\HealthEngine\RecommendationRepository;
+use App\Services\Language\LanguageRegistry;
 use App\Services\MessageSystem\Support\MessageContentRepository;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Passport\Passport;
@@ -19,6 +20,10 @@ class AppServiceProvider extends ServiceProvider
         // shared across every engine a request builds.
         $this->app->singleton(MessageContentRepository::class);
         $this->app->singleton(RecommendationRepository::class);
+
+        // The locale list is read by admin forms, API resolvers and content
+        // fallbacks many times per request; one instance keeps its memo warm.
+        $this->app->singleton(LanguageRegistry::class);
     }
 
     /**

@@ -7,6 +7,7 @@ use App\Enums\CycleSubphase;
 use App\Http\Controllers\Controller;
 use App\Models\Article;
 use App\Services\Media\ImageOptimizer;
+use App\Support\Translatable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -146,11 +147,11 @@ class ArticleController extends Controller
     {
         $data = $request->validate([
             'slug' => ['required', 'string', 'max:255', Rule::unique('articles', 'slug')->ignore($article)],
-            'title' => ['required', 'array'],
-            'title.fa' => ['required', 'string'],
-            'title.en' => ['nullable', 'string'],
-            'excerpt' => ['nullable', 'array'],
-            'body' => ['nullable', 'array'],
+            ...Translatable::rulesFor([
+                'title' => ['required' => true],
+                'excerpt' => ['required' => false],
+                'body' => ['required' => false],
+            ]),
             'cycle_phases' => ['nullable', 'array'],
             'cycle_phases.*' => [Rule::in($this->allowedPhases())],
             'category' => ['nullable', 'string', 'max:255'],

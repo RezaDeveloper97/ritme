@@ -6,6 +6,7 @@ use App\Enums\FetalMovementStatus;
 use App\Enums\MentalHealthStatus;
 use App\Enums\SwellingLocation;
 use App\Enums\SymptomSeverity;
+use App\Http\Controllers\Concerns\ResolvesLocale;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\StorePregnancyFetalMovementRequest;
 use App\Http\Requests\Api\V1\StorePregnancyWeeklyLogRequest;
@@ -20,6 +21,8 @@ use Illuminate\Http\Request;
 
 class PregnancyWeeklyController extends Controller
 {
+    use ResolvesLocale;
+
     /**
      * @OA\Get(
      *     path="/pregnancy/weekly",
@@ -129,7 +132,7 @@ class PregnancyWeeklyController extends Controller
     public function store(StorePregnancyWeeklyLogRequest $request): JsonResponse
     {
         $user = $request->user();
-        $locale = $request->header('Accept-Language', 'en');
+        $locale = $this->resolveLocale($request);
         $validated = $request->validated();
 
         // Create or update log (one per week)
@@ -196,7 +199,7 @@ class PregnancyWeeklyController extends Controller
     public function show(Request $request, int $week): JsonResponse
     {
         $user = $request->user();
-        $locale = $request->header('Accept-Language', 'en');
+        $locale = $this->resolveLocale($request);
 
         if ($week < 1 || $week > 42) {
             return response()->json([
@@ -274,7 +277,7 @@ class PregnancyWeeklyController extends Controller
     public function storeFetalMovement(StorePregnancyFetalMovementRequest $request): JsonResponse
     {
         $user = $request->user();
-        $locale = $request->header('Accept-Language', 'en');
+        $locale = $this->resolveLocale($request);
         $validated = $request->validated();
 
         // Create or update log
@@ -431,7 +434,7 @@ class PregnancyWeeklyController extends Controller
         // Browsers forbid JS from overriding the Accept-Language header, so the
         // SPA passes the active app locale as an explicit `?locale=` query param
         // which takes precedence over the header for content resolution.
-        $locale = $request->query('locale', $request->header('Accept-Language', 'en'));
+        $locale = $this->resolveLocale($request);
         $locale = in_array($locale, ['fa', 'en'], true) ? $locale : 'en';
 
         if ($week < 1 || $week > 40) {
@@ -504,7 +507,7 @@ class PregnancyWeeklyController extends Controller
      */
     public function enums(Request $request): JsonResponse
     {
-        $locale = $request->header('Accept-Language', 'en');
+        $locale = $this->resolveLocale($request);
 
         $swellingLocations = collect(SwellingLocation::cases())->map(fn($s) => [
             'value' => $s->value,

@@ -2,39 +2,35 @@
 
 namespace App\Models\Concerns;
 
+use App\Support\Translatable;
+
 /**
- * Adds locale-aware accessors for JSON columns that store bilingual content
- * in the shape ["fa" => "...", "en" => "..."].
+ * Adds locale-aware accessors for JSON columns that store one value per
+ * locale, in the shape ["fa" => "...", "en" => "...", "ar" => "..."].
  *
- * Mirrors the convention already used by PregnancyWeeklyContent so all
- * content models resolve translations the same way.
+ * The set of keys is whatever the languages table holds (see
+ * App\Services\Language\LanguageRegistry) — never a fixed fa/en pair. Reads
+ * fall back so a row that has not been translated yet still renders text.
  */
 trait HasLocalizedContent
 {
     /**
-     * Resolve a localized value from a bilingual JSON attribute.
+     * Resolve a localized value from a translatable JSON attribute.
      *
-     * Falls back gracefully: requested locale -> fa -> en -> raw value.
+     * Falls back gracefully: requested locale -> default locale -> the first
+     * non-empty translation present.
      */
-    public function localized(string $field, string $locale = 'fa'): mixed
+    public function localized(string $field, ?string $locale = null): mixed
     {
-        return static::pickLocale($this->{$field}, $locale);
+        return Translatable::pick($this->{$field}, $locale);
     }
 
     /**
-     * Pick the best matching translation from a bilingual value.
-     *
-     * Accepts a ["fa" => ..., "en" => ...] array; returns scalars untouched.
+     * Pick the best matching translation from a translatable value.
+     * Accepts a locale-keyed array; returns scalars untouched.
      */
-    public static function pickLocale(mixed $value, string $locale = 'fa'): mixed
+    public static function pickLocale(mixed $value, ?string $locale = null): mixed
     {
-        if (!is_array($value)) {
-            return $value;
-        }
-
-        return $value[$locale]
-            ?? $value['fa']
-            ?? $value['en']
-            ?? null;
+        return Translatable::pick($value, $locale);
     }
 }

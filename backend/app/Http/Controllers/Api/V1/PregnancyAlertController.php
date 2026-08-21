@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Enums\AlertLevel;
+use App\Http\Controllers\Concerns\ResolvesLocale;
 use App\Http\Controllers\Controller;
 use App\Models\PregnancyAlert;
 use App\Services\PregnancyEngine\PregnancyAlertService;
@@ -11,6 +12,8 @@ use Illuminate\Http\Request;
 
 class PregnancyAlertController extends Controller
 {
+    use ResolvesLocale;
+
     /**
      * @OA\Get(
      *     path="/pregnancy/alerts",
@@ -140,7 +143,7 @@ class PregnancyAlertController extends Controller
     public function show(Request $request, int $id): JsonResponse
     {
         $user = $request->user();
-        $locale = $request->header('Accept-Language', 'en');
+        $locale = $this->resolveLocale($request);
 
         $alert = PregnancyAlert::where('user_id', $user->id)
             ->where('id', $id)
@@ -200,7 +203,7 @@ class PregnancyAlertController extends Controller
     public function markAsRead(Request $request, int $id): JsonResponse
     {
         $user = $request->user();
-        $locale = $request->header('Accept-Language', 'en');
+        $locale = $this->resolveLocale($request);
 
         $alert = PregnancyAlert::where('user_id', $user->id)
             ->where('id', $id)
@@ -255,7 +258,7 @@ class PregnancyAlertController extends Controller
     public function markAllAsRead(Request $request): JsonResponse
     {
         $user = $request->user();
-        $locale = $request->header('Accept-Language', 'en');
+        $locale = $this->resolveLocale($request);
 
         $count = PregnancyAlert::where('user_id', $user->id)
             ->unread()
@@ -312,7 +315,7 @@ class PregnancyAlertController extends Controller
     public function dismiss(Request $request, int $id): JsonResponse
     {
         $user = $request->user();
-        $locale = $request->header('Accept-Language', 'en');
+        $locale = $this->resolveLocale($request);
 
         $alert = PregnancyAlert::where('user_id', $user->id)
             ->where('id', $id)
@@ -375,7 +378,7 @@ class PregnancyAlertController extends Controller
     public function summary(Request $request): JsonResponse
     {
         $user = $request->user();
-        $locale = $request->header('Accept-Language', 'en');
+        $locale = $this->resolveLocale($request);
 
         $alertService = new PregnancyAlertService($user, $locale);
         $emergencyCount = $alertService->getEmergencyAlertsCount();

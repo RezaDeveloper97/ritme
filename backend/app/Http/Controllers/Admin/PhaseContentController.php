@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\CycleSubphase;
 use App\Http\Controllers\Controller;
 use App\Models\PhaseContent;
+use App\Support\Translatable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -98,7 +99,9 @@ class PhaseContentController extends Controller
             'phase' => ['required', 'string', Rule::in(CycleSubphase::values()), Rule::unique('phase_contents', 'phase')->ignore($content)],
         ];
         foreach (array_keys(self::FIELDS) as $field) {
-            $rules[$field] = ['nullable', 'array'];
+            // One optional input per active language (App\Support\Translatable),
+            // so a locale added in /admin/languages is validated here too.
+            $rules += Translatable::rules($field, required: false);
         }
 
         return $request->validate($rules);

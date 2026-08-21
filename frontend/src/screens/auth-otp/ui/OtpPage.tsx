@@ -6,7 +6,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from '@/shared/i18n';
 import { Icon, NavBack } from '@/shared/ui';
 import { toAsciiDigits, toPersianDigits } from '@/shared/lib/phone';
-import { useOnboardingStore } from '@/entities/user';
+import { getOnboardingPending } from '@/shared/session';
+import { isOnboardingStep, onboardingRoute, useOnboardingStore } from '@/entities/user';
 import { authErrorKey, useSendOtp, useVerifyOtp } from '@/features/auth';
 
 export function OtpPage() {
@@ -60,14 +61,24 @@ export function OtpPage() {
     verifyOtp.mutate(
       { mobile: phone, code },
       {
-        onSuccess: ({ newUser }) => {
-          // New accounts continue into onboarding; returning users go home.
+        onSuccess: ({ profileCompleted }) => {
+          // Gate on whether registration was ever *finished*, not on whether the
+          // account was created just now: someone who dropped out of onboarding
+          // last time verifies as a returning user but still has no profile, and
+          // used to land on an empty home screen. The mutation has already
+          // written the resume marker, so this route matches what the middleware
+          // will enforce from here on.
           // Both targets sit behind the auth middleware and the session cookie
           // was written moments ago, so this crosses the auth boundary with a
           // full document navigation rather than a client-side transition —
           // the latter can be served from the App Router cache populated while
           // the visitor was still signed out, bouncing them back here.
-          window.location.replace(`/${locale}${newUser ? '/onboarding/name' : '/home'}`);
+          const pending = getOnboardingPending();
+          const next =
+            profileCompleted || !pending || !isOnboardingStep(pending)
+              ? '/home'
+              : onboardingRoute(pending);
+          window.location.replace(`/${locale}${next}`);
         },
         onError: () => {
           setDigits(['', '', '', '']);

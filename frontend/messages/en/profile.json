@@ -39,8 +39,7 @@
     "notSetUp": "You haven't completed your health info yet"
   },
   "language": {
-    "fa": "فارسی",
-    "en": "English"
+    "hint": "Pick the app language. Anything not translated yet is shown in the default language."
   },
   "logout": "Log out",
   "loggingOut": "Logging out…",

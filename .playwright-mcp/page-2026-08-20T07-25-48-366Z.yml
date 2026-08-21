@@ -1,0 +1,101 @@
+- generic [ref=f13e2]:
+  - complementary [ref=f13e3]:
+    - generic [ref=f13e6]:
+      - text: ریتمه
+      - generic [ref=f13e7]: پنل مدیریت
+    - generic [ref=f13e8]: عمومی
+    - link "داشبورد" [ref=f13e9] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin
+    - link "مدیریت کاربران" [ref=f13e15] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/users
+    - generic [ref=f13e20]: محتوا
+    - link "مقالات" [ref=f13e21] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/articles
+    - link "تأکیدات مثبت" [ref=f13e25] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/affirmations
+    - link "چالش‌ها" [ref=f13e29] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/challenges
+    - link "انجام چالش‌ها" [ref=f13e32] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/challenge-completions
+    - link "کارهای روزانه" [ref=f13e36] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/task-templates
+    - link "محتوای هفتگی بارداری" [ref=f13e40] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/pregnancy-weeks
+    - link "محتوای فازهای چرخه" [ref=f13e44] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/phase-contents
+    - link "توصیه‌های امروز" [ref=f13e47] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/recommendations
+    - link "بنرها و تبلیغات" [ref=f13e51] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/banners
+    - link "راهنما و صفحات متنی" [ref=f13e56] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/info-sections
+    - generic [ref=f13e61]: پیام‌های هوشمند
+    - link "پیام‌ها" [ref=f13e62] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/messages
+    - generic [ref=f13e65]: حساب
+    - link "تغییر رمز عبور" [ref=f13e66] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/account/password
+    - link "مدیریت ادمین‌ها" [ref=f13e70] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/admins
+    - button "خروج" [ref=f13e76] [cursor=pointer]
+  - generic [ref=f13e80]:
+    - generic [ref=f13e81]:
+      - button "منو" [ref=f13e82] [cursor=pointer]
+      - heading "ویرایش باکس — درباره ریتمی" [level=1] [ref=f13e85]
+      - generic [ref=f13e86]:
+        - generic [ref=f13e87]: م
+        - generic [ref=f13e88]: ارشد
+    - generic [ref=f13e89]:
+      - link "→ بازگشت به درباره ریتمی" [ref=f13e91] [cursor=pointer]:
+        - /url: http://127.0.0.1:8010/admin/info-sections?group=about
+      - generic [ref=f13e94]:
+        - generic [ref=f13e95]:
+          - generic [ref=f13e96]:
+            - generic [ref=f13e97]: صفحه
+            - combobox "صفحه" [ref=f13e98]:
+              - option "راهنما و پشتیبانی"
+              - option "حریم خصوصی"
+              - option "قوانین و شرایط"
+              - option "درباره ریتمی" [selected]
+            - generic [ref=f13e99]: باکس در همین صفحه از اپ نمایش داده می‌شود.
+          - generic [ref=f13e100]:
+            - generic [ref=f13e101]: عنوان باکس
+            - generic [ref=f13e102]:
+              - generic [ref=f13e103]:
+                - generic [ref=f13e104]: فارسی
+                - textbox [ref=f13e105]: نسخه اپ
+              - generic [ref=f13e106]:
+                - generic [ref=f13e107]: English
+                - textbox [ref=f13e108]: App version
+          - generic [ref=f13e109]:
+            - generic [ref=f13e110]: متن باکس
+            - generic [ref=f13e111]:
+              - generic [ref=f13e112]:
+                - generic [ref=f13e113]: فارسی
+                - textbox [ref=f13e114]: الان داری از نسخه ۱٫۰٫۰ ریتمی استفاده می‌کنی. ما مرتب اپ رو بهتر می‌کنیم؛ نظرت توی این مسیر خیلی برامون ارزش داره.
+              - generic [ref=f13e115]:
+                - generic [ref=f13e116]: English
+                - textbox [ref=f13e117]: You are using Ritme version 1.0.0. We improve the app regularly — your feedback is invaluable along the way.
+          - generic [ref=f13e118]:
+            - generic [ref=f13e119]: دکمه تماس (اختیاری)
+            - generic [ref=f13e120]: "اگر می‌خواهید زیر متن یک دکمه باشد، هم برچسب و هم آدرس را پر کنید؛ در غیر این صورت هر دو را خالی بگذارید. مثال آدرس: mailto:support@ritmesalamat.com، tel:+982112345678، https://t.me/ritme"
+          - generic [ref=f13e121]:
+            - generic [ref=f13e122]: برچسب دکمه
+            - generic [ref=f13e123]:
+              - generic [ref=f13e124]:
+                - generic [ref=f13e125]: فارسی
+                - textbox [ref=f13e126]
+              - generic [ref=f13e127]:
+                - generic [ref=f13e128]: English
+                - textbox [ref=f13e129]
+          - generic [ref=f13e130]:
+            - generic [ref=f13e131]: آدرس دکمه
+            - textbox "آدرس دکمه" [ref=f13e132]:
+              - /placeholder: mailto:support@ritmesalamat.com
+          - generic [ref=f13e133]:
+            - generic [ref=f13e134]: ترتیب نمایش
+            - spinbutton "ترتیب نمایش" [ref=f13e135]: "30"
+          - generic [ref=f13e136]:
+            - checkbox "فعال" [checked] [ref=f13e137]
+            - generic [ref=f13e138]: فعال
+        - button "ذخیره تغییرات" [ref=f13e140] [cursor=pointer]

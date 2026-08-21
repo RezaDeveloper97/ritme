@@ -1,0 +1,62 @@
+{
+  "title": "پروفایل",
+  "guest": "کاربر ریتمی",
+  "editProfile": "ویرایش پروفایل",
+  "noPhone": "شماره‌ای ثبت نکردی",
+  "sections": {
+    "account": "حساب کاربری",
+    "app": "اپ",
+    "privacy": "حریم خصوصی و داده‌ها",
+    "support": "پشتیبانی",
+    "mode": "حالت اپ"
+  },
+  "rows": {
+    "personalInfo": "اطلاعات شخصی",
+    "healthPrefs": "تنظیمات چرخه و سلامت",
+    "reminders": "یادآورها",
+    "notifications": "اعلان‌ها",
+    "language": "زبان اپ",
+    "appearance": "ظاهر و پوسته",
+    "privacyPolicy": "حریم خصوصی",
+    "exportData": "گرفتن خروجی داده‌ها",
+    "deleteAccount": "حذف حساب",
+    "help": "راهنما و پشتیبانی",
+    "about": "درباره ریتمی",
+    "terms": "قوانین و مقررات"
+  },
+  "health": {
+    "title": "چرخه و سلامت",
+    "cycleDuration": "طول چرخه",
+    "periodDuration": "طول پریود",
+    "lastPeriod": "شروع آخرین پریود",
+    "birthday": "تاریخ تولد",
+    "weight": "وزن",
+    "height": "قد",
+    "days": "{days} روز",
+    "kg": "{value} کیلوگرم",
+    "cm": "{value} سانتی‌متر",
+    "empty": "ثبت نشده",
+    "notSetUp": "هنوز اطلاعات سلامتت رو کامل نکردی"
+  },
+  "language": {
+    "fa": "فارسی",
+    "en": "English"
+  },
+  "logout": "خروج از حساب",
+  "loggingOut": "در حال خروج…",
+  "version": "نسخه {version}",
+  "appearance": {
+    "system": "خودکار",
+    "light": "روشن",
+    "dark": "تیره"
+  },
+  "exporting": "داریم خروجی رو آماده می‌کنیم…",
+  "mode": {
+    "switchToPregnancy": "برو به حالت بارداری",
+    "pregnancyTracker": "پیگیری بارداری",
+    "switchToCycle": "برگرد به حالت چرخه",
+    "switching": "در حال تغییر…",
+    "cycleActive": "حالت چرخه روشنه",
+    "pregnancyActive": "حالت بارداری روشنه"
+  }
+}

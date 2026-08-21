@@ -15,7 +15,7 @@ import {
   type SymptomLogInput,
 } from '@/entities/pregnancy';
 import { NotesField, PgCard, Segmented, Toggle } from '@/features/track-pregnancy';
-import type { Locale } from '@/shared/i18n';
+import { useDirection, type Locale } from '@/shared/i18n';
 import { addDays, diffInDays, formatDayMonth, toApiDate, today } from '@/shared/lib/date';
 import { Icon } from '@/shared/ui';
 
@@ -26,7 +26,7 @@ type DynT = (key: string) => string;
  *  raise alerts on save, which we surface inline. */
 export function SymptomsForm({ t }: { t: T }) {
   const locale = useLocale() as Locale;
-  const isRtl = locale === 'fa';
+  const isRtl = useDirection() === 'rtl';
   const dyn = t as unknown as DynT;
 
   const [date, setDate] = useState<Date>(() => today());

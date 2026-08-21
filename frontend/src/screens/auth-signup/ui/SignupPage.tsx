@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import Image from 'next/image';
 import { useState } from 'react';
 
 import { useRouter } from '@/shared/i18n';
@@ -50,18 +51,32 @@ export function SignupPage() {
       </div>
 
       <div className="scroll auth-body">
-        {/* Figma «Titr»: 16px bold + sparkle, right-aligned in RTL */}
-        <div className="signup-titr-row">
-          <span className="titr signup-titr">{t('signup.title')}</span>
-          <span className="signup-spark">
-            <Icon name="sparkle" size={22} fill="currentColor" strokeWidth={0} />
-          </span>
+        {/* Brand mark: logo floating in a soft gradient halo, above the title */}
+        <div className="signup-brand">
+          <span aria-hidden className="signup-halo" />
+          <Image
+            src="/logo.webp"
+            alt=""
+            aria-hidden
+            width={72}
+            height={72}
+            priority
+            className="signup-logo"
+          />
         </div>
+
+        {/* Titr: right-aligned in RTL (text-align: start), sparkle trails the words */}
+        <h1 className="signup-titr">
+          {t('signup.title')}
+          <span className="signup-spark">
+            <Icon name="sparkle" size={20} fill="currentColor" strokeWidth={0} />
+          </span>
+        </h1>
 
         <p className="sub signup-sub">{t('signup.subtitle')}</p>
 
-        <label className="lbl">{t('signup.phoneLabel')}</label>
-        <div className="field">
+        <label className="lbl signup-lbl">{t('signup.phoneLabel')}</label>
+        <div className="field signup-field">
           <input
             inputMode="numeric"
             maxLength={11}
@@ -75,6 +90,12 @@ export function SignupPage() {
             <Icon name="user" size={18} />
           </span>
         </div>
+
+        {/* Trust cue: this is health data, so say plainly that it stays private (§11) */}
+        <p className="signup-privacy">
+          <Icon name="shield" size={16} />
+          <span>{t('signup.privacyNote')}</span>
+        </p>
 
         {sendOtp.isError && (
           <p className="sub auth-error">

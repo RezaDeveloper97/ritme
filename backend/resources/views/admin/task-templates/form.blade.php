@@ -27,8 +27,8 @@
                         </select>
                     </div>
 
-                    <x-admin.bilingual name="title" label="عنوان" :value="$task->title" required />
-                    <x-admin.bilingual name="description" label="توضیحات" :value="$task->description" type="textarea" />
+                    <x-admin.translatable name="title" label="عنوان" :value="$task->title" required />
+                    <x-admin.translatable name="description" label="توضیحات" :value="$task->description" type="textarea" />
 
                     @include('admin.partials.phase-select', ['selected' => $task->cycle_phase, 'phases' => $phases])
                     <div class="field">

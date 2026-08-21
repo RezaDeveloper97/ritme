@@ -15,11 +15,11 @@ interface RulerPickerProps {
   toDisplay?: (v: number) => string;
 }
 
-/** Horizontal scroll-snap ruler for weight / height input. */
+/** Vertical scroll-snap ruler for weight / height input (largest value on top). */
 export function RulerPicker({ min, max, value, unit, onChange, toDisplay }: RulerPickerProps) {
   const loc = useLocale() as Locale;
   const rulerRef = useRef<HTMLDivElement>(null);
-  const TICK_W = 12;
+  const TICK_H = 12;
   // The scroll handler is bound once, so it reads the formatter from a ref
   // rather than the mount-render closure (digits differ per locale).
   const fmtRef = useRef((v: number) => (toDisplay ? toDisplay(v) : formatNumber(v.toFixed(1), loc)));
@@ -29,12 +29,13 @@ export function RulerPicker({ min, max, value, unit, onChange, toDisplay }: Rule
   useEffect(() => {
     const el = rulerRef.current;
     if (!el) return;
-    el.scrollLeft = (value - min) * TICK_W;
+    // Ticks are rendered max → min, so distance from the top is (max - value).
+    el.scrollTop = (max - value) * TICK_H;
 
     let raf = 0;
     const update = () => {
-      const idx = Math.round(el.scrollLeft / TICK_W);
-      const v = Math.max(min, Math.min(max, min + idx));
+      const idx = Math.round(el.scrollTop / TICK_H);
+      const v = Math.max(min, Math.min(max, max - idx));
       setDisplay(fmtRef.current(v));
       onChange(v);
     };
@@ -52,7 +53,7 @@ export function RulerPicker({ min, max, value, unit, onChange, toDisplay }: Rule
   }, []);
 
   const ticks = [];
-  for (let i = min; i <= max; i++) {
+  for (let i = max; i >= min; i--) {
     const major = i % 5 === 0;
     ticks.push(
       <div key={i} className={`tk${major ? ' major' : ''}`}>
@@ -70,9 +71,10 @@ export function RulerPicker({ min, max, value, unit, onChange, toDisplay }: Rule
         </span>
         <span className="rp-unit">{unit}</span>
       </div>
-      <div className="ruler-wrap">
+      {/* dir is pinned so the tick column and the pointer stay on the same side in RTL. */}
+      <div className="ruler-wrap" dir="ltr">
         <div className="rpoint" />
-        <div ref={rulerRef} className="ruler" dir="ltr">
+        <div ref={rulerRef} className="ruler">
           <div className="rpad" />
           {ticks}
           <div className="rpad" />

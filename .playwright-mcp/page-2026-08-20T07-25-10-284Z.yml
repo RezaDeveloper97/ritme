@@ -1,0 +1,111 @@
+- generic [ref=f11e2]:
+  - complementary [ref=f11e3]:
+    - generic [ref=f11e6]:
+      - text: ریتمه
+      - generic [ref=f11e7]: پنل مدیریت
+    - generic [ref=f11e8]: عمومی
+    - link "داشبورد" [ref=f11e9] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin
+    - link "مدیریت کاربران" [ref=f11e15] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/users
+    - generic [ref=f11e20]: محتوا
+    - link "مقالات" [ref=f11e21] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/articles
+    - link "تأکیدات مثبت" [ref=f11e25] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/affirmations
+    - link "چالش‌ها" [ref=f11e29] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/challenges
+    - link "انجام چالش‌ها" [ref=f11e32] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/challenge-completions
+    - link "کارهای روزانه" [ref=f11e36] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/task-templates
+    - link "محتوای هفتگی بارداری" [ref=f11e40] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/pregnancy-weeks
+    - link "محتوای فازهای چرخه" [ref=f11e44] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/phase-contents
+    - link "توصیه‌های امروز" [ref=f11e47] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/recommendations
+    - link "بنرها و تبلیغات" [ref=f11e51] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/banners
+    - link "راهنما و صفحات متنی" [ref=f11e56] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/info-sections
+    - generic [ref=f11e61]: پیام‌های هوشمند
+    - link "پیام‌ها" [ref=f11e62] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/messages
+    - generic [ref=f11e65]: حساب
+    - link "تغییر رمز عبور" [ref=f11e66] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/account/password
+    - link "مدیریت ادمین‌ها" [ref=f11e70] [cursor=pointer]:
+      - /url: http://127.0.0.1:8010/admin/admins
+    - button "خروج" [ref=f11e76] [cursor=pointer]
+  - generic [ref=f11e80]:
+    - generic [ref=f11e81]:
+      - button "منو" [ref=f11e82] [cursor=pointer]
+      - heading "صفحات متنی — درباره ریتمی" [level=1] [ref=f11e85]
+      - generic [ref=f11e86]:
+        - generic [ref=f11e87]: م
+        - generic [ref=f11e88]: ارشد
+    - generic [ref=f11e89]:
+      - generic [ref=f11e90]:
+        - link "راهنما و پشتیبانی" [ref=f11e91] [cursor=pointer]:
+          - /url: http://127.0.0.1:8010/admin/info-sections?group=help
+        - link "حریم خصوصی" [ref=f11e92] [cursor=pointer]:
+          - /url: http://127.0.0.1:8010/admin/info-sections?group=privacy
+        - link "قوانین و شرایط" [ref=f11e93] [cursor=pointer]:
+          - /url: http://127.0.0.1:8010/admin/info-sections?group=terms
+        - link "درباره ریتمی" [ref=f11e94] [cursor=pointer]:
+          - /url: http://127.0.0.1:8010/admin/info-sections?group=about
+      - link "+ باکس جدید" [ref=f11e96] [cursor=pointer]:
+        - /url: http://127.0.0.1:8010/admin/info-sections/create?group=about
+      - generic [ref=f11e98]:
+        - paragraph [ref=f11e99]: هر ردیف یک باکس در صفحه «درباره ریتمی» اپ است. باکس‌های فعال به ترتیب «ترتیب نمایش» به کاربر نشان داده می‌شوند.
+        - table [ref=f11e101]:
+          - rowgroup [ref=f11e102]:
+            - row [ref=f11e103]:
+              - columnheader "#" [ref=f11e104]
+              - columnheader "عنوان" [ref=f11e105]
+              - columnheader "متن" [ref=f11e106]
+              - columnheader "دکمه" [ref=f11e107]
+              - columnheader "وضعیت" [ref=f11e108]
+              - columnheader "ترتیب" [ref=f11e109]
+              - columnheader [ref=f11e110]
+          - rowgroup [ref=f11e111]:
+            - row [ref=f11e112]:
+              - cell "14" [ref=f11e113]
+              - cell "ریتمی چیه؟" [ref=f11e114]
+              - cell "ریتمی یه همراه خصوصی برای سلامت زنانه؛ اپی که کمکت می‌کنه ریتم بدنت رو بهتر بشناسی، هر روز..." [ref=f11e115]
+              - cell "—" [ref=f11e116]
+              - cell "فعال" [ref=f11e117]
+              - cell "10" [ref=f11e119]
+              - cell [ref=f11e120]:
+                - generic [ref=f11e121]:
+                  - link "ویرایش" [ref=f11e122] [cursor=pointer]:
+                    - /url: http://127.0.0.1:8010/admin/info-sections/14/edit
+                  - button "غیرفعال" [ref=f11e124] [cursor=pointer]
+                  - button "حذف" [ref=f11e126] [cursor=pointer]
+            - row [ref=f11e127]:
+              - cell "15" [ref=f11e128]
+              - 'cell "دو تا حالت: چرخه و بارداری" [ref=f11e129]'
+              - cell "توی حالت چرخه، ریتمی دوره‌های قاعدگی‌ات رو ثبت می‌کنه و زمان تقریبی دوره بعدی و تخمک‌گذاری..." [ref=f11e130]
+              - cell "—" [ref=f11e131]
+              - cell "فعال" [ref=f11e132]
+              - cell "20" [ref=f11e134]
+              - cell [ref=f11e135]:
+                - generic [ref=f11e136]:
+                  - link "ویرایش" [ref=f11e137] [cursor=pointer]:
+                    - /url: http://127.0.0.1:8010/admin/info-sections/15/edit
+                  - button "غیرفعال" [ref=f11e139] [cursor=pointer]
+                  - button "حذف" [ref=f11e141] [cursor=pointer]
+            - row [ref=f11e142]:
+              - cell "16" [ref=f11e143]
+              - cell "نسخه اپ" [ref=f11e144]
+              - cell "الان داری از نسخه ۱٫۰٫۰ ریتمی استفاده می‌کنی. ما مرتب اپ رو بهتر می‌کنیم؛ نظرت توی این مسی..." [ref=f11e145]
+              - cell "—" [ref=f11e146]
+              - cell "فعال" [ref=f11e147]
+              - cell "30" [ref=f11e149]
+              - cell [ref=f11e150]:
+                - generic [ref=f11e151]:
+                  - link "ویرایش" [ref=f11e152] [cursor=pointer]:
+                    - /url: http://127.0.0.1:8010/admin/info-sections/16/edit
+                  - button "غیرفعال" [ref=f11e154] [cursor=pointer]
+                  - button "حذف" [ref=f11e156] [cursor=pointer]

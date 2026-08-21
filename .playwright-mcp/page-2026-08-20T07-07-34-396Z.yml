@@ -1,0 +1,10 @@
+- generic [ref=f4e4]:
+  - button "برگرد" [ref=f4e6] [cursor=pointer]
+  - generic [ref=f4e9]:
+    - heading [level=1] [ref=f4e13]
+    - paragraph [ref=f4e18]: برای ورود یا ثبت‌نام، شماره موبایلت رو بنویس
+    - generic [ref=f4e19]: شماره موبایل
+    - textbox "۰۹۱۲ ۳۴۵ ۶۷۸۹" [ref=f4e21]
+    - paragraph [ref=f4e26]:
+      - generic [ref=f4e30]: اطلاعات تو کاملاً محفوظه و هرگز با کسی به اشتراک گذاشته نمی‌شه.
+  - button "کد تأیید رو برام بفرست" [disabled] [ref=f4e32]

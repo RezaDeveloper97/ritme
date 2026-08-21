@@ -1,14 +1,16 @@
 'use client';
 
-import { Link } from '@/shared/i18n';
 import { Icon } from '@/shared/ui';
 
 import type { Article } from '../model/types';
 
 export interface ArticleCardProps {
   article: Article;
-  /** Locale-aware route to the article, e.g. `/articles/period-blood-clots`. */
-  href: string;
+  /**
+   * Opens the article. A callback rather than an `href` because an article is
+   * no longer a route: it is a sheet the host opens over the current screen.
+   */
+  onSelect: () => void;
   /**
    * Pre-formatted reading time, e.g. "۴ دقیقه". `null` when the article has no
    * reading time — the host screen owns every string (FSD: entities stay
@@ -25,14 +27,18 @@ export interface ArticleCardProps {
  */
 export function ArticleCard({
   article,
-  href,
+  onSelect,
   readTimeLabel,
   compact = false,
 }: ArticleCardProps) {
   const meta = readTimeLabel ?? article.category;
 
   return (
-    <Link href={href} className={compact ? 'ac ac-compact' : 'ac'}>
+    <button
+      type="button"
+      onClick={onSelect}
+      className={compact ? 'ac ac-compact' : 'ac'}
+    >
       <div className="ac-cover">
         {article.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -59,6 +65,6 @@ export function ArticleCard({
           </div>
         )}
       </div>
-    </Link>
+    </button>
   );
 }

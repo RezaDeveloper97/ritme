@@ -6,13 +6,20 @@ import { notFound } from 'next/navigation';
 import type { ReactNode } from 'react';
 
 import { OnboardingCalendarSync } from '@/entities/user';
-import { getDirection, isLocale, routing } from '@/shared/i18n';
+import {
+  BUNDLED_LOCALES,
+  DirectionProvider,
+  getDirection,
+  isSupportedLocale,
+} from '@/shared/i18n';
 import { NoZoom, ViewportHeight } from '@/shared/lib/viewport';
 import { InstallPrompt, UpdateGate } from '@/shared/pwa';
+import { SessionGuard } from '@/shared/session';
 import { ThemeApplier, themeInitScript } from '@/shared/theme';
 
 import '../globals.css';
 import { AppProviders } from '../providers';
+import { SheetHost } from '../sheets/SheetHost';
 
 const vazirmatn = localFont({
   src: [
@@ -54,8 +61,11 @@ export const viewport: Viewport = {
   ],
 };
 
+// Only the compiled-in locales are pre-rendered. A language an admin adds
+// later isn't known at build time, so its pages render on demand — which is
+// the whole point of resolving the locale list at runtime (CLAUDE.md §6).
 export function generateStaticParams() {
-  return routing.locales.map((locale) => ({ locale }));
+  return BUNDLED_LOCALES.map((locale) => ({ locale }));
 }
 
 interface LocaleLayoutProps {
@@ -66,20 +76,25 @@ interface LocaleLayoutProps {
 export default async function LocaleLayout({ children, params }: LocaleLayoutProps) {
   const { locale } = await params;
 
-  if (!isLocale(locale)) {
+  if (!(await isSupportedLocale(locale))) {
     notFound();
   }
   setRequestLocale(locale);
 
-  const messages = await getMessages();
+  const [messages, direction] = await Promise.all([
+    getMessages(),
+    getDirection(locale),
+  ]);
 
   return (
-    <html lang={locale} dir={getDirection(locale)} suppressHydrationWarning>
+    <html lang={locale} dir={direction} suppressHydrationWarning>
       <body className={vazirmatn.className}>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <NextIntlClientProvider locale={locale} messages={messages}>
-          <AppProviders>
+          <DirectionProvider direction={direction}>
+            <AppProviders>
             <ThemeApplier />
+            <SessionGuard />
             <OnboardingCalendarSync />
             <ViewportHeight />
             <NoZoom />
@@ -88,9 +103,14 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
             <div className="stage">
               <div className="app-shell">
                 {children}
+                {/* Mounted beside the screen, not inside it: every secondary
+                    screen is a sheet over whatever is showing, and it has to
+                    outlive the screen that opened it (see app/sheets). */}
+                <SheetHost />
               </div>
             </div>
-          </AppProviders>
+            </AppProviders>
+          </DirectionProvider>
         </NextIntlClientProvider>
       </body>
     </html>

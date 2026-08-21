@@ -26,9 +26,9 @@
 
                     @include('admin.partials.phase-select', ['selected' => $recommendation->cycle_phase, 'phases' => $phases])
 
-                    <x-admin.bilingual name="text" label="متن توصیه" :value="$recommendation->text" type="textarea" required />
+                    <x-admin.translatable name="text" label="متن توصیه" :value="$recommendation->text" type="textarea" required />
 
-                    <x-admin.bilingual name="title" label="عنوان (اختیاری)" :value="$recommendation->title" />
+                    <x-admin.translatable name="title" label="عنوان (اختیاری)" :value="$recommendation->title" />
                     <div class="field full">
                         <span class="hint">اگر خالی بماند، عنوان دسته (مثلاً «تغذیه») نمایش داده می‌شود.</span>
                     </div>

@@ -34,8 +34,7 @@ import {
 import { useDailyMessage, type DailyMessage } from '@/entities/message';
 import { useUserProfile } from '@/entities/user';
 import { QuickEditSheet } from '@/features/edit-profile';
-import { usePeriodHistory } from '@/features/log-period';
-import { Link, useRouter } from '@/shared/i18n';
+import { PeriodDateEditor, usePeriodHistory } from '@/features/log-period';
 import type { Locale } from '@/shared/i18n';
 import {
   addDays,
@@ -52,6 +51,7 @@ import {
   type MonthCell,
 } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
+import { openSheet } from '@/shared/sheet';
 import { DropSolid, Icon, type IconName } from '@/shared/ui';
 import { BannerSlideshow } from '@/widgets/banner-slideshow';
 import { BottomNav } from '@/widgets/bottom-nav';
@@ -372,6 +372,7 @@ function NextPeriodCard({
 }) {
   const expanded = true;
   const tLogPeriod = useTranslations('logPeriod');
+  const [dateEditorOpen, setDateEditorOpen] = useState(false);
   const daysValue = daysUntilNextPeriod != null ? t('days', { n: daysUntilNextPeriod }) : t('unavailable');
   // While the tapped day loads, every datum drops to its null/dash fallback
   // instead of showing the previous day's numbers as if they were this day's.
@@ -469,19 +470,34 @@ function NextPeriodCard({
       {showPhaseDetails && (
         <div className={clsx('home-cta-reveal', expanded && 'is-open')} aria-hidden={!expanded}>
           <div className="home-cta-reveal-inner home-cta-row">
-            <Link href="/cycle/phase" className="home-phase-cta home-cta-half" tabIndex={expanded ? undefined : -1}>
+            <button
+              type="button"
+              onClick={() => openSheet('phase')}
+              className="home-phase-cta home-cta-half"
+              tabIndex={expanded ? undefined : -1}
+            >
               <Icon name="info" size={15} /> {t('phaseDetailsCta')}
-            </Link>
-            <Link
-              href="/calendar?editDates=1"
+            </button>
+            <button
+              type="button"
+              onClick={() => setDateEditorOpen(true)}
               className="home-phase-cta home-cta-half"
               tabIndex={expanded ? undefined : -1}
             >
               <Icon name="pencil" size={15} /> {tLogPeriod('dateEditor.open')}
-            </Link>
+            </button>
           </div>
         </div>
       )}
+
+      {/* The date editor rises over the home screen itself (CLAUDE.md §4.1) —
+          it used to route to the calendar with ?editDates=1, which made the
+          sheet arrive one screen late. It portals to `.app-shell`, so mounting
+          it here still covers the whole screen. */}
+      <PeriodDateEditor
+        open={dateEditorOpen}
+        onClose={() => setDateEditorOpen(false)}
+      />
 
     </div>
   );
@@ -704,9 +720,14 @@ function Articles({ t, locale }: { t: T; locale: Locale }) {
         <div className="scroll-x">
           <div className="home-articles-track">
             {articles.map(article => (
-              // The card opens the article page; the slug is public content, so
+              // The card opens the article sheet; the slug is public content, so
               // unlike the cycle phase it is safe to carry in the URL (§11).
-              <Link key={article.id} href={`/articles/${article.slug}`} className="home-article">
+              <button
+                key={article.id}
+                type="button"
+                onClick={() => openSheet('article', article.slug)}
+                className="home-article"
+              >
                 <div className="home-article-cover">
                   {article.imageUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -730,13 +751,17 @@ function Articles({ t, locale }: { t: T; locale: Locale }) {
                       : article.category}
                   </div>
                 )}
-              </Link>
+              </button>
             ))}
           </div>
         </div>
-        <Link href="/articles" className="btn btn-primary home-articles-cta">
+        <button
+          type="button"
+          onClick={() => openSheet('articles')}
+          className="btn btn-primary home-articles-cta"
+        >
           {t('articles.readMore')}
-        </Link>
+        </button>
       </div>
     </div>
   );
@@ -769,7 +794,6 @@ function ArticlesSkeleton({ t }: { t: T }) {
 export function HomePage() {
   const t = useTranslations('home');
   const loc = useLocale() as Locale;
-  const router = useRouter();
   // This route is statically prerendered, so anything derived from "now" would
   // be frozen at build time in the server HTML and disagree with the client on
   // the next day — a hydration text mismatch (React #418). The whole screen is

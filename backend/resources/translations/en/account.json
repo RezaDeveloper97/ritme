@@ -1,0 +1,13 @@
+{
+  "delete": {
+    "title": "Delete account",
+    "warning": "Deleting your account permanently erases all of your information — your profile, cycle history, pregnancy data, and health logs — and it cannot be recovered. If you would like to keep a copy of your data, export it before deleting.",
+    "confirm": "Permanently delete account",
+    "deleting": "Deleting…",
+    "cancel": "Cancel",
+    "error": "Account deletion failed. Please try again."
+  },
+  "export": {
+    "error": "Data export failed. Please try again."
+  }
+}

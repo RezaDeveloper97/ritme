@@ -26,9 +26,9 @@
                         <input type="text" id="category" name="category" value="{{ old('category', $article->category) }}">
                     </div>
 
-                    <x-admin.bilingual name="title" label="عنوان" :value="$article->title" required />
-                    <x-admin.bilingual name="excerpt" label="خلاصه" :value="$article->excerpt" type="editor" />
-                    <x-admin.bilingual name="body" label="متن کامل" :value="$article->body" type="editor" />
+                    <x-admin.translatable name="title" label="عنوان" :value="$article->title" required />
+                    <x-admin.translatable name="excerpt" label="خلاصه" :value="$article->excerpt" type="editor" />
+                    <x-admin.translatable name="body" label="متن کامل" :value="$article->body" type="editor" />
 
                     @include('admin.partials.phase-multi-select', ['selected' => $article->cycle_phases ?? [], 'phases' => $phases])
 

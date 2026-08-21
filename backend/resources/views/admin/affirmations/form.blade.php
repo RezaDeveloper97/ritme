@@ -13,7 +13,7 @@
                 @if ($isEdit) @method('PUT') @endif
 
                 <div class="form-grid">
-                    <x-admin.bilingual name="text" label="متن تأکید" :value="$affirmation->text" type="textarea" required />
+                    <x-admin.translatable name="text" label="متن تأکید" :value="$affirmation->text" type="textarea" required />
                     @include('admin.partials.phase-select', ['selected' => $affirmation->cycle_phase, 'phases' => $phases])
                     <div class="field">
                         <label for="sort_order">ترتیب نمایش</label>

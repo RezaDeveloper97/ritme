@@ -2,7 +2,7 @@
     Rich-text editor bootstrap (CKEditor 4.22.1 LGPL, vendored in
     public/assets/ckeditor and served through /admin/ckeditor/*).
 
-    Included once per page by <x-admin.bilingual type="editor" />. Every
+    Included once per page by <x-admin.translatable type="editor" />. Every
     textarea carrying data-rich-editor is upgraded on DOMContentLoaded, so
     fields rendered after this script still get an editor.
 --}}

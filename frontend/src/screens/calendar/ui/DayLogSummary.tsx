@@ -13,7 +13,7 @@ import {
   type FieldDef,
   type HealthLogInput,
 } from '@/entities/health-log';
-import type { Locale } from '@/shared/i18n';
+import { useDirection, type Locale } from '@/shared/i18n';
 import { formatDayMonth, toApiDate } from '@/shared/lib/date';
 import { Icon } from '@/shared/ui';
 
@@ -114,7 +114,7 @@ export function DayLogSummary({ tCal, selectedDate, onEdit }: DayLogSummaryProps
   const tLog = useTranslations('log');
   const locale = useLocale() as Locale;
   const format = useFormatter();
-  const isRtl = locale === 'fa';
+  const isRtl = useDirection() === 'rtl';
   const sep = isRtl ? '، ' : ', ';
 
   // Value labels resolve from the `log` i18n namespace, so we only need the

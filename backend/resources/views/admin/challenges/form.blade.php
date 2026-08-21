@@ -13,8 +13,8 @@
                 @if ($isEdit) @method('PUT') @endif
 
                 <div class="form-grid">
-                    <x-admin.bilingual name="title" label="عنوان" :value="$challenge->title" required />
-                    <x-admin.bilingual name="description" label="توضیحات" :value="$challenge->description" type="textarea" />
+                    <x-admin.translatable name="title" label="عنوان" :value="$challenge->title" required />
+                    <x-admin.translatable name="description" label="توضیحات" :value="$challenge->description" type="textarea" />
                     @include('admin.partials.cycle-day-range', ['challenge' => $challenge, 'maxCycleDay' => $maxCycleDay])
                     <div class="field">
                         <label for="category">دسته</label>

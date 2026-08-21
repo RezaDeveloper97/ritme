@@ -12,7 +12,7 @@
  * where it isn't needed).
  */
 
-import { AUTH_COOKIE } from './cookie';
+import { AUTH_COOKIE, ONBOARDING_COOKIE, SESSION_CLEARED_EVENT } from './cookie';
 
 const TOKEN_KEY = 'ritme_token';
 
@@ -41,6 +41,24 @@ export function clearAuthToken(): void {
   if (!isBrowser()) return;
   window.localStorage.removeItem(TOKEN_KEY);
   document.cookie = `${AUTH_COOKIE}=; path=/; max-age=0; SameSite=Lax`;
+  // The resume marker belongs to the session that just ended; leaving it would
+  // trap the next sign-in on this device in a stranger's half-done onboarding.
+  document.cookie = `${ONBOARDING_COOKIE}=; path=/; max-age=0; SameSite=Lax`;
+  // Guarded screens are still mounted at this point; tell them to leave.
+  window.dispatchEvent(new Event(SESSION_CLEARED_EVENT));
+}
+
+/**
+ * Is the middleware's auth flag present? The flag is host-scoped while the token
+ * is origin-scoped in `localStorage`, so the two can diverge — most visibly when
+ * the site moved from `http://` to `https://`, which kept every visitor's cookie
+ * but hid their token behind a new origin. `SessionGuard` reconciles the two.
+ */
+export function hasAuthCookie(): boolean {
+  if (!isBrowser()) return false;
+  return document.cookie
+    .split(';')
+    .some((entry) => entry.trim().startsWith(`${AUTH_COOKIE}=1`));
 }
 
 export function isAuthenticated(): boolean {

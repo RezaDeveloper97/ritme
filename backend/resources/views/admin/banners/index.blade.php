@@ -38,7 +38,7 @@
                                         —
                                     @endif
                                 </td>
-                                <td class="wrap">{{ $banner->title['fa'] ?? '—' }}</td>
+                                <td class="wrap">{{ $banner->localized('title') ?? '—' }}</td>
                                 <td>{{ optional($positionLabels->get($banner->position))->label('fa') ?? $banner->position }}</td>
                                 <td dir="ltr" style="max-width:180px" class="wrap">
                                     @if ($banner->link_url)

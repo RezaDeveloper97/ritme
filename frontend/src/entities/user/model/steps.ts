@@ -69,6 +69,29 @@ export function onboardingRoute(key: OnboardingStepKey): string {
   return STEP_ROUTES[key];
 }
 
+/**
+ * The step key a path belongs to, or null when it isn't an onboarding step.
+ * Accepts locale-prefixed paths (`/fa/onboarding/name`) so the middleware and
+ * the client tracker can both feed it a raw pathname.
+ */
+export function onboardingStepFromPath(pathname: string): OnboardingStepKey | null {
+  const segments = pathname.split('/').filter(Boolean);
+  const at = segments.indexOf('onboarding');
+  if (at === -1) return null;
+  const route = `/onboarding/${segments[at + 1] ?? ''}`;
+  const entry = (Object.entries(STEP_ROUTES) as [OnboardingStepKey, string][]).find(
+    ([, value]) => value === route,
+  );
+  return entry?.[0] ?? null;
+}
+
+/** Is `key` a known step? Guards values read back out of the resume cookie. */
+export function isOnboardingStep(key: string): key is OnboardingStepKey {
+  // `in` would also accept inherited keys ('toString', 'constructor'), and this
+  // value arrives from a cookie the user can edit.
+  return Object.hasOwn(STEP_ROUTES, key);
+}
+
 /** 1-based position and total, for the "N / M" header. */
 export function stepPosition(
   key: OnboardingStepKey,

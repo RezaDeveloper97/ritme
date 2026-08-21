@@ -73,6 +73,10 @@
   --track:      #DBD4EC;  /* switch track (off), progress rail */
   --surface-3:  #FAF8FF;  /* inner panel, faint tile */
 
+  /* ── Overlay sheets (shared/sheet) ── */
+  --scrim:        rgba(17, 32, 47, .38);  /* dim behind a sheet / dialog */
+  --sheet-shadow: rgba(17, 32, 47, .18);  /* lift under a sheet's top edge */
+
   /* Text/icons sitting ON a saturated fill. Deliberately does NOT flip in
      dark mode — the fill underneath stays saturated, so the label stays white. */
   --on-accent:  #fff;
@@ -165,6 +169,11 @@
   --line-2:     #2C2545;
   --track:      #3D3560;
   --surface-3:  #211C36;
+
+  /* Dark mode needs a heavier scrim: the screen underneath is already dark, so
+     a light dim wouldn't separate the sheet from it. */
+  --scrim:        rgba(4, 2, 12, .62);
+  --sheet-shadow: rgba(0, 0, 0, .5);
 
   /* --on-accent is intentionally absent: it must stay #fff in both themes. */
 
@@ -571,28 +580,29 @@ body {
   border: 1px solid rgba(123,97,255,.30); pointer-events: none; z-index: 0;
 }
 
-/* ── Horizontal ruler ── */
-.ruler-wrap { position: relative; }
+/* ── Vertical ruler ── */
+.ruler-wrap { position: relative; width: 108px; margin-inline: auto; }
 .ruler {
-  display: flex; overflow-x: scroll; scroll-snap-type: x mandatory;
-  height: 70px; align-items: flex-end; padding-bottom: 6px;
+  display: flex; flex-direction: column; overflow-y: scroll; scroll-snap-type: y mandatory;
+  height: 220px; align-items: flex-start; padding-inline-start: 26px;
+  overscroll-behavior: contain;
 }
-.ruler::-webkit-scrollbar { height: 0; }
+.ruler::-webkit-scrollbar { width: 0; }
 .rpad { flex: 0 0 calc(50% - 6px); }
 .tk   {
-  width: 12px; flex: 0 0 12px; display: flex; flex-direction: column;
-  align-items: center; scroll-snap-align: center;
+  height: 12px; flex: 0 0 12px; display: flex; flex-direction: row;
+  align-items: center; gap: 8px; scroll-snap-align: center;
 }
-.tk .line { width: 2px; height: 18px; background: var(--track); border-radius: 2px; }
-.tk.major .line { height: 32px; background: var(--muted-soft); }
-.tk .num  { font-size: 10px; color: var(--muted-soft); margin-top: 5px; height: 12px; font-variant-numeric: tabular-nums; }
+.tk .line { height: 2px; width: 18px; background: var(--track); border-radius: 2px; }
+.tk.major .line { width: 32px; background: var(--muted-soft); }
+.tk .num  { font-size: 10px; color: var(--muted-soft); width: 26px; font-variant-numeric: tabular-nums; }
 .rpoint {
-  position: absolute; left: 50%; top: -6px; transform: translateX(-50%);
-  width: 3px; height: 44px; background: var(--brand); border-radius: 2px; z-index: 3;
+  position: absolute; top: 50%; inset-inline-start: 12px; transform: translateY(-50%);
+  height: 3px; width: 44px; background: var(--brand); border-radius: 2px; z-index: 3;
 }
 .ruler-fade {
   position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(90deg, var(--surface) 0%, transparent 16%, transparent 84%, var(--surface) 100%);
+  background: linear-gradient(180deg, var(--surface) 0%, transparent 20%, transparent 80%, var(--surface) 100%);
 }
 
 /* ── Calendar ── */
@@ -622,26 +632,92 @@ body {
 .scroll-x { overflow-x: auto; }
 .scroll-x::-webkit-scrollbar { height: 0; }
 
-/* ── Bottom sheet ── */
-.sheet-backdrop {
-  position: absolute; inset: 0; z-index: 50;
-  background: rgba(17, 32, 47, .38);
-  display: flex; align-items: flex-end;
-  animation: fadeIn .2s ease;
-}
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-.sheet {
+
+/* ── Overlay sheet (shared/sheet) ──────────────────────────────────────────
+   The presentation for every secondary screen: a panel that rises over the
+   screen the user was already on, in one of two sizes.
+
+   `is-full` is a fixed tall panel and its body is the scroll container.
+   `is-half` has NO height of its own — it sits at `min-height` when the content
+   is short and grows with the content instead of scrolling it. Only when the
+   content outgrows the screen does <AppSheet> add `is-scrollable`, because
+   clipping it would hide content with no way to reach it.
+
+   The keyframes deliberately declare a single edge each: the missing `from`/`to`
+   resolves to the element's own transform, which is the live drag offset. That
+   is what lets a flick-to-dismiss carry straight into the exit instead of
+   snapping back to rest first. */
+.osheet-backdrop {
+  position: absolute; inset: 0; z-index: 70;
+  display: flex; align-items: flex-end;
+  background: var(--scrim);
+  animation: osheetFade .22s ease;
+}
+.osheet-backdrop.is-closing { animation: osheetFadeOut .24s ease forwards; }
+@keyframes osheetFade    { from { opacity: 0; } }
+@keyframes osheetFadeOut { to   { opacity: 0; } }
+
+.osheet {
+  position: relative;
+  display: flex; flex-direction: column;
   width: 100%;
+  max-height: 92%;
   background: var(--surface);
   border-radius: 26px 26px 0 0;
-  padding: 10px 20px 24px;
-  box-shadow: 0 -12px 40px rgba(17, 32, 47, .18);
-  animation: sheetUp .32s cubic-bezier(.22,.61,.36,1);
+  box-shadow: 0 -12px 40px -6px var(--sheet-shadow);
+  animation: osheetUp .36s cubic-bezier(.22,.61,.36,1);
+  outline: 0;
 }
-@keyframes sheetUp { from { transform: translateY(100%); } to { transform: none; } }
-.sheet-grip {
-  width: 44px; height: 5px; border-radius: 99px;
-  background: var(--track); margin: 0 auto 16px;
+.osheet-backdrop.is-closing .osheet {
+  animation: osheetDown .24s cubic-bezier(.4,0,1,1) forwards;
+}
+@keyframes osheetUp   { from { transform: translateY(100%); } }
+@keyframes osheetDown { to   { transform: translateY(100%); } }
+
+.osheet.is-half { height: auto; min-height: 42%; }
+.osheet.is-full { height: 92%; }
+
+.osheet-handle { padding: 10px 0 2px; cursor: grab; touch-action: none; }
+.osheet-handle:active { cursor: grabbing; }
+.osheet-grip {
+  display: block; width: 44px; height: 5px; border-radius: 99px;
+  background: var(--track); margin: 0 auto;
+}
+
+.osheet-hdr { display: flex; align-items: center; gap: 10px; padding: 6px 18px 10px; }
+.osheet-title {
+  flex: 1; min-width: 0; margin: 0;
+  font-size: 16px; font-weight: 800; color: var(--ink); text-align: start;
+}
+.osheet-close { flex-shrink: 0; }
+
+.osheet-body {
+  flex: 1; min-height: 0;
+  overflow: hidden;
+  padding-inline: 18px;
+  padding-bottom: calc(18px + env(safe-area-inset-bottom));
+}
+.osheet.is-full > .osheet-body,
+.osheet.is-scrollable > .osheet-body {
+  overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+}
+.osheet-body::-webkit-scrollbar { width: 0; }
+
+.osheet-foot {
+  flex-shrink: 0;
+  padding: 12px 18px calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+}
+/* When a footer is present it owns the bottom inset, so the body stops short. */
+.osheet:has(> .osheet-foot) > .osheet-body { padding-bottom: 12px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .osheet-backdrop,
+  .osheet-backdrop.is-closing,
+  .osheet,
+  .osheet-backdrop.is-closing .osheet { animation-duration: .01ms; }
 }
 
 /* ── Selectable chip ── */
@@ -946,11 +1022,14 @@ body {
 .home-cta-reveal-inner   { overflow: hidden; min-height: 0; }
 .home-cta-row { display: flex; gap: 8px; }
 .home-cta-half { flex: 1 1 50%; margin-top: 12px; }
+/* Rendered as an <a> (the calendar editor) or a <button> (the phase sheet) —
+   both need the same pill, so neither may rely on the element's own defaults. */
 .home-phase-cta  {
   display: flex; align-items: center; justify-content: center; gap: 6px;
   margin-top: 12px; height: 40px; border-radius: 12px; text-decoration: none;
   background: rgba(255, 255, 255, .18); border: 1px solid rgba(255, 255, 255, .45);
-  color: var(--on-accent); font-size: 12.5px; font-weight: 700;
+  color: var(--on-accent); font-family: inherit; font-size: 12.5px; font-weight: 700;
+  cursor: pointer;
   transition: background .15s ease, transform .12s ease, box-shadow .15s ease;
 }
 .home-phase-cta:hover { background: rgba(255, 255, 255, .3); }
@@ -1393,12 +1472,6 @@ body {
 .dls-empty-dot  { width: 42px; height: 42px; flex-shrink: 0; }
 
 /* Phase-details screen (/cycle/phase) */
-.pd-page       { background: var(--page); }
-.pd-grad       { position: absolute; top: 0; inset-inline-start: 0; inset-inline-end: 0; height: 320px; }
-.pd-hdr        { position: relative; }
-.pd-title      { flex: 1; font-size: 16px; font-weight: 800; color: var(--ink); text-align: center; }
-.pd-hdr-spacer { width: 40px; flex: 0 0 auto; }
-.pd-scroll     { position: relative; padding: 4px 18px 8px; }
 
 /* Hero — saturated brand card naming the phase, kin to the home info card */
 .pd-hero {
@@ -1443,6 +1516,29 @@ body {
 .pd-badge.is-violet { color: var(--violet);      background: var(--violet-soft); }
 .pd-badge.is-indigo { color: var(--indigo-deep); background: var(--indigo-soft); }
 .pd-h2   { font-size: 14.5px; font-weight: 800; color: var(--ink); margin: 0; text-align: start; flex: 1; min-width: 0; }
+/* Optional call-to-action on a text-screen box (support email, phone, channel).
+   Deliberately not a gradient CTA: these sit inside long-read prose, where the
+   brand gradient would spend its scarcity on a secondary action (§10.2). */
+.pd-cta {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin: 14px 2px 2px; padding: 9px 16px; border-radius: 999px;
+  font-size: 13px; font-weight: 700; text-decoration: none;
+  color: var(--ink); background: var(--pink-bg);
+  /* The label is ink, not brand: --brand on --pink-bg is only ~3.4:1 in both
+     themes, under AA for 13px text. The brand ring carries the affordance
+     instead, so the button still reads as tappable at full contrast. */
+  box-shadow: inset 0 0 0 1px var(--brand);
+  transition: filter .14s ease, transform .14s ease;
+}
+.pd-cta:hover  { filter: brightness(.97); }
+.pd-cta:active { transform: scale(.97); }
+.pd-cta:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+/* Placeholder boxes while the admin-managed copy loads */
+.pd-skel .skeleton-line { margin-top: 8px; }
+.pd-skel-head { width: 45%; height: 16px; margin-top: 0 !important; margin-bottom: 6px; }
+.pd-skel-last { width: 70%; }
+
 .pd-body { font-size: 13.5px; line-height: 2; color: var(--muted); margin: 10px 2px 0; text-align: start; white-space: pre-line; }
 
 /* Loading skeleton — same rhythm as the loaded page */
@@ -1736,10 +1832,6 @@ body {
 .del-btns  { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
 
 /* Reminders screen */
-.rem-page     { background: var(--page); }
-.rem-title    { font-size: 17px; font-weight: 800; color: var(--ink); }
-.rem-add      { color: var(--brand); }
-.rem-scroll   { padding: 4px 18px 24px; }
 .rem-state    { margin-top: 12px; padding: 24px; text-align: center; color: var(--muted); font-size: 14px; }
 .rem-list     { margin-top: 12px; display: flex; flex-direction: column; overflow: hidden; }
 
@@ -1779,9 +1871,7 @@ body {
 
 /* Profile edit screens (personal / health) */
 .prof-edit-scroll  { padding-bottom: 12px; }
-.prof-edit-title   { font-size: 16px; font-weight: 800; color: var(--ink); }
 /* Spacer mirroring the back button keeps the title centred (RTL-safe). */
-.prof-hdr-spacer   { width: 40px; }
 .prof-wheel-card   { padding: 14px 10px; }
 .prof-wheel-card.is-tall { padding: 18px 10px 10px; }
 .prof-wheel-center { display: flex; justify-content: center; position: relative; }
@@ -1794,26 +1884,40 @@ body {
 .placeholder-soft  { color: var(--muted-soft); }
 
 /* Quick-edit sheet — one profile value edited in place from its stat row. */
-.prof-quick-t       { font-size: 16px; font-weight: 800; color: var(--ink); text-align: center; margin: 0 0 4px; }
 .prof-quick-body    { padding: 10px 8px 4px; }
-.prof-quick-actions { padding: 8px 4px 4px; }
 
-/* Notifications screen */
-.notif-hdr-left { display: flex; align-items: center; gap: 6px; }
-.notif-title    { font-size: 17px; font-weight: 800; color: var(--ink); }
-.notif-scroll   { padding-bottom: 24px; }
-.notif-section  { padding: 8px 18px 0; }
+/* Notifications sheet */
+.notif-section  { padding: 4px 0 8px; }
+.notif-actions  { display: flex; justify-content: flex-end; padding: 0 2px 10px; }
+.notif-markall  {
+  display: flex; align-items: center; gap: 5px;
+  background: transparent; border: 0; font: inherit;
+  font-size: 13px; font-weight: 700; color: var(--brand); cursor: pointer;
+}
+.notif-markall:disabled { opacity: .55; cursor: default; }
 .notif-list     { display: flex; flex-direction: column; overflow: hidden; }
 /* `display: contents` so the divider + row are siblings in the flex column. */
 .notif-item     { display: contents; }
 /* Hairline between rows, inset past the unread dot (logical start — RTL-safe). */
 .notif-divider  { height: 1px; background: var(--line); margin-inline-start: 35px; }
+.notif-row      {
+  display: flex; align-items: flex-start; gap: 12px; width: 100%;
+  padding: 13px 14px; background: transparent; border: 0; font: inherit;
+  text-align: start;
+}
+/* Unread rows are the only tappable ones — tapping is what marks them read. */
+.notif-row.is-unread { background: var(--pink-soft); cursor: pointer; }
+.notif-dot      {
+  width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; margin-top: 6px;
+  background: var(--brand);
+}
+.notif-dot.is-read { background: transparent; border: 1px solid var(--line); }
 .notif-body     { flex: 1; min-width: 0; text-align: start; }
 .notif-row-t    { display: block; font-size: 14px; font-weight: 800; color: var(--ink); }
 .notif-row-t.is-read { font-weight: 600; }
 .notif-row-b    { display: block; font-size: 13px; line-height: 1.7; color: var(--muted); margin-top: 3px; }
 .notif-row-time { display: block; font-size: 11px; color: var(--muted); margin-top: 6px; }
-.notif-empty    { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 72px 32px 0; gap: 6px; }
+.notif-empty    { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 40px 32px 24px; gap: 6px; }
 .notif-empty-icon {
   width: 64px; height: 64px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
@@ -1854,12 +1958,81 @@ body {
 .auth-body    { padding: 18px 22px; }
 .auth-body.is-centered { display: flex; flex-direction: column; align-items: center; }
 
-/* Signup */
-.signup-titr-row { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 8px; }
-.signup-titr     { font-size: 16px; }
-.signup-spark    { color: var(--pink); }
-.signup-sub      { font-size: 14px; text-align: start; margin: 12px 0 32px; }
-.signup-input    { text-align: start; }
+/* Signup — brand mark, then a right-aligned display titr */
+.signup-brand {
+  position: relative;
+  width: 72px; height: 72px;
+  margin: 6px 0 22px;               /* start-aligned: sits above the titr in RTL */
+  display: flex; align-items: center; justify-content: center;
+}
+.signup-halo {
+  position: absolute; inset: -18px;
+  border-radius: 50%;
+  background: var(--gradient-brand);
+  opacity: .16;
+  filter: blur(14px);
+}
+.signup-logo {
+  position: relative;
+  border-radius: 20px;
+  box-shadow: 0 10px 24px -12px color-mix(in srgb, var(--brand) 55%, transparent);
+}
+
+.signup-titr {
+  margin: 0;
+  font-size: 24px; font-weight: 800;
+  line-height: 1.45;                /* tight-ish for display size */
+  letter-spacing: -.02em;           /* large text reads too loose untracked */
+  color: var(--ink);
+  text-align: start;                /* start = right in RTL */
+}
+.signup-spark {
+  color: var(--pink);
+  display: inline-flex; vertical-align: -4px;
+  margin-inline-start: 6px;
+}
+.signup-sub {
+  font-size: 14px; line-height: 1.9;
+  text-align: start; margin: 10px 0 30px;
+  max-width: 30ch;                  /* keeps the measure comfortable */
+}
+.signup-lbl   { font-weight: 700; color: var(--ink-3); }
+.signup-field { height: 56px; border-radius: 16px; transition: border-color 160ms ease, box-shadow 160ms ease; }
+.signup-input { text-align: start; font-size: 17px; font-weight: 700; letter-spacing: .04em; }
+
+/* Privacy reassurance under the phone field — soft, non-alarming, never a warning */
+.signup-privacy {
+  display: flex; align-items: flex-start; gap: 8px;
+  margin-top: 14px; padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--data-soft);
+  color: var(--data-deep);
+  font-size: 12.5px; line-height: 1.8;
+  text-align: start;
+}
+.signup-privacy svg { flex: 0 0 auto; margin-top: 3px; }
+
+/* One orchestrated load sequence — mark, titr, sub, field rise together */
+.signup-brand, .signup-titr, .signup-sub, .signup-lbl, .signup-field, .signup-privacy {
+  animation: signup-rise 520ms cubic-bezier(.22, 1, .36, 1) backwards;
+}
+.signup-titr  { animation-delay: 60ms; }
+.signup-sub   { animation-delay: 110ms; }
+.signup-lbl   { animation-delay: 160ms; }
+.signup-field { animation-delay: 200ms; }
+.signup-privacy { animation-delay: 240ms; }
+
+@keyframes signup-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .signup-brand, .signup-titr, .signup-sub, .signup-lbl, .signup-field, .signup-privacy {
+    animation: signup-fade 200ms ease backwards;
+  }
+  @keyframes signup-fade { from { opacity: 0; } to { opacity: 1; } }
+}
 .signup-terms    { display: flex; align-items: flex-start; gap: 10px; margin-top: 26px; cursor: pointer; justify-content: flex-end; border-radius: 10px; }
 .signup-terms:focus-visible { outline: none; box-shadow: var(--ring); }
 .signup-terms-t  { text-align: start; flex: 1; }
@@ -2031,12 +2204,11 @@ body {
 .log-tail     { height: 24px; }
 
 /* Category sheet */
-.cats-head    { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.cats-head-t  { font-size: 17px; font-weight: 800; color: var(--ink); }
 .cats-head-s  { margin: 4px 0 0; }
-.cats-body    { display: flex; flex-direction: column; gap: 18px; margin: 18px 0 4px; max-height: 58vh; overflow-y: auto; padding-inline-end: 2px; }
+/* No max-height: the sheet is `half`, so a long category grows the panel
+   instead of scrolling inside it. */
+.cats-body    { display: flex; flex-direction: column; gap: 18px; margin: 18px 0 4px; padding-inline-end: 2px; }
 .cats-empty   { display: flex; justify-content: center; padding: 24px; color: var(--muted); }
-.cats-done    { border-radius: 14px; margin-top: 16px; }
 
 /* Log field rows */
 .lfr-label    { font-size: 13.5px; font-weight: 700; color: var(--ink); text-align: start; }
@@ -2053,35 +2225,86 @@ body {
 .log-daynav .iconbtn:disabled { opacity: .3; }
 
 /* ══════════════════════════════════════════════════════════════════
-   Period date editor (full-screen month scroller)
+   Period date editor — a `full` AppSheet whose body is a month scroller
    ══════════════════════════════════════════════════════════════════ */
 /* The period-date editor is a period surface, so it wears the rose end of the
    brand gradient instead of the violet end (§10.2). Scoped token override so
-   the inline data-driven colours in PeriodDateEditor follow along. */
-.pde        { position: absolute; inset: 0; z-index: 60; display: flex; flex-direction: column; background: var(--surface);
-              --brand: var(--rose-deep); --brand-deep: var(--rose-deep); --gradient-brand: var(--rose-grad); }
-.pde-head   { background: linear-gradient(180deg, var(--rose-deep), var(--rose)); color: var(--on-accent); padding: 12px clamp(12px, 4vw, 18px) 0; flex-shrink: 0; }
-.pde-head-row { display: flex; align-items: center; gap: 10px; min-height: 40px; }
-.pde-close  {
-  width: 38px; height: 38px; border-radius: 50%; border: none;
-  background: rgba(0, 0, 0, .18); color: var(--on-accent);
-  display: inline-flex; align-items: center; justify-content: center;
-  cursor: pointer; flex-shrink: 0;
+   the sheet's own chrome, the action buttons and the inline data-driven colours
+   in PeriodDateEditor all follow along. */
+.pde-sheet {
+  --brand: var(--rose-deep); --brand-deep: var(--rose-deep);
+  --gradient-brand: var(--rose-grad);
+  --brand-line: var(--rose); --brand-line-soft: var(--period-soft);
 }
-.pde-close:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(255, 255, 255, .75); }
-/* `margin-inline-end` mirrors the close button so the title stays optically centred. */
-.pde-title  { flex: 1; text-align: center; font-size: clamp(15px, 4.4vw, 18px); font-weight: 800; margin-inline-end: 38px; }
-.pde-weekdays { padding: 10px 0 9px; }
-.pde-weekday  { font-size: clamp(9px, 2.6vw, 11px); font-weight: 700; text-align: center; opacity: .85; }
-.pde-scroll   { flex: 1; min-height: 0; overflow-y: auto; background: var(--surface); }
-.pde-month    { scroll-margin-top: 0; }
-.pde-month-t  { padding: 12px clamp(12px, 4vw, 18px); background: var(--line); font-size: clamp(15px, 4.2vw, 17px); font-weight: 800; color: var(--ink); text-align: start; }
-.pde-weeks    { display: flex; flex-direction: column; gap: clamp(8px, 2.4vw, 14px); padding: clamp(12px, 4vw, 20px) clamp(8px, 3vw, 16px); }
+/* Day cells reach nearly the panel edge — the sheet's default 18px inline
+   padding would squeeze a 7-column grid of circles. */
+.pde-sheet > .osheet-body { padding-inline: clamp(6px, 2.5vw, 12px); }
+
+/* The rose bar that used to be the editor's page header, now a sticky ribbon at
+   the top of the sheet's scroll so the columns stay labelled all the way back. */
+.pde-weekdays {
+  position: sticky; top: 0; z-index: 2;
+  background: linear-gradient(180deg, var(--rose-deep), var(--rose));
+  color: var(--on-accent);
+  border-radius: 14px;
+  padding: 9px 0; margin-bottom: 2px;
+}
+/* In dark mode the rose lightens, so white-on-rose loses its contrast — the
+   ribbon inverts to a deep rose surface with rose text instead. */
+[data-theme="dark"] .pde-weekdays { background: var(--period-soft); color: var(--period-deep); }
+.pde-weekday  { font-size: clamp(9px, 2.6vw, 11px); font-weight: 700; text-align: center; opacity: .9; }
+/* Clears the sticky weekday ribbon when a month is scrolled to on open. */
+.pde-month    { scroll-margin-top: 44px; }
+.pde-month-t  { margin-top: 10px; padding: 9px clamp(10px, 3vw, 14px); border-radius: 12px; background: var(--surface-2); font-size: clamp(14px, 4vw, 16px); font-weight: 800; color: var(--ink); text-align: start; }
+.pde-weeks    { display: flex; flex-direction: column; gap: clamp(8px, 2.4vw, 14px); padding: clamp(10px, 3vw, 16px) clamp(2px, 1.5vw, 8px); }
 .pde-week     { gap: clamp(6px, 2vw, 12px) 2px; }
 .pde-daycell  { display: flex; justify-content: center; }
-.pde-foot     { flex-shrink: 0; background: var(--surface); border-top: 1px solid var(--line); }
-.pde-hint     { background: var(--surface-2); color: var(--brand); text-align: center; font-size: clamp(12px, 3.2vw, 13px); font-weight: 700; padding: 11px 16px; }
-.pde-actions  { display: flex; gap: clamp(8px, 3vw, 12px); padding: 12px clamp(12px, 4vw, 16px); padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
+
+/* One day = one toggle. States, in the order they must win:
+   • today  — a soft grey fill, so "now" stays findable while scrolling a year
+     of months (it is the only cell that is neither period nor prediction);
+   • selected — the rose dashed ring + numbered badge (beats today's fill);
+   • future — unreachable, since bleeding can't be logged ahead of time. */
+.pde-day {
+  position: relative;
+  width: 100%; max-width: 52px; aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  border: 1.5px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: clamp(13px, 3.6vw, 15px);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+.pde-day.is-today    { background: var(--surface-2); border-color: var(--track); }
+.pde-day.is-selected { background: transparent; border: 1.5px dashed var(--brand); color: var(--brand); }
+.pde-day.is-future   { color: var(--muted); opacity: .75; }
+/* Future days no run can reach: inert grey context, not a target. */
+.pde-day.is-locked   { color: var(--line); opacity: 1; cursor: default; }
+/* A wholly-future month is shown for context only — dimmed as a block. */
+.pde-month.is-future .pde-month-t { color: var(--muted); background: transparent; border: 1px dashed var(--line); }
+.pde-day:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+/* Order badge: filled + numbered when selected, a hollow ring otherwise. */
+.pde-badge {
+  position: absolute; top: -1px; inset-inline-end: -1px;
+  width: clamp(15px, 4.4vw, 19px); height: clamp(15px, 4.4vw, 19px);
+  border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: clamp(9px, 2.6vw, 11px); font-weight: 800;
+  color: transparent;
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+}
+.pde-day.is-today .pde-badge    { background: var(--surface-2); border-color: var(--track); }
+.pde-day.is-selected .pde-badge { color: var(--on-accent); background: var(--brand); border-color: transparent; }
+.pde-foot     { display: flex; flex-direction: column; gap: 10px; }
+.pde-hint     { background: var(--surface-2); color: var(--brand); text-align: center; font-size: clamp(12px, 3.2vw, 13px); font-weight: 700; padding: 9px 14px; border-radius: 999px; }
+.pde-actions  { display: flex; gap: clamp(8px, 3vw, 12px); }
+.pde-actions .btn { flex: 1; width: auto; height: 50px; border-radius: 999px; font-size: clamp(14px, 4vw, 16px); font-weight: 800; }
 
 /* Period editor sheet */
 .ped-head    { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
@@ -2153,7 +2376,6 @@ body {
 .dsc-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
 
 /* Shared UI primitives */
-.sheet-scroll { max-height: 78vh; overflow-y: auto; }
 .jcal         { padding: 16px 14px; margin-top: 2px; }
 .jcal-nav     { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
 .jcal-month   { font-weight: 800; font-size: 15px; color: var(--ink); }
@@ -2304,10 +2526,12 @@ body {
    ══════════════════════════════════════════════════════════════════ */
 
 /* ── Shared card (entities/article) ── */
+/* A <button>, not a link: an article opens as a sheet over the current screen
+   rather than at a route of its own. */
 .ac {
-  display: flex; flex-direction: column; gap: 8px;
+  display: flex; flex-direction: column; gap: 8px; width: 100%;
   background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
-  padding: 10px; text-decoration: none; color: inherit;
+  padding: 10px; text-align: start; font: inherit; color: inherit; cursor: pointer;
   transition: transform .18s ease, box-shadow .18s ease;
 }
 .ac:active { transform: translateY(1px); }
@@ -2343,15 +2567,6 @@ body {
 .ac-compact .ac-title{ font-size: 13px; }
 
 /* ── Library screen ── */
-.ar-page       { background: var(--page); }
-/* Fades out instead of ending on a hard line: the grid below sits on the page
-   colour, so the flat home gradient would leave a visible seam. */
-.ar-grad       { position: absolute; top: 0; inset-inline-start: 0; inset-inline-end: 0; height: 260px;
-                 background: linear-gradient(180deg, var(--home-grad-1) 0%, transparent 100%); }
-.ar-hdr        { position: relative; }
-.ar-hdr-title  { flex: 1; font-size: 16px; font-weight: 800; color: var(--ink); text-align: center; }
-.ar-hdr-spacer { width: 36px; flex: 0 0 auto; }
-.ar-scroll     { position: relative; padding: 0 18px; }
 .ar-subtitle   { margin: 0 2px 14px; font-size: 12.5px; line-height: 1.8; color: var(--muted-2); text-align: start; }
 .ar-search     { height: 46px; border-radius: 14px; color: var(--muted-2); }
 .ar-search input { font-size: 14px; }
@@ -2388,13 +2603,6 @@ body {
 .ar-empty-cta   { margin-top: 18px; width: auto; padding: 0 22px; }
 
 /* ── Article page ── */
-.art-page     { background: var(--page); }
-.art-grad     { position: absolute; top: 0; inset-inline-start: 0; inset-inline-end: 0; height: 220px;
-                background: linear-gradient(180deg, var(--home-grad-1) 0%, transparent 100%); }
-.art-hdr      { position: relative; }
-.art-hdr-link { font-size: 12.5px; font-weight: 700; color: var(--brand); text-decoration: none; padding: 6px 8px; border-radius: 10px; }
-.art-hdr-link:focus-visible { outline: none; box-shadow: var(--ring); }
-.art-scroll   { position: relative; padding: 0 18px; }
 .art-cover    { border-radius: 18px; overflow: hidden; background: var(--surface-3); }
 .art-cover-img{ display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; }
 .art-head     { margin-top: 16px; }
@@ -2456,7 +2664,8 @@ body {
 .art-skel-line.is-short { width: 55%; }
 
 /* The home row's cards are links now — keep them looking like cards. */
-.home-article { text-decoration: none; color: inherit; }
+/* A <button>: the article opens as a sheet, not at a route (app/sheets). */
+.home-article { background: transparent; border: 0; padding: 0; font: inherit; color: inherit; cursor: pointer; }
 .home-article:focus-visible { outline: none; box-shadow: var(--ring); border-radius: 12px; }
 
 /* ---------------------------------------------------------------------------
@@ -2470,6 +2679,10 @@ body {
   inset-inline-start: 16px;
   inset-inline-end: 16px;
   bottom: 88px;
+  /* The app is a 420px column on desktop — the banner must not span the whole
+     viewport. Both insets + auto inline margins centre it over the shell. */
+  max-width: calc(420px - 32px);
+  margin-inline: auto;
   z-index: 90;
   display: flex;
   align-items: center;
@@ -2594,3 +2807,22 @@ body.pwa-locked { overflow: hidden; }
    update UI is up (toast or forced screen), the install banner yields. */
 .pwa-toast ~ .pwa-install,
 .pwa-forced ~ .pwa-install { display: none; }
+
+/* ── Language picker sheet (screens/profile-language) ──────────
+   The app can ship any number of languages (CLAUDE.md §6), so this is a list,
+   not a toggle. Each row sets its own `dir`, so a reader who can't read the
+   current language still sees theirs laid out correctly. */
+.lang-list      { display: flex; flex-direction: column; padding: 4px 0 24px; }
+.lang-hint      { margin: 0 14px 12px; font-size: 12.5px; line-height: 1.9; color: var(--muted); }
+.lang-row       {
+  display: flex; align-items: center; gap: 12px; width: 100%;
+  padding: 13px 14px; background: transparent; border: 0; font: inherit;
+  text-align: start; cursor: pointer; border-radius: 14px;
+}
+.lang-row + .lang-row { margin-top: 2px; }
+.lang-row:disabled     { cursor: default; }
+.lang-row.is-active    { background: var(--pink-soft); }
+.lang-row-body  { flex: 1; min-width: 0; text-align: start; }
+.lang-row-name  { display: block; font-size: 14.5px; font-weight: 800; color: var(--ink); }
+.lang-row-code  { display: block; font-size: 12px; color: var(--muted); margin-top: 3px; }
+.lang-row-check { color: var(--brand); flex-shrink: 0; }
