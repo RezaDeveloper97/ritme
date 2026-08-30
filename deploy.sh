@@ -25,6 +25,15 @@ cd "$(dirname "$0")"
 SERVER="${SERVER:-root@89.251.8.115}"
 SSH_KEY="${SSH_KEY:-$HOME/.ssh/id_ed25519}"
 REMOTE_DIR="/opt/ritme"
+# curl --resolve only accepts a literal address, so a SERVER override that
+# names a host (or omits `user@`) must be resolved before we pin to it.
+ORIGIN_IP="${ORIGIN_IP:-${SERVER##*@}}"
+if [[ ! "$ORIGIN_IP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  # `|| true`: a missing dig must not abort the deploy under `set -e`; the
+  # empty result is reported below instead.
+  ORIGIN_IP="$(dig +short A "$ORIGIN_IP" 2>/dev/null | grep -m1 -E '^[0-9.]+$' || true)"
+  [[ -n "$ORIGIN_IP" ]] || echo "!! could not resolve ${SERVER##*@} — the origin-pinned check will be skipped" >&2
+fi
 SERVICES="${SERVICES:-}"
 
 SSH_OPTS=(-i "$SSH_KEY" -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=8)
@@ -42,25 +51,38 @@ if [[ "${SKIP_SYNC:-0}" != "1" ]]; then
     --exclude 'vendor/' \
     --exclude '.next/' \
     --exclude 'application/' \
+    --exclude 'twa/' \
+    --exclude 'android-shell/' \
     --exclude '*.tar.gz' \
     --exclude '*.fig' \
     --exclude '*.log' \
+    --exclude '.playwright-mcp/' \
     --exclude '.env' \
     --exclude '.env.local' \
     --exclude 'ssl/' \
     --exclude 'certbot-www/' \
+    --exclude 'stage.htpasswd' \
     --exclude 'backend/storage/logs/*' \
     --exclude 'backend/storage/framework/cache/*' \
     --exclude 'backend/database/*.sqlite' \
     -e "ssh ${SSH_OPTS[*]}" \
-    ./ "${SERVER}:${REMOTE_DIR}/" | tail -4
+    --progress \
+    ./ "${SERVER}:${REMOTE_DIR}/"
 fi
+
+# The proxy joins the external `ritme-edge` bridge (shared with the separate
+# `ritme-stage` compose project) and bind-mounts ./stage.htpasswd. Neither is
+# rsynced, so create them if absent — otherwise compose errors on the missing
+# network, or Docker silently materialises a DIRECTORY where nginx wants a file.
+echo "==> Ensuring shared edge network and staging htpasswd exist..."
+ssh_run "docker network inspect ritme-edge >/dev/null 2>&1 || docker network create ritme-edge" >/dev/null
+ssh_run "test -e ${REMOTE_DIR}/stage.htpasswd || : > ${REMOTE_DIR}/stage.htpasswd"
 
 if [[ "${NO_BUILD:-0}" != "1" ]]; then
   echo "==> Building images on the server (this is the slow part)..."
-  # Build args (NEXT_PUBLIC_API_BASE_URL, NEXT_PUBLIC_OTP_TEST_MODE) come from
-  # the server's .env, which compose loads automatically — so the public API
-  # URL baked into the browser bundle is configured once, on the server.
+  # The build arg (NEXT_PUBLIC_API_BASE_URL) comes from the server's .env,
+  # which compose loads automatically — so the public API URL baked into the
+  # browser bundle is configured once, on the server.
   ssh_run "cd ${REMOTE_DIR} && ${COMPOSE} build ${SERVICES}"
 fi
 
@@ -85,7 +107,7 @@ failures=0
 check() { # check <expected> <label> [extra curl args...]
   local expected="$1" url="$2"; shift 2
   local got
-  got="$(curl -s -o /dev/null -m 25 -w '%{http_code}' "$@" "$url" || echo 000)"
+  got="$(curl -s -o /dev/null -m 25 -w '%{http_code}' "$@" "$url")" || got=000
   if [[ "$got" == "$expected" ]]; then
     printf '  ok    %s  %s\n' "$got" "$url"
   else
@@ -99,7 +121,11 @@ check 401 "https://api.ritme.app/api/v1/banners" -H 'Accept: application/json'
 check 404 "https://api.ritme.app/admin"
 check 200 "https://adpanell.ritme.app/admin/login"
 check 404 "https://adpanell.ritme.app/api/v1/banners"
-check 307 "https://web.ritme.app/"
+# web.ritme.app resolves to a CDN edge, not this server. A deploy check must
+# test what the deploy actually changed, so pin the request to the origin IP.
+if [[ -n "$ORIGIN_IP" ]]; then
+  check 307 "https://web.ritme.app/" --resolve "web.ritme.app:443:${ORIGIN_IP}"
+fi
 
 if (( failures > 0 )); then
   echo "❌ Deploy finished but ${failures} check(s) failed — see above." >&2

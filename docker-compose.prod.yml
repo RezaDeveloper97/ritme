@@ -30,8 +30,23 @@ services:
       - "127.0.0.1:3307:3306"
 
   backend:
+    # Force production framework settings regardless of the server .env: a
+    # missing APP_DEBUG/APP_ENV must never fall back to the base file's
+    # debug/local defaults, which would render stack traces (with secrets) on
+    # any 500 in production.
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
     ports: !override
       - "127.0.0.1:8080:80"
+
+  # The queue worker inherits the base &backend-env anchor (debug/local
+  # defaults); force production so worker logs never render stack traces with
+  # secrets either.
+  queue:
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
 
   frontend:
     ports: !override
@@ -62,3 +77,25 @@ services:
       - ./deploy/vhost-web.inc:/etc/nginx/conf.d/vhost-web.inc:ro
       - ./certbot-www:/var/www/certbot:ro
       - ./ssl:/etc/nginx/ssl:ro
+      # ── staging (stage.ritmeapp.ir) ──────────────────────────────────────
+      # Same PROXY_CONF trick: STAGE_CONF selects which server blocks get
+      # mounted as zz-stage.conf. Default is an empty file, so a stack with no
+      # staging environment gains nothing. deploy-stage.sh sets it to
+      # ./deploy/stage-http.conf, then enable-https-stage.sh to stage-ssl.conf.
+      # zz- prefix keeps it loading AFTER default.conf, which owns the
+      # default_server blocks.
+      - ${STAGE_CONF:-./deploy/stage-off.conf}:/etc/nginx/conf.d/zz-stage.conf:ro
+      - ./deploy/vhost-stage.inc:/etc/nginx/conf.d/vhost-stage.inc:ro
+      # Server-only file (never rsynced); deploy.sh touches it so a fresh
+      # server can't have Docker create a DIRECTORY here instead.
+      - ./stage.htpasswd:/etc/nginx/stage.htpasswd:ro
+    networks:
+      # `ritme-edge` is the external bridge the separate `ritme-stage` compose
+      # project also joins — it is how this proxy resolves stage-backend /
+      # stage-frontend. Harmless when no staging stack is running.
+      - default
+      - ritme-edge
+
+networks:
+  ritme-edge:
+    external: true

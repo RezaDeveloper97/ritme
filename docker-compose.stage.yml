@@ -1,0 +1,59 @@
+# Staging overlay for the Ritme stack — used as:
+#   docker compose -p ritme-stage -f docker-compose.yml -f docker-compose.stage.yml ...
+# (see deploy-stage.sh). Lives on the SAME server as production, in its own
+# compose project, so containers, networks and named volumes are all
+# project-scoped and cannot collide with `ritme`.
+#
+# It runs NO proxy of its own — production's nginx already owns :80/:443. The
+# two stacks meet on the external `ritme-edge` network, where staging's backend
+# and frontend answer to the aliases `stage-backend` / `stage-frontend` that
+# deploy/vhost-stage.inc proxies to.
+#
+# Nothing here publishes a host port: the only way in is through that proxy,
+# which means the Basic-auth gate cannot be bypassed by hitting a port directly.
+
+name: ritme-stage
+
+services:
+  mysql:
+    # Same MariaDB substitution as production — this CPU is x86-64-v1 only and
+    # the official mysql images die on it. See docker-compose.prod.yml.
+    image: mariadb:11.4
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    ports: !override []
+
+  redis:
+    ports: !override []
+
+  backend:
+    environment:
+      APP_ENV: staging
+      # Staging exists to be debugged, but it is internet-facing (behind Basic
+      # auth), so stack traces stay off unless explicitly switched on.
+      APP_DEBUG: ${APP_DEBUG:-false}
+    ports: !override []
+    networks:
+      default:
+      ritme-edge:
+        aliases: [stage-backend]
+
+  queue:
+    environment:
+      APP_ENV: staging
+      APP_DEBUG: ${APP_DEBUG:-false}
+
+  frontend:
+    ports: !override []
+    networks:
+      default:
+      ritme-edge:
+        aliases: [stage-frontend]
+
+networks:
+  # Created once by the deploy scripts; production's proxy joins it too.
+  ritme-edge:
+    external: true
