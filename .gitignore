@@ -11,3 +11,19 @@ task.md
 # Server-only deploy state (TLS material + ACME webroot), created on the host.
 /ssl/
 /certbot-www/
+# Abandoned TWA wrapper (Chrome leaves visible traces) — kept locally only.
+/twa/
+
+# Android shell (WebView app) — kept locally only, never committed.
+/android-shell/
+
+# Playwright MCP session artefacts (console logs + accessibility snapshots of
+# a logged-in session) — local debugging output, never part of the repo.
+/.playwright-mcp/
+
+node_modules/
+*.apk
+*.aab
+*.idsig
+*.jks
+*.keystore

@@ -88,6 +88,21 @@ class HealthDataEngine
      */
     private int $effectivePeriodDuration = 5;
 
+    /**
+     * Per-request cache of the user's cycle history. It is identical for every
+     * date this engine calculates and never mutates during the engine's
+     * lifetime (period edits happen in separate requests), so loading it once
+     * removes a full re-query per calculateForDate() call — the N+1 that made
+     * the month view fire 31 identical cycle_histories SELECTs.
+     */
+    private ?Collection $cycleHistoriesCache = null;
+
+    /**
+     * Per-request cache of daily logs keyed by Y-m-d, so repeated
+     * calculateForDate() calls for the same date don't re-query.
+     */
+    private array $dailyLogCache = [];
+
     public function __construct(User $user, string $locale = 'en', ?RecommendationRepository $recommendations = null)
     {
         $this->user = $user;
@@ -877,11 +892,39 @@ class HealthDataEngine
     /**
      * Get daily log for a specific date
      */
+    /**
+     * Warm the daily-log cache for an inclusive date range in a single query.
+     * Callers that calculate many consecutive dates (e.g. the month view) should
+     * call this once up front so getDailyLog() never falls through to a per-date
+     * query — turning 31 SELECTs into 1. Dates in the range with no log are
+     * cached as null so they don't re-query either.
+     */
+    public function preloadDailyLogs(Carbon $start, Carbon $end): void
+    {
+        $logs = $this->user->dailyHealthLogs()
+            ->whereBetween('log_date', [$start->copy()->startOfDay(), $end->copy()->endOfDay()])
+            ->get()
+            ->keyBy(fn (DailyHealthLog $log) => Carbon::parse($log->log_date)->toDateString());
+
+        $cursor = $start->copy();
+        while ($cursor <= $end) {
+            $key = $cursor->toDateString();
+            $this->dailyLogCache[$key] = $logs->get($key);
+            $cursor->addDay();
+        }
+    }
+
     private function getDailyLog(Carbon $date): ?DailyHealthLog
     {
-        return $this->user->dailyHealthLogs()
-            ->whereDate('log_date', $date)
-            ->first();
+        $key = $date->toDateString();
+
+        if (! array_key_exists($key, $this->dailyLogCache)) {
+            $this->dailyLogCache[$key] = $this->user->dailyHealthLogs()
+                ->whereDate('log_date', $date)
+                ->first();
+        }
+
+        return $this->dailyLogCache[$key];
     }
 
     /**
@@ -892,7 +935,8 @@ class HealthDataEngine
         // Full history (no ->take cap): CycleMetricsCalculator internally limits itself to
         // the last 3 valid cycles, and CycleDayViewBuilder loads the full history too — a
         // cap here made the effective values in `calculation` and `cycle_view` disagree.
-        return CycleHistory::where('user_id', $this->user->id)
+        // Memoized: identical for every date this engine calculates (see property doc).
+        return $this->cycleHistoriesCache ??= CycleHistory::where('user_id', $this->user->id)
             ->orderBy('period_start_date', 'desc')
             ->get();
     }

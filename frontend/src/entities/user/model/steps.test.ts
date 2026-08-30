@@ -6,6 +6,7 @@ import {
   onboardingRoute,
   onboardingStepFromPath,
   onboardingSteps,
+  previousOnboardingRoute,
   SETTING_UP_ROUTE,
   stepPosition,
 } from './steps';
@@ -82,5 +83,38 @@ describe('isOnboardingStep', () => {
     expect(isOnboardingStep('')).toBe(false);
     expect(isOnboardingStep('settingUp')).toBe(false);
     expect(isOnboardingStep('toString')).toBe(false);
+  });
+});
+
+describe('previousOnboardingRoute', () => {
+  it('walks the flow backwards, one step at a time', () => {
+    const steps = onboardingSteps(null);
+    for (let i = 1; i < steps.length; i += 1) {
+      expect(previousOnboardingRoute(steps[i], null)).toBe(onboardingRoute(steps[i - 1]));
+    }
+  });
+
+  it('has nowhere to go from the first step — the flow starts before it', () => {
+    expect(previousOnboardingRoute(onboardingSteps(null)[0], null)).toBeNull();
+  });
+
+  // `intention` and `pregnancyBasis` are out of the flow while pregnancy is
+  // postponed, but their route folders — and the screens that ask for their
+  // previous step — still exist. indexOf() returns -1 for them, which used to
+  // read as "before the first step" and eject the user to /signup.
+  it('keeps a key that is not in the current flow inside onboarding', () => {
+    for (const key of ['intention', 'pregnancyBasis'] as const) {
+      expect(previousOnboardingRoute(key, null)).toBe(onboardingRoute('name'));
+      expect(nextOnboardingRoute(key, null)).toBe(onboardingRoute('name'));
+    }
+  });
+
+  it('is the inverse of nextOnboardingRoute for every non-final step', () => {
+    const steps = onboardingSteps(null);
+    for (let i = 0; i < steps.length - 1; i += 1) {
+      const forward = nextOnboardingRoute(steps[i], null);
+      expect(forward).toBe(onboardingRoute(steps[i + 1]));
+      expect(previousOnboardingRoute(steps[i + 1], null)).toBe(onboardingRoute(steps[i]));
+    }
   });
 });

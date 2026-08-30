@@ -43,6 +43,7 @@ different API, change `NEXT_PUBLIC_API_BASE_URL` in `.env` and rebuild:
 docker compose build frontend && docker compose up -d frontend
 ```
 
-`NEXT_PUBLIC_OTP_TEST_MODE=true` makes login accept `1111` as the OTP without
-sending real SMS — set it to `false` (and fill the SMS provider keys) for
-production.
+Login has no test or bypass mode — the OTP is always randomly generated and
+always sent over SMS, so the SMS provider keys are required for login to work
+in every environment. To log in locally, read the generated code out of the
+database (see `.claude/skills/local-dev`).

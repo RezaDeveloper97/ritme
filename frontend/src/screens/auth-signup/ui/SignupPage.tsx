@@ -51,9 +51,8 @@ export function SignupPage() {
       </div>
 
       <div className="scroll auth-body">
-        {/* Brand mark: logo floating in a soft gradient halo, above the title */}
+        {/* Brand mark: the bare transparent logo, centered above the title */}
         <div className="signup-brand">
-          <span aria-hidden className="signup-halo" />
           <Image
             src="/logo.webp"
             alt=""

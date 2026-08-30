@@ -124,7 +124,12 @@
 <script>
     window.onload = function() {
         // Use direct URL to the JSON file
-        const jsonUrl = window.location.origin + '/docs/api-docs.json';
+        // Fetch the spec through the gated `/docs` route (served by Laravel,
+        // behind swagger.auth) — NOT the old static /docs/api-docs.json path,
+        // which is a public file that bypasses auth. The browser's Basic-auth
+        // session for this page carries the credentials to this same-origin
+        // request automatically.
+        const jsonUrl = window.location.origin + '/docs';
 
         // Build a system
         const ui = SwaggerUIBundle({

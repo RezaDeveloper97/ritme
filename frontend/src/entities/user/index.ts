@@ -22,6 +22,7 @@ export {
   onboardingRoute,
   onboardingStepFromPath,
   onboardingSteps,
+  previousOnboardingRoute,
   SETTING_UP_ROUTE,
   stepPosition,
   type OnboardingStepKey,

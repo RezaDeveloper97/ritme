@@ -7,6 +7,7 @@ import { formatNumber } from '@/shared/lib/date';
 import { Icon, NavBack } from '@/shared/ui';
 import {
   nextOnboardingRoute,
+  previousOnboardingRoute,
   stepPosition,
   useOnboardingStore,
   type ChronicCondition,
@@ -37,7 +38,7 @@ export function ConditionsPage() {
   return (
     <div className="view onb-page">
       <div className="hdr">
-        <NavBack onClick={() => router.back()} />
+        <NavBack onClick={() => router.replace(previousOnboardingRoute('conditions', intention) ?? '/signup')} />
         <span className="stepcount">{formatNumber(step.index, loc)}<span className="onb-dim"> / {formatNumber(step.total, loc)}</span></span>
       </div>
 

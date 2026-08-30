@@ -106,7 +106,7 @@ export function OtpPage() {
     <div className="view onb-page">
 
       <div className="hdr">
-        <NavBack onClick={() => router.back()} />
+        <NavBack onClick={() => router.replace('/signup')} />
         <span />
       </div>
 
@@ -120,7 +120,7 @@ export function OtpPage() {
 
         <button
           className="btn-soft otp-edit"
-          onClick={() => router.back()}
+          onClick={() => router.replace('/signup')}
         >
           <Icon name="pencil" size={15} />
           {t('otp.editPhone')}

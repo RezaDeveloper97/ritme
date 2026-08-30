@@ -32,10 +32,16 @@ use Illuminate\Support\Facades\Route;
 
 // API Version 1
 Route::prefix('v1')->group(function () {
-    // Public routes - OTP Authentication
+    // Public routes - OTP Authentication.
+    // Per-IP throttles cap automated abuse (SMS-bombing on send, brute-forcing
+    // the 4-digit code on verify) that the per-mobile DB checks alone can't stop
+    // when an attacker rotates numbers or fires requests in parallel. These are
+    // the ONLY unauthenticated write endpoints, so they carry explicit limits.
     Route::prefix('auth')->group(function () {
-        Route::post('/send-otp', [OtpAuthController::class, 'sendOtp']);
-        Route::post('/verify-otp', [OtpAuthController::class, 'verifyOtp']);
+        Route::post('/send-otp', [OtpAuthController::class, 'sendOtp'])
+            ->middleware('throttle:5,1');
+        Route::post('/verify-otp', [OtpAuthController::class, 'verifyOtp'])
+            ->middleware('throttle:10,1');
     });
 
     // The locales the app ships, and their UI strings. Public and read before

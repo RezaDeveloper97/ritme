@@ -45,11 +45,26 @@ interface BeforeInstallPromptEvent extends Event {
 
 const DISMISS_KEY = 'ritme-install-dismissed';
 
+// `display-mode` matches the mode the window is *actually* in, not "is
+// installed" — so an installed app launched from a `display: fullscreen`
+// manifest does not match `standalone`. All three installed modes count.
+const INSTALLED_DISPLAY_MODES =
+  '(display-mode: fullscreen), (display-mode: standalone), (display-mode: minimal-ui)';
+
 function isStandalone(): boolean {
   return (
-    window.matchMedia('(display-mode: standalone)').matches ||
+    window.matchMedia(INSTALLED_DISPLAY_MODES).matches ||
     (navigator as Navigator & { standalone?: boolean }).standalone === true
   );
+}
+
+/**
+ * The Android shell (android-shell/) hosts the site in its own WebView and
+ * stamps the UA. "Install our app" inside the app would be absurd — and it is
+ * the kind of detail that tells a user they are looking at a web page.
+ */
+function isNativeShell(): boolean {
+  return / RitmeApp\//.test(navigator.userAgent);
 }
 
 function isIos(): boolean {
@@ -70,7 +85,7 @@ export function InstallPrompt() {
   const [showIosGuide, setShowIosGuide] = useState(false);
 
   useEffect(() => {
-    if (isStandalone() || window.localStorage.getItem(DISMISS_KEY)) return;
+    if (isNativeShell() || isStandalone() || window.localStorage.getItem(DISMISS_KEY)) return;
 
     if (isIos()) {
       setShowIosGuide(true);

@@ -16,6 +16,14 @@ import type { SheetTarget } from './types';
  */
 let pushedEntries = 0;
 
+/**
+ * A deep-linked sheet the user dismissed. That branch of `closeSheet` can only
+ * rewrite the *current* entry, so the entry underneath still carries
+ * `?sheet=…`; without this the next back press would surface it and re-open
+ * the sheet the user just closed.
+ */
+let dismissedDeepLink: SheetTarget | null = null;
+
 const sameTarget = (a: SheetTarget | null, b: SheetTarget | null): boolean =>
   a !== null && b !== null && a.id === b.id && a.arg === b.arg;
 
@@ -31,6 +39,7 @@ export function openSheet(id: string, arg?: string): void {
   // supported way to change the query string without a server round-trip.
   window.history.pushState(null, '', hrefWithSheet(window.location.href, target));
   pushedEntries += 1;
+  dismissedDeepLink = null;
 
   const { stack, setStack } = useSheetStore.getState();
   setStack([...stack, target]);
@@ -50,6 +59,7 @@ export function closeSheet(): void {
 
   // Deep link straight into a sheet: there is no entry of ours to pop, so drop
   // the parameters in place and leave the back button pointing out of the app.
+  dismissedDeepLink = topOf(stack);
   window.history.replaceState(null, '', hrefWithSheet(window.location.href, null));
   setStack([]);
 }
@@ -68,7 +78,16 @@ export function syncSheetWithHistory(): () => void {
 
     if (!target) {
       pushedEntries = 0;
+      dismissedDeepLink = null;
       setStack([]);
+      return;
+    }
+
+    // The back press landed on the pre-dismissal entry of a deep-linked sheet.
+    // Adopting it would undo the user's own tap on the close button, so strip
+    // the parameters instead and stay on the screen underneath.
+    if (stack.length === 0 && sameTarget(dismissedDeepLink, target)) {
+      window.history.replaceState(null, '', hrefWithSheet(window.location.href, null));
       return;
     }
 
@@ -100,5 +119,6 @@ export function syncSheetWithHistory(): () => void {
 export function closeSheetOnRouteChange(): void {
   if (useSheetStore.getState().stack.length === 0) return;
   pushedEntries = 0;
+  dismissedDeepLink = null;
   useSheetStore.getState().setStack([]);
 }

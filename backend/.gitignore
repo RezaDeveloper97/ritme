@@ -22,3 +22,7 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# l5-swagger output — generated at runtime (config/l5-swagger.php: public_path("docs")).
+/public/docs/
+/storage/api-docs/

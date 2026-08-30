@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { Icon, NavBack } from '@/shared/ui';
-import { nextOnboardingRoute, stepPosition, useOnboardingStore } from '@/entities/user';
+import { nextOnboardingRoute, previousOnboardingRoute, stepPosition, useOnboardingStore } from '@/entities/user';
 
 
 export function NamePage() {
@@ -33,7 +33,7 @@ export function NamePage() {
   return (
     <div className="view onb-page">
       <div className="hdr">
-        <NavBack onClick={() => router.back()} />
+        <NavBack onClick={() => router.replace(previousOnboardingRoute('name', intention) ?? '/signup')} />
         <span className="stepcount">{formatNumber(step.index, loc)}<span className="onb-dim"> / {formatNumber(step.total, loc)}</span></span>
       </div>
 

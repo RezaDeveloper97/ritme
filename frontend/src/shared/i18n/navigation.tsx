@@ -58,6 +58,9 @@ export function useRouter() {
   const resolve = (href: string, options?: NavigateOptions) =>
     localizeHref(href, options?.locale ?? active);
 
+  // No `back`/`forward`: history navigation is trapped app-wide
+  // (`shared/back-guard`), so calling them would do nothing. On-screen back
+  // affordances navigate to an explicit route instead.
   return {
     push: (href: string, options?: NavigateOptions) =>
       router.push(resolve(href, options), { scroll: options?.scroll }),
@@ -65,8 +68,6 @@ export function useRouter() {
       router.replace(resolve(href, options), { scroll: options?.scroll }),
     prefetch: (href: string, options?: NavigateOptions) =>
       router.prefetch(resolve(href, options)),
-    back: () => router.back(),
-    forward: () => router.forward(),
     refresh: () => router.refresh(),
   };
 }

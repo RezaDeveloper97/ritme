@@ -101,12 +101,38 @@ export function stepPosition(
   return { index: steps.indexOf(key) + 1, total: steps.length };
 }
 
+/**
+ * The route the `NavBack` arrow goes to, or `null` on the first step — the flow
+ * starts at the phone number, which is not part of this sequence.
+ *
+ * The arrow navigates forwards to a known route instead of calling
+ * `router.back()`, because browser/hardware back is trapped app-wide
+ * (`shared/back-guard`) and would do nothing.
+ */
+export function previousOnboardingRoute(
+  key: OnboardingStepKey,
+  intention: PregnancyIntention | null,
+): string | null {
+  const steps = onboardingSteps(intention);
+  const at = steps.indexOf(key);
+  // A key outside the current flow (`intention`/`pregnancyBasis` while
+  // pregnancy is postponed, but their routes still exist) would index -2 and
+  // read as "first step", sending a signed-in user back out to /signup.
+  if (at === -1) return steps.length > 0 ? STEP_ROUTES[steps[0]] : null;
+  const previous = steps[at - 1];
+  return previous ? STEP_ROUTES[previous] : null;
+}
+
 /** The route to advance to after `key`, or the setting-up screen when last. */
 export function nextOnboardingRoute(
   key: OnboardingStepKey,
   intention: PregnancyIntention | null,
 ): string {
   const steps = onboardingSteps(intention);
-  const next = steps[steps.indexOf(key) + 1];
+  const at = steps.indexOf(key);
+  // Same -1 trap as above: it would otherwise resolve to steps[0], silently
+  // restarting the flow instead of continuing it.
+  if (at === -1) return steps.length > 0 ? STEP_ROUTES[steps[0]] : SETTING_UP_ROUTE;
+  const next = steps[at + 1];
   return next ? STEP_ROUTES[next] : SETTING_UP_ROUTE;
 }

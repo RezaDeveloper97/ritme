@@ -64,12 +64,13 @@ services:
       CACHE_STORE: redis
       SESSION_DRIVER: redis
       QUEUE_CONNECTION: redis
-      SMS_PROVIDER: ${SMS_PROVIDER:-smsir}
+      SMS_PROVIDER: ${SMS_PROVIDER:-kavenegar}
       SMSIR_API_KEY: ${SMSIR_API_KEY:-}
       SMSIR_TEMPLATE_ID: ${SMSIR_TEMPLATE_ID:-511293}
       SMSIR_LINE_NUMBER: ${SMSIR_LINE_NUMBER:-}
       KAVENEGAR_API_KEY: ${KAVENEGAR_API_KEY:-}
       KAVENEGAR_SENDER: ${KAVENEGAR_SENDER:-}
+      KAVENEGAR_TEMPLATE_LOGIN_OTP: ${KAVENEGAR_TEMPLATE_LOGIN_OTP:-1507703}
       RUN_MIGRATIONS: "true"
       # Serves the Blade admin panel at /admin on the SAME domain. The proxy
       # must route /admin -> backend (see proxy.conf). To later move the panel
@@ -78,8 +79,16 @@ services:
       # admin.<domain> at it — the /admin routes work unchanged either way.
       ADMIN_PANEL_ENABLED: ${ADMIN_PANEL_ENABLED:-true}
       ADMIN_SEED_EMAIL: ${ADMIN_SEED_EMAIL:-admin@ritmeapp.ir}
-      ADMIN_SEED_PASSWORD: ${ADMIN_SEED_PASSWORD:-admin1234}
+      # No default: an unset password must fail `compose up` rather than seed a
+      # well-known credential. The seeder only creates the admin if it does not
+      # already exist (firstOrCreate), so this is read once at first provision.
+      ADMIN_SEED_PASSWORD: ${ADMIN_SEED_PASSWORD:?set ADMIN_SEED_PASSWORD in .env}
       ADMIN_SEED_NAME: ${ADMIN_SEED_NAME:-مدیر ارشد}
+      # Swagger UI is gated by HTTP Basic auth (see SwaggerBasicAuth). In prod
+      # SWAGGER_PASSWORD must be set or the docs fail closed (401).
+      SWAGGER_USER: ${SWAGGER_USER:-ritme}
+      SWAGGER_PASSWORD: ${SWAGGER_PASSWORD:-}
+      L5_SWAGGER_GENERATE_ALWAYS: ${L5_SWAGGER_GENERATE_ALWAYS:-false}
     volumes:
       - backend-storage:/var/www/html/storage
     ports:
@@ -109,7 +118,6 @@ services:
         # Inlined into the browser bundle at build time — must be a URL the
         # user's browser can reach (hence localhost, not the service name).
         NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8080/api/v1}
-        NEXT_PUBLIC_OTP_TEST_MODE: ${NEXT_PUBLIC_OTP_TEST_MODE:-true}
     restart: unless-stopped
     depends_on:
       - backend

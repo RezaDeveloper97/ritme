@@ -13,7 +13,7 @@ import {
   todayParts,
 } from '@/shared/lib/date';
 import { NavBack, WheelPicker } from '@/shared/ui';
-import { nextOnboardingRoute, stepPosition, useOnboardingStore } from '@/entities/user';
+import { nextOnboardingRoute, previousOnboardingRoute, stepPosition, useOnboardingStore } from '@/entities/user';
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
@@ -71,7 +71,7 @@ export function CycleLenPage() {
   return (
     <div className="view onb-page">
       <div className="hdr">
-        <NavBack onClick={() => router.back()} />
+        <NavBack onClick={() => router.replace(previousOnboardingRoute('cycleLen', intention) ?? '/signup')} />
         <span className="stepcount">
           {formatNumber(step.index, loc)}
           <span className="onb-dim"> / {formatNumber(step.total, loc)}</span>

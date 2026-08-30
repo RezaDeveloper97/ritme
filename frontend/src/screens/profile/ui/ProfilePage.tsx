@@ -12,7 +12,7 @@ import { QuickEditSheet, type QuickEditField } from '@/features/edit-profile';
 import { useSwitchLocale } from '@/features/switch-locale';
 import { formatLongDate } from '@/shared/lib/date';
 import { openSheet } from '@/shared/sheet';
-import { useDirection, useRouter, type Locale } from '@/shared/i18n';
+import { localizeHref, useDirection, type Locale } from '@/shared/i18n';
 import { Icon, type IconName } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
 
@@ -147,7 +147,6 @@ function EditableValue({ children }: { children: ReactNode }) {
 export function ProfilePage() {
   const t = useTranslations('profile');
   const loc = useLocale() as Locale;
-  const router = useRouter();
   const { data: profile } = useUserProfile();
   // const { data: userMode } = useUserMode();
   // const deactivatePregnancy = useDeactivatePregnancy();
@@ -178,10 +177,15 @@ export function ProfilePage() {
   const measureOrEmpty = (key: 'kg' | 'cm', value: number | null | undefined) =>
     value != null ? t(`health.${key}`, { value }) : t('health.empty');
 
+  // A full document replace, not a client-side one: it drops every React tree,
+  // query cache and in-memory token the signed-in session left behind, and it
+  // overwrites the current history entry so the profile screen cannot be
+  // restored from the bfcache. `onSettled` — a logout whose network call failed
+  // has still cleared the local session, so the user must still leave.
   const handleLogout = () => {
     if (logout.isPending) return;
     logout.mutate(undefined, {
-      onSuccess: () => router.replace('/signup'),
+      onSettled: () => window.location.replace(localizeHref('/signup', loc)),
     });
   };
 
@@ -234,7 +238,8 @@ export function ProfilePage() {
         {/* App mode — TEMPORARILY HIDDEN. Pregnancy mode is postponed, so the
             switch/tracker entry point is commented out rather than deleted; the
             backend, routes and pregnancy slices are all still in place. Restore
-            this block (and `isPregnancy`/`switchToCycle` above) to bring it back.
+            this block (and `isPregnancy`/`switchToCycle` above, plus a
+            `const router = useRouter()`) to bring it back.
 
         <Group title={t('sections.mode')}>
           {isPregnancy ? (

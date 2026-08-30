@@ -26,6 +26,13 @@ return [
                 'use_absolute_path' => env('L5_SWAGGER_USE_ABSOLUTE_PATH', true),
 
                 /*
+                 * Directory holding the generated spec. MUST be outside public/
+                 * so the file is served only through the gated docs route and
+                 * never as a static asset (which would bypass swagger.auth).
+                 */
+                'docs' => storage_path('api-docs'),
+
+                /*
                 * Edit to set path where swagger ui assets should be stored
                 */
                 'swagger_ui_assets_path' => env('L5_SWAGGER_UI_ASSETS_PATH', 'vendor/swagger-api/swagger-ui/dist/'),
@@ -70,10 +77,13 @@ return [
              * Middleware allows to prevent unexpected access to API documentation
              */
             'middleware' => [
-                'api' => [],
-                'asset' => [],
-                'docs' => [],
-                'oauth2_callback' => [],
+                // HTTP Basic auth (SWAGGER_USER / SWAGGER_PASSWORD). The docs
+                // enumerate the whole API surface, so they are never public in
+                // production — see App\Http\Middleware\SwaggerBasicAuth.
+                'api' => ['swagger.auth'],
+                'asset' => ['swagger.auth'],
+                'docs' => ['swagger.auth'],
+                'oauth2_callback' => ['swagger.auth'],
             ],
 
             /*
@@ -86,7 +96,11 @@ return [
             /*
              * Absolute path to location where parsed annotations will be stored
              */
-            'docs' => public_path('docs'),
+            // MUST live outside the webroot: a spec written under public/ is
+            // served as a static file by nginx/PHP before Laravel runs, which
+            // bypasses the swagger.auth middleware entirely and leaks the full
+            // API spec. storage/ is only reachable through the gated docs route.
+            'docs' => storage_path('api-docs'),
 
             /*
              * Absolute path to directory where to export views
@@ -195,7 +209,10 @@ return [
          * Set this to `true` in development mode so that docs would be regenerated on each request
          * Set this to `false` to disable swagger generation on production
          */
-        'generate_always' => env('L5_SWAGGER_GENERATE_ALWAYS', true),
+        // Regenerating the spec on every request re-scans app/ and rewrites the
+        // JSON on disk — an unauthenticated CPU/disk DoS if left on in prod.
+        // Default off; enable in local dev via env when iterating on annotations.
+        'generate_always' => env('L5_SWAGGER_GENERATE_ALWAYS', false),
 
         /*
          * Set this to `true` to generate a copy of documentation in yaml format

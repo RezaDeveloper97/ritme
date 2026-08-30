@@ -52,6 +52,11 @@ if [ "$RUN_MIGRATIONS" = "true" ]; then
   php artisan db:seed --class=Database\\Seeders\\AdminSeeder --force || true
   php artisan db:seed --class=Database\\Seeders\\MessageContentSeeder --force || true
   php artisan db:seed --class=Database\\Seeders\\RecommendationSeeder --force || true
+
+  # Build the OpenAPI spec once at boot. `generate_always` is off (regenerating
+  # per request is a DoS vector), so the spec is produced here instead; the docs
+  # UI is gated by SwaggerBasicAuth regardless.
+  php artisan l5-swagger:generate || true
 fi
 
 exec "$@"

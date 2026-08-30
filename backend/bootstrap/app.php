@@ -52,6 +52,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin.active' => EnsureAdminActive::class,
             'admin.super' => EnsureSuperAdmin::class,
             'setlocale' => SetLocale::class,
+            'swagger.auth' => \App\Http\Middleware\SwaggerBasicAuth::class,
         ]);
 
         // Web guests hitting a guarded admin page are sent to the admin login.

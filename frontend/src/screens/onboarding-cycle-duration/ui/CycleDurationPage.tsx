@@ -6,7 +6,7 @@ import { useMemo } from 'react';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { NavBack, WheelPicker } from '@/shared/ui';
-import { nextOnboardingRoute, stepPosition, useOnboardingStore } from '@/entities/user';
+import { nextOnboardingRoute, previousOnboardingRoute, stepPosition, useOnboardingStore } from '@/entities/user';
 
 
 // Cycle length bounds mirror the POST /profile validation (cycle_duration 15–60).
@@ -27,7 +27,7 @@ export function CycleDurationPage() {
   return (
     <div className="view onb-page">
       <div className="hdr">
-        <NavBack onClick={() => router.back()} />
+        <NavBack onClick={() => router.replace(previousOnboardingRoute('cycleDuration', intention) ?? '/signup')} />
         <span className="stepcount">{formatNumber(step.index, loc)}<span className="onb-dim"> / {formatNumber(step.total, loc)}</span></span>
       </div>
 

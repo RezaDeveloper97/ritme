@@ -57,7 +57,10 @@ Route::get('ckeditor/{path}', [AssetController::class, 'ckeditor'])
 
 // Guest
 Route::get('login', [AuthController::class, 'showLogin'])->name('login');
-Route::post('login', [AuthController::class, 'login'])->name('login.attempt');
+// Throttle password guessing against the admin panel (no lockout otherwise).
+Route::post('login', [AuthController::class, 'login'])
+    ->middleware('throttle:5,1')
+    ->name('login.attempt');
 
 // Authenticated admins
 Route::middleware(['auth:admin', 'admin.active'])->group(function () {

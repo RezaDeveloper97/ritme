@@ -12,7 +12,7 @@ Unlike the old host (62.60.198.240), **this server has full international connec
 ## Pre-deploy checklist
 1. Run `/verify-all` (or at minimum backend `php artisan test` + frontend `npm run typecheck`). A broken Next build fails the deploy after several minutes.
 2. Nothing needs to be committed or pushed — `deploy.sh` rsyncs the **working tree**. What you have locally is what ships.
-3. Check `/opt/ritme/.env` if you're changing build-time config: `NEXT_PUBLIC_API_BASE_URL` and `NEXT_PUBLIC_OTP_TEST_MODE` are baked into the browser bundle from there.
+3. Check `/opt/ritme/.env` if you're changing build-time config: `NEXT_PUBLIC_API_BASE_URL` is baked into the browser bundle from there.
 
 ## Deploy
 ```bash

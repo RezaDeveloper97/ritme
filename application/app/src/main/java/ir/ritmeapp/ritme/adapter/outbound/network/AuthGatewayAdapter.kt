@@ -28,11 +28,11 @@ class AuthGatewayAdapter(
 
     override suspend fun sendOtp(mobile: PhoneNumber): AppResult<OtpChallenge> {
         Breadcrumbs.add("api:send_otp:start")
+        // No test-mode flag: the backend has no bypass at all, so the OTP is always
+        // random and always arrives by SMS. For local dev, read the code out of the
+        // backend database instead.
         val payload = JSONObject()
             .put("mobile", mobile.national)
-            // SMS gateway is currently down — force test mode so the backend uses the
-            // fixed OTP 1111 and skips sending a real SMS. Flip back to false once SMS is live.
-            .put("is_test", true)
             .toString()
         return post(ApiConfig.SEND_OTP_PATH, payload, "send_otp") { parseChallenge(it) }
     }

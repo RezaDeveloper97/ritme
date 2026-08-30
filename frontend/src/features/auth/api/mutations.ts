@@ -10,7 +10,6 @@ import {
   setAuthToken,
   setOnboardingPending,
 } from '@/shared/session';
-import { env } from '@/shared/config';
 import {
   authUserSchema,
   resetOnboardingFor,
@@ -38,7 +37,7 @@ export function useSendOtp() {
     mutationFn: async (mobile) => {
       const { data } = await apiClient.post<
         ApiEnvelope<{ new_user: boolean; expires_in: number }>
-      >('/auth/send-otp', { mobile, is_test: env.otpTestMode });
+      >('/auth/send-otp', { mobile });
       return {
         newUser: data.data?.new_user ?? false,
         expiresIn: data.data?.expires_in ?? 120,

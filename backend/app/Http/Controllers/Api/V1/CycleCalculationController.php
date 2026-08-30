@@ -224,6 +224,9 @@ class CycleCalculationController extends Controller
 
         // Always calculate fresh to ensure correct cycle_day values
         $engine = new HealthDataEngine($user, $locale);
+        // Warm the daily-log cache for the whole month in one query so the loop
+        // below doesn't fire a per-day SELECT (was 31 queries → now 1).
+        $engine->preloadDailyLogs($startDate, $endDate);
         $result = [];
 
         $currentDate = $startDate->copy();

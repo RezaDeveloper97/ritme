@@ -270,7 +270,9 @@ body {
   height: var(--app-vh, 100dvh);
   background: var(--surface);
   overflow: hidden;
-  padding-top: env(safe-area-inset-top);
+  /* No fixed top gap: the Android build runs immersive fullscreen (inset 0),
+     so the shell sits flush. Only a real notch/status-bar inset pads. */
+  padding-top: env(safe-area-inset-top, 0px);
 }
 /* Desktop: lift the column off the neutral backdrop */
 @media (min-width: 480px) {
@@ -1960,22 +1962,16 @@ body {
 
 /* Signup — brand mark, then a right-aligned display titr */
 .signup-brand {
-  position: relative;
   width: 72px; height: 72px;
-  margin: 6px 0 22px;               /* start-aligned: sits above the titr in RTL */
+  margin: 6px auto 22px;            /* centered above the titr */
   display: flex; align-items: center; justify-content: center;
 }
-.signup-halo {
-  position: absolute; inset: -18px;
-  border-radius: 50%;
-  background: var(--gradient-brand);
-  opacity: .16;
-  filter: blur(14px);
-}
+/* The mark is a transparent PNG — no plate, no halo, no shadow behind it. */
 .signup-logo {
-  position: relative;
-  border-radius: 20px;
-  box-shadow: 0 10px 24px -12px color-mix(in srgb, var(--brand) 55%, transparent);
+  display: block;
+  background: none;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .signup-titr {
@@ -2057,7 +2053,7 @@ body {
 /* Faint concentric-circles mark peeking from the top corner (Figma). */
 .splash-mark    { position: absolute; top: -60px; inset-inline-end: -40px; opacity: .12; pointer-events: none; }
 .splash-center  { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
-.splash-logo    { width: 84px; height: 84px; border-radius: 26px; box-shadow: 0 18px 40px -12px rgba(0, 0, 0, .4); }
+.splash-logo    { width: 84px; height: 84px; }
 .splash-name    { font-weight: 900; font-size: 34px; letter-spacing: 1px; margin-top: 6px; }
 .splash-tagline { font-size: 13px; opacity: .92; font-weight: 500; }
 .splash-bottom  { position: absolute; bottom: 30px; inset-inline: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; }

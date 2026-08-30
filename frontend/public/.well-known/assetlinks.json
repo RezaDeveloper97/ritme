@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "web.ritme.app",
+      "sha256_cert_fingerprints": [
+        "46:D6:82:06:8F:D2:28:D2:8B:7E:42:12:42:50:FA:48:76:BB:CA:C1:0B:2F:36:F5:22:91:68:D4:79:E0:5E:E1"
+      ]
+    }
+  }
+]

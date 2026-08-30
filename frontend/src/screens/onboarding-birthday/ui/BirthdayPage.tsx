@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { allMonthNames, birthYearRange, formatNumber } from '@/shared/lib/date';
 import { NavBack, WheelPicker } from '@/shared/ui';
-import { nextOnboardingRoute, stepPosition, useOnboardingStore } from '@/entities/user';
+import { nextOnboardingRoute, previousOnboardingRoute, stepPosition, useOnboardingStore } from '@/entities/user';
 
 export function BirthdayPage() {
   const t = useTranslations('onboarding');
@@ -41,7 +41,7 @@ export function BirthdayPage() {
   return (
     <div className="view onb-page">
       <div className="hdr">
-        <NavBack onClick={() => router.back()} />
+        <NavBack onClick={() => router.replace(previousOnboardingRoute('birthday', intention) ?? '/signup')} />
         <span className="stepcount">
           {formatNumber(step.index, loc)}
           <span className="onb-dim"> / {formatNumber(step.total, loc)}</span>

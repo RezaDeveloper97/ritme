@@ -69,6 +69,13 @@ return [
         'expires_in' => 2, // minutes
         'max_attempts' => 5,
         'resend_after' => 60, // seconds
+
+        // There is deliberately no test/bypass mode here. Any switch that
+        // fixes the code at a known value is a way in: from the request body
+        // it lets anyone pin any account's OTP, and from the environment it is
+        // one mis-set variable away from doing the same on a live server.
+        // Local dev reads the generated code out of the database instead —
+        // see .claude/skills/local-dev.
     ],
 
 ];

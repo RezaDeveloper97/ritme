@@ -10,7 +10,7 @@ export default function manifest(): MetadataRoute.Manifest {
     id: '/',
     start_url: '/',
     scope: '/',
-    display: 'standalone',
+    display: 'fullscreen',
     orientation: 'portrait',
     dir: 'rtl',
     lang: 'fa',

@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\SendOtpSmsJob;
 use App\Models\OtpVerification;
 use App\Models\User;
 use App\Services\Sms\SmsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class OtpAuthController extends Controller
@@ -25,8 +27,7 @@ class OtpAuthController extends Controller
      *         @OA\JsonContent(
      *             required={"mobile"},
      *
-     *             @OA\Property(property="mobile", type="string", example="09123456789", description="Iranian mobile number (11 digits)"),
-     *             @OA\Property(property="is_test", type="boolean", example=true, description="Test mode - skips SMS and uses 1111 as OTP")
+     *             @OA\Property(property="mobile", type="string", example="09123456789", description="Iranian mobile number (11 digits)")
      *         )
      *     ),
      *
@@ -87,7 +88,6 @@ class OtpAuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'mobile' => ['required', 'string', 'regex:/^09[0-9]{9}$/'],
-            'is_test' => ['nullable', 'boolean'],
         ], [
             'mobile.regex' => 'Mobile number must be a valid Iranian mobile number (e.g., 09123456789)',
         ]);
@@ -101,34 +101,29 @@ class OtpAuthController extends Controller
         }
 
         $mobile = $request->mobile;
-        $isTest = $request->boolean('is_test', false);
         $resendAfter = config('sms.otp.resend_after', 60);
 
-        // Check for recent OTP requests (rate limiting) - skip in test mode
-        if (! $isTest) {
-            $recentOtp = OtpVerification::where('mobile', $mobile)
-                ->where('created_at', '>', now()->subSeconds($resendAfter))
-                ->first();
+        // Rate limiting. There is no branch around this: an unthrottled path
+        // to OTP generation is a way to sweep codes for a number.
+        $recentOtp = OtpVerification::where('mobile', $mobile)
+            ->where('created_at', '>', now()->subSeconds($resendAfter))
+            ->first();
 
-            if ($recentOtp) {
-                $retryAfter = $resendAfter - now()->diffInSeconds($recentOtp->created_at);
+        if ($recentOtp) {
+            $retryAfter = $resendAfter - now()->diffInSeconds($recentOtp->created_at);
 
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Please wait before requesting a new OTP',
-                    'data' => [
-                        'retry_after' => $retryAfter,
-                    ],
-                ], 429);
-            }
+            return response()->json([
+                'success' => false,
+                'message' => 'Please wait before requesting a new OTP',
+                'data' => [
+                    'retry_after' => $retryAfter,
+                ],
+            ], 429);
         }
 
-        // Check if user exists
-        $user = User::where('mobile', $mobile)->first();
-        $isNewUser = ! $user;
-
-        // Generate OTP - use 1111 in test mode
-        $otpCode = $isTest ? '1111' : SmsService::generateOtp(config('sms.otp.length', 4));
+        // Always random. Nothing — request body, config or environment — can
+        // pin this to a known value; that is the whole point.
+        $otpCode = SmsService::generateOtp(config('sms.otp.length', 4));
         $expiresIn = config('sms.otp.expires_in', 2);
 
         // Delete old OTPs for this mobile
@@ -141,24 +136,31 @@ class OtpAuthController extends Controller
             'expires_at' => now()->addMinutes($expiresIn),
         ]);
 
-        // Send OTP via SMS - skip in test mode
-        if (! $isTest) {
-            $smsService = new SmsService;
-            $sent = $smsService->sendOtp($mobile, $otpCode, 'login_otp');
-
-            if (! $sent) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Failed to send OTP. Please try again.',
-                ], 500);
-            }
+        // Queued so the request never blocks on the SMS gateway; the job
+        // retries delivery on its own.
+        //
+        // Guarded because the `sync` driver (local dev, tests) runs the job
+        // inline and rethrows its failure right here, which would turn an
+        // unreachable gateway into a 500 with a stack trace. Which driver is
+        // configured is an implementation detail of delivery — the OTP row is
+        // already written either way, so the response must not depend on it.
+        try {
+            SendOtpSmsJob::dispatch($mobile, $otpCode, 'login_otp');
+        } catch (\Throwable $e) {
+            Log::error('OTP SMS dispatch failed inline', [
+                'mobile' => $mobile,
+                'error' => $e->getMessage(),
+            ]);
         }
 
+        // NOTE: the response deliberately does NOT reveal whether the mobile
+        // belongs to an existing user. For a period/pregnancy app that boolean
+        // is a privacy leak (it lets anyone enumerate which numbers are users);
+        // the client learns new_user from verify-otp after authenticating.
         return response()->json([
             'success' => true,
-            'message' => $isTest ? 'OTP set to 1111 (test mode)' : 'OTP sent successfully',
+            'message' => 'OTP sent successfully',
             'data' => [
-                'new_user' => $isNewUser,
                 'expires_in' => $expiresIn * 60, // seconds
             ],
         ]);
@@ -278,25 +280,29 @@ class OtpAuthController extends Controller
             ], 400);
         }
 
-        // Check max attempts
-        if ($otp->maxAttemptsExceeded()) {
+        // Atomically claim one attempt slot. A plain read-then-increment is a
+        // TOCTOU race: N concurrent guesses all read attempts=0 and all pass a
+        // separate max-attempts check, defeating the cap. `where(<max)->increment`
+        // is a single atomic UPDATE, so at most `max` requests ever win a slot —
+        // the (max+1)-th and beyond update zero rows and are rejected.
+        $maxAttempts = (int) config('sms.otp.max_attempts', 5);
+        $claimed = OtpVerification::whereKey($otp->id)
+            ->where('attempts', '<', $maxAttempts)
+            ->increment('attempts');
+
+        if ($claimed === 0) {
             return response()->json([
                 'success' => false,
                 'message' => 'Too many attempts. Please request a new OTP.',
             ], 429);
         }
 
-        // Verify the code
-        if ($otp->code !== $code) {
-            $otp->incrementAttempts();
-            $remainingAttempts = config('sms.otp.max_attempts', 5) - $otp->attempts;
-
+        // Verify the code (constant-time compare; do not disclose the remaining
+        // attempt budget to the caller).
+        if (! hash_equals((string) $otp->code, (string) $code)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid OTP code',
-                'data' => [
-                    'remaining_attempts' => max(0, $remainingAttempts),
-                ],
             ], 422);
         }
 

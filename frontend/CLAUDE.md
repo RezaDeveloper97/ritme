@@ -180,6 +180,30 @@ a bug: it re-introduces the inner scrollbar the size exists to avoid.
 `open`/`onClose` yourself. There is no second sheet implementation; don't add
 one.
 
+### 4.2 Back never navigates
+
+The browser/hardware back button does **not** walk the app's screen stack — in
+the browser, the installed PWA and the Android WebView shell alike.
+`shared/back-guard` traps it by keeping a duplicate history entry above every
+screen, so a back press lands on the same URL and nothing moves. The Android
+shell asks the page first (`window.__ritmeBack`) and otherwise treats back as
+"leave the app", instead of `WebView.goBack()`.
+
+This exists because Ritme's screens are a tab bar, not a document trail. The
+visible bug was signing out: one back press resurrected the signed-in screens
+from the bfcache, rendering the previous user's data against a dead session.
+
+Consequences for new code:
+
+- **Never call `router.back()`** — `useRouter()` from `@/shared/i18n` no longer
+  exposes `back`/`forward`. An on-screen back arrow navigates *forwards* to an
+  explicit route (`previousOnboardingRoute(...)`, `/signup`), so the destination
+  is known rather than whatever happens to be in history.
+- **Sheets are the one exception**: they live in the query string, the guard
+  lets that pop through, and back still dismisses the top one.
+- **Sign-out is a full document replace** (`window.location.replace`), not a
+  client-side one, so no React tree or query cache survives it.
+
 ---
 
 ## 5. Domain model (current entities)
@@ -617,6 +641,8 @@ why.
   transparent. This shipped to production once already.
 - ❌ Calling the date library or `Date` formatting directly outside
   `shared/lib/date`; showing Gregorian dates to users.
+- ❌ `router.back()` / `history.back()` for screen navigation — back is trapped
+  app-wide (§4.2). Navigate forwards to an explicit route.
 - ❌ Putting server data into Zustand/`useState` instead of TanStack Query.
 - ❌ Logging or transmitting health data anywhere it isn't strictly required.
 - ❌ Adding abstraction layers preemptively. Introduce structure when a pattern

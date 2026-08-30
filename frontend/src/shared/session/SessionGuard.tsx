@@ -55,6 +55,35 @@ export function SessionGuard() {
     }
   }, [isPublicScreen, localeOf, pathname, router]);
 
+  /**
+   * Re-check on restore. A guarded screen can come back on screen without ever
+   * re-mounting — the bfcache reviving it, the PWA or the Android WebView
+   * resuming a backgrounded tab — and it would then render the previous
+   * session's data against a token that is gone. Neither event fires often
+   * enough for the extra check to matter.
+   */
+  useEffect(() => {
+    const revalidate = () => {
+      if (getAuthToken()) return;
+      if (isPublicScreen(pathname)) return;
+      window.location.replace(`/${localeOf(pathname)}/signup`);
+    };
+
+    const onPageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) revalidate();
+    };
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') revalidate();
+    };
+
+    window.addEventListener('pageshow', onPageShow);
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      window.removeEventListener('pageshow', onPageShow);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [isPublicScreen, localeOf, pathname]);
+
   useEffect(() => {
     const onCleared = () => {
       if (isPublicScreen(pathname)) return;

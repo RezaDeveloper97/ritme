@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation';
 import type { ReactNode } from 'react';
 
 import { OnboardingCalendarSync } from '@/entities/user';
+import { BackGuard } from '@/shared/back-guard';
 import {
   BUNDLED_LOCALES,
   DirectionProvider,
@@ -94,6 +95,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
           <DirectionProvider direction={direction}>
             <AppProviders>
             <ThemeApplier />
+            <BackGuard />
             <SessionGuard />
             <OnboardingCalendarSync />
             <ViewportHeight />

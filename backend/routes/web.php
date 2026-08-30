@@ -10,67 +10,76 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-// Test Page Routes (for testing profile and cycle calculations)
-Route::prefix('test-page')->group(function () {
-    Route::get('/', [TestPageController::class, 'index']);
-    Route::get('/profile', [TestPageController::class, 'getProfile']);
-    Route::post('/profile', [TestPageController::class, 'updateProfile']);
-    Route::post('/cycle-data', [TestPageController::class, 'getCycleData']);
-});
+// Test / debug routes. These resolve a fixed test user WITHOUT authentication
+// and run the full cycle/pregnancy/message engine, so they must never be
+// reachable in a deployed environment — they would expose and mutate real
+// health data for whoever holds the hard-coded test MSISDN. Registered only
+// in local development.
+if (app()->environment('local')) {
 
-// Test Pregnancy Routes (for testing pregnancy mode APIs)
-Route::prefix('test-pregnancy')->group(function () {
-    Route::get('/', [TestPregnancyController::class, 'index']);
-    Route::get('/enums', [TestPregnancyController::class, 'getEnums']);
+    // Test Page Routes (for testing profile and cycle calculations)
+    Route::prefix('test-page')->group(function () {
+        Route::get('/', [TestPageController::class, 'index']);
+        Route::get('/profile', [TestPageController::class, 'getProfile']);
+        Route::post('/profile', [TestPageController::class, 'updateProfile']);
+        Route::post('/cycle-data', [TestPageController::class, 'getCycleData']);
+    });
 
-    // Profile & Onboarding
-    Route::post('/activate', [TestPregnancyController::class, 'activatePregnancy']);
-    Route::post('/deactivate', [TestPregnancyController::class, 'deactivatePregnancy']);
-    Route::post('/onboarding', [TestPregnancyController::class, 'onboarding']);
-    Route::get('/profile', [TestPregnancyController::class, 'getProfile']);
-    Route::post('/profile', [TestPregnancyController::class, 'updateProfile']);
-    Route::get('/status', [TestPregnancyController::class, 'getStatus']);
+    // Test Pregnancy Routes (for testing pregnancy mode APIs)
+    Route::prefix('test-pregnancy')->group(function () {
+        Route::get('/', [TestPregnancyController::class, 'index']);
+        Route::get('/enums', [TestPregnancyController::class, 'getEnums']);
 
-    // Symptoms
-    Route::get('/symptoms', [TestPregnancyController::class, 'getSymptoms']);
-    Route::post('/symptoms', [TestPregnancyController::class, 'storeSymptom']);
-    Route::get('/symptoms/{date}', [TestPregnancyController::class, 'getSymptomByDate']);
-    Route::delete('/symptoms/{date}', [TestPregnancyController::class, 'deleteSymptom']);
+        // Profile & Onboarding
+        Route::post('/activate', [TestPregnancyController::class, 'activatePregnancy']);
+        Route::post('/deactivate', [TestPregnancyController::class, 'deactivatePregnancy']);
+        Route::post('/onboarding', [TestPregnancyController::class, 'onboarding']);
+        Route::get('/profile', [TestPregnancyController::class, 'getProfile']);
+        Route::post('/profile', [TestPregnancyController::class, 'updateProfile']);
+        Route::get('/status', [TestPregnancyController::class, 'getStatus']);
 
-    // Weekly
-    Route::get('/weekly', [TestPregnancyController::class, 'getWeeklyLogs']);
-    Route::post('/weekly', [TestPregnancyController::class, 'storeWeeklyLog']);
-    Route::get('/weekly/{week}', [TestPregnancyController::class, 'getWeeklyLog']);
+        // Symptoms
+        Route::get('/symptoms', [TestPregnancyController::class, 'getSymptoms']);
+        Route::post('/symptoms', [TestPregnancyController::class, 'storeSymptom']);
+        Route::get('/symptoms/{date}', [TestPregnancyController::class, 'getSymptomByDate']);
+        Route::delete('/symptoms/{date}', [TestPregnancyController::class, 'deleteSymptom']);
 
-    // Fetal Movement
-    Route::get('/fetal-movement', [TestPregnancyController::class, 'getFetalMovements']);
-    Route::post('/fetal-movement', [TestPregnancyController::class, 'storeFetalMovement']);
+        // Weekly
+        Route::get('/weekly', [TestPregnancyController::class, 'getWeeklyLogs']);
+        Route::post('/weekly', [TestPregnancyController::class, 'storeWeeklyLog']);
+        Route::get('/weekly/{week}', [TestPregnancyController::class, 'getWeeklyLog']);
 
-    // Content
-    Route::get('/content/{week}', [TestPregnancyController::class, 'getWeeklyContent']);
+        // Fetal Movement
+        Route::get('/fetal-movement', [TestPregnancyController::class, 'getFetalMovements']);
+        Route::post('/fetal-movement', [TestPregnancyController::class, 'storeFetalMovement']);
 
-    // Alerts
-    Route::get('/alerts', [TestPregnancyController::class, 'getAlerts']);
-    Route::get('/alerts/summary', [TestPregnancyController::class, 'getAlertsSummary']);
-    Route::post('/alerts/{id}/read', [TestPregnancyController::class, 'markAlertAsRead']);
-    Route::post('/alerts/read-all', [TestPregnancyController::class, 'markAllAlertsAsRead']);
-    Route::post('/alerts/{id}/dismiss', [TestPregnancyController::class, 'dismissAlert']);
-});
+        // Content
+        Route::get('/content/{week}', [TestPregnancyController::class, 'getWeeklyContent']);
 
-// Test Message System Routes (unified messaging for cycle and pregnancy)
-Route::prefix('test-message')->group(function () {
-    Route::get('/', [TestMessageController::class, 'index']);
-    Route::get('/enums', [TestMessageController::class, 'getEnums']);
-    Route::get('/daily', [TestMessageController::class, 'getDailyMessages']);
-    Route::get('/mode', [TestMessageController::class, 'getMode']);
-    Route::post('/profile', [TestMessageController::class, 'updateProfile']);
-});
+        // Alerts
+        Route::get('/alerts', [TestPregnancyController::class, 'getAlerts']);
+        Route::get('/alerts/summary', [TestPregnancyController::class, 'getAlertsSummary']);
+        Route::post('/alerts/{id}/read', [TestPregnancyController::class, 'markAlertAsRead']);
+        Route::post('/alerts/read-all', [TestPregnancyController::class, 'markAllAlertsAsRead']);
+        Route::post('/alerts/{id}/dismiss', [TestPregnancyController::class, 'dismissAlert']);
+    });
 
-// Legacy: Test Matrix Routes (redirects to new message system)
-Route::prefix('test-matrix')->group(function () {
-    Route::get('/', fn() => redirect('/test-message'));
-    Route::get('/enums', [TestMatrixController::class, 'getEnums']);
-    Route::get('/messages', [TestMatrixController::class, 'getMatrixMessages']);
-    Route::get('/profile', [TestMatrixController::class, 'getProfile']);
-    Route::post('/profile', [TestMatrixController::class, 'updateProfile']);
-});
+    // Test Message System Routes (unified messaging for cycle and pregnancy)
+    Route::prefix('test-message')->group(function () {
+        Route::get('/', [TestMessageController::class, 'index']);
+        Route::get('/enums', [TestMessageController::class, 'getEnums']);
+        Route::get('/daily', [TestMessageController::class, 'getDailyMessages']);
+        Route::get('/mode', [TestMessageController::class, 'getMode']);
+        Route::post('/profile', [TestMessageController::class, 'updateProfile']);
+    });
+
+    // Legacy: Test Matrix Routes (redirects to new message system)
+    Route::prefix('test-matrix')->group(function () {
+        Route::get('/', fn () => redirect('/test-message'));
+        Route::get('/enums', [TestMatrixController::class, 'getEnums']);
+        Route::get('/messages', [TestMatrixController::class, 'getMatrixMessages']);
+        Route::get('/profile', [TestMatrixController::class, 'getProfile']);
+        Route::post('/profile', [TestMatrixController::class, 'updateProfile']);
+    });
+
+} // end app()->environment('local')

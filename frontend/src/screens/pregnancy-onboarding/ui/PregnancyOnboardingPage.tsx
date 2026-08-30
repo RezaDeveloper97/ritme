@@ -115,7 +115,7 @@ export function PregnancyOnboardingPage() {
     <div className="view pon-page">
       <div className="scroll">
         <div className="onb-hdr">
-          <button className="iconbtn" onClick={() => router.back()} aria-label={t('back')}>
+          <button className="iconbtn" onClick={() => router.replace('/home')} aria-label={t('back')}>
             <Icon name={isRtl ? 'chevronRight' : 'chevronLeft'} size={20} />
           </button>
           <div className="titr onb-titr">{t('onboarding.title')}</div>

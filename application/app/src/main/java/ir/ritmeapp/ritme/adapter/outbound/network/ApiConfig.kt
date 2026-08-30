@@ -19,7 +19,7 @@ object ApiConfig {
 
     // --- Auth ---------------------------------------------------------------
 
-    /** Step 1: SMS a one-time code to a mobile number (`{mobile, is_test}`). */
+    /** Step 1: SMS a one-time code to a mobile number (`{mobile}`). */
     const val SEND_OTP_PATH = "$AUTH/send-otp"
 
     /** Step 2: exchange the one-time code for an access token (`{mobile, code}`). */
