@@ -158,7 +158,8 @@ check 401 "${BASE}/admin/login"
 
 if [[ -n "${STAGE_BASIC_AUTH:-}" ]]; then
   # STAGE_BASIC_AUTH="user:password" — checks what's BEHIND the gate too.
-  check 200 "${BASE}/" -u "$STAGE_BASIC_AUTH"
+  # 307, not 200: next-intl redirects / to the default locale, same as prod.
+  check 307 "${BASE}/" -u "$STAGE_BASIC_AUTH"
   check 200 "${BASE}/admin/login" -u "$STAGE_BASIC_AUTH"
   # 401 from Laravel (not nginx): proves the framework booted and the auth
   # middleware ran, rather than PHP merely answering.
