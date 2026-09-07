@@ -23,8 +23,17 @@
      Data accent     = turquoise #3DD6F3, only for data / active / insight.
      Canvas          = lavender #F2ECFF; surfaces are pure white.
      Text            = dark gray #2F2F35 + a gray ramp for secondary/dividers. */
+  /* Tells the browser to paint ITS OWN surfaces (scrollbars, form controls,
+     the autofill highlight, the caret) for this theme. CSS variables cannot
+     reach any of those, so without this the widgets stay light on dark. */
+  color-scheme: light;
+
   --brand:      #7B61FF;
   --brand-deep: #6A4FE8;
+  /* The brand purple used as a FILL under white text. It stays put in dark
+     mode, because what sits on it (--on-accent) stays white: lifting it the
+     way --brand is lifted for text would push white-on-brand below 3.5:1. */
+  --brand-fill: #7B61FF;
   --pink:       #FF6FAE;
   --pink-soft:  #FFD9E9;
   --ink:        #2F2F35;
@@ -149,6 +158,8 @@
 /* Dark appearance — variables flipped via <html data-theme="dark">
    (set from the profile "appearance" setting; see shared/theme). */
 [data-theme="dark"] {
+  color-scheme: dark;
+
   --ink:        #EDECF2;
   --muted:      #A0A0AC;
   --slate:      #C9C9D5;
@@ -184,6 +195,19 @@
   --rose:         #FF7FB6;
   --rose-deep:    #FF9AC4;
   --brand-strong: #B3A5FF;
+
+  /* Saturated accents that are used as TEXT/ICON colour need lifting: #7B61FF
+     only reaches 4.15:1 on --surface. These values clear 4.5:1 there while
+     still carrying white at AA-large on the few filled controls that use them.
+     The gradient itself is NOT lifted — it keeps --grad-start/--grad-end, so
+     brand fills stay the brand gradient exactly as in light mode. */
+  --brand:      #8A72FF;
+  --brand-deep: #A594FF;
+  --violet:     #8A72FF;
+  --pink-vivid: #A48FFF;
+  --indigo:     #A79BFF;
+  --orange:     #F5834F;
+  --danger:     #FF7B7E;
 
   /* Data accent: turquoise already reads well on dark; deepen the soft tint. */
   --data-deep:  #5FDCF5;
@@ -369,7 +393,7 @@ body {
 .cbx.on { background: var(--green); border-color: var(--green); }
 /* pink variant (auth terms — Figma: 20px, r4, stroke #FF92B7) */
 .cbx.pink { width: 20px; height: 20px; border-radius: 4px; border-color: var(--brand-line); }
-.cbx.pink.on { background: var(--brand); border-color: var(--brand); }
+.cbx.pink.on { background: var(--brand-fill); border-color: var(--brand-fill); }
 
 /* ── Phase dot ── */
 .dot {
@@ -578,8 +602,8 @@ body {
 .wi.on  { color: var(--ink); font-weight: 800; font-size: 22px; }
 .wheel-band {
   position: absolute; top: 88px; inset-inline-start: 0; inset-inline-end: 0; height: 44px;
-  border-radius: 12px; background: rgba(123,97,255,.10);
-  border: 1px solid rgba(123,97,255,.30); pointer-events: none; z-index: 0;
+  border-radius: 12px; background: color-mix(in srgb, var(--brand) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--brand) 30%, transparent); pointer-events: none; z-index: 0;
 }
 
 /* ── Vertical ruler ── */
@@ -616,7 +640,7 @@ body {
   font-variant-numeric: tabular-nums;
 }
 .cday:hover { background: var(--surface-2); }
-.cday.on    { background: var(--brand); color: var(--on-accent); font-weight: 800; }
+.cday.on    { background: var(--brand-fill); color: var(--on-accent); font-weight: 800; }
 
 /* ── Progress bar ── */
 .bar { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; }
@@ -738,7 +762,7 @@ body {
 .cal-loader-overlay {
   position: absolute; inset: 0; z-index: 5;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
-  background: rgba(255, 255, 255, .74);
+  background: color-mix(in srgb, var(--surface) 74%, transparent);
   backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
   border-radius: inherit;
   animation: fadeIn .25s ease;
@@ -783,7 +807,8 @@ body {
 /* ── Content skeleton (placeholder lines while a card's data loads) ── */
 .skeleton-line {
   display: block; height: 12px; border-radius: 6px;
-  background: linear-gradient(90deg, var(--surface-2) 25%, rgba(123, 97, 255, .12) 37%, var(--surface-2) 63%);
+  background: linear-gradient(90deg, var(--surface-2) 25%,
+    color-mix(in srgb, var(--brand) 12%, var(--surface-2)) 37%, var(--surface-2) 63%);
   background-size: 400% 100%;
   animation: skeletonShimmer 1.4s ease infinite;
 }
@@ -802,7 +827,7 @@ body {
    app had almost no keyboard affordance before. :focus-visible only
    paints for keyboard/AT navigation, so pointer users see no ring.
    ══════════════════════════════════════════════════════════════════ */
-:root { --ring: 0 0 0 3px rgba(123, 97, 255, .38); }
+:root { --ring: 0 0 0 3px color-mix(in srgb, var(--brand) 38%, transparent); }
 
 .btn:focus-visible,
 .iconbtn:focus-visible,
@@ -1193,7 +1218,7 @@ body {
 
 .cyc-hdr     { display: flex; align-items: center; justify-content: space-between; padding: 6px 18px 10px; }
 .cyc-hdr.is-solo { justify-content: center; }
-.cyc-hdr-btn { background: rgba(255, 255, 255, .6); }
+.cyc-hdr-btn { background: color-mix(in srgb, var(--surface) 60%, transparent); }
 .cyc-hdr-btn.is-brand { color: var(--brand); }
 .cyc-brand   { text-align: center; }
 .cyc-title   { font-weight: 900; font-size: 20px; color: var(--brand-deep); }
@@ -1695,7 +1720,7 @@ body {
   font-family: inherit; font-size: 12.5px; font-weight: 700;
   background: transparent; color: var(--muted);
 }
-.plog-tab.on { background: var(--brand); color: var(--on-accent); }
+.plog-tab.on { background: var(--brand-fill); color: var(--on-accent); }
 
 /* Pregnancy log forms (shared by symptoms / weekly / movement) */
 .plog-daynav   { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; }
@@ -1822,11 +1847,36 @@ body {
 .prof-inline-t  { font-size: 13px; font-weight: 700; color: var(--brand); }
 .prof-version   { text-align: center; font-size: 12px; color: var(--muted); margin-top: 18px; }
 
+/* Dark-mode switch (profile → app section). An iOS-style track+knob rendered
+   from `aria-checked`, so the on/off state lives in one accessible attribute
+   instead of a second class. `margin-inline-start` on the knob moves it toward
+   the logical end, which keeps the travel correct in RTL (§12). */
+.prof-switch {
+  position: relative;
+  width: 46px; height: 28px;
+  flex-shrink: 0;
+  padding: 3px;
+  border: 0; border-radius: 99px;
+  background: var(--track);
+  cursor: pointer;
+  display: flex; align-items: center;
+  transition: background .2s ease;
+}
+.prof-switch[aria-checked="true"] { background: var(--brand); }
+.prof-switch:focus-visible { outline: none; box-shadow: var(--ring); }
+.prof-switch-knob {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--on-accent);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .2);
+  transition: margin-inline-start .2s ease;
+}
+.prof-switch[aria-checked="true"] .prof-switch-knob { margin-inline-start: 18px; }
+
 /* Delete-account confirm */
 .del-backdrop {
   position: fixed; inset: 0; z-index: 60;
   display: flex; align-items: flex-end; justify-content: center;
-  padding: 16px; background: rgba(17, 24, 28, .45);
+  padding: 16px; background: var(--scrim);
 }
 .del-card  { width: 100%; max-width: 420px; padding: 22px; text-align: start; }
 .del-title { font-size: 17px; font-weight: 800; color: var(--ink); margin-top: 14px; }
@@ -2296,7 +2346,7 @@ body {
   border: 1.5px solid var(--line);
 }
 .pde-day.is-today .pde-badge    { background: var(--surface-2); border-color: var(--track); }
-.pde-day.is-selected .pde-badge { color: var(--on-accent); background: var(--brand); border-color: transparent; }
+.pde-day.is-selected .pde-badge { color: var(--on-accent); background: var(--brand-fill); border-color: transparent; }
 .pde-foot     { display: flex; flex-direction: column; gap: 10px; }
 .pde-hint     { background: var(--surface-2); color: var(--brand); text-align: center; font-size: clamp(12px, 3.2vw, 13px); font-weight: 700; padding: 9px 14px; border-radius: 999px; }
 .pde-actions  { display: flex; gap: clamp(8px, 3vw, 12px); }
@@ -2342,7 +2392,7 @@ body {
 .cvc-sugg    { margin-top: 16px; background: var(--surface-2); border: 1px solid var(--line-2); border-radius: 14px; padding: 14px; }
 .cvc-sugg-t  { font-size: 13px; color: var(--ink-2); margin: 0 0 12px; line-height: 1.8; }
 .cvc-sugg-cta{
-  border: none; cursor: pointer; background: var(--brand); color: var(--on-accent);
+  border: none; cursor: pointer; background: var(--brand-fill); color: var(--on-accent);
   font-size: 13px; font-weight: 700; border-radius: 999px; padding: 10px 18px;
   transition: transform .18s cubic-bezier(.22,.61,.36,1), opacity .18s ease;
 }
@@ -2580,7 +2630,7 @@ body {
   font-family: inherit; font-size: 12.5px; font-weight: 700; color: var(--muted-2);
   cursor: pointer; white-space: nowrap;
 }
-.ar-chip.is-active { background: var(--brand); border-color: var(--brand-line); color: var(--on-accent); }
+.ar-chip.is-active { background: var(--brand-fill); border-color: var(--brand-line); color: var(--on-accent); }
 .ar-chip:focus-visible { outline: none; box-shadow: var(--ring); }
 .ar-count { margin: 16px 2px 10px; font-size: 12px; font-weight: 700; color: var(--muted-3); text-align: start; }
 .ar-grid  { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 4px; }
@@ -2822,3 +2872,11 @@ body.pwa-locked { overflow: hidden; }
 .lang-row-name  { display: block; font-size: 14.5px; font-weight: 800; color: var(--ink); }
 .lang-row-code  { display: block; font-size: 12px; color: var(--muted); margin-top: 3px; }
 .lang-row-check { color: var(--brand); flex-shrink: 0; }
+
+/* Appearance picker — same rows as the language list, with a leading glyph. */
+.appr-icon {
+  width: 34px; height: 34px; border-radius: 11px; flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--line); color: var(--brand);
+}
+.lang-row.is-active .appr-icon { background: var(--surface); }

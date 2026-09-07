@@ -41,15 +41,46 @@ because the browser never makes a cross-origin call. `NEXT_PUBLIC_API_BASE_URL` 
 `https://stage.ritmeapp.ir/api/v1`, baked into the bundle at build time from the
 staging `.env`.
 
-## The password
+## The password, and why the gate is a cookie
 
-The whole vhost is behind HTTP Basic auth. Credentials live in
-`/opt/ritme/stage.htpasswd` (server-only, excluded from both rsyncs) and a copy of
-what was provisioned is in `/root/ritme-stage-credentials.txt`.
+The whole vhost is private. Credentials live in `/opt/ritme/stage.htpasswd`
+(server-only, excluded from both rsyncs) and a copy of what was provisioned is in
+`/root/ritme-stage-credentials.txt`.
 
-Because the API is on the same origin as the page, the browser replays the cached
-credentials on every `fetch`/XHR automatically — no client-side change is needed.
-`/up` is deliberately exempt so uptime probes and the deploy verification keep working.
+**Basic auth alone does not work for this app, and never did.** A request carries
+exactly one `Authorization` header, and the app spends it on `Bearer <token>`;
+Chrome will not overwrite that with the cached Basic credentials. So every
+`/api/*` XHR reached nginx un-credentialed and got a 401 — which the frontend's
+interceptor read as "session expired", wiping the token and bouncing to
+`/signup`. Onboarding could never save a profile. Requests the browser sends with
+`credentials: omit` (the web manifest) 401'd for a second reason and re-opened the
+password dialog on every single page.
+
+The gate is therefore a **cookie**, which rides alongside the bearer token:
+
+1. A plain page load has no `Authorization` header of its own, so Basic auth still
+   works there — nginx asks for the password once.
+2. Any authenticated 2xx/3xx response hands out `ritme_stage` (never a 401, or the
+   challenge would mint the credential that opens the gate).
+3. `$stage_auth_realm` evaluates to `off` while that cookie is present, so
+   XHRs, service-worker fetches and RSC prefetches all pass.
+
+The maps live in `/opt/ritme/stage-gate.conf`, generated once by
+`deploy/stage-gate.sh` (called from both deploy scripts) and mounted into the proxy
+as `conf.d/aa-stage-gate.conf`. It holds the token, so it is server-only like the
+htpasswd. **Delete the file and redeploy to rotate it** — everyone is then asked for
+the password again.
+
+The same map turns the gate off for container-to-container traffic (`10/8`,
+`172.16/12`, `127/8`): the Next.js server calls `/api/v1/languages` and the message
+endpoints through this proxy during SSR and can offer neither password nor cookie —
+without that, staging silently ran on bundled locales.
+
+Exempt from the gate on purpose: `/up` (uptime probes, deploy verification),
+`/manifest.webmanifest` (`credentials: omit`), and `/sw.js`, `/version.json`,
+`/offline.html`, `/favicon.ico`, `/icons/` — public static assets whose gating breaks
+service-worker registration. Each exempt location sets its own `add_header`, which
+cancels the inherited `Set-Cookie`, so a public file cannot mint a session.
 
 Change the password:
 ```bash

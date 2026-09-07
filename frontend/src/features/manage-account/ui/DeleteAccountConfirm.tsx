@@ -60,7 +60,7 @@ export function DeleteAccountConfirm({ open, onClose }: DeleteAccountConfirmProp
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'rgba(229,72,77,.1)',
+            background: 'var(--danger-soft)',
             color: DANGER,
           }}
         >

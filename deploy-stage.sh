@@ -74,6 +74,7 @@ if [[ "${SKIP_SYNC:-0}" != "1" ]]; then
     --exclude '*.log' \
     --exclude '.playwright-mcp/' \
     --exclude '.env' \
+    --exclude 'stage-gate.conf' \
     --exclude '.env.local' \
     --exclude 'ssl/' \
     --exclude 'certbot-www/' \
@@ -95,6 +96,10 @@ ssh_run "test -f ${REMOTE_DIR}/.env" || {
   echo "   Create it from .env.stage.example (server-only; never rsynced)." >&2
   exit 1
 }
+# The gate's map file lives with the proxy, in the PRODUCTION directory.
+# shellcheck source=deploy/stage-gate.sh
+source ./deploy/stage-gate.sh
+ensure_stage_gate "${PROD_DIR}"
 ssh_run "test -s ${PROD_DIR}/stage.htpasswd" || {
   echo "!! ${PROD_DIR}/stage.htpasswd is missing or empty — the staging vhost" >&2
   echo "   would deny everyone. Create it with:" >&2
@@ -156,6 +161,11 @@ check 401 "${BASE}/"
 check 401 "${BASE}/api/v1/banners" -H 'Accept: application/json'
 check 401 "${BASE}/admin/login"
 
+# Public by design: the web manifest is fetched with `credentials: omit`, so a
+# gated one 401s forever and re-opens the password dialog on every page.
+check 200 "${BASE}/manifest.webmanifest"
+check 200 "${BASE}/sw.js"
+
 if [[ -n "${STAGE_BASIC_AUTH:-}" ]]; then
   # STAGE_BASIC_AUTH="user:password" — checks what's BEHIND the gate too.
   # 307, not 200: next-intl redirects / to the default locale, same as prod.
@@ -164,6 +174,22 @@ if [[ -n "${STAGE_BASIC_AUTH:-}" ]]; then
   # 401 from Laravel (not nginx): proves the framework booted and the auth
   # middleware ran, rather than PHP merely answering.
   check 401 "${BASE}/api/v1/banners" -u "$STAGE_BASIC_AUTH" -H 'Accept: application/json'
+
+  # The gate is a cookie, not the password (vhost-stage.inc explains why), so
+  # the thing worth asserting is that one page load mints it and that the
+  # cookie ALONE — no Authorization header, exactly like the app's own bearer-
+  # carrying XHRs — opens the whole vhost afterwards.
+  jar="$(mktemp)"
+  curl -s -o /dev/null -m 25 -c "$jar" -u "$STAGE_BASIC_AUTH" "${BASE}/" || true
+  if grep -q ritme_stage "$jar"; then
+    printf '  ok    gate cookie issued\n'
+    check 307 "${BASE}/" -b "$jar"
+    check 401 "${BASE}/api/v1/banners" -b "$jar" -H 'Accept: application/json'
+  else
+    printf '  FAIL  no ritme_stage cookie in the response to a password-authenticated GET /\n'
+    failures=$((failures + 1))
+  fi
+  rm -f "$jar"
 else
   echo "  note  set STAGE_BASIC_AUTH='user:pass' to also verify behind the gate"
 fi

@@ -14,10 +14,14 @@ export function SplashPage() {
 
   // First-time visitors see the welcome intro before signup; once they've seen
   // it, the splash goes straight to signup. Decided per render so a fresh visit
-  // (localStorage cleared) shows the intro again.
+  // (cookies cleared) shows the intro again — the route bakes the same decision
+  // into its no-JS fallback.
   const next = () => router.replace(hasSeenIntro() ? '/signup' : '/welcome');
 
   useEffect(() => {
+    // The page is hydrated, so the route's no-JS fallback has nothing left to
+    // rescue — cancel it before it navigates on top of a working screen.
+    window.__ritmeSplashFallback?.();
     const timer = setTimeout(next, 2200);
     return () => clearTimeout(timer);
     // `next` reads only refs/router; re-running on router identity is enough.

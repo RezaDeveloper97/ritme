@@ -62,6 +62,7 @@ if [[ "${SKIP_SYNC:-0}" != "1" ]]; then
     --exclude 'ssl/' \
     --exclude 'certbot-www/' \
     --exclude 'stage.htpasswd' \
+    --exclude 'stage-gate.conf' \
     --exclude 'backend/storage/logs/*' \
     --exclude 'backend/storage/framework/cache/*' \
     --exclude 'backend/database/*.sqlite' \
@@ -77,6 +78,12 @@ fi
 echo "==> Ensuring shared edge network and staging htpasswd exist..."
 ssh_run "docker network inspect ritme-edge >/dev/null 2>&1 || docker network create ritme-edge" >/dev/null
 ssh_run "test -e ${REMOTE_DIR}/stage.htpasswd || : > ${REMOTE_DIR}/stage.htpasswd"
+# stage-gate.conf is mounted into conf.d, so an EMPTY one is not good enough:
+# whenever the staging vhost is switched on it reads $stage_auth_realm from it
+# and nginx refuses to start on an unknown variable. Generate a valid file.
+# shellcheck source=deploy/stage-gate.sh
+source ./deploy/stage-gate.sh
+ensure_stage_gate "${REMOTE_DIR}"
 
 if [[ "${NO_BUILD:-0}" != "1" ]]; then
   echo "==> Building images on the server (this is the slow part)..."

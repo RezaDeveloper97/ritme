@@ -3,6 +3,8 @@
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
+import { isShellUserAgent } from './shell';
+
 // Icon paths from Material Symbols (via Iconify): ios-share, add-box-outline,
 // install-mobile. Inlined so the prompt renders offline with zero requests.
 function ShareIosIcon() {
@@ -59,12 +61,11 @@ function isStandalone(): boolean {
 }
 
 /**
- * The Android shell (android-shell/) hosts the site in its own WebView and
- * stamps the UA. "Install our app" inside the app would be absurd — and it is
- * the kind of detail that tells a user they are looking at a web page.
+ * "Install our app" inside the app would be absurd — and it is the kind of
+ * detail that tells a user they are looking at a web page.
  */
 function isNativeShell(): boolean {
-  return / RitmeApp\//.test(navigator.userAgent);
+  return isShellUserAgent(navigator.userAgent);
 }
 
 function isIos(): boolean {

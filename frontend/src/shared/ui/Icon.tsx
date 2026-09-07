@@ -8,7 +8,8 @@ export type IconName =
   | 'user' | 'chart' | 'grid' | 'arrowL' | 'refresh'
   | 'walk' | 'thermo' | 'glass' | 'stetho'
   | 'home' | 'bookOpen' | 'apple' | 'brain'
-  | 'globe' | 'shield' | 'logout' | 'download' | 'trash' | 'search';
+  | 'globe' | 'shield' | 'logout' | 'download' | 'trash' | 'search'
+  | 'sun' | 'contrast';
 
 const PATHS: Record<IconName, string> = {
   bell:         '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
@@ -52,6 +53,9 @@ const PATHS: Record<IconName, string> = {
   brain:        '<path d="M9.5 4a2.5 2.5 0 0 0-2.4 3.2A2.6 2.6 0 0 0 5 9.8c0 .9.4 1.7 1.1 2.2A2.6 2.6 0 0 0 5.4 14c0 1.2.8 2.2 2 2.5A2.5 2.5 0 0 0 12 18V5.9A2 2 0 0 0 9.5 4z"/><path d="M14.5 4a2.5 2.5 0 0 1 2.4 3.2A2.6 2.6 0 0 1 19 9.8c0 .9-.4 1.7-1.1 2.2.4.5.7 1.2.7 2 0 1.2-.8 2.2-2 2.5A2.5 2.5 0 0 1 12 18"/>',
   trash:        '<path d="M4 7h16M9 7V5a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 5v2M6 7l1 12.5A1.5 1.5 0 0 0 8.5 21h7a1.5 1.5 0 0 0 1.5-1.5L18 7"/>',
   search:       '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/>',
+  sun:          '<circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.4M12 19.6V22M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2 12h2.4M19.6 12H22M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/>',
+  /* Half-filled disc — the conventional "match the system appearance" mark. */
+  contrast:     '<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"/>',
 };
 
 interface IconProps {

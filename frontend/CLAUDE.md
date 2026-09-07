@@ -452,11 +452,13 @@ npm run test         # unit tests (domain logic, date layer)
 npm run fsd:lint     # FSD boundary check (e.g. steiger ./src)  ← run before done
 npm run lint:styles  # style gate: no static style props / hex / unknown vars (§10.1)
 npm run lint:styles:accept   # re-baseline after you REDUCE violations
+npm run lint:dark    # dark-mode gate: token parity + contrast in both themes (§10.3)
 ```
 
-**Definition of done for any change:** `typecheck`, `lint`, `fsd:lint` and
-`lint:styles` all pass, and new domain logic has tests. For any change that
-touches UI/colours, additionally run the **`check-colors` skill** (§10.2).
+**Definition of done for any change:** `typecheck`, `lint`, `fsd:lint`,
+`lint:styles` and `lint:dark` all pass, and new domain logic has tests. For any
+change that touches UI/colours, additionally run the **`check-colors` skill**
+(§10.2).
 
 `lint:styles` is a **ratchet**: `scripts/styles-baseline.json` records the
 violations each file still carries, and the gate fails only when a file goes
@@ -590,7 +592,52 @@ Hard rules:
 **Enforcement:** run the **`check-colors` skill** (`/check-colors`) after any
 change that touches colours, styles, or new UI — it audits token conformance,
 off-palette hues, and dark-mode coverage. It is part of the definition of done
-for UI work (§9).
+for UI work (§9). The mechanical half of that audit is automated as
+`npm run lint:dark` (§10.3).
+
+### 10.3 Dark mode
+
+The app ships **light, dark and follow-the-system**. The preference lives in
+`shared/theme` (`localStorage['ritme_theme']`, a Zustand store) and is exposed
+to the user as Profile → «ظاهر و پوسته» (`?sheet=appearance`).
+
+How it works, and the rules that keep it working:
+
+- **One switch, one attribute.** `applyTheme` writes the *resolved* theme onto
+  `<html data-theme>`; every dark value in the app is a token override under
+  `[data-theme="dark"]` in `globals.css`. Nothing else branches on the theme —
+  no `useTheme()` in a component, no dark-specific JSX.
+- **`themeInitScript` runs before first paint** (rendered inline at the top of
+  `<body>`), so a dark-mode user never sees a white flash. It is a deliberate
+  duplicate of `applyTheme` in plain JS; if you change the storage key or the
+  resolution rule, change both — `lint:dark` fails when they drift apart.
+- **`color-scheme` is declared in both blocks.** It is the only way to darken
+  what CSS variables cannot reach: scrollbars, native form controls, the caret,
+  the autofill highlight.
+- **`<meta name="theme-color">` is rewritten at runtime.** It cannot hold a CSS
+  variable, so the layout ships one per `prefers-color-scheme` for the first
+  paint and the store overwrites both once a preference disagrees with the OS.
+  Those two hex values, plus `manifest.ts`, are the *only* sanctioned colour
+  literals in `src/`.
+- **Every token needs both values.** A token in `:root` with no
+  `[data-theme="dark"]` value must be either derived from tokens that do flip,
+  or listed in `THEME_STABLE` in `scripts/check-dark-mode.mjs` *with the reason*
+  (e.g. `--on-accent` stays white because the fill under it stays saturated).
+- **`--brand` is text; `--brand-fill` is a fill.** Dark mode lifts `--brand` so
+  it stays readable as text on a dark card. A saturated fill that carries white
+  text must therefore use `--brand-fill`, which does not move. The gradient
+  (`--grad-start`/`--grad-end`) is identical in both themes by design.
+- **A translucent white overlay is only allowed on a saturated fill** (the
+  gradient heroes), because that fill is the same in both themes. Over a
+  surface, use `color-mix(in srgb, var(--surface) N%, transparent)` so it flips.
+- **Dark may never read worse than light.** `lint:dark` resolves ~57
+  foreground/background token pairs in *both* themes, scores them against WCAG,
+  and fails when dark drops materially below light. It also reports the pairs
+  that are under AA in light mode today — those are pre-existing brand-palette
+  decisions, held at their current value rather than silently drifting down.
+- **The offline page (`public/offline.html`) carries its own copy** of the
+  bootstrap: it is served straight from the service-worker cache with no bundle,
+  so it re-reads `ritme_theme` itself.
 
 ---
 

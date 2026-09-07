@@ -2,13 +2,20 @@ import { type NextRequest, NextResponse } from 'next/server';
 
 // Imported from the leaf module, not the `@/shared/session` barrel: the barrel
 // also exports client components, which have no place in the edge bundle.
-import { AUTH_COOKIE, ONBOARDING_COOKIE, PUBLIC_SEGMENTS } from '@/shared/session/cookie';
+import {
+  AUTH_COOKIE,
+  INTRO_COOKIE,
+  ONBOARDING_COOKIE,
+  PUBLIC_SEGMENTS,
+} from '@/shared/session/cookie';
 // Leaf import for the same reason: `model/steps` is pure and framework-free,
 // while the entity's barrel pulls in client components and a zustand store.
 import { isOnboardingStep, onboardingRoute } from '@/entities/user/model/steps';
 // Leaf imports again — the i18n barrel re-exports client components.
 import { LOCALE_COOKIE } from '@/shared/i18n/navigation';
 import { getLocaleRegistry } from '@/shared/i18n/registry';
+import { isShellUserAgent } from '@/shared/pwa/shell';
+import { postSplashRoute } from '@/shared/session/splash';
 
 /**
  * Locale prefixing + route guards.
@@ -39,6 +46,16 @@ export default async function middleware(request: NextRequest) {
 
   const locale = maybeLocale;
   const segment = rest[0] ?? '';
+
+  // Inside the Android shell the splash screen is a second splash: the app
+  // already shows a native one and holds it until the page paints, so this one
+  // adds nothing but 2.2s of spinner on top of a cold start. Skip to where it
+  // would have sent them — the browser still gets the screen.
+  if (segment === 'splash' && isShellUserAgent(request.headers.get('user-agent'))) {
+    const destination = postSplashRoute(locale, request.cookies.has(INTRO_COOKIE));
+    return NextResponse.redirect(new URL(destination, request.url));
+  }
+
   const isAuthed = request.cookies.has(AUTH_COOKIE);
   const isPublic =
     segment === '' || (PUBLIC_SEGMENTS as readonly string[]).includes(segment);

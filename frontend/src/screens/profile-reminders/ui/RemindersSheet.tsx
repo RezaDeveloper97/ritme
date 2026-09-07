@@ -189,7 +189,7 @@ function ReminderRow({
               fontSize: 13,
               fontWeight: 700,
               font: 'inherit',
-              background: 'rgba(229,72,77,.1)',
+              background: 'var(--danger-soft)',
               color: 'var(--danger)',
               cursor: deletePending ? 'default' : 'pointer',
               opacity: deletePending ? 0.55 : 1,

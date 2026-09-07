@@ -16,6 +16,19 @@ FILE=$(echo "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).g
 
 ROOT="/Users/rezataheri/PhpstormProjects/ritme"
 
+# globals.css and the theme slice are what dark mode is made of: a token that
+# only got a light value, or a bootstrap that drifted from the store, is caught
+# here rather than at review time (CLAUDE.md §10.3).
+case "$FILE" in
+  "$ROOT"/frontend/src/app/globals.css|"$ROOT"/frontend/src/shared/theme/*)
+    OUT=$(cd "$ROOT/frontend" && node scripts/check-dark-mode.mjs 2>&1)
+    if [ $? -ne 0 ]; then
+      echo "$OUT" >&2
+      exit 2
+    fi
+    ;;
+esac
+
 case "$FILE" in
   "$ROOT"/frontend/src/*.ts|"$ROOT"/frontend/src/*.tsx) ;;
   *) exit 0 ;;

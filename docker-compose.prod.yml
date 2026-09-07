@@ -89,6 +89,11 @@ services:
       # Server-only file (never rsynced); deploy.sh touches it so a fresh
       # server can't have Docker create a DIRECTORY here instead.
       - ./stage.htpasswd:/etc/nginx/stage.htpasswd:ro
+      # The staging gate's `map` blocks, which must sit at http level — hence a
+      # real .conf in conf.d rather than an .inc. Generated server-side by
+      # deploy/stage-gate.sh (it holds a secret token, so it is never rsynced
+      # either). `aa-` only keeps it visually first; map order is irrelevant.
+      - ./stage-gate.conf:/etc/nginx/conf.d/aa-stage-gate.conf:ro
     networks:
       # `ritme-edge` is the external bridge the separate `ritme-stage` compose
       # project also joins — it is how this proxy resolves stage-backend /

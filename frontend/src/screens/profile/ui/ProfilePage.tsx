@@ -1,7 +1,7 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { type CSSProperties, type ReactNode, useState } from 'react';
+import { type CSSProperties, type ReactNode, useEffect, useState } from 'react';
 
 // Pregnancy postponed — kept for the commented-out mode section below:
 // import { useUserMode } from '@/entities/message';
@@ -12,6 +12,7 @@ import { QuickEditSheet, type QuickEditField } from '@/features/edit-profile';
 import { useSwitchLocale } from '@/features/switch-locale';
 import { formatLongDate } from '@/shared/lib/date';
 import { openSheet } from '@/shared/sheet';
+import { useThemeStore } from '@/shared/theme';
 import { localizeHref, useDirection, type Locale } from '@/shared/i18n';
 import { Icon, type IconName } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
@@ -53,7 +54,7 @@ function Row({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: danger ? 'rgba(229,72,77,.1)' : 'var(--line)',
+          background: danger ? 'var(--danger-soft)' : 'var(--line)',
           color: danger ? 'var(--danger)' : 'var(--brand)',
         }}
       >
@@ -141,6 +142,39 @@ function EditableValue({ children }: { children: ReactNode }) {
       <StatValue>{children}</StatValue>
       <Icon name="pencil" size={15} className="prof-chev" />
     </span>
+  );
+}
+
+// ── Dark-mode switch ──────────────────────────────────────────
+// A two-state switch rather than the three-way appearance picker: light/dark is
+// the only choice users actually reach for, and 'system' stays the default
+// until the first flip.
+//
+// The preference lives in localStorage, so the server has no answer for it and
+// rendering the real state on the first client paint would contradict the
+// server's HTML (a hydration mismatch on every profile visit). The switch
+// therefore renders "off" until mounted, then settles into the real value —
+// the DOM already has the right theme by then, painted by the inline bootstrap.
+function ThemeSwitch({ label }: { label: string }) {
+  const resolved = useThemeStore((s) => s.resolved);
+  const setTheme = useThemeStore((s) => s.setTheme);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+
+  const on = mounted && resolved === 'dark';
+
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={on}
+      aria-label={label}
+      className="prof-switch"
+      onClick={() => setTheme(on ? 'light' : 'dark')}
+    >
+      <span className="prof-switch-knob" />
+    </button>
   );
 }
 
@@ -351,6 +385,15 @@ export function ProfilePage() {
                 {chevron}
               </span>
             }
+          />
+          <Divider />
+          {/* Dark mode, flipped in place. Static row (no `onClick`) because the
+              switch is itself the button — a button inside a button is invalid
+              markup and swallows the tap. */}
+          <Row
+            icon="moon"
+            label={t('rows.darkMode')}
+            trailing={<ThemeSwitch label={t('rows.darkMode')} />}
           />
         </Group>
 

@@ -1,6 +1,6 @@
 ---
 name: verify-all
-description: Run the full Ritme verification suite — backend tests+style, frontend typecheck+lint+FSD rules+style gate+unit tests — and report a pass/fail table. Use before commits and always before deploy.
+description: Run the full Ritme verification suite — backend tests+style, frontend typecheck+lint+FSD rules+style gate+dark-mode gate+unit tests — and report a pass/fail table. Use before commits and always before deploy.
 ---
 
 # Verify everything
@@ -14,8 +14,13 @@ cd backend && vendor/bin/pint --test && php artisan test
 
 ## Frontend
 ```bash
-cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run test
+cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test
 ```
+
+`lint:dark` enforces CLAUDE.md §10.3: every colour token has a value in both
+themes, dark never reads worse than light, and the pre-paint bootstrap agrees
+with the theme store. Its `⚠` block lists pairs already under WCAG AA in light
+mode — those are pre-existing palette decisions, not failures.
 
 `lint:styles` enforces CLAUDE.md §10.1 (no static `style` props, no hex colour
 literals, no `var(--x)` for an undeclared x). It is a ratchet against

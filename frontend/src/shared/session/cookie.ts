@@ -24,6 +24,13 @@ export const AUTH_COOKIE = 'ritme_auth';
 export const ONBOARDING_COOKIE = 'ritme_onboarding';
 
 /**
+ * "The welcome intro has been seen" flag. A cookie rather than `localStorage`
+ * so the splash route can render its no-JS fallback destination server-side
+ * (see `app/[locale]/splash/page.tsx`); it carries no personal data.
+ */
+export const INTRO_COOKIE = 'ritme_intro_seen';
+
+/**
  * Auth screens reachable without a session. Lives here (not in the middleware)
  * so the client-side session guard gates on exactly the same list the edge does
  * — two copies would drift and produce redirect loops.

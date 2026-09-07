@@ -6,19 +6,34 @@
  * both the splash screen (which decides where to send first-timers) and the
  * welcome screen (which sets it) can reach it without importing upward.
  *
- * Kept in `localStorage`, not a cookie: the decision is made client-side only,
- * so it never needs to be read on the server/edge.
+ * Kept in a cookie rather than `localStorage` because the splash route now
+ * renders the same decision on the server: its no-JS fallback needs a
+ * destination baked into the HTML, and the edge cannot read `localStorage`.
+ * Visitors carrying the old `localStorage` flag are still recognised (and
+ * migrated on read) so nobody is shown the intro a second time.
  */
-const INTRO_SEEN_KEY = 'ritme_intro_seen';
+
+import { INTRO_COOKIE } from './cookie';
+
+const LEGACY_INTRO_KEY = 'ritme_intro_seen';
 
 const isBrowser = (): boolean => typeof window !== 'undefined';
 
+function hasIntroCookie(): boolean {
+  return document.cookie
+    .split(';')
+    .some((c) => c.trim().startsWith(`${INTRO_COOKIE}=1`));
+}
+
 export function hasSeenIntro(): boolean {
   if (!isBrowser()) return false;
-  return window.localStorage.getItem(INTRO_SEEN_KEY) === '1';
+  if (hasIntroCookie()) return true;
+  if (window.localStorage.getItem(LEGACY_INTRO_KEY) !== '1') return false;
+  markIntroSeen();
+  return true;
 }
 
 export function markIntroSeen(): void {
   if (!isBrowser()) return;
-  window.localStorage.setItem(INTRO_SEEN_KEY, '1');
+  document.cookie = `${INTRO_COOKIE}=1; path=/; max-age=31536000; SameSite=Lax`;
 }
