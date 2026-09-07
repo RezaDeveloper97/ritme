@@ -2,11 +2,10 @@
 export {
   useThemeStore,
   applyTheme,
-  resolveTheme,
   isThemePreference,
   THEME_KEY,
   THEME_PREFERENCES,
+  DEFAULT_THEME,
   type ThemePreference,
-  type ResolvedTheme,
 } from './store';
 export { ThemeApplier, themeInitScript } from './ThemeApplier';

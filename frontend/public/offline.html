@@ -41,17 +41,10 @@
       padding: 12px 32px;
       cursor: pointer;
     }
-    /* Dark appearance. Declared twice on purpose: the media query covers the
-       "follow the system" default, and the [data-theme] attribute (written by
-       the inline script below from the same `ritme_theme` key the app uses)
-       covers a user who has explicitly picked a theme that disagrees with the
-       OS. [data-theme="light"] wins over the media query so an explicit
-       "Light" still reads light on a dark phone. */
-    @media (prefers-color-scheme: dark) {
-      html:not([data-theme="light"]) body { background: #131022; color: #F3F1FA; }
-      html:not([data-theme="light"]) .card { background: #1C1830; box-shadow: none; }
-      html:not([data-theme="light"]) p { color: #A9A4BC; }
-    }
+    /* Dark appearance, driven only by [data-theme] — written by the inline
+       script below from the same `ritme_theme` key the app uses. No
+       prefers-color-scheme fallback on purpose: the app is light until the user
+       turns dark mode on, so a dark phone must not darken this page either. */
     html[data-theme="dark"] body { background: #131022; color: #F3F1FA; }
     html[data-theme="dark"] .card { background: #1C1830; box-shadow: none; }
     html[data-theme="dark"] p { color: #A9A4BC; }
@@ -62,10 +55,7 @@
     // itself rather than importing anything.
     (function () {
       try {
-        var p = localStorage.getItem('ritme_theme');
-        if (p !== 'light' && p !== 'dark') p = 'system';
-        var dark = p === 'dark' ||
-          (p === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
+        var dark = localStorage.getItem('ritme_theme') === 'dark';
         document.documentElement.dataset.theme = dark ? 'dark' : 'light';
         document.querySelector('meta[name="theme-color"]')
           .setAttribute('content', dark ? '#131022' : '#F2ECFF');

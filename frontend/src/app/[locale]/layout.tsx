@@ -47,8 +47,10 @@ export const metadata: Metadata = {
   },
 };
 
-// theme-color meta cannot reference CSS variables; these hex values mirror
-// --page in globals.css :root / [data-theme="dark"] (baselined exception).
+// theme-color meta cannot reference CSS variables; this hex mirrors --page in
+// globals.css :root (baselined exception). One value, not one per
+// prefers-color-scheme: the app starts light whatever the OS is set to, and the
+// theme store rewrites this meta when the user turns dark mode on.
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
@@ -56,10 +58,7 @@ export const viewport: Viewport = {
   minimumScale: 1,
   userScalable: false,
   viewportFit: 'cover',
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#F2ECFF' },
-    { media: '(prefers-color-scheme: dark)', color: '#131022' },
-  ],
+  themeColor: '#F2ECFF',
 };
 
 // Only the compiled-in locales are pre-rendered. A language an admin adds

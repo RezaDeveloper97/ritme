@@ -1,27 +1,9 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
-import { isThemePreference, resolveTheme } from './store';
-
-/**
- * Stand in for a browser whose OS is set to `prefersDark`. The module reads
- * `window` at call time, so it is enough to define it around the assertion.
- */
-function withOs(prefersDark: boolean, run: () => void) {
-  vi.stubGlobal('window', {
-    matchMedia: (query: string) => ({
-      matches: query.includes('dark') && prefersDark,
-    }),
-  });
-  run();
-}
-
-afterEach(() => {
-  vi.unstubAllGlobals();
-});
+import { DEFAULT_THEME, isThemePreference, THEME_PREFERENCES } from './store';
 
 describe('isThemePreference', () => {
-  it('accepts the three preferences and nothing else', () => {
-    expect(isThemePreference('system')).toBe(true);
+  it('accepts the two preferences and nothing else', () => {
     expect(isThemePreference('light')).toBe(true);
     expect(isThemePreference('dark')).toBe(true);
     // A stale or hand-edited localStorage value must not become the theme.
@@ -30,27 +12,21 @@ describe('isThemePreference', () => {
     expect(isThemePreference(undefined)).toBe(false);
     expect(isThemePreference('')).toBe(false);
   });
+
+  // 'system' was removed on purpose: the OS never decides this app's theme.
+  // If it ever comes back as a stored value, it must read as unknown and fall
+  // back to light rather than quietly following the phone again.
+  it('rejects the retired "system" value', () => {
+    expect(isThemePreference('system')).toBe(false);
+  });
 });
 
-describe('resolveTheme', () => {
-  it('takes an explicit choice at its word, whatever the OS says', () => {
-    withOs(true, () => {
-      expect(resolveTheme('light')).toBe('light');
-      expect(resolveTheme('dark')).toBe('dark');
-    });
-    withOs(false, () => {
-      expect(resolveTheme('light')).toBe('light');
-      expect(resolveTheme('dark')).toBe('dark');
-    });
+describe('the default', () => {
+  it('is light, so a dark phone does not darken the app on its own', () => {
+    expect(DEFAULT_THEME).toBe('light');
   });
 
-  it('follows the OS under "system"', () => {
-    withOs(true, () => expect(resolveTheme('system')).toBe('dark'));
-    withOs(false, () => expect(resolveTheme('system')).toBe('light'));
-  });
-
-  it('resolves to light on the server, where there is no OS to ask', () => {
-    // The layout renders before hydration; guessing dark there would flash.
-    expect(resolveTheme('system')).toBe('light');
+  it('is one of the offered preferences', () => {
+    expect(THEME_PREFERENCES).toContain(DEFAULT_THEME);
   });
 });

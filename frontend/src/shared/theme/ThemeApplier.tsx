@@ -2,42 +2,33 @@
 
 import { useEffect } from 'react';
 
-import { THEME_KEY, useThemeStore } from './store';
+import { isThemePreference, THEME_KEY, useThemeStore } from './store';
 
 /**
- * Keeps <html data-theme> in sync with the stored preference, including OS
- * theme changes while 'system' is selected, and the same choice made in another
- * tab. Mounted once in the app layout.
+ * Keeps <html data-theme> in sync with the stored preference, including the
+ * same choice made in another tab. Mounted once in the app layout.
  *
  * The initial paint is handled by the inline script (see `themeInitScript`), so
  * there is no light-flash before hydration; this component owns everything that
  * happens *after* it.
+ *
+ * The OS setting is deliberately not consulted anywhere: light is the app's
+ * default until the user turns dark mode on in Profile (see `store.ts`).
  */
 export function ThemeApplier() {
   const theme = useThemeStore((s) => s.theme);
   const setTheme = useThemeStore((s) => s.setTheme);
-  const syncResolved = useThemeStore((s) => s.syncResolved);
 
   useEffect(() => {
-    syncResolved();
-  }, [theme, syncResolved]);
-
-  // Follow the OS only while the user has not overridden it.
-  useEffect(() => {
-    if (theme !== 'system') return;
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const onChange = () => syncResolved();
-    mq.addEventListener('change', onChange);
-    return () => mq.removeEventListener('change', onChange);
-  }, [theme, syncResolved]);
+    document.documentElement.dataset.theme = theme;
+  }, [theme]);
 
   // Another tab (or another window of the installed PWA) changing the
   // preference must not leave this one on the old theme.
   useEffect(() => {
     const onStorage = (event: StorageEvent) => {
       if (event.key !== THEME_KEY) return;
-      const next = event.newValue;
-      if (next === 'light' || next === 'dark' || next === 'system') setTheme(next);
+      if (isThemePreference(event.newValue)) setTheme(event.newValue);
     };
     window.addEventListener('storage', onStorage);
     return () => window.removeEventListener('storage', onStorage);
@@ -47,17 +38,18 @@ export function ThemeApplier() {
 }
 
 /**
- * Inline bootstrap: resolves and applies the stored theme before first paint,
- * so a dark-mode user never sees a white flash. Rendered as a <script> in the
- * root layout (a server component), so it must stay a plain string with no
- * imports — it is the one deliberate duplicate of `applyTheme`.
+ * Inline bootstrap: applies the stored theme before first paint, so a dark-mode
+ * user never sees a white flash. Rendered as a <script> in the root layout (a
+ * server component), so it must stay a plain string with no imports — it is the
+ * one deliberate duplicate of `applyTheme`.
+ *
+ * Anything other than a stored 'dark' resolves to light, including a phone in
+ * dark mode: the OS does not decide this app's theme.
  *
  * `ritme_theme` here is `THEME_KEY`; keep the two in step.
  */
 export const themeInitScript = `(function(){try{
-var p=localStorage.getItem('ritme_theme');
-if(p!=='light'&&p!=='dark')p='system';
-var d=p==='dark'||(p==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);
+var d=localStorage.getItem('ritme_theme')==='dark';
 var r=document.documentElement;
 r.dataset.theme=d?'dark':'light';
 var c=getComputedStyle(r).getPropertyValue('--page').trim();

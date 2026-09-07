@@ -146,9 +146,9 @@ function EditableValue({ children }: { children: ReactNode }) {
 }
 
 // ── Dark-mode switch ──────────────────────────────────────────
-// A two-state switch rather than the three-way appearance picker: light/dark is
-// the only choice users actually reach for, and 'system' stays the default
-// until the first flip.
+// Two states, and light is where everyone starts: the OS setting is never
+// consulted (see `shared/theme`), so "off" is both the default and the honest
+// initial render.
 //
 // The preference lives in localStorage, so the server has no answer for it and
 // rendering the real state on the first client paint would contradict the
@@ -156,13 +156,13 @@ function EditableValue({ children }: { children: ReactNode }) {
 // therefore renders "off" until mounted, then settles into the real value —
 // the DOM already has the right theme by then, painted by the inline bootstrap.
 function ThemeSwitch({ label }: { label: string }) {
-  const resolved = useThemeStore((s) => s.resolved);
+  const theme = useThemeStore((s) => s.theme);
   const setTheme = useThemeStore((s) => s.setTheme);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
-  const on = mounted && resolved === 'dark';
+  const on = mounted && theme === 'dark';
 
   return (
     <button

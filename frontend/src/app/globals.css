@@ -156,7 +156,7 @@
 }
 
 /* Dark appearance — variables flipped via <html data-theme="dark">
-   (set from the profile "appearance" setting; see shared/theme). */
+   (set from the profile dark-mode switch; see shared/theme). */
 [data-theme="dark"] {
   color-scheme: dark;
 
@@ -2872,11 +2872,3 @@ body.pwa-locked { overflow: hidden; }
 .lang-row-name  { display: block; font-size: 14.5px; font-weight: 800; color: var(--ink); }
 .lang-row-code  { display: block; font-size: 12px; color: var(--muted); margin-top: 3px; }
 .lang-row-check { color: var(--brand); flex-shrink: 0; }
-
-/* Appearance picker — same rows as the language list, with a leading glyph. */
-.appr-icon {
-  width: 34px; height: 34px; border-radius: 11px; flex: 0 0 auto;
-  display: flex; align-items: center; justify-content: center;
-  background: var(--line); color: var(--brand);
-}
-.lang-row.is-active .appr-icon { background: var(--surface); }

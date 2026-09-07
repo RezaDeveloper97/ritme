@@ -56,10 +56,6 @@ function LanguageTitle() {
   return <>{useTranslations('profile')('rows.language')}</>;
 }
 
-function AppearanceTitle() {
-  return <>{useTranslations('profile')('rows.appearance')}</>;
-}
-
 /**
  * Every screen in this app that is neither a bottom-nav tab nor part of signing
  * up. They have no routes of their own: each is a panel that rises over
@@ -149,20 +145,6 @@ export const SHEET_REGISTRY: Record<string, SheetDefinition> = {
     Title: RemindersTitle,
     Component: dynamic(
       () => import('@/screens/profile-reminders').then((m) => m.RemindersSheet),
-      { ssr: false },
-    ),
-  },
-
-  /**
-   * Light / dark / follow-the-system. `ssr: false` is load-bearing here: the
-   * preference is read from localStorage, which the server cannot see, so an
-   * SSR'd selected row would be a guess the client immediately contradicts.
-   */
-  appearance: {
-    size: 'half',
-    Title: AppearanceTitle,
-    Component: dynamic(
-      () => import('@/screens/profile-appearance').then((m) => m.AppearanceSheet),
       { ssr: false },
     ),
   },

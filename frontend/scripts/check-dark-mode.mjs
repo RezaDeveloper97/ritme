@@ -181,8 +181,14 @@ else if (!applier.includes(`'${storeKey}'`)) {
 if (!/dataset\.theme|setAttribute\(\s*'data-theme'/.test(applier)) {
   fail('shared/theme/ThemeApplier.tsx', 'themeInitScript never writes data-theme, so dark users get a light flash');
 }
-if (!/prefers-color-scheme/.test(applier)) {
-  fail('shared/theme/ThemeApplier.tsx', "themeInitScript ignores the OS setting, so 'system' cannot resolve to dark");
+// The OS must NOT reach the theme: light is the default until the user turns
+// dark mode on in Profile. A `prefers-color-scheme` read creeping back into the
+// theme slice would silently restore "follow the system".
+if (/prefers-color-scheme/.test(applier) || /prefers-color-scheme/.test(store)) {
+  fail('shared/theme', 'the theme slice reads prefers-color-scheme — the OS setting must not decide the app theme (default is light)');
+}
+if (!/'dark'/.test(applier)) {
+  fail('shared/theme/ThemeApplier.tsx', 'themeInitScript never checks for the stored dark value');
 }
 if (!layout.includes('themeInitScript')) {
   fail('app/[locale]/layout.tsx', 'themeInitScript is not rendered — nothing sets the theme before hydration');

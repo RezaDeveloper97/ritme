@@ -17,7 +17,6 @@
     "notifications": "Notifications",
     "language": "App language",
     "darkMode": "Dark mode",
-    "appearance": "Appearance & theme",
     "privacyPolicy": "Privacy policy",
     "exportData": "Export my data",
     "deleteAccount": "Delete account",
@@ -45,16 +44,6 @@
   "logout": "Log out",
   "loggingOut": "Logging out…",
   "version": "Version {version}",
-  "appearance": {
-    "system": "Auto",
-    "light": "Light",
-    "dark": "Dark",
-    "hint": "Choose how Ritme looks. “Auto” follows your phone’s light/dark setting.",
-    "following": {
-      "light": "Currently light",
-      "dark": "Currently dark"
-    }
-  },
   "exporting": "Preparing export…",
   "mode": {
     "switchToPregnancy": "Switch to pregnancy mode",
