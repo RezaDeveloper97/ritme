@@ -18,6 +18,7 @@
 #   SERVICES="frontend" ./deploy.sh   rebuild/restart only some services
 #   NO_BUILD=1 ./deploy.sh            ship files + restart, skip image builds
 #   SKIP_SYNC=1 ./deploy.sh           rebuild from what's already on the server
+#   MERGE_STAGE=1 ./deploy.sh         merge `stage` without asking (0 = never ask)
 # ─────────────────────────────────────────────────────────────────────────────
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -40,6 +41,59 @@ SSH_OPTS=(-i "$SSH_KEY" -o ConnectTimeout=20 -o ServerAliveInterval=15 -o Server
 COMPOSE="docker compose -f docker-compose.yml -f docker-compose.prod.yml"
 
 ssh_run() { ssh "${SSH_OPTS[@]}" "$SERVER" "$@"; }
+
+# ── Offer to merge `stage` first ─────────────────────────────────────────────
+# Day-to-day work happens on the `stage` branch (that's what deploy-stage.sh
+# ships). A production deploy run from another branch would therefore quietly
+# ship an older tree, so ask before that happens. Skipped entirely when there is
+# nothing to merge, when SKIP_SYNC=1 (the working tree isn't shipped at all), or
+# when stdin isn't a terminal — set MERGE_STAGE=1 to merge unattended, or
+# MERGE_STAGE=0 to never ask.
+STAGE_BRANCH="${STAGE_BRANCH:-stage}"
+maybe_merge_stage() {
+  [[ "${MERGE_STAGE:-}" == "0" ]] && return 0
+  [[ "${SKIP_SYNC:-0}" == "1" ]] && return 0
+  git rev-parse --git-dir >/dev/null 2>&1 || return 0
+
+  local current ahead
+  current="$(git rev-parse --abbrev-ref HEAD)"
+  [[ "$current" == "$STAGE_BRANCH" ]] && return 0
+  git rev-parse --verify "${STAGE_BRANCH}^{commit}" >/dev/null 2>&1 || return 0
+
+  # Commits on stage that this branch doesn't have yet. Zero => nothing to do.
+  ahead="$(git rev-list --count "HEAD..${STAGE_BRANCH}")"
+  [[ "$ahead" == "0" ]] && return 0
+
+  echo
+  echo "!! '${STAGE_BRANCH}' has ${ahead} commit(s) that '${current}' does not:" >&2
+  git --no-pager log --oneline --no-decorate "HEAD..${STAGE_BRANCH}" | sed 's/^/     /' >&2
+  echo "   Deploying now would ship the OLDER tree." >&2
+
+  if [[ -n "$(git status --porcelain)" ]]; then
+    echo "!! Working tree is dirty — cannot merge automatically." >&2
+    echo "   Commit or stash, then re-run (or continue and ship as-is)." >&2
+    return 0
+  fi
+
+  if [[ "${MERGE_STAGE:-}" != "1" ]]; then
+    if [[ ! -t 0 ]]; then
+      echo "   (non-interactive: not merging; use MERGE_STAGE=1 to merge)" >&2
+      return 0
+    fi
+    local reply
+    read -r -p "   Merge '${STAGE_BRANCH}' into '${current}' before deploying? [y/N] " reply
+    [[ "$reply" =~ ^[Yy]$ ]] || { echo "   Skipping merge — shipping '${current}' as-is."; return 0; }
+  fi
+
+  echo "==> Merging '${STAGE_BRANCH}' into '${current}' ..."
+  if ! git merge --no-edit "$STAGE_BRANCH"; then
+    git merge --abort || true
+    echo "!! Merge conflicted and was aborted. Resolve it by hand, then re-run." >&2
+    exit 1
+  fi
+  echo "   Now at $(git rev-parse --short HEAD)."
+}
+maybe_merge_stage
 
 if [[ "${SKIP_SYNC:-0}" != "1" ]]; then
   echo "==> Syncing source to ${SERVER}:${REMOTE_DIR} ..."
