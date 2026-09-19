@@ -297,3 +297,41 @@ they don't force an uninstall that wipes the profile.
   this isn't a reliable signal.
 - Only 4 iOS devices signed in during the window, so the sample is small. The pattern is consistent, but not
   statistically strong.
+
+---
+
+## Fixed in (closed out in T-M1-05, 2026-09-19)
+
+| Root cause / finding | Fix | Commit |
+|---|---|---|
+| #1 flag cookie lost → user stuck on `/signup` with a valid token | The `localStorage` token is the source of truth. `SessionGuard` (`shared/session/reconcile.ts`) re-asserts the flag on every start, route change and resume, and moves signed-in users off `/splash`, `/welcome`, `/signup` and `/otp`. The flag is now **server-set** by `POST /api/session/flag` (1 year, `SameSite=Lax`), so WebKit's 7-day cap on script cookies doesn't apply. | 0dcf8e7 (T-M1-03); stage vhost route in 876a408 (T-M1-08) |
+| #2 iOS storage partitions | Can't be fixed (platform behaviour). Mitigated: the iOS install guide says the Home Screen app needs one sign-in, in-app browsers get an "open in browser" hint, and `navigator.storage.persist()` runs after sign-in. | 0dcf8e7 (T-M1-03), 008a685 (T-M1-07) |
+| #3 any 401 cleared the token | Backend: JSON 401s carry `error_code` ∈ `token_revoked` / `token_expired` / `unauthenticated`. Client (`shared/session/unauthorized.ts`): the session ends only on a JSON 401 for a request that carried the current token, with one of those codes (or Laravel's legacy body). | 35e972c (T-M1-02) + 0dcf8e7 (T-M1-03) |
+| Lifetime / future expiry | Fixed `P365D` lifetime (`config/passport.php`), tested. Sliding refresh: `POST /api/v1/auth/refresh-session` issues a fresh 365-day token only within 30 days of expiry. The client (`features/auth` `SessionRefresher`) calls it on start/resume. | 35e972c, 0dcf8e7 |
+| Laptop key pair shipped to prod | `storage/*.key` is excluded from rsync (`deploy.sh`, `deploy-stage.sh`) and from the Docker context (`.dockerignore`). `entrypoint.sh` never regenerates keys and creates the personal client only when the count is really 0. | 35e972c (T-M1-02) |
+| Android shell | Not implicated. `CookieManager.flush()` also runs in `onStop`. `android-shell/` is git-ignored, so this change lives only in the working tree. | c43d023 (T-M1-04) |
+
+**End-to-end check (T-M1-05, local dev):** backend on :8050 with a scratch copy of the sqlite DB, `next dev` on
+:3150, headless Chrome over CDP.
+
+```
+(a) UI sign-in (OTP)       → /fa/home; stored JWT exp = +365.0 d; POST /api/session/flag 204
+                              Set-Cookie: ritme_auth=1; Path=/; Max-Age=31536000; SameSite=lax
+(b) seeded a 10-day JWT    → on load POST /auth/refresh-session 200 {"refreshed":true,…,"expires_at":"2027-09-19…"}
+    (minted with PASSPORT_TOKEN_LIFETIME_DAYS=10)   localStorage token REPLACED (jti 4e047b4a → 9f991313, 365.0 d left)
+                              DB: 4e047b4a revoked=1, 9f991313 revoked=0; 0 × 401; a later resume sends no 2nd refresh
+(c) revoked 9f991313 in DB → API: 401 application/json {"message":"Unauthenticated.","error_code":"token_revoked"}
+                              app: 11 parallel 401s → one clean sign-out: /fa/signup, token null, ritme_auth gone;
+                              a cold start lands on /fa/welcome and makes no further 401 calls
+```
+
+**What remains:**
+- **Staging and prod verification happens in T-M1-14.** T-M1-05 deployed nothing, because the working tree held
+  other agents' uncommitted work. Prod still runs the v1.0.2 any-401 bundle until T-M1-14 ships.
+- **Manual iPhone test** (Home Screen app): sign in once, check it stays signed in after more than 8 days, and confirm
+  the flag cookie is the server-set one.
+- **Key rotation decision:** the prod key pair is still the laptop's (`b501f48dc5d43bdc`). Rotating it signs out
+  every user. Choose between a planned forced re-sign-in (after T-M1-14 ships and SMS works) and a dual-key
+  validator. Also delete the stray `/opt/ritme/backend/storage/oauth-*.key`.
+- Smaller follow-ups from T-M1-02: admin `UserController::destroy` doesn't revoke tokens, the `ritme_onboarding`
+  cookie is still set from JS, nginx `log_format` lacks `$host`.

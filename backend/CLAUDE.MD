@@ -9,6 +9,17 @@
 - ورژن‌بندی: `/api/v1/*`
 - هر endpoint جدید **باید** در Swagger مستند شود (`@OA\`)
 
+## نشست و توکن (الزامی)
+
+کاربر باید یک سال وارد بماند. پیش‌زمینه در `docs/investigations/session-logout.md` آمده است.
+
+- **عمر توکن:** ۳۶۵ روز ثابت (`config/passport.php` → `token_lifetime_days`، که در `AppServiceProvider` به `P365D` تبدیل می‌شود). آن را به `P1Y` یا عدد کمتر برنگردانید. تست‌های `tests/Feature/Auth/SessionTokenTest.php` جلوی این را می‌گیرند.
+- **تمدید:** `POST /api/v1/auth/refresh-session` فقط وقتی کمتر از `refresh_window_days` (۳۰ روز) به انقضای توکن مانده باشد، توکن تازه‌ی ۳۶۵ روزه می‌دهد و توکن قبلی را revoke می‌کند (اول صدور، بعد revoke). در غیر این صورت `refreshed: false` برمی‌گرداند و کاری نمی‌کند.
+- **قرارداد 401:** 401ِ احراز هویت (`AuthenticationException` روی `/api`) همیشه JSON است و فیلد `error_code` دارد که یکی از `token_revoked`، `token_expired` یا `unauthenticated` است (`bootstrap/app.php`). کلاینت فقط با همین 401ها نشست را پاک می‌کند، پس برای خطاهای دیگر (دسترسی، اعتبارسنجی، محدودیت) **هرگز** 401 برنگردانید و به‌جایش از 403/422/429 استفاده کنید.
+- **revoke** فقط در سه جا مجاز است: logout، بلاک‌کردن کاربر توسط ادمین و حذف حساب. همین‌طور `refresh-session` که توکن قبلی را revoke می‌کند. `passport:purge` زمان‌بندی‌شده اضافه نکنید.
+- **فلگ `ritme_auth`** را route فرانت‌اند (`POST /api/session/flag`) تنظیم می‌کند، نه بک‌اند. توکن هرگز در کوکی نمی‌رود.
+- **کلیدها:** `storage/oauth-*.key` هرگز ship نشود. این فایل‌ها در `.dockerignore` و rsyncِ `deploy.sh` و `deploy-stage.sh` exclude شده‌اند (`--delete-excluded` اضافه نکنید). کلیدها فقط روی volumeِ `backend-storage` هستند. عوض‌کردن کلید همه‌ی کاربران را از حساب خارج می‌کند، پس فقط با برنامه انجام شود.
+
 ## معماری: DDD
 
 ```

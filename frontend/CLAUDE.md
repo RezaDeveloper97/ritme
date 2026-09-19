@@ -664,6 +664,31 @@ Treat every line of code with that in mind.
 If a request would weaken any of the above, do it the safe way and tell the user
 why.
 
+### 11.1 Session rules (auth)
+
+Users must stay signed in for a year. The background is in
+`docs/investigations/session-logout.md`.
+
+- **Lifetime:** the API issues 365-day JWTs. `localStorage['ritme_token']` is the
+  client's source of truth; never drop it because the flag cookie is missing.
+- **Flag cookie:** `ritme_auth=1` (never the token) is **server-set** by the
+  same-origin route `POST /api/session/flag`. That avoids WebKit's 7-day cap on
+  cookies written from script. `SessionGuard` re-asserts it on start, route change
+  and resume. Keep the `document.cookie` write only as a fallback.
+- **Refresh window:** `SessionRefresher` calls `POST /auth/refresh-session` when the
+  JWT `exp` is less than 30 days away, and stores the new token. The call is
+  single-flight, backs off 10 minutes after a failure and stops on 404/405. Don't
+  add other refresh paths.
+- **What may clear a session:** only `endsSession()` (`shared/session/unauthorized.ts`).
+  That means a **JSON** 401 for a request that carried the **current** token,
+  with `error_code` ∈ `token_expired` / `token_revoked` / `unauthenticated` (or
+  Laravel's legacy `"Unauthenticated."` body). Also explicit logout and account
+  deletion. A non-JSON (proxy or Basic-auth) 401, a 5xx, a network error, or a 401
+  for a token the app no longer holds must **never** clear it. Never call
+  `localStorage.clear()`.
+- **Keys:** Passport `backend/storage/*.key` never ship (excluded from rsync and
+  Docker). Rotating them signs out every user, so it needs a plan. See `backend/CLAUDE.MD`.
+
 ---
 
 ## 12. Anti-patterns — do NOT do these
