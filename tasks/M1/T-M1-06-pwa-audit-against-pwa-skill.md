@@ -3,7 +3,7 @@ id: T-M1-06
 title: PWA audit against the pwa skill and Lighthouse
 milestone: M1
 type: investigate
-status: todo
+status: done
 depends_on: []
 parallel_group: M1-A
 touches: [docs/investigations/pwa-audit.md]
