@@ -4,28 +4,55 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Enums\CalculationStatus;
 use App\Enums\CyclePhase;
-use App\Enums\CycleSubphase;
-use App\Enums\CycleVariability;
-use App\Enums\OverrideType;
-use App\Enums\SubscriptionType;
-use App\Enums\UserGoal;
 use App\Http\Controllers\Concerns\ResolvesLocale;
 use App\Http\Controllers\Controller;
-use App\Jobs\CalculateCycleDataJob;
-use App\Models\DailyHealthLog;
 use App\Services\HealthEngine\CycleDayViewBuilder;
 use App\Services\HealthEngine\CycleEngineCache;
 use App\Services\HealthEngine\DailyTipLocalizer;
 use App\Services\HealthEngine\HealthDataEngine;
-use App\Services\MatrixEngine\CorrelationEngine;
-use App\Services\MatrixEngine\MatrixMessageEngine;
-use App\Services\MatrixEngine\NutritionSleepModule;
-use App\Services\MatrixEngine\PatternRecognitionEngine;
-use App\Services\MatrixEngine\TTCMatrixEngine;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * The per-day engine result (`HealthDataEngine::calculateForDate()`), computed live on
+ * every request. It used to be documented on the `CycleCalculation` model, which is
+ * gone with its dead `cycle_calculations` storage (T-M1-13).
+ *
+ * @OA\Schema(
+ *     schema="CycleCalculation",
+ *     type="object",
+ *
+ *     @OA\Property(property="calculation_date", type="string", format="date", example="2024-12-07"),
+ *     @OA\Property(property="cycle_day", type="integer", example=14),
+ *     @OA\Property(property="phase", type="string", example="ovulation"),
+ *     @OA\Property(property="subphase", type="string", example="ovulation_window"),
+ *     @OA\Property(property="estimated_ovulation_day", type="integer", example=14),
+ *     @OA\Property(property="cycle_length_used", type="integer", example=28),
+ *     @OA\Property(property="is_fertile_window", type="boolean", example=true),
+ *     @OA\Property(property="is_pms_window", type="boolean", example=false),
+ *     @OA\Property(property="is_period_tomorrow", type="boolean", example=false),
+ *     @OA\Property(property="is_luteal_spotting", type="boolean", example=false),
+ *     @OA\Property(property="cycle_score", type="number", format="float", example=0.70),
+ *     @OA\Property(property="age_factor", type="number", format="float", example=0.85),
+ *     @OA\Property(property="base_probability", type="number", format="float", example=0.30),
+ *     @OA\Property(property="symptom_score", type="number", format="float", example=1.30),
+ *     @OA\Property(property="final_probability", type="number", format="float", example=19.89),
+ *     @OA\Property(property="cycle_variability", type="string", example="regular"),
+ *     @OA\Property(property="uncertainty_range", type="integer", example=1),
+ *     @OA\Property(property="text_flags", type="object"),
+ *     @OA\Property(property="daily_tips", type="array", description="Localized daily recommendations (admin-managed)",
+ *
+ *         @OA\Items(type="object",
+ *
+ *             @OA\Property(property="type", type="string", example="nutrition"),
+ *             @OA\Property(property="title", type="string", example="تغذیه"),
+ *             @OA\Property(property="icon", type="string", example="apple"),
+ *             @OA\Property(property="text", type="string")
+ *         )
+ *     )
+ * )
+ */
 class CycleCalculationController extends Controller
 {
     use ResolvesLocale;
@@ -359,33 +386,33 @@ class CycleCalculationController extends Controller
      * @OA\Post(
      *     path="/cycle/recalculate",
      *     summary="Trigger recalculation",
-     *     description="Manually trigger a recalculation of cycle data (useful after daily log updates)",
+     *     description="Records a recalculation of the cycle data. Every cycle endpoint computes live from the user's inputs, so the recalculation completes synchronously: the version is bumped and the status is `completed` in the response (and in /cycle/status) right away. Kept for clients that call it after daily log updates.",
      *     tags={"Cycle Calculation"},
      *     security={{"bearerAuth":{}}},
      *
      *     @OA\Response(
      *         response=200,
-     *         description="Recalculation triggered successfully",
+     *         description="Recalculation completed",
      *
      *         @OA\JsonContent(
      *
      *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="message", type="string", example="Recalculation started"),
+     *             @OA\Property(property="message", type="string", example="Recalculation completed"),
      *             @OA\Property(property="data", type="object",
      *                 @OA\Property(property="version", type="integer", example=2),
-     *                 @OA\Property(property="status", type="string", example="processing")
+     *                 @OA\Property(property="status", type="string", example="completed")
      *             )
      *         )
      *     ),
      *
      *     @OA\Response(
      *         response=400,
-     *         description="Recalculation already in progress",
+     *         description="Profile not complete",
      *
      *         @OA\JsonContent(
      *
      *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(property="message", type="string", example="Calculation already in progress")
+     *             @OA\Property(property="message", type="string", example="Please complete your profile first")
      *         )
      *     ),
      *
@@ -410,399 +437,14 @@ class CycleCalculationController extends Controller
             ], 400);
         }
 
-        // Check if already processing
-        if ($profile->calculation_status === CalculationStatus::PROCESSING->value) {
-            return response()->json([
-                'success' => false,
-                'message' => $locale === 'fa'
-                    ? 'محاسبه در حال انجام است'
-                    : 'Calculation already in progress',
-            ], 400);
-        }
-
-        // Increment version and dispatch job
-        $newVersion = ($profile->calculation_version ?? 0) + 1;
-
-        CalculateCycleDataJob::dispatch($user->id, $newVersion, $locale);
+        $newVersion = $profile->markRecalculated();
 
         return response()->json([
             'success' => true,
-            'message' => $locale === 'fa' ? 'محاسبه مجدد شروع شد' : 'Recalculation started',
+            'message' => $locale === 'fa' ? 'محاسبه مجدد انجام شد' : 'Recalculation completed',
             'data' => [
                 'version' => $newVersion,
-                'status' => CalculationStatus::PROCESSING->value,
-            ],
-        ]);
-    }
-
-    /**
-     * @OA\Get(
-     *     path="/cycle/enums",
-     *     summary="Get cycle enum values",
-     *     description="Retrieve all available enum values for cycle phases, subphases, and variability",
-     *     tags={"Cycle Calculation"},
-     *     security={{"bearerAuth":{}}},
-     *
-     *     @OA\Parameter(
-     *         name="Accept-Language",
-     *         in="header",
-     *         description="Language for labels (en, fa)",
-     *         required=false,
-     *
-     *         @OA\Schema(type="string", default="en", enum={"en","fa"})
-     *     ),
-     *
-     *     @OA\Response(
-     *         response=200,
-     *         description="Enum values retrieved successfully",
-     *
-     *         @OA\JsonContent(
-     *
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="data", type="object",
-     *                 @OA\Property(property="phases", type="array", @OA\Items(type="object",
-     *                     @OA\Property(property="value", type="string"),
-     *                     @OA\Property(property="label", type="string"),
-     *                     @OA\Property(property="description", type="string")
-     *                 )),
-     *                 @OA\Property(property="subphases", type="array", @OA\Items(type="object",
-     *                     @OA\Property(property="value", type="string"),
-     *                     @OA\Property(property="label", type="string")
-     *                 )),
-     *                 @OA\Property(property="variability", type="array", @OA\Items(type="object",
-     *                     @OA\Property(property="value", type="string"),
-     *                     @OA\Property(property="label", type="string")
-     *                 )),
-     *                 @OA\Property(property="calculation_status", type="array", @OA\Items(type="object",
-     *                     @OA\Property(property="value", type="string"),
-     *                     @OA\Property(property="label", type="string")
-     *                 ))
-     *             )
-     *         )
-     *     ),
-     *
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthenticated"
-     *     )
-     * )
-     */
-    public function enums(Request $request): JsonResponse
-    {
-        $locale = $this->resolveLocale($request);
-
-        $phases = collect(CyclePhase::cases())->map(fn ($p) => [
-            'value' => $p->value,
-            'label' => $p->label($locale),
-            'description' => $p->description($locale),
-        ])->values();
-
-        $subphases = collect(CycleSubphase::cases())->map(fn ($s) => [
-            'value' => $s->value,
-            'label' => $s->label($locale),
-        ])->values();
-
-        $variability = collect(CycleVariability::cases())->map(fn ($v) => [
-            'value' => $v->value,
-            'label' => $v->label($locale),
-            'uncertainty_range' => $v->uncertaintyRange(),
-        ])->values();
-
-        $status = collect(CalculationStatus::cases())->map(fn ($s) => [
-            'value' => $s->value,
-            'label' => $s->label($locale),
-        ])->values();
-
-        $mainPhases = collect(\App\Enums\MainPhase::cases())->map(fn ($p) => [
-            'value' => $p->value,
-            'label' => $p->label($locale),
-        ])->values();
-
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'phases' => $phases,
-                'subphases' => $subphases,
-                'variability' => $variability,
-                'calculation_status' => $status,
-                // v1.1 engine enums (task.md §13, §26, §28–§32).
-                'main_phases' => $mainPhases,
-                'fertility_levels' => \App\Enums\FertilityLevel::values(),
-                'resolution_sources' => \App\Enums\ResolutionSource::values(),
-                'data_quality_levels' => \App\Enums\DataQualityLevel::values(),
-                'warnings' => \App\Enums\CycleWarning::values(),
-            ],
-        ]);
-    }
-
-    /**
-     * @OA\Get(
-     *     path="/cycle/matrix-messages",
-     *     summary="Get personalized matrix messages",
-     *     description="Retrieve personalized messages based on cycle phase, symptoms, and user goal (TTC/Non-TTC). Includes Layer 1&2 (Base Matrix), Layer 3 (Correlation Engine), Layer 4 (Pattern Recognition), and supplementary modules (Nutrition & Sleep).",
-     *     tags={"Cycle Calculation"},
-     *     security={{"bearerAuth":{}}},
-     *
-     *     @OA\Parameter(
-     *         name="date",
-     *         in="query",
-     *         description="Date for messages (YYYY-MM-DD). Defaults to today.",
-     *         required=false,
-     *
-     *         @OA\Schema(type="string", format="date", example="2024-12-15")
-     *     ),
-     *
-     *     @OA\Parameter(
-     *         name="Accept-Language",
-     *         in="header",
-     *         description="Language for messages (en, fa)",
-     *         required=false,
-     *
-     *         @OA\Schema(type="string", default="fa", enum={"en","fa"})
-     *     ),
-     *
-     *     @OA\Response(
-     *         response=200,
-     *         description="Matrix messages retrieved successfully",
-     *
-     *         @OA\JsonContent(
-     *
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="data", type="object",
-     *                 @OA\Property(property="date", type="string", format="date", example="2024-12-15"),
-     *                 @OA\Property(property="user_goal", type="string", example="non_ttc"),
-     *                 @OA\Property(property="subscription_type", type="string", example="free"),
-     *                 @OA\Property(property="cycle_info", type="object",
-     *                     @OA\Property(property="phase", type="string", example="follicular"),
-     *                     @OA\Property(property="subphase", type="string", example="early_follicular"),
-     *                     @OA\Property(property="cycle_day", type="integer", example=8),
-     *                     @OA\Property(property="is_fertile_window", type="boolean", example=false),
-     *                     @OA\Property(property="is_pms_window", type="boolean", example=false)
-     *                 ),
-     *                 @OA\Property(property="matrix_message", type="object",
-     *                     @OA\Property(property="phase", type="string", example="follicular"),
-     *                     @OA\Property(property="override_type", type="string", example="normal"),
-     *                     @OA\Property(property="short_message", type="string"),
-     *                     @OA\Property(property="long_message", type="string"),
-     *                     @OA\Property(property="action_suggestion", type="string"),
-     *                     @OA\Property(property="dos", type="array", @OA\Items(type="string")),
-     *                     @OA\Property(property="donts", type="array", @OA\Items(type="string"))
-     *                 ),
-     *                 @OA\Property(property="correlations", type="array", @OA\Items(type="object",
-     *                     @OA\Property(property="type", type="string"),
-     *                     @OA\Property(property="insight_message", type="string"),
-     *                     @OA\Property(property="action", type="string")
-     *                 )),
-     *                 @OA\Property(property="patterns", type="array", @OA\Items(type="object",
-     *                     @OA\Property(property="pattern_type", type="string"),
-     *                     @OA\Property(property="alert_level", type="string"),
-     *                     @OA\Property(property="message", type="string")
-     *                 )),
-     *                 @OA\Property(property="nutrition_sleep_tips", type="object",
-     *                     @OA\Property(property="nutrition", type="object"),
-     *                     @OA\Property(property="sleep", type="object"),
-     *                     @OA\Property(property="exercise", type="object")
-     *                 )
-     *             )
-     *         )
-     *     ),
-     *
-     *     @OA\Response(
-     *         response=400,
-     *         description="Profile not complete",
-     *
-     *         @OA\JsonContent(
-     *
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(property="message", type="string", example="Please complete your profile first")
-     *         )
-     *     ),
-     *
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthenticated"
-     *     )
-     * )
-     */
-    public function matrixMessages(Request $request): JsonResponse
-    {
-        $user = $request->user();
-        $locale = $this->resolveLocale($request);
-        $profile = $user->profile;
-
-        if (! $profile || ! $profile->last_period_start) {
-            return response()->json([
-                'success' => false,
-                'message' => $locale === 'fa'
-                    ? 'لطفاً ابتدا پروفایل خود را تکمیل کنید'
-                    : 'Please complete your profile first',
-            ], 400);
-        }
-
-        // Get target date
-        $date = $request->query('date')
-            ? Carbon::parse($request->query('date'))
-            : Carbon::today();
-
-        // Get cycle calculation data
-        $healthEngine = new HealthDataEngine($user, $locale);
-        $cycleData = $healthEngine->calculateForDate($date);
-
-        // Check if we have valid cycle data
-        if (! isset($cycleData['phase']) || ! $cycleData['phase']) {
-            return response()->json([
-                'success' => false,
-                'message' => $locale === 'fa'
-                    ? 'اطلاعات سیکل موجود نیست'
-                    : 'Cycle information not available',
-            ], 400);
-        }
-
-        // Get phase and subphase enums
-        $phase = CyclePhase::from($cycleData['phase']);
-        $subphase = CycleSubphase::from($cycleData['subphase']);
-        $cycleDay = $cycleData['cycle_day'];
-        $isFertileWindow = $cycleData['is_fertile_window'] ?? false;
-        $isPmsWindow = $cycleData['is_pms_window'] ?? false;
-
-        // Get daily health log
-        $dailyLog = DailyHealthLog::where('user_id', $user->id)
-            ->whereDate('log_date', $date)
-            ->first();
-
-        // Determine user goal and subscription
-        $isTTC = $profile->isTTC();
-        $isPremium = $profile->isPremium();
-        $userGoal = $profile->user_goal ?? UserGoal::NON_TTC->value;
-        $subscriptionType = $profile->subscription_type ?? SubscriptionType::FREE->value;
-
-        // Get matrix message based on user goal
-        if ($isTTC) {
-            $matrixEngine = new TTCMatrixEngine($user, $locale);
-            $matrixMessage = $matrixEngine->getMatrixMessage($phase, $subphase, $cycleDay, $dailyLog, $isFertileWindow);
-        } else {
-            $matrixEngine = new MatrixMessageEngine($user, $locale);
-            $matrixMessage = $matrixEngine->getMatrixMessage($phase, $subphase, $cycleDay, $dailyLog);
-        }
-
-        // Get correlations (Layer 3)
-        $correlationEngine = new CorrelationEngine($user, $locale);
-        $correlations = $correlationEngine->analyzeCorrelations($phase, $subphase, $dailyLog, $isTTC);
-
-        // Filter correlations based on subscription
-        if (! $isPremium) {
-            $correlations = array_filter($correlations, fn ($c) => ! ($c['is_premium_only'] ?? false));
-            $correlations = array_values($correlations);
-        }
-
-        // Get patterns (Layer 4 - Premium only)
-        $patterns = [];
-        if ($isPremium) {
-            $patternEngine = new PatternRecognitionEngine($user, $locale);
-            $patterns = $patternEngine->analyzePatterns($isTTC);
-        }
-
-        // Get nutrition and sleep tips
-        $nutritionSleepModule = new NutritionSleepModule($user, $locale);
-        $nutritionSleepTips = $nutritionSleepModule->getTips($phase, $subphase, $dailyLog, $isTTC);
-
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'date' => $date->toDateString(),
-                'user_goal' => $userGoal,
-                'subscription_type' => $subscriptionType,
-                'cycle_info' => [
-                    'phase' => $phase->value,
-                    'phase_label' => $phase->label($locale),
-                    'subphase' => $subphase->value,
-                    'subphase_label' => $subphase->label($locale),
-                    'cycle_day' => $cycleDay,
-                    'is_fertile_window' => $isFertileWindow,
-                    'is_pms_window' => $isPmsWindow,
-                    'estimated_ovulation_day' => $cycleData['estimated_ovulation_day'] ?? null,
-                    'cycle_length_used' => $cycleData['cycle_length_used'] ?? null,
-                ],
-                'matrix_message' => $matrixMessage,
-                'correlations' => $correlations,
-                'patterns' => $patterns,
-                'nutrition_sleep_tips' => $nutritionSleepTips,
-            ],
-        ]);
-    }
-
-    /**
-     * @OA\Get(
-     *     path="/cycle/matrix-enums",
-     *     summary="Get matrix enum values",
-     *     description="Retrieve all available enum values for user goals, subscription types, and override types",
-     *     tags={"Cycle Calculation"},
-     *     security={{"bearerAuth":{}}},
-     *
-     *     @OA\Parameter(
-     *         name="Accept-Language",
-     *         in="header",
-     *         description="Language for labels (en, fa)",
-     *         required=false,
-     *
-     *         @OA\Schema(type="string", default="fa", enum={"en","fa"})
-     *     ),
-     *
-     *     @OA\Response(
-     *         response=200,
-     *         description="Matrix enum values retrieved successfully",
-     *
-     *         @OA\JsonContent(
-     *
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="data", type="object",
-     *                 @OA\Property(property="user_goals", type="array", @OA\Items(type="object",
-     *                     @OA\Property(property="value", type="string"),
-     *                     @OA\Property(property="label", type="string")
-     *                 )),
-     *                 @OA\Property(property="subscription_types", type="array", @OA\Items(type="object",
-     *                     @OA\Property(property="value", type="string"),
-     *                     @OA\Property(property="label", type="string")
-     *                 )),
-     *                 @OA\Property(property="override_types", type="array", @OA\Items(type="object",
-     *                     @OA\Property(property="value", type="string"),
-     *                     @OA\Property(property="label", type="string")
-     *                 ))
-     *             )
-     *         )
-     *     ),
-     *
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthenticated"
-     *     )
-     * )
-     */
-    public function matrixEnums(Request $request): JsonResponse
-    {
-        $locale = $this->resolveLocale($request);
-
-        $userGoals = collect(UserGoal::cases())->map(fn ($g) => [
-            'value' => $g->value,
-            'label' => $g->label($locale),
-        ])->values();
-
-        $subscriptionTypes = collect(SubscriptionType::cases())->map(fn ($s) => [
-            'value' => $s->value,
-            'label' => $s->label($locale),
-        ])->values();
-
-        $overrideTypes = collect(OverrideType::cases())->map(fn ($o) => [
-            'value' => $o->value,
-            'label' => $o->label($locale),
-        ])->values();
-
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'user_goals' => $userGoals,
-                'subscription_types' => $subscriptionTypes,
-                'override_types' => $overrideTypes,
+                'status' => CalculationStatus::COMPLETED->value,
             ],
         ]);
     }
@@ -821,8 +463,7 @@ class CycleCalculationController extends Controller
         // so a request near midnight doesn't render the user's real today as a future day.
         $today = Carbon::parse(Carbon::now('Asia/Tehran')->toDateString());
 
-        // Always calculated from the live inputs (the cache key hashes them), never
-        // from the stale cycle_calculations storage.
+        // Always calculated from the live inputs (the cache key hashes them).
         $engine = new HealthDataEngine($user, $locale);
 
         $day = $this->engineCache->remember(

@@ -351,32 +351,4 @@ class MessageManager
 
         return $symptoms;
     }
-
-    /**
-     * Get all available enums for API
-     */
-    public function getEnums(): array
-    {
-        $enums = [
-            'modes' => collect(MessageMode::cases())->map(fn ($m) => [
-                'value' => $m->value,
-                'label' => $m->label($this->locale),
-            ])->values()->toArray(),
-            'user_goals' => collect(UserGoal::cases())->map(fn ($g) => [
-                'value' => $g->value,
-                'label' => $g->label($this->locale),
-            ])->values()->toArray(),
-            'subscription_types' => collect(SubscriptionType::cases())->map(fn ($s) => [
-                'value' => $s->value,
-                'label' => $s->label($this->locale),
-            ])->values()->toArray(),
-        ];
-
-        // Add engine-specific enums
-        foreach ($this->engines as $mode => $engine) {
-            $enums[$mode] = $engine->getEnums($this->locale);
-        }
-
-        return $enums;
-    }
 }

@@ -3,7 +3,7 @@ id: T-M1-13
 title: Backend dead code and dead storage cleanup
 milestone: M1
 type: backend
-status: todo
+status: done
 depends_on: [T-M1-12]
 parallel_group: M1-F
 touches: [backend/app, backend/database/migrations, backend/routes, backend/resources/views, backend/tests]

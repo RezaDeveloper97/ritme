@@ -2,12 +2,10 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Enums\CalculationStatus;
 use App\Enums\DataQualityFlag;
 use App\Enums\DataSource;
 use App\Http\Controllers\Concerns\ResolvesLocale;
 use App\Http\Controllers\Controller;
-use App\Jobs\CalculateCycleDataJob;
 use App\Models\CycleHistory;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -201,7 +199,7 @@ class PeriodLogController extends Controller
         $profile = $user->profile;
         if ($profile) {
             $profile->update(['last_period_start' => $startDate->toDateString()]);
-            $this->triggerRecalculation($user, $profile, $locale);
+            $profile->markRecalculated();
         }
 
         return response()->json([
@@ -304,7 +302,7 @@ class PeriodLogController extends Controller
             ->delete();
 
         $this->recomputeCycleLengths($user->id);
-        $this->reanchor($user, $locale);
+        $this->reanchor($user);
 
         $period->refresh();
         $period->update([
@@ -541,7 +539,7 @@ class PeriodLogController extends Controller
         ]);
 
         $this->recomputeCycleLengths($user->id);
-        $this->reanchor($user, $locale);
+        $this->reanchor($user);
 
         // Recompute quality flags against the re-anchored cycle length and edited duration.
         $record->refresh();
@@ -594,7 +592,7 @@ class PeriodLogController extends Controller
         $record->delete();
 
         $this->recomputeCycleLengths($user->id);
-        $this->reanchor($user, $locale);
+        $this->reanchor($user);
 
         return response()->json([
             'success' => true,
@@ -629,7 +627,7 @@ class PeriodLogController extends Controller
      * Point the engine's anchor (profile LMP) at the most recent remaining
      * logged period — or clear it when none are left — then recalculate.
      */
-    private function reanchor($user, string $locale): void
+    private function reanchor($user): void
     {
         $profile = $user->profile;
         if (! $profile) {
@@ -644,7 +642,7 @@ class PeriodLogController extends Controller
             'last_period_start' => $latest?->period_start_date?->toDateString(),
         ]);
 
-        $this->triggerRecalculation($user, $profile, $locale);
+        $profile->markRecalculated();
     }
 
     /**
@@ -781,24 +779,5 @@ class PeriodLogController extends Controller
         }
 
         return $warnings;
-    }
-
-    /**
-     * Kick off background recalculation of cycle data after the LMP moved.
-     * Mirrors ProfileController's trigger so the engine stays in sync.
-     */
-    private function triggerRecalculation($user, $profile, string $locale): void
-    {
-        if ($profile->calculation_status === CalculationStatus::PROCESSING->value) {
-            return;
-        }
-
-        $newVersion = ($profile->calculation_version ?? 0) + 1;
-
-        $profile->update([
-            'calculation_status' => CalculationStatus::PROCESSING->value,
-        ]);
-
-        CalculateCycleDataJob::dispatch($user->id, $newVersion, $locale);
     }
 }

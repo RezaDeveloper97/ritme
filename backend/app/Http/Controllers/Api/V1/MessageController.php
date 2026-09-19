@@ -34,27 +34,34 @@ class MessageController extends Controller
      *         in="query",
      *         description="Date for messages (YYYY-MM-DD). Defaults to today.",
      *         required=false,
+     *
      *         @OA\Schema(type="string", format="date", example="2024-12-20")
      *     ),
+     *
      *     @OA\Parameter(
      *         name="mode",
      *         in="query",
      *         description="Force specific mode (cycle, pregnancy). If not provided, auto-detects.",
      *         required=false,
+     *
      *         @OA\Schema(type="string", enum={"cycle", "pregnancy"})
      *     ),
+     *
      *     @OA\Parameter(
      *         name="Accept-Language",
      *         in="header",
      *         description="Language for messages (en, fa)",
      *         required=false,
+     *
      *         @OA\Schema(type="string", default="fa", enum={"en","fa"})
      *     ),
      *
      *     @OA\Response(
      *         response=200,
      *         description="Messages retrieved successfully",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="data", type="object",
      *                 @OA\Property(property="mode", type="string", example="cycle"),
@@ -87,7 +94,9 @@ class MessageController extends Controller
      *     @OA\Response(
      *         response=400,
      *         description="Profile not complete",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean", example=false),
      *             @OA\Property(property="message", type="string")
      *         )
@@ -106,7 +115,7 @@ class MessageController extends Controller
 
         $validator = Validator::make($request->query(), [
             'date' => 'nullable|date_format:Y-m-d',
-            'mode' => 'nullable|in:' . implode(',', array_column(MessageMode::cases(), 'value')),
+            'mode' => 'nullable|in:'.implode(',', array_column(MessageMode::cases(), 'value')),
         ]);
 
         if ($validator->fails()) {
@@ -133,7 +142,7 @@ class MessageController extends Controller
 
         if ($detectedMode === MessageMode::CYCLE) {
             $profile = $user->profile;
-            if (!$profile || !$profile->last_period_start) {
+            if (! $profile || ! $profile->last_period_start) {
                 return response()->json([
                     'success' => false,
                     'message' => $locale === 'fa'
@@ -145,7 +154,7 @@ class MessageController extends Controller
 
         if ($detectedMode === MessageMode::PREGNANCY) {
             $pregnancyProfile = $user->pregnancyProfile;
-            if (!$pregnancyProfile || !$pregnancyProfile->onboarding_completed) {
+            if (! $pregnancyProfile || ! $pregnancyProfile->onboarding_completed) {
                 return response()->json([
                     'success' => false,
                     'message' => $locale === 'fa'
@@ -166,57 +175,6 @@ class MessageController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/messages/enums",
-     *     summary="Get message system enums",
-     *     description="Retrieve all available enum values for the message system including modes, user goals, subscription types, and mode-specific enums.",
-     *     tags={"Messages"},
-     *     security={{"bearerAuth":{}}},
-     *
-     *     @OA\Parameter(
-     *         name="Accept-Language",
-     *         in="header",
-     *         description="Language for labels (en, fa)",
-     *         required=false,
-     *         @OA\Schema(type="string", default="fa", enum={"en","fa"})
-     *     ),
-     *
-     *     @OA\Response(
-     *         response=200,
-     *         description="Enums retrieved successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="data", type="object",
-     *                 @OA\Property(property="modes", type="array", @OA\Items(type="object")),
-     *                 @OA\Property(property="user_goals", type="array", @OA\Items(type="object")),
-     *                 @OA\Property(property="subscription_types", type="array", @OA\Items(type="object")),
-     *                 @OA\Property(property="cycle", type="object"),
-     *                 @OA\Property(property="pregnancy", type="object")
-     *             )
-     *         )
-     *     ),
-     *
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthenticated"
-     *     )
-     * )
-     */
-    public function enums(Request $request): JsonResponse
-    {
-        $user = $request->user();
-        $locale = $this->resolveLocale($request);
-
-        $manager = new MessageManager($user, $locale);
-        $enums = $manager->getEnums();
-
-        return response()->json([
-            'success' => true,
-            'data' => $enums,
-        ]);
-    }
-
-    /**
-     * @OA\Get(
      *     path="/messages/mode",
      *     summary="Get current user mode",
      *     description="Detect and return the current mode for the user (cycle or pregnancy).",
@@ -228,13 +186,16 @@ class MessageController extends Controller
      *         in="header",
      *         description="Language for labels (en, fa)",
      *         required=false,
+     *
      *         @OA\Schema(type="string", default="fa", enum={"en","fa"})
      *     ),
      *
      *     @OA\Response(
      *         response=200,
      *         description="Mode detected successfully",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="data", type="object",
      *                 @OA\Property(property="mode", type="string", example="cycle"),

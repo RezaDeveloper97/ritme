@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Enums\CalculationStatus;
 use App\Http\Controllers\Concerns\ResolvesLocale;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\StoreDailyHealthLogRequest;
-use App\Jobs\CalculateCycleDataJob;
 use App\Models\DailyHealthLog;
 use App\Services\HealthEngine\CycleHistoryService;
 use Illuminate\Http\JsonResponse;
@@ -219,8 +217,8 @@ class DailyHealthLogController extends Controller
         // Update cycle history if new period started
         CycleHistoryService::checkAndUpdatePeriodStart($user, $log);
 
-        // Trigger recalculation if user has profile with cycle data
-        $this->triggerRecalculationIfNeeded($user, $locale);
+        // The log is an engine input: bump the calculation version.
+        $this->markRecalculatedIfNeeded($user);
 
         $response = [
             'success' => true,
@@ -236,29 +234,16 @@ class DailyHealthLogController extends Controller
     }
 
     /**
-     * Trigger recalculation if profile has cycle data
+     * Record the new engine input when the profile has cycle data
+     * (see UserProfile::markRecalculated).
      */
-    private function triggerRecalculationIfNeeded($user, string $locale): void
+    private function markRecalculatedIfNeeded($user): void
     {
         $profile = $user->profile;
 
-        if (! $profile || ! $profile->last_period_start) {
-            return;
+        if ($profile && $profile->last_period_start) {
+            $profile->markRecalculated();
         }
-
-        // Don't trigger if already processing
-        if ($profile->calculation_status === CalculationStatus::PROCESSING->value) {
-            return;
-        }
-
-        // Increment version and dispatch job
-        $newVersion = ($profile->calculation_version ?? 0) + 1;
-
-        $profile->update([
-            'calculation_status' => CalculationStatus::PROCESSING->value,
-        ]);
-
-        CalculateCycleDataJob::dispatch($user->id, $newVersion, $locale);
     }
 
     /**

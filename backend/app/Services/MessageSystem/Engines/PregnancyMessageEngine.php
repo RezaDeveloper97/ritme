@@ -32,17 +32,6 @@ class PregnancyMessageEngine implements MessageEngineInterface, ProvidesMessageC
         throw new \RuntimeException('Use MessageManager::generateMessages() instead');
     }
 
-    public function getEnums(string $locale = 'en'): array
-    {
-        return [
-            'trimesters' => [
-                ['value' => 1, 'label' => $locale === 'fa' ? 'سه‌ماهه اول' : 'First Trimester', 'weeks' => '1-13'],
-                ['value' => 2, 'label' => $locale === 'fa' ? 'سه‌ماهه دوم' : 'Second Trimester', 'weeks' => '14-27'],
-                ['value' => 3, 'label' => $locale === 'fa' ? 'سه‌ماهه سوم' : 'Third Trimester', 'weeks' => '28-40'],
-            ],
-        ];
-    }
-
     private function content(): MessageContentRepository
     {
         return app(MessageContentRepository::class);
@@ -56,7 +45,7 @@ class PregnancyMessageEngine implements MessageEngineInterface, ProvidesMessageC
         $week = $context->pregnancyWeek;
         $trimester = $context->trimester;
 
-        if (!$week) {
+        if (! $week) {
             return $this->getDefaultMessage();
         }
 
@@ -94,7 +83,7 @@ class PregnancyMessageEngine implements MessageEngineInterface, ProvidesMessageC
         // Check for pregnancy-specific overrides
         $override = $this->determinePregnancyOverride($context->symptoms, $context->trimester ?? 1);
 
-        if (!$override) {
+        if (! $override) {
             return null;
         }
 
@@ -206,7 +195,7 @@ class PregnancyMessageEngine implements MessageEngineInterface, ProvidesMessageC
     private function getOverrideForType(string $type): ?array
     {
         $overrides = self::overrideMessages();
-        if (!isset($overrides[$type])) {
+        if (! isset($overrides[$type])) {
             return null;
         }
 
@@ -232,11 +221,12 @@ class PregnancyMessageEngine implements MessageEngineInterface, ProvidesMessageC
         foreach ($entry as $field => $val) {
             $out[$field] = is_array($val) ? ($val[$locale] ?? $val['fa'] ?? null) : $val;
         }
+
         return $out;
     }
 
     /**
-     * @inheritDoc — seed/fallback source for all pregnancy message text.
+     * Seed/fallback source for all pregnancy message text.
      */
     public static function contentDefaults(): array
     {
@@ -261,6 +251,7 @@ class PregnancyMessageEngine implements MessageEngineInterface, ProvidesMessageC
                 $out['pregnancy_base'][(string) $key][$loc] = self::slice($entry, $loc);
             }
         }
+
         return $out;
     }
 

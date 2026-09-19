@@ -3,7 +3,6 @@
 namespace App\Services\MessageSystem\Engines;
 
 use App\Enums\CyclePhase;
-use App\Enums\CycleSubphase;
 use App\Enums\OverrideType;
 use App\Models\User;
 use App\Services\MessageSystem\Contracts\MessageEngineInterface;
@@ -36,25 +35,6 @@ class CycleMessageEngine implements MessageEngineInterface, ProvidesMessageConte
         throw new \RuntimeException('Use MessageManager::generateMessages() instead');
     }
 
-    public function getEnums(string $locale = 'en'): array
-    {
-        return [
-            'phases' => collect(CyclePhase::cases())->map(fn($p) => [
-                'value' => $p->value,
-                'label' => $p->label($locale),
-                'description' => $p->description($locale),
-            ])->values()->toArray(),
-            'subphases' => collect(CycleSubphase::cases())->map(fn($s) => [
-                'value' => $s->value,
-                'label' => $s->label($locale),
-            ])->values()->toArray(),
-            'override_types' => collect(OverrideType::cases())->map(fn($o) => [
-                'value' => $o->value,
-                'label' => $o->label($locale),
-            ])->values()->toArray(),
-        ];
-    }
-
     private function content(): MessageContentRepository
     {
         return app(MessageContentRepository::class);
@@ -65,7 +45,7 @@ class CycleMessageEngine implements MessageEngineInterface, ProvidesMessageConte
      */
     public function getBaseMessage(MessageContext $context): array
     {
-        if (!$context->cyclePhase) {
+        if (! $context->cyclePhase) {
             return $this->getDefaultMessage();
         }
 
@@ -91,7 +71,7 @@ class CycleMessageEngine implements MessageEngineInterface, ProvidesMessageConte
         // Determine override type from symptoms
         $overrideType = $this->determineOverrideType($context->symptoms);
 
-        if (!$overrideType) {
+        if (! $overrideType) {
             return null;
         }
 
@@ -196,7 +176,7 @@ class CycleMessageEngine implements MessageEngineInterface, ProvidesMessageConte
     private function getOverrideMessageForType(OverrideType $type, ?CyclePhase $phase, MessageContext $context): array
     {
         $overrides = self::overrideMessages();
-        if (!isset($overrides[$type->value])) {
+        if (! isset($overrides[$type->value])) {
             return [];
         }
 
@@ -244,11 +224,12 @@ class CycleMessageEngine implements MessageEngineInterface, ProvidesMessageConte
         foreach ($entry as $field => $val) {
             $out[$field] = is_array($val) ? ($val[$locale] ?? $val['fa'] ?? null) : $val;
         }
+
         return $out;
     }
 
     /**
-     * @inheritDoc — seed/fallback source for all cycle message text.
+     * Seed/fallback source for all cycle message text.
      */
     public static function contentDefaults(): array
     {
@@ -268,6 +249,7 @@ class CycleMessageEngine implements MessageEngineInterface, ProvidesMessageConte
                 $out['cycle_override'][$key][$loc] = self::slice($entry, $loc);
             }
         }
+
         return $out;
     }
 

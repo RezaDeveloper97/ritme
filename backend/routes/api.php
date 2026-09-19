@@ -101,7 +101,6 @@ Route::prefix('v1')->group(function () {
 
         // Cycle Calculation routes (Health Data Engine)
         Route::prefix('cycle')->group(function () {
-            Route::get('/enums', [CycleCalculationController::class, 'enums']);
             Route::get('/status', [CycleCalculationController::class, 'status']);
             Route::get('/today', [CycleCalculationController::class, 'today']);
             Route::get('/date/{date}', [CycleCalculationController::class, 'forDate']);
@@ -118,10 +117,6 @@ Route::prefix('v1')->group(function () {
             Route::post('/period', [PeriodLogController::class, 'store']);
             Route::put('/period/{period}', [PeriodLogController::class, 'update']);
             Route::delete('/period/{period}', [PeriodLogController::class, 'destroy']);
-
-            // Matrix Messages (Personalized Phase-based Messages)
-            Route::get('/matrix-messages', [CycleCalculationController::class, 'matrixMessages']);
-            Route::get('/matrix-enums', [CycleCalculationController::class, 'matrixEnums']);
 
             // Phase Details educational content (DB-driven, admin-editable)
             Route::get('/phase-content/{phase}', [PhaseContentController::class, 'show']);
@@ -171,7 +166,6 @@ Route::prefix('v1')->group(function () {
         // Unified Message System (works for both cycle and pregnancy modes)
         Route::prefix('messages')->group(function () {
             Route::get('/daily', [MessageController::class, 'daily']);
-            Route::get('/enums', [MessageController::class, 'enums']);
             Route::get('/mode', [MessageController::class, 'mode']);
         });
 

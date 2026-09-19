@@ -19,8 +19,8 @@ use Illuminate\Support\Facades\Log;
  * the calculated range and, when tips are part of the result, the admin
  * recommendations. Those inputs are loaded anyway (and reused by the engine on a
  * miss), so a cached result can never outlive a write, whichever code path made
- * it — including writes inside the same second, or while a recalculation job is
- * still running and `calculation_version` has not moved yet. The hit saves the
+ * it — including writes inside the same second, or writes that don't bump
+ * `calculation_version` (e.g. admin recommendation edits). The hit saves the
  * engine's CPU, which is the cost that matters (the month view is ~1.5 ms/day).
  *
  * Cache failures (e.g. Redis down) fall back to computing the result directly.

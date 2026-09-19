@@ -28,7 +28,6 @@
         <div class="stat"><div class="label">لاگ سلامت</div><div class="value">{{ $stats['health_logs'] }}</div></div>
         <div class="stat"><div class="label">یادآورها</div><div class="value">{{ $stats['reminders'] }}</div></div>
         <div class="stat"><div class="label">اعلان‌ها</div><div class="value">{{ $stats['notifications'] }}</div></div>
-        <div class="stat"><div class="label">محاسبات سیکل</div><div class="value">{{ $stats['cycle_calculations'] }}</div></div>
     </div>
 
     <div class="card">

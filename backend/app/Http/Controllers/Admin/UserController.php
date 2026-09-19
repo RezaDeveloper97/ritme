@@ -43,7 +43,6 @@ class UserController extends Controller
             'health_logs' => $user->dailyHealthLogs()->count(),
             'reminders' => $user->reminders()->count(),
             'notifications' => $user->appNotifications()->count(),
-            'cycle_calculations' => $user->cycleCalculations()->count(),
         ];
 
         $goals = SubscriptionType::cases();
@@ -56,8 +55,8 @@ class UserController extends Controller
     {
         $validated = $request->validate([
             'name' => ['nullable', 'string', 'max:255'],
-            'subscription_type' => ['required', 'in:' . implode(',', SubscriptionType::values())],
-            'user_goal' => ['required', 'in:' . implode(',', UserGoal::values())],
+            'subscription_type' => ['required', 'in:'.implode(',', SubscriptionType::values())],
+            'user_goal' => ['required', 'in:'.implode(',', UserGoal::values())],
         ]);
 
         $user->update(['name' => $validated['name']]);

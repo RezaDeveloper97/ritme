@@ -10,7 +10,6 @@ use App\Enums\SubscriptionType;
 use App\Enums\UserGoal;
 use App\Http\Controllers\Concerns\ResolvesLocale;
 use App\Http\Controllers\Controller;
-use App\Jobs\CalculateCycleDataJob;
 use App\Models\CycleHistory;
 use App\Models\User;
 use App\Models\UserProfile;
@@ -286,7 +285,7 @@ class ProfileController extends Controller
             }
 
             if ($cycleFieldsChanged && $profile->last_period_start) {
-                $this->triggerRecalculation($user, $profile, $locale);
+                $profile->markRecalculated();
             }
 
             return response()->json([
@@ -489,26 +488,6 @@ class ProfileController extends Controller
         } else {
             CycleHistory::create($attributes + ['user_id' => $userId]);
         }
-    }
-
-    /**
-     * Trigger background recalculation of cycle data
-     */
-    private function triggerRecalculation($user, UserProfile $profile, string $locale): void
-    {
-        // Don't trigger if already processing
-        if ($profile->calculation_status === CalculationStatus::PROCESSING->value) {
-            return;
-        }
-
-        // Increment version and dispatch job
-        $newVersion = ($profile->calculation_version ?? 0) + 1;
-
-        $profile->update([
-            'calculation_status' => CalculationStatus::PROCESSING->value,
-        ]);
-
-        CalculateCycleDataJob::dispatch($user->id, $newVersion, $locale);
     }
 
     /**

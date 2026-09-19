@@ -13,8 +13,8 @@ use Tests\TestCase;
 /**
  * Guards the DivisionByZeroError regression: HealthDataEngine divides by the
  * effective cycle length everywhere, so any path that lets it reach 0 crashed
- * cycle/today, messages/daily and the recalculate job with a 500 / stuck
- * "processing" status. These tests lock the length to a positive fallback.
+ * cycle/today, messages/daily and the (since removed) recalculate job with a
+ * 500 / stuck "processing" status. These tests lock the length to a positive fallback.
  */
 class CycleCalculationApiTest extends TestCase
 {
@@ -132,8 +132,8 @@ class CycleCalculationApiTest extends TestCase
     }
 
     /**
-     * The recalculate job must complete (not hang on "processing") even with the
-     * degenerate data. Tests use the sync queue, so the job runs inline.
+     * Recalculate must complete (not hang on "processing") even with the
+     * degenerate data. It is synchronous since T-M1-13 (no job any more).
      */
     public function test_recalculate_completes_and_does_not_get_stuck(): void
     {

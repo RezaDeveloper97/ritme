@@ -80,14 +80,6 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the user's cycle calculations
-     */
-    public function cycleCalculations(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(CycleCalculation::class);
-    }
-
-    /**
      * Get the user's cycle history
      */
     public function cycleHistories(): \Illuminate\Database\Eloquent\Relations\HasMany

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CalculationStatus;
 use App\Enums\SubscriptionType;
 use App\Enums\UserGoal;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -75,6 +76,30 @@ class UserProfile extends Model
     public function isPremium(): bool
     {
         return $this->subscription_type === SubscriptionType::PREMIUM->value;
+    }
+
+    /**
+     * Record that the cycle engine's inputs changed (profile, periods or daily logs).
+     *
+     * Every cycle read computes live from those inputs, so there is nothing to
+     * precompute and the recalculation is finished as soon as it is recorded:
+     * the version goes up (it is part of `CycleEngineCache`'s key) and the status
+     * is `completed` right away, so clients polling `/cycle/status` stop at once.
+     * The increment is a single atomic UPDATE, so concurrent writes can't lose a bump.
+     *
+     * @return int the new calculation version
+     */
+    public function markRecalculated(): int
+    {
+        $now = now();
+
+        $this->increment('calculation_version', 1, [
+            'calculation_status' => CalculationStatus::COMPLETED->value,
+            'calculation_started_at' => $now,
+            'calculation_completed_at' => $now,
+        ]);
+
+        return (int) $this->calculation_version;
     }
 
     /**

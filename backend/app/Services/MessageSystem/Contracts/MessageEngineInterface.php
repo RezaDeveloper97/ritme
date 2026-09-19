@@ -31,9 +31,4 @@ interface MessageEngineInterface
      * Get override message for Layer 2 (based on symptoms/conditions)
      */
     public function getOverrideMessage(MessageContext $context): ?array;
-
-    /**
-     * Get context-specific enums
-     */
-    public function getEnums(string $locale = 'en'): array;
 }
