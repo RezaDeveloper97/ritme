@@ -1,10 +1,10 @@
 {
   "name": "ritme",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "private": true,
   "pwa": {
     "minSupportedVersion": "1.0.1",
-    "releaseNotes": "بهبود چالش امروز"
+    "releaseNotes": "ورود ماندگار، سرعت بیشتر و نسخهٔ نصبی بهتر"
   },
   "scripts": {
     "dev": "next dev",
