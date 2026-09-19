@@ -13,6 +13,7 @@ import {
   DirectionProvider,
   getDirection,
   isSupportedLocale,
+  pickNamespaces,
 } from '@/shared/i18n';
 import { NoZoom, ViewportHeight } from '@/shared/lib/viewport';
 import { InstallPrompt, UpdateGate } from '@/shared/pwa';
@@ -20,18 +21,22 @@ import { SessionGuard } from '@/shared/session';
 import { ThemeApplier, themeInitScript } from '@/shared/theme';
 
 import '../globals.css';
+import { SHELL_NAMESPACES } from '../message-scopes';
 import { AppProviders } from '../providers';
 import { SheetHost } from '../sheets/SheetHost';
 
+// One variable woff2 (wght 100–900) instead of six static weights: every page
+// preloaded all six (6 × ~21 KB = 128 KB, 31 % of the page weight — perf
+// baseline §1.3/§3 #4). This file is the official Vazirmatn v33.003
+// `Vazirmatn[wght].ttf` subset to exactly the same 366 code points the static
+// files carried (the Arabic-script subset; Latin falls back to the system
+// font as before): `python3 -m fontTools.subset 'Vazirmatn[wght].ttf'
+// --unicodes-file=<cmap of the old 400> --layout-features='*' --flavor=woff2`.
+// 45 KB, one preload, and every weight in use renders exactly, no synthesis.
 const vazirmatn = localFont({
-  src: [
-    { path: '../fonts/Vazirmatn-400.woff2', weight: '400', style: 'normal' },
-    { path: '../fonts/Vazirmatn-500.woff2', weight: '500', style: 'normal' },
-    { path: '../fonts/Vazirmatn-600.woff2', weight: '600', style: 'normal' },
-    { path: '../fonts/Vazirmatn-700.woff2', weight: '700', style: 'normal' },
-    { path: '../fonts/Vazirmatn-800.woff2', weight: '800', style: 'normal' },
-    { path: '../fonts/Vazirmatn-900.woff2', weight: '900', style: 'normal' },
-  ],
+  src: '../fonts/Vazirmatn-Variable.woff2',
+  weight: '100 900',
+  style: 'normal',
   variable: '--font-vazirmatn',
   display: 'swap',
 });
@@ -148,7 +153,13 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
       <body className={vazirmatn.className}>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <script dangerouslySetInnerHTML={{ __html: chromeInitScript }} />
-        <NextIntlClientProvider locale={locale} messages={messages}>
+        {/* Only what the shell itself renders (PWA prompts, sheets); each
+            route adds its own namespaces with <RouteMessages> — see
+            app/message-scopes.ts. */}
+        <NextIntlClientProvider
+          locale={locale}
+          messages={pickNamespaces(messages, SHELL_NAMESPACES)}
+        >
           <DirectionProvider direction={direction}>
             <AppProviders>
             <ThemeApplier />

@@ -430,3 +430,111 @@ Same in-process harness as §6.1: the same seeded user (13 periods, 60 logs), a 
 - Config/route/event caches (fresh process + `GET /languages`, 30 interleaved runs): p50 58.97 → 49.18 ms (−17%), p95 86.0 → 67.0 ms.
 - Engine CPU for a 31-day month (no queries): full 43 → 11 ms, calendar 37 → 5.7 ms.
 - Only `/home`, `week_calendar`, `/messages/daily` and `smart_tip` skip the engine cache, so for them miss and hit are just two separate runs.
+
+## T-M1-11 — frontend before/after (2026-09-19)
+
+Same method as §6.4, re-measured in one sitting so both columns share the machine state:
+- **Before** = `frontend/` at `eb09d52` (no T-M1-11 changes), **after** = the T-M1-11 working tree. Each was built in a
+  scratch copy with `NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8070/api/v1` and served one at a time by
+  `next start -p 3170`.
+- **Both** talk to the same backend: `backend/` at `eb09d52` (T-M1-12 shipped) on `php -S 127.0.0.1:8070`
+  (`PHP_CLI_SERVER_WORKERS=4`), a scratch copy of the seeded-user sqlite (§6.2, user 33), Redis cache DB 14 with its
+  own prefix. So the deltas below are frontend-only; the "after" column is the only one that asks for
+  `?view=calendar`.
+- Chrome 153 headless on `--remote-debugging-port=9371`, Lighthouse 12.8.2, login injected over CDP, SW + cache
+  storage + HTTP cache cleared before every run, 3 runs per route, medians.
+- **Noise:** other agents were building and testing throughout (load average 4.2–7.8 during the runs), so treat
+  single-digit-percent differences as noise.
+- **Not comparable with §1.4:** this Chrome reports real `transferSize` on loopback, so simulated FCP/LCP are
+  ~2–4 s here versus ~0.7–1.8 s in §1.4. Compare the columns of this section with each other only.
+
+### Build output (`next build` route table, first-load JS)
+
+| Route | Before | After |
+| --- | ---: | ---: |
+| `/[locale]/home` | 210 kB | **189 kB** |
+| `/[locale]/calendar` | 207 kB | **186 kB** |
+| `/[locale]/log` | 193 kB | **171 kB** |
+| `/[locale]/cycle` | 204 kB | 182 kB |
+| `/[locale]/profile` | 202 kB | 180 kB |
+| onboarding routes | 183–197 kB | 162–176 kB |
+| `/[locale]/splash`, `/welcome` | 154 / 151 kB | 154 / 152 kB |
+| shared by all | 103 kB | 103 kB |
+
+### Bundle analyzer (ad-hoc, §6.4), first-load chunks of the route
+
+| | Before parsed / gzip KB | After parsed / gzip KB |
+| --- | ---: | ---: |
+| `/[locale]/home` | 701.8 / 216.3 | **640.9 / 194.7** |
+| `/[locale]/calendar` | 695.6 / 213.7 | **634.4 / 192.0** |
+| `/[locale]/log` | 677.7 / 208.2 | **617.9 / 187.2** |
+| of which axios | 40.2 / 15.4 | 0 (thin `fetch` client in `shared/api`) |
+| of which zod | 55.5 / 12.5 | 55.5 / 12.5 (unchanged, see open items) |
+| whole client output | 1,336.4 / 426.9 (66 chunks) | 1,290.6 / 412.4 (66 chunks) |
+
+### Static artefacts
+
+| Item | Before | After |
+| --- | ---: | ---: |
+| `/fa/home` prerendered HTML (gzip) | 87,663 B (20,211 B) | **57,951 B (12,539 B)** |
+| `/fa/home` RSC payload (gzip) | 70,747 B (18,674 B) | **43,836 B (10,943 B)** |
+| `/fa/calendar` HTML / `/fa/log` HTML | 87,608 / 87,118 B | 59,714 / 54,386 B |
+| i18n messages in a page (`fa`, minified) | all 23 namespaces, 50,585 B (14.6 KB gz) | shell 14,576 B + route: home 10,289 / calendar 10,784 / log 6,823 B → **21–25 KB** |
+| Fonts preloaded on every page | 6 files (Vazirmatn 400–900), 129,472 B | **1 variable file, 45,008 B** (same 366 code points, wght 100–900) |
+
+### Lighthouse, first visit (SW + cache cleared), median of 3
+
+Simulated throttling:
+
+| Route | Score before → after | FCP ms | LCP ms | TBT ms | CLS | TTI ms | Bootup ms | Main-thread ms | Font KB | Requests |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `/fa/home` | 83/83/83 → 86/85/86 | 2467 → **2157** | 4087 → 3963 | 13 → 2 | **0.063 → 0.009** | 4192 → 3963 | 329 → 295 | 806 → 656 | 131 → 45 | 66 → 59 |
+| `/fa/calendar` | 77/76/80 → 93/86/93 | 2467 → **2163** | 5392 → **2970** | 15 → 6 | 0.012 → 0.000 | 5392 → 3089 | 309 → 255 | 814 → 649 | 131 → 45 | 58 → 51 |
+| `/fa/log` | 86/86/85 → 92/92/92 | 2304 → **2147** | 3872 → **3056** | 20 → 27 | 0 → 0 | 4133 → 3057 | 208 → 168 | 755 → 595 | 131 → 45 | 50 → 45 |
+
+`--throttling-method=devtools`:
+
+| Route | Score before → after | FCP ms | LCP ms | TBT ms | CLS | SI ms |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| `/fa/home` | 60/69/69 → 73/72/73 | 5054 → **4095** | 5054 → 4923 | 0 → 0 | **0.063 → 0.009** (one before-run hit 0.201) | 4398 → 3672 |
+| `/fa/calendar` | 65/65/66 → 72/72/72 | 4959 → **4069** | 5677 → **4790** | 0 → 0 | 0.012 → 0.012 | 5562 → 4392 |
+| `/fa/log` | 72/72/72 → 80/79/79 | 4590 → **3821** | 4590 → **3821** | 32 → 29 | 0 → 0 | 4666 → 3896 |
+
+LCP elements: home `div.home-phase-desc` → `div.card-titr` (the timeline title, which now paints once the hero has
+settled), calendar `div.dls-empty-sub`, log `p.log-hdr-sub` (both unchanged).
+
+**Home CLS by source** (`PerformanceObserver('layout-shift')` injected over CDP, 150 ms RTT / 1.6 Mbps / 4× CPU):
+before, 0.018 + 0.151 — `div.sec` (the timeline) was pushed 108 px down when the hero card grew on data arrival;
+after, a single 0.0071 shift, all of it inside the hero card (its text lines moving as they fill in).
+
+### API requests on a cold load (CDP capture, cache disabled, 8 s)
+
+| Cold load | GETs before → after | Preflights before → after | API bytes before → after | Changed |
+| --- | ---: | ---: | ---: | --- |
+| `/fa/home` | 11 → **10** | 11 → **10** | 208 KB → **35 KB** | `/cycle/status` only while recalculating; `/cycle/month/*` ×2 now `?view=calendar` |
+| `/fa/calendar` | 7 → **6** | 7 → **6** | 195 KB → **22 KB** | same two |
+| `/fa/log` | 3 → 3 | 3 → 3 | 2 KB → 2 KB | — |
+
+Below-the-fold home reads (`/home/sections/challenge`, `/home/sections/articles`, the other banner slots) now start
+only after `/cycle/today` and `/banners` have answered, so they no longer compete with the critical requests. They
+still land inside the 8 s window, so the count above doesn't show them as removed.
+
+### What changed (T-M1-11), and what did not
+
+- #4 fonts: one variable Vazirmatn woff2 (subset from the official v33.003 `Vazirmatn[wght].ttf` to the old files'
+  exact code points), one preload. No weight was dropped, so nothing renders differently.
+- #5 home CLS: the home screen shows the hero's loading state and renders nothing below it until today's calculation
+  and the banner slot have settled (`useBannersSettled`).
+- #3 slim month: `useCycleMonth` asks for `?view=calendar` (the view is part of the query key). Every month consumer
+  (home week strip, calendar grid, calendar day detail) reads only kept fields; `daily_tips` comes from `/cycle/today`.
+- #8: `/cycle/status` is fetched only while a recalculation is being watched (home and calendar). **Not merged:**
+  `/messages/mode` (the bottom nav's mode) has no equivalent in `/profile`, so a merge needs a backend change, and
+  fetching only the Gregorian month that holds the visible week would change the tint grading of
+  `markerIntensityByDate` between home and calendar. The same-origin proxy (§5 item 2) is still the big lever.
+- #9: messages are scoped per route (`app/message-scopes.ts` + `<RouteMessages>`, guarded by
+  `app/message-scopes.test.ts`, which walks the import graph); axios is replaced by a `fetch` client in `shared/api`
+  with the same session behaviour (`shared/api/apiClient.test.ts`). zod 4 / `zod/mini` was not attempted.
+- #10: removed `react-hook-form`, `@hookform/resolvers`, `shared/lib/cookie-state`, `screens/home/ui/SectionHead.tsx`.
+  **Kept** `widgets/day-tasks`: it is hidden "temporarily per product request" (commented-out mounts in `HomePage` and
+  `LogPage`), not dead, and it costs no bundle bytes. `features/manage-account` is also kept, as the task says.
+- Pre-existing and unchanged: `/fa/cycle` throws React #418 (hydration text mismatch) on both builds.

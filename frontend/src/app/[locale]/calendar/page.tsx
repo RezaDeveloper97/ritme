@@ -3,6 +3,8 @@ import { Suspense } from 'react';
 
 import { CalendarPage } from '@/screens/calendar';
 
+import { RouteMessages } from '../../RouteMessages';
+
 interface Props {
   params: Promise<{ locale: string }>;
 }
@@ -13,8 +15,10 @@ export default async function CalendarRoute({ params }: Props) {
   // CalendarPage reads ?editDates=1 via useSearchParams, which bails out of
   // prerendering unless it sits under a suspense boundary.
   return (
-    <Suspense>
-      <CalendarPage />
-    </Suspense>
+    <RouteMessages route="calendar">
+      <Suspense>
+        <CalendarPage />
+      </Suspense>
+    </RouteMessages>
   );
 }

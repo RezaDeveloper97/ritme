@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 
 import { useCycleArticles } from '@/entities/article';
+import { useBannersSettled } from '@/entities/banner';
 import {
   CycleValuesCard,
   cycleDayMarker,
@@ -820,7 +821,9 @@ export function HomePage() {
   // While the backend recalculates, poll status and refetch today's calc once it
   // settles, so the page reflects the fresh result without a manual reload.
   const recalculating = Boolean(todayData?.isRecalculating) || recalc.isPending;
-  const { data: cycleStatus } = useCycleStatus({ poll: recalculating });
+  // Only asked while a recalculation is in flight — on a normal cold load the
+  // status is never read, and skipping it saves a request + CORS preflight.
+  const { data: cycleStatus } = useCycleStatus({ poll: recalculating, enabled: recalculating });
   const settled = cycleStatus ? !cycleStatus.is_processing : false;
   useEffect(() => {
     if (recalculating && settled) {
@@ -928,6 +931,18 @@ export function HomePage() {
   // Selecting a past/future day fetches its data; dim the card meanwhile so the
   // placeholder values read as "loading", not as a broken empty state (§ loading).
   const infoLoading = !isToday && dateFetching && !dateData;
+  // First load: until today's calculation (and the banner slot above the
+  // timeline) has settled, the hero shows its loading state and nothing is
+  // rendered below it. Content that appears is not a layout shift; content
+  // that is already on screen and gets pushed down by the hero growing or a
+  // banner landing is — that was the home CLS (perf baseline §1.4, §3 #5).
+  // It also lets the below-the-fold reads (challenge, articles) start after
+  // the critical ones instead of competing with them (§3 #8).
+  const bannersSettled = useBannersSettled();
+  // Only while a request is actually in flight: a disabled or offline-paused
+  // query must never hold the page back.
+  const booting =
+    (todayQuery.isPending && todayQuery.fetchStatus === 'fetching') || !bannersSettled;
   const selectedDateLabel = formatDayMonth(selectedDate, loc);
 
   // Server pass / first client render: backdrop only, so both sides match.
@@ -985,75 +1000,79 @@ export function HomePage() {
               isToday={isToday}
               selectedDateLabel={selectedDateLabel}
               showPhaseDetails={isToday && Boolean(todayData?.cycleView?.subphase)}
-              loading={infoLoading}
+              loading={infoLoading || booting}
             />
           </div>
         </div>
-        {/* Admin-managed promo slot — renders nothing until a banner is active */}
-        <BannerSlideshow position="home_top" />
-        <PhaseRows
-          t={t}
-          pred={pred}
-          ovulationDay={calc?.estimatedOvulationDay ?? null}
-          windowRange={windowRange}
-          ovulationDate={ovulationDate}
-          pmsRange={pmsRange}
-          nextPeriodDate={nextPeriodDate}
-          daysTo={{
-            pms: pmsSlot,
-            nextPeriod: nextPeriodSlot,
-            window: windowSlot,
-            ovulation: ovulationSlot,
-          }}
-          /* The §12 value layers — what the profile says, what recent cycles
-             suggest, and which layer today's prediction actually used. They
-             took over the slot the two cycle facts used to hold. */
-          footer={todayData?.cycleView && (
-            <CycleValuesCard
-              title={t('values.title')}
-              loggedLabel={t('values.logged')}
-              loggedValue={
-                todayData.cycleView.profileValues.cycleLength != null
-                  ? t('days', { n: todayData.cycleView.profileValues.cycleLength })
-                  : t('unavailable')
-              }
-              suggestion={
-                todayData.cycleView.calculatedValues.cycleLength != null &&
-                todayData.cycleView.profileValues.cycleLength != null &&
-                todayData.cycleView.calculatedValues.cycleLength !==
-                  todayData.cycleView.profileValues.cycleLength
-                  ? {
-                      text: t('values.suggestion', {
-                        n: todayData.cycleView.calculatedValues.cycleLength,
-                      }),
-                      ctaLabel: t('values.syncCta', {
-                        n: todayData.cycleView.calculatedValues.cycleLength,
-                      }),
-                      onSync: () => setCycleSheetOpen(true),
-                    }
-                  : null
-              }
-              basedOnText={t('values.basedOn', {
-                source: t(
-                  todayData.cycleView.effectiveValues.source === 'recent_valid_cycles'
-                    ? 'values.source.recent_valid_cycles'
-                    : todayData.cycleView.effectiveValues.source === 'profile'
-                      ? 'values.source.profile'
-                      : 'values.source.default',
-                ),
-              })}
+        {!booting && (
+          <>
+            {/* Admin-managed promo slot — renders nothing until a banner is active */}
+            <BannerSlideshow position="home_top" />
+            <PhaseRows
+              t={t}
+              pred={pred}
+              ovulationDay={calc?.estimatedOvulationDay ?? null}
+              windowRange={windowRange}
+              ovulationDate={ovulationDate}
+              pmsRange={pmsRange}
+              nextPeriodDate={nextPeriodDate}
+              daysTo={{
+                pms: pmsSlot,
+                nextPeriod: nextPeriodSlot,
+                window: windowSlot,
+                ovulation: ovulationSlot,
+              }}
+              /* The §12 value layers — what the profile says, what recent cycles
+                 suggest, and which layer today's prediction actually used. They
+                 took over the slot the two cycle facts used to hold. */
+              footer={todayData?.cycleView && (
+                <CycleValuesCard
+                  title={t('values.title')}
+                  loggedLabel={t('values.logged')}
+                  loggedValue={
+                    todayData.cycleView.profileValues.cycleLength != null
+                      ? t('days', { n: todayData.cycleView.profileValues.cycleLength })
+                      : t('unavailable')
+                  }
+                  suggestion={
+                    todayData.cycleView.calculatedValues.cycleLength != null &&
+                    todayData.cycleView.profileValues.cycleLength != null &&
+                    todayData.cycleView.calculatedValues.cycleLength !==
+                      todayData.cycleView.profileValues.cycleLength
+                      ? {
+                          text: t('values.suggestion', {
+                            n: todayData.cycleView.calculatedValues.cycleLength,
+                          }),
+                          ctaLabel: t('values.syncCta', {
+                            n: todayData.cycleView.calculatedValues.cycleLength,
+                          }),
+                          onSync: () => setCycleSheetOpen(true),
+                        }
+                      : null
+                  }
+                  basedOnText={t('values.basedOn', {
+                    source: t(
+                      todayData.cycleView.effectiveValues.source === 'recent_valid_cycles'
+                        ? 'values.source.recent_valid_cycles'
+                        : todayData.cycleView.effectiveValues.source === 'profile'
+                          ? 'values.source.profile'
+                          : 'values.source.default',
+                    ),
+                  })}
+                />
+              )}
             />
-          )}
-        />
-        <Recommendations t={t} tips={calc?.dailyTips ?? []} dos={dos} />
-        <BannerSlideshow position="home_middle" />
-        {/* Today's doctor/medication reminders and to-dos — same source as the
-            daily-log day planner, so items set there appear here (§ home request).
-            Temporarily hidden per product request. */}
-        {/* <DayTasks date={base} /> */}
-        <TodayChallengeCard />
-        <Articles t={t} locale={loc} />
-        <BannerSlideshow position="home_bottom" />
+            <Recommendations t={t} tips={calc?.dailyTips ?? []} dos={dos} />
+            <BannerSlideshow position="home_middle" />
+            {/* Today's doctor/medication reminders and to-dos — same source as the
+                daily-log day planner, so items set there appear here (§ home request).
+                Temporarily hidden per product request. */}
+            {/* <DayTasks date={base} /> */}
+            <TodayChallengeCard />
+            <Articles t={t} locale={loc} />
+            <BannerSlideshow position="home_bottom" />
+          </>
+        )}
         <div className="page-tail" />
       </div>
 

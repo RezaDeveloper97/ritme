@@ -2,6 +2,8 @@ import { setRequestLocale } from 'next-intl/server';
 
 import { PregnancyPage } from '@/screens/pregnancy';
 
+import { RouteMessages } from '../../RouteMessages';
+
 interface Props {
   params: Promise<{ locale: string }>;
 }
@@ -9,5 +11,9 @@ interface Props {
 export default async function PregnancyRoute({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
-  return <PregnancyPage />;
+  return (
+    <RouteMessages route="pregnancy">
+      <PregnancyPage />
+    </RouteMessages>
+  );
 }

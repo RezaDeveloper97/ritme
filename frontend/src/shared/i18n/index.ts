@@ -26,3 +26,4 @@ export {
   stripLocale,
   LOCALE_COOKIE,
 } from './navigation';
+export { pickNamespaces, type MessageNamespace } from './scope';

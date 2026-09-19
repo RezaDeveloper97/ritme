@@ -43,9 +43,9 @@ and UX must be **private by default, respectful, and medically careful**. See
 | i18n               | **next-intl** (ICU MessageFormat, per-slice namespaces)       |
 | Server state       | **TanStack Query** (`@tanstack/react-query`)                  |
 | Client state       | **Zustand** (UI/ephemeral state only)                         |
-| Forms + validation | **react-hook-form** + **zod**                                 |
+| Forms + validation | controlled state + **zod** (no form library)                 |
 | Dates / calendar   | **Locale-aware** (Jalali for `fa`, Gregorian for `en`) via a centralized date layer (§7) |
-| HTTP               | single shared `axios`/`fetch` client in `shared/api`          |
+| HTTP               | single shared thin `fetch` client in `shared/api` (no axios)  |
 
 > **TODO for the team:** pin exact versions in `package.json` and fill in the
 > DB/ORM, auth provider, and analytics choices below before relying on them.
@@ -413,7 +413,7 @@ response shapes, enums, and auth:
 - **Auth:** JWT **bearer** token in the `Authorization` header
   (`Authorization: Bearer <token>`). Login is **OTP-based**: `POST
   /auth/send-otp` → `POST /auth/verify-otp` returns the access token. The shared
-  `axios`/`fetch` client in `shared/api` attaches the token; never scatter auth
+  `fetch` client in `shared/api` attaches the token; never scatter auth
   handling across slices.
 
 Endpoint groups (map these onto the FSD entity/feature slices — don't invent

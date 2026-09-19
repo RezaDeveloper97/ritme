@@ -12,6 +12,9 @@ import {
   cycleStatusSchema,
 } from './schema';
 
+/** The slim month payload every month consumer uses (see {@link fetchCycleMonth}). */
+const CYCLE_MONTH_VIEW = 'calendar';
+
 /**
  * Query-key factory for cycle calculations (CLAUDE.md §8). All cache reads and
  * post-mutation invalidation go through this — never hand-written arrays.
@@ -21,8 +24,13 @@ export const cycleKeys = {
   today: () => [...cycleKeys.all, 'today'] as const,
   status: () => [...cycleKeys.all, 'status'] as const,
   date: (date: string) => [...cycleKeys.all, 'date', date] as const,
+  /**
+   * The month is fetched as the slim `calendar` view (see {@link fetchCycleMonth});
+   * the view is part of the key so a future full-month consumer can't be handed
+   * a cached slim payload.
+   */
   month: (year: number, month: number) =>
-    [...cycleKeys.all, 'month', year, month] as const,
+    [...cycleKeys.all, 'month', year, month, CYCLE_MONTH_VIEW] as const,
 };
 
 type CycleCalculationEnvelope = z.infer<typeof cycleCalculationEnvelopeSchema>;
@@ -84,23 +92,37 @@ export async function fetchCycleStatus(): Promise<CycleStatus> {
  * Polls the calculation status while the backend is recalculating, so the home
  * screen can show a "updating your cycle" state and refresh when it settles.
  */
-export function useCycleStatus(options?: { poll?: boolean }) {
+export function useCycleStatus(options?: { poll?: boolean; enabled?: boolean }) {
   return useQuery({
     queryKey: cycleKeys.status(),
     queryFn: fetchCycleStatus,
-    enabled: isAuthenticated(),
+    // Callers that only read the status while a recalculation runs pass
+    // `enabled` so a cold load doesn't spend a request on it.
+    enabled: (options?.enabled ?? true) && isAuthenticated(),
     refetchInterval: options?.poll ? 4_000 : false,
     retry: false,
   });
 }
 
-/** GET /cycle/month/{year}/{month} — a month of calculations for the calendar. */
+/**
+ * GET /cycle/month/{year}/{month}?view=calendar — a month of calculations for
+ * the calendar grid and the home week strip.
+ *
+ * The `calendar` view (T-M1-12) returns only the per-day fields
+ * `cycleCalculationSchema` reads and omits `daily_tips`/text flags — ~8 KB
+ * instead of ~119 KB per month (perf baseline §2.5, §3 #3). Every month
+ * consumer reads markers, probabilities and the cycle day only; the per-day
+ * tips come from `/cycle/today` (home recommendations), so `dailyTips` is
+ * always `[]` here. A backend that predates the view ignores the parameter and
+ * sends the full month, which parses the same.
+ */
 export async function fetchCycleMonth(
   year: number,
   month: number,
 ): Promise<CycleMonthEnvelope> {
   const { data } = await apiClient.get<ApiEnvelope<unknown>>(
     `/cycle/month/${year}/${month}`,
+    { params: { view: CYCLE_MONTH_VIEW } },
   );
   return cycleMonthEnvelopeSchema.parse(data.data);
 }

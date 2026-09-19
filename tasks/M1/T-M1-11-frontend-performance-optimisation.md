@@ -3,7 +3,7 @@ id: T-M1-11
 title: Frontend performance optimisation
 milestone: M1
 type: frontend
-status: todo
+status: done
 depends_on: [T-M1-10, T-M1-03, T-M1-07, T-M1-08, T-M1-09]
 parallel_group: M1-E
 touches: [frontend/src, frontend/next.config.ts, frontend/package.json, frontend/package-lock.json]

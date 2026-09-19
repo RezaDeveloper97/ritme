@@ -1,4 +1,4 @@
-import { AxiosError } from 'axios';
+import { ApiError } from './apiClient';
 
 /**
  * The Ritme API wraps every response in a consistent envelope
@@ -15,14 +15,15 @@ export interface ApiEnvelope<T> {
 
 /** Extracts the server-provided message from a failed request, if any. */
 export function getApiErrorMessage(error: unknown): string | undefined {
-  if (error instanceof AxiosError) {
+  if (error instanceof ApiError) {
     const body = error.response?.data as ApiEnvelope<unknown> | undefined;
-    return body?.message;
+    // A non-JSON body (a proxy's HTML page) is a string with no message.
+    return typeof body === 'object' && body !== null ? body.message : undefined;
   }
   return undefined;
 }
 
 /** HTTP status of a failed request, when it came from the API. */
 export function getApiErrorStatus(error: unknown): number | undefined {
-  return error instanceof AxiosError ? error.response?.status : undefined;
+  return error instanceof ApiError ? error.response?.status : undefined;
 }

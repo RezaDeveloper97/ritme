@@ -3,6 +3,8 @@ import { setRequestLocale } from 'next-intl/server';
 import { SplashPage } from '@/screens/auth-splash';
 import { INTRO_COOKIE } from '@/shared/session';
 
+import { RouteMessages } from '../../RouteMessages';
+
 interface Props { params: Promise<{ locale: string }> }
 
 /**
@@ -39,7 +41,9 @@ export default async function SplashRoute({ params }: Props) {
     <>
       {/* Cancelled by the screen the moment it hydrates. */}
       <script dangerouslySetInnerHTML={{ __html: fallbackScript(locale) }} />
-      <SplashPage />
+      <RouteMessages route="splash">
+        <SplashPage />
+      </RouteMessages>
     </>
   );
 }

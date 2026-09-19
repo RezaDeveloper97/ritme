@@ -466,7 +466,9 @@ export function CalendarPage() {
   const updatePeriod = useUpdatePeriod();
   const deletePeriod = useDeletePeriod();
   const historyQuery = usePeriodHistory();
-  const status = useCycleStatus({ poll: watching });
+  // Read only while watching a recalculation (see below), so a cold load
+  // doesn't spend a request + CORS preflight on it.
+  const status = useCycleStatus({ poll: watching, enabled: watching });
   const isRecalculating = watching && (status.data?.is_processing ?? false);
   useEffect(() => {
     if (watching && status.data && !status.data.is_processing) setWatching(false);

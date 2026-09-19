@@ -40,3 +40,24 @@ export function useBanners(position: BannerPosition): Banner[] {
 
   return data ?? [];
 }
+
+/**
+ * Whether the banner request has settled (loaded or failed), without caring
+ * what came back. Same cache entry as {@link useBanners}, so it adds no request.
+ * A screen uses it to hold content that sits *below* a banner slot until the
+ * slot's height is known — a banner popping in later would push that content
+ * down (a layout shift, perf baseline §3 #5).
+ */
+export function useBannersSettled(): boolean {
+  const { isPending, fetchStatus } = useQuery({
+    queryKey: bannerKeys.list(),
+    queryFn: fetchBanners,
+    enabled: isAuthenticated(),
+    staleTime: 5 * 60_000,
+    retry: false,
+    select: () => true,
+  });
+  // A disabled (signed out) or offline-paused query never settles on its
+  // own; only a request actually in flight counts as unsettled.
+  return !isPending || fetchStatus !== 'fetching';
+}
