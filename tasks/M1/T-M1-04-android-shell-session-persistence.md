@@ -23,6 +23,14 @@ for a year.
 - Verify `android:allowBackup` / data-extraction rules don't wipe or restore a stale token.
 - Build with the JDK noted in memory `android-build-jdk21`.
 
+## Scope change from T-M1-01 (docs/investigations/session-logout.md)
+**The shell is not implicated.** In prod logs from 2026-09-07 to 09-19, 21 of 22 post-sign-in cold launches from 24
+shell devices kept the session (for up to 11.1 days). The one loss was a full WebView profile wipe (reinstall or clear
+data). Reduce the scope to:
+- Optional hardening: also `CookieManager.getInstance().flush()` in `onStop`.
+- Check that store updates install over the existing app (same signing key, no forced uninstall).
+- Run the two manual tests. If both pass, mark done without a code change.
+
 ## Out of scope
 The web app's own storage logic (T-M1-03).
 

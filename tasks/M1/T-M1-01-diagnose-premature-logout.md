@@ -3,7 +3,7 @@ id: T-M1-01
 title: Diagnose premature logout (root cause, with evidence)
 milestone: M1
 type: investigate
-status: todo
+status: done
 depends_on: []
 parallel_group: M1-A
 touches: [docs/investigations/session-logout.md]

@@ -28,6 +28,19 @@ Fix the server-side part of the root cause from `docs/investigations/session-log
   client can tell a real logout apart from any other 401.
 - Scheduled `passport:purge` only removes tokens that are both expired **and** older than the grace window.
 
+## Scope change from T-M1-01 (docs/investigations/session-logout.md)
+T-M1-01 found **no server-side cause**: every token already lives 365 days, the keys have never rotated, only an
+explicit logout revokes tokens, and no real user received a 401. This task is now hardening:
+- The sliding refresh is **optional for M1** (no expiry-driven logouts exist; it only matters from about 2027-08).
+  Ship it only if cheap. The `error_code` on 401 remains **required**, because T-M1-03 depends on it.
+- **Key hygiene (new):** prod runs the developer laptop's Passport key pair (fingerprint `b501f48dc5d43bdc`), shipped
+  by `deploy.sh` rsync + `COPY . .`. Exclude `backend/storage/*.key` from the `deploy.sh` rsync and from
+  `backend/.dockerignore`. **Do NOT rotate the live pair here**, because that would sign out every user. Write the
+  rotation plan down as a follow-up.
+- `entrypoint.sh`: create the personal client only when the count is a real `0`, not when tinker failed or printed
+  nothing.
+- Also touches: `deploy.sh`, `backend/.dockerignore`.
+
 ## Out of scope
 Frontend storage (T-M1-03), Android shell (T-M1-04).
 

@@ -27,6 +27,25 @@ Fix the client-side part of the root cause from `docs/investigations/session-log
   already the intent; add tests that lock it in, including the resume/visibility path).
 - Keep CLAUDE.md §11: the token never goes into a cookie value, URL or log.
 
+## Scope change from T-M1-01 (docs/investigations/session-logout.md) — this task carries the main fix
+Root cause #1: a missing `ritme_auth` flag (WebKit caps `document.cookie` at 7 days; other kinds of cookie loss) makes
+the middleware render `/signup`. `SessionGuard` restores the flag but **leaves the user on the sign-in form**, even
+though a valid token is still in `localStorage`. Root cause #2: iOS storage partitions (Safari tab / Home Screen app /
+in-app browser), confirmed in prod logs. Add to scope:
+- If a token exists when `/splash`, `/welcome`, `/signup` or `/otp` mounts, restore the flag and `router.replace` to
+  `/home` (or to the pending onboarding step). Lock this in with a test.
+- Set the flag with an HTTP `Set-Cookie` from a same-origin Next route handler (a server-set cookie is not subject to
+  the WebKit 7-day cap), and re-assert it on every start and resume, not only when it is missing.
+- **Prod still runs the any-401 bundle** (v1.0.2, built 2026-09-01). The JSON-only guard exists only in the repo and
+  staging, so this task must ship through T-M1-14.
+- iOS UX: the install hint says the Home Screen app needs one sign-in. Optional "open in Safari" hint for
+  Instagram/Telegram in-app browsers.
+- Remove or implement the dead `ritme_onboarded` check in `app/[locale]/page.tsx`.
+- Manual check addition: on an iPhone, sign in → Add to Home Screen → open it (expect the sign-in screen once; after
+  that it must stay signed in for days).
+- Also touches: `frontend/src/app/[locale]` (auth screens / route handler), `frontend/src/screens/auth-*`,
+  `frontend/src/shared/pwa/InstallPrompt.tsx`.
+
 ## Out of scope
 Backend changes (T-M1-02), Android shell (T-M1-04).
 
