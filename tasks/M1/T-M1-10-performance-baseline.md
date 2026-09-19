@@ -3,7 +3,7 @@ id: T-M1-10
 title: Performance baseline (frontend + backend), measured
 milestone: M1
 type: investigate
-status: todo
+status: done
 depends_on: []
 parallel_group: M1-A
 touches: [docs/investigations/perf-baseline.md]
