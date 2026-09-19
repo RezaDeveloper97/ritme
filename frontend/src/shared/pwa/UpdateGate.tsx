@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 
+import { installChunkErrorRecovery } from './chunkReload';
 import { useAppUpdate } from './useAppUpdate';
 
 /**
@@ -12,12 +13,18 @@ import { useAppUpdate } from './useAppUpdate';
  */
 export function UpdateGate() {
   const t = useTranslations('pwa');
-  const { status, latestVersion, releaseNotes, apply } = useAppUpdate();
+  const { status, updateKey, releaseNotes, apply } = useAppUpdate();
   const [dismissedVersion, setDismissedVersion] = useState<string | null>(null);
   const [applying, setApplying] = useState(false);
   const forcedButtonRef = useRef<HTMLButtonElement>(null);
 
   const forced = status === 'forced';
+
+  // UpdateGate is the one PWA component mounted at the app root, so it also
+  // arms the one-shot ChunkLoadError reload (idempotent, never uninstalled).
+  useEffect(() => {
+    installChunkErrorRecovery();
+  }, []);
 
   // The forced overlay must trap the user: no scroll-behind, no Escape,
   // focus pinned to the single update button.
@@ -72,10 +79,6 @@ export function UpdateGate() {
       </div>
     );
   }
-
-  // SW-channel-only updates have no version string; key them as 'sw' so
-  // dismissal still works (and re-arms when a different version appears).
-  const updateKey = latestVersion ?? 'sw';
 
   if (status === 'soft' && updateKey !== dismissedVersion) {
     return (

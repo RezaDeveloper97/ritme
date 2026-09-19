@@ -39,3 +39,7 @@ yarn-error.log*
 ritme.fig
 # large local artifacts
 ritme-build.tar.gz
+
+# generated at prebuild (scripts/generate-version.mjs) — unique per build
+/public/sw.js
+/public/version.json

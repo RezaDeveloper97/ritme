@@ -49,6 +49,17 @@ auth_basic_user_file /etc/nginx/stage.htpasswd;
 # an exempt public file must not mint a session either.
 add_header Set-Cookie "ritme_stage=$stage_gate_token; Path=/; Max-Age=31536000; HttpOnly; SameSite=Lax";
 
+# Staging is private: keep it out of every index. It is also the add_header
+# the password-exempt locations below repeat, so they still cancel the
+# Set-Cookie inheritance WITHOUT stacking a second Cache-Control on top of the
+# one Next.js already sends (a duplicate, sometimes contradictory header —
+# pwa-audit H-5). Cache policy for app files lives in frontend/next.config.ts.
+add_header X-Robots-Tag "noindex, nofollow" always;
+
+# HTTPS only (no includeSubDomains, no preload). Ignored by browsers when this
+# vhost is served over plain HTTP (stage-http.conf), so it is safe in both.
+add_header Strict-Transport-Security "max-age=31536000" always;
+
 # Health check must stay reachable for uptime probes and deploy verification.
 location = /up {
     auth_basic off;
@@ -63,7 +74,7 @@ location = /up {
 # theme colour and icon paths — so it is served openly.
 location = /manifest.webmanifest {
     auth_basic off;
-    add_header Cache-Control "no-store";
+    add_header X-Robots-Tag "noindex, nofollow" always;
     proxy_pass http://stage_frontend_upstream;
     include /etc/nginx/conf.d/proxy-params.inc;
 }
@@ -73,14 +84,23 @@ location = /manifest.webmanifest {
 # is one of the things staging exists to test.
 location ~ ^/(sw\.js|version\.json|offline\.html|favicon\.ico)$ {
     auth_basic off;
-    add_header Cache-Control "no-store";
+    add_header X-Robots-Tag "noindex, nofollow" always;
     proxy_pass http://stage_frontend_upstream;
     include /etc/nginx/conf.d/proxy-params.inc;
 }
 
 location ^~ /icons/ {
     auth_basic off;
-    add_header Cache-Control "public, max-age=3600";
+    add_header X-Robots-Tag "noindex, nofollow" always;
+    proxy_pass http://stage_frontend_upstream;
+    include /etc/nginx/conf.d/proxy-params.inc;
+}
+
+# The one /api path that is NOT Laravel: a Next.js route handler (session
+# flag, T-M1-03). An exact match beats the `^~ /api/` prefix below. It stays
+# behind the password gate like every other app request. Prod needs nothing:
+# web.ritme.app sends everything, /api/ included, to Next (vhost-web.inc).
+location = /api/session/flag {
     proxy_pass http://stage_frontend_upstream;
     include /etc/nginx/conf.d/proxy-params.inc;
 }

@@ -10,21 +10,38 @@ interface VersionInfo {
   version: string;
   minSupportedVersion: string;
   releaseNotes?: string;
+  buildId?: string;
 }
 
 interface AppUpdateState {
   status: UpdateStatus;
   latestVersion: string | null;
+  /** Identifies the announced update, for dismissal (version + build). */
+  updateKey: string;
   releaseNotes: string;
   apply: () => Promise<void>;
 }
 
 const CURRENT_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? '0.0.0';
+// Stamped per build (scripts/generate-version.mjs → next.config.ts); empty in dev.
+const CURRENT_BUILD_ID = process.env.NEXT_PUBLIC_BUILD_ID ?? '';
 const POLL_INTERVAL_MS = 15 * 60 * 1000;
 
 // Module-level so React StrictMode double-mounting can't cause a reload loop:
 // controllerchange reloads at most once per page lifetime.
 let reloadedOnControllerChange = false;
+
+// Captured when this module first evaluates on the client — before the app
+// registers the worker. A page that had no controller at load gets its first
+// controller from the worker's `clients.claim()`; that is not an update, and
+// reloading there wiped whatever the first-time visitor was typing
+// (pwa-audit S-3). Only a page that was already controlled, or whose user
+// pressed "update", reloads on controllerchange.
+const controlledAtLoad =
+  typeof navigator !== 'undefined' &&
+  'serviceWorker' in navigator &&
+  navigator.serviceWorker.controller !== null;
+let userRequestedUpdate = false;
 
 function isSwSupported(): boolean {
   return typeof window !== 'undefined' && 'serviceWorker' in navigator;
@@ -41,6 +58,7 @@ async function fetchVersionInfo(): Promise<VersionInfo | null> {
       minSupportedVersion:
         typeof data.minSupportedVersion === 'string' ? data.minSupportedVersion : '0.0.0',
       releaseNotes: typeof data.releaseNotes === 'string' ? data.releaseNotes : '',
+      buildId: typeof data.buildId === 'string' ? data.buildId : undefined,
     };
   } catch {
     return null;
@@ -97,6 +115,7 @@ export function useAppUpdate(): AppUpdateState {
       });
 
     const onControllerChange = () => {
+      if (!controlledAtLoad && !userRequestedUpdate) return;
       if (reloadedOnControllerChange) return;
       reloadedOnControllerChange = true;
       window.location.reload();
@@ -140,10 +159,22 @@ export function useAppUpdate(): AppUpdateState {
   const forced =
     remote !== null && compareVersions(CURRENT_VERSION, remote.minSupportedVersion) < 0;
   const newerRemote = remote !== null && compareVersions(remote.version, CURRENT_VERSION) > 0;
-  const status: UpdateStatus =
-    forced ? 'forced' : newerRemote || waitingWorker !== null ? 'soft' : 'none';
+  // Same version, different build: a deploy that forgot to bump package.json.
+  // Still an update — the running HTML may point at chunks that are gone.
+  const rebuiltRemote =
+    remote !== null &&
+    CURRENT_BUILD_ID !== '' &&
+    remote.buildId !== undefined &&
+    remote.buildId !== CURRENT_BUILD_ID &&
+    compareVersions(remote.version, CURRENT_VERSION) === 0;
+  const status: UpdateStatus = forced
+    ? 'forced'
+    : newerRemote || rebuiltRemote || waitingWorker !== null
+      ? 'soft'
+      : 'none';
 
   const apply = useCallback(async () => {
+    userRequestedUpdate = true;
     const reg = registrationRef.current;
     const waiting = waitingWorker ?? reg?.waiting ?? null;
 
@@ -175,6 +206,9 @@ export function useAppUpdate(): AppUpdateState {
   return {
     status,
     latestVersion: remote?.version ?? null,
+    // SW-channel-only updates have no version string; 'sw' still lets the
+    // user dismiss them (and re-arms when a different build appears).
+    updateKey: remote ? `${remote.version}:${remote.buildId ?? ''}` : 'sw',
     releaseNotes: remote?.releaseNotes ?? '',
     apply,
   };

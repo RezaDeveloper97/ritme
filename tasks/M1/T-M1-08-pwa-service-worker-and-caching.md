@@ -3,7 +3,7 @@ id: T-M1-08
 title: PWA — service worker lifecycle, caching and headers
 milestone: M1
 type: frontend
-status: todo
+status: done
 depends_on: [T-M1-06]
 parallel_group: M1-D
 touches: [frontend/scripts/sw.template.js, frontend/scripts/generate-version.mjs, frontend/public/offline.html, frontend/next.config.ts, frontend/src/shared/pwa/useAppUpdate.ts, frontend/src/shared/pwa/UpdateGate.tsx, frontend/public/version.json, deploy/vhost-web.inc, deploy/vhost-stage.inc, deploy/proxy-ssl.conf]
