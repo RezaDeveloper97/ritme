@@ -1,0 +1,32 @@
+---
+id: T-M1-04
+title: Android shell — session survives kill, update and low-memory
+milestone: M1
+type: android
+status: todo
+depends_on: [T-M1-01]
+parallel_group: M1-B
+touches: [android-shell/app/src/main]
+skills: []
+verify: cd android-shell && ./gradlew assembleDebug
+---
+
+# T-M1-04 — Android shell — session survives kill, update and low-memory
+
+## Why
+The shipped Android app is the WebView shell (memory `ritme-android-shell`). Its storage must keep the session
+for a year.
+
+## Scope
+- Apply whatever T-M1-01 found for the WebView (e.g. flush cookies also on `onStop`, avoid any `clearCache`/
+  `clearHistory`/data dir changes, keep the same WebView data directory across app updates).
+- Verify `android:allowBackup` / data-extraction rules don't wipe or restore a stale token.
+- Build with the JDK noted in memory `android-build-jdk21`.
+
+## Out of scope
+The web app's own storage logic (T-M1-03).
+
+## Acceptance
+- Debug build green. Written manual test: sign in → force-stop → reopen; sign in → install an updated APK over it
+  → reopen; both stay signed in. Record the result in the task report.
+- If T-M1-01 shows the shell is not involved, mark done with that note (no code change).
