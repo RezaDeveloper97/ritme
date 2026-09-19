@@ -7,6 +7,7 @@ import {
   clearAuthToken,
   clearOnboardingPending,
   getOnboardingPending,
+  requestPersistentStorage,
   setAuthToken,
   setOnboardingPending,
 } from '@/shared/session';
@@ -84,6 +85,8 @@ export function useVerifyOtp() {
       const token = data.data?.access_token;
       if (!token) throw new Error('Missing access token');
       setAuthToken(token);
+      // Ask the browser not to evict the storage that now holds the session.
+      requestPersistentStorage();
 
       const user = authUserSchema.parse(data.data?.user);
       return {

@@ -1,72 +1,69 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { useCallback, useEffect } from 'react';
+import { useEffect } from 'react';
 
-import { PUBLIC_SEGMENTS, SESSION_CLEARED_EVENT } from './cookie';
-import { clearAuthToken, getAuthToken, hasAuthCookie, setAuthToken } from './token';
+import { SESSION_CLEARED_EVENT } from './cookie';
+import { getOnboardingPending } from './onboarding';
+import { requestPersistentStorage } from './persist';
+import {
+  SIGN_IN_ROUTE,
+  isPublicSegment,
+  reconcileOnMount,
+  reconcileOnResume,
+  segmentOf,
+} from './reconcile';
+import { assertAuthFlag, clearAuthToken, getAuthToken, hasAuthCookie } from './token';
+
+const localeOf = (path: string) => path.split('/').filter(Boolean)[0] ?? 'fa';
 
 /**
  * Keeps the edge's view of the session (the `ritme_auth` flag cookie) and the
- * browser's (the JWT in `localStorage`) from drifting apart.
+ * browser's (the JWT in `localStorage`) from drifting apart, with the token as
+ * the source of truth. The decisions live in `reconcile.ts` (unit-tested); this
+ * component only carries them out.
  *
- * They drift because they have different scopes: the cookie belongs to the host,
- * the token to the origin. When the site moved from `http://` to `https://`,
- * every signed-in visitor kept the cookie but lost sight of the token — the
- * middleware waved them through to `/home` while every request went out
- * unauthenticated, so the app rendered empty placeholders forever and never
- * offered a way back to sign-in. Clearing the token alone (e.g. the 401
- * interceptor) leaves the same zombie state, hence the event listener too.
- *
- * Repairs run in both directions: flag without token → sign out; token without
- * flag → restore the flag, so a genuinely signed-in user isn't bounced.
+ * - Token present → re-assert the flag on every start and resume (never only
+ *   when it is missing, so its expiry keeps sliding), and move the user off the
+ *   splash/welcome/sign-in screens: a lost flag made the middleware render
+ *   `/signup` to someone who was still signed in, and they signed in again.
+ * - Flag without token → sign out; a guarded screen goes to sign-in.
  */
 export function SessionGuard() {
   const router = useRouter();
   const pathname = usePathname();
 
-  const localeOf = useCallback(
-    (path: string) => path.split('/').filter(Boolean)[0] ?? 'fa',
-    [],
-  );
-
-  const isPublicScreen = useCallback((path: string) => {
-    const [, segment] = path.split('/').filter(Boolean);
-    // Locale root (`/fa`) is public — it redirects on to splash.
-    if (!segment) return true;
-    return (PUBLIC_SEGMENTS as readonly string[]).includes(segment);
-  }, []);
-
   useEffect(() => {
     const token = getAuthToken();
+    const decision = reconcileOnMount({
+      hasToken: token !== null,
+      hasFlag: hasAuthCookie(),
+      segment: segmentOf(pathname),
+      onboardingPending: getOnboardingPending() !== null,
+    });
 
-    if (token) {
-      if (!hasAuthCookie()) setAuthToken(token);
-      return;
+    if (decision.assertFlag) {
+      assertAuthFlag();
+      requestPersistentStorage();
     }
-
-    if (!hasAuthCookie()) return;
-
-    // A flag with no token can never authenticate a request — drop it and, if
-    // the user is sitting on a guarded screen, send them to sign in.
-    clearAuthToken();
-    if (!isPublicScreen(pathname)) {
-      router.replace(`/${localeOf(pathname)}/signup`);
-    }
-  }, [isPublicScreen, localeOf, pathname, router]);
+    if (decision.clearSession) clearAuthToken();
+    if (decision.redirect) router.replace(`/${localeOf(pathname)}${decision.redirect}`);
+  }, [pathname, router]);
 
   /**
-   * Re-check on restore. A guarded screen can come back on screen without ever
-   * re-mounting — the bfcache reviving it, the PWA or the Android WebView
-   * resuming a backgrounded tab — and it would then render the previous
-   * session's data against a token that is gone. Neither event fires often
-   * enough for the extra check to matter.
+   * Re-check on restore. A screen can come back without re-mounting — the
+   * bfcache reviving it, the PWA or the Android WebView resuming a backgrounded
+   * tab. A signed-in user gets the flag re-asserted; a guarded screen whose
+   * token is gone must not keep showing the previous session's data.
    */
   useEffect(() => {
     const revalidate = () => {
-      if (getAuthToken()) return;
-      if (isPublicScreen(pathname)) return;
-      window.location.replace(`/${localeOf(pathname)}/signup`);
+      const decision = reconcileOnResume({
+        hasToken: getAuthToken() !== null,
+        segment: segmentOf(pathname),
+      });
+      if (decision.assertFlag) assertAuthFlag();
+      if (decision.signIn) window.location.replace(`/${localeOf(pathname)}${SIGN_IN_ROUTE}`);
     };
 
     const onPageShow = (event: PageTransitionEvent) => {
@@ -82,17 +79,17 @@ export function SessionGuard() {
       window.removeEventListener('pageshow', onPageShow);
       document.removeEventListener('visibilitychange', onVisible);
     };
-  }, [isPublicScreen, localeOf, pathname]);
+  }, [pathname]);
 
   useEffect(() => {
     const onCleared = () => {
-      if (isPublicScreen(pathname)) return;
-      router.replace(`/${localeOf(pathname)}/signup`);
+      if (isPublicSegment(segmentOf(pathname))) return;
+      router.replace(`/${localeOf(pathname)}${SIGN_IN_ROUTE}`);
     };
 
     window.addEventListener(SESSION_CLEARED_EVENT, onCleared);
     return () => window.removeEventListener(SESSION_CLEARED_EVENT, onCleared);
-  }, [isPublicScreen, localeOf, pathname, router]);
+  }, [pathname, router]);
 
   return null;
 }

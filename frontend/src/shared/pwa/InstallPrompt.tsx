@@ -75,18 +75,37 @@ function isIos(): boolean {
 }
 
 /**
+ * Instagram / Facebook / Telegram / LINE open links in their own browser, which
+ * can't install a web app and keeps its own storage — a session made there is
+ * invisible to Safari and to the Home Screen app. Telegram on iOS mostly uses
+ * Safari's view controller (undetectable, and fine); its Android WebView says so.
+ */
+function isInAppBrowser(): boolean {
+  return /Instagram|FBAN|FBAV|FB_IAB|Telegram|\bLine\//i.test(navigator.userAgent);
+}
+
+/**
  * Custom install affordance. On Chromium (Android/desktop) it captures
  * `beforeinstallprompt` and shows a native-prompt button; on iOS Safari —
  * which has no install event — it shows Add-to-Home-Screen instructions
- * with the Share and Add icons. Dismissal is remembered per device.
+ * with the Share and Add icons, plus a note that the Home Screen app needs one
+ * sign-in of its own (iOS gives it separate storage from Safari). Inside an
+ * in-app browser it asks to reopen the page in the real browser instead.
+ * Dismissal is remembered per device.
  */
 export function InstallPrompt() {
   const t = useTranslations('pwa');
   const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const [showIosGuide, setShowIosGuide] = useState(false);
+  const [showInAppHint, setShowInAppHint] = useState(false);
 
   useEffect(() => {
     if (isNativeShell() || isStandalone() || window.localStorage.getItem(DISMISS_KEY)) return;
+
+    if (isInAppBrowser()) {
+      setShowInAppHint(true);
+      return;
+    }
 
     if (isIos()) {
       setShowIosGuide(true);
@@ -110,6 +129,7 @@ export function InstallPrompt() {
     window.localStorage.setItem(DISMISS_KEY, '1');
     setInstallEvent(null);
     setShowIosGuide(false);
+    setShowInAppHint(false);
   };
 
   const install = async () => {
@@ -149,6 +169,25 @@ export function InstallPrompt() {
     );
   }
 
+  if (showInAppHint) {
+    return (
+      <div className="pwa-install pwa-install-ios" role="complementary" aria-label={t('inAppTitle')}>
+        <div className="pwa-install-text">
+          <strong>{t('inAppTitle')}</strong>
+          <span>{t('inAppBody')}</span>
+        </div>
+        <button type="button" className="pwa-btn-dismiss" onClick={dismiss} aria-label={t('dismiss')}>
+          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M6.4 19L5 17.6l5.6-5.6L5 6.4L6.4 5l5.6 5.6L17.6 5L19 6.4L13.4 12l5.6 5.6l-1.4 1.4l-5.6-5.6z"
+            />
+          </svg>
+        </button>
+      </div>
+    );
+  }
+
   if (showIosGuide) {
     return (
       <div className="pwa-install pwa-install-ios" role="complementary" aria-label={t('installTitle')}>
@@ -166,6 +205,7 @@ export function InstallPrompt() {
               <AddToHomeIcon />
             </span>
           </span>
+          <span>{t('iosSignInNote')}</span>
         </div>
         <button type="button" className="pwa-btn-dismiss" onClick={dismiss} aria-label={t('dismiss')}>
           <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">

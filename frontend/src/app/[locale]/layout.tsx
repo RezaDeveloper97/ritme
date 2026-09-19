@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation';
 import type { ReactNode } from 'react';
 
 import { OnboardingCalendarSync } from '@/entities/user';
+import { SessionRefresher } from '@/features/auth';
 import { BackGuard } from '@/shared/back-guard';
 import {
   BUNDLED_LOCALES,
@@ -96,6 +97,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
             <ThemeApplier />
             <BackGuard />
             <SessionGuard />
+            <SessionRefresher />
             <OnboardingCalendarSync />
             <ViewportHeight />
             <NoZoom />

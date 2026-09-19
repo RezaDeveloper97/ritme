@@ -1,6 +1,6 @@
 import axios, { AxiosError } from 'axios';
 
-import { getAuthToken, clearAuthToken } from '@/shared/session';
+import { bearerOf, clearAuthToken, endsSession, getAuthToken } from '@/shared/session';
 import { env } from '@/shared/config';
 
 /**
@@ -40,19 +40,26 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// On 401 the token is stale/revoked — drop it so the app falls back to the
-// login flow. Route redirection is handled by the middleware/UI, not here.
-//
-// But only when the API said so. A proxy in front of the API can answer 401
-// too — staging's password gate did exactly that — and treating an HTML
-// challenge page as "your session expired" logs the user out mid-onboarding
-// and sends them back to /signup, which looks like the app losing their data.
-// Laravel always answers JSON here, so the content type is the tell.
+// On 401 the token may be gone — but only clear it when the API said so about
+// the token this request carried (`endsSession`, unit-tested in shared/session):
+// a JSON body with `error_code` token_expired/token_revoked, or Laravel's legacy
+// `Unauthenticated.` body. A proxy's HTML 401 (staging's password gate once did
+// this), network errors, timeouts, 5xx, and a 401 for a request that raced a
+// token refresh all leave the session alone. Route redirection is handled by
+// SessionGuard, not here.
 apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
-    const contentType = String(error.response?.headers?.['content-type'] ?? '');
-    if (error.response?.status === 401 && contentType.includes('json')) {
+    const response = error.response;
+    if (
+      endsSession({
+        status: response?.status,
+        contentType: String(response?.headers?.['content-type'] ?? ''),
+        body: response?.data,
+        sentToken: bearerOf(error.config?.headers?.Authorization),
+        currentToken: getAuthToken(),
+      })
+    ) {
       clearAuthToken();
     }
     return Promise.reject(error);

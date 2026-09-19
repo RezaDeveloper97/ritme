@@ -37,5 +37,16 @@ export const INTRO_COOKIE = 'ritme_intro_seen';
  */
 export const PUBLIC_SEGMENTS = ['splash', 'welcome', 'signup', 'otp'] as const;
 
+/**
+ * Same-origin route that answers with a `Set-Cookie` for {@link AUTH_COOKIE}.
+ * WebKit caps cookies written by `document.cookie` at 7 days whatever their
+ * `max-age`; a cookie set by an HTTP response keeps its full lifetime. The
+ * request carries nothing — the cookie is a value-less flag, never the token.
+ */
+export const SESSION_FLAG_ROUTE = '/api/session/flag';
+
+/** Flag lifetime in seconds (one year, like the token). */
+export const AUTH_FLAG_MAX_AGE = 31_536_000;
+
 /** Fired on the window when the session is dropped, so the UI can leave guarded screens. */
 export const SESSION_CLEARED_EVENT = 'ritme:session-cleared';
