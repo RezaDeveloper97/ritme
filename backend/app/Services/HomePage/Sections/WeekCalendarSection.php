@@ -37,7 +37,7 @@ class WeekCalendarSection extends AbstractHomeSection
         $days = [];
         for ($i = 0; $i < 7; $i++) {
             $day = $weekStart->copy()->addDays($i);
-            $calc = $hasCycle ? $context->cycleDataFor($day) : null;
+            $calc = $hasCycle ? $context->calendarDataFor($day) : null;
             $phase = $calc['phase'] ?? null;
 
             $days[] = [

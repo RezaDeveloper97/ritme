@@ -412,3 +412,21 @@ ssh root@89.251.8.115 'for i in $(seq 1 16); do curl -s -o /dev/null -w "%{time_
 ```
 
 No health data was selected or printed. Only counts, sizes, index metadata, and `EXPLAIN` plans.
+
+## T-M1-12 — backend before/after (2026-09-19)
+Same in-process harness as §6.1: the same seeded user (13 periods, 60 logs), a scratch sqlite copy with Redis, 30 iterations × 3 interleaved rounds, median of p50/p95 in ms. Load average 6–7, so treat these as noisy.
+
+| Endpoint | Before: q / p50 / p95 / bytes | After, miss: q / p50 / p95 | After, hit: q / p50 / p95 / bytes |
+|---|---|---|---|
+| `/cycle/month/2026/9` | 7 / 48.3 / 51.0 / 119,583 | 7 / 18.5 / 21.9 | 7 / 9.1 / 10.5 / 87,189 |
+| `/cycle/month/2026/9?view=calendar` | (full only) | 6 / 14.6 / 18.8 | 6 / 8.5 / 11.8 / 8,390 (664 B gz) |
+| `/home` | 37 (3 dup) / 30.2 / 33.0 | 20 (0 dup) / 21.6 / 28.9 | 20 / 23.7 / 28.1 |
+| `/home/sections/week_calendar` | 14 / 18.6 / 21.5 | 7 / 10.6 / 13.4 | 7 / 10.5 / 13.8 |
+| `/messages/daily` | 14 / 15.6 / 17.8 | 10 / 15.3 / 19.3 | 10 / 14.9 / 20.3 |
+| `/home/sections/smart_tip` | 14 / 15.7 / 18.5 | 10 / 15.8 / 19.4 | 10 / 16.0 / 19.1 |
+| `/cycle/today` | 8 (1 dup) / 11.4 / 13.8 | 7 / 11.2 / 13.9 | 7 / 8.1 / 11.1 |
+| `/cycle/date/2026-09-19` | 8 (1 dup) / 11.6 / 14.6 | 7 / 11.2 / 14.5 | 7 / 8.0 / 11.0 |
+
+- Config/route/event caches (fresh process + `GET /languages`, 30 interleaved runs): p50 58.97 → 49.18 ms (−17%), p95 86.0 → 67.0 ms.
+- Engine CPU for a 31-day month (no queries): full 43 → 11 ms, calendar 37 → 5.7 ms.
+- Only `/home`, `week_calendar`, `/messages/daily` and `smart_tip` skip the engine cache, so for them miss and hit are just two separate runs.

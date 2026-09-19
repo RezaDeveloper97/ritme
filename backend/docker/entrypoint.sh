@@ -79,4 +79,28 @@ if [ "$RUN_MIGRATIONS" = "true" ]; then
   php artisan l5-swagger:generate || true
 fi
 
+# Framework caches (config, routes, events), built here rather than in the image
+# because the environment is only final at container start: compose injects every
+# setting as a real env var, and each container (web, admin, queue) caches its OWN
+# view of it — e.g. the admin routes exist only where ADMIN_PANEL_ENABLED=true.
+# This runs after the migration/seed/tinker block above, which therefore still
+# boots uncached. Once config is cached Laravel no longer reads a .env file, but
+# the image has none (.dockerignore) and env() still sees the real process env,
+# so the few env() calls outside config/ keep working. The package manifest is
+# rebuilt first so it matches the no-dev vendor/ in this image, not whatever
+# bootstrap/cache/packages.php the build context carried in.
+# A failed cache must never keep the container down: fall back to uncached.
+if php artisan package:discover --ansi >/dev/null \
+  && php artisan config:cache \
+  && php artisan route:cache \
+  && php artisan event:cache; then
+  echo "entrypoint: config/route/event caches built"
+else
+  echo "entrypoint: WARNING: building framework caches failed; running uncached" >&2
+  php artisan config:clear || true
+  php artisan route:clear || true
+  php artisan event:clear || true
+fi
+chown -R www-data:www-data bootstrap/cache
+
 exec "$@"

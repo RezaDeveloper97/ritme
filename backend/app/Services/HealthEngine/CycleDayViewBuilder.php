@@ -9,6 +9,7 @@ use App\Models\CycleHistory;
 use App\Models\User;
 use App\Models\UserProfile;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 
 /**
  * Assembles the daily payload for one date from all the engine pieces: the v1.1
@@ -44,11 +45,13 @@ class CycleDayViewBuilder
 
     /**
      * @param  array<string, mixed>  $baseCalc  the per-day {@see HealthDataEngine::calculateForDate} result
+     * @param  Collection<int, CycleHistory>|null  $histories  the user's history, newest first — pass
+     *                                                         {@see HealthDataEngine::cycleHistories()} to reuse the engine's load
      */
-    public function build(User $user, Carbon $selectedDate, Carbon $today, string $locale, array $baseCalc): array
+    public function build(User $user, Carbon $selectedDate, Carbon $today, string $locale, array $baseCalc, ?Collection $histories = null): array
     {
         $profile = $user->profile;
-        $histories = CycleHistory::where('user_id', $user->id)
+        $histories ??= CycleHistory::where('user_id', $user->id)
             ->orderBy('period_start_date', 'desc')
             ->get();
 

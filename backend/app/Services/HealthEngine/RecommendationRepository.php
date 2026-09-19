@@ -83,6 +83,19 @@ class RecommendationRepository
     }
 
     /**
+     * A digest of everything {@see forDay()} and {@see hasContent()} can return,
+     * so a cached engine result that contains tips is keyed by the exact admin
+     * content it was built from: an edit, toggle or delete changes the digest.
+     */
+    public function signature(): string
+    {
+        return hash('xxh128', serialize([
+            $this->hasContent(),
+            $this->rows()->map(fn (Recommendation $row): array => $row->getAttributes())->all(),
+        ]));
+    }
+
+    /**
      * Every live recommendation, in the admin's display order. Loaded once per
      * request; matching happens in PHP from here on.
      *

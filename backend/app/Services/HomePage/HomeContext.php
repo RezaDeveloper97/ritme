@@ -42,6 +42,20 @@ final class HomeContext
     /** @var array<string, Collection> logs memoized per "from..to" range */
     private array $logsByRange = [];
 
+    /**
+     * Days of daily_health_logs loaded up front, ending at the context date. Every
+     * log read the sections make (the day's log, the week strip, the 3/7-day and
+     * previous-week windows) falls inside it and is served from this one query
+     * instead of a SELECT per day and per window.
+     */
+    private const LOG_WINDOW_PAST_DAYS = 29;
+
+    /** @var Collection<int, DailyHealthLog>|null */
+    private ?Collection $windowLogs = null;
+
+    /** @var array<string, array> calendar-only calculations memoized per Y-m-d */
+    private array $calendarDataByDate = [];
+
     private ?Collection $cycleHistories = null;
 
     private ?CycleHistoryDigest $cycleHistoryDigest = null;
@@ -108,7 +122,28 @@ final class HomeContext
 
     public function healthEngine(): HealthDataEngine
     {
-        return $this->engine ??= new HealthDataEngine($this->user, $this->locale);
+        if ($this->engine === null) {
+            $this->engine = new HealthDataEngine($this->user, $this->locale);
+            [$from, $to] = $this->logWindow();
+            $this->engine->preloadDailyLogs($from, $to, $this->windowLogs());
+        }
+
+        return $this->engine;
+    }
+
+    /**
+     * Calendar fields only (phase, cycle day, windows — no tips/text) for a date,
+     * for sections that colour days. Reuses a full calculation when one exists.
+     */
+    public function calendarDataFor(Carbon $date): array
+    {
+        $key = $date->toDateString();
+
+        if (isset($this->cycleDataByDate[$key])) {
+            return $this->cycleDataByDate[$key];
+        }
+
+        return $this->calendarDataByDate[$key] ??= $this->healthEngine()->calculateForDate($date, false);
     }
 
     /**
@@ -161,9 +196,7 @@ final class HomeContext
     public function dailyLog(): ?DailyHealthLog
     {
         if (! $this->dailyLogLoaded) {
-            $this->dailyLog = $this->user->dailyHealthLogs()
-                ->whereDate('log_date', $this->date)
-                ->first();
+            $this->dailyLog = $this->healthEngine()->dailyLogFor($this->date);
             $this->dailyLogLoaded = true;
         }
 
@@ -191,13 +224,62 @@ final class HomeContext
      */
     public function logsBetween(Carbon $from, Carbon $to): Collection
     {
-        $key = $from->toDateString().'..'.$to->toDateString();
+        $fromKey = $from->toDateString();
+        $toKey = $to->toDateString();
+        $key = $fromKey.'..'.$toKey;
 
-        return $this->logsByRange[$key] ??= $this->user->dailyHealthLogs()
+        if (isset($this->logsByRange[$key])) {
+            return $this->logsByRange[$key];
+        }
+
+        [$windowFrom, $windowTo] = $this->logWindow();
+        if ($fromKey >= $windowFrom->toDateString() && $toKey <= $windowTo->toDateString()) {
+            return $this->logsByRange[$key] = $this->windowLogs()
+                ->filter(function (DailyHealthLog $log) use ($fromKey, $toKey): bool {
+                    $day = Carbon::parse($log->log_date)->toDateString();
+
+                    return $day >= $fromKey && $day <= $toKey;
+                })
+                ->values();
+        }
+
+        return $this->logsByRange[$key] = $this->user->dailyHealthLogs()
             ->whereDate('log_date', '>=', $from)
             ->whereDate('log_date', '<=', $to)
             ->orderBy('log_date')
             ->get();
+    }
+
+    /**
+     * The preloaded range: LOG_WINDOW_PAST_DAYS before the context date through
+     * the end of its Saturday-to-Friday week (the week strip can show later days).
+     *
+     * @return array{0: Carbon, 1: Carbon}
+     */
+    private function logWindow(): array
+    {
+        $from = $this->date->copy()->startOfDay()->subDays(self::LOG_WINDOW_PAST_DAYS);
+        $to = $this->date->copy()->startOfDay()->startOfWeek(Carbon::SATURDAY)->addDays(6);
+
+        return [$from, $to->max($this->date->copy()->startOfDay())];
+    }
+
+    /**
+     * Every log in {@see logWindow()}, ascending — one query per request.
+     *
+     * @return Collection<int, DailyHealthLog>
+     */
+    private function windowLogs(): Collection
+    {
+        if ($this->windowLogs === null) {
+            [$from, $to] = $this->logWindow();
+            $this->windowLogs = $this->user->dailyHealthLogs()
+                ->whereBetween('log_date', [$from->toDateString(), $to->toDateString().' 23:59:59'])
+                ->orderBy('log_date')
+                ->get();
+        }
+
+        return $this->windowLogs;
     }
 
     /**
@@ -207,9 +289,8 @@ final class HomeContext
      */
     public function cycleHistories(): Collection
     {
-        return $this->cycleHistories ??= $this->user->cycleHistories()
-            ->orderByDesc('period_start_date')
-            ->get();
+        // The engine's load (same rows, same order), so the page reads the table once.
+        return $this->cycleHistories ??= $this->healthEngine()->cycleHistories();
     }
 
     /**
@@ -250,7 +331,7 @@ final class HomeContext
                 return $this->messages = null;
             }
 
-            $manager = new MessageManager($this->user, $this->locale);
+            $manager = new MessageManager($this->user, $this->locale, $this->healthEngine());
             $this->messages = $manager->generateMessages($this->date, $this->mode);
         } catch (\Throwable $e) {
             Log::warning('HomeContext: message generation failed', [

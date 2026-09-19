@@ -13,6 +13,8 @@ use App\Http\Controllers\Concerns\ResolvesLocale;
 use App\Http\Controllers\Controller;
 use App\Jobs\CalculateCycleDataJob;
 use App\Models\DailyHealthLog;
+use App\Services\HealthEngine\CycleDayViewBuilder;
+use App\Services\HealthEngine\CycleEngineCache;
 use App\Services\HealthEngine\DailyTipLocalizer;
 use App\Services\HealthEngine\HealthDataEngine;
 use App\Services\MatrixEngine\CorrelationEngine;
@@ -27,6 +29,11 @@ use Illuminate\Http\Request;
 class CycleCalculationController extends Controller
 {
     use ResolvesLocale;
+
+    /** `?view=` values accepted by `/cycle/month`. */
+    private const MONTH_VIEWS = ['full', 'calendar'];
+
+    public function __construct(private readonly CycleEngineCache $engineCache) {}
 
     /**
      * @OA\Get(
@@ -168,6 +175,15 @@ class CycleCalculationController extends Controller
      *     ),
      *
      *     @OA\Parameter(
+     *         name="view",
+     *         in="query",
+     *         description="Opt-in payload size. `full` (default, unchanged — the Android app reads it) returns every engine field per day, including the bilingual `text_flags`, `daily_tips` and `source_*` snapshots. `calendar` returns per day only calculation_date, cycle_day, phase, subphase, estimated_ovulation_day, cycle_length_used, is_fertile_window, is_pms_window, is_period_tomorrow, final_probability and cycle_variability (~93 % smaller) and skips the tip/text work. A day without cycle data keeps the same sentinel in both views: `cycle_day` null.",
+     *         required=false,
+     *
+     *         @OA\Schema(type="string", default="full", enum={"full","calendar"})
+     *     ),
+     *
+     *     @OA\Parameter(
      *         name="Accept-Language",
      *         in="header",
      *         description="Language for text responses (en, fa)",
@@ -184,7 +200,7 @@ class CycleCalculationController extends Controller
      *
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="data", type="object",
-     *                 @OA\Property(property="calculations", type="array", @OA\Items(ref="#/components/schemas/CycleCalculation")),
+     *                 @OA\Property(property="calculations", type="array", description="One entry per day of the month. With view=calendar each entry has only the calendar fields listed on the `view` parameter.", @OA\Items(ref="#/components/schemas/CycleCalculation")),
      *                 @OA\Property(property="calculation_status", type="string", example="completed"),
      *                 @OA\Property(property="is_recalculating", type="boolean", example=false),
      *                 @OA\Property(property="month_summary", type="object",
@@ -199,6 +215,10 @@ class CycleCalculationController extends Controller
      *     @OA\Response(
      *         response=401,
      *         description="Unauthenticated"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Invalid month or unknown view"
      *     )
      * )
      */
@@ -215,6 +235,15 @@ class CycleCalculationController extends Controller
             ], 422);
         }
 
+        $view = $request->query('view', 'full');
+        if (! in_array($view, self::MONTH_VIEWS, true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid view. Must be one of: '.implode(', ', self::MONTH_VIEWS).'.',
+            ], 422);
+        }
+        $withContent = $view === 'full';
+
         $startDate = Carbon::createFromDate($year, $month, 1)->startOfMonth();
         $endDate = $startDate->copy()->endOfMonth();
 
@@ -222,31 +251,41 @@ class CycleCalculationController extends Controller
         $status = $profile?->calculation_status ?? CalculationStatus::PENDING->value;
         $isRecalculating = $status === CalculationStatus::PROCESSING->value;
 
-        // Always calculate fresh to ensure correct cycle_day values
         $engine = new HealthDataEngine($user, $locale);
         // Warm the daily-log cache for the whole month in one query so the loop
         // below doesn't fire a per-day SELECT (was 31 queries → now 1).
         $engine->preloadDailyLogs($startDate, $endDate);
-        $result = [];
 
-        $currentDate = $startDate->copy();
-        while ($currentDate <= $endDate) {
-            $result[] = $engine->calculateForDate($currentDate);
-            $currentDate->addDay();
-        }
+        $monthData = $this->engineCache->remember(
+            $engine,
+            sprintf('month:%04d-%02d:%s', $year, $month, $view),
+            $startDate,
+            $endDate,
+            $withContent,
+            function () use ($engine, $startDate, $endDate, $withContent): array {
+                $result = [];
+                $currentDate = $startDate->copy();
+                while ($currentDate <= $endDate) {
+                    $result[] = $engine->calculateForDate($currentDate, $withContent);
+                    $currentDate->addDay();
+                }
 
-        // Calculate month summary
-        $summary = $this->calculateMonthSummary($result);
+                return [
+                    'calculations' => $result,
+                    'month_summary' => $this->calculateMonthSummary($result),
+                ];
+            },
+        );
 
         return response()->json([
             'success' => true,
             'data' => [
-                'calculations' => $result,
+                'calculations' => $monthData['calculations'],
                 'calculation_status' => $status,
                 'is_recalculating' => $isRecalculating,
-                'month_summary' => $summary,
+                'month_summary' => $monthData['month_summary'],
             ],
-        ]);
+        ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     /**
@@ -778,31 +817,43 @@ class CycleCalculationController extends Controller
         $status = $profile?->calculation_status ?? CalculationStatus::PENDING->value;
         $isRecalculating = $status === CalculationStatus::PROCESSING->value;
 
-        // Always calculate fresh to ensure correct cycle_day values
-        // The stored calculations may have stale data from old calculation logic
-        $engine = new HealthDataEngine($user, $locale);
-        $calculationData = $engine->calculateForDate($date);
-
-        // The engine stores bilingual `{en, fa}` blobs in `daily_tips`/`text_flags`;
-        // collapse them to the request locale so clients get render-ready strings
-        // (`daily_tips` becomes a list of `{type, title, icon, text}`) instead of raw
-        // dictionaries.
-        $calculationData = $this->localizeCalculation($calculationData, $locale);
-
-        // Render-ready spec §19 payload (daily card, predictions, three-layer values,
-        // confidence) assembled alongside the raw calc. Kept under a separate key so
-        // existing `calculation` consumers are unaffected.
         // Reference "today" as the Tehran calendar day (the client sends its local date),
         // so a request near midnight doesn't render the user's real today as a future day.
         $today = Carbon::parse(Carbon::now('Asia/Tehran')->toDateString());
-        $cycleView = (new \App\Services\HealthEngine\CycleDayViewBuilder)
-            ->build($user, $date, $today, $locale, $calculationData);
+
+        // Always calculated from the live inputs (the cache key hashes them), never
+        // from the stale cycle_calculations storage.
+        $engine = new HealthDataEngine($user, $locale);
+
+        $day = $this->engineCache->remember(
+            $engine,
+            'day:'.$date->toDateTimeString(),
+            $date,
+            $date,
+            true,
+            function () use ($engine, $user, $date, $today, $locale): array {
+                // The engine stores bilingual `{en, fa}` blobs in `daily_tips`/`text_flags`;
+                // collapse them to the request locale so clients get render-ready strings
+                // (`daily_tips` becomes a list of `{type, title, icon, text}`) instead of raw
+                // dictionaries.
+                $calculationData = $this->localizeCalculation($engine->calculateForDate($date), $locale);
+
+                // Render-ready spec §19 payload (daily card, predictions, three-layer values,
+                // confidence) assembled alongside the raw calc. Kept under a separate key so
+                // existing `calculation` consumers are unaffected. Reuses the engine's
+                // cycle_histories load instead of reading the table a second time.
+                $cycleView = (new CycleDayViewBuilder)
+                    ->build($user, $date, $today, $locale, $calculationData, $engine->cycleHistories());
+
+                return ['calculation' => $calculationData, 'cycle_view' => $cycleView];
+            },
+        );
 
         return response()->json([
             'success' => true,
             'data' => [
-                'calculation' => $calculationData,
-                'cycle_view' => $cycleView,
+                'calculation' => $day['calculation'],
+                'cycle_view' => $day['cycle_view'],
                 'calculation_status' => $status,
                 'is_recalculating' => $isRecalculating,
             ],

@@ -27,11 +27,22 @@ class MessageManager
 {
     private array $engines = [];
 
+    /**
+     * @param  HealthDataEngine|null  $healthEngine  a caller's engine for the same user and locale (the home
+     *                                               page passes its own), so the day's log, the cycle history and
+     *                                               the day's calculation are shared instead of re-queried
+     */
     public function __construct(
         private readonly User $user,
         private readonly string $locale = 'fa',
+        private ?HealthDataEngine $healthEngine = null,
     ) {
         $this->registerEngines();
+    }
+
+    private function healthEngine(): HealthDataEngine
+    {
+        return $this->healthEngine ??= new HealthDataEngine($this->user, $this->locale);
     }
 
     /**
@@ -66,6 +77,7 @@ class MessageManager
     public function getEngine(?MessageMode $mode = null): ?MessageEngineInterface
     {
         $mode = $mode ?? $this->detectMode();
+
         return $this->engines[$mode->value] ?? null;
     }
 
@@ -81,10 +93,8 @@ class MessageManager
         $userGoal = $profile?->user_goal ?? UserGoal::NON_TTC->value;
         $subscriptionType = $profile?->subscription_type ?? SubscriptionType::FREE->value;
 
-        // Get daily health log
-        $dailyLog = DailyHealthLog::where('user_id', $this->user->id)
-            ->whereDate('log_date', $date)
-            ->first();
+        // Get daily health log (memoised by the engine, which reads it again below)
+        $dailyLog = $this->healthEngine()->dailyLogFor($date);
 
         // Get recent logs for pattern detection (last 90 days)
         $recentLogs = DailyHealthLog::where('user_id', $this->user->id)
@@ -117,8 +127,7 @@ class MessageManager
         array $symptoms,
         array $recentLogs
     ): MessageContext {
-        $healthEngine = new HealthDataEngine($this->user, $this->locale);
-        $cycleData = $healthEngine->calculateForDate($date);
+        $cycleData = $this->healthEngine()->calculateForDate($date);
 
         return new MessageContext(
             user: $this->user,
@@ -184,7 +193,7 @@ class MessageManager
         $context = $this->buildContext($date, $forceMode);
         $engine = $this->getEngine($context->mode);
 
-        if (!$engine) {
+        if (! $engine) {
             return MessageResult::empty(
                 $context->mode,
                 $date->toDateString(),
@@ -206,8 +215,8 @@ class MessageManager
         $correlations = $correlationLayer->analyze($context);
 
         // Filter premium-only correlations for free users
-        if (!$context->isPremium()) {
-            $correlations = array_filter($correlations, fn($c) => !($c['is_premium_only'] ?? false));
+        if (! $context->isPremium()) {
+            $correlations = array_filter($correlations, fn ($c) => ! ($c['is_premium_only'] ?? false));
             $correlations = array_values($correlations);
         }
 
@@ -279,36 +288,66 @@ class MessageManager
      */
     private function extractSymptoms(?object $dailyLog): array
     {
-        if (!$dailyLog) {
+        if (! $dailyLog) {
             return [];
         }
 
         $symptoms = [];
 
         // Pain symptoms
-        if ($dailyLog->has_cramps) $symptoms[] = 'cramps';
-        if ($dailyLog->has_headache) $symptoms[] = 'headache';
-        if ($dailyLog->has_backache) $symptoms[] = 'backache';
-        if ($dailyLog->has_breast_tenderness) $symptoms[] = 'breast_tenderness';
+        if ($dailyLog->has_cramps) {
+            $symptoms[] = 'cramps';
+        }
+        if ($dailyLog->has_headache) {
+            $symptoms[] = 'headache';
+        }
+        if ($dailyLog->has_backache) {
+            $symptoms[] = 'backache';
+        }
+        if ($dailyLog->has_breast_tenderness) {
+            $symptoms[] = 'breast_tenderness';
+        }
 
         // Mood symptoms
-        if ($dailyLog->mood === 'sad' || $dailyLog->mood === 'depressed') $symptoms[] = 'mood_sad';
-        if ($dailyLog->mood === 'anxious' || $dailyLog->mood === 'stressed') $symptoms[] = 'mood_anxious';
-        if ($dailyLog->mood === 'angry' || $dailyLog->mood === 'irritable') $symptoms[] = 'mood_angry';
+        if ($dailyLog->mood === 'sad' || $dailyLog->mood === 'depressed') {
+            $symptoms[] = 'mood_sad';
+        }
+        if ($dailyLog->mood === 'anxious' || $dailyLog->mood === 'stressed') {
+            $symptoms[] = 'mood_anxious';
+        }
+        if ($dailyLog->mood === 'angry' || $dailyLog->mood === 'irritable') {
+            $symptoms[] = 'mood_angry';
+        }
 
         // Flow
-        if ($dailyLog->flow_intensity === 'heavy') $symptoms[] = 'heavy_flow';
-        if ($dailyLog->flow_intensity === 'light') $symptoms[] = 'light_flow';
+        if ($dailyLog->flow_intensity === 'heavy') {
+            $symptoms[] = 'heavy_flow';
+        }
+        if ($dailyLog->flow_intensity === 'light') {
+            $symptoms[] = 'light_flow';
+        }
 
         // Energy & Sleep
-        if ($dailyLog->energy_level === 'low' || $dailyLog->energy_level === 'very_low') $symptoms[] = 'low_energy';
-        if ($dailyLog->sleep_quality === 'poor' || $dailyLog->sleep_quality === 'very_poor') $symptoms[] = 'poor_sleep';
+        if ($dailyLog->energy_level === 'low' || $dailyLog->energy_level === 'very_low') {
+            $symptoms[] = 'low_energy';
+        }
+        if ($dailyLog->sleep_quality === 'poor' || $dailyLog->sleep_quality === 'very_poor') {
+            $symptoms[] = 'poor_sleep';
+        }
 
         // Other
-        if ($dailyLog->has_bloating) $symptoms[] = 'bloating';
-        if ($dailyLog->has_nausea) $symptoms[] = 'nausea';
-        if ($dailyLog->has_fatigue) $symptoms[] = 'fatigue';
-        if ($dailyLog->has_acne) $symptoms[] = 'acne';
+        if ($dailyLog->has_bloating) {
+            $symptoms[] = 'bloating';
+        }
+        if ($dailyLog->has_nausea) {
+            $symptoms[] = 'nausea';
+        }
+        if ($dailyLog->has_fatigue) {
+            $symptoms[] = 'fatigue';
+        }
+        if ($dailyLog->has_acne) {
+            $symptoms[] = 'acne';
+        }
 
         return $symptoms;
     }
@@ -319,15 +358,15 @@ class MessageManager
     public function getEnums(): array
     {
         $enums = [
-            'modes' => collect(MessageMode::cases())->map(fn($m) => [
+            'modes' => collect(MessageMode::cases())->map(fn ($m) => [
                 'value' => $m->value,
                 'label' => $m->label($this->locale),
             ])->values()->toArray(),
-            'user_goals' => collect(UserGoal::cases())->map(fn($g) => [
+            'user_goals' => collect(UserGoal::cases())->map(fn ($g) => [
                 'value' => $g->value,
                 'label' => $g->label($this->locale),
             ])->values()->toArray(),
-            'subscription_types' => collect(SubscriptionType::cases())->map(fn($s) => [
+            'subscription_types' => collect(SubscriptionType::cases())->map(fn ($s) => [
                 'value' => $s->value,
                 'label' => $s->label($this->locale),
             ])->values()->toArray(),

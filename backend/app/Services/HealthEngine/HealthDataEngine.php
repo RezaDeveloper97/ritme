@@ -69,6 +69,26 @@ class HealthDataEngine
      */
     private const MIN_OVULATION_DAY = 7;
 
+    /**
+     * The per-day keys the calendar (`/cycle/month?view=calendar`, the week strip)
+     * renders. A calendar-mode calculation returns only these and skips the text
+     * flags, the daily tips and the source snapshots — ~93 % of the month payload
+     * and the recommendation matching that produces the tips.
+     */
+    public const CALENDAR_FIELDS = [
+        'calculation_date',
+        'cycle_day',
+        'phase',
+        'subphase',
+        'estimated_ovulation_day',
+        'cycle_length_used',
+        'is_fertile_window',
+        'is_pms_window',
+        'is_period_tomorrow',
+        'final_probability',
+        'cycle_variability',
+    ];
+
     private User $user;
 
     private ?UserProfile $profile;
@@ -97,6 +117,15 @@ class HealthDataEngine
      */
     private ?Collection $cycleHistoriesCache = null;
 
+    /** The history collection {@see $periodStarts} was built from (held so identity stays valid). */
+    private ?Collection $periodStartsFor = null;
+
+    /** @var array<int, array{0: Carbon, 1: mixed}> {@see periodStarts()} */
+    private array $periodStarts = [];
+
+    /** The three-layer metrics for {@see $cycleHistoriesCache} + the profile, computed once. */
+    private ?CycleMetrics $metricsCache = null;
+
     /**
      * Per-request cache of daily logs keyed by Y-m-d, so repeated
      * calculateForDate() calls for the same date don't re-query.
@@ -116,12 +145,18 @@ class HealthDataEngine
     }
 
     /**
-     * Calculate data for a specific date
+     * Calculate data for a specific date.
+     *
+     * With `$withContent = false` (calendar mode) the result carries only
+     * {@see self::CALENDAR_FIELDS}: the text flags, daily tips and source
+     * snapshots are neither generated nor returned.
      */
-    public function calculateForDate(Carbon $date): array
+    public function calculateForDate(Carbon $date, bool $withContent = true): array
     {
         if (! $this->profile || ! $this->profile->last_period_start) {
-            return $this->getEmptyCalculation($date);
+            $empty = $this->getEmptyCalculation($date);
+
+            return $withContent ? $empty : $this->calendarFields($empty);
         }
 
         $dailyLog = $this->getDailyLog($date);
@@ -131,7 +166,9 @@ class HealthDataEngine
         // all come from the same three-layer metrics (§6–8, §12): the median of the
         // last three valid cycles when available, else the profile baseline, else a
         // default. This is what replaced the old "average of 1–2 cycles" behaviour.
-        $metrics = $this->metricsCalculator->calculate($cycleHistories, $this->profile);
+        // Date-independent (history + profile only), so computed once per engine:
+        // it was ~0.7 ms per day, half of a month view's CPU.
+        $metrics = $this->metricsCache ??= $this->metricsCalculator->calculate($cycleHistories, $this->profile);
         $this->effectivePeriodDuration = $metrics->effectivePeriodDuration;
 
         $cycleLength = $metrics->effectiveCycleLength;
@@ -173,19 +210,7 @@ class HealthDataEngine
             $symptomScore
         );
 
-        // Generate text flags and daily tips
-        $textFlags = $this->generateTextFlags(
-            $phase,
-            $subphase,
-            $isFertileWindow,
-            $isPmsWindow,
-            $isPeriodTomorrow,
-            $finalProbability,
-            $variability
-        );
-        $dailyTips = $this->generateDailyTips($phase, $subphase, $dailyLog);
-
-        return [
+        $core = [
             'calculation_date' => $date->toDateString(),
             'cycle_day' => $cycleDay,
             'phase' => $phase->value,
@@ -203,11 +228,39 @@ class HealthDataEngine
             'final_probability' => round($finalProbability * 100, 2),
             'cycle_variability' => $variability->value,
             'uncertainty_range' => $variability->uncertaintyRange(),
+        ];
+
+        if (! $withContent) {
+            return $this->calendarFields($core);
+        }
+
+        // Generate text flags and daily tips
+        $textFlags = $this->generateTextFlags(
+            $phase,
+            $subphase,
+            $isFertileWindow,
+            $isPmsWindow,
+            $isPeriodTomorrow,
+            $finalProbability,
+            $variability
+        );
+        $dailyTips = $this->generateDailyTips($phase, $subphase, $dailyLog);
+
+        return $core + [
             'text_flags' => $textFlags,
             'daily_tips' => $dailyTips,
             'source_profile_data' => $this->getProfileSnapshot(),
             'source_daily_log_data' => $dailyLog?->toArray(),
         ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $calculation
+     * @return array<string, mixed>
+     */
+    private function calendarFields(array $calculation): array
+    {
+        return array_intersect_key($calculation, array_flip(self::CALENDAR_FIELDS));
     }
 
     /**
@@ -261,17 +314,15 @@ class HealthDataEngine
 
         // If we have cycle histories, find the most recent period start before or on the date
         if ($cycleHistories->isNotEmpty()) {
-            $relevantPeriod = $cycleHistories
-                ->filter(function ($history) use ($date) {
-                    $periodStart = Carbon::parse($history->period_start_date);
+            $periodStart = null;
+            foreach ($this->periodStarts($cycleHistories) as [$start]) {
+                if ($start->lte($date)) {
+                    $periodStart = $start->copy();
+                    break;
+                }
+            }
 
-                    return $periodStart->lte($date);
-                })
-                ->sortByDesc('period_start_date')
-                ->first();
-
-            if ($relevantPeriod) {
-                $periodStart = Carbon::parse($relevantPeriod->period_start_date);
+            if ($periodStart) {
 
                 // Check if this period is still the "current" cycle
                 // Using signed difference to handle edge cases
@@ -379,11 +430,35 @@ class HealthDataEngine
     {
         $cycleStart = $this->findRelevantCycleStart($date, $cycleLength, $cycleHistories);
 
-        $record = $cycleHistories->first(
-            fn ($history) => Carbon::parse($history->period_start_date)->isSameDay($cycleStart)
-        );
+        foreach ($this->periodStarts($cycleHistories) as [$start, $record]) {
+            if ($start->isSameDay($cycleStart)) {
+                return $record->bleeding_length;
+            }
+        }
 
-        return $record?->bleeding_length;
+        return null;
+    }
+
+    /**
+     * Each history record with its parsed start, newest start first — parsed once
+     * per history collection rather than twice per history per calculated day.
+     * Remembers the last collection it was given (normally the engine's own).
+     *
+     * @return array<int, array{0: Carbon, 1: mixed}>
+     */
+    private function periodStarts(Collection $cycleHistories): array
+    {
+        if ($this->periodStartsFor !== $cycleHistories) {
+            $starts = $cycleHistories
+                ->map(fn ($history) => [Carbon::parse($history->period_start_date), $history])
+                ->all();
+            usort($starts, fn (array $a, array $b): int => $b[0] <=> $a[0]);
+
+            $this->periodStartsFor = $cycleHistories;
+            $this->periodStarts = $starts;
+        }
+
+        return $this->periodStarts;
     }
 
     /**
@@ -890,28 +965,63 @@ class HealthDataEngine
     }
 
     /**
-     * Get daily log for a specific date
-     */
-    /**
      * Warm the daily-log cache for an inclusive date range in a single query.
      * Callers that calculate many consecutive dates (e.g. the month view) should
      * call this once up front so getDailyLog() never falls through to a per-date
      * query — turning 31 SELECTs into 1. Dates in the range with no log are
      * cached as null so they don't re-query either.
+     *
+     * A caller that already holds the user's logs for a wider window (the home
+     * page) passes them as `$logs` so no query runs at all.
+     *
+     * @param  Collection<int, DailyHealthLog>|null  $logs
      */
-    public function preloadDailyLogs(Carbon $start, Carbon $end): void
+    public function preloadDailyLogs(Carbon $start, Carbon $end, ?Collection $logs = null): void
     {
-        $logs = $this->user->dailyHealthLogs()
-            ->whereBetween('log_date', [$start->copy()->startOfDay(), $end->copy()->endOfDay()])
-            ->get()
-            ->keyBy(fn (DailyHealthLog $log) => Carbon::parse($log->log_date)->toDateString());
+        // Bound by the calendar day as strings: `log_date` is a DATE on MySQL but
+        // a 'Y-m-d' TEXT on SQLite, where a '… 00:00:00' lower bound sorts after
+        // the bare first day and silently dropped it from the range.
+        $logs ??= $this->user->dailyHealthLogs()
+            ->whereBetween('log_date', [$start->toDateString(), $end->toDateString().' 23:59:59'])
+            ->get();
 
-        $cursor = $start->copy();
+        $byDate = $logs->keyBy(fn (DailyHealthLog $log) => Carbon::parse($log->log_date)->toDateString());
+
+        $cursor = $start->copy()->startOfDay();
         while ($cursor <= $end) {
             $key = $cursor->toDateString();
-            $this->dailyLogCache[$key] = $logs->get($key);
+            $this->dailyLogCache[$key] = $byDate->get($key);
             $cursor->addDay();
         }
+    }
+
+    /**
+     * The daily logs the engine holds (preloaded or fetched) for an inclusive
+     * range, keyed by Y-m-d, null for a day without a log. Loads the range first
+     * when any day of it is not cached yet.
+     *
+     * @return array<string, DailyHealthLog|null>
+     */
+    public function dailyLogsBetween(Carbon $start, Carbon $end): array
+    {
+        $days = [];
+        $cursor = $start->copy()->startOfDay();
+        while ($cursor <= $end) {
+            $days[] = $cursor->toDateString();
+            $cursor->addDay();
+        }
+
+        if (array_diff($days, array_keys($this->dailyLogCache)) !== []) {
+            $this->preloadDailyLogs($start, $end);
+        }
+
+        return array_intersect_key($this->dailyLogCache, array_flip($days));
+    }
+
+    /** The user's log for one day (memoised), or null when none was logged. */
+    public function dailyLogFor(Carbon $date): ?DailyHealthLog
+    {
+        return $this->getDailyLog($date);
     }
 
     private function getDailyLog(Carbon $date): ?DailyHealthLog
@@ -925,6 +1035,33 @@ class HealthDataEngine
         }
 
         return $this->dailyLogCache[$key];
+    }
+
+    /**
+     * The user's full period history, newest first, loaded once per engine.
+     * Shared with {@see CycleDayViewBuilder} and the home page so one request
+     * reads cycle_histories once.
+     *
+     * @return Collection<int, CycleHistory>
+     */
+    public function cycleHistories(): Collection
+    {
+        return $this->getCycleHistories();
+    }
+
+    public function user(): User
+    {
+        return $this->user;
+    }
+
+    public function locale(): string
+    {
+        return $this->locale;
+    }
+
+    public function recommendations(): RecommendationRepository
+    {
+        return $this->recommendations;
     }
 
     /**

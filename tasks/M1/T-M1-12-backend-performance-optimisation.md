@@ -3,7 +3,7 @@ id: T-M1-12
 title: Backend performance optimisation (queries, indexes, caching)
 milestone: M1
 type: backend
-status: todo
+status: done
 depends_on: [T-M1-10]
 parallel_group: M1-E
 touches: [backend/app/Services, backend/app/Repositories, backend/app/Http/Resources, backend/app/Http/Controllers/Api/V1, backend/database/migrations, backend/tests, backend/Dockerfile, backend/docker/entrypoint.sh]
