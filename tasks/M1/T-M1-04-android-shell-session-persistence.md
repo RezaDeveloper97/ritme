@@ -3,7 +3,7 @@ id: T-M1-04
 title: Android shell — session survives kill, update and low-memory
 milestone: M1
 type: android
-status: todo
+status: done
 depends_on: [T-M1-01]
 parallel_group: M1-B
 touches: [android-shell/app/src/main]
@@ -38,3 +38,11 @@ The web app's own storage logic (T-M1-03).
 - Debug build green. Written manual test: sign in → force-stop → reopen; sign in → install an updated APK over it
   → reopen; both stay signed in. Record the result in the task report.
 - If T-M1-01 shows the shell is not involved, mark done with that note (no code change).
+
+## Result
+T-M1-01 cleared the shell, so this closes under the last acceptance bullet. Added `CookieManager.flush()` in
+`MainActivity.onStop()` (the existing `onPause` flush was kept). `assembleDebug` is green with JBR 21 and JDK 17.
+`allowBackup=false` and there are no extraction rules. The WebView data directory stays the same across updates, and
+every release is signed with the same key (`ritme-release.jks`, SHA-256 `46d68206…`). Note: `android-shell/` is
+gitignored, so the code change exists only in the working tree. The manual force-stop and update tests still need a
+human with a device; the script is in PROGRESS.md.

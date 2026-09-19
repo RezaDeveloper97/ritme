@@ -3,10 +3,10 @@ id: T-M1-03
 title: Frontend — durable session storage and safe 401 handling
 milestone: M1
 type: frontend
-status: todo
+status: in_progress
 depends_on: [T-M1-01]
 parallel_group: M1-B
-touches: [frontend/src/shared/session, frontend/src/shared/api/apiClient.ts, frontend/src/features/auth]
+touches: [frontend/src/shared/session, frontend/src/shared/api/apiClient.ts, frontend/src/features/auth, frontend/src/app/[locale], frontend/src/screens/auth-*, frontend/src/shared/pwa/InstallPrompt.tsx]
 skills: [new-fsd-slice]
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run test
 ---

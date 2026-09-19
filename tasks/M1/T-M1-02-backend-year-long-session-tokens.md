@@ -3,10 +3,10 @@ id: T-M1-02
 title: Backend — guaranteed year-long session tokens
 milestone: M1
 type: backend
-status: todo
+status: in_progress
 depends_on: [T-M1-01]
 parallel_group: M1-B
-touches: [backend/app/Providers/AppServiceProvider.php, backend/app/Http/Controllers/Api/V1/OtpAuthController.php, backend/config/passport.php, backend/docker/entrypoint.sh, backend/routes/api.php, backend/tests/Feature/Auth]
+touches: [backend/app/Providers/AppServiceProvider.php, backend/app/Http/Controllers/Api/V1/OtpAuthController.php, backend/config/passport.php, backend/docker/entrypoint.sh, backend/routes/api.php, backend/tests/Feature/Auth, deploy.sh, backend/.dockerignore]
 skills: [new-endpoint]
 verify: cd backend && vendor/bin/pint --test && php artisan test --filter=Auth
 ---
