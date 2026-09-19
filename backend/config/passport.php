@@ -58,4 +58,21 @@ return [
 
     'connection' => env('PASSPORT_CONNECTION'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Session Token Lifetime
+    |--------------------------------------------------------------------------
+    |
+    | Every token issued at OTP verification lives this many days. A fixed
+    | day count (not "one year") keeps the lifetime the same across leap
+    | years. A client whose token has fewer than `refresh_window_days` left
+    | may trade it for a fresh one at POST /api/v1/auth/refresh-session
+    | without entering another OTP.
+    |
+    */
+
+    'token_lifetime_days' => (int) env('PASSPORT_TOKEN_LIFETIME_DAYS', 365),
+
+    'refresh_window_days' => (int) env('PASSPORT_REFRESH_WINDOW_DAYS', 30),
+
 ];

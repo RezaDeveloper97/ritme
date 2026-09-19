@@ -12,7 +12,10 @@
 # required (but is a good idea).
 #
 # Server-only state that rsync must never touch: .env (prod secrets), ssl/,
-# certbot-www/ — all excluded below.
+# certbot-www/ — all excluded below. Passport keys (backend/storage/*.key) are
+# excluded too: prod reads its pair from the `backend-storage` named volume, so
+# a laptop's dev keys must never reach the server. NEVER add
+# --delete-excluded to the rsync below.
 #
 # Useful switches:
 #   SERVICES="frontend" ./deploy.sh   rebuild/restart only some services
@@ -117,6 +120,7 @@ if [[ "${SKIP_SYNC:-0}" != "1" ]]; then
     --exclude 'certbot-www/' \
     --exclude 'stage.htpasswd' \
     --exclude 'stage-gate.conf' \
+    --exclude 'backend/storage/*.key' \
     --exclude 'backend/storage/logs/*' \
     --exclude 'backend/storage/framework/cache/*' \
     --exclude 'backend/database/*.sqlite' \

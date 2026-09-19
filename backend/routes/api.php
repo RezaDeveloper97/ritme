@@ -63,6 +63,9 @@ Route::prefix('v1')->group(function () {
         Route::prefix('auth')->group(function () {
             Route::post('/logout', [OtpAuthController::class, 'logout']);
             Route::get('/user', [OtpAuthController::class, 'user']);
+            // Trades a token with < 30 days left for a fresh one-year token.
+            Route::post('/refresh-session', [OtpAuthController::class, 'refreshSession'])
+                ->middleware('throttle:10,1');
         });
 
         // Home-page banners / promotions (grouped by slot)

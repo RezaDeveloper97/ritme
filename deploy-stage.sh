@@ -72,6 +72,7 @@ if [[ "${SKIP_SYNC:-0}" != "1" ]]; then
     --exclude '*.tar.gz' \
     --exclude '*.fig' \
     --exclude '*.log' \
+    --exclude 'backend/storage/*.key' \
     --exclude '.playwright-mcp/' \
     --exclude '.env' \
     --exclude 'stage-gate.conf' \

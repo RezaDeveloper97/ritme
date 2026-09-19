@@ -29,17 +29,37 @@ if [ "$RUN_MIGRATIONS" = "true" ]; then
     sleep 3
   done
 
-  # Passport signing keys live on the storage volume, so they survive rebuilds
-  # and both containers see the same pair.
-  if [ ! -f storage/oauth-private.key ]; then
-    php artisan passport:keys --force
+  # Passport signing keys live ONLY on the storage volume (they are excluded
+  # from the rsync and the image build), so they survive rebuilds and both
+  # containers see the same pair. Never regenerate an existing pair: new keys
+  # invalidate every issued token and sign out every user.
+  if [ -f storage/oauth-private.key ] && [ -f storage/oauth-public.key ]; then
+    echo "entrypoint: passport keys present, leaving them untouched"
+  elif [ -f storage/oauth-private.key ] || [ -f storage/oauth-public.key ]; then
+    echo "entrypoint: FATAL: only one passport key exists in storage/ — refusing to generate a new pair over it" >&2
+    exit 1
+  else
+    # Keys are missing. If tokens were already issued, generating a pair now
+    # will sign out every user: say so loudly (a fresh install has none).
+    tokens=$(php artisan tinker --execute='echo "count=".\Laravel\Passport\Passport::token()->count();' 2>/dev/null \
+      | sed -n 's/^count=\([0-9][0-9]*\)$/\1/p' | tail -n 1)
+    if [ -n "$tokens" ] && [ "$tokens" != "0" ]; then
+      echo "entrypoint: WARNING: passport keys are MISSING but ${tokens} access tokens exist." >&2
+      echo "entrypoint: WARNING: generating a new pair — every existing session is now invalid." >&2
+    fi
+    php artisan passport:keys
     chown www-data:www-data storage/oauth-private.key storage/oauth-public.key
   fi
 
-  # createToken() needs a personal-access client row; create it once.
-  clients=$(php artisan tinker --execute='echo \Laravel\Passport\Client::count();' 2>/dev/null | tr -dc '0-9')
-  if [ -z "$clients" ] || [ "$clients" = "0" ]; then
+  # createToken() needs a personal-access client row; create it once. Only an
+  # explicit count of 0 creates one: a failed or silent tinker (DB hiccup,
+  # PHP warning) must never be mistaken for "no client" and add a second one.
+  clients=$(php artisan tinker --execute='echo "count=".\Laravel\Passport\Client::count();' 2>/dev/null \
+    | sed -n 's/^count=\([0-9][0-9]*\)$/\1/p' | tail -n 1) || clients=""
+  if [ "$clients" = "0" ]; then
     php artisan passport:client --personal --name="Ritme Personal Access" --no-interaction
+  elif [ -z "$clients" ]; then
+    echo "entrypoint: WARNING: could not count passport clients; not creating one" >&2
   fi
 
   php artisan storage:link || true

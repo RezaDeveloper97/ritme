@@ -387,6 +387,68 @@ class OtpAuthController extends Controller
     }
 
     /**
+     * @OA\Post(
+     *     path="/auth/refresh-session",
+     *     summary="Extend a session that is close to expiry",
+     *     description="When the current token has fewer than `refresh_window_days` (30) days left, issues a fresh full-lifetime token and revokes the current one. Otherwise returns `refreshed: false` and the current token stays valid. No OTP is needed.",
+     *     tags={"Auth"},
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Session checked (and refreshed when due)",
+     *
+     *         @OA\JsonContent(
+     *
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="refreshed", type="boolean", example=true),
+     *                 @OA\Property(property="access_token", type="string", nullable=true, description="Only present when refreshed"),
+     *                 @OA\Property(property="token_type", type="string", nullable=true, example="Bearer"),
+     *                 @OA\Property(property="expires_at", type="string", format="date-time")
+     *             )
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated (body carries `error_code`: token_expired | token_revoked | unauthenticated)"
+     *     )
+     * )
+     */
+    public function refreshSession(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $current = $user->token();
+        $refreshBefore = now()->addDays((int) config('passport.refresh_window_days', 30));
+
+        if ($current->expires_at && $current->expires_at->greaterThan($refreshBefore)) {
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'refreshed' => false,
+                    'expires_at' => $current->expires_at->toIso8601String(),
+                ],
+            ]);
+        }
+
+        // Issue first, revoke second: if issuing fails the client keeps a
+        // working session instead of being left with nothing.
+        $issued = $user->createToken('auth_token');
+        $current->revoke();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'refreshed' => true,
+                'access_token' => $issued->accessToken,
+                'token_type' => 'Bearer',
+                'expires_at' => $issued->token->expires_at->toIso8601String(),
+            ],
+        ]);
+    }
+
+    /**
      * @OA\Get(
      *     path="/auth/user",
      *     summary="Get authenticated user",

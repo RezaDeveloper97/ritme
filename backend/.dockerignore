@@ -7,6 +7,11 @@ node_modules/
 .env.backup
 .env.production
 
+# Passport signing keys. They live only on the `backend-storage` named volume,
+# which is mounted over storage/ at runtime. Baking them into the image once
+# shipped the developer laptop's pair to prod; never again.
+storage/*.key
+
 # VCS / IDE / tooling
 .git
 .idea/

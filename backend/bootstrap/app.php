@@ -3,11 +3,14 @@
 use App\Http\Middleware\EnsureAdminActive;
 use App\Http\Middleware\EnsureSuperAdmin;
 use App\Http\Middleware\SetLocale;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Lcobucci\JWT\Validation\RequiredConstraintsViolated;
+use League\OAuth2\Server\Exception\OAuthServerException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -63,5 +66,43 @@ return Application::configure(basePath: dirname(__DIR__))
         );
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Passport swallows the reason a bearer token was rejected: its guard
+        // reports the OAuthServerException, blanks the Authorization header and
+        // lets the request fall through to a generic AuthenticationException.
+        // Catch the reason while it is being reported and park it on the
+        // request, so the 401 below can say *why*. Returning nothing keeps the
+        // default reporting.
+        $exceptions->report(function (OAuthServerException $e): void {
+            if (! app()->bound('request')) {
+                return;
+            }
+
+            $violations = $e->getPrevious() instanceof RequiredConstraintsViolated
+                ? $e->getPrevious()->violations()
+                : [];
+
+            $code = match (true) {
+                $e->getHint() === 'Access token has been revoked' => 'token_revoked',
+                // Expired is only trusted when it is the sole violation, i.e.
+                // the signature checked out and the token really was ours.
+                count($violations) === 1 && $violations[0]->getMessage() === 'The token is expired' => 'token_expired',
+                default => 'unauthenticated',
+            };
+
+            request()->attributes->set('auth_error_code', $code);
+        });
+
+        // API 401s are always JSON with a stable `error_code` the client can
+        // branch on: token_expired | token_revoked | unauthenticated. Only a
+        // real sign-out reason should make the app drop its stored session.
+        $exceptions->render(function (AuthenticationException $e, Request $request) {
+            if (! $request->is('api/*') && ! $request->expectsJson()) {
+                return null;
+            }
+
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error_code' => $request->attributes->get('auth_error_code', 'unauthenticated'),
+            ], 401);
+        });
     })->create();

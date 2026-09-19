@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Services\HealthEngine\RecommendationRepository;
 use App\Services\Language\LanguageRegistry;
 use App\Services\MessageSystem\Support\MessageContentRepository;
+use DateInterval;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Passport\Passport;
 
@@ -31,9 +32,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Set token expiration to 1 year
-        Passport::tokensExpireIn(now()->addYear());
-        Passport::refreshTokensExpireIn(now()->addYear());
-        Passport::personalAccessTokensExpireIn(now()->addYear());
+        // Sessions last a fixed number of days (365 by default). An interval,
+        // not a boot-time date, so a long-lived worker can't drift the value.
+        $lifetime = new DateInterval('P'.config('passport.token_lifetime_days', 365).'D');
+
+        Passport::tokensExpireIn($lifetime);
+        Passport::refreshTokensExpireIn($lifetime);
+        Passport::personalAccessTokensExpireIn($lifetime);
     }
 }
