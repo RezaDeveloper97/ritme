@@ -614,11 +614,13 @@ How it works, and the rules that keep it working:
 - **`color-scheme` is declared in both blocks.** It is the only way to darken
   what CSS variables cannot reach: scrollbars, native form controls, the caret,
   the autofill highlight.
-- **`<meta name="theme-color">` is rewritten at runtime.** It cannot hold a CSS
-  variable, so the layout ships one per `prefers-color-scheme` for the first
-  paint and the store overwrites both once a preference disagrees with the OS.
-  Those two hex values, plus `manifest.ts`, are the *only* sanctioned colour
-  literals in `src/`.
+- **`<meta name="theme-color">` is created at runtime, never by Next.** It
+  cannot hold a CSS variable, so `chromeInitScript` (right after
+  `themeInitScript` in the layout) creates a single meta from the live `--page`,
+  and the theme store updates it on toggle. Don't set `viewport.themeColor`:
+  React 19 hydration would add a second, stale meta (audit I-6). The same script
+  prepends `apple-mobile-web-app-status-bar-style: black-translucent` for dark
+  mode only. `manifest.ts` is the *only* sanctioned colour literal in `src/`.
 - **Every token needs both values.** A token in `:root` with no
   `[data-theme="dark"]` value must be either derived from tokens that do flip,
   or listed in `THEME_STABLE` in `scripts/check-dark-mode.mjs` *with the reason*

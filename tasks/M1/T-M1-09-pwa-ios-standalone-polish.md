@@ -3,7 +3,7 @@ id: T-M1-09
 title: PWA — iOS standalone and safe-area polish
 milestone: M1
 type: frontend
-status: todo
+status: done
 depends_on: [T-M1-06]
 parallel_group: M1-D
 touches: [frontend/src/app/[locale]/layout.tsx, frontend/src/app/globals.css, frontend/public/splash]

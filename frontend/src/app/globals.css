@@ -309,6 +309,11 @@ body {
 
 /* ── Screen / scroll shell ── */
 .view   { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; }
+/* iOS home indicator (standalone + viewport-fit=cover): every screen's last
+   child — tab bar, onboarding CTA, footer — stops above it. Padding, not a
+   shell inset, so the strip under the indicator keeps the screen's own
+   background. 0 everywhere without an inset (desktop, Android). */
+.view   { padding-bottom: env(safe-area-inset-bottom, 0px); }
 .scroll { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
 .scroll::-webkit-scrollbar { width: 0; height: 0; }
 
@@ -411,6 +416,9 @@ body {
   justify-content: space-between;
   gap: 4px;
   margin: 0 12px 12px;
+  /* .view already lifts it by the home-indicator inset; only top up to the
+     12px float gap, so the pill doesn't sit 46px off the bottom on iPhone. */
+  margin-bottom: max(0px, calc(12px - env(safe-area-inset-bottom, 0px)));
   padding: 7px 14px;
   background: var(--surface);
   border: 1px solid var(--line);
@@ -1414,7 +1422,8 @@ body {
 .cal-start { border-radius: 14px; margin-top: 14px; gap: 8px; }
 .cal-start.is-secondary { background: var(--pink-bg); color: var(--brand); font-weight: 800; }
 .cal-toast {
-  position: fixed; inset-inline-start: 16px; inset-inline-end: 16px; bottom: 88px; z-index: 50;
+  position: fixed; inset-inline-start: 16px; inset-inline-end: 16px; z-index: 50;
+  bottom: calc(88px + env(safe-area-inset-bottom, 0px));
   background: var(--danger); color: var(--on-accent);
   border-radius: 14px; padding: 12px 16px;
   font-size: 13px; font-weight: 700; line-height: 1.6; text-align: start;
@@ -1877,6 +1886,7 @@ body {
   position: fixed; inset: 0; z-index: 60;
   display: flex; align-items: flex-end; justify-content: center;
   padding: 16px; background: var(--scrim);
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
 }
 .del-card  { width: 100%; max-width: 420px; padding: 22px; text-align: start; }
 .del-title { font-size: 17px; font-weight: 800; color: var(--ink); margin-top: 14px; }
@@ -2106,7 +2116,7 @@ body {
 .splash-logo    { width: 84px; height: 84px; }
 .splash-name    { font-weight: 900; font-size: 34px; letter-spacing: 1px; margin-top: 6px; }
 .splash-tagline { font-size: 13px; opacity: .92; font-weight: 500; }
-.splash-bottom  { position: absolute; bottom: 30px; inset-inline: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.splash-bottom  { position: absolute; bottom: calc(30px + env(safe-area-inset-bottom, 0px)); inset-inline: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; }
 .splash-spinner { animation: spin 1s linear infinite; display: inline-flex; opacity: .95; }
 .splash-copy    { font-size: 10px; opacity: .8; }
 @media (prefers-reduced-motion: reduce) { .splash-spinner { animation: none; } }
@@ -2724,7 +2734,8 @@ body {
   position: fixed;
   inset-inline-start: 16px;
   inset-inline-end: 16px;
-  bottom: 88px;
+  /* Above the tab bar, which itself rides the home-indicator inset. */
+  bottom: calc(88px + env(safe-area-inset-bottom, 0px));
   /* The app is a 420px column on desktop — the banner must not span the whole
      viewport. Both insets + auto inline margins centre it over the shell. */
   max-width: calc(420px - 32px);
