@@ -3,7 +3,7 @@ id: T-M1-07
 title: PWA — manifest, icons and installability fixes
 milestone: M1
 type: frontend
-status: todo
+status: done
 depends_on: [T-M1-06]
 parallel_group: M1-D
 touches: [frontend/src/app/manifest.ts, frontend/public/icons, frontend/src/app/icon.png, frontend/src/app/apple-icon.png, frontend/src/app/favicon.ico, frontend/public/screenshots, frontend/public/logo.png, frontend/src/shared/pwa/InstallPrompt.tsx]

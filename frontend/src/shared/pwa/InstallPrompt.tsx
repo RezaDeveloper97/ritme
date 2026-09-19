@@ -47,6 +47,24 @@ interface BeforeInstallPromptEvent extends Event {
 
 const DISMISS_KEY = 'ritme-install-dismissed';
 
+// Storage can throw (Safari private mode, blocked site data). A prompt that
+// can't remember its dismissal is still better than one that crashes the tree.
+function wasDismissed(): boolean {
+  try {
+    return window.localStorage.getItem(DISMISS_KEY) !== null;
+  } catch {
+    return false;
+  }
+}
+
+function rememberDismissal(): void {
+  try {
+    window.localStorage.setItem(DISMISS_KEY, '1');
+  } catch {
+    // Not persisted — the prompt may show again next visit.
+  }
+}
+
 // `display-mode` matches the mode the window is *actually* in, not "is
 // installed" — so an installed app launched from a `display: fullscreen`
 // manifest does not match `standalone`. All three installed modes count.
@@ -100,7 +118,7 @@ export function InstallPrompt() {
   const [showInAppHint, setShowInAppHint] = useState(false);
 
   useEffect(() => {
-    if (isNativeShell() || isStandalone() || window.localStorage.getItem(DISMISS_KEY)) return;
+    if (isNativeShell() || isStandalone() || wasDismissed()) return;
 
     if (isInAppBrowser()) {
       setShowInAppHint(true);
@@ -126,7 +144,7 @@ export function InstallPrompt() {
   }, []);
 
   const dismiss = () => {
-    window.localStorage.setItem(DISMISS_KEY, '1');
+    rememberDismissal();
     setInstallEvent(null);
     setShowIosGuide(false);
     setShowInAppHint(false);
@@ -137,7 +155,7 @@ export function InstallPrompt() {
     await installEvent.prompt();
     const { outcome } = await installEvent.userChoice;
     if (outcome === 'dismissed') {
-      window.localStorage.setItem(DISMISS_KEY, '1');
+      rememberDismissal();
     }
     setInstallEvent(null);
   };
