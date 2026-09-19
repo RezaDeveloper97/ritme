@@ -3,7 +3,7 @@ id: T-M1-14
 title: M1 wrap-up — full verification, staging deploy, release notes
 milestone: M1
 type: release
-status: todo
+status: done
 depends_on: [T-M1-05, T-M1-11, T-M1-12, T-M1-13]
 parallel_group: M1-G
 touches: [frontend/package.json, tasks/PROGRESS.md]
