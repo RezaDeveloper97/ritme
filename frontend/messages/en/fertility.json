@@ -1,0 +1,197 @@
+{
+  "title": "Fertility",
+  "back": "Back",
+  "loading": "Loading your fertility data…",
+  "loadError": "Couldn't load your fertility data. Please try again in a bit.",
+  "saveError": "Couldn't save. Please try again in a bit.",
+  "retry": "Retry",
+  "estimated": "Estimated",
+  "notLogged": "Not logged",
+  "cycleDay": "Day {day}",
+  "dateCycleDay": "{date} · Day {day}",
+  "celsius": "°C",
+  "degrees": "{value}°",
+  "chance": {
+    "today": "Chance of pregnancy today",
+    "barsLabel": "Chance of pregnancy: {level}",
+    "levels": {
+      "none": "Very low",
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "peak": "Very high",
+      "unknown": "Unknown"
+    }
+  },
+  "tiles": {
+    "label": "Quick fertility log",
+    "lh": "LH test",
+    "bbt": "Basal temp",
+    "intercourse": "Sex",
+    "notLogged": "Not logged",
+    "bbtValue": "{value}°",
+    "openLh": "Log today's LH test",
+    "openBbt": "Basal body temperature chart",
+    "openIntercourse": "Log sex today"
+  },
+  "home": {
+    "ovulationIn": "Ovulation in",
+    "days": "days",
+    "ringCaption": "Cycle day {day} · {level} chance of pregnancy",
+    "logToday": "Log today",
+    "phases": {
+      "period": "Period",
+      "follicular": "Follicular",
+      "fertile": "Fertile window",
+      "luteal": "Luteal"
+    },
+    "chanceCard": {
+      "title": "Chance of pregnancy today",
+      "estimated": "Estimated",
+      "inWindow": "You're in your fertile window. Sex today and over the next 2 days gives the best chance.",
+      "windowStart": "Window starts",
+      "ovulation": "Ovulation",
+      "nextPeriod": "Next period"
+    },
+    "lhTip": {
+      "title": "Take an LH test today",
+      "body": "Between 10 am and 8 pm, after a few hours without urinating. A positive result means ovulation within the next 24–36 hours."
+    }
+  },
+  "log": {
+    "title": "Log day",
+    "subtitle": "{date} · Day {day}",
+    "lh": {
+      "title": "Ovulation test (LH)",
+      "options": {
+        "none": "Don't log",
+        "negative": "Negative",
+        "faint": "Faint",
+        "positive": "Positive"
+      }
+    },
+    "bbt": {
+      "label": "Basal body temperature",
+      "unit": "°C",
+      "decrease": "Decrease temperature",
+      "increase": "Increase temperature",
+      "hint": "In the morning, before getting out of bed",
+      "outOfRange": "Temperature must be between {min} and {max} degrees.",
+      "invalid": "That doesn't look like a temperature.",
+      "clear": "Clear temperature"
+    },
+    "mucus": {
+      "title": "Cervical mucus",
+      "options": {
+        "none": "Don't log",
+        "dry": "Dry",
+        "sticky": "Sticky",
+        "creamy": "Creamy",
+        "egg_white": "Clear & stretchy"
+      }
+    },
+    "intercourse": {
+      "title": "Sex",
+      "options": {
+        "none": "Don't log",
+        "unprotected": "Unprotected",
+        "protected": "Protected"
+      }
+    },
+    "symptoms": {
+      "title": "Symptoms",
+      "options": {
+        "ovarian_pain": "Ovarian pain",
+        "bloating": "Bloating",
+        "breast_sensitivity": "Breast tenderness",
+        "spotting": "Spotting"
+      }
+    },
+    "note": {
+      "label": "Note",
+      "placeholder": "Anything you think matters…"
+    },
+    "openInsights": "Predictions",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "futureDate": "You can't log a day in the future."
+  },
+  "bbt": {
+    "title": "Basal body temperature",
+    "subtitle": "Current cycle · Day {day}",
+    "help": "Guide",
+    "ranges": {
+      "1": "This cycle",
+      "3": "3 cycles",
+      "6": "6 cycles"
+    },
+    "todayMorning": "This morning",
+    "noReadingToday": "Not logged yet today",
+    "phases": {
+      "pre_shift": "Before shift",
+      "post_shift": "After shift"
+    },
+    "chart": {
+      "label": "Basal body temperature chart",
+      "tableCaption": "Logged temperature by cycle day",
+      "dayColumn": "Cycle day",
+      "valueColumn": "Temperature (°C)",
+      "dateColumn": "Date",
+      "empty": "No temperatures logged in this range yet."
+    },
+    "legend": {
+      "logged": "Logged temperature",
+      "coverline": "Coverline · average of first 6 days",
+      "window": "Fertile window"
+    },
+    "stats": {
+      "preOvulationAvg": "Pre-ovulation average",
+      "firstSixDays": "First 6 days",
+      "loggedDays": "Days logged",
+      "loggedOfTotal": "{logged} / {total}",
+      "noGaps": "No gaps",
+      "gaps": "{count, plural, one {# day missed} other {# days missed}}"
+    },
+    "tip": {
+      "title": "Look for a 0.2–0.5 degree rise",
+      "body": "If your temperature stays above the coverline for three days in a row, ovulation most likely happened the day before the first high reading.",
+      "pastShifts": "In previous cycles this rise came on day {days}."
+    },
+    "remindTomorrow": "Remind me to log tomorrow's temperature",
+    "openInsights": "Predictions"
+  },
+  "insights": {
+    "title": "Predictions",
+    "basedOn": "{count, plural, one {Based on # logged cycle} other {Based on # logged cycles}}",
+    "noCycles": "No complete cycle logged yet",
+    "window": {
+      "title": "Fertile window",
+      "range": "Estimated {start} to {end}, ovulation around {ovulation}",
+      "rangeNoOvulation": "Estimated {start} to {end}",
+      "empty": "Not enough data yet to estimate your fertile window.",
+      "disclaimer": "This window is estimated to help you conceive — it is not a method of contraception.",
+      "legendWindow": "Fertile window",
+      "legendOvulation": "Estimated ovulation day"
+    },
+    "confidence": {
+      "low": "Low confidence",
+      "medium": "Medium confidence",
+      "high": "High confidence"
+    },
+    "evidence": {
+      "title": "Where does this estimate come from?",
+      "strength": {
+        "strong": "Strong",
+        "medium": "Medium",
+        "none": "None"
+      }
+    },
+    "history": {
+      "title": "Ovulation in previous cycles",
+      "day": "Day {day}",
+      "unknown": "Unknown"
+    },
+    "improve": "How can I make the estimate more accurate?"
+  }
+}

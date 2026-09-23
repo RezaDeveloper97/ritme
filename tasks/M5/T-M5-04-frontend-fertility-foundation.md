@@ -3,7 +3,7 @@ id: T-M5-04
 title: Frontend — fertility entity, day-log feature, tokens, icons and i18n
 milestone: M5
 type: frontend
-status: todo
+status: done
 depends_on: []
 parallel_group: M5-A
 touches: [frontend/src/entities/fertility, frontend/src/features/log-fertility-day, frontend/src/app/globals.css, frontend/src/shared/ui/Icon.tsx, frontend/messages/fa, frontend/messages/en, frontend/src/shared/i18n, frontend/src/app/message-scopes.ts]

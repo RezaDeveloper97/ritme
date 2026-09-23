@@ -480,3 +480,10 @@ Nothing needed fixing.
 - Paused medications excluded; `next_appointment` = first scheduled future appointment (reminder off still counts,
   cancelled never); `days_until`/`next_appointment` relative to now, not `?date=`.
 - Open: README example numbers are inconsistent (`total: 2` with one dose, `days_until: 8` for 7 days).
+
+## T-M5-04 — Frontend — fertility entity, day-log feature, tokens, icons and i18n
+- `entities/fertility` (enum tuples, BBT helpers `formatBbt/parseBbt/isBbtInRange/stepBbt`, tolerant zod parsers,
+  `fertilityKeys`, queries), `features/log-fertility-day` (`toFertilityDayBody`, `useSaveFertilityDay` invalidating
+  fertility/cycle/messages/health-log). 18 `--fert-*` tokens (light+dark), `.fert-tone-*`, `.fert-disc`; icons
+  flaskLh/heartLine/target/moonReminder; `fertility` namespace fa/en.
+- Open: add `fertility` to `message-scopes.ts` in T-M5-05..08; LH/BBT tip copy needs content review.

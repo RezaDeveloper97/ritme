@@ -1,0 +1,197 @@
+{
+  "title": "باروری",
+  "back": "بازگشت",
+  "loading": "در حال گرفتن اطلاعات باروری…",
+  "loadError": "اطلاعات باروری نیومد. یه‌کم بعد دوباره امتحان کن.",
+  "saveError": "ذخیره نشد. یه‌کم بعد دوباره امتحان کن.",
+  "retry": "دوباره",
+  "estimated": "تخمینی",
+  "notLogged": "ثبت نشده",
+  "cycleDay": "روز {day}",
+  "dateCycleDay": "{date} · روز {day}",
+  "celsius": "°C",
+  "degrees": "{value}°",
+  "chance": {
+    "today": "شانس بارداری امروز",
+    "barsLabel": "شانس بارداری: {level}",
+    "levels": {
+      "none": "خیلی کم",
+      "low": "کم",
+      "medium": "متوسط",
+      "high": "زیاد",
+      "peak": "خیلی زیاد",
+      "unknown": "نامشخص"
+    }
+  },
+  "tiles": {
+    "label": "ثبت سریع باروری",
+    "lh": "تست LH",
+    "bbt": "دمای پایه",
+    "intercourse": "رابطه",
+    "notLogged": "ثبت نشده",
+    "bbtValue": "{value}°",
+    "openLh": "ثبت تست LH امروز",
+    "openBbt": "نمودار دمای پایه بدن",
+    "openIntercourse": "ثبت رابطه امروز"
+  },
+  "home": {
+    "ovulationIn": "تخمک‌گذاری تا",
+    "days": "روز",
+    "ringCaption": "روز {day} سیکل · شانس بارداری {level}",
+    "logToday": "ثبت امروز",
+    "phases": {
+      "period": "پریود",
+      "follicular": "فولیکولار",
+      "fertile": "پنجره باروری",
+      "luteal": "لوتئال"
+    },
+    "chanceCard": {
+      "title": "شانس بارداری امروز",
+      "estimated": "تخمینی",
+      "inWindow": "داخل پنجره باروری هستی. رابطه در امروز و ۲ روز آینده بیشترین شانس را دارد.",
+      "windowStart": "شروع پنجره",
+      "ovulation": "تخمک‌گذاری",
+      "nextPeriod": "پریود بعدی"
+    },
+    "lhTip": {
+      "title": "امروز تست LH بزن",
+      "body": "بین ۱۰ صبح تا ۸ شب، بعد از چند ساعت بدون ادرار. مثبت‌شدنش یعنی تخمک‌گذاری تا ۲۴ تا ۳۶ ساعت آینده."
+    }
+  },
+  "log": {
+    "title": "ثبت روز",
+    "subtitle": "{date} · روز {day}",
+    "lh": {
+      "title": "تست تخمک‌گذاری (LH)",
+      "options": {
+        "none": "ثبت نشه",
+        "negative": "منفی",
+        "faint": "کم‌رنگ",
+        "positive": "مثبت"
+      }
+    },
+    "bbt": {
+      "label": "دمای پایه بدن",
+      "unit": "°C",
+      "decrease": "کم کردن دما",
+      "increase": "زیاد کردن دما",
+      "hint": "صبح، قبل از بلندشدن از رختخواب",
+      "outOfRange": "دما باید بین {min} و {max} درجه باشه.",
+      "invalid": "عدد دما درست نیست.",
+      "clear": "پاک کردن دما"
+    },
+    "mucus": {
+      "title": "ترشحات دهانه رحم",
+      "options": {
+        "none": "ثبت نشه",
+        "dry": "خشک",
+        "sticky": "چسبنده",
+        "creamy": "کرمی",
+        "egg_white": "شفاف و کشسان"
+      }
+    },
+    "intercourse": {
+      "title": "رابطه جنسی",
+      "options": {
+        "none": "ثبت نشه",
+        "unprotected": "بدون محافظت",
+        "protected": "با محافظت"
+      }
+    },
+    "symptoms": {
+      "title": "علائم",
+      "options": {
+        "ovarian_pain": "درد تخمدان",
+        "bloating": "نفخ",
+        "breast_sensitivity": "حساسیت سینه",
+        "spotting": "لکه‌بینی"
+      }
+    },
+    "note": {
+      "label": "یادداشت",
+      "placeholder": "هر چیزی که فکر می‌کنی مهمه…"
+    },
+    "openInsights": "پیش‌بینی‌ها",
+    "save": "ذخیره",
+    "saving": "در حال ذخیره…",
+    "saved": "ذخیره شد",
+    "futureDate": "برای روزهای آینده نمی‌شه ثبت کرد."
+  },
+  "bbt": {
+    "title": "دمای پایه بدن",
+    "subtitle": "سیکل فعلی · روز {day}",
+    "help": "راهنما",
+    "ranges": {
+      "1": "این سیکل",
+      "3": "۳ سیکل",
+      "6": "۶ سیکل"
+    },
+    "todayMorning": "امروز صبح",
+    "noReadingToday": "امروز هنوز ثبت نشده",
+    "phases": {
+      "pre_shift": "قبل از جهش",
+      "post_shift": "بعد از جهش"
+    },
+    "chart": {
+      "label": "نمودار دمای پایه بدن",
+      "tableCaption": "دمای ثبت‌شده در هر روز سیکل",
+      "dayColumn": "روز سیکل",
+      "valueColumn": "دما (°C)",
+      "dateColumn": "تاریخ",
+      "empty": "هنوز دمایی در این بازه ثبت نشده."
+    },
+    "legend": {
+      "logged": "دمای ثبت‌شده",
+      "coverline": "خط مبنا · میانگین ۶ روز اول",
+      "window": "پنجره باروری"
+    },
+    "stats": {
+      "preOvulationAvg": "میانگین قبل از تخمک‌گذاری",
+      "firstSixDays": "۶ روز اول",
+      "loggedDays": "روزهای ثبت‌شده",
+      "loggedOfTotal": "{logged} / {total}",
+      "noGaps": "بدون جاافتادگی",
+      "gaps": "{count} روز جاافتاده"
+    },
+    "tip": {
+      "title": "دنبال جهش ۰٫۲ تا ۰٫۵ درجه باش",
+      "body": "اگر دما سه روز پشت‌سرهم بالاتر از خط مبنا بماند، احتمالاً تخمک‌گذاری یک روز قبل از اولین روز بالا بوده.",
+      "pastShifts": "در سیکل‌های قبل این جهش روز {days} بود."
+    },
+    "remindTomorrow": "یادآوری ثبت دمای فردا",
+    "openInsights": "پیش‌بینی‌ها"
+  },
+  "insights": {
+    "title": "پیش‌بینی‌ها",
+    "basedOn": "بر اساس {count} سیکل ثبت‌شده",
+    "noCycles": "هنوز سیکل کاملی ثبت نشده",
+    "window": {
+      "title": "پنجره باروری",
+      "range": "تخمینی {start} تا {end}، تخمک‌گذاری حدود {ovulation}",
+      "rangeNoOvulation": "تخمینی {start} تا {end}",
+      "empty": "برای تخمین پنجره باروری هنوز داده کافی نیست.",
+      "disclaimer": "این پنجره برای کمک به بارداری تخمین زده شده و روش جلوگیری از بارداری نیست.",
+      "legendWindow": "پنجره باروری",
+      "legendOvulation": "روز تخمینی تخمک‌گذاری"
+    },
+    "confidence": {
+      "low": "اطمینان کم",
+      "medium": "اطمینان متوسط",
+      "high": "اطمینان زیاد"
+    },
+    "evidence": {
+      "title": "این تخمین از کجا آمده؟",
+      "strength": {
+        "strong": "قوی",
+        "medium": "متوسط",
+        "none": "ندارد"
+      }
+    },
+    "history": {
+      "title": "تخمک‌گذاری در سیکل‌های قبل",
+      "day": "روز {day}",
+      "unknown": "نامشخص"
+    },
+    "improve": "چطور تخمین را دقیق‌تر کنم؟"
+  }
+}

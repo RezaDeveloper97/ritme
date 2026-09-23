@@ -11,7 +11,8 @@ export type IconName =
   | 'globe' | 'shield' | 'logout' | 'download' | 'trash' | 'search'
   | 'sun' | 'contrast' | 'cog' | 'bellPlain' | 'pen'
   | 'capsule' | 'tablet' | 'video' | 'phone' | 'mapPin' | 'clock' | 'bellRing' | 'note'
-  | 'ribbon' | 'flask' | 'tooth' | 'camera' | 'history' | 'filterLines' | 'export';
+  | 'ribbon' | 'flask' | 'tooth' | 'camera' | 'history' | 'filterLines' | 'export'
+  | 'flaskLh' | 'heartLine' | 'target' | 'moonReminder';
 
 const PATHS: Record<IconName, string> = {
   bell:         '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
@@ -77,6 +78,14 @@ const PATHS: Record<IconName, string> = {
   history:      '<path d="M3 12a9 9 0 109-9 9 9 0 00-7 3.5"/><path d="M3 3v5h5M12 7v5l3 2"/>',
   filterLines:  '<path d="M4 6h16M7 12h10M10 18h4"/>',
   export:       '<path d="M12 3v12M7 8l5-5 5 5M5 14v5a2 2 0 002 2h10a2 2 0 002-2v-5"/>',
+  /* Fertility / TTC (M5) — copied from the v19 artboards (docs/design/ttc-v19).
+     The BBT tile/chart glyph is the existing `thermo`. `heartLine` / `moonReminder`
+     are the artboards' slimmer heart and crescent — `heart` / `moon` stay as
+     they are for the screens already using them. */
+  flaskLh:      '<path d="M9 3h6M10 3v7l-5 8a2 2 0 002 3h10a2 2 0 002-3l-5-8V3"/>',
+  heartLine:    '<path d="M12 20s-7-4.5-7-10a4 4 0 017-2.5A4 4 0 0119 10c0 5.5-7 10-7 10z"/>',
+  target:       '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>',
+  moonReminder: '<path d="M20 14.5A8 8 0 019.5 4 8 8 0 1020 14.5z"/>',
   /* Half-filled disc — the conventional "match the system appearance" mark. */
   contrast:     '<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"/>',
 };

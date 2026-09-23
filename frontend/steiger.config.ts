@@ -60,6 +60,14 @@ export default defineConfig([
     rules: { 'fsd/insignificant-slice': 'off' },
   },
   {
+    // Fertility / TTC foundation (M5, T-M5-04). Consumed by the fertility
+    // tiles widget and the log / BBT / insights screens (T-M5-05…08) —
+    // references coming FROM `screens` are invisible to steiger (same reason
+    // as the blocks above).
+    files: ['./src/entities/fertility/**', './src/features/log-fertility-day/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
     // `entities/cycle` is a canonical domain entity (CLAUDE.md §5) that will be
     // consumed by more screens as cycle/API wiring lands. Don't nag about it
     // having a single reference today.

@@ -165,6 +165,32 @@
   --checkup-body:       #4E4E59;  /* why / steps body copy */
   --checkup-row-action: #FFFFFF;  /* white action button inside a tinted row */
 
+  /* ── Fertility / TTC (M5, docs/fertility-ttc/README.md "Colors") ──
+     Reused: logged-days ok → --success, hero chip line → --brand-line-soft,
+     card → --surface, text → --ink / --ink-3 / --muted, soft info disc on
+     the Log tip → --fert-teal-soft. Amber is the sanctioned fertile-window
+     hue (§10.2); rose is the intercourse tile — NOT the period red. Tile
+     discs (colour at 13 % fill / 33 % border) are the `.fert-tone-*` classes
+     below, derived with color-mix so they flip with the ink. */
+  --fert-amber:        #F5A623;  /* LH tile, chance level/bars, coverline, window */
+  --fert-amber-band:   #FEF3C6;  /* fertile-window band behind the BBT chart */
+  --fert-note-bg:      #FFF4E5;  /* contraception disclaimer box */
+  --fert-note-line:    #FEF3C6;
+  --fert-teal:         #0FA3C9;  /* BBT line / BBT tile */
+  --fert-teal-soft:    #E3F9FE;  /* BBT tip disc */
+  --fert-rose:         #E8436F;  /* intercourse tile */
+  --fert-field:        #F4F0FF;  /* BBT input, note field */
+  --fert-chip-on-line: #7B61FF;  /* selected chip border */
+  --fert-chip-on-bg:   #ECE6FF;  /* selected chip fill, − / + buttons */
+  --fert-chance-from:  rgba(245, 166, 35, .22);  /* chance card gradient start */
+  --fert-chance-to:    #FFFFFF;                  /* chance card gradient end */
+  --fert-chance-line:  rgba(255, 184, 107, .35);
+  --fert-chance-disc:  rgba(255, 184, 107, .2);
+  --fert-bar-off:      #E7E1F4;  /* unfilled chance bar */
+  --fert-chart-grid:   #E7E1F4;
+  --fert-chart-label:  #6F6F78;
+  --fert-chart-point:  #F7F3FF;  /* BBT point fill (ring in --fert-teal) */
+
   /* ── Cycle marker intensity ramp (calendar day cells) ──
      Each marker tint gets a faint and a strong step around its base tint,
      graded by the day's conception probability. Derived with color-mix from
@@ -282,6 +308,26 @@
   --checkup-due:        #FFB86B;
   --checkup-body:       #C9C0E6;
   --checkup-row-action: #221A3D;
+
+  /* Fertility / TTC (M5) — values from the nb2_ artboards. */
+  --fert-amber:        #FFB86B;
+  --fert-amber-band:   #5A4A2E;
+  --fert-note-bg:      rgba(255, 184, 107, .1);
+  --fert-note-line:    rgba(255, 184, 107, .3);
+  --fert-teal:         #4CE0C3;
+  --fert-teal-soft:    rgba(76, 224, 195, .14);
+  --fert-rose:         #FF6B8B;
+  --fert-field:        rgba(255, 255, 255, .05);
+  --fert-chip-on-line: #B9A6FF;
+  --fert-chip-on-bg:   rgba(185, 166, 255, .16);
+  --fert-chance-from:  rgba(255, 184, 107, .28);
+  --fert-chance-to:    #221A3D;
+  --fert-chance-line:  rgba(255, 184, 107, .35);
+  --fert-chance-disc:  rgba(255, 184, 107, .2);
+  --fert-bar-off:      rgba(255, 255, 255, .15);
+  --fert-chart-grid:   #34295A;
+  --fert-chart-label:  #8C82AD;
+  --fert-chart-point:  #17112B;
 
   --brand-line:      #5A4BA8;
   --brand-line-soft: #3A3060;
@@ -2898,3 +2944,20 @@ body.pwa-locked { overflow: hidden; }
 .ck-tone-teal    { --ck-ink: var(--teal-deep);      --ck-soft: var(--data-soft); }
 .ck-tone-green   { --ck-ink: var(--success);        --ck-soft: var(--success-soft); }
 .ck-tone-neutral { --ck-ink: var(--ink-3);          --ck-soft: var(--surface-2); }
+
+/* ── Fertility / TTC (M5) — tone palette ──────────────────────
+   Shared by the home tiles, the log chance card, the BBT stat cards and the
+   insights evidence rows (T-M5-05…08). A tone sets `--fert-ink`; `.fert-disc`
+   reads it for the artboards' icon disc (ink at 13 % fill, 33 % border — the
+   `22` / `55` hex alphas). Every value is a token that flips in dark mode. */
+.fert-tone-amber  { --fert-ink: var(--fert-amber); }
+.fert-tone-teal   { --fert-ink: var(--fert-teal); }
+.fert-tone-rose   { --fert-ink: var(--fert-rose); }
+.fert-tone-green  { --fert-ink: var(--success); }
+.fert-tone-violet { --fert-ink: var(--brand-strong); }
+.fert-disc {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  color: var(--fert-ink, var(--ink-3));
+  background: color-mix(in srgb, var(--fert-ink, var(--ink-3)) 13%, transparent);
+  border: 1px solid color-mix(in srgb, var(--fert-ink, var(--ink-3)) 33%, transparent);
+}

@@ -11,6 +11,7 @@ import enCheckups from '../../../messages/en/checkups.json';
 import enCommon from '../../../messages/en/common.json';
 import enCycle from '../../../messages/en/cycle.json';
 import enDayTasks from '../../../messages/en/day-tasks.json';
+import enFertility from '../../../messages/en/fertility.json';
 import enHome from '../../../messages/en/home.json';
 import enLog from '../../../messages/en/log.json';
 import enLogPeriod from '../../../messages/en/log-period.json';
@@ -36,6 +37,7 @@ import faCheckups from '../../../messages/fa/checkups.json';
 import faCommon from '../../../messages/fa/common.json';
 import faCycle from '../../../messages/fa/cycle.json';
 import faDayTasks from '../../../messages/fa/day-tasks.json';
+import faFertility from '../../../messages/fa/fertility.json';
 import faHome from '../../../messages/fa/home.json';
 import faLog from '../../../messages/fa/log.json';
 import faLogPeriod from '../../../messages/fa/log-period.json';
@@ -108,6 +110,7 @@ const bundled = {
     reminders: faReminders,
     care: faCare,
     checkups: faCheckups,
+    fertility: faFertility,
     notifications: faNotifications,
     account: faAccount,
     log: faLog,
@@ -135,6 +138,7 @@ const bundled = {
     reminders: enReminders,
     care: enCare,
     checkups: enCheckups,
+    fertility: enFertility,
     notifications: enNotifications,
     account: enAccount,
     log: enLog,

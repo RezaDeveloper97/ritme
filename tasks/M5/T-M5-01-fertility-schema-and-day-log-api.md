@@ -31,3 +31,10 @@ mucus, which no column stores today; BBT, intercourse and symptoms already live 
 
 ## Acceptance
 - Contract matches the README; schema-diff and tests green.
+
+## Note from T-M5-04 (frontend contract assumptions)
+Enums: LH `negative|faint|positive`; mucus `dry|sticky|creamy|egg_white`; intercourse `unprotected|protected`;
+symptoms `ovarian_pain|bloating|breast_sensitivity|spotting`; chance level `none|low|medium|high|peak`; confidence
+`low|medium|high`; evidence strength `strong|medium|none`. Day fields: `date, cycle_day, lh, mucus, bbt, bbt_time,
+intercourse, symptoms[], note, chance`; PUT body uses the same snake_case keys, `null` clears a field.
+See `frontend/src/entities/fertility/api/schema.ts` for tolerated alternatives.
