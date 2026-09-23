@@ -1,0 +1,117 @@
+# sqlc — typed Go code from db/queries/<domain>/*.sql against the goose schema (db/migrations).
+#
+#   make sqlc      # regenerate every package
+#
+# One package per domain, all declared here up front, so parallel domain tasks only add .sql files
+# under db/queries/<domain>/ and never edit this file. Generated code: internal/<domain>/store
+# (package `store`, do not edit by hand). See docs/go-migration/migrations.md.
+#
+# The first entry (auth) carries the shared settings as YAML anchors (&pkg, &go); every other
+# entry merges them and overrides only `queries` and `out`.
+version: "2"
+
+sql:
+  - &pkg
+    engine: mysql
+    schema: db/migrations            # goose Up sections only; sqlc skips `-- +goose Down`
+    strict_function_checks: true
+    queries: db/queries/auth
+    gen:
+      go: &go
+        out: internal/auth/store
+        package: store
+        sql_package: database/sql
+        emit_interface: true         # Querier, for fakes in service tests
+        emit_empty_slices: true      # :many returns [] not nil (JSON `[]`, like Laravel collections)
+        overrides:
+          # JSON columns (MariaDB stores them as longtext + json_valid CHECK; the baseline spells them `json`).
+          - db_type: json
+            go_type: encoding/json.RawMessage
+          - db_type: json
+            nullable: true
+            go_type:
+              import: github.com/ritme/backend-go/db
+              type: NullRawJSON      # sql.Null[json.RawMessage]; a bare RawMessage cannot scan NULL
+          # Laravel `decimal:N` casts serialise as strings ("62.50"); keep the exact DB text.
+          - db_type: decimal
+            go_type: string
+          - db_type: decimal
+            nullable: true
+            go_type: database/sql.NullString
+          # DATE columns are calendar days, not instants (internal/platform/civildate).
+          - db_type: date
+            go_type:
+              import: github.com/ritme/backend-go/internal/platform/civildate
+              type: Date
+          - db_type: date
+            nullable: true
+            go_type:
+              import: github.com/ritme/backend-go/internal/platform/civildate
+              type: NullDate
+          # TIME columns: the driver returns "HH:MM:SS" bytes (parseTime covers DATE/DATETIME only).
+          - db_type: time
+            go_type: string
+          - db_type: time
+            nullable: true
+            go_type: database/sql.NullString
+          # tinyint(1) → bool / sql.NullBool is sqlc's built-in MySQL mapping (no override needed).
+  - <<: *pkg
+    queries: db/queries/content
+    gen:
+      go:
+        <<: *go
+        out: internal/content/store
+  - <<: *pkg
+    queries: db/queries/profile
+    gen:
+      go:
+        <<: *go
+        out: internal/profile/store
+  - <<: *pkg
+    queries: db/queries/healthlog
+    gen:
+      go:
+        <<: *go
+        out: internal/healthlog/store
+  - <<: *pkg
+    queries: db/queries/reminder
+    gen:
+      go:
+        <<: *go
+        out: internal/reminder/store
+  - <<: *pkg
+    queries: db/queries/cycle
+    gen:
+      go:
+        <<: *go
+        out: internal/cycle/store
+  - <<: *pkg
+    queries: db/queries/pregnancy
+    gen:
+      go:
+        <<: *go
+        out: internal/pregnancy/store
+  - <<: *pkg
+    queries: db/queries/messages
+    gen:
+      go:
+        <<: *go
+        out: internal/messages/store
+  - <<: *pkg
+    queries: db/queries/home
+    gen:
+      go:
+        <<: *go
+        out: internal/home/store
+  - <<: *pkg
+    queries: db/queries/admin
+    gen:
+      go:
+        <<: *go
+        out: internal/admin/store
+  - <<: *pkg
+    queries: db/queries/i18n
+    gen:
+      go:
+        <<: *go
+        out: internal/i18n/store

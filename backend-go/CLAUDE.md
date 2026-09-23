@@ -63,7 +63,7 @@ db/migrations/        goose        db/queries/  sqlc queries per domain
 - CORS, trusted proxies (X-Forwarded-For) and the 25 MB body limit are global in `cmd/api`; don't re-add them.
 
 ### Data access
-- **sqlc only.** Queries live in `db/queries/<domain>.sql`; handlers and services never build SQL strings.
+- **sqlc only.** Queries live in `db/queries/<domain>/*.sql`; handlers and services never build SQL strings.
 - The schema is frozen during M2 and owned by Laravel migrations. A schema change needs a Laravel migration
   *and* a goose migration (see README → Migrations).
 - DB timestamps are **Asia/Tehran wall-clock**. The DSN has `parseTime=true&loc=Asia%2FTehran`; **never** set

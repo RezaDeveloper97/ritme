@@ -3,7 +3,7 @@ id: T-M2-03
 title: Schema baseline with goose and sqlc setup
 milestone: M2
 type: backend
-status: todo
+status: done
 depends_on: [T-M2-02]
 parallel_group: M2-B
 touches: [backend-go/db, backend-go/scripts/schema-diff.sh, backend-go/sqlc.yaml, backend-go/internal/platform/db/migrate.go, backend-go/internal/platform/db/testdb, docs/go-migration/migrations.md]

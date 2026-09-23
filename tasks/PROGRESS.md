@@ -185,3 +185,13 @@ Nothing needed fixing.
 - Orchestrator wired `httpx.ErrorHandler` + `clock.Middleware` into `cmd/api/app.go`; access log uses `httpx.StatusOf`.
 - Deviations D-08 (JSON 404 without Accept), D-09 (no relative date strings), D-10 (`/up` plain OK) proposed.
 - "(and N more errors)" and paginator labels stay English in every locale (as Laravel does).
+
+## T-M2-03 — Schema baseline with goose and sqlc setup
+- `backend-go/db/migrations/00001_baseline.sql` (38 tables + fa/en language rows; Down refuses), embedded via `db/embed.go`.
+- `sqlc.yaml`: 11 domain packages → `internal/<domain>/store` (placeholder `sample.sql` per domain — delete when
+  adding real queries). NULL JSON → `db.NullRawJSON`; `TIME` → `string`; dates → `civildate.Date/NullDate`.
+- `internal/platform/db/migrate.go` (Migrate, StampBaseline), `testdb` (fresh `gt_*` DB per test package; no
+  `t.Parallel()` inside a package), `scripts/schema-diff.sh` (Laravel migrations vs goose → identical), `docs/go-migration/migrations.md`.
+- goose v3.26.0 (v3.28 needs go 1.26). `make test-int` passes `TEST_DB_ADMIN_DSN`.
+- Open: baseline not diffed against the staging DB (server read needs user approval):
+  `scripts/schema-diff.sh --against <staging --no-data dump>`.

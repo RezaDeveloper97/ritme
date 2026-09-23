@@ -31,8 +31,14 @@ STORAGE_PATH         ?= $(CURDIR)/../backend/storage
 
 TEST_DB_DSN          ?= ritme:ritme@tcp(127.0.0.1:$(TEST_DB_PORT))/ritme_test?parseTime=true&loc=Asia%2FTehran&charset=utf8mb4&collation=utf8mb4_unicode_ci
 TEST_REDIS_ADDR      ?= 127.0.0.1:$(TEST_REDIS_PORT)
+# testdb creates one database per test package (internal/platform/db/testdb): needs CREATE DATABASE.
+TEST_DB_ADMIN_DSN    ?= root:root@tcp(127.0.0.1:$(TEST_DB_PORT))/?parseTime=true&loc=Asia%2FTehran&charset=utf8mb4&collation=utf8mb4_unicode_ci
 
 PKG ?= ./...
+
+# sqlc from PATH, else $(go env GOPATH)/bin, else built on the fly (pinned; cached after the first run).
+SQLC_VERSION ?= v1.31.1
+SQLC ?= $(shell command -v sqlc 2>/dev/null || { p="$$(go env GOPATH)/bin/sqlc"; [ -x "$$p" ] && echo "$$p"; } || echo "go run github.com/sqlc-dev/sqlc/cmd/sqlc@$(SQLC_VERSION)")
 
 .PHONY: help run test test-int test-db-up test-db-down lint fmt vet sqlc schema-diff contract contract-record docker
 
@@ -52,7 +58,7 @@ test-db-down: ## Stop and wipe the test databases
 	$(COMPOSE_TEST) down -v
 
 test-int: test-db-up ## Integration tests: make test-int PKG=./internal/content/...
-	TEST_DB_DSN='$(TEST_DB_DSN)' TEST_REDIS_ADDR='$(TEST_REDIS_ADDR)' go test -count=1 -p 1 $(PKG)
+	TEST_DB_DSN='$(TEST_DB_DSN)' TEST_DB_ADMIN_DSN='$(TEST_DB_ADMIN_DSN)' TEST_REDIS_ADDR='$(TEST_REDIS_ADDR)' go test -count=1 -p 1 $(PKG)
 
 vet: ## go vet
 	go vet ./...
@@ -64,11 +70,11 @@ fmt: ## gofmt + goimports via golangci-lint
 	gofmt -w .
 	golangci-lint fmt
 
-sqlc: ## Regenerate sqlc code (T-M2-03 adds sqlc.yaml)
-	@if [ -f sqlc.yaml ]; then sqlc generate; else echo "sqlc: not implemented yet (sqlc.yaml arrives with T-M2-03)"; fi
+sqlc: ## Regenerate internal/<domain>/store from db/queries/<domain>/*.sql (sqlc.yaml)
+	$(SQLC) generate
 
-schema-diff: ## Compare goose schema with the Laravel schema (T-M2-03)
-	@if [ -x scripts/schema-diff.sh ]; then scripts/schema-diff.sh; else echo "schema-diff: not implemented yet (scripts/schema-diff.sh arrives with T-M2-03)"; fi
+schema-diff: ## Laravel-migrated DB vs goose baseline DB must be identical (needs php + backend/vendor)
+	scripts/schema-diff.sh
 
 contract: ## Diff Go responses against Laravel goldens: make contract ROUTES=<pattern> (T-M2-05)
 	@if [ -d cmd/contract ]; then go run ./cmd/contract diff $(if $(ROUTES),--routes '$(ROUTES)'); else echo "contract: not implemented yet (cmd/contract arrives with T-M2-05)"; fi
