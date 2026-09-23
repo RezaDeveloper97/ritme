@@ -9,9 +9,19 @@ import (
 )
 
 type Querier interface {
-	// Placeholder so the `messages` sqlc package exists and compiles before its domain task lands (T-M2-03).
-	// Delete this file when the first real query is added to db/queries/messages/.
-	SampleMessagesContent(ctx context.Context, id uint64) (MessageContent, error)
+	// HealthDataEngine::dailyLogFor(): $user->dailyHealthLogs()->whereDate('log_date', $date)->first().
+	// Only the columns MessageManager::extractSymptoms can read exist here (see messages/manager).
+	GetMessageDailyLog(ctx context.Context, arg GetMessageDailyLogParams) (GetMessageDailyLogRow, error)
+	// $user->profile (hasOne: the first row in index order) — the columns the message system and
+	// the legacy HealthDataEngine read.
+	GetMessageProfile(ctx context.Context, userID uint64) (GetMessageProfileRow, error)
+	// Queries of the smart-message system (backend/app/Services/MessageSystem, MessageController).
+	// MessageContentRepository::rows(): every live (active + approved) row of one locale.
+	ListLiveMessageContents(ctx context.Context, locale string) ([]ListLiveMessageContentsRow, error)
+	// HealthDataEngine::getCycleHistories() (the engine sorts itself).
+	ListMessageCycleHistories(ctx context.Context, userID uint64) ([]ListMessageCycleHistoriesRow, error)
+	// MessageManager::buildContext(): the last 90 days of logs, newest first (PatternLayer input).
+	ListMessageRecentLogs(ctx context.Context, arg ListMessageRecentLogsParams) ([]ListMessageRecentLogsRow, error)
 }
 
 var _ Querier = (*Queries)(nil)

@@ -3,7 +3,7 @@ id: T-M2-17
 title: MessageSystem — daily messages and mode endpoints
 milestone: M2
 type: backend
-status: todo
+status: done
 depends_on: [T-M2-14, T-M2-16]
 parallel_group: M2-G
 touches: [backend-go/internal/messages, backend-go/internal/http/routes_messages.go, backend-go/db/queries/messages, backend-go/contract/allowlist/messages.yaml]

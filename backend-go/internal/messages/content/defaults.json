@@ -1,0 +1,2068 @@
+{
+    "cycle_base_non_ttc": {
+        "menstruation": {
+            "fa": {
+                "short": "امروز روز استراحت و مراقبت از خودته",
+                "long": "در دوران قاعدگی، بدنت نیاز به استراحت و توجه بیشتری داره. به خودت اجازه بده کمی آروم‌تر باشی و از فعالیت‌های سنگین اجتناب کنی.",
+                "action": "یک نوشیدنی گرم بنوش و استراحت کن",
+                "dos": [
+                    "استراحت کافی",
+                    "نوشیدن آب فراوان",
+                    "مصرف آهن",
+                    "پیاده‌روی سبک"
+                ],
+                "donts": [
+                    "ورزش سنگین",
+                    "کافئین زیاد",
+                    "غذاهای شور",
+                    "بی‌خوابی"
+                ]
+            },
+            "en": {
+                "short": "Today is a day for rest and self-care",
+                "long": "During menstruation, your body needs more rest and attention. Allow yourself to slow down and avoid heavy activities.",
+                "action": "Have a warm drink and rest",
+                "dos": [
+                    "Get enough rest",
+                    "Drink plenty of water",
+                    "Take iron",
+                    "Light walking"
+                ],
+                "donts": [
+                    "Heavy exercise",
+                    "Too much caffeine",
+                    "Salty foods",
+                    "Sleep deprivation"
+                ]
+            }
+        },
+        "follicular": {
+            "fa": {
+                "short": "انرژیت داره برمی‌گرده! وقت شروع‌های تازه‌ست",
+                "long": "در فاز فولیکولار، سطح استروژن بالا میره و انرژی و خلاقیتت افزایش پیدا می‌کنه. بهترین زمان برای شروع پروژه‌های جدید و تمرینات ورزشی شدیدتره.",
+                "action": "یک هدف جدید برای این هفته تعیین کن",
+                "dos": [
+                    "ورزش با شدت متوسط تا بالا",
+                    "شروع پروژه‌های جدید",
+                    "ملاقات‌های اجتماعی",
+                    "یادگیری مهارت جدید"
+                ],
+                "donts": [
+                    "بی‌برنامگی",
+                    "کم‌خوابی",
+                    "غذاهای فرآوری شده"
+                ]
+            },
+            "en": {
+                "short": "Your energy is coming back! Time for fresh starts",
+                "long": "In the follicular phase, estrogen levels rise and your energy and creativity increase. Best time to start new projects and more intense workouts.",
+                "action": "Set a new goal for this week",
+                "dos": [
+                    "Medium to high intensity exercise",
+                    "Start new projects",
+                    "Social meetings",
+                    "Learn new skills"
+                ],
+                "donts": [
+                    "Being unorganized",
+                    "Sleep deprivation",
+                    "Processed foods"
+                ]
+            }
+        },
+        "ovulation": {
+            "fa": {
+                "short": "در اوج انرژی و جذابیت هستی!",
+                "long": "زمان تخمک‌گذاری، انرژی، اعتماد به نفس و جذابیتت در بالاترین حد هستن. بهترین زمان برای ارائه‌ها، مذاکرات و فعالیت‌های اجتماعی.",
+                "action": "از این انرژی برای کارهای مهم استفاده کن",
+                "dos": [
+                    "ورزش‌های قدرتی",
+                    "ارائه و مذاکره",
+                    "فعالیت‌های اجتماعی",
+                    "تصمیم‌گیری‌های مهم"
+                ],
+                "donts": [
+                    "از دست دادن این انرژی",
+                    "انزوا",
+                    "به تعویق انداختن کارها"
+                ]
+            },
+            "en": {
+                "short": "You're at peak energy and attractiveness!",
+                "long": "During ovulation, your energy, confidence and attractiveness are at their peak. Best time for presentations, negotiations and social activities.",
+                "action": "Use this energy for important tasks",
+                "dos": [
+                    "Strength training",
+                    "Presentations and negotiations",
+                    "Social activities",
+                    "Important decisions"
+                ],
+                "donts": [
+                    "Wasting this energy",
+                    "Isolation",
+                    "Procrastination"
+                ]
+            }
+        },
+        "luteal": {
+            "fa": {
+                "short": "وقت تمرکز روی خودت و کارهای نیمه‌تمام",
+                "long": "در فاز لوتئال، انرژی کم‌کم کاهش پیدا می‌کنه. بهترین زمان برای تکمیل پروژه‌ها، مراقبت از خود و آماده شدن برای سیکل بعدی.",
+                "action": "یک کار نیمه‌تمام رو تموم کن",
+                "dos": [
+                    "یوگا و کشش",
+                    "تکمیل پروژه‌ها",
+                    "خواب کافی",
+                    "غذاهای مغذی"
+                ],
+                "donts": [
+                    "شروع پروژه بزرگ",
+                    "کافئین زیاد",
+                    "شکر زیاد",
+                    "فعالیت‌های استرس‌زا"
+                ]
+            },
+            "en": {
+                "short": "Time to focus on yourself and unfinished tasks",
+                "long": "In the luteal phase, energy gradually decreases. Best time to complete projects, self-care and prepare for the next cycle.",
+                "action": "Complete an unfinished task",
+                "dos": [
+                    "Yoga and stretching",
+                    "Complete projects",
+                    "Adequate sleep",
+                    "Nutritious foods"
+                ],
+                "donts": [
+                    "Starting big projects",
+                    "Too much caffeine",
+                    "Too much sugar",
+                    "Stressful activities"
+                ]
+            }
+        },
+        "default": {
+            "fa": {
+                "short": "به سلامت خود توجه کنید",
+                "long": "هر روز فرصتی برای مراقبت از خودته.",
+                "action": "آب کافی بنوش",
+                "dos": [
+                    "آب فراوان",
+                    "خواب کافی",
+                    "ورزش منظم"
+                ],
+                "donts": [
+                    "استرس زیاد",
+                    "بی‌خوابی"
+                ]
+            },
+            "en": {
+                "short": "Take care of your health",
+                "long": "Every day is an opportunity to take care of yourself.",
+                "action": "Drink enough water",
+                "dos": [
+                    "Plenty of water",
+                    "Adequate sleep",
+                    "Regular exercise"
+                ],
+                "donts": [
+                    "Too much stress",
+                    "Sleep deprivation"
+                ]
+            }
+        }
+    },
+    "cycle_base_ttc": {
+        "menstruation": {
+            "fa": {
+                "short": "سیکل جدید، فرصت جدید",
+                "long": "شروع یک سیکل جدید به معنی یک شانس تازه برای بارداری است. از این زمان برای استراحت و آماده‌سازی بدنت استفاده کن.",
+                "action": "ویتامین‌های قبل از بارداری رو ادامه بده",
+                "dos": [
+                    "مصرف فولیک اسید",
+                    "استراحت کافی",
+                    "آب فراوان"
+                ],
+                "donts": [
+                    "الکل",
+                    "سیگار",
+                    "استرس زیاد"
+                ],
+                "ttc_tips": [
+                    "این زمان خوبی برای بررسی سلامت کلی است",
+                    "با پزشک مشورت کنید"
+                ]
+            },
+            "en": {
+                "short": "New cycle, new opportunity",
+                "long": "A new cycle means a fresh chance for pregnancy. Use this time to rest and prepare your body.",
+                "action": "Continue prenatal vitamins",
+                "dos": [
+                    "Take folic acid",
+                    "Get enough rest",
+                    "Drink plenty of water"
+                ],
+                "donts": [
+                    "Alcohol",
+                    "Smoking",
+                    "Too much stress"
+                ],
+                "ttc_tips": [
+                    "Good time to check overall health",
+                    "Consult with your doctor"
+                ]
+            }
+        },
+        "follicular": {
+            "fa": {
+                "short": "بدنت داره برای تخمک‌گذاری آماده می‌شه",
+                "long": "تخمدان‌ها در حال رشد فولیکول هستند. این زمان مناسبی برای افزایش فعالیت بدنی و تقویت سلامت باروری است.",
+                "action": "ورزش منظم و تغذیه سالم",
+                "dos": [
+                    "غذاهای غنی از آنتی‌اکسیدان",
+                    "ورزش متوسط",
+                    "خواب ۸ ساعته"
+                ],
+                "donts": [
+                    "استرس",
+                    "غذاهای فرآوری شده",
+                    "کم‌خوابی"
+                ],
+                "ttc_tips": [
+                    "تست تخمک‌گذاری رو از چند روز دیگه شروع کن",
+                    "روابط زناشویی رو از الان برنامه‌ریزی کن"
+                ]
+            },
+            "en": {
+                "short": "Your body is preparing for ovulation",
+                "long": "Ovaries are growing follicles. Good time to increase physical activity and strengthen fertility health.",
+                "action": "Regular exercise and healthy nutrition",
+                "dos": [
+                    "Antioxidant-rich foods",
+                    "Moderate exercise",
+                    "8 hours sleep"
+                ],
+                "donts": [
+                    "Stress",
+                    "Processed foods",
+                    "Sleep deprivation"
+                ],
+                "ttc_tips": [
+                    "Start ovulation tests in a few days",
+                    "Plan intimacy from now"
+                ]
+            }
+        },
+        "ovulation": {
+            "fa": {
+                "short": "🎯 پنجره باروری! بهترین زمان برای باردار شدن",
+                "long": "تخمک‌گذاری در حال وقوع است یا به زودی اتفاق می‌افته. این ۴۸-۷۲ ساعت بهترین شانس برای باردار شدن است.",
+                "action": "رابطه زناشویی در این ۲-۳ روز",
+                "dos": [
+                    "رابطه هر ۱-۲ روز",
+                    "آرامش و لذت",
+                    "پوزیشن‌های مناسب"
+                ],
+                "donts": [
+                    "استرس و فشار",
+                    "روان‌کننده‌های معمولی",
+                    "حمام داغ طولانی"
+                ],
+                "ttc_tips": [
+                    "بعد از رابطه ۱۵ دقیقه دراز بکش",
+                    "از روان‌کننده‌های fertility-friendly استفاده کن",
+                    "تست تخمک‌گذاری مثبت = بهترین زمان"
+                ]
+            },
+            "en": {
+                "short": "🎯 Fertile window! Best time to conceive",
+                "long": "Ovulation is happening or will happen soon. This 48-72 hours is your best chance to conceive.",
+                "action": "Intimacy in these 2-3 days",
+                "dos": [
+                    "Intimacy every 1-2 days",
+                    "Relaxation and enjoyment",
+                    "Suitable positions"
+                ],
+                "donts": [
+                    "Stress and pressure",
+                    "Regular lubricants",
+                    "Long hot baths"
+                ],
+                "ttc_tips": [
+                    "Lie down 15 minutes after intimacy",
+                    "Use fertility-friendly lubricants",
+                    "Positive OPK = best time"
+                ]
+            }
+        },
+        "luteal": {
+            "fa": {
+                "short": "زمان انتظار و امید",
+                "long": "اگر لقاح اتفاق افتاده باشه، الان جنین داره به رحم سفر می‌کنه. آرامش و صبر کلید این دوره است.",
+                "action": "آرامش و امیدواری",
+                "dos": [
+                    "ادامه فولیک اسید",
+                    "استرس کم",
+                    "خواب کافی",
+                    "غذای سالم"
+                ],
+                "donts": [
+                    "تست بارداری زودهنگام",
+                    "استرس زیاد",
+                    "ورزش سنگین",
+                    "الکل و سیگار"
+                ],
+                "ttc_tips": [
+                    "تست بارداری از روز ۱۲ پس از تخمک‌گذاری",
+                    "علائم اولیه بارداری ممکنه شبیه PMS باشن",
+                    "صبور باش و امیدوار"
+                ]
+            },
+            "en": {
+                "short": "Time for waiting and hope",
+                "long": "If fertilization happened, the embryo is traveling to the uterus now. Calm and patience are key.",
+                "action": "Calm and hopeful",
+                "dos": [
+                    "Continue folic acid",
+                    "Low stress",
+                    "Adequate sleep",
+                    "Healthy food"
+                ],
+                "donts": [
+                    "Early pregnancy test",
+                    "Too much stress",
+                    "Heavy exercise",
+                    "Alcohol and smoking"
+                ],
+                "ttc_tips": [
+                    "Pregnancy test from day 12 post-ovulation",
+                    "Early pregnancy symptoms may be similar to PMS",
+                    "Be patient and hopeful"
+                ]
+            }
+        },
+        "default": {
+            "fa": {
+                "short": "در مسیر بارداری",
+                "long": "هر روز فرصتی برای مراقبت از سلامت باروری است.",
+                "action": "سبک زندگی سالم",
+                "dos": [
+                    "فولیک اسید",
+                    "ورزش منظم",
+                    "تغذیه سالم"
+                ],
+                "donts": [
+                    "الکل",
+                    "سیگار",
+                    "استرس"
+                ],
+                "ttc_tips": []
+            },
+            "en": {
+                "short": "On the path to pregnancy",
+                "long": "Every day is an opportunity to care for your fertility health.",
+                "action": "Healthy lifestyle",
+                "dos": [
+                    "Folic acid",
+                    "Regular exercise",
+                    "Healthy nutrition"
+                ],
+                "donts": [
+                    "Alcohol",
+                    "Smoking",
+                    "Stress"
+                ],
+                "ttc_tips": []
+            }
+        }
+    },
+    "cycle_override": {
+        "pain": {
+            "fa": {
+                "message": "متوجه درد هستیم. اول از همه به خودت برس.",
+                "action": "کمپرس گرم و استراحت",
+                "dos": [
+                    "کمپرس گرم",
+                    "چای زنجبیل",
+                    "ماساژ ملایم",
+                    "مسکن در صورت نیاز"
+                ],
+                "donts": [
+                    "فعالیت سنگین",
+                    "غذاهای سرد",
+                    "استرس"
+                ]
+            },
+            "en": {
+                "message": "We notice you're in pain. Take care of yourself first.",
+                "action": "Warm compress and rest",
+                "dos": [
+                    "Warm compress",
+                    "Ginger tea",
+                    "Gentle massage",
+                    "Pain relief if needed"
+                ],
+                "donts": [
+                    "Heavy activity",
+                    "Cold foods",
+                    "Stress"
+                ]
+            }
+        },
+        "mood_sad": {
+            "fa": {
+                "message": "احساسات منفی طبیعی هستن. با خودت مهربان باش.",
+                "action": "با یک دوست صحبت کن یا پیاده‌روی کن",
+                "dos": [
+                    "صحبت با دوست",
+                    "پیاده‌روی در طبیعت",
+                    "موسیقی آرام",
+                    "نور آفتاب"
+                ],
+                "donts": [
+                    "انزوا",
+                    "شبکه‌های اجتماعی زیاد",
+                    "قهوه زیاد"
+                ]
+            },
+            "en": {
+                "message": "Negative feelings are normal. Be kind to yourself.",
+                "action": "Talk to a friend or take a walk",
+                "dos": [
+                    "Talk to a friend",
+                    "Walk in nature",
+                    "Calm music",
+                    "Sunlight"
+                ],
+                "donts": [
+                    "Isolation",
+                    "Too much social media",
+                    "Too much coffee"
+                ]
+            }
+        },
+        "mood_angry": {
+            "fa": {
+                "message": "عصبانیت هم بخشی از چرخه هورمونی است.",
+                "action": "تنفس عمیق و فاصله گرفتن",
+                "dos": [
+                    "تنفس عمیق",
+                    "ورزش",
+                    "نوشتن احساسات",
+                    "فاصله گرفتن"
+                ],
+                "donts": [
+                    "تصمیم‌گیری مهم",
+                    "بحث کردن",
+                    "کافئین"
+                ]
+            },
+            "en": {
+                "message": "Anger is also part of the hormonal cycle.",
+                "action": "Deep breathing and taking distance",
+                "dos": [
+                    "Deep breathing",
+                    "Exercise",
+                    "Write feelings",
+                    "Take distance"
+                ],
+                "donts": [
+                    "Important decisions",
+                    "Arguments",
+                    "Caffeine"
+                ]
+            }
+        },
+        "heavy_flow": {
+            "fa": {
+                "message": "خونریزی شدید می‌تونه خسته‌کننده باشه. آهن بیشتر مصرف کن.",
+                "action": "غذاهای غنی از آهن و استراحت",
+                "dos": [
+                    "گوشت قرمز",
+                    "اسفناج",
+                    "ویتامین C",
+                    "آب فراوان"
+                ],
+                "donts": [
+                    "چای و قهوه با غذا",
+                    "ورزش سنگین"
+                ]
+            },
+            "en": {
+                "message": "Heavy flow can be tiring. Consume more iron.",
+                "action": "Iron-rich foods and rest",
+                "dos": [
+                    "Red meat",
+                    "Spinach",
+                    "Vitamin C",
+                    "Plenty of water"
+                ],
+                "donts": [
+                    "Tea and coffee with meals",
+                    "Heavy exercise"
+                ]
+            }
+        },
+        "low_energy": {
+            "fa": {
+                "message": "انرژی کم طبیعیه. به بدنت گوش بده.",
+                "action": "استراحت کوتاه و میان‌وعده سالم",
+                "dos": [
+                    "استراحت کوتاه",
+                    "میوه و آجیل",
+                    "آب",
+                    "پیاده‌روی کوتاه"
+                ],
+                "donts": [
+                    "قهوه زیاد",
+                    "شیرینی",
+                    "کار سنگین"
+                ]
+            },
+            "en": {
+                "message": "Low energy is normal. Listen to your body.",
+                "action": "Short rest and healthy snack",
+                "dos": [
+                    "Short rest",
+                    "Fruit and nuts",
+                    "Water",
+                    "Short walk"
+                ],
+                "donts": [
+                    "Too much coffee",
+                    "Sweets",
+                    "Heavy work"
+                ]
+            }
+        },
+        "bloating": {
+            "fa": {
+                "message": "نفخ یکی از علائم شایع هورمونی است.",
+                "action": "چای نعناع و پیاده‌روی",
+                "dos": [
+                    "چای نعناع",
+                    "پیاده‌روی",
+                    "غذای کم نمک",
+                    "آب فراوان"
+                ],
+                "donts": [
+                    "نوشابه",
+                    "غذای شور",
+                    "لبنیات زیاد"
+                ]
+            },
+            "en": {
+                "message": "Bloating is a common hormonal symptom.",
+                "action": "Peppermint tea and walking",
+                "dos": [
+                    "Peppermint tea",
+                    "Walking",
+                    "Low-salt food",
+                    "Plenty of water"
+                ],
+                "donts": [
+                    "Soda",
+                    "Salty food",
+                    "Too much dairy"
+                ]
+            }
+        },
+        "acne": {
+            "fa": {
+                "message": "جوش‌های هورمونی موقتی هستن.",
+                "action": "پاکسازی ملایم پوست",
+                "dos": [
+                    "شستشوی ملایم",
+                    "آب فراوان",
+                    "میوه و سبزی"
+                ],
+                "donts": [
+                    "دست زدن به صورت",
+                    "شیرینی زیاد",
+                    "آرایش سنگین"
+                ]
+            },
+            "en": {
+                "message": "Hormonal acne is temporary.",
+                "action": "Gentle skin cleansing",
+                "dos": [
+                    "Gentle washing",
+                    "Plenty of water",
+                    "Fruits and vegetables"
+                ],
+                "donts": [
+                    "Touching face",
+                    "Too much sugar",
+                    "Heavy makeup"
+                ]
+            }
+        }
+    },
+    "pregnancy_trimester": {
+        "1": {
+            "fa": {
+                "short": "سه‌ماهه اول: زمان تشکیل پایه‌ها",
+                "long": "در این دوره، اندام‌های حیاتی نوزاد در حال شکل‌گیری هستند. استراحت کافی و تغذیه سالم بسیار مهم است.",
+                "action": "فولیک اسید و ویتامین‌های قبل از زایمان را مصرف کنید",
+                "dos": [
+                    "فولیک اسید",
+                    "استراحت کافی",
+                    "غذاهای کوچک و مکرر",
+                    "آب فراوان"
+                ],
+                "donts": [
+                    "الکل",
+                    "سیگار",
+                    "غذاهای خام",
+                    "داروهای بدون مشورت پزشک"
+                ]
+            },
+            "en": {
+                "short": "First Trimester: Foundation building time",
+                "long": "During this period, vital organs are forming. Adequate rest and healthy nutrition are crucial.",
+                "action": "Take folic acid and prenatal vitamins",
+                "dos": [
+                    "Folic acid",
+                    "Adequate rest",
+                    "Small frequent meals",
+                    "Plenty of water"
+                ],
+                "donts": [
+                    "Alcohol",
+                    "Smoking",
+                    "Raw foods",
+                    "Medications without doctor consultation"
+                ]
+            }
+        },
+        "2": {
+            "fa": {
+                "short": "سه‌ماهه دوم: دوران طلایی بارداری",
+                "long": "انرژی برگشته و تهوع‌ها کمتر شده. زمان مناسبی برای ورزش ملایم و لذت بردن از بارداری است.",
+                "action": "شنا یا یوگای بارداری را امتحان کنید",
+                "dos": [
+                    "ورزش ملایم",
+                    "پروتئین کافی",
+                    "آهن و کلسیم",
+                    "سونوگرافی آنومالی"
+                ],
+                "donts": [
+                    "دراز کشیدن به پشت طولانی",
+                    "ورزش سنگین",
+                    "سونا و جکوزی"
+                ]
+            },
+            "en": {
+                "short": "Second Trimester: Golden period of pregnancy",
+                "long": "Energy is back and nausea is less. Good time for gentle exercise and enjoying pregnancy.",
+                "action": "Try swimming or prenatal yoga",
+                "dos": [
+                    "Gentle exercise",
+                    "Adequate protein",
+                    "Iron and calcium",
+                    "Anomaly ultrasound"
+                ],
+                "donts": [
+                    "Lying on back for long",
+                    "Heavy exercise",
+                    "Sauna and jacuzzi"
+                ]
+            }
+        },
+        "3": {
+            "fa": {
+                "short": "سه‌ماهه سوم: آماده‌سازی برای ملاقات",
+                "long": "نوزاد در حال رشد نهایی است و شما برای زایمان آماده می‌شوید. استراحت و آمادگی ذهنی مهم است.",
+                "action": "کلاس آمادگی زایمان و ساک بیمارستان",
+                "dos": [
+                    "شمارش حرکات جنین",
+                    "استراحت کافی",
+                    "تمرینات تنفسی",
+                    "آماده‌سازی وسایل نوزاد"
+                ],
+                "donts": [
+                    "ایستادن طولانی",
+                    "بلند کردن اجسام سنگین",
+                    "مسافرت طولانی"
+                ]
+            },
+            "en": {
+                "short": "Third Trimester: Preparing for the meeting",
+                "long": "Baby is in final growth and you are preparing for delivery. Rest and mental preparation are important.",
+                "action": "Birth preparation class and hospital bag",
+                "dos": [
+                    "Count fetal movements",
+                    "Adequate rest",
+                    "Breathing exercises",
+                    "Prepare baby supplies"
+                ],
+                "donts": [
+                    "Standing for long",
+                    "Lifting heavy objects",
+                    "Long travels"
+                ]
+            }
+        }
+    },
+    "pregnancy_week": {
+        "4": {
+            "fa": {
+                "short": "جنین به دیواره رحم چسبیده است",
+                "baby": "جنین به اندازه دانه خشخاش است",
+                "body": "ممکن است لکه‌بینی خفیف داشته باشید"
+            },
+            "en": {
+                "short": "Embryo has implanted",
+                "baby": "Embryo is poppy seed sized",
+                "body": "You may have light spotting"
+            }
+        },
+        "8": {
+            "fa": {
+                "short": "قلب نوزاد شروع به تپیدن کرده",
+                "baby": "قلب با ۱۵۰-۱۷۰ ضربه در دقیقه می‌تپد",
+                "body": "تهوع صبحگاهی در اوج است"
+            },
+            "en": {
+                "short": "Baby's heart has started beating",
+                "baby": "Heart beats 150-170 per minute",
+                "body": "Morning sickness is at its peak"
+            }
+        },
+        "12": {
+            "fa": {
+                "short": "پایان سه‌ماهه اول",
+                "baby": "اندام‌های حیاتی شکل گرفته‌اند",
+                "body": "تهوع کمتر می‌شود"
+            },
+            "en": {
+                "short": "End of first trimester",
+                "baby": "Vital organs have formed",
+                "body": "Nausea is decreasing"
+            }
+        },
+        "20": {
+            "fa": {
+                "short": "نیمه راه! سونوگرافی آنومالی",
+                "baby": "می‌توانید جنسیت را بدانید",
+                "body": "حرکات جنین را احساس می‌کنید"
+            },
+            "en": {
+                "short": "Halfway! Anomaly scan",
+                "baby": "You can know the gender",
+                "body": "You feel fetal movements"
+            }
+        },
+        "28": {
+            "fa": {
+                "short": "شروع سه‌ماهه سوم",
+                "baby": "چشم‌ها باز می‌شوند",
+                "body": "ممکن است انقباضات تمرینی داشته باشید"
+            },
+            "en": {
+                "short": "Start of third trimester",
+                "baby": "Eyes are opening",
+                "body": "You may have practice contractions"
+            }
+        },
+        "36": {
+            "fa": {
+                "short": "نوزاد در حال آماده شدن است",
+                "baby": "ریه‌ها تقریباً کامل شده‌اند",
+                "body": "نوزاد به سمت پایین می‌چرخد"
+            },
+            "en": {
+                "short": "Baby is getting ready",
+                "baby": "Lungs are almost complete",
+                "body": "Baby turns head down"
+            }
+        },
+        "40": {
+            "fa": {
+                "short": "موعد مقرر! آماده ملاقات باشید",
+                "baby": "نوزاد آماده تولد است",
+                "body": "علائم زایمان را بشناسید"
+            },
+            "en": {
+                "short": "Due date! Be ready to meet",
+                "baby": "Baby is ready to be born",
+                "body": "Know the signs of labor"
+            }
+        }
+    },
+    "pregnancy_override": {
+        "nausea": {
+            "fa": {
+                "label": "تهوع",
+                "message": "تهوع بارداری ناراحت‌کننده است اما معمولاً نشانه بارداری سالم است.",
+                "action": "غذاهای کوچک و مکرر، زنجبیل",
+                "dos": [
+                    "غذای کوچک قبل از بلند شدن",
+                    "زنجبیل",
+                    "لیمو",
+                    "غذاهای خشک"
+                ],
+                "donts": [
+                    "بوی قوی",
+                    "غذای چرب",
+                    "معده خالی"
+                ]
+            },
+            "en": {
+                "label": "Nausea",
+                "message": "Pregnancy nausea is uncomfortable but usually a sign of healthy pregnancy.",
+                "action": "Small frequent meals, ginger",
+                "dos": [
+                    "Small meal before getting up",
+                    "Ginger",
+                    "Lemon",
+                    "Dry foods"
+                ],
+                "donts": [
+                    "Strong smells",
+                    "Fatty food",
+                    "Empty stomach"
+                ]
+            }
+        },
+        "fatigue": {
+            "fa": {
+                "label": "خستگی",
+                "message": "خستگی در بارداری طبیعی است. بدن شما سخت کار می‌کند.",
+                "action": "استراحت بیشتر و خواب کافی",
+                "dos": [
+                    "چرت کوتاه",
+                    "خواب زود",
+                    "آهن کافی"
+                ],
+                "donts": [
+                    "بی‌خوابی",
+                    "کار زیاد",
+                    "استرس"
+                ]
+            },
+            "en": {
+                "label": "Fatigue",
+                "message": "Fatigue in pregnancy is normal. Your body is working hard.",
+                "action": "More rest and adequate sleep",
+                "dos": [
+                    "Short naps",
+                    "Early sleep",
+                    "Adequate iron"
+                ],
+                "donts": [
+                    "Sleep deprivation",
+                    "Overwork",
+                    "Stress"
+                ]
+            }
+        },
+        "backache": {
+            "fa": {
+                "label": "کمردرد",
+                "message": "کمردرد با رشد شکم شایع می‌شود. وضعیت بدنی درست کمک می‌کند.",
+                "action": "کمربند بارداری و تمرینات کششی",
+                "dos": [
+                    "کمربند بارداری",
+                    "شنا",
+                    "ماساژ",
+                    "کفش راحت"
+                ],
+                "donts": [
+                    "کفش پاشنه بلند",
+                    "ایستادن طولانی",
+                    "بلند کردن سنگین"
+                ]
+            },
+            "en": {
+                "label": "Back Pain",
+                "message": "Back pain becomes common as belly grows. Good posture helps.",
+                "action": "Pregnancy belt and stretching exercises",
+                "dos": [
+                    "Pregnancy belt",
+                    "Swimming",
+                    "Massage",
+                    "Comfortable shoes"
+                ],
+                "donts": [
+                    "High heels",
+                    "Standing long",
+                    "Heavy lifting"
+                ]
+            }
+        },
+        "anxiety": {
+            "fa": {
+                "label": "اضطراب",
+                "message": "اضطراب در بارداری شایع است. صحبت کردن کمک می‌کند.",
+                "action": "تنفس عمیق و صحبت با کسی",
+                "dos": [
+                    "تنفس عمیق",
+                    "یوگا",
+                    "صحبت با همسر",
+                    "کلاس آمادگی"
+                ],
+                "donts": [
+                    "خبرهای منفی",
+                    "انزوا",
+                    "کافئین زیاد"
+                ]
+            },
+            "en": {
+                "label": "Anxiety",
+                "message": "Anxiety in pregnancy is common. Talking helps.",
+                "action": "Deep breathing and talking to someone",
+                "dos": [
+                    "Deep breathing",
+                    "Yoga",
+                    "Talk to partner",
+                    "Preparation class"
+                ],
+                "donts": [
+                    "Negative news",
+                    "Isolation",
+                    "Too much caffeine"
+                ]
+            }
+        }
+    },
+    "pregnancy_base": {
+        "default": {
+            "fa": {
+                "short": "به دوران بارداری خوش آمدید",
+                "long": "برای دریافت پیام‌های شخصی‌سازی شده، لطفاً اطلاعات بارداری را تکمیل کنید.",
+                "action": "پروفایل بارداری را تکمیل کنید"
+            },
+            "en": {
+                "short": "Welcome to your pregnancy journey",
+                "long": "Please complete your pregnancy information to receive personalized messages.",
+                "action": "Complete your pregnancy profile"
+            }
+        }
+    },
+    "nutrition_cycle": {
+        "menstruation": {
+            "fa": {
+                "focus": "جبران آهن و ضدالتهاب",
+                "foods": [
+                    "گوشت قرمز",
+                    "اسفناج",
+                    "عدس",
+                    "ماهی",
+                    "شکلات تلخ"
+                ],
+                "avoid": [
+                    "غذاهای شور",
+                    "کافئین زیاد",
+                    "الکل"
+                ],
+                "tip": "ویتامین C همراه آهن جذب را افزایش می‌دهد"
+            },
+            "en": {
+                "focus": "Iron replenishment and anti-inflammatory",
+                "foods": [
+                    "Red meat",
+                    "Spinach",
+                    "Lentils",
+                    "Fish",
+                    "Dark chocolate"
+                ],
+                "avoid": [
+                    "Salty foods",
+                    "Too much caffeine",
+                    "Alcohol"
+                ],
+                "tip": "Vitamin C with iron increases absorption"
+            }
+        },
+        "follicular": {
+            "fa": {
+                "focus": "پروتئین و سبزیجات تازه",
+                "foods": [
+                    "تخم‌مرغ",
+                    "مرغ",
+                    "کینوا",
+                    "سبزیجات برگ‌سبز",
+                    "آووکادو"
+                ],
+                "avoid": [
+                    "فست‌فود",
+                    "غذاهای فرآوری شده"
+                ],
+                "tip": "بدن آماده رشد است، پروتئین کافی بخور"
+            },
+            "en": {
+                "focus": "Protein and fresh vegetables",
+                "foods": [
+                    "Eggs",
+                    "Chicken",
+                    "Quinoa",
+                    "Leafy greens",
+                    "Avocado"
+                ],
+                "avoid": [
+                    "Fast food",
+                    "Processed foods"
+                ],
+                "tip": "Body is ready for growth, eat enough protein"
+            }
+        },
+        "ovulation": {
+            "fa": {
+                "focus": "آنتی‌اکسیدان و چربی سالم",
+                "foods": [
+                    "توت‌ها",
+                    "آجیل",
+                    "روغن زیتون",
+                    "ماهی سالمون",
+                    "سبزیجات رنگی"
+                ],
+                "avoid": [
+                    "قند زیاد",
+                    "چربی ترانس"
+                ],
+                "tip": "استروژن در اوج است، از آنتی‌اکسیدان‌ها استفاده کن"
+            },
+            "en": {
+                "focus": "Antioxidants and healthy fats",
+                "foods": [
+                    "Berries",
+                    "Nuts",
+                    "Olive oil",
+                    "Salmon",
+                    "Colorful vegetables"
+                ],
+                "avoid": [
+                    "Too much sugar",
+                    "Trans fats"
+                ],
+                "tip": "Estrogen is at peak, use antioxidants"
+            }
+        },
+        "luteal": {
+            "fa": {
+                "focus": "کربوهیدرات پیچیده و منیزیم",
+                "foods": [
+                    "جو",
+                    "نخود",
+                    "موز",
+                    "بادام",
+                    "شکلات تلخ"
+                ],
+                "avoid": [
+                    "نمک زیاد",
+                    "شکر",
+                    "کافئین"
+                ],
+                "tip": "منیزیم به کاهش علائم PMS کمک می‌کند"
+            },
+            "en": {
+                "focus": "Complex carbs and magnesium",
+                "foods": [
+                    "Oats",
+                    "Chickpeas",
+                    "Banana",
+                    "Almonds",
+                    "Dark chocolate"
+                ],
+                "avoid": [
+                    "Too much salt",
+                    "Sugar",
+                    "Caffeine"
+                ],
+                "tip": "Magnesium helps reduce PMS symptoms"
+            }
+        }
+    },
+    "nutrition_ttc": {
+        "base": {
+            "fa": {
+                "essential": [
+                    "فولیک اسید ۴۰۰mcg روزانه",
+                    "اسیدهای چرب امگا-۳",
+                    "آنتی‌اکسیدان‌ها"
+                ],
+                "foods": [
+                    "سبزیجات برگ‌سبز تیره",
+                    "ماهی‌های چرب",
+                    "تخم‌مرغ",
+                    "آجیل و دانه‌ها"
+                ],
+                "avoid": [
+                    "الکل",
+                    "کافئین بیش از ۲۰۰mg",
+                    "ماهی با جیوه بالا"
+                ],
+                "fertile_window_tip": "هیدراتاسیون کافی برای مخاط دهانه رحم مهم است"
+            },
+            "en": {
+                "essential": [
+                    "Folic acid 400mcg daily",
+                    "Omega-3 fatty acids",
+                    "Antioxidants"
+                ],
+                "foods": [
+                    "Dark leafy greens",
+                    "Fatty fish",
+                    "Eggs",
+                    "Nuts and seeds"
+                ],
+                "avoid": [
+                    "Alcohol",
+                    "Caffeine over 200mg",
+                    "High mercury fish"
+                ],
+                "fertile_window_tip": "Adequate hydration is important for cervical mucus"
+            }
+        }
+    },
+    "nutrition_symptom": {
+        "cramps": {
+            "fa": {
+                "tip": "منیزیم (موز، بادام)، زنجبیل و چای بابونه"
+            },
+            "en": {
+                "tip": "Magnesium (banana, almonds), ginger and chamomile tea"
+            }
+        },
+        "bloating": {
+            "fa": {
+                "tip": "کاهش نمک، چای نعناع، خیار و هندوانه"
+            },
+            "en": {
+                "tip": "Reduce salt, peppermint tea, cucumber and watermelon"
+            }
+        },
+        "fatigue": {
+            "fa": {
+                "tip": "آهن (گوشت، اسفناج)، ویتامین B12، آب کافی"
+            },
+            "en": {
+                "tip": "Iron (meat, spinach), vitamin B12, enough water"
+            }
+        },
+        "headache": {
+            "fa": {
+                "tip": "آب فراوان، منیزیم، اجتناب از قند و کافئین زیاد"
+            },
+            "en": {
+                "tip": "Plenty of water, magnesium, avoid sugar and too much caffeine"
+            }
+        }
+    },
+    "nutrition_trimester": {
+        "1": {
+            "fa": {
+                "focus": "فولیک اسید و مدیریت تهوع",
+                "essential": [
+                    "فولیک اسید ۶۰۰mcg",
+                    "ویتامین D",
+                    "آهن"
+                ],
+                "foods": [
+                    "غذاهای کوچک و مکرر",
+                    "کراکر خشک",
+                    "زنجبیل",
+                    "لیمو",
+                    "پروتئین"
+                ],
+                "avoid": [
+                    "ماهی خام",
+                    "گوشت نپخته",
+                    "پنیرهای نرم",
+                    "الکل",
+                    "کافئین زیاد"
+                ],
+                "tip": "برای تهوع، قبل از بلند شدن از تخت کراکر بخورید"
+            },
+            "en": {
+                "focus": "Folic acid and nausea management",
+                "essential": [
+                    "Folic acid 600mcg",
+                    "Vitamin D",
+                    "Iron"
+                ],
+                "foods": [
+                    "Small frequent meals",
+                    "Dry crackers",
+                    "Ginger",
+                    "Lemon",
+                    "Protein"
+                ],
+                "avoid": [
+                    "Raw fish",
+                    "Undercooked meat",
+                    "Soft cheeses",
+                    "Alcohol",
+                    "Too much caffeine"
+                ],
+                "tip": "For nausea, eat crackers before getting out of bed"
+            }
+        },
+        "2": {
+            "fa": {
+                "focus": "کلسیم، آهن و پروتئین",
+                "essential": [
+                    "کلسیم ۱۰۰۰mg",
+                    "آهن ۲۷mg",
+                    "پروتئین ۷۵g"
+                ],
+                "foods": [
+                    "لبنیات",
+                    "گوشت قرمز",
+                    "مرغ",
+                    "ماهی",
+                    "حبوبات",
+                    "میوه و سبزی"
+                ],
+                "avoid": [
+                    "غذاهای فرآوری شده",
+                    "قند زیاد",
+                    "نمک زیاد"
+                ],
+                "tip": "نوزاد در حال رشد سریع است، کالری و پروتئین بیشتر نیاز دارید"
+            },
+            "en": {
+                "focus": "Calcium, iron and protein",
+                "essential": [
+                    "Calcium 1000mg",
+                    "Iron 27mg",
+                    "Protein 75g"
+                ],
+                "foods": [
+                    "Dairy",
+                    "Red meat",
+                    "Chicken",
+                    "Fish",
+                    "Legumes",
+                    "Fruits and vegetables"
+                ],
+                "avoid": [
+                    "Processed foods",
+                    "Too much sugar",
+                    "Too much salt"
+                ],
+                "tip": "Baby is growing fast, you need more calories and protein"
+            }
+        },
+        "3": {
+            "fa": {
+                "focus": "امگا-۳ و آماده‌سازی شیردهی",
+                "essential": [
+                    "امگا-۳ (DHA)",
+                    "کلسیم",
+                    "ویتامین K"
+                ],
+                "foods": [
+                    "ماهی سالمون",
+                    "گردو",
+                    "سبزیجات برگ‌سبز",
+                    "تخم‌مرغ"
+                ],
+                "avoid": [
+                    "غذاهای زیاد حجم",
+                    "نمک زیاد (ورم)"
+                ],
+                "tip": "غذاهای کوچک‌تر و مکرر برای فضای کم معده"
+            },
+            "en": {
+                "focus": "Omega-3 and breastfeeding prep",
+                "essential": [
+                    "Omega-3 (DHA)",
+                    "Calcium",
+                    "Vitamin K"
+                ],
+                "foods": [
+                    "Salmon",
+                    "Walnuts",
+                    "Leafy greens",
+                    "Eggs"
+                ],
+                "avoid": [
+                    "Large volume meals",
+                    "Too much salt (swelling)"
+                ],
+                "tip": "Smaller and more frequent meals for limited stomach space"
+            }
+        }
+    },
+    "sleep_cycle": {
+        "menstruation": {
+            "fa": {
+                "recommended_hours": "8-9",
+                "quality_focus": "استراحت بیشتر",
+                "tips": [
+                    "خواب بیشتر نیاز است",
+                    "کمپرس گرم برای کرامپ",
+                    "اتاق خنک"
+                ],
+                "avoid": [
+                    "کافئین بعد از ظهر",
+                    "گوشی قبل خواب"
+                ]
+            },
+            "en": {
+                "recommended_hours": "8-9",
+                "quality_focus": "More rest",
+                "tips": [
+                    "More sleep is needed",
+                    "Warm compress for cramps",
+                    "Cool room"
+                ],
+                "avoid": [
+                    "Caffeine after noon",
+                    "Phone before bed"
+                ]
+            }
+        },
+        "follicular": {
+            "fa": {
+                "recommended_hours": "7-8",
+                "quality_focus": "خواب بهینه",
+                "tips": [
+                    "خواب عمیق‌تر در این فاز",
+                    "زمان مناسب برای تنظیم ساعت خواب"
+                ],
+                "avoid": [
+                    "بی‌خوابی",
+                    "ساعت خواب نامنظم"
+                ]
+            },
+            "en": {
+                "recommended_hours": "7-8",
+                "quality_focus": "Optimal sleep",
+                "tips": [
+                    "Deeper sleep in this phase",
+                    "Good time to set sleep schedule"
+                ],
+                "avoid": [
+                    "Sleep deprivation",
+                    "Irregular sleep schedule"
+                ]
+            }
+        },
+        "ovulation": {
+            "fa": {
+                "recommended_hours": "7-8",
+                "quality_focus": "انرژی بالا",
+                "tips": [
+                    "ممکنه کمتر خسته باشی",
+                    "از انرژی استفاده کن ولی خواب رو فراموش نکن"
+                ],
+                "avoid": [
+                    "بیدار موندن دیروقت",
+                    "از دست دادن خواب"
+                ]
+            },
+            "en": {
+                "recommended_hours": "7-8",
+                "quality_focus": "High energy",
+                "tips": [
+                    "You may feel less tired",
+                    "Use the energy but don't forget sleep"
+                ],
+                "avoid": [
+                    "Staying up late",
+                    "Missing sleep"
+                ]
+            }
+        },
+        "luteal": {
+            "fa": {
+                "recommended_hours": "8-9",
+                "quality_focus": "کیفیت خواب ممکنه کم بشه",
+                "tips": [
+                    "ممکنه بی‌خوابی داشته باشی",
+                    "منیزیم قبل خواب",
+                    "اتاق تاریک و خنک",
+                    "مدیتیشن قبل خواب"
+                ],
+                "avoid": [
+                    "صفحه نمایش قبل خواب",
+                    "غذای سنگین شب",
+                    "کافئین"
+                ]
+            },
+            "en": {
+                "recommended_hours": "8-9",
+                "quality_focus": "Sleep quality may decrease",
+                "tips": [
+                    "You may have insomnia",
+                    "Magnesium before bed",
+                    "Dark and cool room",
+                    "Meditation before bed"
+                ],
+                "avoid": [
+                    "Screen before bed",
+                    "Heavy dinner",
+                    "Caffeine"
+                ]
+            }
+        }
+    },
+    "sleep_symptom": {
+        "poor_sleep": {
+            "fa": {
+                "tip": "کیفیت خواب پایین ثبت شده. بهداشت خواب را رعایت کنید."
+            },
+            "en": {
+                "tip": "Poor sleep quality logged. Practice sleep hygiene."
+            }
+        }
+    },
+    "sleep_trimester": {
+        "1": {
+            "fa": {
+                "recommended_hours": "8-10",
+                "quality_focus": "خستگی شدید طبیعی است",
+                "tips": [
+                    "چرت‌های کوتاه در طول روز",
+                    "زود بخواب",
+                    "به بدنت گوش بده",
+                    "هورمون‌ها باعث خواب‌آلودگی می‌شن"
+                ],
+                "avoid": [
+                    "مقاومت در برابر خواب",
+                    "کار زیاد"
+                ],
+                "position": "هنوز هر پوزیشنی مناسب است"
+            },
+            "en": {
+                "recommended_hours": "8-10",
+                "quality_focus": "Extreme fatigue is normal",
+                "tips": [
+                    "Short naps during day",
+                    "Sleep early",
+                    "Listen to your body",
+                    "Hormones cause sleepiness"
+                ],
+                "avoid": [
+                    "Resisting sleep",
+                    "Overwork"
+                ],
+                "position": "Any position is still suitable"
+            }
+        },
+        "2": {
+            "fa": {
+                "recommended_hours": "8-9",
+                "quality_focus": "انرژی برگشته",
+                "tips": [
+                    "خواب بهتر از سه‌ماهه اول",
+                    "شروع عادت به خوابیدن به پهلو",
+                    "بالش بین زانوها"
+                ],
+                "avoid": [
+                    "خوابیدن به پشت طولانی"
+                ],
+                "position": "پهلوی چپ بهترین است"
+            },
+            "en": {
+                "recommended_hours": "8-9",
+                "quality_focus": "Energy is back",
+                "tips": [
+                    "Better sleep than first trimester",
+                    "Start getting used to side sleeping",
+                    "Pillow between knees"
+                ],
+                "avoid": [
+                    "Sleeping on back for long"
+                ],
+                "position": "Left side is best"
+            }
+        },
+        "3": {
+            "fa": {
+                "recommended_hours": "8-9",
+                "quality_focus": "خواب راحت سخت می‌شه",
+                "tips": [
+                    "بالش بارداری",
+                    "سر تخت بالاتر",
+                    "ادرار قبل خواب",
+                    "تنفس عمیق",
+                    "نوشیدنی کم قبل خواب"
+                ],
+                "avoid": [
+                    "خوابیدن به پشت",
+                    "مایعات زیاد قبل خواب"
+                ],
+                "position": "حتماً به پهلو بخوابید، ترجیحاً چپ"
+            },
+            "en": {
+                "recommended_hours": "8-9",
+                "quality_focus": "Comfortable sleep becomes harder",
+                "tips": [
+                    "Pregnancy pillow",
+                    "Elevated head",
+                    "Urinate before sleep",
+                    "Deep breathing",
+                    "Less fluids before bed"
+                ],
+                "avoid": [
+                    "Sleeping on back",
+                    "Too much fluids before bed"
+                ],
+                "position": "Must sleep on side, preferably left"
+            }
+        }
+    },
+    "exercise_cycle": {
+        "menstruation": {
+            "fa": {
+                "intensity": "کم تا متوسط",
+                "recommended": [
+                    "پیاده‌روی",
+                    "یوگای ریستوراتیو",
+                    "کشش ملایم",
+                    "شنا"
+                ],
+                "avoid": [
+                    "HIIT شدید",
+                    "وزنه سنگین",
+                    "وارونگی در یوگا"
+                ],
+                "tip": "به بدنت گوش بده. اگر انرژی نداری، استراحت کن.",
+                "duration": "20-30"
+            },
+            "en": {
+                "intensity": "Low to moderate",
+                "recommended": [
+                    "Walking",
+                    "Restorative yoga",
+                    "Gentle stretching",
+                    "Swimming"
+                ],
+                "avoid": [
+                    "Intense HIIT",
+                    "Heavy weights",
+                    "Inversions in yoga"
+                ],
+                "tip": "Listen to your body. If you have no energy, rest.",
+                "duration": "20-30"
+            }
+        },
+        "follicular": {
+            "fa": {
+                "intensity": "متوسط تا بالا",
+                "recommended": [
+                    "دویدن",
+                    "HIIT",
+                    "وزنه‌برداری",
+                    "دوچرخه",
+                    "رقص"
+                ],
+                "avoid": [
+                    "بی‌فعالیتی"
+                ],
+                "tip": "انرژی در اوج است! بهترین زمان برای چالش‌های جدید و رکوردشکنی.",
+                "duration": "45-60"
+            },
+            "en": {
+                "intensity": "Moderate to high",
+                "recommended": [
+                    "Running",
+                    "HIIT",
+                    "Weight training",
+                    "Cycling",
+                    "Dancing"
+                ],
+                "avoid": [
+                    "Inactivity"
+                ],
+                "tip": "Energy is at peak! Best time for new challenges and personal records.",
+                "duration": "45-60"
+            }
+        },
+        "ovulation": {
+            "fa": {
+                "intensity": "بالا",
+                "recommended": [
+                    "تمرینات قدرتی",
+                    "HIIT",
+                    "ورزش‌های گروهی",
+                    "کراس‌فیت"
+                ],
+                "avoid": [
+                    "هیچی! همه چیز خوبه"
+                ],
+                "tip": "استروژن بالاست، عضلات قوی‌تر و ریکاوری سریع‌تر.",
+                "duration": "45-60"
+            },
+            "en": {
+                "intensity": "High",
+                "recommended": [
+                    "Strength training",
+                    "HIIT",
+                    "Group sports",
+                    "CrossFit"
+                ],
+                "avoid": [
+                    "Nothing! Everything is good"
+                ],
+                "tip": "Estrogen is high, muscles are stronger and recovery is faster.",
+                "duration": "45-60"
+            }
+        },
+        "luteal": {
+            "fa": {
+                "intensity": "متوسط (کم می‌شه)",
+                "recommended": [
+                    "پیلاتس",
+                    "یوگا",
+                    "پیاده‌روی",
+                    "وزنه سبک",
+                    "شنا"
+                ],
+                "avoid": [
+                    "ورزش‌های خیلی شدید",
+                    "تمرینات طولانی"
+                ],
+                "tip": "انرژی کم‌کم کم می‌شه. ورزش ملایم به کاهش علائم PMS کمک می‌کنه.",
+                "duration": "30-45"
+            },
+            "en": {
+                "intensity": "Moderate (decreasing)",
+                "recommended": [
+                    "Pilates",
+                    "Yoga",
+                    "Walking",
+                    "Light weights",
+                    "Swimming"
+                ],
+                "avoid": [
+                    "Very intense workouts",
+                    "Long training sessions"
+                ],
+                "tip": "Energy is gradually decreasing. Light exercise helps reduce PMS symptoms.",
+                "duration": "30-45"
+            }
+        }
+    },
+    "exercise_symptom": {
+        "pain": {
+            "fa": {
+                "tip": "با توجه به درد، ورزش‌های کششی ملایم توصیه می‌شود"
+            },
+            "en": {
+                "tip": "Due to pain, gentle stretching exercises are recommended"
+            }
+        },
+        "fatigue": {
+            "fa": {
+                "tip": "با توجه به خستگی، پیاده‌روی سبک کافی است"
+            },
+            "en": {
+                "tip": "Due to fatigue, light walking is enough"
+            }
+        }
+    },
+    "exercise_ttc": {
+        "note": {
+            "fa": {
+                "tip": "ورزش متوسط برای باروری مفید است. از ورزش‌های خیلی شدید اجتناب کنید."
+            },
+            "en": {
+                "tip": "Moderate exercise is good for fertility. Avoid very intense workouts."
+            }
+        }
+    },
+    "exercise_trimester": {
+        "1": {
+            "fa": {
+                "intensity": "کم تا متوسط",
+                "recommended": [
+                    "پیاده‌روی",
+                    "شنا",
+                    "یوگای بارداری",
+                    "تمرینات کگل"
+                ],
+                "avoid": [
+                    "ورزش‌های پرخطر",
+                    "ورزش‌های تماسی",
+                    "وزنه سنگین",
+                    "غوص"
+                ],
+                "tip": "اگر قبلاً ورزش می‌کردید، می‌توانید با شدت کمتر ادامه دهید. با پزشک مشورت کنید.",
+                "duration": "20-30",
+                "precautions": [
+                    "گرم‌کردن حتماً",
+                    "آب فراوان",
+                    "اجتناب از گرمازدگی"
+                ]
+            },
+            "en": {
+                "intensity": "Low to moderate",
+                "recommended": [
+                    "Walking",
+                    "Swimming",
+                    "Prenatal yoga",
+                    "Kegel exercises"
+                ],
+                "avoid": [
+                    "High-risk sports",
+                    "Contact sports",
+                    "Heavy weights",
+                    "Scuba diving"
+                ],
+                "tip": "If you were exercising before, you can continue with less intensity. Consult your doctor.",
+                "duration": "20-30",
+                "precautions": [
+                    "Always warm up",
+                    "Plenty of water",
+                    "Avoid overheating"
+                ]
+            }
+        },
+        "2": {
+            "fa": {
+                "intensity": "متوسط",
+                "recommended": [
+                    "شنا",
+                    "پیاده‌روی",
+                    "یوگای بارداری",
+                    "پیلاتس بارداری",
+                    "دوچرخه ثابت"
+                ],
+                "avoid": [
+                    "دراز کشیدن به پشت طولانی",
+                    "حرکات پرشی",
+                    "ورزش در گرما"
+                ],
+                "tip": "دوران طلایی! انرژی برگشته. از ورزش لذت ببرید اما محتاط باشید.",
+                "duration": "30-45",
+                "precautions": [
+                    "مرکز ثقل تغییر کرده",
+                    "تعادل ممکنه کم شده باشه"
+                ]
+            },
+            "en": {
+                "intensity": "Moderate",
+                "recommended": [
+                    "Swimming",
+                    "Walking",
+                    "Prenatal yoga",
+                    "Prenatal pilates",
+                    "Stationary bike"
+                ],
+                "avoid": [
+                    "Lying on back for long",
+                    "Jumping movements",
+                    "Exercise in heat"
+                ],
+                "tip": "Golden period! Energy is back. Enjoy exercise but be cautious.",
+                "duration": "30-45",
+                "precautions": [
+                    "Center of gravity has changed",
+                    "Balance may be reduced"
+                ]
+            }
+        },
+        "3": {
+            "fa": {
+                "intensity": "کم",
+                "recommended": [
+                    "پیاده‌روی",
+                    "شنا",
+                    "یوگای ملایم",
+                    "کشش",
+                    "تمرینات تنفسی",
+                    "کگل"
+                ],
+                "avoid": [
+                    "هر چیزی که ریسک افتادن داره",
+                    "ورزش‌های شدید",
+                    "بلند کردن وزنه"
+                ],
+                "tip": "تمرکز روی آمادگی زایمان. تمرینات تنفسی و کگل مهم هستند.",
+                "duration": "20-30",
+                "precautions": [
+                    "شکم بزرگ تعادل را تغییر داده",
+                    "مفاصل شل‌تر شده‌اند"
+                ]
+            },
+            "en": {
+                "intensity": "Low",
+                "recommended": [
+                    "Walking",
+                    "Swimming",
+                    "Gentle yoga",
+                    "Stretching",
+                    "Breathing exercises",
+                    "Kegel"
+                ],
+                "avoid": [
+                    "Anything with falling risk",
+                    "Intense exercise",
+                    "Lifting weights"
+                ],
+                "tip": "Focus on birth preparation. Breathing exercises and Kegel are important.",
+                "duration": "20-30",
+                "precautions": [
+                    "Large belly has changed balance",
+                    "Joints have loosened"
+                ]
+            }
+        }
+    },
+    "correlation_cycle": {
+        "sleep_mood": {
+            "fa": {
+                "insight_message": "کیفیت خواب پایین می‌تونه روی خلق و خو تأثیر بذاره. بهبود خواب ممکنه به بهتر شدن حالت روحی کمک کنه.",
+                "action": "سعی کن امشب زودتر بخوابی و از گوشی قبل خواب استفاده نکنی"
+            },
+            "en": {
+                "insight_message": "Poor sleep quality can affect mood. Improving sleep may help improve mood.",
+                "action": "Try to sleep earlier tonight and avoid phone before bed"
+            }
+        },
+        "stress_physical": {
+            "fa": {
+                "insight_message": "استرس می‌تونه علائم فیزیکی مثل سردرد و کرامپ رو تشدید کنه.",
+                "action": "تکنیک‌های آرامش‌بخش مثل تنفس عمیق رو امتحان کن"
+            },
+            "en": {
+                "insight_message": "Stress can intensify physical symptoms like headache and cramps.",
+                "action": "Try relaxation techniques like deep breathing"
+            }
+        },
+        "pms_symptoms": {
+            "fa": {
+                "insight_message": "علائم PMS در این دوره طبیعی هستن. چند روز دیگه بهتر میشی.",
+                "action": "مصرف نمک رو کم کن و ورزش سبک انجام بده"
+            },
+            "en": {
+                "insight_message": "PMS symptoms are normal in this period. You'll feel better in a few days.",
+                "action": "Reduce salt intake and do light exercise"
+            }
+        },
+        "fertile_window_ttc": {
+            "fa": {
+                "insight_message": "این بهترین زمان برای باردار شدن است. استروژن در اوج و شانس لقاح بالاست.",
+                "action": "رابطه هر ۲۴-۴۸ ساعت توصیه می‌شه"
+            },
+            "en": {
+                "insight_message": "This is the best time to conceive. Estrogen is at peak and conception chances are high.",
+                "action": "Intercourse every 24-48 hours is recommended"
+            }
+        },
+        "luteal_energy_drop": {
+            "fa": {
+                "insight_message": "کاهش انرژی در فاز لوتئال به دلیل افزایش پروژسترون است. این کاملاً طبیعیه.",
+                "action": "به بدنت گوش بده و استراحت کافی داشته باش"
+            },
+            "en": {
+                "insight_message": "Energy drop in luteal phase is due to rising progesterone. This is completely normal.",
+                "action": "Listen to your body and get adequate rest"
+            }
+        },
+        "hormone_skin": {
+            "fa": {
+                "insight_message": "جوش‌های هورمونی در این فاز شایع هستن. با شروع فاز فولیکولار بهتر میشه.",
+                "action": "پاکسازی ملایم و اجتناب از دست زدن به صورت"
+            },
+            "en": {
+                "insight_message": "Hormonal acne is common in this phase. It will improve with follicular phase.",
+                "action": "Gentle cleansing and avoid touching face"
+            }
+        }
+    },
+    "correlation_pregnancy": {
+        "first_trimester_combo": {
+            "fa": {
+                "insight_message": "ترکیب تهوع و خستگی در سه‌ماهه اول بسیار شایع است و نشانه تغییرات هورمونی قوی است.",
+                "action": "غذاهای کوچک و مکرر و استراحت کوتاه در طول روز"
+            },
+            "en": {
+                "insight_message": "Combination of nausea and fatigue is very common in first trimester, showing strong hormonal changes.",
+                "action": "Small frequent meals and short rests during day"
+            }
+        },
+        "third_trimester_discomfort": {
+            "fa": {
+                "insight_message": "ناراحتی‌های سه‌ماهه سوم به دلیل رشد نوزاد و آماده‌سازی بدن برای زایمان است.",
+                "action": "شنا، یوگای بارداری و استراحت با پاهای بالا"
+            },
+            "en": {
+                "insight_message": "Third trimester discomforts are due to baby growth and body preparing for delivery.",
+                "action": "Swimming, prenatal yoga and resting with elevated legs"
+            }
+        },
+        "pregnancy_mood": {
+            "fa": {
+                "insight_message": "تغییرات خلقی در بارداری طبیعی هستن اما اگر ادامه‌دار باشن با پزشک صحبت کنید.",
+                "action": "با همسر یا دوست صحبت کن و در صورت نیاز با پزشک مشورت کن"
+            },
+            "en": {
+                "insight_message": "Mood changes in pregnancy are normal but if persistent, talk to your doctor.",
+                "action": "Talk to partner or friend and consult doctor if needed"
+            }
+        }
+    },
+    "correlation_common": {
+        "dehydration_indicator": {
+            "fa": {
+                "insight_message": "ترکیب سردرد و خستگی می‌تونه نشانه کم‌آبی باشه.",
+                "action": "حداقل ۸ لیوان آب در روز بنوش"
+            },
+            "en": {
+                "insight_message": "Combination of headache and fatigue could indicate dehydration.",
+                "action": "Drink at least 8 glasses of water daily"
+            }
+        },
+        "sleep_deprivation": {
+            "fa": {
+                "insight_message": "کم‌خوابی مستقیماً روی انرژی روزانه تأثیر می‌گذاره.",
+                "action": "یک برنامه خواب منظم تنظیم کن"
+            },
+            "en": {
+                "insight_message": "Sleep deprivation directly affects daily energy.",
+                "action": "Set a regular sleep schedule"
+            }
+        }
+    },
+    "pattern": {
+        "insufficient_data": {
+            "fa": {
+                "message": "برای تشخیص الگوها، حداقل ۲ هفته داده نیاز است. به ثبت روزانه ادامه دهید.",
+                "recommendation": "هر روز علائم خود را ثبت کنید"
+            },
+            "en": {
+                "message": "At least 2 weeks of data is needed for pattern detection. Continue daily logging.",
+                "recommendation": "Log your symptoms every day"
+            }
+        },
+        "recurring_pms": {
+            "fa": {
+                "message": "الگوی تکراری PMS در داده‌های شما مشاهده شده. می‌توانید با آمادگی قبلی علائم را مدیریت کنید.",
+                "recommendation": "یک هفته قبل از پریود، مصرف نمک و کافئین را کم کنید"
+            },
+            "en": {
+                "message": "Recurring PMS pattern detected in your data. You can manage symptoms with prior preparation.",
+                "recommendation": "Reduce salt and caffeine intake a week before period"
+            }
+        },
+        "severe_pain": {
+            "fa": {
+                "message": "دردهای شدید مکرر مشاهده شده. در صورت ادامه، با پزشک مشورت کنید.",
+                "recommendation": "پیشنهاد می‌شود با متخصص زنان صحبت کنید"
+            },
+            "en": {
+                "message": "Recurring severe pain detected. Consult a doctor if it continues.",
+                "recommendation": "It is recommended to talk to a gynecologist"
+            }
+        },
+        "frequent_pain": {
+            "fa": {
+                "message": "درد در بیش از ۲۵٪ روزها گزارش شده. راهکارهای مدیریت درد را امتحان کنید.",
+                "recommendation": "یوگا، کمپرس گرم و تغذیه ضدالتهابی می‌تواند کمک کند"
+            },
+            "en": {
+                "message": "Pain reported on more than 25% of days. Try pain management strategies.",
+                "recommendation": "Yoga, warm compress and anti-inflammatory diet can help"
+            }
+        },
+        "low_mood": {
+            "fa": {
+                "message": "خلق پایین در بیش از یک سوم روزها مشاهده شده. اگر این حالت ادامه‌دار است، با متخصص صحبت کنید.",
+                "recommendation": "ورزش منظم، نور آفتاب و در صورت نیاز مشاوره روانشناسی"
+            },
+            "en": {
+                "message": "Low mood detected on more than a third of days. If persistent, talk to a specialist.",
+                "recommendation": "Regular exercise, sunlight and psychological counseling if needed"
+            }
+        },
+        "anxiety_pattern": {
+            "fa": {
+                "message": "اضطراب مکرر مشاهده شده. تکنیک‌های مدیریت استرس می‌تواند کمک کند.",
+                "recommendation": "مدیتیشن، تنفس عمیق و کاهش مصرف کافئین"
+            },
+            "en": {
+                "message": "Recurring anxiety detected. Stress management techniques can help.",
+                "recommendation": "Meditation, deep breathing and reducing caffeine"
+            }
+        },
+        "ttc_tracking": {
+            "fa": {
+                "message": "ثبت منظم داده‌ها به بهبود پیش‌بینی تخمک‌گذاری کمک می‌کند.",
+                "recommendation": "علاوه بر علائم، دمای پایه بدن را هم ثبت کنید"
+            },
+            "en": {
+                "message": "Regular data logging helps improve ovulation prediction.",
+                "recommendation": "In addition to symptoms, also log basal body temperature"
+            }
+        },
+        "poor_sleep": {
+            "fa": {
+                "message": "کیفیت خواب پایین در بیش از یک سوم روزها. خواب ضعیف روی سلامت کلی تأثیر می‌گذارد.",
+                "recommendation": "بهداشت خواب را رعایت کنید: ساعت خواب منظم، اتاق تاریک، بدون گوشی قبل خواب"
+            },
+            "en": {
+                "message": "Poor sleep quality on more than a third of days. Poor sleep affects overall health.",
+                "recommendation": "Practice sleep hygiene: regular sleep schedule, dark room, no phone before bed"
+            }
+        },
+        "chronic_fatigue": {
+            "fa": {
+                "message": "انرژی پایین مداوم مشاهده شده. این می‌تواند نشانه کم‌خونی یا مشکلات تیروئید باشد.",
+                "recommendation": "آزمایش خون برای بررسی آهن و تیروئید توصیه می‌شود"
+            },
+            "en": {
+                "message": "Persistent low energy detected. This could indicate anemia or thyroid issues.",
+                "recommendation": "Blood test for iron and thyroid is recommended"
+            }
+        },
+        "increasing_nausea": {
+            "fa": {
+                "message": "تهوع در حال افزایش است. این در هفته‌های ۸-۱۲ طبیعی است و معمولاً بعداً کم می‌شود.",
+                "recommendation": "غذاهای کوچک و مکرر، زنجبیل و ویتامین B6 می‌تواند کمک کند"
+            },
+            "en": {
+                "message": "Nausea is increasing. This is normal in weeks 8-12 and usually decreases later.",
+                "recommendation": "Small frequent meals, ginger and vitamin B6 can help"
+            }
+        },
+        "improving_symptoms": {
+            "fa": {
+                "message": "علائم در حال بهبود هستند! این نشانه ورود به دوران طلایی بارداری است.",
+                "recommendation": "از این دوره برای ورزش ملایم و فعالیت‌های لذت‌بخش استفاده کنید"
+            },
+            "en": {
+                "message": "Symptoms are improving! This is a sign of entering the golden period of pregnancy.",
+                "recommendation": "Use this period for gentle exercise and enjoyable activities"
+            }
+        }
+    },
+    "bmi_message": {
+        "underweight": {
+            "fa": {
+                "message": "بر اساس قد و وزن وارد شده، در محدوده کم‌وزن قرار می‌گیری. اگر این وضعیت برای مدت طولانی ادامه داشته باشد، می‌تواند روی انرژی، خلق و سیکل قاعدگی‌ات اثر بگذارد. اگر نگران هستی، بهتر است با پزشک یا کارشناس تغذیه صحبت کنی."
+            },
+            "en": {
+                "message": "Based on the height and weight you entered, you fall in the underweight range. If this continues for a long time, it can affect your energy, mood, and menstrual cycle. If you are concerned, it is best to talk to a doctor or a nutrition specialist."
+            }
+        },
+        "normal": {
+            "fa": {
+                "message": "بر اساس قد و وزن وارد شده، در محدوده‌ی وزنی طبیعی قرار می‌گیری. این محدوده معمولاً برای سلامت عمومی و سیکل قاعدگی مناسب است. Ritme تلاش می‌کند به حفظ این وضعیت کمک کند."
+            },
+            "en": {
+                "message": "Based on the height and weight you entered, you are in the normal weight range. This range is usually good for overall health and your menstrual cycle. Ritme aims to help you maintain it."
+            }
+        },
+        "overweight": {
+            "fa": {
+                "message": "بر اساس قد و وزن وارد شده، در محدوده‌ی اضافه‌وزن قرار می‌گیری. این وضعیت می‌تواند در بعضی افراد روی انرژی، خواب و سیکل قاعدگی (به‌خصوص در PCOS) اثر بگذارد. تغییرات کوچک و پایدار در فعالیت و تغذیه، بیشتر از رژیم‌های سخت به سلامتت کمک می‌کنند."
+            },
+            "en": {
+                "message": "Based on the height and weight you entered, you fall in the overweight range. In some people this can affect energy, sleep, and the menstrual cycle (especially with PCOS). Small, sustainable changes in activity and nutrition help your health more than strict diets."
+            }
+        },
+        "obese": {
+            "fa": {
+                "message": "بر اساس قد و وزن وارد شده، در محدوده‌ی چاقی قرار می‌گیری. این می‌تواند در طولانی‌مدت روی سلامت قلب، فشار خون، قند و سیکل قاعدگی اثر بگذارد. اگر امکانش را داری، صحبت با پزشک یا کارشناس تغذیه می‌تواند خیلی کمک‌کننده باشد. در Ritme سعی می‌کنیم با توصیه‌های کوچک قابل‌اجرا، به روند سلامتت کمک کنیم."
+            },
+            "en": {
+                "message": "Based on the height and weight you entered, you fall in the obesity range. Over the long term this can affect heart health, blood pressure, blood sugar, and the menstrual cycle. If possible, talking to a doctor or a nutrition specialist can be very helpful. At Ritme we try to support your health journey with small, doable recommendations."
+            }
+        }
+    }
+}

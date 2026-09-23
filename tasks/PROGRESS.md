@@ -299,3 +299,11 @@ Nothing needed fixing.
 - Reuse: `sanitizer.Clean`/`PlainText` (T-M2-21), `content.PublicURL`, `content.RegistryTTL`.
 - Language registry: content routes set a 5-min TTL on `ritme-go:languages.registry` (proper TTL belongs in i18n.Registry).
 - D-13 proposed (/storage error shapes).
+
+## T-M2-17 — MessageSystem — daily messages and mode endpoints
+- `internal/messages` (`content` with PHP-exported defaults + byte-equality test, `manager` = context, cycle and
+  pregnancy engines, layers, modules), `routes_messages.go`, queries `db/queries/messages`. Contract messages 84/84.
+- D-05 preserved and pinned by tests; D-11 reproduced (`manager.ErrUndefinedOverrideCase` → logged 500, also covers
+  missing BLOATING/ACNE cases).
+- Open: `StoreSource` duplicates cycle adapters (switch to `cycle/service` later); `content.Repository` can replace
+  `profile.StoreMessageContents` (one-line change).

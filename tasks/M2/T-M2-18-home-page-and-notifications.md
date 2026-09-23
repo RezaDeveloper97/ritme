@@ -37,3 +37,8 @@ New home sections or UX changes.
 - `make contract ROUTES=home,notifications` green for all personas × fa/en/ar, including toggle sequences
   (toggle → GET section → toggle back).
 - A test proves a failing section is omitted without failing the request.
+
+## Note from T-M2-17
+Messages: `manager.New(src, content.NewRepository(q), locale, today).Generate(ctx, date, "")` → `res.JSON()`.
+`manager.Source` is an interface — plug in the shared cycle engine from T-M2-15 so home computes the cycle once.
+`messages.StoreSource` currently builds `legacy.New` from its own queries (duplicates `cycle/service/adapters.go`).
