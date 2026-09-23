@@ -56,6 +56,6 @@ recreate; backup `/root/vhost-stage.inc.bak-20260923-114953`). First admin-web i
   `csrf_token`. Then `auth/me`, `dashboard`, `users`, `articles`, `banners`, `languages`, `messages` → all 200.
 
 ## Remaining for T-M2-25
-- Human smoke of the web app and the Android shell against staging (all groups on Go).
+- Human smoke of the web app against staging (all groups on Go). (Android excluded from tasks by user decision, 2026-09-23.)
 - Editors click through every `/panel` screen (compare with `/admin` Blade).
 - 48 h soak with all groups on Go, started 2026-09-23 ~11:40 UTC → earliest sign-off 2026-09-25 ~11:40 UTC.

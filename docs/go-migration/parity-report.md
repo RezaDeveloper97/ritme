@@ -159,7 +159,7 @@ script was `smoke.mjs`, based on the CDP recipe in the "Headless UI verification
 
 ## 5. Android smoke
 
-**Not run (✘ → F-1, blocks T-M2-25).** A debug build of `application/` needs a JDK 21 Gradle build (offline
+**Not run — dropped by user decision 2026-09-23 (no Android in /next-task).** A debug build of `application/` needs a JDK 21 Gradle build (offline
 mirror) and an emulator or device pointed at Go. There was no emulator and Docker/disk were tight (~20 GB free),
 so it was not attempted here. The WebView shell (`android-shell/`) smoke happens on staging after T-M2-25 moves a
 group, as the task itself says.
@@ -239,7 +239,7 @@ queries or loading sections in parallel (**F-4**, not a blocker).
 
 | # | Follow-up | Owner task | Blocks T-M2-25? |
 |---|---|---|---|
-| F-1 | Android smoke: debug build pointed at Go (log in, main screens, log a period); WebView shell on staging per group | T-M2-24b (new) | **yes** |
+| F-1 | ~~Android smoke~~ — dropped 2026-09-23 (user excluded Android from all /next-task work) | — | no |
 | F-2 | Web write-flow smoke: period start/end, daily-log save, articles, settings export/delete, pregnancy onboarding (UI) | T-M2-24c (new) | **yes** (could be folded into the T-M2-25 per-group smoke) |
 | F-3 | Re-run the load comparison on staging with both stacks containerised on the same host and DB | T-M2-25 | no |
 | F-4 | Reduce `/home` DB round trips (21 sequential queries) or load sections in parallel | T-M2-18 | no |

@@ -24,8 +24,7 @@ follow-up tasks (`T-M2-NNb`) on the owning domain task.
 2. Web frontend smoke: run `frontend/` against Go (`.env.local` → Go on the contract DB) and click through signup
    (OTP from DB), onboarding, home, calendar, period start/end, daily log, pregnancy onboarding/tracker, articles,
    settings/export/delete; headless screenshots vs the same flow on Laravel.
-3. Android smoke: point a debug build (`application/`) at Go (see memory "Ritme Android app"), log in, open the main
-   screens, log a period; also the WebView shell (`android-shell/`) against staging once T-M2-25 moves a group.
+3. ~~Android smoke~~ — dropped 2026-09-23: the user excluded Android from every /next-task task.
 4. Token interop re-check (T-M2-08 acceptance) on the contract env.
 5. Load comparison with `hey` or k6 on identical hardware/DB: `/cycle/today`, `/cycle/month` calendar, `/home`,
    `/messages/daily`, `/banners` — p50/p95/p99, RPS, memory; Laravel vs Go.
@@ -36,4 +35,4 @@ Fixing issues inside this task (create follow-ups instead).
 
 ## Acceptance
 - Report exists with evidence; `make contract ROUTES=all` green; no unexplained allow-list entries.
-- Every smoke step ✔ on web and Android, or a follow-up task exists and blocks T-M2-25.
+- Every smoke step ✔ on web, or a follow-up task exists and blocks T-M2-25.

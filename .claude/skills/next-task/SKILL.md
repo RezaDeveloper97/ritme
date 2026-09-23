@@ -20,6 +20,11 @@ Queue format: `tasks/README.md`.
   Acceptance, realistic `touches`, `depends_on`, `verify`), run `bash tasks/bin/next.sh --check` and
   `bash tasks/bin/index.sh`, show the result, stop. Don't implement.
 
+## 0.1 Hard rule — no Android
+Never include Android in any task: no `android` type, no work in `android-shell/`, `application/` or `twa/`, no Android
+smoke/verification steps in Scope, Acceptance or verify, and no Android build. If a task file mentions Android, drop
+that part (note it in the task) instead of doing it. (User decision, 2026-09-23.)
+
 ## 1. Session start ritual
 1. `bash tasks/bin/next.sh` and `tail -5 tasks/LOG.md`.
 2. `git status --short | head` — uncommitted work from a crashed session must be triaged first (it usually belongs

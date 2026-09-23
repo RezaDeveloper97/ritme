@@ -20,7 +20,7 @@ before production. Follow `docs/go-migration/cutover.md` (T-M2-09).
 ## Scope
 1. Deploy the `stage` branch with backend-go (deploy-stage skill).
 2. Move groups to Go one at a time in the README order (content → reminders+healthlog → profile → pregnancy → cycle →
-   messages → home → auth), each with: switch on, smoke via web + Android shell against staging, check nginx logs
+   messages → home → auth), each with: switch on, smoke via the web app against staging, check nginx logs
    for 4xx/5xx and 401 `error_code` distribution for 30+ minutes, log the result in
    `docs/go-migration/stage-rollout-log.md`. Roll back a group on any regression and open a follow-up.
 3. Auth last: confirm the Laravel queue is empty first; verify tokens issued by Laravel before the switch still work
