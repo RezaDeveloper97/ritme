@@ -45,4 +45,17 @@ Laravel still running (instant rollback via `deploy/switch-go-route.sh stage <gr
 - Human smoke via the web app and the Android shell against staging (all groups on Go).
 - 30-minute log watch per group and the 48 h soak: staging has almost no real traffic (1 real user), so the soak
   only means something if someone uses staging; started $NOW with all groups on Go.
-- Admin host on staging (admin-web + `/api/admin/`): in preparation.
+
+## Admin on staging (2026-09-23)
+Staging is a single origin, so the new admin lives under **`/panel/`** (admin-web built with
+`NEXT_PUBLIC_ADMIN_BASE_PATH=/panel`) and its API at `/api/admin/` → backend-go; the Blade panel stays at `/admin`
+for side-by-side comparison. `vhost-stage.inc` written in place on the shared proxy (`nginx -t` + reload, no
+recreate; backup `/root/vhost-stage.inc.bak-20260923-114953`). First admin-web image build: OK, container healthy.
+- deploy-stage checks: `/panel/login` 401 without the gate / 200 behind it, `/api/admin/v1/auth/me` JSON 401 from Go.
+- Login with the existing staging admin (Laravel bcrypt hash) through Go: 200, `X-Backend: go`, returns `admin` +
+  `csrf_token`. Then `auth/me`, `dashboard`, `users`, `articles`, `banners`, `languages`, `messages` → all 200.
+
+## Remaining for T-M2-25
+- Human smoke of the web app and the Android shell against staging (all groups on Go).
+- Editors click through every `/panel` screen (compare with `/admin` Blade).
+- 48 h soak with all groups on Go, started 2026-09-23 ~11:40 UTC → earliest sign-off 2026-09-25 ~11:40 UTC.
