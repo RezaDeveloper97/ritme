@@ -15,3 +15,4 @@ user's OK. The contract harness allow-list must reference the entry id.
 | D-08 | Errors | 404/405 without `Accept: application/json` → HTML page | always the JSON body (both clients send the header) | proposed |
 | D-09 | Dates | `Carbon::parse` accepts relative strings (`+1 day`) and military zone letters | `civildate.ParseLenient` rejects them (clients only send `Y-m-d`) | proposed |
 | D-10 | Health | `/up` returns Laravel's HTML health page | plain `OK` (not part of the `/api` contract) | proposed |
+| D-11 | Messages | `premium` persona `/messages/daily` → 500 on some dates (`OverrideType::LOW_ENERGY` doesn't exist, `CycleMessageEngine.php:102`) | preserved (golden locks the 500) unless the user asks for a fix | proposed: preserve |

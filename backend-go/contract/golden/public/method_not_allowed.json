@@ -1,0 +1,21 @@
+{
+  "case": "public/method_not_allowed",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/auth/send-otp",
+        "persona": "anon",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 405,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "The GET method is not supported for route api/v1/auth/send-otp. Supported methods: POST."
+      },
+      "body_raw": "{\n    \"message\": \"The GET method is not supported for route api/v1/auth/send-otp. Supported methods: POST.\"\n}"
+    }
+  ]
+}

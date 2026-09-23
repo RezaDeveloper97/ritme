@@ -1,0 +1,38 @@
+{
+  "case": "profile/invalid_multiple_errors.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/profile",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "weight": 5,
+          "height": 400,
+          "cycle_duration": 100
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "Validation failed: Weight must be at least 20 kg.",
+        "errors": {
+          "weight": [
+            "Weight must be at least 20 kg."
+          ],
+          "height": [
+            "Height must not exceed 250 cm."
+          ],
+          "cycle_duration": [
+            "Cycle duration must not exceed 60 days."
+          ]
+        }
+      }
+    }
+  ]
+}

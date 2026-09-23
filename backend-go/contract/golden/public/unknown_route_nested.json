@@ -1,0 +1,24 @@
+{
+  "case": "public/unknown_route_nested",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/diagnostics/crash-reports",
+        "persona": "anon",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "message": "crash"
+        }
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "The route api/v1/diagnostics/crash-reports could not be found."
+      },
+      "body_raw": "{\n    \"message\": \"The route api/v1/diagnostics/crash-reports could not be found.\"\n}"
+    }
+  ]
+}

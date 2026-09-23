@@ -1,0 +1,251 @@
+# Period log endpoints (PeriodLogController) under /cycle/period*.
+# Case format: backend-go/cmd/contract/cases.go. Write cases end with GETs showing the effect.
+# Fixture period ids: persona user id * 100 + n (regular: 100401…100406, last 2026-09-14…18).
+group: period
+defaults:
+  persona: regular
+  locales: none
+cases:
+  - name: status
+    persona: [no_profile, profile_no_history, onboarding_declared, regular, open_period_day3,
+      open_period_day11, open_period_day13, overdue_10, pregnant_lmp_w8, engaged]
+    method: GET
+    path: /api/v1/cycle/period/status
+    status: 200
+  - name: history
+    persona: [no_profile, onboarding_declared, regular, irregular, open_period_day3, ttc, engaged]
+    method: GET
+    path: /api/v1/cycle/period/history
+    status: 200
+
+  # ---- start ----
+  - name: start_today
+    doc: overdue persona starts today (no date → now)
+    persona: overdue_10
+    locales: [fa, en]
+    steps:
+      - {method: POST, path: /api/v1/cycle/period/start, body: {}, status: 200}
+      - {method: GET, path: /api/v1/cycle/period/status, status: 200}
+      - {method: GET, path: /api/v1/cycle/period/history, status: 200}
+      - {method: GET, path: /api/v1/cycle/today, status: 200}
+  - name: start_with_date
+    persona: overdue_20
+    locales: [fa, en]
+    steps:
+      - {method: POST, path: /api/v1/cycle/period/start, body: {date: "2026-09-20"}, status: 200}
+      - {method: GET, path: /api/v1/cycle/period/history, status: 200}
+  - name: start_close_to_previous
+    doc: 9 days after the last start → close_to_previous warning
+    locales: [fa, en]
+    steps:
+      - {method: POST, path: /api/v1/cycle/period/start, body: {date: "2026-09-23"}, status: 200}
+      - {method: GET, path: /api/v1/cycle/period/history, status: 200}
+  - name: start_same_day_reuse
+    doc: same-day start reuses the existing record (idempotent re-tap)
+    persona: open_period_day3
+    steps:
+      - {method: POST, path: /api/v1/cycle/period/start, body: {date: "2026-09-21"}, status: 200}
+      - {method: GET, path: /api/v1/cycle/period/history, status: 200}
+  - name: start_onboarding_estimate
+    doc: promotes the onboarding estimate row (same day)
+    persona: onboarding_declared
+    steps:
+      - {method: POST, path: /api/v1/cycle/period/start, body: {date: "2026-09-11"}, status: 200}
+      - {method: GET, path: /api/v1/cycle/period/history, status: 200}
+  - name: start_no_profile
+    persona: no_profile
+    steps:
+      - {method: POST, path: /api/v1/cycle/period/start, body: {}, status: 200}
+      - {method: GET, path: /api/v1/cycle/period/history, status: 200}
+  - name: start_previous_open
+    persona: open_period_day3
+    locales: [none, fa, en]
+    method: POST
+    path: /api/v1/cycle/period/start
+    body: {date: "2026-09-23"}
+    status: 422
+  - name: start_overlap
+    doc: a date inside the logged 2026-09-14…18 range
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/cycle/period/start
+    body: {date: "2026-09-16"}
+    status: 422
+  - name: start_future
+    locales: [none, fa, en]
+    method: POST
+    path: /api/v1/cycle/period/start
+    body: {date: "2026-09-30"}
+    status: 422
+  - name: start_bad_date
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/cycle/period/start
+    body: {date: "not-a-date"}
+    status: 422
+
+  # ---- end ----
+  - name: end_today
+    persona: open_period_day3
+    locales: [fa, en]
+    steps:
+      - {method: POST, path: /api/v1/cycle/period/end, body: {}, status: 200}
+      - {method: GET, path: /api/v1/cycle/period/status, status: 200}
+      - {method: GET, path: /api/v1/cycle/period/history, status: 200}
+  - name: end_with_date
+    doc: long open period closed on day 11 → long_period warning
+    persona: open_period_day11
+    locales: [fa, en]
+    steps:
+      - {method: POST, path: /api/v1/cycle/period/end, body: {date: "2026-09-22"}, status: 200}
+      - {method: GET, path: /api/v1/cycle/period/history, status: 200}
+  - name: end_same_day
+    doc: bleeding_length 1 → short_period warning
+    persona: open_period_day3
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/cycle/period/end
+    body: {date: "2026-09-21"}
+    status: 200
+  - name: end_no_ongoing
+    locales: [none, fa, en]
+    method: POST
+    path: /api/v1/cycle/period/end
+    body: {}
+    status: 422
+  - name: end_before_start
+    persona: open_period_day3
+    locales: [none, fa, en]
+    method: POST
+    path: /api/v1/cycle/period/end
+    body: {date: "2026-09-19"}
+    status: 422
+  - name: end_future
+    persona: open_period_day3
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/cycle/period/end
+    body: {date: "2026-09-30"}
+    status: 422
+
+  # ---- store ----
+  - name: store
+    locales: [fa, en]
+    steps:
+      - {method: POST, path: /api/v1/cycle/period, body: {start_date: "2026-03-30", end_date: "2026-04-03"}, status: 200}
+      - {method: GET, path: /api/v1/cycle/period/history, status: 200}
+      - {method: GET, path: /api/v1/cycle/today, status: 200}
+  - name: store_open_ended
+    persona: overdue_10
+    steps:
+      - {method: POST, path: /api/v1/cycle/period, body: {start_date: "2026-09-22"}, status: 200}
+      - {method: GET, path: /api/v1/cycle/period/status, status: 200}
+  - name: store_future_end
+    doc: end may be in the future
+    persona: overdue_20
+    method: POST
+    path: /api/v1/cycle/period
+    body: {start_date: "2026-09-22", end_date: "2026-09-26"}
+    status: 200
+  - name: store_same_day_reuse
+    doc: same start date → reuses and updates the record
+    steps:
+      - {method: POST, path: /api/v1/cycle/period, body: {start_date: "2026-09-14", end_date: "2026-09-19"}, status: 200}
+      - {method: GET, path: /api/v1/cycle/period/history, status: 200}
+  - name: store_long
+    doc: 12-day range → long_period warning
+    persona: overdue_20
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/cycle/period
+    body: {start_date: "2026-09-05", end_date: "2026-09-16"}
+    status: 200
+  - name: store_overlap
+    locales: [none, fa, en]
+    method: POST
+    path: /api/v1/cycle/period
+    body: {start_date: "2026-09-12", end_date: "2026-09-15"}
+    status: 422
+  - name: store_missing_start
+    locales: [none, fa, en]
+    method: POST
+    path: /api/v1/cycle/period
+    body: {end_date: "2026-09-15"}
+    status: 422
+  - name: store_end_before_start
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/cycle/period
+    body: {start_date: "2026-03-10", end_date: "2026-03-05"}
+    status: 422
+  - name: store_future_start
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/cycle/period
+    body: {start_date: "2026-10-01"}
+    status: 422
+
+  # ---- update ----
+  - name: update
+    locales: [fa, en]
+    steps:
+      - {method: PUT, path: /api/v1/cycle/period/100406, body: {start_date: "2026-09-13", end_date: "2026-09-18"}, status: 200}
+      - {method: GET, path: /api/v1/cycle/period/history, status: 200}
+  - name: update_open_ended
+    persona: open_period_day3
+    steps:
+      - {method: PUT, path: /api/v1/cycle/period/100704, body: {start_date: "2026-09-20"}, status: 200}
+      - {method: GET, path: /api/v1/cycle/period/status, status: 200}
+  - name: update_overlap
+    locales: [fa, en]
+    method: PUT
+    path: /api/v1/cycle/period/100406
+    body: {start_date: "2026-08-19", end_date: "2026-08-25"}
+    status: 422
+  - name: update_missing
+    locales: [none, fa, en]
+    method: PUT
+    path: /api/v1/cycle/period/999999
+    body: {start_date: "2026-09-13"}
+    status: 404
+  - name: update_other_users
+    doc: another persona's period id → 404, not 403
+    locales: [fa, en]
+    method: PUT
+    path: /api/v1/cycle/period/100501
+    body: {start_date: "2026-04-07"}
+    status: 404
+  - name: update_invalid
+    locales: [fa, en]
+    method: PUT
+    path: /api/v1/cycle/period/100406
+    body: {end_date: "2026-09-18"}
+    status: 422
+
+  # ---- destroy ----
+  - name: destroy
+    locales: [fa, en]
+    steps:
+      - {method: DELETE, path: /api/v1/cycle/period/100406, status: 200}
+      - {method: GET, path: /api/v1/cycle/period/history, status: 200}
+      - {method: GET, path: /api/v1/cycle/today, status: 200}
+  - name: destroy_missing
+    locales: [none, fa, en]
+    method: DELETE
+    path: /api/v1/cycle/period/999999
+    status: 404
+  - name: destroy_other_users
+    method: DELETE
+    path: /api/v1/cycle/period/100501
+    status: 404
+
+  - name: unauthenticated
+    persona: anon
+    steps:
+      - {method: GET, path: /api/v1/cycle/period/status, status: 401}
+      - {method: GET, path: /api/v1/cycle/period/history, status: 401}
+      - {method: POST, path: /api/v1/cycle/period/start, body: {}, status: 401}
+      - {method: POST, path: /api/v1/cycle/period/end, body: {}, status: 401}
+      - {method: POST, path: /api/v1/cycle/period, body: {start_date: "2026-09-01"}, status: 401}
+      - {method: PUT, path: /api/v1/cycle/period/100406, body: {start_date: "2026-09-01"}, status: 401}
+      - {method: DELETE, path: /api/v1/cycle/period/100406, status: 401}

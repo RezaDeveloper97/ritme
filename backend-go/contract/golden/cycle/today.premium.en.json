@@ -1,0 +1,178 @@
+{
+  "case": "cycle/today.premium.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/today",
+        "persona": "premium",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "calculation": {
+            "calculation_date": "2026-09-23",
+            "cycle_day": 17,
+            "phase": "ovulation",
+            "subphase": "ovulation_likely",
+            "estimated_ovulation_day": 17,
+            "cycle_length_used": 30,
+            "is_fertile_window": true,
+            "is_pms_window": false,
+            "is_period_tomorrow": false,
+            "is_luteal_spotting": false,
+            "cycle_score": 0.7,
+            "age_factor": 0.85,
+            "base_probability": 0.33,
+            "symptom_score": 1,
+            "final_probability": 19.63,
+            "cycle_variability": "regular",
+            "uncertainty_range": 1,
+            "text_flags": {
+              "fertility_status": "You are in your fertile window. Pregnancy chance is higher.",
+              "probability_message": "Today's pregnancy probability is 19.6%.",
+              "phase_info": "Current phase: Ovulation (Ovulation Likely)"
+            },
+            "daily_tips": [
+              {
+                "type": "fertility",
+                "title": "Fertility",
+                "icon": "heart",
+                "text": "Peak fertility days. If trying to conceive, this is the best time."
+              },
+              {
+                "type": "energy",
+                "title": "Energy",
+                "icon": "bolt",
+                "text": "You may feel more confident and social."
+              },
+              {
+                "type": "hydration",
+                "title": "Hydration",
+                "icon": "water-glass",
+                "text": "Drink water regularly — hydration supports cervical fluid."
+              },
+              {
+                "type": "sleep",
+                "title": "Sleep",
+                "icon": "moon",
+                "text": "Keep a steady sleep schedule to support hormone balance."
+              }
+            ],
+            "source_profile_data": {
+              "birthday": "1996-04-12",
+              "period_duration": 5,
+              "cycle_duration": 28,
+              "last_period_start": "2026-09-07"
+            },
+            "source_daily_log_data": null
+          },
+          "cycle_view": {
+            "date": "2026-09-23",
+            "cycle_day": 17,
+            "main_phase": "fertile",
+            "subphase": "ovulation_likely",
+            "fertility_level": "peak",
+            "days_to_ovulation": 0,
+            "days_to_period": 14,
+            "days_late": 0,
+            "anchors": {
+              "current_period_start": "2026-09-07",
+              "current_period_start_source": "user_logged",
+              "current_period_end": "2026-09-11",
+              "current_period_end_source": "user_logged",
+              "current_period_end_is_confirmed": true,
+              "predicted_next_period_start": "2026-10-07",
+              "estimated_ovulation_date": "2026-09-23"
+            },
+            "metrics": {
+              "effective_cycle_length": 30,
+              "effective_period_length": 5,
+              "cycle_variability": 2
+            },
+            "confidence": "high",
+            "confidence_reasons": [
+              "prediction_based_output"
+            ],
+            "data_quality": "good",
+            "resolution_source": "prediction",
+            "is_predicted": true,
+            "requires_user_input": false,
+            "warnings": [
+              "prediction_based_output"
+            ],
+            "phase": "ovulation",
+            "data_status": "predicted",
+            "predictions": {
+              "next_period_start": "2026-10-07",
+              "next_period_end": "2026-10-11",
+              "estimated_ovulation_date": "2026-09-23",
+              "fertile_window_start": "2026-09-18",
+              "fertile_window_end": "2026-09-24",
+              "source": "recent_valid_cycles",
+              "confidence": "high",
+              "confidence_reasons": [
+                "based_on_three_valid_cycles",
+                "low_cycle_variation"
+              ]
+            },
+            "profile_values": {
+              "cycle_length": 28,
+              "period_duration": 5
+            },
+            "calculated_values": {
+              "cycle_length": 30,
+              "period_duration": 5,
+              "based_on_cycles": 3
+            },
+            "effective_values": {
+              "cycle_length": 30,
+              "period_duration": 5,
+              "source": "recent_valid_cycles",
+              "period_duration_source": "recent_valid_cycles"
+            },
+            "data_quality_details": {
+              "confidence": "high",
+              "confidence_reasons": [
+                "based_on_three_valid_cycles",
+                "low_cycle_variation"
+              ],
+              "regularity_status": "relatively_regular",
+              "is_irregular_possible": false,
+              "missing_period_end": false
+            },
+            "daily_card": {
+              "title": "Ovulation is likely near",
+              "subtitle": "Fertility is estimated higher here based on your cycle, but real ovulation timing can differ.",
+              "data_status": "predicted",
+              "fertility_level": "very_high",
+              "fertility_label": "Very high",
+              "badges": [
+                "Day 17",
+                "Predicted"
+              ],
+              "primary_action": {
+                "type": "log_symptoms",
+                "label": "Log today's symptoms"
+              },
+              "secondary_actions": [
+                {
+                  "type": "view_details",
+                  "label": "Today's details"
+                }
+              ]
+            }
+          },
+          "calculation_status": "completed",
+          "is_recalculating": false
+        }
+      }
+    }
+  ]
+}

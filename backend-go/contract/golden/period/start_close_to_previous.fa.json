@@ -1,0 +1,98 @@
+{
+  "case": "period/start_close_to_previous.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/cycle/period/start",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "date": "2026-09-23"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "پروفایل با موفقیت بروزرسانی شد",
+        "data": {
+          "active": true,
+          "period_start_date": "2026-09-23",
+          "period_end_date": null,
+          "warnings": [
+            {
+              "type": "close_to_previous",
+              "message": "این تاریخ خیلی نزدیک به پریود قبلی است. مطمئنی این یک پریود جدید است و ادامهٔ خون‌ریزی قبلی نیست؟"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/period/history",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "periods": [
+            {
+              "id": 101805,
+              "period_start_date": "2026-09-23",
+              "period_end_date": null,
+              "source": "user_logged"
+            },
+            {
+              "id": 100406,
+              "period_start_date": "2026-09-14",
+              "period_end_date": "2026-09-18",
+              "source": "user_logged"
+            },
+            {
+              "id": 100405,
+              "period_start_date": "2026-08-17",
+              "period_end_date": "2026-08-21",
+              "source": "user_logged"
+            },
+            {
+              "id": 100404,
+              "period_start_date": "2026-07-20",
+              "period_end_date": "2026-07-24",
+              "source": "user_logged"
+            },
+            {
+              "id": 100403,
+              "period_start_date": "2026-06-22",
+              "period_end_date": "2026-06-26",
+              "source": "user_logged"
+            },
+            {
+              "id": 100402,
+              "period_start_date": "2026-05-25",
+              "period_end_date": "2026-05-29",
+              "source": "user_logged"
+            },
+            {
+              "id": 100401,
+              "period_start_date": "2026-04-27",
+              "period_end_date": "2026-05-01",
+              "source": "user_logged"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

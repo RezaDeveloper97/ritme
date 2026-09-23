@@ -1,0 +1,23 @@
+{
+  "case": "period/end_no_ongoing.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/cycle/period/end",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {}
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "پریود فعالی برای پایان دادن وجود ندارد."
+      }
+    }
+  ]
+}

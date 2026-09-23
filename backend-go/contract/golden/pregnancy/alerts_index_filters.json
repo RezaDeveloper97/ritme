@@ -1,0 +1,390 @@
+{
+  "case": "pregnancy/alerts_index_filters",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/alerts?level=emergency",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "alerts": [
+            {
+              "id": 101501,
+              "user_id": 1015,
+              "alert_level": "emergency",
+              "alert_type": "symptom_based",
+              "title": "کاهش حرکات جنین",
+              "message": "حرکات جنین کمتر از معمول است. با پزشک تماس بگیرید.",
+              "pregnancy_week": 26,
+              "trigger_symptoms": {
+                "movement_status": "reduced"
+              },
+              "medical_history_flags": [],
+              "is_read": false,
+              "is_dismissed": false,
+              "read_at": null,
+              "dismissed_at": null,
+              "recommended_actions": [
+                "contact_doctor"
+              ],
+              "created_at": "2026-09-23T05:30:00.000000Z",
+              "updated_at": "2026-09-23T05:30:00.000000Z"
+            }
+          ],
+          "counts": {
+            "total": 2,
+            "unread": 1,
+            "emergency": 1,
+            "warning": 1,
+            "info": 0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/alerts?level=warning",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "alerts": [
+            {
+              "id": 101502,
+              "user_id": 1015,
+              "alert_level": "warning",
+              "alert_type": "symptom_based",
+              "title": "فشار خون بالا",
+              "message": "فشار خون شما ۱۴۲/۹۲ ثبت شده است.",
+              "pregnancy_week": 26,
+              "trigger_symptoms": {
+                "systolic": 142,
+                "diastolic": 92
+              },
+              "medical_history_flags": [],
+              "is_read": true,
+              "is_dismissed": false,
+              "read_at": "2026-09-22T06:30:00.000000Z",
+              "dismissed_at": null,
+              "recommended_actions": [
+                "contact_doctor"
+              ],
+              "created_at": "2026-09-23T05:30:00.000000Z",
+              "updated_at": "2026-09-23T05:30:00.000000Z"
+            }
+          ],
+          "counts": {
+            "total": 2,
+            "unread": 1,
+            "emergency": 1,
+            "warning": 1,
+            "info": 0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/alerts?level=info",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "alerts": [],
+          "counts": {
+            "total": 2,
+            "unread": 1,
+            "emergency": 1,
+            "warning": 1,
+            "info": 0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/alerts?level=bogus",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "alerts": [
+            {
+              "id": 101501,
+              "user_id": 1015,
+              "alert_level": "emergency",
+              "alert_type": "symptom_based",
+              "title": "کاهش حرکات جنین",
+              "message": "حرکات جنین کمتر از معمول است. با پزشک تماس بگیرید.",
+              "pregnancy_week": 26,
+              "trigger_symptoms": {
+                "movement_status": "reduced"
+              },
+              "medical_history_flags": [],
+              "is_read": false,
+              "is_dismissed": false,
+              "read_at": null,
+              "dismissed_at": null,
+              "recommended_actions": [
+                "contact_doctor"
+              ],
+              "created_at": "2026-09-23T05:30:00.000000Z",
+              "updated_at": "2026-09-23T05:30:00.000000Z"
+            },
+            {
+              "id": 101502,
+              "user_id": 1015,
+              "alert_level": "warning",
+              "alert_type": "symptom_based",
+              "title": "فشار خون بالا",
+              "message": "فشار خون شما ۱۴۲/۹۲ ثبت شده است.",
+              "pregnancy_week": 26,
+              "trigger_symptoms": {
+                "systolic": 142,
+                "diastolic": 92
+              },
+              "medical_history_flags": [],
+              "is_read": true,
+              "is_dismissed": false,
+              "read_at": "2026-09-22T06:30:00.000000Z",
+              "dismissed_at": null,
+              "recommended_actions": [
+                "contact_doctor"
+              ],
+              "created_at": "2026-09-23T05:30:00.000000Z",
+              "updated_at": "2026-09-23T05:30:00.000000Z"
+            }
+          ],
+          "counts": {
+            "total": 2,
+            "unread": 1,
+            "emergency": 1,
+            "warning": 1,
+            "info": 0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/alerts?unread_only=1",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "alerts": [
+            {
+              "id": 101501,
+              "user_id": 1015,
+              "alert_level": "emergency",
+              "alert_type": "symptom_based",
+              "title": "کاهش حرکات جنین",
+              "message": "حرکات جنین کمتر از معمول است. با پزشک تماس بگیرید.",
+              "pregnancy_week": 26,
+              "trigger_symptoms": {
+                "movement_status": "reduced"
+              },
+              "medical_history_flags": [],
+              "is_read": false,
+              "is_dismissed": false,
+              "read_at": null,
+              "dismissed_at": null,
+              "recommended_actions": [
+                "contact_doctor"
+              ],
+              "created_at": "2026-09-23T05:30:00.000000Z",
+              "updated_at": "2026-09-23T05:30:00.000000Z"
+            }
+          ],
+          "counts": {
+            "total": 2,
+            "unread": 1,
+            "emergency": 1,
+            "warning": 1,
+            "info": 0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/alerts?unread_only=true",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "alerts": [
+            {
+              "id": 101501,
+              "user_id": 1015,
+              "alert_level": "emergency",
+              "alert_type": "symptom_based",
+              "title": "کاهش حرکات جنین",
+              "message": "حرکات جنین کمتر از معمول است. با پزشک تماس بگیرید.",
+              "pregnancy_week": 26,
+              "trigger_symptoms": {
+                "movement_status": "reduced"
+              },
+              "medical_history_flags": [],
+              "is_read": false,
+              "is_dismissed": false,
+              "read_at": null,
+              "dismissed_at": null,
+              "recommended_actions": [
+                "contact_doctor"
+              ],
+              "created_at": "2026-09-23T05:30:00.000000Z",
+              "updated_at": "2026-09-23T05:30:00.000000Z"
+            }
+          ],
+          "counts": {
+            "total": 2,
+            "unread": 1,
+            "emergency": 1,
+            "warning": 1,
+            "info": 0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/alerts?unread_only=0",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "alerts": [
+            {
+              "id": 101501,
+              "user_id": 1015,
+              "alert_level": "emergency",
+              "alert_type": "symptom_based",
+              "title": "کاهش حرکات جنین",
+              "message": "حرکات جنین کمتر از معمول است. با پزشک تماس بگیرید.",
+              "pregnancy_week": 26,
+              "trigger_symptoms": {
+                "movement_status": "reduced"
+              },
+              "medical_history_flags": [],
+              "is_read": false,
+              "is_dismissed": false,
+              "read_at": null,
+              "dismissed_at": null,
+              "recommended_actions": [
+                "contact_doctor"
+              ],
+              "created_at": "2026-09-23T05:30:00.000000Z",
+              "updated_at": "2026-09-23T05:30:00.000000Z"
+            },
+            {
+              "id": 101502,
+              "user_id": 1015,
+              "alert_level": "warning",
+              "alert_type": "symptom_based",
+              "title": "فشار خون بالا",
+              "message": "فشار خون شما ۱۴۲/۹۲ ثبت شده است.",
+              "pregnancy_week": 26,
+              "trigger_symptoms": {
+                "systolic": 142,
+                "diastolic": 92
+              },
+              "medical_history_flags": [],
+              "is_read": true,
+              "is_dismissed": false,
+              "read_at": "2026-09-22T06:30:00.000000Z",
+              "dismissed_at": null,
+              "recommended_actions": [
+                "contact_doctor"
+              ],
+              "created_at": "2026-09-23T05:30:00.000000Z",
+              "updated_at": "2026-09-23T05:30:00.000000Z"
+            }
+          ],
+          "counts": {
+            "total": 2,
+            "unread": 1,
+            "emergency": 1,
+            "warning": 1,
+            "info": 0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/alerts?level=warning&unread_only=1",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "alerts": [],
+          "counts": {
+            "total": 2,
+            "unread": 1,
+            "emergency": 1,
+            "warning": 1,
+            "info": 0
+          }
+        }
+      }
+    }
+  ]
+}

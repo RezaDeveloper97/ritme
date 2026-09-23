@@ -1,0 +1,29 @@
+{
+  "case": "pregnancy/onboarding_missing_lmp.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/onboarding",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "age_source": "lmp"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "تاریخ آخرین پریود برای این روش محاسبه الزامی است",
+        "errors": {
+          "lmp_date": [
+            "تاریخ آخرین پریود برای این روش محاسبه الزامی است"
+          ]
+        }
+      }
+    }
+  ]
+}

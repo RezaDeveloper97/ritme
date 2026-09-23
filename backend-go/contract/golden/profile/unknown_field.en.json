@@ -1,0 +1,40 @@
+{
+  "case": "profile/unknown_field.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/profile",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "weight": 60,
+          "mobile": "09120000000",
+          "is_admin": true
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "Unknown field(s) in request: mobile, is_admin",
+        "allowed_fields": [
+          "name",
+          "birthday",
+          "weight",
+          "height",
+          "period_duration",
+          "cycle_duration",
+          "last_period_start",
+          "user_goal",
+          "subscription_type",
+          "pregnancy_intention",
+          "chronic_conditions"
+        ]
+      }
+    }
+  ]
+}

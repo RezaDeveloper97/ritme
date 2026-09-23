@@ -1,0 +1,28 @@
+{
+  "case": "pregnancy/symptoms_store_missing_date",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/symptoms",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "has_nausea": true
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "تاریخ الزامی است",
+        "errors": {
+          "log_date": [
+            "تاریخ الزامی است"
+          ]
+        }
+      }
+    }
+  ]
+}

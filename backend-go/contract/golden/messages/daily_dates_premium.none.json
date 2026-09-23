@@ -1,0 +1,373 @@
+{
+  "case": "messages/daily_dates_premium.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?date=2026-09-14",
+        "persona": "premium",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 500,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "Server Error"
+      },
+      "body_raw": "{\n    \"message\": \"Server Error\"\n}"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?date=2026-09-20",
+        "persona": "premium",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 500,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "Server Error"
+      },
+      "body_raw": "{\n    \"message\": \"Server Error\"\n}"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?date=2026-09-26",
+        "persona": "premium",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "date": "2026-09-26",
+          "user_goal": "non_ttc",
+          "subscription_type": "premium",
+          "context_info": {
+            "phase": "luteal",
+            "phase_label": "لوتئال",
+            "subphase": "early_luteal",
+            "subphase_label": "لوتئال اولیه",
+            "cycle_day": 20,
+            "cycle_length": 30,
+            "is_fertile_window": false,
+            "is_pms_window": false,
+            "estimated_ovulation_day": 17
+          },
+          "primary_message": {
+            "phase": "luteal",
+            "phase_label": "لوتئال",
+            "cycle_day": 20,
+            "short_message": "وقت تمرکز روی خودت و کارهای نیمه‌تمام",
+            "long_message": "در فاز لوتئال، انرژی کم‌کم کاهش پیدا می‌کنه. بهترین زمان برای تکمیل پروژه‌ها، مراقبت از خود و آماده شدن برای سیکل بعدی.",
+            "action_suggestion": "یک کار نیمه‌تمام رو تموم کن",
+            "dos": [
+              "یوگا و کشش",
+              "تکمیل پروژه‌ها",
+              "خواب کافی",
+              "غذاهای مغذی"
+            ],
+            "donts": [
+              "شروع پروژه بزرگ",
+              "کافئین زیاد",
+              "شکر زیاد",
+              "فعالیت‌های استرس‌زا"
+            ],
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [
+            {
+              "pattern_type": "chronic_fatigue",
+              "alert_level": "warning",
+              "message": "انرژی پایین مداوم مشاهده شده. این می‌تواند نشانه کم‌خونی یا مشکلات تیروئید باشد.",
+              "recommendation": "آزمایش خون برای بررسی آهن و تیروئید توصیه می‌شود"
+            }
+          ],
+          "supplements": {
+            "nutrition": {
+              "focus": "کربوهیدرات پیچیده و منیزیم",
+              "foods": [
+                "جو",
+                "نخود",
+                "موز",
+                "بادام",
+                "شکلات تلخ"
+              ],
+              "avoid": [
+                "نمک زیاد",
+                "شکر",
+                "کافئین"
+              ],
+              "tip": "منیزیم به کاهش علائم PMS کمک می‌کند"
+            },
+            "sleep": {
+              "recommended_hours": "8-9",
+              "quality_focus": "کیفیت خواب ممکنه کم بشه",
+              "tips": [
+                "ممکنه بی‌خوابی داشته باشی",
+                "منیزیم قبل خواب",
+                "اتاق تاریک و خنک",
+                "مدیتیشن قبل خواب"
+              ],
+              "avoid": [
+                "صفحه نمایش قبل خواب",
+                "غذای سنگین شب",
+                "کافئین"
+              ]
+            },
+            "exercise": {
+              "intensity": "متوسط (کم می‌شه)",
+              "recommended": [
+                "پیلاتس",
+                "یوگا",
+                "پیاده‌روی",
+                "وزنه سبک",
+                "شنا"
+              ],
+              "avoid": [
+                "ورزش‌های خیلی شدید",
+                "تمرینات طولانی"
+              ],
+              "tip": "انرژی کم‌کم کم می‌شه. ورزش ملایم به کاهش علائم PMS کمک می‌کنه.",
+              "duration": "30-45"
+            }
+          },
+          "tips": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?date=2026-10-05",
+        "persona": "premium",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "date": "2026-10-05",
+          "user_goal": "non_ttc",
+          "subscription_type": "premium",
+          "context_info": {
+            "phase": "luteal",
+            "phase_label": "لوتئال",
+            "subphase": "pms_possible",
+            "subphase_label": "احتمال پی‌ام‌اس",
+            "cycle_day": 29,
+            "cycle_length": 30,
+            "is_fertile_window": false,
+            "is_pms_window": true,
+            "estimated_ovulation_day": 17
+          },
+          "primary_message": {
+            "phase": "luteal",
+            "phase_label": "لوتئال",
+            "cycle_day": 29,
+            "short_message": "وقت تمرکز روی خودت و کارهای نیمه‌تمام",
+            "long_message": "در فاز لوتئال، انرژی کم‌کم کاهش پیدا می‌کنه. بهترین زمان برای تکمیل پروژه‌ها، مراقبت از خود و آماده شدن برای سیکل بعدی.",
+            "action_suggestion": "یک کار نیمه‌تمام رو تموم کن",
+            "dos": [
+              "یوگا و کشش",
+              "تکمیل پروژه‌ها",
+              "خواب کافی",
+              "غذاهای مغذی"
+            ],
+            "donts": [
+              "شروع پروژه بزرگ",
+              "کافئین زیاد",
+              "شکر زیاد",
+              "فعالیت‌های استرس‌زا"
+            ],
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [
+            {
+              "pattern_type": "chronic_fatigue",
+              "alert_level": "warning",
+              "message": "انرژی پایین مداوم مشاهده شده. این می‌تواند نشانه کم‌خونی یا مشکلات تیروئید باشد.",
+              "recommendation": "آزمایش خون برای بررسی آهن و تیروئید توصیه می‌شود"
+            }
+          ],
+          "supplements": {
+            "nutrition": {
+              "focus": "کربوهیدرات پیچیده و منیزیم",
+              "foods": [
+                "جو",
+                "نخود",
+                "موز",
+                "بادام",
+                "شکلات تلخ"
+              ],
+              "avoid": [
+                "نمک زیاد",
+                "شکر",
+                "کافئین"
+              ],
+              "tip": "منیزیم به کاهش علائم PMS کمک می‌کند"
+            },
+            "sleep": {
+              "recommended_hours": "8-9",
+              "quality_focus": "کیفیت خواب ممکنه کم بشه",
+              "tips": [
+                "ممکنه بی‌خوابی داشته باشی",
+                "منیزیم قبل خواب",
+                "اتاق تاریک و خنک",
+                "مدیتیشن قبل خواب"
+              ],
+              "avoid": [
+                "صفحه نمایش قبل خواب",
+                "غذای سنگین شب",
+                "کافئین"
+              ]
+            },
+            "exercise": {
+              "intensity": "متوسط (کم می‌شه)",
+              "recommended": [
+                "پیلاتس",
+                "یوگا",
+                "پیاده‌روی",
+                "وزنه سبک",
+                "شنا"
+              ],
+              "avoid": [
+                "ورزش‌های خیلی شدید",
+                "تمرینات طولانی"
+              ],
+              "tip": "انرژی کم‌کم کم می‌شه. ورزش ملایم به کاهش علائم PMS کمک می‌کنه.",
+              "duration": "30-45"
+            }
+          },
+          "tips": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?date=2026-08-01",
+        "persona": "premium",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "date": "2026-08-01",
+          "user_goal": "non_ttc",
+          "subscription_type": "premium",
+          "context_info": {
+            "phase": "luteal",
+            "phase_label": "لوتئال",
+            "subphase": "mid_luteal",
+            "subphase_label": "لوتئال میانی",
+            "cycle_day": 25,
+            "cycle_length": 30,
+            "is_fertile_window": false,
+            "is_pms_window": true,
+            "estimated_ovulation_day": 17
+          },
+          "primary_message": {
+            "phase": "luteal",
+            "phase_label": "لوتئال",
+            "cycle_day": 25,
+            "short_message": "وقت تمرکز روی خودت و کارهای نیمه‌تمام",
+            "long_message": "در فاز لوتئال، انرژی کم‌کم کاهش پیدا می‌کنه. بهترین زمان برای تکمیل پروژه‌ها، مراقبت از خود و آماده شدن برای سیکل بعدی.",
+            "action_suggestion": "یک کار نیمه‌تمام رو تموم کن",
+            "dos": [
+              "یوگا و کشش",
+              "تکمیل پروژه‌ها",
+              "خواب کافی",
+              "غذاهای مغذی"
+            ],
+            "donts": [
+              "شروع پروژه بزرگ",
+              "کافئین زیاد",
+              "شکر زیاد",
+              "فعالیت‌های استرس‌زا"
+            ],
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [
+            {
+              "pattern_type": "insufficient_data",
+              "alert_level": "info",
+              "message": "برای تشخیص الگوها، حداقل ۲ هفته داده نیاز است. به ثبت روزانه ادامه دهید.",
+              "recommendation": "هر روز علائم خود را ثبت کنید"
+            }
+          ],
+          "supplements": {
+            "nutrition": {
+              "focus": "کربوهیدرات پیچیده و منیزیم",
+              "foods": [
+                "جو",
+                "نخود",
+                "موز",
+                "بادام",
+                "شکلات تلخ"
+              ],
+              "avoid": [
+                "نمک زیاد",
+                "شکر",
+                "کافئین"
+              ],
+              "tip": "منیزیم به کاهش علائم PMS کمک می‌کند"
+            },
+            "sleep": {
+              "recommended_hours": "8-9",
+              "quality_focus": "کیفیت خواب ممکنه کم بشه",
+              "tips": [
+                "ممکنه بی‌خوابی داشته باشی",
+                "منیزیم قبل خواب",
+                "اتاق تاریک و خنک",
+                "مدیتیشن قبل خواب"
+              ],
+              "avoid": [
+                "صفحه نمایش قبل خواب",
+                "غذای سنگین شب",
+                "کافئین"
+              ]
+            },
+            "exercise": {
+              "intensity": "متوسط (کم می‌شه)",
+              "recommended": [
+                "پیلاتس",
+                "یوگا",
+                "پیاده‌روی",
+                "وزنه سبک",
+                "شنا"
+              ],
+              "avoid": [
+                "ورزش‌های خیلی شدید",
+                "تمرینات طولانی"
+              ],
+              "tip": "انرژی کم‌کم کم می‌شه. ورزش ملایم به کاهش علائم PMS کمک می‌کنه.",
+              "duration": "30-45"
+            }
+          },
+          "tips": []
+        }
+      }
+    }
+  ]
+}

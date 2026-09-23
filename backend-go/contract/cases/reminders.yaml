@@ -1,0 +1,203 @@
+# Reminders (auth:api). ReminderController. Fixture: `engaged` (1018) owns reminders
+# 101801 doctor, 101802 medication (daily 09:00), 101803 appointment (past), 101804 custom
+# (weekly, inactive). Messages: fa/en by locale; 422 {success:false,message,errors}.
+# Case format: backend-go/cmd/contract/cases.go.
+group: reminders
+defaults:
+  persona: engaged
+cases:
+  - name: enums
+    locales: [none, fa, en]
+    method: GET
+    path: /api/v1/reminders/enums
+    status: 200
+  - name: enums_ar
+    doc: D-01 — a 3rd locale 500s on $recurrenceLabels[$r][$locale]
+    locales: ar
+    strict_bytes: true
+    method: GET
+    path: /api/v1/reminders/enums
+    status: 500
+
+  - name: index
+    locales: [none, en]
+    method: GET
+    path: /api/v1/reminders
+    status: 200
+  - name: index_by_type
+    sweep: {var: type, values: [doctor, medication, appointment, custom, bogus]}
+    method: GET
+    path: /api/v1/reminders
+    query: {type: "{{type}}"}
+    status: 200
+  - name: index_empty
+    persona: regular
+    method: GET
+    path: /api/v1/reminders
+    status: 200
+  - name: index_anon
+    persona: anon
+    method: GET
+    path: /api/v1/reminders
+    status: 401
+
+  # ---- create ----
+  - name: create_doctor
+    steps:
+      - method: POST
+        path: /api/v1/reminders
+        body: {type: doctor, title: Dr. Ahmadi, subtitle: Gynecologist, notes: "bring tests", scheduled_at: "2026-10-01 11:30:00"}
+        status: 201
+  - name: create_medication_daily
+    doc: recurrence_time echoes "16:00" on create, "16:00:00" on read (list step)
+    steps:
+      - method: POST
+        path: /api/v1/reminders
+        body: {type: medication, title: Folic acid, recurrence: daily, recurrence_time: "16:00", starts_on: "2026-09-23", ends_on: "2026-12-23"}
+        status: 201
+        capture: {rid: data.id}
+      - method: GET
+        path: /api/v1/reminders
+        query: {type: medication}
+        status: 200
+  - name: create_appointment_weekly
+    locales: fa
+    method: POST
+    path: /api/v1/reminders
+    body: {type: appointment, title: سونوگرافی, recurrence: weekly, recurrence_time: "08:15", starts_on: "2026-09-24", is_active: false}
+    status: 201
+  - name: create_custom_monthly
+    method: POST
+    path: /api/v1/reminders
+    body: {type: custom, title: Check-up, recurrence: monthly, recurrence_time: "20:00", starts_on: "2026-09-01", ends_on: ~, subtitle: ~, notes: ~}
+    status: 201
+  - name: create_custom_none
+    doc: new user with no reminders; is_active string "1" accepted by boolean rule
+    persona: no_profile
+    method: POST
+    path: /api/v1/reminders
+    body: {type: custom, title: Water, recurrence: none, is_active: "1"}
+    status: 201
+
+  # ---- create: validation (fa + en) ----
+  - name: create_422_empty
+    locales: [none, fa, en]
+    method: POST
+    path: /api/v1/reminders
+    body: {}
+    status: 422
+  - name: create_422_bad_enums
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/reminders
+    body: {type: dentist, title: X, recurrence: yearly}
+    status: 422
+  - name: create_422_lengths
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/reminders
+    body:
+      type: custom
+      title: "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT"
+      subtitle: "SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS"
+      notes: "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN"
+    status: 422
+  - name: create_422_types
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/reminders
+    body: {type: custom, title: 123, scheduled_at: not-a-date, recurrence_time: "4pm", starts_on: "2026-13-01", is_active: maybe}
+    status: 422
+  - name: create_422_ends_before_starts
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/reminders
+    body: {type: custom, title: X, starts_on: "2026-10-10", ends_on: "2026-10-01"}
+    status: 422
+  - name: create_anon
+    persona: anon
+    method: POST
+    path: /api/v1/reminders
+    body: {type: custom, title: X}
+    status: 401
+
+  # ---- update ----
+  - name: update_partial
+    steps:
+      - method: PUT
+        path: /api/v1/reminders/101802
+        body: {title: Iron 2, recurrence_time: "21:45"}
+        status: 200
+      - method: GET
+        path: /api/v1/reminders
+        query: {type: medication}
+        status: 200
+  - name: update_deactivate
+    locales: en
+    method: PUT
+    path: /api/v1/reminders/101801
+    body: {is_active: false, type: appointment, scheduled_at: ~}
+    status: 200
+  - name: update_422
+    locales: [fa, en]
+    method: PUT
+    path: /api/v1/reminders/101801
+    body: {type: nope, recurrence: hourly, starts_on: "2026-10-10", ends_on: "2026-10-09"}
+    status: 422
+  - name: update_missing
+    locales: [fa, en]
+    method: PUT
+    path: /api/v1/reminders/999999
+    body: {title: X}
+    status: 404
+  - name: update_other_users
+    doc: regular (1004) cannot touch engaged's reminder
+    persona: regular
+    locales: [fa, en]
+    method: PUT
+    path: /api/v1/reminders/101801
+    body: {title: X}
+    status: 404
+  - name: update_non_numeric
+    doc: D-02 — typed int route param, non-numeric → 500 Server Error (pretty)
+    method: PUT
+    path: /api/v1/reminders/abc
+    body: {title: X}
+    status: 500
+    strict_bytes: true
+  - name: update_anon
+    persona: anon
+    method: PUT
+    path: /api/v1/reminders/101801
+    body: {title: X}
+    status: 401
+
+  # ---- delete ----
+  - name: delete
+    steps:
+      - method: DELETE
+        path: /api/v1/reminders/101803
+        status: 200
+      - method: GET
+        path: /api/v1/reminders
+        status: 200
+      - method: DELETE
+        path: /api/v1/reminders/101803
+        status: 404
+  - name: delete_other_users
+    persona: regular
+    locales: [fa, en]
+    method: DELETE
+    path: /api/v1/reminders/101804
+    status: 404
+  - name: delete_non_numeric
+    doc: D-02
+    method: DELETE
+    path: /api/v1/reminders/xyz
+    status: 500
+    strict_bytes: true
+  - name: delete_anon
+    persona: anon
+    method: DELETE
+    path: /api/v1/reminders/101803
+    status: 401

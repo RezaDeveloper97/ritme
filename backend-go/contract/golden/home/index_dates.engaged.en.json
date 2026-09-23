@@ -1,0 +1,3557 @@
+{
+  "case": "home/index_dates.engaged.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/home?date=2026-09-14",
+        "persona": "engaged",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "mode_label": "Menstrual Cycle",
+          "date": "2026-09-14",
+          "locale": "en",
+          "profile_complete": true,
+          "sections": [
+            {
+              "key": "header",
+              "type": "header",
+              "title": null,
+              "subtitle": null,
+              "order": 10,
+              "action": null,
+              "data": {
+                "app_name": "ریتمی",
+                "tagline": "Your health companion",
+                "greeting": "Hi Contract engaged",
+                "user": {
+                  "id": 1018,
+                  "name": "Contract engaged"
+                },
+                "mode": "cycle",
+                "mode_label": "Menstrual Cycle",
+                "is_premium": false,
+                "date": "2026-09-14",
+                "weekday_iso": 1,
+                "moon_phase": {
+                  "key": "waxing_crescent",
+                  "label": "Waxing crescent",
+                  "illumination": 0.04,
+                  "age_days": 2
+                },
+                "notifications": {
+                  "unread_count": 2,
+                  "has_unread": true
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "week_calendar",
+              "type": "week_calendar",
+              "title": null,
+              "subtitle": null,
+              "order": 20,
+              "action": null,
+              "data": {
+                "week_start": "2026-09-12",
+                "days": [
+                  {
+                    "date": "2026-09-12",
+                    "weekday_iso": 6,
+                    "is_today": false,
+                    "cycle_day": 24,
+                    "phase": "luteal",
+                    "phase_label": "Luteal",
+                    "color": "#9C8BD6",
+                    "is_period": false,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-09-13",
+                    "weekday_iso": 7,
+                    "is_today": false,
+                    "cycle_day": 25,
+                    "phase": "luteal",
+                    "phase_label": "Luteal",
+                    "color": "#9C8BD6",
+                    "is_period": false,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-09-14",
+                    "weekday_iso": 1,
+                    "is_today": true,
+                    "cycle_day": 26,
+                    "phase": "luteal",
+                    "phase_label": "Luteal",
+                    "color": "#9C8BD6",
+                    "is_period": false,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-09-15",
+                    "weekday_iso": 2,
+                    "is_today": false,
+                    "cycle_day": 27,
+                    "phase": "luteal",
+                    "phase_label": "Luteal",
+                    "color": "#9C8BD6",
+                    "is_period": false,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-09-16",
+                    "weekday_iso": 3,
+                    "is_today": false,
+                    "cycle_day": 28,
+                    "phase": "luteal",
+                    "phase_label": "Luteal",
+                    "color": "#9C8BD6",
+                    "is_period": false,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-09-17",
+                    "weekday_iso": 4,
+                    "is_today": false,
+                    "cycle_day": 1,
+                    "phase": "menstruation",
+                    "phase_label": "Menstruation",
+                    "color": "#F2567C",
+                    "is_period": true,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-09-18",
+                    "weekday_iso": 5,
+                    "is_today": false,
+                    "cycle_day": 2,
+                    "phase": "menstruation",
+                    "phase_label": "Menstruation",
+                    "color": "#F2567C",
+                    "is_period": true,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  }
+                ]
+              },
+              "meta": null
+            },
+            {
+              "key": "next_period",
+              "type": "next_period",
+              "title": "3 days to next period",
+              "subtitle": "Your next period is around 2026-09-17",
+              "order": 30,
+              "action": {
+                "key": "log_period_start",
+                "label": "Log period start"
+              },
+              "data": {
+                "days_until_period": 3,
+                "next_period_date": "2026-09-17",
+                "cycle_day": 26,
+                "cycle_length": 28,
+                "progress_percent": 93,
+                "is_in_period": false,
+                "is_period_tomorrow": true,
+                "is_fertile_window": false,
+                "uncertainty_range": 1,
+                "pregnancy_probability": {
+                  "percent": 0,
+                  "level": "low",
+                  "label": "Low"
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "cycle_prediction",
+              "type": "cycle_prediction",
+              "title": null,
+              "subtitle": null,
+              "order": 40,
+              "action": null,
+              "data": {
+                "cards": [
+                  {
+                    "key": "fertile_window",
+                    "label": "Fertile window",
+                    "start_date": "2026-09-26",
+                    "end_date": "2026-10-02",
+                    "days_until": 12,
+                    "is_active": false
+                  },
+                  {
+                    "key": "ovulation",
+                    "label": "Ovulation",
+                    "date": "2026-10-01",
+                    "days_until": 17
+                  },
+                  {
+                    "key": "next_period",
+                    "label": "Next period",
+                    "date": "2026-09-17",
+                    "days_until": 3
+                  }
+                ],
+                "uncertainty_range": 1
+              },
+              "meta": null
+            },
+            {
+              "key": "recommendations",
+              "type": "recommendations",
+              "title": "Today's recommendations",
+              "subtitle": null,
+              "order": 50,
+              "action": null,
+              "data": {
+                "tags": [
+                  {
+                    "type": "pms",
+                    "icon": "flower"
+                  },
+                  {
+                    "type": "nutrition",
+                    "icon": "apple"
+                  },
+                  {
+                    "type": "mood",
+                    "icon": "smile"
+                  }
+                ],
+                "items": [
+                  {
+                    "type": "pms",
+                    "icon": "flower",
+                    "title": "PMS",
+                    "text": "PMS symptoms may appear. Practice self-care and relaxation."
+                  },
+                  {
+                    "type": "nutrition",
+                    "icon": "apple",
+                    "title": "Nutrition",
+                    "text": "Reduce salt and caffeine intake to minimize bloating."
+                  },
+                  {
+                    "type": "mood",
+                    "icon": "smile",
+                    "title": "Mood",
+                    "text": "Take breaks and practice deep breathing if feeling irritable."
+                  }
+                ]
+              },
+              "meta": null
+            },
+            {
+              "key": "tasks",
+              "type": "tasks",
+              "title": "Today's tasks",
+              "subtitle": "0/5",
+              "order": 60,
+              "action": null,
+              "data": {
+                "items": [
+                  {
+                    "id": 1,
+                    "key": "log_bbt",
+                    "title": "Log body temperature",
+                    "description": "Record your basal body temperature each morning",
+                    "category": "tracking",
+                    "category_label": "Tracking",
+                    "icon": "clipboard-check",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 2,
+                    "key": "drink_water",
+                    "title": "Drink 8 glasses of water",
+                    "description": "Stay hydrated throughout the day",
+                    "category": "hydration",
+                    "category_label": "Hydration",
+                    "icon": "water-glass",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 3,
+                    "key": "vitamin_d",
+                    "title": "Take vitamin D",
+                    "description": "Take your vitamin D supplement",
+                    "category": "supplement",
+                    "category_label": "Supplement",
+                    "icon": "pill",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 4,
+                    "key": "walk_30",
+                    "title": "30 minutes walking",
+                    "description": "Take a light 30-minute walk",
+                    "category": "exercise",
+                    "category_label": "Exercise",
+                    "icon": "walking",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 5,
+                    "key": "breathing_5",
+                    "title": "5 minutes of deep breathing",
+                    "description": "Practice deep breathing to calm your mind",
+                    "category": "mindfulness",
+                    "category_label": "Mindfulness",
+                    "icon": "lotus",
+                    "is_completed": false
+                  }
+                ],
+                "progress": {
+                  "completed": 0,
+                  "total": 5,
+                  "percent": 0
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "challenge",
+              "type": "challenge",
+              "title": "Today's challenge",
+              "subtitle": null,
+              "order": 70,
+              "action": null,
+              "data": {
+                "id": 24,
+                "title": "Magnesium before your period",
+                "description": "Magnesium-rich foods like almonds and dark chocolate help with PMS",
+                "category": "nutrition",
+                "cycle_day": 26,
+                "cycle_day_from": 20,
+                "cycle_day_to": 28,
+                "is_completed": false
+              },
+              "meta": null
+            },
+            {
+              "key": "doctor_reminder",
+              "type": "doctor_reminder",
+              "title": "Doctor reminder",
+              "subtitle": null,
+              "order": 80,
+              "action": null,
+              "data": {
+                "id": 101801,
+                "title": "دکتر رضایی",
+                "subtitle": "زنان و زایمان",
+                "notes": null,
+                "scheduled_at": "2026-09-26T16:30:00+03:30",
+                "date": "2026-09-26",
+                "time": "16:30",
+                "meta": {
+                  "phone": "02100000000"
+                },
+                "icon": "stethoscope"
+              },
+              "meta": null
+            },
+            {
+              "key": "medication_reminder",
+              "type": "medication_reminder",
+              "title": "Medication reminder",
+              "subtitle": null,
+              "order": 90,
+              "action": null,
+              "data": {
+                "id": 101802,
+                "title": "آهن",
+                "subtitle": "۱ قرص",
+                "notes": null,
+                "time": "09:00",
+                "recurrence": "daily",
+                "meta": null,
+                "icon": "pill"
+              },
+              "meta": null
+            },
+            {
+              "key": "smart_tip",
+              "type": "smart_tip",
+              "title": "Smart tip",
+              "subtitle": null,
+              "order": 100,
+              "action": null,
+              "data": {
+                "text": "In the luteal phase, energy gradually decreases. Best time to complete projects, self-care and prepare for the next cycle.",
+                "source": "message_engine"
+              },
+              "meta": null
+            },
+            {
+              "key": "affirmation",
+              "type": "affirmation",
+              "title": null,
+              "subtitle": null,
+              "order": 110,
+              "action": null,
+              "data": {
+                "id": 6,
+                "text": "With every breath, I welcome fresh energy.",
+                "icon": "sparkle"
+              },
+              "meta": null
+            },
+            {
+              "key": "weekly_summary",
+              "type": "weekly_summary",
+              "title": "Weekly summary",
+              "subtitle": null,
+              "order": 120,
+              "action": {
+                "key": "view_all",
+                "label": "View all"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "mood",
+                    "label": "Mood",
+                    "icon": "smile",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  },
+                  {
+                    "key": "sleep",
+                    "label": "Sleep",
+                    "icon": "moon",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  },
+                  {
+                    "key": "energy",
+                    "label": "Energy",
+                    "icon": "bolt",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  }
+                ],
+                "range": {
+                  "from": "2026-09-08",
+                  "to": "2026-09-14"
+                },
+                "logged_days": 0,
+                "previous_logged_days": 0,
+                "overall_percent": null
+              },
+              "meta": null
+            },
+            {
+              "key": "vitals",
+              "type": "vitals",
+              "title": "Today's vitals",
+              "subtitle": null,
+              "order": 130,
+              "action": {
+                "key": "view_all",
+                "label": "View all"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "heart_rate",
+                    "label": "Heart rate",
+                    "value": null,
+                    "unit": "bpm",
+                    "icon": "heart-pulse"
+                  },
+                  {
+                    "key": "blood_pressure",
+                    "label": "Blood pressure",
+                    "value": null,
+                    "unit": "mmHg",
+                    "icon": "gauge"
+                  },
+                  {
+                    "key": "blood_sugar",
+                    "label": "Blood sugar",
+                    "value": null,
+                    "unit": "mg/dl",
+                    "icon": "droplet"
+                  }
+                ],
+                "has_data": false,
+                "date": "2026-09-14"
+              },
+              "meta": null
+            },
+            {
+              "key": "articles",
+              "type": "articles",
+              "title": "Based on your current cycle",
+              "subtitle": null,
+              "order": 150,
+              "action": {
+                "key": "view_more",
+                "label": "View more"
+              },
+              "data": {
+                "items": [
+                  {
+                    "id": 5,
+                    "slug": "pms-management",
+                    "title": "Managing PMS symptoms",
+                    "excerpt": "Strategies to manage mood and physical symptoms before your period",
+                    "read_time_minutes": 5,
+                    "image_url": null,
+                    "category": "wellbeing",
+                    "cycle_phases": [
+                      "luteal"
+                    ]
+                  },
+                  {
+                    "id": 6,
+                    "slug": "cycle-nutrition-basics",
+                    "title": "Eating in sync with your cycle",
+                    "excerpt": "What to eat in each phase to feel your best",
+                    "read_time_minutes": 6,
+                    "image_url": null,
+                    "category": "nutrition",
+                    "cycle_phases": []
+                  }
+                ]
+              },
+              "meta": null
+            },
+            {
+              "key": "my_cycles",
+              "type": "my_cycles",
+              "title": "My cycles",
+              "subtitle": null,
+              "order": 160,
+              "action": {
+                "key": "add_previous",
+                "label": "Add previous cycles"
+              },
+              "data": {
+                "current": {
+                  "id": 101803,
+                  "cycle_day": 26,
+                  "started_at": "2026-08-20",
+                  "period_end_date": "2026-08-24",
+                  "period_length": 5,
+                  "is_ongoing": false,
+                  "cycle_length": 28,
+                  "cycle_length_source": "recent_valid_cycles"
+                },
+                "previous_count": 3,
+                "previous": [
+                  {
+                    "id": 101803,
+                    "period_start_date": "2026-08-20",
+                    "period_end_date": "2026-08-24",
+                    "cycle_length": 28,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  },
+                  {
+                    "id": 101802,
+                    "period_start_date": "2026-07-23",
+                    "period_end_date": "2026-07-27",
+                    "cycle_length": 28,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  },
+                  {
+                    "id": 101801,
+                    "period_start_date": "2026-06-26",
+                    "period_end_date": "2026-06-30",
+                    "cycle_length": 27,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  }
+                ],
+                "averages": {
+                  "cycle_length": 28,
+                  "period_length": 5,
+                  "based_on_cycles": 3
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "cycle_summary",
+              "type": "cycle_summary",
+              "title": "Cycle summary",
+              "subtitle": null,
+              "order": 170,
+              "action": {
+                "key": "view_more",
+                "label": "View more"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "last_cycle_length",
+                    "label": "Last cycle length",
+                    "value": 28,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "days",
+                    "status": "normal",
+                    "status_label": "Within the usual range",
+                    "hint": null,
+                    "normal_range": {
+                      "min": 21,
+                      "max": 35
+                    }
+                  },
+                  {
+                    "key": "last_period_duration",
+                    "label": "Last period duration",
+                    "value": 5,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "days",
+                    "status": "normal",
+                    "status_label": "Within the usual range",
+                    "hint": null,
+                    "normal_range": {
+                      "min": 2,
+                      "max": 8
+                    }
+                  },
+                  {
+                    "key": "cycle_variability",
+                    "label": "Cycle length variation",
+                    "value": 1,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": "Relatively regular",
+                    "unit": "days",
+                    "unit_label": "days",
+                    "status": "normal",
+                    "status_label": "Within the usual range",
+                    "hint": "Recent cycles differ by 1 days",
+                    "normal_range": null
+                  },
+                  {
+                    "key": "average_cycle_length",
+                    "label": "Average cycle length",
+                    "value": 28,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "days",
+                    "status": "normal",
+                    "status_label": "Within the usual range",
+                    "hint": "Based on 3 recorded cycles",
+                    "normal_range": {
+                      "min": 21,
+                      "max": 35
+                    }
+                  },
+                  {
+                    "key": "cycle_length_range",
+                    "label": "Shortest to longest cycle",
+                    "value": null,
+                    "value_min": 27,
+                    "value_max": 28,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "days",
+                    "status": "normal",
+                    "status_label": "Within the usual range",
+                    "hint": null,
+                    "normal_range": null
+                  }
+                ],
+                "based_on_cycles": 3,
+                "has_history": true,
+                "normal_ranges": {
+                  "cycle_length": {
+                    "min": 21,
+                    "max": 35
+                  },
+                  "period_duration": {
+                    "min": 2,
+                    "max": 8
+                  }
+                }
+              },
+              "meta": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/home?date=2026-09-22",
+        "persona": "engaged",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "mode_label": "Menstrual Cycle",
+          "date": "2026-09-22",
+          "locale": "en",
+          "profile_complete": true,
+          "sections": [
+            {
+              "key": "header",
+              "type": "header",
+              "title": null,
+              "subtitle": null,
+              "order": 10,
+              "action": null,
+              "data": {
+                "app_name": "ریتمی",
+                "tagline": "Your health companion",
+                "greeting": "Hi Contract engaged",
+                "user": {
+                  "id": 1018,
+                  "name": "Contract engaged"
+                },
+                "mode": "cycle",
+                "mode_label": "Menstrual Cycle",
+                "is_premium": false,
+                "date": "2026-09-22",
+                "weekday_iso": 2,
+                "moon_phase": {
+                  "key": "waxing_gibbous",
+                  "label": "Waxing gibbous",
+                  "illumination": 0.76,
+                  "age_days": 10
+                },
+                "notifications": {
+                  "unread_count": 2,
+                  "has_unread": true
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "week_calendar",
+              "type": "week_calendar",
+              "title": null,
+              "subtitle": null,
+              "order": 20,
+              "action": null,
+              "data": {
+                "week_start": "2026-09-19",
+                "days": [
+                  {
+                    "date": "2026-09-19",
+                    "weekday_iso": 6,
+                    "is_today": false,
+                    "cycle_day": 3,
+                    "phase": "menstruation",
+                    "phase_label": "Menstruation",
+                    "color": "#F2567C",
+                    "is_period": true,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-09-20",
+                    "weekday_iso": 7,
+                    "is_today": false,
+                    "cycle_day": 4,
+                    "phase": "menstruation",
+                    "phase_label": "Menstruation",
+                    "color": "#F2567C",
+                    "is_period": true,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-09-21",
+                    "weekday_iso": 1,
+                    "is_today": false,
+                    "cycle_day": 5,
+                    "phase": "menstruation",
+                    "phase_label": "Menstruation",
+                    "color": "#F2567C",
+                    "is_period": true,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-09-22",
+                    "weekday_iso": 2,
+                    "is_today": true,
+                    "cycle_day": 6,
+                    "phase": "follicular",
+                    "phase_label": "Follicular",
+                    "color": "#7BC99A",
+                    "is_period": false,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-09-23",
+                    "weekday_iso": 3,
+                    "is_today": false,
+                    "cycle_day": 7,
+                    "phase": "follicular",
+                    "phase_label": "Follicular",
+                    "color": "#7BC99A",
+                    "is_period": false,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-09-24",
+                    "weekday_iso": 4,
+                    "is_today": false,
+                    "cycle_day": 8,
+                    "phase": "follicular",
+                    "phase_label": "Follicular",
+                    "color": "#7BC99A",
+                    "is_period": false,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-09-25",
+                    "weekday_iso": 5,
+                    "is_today": false,
+                    "cycle_day": 9,
+                    "phase": "follicular",
+                    "phase_label": "Follicular",
+                    "color": "#7BC99A",
+                    "is_period": false,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  }
+                ]
+              },
+              "meta": null
+            },
+            {
+              "key": "next_period",
+              "type": "next_period",
+              "title": "23 days to next period",
+              "subtitle": "Your next period is around 2026-10-15",
+              "order": 30,
+              "action": {
+                "key": "log_period_start",
+                "label": "Log period start"
+              },
+              "data": {
+                "days_until_period": 23,
+                "next_period_date": "2026-10-15",
+                "cycle_day": 6,
+                "cycle_length": 28,
+                "progress_percent": 21,
+                "is_in_period": false,
+                "is_period_tomorrow": false,
+                "is_fertile_window": false,
+                "uncertainty_range": 1,
+                "pregnancy_probability": {
+                  "percent": 0,
+                  "level": "low",
+                  "label": "Low"
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "cycle_prediction",
+              "type": "cycle_prediction",
+              "title": null,
+              "subtitle": null,
+              "order": 40,
+              "action": null,
+              "data": {
+                "cards": [
+                  {
+                    "key": "fertile_window",
+                    "label": "Fertile window",
+                    "start_date": "2026-09-26",
+                    "end_date": "2026-10-02",
+                    "days_until": 4,
+                    "is_active": false
+                  },
+                  {
+                    "key": "ovulation",
+                    "label": "Ovulation",
+                    "date": "2026-10-01",
+                    "days_until": 9
+                  },
+                  {
+                    "key": "next_period",
+                    "label": "Next period",
+                    "date": "2026-10-15",
+                    "days_until": 23
+                  }
+                ],
+                "uncertainty_range": 1
+              },
+              "meta": null
+            },
+            {
+              "key": "recommendations",
+              "type": "recommendations",
+              "title": "Today's recommendations",
+              "subtitle": null,
+              "order": 50,
+              "action": null,
+              "data": {
+                "tags": [
+                  {
+                    "type": "energy",
+                    "icon": "bolt"
+                  },
+                  {
+                    "type": "exercise",
+                    "icon": "walking"
+                  },
+                  {
+                    "type": "nutrition",
+                    "icon": "apple"
+                  },
+                  {
+                    "type": "mental_health",
+                    "icon": "brain"
+                  }
+                ],
+                "items": [
+                  {
+                    "type": "energy",
+                    "icon": "bolt",
+                    "title": "Energy",
+                    "text": "Your energy levels are rising. Great time for new projects!"
+                  },
+                  {
+                    "type": "exercise",
+                    "icon": "walking",
+                    "title": "Exercise",
+                    "text": "Perfect time for high-intensity workouts."
+                  },
+                  {
+                    "type": "nutrition",
+                    "icon": "apple",
+                    "title": "Nutrition",
+                    "text": "Add protein and fresh vegetables to rebuild your energy stores."
+                  },
+                  {
+                    "type": "mental_health",
+                    "icon": "brain",
+                    "title": "Mental health",
+                    "text": "A good window for planning and learning something new."
+                  }
+                ]
+              },
+              "meta": null
+            },
+            {
+              "key": "tasks",
+              "type": "tasks",
+              "title": "Today's tasks",
+              "subtitle": "1/5",
+              "order": 60,
+              "action": null,
+              "data": {
+                "items": [
+                  {
+                    "id": 1,
+                    "key": "log_bbt",
+                    "title": "Log body temperature",
+                    "description": "Record your basal body temperature each morning",
+                    "category": "tracking",
+                    "category_label": "Tracking",
+                    "icon": "clipboard-check",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 2,
+                    "key": "drink_water",
+                    "title": "Drink 8 glasses of water",
+                    "description": "Stay hydrated throughout the day",
+                    "category": "hydration",
+                    "category_label": "Hydration",
+                    "icon": "water-glass",
+                    "is_completed": true
+                  },
+                  {
+                    "id": 3,
+                    "key": "vitamin_d",
+                    "title": "Take vitamin D",
+                    "description": "Take your vitamin D supplement",
+                    "category": "supplement",
+                    "category_label": "Supplement",
+                    "icon": "pill",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 4,
+                    "key": "walk_30",
+                    "title": "30 minutes walking",
+                    "description": "Take a light 30-minute walk",
+                    "category": "exercise",
+                    "category_label": "Exercise",
+                    "icon": "walking",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 5,
+                    "key": "breathing_5",
+                    "title": "5 minutes of deep breathing",
+                    "description": "Practice deep breathing to calm your mind",
+                    "category": "mindfulness",
+                    "category_label": "Mindfulness",
+                    "icon": "lotus",
+                    "is_completed": false
+                  }
+                ],
+                "progress": {
+                  "completed": 1,
+                  "total": 5,
+                  "percent": 20
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "challenge",
+              "type": "challenge",
+              "title": "Today's challenge",
+              "subtitle": null,
+              "order": 70,
+              "action": null,
+              "data": {
+                "id": 21,
+                "title": "Replenish iron after your period",
+                "description": "After bleeding, pair an iron-rich meal with vitamin C",
+                "category": "nutrition",
+                "cycle_day": 6,
+                "cycle_day_from": 5,
+                "cycle_day_to": 9,
+                "is_completed": false
+              },
+              "meta": null
+            },
+            {
+              "key": "doctor_reminder",
+              "type": "doctor_reminder",
+              "title": "Doctor reminder",
+              "subtitle": null,
+              "order": 80,
+              "action": null,
+              "data": {
+                "id": 101801,
+                "title": "دکتر رضایی",
+                "subtitle": "زنان و زایمان",
+                "notes": null,
+                "scheduled_at": "2026-09-26T16:30:00+03:30",
+                "date": "2026-09-26",
+                "time": "16:30",
+                "meta": {
+                  "phone": "02100000000"
+                },
+                "icon": "stethoscope"
+              },
+              "meta": null
+            },
+            {
+              "key": "medication_reminder",
+              "type": "medication_reminder",
+              "title": "Medication reminder",
+              "subtitle": null,
+              "order": 90,
+              "action": null,
+              "data": {
+                "id": 101802,
+                "title": "آهن",
+                "subtitle": "۱ قرص",
+                "notes": null,
+                "time": "09:00",
+                "recurrence": "daily",
+                "meta": null,
+                "icon": "pill"
+              },
+              "meta": null
+            },
+            {
+              "key": "smart_tip",
+              "type": "smart_tip",
+              "title": "Smart tip",
+              "subtitle": null,
+              "order": 100,
+              "action": null,
+              "data": {
+                "text": "In the follicular phase, estrogen levels rise and your energy and creativity increase. Best time to start new projects and more intense workouts.",
+                "source": "message_engine"
+              },
+              "meta": null
+            },
+            {
+              "key": "affirmation",
+              "type": "affirmation",
+              "title": null,
+              "subtitle": null,
+              "order": 110,
+              "action": null,
+              "data": {
+                "id": 7,
+                "text": "Caring for myself is a powerful choice.",
+                "icon": "sparkle"
+              },
+              "meta": null
+            },
+            {
+              "key": "weekly_summary",
+              "type": "weekly_summary",
+              "title": "Weekly summary",
+              "subtitle": null,
+              "order": 120,
+              "action": {
+                "key": "view_all",
+                "label": "View all"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "mood",
+                    "label": "Mood",
+                    "icon": "smile",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  },
+                  {
+                    "key": "sleep",
+                    "label": "Sleep",
+                    "icon": "moon",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  },
+                  {
+                    "key": "energy",
+                    "label": "Energy",
+                    "icon": "bolt",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  }
+                ],
+                "range": {
+                  "from": "2026-09-16",
+                  "to": "2026-09-22"
+                },
+                "logged_days": 0,
+                "previous_logged_days": 0,
+                "overall_percent": null
+              },
+              "meta": null
+            },
+            {
+              "key": "vitals",
+              "type": "vitals",
+              "title": "Today's vitals",
+              "subtitle": null,
+              "order": 130,
+              "action": {
+                "key": "view_all",
+                "label": "View all"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "heart_rate",
+                    "label": "Heart rate",
+                    "value": null,
+                    "unit": "bpm",
+                    "icon": "heart-pulse"
+                  },
+                  {
+                    "key": "blood_pressure",
+                    "label": "Blood pressure",
+                    "value": null,
+                    "unit": "mmHg",
+                    "icon": "gauge"
+                  },
+                  {
+                    "key": "blood_sugar",
+                    "label": "Blood sugar",
+                    "value": null,
+                    "unit": "mg/dl",
+                    "icon": "droplet"
+                  }
+                ],
+                "has_data": false,
+                "date": "2026-09-22"
+              },
+              "meta": null
+            },
+            {
+              "key": "articles",
+              "type": "articles",
+              "title": "Based on your current cycle",
+              "subtitle": null,
+              "order": 150,
+              "action": {
+                "key": "view_more",
+                "label": "View more"
+              },
+              "data": {
+                "items": [
+                  {
+                    "id": 3,
+                    "slug": "follicular-energy",
+                    "title": "The follicular phase: your energy peak",
+                    "excerpt": "Why you feel more energetic after your period and how to use it",
+                    "read_time_minutes": 3,
+                    "image_url": null,
+                    "category": "cycle_science",
+                    "cycle_phases": [
+                      "follicular"
+                    ]
+                  },
+                  {
+                    "id": 6,
+                    "slug": "cycle-nutrition-basics",
+                    "title": "Eating in sync with your cycle",
+                    "excerpt": "What to eat in each phase to feel your best",
+                    "read_time_minutes": 6,
+                    "image_url": null,
+                    "category": "nutrition",
+                    "cycle_phases": []
+                  }
+                ]
+              },
+              "meta": null
+            },
+            {
+              "key": "my_cycles",
+              "type": "my_cycles",
+              "title": "My cycles",
+              "subtitle": null,
+              "order": 160,
+              "action": {
+                "key": "add_previous",
+                "label": "Add previous cycles"
+              },
+              "data": {
+                "current": {
+                  "id": 101804,
+                  "cycle_day": 6,
+                  "started_at": "2026-09-17",
+                  "period_end_date": "2026-09-21",
+                  "period_length": 5,
+                  "is_ongoing": false,
+                  "cycle_length": 28,
+                  "cycle_length_source": "recent_valid_cycles"
+                },
+                "previous_count": 3,
+                "previous": [
+                  {
+                    "id": 101803,
+                    "period_start_date": "2026-08-20",
+                    "period_end_date": "2026-08-24",
+                    "cycle_length": 28,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  },
+                  {
+                    "id": 101802,
+                    "period_start_date": "2026-07-23",
+                    "period_end_date": "2026-07-27",
+                    "cycle_length": 28,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  },
+                  {
+                    "id": 101801,
+                    "period_start_date": "2026-06-26",
+                    "period_end_date": "2026-06-30",
+                    "cycle_length": 27,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  }
+                ],
+                "averages": {
+                  "cycle_length": 28,
+                  "period_length": 5,
+                  "based_on_cycles": 3
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "cycle_summary",
+              "type": "cycle_summary",
+              "title": "Cycle summary",
+              "subtitle": null,
+              "order": 170,
+              "action": {
+                "key": "view_more",
+                "label": "View more"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "last_cycle_length",
+                    "label": "Last cycle length",
+                    "value": 28,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "days",
+                    "status": "normal",
+                    "status_label": "Within the usual range",
+                    "hint": null,
+                    "normal_range": {
+                      "min": 21,
+                      "max": 35
+                    }
+                  },
+                  {
+                    "key": "last_period_duration",
+                    "label": "Last period duration",
+                    "value": 5,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "days",
+                    "status": "normal",
+                    "status_label": "Within the usual range",
+                    "hint": null,
+                    "normal_range": {
+                      "min": 2,
+                      "max": 8
+                    }
+                  },
+                  {
+                    "key": "cycle_variability",
+                    "label": "Cycle length variation",
+                    "value": 1,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": "Relatively regular",
+                    "unit": "days",
+                    "unit_label": "days",
+                    "status": "normal",
+                    "status_label": "Within the usual range",
+                    "hint": "Recent cycles differ by 1 days",
+                    "normal_range": null
+                  },
+                  {
+                    "key": "average_cycle_length",
+                    "label": "Average cycle length",
+                    "value": 28,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "days",
+                    "status": "normal",
+                    "status_label": "Within the usual range",
+                    "hint": "Based on 3 recorded cycles",
+                    "normal_range": {
+                      "min": 21,
+                      "max": 35
+                    }
+                  },
+                  {
+                    "key": "cycle_length_range",
+                    "label": "Shortest to longest cycle",
+                    "value": null,
+                    "value_min": 27,
+                    "value_max": 28,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "days",
+                    "status": "normal",
+                    "status_label": "Within the usual range",
+                    "hint": null,
+                    "normal_range": null
+                  }
+                ],
+                "based_on_cycles": 3,
+                "has_history": true,
+                "normal_ranges": {
+                  "cycle_length": {
+                    "min": 21,
+                    "max": 35
+                  },
+                  "period_duration": {
+                    "min": 2,
+                    "max": 8
+                  }
+                }
+              },
+              "meta": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/home?date=2026-09-30",
+        "persona": "engaged",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "mode_label": "Menstrual Cycle",
+          "date": "2026-09-30",
+          "locale": "en",
+          "profile_complete": true,
+          "sections": [
+            {
+              "key": "header",
+              "type": "header",
+              "title": null,
+              "subtitle": null,
+              "order": 10,
+              "action": null,
+              "data": {
+                "app_name": "ریتمی",
+                "tagline": "Your health companion",
+                "greeting": "Hi Contract engaged",
+                "user": {
+                  "id": 1018,
+                  "name": "Contract engaged"
+                },
+                "mode": "cycle",
+                "mode_label": "Menstrual Cycle",
+                "is_premium": false,
+                "date": "2026-09-30",
+                "weekday_iso": 3,
+                "moon_phase": {
+                  "key": "waning_gibbous",
+                  "label": "Waning gibbous",
+                  "illumination": 0.89,
+                  "age_days": 18
+                },
+                "notifications": {
+                  "unread_count": 2,
+                  "has_unread": true
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "week_calendar",
+              "type": "week_calendar",
+              "title": null,
+              "subtitle": null,
+              "order": 20,
+              "action": null,
+              "data": {
+                "week_start": "2026-09-26",
+                "days": [
+                  {
+                    "date": "2026-09-26",
+                    "weekday_iso": 6,
+                    "is_today": false,
+                    "cycle_day": 10,
+                    "phase": "follicular",
+                    "phase_label": "Follicular",
+                    "color": "#7BC99A",
+                    "is_period": false,
+                    "is_fertile": true,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-09-27",
+                    "weekday_iso": 7,
+                    "is_today": false,
+                    "cycle_day": 11,
+                    "phase": "follicular",
+                    "phase_label": "Follicular",
+                    "color": "#7BC99A",
+                    "is_period": false,
+                    "is_fertile": true,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-09-28",
+                    "weekday_iso": 1,
+                    "is_today": false,
+                    "cycle_day": 12,
+                    "phase": "follicular",
+                    "phase_label": "Follicular",
+                    "color": "#7BC99A",
+                    "is_period": false,
+                    "is_fertile": true,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-09-29",
+                    "weekday_iso": 2,
+                    "is_today": false,
+                    "cycle_day": 13,
+                    "phase": "follicular",
+                    "phase_label": "Follicular",
+                    "color": "#7BC99A",
+                    "is_period": false,
+                    "is_fertile": true,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-09-30",
+                    "weekday_iso": 3,
+                    "is_today": true,
+                    "cycle_day": 14,
+                    "phase": "follicular",
+                    "phase_label": "Follicular",
+                    "color": "#7BC99A",
+                    "is_period": false,
+                    "is_fertile": true,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-10-01",
+                    "weekday_iso": 4,
+                    "is_today": false,
+                    "cycle_day": 15,
+                    "phase": "ovulation",
+                    "phase_label": "Ovulation",
+                    "color": "#F09BB5",
+                    "is_period": false,
+                    "is_fertile": true,
+                    "is_ovulation": true
+                  },
+                  {
+                    "date": "2026-10-02",
+                    "weekday_iso": 5,
+                    "is_today": false,
+                    "cycle_day": 16,
+                    "phase": "ovulation",
+                    "phase_label": "Ovulation",
+                    "color": "#F09BB5",
+                    "is_period": false,
+                    "is_fertile": true,
+                    "is_ovulation": true
+                  }
+                ]
+              },
+              "meta": null
+            },
+            {
+              "key": "next_period",
+              "type": "next_period",
+              "title": "15 days to next period",
+              "subtitle": "Your next period is around 2026-10-15",
+              "order": 30,
+              "action": {
+                "key": "log_period_start",
+                "label": "Log period start"
+              },
+              "data": {
+                "days_until_period": 15,
+                "next_period_date": "2026-10-15",
+                "cycle_day": 14,
+                "cycle_length": 28,
+                "progress_percent": 50,
+                "is_in_period": false,
+                "is_period_tomorrow": false,
+                "is_fertile_window": true,
+                "uncertainty_range": 1,
+                "pregnancy_probability": {
+                  "percent": 17.85,
+                  "level": "high",
+                  "label": "High"
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "cycle_prediction",
+              "type": "cycle_prediction",
+              "title": null,
+              "subtitle": null,
+              "order": 40,
+              "action": null,
+              "data": {
+                "cards": [
+                  {
+                    "key": "fertile_window",
+                    "label": "Fertile window",
+                    "start_date": "2026-09-26",
+                    "end_date": "2026-10-02",
+                    "days_until": 0,
+                    "is_active": true
+                  },
+                  {
+                    "key": "ovulation",
+                    "label": "Ovulation",
+                    "date": "2026-10-01",
+                    "days_until": 1
+                  },
+                  {
+                    "key": "next_period",
+                    "label": "Next period",
+                    "date": "2026-10-15",
+                    "days_until": 15
+                  }
+                ],
+                "uncertainty_range": 1
+              },
+              "meta": null
+            },
+            {
+              "key": "recommendations",
+              "type": "recommendations",
+              "title": "Today's recommendations",
+              "subtitle": null,
+              "order": 50,
+              "action": null,
+              "data": {
+                "tags": [
+                  {
+                    "type": "energy",
+                    "icon": "bolt"
+                  },
+                  {
+                    "type": "exercise",
+                    "icon": "walking"
+                  },
+                  {
+                    "type": "nutrition",
+                    "icon": "apple"
+                  },
+                  {
+                    "type": "mental_health",
+                    "icon": "brain"
+                  }
+                ],
+                "items": [
+                  {
+                    "type": "energy",
+                    "icon": "bolt",
+                    "title": "Energy",
+                    "text": "Your energy levels are rising. Great time for new projects!"
+                  },
+                  {
+                    "type": "exercise",
+                    "icon": "walking",
+                    "title": "Exercise",
+                    "text": "Perfect time for high-intensity workouts."
+                  },
+                  {
+                    "type": "nutrition",
+                    "icon": "apple",
+                    "title": "Nutrition",
+                    "text": "Add protein and fresh vegetables to rebuild your energy stores."
+                  },
+                  {
+                    "type": "mental_health",
+                    "icon": "brain",
+                    "title": "Mental health",
+                    "text": "A good window for planning and learning something new."
+                  }
+                ]
+              },
+              "meta": null
+            },
+            {
+              "key": "tasks",
+              "type": "tasks",
+              "title": "Today's tasks",
+              "subtitle": "0/5",
+              "order": 60,
+              "action": null,
+              "data": {
+                "items": [
+                  {
+                    "id": 1,
+                    "key": "log_bbt",
+                    "title": "Log body temperature",
+                    "description": "Record your basal body temperature each morning",
+                    "category": "tracking",
+                    "category_label": "Tracking",
+                    "icon": "clipboard-check",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 2,
+                    "key": "drink_water",
+                    "title": "Drink 8 glasses of water",
+                    "description": "Stay hydrated throughout the day",
+                    "category": "hydration",
+                    "category_label": "Hydration",
+                    "icon": "water-glass",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 3,
+                    "key": "vitamin_d",
+                    "title": "Take vitamin D",
+                    "description": "Take your vitamin D supplement",
+                    "category": "supplement",
+                    "category_label": "Supplement",
+                    "icon": "pill",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 4,
+                    "key": "walk_30",
+                    "title": "30 minutes walking",
+                    "description": "Take a light 30-minute walk",
+                    "category": "exercise",
+                    "category_label": "Exercise",
+                    "icon": "walking",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 5,
+                    "key": "breathing_5",
+                    "title": "5 minutes of deep breathing",
+                    "description": "Practice deep breathing to calm your mind",
+                    "category": "mindfulness",
+                    "category_label": "Mindfulness",
+                    "icon": "lotus",
+                    "is_completed": false
+                  }
+                ],
+                "progress": {
+                  "completed": 0,
+                  "total": 5,
+                  "percent": 0
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "challenge",
+              "type": "challenge",
+              "title": "Today's challenge",
+              "subtitle": null,
+              "order": 70,
+              "action": null,
+              "data": {
+                "id": 23,
+                "title": "Log your ovulation signs",
+                "description": "Log discharge and temperature these days for a sharper fertile window",
+                "category": "tracking",
+                "cycle_day": 14,
+                "cycle_day_from": 12,
+                "cycle_day_to": 17,
+                "is_completed": false
+              },
+              "meta": null
+            },
+            {
+              "key": "medication_reminder",
+              "type": "medication_reminder",
+              "title": "Medication reminder",
+              "subtitle": null,
+              "order": 90,
+              "action": null,
+              "data": {
+                "id": 101802,
+                "title": "آهن",
+                "subtitle": "۱ قرص",
+                "notes": null,
+                "time": "09:00",
+                "recurrence": "daily",
+                "meta": null,
+                "icon": "pill"
+              },
+              "meta": null
+            },
+            {
+              "key": "smart_tip",
+              "type": "smart_tip",
+              "title": "Smart tip",
+              "subtitle": null,
+              "order": 100,
+              "action": null,
+              "data": {
+                "text": "In the follicular phase, estrogen levels rise and your energy and creativity increase. Best time to start new projects and more intense workouts.",
+                "source": "message_engine"
+              },
+              "meta": null
+            },
+            {
+              "key": "affirmation",
+              "type": "affirmation",
+              "title": null,
+              "subtitle": null,
+              "order": 110,
+              "action": null,
+              "data": {
+                "id": 1,
+                "text": "Every day is a fresh chance to care for yourself.",
+                "icon": "sparkle"
+              },
+              "meta": null
+            },
+            {
+              "key": "weekly_summary",
+              "type": "weekly_summary",
+              "title": "Weekly summary",
+              "subtitle": null,
+              "order": 120,
+              "action": {
+                "key": "view_all",
+                "label": "View all"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "mood",
+                    "label": "Mood",
+                    "icon": "smile",
+                    "percent": null,
+                    "previous_percent": 100,
+                    "delta": null
+                  },
+                  {
+                    "key": "sleep",
+                    "label": "Sleep",
+                    "icon": "moon",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  },
+                  {
+                    "key": "energy",
+                    "label": "Energy",
+                    "icon": "bolt",
+                    "percent": null,
+                    "previous_percent": 80,
+                    "delta": null
+                  }
+                ],
+                "range": {
+                  "from": "2026-09-24",
+                  "to": "2026-09-30"
+                },
+                "logged_days": 0,
+                "previous_logged_days": 1,
+                "overall_percent": null
+              },
+              "meta": null
+            },
+            {
+              "key": "vitals",
+              "type": "vitals",
+              "title": "Today's vitals",
+              "subtitle": null,
+              "order": 130,
+              "action": {
+                "key": "view_all",
+                "label": "View all"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "heart_rate",
+                    "label": "Heart rate",
+                    "value": null,
+                    "unit": "bpm",
+                    "icon": "heart-pulse"
+                  },
+                  {
+                    "key": "blood_pressure",
+                    "label": "Blood pressure",
+                    "value": null,
+                    "unit": "mmHg",
+                    "icon": "gauge"
+                  },
+                  {
+                    "key": "blood_sugar",
+                    "label": "Blood sugar",
+                    "value": null,
+                    "unit": "mg/dl",
+                    "icon": "droplet"
+                  }
+                ],
+                "has_data": false,
+                "date": "2026-09-30"
+              },
+              "meta": null
+            },
+            {
+              "key": "articles",
+              "type": "articles",
+              "title": "Based on your current cycle",
+              "subtitle": null,
+              "order": 150,
+              "action": {
+                "key": "view_more",
+                "label": "View more"
+              },
+              "data": {
+                "items": [
+                  {
+                    "id": 3,
+                    "slug": "follicular-energy",
+                    "title": "The follicular phase: your energy peak",
+                    "excerpt": "Why you feel more energetic after your period and how to use it",
+                    "read_time_minutes": 3,
+                    "image_url": null,
+                    "category": "cycle_science",
+                    "cycle_phases": [
+                      "follicular"
+                    ]
+                  },
+                  {
+                    "id": 6,
+                    "slug": "cycle-nutrition-basics",
+                    "title": "Eating in sync with your cycle",
+                    "excerpt": "What to eat in each phase to feel your best",
+                    "read_time_minutes": 6,
+                    "image_url": null,
+                    "category": "nutrition",
+                    "cycle_phases": []
+                  }
+                ]
+              },
+              "meta": null
+            },
+            {
+              "key": "my_cycles",
+              "type": "my_cycles",
+              "title": "My cycles",
+              "subtitle": null,
+              "order": 160,
+              "action": {
+                "key": "add_previous",
+                "label": "Add previous cycles"
+              },
+              "data": {
+                "current": {
+                  "id": 101804,
+                  "cycle_day": 14,
+                  "started_at": "2026-09-17",
+                  "period_end_date": "2026-09-21",
+                  "period_length": 5,
+                  "is_ongoing": false,
+                  "cycle_length": 28,
+                  "cycle_length_source": "recent_valid_cycles"
+                },
+                "previous_count": 3,
+                "previous": [
+                  {
+                    "id": 101803,
+                    "period_start_date": "2026-08-20",
+                    "period_end_date": "2026-08-24",
+                    "cycle_length": 28,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  },
+                  {
+                    "id": 101802,
+                    "period_start_date": "2026-07-23",
+                    "period_end_date": "2026-07-27",
+                    "cycle_length": 28,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  },
+                  {
+                    "id": 101801,
+                    "period_start_date": "2026-06-26",
+                    "period_end_date": "2026-06-30",
+                    "cycle_length": 27,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  }
+                ],
+                "averages": {
+                  "cycle_length": 28,
+                  "period_length": 5,
+                  "based_on_cycles": 3
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "cycle_summary",
+              "type": "cycle_summary",
+              "title": "Cycle summary",
+              "subtitle": null,
+              "order": 170,
+              "action": {
+                "key": "view_more",
+                "label": "View more"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "last_cycle_length",
+                    "label": "Last cycle length",
+                    "value": 28,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "days",
+                    "status": "normal",
+                    "status_label": "Within the usual range",
+                    "hint": null,
+                    "normal_range": {
+                      "min": 21,
+                      "max": 35
+                    }
+                  },
+                  {
+                    "key": "last_period_duration",
+                    "label": "Last period duration",
+                    "value": 5,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "days",
+                    "status": "normal",
+                    "status_label": "Within the usual range",
+                    "hint": null,
+                    "normal_range": {
+                      "min": 2,
+                      "max": 8
+                    }
+                  },
+                  {
+                    "key": "cycle_variability",
+                    "label": "Cycle length variation",
+                    "value": 1,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": "Relatively regular",
+                    "unit": "days",
+                    "unit_label": "days",
+                    "status": "normal",
+                    "status_label": "Within the usual range",
+                    "hint": "Recent cycles differ by 1 days",
+                    "normal_range": null
+                  },
+                  {
+                    "key": "average_cycle_length",
+                    "label": "Average cycle length",
+                    "value": 28,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "days",
+                    "status": "normal",
+                    "status_label": "Within the usual range",
+                    "hint": "Based on 3 recorded cycles",
+                    "normal_range": {
+                      "min": 21,
+                      "max": 35
+                    }
+                  },
+                  {
+                    "key": "cycle_length_range",
+                    "label": "Shortest to longest cycle",
+                    "value": null,
+                    "value_min": 27,
+                    "value_max": 28,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "days",
+                    "status": "normal",
+                    "status_label": "Within the usual range",
+                    "hint": null,
+                    "normal_range": null
+                  }
+                ],
+                "based_on_cycles": 3,
+                "has_history": true,
+                "normal_ranges": {
+                  "cycle_length": {
+                    "min": 21,
+                    "max": 35
+                  },
+                  "period_duration": {
+                    "min": 2,
+                    "max": 8
+                  }
+                }
+              },
+              "meta": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/home?date=2026-10-12",
+        "persona": "engaged",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "mode_label": "Menstrual Cycle",
+          "date": "2026-10-12",
+          "locale": "en",
+          "profile_complete": true,
+          "sections": [
+            {
+              "key": "header",
+              "type": "header",
+              "title": null,
+              "subtitle": null,
+              "order": 10,
+              "action": null,
+              "data": {
+                "app_name": "ریتمی",
+                "tagline": "Your health companion",
+                "greeting": "Hi Contract engaged",
+                "user": {
+                  "id": 1018,
+                  "name": "Contract engaged"
+                },
+                "mode": "cycle",
+                "mode_label": "Menstrual Cycle",
+                "is_premium": false,
+                "date": "2026-10-12",
+                "weekday_iso": 1,
+                "moon_phase": {
+                  "key": "new_moon",
+                  "label": "New moon",
+                  "illumination": 0,
+                  "age_days": 0.5
+                },
+                "notifications": {
+                  "unread_count": 2,
+                  "has_unread": true
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "week_calendar",
+              "type": "week_calendar",
+              "title": null,
+              "subtitle": null,
+              "order": 20,
+              "action": null,
+              "data": {
+                "week_start": "2026-10-10",
+                "days": [
+                  {
+                    "date": "2026-10-10",
+                    "weekday_iso": 6,
+                    "is_today": false,
+                    "cycle_day": 24,
+                    "phase": "luteal",
+                    "phase_label": "Luteal",
+                    "color": "#9C8BD6",
+                    "is_period": false,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-10-11",
+                    "weekday_iso": 7,
+                    "is_today": false,
+                    "cycle_day": 25,
+                    "phase": "luteal",
+                    "phase_label": "Luteal",
+                    "color": "#9C8BD6",
+                    "is_period": false,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-10-12",
+                    "weekday_iso": 1,
+                    "is_today": true,
+                    "cycle_day": 26,
+                    "phase": "luteal",
+                    "phase_label": "Luteal",
+                    "color": "#9C8BD6",
+                    "is_period": false,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-10-13",
+                    "weekday_iso": 2,
+                    "is_today": false,
+                    "cycle_day": 27,
+                    "phase": "luteal",
+                    "phase_label": "Luteal",
+                    "color": "#9C8BD6",
+                    "is_period": false,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-10-14",
+                    "weekday_iso": 3,
+                    "is_today": false,
+                    "cycle_day": 28,
+                    "phase": "luteal",
+                    "phase_label": "Luteal",
+                    "color": "#9C8BD6",
+                    "is_period": false,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-10-15",
+                    "weekday_iso": 4,
+                    "is_today": false,
+                    "cycle_day": 1,
+                    "phase": "menstruation",
+                    "phase_label": "Menstruation",
+                    "color": "#F2567C",
+                    "is_period": true,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-10-16",
+                    "weekday_iso": 5,
+                    "is_today": false,
+                    "cycle_day": 2,
+                    "phase": "menstruation",
+                    "phase_label": "Menstruation",
+                    "color": "#F2567C",
+                    "is_period": true,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  }
+                ]
+              },
+              "meta": null
+            },
+            {
+              "key": "next_period",
+              "type": "next_period",
+              "title": "3 days to next period",
+              "subtitle": "Your next period is around 2026-10-15",
+              "order": 30,
+              "action": {
+                "key": "log_period_start",
+                "label": "Log period start"
+              },
+              "data": {
+                "days_until_period": 3,
+                "next_period_date": "2026-10-15",
+                "cycle_day": 26,
+                "cycle_length": 28,
+                "progress_percent": 93,
+                "is_in_period": false,
+                "is_period_tomorrow": true,
+                "is_fertile_window": false,
+                "uncertainty_range": 1,
+                "pregnancy_probability": {
+                  "percent": 0,
+                  "level": "low",
+                  "label": "Low"
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "cycle_prediction",
+              "type": "cycle_prediction",
+              "title": null,
+              "subtitle": null,
+              "order": 40,
+              "action": null,
+              "data": {
+                "cards": [
+                  {
+                    "key": "fertile_window",
+                    "label": "Fertile window",
+                    "start_date": "2026-10-24",
+                    "end_date": "2026-10-30",
+                    "days_until": 12,
+                    "is_active": false
+                  },
+                  {
+                    "key": "ovulation",
+                    "label": "Ovulation",
+                    "date": "2026-10-29",
+                    "days_until": 17
+                  },
+                  {
+                    "key": "next_period",
+                    "label": "Next period",
+                    "date": "2026-10-15",
+                    "days_until": 3
+                  }
+                ],
+                "uncertainty_range": 1
+              },
+              "meta": null
+            },
+            {
+              "key": "recommendations",
+              "type": "recommendations",
+              "title": "Today's recommendations",
+              "subtitle": null,
+              "order": 50,
+              "action": null,
+              "data": {
+                "tags": [
+                  {
+                    "type": "pms",
+                    "icon": "flower"
+                  },
+                  {
+                    "type": "nutrition",
+                    "icon": "apple"
+                  },
+                  {
+                    "type": "mood",
+                    "icon": "smile"
+                  }
+                ],
+                "items": [
+                  {
+                    "type": "pms",
+                    "icon": "flower",
+                    "title": "PMS",
+                    "text": "PMS symptoms may appear. Practice self-care and relaxation."
+                  },
+                  {
+                    "type": "nutrition",
+                    "icon": "apple",
+                    "title": "Nutrition",
+                    "text": "Reduce salt and caffeine intake to minimize bloating."
+                  },
+                  {
+                    "type": "mood",
+                    "icon": "smile",
+                    "title": "Mood",
+                    "text": "Take breaks and practice deep breathing if feeling irritable."
+                  }
+                ]
+              },
+              "meta": null
+            },
+            {
+              "key": "tasks",
+              "type": "tasks",
+              "title": "Today's tasks",
+              "subtitle": "0/5",
+              "order": 60,
+              "action": null,
+              "data": {
+                "items": [
+                  {
+                    "id": 1,
+                    "key": "log_bbt",
+                    "title": "Log body temperature",
+                    "description": "Record your basal body temperature each morning",
+                    "category": "tracking",
+                    "category_label": "Tracking",
+                    "icon": "clipboard-check",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 2,
+                    "key": "drink_water",
+                    "title": "Drink 8 glasses of water",
+                    "description": "Stay hydrated throughout the day",
+                    "category": "hydration",
+                    "category_label": "Hydration",
+                    "icon": "water-glass",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 3,
+                    "key": "vitamin_d",
+                    "title": "Take vitamin D",
+                    "description": "Take your vitamin D supplement",
+                    "category": "supplement",
+                    "category_label": "Supplement",
+                    "icon": "pill",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 4,
+                    "key": "walk_30",
+                    "title": "30 minutes walking",
+                    "description": "Take a light 30-minute walk",
+                    "category": "exercise",
+                    "category_label": "Exercise",
+                    "icon": "walking",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 5,
+                    "key": "breathing_5",
+                    "title": "5 minutes of deep breathing",
+                    "description": "Practice deep breathing to calm your mind",
+                    "category": "mindfulness",
+                    "category_label": "Mindfulness",
+                    "icon": "lotus",
+                    "is_completed": false
+                  }
+                ],
+                "progress": {
+                  "completed": 0,
+                  "total": 5,
+                  "percent": 0
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "challenge",
+              "type": "challenge",
+              "title": "Today's challenge",
+              "subtitle": null,
+              "order": 70,
+              "action": null,
+              "data": {
+                "id": 25,
+                "title": "Be gentle with yourself",
+                "description": "Mood swings before your period are normal — do one calming thing for yourself today",
+                "category": "mindfulness",
+                "cycle_day": 26,
+                "cycle_day_from": 24,
+                "cycle_day_to": 35,
+                "is_completed": false
+              },
+              "meta": null
+            },
+            {
+              "key": "medication_reminder",
+              "type": "medication_reminder",
+              "title": "Medication reminder",
+              "subtitle": null,
+              "order": 90,
+              "action": null,
+              "data": {
+                "id": 101802,
+                "title": "آهن",
+                "subtitle": "۱ قرص",
+                "notes": null,
+                "time": "09:00",
+                "recurrence": "daily",
+                "meta": null,
+                "icon": "pill"
+              },
+              "meta": null
+            },
+            {
+              "key": "smart_tip",
+              "type": "smart_tip",
+              "title": "Smart tip",
+              "subtitle": null,
+              "order": 100,
+              "action": null,
+              "data": {
+                "text": "In the luteal phase, energy gradually decreases. Best time to complete projects, self-care and prepare for the next cycle.",
+                "source": "message_engine"
+              },
+              "meta": null
+            },
+            {
+              "key": "affirmation",
+              "type": "affirmation",
+              "title": null,
+              "subtitle": null,
+              "order": 110,
+              "action": null,
+              "data": {
+                "id": 6,
+                "text": "With every breath, I welcome fresh energy.",
+                "icon": "sparkle"
+              },
+              "meta": null
+            },
+            {
+              "key": "weekly_summary",
+              "type": "weekly_summary",
+              "title": "Weekly summary",
+              "subtitle": null,
+              "order": 120,
+              "action": {
+                "key": "view_all",
+                "label": "View all"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "mood",
+                    "label": "Mood",
+                    "icon": "smile",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  },
+                  {
+                    "key": "sleep",
+                    "label": "Sleep",
+                    "icon": "moon",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  },
+                  {
+                    "key": "energy",
+                    "label": "Energy",
+                    "icon": "bolt",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  }
+                ],
+                "range": {
+                  "from": "2026-10-06",
+                  "to": "2026-10-12"
+                },
+                "logged_days": 0,
+                "previous_logged_days": 0,
+                "overall_percent": null
+              },
+              "meta": null
+            },
+            {
+              "key": "vitals",
+              "type": "vitals",
+              "title": "Today's vitals",
+              "subtitle": null,
+              "order": 130,
+              "action": {
+                "key": "view_all",
+                "label": "View all"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "heart_rate",
+                    "label": "Heart rate",
+                    "value": null,
+                    "unit": "bpm",
+                    "icon": "heart-pulse"
+                  },
+                  {
+                    "key": "blood_pressure",
+                    "label": "Blood pressure",
+                    "value": null,
+                    "unit": "mmHg",
+                    "icon": "gauge"
+                  },
+                  {
+                    "key": "blood_sugar",
+                    "label": "Blood sugar",
+                    "value": null,
+                    "unit": "mg/dl",
+                    "icon": "droplet"
+                  }
+                ],
+                "has_data": false,
+                "date": "2026-10-12"
+              },
+              "meta": null
+            },
+            {
+              "key": "articles",
+              "type": "articles",
+              "title": "Based on your current cycle",
+              "subtitle": null,
+              "order": 150,
+              "action": {
+                "key": "view_more",
+                "label": "View more"
+              },
+              "data": {
+                "items": [
+                  {
+                    "id": 5,
+                    "slug": "pms-management",
+                    "title": "Managing PMS symptoms",
+                    "excerpt": "Strategies to manage mood and physical symptoms before your period",
+                    "read_time_minutes": 5,
+                    "image_url": null,
+                    "category": "wellbeing",
+                    "cycle_phases": [
+                      "luteal"
+                    ]
+                  },
+                  {
+                    "id": 6,
+                    "slug": "cycle-nutrition-basics",
+                    "title": "Eating in sync with your cycle",
+                    "excerpt": "What to eat in each phase to feel your best",
+                    "read_time_minutes": 6,
+                    "image_url": null,
+                    "category": "nutrition",
+                    "cycle_phases": []
+                  }
+                ]
+              },
+              "meta": null
+            },
+            {
+              "key": "my_cycles",
+              "type": "my_cycles",
+              "title": "My cycles",
+              "subtitle": null,
+              "order": 160,
+              "action": {
+                "key": "add_previous",
+                "label": "Add previous cycles"
+              },
+              "data": {
+                "current": {
+                  "id": 101804,
+                  "cycle_day": 26,
+                  "started_at": "2026-09-17",
+                  "period_end_date": "2026-09-21",
+                  "period_length": 5,
+                  "is_ongoing": false,
+                  "cycle_length": 28,
+                  "cycle_length_source": "recent_valid_cycles"
+                },
+                "previous_count": 3,
+                "previous": [
+                  {
+                    "id": 101803,
+                    "period_start_date": "2026-08-20",
+                    "period_end_date": "2026-08-24",
+                    "cycle_length": 28,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  },
+                  {
+                    "id": 101802,
+                    "period_start_date": "2026-07-23",
+                    "period_end_date": "2026-07-27",
+                    "cycle_length": 28,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  },
+                  {
+                    "id": 101801,
+                    "period_start_date": "2026-06-26",
+                    "period_end_date": "2026-06-30",
+                    "cycle_length": 27,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  }
+                ],
+                "averages": {
+                  "cycle_length": 28,
+                  "period_length": 5,
+                  "based_on_cycles": 3
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "cycle_summary",
+              "type": "cycle_summary",
+              "title": "Cycle summary",
+              "subtitle": null,
+              "order": 170,
+              "action": {
+                "key": "view_more",
+                "label": "View more"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "last_cycle_length",
+                    "label": "Last cycle length",
+                    "value": 28,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "days",
+                    "status": "normal",
+                    "status_label": "Within the usual range",
+                    "hint": null,
+                    "normal_range": {
+                      "min": 21,
+                      "max": 35
+                    }
+                  },
+                  {
+                    "key": "last_period_duration",
+                    "label": "Last period duration",
+                    "value": 5,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "days",
+                    "status": "normal",
+                    "status_label": "Within the usual range",
+                    "hint": null,
+                    "normal_range": {
+                      "min": 2,
+                      "max": 8
+                    }
+                  },
+                  {
+                    "key": "cycle_variability",
+                    "label": "Cycle length variation",
+                    "value": 1,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": "Relatively regular",
+                    "unit": "days",
+                    "unit_label": "days",
+                    "status": "normal",
+                    "status_label": "Within the usual range",
+                    "hint": "Recent cycles differ by 1 days",
+                    "normal_range": null
+                  },
+                  {
+                    "key": "average_cycle_length",
+                    "label": "Average cycle length",
+                    "value": 28,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "days",
+                    "status": "normal",
+                    "status_label": "Within the usual range",
+                    "hint": "Based on 3 recorded cycles",
+                    "normal_range": {
+                      "min": 21,
+                      "max": 35
+                    }
+                  },
+                  {
+                    "key": "cycle_length_range",
+                    "label": "Shortest to longest cycle",
+                    "value": null,
+                    "value_min": 27,
+                    "value_max": 28,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "days",
+                    "status": "normal",
+                    "status_label": "Within the usual range",
+                    "hint": null,
+                    "normal_range": null
+                  }
+                ],
+                "based_on_cycles": 3,
+                "has_history": true,
+                "normal_ranges": {
+                  "cycle_length": {
+                    "min": 21,
+                    "max": 35
+                  },
+                  "period_duration": {
+                    "min": 2,
+                    "max": 8
+                  }
+                }
+              },
+              "meta": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/home?date=2026-08-01",
+        "persona": "engaged",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "mode_label": "Menstrual Cycle",
+          "date": "2026-08-01",
+          "locale": "en",
+          "profile_complete": true,
+          "sections": [
+            {
+              "key": "header",
+              "type": "header",
+              "title": null,
+              "subtitle": null,
+              "order": 10,
+              "action": null,
+              "data": {
+                "app_name": "ریتمی",
+                "tagline": "Your health companion",
+                "greeting": "Hi Contract engaged",
+                "user": {
+                  "id": 1018,
+                  "name": "Contract engaged"
+                },
+                "mode": "cycle",
+                "mode_label": "Menstrual Cycle",
+                "is_premium": false,
+                "date": "2026-08-01",
+                "weekday_iso": 6,
+                "moon_phase": {
+                  "key": "waning_gibbous",
+                  "label": "Waning gibbous",
+                  "illumination": 0.94,
+                  "age_days": 17.1
+                },
+                "notifications": {
+                  "unread_count": 2,
+                  "has_unread": true
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "week_calendar",
+              "type": "week_calendar",
+              "title": null,
+              "subtitle": null,
+              "order": 20,
+              "action": null,
+              "data": {
+                "week_start": "2026-08-01",
+                "days": [
+                  {
+                    "date": "2026-08-01",
+                    "weekday_iso": 6,
+                    "is_today": true,
+                    "cycle_day": 10,
+                    "phase": "follicular",
+                    "phase_label": "Follicular",
+                    "color": "#7BC99A",
+                    "is_period": false,
+                    "is_fertile": true,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-08-02",
+                    "weekday_iso": 7,
+                    "is_today": false,
+                    "cycle_day": 11,
+                    "phase": "follicular",
+                    "phase_label": "Follicular",
+                    "color": "#7BC99A",
+                    "is_period": false,
+                    "is_fertile": true,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-08-03",
+                    "weekday_iso": 1,
+                    "is_today": false,
+                    "cycle_day": 12,
+                    "phase": "follicular",
+                    "phase_label": "Follicular",
+                    "color": "#7BC99A",
+                    "is_period": false,
+                    "is_fertile": true,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-08-04",
+                    "weekday_iso": 2,
+                    "is_today": false,
+                    "cycle_day": 13,
+                    "phase": "follicular",
+                    "phase_label": "Follicular",
+                    "color": "#7BC99A",
+                    "is_period": false,
+                    "is_fertile": true,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-08-05",
+                    "weekday_iso": 3,
+                    "is_today": false,
+                    "cycle_day": 14,
+                    "phase": "follicular",
+                    "phase_label": "Follicular",
+                    "color": "#7BC99A",
+                    "is_period": false,
+                    "is_fertile": true,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-08-06",
+                    "weekday_iso": 4,
+                    "is_today": false,
+                    "cycle_day": 15,
+                    "phase": "ovulation",
+                    "phase_label": "Ovulation",
+                    "color": "#F09BB5",
+                    "is_period": false,
+                    "is_fertile": true,
+                    "is_ovulation": true
+                  },
+                  {
+                    "date": "2026-08-07",
+                    "weekday_iso": 5,
+                    "is_today": false,
+                    "cycle_day": 16,
+                    "phase": "ovulation",
+                    "phase_label": "Ovulation",
+                    "color": "#F09BB5",
+                    "is_period": false,
+                    "is_fertile": true,
+                    "is_ovulation": true
+                  }
+                ]
+              },
+              "meta": null
+            },
+            {
+              "key": "next_period",
+              "type": "next_period",
+              "title": "19 days to next period",
+              "subtitle": "Your next period is around 2026-08-20",
+              "order": 30,
+              "action": {
+                "key": "log_period_start",
+                "label": "Log period start"
+              },
+              "data": {
+                "days_until_period": 19,
+                "next_period_date": "2026-08-20",
+                "cycle_day": 10,
+                "cycle_length": 28,
+                "progress_percent": 36,
+                "is_in_period": false,
+                "is_period_tomorrow": false,
+                "is_fertile_window": true,
+                "uncertainty_range": 1,
+                "pregnancy_probability": {
+                  "percent": 5.95,
+                  "level": "medium",
+                  "label": "Medium"
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "cycle_prediction",
+              "type": "cycle_prediction",
+              "title": null,
+              "subtitle": null,
+              "order": 40,
+              "action": null,
+              "data": {
+                "cards": [
+                  {
+                    "key": "fertile_window",
+                    "label": "Fertile window",
+                    "start_date": "2026-08-01",
+                    "end_date": "2026-08-07",
+                    "days_until": 0,
+                    "is_active": true
+                  },
+                  {
+                    "key": "ovulation",
+                    "label": "Ovulation",
+                    "date": "2026-08-06",
+                    "days_until": 5
+                  },
+                  {
+                    "key": "next_period",
+                    "label": "Next period",
+                    "date": "2026-08-20",
+                    "days_until": 19
+                  }
+                ],
+                "uncertainty_range": 1
+              },
+              "meta": null
+            },
+            {
+              "key": "recommendations",
+              "type": "recommendations",
+              "title": "Today's recommendations",
+              "subtitle": null,
+              "order": 50,
+              "action": null,
+              "data": {
+                "tags": [
+                  {
+                    "type": "energy",
+                    "icon": "bolt"
+                  },
+                  {
+                    "type": "exercise",
+                    "icon": "walking"
+                  },
+                  {
+                    "type": "nutrition",
+                    "icon": "apple"
+                  },
+                  {
+                    "type": "mental_health",
+                    "icon": "brain"
+                  }
+                ],
+                "items": [
+                  {
+                    "type": "energy",
+                    "icon": "bolt",
+                    "title": "Energy",
+                    "text": "Your energy levels are rising. Great time for new projects!"
+                  },
+                  {
+                    "type": "exercise",
+                    "icon": "walking",
+                    "title": "Exercise",
+                    "text": "Perfect time for high-intensity workouts."
+                  },
+                  {
+                    "type": "nutrition",
+                    "icon": "apple",
+                    "title": "Nutrition",
+                    "text": "Add protein and fresh vegetables to rebuild your energy stores."
+                  },
+                  {
+                    "type": "mental_health",
+                    "icon": "brain",
+                    "title": "Mental health",
+                    "text": "A good window for planning and learning something new."
+                  }
+                ]
+              },
+              "meta": null
+            },
+            {
+              "key": "tasks",
+              "type": "tasks",
+              "title": "Today's tasks",
+              "subtitle": "0/5",
+              "order": 60,
+              "action": null,
+              "data": {
+                "items": [
+                  {
+                    "id": 1,
+                    "key": "log_bbt",
+                    "title": "Log body temperature",
+                    "description": "Record your basal body temperature each morning",
+                    "category": "tracking",
+                    "category_label": "Tracking",
+                    "icon": "clipboard-check",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 2,
+                    "key": "drink_water",
+                    "title": "Drink 8 glasses of water",
+                    "description": "Stay hydrated throughout the day",
+                    "category": "hydration",
+                    "category_label": "Hydration",
+                    "icon": "water-glass",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 3,
+                    "key": "vitamin_d",
+                    "title": "Take vitamin D",
+                    "description": "Take your vitamin D supplement",
+                    "category": "supplement",
+                    "category_label": "Supplement",
+                    "icon": "pill",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 4,
+                    "key": "walk_30",
+                    "title": "30 minutes walking",
+                    "description": "Take a light 30-minute walk",
+                    "category": "exercise",
+                    "category_label": "Exercise",
+                    "icon": "walking",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 5,
+                    "key": "breathing_5",
+                    "title": "5 minutes of deep breathing",
+                    "description": "Practice deep breathing to calm your mind",
+                    "category": "mindfulness",
+                    "category_label": "Mindfulness",
+                    "icon": "lotus",
+                    "is_completed": false
+                  }
+                ],
+                "progress": {
+                  "completed": 0,
+                  "total": 5,
+                  "percent": 0
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "challenge",
+              "type": "challenge",
+              "title": "Today's challenge",
+              "subtitle": null,
+              "order": 70,
+              "action": null,
+              "data": {
+                "id": 22,
+                "title": "Use your energy peak",
+                "description": "These are usually your highest-energy days — take on a harder workout",
+                "category": "exercise",
+                "cycle_day": 10,
+                "cycle_day_from": 8,
+                "cycle_day_to": 14,
+                "is_completed": false
+              },
+              "meta": null
+            },
+            {
+              "key": "doctor_reminder",
+              "type": "doctor_reminder",
+              "title": "Doctor reminder",
+              "subtitle": null,
+              "order": 80,
+              "action": null,
+              "data": {
+                "id": 101801,
+                "title": "دکتر رضایی",
+                "subtitle": "زنان و زایمان",
+                "notes": null,
+                "scheduled_at": "2026-09-26T16:30:00+03:30",
+                "date": "2026-09-26",
+                "time": "16:30",
+                "meta": {
+                  "phone": "02100000000"
+                },
+                "icon": "stethoscope"
+              },
+              "meta": null
+            },
+            {
+              "key": "smart_tip",
+              "type": "smart_tip",
+              "title": "Smart tip",
+              "subtitle": null,
+              "order": 100,
+              "action": null,
+              "data": {
+                "text": "In the follicular phase, estrogen levels rise and your energy and creativity increase. Best time to start new projects and more intense workouts.",
+                "source": "message_engine"
+              },
+              "meta": null
+            },
+            {
+              "key": "affirmation",
+              "type": "affirmation",
+              "title": null,
+              "subtitle": null,
+              "order": 110,
+              "action": null,
+              "data": {
+                "id": 4,
+                "text": "My calm begins within.",
+                "icon": "sparkle"
+              },
+              "meta": null
+            },
+            {
+              "key": "weekly_summary",
+              "type": "weekly_summary",
+              "title": "Weekly summary",
+              "subtitle": null,
+              "order": 120,
+              "action": {
+                "key": "view_all",
+                "label": "View all"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "mood",
+                    "label": "Mood",
+                    "icon": "smile",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  },
+                  {
+                    "key": "sleep",
+                    "label": "Sleep",
+                    "icon": "moon",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  },
+                  {
+                    "key": "energy",
+                    "label": "Energy",
+                    "icon": "bolt",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  }
+                ],
+                "range": {
+                  "from": "2026-07-26",
+                  "to": "2026-08-01"
+                },
+                "logged_days": 0,
+                "previous_logged_days": 0,
+                "overall_percent": null
+              },
+              "meta": null
+            },
+            {
+              "key": "vitals",
+              "type": "vitals",
+              "title": "Today's vitals",
+              "subtitle": null,
+              "order": 130,
+              "action": {
+                "key": "view_all",
+                "label": "View all"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "heart_rate",
+                    "label": "Heart rate",
+                    "value": null,
+                    "unit": "bpm",
+                    "icon": "heart-pulse"
+                  },
+                  {
+                    "key": "blood_pressure",
+                    "label": "Blood pressure",
+                    "value": null,
+                    "unit": "mmHg",
+                    "icon": "gauge"
+                  },
+                  {
+                    "key": "blood_sugar",
+                    "label": "Blood sugar",
+                    "value": null,
+                    "unit": "mg/dl",
+                    "icon": "droplet"
+                  }
+                ],
+                "has_data": false,
+                "date": "2026-08-01"
+              },
+              "meta": null
+            },
+            {
+              "key": "articles",
+              "type": "articles",
+              "title": "Based on your current cycle",
+              "subtitle": null,
+              "order": 150,
+              "action": {
+                "key": "view_more",
+                "label": "View more"
+              },
+              "data": {
+                "items": [
+                  {
+                    "id": 3,
+                    "slug": "follicular-energy",
+                    "title": "The follicular phase: your energy peak",
+                    "excerpt": "Why you feel more energetic after your period and how to use it",
+                    "read_time_minutes": 3,
+                    "image_url": null,
+                    "category": "cycle_science",
+                    "cycle_phases": [
+                      "follicular"
+                    ]
+                  },
+                  {
+                    "id": 6,
+                    "slug": "cycle-nutrition-basics",
+                    "title": "Eating in sync with your cycle",
+                    "excerpt": "What to eat in each phase to feel your best",
+                    "read_time_minutes": 6,
+                    "image_url": null,
+                    "category": "nutrition",
+                    "cycle_phases": []
+                  }
+                ]
+              },
+              "meta": null
+            },
+            {
+              "key": "my_cycles",
+              "type": "my_cycles",
+              "title": "My cycles",
+              "subtitle": null,
+              "order": 160,
+              "action": {
+                "key": "add_previous",
+                "label": "Add previous cycles"
+              },
+              "data": {
+                "current": {
+                  "id": 101802,
+                  "cycle_day": 10,
+                  "started_at": "2026-07-23",
+                  "period_end_date": "2026-07-27",
+                  "period_length": 5,
+                  "is_ongoing": false,
+                  "cycle_length": 28,
+                  "cycle_length_source": "recent_valid_cycles"
+                },
+                "previous_count": 3,
+                "previous": [
+                  {
+                    "id": 101803,
+                    "period_start_date": "2026-08-20",
+                    "period_end_date": "2026-08-24",
+                    "cycle_length": 28,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  },
+                  {
+                    "id": 101802,
+                    "period_start_date": "2026-07-23",
+                    "period_end_date": "2026-07-27",
+                    "cycle_length": 28,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  },
+                  {
+                    "id": 101801,
+                    "period_start_date": "2026-06-26",
+                    "period_end_date": "2026-06-30",
+                    "cycle_length": 27,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  }
+                ],
+                "averages": {
+                  "cycle_length": 28,
+                  "period_length": 5,
+                  "based_on_cycles": 3
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "cycle_summary",
+              "type": "cycle_summary",
+              "title": "Cycle summary",
+              "subtitle": null,
+              "order": 170,
+              "action": {
+                "key": "view_more",
+                "label": "View more"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "last_cycle_length",
+                    "label": "Last cycle length",
+                    "value": 28,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "days",
+                    "status": "normal",
+                    "status_label": "Within the usual range",
+                    "hint": null,
+                    "normal_range": {
+                      "min": 21,
+                      "max": 35
+                    }
+                  },
+                  {
+                    "key": "last_period_duration",
+                    "label": "Last period duration",
+                    "value": 5,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "days",
+                    "status": "normal",
+                    "status_label": "Within the usual range",
+                    "hint": null,
+                    "normal_range": {
+                      "min": 2,
+                      "max": 8
+                    }
+                  },
+                  {
+                    "key": "cycle_variability",
+                    "label": "Cycle length variation",
+                    "value": 1,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": "Relatively regular",
+                    "unit": "days",
+                    "unit_label": "days",
+                    "status": "normal",
+                    "status_label": "Within the usual range",
+                    "hint": "Recent cycles differ by 1 days",
+                    "normal_range": null
+                  },
+                  {
+                    "key": "average_cycle_length",
+                    "label": "Average cycle length",
+                    "value": 28,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "days",
+                    "status": "normal",
+                    "status_label": "Within the usual range",
+                    "hint": "Based on 3 recorded cycles",
+                    "normal_range": {
+                      "min": 21,
+                      "max": 35
+                    }
+                  },
+                  {
+                    "key": "cycle_length_range",
+                    "label": "Shortest to longest cycle",
+                    "value": null,
+                    "value_min": 27,
+                    "value_max": 28,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "days",
+                    "status": "normal",
+                    "status_label": "Within the usual range",
+                    "hint": null,
+                    "normal_range": null
+                  }
+                ],
+                "based_on_cycles": 3,
+                "has_history": true,
+                "normal_ranges": {
+                  "cycle_length": {
+                    "min": 21,
+                    "max": 35
+                  },
+                  "period_duration": {
+                    "min": 2,
+                    "max": 8
+                  }
+                }
+              },
+              "meta": null
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

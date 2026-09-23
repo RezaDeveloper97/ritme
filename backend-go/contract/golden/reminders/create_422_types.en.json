@@ -1,0 +1,47 @@
+{
+  "case": "reminders/create_422_types.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/reminders",
+        "persona": "engaged",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "type": "custom",
+          "title": 123,
+          "scheduled_at": "not-a-date",
+          "recurrence_time": "4pm",
+          "starts_on": "2026-13-01",
+          "is_active": "maybe"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errors": {
+          "title": [
+            "The title field must be a string."
+          ],
+          "scheduled_at": [
+            "The scheduled at field must be a valid date."
+          ],
+          "recurrence_time": [
+            "The recurrence time field must match the format H:i."
+          ],
+          "starts_on": [
+            "The starts on field must be a valid date."
+          ],
+          "is_active": [
+            "The is active field must be true or false."
+          ]
+        }
+      }
+    }
+  ]
+}

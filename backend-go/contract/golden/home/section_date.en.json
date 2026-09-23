@@ -1,0 +1,121 @@
+{
+  "case": "home/section_date.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/home/sections/week_calendar?date=2026-09-28",
+        "persona": "engaged",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "section": {
+            "key": "week_calendar",
+            "type": "week_calendar",
+            "title": null,
+            "subtitle": null,
+            "order": 20,
+            "action": null,
+            "data": {
+              "week_start": "2026-09-26",
+              "days": [
+                {
+                  "date": "2026-09-26",
+                  "weekday_iso": 6,
+                  "is_today": false,
+                  "cycle_day": 10,
+                  "phase": "follicular",
+                  "phase_label": "Follicular",
+                  "color": "#7BC99A",
+                  "is_period": false,
+                  "is_fertile": true,
+                  "is_ovulation": false
+                },
+                {
+                  "date": "2026-09-27",
+                  "weekday_iso": 7,
+                  "is_today": false,
+                  "cycle_day": 11,
+                  "phase": "follicular",
+                  "phase_label": "Follicular",
+                  "color": "#7BC99A",
+                  "is_period": false,
+                  "is_fertile": true,
+                  "is_ovulation": false
+                },
+                {
+                  "date": "2026-09-28",
+                  "weekday_iso": 1,
+                  "is_today": true,
+                  "cycle_day": 12,
+                  "phase": "follicular",
+                  "phase_label": "Follicular",
+                  "color": "#7BC99A",
+                  "is_period": false,
+                  "is_fertile": true,
+                  "is_ovulation": false
+                },
+                {
+                  "date": "2026-09-29",
+                  "weekday_iso": 2,
+                  "is_today": false,
+                  "cycle_day": 13,
+                  "phase": "follicular",
+                  "phase_label": "Follicular",
+                  "color": "#7BC99A",
+                  "is_period": false,
+                  "is_fertile": true,
+                  "is_ovulation": false
+                },
+                {
+                  "date": "2026-09-30",
+                  "weekday_iso": 3,
+                  "is_today": false,
+                  "cycle_day": 14,
+                  "phase": "follicular",
+                  "phase_label": "Follicular",
+                  "color": "#7BC99A",
+                  "is_period": false,
+                  "is_fertile": true,
+                  "is_ovulation": false
+                },
+                {
+                  "date": "2026-10-01",
+                  "weekday_iso": 4,
+                  "is_today": false,
+                  "cycle_day": 15,
+                  "phase": "ovulation",
+                  "phase_label": "Ovulation",
+                  "color": "#F09BB5",
+                  "is_period": false,
+                  "is_fertile": true,
+                  "is_ovulation": true
+                },
+                {
+                  "date": "2026-10-02",
+                  "weekday_iso": 5,
+                  "is_today": false,
+                  "cycle_day": 16,
+                  "phase": "ovulation",
+                  "phase_label": "Ovulation",
+                  "color": "#F09BB5",
+                  "is_period": false,
+                  "is_fertile": true,
+                  "is_ovulation": true
+                }
+              ]
+            },
+            "meta": null
+          }
+        }
+      }
+    }
+  ]
+}

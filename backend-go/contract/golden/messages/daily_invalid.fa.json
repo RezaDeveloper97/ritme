@@ -1,0 +1,96 @@
+{
+  "case": "messages/daily_invalid.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?date=2026-13-40",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "پارامترهای ورودی نامعتبر است",
+        "errors": {
+          "date": [
+            "تاریخ با قالب Y-m-d مطابقت ندارد."
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?date=23-09-2026",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "پارامترهای ورودی نامعتبر است",
+        "errors": {
+          "date": [
+            "تاریخ با قالب Y-m-d مطابقت ندارد."
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?mode=sleep",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "پارامترهای ورودی نامعتبر است",
+        "errors": {
+          "mode": [
+            "mode انتخاب‌شده معتبر نیست."
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?date=x&mode=y",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "پارامترهای ورودی نامعتبر است",
+        "errors": {
+          "date": [
+            "تاریخ با قالب Y-m-d مطابقت ندارد."
+          ],
+          "mode": [
+            "mode انتخاب‌شده معتبر نیست."
+          ]
+        }
+      }
+    }
+  ]
+}

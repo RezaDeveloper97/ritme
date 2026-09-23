@@ -1,0 +1,30 @@
+{
+  "case": "profile/invalid_user_goal_invalid.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/profile",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "user_goal": "maybe"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "خطای اعتبارسنجی: مقدار user_goal باید یکی از این موارد باشد: ttc, non_ttc",
+        "errors": {
+          "user_goal": [
+            "مقدار user_goal باید یکی از این موارد باشد: ttc, non_ttc"
+          ]
+        }
+      }
+    }
+  ]
+}

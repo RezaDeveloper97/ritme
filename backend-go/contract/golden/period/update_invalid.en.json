@@ -1,0 +1,30 @@
+{
+  "case": "period/update_invalid.en",
+  "steps": [
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/cycle/period/100406",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "end_date": "2026-09-18"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "The start date field is required.",
+        "errors": {
+          "start_date": [
+            "The start date field is required."
+          ]
+        }
+      }
+    }
+  ]
+}

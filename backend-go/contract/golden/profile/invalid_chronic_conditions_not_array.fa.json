@@ -1,0 +1,30 @@
+{
+  "case": "profile/invalid_chronic_conditions_not_array.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/profile",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "chronic_conditions": "pcos"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "خطای اعتبارسنجی: بیماری‌های مزمن باید به صورت فهرست ارسال شوند.",
+        "errors": {
+          "chronic_conditions": [
+            "بیماری‌های مزمن باید به صورت فهرست ارسال شوند."
+          ]
+        }
+      }
+    }
+  ]
+}

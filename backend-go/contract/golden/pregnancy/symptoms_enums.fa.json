@@ -1,0 +1,37 @@
+{
+  "case": "pregnancy/symptoms_enums.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/symptoms/enums",
+        "persona": "pregnant_ultrasound_w26",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "severity": [
+            {
+              "value": "mild",
+              "label": "خفیف"
+            },
+            {
+              "value": "moderate",
+              "label": "متوسط"
+            },
+            {
+              "value": "severe",
+              "label": "شدید"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

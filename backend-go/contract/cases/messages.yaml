@@ -1,0 +1,78 @@
+# Smart messages: /messages/daily and /messages/mode.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: messages
+defaults:
+  locales: [none, en]
+cases:
+  - name: daily
+    doc: every persona with a session; no_profile → 400 (no last period)
+    persona: [profile_no_history, onboarding_declared, regular, irregular, short_outlier,
+      open_period_day3, open_period_day11, open_period_day13, overdue_10, overdue_20, ttc, premium,
+      pregnant_lmp_w8, pregnant_ultrasound_w26, pregnant_manual_w14, engaged]
+    method: GET
+    path: /api/v1/messages/daily
+    status: 200
+  - name: daily_no_profile
+    doc: no profile / last period → 400 (controller body)
+    persona: no_profile
+    locales: [none, fa, en]
+    method: GET
+    path: /api/v1/messages/daily
+    status: 400
+  - name: daily_ar
+    doc: 3rd locale (row only, no message_contents) → fallback
+    persona: [regular, premium, pregnant_ultrasound_w26]
+    locales: ar
+    method: GET
+    path: /api/v1/messages/daily
+    status: 200
+  - name: daily_dates
+    persona: [regular, irregular, ttc, pregnant_lmp_w8]
+    sweep: {var: d, values: ["2026-09-14", "2026-09-20", "2026-09-26", "2026-10-05", "2026-08-01"]}
+    method: GET
+    path: /api/v1/messages/daily
+    query: {date: "{{d}}"}
+    status: 200
+  - name: daily_dates_premium
+    doc: >-
+      Laravel bug preserved as the spec: for the premium persona on 2026-09-14/20 the
+      cycle engine hits the undefined constant OverrideType::LOW_ENERGY
+      (CycleMessageEngine.php:102) → 500 {"message":"Server Error"}. Other dates are 200.
+    persona: premium
+    steps:
+      - {method: GET, path: /api/v1/messages/daily, query: {date: "2026-09-14"}, status: 500, strict_bytes: true}
+      - {method: GET, path: /api/v1/messages/daily, query: {date: "2026-09-20"}, status: 500, strict_bytes: true}
+      - {method: GET, path: /api/v1/messages/daily, query: {date: "2026-09-26"}, status: 200}
+      - {method: GET, path: /api/v1/messages/daily, query: {date: "2026-10-05"}, status: 200}
+      - {method: GET, path: /api/v1/messages/daily, query: {date: "2026-08-01"}, status: 200}
+  - name: daily_force_mode
+    doc: ?mode= overrides detection; forcing pregnancy on a user without pregnancy onboarding → 400
+    persona: regular
+    steps:
+      - {method: GET, path: /api/v1/messages/daily, query: {mode: cycle}, status: 200}
+      - {method: GET, path: /api/v1/messages/daily, query: {mode: pregnancy}, status: 400}
+  - name: daily_force_mode_pregnant
+    persona: pregnant_manual_w14
+    steps:
+      - {method: GET, path: /api/v1/messages/daily, query: {mode: cycle}, status: 200}
+      - {method: GET, path: /api/v1/messages/daily, query: {mode: pregnancy}, status: 200}
+  - name: daily_invalid
+    persona: regular
+    locales: [none, fa, en]
+    steps:
+      - {method: GET, path: /api/v1/messages/daily, query: {date: "2026-13-40"}, status: 422}
+      - {method: GET, path: /api/v1/messages/daily, query: {date: "23-09-2026"}, status: 422}
+      - {method: GET, path: /api/v1/messages/daily, query: {mode: sleep}, status: 422}
+      - {method: GET, path: /api/v1/messages/daily, query: {date: "x", mode: "y"}, status: 422}
+  - name: mode
+    persona: [no_profile, regular, ttc, premium, pregnant_lmp_w8, pregnant_ultrasound_w26, engaged]
+    locales: [none, fa, en, ar]
+    method: GET
+    path: /api/v1/messages/mode
+    status: 200
+  - name: mode_anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/messages/mode
+    status: 401

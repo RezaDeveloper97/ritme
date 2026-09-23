@@ -1,0 +1,128 @@
+{
+  "case": "messages/daily.ttc.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily",
+        "persona": "ttc",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "date": "2026-09-23",
+          "user_goal": "ttc",
+          "subscription_type": "free",
+          "context_info": {
+            "phase": "follicular",
+            "phase_label": "فولیکولار",
+            "subphase": "high_fertility",
+            "subphase_label": "باروری بالا",
+            "cycle_day": 13,
+            "cycle_length": 28,
+            "is_fertile_window": true,
+            "is_pms_window": false,
+            "estimated_ovulation_day": 15
+          },
+          "primary_message": {
+            "phase": "follicular",
+            "phase_label": "فولیکولار",
+            "cycle_day": 13,
+            "is_fertile_window": true,
+            "fertility_info": "شما در پنجره باروری هستید - بهترین زمان برای باردار شدن!",
+            "short_message": "بدنت داره برای تخمک‌گذاری آماده می‌شه",
+            "long_message": "تخمدان‌ها در حال رشد فولیکول هستند. این زمان مناسبی برای افزایش فعالیت بدنی و تقویت سلامت باروری است.",
+            "action_suggestion": "ورزش منظم و تغذیه سالم",
+            "dos": [
+              "غذاهای غنی از آنتی‌اکسیدان",
+              "ورزش متوسط",
+              "خواب ۸ ساعته"
+            ],
+            "donts": [
+              "استرس",
+              "غذاهای فرآوری شده",
+              "کم‌خوابی"
+            ],
+            "ttc_tips": [
+              "تست تخمک‌گذاری رو از چند روز دیگه شروع کن",
+              "روابط زناشویی رو از الان برنامه‌ریزی کن"
+            ],
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [],
+          "supplements": {
+            "nutrition": {
+              "focus": "پروتئین و سبزیجات تازه",
+              "foods": [
+                "تخم‌مرغ",
+                "مرغ",
+                "کینوا",
+                "سبزیجات برگ‌سبز",
+                "آووکادو"
+              ],
+              "avoid": [
+                "فست‌فود",
+                "غذاهای فرآوری شده"
+              ],
+              "tip": "بدن آماده رشد است، پروتئین کافی بخور",
+              "ttc_additions": {
+                "essential": [
+                  "فولیک اسید ۴۰۰mcg روزانه",
+                  "اسیدهای چرب امگا-۳",
+                  "آنتی‌اکسیدان‌ها"
+                ],
+                "foods": [
+                  "سبزیجات برگ‌سبز تیره",
+                  "ماهی‌های چرب",
+                  "تخم‌مرغ",
+                  "آجیل و دانه‌ها"
+                ],
+                "avoid": [
+                  "الکل",
+                  "کافئین بیش از ۲۰۰mg",
+                  "ماهی با جیوه بالا"
+                ]
+              }
+            },
+            "sleep": {
+              "recommended_hours": "7-8",
+              "quality_focus": "خواب بهینه",
+              "tips": [
+                "خواب عمیق‌تر در این فاز",
+                "زمان مناسب برای تنظیم ساعت خواب"
+              ],
+              "avoid": [
+                "بی‌خوابی",
+                "ساعت خواب نامنظم"
+              ]
+            },
+            "exercise": {
+              "intensity": "متوسط تا بالا",
+              "recommended": [
+                "دویدن",
+                "HIIT",
+                "وزنه‌برداری",
+                "دوچرخه",
+                "رقص"
+              ],
+              "avoid": [
+                "بی‌فعالیتی"
+              ],
+              "tip": "انرژی در اوج است! بهترین زمان برای چالش‌های جدید و رکوردشکنی.",
+              "duration": "45-60",
+              "ttc_note": "ورزش متوسط برای باروری مفید است. از ورزش‌های خیلی شدید اجتناب کنید."
+            }
+          },
+          "tips": []
+        }
+      }
+    }
+  ]
+}

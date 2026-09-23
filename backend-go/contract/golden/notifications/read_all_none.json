@@ -1,0 +1,23 @@
+{
+  "case": "notifications/read_all_none",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/home/notifications/read-all",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "marked": 0
+        }
+      }
+    }
+  ]
+}

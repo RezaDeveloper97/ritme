@@ -1,0 +1,39 @@
+{
+  "case": "reminders/update_422.en",
+  "steps": [
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/reminders/101801",
+        "persona": "engaged",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "type": "nope",
+          "recurrence": "hourly",
+          "starts_on": "2026-10-10",
+          "ends_on": "2026-10-09"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errors": {
+          "type": [
+            "The selected type is invalid."
+          ],
+          "recurrence": [
+            "The selected recurrence is invalid."
+          ],
+          "ends_on": [
+            "The ends on field must be a date after or equal to starts on."
+          ]
+        }
+      }
+    }
+  ]
+}

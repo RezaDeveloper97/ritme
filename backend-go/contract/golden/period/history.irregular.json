@@ -1,0 +1,60 @@
+{
+  "case": "period/history.irregular",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/period/history",
+        "persona": "irregular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "periods": [
+            {
+              "id": 100506,
+              "period_start_date": "2026-09-09",
+              "period_end_date": "2026-09-13",
+              "source": "user_logged"
+            },
+            {
+              "id": 100505,
+              "period_start_date": "2026-08-14",
+              "period_end_date": "2026-08-18",
+              "source": "user_logged"
+            },
+            {
+              "id": 100504,
+              "period_start_date": "2026-07-04",
+              "period_end_date": "2026-07-08",
+              "source": "user_logged"
+            },
+            {
+              "id": 100503,
+              "period_start_date": "2026-06-05",
+              "period_end_date": "2026-06-09",
+              "source": "user_logged"
+            },
+            {
+              "id": 100502,
+              "period_start_date": "2026-05-01",
+              "period_end_date": "2026-05-05",
+              "source": "user_logged"
+            },
+            {
+              "id": 100501,
+              "period_start_date": "2026-04-07",
+              "period_end_date": "2026-04-11",
+              "source": "user_logged"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

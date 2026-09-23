@@ -1,0 +1,101 @@
+{
+  "case": "healthlog/store_update_today.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/health-logs",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "log_date": "2026-09-23",
+          "fatigue": true,
+          "blood_sugar": 98.5,
+          "basal_body_temperature": 36.55,
+          "heart_rate": 72,
+          "systolic_pressure": 118,
+          "diastolic_pressure": 76
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "Health log updated successfully",
+        "data": {
+          "id": 100404,
+          "user_id": 1004,
+          "log_date": "2026-09-23",
+          "bleeding_intensity": null,
+          "blood_color": null,
+          "has_clots": null,
+          "clots_amount": null,
+          "spotting": null,
+          "bleeding_smell": null,
+          "headache_intensity": null,
+          "stomach_ache_intensity": null,
+          "pelvic_pain_intensity": null,
+          "breast_pain_intensity": null,
+          "back_pain_intensity": null,
+          "ovarian_pain_intensity": null,
+          "nausea_intensity": null,
+          "bloating_intensity": null,
+          "diarrhea": null,
+          "constipation": null,
+          "appetite_change": null,
+          "food_craving": null,
+          "breast_sensitivity_intensity": null,
+          "vaginal_dryness": null,
+          "vaginal_burning": null,
+          "vaginal_burning_intensity": null,
+          "vaginal_itching": null,
+          "vaginal_itching_intensity": null,
+          "vaginal_smell_change": null,
+          "urination_change": null,
+          "urination_burning_intensity": null,
+          "acne": null,
+          "oily_skin": null,
+          "hair_loss": null,
+          "swelling": null,
+          "fatigue": true,
+          "dizziness": null,
+          "hot_flashes": null,
+          "chills": null,
+          "moods": [
+            "happy",
+            "calm"
+          ],
+          "sleep_duration": null,
+          "sleep_quality": null,
+          "exercise_type": null,
+          "exercise_duration": null,
+          "exercise_intensity": null,
+          "sexual_activities": null,
+          "sexual_desire": null,
+          "intercourse_type": null,
+          "weight": "61.50",
+          "basal_body_temperature": "36.55",
+          "heart_rate": 72,
+          "systolic_pressure": 118,
+          "diastolic_pressure": 76,
+          "blood_sugar": "98.5",
+          "energy_level": "medium",
+          "discharge_color": null,
+          "discharge_texture": null,
+          "discharge_amount": null,
+          "discharge_smell": null,
+          "discharge_itching": null,
+          "discharge_burning": null,
+          "frequent_urination": null,
+          "medications": null,
+          "notes": "contract",
+          "created_at": "2026-09-23T05:30:00.000000Z",
+          "updated_at": "2026-09-23T06:30:00.000000Z"
+        }
+      }
+    }
+  ]
+}

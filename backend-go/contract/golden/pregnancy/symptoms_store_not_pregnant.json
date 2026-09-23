@@ -1,0 +1,38 @@
+{
+  "case": "pregnancy/symptoms_store_not_pregnant",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/symptoms",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "log_date": "2026-09-23",
+          "has_nausea": true,
+          "nausea_severity": "mild"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "علائم با موفقیت ذخیره شد",
+        "data": {
+          "log": {
+            "user_id": 1004,
+            "log_date": "2026-09-23",
+            "has_nausea": true,
+            "nausea_severity": "mild",
+            "updated_at": "2026-09-23T06:30:00.000000Z",
+            "created_at": "2026-09-23T06:30:00.000000Z",
+            "id": 101504
+          },
+          "alerts": []
+        }
+      }
+    }
+  ]
+}

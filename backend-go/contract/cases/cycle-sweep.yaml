@@ -1,0 +1,28 @@
+# Engine sweep: the golden oracle for the Go cycle engine ports (T-M2-13/14).
+# Every persona (blocked has no session) × fa/en: 60 consecutive days of /cycle/date
+# around CONTRACT_TODAY (2026-08-24 … 2026-10-22) and three months of /cycle/month in
+# both views. One golden per persona × locale × kind, one line per step.
+group: cycle-sweep
+compact_golden: true
+defaults:
+  persona: [no_profile, profile_no_history, onboarding_declared, regular, irregular, short_outlier,
+    open_period_day3, open_period_day11, open_period_day13, overdue_10, overdue_20, ttc, premium,
+    pregnant_lmp_w8, pregnant_ultrasound_w26, pregnant_manual_w14, engaged]
+  locales: [fa, en]
+cases:
+  - name: date
+    sweep: {var: d, from: "2026-08-24", days: 60}
+    method: GET
+    path: /api/v1/cycle/date/{{d}}
+    status: 200
+  - name: month_full
+    sweep: {var: ym, values: ["2026/8", "2026/9", "2026/10"]}
+    method: GET
+    path: /api/v1/cycle/month/{{ym}}
+    status: 200
+  - name: month_calendar
+    sweep: {var: ym, values: ["2026/8", "2026/9", "2026/10"]}
+    method: GET
+    path: /api/v1/cycle/month/{{ym}}
+    query: {view: calendar}
+    status: 200

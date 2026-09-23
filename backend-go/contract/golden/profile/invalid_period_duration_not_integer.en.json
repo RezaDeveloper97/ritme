@@ -1,0 +1,30 @@
+{
+  "case": "profile/invalid_period_duration_not_integer.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/profile",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "period_duration": "five"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "Validation failed: Period duration must be an integer.",
+        "errors": {
+          "period_duration": [
+            "Period duration must be an integer."
+          ]
+        }
+      }
+    }
+  ]
+}

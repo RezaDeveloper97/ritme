@@ -1,0 +1,87 @@
+# Public (no auth) content routes + framework error bodies.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: public
+defaults:
+  persona: anon
+  locales: [none, fa, en, ar]
+cases:
+  - name: languages
+    method: GET
+    path: /api/v1/languages
+    status: 200
+
+  - name: languages_messages_fa
+    method: GET
+    path: /api/v1/languages/fa/messages
+    status: 200
+  - name: languages_messages_en
+    method: GET
+    path: /api/v1/languages/en/messages
+    status: 200
+  - name: languages_messages_ar
+    doc: ar is an active language row without translation files → default fill
+    locales: none
+    method: GET
+    path: /api/v1/languages/ar/messages
+    status: 200
+  - name: languages_messages_unknown
+    doc: never 404 — unknown code falls back to the default language
+    locales: none
+    method: GET
+    path: /api/v1/languages/xx/messages
+    status: 200
+
+  - name: info
+    persona: anon
+    locales: [none, fa, en]
+    sweep: {var: group, values: [help, privacy, terms, about]}
+    method: GET
+    path: /api/v1/info/{{group}}
+    status: 200
+  - name: info_locale_query
+    locales: none
+    sweep: {var: loc, values: [fa, en, ar, xx]}
+    method: GET
+    path: /api/v1/info/about
+    query: {locale: "{{loc}}"}
+    status: 200
+  - name: info_unknown_group
+    doc: abort(404) → pretty-printed framework body
+    locales: none
+    method: GET
+    path: /api/v1/info/nope
+    status: 404
+    strict_bytes: true
+  - name: privacy_alias
+    locales: [none, fa, en]
+    method: GET
+    path: /api/v1/privacy
+    status: 200
+
+  # ---- framework errors (pretty-printed, unescaped slashes) ----
+  - name: unknown_route
+    locales: none
+    method: GET
+    path: /api/v1/does-not-exist
+    status: 404
+    strict_bytes: true
+  - name: unknown_route_nested
+    locales: none
+    method: POST
+    path: /api/v1/diagnostics/crash-reports
+    doc: D-07 — Android calls this missing route
+    body: {message: crash}
+    status: 404
+    strict_bytes: true
+  - name: method_not_allowed
+    locales: none
+    method: GET
+    path: /api/v1/auth/send-otp
+    status: 405
+    strict_bytes: true
+  - name: method_not_allowed_put
+    locales: none
+    method: PUT
+    path: /api/v1/languages
+    status: 405
+    strict_bytes: true

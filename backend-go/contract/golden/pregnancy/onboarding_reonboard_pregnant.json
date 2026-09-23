@@ -1,0 +1,80 @@
+{
+  "case": "pregnancy/onboarding_reonboard_pregnant",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/onboarding",
+        "persona": "pregnant_manual_w14",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "age_source": "lmp",
+          "lmp_date": "2026-06-10"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "آنبوردینگ بارداری تکمیل شد",
+        "data": {
+          "profile": {
+            "id": 1016,
+            "user_id": 1016,
+            "pregnancy_mode": true,
+            "cycle_mode": false,
+            "is_locked": false,
+            "age_source": "lmp",
+            "confidence_level": "medium",
+            "lmp_date": "2026-06-09T20:30:00.000000Z",
+            "ultrasound_date": null,
+            "ultrasound_weeks": null,
+            "ultrasound_days": null,
+            "manual_weeks": 12,
+            "manual_days": 0,
+            "manual_entry_date": "2026-09-15T20:30:00.000000Z",
+            "estimated_due_date": "2027-03-16T20:30:00.000000Z",
+            "estimated_conception_date": "2026-07-07T20:30:00.000000Z",
+            "uncertainty_days": 3,
+            "has_miscarriage_history": null,
+            "has_high_risk_history": null,
+            "pre_existing_conditions": null,
+            "blood_type": null,
+            "rh_factor": null,
+            "rh_negative_care_flag": false,
+            "first_fetal_movement_date": null,
+            "fetal_movement_felt": false,
+            "onboarding_completed": true,
+            "onboarding_completed_at": "2026-09-23T06:30:00.000000Z",
+            "created_at": "2026-09-23T05:30:00.000000Z",
+            "updated_at": "2026-09-23T06:30:00.000000Z"
+          },
+          "gestational_age": {
+            "weeks": 15,
+            "days": 0,
+            "total_days": 105,
+            "trimester": 2,
+            "confidence_level": "medium",
+            "confidence_label": "متوسط",
+            "uncertainty_days": 3,
+            "formatted": {
+              "en": "15 weeks, 0 days",
+              "fa": "15 هفته و 0 روز"
+            }
+          },
+          "estimated_due_date": {
+            "date": "2027-03-17",
+            "days_remaining": 175,
+            "weeks_remaining": 25,
+            "formatted": {
+              "en": "March 17, 2027",
+              "fa": "17 مارس 2027"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

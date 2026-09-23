@@ -1,0 +1,129 @@
+{
+  "case": "pregnancy/enums.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/enums",
+        "persona": "pregnant_ultrasound_w26",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "age_sources": [
+            {
+              "value": "lmp",
+              "label": "Last Menstrual Period",
+              "description": "Calculation based on first day of last menstrual period"
+            },
+            {
+              "value": "ultrasound",
+              "label": "Ultrasound",
+              "description": "Calculation based on ultrasound information"
+            },
+            {
+              "value": "manual",
+              "label": "Manual Entry",
+              "description": "Direct entry of pregnancy week and day"
+            }
+          ],
+          "confidence_levels": [
+            {
+              "value": "high",
+              "label": "High",
+              "description": "Based on ultrasound"
+            },
+            {
+              "value": "medium",
+              "label": "Medium",
+              "description": "Based on accurate LMP"
+            },
+            {
+              "value": "low",
+              "label": "Low",
+              "description": "Uncertain entry"
+            },
+            {
+              "value": "unknown",
+              "label": "Unknown",
+              "description": "Not enough data"
+            }
+          ],
+          "blood_types": [
+            {
+              "value": "A",
+              "label": "A"
+            },
+            {
+              "value": "B",
+              "label": "B"
+            },
+            {
+              "value": "AB",
+              "label": "AB"
+            },
+            {
+              "value": "O",
+              "label": "O"
+            }
+          ],
+          "rh_factors": [
+            {
+              "value": "positive",
+              "label": "Positive"
+            },
+            {
+              "value": "negative",
+              "label": "Negative"
+            }
+          ],
+          "pre_existing_conditions": [
+            {
+              "value": "chronic_hypertension",
+              "label": "Chronic Hypertension"
+            },
+            {
+              "value": "diabetes",
+              "label": "Diabetes"
+            },
+            {
+              "value": "hypothyroidism",
+              "label": "Hypothyroidism"
+            },
+            {
+              "value": "hyperthyroidism",
+              "label": "Hyperthyroidism"
+            },
+            {
+              "value": "none",
+              "label": "None"
+            }
+          ],
+          "alert_levels": [
+            {
+              "value": "info",
+              "label": "Information",
+              "description": "General information and guidance"
+            },
+            {
+              "value": "warning",
+              "label": "Warning",
+              "description": "Requires attention and caution"
+            },
+            {
+              "value": "emergency",
+              "label": "Emergency",
+              "description": "Immediate medical attention required"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

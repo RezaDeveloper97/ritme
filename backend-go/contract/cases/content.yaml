@@ -1,0 +1,115 @@
+# Content routes: banners, articles, phase content (all behind auth:api).
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: content
+defaults:
+  persona: regular
+  locales: [none, fa, en, ar]
+cases:
+  # ---- banners ----
+  - name: banners
+    doc: banner 3 expired yesterday and must not appear; 1 active window, 2 no window
+    method: GET
+    path: /api/v1/banners
+    status: 200
+  - name: banners_position
+    locales: [none, en]
+    sweep: {var: pos, values: [home_top, home_middle, home_bottom]}
+    method: GET
+    path: /api/v1/banners
+    query: {position: "{{pos}}"}
+    status: 200
+  - name: banners_position_invalid
+    doc: an unknown position is ignored → all positions
+    locales: none
+    method: GET
+    path: /api/v1/banners
+    query: {position: sidebar}
+    status: 200
+  - name: banners_anon
+    doc: no token → 401 unauthenticated
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/banners
+    status: 401
+
+  # ---- articles ----
+  - name: articles
+    method: GET
+    path: /api/v1/articles
+    status: 200
+  - name: articles_paging
+    locales: [none, en]
+    steps:
+      - {method: GET, path: /api/v1/articles, query: {per_page: "2"}, status: 200}
+      - {method: GET, path: /api/v1/articles, query: {per_page: "2", page: "2"}, status: 200}
+      - {method: GET, path: /api/v1/articles, query: {per_page: "4", page: "2"}, status: 200}
+      - {method: GET, path: /api/v1/articles, query: {per_page: "50", page: "9"}, status: 200}
+      - {method: GET, path: /api/v1/articles, query: {per_page: "1"}, status: 200}
+  - name: articles_category
+    locales: [none, en]
+    sweep: {var: cat, values: [period_health, fertility, nutrition, nope]}
+    method: GET
+    path: /api/v1/articles
+    query: {category: "{{cat}}"}
+    status: 200
+  - name: articles_search
+    locales: [none, en]
+    sweep: {var: q, values: ["پریود", "ovulation", "PMS", "zzzz-no-match", "  "]}
+    method: GET
+    path: /api/v1/articles
+    query: {q: "{{q}}"}
+    status: 200
+  - name: articles_per_page_too_big
+    doc: framework 422 summary ($request->validate)
+    locales: [none, en]
+    method: GET
+    path: /api/v1/articles
+    query: {per_page: "51"}
+    status: 422
+  - name: articles_invalid_params
+    locales: [none, en]
+    steps:
+      - {method: GET, path: /api/v1/articles, query: {per_page: "0"}, status: 422}
+      - {method: GET, path: /api/v1/articles, query: {page: "abc"}, status: 422}
+      - {method: GET, path: /api/v1/articles, query: {page: "0", per_page: "x"}, status: 422}
+      - method: GET
+        path: /api/v1/articles
+        query: {q: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+        status: 422
+  - name: article_show
+    sweep: {var: slug, values: [period-blood-clots, period-pain-relief, follicular-energy, ovulation-signs, pms-management, cycle-nutrition-basics]}
+    method: GET
+    path: /api/v1/articles/{{slug}}
+    status: 200
+  - name: article_missing
+    locales: [none, en]
+    method: GET
+    path: /api/v1/articles/no-such-article
+    status: 404
+
+  # ---- phase content ----
+  - name: phase_content
+    doc: every CycleSubphase value; values without their own row reuse the canonical content (404 when none)
+    locales: [none, fa, en, ar]
+    sweep:
+      var: phase
+      values: [menstruation, menstrual, menstrual_possible, early_follicular, mid_follicular,
+        late_follicular_transition, fertile_rising, high_fertility, ovulation_likely, post_ovulation,
+        early_luteal, mid_luteal, late_luteal, pms_possible, period_expected, unknown]
+    method: GET
+    path: /api/v1/cycle/phase-content/{{phase}}
+    status: 200
+  - name: phase_content_locale_query
+    doc: ?locale= wins over Accept-Language; locale clamped to fa/en (ar/xx → fa)
+    locales: [none, en]
+    sweep: {var: loc, values: [fa, en, ar, xx]}
+    method: GET
+    path: /api/v1/cycle/phase-content/early_luteal
+    query: {locale: "{{loc}}"}
+    status: 200
+  - name: phase_content_invalid
+    locales: [none, fa, en, ar]
+    method: GET
+    path: /api/v1/cycle/phase-content/nope
+    status: 422

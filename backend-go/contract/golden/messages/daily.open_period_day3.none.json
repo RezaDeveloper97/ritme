@@ -1,0 +1,108 @@
+{
+  "case": "messages/daily.open_period_day3.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily",
+        "persona": "open_period_day3",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "date": "2026-09-23",
+          "user_goal": "non_ttc",
+          "subscription_type": "free",
+          "context_info": {
+            "phase": "menstruation",
+            "phase_label": "قاعدگی",
+            "subphase": "menstruation",
+            "subphase_label": "قاعدگی",
+            "cycle_day": 3,
+            "cycle_length": 28,
+            "is_fertile_window": false,
+            "is_pms_window": false,
+            "estimated_ovulation_day": 15
+          },
+          "primary_message": {
+            "phase": "menstruation",
+            "phase_label": "قاعدگی",
+            "cycle_day": 3,
+            "short_message": "امروز روز استراحت و مراقبت از خودته",
+            "long_message": "در دوران قاعدگی، بدنت نیاز به استراحت و توجه بیشتری داره. به خودت اجازه بده کمی آروم‌تر باشی و از فعالیت‌های سنگین اجتناب کنی.",
+            "action_suggestion": "یک نوشیدنی گرم بنوش و استراحت کن",
+            "dos": [
+              "استراحت کافی",
+              "نوشیدن آب فراوان",
+              "مصرف آهن",
+              "پیاده‌روی سبک"
+            ],
+            "donts": [
+              "ورزش سنگین",
+              "کافئین زیاد",
+              "غذاهای شور",
+              "بی‌خوابی"
+            ],
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [],
+          "supplements": {
+            "nutrition": {
+              "focus": "جبران آهن و ضدالتهاب",
+              "foods": [
+                "گوشت قرمز",
+                "اسفناج",
+                "عدس",
+                "ماهی",
+                "شکلات تلخ"
+              ],
+              "avoid": [
+                "غذاهای شور",
+                "کافئین زیاد",
+                "الکل"
+              ],
+              "tip": "ویتامین C همراه آهن جذب را افزایش می‌دهد"
+            },
+            "sleep": {
+              "recommended_hours": "8-9",
+              "quality_focus": "استراحت بیشتر",
+              "tips": [
+                "خواب بیشتر نیاز است",
+                "کمپرس گرم برای کرامپ",
+                "اتاق خنک"
+              ],
+              "avoid": [
+                "کافئین بعد از ظهر",
+                "گوشی قبل خواب"
+              ]
+            },
+            "exercise": {
+              "intensity": "کم تا متوسط",
+              "recommended": [
+                "پیاده‌روی",
+                "یوگای ریستوراتیو",
+                "کشش ملایم",
+                "شنا"
+              ],
+              "avoid": [
+                "HIIT شدید",
+                "وزنه سنگین",
+                "وارونگی در یوگا"
+              ],
+              "tip": "به بدنت گوش بده. اگر انرژی نداری، استراحت کن.",
+              "duration": "20-30"
+            }
+          },
+          "tips": []
+        }
+      }
+    }
+  ]
+}

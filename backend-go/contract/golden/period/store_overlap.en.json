@@ -1,0 +1,27 @@
+{
+  "case": "period/store_overlap.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/cycle/period",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "start_date": "2026-09-12",
+          "end_date": "2026-09-15"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "This range overlaps another logged period. Please edit one of the ranges.",
+        "code": "period_overlap"
+      }
+    }
+  ]
+}

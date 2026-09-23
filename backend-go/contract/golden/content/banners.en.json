@@ -1,0 +1,46 @@
+{
+  "case": "content/banners.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/banners",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "positions": {
+            "home_top": [
+              {
+                "id": 1,
+                "title": "Home top banner",
+                "image_url": "http://127.0.0.1:8090/storage/contract/banner-top.webp",
+                "position": "home_top",
+                "link_url": "/articles",
+                "link_type": "internal"
+              }
+            ],
+            "home_middle": [
+              {
+                "id": 2,
+                "title": "Middle banner",
+                "image_url": "http://127.0.0.1:8090/storage/contract/banner-middle.webp",
+                "position": "home_middle",
+                "link_url": "https://ritme.app",
+                "link_type": "external"
+              }
+            ],
+            "home_bottom": []
+          }
+        }
+      }
+    }
+  ]
+}

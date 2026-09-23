@@ -1,0 +1,640 @@
+{
+  "case": "messages/daily_dates.ttc.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?date=2026-09-14",
+        "persona": "ttc",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "date": "2026-09-14",
+          "user_goal": "ttc",
+          "subscription_type": "free",
+          "context_info": {
+            "phase": "menstruation",
+            "phase_label": "قاعدگی",
+            "subphase": "menstruation",
+            "subphase_label": "قاعدگی",
+            "cycle_day": 4,
+            "cycle_length": 28,
+            "is_fertile_window": false,
+            "is_pms_window": false,
+            "estimated_ovulation_day": 15
+          },
+          "primary_message": {
+            "phase": "menstruation",
+            "phase_label": "قاعدگی",
+            "cycle_day": 4,
+            "is_fertile_window": false,
+            "fertility_info": null,
+            "short_message": "سیکل جدید، فرصت جدید",
+            "long_message": "شروع یک سیکل جدید به معنی یک شانس تازه برای بارداری است. از این زمان برای استراحت و آماده‌سازی بدنت استفاده کن.",
+            "action_suggestion": "ویتامین‌های قبل از بارداری رو ادامه بده",
+            "dos": [
+              "مصرف فولیک اسید",
+              "استراحت کافی",
+              "آب فراوان"
+            ],
+            "donts": [
+              "الکل",
+              "سیگار",
+              "استرس زیاد"
+            ],
+            "ttc_tips": [
+              "این زمان خوبی برای بررسی سلامت کلی است",
+              "با پزشک مشورت کنید"
+            ],
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [],
+          "supplements": {
+            "nutrition": {
+              "focus": "جبران آهن و ضدالتهاب",
+              "foods": [
+                "گوشت قرمز",
+                "اسفناج",
+                "عدس",
+                "ماهی",
+                "شکلات تلخ"
+              ],
+              "avoid": [
+                "غذاهای شور",
+                "کافئین زیاد",
+                "الکل"
+              ],
+              "tip": "ویتامین C همراه آهن جذب را افزایش می‌دهد",
+              "ttc_additions": {
+                "essential": [
+                  "فولیک اسید ۴۰۰mcg روزانه",
+                  "اسیدهای چرب امگا-۳",
+                  "آنتی‌اکسیدان‌ها"
+                ],
+                "foods": [
+                  "سبزیجات برگ‌سبز تیره",
+                  "ماهی‌های چرب",
+                  "تخم‌مرغ",
+                  "آجیل و دانه‌ها"
+                ],
+                "avoid": [
+                  "الکل",
+                  "کافئین بیش از ۲۰۰mg",
+                  "ماهی با جیوه بالا"
+                ]
+              }
+            },
+            "sleep": {
+              "recommended_hours": "8-9",
+              "quality_focus": "استراحت بیشتر",
+              "tips": [
+                "خواب بیشتر نیاز است",
+                "کمپرس گرم برای کرامپ",
+                "اتاق خنک"
+              ],
+              "avoid": [
+                "کافئین بعد از ظهر",
+                "گوشی قبل خواب"
+              ]
+            },
+            "exercise": {
+              "intensity": "کم تا متوسط",
+              "recommended": [
+                "پیاده‌روی",
+                "یوگای ریستوراتیو",
+                "کشش ملایم",
+                "شنا"
+              ],
+              "avoid": [
+                "HIIT شدید",
+                "وزنه سنگین",
+                "وارونگی در یوگا"
+              ],
+              "tip": "به بدنت گوش بده. اگر انرژی نداری، استراحت کن.",
+              "duration": "20-30",
+              "ttc_note": "ورزش متوسط برای باروری مفید است. از ورزش‌های خیلی شدید اجتناب کنید."
+            }
+          },
+          "tips": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?date=2026-09-20",
+        "persona": "ttc",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "date": "2026-09-20",
+          "user_goal": "ttc",
+          "subscription_type": "free",
+          "context_info": {
+            "phase": "follicular",
+            "phase_label": "فولیکولار",
+            "subphase": "fertile_rising",
+            "subphase_label": "افزایش باروری",
+            "cycle_day": 10,
+            "cycle_length": 28,
+            "is_fertile_window": true,
+            "is_pms_window": false,
+            "estimated_ovulation_day": 15
+          },
+          "primary_message": {
+            "phase": "follicular",
+            "phase_label": "فولیکولار",
+            "cycle_day": 10,
+            "is_fertile_window": true,
+            "fertility_info": "شما در پنجره باروری هستید - بهترین زمان برای باردار شدن!",
+            "short_message": "بدنت داره برای تخمک‌گذاری آماده می‌شه",
+            "long_message": "تخمدان‌ها در حال رشد فولیکول هستند. این زمان مناسبی برای افزایش فعالیت بدنی و تقویت سلامت باروری است.",
+            "action_suggestion": "ورزش منظم و تغذیه سالم",
+            "dos": [
+              "غذاهای غنی از آنتی‌اکسیدان",
+              "ورزش متوسط",
+              "خواب ۸ ساعته"
+            ],
+            "donts": [
+              "استرس",
+              "غذاهای فرآوری شده",
+              "کم‌خوابی"
+            ],
+            "ttc_tips": [
+              "تست تخمک‌گذاری رو از چند روز دیگه شروع کن",
+              "روابط زناشویی رو از الان برنامه‌ریزی کن"
+            ],
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [],
+          "supplements": {
+            "nutrition": {
+              "focus": "پروتئین و سبزیجات تازه",
+              "foods": [
+                "تخم‌مرغ",
+                "مرغ",
+                "کینوا",
+                "سبزیجات برگ‌سبز",
+                "آووکادو"
+              ],
+              "avoid": [
+                "فست‌فود",
+                "غذاهای فرآوری شده"
+              ],
+              "tip": "بدن آماده رشد است، پروتئین کافی بخور",
+              "ttc_additions": {
+                "essential": [
+                  "فولیک اسید ۴۰۰mcg روزانه",
+                  "اسیدهای چرب امگا-۳",
+                  "آنتی‌اکسیدان‌ها"
+                ],
+                "foods": [
+                  "سبزیجات برگ‌سبز تیره",
+                  "ماهی‌های چرب",
+                  "تخم‌مرغ",
+                  "آجیل و دانه‌ها"
+                ],
+                "avoid": [
+                  "الکل",
+                  "کافئین بیش از ۲۰۰mg",
+                  "ماهی با جیوه بالا"
+                ]
+              }
+            },
+            "sleep": {
+              "recommended_hours": "7-8",
+              "quality_focus": "خواب بهینه",
+              "tips": [
+                "خواب عمیق‌تر در این فاز",
+                "زمان مناسب برای تنظیم ساعت خواب"
+              ],
+              "avoid": [
+                "بی‌خوابی",
+                "ساعت خواب نامنظم"
+              ]
+            },
+            "exercise": {
+              "intensity": "متوسط تا بالا",
+              "recommended": [
+                "دویدن",
+                "HIIT",
+                "وزنه‌برداری",
+                "دوچرخه",
+                "رقص"
+              ],
+              "avoid": [
+                "بی‌فعالیتی"
+              ],
+              "tip": "انرژی در اوج است! بهترین زمان برای چالش‌های جدید و رکوردشکنی.",
+              "duration": "45-60",
+              "ttc_note": "ورزش متوسط برای باروری مفید است. از ورزش‌های خیلی شدید اجتناب کنید."
+            }
+          },
+          "tips": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?date=2026-09-26",
+        "persona": "ttc",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "date": "2026-09-26",
+          "user_goal": "ttc",
+          "subscription_type": "free",
+          "context_info": {
+            "phase": "ovulation",
+            "phase_label": "تخمک‌گذاری",
+            "subphase": "post_ovulation",
+            "subphase_label": "پس از تخمک‌گذاری",
+            "cycle_day": 16,
+            "cycle_length": 28,
+            "is_fertile_window": true,
+            "is_pms_window": false,
+            "estimated_ovulation_day": 15
+          },
+          "primary_message": {
+            "phase": "ovulation",
+            "phase_label": "تخمک‌گذاری",
+            "cycle_day": 16,
+            "is_fertile_window": true,
+            "fertility_info": "شما در پنجره باروری هستید - بهترین زمان برای باردار شدن!",
+            "short_message": "🎯 پنجره باروری! بهترین زمان برای باردار شدن",
+            "long_message": "تخمک‌گذاری در حال وقوع است یا به زودی اتفاق می‌افته. این ۴۸-۷۲ ساعت بهترین شانس برای باردار شدن است.",
+            "action_suggestion": "رابطه زناشویی در این ۲-۳ روز",
+            "dos": [
+              "رابطه هر ۱-۲ روز",
+              "آرامش و لذت",
+              "پوزیشن‌های مناسب"
+            ],
+            "donts": [
+              "استرس و فشار",
+              "روان‌کننده‌های معمولی",
+              "حمام داغ طولانی"
+            ],
+            "ttc_tips": [
+              "بعد از رابطه ۱۵ دقیقه دراز بکش",
+              "از روان‌کننده‌های fertility-friendly استفاده کن",
+              "تست تخمک‌گذاری مثبت = بهترین زمان"
+            ],
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [],
+          "supplements": {
+            "nutrition": {
+              "focus": "آنتی‌اکسیدان و چربی سالم",
+              "foods": [
+                "توت‌ها",
+                "آجیل",
+                "روغن زیتون",
+                "ماهی سالمون",
+                "سبزیجات رنگی"
+              ],
+              "avoid": [
+                "قند زیاد",
+                "چربی ترانس"
+              ],
+              "tip": "استروژن در اوج است، از آنتی‌اکسیدان‌ها استفاده کن",
+              "ttc_additions": {
+                "essential": [
+                  "فولیک اسید ۴۰۰mcg روزانه",
+                  "اسیدهای چرب امگا-۳",
+                  "آنتی‌اکسیدان‌ها"
+                ],
+                "foods": [
+                  "سبزیجات برگ‌سبز تیره",
+                  "ماهی‌های چرب",
+                  "تخم‌مرغ",
+                  "آجیل و دانه‌ها"
+                ],
+                "avoid": [
+                  "الکل",
+                  "کافئین بیش از ۲۰۰mg",
+                  "ماهی با جیوه بالا"
+                ],
+                "fertile_window_tip": "هیدراتاسیون کافی برای مخاط دهانه رحم مهم است"
+              }
+            },
+            "sleep": {
+              "recommended_hours": "7-8",
+              "quality_focus": "انرژی بالا",
+              "tips": [
+                "ممکنه کمتر خسته باشی",
+                "از انرژی استفاده کن ولی خواب رو فراموش نکن"
+              ],
+              "avoid": [
+                "بیدار موندن دیروقت",
+                "از دست دادن خواب"
+              ]
+            },
+            "exercise": {
+              "intensity": "بالا",
+              "recommended": [
+                "تمرینات قدرتی",
+                "HIIT",
+                "ورزش‌های گروهی",
+                "کراس‌فیت"
+              ],
+              "avoid": [
+                "هیچی! همه چیز خوبه"
+              ],
+              "tip": "استروژن بالاست، عضلات قوی‌تر و ریکاوری سریع‌تر.",
+              "duration": "45-60",
+              "ttc_note": "ورزش متوسط برای باروری مفید است. از ورزش‌های خیلی شدید اجتناب کنید."
+            }
+          },
+          "tips": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?date=2026-10-05",
+        "persona": "ttc",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "date": "2026-10-05",
+          "user_goal": "ttc",
+          "subscription_type": "free",
+          "context_info": {
+            "phase": "luteal",
+            "phase_label": "لوتئال",
+            "subphase": "late_luteal",
+            "subphase_label": "لوتئال پایانی",
+            "cycle_day": 25,
+            "cycle_length": 28,
+            "is_fertile_window": false,
+            "is_pms_window": true,
+            "estimated_ovulation_day": 15
+          },
+          "primary_message": {
+            "phase": "luteal",
+            "phase_label": "لوتئال",
+            "cycle_day": 25,
+            "is_fertile_window": false,
+            "fertility_info": null,
+            "short_message": "زمان انتظار و امید",
+            "long_message": "اگر لقاح اتفاق افتاده باشه، الان جنین داره به رحم سفر می‌کنه. آرامش و صبر کلید این دوره است.",
+            "action_suggestion": "آرامش و امیدواری",
+            "dos": [
+              "ادامه فولیک اسید",
+              "استرس کم",
+              "خواب کافی",
+              "غذای سالم"
+            ],
+            "donts": [
+              "تست بارداری زودهنگام",
+              "استرس زیاد",
+              "ورزش سنگین",
+              "الکل و سیگار"
+            ],
+            "ttc_tips": [
+              "تست بارداری از روز ۱۲ پس از تخمک‌گذاری",
+              "علائم اولیه بارداری ممکنه شبیه PMS باشن",
+              "صبور باش و امیدوار"
+            ],
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [],
+          "supplements": {
+            "nutrition": {
+              "focus": "کربوهیدرات پیچیده و منیزیم",
+              "foods": [
+                "جو",
+                "نخود",
+                "موز",
+                "بادام",
+                "شکلات تلخ"
+              ],
+              "avoid": [
+                "نمک زیاد",
+                "شکر",
+                "کافئین"
+              ],
+              "tip": "منیزیم به کاهش علائم PMS کمک می‌کند",
+              "ttc_additions": {
+                "essential": [
+                  "فولیک اسید ۴۰۰mcg روزانه",
+                  "اسیدهای چرب امگا-۳",
+                  "آنتی‌اکسیدان‌ها"
+                ],
+                "foods": [
+                  "سبزیجات برگ‌سبز تیره",
+                  "ماهی‌های چرب",
+                  "تخم‌مرغ",
+                  "آجیل و دانه‌ها"
+                ],
+                "avoid": [
+                  "الکل",
+                  "کافئین بیش از ۲۰۰mg",
+                  "ماهی با جیوه بالا"
+                ]
+              }
+            },
+            "sleep": {
+              "recommended_hours": "8-9",
+              "quality_focus": "کیفیت خواب ممکنه کم بشه",
+              "tips": [
+                "ممکنه بی‌خوابی داشته باشی",
+                "منیزیم قبل خواب",
+                "اتاق تاریک و خنک",
+                "مدیتیشن قبل خواب"
+              ],
+              "avoid": [
+                "صفحه نمایش قبل خواب",
+                "غذای سنگین شب",
+                "کافئین"
+              ]
+            },
+            "exercise": {
+              "intensity": "متوسط (کم می‌شه)",
+              "recommended": [
+                "پیلاتس",
+                "یوگا",
+                "پیاده‌روی",
+                "وزنه سبک",
+                "شنا"
+              ],
+              "avoid": [
+                "ورزش‌های خیلی شدید",
+                "تمرینات طولانی"
+              ],
+              "tip": "انرژی کم‌کم کم می‌شه. ورزش ملایم به کاهش علائم PMS کمک می‌کنه.",
+              "duration": "30-45",
+              "ttc_note": "ورزش متوسط برای باروری مفید است. از ورزش‌های خیلی شدید اجتناب کنید."
+            }
+          },
+          "tips": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?date=2026-08-01",
+        "persona": "ttc",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "date": "2026-08-01",
+          "user_goal": "ttc",
+          "subscription_type": "free",
+          "context_info": {
+            "phase": "luteal",
+            "phase_label": "لوتئال",
+            "subphase": "early_luteal",
+            "subphase_label": "لوتئال اولیه",
+            "cycle_day": 17,
+            "cycle_length": 28,
+            "is_fertile_window": false,
+            "is_pms_window": false,
+            "estimated_ovulation_day": 15
+          },
+          "primary_message": {
+            "phase": "luteal",
+            "phase_label": "لوتئال",
+            "cycle_day": 17,
+            "is_fertile_window": false,
+            "fertility_info": null,
+            "short_message": "زمان انتظار و امید",
+            "long_message": "اگر لقاح اتفاق افتاده باشه، الان جنین داره به رحم سفر می‌کنه. آرامش و صبر کلید این دوره است.",
+            "action_suggestion": "آرامش و امیدواری",
+            "dos": [
+              "ادامه فولیک اسید",
+              "استرس کم",
+              "خواب کافی",
+              "غذای سالم"
+            ],
+            "donts": [
+              "تست بارداری زودهنگام",
+              "استرس زیاد",
+              "ورزش سنگین",
+              "الکل و سیگار"
+            ],
+            "ttc_tips": [
+              "تست بارداری از روز ۱۲ پس از تخمک‌گذاری",
+              "علائم اولیه بارداری ممکنه شبیه PMS باشن",
+              "صبور باش و امیدوار"
+            ],
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [],
+          "supplements": {
+            "nutrition": {
+              "focus": "کربوهیدرات پیچیده و منیزیم",
+              "foods": [
+                "جو",
+                "نخود",
+                "موز",
+                "بادام",
+                "شکلات تلخ"
+              ],
+              "avoid": [
+                "نمک زیاد",
+                "شکر",
+                "کافئین"
+              ],
+              "tip": "منیزیم به کاهش علائم PMS کمک می‌کند",
+              "ttc_additions": {
+                "essential": [
+                  "فولیک اسید ۴۰۰mcg روزانه",
+                  "اسیدهای چرب امگا-۳",
+                  "آنتی‌اکسیدان‌ها"
+                ],
+                "foods": [
+                  "سبزیجات برگ‌سبز تیره",
+                  "ماهی‌های چرب",
+                  "تخم‌مرغ",
+                  "آجیل و دانه‌ها"
+                ],
+                "avoid": [
+                  "الکل",
+                  "کافئین بیش از ۲۰۰mg",
+                  "ماهی با جیوه بالا"
+                ]
+              }
+            },
+            "sleep": {
+              "recommended_hours": "8-9",
+              "quality_focus": "کیفیت خواب ممکنه کم بشه",
+              "tips": [
+                "ممکنه بی‌خوابی داشته باشی",
+                "منیزیم قبل خواب",
+                "اتاق تاریک و خنک",
+                "مدیتیشن قبل خواب"
+              ],
+              "avoid": [
+                "صفحه نمایش قبل خواب",
+                "غذای سنگین شب",
+                "کافئین"
+              ]
+            },
+            "exercise": {
+              "intensity": "متوسط (کم می‌شه)",
+              "recommended": [
+                "پیلاتس",
+                "یوگا",
+                "پیاده‌روی",
+                "وزنه سبک",
+                "شنا"
+              ],
+              "avoid": [
+                "ورزش‌های خیلی شدید",
+                "تمرینات طولانی"
+              ],
+              "tip": "انرژی کم‌کم کم می‌شه. ورزش ملایم به کاهش علائم PMS کمک می‌کنه.",
+              "duration": "30-45",
+              "ttc_note": "ورزش متوسط برای باروری مفید است. از ورزش‌های خیلی شدید اجتناب کنید."
+            }
+          },
+          "tips": []
+        }
+      }
+    }
+  ]
+}

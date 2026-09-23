@@ -1,0 +1,139 @@
+{
+  "case": "home/challenge_toggle.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/home/challenges/1/toggle",
+        "persona": "engaged",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "challenge_id": 1,
+          "is_completed": true
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/home/challenges/3/toggle",
+        "persona": "engaged",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "challenge_id": 3,
+          "is_completed": true
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/home/sections/challenge",
+        "persona": "engaged",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "section": {
+            "key": "challenge",
+            "type": "challenge",
+            "title": "Today's challenge",
+            "subtitle": null,
+            "order": 70,
+            "action": null,
+            "data": {
+              "id": 21,
+              "title": "Replenish iron after your period",
+              "description": "After bleeding, pair an iron-rich meal with vitamin C",
+              "category": "nutrition",
+              "cycle_day": 7,
+              "cycle_day_from": 5,
+              "cycle_day_to": 9,
+              "is_completed": false
+            },
+            "meta": null
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/home/challenges/3/toggle",
+        "persona": "engaged",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "challenge_id": 3,
+          "is_completed": false
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/home/sections/challenge",
+        "persona": "engaged",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "section": {
+            "key": "challenge",
+            "type": "challenge",
+            "title": "Today's challenge",
+            "subtitle": null,
+            "order": 70,
+            "action": null,
+            "data": {
+              "id": 21,
+              "title": "Replenish iron after your period",
+              "description": "After bleeding, pair an iron-rich meal with vitamin C",
+              "category": "nutrition",
+              "cycle_day": 7,
+              "cycle_day_from": 5,
+              "cycle_day_to": 9,
+              "is_completed": false
+            },
+            "meta": null
+          }
+        }
+      }
+    }
+  ]
+}

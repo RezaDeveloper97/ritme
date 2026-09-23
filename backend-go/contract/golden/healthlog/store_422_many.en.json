@@ -1,0 +1,75 @@
+{
+  "case": "healthlog/store_422_many.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/health-logs",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "log_date": "not-a-date",
+          "bleeding_intensity": "extreme",
+          "moods": [
+            "happy",
+            "grumpy"
+          ],
+          "weight": 5,
+          "heart_rate": 12.5,
+          "exercise_type": [
+            "flying"
+          ],
+          "exercise_duration": 0,
+          "fatigue": "sometimes",
+          "medications": {
+            "painkillers": 5
+          },
+          "notes": [
+            "array"
+          ]
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "Invalid date format (and 10 more errors)",
+        "errors": {
+          "log_date": [
+            "Invalid date format"
+          ],
+          "bleeding_intensity": [
+            "The selected bleeding intensity is invalid."
+          ],
+          "fatigue": [
+            "The fatigue field must be true or false."
+          ],
+          "exercise_duration": [
+            "Exercise duration must be at least 1 minute"
+          ],
+          "weight": [
+            "Weight must be at least 20 kg"
+          ],
+          "heart_rate": [
+            "The heart rate field must be an integer.",
+            "Heart rate must be at least 30 bpm"
+          ],
+          "medications.painkillers": [
+            "The medications.painkillers field must be a string."
+          ],
+          "notes": [
+            "The notes field must be a string."
+          ],
+          "moods.1": [
+            "The selected moods.1 is invalid."
+          ],
+          "exercise_type.0": [
+            "The selected exercise_type.0 is invalid."
+          ]
+        }
+      }
+    }
+  ]
+}

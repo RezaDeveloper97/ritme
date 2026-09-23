@@ -1,0 +1,81 @@
+{
+  "case": "period/start_with_date.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/cycle/period/start",
+        "persona": "overdue_20",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "date": "2026-09-20"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "Profile updated successfully",
+        "data": {
+          "active": true,
+          "period_start_date": "2026-09-20",
+          "period_end_date": null,
+          "warnings": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/period/history",
+        "persona": "overdue_20",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "periods": [
+            {
+              "id": 101805,
+              "period_start_date": "2026-09-20",
+              "period_end_date": null,
+              "source": "user_logged"
+            },
+            {
+              "id": 101104,
+              "period_start_date": "2026-08-06",
+              "period_end_date": "2026-08-10",
+              "source": "user_logged"
+            },
+            {
+              "id": 101103,
+              "period_start_date": "2026-07-09",
+              "period_end_date": "2026-07-13",
+              "source": "user_logged"
+            },
+            {
+              "id": 101102,
+              "period_start_date": "2026-06-11",
+              "period_end_date": "2026-06-15",
+              "source": "user_logged"
+            },
+            {
+              "id": 101101,
+              "period_start_date": "2026-05-14",
+              "period_end_date": "2026-05-18",
+              "source": "user_logged"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

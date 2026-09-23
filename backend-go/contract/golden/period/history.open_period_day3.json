@@ -1,0 +1,48 @@
+{
+  "case": "period/history.open_period_day3",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/period/history",
+        "persona": "open_period_day3",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "periods": [
+            {
+              "id": 100704,
+              "period_start_date": "2026-09-21",
+              "period_end_date": null,
+              "source": "user_logged"
+            },
+            {
+              "id": 100703,
+              "period_start_date": "2026-08-24",
+              "period_end_date": "2026-08-28",
+              "source": "user_logged"
+            },
+            {
+              "id": 100702,
+              "period_start_date": "2026-07-27",
+              "period_end_date": "2026-07-31",
+              "source": "user_logged"
+            },
+            {
+              "id": 100701,
+              "period_start_date": "2026-06-29",
+              "period_end_date": "2026-07-03",
+              "source": "user_logged"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,168 @@
+{
+  "case": "profile/create_profile.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/profile",
+        "persona": "no_profile",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "name": "New Person",
+          "birthday": "1995-02-14",
+          "weight": 58.5,
+          "height": 162,
+          "period_duration": 5,
+          "cycle_duration": 29,
+          "last_period_start": "2026-09-10",
+          "pregnancy_intention": "avoiding",
+          "chronic_conditions": []
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "Profile updated successfully",
+        "data": {
+          "user": {
+            "id": 1001,
+            "name": "New Person",
+            "email": null,
+            "mobile": "09900000001",
+            "mobile_verified_at": "2026-09-23T05:30:00.000000Z",
+            "blocked_at": null,
+            "email_verified_at": null,
+            "created_at": "2026-09-23T05:30:00.000000Z",
+            "updated_at": "2026-09-23T06:30:00.000000Z"
+          },
+          "profile": {
+            "id": 1019,
+            "user_id": 1001,
+            "birthday": "1995-02-14",
+            "weight": 58.5,
+            "height": 162,
+            "period_duration": 5,
+            "cycle_duration": 29,
+            "last_period_start": "2026-09-10",
+            "user_goal": "non_ttc",
+            "pregnancy_intention": "avoiding",
+            "chronic_conditions": [],
+            "subscription_type": "free",
+            "calculation_status": "completed",
+            "calculation_started_at": "2026-09-23T06:30:00.000000Z",
+            "calculation_completed_at": "2026-09-23T06:30:00.000000Z",
+            "calculation_version": 1,
+            "created_at": "2026-09-23T06:30:00.000000Z",
+            "updated_at": "2026-09-23T06:30:00.000000Z"
+          },
+          "calculation_status": "completed"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/profile",
+        "persona": "no_profile",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "user": {
+            "id": 1001,
+            "name": "New Person",
+            "email": null,
+            "mobile": "09900000001",
+            "mobile_verified_at": "2026-09-23T05:30:00.000000Z",
+            "blocked_at": null,
+            "email_verified_at": null,
+            "created_at": "2026-09-23T05:30:00.000000Z",
+            "updated_at": "2026-09-23T06:30:00.000000Z",
+            "profile": {
+              "id": 1019,
+              "user_id": 1001,
+              "birthday": "1995-02-14",
+              "weight": 58.5,
+              "height": 162,
+              "period_duration": 5,
+              "cycle_duration": 29,
+              "last_period_start": "2026-09-10",
+              "user_goal": "non_ttc",
+              "pregnancy_intention": "avoiding",
+              "chronic_conditions": [],
+              "subscription_type": "free",
+              "calculation_status": "completed",
+              "calculation_started_at": "2026-09-23T06:30:00.000000Z",
+              "calculation_completed_at": "2026-09-23T06:30:00.000000Z",
+              "calculation_version": 1,
+              "created_at": "2026-09-23T06:30:00.000000Z",
+              "updated_at": "2026-09-23T06:30:00.000000Z"
+            }
+          },
+          "profile": {
+            "id": 1019,
+            "user_id": 1001,
+            "birthday": "1995-02-14",
+            "weight": 58.5,
+            "height": 162,
+            "period_duration": 5,
+            "cycle_duration": 29,
+            "last_period_start": "2026-09-10",
+            "user_goal": "non_ttc",
+            "pregnancy_intention": "avoiding",
+            "chronic_conditions": [],
+            "subscription_type": "free",
+            "calculation_status": "completed",
+            "calculation_started_at": "2026-09-23T06:30:00.000000Z",
+            "calculation_completed_at": "2026-09-23T06:30:00.000000Z",
+            "calculation_version": 1,
+            "created_at": "2026-09-23T06:30:00.000000Z",
+            "updated_at": "2026-09-23T06:30:00.000000Z"
+          },
+          "bmi": {
+            "value": 22.3,
+            "category": "normal",
+            "category_label": "Normal",
+            "message": "Based on the height and weight you entered, you are in the normal weight range. This range is usually good for overall health and your menstrual cycle. Ritme aims to help you maintain it."
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/period/history",
+        "persona": "no_profile",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "periods": [
+            {
+              "id": 101805,
+              "period_start_date": "2026-09-10",
+              "period_end_date": "2026-09-14",
+              "source": "user_profile_confirmed"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

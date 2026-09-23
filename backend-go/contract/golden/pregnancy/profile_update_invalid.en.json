@@ -1,0 +1,37 @@
+{
+  "case": "pregnancy/profile_update_invalid.en",
+  "steps": [
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/pregnancy/profile",
+        "persona": "pregnant_lmp_w8",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "age_source": "guess",
+          "ultrasound_weeks": 0,
+          "first_fetal_movement_date": "2026-12-01"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "منبع محاسبه سن بارداری نامعتبر است (and 2 more errors)",
+        "errors": {
+          "age_source": [
+            "منبع محاسبه سن بارداری نامعتبر است"
+          ],
+          "ultrasound_weeks": [
+            "هفته بارداری باید حداقل 1 باشد"
+          ],
+          "first_fetal_movement_date": [
+            "The first fetal movement date field must be a date before or equal to today."
+          ]
+        }
+      }
+    }
+  ]
+}

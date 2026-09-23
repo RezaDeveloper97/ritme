@@ -1,0 +1,178 @@
+{
+  "case": "healthlog/store_period_start_side_effect",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/health-logs",
+        "persona": "overdue_10",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "log_date": "2026-09-23",
+          "bleeding_intensity": "medium",
+          "blood_color": "red"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "Health log created successfully",
+        "data": {
+          "user_id": 1010,
+          "log_date": "2026-09-23",
+          "bleeding_intensity": "medium",
+          "blood_color": "red",
+          "updated_at": "2026-09-23T06:30:00.000000Z",
+          "created_at": "2026-09-23T06:30:00.000000Z",
+          "id": 101802
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/period/status",
+        "persona": "overdue_10",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "active": true,
+          "period_start_date": "2026-09-23",
+          "period_end_date": null
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/period/history",
+        "persona": "overdue_10",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "periods": [
+            {
+              "id": 101805,
+              "period_start_date": "2026-09-23",
+              "period_end_date": null,
+              "source": "user_logged"
+            },
+            {
+              "id": 101004,
+              "period_start_date": "2026-08-16",
+              "period_end_date": "2026-08-20",
+              "source": "user_logged"
+            },
+            {
+              "id": 101003,
+              "period_start_date": "2026-07-19",
+              "period_end_date": "2026-07-23",
+              "source": "user_logged"
+            },
+            {
+              "id": 101002,
+              "period_start_date": "2026-06-21",
+              "period_end_date": "2026-06-25",
+              "source": "user_logged"
+            },
+            {
+              "id": 101001,
+              "period_start_date": "2026-05-24",
+              "period_end_date": "2026-05-28",
+              "source": "user_logged"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/profile",
+        "persona": "overdue_10",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "user": {
+            "id": 1010,
+            "name": "Contract overdue 10",
+            "email": null,
+            "mobile": "09900000010",
+            "mobile_verified_at": "2026-09-23T05:30:00.000000Z",
+            "blocked_at": null,
+            "email_verified_at": null,
+            "created_at": "2026-09-23T05:30:00.000000Z",
+            "updated_at": "2026-09-23T05:30:00.000000Z",
+            "profile": {
+              "id": 1010,
+              "user_id": 1010,
+              "birthday": "1996-04-12",
+              "weight": 60.5,
+              "height": 165,
+              "period_duration": 5,
+              "cycle_duration": 28,
+              "last_period_start": "2026-09-23",
+              "user_goal": "non_ttc",
+              "pregnancy_intention": "avoiding",
+              "chronic_conditions": null,
+              "subscription_type": "free",
+              "calculation_status": "completed",
+              "calculation_started_at": "2026-09-23T06:30:00.000000Z",
+              "calculation_completed_at": "2026-09-23T06:30:00.000000Z",
+              "calculation_version": 2,
+              "created_at": "2026-09-23T05:30:00.000000Z",
+              "updated_at": "2026-09-23T06:30:00.000000Z"
+            }
+          },
+          "profile": {
+            "id": 1010,
+            "user_id": 1010,
+            "birthday": "1996-04-12",
+            "weight": 60.5,
+            "height": 165,
+            "period_duration": 5,
+            "cycle_duration": 28,
+            "last_period_start": "2026-09-23",
+            "user_goal": "non_ttc",
+            "pregnancy_intention": "avoiding",
+            "chronic_conditions": null,
+            "subscription_type": "free",
+            "calculation_status": "completed",
+            "calculation_started_at": "2026-09-23T06:30:00.000000Z",
+            "calculation_completed_at": "2026-09-23T06:30:00.000000Z",
+            "calculation_version": 2,
+            "created_at": "2026-09-23T05:30:00.000000Z",
+            "updated_at": "2026-09-23T06:30:00.000000Z"
+          },
+          "bmi": {
+            "value": 22.2,
+            "category": "normal",
+            "category_label": "طبیعی",
+            "message": "بر اساس قد و وزن وارد شده، در محدوده‌ی وزنی طبیعی قرار می‌گیری. این محدوده معمولاً برای سلامت عمومی و سیکل قاعدگی مناسب است. Ritme تلاش می‌کند به حفظ این وضعیت کمک کند."
+          }
+        }
+      }
+    }
+  ]
+}

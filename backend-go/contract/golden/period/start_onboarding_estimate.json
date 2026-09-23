@@ -1,0 +1,55 @@
+{
+  "case": "period/start_onboarding_estimate",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/cycle/period/start",
+        "persona": "onboarding_declared",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "date": "2026-09-11"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "پروفایل با موفقیت بروزرسانی شد",
+        "data": {
+          "active": true,
+          "period_start_date": "2026-09-11",
+          "period_end_date": null,
+          "warnings": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/period/history",
+        "persona": "onboarding_declared",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "periods": [
+            {
+              "id": 100301,
+              "period_start_date": "2026-09-11",
+              "period_end_date": null,
+              "source": "user_logged"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

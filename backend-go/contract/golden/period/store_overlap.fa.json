@@ -1,0 +1,27 @@
+{
+  "case": "period/store_overlap.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/cycle/period",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "start_date": "2026-09-12",
+          "end_date": "2026-09-15"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "این بازه با یک پریود ثبت‌شدهٔ دیگر همپوشانی دارد. لطفاً یکی از بازه‌ها را ویرایش کن.",
+        "code": "period_overlap"
+      }
+    }
+  ]
+}

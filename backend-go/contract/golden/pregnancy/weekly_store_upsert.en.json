@@ -1,0 +1,392 @@
+{
+  "case": "pregnancy/weekly_store_upsert.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/weekly",
+        "persona": "pregnant_ultrasound_w26",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "log_date": "2026-09-23",
+          "pregnancy_week": 27,
+          "weight": 72.85,
+          "has_swelling": true,
+          "swelling_locations": [
+            "face",
+            "feet"
+          ],
+          "has_shortness_of_breath": true,
+          "has_blood_pressure_device": true,
+          "systolic_pressure": 165,
+          "diastolic_pressure": 112,
+          "fasting_blood_sugar": 130.5,
+          "post_meal_blood_sugar": 210,
+          "overall_mood": "poor",
+          "has_anxiety": true,
+          "anxiety_severity": "severe",
+          "has_depression_feelings": true,
+          "depression_severity": "severe",
+          "notes": "headache and blurry vision"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "Weekly log saved successfully",
+        "data": {
+          "log": {
+            "user_id": 1015,
+            "pregnancy_week": 27,
+            "log_date": "2026-09-23",
+            "weight": "72.85",
+            "has_swelling": true,
+            "has_shortness_of_breath": true,
+            "has_blood_pressure_device": true,
+            "systolic_pressure": 165,
+            "diastolic_pressure": 112,
+            "fasting_blood_sugar": "130.50",
+            "post_meal_blood_sugar": "210.00",
+            "overall_mood": "poor",
+            "has_anxiety": true,
+            "anxiety_severity": "severe",
+            "has_depression_feelings": true,
+            "depression_severity": "severe",
+            "notes": "headache and blurry vision",
+            "swelling_locations": [
+              "face",
+              "feet"
+            ],
+            "updated_at": "2026-09-23T06:30:00.000000Z",
+            "created_at": "2026-09-23T06:30:00.000000Z",
+            "id": 101527
+          },
+          "alerts": [
+            {
+              "user_id": 1015,
+              "alert_level": "warning",
+              "alert_type": "symptom_based",
+              "title": "Warning: High Blood Pressure",
+              "message": "Your blood pressure (165/112) is above normal. Please consult your doctor.",
+              "pregnancy_week": 26,
+              "trigger_symptoms": {
+                "systolic": 165,
+                "diastolic": 112
+              },
+              "recommended_actions": [
+                "Contact your doctor",
+                "Rest",
+                "Reduce salt intake"
+              ],
+              "updated_at": "2026-09-23T06:30:00.000000Z",
+              "created_at": "2026-09-23T06:30:00.000000Z",
+              "id": 101504
+            },
+            {
+              "user_id": 1015,
+              "alert_level": "warning",
+              "alert_type": "symptom_based",
+              "title": "Warning: High Blood Sugar",
+              "message": "Your blood sugar level is above normal. Please consult your doctor.",
+              "pregnancy_week": 26,
+              "trigger_symptoms": {
+                "fasting": "130.50",
+                "post_meal": "210.00"
+              },
+              "recommended_actions": [
+                "Contact your doctor",
+                "Review your diet"
+              ],
+              "updated_at": "2026-09-23T06:30:00.000000Z",
+              "created_at": "2026-09-23T06:30:00.000000Z",
+              "id": 101505
+            },
+            {
+              "user_id": 1015,
+              "alert_level": "warning",
+              "alert_type": "symptom_based",
+              "title": "Note: Mental Health",
+              "message": "Severe depression feelings reported. Talking to a doctor or counselor can be helpful.",
+              "pregnancy_week": 26,
+              "recommended_actions": [
+                "Talk to a doctor or counselor",
+                "Seek family support"
+              ],
+              "updated_at": "2026-09-23T06:30:00.000000Z",
+              "created_at": "2026-09-23T06:30:00.000000Z",
+              "id": 101506
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/weekly",
+        "persona": "pregnant_ultrasound_w26",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "log_date": "2026-09-23",
+          "pregnancy_week": 27,
+          "weight": 72,
+          "systolic_pressure": 115,
+          "diastolic_pressure": 75,
+          "overall_mood": "good"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "Weekly log saved successfully",
+        "data": {
+          "log": {
+            "id": 101527,
+            "user_id": 1015,
+            "log_date": "2026-09-23",
+            "pregnancy_week": 27,
+            "weight": "72.00",
+            "swelling_locations": [
+              "face",
+              "feet"
+            ],
+            "has_swelling": true,
+            "has_shortness_of_breath": true,
+            "has_blood_pressure_device": true,
+            "systolic_pressure": 115,
+            "diastolic_pressure": 75,
+            "fasting_blood_sugar": "130.50",
+            "post_meal_blood_sugar": "210.00",
+            "overall_mood": "good",
+            "has_anxiety": true,
+            "anxiety_severity": "severe",
+            "has_mood_swings": null,
+            "mood_swings_severity": null,
+            "has_depression_feelings": true,
+            "depression_severity": "severe",
+            "notes": "headache and blurry vision",
+            "created_at": "2026-09-23T06:30:00.000000Z",
+            "updated_at": "2026-09-23T06:30:00.000000Z"
+          },
+          "alerts": [
+            {
+              "user_id": 1015,
+              "alert_level": "warning",
+              "alert_type": "symptom_based",
+              "title": "Warning: High Blood Sugar",
+              "message": "Your blood sugar level is above normal. Please consult your doctor.",
+              "pregnancy_week": 26,
+              "trigger_symptoms": {
+                "fasting": "130.50",
+                "post_meal": "210.00"
+              },
+              "recommended_actions": [
+                "Contact your doctor",
+                "Review your diet"
+              ],
+              "updated_at": "2026-09-23T06:30:00.000000Z",
+              "created_at": "2026-09-23T06:30:00.000000Z",
+              "id": 101507
+            },
+            {
+              "user_id": 1015,
+              "alert_level": "warning",
+              "alert_type": "symptom_based",
+              "title": "Note: Mental Health",
+              "message": "Severe depression feelings reported. Talking to a doctor or counselor can be helpful.",
+              "pregnancy_week": 26,
+              "recommended_actions": [
+                "Talk to a doctor or counselor",
+                "Seek family support"
+              ],
+              "updated_at": "2026-09-23T06:30:00.000000Z",
+              "created_at": "2026-09-23T06:30:00.000000Z",
+              "id": 101508
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/weekly/27",
+        "persona": "pregnant_ultrasound_w26",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "log": {
+            "id": 101527,
+            "user_id": 1015,
+            "log_date": "2026-09-23",
+            "pregnancy_week": 27,
+            "weight": "72.00",
+            "swelling_locations": [
+              "face",
+              "feet"
+            ],
+            "has_swelling": true,
+            "has_shortness_of_breath": true,
+            "has_blood_pressure_device": true,
+            "systolic_pressure": 115,
+            "diastolic_pressure": 75,
+            "fasting_blood_sugar": "130.50",
+            "post_meal_blood_sugar": "210.00",
+            "overall_mood": "good",
+            "has_anxiety": true,
+            "anxiety_severity": "severe",
+            "has_mood_swings": null,
+            "mood_swings_severity": null,
+            "has_depression_feelings": true,
+            "depression_severity": "severe",
+            "notes": "headache and blurry vision",
+            "created_at": "2026-09-23T06:30:00.000000Z",
+            "updated_at": "2026-09-23T06:30:00.000000Z"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/weekly",
+        "persona": "pregnant_ultrasound_w26",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "logs": [
+            {
+              "id": 101527,
+              "user_id": 1015,
+              "log_date": "2026-09-23",
+              "pregnancy_week": 27,
+              "weight": "72.00",
+              "swelling_locations": [
+                "face",
+                "feet"
+              ],
+              "has_swelling": true,
+              "has_shortness_of_breath": true,
+              "has_blood_pressure_device": true,
+              "systolic_pressure": 115,
+              "diastolic_pressure": 75,
+              "fasting_blood_sugar": "130.50",
+              "post_meal_blood_sugar": "210.00",
+              "overall_mood": "good",
+              "has_anxiety": true,
+              "anxiety_severity": "severe",
+              "has_mood_swings": null,
+              "mood_swings_severity": null,
+              "has_depression_feelings": true,
+              "depression_severity": "severe",
+              "notes": "headache and blurry vision",
+              "created_at": "2026-09-23T06:30:00.000000Z",
+              "updated_at": "2026-09-23T06:30:00.000000Z"
+            },
+            {
+              "id": 101526,
+              "user_id": 1015,
+              "log_date": "2026-09-23",
+              "pregnancy_week": 26,
+              "weight": "72.40",
+              "swelling_locations": [
+                "feet",
+                "hands"
+              ],
+              "has_swelling": true,
+              "has_shortness_of_breath": null,
+              "has_blood_pressure_device": true,
+              "systolic_pressure": 142,
+              "diastolic_pressure": 92,
+              "fasting_blood_sugar": "97.50",
+              "post_meal_blood_sugar": "128.00",
+              "overall_mood": "moderate",
+              "has_anxiety": true,
+              "anxiety_severity": "moderate",
+              "has_mood_swings": null,
+              "mood_swings_severity": null,
+              "has_depression_feelings": null,
+              "depression_severity": null,
+              "notes": null,
+              "created_at": "2026-09-23T05:30:00.000000Z",
+              "updated_at": "2026-09-23T05:30:00.000000Z"
+            },
+            {
+              "id": 101525,
+              "user_id": 1015,
+              "log_date": "2026-09-16",
+              "pregnancy_week": 25,
+              "weight": "71.10",
+              "swelling_locations": null,
+              "has_swelling": false,
+              "has_shortness_of_breath": null,
+              "has_blood_pressure_device": true,
+              "systolic_pressure": 118,
+              "diastolic_pressure": 76,
+              "fasting_blood_sugar": "88.00",
+              "post_meal_blood_sugar": "128.00",
+              "overall_mood": "good",
+              "has_anxiety": false,
+              "anxiety_severity": null,
+              "has_mood_swings": null,
+              "mood_swings_severity": null,
+              "has_depression_feelings": null,
+              "depression_severity": null,
+              "notes": null,
+              "created_at": "2026-09-23T05:30:00.000000Z",
+              "updated_at": "2026-09-23T05:30:00.000000Z"
+            },
+            {
+              "id": 101524,
+              "user_id": 1015,
+              "log_date": "2026-09-09",
+              "pregnancy_week": 24,
+              "weight": "71.10",
+              "swelling_locations": null,
+              "has_swelling": false,
+              "has_shortness_of_breath": null,
+              "has_blood_pressure_device": true,
+              "systolic_pressure": 118,
+              "diastolic_pressure": 76,
+              "fasting_blood_sugar": "88.00",
+              "post_meal_blood_sugar": "128.00",
+              "overall_mood": "good",
+              "has_anxiety": false,
+              "anxiety_severity": null,
+              "has_mood_swings": null,
+              "mood_swings_severity": null,
+              "has_depression_feelings": null,
+              "depression_severity": null,
+              "notes": null,
+              "created_at": "2026-09-23T05:30:00.000000Z",
+              "updated_at": "2026-09-23T05:30:00.000000Z"
+            }
+          ],
+          "count": 4
+        }
+      }
+    }
+  ]
+}

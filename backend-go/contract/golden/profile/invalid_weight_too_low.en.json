@@ -1,0 +1,30 @@
+{
+  "case": "profile/invalid_weight_too_low.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/profile",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "weight": 19.5
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "Validation failed: Weight must be at least 20 kg.",
+        "errors": {
+          "weight": [
+            "Weight must be at least 20 kg."
+          ]
+        }
+      }
+    }
+  ]
+}

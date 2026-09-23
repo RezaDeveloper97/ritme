@@ -1,0 +1,47 @@
+{
+  "case": "pregnancy/status_not_pregnant.regular",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/status",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "is_active": false,
+          "gestational_age": {
+            "weeks": null,
+            "days": null,
+            "total_days": null,
+            "trimester": null,
+            "confidence_level": null,
+            "confidence_label": null,
+            "uncertainty_days": null,
+            "formatted": null
+          },
+          "estimated_due_date": null,
+          "current_week": null,
+          "trimester": null,
+          "age_source": null,
+          "confidence_level": null,
+          "is_high_risk": false,
+          "fetal_movement_tracking_active": false,
+          "fetal_movement_required": false,
+          "flags": {
+            "no_profile": {
+              "en": "Please complete pregnancy onboarding to get started.",
+              "fa": "لطفاً آنبوردینگ بارداری را تکمیل کنید."
+            }
+          }
+        }
+      }
+    }
+  ]
+}

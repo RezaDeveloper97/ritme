@@ -1,0 +1,28 @@
+{
+  "case": "cycle/status.engaged.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/status",
+        "persona": "engaged",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "status": "completed",
+          "status_label": "محاسبه شده",
+          "is_processing": false,
+          "version": 1,
+          "started_at": "2026-09-23T05:30:00.000000Z",
+          "completed_at": "2026-09-23T05:30:00.000000Z"
+        }
+      }
+    }
+  ]
+}

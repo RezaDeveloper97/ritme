@@ -1,0 +1,184 @@
+{
+  "case": "cycle/today.pregnant_lmp_w8.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/today",
+        "persona": "pregnant_lmp_w8",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "calculation": {
+            "calculation_date": "2026-09-23",
+            "cycle_day": 25,
+            "phase": "luteal",
+            "subphase": "late_luteal",
+            "estimated_ovulation_day": 15,
+            "cycle_length_used": 28,
+            "is_fertile_window": false,
+            "is_pms_window": true,
+            "is_period_tomorrow": false,
+            "is_luteal_spotting": false,
+            "cycle_score": 0.7,
+            "age_factor": 0.85,
+            "base_probability": 0,
+            "symptom_score": 1,
+            "final_probability": 0,
+            "cycle_variability": "regular",
+            "uncertainty_range": 1,
+            "text_flags": {
+              "probability_message": "Today's pregnancy probability is 0%.",
+              "pms_warning": "You are in the PMS window. You may experience mood changes and physical symptoms.",
+              "phase_info": "Current phase: Luteal (Late Luteal)"
+            },
+            "daily_tips": [
+              {
+                "type": "pms",
+                "title": "PMS",
+                "icon": "flower",
+                "text": "PMS symptoms may appear. Practice self-care and relaxation."
+              },
+              {
+                "type": "nutrition",
+                "title": "Nutrition",
+                "icon": "apple",
+                "text": "Reduce salt and caffeine intake to minimize bloating."
+              },
+              {
+                "type": "mood",
+                "title": "Mood",
+                "icon": "smile",
+                "text": "Take breaks and practice deep breathing if feeling irritable."
+              }
+            ],
+            "source_profile_data": {
+              "birthday": "1996-04-12",
+              "period_duration": 5,
+              "cycle_duration": 28,
+              "last_period_start": "2026-08-02"
+            },
+            "source_daily_log_data": null
+          },
+          "cycle_view": {
+            "date": "2026-09-23",
+            "cycle_day": 53,
+            "main_phase": "unknown",
+            "subphase": "unknown",
+            "fertility_level": "unknown",
+            "days_to_ovulation": null,
+            "days_to_period": 0,
+            "days_late": 24,
+            "anchors": {
+              "current_period_start": "2026-08-02",
+              "current_period_start_source": "onboarding_declared",
+              "current_period_end": "2026-08-06",
+              "current_period_end_source": "assumed_from_effective_duration",
+              "current_period_end_is_confirmed": false,
+              "predicted_next_period_start": "2026-08-30",
+              "estimated_ovulation_date": "2026-08-16"
+            },
+            "metrics": {
+              "effective_cycle_length": 28,
+              "effective_period_length": 5,
+              "cycle_variability": null
+            },
+            "confidence": "low",
+            "confidence_reasons": [
+              "low_history",
+              "onboarding_data_used",
+              "prediction_based_output",
+              "period_overdue",
+              "unresolved_cycle",
+              "poor_data_quality"
+            ],
+            "data_quality": "poor",
+            "resolution_source": "prediction",
+            "is_predicted": true,
+            "requires_user_input": true,
+            "warnings": [
+              "predicted_period_overdue",
+              "cycle_unresolved_after_expected_period",
+              "low_history",
+              "onboarding_data_used",
+              "prediction_based_output"
+            ],
+            "phase": null,
+            "data_status": "needs_confirmation",
+            "predictions": {
+              "next_period_start": "2026-08-30",
+              "next_period_end": "2026-09-03",
+              "estimated_ovulation_date": "2026-08-16",
+              "fertile_window_start": "2026-08-11",
+              "fertile_window_end": "2026-08-17",
+              "source": "profile",
+              "confidence": "low",
+              "confidence_reasons": [
+                "based_on_profile_data",
+                "not_enough_logged_cycles"
+              ]
+            },
+            "profile_values": {
+              "cycle_length": 28,
+              "period_duration": 5
+            },
+            "calculated_values": {
+              "cycle_length": null,
+              "period_duration": null,
+              "based_on_cycles": null
+            },
+            "effective_values": {
+              "cycle_length": 28,
+              "period_duration": 5,
+              "source": "profile",
+              "period_duration_source": "profile"
+            },
+            "data_quality_details": {
+              "confidence": "low",
+              "confidence_reasons": [
+                "based_on_profile_data",
+                "not_enough_logged_cycles"
+              ],
+              "regularity_status": "not_enough_data",
+              "is_irregular_possible": false,
+              "missing_period_end": false
+            },
+            "daily_card": {
+              "title": "Period start not logged yet",
+              "subtitle": "A few days off from the prediction is normal, especially if ovulation shifted.",
+              "data_status": "needs_confirmation",
+              "fertility_level": "low",
+              "fertility_label": "Low",
+              "badges": [
+                "Needs confirmation"
+              ],
+              "primary_action": {
+                "type": "log_period_start",
+                "label": "Log period start"
+              },
+              "secondary_actions": [
+                {
+                  "type": "period_not_started",
+                  "label": "Not started yet"
+                },
+                {
+                  "type": "view_details",
+                  "label": "This day's details"
+                }
+              ]
+            }
+          },
+          "calculation_status": "completed",
+          "is_recalculating": false
+        }
+      }
+    }
+  ]
+}

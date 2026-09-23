@@ -1,0 +1,1001 @@
+{
+  "case": "cycle/date.regular.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/date/2026-09-14",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "calculation": {
+            "calculation_date": "2026-09-14",
+            "cycle_day": 1,
+            "phase": "menstruation",
+            "subphase": "menstruation",
+            "estimated_ovulation_day": 15,
+            "cycle_length_used": 28,
+            "is_fertile_window": false,
+            "is_pms_window": false,
+            "is_period_tomorrow": false,
+            "is_luteal_spotting": false,
+            "cycle_score": 0.7,
+            "age_factor": 0.85,
+            "base_probability": 0,
+            "symptom_score": 1,
+            "final_probability": 0,
+            "cycle_variability": "regular",
+            "uncertainty_range": 1,
+            "text_flags": {
+              "probability_message": "Today's pregnancy probability is 0%.",
+              "phase_info": "Current phase: Menstruation (Menstruation)"
+            },
+            "daily_tips": [
+              {
+                "type": "pain_relief",
+                "title": "Pain relief",
+                "icon": "bandage",
+                "text": "For cramps: try a warm bath or heating pad."
+              },
+              {
+                "type": "hydration",
+                "title": "Hydration",
+                "icon": "water-glass",
+                "text": "Stay hydrated and drink plenty of water."
+              },
+              {
+                "type": "warmth",
+                "title": "Warmth",
+                "icon": "heat",
+                "text": "Apply a warm compress to your lower abdomen to relieve cramps."
+              },
+              {
+                "type": "rest",
+                "title": "Rest",
+                "icon": "bed",
+                "text": "Get enough rest and avoid strenuous activities."
+              },
+              {
+                "type": "nutrition",
+                "title": "Nutrition",
+                "icon": "apple",
+                "text": "Eat iron-rich foods like spinach and red meat."
+              }
+            ],
+            "source_profile_data": {
+              "birthday": "1996-04-12",
+              "period_duration": 5,
+              "cycle_duration": 28,
+              "last_period_start": "2026-09-14"
+            },
+            "source_daily_log_data": {
+              "id": 100401,
+              "user_id": 1004,
+              "log_date": "2026-09-14",
+              "bleeding_intensity": "high",
+              "blood_color": "red",
+              "has_clots": null,
+              "clots_amount": null,
+              "spotting": null,
+              "bleeding_smell": null,
+              "headache_intensity": null,
+              "stomach_ache_intensity": "medium",
+              "pelvic_pain_intensity": null,
+              "breast_pain_intensity": null,
+              "back_pain_intensity": null,
+              "ovarian_pain_intensity": null,
+              "nausea_intensity": null,
+              "bloating_intensity": null,
+              "diarrhea": null,
+              "constipation": null,
+              "appetite_change": null,
+              "food_craving": null,
+              "breast_sensitivity_intensity": null,
+              "vaginal_dryness": null,
+              "vaginal_burning": null,
+              "vaginal_burning_intensity": null,
+              "vaginal_itching": null,
+              "vaginal_itching_intensity": null,
+              "vaginal_smell_change": null,
+              "urination_change": null,
+              "urination_burning_intensity": null,
+              "acne": null,
+              "oily_skin": null,
+              "hair_loss": null,
+              "swelling": null,
+              "fatigue": null,
+              "dizziness": null,
+              "hot_flashes": null,
+              "chills": null,
+              "moods": [
+                "sensitive"
+              ],
+              "sleep_duration": null,
+              "sleep_quality": null,
+              "exercise_type": null,
+              "exercise_duration": null,
+              "exercise_intensity": null,
+              "sexual_activities": null,
+              "sexual_desire": null,
+              "intercourse_type": null,
+              "weight": null,
+              "basal_body_temperature": null,
+              "heart_rate": null,
+              "systolic_pressure": null,
+              "diastolic_pressure": null,
+              "blood_sugar": null,
+              "energy_level": null,
+              "discharge_color": null,
+              "discharge_texture": null,
+              "discharge_amount": null,
+              "discharge_smell": null,
+              "discharge_itching": null,
+              "discharge_burning": null,
+              "frequent_urination": null,
+              "medications": null,
+              "notes": null,
+              "created_at": "2026-09-23T05:30:00.000000Z",
+              "updated_at": "2026-09-23T05:30:00.000000Z"
+            }
+          },
+          "cycle_view": {
+            "date": "2026-09-14",
+            "cycle_day": 1,
+            "main_phase": "menstrual",
+            "subphase": "menstrual",
+            "fertility_level": "low",
+            "days_to_ovulation": 14,
+            "days_to_period": 28,
+            "days_late": 0,
+            "anchors": {
+              "current_period_start": "2026-09-14",
+              "current_period_start_source": "user_logged",
+              "current_period_end": "2026-09-18",
+              "current_period_end_source": "user_logged",
+              "current_period_end_is_confirmed": true,
+              "predicted_next_period_start": "2026-10-12",
+              "estimated_ovulation_date": "2026-09-28"
+            },
+            "metrics": {
+              "effective_cycle_length": 28,
+              "effective_period_length": 5,
+              "cycle_variability": 0
+            },
+            "confidence": "high",
+            "confidence_reasons": [],
+            "data_quality": "good",
+            "resolution_source": "user_logged",
+            "is_predicted": false,
+            "requires_user_input": false,
+            "warnings": [],
+            "phase": "menstruation",
+            "data_status": "actual",
+            "predictions": {
+              "next_period_start": "2026-10-12",
+              "next_period_end": "2026-10-16",
+              "estimated_ovulation_date": "2026-09-28",
+              "fertile_window_start": "2026-09-23",
+              "fertile_window_end": "2026-09-29",
+              "source": "recent_valid_cycles",
+              "confidence": "high",
+              "confidence_reasons": [
+                "based_on_three_valid_cycles",
+                "low_cycle_variation"
+              ]
+            },
+            "profile_values": {
+              "cycle_length": 28,
+              "period_duration": 5
+            },
+            "calculated_values": {
+              "cycle_length": 28,
+              "period_duration": 5,
+              "based_on_cycles": 5
+            },
+            "effective_values": {
+              "cycle_length": 28,
+              "period_duration": 5,
+              "source": "recent_valid_cycles",
+              "period_duration_source": "recent_valid_cycles"
+            },
+            "data_quality_details": {
+              "confidence": "high",
+              "confidence_reasons": [
+                "based_on_three_valid_cycles",
+                "low_cycle_variation"
+              ],
+              "regularity_status": "relatively_regular",
+              "is_irregular_possible": false,
+              "missing_period_end": false
+            },
+            "daily_card": {
+              "title": "Day 1 of your period",
+              "subtitle": "This day is logged as a period day. Gentle self-care can help.",
+              "data_status": "actual",
+              "fertility_level": "low",
+              "fertility_label": "Low",
+              "badges": [
+                "Day 1",
+                "Logged"
+              ],
+              "primary_action": {
+                "type": "log_symptoms",
+                "label": "Log today's symptoms"
+              },
+              "secondary_actions": [
+                {
+                  "type": "view_details",
+                  "label": "This day's details"
+                }
+              ]
+            }
+          },
+          "calculation_status": "completed",
+          "is_recalculating": false
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/date/2026-09-23",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "calculation": {
+            "calculation_date": "2026-09-23",
+            "cycle_day": 10,
+            "phase": "follicular",
+            "subphase": "fertile_rising",
+            "estimated_ovulation_day": 15,
+            "cycle_length_used": 28,
+            "is_fertile_window": true,
+            "is_pms_window": false,
+            "is_period_tomorrow": false,
+            "is_luteal_spotting": false,
+            "cycle_score": 0.7,
+            "age_factor": 0.85,
+            "base_probability": 0.1,
+            "symptom_score": 1,
+            "final_probability": 5.95,
+            "cycle_variability": "regular",
+            "uncertainty_range": 1,
+            "text_flags": {
+              "fertility_status": "You are in your fertile window. Pregnancy chance is higher.",
+              "probability_message": "Today's pregnancy probability is 5.9%.",
+              "phase_info": "Current phase: Follicular (Rising Fertility)"
+            },
+            "daily_tips": [
+              {
+                "type": "energy",
+                "title": "Energy",
+                "icon": "bolt",
+                "text": "Your energy levels are rising. Great time for new projects!"
+              },
+              {
+                "type": "exercise",
+                "title": "Exercise",
+                "icon": "walking",
+                "text": "Perfect time for high-intensity workouts."
+              },
+              {
+                "type": "nutrition",
+                "title": "Nutrition",
+                "icon": "apple",
+                "text": "Add protein and fresh vegetables to rebuild your energy stores."
+              },
+              {
+                "type": "mental_health",
+                "title": "Mental health",
+                "icon": "brain",
+                "text": "A good window for planning and learning something new."
+              }
+            ],
+            "source_profile_data": {
+              "birthday": "1996-04-12",
+              "period_duration": 5,
+              "cycle_duration": 28,
+              "last_period_start": "2026-09-14"
+            },
+            "source_daily_log_data": {
+              "id": 100404,
+              "user_id": 1004,
+              "log_date": "2026-09-23",
+              "bleeding_intensity": null,
+              "blood_color": null,
+              "has_clots": null,
+              "clots_amount": null,
+              "spotting": null,
+              "bleeding_smell": null,
+              "headache_intensity": null,
+              "stomach_ache_intensity": null,
+              "pelvic_pain_intensity": null,
+              "breast_pain_intensity": null,
+              "back_pain_intensity": null,
+              "ovarian_pain_intensity": null,
+              "nausea_intensity": null,
+              "bloating_intensity": null,
+              "diarrhea": null,
+              "constipation": null,
+              "appetite_change": null,
+              "food_craving": null,
+              "breast_sensitivity_intensity": null,
+              "vaginal_dryness": null,
+              "vaginal_burning": null,
+              "vaginal_burning_intensity": null,
+              "vaginal_itching": null,
+              "vaginal_itching_intensity": null,
+              "vaginal_smell_change": null,
+              "urination_change": null,
+              "urination_burning_intensity": null,
+              "acne": null,
+              "oily_skin": null,
+              "hair_loss": null,
+              "swelling": null,
+              "fatigue": null,
+              "dizziness": null,
+              "hot_flashes": null,
+              "chills": null,
+              "moods": [
+                "happy",
+                "calm"
+              ],
+              "sleep_duration": null,
+              "sleep_quality": null,
+              "exercise_type": null,
+              "exercise_duration": null,
+              "exercise_intensity": null,
+              "sexual_activities": null,
+              "sexual_desire": null,
+              "intercourse_type": null,
+              "weight": "61.50",
+              "basal_body_temperature": null,
+              "heart_rate": null,
+              "systolic_pressure": null,
+              "diastolic_pressure": null,
+              "blood_sugar": null,
+              "energy_level": "medium",
+              "discharge_color": null,
+              "discharge_texture": null,
+              "discharge_amount": null,
+              "discharge_smell": null,
+              "discharge_itching": null,
+              "discharge_burning": null,
+              "frequent_urination": null,
+              "medications": null,
+              "notes": "contract",
+              "created_at": "2026-09-23T05:30:00.000000Z",
+              "updated_at": "2026-09-23T05:30:00.000000Z"
+            }
+          },
+          "cycle_view": {
+            "date": "2026-09-23",
+            "cycle_day": 10,
+            "main_phase": "fertile",
+            "subphase": "fertile_rising",
+            "fertility_level": "medium",
+            "days_to_ovulation": 5,
+            "days_to_period": 19,
+            "days_late": 0,
+            "anchors": {
+              "current_period_start": "2026-09-14",
+              "current_period_start_source": "user_logged",
+              "current_period_end": "2026-09-18",
+              "current_period_end_source": "user_logged",
+              "current_period_end_is_confirmed": true,
+              "predicted_next_period_start": "2026-10-12",
+              "estimated_ovulation_date": "2026-09-28"
+            },
+            "metrics": {
+              "effective_cycle_length": 28,
+              "effective_period_length": 5,
+              "cycle_variability": 0
+            },
+            "confidence": "high",
+            "confidence_reasons": [
+              "prediction_based_output"
+            ],
+            "data_quality": "good",
+            "resolution_source": "prediction",
+            "is_predicted": true,
+            "requires_user_input": false,
+            "warnings": [
+              "prediction_based_output"
+            ],
+            "phase": "ovulation",
+            "data_status": "predicted",
+            "predictions": {
+              "next_period_start": "2026-10-12",
+              "next_period_end": "2026-10-16",
+              "estimated_ovulation_date": "2026-09-28",
+              "fertile_window_start": "2026-09-23",
+              "fertile_window_end": "2026-09-29",
+              "source": "recent_valid_cycles",
+              "confidence": "high",
+              "confidence_reasons": [
+                "based_on_three_valid_cycles",
+                "low_cycle_variation"
+              ]
+            },
+            "profile_values": {
+              "cycle_length": 28,
+              "period_duration": 5
+            },
+            "calculated_values": {
+              "cycle_length": 28,
+              "period_duration": 5,
+              "based_on_cycles": 5
+            },
+            "effective_values": {
+              "cycle_length": 28,
+              "period_duration": 5,
+              "source": "recent_valid_cycles",
+              "period_duration_source": "recent_valid_cycles"
+            },
+            "data_quality_details": {
+              "confidence": "high",
+              "confidence_reasons": [
+                "based_on_three_valid_cycles",
+                "low_cycle_variation"
+              ],
+              "regularity_status": "relatively_regular",
+              "is_irregular_possible": false,
+              "missing_period_end": false
+            },
+            "daily_card": {
+              "title": "Your fertile window may be approaching",
+              "subtitle": "Fertility is estimated higher here based on your cycle, but real ovulation timing can differ.",
+              "data_status": "predicted",
+              "fertility_level": "medium",
+              "fertility_label": "Medium",
+              "badges": [
+                "Day 10",
+                "Predicted"
+              ],
+              "primary_action": {
+                "type": "log_symptoms",
+                "label": "Log today's symptoms"
+              },
+              "secondary_actions": [
+                {
+                  "type": "view_details",
+                  "label": "Today's details"
+                }
+              ]
+            }
+          },
+          "calculation_status": "completed",
+          "is_recalculating": false
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/date/2026-10-12",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "calculation": {
+            "calculation_date": "2026-10-12",
+            "cycle_day": 1,
+            "phase": "menstruation",
+            "subphase": "menstruation",
+            "estimated_ovulation_day": 15,
+            "cycle_length_used": 28,
+            "is_fertile_window": false,
+            "is_pms_window": false,
+            "is_period_tomorrow": false,
+            "is_luteal_spotting": false,
+            "cycle_score": 0.7,
+            "age_factor": 0.85,
+            "base_probability": 0,
+            "symptom_score": 1,
+            "final_probability": 0,
+            "cycle_variability": "regular",
+            "uncertainty_range": 1,
+            "text_flags": {
+              "probability_message": "Today's pregnancy probability is 0%.",
+              "phase_info": "Current phase: Menstruation (Menstruation)"
+            },
+            "daily_tips": [
+              {
+                "type": "hydration",
+                "title": "Hydration",
+                "icon": "water-glass",
+                "text": "Stay hydrated and drink plenty of water."
+              },
+              {
+                "type": "warmth",
+                "title": "Warmth",
+                "icon": "heat",
+                "text": "Apply a warm compress to your lower abdomen to relieve cramps."
+              },
+              {
+                "type": "rest",
+                "title": "Rest",
+                "icon": "bed",
+                "text": "Get enough rest and avoid strenuous activities."
+              },
+              {
+                "type": "nutrition",
+                "title": "Nutrition",
+                "icon": "apple",
+                "text": "Eat iron-rich foods like spinach and red meat."
+              }
+            ],
+            "source_profile_data": {
+              "birthday": "1996-04-12",
+              "period_duration": 5,
+              "cycle_duration": 28,
+              "last_period_start": "2026-09-14"
+            },
+            "source_daily_log_data": null
+          },
+          "cycle_view": {
+            "date": "2026-10-12",
+            "cycle_day": 1,
+            "main_phase": "menstrual",
+            "subphase": "menstrual",
+            "fertility_level": "low",
+            "days_to_ovulation": 14,
+            "days_to_period": 28,
+            "days_late": 0,
+            "anchors": {
+              "current_period_start": "2026-10-12",
+              "current_period_start_source": "predicted_reference",
+              "current_period_end": "2026-10-16",
+              "current_period_end_source": "assumed_from_effective_duration",
+              "current_period_end_is_confirmed": false,
+              "predicted_next_period_start": "2026-11-09",
+              "estimated_ovulation_date": "2026-10-26"
+            },
+            "metrics": {
+              "effective_cycle_length": 28,
+              "effective_period_length": 5,
+              "cycle_variability": 0
+            },
+            "confidence": "medium",
+            "confidence_reasons": [
+              "prediction_based_output"
+            ],
+            "data_quality": "partial",
+            "resolution_source": "prediction",
+            "is_predicted": true,
+            "requires_user_input": false,
+            "warnings": [
+              "prediction_based_output"
+            ],
+            "phase": "menstruation",
+            "data_status": "predicted",
+            "predictions": {
+              "next_period_start": "2026-10-12",
+              "next_period_end": "2026-10-16",
+              "estimated_ovulation_date": "2026-09-28",
+              "fertile_window_start": "2026-09-23",
+              "fertile_window_end": "2026-09-29",
+              "source": "recent_valid_cycles",
+              "confidence": "high",
+              "confidence_reasons": [
+                "based_on_three_valid_cycles",
+                "low_cycle_variation"
+              ]
+            },
+            "profile_values": {
+              "cycle_length": 28,
+              "period_duration": 5
+            },
+            "calculated_values": {
+              "cycle_length": 28,
+              "period_duration": 5,
+              "based_on_cycles": 5
+            },
+            "effective_values": {
+              "cycle_length": 28,
+              "period_duration": 5,
+              "source": "recent_valid_cycles",
+              "period_duration_source": "recent_valid_cycles"
+            },
+            "data_quality_details": {
+              "confidence": "high",
+              "confidence_reasons": [
+                "based_on_three_valid_cycles",
+                "low_cycle_variation"
+              ],
+              "regularity_status": "relatively_regular",
+              "is_irregular_possible": false,
+              "missing_period_end": false
+            },
+            "daily_card": {
+              "title": "9 day(s) to your fertile window",
+              "subtitle": "Based on your cycle prediction, your fertile window starts in about 9 day(s).",
+              "data_status": "predicted",
+              "fertility_level": "low",
+              "fertility_label": "Low",
+              "badges": [
+                "Day 1",
+                "Predicted"
+              ],
+              "primary_action": {
+                "type": "set_reminder",
+                "label": "Set a reminder"
+              },
+              "secondary_actions": [
+                {
+                  "type": "view_details",
+                  "label": "Prediction details"
+                }
+              ]
+            }
+          },
+          "calculation_status": "completed",
+          "is_recalculating": false
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/date/2026-01-01",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "calculation": {
+            "calculation_date": "2026-01-01",
+            "cycle_day": 24,
+            "phase": "luteal",
+            "subphase": "late_luteal",
+            "estimated_ovulation_day": 15,
+            "cycle_length_used": 28,
+            "is_fertile_window": false,
+            "is_pms_window": true,
+            "is_period_tomorrow": false,
+            "is_luteal_spotting": false,
+            "cycle_score": 0.7,
+            "age_factor": 0.85,
+            "base_probability": 0,
+            "symptom_score": 1,
+            "final_probability": 0,
+            "cycle_variability": "regular",
+            "uncertainty_range": 1,
+            "text_flags": {
+              "probability_message": "Today's pregnancy probability is 0%.",
+              "pms_warning": "You are in the PMS window. You may experience mood changes and physical symptoms.",
+              "phase_info": "Current phase: Luteal (Late Luteal)"
+            },
+            "daily_tips": [
+              {
+                "type": "pms",
+                "title": "PMS",
+                "icon": "flower",
+                "text": "PMS symptoms may appear. Practice self-care and relaxation."
+              },
+              {
+                "type": "nutrition",
+                "title": "Nutrition",
+                "icon": "apple",
+                "text": "Reduce salt and caffeine intake to minimize bloating."
+              },
+              {
+                "type": "mood",
+                "title": "Mood",
+                "icon": "smile",
+                "text": "Take breaks and practice deep breathing if feeling irritable."
+              }
+            ],
+            "source_profile_data": {
+              "birthday": "1996-04-12",
+              "period_duration": 5,
+              "cycle_duration": 28,
+              "last_period_start": "2026-09-14"
+            },
+            "source_daily_log_data": null
+          },
+          "cycle_view": {
+            "date": "2026-01-01",
+            "cycle_day": null,
+            "main_phase": "unknown",
+            "subphase": "unknown",
+            "fertility_level": "unknown",
+            "days_to_ovulation": null,
+            "days_to_period": null,
+            "days_late": null,
+            "anchors": {
+              "current_period_start": null,
+              "current_period_start_source": "unknown",
+              "current_period_end": null,
+              "current_period_end_source": "unknown",
+              "current_period_end_is_confirmed": false,
+              "predicted_next_period_start": null,
+              "estimated_ovulation_date": null
+            },
+            "metrics": {
+              "effective_cycle_length": 28,
+              "effective_period_length": 5,
+              "cycle_variability": 0
+            },
+            "confidence": "unknown",
+            "confidence_reasons": [
+              "insufficient_anchor_data"
+            ],
+            "data_quality": "insufficient",
+            "resolution_source": "unknown",
+            "is_predicted": true,
+            "requires_user_input": true,
+            "warnings": [
+              "insufficient_anchor_data"
+            ],
+            "phase": null,
+            "data_status": "predicted",
+            "predictions": {
+              "next_period_start": "2026-10-12",
+              "next_period_end": "2026-10-16",
+              "estimated_ovulation_date": "2026-09-28",
+              "fertile_window_start": "2026-09-23",
+              "fertile_window_end": "2026-09-29",
+              "source": "recent_valid_cycles",
+              "confidence": "high",
+              "confidence_reasons": [
+                "based_on_three_valid_cycles",
+                "low_cycle_variation"
+              ]
+            },
+            "profile_values": {
+              "cycle_length": 28,
+              "period_duration": 5
+            },
+            "calculated_values": {
+              "cycle_length": 28,
+              "period_duration": 5,
+              "based_on_cycles": 5
+            },
+            "effective_values": {
+              "cycle_length": 28,
+              "period_duration": 5,
+              "source": "recent_valid_cycles",
+              "period_duration_source": "recent_valid_cycles"
+            },
+            "data_quality_details": {
+              "confidence": "high",
+              "confidence_reasons": [
+                "based_on_three_valid_cycles",
+                "low_cycle_variation"
+              ],
+              "regularity_status": "relatively_regular",
+              "is_irregular_possible": false,
+              "missing_period_end": false
+            },
+            "daily_card": {
+              "title": "284 day(s) to your next period",
+              "subtitle": "Based on the prediction, your next period starts in about 284 day(s).",
+              "data_status": "predicted",
+              "fertility_level": "low",
+              "fertility_label": "Low",
+              "badges": [
+                "Day 24",
+                "Predicted"
+              ],
+              "primary_action": {
+                "type": "complete_day",
+                "label": "Complete this day"
+              },
+              "secondary_actions": [
+                {
+                  "type": "view_details",
+                  "label": "This day's details"
+                }
+              ]
+            }
+          },
+          "calculation_status": "completed",
+          "is_recalculating": false
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/date/2027-03-15",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "calculation": {
+            "calculation_date": "2027-03-15",
+            "cycle_day": 15,
+            "phase": "ovulation",
+            "subphase": "ovulation_likely",
+            "estimated_ovulation_day": 15,
+            "cycle_length_used": 28,
+            "is_fertile_window": true,
+            "is_pms_window": false,
+            "is_period_tomorrow": false,
+            "is_luteal_spotting": false,
+            "cycle_score": 0.7,
+            "age_factor": 0.85,
+            "base_probability": 0.33,
+            "symptom_score": 1,
+            "final_probability": 19.63,
+            "cycle_variability": "regular",
+            "uncertainty_range": 1,
+            "text_flags": {
+              "fertility_status": "You are in your fertile window. Pregnancy chance is higher.",
+              "probability_message": "Today's pregnancy probability is 19.6%.",
+              "phase_info": "Current phase: Ovulation (Ovulation Likely)"
+            },
+            "daily_tips": [
+              {
+                "type": "fertility",
+                "title": "Fertility",
+                "icon": "heart",
+                "text": "Peak fertility days. If trying to conceive, this is the best time."
+              },
+              {
+                "type": "energy",
+                "title": "Energy",
+                "icon": "bolt",
+                "text": "You may feel more confident and social."
+              },
+              {
+                "type": "hydration",
+                "title": "Hydration",
+                "icon": "water-glass",
+                "text": "Drink water regularly — hydration supports cervical fluid."
+              },
+              {
+                "type": "sleep",
+                "title": "Sleep",
+                "icon": "moon",
+                "text": "Keep a steady sleep schedule to support hormone balance."
+              }
+            ],
+            "source_profile_data": {
+              "birthday": "1996-04-12",
+              "period_duration": 5,
+              "cycle_duration": 28,
+              "last_period_start": "2026-09-14"
+            },
+            "source_daily_log_data": null
+          },
+          "cycle_view": {
+            "date": "2027-03-15",
+            "cycle_day": 15,
+            "main_phase": "fertile",
+            "subphase": "ovulation_likely",
+            "fertility_level": "peak",
+            "days_to_ovulation": 0,
+            "days_to_period": 14,
+            "days_late": 0,
+            "anchors": {
+              "current_period_start": "2027-03-01",
+              "current_period_start_source": "predicted_reference",
+              "current_period_end": "2027-03-05",
+              "current_period_end_source": "assumed_from_effective_duration",
+              "current_period_end_is_confirmed": false,
+              "predicted_next_period_start": "2027-03-29",
+              "estimated_ovulation_date": "2027-03-15"
+            },
+            "metrics": {
+              "effective_cycle_length": 28,
+              "effective_period_length": 5,
+              "cycle_variability": 0
+            },
+            "confidence": "medium",
+            "confidence_reasons": [
+              "prediction_based_output"
+            ],
+            "data_quality": "partial",
+            "resolution_source": "prediction",
+            "is_predicted": true,
+            "requires_user_input": false,
+            "warnings": [
+              "prediction_based_output"
+            ],
+            "phase": "ovulation",
+            "data_status": "predicted",
+            "predictions": {
+              "next_period_start": "2026-10-12",
+              "next_period_end": "2026-10-16",
+              "estimated_ovulation_date": "2026-09-28",
+              "fertile_window_start": "2026-09-23",
+              "fertile_window_end": "2026-09-29",
+              "source": "recent_valid_cycles",
+              "confidence": "high",
+              "confidence_reasons": [
+                "based_on_three_valid_cycles",
+                "low_cycle_variation"
+              ]
+            },
+            "profile_values": {
+              "cycle_length": 28,
+              "period_duration": 5
+            },
+            "calculated_values": {
+              "cycle_length": 28,
+              "period_duration": 5,
+              "based_on_cycles": 5
+            },
+            "effective_values": {
+              "cycle_length": 28,
+              "period_duration": 5,
+              "source": "recent_valid_cycles",
+              "period_duration_source": "recent_valid_cycles"
+            },
+            "data_quality_details": {
+              "confidence": "high",
+              "confidence_reasons": [
+                "based_on_three_valid_cycles",
+                "low_cycle_variation"
+              ],
+              "regularity_status": "relatively_regular",
+              "is_irregular_possible": false,
+              "missing_period_end": false
+            },
+            "daily_card": {
+              "title": "Ovulation is likely near",
+              "subtitle": "Fertility is estimated higher here based on your cycle, but real ovulation timing can differ.",
+              "data_status": "predicted",
+              "fertility_level": "very_high",
+              "fertility_label": "Very high",
+              "badges": [
+                "Day 15",
+                "Predicted"
+              ],
+              "primary_action": {
+                "type": "set_reminder",
+                "label": "Set a reminder"
+              },
+              "secondary_actions": [
+                {
+                  "type": "view_details",
+                  "label": "Prediction details"
+                }
+              ]
+            }
+          },
+          "calculation_status": "completed",
+          "is_recalculating": false
+        }
+      }
+    }
+  ]
+}

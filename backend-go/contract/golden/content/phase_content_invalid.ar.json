@@ -1,0 +1,22 @@
+{
+  "case": "content/phase_content_invalid.ar",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/phase-content/nope",
+        "persona": "regular",
+        "accept_language": "ar",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "فاز نامعتبر است"
+      }
+    }
+  ]
+}

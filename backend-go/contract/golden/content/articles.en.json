@@ -1,0 +1,114 @@
+{
+  "case": "content/articles.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/articles",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "items": [
+            {
+              "id": 6,
+              "slug": "cycle-nutrition-basics",
+              "title": "Eating in sync with your cycle",
+              "excerpt": "What to eat in each phase to feel your best",
+              "image_url": null,
+              "read_time_minutes": 6,
+              "category": "nutrition",
+              "cycle_phases": [],
+              "published_at": "2026-09-23"
+            },
+            {
+              "id": 5,
+              "slug": "pms-management",
+              "title": "Managing PMS symptoms",
+              "excerpt": "Strategies to manage mood and physical symptoms before your period",
+              "image_url": null,
+              "read_time_minutes": 5,
+              "category": "wellbeing",
+              "cycle_phases": [
+                "luteal"
+              ],
+              "published_at": "2026-09-23"
+            },
+            {
+              "id": 4,
+              "slug": "ovulation-signs",
+              "title": "Know the signs of ovulation",
+              "excerpt": "Discharge changes, body temperature and signs that signal ovulation",
+              "image_url": null,
+              "read_time_minutes": 4,
+              "category": "fertility",
+              "cycle_phases": [
+                "ovulation"
+              ],
+              "published_at": "2026-09-23"
+            },
+            {
+              "id": 3,
+              "slug": "follicular-energy",
+              "title": "The follicular phase: your energy peak",
+              "excerpt": "Why you feel more energetic after your period and how to use it",
+              "image_url": null,
+              "read_time_minutes": 3,
+              "category": "cycle_science",
+              "cycle_phases": [
+                "follicular"
+              ],
+              "published_at": "2026-09-23"
+            },
+            {
+              "id": 1,
+              "slug": "period-blood-clots",
+              "title": "Blood clots during your period: what do they mean?",
+              "excerpt": "Period clots are usually normal — but when should you worry?",
+              "image_url": null,
+              "read_time_minutes": 4,
+              "category": "period_health",
+              "cycle_phases": [
+                "menstruation"
+              ],
+              "published_at": "2026-09-23"
+            },
+            {
+              "id": 2,
+              "slug": "period-pain-relief",
+              "title": "Ways to relieve period pain",
+              "excerpt": "From heat therapy to nutrition: effective ways to ease cramps",
+              "image_url": null,
+              "read_time_minutes": 5,
+              "category": "period_health",
+              "cycle_phases": [
+                "menstruation"
+              ],
+              "published_at": "2026-09-23"
+            }
+          ],
+          "categories": [
+            "cycle_science",
+            "fertility",
+            "nutrition",
+            "period_health",
+            "wellbeing"
+          ],
+          "meta": {
+            "current_page": 1,
+            "last_page": 1,
+            "per_page": 12,
+            "total": 6
+          }
+        }
+      }
+    }
+  ]
+}

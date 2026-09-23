@@ -1,0 +1,62 @@
+{
+  "case": "reminders/enums.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/reminders/enums",
+        "persona": "engaged",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "types": [
+            {
+              "value": "doctor",
+              "label": "یادآور دکتر",
+              "icon": "stethoscope"
+            },
+            {
+              "value": "medication",
+              "label": "یادآور دارو",
+              "icon": "pill"
+            },
+            {
+              "value": "appointment",
+              "label": "یادآور نوبت",
+              "icon": "calendar-clock"
+            },
+            {
+              "value": "custom",
+              "label": "یادآور",
+              "icon": "bell"
+            }
+          ],
+          "recurrences": [
+            {
+              "value": "none",
+              "label": "یک‌بار"
+            },
+            {
+              "value": "daily",
+              "label": "روزانه"
+            },
+            {
+              "value": "weekly",
+              "label": "هفتگی"
+            },
+            {
+              "value": "monthly",
+              "label": "ماهانه"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

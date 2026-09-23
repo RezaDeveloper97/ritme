@@ -1,0 +1,36 @@
+{
+  "case": "pregnancy/symptoms_store_invalid.none",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/symptoms",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "log_date": "2026-09-30",
+          "has_nausea": "maybe",
+          "nausea_severity": "extreme"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "تاریخ نمی‌تواند در آینده باشد (and 2 more errors)",
+        "errors": {
+          "log_date": [
+            "تاریخ نمی‌تواند در آینده باشد"
+          ],
+          "has_nausea": [
+            "فیلد has nausea باید درست یا نادرست باشد."
+          ],
+          "nausea_severity": [
+            "nausea severity انتخاب‌شده معتبر نیست."
+          ]
+        }
+      }
+    }
+  ]
+}

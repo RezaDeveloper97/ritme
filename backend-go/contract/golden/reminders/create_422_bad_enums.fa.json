@@ -1,0 +1,35 @@
+{
+  "case": "reminders/create_422_bad_enums.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/reminders",
+        "persona": "engaged",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "type": "dentist",
+          "title": "X",
+          "recurrence": "yearly"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "اطلاعات واردشده نامعتبر است",
+        "errors": {
+          "type": [
+            "type انتخاب‌شده معتبر نیست."
+          ],
+          "recurrence": [
+            "recurrence انتخاب‌شده معتبر نیست."
+          ]
+        }
+      }
+    }
+  ]
+}

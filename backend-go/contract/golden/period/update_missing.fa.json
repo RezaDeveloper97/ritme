@@ -1,0 +1,25 @@
+{
+  "case": "period/update_missing.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/cycle/period/999999",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "start_date": "2026-09-13"
+        }
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "پریود مورد نظر پیدا نشد."
+      }
+    }
+  ]
+}

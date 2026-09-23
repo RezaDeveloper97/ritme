@@ -1,0 +1,30 @@
+{
+  "case": "period/store_future_start.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/cycle/period",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "start_date": "2026-10-01"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "The start date field must be a date before or equal to today.",
+        "errors": {
+          "start_date": [
+            "The start date field must be a date before or equal to today."
+          ]
+        }
+      }
+    }
+  ]
+}

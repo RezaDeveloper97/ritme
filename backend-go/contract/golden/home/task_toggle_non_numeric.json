@@ -1,0 +1,21 @@
+{
+  "case": "home/task_toggle_non_numeric",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/home/tasks/abc/toggle",
+        "persona": "engaged",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "No query results for model [App\\Models\\TaskTemplate] abc"
+      },
+      "body_raw": "{\n    \"message\": \"No query results for model [App\\\\Models\\\\TaskTemplate] abc\"\n}"
+    }
+  ]
+}

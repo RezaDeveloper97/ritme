@@ -1,0 +1,24 @@
+{
+  "case": "reminders/update_non_numeric",
+  "steps": [
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/reminders/abc",
+        "persona": "engaged",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "title": "X"
+        }
+      },
+      "status": 500,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "Server Error"
+      },
+      "body_raw": "{\n    \"message\": \"Server Error\"\n}"
+    }
+  ]
+}

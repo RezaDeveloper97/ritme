@@ -1,0 +1,130 @@
+{
+  "case": "pregnancy/fetal_movement_index_range",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/fetal-movement?from=2026-09-22",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "logs": [
+            {
+              "id": 101503,
+              "user_id": 1015,
+              "log_date": "2026-09-23",
+              "pregnancy_week": 26,
+              "movement_status": "reduced",
+              "movement_count": 3,
+              "first_movement_time": "08:15:00",
+              "last_movement_time": "21:40:00",
+              "notes": null,
+              "created_at": "2026-09-23T05:30:00.000000Z",
+              "updated_at": "2026-09-23T05:30:00.000000Z"
+            },
+            {
+              "id": 101502,
+              "user_id": 1015,
+              "log_date": "2026-09-22",
+              "pregnancy_week": 26,
+              "movement_status": "normal",
+              "movement_count": 10,
+              "first_movement_time": "08:15:00",
+              "last_movement_time": "21:40:00",
+              "notes": null,
+              "created_at": "2026-09-23T05:30:00.000000Z",
+              "updated_at": "2026-09-23T05:30:00.000000Z"
+            }
+          ],
+          "count": 2
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/fetal-movement?to=2026-09-21",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "logs": [
+            {
+              "id": 101501,
+              "user_id": 1015,
+              "log_date": "2026-09-21",
+              "pregnancy_week": 25,
+              "movement_status": "normal",
+              "movement_count": 12,
+              "first_movement_time": "08:15:00",
+              "last_movement_time": "21:40:00",
+              "notes": null,
+              "created_at": "2026-09-23T05:30:00.000000Z",
+              "updated_at": "2026-09-23T05:30:00.000000Z"
+            }
+          ],
+          "count": 1
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/fetal-movement?from=2026-09-21&to=2026-09-22",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "logs": [
+            {
+              "id": 101502,
+              "user_id": 1015,
+              "log_date": "2026-09-22",
+              "pregnancy_week": 26,
+              "movement_status": "normal",
+              "movement_count": 10,
+              "first_movement_time": "08:15:00",
+              "last_movement_time": "21:40:00",
+              "notes": null,
+              "created_at": "2026-09-23T05:30:00.000000Z",
+              "updated_at": "2026-09-23T05:30:00.000000Z"
+            },
+            {
+              "id": 101501,
+              "user_id": 1015,
+              "log_date": "2026-09-21",
+              "pregnancy_week": 25,
+              "movement_status": "normal",
+              "movement_count": 12,
+              "first_movement_time": "08:15:00",
+              "last_movement_time": "21:40:00",
+              "notes": null,
+              "created_at": "2026-09-23T05:30:00.000000Z",
+              "updated_at": "2026-09-23T05:30:00.000000Z"
+            }
+          ],
+          "count": 2
+        }
+      }
+    }
+  ]
+}

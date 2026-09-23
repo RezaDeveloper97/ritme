@@ -1,0 +1,233 @@
+{
+  "case": "pregnancy/onboarding_lmp.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/onboarding",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "age_source": "lmp",
+          "lmp_date": "2026-07-01",
+          "has_miscarriage_history": false,
+          "blood_type": "O",
+          "rh_factor": "positive"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "آنبوردینگ بارداری تکمیل شد",
+        "data": {
+          "profile": {
+            "id": 1017,
+            "user_id": 1004,
+            "pregnancy_mode": true,
+            "cycle_mode": false,
+            "is_locked": false,
+            "age_source": "lmp",
+            "confidence_level": "medium",
+            "lmp_date": "2026-06-30T20:30:00.000000Z",
+            "ultrasound_date": null,
+            "ultrasound_weeks": null,
+            "ultrasound_days": null,
+            "manual_weeks": null,
+            "manual_days": null,
+            "manual_entry_date": null,
+            "estimated_due_date": "2027-04-06T20:30:00.000000Z",
+            "estimated_conception_date": null,
+            "uncertainty_days": 3,
+            "has_miscarriage_history": false,
+            "has_high_risk_history": null,
+            "pre_existing_conditions": null,
+            "blood_type": "O",
+            "rh_factor": "positive",
+            "rh_negative_care_flag": false,
+            "first_fetal_movement_date": null,
+            "fetal_movement_felt": false,
+            "onboarding_completed": true,
+            "onboarding_completed_at": "2026-09-23T06:30:00.000000Z",
+            "created_at": "2026-09-23T06:30:00.000000Z",
+            "updated_at": "2026-09-23T06:30:00.000000Z"
+          },
+          "gestational_age": {
+            "weeks": 12,
+            "days": 0,
+            "total_days": 84,
+            "trimester": 1,
+            "confidence_level": "medium",
+            "confidence_label": "متوسط",
+            "uncertainty_days": 3,
+            "formatted": {
+              "en": "12 weeks, 0 days",
+              "fa": "12 هفته و 0 روز"
+            }
+          },
+          "estimated_due_date": {
+            "date": "2027-04-07",
+            "days_remaining": 196,
+            "weeks_remaining": 28,
+            "formatted": {
+              "en": "April 7, 2027",
+              "fa": "7 آوریل 2027"
+            }
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/profile",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "profile": {
+            "id": 1017,
+            "user_id": 1004,
+            "pregnancy_mode": true,
+            "cycle_mode": false,
+            "is_locked": false,
+            "age_source": "lmp",
+            "confidence_level": "medium",
+            "lmp_date": "2026-06-30T20:30:00.000000Z",
+            "ultrasound_date": null,
+            "ultrasound_weeks": null,
+            "ultrasound_days": null,
+            "manual_weeks": null,
+            "manual_days": null,
+            "manual_entry_date": null,
+            "estimated_due_date": "2027-04-06T20:30:00.000000Z",
+            "estimated_conception_date": null,
+            "uncertainty_days": 3,
+            "has_miscarriage_history": false,
+            "has_high_risk_history": null,
+            "pre_existing_conditions": null,
+            "blood_type": "O",
+            "rh_factor": "positive",
+            "rh_negative_care_flag": false,
+            "first_fetal_movement_date": null,
+            "fetal_movement_felt": false,
+            "onboarding_completed": true,
+            "onboarding_completed_at": "2026-09-23T06:30:00.000000Z",
+            "created_at": "2026-09-23T06:30:00.000000Z",
+            "updated_at": "2026-09-23T06:30:00.000000Z"
+          },
+          "status": {
+            "is_active": true,
+            "gestational_age": {
+              "weeks": 12,
+              "days": 0,
+              "total_days": 84,
+              "trimester": 1,
+              "confidence_level": "medium",
+              "confidence_label": "متوسط",
+              "uncertainty_days": 3,
+              "formatted": {
+                "en": "12 weeks, 0 days",
+                "fa": "12 هفته و 0 روز"
+              }
+            },
+            "estimated_due_date": {
+              "date": "2027-04-07",
+              "days_remaining": 196,
+              "weeks_remaining": 28,
+              "formatted": {
+                "en": "April 7, 2027",
+                "fa": "7 آوریل 2027"
+              }
+            },
+            "current_week": 13,
+            "trimester": 1,
+            "age_source": "lmp",
+            "confidence_level": "medium",
+            "is_high_risk": false,
+            "fetal_movement_tracking_active": false,
+            "fetal_movement_required": false,
+            "flags": {
+              "trimester_info": {
+                "en": "You are in trimester 1.",
+                "fa": "شما در سه‌ماهه 1 هستید."
+              },
+              "week_info": {
+                "en": "Week 13 of pregnancy.",
+                "fa": "هفته 13 بارداری."
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/status",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "is_active": true,
+          "gestational_age": {
+            "weeks": 12,
+            "days": 0,
+            "total_days": 84,
+            "trimester": 1,
+            "confidence_level": "medium",
+            "confidence_label": "متوسط",
+            "uncertainty_days": 3,
+            "formatted": {
+              "en": "12 weeks, 0 days",
+              "fa": "12 هفته و 0 روز"
+            }
+          },
+          "estimated_due_date": {
+            "date": "2027-04-07",
+            "days_remaining": 196,
+            "weeks_remaining": 28,
+            "formatted": {
+              "en": "April 7, 2027",
+              "fa": "7 آوریل 2027"
+            }
+          },
+          "current_week": 13,
+          "trimester": 1,
+          "age_source": "lmp",
+          "confidence_level": "medium",
+          "is_high_risk": false,
+          "fetal_movement_tracking_active": false,
+          "fetal_movement_required": false,
+          "flags": {
+            "trimester_info": {
+              "en": "You are in trimester 1.",
+              "fa": "شما در سه‌ماهه 1 هستید."
+            },
+            "week_info": {
+              "en": "Week 13 of pregnancy.",
+              "fa": "هفته 13 بارداری."
+            }
+          }
+        }
+      }
+    }
+  ]
+}

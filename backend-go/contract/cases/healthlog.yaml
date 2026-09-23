@@ -1,0 +1,260 @@
+# Daily health logs (auth:api). DailyHealthLogController + StoreDailyHealthLogRequest.
+# Fixture: `regular` (1004) has logs 2026-09-14 (high bleeding), 09-15 (medium), 09-21,
+# 09-23 (today); `premium` (1013) has 20 daily logs (paginator page 1 of 1 at 30/page).
+# POST 422s are framework bodies ({message:"… (and N more errors)",errors}).
+# Case format: backend-go/cmd/contract/cases.go.
+group: healthlog
+defaults:
+  persona: regular
+cases:
+  - name: enums
+    locales: [none, fa, en, ar]
+    method: GET
+    path: /api/v1/health-logs/enums
+    status: 200
+  - name: enums_anon
+    persona: anon
+    method: GET
+    path: /api/v1/health-logs/enums
+    status: 401
+
+  # ---- index (raw LengthAwarePaginator) ----
+  - name: index
+    persona: [regular, premium, no_profile]
+    method: GET
+    path: /api/v1/health-logs
+    status: 200
+  - name: index_range
+    method: GET
+    path: /api/v1/health-logs
+    query: {from_date: "2026-09-15", to_date: "2026-09-21"}
+    status: 200
+  - name: index_from_only
+    method: GET
+    path: /api/v1/health-logs
+    query: {from_date: "2026-09-20"}
+    status: 200
+  - name: index_page2_empty
+    persona: premium
+    method: GET
+    path: /api/v1/health-logs
+    query: {page: "2"}
+    status: 200
+  - name: index_anon
+    persona: anon
+    method: GET
+    path: /api/v1/health-logs
+    status: 401
+
+  # ---- show ----
+  - name: show
+    sweep: {var: date, values: ["2026-09-14", "2026-09-21", "2026-09-23"]}
+    method: GET
+    path: /api/v1/health-logs/{{date}}
+    status: 200
+  - name: show_missing
+    locales: [none, fa]
+    method: GET
+    path: /api/v1/health-logs/2026-09-01
+    status: 404
+  - name: show_other_users_date
+    doc: engaged has no log on 2026-09-14 (regular's date) → 404
+    persona: engaged
+    method: GET
+    path: /api/v1/health-logs/2026-09-14
+    status: 404
+
+  # ---- store ----
+  - name: store_create_then_update
+    doc: 201 with only the sent attrs + user_id/id/timestamps, then 200 with the full row
+    steps:
+      - method: POST
+        path: /api/v1/health-logs
+        body: {log_date: "2026-09-22", moods: [happy, calm], sleep_duration: "6_9", sleep_quality: good, weight: 61.5, notes: first}
+        status: 201
+      - method: POST
+        path: /api/v1/health-logs
+        body: {log_date: "2026-09-22", energy_level: high, headache_intensity: low, notes: second}
+        status: 200
+      - method: GET
+        path: /api/v1/health-logs/2026-09-22
+        status: 200
+  - name: store_update_today
+    doc: 09-23 already exists → 200 update
+    locales: [none, en]
+    method: POST
+    path: /api/v1/health-logs
+    body: {log_date: "2026-09-23", fatigue: true, blood_sugar: 98.5, basal_body_temperature: 36.55, heart_rate: 72, systolic_pressure: 118, diastolic_pressure: 76}
+    status: 200
+  - name: store_full_payload
+    persona: engaged
+    method: POST
+    path: /api/v1/health-logs
+    body:
+      log_date: "2026-09-20"
+      blood_color: red
+      clots_amount: low
+      has_clots: true
+      bleeding_smell: normal
+      stomach_ache_intensity: medium
+      pelvic_pain_intensity: low
+      back_pain_intensity: high
+      nausea_intensity: low
+      bloating_intensity: medium
+      diarrhea: false
+      constipation: true
+      appetite_change: gain
+      food_craving: true
+      breast_sensitivity_intensity: low
+      vaginal_itching_intensity: low
+      urination_change: normal
+      acne: true
+      fatigue: true
+      moods: [anxious, sensitive]
+      exercise_type: [walking, yoga]
+      exercise_duration: 45
+      exercise_intensity: medium
+      discharge_color: white
+      discharge_texture: creamy
+      discharge_amount: medium
+      frequent_urination: false
+      medications: {painkillers: ibuprofen, supplements: iron}
+      notes: "full <b>payload</b> & \"quotes\" / slash"
+    status: 201
+  - name: store_exercise_type_string
+    doc: prepareForValidation turns a string exercise_type into a one-element array
+    persona: engaged
+    method: POST
+    path: /api/v1/health-logs
+    body: {log_date: "2026-09-21", exercise_type: running, exercise_duration: 30}
+    status: 201
+  - name: store_exercise_type_empty_string
+    persona: engaged
+    method: POST
+    path: /api/v1/health-logs
+    body: {log_date: "2026-09-21", exercise_type: "", fatigue: false}
+    status: 201
+  - name: store_spotting_warning
+    doc: irregular (LMP 09-09, cycle 30) → 09-23 is cycle day 15 → luteal spotting warning (top-level `warning`)
+    persona: irregular
+    locales: [none, fa, en]
+    method: POST
+    path: /api/v1/health-logs
+    body: {log_date: "2026-09-23", spotting: true}
+    status: 201
+  - name: store_low_bleeding_warning
+    doc: low bleeding on cycle day 21 (short_outlier LMP 09-03) → warning + new cycle_histories row
+    persona: short_outlier
+    steps:
+      - method: POST
+        path: /api/v1/health-logs
+        body: {log_date: "2026-09-23", bleeding_intensity: low}
+        status: 201
+      - method: GET
+        path: /api/v1/cycle/period/history
+        status: 200
+  - name: store_period_start_side_effect
+    doc: overdue_10 bleeding today → checkAndUpdatePeriodStart creates a period + moves profile LMP
+    persona: overdue_10
+    steps:
+      - method: POST
+        path: /api/v1/health-logs
+        body: {log_date: "2026-09-23", bleeding_intensity: medium, blood_color: red}
+        status: 201
+      - method: GET
+        path: /api/v1/cycle/period/status
+        status: 200
+      - method: GET
+        path: /api/v1/cycle/period/history
+        status: 200
+      - method: GET
+        path: /api/v1/profile
+        status: 200
+  - name: store_bleeding_continuation
+    doc: regular 09-15 had bleeding → 09-16 is not a new period start
+    steps:
+      - method: POST
+        path: /api/v1/health-logs
+        body: {log_date: "2026-09-16", bleeding_intensity: low}
+        status: 201
+      - method: GET
+        path: /api/v1/cycle/period/history
+        status: 200
+  - name: store_no_profile
+    persona: no_profile
+    method: POST
+    path: /api/v1/health-logs
+    body: {log_date: "2026-09-23", bleeding_intensity: high}
+    status: 201
+
+  # ---- store: framework 422 (fa translations vs framework en) ----
+  - name: store_422_missing_date
+    locales: [none, fa, en]
+    method: POST
+    path: /api/v1/health-logs
+    body: {fatigue: true}
+    status: 422
+  - name: store_422_future_date
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/health-logs
+    body: {log_date: "2026-09-24"}
+    status: 422
+  - name: store_422_many
+    doc: several invalid fields → "<first> (and N more errors)"
+    locales: [none, fa, en]
+    method: POST
+    path: /api/v1/health-logs
+    body:
+      log_date: not-a-date
+      bleeding_intensity: extreme
+      moods: [happy, grumpy]
+      weight: 5
+      heart_rate: 12.5
+      exercise_type: [flying]
+      exercise_duration: 0
+      fatigue: sometimes
+      medications: {painkillers: 5}
+      notes: [array]
+    status: 422
+  - name: store_422_maxes
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/health-logs
+    body: {log_date: "2026-09-23", weight: 301, basal_body_temperature: 43, systolic_pressure: 301, diastolic_pressure: 201, blood_sugar: 601, exercise_duration: 601}
+    status: 422
+  - name: store_422_moods_not_array
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/health-logs
+    body: {log_date: "2026-09-23", moods: happy, urination_change: often, appetite_change: huge}
+    status: 422
+  - name: store_anon
+    persona: anon
+    method: POST
+    path: /api/v1/health-logs
+    body: {log_date: "2026-09-23"}
+    status: 401
+
+  # ---- destroy ----
+  - name: destroy
+    steps:
+      - method: DELETE
+        path: /api/v1/health-logs/2026-09-21
+        status: 200
+      - method: GET
+        path: /api/v1/health-logs/2026-09-21
+        status: 404
+      - method: DELETE
+        path: /api/v1/health-logs/2026-09-21
+        status: 404
+  - name: destroy_missing
+    persona: engaged
+    method: DELETE
+    path: /api/v1/health-logs/2026-09-01
+    status: 404
+  - name: destroy_anon
+    persona: anon
+    method: DELETE
+    path: /api/v1/health-logs/2026-09-21
+    status: 401

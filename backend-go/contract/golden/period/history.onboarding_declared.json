@@ -1,0 +1,23 @@
+{
+  "case": "period/history.onboarding_declared",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/period/history",
+        "persona": "onboarding_declared",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "periods": []
+        }
+      }
+    }
+  ]
+}

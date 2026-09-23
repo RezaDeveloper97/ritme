@@ -1,0 +1,111 @@
+{
+  "case": "messages/daily.short_outlier.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily",
+        "persona": "short_outlier",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "date": "2026-09-23",
+          "user_goal": "non_ttc",
+          "subscription_type": "free",
+          "context_info": {
+            "phase": "luteal",
+            "phase_label": "Luteal",
+            "subphase": "mid_luteal",
+            "subphase_label": "Mid Luteal",
+            "cycle_day": 21,
+            "cycle_length": 28,
+            "is_fertile_window": false,
+            "is_pms_window": false,
+            "estimated_ovulation_day": 15
+          },
+          "primary_message": {
+            "phase": "luteal",
+            "phase_label": "Luteal",
+            "cycle_day": 21,
+            "short_message": "Time to focus on yourself and unfinished tasks",
+            "long_message": "In the luteal phase, energy gradually decreases. Best time to complete projects, self-care and prepare for the next cycle.",
+            "action_suggestion": "Complete an unfinished task",
+            "dos": [
+              "Yoga and stretching",
+              "Complete projects",
+              "Adequate sleep",
+              "Nutritious foods"
+            ],
+            "donts": [
+              "Starting big projects",
+              "Too much caffeine",
+              "Too much sugar",
+              "Stressful activities"
+            ],
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [],
+          "supplements": {
+            "nutrition": {
+              "focus": "Complex carbs and magnesium",
+              "foods": [
+                "Oats",
+                "Chickpeas",
+                "Banana",
+                "Almonds",
+                "Dark chocolate"
+              ],
+              "avoid": [
+                "Too much salt",
+                "Sugar",
+                "Caffeine"
+              ],
+              "tip": "Magnesium helps reduce PMS symptoms"
+            },
+            "sleep": {
+              "recommended_hours": "8-9",
+              "quality_focus": "Sleep quality may decrease",
+              "tips": [
+                "You may have insomnia",
+                "Magnesium before bed",
+                "Dark and cool room",
+                "Meditation before bed"
+              ],
+              "avoid": [
+                "Screen before bed",
+                "Heavy dinner",
+                "Caffeine"
+              ]
+            },
+            "exercise": {
+              "intensity": "Moderate (decreasing)",
+              "recommended": [
+                "Pilates",
+                "Yoga",
+                "Walking",
+                "Light weights",
+                "Swimming"
+              ],
+              "avoid": [
+                "Very intense workouts",
+                "Long training sessions"
+              ],
+              "tip": "Energy is gradually decreasing. Light exercise helps reduce PMS symptoms.",
+              "duration": "30-45"
+            }
+          },
+          "tips": []
+        }
+      }
+    }
+  ]
+}

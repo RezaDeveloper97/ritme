@@ -1,0 +1,523 @@
+{
+  "case": "messages/daily_dates.irregular.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?date=2026-09-14",
+        "persona": "irregular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "date": "2026-09-14",
+          "user_goal": "non_ttc",
+          "subscription_type": "free",
+          "context_info": {
+            "phase": "follicular",
+            "phase_label": "Follicular",
+            "subphase": "early_follicular",
+            "subphase_label": "Early Follicular",
+            "cycle_day": 6,
+            "cycle_length": 29,
+            "is_fertile_window": false,
+            "is_pms_window": false,
+            "estimated_ovulation_day": 16
+          },
+          "primary_message": {
+            "phase": "follicular",
+            "phase_label": "Follicular",
+            "cycle_day": 6,
+            "short_message": "Your energy is coming back! Time for fresh starts",
+            "long_message": "In the follicular phase, estrogen levels rise and your energy and creativity increase. Best time to start new projects and more intense workouts.",
+            "action_suggestion": "Set a new goal for this week",
+            "dos": [
+              "Medium to high intensity exercise",
+              "Start new projects",
+              "Social meetings",
+              "Learn new skills"
+            ],
+            "donts": [
+              "Being unorganized",
+              "Sleep deprivation",
+              "Processed foods"
+            ],
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [],
+          "supplements": {
+            "nutrition": {
+              "focus": "Protein and fresh vegetables",
+              "foods": [
+                "Eggs",
+                "Chicken",
+                "Quinoa",
+                "Leafy greens",
+                "Avocado"
+              ],
+              "avoid": [
+                "Fast food",
+                "Processed foods"
+              ],
+              "tip": "Body is ready for growth, eat enough protein"
+            },
+            "sleep": {
+              "recommended_hours": "7-8",
+              "quality_focus": "Optimal sleep",
+              "tips": [
+                "Deeper sleep in this phase",
+                "Good time to set sleep schedule"
+              ],
+              "avoid": [
+                "Sleep deprivation",
+                "Irregular sleep schedule"
+              ]
+            },
+            "exercise": {
+              "intensity": "Moderate to high",
+              "recommended": [
+                "Running",
+                "HIIT",
+                "Weight training",
+                "Cycling",
+                "Dancing"
+              ],
+              "avoid": [
+                "Inactivity"
+              ],
+              "tip": "Energy is at peak! Best time for new challenges and personal records.",
+              "duration": "45-60"
+            }
+          },
+          "tips": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?date=2026-09-20",
+        "persona": "irregular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "date": "2026-09-20",
+          "user_goal": "non_ttc",
+          "subscription_type": "free",
+          "context_info": {
+            "phase": "follicular",
+            "phase_label": "Follicular",
+            "subphase": "fertile_rising",
+            "subphase_label": "Rising Fertility",
+            "cycle_day": 12,
+            "cycle_length": 29,
+            "is_fertile_window": true,
+            "is_pms_window": false,
+            "estimated_ovulation_day": 16
+          },
+          "primary_message": {
+            "phase": "follicular",
+            "phase_label": "Follicular",
+            "cycle_day": 12,
+            "short_message": "Your energy is coming back! Time for fresh starts",
+            "long_message": "In the follicular phase, estrogen levels rise and your energy and creativity increase. Best time to start new projects and more intense workouts.",
+            "action_suggestion": "Set a new goal for this week",
+            "dos": [
+              "Medium to high intensity exercise",
+              "Start new projects",
+              "Social meetings",
+              "Learn new skills"
+            ],
+            "donts": [
+              "Being unorganized",
+              "Sleep deprivation",
+              "Processed foods"
+            ],
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [],
+          "supplements": {
+            "nutrition": {
+              "focus": "Protein and fresh vegetables",
+              "foods": [
+                "Eggs",
+                "Chicken",
+                "Quinoa",
+                "Leafy greens",
+                "Avocado"
+              ],
+              "avoid": [
+                "Fast food",
+                "Processed foods"
+              ],
+              "tip": "Body is ready for growth, eat enough protein"
+            },
+            "sleep": {
+              "recommended_hours": "7-8",
+              "quality_focus": "Optimal sleep",
+              "tips": [
+                "Deeper sleep in this phase",
+                "Good time to set sleep schedule"
+              ],
+              "avoid": [
+                "Sleep deprivation",
+                "Irregular sleep schedule"
+              ]
+            },
+            "exercise": {
+              "intensity": "Moderate to high",
+              "recommended": [
+                "Running",
+                "HIIT",
+                "Weight training",
+                "Cycling",
+                "Dancing"
+              ],
+              "avoid": [
+                "Inactivity"
+              ],
+              "tip": "Energy is at peak! Best time for new challenges and personal records.",
+              "duration": "45-60"
+            }
+          },
+          "tips": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?date=2026-09-26",
+        "persona": "irregular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "date": "2026-09-26",
+          "user_goal": "non_ttc",
+          "subscription_type": "free",
+          "context_info": {
+            "phase": "luteal",
+            "phase_label": "Luteal",
+            "subphase": "early_luteal",
+            "subphase_label": "Early Luteal",
+            "cycle_day": 18,
+            "cycle_length": 29,
+            "is_fertile_window": false,
+            "is_pms_window": false,
+            "estimated_ovulation_day": 16
+          },
+          "primary_message": {
+            "phase": "luteal",
+            "phase_label": "Luteal",
+            "cycle_day": 18,
+            "short_message": "Time to focus on yourself and unfinished tasks",
+            "long_message": "In the luteal phase, energy gradually decreases. Best time to complete projects, self-care and prepare for the next cycle.",
+            "action_suggestion": "Complete an unfinished task",
+            "dos": [
+              "Yoga and stretching",
+              "Complete projects",
+              "Adequate sleep",
+              "Nutritious foods"
+            ],
+            "donts": [
+              "Starting big projects",
+              "Too much caffeine",
+              "Too much sugar",
+              "Stressful activities"
+            ],
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [],
+          "supplements": {
+            "nutrition": {
+              "focus": "Complex carbs and magnesium",
+              "foods": [
+                "Oats",
+                "Chickpeas",
+                "Banana",
+                "Almonds",
+                "Dark chocolate"
+              ],
+              "avoid": [
+                "Too much salt",
+                "Sugar",
+                "Caffeine"
+              ],
+              "tip": "Magnesium helps reduce PMS symptoms"
+            },
+            "sleep": {
+              "recommended_hours": "8-9",
+              "quality_focus": "Sleep quality may decrease",
+              "tips": [
+                "You may have insomnia",
+                "Magnesium before bed",
+                "Dark and cool room",
+                "Meditation before bed"
+              ],
+              "avoid": [
+                "Screen before bed",
+                "Heavy dinner",
+                "Caffeine"
+              ]
+            },
+            "exercise": {
+              "intensity": "Moderate (decreasing)",
+              "recommended": [
+                "Pilates",
+                "Yoga",
+                "Walking",
+                "Light weights",
+                "Swimming"
+              ],
+              "avoid": [
+                "Very intense workouts",
+                "Long training sessions"
+              ],
+              "tip": "Energy is gradually decreasing. Light exercise helps reduce PMS symptoms.",
+              "duration": "30-45"
+            }
+          },
+          "tips": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?date=2026-10-05",
+        "persona": "irregular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "date": "2026-10-05",
+          "user_goal": "non_ttc",
+          "subscription_type": "free",
+          "context_info": {
+            "phase": "luteal",
+            "phase_label": "Luteal",
+            "subphase": "late_luteal",
+            "subphase_label": "Late Luteal",
+            "cycle_day": 27,
+            "cycle_length": 29,
+            "is_fertile_window": false,
+            "is_pms_window": true,
+            "estimated_ovulation_day": 16
+          },
+          "primary_message": {
+            "phase": "luteal",
+            "phase_label": "Luteal",
+            "cycle_day": 27,
+            "short_message": "Time to focus on yourself and unfinished tasks",
+            "long_message": "In the luteal phase, energy gradually decreases. Best time to complete projects, self-care and prepare for the next cycle.",
+            "action_suggestion": "Complete an unfinished task",
+            "dos": [
+              "Yoga and stretching",
+              "Complete projects",
+              "Adequate sleep",
+              "Nutritious foods"
+            ],
+            "donts": [
+              "Starting big projects",
+              "Too much caffeine",
+              "Too much sugar",
+              "Stressful activities"
+            ],
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [],
+          "supplements": {
+            "nutrition": {
+              "focus": "Complex carbs and magnesium",
+              "foods": [
+                "Oats",
+                "Chickpeas",
+                "Banana",
+                "Almonds",
+                "Dark chocolate"
+              ],
+              "avoid": [
+                "Too much salt",
+                "Sugar",
+                "Caffeine"
+              ],
+              "tip": "Magnesium helps reduce PMS symptoms"
+            },
+            "sleep": {
+              "recommended_hours": "8-9",
+              "quality_focus": "Sleep quality may decrease",
+              "tips": [
+                "You may have insomnia",
+                "Magnesium before bed",
+                "Dark and cool room",
+                "Meditation before bed"
+              ],
+              "avoid": [
+                "Screen before bed",
+                "Heavy dinner",
+                "Caffeine"
+              ]
+            },
+            "exercise": {
+              "intensity": "Moderate (decreasing)",
+              "recommended": [
+                "Pilates",
+                "Yoga",
+                "Walking",
+                "Light weights",
+                "Swimming"
+              ],
+              "avoid": [
+                "Very intense workouts",
+                "Long training sessions"
+              ],
+              "tip": "Energy is gradually decreasing. Light exercise helps reduce PMS symptoms.",
+              "duration": "30-45"
+            }
+          },
+          "tips": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?date=2026-08-01",
+        "persona": "irregular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "date": "2026-08-01",
+          "user_goal": "non_ttc",
+          "subscription_type": "free",
+          "context_info": {
+            "phase": "luteal",
+            "phase_label": "Luteal",
+            "subphase": "pms_possible",
+            "subphase_label": "Possible PMS",
+            "cycle_day": 29,
+            "cycle_length": 29,
+            "is_fertile_window": false,
+            "is_pms_window": true,
+            "estimated_ovulation_day": 16
+          },
+          "primary_message": {
+            "phase": "luteal",
+            "phase_label": "Luteal",
+            "cycle_day": 29,
+            "short_message": "Time to focus on yourself and unfinished tasks",
+            "long_message": "In the luteal phase, energy gradually decreases. Best time to complete projects, self-care and prepare for the next cycle.",
+            "action_suggestion": "Complete an unfinished task",
+            "dos": [
+              "Yoga and stretching",
+              "Complete projects",
+              "Adequate sleep",
+              "Nutritious foods"
+            ],
+            "donts": [
+              "Starting big projects",
+              "Too much caffeine",
+              "Too much sugar",
+              "Stressful activities"
+            ],
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [],
+          "supplements": {
+            "nutrition": {
+              "focus": "Complex carbs and magnesium",
+              "foods": [
+                "Oats",
+                "Chickpeas",
+                "Banana",
+                "Almonds",
+                "Dark chocolate"
+              ],
+              "avoid": [
+                "Too much salt",
+                "Sugar",
+                "Caffeine"
+              ],
+              "tip": "Magnesium helps reduce PMS symptoms"
+            },
+            "sleep": {
+              "recommended_hours": "8-9",
+              "quality_focus": "Sleep quality may decrease",
+              "tips": [
+                "You may have insomnia",
+                "Magnesium before bed",
+                "Dark and cool room",
+                "Meditation before bed"
+              ],
+              "avoid": [
+                "Screen before bed",
+                "Heavy dinner",
+                "Caffeine"
+              ]
+            },
+            "exercise": {
+              "intensity": "Moderate (decreasing)",
+              "recommended": [
+                "Pilates",
+                "Yoga",
+                "Walking",
+                "Light weights",
+                "Swimming"
+              ],
+              "avoid": [
+                "Very intense workouts",
+                "Long training sessions"
+              ],
+              "tip": "Energy is gradually decreasing. Light exercise helps reduce PMS symptoms.",
+              "duration": "30-45"
+            }
+          },
+          "tips": []
+        }
+      }
+    }
+  ]
+}

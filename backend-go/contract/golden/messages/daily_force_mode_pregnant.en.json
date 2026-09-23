@@ -1,0 +1,219 @@
+{
+  "case": "messages/daily_force_mode_pregnant.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?mode=cycle",
+        "persona": "pregnant_manual_w14",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "date": "2026-09-23",
+          "user_goal": "non_ttc",
+          "subscription_type": "free",
+          "context_info": {
+            "phase": "follicular",
+            "phase_label": "Follicular",
+            "subphase": "mid_follicular",
+            "subphase_label": "Mid Follicular",
+            "cycle_day": 8,
+            "cycle_length": 28,
+            "is_fertile_window": false,
+            "is_pms_window": false,
+            "estimated_ovulation_day": 15
+          },
+          "primary_message": {
+            "phase": "follicular",
+            "phase_label": "Follicular",
+            "cycle_day": 8,
+            "short_message": "Your energy is coming back! Time for fresh starts",
+            "long_message": "In the follicular phase, estrogen levels rise and your energy and creativity increase. Best time to start new projects and more intense workouts.",
+            "action_suggestion": "Set a new goal for this week",
+            "dos": [
+              "Medium to high intensity exercise",
+              "Start new projects",
+              "Social meetings",
+              "Learn new skills"
+            ],
+            "donts": [
+              "Being unorganized",
+              "Sleep deprivation",
+              "Processed foods"
+            ],
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [],
+          "supplements": {
+            "nutrition": {
+              "focus": "Protein and fresh vegetables",
+              "foods": [
+                "Eggs",
+                "Chicken",
+                "Quinoa",
+                "Leafy greens",
+                "Avocado"
+              ],
+              "avoid": [
+                "Fast food",
+                "Processed foods"
+              ],
+              "tip": "Body is ready for growth, eat enough protein"
+            },
+            "sleep": {
+              "recommended_hours": "7-8",
+              "quality_focus": "Optimal sleep",
+              "tips": [
+                "Deeper sleep in this phase",
+                "Good time to set sleep schedule"
+              ],
+              "avoid": [
+                "Sleep deprivation",
+                "Irregular sleep schedule"
+              ]
+            },
+            "exercise": {
+              "intensity": "Moderate to high",
+              "recommended": [
+                "Running",
+                "HIIT",
+                "Weight training",
+                "Cycling",
+                "Dancing"
+              ],
+              "avoid": [
+                "Inactivity"
+              ],
+              "tip": "Energy is at peak! Best time for new challenges and personal records.",
+              "duration": "45-60"
+            }
+          },
+          "tips": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?mode=pregnancy",
+        "persona": "pregnant_manual_w14",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "pregnancy",
+          "date": "2026-09-23",
+          "user_goal": "non_ttc",
+          "subscription_type": "free",
+          "context_info": {
+            "week": 13,
+            "day": 0,
+            "trimester": 2,
+            "gestational_age": "Week 13, Day 0",
+            "due_date": "2027-03-31"
+          },
+          "primary_message": {
+            "week": 13,
+            "day": 0,
+            "trimester": 2,
+            "trimester_label": "Second Trimester",
+            "gestational_age": "Week 13, Day 0",
+            "short_message": "End of first trimester",
+            "long_message": "Energy is back and nausea is less. Good time for gentle exercise and enjoying pregnancy.",
+            "action_suggestion": "Try swimming or prenatal yoga",
+            "dos": [
+              "Gentle exercise",
+              "Adequate protein",
+              "Iron and calcium",
+              "Anomaly ultrasound"
+            ],
+            "donts": [
+              "Lying on back for long",
+              "Heavy exercise",
+              "Sauna and jacuzzi"
+            ],
+            "baby_development": "Vital organs have formed",
+            "body_changes": "Nausea is decreasing",
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [],
+          "supplements": {
+            "nutrition": {
+              "focus": "Calcium, iron and protein",
+              "essential": [
+                "Calcium 1000mg",
+                "Iron 27mg",
+                "Protein 75g"
+              ],
+              "foods": [
+                "Dairy",
+                "Red meat",
+                "Chicken",
+                "Fish",
+                "Legumes",
+                "Fruits and vegetables"
+              ],
+              "avoid": [
+                "Processed foods",
+                "Too much sugar",
+                "Too much salt"
+              ],
+              "tip": "Baby is growing fast, you need more calories and protein"
+            },
+            "sleep": {
+              "recommended_hours": "8-9",
+              "quality_focus": "Energy is back",
+              "tips": [
+                "Better sleep than first trimester",
+                "Start getting used to side sleeping",
+                "Pillow between knees"
+              ],
+              "avoid": [
+                "Sleeping on back for long"
+              ],
+              "position": "Left side is best"
+            },
+            "exercise": {
+              "intensity": "Moderate",
+              "recommended": [
+                "Swimming",
+                "Walking",
+                "Prenatal yoga",
+                "Prenatal pilates",
+                "Stationary bike"
+              ],
+              "avoid": [
+                "Lying on back for long",
+                "Jumping movements",
+                "Exercise in heat"
+              ],
+              "tip": "Golden period! Energy is back. Enjoy exercise but be cautious.",
+              "duration": "30-45",
+              "precautions": [
+                "Center of gravity has changed",
+                "Balance may be reduced"
+              ]
+            }
+          },
+          "tips": []
+        }
+      }
+    }
+  ]
+}

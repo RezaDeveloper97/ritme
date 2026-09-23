@@ -1,0 +1,30 @@
+{
+  "case": "profile/invalid_name_not_string.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/profile",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "name": 123
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "خطای اعتبارسنجی: نام باید رشته متنی باشد.",
+        "errors": {
+          "name": [
+            "نام باید رشته متنی باشد."
+          ]
+        }
+      }
+    }
+  ]
+}

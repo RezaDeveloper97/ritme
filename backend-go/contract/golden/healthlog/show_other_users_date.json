@@ -1,0 +1,21 @@
+{
+  "case": "healthlog/show_other_users_date",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/health-logs/2026-09-14",
+        "persona": "engaged",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "No health log found for this date"
+      }
+    }
+  ]
+}

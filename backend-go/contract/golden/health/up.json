@@ -1,0 +1,18 @@
+{
+  "case": "health/up",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/up",
+        "persona": "anon",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "<ignored>"
+      },
+      "body_ignored": true
+    }
+  ]
+}

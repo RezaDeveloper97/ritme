@@ -1,0 +1,30 @@
+{
+  "case": "profile/invalid_weight_too_low.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/profile",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "weight": 19.5
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "خطای اعتبارسنجی: وزن باید حداقل ۲۰ کیلوگرم باشد.",
+        "errors": {
+          "weight": [
+            "وزن باید حداقل ۲۰ کیلوگرم باشد."
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "case": "content/articles_invalid_params.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/articles?per_page=0",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "per page باید حداقل 1 باشد.",
+        "errors": {
+          "per_page": [
+            "per page باید حداقل 1 باشد."
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/articles?page=abc",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "page باید یک عدد صحیح باشد.",
+        "errors": {
+          "page": [
+            "page باید یک عدد صحیح باشد."
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/articles?page=0&per_page=x",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "page باید حداقل 1 باشد. (and 1 more error)",
+        "errors": {
+          "page": [
+            "page باید حداقل 1 باشد."
+          ],
+          "per_page": [
+            "per page باید یک عدد صحیح باشد."
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/articles?q=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "q نباید بیشتر از 100 نویسه باشد.",
+        "errors": {
+          "q": [
+            "q نباید بیشتر از 100 نویسه باشد."
+          ]
+        }
+      }
+    }
+  ]
+}

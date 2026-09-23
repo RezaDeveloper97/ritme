@@ -1,0 +1,228 @@
+{
+  "case": "pregnancy/symptoms_index_range",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/symptoms?from=2026-09-22",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "logs": [
+            {
+              "id": 101503,
+              "user_id": 1015,
+              "log_date": "2026-09-23",
+              "has_nausea": null,
+              "nausea_severity": null,
+              "has_vomiting": null,
+              "vomiting_severity": null,
+              "has_fatigue": null,
+              "fatigue_severity": null,
+              "has_headache": true,
+              "headache_severity": "severe",
+              "has_dizziness": true,
+              "dizziness_severity": "severe",
+              "has_breast_pain": null,
+              "breast_pain_severity": null,
+              "has_lower_abdominal_pain": null,
+              "lower_abdominal_pain_severity": null,
+              "has_cramping": null,
+              "cramping_severity": null,
+              "has_back_pain": null,
+              "back_pain_severity": null,
+              "has_pelvic_pressure": true,
+              "pelvic_pressure_severity": "severe",
+              "has_spotting": null,
+              "spotting_severity": null,
+              "has_bleeding": null,
+              "bleeding_severity": null,
+              "has_fluid_leakage": null,
+              "fluid_leakage_severity": null,
+              "has_severe_sudden_pain": null,
+              "severe_sudden_pain_severity": null,
+              "notes": "contract",
+              "created_at": "2026-09-23T05:30:00.000000Z",
+              "updated_at": "2026-09-23T05:30:00.000000Z"
+            },
+            {
+              "id": 101502,
+              "user_id": 1015,
+              "log_date": "2026-09-22",
+              "has_nausea": null,
+              "nausea_severity": null,
+              "has_vomiting": null,
+              "vomiting_severity": null,
+              "has_fatigue": null,
+              "fatigue_severity": null,
+              "has_headache": null,
+              "headache_severity": null,
+              "has_dizziness": null,
+              "dizziness_severity": null,
+              "has_breast_pain": null,
+              "breast_pain_severity": null,
+              "has_lower_abdominal_pain": null,
+              "lower_abdominal_pain_severity": null,
+              "has_cramping": true,
+              "cramping_severity": "mild",
+              "has_back_pain": null,
+              "back_pain_severity": null,
+              "has_pelvic_pressure": null,
+              "pelvic_pressure_severity": null,
+              "has_spotting": true,
+              "spotting_severity": "mild",
+              "has_bleeding": null,
+              "bleeding_severity": null,
+              "has_fluid_leakage": null,
+              "fluid_leakage_severity": null,
+              "has_severe_sudden_pain": null,
+              "severe_sudden_pain_severity": null,
+              "notes": null,
+              "created_at": "2026-09-23T05:30:00.000000Z",
+              "updated_at": "2026-09-23T05:30:00.000000Z"
+            }
+          ],
+          "count": 2
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/symptoms?to=2026-09-21",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "logs": [
+            {
+              "id": 101501,
+              "user_id": 1015,
+              "log_date": "2026-09-21",
+              "has_nausea": null,
+              "nausea_severity": null,
+              "has_vomiting": null,
+              "vomiting_severity": null,
+              "has_fatigue": null,
+              "fatigue_severity": null,
+              "has_headache": null,
+              "headache_severity": null,
+              "has_dizziness": null,
+              "dizziness_severity": null,
+              "has_breast_pain": null,
+              "breast_pain_severity": null,
+              "has_lower_abdominal_pain": null,
+              "lower_abdominal_pain_severity": null,
+              "has_cramping": null,
+              "cramping_severity": null,
+              "has_back_pain": true,
+              "back_pain_severity": "moderate",
+              "has_pelvic_pressure": null,
+              "pelvic_pressure_severity": null,
+              "has_spotting": null,
+              "spotting_severity": null,
+              "has_bleeding": null,
+              "bleeding_severity": null,
+              "has_fluid_leakage": null,
+              "fluid_leakage_severity": null,
+              "has_severe_sudden_pain": null,
+              "severe_sudden_pain_severity": null,
+              "notes": null,
+              "created_at": "2026-09-23T05:30:00.000000Z",
+              "updated_at": "2026-09-23T05:30:00.000000Z"
+            }
+          ],
+          "count": 1
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/symptoms?from=2026-09-22&to=2026-09-22",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "logs": [
+            {
+              "id": 101502,
+              "user_id": 1015,
+              "log_date": "2026-09-22",
+              "has_nausea": null,
+              "nausea_severity": null,
+              "has_vomiting": null,
+              "vomiting_severity": null,
+              "has_fatigue": null,
+              "fatigue_severity": null,
+              "has_headache": null,
+              "headache_severity": null,
+              "has_dizziness": null,
+              "dizziness_severity": null,
+              "has_breast_pain": null,
+              "breast_pain_severity": null,
+              "has_lower_abdominal_pain": null,
+              "lower_abdominal_pain_severity": null,
+              "has_cramping": true,
+              "cramping_severity": "mild",
+              "has_back_pain": null,
+              "back_pain_severity": null,
+              "has_pelvic_pressure": null,
+              "pelvic_pressure_severity": null,
+              "has_spotting": true,
+              "spotting_severity": "mild",
+              "has_bleeding": null,
+              "bleeding_severity": null,
+              "has_fluid_leakage": null,
+              "fluid_leakage_severity": null,
+              "has_severe_sudden_pain": null,
+              "severe_sudden_pain_severity": null,
+              "notes": null,
+              "created_at": "2026-09-23T05:30:00.000000Z",
+              "updated_at": "2026-09-23T05:30:00.000000Z"
+            }
+          ],
+          "count": 1
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/symptoms?from=2027-01-01",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "logs": [],
+          "count": 0
+        }
+      }
+    }
+  ]
+}

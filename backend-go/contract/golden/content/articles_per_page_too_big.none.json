@@ -1,0 +1,25 @@
+{
+  "case": "content/articles_per_page_too_big.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/articles?per_page=51",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "per page نباید بزرگ‌تر از 50 باشد.",
+        "errors": {
+          "per_page": [
+            "per page نباید بزرگ‌تر از 50 باشد."
+          ]
+        }
+      }
+    }
+  ]
+}

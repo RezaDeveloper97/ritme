@@ -1,0 +1,30 @@
+{
+  "case": "profile/invalid_period_duration_too_high.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/profile",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "period_duration": 16
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "خطای اعتبارسنجی: مدت پریود نباید بیشتر از ۱۵ روز باشد.",
+        "errors": {
+          "period_duration": [
+            "مدت پریود نباید بیشتر از ۱۵ روز باشد."
+          ]
+        }
+      }
+    }
+  ]
+}

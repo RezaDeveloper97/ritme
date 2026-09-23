@@ -1,0 +1,35 @@
+{
+  "case": "pregnancy/onboarding_missing_ultrasound.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/onboarding",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "age_source": "ultrasound"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "تاریخ سونوگرافی برای این روش محاسبه الزامی است (and 2 more errors)",
+        "errors": {
+          "ultrasound_date": [
+            "تاریخ سونوگرافی برای این روش محاسبه الزامی است"
+          ],
+          "ultrasound_weeks": [
+            "هفته بارداری اعلام‌شده در سونو الزامی است"
+          ],
+          "ultrasound_days": [
+            "روز بارداری اعلام‌شده در سونو الزامی است"
+          ]
+        }
+      }
+    }
+  ]
+}

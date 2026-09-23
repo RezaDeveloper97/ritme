@@ -1,0 +1,30 @@
+{
+  "case": "profile/invalid_period_duration_too_low.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/profile",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "period_duration": 0
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "خطای اعتبارسنجی: مدت پریود باید حداقل ۱ روز باشد.",
+        "errors": {
+          "period_duration": [
+            "مدت پریود باید حداقل ۱ روز باشد."
+          ]
+        }
+      }
+    }
+  ]
+}

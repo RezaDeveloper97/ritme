@@ -1,0 +1,136 @@
+{
+  "case": "profile/create_profile_pregnant",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/profile",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "name": "Pregnant Person",
+          "birthday": "1993-06-01",
+          "weight": 64,
+          "height": 168,
+          "pregnancy_intention": "pregnant"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "پروفایل با موفقیت بروزرسانی شد",
+        "data": {
+          "user": {
+            "id": 1001,
+            "name": "Pregnant Person",
+            "email": null,
+            "mobile": "09900000001",
+            "mobile_verified_at": "2026-09-23T05:30:00.000000Z",
+            "blocked_at": null,
+            "email_verified_at": null,
+            "created_at": "2026-09-23T05:30:00.000000Z",
+            "updated_at": "2026-09-23T06:30:00.000000Z"
+          },
+          "profile": {
+            "id": 1019,
+            "user_id": 1001,
+            "birthday": "1993-06-01",
+            "weight": 64,
+            "height": 168,
+            "period_duration": null,
+            "cycle_duration": null,
+            "last_period_start": null,
+            "user_goal": "non_ttc",
+            "pregnancy_intention": "pregnant",
+            "chronic_conditions": null,
+            "subscription_type": "free",
+            "calculation_status": "pending",
+            "calculation_started_at": null,
+            "calculation_completed_at": null,
+            "calculation_version": 0,
+            "created_at": "2026-09-23T06:30:00.000000Z",
+            "updated_at": "2026-09-23T06:30:00.000000Z"
+          },
+          "calculation_status": "pending"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/profile",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "user": {
+            "id": 1001,
+            "name": "Pregnant Person",
+            "email": null,
+            "mobile": "09900000001",
+            "mobile_verified_at": "2026-09-23T05:30:00.000000Z",
+            "blocked_at": null,
+            "email_verified_at": null,
+            "created_at": "2026-09-23T05:30:00.000000Z",
+            "updated_at": "2026-09-23T06:30:00.000000Z",
+            "profile": {
+              "id": 1019,
+              "user_id": 1001,
+              "birthday": "1993-06-01",
+              "weight": 64,
+              "height": 168,
+              "period_duration": null,
+              "cycle_duration": null,
+              "last_period_start": null,
+              "user_goal": "non_ttc",
+              "pregnancy_intention": "pregnant",
+              "chronic_conditions": null,
+              "subscription_type": "free",
+              "calculation_status": "pending",
+              "calculation_started_at": null,
+              "calculation_completed_at": null,
+              "calculation_version": 0,
+              "created_at": "2026-09-23T06:30:00.000000Z",
+              "updated_at": "2026-09-23T06:30:00.000000Z"
+            }
+          },
+          "profile": {
+            "id": 1019,
+            "user_id": 1001,
+            "birthday": "1993-06-01",
+            "weight": 64,
+            "height": 168,
+            "period_duration": null,
+            "cycle_duration": null,
+            "last_period_start": null,
+            "user_goal": "non_ttc",
+            "pregnancy_intention": "pregnant",
+            "chronic_conditions": null,
+            "subscription_type": "free",
+            "calculation_status": "pending",
+            "calculation_started_at": null,
+            "calculation_completed_at": null,
+            "calculation_version": 0,
+            "created_at": "2026-09-23T06:30:00.000000Z",
+            "updated_at": "2026-09-23T06:30:00.000000Z"
+          },
+          "bmi": {
+            "value": 22.7,
+            "category": "normal",
+            "category_label": "طبیعی",
+            "message": "بر اساس قد و وزن وارد شده، در محدوده‌ی وزنی طبیعی قرار می‌گیری. این محدوده معمولاً برای سلامت عمومی و سیکل قاعدگی مناسب است. Ritme تلاش می‌کند به حفظ این وضعیت کمک کند."
+          }
+        }
+      }
+    }
+  ]
+}

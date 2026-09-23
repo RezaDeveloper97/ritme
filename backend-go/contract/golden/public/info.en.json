@@ -1,0 +1,201 @@
+{
+  "case": "public/info.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/info/help",
+        "persona": "anon",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "group": "help",
+          "sections": [
+            {
+              "id": 1,
+              "heading": "Home",
+              "body": "The home screen shows a summary of your day: your cycle day or pregnancy week, upcoming predictions, and a daily message tailored to you.",
+              "link_label": null,
+              "link_url": null
+            },
+            {
+              "id": 2,
+              "heading": "Calendar",
+              "body": "The Jalali calendar displays your logged periods and predicted days. Tap any day to see its details or edit its information.",
+              "link_label": null,
+              "link_url": null
+            },
+            {
+              "id": 3,
+              "heading": "Daily log",
+              "body": "From the log section you can record your general mood, symptoms, flow, and more each day. Logging regularly improves the accuracy of predictions.",
+              "link_label": null,
+              "link_url": null
+            },
+            {
+              "id": 4,
+              "heading": "Profile",
+              "body": "In your profile you can edit your personal and health information, change the app language, download a copy of your data, or delete your account.",
+              "link_label": null,
+              "link_url": null
+            },
+            {
+              "id": 5,
+              "heading": "Support",
+              "body": "If you have a question or run into a problem, write to us and we'll get back to you as soon as we can.",
+              "link_label": "Email support",
+              "link_url": "mailto:support@ritmesalamat.com"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/info/privacy",
+        "persona": "anon",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "group": "privacy",
+          "sections": [
+            {
+              "id": 6,
+              "heading": "Our commitment to you",
+              "body": "Ritme is built to hold some of your most personal health information, so privacy is our default, not an option. We collect only the minimum data the app needs to work, and we never store anything \"just in case\".",
+              "link_label": null,
+              "link_url": null
+            },
+            {
+              "id": 7,
+              "heading": "Your data is never sold",
+              "body": "Your information is never sold or rented to any person or company, and it is not used for advertising. Your data is used solely to provide Ritme's services to you.",
+              "link_label": null,
+              "link_url": null
+            },
+            {
+              "id": 8,
+              "heading": "Health data stays confidential",
+              "body": "Period dates, symptoms, pregnancy status, and predictions are never written to technical logs, analytics tools, or error reports, and they are never shared with third-party services. This data is only accessible through your own secure sign-in.",
+              "link_label": null,
+              "link_url": null
+            },
+            {
+              "id": 9,
+              "heading": "Your right to export and delete",
+              "body": "You own your data. At any time, you can download a complete copy of your information as a file from your profile, or permanently delete your account and everything in it. Account deletion is immediate and irreversible.",
+              "link_label": null,
+              "link_url": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/info/terms",
+        "persona": "anon",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "group": "terms",
+          "sections": [
+            {
+              "id": 10,
+              "heading": "Informational, not medical advice",
+              "body": "Ritme's content and predictions — including period and ovulation predictions and weekly pregnancy content — are for informational purposes only and are not a substitute for examination, diagnosis, or advice from a doctor. For any health-related decision, please consult a physician or midwife.",
+              "link_label": null,
+              "link_url": null
+            },
+            {
+              "id": 11,
+              "heading": "Acceptable use",
+              "body": "Ritme is for your personal use. Please log information honestly and only for your own account, do not use someone else's account, and do not attempt unauthorized access to the system or to other users' data.",
+              "link_label": null,
+              "link_url": null
+            },
+            {
+              "id": 12,
+              "heading": "Your account and one-time codes",
+              "body": "Signing in to Ritme uses your mobile number and a one-time code (OTP). Keeping your mobile number and device secure is your responsibility; never share your sign-in code with anyone.",
+              "link_label": null,
+              "link_url": null
+            },
+            {
+              "id": 13,
+              "heading": "Deleting your data",
+              "body": "You can delete your account from the profile section at any time. When you delete your account, all of your data is erased from our servers and your active sessions are revoked.",
+              "link_label": null,
+              "link_url": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/info/about",
+        "persona": "anon",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "group": "about",
+          "sections": [
+            {
+              "id": 14,
+              "heading": "What is Ritme?",
+              "body": "Ritme is a private companion for women's health — an app for understanding your body's rhythm, logging how you feel each day, and receiving predictions and content tailored to your situation.",
+              "link_label": null,
+              "link_url": null
+            },
+            {
+              "id": 15,
+              "heading": "Two modes: cycle and pregnancy",
+              "body": "In cycle mode, Ritme tracks your menstrual cycles and estimates when your next period and ovulation are likely to occur. In pregnancy mode, it accompanies you week by week with stage-appropriate content, reminders, and tools to log symptoms and fetal movement. These predictions and content are informational and do not replace a doctor's advice.",
+              "link_label": null,
+              "link_url": null
+            },
+            {
+              "id": 16,
+              "heading": "App version",
+              "body": "You are using Ritme version 1.0.0. We improve the app regularly — your feedback is invaluable along the way.",
+              "link_label": null,
+              "link_url": null
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "case": "auth/verify_otp_no_otp",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/auth/verify-otp",
+        "persona": "anon",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "mobile": "09900000004",
+          "code": "1234"
+        }
+      },
+      "status": 400,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "10",
+        "x-ratelimit-remaining": "9"
+      },
+      "body": {
+        "success": false,
+        "message": "No OTP found. Please request a new one."
+      }
+    }
+  ]
+}

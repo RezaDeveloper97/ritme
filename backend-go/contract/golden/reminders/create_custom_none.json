@@ -1,0 +1,36 @@
+{
+  "case": "reminders/create_custom_none",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/reminders",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "type": "custom",
+          "title": "Water",
+          "recurrence": "none",
+          "is_active": "1"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "type": "custom",
+          "title": "Water",
+          "recurrence": "none",
+          "is_active": true,
+          "user_id": 1001,
+          "updated_at": "2026-09-23T06:30:00.000000Z",
+          "created_at": "2026-09-23T06:30:00.000000Z",
+          "id": 101805
+        }
+      }
+    }
+  ]
+}

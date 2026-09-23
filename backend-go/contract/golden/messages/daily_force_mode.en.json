@@ -1,0 +1,122 @@
+{
+  "case": "messages/daily_force_mode.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?mode=cycle",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "date": "2026-09-23",
+          "user_goal": "non_ttc",
+          "subscription_type": "free",
+          "context_info": {
+            "phase": "follicular",
+            "phase_label": "Follicular",
+            "subphase": "fertile_rising",
+            "subphase_label": "Rising Fertility",
+            "cycle_day": 10,
+            "cycle_length": 28,
+            "is_fertile_window": true,
+            "is_pms_window": false,
+            "estimated_ovulation_day": 15
+          },
+          "primary_message": {
+            "phase": "follicular",
+            "phase_label": "Follicular",
+            "cycle_day": 10,
+            "short_message": "Your energy is coming back! Time for fresh starts",
+            "long_message": "In the follicular phase, estrogen levels rise and your energy and creativity increase. Best time to start new projects and more intense workouts.",
+            "action_suggestion": "Set a new goal for this week",
+            "dos": [
+              "Medium to high intensity exercise",
+              "Start new projects",
+              "Social meetings",
+              "Learn new skills"
+            ],
+            "donts": [
+              "Being unorganized",
+              "Sleep deprivation",
+              "Processed foods"
+            ],
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [],
+          "supplements": {
+            "nutrition": {
+              "focus": "Protein and fresh vegetables",
+              "foods": [
+                "Eggs",
+                "Chicken",
+                "Quinoa",
+                "Leafy greens",
+                "Avocado"
+              ],
+              "avoid": [
+                "Fast food",
+                "Processed foods"
+              ],
+              "tip": "Body is ready for growth, eat enough protein"
+            },
+            "sleep": {
+              "recommended_hours": "7-8",
+              "quality_focus": "Optimal sleep",
+              "tips": [
+                "Deeper sleep in this phase",
+                "Good time to set sleep schedule"
+              ],
+              "avoid": [
+                "Sleep deprivation",
+                "Irregular sleep schedule"
+              ]
+            },
+            "exercise": {
+              "intensity": "Moderate to high",
+              "recommended": [
+                "Running",
+                "HIIT",
+                "Weight training",
+                "Cycling",
+                "Dancing"
+              ],
+              "avoid": [
+                "Inactivity"
+              ],
+              "tip": "Energy is at peak! Best time for new challenges and personal records.",
+              "duration": "45-60"
+            }
+          },
+          "tips": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?mode=pregnancy",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 400,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "Please complete pregnancy onboarding first"
+      }
+    }
+  ]
+}

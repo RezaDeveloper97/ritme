@@ -1,0 +1,25 @@
+{
+  "case": "home/section_invalid_date",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/home/sections/tasks?date=2026-02-31x",
+        "persona": "engaged",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "تاریخ یک تاریخ معتبر نیست.",
+        "errors": {
+          "date": [
+            "تاریخ یک تاریخ معتبر نیست."
+          ]
+        }
+      }
+    }
+  ]
+}

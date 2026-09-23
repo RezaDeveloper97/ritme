@@ -1,0 +1,75 @@
+{
+  "case": "period/end_with_date.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/cycle/period/end",
+        "persona": "open_period_day11",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "date": "2026-09-22"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "Profile updated successfully",
+        "data": {
+          "active": false,
+          "period_start_date": "2026-09-13",
+          "period_end_date": "2026-09-22",
+          "warnings": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/period/history",
+        "persona": "open_period_day11",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "periods": [
+            {
+              "id": 100804,
+              "period_start_date": "2026-09-13",
+              "period_end_date": "2026-09-22",
+              "source": "user_logged"
+            },
+            {
+              "id": 100803,
+              "period_start_date": "2026-08-16",
+              "period_end_date": "2026-08-20",
+              "source": "user_logged"
+            },
+            {
+              "id": 100802,
+              "period_start_date": "2026-07-19",
+              "period_end_date": "2026-07-23",
+              "source": "user_logged"
+            },
+            {
+              "id": 100801,
+              "period_start_date": "2026-06-21",
+              "period_end_date": "2026-06-25",
+              "source": "user_logged"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

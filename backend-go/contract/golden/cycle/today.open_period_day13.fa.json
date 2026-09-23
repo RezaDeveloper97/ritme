@@ -1,0 +1,188 @@
+{
+  "case": "cycle/today.open_period_day13.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/today",
+        "persona": "open_period_day13",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "calculation": {
+            "calculation_date": "2026-09-23",
+            "cycle_day": 13,
+            "phase": "follicular",
+            "subphase": "high_fertility",
+            "estimated_ovulation_day": 15,
+            "cycle_length_used": 28,
+            "is_fertile_window": true,
+            "is_pms_window": false,
+            "is_period_tomorrow": false,
+            "is_luteal_spotting": false,
+            "cycle_score": 0.7,
+            "age_factor": 0.85,
+            "base_probability": 0.25,
+            "symptom_score": 1,
+            "final_probability": 14.88,
+            "cycle_variability": "regular",
+            "uncertainty_range": 1,
+            "text_flags": {
+              "fertility_status": "شما در پنجره باروری هستید. احتمال بارداری بیشتر است.",
+              "probability_message": "احتمال بارداری امروز 14.9٪ است.",
+              "phase_info": "فاز فعلی: فولیکولار (باروری بالا)"
+            },
+            "daily_tips": [
+              {
+                "type": "energy",
+                "title": "انرژی",
+                "icon": "bolt",
+                "text": "سطح انرژی شما در حال افزایش است. زمان مناسبی برای پروژه‌های جدید!"
+              },
+              {
+                "type": "exercise",
+                "title": "ورزش",
+                "icon": "walking",
+                "text": "زمان مناسبی برای ورزش‌های سنگین است."
+              },
+              {
+                "type": "nutrition",
+                "title": "تغذیه",
+                "icon": "apple",
+                "text": "پروتئین و سبزیجات تازه بخورید تا ذخیره انرژی‌تان دوباره پر شود."
+              },
+              {
+                "type": "mental_health",
+                "title": "سلامت روان",
+                "icon": "brain",
+                "text": "فرصت خوبی برای برنامه‌ریزی و یادگیری چیزهای تازه است."
+              }
+            ],
+            "source_profile_data": {
+              "birthday": "1996-04-12",
+              "period_duration": 5,
+              "cycle_duration": 28,
+              "last_period_start": "2026-09-11"
+            },
+            "source_daily_log_data": null
+          },
+          "cycle_view": {
+            "date": "2026-09-23",
+            "cycle_day": 13,
+            "main_phase": "fertile",
+            "subphase": "high_fertility",
+            "fertility_level": "high",
+            "days_to_ovulation": 2,
+            "days_to_period": 16,
+            "days_late": 0,
+            "anchors": {
+              "current_period_start": "2026-09-11",
+              "current_period_start_source": "user_logged",
+              "current_period_end": "2026-09-15",
+              "current_period_end_source": "assumed_from_effective_duration",
+              "current_period_end_is_confirmed": false,
+              "predicted_next_period_start": "2026-10-09",
+              "estimated_ovulation_date": "2026-09-25"
+            },
+            "metrics": {
+              "effective_cycle_length": 28,
+              "effective_period_length": 5,
+              "cycle_variability": 0
+            },
+            "confidence": "low",
+            "confidence_reasons": [
+              "missing_period_end",
+              "missing_period_end_beyond_hard_cap",
+              "prediction_based_output",
+              "poor_data_quality"
+            ],
+            "data_quality": "poor",
+            "resolution_source": "prediction",
+            "is_predicted": true,
+            "requires_user_input": true,
+            "warnings": [
+              "period_end_missing_hard_cap_exceeded",
+              "prediction_based_output"
+            ],
+            "phase": "ovulation",
+            "data_status": "incomplete",
+            "predictions": {
+              "next_period_start": "2026-10-09",
+              "next_period_end": "2026-10-13",
+              "estimated_ovulation_date": "2026-09-25",
+              "fertile_window_start": "2026-09-20",
+              "fertile_window_end": "2026-09-26",
+              "source": "recent_valid_cycles",
+              "confidence": "medium",
+              "confidence_reasons": [
+                "based_on_three_valid_cycles",
+                "low_cycle_variation",
+                "incomplete_end_missing"
+              ]
+            },
+            "profile_values": {
+              "cycle_length": 28,
+              "period_duration": 5
+            },
+            "calculated_values": {
+              "cycle_length": 28,
+              "period_duration": 5,
+              "based_on_cycles": 3
+            },
+            "effective_values": {
+              "cycle_length": 28,
+              "period_duration": 5,
+              "source": "recent_valid_cycles",
+              "period_duration_source": "recent_valid_cycles"
+            },
+            "data_quality_details": {
+              "confidence": "medium",
+              "confidence_reasons": [
+                "based_on_three_valid_cycles",
+                "low_cycle_variation",
+                "incomplete_end_missing"
+              ],
+              "regularity_status": "relatively_regular",
+              "is_irregular_possible": false,
+              "missing_period_end": true
+            },
+            "daily_card": {
+              "title": "پایان پریود هنوز ثبت نشده",
+              "subtitle": "برای دقیق‌تر شدن تقویم، مشخص کن خون‌ریزی چه زمانی تمام شده است.",
+              "data_status": "incomplete",
+              "fertility_level": "low",
+              "fertility_label": "پایین",
+              "badges": [
+                "روز ۱۳ چرخه",
+                "اطلاعات ناقص"
+              ],
+              "primary_action": {
+                "type": "log_period_end",
+                "label": "ثبت پایان پریود"
+              },
+              "secondary_actions": [
+                {
+                  "type": "still_bleeding",
+                  "label": "هنوز ادامه دارد"
+                },
+                {
+                  "type": "view_details",
+                  "label": "جزئیات امروز"
+                }
+              ]
+            }
+          },
+          "calculation_status": "completed",
+          "is_recalculating": false
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,128 @@
+{
+  "case": "pregnancy/content.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/content/1",
+        "persona": "pregnant_lmp_w8",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "week": 1,
+          "content": {
+            "week_number": 1,
+            "fetal_development": "In week one there is no embryo yet; this week is counted from the first day of your last period. Your body is preparing for ovulation and possible implantation.",
+            "mother_body_changes": "Your body is shedding the previous uterine lining and preparing a new cycle. You may notice typical period symptoms; no pregnancy signs yet.",
+            "dos_and_donts": "Start a daily folic acid supplement now and avoid alcohol and smoking. Eat a balanced diet, sleep well, and check any medication with your doctor.",
+            "care_plan": "If planning pregnancy, this is a good week to begin folic acid and track your period date. A pre-conception checkup can help.",
+            "body_adaptation": "Your body is still in its normal state and pregnancy adaptation has not begun. Focus on physical and mental readiness.",
+            "emotional_status": "You may feel a mix of excitement and worry about the journey ahead. Staying calm and realistic helps; talking with your partner can reassure you.",
+            "key_nutrition": "Include 400 mcg folic acid daily, leafy greens and whole grains. Drink enough water and limit caffeine.",
+            "physical_activity": "Keep up light activity like walking and gentle stretching to prepare your body. Avoid very intense exercise without advice.",
+            "tests_and_checkups": "A pre-conception visit to review general health and vaccinations is helpful. No pregnancy-specific test is needed this week.",
+            "faq": [
+              {
+                "question": "Why is week one counted without an embryo?",
+                "answer": "Gestational age is measured from the first day of your last period, so the first two weeks come before conception."
+              },
+              {
+                "question": "When should I start folic acid?",
+                "answer": "It is best to begin folic acid even before conception to support healthy neural development."
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/content/20",
+        "persona": "pregnant_lmp_w8",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "week": 20,
+          "content": {
+            "week_number": 20,
+            "fetal_development": "At week twenty, the halfway point, the fetus is about the size of a banana, roughly 25 cm crown-to-heel and nearly 300 g. The baby moves regularly, swallows, and has sleep-wake patterns, while hair and nails grow.",
+            "mother_body_changes": "The bump is now clearly visible and baby movements are felt regularly. You may have heartburn, mild shortness of breath or leg swelling, and stretch marks can appear.",
+            "dos_and_donts": "Continue healthy eating and supplements and sleep on your side, preferably the left. Avoid heavy meals to reduce heartburn and stay active.",
+            "care_plan": "Week twenty is the usual time for the anomaly scan; if not done, arrange it. Keep regular visits and blood-pressure checks and begin noting fetal movements.",
+            "body_adaptation": "The uterus reaches the navel and the body has adjusted to a new center of gravity. Pressure on the stomach can cause heartburn as circulation works strongly.",
+            "emotional_status": "Reaching the halfway point often brings a sense of achievement and hope. The bond deepens through the baby’s movements; keep up self-care and rest.",
+            "key_nutrition": "Continue iron, calcium and protein and eat small frequent meals for heartburn. Avoid spicy and greasy foods and get enough water and fiber.",
+            "physical_activity": "Walking, swimming and prenatal yoga are ideal this week. Pelvic floor exercises help prepare for birth; avoid long back-lying.",
+            "tests_and_checkups": "The anomaly scan is usually done in weeks 18 to 22, often this week, examining the baby’s full anatomy. Routine visits include blood pressure, weight and fetal heartbeat.",
+            "faq": [
+              {
+                "question": "Why is the week-20 scan important?",
+                "answer": "It reviews the baby’s full anatomy and detects many structural anomalies at this stage."
+              },
+              {
+                "question": "What helps heartburn?",
+                "answer": "Small meals, avoiding spicy and greasy food, and not lying down right after eating help; see a doctor if severe."
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/content/40",
+        "persona": "pregnant_lmp_w8",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "week": 40,
+          "content": {
+            "week_number": 40,
+            "fetal_development": "At week forty, the due date, the fetus is about the size of a small pumpkin, roughly 51.2 cm and nearly 3.4 kg. The baby is fully grown and ready to be born, with skull bones still soft to pass through the birth canal.",
+            "mother_body_changes": "You may have strong pelvic pressure, contractions and restlessness. Labor signs like the bloody show or waters breaking may appear, and waiting can be tiring.",
+            "dos_and_donts": "Continue healthy eating and supplements and take labor signs seriously. Go to the hospital at once if your waters break, you bleed, or contractions are regular; keep counting movements.",
+            "care_plan": "Visits continue and the doctor monitors the baby and cervix. If labor doesn’t start a few days past the due date, the doctor may consider induction; be ready to go in.",
+            "body_adaptation": "The cervix opens and readies for birth and contractions may begin any moment. The body brings all its readiness to labor in this final stage of the pregnancy journey.",
+            "emotional_status": "You may feel a mix of intense excitement, impatience and birth anxiety. If you go past due you may feel a little discouraged, which is normal; keep calm and supported.",
+            "key_nutrition": "Continue iron, calcium, protein and fiber and drink enough water. Light, energizing foods help for labor, and small meals digest more easily.",
+            "physical_activity": "Light walking may help start or progress labor. Practice breathing exercises to manage pain, listen to your body, and rest enough.",
+            "tests_and_checkups": "Visits include blood pressure, weight, a cervical check and fetal heartbeat monitoring. Past due, the doctor may advise an ultrasound and a non-stress test (NST) for reassurance.",
+            "faq": [
+              {
+                "question": "What if I go past my due date?",
+                "answer": "Up to week 42 can be normal; the doctor monitors the baby’s health and induces labor if needed."
+              },
+              {
+                "question": "What is labor induction?",
+                "answer": "It is a medical way to start labor, done by the doctor when you are past due or for medical reasons."
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

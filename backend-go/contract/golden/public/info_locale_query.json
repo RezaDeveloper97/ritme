@@ -1,0 +1,169 @@
+{
+  "case": "public/info_locale_query",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/info/about?locale=fa",
+        "persona": "anon",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "group": "about",
+          "sections": [
+            {
+              "id": 14,
+              "heading": "ریتمی چیه؟",
+              "body": "ریتمی یه همراه خصوصی برای سلامت زنانه؛ اپی که کمکت می‌کنه ریتم بدنت رو بهتر بشناسی، هر روز حال و علائمت رو ثبت کنی و پیش‌بینی‌ها و محتوایی متناسب با شرایط خودت بگیری.",
+              "link_label": null,
+              "link_url": null
+            },
+            {
+              "id": 15,
+              "heading": "دو تا حالت: چرخه و بارداری",
+              "body": "توی حالت چرخه، ریتمی دوره‌های قاعدگی‌ات رو ثبت می‌کنه و زمان تقریبی دوره بعدی و تخمک‌گذاری رو پیش‌بینی می‌کنه. توی حالت بارداری، هفته‌به‌هفته کنارته: محتوای مخصوص هر هفته، یادآورها و ثبت علائم و حرکات جنین. این پیش‌بینی‌ها و محتواها فقط اطلاع‌رسانیه و جای نظر پزشک رو نمی‌گیره.",
+              "link_label": null,
+              "link_url": null
+            },
+            {
+              "id": 16,
+              "heading": "نسخه اپ",
+              "body": "الان داری از نسخه ۱٫۰٫۰ ریتمی استفاده می‌کنی. ما مرتب اپ رو بهتر می‌کنیم؛ نظرت توی این مسیر خیلی برامون ارزش داره.",
+              "link_label": null,
+              "link_url": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/info/about?locale=en",
+        "persona": "anon",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "group": "about",
+          "sections": [
+            {
+              "id": 14,
+              "heading": "What is Ritme?",
+              "body": "Ritme is a private companion for women's health — an app for understanding your body's rhythm, logging how you feel each day, and receiving predictions and content tailored to your situation.",
+              "link_label": null,
+              "link_url": null
+            },
+            {
+              "id": 15,
+              "heading": "Two modes: cycle and pregnancy",
+              "body": "In cycle mode, Ritme tracks your menstrual cycles and estimates when your next period and ovulation are likely to occur. In pregnancy mode, it accompanies you week by week with stage-appropriate content, reminders, and tools to log symptoms and fetal movement. These predictions and content are informational and do not replace a doctor's advice.",
+              "link_label": null,
+              "link_url": null
+            },
+            {
+              "id": 16,
+              "heading": "App version",
+              "body": "You are using Ritme version 1.0.0. We improve the app regularly — your feedback is invaluable along the way.",
+              "link_label": null,
+              "link_url": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/info/about?locale=ar",
+        "persona": "anon",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "group": "about",
+          "sections": [
+            {
+              "id": 14,
+              "heading": "ریتمی چیه؟",
+              "body": "ریتمی یه همراه خصوصی برای سلامت زنانه؛ اپی که کمکت می‌کنه ریتم بدنت رو بهتر بشناسی، هر روز حال و علائمت رو ثبت کنی و پیش‌بینی‌ها و محتوایی متناسب با شرایط خودت بگیری.",
+              "link_label": null,
+              "link_url": null
+            },
+            {
+              "id": 15,
+              "heading": "دو تا حالت: چرخه و بارداری",
+              "body": "توی حالت چرخه، ریتمی دوره‌های قاعدگی‌ات رو ثبت می‌کنه و زمان تقریبی دوره بعدی و تخمک‌گذاری رو پیش‌بینی می‌کنه. توی حالت بارداری، هفته‌به‌هفته کنارته: محتوای مخصوص هر هفته، یادآورها و ثبت علائم و حرکات جنین. این پیش‌بینی‌ها و محتواها فقط اطلاع‌رسانیه و جای نظر پزشک رو نمی‌گیره.",
+              "link_label": null,
+              "link_url": null
+            },
+            {
+              "id": 16,
+              "heading": "نسخه اپ",
+              "body": "الان داری از نسخه ۱٫۰٫۰ ریتمی استفاده می‌کنی. ما مرتب اپ رو بهتر می‌کنیم؛ نظرت توی این مسیر خیلی برامون ارزش داره.",
+              "link_label": null,
+              "link_url": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/info/about?locale=xx",
+        "persona": "anon",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "group": "about",
+          "sections": [
+            {
+              "id": 14,
+              "heading": "ریتمی چیه؟",
+              "body": "ریتمی یه همراه خصوصی برای سلامت زنانه؛ اپی که کمکت می‌کنه ریتم بدنت رو بهتر بشناسی، هر روز حال و علائمت رو ثبت کنی و پیش‌بینی‌ها و محتوایی متناسب با شرایط خودت بگیری.",
+              "link_label": null,
+              "link_url": null
+            },
+            {
+              "id": 15,
+              "heading": "دو تا حالت: چرخه و بارداری",
+              "body": "توی حالت چرخه، ریتمی دوره‌های قاعدگی‌ات رو ثبت می‌کنه و زمان تقریبی دوره بعدی و تخمک‌گذاری رو پیش‌بینی می‌کنه. توی حالت بارداری، هفته‌به‌هفته کنارته: محتوای مخصوص هر هفته، یادآورها و ثبت علائم و حرکات جنین. این پیش‌بینی‌ها و محتواها فقط اطلاع‌رسانیه و جای نظر پزشک رو نمی‌گیره.",
+              "link_label": null,
+              "link_url": null
+            },
+            {
+              "id": 16,
+              "heading": "نسخه اپ",
+              "body": "الان داری از نسخه ۱٫۰٫۰ ریتمی استفاده می‌کنی. ما مرتب اپ رو بهتر می‌کنیم؛ نظرت توی این مسیر خیلی برامون ارزش داره.",
+              "link_label": null,
+              "link_url": null
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

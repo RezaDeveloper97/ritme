@@ -1,0 +1,74 @@
+{
+  "case": "healthlog/store_422_many.none",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/health-logs",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "log_date": "not-a-date",
+          "bleeding_intensity": "extreme",
+          "moods": [
+            "happy",
+            "grumpy"
+          ],
+          "weight": 5,
+          "heart_rate": 12.5,
+          "exercise_type": [
+            "flying"
+          ],
+          "exercise_duration": 0,
+          "fatigue": "sometimes",
+          "medications": {
+            "painkillers": 5
+          },
+          "notes": [
+            "array"
+          ]
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "Invalid date format (and 10 more errors)",
+        "errors": {
+          "log_date": [
+            "Invalid date format"
+          ],
+          "bleeding_intensity": [
+            "bleeding intensity انتخاب‌شده معتبر نیست."
+          ],
+          "fatigue": [
+            "فیلد fatigue باید درست یا نادرست باشد."
+          ],
+          "exercise_duration": [
+            "Exercise duration must be at least 1 minute"
+          ],
+          "weight": [
+            "Weight must be at least 20 kg"
+          ],
+          "heart_rate": [
+            "heart rate باید یک عدد صحیح باشد.",
+            "Heart rate must be at least 30 bpm"
+          ],
+          "medications.painkillers": [
+            "medications.painkillers باید یک رشته باشد."
+          ],
+          "notes": [
+            "یادداشت‌ها باید یک رشته باشد."
+          ],
+          "moods.1": [
+            "moods.1 انتخاب‌شده معتبر نیست."
+          ],
+          "exercise_type.0": [
+            "exercise_type.0 انتخاب‌شده معتبر نیست."
+          ]
+        }
+      }
+    }
+  ]
+}

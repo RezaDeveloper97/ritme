@@ -1,0 +1,50 @@
+{
+  "case": "period/update_open_ended",
+  "steps": [
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/cycle/period/100704",
+        "persona": "open_period_day3",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "start_date": "2026-09-20"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "پروفایل با موفقیت بروزرسانی شد",
+        "data": {
+          "id": 100704,
+          "period_start_date": "2026-09-20",
+          "period_end_date": null,
+          "warnings": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/period/status",
+        "persona": "open_period_day3",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "active": true,
+          "period_start_date": "2026-09-20",
+          "period_end_date": null
+        }
+      }
+    }
+  ]
+}

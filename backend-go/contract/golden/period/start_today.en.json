@@ -1,0 +1,277 @@
+{
+  "case": "period/start_today.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/cycle/period/start",
+        "persona": "overdue_10",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {}
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "Profile updated successfully",
+        "data": {
+          "active": true,
+          "period_start_date": "2026-09-23",
+          "period_end_date": null,
+          "warnings": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/period/status",
+        "persona": "overdue_10",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "active": true,
+          "period_start_date": "2026-09-23",
+          "period_end_date": null
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/period/history",
+        "persona": "overdue_10",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "periods": [
+            {
+              "id": 101805,
+              "period_start_date": "2026-09-23",
+              "period_end_date": null,
+              "source": "user_logged"
+            },
+            {
+              "id": 101004,
+              "period_start_date": "2026-08-16",
+              "period_end_date": "2026-08-20",
+              "source": "user_logged"
+            },
+            {
+              "id": 101003,
+              "period_start_date": "2026-07-19",
+              "period_end_date": "2026-07-23",
+              "source": "user_logged"
+            },
+            {
+              "id": 101002,
+              "period_start_date": "2026-06-21",
+              "period_end_date": "2026-06-25",
+              "source": "user_logged"
+            },
+            {
+              "id": 101001,
+              "period_start_date": "2026-05-24",
+              "period_end_date": "2026-05-28",
+              "source": "user_logged"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/today",
+        "persona": "overdue_10",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "calculation": {
+            "calculation_date": "2026-09-23",
+            "cycle_day": 1,
+            "phase": "menstruation",
+            "subphase": "menstruation",
+            "estimated_ovulation_day": 15,
+            "cycle_length_used": 28,
+            "is_fertile_window": false,
+            "is_pms_window": false,
+            "is_period_tomorrow": false,
+            "is_luteal_spotting": false,
+            "cycle_score": 0.65,
+            "age_factor": 0.85,
+            "base_probability": 0,
+            "symptom_score": 1,
+            "final_probability": 0,
+            "cycle_variability": "semi_irregular",
+            "uncertainty_range": 2,
+            "text_flags": {
+              "probability_message": "Today's pregnancy probability is 0%.",
+              "phase_info": "Current phase: Menstruation (Menstruation)"
+            },
+            "daily_tips": [
+              {
+                "type": "hydration",
+                "title": "Hydration",
+                "icon": "water-glass",
+                "text": "Stay hydrated and drink plenty of water."
+              },
+              {
+                "type": "warmth",
+                "title": "Warmth",
+                "icon": "heat",
+                "text": "Apply a warm compress to your lower abdomen to relieve cramps."
+              },
+              {
+                "type": "rest",
+                "title": "Rest",
+                "icon": "bed",
+                "text": "Get enough rest and avoid strenuous activities."
+              },
+              {
+                "type": "nutrition",
+                "title": "Nutrition",
+                "icon": "apple",
+                "text": "Eat iron-rich foods like spinach and red meat."
+              }
+            ],
+            "source_profile_data": {
+              "birthday": "1996-04-12",
+              "period_duration": 5,
+              "cycle_duration": 28,
+              "last_period_start": "2026-09-23"
+            },
+            "source_daily_log_data": null
+          },
+          "cycle_view": {
+            "date": "2026-09-23",
+            "cycle_day": 1,
+            "main_phase": "menstrual",
+            "subphase": "menstrual",
+            "fertility_level": "low",
+            "days_to_ovulation": 14,
+            "days_to_period": 28,
+            "days_late": 0,
+            "anchors": {
+              "current_period_start": "2026-09-23",
+              "current_period_start_source": "user_logged",
+              "current_period_end": "2026-09-27",
+              "current_period_end_source": "assumed_from_effective_duration",
+              "current_period_end_is_confirmed": false,
+              "predicted_next_period_start": "2026-10-21",
+              "estimated_ovulation_date": "2026-10-07"
+            },
+            "metrics": {
+              "effective_cycle_length": 28,
+              "effective_period_length": 5,
+              "cycle_variability": 10
+            },
+            "confidence": "low",
+            "confidence_reasons": [
+              "high_cycle_variability",
+              "missing_period_end"
+            ],
+            "data_quality": "partial",
+            "resolution_source": "user_logged_with_assumed_end",
+            "is_predicted": true,
+            "requires_user_input": false,
+            "warnings": [
+              "high_cycle_variability"
+            ],
+            "phase": "menstruation",
+            "data_status": "incomplete",
+            "predictions": {
+              "next_period_start": "2026-10-21",
+              "next_period_end": "2026-10-25",
+              "estimated_ovulation_date": "2026-10-07",
+              "fertile_window_start": "2026-10-02",
+              "fertile_window_end": "2026-10-08",
+              "source": "recent_valid_cycles",
+              "confidence": "medium",
+              "confidence_reasons": [
+                "based_on_three_valid_cycles",
+                "cycle_variation"
+              ]
+            },
+            "profile_values": {
+              "cycle_length": 28,
+              "period_duration": 5
+            },
+            "calculated_values": {
+              "cycle_length": 28,
+              "period_duration": 5,
+              "based_on_cycles": 4
+            },
+            "effective_values": {
+              "cycle_length": 28,
+              "period_duration": 5,
+              "source": "recent_valid_cycles",
+              "period_duration_source": "recent_valid_cycles"
+            },
+            "data_quality_details": {
+              "confidence": "medium",
+              "confidence_reasons": [
+                "based_on_three_valid_cycles",
+                "cycle_variation"
+              ],
+              "regularity_status": "irregular_possible",
+              "is_irregular_possible": true,
+              "missing_period_end": false
+            },
+            "daily_card": {
+              "title": "Day 1 of your period",
+              "subtitle": "This period is still open. Log its end once the bleeding stops.",
+              "data_status": "incomplete",
+              "fertility_level": "low",
+              "fertility_label": "Low",
+              "badges": [
+                "Day 1",
+                "Incomplete"
+              ],
+              "primary_action": {
+                "type": "log_symptoms",
+                "label": "Log today's symptoms"
+              },
+              "secondary_actions": [
+                {
+                  "type": "log_period_end",
+                  "label": "Log period end"
+                },
+                {
+                  "type": "view_details",
+                  "label": "Today's details"
+                }
+              ]
+            }
+          },
+          "calculation_status": "completed",
+          "is_recalculating": false
+        }
+      }
+    }
+  ]
+}

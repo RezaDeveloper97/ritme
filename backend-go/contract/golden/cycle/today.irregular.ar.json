@@ -1,0 +1,189 @@
+{
+  "case": "cycle/today.irregular.ar",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/today",
+        "persona": "irregular",
+        "accept_language": "ar",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "calculation": {
+            "calculation_date": "2026-09-23",
+            "cycle_day": 15,
+            "phase": "follicular",
+            "subphase": "high_fertility",
+            "estimated_ovulation_day": 16,
+            "cycle_length_used": 29,
+            "is_fertile_window": true,
+            "is_pms_window": false,
+            "is_period_tomorrow": false,
+            "is_luteal_spotting": false,
+            "cycle_score": 0.65,
+            "age_factor": 0.85,
+            "base_probability": 0.3,
+            "symptom_score": 1,
+            "final_probability": 16.58,
+            "cycle_variability": "semi_irregular",
+            "uncertainty_range": 2,
+            "text_flags": {
+              "fertility_status": {
+                "en": "You are in your fertile window. Pregnancy chance is higher.",
+                "fa": "شما در پنجره باروری هستید. احتمال بارداری بیشتر است."
+              },
+              "probability_message": {
+                "en": "Today's pregnancy probability is 16.6%.",
+                "fa": "احتمال بارداری امروز 16.6٪ است."
+              },
+              "phase_info": {
+                "en": "Current phase: Follicular (High Fertility)",
+                "fa": "فاز فعلی: فولیکولار (باروری بالا)"
+              }
+            },
+            "daily_tips": [
+              {
+                "type": "energy",
+                "title": "Energy",
+                "icon": "bolt",
+                "text": "Your energy levels are rising. Great time for new projects!"
+              },
+              {
+                "type": "exercise",
+                "title": "Exercise",
+                "icon": "walking",
+                "text": "Perfect time for high-intensity workouts."
+              },
+              {
+                "type": "nutrition",
+                "title": "Nutrition",
+                "icon": "apple",
+                "text": "Add protein and fresh vegetables to rebuild your energy stores."
+              },
+              {
+                "type": "mental_health",
+                "title": "Mental health",
+                "icon": "brain",
+                "text": "A good window for planning and learning something new."
+              }
+            ],
+            "source_profile_data": {
+              "birthday": "1996-04-12",
+              "period_duration": 5,
+              "cycle_duration": 30,
+              "last_period_start": "2026-09-09"
+            },
+            "source_daily_log_data": null
+          },
+          "cycle_view": {
+            "date": "2026-09-23",
+            "cycle_day": 15,
+            "main_phase": "fertile",
+            "subphase": "high_fertility",
+            "fertility_level": "high",
+            "days_to_ovulation": 1,
+            "days_to_period": 15,
+            "days_late": 0,
+            "anchors": {
+              "current_period_start": "2026-09-09",
+              "current_period_start_source": "user_logged",
+              "current_period_end": "2026-09-13",
+              "current_period_end_source": "user_logged",
+              "current_period_end_is_confirmed": true,
+              "predicted_next_period_start": "2026-10-08",
+              "estimated_ovulation_date": "2026-09-24"
+            },
+            "metrics": {
+              "effective_cycle_length": 29,
+              "effective_period_length": 5,
+              "cycle_variability": 15
+            },
+            "confidence": "low",
+            "confidence_reasons": [
+              "high_cycle_variability",
+              "prediction_based_output"
+            ],
+            "data_quality": "good",
+            "resolution_source": "prediction",
+            "is_predicted": true,
+            "requires_user_input": false,
+            "warnings": [
+              "high_cycle_variability",
+              "prediction_based_output"
+            ],
+            "phase": "ovulation",
+            "data_status": "predicted",
+            "predictions": {
+              "next_period_start": "2026-10-08",
+              "next_period_end": "2026-10-12",
+              "estimated_ovulation_date": "2026-09-24",
+              "fertile_window_start": "2026-09-19",
+              "fertile_window_end": "2026-09-25",
+              "source": "recent_valid_cycles",
+              "confidence": "medium",
+              "confidence_reasons": [
+                "based_on_three_valid_cycles",
+                "cycle_variation"
+              ]
+            },
+            "profile_values": {
+              "cycle_length": 30,
+              "period_duration": 5
+            },
+            "calculated_values": {
+              "cycle_length": 29,
+              "period_duration": 5,
+              "based_on_cycles": 5
+            },
+            "effective_values": {
+              "cycle_length": 29,
+              "period_duration": 5,
+              "source": "recent_valid_cycles",
+              "period_duration_source": "recent_valid_cycles"
+            },
+            "data_quality_details": {
+              "confidence": "medium",
+              "confidence_reasons": [
+                "based_on_three_valid_cycles",
+                "cycle_variation"
+              ],
+              "regularity_status": "irregular_possible",
+              "is_irregular_possible": true,
+              "missing_period_end": false
+            },
+            "daily_card": {
+              "title": "You're likely in your fertile window",
+              "subtitle": "Fertility is estimated higher here based on your cycle, but real ovulation timing can differ.",
+              "data_status": "predicted",
+              "fertility_level": "high",
+              "fertility_label": "High",
+              "badges": [
+                "Day 15",
+                "Predicted"
+              ],
+              "primary_action": {
+                "type": "log_symptoms",
+                "label": "Log today's symptoms"
+              },
+              "secondary_actions": [
+                {
+                  "type": "view_details",
+                  "label": "Today's details"
+                }
+              ]
+            }
+          },
+          "calculation_status": "completed",
+          "is_recalculating": false
+        }
+      }
+    }
+  ]
+}

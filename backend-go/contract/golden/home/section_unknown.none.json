@@ -1,0 +1,40 @@
+{
+  "case": "home/section_unknown.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/home/sections/nope",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "بخش موردنظر یافت نشد",
+        "available_sections": [
+          "header",
+          "week_calendar",
+          "next_period",
+          "cycle_prediction",
+          "recommendations",
+          "tasks",
+          "challenge",
+          "doctor_reminder",
+          "medication_reminder",
+          "smart_tip",
+          "affirmation",
+          "weekly_summary",
+          "vitals",
+          "status_charts",
+          "articles",
+          "my_cycles",
+          "cycle_summary"
+        ]
+      }
+    }
+  ]
+}

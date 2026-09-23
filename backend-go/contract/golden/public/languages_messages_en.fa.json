@@ -1,0 +1,1364 @@
+{
+  "case": "public/languages_messages_en.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/languages/en/messages",
+        "persona": "anon",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "locale": "en",
+          "direction": "ltr",
+          "messages": {
+            "account": {
+              "delete": {
+                "title": "Delete account",
+                "warning": "Deleting your account permanently erases all of your information — your profile, cycle history, pregnancy data, and health logs — and it cannot be recovered. If you would like to keep a copy of your data, export it before deleting.",
+                "confirm": "Permanently delete account",
+                "deleting": "Deleting…",
+                "cancel": "Cancel",
+                "error": "Account deletion failed. Please try again."
+              },
+              "export": {
+                "error": "Data export failed. Please try again."
+              }
+            },
+            "articles": {
+              "title": "Articles",
+              "back": "Back",
+              "subtitle": "Educational reads about your cycle, body and health",
+              "searchPlaceholder": "Search articles",
+              "clearSearch": "Clear search",
+              "allCategories": "All",
+              "count": "{n, plural, one {# article} other {# articles}}",
+              "min": "{n, number} min read",
+              "loadMore": "Load more",
+              "loading": "Loading…",
+              "empty": {
+                "title": "Nothing published yet",
+                "text": "New reads will show up here soon."
+              },
+              "noResults": {
+                "title": "No matches",
+                "text": "Try a different wording, or clear the filters.",
+                "reset": "Clear filters"
+              },
+              "error": {
+                "title": "Couldn't load the articles",
+                "text": "Check your connection and try again.",
+                "retry": "Try again"
+              },
+              "detail": {
+                "publishedOn": "Published {date}",
+                "related": "Related reads",
+                "backToList": "All articles",
+                "noBody": "This article has no text yet.",
+                "disclaimer": "This is educational content and not a substitute for medical advice.",
+                "notFound": {
+                  "title": "This article isn't available",
+                  "text": "It may have been removed, or the link may be wrong.",
+                  "cta": "Back to articles"
+                }
+              }
+            },
+            "auth": {
+              "splash": {
+                "tagline": "Your health companion",
+                "copyright": "All rights reserved 2026"
+              },
+              "signup": {
+                "title": "Join Ritme today",
+                "subtitle": "Enter your mobile number to sign in or register",
+                "phoneLabel": "Mobile number",
+                "phonePlaceholder": "09123456789",
+                "privacyNote": "Your information is secure and will never be shared.",
+                "terms": "By registering you accept the {link} and privacy policy.",
+                "termsLink": "Terms & Conditions",
+                "submit": "Get verification code",
+                "sending": "Sending code…",
+                "invalidPhone": "Please enter a valid mobile number"
+              },
+              "otp": {
+                "title": "One-time code 🔐",
+                "subtitle": "A one-time code was sent to {phone}",
+                "editPhone": "Edit mobile number",
+                "resendTimer": "Resend code in {time}",
+                "resend": "Resend code",
+                "submit": "Verify code",
+                "verifying": "Verifying…"
+              },
+              "errors": {
+                "invalidCode": "The code is incorrect or has expired",
+                "tooMany": "Too many attempts. Please try again in a moment",
+                "network": "Couldn't connect. Please check your internet connection",
+                "generic": "Something went wrong. Please try again"
+              }
+            },
+            "banners": {
+              "region": "Promotional banners",
+              "goToSlide": "Go to banner {n}"
+            },
+            "calendar": {
+              "title": "Calendar",
+              "subtitle": "See your cycle days and predictions here.",
+              "soon": "This section is coming soon.",
+              "fullMonth": "Full month",
+              "weekView": "Week",
+              "edit": "Edit",
+              "today": "Today",
+              "selectedDay": "Selected",
+              "prevMonth": "Previous month",
+              "nextMonth": "Next month",
+              "retry": "Try again",
+              "actionFailed": "Something went wrong. Please try again.",
+              "logPeriodCta": "Log period",
+              "jumpToMonth": "Jump to another month",
+              "goToToday": "Go to today",
+              "recalculating": "Updating your cycle…",
+              "loadingCalendar": "Updating your calendar…",
+              "close": "Close",
+              "phaseLabel": "Phase",
+              "weekdays": {
+                "sat": "Sa",
+                "sun": "Su",
+                "mon": "Mo",
+                "tue": "Tu",
+                "wed": "We",
+                "thu": "Th",
+                "fri": "Fr"
+              },
+              "legend": {
+                "period": "Period",
+                "fertile": "Fertile window",
+                "ovulation": "Ovulation",
+                "pms": "PMS"
+              },
+              "startPeriodHere": "Start period on this day",
+              "phase": {
+                "period": "Period days",
+                "follicular": "Follicular phase",
+                "fertile": "Fertile window",
+                "ovulation": "Ovulation",
+                "luteal": "Luteal phase",
+                "pms": "PMS"
+              },
+              "day": {
+                "actionsLabel": "Actions",
+                "logLabel": "This day's log",
+                "cycleDay": "Cycle day {n}",
+                "chanceLabel": "Chance of pregnancy",
+                "logMood": "Log this day"
+              },
+              "chance": {
+                "low": "Low",
+                "medium": "Medium",
+                "high": "High"
+              },
+              "dayLog": {
+                "title": "This day's log",
+                "count": "{count, plural, one {# entry logged} other {# entries logged}}",
+                "edit": "Edit",
+                "emptyTitle": "Nothing logged for this day",
+                "emptySubtitle": "Log symptoms, mood and more for {date}."
+              },
+              "smartTip": {
+                "title": "Smart tip",
+                "body": "During the luteal phase your body may want more rest and nutrients. Magnesium-rich foods and enough sleep can help you feel your best.",
+                "quote": "Listen to your body's rhythm — each day has its own story."
+              },
+              "editThisPeriod": "Edit this period",
+              "removeThisDay": "Not a period day",
+              "endPeriodHere": "End period on this day",
+              "addToPeriod": "Add to period days"
+            },
+            "challenge": {
+              "title": "Today's challenge",
+              "cycleDay": "Cycle day {n}",
+              "range": {
+                "any": "This challenge is suggested on any day of your cycle",
+                "between": "For cycle days {from}–{to}",
+                "from": "From cycle day {n} onwards",
+                "to": "Up to cycle day {n}"
+              }
+            },
+            "common": {
+              "appName": "Ritme",
+              "actions": {
+                "save": "Save",
+                "cancel": "Cancel",
+                "continue": "Continue",
+                "close": "Close"
+              },
+              "locale": {
+                "fa": "فارسی",
+                "en": "English"
+              },
+              "calendar": {
+                "prevMonth": "Previous month",
+                "nextMonth": "Next month"
+              }
+            },
+            "cycle": {
+              "title": "Analysis",
+              "tagline": "A look at your body's patterns",
+              "days": "{n, plural, one{# day} other{# days}}",
+              "unavailable": "—",
+              "dateRange": "{from} – {to}",
+              "cycles": {
+                "title": "My cycles",
+                "current": "Current cycle",
+                "dayN": "Day {n, number}",
+                "startedOn": "Started on",
+                "addPrevious": "Add previous cycles",
+                "ongoing": "Ongoing",
+                "periodDays": "{n, plural, one{# day of period} other{# days of period}}",
+                "periodUnknown": "Period length not recorded",
+                "avgCycle": "Average cycle",
+                "avgPeriod": "Average period",
+                "previousTitle": "Previous cycles",
+                "recorded": "{n, plural, one{# recorded cycle} other{# recorded cycles}}",
+                "showAll": "Show all ({n, number})",
+                "showLess": "Show less",
+                "none": "No previous cycles yet. Add your past periods to see how long your cycles run."
+              },
+              "cycleSummary": {
+                "title": "Cycle summary",
+                "dayRange": "{from, number} to {to, number} days",
+                "empty": "Once you have one complete cycle on record, this summary fills in with your own numbers."
+              },
+              "bmi": {
+                "title": "Body mass index (BMI)"
+              }
+            },
+            "day-tasks": {
+              "title": "Tasks & reminders for this day",
+              "subtitle": "Add a medication, a doctor visit, or anything you need to do on this day.",
+              "types": {
+                "custom": "Task",
+                "doctor": "Doctor",
+                "medication": "Medication"
+              },
+              "placeholder": "Write a task for this day…",
+              "add": "Add",
+              "adding": "Adding…",
+              "empty": "Nothing planned for this day yet.",
+              "progress": "{done, number}/{total, number} done",
+              "toggle": "Toggle done",
+              "delete": "Delete",
+              "error": "That didn't work; please try again."
+            },
+            "home": {
+              "title": "Welcome to Ritme",
+              "subtitle": "Your women's health companion",
+              "todayIs": "Today: {date}",
+              "cta": "Get started",
+              "tagline": "Your health companion",
+              "days": "{n, plural, one{# day} other{# days}}",
+              "percent": "{n, number}%",
+              "updating": "Updating your cycle…",
+              "unavailable": "—",
+              "dateRange": "{from} – {to}",
+              "phaseLabel": {
+                "period": "Period",
+                "follicular": "Follicular",
+                "fertile": "Fertility window",
+                "ovulation": "Ovulation",
+                "luteal": "Luteal"
+              },
+              "phaseDescription": {
+                "period": "Menstrual days — the body sheds the uterine lining and energy is often lower.",
+                "follicular": "After the period the body prepares for ovulation and energy gradually rises.",
+                "fertile": "Days in the fertility window — the chance of conception is higher.",
+                "ovulation": "The estimated ovulation day — the highest chance of conception.",
+                "luteal": "After ovulation until the next period — mood swings or fatigue are common."
+              },
+              "nextPeriod": {
+                "label": "Until next period",
+                "fertility": "Fertility",
+                "phase": "Current phase: Luteal",
+                "currentPhase": "Current phase: {phase}",
+                "phasePrefix": "Current phase:",
+                "startDate": "Next period starts on {date}",
+                "phaseDesc": "Your body is preparing for a new cycle. You may experience mood swings, fatigue or sensitivity — take care of yourself and rest a little.",
+                "showMore": "Show more",
+                "close": "Close"
+              },
+              "selectedDay": {
+                "today": "Today's info",
+                "date": "Info for {date}"
+              },
+              "fertility": {
+                "caption": "Chance of pregnancy"
+              },
+              "phases": {
+                "window": "Fertility window",
+                "ovulation": "Ovulation",
+                "nextPeriod": "Next period in"
+              },
+              "pms": {
+                "label": "PMS window"
+              },
+              "dayStatus": {
+                "period": "Period",
+                "fertile": "Fertility window",
+                "ovulation": "Ovulation",
+                "pms": "PMS window",
+                "period_tomorrow": "Period tomorrow"
+              },
+              "recommendations": {
+                "title": "Today's recommendations",
+                "fallbackTitle": "Tip",
+                "types": {
+                  "nutrition": "Nutrition",
+                  "hydration": "Hydration",
+                  "warmth": "Warmth",
+                  "rest": "Rest",
+                  "energy": "Energy",
+                  "exercise": "Exercise",
+                  "fertility": "Fertility",
+                  "pms": "PMS",
+                  "mood": "Mood",
+                  "mental_health": "Mental health",
+                  "pain_relief": "Pain relief",
+                  "sleep": "Sleep",
+                  "digestion": "Digestion"
+                },
+                "iron": "Iron intake",
+                "ironDesc": "Eat iron-rich foods today",
+                "omega": "Omega-3 intake",
+                "omegaDesc": "Eat omega-rich foods today"
+              },
+              "tasks": {
+                "title": "Today's tasks",
+                "progress": "Today's progress",
+                "temp": "Log body temperature",
+                "water": "Drink 8 glasses of water",
+                "vitamin": "Take vitamin D",
+                "walk": "30 minutes of walking",
+                "percent": "{n}%"
+              },
+              "challenge": {
+                "title": "Today's challenge",
+                "item": "Log body temperature",
+                "desc": "Great week so far! Keep it up."
+              },
+              "reminder": {
+                "doctor": "Doctor reminder",
+                "medicine": "Medication reminder",
+                "doctorName": "Dr. Smith",
+                "specialty": "OB/GYN specialist"
+              },
+              "smartTip": {
+                "title": "Smart tip",
+                "body": "In the luteal phase, your body needs extra care. Don't forget whole grains and vegetables.",
+                "quote": "Every day is a new opportunity to take care of yourself."
+              },
+              "weekSummary": {
+                "title": "Week summary",
+                "subtitle": "Average of the last 7 days",
+                "range": "{from} – {to}",
+                "loggedDays": "{n, plural, one{# day logged} other{# days logged}}",
+                "viewAll": "View all",
+                "mood": "Mood",
+                "sleep": "Sleep",
+                "energy": "Energy",
+                "percent": "{n, number}%",
+                "unavailable": "—",
+                "trend": {
+                  "up": "{n, number}% better than last week",
+                  "down": "{n, number}% lower than last week"
+                },
+                "tone": {
+                  "none": "Nothing logged for this week yet.",
+                  "unscored": "You logged this week, but not your mood, sleep or energy.",
+                  "low": "A tough week — go easy on yourself and rest.",
+                  "mixed": "A mixed week. Keep going, you're tracking it.",
+                  "good": "Great week so far! Keep it up.",
+                  "great": "Brilliant — your best week yet."
+                },
+                "emptyCta": "Log how you feel",
+                "unscoredCta": "Complete today's log",
+                "loading": "Working out this week's summary…",
+                "error": "This week's summary isn't available right now."
+              },
+              "todayStatus": {
+                "title": "Today's status",
+                "viewAll": "View all",
+                "phase": "Current phase",
+                "fertility": "Fertility",
+                "cycleDay": "Cycle day",
+                "normal": "Normal",
+                "bp": "Blood pressure",
+                "glucose": "Blood sugar",
+                "hr": "Heart rate"
+              },
+              "articles": {
+                "title": "Based on your current cycle",
+                "readMore": "View more",
+                "min": "{n} min"
+              },
+              "cycles": {
+                "dayN": "Day {n, number}"
+              },
+              "week": {
+                "sat": "Sat",
+                "sun": "Sun",
+                "mon": "Mon",
+                "tue": "Tue",
+                "wed": "Wed",
+                "thu": "Thu",
+                "fri": "Fri",
+                "fullMonth": "Full month",
+                "close": "Close"
+              },
+              "legend": {
+                "period": "Period",
+                "fertile": "Fertile window",
+                "ovulation": "Ovulation",
+                "pms": "PMS"
+              },
+              "recalculate": "Recalculate",
+              "phaseDetailsCta": "Read more",
+              "cycleDay": {
+                "label": "Cycle day",
+                "value": "{n, number}",
+                "ofN": "of {n, number}"
+              },
+              "timeline": {
+                "title": "Upcoming events",
+                "inDays": "in {n, number} days",
+                "today": "today",
+                "ongoing": "in progress"
+              },
+              "cycleFacts": {
+                "length": "Cycle length",
+                "ovulationDay": "Ovulation day"
+              },
+              "values": {
+                "title": "Cycle length",
+                "logged": "Logged cycle length",
+                "suggestion": "Based on your recent logs, your cycle looks closer to {n, number} days.",
+                "syncCta": "Update to {n, number} days",
+                "basedOn": "Current prediction is based on: {source}",
+                "source": {
+                  "recent_valid_cycles": "your recent logs",
+                  "profile": "your profile",
+                  "default": "default values"
+                }
+              }
+            },
+            "log": {
+              "title": "Daily log",
+              "subtitle": "Record what you felt today so Ritme gets to know you better.",
+              "today": "Today",
+              "prevDay": "Previous day",
+              "nextDay": "Next day",
+              "loading": "Loading…",
+              "save": "Save today's log",
+              "saving": "Saving…",
+              "saved": "Saved",
+              "autoSaved": "Saved automatically",
+              "saveError": "Couldn't save; please try again.",
+              "sheetHint": "Pick whatever applies to you.",
+              "done": "Done",
+              "submit": "Submit",
+              "close": "Close",
+              "clear": "Clear",
+              "none": "Not recorded",
+              "selected": "{count, plural, one {# item} other {# items}}",
+              "recordThis": "Record this",
+              "yes": "Yes",
+              "categories": {
+                "bleeding": "Bleeding",
+                "pain": "Pain & symptoms",
+                "digestion": "Appetite & energy",
+                "mood": "Mood",
+                "sleep": "Sleep",
+                "exercise": "Exercise",
+                "body": "Skin & hair",
+                "discharge": "Discharge",
+                "intimate": "Urinary & vaginal",
+                "sexual": "Sexual activity",
+                "weight": "Weight",
+                "temperature": "Temperature",
+                "notes": "Notes"
+              },
+              "categoryHint": {
+                "bleeding": "Intensity, color and character of bleeding",
+                "pain": "Intensity of pains and physical symptoms",
+                "digestion": "Appetite, energy and how your body felt",
+                "mood": "How you feel today",
+                "sleep": "Sleep duration and quality",
+                "exercise": "Type, duration and intensity of activity",
+                "body": "Skin and hair",
+                "discharge": "Texture, amount, color and smell",
+                "intimate": "Urinary and vaginal symptoms",
+                "sexual": "Desire, intercourse and how it felt",
+                "weight": "Your weight measurement",
+                "temperature": "Basal body temperature measurement",
+                "notes": "Anything else you want to remember"
+              },
+              "fields": {
+                "bleeding_intensity": "Bleeding intensity",
+                "blood_color": "Blood color",
+                "bleeding_smell": "Bleeding smell",
+                "clots_amount": "Blood clots",
+                "spotting": "Spotting",
+                "stomach_ache_intensity": "Cramps or stomach pain",
+                "pelvic_pain_intensity": "Pelvic pain",
+                "ovarian_pain_intensity": "One-sided lower abdominal pain",
+                "back_pain_intensity": "Back pain",
+                "headache_intensity": "Headache",
+                "breast_pain_intensity": "Breast tenderness or pain",
+                "nausea_intensity": "Nausea",
+                "bloating_intensity": "Bloating",
+                "diarrhea": "Diarrhea",
+                "constipation": "Constipation",
+                "appetite_change": "Appetite change",
+                "food_craving": "Food craving",
+                "fatigue": "Fatigue",
+                "dizziness": "Dizziness",
+                "hot_flashes": "Hot flashes",
+                "chills": "Chills",
+                "swelling": "Swelling",
+                "moods": "How you felt today",
+                "sleep_duration": "Sleep duration",
+                "sleep_quality": "Sleep quality",
+                "exercise_type": "Exercise type",
+                "exercise_duration": "Duration",
+                "exercise_intensity": "Intensity",
+                "acne": "Acne",
+                "oily_skin": "Oily skin",
+                "hair_loss": "Hair loss",
+                "discharge_texture": "Discharge texture",
+                "discharge_amount": "Discharge amount",
+                "discharge_color": "Discharge color",
+                "discharge_smell": "Discharge smell",
+                "frequent_urination": "Frequent urination",
+                "urination_burning_intensity": "Burning urination",
+                "urination_change": "Change in urine amount",
+                "vaginal_dryness": "Vaginal dryness",
+                "vaginal_burning_intensity": "Vaginal burning",
+                "vaginal_itching_intensity": "Vaginal itching",
+                "vaginal_smell_change": "Vaginal smell change",
+                "sexual_desire": "Sexual desire",
+                "intercourse_type": "Intercourse",
+                "sexual_activities": "During or after intercourse",
+                "weight": "Weight",
+                "basal_body_temperature": "Basal body temperature",
+                "notes": "Notes"
+              },
+              "units": {
+                "kg": "kg",
+                "celsius": "°C",
+                "minutes": "min"
+              },
+              "notesPlaceholder": "How was today? Write anything you'd like…",
+              "enums": {
+                "bleeding_intensity": {
+                  "low": "Light",
+                  "medium": "Medium",
+                  "high": "Heavy",
+                  "very_high": "Very heavy"
+                },
+                "blood_color": {
+                  "bright_red": "Bright red",
+                  "red": "Red",
+                  "dark_red": "Dark red",
+                  "brown": "Brown"
+                },
+                "bleeding_smell": {
+                  "normal": "Usual",
+                  "slightly_unusual": "Different from usual",
+                  "strong_unpleasant": "Strong or unpleasant"
+                },
+                "clots_amount": {
+                  "none": "None",
+                  "low": "Light",
+                  "medium": "Moderate",
+                  "high": "Heavy"
+                },
+                "pain_intensity": {
+                  "low": "Mild",
+                  "medium": "Moderate",
+                  "high": "Severe"
+                },
+                "appetite_change": {
+                  "loss": "Decreased",
+                  "normal": "Usual",
+                  "gain": "Increased"
+                },
+                "moods": {
+                  "happy": "Happy",
+                  "calm": "Calm",
+                  "angry": "Angry",
+                  "anxious": "Anxious",
+                  "sad": "Sad",
+                  "frustrated": "Frustrated",
+                  "sensitive": "Irritable",
+                  "bored": "Restless"
+                },
+                "sleep_duration": {
+                  "0_3": "0–3 hours",
+                  "3_6": "3–6 hours",
+                  "6_9": "6–9 hours",
+                  "9_plus": "9+ hours"
+                },
+                "sleep_quality": {
+                  "good": "Good",
+                  "medium": "Medium",
+                  "bad": "Poor"
+                },
+                "exercise_type": {
+                  "walking": "Walking",
+                  "running": "Running",
+                  "cycling": "Cycling",
+                  "gym": "Gym / strength",
+                  "yoga": "Yoga / pilates",
+                  "swimming": "Swimming",
+                  "dance": "Dance",
+                  "team_sport": "Team sport",
+                  "other": "Other"
+                },
+                "exercise_intensity": {
+                  "low": "Low",
+                  "medium": "Medium",
+                  "high": "High"
+                },
+                "discharge_texture": {
+                  "watery": "Watery",
+                  "creamy": "Creamy",
+                  "egg_white": "Egg white",
+                  "thick": "Thick"
+                },
+                "discharge_amount": {
+                  "low": "Light",
+                  "medium": "Medium",
+                  "high": "Heavy"
+                },
+                "discharge_color": {
+                  "clear": "Clear",
+                  "white": "White",
+                  "yellow": "Yellow",
+                  "green": "Green",
+                  "gray": "Gray",
+                  "pink_bloody": "Pink / bloody"
+                },
+                "discharge_smell": {
+                  "normal": "Usual",
+                  "slightly_unusual": "Different from usual",
+                  "strong_unpleasant": "Strong or unpleasant"
+                },
+                "urination_change": {
+                  "decrease": "Decreased",
+                  "increase": "Increased"
+                },
+                "sexual_desire": {
+                  "lower": "Lower than usual",
+                  "normal": "Usual",
+                  "higher": "Higher than usual"
+                },
+                "intercourse_type": {
+                  "protected": "Protected",
+                  "unprotected": "Unprotected"
+                },
+                "sexual_activities": {
+                  "dryness": "Dryness during intercourse",
+                  "burning": "Burning during intercourse",
+                  "pain_during_intercourse": "Pain during intercourse",
+                  "bleeding_after_intercourse": "Bleeding after intercourse",
+                  "lubricant_use": "Lubricant use"
+                }
+              }
+            },
+            "log-period": {
+              "start": "Start period",
+              "end": "End period",
+              "confirm": "Tap again to confirm",
+              "pending": "Saving…",
+              "error": "Couldn't save. Please try again.",
+              "editor": {
+                "title": "Log period days",
+                "hint": "Tap or drag across the days you had bleeding.",
+                "count": "{n, plural, one {# day selected} other {# days selected}}",
+                "selectPrompt": "Select one or more days",
+                "save": "Save",
+                "saving": "Saving…",
+                "error": "Couldn't save. Please try again.",
+                "weekdays": {
+                  "sat": "Sa",
+                  "sun": "Su",
+                  "mon": "Mo",
+                  "tue": "Tu",
+                  "wed": "We",
+                  "thu": "Th",
+                  "fri": "Fr"
+                },
+                "editTitle": "Edit period",
+                "saveChanges": "Save changes",
+                "delete": "Delete this period",
+                "confirmDelete": "Yes, delete",
+                "deleting": "Deleting…",
+                "cancel": "Cancel",
+                "close": "Close"
+              },
+              "dateEditor": {
+                "title": "Edit Period Date",
+                "hint": "Tap the first day of your period to mark {days} days automatically; tap any day to adjust",
+                "save": "Save",
+                "saving": "Saving…",
+                "cancel": "Cancel",
+                "close": "Close",
+                "error": "Couldn't save. Please try again.",
+                "open": "Edit period date"
+              }
+            },
+            "nav": {
+              "label": "Main navigation",
+              "today": "Today",
+              "calendar": "Calendar",
+              "cycle": "Analysis",
+              "pregnancy": "Pregnancy",
+              "profile": "Profile",
+              "log": "Log"
+            },
+            "notifications": {
+              "title": "Notifications",
+              "back": "Back",
+              "markAllRead": "Mark all read",
+              "empty": {
+                "title": "No notifications",
+                "body": "Whenever there's something new, you'll see it here."
+              },
+              "time": {
+                "today": "Today",
+                "yesterday": "Yesterday",
+                "daysAgo": "{days, plural, one {# day ago} other {# days ago}}"
+              }
+            },
+            "onboarding": {
+              "stepOf": "{step} / 8",
+              "continue": "Continue",
+              "finish": "Finish",
+              "helper": "Help us get to know you better",
+              "name": {
+                "title": "What should we call you on Ritme?",
+                "subtitle": "You'll see this name in the app and we'll use it to address you",
+                "label": "Display name",
+                "placeholder": "e.g. Sameh",
+                "terms": "By continuing you accept the <link>Terms & Conditions</link> and privacy policy."
+              },
+              "birthday": {
+                "title": "What is your date of birth?",
+                "subtitle": "Help us get to know you better"
+              },
+              "weight": {
+                "title": "What is your weight?",
+                "subtitle": "Help us get to know you better",
+                "helper": "This is used for weight and general-health analysis, and it is confidential."
+              },
+              "height": {
+                "title": "What is your height?",
+                "subtitle": "Help us get to know you better",
+                "helper": "This is used for weight and general-health analysis, and it is confidential."
+              },
+              "intention": {
+                "title": "Where are you with pregnancy right now?",
+                "subtitle": "We'll personalise your plan based on your answer",
+                "options": {
+                  "avoiding": "Not planning a pregnancy right now",
+                  "pregnant": "I am pregnant",
+                  "trying": "I'm trying to conceive",
+                  "unsure": "Not sure yet"
+                }
+              },
+              "pregnancyBasis": {
+                "title": "How should we date your pregnancy?",
+                "subtitle": "Choose one of the methods below",
+                "source": {
+                  "lmp": "First day of last period",
+                  "ultrasound": "Ultrasound",
+                  "manual": "Enter the week manually"
+                },
+                "sourceHint": {
+                  "lmp": "If you know your last period date, this is the simple accurate option.",
+                  "ultrasound": "Based on your ultrasound result; the most accurate method.",
+                  "manual": "If you know your pregnancy week from your doctor."
+                },
+                "weeks": "Weeks",
+                "days": "Days",
+                "note": "During pregnancy, Ritme focuses more on your mood, sleep and general care, and period tracking is turned off.",
+                "selectSource": "Please choose a method",
+                "fillRequired": "Please enter the week"
+              },
+              "periodLen": {
+                "title": "How many days does your period usually last?",
+                "subtitle": "Help us get to know you better",
+                "unit": "days"
+              },
+              "cycleDuration": {
+                "title": "How long is your cycle, usually?",
+                "subtitle": "The gap between the start of two periods; if unsure, 28 days is typical",
+                "unit": "days"
+              },
+              "cycleLen": {
+                "title": "When did your last period start?",
+                "subtitle": "Help us get to know you better",
+                "hint": "Select the day your last period began"
+              },
+              "conditions": {
+                "title": "Do you have any chronic conditions?",
+                "subtitle": "This section is optional — share as much as you like to make your recommendations more accurate.",
+                "items": {
+                  "pcos": "Polycystic ovary syndrome (PCOS)",
+                  "hypothyroidism": "Hypothyroidism",
+                  "hyperthyroidism": "Hyperthyroidism",
+                  "hypertension": "High blood pressure",
+                  "heart_disease": "Heart disease",
+                  "diabetes": "Diabetes (type 1, 2 or gestational)"
+                }
+              },
+              "settingUp": {
+                "title": "We are setting up your personalised calendar…",
+                "subtitle": "Help us get to know you better",
+                "wait": "Please wait a few seconds…",
+                "disclaimer": "Ritme is not a substitute for a doctor or counsellor visit. The information you enter is used to personalise recommendations and help you understand your own body. If you have severe or worrying symptoms, be sure to contact a health professional."
+              },
+              "dayCount": "{days, plural, one {# day} other {# days}}"
+            },
+            "phase-details": {
+              "title": "Phase details",
+              "subtitle": "What matters in this phase of your cycle",
+              "currentPhase": "Your current phase",
+              "loading": "Loading…",
+              "fallback": "There is no content available for this phase right now.",
+              "sections": {
+                "symptom_prediction": "Symptom prediction",
+                "vaginal_discharge": "Vaginal discharge",
+                "fertility": "Fertility",
+                "hormonal_changes": "Hormonal changes",
+                "sex_tips": "Intimacy tips",
+                "nutrition": "Nutrition",
+                "exercise": "Exercise",
+                "skin_care": "Skin care",
+                "sleep": "Sleep"
+              }
+            },
+            "pregnancy": {
+              "title": "Pregnancy",
+              "subtitle": "Week by week, with you and your baby",
+              "loading": "Loading…",
+              "error": "Something went wrong; please try again.",
+              "retry": "Try again",
+              "back": "Back",
+              "notActive": {
+                "title": "Welcome to pregnancy mode",
+                "body": "Turn on pregnancy mode to follow your baby's week-by-week growth, your body's changes, and the care that matters each week.",
+                "cta": "Start pregnancy mode",
+                "activating": "Activating…"
+              },
+              "onboarding": {
+                "title": "Let's set up your pregnancy",
+                "subtitle": "Pick one method so we can estimate your gestational age and due date.",
+                "ageSourceLabel": "How should we date your pregnancy?",
+                "ageSource": {
+                  "lmp": "First day of last period",
+                  "ultrasound": "Ultrasound",
+                  "manual": "Enter week manually"
+                },
+                "ageSourceHint": {
+                  "lmp": "If you know your last period date, this is the simplest accurate option.",
+                  "ultrasound": "Based on your ultrasound result; the most accurate method.",
+                  "manual": "If your doctor already told you your current week."
+                },
+                "lmpDate": "First day of last period",
+                "ultrasoundDate": "Ultrasound date",
+                "ultrasoundAge": "Gestational age at ultrasound",
+                "manualAge": "Current pregnancy week",
+                "weeks": "weeks",
+                "days": "days",
+                "history": {
+                  "title": "Pregnancy history",
+                  "miscarriage": "History of miscarriage",
+                  "highRisk": "History of high-risk pregnancy"
+                },
+                "conditions": {
+                  "title": "Pre-existing conditions",
+                  "chronic_hypertension": "Chronic hypertension",
+                  "diabetes": "Diabetes",
+                  "hypothyroidism": "Hypothyroidism",
+                  "hyperthyroidism": "Hyperthyroidism",
+                  "none": "None"
+                },
+                "bloodTypeLabel": "Blood type",
+                "rhLabel": "Rh factor",
+                "rh": {
+                  "positive": "Positive",
+                  "negative": "Negative"
+                },
+                "optional": "optional",
+                "submit": "Finish and start",
+                "submitting": "Saving…",
+                "selectAgeSource": "Please choose a method.",
+                "fillRequired": "Please complete the required fields."
+              },
+              "hero": {
+                "weekOf": "Week {week, number} of 40",
+                "gaValue": "{weeks, number} weeks and {days, number} days",
+                "dayOfWeek": "Day {day, number} of this week"
+              },
+              "trimester": {
+                "label": "Trimester",
+                "t1": "First trimester",
+                "t2": "Second trimester",
+                "t3": "Third trimester"
+              },
+              "due": {
+                "label": "Estimated due date",
+                "countdown": "{n, plural, one {# day} other {# days}} to go",
+                "weeksLeft": "{n, plural, one {# week} other {# weeks}} left"
+              },
+              "confidence": {
+                "label": "Estimate confidence",
+                "high": "High",
+                "medium": "Medium",
+                "low": "Low"
+              },
+              "progress": "{percent, number}% of the journey",
+              "weekLabel": "Week {week, number}",
+              "highRiskBadge": "High-risk pregnancy",
+              "actions": {
+                "logSymptoms": "Log daily symptoms",
+                "weeklyCheckup": "Weekly checkup",
+                "fetalMovement": "Fetal movement",
+                "browseWeeks": "Browse weeks",
+                "viewAlerts": "Alerts"
+              },
+              "content": {
+                "thisWeek": "This week",
+                "noContent": "Content for this week isn't ready yet.",
+                "faqTitle": "Common questions this week",
+                "modules": {
+                  "fetalDevelopment": "Baby's development",
+                  "motherBodyChanges": "Your body's changes",
+                  "bodyAdaptation": "How your body adapts",
+                  "emotionalStatus": "Emotional wellbeing",
+                  "keyNutrition": "Key nutrition this week",
+                  "physicalActivity": "Suitable activity",
+                  "dosAndDonts": "Do's and don'ts",
+                  "carePlan": "This week's care plan",
+                  "testsAndCheckups": "Common tests and checkups"
+                }
+              },
+              "weekPicker": {
+                "title": "Choose a week",
+                "prev": "Previous week",
+                "next": "Next week",
+                "current": "Current week"
+              },
+              "alerts": {
+                "title": "Alerts",
+                "empty": "No alerts. Everything looks good.",
+                "markAllRead": "Mark all as read",
+                "dismiss": "Dismiss",
+                "unreadBadge": "Unread",
+                "raised": "{n, plural, one {# new alert recorded} other {# new alerts recorded}}",
+                "recommended": "Recommended actions",
+                "level": {
+                  "info": "Info",
+                  "warning": "Warning",
+                  "emergency": "Emergency"
+                }
+              },
+              "log": {
+                "title": "Daily pregnancy log",
+                "subtitle": "Record today's symptoms so Ritme can care for you better.",
+                "tabs": {
+                  "symptoms": "Daily symptoms",
+                  "weekly": "Weekly checkup",
+                  "movement": "Fetal movement"
+                },
+                "today": "Today",
+                "prevDay": "Previous day",
+                "nextDay": "Next day",
+                "save": "Save",
+                "saving": "Saving…",
+                "saved": "Saved",
+                "saveError": "Couldn't save; please try again.",
+                "nothingToSave": "Nothing selected to save.",
+                "yes": "Yes",
+                "notesPlaceholder": "Anything else you'd like to remember…",
+                "notes": "Notes",
+                "severityLabel": "Severity",
+                "severity": {
+                  "mild": "Mild",
+                  "moderate": "Moderate",
+                  "severe": "Severe"
+                },
+                "symptomGroups": {
+                  "common": "Common symptoms",
+                  "aches": "Aches and pressure",
+                  "warning": "Warning signs"
+                },
+                "criticalHint": "If you notice these signs, contact your doctor right away.",
+                "symptoms": {
+                  "nausea": "Nausea",
+                  "vomiting": "Vomiting",
+                  "fatigue": "Fatigue",
+                  "headache": "Headache",
+                  "dizziness": "Dizziness",
+                  "breast_pain": "Breast pain",
+                  "lower_abdominal_pain": "Lower abdominal pain",
+                  "cramping": "Cramping",
+                  "back_pain": "Back pain",
+                  "pelvic_pressure": "Pelvic pressure",
+                  "spotting": "Spotting",
+                  "bleeding": "Bleeding",
+                  "fluid_leakage": "Fluid leakage",
+                  "severe_sudden_pain": "Severe sudden pain"
+                },
+                "weekly": {
+                  "weekLabel": "Week {week, number} checkup",
+                  "weight": "Weight (kg)",
+                  "swelling": "I have swelling",
+                  "swellingWhere": "Where is the swelling?",
+                  "swellingLocations": {
+                    "feet": "Feet",
+                    "hands": "Hands",
+                    "face": "Face"
+                  },
+                  "shortnessOfBreath": "Shortness of breath",
+                  "hasBpDevice": "I have a blood-pressure monitor",
+                  "systolic": "Systolic (top)",
+                  "diastolic": "Diastolic (bottom)",
+                  "fastingSugar": "Fasting blood sugar",
+                  "postMealSugar": "Blood sugar 2h after meal",
+                  "moodLabel": "Overall mood",
+                  "mood": {
+                    "good": "Good",
+                    "moderate": "Moderate",
+                    "poor": "Poor"
+                  },
+                  "mental": {
+                    "has_anxiety": "Anxiety",
+                    "has_mood_swings": "Mood swings",
+                    "has_depression_feelings": "Feelings of depression"
+                  }
+                },
+                "movement": {
+                  "statusLabel": "Movement status",
+                  "status": {
+                    "not_felt_yet": "Not felt yet",
+                    "felt": "Felt it",
+                    "normal": "Normal",
+                    "reduced": "Reduced",
+                    "increased": "Increased",
+                    "none": "No movement"
+                  },
+                  "count": "Movement count",
+                  "firstTime": "First movement time",
+                  "lastTime": "Last movement time",
+                  "trackingFrom": "Counting fetal movements usually matters from week 24.",
+                  "notYet": "A little early — you'll feel your baby move soon."
+                }
+              }
+            },
+            "profile": {
+              "title": "Profile",
+              "guest": "Ritme user",
+              "editProfile": "Edit profile",
+              "noPhone": "No phone number saved",
+              "sections": {
+                "account": "Account",
+                "app": "App",
+                "privacy": "Privacy & data",
+                "support": "Support",
+                "mode": "App mode"
+              },
+              "rows": {
+                "personalInfo": "Personal info",
+                "healthPrefs": "Cycle & health preferences",
+                "reminders": "Reminders",
+                "notifications": "Notifications",
+                "language": "App language",
+                "appearance": "Appearance & theme",
+                "privacyPolicy": "Privacy policy",
+                "exportData": "Export my data",
+                "deleteAccount": "Delete account",
+                "help": "Help & support",
+                "about": "About Ritme",
+                "terms": "Terms & conditions"
+              },
+              "health": {
+                "title": "Cycle & health",
+                "cycleDuration": "Cycle length",
+                "periodDuration": "Period length",
+                "lastPeriod": "Last period start",
+                "birthday": "Date of birth",
+                "weight": "Weight",
+                "height": "Height",
+                "days": "{days, plural, one {# day} other {# days}}",
+                "kg": "{value} kg",
+                "cm": "{value} cm",
+                "empty": "Not set",
+                "notSetUp": "You haven't completed your health info yet"
+              },
+              "language": {
+                "fa": "فارسی",
+                "en": "English"
+              },
+              "logout": "Log out",
+              "loggingOut": "Logging out…",
+              "version": "Version {version}",
+              "appearance": {
+                "system": "Auto",
+                "light": "Light",
+                "dark": "Dark"
+              },
+              "exporting": "Preparing export…",
+              "mode": {
+                "switchToPregnancy": "Switch to pregnancy mode",
+                "pregnancyTracker": "Pregnancy tracker",
+                "switchToCycle": "Back to cycle mode",
+                "switching": "Switching…",
+                "cycleActive": "Cycle mode is active",
+                "pregnancyActive": "Pregnancy mode is active"
+              }
+            },
+            "profile-edit": {
+              "back": "Back",
+              "loading": "Loading…",
+              "save": "Save changes",
+              "saving": "Saving…",
+              "personal": {
+                "title": "Personal info",
+                "nameLabel": "Name",
+                "namePlaceholder": "Your name",
+                "birthdayLabel": "Date of birth",
+                "weightLabel": "Weight",
+                "heightLabel": "Height",
+                "kgUnit": "kg",
+                "cmUnit": "cm"
+              },
+              "health": {
+                "title": "Cycle & health settings",
+                "cycleLabel": "Cycle length",
+                "periodLabel": "Period length",
+                "lastPeriodLabel": "Last period start date",
+                "lastPeriodHint": "Pick the day your last period began",
+                "dayCount": "{days, plural, one {# day} other {# days}}"
+              },
+              "months": {
+                "m1": "Farvardin",
+                "m2": "Ordibehesht",
+                "m3": "Khordad",
+                "m4": "Tir",
+                "m5": "Mordad",
+                "m6": "Shahrivar",
+                "m7": "Mehr",
+                "m8": "Aban",
+                "m9": "Azar",
+                "m10": "Dey",
+                "m11": "Bahman",
+                "m12": "Esfand"
+              },
+              "errors": {
+                "generic": "Something went wrong. Please try again.",
+                "birthdayFuture": "The date of birth must be before today.",
+                "nameRequired": "Please enter your name.",
+                "lastPeriodFuture": "The last period start date can't be in the future."
+              }
+            },
+            "profile-info": {
+              "privacy": {
+                "title": "Privacy Policy",
+                "sections": [
+                  {
+                    "heading": "Our commitment to you",
+                    "body": "Ritme is built to hold some of your most personal health information, so privacy is our default, not an option. We collect only the minimum data the app needs to work, and we never store anything \"just in case\"."
+                  },
+                  {
+                    "heading": "Your data is never sold",
+                    "body": "Your information is never sold or rented to any person or company, and it is not used for advertising. Your data is used solely to provide Ritme's services to you."
+                  },
+                  {
+                    "heading": "Health data stays confidential",
+                    "body": "Period dates, symptoms, pregnancy status, and predictions are never written to technical logs, analytics tools, or error reports, and they are never shared with third-party services. This data is only accessible through your own secure sign-in."
+                  },
+                  {
+                    "heading": "Your right to export and delete",
+                    "body": "You own your data. At any time, you can download a complete copy of your information as a file from your profile, or permanently delete your account and everything in it. Account deletion is immediate and irreversible."
+                  }
+                ]
+              },
+              "terms": {
+                "title": "Terms of Service",
+                "sections": [
+                  {
+                    "heading": "Informational, not medical advice",
+                    "body": "Ritme's content and predictions — including period and ovulation predictions and weekly pregnancy content — are for informational purposes only and are not a substitute for examination, diagnosis, or advice from a doctor. For any health-related decision, please consult a physician or midwife."
+                  },
+                  {
+                    "heading": "Acceptable use",
+                    "body": "Ritme is for your personal use. Please log information honestly and only for your own account, do not use someone else's account, and do not attempt unauthorized access to the system or to other users' data."
+                  },
+                  {
+                    "heading": "Your account and one-time codes",
+                    "body": "Signing in to Ritme uses your mobile number and a one-time code (OTP). Keeping your mobile number and device secure is your responsibility; never share your sign-in code with anyone."
+                  },
+                  {
+                    "heading": "Deleting your data",
+                    "body": "You can delete your account from the profile section at any time. When you delete your account, all of your data is erased from our servers and your active sessions are revoked."
+                  }
+                ]
+              },
+              "about": {
+                "title": "About Ritme",
+                "sections": [
+                  {
+                    "heading": "What is Ritme?",
+                    "body": "Ritme is a private companion for women's health — an app for understanding your body's rhythm, logging how you feel each day, and receiving predictions and content tailored to your situation."
+                  },
+                  {
+                    "heading": "Two modes: cycle and pregnancy",
+                    "body": "In cycle mode, Ritme tracks your menstrual cycles and estimates when your next period and ovulation are likely to occur. In pregnancy mode, it accompanies you week by week with stage-appropriate content, reminders, and tools to log symptoms and fetal movement. These predictions and content are informational and do not replace a doctor's advice."
+                  },
+                  {
+                    "heading": "App version",
+                    "body": "You are using Ritme version 1.0.0. We improve the app regularly — your feedback is invaluable along the way."
+                  }
+                ]
+              },
+              "help": {
+                "title": "Help",
+                "sections": [
+                  {
+                    "heading": "Home",
+                    "body": "The home screen shows a summary of your day: your cycle day or pregnancy week, upcoming predictions, and a daily message tailored to you."
+                  },
+                  {
+                    "heading": "Calendar",
+                    "body": "The Jalali calendar displays your logged periods and predicted days. Tap any day to see its details or edit its information."
+                  },
+                  {
+                    "heading": "Daily log",
+                    "body": "From the log section you can record your general mood, symptoms, flow, and more each day. Logging regularly improves the accuracy of predictions."
+                  },
+                  {
+                    "heading": "Profile",
+                    "body": "In your profile you can edit your personal and health information, change the app language, download a copy of your data, or delete your account."
+                  },
+                  {
+                    "heading": "Support",
+                    "body": "If you have a question or run into a problem, contact us at support@ritmesalamat.com — we will get back to you as soon as we can."
+                  }
+                ]
+              }
+            },
+            "pwa": {
+              "softTitle": "A new version is available",
+              "updateAction": "Update",
+              "updateNow": "Update now",
+              "updating": "Updating…",
+              "forcedTitle": "Update required",
+              "forcedBody": "This version is no longer supported. Please update to keep using Ritme.",
+              "installTitle": "Install the Ritme app",
+              "installBody": "Install Ritme on your home screen for quick access.",
+              "installAction": "Install app",
+              "iosStep1": "1. Tap the Share button in Safari's bottom bar",
+              "iosStep2": "2. Choose \"Add to Home Screen\"",
+              "dismiss": "Dismiss"
+            },
+            "reminders": {
+              "title": "Reminders",
+              "back": "Back",
+              "loading": "Loading your reminders…",
+              "loadError": "Couldn't load reminders. Please try again later.",
+              "empty": {
+                "title": "No reminders yet",
+                "subtitle": "Set a reminder for a doctor visit, medication, or anything you don't want to forget."
+              },
+              "add": "Add reminder",
+              "types": {
+                "doctor": "Doctor visit",
+                "medication": "Medication",
+                "appointment": "Appointment",
+                "custom": "Custom"
+              },
+              "recurrence": {
+                "none": "One-time",
+                "daily": "Daily",
+                "weekly": "Weekly",
+                "monthly": "Monthly"
+              },
+              "recurrenceAt": "{recurrence} at {time}",
+              "row": {
+                "active": "Active",
+                "inactive": "Inactive",
+                "toggle": "Turn reminder on or off",
+                "delete": "Delete reminder"
+              },
+              "confirmDelete": {
+                "question": "Delete this reminder?",
+                "yes": "Delete",
+                "no": "Cancel",
+                "deleting": "Deleting…"
+              },
+              "form": {
+                "title": "New reminder",
+                "typeLabel": "Reminder type",
+                "titleLabel": "Title",
+                "titlePlaceholder": "e.g. Gynecologist appointment",
+                "subtitleLabel": "Short note (optional)",
+                "subtitlePlaceholder": "e.g. Bring the test results",
+                "recurrenceLabel": "Repeat",
+                "timeLabel": "Reminder time",
+                "submit": "Save reminder",
+                "submitting": "Saving…",
+                "cancel": "Cancel",
+                "error": "Couldn't save. Please try again."
+              }
+            },
+            "welcome": {
+              "region": "Introducing Ritme",
+              "brand": "Ritme",
+              "skip": "Skip",
+              "next": "Continue",
+              "start": "Set up Ritme",
+              "startHint": "It takes under a minute. We ask a few simple questions about your age, cycle, and how you generally feel so we can tune Ritme to you.",
+              "disclaimer": "Ritme uses data analysis and AI models to personalize its suggestions, but it is not a substitute for diagnosis or a doctor's visit. If your symptoms are severe or worrying, please talk to a health professional.",
+              "goToSlide": "Go to slide {n}",
+              "slideOfCount": "Slide {n} of {total}",
+              "slides": {
+                "intro": {
+                  "title": "Know your body's rhythm, feel better",
+                  "body": "Ritme is a women's health app that helps you see your menstrual cycle, mood, sleep, and energy together — and understand the rhythm your body has each day.",
+                  "note": "Ritme is here to help you treat your body a little more easily, knowingly, and kindly every day."
+                },
+                "track": {
+                  "title": "More than period dates — your patterns matter",
+                  "body": "In Ritme you don't just mark your period days. Your daily mood, aches, sleep, and energy are logged alongside your cycle, so you can understand why some days feel more tired, sensitive, or on edge.",
+                  "bullet1": "See symptoms like cramps, bloating, headaches, and mood swings on your body's calendar.",
+                  "bullet2": "Learn what — like short sleep or stress — affects your body the most."
+                },
+                "smart": {
+                  "title": "Smart insights, made for your body",
+                  "body": "Ritme isn't just a logbook. By bringing your own patterns together, it builds insights that are about you."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

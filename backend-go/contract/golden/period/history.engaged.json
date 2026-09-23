@@ -1,0 +1,48 @@
+{
+  "case": "period/history.engaged",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/period/history",
+        "persona": "engaged",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "periods": [
+            {
+              "id": 101804,
+              "period_start_date": "2026-09-17",
+              "period_end_date": "2026-09-21",
+              "source": "user_logged"
+            },
+            {
+              "id": 101803,
+              "period_start_date": "2026-08-20",
+              "period_end_date": "2026-08-24",
+              "source": "user_logged"
+            },
+            {
+              "id": 101802,
+              "period_start_date": "2026-07-23",
+              "period_end_date": "2026-07-27",
+              "source": "user_logged"
+            },
+            {
+              "id": 101801,
+              "period_start_date": "2026-06-26",
+              "period_end_date": "2026-06-30",
+              "source": "user_logged"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

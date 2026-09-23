@@ -1,0 +1,116 @@
+{
+  "case": "pregnancy/confirm.pregnant_lmp_w8.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/confirm",
+        "persona": "pregnant_lmp_w8",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "Profile confirmed and locked",
+        "data": {
+          "is_locked": true
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/profile",
+        "persona": "pregnant_lmp_w8",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "profile": {
+            "id": 1014,
+            "user_id": 1014,
+            "pregnancy_mode": true,
+            "cycle_mode": false,
+            "is_locked": true,
+            "age_source": "lmp",
+            "confidence_level": "medium",
+            "lmp_date": "2026-08-01T20:30:00.000000Z",
+            "ultrasound_date": null,
+            "ultrasound_weeks": null,
+            "ultrasound_days": null,
+            "manual_weeks": null,
+            "manual_days": null,
+            "manual_entry_date": null,
+            "estimated_due_date": "2027-05-08T20:30:00.000000Z",
+            "estimated_conception_date": "2026-08-15T20:30:00.000000Z",
+            "uncertainty_days": 3,
+            "has_miscarriage_history": null,
+            "has_high_risk_history": null,
+            "pre_existing_conditions": null,
+            "blood_type": null,
+            "rh_factor": null,
+            "rh_negative_care_flag": false,
+            "first_fetal_movement_date": null,
+            "fetal_movement_felt": false,
+            "onboarding_completed": true,
+            "onboarding_completed_at": "2026-09-03T07:30:00.000000Z",
+            "created_at": "2026-09-23T05:30:00.000000Z",
+            "updated_at": "2026-09-23T06:30:00.000000Z"
+          },
+          "status": {
+            "is_active": true,
+            "gestational_age": {
+              "weeks": 7,
+              "days": 3,
+              "total_days": 52,
+              "trimester": 1,
+              "confidence_level": "medium",
+              "confidence_label": "Medium",
+              "uncertainty_days": 3,
+              "formatted": {
+                "en": "7 weeks, 3 days",
+                "fa": "7 هفته و 3 روز"
+              }
+            },
+            "estimated_due_date": {
+              "date": "2027-05-09",
+              "days_remaining": 228,
+              "weeks_remaining": 32,
+              "formatted": {
+                "en": "May 9, 2027",
+                "fa": "9 مه 2027"
+              }
+            },
+            "current_week": 8,
+            "trimester": 1,
+            "age_source": "lmp",
+            "confidence_level": "medium",
+            "is_high_risk": false,
+            "fetal_movement_tracking_active": false,
+            "fetal_movement_required": false,
+            "flags": {
+              "trimester_info": {
+                "en": "You are in trimester 1.",
+                "fa": "شما در سه‌ماهه 1 هستید."
+              },
+              "week_info": {
+                "en": "Week 8 of pregnancy.",
+                "fa": "هفته 8 بارداری."
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

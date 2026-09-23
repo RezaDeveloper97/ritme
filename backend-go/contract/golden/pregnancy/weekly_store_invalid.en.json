@@ -1,0 +1,51 @@
+{
+  "case": "pregnancy/weekly_store_invalid.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/weekly",
+        "persona": "pregnant_ultrasound_w26",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "log_date": "2026-10-01",
+          "pregnancy_week": 43,
+          "weight": 10,
+          "swelling_locations": [
+            "knees"
+          ],
+          "systolic_pressure": 300,
+          "overall_mood": "great"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "تاریخ نمی‌تواند در آینده باشد (and 5 more errors)",
+        "errors": {
+          "log_date": [
+            "تاریخ نمی‌تواند در آینده باشد"
+          ],
+          "pregnancy_week": [
+            "هفته بارداری نمی‌تواند بیشتر از 42 باشد"
+          ],
+          "weight": [
+            "وزن باید حداقل 30 کیلوگرم باشد"
+          ],
+          "systolic_pressure": [
+            "فشار خون سیستولیک نامعتبر است"
+          ],
+          "overall_mood": [
+            "The selected overall mood is invalid."
+          ],
+          "swelling_locations.0": [
+            "The selected swelling_locations.0 is invalid."
+          ]
+        }
+      }
+    }
+  ]
+}

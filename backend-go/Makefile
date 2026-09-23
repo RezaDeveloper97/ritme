@@ -76,11 +76,11 @@ sqlc: ## Regenerate internal/<domain>/store from db/queries/<domain>/*.sql (sqlc
 schema-diff: ## Laravel-migrated DB vs goose baseline DB must be identical (needs php + backend/vendor)
 	scripts/schema-diff.sh
 
-contract: ## Diff Go responses against Laravel goldens: make contract ROUTES=<pattern> (T-M2-05)
-	@if [ -d cmd/contract ]; then go run ./cmd/contract diff $(if $(ROUTES),--routes '$(ROUTES)'); else echo "contract: not implemented yet (cmd/contract arrives with T-M2-05)"; fi
+contract: ## Diff a fresh Go server against the Laravel goldens: make contract ROUTES=<group[,group…]|all> (exit 1 on diff)
+	go run ./cmd/contract diff --routes '$(or $(ROUTES),all)'
 
-contract-record: ## Record Laravel goldens: make contract-record ROUTES=<pattern> (T-M2-05)
-	@if [ -d cmd/contract ]; then go run ./cmd/contract record $(if $(ROUTES),--routes '$(ROUTES)'); else echo "contract-record: not implemented yet (cmd/contract arrives with T-M2-05)"; fi
+contract-record: ## Record Laravel goldens (contract stack; CONTRACT_PORT, default 8090): make contract-record ROUTES=<group|all>
+	go run ./cmd/contract record --routes '$(or $(ROUTES),all)'
 
 docker: ## Build the image
 	docker build -t ritme-backend-go:dev .

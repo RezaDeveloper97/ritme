@@ -1,0 +1,551 @@
+# Pregnancy mode: profile/onboarding, status, symptoms, weekly logs, fetal movement,
+# weekly content and alerts (26 routes).
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+# Pregnant personas: pregnant_lmp_w8 (1014), pregnant_ultrasound_w26 (1015: alerts
+# 101501-101503, weekly logs weeks 24-26, fetal movements, symptoms 09-21..09-23),
+# pregnant_manual_w14 (1016). Non-pregnant: regular (1004), no_profile (1001).
+group: pregnancy
+defaults:
+  persona: pregnant_ultrasound_w26
+  locales: none
+cases:
+  # ---------------- auth ----------------
+  - name: anon_401
+    persona: anon
+    method: GET
+    path: /api/v1/pregnancy/status
+    status: 401
+
+  # ---------------- activate / deactivate ----------------
+  - name: activate_cycle_user
+    doc: a cycle persona switches to pregnancy mode, then status/profile reflect onboarding_required
+    persona: regular
+    locales: [none, fa, en]
+    steps:
+      - {method: POST, path: /api/v1/pregnancy/activate, status: 200}
+      - {method: GET, path: /api/v1/pregnancy/status, status: 200}
+      - {method: GET, path: /api/v1/pregnancy/profile, status: 200}
+  - name: activate_no_profile
+    persona: no_profile
+    method: POST
+    path: /api/v1/pregnancy/activate
+    status: 200
+  - name: activate_already_pregnant
+    persona: [pregnant_lmp_w8, pregnant_ultrasound_w26]
+    method: POST
+    path: /api/v1/pregnancy/activate
+    status: 200
+  - name: deactivate_pregnant
+    persona: [pregnant_ultrasound_w26, pregnant_manual_w14]
+    locales: [none, fa, en]
+    steps:
+      - {method: POST, path: /api/v1/pregnancy/deactivate, status: 200}
+      - {method: GET, path: /api/v1/pregnancy/status, status: 200}
+      - {method: GET, path: /api/v1/pregnancy/profile, status: 200}
+  - name: deactivate_cycle_user
+    persona: regular
+    method: POST
+    path: /api/v1/pregnancy/deactivate
+    status: 200
+  - name: activate_deactivate_activate
+    doc: round trip keeps the onboarded profile
+    persona: pregnant_lmp_w8
+    steps:
+      - {method: POST, path: /api/v1/pregnancy/deactivate, status: 200}
+      - {method: POST, path: /api/v1/pregnancy/activate, status: 200}
+      - {method: GET, path: /api/v1/pregnancy/status, status: 200}
+
+  # ---------------- onboarding ----------------
+  - name: onboarding_lmp
+    persona: regular
+    locales: [none, fa, en]
+    steps:
+      - method: POST
+        path: /api/v1/pregnancy/onboarding
+        body: {age_source: lmp, lmp_date: "2026-07-01", has_miscarriage_history: false, blood_type: O, rh_factor: positive}
+        status: 201
+      - {method: GET, path: /api/v1/pregnancy/profile, status: 200}
+      - {method: GET, path: /api/v1/pregnancy/status, status: 200}
+  - name: onboarding_ultrasound
+    persona: regular
+    locales: [none, fa]
+    steps:
+      - method: POST
+        path: /api/v1/pregnancy/onboarding
+        body:
+          age_source: ultrasound
+          ultrasound_date: "2026-09-01"
+          ultrasound_weeks: 10
+          ultrasound_days: 3
+          has_high_risk_history: true
+          pre_existing_conditions: [diabetes, hypothyroidism]
+          blood_type: AB
+          rh_factor: negative
+        status: 201
+      - {method: GET, path: /api/v1/pregnancy/status, status: 200}
+  - name: onboarding_manual
+    persona: [regular, no_profile]
+    steps:
+      - method: POST
+        path: /api/v1/pregnancy/onboarding
+        body: {age_source: manual, manual_weeks: 20, manual_days: 0}
+        status: 201
+      - {method: GET, path: /api/v1/pregnancy/profile, status: 200}
+  - name: onboarding_reonboard_pregnant
+    doc: a pregnant persona onboarding again overwrites the profile
+    persona: pregnant_manual_w14
+    method: POST
+    path: /api/v1/pregnancy/onboarding
+    body: {age_source: lmp, lmp_date: "2026-06-10"}
+    status: 201
+  - name: onboarding_missing_lmp
+    doc: required_if:age_source,lmp — framework 422 summary with Persian messages
+    persona: regular
+    locales: [none, fa, en]
+    method: POST
+    path: /api/v1/pregnancy/onboarding
+    body: {age_source: lmp}
+    status: 422
+  - name: onboarding_missing_ultrasound
+    persona: regular
+    locales: [none, fa, en]
+    method: POST
+    path: /api/v1/pregnancy/onboarding
+    body: {age_source: ultrasound}
+    status: 422
+  - name: onboarding_missing_manual
+    persona: regular
+    locales: [none, en]
+    method: POST
+    path: /api/v1/pregnancy/onboarding
+    body: {age_source: manual, manual_weeks: 50}
+    status: 422
+  - name: onboarding_invalid
+    persona: regular
+    locales: [none, en]
+    method: POST
+    path: /api/v1/pregnancy/onboarding
+    body: {age_source: guess, lmp_date: "2027-01-01", blood_type: X, rh_factor: maybe, pre_existing_conditions: [flu], has_miscarriage_history: sometimes}
+    status: 422
+  - name: onboarding_empty
+    persona: regular
+    method: POST
+    path: /api/v1/pregnancy/onboarding
+    body: {}
+    status: 422
+  - name: onboarding_future_lmp
+    persona: regular
+    method: POST
+    path: /api/v1/pregnancy/onboarding
+    body: {age_source: lmp, lmp_date: "2026-09-24"}
+    status: 422
+
+  # ---------------- profile ----------------
+  - name: profile_show
+    persona: [pregnant_lmp_w8, pregnant_ultrasound_w26, pregnant_manual_w14]
+    locales: [none, fa, en, ar]
+    method: GET
+    path: /api/v1/pregnancy/profile
+    status: 200
+  - name: profile_show_not_pregnant
+    persona: [regular, no_profile]
+    locales: [none, fa, en]
+    method: GET
+    path: /api/v1/pregnancy/profile
+    status: 404
+  - name: profile_update
+    persona: pregnant_lmp_w8
+    locales: [none, fa]
+    steps:
+      - method: PUT
+        path: /api/v1/pregnancy/profile
+        body: {blood_type: B, rh_factor: negative, has_high_risk_history: true, pre_existing_conditions: [chronic_hypertension]}
+        status: 200
+      - {method: GET, path: /api/v1/pregnancy/profile, status: 200}
+  - name: profile_update_age_source
+    doc: switching age source recomputes confidence / uncertainty (manual → manual_entry_date = today)
+    persona: pregnant_ultrasound_w26
+    steps:
+      - method: PUT
+        path: /api/v1/pregnancy/profile
+        body: {age_source: manual, manual_weeks: 27, manual_days: 1}
+        status: 200
+      - method: PUT
+        path: /api/v1/pregnancy/profile
+        body: {age_source: lmp, lmp_date: "2026-03-20", fetal_movement_felt: true, first_fetal_movement_date: "2026-08-01"}
+        status: 200
+  - name: profile_update_invalid
+    persona: pregnant_lmp_w8
+    locales: [none, en]
+    method: PUT
+    path: /api/v1/pregnancy/profile
+    body: {age_source: guess, ultrasound_weeks: 0, first_fetal_movement_date: "2026-12-01"}
+    status: 422
+  - name: profile_update_not_pregnant
+    persona: regular
+    locales: [none, en]
+    method: PUT
+    path: /api/v1/pregnancy/profile
+    body: {blood_type: A}
+    status: 404
+  - name: confirm
+    persona: [pregnant_lmp_w8, pregnant_manual_w14]
+    locales: [none, en]
+    steps:
+      - {method: POST, path: /api/v1/pregnancy/confirm, status: 200}
+      - {method: GET, path: /api/v1/pregnancy/profile, status: 200}
+  - name: confirm_not_pregnant
+    persona: regular
+    locales: [none, en]
+    method: POST
+    path: /api/v1/pregnancy/confirm
+    status: 404
+
+  # ---------------- status / enums ----------------
+  - name: status
+    persona: [pregnant_lmp_w8, pregnant_ultrasound_w26, pregnant_manual_w14]
+    locales: [none, fa, en, ar]
+    method: GET
+    path: /api/v1/pregnancy/status
+    status: 200
+  - name: status_other_days
+    doc: clock moves the gestational age (week boundary, due-date proximity)
+    persona: [pregnant_lmp_w8, pregnant_ultrasound_w26]
+    steps:
+      - {method: GET, path: /api/v1/pregnancy/status, now: "2026-09-26T10:00:00+03:30", status: 200}
+      - {method: GET, path: /api/v1/pregnancy/status, now: "2026-09-27T00:30:00+03:30", status: 200}
+      - {method: GET, path: /api/v1/pregnancy/status, now: "2026-12-31T10:00:00+03:30", status: 200}
+  - name: status_not_pregnant
+    persona: [regular, no_profile]
+    method: GET
+    path: /api/v1/pregnancy/status
+    status: 200
+  - name: enums
+    locales: [none, fa, en, ar]
+    method: GET
+    path: /api/v1/pregnancy/enums
+    status: 200
+  - name: symptoms_enums
+    locales: [none, fa, en, ar]
+    method: GET
+    path: /api/v1/pregnancy/symptoms/enums
+    status: 200
+  - name: weekly_enums
+    locales: [none, fa, en, ar]
+    method: GET
+    path: /api/v1/pregnancy/weekly/enums
+    status: 200
+
+  # ---------------- symptoms ----------------
+  - name: symptoms_index
+    persona: [pregnant_lmp_w8, pregnant_ultrasound_w26, pregnant_manual_w14, regular]
+    method: GET
+    path: /api/v1/pregnancy/symptoms
+    status: 200
+  - name: symptoms_index_range
+    sweep: {var: range, values: ["from=2026-09-22", "to=2026-09-21", "from=2026-09-22&to=2026-09-22", "from=2027-01-01"]}
+    method: GET
+    path: /api/v1/pregnancy/symptoms?{{range}}
+    status: 200
+  - name: symptoms_store_mild
+    persona: pregnant_lmp_w8
+    locales: [none, fa, en]
+    steps:
+      - method: POST
+        path: /api/v1/pregnancy/symptoms
+        body: {log_date: "2026-09-23", has_nausea: true, nausea_severity: mild, has_fatigue: true, fatigue_severity: moderate, notes: "خسته‌ام"}
+        status: 201
+      - {method: GET, path: /api/v1/pregnancy/symptoms/2026-09-23, status: 200}
+      - {method: GET, path: /api/v1/pregnancy/alerts, status: 200}
+  - name: symptoms_store_alerts
+    doc: severe / sensitive symptoms generate alerts (bleeding, fluid leakage, severe sudden pain, spotting)
+    persona: [pregnant_lmp_w8, pregnant_manual_w14]
+    locales: [fa, en]
+    steps:
+      - method: POST
+        path: /api/v1/pregnancy/symptoms
+        body:
+          log_date: "2026-09-23"
+          has_bleeding: true
+          bleeding_severity: severe
+          has_fluid_leakage: true
+          fluid_leakage_severity: moderate
+          has_severe_sudden_pain: true
+          severe_sudden_pain_severity: severe
+          has_headache: true
+          headache_severity: severe
+          has_dizziness: true
+          dizziness_severity: severe
+        status: 201
+      - {method: GET, path: /api/v1/pregnancy/alerts/summary, status: 200}
+  - name: symptoms_store_spotting
+    persona: pregnant_lmp_w8
+    locales: [none, fa]
+    steps:
+      - method: POST
+        path: /api/v1/pregnancy/symptoms
+        body: {log_date: "2026-09-22", has_spotting: true, spotting_severity: mild, has_cramping: true, cramping_severity: moderate, has_lower_abdominal_pain: true, lower_abdominal_pain_severity: severe}
+        status: 201
+      - {method: GET, path: /api/v1/pregnancy/symptoms, status: 200}
+  - name: symptoms_store_upsert
+    doc: second store for the same date updates the existing row (still 201)
+    steps:
+      - method: POST
+        path: /api/v1/pregnancy/symptoms
+        body: {log_date: "2026-09-23", has_back_pain: true, back_pain_severity: mild}
+        status: 201
+      - method: POST
+        path: /api/v1/pregnancy/symptoms
+        body: {log_date: "2026-09-23", has_back_pain: false, has_pelvic_pressure: true, pelvic_pressure_severity: moderate}
+        status: 201
+      - {method: GET, path: /api/v1/pregnancy/symptoms/2026-09-23, status: 200}
+  - name: symptoms_store_not_pregnant
+    persona: regular
+    method: POST
+    path: /api/v1/pregnancy/symptoms
+    body: {log_date: "2026-09-23", has_nausea: true, nausea_severity: mild}
+    status: 201
+  - name: symptoms_store_invalid
+    locales: [none, fa, en]
+    method: POST
+    path: /api/v1/pregnancy/symptoms
+    body: {log_date: "2026-09-30", has_nausea: maybe, nausea_severity: extreme}
+    status: 422
+  - name: symptoms_store_missing_date
+    method: POST
+    path: /api/v1/pregnancy/symptoms
+    body: {has_nausea: true}
+    status: 422
+  - name: symptoms_show
+    persona: [pregnant_lmp_w8, pregnant_ultrasound_w26]
+    locales: [none, fa, en]
+    method: GET
+    path: /api/v1/pregnancy/symptoms/2026-09-22
+    status: 200
+  - name: symptoms_show_other_format
+    doc: Carbon::parse accepts non-ISO input
+    method: GET
+    path: /api/v1/pregnancy/symptoms/22-09-2026
+    status: 200
+  - name: symptoms_show_missing
+    locales: [none, fa, en]
+    method: GET
+    path: /api/v1/pregnancy/symptoms/2026-01-01
+    status: 404
+  - name: symptoms_show_bad_date
+    method: GET
+    path: /api/v1/pregnancy/symptoms/not-a-date
+    status: 422
+  - name: symptoms_delete
+    locales: [none, fa, en]
+    steps:
+      - {method: DELETE, path: /api/v1/pregnancy/symptoms/2026-09-21, status: 200}
+      - {method: GET, path: /api/v1/pregnancy/symptoms/2026-09-21, status: 404}
+      - {method: DELETE, path: /api/v1/pregnancy/symptoms/2026-09-21, status: 404}
+  - name: symptoms_delete_bad_date
+    method: DELETE
+    path: /api/v1/pregnancy/symptoms/not-a-date
+    status: 422
+
+  # ---------------- weekly logs ----------------
+  - name: weekly_index
+    persona: [pregnant_lmp_w8, pregnant_ultrasound_w26]
+    method: GET
+    path: /api/v1/pregnancy/weekly
+    status: 200
+  - name: weekly_store_upsert
+    doc: store twice for the same week — both 201, second updates; high BP / sugar generate alerts
+    locales: [none, fa, en]
+    steps:
+      - method: POST
+        path: /api/v1/pregnancy/weekly
+        body:
+          log_date: "2026-09-23"
+          pregnancy_week: 27
+          weight: 72.85
+          has_swelling: true
+          swelling_locations: [face, feet]
+          has_shortness_of_breath: true
+          has_blood_pressure_device: true
+          systolic_pressure: 165
+          diastolic_pressure: 112
+          fasting_blood_sugar: 130.5
+          post_meal_blood_sugar: 210
+          overall_mood: poor
+          has_anxiety: true
+          anxiety_severity: severe
+          has_depression_feelings: true
+          depression_severity: severe
+          notes: headache and blurry vision
+        status: 201
+      - method: POST
+        path: /api/v1/pregnancy/weekly
+        body: {log_date: "2026-09-23", pregnancy_week: 27, weight: 72, systolic_pressure: 115, diastolic_pressure: 75, overall_mood: good}
+        status: 201
+      - {method: GET, path: /api/v1/pregnancy/weekly/27, status: 200}
+      - {method: GET, path: /api/v1/pregnancy/weekly, status: 200}
+  - name: weekly_store_normal
+    persona: pregnant_lmp_w8
+    method: POST
+    path: /api/v1/pregnancy/weekly
+    body: {log_date: "2026-09-23", pregnancy_week: 8, weight: 60, has_swelling: false, overall_mood: moderate, has_mood_swings: true, mood_swings_severity: mild}
+    status: 201
+  - name: weekly_store_invalid
+    locales: [none, fa, en]
+    method: POST
+    path: /api/v1/pregnancy/weekly
+    body: {log_date: "2026-10-01", pregnancy_week: 43, weight: 10, swelling_locations: [knees], systolic_pressure: 300, overall_mood: great}
+    status: 422
+  - name: weekly_show
+    locales: [none, fa]
+    sweep: {var: week, values: ["24", "26"]}
+    method: GET
+    path: /api/v1/pregnancy/weekly/{{week}}
+    status: 200
+  - name: weekly_show_missing
+    locales: [none, fa, en]
+    method: GET
+    path: /api/v1/pregnancy/weekly/10
+    status: 404
+  - name: weekly_show_out_of_range
+    sweep: {var: week, values: ["0", "43"]}
+    method: GET
+    path: /api/v1/pregnancy/weekly/{{week}}
+    status: 422
+
+  # ---------------- fetal movement ----------------
+  - name: fetal_movement_index
+    persona: [pregnant_ultrasound_w26, pregnant_lmp_w8]
+    method: GET
+    path: /api/v1/pregnancy/fetal-movement
+    status: 200
+  - name: fetal_movement_index_range
+    sweep: {var: range, values: ["from=2026-09-22", "to=2026-09-21", "from=2026-09-21&to=2026-09-22"]}
+    method: GET
+    path: /api/v1/pregnancy/fetal-movement?{{range}}
+    status: 200
+  - name: fetal_movement_store_first_felt
+    doc: first felt movement sets fetal_movement_felt / first_fetal_movement_date on the profile
+    persona: pregnant_manual_w14
+    locales: [none, fa, en]
+    steps:
+      - method: POST
+        path: /api/v1/pregnancy/fetal-movement
+        body: {log_date: "2026-09-23", pregnancy_week: 14, movement_status: felt, movement_count: 2, first_movement_time: "09:30", last_movement_time: "18:05", notes: first kicks}
+        status: 201
+      - {method: GET, path: /api/v1/pregnancy/profile, status: 200}
+  - name: fetal_movement_store_reduced
+    doc: upserts today's row; reduced / none movement late in pregnancy raises alerts
+    locales: [fa, en]
+    steps:
+      - method: POST
+        path: /api/v1/pregnancy/fetal-movement
+        body: {log_date: "2026-09-23", pregnancy_week: 26, movement_status: none, movement_count: 0}
+        status: 201
+      - method: POST
+        path: /api/v1/pregnancy/fetal-movement
+        body: {log_date: "2026-09-23", pregnancy_week: 26, movement_status: reduced, movement_count: 2}
+        status: 201
+      - method: POST
+        path: /api/v1/pregnancy/fetal-movement
+        body: {log_date: "2026-09-23", pregnancy_week: 26, movement_status: increased, movement_count: 40}
+        status: 201
+  - name: fetal_movement_store_invalid
+    locales: [none, en]
+    method: POST
+    path: /api/v1/pregnancy/fetal-movement
+    body: {log_date: "2026-09-23", pregnancy_week: 26, movement_status: wiggly, movement_count: 101, first_movement_time: "9am"}
+    status: 422
+
+  # ---------------- weekly content ----------------
+  - name: content
+    persona: pregnant_lmp_w8
+    locales: [none, fa, en, ar]
+    sweep: {var: week, values: ["1", "20", "40"]}
+    method: GET
+    path: /api/v1/pregnancy/content/{{week}}
+    status: 200
+  - name: content_locale_query
+    doc: ?locale= wins over Accept-Language; only fa/en, anything else → en
+    persona: pregnant_lmp_w8
+    locales: [none, fa]
+    sweep: {var: loc, values: [fa, en, ar, xx]}
+    method: GET
+    path: /api/v1/pregnancy/content/8?locale={{loc}}
+    status: 200
+  - name: content_out_of_range
+    persona: pregnant_lmp_w8
+    sweep: {var: week, values: ["0", "41"]}
+    method: GET
+    path: /api/v1/pregnancy/content/{{week}}
+    status: 422
+
+  # ---------------- alerts ----------------
+  - name: alerts_summary
+    persona: [pregnant_ultrasound_w26, pregnant_lmp_w8, regular]
+    locales: [none, fa, en]
+    method: GET
+    path: /api/v1/pregnancy/alerts/summary
+    status: 200
+  - name: alerts_index
+    persona: [pregnant_ultrasound_w26, pregnant_lmp_w8]
+    method: GET
+    path: /api/v1/pregnancy/alerts
+    status: 200
+  - name: alerts_index_filters
+    doc: invalid level is ignored; unread_only uses $request->boolean
+    sweep: {var: q, values: ["level=emergency", "level=warning", "level=info", "level=bogus", "unread_only=1", "unread_only=true", "unread_only=0", "level=warning&unread_only=1"]}
+    method: GET
+    path: /api/v1/pregnancy/alerts?{{q}}
+    status: 200
+  - name: alerts_show
+    locales: [none, fa, en]
+    sweep: {var: id, values: ["101501", "101502", "101503"]}
+    method: GET
+    path: /api/v1/pregnancy/alerts/{{id}}
+    status: 200
+  - name: alerts_show_other_user
+    persona: pregnant_lmp_w8
+    locales: [none, fa, en]
+    method: GET
+    path: /api/v1/pregnancy/alerts/101501
+    status: 404
+  - name: alerts_show_missing
+    method: GET
+    path: /api/v1/pregnancy/alerts/999999
+    status: 404
+  - name: alerts_read
+    locales: [none, fa, en]
+    steps:
+      - {method: POST, path: /api/v1/pregnancy/alerts/101501/read, status: 200}
+      - {method: GET, path: /api/v1/pregnancy/alerts/101501, status: 200}
+      - {method: GET, path: /api/v1/pregnancy/alerts/summary, status: 200}
+  - name: alerts_read_other_user
+    persona: pregnant_lmp_w8
+    locales: [none, en]
+    method: POST
+    path: /api/v1/pregnancy/alerts/101501/read
+    status: 404
+  - name: alerts_read_all
+    locales: [none, fa, en]
+    steps:
+      - {method: POST, path: /api/v1/pregnancy/alerts/read-all, status: 200}
+      - {method: GET, path: /api/v1/pregnancy/alerts, status: 200}
+      - {method: POST, path: /api/v1/pregnancy/alerts/read-all, status: 200}
+  - name: alerts_read_all_none
+    persona: regular
+    method: POST
+    path: /api/v1/pregnancy/alerts/read-all
+    status: 200
+  - name: alerts_dismiss
+    locales: [none, fa, en]
+    steps:
+      - {method: POST, path: /api/v1/pregnancy/alerts/101502/dismiss, status: 200}
+      - {method: GET, path: /api/v1/pregnancy/alerts, status: 200}
+      - {method: GET, path: /api/v1/pregnancy/alerts/101502, status: 200}
+      - {method: GET, path: /api/v1/pregnancy/alerts/summary, status: 200}
+  - name: alerts_dismiss_missing
+    locales: [none, en]
+    method: POST
+    path: /api/v1/pregnancy/alerts/999999/dismiss
+    status: 404

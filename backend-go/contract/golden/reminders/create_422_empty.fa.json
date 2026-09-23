@@ -1,0 +1,31 @@
+{
+  "case": "reminders/create_422_empty.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/reminders",
+        "persona": "engaged",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {}
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "اطلاعات واردشده نامعتبر است",
+        "errors": {
+          "type": [
+            "فیلد type الزامی است."
+          ],
+          "title": [
+            "فیلد title الزامی است."
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "case": "content/articles_per_page_too_big.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/articles?per_page=51",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "The per page field must not be greater than 50.",
+        "errors": {
+          "per_page": [
+            "The per page field must not be greater than 50."
+          ]
+        }
+      }
+    }
+  ]
+}

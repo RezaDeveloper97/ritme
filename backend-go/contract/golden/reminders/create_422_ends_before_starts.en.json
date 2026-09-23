@@ -1,0 +1,33 @@
+{
+  "case": "reminders/create_422_ends_before_starts.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/reminders",
+        "persona": "engaged",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "type": "custom",
+          "title": "X",
+          "starts_on": "2026-10-10",
+          "ends_on": "2026-10-01"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errors": {
+          "ends_on": [
+            "The ends on field must be a date after or equal to starts on."
+          ]
+        }
+      }
+    }
+  ]
+}

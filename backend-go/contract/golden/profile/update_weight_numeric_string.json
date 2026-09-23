@@ -1,0 +1,132 @@
+{
+  "case": "profile/update_weight_numeric_string",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/profile",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "weight": "70"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "پروفایل با موفقیت بروزرسانی شد",
+        "data": {
+          "user": {
+            "id": 1004,
+            "name": "Contract regular",
+            "email": null,
+            "mobile": "09900000004",
+            "mobile_verified_at": "2026-09-23T05:30:00.000000Z",
+            "blocked_at": null,
+            "email_verified_at": null,
+            "created_at": "2026-09-23T05:30:00.000000Z",
+            "updated_at": "2026-09-23T05:30:00.000000Z"
+          },
+          "profile": {
+            "id": 1004,
+            "user_id": 1004,
+            "birthday": "1996-04-12",
+            "weight": 70,
+            "height": 165,
+            "period_duration": 5,
+            "cycle_duration": 28,
+            "last_period_start": "2026-09-14",
+            "user_goal": "non_ttc",
+            "pregnancy_intention": "avoiding",
+            "chronic_conditions": null,
+            "subscription_type": "free",
+            "calculation_status": "completed",
+            "calculation_started_at": "2026-09-23T05:30:00.000000Z",
+            "calculation_completed_at": "2026-09-23T05:30:00.000000Z",
+            "calculation_version": 1,
+            "created_at": "2026-09-23T05:30:00.000000Z",
+            "updated_at": "2026-09-23T06:30:00.000000Z"
+          },
+          "calculation_status": "completed"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/profile",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "user": {
+            "id": 1004,
+            "name": "Contract regular",
+            "email": null,
+            "mobile": "09900000004",
+            "mobile_verified_at": "2026-09-23T05:30:00.000000Z",
+            "blocked_at": null,
+            "email_verified_at": null,
+            "created_at": "2026-09-23T05:30:00.000000Z",
+            "updated_at": "2026-09-23T05:30:00.000000Z",
+            "profile": {
+              "id": 1004,
+              "user_id": 1004,
+              "birthday": "1996-04-12",
+              "weight": 70,
+              "height": 165,
+              "period_duration": 5,
+              "cycle_duration": 28,
+              "last_period_start": "2026-09-14",
+              "user_goal": "non_ttc",
+              "pregnancy_intention": "avoiding",
+              "chronic_conditions": null,
+              "subscription_type": "free",
+              "calculation_status": "completed",
+              "calculation_started_at": "2026-09-23T05:30:00.000000Z",
+              "calculation_completed_at": "2026-09-23T05:30:00.000000Z",
+              "calculation_version": 1,
+              "created_at": "2026-09-23T05:30:00.000000Z",
+              "updated_at": "2026-09-23T06:30:00.000000Z"
+            }
+          },
+          "profile": {
+            "id": 1004,
+            "user_id": 1004,
+            "birthday": "1996-04-12",
+            "weight": 70,
+            "height": 165,
+            "period_duration": 5,
+            "cycle_duration": 28,
+            "last_period_start": "2026-09-14",
+            "user_goal": "non_ttc",
+            "pregnancy_intention": "avoiding",
+            "chronic_conditions": null,
+            "subscription_type": "free",
+            "calculation_status": "completed",
+            "calculation_started_at": "2026-09-23T05:30:00.000000Z",
+            "calculation_completed_at": "2026-09-23T05:30:00.000000Z",
+            "calculation_version": 1,
+            "created_at": "2026-09-23T05:30:00.000000Z",
+            "updated_at": "2026-09-23T06:30:00.000000Z"
+          },
+          "bmi": {
+            "value": 25.7,
+            "category": "overweight",
+            "category_label": "اضافه‌وزن",
+            "message": "بر اساس قد و وزن وارد شده، در محدوده‌ی اضافه‌وزن قرار می‌گیری. این وضعیت می‌تواند در بعضی افراد روی انرژی، خواب و سیکل قاعدگی (به‌خصوص در PCOS) اثر بگذارد. تغییرات کوچک و پایدار در فعالیت و تغذیه، بیشتر از رژیم‌های سخت به سلامتت کمک می‌کنند."
+          }
+        }
+      }
+    }
+  ]
+}

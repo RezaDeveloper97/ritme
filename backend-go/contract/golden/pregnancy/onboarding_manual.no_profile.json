@@ -1,0 +1,175 @@
+{
+  "case": "pregnancy/onboarding_manual.no_profile",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/onboarding",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "age_source": "manual",
+          "manual_weeks": 20,
+          "manual_days": 0
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "آنبوردینگ بارداری تکمیل شد",
+        "data": {
+          "profile": {
+            "id": 1017,
+            "user_id": 1001,
+            "pregnancy_mode": true,
+            "cycle_mode": false,
+            "is_locked": false,
+            "age_source": "manual",
+            "confidence_level": "low",
+            "lmp_date": null,
+            "ultrasound_date": null,
+            "ultrasound_weeks": null,
+            "ultrasound_days": null,
+            "manual_weeks": 20,
+            "manual_days": 0,
+            "manual_entry_date": "2026-09-22T20:30:00.000000Z",
+            "estimated_due_date": "2027-02-09T20:30:00.000000Z",
+            "estimated_conception_date": null,
+            "uncertainty_days": 5,
+            "has_miscarriage_history": null,
+            "has_high_risk_history": null,
+            "pre_existing_conditions": null,
+            "blood_type": null,
+            "rh_factor": null,
+            "rh_negative_care_flag": false,
+            "first_fetal_movement_date": null,
+            "fetal_movement_felt": false,
+            "onboarding_completed": true,
+            "onboarding_completed_at": "2026-09-23T06:30:00.000000Z",
+            "created_at": "2026-09-23T06:30:00.000000Z",
+            "updated_at": "2026-09-23T06:30:00.000000Z"
+          },
+          "gestational_age": {
+            "weeks": 20,
+            "days": 0,
+            "total_days": 140,
+            "trimester": 2,
+            "confidence_level": "low",
+            "confidence_label": "پایین",
+            "uncertainty_days": 5,
+            "formatted": {
+              "en": "20 weeks, 0 days",
+              "fa": "20 هفته و 0 روز"
+            }
+          },
+          "estimated_due_date": {
+            "date": "2027-02-10",
+            "days_remaining": 140,
+            "weeks_remaining": 20,
+            "formatted": {
+              "en": "February 10, 2027",
+              "fa": "10 فوریه 2027"
+            }
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/profile",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "profile": {
+            "id": 1017,
+            "user_id": 1001,
+            "pregnancy_mode": true,
+            "cycle_mode": false,
+            "is_locked": false,
+            "age_source": "manual",
+            "confidence_level": "low",
+            "lmp_date": null,
+            "ultrasound_date": null,
+            "ultrasound_weeks": null,
+            "ultrasound_days": null,
+            "manual_weeks": 20,
+            "manual_days": 0,
+            "manual_entry_date": "2026-09-22T20:30:00.000000Z",
+            "estimated_due_date": "2027-02-09T20:30:00.000000Z",
+            "estimated_conception_date": null,
+            "uncertainty_days": 5,
+            "has_miscarriage_history": null,
+            "has_high_risk_history": null,
+            "pre_existing_conditions": null,
+            "blood_type": null,
+            "rh_factor": null,
+            "rh_negative_care_flag": false,
+            "first_fetal_movement_date": null,
+            "fetal_movement_felt": false,
+            "onboarding_completed": true,
+            "onboarding_completed_at": "2026-09-23T06:30:00.000000Z",
+            "created_at": "2026-09-23T06:30:00.000000Z",
+            "updated_at": "2026-09-23T06:30:00.000000Z"
+          },
+          "status": {
+            "is_active": true,
+            "gestational_age": {
+              "weeks": 20,
+              "days": 0,
+              "total_days": 140,
+              "trimester": 2,
+              "confidence_level": "low",
+              "confidence_label": "پایین",
+              "uncertainty_days": 5,
+              "formatted": {
+                "en": "20 weeks, 0 days",
+                "fa": "20 هفته و 0 روز"
+              }
+            },
+            "estimated_due_date": {
+              "date": "2027-02-10",
+              "days_remaining": 140,
+              "weeks_remaining": 20,
+              "formatted": {
+                "en": "February 10, 2027",
+                "fa": "10 فوریه 2027"
+              }
+            },
+            "current_week": 21,
+            "trimester": 2,
+            "age_source": "manual",
+            "confidence_level": "low",
+            "is_high_risk": false,
+            "fetal_movement_tracking_active": true,
+            "fetal_movement_required": false,
+            "flags": {
+              "trimester_info": {
+                "en": "You are in trimester 2.",
+                "fa": "شما در سه‌ماهه 2 هستید."
+              },
+              "week_info": {
+                "en": "Week 21 of pregnancy.",
+                "fa": "هفته 21 بارداری."
+              },
+              "fetal_movement": {
+                "en": "You may start feeling baby movements. Track them when you notice!",
+                "fa": "ممکن است حرکات جنین را احساس کنید. وقتی متوجه شدید ثبت کنید!"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

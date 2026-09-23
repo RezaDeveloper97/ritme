@@ -1,0 +1,24 @@
+{
+  "case": "pregnancy/alerts_read_all_none",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/alerts/read-all",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "همه هشدارها خوانده شدند",
+        "data": {
+          "count": 0
+        }
+      }
+    }
+  ]
+}

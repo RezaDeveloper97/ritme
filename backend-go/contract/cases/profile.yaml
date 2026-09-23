@@ -1,0 +1,307 @@
+# Profile / account routes: GET/POST /profile, GET /profile/export, DELETE /account.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+# Locale: ?locale= → Accept-Language → default (fa); "ar" is an active row without
+# translations, so it exercises the fallback path.
+group: profile
+defaults:
+  persona: regular
+cases:
+  # ---------------- GET /profile ----------------
+  - name: show
+    doc: bmi (label + message) is localized; null without a profile
+    persona: [no_profile, profile_no_history, regular, premium, pregnant_ultrasound_w26, engaged]
+    locales: [none, fa, en, ar]
+    method: GET
+    path: /api/v1/profile
+    status: 200
+  - name: show_locale_query
+    doc: ?locale= wins over Accept-Language
+    locales: fa
+    method: GET
+    path: /api/v1/profile
+    query: {locale: en}
+    status: 200
+  - name: show_unauthenticated
+    persona: anon
+    method: GET
+    path: /api/v1/profile
+    status: 401
+
+  # ---------------- POST /profile: success ----------------
+  - name: create_profile
+    doc: first profile for a verified user without one; onboarding period is logged as a cycle history row
+    persona: no_profile
+    locales: [none, en]
+    steps:
+      - method: POST
+        path: /api/v1/profile
+        body:
+          name: New Person
+          birthday: "1995-02-14"
+          weight: 58.5
+          height: 162
+          period_duration: 5
+          cycle_duration: 29
+          last_period_start: "2026-09-10"
+          pregnancy_intention: avoiding
+          chronic_conditions: []
+        status: 200
+      - {method: GET, path: /api/v1/profile, status: 200}
+      - {method: GET, path: /api/v1/cycle/period/history, status: 200}
+  - name: create_profile_empty_body
+    doc: "{} still creates a profile and seeds last_period_start = today (non-pregnant)"
+    persona: no_profile
+    steps:
+      - {method: POST, path: /api/v1/profile, body: {}, status: 200}
+      - {method: GET, path: /api/v1/profile, status: 200}
+  - name: create_profile_pregnant
+    doc: pregnancy_intention=pregnant → no seeded period start, user_goal non_ttc
+    persona: no_profile
+    steps:
+      - method: POST
+        path: /api/v1/profile
+        body: {name: Pregnant Person, birthday: "1993-06-01", weight: 64, height: 168, pregnancy_intention: pregnant}
+        status: 200
+      - {method: GET, path: /api/v1/profile, status: 200}
+  - name: update_weight
+    doc: weight is a float cast on UserProfile (number, not decimal string)
+    steps:
+      - {method: POST, path: /api/v1/profile, body: {weight: 61.25}, status: 200}
+      - {method: GET, path: /api/v1/profile, status: 200}
+  - name: update_weight_numeric_string
+    steps:
+      - {method: POST, path: /api/v1/profile, body: {weight: "70"}, status: 200}
+      - {method: GET, path: /api/v1/profile, status: 200}
+  - name: update_intention_trying
+    doc: pregnancy_intention=trying without user_goal → user_goal derived as ttc
+    locales: [none, en]
+    steps:
+      - {method: POST, path: /api/v1/profile, body: {pregnancy_intention: trying}, status: 200}
+      - {method: GET, path: /api/v1/profile, status: 200}
+  - name: update_intention_trying_explicit_goal
+    doc: explicit user_goal wins over the derived one
+    steps:
+      - {method: POST, path: /api/v1/profile, body: {pregnancy_intention: trying, user_goal: non_ttc}, status: 200}
+      - {method: GET, path: /api/v1/profile, status: 200}
+  - name: update_intention_unsure_from_ttc
+    persona: ttc
+    steps:
+      - {method: POST, path: /api/v1/profile, body: {pregnancy_intention: unsure}, status: 200}
+      - {method: GET, path: /api/v1/profile, status: 200}
+  - name: update_name
+    doc: name change (Telegram notice is a no-op in the contract env)
+    steps:
+      - {method: POST, path: /api/v1/profile, body: {name: Renamed Regular}, status: 200}
+      - {method: GET, path: /api/v1/auth/user, status: 200}
+  - name: update_name_null
+    steps:
+      - {method: POST, path: /api/v1/profile, body: {name: ~}, status: 200}
+  - name: update_cycle_fields
+    doc: cycle fields changed → markRecalculated; last_period_start moved
+    steps:
+      - {method: POST, path: /api/v1/profile, body: {cycle_duration: 30, period_duration: 6, last_period_start: "2026-09-15"}, status: 200}
+      - {method: GET, path: /api/v1/profile, status: 200}
+      - {method: GET, path: /api/v1/cycle/status, status: 200}
+  - name: update_chronic_and_subscription
+    steps:
+      - {method: POST, path: /api/v1/profile, body: {chronic_conditions: [pcos, hypothyroidism], subscription_type: premium}, status: 200}
+      - {method: GET, path: /api/v1/profile, status: 200}
+  - name: update_empty_strings
+    doc: ConvertEmptyStringsToNull turns "" into null before validation
+    steps:
+      - {method: POST, path: /api/v1/profile, body: {name: "", birthday: ""}, status: 200}
+  - name: update_pregnant_persona
+    persona: pregnant_ultrasound_w26
+    steps:
+      - {method: POST, path: /api/v1/profile, body: {weight: 72.4}, status: 200}
+      - {method: GET, path: /api/v1/profile, status: 200}
+
+  # ---------------- POST /profile: errors ----------------
+  - name: unknown_field
+    doc: unknown keys → 422 with allowed_fields (checked before validation)
+    locales: [none, fa, en]
+    method: POST
+    path: /api/v1/profile
+    body: {weight: 60, mobile: "09120000000", is_admin: true}
+    status: 422
+  - name: store_unauthenticated
+    persona: anon
+    method: POST
+    path: /api/v1/profile
+    body: {weight: 60}
+    status: 401
+  - name: invalid_name_not_string
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/profile
+    body: {"name": 123}
+    status: 422
+  - name: invalid_name_too_long
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/profile
+    body: {"name": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}
+    status: 422
+  - name: invalid_birthday_not_date
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/profile
+    body: {"birthday": "not-a-date"}
+    status: 422
+  - name: invalid_birthday_today
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/profile
+    body: {"birthday": "2026-09-23"}
+    status: 422
+  - name: invalid_weight_not_numeric
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/profile
+    body: {"weight": "heavy"}
+    status: 422
+  - name: invalid_weight_too_low
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/profile
+    body: {"weight": 19.5}
+    status: 422
+  - name: invalid_weight_too_high
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/profile
+    body: {"weight": 301}
+    status: 422
+  - name: invalid_height_not_integer
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/profile
+    body: {"height": 165.5}
+    status: 422
+  - name: invalid_height_too_low
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/profile
+    body: {"height": 49}
+    status: 422
+  - name: invalid_height_too_high
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/profile
+    body: {"height": 251}
+    status: 422
+  - name: invalid_period_duration_not_integer
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/profile
+    body: {"period_duration": "five"}
+    status: 422
+  - name: invalid_period_duration_too_low
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/profile
+    body: {"period_duration": 0}
+    status: 422
+  - name: invalid_period_duration_too_high
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/profile
+    body: {"period_duration": 16}
+    status: 422
+  - name: invalid_cycle_duration_not_integer
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/profile
+    body: {"cycle_duration": 28.5}
+    status: 422
+  - name: invalid_cycle_duration_too_low
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/profile
+    body: {"cycle_duration": 14}
+    status: 422
+  - name: invalid_cycle_duration_too_high
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/profile
+    body: {"cycle_duration": 61}
+    status: 422
+  - name: invalid_last_period_start_not_date
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/profile
+    body: {"last_period_start": "yesterday-ish"}
+    status: 422
+  - name: invalid_last_period_start_future
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/profile
+    body: {"last_period_start": "2026-09-24"}
+    status: 422
+  - name: invalid_user_goal_invalid
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/profile
+    body: {"user_goal": "maybe"}
+    status: 422
+  - name: invalid_subscription_type_invalid
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/profile
+    body: {"subscription_type": "gold"}
+    status: 422
+  - name: invalid_pregnancy_intention_invalid
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/profile
+    body: {"pregnancy_intention": "later"}
+    status: 422
+  - name: invalid_chronic_conditions_not_array
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/profile
+    body: {"chronic_conditions": "pcos"}
+    status: 422
+  - name: invalid_chronic_conditions_invalid_item
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/profile
+    body: {"chronic_conditions": ["pcos", "flu"]}
+    status: 422
+  - name: invalid_multiple_errors
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/profile
+    body: {"weight": 5, "height": 400, "cycle_duration": 100}
+    status: 422
+
+  # ---------------- export ----------------
+  - name: export
+    persona: [no_profile, regular, pregnant_ultrasound_w26, engaged]
+    method: GET
+    path: /api/v1/profile/export
+    status: 200
+  - name: export_unauthenticated
+    persona: anon
+    method: GET
+    path: /api/v1/profile/export
+    status: 401
+
+  # ---------------- DELETE /account ----------------
+  - name: destroy_account
+    doc: all tokens revoked, user deleted → the token is dead afterwards
+    persona: engaged
+    locales: [none, fa, en]
+    steps:
+      - {method: DELETE, path: /api/v1/account, status: 200}
+      - {method: GET, path: /api/v1/auth/user, status: 401}
+  - name: destroy_account_pregnant
+    persona: pregnant_ultrasound_w26
+    steps:
+      - {method: DELETE, path: /api/v1/account, status: 200}
+      - {method: GET, path: /api/v1/profile, status: 401}
+  - name: destroy_account_unauthenticated
+    persona: anon
+    method: DELETE
+    path: /api/v1/account
+    status: 401

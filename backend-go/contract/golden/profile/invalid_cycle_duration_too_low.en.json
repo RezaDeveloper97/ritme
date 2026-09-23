@@ -1,0 +1,30 @@
+{
+  "case": "profile/invalid_cycle_duration_too_low.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/profile",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "cycle_duration": 14
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "Validation failed: Cycle duration must be at least 15 days.",
+        "errors": {
+          "cycle_duration": [
+            "Cycle duration must be at least 15 days."
+          ]
+        }
+      }
+    }
+  ]
+}

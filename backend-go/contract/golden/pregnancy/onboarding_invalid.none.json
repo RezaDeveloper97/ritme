@@ -1,0 +1,50 @@
+{
+  "case": "pregnancy/onboarding_invalid.none",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/onboarding",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "age_source": "guess",
+          "lmp_date": "2027-01-01",
+          "blood_type": "X",
+          "rh_factor": "maybe",
+          "pre_existing_conditions": [
+            "flu"
+          ],
+          "has_miscarriage_history": "sometimes"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "منبع محاسبه سن بارداری نامعتبر است (and 5 more errors)",
+        "errors": {
+          "age_source": [
+            "منبع محاسبه سن بارداری نامعتبر است"
+          ],
+          "lmp_date": [
+            "تاریخ نمی‌تواند در آینده باشد"
+          ],
+          "has_miscarriage_history": [
+            "فیلد has miscarriage history باید درست یا نادرست باشد."
+          ],
+          "blood_type": [
+            "blood type انتخاب‌شده معتبر نیست."
+          ],
+          "rh_factor": [
+            "rh factor انتخاب‌شده معتبر نیست."
+          ],
+          "pre_existing_conditions.0": [
+            "pre_existing_conditions.0 انتخاب‌شده معتبر نیست."
+          ]
+        }
+      }
+    }
+  ]
+}

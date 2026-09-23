@@ -1,0 +1,103 @@
+# Cycle engine read endpoints + recalculate (CycleCalculationController).
+# Case format: backend-go/cmd/contract/cases.go. Engine sweeps live in cycle-sweep.yaml.
+group: cycle
+defaults:
+  persona: regular
+  locales: none
+cases:
+  - name: status
+    persona: [no_profile, profile_no_history, regular, open_period_day3, pregnant_lmp_w8, engaged]
+    locales: [none, fa, en]
+    method: GET
+    path: /api/v1/cycle/status
+    status: 200
+
+  - name: today
+    doc: every persona (blocked has no session), locale fallbacks incl. ar
+    persona: [no_profile, profile_no_history, onboarding_declared, regular, irregular, short_outlier,
+      open_period_day3, open_period_day11, open_period_day13, overdue_10, overdue_20, ttc, premium,
+      pregnant_lmp_w8, pregnant_ultrasound_w26, pregnant_manual_w14, engaged]
+    locales: [none, fa, en, ar]
+    method: GET
+    path: /api/v1/cycle/today
+    status: 200
+
+  - name: date
+    persona: [regular, irregular, open_period_day3, no_profile]
+    locales: [fa, en]
+    sweep: {var: d, values: ["2026-09-14", "2026-09-23", "2026-10-12", "2026-01-01", "2027-03-15"]}
+    method: GET
+    path: /api/v1/cycle/date/{{d}}
+    status: 200
+  - name: date_loose_format
+    doc: Carbon::parse accepts non-ISO input
+    sweep: {var: d, values: ["2026-9-5", "20260923", "tomorrow"]}
+    method: GET
+    path: /api/v1/cycle/date/{{d}}
+    status: 200
+  - name: date_invalid
+    locales: [none, fa, en]
+    method: GET
+    path: /api/v1/cycle/date/not-a-date
+    status: 422
+
+  - name: month_full
+    persona: [regular, open_period_day11, pregnant_ultrasound_w26, no_profile]
+    locales: [fa, en]
+    method: GET
+    path: /api/v1/cycle/month/2026/9
+    status: 200
+  - name: month_full_explicit
+    method: GET
+    path: /api/v1/cycle/month/2026/10
+    query: {view: full}
+    status: 200
+  - name: month_calendar
+    persona: [regular, open_period_day11, pregnant_ultrasound_w26, no_profile]
+    locales: [fa, en]
+    method: GET
+    path: /api/v1/cycle/month/2026/9
+    query: {view: calendar}
+    status: 200
+  - name: month_padded
+    doc: zero-padded month segment
+    method: GET
+    path: /api/v1/cycle/month/2026/09
+    query: {view: calendar}
+    status: 200
+  - name: month_invalid_view
+    method: GET
+    path: /api/v1/cycle/month/2026/9
+    query: {view: week}
+    status: 422
+  - name: month_invalid_month
+    sweep: {var: m, values: ["0", "13"]}
+    method: GET
+    path: /api/v1/cycle/month/2026/{{m}}
+    status: 422
+
+  - name: recalculate
+    doc: bumps calculation_version; status/today reflect it
+    locales: [fa, en]
+    steps:
+      - {method: POST, path: /api/v1/cycle/recalculate, status: 200}
+      - {method: GET, path: /api/v1/cycle/status, status: 200}
+      - {method: GET, path: /api/v1/cycle/today, status: 200}
+  - name: recalculate_no_profile
+    persona: no_profile
+    locales: [none, fa, en]
+    method: POST
+    path: /api/v1/cycle/recalculate
+    status: 400
+
+  - name: unauthenticated
+    persona: anon
+    sweep: {var: p, values: [status, today, date/2026-09-23, month/2026/9]}
+    method: GET
+    path: /api/v1/cycle/{{p}}
+    status: 401
+  - name: recalculate_unauthenticated
+    persona: anon
+    method: POST
+    path: /api/v1/cycle/recalculate
+    status: 401

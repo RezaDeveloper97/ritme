@@ -1,0 +1,105 @@
+{
+  "case": "healthlog/store_full_payload",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/health-logs",
+        "persona": "engaged",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "log_date": "2026-09-20",
+          "blood_color": "red",
+          "clots_amount": "low",
+          "has_clots": true,
+          "bleeding_smell": "normal",
+          "stomach_ache_intensity": "medium",
+          "pelvic_pain_intensity": "low",
+          "back_pain_intensity": "high",
+          "nausea_intensity": "low",
+          "bloating_intensity": "medium",
+          "diarrhea": false,
+          "constipation": true,
+          "appetite_change": "gain",
+          "food_craving": true,
+          "breast_sensitivity_intensity": "low",
+          "vaginal_itching_intensity": "low",
+          "urination_change": "normal",
+          "acne": true,
+          "fatigue": true,
+          "moods": [
+            "anxious",
+            "sensitive"
+          ],
+          "exercise_type": [
+            "walking",
+            "yoga"
+          ],
+          "exercise_duration": 45,
+          "exercise_intensity": "medium",
+          "discharge_color": "white",
+          "discharge_texture": "creamy",
+          "discharge_amount": "medium",
+          "frequent_urination": false,
+          "medications": {
+            "painkillers": "ibuprofen",
+            "supplements": "iron"
+          },
+          "notes": "full <b>payload</b> & \"quotes\" / slash"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "Health log created successfully",
+        "data": {
+          "user_id": 1018,
+          "log_date": "2026-09-20",
+          "blood_color": "red",
+          "has_clots": true,
+          "clots_amount": "low",
+          "bleeding_smell": "normal",
+          "stomach_ache_intensity": "medium",
+          "pelvic_pain_intensity": "low",
+          "back_pain_intensity": "high",
+          "nausea_intensity": "low",
+          "bloating_intensity": "medium",
+          "diarrhea": false,
+          "constipation": true,
+          "appetite_change": "gain",
+          "food_craving": true,
+          "breast_sensitivity_intensity": "low",
+          "vaginal_itching_intensity": "low",
+          "urination_change": "normal",
+          "acne": true,
+          "fatigue": true,
+          "exercise_duration": 45,
+          "exercise_intensity": "medium",
+          "discharge_color": "white",
+          "discharge_texture": "creamy",
+          "discharge_amount": "medium",
+          "frequent_urination": false,
+          "medications": {
+            "painkillers": "ibuprofen",
+            "supplements": "iron"
+          },
+          "notes": "full <b>payload</b> & \"quotes\" / slash",
+          "moods": [
+            "anxious",
+            "sensitive"
+          ],
+          "exercise_type": [
+            "walking",
+            "yoga"
+          ],
+          "updated_at": "2026-09-23T06:30:00.000000Z",
+          "created_at": "2026-09-23T06:30:00.000000Z",
+          "id": 101802
+        }
+      }
+    }
+  ]
+}

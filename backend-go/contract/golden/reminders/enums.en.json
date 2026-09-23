@@ -1,0 +1,63 @@
+{
+  "case": "reminders/enums.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/reminders/enums",
+        "persona": "engaged",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "types": [
+            {
+              "value": "doctor",
+              "label": "Doctor reminder",
+              "icon": "stethoscope"
+            },
+            {
+              "value": "medication",
+              "label": "Medication reminder",
+              "icon": "pill"
+            },
+            {
+              "value": "appointment",
+              "label": "Appointment reminder",
+              "icon": "calendar-clock"
+            },
+            {
+              "value": "custom",
+              "label": "Reminder",
+              "icon": "bell"
+            }
+          ],
+          "recurrences": [
+            {
+              "value": "none",
+              "label": "One-off"
+            },
+            {
+              "value": "daily",
+              "label": "Daily"
+            },
+            {
+              "value": "weekly",
+              "label": "Weekly"
+            },
+            {
+              "value": "monthly",
+              "label": "Monthly"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

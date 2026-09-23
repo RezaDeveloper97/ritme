@@ -1,0 +1,97 @@
+{
+  "case": "auth/verify_otp_new_user_signup",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/auth/send-otp",
+        "persona": "anon",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "mobile": "09900009999"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "5",
+        "x-ratelimit-remaining": "4"
+      },
+      "body": {
+        "success": true,
+        "message": "OTP sent successfully",
+        "data": {
+          "expires_in": 120
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/auth/verify-otp",
+        "persona": "anon",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "mobile": "09900009999",
+          "code": "{{otp}}"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "10",
+        "x-ratelimit-remaining": "<ignored>"
+      },
+      "body": {
+        "success": true,
+        "message": "Registration successful",
+        "data": {
+          "user": {
+            "id": 1019,
+            "name": null,
+            "email": null,
+            "mobile": "09900009999",
+            "mobile_verified_at": null,
+            "blocked_at": null,
+            "email_verified_at": null,
+            "created_at": "2026-09-23T06:30:00.000000Z",
+            "updated_at": "2026-09-23T06:30:00.000000Z"
+          },
+          "new_user": true,
+          "profile_completed": false,
+          "access_token": "<pattern:^eyJ[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$>",
+          "token_type": "Bearer"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/auth/user",
+        "persona": "anon",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "user": {
+            "id": 1019,
+            "name": null,
+            "email": null,
+            "mobile": "09900009999",
+            "mobile_verified_at": null,
+            "blocked_at": null,
+            "email_verified_at": null,
+            "created_at": "2026-09-23T06:30:00.000000Z",
+            "updated_at": "2026-09-23T06:30:00.000000Z"
+          },
+          "profile_completed": false
+        }
+      }
+    }
+  ]
+}

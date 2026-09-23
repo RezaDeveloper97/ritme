@@ -1,0 +1,73 @@
+{
+  "case": "auth/refresh_session_due",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/auth/refresh-session",
+        "persona": "token_near_expiry",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "10",
+        "x-ratelimit-remaining": "9"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "refreshed": true,
+          "access_token": "<pattern:^eyJ[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$>",
+          "token_type": "Bearer",
+          "expires_at": "<pattern:^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\+03:30$>"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/auth/user",
+        "persona": "token_near_expiry",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 401,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "Unauthenticated.",
+        "error_code": "token_revoked"
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/auth/user",
+        "persona": "token_near_expiry",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "user": {
+            "id": 1004,
+            "name": "Contract regular",
+            "email": null,
+            "mobile": "09900000004",
+            "mobile_verified_at": "2026-09-23T05:30:00.000000Z",
+            "blocked_at": null,
+            "email_verified_at": null,
+            "created_at": "2026-09-23T05:30:00.000000Z",
+            "updated_at": "2026-09-23T05:30:00.000000Z"
+          },
+          "profile_completed": true
+        }
+      }
+    }
+  ]
+}

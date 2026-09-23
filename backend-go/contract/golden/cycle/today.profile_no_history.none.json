@@ -1,0 +1,179 @@
+{
+  "case": "cycle/today.profile_no_history.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/today",
+        "persona": "profile_no_history",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "calculation": {
+            "calculation_date": "2026-09-23",
+            "cycle_day": 11,
+            "phase": "follicular",
+            "subphase": "fertile_rising",
+            "estimated_ovulation_day": 15,
+            "cycle_length_used": 28,
+            "is_fertile_window": true,
+            "is_pms_window": false,
+            "is_period_tomorrow": false,
+            "is_luteal_spotting": false,
+            "cycle_score": 0.7,
+            "age_factor": 0.85,
+            "base_probability": 0.15,
+            "symptom_score": 1,
+            "final_probability": 8.92,
+            "cycle_variability": "regular",
+            "uncertainty_range": 1,
+            "text_flags": {
+              "fertility_status": "شما در پنجره باروری هستید. احتمال بارداری بیشتر است.",
+              "probability_message": "احتمال بارداری امروز 8.9٪ است.",
+              "phase_info": "فاز فعلی: فولیکولار (افزایش باروری)"
+            },
+            "daily_tips": [
+              {
+                "type": "energy",
+                "title": "انرژی",
+                "icon": "bolt",
+                "text": "سطح انرژی شما در حال افزایش است. زمان مناسبی برای پروژه‌های جدید!"
+              },
+              {
+                "type": "exercise",
+                "title": "ورزش",
+                "icon": "walking",
+                "text": "زمان مناسبی برای ورزش‌های سنگین است."
+              },
+              {
+                "type": "nutrition",
+                "title": "تغذیه",
+                "icon": "apple",
+                "text": "پروتئین و سبزیجات تازه بخورید تا ذخیره انرژی‌تان دوباره پر شود."
+              },
+              {
+                "type": "mental_health",
+                "title": "سلامت روان",
+                "icon": "brain",
+                "text": "فرصت خوبی برای برنامه‌ریزی و یادگیری چیزهای تازه است."
+              }
+            ],
+            "source_profile_data": {
+              "birthday": "1996-04-12",
+              "period_duration": 5,
+              "cycle_duration": 28,
+              "last_period_start": "2026-09-13"
+            },
+            "source_daily_log_data": null
+          },
+          "cycle_view": {
+            "date": "2026-09-23",
+            "cycle_day": 11,
+            "main_phase": "fertile",
+            "subphase": "fertile_rising",
+            "fertility_level": "medium",
+            "days_to_ovulation": 4,
+            "days_to_period": 18,
+            "days_late": 0,
+            "anchors": {
+              "current_period_start": "2026-09-13",
+              "current_period_start_source": "onboarding_declared",
+              "current_period_end": "2026-09-17",
+              "current_period_end_source": "assumed_from_effective_duration",
+              "current_period_end_is_confirmed": false,
+              "predicted_next_period_start": "2026-10-11",
+              "estimated_ovulation_date": "2026-09-27"
+            },
+            "metrics": {
+              "effective_cycle_length": 28,
+              "effective_period_length": 5,
+              "cycle_variability": null
+            },
+            "confidence": "low",
+            "confidence_reasons": [
+              "low_history",
+              "onboarding_data_used"
+            ],
+            "data_quality": "partial",
+            "resolution_source": "onboarding_based",
+            "is_predicted": true,
+            "requires_user_input": false,
+            "warnings": [
+              "low_history",
+              "onboarding_data_used"
+            ],
+            "phase": "ovulation",
+            "data_status": "predicted",
+            "predictions": {
+              "next_period_start": "2026-10-11",
+              "next_period_end": "2026-10-15",
+              "estimated_ovulation_date": "2026-09-27",
+              "fertile_window_start": "2026-09-22",
+              "fertile_window_end": "2026-09-28",
+              "source": "profile",
+              "confidence": "low",
+              "confidence_reasons": [
+                "based_on_profile_data",
+                "not_enough_logged_cycles"
+              ]
+            },
+            "profile_values": {
+              "cycle_length": 28,
+              "period_duration": 5
+            },
+            "calculated_values": {
+              "cycle_length": null,
+              "period_duration": null,
+              "based_on_cycles": null
+            },
+            "effective_values": {
+              "cycle_length": 28,
+              "period_duration": 5,
+              "source": "profile",
+              "period_duration_source": "profile"
+            },
+            "data_quality_details": {
+              "confidence": "low",
+              "confidence_reasons": [
+                "based_on_profile_data",
+                "not_enough_logged_cycles"
+              ],
+              "regularity_status": "not_enough_data",
+              "is_irregular_possible": false,
+              "missing_period_end": false
+            },
+            "daily_card": {
+              "title": "پنجره باروری ممکن است نزدیک باشد",
+              "subtitle": "در این بازه احتمال باروری بر اساس پیش‌بینی چرخه بالاتر است، اما زمان واقعی تخمک‌گذاری می‌تواند متفاوت باشد.",
+              "data_status": "predicted",
+              "fertility_level": "medium",
+              "fertility_label": "متوسط",
+              "badges": [
+                "روز ۱۱ چرخه",
+                "پیش‌بینی‌شده"
+              ],
+              "primary_action": {
+                "type": "log_symptoms",
+                "label": "ثبت علائم امروز"
+              },
+              "secondary_actions": [
+                {
+                  "type": "view_details",
+                  "label": "جزئیات امروز"
+                }
+              ]
+            }
+          },
+          "calculation_status": "completed",
+          "is_recalculating": false
+        }
+      }
+    }
+  ]
+}

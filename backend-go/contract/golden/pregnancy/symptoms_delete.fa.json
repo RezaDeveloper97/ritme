@@ -1,0 +1,56 @@
+{
+  "case": "pregnancy/symptoms_delete.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/pregnancy/symptoms/2026-09-21",
+        "persona": "pregnant_ultrasound_w26",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "گزارش علائم حذف شد"
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/symptoms/2026-09-21",
+        "persona": "pregnant_ultrasound_w26",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "گزارش علائم یافت نشد"
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/pregnancy/symptoms/2026-09-21",
+        "persona": "pregnant_ultrasound_w26",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "گزارش علائم یافت نشد"
+      }
+    }
+  ]
+}

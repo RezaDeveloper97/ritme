@@ -1,0 +1,163 @@
+{
+  "case": "pregnancy/symptoms_store_alerts.pregnant_lmp_w8.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/symptoms",
+        "persona": "pregnant_lmp_w8",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "log_date": "2026-09-23",
+          "has_bleeding": true,
+          "bleeding_severity": "severe",
+          "has_fluid_leakage": true,
+          "fluid_leakage_severity": "moderate",
+          "has_severe_sudden_pain": true,
+          "severe_sudden_pain_severity": "severe",
+          "has_headache": true,
+          "headache_severity": "severe",
+          "has_dizziness": true,
+          "dizziness_severity": "severe"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "Symptom log saved successfully",
+        "data": {
+          "log": {
+            "user_id": 1014,
+            "log_date": "2026-09-23",
+            "has_headache": true,
+            "headache_severity": "severe",
+            "has_dizziness": true,
+            "dizziness_severity": "severe",
+            "has_bleeding": true,
+            "bleeding_severity": "severe",
+            "has_fluid_leakage": true,
+            "fluid_leakage_severity": "moderate",
+            "has_severe_sudden_pain": true,
+            "severe_sudden_pain_severity": "severe",
+            "updated_at": "2026-09-23T06:30:00.000000Z",
+            "created_at": "2026-09-23T06:30:00.000000Z",
+            "id": 101504
+          },
+          "alerts": [
+            {
+              "user_id": 1014,
+              "alert_level": "emergency",
+              "alert_type": "symptom_based",
+              "title": "Emergency: Heavy Bleeding",
+              "message": "Heavy bleeding during pregnancy requires immediate medical attention. Please go to emergency immediately.",
+              "pregnancy_week": 8,
+              "trigger_symptoms": {
+                "bleeding": "severe"
+              },
+              "medical_history_flags": [],
+              "recommended_actions": [
+                "Go to emergency immediately",
+                "Call your doctor"
+              ],
+              "updated_at": "2026-09-23T06:30:00.000000Z",
+              "created_at": "2026-09-23T06:30:00.000000Z",
+              "id": 101504
+            },
+            {
+              "user_id": 1014,
+              "alert_level": "emergency",
+              "alert_type": "symptom_based",
+              "title": "Emergency: Fluid Leakage",
+              "message": "Fluid leakage may indicate ruptured membranes. Please go to hospital immediately.",
+              "pregnancy_week": 8,
+              "trigger_symptoms": {
+                "fluid_leakage": "moderate"
+              },
+              "medical_history_flags": [],
+              "recommended_actions": [
+                "Go to hospital immediately",
+                "Lie down and avoid movement"
+              ],
+              "updated_at": "2026-09-23T06:30:00.000000Z",
+              "created_at": "2026-09-23T06:30:00.000000Z",
+              "id": 101505
+            },
+            {
+              "user_id": 1014,
+              "alert_level": "emergency",
+              "alert_type": "symptom_based",
+              "title": "Emergency: Severe Pain",
+              "message": "Severe sudden pain requires immediate medical evaluation.",
+              "pregnancy_week": 8,
+              "trigger_symptoms": {
+                "severe_sudden_pain": "severe"
+              },
+              "medical_history_flags": [],
+              "recommended_actions": [
+                "Go to emergency immediately",
+                "Call emergency services"
+              ],
+              "updated_at": "2026-09-23T06:30:00.000000Z",
+              "created_at": "2026-09-23T06:30:00.000000Z",
+              "id": 101506
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/alerts/summary",
+        "persona": "pregnant_lmp_w8",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "has_emergency": true,
+          "has_unread": true,
+          "counts": {
+            "total": 3,
+            "unread": 3,
+            "emergency": 3,
+            "warning": 0,
+            "info": 0
+          },
+          "latest_emergency": {
+            "id": 101504,
+            "user_id": 1014,
+            "alert_level": "emergency",
+            "alert_type": "symptom_based",
+            "title": "Emergency: Heavy Bleeding",
+            "message": "Heavy bleeding during pregnancy requires immediate medical attention. Please go to emergency immediately.",
+            "pregnancy_week": 8,
+            "trigger_symptoms": {
+              "bleeding": "severe"
+            },
+            "medical_history_flags": [],
+            "is_read": false,
+            "is_dismissed": false,
+            "read_at": null,
+            "dismissed_at": null,
+            "recommended_actions": [
+              "Go to emergency immediately",
+              "Call your doctor"
+            ],
+            "created_at": "2026-09-23T06:30:00.000000Z",
+            "updated_at": "2026-09-23T06:30:00.000000Z"
+          }
+        }
+      }
+    }
+  ]
+}

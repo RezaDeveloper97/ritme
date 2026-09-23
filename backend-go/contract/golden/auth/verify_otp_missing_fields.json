@@ -1,0 +1,32 @@
+{
+  "case": "auth/verify_otp_missing_fields",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/auth/verify-otp",
+        "persona": "anon",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {}
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "10",
+        "x-ratelimit-remaining": "9"
+      },
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errors": {
+          "mobile": [
+            "فیلد شماره موبایل الزامی است."
+          ],
+          "code": [
+            "فیلد کد تایید الزامی است."
+          ]
+        }
+      }
+    }
+  ]
+}

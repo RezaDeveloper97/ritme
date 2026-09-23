@@ -1,0 +1,160 @@
+{
+  "case": "pregnancy/fetal_movement_store_reduced.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/fetal-movement",
+        "persona": "pregnant_ultrasound_w26",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "log_date": "2026-09-23",
+          "pregnancy_week": 26,
+          "movement_status": "none",
+          "movement_count": 0
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "حرکات جنین ثبت شد",
+        "data": {
+          "log": {
+            "id": 101503,
+            "user_id": 1015,
+            "log_date": "2026-09-23",
+            "pregnancy_week": 26,
+            "movement_status": "none",
+            "movement_count": 0,
+            "first_movement_time": "08:15:00",
+            "last_movement_time": "21:40:00",
+            "notes": null,
+            "created_at": "2026-09-23T05:30:00.000000Z",
+            "updated_at": "2026-09-23T06:30:00.000000Z"
+          },
+          "alerts": [
+            {
+              "user_id": 1015,
+              "alert_level": "emergency",
+              "alert_type": "symptom_based",
+              "title": "اورژانس: عدم حرکت جنین",
+              "message": "عدم حرکت جنین گزارش شده است. لطفاً فوراً با پزشک تماس بگیرید یا به بیمارستان مراجعه کنید.",
+              "pregnancy_week": 26,
+              "trigger_symptoms": {
+                "fetal_movement": "none"
+              },
+              "recommended_actions": [
+                "فوراً به بیمارستان مراجعه کنید",
+                "با پزشک تماس بگیرید"
+              ],
+              "updated_at": "2026-09-23T06:30:00.000000Z",
+              "created_at": "2026-09-23T06:30:00.000000Z",
+              "id": 101504
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/fetal-movement",
+        "persona": "pregnant_ultrasound_w26",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "log_date": "2026-09-23",
+          "pregnancy_week": 26,
+          "movement_status": "reduced",
+          "movement_count": 2
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "حرکات جنین ثبت شد",
+        "data": {
+          "log": {
+            "id": 101503,
+            "user_id": 1015,
+            "log_date": "2026-09-23",
+            "pregnancy_week": 26,
+            "movement_status": "reduced",
+            "movement_count": 2,
+            "first_movement_time": "08:15:00",
+            "last_movement_time": "21:40:00",
+            "notes": null,
+            "created_at": "2026-09-23T05:30:00.000000Z",
+            "updated_at": "2026-09-23T06:30:00.000000Z"
+          },
+          "alerts": [
+            {
+              "user_id": 1015,
+              "alert_level": "warning",
+              "alert_type": "symptom_based",
+              "title": "هشدار: کاهش حرکت جنین",
+              "message": "کاهش حرکات جنین گزارش شده است. لطفاً با پزشک خود مشورت کنید.",
+              "pregnancy_week": 26,
+              "trigger_symptoms": {
+                "fetal_movement": "reduced"
+              },
+              "recommended_actions": [
+                "با پزشک تماس بگیرید",
+                "دراز بکشید و حرکات را پیگیری کنید"
+              ],
+              "updated_at": "2026-09-23T06:30:00.000000Z",
+              "created_at": "2026-09-23T06:30:00.000000Z",
+              "id": 101505
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/fetal-movement",
+        "persona": "pregnant_ultrasound_w26",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "log_date": "2026-09-23",
+          "pregnancy_week": 26,
+          "movement_status": "increased",
+          "movement_count": 40
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "حرکات جنین ثبت شد",
+        "data": {
+          "log": {
+            "id": 101503,
+            "user_id": 1015,
+            "log_date": "2026-09-23",
+            "pregnancy_week": 26,
+            "movement_status": "increased",
+            "movement_count": 40,
+            "first_movement_time": "08:15:00",
+            "last_movement_time": "21:40:00",
+            "notes": null,
+            "created_at": "2026-09-23T05:30:00.000000Z",
+            "updated_at": "2026-09-23T06:30:00.000000Z"
+          },
+          "alerts": []
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "case": "pregnancy/confirm_not_pregnant.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/confirm",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "Pregnancy profile not found"
+      }
+    }
+  ]
+}

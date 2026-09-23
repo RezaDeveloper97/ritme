@@ -1,0 +1,264 @@
+# Auth / OTP routes and the 401 contract (error_code ∈ token_expired|token_revoked|unauthenticated).
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+#
+# Not recordable: the throttle middleware 429 ("Too Many Attempts." + Retry-After) on
+# send-otp (5/min), verify-otp (10/min) and refresh-session (10/min). The contract stack runs
+# CACHE_STORE=array, so the rate limiter forgets every hit between requests and
+# X-RateLimit-Remaining is always limit-1. Steps that hit a throttled route more than once
+# per case ignore that header (a real limiter would count down).
+group: auth
+defaults:
+  persona: anon
+  patterns:
+    data.access_token: '^eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$'
+    data.expires_at: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+03:30$'
+cases:
+  # ---------------- send-otp ----------------
+  - name: send_otp_new_mobile
+    doc: never reveals whether the mobile belongs to a user
+    method: POST
+    path: /api/v1/auth/send-otp
+    body: {mobile: "09900009999"}
+    status: 200
+  - name: send_otp_existing_mobile
+    method: POST
+    path: /api/v1/auth/send-otp
+    body: {mobile: "09900000004"}
+    status: 200
+  - name: send_otp_missing_mobile
+    method: POST
+    path: /api/v1/auth/send-otp
+    body: {}
+    status: 422
+  - name: send_otp_bad_format
+    method: POST
+    path: /api/v1/auth/send-otp
+    body: {mobile: "0912345"}
+    status: 422
+  - name: send_otp_not_string
+    method: POST
+    path: /api/v1/auth/send-otp
+    body: {mobile: 9123456789}
+    status: 422
+  - name: send_otp_resend_window
+    doc: second request 20 s later → controller 429 with data.retry_after (DB-based, not the throttle middleware)
+    steps:
+      - method: POST
+        path: /api/v1/auth/send-otp
+        body: {mobile: "09900009999"}
+        status: 200
+        now: "2026-09-23T10:00:00+03:30"
+      - method: POST
+        path: /api/v1/auth/send-otp
+        body: {mobile: "09900009999"}
+        status: 429
+        now: "2026-09-23T10:00:20+03:30"
+        ignore: ["header:x-ratelimit-remaining"]
+  - name: send_otp_after_window
+    doc: 61 s later a new code may be requested
+    steps:
+      - method: POST
+        path: /api/v1/auth/send-otp
+        body: {mobile: "09900009999"}
+        status: 200
+        now: "2026-09-23T10:00:00+03:30"
+      - method: POST
+        path: /api/v1/auth/send-otp
+        body: {mobile: "09900009999"}
+        status: 200
+        now: "2026-09-23T10:01:01+03:30"
+        ignore: ["header:x-ratelimit-remaining"]
+
+  # ---------------- verify-otp ----------------
+  - name: verify_otp_existing_user
+    locales: [none, fa, en]
+    steps:
+      - method: POST
+        path: /api/v1/auth/send-otp
+        body: {mobile: "09900000004"}
+        status: 200
+      - method: POST
+        path: /api/v1/auth/verify-otp
+        otp_for: "09900000004"
+        body: {mobile: "09900000004", code: "{{otp}}"}
+        status: 200
+        ignore: ["header:x-ratelimit-remaining"]
+  - name: verify_otp_no_profile_user
+    doc: existing user without a profile → profile_completed false
+    steps:
+      - method: POST
+        path: /api/v1/auth/send-otp
+        body: {mobile: "09900000001"}
+        status: 200
+      - method: POST
+        path: /api/v1/auth/verify-otp
+        otp_for: "09900000001"
+        body: {mobile: "09900000001", code: "{{otp}}"}
+        status: 200
+        ignore: ["header:x-ratelimit-remaining"]
+  - name: verify_otp_new_user_signup
+    doc: unknown mobile → user created (id 1019), new_user true; token works for /auth/user
+    steps:
+      - method: POST
+        path: /api/v1/auth/send-otp
+        body: {mobile: "09900009999"}
+        status: 200
+      - method: POST
+        path: /api/v1/auth/verify-otp
+        otp_for: "09900009999"
+        body: {mobile: "09900009999", code: "{{otp}}"}
+        status: 200
+        capture: {token: data.access_token}
+        ignore: ["header:x-ratelimit-remaining"]
+      - method: GET
+        path: /api/v1/auth/user
+        headers: {Authorization: "Bearer {{token}}"}
+        status: 200
+  - name: verify_otp_wrong_code_size
+    doc: 5-char / suffixed codes fail size:4 validation (422 Validation failed), not the code compare
+    steps:
+      - method: POST
+        path: /api/v1/auth/send-otp
+        body: {mobile: "09900000004"}
+        status: 200
+      - method: POST
+        path: /api/v1/auth/verify-otp
+        body: {mobile: "09900000004", code: "00000"}
+        status: 422
+        ignore: ["header:x-ratelimit-remaining"]
+      - method: POST
+        path: /api/v1/auth/verify-otp
+        otp_for: "09900000004"
+        raw_body: '{"mobile":"09900000004","code":"{{otp}}x"}'
+        status: 422
+        ignore: ["header:x-ratelimit-remaining"]
+  - name: verify_otp_wrong_code_value
+    doc: well-formed but wrong code (codes are random_int 1000-9999, so 0000 never matches)
+    steps:
+      - method: POST
+        path: /api/v1/auth/send-otp
+        body: {mobile: "09900000004"}
+        status: 200
+      - method: POST
+        path: /api/v1/auth/verify-otp
+        body: {mobile: "09900000004", code: "0000"}
+        status: 422
+        ignore: ["header:x-ratelimit-remaining"]
+  - name: verify_otp_no_otp
+    method: POST
+    path: /api/v1/auth/verify-otp
+    body: {mobile: "09900000004", code: "1234"}
+    status: 400
+  - name: verify_otp_expired
+    doc: OTP lives 2 minutes; verifying 3 minutes later → 400
+    steps:
+      - method: POST
+        path: /api/v1/auth/send-otp
+        body: {mobile: "09900000004"}
+        status: 200
+        now: "2026-09-23T10:00:00+03:30"
+      - method: POST
+        path: /api/v1/auth/verify-otp
+        otp_for: "09900000004"
+        body: {mobile: "09900000004", code: "{{otp}}"}
+        status: 400
+        now: "2026-09-23T10:03:00+03:30"
+        ignore: ["header:x-ratelimit-remaining"]
+  - name: verify_otp_too_many_attempts
+    doc: 5 wrong guesses (422) then even the right code → 429 (attempt cap, not the throttle middleware)
+    steps:
+      - {method: POST, path: /api/v1/auth/send-otp, body: {mobile: "09900000004"}, status: 200}
+      - {method: POST, path: /api/v1/auth/verify-otp, body: {mobile: "09900000004", code: "0000"}, status: 422, ignore: ["header:x-ratelimit-remaining"]}
+      - {method: POST, path: /api/v1/auth/verify-otp, body: {mobile: "09900000004", code: "0000"}, status: 422, ignore: ["header:x-ratelimit-remaining"]}
+      - {method: POST, path: /api/v1/auth/verify-otp, body: {mobile: "09900000004", code: "0000"}, status: 422, ignore: ["header:x-ratelimit-remaining"]}
+      - {method: POST, path: /api/v1/auth/verify-otp, body: {mobile: "09900000004", code: "0000"}, status: 422, ignore: ["header:x-ratelimit-remaining"]}
+      - {method: POST, path: /api/v1/auth/verify-otp, body: {mobile: "09900000004", code: "0000"}, status: 422, ignore: ["header:x-ratelimit-remaining"]}
+      - method: POST
+        path: /api/v1/auth/verify-otp
+        otp_for: "09900000004"
+        body: {mobile: "09900000004", code: "{{otp}}"}
+        status: 429
+        ignore: ["header:x-ratelimit-remaining"]
+  - name: verify_otp_blocked_user
+    doc: blocked persona → 403 with a hard-coded Persian message
+    steps:
+      - method: POST
+        path: /api/v1/auth/send-otp
+        body: {mobile: "09900000017"}
+        status: 200
+      - method: POST
+        path: /api/v1/auth/verify-otp
+        otp_for: "09900000017"
+        body: {mobile: "09900000017", code: "{{otp}}"}
+        status: 403
+        ignore: ["header:x-ratelimit-remaining"]
+  - name: verify_otp_missing_fields
+    method: POST
+    path: /api/v1/auth/verify-otp
+    body: {}
+    status: 422
+  - name: verify_otp_bad_mobile_and_code_size
+    method: POST
+    path: /api/v1/auth/verify-otp
+    body: {mobile: "123", code: "12"}
+    status: 422
+
+  # ---------------- /auth/user ----------------
+  - name: user
+    persona: [no_profile, profile_no_history, regular, premium, pregnant_lmp_w8, pregnant_ultrasound_w26, pregnant_manual_w14, engaged, token_near_expiry]
+    method: GET
+    path: /api/v1/auth/user
+    status: 200
+
+  # ---------------- 401 contract ----------------
+  - name: unauthenticated
+    doc: anon → error_code unauthenticated; synthetic personas → revoked / expired / unknown / garbage
+    persona: [anon, token_revoked, token_expired, token_unknown, token_garbage]
+    method: GET
+    path: /api/v1/auth/user
+    status: 401
+  - name: unauthenticated_bad_scheme
+    method: GET
+    path: /api/v1/auth/user
+    headers: {Authorization: "Basic dXNlcjpwYXNz"}
+    status: 401
+  - name: unauthenticated_post_route
+    persona: [anon, token_revoked]
+    method: POST
+    path: /api/v1/auth/logout
+    status: 401
+
+  # ---------------- logout ----------------
+  - name: logout
+    locales: [none, fa, en]
+    doc: the same token is revoked afterwards → 401 token_revoked
+    persona: regular
+    steps:
+      - {method: POST, path: /api/v1/auth/logout, status: 200}
+      - {method: GET, path: /api/v1/auth/user, status: 401}
+
+  # ---------------- refresh-session ----------------
+  - name: refresh_session_not_due
+    doc: expiry > 30 days away → refreshed false, nothing changes; expires_at is the real-clock token expiry
+    persona: [regular, pregnant_ultrasound_w26]
+    steps:
+      - {method: POST, path: /api/v1/auth/refresh-session, status: 200}
+      - {method: GET, path: /api/v1/auth/user, status: 200}
+  - name: refresh_session_due
+    doc: token expiring in 10 days → new 365-day token, old one revoked; new token works
+    persona: token_near_expiry
+    steps:
+      - method: POST
+        path: /api/v1/auth/refresh-session
+        status: 200
+        capture: {token: data.access_token}
+      - {method: GET, path: /api/v1/auth/user, status: 401}
+      - method: GET
+        path: /api/v1/auth/user
+        headers: {Authorization: "Bearer {{token}}"}
+        status: 200
+  - name: refresh_session_unauthenticated
+    persona: [anon, token_expired]
+    method: POST
+    path: /api/v1/auth/refresh-session
+    status: 401

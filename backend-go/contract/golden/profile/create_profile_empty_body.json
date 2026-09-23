@@ -1,0 +1,125 @@
+{
+  "case": "profile/create_profile_empty_body",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/profile",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {}
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "پروفایل با موفقیت بروزرسانی شد",
+        "data": {
+          "user": {
+            "id": 1001,
+            "name": null,
+            "email": null,
+            "mobile": "09900000001",
+            "mobile_verified_at": "2026-09-23T05:30:00.000000Z",
+            "blocked_at": null,
+            "email_verified_at": null,
+            "created_at": "2026-09-23T05:30:00.000000Z",
+            "updated_at": "2026-09-23T05:30:00.000000Z"
+          },
+          "profile": {
+            "id": 1019,
+            "user_id": 1001,
+            "birthday": null,
+            "weight": null,
+            "height": null,
+            "period_duration": null,
+            "cycle_duration": null,
+            "last_period_start": "2026-09-23",
+            "user_goal": "non_ttc",
+            "pregnancy_intention": null,
+            "chronic_conditions": null,
+            "subscription_type": "free",
+            "calculation_status": "completed",
+            "calculation_started_at": "2026-09-23T06:30:00.000000Z",
+            "calculation_completed_at": "2026-09-23T06:30:00.000000Z",
+            "calculation_version": 1,
+            "created_at": "2026-09-23T06:30:00.000000Z",
+            "updated_at": "2026-09-23T06:30:00.000000Z"
+          },
+          "calculation_status": "completed"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/profile",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "user": {
+            "id": 1001,
+            "name": null,
+            "email": null,
+            "mobile": "09900000001",
+            "mobile_verified_at": "2026-09-23T05:30:00.000000Z",
+            "blocked_at": null,
+            "email_verified_at": null,
+            "created_at": "2026-09-23T05:30:00.000000Z",
+            "updated_at": "2026-09-23T05:30:00.000000Z",
+            "profile": {
+              "id": 1019,
+              "user_id": 1001,
+              "birthday": null,
+              "weight": null,
+              "height": null,
+              "period_duration": null,
+              "cycle_duration": null,
+              "last_period_start": "2026-09-23",
+              "user_goal": "non_ttc",
+              "pregnancy_intention": null,
+              "chronic_conditions": null,
+              "subscription_type": "free",
+              "calculation_status": "completed",
+              "calculation_started_at": "2026-09-23T06:30:00.000000Z",
+              "calculation_completed_at": "2026-09-23T06:30:00.000000Z",
+              "calculation_version": 1,
+              "created_at": "2026-09-23T06:30:00.000000Z",
+              "updated_at": "2026-09-23T06:30:00.000000Z"
+            }
+          },
+          "profile": {
+            "id": 1019,
+            "user_id": 1001,
+            "birthday": null,
+            "weight": null,
+            "height": null,
+            "period_duration": null,
+            "cycle_duration": null,
+            "last_period_start": "2026-09-23",
+            "user_goal": "non_ttc",
+            "pregnancy_intention": null,
+            "chronic_conditions": null,
+            "subscription_type": "free",
+            "calculation_status": "completed",
+            "calculation_started_at": "2026-09-23T06:30:00.000000Z",
+            "calculation_completed_at": "2026-09-23T06:30:00.000000Z",
+            "calculation_version": 1,
+            "created_at": "2026-09-23T06:30:00.000000Z",
+            "updated_at": "2026-09-23T06:30:00.000000Z"
+          },
+          "bmi": null
+        }
+      }
+    }
+  ]
+}

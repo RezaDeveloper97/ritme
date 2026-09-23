@@ -1,0 +1,47 @@
+{
+  "case": "public/languages.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/languages",
+        "persona": "anon",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "default": "fa",
+          "languages": [
+            {
+              "code": "fa",
+              "name": "فارسی",
+              "english_name": "Persian",
+              "direction": "rtl",
+              "is_default": true
+            },
+            {
+              "code": "en",
+              "name": "English",
+              "english_name": "English",
+              "direction": "ltr",
+              "is_default": false
+            },
+            {
+              "code": "ar",
+              "name": "العربية",
+              "english_name": "Arabic",
+              "direction": "rtl",
+              "is_default": false
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

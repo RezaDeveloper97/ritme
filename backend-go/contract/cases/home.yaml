@@ -1,0 +1,138 @@
+# Home screen: /home, /home/sections/{section}, task + challenge toggles.
+# Fixture: engaged (1018) completed task 1 today, task 2 yesterday, challenges 1 and 2.
+# Task templates 1-5, challenges 1-25 are active.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: home
+defaults:
+  locales: [none, en]
+cases:
+  - name: index
+    persona: [no_profile, profile_no_history, onboarding_declared, regular, irregular, short_outlier,
+      open_period_day3, open_period_day11, open_period_day13, overdue_10, overdue_20, ttc, premium,
+      pregnant_lmp_w8, pregnant_ultrasound_w26, pregnant_manual_w14, engaged]
+    method: GET
+    path: /api/v1/home
+    status: 200
+  - name: index_locales
+    doc: explicit fa header and the 3rd locale (ar → fallback paths)
+    persona: [regular, engaged, pregnant_ultrasound_w26, no_profile]
+    locales: [fa, ar]
+    method: GET
+    path: /api/v1/home
+    status: 200
+  - name: index_dates
+    persona: [regular, engaged, pregnant_lmp_w8]
+    sweep: {var: d, values: ["2026-09-14", "2026-09-22", "2026-09-30", "2026-10-12", "2026-08-01"]}
+    method: GET
+    path: /api/v1/home
+    query: {date: "{{d}}"}
+    status: 200
+  - name: index_invalid_date
+    doc: framework 422 ($request->validate date)
+    persona: regular
+    locales: [none, fa, en]
+    method: GET
+    path: /api/v1/home
+    query: {date: not-a-date}
+    status: 422
+  - name: index_anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/home
+    status: 401
+
+  - name: section
+    doc: every section key, one golden per persona × locale with one step per section
+    persona: [regular, engaged, pregnant_ultrasound_w26, no_profile]
+    sweep:
+      var: s
+      values: [header, week_calendar, next_period, cycle_prediction, recommendations, tasks, challenge,
+        doctor_reminder, medication_reminder, smart_tip, affirmation, weekly_summary, vitals,
+        status_charts, articles, my_cycles, cycle_summary]
+    method: GET
+    path: /api/v1/home/sections/{{s}}
+    status: 200
+  - name: section_ar
+    persona: engaged
+    locales: ar
+    sweep:
+      var: s
+      values: [header, week_calendar, next_period, cycle_prediction, recommendations, tasks, challenge,
+        doctor_reminder, medication_reminder, smart_tip, affirmation, weekly_summary, vitals,
+        status_charts, articles, my_cycles, cycle_summary]
+    method: GET
+    path: /api/v1/home/sections/{{s}}
+    status: 200
+  - name: section_date
+    persona: engaged
+    method: GET
+    path: /api/v1/home/sections/week_calendar
+    query: {date: "2026-09-28"}
+    status: 200
+  - name: section_invalid_date
+    persona: engaged
+    locales: none
+    method: GET
+    path: /api/v1/home/sections/tasks
+    query: {date: "2026-02-31x"}
+    status: 422
+  - name: section_unknown
+    persona: regular
+    locales: [none, fa, en]
+    method: GET
+    path: /api/v1/home/sections/nope
+    status: 404
+
+  - name: task_toggle
+    doc: engaged has task 1 done today → off, on; task 3 on, off; then the section
+    persona: engaged
+    steps:
+      - {method: POST, path: /api/v1/home/tasks/1/toggle, status: 200}
+      - {method: POST, path: /api/v1/home/tasks/1/toggle, status: 200}
+      - {method: POST, path: /api/v1/home/tasks/3/toggle, status: 200}
+      - {method: GET, path: /api/v1/home/sections/tasks, status: 200}
+      - {method: POST, path: /api/v1/home/tasks/3/toggle, status: 200}
+  - name: task_toggle_fresh_user
+    persona: regular
+    locales: none
+    steps:
+      - {method: POST, path: /api/v1/home/tasks/2/toggle, status: 200}
+      - {method: GET, path: /api/v1/home, status: 200}
+  - name: task_toggle_missing
+    doc: route-model binding miss → pretty framework 404
+    persona: engaged
+    locales: none
+    method: POST
+    path: /api/v1/home/tasks/99/toggle
+    status: 404
+    strict_bytes: true
+  - name: task_toggle_non_numeric
+    persona: engaged
+    locales: none
+    method: POST
+    path: /api/v1/home/tasks/abc/toggle
+    status: 404
+    strict_bytes: true
+  - name: challenge_toggle
+    doc: challenge 1 was completed yesterday, 3 never
+    persona: engaged
+    steps:
+      - {method: POST, path: /api/v1/home/challenges/1/toggle, status: 200}
+      - {method: POST, path: /api/v1/home/challenges/3/toggle, status: 200}
+      - {method: GET, path: /api/v1/home/sections/challenge, status: 200}
+      - {method: POST, path: /api/v1/home/challenges/3/toggle, status: 200}
+      - {method: GET, path: /api/v1/home/sections/challenge, status: 200}
+  - name: challenge_toggle_missing
+    persona: engaged
+    locales: none
+    method: POST
+    path: /api/v1/home/challenges/999/toggle
+    status: 404
+    strict_bytes: true
+  - name: toggle_anon
+    persona: anon
+    locales: none
+    method: POST
+    path: /api/v1/home/tasks/1/toggle
+    status: 401

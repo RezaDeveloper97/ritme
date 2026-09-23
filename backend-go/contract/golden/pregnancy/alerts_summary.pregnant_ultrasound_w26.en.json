@@ -1,0 +1,54 @@
+{
+  "case": "pregnancy/alerts_summary.pregnant_ultrasound_w26.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/alerts/summary",
+        "persona": "pregnant_ultrasound_w26",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "has_emergency": true,
+          "has_unread": true,
+          "counts": {
+            "total": 2,
+            "unread": 1,
+            "emergency": 1,
+            "warning": 1,
+            "info": 0
+          },
+          "latest_emergency": {
+            "id": 101501,
+            "user_id": 1015,
+            "alert_level": "emergency",
+            "alert_type": "symptom_based",
+            "title": "کاهش حرکات جنین",
+            "message": "حرکات جنین کمتر از معمول است. با پزشک تماس بگیرید.",
+            "pregnancy_week": 26,
+            "trigger_symptoms": {
+              "movement_status": "reduced"
+            },
+            "medical_history_flags": [],
+            "is_read": false,
+            "is_dismissed": false,
+            "read_at": null,
+            "dismissed_at": null,
+            "recommended_actions": [
+              "contact_doctor"
+            ],
+            "created_at": "2026-09-23T05:30:00.000000Z",
+            "updated_at": "2026-09-23T05:30:00.000000Z"
+          }
+        }
+      }
+    }
+  ]
+}

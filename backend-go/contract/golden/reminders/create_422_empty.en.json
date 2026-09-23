@@ -1,0 +1,31 @@
+{
+  "case": "reminders/create_422_empty.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/reminders",
+        "persona": "engaged",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {}
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errors": {
+          "type": [
+            "The type field is required."
+          ],
+          "title": [
+            "The title field is required."
+          ]
+        }
+      }
+    }
+  ]
+}

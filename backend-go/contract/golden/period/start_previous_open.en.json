@@ -1,0 +1,29 @@
+{
+  "case": "period/start_previous_open.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/cycle/period/start",
+        "persona": "open_period_day3",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "date": "2026-09-23"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "Your previous period has no end date yet. Please log its end first.",
+        "code": "previous_period_open",
+        "data": {
+          "open_period_start": "2026-09-21"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "case": "public/method_not_allowed_put",
+  "steps": [
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/languages",
+        "persona": "anon",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 405,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "The PUT method is not supported for route api/v1/languages. Supported methods: GET, HEAD."
+      },
+      "body_raw": "{\n    \"message\": \"The PUT method is not supported for route api/v1/languages. Supported methods: GET, HEAD.\"\n}"
+    }
+  ]
+}

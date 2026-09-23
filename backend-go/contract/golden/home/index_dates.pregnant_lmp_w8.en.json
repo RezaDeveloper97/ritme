@@ -1,0 +1,1497 @@
+{
+  "case": "home/index_dates.pregnant_lmp_w8.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/home?date=2026-09-14",
+        "persona": "pregnant_lmp_w8",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "pregnancy",
+          "mode_label": "Pregnancy",
+          "date": "2026-09-14",
+          "locale": "en",
+          "profile_complete": true,
+          "sections": [
+            {
+              "key": "header",
+              "type": "header",
+              "title": null,
+              "subtitle": null,
+              "order": 10,
+              "action": null,
+              "data": {
+                "app_name": "ریتمی",
+                "tagline": "Your health companion",
+                "greeting": "Hi Contract pregnant lmp w8",
+                "user": {
+                  "id": 1014,
+                  "name": "Contract pregnant lmp w8"
+                },
+                "mode": "pregnancy",
+                "mode_label": "Pregnancy",
+                "is_premium": false,
+                "date": "2026-09-14",
+                "weekday_iso": 1,
+                "moon_phase": {
+                  "key": "waxing_crescent",
+                  "label": "Waxing crescent",
+                  "illumination": 0.04,
+                  "age_days": 2
+                },
+                "notifications": {
+                  "unread_count": 0,
+                  "has_unread": false
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "tasks",
+              "type": "tasks",
+              "title": "Today's tasks",
+              "subtitle": "0/5",
+              "order": 60,
+              "action": null,
+              "data": {
+                "items": [
+                  {
+                    "id": 1,
+                    "key": "log_bbt",
+                    "title": "Log body temperature",
+                    "description": "Record your basal body temperature each morning",
+                    "category": "tracking",
+                    "category_label": "Tracking",
+                    "icon": "clipboard-check",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 2,
+                    "key": "drink_water",
+                    "title": "Drink 8 glasses of water",
+                    "description": "Stay hydrated throughout the day",
+                    "category": "hydration",
+                    "category_label": "Hydration",
+                    "icon": "water-glass",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 3,
+                    "key": "vitamin_d",
+                    "title": "Take vitamin D",
+                    "description": "Take your vitamin D supplement",
+                    "category": "supplement",
+                    "category_label": "Supplement",
+                    "icon": "pill",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 4,
+                    "key": "walk_30",
+                    "title": "30 minutes walking",
+                    "description": "Take a light 30-minute walk",
+                    "category": "exercise",
+                    "category_label": "Exercise",
+                    "icon": "walking",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 5,
+                    "key": "breathing_5",
+                    "title": "5 minutes of deep breathing",
+                    "description": "Practice deep breathing to calm your mind",
+                    "category": "mindfulness",
+                    "category_label": "Mindfulness",
+                    "icon": "lotus",
+                    "is_completed": false
+                  }
+                ],
+                "progress": {
+                  "completed": 0,
+                  "total": 5,
+                  "percent": 0
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "challenge",
+              "type": "challenge",
+              "title": "Today's challenge",
+              "subtitle": null,
+              "order": 70,
+              "action": null,
+              "data": {
+                "id": 23,
+                "title": "Log your ovulation signs",
+                "description": "Log discharge and temperature these days for a sharper fertile window",
+                "category": "tracking",
+                "cycle_day": 16,
+                "cycle_day_from": 12,
+                "cycle_day_to": 17,
+                "is_completed": false
+              },
+              "meta": null
+            },
+            {
+              "key": "smart_tip",
+              "type": "smart_tip",
+              "title": "Smart tip",
+              "subtitle": null,
+              "order": 100,
+              "action": null,
+              "data": {
+                "text": "During this period, vital organs are forming. Adequate rest and healthy nutrition are crucial.",
+                "source": "message_engine"
+              },
+              "meta": null
+            },
+            {
+              "key": "affirmation",
+              "type": "affirmation",
+              "title": null,
+              "subtitle": null,
+              "order": 110,
+              "action": null,
+              "data": {
+                "id": 6,
+                "text": "With every breath, I welcome fresh energy.",
+                "icon": "sparkle"
+              },
+              "meta": null
+            },
+            {
+              "key": "weekly_summary",
+              "type": "weekly_summary",
+              "title": "Weekly summary",
+              "subtitle": null,
+              "order": 120,
+              "action": {
+                "key": "view_all",
+                "label": "View all"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "mood",
+                    "label": "Mood",
+                    "icon": "smile",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  },
+                  {
+                    "key": "sleep",
+                    "label": "Sleep",
+                    "icon": "moon",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  },
+                  {
+                    "key": "energy",
+                    "label": "Energy",
+                    "icon": "bolt",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  }
+                ],
+                "range": {
+                  "from": "2026-09-08",
+                  "to": "2026-09-14"
+                },
+                "logged_days": 0,
+                "previous_logged_days": 0,
+                "overall_percent": null
+              },
+              "meta": null
+            },
+            {
+              "key": "vitals",
+              "type": "vitals",
+              "title": "Today's vitals",
+              "subtitle": null,
+              "order": 130,
+              "action": {
+                "key": "view_all",
+                "label": "View all"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "heart_rate",
+                    "label": "Heart rate",
+                    "value": null,
+                    "unit": "bpm",
+                    "icon": "heart-pulse"
+                  },
+                  {
+                    "key": "blood_pressure",
+                    "label": "Blood pressure",
+                    "value": null,
+                    "unit": "mmHg",
+                    "icon": "gauge"
+                  },
+                  {
+                    "key": "blood_sugar",
+                    "label": "Blood sugar",
+                    "value": null,
+                    "unit": "mg/dl",
+                    "icon": "droplet"
+                  }
+                ],
+                "has_data": false,
+                "date": "2026-09-14"
+              },
+              "meta": null
+            },
+            {
+              "key": "articles",
+              "type": "articles",
+              "title": "Based on your current cycle",
+              "subtitle": null,
+              "order": 150,
+              "action": {
+                "key": "view_more",
+                "label": "View more"
+              },
+              "data": {
+                "items": [
+                  {
+                    "id": 4,
+                    "slug": "ovulation-signs",
+                    "title": "Know the signs of ovulation",
+                    "excerpt": "Discharge changes, body temperature and signs that signal ovulation",
+                    "read_time_minutes": 4,
+                    "image_url": null,
+                    "category": "fertility",
+                    "cycle_phases": [
+                      "ovulation"
+                    ]
+                  },
+                  {
+                    "id": 6,
+                    "slug": "cycle-nutrition-basics",
+                    "title": "Eating in sync with your cycle",
+                    "excerpt": "What to eat in each phase to feel your best",
+                    "read_time_minutes": 6,
+                    "image_url": null,
+                    "category": "nutrition",
+                    "cycle_phases": []
+                  }
+                ]
+              },
+              "meta": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/home?date=2026-09-22",
+        "persona": "pregnant_lmp_w8",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "pregnancy",
+          "mode_label": "Pregnancy",
+          "date": "2026-09-22",
+          "locale": "en",
+          "profile_complete": true,
+          "sections": [
+            {
+              "key": "header",
+              "type": "header",
+              "title": null,
+              "subtitle": null,
+              "order": 10,
+              "action": null,
+              "data": {
+                "app_name": "ریتمی",
+                "tagline": "Your health companion",
+                "greeting": "Hi Contract pregnant lmp w8",
+                "user": {
+                  "id": 1014,
+                  "name": "Contract pregnant lmp w8"
+                },
+                "mode": "pregnancy",
+                "mode_label": "Pregnancy",
+                "is_premium": false,
+                "date": "2026-09-22",
+                "weekday_iso": 2,
+                "moon_phase": {
+                  "key": "waxing_gibbous",
+                  "label": "Waxing gibbous",
+                  "illumination": 0.76,
+                  "age_days": 10
+                },
+                "notifications": {
+                  "unread_count": 0,
+                  "has_unread": false
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "tasks",
+              "type": "tasks",
+              "title": "Today's tasks",
+              "subtitle": "0/5",
+              "order": 60,
+              "action": null,
+              "data": {
+                "items": [
+                  {
+                    "id": 1,
+                    "key": "log_bbt",
+                    "title": "Log body temperature",
+                    "description": "Record your basal body temperature each morning",
+                    "category": "tracking",
+                    "category_label": "Tracking",
+                    "icon": "clipboard-check",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 2,
+                    "key": "drink_water",
+                    "title": "Drink 8 glasses of water",
+                    "description": "Stay hydrated throughout the day",
+                    "category": "hydration",
+                    "category_label": "Hydration",
+                    "icon": "water-glass",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 3,
+                    "key": "vitamin_d",
+                    "title": "Take vitamin D",
+                    "description": "Take your vitamin D supplement",
+                    "category": "supplement",
+                    "category_label": "Supplement",
+                    "icon": "pill",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 4,
+                    "key": "walk_30",
+                    "title": "30 minutes walking",
+                    "description": "Take a light 30-minute walk",
+                    "category": "exercise",
+                    "category_label": "Exercise",
+                    "icon": "walking",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 5,
+                    "key": "breathing_5",
+                    "title": "5 minutes of deep breathing",
+                    "description": "Practice deep breathing to calm your mind",
+                    "category": "mindfulness",
+                    "category_label": "Mindfulness",
+                    "icon": "lotus",
+                    "is_completed": false
+                  }
+                ],
+                "progress": {
+                  "completed": 0,
+                  "total": 5,
+                  "percent": 0
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "challenge",
+              "type": "challenge",
+              "title": "Today's challenge",
+              "subtitle": null,
+              "order": 70,
+              "action": null,
+              "data": {
+                "id": 25,
+                "title": "Be gentle with yourself",
+                "description": "Mood swings before your period are normal — do one calming thing for yourself today",
+                "category": "mindfulness",
+                "cycle_day": 24,
+                "cycle_day_from": 24,
+                "cycle_day_to": 35,
+                "is_completed": false
+              },
+              "meta": null
+            },
+            {
+              "key": "smart_tip",
+              "type": "smart_tip",
+              "title": "Smart tip",
+              "subtitle": null,
+              "order": 100,
+              "action": null,
+              "data": {
+                "text": "During this period, vital organs are forming. Adequate rest and healthy nutrition are crucial.",
+                "source": "message_engine"
+              },
+              "meta": null
+            },
+            {
+              "key": "affirmation",
+              "type": "affirmation",
+              "title": null,
+              "subtitle": null,
+              "order": 110,
+              "action": null,
+              "data": {
+                "id": 7,
+                "text": "Caring for myself is a powerful choice.",
+                "icon": "sparkle"
+              },
+              "meta": null
+            },
+            {
+              "key": "weekly_summary",
+              "type": "weekly_summary",
+              "title": "Weekly summary",
+              "subtitle": null,
+              "order": 120,
+              "action": {
+                "key": "view_all",
+                "label": "View all"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "mood",
+                    "label": "Mood",
+                    "icon": "smile",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  },
+                  {
+                    "key": "sleep",
+                    "label": "Sleep",
+                    "icon": "moon",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  },
+                  {
+                    "key": "energy",
+                    "label": "Energy",
+                    "icon": "bolt",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  }
+                ],
+                "range": {
+                  "from": "2026-09-16",
+                  "to": "2026-09-22"
+                },
+                "logged_days": 0,
+                "previous_logged_days": 0,
+                "overall_percent": null
+              },
+              "meta": null
+            },
+            {
+              "key": "vitals",
+              "type": "vitals",
+              "title": "Today's vitals",
+              "subtitle": null,
+              "order": 130,
+              "action": {
+                "key": "view_all",
+                "label": "View all"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "heart_rate",
+                    "label": "Heart rate",
+                    "value": null,
+                    "unit": "bpm",
+                    "icon": "heart-pulse"
+                  },
+                  {
+                    "key": "blood_pressure",
+                    "label": "Blood pressure",
+                    "value": null,
+                    "unit": "mmHg",
+                    "icon": "gauge"
+                  },
+                  {
+                    "key": "blood_sugar",
+                    "label": "Blood sugar",
+                    "value": null,
+                    "unit": "mg/dl",
+                    "icon": "droplet"
+                  }
+                ],
+                "has_data": false,
+                "date": "2026-09-22"
+              },
+              "meta": null
+            },
+            {
+              "key": "articles",
+              "type": "articles",
+              "title": "Based on your current cycle",
+              "subtitle": null,
+              "order": 150,
+              "action": {
+                "key": "view_more",
+                "label": "View more"
+              },
+              "data": {
+                "items": [
+                  {
+                    "id": 5,
+                    "slug": "pms-management",
+                    "title": "Managing PMS symptoms",
+                    "excerpt": "Strategies to manage mood and physical symptoms before your period",
+                    "read_time_minutes": 5,
+                    "image_url": null,
+                    "category": "wellbeing",
+                    "cycle_phases": [
+                      "luteal"
+                    ]
+                  },
+                  {
+                    "id": 6,
+                    "slug": "cycle-nutrition-basics",
+                    "title": "Eating in sync with your cycle",
+                    "excerpt": "What to eat in each phase to feel your best",
+                    "read_time_minutes": 6,
+                    "image_url": null,
+                    "category": "nutrition",
+                    "cycle_phases": []
+                  }
+                ]
+              },
+              "meta": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/home?date=2026-09-30",
+        "persona": "pregnant_lmp_w8",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "pregnancy",
+          "mode_label": "Pregnancy",
+          "date": "2026-09-30",
+          "locale": "en",
+          "profile_complete": true,
+          "sections": [
+            {
+              "key": "header",
+              "type": "header",
+              "title": null,
+              "subtitle": null,
+              "order": 10,
+              "action": null,
+              "data": {
+                "app_name": "ریتمی",
+                "tagline": "Your health companion",
+                "greeting": "Hi Contract pregnant lmp w8",
+                "user": {
+                  "id": 1014,
+                  "name": "Contract pregnant lmp w8"
+                },
+                "mode": "pregnancy",
+                "mode_label": "Pregnancy",
+                "is_premium": false,
+                "date": "2026-09-30",
+                "weekday_iso": 3,
+                "moon_phase": {
+                  "key": "waning_gibbous",
+                  "label": "Waning gibbous",
+                  "illumination": 0.89,
+                  "age_days": 18
+                },
+                "notifications": {
+                  "unread_count": 0,
+                  "has_unread": false
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "tasks",
+              "type": "tasks",
+              "title": "Today's tasks",
+              "subtitle": "0/5",
+              "order": 60,
+              "action": null,
+              "data": {
+                "items": [
+                  {
+                    "id": 1,
+                    "key": "log_bbt",
+                    "title": "Log body temperature",
+                    "description": "Record your basal body temperature each morning",
+                    "category": "tracking",
+                    "category_label": "Tracking",
+                    "icon": "clipboard-check",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 2,
+                    "key": "drink_water",
+                    "title": "Drink 8 glasses of water",
+                    "description": "Stay hydrated throughout the day",
+                    "category": "hydration",
+                    "category_label": "Hydration",
+                    "icon": "water-glass",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 3,
+                    "key": "vitamin_d",
+                    "title": "Take vitamin D",
+                    "description": "Take your vitamin D supplement",
+                    "category": "supplement",
+                    "category_label": "Supplement",
+                    "icon": "pill",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 4,
+                    "key": "walk_30",
+                    "title": "30 minutes walking",
+                    "description": "Take a light 30-minute walk",
+                    "category": "exercise",
+                    "category_label": "Exercise",
+                    "icon": "walking",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 5,
+                    "key": "breathing_5",
+                    "title": "5 minutes of deep breathing",
+                    "description": "Practice deep breathing to calm your mind",
+                    "category": "mindfulness",
+                    "category_label": "Mindfulness",
+                    "icon": "lotus",
+                    "is_completed": false
+                  }
+                ],
+                "progress": {
+                  "completed": 0,
+                  "total": 5,
+                  "percent": 0
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "challenge",
+              "type": "challenge",
+              "title": "Today's challenge",
+              "subtitle": null,
+              "order": 70,
+              "action": null,
+              "data": {
+                "id": 14,
+                "title": "5 minutes of stretching",
+                "description": "Do a few gentle stretches for your lower back and hips",
+                "category": "exercise",
+                "cycle_day": 4,
+                "cycle_day_from": 1,
+                "cycle_day_to": 5,
+                "is_completed": false
+              },
+              "meta": null
+            },
+            {
+              "key": "smart_tip",
+              "type": "smart_tip",
+              "title": "Smart tip",
+              "subtitle": null,
+              "order": 100,
+              "action": null,
+              "data": {
+                "text": "During this period, vital organs are forming. Adequate rest and healthy nutrition are crucial.",
+                "source": "message_engine"
+              },
+              "meta": null
+            },
+            {
+              "key": "affirmation",
+              "type": "affirmation",
+              "title": null,
+              "subtitle": null,
+              "order": 110,
+              "action": null,
+              "data": {
+                "id": 1,
+                "text": "Every day is a fresh chance to care for yourself.",
+                "icon": "sparkle"
+              },
+              "meta": null
+            },
+            {
+              "key": "weekly_summary",
+              "type": "weekly_summary",
+              "title": "Weekly summary",
+              "subtitle": null,
+              "order": 120,
+              "action": {
+                "key": "view_all",
+                "label": "View all"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "mood",
+                    "label": "Mood",
+                    "icon": "smile",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  },
+                  {
+                    "key": "sleep",
+                    "label": "Sleep",
+                    "icon": "moon",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  },
+                  {
+                    "key": "energy",
+                    "label": "Energy",
+                    "icon": "bolt",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  }
+                ],
+                "range": {
+                  "from": "2026-09-24",
+                  "to": "2026-09-30"
+                },
+                "logged_days": 0,
+                "previous_logged_days": 0,
+                "overall_percent": null
+              },
+              "meta": null
+            },
+            {
+              "key": "vitals",
+              "type": "vitals",
+              "title": "Today's vitals",
+              "subtitle": null,
+              "order": 130,
+              "action": {
+                "key": "view_all",
+                "label": "View all"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "heart_rate",
+                    "label": "Heart rate",
+                    "value": null,
+                    "unit": "bpm",
+                    "icon": "heart-pulse"
+                  },
+                  {
+                    "key": "blood_pressure",
+                    "label": "Blood pressure",
+                    "value": null,
+                    "unit": "mmHg",
+                    "icon": "gauge"
+                  },
+                  {
+                    "key": "blood_sugar",
+                    "label": "Blood sugar",
+                    "value": null,
+                    "unit": "mg/dl",
+                    "icon": "droplet"
+                  }
+                ],
+                "has_data": false,
+                "date": "2026-09-30"
+              },
+              "meta": null
+            },
+            {
+              "key": "articles",
+              "type": "articles",
+              "title": "Based on your current cycle",
+              "subtitle": null,
+              "order": 150,
+              "action": {
+                "key": "view_more",
+                "label": "View more"
+              },
+              "data": {
+                "items": [
+                  {
+                    "id": 1,
+                    "slug": "period-blood-clots",
+                    "title": "Blood clots during your period: what do they mean?",
+                    "excerpt": "Period clots are usually normal — but when should you worry?",
+                    "read_time_minutes": 4,
+                    "image_url": null,
+                    "category": "period_health",
+                    "cycle_phases": [
+                      "menstruation"
+                    ]
+                  },
+                  {
+                    "id": 2,
+                    "slug": "period-pain-relief",
+                    "title": "Ways to relieve period pain",
+                    "excerpt": "From heat therapy to nutrition: effective ways to ease cramps",
+                    "read_time_minutes": 5,
+                    "image_url": null,
+                    "category": "period_health",
+                    "cycle_phases": [
+                      "menstruation"
+                    ]
+                  },
+                  {
+                    "id": 6,
+                    "slug": "cycle-nutrition-basics",
+                    "title": "Eating in sync with your cycle",
+                    "excerpt": "What to eat in each phase to feel your best",
+                    "read_time_minutes": 6,
+                    "image_url": null,
+                    "category": "nutrition",
+                    "cycle_phases": []
+                  }
+                ]
+              },
+              "meta": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/home?date=2026-10-12",
+        "persona": "pregnant_lmp_w8",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "pregnancy",
+          "mode_label": "Pregnancy",
+          "date": "2026-10-12",
+          "locale": "en",
+          "profile_complete": true,
+          "sections": [
+            {
+              "key": "header",
+              "type": "header",
+              "title": null,
+              "subtitle": null,
+              "order": 10,
+              "action": null,
+              "data": {
+                "app_name": "ریتمی",
+                "tagline": "Your health companion",
+                "greeting": "Hi Contract pregnant lmp w8",
+                "user": {
+                  "id": 1014,
+                  "name": "Contract pregnant lmp w8"
+                },
+                "mode": "pregnancy",
+                "mode_label": "Pregnancy",
+                "is_premium": false,
+                "date": "2026-10-12",
+                "weekday_iso": 1,
+                "moon_phase": {
+                  "key": "new_moon",
+                  "label": "New moon",
+                  "illumination": 0,
+                  "age_days": 0.5
+                },
+                "notifications": {
+                  "unread_count": 0,
+                  "has_unread": false
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "tasks",
+              "type": "tasks",
+              "title": "Today's tasks",
+              "subtitle": "0/5",
+              "order": 60,
+              "action": null,
+              "data": {
+                "items": [
+                  {
+                    "id": 1,
+                    "key": "log_bbt",
+                    "title": "Log body temperature",
+                    "description": "Record your basal body temperature each morning",
+                    "category": "tracking",
+                    "category_label": "Tracking",
+                    "icon": "clipboard-check",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 2,
+                    "key": "drink_water",
+                    "title": "Drink 8 glasses of water",
+                    "description": "Stay hydrated throughout the day",
+                    "category": "hydration",
+                    "category_label": "Hydration",
+                    "icon": "water-glass",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 3,
+                    "key": "vitamin_d",
+                    "title": "Take vitamin D",
+                    "description": "Take your vitamin D supplement",
+                    "category": "supplement",
+                    "category_label": "Supplement",
+                    "icon": "pill",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 4,
+                    "key": "walk_30",
+                    "title": "30 minutes walking",
+                    "description": "Take a light 30-minute walk",
+                    "category": "exercise",
+                    "category_label": "Exercise",
+                    "icon": "walking",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 5,
+                    "key": "breathing_5",
+                    "title": "5 minutes of deep breathing",
+                    "description": "Practice deep breathing to calm your mind",
+                    "category": "mindfulness",
+                    "category_label": "Mindfulness",
+                    "icon": "lotus",
+                    "is_completed": false
+                  }
+                ],
+                "progress": {
+                  "completed": 0,
+                  "total": 5,
+                  "percent": 0
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "challenge",
+              "type": "challenge",
+              "title": "Today's challenge",
+              "subtitle": null,
+              "order": 70,
+              "action": null,
+              "data": {
+                "id": 23,
+                "title": "Log your ovulation signs",
+                "description": "Log discharge and temperature these days for a sharper fertile window",
+                "category": "tracking",
+                "cycle_day": 16,
+                "cycle_day_from": 12,
+                "cycle_day_to": 17,
+                "is_completed": false
+              },
+              "meta": null
+            },
+            {
+              "key": "smart_tip",
+              "type": "smart_tip",
+              "title": "Smart tip",
+              "subtitle": null,
+              "order": 100,
+              "action": null,
+              "data": {
+                "text": "During this period, vital organs are forming. Adequate rest and healthy nutrition are crucial.",
+                "source": "message_engine"
+              },
+              "meta": null
+            },
+            {
+              "key": "affirmation",
+              "type": "affirmation",
+              "title": null,
+              "subtitle": null,
+              "order": 110,
+              "action": null,
+              "data": {
+                "id": 6,
+                "text": "With every breath, I welcome fresh energy.",
+                "icon": "sparkle"
+              },
+              "meta": null
+            },
+            {
+              "key": "weekly_summary",
+              "type": "weekly_summary",
+              "title": "Weekly summary",
+              "subtitle": null,
+              "order": 120,
+              "action": {
+                "key": "view_all",
+                "label": "View all"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "mood",
+                    "label": "Mood",
+                    "icon": "smile",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  },
+                  {
+                    "key": "sleep",
+                    "label": "Sleep",
+                    "icon": "moon",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  },
+                  {
+                    "key": "energy",
+                    "label": "Energy",
+                    "icon": "bolt",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  }
+                ],
+                "range": {
+                  "from": "2026-10-06",
+                  "to": "2026-10-12"
+                },
+                "logged_days": 0,
+                "previous_logged_days": 0,
+                "overall_percent": null
+              },
+              "meta": null
+            },
+            {
+              "key": "vitals",
+              "type": "vitals",
+              "title": "Today's vitals",
+              "subtitle": null,
+              "order": 130,
+              "action": {
+                "key": "view_all",
+                "label": "View all"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "heart_rate",
+                    "label": "Heart rate",
+                    "value": null,
+                    "unit": "bpm",
+                    "icon": "heart-pulse"
+                  },
+                  {
+                    "key": "blood_pressure",
+                    "label": "Blood pressure",
+                    "value": null,
+                    "unit": "mmHg",
+                    "icon": "gauge"
+                  },
+                  {
+                    "key": "blood_sugar",
+                    "label": "Blood sugar",
+                    "value": null,
+                    "unit": "mg/dl",
+                    "icon": "droplet"
+                  }
+                ],
+                "has_data": false,
+                "date": "2026-10-12"
+              },
+              "meta": null
+            },
+            {
+              "key": "articles",
+              "type": "articles",
+              "title": "Based on your current cycle",
+              "subtitle": null,
+              "order": 150,
+              "action": {
+                "key": "view_more",
+                "label": "View more"
+              },
+              "data": {
+                "items": [
+                  {
+                    "id": 4,
+                    "slug": "ovulation-signs",
+                    "title": "Know the signs of ovulation",
+                    "excerpt": "Discharge changes, body temperature and signs that signal ovulation",
+                    "read_time_minutes": 4,
+                    "image_url": null,
+                    "category": "fertility",
+                    "cycle_phases": [
+                      "ovulation"
+                    ]
+                  },
+                  {
+                    "id": 6,
+                    "slug": "cycle-nutrition-basics",
+                    "title": "Eating in sync with your cycle",
+                    "excerpt": "What to eat in each phase to feel your best",
+                    "read_time_minutes": 6,
+                    "image_url": null,
+                    "category": "nutrition",
+                    "cycle_phases": []
+                  }
+                ]
+              },
+              "meta": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/home?date=2026-08-01",
+        "persona": "pregnant_lmp_w8",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "pregnancy",
+          "mode_label": "Pregnancy",
+          "date": "2026-08-01",
+          "locale": "en",
+          "profile_complete": true,
+          "sections": [
+            {
+              "key": "header",
+              "type": "header",
+              "title": null,
+              "subtitle": null,
+              "order": 10,
+              "action": null,
+              "data": {
+                "app_name": "ریتمی",
+                "tagline": "Your health companion",
+                "greeting": "Hi Contract pregnant lmp w8",
+                "user": {
+                  "id": 1014,
+                  "name": "Contract pregnant lmp w8"
+                },
+                "mode": "pregnancy",
+                "mode_label": "Pregnancy",
+                "is_premium": false,
+                "date": "2026-08-01",
+                "weekday_iso": 6,
+                "moon_phase": {
+                  "key": "waning_gibbous",
+                  "label": "Waning gibbous",
+                  "illumination": 0.94,
+                  "age_days": 17.1
+                },
+                "notifications": {
+                  "unread_count": 0,
+                  "has_unread": false
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "tasks",
+              "type": "tasks",
+              "title": "Today's tasks",
+              "subtitle": "0/5",
+              "order": 60,
+              "action": null,
+              "data": {
+                "items": [
+                  {
+                    "id": 1,
+                    "key": "log_bbt",
+                    "title": "Log body temperature",
+                    "description": "Record your basal body temperature each morning",
+                    "category": "tracking",
+                    "category_label": "Tracking",
+                    "icon": "clipboard-check",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 2,
+                    "key": "drink_water",
+                    "title": "Drink 8 glasses of water",
+                    "description": "Stay hydrated throughout the day",
+                    "category": "hydration",
+                    "category_label": "Hydration",
+                    "icon": "water-glass",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 3,
+                    "key": "vitamin_d",
+                    "title": "Take vitamin D",
+                    "description": "Take your vitamin D supplement",
+                    "category": "supplement",
+                    "category_label": "Supplement",
+                    "icon": "pill",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 4,
+                    "key": "walk_30",
+                    "title": "30 minutes walking",
+                    "description": "Take a light 30-minute walk",
+                    "category": "exercise",
+                    "category_label": "Exercise",
+                    "icon": "walking",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 5,
+                    "key": "breathing_5",
+                    "title": "5 minutes of deep breathing",
+                    "description": "Practice deep breathing to calm your mind",
+                    "category": "mindfulness",
+                    "category_label": "Mindfulness",
+                    "icon": "lotus",
+                    "is_completed": false
+                  }
+                ],
+                "progress": {
+                  "completed": 0,
+                  "total": 5,
+                  "percent": 0
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "challenge",
+              "type": "challenge",
+              "title": "Today's challenge",
+              "subtitle": null,
+              "order": 70,
+              "action": null,
+              "data": {
+                "id": 24,
+                "title": "Magnesium before your period",
+                "description": "Magnesium-rich foods like almonds and dark chocolate help with PMS",
+                "category": "nutrition",
+                "cycle_day": 27,
+                "cycle_day_from": 20,
+                "cycle_day_to": 28,
+                "is_completed": false
+              },
+              "meta": null
+            },
+            {
+              "key": "smart_tip",
+              "type": "smart_tip",
+              "title": "Smart tip",
+              "subtitle": null,
+              "order": 100,
+              "action": null,
+              "data": {
+                "text": "During this period, vital organs are forming. Adequate rest and healthy nutrition are crucial.",
+                "source": "message_engine"
+              },
+              "meta": null
+            },
+            {
+              "key": "affirmation",
+              "type": "affirmation",
+              "title": null,
+              "subtitle": null,
+              "order": 110,
+              "action": null,
+              "data": {
+                "id": 4,
+                "text": "My calm begins within.",
+                "icon": "sparkle"
+              },
+              "meta": null
+            },
+            {
+              "key": "weekly_summary",
+              "type": "weekly_summary",
+              "title": "Weekly summary",
+              "subtitle": null,
+              "order": 120,
+              "action": {
+                "key": "view_all",
+                "label": "View all"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "mood",
+                    "label": "Mood",
+                    "icon": "smile",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  },
+                  {
+                    "key": "sleep",
+                    "label": "Sleep",
+                    "icon": "moon",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  },
+                  {
+                    "key": "energy",
+                    "label": "Energy",
+                    "icon": "bolt",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  }
+                ],
+                "range": {
+                  "from": "2026-07-26",
+                  "to": "2026-08-01"
+                },
+                "logged_days": 0,
+                "previous_logged_days": 0,
+                "overall_percent": null
+              },
+              "meta": null
+            },
+            {
+              "key": "vitals",
+              "type": "vitals",
+              "title": "Today's vitals",
+              "subtitle": null,
+              "order": 130,
+              "action": {
+                "key": "view_all",
+                "label": "View all"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "heart_rate",
+                    "label": "Heart rate",
+                    "value": null,
+                    "unit": "bpm",
+                    "icon": "heart-pulse"
+                  },
+                  {
+                    "key": "blood_pressure",
+                    "label": "Blood pressure",
+                    "value": null,
+                    "unit": "mmHg",
+                    "icon": "gauge"
+                  },
+                  {
+                    "key": "blood_sugar",
+                    "label": "Blood sugar",
+                    "value": null,
+                    "unit": "mg/dl",
+                    "icon": "droplet"
+                  }
+                ],
+                "has_data": false,
+                "date": "2026-08-01"
+              },
+              "meta": null
+            },
+            {
+              "key": "articles",
+              "type": "articles",
+              "title": "Based on your current cycle",
+              "subtitle": null,
+              "order": 150,
+              "action": {
+                "key": "view_more",
+                "label": "View more"
+              },
+              "data": {
+                "items": [
+                  {
+                    "id": 5,
+                    "slug": "pms-management",
+                    "title": "Managing PMS symptoms",
+                    "excerpt": "Strategies to manage mood and physical symptoms before your period",
+                    "read_time_minutes": 5,
+                    "image_url": null,
+                    "category": "wellbeing",
+                    "cycle_phases": [
+                      "luteal"
+                    ]
+                  },
+                  {
+                    "id": 6,
+                    "slug": "cycle-nutrition-basics",
+                    "title": "Eating in sync with your cycle",
+                    "excerpt": "What to eat in each phase to feel your best",
+                    "read_time_minutes": 6,
+                    "image_url": null,
+                    "category": "nutrition",
+                    "cycle_phases": []
+                  }
+                ]
+              },
+              "meta": null
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

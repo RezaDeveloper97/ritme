@@ -1,0 +1,35 @@
+{
+  "case": "healthlog/store_exercise_type_empty_string",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/health-logs",
+        "persona": "engaged",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "log_date": "2026-09-21",
+          "exercise_type": "",
+          "fatigue": false
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "Health log created successfully",
+        "data": {
+          "user_id": 1018,
+          "log_date": "2026-09-21",
+          "fatigue": false,
+          "exercise_type": null,
+          "updated_at": "2026-09-23T06:30:00.000000Z",
+          "created_at": "2026-09-23T06:30:00.000000Z",
+          "id": 101802
+        }
+      }
+    }
+  ]
+}

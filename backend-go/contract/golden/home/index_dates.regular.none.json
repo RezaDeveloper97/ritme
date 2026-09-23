@@ -1,0 +1,3584 @@
+{
+  "case": "home/index_dates.regular.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/home?date=2026-09-14",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "mode_label": "سیکل قاعدگی",
+          "date": "2026-09-14",
+          "locale": "fa",
+          "profile_complete": true,
+          "sections": [
+            {
+              "key": "header",
+              "type": "header",
+              "title": null,
+              "subtitle": null,
+              "order": 10,
+              "action": null,
+              "data": {
+                "app_name": "ریتمی",
+                "tagline": "همراه سلامتی شما",
+                "greeting": "سلام Contract regular",
+                "user": {
+                  "id": 1004,
+                  "name": "Contract regular"
+                },
+                "mode": "cycle",
+                "mode_label": "سیکل قاعدگی",
+                "is_premium": false,
+                "date": "2026-09-14",
+                "weekday_iso": 1,
+                "moon_phase": {
+                  "key": "waxing_crescent",
+                  "label": "هلال افزاینده",
+                  "illumination": 0.04,
+                  "age_days": 2
+                },
+                "notifications": {
+                  "unread_count": 0,
+                  "has_unread": false
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "week_calendar",
+              "type": "week_calendar",
+              "title": null,
+              "subtitle": null,
+              "order": 20,
+              "action": null,
+              "data": {
+                "week_start": "2026-09-12",
+                "days": [
+                  {
+                    "date": "2026-09-12",
+                    "weekday_iso": 6,
+                    "is_today": false,
+                    "cycle_day": 27,
+                    "phase": "luteal",
+                    "phase_label": "لوتئال",
+                    "color": "#9C8BD6",
+                    "is_period": false,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-09-13",
+                    "weekday_iso": 7,
+                    "is_today": false,
+                    "cycle_day": 28,
+                    "phase": "luteal",
+                    "phase_label": "لوتئال",
+                    "color": "#9C8BD6",
+                    "is_period": false,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-09-14",
+                    "weekday_iso": 1,
+                    "is_today": true,
+                    "cycle_day": 1,
+                    "phase": "menstruation",
+                    "phase_label": "قاعدگی",
+                    "color": "#F2567C",
+                    "is_period": true,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-09-15",
+                    "weekday_iso": 2,
+                    "is_today": false,
+                    "cycle_day": 2,
+                    "phase": "menstruation",
+                    "phase_label": "قاعدگی",
+                    "color": "#F2567C",
+                    "is_period": true,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-09-16",
+                    "weekday_iso": 3,
+                    "is_today": false,
+                    "cycle_day": 3,
+                    "phase": "menstruation",
+                    "phase_label": "قاعدگی",
+                    "color": "#F2567C",
+                    "is_period": true,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-09-17",
+                    "weekday_iso": 4,
+                    "is_today": false,
+                    "cycle_day": 4,
+                    "phase": "menstruation",
+                    "phase_label": "قاعدگی",
+                    "color": "#F2567C",
+                    "is_period": true,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-09-18",
+                    "weekday_iso": 5,
+                    "is_today": false,
+                    "cycle_day": 5,
+                    "phase": "menstruation",
+                    "phase_label": "قاعدگی",
+                    "color": "#F2567C",
+                    "is_period": true,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  }
+                ]
+              },
+              "meta": null
+            },
+            {
+              "key": "next_period",
+              "type": "next_period",
+              "title": "28 روز تا پریود بعدی",
+              "subtitle": "پریود بعدی شما حدوداً 2026-10-12",
+              "order": 30,
+              "action": {
+                "key": "log_period_start",
+                "label": "شروع پریود"
+              },
+              "data": {
+                "days_until_period": 28,
+                "next_period_date": "2026-10-12",
+                "cycle_day": 1,
+                "cycle_length": 28,
+                "progress_percent": 4,
+                "is_in_period": true,
+                "is_period_tomorrow": false,
+                "is_fertile_window": false,
+                "uncertainty_range": 1,
+                "pregnancy_probability": {
+                  "percent": 0,
+                  "level": "low",
+                  "label": "کم"
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "cycle_prediction",
+              "type": "cycle_prediction",
+              "title": null,
+              "subtitle": null,
+              "order": 40,
+              "action": null,
+              "data": {
+                "cards": [
+                  {
+                    "key": "fertile_window",
+                    "label": "پنجره باروری",
+                    "start_date": "2026-09-23",
+                    "end_date": "2026-09-29",
+                    "days_until": 9,
+                    "is_active": false
+                  },
+                  {
+                    "key": "ovulation",
+                    "label": "تخمک‌گذاری",
+                    "date": "2026-09-28",
+                    "days_until": 14
+                  },
+                  {
+                    "key": "next_period",
+                    "label": "پریود بعدی",
+                    "date": "2026-10-12",
+                    "days_until": 28
+                  }
+                ],
+                "uncertainty_range": 1
+              },
+              "meta": null
+            },
+            {
+              "key": "recommendations",
+              "type": "recommendations",
+              "title": "توصیه‌های امروز",
+              "subtitle": null,
+              "order": 50,
+              "action": null,
+              "data": {
+                "tags": [
+                  {
+                    "type": "pain_relief",
+                    "icon": "bandage"
+                  },
+                  {
+                    "type": "hydration",
+                    "icon": "water-glass"
+                  },
+                  {
+                    "type": "warmth",
+                    "icon": "heat"
+                  },
+                  {
+                    "type": "rest",
+                    "icon": "bed"
+                  },
+                  {
+                    "type": "nutrition",
+                    "icon": "apple"
+                  }
+                ],
+                "items": [
+                  {
+                    "type": "pain_relief",
+                    "icon": "bandage",
+                    "title": "تسکین درد",
+                    "text": "برای کرامپ: حمام گرم یا پد گرم‌کننده امتحان کنید."
+                  },
+                  {
+                    "type": "hydration",
+                    "icon": "water-glass",
+                    "title": "آب‌رسانی",
+                    "text": "آب کافی بنوشید و هیدراته بمانید."
+                  },
+                  {
+                    "type": "warmth",
+                    "icon": "heat",
+                    "title": "گرما درمانی",
+                    "text": "کمپرس گرم روی شکم قرار دهید تا دردها کاهش یابد."
+                  },
+                  {
+                    "type": "rest",
+                    "icon": "bed",
+                    "title": "استراحت",
+                    "text": "استراحت کافی داشته باشید و از فعالیت‌های سنگین اجتناب کنید."
+                  },
+                  {
+                    "type": "nutrition",
+                    "icon": "apple",
+                    "title": "تغذیه",
+                    "text": "غذاهای غنی از آهن مثل اسفناج و گوشت قرمز بخورید."
+                  }
+                ]
+              },
+              "meta": null
+            },
+            {
+              "key": "tasks",
+              "type": "tasks",
+              "title": "وظایف امروز",
+              "subtitle": "0/5",
+              "order": 60,
+              "action": null,
+              "data": {
+                "items": [
+                  {
+                    "id": 1,
+                    "key": "log_bbt",
+                    "title": "ثبت دمای بدن",
+                    "description": "دمای پایه بدنت را هر روز صبح ثبت کن",
+                    "category": "tracking",
+                    "category_label": "ثبت و پایش",
+                    "icon": "clipboard-check",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 2,
+                    "key": "drink_water",
+                    "title": "نوشیدن ۸ لیوان آب",
+                    "description": "در طول روز به اندازه کافی آب بنوش",
+                    "category": "hydration",
+                    "category_label": "آب‌رسانی",
+                    "icon": "water-glass",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 3,
+                    "key": "vitamin_d",
+                    "title": "مصرف ویتامین D",
+                    "description": "مکمل ویتامین D خود را مصرف کن",
+                    "category": "supplement",
+                    "category_label": "مکمل",
+                    "icon": "pill",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 4,
+                    "key": "walk_30",
+                    "title": "۳۰ دقیقه پیاده‌روی",
+                    "description": "یک پیاده‌روی سبک ۳۰ دقیقه‌ای داشته باش",
+                    "category": "exercise",
+                    "category_label": "ورزش",
+                    "icon": "walking",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 5,
+                    "key": "breathing_5",
+                    "title": "۵ دقیقه تنفس عمیق",
+                    "description": "برای آرامش ذهن، تمرین تنفس عمیق انجام بده",
+                    "category": "mindfulness",
+                    "category_label": "آرامش ذهن",
+                    "icon": "lotus",
+                    "is_completed": false
+                  }
+                ],
+                "progress": {
+                  "completed": 0,
+                  "total": 5,
+                  "percent": 0
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "challenge",
+              "type": "challenge",
+              "title": "چالش امروز",
+              "subtitle": null,
+              "order": 70,
+              "action": null,
+              "data": {
+                "id": 19,
+                "title": "کیسه‌ی آب گرم روی شکم",
+                "description": "روزهای اول قاعدگی، ۱۵ دقیقه کیسه‌ی آب گرم دردِ شکم را کم می‌کند",
+                "category": "mindfulness",
+                "cycle_day": 1,
+                "cycle_day_from": 1,
+                "cycle_day_to": 3,
+                "is_completed": false
+              },
+              "meta": null
+            },
+            {
+              "key": "smart_tip",
+              "type": "smart_tip",
+              "title": "نکته هوشمند",
+              "subtitle": null,
+              "order": 100,
+              "action": null,
+              "data": {
+                "text": "در دوران قاعدگی، بدنت نیاز به استراحت و توجه بیشتری داره. به خودت اجازه بده کمی آروم‌تر باشی و از فعالیت‌های سنگین اجتناب کنی.",
+                "source": "message_engine"
+              },
+              "meta": null
+            },
+            {
+              "key": "affirmation",
+              "type": "affirmation",
+              "title": null,
+              "subtitle": null,
+              "order": 110,
+              "action": null,
+              "data": {
+                "id": 6,
+                "text": "با هر نفس، انرژی تازه‌ای می‌گیرم.",
+                "icon": "sparkle"
+              },
+              "meta": null
+            },
+            {
+              "key": "weekly_summary",
+              "type": "weekly_summary",
+              "title": "خلاصه هفته",
+              "subtitle": null,
+              "order": 120,
+              "action": {
+                "key": "view_all",
+                "label": "مشاهده کامل"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "mood",
+                    "label": "روحیه",
+                    "icon": "smile",
+                    "percent": 55,
+                    "previous_percent": null,
+                    "delta": null
+                  },
+                  {
+                    "key": "sleep",
+                    "label": "خواب",
+                    "icon": "moon",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  },
+                  {
+                    "key": "energy",
+                    "label": "انرژی",
+                    "icon": "bolt",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  }
+                ],
+                "range": {
+                  "from": "2026-09-08",
+                  "to": "2026-09-14"
+                },
+                "logged_days": 1,
+                "previous_logged_days": 0,
+                "overall_percent": 55
+              },
+              "meta": null
+            },
+            {
+              "key": "vitals",
+              "type": "vitals",
+              "title": "وضعیت امروز",
+              "subtitle": null,
+              "order": 130,
+              "action": {
+                "key": "view_all",
+                "label": "مشاهده کامل"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "heart_rate",
+                    "label": "ضربان قلب",
+                    "value": null,
+                    "unit": "bpm",
+                    "icon": "heart-pulse"
+                  },
+                  {
+                    "key": "blood_pressure",
+                    "label": "فشار خون",
+                    "value": null,
+                    "unit": "mmHg",
+                    "icon": "gauge"
+                  },
+                  {
+                    "key": "blood_sugar",
+                    "label": "قند خون",
+                    "value": null,
+                    "unit": "mg/dl",
+                    "icon": "droplet"
+                  }
+                ],
+                "has_data": false,
+                "date": "2026-09-14"
+              },
+              "meta": null
+            },
+            {
+              "key": "articles",
+              "type": "articles",
+              "title": "بر اساس سیکل فعلی شما",
+              "subtitle": null,
+              "order": 150,
+              "action": {
+                "key": "view_more",
+                "label": "مشاهده بیشتر"
+              },
+              "data": {
+                "items": [
+                  {
+                    "id": 1,
+                    "slug": "period-blood-clots",
+                    "title": "لخته‌های خون در دوران پریود؛ معنی آن چیست؟",
+                    "excerpt": "لخته‌های خون در پریود معمولاً طبیعی‌اند؛ اما چه زمانی باید نگران شد؟",
+                    "read_time_minutes": 4,
+                    "image_url": null,
+                    "category": "period_health",
+                    "cycle_phases": [
+                      "menstruation"
+                    ]
+                  },
+                  {
+                    "id": 2,
+                    "slug": "period-pain-relief",
+                    "title": "راه‌های کاهش درد پریود",
+                    "excerpt": "از گرما درمانی تا تغذیه؛ روش‌های مؤثر برای کاهش دردهای قاعدگی",
+                    "read_time_minutes": 5,
+                    "image_url": null,
+                    "category": "period_health",
+                    "cycle_phases": [
+                      "menstruation"
+                    ]
+                  },
+                  {
+                    "id": 6,
+                    "slug": "cycle-nutrition-basics",
+                    "title": "تغذیه متناسب با چرخه قاعدگی",
+                    "excerpt": "در هر فاز چه بخوریم تا حال بهتری داشته باشیم",
+                    "read_time_minutes": 6,
+                    "image_url": null,
+                    "category": "nutrition",
+                    "cycle_phases": []
+                  }
+                ]
+              },
+              "meta": null
+            },
+            {
+              "key": "my_cycles",
+              "type": "my_cycles",
+              "title": "سیکل‌های من",
+              "subtitle": null,
+              "order": 160,
+              "action": {
+                "key": "add_previous",
+                "label": "ثبت سیکل‌های قبلی"
+              },
+              "data": {
+                "current": {
+                  "id": 100406,
+                  "cycle_day": 1,
+                  "started_at": "2026-09-14",
+                  "period_end_date": "2026-09-18",
+                  "period_length": 5,
+                  "is_ongoing": false,
+                  "cycle_length": 28,
+                  "cycle_length_source": "recent_valid_cycles"
+                },
+                "previous_count": 5,
+                "previous": [
+                  {
+                    "id": 100405,
+                    "period_start_date": "2026-08-17",
+                    "period_end_date": "2026-08-21",
+                    "cycle_length": 28,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  },
+                  {
+                    "id": 100404,
+                    "period_start_date": "2026-07-20",
+                    "period_end_date": "2026-07-24",
+                    "cycle_length": 28,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  },
+                  {
+                    "id": 100403,
+                    "period_start_date": "2026-06-22",
+                    "period_end_date": "2026-06-26",
+                    "cycle_length": 28,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  },
+                  {
+                    "id": 100402,
+                    "period_start_date": "2026-05-25",
+                    "period_end_date": "2026-05-29",
+                    "cycle_length": 28,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  },
+                  {
+                    "id": 100401,
+                    "period_start_date": "2026-04-27",
+                    "period_end_date": "2026-05-01",
+                    "cycle_length": 28,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  }
+                ],
+                "averages": {
+                  "cycle_length": 28,
+                  "period_length": 5,
+                  "based_on_cycles": 5
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "cycle_summary",
+              "type": "cycle_summary",
+              "title": "خلاصه سیکل",
+              "subtitle": null,
+              "order": 170,
+              "action": {
+                "key": "view_more",
+                "label": "مشاهده بیشتر"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "last_cycle_length",
+                    "label": "طول سیکل قبلی",
+                    "value": 28,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "روز",
+                    "status": "normal",
+                    "status_label": "در محدودهٔ معمول",
+                    "hint": null,
+                    "normal_range": {
+                      "min": 21,
+                      "max": 35
+                    }
+                  },
+                  {
+                    "key": "last_period_duration",
+                    "label": "مدت پریود قبلی",
+                    "value": 5,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "روز",
+                    "status": "normal",
+                    "status_label": "در محدودهٔ معمول",
+                    "hint": null,
+                    "normal_range": {
+                      "min": 2,
+                      "max": 8
+                    }
+                  },
+                  {
+                    "key": "cycle_variability",
+                    "label": "نوسان طول سیکل",
+                    "value": 0,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": "نسبتاً منظم",
+                    "unit": "days",
+                    "unit_label": "روز",
+                    "status": "normal",
+                    "status_label": "در محدودهٔ معمول",
+                    "hint": "اختلاف کوتاه‌ترین و بلندترین سیکل اخیر: ۰ روز",
+                    "normal_range": null
+                  },
+                  {
+                    "key": "average_cycle_length",
+                    "label": "میانگین طول سیکل",
+                    "value": 28,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "روز",
+                    "status": "normal",
+                    "status_label": "در محدودهٔ معمول",
+                    "hint": "بر پایه ۵ سیکل ثبت‌شده",
+                    "normal_range": {
+                      "min": 21,
+                      "max": 35
+                    }
+                  },
+                  {
+                    "key": "cycle_length_range",
+                    "label": "کوتاه‌ترین تا بلندترین سیکل",
+                    "value": null,
+                    "value_min": 28,
+                    "value_max": 28,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "روز",
+                    "status": "normal",
+                    "status_label": "در محدودهٔ معمول",
+                    "hint": null,
+                    "normal_range": null
+                  }
+                ],
+                "based_on_cycles": 5,
+                "has_history": true,
+                "normal_ranges": {
+                  "cycle_length": {
+                    "min": 21,
+                    "max": 35
+                  },
+                  "period_duration": {
+                    "min": 2,
+                    "max": 8
+                  }
+                }
+              },
+              "meta": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/home?date=2026-09-22",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "mode_label": "سیکل قاعدگی",
+          "date": "2026-09-22",
+          "locale": "fa",
+          "profile_complete": true,
+          "sections": [
+            {
+              "key": "header",
+              "type": "header",
+              "title": null,
+              "subtitle": null,
+              "order": 10,
+              "action": null,
+              "data": {
+                "app_name": "ریتمی",
+                "tagline": "همراه سلامتی شما",
+                "greeting": "سلام Contract regular",
+                "user": {
+                  "id": 1004,
+                  "name": "Contract regular"
+                },
+                "mode": "cycle",
+                "mode_label": "سیکل قاعدگی",
+                "is_premium": false,
+                "date": "2026-09-22",
+                "weekday_iso": 2,
+                "moon_phase": {
+                  "key": "waxing_gibbous",
+                  "label": "محدب افزاینده",
+                  "illumination": 0.76,
+                  "age_days": 10
+                },
+                "notifications": {
+                  "unread_count": 0,
+                  "has_unread": false
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "week_calendar",
+              "type": "week_calendar",
+              "title": null,
+              "subtitle": null,
+              "order": 20,
+              "action": null,
+              "data": {
+                "week_start": "2026-09-19",
+                "days": [
+                  {
+                    "date": "2026-09-19",
+                    "weekday_iso": 6,
+                    "is_today": false,
+                    "cycle_day": 6,
+                    "phase": "follicular",
+                    "phase_label": "فولیکولار",
+                    "color": "#7BC99A",
+                    "is_period": false,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-09-20",
+                    "weekday_iso": 7,
+                    "is_today": false,
+                    "cycle_day": 7,
+                    "phase": "follicular",
+                    "phase_label": "فولیکولار",
+                    "color": "#7BC99A",
+                    "is_period": false,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-09-21",
+                    "weekday_iso": 1,
+                    "is_today": false,
+                    "cycle_day": 8,
+                    "phase": "follicular",
+                    "phase_label": "فولیکولار",
+                    "color": "#7BC99A",
+                    "is_period": false,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-09-22",
+                    "weekday_iso": 2,
+                    "is_today": true,
+                    "cycle_day": 9,
+                    "phase": "follicular",
+                    "phase_label": "فولیکولار",
+                    "color": "#7BC99A",
+                    "is_period": false,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-09-23",
+                    "weekday_iso": 3,
+                    "is_today": false,
+                    "cycle_day": 10,
+                    "phase": "follicular",
+                    "phase_label": "فولیکولار",
+                    "color": "#7BC99A",
+                    "is_period": false,
+                    "is_fertile": true,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-09-24",
+                    "weekday_iso": 4,
+                    "is_today": false,
+                    "cycle_day": 11,
+                    "phase": "follicular",
+                    "phase_label": "فولیکولار",
+                    "color": "#7BC99A",
+                    "is_period": false,
+                    "is_fertile": true,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-09-25",
+                    "weekday_iso": 5,
+                    "is_today": false,
+                    "cycle_day": 12,
+                    "phase": "follicular",
+                    "phase_label": "فولیکولار",
+                    "color": "#7BC99A",
+                    "is_period": false,
+                    "is_fertile": true,
+                    "is_ovulation": false
+                  }
+                ]
+              },
+              "meta": null
+            },
+            {
+              "key": "next_period",
+              "type": "next_period",
+              "title": "20 روز تا پریود بعدی",
+              "subtitle": "پریود بعدی شما حدوداً 2026-10-12",
+              "order": 30,
+              "action": {
+                "key": "log_period_start",
+                "label": "شروع پریود"
+              },
+              "data": {
+                "days_until_period": 20,
+                "next_period_date": "2026-10-12",
+                "cycle_day": 9,
+                "cycle_length": 28,
+                "progress_percent": 32,
+                "is_in_period": false,
+                "is_period_tomorrow": false,
+                "is_fertile_window": false,
+                "uncertainty_range": 1,
+                "pregnancy_probability": {
+                  "percent": 0,
+                  "level": "low",
+                  "label": "کم"
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "cycle_prediction",
+              "type": "cycle_prediction",
+              "title": null,
+              "subtitle": null,
+              "order": 40,
+              "action": null,
+              "data": {
+                "cards": [
+                  {
+                    "key": "fertile_window",
+                    "label": "پنجره باروری",
+                    "start_date": "2026-09-23",
+                    "end_date": "2026-09-29",
+                    "days_until": 1,
+                    "is_active": false
+                  },
+                  {
+                    "key": "ovulation",
+                    "label": "تخمک‌گذاری",
+                    "date": "2026-09-28",
+                    "days_until": 6
+                  },
+                  {
+                    "key": "next_period",
+                    "label": "پریود بعدی",
+                    "date": "2026-10-12",
+                    "days_until": 20
+                  }
+                ],
+                "uncertainty_range": 1
+              },
+              "meta": null
+            },
+            {
+              "key": "recommendations",
+              "type": "recommendations",
+              "title": "توصیه‌های امروز",
+              "subtitle": null,
+              "order": 50,
+              "action": null,
+              "data": {
+                "tags": [
+                  {
+                    "type": "energy",
+                    "icon": "bolt"
+                  },
+                  {
+                    "type": "exercise",
+                    "icon": "walking"
+                  },
+                  {
+                    "type": "nutrition",
+                    "icon": "apple"
+                  },
+                  {
+                    "type": "mental_health",
+                    "icon": "brain"
+                  }
+                ],
+                "items": [
+                  {
+                    "type": "energy",
+                    "icon": "bolt",
+                    "title": "انرژی",
+                    "text": "سطح انرژی شما در حال افزایش است. زمان مناسبی برای پروژه‌های جدید!"
+                  },
+                  {
+                    "type": "exercise",
+                    "icon": "walking",
+                    "title": "ورزش",
+                    "text": "زمان مناسبی برای ورزش‌های سنگین است."
+                  },
+                  {
+                    "type": "nutrition",
+                    "icon": "apple",
+                    "title": "تغذیه",
+                    "text": "پروتئین و سبزیجات تازه بخورید تا ذخیره انرژی‌تان دوباره پر شود."
+                  },
+                  {
+                    "type": "mental_health",
+                    "icon": "brain",
+                    "title": "سلامت روان",
+                    "text": "فرصت خوبی برای برنامه‌ریزی و یادگیری چیزهای تازه است."
+                  }
+                ]
+              },
+              "meta": null
+            },
+            {
+              "key": "tasks",
+              "type": "tasks",
+              "title": "وظایف امروز",
+              "subtitle": "0/5",
+              "order": 60,
+              "action": null,
+              "data": {
+                "items": [
+                  {
+                    "id": 1,
+                    "key": "log_bbt",
+                    "title": "ثبت دمای بدن",
+                    "description": "دمای پایه بدنت را هر روز صبح ثبت کن",
+                    "category": "tracking",
+                    "category_label": "ثبت و پایش",
+                    "icon": "clipboard-check",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 2,
+                    "key": "drink_water",
+                    "title": "نوشیدن ۸ لیوان آب",
+                    "description": "در طول روز به اندازه کافی آب بنوش",
+                    "category": "hydration",
+                    "category_label": "آب‌رسانی",
+                    "icon": "water-glass",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 3,
+                    "key": "vitamin_d",
+                    "title": "مصرف ویتامین D",
+                    "description": "مکمل ویتامین D خود را مصرف کن",
+                    "category": "supplement",
+                    "category_label": "مکمل",
+                    "icon": "pill",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 4,
+                    "key": "walk_30",
+                    "title": "۳۰ دقیقه پیاده‌روی",
+                    "description": "یک پیاده‌روی سبک ۳۰ دقیقه‌ای داشته باش",
+                    "category": "exercise",
+                    "category_label": "ورزش",
+                    "icon": "walking",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 5,
+                    "key": "breathing_5",
+                    "title": "۵ دقیقه تنفس عمیق",
+                    "description": "برای آرامش ذهن، تمرین تنفس عمیق انجام بده",
+                    "category": "mindfulness",
+                    "category_label": "آرامش ذهن",
+                    "icon": "lotus",
+                    "is_completed": false
+                  }
+                ],
+                "progress": {
+                  "completed": 0,
+                  "total": 5,
+                  "percent": 0
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "challenge",
+              "type": "challenge",
+              "title": "چالش امروز",
+              "subtitle": null,
+              "order": 70,
+              "action": null,
+              "data": {
+                "id": 22,
+                "title": "از اوج انرژی استفاده کن",
+                "description": "این روزها معمولاً پرانرژی‌ترین روزهای چرخه‌اند؛ یک تمرین جدی‌تر انجام بده",
+                "category": "exercise",
+                "cycle_day": 9,
+                "cycle_day_from": 8,
+                "cycle_day_to": 14,
+                "is_completed": false
+              },
+              "meta": null
+            },
+            {
+              "key": "smart_tip",
+              "type": "smart_tip",
+              "title": "نکته هوشمند",
+              "subtitle": null,
+              "order": 100,
+              "action": null,
+              "data": {
+                "text": "در فاز فولیکولار، سطح استروژن بالا میره و انرژی و خلاقیتت افزایش پیدا می‌کنه. بهترین زمان برای شروع پروژه‌های جدید و تمرینات ورزشی شدیدتره.",
+                "source": "message_engine"
+              },
+              "meta": null
+            },
+            {
+              "key": "affirmation",
+              "type": "affirmation",
+              "title": null,
+              "subtitle": null,
+              "order": 110,
+              "action": null,
+              "data": {
+                "id": 7,
+                "text": "مراقبت از خودم یک انتخاب قدرتمند است.",
+                "icon": "sparkle"
+              },
+              "meta": null
+            },
+            {
+              "key": "weekly_summary",
+              "type": "weekly_summary",
+              "title": "خلاصه هفته",
+              "subtitle": null,
+              "order": 120,
+              "action": {
+                "key": "view_all",
+                "label": "مشاهده کامل"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "mood",
+                    "label": "روحیه",
+                    "icon": "smile",
+                    "percent": null,
+                    "previous_percent": 70,
+                    "delta": null
+                  },
+                  {
+                    "key": "sleep",
+                    "label": "خواب",
+                    "icon": "moon",
+                    "percent": 100,
+                    "previous_percent": null,
+                    "delta": null
+                  },
+                  {
+                    "key": "energy",
+                    "label": "انرژی",
+                    "icon": "bolt",
+                    "percent": 80,
+                    "previous_percent": null,
+                    "delta": null
+                  }
+                ],
+                "range": {
+                  "from": "2026-09-16",
+                  "to": "2026-09-22"
+                },
+                "logged_days": 1,
+                "previous_logged_days": 2,
+                "overall_percent": 90
+              },
+              "meta": null
+            },
+            {
+              "key": "vitals",
+              "type": "vitals",
+              "title": "وضعیت امروز",
+              "subtitle": null,
+              "order": 130,
+              "action": {
+                "key": "view_all",
+                "label": "مشاهده کامل"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "heart_rate",
+                    "label": "ضربان قلب",
+                    "value": null,
+                    "unit": "bpm",
+                    "icon": "heart-pulse"
+                  },
+                  {
+                    "key": "blood_pressure",
+                    "label": "فشار خون",
+                    "value": null,
+                    "unit": "mmHg",
+                    "icon": "gauge"
+                  },
+                  {
+                    "key": "blood_sugar",
+                    "label": "قند خون",
+                    "value": null,
+                    "unit": "mg/dl",
+                    "icon": "droplet"
+                  }
+                ],
+                "has_data": false,
+                "date": "2026-09-22"
+              },
+              "meta": null
+            },
+            {
+              "key": "articles",
+              "type": "articles",
+              "title": "بر اساس سیکل فعلی شما",
+              "subtitle": null,
+              "order": 150,
+              "action": {
+                "key": "view_more",
+                "label": "مشاهده بیشتر"
+              },
+              "data": {
+                "items": [
+                  {
+                    "id": 3,
+                    "slug": "follicular-energy",
+                    "title": "فاز فولیکولار؛ زمان اوج انرژی",
+                    "excerpt": "چرا بعد از پریود احساس انرژی بیشتری داری و چطور از آن استفاده کنی",
+                    "read_time_minutes": 3,
+                    "image_url": null,
+                    "category": "cycle_science",
+                    "cycle_phases": [
+                      "follicular"
+                    ]
+                  },
+                  {
+                    "id": 6,
+                    "slug": "cycle-nutrition-basics",
+                    "title": "تغذیه متناسب با چرخه قاعدگی",
+                    "excerpt": "در هر فاز چه بخوریم تا حال بهتری داشته باشیم",
+                    "read_time_minutes": 6,
+                    "image_url": null,
+                    "category": "nutrition",
+                    "cycle_phases": []
+                  }
+                ]
+              },
+              "meta": null
+            },
+            {
+              "key": "my_cycles",
+              "type": "my_cycles",
+              "title": "سیکل‌های من",
+              "subtitle": null,
+              "order": 160,
+              "action": {
+                "key": "add_previous",
+                "label": "ثبت سیکل‌های قبلی"
+              },
+              "data": {
+                "current": {
+                  "id": 100406,
+                  "cycle_day": 9,
+                  "started_at": "2026-09-14",
+                  "period_end_date": "2026-09-18",
+                  "period_length": 5,
+                  "is_ongoing": false,
+                  "cycle_length": 28,
+                  "cycle_length_source": "recent_valid_cycles"
+                },
+                "previous_count": 5,
+                "previous": [
+                  {
+                    "id": 100405,
+                    "period_start_date": "2026-08-17",
+                    "period_end_date": "2026-08-21",
+                    "cycle_length": 28,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  },
+                  {
+                    "id": 100404,
+                    "period_start_date": "2026-07-20",
+                    "period_end_date": "2026-07-24",
+                    "cycle_length": 28,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  },
+                  {
+                    "id": 100403,
+                    "period_start_date": "2026-06-22",
+                    "period_end_date": "2026-06-26",
+                    "cycle_length": 28,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  },
+                  {
+                    "id": 100402,
+                    "period_start_date": "2026-05-25",
+                    "period_end_date": "2026-05-29",
+                    "cycle_length": 28,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  },
+                  {
+                    "id": 100401,
+                    "period_start_date": "2026-04-27",
+                    "period_end_date": "2026-05-01",
+                    "cycle_length": 28,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  }
+                ],
+                "averages": {
+                  "cycle_length": 28,
+                  "period_length": 5,
+                  "based_on_cycles": 5
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "cycle_summary",
+              "type": "cycle_summary",
+              "title": "خلاصه سیکل",
+              "subtitle": null,
+              "order": 170,
+              "action": {
+                "key": "view_more",
+                "label": "مشاهده بیشتر"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "last_cycle_length",
+                    "label": "طول سیکل قبلی",
+                    "value": 28,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "روز",
+                    "status": "normal",
+                    "status_label": "در محدودهٔ معمول",
+                    "hint": null,
+                    "normal_range": {
+                      "min": 21,
+                      "max": 35
+                    }
+                  },
+                  {
+                    "key": "last_period_duration",
+                    "label": "مدت پریود قبلی",
+                    "value": 5,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "روز",
+                    "status": "normal",
+                    "status_label": "در محدودهٔ معمول",
+                    "hint": null,
+                    "normal_range": {
+                      "min": 2,
+                      "max": 8
+                    }
+                  },
+                  {
+                    "key": "cycle_variability",
+                    "label": "نوسان طول سیکل",
+                    "value": 0,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": "نسبتاً منظم",
+                    "unit": "days",
+                    "unit_label": "روز",
+                    "status": "normal",
+                    "status_label": "در محدودهٔ معمول",
+                    "hint": "اختلاف کوتاه‌ترین و بلندترین سیکل اخیر: ۰ روز",
+                    "normal_range": null
+                  },
+                  {
+                    "key": "average_cycle_length",
+                    "label": "میانگین طول سیکل",
+                    "value": 28,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "روز",
+                    "status": "normal",
+                    "status_label": "در محدودهٔ معمول",
+                    "hint": "بر پایه ۵ سیکل ثبت‌شده",
+                    "normal_range": {
+                      "min": 21,
+                      "max": 35
+                    }
+                  },
+                  {
+                    "key": "cycle_length_range",
+                    "label": "کوتاه‌ترین تا بلندترین سیکل",
+                    "value": null,
+                    "value_min": 28,
+                    "value_max": 28,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "روز",
+                    "status": "normal",
+                    "status_label": "در محدودهٔ معمول",
+                    "hint": null,
+                    "normal_range": null
+                  }
+                ],
+                "based_on_cycles": 5,
+                "has_history": true,
+                "normal_ranges": {
+                  "cycle_length": {
+                    "min": 21,
+                    "max": 35
+                  },
+                  "period_duration": {
+                    "min": 2,
+                    "max": 8
+                  }
+                }
+              },
+              "meta": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/home?date=2026-09-30",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "mode_label": "سیکل قاعدگی",
+          "date": "2026-09-30",
+          "locale": "fa",
+          "profile_complete": true,
+          "sections": [
+            {
+              "key": "header",
+              "type": "header",
+              "title": null,
+              "subtitle": null,
+              "order": 10,
+              "action": null,
+              "data": {
+                "app_name": "ریتمی",
+                "tagline": "همراه سلامتی شما",
+                "greeting": "سلام Contract regular",
+                "user": {
+                  "id": 1004,
+                  "name": "Contract regular"
+                },
+                "mode": "cycle",
+                "mode_label": "سیکل قاعدگی",
+                "is_premium": false,
+                "date": "2026-09-30",
+                "weekday_iso": 3,
+                "moon_phase": {
+                  "key": "waning_gibbous",
+                  "label": "محدب کاهنده",
+                  "illumination": 0.89,
+                  "age_days": 18
+                },
+                "notifications": {
+                  "unread_count": 0,
+                  "has_unread": false
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "week_calendar",
+              "type": "week_calendar",
+              "title": null,
+              "subtitle": null,
+              "order": 20,
+              "action": null,
+              "data": {
+                "week_start": "2026-09-26",
+                "days": [
+                  {
+                    "date": "2026-09-26",
+                    "weekday_iso": 6,
+                    "is_today": false,
+                    "cycle_day": 13,
+                    "phase": "follicular",
+                    "phase_label": "فولیکولار",
+                    "color": "#7BC99A",
+                    "is_period": false,
+                    "is_fertile": true,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-09-27",
+                    "weekday_iso": 7,
+                    "is_today": false,
+                    "cycle_day": 14,
+                    "phase": "follicular",
+                    "phase_label": "فولیکولار",
+                    "color": "#7BC99A",
+                    "is_period": false,
+                    "is_fertile": true,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-09-28",
+                    "weekday_iso": 1,
+                    "is_today": false,
+                    "cycle_day": 15,
+                    "phase": "ovulation",
+                    "phase_label": "تخمک‌گذاری",
+                    "color": "#F09BB5",
+                    "is_period": false,
+                    "is_fertile": true,
+                    "is_ovulation": true
+                  },
+                  {
+                    "date": "2026-09-29",
+                    "weekday_iso": 2,
+                    "is_today": false,
+                    "cycle_day": 16,
+                    "phase": "ovulation",
+                    "phase_label": "تخمک‌گذاری",
+                    "color": "#F09BB5",
+                    "is_period": false,
+                    "is_fertile": true,
+                    "is_ovulation": true
+                  },
+                  {
+                    "date": "2026-09-30",
+                    "weekday_iso": 3,
+                    "is_today": true,
+                    "cycle_day": 17,
+                    "phase": "luteal",
+                    "phase_label": "لوتئال",
+                    "color": "#9C8BD6",
+                    "is_period": false,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-10-01",
+                    "weekday_iso": 4,
+                    "is_today": false,
+                    "cycle_day": 18,
+                    "phase": "luteal",
+                    "phase_label": "لوتئال",
+                    "color": "#9C8BD6",
+                    "is_period": false,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-10-02",
+                    "weekday_iso": 5,
+                    "is_today": false,
+                    "cycle_day": 19,
+                    "phase": "luteal",
+                    "phase_label": "لوتئال",
+                    "color": "#9C8BD6",
+                    "is_period": false,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  }
+                ]
+              },
+              "meta": null
+            },
+            {
+              "key": "next_period",
+              "type": "next_period",
+              "title": "12 روز تا پریود بعدی",
+              "subtitle": "پریود بعدی شما حدوداً 2026-10-12",
+              "order": 30,
+              "action": {
+                "key": "log_period_start",
+                "label": "شروع پریود"
+              },
+              "data": {
+                "days_until_period": 12,
+                "next_period_date": "2026-10-12",
+                "cycle_day": 17,
+                "cycle_length": 28,
+                "progress_percent": 61,
+                "is_in_period": false,
+                "is_period_tomorrow": false,
+                "is_fertile_window": false,
+                "uncertainty_range": 1,
+                "pregnancy_probability": {
+                  "percent": 0,
+                  "level": "low",
+                  "label": "کم"
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "cycle_prediction",
+              "type": "cycle_prediction",
+              "title": null,
+              "subtitle": null,
+              "order": 40,
+              "action": null,
+              "data": {
+                "cards": [
+                  {
+                    "key": "fertile_window",
+                    "label": "پنجره باروری",
+                    "start_date": "2026-10-21",
+                    "end_date": "2026-10-27",
+                    "days_until": 21,
+                    "is_active": false
+                  },
+                  {
+                    "key": "ovulation",
+                    "label": "تخمک‌گذاری",
+                    "date": "2026-10-26",
+                    "days_until": 26
+                  },
+                  {
+                    "key": "next_period",
+                    "label": "پریود بعدی",
+                    "date": "2026-10-12",
+                    "days_until": 12
+                  }
+                ],
+                "uncertainty_range": 1
+              },
+              "meta": null
+            },
+            {
+              "key": "recommendations",
+              "type": "recommendations",
+              "title": "توصیه‌های امروز",
+              "subtitle": null,
+              "order": 50,
+              "action": null,
+              "data": {
+                "tags": [
+                  {
+                    "type": "nutrition",
+                    "icon": "apple"
+                  },
+                  {
+                    "type": "exercise",
+                    "icon": "walking"
+                  },
+                  {
+                    "type": "sleep",
+                    "icon": "moon"
+                  },
+                  {
+                    "type": "mental_health",
+                    "icon": "brain"
+                  }
+                ],
+                "items": [
+                  {
+                    "type": "nutrition",
+                    "icon": "apple",
+                    "title": "تغذیه",
+                    "text": "روی غذاهای غنی از منیزیم و ویتامین B6 تمرکز کنید."
+                  },
+                  {
+                    "type": "exercise",
+                    "icon": "walking",
+                    "title": "ورزش",
+                    "text": "به حرکات ملایم‌تر مثل یوگا، پیلاتس یا پیاده‌روی رو بیاورید."
+                  },
+                  {
+                    "type": "sleep",
+                    "icon": "moon",
+                    "title": "خواب",
+                    "text": "کمی زودتر بخوابید؛ در این فاز انرژی کم‌کم افت می‌کند."
+                  },
+                  {
+                    "type": "mental_health",
+                    "icon": "brain",
+                    "title": "سلامت روان",
+                    "text": "زمان خوبی برای تمام‌کردن کارهای نیمه‌تمام است تا شروع کارهای جدید."
+                  }
+                ]
+              },
+              "meta": null
+            },
+            {
+              "key": "tasks",
+              "type": "tasks",
+              "title": "وظایف امروز",
+              "subtitle": "0/5",
+              "order": 60,
+              "action": null,
+              "data": {
+                "items": [
+                  {
+                    "id": 1,
+                    "key": "log_bbt",
+                    "title": "ثبت دمای بدن",
+                    "description": "دمای پایه بدنت را هر روز صبح ثبت کن",
+                    "category": "tracking",
+                    "category_label": "ثبت و پایش",
+                    "icon": "clipboard-check",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 2,
+                    "key": "drink_water",
+                    "title": "نوشیدن ۸ لیوان آب",
+                    "description": "در طول روز به اندازه کافی آب بنوش",
+                    "category": "hydration",
+                    "category_label": "آب‌رسانی",
+                    "icon": "water-glass",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 3,
+                    "key": "vitamin_d",
+                    "title": "مصرف ویتامین D",
+                    "description": "مکمل ویتامین D خود را مصرف کن",
+                    "category": "supplement",
+                    "category_label": "مکمل",
+                    "icon": "pill",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 4,
+                    "key": "walk_30",
+                    "title": "۳۰ دقیقه پیاده‌روی",
+                    "description": "یک پیاده‌روی سبک ۳۰ دقیقه‌ای داشته باش",
+                    "category": "exercise",
+                    "category_label": "ورزش",
+                    "icon": "walking",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 5,
+                    "key": "breathing_5",
+                    "title": "۵ دقیقه تنفس عمیق",
+                    "description": "برای آرامش ذهن، تمرین تنفس عمیق انجام بده",
+                    "category": "mindfulness",
+                    "category_label": "آرامش ذهن",
+                    "icon": "lotus",
+                    "is_completed": false
+                  }
+                ],
+                "progress": {
+                  "completed": 0,
+                  "total": 5,
+                  "percent": 0
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "challenge",
+              "type": "challenge",
+              "title": "چالش امروز",
+              "subtitle": null,
+              "order": 70,
+              "action": null,
+              "data": {
+                "id": 23,
+                "title": "نشانه‌های تخمک‌گذاری را ثبت کن",
+                "description": "ترشحات و دمای بدنت را این روزها ثبت کن تا پنجره‌ی باروری دقیق‌تر شود",
+                "category": "tracking",
+                "cycle_day": 17,
+                "cycle_day_from": 12,
+                "cycle_day_to": 17,
+                "is_completed": false
+              },
+              "meta": null
+            },
+            {
+              "key": "smart_tip",
+              "type": "smart_tip",
+              "title": "نکته هوشمند",
+              "subtitle": null,
+              "order": 100,
+              "action": null,
+              "data": {
+                "text": "در فاز لوتئال، انرژی کم‌کم کاهش پیدا می‌کنه. بهترین زمان برای تکمیل پروژه‌ها، مراقبت از خود و آماده شدن برای سیکل بعدی.",
+                "source": "message_engine"
+              },
+              "meta": null
+            },
+            {
+              "key": "affirmation",
+              "type": "affirmation",
+              "title": null,
+              "subtitle": null,
+              "order": 110,
+              "action": null,
+              "data": {
+                "id": 1,
+                "text": "هر روز فرصتی تازه برای مراقبت از خودت است.",
+                "icon": "sparkle"
+              },
+              "meta": null
+            },
+            {
+              "key": "weekly_summary",
+              "type": "weekly_summary",
+              "title": "خلاصه هفته",
+              "subtitle": null,
+              "order": 120,
+              "action": {
+                "key": "view_all",
+                "label": "مشاهده کامل"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "mood",
+                    "label": "روحیه",
+                    "icon": "smile",
+                    "percent": null,
+                    "previous_percent": 93,
+                    "delta": null
+                  },
+                  {
+                    "key": "sleep",
+                    "label": "خواب",
+                    "icon": "moon",
+                    "percent": null,
+                    "previous_percent": 100,
+                    "delta": null
+                  },
+                  {
+                    "key": "energy",
+                    "label": "انرژی",
+                    "icon": "bolt",
+                    "percent": null,
+                    "previous_percent": 70,
+                    "delta": null
+                  }
+                ],
+                "range": {
+                  "from": "2026-09-24",
+                  "to": "2026-09-30"
+                },
+                "logged_days": 0,
+                "previous_logged_days": 2,
+                "overall_percent": null
+              },
+              "meta": null
+            },
+            {
+              "key": "vitals",
+              "type": "vitals",
+              "title": "وضعیت امروز",
+              "subtitle": null,
+              "order": 130,
+              "action": {
+                "key": "view_all",
+                "label": "مشاهده کامل"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "heart_rate",
+                    "label": "ضربان قلب",
+                    "value": null,
+                    "unit": "bpm",
+                    "icon": "heart-pulse"
+                  },
+                  {
+                    "key": "blood_pressure",
+                    "label": "فشار خون",
+                    "value": null,
+                    "unit": "mmHg",
+                    "icon": "gauge"
+                  },
+                  {
+                    "key": "blood_sugar",
+                    "label": "قند خون",
+                    "value": null,
+                    "unit": "mg/dl",
+                    "icon": "droplet"
+                  }
+                ],
+                "has_data": false,
+                "date": "2026-09-30"
+              },
+              "meta": null
+            },
+            {
+              "key": "articles",
+              "type": "articles",
+              "title": "بر اساس سیکل فعلی شما",
+              "subtitle": null,
+              "order": 150,
+              "action": {
+                "key": "view_more",
+                "label": "مشاهده بیشتر"
+              },
+              "data": {
+                "items": [
+                  {
+                    "id": 5,
+                    "slug": "pms-management",
+                    "title": "مدیریت علائم پی‌ام‌اس",
+                    "excerpt": "راهکارهایی برای کنترل تغییرات خلقی و علائم جسمی پیش از پریود",
+                    "read_time_minutes": 5,
+                    "image_url": null,
+                    "category": "wellbeing",
+                    "cycle_phases": [
+                      "luteal"
+                    ]
+                  },
+                  {
+                    "id": 6,
+                    "slug": "cycle-nutrition-basics",
+                    "title": "تغذیه متناسب با چرخه قاعدگی",
+                    "excerpt": "در هر فاز چه بخوریم تا حال بهتری داشته باشیم",
+                    "read_time_minutes": 6,
+                    "image_url": null,
+                    "category": "nutrition",
+                    "cycle_phases": []
+                  }
+                ]
+              },
+              "meta": null
+            },
+            {
+              "key": "my_cycles",
+              "type": "my_cycles",
+              "title": "سیکل‌های من",
+              "subtitle": null,
+              "order": 160,
+              "action": {
+                "key": "add_previous",
+                "label": "ثبت سیکل‌های قبلی"
+              },
+              "data": {
+                "current": {
+                  "id": 100406,
+                  "cycle_day": 17,
+                  "started_at": "2026-09-14",
+                  "period_end_date": "2026-09-18",
+                  "period_length": 5,
+                  "is_ongoing": false,
+                  "cycle_length": 28,
+                  "cycle_length_source": "recent_valid_cycles"
+                },
+                "previous_count": 5,
+                "previous": [
+                  {
+                    "id": 100405,
+                    "period_start_date": "2026-08-17",
+                    "period_end_date": "2026-08-21",
+                    "cycle_length": 28,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  },
+                  {
+                    "id": 100404,
+                    "period_start_date": "2026-07-20",
+                    "period_end_date": "2026-07-24",
+                    "cycle_length": 28,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  },
+                  {
+                    "id": 100403,
+                    "period_start_date": "2026-06-22",
+                    "period_end_date": "2026-06-26",
+                    "cycle_length": 28,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  },
+                  {
+                    "id": 100402,
+                    "period_start_date": "2026-05-25",
+                    "period_end_date": "2026-05-29",
+                    "cycle_length": 28,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  },
+                  {
+                    "id": 100401,
+                    "period_start_date": "2026-04-27",
+                    "period_end_date": "2026-05-01",
+                    "cycle_length": 28,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  }
+                ],
+                "averages": {
+                  "cycle_length": 28,
+                  "period_length": 5,
+                  "based_on_cycles": 5
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "cycle_summary",
+              "type": "cycle_summary",
+              "title": "خلاصه سیکل",
+              "subtitle": null,
+              "order": 170,
+              "action": {
+                "key": "view_more",
+                "label": "مشاهده بیشتر"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "last_cycle_length",
+                    "label": "طول سیکل قبلی",
+                    "value": 28,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "روز",
+                    "status": "normal",
+                    "status_label": "در محدودهٔ معمول",
+                    "hint": null,
+                    "normal_range": {
+                      "min": 21,
+                      "max": 35
+                    }
+                  },
+                  {
+                    "key": "last_period_duration",
+                    "label": "مدت پریود قبلی",
+                    "value": 5,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "روز",
+                    "status": "normal",
+                    "status_label": "در محدودهٔ معمول",
+                    "hint": null,
+                    "normal_range": {
+                      "min": 2,
+                      "max": 8
+                    }
+                  },
+                  {
+                    "key": "cycle_variability",
+                    "label": "نوسان طول سیکل",
+                    "value": 0,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": "نسبتاً منظم",
+                    "unit": "days",
+                    "unit_label": "روز",
+                    "status": "normal",
+                    "status_label": "در محدودهٔ معمول",
+                    "hint": "اختلاف کوتاه‌ترین و بلندترین سیکل اخیر: ۰ روز",
+                    "normal_range": null
+                  },
+                  {
+                    "key": "average_cycle_length",
+                    "label": "میانگین طول سیکل",
+                    "value": 28,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "روز",
+                    "status": "normal",
+                    "status_label": "در محدودهٔ معمول",
+                    "hint": "بر پایه ۵ سیکل ثبت‌شده",
+                    "normal_range": {
+                      "min": 21,
+                      "max": 35
+                    }
+                  },
+                  {
+                    "key": "cycle_length_range",
+                    "label": "کوتاه‌ترین تا بلندترین سیکل",
+                    "value": null,
+                    "value_min": 28,
+                    "value_max": 28,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "روز",
+                    "status": "normal",
+                    "status_label": "در محدودهٔ معمول",
+                    "hint": null,
+                    "normal_range": null
+                  }
+                ],
+                "based_on_cycles": 5,
+                "has_history": true,
+                "normal_ranges": {
+                  "cycle_length": {
+                    "min": 21,
+                    "max": 35
+                  },
+                  "period_duration": {
+                    "min": 2,
+                    "max": 8
+                  }
+                }
+              },
+              "meta": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/home?date=2026-10-12",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "mode_label": "سیکل قاعدگی",
+          "date": "2026-10-12",
+          "locale": "fa",
+          "profile_complete": true,
+          "sections": [
+            {
+              "key": "header",
+              "type": "header",
+              "title": null,
+              "subtitle": null,
+              "order": 10,
+              "action": null,
+              "data": {
+                "app_name": "ریتمی",
+                "tagline": "همراه سلامتی شما",
+                "greeting": "سلام Contract regular",
+                "user": {
+                  "id": 1004,
+                  "name": "Contract regular"
+                },
+                "mode": "cycle",
+                "mode_label": "سیکل قاعدگی",
+                "is_premium": false,
+                "date": "2026-10-12",
+                "weekday_iso": 1,
+                "moon_phase": {
+                  "key": "new_moon",
+                  "label": "ماه نو",
+                  "illumination": 0,
+                  "age_days": 0.5
+                },
+                "notifications": {
+                  "unread_count": 0,
+                  "has_unread": false
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "week_calendar",
+              "type": "week_calendar",
+              "title": null,
+              "subtitle": null,
+              "order": 20,
+              "action": null,
+              "data": {
+                "week_start": "2026-10-10",
+                "days": [
+                  {
+                    "date": "2026-10-10",
+                    "weekday_iso": 6,
+                    "is_today": false,
+                    "cycle_day": 27,
+                    "phase": "luteal",
+                    "phase_label": "لوتئال",
+                    "color": "#9C8BD6",
+                    "is_period": false,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-10-11",
+                    "weekday_iso": 7,
+                    "is_today": false,
+                    "cycle_day": 28,
+                    "phase": "luteal",
+                    "phase_label": "لوتئال",
+                    "color": "#9C8BD6",
+                    "is_period": false,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-10-12",
+                    "weekday_iso": 1,
+                    "is_today": true,
+                    "cycle_day": 1,
+                    "phase": "menstruation",
+                    "phase_label": "قاعدگی",
+                    "color": "#F2567C",
+                    "is_period": true,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-10-13",
+                    "weekday_iso": 2,
+                    "is_today": false,
+                    "cycle_day": 2,
+                    "phase": "menstruation",
+                    "phase_label": "قاعدگی",
+                    "color": "#F2567C",
+                    "is_period": true,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-10-14",
+                    "weekday_iso": 3,
+                    "is_today": false,
+                    "cycle_day": 3,
+                    "phase": "menstruation",
+                    "phase_label": "قاعدگی",
+                    "color": "#F2567C",
+                    "is_period": true,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-10-15",
+                    "weekday_iso": 4,
+                    "is_today": false,
+                    "cycle_day": 4,
+                    "phase": "menstruation",
+                    "phase_label": "قاعدگی",
+                    "color": "#F2567C",
+                    "is_period": true,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-10-16",
+                    "weekday_iso": 5,
+                    "is_today": false,
+                    "cycle_day": 5,
+                    "phase": "menstruation",
+                    "phase_label": "قاعدگی",
+                    "color": "#F2567C",
+                    "is_period": true,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  }
+                ]
+              },
+              "meta": null
+            },
+            {
+              "key": "next_period",
+              "type": "next_period",
+              "title": "28 روز تا پریود بعدی",
+              "subtitle": "پریود بعدی شما حدوداً 2026-11-09",
+              "order": 30,
+              "action": {
+                "key": "log_period_start",
+                "label": "شروع پریود"
+              },
+              "data": {
+                "days_until_period": 28,
+                "next_period_date": "2026-11-09",
+                "cycle_day": 1,
+                "cycle_length": 28,
+                "progress_percent": 4,
+                "is_in_period": true,
+                "is_period_tomorrow": false,
+                "is_fertile_window": false,
+                "uncertainty_range": 1,
+                "pregnancy_probability": {
+                  "percent": 0,
+                  "level": "low",
+                  "label": "کم"
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "cycle_prediction",
+              "type": "cycle_prediction",
+              "title": null,
+              "subtitle": null,
+              "order": 40,
+              "action": null,
+              "data": {
+                "cards": [
+                  {
+                    "key": "fertile_window",
+                    "label": "پنجره باروری",
+                    "start_date": "2026-10-21",
+                    "end_date": "2026-10-27",
+                    "days_until": 9,
+                    "is_active": false
+                  },
+                  {
+                    "key": "ovulation",
+                    "label": "تخمک‌گذاری",
+                    "date": "2026-10-26",
+                    "days_until": 14
+                  },
+                  {
+                    "key": "next_period",
+                    "label": "پریود بعدی",
+                    "date": "2026-11-09",
+                    "days_until": 28
+                  }
+                ],
+                "uncertainty_range": 1
+              },
+              "meta": null
+            },
+            {
+              "key": "recommendations",
+              "type": "recommendations",
+              "title": "توصیه‌های امروز",
+              "subtitle": null,
+              "order": 50,
+              "action": null,
+              "data": {
+                "tags": [
+                  {
+                    "type": "hydration",
+                    "icon": "water-glass"
+                  },
+                  {
+                    "type": "warmth",
+                    "icon": "heat"
+                  },
+                  {
+                    "type": "rest",
+                    "icon": "bed"
+                  },
+                  {
+                    "type": "nutrition",
+                    "icon": "apple"
+                  }
+                ],
+                "items": [
+                  {
+                    "type": "hydration",
+                    "icon": "water-glass",
+                    "title": "آب‌رسانی",
+                    "text": "آب کافی بنوشید و هیدراته بمانید."
+                  },
+                  {
+                    "type": "warmth",
+                    "icon": "heat",
+                    "title": "گرما درمانی",
+                    "text": "کمپرس گرم روی شکم قرار دهید تا دردها کاهش یابد."
+                  },
+                  {
+                    "type": "rest",
+                    "icon": "bed",
+                    "title": "استراحت",
+                    "text": "استراحت کافی داشته باشید و از فعالیت‌های سنگین اجتناب کنید."
+                  },
+                  {
+                    "type": "nutrition",
+                    "icon": "apple",
+                    "title": "تغذیه",
+                    "text": "غذاهای غنی از آهن مثل اسفناج و گوشت قرمز بخورید."
+                  }
+                ]
+              },
+              "meta": null
+            },
+            {
+              "key": "tasks",
+              "type": "tasks",
+              "title": "وظایف امروز",
+              "subtitle": "0/5",
+              "order": 60,
+              "action": null,
+              "data": {
+                "items": [
+                  {
+                    "id": 1,
+                    "key": "log_bbt",
+                    "title": "ثبت دمای بدن",
+                    "description": "دمای پایه بدنت را هر روز صبح ثبت کن",
+                    "category": "tracking",
+                    "category_label": "ثبت و پایش",
+                    "icon": "clipboard-check",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 2,
+                    "key": "drink_water",
+                    "title": "نوشیدن ۸ لیوان آب",
+                    "description": "در طول روز به اندازه کافی آب بنوش",
+                    "category": "hydration",
+                    "category_label": "آب‌رسانی",
+                    "icon": "water-glass",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 3,
+                    "key": "vitamin_d",
+                    "title": "مصرف ویتامین D",
+                    "description": "مکمل ویتامین D خود را مصرف کن",
+                    "category": "supplement",
+                    "category_label": "مکمل",
+                    "icon": "pill",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 4,
+                    "key": "walk_30",
+                    "title": "۳۰ دقیقه پیاده‌روی",
+                    "description": "یک پیاده‌روی سبک ۳۰ دقیقه‌ای داشته باش",
+                    "category": "exercise",
+                    "category_label": "ورزش",
+                    "icon": "walking",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 5,
+                    "key": "breathing_5",
+                    "title": "۵ دقیقه تنفس عمیق",
+                    "description": "برای آرامش ذهن، تمرین تنفس عمیق انجام بده",
+                    "category": "mindfulness",
+                    "category_label": "آرامش ذهن",
+                    "icon": "lotus",
+                    "is_completed": false
+                  }
+                ],
+                "progress": {
+                  "completed": 0,
+                  "total": 5,
+                  "percent": 0
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "challenge",
+              "type": "challenge",
+              "title": "چالش امروز",
+              "subtitle": null,
+              "order": 70,
+              "action": null,
+              "data": {
+                "id": 14,
+                "title": "۵ دقیقه کشش",
+                "description": "چند حرکت کششی ملایم برای کمر و لگن انجام بده",
+                "category": "exercise",
+                "cycle_day": 1,
+                "cycle_day_from": 1,
+                "cycle_day_to": 5,
+                "is_completed": false
+              },
+              "meta": null
+            },
+            {
+              "key": "smart_tip",
+              "type": "smart_tip",
+              "title": "نکته هوشمند",
+              "subtitle": null,
+              "order": 100,
+              "action": null,
+              "data": {
+                "text": "در دوران قاعدگی، بدنت نیاز به استراحت و توجه بیشتری داره. به خودت اجازه بده کمی آروم‌تر باشی و از فعالیت‌های سنگین اجتناب کنی.",
+                "source": "message_engine"
+              },
+              "meta": null
+            },
+            {
+              "key": "affirmation",
+              "type": "affirmation",
+              "title": null,
+              "subtitle": null,
+              "order": 110,
+              "action": null,
+              "data": {
+                "id": 6,
+                "text": "با هر نفس، انرژی تازه‌ای می‌گیرم.",
+                "icon": "sparkle"
+              },
+              "meta": null
+            },
+            {
+              "key": "weekly_summary",
+              "type": "weekly_summary",
+              "title": "خلاصه هفته",
+              "subtitle": null,
+              "order": 120,
+              "action": {
+                "key": "view_all",
+                "label": "مشاهده کامل"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "mood",
+                    "label": "روحیه",
+                    "icon": "smile",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  },
+                  {
+                    "key": "sleep",
+                    "label": "خواب",
+                    "icon": "moon",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  },
+                  {
+                    "key": "energy",
+                    "label": "انرژی",
+                    "icon": "bolt",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  }
+                ],
+                "range": {
+                  "from": "2026-10-06",
+                  "to": "2026-10-12"
+                },
+                "logged_days": 0,
+                "previous_logged_days": 0,
+                "overall_percent": null
+              },
+              "meta": null
+            },
+            {
+              "key": "vitals",
+              "type": "vitals",
+              "title": "وضعیت امروز",
+              "subtitle": null,
+              "order": 130,
+              "action": {
+                "key": "view_all",
+                "label": "مشاهده کامل"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "heart_rate",
+                    "label": "ضربان قلب",
+                    "value": null,
+                    "unit": "bpm",
+                    "icon": "heart-pulse"
+                  },
+                  {
+                    "key": "blood_pressure",
+                    "label": "فشار خون",
+                    "value": null,
+                    "unit": "mmHg",
+                    "icon": "gauge"
+                  },
+                  {
+                    "key": "blood_sugar",
+                    "label": "قند خون",
+                    "value": null,
+                    "unit": "mg/dl",
+                    "icon": "droplet"
+                  }
+                ],
+                "has_data": false,
+                "date": "2026-10-12"
+              },
+              "meta": null
+            },
+            {
+              "key": "articles",
+              "type": "articles",
+              "title": "بر اساس سیکل فعلی شما",
+              "subtitle": null,
+              "order": 150,
+              "action": {
+                "key": "view_more",
+                "label": "مشاهده بیشتر"
+              },
+              "data": {
+                "items": [
+                  {
+                    "id": 1,
+                    "slug": "period-blood-clots",
+                    "title": "لخته‌های خون در دوران پریود؛ معنی آن چیست؟",
+                    "excerpt": "لخته‌های خون در پریود معمولاً طبیعی‌اند؛ اما چه زمانی باید نگران شد؟",
+                    "read_time_minutes": 4,
+                    "image_url": null,
+                    "category": "period_health",
+                    "cycle_phases": [
+                      "menstruation"
+                    ]
+                  },
+                  {
+                    "id": 2,
+                    "slug": "period-pain-relief",
+                    "title": "راه‌های کاهش درد پریود",
+                    "excerpt": "از گرما درمانی تا تغذیه؛ روش‌های مؤثر برای کاهش دردهای قاعدگی",
+                    "read_time_minutes": 5,
+                    "image_url": null,
+                    "category": "period_health",
+                    "cycle_phases": [
+                      "menstruation"
+                    ]
+                  },
+                  {
+                    "id": 6,
+                    "slug": "cycle-nutrition-basics",
+                    "title": "تغذیه متناسب با چرخه قاعدگی",
+                    "excerpt": "در هر فاز چه بخوریم تا حال بهتری داشته باشیم",
+                    "read_time_minutes": 6,
+                    "image_url": null,
+                    "category": "nutrition",
+                    "cycle_phases": []
+                  }
+                ]
+              },
+              "meta": null
+            },
+            {
+              "key": "my_cycles",
+              "type": "my_cycles",
+              "title": "سیکل‌های من",
+              "subtitle": null,
+              "order": 160,
+              "action": {
+                "key": "add_previous",
+                "label": "ثبت سیکل‌های قبلی"
+              },
+              "data": {
+                "current": {
+                  "id": null,
+                  "cycle_day": 1,
+                  "started_at": "2026-10-12",
+                  "period_end_date": null,
+                  "period_length": null,
+                  "is_ongoing": false,
+                  "cycle_length": 28,
+                  "cycle_length_source": "recent_valid_cycles"
+                },
+                "previous_count": 5,
+                "previous": [
+                  {
+                    "id": 100405,
+                    "period_start_date": "2026-08-17",
+                    "period_end_date": "2026-08-21",
+                    "cycle_length": 28,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  },
+                  {
+                    "id": 100404,
+                    "period_start_date": "2026-07-20",
+                    "period_end_date": "2026-07-24",
+                    "cycle_length": 28,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  },
+                  {
+                    "id": 100403,
+                    "period_start_date": "2026-06-22",
+                    "period_end_date": "2026-06-26",
+                    "cycle_length": 28,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  },
+                  {
+                    "id": 100402,
+                    "period_start_date": "2026-05-25",
+                    "period_end_date": "2026-05-29",
+                    "cycle_length": 28,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  },
+                  {
+                    "id": 100401,
+                    "period_start_date": "2026-04-27",
+                    "period_end_date": "2026-05-01",
+                    "cycle_length": 28,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  }
+                ],
+                "averages": {
+                  "cycle_length": 28,
+                  "period_length": 5,
+                  "based_on_cycles": 5
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "cycle_summary",
+              "type": "cycle_summary",
+              "title": "خلاصه سیکل",
+              "subtitle": null,
+              "order": 170,
+              "action": {
+                "key": "view_more",
+                "label": "مشاهده بیشتر"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "last_cycle_length",
+                    "label": "طول سیکل قبلی",
+                    "value": 28,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "روز",
+                    "status": "normal",
+                    "status_label": "در محدودهٔ معمول",
+                    "hint": null,
+                    "normal_range": {
+                      "min": 21,
+                      "max": 35
+                    }
+                  },
+                  {
+                    "key": "last_period_duration",
+                    "label": "مدت پریود قبلی",
+                    "value": 5,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "روز",
+                    "status": "normal",
+                    "status_label": "در محدودهٔ معمول",
+                    "hint": null,
+                    "normal_range": {
+                      "min": 2,
+                      "max": 8
+                    }
+                  },
+                  {
+                    "key": "cycle_variability",
+                    "label": "نوسان طول سیکل",
+                    "value": 0,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": "نسبتاً منظم",
+                    "unit": "days",
+                    "unit_label": "روز",
+                    "status": "normal",
+                    "status_label": "در محدودهٔ معمول",
+                    "hint": "اختلاف کوتاه‌ترین و بلندترین سیکل اخیر: ۰ روز",
+                    "normal_range": null
+                  },
+                  {
+                    "key": "average_cycle_length",
+                    "label": "میانگین طول سیکل",
+                    "value": 28,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "روز",
+                    "status": "normal",
+                    "status_label": "در محدودهٔ معمول",
+                    "hint": "بر پایه ۵ سیکل ثبت‌شده",
+                    "normal_range": {
+                      "min": 21,
+                      "max": 35
+                    }
+                  },
+                  {
+                    "key": "cycle_length_range",
+                    "label": "کوتاه‌ترین تا بلندترین سیکل",
+                    "value": null,
+                    "value_min": 28,
+                    "value_max": 28,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "روز",
+                    "status": "normal",
+                    "status_label": "در محدودهٔ معمول",
+                    "hint": null,
+                    "normal_range": null
+                  }
+                ],
+                "based_on_cycles": 5,
+                "has_history": true,
+                "normal_ranges": {
+                  "cycle_length": {
+                    "min": 21,
+                    "max": 35
+                  },
+                  "period_duration": {
+                    "min": 2,
+                    "max": 8
+                  }
+                }
+              },
+              "meta": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/home?date=2026-08-01",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "mode_label": "سیکل قاعدگی",
+          "date": "2026-08-01",
+          "locale": "fa",
+          "profile_complete": true,
+          "sections": [
+            {
+              "key": "header",
+              "type": "header",
+              "title": null,
+              "subtitle": null,
+              "order": 10,
+              "action": null,
+              "data": {
+                "app_name": "ریتمی",
+                "tagline": "همراه سلامتی شما",
+                "greeting": "سلام Contract regular",
+                "user": {
+                  "id": 1004,
+                  "name": "Contract regular"
+                },
+                "mode": "cycle",
+                "mode_label": "سیکل قاعدگی",
+                "is_premium": false,
+                "date": "2026-08-01",
+                "weekday_iso": 6,
+                "moon_phase": {
+                  "key": "waning_gibbous",
+                  "label": "محدب کاهنده",
+                  "illumination": 0.94,
+                  "age_days": 17.1
+                },
+                "notifications": {
+                  "unread_count": 0,
+                  "has_unread": false
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "week_calendar",
+              "type": "week_calendar",
+              "title": null,
+              "subtitle": null,
+              "order": 20,
+              "action": null,
+              "data": {
+                "week_start": "2026-08-01",
+                "days": [
+                  {
+                    "date": "2026-08-01",
+                    "weekday_iso": 6,
+                    "is_today": true,
+                    "cycle_day": 13,
+                    "phase": "follicular",
+                    "phase_label": "فولیکولار",
+                    "color": "#7BC99A",
+                    "is_period": false,
+                    "is_fertile": true,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-08-02",
+                    "weekday_iso": 7,
+                    "is_today": false,
+                    "cycle_day": 14,
+                    "phase": "follicular",
+                    "phase_label": "فولیکولار",
+                    "color": "#7BC99A",
+                    "is_period": false,
+                    "is_fertile": true,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-08-03",
+                    "weekday_iso": 1,
+                    "is_today": false,
+                    "cycle_day": 15,
+                    "phase": "ovulation",
+                    "phase_label": "تخمک‌گذاری",
+                    "color": "#F09BB5",
+                    "is_period": false,
+                    "is_fertile": true,
+                    "is_ovulation": true
+                  },
+                  {
+                    "date": "2026-08-04",
+                    "weekday_iso": 2,
+                    "is_today": false,
+                    "cycle_day": 16,
+                    "phase": "ovulation",
+                    "phase_label": "تخمک‌گذاری",
+                    "color": "#F09BB5",
+                    "is_period": false,
+                    "is_fertile": true,
+                    "is_ovulation": true
+                  },
+                  {
+                    "date": "2026-08-05",
+                    "weekday_iso": 3,
+                    "is_today": false,
+                    "cycle_day": 17,
+                    "phase": "luteal",
+                    "phase_label": "لوتئال",
+                    "color": "#9C8BD6",
+                    "is_period": false,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-08-06",
+                    "weekday_iso": 4,
+                    "is_today": false,
+                    "cycle_day": 18,
+                    "phase": "luteal",
+                    "phase_label": "لوتئال",
+                    "color": "#9C8BD6",
+                    "is_period": false,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  },
+                  {
+                    "date": "2026-08-07",
+                    "weekday_iso": 5,
+                    "is_today": false,
+                    "cycle_day": 19,
+                    "phase": "luteal",
+                    "phase_label": "لوتئال",
+                    "color": "#9C8BD6",
+                    "is_period": false,
+                    "is_fertile": false,
+                    "is_ovulation": false
+                  }
+                ]
+              },
+              "meta": null
+            },
+            {
+              "key": "next_period",
+              "type": "next_period",
+              "title": "16 روز تا پریود بعدی",
+              "subtitle": "پریود بعدی شما حدوداً 2026-08-17",
+              "order": 30,
+              "action": {
+                "key": "log_period_start",
+                "label": "شروع پریود"
+              },
+              "data": {
+                "days_until_period": 16,
+                "next_period_date": "2026-08-17",
+                "cycle_day": 13,
+                "cycle_length": 28,
+                "progress_percent": 46,
+                "is_in_period": false,
+                "is_period_tomorrow": false,
+                "is_fertile_window": true,
+                "uncertainty_range": 1,
+                "pregnancy_probability": {
+                  "percent": 14.88,
+                  "level": "medium",
+                  "label": "متوسط"
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "cycle_prediction",
+              "type": "cycle_prediction",
+              "title": null,
+              "subtitle": null,
+              "order": 40,
+              "action": null,
+              "data": {
+                "cards": [
+                  {
+                    "key": "fertile_window",
+                    "label": "پنجره باروری",
+                    "start_date": "2026-07-29",
+                    "end_date": "2026-08-04",
+                    "days_until": 0,
+                    "is_active": true
+                  },
+                  {
+                    "key": "ovulation",
+                    "label": "تخمک‌گذاری",
+                    "date": "2026-08-03",
+                    "days_until": 2
+                  },
+                  {
+                    "key": "next_period",
+                    "label": "پریود بعدی",
+                    "date": "2026-08-17",
+                    "days_until": 16
+                  }
+                ],
+                "uncertainty_range": 1
+              },
+              "meta": null
+            },
+            {
+              "key": "recommendations",
+              "type": "recommendations",
+              "title": "توصیه‌های امروز",
+              "subtitle": null,
+              "order": 50,
+              "action": null,
+              "data": {
+                "tags": [
+                  {
+                    "type": "energy",
+                    "icon": "bolt"
+                  },
+                  {
+                    "type": "exercise",
+                    "icon": "walking"
+                  },
+                  {
+                    "type": "nutrition",
+                    "icon": "apple"
+                  },
+                  {
+                    "type": "mental_health",
+                    "icon": "brain"
+                  }
+                ],
+                "items": [
+                  {
+                    "type": "energy",
+                    "icon": "bolt",
+                    "title": "انرژی",
+                    "text": "سطح انرژی شما در حال افزایش است. زمان مناسبی برای پروژه‌های جدید!"
+                  },
+                  {
+                    "type": "exercise",
+                    "icon": "walking",
+                    "title": "ورزش",
+                    "text": "زمان مناسبی برای ورزش‌های سنگین است."
+                  },
+                  {
+                    "type": "nutrition",
+                    "icon": "apple",
+                    "title": "تغذیه",
+                    "text": "پروتئین و سبزیجات تازه بخورید تا ذخیره انرژی‌تان دوباره پر شود."
+                  },
+                  {
+                    "type": "mental_health",
+                    "icon": "brain",
+                    "title": "سلامت روان",
+                    "text": "فرصت خوبی برای برنامه‌ریزی و یادگیری چیزهای تازه است."
+                  }
+                ]
+              },
+              "meta": null
+            },
+            {
+              "key": "tasks",
+              "type": "tasks",
+              "title": "وظایف امروز",
+              "subtitle": "0/5",
+              "order": 60,
+              "action": null,
+              "data": {
+                "items": [
+                  {
+                    "id": 1,
+                    "key": "log_bbt",
+                    "title": "ثبت دمای بدن",
+                    "description": "دمای پایه بدنت را هر روز صبح ثبت کن",
+                    "category": "tracking",
+                    "category_label": "ثبت و پایش",
+                    "icon": "clipboard-check",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 2,
+                    "key": "drink_water",
+                    "title": "نوشیدن ۸ لیوان آب",
+                    "description": "در طول روز به اندازه کافی آب بنوش",
+                    "category": "hydration",
+                    "category_label": "آب‌رسانی",
+                    "icon": "water-glass",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 3,
+                    "key": "vitamin_d",
+                    "title": "مصرف ویتامین D",
+                    "description": "مکمل ویتامین D خود را مصرف کن",
+                    "category": "supplement",
+                    "category_label": "مکمل",
+                    "icon": "pill",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 4,
+                    "key": "walk_30",
+                    "title": "۳۰ دقیقه پیاده‌روی",
+                    "description": "یک پیاده‌روی سبک ۳۰ دقیقه‌ای داشته باش",
+                    "category": "exercise",
+                    "category_label": "ورزش",
+                    "icon": "walking",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 5,
+                    "key": "breathing_5",
+                    "title": "۵ دقیقه تنفس عمیق",
+                    "description": "برای آرامش ذهن، تمرین تنفس عمیق انجام بده",
+                    "category": "mindfulness",
+                    "category_label": "آرامش ذهن",
+                    "icon": "lotus",
+                    "is_completed": false
+                  }
+                ],
+                "progress": {
+                  "completed": 0,
+                  "total": 5,
+                  "percent": 0
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "challenge",
+              "type": "challenge",
+              "title": "چالش امروز",
+              "subtitle": null,
+              "order": 70,
+              "action": null,
+              "data": {
+                "id": 23,
+                "title": "نشانه‌های تخمک‌گذاری را ثبت کن",
+                "description": "ترشحات و دمای بدنت را این روزها ثبت کن تا پنجره‌ی باروری دقیق‌تر شود",
+                "category": "tracking",
+                "cycle_day": 13,
+                "cycle_day_from": 12,
+                "cycle_day_to": 17,
+                "is_completed": false
+              },
+              "meta": null
+            },
+            {
+              "key": "smart_tip",
+              "type": "smart_tip",
+              "title": "نکته هوشمند",
+              "subtitle": null,
+              "order": 100,
+              "action": null,
+              "data": {
+                "text": "در فاز فولیکولار، سطح استروژن بالا میره و انرژی و خلاقیتت افزایش پیدا می‌کنه. بهترین زمان برای شروع پروژه‌های جدید و تمرینات ورزشی شدیدتره.",
+                "source": "message_engine"
+              },
+              "meta": null
+            },
+            {
+              "key": "affirmation",
+              "type": "affirmation",
+              "title": null,
+              "subtitle": null,
+              "order": 110,
+              "action": null,
+              "data": {
+                "id": 4,
+                "text": "آرامش من از درون شروع می‌شود.",
+                "icon": "sparkle"
+              },
+              "meta": null
+            },
+            {
+              "key": "weekly_summary",
+              "type": "weekly_summary",
+              "title": "خلاصه هفته",
+              "subtitle": null,
+              "order": 120,
+              "action": {
+                "key": "view_all",
+                "label": "مشاهده کامل"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "mood",
+                    "label": "روحیه",
+                    "icon": "smile",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  },
+                  {
+                    "key": "sleep",
+                    "label": "خواب",
+                    "icon": "moon",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  },
+                  {
+                    "key": "energy",
+                    "label": "انرژی",
+                    "icon": "bolt",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  }
+                ],
+                "range": {
+                  "from": "2026-07-26",
+                  "to": "2026-08-01"
+                },
+                "logged_days": 0,
+                "previous_logged_days": 0,
+                "overall_percent": null
+              },
+              "meta": null
+            },
+            {
+              "key": "vitals",
+              "type": "vitals",
+              "title": "وضعیت امروز",
+              "subtitle": null,
+              "order": 130,
+              "action": {
+                "key": "view_all",
+                "label": "مشاهده کامل"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "heart_rate",
+                    "label": "ضربان قلب",
+                    "value": null,
+                    "unit": "bpm",
+                    "icon": "heart-pulse"
+                  },
+                  {
+                    "key": "blood_pressure",
+                    "label": "فشار خون",
+                    "value": null,
+                    "unit": "mmHg",
+                    "icon": "gauge"
+                  },
+                  {
+                    "key": "blood_sugar",
+                    "label": "قند خون",
+                    "value": null,
+                    "unit": "mg/dl",
+                    "icon": "droplet"
+                  }
+                ],
+                "has_data": false,
+                "date": "2026-08-01"
+              },
+              "meta": null
+            },
+            {
+              "key": "articles",
+              "type": "articles",
+              "title": "بر اساس سیکل فعلی شما",
+              "subtitle": null,
+              "order": 150,
+              "action": {
+                "key": "view_more",
+                "label": "مشاهده بیشتر"
+              },
+              "data": {
+                "items": [
+                  {
+                    "id": 3,
+                    "slug": "follicular-energy",
+                    "title": "فاز فولیکولار؛ زمان اوج انرژی",
+                    "excerpt": "چرا بعد از پریود احساس انرژی بیشتری داری و چطور از آن استفاده کنی",
+                    "read_time_minutes": 3,
+                    "image_url": null,
+                    "category": "cycle_science",
+                    "cycle_phases": [
+                      "follicular"
+                    ]
+                  },
+                  {
+                    "id": 6,
+                    "slug": "cycle-nutrition-basics",
+                    "title": "تغذیه متناسب با چرخه قاعدگی",
+                    "excerpt": "در هر فاز چه بخوریم تا حال بهتری داشته باشیم",
+                    "read_time_minutes": 6,
+                    "image_url": null,
+                    "category": "nutrition",
+                    "cycle_phases": []
+                  }
+                ]
+              },
+              "meta": null
+            },
+            {
+              "key": "my_cycles",
+              "type": "my_cycles",
+              "title": "سیکل‌های من",
+              "subtitle": null,
+              "order": 160,
+              "action": {
+                "key": "add_previous",
+                "label": "ثبت سیکل‌های قبلی"
+              },
+              "data": {
+                "current": {
+                  "id": 100404,
+                  "cycle_day": 13,
+                  "started_at": "2026-07-20",
+                  "period_end_date": "2026-07-24",
+                  "period_length": 5,
+                  "is_ongoing": false,
+                  "cycle_length": 28,
+                  "cycle_length_source": "recent_valid_cycles"
+                },
+                "previous_count": 5,
+                "previous": [
+                  {
+                    "id": 100405,
+                    "period_start_date": "2026-08-17",
+                    "period_end_date": "2026-08-21",
+                    "cycle_length": 28,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  },
+                  {
+                    "id": 100404,
+                    "period_start_date": "2026-07-20",
+                    "period_end_date": "2026-07-24",
+                    "cycle_length": 28,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  },
+                  {
+                    "id": 100403,
+                    "period_start_date": "2026-06-22",
+                    "period_end_date": "2026-06-26",
+                    "cycle_length": 28,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  },
+                  {
+                    "id": 100402,
+                    "period_start_date": "2026-05-25",
+                    "period_end_date": "2026-05-29",
+                    "cycle_length": 28,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  },
+                  {
+                    "id": 100401,
+                    "period_start_date": "2026-04-27",
+                    "period_end_date": "2026-05-01",
+                    "cycle_length": 28,
+                    "period_length": 5,
+                    "is_ongoing": false,
+                    "is_current": false,
+                    "is_confirmed": true,
+                    "is_estimated": false,
+                    "source": "user_logged"
+                  }
+                ],
+                "averages": {
+                  "cycle_length": 28,
+                  "period_length": 5,
+                  "based_on_cycles": 5
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "cycle_summary",
+              "type": "cycle_summary",
+              "title": "خلاصه سیکل",
+              "subtitle": null,
+              "order": 170,
+              "action": {
+                "key": "view_more",
+                "label": "مشاهده بیشتر"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "last_cycle_length",
+                    "label": "طول سیکل قبلی",
+                    "value": 28,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "روز",
+                    "status": "normal",
+                    "status_label": "در محدودهٔ معمول",
+                    "hint": null,
+                    "normal_range": {
+                      "min": 21,
+                      "max": 35
+                    }
+                  },
+                  {
+                    "key": "last_period_duration",
+                    "label": "مدت پریود قبلی",
+                    "value": 5,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "روز",
+                    "status": "normal",
+                    "status_label": "در محدودهٔ معمول",
+                    "hint": null,
+                    "normal_range": {
+                      "min": 2,
+                      "max": 8
+                    }
+                  },
+                  {
+                    "key": "cycle_variability",
+                    "label": "نوسان طول سیکل",
+                    "value": 0,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": "نسبتاً منظم",
+                    "unit": "days",
+                    "unit_label": "روز",
+                    "status": "normal",
+                    "status_label": "در محدودهٔ معمول",
+                    "hint": "اختلاف کوتاه‌ترین و بلندترین سیکل اخیر: ۰ روز",
+                    "normal_range": null
+                  },
+                  {
+                    "key": "average_cycle_length",
+                    "label": "میانگین طول سیکل",
+                    "value": 28,
+                    "value_min": null,
+                    "value_max": null,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "روز",
+                    "status": "normal",
+                    "status_label": "در محدودهٔ معمول",
+                    "hint": "بر پایه ۵ سیکل ثبت‌شده",
+                    "normal_range": {
+                      "min": 21,
+                      "max": 35
+                    }
+                  },
+                  {
+                    "key": "cycle_length_range",
+                    "label": "کوتاه‌ترین تا بلندترین سیکل",
+                    "value": null,
+                    "value_min": 28,
+                    "value_max": 28,
+                    "text": null,
+                    "unit": "days",
+                    "unit_label": "روز",
+                    "status": "normal",
+                    "status_label": "در محدودهٔ معمول",
+                    "hint": null,
+                    "normal_range": null
+                  }
+                ],
+                "based_on_cycles": 5,
+                "has_history": true,
+                "normal_ranges": {
+                  "cycle_length": {
+                    "min": 21,
+                    "max": 35
+                  },
+                  "period_duration": {
+                    "min": 2,
+                    "max": 8
+                  }
+                }
+              },
+              "meta": null
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

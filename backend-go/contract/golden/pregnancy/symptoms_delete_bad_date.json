@@ -1,0 +1,21 @@
+{
+  "case": "pregnancy/symptoms_delete_bad_date",
+  "steps": [
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/pregnancy/symptoms/not-a-date",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "Invalid date format. Use YYYY-MM-DD."
+      }
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "case": "pregnancy/weekly_store_normal",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/weekly",
+        "persona": "pregnant_lmp_w8",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "log_date": "2026-09-23",
+          "pregnancy_week": 8,
+          "weight": 60,
+          "has_swelling": false,
+          "overall_mood": "moderate",
+          "has_mood_swings": true,
+          "mood_swings_severity": "mild"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "گزارش هفتگی با موفقیت ذخیره شد",
+        "data": {
+          "log": {
+            "user_id": 1014,
+            "pregnancy_week": 8,
+            "log_date": "2026-09-23",
+            "weight": "60.00",
+            "has_swelling": false,
+            "overall_mood": "moderate",
+            "has_mood_swings": true,
+            "mood_swings_severity": "mild",
+            "updated_at": "2026-09-23T06:30:00.000000Z",
+            "created_at": "2026-09-23T06:30:00.000000Z",
+            "id": 101527
+          },
+          "alerts": []
+        }
+      }
+    }
+  ]
+}

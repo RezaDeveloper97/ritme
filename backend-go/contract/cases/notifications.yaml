@@ -1,0 +1,62 @@
+# In-app notifications (/home/notifications*). Fixture: engaged (1018) has 101801 unread,
+# 101802 read, 101803 unread; everyone else has none.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: notifications
+defaults:
+  persona: engaged
+  locales: [none, en]
+cases:
+  - name: list
+    persona: [engaged, regular]
+    locales: [none, fa, en, ar]
+    method: GET
+    path: /api/v1/home/notifications
+    status: 200
+  - name: list_per_page
+    doc: per_page is clamped to 1..100, never 422 (non-numeric → 0 → 1)
+    steps:
+      - {method: GET, path: /api/v1/home/notifications, query: {per_page: "1"}, status: 200}
+      - {method: GET, path: /api/v1/home/notifications, query: {per_page: "1", page: "2"}, status: 200}
+      - {method: GET, path: /api/v1/home/notifications, query: {per_page: "2", page: "2"}, status: 200}
+      - {method: GET, path: /api/v1/home/notifications, query: {per_page: "0"}, status: 200}
+      - {method: GET, path: /api/v1/home/notifications, query: {per_page: "500"}, status: 200}
+      - {method: GET, path: /api/v1/home/notifications, query: {per_page: "abc"}, status: 200}
+      - {method: GET, path: /api/v1/home/notifications, query: {page: "9"}, status: 200}
+  - name: read_all
+    steps:
+      - {method: POST, path: /api/v1/home/notifications/read-all, status: 200}
+      - {method: GET, path: /api/v1/home/notifications, status: 200}
+      - {method: POST, path: /api/v1/home/notifications/read-all, status: 200}
+  - name: read_all_none
+    persona: regular
+    locales: none
+    method: POST
+    path: /api/v1/home/notifications/read-all
+    status: 200
+  - name: read_one
+    steps:
+      - {method: POST, path: /api/v1/home/notifications/101801/read, status: 200}
+      - {method: POST, path: /api/v1/home/notifications/101801/read, status: 200}
+      - {method: POST, path: /api/v1/home/notifications/101802/read, status: 200}
+      - {method: GET, path: /api/v1/home/notifications, status: 200}
+  - name: read_other_users
+    doc: another user's notification → abort(404), pretty framework body
+    persona: regular
+    locales: none
+    method: POST
+    path: /api/v1/home/notifications/101801/read
+    status: 404
+    strict_bytes: true
+  - name: read_missing
+    doc: route-model binding miss → pretty "No query results for model"
+    locales: none
+    method: POST
+    path: /api/v1/home/notifications/999999/read
+    status: 404
+    strict_bytes: true
+  - name: anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/home/notifications
+    status: 401

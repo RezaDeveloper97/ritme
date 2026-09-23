@@ -1,0 +1,22 @@
+{
+  "case": "pregnancy/profile_show_not_pregnant.regular.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/profile",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "Pregnancy profile not found"
+      }
+    }
+  ]
+}

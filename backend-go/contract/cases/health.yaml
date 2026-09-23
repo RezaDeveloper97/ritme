@@ -1,0 +1,17 @@
+# Health probe. Laravel answers /up with its HTML health page, Go with a plain "OK":
+# only the status is part of the contract (Docker healthchecks and nginx look at the
+# status alone; no client reads /up).
+group: health
+cases:
+  - name: up
+    method: GET
+    path: /up
+    status: 200
+    ignore_body: true
+    ignore: ["header:content-type"]
+  - name: up_head
+    method: HEAD
+    path: /up
+    status: 200
+    ignore_body: true
+    ignore: ["header:content-type"]

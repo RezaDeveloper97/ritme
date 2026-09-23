@@ -1,0 +1,378 @@
+{
+  "case": "messages/daily_dates_premium.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?date=2026-09-14",
+        "persona": "premium",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 500,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "Server Error"
+      },
+      "body_raw": "{\n    \"message\": \"Server Error\"\n}"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?date=2026-09-20",
+        "persona": "premium",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 500,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "Server Error"
+      },
+      "body_raw": "{\n    \"message\": \"Server Error\"\n}"
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?date=2026-09-26",
+        "persona": "premium",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "date": "2026-09-26",
+          "user_goal": "non_ttc",
+          "subscription_type": "premium",
+          "context_info": {
+            "phase": "luteal",
+            "phase_label": "Luteal",
+            "subphase": "early_luteal",
+            "subphase_label": "Early Luteal",
+            "cycle_day": 20,
+            "cycle_length": 30,
+            "is_fertile_window": false,
+            "is_pms_window": false,
+            "estimated_ovulation_day": 17
+          },
+          "primary_message": {
+            "phase": "luteal",
+            "phase_label": "Luteal",
+            "cycle_day": 20,
+            "short_message": "Time to focus on yourself and unfinished tasks",
+            "long_message": "In the luteal phase, energy gradually decreases. Best time to complete projects, self-care and prepare for the next cycle.",
+            "action_suggestion": "Complete an unfinished task",
+            "dos": [
+              "Yoga and stretching",
+              "Complete projects",
+              "Adequate sleep",
+              "Nutritious foods"
+            ],
+            "donts": [
+              "Starting big projects",
+              "Too much caffeine",
+              "Too much sugar",
+              "Stressful activities"
+            ],
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [
+            {
+              "pattern_type": "chronic_fatigue",
+              "alert_level": "warning",
+              "message": "Persistent low energy detected. This could indicate anemia or thyroid issues.",
+              "recommendation": "Blood test for iron and thyroid is recommended"
+            }
+          ],
+          "supplements": {
+            "nutrition": {
+              "focus": "Complex carbs and magnesium",
+              "foods": [
+                "Oats",
+                "Chickpeas",
+                "Banana",
+                "Almonds",
+                "Dark chocolate"
+              ],
+              "avoid": [
+                "Too much salt",
+                "Sugar",
+                "Caffeine"
+              ],
+              "tip": "Magnesium helps reduce PMS symptoms"
+            },
+            "sleep": {
+              "recommended_hours": "8-9",
+              "quality_focus": "Sleep quality may decrease",
+              "tips": [
+                "You may have insomnia",
+                "Magnesium before bed",
+                "Dark and cool room",
+                "Meditation before bed"
+              ],
+              "avoid": [
+                "Screen before bed",
+                "Heavy dinner",
+                "Caffeine"
+              ]
+            },
+            "exercise": {
+              "intensity": "Moderate (decreasing)",
+              "recommended": [
+                "Pilates",
+                "Yoga",
+                "Walking",
+                "Light weights",
+                "Swimming"
+              ],
+              "avoid": [
+                "Very intense workouts",
+                "Long training sessions"
+              ],
+              "tip": "Energy is gradually decreasing. Light exercise helps reduce PMS symptoms.",
+              "duration": "30-45"
+            }
+          },
+          "tips": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?date=2026-10-05",
+        "persona": "premium",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "date": "2026-10-05",
+          "user_goal": "non_ttc",
+          "subscription_type": "premium",
+          "context_info": {
+            "phase": "luteal",
+            "phase_label": "Luteal",
+            "subphase": "pms_possible",
+            "subphase_label": "Possible PMS",
+            "cycle_day": 29,
+            "cycle_length": 30,
+            "is_fertile_window": false,
+            "is_pms_window": true,
+            "estimated_ovulation_day": 17
+          },
+          "primary_message": {
+            "phase": "luteal",
+            "phase_label": "Luteal",
+            "cycle_day": 29,
+            "short_message": "Time to focus on yourself and unfinished tasks",
+            "long_message": "In the luteal phase, energy gradually decreases. Best time to complete projects, self-care and prepare for the next cycle.",
+            "action_suggestion": "Complete an unfinished task",
+            "dos": [
+              "Yoga and stretching",
+              "Complete projects",
+              "Adequate sleep",
+              "Nutritious foods"
+            ],
+            "donts": [
+              "Starting big projects",
+              "Too much caffeine",
+              "Too much sugar",
+              "Stressful activities"
+            ],
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [
+            {
+              "pattern_type": "chronic_fatigue",
+              "alert_level": "warning",
+              "message": "Persistent low energy detected. This could indicate anemia or thyroid issues.",
+              "recommendation": "Blood test for iron and thyroid is recommended"
+            }
+          ],
+          "supplements": {
+            "nutrition": {
+              "focus": "Complex carbs and magnesium",
+              "foods": [
+                "Oats",
+                "Chickpeas",
+                "Banana",
+                "Almonds",
+                "Dark chocolate"
+              ],
+              "avoid": [
+                "Too much salt",
+                "Sugar",
+                "Caffeine"
+              ],
+              "tip": "Magnesium helps reduce PMS symptoms"
+            },
+            "sleep": {
+              "recommended_hours": "8-9",
+              "quality_focus": "Sleep quality may decrease",
+              "tips": [
+                "You may have insomnia",
+                "Magnesium before bed",
+                "Dark and cool room",
+                "Meditation before bed"
+              ],
+              "avoid": [
+                "Screen before bed",
+                "Heavy dinner",
+                "Caffeine"
+              ]
+            },
+            "exercise": {
+              "intensity": "Moderate (decreasing)",
+              "recommended": [
+                "Pilates",
+                "Yoga",
+                "Walking",
+                "Light weights",
+                "Swimming"
+              ],
+              "avoid": [
+                "Very intense workouts",
+                "Long training sessions"
+              ],
+              "tip": "Energy is gradually decreasing. Light exercise helps reduce PMS symptoms.",
+              "duration": "30-45"
+            }
+          },
+          "tips": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?date=2026-08-01",
+        "persona": "premium",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "date": "2026-08-01",
+          "user_goal": "non_ttc",
+          "subscription_type": "premium",
+          "context_info": {
+            "phase": "luteal",
+            "phase_label": "Luteal",
+            "subphase": "mid_luteal",
+            "subphase_label": "Mid Luteal",
+            "cycle_day": 25,
+            "cycle_length": 30,
+            "is_fertile_window": false,
+            "is_pms_window": true,
+            "estimated_ovulation_day": 17
+          },
+          "primary_message": {
+            "phase": "luteal",
+            "phase_label": "Luteal",
+            "cycle_day": 25,
+            "short_message": "Time to focus on yourself and unfinished tasks",
+            "long_message": "In the luteal phase, energy gradually decreases. Best time to complete projects, self-care and prepare for the next cycle.",
+            "action_suggestion": "Complete an unfinished task",
+            "dos": [
+              "Yoga and stretching",
+              "Complete projects",
+              "Adequate sleep",
+              "Nutritious foods"
+            ],
+            "donts": [
+              "Starting big projects",
+              "Too much caffeine",
+              "Too much sugar",
+              "Stressful activities"
+            ],
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [
+            {
+              "pattern_type": "insufficient_data",
+              "alert_level": "info",
+              "message": "At least 2 weeks of data is needed for pattern detection. Continue daily logging.",
+              "recommendation": "Log your symptoms every day"
+            }
+          ],
+          "supplements": {
+            "nutrition": {
+              "focus": "Complex carbs and magnesium",
+              "foods": [
+                "Oats",
+                "Chickpeas",
+                "Banana",
+                "Almonds",
+                "Dark chocolate"
+              ],
+              "avoid": [
+                "Too much salt",
+                "Sugar",
+                "Caffeine"
+              ],
+              "tip": "Magnesium helps reduce PMS symptoms"
+            },
+            "sleep": {
+              "recommended_hours": "8-9",
+              "quality_focus": "Sleep quality may decrease",
+              "tips": [
+                "You may have insomnia",
+                "Magnesium before bed",
+                "Dark and cool room",
+                "Meditation before bed"
+              ],
+              "avoid": [
+                "Screen before bed",
+                "Heavy dinner",
+                "Caffeine"
+              ]
+            },
+            "exercise": {
+              "intensity": "Moderate (decreasing)",
+              "recommended": [
+                "Pilates",
+                "Yoga",
+                "Walking",
+                "Light weights",
+                "Swimming"
+              ],
+              "avoid": [
+                "Very intense workouts",
+                "Long training sessions"
+              ],
+              "tip": "Energy is gradually decreasing. Light exercise helps reduce PMS symptoms.",
+              "duration": "30-45"
+            }
+          },
+          "tips": []
+        }
+      }
+    }
+  ]
+}

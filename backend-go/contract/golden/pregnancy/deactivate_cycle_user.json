@@ -1,0 +1,25 @@
+{
+  "case": "pregnancy/deactivate_cycle_user",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/deactivate",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "حالت بارداری غیرفعال شد",
+        "data": {
+          "pregnancy_mode": false,
+          "cycle_mode": true
+        }
+      }
+    }
+  ]
+}

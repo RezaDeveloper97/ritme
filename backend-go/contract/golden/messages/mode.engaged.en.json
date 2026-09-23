@@ -1,0 +1,29 @@
+{
+  "case": "messages/mode.engaged.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/mode",
+        "persona": "engaged",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "mode_label": "Menstrual Cycle",
+          "user_goal": "non_ttc",
+          "subscription_type": "free",
+          "is_ttc": false,
+          "is_premium": false
+        }
+      }
+    }
+  ]
+}

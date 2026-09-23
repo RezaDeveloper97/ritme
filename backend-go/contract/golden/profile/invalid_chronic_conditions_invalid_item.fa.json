@@ -1,0 +1,33 @@
+{
+  "case": "profile/invalid_chronic_conditions_invalid_item.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/profile",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "chronic_conditions": [
+            "pcos",
+            "flu"
+          ]
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "خطای اعتبارسنجی: هر بیماری مزمن باید یکی از این موارد باشد: pcos, hypothyroidism, hyperthyroidism, hypertension, heart_disease, diabetes",
+        "errors": {
+          "chronic_conditions.1": [
+            "هر بیماری مزمن باید یکی از این موارد باشد: pcos, hypothyroidism, hyperthyroidism, hypertension, heart_disease, diabetes"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,645 @@
+{
+  "case": "messages/daily_dates.ttc.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?date=2026-09-14",
+        "persona": "ttc",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "date": "2026-09-14",
+          "user_goal": "ttc",
+          "subscription_type": "free",
+          "context_info": {
+            "phase": "menstruation",
+            "phase_label": "Menstruation",
+            "subphase": "menstruation",
+            "subphase_label": "Menstruation",
+            "cycle_day": 4,
+            "cycle_length": 28,
+            "is_fertile_window": false,
+            "is_pms_window": false,
+            "estimated_ovulation_day": 15
+          },
+          "primary_message": {
+            "phase": "menstruation",
+            "phase_label": "Menstruation",
+            "cycle_day": 4,
+            "is_fertile_window": false,
+            "fertility_info": null,
+            "short_message": "New cycle, new opportunity",
+            "long_message": "A new cycle means a fresh chance for pregnancy. Use this time to rest and prepare your body.",
+            "action_suggestion": "Continue prenatal vitamins",
+            "dos": [
+              "Take folic acid",
+              "Get enough rest",
+              "Drink plenty of water"
+            ],
+            "donts": [
+              "Alcohol",
+              "Smoking",
+              "Too much stress"
+            ],
+            "ttc_tips": [
+              "Good time to check overall health",
+              "Consult with your doctor"
+            ],
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [],
+          "supplements": {
+            "nutrition": {
+              "focus": "Iron replenishment and anti-inflammatory",
+              "foods": [
+                "Red meat",
+                "Spinach",
+                "Lentils",
+                "Fish",
+                "Dark chocolate"
+              ],
+              "avoid": [
+                "Salty foods",
+                "Too much caffeine",
+                "Alcohol"
+              ],
+              "tip": "Vitamin C with iron increases absorption",
+              "ttc_additions": {
+                "essential": [
+                  "Folic acid 400mcg daily",
+                  "Omega-3 fatty acids",
+                  "Antioxidants"
+                ],
+                "foods": [
+                  "Dark leafy greens",
+                  "Fatty fish",
+                  "Eggs",
+                  "Nuts and seeds"
+                ],
+                "avoid": [
+                  "Alcohol",
+                  "Caffeine over 200mg",
+                  "High mercury fish"
+                ]
+              }
+            },
+            "sleep": {
+              "recommended_hours": "8-9",
+              "quality_focus": "More rest",
+              "tips": [
+                "More sleep is needed",
+                "Warm compress for cramps",
+                "Cool room"
+              ],
+              "avoid": [
+                "Caffeine after noon",
+                "Phone before bed"
+              ]
+            },
+            "exercise": {
+              "intensity": "Low to moderate",
+              "recommended": [
+                "Walking",
+                "Restorative yoga",
+                "Gentle stretching",
+                "Swimming"
+              ],
+              "avoid": [
+                "Intense HIIT",
+                "Heavy weights",
+                "Inversions in yoga"
+              ],
+              "tip": "Listen to your body. If you have no energy, rest.",
+              "duration": "20-30",
+              "ttc_note": "Moderate exercise is good for fertility. Avoid very intense workouts."
+            }
+          },
+          "tips": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?date=2026-09-20",
+        "persona": "ttc",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "date": "2026-09-20",
+          "user_goal": "ttc",
+          "subscription_type": "free",
+          "context_info": {
+            "phase": "follicular",
+            "phase_label": "Follicular",
+            "subphase": "fertile_rising",
+            "subphase_label": "Rising Fertility",
+            "cycle_day": 10,
+            "cycle_length": 28,
+            "is_fertile_window": true,
+            "is_pms_window": false,
+            "estimated_ovulation_day": 15
+          },
+          "primary_message": {
+            "phase": "follicular",
+            "phase_label": "Follicular",
+            "cycle_day": 10,
+            "is_fertile_window": true,
+            "fertility_info": "You are in your fertile window - best time to conceive!",
+            "short_message": "Your body is preparing for ovulation",
+            "long_message": "Ovaries are growing follicles. Good time to increase physical activity and strengthen fertility health.",
+            "action_suggestion": "Regular exercise and healthy nutrition",
+            "dos": [
+              "Antioxidant-rich foods",
+              "Moderate exercise",
+              "8 hours sleep"
+            ],
+            "donts": [
+              "Stress",
+              "Processed foods",
+              "Sleep deprivation"
+            ],
+            "ttc_tips": [
+              "Start ovulation tests in a few days",
+              "Plan intimacy from now"
+            ],
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [],
+          "supplements": {
+            "nutrition": {
+              "focus": "Protein and fresh vegetables",
+              "foods": [
+                "Eggs",
+                "Chicken",
+                "Quinoa",
+                "Leafy greens",
+                "Avocado"
+              ],
+              "avoid": [
+                "Fast food",
+                "Processed foods"
+              ],
+              "tip": "Body is ready for growth, eat enough protein",
+              "ttc_additions": {
+                "essential": [
+                  "Folic acid 400mcg daily",
+                  "Omega-3 fatty acids",
+                  "Antioxidants"
+                ],
+                "foods": [
+                  "Dark leafy greens",
+                  "Fatty fish",
+                  "Eggs",
+                  "Nuts and seeds"
+                ],
+                "avoid": [
+                  "Alcohol",
+                  "Caffeine over 200mg",
+                  "High mercury fish"
+                ]
+              }
+            },
+            "sleep": {
+              "recommended_hours": "7-8",
+              "quality_focus": "Optimal sleep",
+              "tips": [
+                "Deeper sleep in this phase",
+                "Good time to set sleep schedule"
+              ],
+              "avoid": [
+                "Sleep deprivation",
+                "Irregular sleep schedule"
+              ]
+            },
+            "exercise": {
+              "intensity": "Moderate to high",
+              "recommended": [
+                "Running",
+                "HIIT",
+                "Weight training",
+                "Cycling",
+                "Dancing"
+              ],
+              "avoid": [
+                "Inactivity"
+              ],
+              "tip": "Energy is at peak! Best time for new challenges and personal records.",
+              "duration": "45-60",
+              "ttc_note": "Moderate exercise is good for fertility. Avoid very intense workouts."
+            }
+          },
+          "tips": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?date=2026-09-26",
+        "persona": "ttc",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "date": "2026-09-26",
+          "user_goal": "ttc",
+          "subscription_type": "free",
+          "context_info": {
+            "phase": "ovulation",
+            "phase_label": "Ovulation",
+            "subphase": "post_ovulation",
+            "subphase_label": "Post-Ovulation",
+            "cycle_day": 16,
+            "cycle_length": 28,
+            "is_fertile_window": true,
+            "is_pms_window": false,
+            "estimated_ovulation_day": 15
+          },
+          "primary_message": {
+            "phase": "ovulation",
+            "phase_label": "Ovulation",
+            "cycle_day": 16,
+            "is_fertile_window": true,
+            "fertility_info": "You are in your fertile window - best time to conceive!",
+            "short_message": "🎯 Fertile window! Best time to conceive",
+            "long_message": "Ovulation is happening or will happen soon. This 48-72 hours is your best chance to conceive.",
+            "action_suggestion": "Intimacy in these 2-3 days",
+            "dos": [
+              "Intimacy every 1-2 days",
+              "Relaxation and enjoyment",
+              "Suitable positions"
+            ],
+            "donts": [
+              "Stress and pressure",
+              "Regular lubricants",
+              "Long hot baths"
+            ],
+            "ttc_tips": [
+              "Lie down 15 minutes after intimacy",
+              "Use fertility-friendly lubricants",
+              "Positive OPK = best time"
+            ],
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [],
+          "supplements": {
+            "nutrition": {
+              "focus": "Antioxidants and healthy fats",
+              "foods": [
+                "Berries",
+                "Nuts",
+                "Olive oil",
+                "Salmon",
+                "Colorful vegetables"
+              ],
+              "avoid": [
+                "Too much sugar",
+                "Trans fats"
+              ],
+              "tip": "Estrogen is at peak, use antioxidants",
+              "ttc_additions": {
+                "essential": [
+                  "Folic acid 400mcg daily",
+                  "Omega-3 fatty acids",
+                  "Antioxidants"
+                ],
+                "foods": [
+                  "Dark leafy greens",
+                  "Fatty fish",
+                  "Eggs",
+                  "Nuts and seeds"
+                ],
+                "avoid": [
+                  "Alcohol",
+                  "Caffeine over 200mg",
+                  "High mercury fish"
+                ],
+                "fertile_window_tip": "Adequate hydration is important for cervical mucus"
+              }
+            },
+            "sleep": {
+              "recommended_hours": "7-8",
+              "quality_focus": "High energy",
+              "tips": [
+                "You may feel less tired",
+                "Use the energy but don't forget sleep"
+              ],
+              "avoid": [
+                "Staying up late",
+                "Missing sleep"
+              ]
+            },
+            "exercise": {
+              "intensity": "High",
+              "recommended": [
+                "Strength training",
+                "HIIT",
+                "Group sports",
+                "CrossFit"
+              ],
+              "avoid": [
+                "Nothing! Everything is good"
+              ],
+              "tip": "Estrogen is high, muscles are stronger and recovery is faster.",
+              "duration": "45-60",
+              "ttc_note": "Moderate exercise is good for fertility. Avoid very intense workouts."
+            }
+          },
+          "tips": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?date=2026-10-05",
+        "persona": "ttc",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "date": "2026-10-05",
+          "user_goal": "ttc",
+          "subscription_type": "free",
+          "context_info": {
+            "phase": "luteal",
+            "phase_label": "Luteal",
+            "subphase": "late_luteal",
+            "subphase_label": "Late Luteal",
+            "cycle_day": 25,
+            "cycle_length": 28,
+            "is_fertile_window": false,
+            "is_pms_window": true,
+            "estimated_ovulation_day": 15
+          },
+          "primary_message": {
+            "phase": "luteal",
+            "phase_label": "Luteal",
+            "cycle_day": 25,
+            "is_fertile_window": false,
+            "fertility_info": null,
+            "short_message": "Time for waiting and hope",
+            "long_message": "If fertilization happened, the embryo is traveling to the uterus now. Calm and patience are key.",
+            "action_suggestion": "Calm and hopeful",
+            "dos": [
+              "Continue folic acid",
+              "Low stress",
+              "Adequate sleep",
+              "Healthy food"
+            ],
+            "donts": [
+              "Early pregnancy test",
+              "Too much stress",
+              "Heavy exercise",
+              "Alcohol and smoking"
+            ],
+            "ttc_tips": [
+              "Pregnancy test from day 12 post-ovulation",
+              "Early pregnancy symptoms may be similar to PMS",
+              "Be patient and hopeful"
+            ],
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [],
+          "supplements": {
+            "nutrition": {
+              "focus": "Complex carbs and magnesium",
+              "foods": [
+                "Oats",
+                "Chickpeas",
+                "Banana",
+                "Almonds",
+                "Dark chocolate"
+              ],
+              "avoid": [
+                "Too much salt",
+                "Sugar",
+                "Caffeine"
+              ],
+              "tip": "Magnesium helps reduce PMS symptoms",
+              "ttc_additions": {
+                "essential": [
+                  "Folic acid 400mcg daily",
+                  "Omega-3 fatty acids",
+                  "Antioxidants"
+                ],
+                "foods": [
+                  "Dark leafy greens",
+                  "Fatty fish",
+                  "Eggs",
+                  "Nuts and seeds"
+                ],
+                "avoid": [
+                  "Alcohol",
+                  "Caffeine over 200mg",
+                  "High mercury fish"
+                ]
+              }
+            },
+            "sleep": {
+              "recommended_hours": "8-9",
+              "quality_focus": "Sleep quality may decrease",
+              "tips": [
+                "You may have insomnia",
+                "Magnesium before bed",
+                "Dark and cool room",
+                "Meditation before bed"
+              ],
+              "avoid": [
+                "Screen before bed",
+                "Heavy dinner",
+                "Caffeine"
+              ]
+            },
+            "exercise": {
+              "intensity": "Moderate (decreasing)",
+              "recommended": [
+                "Pilates",
+                "Yoga",
+                "Walking",
+                "Light weights",
+                "Swimming"
+              ],
+              "avoid": [
+                "Very intense workouts",
+                "Long training sessions"
+              ],
+              "tip": "Energy is gradually decreasing. Light exercise helps reduce PMS symptoms.",
+              "duration": "30-45",
+              "ttc_note": "Moderate exercise is good for fertility. Avoid very intense workouts."
+            }
+          },
+          "tips": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?date=2026-08-01",
+        "persona": "ttc",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "date": "2026-08-01",
+          "user_goal": "ttc",
+          "subscription_type": "free",
+          "context_info": {
+            "phase": "luteal",
+            "phase_label": "Luteal",
+            "subphase": "early_luteal",
+            "subphase_label": "Early Luteal",
+            "cycle_day": 17,
+            "cycle_length": 28,
+            "is_fertile_window": false,
+            "is_pms_window": false,
+            "estimated_ovulation_day": 15
+          },
+          "primary_message": {
+            "phase": "luteal",
+            "phase_label": "Luteal",
+            "cycle_day": 17,
+            "is_fertile_window": false,
+            "fertility_info": null,
+            "short_message": "Time for waiting and hope",
+            "long_message": "If fertilization happened, the embryo is traveling to the uterus now. Calm and patience are key.",
+            "action_suggestion": "Calm and hopeful",
+            "dos": [
+              "Continue folic acid",
+              "Low stress",
+              "Adequate sleep",
+              "Healthy food"
+            ],
+            "donts": [
+              "Early pregnancy test",
+              "Too much stress",
+              "Heavy exercise",
+              "Alcohol and smoking"
+            ],
+            "ttc_tips": [
+              "Pregnancy test from day 12 post-ovulation",
+              "Early pregnancy symptoms may be similar to PMS",
+              "Be patient and hopeful"
+            ],
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [],
+          "supplements": {
+            "nutrition": {
+              "focus": "Complex carbs and magnesium",
+              "foods": [
+                "Oats",
+                "Chickpeas",
+                "Banana",
+                "Almonds",
+                "Dark chocolate"
+              ],
+              "avoid": [
+                "Too much salt",
+                "Sugar",
+                "Caffeine"
+              ],
+              "tip": "Magnesium helps reduce PMS symptoms",
+              "ttc_additions": {
+                "essential": [
+                  "Folic acid 400mcg daily",
+                  "Omega-3 fatty acids",
+                  "Antioxidants"
+                ],
+                "foods": [
+                  "Dark leafy greens",
+                  "Fatty fish",
+                  "Eggs",
+                  "Nuts and seeds"
+                ],
+                "avoid": [
+                  "Alcohol",
+                  "Caffeine over 200mg",
+                  "High mercury fish"
+                ]
+              }
+            },
+            "sleep": {
+              "recommended_hours": "8-9",
+              "quality_focus": "Sleep quality may decrease",
+              "tips": [
+                "You may have insomnia",
+                "Magnesium before bed",
+                "Dark and cool room",
+                "Meditation before bed"
+              ],
+              "avoid": [
+                "Screen before bed",
+                "Heavy dinner",
+                "Caffeine"
+              ]
+            },
+            "exercise": {
+              "intensity": "Moderate (decreasing)",
+              "recommended": [
+                "Pilates",
+                "Yoga",
+                "Walking",
+                "Light weights",
+                "Swimming"
+              ],
+              "avoid": [
+                "Very intense workouts",
+                "Long training sessions"
+              ],
+              "tip": "Energy is gradually decreasing. Light exercise helps reduce PMS symptoms.",
+              "duration": "30-45",
+              "ttc_note": "Moderate exercise is good for fertility. Avoid very intense workouts."
+            }
+          },
+          "tips": []
+        }
+      }
+    }
+  ]
+}

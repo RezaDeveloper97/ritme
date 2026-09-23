@@ -1,0 +1,31 @@
+{
+  "case": "notifications/list.regular.ar",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/home/notifications",
+        "persona": "regular",
+        "accept_language": "ar",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "unread_count": 0,
+          "items": [],
+          "pagination": {
+            "current_page": 1,
+            "last_page": 1,
+            "per_page": 20,
+            "total": 0
+          }
+        }
+      }
+    }
+  ]
+}

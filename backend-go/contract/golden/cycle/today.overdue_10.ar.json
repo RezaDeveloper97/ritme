@@ -1,0 +1,192 @@
+{
+  "case": "cycle/today.overdue_10.ar",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/today",
+        "persona": "overdue_10",
+        "accept_language": "ar",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "calculation": {
+            "calculation_date": "2026-09-23",
+            "cycle_day": 11,
+            "phase": "follicular",
+            "subphase": "fertile_rising",
+            "estimated_ovulation_day": 15,
+            "cycle_length_used": 28,
+            "is_fertile_window": true,
+            "is_pms_window": false,
+            "is_period_tomorrow": false,
+            "is_luteal_spotting": false,
+            "cycle_score": 0.7,
+            "age_factor": 0.85,
+            "base_probability": 0.15,
+            "symptom_score": 1,
+            "final_probability": 8.92,
+            "cycle_variability": "regular",
+            "uncertainty_range": 1,
+            "text_flags": {
+              "fertility_status": {
+                "en": "You are in your fertile window. Pregnancy chance is higher.",
+                "fa": "شما در پنجره باروری هستید. احتمال بارداری بیشتر است."
+              },
+              "probability_message": {
+                "en": "Today's pregnancy probability is 8.9%.",
+                "fa": "احتمال بارداری امروز 8.9٪ است."
+              },
+              "phase_info": {
+                "en": "Current phase: Follicular (Rising Fertility)",
+                "fa": "فاز فعلی: فولیکولار (افزایش باروری)"
+              }
+            },
+            "daily_tips": [
+              {
+                "type": "energy",
+                "title": "Energy",
+                "icon": "bolt",
+                "text": "Your energy levels are rising. Great time for new projects!"
+              },
+              {
+                "type": "exercise",
+                "title": "Exercise",
+                "icon": "walking",
+                "text": "Perfect time for high-intensity workouts."
+              },
+              {
+                "type": "nutrition",
+                "title": "Nutrition",
+                "icon": "apple",
+                "text": "Add protein and fresh vegetables to rebuild your energy stores."
+              },
+              {
+                "type": "mental_health",
+                "title": "Mental health",
+                "icon": "brain",
+                "text": "A good window for planning and learning something new."
+              }
+            ],
+            "source_profile_data": {
+              "birthday": "1996-04-12",
+              "period_duration": 5,
+              "cycle_duration": 28,
+              "last_period_start": "2026-08-16"
+            },
+            "source_daily_log_data": null
+          },
+          "cycle_view": {
+            "date": "2026-09-23",
+            "cycle_day": 39,
+            "main_phase": "period_expected",
+            "subphase": "period_expected",
+            "fertility_level": "unknown",
+            "days_to_ovulation": -24,
+            "days_to_period": 0,
+            "days_late": 10,
+            "anchors": {
+              "current_period_start": "2026-08-16",
+              "current_period_start_source": "user_logged",
+              "current_period_end": "2026-08-20",
+              "current_period_end_source": "user_logged",
+              "current_period_end_is_confirmed": true,
+              "predicted_next_period_start": "2026-09-13",
+              "estimated_ovulation_date": "2026-08-30"
+            },
+            "metrics": {
+              "effective_cycle_length": 28,
+              "effective_period_length": 5,
+              "cycle_variability": 0
+            },
+            "confidence": "low",
+            "confidence_reasons": [
+              "prediction_based_output",
+              "period_overdue"
+            ],
+            "data_quality": "partial",
+            "resolution_source": "prediction",
+            "is_predicted": true,
+            "requires_user_input": false,
+            "warnings": [
+              "predicted_period_overdue",
+              "prediction_based_output"
+            ],
+            "phase": "luteal",
+            "data_status": "needs_confirmation",
+            "predictions": {
+              "next_period_start": "2026-09-13",
+              "next_period_end": "2026-09-17",
+              "estimated_ovulation_date": "2026-08-30",
+              "fertile_window_start": "2026-08-25",
+              "fertile_window_end": "2026-08-31",
+              "source": "recent_valid_cycles",
+              "confidence": "high",
+              "confidence_reasons": [
+                "based_on_three_valid_cycles",
+                "low_cycle_variation"
+              ]
+            },
+            "profile_values": {
+              "cycle_length": 28,
+              "period_duration": 5
+            },
+            "calculated_values": {
+              "cycle_length": 28,
+              "period_duration": 5,
+              "based_on_cycles": 3
+            },
+            "effective_values": {
+              "cycle_length": 28,
+              "period_duration": 5,
+              "source": "recent_valid_cycles",
+              "period_duration_source": "recent_valid_cycles"
+            },
+            "data_quality_details": {
+              "confidence": "high",
+              "confidence_reasons": [
+                "based_on_three_valid_cycles",
+                "low_cycle_variation"
+              ],
+              "regularity_status": "relatively_regular",
+              "is_irregular_possible": false,
+              "missing_period_end": false
+            },
+            "daily_card": {
+              "title": "Period start not logged yet",
+              "subtitle": "A few days off from the prediction is normal, especially if ovulation shifted.",
+              "data_status": "needs_confirmation",
+              "fertility_level": "low",
+              "fertility_label": "Low",
+              "badges": [
+                "Needs confirmation"
+              ],
+              "primary_action": {
+                "type": "log_period_start",
+                "label": "Log period start"
+              },
+              "secondary_actions": [
+                {
+                  "type": "period_not_started",
+                  "label": "Not started yet"
+                },
+                {
+                  "type": "view_details",
+                  "label": "This day's details"
+                }
+              ]
+            }
+          },
+          "calculation_status": "completed",
+          "is_recalculating": false
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "case": "healthlog/store_422_future_date.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/health-logs",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "log_date": "2026-09-24"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "Date cannot be in the future",
+        "errors": {
+          "log_date": [
+            "Date cannot be in the future"
+          ]
+        }
+      }
+    }
+  ]
+}

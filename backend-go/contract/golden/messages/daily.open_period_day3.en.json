@@ -1,0 +1,109 @@
+{
+  "case": "messages/daily.open_period_day3.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily",
+        "persona": "open_period_day3",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "date": "2026-09-23",
+          "user_goal": "non_ttc",
+          "subscription_type": "free",
+          "context_info": {
+            "phase": "menstruation",
+            "phase_label": "Menstruation",
+            "subphase": "menstruation",
+            "subphase_label": "Menstruation",
+            "cycle_day": 3,
+            "cycle_length": 28,
+            "is_fertile_window": false,
+            "is_pms_window": false,
+            "estimated_ovulation_day": 15
+          },
+          "primary_message": {
+            "phase": "menstruation",
+            "phase_label": "Menstruation",
+            "cycle_day": 3,
+            "short_message": "Today is a day for rest and self-care",
+            "long_message": "During menstruation, your body needs more rest and attention. Allow yourself to slow down and avoid heavy activities.",
+            "action_suggestion": "Have a warm drink and rest",
+            "dos": [
+              "Get enough rest",
+              "Drink plenty of water",
+              "Take iron",
+              "Light walking"
+            ],
+            "donts": [
+              "Heavy exercise",
+              "Too much caffeine",
+              "Salty foods",
+              "Sleep deprivation"
+            ],
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [],
+          "supplements": {
+            "nutrition": {
+              "focus": "Iron replenishment and anti-inflammatory",
+              "foods": [
+                "Red meat",
+                "Spinach",
+                "Lentils",
+                "Fish",
+                "Dark chocolate"
+              ],
+              "avoid": [
+                "Salty foods",
+                "Too much caffeine",
+                "Alcohol"
+              ],
+              "tip": "Vitamin C with iron increases absorption"
+            },
+            "sleep": {
+              "recommended_hours": "8-9",
+              "quality_focus": "More rest",
+              "tips": [
+                "More sleep is needed",
+                "Warm compress for cramps",
+                "Cool room"
+              ],
+              "avoid": [
+                "Caffeine after noon",
+                "Phone before bed"
+              ]
+            },
+            "exercise": {
+              "intensity": "Low to moderate",
+              "recommended": [
+                "Walking",
+                "Restorative yoga",
+                "Gentle stretching",
+                "Swimming"
+              ],
+              "avoid": [
+                "Intense HIIT",
+                "Heavy weights",
+                "Inversions in yoga"
+              ],
+              "tip": "Listen to your body. If you have no energy, rest.",
+              "duration": "20-30"
+            }
+          },
+          "tips": []
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,159 @@
+{
+  "case": "pregnancy/onboarding_ultrasound.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/onboarding",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "age_source": "ultrasound",
+          "ultrasound_date": "2026-09-01",
+          "ultrasound_weeks": 10,
+          "ultrasound_days": 3,
+          "has_high_risk_history": true,
+          "pre_existing_conditions": [
+            "diabetes",
+            "hypothyroidism"
+          ],
+          "blood_type": "AB",
+          "rh_factor": "negative"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "آنبوردینگ بارداری تکمیل شد",
+        "data": {
+          "profile": {
+            "id": 1017,
+            "user_id": 1004,
+            "pregnancy_mode": true,
+            "cycle_mode": false,
+            "is_locked": false,
+            "age_source": "ultrasound",
+            "confidence_level": "high",
+            "lmp_date": null,
+            "ultrasound_date": "2026-08-31T20:30:00.000000Z",
+            "ultrasound_weeks": 10,
+            "ultrasound_days": 3,
+            "manual_weeks": null,
+            "manual_days": null,
+            "manual_entry_date": null,
+            "estimated_due_date": "2027-03-26T20:30:00.000000Z",
+            "estimated_conception_date": null,
+            "uncertainty_days": 1,
+            "has_miscarriage_history": null,
+            "has_high_risk_history": true,
+            "pre_existing_conditions": [
+              "diabetes",
+              "hypothyroidism"
+            ],
+            "blood_type": "AB",
+            "rh_factor": "negative",
+            "rh_negative_care_flag": true,
+            "first_fetal_movement_date": null,
+            "fetal_movement_felt": false,
+            "onboarding_completed": true,
+            "onboarding_completed_at": "2026-09-23T06:30:00.000000Z",
+            "created_at": "2026-09-23T06:30:00.000000Z",
+            "updated_at": "2026-09-23T06:30:00.000000Z"
+          },
+          "gestational_age": {
+            "weeks": 13,
+            "days": 4,
+            "total_days": 95,
+            "trimester": 2,
+            "confidence_level": "high",
+            "confidence_label": "بالا",
+            "uncertainty_days": 1,
+            "formatted": {
+              "en": "13 weeks, 4 days",
+              "fa": "13 هفته و 4 روز"
+            }
+          },
+          "estimated_due_date": {
+            "date": "2027-03-27",
+            "days_remaining": 185,
+            "weeks_remaining": 26,
+            "formatted": {
+              "en": "March 27, 2027",
+              "fa": "27 مارس 2027"
+            }
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/status",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "is_active": true,
+          "gestational_age": {
+            "weeks": 13,
+            "days": 4,
+            "total_days": 95,
+            "trimester": 2,
+            "confidence_level": "high",
+            "confidence_label": "بالا",
+            "uncertainty_days": 1,
+            "formatted": {
+              "en": "13 weeks, 4 days",
+              "fa": "13 هفته و 4 روز"
+            }
+          },
+          "estimated_due_date": {
+            "date": "2027-03-27",
+            "days_remaining": 185,
+            "weeks_remaining": 26,
+            "formatted": {
+              "en": "March 27, 2027",
+              "fa": "27 مارس 2027"
+            }
+          },
+          "current_week": 14,
+          "trimester": 2,
+          "age_source": "ultrasound",
+          "confidence_level": "high",
+          "is_high_risk": true,
+          "fetal_movement_tracking_active": false,
+          "fetal_movement_required": false,
+          "flags": {
+            "trimester_info": {
+              "en": "You are in trimester 2.",
+              "fa": "شما در سه‌ماهه 2 هستید."
+            },
+            "week_info": {
+              "en": "Week 14 of pregnancy.",
+              "fa": "هفته 14 بارداری."
+            },
+            "rh_warning": {
+              "en": "RH negative detected. Special monitoring is recommended.",
+              "fa": "RH منفی شناسایی شد. مراقبت ویژه توصیه می‌شود."
+            },
+            "high_risk": {
+              "en": "Based on your profile, extra monitoring is recommended.",
+              "fa": "بر اساس پروفایل شما، مراقبت بیشتر توصیه می‌شود."
+            }
+          }
+        }
+      }
+    }
+  ]
+}

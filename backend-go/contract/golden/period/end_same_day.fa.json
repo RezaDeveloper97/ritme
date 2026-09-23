@@ -1,0 +1,36 @@
+{
+  "case": "period/end_same_day.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/cycle/period/end",
+        "persona": "open_period_day3",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "date": "2026-09-21"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "پروفایل با موفقیت بروزرسانی شد",
+        "data": {
+          "active": false,
+          "period_start_date": "2026-09-21",
+          "period_end_date": "2026-09-21",
+          "warnings": [
+            {
+              "type": "short_period_flag",
+              "message": "آیا این خون‌ریزی واقعاً پریود بود یا لکه‌بینی؟ می‌توانی همچنان ثبتش کنی."
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

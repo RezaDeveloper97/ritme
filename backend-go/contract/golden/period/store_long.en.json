@@ -1,0 +1,38 @@
+{
+  "case": "period/store_long.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/cycle/period",
+        "persona": "overdue_20",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "start_date": "2026-09-05",
+          "end_date": "2026-09-16"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "Profile updated successfully",
+        "data": {
+          "id": 101805,
+          "active": false,
+          "period_start_date": "2026-09-05",
+          "period_end_date": "2026-09-16",
+          "warnings": [
+            {
+              "type": "long_period_flag",
+              "message": "This range is longer than usual. You can still log it if you are sure."
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

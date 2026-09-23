@@ -1,0 +1,60 @@
+{
+  "case": "pregnancy/symptoms_show.pregnant_lmp_w8.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/symptoms/2026-09-22",
+        "persona": "pregnant_lmp_w8",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "log": {
+            "id": 101401,
+            "user_id": 1014,
+            "log_date": "2026-09-22",
+            "has_nausea": true,
+            "nausea_severity": "moderate",
+            "has_vomiting": null,
+            "vomiting_severity": null,
+            "has_fatigue": true,
+            "fatigue_severity": "mild",
+            "has_headache": null,
+            "headache_severity": null,
+            "has_dizziness": null,
+            "dizziness_severity": null,
+            "has_breast_pain": null,
+            "breast_pain_severity": null,
+            "has_lower_abdominal_pain": null,
+            "lower_abdominal_pain_severity": null,
+            "has_cramping": null,
+            "cramping_severity": null,
+            "has_back_pain": null,
+            "back_pain_severity": null,
+            "has_pelvic_pressure": null,
+            "pelvic_pressure_severity": null,
+            "has_spotting": null,
+            "spotting_severity": null,
+            "has_bleeding": null,
+            "bleeding_severity": null,
+            "has_fluid_leakage": null,
+            "fluid_leakage_severity": null,
+            "has_severe_sudden_pain": null,
+            "severe_sudden_pain_severity": null,
+            "notes": null,
+            "created_at": "2026-09-23T05:30:00.000000Z",
+            "updated_at": "2026-09-23T05:30:00.000000Z"
+          },
+          "pregnancy_week": 8
+        }
+      }
+    }
+  ]
+}

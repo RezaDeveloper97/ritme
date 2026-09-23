@@ -1,0 +1,217 @@
+{
+  "case": "messages/daily_force_mode_pregnant.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?mode=cycle",
+        "persona": "pregnant_manual_w14",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "date": "2026-09-23",
+          "user_goal": "non_ttc",
+          "subscription_type": "free",
+          "context_info": {
+            "phase": "follicular",
+            "phase_label": "فولیکولار",
+            "subphase": "mid_follicular",
+            "subphase_label": "فولیکولار میانی",
+            "cycle_day": 8,
+            "cycle_length": 28,
+            "is_fertile_window": false,
+            "is_pms_window": false,
+            "estimated_ovulation_day": 15
+          },
+          "primary_message": {
+            "phase": "follicular",
+            "phase_label": "فولیکولار",
+            "cycle_day": 8,
+            "short_message": "انرژیت داره برمی‌گرده! وقت شروع‌های تازه‌ست",
+            "long_message": "در فاز فولیکولار، سطح استروژن بالا میره و انرژی و خلاقیتت افزایش پیدا می‌کنه. بهترین زمان برای شروع پروژه‌های جدید و تمرینات ورزشی شدیدتره.",
+            "action_suggestion": "یک هدف جدید برای این هفته تعیین کن",
+            "dos": [
+              "ورزش با شدت متوسط تا بالا",
+              "شروع پروژه‌های جدید",
+              "ملاقات‌های اجتماعی",
+              "یادگیری مهارت جدید"
+            ],
+            "donts": [
+              "بی‌برنامگی",
+              "کم‌خوابی",
+              "غذاهای فرآوری شده"
+            ],
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [],
+          "supplements": {
+            "nutrition": {
+              "focus": "پروتئین و سبزیجات تازه",
+              "foods": [
+                "تخم‌مرغ",
+                "مرغ",
+                "کینوا",
+                "سبزیجات برگ‌سبز",
+                "آووکادو"
+              ],
+              "avoid": [
+                "فست‌فود",
+                "غذاهای فرآوری شده"
+              ],
+              "tip": "بدن آماده رشد است، پروتئین کافی بخور"
+            },
+            "sleep": {
+              "recommended_hours": "7-8",
+              "quality_focus": "خواب بهینه",
+              "tips": [
+                "خواب عمیق‌تر در این فاز",
+                "زمان مناسب برای تنظیم ساعت خواب"
+              ],
+              "avoid": [
+                "بی‌خوابی",
+                "ساعت خواب نامنظم"
+              ]
+            },
+            "exercise": {
+              "intensity": "متوسط تا بالا",
+              "recommended": [
+                "دویدن",
+                "HIIT",
+                "وزنه‌برداری",
+                "دوچرخه",
+                "رقص"
+              ],
+              "avoid": [
+                "بی‌فعالیتی"
+              ],
+              "tip": "انرژی در اوج است! بهترین زمان برای چالش‌های جدید و رکوردشکنی.",
+              "duration": "45-60"
+            }
+          },
+          "tips": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?mode=pregnancy",
+        "persona": "pregnant_manual_w14",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "pregnancy",
+          "date": "2026-09-23",
+          "user_goal": "non_ttc",
+          "subscription_type": "free",
+          "context_info": {
+            "week": 13,
+            "day": 0,
+            "trimester": 2,
+            "gestational_age": "هفته 13 و روز 0",
+            "due_date": "2027-03-31"
+          },
+          "primary_message": {
+            "week": 13,
+            "day": 0,
+            "trimester": 2,
+            "trimester_label": "سه‌ماهه دوم",
+            "gestational_age": "هفته 13 و روز 0",
+            "short_message": "پایان سه‌ماهه اول",
+            "long_message": "انرژی برگشته و تهوع‌ها کمتر شده. زمان مناسبی برای ورزش ملایم و لذت بردن از بارداری است.",
+            "action_suggestion": "شنا یا یوگای بارداری را امتحان کنید",
+            "dos": [
+              "ورزش ملایم",
+              "پروتئین کافی",
+              "آهن و کلسیم",
+              "سونوگرافی آنومالی"
+            ],
+            "donts": [
+              "دراز کشیدن به پشت طولانی",
+              "ورزش سنگین",
+              "سونا و جکوزی"
+            ],
+            "baby_development": "اندام‌های حیاتی شکل گرفته‌اند",
+            "body_changes": "تهوع کمتر می‌شود",
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [],
+          "supplements": {
+            "nutrition": {
+              "focus": "کلسیم، آهن و پروتئین",
+              "essential": [
+                "کلسیم ۱۰۰۰mg",
+                "آهن ۲۷mg",
+                "پروتئین ۷۵g"
+              ],
+              "foods": [
+                "لبنیات",
+                "گوشت قرمز",
+                "مرغ",
+                "ماهی",
+                "حبوبات",
+                "میوه و سبزی"
+              ],
+              "avoid": [
+                "غذاهای فرآوری شده",
+                "قند زیاد",
+                "نمک زیاد"
+              ],
+              "tip": "نوزاد در حال رشد سریع است، کالری و پروتئین بیشتر نیاز دارید"
+            },
+            "sleep": {
+              "recommended_hours": "8-9",
+              "quality_focus": "انرژی برگشته",
+              "tips": [
+                "خواب بهتر از سه‌ماهه اول",
+                "شروع عادت به خوابیدن به پهلو",
+                "بالش بین زانوها"
+              ],
+              "avoid": [
+                "خوابیدن به پشت طولانی"
+              ],
+              "position": "پهلوی چپ بهترین است"
+            },
+            "exercise": {
+              "intensity": "متوسط",
+              "recommended": [
+                "شنا",
+                "پیاده‌روی",
+                "یوگای بارداری",
+                "پیلاتس بارداری",
+                "دوچرخه ثابت"
+              ],
+              "avoid": [
+                "دراز کشیدن به پشت طولانی",
+                "حرکات پرشی",
+                "ورزش در گرما"
+              ],
+              "tip": "دوران طلایی! انرژی برگشته. از ورزش لذت ببرید اما محتاط باشید.",
+              "duration": "30-45",
+              "precautions": [
+                "مرکز ثقل تغییر کرده",
+                "تعادل ممکنه کم شده باشه"
+              ]
+            }
+          },
+          "tips": []
+        }
+      }
+    }
+  ]
+}

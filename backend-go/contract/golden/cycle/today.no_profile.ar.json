@@ -1,0 +1,116 @@
+{
+  "case": "cycle/today.no_profile.ar",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/today",
+        "persona": "no_profile",
+        "accept_language": "ar",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "calculation": {
+            "calculation_date": "2026-09-23",
+            "cycle_day": null,
+            "phase": null,
+            "subphase": null,
+            "estimated_ovulation_day": null,
+            "cycle_length_used": null,
+            "is_fertile_window": false,
+            "is_pms_window": false,
+            "is_period_tomorrow": false,
+            "is_luteal_spotting": false,
+            "cycle_score": null,
+            "age_factor": null,
+            "base_probability": null,
+            "symptom_score": null,
+            "final_probability": null,
+            "cycle_variability": null,
+            "uncertainty_range": null,
+            "text_flags": {
+              "incomplete_profile": {
+                "en": "Please complete your profile to get cycle predictions.",
+                "fa": "لطفاً پروفایل خود را کامل کنید تا پیش‌بینی سیکل را دریافت کنید."
+              }
+            },
+            "daily_tips": [],
+            "source_profile_data": null,
+            "source_daily_log_data": null
+          },
+          "cycle_view": {
+            "date": "2026-09-23",
+            "cycle_day": null,
+            "main_phase": "unknown",
+            "subphase": "unknown",
+            "fertility_level": "unknown",
+            "days_to_ovulation": null,
+            "days_to_period": null,
+            "days_late": null,
+            "anchors": {
+              "current_period_start": null,
+              "current_period_start_source": "unknown",
+              "current_period_end": null,
+              "current_period_end_source": "unknown",
+              "current_period_end_is_confirmed": false,
+              "predicted_next_period_start": null,
+              "estimated_ovulation_date": null
+            },
+            "metrics": {
+              "effective_cycle_length": 28,
+              "effective_period_length": 5,
+              "cycle_variability": null
+            },
+            "confidence": "unknown",
+            "confidence_reasons": [
+              "insufficient_anchor_data"
+            ],
+            "data_quality": "insufficient",
+            "resolution_source": "unknown",
+            "is_predicted": true,
+            "requires_user_input": true,
+            "warnings": [
+              "insufficient_anchor_data"
+            ],
+            "phase": null,
+            "data_status": null,
+            "predictions": null,
+            "profile_values": {
+              "cycle_length": null,
+              "period_duration": null
+            },
+            "calculated_values": {
+              "cycle_length": null,
+              "period_duration": null,
+              "based_on_cycles": null
+            },
+            "effective_values": {
+              "cycle_length": 28,
+              "period_duration": 5,
+              "source": "default",
+              "period_duration_source": "default"
+            },
+            "data_quality_details": {
+              "confidence": "low",
+              "confidence_reasons": [
+                "based_on_profile_data"
+              ],
+              "regularity_status": "not_enough_data",
+              "is_irregular_possible": false,
+              "missing_period_end": false
+            },
+            "daily_card": null
+          },
+          "calculation_status": "pending",
+          "is_recalculating": false
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "case": "auth/verify_otp_expired",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/auth/send-otp",
+        "persona": "anon",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "mobile": "09900000004"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "5",
+        "x-ratelimit-remaining": "4"
+      },
+      "body": {
+        "success": true,
+        "message": "OTP sent successfully",
+        "data": {
+          "expires_in": 120
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/auth/verify-otp",
+        "persona": "anon",
+        "now": "2026-09-23T10:03:00+03:30",
+        "body": {
+          "mobile": "09900000004",
+          "code": "{{otp}}"
+        }
+      },
+      "status": 400,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "10",
+        "x-ratelimit-remaining": "<ignored>"
+      },
+      "body": {
+        "success": false,
+        "message": "OTP has expired. Please request a new one."
+      }
+    }
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "case": "reminders/create_medication_daily",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/reminders",
+        "persona": "engaged",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "type": "medication",
+          "title": "Folic acid",
+          "recurrence": "daily",
+          "recurrence_time": "16:00",
+          "starts_on": "2026-09-23",
+          "ends_on": "2026-12-23"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "type": "medication",
+          "title": "Folic acid",
+          "recurrence": "daily",
+          "recurrence_time": "16:00",
+          "starts_on": "2026-09-22T20:30:00.000000Z",
+          "ends_on": "2026-12-22T20:30:00.000000Z",
+          "is_active": true,
+          "user_id": 1018,
+          "updated_at": "2026-09-23T06:30:00.000000Z",
+          "created_at": "2026-09-23T06:30:00.000000Z",
+          "id": 101805
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/reminders?type=medication",
+        "persona": "engaged",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": [
+          {
+            "id": 101805,
+            "user_id": 1018,
+            "type": "medication",
+            "title": "Folic acid",
+            "subtitle": null,
+            "notes": null,
+            "scheduled_at": null,
+            "recurrence": "daily",
+            "recurrence_time": "16:00:00",
+            "starts_on": "2026-09-22T20:30:00.000000Z",
+            "ends_on": "2026-12-22T20:30:00.000000Z",
+            "is_active": true,
+            "meta": null,
+            "created_at": "2026-09-23T06:30:00.000000Z",
+            "updated_at": "2026-09-23T06:30:00.000000Z"
+          },
+          {
+            "id": 101802,
+            "user_id": 1018,
+            "type": "medication",
+            "title": "آهن",
+            "subtitle": "۱ قرص",
+            "notes": null,
+            "scheduled_at": null,
+            "recurrence": "daily",
+            "recurrence_time": "09:00:00",
+            "starts_on": "2026-09-12T20:30:00.000000Z",
+            "ends_on": "2026-10-12T20:30:00.000000Z",
+            "is_active": true,
+            "meta": null,
+            "created_at": "2026-09-23T05:30:00.000000Z",
+            "updated_at": "2026-09-23T05:30:00.000000Z"
+          }
+        ]
+      }
+    }
+  ]
+}

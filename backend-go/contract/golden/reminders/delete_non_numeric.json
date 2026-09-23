@@ -1,0 +1,21 @@
+{
+  "case": "reminders/delete_non_numeric",
+  "steps": [
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/reminders/xyz",
+        "persona": "engaged",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 500,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "Server Error"
+      },
+      "body_raw": "{\n    \"message\": \"Server Error\"\n}"
+    }
+  ]
+}

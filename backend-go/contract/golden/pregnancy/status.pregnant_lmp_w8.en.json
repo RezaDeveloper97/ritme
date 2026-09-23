@@ -1,0 +1,63 @@
+{
+  "case": "pregnancy/status.pregnant_lmp_w8.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/status",
+        "persona": "pregnant_lmp_w8",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "is_active": true,
+          "gestational_age": {
+            "weeks": 7,
+            "days": 3,
+            "total_days": 52,
+            "trimester": 1,
+            "confidence_level": "medium",
+            "confidence_label": "Medium",
+            "uncertainty_days": 3,
+            "formatted": {
+              "en": "7 weeks, 3 days",
+              "fa": "7 هفته و 3 روز"
+            }
+          },
+          "estimated_due_date": {
+            "date": "2027-05-09",
+            "days_remaining": 228,
+            "weeks_remaining": 32,
+            "formatted": {
+              "en": "May 9, 2027",
+              "fa": "9 مه 2027"
+            }
+          },
+          "current_week": 8,
+          "trimester": 1,
+          "age_source": "lmp",
+          "confidence_level": "medium",
+          "is_high_risk": false,
+          "fetal_movement_tracking_active": false,
+          "fetal_movement_required": false,
+          "flags": {
+            "trimester_info": {
+              "en": "You are in trimester 1.",
+              "fa": "شما در سه‌ماهه 1 هستید."
+            },
+            "week_info": {
+              "en": "Week 8 of pregnancy.",
+              "fa": "هفته 8 بارداری."
+            }
+          }
+        }
+      }
+    }
+  ]
+}

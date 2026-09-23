@@ -3,7 +3,7 @@ id: T-M2-05
 title: Contract harness — golden recorder and JSON-aware differ
 milestone: M2
 type: backend
-status: todo
+status: done
 depends_on: [T-M2-01, T-M2-02]
 parallel_group: M2-B
 touches: [backend-go/cmd/contract, backend-go/contract]

@@ -1,0 +1,169 @@
+{
+  "case": "pregnancy/content_locale_query.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/content/8?locale=fa",
+        "persona": "pregnant_lmp_w8",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "week": 8,
+          "content": {
+            "week_number": 8,
+            "fetal_development": "در هفته هشتم جنین به اندازه یک لوبیا قرمز، حدود ۱.۶ سانتی‌متر و کمتر از ۱ گرم است. انگشتان دست و پا در حال شکل‌گیری‌اند و پلک‌ها و لب بالایی نمایان می‌شوند. حرکات کوچک جنین آغاز شده اما هنوز حس نمی‌شود.",
+            "mother_body_changes": "تهوع، خستگی و حساسیت سینه ممکن است به اوج خود برسد. کمر شلوارها ممکن است کمی تنگ‌تر شود، هرچند شکم هنوز برجسته نیست. تغییرات خلقی همچنان ادامه دارد.",
+            "dos_and_donts": "مصرف مکمل‌ها و تغذیه سالم را حفظ کنید و از الکل، سیگار و کافئین زیاد پرهیز کنید. برای تهوع دارو خودسرانه مصرف نکنید. خواب و استراحت کافی داشته باشید.",
+            "care_plan": "اگر هنوز اولین سونوگرافی را انجام نداده‌اید، این دوره زمان مناسبی برای تأیید بارداری و سن جنین است. سوالات خود را برای ویزیت آماده کنید. مصرف مایعات را جدی بگیرید.",
+            "body_adaptation": "حجم خون و ضربان قلب شما افزایش یافته تا نیاز جنین را تأمین کند. ممکن است احساس گرمازدگی یا سرگیجه گاه‌به‌گاه داشته باشید. بدن به‌آرامی با بارداری هماهنگ می‌شود.",
+            "emotional_status": "ممکن است بین شادی و اضطراب نوسان داشته باشید و گاهی احساس آسیب‌پذیری کنید. این احساسات با تغییرات هورمونی مرتبط است. حمایت عاطفی و استراحت کمک‌کننده است.",
+            "key_nutrition": "پروتئین، کلسیم و آهن را در وعده‌ها بگنجانید و از وعده‌های سبک و مکرر استفاده کنید. میوه‌ها و سبزیجات تازه و آب کافی مهم هستند. از غذاهای بسیار چرب پرهیز کنید.",
+            "physical_activity": "پیاده‌روی ملایم و تمرینات کف لگن برای این هفته مناسب است. از فعالیت‌های شدید و پرخطر خودداری کنید. اگر احساس ضعف کردید استراحت کنید.",
+            "tests_and_checkups": "سونوگرافی اولیه برای تعیین سن دقیق بارداری و ضربان قلب جنین در این دوره رایج است. آزمایش‌های خون تکمیلی نیز ممکن است انجام شود. فشار خون و وزن ثبت می‌گردد.",
+            "faq": [
+              {
+                "question": "چرا هنوز شکمم برجسته نشده است؟",
+                "answer": "در هفته هشتم رحم هنوز کوچک است و معمولاً شکم تا هفته‌های بعد از سه‌ماهه اول برجسته نمی‌شود."
+              },
+              {
+                "question": "آیا مصرف دارو برای سردرد بی‌خطر است؟",
+                "answer": "برخی داروها در بارداری مجاز نیستند؛ برای هر دارویی حتی مسکن ساده با پزشک مشورت کنید."
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/content/8?locale=en",
+        "persona": "pregnant_lmp_w8",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "week": 8,
+          "content": {
+            "week_number": 8,
+            "fetal_development": "At week eight the fetus is about the size of a kidney bean, roughly 1.6 cm and under 1 g. Fingers and toes are forming, eyelids and the upper lip appear, and tiny movements begin though unfelt.",
+            "mother_body_changes": "Nausea, fatigue and breast tenderness may peak. Your waistband may feel tighter although the belly isn’t showing yet, and mood changes continue.",
+            "dos_and_donts": "Maintain supplements and healthy eating, and avoid alcohol, smoking and excess caffeine. Don’t self-medicate for nausea, and get enough sleep and rest.",
+            "care_plan": "If you haven’t had your first ultrasound, this is a good time to confirm the pregnancy and gestational age. Prepare questions for your visit and stay hydrated.",
+            "body_adaptation": "Your blood volume and heart rate rise to meet the baby’s needs. You may occasionally feel warm or dizzy as your body steadily adapts.",
+            "emotional_status": "You may swing between joy and anxiety and sometimes feel vulnerable. These feelings link to hormonal shifts; emotional support and rest help.",
+            "key_nutrition": "Include protein, calcium and iron in meals and eat light, frequent portions. Fresh fruit, vegetables and enough water matter; avoid very greasy foods.",
+            "physical_activity": "Gentle walking and pelvic floor exercises suit this week. Avoid intense or risky activities and rest if you feel weak.",
+            "tests_and_checkups": "An early dating ultrasound to set gestational age and confirm the heartbeat is common now. Additional blood tests may be done, and vitals are recorded.",
+            "faq": [
+              {
+                "question": "Why isn’t my belly showing yet?",
+                "answer": "At week eight the uterus is still small, and a visible bump usually appears after the first trimester."
+              },
+              {
+                "question": "Is it safe to take medicine for a headache?",
+                "answer": "Some drugs are unsafe in pregnancy; check with your doctor before any medicine, even a simple painkiller."
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/content/8?locale=ar",
+        "persona": "pregnant_lmp_w8",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "week": 8,
+          "content": {
+            "week_number": 8,
+            "fetal_development": "At week eight the fetus is about the size of a kidney bean, roughly 1.6 cm and under 1 g. Fingers and toes are forming, eyelids and the upper lip appear, and tiny movements begin though unfelt.",
+            "mother_body_changes": "Nausea, fatigue and breast tenderness may peak. Your waistband may feel tighter although the belly isn’t showing yet, and mood changes continue.",
+            "dos_and_donts": "Maintain supplements and healthy eating, and avoid alcohol, smoking and excess caffeine. Don’t self-medicate for nausea, and get enough sleep and rest.",
+            "care_plan": "If you haven’t had your first ultrasound, this is a good time to confirm the pregnancy and gestational age. Prepare questions for your visit and stay hydrated.",
+            "body_adaptation": "Your blood volume and heart rate rise to meet the baby’s needs. You may occasionally feel warm or dizzy as your body steadily adapts.",
+            "emotional_status": "You may swing between joy and anxiety and sometimes feel vulnerable. These feelings link to hormonal shifts; emotional support and rest help.",
+            "key_nutrition": "Include protein, calcium and iron in meals and eat light, frequent portions. Fresh fruit, vegetables and enough water matter; avoid very greasy foods.",
+            "physical_activity": "Gentle walking and pelvic floor exercises suit this week. Avoid intense or risky activities and rest if you feel weak.",
+            "tests_and_checkups": "An early dating ultrasound to set gestational age and confirm the heartbeat is common now. Additional blood tests may be done, and vitals are recorded.",
+            "faq": [
+              {
+                "question": "Why isn’t my belly showing yet?",
+                "answer": "At week eight the uterus is still small, and a visible bump usually appears after the first trimester."
+              },
+              {
+                "question": "Is it safe to take medicine for a headache?",
+                "answer": "Some drugs are unsafe in pregnancy; check with your doctor before any medicine, even a simple painkiller."
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/content/8?locale=xx",
+        "persona": "pregnant_lmp_w8",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "week": 8,
+          "content": {
+            "week_number": 8,
+            "fetal_development": "در هفته هشتم جنین به اندازه یک لوبیا قرمز، حدود ۱.۶ سانتی‌متر و کمتر از ۱ گرم است. انگشتان دست و پا در حال شکل‌گیری‌اند و پلک‌ها و لب بالایی نمایان می‌شوند. حرکات کوچک جنین آغاز شده اما هنوز حس نمی‌شود.",
+            "mother_body_changes": "تهوع، خستگی و حساسیت سینه ممکن است به اوج خود برسد. کمر شلوارها ممکن است کمی تنگ‌تر شود، هرچند شکم هنوز برجسته نیست. تغییرات خلقی همچنان ادامه دارد.",
+            "dos_and_donts": "مصرف مکمل‌ها و تغذیه سالم را حفظ کنید و از الکل، سیگار و کافئین زیاد پرهیز کنید. برای تهوع دارو خودسرانه مصرف نکنید. خواب و استراحت کافی داشته باشید.",
+            "care_plan": "اگر هنوز اولین سونوگرافی را انجام نداده‌اید، این دوره زمان مناسبی برای تأیید بارداری و سن جنین است. سوالات خود را برای ویزیت آماده کنید. مصرف مایعات را جدی بگیرید.",
+            "body_adaptation": "حجم خون و ضربان قلب شما افزایش یافته تا نیاز جنین را تأمین کند. ممکن است احساس گرمازدگی یا سرگیجه گاه‌به‌گاه داشته باشید. بدن به‌آرامی با بارداری هماهنگ می‌شود.",
+            "emotional_status": "ممکن است بین شادی و اضطراب نوسان داشته باشید و گاهی احساس آسیب‌پذیری کنید. این احساسات با تغییرات هورمونی مرتبط است. حمایت عاطفی و استراحت کمک‌کننده است.",
+            "key_nutrition": "پروتئین، کلسیم و آهن را در وعده‌ها بگنجانید و از وعده‌های سبک و مکرر استفاده کنید. میوه‌ها و سبزیجات تازه و آب کافی مهم هستند. از غذاهای بسیار چرب پرهیز کنید.",
+            "physical_activity": "پیاده‌روی ملایم و تمرینات کف لگن برای این هفته مناسب است. از فعالیت‌های شدید و پرخطر خودداری کنید. اگر احساس ضعف کردید استراحت کنید.",
+            "tests_and_checkups": "سونوگرافی اولیه برای تعیین سن دقیق بارداری و ضربان قلب جنین در این دوره رایج است. آزمایش‌های خون تکمیلی نیز ممکن است انجام شود. فشار خون و وزن ثبت می‌گردد.",
+            "faq": [
+              {
+                "question": "چرا هنوز شکمم برجسته نشده است؟",
+                "answer": "در هفته هشتم رحم هنوز کوچک است و معمولاً شکم تا هفته‌های بعد از سه‌ماهه اول برجسته نمی‌شود."
+              },
+              {
+                "question": "آیا مصرف دارو برای سردرد بی‌خطر است؟",
+                "answer": "برخی داروها در بارداری مجاز نیستند؛ برای هر دارویی حتی مسکن ساده با پزشک مشورت کنید."
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

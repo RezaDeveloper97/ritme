@@ -1,0 +1,30 @@
+{
+  "case": "profile/invalid_subscription_type_invalid.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/profile",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "subscription_type": "gold"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "خطای اعتبارسنجی: مقدار subscription_type باید یکی از این موارد باشد: free, premium",
+        "errors": {
+          "subscription_type": [
+            "مقدار subscription_type باید یکی از این موارد باشد: free, premium"
+          ]
+        }
+      }
+    }
+  ]
+}

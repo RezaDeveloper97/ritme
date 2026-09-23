@@ -1,0 +1,25 @@
+{
+  "case": "period/status.regular",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/period/status",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "active": false,
+          "period_start_date": "2026-09-14",
+          "period_end_date": "2026-09-18"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "case": "profile/show.no_profile.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/profile",
+        "persona": "no_profile",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "user": {
+            "id": 1001,
+            "name": null,
+            "email": null,
+            "mobile": "09900000001",
+            "mobile_verified_at": "2026-09-23T05:30:00.000000Z",
+            "blocked_at": null,
+            "email_verified_at": null,
+            "created_at": "2026-09-23T05:30:00.000000Z",
+            "updated_at": "2026-09-23T05:30:00.000000Z",
+            "profile": null
+          },
+          "profile": null,
+          "bmi": null
+        }
+      }
+    }
+  ]
+}

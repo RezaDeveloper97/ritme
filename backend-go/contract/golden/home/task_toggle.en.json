@@ -1,0 +1,191 @@
+{
+  "case": "home/task_toggle.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/home/tasks/1/toggle",
+        "persona": "engaged",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "task_id": 1,
+          "is_completed": false,
+          "progress": {
+            "completed": 0,
+            "total": 5,
+            "percent": 0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/home/tasks/1/toggle",
+        "persona": "engaged",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "task_id": 1,
+          "is_completed": true,
+          "progress": {
+            "completed": 1,
+            "total": 5,
+            "percent": 20
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/home/tasks/3/toggle",
+        "persona": "engaged",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "task_id": 3,
+          "is_completed": true,
+          "progress": {
+            "completed": 2,
+            "total": 5,
+            "percent": 40
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/home/sections/tasks",
+        "persona": "engaged",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "section": {
+            "key": "tasks",
+            "type": "tasks",
+            "title": "Today's tasks",
+            "subtitle": "2/5",
+            "order": 60,
+            "action": null,
+            "data": {
+              "items": [
+                {
+                  "id": 1,
+                  "key": "log_bbt",
+                  "title": "Log body temperature",
+                  "description": "Record your basal body temperature each morning",
+                  "category": "tracking",
+                  "category_label": "Tracking",
+                  "icon": "clipboard-check",
+                  "is_completed": true
+                },
+                {
+                  "id": 2,
+                  "key": "drink_water",
+                  "title": "Drink 8 glasses of water",
+                  "description": "Stay hydrated throughout the day",
+                  "category": "hydration",
+                  "category_label": "Hydration",
+                  "icon": "water-glass",
+                  "is_completed": false
+                },
+                {
+                  "id": 3,
+                  "key": "vitamin_d",
+                  "title": "Take vitamin D",
+                  "description": "Take your vitamin D supplement",
+                  "category": "supplement",
+                  "category_label": "Supplement",
+                  "icon": "pill",
+                  "is_completed": true
+                },
+                {
+                  "id": 4,
+                  "key": "walk_30",
+                  "title": "30 minutes walking",
+                  "description": "Take a light 30-minute walk",
+                  "category": "exercise",
+                  "category_label": "Exercise",
+                  "icon": "walking",
+                  "is_completed": false
+                },
+                {
+                  "id": 5,
+                  "key": "breathing_5",
+                  "title": "5 minutes of deep breathing",
+                  "description": "Practice deep breathing to calm your mind",
+                  "category": "mindfulness",
+                  "category_label": "Mindfulness",
+                  "icon": "lotus",
+                  "is_completed": false
+                }
+              ],
+              "progress": {
+                "completed": 2,
+                "total": 5,
+                "percent": 40
+              }
+            },
+            "meta": null
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/home/tasks/3/toggle",
+        "persona": "engaged",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "task_id": 3,
+          "is_completed": false,
+          "progress": {
+            "completed": 1,
+            "total": 5,
+            "percent": 20
+          }
+        }
+      }
+    }
+  ]
+}

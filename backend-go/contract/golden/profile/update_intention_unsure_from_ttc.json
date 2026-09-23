@@ -1,0 +1,132 @@
+{
+  "case": "profile/update_intention_unsure_from_ttc",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/profile",
+        "persona": "ttc",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "pregnancy_intention": "unsure"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "پروفایل با موفقیت بروزرسانی شد",
+        "data": {
+          "user": {
+            "id": 1012,
+            "name": "Contract ttc",
+            "email": null,
+            "mobile": "09900000012",
+            "mobile_verified_at": "2026-09-23T05:30:00.000000Z",
+            "blocked_at": null,
+            "email_verified_at": null,
+            "created_at": "2026-09-23T05:30:00.000000Z",
+            "updated_at": "2026-09-23T05:30:00.000000Z"
+          },
+          "profile": {
+            "id": 1012,
+            "user_id": 1012,
+            "birthday": "1996-04-12",
+            "weight": 60.5,
+            "height": 165,
+            "period_duration": 5,
+            "cycle_duration": 28,
+            "last_period_start": "2026-09-11",
+            "user_goal": "non_ttc",
+            "pregnancy_intention": "unsure",
+            "chronic_conditions": null,
+            "subscription_type": "free",
+            "calculation_status": "completed",
+            "calculation_started_at": "2026-09-23T05:30:00.000000Z",
+            "calculation_completed_at": "2026-09-23T05:30:00.000000Z",
+            "calculation_version": 1,
+            "created_at": "2026-09-23T05:30:00.000000Z",
+            "updated_at": "2026-09-23T06:30:00.000000Z"
+          },
+          "calculation_status": "completed"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/profile",
+        "persona": "ttc",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "user": {
+            "id": 1012,
+            "name": "Contract ttc",
+            "email": null,
+            "mobile": "09900000012",
+            "mobile_verified_at": "2026-09-23T05:30:00.000000Z",
+            "blocked_at": null,
+            "email_verified_at": null,
+            "created_at": "2026-09-23T05:30:00.000000Z",
+            "updated_at": "2026-09-23T05:30:00.000000Z",
+            "profile": {
+              "id": 1012,
+              "user_id": 1012,
+              "birthday": "1996-04-12",
+              "weight": 60.5,
+              "height": 165,
+              "period_duration": 5,
+              "cycle_duration": 28,
+              "last_period_start": "2026-09-11",
+              "user_goal": "non_ttc",
+              "pregnancy_intention": "unsure",
+              "chronic_conditions": null,
+              "subscription_type": "free",
+              "calculation_status": "completed",
+              "calculation_started_at": "2026-09-23T05:30:00.000000Z",
+              "calculation_completed_at": "2026-09-23T05:30:00.000000Z",
+              "calculation_version": 1,
+              "created_at": "2026-09-23T05:30:00.000000Z",
+              "updated_at": "2026-09-23T06:30:00.000000Z"
+            }
+          },
+          "profile": {
+            "id": 1012,
+            "user_id": 1012,
+            "birthday": "1996-04-12",
+            "weight": 60.5,
+            "height": 165,
+            "period_duration": 5,
+            "cycle_duration": 28,
+            "last_period_start": "2026-09-11",
+            "user_goal": "non_ttc",
+            "pregnancy_intention": "unsure",
+            "chronic_conditions": null,
+            "subscription_type": "free",
+            "calculation_status": "completed",
+            "calculation_started_at": "2026-09-23T05:30:00.000000Z",
+            "calculation_completed_at": "2026-09-23T05:30:00.000000Z",
+            "calculation_version": 1,
+            "created_at": "2026-09-23T05:30:00.000000Z",
+            "updated_at": "2026-09-23T06:30:00.000000Z"
+          },
+          "bmi": {
+            "value": 22.2,
+            "category": "normal",
+            "category_label": "طبیعی",
+            "message": "بر اساس قد و وزن وارد شده، در محدوده‌ی وزنی طبیعی قرار می‌گیری. این محدوده معمولاً برای سلامت عمومی و سیکل قاعدگی مناسب است. Ritme تلاش می‌کند به حفظ این وضعیت کمک کند."
+          }
+        }
+      }
+    }
+  ]
+}

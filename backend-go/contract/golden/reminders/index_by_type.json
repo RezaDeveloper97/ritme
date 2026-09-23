@@ -1,0 +1,159 @@
+{
+  "case": "reminders/index_by_type",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/reminders?type=doctor",
+        "persona": "engaged",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": [
+          {
+            "id": 101801,
+            "user_id": 1018,
+            "type": "doctor",
+            "title": "دکتر رضایی",
+            "subtitle": "زنان و زایمان",
+            "notes": null,
+            "scheduled_at": "2026-09-26T13:00:00.000000Z",
+            "recurrence": "none",
+            "recurrence_time": null,
+            "starts_on": null,
+            "ends_on": null,
+            "is_active": true,
+            "meta": {
+              "phone": "02100000000"
+            },
+            "created_at": "2026-09-23T05:30:00.000000Z",
+            "updated_at": "2026-09-23T05:30:00.000000Z"
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/reminders?type=medication",
+        "persona": "engaged",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": [
+          {
+            "id": 101802,
+            "user_id": 1018,
+            "type": "medication",
+            "title": "آهن",
+            "subtitle": "۱ قرص",
+            "notes": null,
+            "scheduled_at": null,
+            "recurrence": "daily",
+            "recurrence_time": "09:00:00",
+            "starts_on": "2026-09-12T20:30:00.000000Z",
+            "ends_on": "2026-10-12T20:30:00.000000Z",
+            "is_active": true,
+            "meta": null,
+            "created_at": "2026-09-23T05:30:00.000000Z",
+            "updated_at": "2026-09-23T05:30:00.000000Z"
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/reminders?type=appointment",
+        "persona": "engaged",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": [
+          {
+            "id": 101803,
+            "user_id": 1018,
+            "type": "appointment",
+            "title": "سونوگرافی",
+            "subtitle": null,
+            "notes": null,
+            "scheduled_at": "2026-09-18T06:30:00.000000Z",
+            "recurrence": "none",
+            "recurrence_time": null,
+            "starts_on": null,
+            "ends_on": null,
+            "is_active": true,
+            "meta": null,
+            "created_at": "2026-09-23T05:30:00.000000Z",
+            "updated_at": "2026-09-23T05:30:00.000000Z"
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/reminders?type=custom",
+        "persona": "engaged",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": [
+          {
+            "id": 101804,
+            "user_id": 1018,
+            "type": "custom",
+            "title": "نوشیدن آب",
+            "subtitle": null,
+            "notes": null,
+            "scheduled_at": null,
+            "recurrence": "weekly",
+            "recurrence_time": "12:00:00",
+            "starts_on": "2026-08-23T20:30:00.000000Z",
+            "ends_on": null,
+            "is_active": false,
+            "meta": null,
+            "created_at": "2026-09-23T05:30:00.000000Z",
+            "updated_at": "2026-09-23T05:30:00.000000Z"
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/reminders?type=bogus",
+        "persona": "engaged",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": []
+      }
+    }
+  ]
+}

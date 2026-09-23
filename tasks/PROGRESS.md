@@ -202,3 +202,13 @@ Nothing needed fixing.
 - Hand-ported logic: `cycle_logic.go`, `health_logic.go`, `recommendation_logic.go` (PHP file:line cited).
 - Parity test vs `testdata/php_enums.json` (refresh: `php internal/enums/testdata/dump_enums.php ../backend > internal/enums/testdata/php_enums.json`).
 - Conventions: PHP null → `""`; `labelFor` → `(string,bool)`; locale-less labels keep `Label(_ string)`.
+
+## T-M2-05 — Contract harness — golden recorder and JSON-aware differ
+- `backend-go/cmd/contract` (record/diff, strict JSON-aware differ in `internal/ojson`), cases for 14 groups in
+  `contract/cases/*.yaml`, 986 goldens in `contract/golden/<group>/`, `fixtures/dump.sql`, contract-only key pair.
+- `make contract-record ROUTES=<groups|all>` (flock-serialised, reuses/ups the Laravel contract stack, `CONTRACT_PORT`),
+  `make contract ROUTES=<groups>` boots Go on a free port with its own `contract_<pid>_*` DB → parallel-safe.
+- Harness mints Passport-compatible tokens itself (independent of Go auth); synthetic token personas added.
+- Allow-list: `contract/allowlist/<group>.yaml`, each entry must reference a `D-nn` in deviations.md.
+- Locked quirks: premium `/messages/daily` 500 (D-11), `retry_after` 80, `token_unknown` → token_revoked.
+- Throttle-middleware 429 not recordable (`CACHE_STORE=array`); controller 429 is.

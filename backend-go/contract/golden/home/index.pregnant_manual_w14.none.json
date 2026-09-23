@@ -1,0 +1,300 @@
+{
+  "case": "home/index.pregnant_manual_w14.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/home",
+        "persona": "pregnant_manual_w14",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "pregnancy",
+          "mode_label": "بارداری",
+          "date": "2026-09-23",
+          "locale": "fa",
+          "profile_complete": true,
+          "sections": [
+            {
+              "key": "header",
+              "type": "header",
+              "title": null,
+              "subtitle": null,
+              "order": 10,
+              "action": null,
+              "data": {
+                "app_name": "ریتمی",
+                "tagline": "همراه سلامتی شما",
+                "greeting": "سلام Contract pregnant manual w14",
+                "user": {
+                  "id": 1016,
+                  "name": "Contract pregnant manual w14"
+                },
+                "mode": "pregnancy",
+                "mode_label": "بارداری",
+                "is_premium": false,
+                "date": "2026-09-23",
+                "weekday_iso": 3,
+                "moon_phase": {
+                  "key": "waxing_gibbous",
+                  "label": "محدب افزاینده",
+                  "illumination": 0.85,
+                  "age_days": 11
+                },
+                "notifications": {
+                  "unread_count": 0,
+                  "has_unread": false
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "tasks",
+              "type": "tasks",
+              "title": "وظایف امروز",
+              "subtitle": "0/5",
+              "order": 60,
+              "action": null,
+              "data": {
+                "items": [
+                  {
+                    "id": 1,
+                    "key": "log_bbt",
+                    "title": "ثبت دمای بدن",
+                    "description": "دمای پایه بدنت را هر روز صبح ثبت کن",
+                    "category": "tracking",
+                    "category_label": "ثبت و پایش",
+                    "icon": "clipboard-check",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 2,
+                    "key": "drink_water",
+                    "title": "نوشیدن ۸ لیوان آب",
+                    "description": "در طول روز به اندازه کافی آب بنوش",
+                    "category": "hydration",
+                    "category_label": "آب‌رسانی",
+                    "icon": "water-glass",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 3,
+                    "key": "vitamin_d",
+                    "title": "مصرف ویتامین D",
+                    "description": "مکمل ویتامین D خود را مصرف کن",
+                    "category": "supplement",
+                    "category_label": "مکمل",
+                    "icon": "pill",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 4,
+                    "key": "walk_30",
+                    "title": "۳۰ دقیقه پیاده‌روی",
+                    "description": "یک پیاده‌روی سبک ۳۰ دقیقه‌ای داشته باش",
+                    "category": "exercise",
+                    "category_label": "ورزش",
+                    "icon": "walking",
+                    "is_completed": false
+                  },
+                  {
+                    "id": 5,
+                    "key": "breathing_5",
+                    "title": "۵ دقیقه تنفس عمیق",
+                    "description": "برای آرامش ذهن، تمرین تنفس عمیق انجام بده",
+                    "category": "mindfulness",
+                    "category_label": "آرامش ذهن",
+                    "icon": "lotus",
+                    "is_completed": false
+                  }
+                ],
+                "progress": {
+                  "completed": 0,
+                  "total": 5,
+                  "percent": 0
+                }
+              },
+              "meta": null
+            },
+            {
+              "key": "challenge",
+              "type": "challenge",
+              "title": "چالش امروز",
+              "subtitle": null,
+              "order": 70,
+              "action": null,
+              "data": {
+                "id": 21,
+                "title": "جبران آهن بعد از پریود",
+                "description": "بعد از خون‌ریزی، یک وعده‌ی آهن‌دار همراه ویتامین C بخور",
+                "category": "nutrition",
+                "cycle_day": 8,
+                "cycle_day_from": 5,
+                "cycle_day_to": 9,
+                "is_completed": false
+              },
+              "meta": null
+            },
+            {
+              "key": "smart_tip",
+              "type": "smart_tip",
+              "title": "نکته هوشمند",
+              "subtitle": null,
+              "order": 100,
+              "action": null,
+              "data": {
+                "text": "انرژی برگشته و تهوع‌ها کمتر شده. زمان مناسبی برای ورزش ملایم و لذت بردن از بارداری است.",
+                "source": "message_engine"
+              },
+              "meta": null
+            },
+            {
+              "key": "affirmation",
+              "type": "affirmation",
+              "title": null,
+              "subtitle": null,
+              "order": 110,
+              "action": null,
+              "data": {
+                "id": 1,
+                "text": "هر روز فرصتی تازه برای مراقبت از خودت است.",
+                "icon": "sparkle"
+              },
+              "meta": null
+            },
+            {
+              "key": "weekly_summary",
+              "type": "weekly_summary",
+              "title": "خلاصه هفته",
+              "subtitle": null,
+              "order": 120,
+              "action": {
+                "key": "view_all",
+                "label": "مشاهده کامل"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "mood",
+                    "label": "روحیه",
+                    "icon": "smile",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  },
+                  {
+                    "key": "sleep",
+                    "label": "خواب",
+                    "icon": "moon",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  },
+                  {
+                    "key": "energy",
+                    "label": "انرژی",
+                    "icon": "bolt",
+                    "percent": null,
+                    "previous_percent": null,
+                    "delta": null
+                  }
+                ],
+                "range": {
+                  "from": "2026-09-17",
+                  "to": "2026-09-23"
+                },
+                "logged_days": 0,
+                "previous_logged_days": 0,
+                "overall_percent": null
+              },
+              "meta": null
+            },
+            {
+              "key": "vitals",
+              "type": "vitals",
+              "title": "وضعیت امروز",
+              "subtitle": null,
+              "order": 130,
+              "action": {
+                "key": "view_all",
+                "label": "مشاهده کامل"
+              },
+              "data": {
+                "items": [
+                  {
+                    "key": "heart_rate",
+                    "label": "ضربان قلب",
+                    "value": null,
+                    "unit": "bpm",
+                    "icon": "heart-pulse"
+                  },
+                  {
+                    "key": "blood_pressure",
+                    "label": "فشار خون",
+                    "value": null,
+                    "unit": "mmHg",
+                    "icon": "gauge"
+                  },
+                  {
+                    "key": "blood_sugar",
+                    "label": "قند خون",
+                    "value": null,
+                    "unit": "mg/dl",
+                    "icon": "droplet"
+                  }
+                ],
+                "has_data": false,
+                "date": "2026-09-23"
+              },
+              "meta": null
+            },
+            {
+              "key": "articles",
+              "type": "articles",
+              "title": "بر اساس سیکل فعلی شما",
+              "subtitle": null,
+              "order": 150,
+              "action": {
+                "key": "view_more",
+                "label": "مشاهده بیشتر"
+              },
+              "data": {
+                "items": [
+                  {
+                    "id": 3,
+                    "slug": "follicular-energy",
+                    "title": "فاز فولیکولار؛ زمان اوج انرژی",
+                    "excerpt": "چرا بعد از پریود احساس انرژی بیشتری داری و چطور از آن استفاده کنی",
+                    "read_time_minutes": 3,
+                    "image_url": null,
+                    "category": "cycle_science",
+                    "cycle_phases": [
+                      "follicular"
+                    ]
+                  },
+                  {
+                    "id": 6,
+                    "slug": "cycle-nutrition-basics",
+                    "title": "تغذیه متناسب با چرخه قاعدگی",
+                    "excerpt": "در هر فاز چه بخوریم تا حال بهتری داشته باشیم",
+                    "read_time_minutes": 6,
+                    "image_url": null,
+                    "category": "nutrition",
+                    "cycle_phases": []
+                  }
+                ]
+              },
+              "meta": null
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

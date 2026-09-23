@@ -1,0 +1,114 @@
+{
+  "case": "content/articles.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/articles",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "items": [
+            {
+              "id": 6,
+              "slug": "cycle-nutrition-basics",
+              "title": "تغذیه متناسب با چرخه قاعدگی",
+              "excerpt": "در هر فاز چه بخوریم تا حال بهتری داشته باشیم",
+              "image_url": null,
+              "read_time_minutes": 6,
+              "category": "nutrition",
+              "cycle_phases": [],
+              "published_at": "2026-09-23"
+            },
+            {
+              "id": 5,
+              "slug": "pms-management",
+              "title": "مدیریت علائم پی‌ام‌اس",
+              "excerpt": "راهکارهایی برای کنترل تغییرات خلقی و علائم جسمی پیش از پریود",
+              "image_url": null,
+              "read_time_minutes": 5,
+              "category": "wellbeing",
+              "cycle_phases": [
+                "luteal"
+              ],
+              "published_at": "2026-09-23"
+            },
+            {
+              "id": 4,
+              "slug": "ovulation-signs",
+              "title": "نشانه‌های تخمک‌گذاری را بشناس",
+              "excerpt": "تغییرات ترشحات، دمای بدن و علائمی که تخمک‌گذاری را نشان می‌دهند",
+              "image_url": null,
+              "read_time_minutes": 4,
+              "category": "fertility",
+              "cycle_phases": [
+                "ovulation"
+              ],
+              "published_at": "2026-09-23"
+            },
+            {
+              "id": 3,
+              "slug": "follicular-energy",
+              "title": "فاز فولیکولار؛ زمان اوج انرژی",
+              "excerpt": "چرا بعد از پریود احساس انرژی بیشتری داری و چطور از آن استفاده کنی",
+              "image_url": null,
+              "read_time_minutes": 3,
+              "category": "cycle_science",
+              "cycle_phases": [
+                "follicular"
+              ],
+              "published_at": "2026-09-23"
+            },
+            {
+              "id": 1,
+              "slug": "period-blood-clots",
+              "title": "لخته‌های خون در دوران پریود؛ معنی آن چیست؟",
+              "excerpt": "لخته‌های خون در پریود معمولاً طبیعی‌اند؛ اما چه زمانی باید نگران شد؟",
+              "image_url": null,
+              "read_time_minutes": 4,
+              "category": "period_health",
+              "cycle_phases": [
+                "menstruation"
+              ],
+              "published_at": "2026-09-23"
+            },
+            {
+              "id": 2,
+              "slug": "period-pain-relief",
+              "title": "راه‌های کاهش درد پریود",
+              "excerpt": "از گرما درمانی تا تغذیه؛ روش‌های مؤثر برای کاهش دردهای قاعدگی",
+              "image_url": null,
+              "read_time_minutes": 5,
+              "category": "period_health",
+              "cycle_phases": [
+                "menstruation"
+              ],
+              "published_at": "2026-09-23"
+            }
+          ],
+          "categories": [
+            "cycle_science",
+            "fertility",
+            "nutrition",
+            "period_health",
+            "wellbeing"
+          ],
+          "meta": {
+            "current_page": 1,
+            "last_page": 1,
+            "per_page": 12,
+            "total": 6
+          }
+        }
+      }
+    }
+  ]
+}

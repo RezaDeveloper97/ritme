@@ -1,0 +1,510 @@
+{
+  "case": "messages/daily_dates.regular.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?date=2026-09-14",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "date": "2026-09-14",
+          "user_goal": "non_ttc",
+          "subscription_type": "free",
+          "context_info": {
+            "phase": "menstruation",
+            "phase_label": "قاعدگی",
+            "subphase": "menstruation",
+            "subphase_label": "قاعدگی",
+            "cycle_day": 1,
+            "cycle_length": 28,
+            "is_fertile_window": false,
+            "is_pms_window": false,
+            "estimated_ovulation_day": 15
+          },
+          "primary_message": {
+            "phase": "menstruation",
+            "phase_label": "قاعدگی",
+            "cycle_day": 1,
+            "short_message": "امروز روز استراحت و مراقبت از خودته",
+            "long_message": "در دوران قاعدگی، بدنت نیاز به استراحت و توجه بیشتری داره. به خودت اجازه بده کمی آروم‌تر باشی و از فعالیت‌های سنگین اجتناب کنی.",
+            "action_suggestion": "یک نوشیدنی گرم بنوش و استراحت کن",
+            "dos": [
+              "استراحت کافی",
+              "نوشیدن آب فراوان",
+              "مصرف آهن",
+              "پیاده‌روی سبک"
+            ],
+            "donts": [
+              "ورزش سنگین",
+              "کافئین زیاد",
+              "غذاهای شور",
+              "بی‌خوابی"
+            ],
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [],
+          "supplements": {
+            "nutrition": {
+              "focus": "جبران آهن و ضدالتهاب",
+              "foods": [
+                "گوشت قرمز",
+                "اسفناج",
+                "عدس",
+                "ماهی",
+                "شکلات تلخ"
+              ],
+              "avoid": [
+                "غذاهای شور",
+                "کافئین زیاد",
+                "الکل"
+              ],
+              "tip": "ویتامین C همراه آهن جذب را افزایش می‌دهد"
+            },
+            "sleep": {
+              "recommended_hours": "8-9",
+              "quality_focus": "استراحت بیشتر",
+              "tips": [
+                "خواب بیشتر نیاز است",
+                "کمپرس گرم برای کرامپ",
+                "اتاق خنک"
+              ],
+              "avoid": [
+                "کافئین بعد از ظهر",
+                "گوشی قبل خواب"
+              ]
+            },
+            "exercise": {
+              "intensity": "کم تا متوسط",
+              "recommended": [
+                "پیاده‌روی",
+                "یوگای ریستوراتیو",
+                "کشش ملایم",
+                "شنا"
+              ],
+              "avoid": [
+                "HIIT شدید",
+                "وزنه سنگین",
+                "وارونگی در یوگا"
+              ],
+              "tip": "به بدنت گوش بده. اگر انرژی نداری، استراحت کن.",
+              "duration": "20-30"
+            }
+          },
+          "tips": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?date=2026-09-20",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "date": "2026-09-20",
+          "user_goal": "non_ttc",
+          "subscription_type": "free",
+          "context_info": {
+            "phase": "follicular",
+            "phase_label": "فولیکولار",
+            "subphase": "early_follicular",
+            "subphase_label": "فولیکولار اولیه",
+            "cycle_day": 7,
+            "cycle_length": 28,
+            "is_fertile_window": false,
+            "is_pms_window": false,
+            "estimated_ovulation_day": 15
+          },
+          "primary_message": {
+            "phase": "follicular",
+            "phase_label": "فولیکولار",
+            "cycle_day": 7,
+            "short_message": "انرژیت داره برمی‌گرده! وقت شروع‌های تازه‌ست",
+            "long_message": "در فاز فولیکولار، سطح استروژن بالا میره و انرژی و خلاقیتت افزایش پیدا می‌کنه. بهترین زمان برای شروع پروژه‌های جدید و تمرینات ورزشی شدیدتره.",
+            "action_suggestion": "یک هدف جدید برای این هفته تعیین کن",
+            "dos": [
+              "ورزش با شدت متوسط تا بالا",
+              "شروع پروژه‌های جدید",
+              "ملاقات‌های اجتماعی",
+              "یادگیری مهارت جدید"
+            ],
+            "donts": [
+              "بی‌برنامگی",
+              "کم‌خوابی",
+              "غذاهای فرآوری شده"
+            ],
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [],
+          "supplements": {
+            "nutrition": {
+              "focus": "پروتئین و سبزیجات تازه",
+              "foods": [
+                "تخم‌مرغ",
+                "مرغ",
+                "کینوا",
+                "سبزیجات برگ‌سبز",
+                "آووکادو"
+              ],
+              "avoid": [
+                "فست‌فود",
+                "غذاهای فرآوری شده"
+              ],
+              "tip": "بدن آماده رشد است، پروتئین کافی بخور"
+            },
+            "sleep": {
+              "recommended_hours": "7-8",
+              "quality_focus": "خواب بهینه",
+              "tips": [
+                "خواب عمیق‌تر در این فاز",
+                "زمان مناسب برای تنظیم ساعت خواب"
+              ],
+              "avoid": [
+                "بی‌خوابی",
+                "ساعت خواب نامنظم"
+              ]
+            },
+            "exercise": {
+              "intensity": "متوسط تا بالا",
+              "recommended": [
+                "دویدن",
+                "HIIT",
+                "وزنه‌برداری",
+                "دوچرخه",
+                "رقص"
+              ],
+              "avoid": [
+                "بی‌فعالیتی"
+              ],
+              "tip": "انرژی در اوج است! بهترین زمان برای چالش‌های جدید و رکوردشکنی.",
+              "duration": "45-60"
+            }
+          },
+          "tips": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?date=2026-09-26",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "date": "2026-09-26",
+          "user_goal": "non_ttc",
+          "subscription_type": "free",
+          "context_info": {
+            "phase": "follicular",
+            "phase_label": "فولیکولار",
+            "subphase": "high_fertility",
+            "subphase_label": "باروری بالا",
+            "cycle_day": 13,
+            "cycle_length": 28,
+            "is_fertile_window": true,
+            "is_pms_window": false,
+            "estimated_ovulation_day": 15
+          },
+          "primary_message": {
+            "phase": "follicular",
+            "phase_label": "فولیکولار",
+            "cycle_day": 13,
+            "short_message": "انرژیت داره برمی‌گرده! وقت شروع‌های تازه‌ست",
+            "long_message": "در فاز فولیکولار، سطح استروژن بالا میره و انرژی و خلاقیتت افزایش پیدا می‌کنه. بهترین زمان برای شروع پروژه‌های جدید و تمرینات ورزشی شدیدتره.",
+            "action_suggestion": "یک هدف جدید برای این هفته تعیین کن",
+            "dos": [
+              "ورزش با شدت متوسط تا بالا",
+              "شروع پروژه‌های جدید",
+              "ملاقات‌های اجتماعی",
+              "یادگیری مهارت جدید"
+            ],
+            "donts": [
+              "بی‌برنامگی",
+              "کم‌خوابی",
+              "غذاهای فرآوری شده"
+            ],
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [],
+          "supplements": {
+            "nutrition": {
+              "focus": "پروتئین و سبزیجات تازه",
+              "foods": [
+                "تخم‌مرغ",
+                "مرغ",
+                "کینوا",
+                "سبزیجات برگ‌سبز",
+                "آووکادو"
+              ],
+              "avoid": [
+                "فست‌فود",
+                "غذاهای فرآوری شده"
+              ],
+              "tip": "بدن آماده رشد است، پروتئین کافی بخور"
+            },
+            "sleep": {
+              "recommended_hours": "7-8",
+              "quality_focus": "خواب بهینه",
+              "tips": [
+                "خواب عمیق‌تر در این فاز",
+                "زمان مناسب برای تنظیم ساعت خواب"
+              ],
+              "avoid": [
+                "بی‌خوابی",
+                "ساعت خواب نامنظم"
+              ]
+            },
+            "exercise": {
+              "intensity": "متوسط تا بالا",
+              "recommended": [
+                "دویدن",
+                "HIIT",
+                "وزنه‌برداری",
+                "دوچرخه",
+                "رقص"
+              ],
+              "avoid": [
+                "بی‌فعالیتی"
+              ],
+              "tip": "انرژی در اوج است! بهترین زمان برای چالش‌های جدید و رکوردشکنی.",
+              "duration": "45-60"
+            }
+          },
+          "tips": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?date=2026-10-05",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "date": "2026-10-05",
+          "user_goal": "non_ttc",
+          "subscription_type": "free",
+          "context_info": {
+            "phase": "luteal",
+            "phase_label": "لوتئال",
+            "subphase": "mid_luteal",
+            "subphase_label": "لوتئال میانی",
+            "cycle_day": 22,
+            "cycle_length": 28,
+            "is_fertile_window": false,
+            "is_pms_window": true,
+            "estimated_ovulation_day": 15
+          },
+          "primary_message": {
+            "phase": "luteal",
+            "phase_label": "لوتئال",
+            "cycle_day": 22,
+            "short_message": "وقت تمرکز روی خودت و کارهای نیمه‌تمام",
+            "long_message": "در فاز لوتئال، انرژی کم‌کم کاهش پیدا می‌کنه. بهترین زمان برای تکمیل پروژه‌ها، مراقبت از خود و آماده شدن برای سیکل بعدی.",
+            "action_suggestion": "یک کار نیمه‌تمام رو تموم کن",
+            "dos": [
+              "یوگا و کشش",
+              "تکمیل پروژه‌ها",
+              "خواب کافی",
+              "غذاهای مغذی"
+            ],
+            "donts": [
+              "شروع پروژه بزرگ",
+              "کافئین زیاد",
+              "شکر زیاد",
+              "فعالیت‌های استرس‌زا"
+            ],
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [],
+          "supplements": {
+            "nutrition": {
+              "focus": "کربوهیدرات پیچیده و منیزیم",
+              "foods": [
+                "جو",
+                "نخود",
+                "موز",
+                "بادام",
+                "شکلات تلخ"
+              ],
+              "avoid": [
+                "نمک زیاد",
+                "شکر",
+                "کافئین"
+              ],
+              "tip": "منیزیم به کاهش علائم PMS کمک می‌کند"
+            },
+            "sleep": {
+              "recommended_hours": "8-9",
+              "quality_focus": "کیفیت خواب ممکنه کم بشه",
+              "tips": [
+                "ممکنه بی‌خوابی داشته باشی",
+                "منیزیم قبل خواب",
+                "اتاق تاریک و خنک",
+                "مدیتیشن قبل خواب"
+              ],
+              "avoid": [
+                "صفحه نمایش قبل خواب",
+                "غذای سنگین شب",
+                "کافئین"
+              ]
+            },
+            "exercise": {
+              "intensity": "متوسط (کم می‌شه)",
+              "recommended": [
+                "پیلاتس",
+                "یوگا",
+                "پیاده‌روی",
+                "وزنه سبک",
+                "شنا"
+              ],
+              "avoid": [
+                "ورزش‌های خیلی شدید",
+                "تمرینات طولانی"
+              ],
+              "tip": "انرژی کم‌کم کم می‌شه. ورزش ملایم به کاهش علائم PMS کمک می‌کنه.",
+              "duration": "30-45"
+            }
+          },
+          "tips": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily?date=2026-08-01",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "date": "2026-08-01",
+          "user_goal": "non_ttc",
+          "subscription_type": "free",
+          "context_info": {
+            "phase": "follicular",
+            "phase_label": "فولیکولار",
+            "subphase": "high_fertility",
+            "subphase_label": "باروری بالا",
+            "cycle_day": 13,
+            "cycle_length": 28,
+            "is_fertile_window": true,
+            "is_pms_window": false,
+            "estimated_ovulation_day": 15
+          },
+          "primary_message": {
+            "phase": "follicular",
+            "phase_label": "فولیکولار",
+            "cycle_day": 13,
+            "short_message": "انرژیت داره برمی‌گرده! وقت شروع‌های تازه‌ست",
+            "long_message": "در فاز فولیکولار، سطح استروژن بالا میره و انرژی و خلاقیتت افزایش پیدا می‌کنه. بهترین زمان برای شروع پروژه‌های جدید و تمرینات ورزشی شدیدتره.",
+            "action_suggestion": "یک هدف جدید برای این هفته تعیین کن",
+            "dos": [
+              "ورزش با شدت متوسط تا بالا",
+              "شروع پروژه‌های جدید",
+              "ملاقات‌های اجتماعی",
+              "یادگیری مهارت جدید"
+            ],
+            "donts": [
+              "بی‌برنامگی",
+              "کم‌خوابی",
+              "غذاهای فرآوری شده"
+            ],
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [],
+          "supplements": {
+            "nutrition": {
+              "focus": "پروتئین و سبزیجات تازه",
+              "foods": [
+                "تخم‌مرغ",
+                "مرغ",
+                "کینوا",
+                "سبزیجات برگ‌سبز",
+                "آووکادو"
+              ],
+              "avoid": [
+                "فست‌فود",
+                "غذاهای فرآوری شده"
+              ],
+              "tip": "بدن آماده رشد است، پروتئین کافی بخور"
+            },
+            "sleep": {
+              "recommended_hours": "7-8",
+              "quality_focus": "خواب بهینه",
+              "tips": [
+                "خواب عمیق‌تر در این فاز",
+                "زمان مناسب برای تنظیم ساعت خواب"
+              ],
+              "avoid": [
+                "بی‌خوابی",
+                "ساعت خواب نامنظم"
+              ]
+            },
+            "exercise": {
+              "intensity": "متوسط تا بالا",
+              "recommended": [
+                "دویدن",
+                "HIIT",
+                "وزنه‌برداری",
+                "دوچرخه",
+                "رقص"
+              ],
+              "avoid": [
+                "بی‌فعالیتی"
+              ],
+              "tip": "انرژی در اوج است! بهترین زمان برای چالش‌های جدید و رکوردشکنی.",
+              "duration": "45-60"
+            }
+          },
+          "tips": []
+        }
+      }
+    }
+  ]
+}

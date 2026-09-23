@@ -1,0 +1,47 @@
+{
+  "case": "reminders/create_422_types.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/reminders",
+        "persona": "engaged",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "type": "custom",
+          "title": 123,
+          "scheduled_at": "not-a-date",
+          "recurrence_time": "4pm",
+          "starts_on": "2026-13-01",
+          "is_active": "maybe"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "اطلاعات واردشده نامعتبر است",
+        "errors": {
+          "title": [
+            "title باید یک رشته باشد."
+          ],
+          "scheduled_at": [
+            "scheduled at یک تاریخ معتبر نیست."
+          ],
+          "recurrence_time": [
+            "recurrence time با قالب H:i مطابقت ندارد."
+          ],
+          "starts_on": [
+            "starts on یک تاریخ معتبر نیست."
+          ],
+          "is_active": [
+            "فیلد is active باید درست یا نادرست باشد."
+          ]
+        }
+      }
+    }
+  ]
+}

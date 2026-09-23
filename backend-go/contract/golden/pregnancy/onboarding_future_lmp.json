@@ -1,0 +1,29 @@
+{
+  "case": "pregnancy/onboarding_future_lmp",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/onboarding",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "age_source": "lmp",
+          "lmp_date": "2026-09-24"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "تاریخ نمی‌تواند در آینده باشد",
+        "errors": {
+          "lmp_date": [
+            "تاریخ نمی‌تواند در آینده باشد"
+          ]
+        }
+      }
+    }
+  ]
+}

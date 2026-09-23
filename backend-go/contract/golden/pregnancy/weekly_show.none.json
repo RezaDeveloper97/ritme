@@ -1,0 +1,92 @@
+{
+  "case": "pregnancy/weekly_show.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/weekly/24",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "log": {
+            "id": 101524,
+            "user_id": 1015,
+            "log_date": "2026-09-09",
+            "pregnancy_week": 24,
+            "weight": "71.10",
+            "swelling_locations": null,
+            "has_swelling": false,
+            "has_shortness_of_breath": null,
+            "has_blood_pressure_device": true,
+            "systolic_pressure": 118,
+            "diastolic_pressure": 76,
+            "fasting_blood_sugar": "88.00",
+            "post_meal_blood_sugar": "128.00",
+            "overall_mood": "good",
+            "has_anxiety": false,
+            "anxiety_severity": null,
+            "has_mood_swings": null,
+            "mood_swings_severity": null,
+            "has_depression_feelings": null,
+            "depression_severity": null,
+            "notes": null,
+            "created_at": "2026-09-23T05:30:00.000000Z",
+            "updated_at": "2026-09-23T05:30:00.000000Z"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/weekly/26",
+        "persona": "pregnant_ultrasound_w26",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "log": {
+            "id": 101526,
+            "user_id": 1015,
+            "log_date": "2026-09-23",
+            "pregnancy_week": 26,
+            "weight": "72.40",
+            "swelling_locations": [
+              "feet",
+              "hands"
+            ],
+            "has_swelling": true,
+            "has_shortness_of_breath": null,
+            "has_blood_pressure_device": true,
+            "systolic_pressure": 142,
+            "diastolic_pressure": 92,
+            "fasting_blood_sugar": "97.50",
+            "post_meal_blood_sugar": "128.00",
+            "overall_mood": "moderate",
+            "has_anxiety": true,
+            "anxiety_severity": "moderate",
+            "has_mood_swings": null,
+            "mood_swings_severity": null,
+            "has_depression_feelings": null,
+            "depression_severity": null,
+            "notes": null,
+            "created_at": "2026-09-23T05:30:00.000000Z",
+            "updated_at": "2026-09-23T05:30:00.000000Z"
+          }
+        }
+      }
+    }
+  ]
+}

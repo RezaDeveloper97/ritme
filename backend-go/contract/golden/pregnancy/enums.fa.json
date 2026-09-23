@@ -1,0 +1,129 @@
+{
+  "case": "pregnancy/enums.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/enums",
+        "persona": "pregnant_ultrasound_w26",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "age_sources": [
+            {
+              "value": "lmp",
+              "label": "تاریخ آخرین پریود",
+              "description": "محاسبه بر اساس اولین روز آخرین پریود"
+            },
+            {
+              "value": "ultrasound",
+              "label": "سونوگرافی",
+              "description": "محاسبه بر اساس اطلاعات سونوگرافی"
+            },
+            {
+              "value": "manual",
+              "label": "ورود دستی",
+              "description": "ورود مستقیم هفته و روز بارداری"
+            }
+          ],
+          "confidence_levels": [
+            {
+              "value": "high",
+              "label": "بالا",
+              "description": "مبتنی بر سونوگرافی"
+            },
+            {
+              "value": "medium",
+              "label": "متوسط",
+              "description": "مبتنی بر LMP دقیق"
+            },
+            {
+              "value": "low",
+              "label": "پایین",
+              "description": "ورود نامطمئن"
+            },
+            {
+              "value": "unknown",
+              "label": "نامشخص",
+              "description": "داده کافی وجود ندارد"
+            }
+          ],
+          "blood_types": [
+            {
+              "value": "A",
+              "label": "A"
+            },
+            {
+              "value": "B",
+              "label": "B"
+            },
+            {
+              "value": "AB",
+              "label": "AB"
+            },
+            {
+              "value": "O",
+              "label": "O"
+            }
+          ],
+          "rh_factors": [
+            {
+              "value": "positive",
+              "label": "مثبت"
+            },
+            {
+              "value": "negative",
+              "label": "منفی"
+            }
+          ],
+          "pre_existing_conditions": [
+            {
+              "value": "chronic_hypertension",
+              "label": "فشار خون مزمن"
+            },
+            {
+              "value": "diabetes",
+              "label": "دیابت"
+            },
+            {
+              "value": "hypothyroidism",
+              "label": "کم‌کاری تیروئید"
+            },
+            {
+              "value": "hyperthyroidism",
+              "label": "پرکاری تیروئید"
+            },
+            {
+              "value": "none",
+              "label": "هیچ‌کدام"
+            }
+          ],
+          "alert_levels": [
+            {
+              "value": "info",
+              "label": "اطلاع‌رسانی",
+              "description": "اطلاعات عمومی و راهنمایی"
+            },
+            {
+              "value": "warning",
+              "label": "هشدار",
+              "description": "نیاز به توجه و احتیاط"
+            },
+            {
+              "value": "emergency",
+              "label": "اورژانسی",
+              "description": "مراجعه فوری به پزشک"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

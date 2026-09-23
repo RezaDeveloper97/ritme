@@ -1,0 +1,154 @@
+{
+  "case": "pregnancy/activate_cycle_user.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/pregnancy/activate",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "message": "Pregnancy mode activated",
+        "data": {
+          "pregnancy_mode": true,
+          "cycle_mode": false,
+          "onboarding_required": true
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/status",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "is_active": true,
+          "gestational_age": {
+            "weeks": null,
+            "days": null,
+            "total_days": null,
+            "trimester": null,
+            "confidence_level": null,
+            "confidence_label": null,
+            "uncertainty_days": null,
+            "formatted": null
+          },
+          "estimated_due_date": null,
+          "current_week": 1,
+          "trimester": null,
+          "age_source": null,
+          "confidence_level": null,
+          "is_high_risk": false,
+          "fetal_movement_tracking_active": false,
+          "fetal_movement_required": false,
+          "flags": {
+            "trimester_info": {
+              "en": "You are in trimester 1.",
+              "fa": "شما در سه‌ماهه 1 هستید."
+            },
+            "week_info": {
+              "en": "Week 1 of pregnancy.",
+              "fa": "هفته 1 بارداری."
+            }
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/profile",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "profile": {
+            "id": 1017,
+            "user_id": 1004,
+            "pregnancy_mode": true,
+            "cycle_mode": false,
+            "is_locked": false,
+            "age_source": null,
+            "confidence_level": null,
+            "lmp_date": null,
+            "ultrasound_date": null,
+            "ultrasound_weeks": null,
+            "ultrasound_days": null,
+            "manual_weeks": null,
+            "manual_days": null,
+            "manual_entry_date": null,
+            "estimated_due_date": null,
+            "estimated_conception_date": null,
+            "uncertainty_days": 3,
+            "has_miscarriage_history": null,
+            "has_high_risk_history": null,
+            "pre_existing_conditions": null,
+            "blood_type": null,
+            "rh_factor": null,
+            "rh_negative_care_flag": false,
+            "first_fetal_movement_date": null,
+            "fetal_movement_felt": false,
+            "onboarding_completed": false,
+            "onboarding_completed_at": null,
+            "created_at": "2026-09-23T06:30:00.000000Z",
+            "updated_at": "2026-09-23T06:30:00.000000Z"
+          },
+          "status": {
+            "is_active": true,
+            "gestational_age": {
+              "weeks": null,
+              "days": null,
+              "total_days": null,
+              "trimester": null,
+              "confidence_level": null,
+              "confidence_label": null,
+              "uncertainty_days": null,
+              "formatted": null
+            },
+            "estimated_due_date": null,
+            "current_week": 1,
+            "trimester": null,
+            "age_source": null,
+            "confidence_level": null,
+            "is_high_risk": false,
+            "fetal_movement_tracking_active": false,
+            "fetal_movement_required": false,
+            "flags": {
+              "trimester_info": {
+                "en": "You are in trimester 1.",
+                "fa": "شما در سه‌ماهه 1 هستید."
+              },
+              "week_info": {
+                "en": "Week 1 of pregnancy.",
+                "fa": "هفته 1 بارداری."
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

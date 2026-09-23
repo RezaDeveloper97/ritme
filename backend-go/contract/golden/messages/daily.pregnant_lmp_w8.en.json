@@ -1,0 +1,124 @@
+{
+  "case": "messages/daily.pregnant_lmp_w8.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily",
+        "persona": "pregnant_lmp_w8",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "pregnancy",
+          "date": "2026-09-23",
+          "user_goal": "non_ttc",
+          "subscription_type": "free",
+          "context_info": {
+            "week": 7,
+            "day": 3,
+            "trimester": 1,
+            "gestational_age": "Week 7, Day 3",
+            "due_date": "2027-05-09"
+          },
+          "primary_message": {
+            "week": 7,
+            "day": 3,
+            "trimester": 1,
+            "trimester_label": "First Trimester",
+            "gestational_age": "Week 7, Day 3",
+            "short_message": "Baby's heart has started beating",
+            "long_message": "During this period, vital organs are forming. Adequate rest and healthy nutrition are crucial.",
+            "action_suggestion": "Take folic acid and prenatal vitamins",
+            "dos": [
+              "Folic acid",
+              "Adequate rest",
+              "Small frequent meals",
+              "Plenty of water"
+            ],
+            "donts": [
+              "Alcohol",
+              "Smoking",
+              "Raw foods",
+              "Medications without doctor consultation"
+            ],
+            "baby_development": "Heart beats 150-170 per minute",
+            "body_changes": "Morning sickness is at its peak",
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [],
+          "supplements": {
+            "nutrition": {
+              "focus": "Folic acid and nausea management",
+              "essential": [
+                "Folic acid 600mcg",
+                "Vitamin D",
+                "Iron"
+              ],
+              "foods": [
+                "Small frequent meals",
+                "Dry crackers",
+                "Ginger",
+                "Lemon",
+                "Protein"
+              ],
+              "avoid": [
+                "Raw fish",
+                "Undercooked meat",
+                "Soft cheeses",
+                "Alcohol",
+                "Too much caffeine"
+              ],
+              "tip": "For nausea, eat crackers before getting out of bed"
+            },
+            "sleep": {
+              "recommended_hours": "8-10",
+              "quality_focus": "Extreme fatigue is normal",
+              "tips": [
+                "Short naps during day",
+                "Sleep early",
+                "Listen to your body",
+                "Hormones cause sleepiness"
+              ],
+              "avoid": [
+                "Resisting sleep",
+                "Overwork"
+              ],
+              "position": "Any position is still suitable"
+            },
+            "exercise": {
+              "intensity": "Low to moderate",
+              "recommended": [
+                "Walking",
+                "Swimming",
+                "Prenatal yoga",
+                "Kegel exercises"
+              ],
+              "avoid": [
+                "High-risk sports",
+                "Contact sports",
+                "Heavy weights",
+                "Scuba diving"
+              ],
+              "tip": "If you were exercising before, you can continue with less intensity. Consult your doctor.",
+              "duration": "20-30",
+              "precautions": [
+                "Always warm up",
+                "Plenty of water",
+                "Avoid overheating"
+              ]
+            }
+          },
+          "tips": []
+        }
+      }
+    }
+  ]
+}

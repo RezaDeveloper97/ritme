@@ -1,0 +1,111 @@
+{
+  "case": "messages/daily_ar.premium",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily",
+        "persona": "premium",
+        "accept_language": "ar",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "date": "2026-09-23",
+          "user_goal": "non_ttc",
+          "subscription_type": "premium",
+          "context_info": {
+            "phase": "ovulation",
+            "phase_label": "Ovulation",
+            "subphase": "ovulation_likely",
+            "subphase_label": "Ovulation Likely",
+            "cycle_day": 17,
+            "cycle_length": 30,
+            "is_fertile_window": true,
+            "is_pms_window": false,
+            "estimated_ovulation_day": 17
+          },
+          "primary_message": {
+            "phase": "ovulation",
+            "phase_label": "Ovulation",
+            "cycle_day": 17,
+            "short_message": "در اوج انرژی و جذابیت هستی!",
+            "long_message": "زمان تخمک‌گذاری، انرژی، اعتماد به نفس و جذابیتت در بالاترین حد هستن. بهترین زمان برای ارائه‌ها، مذاکرات و فعالیت‌های اجتماعی.",
+            "action_suggestion": "از این انرژی برای کارهای مهم استفاده کن",
+            "dos": [
+              "ورزش‌های قدرتی",
+              "ارائه و مذاکره",
+              "فعالیت‌های اجتماعی",
+              "تصمیم‌گیری‌های مهم"
+            ],
+            "donts": [
+              "از دست دادن این انرژی",
+              "انزوا",
+              "به تعویق انداختن کارها"
+            ],
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [
+            {
+              "pattern_type": "chronic_fatigue",
+              "alert_level": "warning",
+              "message": "انرژی پایین مداوم مشاهده شده. این می‌تواند نشانه کم‌خونی یا مشکلات تیروئید باشد.",
+              "recommendation": "آزمایش خون برای بررسی آهن و تیروئید توصیه می‌شود"
+            }
+          ],
+          "supplements": {
+            "nutrition": {
+              "focus": "آنتی‌اکسیدان و چربی سالم",
+              "foods": [
+                "توت‌ها",
+                "آجیل",
+                "روغن زیتون",
+                "ماهی سالمون",
+                "سبزیجات رنگی"
+              ],
+              "avoid": [
+                "قند زیاد",
+                "چربی ترانس"
+              ],
+              "tip": "استروژن در اوج است، از آنتی‌اکسیدان‌ها استفاده کن"
+            },
+            "sleep": {
+              "recommended_hours": "7-8",
+              "quality_focus": "انرژی بالا",
+              "tips": [
+                "ممکنه کمتر خسته باشی",
+                "از انرژی استفاده کن ولی خواب رو فراموش نکن"
+              ],
+              "avoid": [
+                "بیدار موندن دیروقت",
+                "از دست دادن خواب"
+              ]
+            },
+            "exercise": {
+              "intensity": "بالا",
+              "recommended": [
+                "تمرینات قدرتی",
+                "HIIT",
+                "ورزش‌های گروهی",
+                "کراس‌فیت"
+              ],
+              "avoid": [
+                "هیچی! همه چیز خوبه"
+              ],
+              "tip": "استروژن بالاست، عضلات قوی‌تر و ریکاوری سریع‌تر.",
+              "duration": "45-60"
+            }
+          },
+          "tips": []
+        }
+      }
+    }
+  ]
+}

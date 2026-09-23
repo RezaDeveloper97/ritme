@@ -1,0 +1,25 @@
+{
+  "case": "period/end_before_start.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/cycle/period/end",
+        "persona": "open_period_day3",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "date": "2026-09-19"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "The period end date cannot be before its start date."
+      }
+    }
+  ]
+}

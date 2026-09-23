@@ -1,0 +1,91 @@
+{
+  "case": "pregnancy/weekly_enums.ar",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/weekly/enums",
+        "persona": "pregnant_ultrasound_w26",
+        "accept_language": "ar",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "swelling_locations": [
+            {
+              "value": "feet",
+              "label": "Feet"
+            },
+            {
+              "value": "hands",
+              "label": "Hands"
+            },
+            {
+              "value": "face",
+              "label": "Face"
+            }
+          ],
+          "overall_mood": [
+            {
+              "value": "good",
+              "label": "Good"
+            },
+            {
+              "value": "moderate",
+              "label": "Moderate"
+            },
+            {
+              "value": "poor",
+              "label": "Poor"
+            }
+          ],
+          "severity": [
+            {
+              "value": "mild",
+              "label": "Mild"
+            },
+            {
+              "value": "moderate",
+              "label": "Moderate"
+            },
+            {
+              "value": "severe",
+              "label": "Severe"
+            }
+          ],
+          "fetal_movement_status": [
+            {
+              "value": "not_felt_yet",
+              "label": "Not felt yet"
+            },
+            {
+              "value": "felt",
+              "label": "Felt"
+            },
+            {
+              "value": "normal",
+              "label": "Normal"
+            },
+            {
+              "value": "reduced",
+              "label": "Reduced"
+            },
+            {
+              "value": "increased",
+              "label": "Increased"
+            },
+            {
+              "value": "none",
+              "label": "No movement"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

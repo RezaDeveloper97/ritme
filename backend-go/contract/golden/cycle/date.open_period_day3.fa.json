@@ -1,0 +1,873 @@
+{
+  "case": "cycle/date.open_period_day3.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/date/2026-09-14",
+        "persona": "open_period_day3",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "calculation": {
+            "calculation_date": "2026-09-14",
+            "cycle_day": 22,
+            "phase": "luteal",
+            "subphase": "mid_luteal",
+            "estimated_ovulation_day": 15,
+            "cycle_length_used": 28,
+            "is_fertile_window": false,
+            "is_pms_window": true,
+            "is_period_tomorrow": false,
+            "is_luteal_spotting": false,
+            "cycle_score": 0.7,
+            "age_factor": 0.85,
+            "base_probability": 0,
+            "symptom_score": 1,
+            "final_probability": 0,
+            "cycle_variability": "regular",
+            "uncertainty_range": 1,
+            "text_flags": {
+              "probability_message": "احتمال بارداری امروز 0٪ است.",
+              "pms_warning": "شما در دوره PMS هستید. ممکن است تغییرات خلقی و علائم جسمی را تجربه کنید.",
+              "phase_info": "فاز فعلی: لوتئال (لوتئال میانی)"
+            },
+            "daily_tips": [
+              {
+                "type": "nutrition",
+                "title": "تغذیه",
+                "icon": "apple",
+                "text": "روی غذاهای غنی از منیزیم و ویتامین B6 تمرکز کنید."
+              },
+              {
+                "type": "exercise",
+                "title": "ورزش",
+                "icon": "walking",
+                "text": "به حرکات ملایم‌تر مثل یوگا، پیلاتس یا پیاده‌روی رو بیاورید."
+              },
+              {
+                "type": "sleep",
+                "title": "خواب",
+                "icon": "moon",
+                "text": "کمی زودتر بخوابید؛ در این فاز انرژی کم‌کم افت می‌کند."
+              },
+              {
+                "type": "mental_health",
+                "title": "سلامت روان",
+                "icon": "brain",
+                "text": "زمان خوبی برای تمام‌کردن کارهای نیمه‌تمام است تا شروع کارهای جدید."
+              }
+            ],
+            "source_profile_data": {
+              "birthday": "1996-04-12",
+              "period_duration": 5,
+              "cycle_duration": 28,
+              "last_period_start": "2026-09-21"
+            },
+            "source_daily_log_data": null
+          },
+          "cycle_view": {
+            "date": "2026-09-14",
+            "cycle_day": 22,
+            "main_phase": "luteal",
+            "subphase": "mid_luteal",
+            "fertility_level": "low",
+            "days_to_ovulation": -7,
+            "days_to_period": 7,
+            "days_late": 0,
+            "anchors": {
+              "current_period_start": "2026-08-24",
+              "current_period_start_source": "user_logged",
+              "current_period_end": "2026-08-28",
+              "current_period_end_source": "user_logged",
+              "current_period_end_is_confirmed": true,
+              "predicted_next_period_start": "2026-09-21",
+              "estimated_ovulation_date": "2026-09-07"
+            },
+            "metrics": {
+              "effective_cycle_length": 28,
+              "effective_period_length": 5,
+              "cycle_variability": 0
+            },
+            "confidence": "high",
+            "confidence_reasons": [
+              "prediction_based_output"
+            ],
+            "data_quality": "good",
+            "resolution_source": "prediction",
+            "is_predicted": true,
+            "requires_user_input": false,
+            "warnings": [
+              "prediction_based_output"
+            ],
+            "phase": "luteal",
+            "data_status": "predicted",
+            "predictions": {
+              "next_period_start": "2026-10-19",
+              "next_period_end": "2026-10-23",
+              "estimated_ovulation_date": "2026-10-05",
+              "fertile_window_start": "2026-09-30",
+              "fertile_window_end": "2026-10-06",
+              "source": "recent_valid_cycles",
+              "confidence": "high",
+              "confidence_reasons": [
+                "based_on_three_valid_cycles",
+                "low_cycle_variation"
+              ]
+            },
+            "profile_values": {
+              "cycle_length": 28,
+              "period_duration": 5
+            },
+            "calculated_values": {
+              "cycle_length": 28,
+              "period_duration": 5,
+              "based_on_cycles": 3
+            },
+            "effective_values": {
+              "cycle_length": 28,
+              "period_duration": 5,
+              "source": "recent_valid_cycles",
+              "period_duration_source": "recent_valid_cycles"
+            },
+            "data_quality_details": {
+              "confidence": "high",
+              "confidence_reasons": [
+                "based_on_three_valid_cycles",
+                "low_cycle_variation"
+              ],
+              "regularity_status": "relatively_regular",
+              "is_irregular_possible": false,
+              "missing_period_end": false
+            },
+            "daily_card": {
+              "title": "۳۵ روز تا پریود بعدی",
+              "subtitle": "بر اساس پیش‌بینی، پریود بعدی حدود ۳۵ روز دیگر شروع می‌شود.",
+              "data_status": "predicted",
+              "fertility_level": "low",
+              "fertility_label": "پایین",
+              "badges": [
+                "روز ۲۲ چرخه",
+                "پیش‌بینی‌شده"
+              ],
+              "primary_action": {
+                "type": "complete_day",
+                "label": "تکمیل اطلاعات این روز"
+              },
+              "secondary_actions": [
+                {
+                  "type": "view_details",
+                  "label": "جزئیات این روز"
+                }
+              ]
+            }
+          },
+          "calculation_status": "completed",
+          "is_recalculating": false
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/date/2026-09-23",
+        "persona": "open_period_day3",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "calculation": {
+            "calculation_date": "2026-09-23",
+            "cycle_day": 3,
+            "phase": "menstruation",
+            "subphase": "menstruation",
+            "estimated_ovulation_day": 15,
+            "cycle_length_used": 28,
+            "is_fertile_window": false,
+            "is_pms_window": false,
+            "is_period_tomorrow": false,
+            "is_luteal_spotting": false,
+            "cycle_score": 0.7,
+            "age_factor": 0.85,
+            "base_probability": 0,
+            "symptom_score": 1,
+            "final_probability": 0,
+            "cycle_variability": "regular",
+            "uncertainty_range": 1,
+            "text_flags": {
+              "probability_message": "احتمال بارداری امروز 0٪ است.",
+              "phase_info": "فاز فعلی: قاعدگی (قاعدگی)"
+            },
+            "daily_tips": [
+              {
+                "type": "hydration",
+                "title": "آب‌رسانی",
+                "icon": "water-glass",
+                "text": "آب کافی بنوشید و هیدراته بمانید."
+              },
+              {
+                "type": "warmth",
+                "title": "گرما درمانی",
+                "icon": "heat",
+                "text": "کمپرس گرم روی شکم قرار دهید تا دردها کاهش یابد."
+              },
+              {
+                "type": "rest",
+                "title": "استراحت",
+                "icon": "bed",
+                "text": "استراحت کافی داشته باشید و از فعالیت‌های سنگین اجتناب کنید."
+              },
+              {
+                "type": "nutrition",
+                "title": "تغذیه",
+                "icon": "apple",
+                "text": "غذاهای غنی از آهن مثل اسفناج و گوشت قرمز بخورید."
+              }
+            ],
+            "source_profile_data": {
+              "birthday": "1996-04-12",
+              "period_duration": 5,
+              "cycle_duration": 28,
+              "last_period_start": "2026-09-21"
+            },
+            "source_daily_log_data": null
+          },
+          "cycle_view": {
+            "date": "2026-09-23",
+            "cycle_day": 3,
+            "main_phase": "menstrual",
+            "subphase": "menstrual",
+            "fertility_level": "low",
+            "days_to_ovulation": 12,
+            "days_to_period": 26,
+            "days_late": 0,
+            "anchors": {
+              "current_period_start": "2026-09-21",
+              "current_period_start_source": "user_logged",
+              "current_period_end": "2026-09-25",
+              "current_period_end_source": "assumed_from_effective_duration",
+              "current_period_end_is_confirmed": false,
+              "predicted_next_period_start": "2026-10-19",
+              "estimated_ovulation_date": "2026-10-05"
+            },
+            "metrics": {
+              "effective_cycle_length": 28,
+              "effective_period_length": 5,
+              "cycle_variability": 0
+            },
+            "confidence": "medium",
+            "confidence_reasons": [
+              "missing_period_end"
+            ],
+            "data_quality": "partial",
+            "resolution_source": "user_logged_with_assumed_end",
+            "is_predicted": true,
+            "requires_user_input": false,
+            "warnings": [],
+            "phase": "menstruation",
+            "data_status": "incomplete",
+            "predictions": {
+              "next_period_start": "2026-10-19",
+              "next_period_end": "2026-10-23",
+              "estimated_ovulation_date": "2026-10-05",
+              "fertile_window_start": "2026-09-30",
+              "fertile_window_end": "2026-10-06",
+              "source": "recent_valid_cycles",
+              "confidence": "high",
+              "confidence_reasons": [
+                "based_on_three_valid_cycles",
+                "low_cycle_variation"
+              ]
+            },
+            "profile_values": {
+              "cycle_length": 28,
+              "period_duration": 5
+            },
+            "calculated_values": {
+              "cycle_length": 28,
+              "period_duration": 5,
+              "based_on_cycles": 3
+            },
+            "effective_values": {
+              "cycle_length": 28,
+              "period_duration": 5,
+              "source": "recent_valid_cycles",
+              "period_duration_source": "recent_valid_cycles"
+            },
+            "data_quality_details": {
+              "confidence": "high",
+              "confidence_reasons": [
+                "based_on_three_valid_cycles",
+                "low_cycle_variation"
+              ],
+              "regularity_status": "relatively_regular",
+              "is_irregular_possible": false,
+              "missing_period_end": false
+            },
+            "daily_card": {
+              "title": "روز ۳ پریود",
+              "subtitle": "پریود هنوز باز است. هر وقت خون‌ریزی تمام شد، پایان آن را ثبت کن.",
+              "data_status": "incomplete",
+              "fertility_level": "low",
+              "fertility_label": "پایین",
+              "badges": [
+                "روز ۳ چرخه",
+                "اطلاعات ناقص"
+              ],
+              "primary_action": {
+                "type": "log_symptoms",
+                "label": "ثبت علائم امروز"
+              },
+              "secondary_actions": [
+                {
+                  "type": "log_period_end",
+                  "label": "ثبت پایان پریود"
+                },
+                {
+                  "type": "view_details",
+                  "label": "جزئیات امروز"
+                }
+              ]
+            }
+          },
+          "calculation_status": "completed",
+          "is_recalculating": false
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/date/2026-10-12",
+        "persona": "open_period_day3",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "calculation": {
+            "calculation_date": "2026-10-12",
+            "cycle_day": 22,
+            "phase": "luteal",
+            "subphase": "mid_luteal",
+            "estimated_ovulation_day": 15,
+            "cycle_length_used": 28,
+            "is_fertile_window": false,
+            "is_pms_window": true,
+            "is_period_tomorrow": false,
+            "is_luteal_spotting": false,
+            "cycle_score": 0.7,
+            "age_factor": 0.85,
+            "base_probability": 0,
+            "symptom_score": 1,
+            "final_probability": 0,
+            "cycle_variability": "regular",
+            "uncertainty_range": 1,
+            "text_flags": {
+              "probability_message": "احتمال بارداری امروز 0٪ است.",
+              "pms_warning": "شما در دوره PMS هستید. ممکن است تغییرات خلقی و علائم جسمی را تجربه کنید.",
+              "phase_info": "فاز فعلی: لوتئال (لوتئال میانی)"
+            },
+            "daily_tips": [
+              {
+                "type": "nutrition",
+                "title": "تغذیه",
+                "icon": "apple",
+                "text": "روی غذاهای غنی از منیزیم و ویتامین B6 تمرکز کنید."
+              },
+              {
+                "type": "exercise",
+                "title": "ورزش",
+                "icon": "walking",
+                "text": "به حرکات ملایم‌تر مثل یوگا، پیلاتس یا پیاده‌روی رو بیاورید."
+              },
+              {
+                "type": "sleep",
+                "title": "خواب",
+                "icon": "moon",
+                "text": "کمی زودتر بخوابید؛ در این فاز انرژی کم‌کم افت می‌کند."
+              },
+              {
+                "type": "mental_health",
+                "title": "سلامت روان",
+                "icon": "brain",
+                "text": "زمان خوبی برای تمام‌کردن کارهای نیمه‌تمام است تا شروع کارهای جدید."
+              }
+            ],
+            "source_profile_data": {
+              "birthday": "1996-04-12",
+              "period_duration": 5,
+              "cycle_duration": 28,
+              "last_period_start": "2026-09-21"
+            },
+            "source_daily_log_data": null
+          },
+          "cycle_view": {
+            "date": "2026-10-12",
+            "cycle_day": 22,
+            "main_phase": "luteal",
+            "subphase": "mid_luteal",
+            "fertility_level": "low",
+            "days_to_ovulation": -7,
+            "days_to_period": 7,
+            "days_late": 0,
+            "anchors": {
+              "current_period_start": "2026-09-21",
+              "current_period_start_source": "user_logged",
+              "current_period_end": "2026-09-25",
+              "current_period_end_source": "assumed_from_effective_duration",
+              "current_period_end_is_confirmed": false,
+              "predicted_next_period_start": "2026-10-19",
+              "estimated_ovulation_date": "2026-10-05"
+            },
+            "metrics": {
+              "effective_cycle_length": 28,
+              "effective_period_length": 5,
+              "cycle_variability": 0
+            },
+            "confidence": "low",
+            "confidence_reasons": [
+              "missing_period_end",
+              "missing_period_end_beyond_hard_cap",
+              "prediction_based_output",
+              "poor_data_quality"
+            ],
+            "data_quality": "poor",
+            "resolution_source": "prediction",
+            "is_predicted": true,
+            "requires_user_input": true,
+            "warnings": [
+              "period_end_missing_hard_cap_exceeded",
+              "prediction_based_output"
+            ],
+            "phase": "luteal",
+            "data_status": "predicted",
+            "predictions": {
+              "next_period_start": "2026-10-19",
+              "next_period_end": "2026-10-23",
+              "estimated_ovulation_date": "2026-10-05",
+              "fertile_window_start": "2026-09-30",
+              "fertile_window_end": "2026-10-06",
+              "source": "recent_valid_cycles",
+              "confidence": "high",
+              "confidence_reasons": [
+                "based_on_three_valid_cycles",
+                "low_cycle_variation"
+              ]
+            },
+            "profile_values": {
+              "cycle_length": 28,
+              "period_duration": 5
+            },
+            "calculated_values": {
+              "cycle_length": 28,
+              "period_duration": 5,
+              "based_on_cycles": 3
+            },
+            "effective_values": {
+              "cycle_length": 28,
+              "period_duration": 5,
+              "source": "recent_valid_cycles",
+              "period_duration_source": "recent_valid_cycles"
+            },
+            "data_quality_details": {
+              "confidence": "high",
+              "confidence_reasons": [
+                "based_on_three_valid_cycles",
+                "low_cycle_variation"
+              ],
+              "regularity_status": "relatively_regular",
+              "is_irregular_possible": false,
+              "missing_period_end": false
+            },
+            "daily_card": {
+              "title": "حدود ۷ روز تا پریود بعدی",
+              "subtitle": "در روزهای پایانی چرخه، انرژی، خواب یا خلق ممکن است تغییر کند.",
+              "data_status": "predicted",
+              "fertility_level": "low",
+              "fertility_label": "پایین",
+              "badges": [
+                "روز ۲۲ چرخه",
+                "پیش‌بینی‌شده"
+              ],
+              "primary_action": {
+                "type": "set_reminder",
+                "label": "یادآوری برای این روز"
+              },
+              "secondary_actions": [
+                {
+                  "type": "view_details",
+                  "label": "جزئیات پیش‌بینی"
+                }
+              ]
+            }
+          },
+          "calculation_status": "completed",
+          "is_recalculating": false
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/date/2026-01-01",
+        "persona": "open_period_day3",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "calculation": {
+            "calculation_date": "2026-01-01",
+            "cycle_day": 17,
+            "phase": "luteal",
+            "subphase": "early_luteal",
+            "estimated_ovulation_day": 15,
+            "cycle_length_used": 28,
+            "is_fertile_window": false,
+            "is_pms_window": false,
+            "is_period_tomorrow": false,
+            "is_luteal_spotting": false,
+            "cycle_score": 0.7,
+            "age_factor": 0.85,
+            "base_probability": 0,
+            "symptom_score": 1,
+            "final_probability": 0,
+            "cycle_variability": "regular",
+            "uncertainty_range": 1,
+            "text_flags": {
+              "probability_message": "احتمال بارداری امروز 0٪ است.",
+              "phase_info": "فاز فعلی: لوتئال (لوتئال اولیه)"
+            },
+            "daily_tips": [
+              {
+                "type": "nutrition",
+                "title": "تغذیه",
+                "icon": "apple",
+                "text": "روی غذاهای غنی از منیزیم و ویتامین B6 تمرکز کنید."
+              },
+              {
+                "type": "exercise",
+                "title": "ورزش",
+                "icon": "walking",
+                "text": "به حرکات ملایم‌تر مثل یوگا، پیلاتس یا پیاده‌روی رو بیاورید."
+              },
+              {
+                "type": "sleep",
+                "title": "خواب",
+                "icon": "moon",
+                "text": "کمی زودتر بخوابید؛ در این فاز انرژی کم‌کم افت می‌کند."
+              },
+              {
+                "type": "mental_health",
+                "title": "سلامت روان",
+                "icon": "brain",
+                "text": "زمان خوبی برای تمام‌کردن کارهای نیمه‌تمام است تا شروع کارهای جدید."
+              }
+            ],
+            "source_profile_data": {
+              "birthday": "1996-04-12",
+              "period_duration": 5,
+              "cycle_duration": 28,
+              "last_period_start": "2026-09-21"
+            },
+            "source_daily_log_data": null
+          },
+          "cycle_view": {
+            "date": "2026-01-01",
+            "cycle_day": null,
+            "main_phase": "unknown",
+            "subphase": "unknown",
+            "fertility_level": "unknown",
+            "days_to_ovulation": null,
+            "days_to_period": null,
+            "days_late": null,
+            "anchors": {
+              "current_period_start": null,
+              "current_period_start_source": "unknown",
+              "current_period_end": null,
+              "current_period_end_source": "unknown",
+              "current_period_end_is_confirmed": false,
+              "predicted_next_period_start": null,
+              "estimated_ovulation_date": null
+            },
+            "metrics": {
+              "effective_cycle_length": 28,
+              "effective_period_length": 5,
+              "cycle_variability": 0
+            },
+            "confidence": "unknown",
+            "confidence_reasons": [
+              "insufficient_anchor_data"
+            ],
+            "data_quality": "insufficient",
+            "resolution_source": "unknown",
+            "is_predicted": true,
+            "requires_user_input": true,
+            "warnings": [
+              "insufficient_anchor_data"
+            ],
+            "phase": null,
+            "data_status": "predicted",
+            "predictions": {
+              "next_period_start": "2026-10-19",
+              "next_period_end": "2026-10-23",
+              "estimated_ovulation_date": "2026-10-05",
+              "fertile_window_start": "2026-09-30",
+              "fertile_window_end": "2026-10-06",
+              "source": "recent_valid_cycles",
+              "confidence": "high",
+              "confidence_reasons": [
+                "based_on_three_valid_cycles",
+                "low_cycle_variation"
+              ]
+            },
+            "profile_values": {
+              "cycle_length": 28,
+              "period_duration": 5
+            },
+            "calculated_values": {
+              "cycle_length": 28,
+              "period_duration": 5,
+              "based_on_cycles": 3
+            },
+            "effective_values": {
+              "cycle_length": 28,
+              "period_duration": 5,
+              "source": "recent_valid_cycles",
+              "period_duration_source": "recent_valid_cycles"
+            },
+            "data_quality_details": {
+              "confidence": "high",
+              "confidence_reasons": [
+                "based_on_three_valid_cycles",
+                "low_cycle_variation"
+              ],
+              "regularity_status": "relatively_regular",
+              "is_irregular_possible": false,
+              "missing_period_end": false
+            },
+            "daily_card": {
+              "title": "۲۹۱ روز تا پریود بعدی",
+              "subtitle": "بر اساس پیش‌بینی، پریود بعدی حدود ۲۹۱ روز دیگر شروع می‌شود.",
+              "data_status": "predicted",
+              "fertility_level": "low",
+              "fertility_label": "پایین",
+              "badges": [
+                "روز ۱۷ چرخه",
+                "پیش‌بینی‌شده"
+              ],
+              "primary_action": {
+                "type": "complete_day",
+                "label": "تکمیل اطلاعات این روز"
+              },
+              "secondary_actions": [
+                {
+                  "type": "view_details",
+                  "label": "جزئیات این روز"
+                }
+              ]
+            }
+          },
+          "calculation_status": "completed",
+          "is_recalculating": false
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/cycle/date/2027-03-15",
+        "persona": "open_period_day3",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "calculation": {
+            "calculation_date": "2027-03-15",
+            "cycle_day": 8,
+            "phase": "follicular",
+            "subphase": "mid_follicular",
+            "estimated_ovulation_day": 15,
+            "cycle_length_used": 28,
+            "is_fertile_window": false,
+            "is_pms_window": false,
+            "is_period_tomorrow": false,
+            "is_luteal_spotting": false,
+            "cycle_score": 0.7,
+            "age_factor": 0.85,
+            "base_probability": 0,
+            "symptom_score": 1,
+            "final_probability": 0,
+            "cycle_variability": "regular",
+            "uncertainty_range": 1,
+            "text_flags": {
+              "probability_message": "احتمال بارداری امروز 0٪ است.",
+              "phase_info": "فاز فعلی: فولیکولار (فولیکولار میانی)"
+            },
+            "daily_tips": [
+              {
+                "type": "energy",
+                "title": "انرژی",
+                "icon": "bolt",
+                "text": "سطح انرژی شما در حال افزایش است. زمان مناسبی برای پروژه‌های جدید!"
+              },
+              {
+                "type": "exercise",
+                "title": "ورزش",
+                "icon": "walking",
+                "text": "زمان مناسبی برای ورزش‌های سنگین است."
+              },
+              {
+                "type": "nutrition",
+                "title": "تغذیه",
+                "icon": "apple",
+                "text": "پروتئین و سبزیجات تازه بخورید تا ذخیره انرژی‌تان دوباره پر شود."
+              },
+              {
+                "type": "mental_health",
+                "title": "سلامت روان",
+                "icon": "brain",
+                "text": "فرصت خوبی برای برنامه‌ریزی و یادگیری چیزهای تازه است."
+              }
+            ],
+            "source_profile_data": {
+              "birthday": "1996-04-12",
+              "period_duration": 5,
+              "cycle_duration": 28,
+              "last_period_start": "2026-09-21"
+            },
+            "source_daily_log_data": null
+          },
+          "cycle_view": {
+            "date": "2027-03-15",
+            "cycle_day": 8,
+            "main_phase": "follicular",
+            "subphase": "late_follicular_transition",
+            "fertility_level": "medium",
+            "days_to_ovulation": 7,
+            "days_to_period": 21,
+            "days_late": 0,
+            "anchors": {
+              "current_period_start": "2027-03-08",
+              "current_period_start_source": "predicted_reference",
+              "current_period_end": "2027-03-12",
+              "current_period_end_source": "assumed_from_effective_duration",
+              "current_period_end_is_confirmed": false,
+              "predicted_next_period_start": "2027-04-05",
+              "estimated_ovulation_date": "2027-03-22"
+            },
+            "metrics": {
+              "effective_cycle_length": 28,
+              "effective_period_length": 5,
+              "cycle_variability": 0
+            },
+            "confidence": "medium",
+            "confidence_reasons": [
+              "prediction_based_output"
+            ],
+            "data_quality": "partial",
+            "resolution_source": "prediction",
+            "is_predicted": true,
+            "requires_user_input": false,
+            "warnings": [
+              "prediction_based_output"
+            ],
+            "phase": "follicular",
+            "data_status": "predicted",
+            "predictions": {
+              "next_period_start": "2026-10-19",
+              "next_period_end": "2026-10-23",
+              "estimated_ovulation_date": "2026-10-05",
+              "fertile_window_start": "2026-09-30",
+              "fertile_window_end": "2026-10-06",
+              "source": "recent_valid_cycles",
+              "confidence": "high",
+              "confidence_reasons": [
+                "based_on_three_valid_cycles",
+                "low_cycle_variation"
+              ]
+            },
+            "profile_values": {
+              "cycle_length": 28,
+              "period_duration": 5
+            },
+            "calculated_values": {
+              "cycle_length": 28,
+              "period_duration": 5,
+              "based_on_cycles": 3
+            },
+            "effective_values": {
+              "cycle_length": 28,
+              "period_duration": 5,
+              "source": "recent_valid_cycles",
+              "period_duration_source": "recent_valid_cycles"
+            },
+            "data_quality_details": {
+              "confidence": "high",
+              "confidence_reasons": [
+                "based_on_three_valid_cycles",
+                "low_cycle_variation"
+              ],
+              "regularity_status": "relatively_regular",
+              "is_irregular_possible": false,
+              "missing_period_end": false
+            },
+            "daily_card": {
+              "title": "۲ روز تا پنجره باروری",
+              "subtitle": "بر اساس پیش‌بینی چرخه، پنجره باروری از حدود ۲ روز دیگر شروع می‌شود.",
+              "data_status": "predicted",
+              "fertility_level": "low",
+              "fertility_label": "پایین",
+              "badges": [
+                "روز ۸ چرخه",
+                "پیش‌بینی‌شده"
+              ],
+              "primary_action": {
+                "type": "set_reminder",
+                "label": "یادآوری برای این روز"
+              },
+              "secondary_actions": [
+                {
+                  "type": "view_details",
+                  "label": "جزئیات پیش‌بینی"
+                }
+              ]
+            }
+          },
+          "calculation_status": "completed",
+          "is_recalculating": false
+        }
+      }
+    }
+  ]
+}

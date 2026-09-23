@@ -1,0 +1,147 @@
+{
+  "case": "healthlog/enums.ar",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/health-logs/enums",
+        "persona": "regular",
+        "accept_language": "ar",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "bleeding_intensity": [
+            "low",
+            "medium",
+            "high",
+            "very_high"
+          ],
+          "blood_color": [
+            "bright_red",
+            "red",
+            "dark_red",
+            "brown"
+          ],
+          "bleeding_smell": [
+            "normal",
+            "slightly_unusual",
+            "strong_unpleasant"
+          ],
+          "pain_intensity": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "nausea_intensity": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "bloating_intensity": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "clots_amount": [
+            "none",
+            "low",
+            "medium",
+            "high"
+          ],
+          "appetite_change": [
+            "loss",
+            "normal",
+            "gain"
+          ],
+          "urination_change": [
+            "decrease",
+            "increase"
+          ],
+          "moods": [
+            "happy",
+            "calm",
+            "angry",
+            "anxious",
+            "sad",
+            "frustrated",
+            "sensitive",
+            "bored"
+          ],
+          "sleep_duration": [
+            "0_3",
+            "3_6",
+            "6_9",
+            "9_plus"
+          ],
+          "sleep_quality": [
+            "good",
+            "medium",
+            "bad"
+          ],
+          "exercise_type": [
+            "walking",
+            "running",
+            "cycling",
+            "gym",
+            "yoga",
+            "swimming",
+            "dance",
+            "team_sport",
+            "other"
+          ],
+          "exercise_intensity": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "sexual_desire": [
+            "lower",
+            "normal",
+            "higher"
+          ],
+          "intercourse_type": [
+            "protected",
+            "unprotected"
+          ],
+          "sexual_activities": [
+            "dryness",
+            "burning",
+            "pain_during_intercourse",
+            "bleeding_after_intercourse",
+            "lubricant_use"
+          ],
+          "discharge_texture": [
+            "watery",
+            "creamy",
+            "egg_white",
+            "thick"
+          ],
+          "discharge_amount": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "discharge_color": [
+            "clear",
+            "white",
+            "yellow",
+            "green",
+            "gray",
+            "pink_bloody"
+          ],
+          "discharge_smell": [
+            "normal",
+            "slightly_unusual",
+            "strong_unpleasant"
+          ]
+        }
+      }
+    }
+  ]
+}

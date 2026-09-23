@@ -1,0 +1,118 @@
+{
+  "case": "messages/daily.pregnant_manual_w14.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily",
+        "persona": "pregnant_manual_w14",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "pregnancy",
+          "date": "2026-09-23",
+          "user_goal": "non_ttc",
+          "subscription_type": "free",
+          "context_info": {
+            "week": 13,
+            "day": 0,
+            "trimester": 2,
+            "gestational_age": "هفته 13 و روز 0",
+            "due_date": "2027-03-31"
+          },
+          "primary_message": {
+            "week": 13,
+            "day": 0,
+            "trimester": 2,
+            "trimester_label": "سه‌ماهه دوم",
+            "gestational_age": "هفته 13 و روز 0",
+            "short_message": "پایان سه‌ماهه اول",
+            "long_message": "انرژی برگشته و تهوع‌ها کمتر شده. زمان مناسبی برای ورزش ملایم و لذت بردن از بارداری است.",
+            "action_suggestion": "شنا یا یوگای بارداری را امتحان کنید",
+            "dos": [
+              "ورزش ملایم",
+              "پروتئین کافی",
+              "آهن و کلسیم",
+              "سونوگرافی آنومالی"
+            ],
+            "donts": [
+              "دراز کشیدن به پشت طولانی",
+              "ورزش سنگین",
+              "سونا و جکوزی"
+            ],
+            "baby_development": "اندام‌های حیاتی شکل گرفته‌اند",
+            "body_changes": "تهوع کمتر می‌شود",
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [],
+          "supplements": {
+            "nutrition": {
+              "focus": "کلسیم، آهن و پروتئین",
+              "essential": [
+                "کلسیم ۱۰۰۰mg",
+                "آهن ۲۷mg",
+                "پروتئین ۷۵g"
+              ],
+              "foods": [
+                "لبنیات",
+                "گوشت قرمز",
+                "مرغ",
+                "ماهی",
+                "حبوبات",
+                "میوه و سبزی"
+              ],
+              "avoid": [
+                "غذاهای فرآوری شده",
+                "قند زیاد",
+                "نمک زیاد"
+              ],
+              "tip": "نوزاد در حال رشد سریع است، کالری و پروتئین بیشتر نیاز دارید"
+            },
+            "sleep": {
+              "recommended_hours": "8-9",
+              "quality_focus": "انرژی برگشته",
+              "tips": [
+                "خواب بهتر از سه‌ماهه اول",
+                "شروع عادت به خوابیدن به پهلو",
+                "بالش بین زانوها"
+              ],
+              "avoid": [
+                "خوابیدن به پشت طولانی"
+              ],
+              "position": "پهلوی چپ بهترین است"
+            },
+            "exercise": {
+              "intensity": "متوسط",
+              "recommended": [
+                "شنا",
+                "پیاده‌روی",
+                "یوگای بارداری",
+                "پیلاتس بارداری",
+                "دوچرخه ثابت"
+              ],
+              "avoid": [
+                "دراز کشیدن به پشت طولانی",
+                "حرکات پرشی",
+                "ورزش در گرما"
+              ],
+              "tip": "دوران طلایی! انرژی برگشته. از ورزش لذت ببرید اما محتاط باشید.",
+              "duration": "30-45",
+              "precautions": [
+                "مرکز ثقل تغییر کرده",
+                "تعادل ممکنه کم شده باشه"
+              ]
+            }
+          },
+          "tips": []
+        }
+      }
+    }
+  ]
+}

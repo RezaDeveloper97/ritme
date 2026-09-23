@@ -1,0 +1,111 @@
+{
+  "case": "messages/daily.premium.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily",
+        "persona": "premium",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "date": "2026-09-23",
+          "user_goal": "non_ttc",
+          "subscription_type": "premium",
+          "context_info": {
+            "phase": "ovulation",
+            "phase_label": "Ovulation",
+            "subphase": "ovulation_likely",
+            "subphase_label": "Ovulation Likely",
+            "cycle_day": 17,
+            "cycle_length": 30,
+            "is_fertile_window": true,
+            "is_pms_window": false,
+            "estimated_ovulation_day": 17
+          },
+          "primary_message": {
+            "phase": "ovulation",
+            "phase_label": "Ovulation",
+            "cycle_day": 17,
+            "short_message": "You're at peak energy and attractiveness!",
+            "long_message": "During ovulation, your energy, confidence and attractiveness are at their peak. Best time for presentations, negotiations and social activities.",
+            "action_suggestion": "Use this energy for important tasks",
+            "dos": [
+              "Strength training",
+              "Presentations and negotiations",
+              "Social activities",
+              "Important decisions"
+            ],
+            "donts": [
+              "Wasting this energy",
+              "Isolation",
+              "Procrastination"
+            ],
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [
+            {
+              "pattern_type": "chronic_fatigue",
+              "alert_level": "warning",
+              "message": "Persistent low energy detected. This could indicate anemia or thyroid issues.",
+              "recommendation": "Blood test for iron and thyroid is recommended"
+            }
+          ],
+          "supplements": {
+            "nutrition": {
+              "focus": "Antioxidants and healthy fats",
+              "foods": [
+                "Berries",
+                "Nuts",
+                "Olive oil",
+                "Salmon",
+                "Colorful vegetables"
+              ],
+              "avoid": [
+                "Too much sugar",
+                "Trans fats"
+              ],
+              "tip": "Estrogen is at peak, use antioxidants"
+            },
+            "sleep": {
+              "recommended_hours": "7-8",
+              "quality_focus": "High energy",
+              "tips": [
+                "You may feel less tired",
+                "Use the energy but don't forget sleep"
+              ],
+              "avoid": [
+                "Staying up late",
+                "Missing sleep"
+              ]
+            },
+            "exercise": {
+              "intensity": "High",
+              "recommended": [
+                "Strength training",
+                "HIIT",
+                "Group sports",
+                "CrossFit"
+              ],
+              "avoid": [
+                "Nothing! Everything is good"
+              ],
+              "tip": "Estrogen is high, muscles are stronger and recovery is faster.",
+              "duration": "45-60"
+            }
+          },
+          "tips": []
+        }
+      }
+    }
+  ]
+}

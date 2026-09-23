@@ -1,0 +1,129 @@
+{
+  "case": "messages/daily.ttc.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily",
+        "persona": "ttc",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "date": "2026-09-23",
+          "user_goal": "ttc",
+          "subscription_type": "free",
+          "context_info": {
+            "phase": "follicular",
+            "phase_label": "Follicular",
+            "subphase": "high_fertility",
+            "subphase_label": "High Fertility",
+            "cycle_day": 13,
+            "cycle_length": 28,
+            "is_fertile_window": true,
+            "is_pms_window": false,
+            "estimated_ovulation_day": 15
+          },
+          "primary_message": {
+            "phase": "follicular",
+            "phase_label": "Follicular",
+            "cycle_day": 13,
+            "is_fertile_window": true,
+            "fertility_info": "You are in your fertile window - best time to conceive!",
+            "short_message": "Your body is preparing for ovulation",
+            "long_message": "Ovaries are growing follicles. Good time to increase physical activity and strengthen fertility health.",
+            "action_suggestion": "Regular exercise and healthy nutrition",
+            "dos": [
+              "Antioxidant-rich foods",
+              "Moderate exercise",
+              "8 hours sleep"
+            ],
+            "donts": [
+              "Stress",
+              "Processed foods",
+              "Sleep deprivation"
+            ],
+            "ttc_tips": [
+              "Start ovulation tests in a few days",
+              "Plan intimacy from now"
+            ],
+            "has_override": false
+          },
+          "correlations": [],
+          "patterns": [],
+          "supplements": {
+            "nutrition": {
+              "focus": "Protein and fresh vegetables",
+              "foods": [
+                "Eggs",
+                "Chicken",
+                "Quinoa",
+                "Leafy greens",
+                "Avocado"
+              ],
+              "avoid": [
+                "Fast food",
+                "Processed foods"
+              ],
+              "tip": "Body is ready for growth, eat enough protein",
+              "ttc_additions": {
+                "essential": [
+                  "Folic acid 400mcg daily",
+                  "Omega-3 fatty acids",
+                  "Antioxidants"
+                ],
+                "foods": [
+                  "Dark leafy greens",
+                  "Fatty fish",
+                  "Eggs",
+                  "Nuts and seeds"
+                ],
+                "avoid": [
+                  "Alcohol",
+                  "Caffeine over 200mg",
+                  "High mercury fish"
+                ]
+              }
+            },
+            "sleep": {
+              "recommended_hours": "7-8",
+              "quality_focus": "Optimal sleep",
+              "tips": [
+                "Deeper sleep in this phase",
+                "Good time to set sleep schedule"
+              ],
+              "avoid": [
+                "Sleep deprivation",
+                "Irregular sleep schedule"
+              ]
+            },
+            "exercise": {
+              "intensity": "Moderate to high",
+              "recommended": [
+                "Running",
+                "HIIT",
+                "Weight training",
+                "Cycling",
+                "Dancing"
+              ],
+              "avoid": [
+                "Inactivity"
+              ],
+              "tip": "Energy is at peak! Best time for new challenges and personal records.",
+              "duration": "45-60",
+              "ttc_note": "Moderate exercise is good for fertility. Avoid very intense workouts."
+            }
+          },
+          "tips": []
+        }
+      }
+    }
+  ]
+}
