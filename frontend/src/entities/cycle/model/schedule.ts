@@ -5,7 +5,7 @@ import {
   FERTILE_WINDOW_TRAIL_DAYS,
   PMS_WINDOW_DAYS,
 } from './predictions';
-import type { CycleCalculation, CycleView } from './types';
+import type { CycleCalculation, CycleDayMarker, CycleView } from './types';
 
 /** Fixed ovulation → next-period offset the engine uses (`CyclePredictionService`). */
 const LUTEAL_LENGTH = 14;
@@ -125,4 +125,26 @@ export function cycleProgressPercent(schedule: CycleSchedule, date: Date): numbe
   const rolled = cycleScheduleFor(schedule, date);
   const elapsed = diffInDays(date, rolled.cycleStart);
   return Math.min(100, Math.max(0, Math.round((elapsed / rolled.cycleLength) * 100)));
+}
+
+/**
+ * The marker a day carries according to the schedule alone — period → ovulation
+ * → fertile window → PMS, the same priority as {@link cycleDayMarker}. For
+ * surfaces that paint a day before (or without) that day's own calculation;
+ * wherever the engine's per-day calculation is at hand, it wins.
+ */
+export function scheduleDayMarker(
+  schedule: CycleSchedule,
+  date: Date,
+  periodLength: number,
+): CycleDayMarker | null {
+  const s = cycleScheduleFor(schedule, date);
+  const within = (from: Date, to: Date) =>
+    diffInDays(date, from) >= 0 && diffInDays(to, date) >= 0;
+
+  if (diffInDays(date, s.cycleStart) < Math.max(1, periodLength)) return 'period';
+  if (diffInDays(date, s.ovulation) === 0) return 'ovulation';
+  if (within(s.fertileStart, s.fertileEnd)) return 'fertile';
+  if (within(s.pmsStart, s.pmsEnd)) return 'pms';
+  return null;
 }

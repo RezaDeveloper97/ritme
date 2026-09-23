@@ -9,11 +9,13 @@ import {
   formatDayMonth,
   formatLongDate,
   formatNumericDate,
+  formatWeekdayDayMonth,
   monthMatrix,
   partsToDate,
   toApiDate,
   toParts,
   weekdayKeys,
+  weekOf,
 } from './calendar';
 
 // Dates are built with local Y/M/D (month is 0-based in the Date constructor)
@@ -176,5 +178,42 @@ describe('birthYearRange', () => {
       const { min, max } = birthYearRange(locale);
       expect(max - min).toBe(59);
     }
+  });
+});
+
+describe('weekOf', () => {
+  // 2025-10-04 is a Saturday.
+  const saturday = new Date(2025, 9, 4);
+
+  it('runs Saturday → Friday in the Jalali grid', () => {
+    const week = weekOf(new Date(2025, 9, 7), 'fa');
+    expect(week).toHaveLength(7);
+    expect(toApiDate(week[0])).toBe('2025-10-04');
+    expect(toApiDate(week[6])).toBe('2025-10-10');
+  });
+
+  it('runs Sunday → Saturday in the Gregorian grid', () => {
+    const week = weekOf(saturday, 'en');
+    expect(toApiDate(week[0])).toBe('2025-09-28');
+    expect(toApiDate(week[6])).toBe('2025-10-04');
+  });
+
+  it('carries days of both months for a week that straddles them', () => {
+    const week = weekOf(new Date(2025, 9, 1), 'en');
+    expect(week.map(toApiDate)).toContain('2025-09-30');
+    expect(week.map(toApiDate)).toContain('2025-10-01');
+  });
+});
+
+describe('formatWeekdayDayMonth', () => {
+  // 2024-03-20 is a Wednesday — 1 Farvardin 1403.
+  const nowruz = new Date(2024, 2, 20);
+
+  it('reads «weekday، day month» in the Jalali calendar for fa', () => {
+    expect(formatWeekdayDayMonth(nowruz, 'fa')).toBe('چهارشنبه، ۱ فروردین');
+  });
+
+  it('reads "Weekday, day Month" in the Gregorian calendar for en', () => {
+    expect(formatWeekdayDayMonth(nowruz, 'en')).toBe('Wednesday, 20 March');
   });
 });

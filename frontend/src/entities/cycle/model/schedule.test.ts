@@ -7,6 +7,7 @@ import {
   cycleScheduleFor,
   daysUntilNextPeriod,
   deriveCycleSchedule,
+  scheduleDayMarker,
 } from './schedule';
 import type { CycleCalculation, CycleView } from './types';
 
@@ -157,5 +158,33 @@ describe('cycleProgressPercent', () => {
     expect(cycleProgressPercent(schedule, fromApiDate('2026-07-14'))).toBe(0);
     expect(cycleProgressPercent(schedule, fromApiDate('2026-07-28'))).toBe(50);
     expect(cycleProgressPercent(schedule, fromApiDate('2026-08-10'))).toBe(96);
+  });
+});
+
+describe('scheduleDayMarker', () => {
+  // Cycle starts 2026-07-14, ovulation 2026-07-28, fertile 07-23…07-29,
+  // PMS 08-07…08-10, next period 2026-08-11.
+  const schedule = deriveCycleSchedule(makeView(), makeCalc())!;
+  const at = (iso: string) => scheduleDayMarker(schedule, fromApiDate(iso), 5);
+
+  it('marks the first `periodLength` days of the cycle as period', () => {
+    expect(at('2026-07-14')).toBe('period');
+    expect(at('2026-07-18')).toBe('period');
+    expect(at('2026-07-19')).toBeNull();
+  });
+
+  it('lets ovulation win over the fertile window around it', () => {
+    expect(at('2026-07-23')).toBe('fertile');
+    expect(at('2026-07-28')).toBe('ovulation');
+    expect(at('2026-07-29')).toBe('fertile');
+  });
+
+  it('marks the run of days before the next period as PMS', () => {
+    expect(at('2026-08-07')).toBe('pms');
+    expect(at('2026-08-10')).toBe('pms');
+  });
+
+  it('rolls into the next cycle once the predicted start is reached', () => {
+    expect(at('2026-08-11')).toBe('period');
   });
 });

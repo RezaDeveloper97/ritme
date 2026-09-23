@@ -248,6 +248,48 @@ function weekdayColumn(day: number, locale: Locale): number {
 }
 
 /**
+ * The seven days of the locale's grid week that contains `date` — Saturday →
+ * Friday in Jalali, Sunday → Saturday in Gregorian — each at start of day.
+ * Unlike a {@link monthMatrix} row it never has blanks: a week that straddles
+ * two months simply carries days of both.
+ */
+export function weekOf(date: Date, locale: Locale): Date[] {
+  const d = dayjs(date).startOf('day');
+  const first = d.subtract(weekdayColumn(d.day(), locale), 'day');
+  return Array.from({ length: 7 }, (_, i) => first.add(i, 'day').startOf('day').toDate());
+}
+
+const WEEKDAY_LONG: Record<CalendarLocale, Record<WeekdayKey, string>> = {
+  fa: {
+    sat: 'شنبه', sun: 'یکشنبه', mon: 'دوشنبه', tue: 'سه‌شنبه',
+    wed: 'چهارشنبه', thu: 'پنجشنبه', fri: 'جمعه',
+  },
+  en: {
+    sat: 'Saturday', sun: 'Sunday', mon: 'Monday', tue: 'Tuesday',
+    wed: 'Wednesday', thu: 'Thursday', fri: 'Friday',
+  },
+};
+
+/** Indexed by dayjs `day()` (0 = Sunday). */
+const DAY_INDEX_KEYS: readonly WeekdayKey[] = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+
+/**
+ * Weekday name + day + month, e.g. «شنبه، ۱۲ مهر» (fa) or "Saturday, 4 October"
+ * (en). The Persian comma is part of the calendar data, like the month names.
+ */
+export function formatWeekdayDayMonth(date: Date, locale: Locale): string {
+  const table = calendarLocale(locale);
+  const weekday = WEEKDAY_LONG[table][DAY_INDEX_KEYS[dayjs(date).day()]];
+  const separator = table === 'fa' ? '، ' : ', ';
+  return `${weekday}${separator}${formatDayMonth(date, locale)}`;
+}
+
+/** Hour of the day on the device clock, 0–23 (e.g. to pick a greeting). */
+export function currentHour(): number {
+  return dayjs().hour();
+}
+
+/**
  * Lay a month out as weeks for the locale's weekday grid (Saturday-first in
  * Jalali, Sunday-first in Gregorian). Leading/trailing blanks are `null`. This
  * is the one place that knows how a month maps onto a weekday grid, so calendar

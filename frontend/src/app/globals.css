@@ -898,204 +898,157 @@ body {
    Home screen
    ══════════════════════════════════════════════════════════════════ */
 
-/* App header */
-.home-hdr     { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px 10px; }
-.home-brand   { text-align: center; }
-.home-logo    { font-weight: 800; font-size: 20px; color: var(--brand); }
-.home-tagline { font-size: 11px; color: var(--muted-2); font-weight: 600; margin-top: 2px; }
-.home-recalc  { color: var(--brand); }
-.home-bell    { color: var(--muted-2); }
-
-/* Mini calendar */
-.home-cal        { background: var(--surface); padding: 12px 14px; }
-.home-cal-top    { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-.home-cal-month  { font-size: 14px; font-weight: 700; color: var(--brand); }
-.home-cal-toggle {
-  display: flex; align-items: center; gap: 4px;
-  background: transparent; border: 0; cursor: pointer;
-  padding: 2px 4px; border-radius: 8px;
-  font-family: inherit;
+/* Lalezar — display face for the home ring's countdown only. A 13 KB subset
+   (Latin + Persian/Arabic digits + the letters of «روز»/«امروز»); anything else
+   falls back to Vazirmatn glyph by glyph. Not preloaded: it is fetched only
+   when the ring renders. OFL-1.1, © The Lalezar Project Authors. */
+@font-face {
+  font-family: "Lalezar";
+  src: url("./fonts/Lalezar-Subset.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
 }
-.home-cal-toggle:hover { background: var(--surface-3); }
-.home-cal-toggle:focus-visible { outline: none; box-shadow: var(--ring); }
-.home-cal-toggle-label { font-size: 13px; font-weight: 600; color: var(--muted-2); }
-.home-cal-chev { color: var(--muted-2); transition: transform .28s cubic-bezier(.22,.61,.36,1); }
-.home-cal-toggle[aria-expanded="true"] .home-cal-chev { transform: rotate(180deg); }
-.home-weekdays { display: flex; justify-content: space-between; margin-bottom: 8px; }
-.home-weekday  { flex: 1; text-align: center; font-size: 11px; color: var(--muted-2); font-weight: 600; }
-.home-weeks    { display: flex; flex-direction: column; gap: 10px; }
-.home-week-row { display: flex; justify-content: space-between; }
-.home-day-slot { display: flex; justify-content: center; flex: 1; }
-.home-day {
-  width: 34px; height: 34px; border-radius: 50%; padding: 0;
-  border: 2px solid transparent;
+
+/* The top of the home screen — header, week strip, cycle ring, phase card —
+   one column with the design's 18px rhythm. */
+.home-top { display: flex; flex-direction: column; gap: 18px; padding: 4px 16px 0; }
+
+/* Header: date + greeting on the start side, round icon buttons on the end. */
+.home-hdr        { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.home-hdr-date   { font-size: 12px; font-weight: 700; color: var(--ink-3); }
+.home-hdr-greet  { font-size: 20px; font-weight: 800; color: var(--ink); }
+.home-hdr-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.home-hdr-btn {
+  width: 44px; height: 44px; border-radius: 22px; padding: 0;
   display: flex; align-items: center; justify-content: center;
-  font-size: 14px; font-family: inherit; font-variant-numeric: tabular-nums;
-  cursor: pointer; background: transparent;
-  transition: box-shadow .15s ease;
+  background: var(--surface-2); border: 1px solid var(--line); color: var(--ink);
+  cursor: pointer; transition: filter .15s ease, box-shadow .15s ease;
 }
-.home-day:disabled { cursor: default; }
-.home-day:focus-visible { outline: none; box-shadow: var(--ring); }
-.home-day.is-selected { border-color: var(--brand); }
+.home-hdr-btn:hover { filter: brightness(.97); }
+.home-hdr-btn:focus-visible { outline: none; box-shadow: var(--ring); }
 
-/* Marker legend under the expanded grid */
+/* Week strip: the current week, weekday letter over a tall day tile with the
+   day's cycle-marker dot. Today is the inverted (ink) tile. */
+.home-week { display: flex; gap: 4px; }
+.home-wday {
+  flex: 1 1 0; min-width: 0;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  background: none; border: 0; padding: 0; font-family: inherit; cursor: pointer;
+}
+.home-wday:focus-visible { outline: none; }
+.home-wday-name { font-size: 10.5px; font-weight: 700; color: var(--muted-2); }
+.home-wday-cell {
+  box-sizing: border-box; width: 100%; max-width: 42px; height: 54px; border-radius: 16px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--ink);
+  background: var(--surface-2); border: 1px solid var(--line);
+  transition: box-shadow .15s ease, border-color .15s ease;
+}
+.home-wday-dot { width: 6px; height: 6px; border-radius: 3px; }
+/* Keeps the number at the same height on days without a marker. */
+.home-wday-dot.is-none      { visibility: hidden; }
+.home-wday-dot.is-period    { background: var(--period); }
+.home-wday-dot.is-fertile   { background: var(--amber); }
+.home-wday-dot.is-ovulation { background: var(--data-deep); }
+.home-wday-dot.is-pms       { background: var(--violet); }
+.home-wday.is-today .home-wday-name { color: var(--ink); }
+.home-wday.is-today .home-wday-cell { background: var(--ink); border-color: var(--ink); color: var(--page); }
+.home-wday.is-today .home-wday-dot  { visibility: visible; background: var(--brand-line-soft); }
+.home-wday.is-selected .home-wday-cell { border-color: var(--brand); box-shadow: inset 0 0 0 1px var(--brand); }
+.home-wday:focus-visible .home-wday-cell { box-shadow: var(--ring); }
+
+/* Cycle ring: one dot per cycle day around a dotted track, the countdown in
+   the middle. Dot positions and radii are geometry attributes from data; the
+   colours come from the marker classes below. */
+.home-ring { position: relative; display: flex; flex-direction: column; align-items: center; transition: opacity .15s ease; }
+.home-ring.is-loading { opacity: .55; }
+.home-ring-glow {
+  position: absolute; top: 60px; width: 230px; height: 230px; border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--period) 25%, transparent), color-mix(in srgb, var(--period) 0%, transparent) 70%);
+  pointer-events: none;
+}
+.home-ring-svg   { position: relative; display: block; width: 300px; max-width: 100%; height: auto; aspect-ratio: 1; }
+.home-ring-track { fill: none; stroke: var(--line); stroke-width: 1; stroke-dasharray: 2 6; }
+.home-ring-dot              { fill: var(--brand-line-soft); stroke: none; }
+.home-ring-dot.is-period    { fill: var(--period);    stroke: var(--period); }
+.home-ring-dot.is-fertile   { fill: var(--amber);     stroke: var(--amber); }
+.home-ring-dot.is-ovulation { fill: var(--data-deep); stroke: var(--data-deep); }
+.home-ring-dot.is-pms       { fill: var(--violet);    stroke: var(--violet); }
+/* A day still ahead is a prediction: a hollow ring, as on the calendar. */
+.home-ring-dot.is-ahead     { fill: none; stroke-width: 1.6; opacity: .9; }
+/* The selected day: a soft halo under a larger dot ringed in white. */
+.home-ring-halo { opacity: .35; }
+.home-ring-now  { stroke: var(--on-accent); stroke-width: 2.5; }
+.home-ring-halo.is-none, .home-ring-now.is-none { fill: var(--brand); }
+.home-ring-halo.is-period,    .home-ring-now.is-period    { fill: var(--period); }
+.home-ring-halo.is-fertile,   .home-ring-now.is-fertile   { fill: var(--amber); }
+.home-ring-halo.is-ovulation, .home-ring-now.is-ovulation { fill: var(--data-deep); }
+.home-ring-halo.is-pms,       .home-ring-now.is-pms       { fill: var(--violet); }
+.home-ring-center {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  pointer-events: none;
+}
+.home-ring-over { font-size: 11px; font-weight: 800; letter-spacing: .14em; color: var(--period); }
+.home-ring-big  { display: flex; align-items: baseline; gap: 8px; color: var(--ink); }
+.home-ring-num  { font-family: "Lalezar", var(--font-sans); font-size: 72px; line-height: 1; font-weight: 400; font-variant-numeric: tabular-nums; }
+.home-ring-unit { font-size: 17px; font-weight: 800; }
+.home-ring-sub  { font-size: 12px; font-weight: 600; color: var(--ink-3); }
+.home-ring-edit {
+  pointer-events: auto; margin-top: 8px; height: 44px; padding: 0 20px; border-radius: 22px;
+  display: flex; align-items: center; gap: 6px; white-space: nowrap;
+  background: transparent; border: 1.5px solid var(--line); color: var(--ink);
+  font-family: inherit; font-size: 13.5px; font-weight: 800; cursor: pointer;
+  transition: background .15s ease, box-shadow .15s ease;
+}
+.home-ring-edit:hover { background: var(--surface-2); }
+.home-ring-edit:focus-visible { outline: none; box-shadow: var(--ring); }
+
+/* Phase card */
+.home-phase {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 24px;
+  padding: 18px 16px; display: flex; flex-direction: column; gap: 12px;
+  transition: opacity .15s ease;
+}
+.home-phase.is-loading { opacity: .55; }
+.home-phase-top  { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.home-phase-name { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 16px; font-weight: 700; color: var(--ink); }
+.home-phase-dot  { width: 10px; height: 10px; border-radius: 5px; flex-shrink: 0; background: var(--brand); }
+.home-phase-dot.is-period    { background: var(--period); }
+.home-phase-dot.is-fertile   { background: var(--amber); }
+.home-phase-dot.is-ovulation { background: var(--data-deep); }
+.home-phase-fert { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; font-size: 11px; font-weight: 700; color: var(--ink-3); }
+/* Pregnancy chance is algorithmic data, so it wears the turquoise accent. */
+.home-phase-fert-pill {
+  display: inline-flex; align-items: center; height: 28px; padding: 0 11px; border-radius: 14px;
+  background: var(--surface-2); border: 1px solid var(--data-deep); color: var(--data-deep);
+  font-size: 11.5px; font-weight: 800; white-space: nowrap;
+}
+.home-phase-text {
+  margin: 0; font-size: 13px; line-height: 1.95; color: var(--ink-3); text-align: start;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.home-phase-more {
+  align-self: flex-start; min-height: 40px; padding: 0;
+  display: flex; align-items: center; gap: 4px;
+  background: none; border: 0; border-radius: 8px; cursor: pointer;
+  font-family: inherit; font-size: 13px; font-weight: 800; color: var(--brand-strong);
+}
+.home-phase-more:focus-visible { outline: none; box-shadow: var(--ring); }
+.home-phase-more-chev { color: var(--brand); }
+/* The chevron points "forward": left in RTL (as drawn), right in LTR. */
+[dir="ltr"] .home-phase-more-chev { transform: scaleX(-1); }
+
+@media (prefers-reduced-motion: reduce) {
+  .home-hdr-btn, .home-wday-cell, .home-ring, .home-ring-edit, .home-phase { transition: none; }
+}
+
+/* Marker legend (calendar screen) */
 .legend       { display: flex; gap: 16px; flex-wrap: wrap; padding: 4px 4px 0; }
 .legend-item  { display: inline-flex; align-items: center; gap: 6px; }
 .legend-dot   { width: 10px; height: 10px; border-radius: 50%; }
 .legend-label { font-size: 11.5px; font-weight: 600; color: var(--muted); }
-
-/* Connected calendar ↔ info unit */
-.home-cal-unit  { padding: 2px 16px 0; display: flex; flex-direction: column; gap: 14px; }
-.home-cal-shell {
-  border-radius: 16px; overflow: hidden;
-  box-shadow: 0 18px 34px -18px rgba(123, 97, 255, .55);
-  transition: opacity .15s ease;
-}
-.home-cal-shell.is-loading { opacity: .55; }
-
-/* Hero (next-period) card — a red material card: a light glow falling from the
-   top edge over a deep→soft brand gradient, with frosted white chips on top. */
-.home-hero {
-  position: relative;
-  background:
-    radial-gradient(130% 90% at 50% -25%, rgba(255, 255, 255, .28), rgba(255, 255, 255, 0) 58%),
-    linear-gradient(150deg, var(--grad-start) 0%, var(--grad-end) 100%);
-  color: var(--on-accent);
-  padding: 14px 14px 10px;
-}
-/* Fetch-in-flight overlay: a centered frosted chip with a spinner. It doesn't
-   swallow taps — the dimmed card underneath stays interactive. */
-.home-hero-busy {
-  position: absolute; inset: 0; z-index: 1;
-  display: flex; align-items: center; justify-content: center;
-  pointer-events: none;
-}
-.home-hero-busy-chip {
-  display: flex; align-items: center; justify-content: center;
-  width: 42px; height: 42px; border-radius: 50%;
-  background: rgba(255, 255, 255, .22);
-  border: 1px solid rgba(255, 255, 255, .38);
-  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-  box-shadow: 0 10px 24px -10px rgba(0, 0, 0, .35);
-}
-.home-hero-busy-icon { animation: spin 1s linear infinite; }
-@media (prefers-reduced-motion: reduce) { .home-hero-busy-icon { animation: none; } }
-.home-hero-daybar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-bottom: 12px; }
-/* Frosted date chip — same material family as the highlight pills below. */
-.home-hero-daychip {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: rgba(255, 255, 255, .16);
-  border: 1px solid rgba(255, 255, 255, .28);
-  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-  border-radius: 999px; padding: 5px 11px;
-  font-size: 11.5px; font-weight: 700;
-}
-.home-hero-fert-group   { flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px; }
-.home-hero-fert-caption { font-size: 11px; font-weight: 700; opacity: .85; }
-/* Level colours arrive as data; the soft shadow seats the pale chip on the red. */
-.home-hero-fert {
-  flex-shrink: 0; font-size: 11px; font-weight: 800;
-  border-radius: 999px; padding: 4px 11px;
-  box-shadow: 0 2px 10px -3px rgba(0, 0, 0, .28);
-}
-.home-hero-cols   { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 0 4px; }
-.home-hero-left   { text-align: start; flex: 1; min-width: 0; }
-/* Type ramp: quiet overline → 22px headline → pills. Persian script wants
-   generous leading and no negative tracking, so hierarchy comes from weight. */
-.home-hero-overline { font-size: 11px; font-weight: 700; opacity: .8; letter-spacing: .02em; }
-.home-hero-days     { font-size: 22px; font-weight: 800; line-height: 1.55; margin-top: 4px; text-wrap: balance; }
-.home-hero-right    { flex-shrink: 0; }
-
-/* Cycle-day ring — the white sweep is a true annulus (masked pseudo-element),
-   so a complete cycle reads as a full ring, never a solid white disc. The
-   sweep angle arrives as `--ring-sweep` from data. */
-.home-ring { position: relative; width: 92px; height: 92px; flex: 0 0 92px; border-radius: 50%; }
-.home-ring::before {
-  content: ""; position: absolute; inset: 0; border-radius: 50%;
-  background: conic-gradient(var(--on-accent) var(--ring-sweep, 0deg), rgba(255, 255, 255, .26) 0deg);
-  -webkit-mask: radial-gradient(closest-side, transparent calc(100% - 7px), black calc(100% - 6px));
-          mask: radial-gradient(closest-side, transparent calc(100% - 7px), black calc(100% - 6px));
-}
-.home-ring-core {
-  position: absolute; inset: 7px; border-radius: 50%;
-  background: rgba(255, 255, 255, .14);
-  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-  border: 1px solid rgba(255, 255, 255, .18);
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-}
-.home-ring-day { font-size: 27px; font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; }
-.home-ring-of  { font-size: 10px; opacity: .85; font-weight: 700; }
-
-/* Day-highlight pills — frosted material, white vibrant text; the icon shape
-   (not a colour) tells the states apart, so nothing clashes with the red. */
-.home-highlights { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-.home-highlight  {
-  display: inline-flex; align-items: center; gap: 5px;
-  background: rgba(255, 255, 255, .16);
-  border: 1px solid rgba(255, 255, 255, .3);
-  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-  border-radius: 999px; padding: 4px 10px;
-  font-size: 11.5px; font-weight: 700;
-}
-
-/* Phase explanation + CTAs on the hero */
-.home-phase-desc {
-  margin-top: 12px;
-  background: rgba(255, 255, 255, .14);
-  border: 1px solid rgba(255, 255, 255, .2);
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-  border-radius: 12px; padding: 10px 12px;
-  font-size: 12px; line-height: 1.9; text-align: start; font-weight: 600;
-}
-/* Collapsible slot for the phase CTA: the grid-rows trick animates height
-   without measuring, so open/close glides instead of popping. */
-.home-cta-reveal {
-  display: grid; grid-template-rows: 0fr; opacity: 0;
-  transition: grid-template-rows .4s cubic-bezier(.32, .72, .28, 1), opacity .3s ease;
-}
-.home-cta-reveal.is-open { grid-template-rows: 1fr; opacity: 1; }
-.home-cta-reveal-inner   { overflow: hidden; min-height: 0; }
-.home-cta-row { display: flex; gap: 8px; }
-.home-cta-half { flex: 1 1 50%; margin-top: 12px; }
-/* Rendered as an <a> (the calendar editor) or a <button> (the phase sheet) —
-   both need the same pill, so neither may rely on the element's own defaults. */
-.home-phase-cta  {
-  display: flex; align-items: center; justify-content: center; gap: 6px;
-  margin-top: 12px; height: 40px; border-radius: 12px; text-decoration: none;
-  background: rgba(255, 255, 255, .18); border: 1px solid rgba(255, 255, 255, .45);
-  color: var(--on-accent); font-family: inherit; font-size: 12.5px; font-weight: 700;
-  cursor: pointer;
-  transition: background .15s ease, transform .12s ease, box-shadow .15s ease;
-}
-.home-phase-cta:hover { background: rgba(255, 255, 255, .3); }
-.home-phase-cta:active { transform: scale(.97); }
-.home-phase-cta:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(255, 255, 255, .75); }
-.home-more-wrap { display: flex; justify-content: center; margin-top: 8px; }
-.home-more {
-  background: transparent; border: 0; color: var(--on-accent);
-  opacity: .92;
-  padding: 4px 10px; border-radius: 8px;
-  font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer;
-  display: flex; align-items: center; gap: 4px;
-  transition: background .15s ease, transform .12s ease, box-shadow .15s ease;
-}
-.home-more:hover { background: rgba(255, 255, 255, .18); }
-.home-more:active { transform: scale(.96); }
-.home-more:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(255, 255, 255, .75); }
-.home-more-chev { transition: transform .28s cubic-bezier(.22,.61,.36,1); }
-.home-more[aria-expanded="false"] .home-more-chev { transform: rotate(180deg); }
-
-/* Motion & material fallbacks for the hero */
-@media (prefers-reduced-motion: reduce) {
-  .home-cta-reveal { transition: opacity .2s ease; }
-  .home-more-chev, .home-cal-chev { transition: none; }
-}
-@media (prefers-reduced-transparency: reduce) {
-  .home-hero-daychip, .home-highlight, .home-phase-desc, .home-ring-core {
-    backdrop-filter: none; -webkit-backdrop-filter: none;
-    background: rgba(255, 255, 255, .3);
-  }
-}
 
 /* Timeline bar (chart — pinned LTR, see CycleTimelineBar) */
 .cyclebar      { position: relative; height: 10px; border-radius: 99px; background: var(--line); margin-bottom: 22px; }

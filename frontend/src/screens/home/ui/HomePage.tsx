@@ -2,57 +2,50 @@
 
 import clsx from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useId, useMemo, useState, type ReactNode } from 'react';
 
 import { useCycleArticles } from '@/entities/article';
 import { useBannersSettled } from '@/entities/banner';
 import {
   CycleValuesCard,
   cycleDayMarker,
-  cycleMarkerBg,
-  cycleMarkerStyle,
   cycleScheduleFor,
   daysUntilNextPeriod,
   deriveCycleSchedule,
   deriveCyclePredictions,
-  deriveDayHighlights,
-  fertilityBadgeStyle,
-  markerIntensityByDate,
+  scheduleDayMarker,
   useCycleForDate,
   useCycleMonth,
   useCycleStatus,
   useCycleToday,
-  useRecalculateCycle,
   type CycleCalculation,
   type CycleDailyTip,
-  type CycleDayHighlight,
   type CycleDayMarker,
+  type CyclePhase,
   type CyclePredictions,
   type CycleSchedule,
-  type MarkerIntensity,
-  type FertilityBadgeStyle,
 } from '@/entities/cycle';
 import { useDailyMessage, type DailyMessage } from '@/entities/message';
 import { useUserProfile } from '@/entities/user';
 import { QuickEditSheet } from '@/features/edit-profile';
-import { PeriodDateEditor, usePeriodHistory } from '@/features/log-period';
+import { PeriodDateEditor } from '@/features/log-period';
 import type { Locale } from '@/shared/i18n';
 import {
   addDays,
+  currentHour,
   diffInDays,
   formatDayMonth,
-  formatMonthLabel,
-  fromApiDate,
-  monthMatrix,
+  formatNumber,
+  formatWeekdayDayMonth,
   toApiDate,
   toParts,
   today,
-  todayParts,
-  weekdayKeys,
-  type MonthCell,
+  weekdayLabels,
+  weekOf,
 } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
 import { openSheet } from '@/shared/sheet';
+import { useThemeStore } from '@/shared/theme';
 import { DropSolid, Icon, type IconName } from '@/shared/ui';
 import { BannerSlideshow } from '@/widgets/banner-slideshow';
 import { BottomNav } from '@/widgets/bottom-nav';
@@ -65,47 +58,72 @@ const localizeNum = (n: string | number, loc: Locale) => (loc === 'fa' ? faNum(n
 
 type T = ReturnType<typeof useTranslations>;
 
-// ── App header (Figma: bare icons — stars on the start side, bell on the end) ──
-// The start-side button carries the cycle screen's "recalculate" action, so the
-// engine can be re-run from home without visiting /cycle.
-function HomeHeader({
-  tagline, onRecalculate, recalculating, recalculateLabel,
-}: {
-  tagline: string;
-  onRecalculate: () => void;
-  recalculating: boolean;
-  recalculateLabel: string;
-}) {
+// ── Header: today's date + a time-of-day greeting, notification & cycle settings ──
+function greetingKey(hour: number): 'morning' | 'noon' | 'evening' | 'night' {
+  if (hour >= 5 && hour < 12) return 'morning';
+  if (hour >= 12 && hour < 16) return 'noon';
+  if (hour >= 16 && hour < 20) return 'evening';
+  return 'night';
+}
+
+// Light ↔ dark in one tap. The preference lives in localStorage, which the
+// server can't see, so the button renders its light state until mounted —
+// the page itself is already painted in the right theme by the inline
+// bootstrap (see `shared/theme`).
+function ThemeToggle({ t }: { t: T }) {
+  const theme = useThemeStore((s) => s.theme);
+  const setTheme = useThemeStore((s) => s.setTheme);
+  const mounted = useMounted();
+  const dark = mounted && theme === 'dark';
+
   return (
-    <div className="home-hdr">
-      {/* The dimmed look while recalculating comes from `.iconbtn:disabled`,
-          so the disabled attribute is the single source of truth for it. */}
-      <button
-        className="iconbtn home-recalc"
-        onClick={onRecalculate}
-        disabled={recalculating}
-        aria-label={recalculateLabel}
-      >
-        <Icon name={recalculating ? 'loader' : 'refresh'} size={22} />
-      </button>
-      <div className="home-brand">
-        <div className="home-logo">ریـــــتمی</div>
-        <div className="home-tagline">{tagline}</div>
-      </div>
-      <button className="iconbtn home-bell">
-        <Icon name="bell" size={21} />
-      </button>
-    </div>
+    <button
+      type="button"
+      className="home-hdr-btn"
+      onClick={() => setTheme(dark ? 'light' : 'dark')}
+      aria-label={t(dark ? 'header.themeLight' : 'header.themeDark')}
+    >
+      <Icon name={dark ? 'sun' : 'moon'} size={20} strokeWidth={1.8} />
+    </button>
   );
 }
 
-// ── Week strip ─────────────────────────────────────────────────
-// The month grid comes from the centralized date layer (§7) — no
-// hardcoded month/day. Day names come from i18n.
+function HomeHeader({ t, loc }: { t: T; loc: Locale }) {
+  return (
+    <header className="home-hdr">
+      <div>
+        <div className="home-hdr-date">{formatWeekdayDayMonth(today(), loc)}</div>
+        <div className="home-hdr-greet">{t(`greeting.${greetingKey(currentHour())}`)}</div>
+      </div>
+      <div className="home-hdr-actions">
+        <ThemeToggle t={t} />
+        <button
+          type="button"
+          className="home-hdr-btn"
+          onClick={() => openSheet('notifications')}
+          aria-label={t('header.notifications')}
+        >
+          <Icon name="bellPlain" size={20} strokeWidth={1.8} />
+        </button>
+        <button
+          type="button"
+          className="home-hdr-btn"
+          onClick={() => openSheet('health')}
+          aria-label={t('header.cycleSettings')}
+        >
+          <Icon name="cog" size={20} strokeWidth={1.8} />
+        </button>
+      </div>
+    </header>
+  );
+}
 
-// Fallback bleeding length when the profile hasn't recorded one (matches the
-// backend default) — used to tell a logged period day from a predicted one.
+// ── Day markers ────────────────────────────────────────────────
+
+// Fallbacks when neither the engine nor the profile has a value (they match
+// the backend defaults).
 const DEFAULT_PERIOD_DAYS = 5;
+const DEFAULT_CYCLE_DAYS = 28;
 
 /** Gregorian year/month a date falls in, parsed from its API serialization (§7). */
 function gregYearMonth(date: Date): { year: number; month: number } {
@@ -113,394 +131,203 @@ function gregYearMonth(date: Date): { year: number; month: number } {
   return { year: Number(year), month: Number(month) };
 }
 
-/** How a day cell is painted: its cycle marker, and whether a period day is real. */
-interface DayMark {
-  marker: CycleDayMarker | null;
-  /** Tint depth for the marker — graded by the day's conception probability. */
-  intensity: MarkerIntensity;
-  /** Period marker the user actually logged (vs. one the engine predicted). */
-  isLogged: boolean;
-}
-
-const NO_MARK: DayMark = { marker: null, intensity: 'medium', isLogged: false };
-
 /**
- * Cycle markers for the days of the shown month, from the same
- * `cycle/month` cache the calendar screen reads — so editing a period there
- * (which invalidates `cycleKeys.all`) repaints this mini calendar too.
- * A shown month can span two Gregorian months (Jalali always does), so both
- * are fetched.
+ * Cycle marker per day, from the same `cycle/month` cache the calendar screen
+ * reads — so editing a period there (which invalidates `cycleKeys.all`)
+ * repaints the week strip and the ring too. The days asked for (this week plus
+ * the ring's cycle) span at most three Gregorian months, so the first, middle
+ * and last month are fetched; a day none of them covers yet falls back to the
+ * schedule's own reading of it.
  */
-function useMonthMarks(cells: MonthCell[]): (date: Date) => DayMark {
-  const gA = gregYearMonth(cells[0]?.date ?? today());
-  const gB = gregYearMonth(cells[cells.length - 1]?.date ?? today());
+function useDayMarks(
+  dates: Date[],
+  schedule: CycleSchedule | null,
+  periodLength: number,
+): (date: Date) => CycleDayMarker | null {
+  const sorted = [...dates].sort((a, b) => a.getTime() - b.getTime());
+  const first = sorted[0] ?? today();
+  const last = sorted[sorted.length - 1] ?? first;
+  const middle = addDays(first, Math.round(diffInDays(last, first) / 2));
+  const gA = gregYearMonth(first);
+  const gM = gregYearMonth(middle);
+  const gB = gregYearMonth(last);
   const monthA = useCycleMonth(gA.year, gA.month);
+  const monthM = useCycleMonth(gM.year, gM.month);
   const monthB = useCycleMonth(gB.year, gB.month);
-  const historyQuery = usePeriodHistory();
-  const profileQuery = useUserProfile();
-  const periodDuration = profileQuery.data?.health?.periodDuration ?? DEFAULT_PERIOD_DAYS;
-  const history = historyQuery.data;
 
   const calcMap = useMemo(() => {
     const map = new Map<string, CycleCalculation>();
-    for (const c of monthA.data?.calculations ?? []) map.set(c.calculationDate, c);
-    for (const c of monthB.data?.calculations ?? []) map.set(c.calculationDate, c);
-    return map;
-  }, [monthA.data, monthB.data]);
-
-  // Days covered by a real, user-entered period. An open period covers its start
-  // plus the profile's usual bleeding length (mirrors the calendar screen).
-  const loggedDays = useMemo(() => {
-    const set = new Set<string>();
-    for (const p of history ?? []) {
-      const start = fromApiDate(p.period_start_date);
-      const end = p.period_end_date
-        ? fromApiDate(p.period_end_date)
-        : addDays(start, periodDuration - 1);
-      for (let i = 0; i <= Math.max(0, diffInDays(end, start)); i += 1) {
-        set.add(toApiDate(addDays(start, i)));
-      }
+    for (const month of [monthA.data, monthM.data, monthB.data]) {
+      for (const c of month?.calculations ?? []) map.set(c.calculationDate, c);
     }
-    return set;
-  }, [history, periodDuration]);
-
-  // Tint depth per day, graded by conception probability within each marker
-  // group — same grading the calendar screen applies.
-  const intensityMap = useMemo(() => markerIntensityByDate(calcMap.values()), [calcMap]);
+    return map;
+  }, [monthA.data, monthM.data, monthB.data]);
 
   return (date: Date) => {
-    const iso = toApiDate(date);
-    const calc = calcMap.get(iso);
-    const marker = calc ? cycleDayMarker(calc) : null;
-    if (!marker) return NO_MARK;
-    return { marker, intensity: intensityMap.get(iso) ?? 'medium', isLogged: loggedDays.has(iso) };
+    const calc = calcMap.get(toApiDate(date));
+    if (calc) return cycleDayMarker(calc);
+    return schedule ? scheduleDayMarker(schedule, date, periodLength) : null;
   };
 }
 
-// Figma «TodayCalender»: white card (r12). Closed → weekday names + the
-// current week only. Open → the whole month grid, rows in calendar order.
-// Tapping a day selects it so the connected info card below shows that day.
-function WeekRow({
-  days, todayDay, selectedDay, loc, onSelect, markOf,
+// ── Week strip ─────────────────────────────────────────────────
+// The current week in the locale's grid order, each day a tall tile with its
+// cycle-marker dot. Tapping a day points the ring and the phase card at it.
+function WeekStrip({
+  days, loc, selectedIso, onSelect, markOf,
 }: {
-  days: (MonthCell | null)[];
-  todayDay: number;
-  selectedDay: number | null;
+  days: Date[];
   loc: Locale;
-  onSelect: (cell: MonthCell) => void;
-  markOf: (date: Date) => DayMark;
+  selectedIso: string;
+  onSelect: (date: Date) => void;
+  markOf: (date: Date) => CycleDayMarker | null;
 }) {
+  const todayIso = toApiDate(today());
+  const letters = weekdayLabels(loc);
   return (
-    <div className="home-week-row">
-      {days.map((cell, i) => {
-        const isToday = cell?.day === todayDay;
-        const isSelected = cell != null && cell.day === selectedDay && !isToday;
-        const { marker, intensity, isLogged } = cell ? markOf(cell.date) : NO_MARK;
-        const mk = marker ? cycleMarkerStyle[marker] : null;
-        const markerBg = marker ? cycleMarkerBg[marker][intensity] : null;
-        // A period marker the user hasn't logged is a prediction → hollow ring
-        // instead of a solid fill, exactly as on the calendar screen (§12).
-        const isPredicted = marker === 'period' && !isLogged;
-        // Today stays the prominent filled circle, but takes the phase's color so
-        // its marker isn't lost under the brand pink.
-        const todayFill = mk && !isPredicted ? mk.color : 'var(--brand)';
+    <div className="home-week">
+      {days.map((date, i) => {
+        const iso = toApiDate(date);
+        const isToday = iso === todayIso;
+        const isSelected = iso === selectedIso && !isToday;
         return (
-          <div key={i} className="home-day-slot">
-            <button
-              type="button"
-              className={clsx('home-day', isSelected && 'is-selected')}
-              disabled={!cell}
-              onClick={cell ? () => onSelect(cell) : undefined}
-              aria-pressed={isToday || isSelected}
-              // Data-driven only: which marker colour this specific day carries.
-              // The geometry lives in `.home-day` (CLAUDE.md §10).
-              style={
-                isToday
-                  ? { background: todayFill, color: 'var(--on-accent)', fontWeight: 700, boxShadow: '0 8px 16px -6px rgba(123,97,255,.6)' }
-                  : isSelected
-                    ? { background: markerBg ?? 'var(--surface-2)', color: mk?.color ?? 'var(--brand)', fontWeight: 700 }
-                    : cell && mk
-                      ? {
-                          background: isPredicted ? 'transparent' : markerBg ?? mk.bg,
-                          color: mk.color,
-                          fontWeight: 700,
-                          boxShadow: isPredicted ? `inset 0 0 0 1.5px ${mk.color}` : undefined,
-                        }
-                      : cell
-                        ? { background: 'var(--surface-3)', color: 'var(--ink-3)', fontWeight: 600 }
-                        : undefined
-              }
-            >
-              {cell ? localizeNum(cell.day, loc) : ''}
-            </button>
-          </div>
+          <button
+            key={iso}
+            type="button"
+            className={clsx('home-wday', isToday && 'is-today', isSelected && 'is-selected')}
+            onClick={() => onSelect(date)}
+            aria-pressed={iso === selectedIso}
+            aria-label={formatWeekdayDayMonth(date, loc)}
+          >
+            <span className="home-wday-name" aria-hidden>{letters[i]}</span>
+            <span className="home-wday-cell" aria-hidden>
+              {formatNumber(toParts(date, loc).day, loc)}
+              <span className={clsx('home-wday-dot', `is-${markOf(date) ?? 'none'}`)} />
+            </span>
+          </button>
         );
       })}
     </div>
   );
 }
 
-// Marker colour key shown under the expanded month grid — same items and
-// colours as the calendar screen's legend so both surfaces read alike.
-const LEGEND_KEYS: CycleDayMarker[] = ['pms', 'period', 'fertile', 'ovulation'];
+// ── Cycle ring ─────────────────────────────────────────────────
+// One dot per day of the cycle, clockwise from the top: day 1 at 12 o'clock.
 
-function CalendarLegend({ t }: { t: T }) {
-  return (
-    <div className="legend">
-      {LEGEND_KEYS.map(key => (
-        <span key={key} className="legend-item">
-          <span className="legend-dot" style={{ background: cycleMarkerStyle[key].color }} />
-          <span className="legend-label">{t(`legend.${key}`)}</span>
-        </span>
-      ))}
-    </div>
-  );
-}
-
-function WeekStrip({
-  calOpen, onToggle, loc, t, selectedDay, onSelect,
-}: {
-  calOpen: boolean;
-  onToggle: () => void;
-  loc: Locale;
-  t: T;
-  selectedDay: number | null;
-  onSelect: (cell: MonthCell) => void;
-}) {
-  const tj = todayParts(loc);
-  const weeks = useMemo(() => monthMatrix(tj.year, tj.month, loc), [tj.year, tj.month, loc]);
-  const monthLabel = formatMonthLabel(tj.year, tj.month, loc);
-  // Cycle colors for this month's days, shared with the calendar screen's cache.
-  const realCells = useMemo(
-    () => weeks.flat().filter((c): c is MonthCell => c !== null),
-    [weeks],
-  );
-  const markOf = useMonthMarks(realCells);
-  // Show the week that contains the selected day (falls back to today's week).
-  const selIdx = weeks.findIndex(w => w.some(c => c?.day === selectedDay));
-  const todayIdx = weeks.findIndex(w => w.some(c => c?.day === tj.day));
-  const currentIdx = Math.max(0, selIdx >= 0 ? selIdx : todayIdx);
-
-  return (
-    // Top half of the connected calendar↔info card unit — flat bottom so it
-    // butts against the pink info panel below (no own margin/radius).
-    <div className="home-cal">
-        <div className="home-cal-top">
-          <span className="home-cal-month">{monthLabel}</span>
-          {/* aria-expanded drives both the a11y state and the chevron rotation,
-              so the open state is declared once. */}
-          <button className="home-cal-toggle" onClick={onToggle} aria-expanded={calOpen}>
-            <span className="home-cal-toggle-label">
-              {calOpen ? t('week.close') : t('week.fullMonth')}
-            </span>
-            <Icon name="chevronDown" size={14} className="home-cal-chev" />
-          </button>
-        </div>
-
-        {/* weekday names — one header row for both states */}
-        <div className="home-weekdays">
-          {weekdayKeys(loc).map(k => (
-            <span key={k} className="home-weekday">
-              {t(`week.${k}`)}
-            </span>
-          ))}
-        </div>
-
-        {calOpen ? (
-          <div className="cal-drop home-weeks">
-            {weeks.map((week, i) => (
-              <WeekRow key={i} days={week} todayDay={tj.day} selectedDay={selectedDay} loc={loc} onSelect={onSelect} markOf={markOf} />
-            ))}
-            <CalendarLegend t={t} />
-          </div>
-        ) : (
-          <WeekRow days={weeks[currentIdx] ?? []} todayDay={tj.day} selectedDay={selectedDay} loc={loc} onSelect={onSelect} markOf={markOf} />
-        )}
-    </div>
-  );
-}
-
-// Icon per day-highlight badge on the pink info card. The pills themselves are
-// frosted white-on-brand (Apple material), so the icon shape — not a colour —
-// carries the identity; accents like amber/indigo never read well on the red.
-const HIGHLIGHT_ICONS: Record<CycleDayHighlight, IconName> = {
-  period: 'drop',
-  fertile: 'heart',
-  ovulation: 'sparkle',
-  pms: 'info',
-  period_tomorrow: 'calendar',
+const RING_CENTER = 150;
+const RING_RADIUS = 128;
+/** Dot radius per marker — the notable days sit larger than the quiet ones. */
+const DOT_RADIUS: Record<CycleDayMarker | 'none' | 'ahead', number> = {
+  period: 7,
+  fertile: 7,
+  ovulation: 8,
+  pms: 6,
+  none: 5,
+  ahead: 6,
 };
 
-// Frosted translucent pills that surface every notable state of the selected
-// day (fertile window, PMS, ovulation, imminent period) on top of the red card.
-function DayHighlights({ t, items }: { t: T; items: CycleDayHighlight[] }) {
-  if (items.length === 0) return null;
+interface RingDay {
+  marker: CycleDayMarker | null;
+  /** The day is still ahead of today — drawn hollow, as a prediction. */
+  ahead: boolean;
+}
+
+function CycleRing({
+  days, nowIndex, label, children,
+}: {
+  days: RingDay[];
+  /** Index of the selected day, or null when the cycle can't be placed. */
+  nowIndex: number | null;
+  label: string;
+  children: ReactNode;
+}) {
+  // useId() may contain characters a `url(#…)` reference can't carry.
+  const glowId = `ring-glow-${useId().replace(/[^\w-]/g, '')}`;
+  const count = Math.max(1, days.length);
+  // Long cycles pack the dots closer — shrink them before they touch.
+  const step = (2 * Math.PI * RING_RADIUS) / count;
+  const scale = Math.min(1, step / 18);
+  const at = (i: number) => {
+    const angle = -Math.PI / 2 + (i * 2 * Math.PI) / count;
+    return {
+      cx: (RING_CENTER + RING_RADIUS * Math.cos(angle)).toFixed(1),
+      cy: (RING_CENTER + RING_RADIUS * Math.sin(angle)).toFixed(1),
+    };
+  };
+  const now = nowIndex != null ? days[nowIndex] : undefined;
+  const nowKind = now?.marker ?? 'none';
+
   return (
-    <div className="home-highlights">
-      {items.map(code => (
-        <span key={code} className="home-highlight">
-          <Icon name={HIGHLIGHT_ICONS[code]} size={13} stroke="currentColor" />
-          {t(`dayStatus.${code}`)}
-        </span>
-      ))}
-    </div>
+    <>
+      <svg className="home-ring-svg" viewBox="0 0 300 300" role="img" aria-label={label}>
+        <defs>
+          <filter id={glowId}>
+            <feGaussianBlur stdDeviation="3" />
+          </filter>
+        </defs>
+        <circle className="home-ring-track" cx={RING_CENTER} cy={RING_CENTER} r={RING_RADIUS} />
+        {days.map((day, i) => {
+          if (i === nowIndex) return null;
+          const hollow = day.ahead && day.marker !== null;
+          const kind = hollow ? 'ahead' : (day.marker ?? 'none');
+          return (
+            <circle
+              key={i}
+              {...at(i)}
+              r={DOT_RADIUS[kind] * scale}
+              className={clsx('home-ring-dot', day.marker && `is-${day.marker}`, hollow && 'is-ahead')}
+            />
+          );
+        })}
+        {nowIndex != null && (
+          <>
+            <circle {...at(nowIndex)} r={16 * scale} className={clsx('home-ring-halo', `is-${nowKind}`)} filter={`url(#${glowId})`} />
+            <circle {...at(nowIndex)} r={10 * scale} className={clsx('home-ring-now', `is-${nowKind}`)} />
+          </>
+        )}
+      </svg>
+      <div className="home-ring-center">{children}</div>
+    </>
   );
 }
 
-// ── Next period hero card ──────────────────────────────────────
-function NextPeriodCard({
-  t, pred, highlights, daysUntilNextPeriod, cycleDay, cycleLength, nextPeriodDate, phaseLabel, phaseDesc, cardTitle, fertilityBadge, isToday, selectedDateLabel, showPhaseDetails, loading,
+// ── Phase card ─────────────────────────────────────────────────
+function PhaseCard({
+  t, title, dotKind, fertilityLabel, description, showMore, loading,
 }: {
   t: T;
-  pred: CyclePredictions | null;
-  highlights: CycleDayHighlight[];
-  /** Engine headline for the selected day (`daily_card.title`); falls back to the static label. */
-  cardTitle: string | null;
-  /** Engine fertility read-out for the day, styled exactly as on the day-status card. */
-  fertilityBadge: { label: string; style: FertilityBadgeStyle } | null;
-  daysUntilNextPeriod: number | null;
-  /** Day X of N, resolved by the engine (`cycle_view`) with a local fallback. */
-  cycleDay: number | null;
-  cycleLength: number | null;
-  nextPeriodDate: string | null;
-  phaseLabel: string;
-  phaseDesc: string;
-  isToday: boolean;
-  selectedDateLabel: string;
-  showPhaseDetails: boolean;
-  /** A tapped day's data is still in flight — blank the values out to dashes. */
+  title: string;
+  dotKind: CyclePhase | null;
+  /** Engine fertility read-out for the day — informational, never diagnostic (§11). */
+  fertilityLabel: string | null;
+  description: string;
+  /** The phase sheet reads today's live phase, so it's offered for today only. */
+  showMore: boolean;
   loading: boolean;
 }) {
-  const expanded = true;
-  const tLogPeriod = useTranslations('logPeriod');
-  const [dateEditorOpen, setDateEditorOpen] = useState(false);
-  const daysValue = daysUntilNextPeriod != null ? t('days', { n: daysUntilNextPeriod }) : t('unavailable');
-  // While the tapped day loads, every datum drops to its null/dash fallback
-  // instead of showing the previous day's numbers as if they were this day's.
-  const shownCycleDay = loading ? null : cycleDay;
-  const shownCycleLength = loading ? null : cycleLength;
-  // Ring fill = how far the selected day sits into its own cycle, same reading as
-  // the cycle screen's day donut (day X of N) rather than a bare fertility number.
-  const ringPct =
-    shownCycleDay != null && shownCycleLength
-      ? Math.min(100, Math.max(0, (shownCycleDay / shownCycleLength) * 100))
-      : 0;
   return (
-    // Bottom half of the connected calendar↔info unit — fills the wrapper
-    // (no own margin/radius); the wrapper owns the rounding + shadow.
-    <div className="home-hero">
-      {/* Fetch-in-flight overlay for a tapped day — indicator only, the values
-          underneath already read as dashes. */}
-      {loading && (
-        <div className="home-hero-busy" aria-hidden>
-          <span className="home-hero-busy-chip">
-            <Icon name="loader" size={20} className="home-hero-busy-icon" />
-          </span>
+    <section className={clsx('home-phase', loading && 'is-loading')}>
+      <div className="home-phase-top">
+        <div className="home-phase-name">
+          <span className={clsx('home-phase-dot', dotKind && `is-${dotKind}`)} />
+          <b>{title}</b>
         </div>
-      )}
-      {/* Which day the info below reflects — updates as the user taps a day. */}
-      <div className="home-hero-daybar">
-        <span className="home-hero-daychip">
-          <Icon name="calendar" size={13} stroke="var(--on-accent)" />
-          {isToday ? t('selectedDay.today') : t('selectedDay.date', { date: selectedDateLabel })}
-        </span>
-        {!loading && fertilityBadge && (
-          // The badge alone reads as a bare "high/low"; the caption says what the
-          // level is *of* — a cycle-timing estimate, not a diagnosis.
-          <span className="home-hero-fert-group">
-            <span className="home-hero-fert-caption">{t('fertility.caption')}</span>
-            <span
-              className="home-hero-fert"
-              style={{ background: fertilityBadge.style.bg, color: fertilityBadge.style.fg }}
-            >
-              {fertilityBadge.label}
-            </span>
+        {!loading && fertilityLabel && (
+          <span className="home-phase-fert">
+            {t('fertility.caption')}
+            <span className="home-phase-fert-pill">{fertilityLabel}</span>
           </span>
         )}
       </div>
-
-      {/* Type ramp: small phase overline → the engine headline → state pills,
-          with the cycle-day ring sitting beside the whole stack. */}
-      <div className="home-hero-cols">
-        <div className="home-hero-left">
-          <div className="home-hero-overline">
-            {loading
-              ? t('unavailable')
-              : pred
-                ? t('nextPeriod.currentPhase', { phase: phaseLabel })
-                : t('nextPeriod.phase')}
-          </div>
-          <div className="home-hero-days">
-            {loading ? t('unavailable') : cardTitle || t('nextPeriod.label')}
-          </div>
-          <DayHighlights t={t} items={loading ? [] : highlights} />
-        </div>
-
-        {/* Cycle-day ring (ported from the cycle screen): the day number inside
-            a progress donut over a frosted core. */}
-        <div className="home-hero-right">
-          {/* Only the sweep angle (the datum) crosses inline; the gradient and
-              ring geometry live in the class. */}
-          <div
-            className="home-ring"
-            style={{ '--ring-sweep': `${ringPct * 3.6}deg` } as React.CSSProperties}
-          >
-            <div className="home-ring-core">
-              <span className="home-ring-day">
-                {shownCycleDay != null ? t('cycleDay.value', { n: shownCycleDay }) : t('unavailable')}
-              </span>
-              <span className="home-ring-of">
-                {shownCycleLength != null ? t('cycleDay.ofN', { n: shownCycleLength }) : t('cycleDay.label')}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {phaseDesc && (
-          <div className="home-phase-desc">
-            {loading ? t('unavailable') : phaseDesc}
-          </div>
+      <p className="home-phase-text">{loading ? t('unavailable') : description}</p>
+      {showMore && (
+        // The sheet reads the phase from live cycle data, never from the URL (§11).
+        <button type="button" className="home-phase-more" onClick={() => openSheet('phase')}>
+          {t('phaseCard.more')}
+          <Icon name="chevronLeft" size={15} strokeWidth={2.2} className="home-phase-more-chev" />
+        </button>
       )}
-
-      {/* Deep-link into the phase's full educational content (ported from the
-          cycle screen). Only once the engine has a confident sub-phase; the
-          target reads the phase from live cycle data, never from the URL (§11).
-          Always rendered so the open/close animates; kept out of the tab order
-          while collapsed. */}
-      {showPhaseDetails && (
-        <div className={clsx('home-cta-reveal', expanded && 'is-open')} aria-hidden={!expanded}>
-          <div className="home-cta-reveal-inner home-cta-row">
-            <button
-              type="button"
-              onClick={() => openSheet('phase')}
-              className="home-phase-cta home-cta-half"
-              tabIndex={expanded ? undefined : -1}
-            >
-              <Icon name="info" size={15} /> {t('phaseDetailsCta')}
-            </button>
-            <button
-              type="button"
-              onClick={() => setDateEditorOpen(true)}
-              className="home-phase-cta home-cta-half"
-              tabIndex={expanded ? undefined : -1}
-            >
-              <Icon name="pencil" size={15} /> {tLogPeriod('dateEditor.open')}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* The date editor rises over the home screen itself (CLAUDE.md §4.1) —
-          it used to route to the calendar with ?editDates=1, which made the
-          sheet arrive one screen late. It portals to `.app-shell`, so mounting
-          it here still covers the whole screen. */}
-      <PeriodDateEditor
-        open={dateEditorOpen}
-        onClose={() => setDateEditorOpen(false)}
-      />
-
-    </div>
+    </section>
   );
 }
 
@@ -801,26 +628,26 @@ export function HomePage() {
   // date-driven, so it renders only after mount; its data is client-fetched
   // anyway, so nothing meaningful is lost from the prerendered HTML.
   const mounted = useMounted();
-  const [calOpen, setCalOpen] = useState(false);
+  const [dateEditorOpen, setDateEditorOpen] = useState(false);
   // The §12 sync nudge edits the profile in place, in the same bottom sheet the
   // profile screen uses for cycle length — no detour through /profile/health.
   const [cycleSheetOpen, setCycleSheetOpen] = useState(false);
-  // The day the user tapped in the mini calendar (defaults to today). Only the
-  // connected info card reflects it; the rest of the page stays on today.
+  // The day the user tapped in the week strip (defaults to today). Only the
+  // ring and the phase card reflect it; the rest of the page stays on today.
   const [selectedDate, setSelectedDate] = useState<Date>(() => today());
 
   // Server state (§8) — cycle math + personalized message for today.
   const todayQuery = useCycleToday();
   const todayData = todayQuery.data;
   const { data: daily } = useDailyMessage();
-  const recalc = useRecalculateCycle();
+  const profileQuery = useUserProfile();
 
   const calc = todayData?.calculation ?? null;
   const pred = calc ? deriveCyclePredictions(calc) : null;
 
   // While the backend recalculates, poll status and refetch today's calc once it
   // settles, so the page reflects the fresh result without a manual reload.
-  const recalculating = Boolean(todayData?.isRecalculating) || recalc.isPending;
+  const recalculating = Boolean(todayData?.isRecalculating);
   // Only asked while a recalculation is in flight — on a normal cold load the
   // status is never read, and skipping it saves a request + CORS preflight.
   const { data: cycleStatus } = useCycleStatus({ poll: recalculating, enabled: recalculating });
@@ -869,15 +696,9 @@ export function HomePage() {
   const message: DailyMessage | undefined = daily;
   const dos = message?.primary.dos ?? [];
 
-  // ── Selected-day info for the connected calendar↔info card ──
+  // ── Selected-day info for the ring and the phase card ──
   const selApiDate = toApiDate(selectedDate);
   const isToday = selApiDate === toApiDate(base);
-  const selParts = toParts(selectedDate, loc);
-  const monthParts = todayParts(loc);
-  const selectedDay =
-    selParts.year === monthParts.year && selParts.month === monthParts.month
-      ? selParts.day
-      : null;
 
   // A tapped past/future day loads its own calculation + message; today reuses
   // the queries above (same cache keys — no extra fetch).
@@ -886,7 +707,6 @@ export function HomePage() {
 
   const infoCalc = (isToday ? todayData : dateData)?.calculation ?? null;
   const infoPred = infoCalc ? deriveCyclePredictions(infoCalc) : null;
-  const infoHighlights = infoCalc ? deriveDayHighlights(infoCalc) : [];
 
   // The countdown measures the selected day against *its own* cycle's predicted
   // start: the engine's anchors for that day once they load (a past day then
@@ -896,45 +716,34 @@ export function HomePage() {
     (isToday ? null : deriveCycleSchedule(dateData?.cycleView ?? null, dateData?.calculation ?? null)) ??
     (schedule ? cycleScheduleFor(schedule, selectedDate) : null);
   // The engine's own read-out for the selected day — the very same `cycle_view`
-  // that renders the day-status card — so the hero can never disagree with it.
+  // that renders the day-status card — so the ring can never disagree with it.
   const infoView = (isToday ? todayData : dateData)?.cycleView ?? null;
   const infoDaysUntilNextPeriod =
     infoView?.daysToPeriod ??
     (selectedSchedule ? daysUntilNextPeriod(selectedSchedule, selectedDate) : null);
-  const infoNextPeriodStart =
-    infoView?.forecast?.nextPeriodStart
-      ? fromApiDate(infoView.forecast.nextPeriodStart)
-      : (selectedSchedule?.nextPeriodStart ?? null);
-  const infoNextPeriodDate = infoNextPeriodStart ? fmt(infoNextPeriodStart) : null;
   // Day X of N, again straight from the engine (falls back to the local derivation).
   const infoCycleDay = infoView?.cycleDay ?? infoPred?.cycleDay ?? null;
   const infoCycleLength =
     infoView?.effectiveValues.cycleLength ?? infoPred?.cycleLength ?? null;
-  const infoPhaseLabel = infoPred ? t(`phaseLabel.${infoPred.phase}`) : '';
-  // The line inside the hero is the engine's own day-status copy — the exact
-  // subtitle the day-status card shows (§19) — so the two never tell the user
-  // different things about the same day. Behind it: the personalized message for
-  // today, then a tense-neutral phase blurb (a tapped day must never say «امروز»).
-  // Headline + fertility badge of the engine's day-status card, reused verbatim.
-  const infoCardTitle = infoView?.dailyCard?.title || null;
-  const infoFertilityBadge = infoView?.dailyCard?.fertilityLabel
-    ? {
-        label: infoView.dailyCard.fertilityLabel,
-        style: fertilityBadgeStyle(infoView.dailyCard.fertilityLevel),
-      }
-    : null;
+  // The line under the phase title is the engine's own day-status copy — the
+  // exact subtitle the day-status card shows (§19) — so the two never tell the
+  // user different things about the same day. Behind it: the personalized
+  // message for today, then a tense-neutral phase blurb (a tapped day must
+  // never say «امروز»).
+  const infoFertilityLabel = infoView?.dailyCard?.fertilityLabel || null;
   const infoPhaseDesc =
     infoView?.dailyCard?.subtitle ||
     (isToday
       ? (infoMessage?.primary.shortMessage || t('nextPeriod.phaseDesc'))
       : (infoPred ? t(`phaseDescription.${infoPred.phase}`) : t('nextPeriod.phaseDesc')));
-  // Selecting a past/future day fetches its data; dim the card meanwhile so the
-  // placeholder values read as "loading", not as a broken empty state (§ loading).
+  // Selecting a past/future day fetches its data; dim the ring and the card
+  // meanwhile so the placeholder values read as "loading", not as a broken
+  // empty state (§ loading).
   const infoLoading = !isToday && dateFetching && !dateData;
   // First load: until today's calculation (and the banner slot above the
-  // timeline) has settled, the hero shows its loading state and nothing is
+  // timeline) has settled, the ring shows its loading state and nothing is
   // rendered below it. Content that appears is not a layout shift; content
-  // that is already on screen and gets pushed down by the hero growing or a
+  // that is already on screen and gets pushed down by the ring growing or a
   // banner landing is — that was the home CLS (perf baseline §1.4, §3 #5).
   // It also lets the below-the-fold reads (challenge, articles) start after
   // the critical ones instead of competing with them (§3 #8).
@@ -943,7 +752,68 @@ export function HomePage() {
   // query must never hold the page back.
   const booting =
     (todayQuery.isPending && todayQuery.fetchStatus === 'fetching') || !bannersSettled;
-  const selectedDateLabel = formatDayMonth(selectedDate, loc);
+  const loadingInfo = infoLoading || booting;
+
+  // ── The ring: the selected day's own cycle, day 1 at the top ──
+  const periodLength =
+    infoView?.effectiveValues.periodDuration ??
+    profileQuery.data?.health?.periodDuration ??
+    DEFAULT_PERIOD_DAYS;
+  const ringCycleDay =
+    infoCycleDay ??
+    (selectedSchedule ? diffInDays(selectedDate, selectedSchedule.cycleStart) + 1 : null);
+  // A late period runs past the expected length — the ring grows to hold it.
+  const ringLength = Math.max(
+    infoCycleLength ?? selectedSchedule?.cycleLength ?? DEFAULT_CYCLE_DAYS,
+    ringCycleDay ?? 1,
+  );
+  const ringStart = ringCycleDay != null ? addDays(selectedDate, -(ringCycleDay - 1)) : null;
+  const weekDays = weekOf(base, loc);
+  const ringDates = ringStart
+    ? Array.from({ length: ringLength }, (_, i) => addDays(ringStart, i))
+    : [];
+  const markOf = useDayMarks([...weekDays, ...ringDates], selectedSchedule, periodLength);
+  const ringDays = ringDates.map(date => ({
+    marker: markOf(date),
+    ahead: diffInDays(date, base) > 0,
+  }));
+  const ringNowIndex = ringStart && !loadingInfo ? diffInDays(selectedDate, ringStart) : null;
+
+  const inPeriod = infoPred?.phase === 'period';
+  const daysLeft = infoDaysUntilNextPeriod;
+  const dash = t('unavailable');
+  const ringOverline = inPeriod && !loadingInfo ? t('ring.period') : t('ring.nextPeriod');
+  const ringNumber = loadingInfo
+    ? dash
+    : inPeriod && infoCycleDay != null
+      ? t('ring.periodDay', { n: infoCycleDay })
+      : daysLeft == null
+        ? dash
+        : daysLeft === 0
+          ? t('ring.today')
+          : formatNumber(daysLeft, loc);
+  const ringUnit = !loadingInfo && !inPeriod && daysLeft != null && daysLeft > 0
+    ? t('ring.daysLeft', { n: daysLeft })
+    : null;
+  const ringSub = loadingInfo
+    ? null
+    : inPeriod
+      ? t('ring.usually', { n: periodLength })
+      : infoCycleDay != null
+        ? t('ring.cycleDay', { n: infoCycleDay })
+        : null;
+  const ringLabel = ringCycleDay != null
+    ? t('ring.label', { day: ringCycleDay, length: ringLength })
+    : t('ring.labelEmpty');
+
+  // ── The phase card ──
+  const nearPeriod = !inPeriod && daysLeft != null && daysLeft > 0 && daysLeft <= 2;
+  const phaseTitle = loadingInfo || !infoPred
+    ? dash
+    : nearPeriod
+      ? t('phaseCard.nearPeriod')
+      : t(`phaseCard.title.${infoPred.phase}`, { n: infoCycleDay ?? infoPred.cycleDay });
+  const phaseDot: CyclePhase | null = loadingInfo || !infoPred ? null : nearPeriod ? 'period' : infoPred.phase;
 
   // Server pass / first client render: backdrop only, so both sides match.
   if (!mounted) {
@@ -960,49 +830,45 @@ export function HomePage() {
       <div className="home-grad home-grad-fill" />
 
       <div className="scroll page-scroll">
-        <HomeHeader
-          tagline={t('tagline')}
-          onRecalculate={() => recalc.mutate()}
-          recalculating={recalculating}
-          recalculateLabel={t('recalculate')}
-        />
-        {recalculating && (
-          <div className="page-updating">
-            {t('updating')}
-          </div>
-        )}
-        {/* Connected unit: the mini calendar butts directly against the info
-            card below it, and tapping a day updates that card (§ home request). */}
-        <div className="home-cal-unit">
-          <div className="home-cal-shell">
-            <WeekStrip
-              calOpen={calOpen}
-              onToggle={() => setCalOpen(v => !v)}
-              loc={loc}
-              t={t}
-              selectedDay={selectedDay}
-              onSelect={(cell) => setSelectedDate(cell.date)}
-            />
-          </div>
-          <div className={clsx('home-cal-shell', infoLoading && 'is-loading')}>
-            <NextPeriodCard
-              t={t}
-              pred={infoPred}
-              highlights={infoHighlights}
-              daysUntilNextPeriod={infoDaysUntilNextPeriod}
-              cycleDay={infoCycleDay}
-              cycleLength={infoCycleLength}
-              nextPeriodDate={infoNextPeriodDate}
-              phaseLabel={infoPhaseLabel}
-              phaseDesc={infoPhaseDesc}
-              cardTitle={infoCardTitle}
-              fertilityBadge={infoFertilityBadge}
-              isToday={isToday}
-              selectedDateLabel={selectedDateLabel}
-              showPhaseDetails={isToday && Boolean(todayData?.cycleView?.subphase)}
-              loading={infoLoading || booting}
-            />
-          </div>
+        <div className="home-top">
+          <HomeHeader t={t} loc={loc} />
+          {recalculating && (
+            <div className="page-updating">
+              {t('updating')}
+            </div>
+          )}
+          <WeekStrip
+            days={weekDays}
+            loc={loc}
+            selectedIso={selApiDate}
+            onSelect={setSelectedDate}
+            markOf={markOf}
+          />
+          <section className={clsx('home-ring', loadingInfo && 'is-loading')}>
+            <div className="home-ring-glow" aria-hidden />
+            <CycleRing days={ringDays} nowIndex={ringNowIndex} label={ringLabel}>
+              <span className="home-ring-over">{ringOverline}</span>
+              <div className="home-ring-big">
+                <span className="home-ring-num">{ringNumber}</span>
+                {ringUnit && <span className="home-ring-unit">{ringUnit}</span>}
+              </div>
+              {ringSub && <span className="home-ring-sub">{ringSub}</span>}
+              {/* The date editor rises over the home screen itself (§4.1). */}
+              <button type="button" className="home-ring-edit" onClick={() => setDateEditorOpen(true)}>
+                <Icon name="pen" size={16} strokeWidth={2.2} />
+                {t('ring.editPeriod')}
+              </button>
+            </CycleRing>
+          </section>
+          <PhaseCard
+            t={t}
+            title={phaseTitle}
+            dotKind={phaseDot}
+            fertilityLabel={infoFertilityLabel}
+            description={infoPhaseDesc}
+            showMore={isToday && Boolean(todayData?.cycleView?.subphase)}
+            loading={loadingInfo}
+          />
         </div>
         {!booting && (
           <>
@@ -1088,6 +954,10 @@ export function HomePage() {
         }}
         onClose={() => setCycleSheetOpen(false)}
       />
+
+      {/* It portals to `.app-shell`, so mounting it here still covers the
+          whole screen. */}
+      <PeriodDateEditor open={dateEditorOpen} onClose={() => setDateEditorOpen(false)} />
 
       <BottomNav />
     </div>

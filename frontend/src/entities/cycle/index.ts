@@ -6,6 +6,7 @@ export {
   cycleScheduleFor,
   daysUntilNextPeriod,
   cycleProgressPercent,
+  scheduleDayMarker,
 } from './model/schedule';
 export type { CycleSchedule } from './model/schedule';
 export { cycleMarkerStyle, cycleMarkerBg, markerIntensityByDate } from './model/markers';
