@@ -582,6 +582,77 @@ paths:
                   topics: [{value: ultrasound, label: سونوگرافی}, {value: checkup, label: معاینه}, {value: lab, label: آزمایش}, {value: consult, label: مشاوره}, {value: vaccine, label: واکسن}, {value: other, label: سایر}]
                   remind_before: [{value: 1h, label: ۱ ساعت قبل}, {value: 3h, label: ۳ ساعت قبل}, {value: 1d, label: ۱ روز قبل}, {value: 2d, label: ۲ روز قبل}]
         '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/care/today:
+    get:
+      tags: [Care]
+      summary: Today's doses and the next appointment
+      description: |
+        The home «یادآورهای امروز» card in one request (3 queries). `doses` = one entry per slot of every **active**
+        medication whose weekday/start/end window covers `date`, sorted by slot (then reminder id); `taken` when a
+        `reminder_intakes` row exists for that reminder, date and slot. `title` = title + " " + subtitle (dose and unit)
+        when there is a subtitle. `next_appointment` = the earliest `scheduled` (not cancelled) appointment at or after
+        now — its reminder switch (`is_active`) does not matter — or null; it is relative to now, not to `date`.
+        `days_until` = civil days from today (Tehran). A malformed `date` → 422 on `date`.
+      operationId: getCareToday
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: date, in: query, required: false, description: "Default today (Tehran).", schema: {$ref: "#/components/schemas/Date"}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Today's reminders
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [date, doses, taken_count, total, next_appointment]
+                    properties:
+                      date: {$ref: "#/components/schemas/Date"}
+                      doses:
+                        type: array
+                        items:
+                          type: object
+                          required: [reminder_id, title, form, slot, taken]
+                          properties:
+                            reminder_id: {type: integer}
+                            title: {type: string}
+                            form: {type: string, enum: [tablet, capsule, syrup, injection, drops]}
+                            slot: {type: string, pattern: "^\\d{2}:\\d{2}$"}
+                            taken: {type: boolean}
+                      taken_count: {type: integer, minimum: 0}
+                      total: {type: integer, minimum: 0}
+                      next_appointment:
+                        oneOf:
+                          - type: "null"
+                          - type: object
+                            required: [id, kind, title, with, scheduled_at, days_until, location, remind_before]
+                            properties:
+                              id: {type: integer}
+                              kind: {type: string, enum: [in_person, phone, online]}
+                              title: {type: string}
+                              with: {type: [string, "null"]}
+                              scheduled_at: {type: string, description: "Tehran wall-clock `Y-m-d H:i:s`.", examples: ["2026-09-30 10:30:00"]}
+                              days_until: {type: integer}
+                              location: {type: [string, "null"]}
+                              remind_before: {type: string, enum: [1h, 3h, 1d, 2d]}
+              example:
+                success: true
+                data:
+                  date: "2026-09-23"
+                  doses:
+                    - {reminder_id: 12, title: فولیک اسید ۴۰۰ میکروگرم, form: tablet, slot: "08:00", taken: true}
+                    - {reminder_id: 12, title: فولیک اسید ۴۰۰ میکروگرم, form: tablet, slot: "20:00", taken: false}
+                  taken_count: 1
+                  total: 2
+                  next_appointment: {id: 40, kind: in_person, title: سونوگرافی NT, with: دکتر احمدی, scheduled_at: "2026-09-30 10:30:00", days_until: 7, location: مطب, remind_before: 1d}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/CareValidationFailed"}
   /api/v1/care/medications:
     get:
       tags: [Care]

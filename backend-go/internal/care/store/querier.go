@@ -29,6 +29,11 @@ type Querier interface {
 	// the structured fields are in `meta` (internal/care). Every query is scoped by user_id.
 	// Soonest first; the scope (upcoming/past/all) is applied by internal/care.
 	ListAppointments(ctx context.Context, userID uint64) ([]Reminder, error)
+	// Appointments at or after a moment, soonest first (GET /care/today's next_appointment);
+	// cancelled ones are skipped by internal/care.
+	ListAppointmentsFrom(ctx context.Context, arg ListAppointmentsFromParams) ([]Reminder, error)
+	// Every dose the user took on one day (GET /care/today); uses INDEX (user_id, intake_date).
+	ListIntakesOnDate(ctx context.Context, arg ListIntakesOnDateParams) ([]ListIntakesOnDateRow, error)
 	// Care reminders: medications (T-M3-01). Rows live in `reminders` with type = 'medication';
 	// the structured fields are in `meta` (internal/care). Every query is scoped by user_id.
 	ListMedications(ctx context.Context, userID uint64) ([]Reminder, error)

@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -42,9 +43,31 @@ const (
 var quiet = slog.New(slog.NewTextHandler(io.Discard, nil))
 
 type env struct {
-	db  *sql.DB
-	app *fiber.App
-	iss *passport.Issuer
+	db      *sql.DB
+	app     *fiber.App
+	iss     *passport.Issuer
+	queries *countingDB // SQL statements the care handlers ran
+}
+
+// countingDB counts the statements a handler sends (the /care/today query budget).
+type countingDB struct {
+	*sql.DB
+	n atomic.Int64
+}
+
+func (d *countingDB) ExecContext(ctx context.Context, q string, args ...any) (sql.Result, error) {
+	d.n.Add(1)
+	return d.DB.ExecContext(ctx, q, args...)
+}
+
+func (d *countingDB) QueryContext(ctx context.Context, q string, args ...any) (*sql.Rows, error) {
+	d.n.Add(1)
+	return d.DB.QueryContext(ctx, q, args...)
+}
+
+func (d *countingDB) QueryRowContext(ctx context.Context, q string, args ...any) *sql.Row {
+	d.n.Add(1)
+	return d.DB.QueryRowContext(ctx, q, args...)
 }
 
 func setup(t *testing.T) *env {
@@ -58,12 +81,14 @@ func setup(t *testing.T) *env {
 	q := authstore.New(db)
 	guard := auth.NewGuardWith(&key.PublicKey, q, clock.Real{}, quiet).RequireUser
 	locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(db), nil, quiet))
-	h := care.NewHandlers(db, clock.Real{})
+	counter := &countingDB{DB: db}
+	h := care.NewHandlers(counter, clock.Real{})
 	legacy := reminder.NewHandlers(db, clock.Real{})
 
 	app := fiber.New(fiber.Config{ErrorHandler: httpx.ErrorHandler(quiet)})
 	app.Use(clock.Middleware(clock.Real{}, true))
 	app.Get("/api/v1/care/enums", locale, guard, h.Enums)
+	app.Get("/api/v1/care/today", locale, guard, h.Today)
 	app.Get("/api/v1/care/medications", locale, guard, h.ListMedications)
 	app.Post("/api/v1/care/medications", locale, guard, h.StoreMedication)
 	app.Get("/api/v1/care/medications/:id", locale, guard, h.ShowMedication)
@@ -79,7 +104,7 @@ func setup(t *testing.T) *env {
 	app.Post("/api/v1/care/appointments/:id/cancel", locale, guard, h.CancelAppointment)
 	app.Patch("/api/v1/care/appointments/:id/prep/:itemId", locale, guard, h.TogglePrepItem)
 	app.Get("/api/v1/reminders", locale, guard, legacy.Index)
-	return &env{db: db, app: app, iss: passport.NewIssuer(key, q, clock.Real{}, 365)}
+	return &env{db: db, app: app, iss: passport.NewIssuer(key, q, clock.Real{}, 365), queries: counter}
 }
 
 func (e *env) user(t *testing.T, mobile string) (uint64, string) {

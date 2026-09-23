@@ -26,3 +26,10 @@ WHERE id = ? AND user_id = ? AND `type` = 'appointment';
 -- name: DeleteAppointment :execrows
 DELETE FROM `reminders`
 WHERE id = ? AND user_id = ? AND `type` = 'appointment';
+
+-- name: ListAppointmentsFrom :many
+-- Appointments at or after a moment, soonest first (GET /care/today's next_appointment);
+-- cancelled ones are skipped by internal/care.
+SELECT * FROM `reminders`
+WHERE user_id = ? AND `type` = 'appointment' AND scheduled_at >= ?
+ORDER BY scheduled_at ASC, id ASC;

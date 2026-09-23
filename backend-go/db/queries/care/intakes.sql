@@ -13,3 +13,8 @@ LIMIT 1;
 -- name: DeleteIntake :execrows
 DELETE FROM `reminder_intakes`
 WHERE reminder_id = ? AND user_id = ? AND intake_date = ? AND slot = ?;
+
+-- name: ListIntakesOnDate :many
+-- Every dose the user took on one day (GET /care/today); uses INDEX (user_id, intake_date).
+SELECT reminder_id, slot FROM `reminder_intakes`
+WHERE user_id = ? AND intake_date = ?;

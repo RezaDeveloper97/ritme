@@ -105,3 +105,42 @@ func (q *Queries) InsertIntake(ctx context.Context, arg InsertIntakeParams) (int
 	}
 	return result.RowsAffected()
 }
+
+const listIntakesOnDate = `-- name: ListIntakesOnDate :many
+SELECT reminder_id, slot FROM ` + "`" + `reminder_intakes` + "`" + `
+WHERE user_id = ? AND intake_date = ?
+`
+
+type ListIntakesOnDateParams struct {
+	UserID     uint64
+	IntakeDate civildate.Date
+}
+
+type ListIntakesOnDateRow struct {
+	ReminderID uint64
+	Slot       string
+}
+
+// Every dose the user took on one day (GET /care/today); uses INDEX (user_id, intake_date).
+func (q *Queries) ListIntakesOnDate(ctx context.Context, arg ListIntakesOnDateParams) ([]ListIntakesOnDateRow, error) {
+	rows, err := q.db.QueryContext(ctx, listIntakesOnDate, arg.UserID, arg.IntakeDate)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListIntakesOnDateRow{}
+	for rows.Next() {
+		var i ListIntakesOnDateRow
+		if err := rows.Scan(&i.ReminderID, &i.Slot); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

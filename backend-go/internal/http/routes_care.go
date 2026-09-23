@@ -19,6 +19,7 @@ func init() {
 		h := care.NewHandlers(d.DB, clock.Real{})
 
 		r.Get("/api/v1/care/enums", locale, guard, h.Enums)
+		r.Get("/api/v1/care/today", locale, guard, h.Today)
 		r.Get("/api/v1/care/medications", locale, guard, h.ListMedications)
 		r.Post("/api/v1/care/medications", locale, guard, h.StoreMedication)
 		r.Get("/api/v1/care/medications/:id", locale, guard, h.ShowMedication)

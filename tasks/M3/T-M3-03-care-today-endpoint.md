@@ -3,7 +3,7 @@ id: T-M3-03
 title: Care reminders — GET /care/today aggregate for the home card
 milestone: M3
 type: backend
-status: todo
+status: done
 depends_on: [T-M3-02]
 parallel_group: M3-C
 touches: [backend-go/db/queries/care, backend-go/internal/care, backend-go/internal/http/routes_care.go, backend-go/api/openapi.yaml]

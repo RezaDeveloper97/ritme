@@ -473,3 +473,10 @@ Nothing needed fixing.
   (flagged in `source_note`, README, migration headers).
 - Notes for T-M4-02/03: `EngineInputs` returns active types only (detail/admin need own queries); callers load
   birthday/pregnancy/cycle; column `key` must stay backticked.
+
+## T-M3-03 — Care reminders — GET /care/today aggregate for the home card
+- `internal/care/today.go` (+ unit/int tests, fixed clock), queries `ListIntakesOnDate`, `ListAppointmentsFrom`;
+  `GET /api/v1/care/today[?date=Y-m-d]`, exactly 3 queries (asserted via a counting DB wrapper); OpenAPI `getCareToday`.
+- Paused medications excluded; `next_appointment` = first scheduled future appointment (reminder off still counts,
+  cancelled never); `days_until`/`next_appointment` relative to now, not `?date=`.
+- Open: README example numbers are inconsistent (`total: 2` with one dose, `days_until: 8` for 7 days).
