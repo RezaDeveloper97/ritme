@@ -212,3 +212,12 @@ Nothing needed fixing.
 - Allow-list: `contract/allowlist/<group>.yaml`, each entry must reference a `D-nn` in deviations.md.
 - Locked quirks: premium `/messages/daily` 500 (D-11), `retry_after` 80, `token_unknown` → token_revoked.
 - Throttle-middleware 429 not recordable (`CACHE_STORE=array`); controller 429 is.
+
+## T-M2-13 — Cycle engine v1.1 library (metrics, resolver, view builder, daily card)
+- `internal/cycle/{model,metrics,resolver,view}`: ports of CycleMetricsCalculator, CycleStatusResolver (+ §35
+  `ToAPI()` key order), PhaseMapper, CycleDayViewBuilder, prediction/open-period services, daily card.
+- 61 PHP unit tests ported 1:1 (mapping tables in package docs); golden sweep test: 17 personas × fa/en × 60 days
+  = 2040 `cycle_view`s equal to Laravel (`contract/golden/cycle-sweep`).
+- `view.BaseCalc` interface is what the legacy engine result (T-M2-14) must implement.
+- Daily card keeps Laravel's hardcoded fa/en (`locale == "fa"`) — same behaviour, not a deviation.
+- Golden test duplicates the persona→user-id map from `cmd/contract/personas.go`.

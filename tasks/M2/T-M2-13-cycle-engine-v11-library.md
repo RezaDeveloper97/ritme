@@ -3,7 +3,7 @@ id: T-M2-13
 title: Cycle engine v1.1 library (metrics, resolver, view builder, daily card)
 milestone: M2
 type: backend
-status: todo
+status: done
 depends_on: [T-M2-04, T-M2-07]
 parallel_group: M2-E
 touches: [backend-go/internal/cycle/metrics, backend-go/internal/cycle/resolver, backend-go/internal/cycle/view, backend-go/internal/cycle/model]
