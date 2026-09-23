@@ -3,7 +3,7 @@ id: T-M2-21b
 title: i18n lang loader reads admin-created languages from storage (D-04)
 milestone: M2
 type: backend
-status: todo
+status: done
 depends_on: [T-M2-21]
 parallel_group: M2-G
 touches: [backend-go/internal/i18n/lang]

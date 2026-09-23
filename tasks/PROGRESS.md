@@ -348,3 +348,8 @@ Nothing needed fixing.
 - Language writes flush Go's registry and Laravel's `ritme-database-ritme-cache-languages.registry` (Redis DB 1).
 - New deviations D-14 (sanitize on write), D-15 (new default language copies old default), D-16 (banner link_url, kept).
 - Follow-ups: storage volume must be rw for backend-go (noted in T-M2-25); lang loader for storage bundles → T-M2-21b.
+
+## T-M2-21b — i18n lang loader reads admin-created languages from storage (D-04)
+- `internal/i18n/lang`: `WithStorage(STORAGE_PATH)` overlays `app/lang/<code>/<group>.json` per group (storage wins),
+  lazy per locale, reload on name/size/mtime change (checked ≤ 1/s), malformed files skipped + logged, locale regex-guarded.
+  `lang.Default()` wires it from `STORAGE_PATH`, so no caller changed.

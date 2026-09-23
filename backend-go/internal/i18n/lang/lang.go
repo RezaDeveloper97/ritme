@@ -4,11 +4,17 @@
 //
 // Only the PHP group files exist (validation, profile, cycle); there are no lang/<locale>.json
 // files in the Laravel app, so JSON-string keys are not supported.
+//
+// D-04: groups of admin-created languages live on the storage volume as
+// STORAGE_PATH/app/lang/<code>/<group>.json (written by internal/admin/languages). They are
+// overlaid on the embedded files per group (storage wins), loaded lazily per locale and
+// re-read when the directory's files change (see storage.go), so no restart is needed.
 package lang
 
 import (
 	"fmt"
 	"io/fs"
+	"os"
 	"path"
 	"sort"
 	"strings"
@@ -23,10 +29,12 @@ import (
 // lines are the last resort for every locale (fa, ar, …) that lacks a key.
 const FallbackLocale = "en"
 
-// Translator resolves translation keys. It is immutable and safe for concurrent use.
+// Translator resolves translation keys. It is safe for concurrent use: the embedded lines
+// are immutable and the optional storage overlay synchronises itself.
 type Translator struct {
 	lines    map[string]map[string]any // locale → group → decoded file
 	fallback string
+	storage  *storageOverlay // nil = embedded files only
 }
 
 // New loads every <locale>/<group>.json from fsys.
@@ -59,10 +67,13 @@ var defaultTranslator = sync.OnceValue(func() *Translator {
 	if err != nil {
 		panic(err) // embedded files are checked by the package tests
 	}
-	return t
+	// STORAGE_PATH is required by internal/platform/config, so it is set whenever the API
+	// runs; reading it here keeps Default() a drop-in for every caller.
+	return t.WithStorage(os.Getenv("STORAGE_PATH"))
 })
 
-// Default returns the translator over the embedded resources/lang files.
+// Default returns the translator over the embedded resources/lang files, overlaid with
+// STORAGE_PATH/app/lang when STORAGE_PATH is set.
 func Default() *Translator { return defaultTranslator() }
 
 // Get returns the line for key ("validation.custom.log_date.before_or_equal") in locale,
@@ -71,7 +82,7 @@ func Default() *Translator { return defaultTranslator() }
 func (t *Translator) Get(key, locale string) (any, bool) {
 	group, item, _ := strings.Cut(key, ".")
 	for _, loc := range []string{locale, t.fallback} {
-		file, ok := t.lines[loc][group]
+		file, ok := t.group(loc, group)
 		if !ok {
 			continue
 		}
@@ -89,6 +100,18 @@ func (t *Translator) Get(key, locale string) (any, bool) {
 		}
 	}
 	return nil, false
+}
+
+// group is the decoded <locale>/<group> file: the storage copy when there is one,
+// else the embedded one.
+func (t *Translator) group(locale, group string) (any, bool) {
+	if t.storage != nil {
+		if file, ok := t.storage.groups(locale)[group]; ok {
+			return file, true
+		}
+	}
+	file, ok := t.lines[locale][group]
+	return file, ok
 }
 
 // Trans is __($key, $params) in locale: the translated string with :placeholders
