@@ -418,3 +418,16 @@ Nothing needed fixing.
 - Hooks: `.claude/hooks/go-lint.sh` (golangci-lint fmt + lint gate per edited .go file).
 - Open: `backend-go/resources/translations` drifted from `frontend/messages` (home/profile/pwa) — syncing means
   re-recording the `public` goldens; a `make migrate` target would help.
+
+## T-M3-04 — Frontend — care-reminder entities, mutations, tokens, icons and i18n
+- `entities/care-reminder` (types, zod parsers tolerant of nested/flat `meta`, unknown enums → safe default,
+  `careKeys`, queries incl. `useCareToday`/`useCareEnums`), features `manage-medication`, `manage-appointment`,
+  `log-intake` (optimistic update of every cached `careKeys.today` for the date, rollback on error).
+- Tokens (light + dark): `--success(-soft)`, `--amber-tile(-ink)`, `--care-rose(-soft|-line)`, `--care-card-shadow`;
+  icons capsule/tablet/video/phone/mapPin/clock/bellRing/note; `care` namespace fa/en (+ `global.d.ts` typing).
+- Contract assumptions for T-M3-01/02: flat snake_case bodies; untick = `DELETE …/intakes?date=&slot=` (query);
+  prep toggle = `PUT /care/appointments/{id}` with the full `prep` list (apiClient has no PATCH).
+- Dev-only Next rewrites `DEV_CARE_API_ORIGIN` / `DEV_LEGACY_API_ORIGIN` (documented in `.env.example`).
+- Open: `care` must be added to `message-scopes.ts` by the first screen that uses it (T-M3-05..08; the scope test
+  requires exact usage); some copy not on artboards (empty/error states, duration labels) needs content review;
+  new tokens not yet in `lint:dark` pairs — run `/check-colors` when UI lands.

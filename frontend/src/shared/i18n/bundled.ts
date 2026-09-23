@@ -5,6 +5,7 @@ import enArticles from '../../../messages/en/articles.json';
 import enAuth from '../../../messages/en/auth.json';
 import enBanners from '../../../messages/en/banners.json';
 import enCalendar from '../../../messages/en/calendar.json';
+import enCare from '../../../messages/en/care.json';
 import enChallenge from '../../../messages/en/challenge.json';
 import enCommon from '../../../messages/en/common.json';
 import enCycle from '../../../messages/en/cycle.json';
@@ -28,6 +29,7 @@ import faArticles from '../../../messages/fa/articles.json';
 import faAuth from '../../../messages/fa/auth.json';
 import faBanners from '../../../messages/fa/banners.json';
 import faCalendar from '../../../messages/fa/calendar.json';
+import faCare from '../../../messages/fa/care.json';
 import faChallenge from '../../../messages/fa/challenge.json';
 import faCommon from '../../../messages/fa/common.json';
 import faCycle from '../../../messages/fa/cycle.json';
@@ -102,6 +104,7 @@ const bundled = {
     profileEdit: faProfileEdit,
     profileInfo: faProfileInfo,
     reminders: faReminders,
+    care: faCare,
     notifications: faNotifications,
     account: faAccount,
     log: faLog,
@@ -127,6 +130,7 @@ const bundled = {
     profileEdit: enProfileEdit,
     profileInfo: enProfileInfo,
     reminders: enReminders,
+    care: enCare,
     notifications: enNotifications,
     account: enAccount,
     log: enLog,

@@ -1,0 +1,202 @@
+{
+  "title": "Reminders",
+  "subtitle": "Medications & appointments",
+  "back": "Back",
+  "close": "Close",
+  "notifications": "Notifications",
+  "loading": "Loading reminders…",
+  "loadError": "Couldn't load your reminders. Please try again in a moment.",
+  "saveError": "Couldn't save. Please try again in a moment.",
+  "retry": "Retry",
+  "add": "Add",
+  "addReminder": "Add reminder",
+  "addNewReminder": "Add a new reminder",
+  "all": "All",
+  "home": {
+    "title": "Today's reminders",
+    "all": "All",
+    "add": "Add reminder",
+    "remindBefore": "Reminder {before}",
+    "nextAppointmentMeta": "{when} · {time} · {place}",
+    "nextAppointmentMetaNoPlace": "{when} · {time}",
+    "empty": "No reminders today."
+  },
+  "tabs": {
+    "all": "All",
+    "medications": "Medications",
+    "appointments": "Appointments"
+  },
+  "today": {
+    "title": "Today",
+    "progress": "{taken} of {total} taken",
+    "markTaken": "Mark {title} as taken",
+    "markNotTaken": "Unmark {title}",
+    "empty": "No doses due today."
+  },
+  "slotPeriod": {
+    "morning": "morning",
+    "noon": "noon",
+    "evening": "evening",
+    "night": "night"
+  },
+  "slotWithPeriod": "{time} {period}",
+  "medications": {
+    "title": "Medications & supplements",
+    "empty": "You haven't added any medications or supplements yet.",
+    "rowMeta": "{schedule} · {time} · {amount} {form}",
+    "everyDay": "Every day",
+    "everyOtherDay": "Every other day",
+    "daysPerWeek": "{count, plural, one {# day} other {# days}} a week",
+    "toggle": "Turn the {title} reminder on or off",
+    "delete": "Delete medication",
+    "confirmDelete": "Delete this reminder?"
+  },
+  "appointments": {
+    "title": "Appointments & consultations",
+    "empty": "No appointments yet.",
+    "rowMeta": "{time} · {kind} · {place}",
+    "rowMetaNoPlace": "{time} · {kind}",
+    "kindShort": {
+      "in_person": "In person",
+      "phone": "Phone",
+      "online": "Online"
+    }
+  },
+  "chooser": {
+    "title": "What should I remind you about?",
+    "medication": {
+      "title": "Medication or supplement",
+      "description": "Name, dose, times per day and times"
+    },
+    "appointment": {
+      "title": "Doctor's appointment",
+      "description": "In-person visit, ultrasound or lab test"
+    },
+    "consult": {
+      "title": "Medical consultation",
+      "description": "Phone call or online consultation"
+    },
+    "disclaimer": "Reminders only help you stay organised — they don't replace your doctor's instructions."
+  },
+  "medicationForm": {
+    "title": "Add medication",
+    "editTitle": "Edit medication",
+    "subtitle": "Dose reminder",
+    "name": "Medication or supplement name",
+    "namePlaceholder": "e.g. Folic acid",
+    "dose": "Dose",
+    "unit": "Unit",
+    "form": "Form",
+    "forms": {
+      "tablet": "Tablet",
+      "capsule": "Capsule",
+      "syrup": "Syrup",
+      "injection": "Injection",
+      "drops": "Drops"
+    },
+    "units": {
+      "mg": "mg",
+      "mcg": "mcg",
+      "ml": "ml",
+      "iu": "IU",
+      "drop": "drop"
+    },
+    "timesPerDay": "How many times a day?",
+    "timesOption": "{count}×",
+    "slotTimes": "Dose times",
+    "slotLabel": "Dose {n}",
+    "weekdays": "Days of the week",
+    "weekdayShort": {
+      "0": "Sa",
+      "1": "Su",
+      "2": "Mo",
+      "3": "Tu",
+      "4": "We",
+      "5": "Th",
+      "6": "Fr"
+    },
+    "everyDay": "Every day",
+    "amount": "Amount per dose",
+    "decrease": "Less",
+    "increase": "More",
+    "startsOn": "Starting",
+    "todayWithDate": "Today · {date}",
+    "pickDate": "Pick a date",
+    "duration": "Duration",
+    "durations": {
+      "ongoing": "No end date",
+      "until_date": "Until a set date",
+      "pregnancy_end": "Until the end of pregnancy"
+    },
+    "endsOn": "Until",
+    "change": "Change",
+    "notify": "Phone notification",
+    "notifyHint": "At each dose time",
+    "notes": "Note",
+    "notesPlaceholder": "e.g. after meals",
+    "save": "Save reminder",
+    "saving": "Saving…"
+  },
+  "appointmentForm": {
+    "title": "Add appointment",
+    "editTitle": "Edit appointment",
+    "subtitle": "Doctor's appointment or consultation",
+    "kinds": {
+      "in_person": "In-person visit",
+      "phone": "Phone consultation",
+      "online": "Online consultation"
+    },
+    "with": "With whom?",
+    "withPlaceholder": "Doctor or counsellor name",
+    "specialty": "Specialty",
+    "specialtyPlaceholder": "e.g. OB-GYN, nutrition",
+    "topic": "What is it about?",
+    "topics": {
+      "ultrasound": "Ultrasound",
+      "checkup": "Check-up",
+      "lab": "Lab test",
+      "consult": "Consultation",
+      "vaccine": "Vaccine",
+      "other": "Other"
+    },
+    "shortDescription": "Short description",
+    "date": "Date",
+    "time": "Time",
+    "place": "Place",
+    "placePlaceholder": "Clinic address or meeting link",
+    "remindBefore": "Remind me before",
+    "remindOptions": {
+      "1h": "1 hour before",
+      "3h": "3 hours before",
+      "1d": "1 day before",
+      "2d": "2 days before"
+    },
+    "addToCalendar": "Add to phone calendar",
+    "addToCalendarHint": "Google / iOS Calendar",
+    "prep": "Things to prepare",
+    "prepPlaceholder": "e.g. previous test results, insurance booklet…",
+    "save": "Save appointment",
+    "saving": "Saving…"
+  },
+  "appointmentDetail": {
+    "title": "Appointment details",
+    "daysUntil": "{days, plural, =0 {Today} =1 {Tomorrow} one {In # day} other {In # days}}",
+    "pregnancyWeek": "Pregnancy week {week}",
+    "weekdayAt": "{weekday} · at",
+    "with": "With",
+    "about": "About",
+    "place": "Place",
+    "directions": "Directions",
+    "reminder": "Reminder",
+    "reminderAt": "{before} · {date} at {time}",
+    "reminderToggle": "Turn the appointment reminder on or off",
+    "prepTitle": "Before the appointment",
+    "addToCalendar": "Add to calendar",
+    "edit": "Edit appointment",
+    "cancel": "Cancel appointment",
+    "cancelled": "Cancelled",
+    "confirmCancel": "Cancel this appointment?",
+    "confirmCancelYes": "Yes, cancel it",
+    "confirmCancelNo": "No"
+  }
+}

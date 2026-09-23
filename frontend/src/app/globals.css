@@ -137,6 +137,23 @@
   --blue:        #19BFE8;
   --blue-soft:   #E3F6FD;
 
+  /* ── Care reminders (M3, docs/care-reminders/README.md "Colors") ──
+     Most design colours map onto existing tokens: page → --page, card →
+     --surface, field/chip → --surface-2, line → --line, text → --ink, muted →
+     --muted, secondary → --ink-3, brand fill → --brand-fill, brand link/icon →
+     --brand-strong, brand soft tile/selected chip → --pink-bg, teal (capsule,
+     online) → --teal-deep on --data-soft, sheet scrim → --scrim. Only the pairs
+     with no fitting token live here, with the nbd_ artboards' dark values.
+     Rose is the design's iron/cancel hue — NOT the period red (§10.2). */
+  --success:          #0F7B6C;  /* taken check / "۱ از ۲ مصرف شد" */
+  --success-soft:     #E7F8EF;
+  --amber-tile:       #FFF3DF;  /* appointment date tile */
+  --amber-tile-ink:   #B45309;
+  --care-rose:        #C42D57;  /* iron tile icon, cancel text */
+  --care-rose-soft:   #FDE4EB;
+  --care-rose-line:   #F9C3D0;  /* cancel button border */
+  --care-card-shadow: 0 18px 34px -20px rgba(93, 71, 214, .35);
+
   /* ── Cycle marker intensity ramp (calendar day cells) ──
      Each marker tint gets a faint and a strong step around its base tint,
      graded by the day's conception probability. Derived with color-mix from
@@ -239,6 +256,16 @@
   --teal-tint:   #0F3140;
   --orange-soft: #3A2519;
   --blue-soft:   #14293A;
+
+  /* Care reminders (M3) — values from the nbd_v13 artboards. */
+  --success:          #7FE0A8;
+  --success-soft:     #1F3A2E;
+  --amber-tile:       #3A2F1E;
+  --amber-tile-ink:   #FFC98A;
+  --care-rose:        #FF8FA3;
+  --care-rose-soft:   #3A2140;
+  --care-rose-line:   #6B3A4D;
+  --care-card-shadow: 0 18px 34px -20px rgba(0, 0, 0, .7);
 
   --brand-line:      #5A4BA8;
   --brand-line-soft: #3A3060;

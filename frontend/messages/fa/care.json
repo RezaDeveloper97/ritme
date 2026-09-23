@@ -1,0 +1,202 @@
+{
+  "title": "یادآورها",
+  "subtitle": "داروها و نوبت‌ها",
+  "back": "بازگشت",
+  "close": "بستن",
+  "notifications": "اعلان‌ها",
+  "loading": "در حال گرفتن یادآورها…",
+  "loadError": "یادآورها نیومد. یه‌کم بعد دوباره امتحان کن.",
+  "saveError": "ذخیره نشد. یه‌کم بعد دوباره امتحان کن.",
+  "retry": "دوباره",
+  "add": "افزودن",
+  "addReminder": "افزودن یادآور",
+  "addNewReminder": "افزودن یادآور جدید",
+  "all": "همه",
+  "home": {
+    "title": "یادآورهای امروز",
+    "all": "همه",
+    "add": "افزودن یادآور",
+    "remindBefore": "{before} یادآوری",
+    "nextAppointmentMeta": "{when} · ساعت {time} · {place}",
+    "nextAppointmentMetaNoPlace": "{when} · ساعت {time}",
+    "empty": "امروز یادآوری نداری."
+  },
+  "tabs": {
+    "all": "همه",
+    "medications": "داروها",
+    "appointments": "نوبت‌ها"
+  },
+  "today": {
+    "title": "امروز",
+    "progress": "{taken} از {total} مصرف شد",
+    "markTaken": "ثبت مصرف {title}",
+    "markNotTaken": "برداشتن تیک {title}",
+    "empty": "امروز دارویی برای مصرف نیست."
+  },
+  "slotPeriod": {
+    "morning": "صبح",
+    "noon": "ظهر",
+    "evening": "عصر",
+    "night": "شب"
+  },
+  "slotWithPeriod": "{time} {period}",
+  "medications": {
+    "title": "داروها و مکمل‌ها",
+    "empty": "هنوز دارو یا مکملی اضافه نکردی.",
+    "rowMeta": "{schedule} · {time} · {amount} {form}",
+    "everyDay": "هر روز",
+    "everyOtherDay": "یک روز در میان",
+    "daysPerWeek": "{count} روز در هفته",
+    "toggle": "روشن یا خاموش کردن یادآور {title}",
+    "delete": "حذف دارو",
+    "confirmDelete": "این یادآور حذف شود؟"
+  },
+  "appointments": {
+    "title": "نوبت‌ها و مشاوره‌ها",
+    "empty": "نوبتی ثبت نکردی.",
+    "rowMeta": "{time} · {kind} · {place}",
+    "rowMetaNoPlace": "{time} · {kind}",
+    "kindShort": {
+      "in_person": "حضوری",
+      "phone": "تلفنی",
+      "online": "آنلاین"
+    }
+  },
+  "chooser": {
+    "title": "چه چیزی را یادآوری کنم؟",
+    "medication": {
+      "title": "دارو یا مکمل",
+      "description": "نام، دوز، تعداد نوبت در روز و ساعت‌ها"
+    },
+    "appointment": {
+      "title": "نوبت پزشک",
+      "description": "ویزیت حضوری، سونوگرافی یا آزمایش"
+    },
+    "consult": {
+      "title": "مشاوره پزشکی",
+      "description": "تماس تلفنی یا مشاوره آنلاین"
+    },
+    "disclaimer": "یادآورها فقط برای کمک به نظم تو هستند و جای دستور پزشک را نمی‌گیرند."
+  },
+  "medicationForm": {
+    "title": "افزودن دارو",
+    "editTitle": "ویرایش دارو",
+    "subtitle": "یادآور مصرف",
+    "name": "نام دارو یا مکمل",
+    "namePlaceholder": "مثلاً فولیک اسید",
+    "dose": "دوز",
+    "unit": "واحد",
+    "form": "شکل دارو",
+    "forms": {
+      "tablet": "قرص",
+      "capsule": "کپسول",
+      "syrup": "شربت",
+      "injection": "آمپول",
+      "drops": "قطره"
+    },
+    "units": {
+      "mg": "میلی‌گرم",
+      "mcg": "میکروگرم",
+      "ml": "میلی‌لیتر",
+      "iu": "واحد",
+      "drop": "قطره"
+    },
+    "timesPerDay": "چند بار در روز؟",
+    "timesOption": "{count} بار",
+    "slotTimes": "ساعت نوبت‌ها",
+    "slotLabel": "نوبت {n}",
+    "weekdays": "روزهای هفته",
+    "weekdayShort": {
+      "0": "ش",
+      "1": "ی",
+      "2": "د",
+      "3": "س",
+      "4": "چ",
+      "5": "پ",
+      "6": "ج"
+    },
+    "everyDay": "هر روز",
+    "amount": "مقدار در هر نوبت",
+    "decrease": "کم",
+    "increase": "زیاد",
+    "startsOn": "شروع از",
+    "todayWithDate": "امروز · {date}",
+    "pickDate": "انتخاب تاریخ",
+    "duration": "مدت مصرف",
+    "durations": {
+      "ongoing": "بدون تاریخ پایان",
+      "until_date": "تا تاریخ مشخص",
+      "pregnancy_end": "تا پایان بارداری"
+    },
+    "endsOn": "تا تاریخ",
+    "change": "تغییر",
+    "notify": "اعلان روی گوشی",
+    "notifyHint": "سر ساعت هر نوبت",
+    "notes": "یادداشت",
+    "notesPlaceholder": "مثلاً بعد از غذا",
+    "save": "ذخیره یادآور",
+    "saving": "در حال ذخیره…"
+  },
+  "appointmentForm": {
+    "title": "افزودن نوبت",
+    "editTitle": "ویرایش نوبت",
+    "subtitle": "نوبت پزشک یا مشاوره",
+    "kinds": {
+      "in_person": "ویزیت حضوری",
+      "phone": "مشاوره تلفنی",
+      "online": "مشاوره آنلاین"
+    },
+    "with": "با چه کسی؟",
+    "withPlaceholder": "نام پزشک یا مشاور",
+    "specialty": "تخصص",
+    "specialtyPlaceholder": "مثلاً زنان و زایمان، تغذیه",
+    "topic": "در خصوص چه چیزی؟",
+    "topics": {
+      "ultrasound": "سونوگرافی",
+      "checkup": "ویزیت دوره‌ای",
+      "lab": "آزمایش",
+      "consult": "مشاوره",
+      "vaccine": "واکسن",
+      "other": "سایر"
+    },
+    "shortDescription": "توضیح کوتاه",
+    "date": "تاریخ",
+    "time": "ساعت",
+    "place": "محل",
+    "placePlaceholder": "آدرس مطب یا لینک جلسه",
+    "remindBefore": "یادآوری قبل از نوبت",
+    "remindOptions": {
+      "1h": "۱ ساعت قبل",
+      "3h": "۳ ساعت قبل",
+      "1d": "۱ روز قبل",
+      "2d": "۲ روز قبل"
+    },
+    "addToCalendar": "افزودن به تقویم گوشی",
+    "addToCalendarHint": "Google / iOS Calendar",
+    "prep": "چیزهایی که باید آماده کنم",
+    "prepPlaceholder": "مثلاً جواب آزمایش قبلی، دفترچه بیمه…",
+    "save": "ذخیره نوبت",
+    "saving": "در حال ذخیره…"
+  },
+  "appointmentDetail": {
+    "title": "جزئیات نوبت",
+    "daysUntil": "{days, plural, =0 {امروز} =1 {فردا} other {# روز دیگر}}",
+    "pregnancyWeek": "هفته {week} بارداری",
+    "weekdayAt": "{weekday} · ساعت",
+    "with": "با چه کسی",
+    "about": "در خصوص",
+    "place": "محل",
+    "directions": "مسیریابی",
+    "reminder": "یادآوری",
+    "reminderAt": "{before} · {date} ساعت {time}",
+    "reminderToggle": "روشن یا خاموش کردن یادآوری نوبت",
+    "prepTitle": "قبل از نوبت",
+    "addToCalendar": "افزودن به تقویم",
+    "edit": "ویرایش نوبت",
+    "cancel": "لغو نوبت",
+    "cancelled": "لغو شده",
+    "confirmCancel": "این نوبت لغو شود؟",
+    "confirmCancelYes": "بله، لغو شود",
+    "confirmCancelNo": "نه"
+  }
+}

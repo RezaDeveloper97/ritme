@@ -39,3 +39,7 @@ The Reminders/Add/Detail screens (T-M3-06…08) — links may 404 until they lan
 - Pixel-close to the artboard in light **and** dark (screenshots of both themes, fa + en, via the headless
   verification recipe); RTL and LTR correct; all targets ≥ 44px; switches/checks are real buttons with labels.
 - Unit test for dose-row state mapping; lint gates green.
+
+## Note from T-M3-04
+Register `care` in `frontend/src/app/message-scopes.ts` (`SHELL_NAMESPACES` if the AddChooser sheet lives in the
+shell, and on the route lists of screens using it) — the scope test requires the lists to match real usage.

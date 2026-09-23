@@ -67,8 +67,39 @@ const csp = [
   "frame-ancestors 'self'",
 ].join('; ');
 
+// Local dev only — split the API between two backends (M3 care reminders).
+// `/api/v1/care/*` exists only in backend-go, while the rest may still be
+// served by Laravel locally. Setting BOTH of these (server-only, never
+// NEXT_PUBLIC_) makes `next dev` proxy the API on its own origin:
+//
+//   DEV_CARE_API_ORIGIN=http://127.0.0.1:8020     # backend-go
+//   DEV_LEGACY_API_ORIGIN=http://127.0.0.1:8010   # Laravel (or 8020 too)
+//   NEXT_PUBLIC_API_BASE_URL=http://localhost:3000/api/v1  # this dev server
+//
+// The browser then calls same-origin `/api/v1/…` and Next forwards it — care
+// to Go, everything else to the legacy origin. Route handlers under `/api/`
+// (e.g. `/api/session/flag`) still win: rewrites run after the filesystem.
+// Ignored in production builds; stage/prod route `/api/v1/care/` in nginx
+// (T-M3-09).
+const devCareApiOrigin = isProd ? null : originOf(process.env.DEV_CARE_API_ORIGIN);
+const devLegacyApiOrigin = isProd ? null : originOf(process.env.DEV_LEGACY_API_ORIGIN);
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  ...(devCareApiOrigin && devLegacyApiOrigin
+    ? {
+        async rewrites() {
+          // First match wins: the care prefix must precede the catch-all.
+          return [
+            {
+              source: '/api/v1/care/:path*',
+              destination: `${devCareApiOrigin}/api/v1/care/:path*`,
+            },
+            { source: '/api/v1/:path*', destination: `${devLegacyApiOrigin}/api/v1/:path*` },
+          ];
+        },
+      }
+    : {}),
   // Emit a self-contained server bundle (.next/standalone) so the Docker
   // runtime image can ship without node_modules or the full source tree.
   output: 'standalone',

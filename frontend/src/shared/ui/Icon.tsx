@@ -9,7 +9,8 @@ export type IconName =
   | 'walk' | 'thermo' | 'glass' | 'stetho'
   | 'home' | 'bookOpen' | 'apple' | 'brain'
   | 'globe' | 'shield' | 'logout' | 'download' | 'trash' | 'search'
-  | 'sun' | 'contrast' | 'cog' | 'bellPlain' | 'pen';
+  | 'sun' | 'contrast' | 'cog' | 'bellPlain' | 'pen'
+  | 'capsule' | 'tablet' | 'video' | 'phone' | 'mapPin' | 'clock' | 'bellRing' | 'note';
 
 const PATHS: Record<IconName, string> = {
   bell:         '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
@@ -57,6 +58,15 @@ const PATHS: Record<IconName, string> = {
   cog:          '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
   bellPlain:    '<path d="M6 16V11a6 6 0 0112 0v5l2 2H4z"/><path d="M10 20a2 2 0 004 0"/>',
   pen:          '<path d="M4 20l4-1 10-10-3-3L5 16z"/>',
+  /* Care reminders (M3) — copied from the v13 artboards (docs/design/reminders-v13). */
+  capsule:      '<rect x="4" y="9" width="16" height="6" rx="3"/><path d="M12 9v6"/>',
+  tablet:       '<rect x="3" y="9" width="18" height="7" rx="3.5" transform="rotate(-35 12 12)"/><path d="M9 7l6 10"/>',
+  video:        '<rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3z"/>',
+  phone:        '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/>',
+  mapPin:       '<path d="M12 21s-6-5.5-6-11a6 6 0 0112 0c0 5.5-6 11-6 11z"/><circle cx="12" cy="10" r="2"/>',
+  clock:        '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  bellRing:     '<path d="M6 16V11a6 6 0 0112 0v5l2 2H4z"/><path d="M10 20a2 2 0 004 0"/><path d="M4 7a8 8 0 012-3M20 7a8 8 0 00-2-3"/>',
+  note:         '<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/>',
   /* Half-filled disc — the conventional "match the system appearance" mark. */
   contrast:     '<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"/>',
 };

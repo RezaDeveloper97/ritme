@@ -37,6 +37,18 @@ export default defineConfig([
     rules: { 'fsd/insignificant-slice': 'off' },
   },
   {
+    // Care-reminder mutation slices (M3). Consumed by the reminders screens
+    // and the home card — references coming FROM `screens` are invisible to
+    // steiger (same reason as the blocks above).
+    files: [
+      './src/features/manage-medication/**',
+      './src/features/manage-appointment/**',
+      './src/features/log-intake/**',
+      './src/entities/care-reminder/**',
+    ],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
     // `entities/cycle` is a canonical domain entity (CLAUDE.md §5) that will be
     // consumed by more screens as cycle/API wiring lands. Don't nag about it
     // having a single reference today.

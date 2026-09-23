@@ -3,7 +3,7 @@ id: T-M3-04
 title: Frontend — care-reminder entities, mutations, tokens, icons and i18n
 milestone: M3
 type: frontend
-status: todo
+status: done
 depends_on: []
 parallel_group: M3-A
 touches: [frontend/src/entities/care-reminder, frontend/src/features/manage-medication, frontend/src/features/manage-appointment, frontend/src/features/log-intake, frontend/src/app/globals.css, frontend/src/shared/ui/Icon.tsx, frontend/messages/fa, frontend/messages/en, frontend/src/shared/i18n, frontend/src/app/message-scopes.ts, frontend/next.config.ts]
