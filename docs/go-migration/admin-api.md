@@ -7,7 +7,8 @@ dashboard, users, admins); T-M2-21 adds content CRUD, uploads and languages on t
 Code: `backend-go/internal/admin/{httpadmin,auth,dashboard,users,admins}`, routes in
 `internal/http/routes_admin_core.go`, queries in `db/queries/admin/`. T-M2-21:
 `internal/admin/{content,content/form,media,messages,languages}`, routes in `internal/http/routes_admin_content.go`,
-queries in `db/queries/admin/content.sql` (endpoints in §11).
+queries in `db/queries/admin/content.sql` (endpoints in §11). T-M4-03: `internal/admin/checkups` (checkup-type
+catalog, §12).
 
 ## 1. Where it is served
 
@@ -55,6 +56,7 @@ Failure — every error the admin API itself produces:
 | 422 | `invalid_credentials` | login failed (same answer for unknown email, wrong password, inactive account) |
 | 422 | `cannot_modify_self` | demoting, deactivating or deleting your own admin account |
 | 422 | `default_language_protected` | deleting or deactivating the default language (T-M2-21) |
+| 422 | `in_use` | deleting a checkup type that users have records of (T-M4-03, §12); body has `records_count` |
 | 429 | `too_many_attempts` | login throttle; body has `retry_after` (seconds), header `Retry-After` |
 
 Validation (422) adds the Laravel error bag; messages are in the **default language** (the admin chain pins
@@ -297,3 +299,66 @@ names with an extension chosen from the detected type, written atomically inside
 covers are re-encoded (EXIF and any appended payload dropped), banners are stored as uploaded (like Laravel) but can
 only be served as `image/*`. Article HTML is sanitised on save (T-M2-10 sanitizer) and again on read. Language codes and
 namespaces are checked against strict patterns before any path is built.
+
+## 12. Checkup types (T-M4-03)
+
+Code: `backend-go/internal/admin/checkups`, routes in `internal/http/routes_admin_checkups.go`, queries in
+`db/queries/checkups/admin.sql` (generated into `internal/checkups/store`). Product contract:
+[`docs/checkups/README.md`](../checkups/README.md). Only the **shared catalog** (`user_id IS NULL`) is reachable: a
+user's custom checkup id answers 404 everywhere and is never listed, counted or reordered. The user API
+(`/api/v1/checkups…`) reads the same rows without a cache, so every change is live on its next request.
+
+`A` = any active admin (`editor` and `super`). All under `/api/admin/v1`; JSON bodies; mutating requests need
+`X-CSRF-Token` like every admin call. Create answers 201, everything else 200.
+
+| Method | Path | Who | Body / query | `data` |
+|---|---|---|---|---|
+| GET | `/checkup-types` | A | `q` (key / title, substring), `status=all\|active\|inactive`, `page`, `per_page` | list of `CheckupType` (sort_order, id) + `filters{q,status}` |
+| GET | `/checkup-types/options` | A | — | `{categories[], performed_by[], icons[], tones[], default_tone, default_remind_lead_days, max_steps, max_cycle_day, max_interval_months, next_sort_order}` (plain value lists; admin-web labels them) |
+| GET | `/checkup-types/stats` | A | — | `{items:[{id, key, title, category, is_active, records_total, users_with_records, records_last_30_days, overdue_users}] (sort order), window_days: 30, since, today}` |
+| POST | `/checkup-types/reorder` | A | `ids[]` — every catalog id exactly once, in the new order | `{items:[{id, sort_order}]}`; `sort_order` becomes 1…n (one transaction). Partial lists, duplicates, custom or unknown ids → 422 on `ids` / `ids.N` |
+| POST | `/checkup-types` | A | see *Fields* | `{checkup_type}` |
+| GET | `/checkup-types/:id` | A | — | `{checkup_type}` |
+| PUT | `/checkup-types/:id` | A | as POST without `key` (the key is fixed at creation — the frontend routes on it, e.g. `breast_self_exam`) | `{checkup_type}` |
+| DELETE | `/checkup-types/:id` | A | — | `{id}`; **422 `in_use`** (`records_count` in the body) while any user has a record of the type — deleting would cascade to users' health records, so admin-web offers *deactivate* (`is_active: false`) instead. User settings rows of a deleted type go with it |
+
+Fields (`T` = `{code: text}` over the active languages; unlike §11, **every active language is required** for a
+translatable text that is sent — the catalog is shown in each of them; other codes are dropped):
+
+| Field | Rules |
+|---|---|
+| `key` | create only; required, `^[a-z][a-z0-9_]*$`, ≤ 64, unique (seeded keys included) |
+| `title` | T, required |
+| `subtitle` (≤ 255), `why` (≤ 2000) | T, optional; `null` clears |
+| `category` | required: `monthly`, `six_monthly`, `annual`, `multi_year`, `age_based` (`custom` is users' own) |
+| `performed_by` | required: `self`, `doctor`, `lab`, `dentist` |
+| `icon` | optional, one of `options.icons` (the names `frontend/src/entities/checkup/model/icon.ts` resolves) |
+| `tone` | optional: `rose`, `violet`, `amber`, `teal`, `green`, `neutral`; missing/null → `neutral` |
+| `interval_months` | required integer 1–120 |
+| `interval_months_max` | optional 1–120, ≥ `interval_months` (a range: due from the minimum, overdue after the maximum) |
+| `age_min`, `age_max` | optional 0–120, `age_max ≥ age_min` |
+| `cycle_day_from`, `cycle_day_to` | optional 1–45, both or neither (`required_with`), `to ≥ from` |
+| `remind_lead_days` | optional 0–365; missing/null → 7 |
+| `prep_steps` | optional list ≤ 10 of T (each item: every active language, ≤ 500) |
+| `guide_steps` | optional list ≤ 10 of `{title: T (≤ 120), body: T (≤ 1000)}` |
+| `finding_options` | optional list ≤ 10 of `{key (^[a-z][a-z0-9_]*$, ≤ 40, distinct), exclusive?: bool, label: T (≤ 120)}`; `exclusive` is stored only when true |
+| `hide_in_pregnancy`, `is_active` | `$request->boolean()`: absent = `false` (send both on every save) |
+| `sort_order` | optional integer; create default = last + 1 |
+| `source_note` | optional string ≤ 1000 (medical-review note) |
+
+On update an optional field that is **absent keeps its stored value**; `null` (or `[]` for a list) clears it. The
+range checks compare against the stored value of an absent field. An empty list is stored as SQL `NULL` and always
+answered as `[]`.
+
+`CheckupType` = the `checkup_types` columns (`id, key, category, title, subtitle, why, performed_by, icon, tone,
+interval_months, interval_months_max, age_min, age_max, cycle_day_from, cycle_day_to, remind_lead_days, prep_steps,
+guide_steps, finding_options, hide_in_pregnancy, is_active, sort_order, source_note`) + `records_count` (records of
+all users) + `created_at`, `updated_at` (ISO 8601).
+
+Stats: `records_last_30_days` counts records with `done_on ≥ today − 30`. `overdue_users` counts users whose
+**latest** record of the type is past its due-by date — `next_due_on` (user override) ?? `done_on +
+(interval_months_max ?? interval_months)` months — before today, leaving out users who switched the type off. It is
+the calendar approximation of the engine's `overdue` (cycle windows, age and pregnancy are not evaluated per user);
+users who never recorded the type are not counted.
+
+Audit lines: `checkup_type.create|update|delete|reorder` (target `checkup_type`).

@@ -6,16 +6,41 @@ package store
 
 import (
 	"context"
+	"database/sql"
+
+	"github.com/ritme/backend-go/internal/platform/civildate"
 )
 
 type Querier interface {
+	AdminCheckupTypeKeyExists(ctx context.Context, key sql.NullString) (bool, error)
+	// Per catalog type: users whose latest record (ties → higher id) is past its due-by date, i.e.
+	// next_due_on ?? done_on + (interval_months_max ?? interval_months) months (MariaDB clamps to the month
+	// end like the engine), strictly before `today`. Users who switched the type off are left out. This is
+	// the calendar approximation of the engine's `overdue` (it ignores cycle windows, age and pregnancy).
+	CheckupOverdueUsersByType(ctx context.Context, today civildate.NullDate) ([]CheckupOverdueUsersByTypeRow, error)
+	// Per catalog type with records: all records, distinct users, and records done on or after `since`.
+	CheckupRecordStatsByType(ctx context.Context, since civildate.Date) ([]CheckupRecordStatsByTypeRow, error)
+	// Checkups admin catalog (T-M4-03): /api/admin/v1/checkup-types. Every query is limited to the shared
+	// catalog (`user_id IS NULL`); users' custom checkups are never listed, shown, changed or counted here.
+	CountAdminCheckupTypes(ctx context.Context, arg CountAdminCheckupTypesParams) (int64, error)
+	CountCheckupRecordsOfType(ctx context.Context, checkupTypeID uint64) (int64, error)
+	CreateAdminCheckupType(ctx context.Context, arg CreateAdminCheckupTypeParams) (sql.Result, error)
+	// Atomic "refuse if records exist": the FK would otherwise cascade-delete users' records.
+	DeleteUnusedAdminCheckupType(ctx context.Context, arg DeleteUnusedAdminCheckupTypeParams) (sql.Result, error)
+	GetAdminCheckupType(ctx context.Context, id uint64) (CheckupType, error)
 	// Checkups (T-M4-01): the inputs of the status engine (internal/checkups/engine) for one user.
 	// Every query is scoped by user_id; the catalog query returns the shared rows plus the user's own
 	// custom checkups only.
 	ListActiveCheckupTypesForUser(ctx context.Context, userID int64) ([]CheckupType, error)
+	// The whole catalog in display order (reorder check, stats).
+	ListAdminCheckupTypeIDs(ctx context.Context) ([]uint64, error)
+	ListAdminCheckupTypes(ctx context.Context, arg ListAdminCheckupTypesParams) ([]CheckupType, error)
 	// Newest first per type (the engine reads the latest done_on and its next_due_on override).
 	ListCheckupRecordsForUser(ctx context.Context, userID uint64) ([]CheckupRecord, error)
 	ListCheckupSettingsForUser(ctx context.Context, userID uint64) ([]UserCheckupSetting, error)
+	NextAdminCheckupTypeSortOrder(ctx context.Context) (int64, error)
+	SetAdminCheckupTypeSortOrder(ctx context.Context, arg SetAdminCheckupTypeSortOrderParams) error
+	UpdateAdminCheckupType(ctx context.Context, arg UpdateAdminCheckupTypeParams) error
 }
 
 var _ Querier = (*Queries)(nil)

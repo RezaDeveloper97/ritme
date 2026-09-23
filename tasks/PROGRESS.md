@@ -497,3 +497,13 @@ Nothing needed fixing.
   warning + recalculation flag but no period start (same as health-logs); chance from resolver `fertility_level`
   (`unknown` → `level: null`, label «نامشخص»); `bbt` decimal string, `bbt_time` `HH:MM`.
 - Next goose number: 00005.
+
+## T-M4-03 — Checkups — admin API for the checkup-type catalog and stats
+- `internal/admin/checkups` (+ unit/int tests), `routes_admin_checkups.go` (self-registers), queries
+  `db/queries/checkups/admin.sql`; docs `admin-api.md` §12 (+ `in_use` error code).
+- Endpoints under `/api/admin/v1/checkup-types`: list (q/status/paging, `records_count`), `options`, `stats`,
+  `reorder` (full id list, tx), create/show/update/delete (delete refused with 422 `in_use` when records exist).
+  Custom user types are invisible (404). Translatable fields required in every active language.
+- Notes for T-M4-04: options are plain string lists (admin-web translates labels); send `is_active`/
+  `hide_in_pregnancy` on every save; `key` read-only after create; `overdue_users` is an approximation.
+- T-M4-02 should assert admin edits show up directly on `GET /api/v1/checkups/{id}`.

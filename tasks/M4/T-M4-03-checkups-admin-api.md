@@ -3,7 +3,7 @@ id: T-M4-03
 title: Checkups — admin API for the checkup-type catalog and stats
 milestone: M4
 type: backend
-status: todo
+status: done
 depends_on: [T-M4-01]
 parallel_group: M4-B
 touches: [backend-go/internal/admin/checkups, backend-go/internal/http/routes_admin_checkups.go, backend-go/db/queries/checkups, docs/go-migration/admin-api.md]

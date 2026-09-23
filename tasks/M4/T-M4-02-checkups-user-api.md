@@ -33,3 +33,7 @@ Every screen in `v14_*` reads or writes through these endpoints.
 `POST` record should return `{item, record}` (the frontend stores the on-device attachment under the record id; it
 falls back to refetching the detail if `record` is missing). Findings: "nothing different" option key `none` or
 `exclusive: true`.
+
+## Note from T-M4-03
+Add a test that an admin edit (T-M4-03) is visible immediately on `GET /api/v1/checkups/{id}`. Admin queries live in
+`db/queries/checkups/admin.sql`; put user-API queries in their own file.
