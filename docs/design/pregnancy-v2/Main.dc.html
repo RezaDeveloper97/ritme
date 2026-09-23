@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>امروز — حالت بارداری</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:Vazirmatn,Tahoma,sans-serif;color:#2F2F35;background:#F2ECFF}
+a{color:#6A4FE8;text-decoration:none}a:hover{color:#5B41E6}
+button{font-family:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #3DD6F3;outline-offset:2px}
+</style>
+</helmet>
+<div style="width:390px;height:1840px;position:relative;background:#F2ECFF;overflow:hidden;">
+
+<section style="position:relative;height:500px;color:#FFFFFF;overflow:hidden;border-radius:0 0 28px 28px;background:linear-gradient(180deg,#6A4FE8 0%,#5B41E6 100%);">
+<svg width="390" height="500" viewBox="0 0 390 500" aria-hidden="true" style="position:absolute;top:0;left:0;"><path d="M-20,60 C40,10 120,90 60,140 C10,180 -40,120 -20,60z" fill="#FFFFFF" opacity=".07"></path><path d="M300,-20 C380,0 420,80 360,110 C300,140 250,40 300,-20z" fill="#FFFFFF" opacity=".08"></path><path d="M330,360 C400,330 430,450 350,470 C290,480 280,390 330,360z" fill="#FFFFFF" opacity=".07"></path></svg>
+<div style="position:relative;padding:14px 16px 0;display:flex;flex-direction:column;align-items:center;gap:10px;">
+<div style="width:100%;display:flex;justify-content:space-between;align-items:center;">
+<span style="background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:0 12px;height:34px;display:inline-flex;align-items:center;font-size:12.5px;font-weight:700;">سه‌شنبه، ۳۱ شهریور</span>
+<a href="Alerts.dc.html" aria-label="هشدارها" style="width:44px;height:44px;border-radius:22px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;position:relative;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0112 0v5l1.5 2h-15z"></path><path d="M10 20a2 2 0 004 0"></path></svg><span style="position:absolute;top:9px;left:11px;width:8px;height:8px;border-radius:4px;background:#3DD6F3;border:2px solid #6A4FE8;"></span></a>
+</div>
+
+<div style="display:flex;gap:6px;">
+<span style="width:40px;height:56px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:13px;font-weight:700;background:rgba(255,255,255,.12);"><span style="font-size:10px;opacity:.85;">ش</span>۲۸</span>
+<span style="width:40px;height:56px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:13px;font-weight:700;background:rgba(255,255,255,.12);"><span style="font-size:10px;opacity:.85;">ی</span>۲۹</span>
+<span style="width:40px;height:56px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:13px;font-weight:700;background:rgba(255,255,255,.12);"><span style="font-size:10px;opacity:.85;">د</span>۳۰</span>
+<span aria-current="date" style="width:40px;height:56px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:13px;font-weight:900;background:#FFFFFF;color:#5B41E6;"><span style="font-size:10px;">س</span>۳۱</span>
+<span style="width:40px;height:56px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:13px;font-weight:700;border:1px dashed rgba(255,255,255,.45);"><span style="font-size:10px;opacity:.85;">چ</span>۱</span>
+<span style="width:40px;height:56px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:13px;font-weight:700;border:1px dashed rgba(255,255,255,.45);"><span style="font-size:10px;opacity:.85;">پ</span>۲</span>
+<span style="width:40px;height:56px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:13px;font-weight:700;border:1px dashed rgba(255,255,255,.45);"><span style="font-size:10px;opacity:.85;">ج</span>۳</span>
+</div>
+
+<div style="font-size:13px;font-weight:700;margin-top:4px;">{{w.tri}}</div>
+<div style="width:100%;display:flex;align-items:center;justify-content:space-between;">
+<button aria-label="هفتهٔ قبل" onClick="{{prev}}" style="width:44px;height:44px;border:none;background:transparent;display:flex;align-items:center;justify-content:center;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button>
+<div style="font-size:30px;font-weight:900;line-height:1.3;">{{w.title}}</div>
+<button aria-label="هفتهٔ بعد" onClick="{{next}}" style="width:44px;height:44px;border:none;background:transparent;display:flex;align-items:center;justify-content:center;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></button>
+</div>
+<sc-if value="{{isToday}}" hint-placeholder-val="{{true}}">
+<span style="display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:16px;background:#E3F9FE;color:#0C6F89;font-size:12px;font-weight:800;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0C6F89" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16.5v.01"></path></svg>دقت تخمین: متوسط · حدود ±۵ روز</span>
+</sc-if>
+<sc-if value="{{notToday}}" hint-placeholder-val="{{false}}">
+<button onClick="{{today}}" style="height:32px;background:#FFFFFF;color:#5B41E6;border:none;border-radius:16px;padding:0 14px;font-size:12px;font-weight:800;">بازگشت به امروز</button>
+</sc-if>
+<div style="margin-top:2px;"><svg width="136" height="136" viewBox="0 0 150 150" aria-hidden="true"><circle cx="75" cy="75" r="68" fill="#FFFFFF" opacity=".12"></circle><circle cx="75" cy="75" r="54" fill="#FFD9E9"></circle><circle cx="75" cy="75" r="54" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-dasharray="4 7" opacity=".8"></circle><path d="M58,98 C52,70 70,50 90,56 C108,62 110,86 96,98 C86,106 70,108 58,98z" fill="#FF8FC0"></path><circle cx="88" cy="66" r="12" fill="#FF6FAE"></circle><circle cx="92" cy="63" r="3" fill="#FFFFFF"></circle></svg></div>
+<div style="font-size:14px;font-weight:700;">{{w.size}}</div>
+<a href="Week.dc.html" style="color:#FFFFFF;height:40px;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:800;">مرور هفته‌ها<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></a>
+</div></section>
+
+<div style="padding:16px 16px 110px;display:flex;flex-direction:column;gap:14px;">
+
+<section style="background:#FFFFFF;border:1px solid #E7E1F4;border-radius:18px;padding:16px 14px;display:flex;flex-direction:column;gap:12px;">
+<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+<div><div style="font-size:11.5px;color:#6F6F78;font-weight:700;">تاریخ تقریبی زایمان</div><b style="font-size:19px;">۱۱ اردیبهشت ۱۴۰۶</b><div style="font-size:12px;color:#4E4E59;font-weight:600;margin-top:2px;">۲۲۱ روز تا زایمان · بازهٔ معمول ۲۸ فروردین تا ۲۵ اردیبهشت</div></div>
+<a href="Setup.dc.html" aria-label="ویرایش مبنای محاسبه" style="width:44px;height:44px;border-radius:12px;background:#F4F0FF;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6A4FE8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10-10-4-4L4 16z"></path><path d="M12.5 7.5l4 4"></path></svg></a>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px;">
+<div style="height:8px;border-radius:4px;background:#E7E1F4;overflow:hidden;display:flex;"><span style="width:21%;background:linear-gradient(135deg,#7B61FF 0%,#FF6FAE 100%);border-radius:4px;"></span></div>
+<div style="display:flex;justify-content:space-between;font-size:11.5px;font-weight:700;color:#4E4E59;"><span>هفتهٔ ۸ از ۴۰</span><span>۲۱٪ از مسیر رو اومدی</span></div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;">
+<div style="display:flex;flex-direction:column;gap:5px;"><span style="height:6px;border-radius:3px;background:#E7E1F4;overflow:hidden;display:flex;"><span style="width:62%;background:#7B61FF;"></span></span><span style="font-size:11px;font-weight:700;color:#2F2F35;text-align:center;">سه‌ماههٔ اول</span></div>
+<div style="display:flex;flex-direction:column;gap:5px;"><span style="height:6px;border-radius:3px;background:#E7E1F4;"></span><span style="font-size:11px;font-weight:700;color:#6F6F78;text-align:center;">دوم · از ۹ آبان</span></div>
+<div style="display:flex;flex-direction:column;gap:5px;"><span style="height:6px;border-radius:3px;background:#E7E1F4;"></span><span style="font-size:11px;font-weight:700;color:#6F6F78;text-align:center;">سوم</span></div>
+</div>
+</section>
+
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;">
+<a href="Log.dc.html" style="min-height:64px;background:#FFFFFF;border:1px solid #E7E1F4;border-radius:16px;padding:12px;display:flex;align-items:center;gap:10px;color:#2F2F35;"><span style="width:40px;height:40px;border-radius:12px;background:#FFD9E9;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B02A63" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"></path><path d="M18.5 2.5a2.1 2.1 0 013 3L12 15l-4 1 1-4z"></path></svg></span><span style="font-size:13px;font-weight:800;line-height:1.5;">ثبت علائم روزانه</span></a>
+<a href="Calendar.dc.html" style="min-height:64px;background:#FFFFFF;border:1px solid #E7E1F4;border-radius:16px;padding:12px;display:flex;align-items:center;gap:10px;color:#2F2F35;"><span style="width:40px;height:40px;border-radius:12px;background:#F4F0FF;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6A4FE8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3v6a6 6 0 0012 0V3"></path><path d="M12 15v3a3 3 0 006 0v-3"></path><circle cx="18" cy="12" r="2"></circle></svg></span><span style="font-size:13px;font-weight:800;line-height:1.5;">چکاپ هفتگی</span></a>
+<a href="Week.dc.html" style="min-height:64px;background:#FFFFFF;border:1px solid #E7E1F4;border-radius:16px;padding:12px;display:flex;align-items:center;gap:10px;color:#2F2F35;"><span style="width:40px;height:40px;border-radius:12px;background:#E3F9FE;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0C6F89" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"></rect><path d="M3 9h18M8 2v4M16 2v4M8 14h8"></path></svg></span><span style="font-size:13px;font-weight:800;line-height:1.5;">مرور هفته‌ها</span></a>
+<a href="Alerts.dc.html" style="min-height:64px;background:#FFFFFF;border:1px solid #E7E1F4;border-radius:16px;padding:12px;display:flex;align-items:center;gap:10px;color:#2F2F35;"><span style="width:40px;height:40px;border-radius:12px;background:#FFF4DD;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9A5B00" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l9 16H3z"></path><path d="M12 10v4M12 17v.01"></path></svg></span><span style="font-size:13px;font-weight:800;line-height:1.5;">هشدارها</span></a>
+</div>
+
+<a href="Calendar.dc.html" style="background:#FFFFFF;border:1px solid #E7E1F4;border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:12px;color:#2F2F35;">
+<div style="width:52px;height:56px;border-radius:14px;background:#F4F0FF;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;"><span style="font-size:10.5px;font-weight:800;color:#6A4FE8;">مهر</span><b style="font-size:20px;font-weight:900;color:#5B41E6;line-height:1.1;">۱۸</b></div>
+<div style="flex-grow:1;"><div style="font-size:11.5px;color:#6F6F78;font-weight:700;">ویزیت بعدی · ۱۸ روز دیگه</div><b style="font-size:14.5px;">سونوگرافی NT</b><div style="font-size:12px;color:#4E4E59;font-weight:600;">شنبه · ۱۰:۳۰ · هفتهٔ ۱۱</div></div>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6F6F78" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+</a>
+
+<section style="background:#FFFFFF;border:1px solid #E7E1F4;border-radius:18px;box-shadow:0 18px 34px -22px rgba(123,97,255,.55);padding:16px 14px;display:flex;flex-direction:column;gap:8px;">
+<div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:11px;font-weight:900;letter-spacing:.04em;color:#6A4FE8;">نکتهٔ هوشمند · این هفته</span><span style="font-size:11px;font-weight:700;color:#6F6F78;">۳ دقیقه</span></div>
+<h2 style="margin:0;font-size:17px;font-weight:900;line-height:1.6;">ضربان قلب جنین معمولاً از این هفته در سونوگرافی دیده می‌شه</h2>
+<p style="margin:0;font-size:13.5px;line-height:2;color:#4E4E59;">در هفتهٔ هشتم اندام‌های اصلی در حال شکل‌گیری‌اند و انگشت‌ها کم‌کم از هم جدا می‌شن. تهوع و خستگی در این هفته‌ها رایجه؛ وعده‌های کوچک و مکرر ممکنه کمک کنه.</p>
+<a href="Week.dc.html" style="height:44px;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:800;">درباره هفتهٔ ۸ بیشتر بخون<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6A4FE8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></a>
+</section>
+
+<section style="background:#FFFFFF;border:1px solid #E7E1F4;border-radius:16px;padding:10px 14px 6px;display:flex;flex-direction:column;">
+<div style="display:flex;justify-content:space-between;align-items:center;min-height:36px;"><b style="font-size:14.5px;">مراقبت‌های این هفته</b><span style="font-size:12px;font-weight:800;color:#6A4FE8;">{{doneLbl}}</span></div>
+<sc-for list="{{tasks}}" as="t" hint-placeholder-count="3">
+<label style="display:flex;align-items:center;gap:12px;min-height:48px;font-size:13.5px;font-weight:600;border-top:1px solid #F0EBFA;"><input type="checkbox" checked="{{t.on}}" onChange="{{t.toggle}}" style="width:22px;height:22px;accent-color:#7B61FF;"><span style="text-decoration:{{t.deco}};color:{{t.col}};">{{t.text}}</span></label>
+</sc-for>
+</section>
+
+<section style="background:#F4F0FF;border-radius:16px;padding:14px;display:flex;gap:12px;align-items:flex-start;">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6A4FE8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0;margin-top:2px;"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16.5v.01"></path></svg>
+<p style="margin:0;font-size:12.5px;line-height:1.9;color:#2F2F35;"><b>تاریخ زایمان یک تخمینه.</b> بر اساس داده‌های فعلی، بیشتر نوزادها بین ۲۸ فروردین تا ۲۵ اردیبهشت به دنیا میان. با ثبت نتیجهٔ سونوگرافی، این بازه محدودتر می‌شه.</p>
+</section>
+</div>
+
+<nav aria-label="منوی اصلی" style="position:absolute;bottom:0;left:0;right:0;height:84px;background:#FFFFFF;border-top:1px solid #E7E1F4;display:flex;align-items:flex-start;justify-content:space-around;padding-top:8px;box-sizing:border-box;">
+<a href="Main.dc.html" aria-current="page" style="width:64px;height:48px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:800;color:#6A4FE8;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6A4FE8" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-7 8 7v8a2 2 0 01-2 2h-3v-6H9v6H6a2 2 0 01-2-2z"></path></svg>امروز</a>
+<a href="Calendar.dc.html" style="width:64px;height:48px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:700;color:#6F6F78;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6F6F78" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="3"></rect><path d="M4 10h16M9 3v4M15 3v4"></path></svg>تقویم</a>
+<a href="Log.dc.html" aria-label="ثبت امروز" style="width:58px;height:58px;margin-top:-26px;border-radius:29px;background:linear-gradient(135deg,#7B61FF 0%,#FF6FAE 100%);border:4px solid #F2ECFF;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 22px -10px rgba(123,97,255,.9);"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></a>
+<a href="Week.dc.html" style="width:64px;height:48px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:700;color:#6F6F78;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6F6F78" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.5-7-10a4 4 0 017-2.5A4 4 0 0119 10c0 5.5-7 10-7 10z"></path></svg>بارداری</a>
+<a href="#" style="width:64px;height:48px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:700;color:#6F6F78;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6F6F78" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c1-4 4-6 8-6s7 2 8 6"></path></svg>پروفایل</a>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1840}}'>
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { i: 1, done: { 0: true, 1: true, 2: false } }; }
+  renderVals() {
+    const weeks = [
+      { title: '۷ هفته', tri: 'سه‌ماههٔ اول · هفتهٔ ۷ از ۴۰', size: 'جنین تقریباً به اندازهٔ یک بلوبری بود.' },
+      { title: '۸ هفته و ۳ روز', tri: 'سه‌ماههٔ اول · هفتهٔ ۸ از ۴۰', size: 'جنین الان تقریباً به اندازهٔ یک تمشک است.' },
+      { title: '۹ هفته', tri: 'سه‌ماههٔ اول · هفتهٔ ۹ از ۴۰', size: 'هفتهٔ بعد تقریباً به اندازهٔ یک گیلاس می‌شه.' }
+    ];
+    const s = this.state, i = s.i;
+    const T = ['مصرف روزانهٔ فولیک اسید', 'رزرو نوبت سونوگرافی NT', 'آزمایش خون سه‌ماههٔ اول'];
+    const tasks = T.map((text, k) => { const on = !!s.done[k]; return { text, on,
+      deco: on ? 'line-through' : 'none', col: on ? '#6F6F78' : '#2F2F35',
+      toggle: () => this.setState({ done: { ...s.done, [k]: !on } }) }; });
+    const n = Object.values(s.done).filter(Boolean).length;
+    const fa = (x) => String(x).replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[d]);
+    return {
+      w: weeks[i], isToday: i === 1, notToday: i !== 1,
+      tasks, doneLbl: fa(n) + ' از ' + fa(T.length),
+      prev: () => this.setState({ i: Math.max(0, i - 1) }),
+      next: () => this.setState({ i: Math.min(2, i + 1) }),
+      today: () => this.setState({ i: 1 })
+    };
+  }
+}
+</script>
+</body>
+</html>

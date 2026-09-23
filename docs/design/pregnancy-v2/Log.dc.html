@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>ثبت علائم روزانه</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:Vazirmatn,Tahoma,sans-serif;color:#2F2F35;background:#F2ECFF}
+a{color:#6A4FE8;text-decoration:none}a:hover{color:#5B41E6}
+button{font-family:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #3DD6F3;outline-offset:2px}
+</style>
+</helmet>
+<div style="width:390px;height:1460px;position:relative;background:#F2ECFF;overflow:hidden;">
+<header style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px;">
+<a href="Main.dc.html" aria-label="بستن" style="width:44px;height:44px;border-radius:22px;background:#FFFFFF;border:1px solid #E7E1F4;display:flex;align-items:center;justify-content:center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2F2F35" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></a>
+<div style="text-align:center;"><div style="font-size:16px;font-weight:800;">ثبت امروز</div><div style="font-size:11.5px;font-weight:600;color:#4E4E59;">سه‌شنبه ۳۱ شهریور · هفتهٔ ۸</div></div>
+<button aria-label="انتخاب روز دیگر" style="width:44px;height:44px;border-radius:22px;background:#FFFFFF;border:1px solid #E7E1F4;display:flex;align-items:center;justify-content:center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2F2F35" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="3"></rect><path d="M4 10h16M9 3v4M15 3v4"></path></svg></button>
+</header>
+
+<div style="padding:8px 16px 130px;display:flex;flex-direction:column;gap:18px;">
+<section style="display:flex;flex-direction:column;gap:10px;">
+<h2 style="margin:0;font-size:15.5px;font-weight:900;">حال کلی‌ات</h2>
+<div role="radiogroup" aria-label="حال کلی" style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;">
+<sc-for list="{{moods}}" as="m" hint-placeholder-count="5">
+<button role="radio" aria-checked="{{m.on}}" onClick="{{m.pick}}" style="height:76px;border-radius:16px;background:{{m.bg}};border:{{m.bd}};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">
+<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="{{m.ink}}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M9 10h.01M15 10h.01"></path><path d="{{m.mouth}}"></path></svg>
+<span style="font-size:11.5px;font-weight:800;color:{{m.ink}};">{{m.t}}</span>
+</button>
+</sc-for>
+</div></section>
+
+<section style="display:flex;flex-direction:column;gap:10px;">
+<div style="display:flex;justify-content:space-between;align-items:baseline;"><h2 style="margin:0;font-size:15.5px;font-weight:900;">علائم جسمی</h2><span style="font-size:12px;font-weight:800;color:#6A4FE8;">{{count}}</span></div>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;">
+<sc-for list="{{syms}}" as="s" hint-placeholder-count="9">
+<button onClick="{{s.pick}}" aria-pressed="{{s.on}}" style="min-height:48px;padding:10px 6px;border-radius:14px;background:{{s.bg}};border:{{s.bd}};color:{{s.fg}};font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:6px;">
+<sc-if value="{{s.on}}" hint-placeholder-val="{{false}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l4 4 10-10"></path></svg></sc-if>{{s.t}}</button>
+</sc-for>
+</div>
+<sc-if value="{{hasSel}}" hint-placeholder-val="{{true}}">
+<div style="background:#F4F0FF;border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:10px;">
+<sc-for list="{{sevRows}}" as="r" hint-placeholder-count="2">
+<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+<span style="font-size:12.5px;font-weight:800;min-width:56px;">{{r.t}}</span>
+<div role="radiogroup" aria-label="شدت" style="display:flex;gap:6px;">
+<sc-for list="{{r.levels}}" as="l" hint-placeholder-count="3">
+<button role="radio" aria-checked="{{l.on}}" onClick="{{l.pick}}" style="height:36px;padding:0 12px;border-radius:18px;border:{{l.bd}};background:{{l.bg}};color:{{l.fg}};font-size:12px;font-weight:800;">{{l.t}}</button>
+</sc-for>
+</div></div>
+</sc-for>
+</div>
+</sc-if>
+</section>
+
+<section style="background:#FFFFFF;border:1px solid #E7E1F4;border-radius:16px;padding:14px;display:flex;align-items:center;gap:12px;">
+<span style="width:44px;height:44px;border-radius:14px;background:#E3F9FE;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0C6F89" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c3 4 6 7 6 11a6 6 0 01-12 0c0-4 3-7 6-11z"></path></svg></span>
+<div style="flex-grow:1;"><b style="font-size:14px;">آب</b><div style="font-size:12px;color:#4E4E59;font-weight:600;">{{waterLbl}} لیوان امروز</div></div>
+<button aria-label="یک لیوان کمتر" onClick="{{wDec}}" style="width:44px;height:44px;border-radius:22px;border:1.5px solid #E3DDF2;background:#FFFFFF;display:flex;align-items:center;justify-content:center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2F2F35" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"></path></svg></button>
+<button aria-label="یک لیوان بیشتر" onClick="{{wInc}}" style="width:44px;height:44px;border-radius:22px;border:none;background:#7B61FF;display:flex;align-items:center;justify-content:center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
+</section>
+
+<section style="background:#FFFFFF;border:1px solid #E7E1F4;border-radius:16px;padding:14px;display:flex;align-items:center;gap:12px;">
+<span style="width:44px;height:44px;border-radius:14px;background:#F4F0FF;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6A4FE8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h16l-1.5 12h-13z"></path><path d="M8 8a4 4 0 018 0"></path></svg></span>
+<div style="flex-grow:1;"><label for="weight" style="font-size:14px;font-weight:800;">وزن</label><div style="font-size:12px;color:#4E4E59;font-weight:600;">آخرین ثبت: ۶۲.۱ · ۲۵ شهریور</div></div>
+<div style="display:flex;align-items:center;gap:6px;"><input id="weight" type="text" inputmode="decimal" value="۶۲.۴" style="width:72px;height:44px;border-radius:12px;border:1.5px solid #E3DDF2;padding:0 10px;font-family:inherit;font-size:16px;font-weight:800;color:#2F2F35;background:#F4F0FF;text-align:center;"><span style="font-size:12px;font-weight:700;color:#4E4E59;">کیلوگرم</span></div>
+</section>
+
+<section style="background:#FFFFFF;border:1px solid #E7E1F4;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:8px;">
+<label for="note" style="font-size:14px;font-weight:800;">یادداشت برای ویزیت بعدی</label>
+<textarea id="note" rows="3" placeholder="مثلاً: از دیروز سردرد خفیف دارم" style="border-radius:12px;border:1.5px solid #E3DDF2;padding:10px 12px;font-family:inherit;font-size:13.5px;color:#2F2F35;background:#F4F0FF;resize:none;"></textarea>
+</section>
+
+<sc-if value="{{spotting}}" hint-placeholder-val="{{false}}">
+<section style="background:#FFF4DD;border:1px solid #F5DDA6;border-radius:16px;padding:14px;display:flex;gap:12px;align-items:flex-start;">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9A5B00" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0;margin-top:2px;"><path d="M12 3l9 16H3z"></path><path d="M12 10v4M12 17v.01"></path></svg>
+<div style="font-size:12.5px;line-height:1.9;color:#5C3D00;"><b>لکه‌بینی ثبت شد.</b> لکه‌بینی خفیف در سه‌ماههٔ اول برای خیلی‌ها پیش میاد و به‌تنهایی نشانهٔ مشکل نیست. اگه بیشتر شد، با درد همراه بود، یا برات نگران‌کننده بود، بهتره با پزشک یا مامات در میون بذاری.</div>
+</section>
+</sc-if>
+</div>
+
+<div style="position:absolute;bottom:0;left:0;right:0;padding:14px 16px 26px;background:#FFFFFF;border-top:1px solid #E7E1F4;display:flex;flex-direction:column;gap:6px;">
+<button onClick="{{save}}" style="height:52px;border:none;border-radius:16px;background:{{saveBg}};color:#FFFFFF;font-size:15px;font-weight:800;box-shadow:0 10px 22px -10px rgba(123,97,255,.7);display:flex;align-items:center;justify-content:center;gap:8px;"><sc-if value="{{saved}}" hint-placeholder-val="{{false}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l4 4 10-10"></path></svg></sc-if>{{saveLbl}}</button>
+<span style="font-size:11.5px;color:#4E4E59;font-weight:600;text-align:center;">بدون اینترنت هم ذخیره می‌شه و بعداً همگام می‌شه. هر ثبتی رو می‌تونی بعداً ویرایش کنی.</span>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1460}}'>
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { mood: 2, on: { 0: true, 2: true }, sev: { 0: 1, 2: 2 }, water: 5, saved: false }; }
+  renderVals() {
+    const s = this.state;
+    const fa = (n) => String(n).replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[d]);
+    const dirty = { saved: false };
+    const M = [
+      { t: 'خوب', mouth: 'M8 14c1.5 2.5 6.5 2.5 8 0' },
+      { t: 'روبه‌راه', mouth: 'M9 15c1 1 5 1 6 0' },
+      { t: 'معمولی', mouth: 'M9 15h6' },
+      { t: 'بی‌حال', mouth: 'M9 16c1-1 5-1 6 0' },
+      { t: 'سخت', mouth: 'M8 17c1.5-2.5 6.5-2.5 8 0' }
+    ];
+    const moods = M.map((m, i) => ({ ...m, on: s.mood === i,
+      bg: s.mood === i ? '#F4F0FF' : '#FFFFFF', bd: s.mood === i ? '2px solid #7B61FF' : '1px solid #E7E1F4',
+      ink: s.mood === i ? '#5B41E6' : '#4E4E59', pick: () => this.setState({ mood: i, ...dirty }) }));
+    const S = ['تهوع', 'استفراغ', 'خستگی', 'سردرد', 'کمردرد', 'حساسیت پستان', 'سوزش سر دل', 'یبوست', 'لکه‌بینی'];
+    const syms = S.map((t, i) => { const on = !!s.on[i]; return { t, on,
+      bg: on ? '#7B61FF' : '#FFFFFF', bd: on ? '1px solid #7B61FF' : '1px solid #E7E1F4', fg: on ? '#FFFFFF' : '#2F2F35',
+      pick: () => this.setState({ on: { ...s.on, [i]: !on }, ...dirty }) }; });
+    const LV = ['خفیف', 'متوسط', 'شدید'];
+    const sel = S.map((t, i) => i).filter((i) => s.on[i]);
+    const sevRows = sel.map((i) => ({ t: S[i], levels: LV.map((t, k) => { const on = (s.sev[i] ?? 0) === k; return { t, on,
+      bd: on ? '1px solid #7B61FF' : '1px solid #E3DDF2', bg: on ? '#7B61FF' : '#FFFFFF', fg: on ? '#FFFFFF' : '#2F2F35',
+      pick: () => this.setState({ sev: { ...s.sev, [i]: k }, ...dirty }) }; }) }));
+    return {
+      moods, syms, count: fa(sel.length) + ' مورد', hasSel: sel.length > 0, sevRows,
+      spotting: !!s.on[8],
+      waterLbl: fa(s.water),
+      wInc: () => this.setState({ water: Math.min(15, s.water + 1), ...dirty }),
+      wDec: () => this.setState({ water: Math.max(0, s.water - 1), ...dirty }),
+      saved: s.saved, saveLbl: s.saved ? 'ذخیره شد' : 'ذخیرهٔ ثبت امروز',
+      saveBg: s.saved ? '#22B07D' : 'linear-gradient(135deg,#7B61FF 0%,#FF6FAE 100%)',
+      save: () => this.setState({ saved: true })
+    };
+  }
+}
+</script>
+</body>
+</html>

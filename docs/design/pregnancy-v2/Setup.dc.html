@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>راه‌اندازی حالت بارداری</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:Vazirmatn,Tahoma,sans-serif;color:#2F2F35;background:#F2ECFF}
+a{color:#6A4FE8;text-decoration:none}a:hover{color:#5B41E6}
+button{font-family:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #3DD6F3;outline-offset:2px}
+</style>
+</helmet>
+<div style="width:390px;height:844px;position:relative;background:#F2ECFF;overflow:hidden;display:flex;flex-direction:column;">
+
+<sc-if value="{{s0}}" hint-placeholder-val="{{true}}">
+<div style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:64px 24px 0;gap:18px;flex-grow:1;">
+<svg width="220" height="220" viewBox="0 0 230 230" aria-hidden="true"><circle cx="115" cy="115" r="110" fill="#F4F0FF"></circle><circle cx="115" cy="115" r="110" fill="none" stroke="#E3DDF2" stroke-width="2" stroke-dasharray="6 8"></circle><path d="M60,150 C70,110 100,95 130,105 C160,115 165,150 145,170 C120,190 80,185 60,150z" fill="#FFD9E9"></path><circle cx="128" cy="112" r="26" fill="#FF8FC0"></circle><circle cx="136" cy="104" r="8" fill="#FFFFFF"></circle><path d="M70,175 Q115,205 160,175" fill="none" stroke="#7B61FF" stroke-width="5" stroke-linecap="round"></path><g fill="#7B61FF"><circle cx="40" cy="70" r="3"></circle><circle cx="195" cy="60" r="2.5"></circle><circle cx="190" cy="185" r="3"></circle></g></svg>
+<h1 style="margin:0;font-size:24px;font-weight:900;line-height:1.6;">به حالت بارداری خوش اومدی</h1>
+<p style="margin:0;font-size:14px;line-height:2;color:#4E4E59;max-width:320px;">با روشن‌کردن حالت بارداری، هفته‌به‌هفته رشد کودکت و تغییرات بدنت رو دنبال می‌کنی و مراقبت‌های هر هفته رو می‌بینی.</p>
+<div style="background:#FFFFFF;border:1px solid #E7E1F4;border-radius:16px;padding:12px 14px;width:100%;box-sizing:border-box;display:flex;flex-direction:column;gap:8px;text-align:right;">
+<div style="display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22B07D" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l4 4 10-10"></path></svg>ابزارهای بارداری همیشه رایگان می‌مونن</div>
+<div style="display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22B07D" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l4 4 10-10"></path></svg>داده‌های چرخه‌ات حفظ می‌شه</div>
+<div style="display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22B07D" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l4 4 10-10"></path></svg>هر وقت خواستی می‌تونی به حالت چرخه برگردی</div>
+</div>
+</div>
+<div style="padding:16px 20px 28px;display:flex;flex-direction:column;gap:10px;">
+<button onClick="{{next}}" style="width:100%;height:52px;border:none;border-radius:16px;background:linear-gradient(135deg,#7B61FF 0%,#FF6FAE 100%);color:#FFFFFF;font-size:15px;font-weight:800;box-shadow:0 10px 22px -10px rgba(123,97,255,.7);">حالت بارداری رو روشن کن</button>
+<a href="Main.dc.html" style="height:44px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#4E4E59;">فعلاً نه</a>
+</div>
+</sc-if>
+
+<sc-if value="{{sN}}" hint-placeholder-val="{{false}}">
+<header style="display:flex;align-items:center;gap:12px;padding:14px 16px 0;">
+<button aria-label="بازگشت" onClick="{{back}}" style="width:44px;height:44px;border-radius:22px;background:#FFFFFF;border:1px solid #E7E1F4;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#2F2F35" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button>
+<div style="flex-grow:1;display:flex;gap:6px;" role="progressbar" aria-valuemin="1" aria-valuemax="3" aria-valuenow="{{stepNum}}" aria-label="مرحلهٔ راه‌اندازی">
+<span style="flex-grow:1;height:6px;border-radius:3px;background:#7B61FF;"></span>
+<span style="flex-grow:1;height:6px;border-radius:3px;background:{{bar2}};"></span>
+<span style="flex-grow:1;height:6px;border-radius:3px;background:{{bar3}};"></span>
+</div>
+<span style="font-size:12px;font-weight:800;color:#4E4E59;width:40px;text-align:left;">{{stepLbl}}</span>
+</header>
+</sc-if>
+
+<sc-if value="{{s1}}" hint-placeholder-val="{{false}}">
+<div style="padding:20px 20px 0;display:flex;flex-direction:column;gap:12px;">
+<h1 style="margin:0;font-size:22px;font-weight:900;line-height:1.6;">بیا بارداری‌ات رو تنظیم کنیم</h1>
+<p style="margin:0;font-size:13px;color:#4E4E59;line-height:1.9;">برای حساب‌کردن سن بارداری و تاریخ تقریبی زایمان، مبنای محاسبه رو انتخاب کن.</p>
+<div role="radiogroup" aria-label="مبنای محاسبهٔ سن بارداری" style="display:flex;background:#E6DEFF;border-radius:14px;padding:4px;gap:4px;">
+<sc-for list="{{sources}}" as="o" hint-placeholder-count="3">
+<button role="radio" aria-checked="{{o.on}}" onClick="{{o.pick}}" style="flex-grow:1;height:44px;border:none;border-radius:11px;background:{{o.bg}};color:{{o.fg}};font-size:12.5px;font-weight:800;box-shadow:{{o.sh}};">{{o.label}}</button>
+</sc-for>
+</div>
+<p style="margin:0;font-size:12.5px;color:#4E4E59;line-height:1.8;">{{hint}}</p>
+
+<sc-if value="{{srcLmp}}" hint-placeholder-val="{{true}}">
+<section style="background:#FFFFFF;border:1px solid #E7E1F4;border-radius:18px;padding:14px;">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><b style="font-size:15px;">مرداد ۱۴۰۵</b><span style="font-size:12px;font-weight:800;color:#6A4FE8;background:#F4F0FF;padding:5px 10px;border-radius:10px;">{{dayLbl}}</span></div>
+<div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;text-align:center;font-size:11px;font-weight:800;color:#4E4E59;margin-bottom:4px;"><span>ش</span><span>ی</span><span>د</span><span>س</span><span>چ</span><span>پ</span><span>ج</span></div>
+<div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;">
+<span></span><span></span><span></span><span></span><span></span>
+<sc-for list="{{days}}" as="d" hint-placeholder-count="31">
+<button onClick="{{d.pick}}" aria-pressed="{{d.on}}" style="height:44px;border:none;border-radius:22px;background:{{d.bg}};color:{{d.fg}};font-size:13.5px;font-weight:{{d.fw}};">{{d.n}}</button>
+</sc-for>
+</div></section>
+</sc-if>
+
+<sc-if value="{{srcUs}}" hint-placeholder-val="{{false}}">
+<section style="background:#FFFFFF;border:1px solid #E7E1F4;border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:12px;">
+<label for="usDate" style="font-size:13px;font-weight:800;">تاریخ سونوگرافی</label>
+<input id="usDate" type="text" value="۲۵ شهریور ۱۴۰۵" style="height:46px;border-radius:12px;border:1.5px solid #E3DDF2;padding:0 12px;font-family:inherit;font-size:15px;font-weight:700;color:#2F2F35;background:#F4F0FF;">
+<span style="font-size:13px;font-weight:800;">سن بارداری در سونوگرافی</span>
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;">
+<label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:#4E4E59;">هفته<input type="text" inputmode="numeric" value="۷" style="height:46px;border-radius:12px;border:1.5px solid #E3DDF2;padding:0 12px;font-family:inherit;font-size:15px;font-weight:800;color:#2F2F35;background:#F4F0FF;"></label>
+<label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:#4E4E59;">روز<input type="text" inputmode="numeric" value="۴" style="height:46px;border-radius:12px;border:1.5px solid #E3DDF2;padding:0 12px;font-family:inherit;font-size:15px;font-weight:800;color:#2F2F35;background:#F4F0FF;"></label>
+</div></section>
+</sc-if>
+
+<sc-if value="{{srcManual}}" hint-placeholder-val="{{false}}">
+<section style="background:#FFFFFF;border:1px solid #E7E1F4;border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:12px;">
+<span style="font-size:13px;font-weight:800;">هفتهٔ بارداری فعلی</span>
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;">
+<label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:#4E4E59;">هفته<input type="text" inputmode="numeric" value="۸" style="height:46px;border-radius:12px;border:1.5px solid #E3DDF2;padding:0 12px;font-family:inherit;font-size:15px;font-weight:800;color:#2F2F35;background:#F4F0FF;"></label>
+<label style="display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:#4E4E59;">روز<input type="text" inputmode="numeric" value="۳" style="height:46px;border-radius:12px;border:1.5px solid #E3DDF2;padding:0 12px;font-family:inherit;font-size:15px;font-weight:800;color:#2F2F35;background:#F4F0FF;"></label>
+</div></section>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{s2}}" hint-placeholder-val="{{false}}">
+<div style="padding:20px 20px 0;display:flex;flex-direction:column;gap:14px;">
+<div><h1 style="margin:0;font-size:22px;font-weight:900;line-height:1.6;">سابقه‌ات رو بگو، اگه خواستی</h1><p style="margin:4px 0 0;font-size:13px;color:#4E4E59;line-height:1.9;">این بخش اختیاریه و فقط برای این که مراقبت‌های هر هفته با شرایطت جور بشه.</p></div>
+<section style="background:#FFFFFF;border:1px solid #E7E1F4;border-radius:16px;padding:4px 14px;">
+<label style="display:flex;align-items:center;justify-content:space-between;min-height:48px;font-size:13.5px;font-weight:700;">سابقهٔ سقط جنین<input type="checkbox" style="width:22px;height:22px;accent-color:#7B61FF;"></label>
+<label style="display:flex;align-items:center;justify-content:space-between;min-height:48px;font-size:13.5px;font-weight:700;border-top:1px solid #F0EBFA;">سابقهٔ بارداری پرخطر<input type="checkbox" style="width:22px;height:22px;accent-color:#7B61FF;"></label>
+</section>
+<div style="display:flex;flex-direction:column;gap:8px;">
+<span style="font-size:13px;font-weight:800;">بیماری‌های زمینه‌ای</span>
+<div style="display:flex;flex-wrap:wrap;gap:8px;">
+<sc-for list="{{conds}}" as="c" hint-placeholder-count="5">
+<button onClick="{{c.pick}}" aria-pressed="{{c.on}}" style="height:40px;padding:0 14px;border-radius:12px;background:{{c.bg}};border:{{c.bd}};color:{{c.fg}};font-size:12.5px;font-weight:800;">{{c.t}}</button>
+</sc-for>
+</div></div>
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;">
+<label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:800;">گروه خونی<select style="height:46px;border-radius:12px;border:1.5px solid #E3DDF2;padding:0 10px;font-family:inherit;font-size:14px;font-weight:700;color:#2F2F35;background:#FFFFFF;"><option>انتخاب کن</option><option>A</option><option>B</option><option>AB</option><option>O</option></select></label>
+<label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:800;">فاکتور Rh<select style="height:46px;border-radius:12px;border:1.5px solid #E3DDF2;padding:0 10px;font-family:inherit;font-size:14px;font-weight:700;color:#2F2F35;background:#FFFFFF;"><option>انتخاب کن</option><option>مثبت</option><option>منفی</option></select></label>
+</div>
+<span style="font-size:11.5px;color:#4E4E59;font-weight:600;line-height:1.8;">این اطلاعات فقط روی گوشی خودت و به‌صورت رمزنگاری‌شده ذخیره می‌شه و هیچ‌وقت در لینک‌ها یا گزارش‌های خودکار قرار نمی‌گیره.</span>
+</div>
+</sc-if>
+
+<sc-if value="{{s3}}" hint-placeholder-val="{{false}}">
+<div style="padding:16px 24px 0;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;">
+<svg width="150" height="150" viewBox="0 0 150 150" aria-hidden="true"><circle cx="75" cy="75" r="70" fill="#FFFFFF"></circle><circle cx="75" cy="75" r="56" fill="#FFD9E9"></circle><circle cx="75" cy="75" r="56" fill="none" stroke="#E3DDF2" stroke-width="3" stroke-dasharray="4 7"></circle><path d="M58,98 C52,70 70,50 90,56 C108,62 110,86 96,98 C86,106 70,108 58,98z" fill="#FF8FC0"></path><circle cx="88" cy="66" r="12" fill="#FF6FAE"></circle><circle cx="92" cy="63" r="3" fill="#FFFFFF"></circle></svg>
+<div style="font-size:22px;font-weight:900;line-height:1.7;">بر اساس داده‌های فعلی، احتمالاً<br><span style="color:#6A4FE8;">۸ هفته و ۳ روز</span><br>باردار هستی</div>
+<div style="background:#FFFFFF;border:1px solid #E7E1F4;border-radius:16px;padding:14px;width:100%;box-sizing:border-box;display:flex;flex-direction:column;gap:10px;text-align:right;">
+<div style="display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:11.5px;color:#4E4E59;font-weight:700;">تاریخ تقریبی زایمان</div><b style="font-size:17px;">۱۱ اردیبهشت ۱۴۰۶</b></div><span style="display:inline-flex;align-items:center;gap:5px;height:28px;padding:0 10px;border-radius:14px;background:#E3F9FE;color:#0C6F89;font-size:11.5px;font-weight:800;white-space:nowrap;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0C6F89" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16.5v.01"></path></svg>دقت تخمین: متوسط</span></div>
+<div style="font-size:12.5px;color:#4E4E59;font-weight:600;line-height:1.8;">بازهٔ معمول تولد: ۲۸ فروردین تا ۲۵ اردیبهشت. مبنای این محاسبه اولین روز آخرین قاعدگیه (۳ مرداد)؛ با ثبت نتیجهٔ سونوگرافی، بازه محدودتر می‌شه.</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{sN}}" hint-placeholder-val="{{false}}">
+<div style="margin-top:auto;padding:16px 20px 28px;display:flex;flex-direction:column;gap:6px;">
+<sc-if value="{{notLast}}" hint-placeholder-val="{{true}}">
+<button onClick="{{next}}" style="width:100%;height:52px;border:none;border-radius:16px;background:#7B61FF;color:#FFFFFF;font-size:15px;font-weight:800;">ادامه</button>
+</sc-if>
+<sc-if value="{{s2}}" hint-placeholder-val="{{false}}">
+<button onClick="{{next}}" style="width:100%;height:44px;border:none;background:transparent;color:#4E4E59;font-size:13px;font-weight:800;">فعلاً رد می‌شم</button>
+</sc-if>
+<sc-if value="{{s3}}" hint-placeholder-val="{{false}}">
+<a href="Main.dc.html" style="width:100%;height:52px;border-radius:16px;background:linear-gradient(135deg,#7B61FF 0%,#FF6FAE 100%);color:#FFFFFF;font-size:15px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 22px -10px rgba(123,97,255,.7);">تمومه، بریم</a>
+<button onClick="{{back}}" style="width:100%;height:44px;border:none;background:transparent;color:#4E4E59;font-size:13px;font-weight:800;">مبنای محاسبه رو عوض می‌کنم</button>
+</sc-if>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { step: 0, src: 0, day: 3, conds: {} }; }
+  renderVals() {
+    const s = this.state;
+    const fa = (n) => String(n).replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[d]);
+    const S = ['اولین روز آخرین قاعدگی', 'سونوگرافی', 'خودم هفته رو وارد می‌کنم'];
+    const H = ['اگه تاریخ آخرین قاعدگی‌ات رو می‌دونی، ساده‌ترین گزینه همینه. بازهٔ تخمین معمولاً حدود ±۵ روزه.', 'بر اساس نتیجهٔ سونوگرافی؛ در هفته‌های اول معمولاً بازهٔ تخمین محدودتری می‌ده.', 'اگه هفتهٔ بارداری‌ات رو از پزشکت می‌دونی. بازهٔ تخمین به همون دقت گفتهٔ پزشک بستگی داره.'];
+    const sources = S.map((label, i) => ({ label, on: s.src === i,
+      bg: s.src === i ? '#FFFFFF' : 'transparent', fg: s.src === i ? '#6A4FE8' : '#4E4E59',
+      sh: s.src === i ? '0 2px 6px rgba(91,65,230,.15)' : 'none',
+      pick: () => this.setState({ src: i }) }));
+    const days = [];
+    for (let n = 1; n <= 31; n++) {
+      const on = n === s.day;
+      days.push({ n: fa(n), on, bg: on ? '#7B61FF' : 'transparent', fg: on ? '#FFFFFF' : '#2F2F35', fw: on ? 900 : 600, pick: () => this.setState({ day: n }) });
+    }
+    const C = ['هیچ‌کدام', 'فشار خون مزمن', 'دیابت', 'کم‌کاری تیروئید', 'پرکاری تیروئید'];
+    const conds = C.map((t, i) => { const on = !!s.conds[i]; return { t, on,
+      bg: on ? '#7B61FF' : '#FFFFFF', bd: on ? '1px solid #7B61FF' : '1px solid #E7E1F4', fg: on ? '#FFFFFF' : '#2F2F35',
+      pick: () => this.setState({ conds: i === 0 ? { 0: !on } : { ...s.conds, 0: false, [i]: !on } }) }; });
+    return {
+      s0: s.step === 0, sN: s.step > 0, s1: s.step === 1, s2: s.step === 2, s3: s.step === 3, notLast: s.step === 1,
+      stepNum: s.step, stepLbl: fa(s.step) + ' از ۳',
+      bar2: s.step >= 2 ? '#7B61FF' : '#DDD6FA', bar3: s.step >= 3 ? '#7B61FF' : '#DDD6FA',
+      sources, hint: H[s.src], srcLmp: s.src === 0, srcUs: s.src === 1, srcManual: s.src === 2,
+      days, dayLbl: fa(s.day) + ' مرداد', conds,
+      next: () => this.setState({ step: Math.min(3, s.step + 1) }),
+      back: () => this.setState({ step: Math.max(0, s.step - 1) })
+    };
+  }
+}
+</script>
+</body>
+</html>
