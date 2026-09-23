@@ -507,3 +507,13 @@ Nothing needed fixing.
 - Notes for T-M4-04: options are plain string lists (admin-web translates labels); send `is_active`/
   `hide_in_pregnancy` on every save; `key` read-only after create; `overdue_users` is an approximation.
 - T-M4-02 should assert admin edits show up directly on `GET /api/v1/checkups/{id}`.
+
+## T-M7-08 — Frontend — pregnancy v2 entity/features, tokens, illustrations, icons, i18n
+- `entities/pregnancy` v2 alongside v1 (`v2-types`, `v2` helpers, `v2-schema` zod parsers, `v2-queries`,
+  `pregnancyKeys` moved to `api/keys.ts` with `v2.*`); v1 mutations also invalidate `pregnancyKeys.v2.all()`.
+- `features/track-pregnancy` v2 mutations (`useSavePregnancyDay`, `useUpdateWeekState` optimistic,
+  `usePregnancyAlertAction`) + `toPregnancyDayBody`.
+- `shared/ui/illustrations` (WelcomePregnancy, ResultBaby, FetusSize; 36 `FETUS_ILLUSTRATION_KEYS`), 7 `--preg-*`
+  tokens + `.pg2-*` classes, 11 icons, `pregnancyV2` namespace fa/en.
+- Open: add `pregnancyV2` to `message-scopes.ts` in T-M7-09..14; clinician review for `log.spottingBody`,
+  `alerts.legend.*`, `today.disclaimerBody` (T-M7-15).

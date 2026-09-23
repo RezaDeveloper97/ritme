@@ -1,0 +1,274 @@
+{
+  "common": {
+    "title": "Pregnancy",
+    "loading": "Loading your pregnancy…",
+    "loadError": "Couldn't load your pregnancy data. Please try again in a moment.",
+    "saveError": "Couldn't save. Please try again in a moment.",
+    "retry": "Retry",
+    "back": "Back",
+    "close": "Close",
+    "notActive": "Pregnancy mode is off.",
+    "weekOf": "Week {week, number} of {total, number}",
+    "age": "{days, plural, =0 {{weeks, plural, one {# week} other {# weeks}}} other {{weeks, plural, one {# week} other {# weeks}} and {days, plural, one {# day} other {# days}}}}",
+    "trimester": {
+      "1": "First trimester",
+      "2": "Second trimester",
+      "3": "Third trimester"
+    },
+    "trimesterWeek": "{trimester} · week {week, number} of {total, number}",
+    "dateRange": "{from} to {to}",
+    "confidence": {
+      "label": "Estimate accuracy: {level}",
+      "withRange": "Estimate accuracy: {level} · about ±{days, number} days",
+      "levels": {
+        "high": "high",
+        "medium": "medium",
+        "low": "low"
+      }
+    },
+    "dueDate": "Estimated due date",
+    "estimateNote": "This is an estimate, not a medical diagnosis."
+  },
+  "nav": {
+    "label": "Main menu",
+    "today": "Today",
+    "calendar": "Calendar",
+    "logToday": "Log today",
+    "pregnancy": "Pregnancy",
+    "profile": "Profile"
+  },
+  "setup": {
+    "welcomeTitle": "Welcome to pregnancy mode",
+    "welcomeBody": "Turn on pregnancy mode to follow your baby's growth and the changes in your body week by week, and see each week's care.",
+    "turnOn": "Turn on pregnancy mode",
+    "notNow": "Not now",
+    "progressLabel": "Setup step",
+    "step": "{step, number} of {total, number}",
+    "continue": "Continue",
+    "datingTitle": "Let's set up your pregnancy",
+    "datingBody": "Choose what to base the calculation on, so we can work out your pregnancy age and estimated due date.",
+    "sourceLabel": "Basis for your pregnancy age",
+    "sources": {
+      "lmp": "First day of last period",
+      "ultrasound": "Ultrasound",
+      "manual": "I'll enter the week"
+    },
+    "lmpPick": "First day of your last period",
+    "ultrasoundDate": "Ultrasound date",
+    "ultrasoundAge": "Pregnancy age at the ultrasound",
+    "manualAge": "Current pregnancy week",
+    "week": "Week",
+    "day": "Day",
+    "historyTitle": "Tell us your history, if you like",
+    "historyBody": "This part is optional and only helps match each week's care to your situation.",
+    "miscarriage": "History of miscarriage",
+    "highRisk": "History of high-risk pregnancy",
+    "conditions": "Existing conditions",
+    "conditionNone": "None",
+    "bloodGroup": "Blood group",
+    "rh": "Rh factor",
+    "choose": "Choose",
+    "rhPositive": "Positive",
+    "rhNegative": "Negative",
+    "skip": "Skip for now",
+    "resultLead": "Based on your current data, you are probably",
+    "resultTail": "pregnant",
+    "usualRange": "Usual birth range: {from} to {to}",
+    "done": "All set, let's go",
+    "changeBasis": "Change the basis",
+    "editBasis": "Edit the calculation basis",
+    "previewError": "Couldn't calculate that. Please check the dates."
+  },
+  "today": {
+    "alerts": "Alerts",
+    "newAlerts": "{count, plural, =0 {Alerts} one {Alerts, # new message} other {Alerts, # new messages}}",
+    "prevWeek": "Previous week",
+    "nextWeek": "Next week",
+    "backToToday": "Back to today",
+    "browseWeeks": "Browse weeks",
+    "daysToDue": "{days, plural, =0 {Your estimated due date is today} one {# day to go} other {# days to go}}",
+    "usualRange": "usual range {from} to {to}",
+    "percentDone": "{percent, number}% of the way there",
+    "trimesterFrom": "{name} · from {date}",
+    "trimesterShort": {
+      "1": "First trimester",
+      "2": "Second",
+      "3": "Third"
+    },
+    "actions": {
+      "log": "Log today's symptoms",
+      "checkup": "Weekly check-up",
+      "weeks": "Browse weeks",
+      "alerts": "Alerts"
+    },
+    "nextVisit": "Next visit · {days, plural, =0 {today} =1 {tomorrow} other {in # days}}",
+    "visitMeta": "{weekday} · {time} · week {week, number}",
+    "tipEyebrow": "Smart tip · this week",
+    "readMinutes": "{minutes, plural, one {# min} other {# min}}",
+    "readMore": "Read more about week {week, number}",
+    "careTitle": "This week's care",
+    "careDone": "{done, number} of {total, number}",
+    "careEmpty": "Nothing planned for this week.",
+    "disclaimerTitle": "Your due date is an estimate.",
+    "disclaimerBody": "Based on your current data, most babies are born between {from} and {to}. Adding your ultrasound result narrows this range."
+  },
+  "week": {
+    "bookmark": "Save to bookmarks",
+    "unbookmark": "Remove from bookmarks",
+    "stripLabel": "Pregnancy weeks",
+    "chipWeek": "Week",
+    "legend": {
+      "past": "Past",
+      "current": "This week",
+      "future": "Ahead"
+    },
+    "sizePill": "About the size of a {item}",
+    "stats": {
+      "cm": "cm",
+      "g": "g",
+      "bpm": "beats per minute"
+    },
+    "averagesNote": "These numbers are averages; every baby grows at their own pace.",
+    "tabsLabel": "This week's sections",
+    "tabs": {
+      "baby": "Baby",
+      "body": "Your body",
+      "tasks": "This week's to-dos"
+    },
+    "bodyTitle": "You might feel these this week",
+    "logToday": "Log today's symptoms",
+    "reviewedBy": "Reviewed by {name}",
+    "sources": "Sources",
+    "notReviewed": "Awaiting specialist review",
+    "empty": "This week's content isn't ready yet.",
+    "illustration": "Approximate size of your baby"
+  },
+  "log": {
+    "title": "Log today",
+    "titleOtherDay": "Log a day",
+    "sub": "{date} · week {week, number}",
+    "pickDay": "Pick another day",
+    "moodTitle": "How you feel overall",
+    "moodLabel": "Overall mood",
+    "moods": {
+      "5": "Good",
+      "4": "Fine",
+      "3": "Okay",
+      "2": "Low",
+      "1": "Hard"
+    },
+    "symptomsTitle": "Physical symptoms",
+    "symptomsCount": "{count, plural, one {# selected} other {# selected}}",
+    "symptoms": {
+      "nausea": "Nausea",
+      "vomiting": "Vomiting",
+      "fatigue": "Fatigue",
+      "headache": "Headache",
+      "back_pain": "Back pain",
+      "breast_pain": "Breast tenderness",
+      "heartburn": "Heartburn",
+      "constipation": "Constipation",
+      "spotting": "Spotting"
+    },
+    "severityLabel": "Severity",
+    "severities": {
+      "mild": "Mild",
+      "moderate": "Moderate",
+      "severe": "Severe"
+    },
+    "water": "Water",
+    "waterCount": "{count, plural, one {# glass today} other {# glasses today}}",
+    "waterLess": "One glass less",
+    "waterMore": "One glass more",
+    "weight": "Weight",
+    "weightLast": "Last entry: {value, number} · {date}",
+    "weightNone": "No weight logged yet",
+    "kg": "kg",
+    "note": "Note for your next visit",
+    "notePlaceholder": "e.g. I've had a mild headache since yesterday",
+    "spottingTitle": "Spotting logged.",
+    "spottingBody": "Light spotting in the first trimester happens to many people and on its own isn't a sign of a problem. If it gets heavier, comes with pain, or worries you, it's a good idea to talk to your doctor or midwife.",
+    "save": "Save today's log",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "offlineNote": "Saves even without internet and syncs later.",
+    "editNote": "You can edit any entry later.",
+    "alertsRaised": "{count, plural, one {This log created a new message} other {This log created # new messages}}",
+    "seeAlerts": "See alerts"
+  },
+  "calendar": {
+    "title": "Calendar",
+    "newVisit": "New visit",
+    "newVisitLabel": "Add a visit or test",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "weekRange": "Pregnancy weeks {from, number} to {to, number}",
+    "legend": {
+      "today": "Today",
+      "visit": "Visit or test",
+      "weekStart": "Start of a pregnancy week"
+    },
+    "weekStart": "Week {week, number} starts",
+    "dayEmpty": "Nothing logged for this day. You can add a visit or test.",
+    "nextVisit": "Next visit · {days, plural, =0 {today} =1 {tomorrow} other {in # days}}",
+    "visitMeta": "{weekday} · {time} · {week}",
+    "stagesLabel": "Visit stage",
+    "stages": {
+      "booked": "Booked",
+      "done": "Done",
+      "result": "Result saved"
+    },
+    "prep": "Preparation:",
+    "reminder": "Reminder: {when}",
+    "directions": "Directions",
+    "resultNote": "Note the result",
+    "carePlanTitle": "Pregnancy care plan",
+    "weekWindow": "Weeks {from, number} to {to, number}",
+    "aroundDate": "around {date}",
+    "states": {
+      "done": "Done",
+      "booked": "Booked",
+      "to_book": "Book"
+    },
+    "book": "Book",
+    "report": "Symptom report for your doctor (PDF)"
+  },
+  "alerts": {
+    "title": "Alerts & messages",
+    "window": "Based on your logs from the last {days, number} days",
+    "settings": "Reminder settings",
+    "empty": "No messages in the last few days.",
+    "levels": {
+      "info": "Info",
+      "suggestion": "Suggestion",
+      "follow_up": "Worth following up",
+      "urgent": "Follow up soon"
+    },
+    "levelsShort": {
+      "info": "Info",
+      "suggestion": "Suggestion",
+      "follow_up": "Worth following up",
+      "urgent": "Follow up soon"
+    },
+    "whatWeSaw": "What we saw",
+    "howSure": "How sure we are",
+    "actions": {
+      "add_to_visit_note": "Add to visit note",
+      "ack": "Got it, thanks",
+      "log_weight": "Log weight",
+      "log_symptoms": "Log symptoms"
+    },
+    "addedToNote": "Added to your visit note",
+    "call": "Call",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "legendTitle": "Ritme's four message levels",
+    "legend": {
+      "info": "Something ordinary; nothing to do.",
+      "suggestion": "A small step that makes the analysis more complete.",
+      "follow_up": "A pattern that has repeated and is worth raising with a specialist.",
+      "urgent": "Something not to ignore; comes with a way to get in touch."
+    },
+    "disclaimer": "None of these messages is a medical diagnosis. You can reduce or turn off reminders in settings."
+  }
+}

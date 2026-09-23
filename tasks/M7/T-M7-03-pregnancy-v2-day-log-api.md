@@ -25,3 +25,10 @@ verify: cd backend-go && make sqlc && go vet ./... && go test ./internal/pregnan
 
 ## Acceptance
 - v1 `GET /pregnancy/symptoms/{date}` shows what v2 wrote; tests green.
+
+## Note from T-M7-08 (frontend contract)
+The frontend parsers are in `frontend/src/entities/pregnancy/api/v2-schema.ts` (primary shape + tolerated
+alternatives) — match them unless the spec says otherwise, and report differences. Admin text comes back as plain
+localized strings; dates `YYYY-MM-DD` with sibling `*_label`; 409 `pregnancy_not_active` / 404 → frontend treats as
+"go to Setup". Admin `illustration_key` enum = `FETUS_ILLUSTRATION_KEYS` in
+`frontend/src/shared/ui/illustrations/fetus-keys.ts`. Symptom severities `mild|moderate|severe`; mood 1–5.

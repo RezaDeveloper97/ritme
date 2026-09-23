@@ -191,6 +191,32 @@
   --fert-chart-label:  #6F6F78;
   --fert-chart-point:  #F7F3FF;  /* BBT point fill (ring in --fert-teal) */
 
+  /* ── Pregnancy v2 (M7, docs/pregnancy-v2/README.md "palette → tokens") ──
+     There is no dark artboard: every design colour maps onto an existing token
+     (both themes) and only the roles nothing fits get a `--preg-*` pair.
+     Reused: page #F2ECFF → --page · surface → --surface · line #E7E1F4 →
+     --line, field #E3DDF2 → --field-border, row divider #F0EBFA → --line-2 ·
+     soft surface #F4F0FF → --surface-2 · segmented track #E6DEFF → --pink-bg ·
+     ink → --ink, muted #4E4E59 → --steel, #6F6F78 → --muted · brand → --brand
+     (text) / --brand-fill (fill) · #6A4FE8 → --brand-deep, #5B41E6 →
+     --brand-strong · gradient → --gradient-brand · pink soft #FFD9E9 →
+     --pink-soft · teal soft #E3F9FE → --data-soft, visit dot #0FA3C9 →
+     --data-deep · success #22B07D → --green (done row: --success on
+     --success-soft) · warning box bg → --amber-tint, icon → --amber-deep ·
+     urgent chip → --care-rose on --care-rose-soft · dashed future/week-start
+     #A794FF → --brand-line, dashed care row #CFC7EE / idle bar #DDD6FA →
+     --brand-line-soft · focus ring → --ring. Illustrations: disc → --surface-2,
+     body → --pink-soft, baby → --blush, head → --pink, arc → --brand, leaf →
+     --green, berry → --rose-deep; fruit tints reuse the category hues
+     (`.pg2-fruit-*` below). */
+  --preg-hero-start: #6A4FE8;  /* Today hero fill (top) — carries white text */
+  --preg-hero-end:   #5B41E6;  /* Today hero fill (bottom) */
+  --preg-pink-ink:   #B02A63;  /* text/icon on --pink-soft (size pill, heart tile) */
+  --preg-teal-ink:   #0C6F89;  /* text/icon on --data-soft (confidence, «پیشنهاد») */
+  --preg-warn-line:  #F5DDA6;  /* warning box / follow-up card border */
+  --preg-warn-ink:   #5C3D00;  /* warning box body, «ارزش پیگیری» chip */
+  --preg-illu-ring:  color-mix(in srgb, var(--pink) 45%, var(--surface));  /* dashed ring round the fetus disc */
+
   /* ── Cycle marker intensity ramp (calendar day cells) ──
      Each marker tint gets a faint and a strong step around its base tint,
      graded by the day's conception probability. Derived with color-mix from
@@ -328,6 +354,15 @@
   --fert-chart-grid:   #34295A;
   --fert-chart-label:  #8C82AD;
   --fert-chart-point:  #17112B;
+
+  /* Pregnancy v2 (M7) — no dark artboard; derived from the dark palette.
+     The hero keeps white text, so it deepens instead of lifting. */
+  --preg-hero-start: #4E3AC0;
+  --preg-hero-end:   #3F2DA6;
+  --preg-pink-ink:   #FF9AC4;
+  --preg-teal-ink:   #6FDCF0;
+  --preg-warn-line:  #5A4A2E;
+  --preg-warn-ink:   #F3DDB5;
 
   --brand-line:      #5A4BA8;
   --brand-line-soft: #3A3060;
@@ -2961,3 +2996,65 @@ body.pwa-locked { overflow: hidden; }
   background: color-mix(in srgb, var(--fert-ink, var(--ink-3)) 13%, transparent);
   border: 1px solid color-mix(in srgb, var(--fert-ink, var(--ink-3)) 33%, transparent);
 }
+
+/* ── Pregnancy v2 (M7) — tones + illustration fills ────────────
+   Shared by the Today / Week / Log / Calendar / Alerts screens (T-M7-09…14).
+   A tone sets `--pg2-ink` / `--pg2-soft`; `.pg2-tile` (the artboards' tinted
+   icon tile) and `.pg2-chip` read them. Every value is a token that flips. */
+.pg2-tone-brand  { --pg2-ink: var(--brand-deep);   --pg2-soft: var(--surface-2); }
+.pg2-tone-pink   { --pg2-ink: var(--preg-pink-ink); --pg2-soft: var(--pink-soft); }
+.pg2-tone-teal   { --pg2-ink: var(--preg-teal-ink); --pg2-soft: var(--data-soft); }
+.pg2-tone-warn   { --pg2-ink: var(--amber-deep);   --pg2-soft: var(--amber-tint); }
+.pg2-tone-green  { --pg2-ink: var(--success);      --pg2-soft: var(--success-soft); }
+/* Alert levels (Alerts artboard legend): اطلاع · پیشنهاد · ارزش پیگیری · پیگیری زودتر */
+.pg2-level-info       { --pg2-ink: var(--brand-deep);    --pg2-soft: var(--surface-2); }
+.pg2-level-suggestion { --pg2-ink: var(--preg-teal-ink); --pg2-soft: var(--data-soft); }
+.pg2-level-follow_up  { --pg2-ink: var(--preg-warn-ink); --pg2-soft: var(--amber-tint); }
+.pg2-level-urgent     { --pg2-ink: var(--care-rose);     --pg2-soft: var(--care-rose-soft); }
+.pg2-tile {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  color: var(--pg2-ink, var(--brand-deep));
+  background: var(--pg2-soft, var(--surface-2));
+}
+.pg2-chip {
+  display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  font-weight: 900; color: var(--pg2-ink, var(--brand-deep));
+  background: var(--pg2-soft, var(--surface-2));
+}
+.pg2-warn {
+  background: var(--amber-tint); border: 1px solid var(--preg-warn-line);
+  color: var(--preg-warn-ink);
+}
+.pg2-warn-icon { color: var(--amber-deep); flex-shrink: 0; }
+
+/* Illustrations (`shared/ui/illustrations`). SVG parts carry these classes
+   instead of fills so the drawings flip with the theme. */
+.pg2-illu { display: block; flex-shrink: 0; }
+.pg2-illu-disc     { fill: var(--surface-2); }
+.pg2-illu-ring     { fill: none; stroke: var(--field-border); }
+.pg2-illu-ring-pk  { fill: none; stroke: var(--preg-illu-ring); }
+.pg2-illu-plate    { fill: var(--surface); }
+.pg2-illu-body     { fill: var(--pink-soft); }
+.pg2-illu-halo     { fill: var(--pink-soft); opacity: .55; }
+.pg2-illu-baby     { fill: var(--blush); }
+.pg2-illu-head     { fill: var(--pink); }
+.pg2-illu-shine    { fill: var(--on-accent); }
+.pg2-illu-arc      { fill: none; stroke: var(--brand); }
+.pg2-illu-spark    { fill: var(--brand); }
+.pg2-illu-leaf     { fill: var(--green); }
+.pg2-illu-stem     { fill: none; stroke: var(--green); }
+.pg2-illu-gloss    { fill: var(--on-accent); opacity: .55; }
+/* On the Today hero (a saturated fill that is the same in both themes) the
+   disc and ring are translucent white — allowed on a saturated fill only. */
+.pg2-illu.on-hero .pg2-illu-plate,
+.pg2-illu.on-hero .pg2-illu-halo  { fill: var(--on-accent); opacity: .12; }
+.pg2-illu.on-hero .pg2-illu-body  { fill: color-mix(in srgb, var(--pink) 28%, var(--on-accent)); }
+.pg2-illu.on-hero .pg2-illu-ring-pk { stroke: var(--on-accent); opacity: .8; }
+/* Fruit tints for FetusSize — category hues already in the palette. */
+.pg2-fruit-berry  { fill: var(--rose-deep); }
+.pg2-fruit-yellow { fill: var(--amber); }
+.pg2-fruit-orange { fill: var(--orange); }
+.pg2-fruit-green  { fill: var(--green-mid); }
+.pg2-fruit-purple { fill: var(--indigo); }
+.pg2-fruit-brown  { fill: var(--amber-deep); }
+.pg2-fruit-cream  { fill: var(--amber-soft); stroke: var(--amber-deep); stroke-width: 1.5; }

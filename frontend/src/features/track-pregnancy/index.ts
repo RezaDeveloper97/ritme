@@ -9,3 +9,14 @@ export {
   Segmented,
   Toggle,
 } from './ui/controls';
+
+// ── v2 (M7, `/pregnancy/v2/*`) — mutations for the redesigned screens ──
+export {
+  type PregnancyAlertActionVars,
+  type SavePregnancyDayVars,
+  type UpdateWeekStateVars,
+  usePregnancyAlertAction,
+  useSavePregnancyDay,
+  useUpdateWeekState,
+} from './api/v2-mutations';
+export { toPregnancyDayBody } from './model/v2-body';

@@ -18,6 +18,7 @@ import type enNotifications from '../messages/en/notifications.json';
 import type enOnboarding from '../messages/en/onboarding.json';
 import type enPhaseDetails from '../messages/en/phase-details.json';
 import type enPregnancy from '../messages/en/pregnancy.json';
+import type enPregnancyV2 from '../messages/en/pregnancy-v2.json';
 import type enPwa from '../messages/en/pwa.json';
 import type enProfile from '../messages/en/profile.json';
 import type enProfileEdit from '../messages/en/profile-edit.json';
@@ -40,6 +41,7 @@ type Messages = {
   onboarding: typeof enOnboarding;
   phaseDetails: typeof enPhaseDetails;
   pregnancy: typeof enPregnancy;
+  pregnancyV2: typeof enPregnancyV2;
   pwa: typeof enPwa;
   nav: typeof enNav;
   calendar: typeof enCalendar;

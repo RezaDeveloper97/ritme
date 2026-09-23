@@ -32,27 +32,9 @@ import {
   weeklyContentEnvelopeSchema,
   weeklyEnumsSchema,
 } from './schema';
+import { pregnancyKeys } from './keys';
 
-/**
- * Query-key factory for pregnancy mode (CLAUDE.md §8). Weekly resources are
- * keyed by week, daily ones by API date, so each caches independently. All
- * reads and post-mutation invalidation go through here — never raw arrays.
- */
-export const pregnancyKeys = {
-  all: ['pregnancy'] as const,
-  status: () => [...pregnancyKeys.all, 'status'] as const,
-  profile: () => [...pregnancyKeys.all, 'profile'] as const,
-  enums: () => [...pregnancyKeys.all, 'enums'] as const,
-  symptomEnums: () => [...pregnancyKeys.all, 'symptom-enums'] as const,
-  weeklyEnums: () => [...pregnancyKeys.all, 'weekly-enums'] as const,
-  content: (week: number, locale: string) =>
-    [...pregnancyKeys.all, 'content', week, locale] as const,
-  symptom: (date: string) => [...pregnancyKeys.all, 'symptom', date] as const,
-  weeklyLog: (week: number) => [...pregnancyKeys.all, 'weekly-log', week] as const,
-  fetalMovement: (date: string) => [...pregnancyKeys.all, 'fetal-movement', date] as const,
-  alerts: () => [...pregnancyKeys.all, 'alerts'] as const,
-  alertSummary: () => [...pregnancyKeys.all, 'alert-summary'] as const,
-};
+export { pregnancyKeys };
 
 /** Drop `undefined` values so a body only carries fields the user actually set. */
 function compact<T extends object>(input: T): Record<string, unknown> {
@@ -213,6 +195,8 @@ export function useSaveSymptomLog() {
       void queryClient.invalidateQueries({ queryKey: pregnancyKeys.symptom(input.log_date) });
       void queryClient.invalidateQueries({ queryKey: pregnancyKeys.alerts() });
       void queryClient.invalidateQueries({ queryKey: pregnancyKeys.alertSummary() });
+      // v1 logs feed the v2 Today card, day log and alert list (M7).
+      void queryClient.invalidateQueries({ queryKey: pregnancyKeys.v2.all() });
     },
   });
 }
@@ -254,6 +238,8 @@ export function useSaveWeeklyLog() {
       void queryClient.invalidateQueries({ queryKey: pregnancyKeys.weeklyLog(input.pregnancy_week) });
       void queryClient.invalidateQueries({ queryKey: pregnancyKeys.alerts() });
       void queryClient.invalidateQueries({ queryKey: pregnancyKeys.alertSummary() });
+      // v1 logs feed the v2 Today card, day log and alert list (M7).
+      void queryClient.invalidateQueries({ queryKey: pregnancyKeys.v2.all() });
     },
   });
 }
@@ -298,6 +284,8 @@ export function useSaveFetalMovement() {
       void queryClient.invalidateQueries({ queryKey: pregnancyKeys.fetalMovement(input.log_date) });
       void queryClient.invalidateQueries({ queryKey: pregnancyKeys.alerts() });
       void queryClient.invalidateQueries({ queryKey: pregnancyKeys.alertSummary() });
+      // v1 logs feed the v2 Today card, day log and alert list (M7).
+      void queryClient.invalidateQueries({ queryKey: pregnancyKeys.v2.all() });
     },
   });
 }
@@ -346,6 +334,8 @@ export function useAlertAction() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: pregnancyKeys.alerts() });
       void queryClient.invalidateQueries({ queryKey: pregnancyKeys.alertSummary() });
+      // v1 logs feed the v2 Today card, day log and alert list (M7).
+      void queryClient.invalidateQueries({ queryKey: pregnancyKeys.v2.all() });
     },
   });
 }
@@ -359,6 +349,8 @@ export function useMarkAllAlertsRead() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: pregnancyKeys.alerts() });
       void queryClient.invalidateQueries({ queryKey: pregnancyKeys.alertSummary() });
+      // v1 logs feed the v2 Today card, day log and alert list (M7).
+      void queryClient.invalidateQueries({ queryKey: pregnancyKeys.v2.all() });
     },
   });
 }

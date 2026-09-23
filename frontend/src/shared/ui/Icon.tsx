@@ -12,7 +12,9 @@ export type IconName =
   | 'sun' | 'contrast' | 'cog' | 'bellPlain' | 'pen'
   | 'capsule' | 'tablet' | 'video' | 'phone' | 'mapPin' | 'clock' | 'bellRing' | 'note'
   | 'ribbon' | 'flask' | 'tooth' | 'camera' | 'history' | 'filterLines' | 'export'
-  | 'flaskLh' | 'heartLine' | 'target' | 'moonReminder';
+  | 'flaskLh' | 'heartLine' | 'target' | 'moonReminder'
+  | 'hand' | 'eye' | 'scale' | 'bookmark' | 'warning' | 'doctor'
+  | 'faceGreat' | 'faceGood' | 'faceOkay' | 'faceLow' | 'faceHard';
 
 const PATHS: Record<IconName, string> = {
   bell:         '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
@@ -86,6 +88,23 @@ const PATHS: Record<IconName, string> = {
   heartLine:    '<path d="M12 20s-7-4.5-7-10a4 4 0 017-2.5A4 4 0 0119 10c0 5.5-7 10-7 10z"/>',
   target:       '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>',
   moonReminder: '<path d="M20 14.5A8 8 0 019.5 4 8 8 0 1020 14.5z"/>',
+  /* Pregnancy v2 (M7) — copied from the artboards (docs/design/pregnancy-v2).
+     Reused rather than re-added: heart → `heartLine`, water → `drop`, bell →
+     `bellPlain`, directions → `mapPin`, edit → `pencil`, reviewer avatar →
+     `user`. `doctor` is the artboards' stethoscope (weekly checkup); the older
+     `stetho` stays for the screens already using it. The five faces are the
+     Log mood scale, best (`faceGreat`, mood 5) to hardest (`faceHard`, mood 1). */
+  hand:         '<path d="M8 13V5a1.5 1.5 0 013 0v6M11 11V4a1.5 1.5 0 013 0v7M14 11V6a1.5 1.5 0 013 0v7a6 6 0 01-6 6h-1a5 5 0 01-4-2l-3-4a1.5 1.5 0 012.3-2L8 13"/>',
+  eye:          '<path d="M4 12c2-4 5-6 8-6s6 2 8 6c-2 4-5 6-8 6s-6-2-8-6z"/><circle cx="12" cy="12" r="2.5"/>',
+  scale:        '<path d="M4 8h16l-1.5 12h-13z"/><path d="M8 8a4 4 0 018 0"/>',
+  bookmark:     '<path d="M6 3h12v18l-6-4-6 4z"/>',
+  warning:      '<path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17v.01"/>',
+  doctor:       '<path d="M6 3v6a6 6 0 0012 0V3"/><path d="M12 15v3a3 3 0 006 0v-3"/><circle cx="18" cy="12" r="2"/>',
+  faceGreat:    '<circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01"/><path d="M8 14c1.5 2.5 6.5 2.5 8 0"/>',
+  faceGood:     '<circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01"/><path d="M9 15c1 1 5 1 6 0"/>',
+  faceOkay:     '<circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01"/><path d="M9 15h6"/>',
+  faceLow:      '<circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01"/><path d="M9 16c1-1 5-1 6 0"/>',
+  faceHard:     '<circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01"/><path d="M8 17c1.5-2.5 6.5-2.5 8 0"/>',
   /* Half-filled disc — the conventional "match the system appearance" mark. */
   contrast:     '<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"/>',
 };

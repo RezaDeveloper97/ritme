@@ -3,7 +3,7 @@ id: T-M7-08
 title: Frontend — pregnancy v2 entity/features, tokens (light+dark), illustrations, icons, i18n
 milestone: M7
 type: frontend
-status: todo
+status: done
 depends_on: []
 parallel_group: M7-A
 touches: [frontend/src/entities/pregnancy, frontend/src/features/track-pregnancy, frontend/src/shared/ui/illustrations, frontend/src/app/globals.css, frontend/src/shared/ui/Icon.tsx, frontend/messages/fa, frontend/messages/en, frontend/src/shared/i18n, frontend/src/app/message-scopes.ts]
