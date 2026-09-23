@@ -3,7 +3,7 @@ id: T-M2-21
 title: Admin API II — content CRUD, uploads, messages, languages and translations
 milestone: M2
 type: backend
-status: todo
+status: done
 depends_on: [T-M2-10, T-M2-20]
 parallel_group: M2-F
 touches: [backend-go/internal/admin/content, backend-go/internal/admin/media, backend-go/internal/admin/languages, backend-go/internal/admin/messages, backend-go/internal/http/routes_admin_content.go, backend-go/db/queries/admin/content.sql, docs/go-migration/admin-api.md]

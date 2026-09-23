@@ -46,3 +46,8 @@ Production (T-M2-26).
 Admin host nginx: `/` → admin-web (`stage-admin-web` / `ritme-admin-web-1`), `/api/admin/` → backend-go, and also
 `GET /api/v1/languages` → backend-go (the translatable field needs it). Build the admin-web image once to prove the
 Dockerfile (it was never built — Docker Desktop failed during T-M2-22).
+
+## Note from T-M2-21
+backend-go now writes to the `backend-storage` volume (uploads, `app/translations`, `app/lang`) → mount it
+read-write for backend-go in stage and prod compose. Optional env: `LARAVEL_CACHE_KEY_PREFIX`,
+`LARAVEL_CACHE_REDIS_DB`, `LARAVEL_CACHE_FLUSH` (set `false` after cutover).

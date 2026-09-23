@@ -5,7 +5,9 @@ Next.js app, `admin-web/` (T-M2-22/23). This page is the contract between them. 
 dashboard, users, admins); T-M2-21 adds content CRUD, uploads and languages on the same conventions.
 
 Code: `backend-go/internal/admin/{httpadmin,auth,dashboard,users,admins}`, routes in
-`internal/http/routes_admin_core.go`, queries in `db/queries/admin/`.
+`internal/http/routes_admin_core.go`, queries in `db/queries/admin/`. T-M2-21:
+`internal/admin/{content,content/form,media,messages,languages}`, routes in `internal/http/routes_admin_content.go`,
+queries in `db/queries/admin/content.sql` (endpoints in §11).
 
 ## 1. Where it is served
 
@@ -52,6 +54,7 @@ Failure — every error the admin API itself produces:
 | 422 | `validation_failed` | field errors, see below |
 | 422 | `invalid_credentials` | login failed (same answer for unknown email, wrong password, inactive account) |
 | 422 | `cannot_modify_self` | demoting, deactivating or deleting your own admin account |
+| 422 | `default_language_protected` | deleting or deactivating the default language (T-M2-21) |
 | 429 | `too_many_attempts` | login throttle; body has `retry_after` (seconds), header `Retry-After` |
 
 Validation (422) adds the Laravel error bag; messages are in the **default language** (the admin chain pins
@@ -164,7 +167,14 @@ controls for the current admin).
 - Limits as Laravel: banners jpeg/png/webp ≤ 4 MB and ≥ 800×400; article covers go through the image optimiser
   (fit 1080×1080, WebP q82, random 40-char name). nginx allows 25 MB.
 - Files land on the `backend-storage` volume under `app/public/<dir>/`; the DB stores the relative `image_path`,
-  responses return both `image_path` and the absolute `image_url` (`APP_URL/storage/<path>`).
+  responses return both `image_path` and the absolute `image_url` (`APP_URL/storage/<path>`). Articles already have an
+  `image_url` column (an external URL the form edits), so article responses carry `image_url` (that column),
+  `image_path` and `cover_url` (what the app shows: the upload wins over the external URL).
+- The type is decided by the file's bytes (JPEG/PNG/WebP magic + a header decode), never by the file name or the
+  part's Content-Type: GIF/BMP → the `mimes` message, SVG/HTML/anything else → the `image` message. A text value
+  where a file belongs is an `image` error too. Too large → `max.file`; too small (banners) → `dimensions`.
+- Uploads are `POST` (create) and `PUT` **or** `POST /<resource>/:id` (update — some clients cannot send multipart
+  PUT). `remove_image=1` clears an article cover.
 - Validation failures are the normal 422 with the file field in `errors`. Replacing a file deletes the old one
   after the row is saved.
 
@@ -198,7 +208,7 @@ Register("admin_content", func(r fiber.Router, d *Deps) {
 - Not a deviation (new API): JSON shapes above replace the Blade pages; Blade messages were Persian literals,
   the API returns English `message` + `error_code`.
 
-## 10. Infra follow-ups (not in T-M2-20's files)
+## 10. Infra follow-ups (not in T-M2-20/21's files)
 
 - `backend-go/cmd/api/cors.go`: the global Laravel-compatible CORS middleware handles every `/api/*` path,
   answers preflights before routing and overwrites `Access-Control-Allow-Origin` with the public origin. It must
@@ -208,3 +218,82 @@ Register("admin_content", func(r fiber.Router, d *Deps) {
   Go backend (and keep 404 for the rest of `/api/`); `vhost-api.inc` must 404 `/api/admin/`. Update the
   `deploy.sh` / `deploy-stage.sh` host assertions accordingly.
 - Compose/env: set `ADMIN_HOSTS` (prod `adpanell.ritme.app`, stage its host) for the Go service.
+- T-M2-21: the Go service writes uploads (`app/public/{articles,banners}`), UI bundles (`app/translations/<code>/`)
+  and lang files (`app/lang/<code>/`) to the `backend-storage` volume, so it must be mounted **read-write** (staging
+  mounts it read-only today), still as uid 33 so Laravel and Go can both read and write the files.
+- T-M2-21: while Laravel still serves `/api/v1/languages`, the admin flushes Laravel's cache entry too
+  (`LaravelCache` in `internal/admin/languages`): `DEL <REDIS_PREFIX><CACHE_PREFIX>languages.registry` on Laravel's cache
+  DB. Defaults match `APP_NAME=Ritme` (`ritme-database-ritme-cache-languages.registry`, DB 1); override with
+  `LARAVEL_CACHE_KEY_PREFIX` / `LARAVEL_CACHE_REDIS_DB`, disable with `LARAVEL_CACHE_FLUSH=false` after cutover.
+- T-M2-21 (D-04): lang groups of an admin-added language are written as JSON to `app/lang/<code>/<group>.json`;
+  `internal/i18n/lang` (embedded files only) does not read them yet, so validation messages of a new language fall back
+  to English on both stacks until it does.
+
+## 11. Endpoints (T-M2-21)
+
+`A` = any active admin, `S` = super admin only. All under `/api/admin/v1`; bodies are JSON or multipart (uploads).
+Translatable fields (`T`) are `{code: text}` objects (multipart: `title[fa]=…`); only the default language is required
+where the field is required, and only active languages are stored. Booleans (`is_active`, `is_published`, …) follow
+`$request->boolean()`: absent = `false`. On update, an optional field that is **absent** keeps its stored value; sent
+as `null`/`""` clears it. Every create answers 201, everything else 200; `DELETE` answers `{id}`; `/toggle` answers
+the updated record.
+
+| Method | Path | Who | Body / query | `data` |
+|---|---|---|---|---|
+| GET | `/articles` | A | `page`, `per_page` | list of `Article` (sort_order, newest first) |
+| GET | `/articles/options` | A | — | `{phases:[{value,label,legacy}], max_image_width, max_image_kb}` |
+| POST | `/articles` | A | `slug` (unique), `title` T req, `excerpt` T, `body` T (HTML, sanitised on save), `cycle_phases[]` (sub-phases + legacy main phases), `category?`, `read_time_minutes?` (1–120), `image_url?` (≤1000), `sort_order?`, `is_published?`, `image` file (jpeg/png/webp ≤ 8 MB → WebP ≤1080², `articles/`) | `{article}` |
+| GET | `/articles/:id` | A | — | `{article, options:{phases}}` (phases include the row's legacy values) |
+| PUT/POST | `/articles/:id` | A | as POST, plus `remove_image?` | `{article}` (old cover deleted when replaced) |
+| DELETE | `/articles/:id` | A | — | `{id}` (cover file deleted) |
+| POST | `/articles/:id/toggle` | A | — | `{article}` (publishing sets `published_at` = now) |
+| GET | `/affirmations` · `/affirmations/options` | A | — | list of `Affirmation` · `{phases}` |
+| POST · PUT | `/affirmations` · `/affirmations/:id` | A | `text` T req, `cycle_phase?`, `sort_order?`, `is_active?` | `{affirmation}` |
+| GET · DELETE · POST | `/affirmations/:id` · `/:id` · `/:id/toggle` | A | — | `{affirmation}` · `{id}` · `{affirmation}` |
+| GET | `/challenges` | A | `q` (title/description/category), `status=all\|active\|inactive`, `cycle_day=1…35` (also matches untargeted) | list + `filters` |
+| GET | `/challenges/options` | A | — | `{max_cycle_day: 35}` |
+| POST · PUT | `/challenges` · `/challenges/:id` | A | `title` T req, `description` T, `cycle_day_from?`, `cycle_day_to?` (1–35, `gte:cycle_day_from` — fails without a `from`, as in Laravel), `category?`, `sort_order?`, `is_active?` | `{challenge}` |
+| GET · DELETE · POST | `/challenges/:id` · `/:id` · `/:id/toggle` | A | — | `{challenge}` · `{id}` · `{challenge}` |
+| GET | `/challenge-completions` | A | `challenge_id?` (exists), `q` (user name/mobile), `from?`, `to?` (dates, inclusive), `page`, `per_page` | list of `{id, completion_date, completed_at, user{id,name,mobile}, challenge{id,title}}` + `filters`, `stats{total,users,today}`, `per_challenge[{challenge_id,title,completions,users}]`, `challenges[{id,title}]` |
+| GET | `/recommendations` | A | `phase=general\|<phase>`, `type` | list + `filters` (phase-less last, then phase, sort_order, id) |
+| GET | `/recommendations/options` | A | — | `{phases, subphases, subphase_phases:{sub:phase}, types, triggers}` |
+| POST · PUT | `/recommendations` · `/:id` | A | `type` req, `title` T (≤255, all empty → null), `text` T req (≤2000), `cycle_phase?`, `cycle_subphases[]` (only those the phase reaches), `symptom_trigger?`, `sort_order?`, `is_active?` | `{recommendation}` |
+| GET · DELETE · POST | `/recommendations/:id` · `/:id` · `/:id/toggle` | A | — | `{recommendation}` · `{id}` · `{recommendation}` |
+| GET | `/banners` · `/banners/options` | A | — | list of `Banner` (position, sort_order, newest) · `{positions, link_types, image:{max_kb,min_width,min_height,recommended_width,recommended_height,types}}` |
+| POST | `/banners` | A | multipart: `image` **req** (jpeg/png/webp ≤ 4 MB, ≥ 800×400, stored as uploaded in `banners/`), `title` T (≤255), `position` req, `link_type?`, `link_url?` (required with `link_type`; `url` when external; empty drops both), `starts_at?`, `ends_at?` (≥ starts_at), `sort_order?`, `is_active?` | `{banner}` (`image_path`, `image_url`) |
+| PUT/POST | `/banners/:id` | A | as POST, `image` optional (replaces + deletes the old file) | `{banner}` |
+| GET · DELETE · POST | `/banners/:id` · `/:id` · `/:id/toggle` | A | — | `{banner}` · `{id}` (file deleted) · `{banner}` |
+| GET | `/task-templates` · `/task-templates/options` | A | — | list · `{phases, categories}` |
+| POST · PUT | `/task-templates` · `/:id` | A | `key` req unique, `title` T req, `description` T, `category` req, `icon?`, `cycle_phase?`, `sort_order?`, `is_active?` | `{task_template}` |
+| GET · DELETE · POST | `/task-templates/:id` · `/:id` · `/:id/toggle` | A | — | `{task_template}` · `{id}` · `{task_template}` |
+| GET | `/info-sections` | A | `group=help\|privacy\|terms\|about` (unknown → help) | list + `filters{group}` (sort_order, id) |
+| GET | `/info-sections/options` | A | `group` | `{groups, group, next_sort_order}` |
+| POST · PUT | `/info-sections` · `/:id` | A | `group` req, `heading` T req (≤200), `body` T req, `link_label` T (≤60, empty → null), `link_url?` (≤500, `https?://`, `mailto:` or `tel:`), `sort_order?`, `is_active?` | `{info_section}` |
+| GET · DELETE · POST | `/info-sections/:id` · `/:id` · `/:id/toggle` | A | — | `{info_section}` · `{id}` · `{info_section}` |
+| GET | `/pregnancy-weeks` | A | — | `{items:[{week, id\|null}] (1…40 + stored weeks above), fields:[…10]}` |
+| POST · PUT | `/pregnancy-weeks` · `/:id` | A | `week_number` req (1–42, unique), each of the 10 fields T optional | `{pregnancy_week}` |
+| GET · DELETE | `/pregnancy-weeks/:id` | A | — | `{pregnancy_week}` · `{id}` |
+| GET | `/phase-contents` | A | — | `{items:[{value,label,legacy,id\|null}], fields:[…9], phases}` |
+| POST · PUT | `/phase-contents` · `/:id` | A | `phase` req (content-backed sub-phase, unique), each of the 9 fields T optional | `{phase_content}` |
+| GET · DELETE | `/phase-contents/:id` | A | — | `{phase_content}` · `{id}` |
+| GET | `/messages` | A | `group`, `locale`, `status=approved\|pending`, `page`, `per_page` | list of `Message` (group, item_key, locale) + `filters`, `groups[]`, `locales[]` |
+| GET | `/messages/:id` | A | — | `{message}` |
+| PUT | `/messages/:id` | A | `payload{field: string \| [strings]}` (stored keys only; list fields also take a newline-separated string; an empty scalar keeps its text), `label?` (absent = unchanged) | `{message}` |
+| POST | `/messages/:id/approve` · `/messages/:id/toggle` | A | — | `{message}` (toggles `is_approved` · `is_active`) |
+| GET | `/languages` · `/languages/options` | S | — | `{items:[Language], default_code}` · `{directions, sources:[{code,name}], default_code, next_sort_order}` |
+| POST | `/languages` | S | `code` (BCP-47 shape, normalised lower-case, unique), `name`, `english_name` (≤60), `direction`, `sort_order?`, `is_active?`, `is_default?`, `copy_from?` (active code, default: the default language) | 201 `{language, source, provisioned:{messages, lang_files, smart_messages}}` — bundles copied, lang files (D-04), smart messages cloned unapproved; both registry caches flushed |
+| GET · PUT | `/languages/:id` | S | as POST (a code change does not rename files) | `{language}`; one default kept (a default is forced active; no default left → first active) |
+| DELETE | `/languages/:id` | S | — | `{id}`; removes `app/translations/<code>`, `app/lang/<code>` and the language's smart messages (422 `default_language_protected` for the default) |
+| POST | `/languages/:id/toggle` | S | — | `{language}` (422 `default_language_protected` for the active default) |
+| POST | `/languages/:id/regenerate` | S | `copy_from?` | `{language, source, provisioned}` — bundles rewritten, missing lang files / message rows filled |
+| GET | `/languages/:id/translations` | S | `namespace` (unknown → first) | `{language, namespaces, namespace, rows:[{key,value,reference}], default_code, default_name, is_default_locale}` |
+| PUT | `/languages/:id/translations` | S | `namespace`, `rows:[{key (≤255), value?}]` | `{language, namespace, saved}` — writes `app/translations/<code>/<ns>.json` (empty values dropped → fall back to the default) |
+
+Record shapes are the table columns (translatable ones as objects, timestamps ISO 8601) — `Article` adds `cover_url`,
+`Banner` adds `image_url`. Options are `{value, label}` in the default language.
+
+Security notes: uploads are sniffed and header-decoded (SVG/HTML never stored), stored under random 40-character
+names with an extension chosen from the detected type, written atomically inside `app/public/<dir>` only; article
+covers are re-encoded (EXIF and any appended payload dropped), banners are stored as uploaded (like Laravel) but can
+only be served as `image/*`. Article HTML is sanitised on save (T-M2-10 sanitizer) and again on read. Language codes and
+namespaces are checked against strict patterns before any path is built.

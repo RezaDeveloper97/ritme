@@ -18,3 +18,6 @@ user's OK. The contract harness allow-list must reference the entry id.
 | D-11 | Messages | `premium` persona `/messages/daily` → 500 on some dates (`OverrideType::LOW_ENERGY` doesn't exist, `CycleMessageEngine.php:102`) | preserved (golden locks the 500) unless the user asks for a fix | proposed: preserve |
 | D-12 | Admin | changing own role / deactivating / deleting self silently ignored; Persian flash messages | 422 `cannot_modify_self`; English messages + `error_code` (admin-web translates) | proposed |
 | D-13 | Storage | `/storage/*` via Apache: missing file → HTML 403, directory → 403, dot-files served, multi-range/If-Range honoured | missing/dir/dot-file → JSON 404; multi-range and If-Range → full file | proposed |
+| D-14 | Admin articles | body stored raw, sanitized only on read | sanitized on write as well (read path unchanged) | proposed |
+| D-15 | Admin languages | creating a language directly as default yields zero translation files | copies from the previous default language | proposed |
+| D-16 | Admin banners | internal `link_url` accepts any string (incl. `javascript:`) | **kept as Laravel**; proposal: require a leading `/` | proposed |

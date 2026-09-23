@@ -7,12 +7,61 @@ package store
 import (
 	"context"
 	"database/sql"
+
+	"github.com/ritme/backend-go/internal/platform/civildate"
 )
 
 type Querier interface {
 	// unique:admins,email (->ignore($admin) when except_id > 0).
 	AdminEmailTaken(ctx context.Context, arg AdminEmailTakenParams) (bool, error)
+	AnyDefaultLanguage(ctx context.Context) (bool, error)
+	// unique:articles,slug (->ignore($article) when except_id > 0).
+	ArticleSlugTaken(ctx context.Context, arg ArticleSlugTakenParams) (bool, error)
+	ChallengeExists(ctx context.Context, id uint64) (bool, error)
+	ClearOtherDefaultLanguages(ctx context.Context, arg ClearOtherDefaultLanguagesParams) error
+	// LanguageProvisioner::cloneMessageContents: the source locale's rows, unapproved; rows that
+	// already exist (unique group+item_key+locale) are skipped.
+	CloneMessageContents(ctx context.Context, arg CloneMessageContentsParams) (sql.Result, error)
+	// ---------------------------------------------------------------------------
+	// Challenge completions report (ChallengeCompletionController). challenge_id = 0: all;
+	// the date range is inclusive; pattern searches the user's name and mobile.
+	CompletionTotals(ctx context.Context, arg CompletionTotalsParams) (CompletionTotalsRow, error)
+	CompletionsPerChallenge(ctx context.Context, arg CompletionsPerChallengeParams) ([]CompletionsPerChallengeRow, error)
+	// ---------------------------------------------------------------------------
+	// Affirmations
+	CountAdminAffirmations(ctx context.Context) (int64, error)
+	// Admin API II (T-M2-21): content CRUD, smart messages and languages.
+	// Ported from backend/app/Http/Controllers/Admin/{Article,Affirmation,Challenge,ChallengeCompletion,
+	// Recommendation,Banner,TaskTemplate,InfoSection,PregnancyWeek,PhaseContent,MessageContent,Language}Controller.php
+	// and App\Services\Language\LanguageProvisioner.
+	//
+	// Optional filters use patterns instead of flags (sqlc cannot type bare flags for MySQL):
+	//   * text filters are LIKE patterns: '%' = no filter, an escaped literal = exact match;
+	//   * boolean filters are ranges: [false, true] = all, [true, true] = only true, [false, false] = only false;
+	//   * numeric filters use 0 = none (ids and days are ≥ 1).
+	// ---------------------------------------------------------------------------
+	// Articles
+	CountAdminArticles(ctx context.Context) (int64, error)
+	// ---------------------------------------------------------------------------
+	// Banners
+	CountAdminBanners(ctx context.Context) (int64, error)
+	// ---------------------------------------------------------------------------
+	// Challenges (ChallengeController::filtered). day = 0: no cycle-day filter; otherwise
+	// Challenge::scopeForCycleDay (untargeted rows match every day).
+	CountAdminChallenges(ctx context.Context, arg CountAdminChallengesParams) (int64, error)
+	// ---------------------------------------------------------------------------
+	// Info sections (InfoSection::inGroup($group)->ordered())
+	CountAdminInfoSections(ctx context.Context, group string) (int64, error)
+	CountAdminMessages(ctx context.Context, arg CountAdminMessagesParams) (int64, error)
+	// ---------------------------------------------------------------------------
+	// Recommendations. phase_pattern over IFNULL(cycle_phase, ''): '%' = all, '' = general (NULL),
+	// a value = that phase. type_pattern: '%' = all.
+	CountAdminRecommendations(ctx context.Context, arg CountAdminRecommendationsParams) (int64, error)
+	// ---------------------------------------------------------------------------
+	// Task templates
+	CountAdminTaskTemplates(ctx context.Context) (int64, error)
 	CountAdmins(ctx context.Context) (int64, error)
+	CountCompletionsOn(ctx context.Context, completionDate civildate.Date) (int64, error)
 	// ---------------------------------------------------------------------------
 	// Users (UserController)
 	// Filters: pattern is a LIKE pattern over name/mobile/email ('%' = no search; Go escapes % and _ in
@@ -22,12 +71,34 @@ type Querier interface {
 	// blocked = [1971-01-02, 2037-12-31]. See users.statusRange.
 	CountUsers(ctx context.Context, arg CountUsersParams) (int64, error)
 	CreateAdmin(ctx context.Context, arg CreateAdminParams) (sql.Result, error)
+	CreateAffirmation(ctx context.Context, arg CreateAffirmationParams) (sql.Result, error)
+	CreateArticle(ctx context.Context, arg CreateArticleParams) (sql.Result, error)
+	CreateBanner(ctx context.Context, arg CreateBannerParams) (sql.Result, error)
+	CreateChallenge(ctx context.Context, arg CreateChallengeParams) (sql.Result, error)
+	CreateInfoSection(ctx context.Context, arg CreateInfoSectionParams) (sql.Result, error)
+	CreateLanguage(ctx context.Context, arg CreateLanguageParams) (sql.Result, error)
+	CreatePhaseContent(ctx context.Context, arg CreatePhaseContentParams) (sql.Result, error)
+	CreatePregnancyWeek(ctx context.Context, arg CreatePregnancyWeekParams) (sql.Result, error)
 	CreateProfilePlan(ctx context.Context, arg CreateProfilePlanParams) error
+	CreateRecommendation(ctx context.Context, arg CreateRecommendationParams) (sql.Result, error)
+	CreateTaskTemplate(ctx context.Context, arg CreateTaskTemplateParams) (sql.Result, error)
 	// ---------------------------------------------------------------------------
 	// Dashboard (DashboardController::index)
 	DashboardCounts(ctx context.Context, arg DashboardCountsParams) (DashboardCountsRow, error)
 	DeleteAdmin(ctx context.Context, id uint64) (sql.Result, error)
+	DeleteAffirmation(ctx context.Context, id uint64) (sql.Result, error)
+	DeleteArticle(ctx context.Context, id uint64) (sql.Result, error)
+	DeleteBanner(ctx context.Context, id uint64) (sql.Result, error)
+	DeleteChallenge(ctx context.Context, id uint64) (sql.Result, error)
+	DeleteInfoSection(ctx context.Context, id uint64) (sql.Result, error)
+	DeleteLanguage(ctx context.Context, id uint64) (sql.Result, error)
+	DeleteMessageContentsForLocale(ctx context.Context, locale string) error
+	DeletePhaseContent(ctx context.Context, id uint64) (sql.Result, error)
+	DeletePregnancyWeek(ctx context.Context, id uint64) (sql.Result, error)
+	DeleteRecommendation(ctx context.Context, id uint64) (sql.Result, error)
+	DeleteTaskTemplate(ctx context.Context, id uint64) (sql.Result, error)
 	DeleteUser(ctx context.Context, id uint64) (sql.Result, error)
+	FirstActiveLanguageID(ctx context.Context) (uint64, error)
 	FirstProfileID(ctx context.Context, userID uint64) (uint64, error)
 	// EloquentUserProvider::retrieveByCredentials (email only; is_active is checked in Go).
 	GetAdminByEmail(ctx context.Context, email string) (Admin, error)
@@ -36,20 +107,86 @@ type Querier interface {
 	// ---------------------------------------------------------------------------
 	// Admins
 	GetAdminByID(ctx context.Context, id uint64) (Admin, error)
+	GetAffirmation(ctx context.Context, id uint64) (Affirmation, error)
+	GetArticle(ctx context.Context, id uint64) (Article, error)
+	GetBanner(ctx context.Context, id uint64) (Banner, error)
+	GetChallenge(ctx context.Context, id uint64) (Challenge, error)
+	GetInfoSection(ctx context.Context, id uint64) (InfoSection, error)
+	GetLanguage(ctx context.Context, id uint64) (Language, error)
+	GetMessageContent(ctx context.Context, id uint64) (MessageContent, error)
+	GetPhaseContentByID(ctx context.Context, id uint64) (PhaseContent, error)
+	GetPregnancyWeek(ctx context.Context, id uint64) (PregnancyWeeklyContent, error)
+	GetRecommendation(ctx context.Context, id uint64) (Recommendation, error)
+	GetTaskTemplate(ctx context.Context, id uint64) (TaskTemplate, error)
 	GetUserDetail(ctx context.Context, id uint64) (GetUserDetailRow, error)
+	LanguageCodeTaken(ctx context.Context, arg LanguageCodeTakenParams) (bool, error)
+	ListAdminAffirmations(ctx context.Context, arg ListAdminAffirmationsParams) ([]Affirmation, error)
+	// Article::orderBy('sort_order')->orderByDesc('id')->paginate(20).
+	ListAdminArticles(ctx context.Context, arg ListAdminArticlesParams) ([]Article, error)
+	ListAdminBanners(ctx context.Context, arg ListAdminBannersParams) ([]Banner, error)
+	ListAdminChallenges(ctx context.Context, arg ListAdminChallengesParams) ([]Challenge, error)
+	ListAdminInfoSections(ctx context.Context, arg ListAdminInfoSectionsParams) ([]InfoSection, error)
+	ListAdminMessages(ctx context.Context, arg ListAdminMessagesParams) ([]MessageContent, error)
+	ListAdminRecommendations(ctx context.Context, arg ListAdminRecommendationsParams) ([]Recommendation, error)
+	ListAdminTaskTemplates(ctx context.Context, arg ListAdminTaskTemplatesParams) ([]TaskTemplate, error)
 	// Admin::orderByDesc('id')->paginate(20).
 	ListAdmins(ctx context.Context, arg ListAdminsParams) ([]Admin, error)
+	// ---------------------------------------------------------------------------
+	// Languages (every write must flush the registry caches)
+	// Language::query()->ordered()->get() (active and inactive).
+	ListAllLanguages(ctx context.Context) ([]Language, error)
+	// Challenge::orderBy('sort_order')->orderBy('id')->get(['id', 'title']) (report filter).
+	ListChallengeTitles(ctx context.Context) ([]ListChallengeTitlesRow, error)
+	ListCompletions(ctx context.Context, arg ListCompletionsParams) ([]ListCompletionsRow, error)
+	// ---------------------------------------------------------------------------
+	// Smart messages (message_contents). group/locale patterns: '%' = all.
+	ListMessageGroups(ctx context.Context) ([]string, error)
+	ListMessageLocales(ctx context.Context) ([]string, error)
+	// ---------------------------------------------------------------------------
+	// Phase contents
+	ListPhaseContentIDs(ctx context.Context) ([]ListPhaseContentIDsRow, error)
+	// ---------------------------------------------------------------------------
+	// Pregnancy weeks (pregnancy_weekly_content)
+	ListPregnancyWeekIDs(ctx context.Context) ([]ListPregnancyWeekIDsRow, error)
 	// User::with('profile')->…->latest()->paginate(20). The profile is the user's first row (hasOne).
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]ListUsersRow, error)
+	MaxInfoSectionSortOrder(ctx context.Context, group string) (int64, error)
+	MaxLanguageSortOrder(ctx context.Context) (int64, error)
+	MessageLocaleExists(ctx context.Context, locale string) (bool, error)
+	PhaseContentTaken(ctx context.Context, arg PhaseContentTakenParams) (bool, error)
+	PregnancyWeekTaken(ctx context.Context, arg PregnancyWeekTakenParams) (bool, error)
 	// User::latest()->take(8).
 	RecentUsers(ctx context.Context, limit int32) ([]RecentUsersRow, error)
+	SetArticlePublished(ctx context.Context, arg SetArticlePublishedParams) error
+	SetLanguageActive(ctx context.Context, arg SetLanguageActiveParams) error
+	SetLanguageDefault(ctx context.Context, arg SetLanguageDefaultParams) error
 	// forceFill(['blocked_at' => now()|null])->save().
 	SetUserBlockedAt(ctx context.Context, arg SetUserBlockedAtParams) error
+	TaskTemplateKeyTaken(ctx context.Context, arg TaskTemplateKeyTakenParams) (bool, error)
+	ToggleAffirmation(ctx context.Context, arg ToggleAffirmationParams) error
+	ToggleBanner(ctx context.Context, arg ToggleBannerParams) error
+	ToggleChallenge(ctx context.Context, arg ToggleChallengeParams) error
+	ToggleInfoSection(ctx context.Context, arg ToggleInfoSectionParams) error
+	ToggleMessageActive(ctx context.Context, arg ToggleMessageActiveParams) error
+	ToggleMessageApproved(ctx context.Context, arg ToggleMessageApprovedParams) error
+	ToggleRecommendation(ctx context.Context, arg ToggleRecommendationParams) error
+	ToggleTaskTemplate(ctx context.Context, arg ToggleTaskTemplateParams) error
 	// forceFill(['last_login_at' => now()])->save().
 	TouchAdminLastLogin(ctx context.Context, arg TouchAdminLastLoginParams) error
 	UpdateAdmin(ctx context.Context, arg UpdateAdminParams) error
 	UpdateAdminPassword(ctx context.Context, arg UpdateAdminPasswordParams) error
+	UpdateAffirmation(ctx context.Context, arg UpdateAffirmationParams) error
+	UpdateArticle(ctx context.Context, arg UpdateArticleParams) error
+	UpdateBanner(ctx context.Context, arg UpdateBannerParams) error
+	UpdateChallenge(ctx context.Context, arg UpdateChallengeParams) error
+	UpdateInfoSection(ctx context.Context, arg UpdateInfoSectionParams) error
+	UpdateLanguage(ctx context.Context, arg UpdateLanguageParams) error
+	UpdateMessageContent(ctx context.Context, arg UpdateMessageContentParams) error
+	UpdatePhaseContent(ctx context.Context, arg UpdatePhaseContentParams) error
+	UpdatePregnancyWeek(ctx context.Context, arg UpdatePregnancyWeekParams) error
 	UpdateProfilePlan(ctx context.Context, arg UpdateProfilePlanParams) error
+	UpdateRecommendation(ctx context.Context, arg UpdateRecommendationParams) error
+	UpdateTaskTemplate(ctx context.Context, arg UpdateTaskTemplateParams) error
 	// $user->update(['name' => …]): updated_at only moves when the name changed (Eloquent dirty check).
 	// MariaDB evaluates SET left to right, so updated_at is compared against the old name.
 	UpdateUserName(ctx context.Context, arg UpdateUserNameParams) error

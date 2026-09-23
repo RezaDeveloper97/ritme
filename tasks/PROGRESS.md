@@ -339,3 +339,12 @@ Nothing needed fixing.
   `routes_home.go`, queries `db/queries/home/home.sql`. Contract home+notifications 94/94.
 - Integration test builds the page for 17 personas × fa/en/ar × 3 dates with no failing section.
 - Deterministic `id` tie-breaks added where Laravel relied on MariaDB order (tasks, reminders, articles, notifications).
+
+## T-M2-21 — Admin API II — content CRUD, uploads, messages, languages and translations
+- `internal/admin/{content (+form, admintest),media,messages,languages}`, `routes_admin_content.go`,
+  `db/queries/admin/content.sql`; endpoints in `docs/go-migration/admin-api.md` §11 (languages super-only).
+- Uploads: magic-byte sniffing (GIF / renamed SVG rejected), size + banner min 800×400, WebP re-encode (pure-Go
+  `gen2brain/webp`, CGO off) into `app/public/<dir>`, served by `/storage`.
+- Language writes flush Go's registry and Laravel's `ritme-database-ritme-cache-languages.registry` (Redis DB 1).
+- New deviations D-14 (sanitize on write), D-15 (new default language copies old default), D-16 (banner link_url, kept).
+- Follow-ups: storage volume must be rw for backend-go (noted in T-M2-25); lang loader for storage bundles → T-M2-21b.
