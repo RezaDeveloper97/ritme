@@ -323,3 +323,12 @@ Nothing needed fixing.
   logs, profile), `DayJSON`/`MonthJSON`, adapters `HistoryFromRow`/`ProfileFromRow`/`DailyLogFromRow`/`RecommendationSource`,
   `periods.NewService(db)`.
 - Open: `/cycle/status` has a ~7 ms floor (JWT/DB/registry) — profile later; on/off contract test builds the whole API (~60s).
+
+## T-M2-22 — admin-web — Next.js admin app scaffold
+- New `admin-web/` (Next 15.5 standalone, TS strict, Tailwind 4, Vazirmatn, brand tokens light/dark, FSD with steiger):
+  API client (envelopes, CSRF refresh on 419, 401 → /login), shared UI kit (`/ui-kit` in dev), Jalali dates,
+  `TranslatableField` (languages from API), TipTap editor, auth feature, role-aware shell; 34 vitest tests.
+- Compose: `admin-web` service (internal, `expose: 3000`); stage alias `stage-admin-web`; prod `ritme-admin-web-1`
+  under profile `go` (orchestrator fix: base `depends_on: backend-go` broke the prod overlay otherwise).
+- Verified login → dashboard → logout in headless Chrome against local backend-go. Conventions: `docs/go-migration/admin-web.md`.
+- Open: Docker image never built (Docker Desktop crashed, disk 98% full); nginx wiring noted in T-M2-25.

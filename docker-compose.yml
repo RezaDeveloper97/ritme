@@ -168,6 +168,22 @@ services:
     ports:
       - "3000:3000"
 
+  # Next.js admin app (M2, T-M2-22) — replaces the Blade panel on the admin host.
+  # Internal only: nginx on adpanell proxies `/` here and `/api/admin/` to
+  # backend-go (wired in T-M2-25), so the browser sees ONE origin and the
+  # __Host- session cookie + CSRF work without CORS. NEXT_PUBLIC_* are build-time.
+  admin-web:
+    build:
+      context: ./admin-web
+      args:
+        NEXT_PUBLIC_ADMIN_API_BASE_URL: ${NEXT_PUBLIC_ADMIN_API_BASE_URL:-/api/admin/v1}
+        NEXT_PUBLIC_API_BASE_URL: ${ADMIN_WEB_PUBLIC_API_BASE_URL:-/api/v1}
+    restart: unless-stopped
+    depends_on:
+      - backend-go
+    expose:
+      - "3000"
+
 volumes:
   mysql-data:
   redis-data:

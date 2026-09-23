@@ -3,10 +3,10 @@ id: T-M2-22
 title: admin-web — Next.js admin app scaffold
 milestone: M2
 type: frontend
-status: todo
+status: done
 depends_on: [T-M2-20]
 parallel_group: M2-F
-touches: [admin-web, docker-compose.yml, docker-compose.stage.yml, docs/go-migration/admin-web.md]
+touches: [admin-web, docker-compose.yml, docker-compose.stage.yml, docker-compose.prod.yml, docs/go-migration/admin-web.md]
 skills: [frontend-design:frontend-design]
 verify: cd admin-web && npm run typecheck && npm run lint && npm run test && npm run build
 ---

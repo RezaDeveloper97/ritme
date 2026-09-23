@@ -41,3 +41,8 @@ Production (T-M2-26).
   `/api/admin/`; deploy scripts' host checks need the same update.
 - Compose (stage + prod) must set `ADMIN_HOSTS`, `ADMIN_WEB_ORIGINS`, `ADMIN_COOKIE_SECURE` for backend-go — with
   `ADMIN_HOSTS` empty the admin API is disabled outside local/testing.
+
+## Note from T-M2-22
+Admin host nginx: `/` → admin-web (`stage-admin-web` / `ritme-admin-web-1`), `/api/admin/` → backend-go, and also
+`GET /api/v1/languages` → backend-go (the translatable field needs it). Build the admin-web image once to prove the
+Dockerfile (it was never built — Docker Desktop failed during T-M2-22).

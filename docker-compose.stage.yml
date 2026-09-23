@@ -69,6 +69,16 @@ services:
       ritme-edge:
         aliases: [stage-frontend]
 
+  # Next.js admin (T-M2-22). Reached only through the stage-only alias
+  # `stage-admin-web` (never the bare service name — see backend-go above);
+  # the stage vhost routes to it in T-M2-25.
+  admin-web:
+    container_name: ritme-stage-admin-web-1
+    networks:
+      default:
+      ritme-edge:
+        aliases: [stage-admin-web]
+
 networks:
   # Created once by the deploy scripts; production's proxy joins it too.
   ritme-edge:

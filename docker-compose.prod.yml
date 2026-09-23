@@ -54,6 +54,12 @@ services:
   # COMPOSE_PROFILES=go in /opt/ritme/.env (compose reads it from there).
   # The proxy addresses it by its pinned container name only
   # (upstream ... ritme-backend-go-1:80), never by the service alias.
+  # Next.js admin (T-M2-22): inert in prod until T-M2-26 sets COMPOSE_PROFILES=go
+  # (it depends on backend-go, which is profiled too).
+  admin-web:
+    profiles: [go]
+    container_name: ritme-admin-web-1
+
   backend-go:
     profiles: [go]
     container_name: ritme-backend-go-1
