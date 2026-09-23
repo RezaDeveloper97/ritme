@@ -9,9 +9,46 @@ import (
 )
 
 type Querier interface {
-	// Placeholder so the `cycle` sqlc package exists and compiles before its domain task lands (T-M2-03).
-	// Delete this file when the first real query is added to db/queries/cycle/.
-	SampleCycleHistory(ctx context.Context, id uint64) (CycleHistory, error)
+	// RecommendationRepository::hasContent(): Recommendation::query()->exists() (inactive rows count).
+	AnyRecommendationExists(ctx context.Context) (bool, error)
+	// CycleHistory::where('user_id')->where('is_estimated', true)->where('id', '!=', $keep)->delete().
+	DeleteEstimatesExcept(ctx context.Context, arg DeleteEstimatesExceptParams) error
+	DeletePeriod(ctx context.Context, id uint64) error
+	// blockingOpenPeriod(): an open, non-estimated period that started before $start but within the
+	// hard cap (period_start_date >= today - 12 days).
+	GetBlockingOpenPeriod(ctx context.Context, arg GetBlockingOpenPeriodParams) (CycleHistory, error)
+	// CycleHistory::where('user_id')->orderBy('period_start_date', 'desc')->first().
+	GetLatestPeriod(ctx context.Context, userID uint64) (CycleHistory, error)
+	// PeriodLogController (backend/app/Http/Controllers/Api/V1/PeriodLogController.php).
+	// ongoingPeriod(): whereNull('period_end_date')->orderBy('period_start_date', 'desc')->first().
+	GetOngoingPeriod(ctx context.Context, userID uint64) (CycleHistory, error)
+	// whereDate('period_start_date', $start)->first().
+	GetPeriodByStart(ctx context.Context, arg GetPeriodByStartParams) (CycleHistory, error)
+	// The period before a new start: whereDate('period_start_date', '<', $start)->orderBy(desc)->first().
+	GetPreviousPeriod(ctx context.Context, arg GetPreviousPeriodParams) (CycleHistory, error)
+	// Inputs of the cycle engines (CycleCalculationController, HealthDataEngine, CycleEngineCache,
+	// RecommendationRepository). One query per input per request.
+	// $user->profile (hasOne without ordering: the lowest id on MariaDB).
+	GetProfileByUserID(ctx context.Context, userID uint64) (UserProfile, error)
+	// CycleHistory::where('user_id', $u)->find($period).
+	GetUserPeriod(ctx context.Context, arg GetUserPeriodParams) (CycleHistory, error)
+	// CycleHistory::create([...]); columns the controller does not set take the table defaults.
+	InsertPeriod(ctx context.Context, arg InsertPeriodParams) (int64, error)
+	// RecommendationRepository::rows(): Recommendation::active()->orderBy('sort_order')->orderBy('id').
+	ListActiveRecommendations(ctx context.Context) ([]Recommendation, error)
+	// HealthDataEngine::getCycleHistories: CycleHistory::where('user_id')->orderBy('period_start_date', 'desc').
+	ListCycleHistoriesNewestFirst(ctx context.Context, userID uint64) ([]CycleHistory, error)
+	// HealthDataEngine::preloadDailyLogs: whereBetween('log_date', [from, to 23:59:59]) on a DATE column.
+	ListDailyLogsBetween(ctx context.Context, arg ListDailyLogsBetweenParams) ([]DailyHealthLog, error)
+	// history() and overlapsExistingPeriod(): the non-estimated periods, newest first.
+	ListLoggedPeriods(ctx context.Context, userID uint64) ([]CycleHistory, error)
+	// recomputeCycleLengths(): CycleHistory::where('user_id')->orderBy('period_start_date')->get().
+	ListPeriodsOldestFirst(ctx context.Context, userID uint64) ([]CycleHistory, error)
+	// $period->update([...]) when at least one attribute is dirty (every column written; the clean ones
+	// keep their value).
+	UpdatePeriod(ctx context.Context, arg UpdatePeriodParams) error
+	// $profile->update(['last_period_start' => …]) when dirty.
+	UpdateProfileLastPeriodStart(ctx context.Context, arg UpdateProfileLastPeriodStartParams) error
 }
 
 var _ Querier = (*Queries)(nil)

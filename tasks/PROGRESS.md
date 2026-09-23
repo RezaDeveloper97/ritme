@@ -307,3 +307,19 @@ Nothing needed fixing.
   missing BLOATING/ACNE cases).
 - Open: `StoreSource` duplicates cycle adapters (switch to `cycle/service` later); `content.Repository` can replace
   `profile.StoreMessageContents` (one-line change).
+
+## T-M2-15 — Cycle and period-log endpoints with engine cache
+- `internal/cycle/{service,cache,periods}`, `routes_cycle.go`, queries `db/queries/cycle/{engine,periods}.sql`.
+- Contract: cycle+period+cycle-sweep 313/313; profile+reminders+healthlog now 190/190; also green with
+  `CYCLE_ENGINE_CACHE=off` (env read in routes_cycle.go). Period write sequence (21 steps, 8 personas) leaves rows
+  identical to Laravel.
+- Latency (hey, 400 req, c=8, persona regular; Laravel in docker w/ array cache, Go native):
+
+  | Endpoint | Laravel p50/p95 | Go cache on | Go cache off |
+  |---|---|---|---|
+  | `/cycle/month/2026/9?view=calendar` | 18.2 / 26.4 ms | 12.0 / 16.1 ms | 12.5 / 17.9 ms |
+  | full month | 23.0 / 32.3 ms | 16.2 / 21.0 ms | 18.8 / 26.3 ms |
+- API: `service.New(db, cache).Load(ctx, uid, from, to, today)` → Snapshot (`Engine()`, `Day`, `Month`, histories,
+  logs, profile), `DayJSON`/`MonthJSON`, adapters `HistoryFromRow`/`ProfileFromRow`/`DailyLogFromRow`/`RecommendationSource`,
+  `periods.NewService(db)`.
+- Open: `/cycle/status` has a ~7 ms floor (JWT/DB/registry) — profile later; on/off contract test builds the whole API (~60s).

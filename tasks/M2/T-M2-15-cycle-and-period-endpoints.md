@@ -3,7 +3,7 @@ id: T-M2-15
 title: Cycle and period-log endpoints with engine cache
 milestone: M2
 type: backend
-status: todo
+status: done
 depends_on: [T-M2-11, T-M2-12, T-M2-13, T-M2-14]
 parallel_group: M2-G
 touches: [backend-go/internal/cycle/periods, backend-go/internal/cycle/service, backend-go/internal/cycle/cache, backend-go/internal/http/routes_cycle.go, backend-go/db/queries/cycle, backend-go/contract/allowlist/cycle.yaml, backend-go/contract/allowlist/period.yaml]
