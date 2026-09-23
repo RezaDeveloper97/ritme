@@ -35,3 +35,9 @@ Production (T-M2-26).
 ## Acceptance
 - Rollout log shows every group on Go with evidence, 48h soak without Go-caused regressions.
 - Rollback tested at least once per environment (flip back and forth for one group).
+
+## Note from T-M2-20
+- nginx: `vhost-admin.inc` must proxy `/api/admin/` to Go (it 404s all `/api/` today); `vhost-api.inc` must 404
+  `/api/admin/`; deploy scripts' host checks need the same update.
+- Compose (stage + prod) must set `ADMIN_HOSTS`, `ADMIN_WEB_ORIGINS`, `ADMIN_COOKIE_SECURE` for backend-go — with
+  `ADMIN_HOSTS` empty the admin API is disabled outside local/testing.

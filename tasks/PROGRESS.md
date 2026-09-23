@@ -281,3 +281,13 @@ Nothing needed fixing.
   `pregnancy.ProfileJSON`/`AlertJSON`. MessageManager's `pregnancyWeek` = `GestationalAge().Weeks` (0-based), not `CurrentWeek()`.
 - Eloquent write semantics preserved (created model returns only set attrs, `updated_at` only on dirty).
 - Open: non-numeric `{week}`/`{id}` → 404 here (D-02 behaviour) while reminders keep Laravel's 500 — align once D-02 is decided.
+
+## T-M2-20 — Admin API I — admin auth, roles, dashboard, users, admins
+- `internal/admin/{httpadmin,auth,dashboard,users,admins}`, `routes_admin_core.go`, queries `db/queries/admin/core.sql`.
+  Contract: `docs/go-migration/admin-api.md` (`/api/admin/v1`, `{success,message?,data}`, lists `{items,meta,filters}`).
+- Redis sessions in `__Host-ritme_admin_session` cookie, `X-CSRF-Token` on writes (419), sliding 120 min / 30 days
+  remember-me, super vs editor (403), login throttle 5/min IP+email + 20/min per email. Laravel `$2y$` hashes verify.
+- D-03 implemented (delete revokes tokens) — still needs user OK; D-12 proposed (self-modify 422, English messages).
+- Register admin routes with `httpadmin.Handle(r, method, path, kit.Admin(h)|kit.Super(h))`, not `r.Get`.
+- New env: `ADMIN_HOSTS`, `ADMIN_WEB_ORIGINS`, `ADMIN_COOKIE_SECURE` (nginx/compose follow-ups noted in T-M2-25).
+  Global CORS now skips `/api/admin/`. sqlc: avoid `NOT IN sqlc.arg` and `BETWEEN` (broken codegen for MySQL).

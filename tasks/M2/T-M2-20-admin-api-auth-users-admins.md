@@ -3,7 +3,7 @@ id: T-M2-20
 title: Admin API I — admin auth, roles, dashboard, users, admins
 milestone: M2
 type: backend
-status: todo
+status: done
 depends_on: [T-M2-08]
 parallel_group: M2-E
 touches: [backend-go/internal/admin/auth, backend-go/internal/admin/users, backend-go/internal/admin/admins, backend-go/internal/admin/dashboard, backend-go/internal/admin/httpadmin, backend-go/internal/http/routes_admin_core.go, backend-go/db/queries/admin/core.sql, docs/go-migration/admin-api.md]

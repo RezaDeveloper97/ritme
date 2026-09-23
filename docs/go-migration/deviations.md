@@ -16,3 +16,4 @@ user's OK. The contract harness allow-list must reference the entry id.
 | D-09 | Dates | `Carbon::parse` accepts relative strings (`+1 day`) and military zone letters | `civildate.ParseLenient` rejects them (clients only send `Y-m-d`) | proposed |
 | D-10 | Health | `/up` returns Laravel's HTML health page | plain `OK` (not part of the `/api` contract) | proposed |
 | D-11 | Messages | `premium` persona `/messages/daily` → 500 on some dates (`OverrideType::LOW_ENERGY` doesn't exist, `CycleMessageEngine.php:102`) | preserved (golden locks the 500) unless the user asks for a fix | proposed: preserve |
+| D-12 | Admin | changing own role / deactivating / deleting self silently ignored; Persian flash messages | 422 `cannot_modify_self`; English messages + `error_code` (admin-web translates) | proposed |

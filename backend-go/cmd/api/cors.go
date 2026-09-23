@@ -39,7 +39,8 @@ func corsMiddleware(origins []string) fiber.Handler {
 	}
 
 	return func(c fiber.Ctx) error {
-		if !strings.HasPrefix(c.Path(), "/api/") {
+		// The admin API (internal/admin/httpadmin) owns its own CORS/cookie policy.
+		if !strings.HasPrefix(c.Path(), "/api/") || strings.HasPrefix(c.Path(), "/api/admin/") {
 			return c.Next()
 		}
 

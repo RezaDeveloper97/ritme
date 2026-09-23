@@ -6,12 +6,55 @@ package store
 
 import (
 	"context"
+	"database/sql"
 )
 
 type Querier interface {
-	// Placeholder so the `admin` sqlc package exists and compiles before its domain task lands (T-M2-03).
-	// Delete this file when the first real query is added to db/queries/admin/.
-	SampleAdminAdmin(ctx context.Context, id uint64) (Admin, error)
+	// unique:admins,email (->ignore($admin) when except_id > 0).
+	AdminEmailTaken(ctx context.Context, arg AdminEmailTakenParams) (bool, error)
+	CountAdmins(ctx context.Context) (int64, error)
+	// ---------------------------------------------------------------------------
+	// Users (UserController)
+	// Filters: pattern is a LIKE pattern over name/mobile/email ('%' = no search; Go escapes % and _ in
+	// the search text). The status filter is a range over blocked_at with NULL mapped to the sentinel
+	// 1971-01-01 (sqlc cannot type a bare string flag here; the sentinel must stay inside the TIMESTAMP
+	// range): all = [1971-01-01, 2037-12-31], active = [1971-01-01, 1971-01-01],
+	// blocked = [1971-01-02, 2037-12-31]. See users.statusRange.
+	CountUsers(ctx context.Context, arg CountUsersParams) (int64, error)
+	CreateAdmin(ctx context.Context, arg CreateAdminParams) (sql.Result, error)
+	CreateProfilePlan(ctx context.Context, arg CreateProfilePlanParams) error
+	// ---------------------------------------------------------------------------
+	// Dashboard (DashboardController::index)
+	DashboardCounts(ctx context.Context, arg DashboardCountsParams) (DashboardCountsRow, error)
+	DeleteAdmin(ctx context.Context, id uint64) (sql.Result, error)
+	DeleteUser(ctx context.Context, id uint64) (sql.Result, error)
+	FirstProfileID(ctx context.Context, userID uint64) (uint64, error)
+	// EloquentUserProvider::retrieveByCredentials (email only; is_active is checked in Go).
+	GetAdminByEmail(ctx context.Context, email string) (Admin, error)
+	// Admin API core (T-M2-20): admin accounts, dashboard, user management.
+	// Ported from backend/app/Http/Controllers/Admin/{Auth,Dashboard,User,Admin,Account}Controller.php.
+	// ---------------------------------------------------------------------------
+	// Admins
+	GetAdminByID(ctx context.Context, id uint64) (Admin, error)
+	GetUserDetail(ctx context.Context, id uint64) (GetUserDetailRow, error)
+	// Admin::orderByDesc('id')->paginate(20).
+	ListAdmins(ctx context.Context, arg ListAdminsParams) ([]Admin, error)
+	// User::with('profile')->…->latest()->paginate(20). The profile is the user's first row (hasOne).
+	ListUsers(ctx context.Context, arg ListUsersParams) ([]ListUsersRow, error)
+	// User::latest()->take(8).
+	RecentUsers(ctx context.Context, limit int32) ([]RecentUsersRow, error)
+	// forceFill(['blocked_at' => now()|null])->save().
+	SetUserBlockedAt(ctx context.Context, arg SetUserBlockedAtParams) error
+	// forceFill(['last_login_at' => now()])->save().
+	TouchAdminLastLogin(ctx context.Context, arg TouchAdminLastLoginParams) error
+	UpdateAdmin(ctx context.Context, arg UpdateAdminParams) error
+	UpdateAdminPassword(ctx context.Context, arg UpdateAdminPasswordParams) error
+	UpdateProfilePlan(ctx context.Context, arg UpdateProfilePlanParams) error
+	// $user->update(['name' => …]): updated_at only moves when the name changed (Eloquent dirty check).
+	// MariaDB evaluates SET left to right, so updated_at is compared against the old name.
+	UpdateUserName(ctx context.Context, arg UpdateUserNameParams) error
+	UserExists(ctx context.Context, id uint64) (bool, error)
+	UserStats(ctx context.Context, arg UserStatsParams) (UserStatsRow, error)
 }
 
 var _ Querier = (*Queries)(nil)
