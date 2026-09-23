@@ -1,0 +1,17 @@
+{
+  "appName": "ریتمی",
+  "actions": {
+    "save": "ذخیره",
+    "cancel": "بی‌خیال",
+    "continue": "ادامه",
+    "close": "بستن"
+  },
+  "locale": {
+    "fa": "فارسی",
+    "en": "English"
+  },
+  "calendar": {
+    "prevMonth": "ماه قبل",
+    "nextMonth": "ماه بعد"
+  }
+}

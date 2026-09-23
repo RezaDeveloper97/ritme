@@ -40,3 +40,8 @@ Admin CRUD for these tables (T-M2-21). Home "articles" section (T-M2-18).
 - `make contract ROUTES=public,content` green for all personas and locales (fa, en, ar, none).
 - Sanitizer golden tests green; allow-list file empty or every entry linked to `deviations.md`.
 - `/storage/..%2f..` traversal attempts return 404.
+
+## Note from T-M2-06
+The Go language registry is cached in Redis under `ritme-go:languages.registry` with no TTL. During the strangler
+period a language edited in the Laravel admin will not reach Go until that key is flushed — give it a short TTL
+(or flush on read-miss) here, and make T-M2-21's admin writes call `Flush`.

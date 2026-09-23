@@ -1,0 +1,200 @@
+{
+  "title": "Welcome to Ritme",
+  "subtitle": "Your women's health companion",
+  "todayIs": "Today: {date}",
+  "cta": "Get started",
+  "tagline": "Your health companion",
+  "days": "{n, plural, one{# day} other{# days}}",
+  "percent": "{n, number}%",
+  "updating": "Updating your cycle…",
+  "unavailable": "—",
+  "dateRange": "{from} – {to}",
+  "phaseLabel": {
+    "period": "Period",
+    "follicular": "Follicular",
+    "fertile": "Fertility window",
+    "ovulation": "Ovulation",
+    "luteal": "Luteal"
+  },
+  "phaseDescription": {
+    "period": "Menstrual days — the body sheds the uterine lining and energy is often lower.",
+    "follicular": "After the period the body prepares for ovulation and energy gradually rises.",
+    "fertile": "Days in the fertility window — the chance of conception is higher.",
+    "ovulation": "The estimated ovulation day — the highest chance of conception.",
+    "luteal": "After ovulation until the next period — mood swings or fatigue are common."
+  },
+  "nextPeriod": {
+    "label": "Until next period",
+    "fertility": "Fertility",
+    "phase": "Current phase: Luteal",
+    "currentPhase": "Current phase: {phase}",
+    "phasePrefix": "Current phase:",
+    "startDate": "Next period starts on {date}",
+    "phaseDesc": "Your body is preparing for a new cycle. You may experience mood swings, fatigue or sensitivity — take care of yourself and rest a little.",
+    "showMore": "Show more",
+    "close": "Close"
+  },
+  "selectedDay": {
+    "today": "Today's info",
+    "date": "Info for {date}"
+  },
+  "fertility": {
+    "caption": "Chance of pregnancy"
+  },
+  "phases": {
+    "window": "Fertility window",
+    "ovulation": "Ovulation",
+    "nextPeriod": "Next period in"
+  },
+  "pms": {
+    "label": "PMS window"
+  },
+  "dayStatus": {
+    "period": "Period",
+    "fertile": "Fertility window",
+    "ovulation": "Ovulation",
+    "pms": "PMS window",
+    "period_tomorrow": "Period tomorrow"
+  },
+  "recommendations": {
+    "title": "Today's recommendations",
+    "fallbackTitle": "Tip",
+    "types": {
+      "nutrition": "Nutrition",
+      "hydration": "Hydration",
+      "warmth": "Warmth",
+      "rest": "Rest",
+      "energy": "Energy",
+      "exercise": "Exercise",
+      "fertility": "Fertility",
+      "pms": "PMS",
+      "mood": "Mood",
+      "mental_health": "Mental health",
+      "pain_relief": "Pain relief",
+      "sleep": "Sleep",
+      "digestion": "Digestion"
+    },
+    "iron": "Iron intake",
+    "ironDesc": "Eat iron-rich foods today",
+    "omega": "Omega-3 intake",
+    "omegaDesc": "Eat omega-rich foods today"
+  },
+  "tasks": {
+    "title": "Today's tasks",
+    "progress": "Today's progress",
+    "temp": "Log body temperature",
+    "water": "Drink 8 glasses of water",
+    "vitamin": "Take vitamin D",
+    "walk": "30 minutes of walking",
+    "percent": "{n}%"
+  },
+  "challenge": {
+    "title": "Today's challenge",
+    "item": "Log body temperature",
+    "desc": "Great week so far! Keep it up."
+  },
+  "reminder": {
+    "doctor": "Doctor reminder",
+    "medicine": "Medication reminder",
+    "doctorName": "Dr. Smith",
+    "specialty": "OB/GYN specialist"
+  },
+  "smartTip": {
+    "title": "Smart tip",
+    "body": "In the luteal phase, your body needs extra care. Don't forget whole grains and vegetables.",
+    "quote": "Every day is a new opportunity to take care of yourself."
+  },
+  "weekSummary": {
+    "title": "Week summary",
+    "subtitle": "Average of the last 7 days",
+    "range": "{from} – {to}",
+    "loggedDays": "{n, plural, one{# day logged} other{# days logged}}",
+    "viewAll": "View all",
+    "mood": "Mood",
+    "sleep": "Sleep",
+    "energy": "Energy",
+    "percent": "{n, number}%",
+    "unavailable": "—",
+    "trend": {
+      "up": "{n, number}% better than last week",
+      "down": "{n, number}% lower than last week"
+    },
+    "tone": {
+      "none": "Nothing logged for this week yet.",
+      "unscored": "You logged this week, but not your mood, sleep or energy.",
+      "low": "A tough week — go easy on yourself and rest.",
+      "mixed": "A mixed week. Keep going, you're tracking it.",
+      "good": "Great week so far! Keep it up.",
+      "great": "Brilliant — your best week yet."
+    },
+    "emptyCta": "Log how you feel",
+    "unscoredCta": "Complete today's log",
+    "loading": "Working out this week's summary…",
+    "error": "This week's summary isn't available right now."
+  },
+  "todayStatus": {
+    "title": "Today's status",
+    "viewAll": "View all",
+    "phase": "Current phase",
+    "fertility": "Fertility",
+    "cycleDay": "Cycle day",
+    "normal": "Normal",
+    "bp": "Blood pressure",
+    "glucose": "Blood sugar",
+    "hr": "Heart rate"
+  },
+  "articles": {
+    "title": "Based on your current cycle",
+    "readMore": "View more",
+    "min": "{n} min"
+  },
+  "cycles": {
+    "dayN": "Day {n, number}"
+  },
+  "week": {
+    "sat": "Sat",
+    "sun": "Sun",
+    "mon": "Mon",
+    "tue": "Tue",
+    "wed": "Wed",
+    "thu": "Thu",
+    "fri": "Fri",
+    "fullMonth": "Full month",
+    "close": "Close"
+  },
+  "legend": {
+    "period": "Period",
+    "fertile": "Fertile window",
+    "ovulation": "Ovulation",
+    "pms": "PMS"
+  },
+  "recalculate": "Recalculate",
+  "phaseDetailsCta": "Read more",
+  "cycleDay": {
+    "label": "Cycle day",
+    "value": "{n, number}",
+    "ofN": "of {n, number}"
+  },
+  "timeline": {
+    "title": "Upcoming events",
+    "inDays": "in {n, number} days",
+    "today": "today",
+    "ongoing": "in progress"
+  },
+  "cycleFacts": {
+    "length": "Cycle length",
+    "ovulationDay": "Ovulation day"
+  },
+  "values": {
+    "title": "Cycle length",
+    "logged": "Logged cycle length",
+    "suggestion": "Based on your recent logs, your cycle looks closer to {n, number} days.",
+    "syncCta": "Update to {n, number} days",
+    "basedOn": "Current prediction is based on: {source}",
+    "source": {
+      "recent_valid_cycles": "your recent logs",
+      "profile": "your profile",
+      "default": "default values"
+    }
+  }
+}

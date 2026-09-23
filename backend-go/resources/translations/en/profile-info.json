@@ -1,0 +1,86 @@
+{
+  "privacy": {
+    "title": "Privacy Policy",
+    "sections": [
+      {
+        "heading": "Our commitment to you",
+        "body": "Ritme is built to hold some of your most personal health information, so privacy is our default, not an option. We collect only the minimum data the app needs to work, and we never store anything \"just in case\"."
+      },
+      {
+        "heading": "Your data is never sold",
+        "body": "Your information is never sold or rented to any person or company, and it is not used for advertising. Your data is used solely to provide Ritme's services to you."
+      },
+      {
+        "heading": "Health data stays confidential",
+        "body": "Period dates, symptoms, pregnancy status, and predictions are never written to technical logs, analytics tools, or error reports, and they are never shared with third-party services. This data is only accessible through your own secure sign-in."
+      },
+      {
+        "heading": "Your right to export and delete",
+        "body": "You own your data. At any time, you can download a complete copy of your information as a file from your profile, or permanently delete your account and everything in it. Account deletion is immediate and irreversible."
+      }
+    ]
+  },
+  "terms": {
+    "title": "Terms of Service",
+    "sections": [
+      {
+        "heading": "Informational, not medical advice",
+        "body": "Ritme's content and predictions — including period and ovulation predictions and weekly pregnancy content — are for informational purposes only and are not a substitute for examination, diagnosis, or advice from a doctor. For any health-related decision, please consult a physician or midwife."
+      },
+      {
+        "heading": "Acceptable use",
+        "body": "Ritme is for your personal use. Please log information honestly and only for your own account, do not use someone else's account, and do not attempt unauthorized access to the system or to other users' data."
+      },
+      {
+        "heading": "Your account and one-time codes",
+        "body": "Signing in to Ritme uses your mobile number and a one-time code (OTP). Keeping your mobile number and device secure is your responsibility; never share your sign-in code with anyone."
+      },
+      {
+        "heading": "Deleting your data",
+        "body": "You can delete your account from the profile section at any time. When you delete your account, all of your data is erased from our servers and your active sessions are revoked."
+      }
+    ]
+  },
+  "about": {
+    "title": "About Ritme",
+    "sections": [
+      {
+        "heading": "What is Ritme?",
+        "body": "Ritme is a private companion for women's health — an app for understanding your body's rhythm, logging how you feel each day, and receiving predictions and content tailored to your situation."
+      },
+      {
+        "heading": "Two modes: cycle and pregnancy",
+        "body": "In cycle mode, Ritme tracks your menstrual cycles and estimates when your next period and ovulation are likely to occur. In pregnancy mode, it accompanies you week by week with stage-appropriate content, reminders, and tools to log symptoms and fetal movement. These predictions and content are informational and do not replace a doctor's advice."
+      },
+      {
+        "heading": "App version",
+        "body": "You are using Ritme version 1.0.0. We improve the app regularly — your feedback is invaluable along the way."
+      }
+    ]
+  },
+  "help": {
+    "title": "Help",
+    "sections": [
+      {
+        "heading": "Home",
+        "body": "The home screen shows a summary of your day: your cycle day or pregnancy week, upcoming predictions, and a daily message tailored to you."
+      },
+      {
+        "heading": "Calendar",
+        "body": "The Jalali calendar displays your logged periods and predicted days. Tap any day to see its details or edit its information."
+      },
+      {
+        "heading": "Daily log",
+        "body": "From the log section you can record your general mood, symptoms, flow, and more each day. Logging regularly improves the accuracy of predictions."
+      },
+      {
+        "heading": "Profile",
+        "body": "In your profile you can edit your personal and health information, change the app language, download a copy of your data, or delete your account."
+      },
+      {
+        "heading": "Support",
+        "body": "If you have a question or run into a problem, contact us at support@ritmesalamat.com — we will get back to you as soon as we can."
+      }
+    ]
+  }
+}

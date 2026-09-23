@@ -3,10 +3,10 @@ id: T-M2-06
 title: Laravel-compatible validation engine and i18n (languages, locale, translations)
 milestone: M2
 type: backend
-status: todo
+status: done
 depends_on: [T-M2-03, T-M2-04]
 parallel_group: M2-C
-touches: [backend-go/internal/platform/validation, backend-go/internal/i18n, backend-go/db/queries/i18n, backend-go/resources/lang]
+touches: [backend-go/internal/platform/validation, backend-go/internal/i18n, backend-go/resources/translations, backend-go/db/queries/i18n, backend-go/resources/lang]
 skills: []
 verify: cd backend-go && go test ./internal/platform/validation/... ./internal/i18n/... && make test-int PKG=./internal/i18n/...
 ---

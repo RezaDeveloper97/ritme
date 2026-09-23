@@ -1,0 +1,32 @@
+{
+  "title": "تحلیل",
+  "tagline": "یه نگاه به الگوهای بدنت",
+  "days": "{n, plural, other{# روز}}",
+  "unavailable": "—",
+  "dateRange": "{from} تا {to}",
+  "cycles": {
+    "title": "سیکل‌های من",
+    "current": "سیکل فعلی",
+    "dayN": "روز {n, number}",
+    "startedOn": "شروع شده در",
+    "addPrevious": "سیکل‌های قبلی‌ات رو ثبت کن",
+    "ongoing": "در جریان",
+    "periodDays": "{n, plural, other{پریود # روز}}",
+    "periodUnknown": "مدت پریود ثبت نشده",
+    "avgCycle": "میانگین سیکل",
+    "avgPeriod": "میانگین پریود",
+    "previousTitle": "سیکل‌های قبلی",
+    "recorded": "{n, plural, other{# سیکل ثبت کردی}}",
+    "showAll": "همه رو نشون بده ({n, number})",
+    "showLess": "کمتر نشون بده",
+    "none": "هنوز سیکل قبلی ثبت نکردی. پریودهای گذشته‌ات رو ثبت کن تا طول سیکل‌هات حساب بشه."
+  },
+  "cycleSummary": {
+    "title": "خلاصه سیکل",
+    "dayRange": "{from, number} تا {to, number} روز",
+    "empty": "به‌محض این‌که اولین سیکل کاملت ثبت بشه، این خلاصه با عددهای خودت پر می‌شه."
+  },
+  "bmi": {
+    "title": "شاخص توده بدنی (BMI)"
+  }
+}

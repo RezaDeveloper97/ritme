@@ -1,0 +1,219 @@
+{
+  "title": "بارداری",
+  "subtitle": "هفته به هفته کنار تو و کودکت",
+  "loading": "در حال بارگذاری…",
+  "error": "یه مشکلی پیش اومد؛ دوباره امتحان کن.",
+  "retry": "دوباره امتحان کن",
+  "back": "برگرد",
+  "notActive": {
+    "title": "به حالت بارداری خوش اومدی",
+    "body": "با روشن‌کردن حالت بارداری، هفته‌به‌هفته رشد کودکت و تغییرات بدنت رو دنبال می‌کنی و مراقبت‌های هر هفته رو می‌بینی.",
+    "cta": "حالت بارداری رو روشن کن",
+    "activating": "در حال فعال‌سازی…"
+  },
+  "onboarding": {
+    "title": "بیا بارداری‌ات رو تنظیم کنیم",
+    "subtitle": "برای حساب کردن سن بارداری و تاریخ تقریبی زایمان، یکی از این روش‌ها رو انتخاب کن.",
+    "ageSourceLabel": "مبنای محاسبهٔ سن بارداری",
+    "ageSource": {
+      "lmp": "اولین روز آخرین قاعدگی",
+      "ultrasound": "سونوگرافی",
+      "manual": "خودم هفته رو وارد می‌کنم"
+    },
+    "ageSourceHint": {
+      "lmp": "اگه تاریخ آخرین قاعدگی‌ات رو می‌دونی، ساده‌ترین گزینه دقیقه.",
+      "ultrasound": "بر اساس نتیجه سونوگرافی؛ دقیق‌ترین روشه.",
+      "manual": "اگه هفته بارداری‌ات رو از دکترت می‌دونی."
+    },
+    "lmpDate": "اولین روز آخرین قاعدگی",
+    "ultrasoundDate": "تاریخ سونوگرافی",
+    "ultrasoundAge": "سن بارداری در سونوگرافی",
+    "manualAge": "هفتهٔ بارداری فعلی",
+    "weeks": "هفته",
+    "days": "روز",
+    "history": {
+      "title": "سابقهٔ بارداری",
+      "miscarriage": "سابقه سقط جنین",
+      "highRisk": "سابقه بارداری پرخطر"
+    },
+    "conditions": {
+      "title": "بیماری‌های زمینه‌ای",
+      "chronic_hypertension": "فشار خون مزمن",
+      "diabetes": "دیابت",
+      "hypothyroidism": "کم‌کاری تیروئید",
+      "hyperthyroidism": "پرکاری تیروئید",
+      "none": "هیچ‌کدام"
+    },
+    "bloodTypeLabel": "گروه خونی",
+    "rhLabel": "فاکتور Rh",
+    "rh": {
+      "positive": "مثبت",
+      "negative": "منفی"
+    },
+    "optional": "اختیاری",
+    "submit": "تمومه، بریم",
+    "submitting": "در حال ثبت…",
+    "selectAgeSource": "یه روش انتخاب کن.",
+    "fillRequired": "فیلدهای لازم رو کامل کن."
+  },
+  "hero": {
+    "weekOf": "هفتهٔ {week, number} از ۴۰",
+    "gaValue": "{weeks, number} هفته و {days, number} روز",
+    "dayOfWeek": "روز {day, number} از این هفته"
+  },
+  "trimester": {
+    "label": "سه‌ماهه",
+    "t1": "سه‌ماههٔ اول",
+    "t2": "سه‌ماههٔ دوم",
+    "t3": "سه‌ماههٔ سوم"
+  },
+  "due": {
+    "label": "تاریخ تقریبی زایمان",
+    "countdown": "{n, plural, one {# روز} other {# روز}} تا زایمان",
+    "weeksLeft": "{n, plural, one {# هفته} other {# هفته}} مونده"
+  },
+  "confidence": {
+    "label": "دقت تخمین",
+    "high": "زیاد",
+    "medium": "متوسط",
+    "low": "کم"
+  },
+  "progress": "{percent, number}٪ از مسیر رو اومدی",
+  "weekLabel": "هفتهٔ {week, number}",
+  "highRiskBadge": "بارداری پرخطر",
+  "actions": {
+    "logSymptoms": "ثبت علائم روزانه",
+    "weeklyCheckup": "چکاپ هفتگی",
+    "fetalMovement": "حرکات جنین",
+    "browseWeeks": "مرور هفته‌ها",
+    "viewAlerts": "هشدارها"
+  },
+  "content": {
+    "thisWeek": "این هفته",
+    "noContent": "محتوای این هفته هنوز آماده نشده.",
+    "faqTitle": "پرسش‌های پرتکرار این هفته",
+    "modules": {
+      "fetalDevelopment": "رشد جنین",
+      "motherBodyChanges": "تغییرات بدن مادر",
+      "bodyAdaptation": "سازگاری بدن مادر",
+      "emotionalStatus": "وضعیت احساسی و روانی",
+      "keyNutrition": "تغذیهٔ کلیدی این هفته",
+      "physicalActivity": "تحرک و فعالیت مناسب",
+      "dosAndDonts": "باید‌ها و نبایدها",
+      "carePlan": "برنامهٔ مراقبتی این هفته",
+      "testsAndCheckups": "آزمایش‌ها و چکاپ‌های رایج"
+    }
+  },
+  "weekPicker": {
+    "title": "انتخاب هفته",
+    "prev": "هفتهٔ قبل",
+    "next": "هفتهٔ بعد",
+    "current": "هفتهٔ فعلی"
+  },
+  "alerts": {
+    "title": "هشدارها",
+    "empty": "هیچ هشداری نداری. همه‌چیز خوب پیش می‌ره.",
+    "markAllRead": "همه رو خوندم",
+    "dismiss": "بستن",
+    "unreadBadge": "خوانده‌نشده",
+    "raised": "{n, plural, one {# هشدار تازه برات ثبت شد} other {# هشدار تازه برات ثبت شد}}",
+    "recommended": "کارهایی که پیشنهاد می‌کنیم",
+    "level": {
+      "info": "اطلاع‌رسانی",
+      "warning": "هشدار",
+      "emergency": "اورژانسی"
+    }
+  },
+  "log": {
+    "title": "ثبت روزانهٔ بارداری",
+    "subtitle": "علائم امروزت رو ثبت کن تا ریتمی مراقبت بهتری بهت پیشنهاد بده.",
+    "tabs": {
+      "symptoms": "علائم روزانه",
+      "weekly": "چکاپ هفتگی",
+      "movement": "حرکات جنین"
+    },
+    "today": "امروز",
+    "prevDay": "روز قبل",
+    "nextDay": "روز بعد",
+    "save": "ذخیره",
+    "saving": "در حال ذخیره…",
+    "saved": "ذخیره شد",
+    "saveError": "ذخیره نشد؛ دوباره امتحان کن.",
+    "nothingToSave": "چیزی برای ذخیره انتخاب نکردی.",
+    "yes": "آره",
+    "notesPlaceholder": "هر چیز دیگه‌ای که دوست داری یادت بمونه…",
+    "notes": "یادداشت",
+    "severityLabel": "شدت",
+    "severity": {
+      "mild": "خفیف",
+      "moderate": "متوسط",
+      "severe": "شدید"
+    },
+    "symptomGroups": {
+      "common": "علائم رایج",
+      "aches": "درد‌ها و فشار‌ها",
+      "warning": "علائم هشداردهنده"
+    },
+    "criticalHint": "اگه این علائم رو دیدی حتماً با دکترت تماس بگیر.",
+    "symptoms": {
+      "nausea": "تهوع",
+      "vomiting": "استفراغ",
+      "fatigue": "خستگی",
+      "headache": "سردرد",
+      "dizziness": "سرگیجه",
+      "breast_pain": "درد سینه",
+      "lower_abdominal_pain": "درد زیر شکم",
+      "cramping": "گرفتگی و انقباض",
+      "back_pain": "کمردرد",
+      "pelvic_pressure": "فشار در ناحیهٔ لگن",
+      "spotting": "لکه‌بینی",
+      "bleeding": "خونریزی",
+      "fluid_leakage": "خروج مایع از واژن",
+      "severe_sudden_pain": "درد شدید و ناگهانی"
+    },
+    "weekly": {
+      "weekLabel": "چکاپ هفتهٔ {week, number}",
+      "weight": "وزن (کیلوگرم)",
+      "swelling": "ورم دارم",
+      "swellingWhere": "محل ورم",
+      "swellingLocations": {
+        "feet": "پاها",
+        "hands": "دست‌ها",
+        "face": "صورت"
+      },
+      "shortnessOfBreath": "تنگی نفس",
+      "hasBpDevice": "دستگاه فشارخون دارم",
+      "systolic": "فشار سیستولیک (بالا)",
+      "diastolic": "فشار دیاستولیک (پایین)",
+      "fastingSugar": "قند خون ناشتا",
+      "postMealSugar": "قند خون دو ساعت بعد از غذا",
+      "moodLabel": "حال کلی‌ات",
+      "mood": {
+        "good": "خوب",
+        "moderate": "متوسط",
+        "poor": "بد"
+      },
+      "mental": {
+        "has_anxiety": "اضطراب",
+        "has_mood_swings": "نوسان خلقی",
+        "has_depression_feelings": "احساس افسردگی"
+      }
+    },
+    "movement": {
+      "statusLabel": "وضعیت حرکات",
+      "status": {
+        "not_felt_yet": "هنوز حس نکردم",
+        "felt": "حس کردم",
+        "normal": "طبیعی",
+        "reduced": "کاهش‌یافته",
+        "increased": "افزایش‌یافته",
+        "none": "بدون حرکت"
+      },
+      "count": "تعداد حرکات",
+      "firstTime": "زمان اولین حرکت",
+      "lastTime": "زمان آخرین حرکت",
+      "trackingFrom": "شمارش حرکات جنین معمولاً از هفته ۲۴ مهم می‌شه.",
+      "notYet": "یه‌کم زوده؛ به‌زودی حرکات کودکت رو حس می‌کنی."
+    }
+  }
+}

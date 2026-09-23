@@ -1,0 +1,219 @@
+{
+  "title": "Pregnancy",
+  "subtitle": "Week by week, with you and your baby",
+  "loading": "Loading…",
+  "error": "Something went wrong; please try again.",
+  "retry": "Try again",
+  "back": "Back",
+  "notActive": {
+    "title": "Welcome to pregnancy mode",
+    "body": "Turn on pregnancy mode to follow your baby's week-by-week growth, your body's changes, and the care that matters each week.",
+    "cta": "Start pregnancy mode",
+    "activating": "Activating…"
+  },
+  "onboarding": {
+    "title": "Let's set up your pregnancy",
+    "subtitle": "Pick one method so we can estimate your gestational age and due date.",
+    "ageSourceLabel": "How should we date your pregnancy?",
+    "ageSource": {
+      "lmp": "First day of last period",
+      "ultrasound": "Ultrasound",
+      "manual": "Enter week manually"
+    },
+    "ageSourceHint": {
+      "lmp": "If you know your last period date, this is the simplest accurate option.",
+      "ultrasound": "Based on your ultrasound result; the most accurate method.",
+      "manual": "If your doctor already told you your current week."
+    },
+    "lmpDate": "First day of last period",
+    "ultrasoundDate": "Ultrasound date",
+    "ultrasoundAge": "Gestational age at ultrasound",
+    "manualAge": "Current pregnancy week",
+    "weeks": "weeks",
+    "days": "days",
+    "history": {
+      "title": "Pregnancy history",
+      "miscarriage": "History of miscarriage",
+      "highRisk": "History of high-risk pregnancy"
+    },
+    "conditions": {
+      "title": "Pre-existing conditions",
+      "chronic_hypertension": "Chronic hypertension",
+      "diabetes": "Diabetes",
+      "hypothyroidism": "Hypothyroidism",
+      "hyperthyroidism": "Hyperthyroidism",
+      "none": "None"
+    },
+    "bloodTypeLabel": "Blood type",
+    "rhLabel": "Rh factor",
+    "rh": {
+      "positive": "Positive",
+      "negative": "Negative"
+    },
+    "optional": "optional",
+    "submit": "Finish and start",
+    "submitting": "Saving…",
+    "selectAgeSource": "Please choose a method.",
+    "fillRequired": "Please complete the required fields."
+  },
+  "hero": {
+    "weekOf": "Week {week, number} of 40",
+    "gaValue": "{weeks, number} weeks and {days, number} days",
+    "dayOfWeek": "Day {day, number} of this week"
+  },
+  "trimester": {
+    "label": "Trimester",
+    "t1": "First trimester",
+    "t2": "Second trimester",
+    "t3": "Third trimester"
+  },
+  "due": {
+    "label": "Estimated due date",
+    "countdown": "{n, plural, one {# day} other {# days}} to go",
+    "weeksLeft": "{n, plural, one {# week} other {# weeks}} left"
+  },
+  "confidence": {
+    "label": "Estimate confidence",
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low"
+  },
+  "progress": "{percent, number}% of the journey",
+  "weekLabel": "Week {week, number}",
+  "highRiskBadge": "High-risk pregnancy",
+  "actions": {
+    "logSymptoms": "Log daily symptoms",
+    "weeklyCheckup": "Weekly checkup",
+    "fetalMovement": "Fetal movement",
+    "browseWeeks": "Browse weeks",
+    "viewAlerts": "Alerts"
+  },
+  "content": {
+    "thisWeek": "This week",
+    "noContent": "Content for this week isn't ready yet.",
+    "faqTitle": "Common questions this week",
+    "modules": {
+      "fetalDevelopment": "Baby's development",
+      "motherBodyChanges": "Your body's changes",
+      "bodyAdaptation": "How your body adapts",
+      "emotionalStatus": "Emotional wellbeing",
+      "keyNutrition": "Key nutrition this week",
+      "physicalActivity": "Suitable activity",
+      "dosAndDonts": "Do's and don'ts",
+      "carePlan": "This week's care plan",
+      "testsAndCheckups": "Common tests and checkups"
+    }
+  },
+  "weekPicker": {
+    "title": "Choose a week",
+    "prev": "Previous week",
+    "next": "Next week",
+    "current": "Current week"
+  },
+  "alerts": {
+    "title": "Alerts",
+    "empty": "No alerts. Everything looks good.",
+    "markAllRead": "Mark all as read",
+    "dismiss": "Dismiss",
+    "unreadBadge": "Unread",
+    "raised": "{n, plural, one {# new alert recorded} other {# new alerts recorded}}",
+    "recommended": "Recommended actions",
+    "level": {
+      "info": "Info",
+      "warning": "Warning",
+      "emergency": "Emergency"
+    }
+  },
+  "log": {
+    "title": "Daily pregnancy log",
+    "subtitle": "Record today's symptoms so Ritme can care for you better.",
+    "tabs": {
+      "symptoms": "Daily symptoms",
+      "weekly": "Weekly checkup",
+      "movement": "Fetal movement"
+    },
+    "today": "Today",
+    "prevDay": "Previous day",
+    "nextDay": "Next day",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "saveError": "Couldn't save; please try again.",
+    "nothingToSave": "Nothing selected to save.",
+    "yes": "Yes",
+    "notesPlaceholder": "Anything else you'd like to remember…",
+    "notes": "Notes",
+    "severityLabel": "Severity",
+    "severity": {
+      "mild": "Mild",
+      "moderate": "Moderate",
+      "severe": "Severe"
+    },
+    "symptomGroups": {
+      "common": "Common symptoms",
+      "aches": "Aches and pressure",
+      "warning": "Warning signs"
+    },
+    "criticalHint": "If you notice these signs, contact your doctor right away.",
+    "symptoms": {
+      "nausea": "Nausea",
+      "vomiting": "Vomiting",
+      "fatigue": "Fatigue",
+      "headache": "Headache",
+      "dizziness": "Dizziness",
+      "breast_pain": "Breast pain",
+      "lower_abdominal_pain": "Lower abdominal pain",
+      "cramping": "Cramping",
+      "back_pain": "Back pain",
+      "pelvic_pressure": "Pelvic pressure",
+      "spotting": "Spotting",
+      "bleeding": "Bleeding",
+      "fluid_leakage": "Fluid leakage",
+      "severe_sudden_pain": "Severe sudden pain"
+    },
+    "weekly": {
+      "weekLabel": "Week {week, number} checkup",
+      "weight": "Weight (kg)",
+      "swelling": "I have swelling",
+      "swellingWhere": "Where is the swelling?",
+      "swellingLocations": {
+        "feet": "Feet",
+        "hands": "Hands",
+        "face": "Face"
+      },
+      "shortnessOfBreath": "Shortness of breath",
+      "hasBpDevice": "I have a blood-pressure monitor",
+      "systolic": "Systolic (top)",
+      "diastolic": "Diastolic (bottom)",
+      "fastingSugar": "Fasting blood sugar",
+      "postMealSugar": "Blood sugar 2h after meal",
+      "moodLabel": "Overall mood",
+      "mood": {
+        "good": "Good",
+        "moderate": "Moderate",
+        "poor": "Poor"
+      },
+      "mental": {
+        "has_anxiety": "Anxiety",
+        "has_mood_swings": "Mood swings",
+        "has_depression_feelings": "Feelings of depression"
+      }
+    },
+    "movement": {
+      "statusLabel": "Movement status",
+      "status": {
+        "not_felt_yet": "Not felt yet",
+        "felt": "Felt it",
+        "normal": "Normal",
+        "reduced": "Reduced",
+        "increased": "Increased",
+        "none": "No movement"
+      },
+      "count": "Movement count",
+      "firstTime": "First movement time",
+      "lastTime": "Last movement time",
+      "trackingFrom": "Counting fetal movements usually matters from week 24.",
+      "notYet": "A little early — you'll feel your baby move soon."
+    }
+  }
+}

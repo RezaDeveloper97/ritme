@@ -1,0 +1,17 @@
+{
+  "appName": "Ritme",
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "continue": "Continue",
+    "close": "Close"
+  },
+  "locale": {
+    "fa": "فارسی",
+    "en": "English"
+  },
+  "calendar": {
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "title": "جزئیات فاز",
+  "subtitle": "چیزهایی که توی این فاز از چرخه‌ات مهمه",
+  "currentPhase": "فاز فعلی تو",
+  "loading": "در حال بارگذاری…",
+  "fallback": "فعلاً محتوایی برای این فاز نداریم.",
+  "sections": {
+    "symptom_prediction": "پیش‌بینی علائم",
+    "vaginal_discharge": "ترشحات واژن",
+    "fertility": "باروری",
+    "hormonal_changes": "تغییرات هورمونی",
+    "sex_tips": "نکات رابطه جنسی",
+    "nutrition": "تغذیه",
+    "exercise": "ورزش",
+    "skin_care": "مراقبت از پوست",
+    "sleep": "خواب"
+  }
+}

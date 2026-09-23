@@ -1,0 +1,155 @@
+[
+  {"name": "required_variants", "locale": "en",
+   "rules": {"missing": "required", "null": "required", "blank": "required", "empty_list": "required", "empty_obj": "required", "zero_str": "required", "false": "required", "zero": "required"},
+   "data": {"null": null, "blank": "   ", "empty_list": [], "empty_obj": {}, "zero_str": "0", "false": false, "zero": 0}},
+
+  {"name": "integer_variants", "locale": "en",
+   "rules": {"i_int": "integer", "i_str": "integer", "i_space": "integer", "i_dec_str": "integer", "i_float_whole": "integer", "i_float": "integer", "i_true": "integer", "i_false": "integer", "i_abc": "integer", "i_lead0": "integer", "i_plus": "integer", "i_minus0": "integer", "i_list": "integer", "i_big": "integer", "i_exp": "integer", "i_neg": "integer"},
+   "data": {"i_int": 5, "i_str": "5", "i_space": " 5 ", "i_dec_str": "5.0", "i_float_whole": 5.0, "i_float": 5.5, "i_true": true, "i_false": false, "i_abc": "abc", "i_lead0": "007", "i_plus": "+5", "i_minus0": "-0", "i_list": [1], "i_big": "99999999999999999999", "i_exp": 1e3, "i_neg": "-12"}},
+
+  {"name": "numeric_variants", "locale": "en",
+   "rules": {"n_exp": "numeric", "n_dot5": "numeric", "n_5dot": "numeric", "n_abc": "numeric", "n_space": "numeric", "n_hex": "numeric", "n_true": "numeric", "n_underscore": "numeric", "n_int": "numeric", "n_float": "numeric", "n_dot": "numeric", "n_neg": "numeric", "n_plus": "numeric", "n_list": "numeric"},
+   "data": {"n_exp": "1e3", "n_dot5": ".5", "n_5dot": "5.", "n_abc": "abc", "n_space": " 5", "n_hex": "0x1A", "n_true": true, "n_underscore": "1_000", "n_int": 7, "n_float": 7.25, "n_dot": ".", "n_neg": "-3.5", "n_plus": "+2", "n_list": []}},
+
+  {"name": "boolean_variants", "locale": "en",
+   "rules": {"b_true": "boolean", "b_false": "boolean", "b_1": "boolean", "b_0": "boolean", "b_s1": "boolean", "b_s0": "boolean", "b_strue": "boolean", "b_2": "boolean", "b_f1": "boolean", "b_yes": "boolean", "b_list": "boolean"},
+   "data": {"b_true": true, "b_false": false, "b_1": 1, "b_0": 0, "b_s1": "1", "b_s0": "0", "b_strue": "true", "b_2": 2, "b_f1": 1.0, "b_yes": "yes", "b_list": [true]}},
+
+  {"name": "string_array_variants", "locale": "en",
+   "rules": {"s_int": "string", "s_str": "string", "s_true": "string", "s_list": "string", "a_list": "array", "a_obj": "array", "a_empty": "array", "a_str": "array", "a_int": "array"},
+   "data": {"s_int": 5, "s_str": "x", "s_true": true, "s_list": ["x"], "a_list": [1, 2], "a_obj": {"k": "v"}, "a_empty": [], "a_str": "x", "a_int": 3}},
+
+  {"name": "size_rules_by_type", "locale": "en",
+   "rules": {"str_min": "string|min:3", "num_min": "numeric|min:3", "arr_max": "array|max:1", "int_abc_min": "nullable|integer|min:20|max:300", "mb_max": "string|max:3", "exp_big": "numeric|max:10", "code_int": "required|string|size:4", "code_str": "required|string|size:4", "between_num": "integer|between:1,10", "between_str": "string|between:2,3", "int_as_str_max": "max:2", "float_str_max": "max:3", "bool_max": "max:0", "num_str_size": "numeric|size:5", "untyped_min": "min:2", "exp_huge": "numeric|min:1"},
+   "data": {"str_min": "ab", "num_min": "2", "arr_max": [1, 2], "int_abc_min": "abc", "mb_max": "سلام", "exp_big": "1e2", "code_int": 1234, "code_str": "12345", "between_num": 11, "between_str": "abcd", "int_as_str_max": 300, "float_str_max": 1.5, "bool_max": true, "num_str_size": "5.0", "untyped_min": ["a"], "exp_huge": "1e2000"}},
+
+  {"name": "in_variants", "locale": "en",
+   "rules": {"in_bad": "in:a,b", "in_ok": "in:a,b", "in_int": "in:1,2", "in_true": "in:1,2", "in_loose": "in:1,2", "in_arr_ok": "array|in:a,b", "in_arr_bad": "array|in:a,b", "in_arr_norule": "in:a,b", "in_nested": "array|in:a,b", "in_quoted": "in:\"x,y\",\"z\"", "in_null_elem": "in:a"},
+   "data": {"in_bad": "c", "in_ok": "a", "in_int": 1, "in_true": true, "in_loose": "1.0", "in_arr_ok": ["a", "b"], "in_arr_bad": ["a", "c"], "in_arr_norule": ["a"], "in_nested": [["a"]], "in_quoted": "x,y", "in_null_elem": null}},
+
+  {"name": "regex_variants", "locale": "en",
+   "rules": {"m_ok": "regex:/^09[0-9]{9}$/", "m_short": "regex:/^09[0-9]{9}$/", "m_int": "regex:/^09[0-9]{9}$/", "m_nl": "regex:/^09[0-9]{9}$/", "m_list": "regex:/^09[0-9]{9}$/", "m_ci": "regex:/^abc$/i", "m_str_int": ["required", "string", "regex:/^09[0-9]{9}$/"]},
+   "data": {"m_ok": "09123456789", "m_short": "0912345678", "m_int": 9123456789, "m_nl": "09123456789\n", "m_list": ["09123456789"], "m_ci": "ABC", "m_str_int": 9123456789}},
+
+  {"name": "date_variants", "locale": "en",
+   "rules": {"d_ok": "date", "d_feb30": "date", "d_m13": "date", "d_abc": "date", "d_today": "date", "d_time": "date", "d_dmy": "date", "d_int": "date", "d_slash": "date", "d_short": "date", "d_true": "date", "d_list": "date", "d_iso": "date", "d_ym": "date"},
+   "data": {"d_ok": "2026-09-23", "d_feb30": "2026-02-30", "d_m13": "2026-13-01", "d_abc": "abc", "d_today": "today", "d_time": "2026-09-23 10:00", "d_dmy": "23-09-2026", "d_int": 20260923, "d_slash": "2026/09/23", "d_short": "2026-9-3", "d_true": true, "d_list": ["2026-09-23"], "d_iso": "2026-09-23T10:00:00+03:30", "d_ym": "2026-09"}},
+
+  {"name": "date_format_variants", "locale": "en",
+   "rules": {"t_ok": "date_format:H:i", "t_secs": "date_format:H:i", "t_24": "date_format:H:i", "t_1digit": "date_format:H:i", "t_short_min": "date_format:H:i", "t_int": "date_format:H:i", "ymd_ok": "date_format:Y-m-d", "ymd_short": "date_format:Y-m-d", "ymd_feb30": "date_format:Y-m-d", "ymd_time": "date_format:Y-m-d", "t_2359": "date_format:H:i", "t_blank_h": "date_format:H:i"},
+   "data": {"t_ok": "16:00", "t_secs": "16:00:00", "t_24": "24:00", "t_1digit": "7:05", "t_short_min": "16:0", "t_int": 1600, "ymd_ok": "2026-09-23", "ymd_short": "2026-9-23", "ymd_feb30": "2026-02-30", "ymd_time": "2026-09-23 10:00", "t_2359": "23:59", "t_blank_h": ":30"}},
+
+  {"name": "date_compare_today", "locale": "en",
+   "rules": {"boe_today": "date|before_or_equal:today", "boe_tomorrow": "date|before_or_equal:today", "boe_time": "date|before_or_equal:today", "boe_abc": "date|before_or_equal:today", "b_today": "date|before:today", "b_yesterday": "date|before:today", "a_today": "date|after:today", "aoe_today": "date|after_or_equal:today", "aoe_yesterday": "date|after_or_equal:today", "boe_int": "before_or_equal:today", "b_abc_nodate": "before:today"},
+   "data": {"boe_today": "2026-09-23", "boe_tomorrow": "2026-09-24", "boe_time": "2026-09-23 10:00", "boe_abc": "abc", "b_today": "2026-09-23", "b_yesterday": "2026-09-22", "a_today": "2026-09-23", "aoe_today": "2026-09-23", "aoe_yesterday": "2026-09-22", "boe_int": 5, "b_abc_nodate": "abc"}},
+
+  {"name": "date_compare_field_end_before_start", "locale": "en",
+   "rules": {"start_date": "required|date|before_or_equal:today", "end_date": "nullable|date|after_or_equal:start_date"},
+   "data": {"start_date": "2026-09-20", "end_date": "2026-09-19"}},
+  {"name": "date_compare_field_ok", "locale": "en",
+   "rules": {"start_date": "required|date|before_or_equal:today", "end_date": "nullable|date|after_or_equal:start_date"},
+   "data": {"start_date": "2026-09-20", "end_date": "2026-09-30"}},
+  {"name": "date_compare_field_start_missing", "locale": "en",
+   "rules": {"start_date": "required|date|before_or_equal:today", "end_date": "nullable|date|after_or_equal:start_date"},
+   "data": {"end_date": "2026-09-19"}},
+  {"name": "date_compare_field_start_invalid", "locale": "fa",
+   "rules": {"start_date": "required|date|before_or_equal:today", "end_date": "nullable|date|after_or_equal:start_date"},
+   "data": {"start_date": "garbage", "end_date": "abc"}},
+  {"name": "date_compare_field_fa", "locale": "fa",
+   "rules": {"start_date": "required|date|before_or_equal:today", "end_date": "nullable|date|after_or_equal:start_date", "starts_on": "nullable|date", "ends_on": "nullable|date|after_or_equal:starts_on"},
+   "data": {"start_date": "2026-10-01", "end_date": "2026-09-01", "starts_on": "2026-09-10", "ends_on": "2026-09-01"}},
+
+  {"name": "required_if_lmp", "locale": "en",
+   "rules": {"age_source": "required|in:lmp,ultrasound,manual", "lmp_date": "nullable|required_if:age_source,lmp|date|before_or_equal:today", "ultrasound_weeks": "nullable|required_if:age_source,ultrasound|integer|min:1|max:42"},
+   "data": {"age_source": "lmp"}},
+  {"name": "required_if_absent_other", "locale": "en",
+   "rules": {"age_source": "nullable|in:lmp,ultrasound,manual", "lmp_date": "nullable|required_if:age_source,lmp|date"},
+   "data": {}},
+  {"name": "required_if_case_sensitive", "locale": "fa",
+   "rules": {"age_source": "required|in:lmp,ultrasound,manual", "lmp_date": "nullable|required_if:age_source,lmp|date", "ultrasound_date": "nullable|required_if:age_source,ultrasound|date"},
+   "data": {"age_source": "ultrasound", "lmp_date": "x"}},
+  {"name": "required_if_bool_other", "locale": "en",
+   "rules": {"flag": "boolean", "reason": "required_if:flag,true"},
+   "data": {"flag": true}},
+
+  {"name": "sometimes_variants", "locale": "en",
+   "rules": {"type": "sometimes|in:a,b", "title": "sometimes|string|max:5", "absent": "sometimes|required|string", "is_active": "sometimes|boolean"},
+   "data": {"type": null, "title": null, "is_active": "yes"}},
+
+  {"name": "nullable_skips", "locale": "en",
+   "rules": {"n1": "nullable|integer|min:5", "n2": "nullable|required|string", "n3": ["nullable", "in:a"], "n4": "integer|min:5"},
+   "data": {"n1": null, "n2": null, "n3": null, "n4": null}},
+
+  {"name": "wildcard_order_and_messages", "locale": "en",
+   "rules": {"moods": ["nullable", "array"], "moods.*": ["required", "in:happy,sad"], "notes": "nullable|string|max:3", "tags.*": "in:x"},
+   "data": {"moods": ["happy", "bad", null, ["x"], ""], "notes": "long text", "tags": {"k1": "x", "k2": "y"}}},
+  {"name": "wildcard_scalar_parent", "locale": "en",
+   "rules": {"moods": ["nullable", "array"], "moods.*": ["required", "in:happy,sad"]},
+   "data": {"moods": "happy"}},
+  {"name": "wildcard_no_nullable_elem", "locale": "fa",
+   "rules": {"chronic_conditions": ["nullable", "array"], "chronic_conditions.*": ["in:pcos,thyroid"]},
+   "data": {"chronic_conditions": ["pcos", null, "x"]},
+   "messages": {"chronic_conditions.array": "must be list", "chronic_conditions.*.in": "each must be one of: pcos, thyroid"}},
+  {"name": "wildcard_nested_objects", "locale": "en",
+   "rules": {"items": "array", "items.*.name": "required|string", "items.*.qty": "integer|min:1"},
+   "data": {"items": [{"name": "a", "qty": 0}, {"qty": "x"}, "scalar"]}},
+
+  {"name": "custom_message_lookup", "locale": "en",
+   "rules": {"log_date": "required|date|before_or_equal:today", "weight": "nullable|numeric|min:20|max:300", "notes": "nullable|string|max:5", "other": "required", "attr_only": "integer|min:3"},
+   "data": {"log_date": "2027-01-01", "weight": "abc", "notes": 12345678, "attr_only": "x"},
+   "messages": {"log_date.before_or_equal": "Date cannot be in the future", "weight.min": "Weight must be at least 20 kg", "required": "Generic :attribute required", "attr_only": "Attr-only message for :attribute (:input)", "notes.max": "Too long :attribute :max"}},
+
+  {"name": "custom_attributes", "locale": "en",
+   "rules": {"log_date": "required", "first_name": "required", "items.*": "integer"},
+   "data": {"items": ["a"]},
+   "attributes": {"log_date": "log day", "items.*": "item"}},
+
+  {"name": "attribute_humanise", "locale": "en",
+   "rules": {"firstName": "required", "HTTPCode": "required", "medications.painkillers": "nullable|string|max:3", "a_b_c": "required"},
+   "data": {"medications": {"painkillers": "long"}}},
+
+  {"name": "fa_messages_and_custom", "locale": "fa",
+   "rules": {"log_date": "required|date|before_or_equal:today", "date": "nullable|date|before_or_equal:today", "weight": "nullable|numeric|min:20|max:300", "notes": "nullable|string|max:3", "moods": "nullable|array|max:1", "mobile": "required|string|regex:/^09[0-9]{9}$/", "code": "required|string|size:4", "unknown_field": "required", "type": "required|in:a,b", "age": "integer|between:1,5", "t": "date_format:H:i"},
+   "data": {"log_date": "2027-01-01", "date": "2027-01-01", "weight": 10, "notes": "abcd", "moods": [1, 2], "mobile": "123", "code": "12345", "type": "c", "age": 9, "t": "x"}},
+
+  {"name": "ar_falls_back_to_en", "locale": "ar",
+   "rules": {"log_date": "required|date|before_or_equal:today", "weight": "nullable|numeric|min:20", "start_date": "nullable|date|before_or_equal:today"},
+   "data": {"log_date": "2027-01-01", "weight": 5, "start_date": "2027-01-01"}},
+
+  {"name": "dedupe_same_message", "locale": "en",
+   "rules": {"sys": "nullable|integer|min:60|max:50"},
+   "data": {"sys": 55},
+   "messages": {"sys.min": "bad pressure", "sys.max": "bad pressure"}},
+
+  {"name": "index_position_placeholders", "locale": "en",
+   "rules": {"list.*": "integer"},
+   "data": {"list": [1, "x", "y"]},
+   "messages": {"list.*.integer": "Item :index (position :position) = :input is not an int"}},
+
+  {"name": "bail_stops", "locale": "en",
+   "rules": {"a": "bail|integer|min:5", "b": "integer|min:5"},
+   "data": {"a": "x", "b": "x"}},
+
+  {"name": "required_stops_other_rules", "locale": "en",
+   "rules": {"a": "required|integer|min:5", "b": "required_if:c,1|integer"},
+   "data": {"a": "", "c": "1", "b": null}},
+
+  {"name": "email_variants", "locale": "en",
+   "rules": {"e_ok": "email", "e_bad": "email", "e_nodot": "email", "e_int": "email", "e_space": "email"},
+   "data": {"e_ok": "user@example.com", "e_bad": "abc", "e_nodot": "a@b", "e_int": 5, "e_space": "a b@example.com"}},
+
+  {"name": "validated_order", "locale": "en",
+   "rules": {"log_date": "required|date", "moods": ["nullable", "array"], "moods.*": ["required", "in:happy,sad"], "medications": ["nullable", "array"], "medications.painkillers": "nullable|string|max:255", "medications.antibiotics": "nullable|string|max:255", "notes": "nullable|string", "absent": "nullable|string", "spotting": "nullable|boolean"},
+   "data": {"spotting": null, "notes": "hi", "moods": ["sad", "happy"], "medications": {"antibiotics": "x", "extra": "dropped"}, "log_date": "2026-09-20", "unknown": 1}},
+  {"name": "validated_empty_array_and_null", "locale": "en",
+   "rules": {"moods": ["nullable", "array"], "moods.*": ["required", "in:happy"], "tags": ["nullable", "array"], "tags.*": "in:x", "name": "sometimes|string"},
+   "data": {"moods": [], "tags": null}},
+
+  {"name": "messages_query_rules", "locale": "en",
+   "rules": {"date": "nullable|date_format:Y-m-d", "mode": "nullable|in:cycle,pregnancy"},
+   "data": {"date": "2026-9-1", "mode": "other"}},
+
+  {"name": "all_pass", "locale": "en",
+   "rules": {"a": "required|integer|min:1|max:10", "b": "nullable|string|max:5", "c": "sometimes|boolean", "d": "nullable|date|before_or_equal:today"},
+   "data": {"a": "7", "b": "abc", "d": "2026-09-23"}}
+]

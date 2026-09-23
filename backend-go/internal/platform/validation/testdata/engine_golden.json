@@ -1,0 +1,721 @@
+{
+    "required_variants": {
+        "passes": false,
+        "errors": {
+            "missing": [
+                "The missing field is required."
+            ],
+            "null": [
+                "The null field is required."
+            ],
+            "blank": [
+                "The blank field is required."
+            ],
+            "empty_list": [
+                "The empty list field is required."
+            ],
+            "empty_obj": [
+                "The empty obj field is required."
+            ]
+        },
+        "first": "The missing field is required.",
+        "validated": null
+    },
+    "integer_variants": {
+        "passes": false,
+        "errors": {
+            "i_dec_str": [
+                "The i dec str field must be an integer."
+            ],
+            "i_float": [
+                "The i float field must be an integer."
+            ],
+            "i_false": [
+                "The i false field must be an integer."
+            ],
+            "i_abc": [
+                "The i abc field must be an integer."
+            ],
+            "i_lead0": [
+                "The i lead0 field must be an integer."
+            ],
+            "i_list": [
+                "The i list field must be an integer."
+            ],
+            "i_big": [
+                "The i big field must be an integer."
+            ]
+        },
+        "first": "The i dec str field must be an integer.",
+        "validated": null
+    },
+    "numeric_variants": {
+        "passes": false,
+        "errors": {
+            "n_abc": [
+                "The n abc field must be a number."
+            ],
+            "n_hex": [
+                "The n hex field must be a number."
+            ],
+            "n_true": [
+                "The n true field must be a number."
+            ],
+            "n_underscore": [
+                "The n underscore field must be a number."
+            ],
+            "n_dot": [
+                "The n dot field must be a number."
+            ],
+            "n_list": [
+                "The n list field must be a number."
+            ]
+        },
+        "first": "The n abc field must be a number.",
+        "validated": null
+    },
+    "boolean_variants": {
+        "passes": false,
+        "errors": {
+            "b_strue": [
+                "The b strue field must be true or false."
+            ],
+            "b_2": [
+                "The b 2 field must be true or false."
+            ],
+            "b_f1": [
+                "The b f1 field must be true or false."
+            ],
+            "b_yes": [
+                "The b yes field must be true or false."
+            ],
+            "b_list": [
+                "The b list field must be true or false."
+            ]
+        },
+        "first": "The b strue field must be true or false.",
+        "validated": null
+    },
+    "string_array_variants": {
+        "passes": false,
+        "errors": {
+            "s_int": [
+                "The s int field must be a string."
+            ],
+            "s_true": [
+                "The s true field must be a string."
+            ],
+            "s_list": [
+                "The s list field must be a string."
+            ],
+            "a_str": [
+                "The a str field must be an array."
+            ],
+            "a_int": [
+                "The a int field must be an array."
+            ]
+        },
+        "first": "The s int field must be a string.",
+        "validated": null
+    },
+    "size_rules_by_type": {
+        "passes": false,
+        "errors": {
+            "str_min": [
+                "The str min field must be at least 3 characters."
+            ],
+            "num_min": [
+                "The num min field must be at least 3."
+            ],
+            "arr_max": [
+                "The arr max field must not have more than 1 items."
+            ],
+            "int_abc_min": [
+                "The int abc min field must be an integer.",
+                "The int abc min field must be at least 20."
+            ],
+            "mb_max": [
+                "The mb max field must not be greater than 3 characters."
+            ],
+            "exp_big": [
+                "The exp big field must not be greater than 10."
+            ],
+            "code_int": [
+                "The code int field must be a string."
+            ],
+            "code_str": [
+                "The code str field must be 4 characters."
+            ],
+            "between_num": [
+                "The between num field must be between 1 and 10."
+            ],
+            "between_str": [
+                "The between str field must be between 2 and 3 characters."
+            ],
+            "int_as_str_max": [
+                "The int as str max field must not be greater than 2 characters."
+            ],
+            "bool_max": [
+                "The bool max field must not be greater than 0 characters."
+            ],
+            "untyped_min": [
+                "The untyped min field must be at least 2 characters."
+            ],
+            "exp_huge": [
+                "The exp huge field must be at least 1."
+            ]
+        },
+        "first": "The str min field must be at least 3 characters.",
+        "validated": null
+    },
+    "in_variants": {
+        "passes": false,
+        "errors": {
+            "in_bad": [
+                "The selected in bad is invalid."
+            ],
+            "in_arr_bad": [
+                "The selected in arr bad is invalid."
+            ],
+            "in_arr_norule": [
+                "The selected in arr norule is invalid."
+            ],
+            "in_nested": [
+                "The selected in nested is invalid."
+            ],
+            "in_null_elem": [
+                "The selected in null elem is invalid."
+            ]
+        },
+        "first": "The selected in bad is invalid.",
+        "validated": null
+    },
+    "regex_variants": {
+        "passes": false,
+        "errors": {
+            "m_short": [
+                "The m short field format is invalid."
+            ],
+            "m_int": [
+                "The m int field format is invalid."
+            ],
+            "m_list": [
+                "The m list field format is invalid."
+            ],
+            "m_str_int": [
+                "The m str int field must be a string.",
+                "The m str int field format is invalid."
+            ]
+        },
+        "first": "The m short field format is invalid.",
+        "validated": null
+    },
+    "date_variants": {
+        "passes": false,
+        "errors": {
+            "d_feb30": [
+                "The d feb30 field must be a valid date."
+            ],
+            "d_m13": [
+                "The d m13 field must be a valid date."
+            ],
+            "d_abc": [
+                "The d abc field must be a valid date."
+            ],
+            "d_today": [
+                "The d today field must be a valid date."
+            ],
+            "d_true": [
+                "The d true field must be a valid date."
+            ],
+            "d_list": [
+                "The d list field must be a valid date."
+            ]
+        },
+        "first": "The d feb30 field must be a valid date.",
+        "validated": null
+    },
+    "date_format_variants": {
+        "passes": false,
+        "errors": {
+            "t_secs": [
+                "The t secs field must match the format H:i."
+            ],
+            "t_24": [
+                "The t 24 field must match the format H:i."
+            ],
+            "t_1digit": [
+                "The t 1digit field must match the format H:i."
+            ],
+            "t_short_min": [
+                "The t short min field must match the format H:i."
+            ],
+            "t_int": [
+                "The t int field must match the format H:i."
+            ],
+            "ymd_short": [
+                "The ymd short field must match the format Y-m-d."
+            ],
+            "ymd_feb30": [
+                "The ymd feb30 field must match the format Y-m-d."
+            ],
+            "ymd_time": [
+                "The ymd time field must match the format Y-m-d."
+            ],
+            "t_blank_h": [
+                "The t blank h field must match the format H:i."
+            ]
+        },
+        "first": "The t secs field must match the format H:i.",
+        "validated": null
+    },
+    "date_compare_today": {
+        "passes": false,
+        "errors": {
+            "boe_tomorrow": [
+                "The boe tomorrow field must be a date before or equal to today."
+            ],
+            "boe_time": [
+                "The boe time field must be a date before or equal to today."
+            ],
+            "boe_abc": [
+                "The boe abc field must be a valid date."
+            ],
+            "b_today": [
+                "The b today field must be a date before today."
+            ],
+            "a_today": [
+                "The a today field must be a date after today."
+            ],
+            "aoe_yesterday": [
+                "The aoe yesterday field must be a date after or equal to today."
+            ]
+        },
+        "first": "The boe tomorrow field must be a date before or equal to today.",
+        "validated": null
+    },
+    "date_compare_field_end_before_start": {
+        "passes": false,
+        "errors": {
+            "end_date": [
+                "The end date field must be a date after or equal to start date."
+            ]
+        },
+        "first": "The end date field must be a date after or equal to start date.",
+        "validated": null
+    },
+    "date_compare_field_ok": {
+        "passes": true,
+        "errors": {},
+        "first": "",
+        "validated": {
+            "start_date": "2026-09-20",
+            "end_date": "2026-09-30"
+        }
+    },
+    "date_compare_field_start_missing": {
+        "passes": false,
+        "errors": {
+            "start_date": [
+                "The start date field is required."
+            ]
+        },
+        "first": "The start date field is required.",
+        "validated": null
+    },
+    "date_compare_field_start_invalid": {
+        "passes": false,
+        "errors": {
+            "start_date": [
+                "تاریخ شروع یک تاریخ معتبر نیست."
+            ],
+            "end_date": [
+                "تاریخ پایان یک تاریخ معتبر نیست."
+            ]
+        },
+        "first": "تاریخ شروع یک تاریخ معتبر نیست.",
+        "validated": null
+    },
+    "date_compare_field_fa": {
+        "passes": false,
+        "errors": {
+            "start_date": [
+                "تاریخ شروع نمی‌تواند در آینده باشد."
+            ],
+            "end_date": [
+                "تاریخ پایان نمی‌تواند قبل از تاریخ شروع باشد."
+            ],
+            "ends_on": [
+                "ends on باید تاریخی برابر یا بعد از starts on باشد."
+            ]
+        },
+        "first": "تاریخ شروع نمی‌تواند در آینده باشد.",
+        "validated": null
+    },
+    "required_if_lmp": {
+        "passes": false,
+        "errors": {
+            "lmp_date": [
+                "The lmp date field is required when age source is lmp."
+            ]
+        },
+        "first": "The lmp date field is required when age source is lmp.",
+        "validated": null
+    },
+    "required_if_absent_other": {
+        "passes": true,
+        "errors": {},
+        "first": "",
+        "validated": {}
+    },
+    "required_if_case_sensitive": {
+        "passes": false,
+        "errors": {
+            "lmp_date": [
+                "اولین روز آخرین پریود یک تاریخ معتبر نیست."
+            ],
+            "ultrasound_date": [
+                "وقتی age source برابر ultrasound است، فیلد تاریخ سونوگرافی الزامی است."
+            ]
+        },
+        "first": "اولین روز آخرین پریود یک تاریخ معتبر نیست.",
+        "validated": null
+    },
+    "required_if_bool_other": {
+        "passes": false,
+        "errors": {
+            "reason": [
+                "The reason field is required when flag is true."
+            ]
+        },
+        "first": "The reason field is required when flag is true.",
+        "validated": null
+    },
+    "sometimes_variants": {
+        "passes": false,
+        "errors": {
+            "type": [
+                "The selected type is invalid."
+            ],
+            "title": [
+                "The title field must be a string."
+            ],
+            "is_active": [
+                "The is active field must be true or false."
+            ]
+        },
+        "first": "The selected type is invalid.",
+        "validated": null
+    },
+    "nullable_skips": {
+        "passes": false,
+        "errors": {
+            "n2": [
+                "The n2 field is required."
+            ],
+            "n4": [
+                "The n4 field must be an integer.",
+                "The n4 field must be at least 5."
+            ]
+        },
+        "first": "The n2 field is required.",
+        "validated": null
+    },
+    "wildcard_order_and_messages": {
+        "passes": false,
+        "errors": {
+            "notes": [
+                "The notes field must not be greater than 3 characters."
+            ],
+            "moods.1": [
+                "The selected moods.1 is invalid."
+            ],
+            "moods.2": [
+                "The moods.2 field is required."
+            ],
+            "moods.4": [
+                "The moods.4 field is required."
+            ],
+            "moods.3": [
+                "The selected moods.3 is invalid."
+            ],
+            "tags.k2": [
+                "The selected tags.k2 is invalid."
+            ]
+        },
+        "first": "The notes field must not be greater than 3 characters.",
+        "validated": null
+    },
+    "wildcard_scalar_parent": {
+        "passes": false,
+        "errors": {
+            "moods": [
+                "The moods field must be an array."
+            ]
+        },
+        "first": "The moods field must be an array.",
+        "validated": null
+    },
+    "wildcard_no_nullable_elem": {
+        "passes": false,
+        "errors": {
+            "chronic_conditions.1": [
+                "each must be one of: pcos, thyroid"
+            ],
+            "chronic_conditions.2": [
+                "each must be one of: pcos, thyroid"
+            ]
+        },
+        "first": "each must be one of: pcos, thyroid",
+        "validated": null
+    },
+    "wildcard_nested_objects": {
+        "passes": false,
+        "errors": {
+            "items.1.name": [
+                "The items.1.name field is required."
+            ],
+            "items.2.name": [
+                "The items.2.name field is required."
+            ],
+            "items.0.qty": [
+                "The items.0.qty field must be at least 1."
+            ],
+            "items.1.qty": [
+                "The items.1.qty field must be an integer."
+            ]
+        },
+        "first": "The items.1.name field is required.",
+        "validated": null
+    },
+    "custom_message_lookup": {
+        "passes": false,
+        "errors": {
+            "log_date": [
+                "Date cannot be in the future"
+            ],
+            "weight": [
+                "The weight field must be a number.",
+                "Weight must be at least 20 kg"
+            ],
+            "notes": [
+                "The notes field must be a string.",
+                "Too long notes 5"
+            ],
+            "other": [
+                "Generic other required"
+            ],
+            "attr_only": [
+                "Attr-only message for attr only (x)"
+            ]
+        },
+        "first": "Date cannot be in the future",
+        "validated": null
+    },
+    "custom_attributes": {
+        "passes": false,
+        "errors": {
+            "log_date": [
+                "The log day field is required."
+            ],
+            "first_name": [
+                "The first name field is required."
+            ],
+            "items.0": [
+                "The item field must be an integer."
+            ]
+        },
+        "first": "The log day field is required.",
+        "validated": null
+    },
+    "attribute_humanise": {
+        "passes": false,
+        "errors": {
+            "firstName": [
+                "The first name field is required."
+            ],
+            "HTTPCode": [
+                "The h t t p code field is required."
+            ],
+            "medications.painkillers": [
+                "The medications.painkillers field must not be greater than 3 characters."
+            ],
+            "a_b_c": [
+                "The a b c field is required."
+            ]
+        },
+        "first": "The first name field is required.",
+        "validated": null
+    },
+    "fa_messages_and_custom": {
+        "passes": false,
+        "errors": {
+            "log_date": [
+                "تاریخ ثبت نمی‌تواند در آینده باشد."
+            ],
+            "date": [
+                "این تاریخ نمی‌تواند در آینده باشد."
+            ],
+            "weight": [
+                "وزن باید حداقل 20 باشد."
+            ],
+            "notes": [
+                "یادداشت‌ها نباید بیشتر از 3 نویسه باشد."
+            ],
+            "moods": [
+                "moods نباید بیشتر از 1 مورد باشد."
+            ],
+            "mobile": [
+                "قالب شماره موبایل معتبر نیست."
+            ],
+            "code": [
+                "کد تایید باید 4 نویسه باشد."
+            ],
+            "unknown_field": [
+                "فیلد unknown field الزامی است."
+            ],
+            "type": [
+                "type انتخاب‌شده معتبر نیست."
+            ],
+            "age": [
+                "The age field must be between 1 and 5."
+            ],
+            "t": [
+                "t با قالب H:i مطابقت ندارد."
+            ]
+        },
+        "first": "تاریخ ثبت نمی‌تواند در آینده باشد.",
+        "validated": null
+    },
+    "ar_falls_back_to_en": {
+        "passes": false,
+        "errors": {
+            "log_date": [
+                "The log date field must be a date before or equal to today."
+            ],
+            "weight": [
+                "The weight field must be at least 20."
+            ],
+            "start_date": [
+                "The start date field must be a date before or equal to today."
+            ]
+        },
+        "first": "The log date field must be a date before or equal to today.",
+        "validated": null
+    },
+    "dedupe_same_message": {
+        "passes": false,
+        "errors": {
+            "sys": [
+                "bad pressure"
+            ]
+        },
+        "first": "bad pressure",
+        "validated": null
+    },
+    "index_position_placeholders": {
+        "passes": false,
+        "errors": {
+            "list.1": [
+                "Item 1 (position 2) = x is not an int"
+            ],
+            "list.2": [
+                "Item 2 (position 3) = y is not an int"
+            ]
+        },
+        "first": "Item 1 (position 2) = x is not an int",
+        "validated": null
+    },
+    "bail_stops": {
+        "passes": false,
+        "errors": {
+            "a": [
+                "The a field must be an integer."
+            ],
+            "b": [
+                "The b field must be an integer.",
+                "The b field must be at least 5."
+            ]
+        },
+        "first": "The a field must be an integer.",
+        "validated": null
+    },
+    "required_stops_other_rules": {
+        "passes": false,
+        "errors": {
+            "a": [
+                "The a field is required."
+            ],
+            "b": [
+                "The b field is required when c is 1."
+            ]
+        },
+        "first": "The a field is required.",
+        "validated": null
+    },
+    "email_variants": {
+        "passes": false,
+        "errors": {
+            "e_bad": [
+                "The e bad field must be a valid email address."
+            ],
+            "e_int": [
+                "The e int field must be a valid email address."
+            ],
+            "e_space": [
+                "The e space field must be a valid email address."
+            ]
+        },
+        "first": "The e bad field must be a valid email address.",
+        "validated": null
+    },
+    "validated_order": {
+        "passes": true,
+        "errors": {},
+        "first": "",
+        "validated": {
+            "log_date": "2026-09-20",
+            "medications": {
+                "antibiotics": "x"
+            },
+            "notes": "hi",
+            "spotting": null,
+            "moods": [
+                "sad",
+                "happy"
+            ]
+        }
+    },
+    "validated_empty_array_and_null": {
+        "passes": true,
+        "errors": {},
+        "first": "",
+        "validated": {
+            "moods": [],
+            "tags": null
+        }
+    },
+    "messages_query_rules": {
+        "passes": false,
+        "errors": {
+            "date": [
+                "The date field must match the format Y-m-d."
+            ],
+            "mode": [
+                "The selected mode is invalid."
+            ]
+        },
+        "first": "The date field must match the format Y-m-d.",
+        "validated": null
+    },
+    "all_pass": {
+        "passes": true,
+        "errors": {},
+        "first": "",
+        "validated": {
+            "a": "7",
+            "b": "abc",
+            "d": "2026-09-23"
+        }
+    }
+}

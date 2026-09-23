@@ -1,0 +1,14 @@
+{
+  "title": "Notifications",
+  "back": "Back",
+  "markAllRead": "Mark all read",
+  "empty": {
+    "title": "No notifications",
+    "body": "Whenever there's something new, you'll see it here."
+  },
+  "time": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "daysAgo": "{days, plural, one {# day ago} other {# days ago}}"
+  }
+}

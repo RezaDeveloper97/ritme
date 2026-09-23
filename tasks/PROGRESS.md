@@ -221,3 +221,12 @@ Nothing needed fixing.
 - `view.BaseCalc` interface is what the legacy engine result (T-M2-14) must implement.
 - Daily card keeps Laravel's hardcoded fa/en (`locale == "fa"`) — same behaviour, not a deviation.
 - Golden test duplicates the persona→user-id map from `cmd/contract/personas.go`.
+
+## T-M2-06 — Laravel-compatible validation engine and i18n
+- `internal/platform/validation` (+ `phpval` for PHP value semantics): rules/messages byte-identical to Laravel on
+  46 HTTP + 40 `Validator::make` goldens (fa/en/ar/no header). Pass `validation.Now(clock)`; `Errors()` after `Fails()`.
+- `internal/i18n`: language registry (Redis `ritme-go:languages.registry`), locale middleware/Resolve/Clamp,
+  Translatable, TranslationStore (bundles equal `/languages/{code}/messages` goldens), `lang` (`trans()`).
+- `resources/lang` (PHP lang → JSON via `convert.php`), `resources/translations` (fa/en seed), both embedded.
+- Differences: bootstrap fallback not cached when languages table unreadable; `email` rule approximated via net/mail.
+- Open: registry has no TTL → cross-stack staleness (note added to T-M2-10).

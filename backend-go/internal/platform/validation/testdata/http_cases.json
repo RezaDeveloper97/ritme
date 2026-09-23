@@ -1,0 +1,54 @@
+[
+  {"name": "otp_send_missing", "set": "otp_send", "method": "POST", "path": "/api/v1/auth/send-otp", "lang": "en", "body": {}},
+  {"name": "otp_send_bad_regex_fa", "set": "otp_send", "method": "POST", "path": "/api/v1/auth/send-otp", "lang": "fa", "body": {"mobile": "0912"}},
+  {"name": "otp_send_int_none", "set": "otp_send", "method": "POST", "path": "/api/v1/auth/send-otp", "lang": null, "body": {"mobile": 9123456789}},
+  {"name": "otp_send_blank_ar", "set": "otp_send", "method": "POST", "path": "/api/v1/auth/send-otp", "lang": "ar", "body": {"mobile": "   "}},
+  {"name": "otp_verify_all_bad_en", "set": "otp_verify", "method": "POST", "path": "/api/v1/auth/verify-otp", "lang": "en", "body": {"mobile": "123", "code": "12345"}},
+  {"name": "otp_verify_missing_fa", "set": "otp_verify", "method": "POST", "path": "/api/v1/auth/verify-otp", "lang": "fa", "body": {"code": 1234}},
+
+  {"name": "reminder_store_empty_fa", "set": "reminder_store", "method": "POST", "path": "/api/v1/reminders", "lang": "fa", "body": {}},
+  {"name": "reminder_store_many_en", "set": "reminder_store", "method": "POST", "path": "/api/v1/reminders", "lang": "en", "body": {"type": "other", "title": 5, "notes": "x", "scheduled_at": "nope", "recurrence": "yearly", "recurrence_time": "16:00:00", "starts_on": "2026-09-20", "ends_on": "2026-09-10", "is_active": "yes"}},
+  {"name": "reminder_store_ar", "set": "reminder_store", "method": "POST", "path": "/api/v1/reminders", "lang": "ar", "body": {"type": "doctor", "title": "", "recurrence": null}},
+  {"name": "reminder_update_partial_en", "set": "reminder_update", "method": "PUT", "path": "/api/v1/reminders/1", "lang": "en", "body": {"title": null, "is_active": 2, "ends_on": "abc"}},
+  {"name": "reminder_update_none", "set": "reminder_update", "method": "PUT", "path": "/api/v1/reminders/1", "lang": null, "body": {"type": "x", "recurrence_time": "25:00"}},
+
+  {"name": "profile_many_fa", "set": "profile_store", "method": "POST", "path": "/api/v1/profile", "lang": "fa", "body": {"name": 5, "birthday": "2026-09-23", "weight": "abc", "height": 49.5, "period_duration": 0, "cycle_duration": 61, "last_period_start": "2026-09-24", "user_goal": "x", "subscription_type": "gold", "pregnancy_intention": "maybe", "chronic_conditions": ["pcos", "nope"]}},
+  {"name": "profile_many_en", "set": "profile_store", "method": "POST", "path": "/api/v1/profile", "lang": "en", "body": {"birthday": "abc", "weight": 10, "chronic_conditions": "pcos"}},
+  {"name": "profile_ar", "set": "profile_store", "method": "POST", "path": "/api/v1/profile", "lang": "ar", "body": {"height": "tall", "last_period_start": "tomorrow"}},
+
+  {"name": "period_start_future_fa", "set": "period_start", "method": "POST", "path": "/api/v1/cycle/period/start", "lang": "fa", "body": {"date": "2026-09-24"}},
+  {"name": "period_start_bad_en", "set": "period_start", "method": "POST", "path": "/api/v1/cycle/period/start", "lang": "en", "body": {"date": "abc"}},
+  {"name": "period_end_future_ar", "set": "period_end", "method": "POST", "path": "/api/v1/cycle/period/end", "lang": "ar", "body": {"date": "2030-01-01"}},
+  {"name": "period_store_missing_fa", "set": "period_store", "method": "POST", "path": "/api/v1/cycle/period", "lang": "fa", "body": {"end_date": "2026-09-01"}},
+  {"name": "period_store_order_en", "set": "period_store", "method": "POST", "path": "/api/v1/cycle/period", "lang": "en", "body": {"start_date": "2026-09-10", "end_date": "2026-09-01"}},
+  {"name": "period_store_both_bad_none", "set": "period_store", "method": "POST", "path": "/api/v1/cycle/period", "lang": null, "body": {"start_date": "2026-10-10", "end_date": "2026-10-01"}},
+  {"name": "period_update_fa", "set": "period_update", "method": "PUT", "path": "/api/v1/cycle/period/1", "lang": "fa", "body": {"start_date": "not-a-date", "end_date": "2026-09-01"}},
+
+  {"name": "messages_daily_bad_fa", "set": "messages_daily", "method": "GET", "path": "/api/v1/messages/daily", "lang": "fa", "query": {"date": "2026-9-1", "mode": "x"}},
+  {"name": "messages_daily_bad_en", "set": "messages_daily", "method": "GET", "path": "/api/v1/messages/daily", "lang": "en", "query": {"date": "23/09/2026"}},
+
+  {"name": "articles_per_page_zero_en", "set": "articles_index", "method": "GET", "path": "/api/v1/articles", "lang": "en", "query": {"per_page": "0"}},
+  {"name": "articles_many_fa", "set": "articles_index", "method": "GET", "path": "/api/v1/articles", "lang": "fa", "query": {"page": "abc", "per_page": "51", "q": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}},
+  {"name": "articles_locale_query_ar", "set": "articles_index", "method": "GET", "path": "/api/v1/articles", "lang": null, "query": {"locale": "ar", "page": "0"}},
+
+  {"name": "home_bad_date_en", "set": "home", "method": "GET", "path": "/api/v1/home", "lang": "en", "query": {"date": "not-a-date"}},
+  {"name": "home_section_bad_date_fa", "set": "home", "method": "GET", "path": "/api/v1/home/sections/articles", "lang": "fa", "query": {"date": "2026-02-30"}},
+
+  {"name": "healthlog_missing_date_fa", "set": "healthlog_store", "method": "POST", "path": "/api/v1/health-logs", "lang": "fa", "body": {}},
+  {"name": "healthlog_future_en", "set": "healthlog_store", "method": "POST", "path": "/api/v1/health-logs", "lang": "en", "body": {"log_date": "2026-09-24"}},
+  {"name": "healthlog_many_fa", "set": "healthlog_store", "method": "POST", "path": "/api/v1/health-logs", "lang": "fa", "body": {"log_date": "abc", "bleeding_intensity": "huge", "spotting": "maybe", "moods": ["happy", "nope", null], "exercise_type": "flying", "exercise_duration": 0, "weight": 10, "basal_body_temperature": 50, "heart_rate": "x", "systolic_pressure": 20, "diastolic_pressure": 500, "blood_sugar": 700, "medications": {"painkillers": 5, "extra": "x"}, "notes": 123, "sexual_activities": "none"}},
+  {"name": "healthlog_trim_and_empty_ar", "set": "healthlog_store", "method": "POST", "path": "/api/v1/health-logs", "lang": "ar", "body": {"log_date": "  2026-09-20  ", "exercise_type": "", "notes": "   ", "weight": " 15 ", "moods": ["  "]}},
+  {"name": "healthlog_none_header", "set": "healthlog_store", "method": "POST", "path": "/api/v1/health-logs", "lang": null, "body": {"log_date": "2026-09-23 23:00", "exercise_type": ["walking", "x"], "exercise_intensity": "x"}},
+
+  {"name": "preg_onboarding_missing_en", "set": "pregnancy_onboarding", "method": "POST", "path": "/api/v1/pregnancy/onboarding", "lang": "en", "body": {}},
+  {"name": "preg_onboarding_lmp_fa", "set": "pregnancy_onboarding", "method": "POST", "path": "/api/v1/pregnancy/onboarding", "lang": "fa", "body": {"age_source": "lmp"}},
+  {"name": "preg_onboarding_us_fa", "set": "pregnancy_onboarding", "method": "POST", "path": "/api/v1/pregnancy/onboarding", "lang": "fa", "body": {"age_source": "ultrasound", "ultrasound_date": "2026-10-01", "ultrasound_weeks": 50, "ultrasound_days": 7, "blood_type": "Z", "rh_factor": "x", "pre_existing_conditions": ["x"], "has_miscarriage_history": "y"}},
+  {"name": "preg_onboarding_manual_ar", "set": "pregnancy_onboarding", "method": "POST", "path": "/api/v1/pregnancy/onboarding", "lang": "ar", "body": {"age_source": "manual", "manual_weeks": "x"}},
+  {"name": "preg_update_en", "set": "pregnancy_update", "method": "PUT", "path": "/api/v1/pregnancy/profile", "lang": "en", "body": {"age_source": "x", "lmp_date": "2027-01-01", "ultrasound_weeks": 0, "manual_days": 9, "fetal_movement_felt": "x", "first_fetal_movement_date": "2027-01-01"}},
+  {"name": "preg_symptoms_fa", "set": "pregnancy_symptoms", "method": "POST", "path": "/api/v1/pregnancy/symptoms", "lang": "fa", "body": {"log_date": "2027-01-01", "has_nausea": "x", "nausea_severity": "extreme", "notes": 5}},
+  {"name": "preg_symptoms_missing_en", "set": "pregnancy_symptoms", "method": "POST", "path": "/api/v1/pregnancy/symptoms", "lang": "en", "body": {}},
+  {"name": "preg_weekly_fa", "set": "pregnancy_weekly", "method": "POST", "path": "/api/v1/pregnancy/weekly", "lang": "fa", "body": {"log_date": "abc", "pregnancy_week": 50, "weight": 10, "swelling_locations": ["x"], "systolic_pressure": 300, "fasting_blood_sugar": "x", "overall_mood": "x"}},
+  {"name": "preg_weekly_none", "set": "pregnancy_weekly", "method": "POST", "path": "/api/v1/pregnancy/weekly", "lang": null, "body": {"pregnancy_week": "x"}},
+  {"name": "preg_fetal_en", "set": "pregnancy_fetal", "method": "POST", "path": "/api/v1/pregnancy/fetal-movement", "lang": "en", "body": {"log_date": "2026-09-23", "pregnancy_week": 0, "movement_status": "x", "movement_count": -1, "first_movement_time": "25:00", "last_movement_time": "10:00:00"}},
+  {"name": "preg_fetal_fa", "set": "pregnancy_fetal", "method": "POST", "path": "/api/v1/pregnancy/fetal-movement", "lang": "fa", "body": {}}
+]

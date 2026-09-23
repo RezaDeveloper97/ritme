@@ -1,0 +1,178 @@
+{
+    "otp_send_missing": {
+        "status": 422,
+        "body": "{\"success\":false,\"message\":\"Validation failed\",\"errors\":{\"mobile\":[\"The mobile field is required.\"]}}"
+    },
+    "otp_send_bad_regex_fa": {
+        "status": 422,
+        "body": "{\"success\":false,\"message\":\"Validation failed\",\"errors\":{\"mobile\":[\"Mobile number must be a valid Iranian mobile number (e.g., 09123456789)\"]}}"
+    },
+    "otp_send_int_none": {
+        "status": 422,
+        "body": "{\"success\":false,\"message\":\"Validation failed\",\"errors\":{\"mobile\":[\"\\u0634\\u0645\\u0627\\u0631\\u0647 \\u0645\\u0648\\u0628\\u0627\\u06cc\\u0644 \\u0628\\u0627\\u06cc\\u062f \\u06cc\\u06a9 \\u0631\\u0634\\u062a\\u0647 \\u0628\\u0627\\u0634\\u062f.\",\"Mobile number must be a valid Iranian mobile number (e.g., 09123456789)\"]}}"
+    },
+    "otp_send_blank_ar": {
+        "status": 422,
+        "body": "{\"success\":false,\"message\":\"Validation failed\",\"errors\":{\"mobile\":[\"The mobile field is required.\"]}}"
+    },
+    "otp_verify_all_bad_en": {
+        "status": 422,
+        "body": "{\"success\":false,\"message\":\"Validation failed\",\"errors\":{\"mobile\":[\"The mobile field format is invalid.\"],\"code\":[\"The code field must be 4 characters.\"]}}"
+    },
+    "otp_verify_missing_fa": {
+        "status": 422,
+        "body": "{\"success\":false,\"message\":\"Validation failed\",\"errors\":{\"mobile\":[\"\\u0641\\u06cc\\u0644\\u062f \\u0634\\u0645\\u0627\\u0631\\u0647 \\u0645\\u0648\\u0628\\u0627\\u06cc\\u0644 \\u0627\\u0644\\u0632\\u0627\\u0645\\u06cc \\u0627\\u0633\\u062a.\"],\"code\":[\"\\u06a9\\u062f \\u062a\\u0627\\u06cc\\u06cc\\u062f \\u0628\\u0627\\u06cc\\u062f \\u06cc\\u06a9 \\u0631\\u0634\\u062a\\u0647 \\u0628\\u0627\\u0634\\u062f.\"]}}"
+    },
+    "reminder_store_empty_fa": {
+        "status": 422,
+        "body": "{\"success\":false,\"message\":\"\\u0627\\u0637\\u0644\\u0627\\u0639\\u0627\\u062a \\u0648\\u0627\\u0631\\u062f\\u0634\\u062f\\u0647 \\u0646\\u0627\\u0645\\u0639\\u062a\\u0628\\u0631 \\u0627\\u0633\\u062a\",\"errors\":{\"type\":[\"\\u0641\\u06cc\\u0644\\u062f type \\u0627\\u0644\\u0632\\u0627\\u0645\\u06cc \\u0627\\u0633\\u062a.\"],\"title\":[\"\\u0641\\u06cc\\u0644\\u062f title \\u0627\\u0644\\u0632\\u0627\\u0645\\u06cc \\u0627\\u0633\\u062a.\"]}}"
+    },
+    "reminder_store_many_en": {
+        "status": 422,
+        "body": "{\"success\":false,\"message\":\"Validation failed\",\"errors\":{\"type\":[\"The selected type is invalid.\"],\"title\":[\"The title field must be a string.\"],\"scheduled_at\":[\"The scheduled at field must be a valid date.\"],\"recurrence\":[\"The selected recurrence is invalid.\"],\"recurrence_time\":[\"The recurrence time field must match the format H:i.\"],\"ends_on\":[\"The ends on field must be a date after or equal to starts on.\"],\"is_active\":[\"The is active field must be true or false.\"]}}"
+    },
+    "reminder_store_ar": {
+        "status": 422,
+        "body": "{\"success\":false,\"message\":\"Validation failed\",\"errors\":{\"title\":[\"The title field is required.\"],\"recurrence\":[\"The selected recurrence is invalid.\"]}}"
+    },
+    "reminder_update_partial_en": {
+        "status": 422,
+        "body": "{\"success\":false,\"message\":\"Validation failed\",\"errors\":{\"title\":[\"The title field must be a string.\"],\"ends_on\":[\"The ends on field must be a valid date.\"],\"is_active\":[\"The is active field must be true or false.\"]}}"
+    },
+    "reminder_update_none": {
+        "status": 422,
+        "body": "{\"success\":false,\"message\":\"\\u0627\\u0637\\u0644\\u0627\\u0639\\u0627\\u062a \\u0648\\u0627\\u0631\\u062f\\u0634\\u062f\\u0647 \\u0646\\u0627\\u0645\\u0639\\u062a\\u0628\\u0631 \\u0627\\u0633\\u062a\",\"errors\":{\"type\":[\"type \\u0627\\u0646\\u062a\\u062e\\u0627\\u0628\\u200c\\u0634\\u062f\\u0647 \\u0645\\u0639\\u062a\\u0628\\u0631 \\u0646\\u06cc\\u0633\\u062a.\"],\"recurrence_time\":[\"recurrence time \\u0628\\u0627 \\u0642\\u0627\\u0644\\u0628 H:i \\u0645\\u0637\\u0627\\u0628\\u0642\\u062a \\u0646\\u062f\\u0627\\u0631\\u062f.\"]}}"
+    },
+    "profile_many_fa": {
+        "status": 422,
+        "body": "{\"success\":false,\"message\":\"\\u062e\\u0637\\u0627\\u06cc \\u0627\\u0639\\u062a\\u0628\\u0627\\u0631\\u0633\\u0646\\u062c\\u06cc: \\u0646\\u0627\\u0645 \\u0628\\u0627\\u06cc\\u062f \\u0631\\u0634\\u062a\\u0647 \\u0645\\u062a\\u0646\\u06cc \\u0628\\u0627\\u0634\\u062f.\",\"errors\":{\"name\":[\"\\u0646\\u0627\\u0645 \\u0628\\u0627\\u06cc\\u062f \\u0631\\u0634\\u062a\\u0647 \\u0645\\u062a\\u0646\\u06cc \\u0628\\u0627\\u0634\\u062f.\"],\"birthday\":[\"\\u062a\\u0627\\u0631\\u06cc\\u062e \\u062a\\u0648\\u0644\\u062f \\u0628\\u0627\\u06cc\\u062f \\u0642\\u0628\\u0644 \\u0627\\u0632 \\u0627\\u0645\\u0631\\u0648\\u0632 \\u0628\\u0627\\u0634\\u062f.\"],\"weight\":[\"\\u0648\\u0632\\u0646 \\u0628\\u0627\\u06cc\\u062f \\u0639\\u062f\\u062f \\u0628\\u0627\\u0634\\u062f.\",\"\\u0648\\u0632\\u0646 \\u0628\\u0627\\u06cc\\u062f \\u062d\\u062f\\u0627\\u0642\\u0644 \\u06f2\\u06f0 \\u06a9\\u06cc\\u0644\\u0648\\u06af\\u0631\\u0645 \\u0628\\u0627\\u0634\\u062f.\"],\"height\":[\"\\u0642\\u062f \\u0628\\u0627\\u06cc\\u062f \\u0639\\u062f\\u062f \\u0635\\u062d\\u06cc\\u062d \\u0628\\u0627\\u0634\\u062f.\",\"\\u0642\\u062f \\u0628\\u0627\\u06cc\\u062f \\u062d\\u062f\\u0627\\u0642\\u0644 \\u06f5\\u06f0 \\u0633\\u0627\\u0646\\u062a\\u06cc\\u200c\\u0645\\u062a\\u0631 \\u0628\\u0627\\u0634\\u062f.\"],\"period_duration\":[\"\\u0645\\u062f\\u062a \\u067e\\u0631\\u06cc\\u0648\\u062f \\u0628\\u0627\\u06cc\\u062f \\u062d\\u062f\\u0627\\u0642\\u0644 \\u06f1 \\u0631\\u0648\\u0632 \\u0628\\u0627\\u0634\\u062f.\"],\"cycle_duration\":[\"\\u0645\\u062f\\u062a \\u0686\\u0631\\u062e\\u0647 \\u0646\\u0628\\u0627\\u06cc\\u062f \\u0628\\u06cc\\u0634\\u062a\\u0631 \\u0627\\u0632 \\u06f6\\u06f0 \\u0631\\u0648\\u0632 \\u0628\\u0627\\u0634\\u062f.\"],\"last_period_start\":[\"\\u062a\\u0627\\u0631\\u06cc\\u062e \\u0634\\u0631\\u0648\\u0639 \\u0622\\u062e\\u0631\\u06cc\\u0646 \\u067e\\u0631\\u06cc\\u0648\\u062f \\u0646\\u0645\\u06cc\\u200c\\u062a\\u0648\\u0627\\u0646\\u062f \\u062f\\u0631 \\u0622\\u06cc\\u0646\\u062f\\u0647 \\u0628\\u0627\\u0634\\u062f.\"],\"user_goal\":[\"\\u0645\\u0642\\u062f\\u0627\\u0631 user_goal \\u0628\\u0627\\u06cc\\u062f \\u06cc\\u06a9\\u06cc \\u0627\\u0632 \\u0627\\u06cc\\u0646 \\u0645\\u0648\\u0627\\u0631\\u062f \\u0628\\u0627\\u0634\\u062f: ttc, non_ttc\"],\"subscription_type\":[\"\\u0645\\u0642\\u062f\\u0627\\u0631 subscription_type \\u0628\\u0627\\u06cc\\u062f \\u06cc\\u06a9\\u06cc \\u0627\\u0632 \\u0627\\u06cc\\u0646 \\u0645\\u0648\\u0627\\u0631\\u062f \\u0628\\u0627\\u0634\\u062f: free, premium\"],\"pregnancy_intention\":[\"\\u0645\\u0642\\u062f\\u0627\\u0631 pregnancy_intention \\u0628\\u0627\\u06cc\\u062f \\u06cc\\u06a9\\u06cc \\u0627\\u0632 \\u0627\\u06cc\\u0646 \\u0645\\u0648\\u0627\\u0631\\u062f \\u0628\\u0627\\u0634\\u062f: avoiding, pregnant, trying, unsure\"],\"chronic_conditions.1\":[\"\\u0647\\u0631 \\u0628\\u06cc\\u0645\\u0627\\u0631\\u06cc \\u0645\\u0632\\u0645\\u0646 \\u0628\\u0627\\u06cc\\u062f \\u06cc\\u06a9\\u06cc \\u0627\\u0632 \\u0627\\u06cc\\u0646 \\u0645\\u0648\\u0627\\u0631\\u062f \\u0628\\u0627\\u0634\\u062f: pcos, hypothyroidism, hyperthyroidism, hypertension, heart_disease, diabetes\"]}}"
+    },
+    "profile_many_en": {
+        "status": 422,
+        "body": "{\"success\":false,\"message\":\"Validation failed: Birthday must be a valid date.\",\"errors\":{\"birthday\":[\"Birthday must be a valid date.\"],\"weight\":[\"Weight must be at least 20 kg.\"],\"chronic_conditions\":[\"Chronic conditions must be a list.\"]}}"
+    },
+    "profile_ar": {
+        "status": 422,
+        "body": "{\"success\":false,\"message\":\"Validation failed: Height must be an integer.\",\"errors\":{\"height\":[\"Height must be an integer.\",\"Height must be at least 50 cm.\"],\"last_period_start\":[\"Last period start must be a valid date.\",\"Last period start cannot be in the future.\"]}}"
+    },
+    "period_start_future_fa": {
+        "status": 422,
+        "body": "{\"success\":false,\"message\":\"\\u0627\\u06cc\\u0646 \\u062a\\u0627\\u0631\\u06cc\\u062e \\u0646\\u0645\\u06cc\\u200c\\u062a\\u0648\\u0627\\u0646\\u062f \\u062f\\u0631 \\u0622\\u06cc\\u0646\\u062f\\u0647 \\u0628\\u0627\\u0634\\u062f.\",\"errors\":{\"date\":[\"\\u0627\\u06cc\\u0646 \\u062a\\u0627\\u0631\\u06cc\\u062e \\u0646\\u0645\\u06cc\\u200c\\u062a\\u0648\\u0627\\u0646\\u062f \\u062f\\u0631 \\u0622\\u06cc\\u0646\\u062f\\u0647 \\u0628\\u0627\\u0634\\u062f.\"]}}"
+    },
+    "period_start_bad_en": {
+        "status": 422,
+        "body": "{\"success\":false,\"message\":\"The date field must be a valid date.\",\"errors\":{\"date\":[\"The date field must be a valid date.\"]}}"
+    },
+    "period_end_future_ar": {
+        "status": 422,
+        "body": "{\"success\":false,\"message\":\"The date field must be a date before or equal to today.\",\"errors\":{\"date\":[\"The date field must be a date before or equal to today.\"]}}"
+    },
+    "period_store_missing_fa": {
+        "status": 422,
+        "body": "{\"success\":false,\"message\":\"\\u0641\\u06cc\\u0644\\u062f \\u062a\\u0627\\u0631\\u06cc\\u062e \\u0634\\u0631\\u0648\\u0639 \\u0627\\u0644\\u0632\\u0627\\u0645\\u06cc \\u0627\\u0633\\u062a.\",\"errors\":{\"start_date\":[\"\\u0641\\u06cc\\u0644\\u062f \\u062a\\u0627\\u0631\\u06cc\\u062e \\u0634\\u0631\\u0648\\u0639 \\u0627\\u0644\\u0632\\u0627\\u0645\\u06cc \\u0627\\u0633\\u062a.\"]}}"
+    },
+    "period_store_order_en": {
+        "status": 422,
+        "body": "{\"success\":false,\"message\":\"The end date field must be a date after or equal to start date.\",\"errors\":{\"end_date\":[\"The end date field must be a date after or equal to start date.\"]}}"
+    },
+    "period_store_both_bad_none": {
+        "status": 422,
+        "body": "{\"success\":false,\"message\":\"\\u062a\\u0627\\u0631\\u06cc\\u062e \\u0634\\u0631\\u0648\\u0639 \\u0646\\u0645\\u06cc\\u200c\\u062a\\u0648\\u0627\\u0646\\u062f \\u062f\\u0631 \\u0622\\u06cc\\u0646\\u062f\\u0647 \\u0628\\u0627\\u0634\\u062f.\",\"errors\":{\"start_date\":[\"\\u062a\\u0627\\u0631\\u06cc\\u062e \\u0634\\u0631\\u0648\\u0639 \\u0646\\u0645\\u06cc\\u200c\\u062a\\u0648\\u0627\\u0646\\u062f \\u062f\\u0631 \\u0622\\u06cc\\u0646\\u062f\\u0647 \\u0628\\u0627\\u0634\\u062f.\"],\"end_date\":[\"\\u062a\\u0627\\u0631\\u06cc\\u062e \\u067e\\u0627\\u06cc\\u0627\\u0646 \\u0646\\u0645\\u06cc\\u200c\\u062a\\u0648\\u0627\\u0646\\u062f \\u0642\\u0628\\u0644 \\u0627\\u0632 \\u062a\\u0627\\u0631\\u06cc\\u062e \\u0634\\u0631\\u0648\\u0639 \\u0628\\u0627\\u0634\\u062f.\"]}}"
+    },
+    "period_update_fa": {
+        "status": 422,
+        "body": "{\"success\":false,\"message\":\"\\u062a\\u0627\\u0631\\u06cc\\u062e \\u0634\\u0631\\u0648\\u0639 \\u06cc\\u06a9 \\u062a\\u0627\\u0631\\u06cc\\u062e \\u0645\\u0639\\u062a\\u0628\\u0631 \\u0646\\u06cc\\u0633\\u062a.\",\"errors\":{\"start_date\":[\"\\u062a\\u0627\\u0631\\u06cc\\u062e \\u0634\\u0631\\u0648\\u0639 \\u06cc\\u06a9 \\u062a\\u0627\\u0631\\u06cc\\u062e \\u0645\\u0639\\u062a\\u0628\\u0631 \\u0646\\u06cc\\u0633\\u062a.\"]}}"
+    },
+    "messages_daily_bad_fa": {
+        "status": 422,
+        "body": "{\"success\":false,\"message\":\"\\u067e\\u0627\\u0631\\u0627\\u0645\\u062a\\u0631\\u0647\\u0627\\u06cc \\u0648\\u0631\\u0648\\u062f\\u06cc \\u0646\\u0627\\u0645\\u0639\\u062a\\u0628\\u0631 \\u0627\\u0633\\u062a\",\"errors\":{\"date\":[\"\\u062a\\u0627\\u0631\\u06cc\\u062e \\u0628\\u0627 \\u0642\\u0627\\u0644\\u0628 Y-m-d \\u0645\\u0637\\u0627\\u0628\\u0642\\u062a \\u0646\\u062f\\u0627\\u0631\\u062f.\"],\"mode\":[\"mode \\u0627\\u0646\\u062a\\u062e\\u0627\\u0628\\u200c\\u0634\\u062f\\u0647 \\u0645\\u0639\\u062a\\u0628\\u0631 \\u0646\\u06cc\\u0633\\u062a.\"]}}"
+    },
+    "messages_daily_bad_en": {
+        "status": 422,
+        "body": "{\"success\":false,\"message\":\"Invalid query parameters\",\"errors\":{\"date\":[\"The date field must match the format Y-m-d.\"]}}"
+    },
+    "articles_per_page_zero_en": {
+        "status": 422,
+        "body": "{\"message\":\"The per page field must be at least 1.\",\"errors\":{\"per_page\":[\"The per page field must be at least 1.\"]}}"
+    },
+    "articles_many_fa": {
+        "status": 422,
+        "body": "{\"message\":\"page \\u0628\\u0627\\u06cc\\u062f \\u06cc\\u06a9 \\u0639\\u062f\\u062f \\u0635\\u062d\\u06cc\\u062d \\u0628\\u0627\\u0634\\u062f. (and 2 more errors)\",\"errors\":{\"page\":[\"page \\u0628\\u0627\\u06cc\\u062f \\u06cc\\u06a9 \\u0639\\u062f\\u062f \\u0635\\u062d\\u06cc\\u062d \\u0628\\u0627\\u0634\\u062f.\"],\"per_page\":[\"per page \\u0646\\u0628\\u0627\\u06cc\\u062f \\u0628\\u0632\\u0631\\u06af\\u200c\\u062a\\u0631 \\u0627\\u0632 50 \\u0628\\u0627\\u0634\\u062f.\"],\"q\":[\"q \\u0646\\u0628\\u0627\\u06cc\\u062f \\u0628\\u06cc\\u0634\\u062a\\u0631 \\u0627\\u0632 100 \\u0646\\u0648\\u06cc\\u0633\\u0647 \\u0628\\u0627\\u0634\\u062f.\"]}}"
+    },
+    "articles_locale_query_ar": {
+        "status": 422,
+        "body": "{\"message\":\"The page field must be at least 1.\",\"errors\":{\"page\":[\"The page field must be at least 1.\"]}}"
+    },
+    "home_bad_date_en": {
+        "status": 422,
+        "body": "{\"message\":\"The date field must be a valid date.\",\"errors\":{\"date\":[\"The date field must be a valid date.\"]}}"
+    },
+    "home_section_bad_date_fa": {
+        "status": 422,
+        "body": "{\"message\":\"\\u062a\\u0627\\u0631\\u06cc\\u062e \\u06cc\\u06a9 \\u062a\\u0627\\u0631\\u06cc\\u062e \\u0645\\u0639\\u062a\\u0628\\u0631 \\u0646\\u06cc\\u0633\\u062a.\",\"errors\":{\"date\":[\"\\u062a\\u0627\\u0631\\u06cc\\u062e \\u06cc\\u06a9 \\u062a\\u0627\\u0631\\u06cc\\u062e \\u0645\\u0639\\u062a\\u0628\\u0631 \\u0646\\u06cc\\u0633\\u062a.\"]}}"
+    },
+    "healthlog_missing_date_fa": {
+        "status": 422,
+        "body": "{\"message\":\"Date is required\",\"errors\":{\"log_date\":[\"Date is required\"]}}"
+    },
+    "healthlog_future_en": {
+        "status": 422,
+        "body": "{\"message\":\"Date cannot be in the future\",\"errors\":{\"log_date\":[\"Date cannot be in the future\"]}}"
+    },
+    "healthlog_many_fa": {
+        "status": 422,
+        "body": "{\"message\":\"Invalid date format (and 16 more errors)\",\"errors\":{\"log_date\":[\"Invalid date format\"],\"bleeding_intensity\":[\"bleeding intensity \\u0627\\u0646\\u062a\\u062e\\u0627\\u0628\\u200c\\u0634\\u062f\\u0647 \\u0645\\u0639\\u062a\\u0628\\u0631 \\u0646\\u06cc\\u0633\\u062a.\"],\"spotting\":[\"\\u0641\\u06cc\\u0644\\u062f spotting \\u0628\\u0627\\u06cc\\u062f \\u062f\\u0631\\u0633\\u062a \\u06cc\\u0627 \\u0646\\u0627\\u062f\\u0631\\u0633\\u062a \\u0628\\u0627\\u0634\\u062f.\"],\"exercise_duration\":[\"Exercise duration must be at least 1 minute\"],\"sexual_activities\":[\"sexual activities \\u0628\\u0627\\u06cc\\u062f \\u06cc\\u06a9 \\u0622\\u0631\\u0627\\u06cc\\u0647 \\u0628\\u0627\\u0634\\u062f.\"],\"weight\":[\"Weight must be at least 20 kg\"],\"basal_body_temperature\":[\"Temperature cannot exceed 42\\u00b0C\"],\"heart_rate\":[\"heart rate \\u0628\\u0627\\u06cc\\u062f \\u06cc\\u06a9 \\u0639\\u062f\\u062f \\u0635\\u062d\\u06cc\\u062d \\u0628\\u0627\\u0634\\u062f.\",\"Heart rate must be at least 30 bpm\"],\"systolic_pressure\":[\"Systolic pressure must be at least 50 mmHg\"],\"diastolic_pressure\":[\"Diastolic pressure cannot exceed 200 mmHg\"],\"blood_sugar\":[\"Blood sugar cannot exceed 600 mg\\/dl\"],\"medications.painkillers\":[\"medications.painkillers \\u0628\\u0627\\u06cc\\u062f \\u06cc\\u06a9 \\u0631\\u0634\\u062a\\u0647 \\u0628\\u0627\\u0634\\u062f.\"],\"notes\":[\"\\u06cc\\u0627\\u062f\\u062f\\u0627\\u0634\\u062a\\u200c\\u0647\\u0627 \\u0628\\u0627\\u06cc\\u062f \\u06cc\\u06a9 \\u0631\\u0634\\u062a\\u0647 \\u0628\\u0627\\u0634\\u062f.\"],\"moods.1\":[\"moods.1 \\u0627\\u0646\\u062a\\u062e\\u0627\\u0628\\u200c\\u0634\\u062f\\u0647 \\u0645\\u0639\\u062a\\u0628\\u0631 \\u0646\\u06cc\\u0633\\u062a.\"],\"moods.2\":[\"\\u0641\\u06cc\\u0644\\u062f moods.2 \\u0627\\u0644\\u0632\\u0627\\u0645\\u06cc \\u0627\\u0633\\u062a.\"],\"exercise_type.0\":[\"exercise_type.0 \\u0627\\u0646\\u062a\\u062e\\u0627\\u0628\\u200c\\u0634\\u062f\\u0647 \\u0645\\u0639\\u062a\\u0628\\u0631 \\u0646\\u06cc\\u0633\\u062a.\"]}}"
+    },
+    "healthlog_trim_and_empty_ar": {
+        "status": 422,
+        "body": "{\"message\":\"Weight must be at least 20 kg (and 1 more error)\",\"errors\":{\"weight\":[\"Weight must be at least 20 kg\"],\"moods.0\":[\"The moods.0 field is required.\"]}}"
+    },
+    "healthlog_none_header": {
+        "status": 422,
+        "body": "{\"message\":\"Date cannot be in the future (and 2 more errors)\",\"errors\":{\"log_date\":[\"Date cannot be in the future\"],\"exercise_intensity\":[\"exercise intensity \\u0627\\u0646\\u062a\\u062e\\u0627\\u0628\\u200c\\u0634\\u062f\\u0647 \\u0645\\u0639\\u062a\\u0628\\u0631 \\u0646\\u06cc\\u0633\\u062a.\"],\"exercise_type.1\":[\"exercise_type.1 \\u0627\\u0646\\u062a\\u062e\\u0627\\u0628\\u200c\\u0634\\u062f\\u0647 \\u0645\\u0639\\u062a\\u0628\\u0631 \\u0646\\u06cc\\u0633\\u062a.\"]}}"
+    },
+    "preg_onboarding_missing_en": {
+        "status": 422,
+        "body": "{\"message\":\"\\u0645\\u0646\\u0628\\u0639 \\u0645\\u062d\\u0627\\u0633\\u0628\\u0647 \\u0633\\u0646 \\u0628\\u0627\\u0631\\u062f\\u0627\\u0631\\u06cc \\u0627\\u0644\\u0632\\u0627\\u0645\\u06cc \\u0627\\u0633\\u062a\",\"errors\":{\"age_source\":[\"\\u0645\\u0646\\u0628\\u0639 \\u0645\\u062d\\u0627\\u0633\\u0628\\u0647 \\u0633\\u0646 \\u0628\\u0627\\u0631\\u062f\\u0627\\u0631\\u06cc \\u0627\\u0644\\u0632\\u0627\\u0645\\u06cc \\u0627\\u0633\\u062a\"]}}"
+    },
+    "preg_onboarding_lmp_fa": {
+        "status": 422,
+        "body": "{\"message\":\"\\u062a\\u0627\\u0631\\u06cc\\u062e \\u0622\\u062e\\u0631\\u06cc\\u0646 \\u067e\\u0631\\u06cc\\u0648\\u062f \\u0628\\u0631\\u0627\\u06cc \\u0627\\u06cc\\u0646 \\u0631\\u0648\\u0634 \\u0645\\u062d\\u0627\\u0633\\u0628\\u0647 \\u0627\\u0644\\u0632\\u0627\\u0645\\u06cc \\u0627\\u0633\\u062a\",\"errors\":{\"lmp_date\":[\"\\u062a\\u0627\\u0631\\u06cc\\u062e \\u0622\\u062e\\u0631\\u06cc\\u0646 \\u067e\\u0631\\u06cc\\u0648\\u062f \\u0628\\u0631\\u0627\\u06cc \\u0627\\u06cc\\u0646 \\u0631\\u0648\\u0634 \\u0645\\u062d\\u0627\\u0633\\u0628\\u0647 \\u0627\\u0644\\u0632\\u0627\\u0645\\u06cc \\u0627\\u0633\\u062a\"]}}"
+    },
+    "preg_onboarding_us_fa": {
+        "status": 422,
+        "body": "{\"message\":\"\\u062a\\u0627\\u0631\\u06cc\\u062e \\u0633\\u0648\\u0646\\u0648\\u06af\\u0631\\u0627\\u0641\\u06cc \\u0646\\u0645\\u06cc\\u200c\\u062a\\u0648\\u0627\\u0646\\u062f \\u062f\\u0631 \\u0622\\u06cc\\u0646\\u062f\\u0647 \\u0628\\u0627\\u0634\\u062f. (and 6 more errors)\",\"errors\":{\"ultrasound_date\":[\"\\u062a\\u0627\\u0631\\u06cc\\u062e \\u0633\\u0648\\u0646\\u0648\\u06af\\u0631\\u0627\\u0641\\u06cc \\u0646\\u0645\\u06cc\\u200c\\u062a\\u0648\\u0627\\u0646\\u062f \\u062f\\u0631 \\u0622\\u06cc\\u0646\\u062f\\u0647 \\u0628\\u0627\\u0634\\u062f.\"],\"ultrasound_weeks\":[\"\\u0647\\u0641\\u062a\\u0647 \\u0628\\u0627\\u0631\\u062f\\u0627\\u0631\\u06cc \\u0646\\u0645\\u06cc\\u200c\\u062a\\u0648\\u0627\\u0646\\u062f \\u0628\\u06cc\\u0634\\u062a\\u0631 \\u0627\\u0632 42 \\u0628\\u0627\\u0634\\u062f\"],\"ultrasound_days\":[\"\\u0631\\u0648\\u0632 \\u0628\\u0627\\u0631\\u062f\\u0627\\u0631\\u06cc \\u0628\\u0627\\u06cc\\u062f \\u0628\\u06cc\\u0646 0 \\u062a\\u0627 6 \\u0628\\u0627\\u0634\\u062f\"],\"has_miscarriage_history\":[\"\\u0641\\u06cc\\u0644\\u062f has miscarriage history \\u0628\\u0627\\u06cc\\u062f \\u062f\\u0631\\u0633\\u062a \\u06cc\\u0627 \\u0646\\u0627\\u062f\\u0631\\u0633\\u062a \\u0628\\u0627\\u0634\\u062f.\"],\"blood_type\":[\"blood type \\u0627\\u0646\\u062a\\u062e\\u0627\\u0628\\u200c\\u0634\\u062f\\u0647 \\u0645\\u0639\\u062a\\u0628\\u0631 \\u0646\\u06cc\\u0633\\u062a.\"],\"rh_factor\":[\"rh factor \\u0627\\u0646\\u062a\\u062e\\u0627\\u0628\\u200c\\u0634\\u062f\\u0647 \\u0645\\u0639\\u062a\\u0628\\u0631 \\u0646\\u06cc\\u0633\\u062a.\"],\"pre_existing_conditions.0\":[\"pre_existing_conditions.0 \\u0627\\u0646\\u062a\\u062e\\u0627\\u0628\\u200c\\u0634\\u062f\\u0647 \\u0645\\u0639\\u062a\\u0628\\u0631 \\u0646\\u06cc\\u0633\\u062a.\"]}}"
+    },
+    "preg_onboarding_manual_ar": {
+        "status": 422,
+        "body": "{\"message\":\"The manual weeks field must be an integer. (and 1 more error)\",\"errors\":{\"manual_weeks\":[\"The manual weeks field must be an integer.\"],\"manual_days\":[\"\\u0631\\u0648\\u0632 \\u0628\\u0627\\u0631\\u062f\\u0627\\u0631\\u06cc \\u0628\\u0631\\u0627\\u06cc \\u0648\\u0631\\u0648\\u062f \\u062f\\u0633\\u062a\\u06cc \\u0627\\u0644\\u0632\\u0627\\u0645\\u06cc \\u0627\\u0633\\u062a\"]}}"
+    },
+    "preg_update_en": {
+        "status": 422,
+        "body": "{\"message\":\"\\u0645\\u0646\\u0628\\u0639 \\u0645\\u062d\\u0627\\u0633\\u0628\\u0647 \\u0633\\u0646 \\u0628\\u0627\\u0631\\u062f\\u0627\\u0631\\u06cc \\u0646\\u0627\\u0645\\u0639\\u062a\\u0628\\u0631 \\u0627\\u0633\\u062a (and 5 more errors)\",\"errors\":{\"age_source\":[\"\\u0645\\u0646\\u0628\\u0639 \\u0645\\u062d\\u0627\\u0633\\u0628\\u0647 \\u0633\\u0646 \\u0628\\u0627\\u0631\\u062f\\u0627\\u0631\\u06cc \\u0646\\u0627\\u0645\\u0639\\u062a\\u0628\\u0631 \\u0627\\u0633\\u062a\"],\"lmp_date\":[\"\\u062a\\u0627\\u0631\\u06cc\\u062e \\u0646\\u0645\\u06cc\\u200c\\u062a\\u0648\\u0627\\u0646\\u062f \\u062f\\u0631 \\u0622\\u06cc\\u0646\\u062f\\u0647 \\u0628\\u0627\\u0634\\u062f\"],\"ultrasound_weeks\":[\"\\u0647\\u0641\\u062a\\u0647 \\u0628\\u0627\\u0631\\u062f\\u0627\\u0631\\u06cc \\u0628\\u0627\\u06cc\\u062f \\u062d\\u062f\\u0627\\u0642\\u0644 1 \\u0628\\u0627\\u0634\\u062f\"],\"manual_days\":[\"The manual days field must not be greater than 6.\"],\"fetal_movement_felt\":[\"The fetal movement felt field must be true or false.\"],\"first_fetal_movement_date\":[\"The first fetal movement date field must be a date before or equal to today.\"]}}"
+    },
+    "preg_symptoms_fa": {
+        "status": 422,
+        "body": "{\"message\":\"\\u062a\\u0627\\u0631\\u06cc\\u062e \\u0646\\u0645\\u06cc\\u200c\\u062a\\u0648\\u0627\\u0646\\u062f \\u062f\\u0631 \\u0622\\u06cc\\u0646\\u062f\\u0647 \\u0628\\u0627\\u0634\\u062f (and 3 more errors)\",\"errors\":{\"log_date\":[\"\\u062a\\u0627\\u0631\\u06cc\\u062e \\u0646\\u0645\\u06cc\\u200c\\u062a\\u0648\\u0627\\u0646\\u062f \\u062f\\u0631 \\u0622\\u06cc\\u0646\\u062f\\u0647 \\u0628\\u0627\\u0634\\u062f\"],\"has_nausea\":[\"\\u0641\\u06cc\\u0644\\u062f has nausea \\u0628\\u0627\\u06cc\\u062f \\u062f\\u0631\\u0633\\u062a \\u06cc\\u0627 \\u0646\\u0627\\u062f\\u0631\\u0633\\u062a \\u0628\\u0627\\u0634\\u062f.\"],\"nausea_severity\":[\"nausea severity \\u0627\\u0646\\u062a\\u062e\\u0627\\u0628\\u200c\\u0634\\u062f\\u0647 \\u0645\\u0639\\u062a\\u0628\\u0631 \\u0646\\u06cc\\u0633\\u062a.\"],\"notes\":[\"\\u06cc\\u0627\\u062f\\u062f\\u0627\\u0634\\u062a\\u200c\\u0647\\u0627 \\u0628\\u0627\\u06cc\\u062f \\u06cc\\u06a9 \\u0631\\u0634\\u062a\\u0647 \\u0628\\u0627\\u0634\\u062f.\"]}}"
+    },
+    "preg_symptoms_missing_en": {
+        "status": 422,
+        "body": "{\"message\":\"\\u062a\\u0627\\u0631\\u06cc\\u062e \\u0627\\u0644\\u0632\\u0627\\u0645\\u06cc \\u0627\\u0633\\u062a\",\"errors\":{\"log_date\":[\"\\u062a\\u0627\\u0631\\u06cc\\u062e \\u0627\\u0644\\u0632\\u0627\\u0645\\u06cc \\u0627\\u0633\\u062a\"]}}"
+    },
+    "preg_weekly_fa": {
+        "status": 422,
+        "body": "{\"message\":\"\\u0641\\u0631\\u0645\\u062a \\u062a\\u0627\\u0631\\u06cc\\u062e \\u0646\\u0627\\u0645\\u0639\\u062a\\u0628\\u0631 \\u0627\\u0633\\u062a (and 7 more errors)\",\"errors\":{\"log_date\":[\"\\u0641\\u0631\\u0645\\u062a \\u062a\\u0627\\u0631\\u06cc\\u062e \\u0646\\u0627\\u0645\\u0639\\u062a\\u0628\\u0631 \\u0627\\u0633\\u062a\"],\"pregnancy_week\":[\"\\u0647\\u0641\\u062a\\u0647 \\u0628\\u0627\\u0631\\u062f\\u0627\\u0631\\u06cc \\u0646\\u0645\\u06cc\\u200c\\u062a\\u0648\\u0627\\u0646\\u062f \\u0628\\u06cc\\u0634\\u062a\\u0631 \\u0627\\u0632 42 \\u0628\\u0627\\u0634\\u062f\"],\"weight\":[\"\\u0648\\u0632\\u0646 \\u0628\\u0627\\u06cc\\u062f \\u062d\\u062f\\u0627\\u0642\\u0644 30 \\u06a9\\u06cc\\u0644\\u0648\\u06af\\u0631\\u0645 \\u0628\\u0627\\u0634\\u062f\"],\"systolic_pressure\":[\"\\u0641\\u0634\\u0627\\u0631 \\u062e\\u0648\\u0646 \\u0633\\u06cc\\u0633\\u062a\\u0648\\u0644\\u06cc\\u06a9 \\u0646\\u0627\\u0645\\u0639\\u062a\\u0628\\u0631 \\u0627\\u0633\\u062a\"],\"fasting_blood_sugar\":[\"fasting blood sugar \\u0628\\u0627\\u06cc\\u062f \\u06cc\\u06a9 \\u0639\\u062f\\u062f \\u0628\\u0627\\u0634\\u062f.\",\"fasting blood sugar \\u0628\\u0627\\u06cc\\u062f \\u062d\\u062f\\u0627\\u0642\\u0644 40 \\u0628\\u0627\\u0634\\u062f.\"],\"overall_mood\":[\"overall mood \\u0627\\u0646\\u062a\\u062e\\u0627\\u0628\\u200c\\u0634\\u062f\\u0647 \\u0645\\u0639\\u062a\\u0628\\u0631 \\u0646\\u06cc\\u0633\\u062a.\"],\"swelling_locations.0\":[\"swelling_locations.0 \\u0627\\u0646\\u062a\\u062e\\u0627\\u0628\\u200c\\u0634\\u062f\\u0647 \\u0645\\u0639\\u062a\\u0628\\u0631 \\u0646\\u06cc\\u0633\\u062a.\"]}}"
+    },
+    "preg_weekly_none": {
+        "status": 422,
+        "body": "{\"message\":\"\\u062a\\u0627\\u0631\\u06cc\\u062e \\u0627\\u0644\\u0632\\u0627\\u0645\\u06cc \\u0627\\u0633\\u062a (and 1 more error)\",\"errors\":{\"log_date\":[\"\\u062a\\u0627\\u0631\\u06cc\\u062e \\u0627\\u0644\\u0632\\u0627\\u0645\\u06cc \\u0627\\u0633\\u062a\"],\"pregnancy_week\":[\"pregnancy week \\u0628\\u0627\\u06cc\\u062f \\u06cc\\u06a9 \\u0639\\u062f\\u062f \\u0635\\u062d\\u06cc\\u062d \\u0628\\u0627\\u0634\\u062f.\"]}}"
+    },
+    "preg_fetal_en": {
+        "status": 422,
+        "body": "{\"message\":\"\\u0647\\u0641\\u062a\\u0647 \\u0628\\u0627\\u0631\\u062f\\u0627\\u0631\\u06cc \\u0628\\u0627\\u06cc\\u062f \\u062d\\u062f\\u0627\\u0642\\u0644 1 \\u0628\\u0627\\u0634\\u062f (and 4 more errors)\",\"errors\":{\"pregnancy_week\":[\"\\u0647\\u0641\\u062a\\u0647 \\u0628\\u0627\\u0631\\u062f\\u0627\\u0631\\u06cc \\u0628\\u0627\\u06cc\\u062f \\u062d\\u062f\\u0627\\u0642\\u0644 1 \\u0628\\u0627\\u0634\\u062f\"],\"movement_status\":[\"\\u0648\\u0636\\u0639\\u06cc\\u062a \\u062d\\u0631\\u06a9\\u062a \\u062c\\u0646\\u06cc\\u0646 \\u0646\\u0627\\u0645\\u0639\\u062a\\u0628\\u0631 \\u0627\\u0633\\u062a\"],\"movement_count\":[\"\\u062a\\u0639\\u062f\\u0627\\u062f \\u062d\\u0631\\u06a9\\u0627\\u062a \\u0646\\u0645\\u06cc\\u200c\\u062a\\u0648\\u0627\\u0646\\u062f \\u0645\\u0646\\u0641\\u06cc \\u0628\\u0627\\u0634\\u062f\"],\"first_movement_time\":[\"\\u0641\\u0631\\u0645\\u062a \\u0632\\u0645\\u0627\\u0646 \\u0646\\u0627\\u0645\\u0639\\u062a\\u0628\\u0631 \\u0627\\u0633\\u062a (HH:MM)\"],\"last_movement_time\":[\"\\u0641\\u0631\\u0645\\u062a \\u0632\\u0645\\u0627\\u0646 \\u0646\\u0627\\u0645\\u0639\\u062a\\u0628\\u0631 \\u0627\\u0633\\u062a (HH:MM)\"]}}"
+    },
+    "preg_fetal_fa": {
+        "status": 422,
+        "body": "{\"message\":\"\\u062a\\u0627\\u0631\\u06cc\\u062e \\u0627\\u0644\\u0632\\u0627\\u0645\\u06cc \\u0627\\u0633\\u062a (and 2 more errors)\",\"errors\":{\"log_date\":[\"\\u062a\\u0627\\u0631\\u06cc\\u062e \\u0627\\u0644\\u0632\\u0627\\u0645\\u06cc \\u0627\\u0633\\u062a\"],\"pregnancy_week\":[\"\\u0647\\u0641\\u062a\\u0647 \\u0628\\u0627\\u0631\\u062f\\u0627\\u0631\\u06cc \\u0627\\u0644\\u0632\\u0627\\u0645\\u06cc \\u0627\\u0633\\u062a\"],\"movement_status\":[\"\\u0648\\u0636\\u0639\\u06cc\\u062a \\u062d\\u0631\\u06a9\\u062a \\u062c\\u0646\\u06cc\\u0646 \\u0627\\u0644\\u0632\\u0627\\u0645\\u06cc \\u0627\\u0633\\u062a\"]}}"
+    }
+}
