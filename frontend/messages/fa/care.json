@@ -50,7 +50,10 @@
     "daysPerWeek": "{count} روز در هفته",
     "toggle": "روشن یا خاموش کردن یادآور {title}",
     "delete": "حذف دارو",
-    "confirmDelete": "این یادآور حذف شود؟"
+    "confirmDelete": "این یادآور حذف شود؟",
+    "nameWithDose": "{title} {dose}",
+    "add": "افزودن دارو یا مکمل",
+    "daysPerWeekCount": "{days} روز در هفته"
   },
   "appointments": {
     "title": "نوبت‌ها و مشاوره‌ها",
@@ -61,7 +64,9 @@
       "in_person": "حضوری",
       "phone": "تلفنی",
       "online": "آنلاین"
-    }
+    },
+    "add": "افزودن نوبت",
+    "rowMetaNoTime": "{kind} · {place}"
   },
   "chooser": {
     "title": "چه چیزی را یادآوری کنم؟",
@@ -199,5 +204,7 @@
     "confirmCancel": "این نوبت لغو شود؟",
     "confirmCancelYes": "بله، لغو شود",
     "confirmCancelNo": "نه"
-  }
+  },
+  "notificationSettings": "تنظیمات اعلان",
+  "listSeparator": "، "
 }

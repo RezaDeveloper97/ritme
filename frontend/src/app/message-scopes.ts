@@ -53,6 +53,7 @@ export const ROUTE_NAMESPACES = {
   pregnancy: ['care', 'common', 'nav', 'pregnancy'],
   pregnancyLog: PREGNANCY,
   pregnancyOnboarding: ['common', 'nav', 'pregnancy', 'profileEdit'],
+  reminders: ['care', 'common'],
   splash: AUTH,
   signup: AUTH,
   otp: AUTH,

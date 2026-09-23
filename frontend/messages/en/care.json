@@ -50,7 +50,10 @@
     "daysPerWeek": "{count, plural, one {# day} other {# days}} a week",
     "toggle": "Turn the {title} reminder on or off",
     "delete": "Delete medication",
-    "confirmDelete": "Delete this reminder?"
+    "confirmDelete": "Delete this reminder?",
+    "nameWithDose": "{title} {dose}",
+    "add": "Add a medication or supplement",
+    "daysPerWeekCount": "{count, plural, one {{days} day} other {{days} days}} a week"
   },
   "appointments": {
     "title": "Appointments & consultations",
@@ -61,7 +64,9 @@
       "in_person": "In person",
       "phone": "Phone",
       "online": "Online"
-    }
+    },
+    "add": "Add an appointment",
+    "rowMetaNoTime": "{kind} · {place}"
   },
   "chooser": {
     "title": "What should I remind you about?",
@@ -199,5 +204,7 @@
     "confirmCancel": "Cancel this appointment?",
     "confirmCancelYes": "Yes, cancel it",
     "confirmCancelNo": "No"
-  }
+  },
+  "notificationSettings": "Notification settings",
+  "listSeparator": ", "
 }

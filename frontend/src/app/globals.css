@@ -3216,3 +3216,196 @@ body.pwa-locked { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) {
   .rad-row { transition: none; }
 }
+
+/* ── Reminders screen (screens/reminders, T-M3-06) ── */
+/* /reminders — docs/design/reminders-v13/nbl_v13_Reminders (light) /
+   nbd_v13_Reminders (dark). Tokens only, mapped as in the "Care reminders
+   (M3)" token block: page → --page, card → --surface, soft surface/track →
+   --surface-2, line → --line, secondary → --ink-3, brand fill → --brand-fill
+   (text --on-accent), brand link → --brand-strong, brand tile → --pink-bg,
+   taken → --success on --success-soft, amber date tile → --amber-tile(-ink),
+   teal → --teal-deep on --data-soft. */
+
+.rmd-page { background: var(--page); }
+
+/* ── Header ── */
+.rmd-hdr {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 6px 16px 10px;
+}
+.rmd-hdr-btn {
+  width: 44px; height: 44px; border-radius: 22px; flex-shrink: 0; box-sizing: border-box;
+  display: flex; align-items: center; justify-content: center; padding: 0;
+  background: var(--surface-2); border: 1px solid var(--line); color: var(--ink);
+  cursor: pointer; text-decoration: none;
+}
+.rmd-hdr-btn:focus-visible { outline: none; box-shadow: var(--ring); }
+.rmd-hdr-text  { flex: 1; min-width: 0; text-align: center; }
+.rmd-hdr-title { margin: 0; font-size: 17px; font-weight: 800; color: var(--ink); }
+.rmd-hdr-sub   { margin: 2px 0 0; font-size: 11.5px; font-weight: 600; color: var(--ink-3); }
+
+.rmd-body  { padding: 4px 16px 40px; display: flex; flex-direction: column; gap: 14px; }
+.rmd-panel { display: flex; flex-direction: column; gap: 14px; }
+
+/* ── Segmented tabs ── */
+.rmd-tabs {
+  display: flex; gap: 4px; padding: 4px;
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: 18px;
+}
+.rmd-tab {
+  flex: 1 1 0; min-width: 0; height: 40px; border: 0; border-radius: 18px; cursor: pointer;
+  background: transparent; color: var(--ink-3);
+  font-family: inherit; font-size: 13px; font-weight: 800;
+  transition: background-color .18s ease, color .18s ease;
+}
+.rmd-tab.on { background: var(--brand-fill); color: var(--on-accent); }
+.rmd-tab:focus-visible { outline: none; box-shadow: var(--ring); }
+
+/* ── «امروز» card ── */
+.rmd-today {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 24px;
+  box-shadow: var(--care-card-shadow); padding: 14px 14px 4px;
+}
+.rmd-today-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px;
+}
+.rmd-today-title { margin: 0; font-size: 15px; font-weight: 800; color: var(--ink); }
+.rmd-badge {
+  display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 11px;
+  border-radius: 18px; background: var(--surface-2); border: 1px solid var(--success);
+  color: var(--success); font-size: 11.5px; font-weight: 800; white-space: nowrap;
+}
+.rmd-today-empty { padding-bottom: 12px; }
+
+.rmd-doses {
+  display: flex; gap: 8px; margin: 0; padding: 0 0 12px; list-style: none;
+  overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+.rmd-doses::-webkit-scrollbar { display: none; }
+.rmd-dose {
+  flex-shrink: 0; width: 150px; box-sizing: border-box; scroll-snap-align: start;
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 12px; border-radius: 18px; background: var(--surface-2);
+  transition: background-color .18s ease;
+}
+.rmd-dose.is-taken { background: var(--success-soft); }
+.rmd-dose-top  { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.rmd-dose-time { font-size: 11.5px; font-weight: 700; color: var(--muted); }
+.rmd-dose-name { font-size: 13px; line-height: 1.6; font-weight: 800; color: var(--ink); overflow-wrap: anywhere; }
+.rmd-dose-skel { flex-shrink: 0; width: 150px; height: 76px; border-radius: 18px; }
+
+/* The check is a 44 px button around the 26 px dot the artboard draws. */
+.rmd-check {
+  width: 44px; height: 44px; margin: -9px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: none; border: 0; padding: 0; border-radius: 22px; cursor: pointer;
+}
+.rmd-check:focus-visible { outline: none; box-shadow: var(--ring); }
+.rmd-check:disabled { cursor: default; }
+.rmd-check-dot {
+  width: 26px; height: 26px; border-radius: 13px; box-sizing: border-box;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid var(--line);
+  transition: background-color .18s ease, border-color .18s ease;
+}
+.rmd-check[aria-pressed="true"] .rmd-check-dot {
+  background: var(--success); border-color: var(--success); color: var(--surface);
+}
+
+/* ── List sections ── */
+.rmd-sec { display: flex; flex-direction: column; gap: 8px; }
+.rmd-sec-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 2px; }
+.rmd-sec-title { margin: 0; font-size: 17px; font-weight: 800; color: var(--ink); text-align: start; }
+.rmd-sec-add {
+  min-height: 44px; display: flex; align-items: center; gap: 4px; padding-inline: 4px;
+  font-size: 12.5px; font-weight: 800; color: var(--brand-strong); text-decoration: none;
+  border-radius: 12px;
+}
+.rmd-sec-add:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.rmd-list {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 24px; padding: 0 14px;
+}
+.rmd-row {
+  display: flex; align-items: center; gap: 12px; padding: 12px 0;
+  color: var(--ink); text-decoration: none;
+}
+.rmd-row:not(:last-child) { border-bottom: 1px solid var(--line); }
+.rmd-row-link {
+  flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px;
+  color: inherit; text-decoration: none; border-radius: 14px;
+}
+.rmd-row-link:focus-visible,
+.rmd-appt:focus-visible { outline: none; box-shadow: var(--ring); }
+.rmd-row-body  { flex: 1; min-width: 0; display: flex; flex-direction: column; text-align: start; }
+.rmd-row-title { font-size: 14px; font-weight: 800; overflow-wrap: anywhere; }
+.rmd-row-meta  { margin-top: 2px; font-size: 11.5px; font-weight: 600; color: var(--muted); overflow-wrap: anywhere; }
+
+.rmd-tile {
+  width: 44px; height: 44px; border-radius: 18px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--pink-bg); color: var(--brand-strong);
+}
+.rmd-tile.is-teal { background: var(--data-soft); color: var(--teal-deep); }
+
+/* Switch — a real role="switch" button; the knob sits at the inline end when on. */
+.rmd-switch {
+  position: relative; width: 46px; height: 28px; flex-shrink: 0; padding: 0;
+  border: 0; border-radius: 18px; cursor: pointer;
+  background: var(--line); transition: background-color .18s ease;
+}
+.rmd-switch[aria-checked="true"] { background: var(--brand-fill); }
+.rmd-switch:focus-visible { outline: none; box-shadow: var(--ring); }
+.rmd-switch:disabled { cursor: default; opacity: .75; }
+/* 44 px hit area around the 28 px track. */
+.rmd-switch::before { content: ""; position: absolute; inset: -8px 0; }
+.rmd-switch-knob {
+  position: absolute; top: 3px; inset-inline-start: 3px;
+  width: 22px; height: 22px; border-radius: 11px;
+  background: var(--on-accent); box-shadow: 0 1px 4px rgba(0, 0, 0, .2);
+  transition: inset-inline-start .18s ease;
+}
+.rmd-switch[aria-checked="true"] .rmd-switch-knob { inset-inline-start: 21px; }
+
+.rmd-date {
+  width: 52px; height: 52px; border-radius: 18px; flex-shrink: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: var(--amber-tile); color: var(--amber-tile-ink);
+}
+.rmd-date.is-teal { background: var(--data-soft); color: var(--teal-deep); }
+.rmd-date-day   { font-family: "Lalezar", var(--font-sans); font-size: 22px; line-height: 1; font-weight: 400; }
+.rmd-date-month {
+  max-width: 100%; box-sizing: border-box; padding-inline: 3px;
+  font-size: 10px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+/* No radius on the row itself: it would bend the divider under it. */
+.rmd-appt:focus-visible { border-radius: 14px; }
+.rmd-chev { flex-shrink: 0; color: var(--muted); }
+[dir="ltr"] .rmd-chev { transform: scaleX(-1); }
+
+/* ── States ── */
+.rmd-state { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 14px 0; }
+.rmd-empty { margin: 0; font-size: 13px; font-weight: 600; color: var(--muted); text-align: start; }
+.rmd-retry {
+  min-height: 44px; padding: 0 14px; border: 0; border-radius: 12px; cursor: pointer;
+  background: var(--pink-bg); color: var(--brand-strong);
+  font-family: inherit; font-size: 13px; font-weight: 800;
+}
+.rmd-retry:focus-visible { outline: none; box-shadow: var(--ring); }
+.rmd-row-skel { width: 100%; height: 44px; border-radius: 14px; }
+
+/* ── Primary CTA ── */
+.rmd-cta {
+  height: 54px; border: 0; border-radius: 27px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  background: var(--brand-fill); color: var(--on-accent);
+  box-shadow: 0 14px 28px -14px color-mix(in srgb, var(--brand-fill) 80%, transparent);
+  font-family: inherit; font-size: 15px; font-weight: 800;
+}
+.rmd-cta:hover { filter: brightness(1.04); }
+.rmd-cta:focus-visible { outline: none; box-shadow: var(--ring); }
+
+@media (prefers-reduced-motion: reduce) {
+  .rmd-tab, .rmd-dose, .rmd-check-dot, .rmd-switch, .rmd-switch-knob { transition: none; }
+}

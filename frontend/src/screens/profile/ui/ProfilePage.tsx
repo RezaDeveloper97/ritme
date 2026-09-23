@@ -13,7 +13,7 @@ import { useSwitchLocale } from '@/features/switch-locale';
 import { formatLongDate } from '@/shared/lib/date';
 import { openSheet } from '@/shared/sheet';
 import { useThemeStore } from '@/shared/theme';
-import { localizeHref, useDirection, type Locale } from '@/shared/i18n';
+import { localizeHref, useDirection, useRouter, type Locale } from '@/shared/i18n';
 import { Icon, type IconName } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
 
@@ -180,6 +180,7 @@ function ThemeSwitch({ label }: { label: string }) {
 
 export function ProfilePage() {
   const t = useTranslations('profile');
+  const router = useRouter();
   const loc = useLocale() as Locale;
   const { data: profile } = useUserProfile();
   // const { data: userMode } = useUserMode();
@@ -272,8 +273,8 @@ export function ProfilePage() {
         {/* App mode — TEMPORARILY HIDDEN. Pregnancy mode is postponed, so the
             switch/tracker entry point is commented out rather than deleted; the
             backend, routes and pregnancy slices are all still in place. Restore
-            this block (and `isPregnancy`/`switchToCycle` above, plus a
-            `const router = useRouter()`) to bring it back.
+            this block (and `isPregnancy`/`switchToCycle` above) to bring it
+            back.
 
         <Group title={t('sections.mode')}>
           {isPregnancy ? (
@@ -364,9 +365,10 @@ export function ProfilePage() {
         <Group title={t('sections.account')}>
           {/* Personal-info and cycle/health-settings rows hidden per product
               request; the same fields are editable inline above. */}
-          {/* Reminders row temporarily hidden per product request. */}
-          {/* <Row icon="alarm" label={t('rows.reminders')} trailing={chevron} onClick={() => openSheet('reminders')} />
-          <Divider /> */}
+          {/* Reminders lead to the M3 hub (/reminders); the legacy `reminders`
+              sheet stays registered for old `?sheet=reminders` links. */}
+          <Row icon="alarm" label={t('rows.reminders')} trailing={chevron} onClick={() => router.push('/reminders')} />
+          <Divider />
           <Row icon="bell" label={t('rows.notifications')} trailing={chevron} onClick={() => openSheet('notifications')} />
         </Group>
 

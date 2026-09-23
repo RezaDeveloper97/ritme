@@ -3,7 +3,7 @@ id: T-M3-06
 title: Frontend — Reminders screen (/reminders) with tabs, dose strip and lists
 milestone: M3
 type: frontend
-status: todo
+status: done
 depends_on: [T-M3-05]
 parallel_group: M3-C
 touches: [frontend/src/screens/reminders, frontend/src/app/[locale]/reminders/page.tsx, frontend/src/screens/profile/ui/ProfilePage.tsx]

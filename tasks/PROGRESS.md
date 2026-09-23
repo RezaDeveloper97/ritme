@@ -562,3 +562,11 @@ Nothing needed fixing.
   (4 queries), OpenAPI `getFertilityInsights`; confidence rule documented in `docs/fertility-ttc/README.md`.
 - Window = current cycle until its ovulation passed, then the next predicted one; `null` without a resolvable cycle.
 - Tips are plain localized strings; history rows also carry `date`, `source (bbt|lh|estimate)`, `cycle_start`.
+
+## T-M3-06 — Frontend — Reminders screen (/reminders) with tabs, dose strip and lists
+- Route `/[locale]/reminders` (`?tab=` kept in URL, SSR-correct), `screens/reminders` (pure `model/view.ts` + 11
+  tests; TodayCard dose strip, MedicationSection with real switches, AppointmentSection upcoming list), `rmd-*`
+  classes in globals.css, scope `reminders: ['care','common']`; Profile «یادآورها» row re-enabled → `/reminders`.
+- Verified headless fa/en × light/dark against a local backend-go (tick, toggle, tab URL).
+- Open: `slotClock`/`slotPeriod` duplicated from the home widget (move to the entity later); en full month names
+  truncate in the 52px date tile (no short-month helper); back always goes to `/home` (not mode-aware).
