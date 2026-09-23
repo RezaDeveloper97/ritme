@@ -8,7 +8,8 @@ Code: `backend-go/internal/admin/{httpadmin,auth,dashboard,users,admins}`, route
 `internal/http/routes_admin_core.go`, queries in `db/queries/admin/`. T-M2-21:
 `internal/admin/{content,content/form,media,messages,languages}`, routes in `internal/http/routes_admin_content.go`,
 queries in `db/queries/admin/content.sql` (endpoints in §11). T-M4-03: `internal/admin/checkups` (checkup-type
-catalog, §12).
+catalog, §12). T-M7-06: `internal/admin/pregnancy` (pregnancy v2 content) and `internal/admin/messages/registry`
+(registered message groups, create-message), §13.
 
 ## 1. Where it is served
 
@@ -56,7 +57,7 @@ Failure — every error the admin API itself produces:
 | 422 | `invalid_credentials` | login failed (same answer for unknown email, wrong password, inactive account) |
 | 422 | `cannot_modify_self` | demoting, deactivating or deleting your own admin account |
 | 422 | `default_language_protected` | deleting or deactivating the default language (T-M2-21) |
-| 422 | `in_use` | deleting a checkup type that users have records of (T-M4-03, §12); body has `records_count` |
+| 422 | `in_use` | deleting a checkup type that users have records of (T-M4-03, §12); body has `records_count` — or a pregnancy care item that appointments reference (T-M7-06, §13); body has `appointments_count` |
 | 429 | `too_many_attempts` | login throttle; body has `retry_after` (seconds), header `Retry-After` |
 
 Validation (422) adds the Laravel error bag; messages are in the **default language** (the admin chain pins
@@ -362,3 +363,117 @@ the calendar approximation of the engine's `overdue` (cycle windows, age and pre
 users who never recorded the type are not counted.
 
 Audit lines: `checkup_type.create|update|delete|reorder` (target `checkup_type`).
+
+## 13. Pregnancy v2 content and registered messages (T-M7-06)
+
+Code: `backend-go/internal/admin/pregnancy` (routes `internal/http/routes_admin_pregnancy.go`),
+`backend-go/internal/admin/messages` + `messages/registry` (routes with §11's messages). Queries: the T-M7-01 files
+`db/queries/pregnancy/v2_*.sql` plus `db/queries/pregnancy/v2_admin.sql` (care-item delete guard, message_contents
+writes), generated into `internal/pregnancy/store`. Product contract: [`docs/pregnancy-v2/README.md`](../pregnancy-v2/README.md)
+(*What the admin defines*, *Stored shapes*). Every endpoint is `A` (editor + super); mutations need `X-CSRF-Token` and are
+audited. The user API reads the rows without a cache, so an edit is live on its next request.
+
+`T` below = `{code: text}` over the active languages; as in §12, **every active language is required** once a
+translatable field is sent (other codes are dropped). On update an absent optional field keeps its stored value;
+`null` (or `[]` for a list) clears it; an empty list is stored as SQL `NULL` and answered as `[]`.
+
+### Week details (`pregnancy_week_details`)
+
+`:n` is the **week number** (1–42; anything else, `08` included, is 404) — not the row id of the v1 text editor
+(`/pregnancy-weeks/:id`, §11), which stays as it is next to it.
+
+| Method | Path | `data` |
+|---|---|---|
+| GET | `/pregnancy-week-details` | `{items:[{week_number, exists, illustration_key, size_label, headline, reviewed_at, updated_at}]}` — weeks 1…42 |
+| GET | `/pregnancy-week-details/options` | `{min_week: 1, max_week: 42, illustration_keys[36], highlight_icons[8], highlight_tones[3], log_symptom_keys[9], max_items: 10}` |
+| GET | `/pregnancy-weeks/:n/details` | `{week_details}` (a week without a row answers `exists: false`, every field null / `[]`) |
+| PUT | `/pregnancy-weeks/:n/details` | upsert → `{week_details}` |
+
+`week_details` = `{week_number, exists, size_label, illustration_key, length_cm, weight_g, heart_rate, headline,
+highlights, body_symptoms, body_text, tasks, warning, reviewer_name, reviewed_at, sources, created_at, updated_at}`.
+
+| Field | Rules |
+|---|---|
+| `size_label` (≤ 60), `headline` (≤ 255), `body_text`, `warning` (≤ 2000), `reviewer_name` (≤ 255) | T, optional |
+| `illustration_key` | optional, one of `options.illustration_keys` = `FETUS_ILLUSTRATION_KEYS` (`frontend/src/shared/ui/illustrations/fetus-keys.ts`) |
+| `length_cm`, `weight_g`, `heart_rate` | optional ASCII measurement ≤ 20: `^<?N(.NN)?(-N(.NN)?)?$` (`"1.6"`, `"<1"`, `"150-170"`); the app adds units / `~` |
+| `highlights` | list ≤ 10 of `{icon?: options.highlight_icons, tone?: options.highlight_tones, title: T ≤ 120, body: T ≤ 1000}` (`tone` stored only when set) |
+| `body_symptoms` | list ≤ 10 of `{key (^[a-z][a-z0-9_]*$, ≤ 40, distinct), label: T ≤ 60}`; keys in `log_symptom_keys` deep-link to the Log screen |
+| `tasks` | list ≤ 10 of `{key (same pattern, distinct — stored in users' `done_task_keys`), text: T ≤ 255}` |
+| `sources` | list ≤ 10 of `{title: T ≤ 255, url?: http(s) URL or `/path`, ≤ 1000}` |
+| `reviewed_at` | optional `Y-m-d`, not in the future; `null` = not clinically reviewed |
+
+### Care plan (`pregnancy_care_items`)
+
+| Method | Path | Body | `data` |
+|---|---|---|---|
+| GET | `/pregnancy-care-items` | — | `{items:[CareItem]}` (sort_order, id; active and inactive) |
+| GET | `/pregnancy-care-items/options` | — | `{kinds, min_week, max_week, max_remind_before: 30, default_remind_before: 1, next_sort_order}` |
+| POST | `/pregnancy-care-items/reorder` | `ids[]` — every item id exactly once | `{items:[{id, sort_order}]}` (1…n, one transaction); partial / duplicate / unknown → 422 `ids` / `ids.N` |
+| POST | `/pregnancy-care-items` | see below | 201 `{care_item}` |
+| GET | `/pregnancy-care-items/:id` | — | `{care_item}` |
+| PUT | `/pregnancy-care-items/:id` | as POST without `key` (fixed: appointments reference it in `meta.care_item_key`) | `{care_item}` |
+| POST | `/pregnancy-care-items/:id/toggle` | — | `{care_item}` (`is_active` flips) |
+| DELETE | `/pregnancy-care-items/:id` | — | `{id}`; **422 `in_use`** (`appointments_count`) while any appointment (`reminders.type = 'appointment'`) has `meta.care_item_key` = the key — admin-web offers deactivate instead. The check and the delete are one statement |
+
+Fields: `key` (create only, `^[a-z][a-z0-9_]*$`, ≤ 64, unique), `title` T req (≤ 255), `prep` T (≤ 2000),
+`kind` req `visit|test|scan|vaccine`, `week_from` / `week_to` req 1–42 with `week_to ≥ week_from`,
+`remind_before` 0–30 days (create default 1), `sort_order` (create default last + 1), `is_active` (`$request->boolean()`,
+absent = false). `CareItem` = the columns + `appointments_count` + `created_at`, `updated_at`.
+
+### Alert rules (`message_contents` group `pregnancy_alert`)
+
+One row per rule and locale; payload `{enabled, level, window_days, params{…}, title, what_we_saw, how_sure, advice,
+actions:[{key,label}], contact}`. The **behaviour** (`enabled`, `level`, `window_days`, `params`) is written to every
+locale's row of the rule (they never drift; the engine reads it from the default-language row); the **texts** are per
+locale. `legend` is not a rule: it is edited through `/messages` (its row ids are in the list's `legend`).
+
+| Method | Path | `data` |
+|---|---|---|
+| GET | `/pregnancy-alert-rules` | `{items:[{key, configured, enabled, level, window_days, params, title, locales[], missing_locales[], updated_at}], legend:{group, item_key, rows:[{id, locale}]}}` — the 8 rules in registry order |
+| GET | `/pregnancy-alert-rules/options` | `{levels, actions, min_window_days: 1, max_window_days: 30, text_fields: Schema, rules:[{key, params_schema: Schema, placeholders[]}]}` |
+| GET | `/pregnancy-alert-rules/:key` | `{rule: {key, configured, enabled, level, window_days, params, texts:{code: {title, what_we_saw, how_sure, advice, actions, contact}}, rows:[{id, locale, is_active, is_approved, updated_at}], missing_locales, params_schema, placeholders, updated_at}}` |
+| PUT | `/pregnancy-alert-rules/:key` | `{rule}` (same shape) |
+
+PUT body: `enabled` (boolean, req), `level` req `info|suggestion|follow_up|urgent`, `window_days` req 1–30, `params`
+(object, typed per rule, unknown keys dropped), `texts?: {code: {title ≤ 255, what_we_saw ≤ 500, how_sure ≤ 500,
+advice ≤ 2000 (all req), actions: list ≤ 4 of {key: ack|add_to_visit_note|log_weight|open_week|call (distinct), label ≤ 60},
+contact? ≤ 500}}`. A locale's texts are optional (absent keeps them) except the default language's while its row does
+not exist; sending texts for an active language without a row creates it (active, approved). One transaction.
+
+| Rule | `params` | Placeholders |
+|---|---|---|
+| `vomiting_streak` | `min_streak_days` 2–14, `severe_min_count` 0–14 | `{days}`, `{severe_count}` |
+| `severe_symptom_count` | `min_count` 1–50, `symptoms[]` ⊂ Log symptoms (≥ 1, distinct) | `{count}` |
+| `critical_symptom` | `symptoms[]` ⊂ `spotting, bleeding, fluid_leakage, severe_sudden_pain`, `spotting_until_week` 0–42 | `{symptom}` |
+| `weight_missing_week` | `from_week` 1–42 | `{week}` |
+| `week_entered` | — (`{}`) | `{week}`, `{basis}` |
+| `bp_high` | `systolic_min` 90–200, `diastolic_min` 50–130 | `{systolic}`, `{diastolic}` |
+| `sugar_high` | `fasting_max` 60–200, `post_meal_max` 80–300 | `{fasting}`, `{post_meal}` |
+| `fetal_movement` | `from_week` 12–42, `statuses[]` ⊂ `FetalMovementStatus` | `{status}` |
+
+`Schema` = `[{key, kind, nullable, …}]` with `kind` ∈ `text|text_list|integer|boolean|enum|enum_list|url|object|object_list`
+plus `max_length` (text/url/text_list), `min`/`max` (integer), `values` (enums), `min_items`/`max_items` (lists) and
+nested `fields` (objects) — enough for admin-web to render a form.
+
+### Messages: create in a registered group (additions to §11)
+
+The registry (`internal/admin/messages/registry`) lists the groups the engine reads: `pregnancy_week_tip` (`1`…`42`),
+`pregnancy_alert` (the 8 rules + `legend`), `pregnancy_setup` (`welcome, dating, source_lmp, source_ultrasound,
+source_manual, history, result, due_disclaimer`) with explicit schemas (**typed**), then every group of the code
+fallback (`messages/content/defaults.json`) with its keys and a schema derived from the default copy (strings / string
+lists).
+
+| Method | Path | Body / query | `data` |
+|---|---|---|---|
+| GET | `/messages` | as §11 | as §11 plus `registered_groups[]` and `missing:[{group, item_key, locale}]` — every registered item × active language without a row, narrowed by `group` / `locale` |
+| GET | `/messages/registry` | — | `{groups:[{group, typed, keys[]}]}` |
+| GET | `/messages/registry/:group/:key` | `locale?` | `{group, item_key, typed, fields: Schema, placeholders[], existing:[{id, locale}], template}` — `template` prefills a new row: the default-language row, else any row, else the code fallback copy in `locale` (default: the default language), else an empty shape. Unregistered → 404 |
+| POST | `/messages` | `group` (registered), `item_key` (registered for the group), `locale` (active), `payload` (validated against the item's schema, errors on `payload.<path>`; stored in schema order, unknown keys dropped), `label?` (default `"<group> / <item_key>"`), `is_active?`, `is_approved?` (absent = **true**), `sort_order?` (0–65535) | 201 `{message}`; an existing (group, item_key, locale) → 422 `unique` on `item_key` |
+
+`PUT /messages/:id` on a **typed** item no longer uses the shape-keeping string merge (which would flatten `params`,
+`actions` and `levels` into string lists): the sent top-level keys replace the stored ones and the whole payload is
+validated against the schema (422 on `payload.<path>`). Untyped groups keep the §11 behaviour.
+
+Audit lines: `pregnancy_week_details.update` (target `pregnancy_week`, id = week), `pregnancy_care_item.create|update|
+toggle|delete|reorder`, `pregnancy_alert_rule.update` (attr `rule`, `rows_created`), `message.create`.

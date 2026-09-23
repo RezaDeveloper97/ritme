@@ -570,3 +570,15 @@ Nothing needed fixing.
 - Verified headless fa/en × light/dark against a local backend-go (tick, toggle, tab URL).
 - Open: `slotClock`/`slotPeriod` duplicated from the home widget (move to the entity later); en full month names
   truncate in the 52px date tile (no short-month helper); back always goes to `/home` (not mode-aware).
+
+## T-M7-06 — Admin API — week details, care plan, alert rules, create-message in registered groups
+- `internal/admin/pregnancy` (week details `GET|PUT /pregnancy-weeks/{n}/details` + list/options; care items CRUD/
+  reorder/toggle, delete refused 422 `in_use` when appointments link to it; alert rules list/show/update with typed
+  params), `internal/admin/messages/registry` (group/key schemas, alert rule registry — single source for T-M7-04),
+  `POST /messages` + `GET /messages/registry[/:group/:key]`, list `missing` per item × active language;
+  queries `db/queries/pregnancy/v2_admin.sql`; docs `admin-api.md` §13.
+- Fixed: legacy `PUT /messages/:id` merge flattened typed v2 payloads (params/actions/levels) — typed groups now
+  validate + merge by schema.
+- Enum sync: seeded illustration keys (pomegranate, butternut_squash, melon, romaine_lettuce, swiss_chard, leek,
+  small_watermelon) and highlight icons (baby, face) added to the frontend lists and the Go admin enums.
+- (Commit also carries T-M7-02's generated `v2_read` sqlc query so the shared `querier.go` compiles.)

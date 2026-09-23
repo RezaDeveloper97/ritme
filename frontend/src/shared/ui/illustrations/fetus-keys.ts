@@ -44,6 +44,13 @@ export const FETUS_ILLUSTRATION_KEYS = [
   'honeydew',
   'watermelon',
   'pumpkin',
+  'pomegranate',
+  'butternut_squash',
+  'melon',
+  'romaine_lettuce',
+  'swiss_chard',
+  'leek',
+  'small_watermelon',
 ] as const;
 
 export type FetusIllustrationKey = (typeof FETUS_ILLUSTRATION_KEYS)[number];
@@ -110,6 +117,13 @@ export const FETUS_DRAWINGS: Record<FetusIllustrationKey, FetusDrawing> = {
   honeydew: D('striped', 'green', 'l'),
   watermelon: D('striped', 'green', 'l'),
   pumpkin: D('striped', 'orange', 'l'),
+  pomegranate: D('round', 'berry', 'm'),
+  butternut_squash: D('drop', 'orange', 'l'),
+  melon: D('striped', 'green', 'l'),
+  romaine_lettuce: D('leafy', 'green', 'l'),
+  swiss_chard: D('leafy', 'green', 'l'),
+  leek: D('long', 'green', 'l'),
+  small_watermelon: D('striped', 'green', 'l'),
 };
 
 export function isFetusIllustrationKey(value: unknown): value is FetusIllustrationKey {

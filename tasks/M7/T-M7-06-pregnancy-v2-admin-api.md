@@ -3,7 +3,7 @@ id: T-M7-06
 title: Admin API — week details, care plan, alert rules, create-message in registered groups
 milestone: M7
 type: backend
-status: todo
+status: done
 depends_on: [T-M7-01]
 parallel_group: M7-B
 touches: [backend-go/internal/admin/content, backend-go/internal/admin/pregnancy, backend-go/internal/admin/messages, backend-go/internal/http/routes_admin_pregnancy.go, docs/go-migration/admin-api.md]

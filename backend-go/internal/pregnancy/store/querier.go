@@ -10,10 +10,17 @@ import (
 
 type Querier interface {
 	CountActiveAlerts(ctx context.Context, userID uint64) (CountActiveAlertsRow, error)
+	CountAppointmentsOfCareItem(ctx context.Context, id uint64) (int64, error)
+	// Pregnancy v2 admin API (T-M7-06, docs/go-migration/admin-api.md §13): care-item delete guard and the
+	// message_contents writes of the alert-rule editor and POST /messages (create in a registered group).
+	// Appointments (reminders type = 'appointment') linked to each care item through meta.care_item_key.
+	CountCareItemAppointments(ctx context.Context) ([]CountCareItemAppointmentsRow, error)
 	CreateCareItem(ctx context.Context, arg CreateCareItemParams) (int64, error)
 	DeleteCareItem(ctx context.Context, id uint64) (int64, error)
 	DeleteDailyExtras(ctx context.Context, arg DeleteDailyExtrasParams) error
 	DeleteSymptomLog(ctx context.Context, arg DeleteSymptomLogParams) (int64, error)
+	// Deletes the item only while no appointment references its key (one statement: no race with a new booking).
+	DeleteUnlinkedCareItem(ctx context.Context, id uint64) (int64, error)
 	DismissAlert(ctx context.Context, arg DismissAlertParams) error
 	GetAlert(ctx context.Context, arg GetAlertParams) (PregnancyAlert, error)
 	GetCareItem(ctx context.Context, id uint64) (PregnancyCareItem, error)
@@ -26,6 +33,12 @@ type Querier interface {
 	// PregnancyProfile (App\Models\PregnancyProfile). One row per user (unique user_id).
 	GetProfileByUser(ctx context.Context, userID uint64) (PregnancyProfile, error)
 	GetSymptomLog(ctx context.Context, arg GetSymptomLogParams) (PregnancySymptomLog, error)
+	// Pregnancy v2 read model (T-M7-02, internal/pregnancy/v2): the Today screen's extras and the message
+	// rows it reads. Every user-scoped query filters by user_id.
+	// One row for the Today screen: the unread (not dismissed) alert count, the next upcoming non-cancelled
+	// M3 appointment at or after `now`, and the first active care-plan item whose week window has not ended
+	// (the next-visit fallback). The users row only anchors the single result row.
+	GetV2TodayExtras(ctx context.Context, arg GetV2TodayExtrasParams) (GetV2TodayExtrasRow, error)
 	// Pregnancy v2 week details (table pregnancy_week_details, T-M7-01, docs/pregnancy-v2/README.md § Data).
 	// One row per week 1–42, admin-defined; translatable columns are JSON keyed by language code.
 	GetWeekDetails(ctx context.Context, weekNumber uint8) (PregnancyWeekDetail, error)
@@ -37,6 +50,7 @@ type Querier interface {
 	GetWeeklyLog(ctx context.Context, arg GetWeeklyLogParams) (PregnancyWeeklyLog, error)
 	InsertAlert(ctx context.Context, arg InsertAlertParams) (int64, error)
 	InsertFetalMovement(ctx context.Context, arg InsertFetalMovementParams) (int64, error)
+	InsertMessageContent(ctx context.Context, arg InsertMessageContentParams) (int64, error)
 	InsertProfile(ctx context.Context, arg InsertProfileParams) (int64, error)
 	InsertSymptomLog(ctx context.Context, arg InsertSymptomLogParams) (int64, error)
 	InsertWeeklyLog(ctx context.Context, arg InsertWeeklyLogParams) (int64, error)
@@ -53,9 +67,15 @@ type Querier interface {
 	ListDailyExtrasRange(ctx context.Context, arg ListDailyExtrasRangeParams) ([]PregnancyDailyExtra, error)
 	// PregnancyFetalMovement (App\Models\PregnancyFetalMovement). Unique (user_id, log_date).
 	ListFetalMovements(ctx context.Context, arg ListFetalMovementsParams) ([]PregnancyFetalMovement, error)
+	// Every (group, item_key, locale) triple — the "missing rows of registered groups" view.
+	ListMessageContentKeys(ctx context.Context) ([]ListMessageContentKeysRow, error)
+	ListMessageContentsOfGroup(ctx context.Context, group string) ([]MessageContent, error)
 	// PregnancySymptomLog (App\Models\PregnancySymptomLog). Unique (user_id, log_date).
 	// from/to are compared as the raw query-string text, like Laravel's where('log_date', '>=', $from).
 	ListSymptomLogs(ctx context.Context, arg ListSymptomLogsParams) ([]PregnancySymptomLog, error)
+	// The live message_contents rows of one group/item in the given locales (request locale + default
+	// language, for the fallback) — the week tip and the setup templates.
+	ListV2MessagePayloads(ctx context.Context, arg ListV2MessagePayloadsParams) ([]ListV2MessagePayloadsRow, error)
 	ListWeekDetails(ctx context.Context) ([]PregnancyWeekDetail, error)
 	// Weeks from..to inclusive (the Today carousel reads prev/current/next in one query).
 	ListWeekDetailsRange(ctx context.Context, arg ListWeekDetailsRangeParams) ([]PregnancyWeekDetail, error)
@@ -65,10 +85,13 @@ type Querier interface {
 	ListWeeklyLogs(ctx context.Context, userID uint64) ([]PregnancyWeeklyLog, error)
 	MarkAlertRead(ctx context.Context, arg MarkAlertReadParams) error
 	MarkAllAlertsRead(ctx context.Context, arg MarkAllAlertsReadParams) (int64, error)
+	MessageContentExists(ctx context.Context, arg MessageContentExistsParams) (bool, error)
+	NextCareItemSortOrder(ctx context.Context) (int64, error)
 	SetCareItemActive(ctx context.Context, arg SetCareItemActiveParams) (int64, error)
 	SetCareItemSortOrder(ctx context.Context, arg SetCareItemSortOrderParams) (int64, error)
 	// Alert action add_to_visit_note (T-M7-04): creates the day's row when missing, keeps the other fields.
 	SetDailyVisitNote(ctx context.Context, arg SetDailyVisitNoteParams) error
+	SetMessageContentPayload(ctx context.Context, arg SetMessageContentPayloadParams) error
 	// `key` is immutable (appointments reference it).
 	UpdateCareItem(ctx context.Context, arg UpdateCareItemParams) (int64, error)
 	UpdateFetalMovement(ctx context.Context, arg UpdateFetalMovementParams) error

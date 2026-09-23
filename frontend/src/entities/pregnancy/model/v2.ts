@@ -26,6 +26,8 @@ const HIGHLIGHT_GLYPHS: Record<HighlightIcon, { icon: IconName; tone: HighlightT
   scale: { icon: 'scale', tone: 'brand' },
   sparkle: { icon: 'sparkle', tone: 'pink' },
   moon: { icon: 'moonReminder', tone: 'brand' },
+  baby: { icon: 'heartLine', tone: 'pink' },
+  face: { icon: 'faceGood', tone: 'teal' },
 };
 
 /** The icon for a highlight; an unknown / missing key falls back to a sparkle. */

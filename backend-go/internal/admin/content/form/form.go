@@ -36,7 +36,12 @@ type Check func(in phpval.Map, add Add) error
 // Validate runs the Laravel rules plus the extra checks and returns the validated data,
 // or the admin 422 with every message (rules first, then the checks).
 func Validate(c fiber.Ctx, rules validation.Rules, checks ...Check) (phpval.Map, error) {
-	in := validation.Input(c)
+	return ValidateInput(c, validation.Input(c), rules, checks...)
+}
+
+// ValidateInput is Validate over a given input instead of the request's (e.g. a stored
+// payload merged with a partial update, T-M7-06).
+func ValidateInput(c fiber.Ctx, in phpval.Map, rules validation.Rules, checks ...Check) (phpval.Map, error) {
 	v := validation.Make(lang.Default(), i18n.Locale(c), in, rules, validation.Now(httpadmin.Now(c)))
 	ve := httpx.NewValidationError()
 	if v.Fails() {

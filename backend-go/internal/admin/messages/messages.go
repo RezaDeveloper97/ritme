@@ -2,6 +2,10 @@
 // list message_contents rows filtered by group, locale and approval, edit a row's
 // payload and label (keeping the payload's shape), approve / unapprove and
 // activate / deactivate. Rows are only served to users when active and approved.
+//
+// T-M7-06 adds creation of rows for registered (group, item_key) pairs (see ./registry),
+// the list of registered rows that are still missing, and schema validation of typed
+// (pregnancy v2) payloads on update.
 package messages
 
 import (
@@ -15,10 +19,12 @@ import (
 
 	"github.com/ritme/backend-go/internal/admin/content/form"
 	"github.com/ritme/backend-go/internal/admin/httpadmin"
+	"github.com/ritme/backend-go/internal/admin/messages/registry"
 	"github.com/ritme/backend-go/internal/admin/store"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/platform/validation"
 	"github.com/ritme/backend-go/internal/platform/validation/phpval"
+	pstore "github.com/ritme/backend-go/internal/pregnancy/store"
 )
 
 // Status filter values (?status=).
@@ -30,6 +36,7 @@ const (
 // Handlers serve /messages.
 type Handlers struct {
 	q      *store.Queries
+	pq     *pstore.Queries // message_contents writes of T-M7-06 (queries in db/queries/pregnancy/v2_admin.sql)
 	logger *slog.Logger
 }
 
@@ -38,12 +45,15 @@ func New(db *sql.DB, logger *slog.Logger) *Handlers {
 	if logger == nil {
 		logger = slog.Default()
 	}
-	return &Handlers{q: store.New(db), logger: logger}
+	return &Handlers{q: store.New(db), pq: pstore.New(db), logger: logger}
 }
 
 // Routes registers the endpoints.
 func (h *Handlers) Routes(route func(method, path string, chain httpadmin.Chain), kit *httpadmin.Kit) {
 	route(fiber.MethodGet, "/messages", kit.Admin(h.List))
+	route(fiber.MethodPost, "/messages", kit.Admin(h.Store))
+	route(fiber.MethodGet, "/messages/registry", kit.Admin(h.Registry))
+	route(fiber.MethodGet, "/messages/registry/:group/:key", kit.Admin(h.RegistryItem))
 	route(fiber.MethodGet, "/messages/:id", kit.Admin(h.Show))
 	route(fiber.MethodPut, "/messages/:id", kit.Admin(h.Update))
 	route(fiber.MethodPost, "/messages/:id/approve", kit.Admin(h.Approve))
@@ -133,6 +143,12 @@ func (h *Handlers) List(c fiber.Ctx) error {
 	page.Set("filters", jsonx.Obj("group", nullable(group), "locale", nullable(locale), "status", nullable(status)))
 	page.Set("groups", jsonx.List(groups))
 	page.Set("locales", jsonx.List(locales))
+	page.Set("registered_groups", jsonx.List(registry.GroupNames()))
+	missing, err := h.missing(c, group, locale)
+	if err != nil {
+		return err
+	}
+	page.Set("missing", jsonx.List(missing))
 	return httpadmin.OK(c, page)
 }
 
@@ -190,7 +206,8 @@ func mergePayload(original any, input any) any {
 }
 
 // Update is PUT /messages/:id {payload: {field: string | [strings]}, label?}. An absent
-// label keeps the stored one; an empty label clears it.
+// label keeps the stored one; an empty label clears it. Rows of a typed registry item
+// (pregnancy v2 groups) are validated against their schema instead (typedPayload).
 func (h *Handlers) Update(c fiber.Ctx) error {
 	m, err := h.find(c)
 	if err != nil {
@@ -208,12 +225,20 @@ func (h *Handlers) Update(c fiber.Ctx) error {
 		original = phpval.NewMap()
 	}
 	input, _ := data.Get("payload")
+	var payload any
+	if item, ok := registry.Lookup(m.Group, m.ItemKey); ok && item.Typed {
+		if payload, err = typedPayload(c, item, original, input); err != nil {
+			return err
+		}
+	} else {
+		payload = mergePayload(original, input)
+	}
 	label := m.Label
 	if _, sent := data.Get("label"); sent {
 		label = form.Str(data, "label")
 	}
 	if err := h.q.UpdateMessageContent(c.Context(), store.UpdateMessageContentParams{
-		Payload: form.JSON(mergePayload(original, input)), Label: label,
+		Payload: form.JSON(payload), Label: label,
 		Now: httpadmin.DBTime(httpadmin.Now(c)), ID: m.ID,
 	}); err != nil {
 		return err

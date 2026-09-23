@@ -96,6 +96,8 @@ export const HIGHLIGHT_ICONS = [
   'scale',
   'sparkle',
   'moon',
+  'baby',
+  'face',
 ] as const;
 export type HighlightIcon = (typeof HIGHLIGHT_ICONS)[number];
 
