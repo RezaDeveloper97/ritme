@@ -273,3 +273,11 @@ Nothing needed fixing.
 - Side-effects integration test replays 10 POSTs and compares DB rows with Laravel (`testdata/sideeffects`).
 - Contract: 83/86 — 3 cases fail only on period-route steps (green after T-M2-15; noted there). D-01/D-02 kept as Laravel (500s).
 - Open: `markRecalculated`/LMP update queries duplicated with the profile store.
+
+## T-M2-16 — Pregnancy engine and all /pregnancy endpoints
+- `internal/pregnancy` (+ `calc`, `alerts`, `content`), `routes_pregnancy.go`, queries in `db/queries/pregnancy`.
+  All 26 routes; contract pregnancy 194/194.
+- API: `pregnancy.LoadProfile`, `calc.New(profile, locale, today)` → GestationalAge/EDD/CurrentWeek/Status().JSON(),
+  `pregnancy.ProfileJSON`/`AlertJSON`. MessageManager's `pregnancyWeek` = `GestationalAge().Weeks` (0-based), not `CurrentWeek()`.
+- Eloquent write semantics preserved (created model returns only set attrs, `updated_at` only on dirty).
+- Open: non-numeric `{week}`/`{id}` → 404 here (D-02 behaviour) while reminders keep Laravel's 500 — align once D-02 is decided.

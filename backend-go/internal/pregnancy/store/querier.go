@@ -9,9 +9,39 @@ import (
 )
 
 type Querier interface {
-	// Placeholder so the `pregnancy` sqlc package exists and compiles before its domain task lands (T-M2-03).
-	// Delete this file when the first real query is added to db/queries/pregnancy/.
-	SamplePregnancyProfile(ctx context.Context, id uint64) (PregnancyProfile, error)
+	CountActiveAlerts(ctx context.Context, userID uint64) (CountActiveAlertsRow, error)
+	DeleteSymptomLog(ctx context.Context, arg DeleteSymptomLogParams) (int64, error)
+	DismissAlert(ctx context.Context, arg DismissAlertParams) error
+	GetAlert(ctx context.Context, arg GetAlertParams) (PregnancyAlert, error)
+	GetFetalMovement(ctx context.Context, arg GetFetalMovementParams) (PregnancyFetalMovement, error)
+	// PregnancyProfile (App\Models\PregnancyProfile). One row per user (unique user_id).
+	GetProfileByUser(ctx context.Context, userID uint64) (PregnancyProfile, error)
+	GetSymptomLog(ctx context.Context, arg GetSymptomLogParams) (PregnancySymptomLog, error)
+	// PregnancyWeeklyContent (table pregnancy_weekly_content).
+	GetWeeklyContent(ctx context.Context, weekNumber int32) (PregnancyWeeklyContent, error)
+	GetWeeklyLog(ctx context.Context, arg GetWeeklyLogParams) (PregnancyWeeklyLog, error)
+	InsertAlert(ctx context.Context, arg InsertAlertParams) (int64, error)
+	InsertFetalMovement(ctx context.Context, arg InsertFetalMovementParams) (int64, error)
+	InsertProfile(ctx context.Context, arg InsertProfileParams) (int64, error)
+	InsertSymptomLog(ctx context.Context, arg InsertSymptomLogParams) (int64, error)
+	InsertWeeklyLog(ctx context.Context, arg InsertWeeklyLogParams) (int64, error)
+	LatestUnreadEmergencyAlert(ctx context.Context, userID uint64) (PregnancyAlert, error)
+	// PregnancyAlert (App\Models\PregnancyAlert). Scopes: active = is_dismissed 0, unread = is_read 0.
+	// Ordering mirrors Laravel's orderBy('created_at', 'desc') (no tie-breaker).
+	ListActiveAlerts(ctx context.Context, arg ListActiveAlertsParams) ([]PregnancyAlert, error)
+	// PregnancyFetalMovement (App\Models\PregnancyFetalMovement). Unique (user_id, log_date).
+	ListFetalMovements(ctx context.Context, arg ListFetalMovementsParams) ([]PregnancyFetalMovement, error)
+	// PregnancySymptomLog (App\Models\PregnancySymptomLog). Unique (user_id, log_date).
+	// from/to are compared as the raw query-string text, like Laravel's where('log_date', '>=', $from).
+	ListSymptomLogs(ctx context.Context, arg ListSymptomLogsParams) ([]PregnancySymptomLog, error)
+	// PregnancyWeeklyLog (App\Models\PregnancyWeeklyLog). Unique (user_id, pregnancy_week).
+	ListWeeklyLogs(ctx context.Context, userID uint64) ([]PregnancyWeeklyLog, error)
+	MarkAlertRead(ctx context.Context, arg MarkAlertReadParams) error
+	MarkAllAlertsRead(ctx context.Context, arg MarkAllAlertsReadParams) (int64, error)
+	UpdateFetalMovement(ctx context.Context, arg UpdateFetalMovementParams) error
+	UpdateProfile(ctx context.Context, arg UpdateProfileParams) error
+	UpdateSymptomLog(ctx context.Context, arg UpdateSymptomLogParams) error
+	UpdateWeeklyLog(ctx context.Context, arg UpdateWeeklyLogParams) error
 }
 
 var _ Querier = (*Queries)(nil)

@@ -3,7 +3,7 @@ id: T-M2-16
 title: Pregnancy engine and all /pregnancy endpoints
 milestone: M2
 type: backend
-status: todo
+status: done
 depends_on: [T-M2-05, T-M2-06, T-M2-07, T-M2-08]
 parallel_group: M2-E
 touches: [backend-go/internal/pregnancy, backend-go/internal/http/routes_pregnancy.go, backend-go/db/queries/pregnancy, backend-go/contract/allowlist/pregnancy.yaml]
