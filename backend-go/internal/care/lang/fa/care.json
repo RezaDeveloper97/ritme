@@ -1,0 +1,74 @@
+{
+    "digits": "۰۱۲۳۴۵۶۷۸۹",
+    "forms": {
+        "tablet": "قرص",
+        "capsule": "کپسول",
+        "syrup": "شربت",
+        "injection": "آمپول",
+        "drops": "قطره"
+    },
+    "units": {
+        "mg": "میلی‌گرم",
+        "mcg": "میکروگرم",
+        "ml": "میلی‌لیتر",
+        "iu": "واحد",
+        "drop": "قطره"
+    },
+    "durations": {
+        "ongoing": "همیشگی",
+        "until_date": "تا تاریخ مشخص",
+        "pregnancy_end": "تا پایان بارداری"
+    },
+    "kinds": {
+        "in_person": "نوبت پزشک",
+        "phone": "مشاوره تلفنی",
+        "online": "مشاوره آنلاین"
+    },
+    "topics": {
+        "ultrasound": "سونوگرافی",
+        "checkup": "معاینه",
+        "lab": "آزمایش",
+        "consult": "مشاوره",
+        "vaccine": "واکسن",
+        "other": "سایر"
+    },
+    "remind_before": {
+        "1h": "۱ ساعت قبل",
+        "3h": "۳ ساعت قبل",
+        "1d": "۱ روز قبل",
+        "2d": "۲ روز قبل"
+    },
+    "messages": {
+        "validation_failed": "اطلاعات واردشده نامعتبر است",
+        "medication_not_found": "یادآور دارو پیدا نشد",
+        "medication_created": "یادآور دارو ذخیره شد",
+        "medication_updated": "یادآور دارو به‌روزرسانی شد",
+        "medication_deleted": "یادآور دارو حذف شد",
+        "intake_taken": "مصرف این نوبت ثبت شد",
+        "intake_untaken": "مصرف این نوبت برداشته شد"
+    },
+    "validation": {
+        "ends_on_required": "برای «تا تاریخ مشخص» تاریخ پایان الزامی است.",
+        "slot_unknown": "این ساعت جزو نوبت‌های این دارو نیست.",
+        "date_not_scheduled": "این دارو در این روز برنامه مصرف ندارد."
+    },
+    "attributes": {
+        "title": "نام دارو",
+        "dose": "دوز",
+        "unit": "واحد",
+        "form": "شکل دارو",
+        "times": "ساعت نوبت‌ها",
+        "times.*": "ساعت نوبت",
+        "weekdays": "روزهای هفته",
+        "weekdays.*": "روز هفته",
+        "amount": "مقدار در هر نوبت",
+        "duration": "مدت مصرف",
+        "starts_on": "تاریخ شروع",
+        "ends_on": "تاریخ پایان",
+        "notify": "اعلان",
+        "notes": "یادداشت",
+        "is_active": "وضعیت",
+        "date": "تاریخ",
+        "slot": "نوبت"
+    }
+}

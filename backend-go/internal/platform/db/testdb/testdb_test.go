@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/pressly/goose/v3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -16,8 +17,16 @@ import (
 
 func TestMain(m *testing.M) { testdb.Main(m) }
 
-// 38 tables = the Laravel schema minus its `migrations` table (domain-inventory §1), plus goose's.
+// 38 tables = the Laravel schema at the start of M2 minus its `migrations` table (domain-inventory §1).
+// Migrations after the baseline add more.
 const baselineTables = 38
+
+func latestVersion(t *testing.T, p interface{ ListSources() []*goose.Source }) int64 {
+	t.Helper()
+	src := p.ListSources()
+	require.NotEmpty(t, src)
+	return src[len(src)-1].Version
+}
 
 func TestBaselineAppliedToFreshMariaDB(t *testing.T) {
 	db := testdb.New(t)
@@ -31,7 +40,7 @@ func TestBaselineAppliedToFreshMariaDB(t *testing.T) {
 	require.NoError(t, db.QueryRowContext(ctx,
 		`SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name <> ?`,
 		platformdb.VersionTable).Scan(&tables))
-	assert.Equal(t, baselineTables, tables)
+	assert.GreaterOrEqual(t, tables, baselineTables)
 
 	var laravel int
 	require.NoError(t, db.QueryRowContext(ctx,
@@ -42,7 +51,7 @@ func TestBaselineAppliedToFreshMariaDB(t *testing.T) {
 	require.NoError(t, err)
 	v, err := p.GetDBVersion(ctx)
 	require.NoError(t, err)
-	assert.Equal(t, platformdb.BaselineVersion, v)
+	assert.Equal(t, latestVersion(t, p), v)
 
 	rows, err := db.QueryContext(ctx, "SELECT code, direction, is_default FROM languages ORDER BY sort_order")
 	require.NoError(t, err)
@@ -102,12 +111,16 @@ func TestStampBaselineMarksExistingSchemaAsMigrated(t *testing.T) {
 	v, err := p.GetDBVersion(ctx)
 	require.NoError(t, err)
 	assert.Equal(t, platformdb.BaselineVersion, v)
+	// Later migrations still run on a stamped database (they are written to be no-ops where the
+	// Laravel twin already created the object); the baseline never does.
+	results, err := p.Up(ctx)
+	require.NoError(t, err)
+	for _, r := range results {
+		assert.Greater(t, r.Source.Version, platformdb.BaselineVersion, "the baseline must not run again on a stamped database")
+	}
 	pending, err := p.HasPending(ctx)
 	require.NoError(t, err)
 	assert.False(t, pending)
-	results, err := p.Up(ctx)
-	require.NoError(t, err)
-	assert.Empty(t, results, "the baseline must not run again on a stamped database")
 }
 
 func TestBaselineDownIsRefused(t *testing.T) {
@@ -115,6 +128,10 @@ func TestBaselineDownIsRefused(t *testing.T) {
 	db := testdb.New(t)
 	p, err := platformdb.NewMigrator(db)
 	require.NoError(t, err)
+	// Roll back to the baseline first, and restore the full schema for the next tests.
+	_, err = p.DownTo(ctx, platformdb.BaselineVersion)
+	require.NoError(t, err)
+	t.Cleanup(func() { _, _ = p.Up(context.Background()) })
 
 	_, err = p.Down(ctx)
 	require.Error(t, err)

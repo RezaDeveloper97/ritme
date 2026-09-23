@@ -3,7 +3,7 @@ id: T-M3-01
 title: Care reminders — schema, reminder_intakes table and medication API (Go)
 milestone: M3
 type: backend
-status: todo
+status: done
 depends_on: []
 parallel_group: M3-A
 touches: [backend-go/db/migrations, backend-go/db/queries/care, backend-go/sqlc.yaml, backend-go/internal/care, backend-go/internal/http/routes_care.go, backend/database/migrations, backend-go/api/openapi.yaml, docs/go-migration/deviations.md, docs/care-reminders/README.md]

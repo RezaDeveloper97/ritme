@@ -431,3 +431,16 @@ Nothing needed fixing.
 - Open: `care` must be added to `message-scopes.ts` by the first screen that uses it (T-M3-05..08; the scope test
   requires exact usage); some copy not on artboards (empty/error states, duration labels) needs content review;
   new tokens not yet in `lint:dark` pairs — run `/check-colors` when UI lands.
+
+## T-M3-01 — Care reminders — schema, reminder_intakes table and medication API (Go)
+- Migration pair: `backend-go/db/migrations/00002_reminder_intakes.sql` (`CREATE TABLE IF NOT EXISTS`) +
+  `backend/database/migrations/2026_09_23_000001_create_reminder_intakes_table.php`; `make schema-diff` OK (39 tables).
+- `internal/care` (enums, labels via embedded `lang/{fa,en}/care.json`, medication meta v1 + `Covers(date)`,
+  handlers), `routes_care.go`, queries `db/queries/care`; 8 operations in OpenAPI (tag `Care`); D-17 (care is Go-only).
+- Medication rows surface in `GET /api/v1/reminders` (type=medication, subtitle, recurrence daily|weekly).
+- Intake untick accepts `?date=&slot=` (query) or JSON body; ticking a future day → 422.
+- **Convention (all later migrations):** post-baseline goose migrations must be no-ops where the Laravel twin already
+  created the object (`IF NOT EXISTS` etc.) — prod stamps the baseline and then runs them over a Laravel-built schema.
+  Migration integration tests (`cmd/api/migrate_test.go`, `testdb_test.go`) now compare against the latest version
+  instead of assuming baseline-only.
+- Open: `GET /reminders` OpenAPI `Reminder.meta` no longer requires `phone`.

@@ -115,3 +115,9 @@ sql:
       go:
         <<: *go
         out: internal/i18n/store
+  - <<: *pkg
+    queries: db/queries/care
+    gen:
+      go:
+        <<: *go
+        out: internal/care/store

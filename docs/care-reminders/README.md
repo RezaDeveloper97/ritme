@@ -89,6 +89,33 @@ UNIQUE (reminder_id, intake_date, slot), INDEX (user_id, intake_date)
 | GET | `/care/today` | `?date=Y-m-d` (default today, Tehran) — see below |
 | GET | `/care/enums` | localized labels for forms, units, kinds, topics, remind_before |
 
+### Medication resource (T-M3-01, implemented)
+
+Request bodies are flat (no `meta` wrapper): `title`, `dose`, `unit`, `form`, `times`, `weekdays`, `amount`, `duration`,
+`starts_on`, `ends_on`, `notify`, `notes`, `is_active`. POST requires `title`, `form`, `times`; defaults: `weekdays` all
+seven, `amount` 1, `duration` ongoing, `notify` true, `is_active` true, `starts_on` today (Tehran). `dose`/`unit` are
+optional (a numeric dose is stored as its string). `ends_on` is read only for `until_date` (required, ≥ `starts_on`).
+PUT merges the sent keys over the stored medication and validates the result as a whole. `times`/`weekdays` are
+de-duplicated and sorted. 422 is the controller shape `{success:false, message, errors}` in the request language;
+404 `{success:false, message}` for another user's id, a non-medication reminder or a malformed id.
+
+`data` of `GET /care/medications[/{id}]`, POST (201) and PUT:
+
+```json
+{"id": 12, "type": "medication", "title": "فولیک اسید", "subtitle": "۴۰۰ میکروگرم", "notes": null,
+ "form": "tablet", "dose": "400", "unit": "mcg", "times": ["08:00", "20:00"], "weekdays": [0,1,2,3,4,5,6],
+ "amount": 1, "duration": "pregnancy_end", "notify": true, "starts_on": "2026-09-23", "ends_on": "2027-03-08",
+ "is_active": true, "recurrence": "daily", "recurrence_time": "08:00",
+ "created_at": "2026-09-23T06:30:00.000000Z", "updated_at": "2026-09-23T06:30:00.000000Z"}
+```
+
+Intakes: `POST /care/medications/{id}/intakes` `{date, slot}` → 200 `data: {reminder_id, date, slot, taken: true,
+taken_at}`; `slot` must be one of `times`, `date` inside the weekday/start/end window and not after today (422 on
+`slot`/`date` otherwise). `DELETE …/intakes?date=Y-m-d&slot=HH:MM` (query string or JSON body) → `taken: false,
+taken_at: null`; both are idempotent. Legacy rows created via `POST /reminders` (no meta) are listed with a derived
+meta (one slot at `recurrence_time`, all weekdays). `GET /care/enums` → `{forms, units, durations, kinds, topics,
+remind_before}`, each `[{value, label}]`.
+
 `GET /care/today` → `data`:
 
 ```json

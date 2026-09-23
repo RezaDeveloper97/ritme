@@ -28,6 +28,7 @@ tags:
   - {name: Info, description: "Help, privacy, terms and about screens (public)"}
   - {name: Content, description: "Banners, articles and cycle phase content"}
   - {name: Reminders, description: "Doctor, medication, appointment and custom reminders"}
+  - {name: Care, description: "Care reminders (Go only): medications with per-dose intake tracking, appointments, today"}
   - {name: Daily Health Log, description: "One log per day: symptoms, mood, vitals, lifestyle"}
   - {name: Cycle, description: "Cycle engine: today, a date, a month, recalculation"}
   - {name: Period Log, description: "Start, end, add, edit and delete periods"}
@@ -542,6 +543,262 @@ paths:
                         link_type: external
                     home_bottom: []
         '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/care/enums:
+    get:
+      tags: [Care]
+      summary: Care reminder enums
+      description: "Localized `{value, label}` lists for the medication and appointment forms. Labels come from the care language files; a language without them gets English."
+      operationId: getCareEnums
+      security:
+        - {bearerAuth: []}
+      parameters: [{$ref: "#/components/parameters/AcceptLanguage"}]
+      responses:
+        '200':
+          description: Enums retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [forms, units, durations, kinds, topics, remind_before]
+                    properties:
+                      forms: {type: array, items: {$ref: "#/components/schemas/CareEnumItem"}}
+                      units: {type: array, items: {$ref: "#/components/schemas/CareEnumItem"}}
+                      durations: {type: array, items: {$ref: "#/components/schemas/CareEnumItem"}}
+                      kinds: {type: array, items: {$ref: "#/components/schemas/CareEnumItem"}}
+                      topics: {type: array, items: {$ref: "#/components/schemas/CareEnumItem"}}
+                      remind_before: {type: array, items: {$ref: "#/components/schemas/CareEnumItem"}}
+              example:
+                success: true
+                data:
+                  forms: [{value: tablet, label: قرص}, {value: capsule, label: کپسول}, {value: syrup, label: شربت}, {value: injection, label: آمپول}, {value: drops, label: قطره}]
+                  units: [{value: mg, label: میلی‌گرم}, {value: mcg, label: میکروگرم}, {value: ml, label: میلی‌لیتر}, {value: iu, label: واحد}, {value: drop, label: قطره}]
+                  durations: [{value: ongoing, label: همیشگی}, {value: until_date, label: تا تاریخ مشخص}, {value: pregnancy_end, label: تا پایان بارداری}]
+                  kinds: [{value: in_person, label: نوبت پزشک}, {value: phone, label: مشاوره تلفنی}, {value: online, label: مشاوره آنلاین}]
+                  topics: [{value: ultrasound, label: سونوگرافی}, {value: checkup, label: معاینه}, {value: lab, label: آزمایش}, {value: consult, label: مشاوره}, {value: vaccine, label: واکسن}, {value: other, label: سایر}]
+                  remind_before: [{value: 1h, label: ۱ ساعت قبل}, {value: 3h, label: ۳ ساعت قبل}, {value: 1d, label: ۱ روز قبل}, {value: 2d, label: ۲ روز قبل}]
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/care/medications:
+    get:
+      tags: [Care]
+      summary: List medication reminders
+      description: "The user's medication reminders (reminders with `type = medication`), newest first. Rows created through the legacy `POST /reminders` get a meta derived from their columns."
+      operationId: getCareMedications
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - name: active
+          in: query
+          required: false
+          description: "Truthy (`1`) → active medications only."
+          schema: {type: string, examples: ["1"]}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Medications retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {type: array, items: {$ref: "#/components/schemas/Medication"}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+    post:
+      tags: [Care]
+      summary: Create a medication reminder
+      description: |
+        Returns **201** with the medication. Stored as a `reminders` row (`type = medication`) whose legacy columns are
+        derived so `GET /reminders` readers keep working: `subtitle` = "dose unit" in the request language
+        (localized digits), `recurrence` = `daily` (all weekdays) or `weekly`, `recurrence_time` = the first slot.
+        `times` are de-duplicated and sorted, `weekdays` (Saturday = 0) likewise. `ends_on` is used only for
+        `duration = until_date`; `pregnancy_end` takes the active pregnancy's due date (open-ended without one);
+        `ongoing` stores NULL. Unknown keys are ignored.
+      operationId: postCareMedications
+      security:
+        - {bearerAuth: []}
+      parameters: [{$ref: "#/components/parameters/AcceptLanguage"}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf: [{$ref: "#/components/schemas/MedicationInput"}]
+              required: [title, form, times]
+            example: {title: فولیک اسید, dose: "400", unit: mcg, form: tablet, times: ["08:00", "20:00"], weekdays: [0, 1, 2, 3, 4, 5, 6], amount: 1, duration: pregnancy_end, notify: true, notes: null}
+      responses:
+        '201':
+          description: Medication created
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/Medication"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/CareValidationFailed"}
+  /api/v1/care/medications/{id}:
+    get:
+      tags: [Care]
+      summary: Get a medication reminder
+      operationId: getCareMedicationsById
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Medication retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/Medication"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CareNotFound"}
+    put:
+      tags: [Care]
+      summary: Update a medication reminder
+      description: "Partial update: only the keys sent change (`{\"is_active\": false}` is the list switch). The merged medication is validated as a whole and the legacy columns are re-derived."
+      operationId: putCareMedicationsById
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/MedicationInput"}
+            example: {is_active: false}
+      responses:
+        '200':
+          description: Medication updated
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/Medication"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CareNotFound"}
+        '422': {$ref: "#/components/responses/CareValidationFailed"}
+    delete:
+      tags: [Care]
+      summary: Delete a medication reminder
+      description: "Deletes the medication and (cascade) its intakes."
+      operationId: deleteCareMedicationsById
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Medication deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {type: "null"}
+              example: {success: true, message: یادآور دارو حذف شد, data: null}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CareNotFound"}
+  /api/v1/care/medications/{id}/intakes:
+    post:
+      tags: [Care]
+      summary: Mark a dose taken
+      description: |
+        Idempotent: ticking the same dose again keeps the first `taken_at`. `slot` must be one of the medication's
+        `times`, and `date` must be inside its weekday/start/end window and not after today (Tehran); otherwise 422
+        on `slot` / `date`.
+      operationId: postCareMedicationsIntakes
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/IntakeInput"}
+            example: {date: "2026-09-23", slot: "08:00"}
+      responses:
+        '200':
+          description: Dose marked taken
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/Intake"}
+              example:
+                success: true
+                message: مصرف این نوبت ثبت شد
+                data: {reminder_id: 12, date: "2026-09-23", slot: "08:00", taken: true, taken_at: "2026-09-23T06:30:00.000000Z"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CareNotFound"}
+        '422': {$ref: "#/components/responses/CareValidationFailed"}
+    delete:
+      tags: [Care]
+      summary: Unmark a dose
+      description: "`date` and `slot` come from the query string (`?date=2026-09-23&slot=08:00`) or a JSON body. Idempotent: nothing to delete is still 200."
+      operationId: deleteCareMedicationsIntakes
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {name: date, in: query, required: false, schema: {$ref: "#/components/schemas/Date"}}
+        - {name: slot, in: query, required: false, schema: {type: string, pattern: "^\\d{2}:\\d{2}$", examples: ["08:00"]}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/IntakeInput"}
+      responses:
+        '200':
+          description: Dose unmarked
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/Intake"}
+              example:
+                success: true
+                message: مصرف این نوبت برداشته شد
+                data: {reminder_id: 12, date: "2026-09-23", slot: "08:00", taken: false, taken_at: null}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CareNotFound"}
+        '422': {$ref: "#/components/responses/CareValidationFailed"}
   /api/v1/cycle/date/{date}:
     get:
       tags: [Cycle]
@@ -6127,6 +6384,32 @@ components:
         application/json:
           schema: {$ref: "#/components/schemas/FrameworkError"}
           example: {message: Server Error}
+    CareValidationFailed:
+      description: "Care validation failed (controller 422 `{success: false, message, errors}`, message and field errors in the request language)"
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, errors]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              errors:
+                type: object
+                additionalProperties: {type: array, items: {type: string}}
+          example:
+            success: false
+            message: اطلاعات واردشده نامعتبر است
+            errors: {ends_on: [برای «تا تاریخ مشخص» تاریخ پایان الزامی است.]}
+    CareNotFound:
+      description: "Not the user's medication (another user's id, another reminder type, or a malformed id)"
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message]
+            properties: {success: {type: boolean, const: false}, message: {type: string}}
+          example: {success: false, message: یادآور دارو پیدا نشد}
   schemas:
     Date:
       type: string
@@ -6584,7 +6867,95 @@ components:
         is_active: {type: boolean}
         meta:
           type: [object, "null"]
-          required: [phone]
+          description: "Type-specific data: `{phone}` on doctor reminders; the care meta (v1) on rows written by `/care/*`."
           properties: {phone: {type: string}}
         created_at: {$ref: "#/components/schemas/LaravelDateTime"}
         updated_at: {$ref: "#/components/schemas/LaravelDateTime"}
+    CareEnumItem:
+      type: object
+      required: [value, label]
+      properties: {value: {type: string}, label: {type: string}}
+    MedicationInput:
+      type: object
+      description: "Medication fields. POST requires `title`, `form`, `times`; PUT sends any subset."
+      properties:
+        title: {type: string, maxLength: 255, examples: [فولیک اسید]}
+        dose: {type: [string, number, "null"], description: "Free text (≤ 50); a number is stored as its string.", examples: ["400"]}
+        unit: {type: [string, number, "null"], description: "One of `mg|mcg|ml|iu|drop` (labelled) or free text (≤ 50).", examples: [mcg]}
+        form: {type: string, enum: [tablet, capsule, syrup, injection, drops]}
+        times: {type: array, minItems: 1, maxItems: 4, items: {type: string, pattern: "^\\d{2}:\\d{2}$"}, examples: [["08:00", "20:00"]]}
+        weekdays: {type: array, minItems: 1, maxItems: 7, items: {type: integer, minimum: 0, maximum: 6}, description: "Saturday = 0 … Friday = 6. Default: all seven."}
+        amount: {type: integer, minimum: 1, maximum: 10, default: 1}
+        duration: {type: string, enum: [ongoing, until_date, pregnancy_end], default: ongoing}
+        starts_on: {$ref: "#/components/schemas/Date", description: "Default: today (Tehran)."}
+        ends_on:
+          description: "Required for `until_date` (≥ `starts_on`); ignored otherwise."
+          anyOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]
+        notify: {type: boolean, default: true}
+        notes: {type: [string, "null"], maxLength: 2000}
+        is_active: {type: boolean, default: true}
+    Medication:
+      type: object
+      required: [id, type, title, subtitle, notes, form, dose, unit, times, weekdays, amount, duration, notify, starts_on, ends_on, is_active, recurrence, recurrence_time, created_at, updated_at]
+      properties:
+        id: {type: integer}
+        type: {type: string, const: medication}
+        title: {type: string}
+        subtitle: {type: [string, "null"], description: "Derived \"dose unit\" in the language of the last write, for legacy readers.", examples: [۴۰۰ میکروگرم]}
+        notes: {type: [string, "null"]}
+        form: {type: string, enum: [tablet, capsule, syrup, injection, drops]}
+        dose: {type: [string, "null"]}
+        unit: {type: [string, "null"]}
+        times: {type: array, items: {type: string}, description: "Sorted `HH:MM` slots."}
+        weekdays: {type: array, items: {type: integer, minimum: 0, maximum: 6}, description: "Saturday = 0."}
+        amount: {type: integer}
+        duration: {type: string, enum: [ongoing, until_date, pregnancy_end]}
+        notify: {type: boolean}
+        starts_on:
+          anyOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]
+        ends_on:
+          anyOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]
+        is_active: {type: boolean}
+        recurrence: {type: string, enum: [daily, weekly, none, monthly]}
+        recurrence_time: {type: [string, "null"], description: "First slot, `HH:MM`."}
+        created_at:
+          anyOf: [{$ref: "#/components/schemas/LaravelDateTime"}, {type: "null"}]
+        updated_at:
+          anyOf: [{$ref: "#/components/schemas/LaravelDateTime"}, {type: "null"}]
+      example:
+        id: 12
+        type: medication
+        title: فولیک اسید
+        subtitle: ۴۰۰ میکروگرم
+        notes: null
+        form: tablet
+        dose: "400"
+        unit: mcg
+        times: ["08:00", "20:00"]
+        weekdays: [0, 1, 2, 3, 4, 5, 6]
+        amount: 1
+        duration: pregnancy_end
+        notify: true
+        starts_on: "2026-09-23"
+        ends_on: "2027-03-08"
+        is_active: true
+        recurrence: daily
+        recurrence_time: "08:00"
+        created_at: "2026-09-23T06:30:00.000000Z"
+        updated_at: "2026-09-23T06:30:00.000000Z"
+    IntakeInput:
+      type: object
+      required: [date, slot]
+      properties:
+        date: {$ref: "#/components/schemas/Date"}
+        slot: {type: string, pattern: "^\\d{2}:\\d{2}$", examples: ["08:00"]}
+    Intake:
+      type: object
+      required: [reminder_id, date, slot, taken, taken_at]
+      properties:
+        reminder_id: {type: integer}
+        date: {$ref: "#/components/schemas/Date"}
+        slot: {type: string}
+        taken: {type: boolean}
+        taken_at:
+          anyOf: [{$ref: "#/components/schemas/LaravelDateTime"}, {type: "null"}]

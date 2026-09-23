@@ -517,6 +517,17 @@ type Reminder struct {
 	UpdatedAt      sql.NullTime
 }
 
+type ReminderIntake struct {
+	ID         uint64
+	UserID     uint64
+	ReminderID uint64
+	IntakeDate civildate.Date
+	Slot       string
+	TakenAt    time.Time
+	CreatedAt  sql.NullTime
+	UpdatedAt  sql.NullTime
+}
+
 type Session struct {
 	ID           string
 	UserID       sql.NullInt64

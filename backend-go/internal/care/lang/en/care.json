@@ -1,0 +1,74 @@
+{
+    "digits": "0123456789",
+    "forms": {
+        "tablet": "Tablet",
+        "capsule": "Capsule",
+        "syrup": "Syrup",
+        "injection": "Injection",
+        "drops": "Drops"
+    },
+    "units": {
+        "mg": "mg",
+        "mcg": "mcg",
+        "ml": "ml",
+        "iu": "IU",
+        "drop": "drop"
+    },
+    "durations": {
+        "ongoing": "Ongoing",
+        "until_date": "Until a date",
+        "pregnancy_end": "Until the end of pregnancy"
+    },
+    "kinds": {
+        "in_person": "Doctor visit",
+        "phone": "Phone consultation",
+        "online": "Online consultation"
+    },
+    "topics": {
+        "ultrasound": "Ultrasound",
+        "checkup": "Checkup",
+        "lab": "Lab test",
+        "consult": "Consultation",
+        "vaccine": "Vaccine",
+        "other": "Other"
+    },
+    "remind_before": {
+        "1h": "1 hour before",
+        "3h": "3 hours before",
+        "1d": "1 day before",
+        "2d": "2 days before"
+    },
+    "messages": {
+        "validation_failed": "Validation failed",
+        "medication_not_found": "Medication reminder not found",
+        "medication_created": "Medication reminder saved",
+        "medication_updated": "Medication reminder updated",
+        "medication_deleted": "Medication reminder deleted",
+        "intake_taken": "Dose marked as taken",
+        "intake_untaken": "Dose unmarked"
+    },
+    "validation": {
+        "ends_on_required": "The end date is required when the duration is until a date.",
+        "slot_unknown": "This time is not one of the medication's dose times.",
+        "date_not_scheduled": "This medication is not scheduled on that day."
+    },
+    "attributes": {
+        "title": "medication name",
+        "dose": "dose",
+        "unit": "unit",
+        "form": "form",
+        "times": "dose times",
+        "times.*": "dose time",
+        "weekdays": "weekdays",
+        "weekdays.*": "weekday",
+        "amount": "amount per dose",
+        "duration": "duration",
+        "starts_on": "start date",
+        "ends_on": "end date",
+        "notify": "notification",
+        "notes": "notes",
+        "is_active": "active",
+        "date": "date",
+        "slot": "dose time"
+    }
+}

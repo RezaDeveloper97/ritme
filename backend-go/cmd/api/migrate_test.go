@@ -20,9 +20,6 @@ import (
 
 func TestMain(m *testing.M) { testdb.Main(m) }
 
-// 38 = the baseline tables (internal/platform/db/testdb).
-const baselineTables = 38
-
 func tables(t *testing.T, pool *sql.DB) []string {
 	t.Helper()
 	rows, err := pool.QueryContext(context.Background(),
@@ -64,12 +61,23 @@ func dbVersion(t *testing.T, pool *sql.DB) int64 {
 	return v
 }
 
+// latestVersion is the newest embedded goose migration (the baseline plus every later one).
+func latestVersion(t *testing.T, pool *sql.DB) int64 {
+	t.Helper()
+	p, err := db.NewMigrator(pool)
+	require.NoError(t, err)
+	src := p.ListSources()
+	require.NotEmpty(t, src)
+	return src[len(src)-1].Version
+}
+
 func quietLogger() *slog.Logger { return slog.New(slog.NewJSONHandler(io.Discard, nil)) }
 
 // Fresh, empty database (a new stage volume): the baseline is applied.
 func TestMigrateOnStart_EmptyDatabaseAppliesBaseline(t *testing.T) {
 	ctx := context.Background()
 	pool := testdb.New(t)
+	want := tables(t, pool) // the fully migrated schema, goose_db_version included
 	dropAll(t, pool)
 	require.Empty(t, tables(t, pool))
 
@@ -77,8 +85,8 @@ func TestMigrateOnStart_EmptyDatabaseAppliesBaseline(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, db.StartBaselineApplied, res.Action)
 	assert.Contains(t, res.Applied, db.BaselineVersion)
-	assert.Equal(t, db.BaselineVersion, res.Version)
-	assert.Len(t, tables(t, pool), baselineTables+1, "baseline tables + goose_db_version")
+	assert.Equal(t, latestVersion(t, pool), res.Version)
+	assert.Equal(t, want, tables(t, pool), "baseline + later migrations + goose_db_version")
 
 	var languages int
 	require.NoError(t, pool.QueryRowContext(ctx, "SELECT COUNT(*) FROM languages").Scan(&languages))
@@ -104,7 +112,10 @@ func TestMigrateOnStart_LaravelSchemaIsStampedNotRecreated(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, db.StartStamped, res.Action)
 	assert.NotContains(t, res.Applied, db.BaselineVersion, "baseline stamped, not applied")
-	assert.Equal(t, db.BaselineVersion, res.Version)
+	for _, v := range res.Applied {
+		assert.Greater(t, v, db.BaselineVersion, "only migrations added after the baseline run")
+	}
+	assert.Equal(t, latestVersion(t, pool), res.Version)
 
 	var users int
 	require.NoError(t, pool.QueryRowContext(ctx, "SELECT COUNT(*) FROM users").Scan(&users))
@@ -117,18 +128,19 @@ func TestMigrateOnStart_LaravelSchemaIsStampedNotRecreated(t *testing.T) {
 	assert.Empty(t, res.Applied)
 }
 
-// Already under goose: only pending migrations run (none beyond the baseline today).
+// Already under goose: only pending migrations run (none — testdb is fully migrated).
 func TestMigrateOnStart_GooseManagedAppliesPendingOnly(t *testing.T) {
 	ctx := context.Background()
 	pool := testdb.New(t)
-	require.Equal(t, db.BaselineVersion, dbVersion(t, pool))
+	require.Equal(t, latestVersion(t, pool), dbVersion(t, pool))
+	want := tables(t, pool)
 
 	res, err := db.MigrateOnStart(ctx, pool)
 	require.NoError(t, err)
 	assert.Equal(t, db.StartUpToDate, res.Action)
 	assert.Empty(t, res.Applied)
-	assert.Equal(t, db.BaselineVersion, res.Version)
-	assert.Len(t, tables(t, pool), baselineTables+1)
+	assert.Equal(t, latestVersion(t, pool), res.Version)
+	assert.Equal(t, want, tables(t, pool))
 }
 
 // Tables but no bookkeeping at all: not goose's schema — refuse rather than guess.
