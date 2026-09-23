@@ -1,0 +1,587 @@
+[
+    {
+        "input": "Eating in sync with your cycle",
+        "clean": "Eating in sync with your cycle",
+        "plain": "Eating in sync with your cycle"
+    },
+    {
+        "input": "What to eat in each phase to feel your best",
+        "clean": "What to eat in each phase to feel your best",
+        "plain": "What to eat in each phase to feel your best"
+    },
+    {
+        "input": "Managing PMS symptoms",
+        "clean": "Managing PMS symptoms",
+        "plain": "Managing PMS symptoms"
+    },
+    {
+        "input": "Strategies to manage mood and physical symptoms before your period",
+        "clean": "Strategies to manage mood and physical symptoms before your period",
+        "plain": "Strategies to manage mood and physical symptoms before your period"
+    },
+    {
+        "input": "Know the signs of ovulation",
+        "clean": "Know the signs of ovulation",
+        "plain": "Know the signs of ovulation"
+    },
+    {
+        "input": "Discharge changes, body temperature and signs that signal ovulation",
+        "clean": "Discharge changes, body temperature and signs that signal ovulation",
+        "plain": "Discharge changes, body temperature and signs that signal ovulation"
+    },
+    {
+        "input": "The follicular phase: your energy peak",
+        "clean": "The follicular phase: your energy peak",
+        "plain": "The follicular phase: your energy peak"
+    },
+    {
+        "input": "Why you feel more energetic after your period and how to use it",
+        "clean": "Why you feel more energetic after your period and how to use it",
+        "plain": "Why you feel more energetic after your period and how to use it"
+    },
+    {
+        "input": "Blood clots during your period: what do they mean?",
+        "clean": "Blood clots during your period: what do they mean?",
+        "plain": "Blood clots during your period: what do they mean?"
+    },
+    {
+        "input": "Period clots are usually normal — but when should you worry?",
+        "clean": "Period clots are usually normal — but when should you worry?",
+        "plain": "Period clots are usually normal — but when should you worry?"
+    },
+    {
+        "input": "Ways to relieve period pain",
+        "clean": "Ways to relieve period pain",
+        "plain": "Ways to relieve period pain"
+    },
+    {
+        "input": "From heat therapy to nutrition: effective ways to ease cramps",
+        "clean": "From heat therapy to nutrition: effective ways to ease cramps",
+        "plain": "From heat therapy to nutrition: effective ways to ease cramps"
+    },
+    {
+        "input": "لخته‌های خون در دوران پریود؛ معنی آن چیست؟",
+        "clean": "لخته‌های خون در دوران پریود؛ معنی آن چیست؟",
+        "plain": "لخته‌های خون در دوران پریود؛ معنی آن چیست؟"
+    },
+    {
+        "input": "لخته‌های خون در پریود معمولاً طبیعی‌اند؛ اما چه زمانی باید نگران شد؟",
+        "clean": "لخته‌های خون در پریود معمولاً طبیعی‌اند؛ اما چه زمانی باید نگران شد؟",
+        "plain": "لخته‌های خون در پریود معمولاً طبیعی‌اند؛ اما چه زمانی باید نگران شد؟"
+    },
+    {
+        "input": "راه‌های کاهش درد پریود",
+        "clean": "راه‌های کاهش درد پریود",
+        "plain": "راه‌های کاهش درد پریود"
+    },
+    {
+        "input": "از گرما درمانی تا تغذیه؛ روش‌های مؤثر برای کاهش دردهای قاعدگی",
+        "clean": "از گرما درمانی تا تغذیه؛ روش‌های مؤثر برای کاهش دردهای قاعدگی",
+        "plain": "از گرما درمانی تا تغذیه؛ روش‌های مؤثر برای کاهش دردهای قاعدگی"
+    },
+    {
+        "input": "نشانه‌های تخمک‌گذاری را بشناس",
+        "clean": "نشانه‌های تخمک‌گذاری را بشناس",
+        "plain": "نشانه‌های تخمک‌گذاری را بشناس"
+    },
+    {
+        "input": "تغییرات ترشحات، دمای بدن و علائمی که تخمک‌گذاری را نشان می‌دهند",
+        "clean": "تغییرات ترشحات، دمای بدن و علائمی که تخمک‌گذاری را نشان می‌دهند",
+        "plain": "تغییرات ترشحات، دمای بدن و علائمی که تخمک‌گذاری را نشان می‌دهند"
+    },
+    {
+        "input": "تغذیه متناسب با چرخه قاعدگی",
+        "clean": "تغذیه متناسب با چرخه قاعدگی",
+        "plain": "تغذیه متناسب با چرخه قاعدگی"
+    },
+    {
+        "input": "در هر فاز چه بخوریم تا حال بهتری داشته باشیم",
+        "clean": "در هر فاز چه بخوریم تا حال بهتری داشته باشیم",
+        "plain": "در هر فاز چه بخوریم تا حال بهتری داشته باشیم"
+    },
+    {
+        "input": "فاز فولیکولار؛ زمان اوج انرژی",
+        "clean": "فاز فولیکولار؛ زمان اوج انرژی",
+        "plain": "فاز فولیکولار؛ زمان اوج انرژی"
+    },
+    {
+        "input": "چرا بعد از پریود احساس انرژی بیشتری داری و چطور از آن استفاده کنی",
+        "clean": "چرا بعد از پریود احساس انرژی بیشتری داری و چطور از آن استفاده کنی",
+        "plain": "چرا بعد از پریود احساس انرژی بیشتری داری و چطور از آن استفاده کنی"
+    },
+    {
+        "input": "مدیریت علائم پی‌ام‌اس",
+        "clean": "مدیریت علائم پی‌ام‌اس",
+        "plain": "مدیریت علائم پی‌ام‌اس"
+    },
+    {
+        "input": "راهکارهایی برای کنترل تغییرات خلقی و علائم جسمی پیش از پریود",
+        "clean": "راهکارهایی برای کنترل تغییرات خلقی و علائم جسمی پیش از پریود",
+        "plain": "راهکارهایی برای کنترل تغییرات خلقی و علائم جسمی پیش از پریود"
+    },
+    {
+        "input": "<h2>عنوان بخش</h2><p>این یک <strong>متن</strong> آزمایشی است با <i>ایتالیک</i> و <a href=\"https://ritme.app/articles?id=3&amp;x=1\">لینک</a>.</p>",
+        "clean": "<h2>عنوان بخش</h2><p>این یک <strong>متن</strong> آزمایشی است با <i>ایتالیک</i> و <a href=\"https://ritme.app/articles?id=3&amp;x=1\">لینک</a>.</p>",
+        "plain": "عنوان بخش این یک متن آزمایشی است با ایتالیک و لینک."
+    },
+    {
+        "input": "<p>Line one<br>Line two<br/>Line three</p><p>&nbsp;</p>",
+        "clean": "<p>Line one<br>Line two<br>Line three</p><p> </p>",
+        "plain": "Line one Line two Line three"
+    },
+    {
+        "input": "<figure class=\"image\"><img src=\"/storage/articles/a.webp\" alt=\"تصویر\" width=\"800\" height=\"600\" style=\"aspect-ratio:4/3\"><figcaption>زیرنویس</figcaption></figure>",
+        "clean": "<figure><img src=\"/storage/articles/a.webp\" alt=\"تصویر\" width=\"800\" height=\"600\"><figcaption>زیرنویس</figcaption></figure>",
+        "plain": "زیرنویس"
+    },
+    {
+        "input": "<figure class=\"table\"><table><thead><tr><th colspan=\"2\" style=\"x\">H</th></tr></thead><tbody><tr><td rowspan=\"2\">a</td><td>b</td></tr></tbody></table></figure>",
+        "clean": "<figure><table><thead><tr><th colspan=\"2\">H</th></tr></thead><tbody><tr><td rowspan=\"2\">a</td><td>b</td></tr></tbody></table></figure>",
+        "plain": "Hab"
+    },
+    {
+        "input": "<blockquote><p>نقل قول</p></blockquote><pre><code class=\"language-js\">const a = 1 &lt; 2 &amp;&amp; b &gt; c;</code></pre>",
+        "clean": "<blockquote><p>نقل قول</p></blockquote><pre><code>const a = 1 &lt; 2 &amp;&amp; b &gt; c;</code></pre>",
+        "plain": "نقل قول const a = 1 < 2 && b > c;"
+    },
+    {
+        "input": "<ul><li>یک</li><li>دو<ul><li>دو-یک</li><li>دو-دو<ol><li>x</li></ol></li></ul></li><li>سه</li></ul>",
+        "clean": "<ul><li>یک</li><li>دو<ul><li>دو-یک</li><li>دو-دو<ol><li>x</li></ol></li></ul></li><li>سه</li></ul>",
+        "plain": "یک دودو-یک دو-دوx سه"
+    },
+    {
+        "input": "<p style=\"text-align:center;\" dir=\"rtl\" class=\"x\" data-id=\"5\">وسط‌چین</p>",
+        "clean": "<p>وسط‌چین</p>",
+        "plain": "وسط‌چین"
+    },
+    {
+        "input": "<p><mark class=\"marker-yellow\">هایلایت</mark> <s>خط خورده</s> <u>زیرخط</u> <sub>2</sub><sup>3</sup></p>",
+        "clean": "<p><mark>هایلایت</mark> <s>خط خورده</s> <u>زیرخط</u> <sub>2</sub><sup>3</sup></p>",
+        "plain": "هایلایت خط خورده زیرخط 23"
+    },
+    {
+        "input": "<h1>1</h1><h3>3</h3><h4>4</h4><h5>5</h5><h6>6</h6><hr><p>after</p>",
+        "clean": "<h1>1</h1><h3>3</h3><h4>4</h4><h5>5</h5><h6>6</h6><hr><p>after</p>",
+        "plain": "1 3 4 5 6 after"
+    },
+    {
+        "input": "<p>متن فارسی با نیم‌فاصله و «گیومه» و اعداد ۱۲۳ و emoji 🌸</p>",
+        "clean": "<p>متن فارسی با نیم‌فاصله و «گیومه» و اعداد ۱۲۳ و emoji 🌸</p>",
+        "plain": "متن فارسی با نیم‌فاصله و «گیومه» و اعداد ۱۲۳ و emoji 🌸"
+    },
+    {
+        "input": "<script>alert(1)</script><p>safe</p>",
+        "clean": "<p>safe</p>",
+        "plain": "alert(1)safe"
+    },
+    {
+        "input": "<p onclick=\"alert(1)\" onmouseover=alert(2)>x</p>",
+        "clean": "<p>x</p>",
+        "plain": "x"
+    },
+    {
+        "input": "<a href=\"javascript:alert(1)\">bad</a><a href=\" JavaScript:alert(1)\">bad2</a><a href=\"java&#x0A;script:alert(1)\">bad3</a>",
+        "clean": "<a>bad</a><a>bad2</a><a>bad3</a>",
+        "plain": "badbad2bad3"
+    },
+    {
+        "input": "<a href=\"vbscript:msgbox(1)\">v</a><a href=\"data:text/html,<script>alert(1)</script>\">d</a>",
+        "clean": "<a>v</a><a>d</a>",
+        "plain": "vd"
+    },
+    {
+        "input": "<img src=\"x\" onerror=\"alert(1)\"><img src=\"data:image/png;base64,AAAA\"><img src=\"//evil.example/x.png\">",
+        "clean": "<img src=\"x\"><img><img src=\"//evil.example/x.png\">",
+        "plain": null
+    },
+    {
+        "input": "<iframe src=\"https://evil.example\"></iframe><p>after iframe</p>",
+        "clean": "<p>after iframe</p>",
+        "plain": "after iframe"
+    },
+    {
+        "input": "<iframe src=\"https://evil.example\"><p>inside</p></iframe>tail",
+        "clean": "tail",
+        "plain": "inside tail"
+    },
+    {
+        "input": "<style>body{display:none}</style><p>styled</p>",
+        "clean": "<p>styled</p>",
+        "plain": "body{display:none}styled"
+    },
+    {
+        "input": "<object data=\"x.swf\"><param name=\"a\" value=\"b\"></object><embed src=\"x.swf\"><p>k</p>",
+        "clean": null,
+        "plain": "k"
+    },
+    {
+        "input": "<form action=\"/steal\"><input name=\"q\"><button>Go</button></form><p>after form</p>",
+        "clean": "<p>after form</p>",
+        "plain": "Goafter form"
+    },
+    {
+        "input": "<svg onload=\"alert(1)\"><circle r=\"5\"/></svg><p>svg gone</p>",
+        "clean": "<p>svg gone</p>",
+        "plain": "svg gone"
+    },
+    {
+        "input": "<link rel=\"stylesheet\" href=\"x.css\"><meta http-equiv=\"refresh\" content=\"0;url=https://evil\">text",
+        "clean": "text",
+        "plain": "text"
+    },
+    {
+        "input": "<!-- comment --><p>a<!-- inner --></p>",
+        "clean": "<p>a</p>",
+        "plain": "a"
+    },
+    {
+        "input": "<div><section><article><p>nested unknown</p></article></section></div>",
+        "clean": "<p>nested unknown</p>",
+        "plain": "nested unknown"
+    },
+    {
+        "input": "<a href=\"https://ritme.app\" target=\"_blank\">new tab</a>",
+        "clean": "<a href=\"https://ritme.app\" target=\"_blank\" rel=\"noopener noreferrer\">new tab</a>",
+        "plain": "new tab"
+    },
+    {
+        "input": "<a href=\"https://ritme.app\" target=\"_blank\" rel=\"opener\">rel replaced</a>",
+        "clean": "<a href=\"https://ritme.app\" target=\"_blank\" rel=\"noopener noreferrer\">rel replaced</a>",
+        "plain": "rel replaced"
+    },
+    {
+        "input": "<a href=\"mailto:support@ritme.app\" title=\"ایمیل\">mail</a> <a href=\"tel:+989121234567\">tel</a> <a href=\"tel:0912\">shorttel</a>",
+        "clean": "<a href=\"mailto:support@ritme.app\" title=\"ایمیل\">mail</a> <a href=\"tel:+989121234567\">tel</a> <a>shorttel</a>",
+        "plain": "mail tel shorttel"
+    },
+    {
+        "input": "<a href=\"#top\">anchor</a><a href=\"?q=1\">query</a><a href=\"relative/path\">rel</a><a href=\"a:b\">colon</a>",
+        "clean": "<a href=\"#top\">anchor</a><a href=\"?q=1\">query</a><a href=\"relative/path\">rel</a><a>colon</a>",
+        "plain": "anchorqueryrelcolon"
+    },
+    {
+        "input": "<a href=\"http:80\">port</a><a href=\"https://host:abc/\">badport</a><a href=\"http:///x\">nohost</a><a href=\"HTTPS://X.COM\">upper</a>",
+        "clean": "<a>port</a><a>badport</a><a>nohost</a><a href=\"HTTPS://X.COM\">upper</a>",
+        "plain": "portbadportnohostupper"
+    },
+    {
+        "input": "<a href=\"https://ex.com/a b?c=d e#f g\">spaces</a><a href='x\"y'>dq</a><a title=\"it's &quot;q&quot;\">both</a>",
+        "clean": "<a href=\"https://ex.com/a%20b?c=d%20e#f%20g\">spaces</a><a href=\"x%22y\">dq</a><a title=\"it's &quot;q&quot;\">both</a>",
+        "plain": "spacesdqboth"
+    },
+    {
+        "input": "<img src=\"/a.png\" alt='say \"hi\"'><img alt=\"\" src=\"\"><img alt>",
+        "clean": "<img src=\"/a.png\" alt='say \"hi\"'><img alt=\"\"><img alt>",
+        "plain": null
+    },
+    {
+        "input": "<ul><li>a<li>b<li>c</ul>",
+        "clean": "<ul><li>a</li><li>b</li><li>c</li></ul>",
+        "plain": "abc"
+    },
+    {
+        "input": "<ol><li><p>para in li</p></li><li></li></ol>",
+        "clean": "<ol><li><p>para in li</p></li><li></ol>",
+        "plain": "para in li"
+    },
+    {
+        "input": "<p>unclosed <b>bold <i>italic</p><p>next</p>",
+        "clean": "<p>unclosed <b>bold <i>italic</i></b></p><p>next</p>",
+        "plain": "unclosed bold italic next"
+    },
+    {
+        "input": "<b><p>block in inline</p></b>",
+        "clean": "<b></b><p>block in inline</p>",
+        "plain": "block in inline"
+    },
+    {
+        "input": "<p>a</p></p><p>b</p>",
+        "clean": "<p>a</p><p>b</p>",
+        "plain": "a b"
+    },
+    {
+        "input": "</div>stray end<p>x</p>",
+        "clean": "stray end<p>x</p>",
+        "plain": "stray endx"
+    },
+    {
+        "input": "<table><tr><td>no tbody</td></tr></table>",
+        "clean": "<table><tr><td>no tbody</td></tr></table>",
+        "plain": "no tbody"
+    },
+    {
+        "input": "<table><td>bare td</td></table>",
+        "clean": "<table><td>bare td</td></table>",
+        "plain": "bare td"
+    },
+    {
+        "input": "<p><table><tr><td>t</td></tr></table></p>",
+        "clean": "<p></p><table><tr><td>t</td></tr></table>",
+        "plain": "t"
+    },
+    {
+        "input": "<h2><p>p in h2</p></h2>",
+        "clean": "<h2></h2><p>p in h2</p>",
+        "plain": "p in h2"
+    },
+    {
+        "input": "<li>orphan li</li><li>two</li>",
+        "clean": "<li>orphan li</li><li>two</li>",
+        "plain": "orphan li two"
+    },
+    {
+        "input": "<p>AT&T &copy; &copy &amp; &unknown; &#169; &#xA9; &#0; &#x110000; &#65; &#; &hellip; &rarr; &nbsp; &apos; &lt;tag&gt;</p>",
+        "clean": "<p>AT&amp;T © &amp;copy &amp; &amp;unknown; © ©   A  … →   ' &lt;tag&gt;</p>",
+        "plain": "AT&T © &copy & &unknown; © © &#0; &#x110000; A &#; … → ' <tag>"
+    },
+    {
+        "input": "plain text only",
+        "clean": "plain text only",
+        "plain": "plain text only"
+    },
+    {
+        "input": "   ",
+        "clean": null,
+        "plain": null
+    },
+    {
+        "input": "",
+        "clean": null,
+        "plain": null
+    },
+    {
+        "input": "<p></p>",
+        "clean": "<p></p>",
+        "plain": null
+    },
+    {
+        "input": "<br>",
+        "clean": "<br>",
+        "plain": null
+    },
+    {
+        "input": "<span></span>",
+        "clean": "<span></span>",
+        "plain": null
+    },
+    {
+        "input": "text <b>bold</b> tail",
+        "clean": "text <b>bold</b> tail",
+        "plain": "text bold tail"
+    },
+    {
+        "input": "<p>x < y and y > z</p>",
+        "clean": "<p>x &lt; y and y &gt; z</p>",
+        "plain": "x < y and y > z"
+    },
+    {
+        "input": "<p>a<!b>c</p><p><?php echo 1; ?></p><p><? bad ?></p>",
+        "clean": "<p>a&lt;!b&gt;c</p><p><?php echo 1; ?></p><p> bad ?&gt;</p>",
+        "plain": "ac"
+    },
+    {
+        "input": "<P CLASS=\"x\">UPPER</P><A HREF=\"/x\" TARGET=\"_blank\">U</A>",
+        "clean": "<p>UPPER</p><a href=\"/x\" target=\"_blank\" rel=\"noopener noreferrer\">U</a>",
+        "plain": "UPPER U"
+    },
+    {
+        "input": "<p>tab\there\nnewline\r\ncrlf</p>",
+        "clean": "<p>tab\there\nnewline\r\ncrlf</p>",
+        "plain": "tab here newline crlf"
+    },
+    {
+        "input": "<p>ctrl\u0001char\b</p>",
+        "clean": "<p>ctrlchar</p>",
+        "plain": "ctrl\u0001char\b"
+    },
+    {
+        "input": "<p title=\"a&{b}c\">amp-brace</p><a title=\"<!-- c -->x\">ssi</a>",
+        "clean": "<p>amp-brace</p><a title=\"<!-- c -->x\">ssi</a>",
+        "plain": "amp-brace"
+    },
+    {
+        "input": "<a href=\"/x\" href=\"/y\">dup</a>",
+        "clean": "<a href=\"/x\">dup</a>",
+        "plain": "dup"
+    },
+    {
+        "input": "<img src=/unquoted.png alt=unq width=10/>",
+        "clean": "<img src=\"/unquoted.png\" alt=\"unq\" width=\"10/\">",
+        "plain": null
+    },
+    {
+        "input": "<body><p>body tag</p></body><p>after body</p>",
+        "clean": "<p>body tag</p><p>after body</p>",
+        "plain": "body tag after body"
+    },
+    {
+        "input": "<html><p>html tag</p></html>",
+        "clean": "<p>html tag</p>",
+        "plain": "html tag"
+    },
+    {
+        "input": "<head><title>t</title></head><p>after head</p>",
+        "clean": "t<p>after head</p>",
+        "plain": "tafter head"
+    },
+    {
+        "input": "<noscript><p>ns</p></noscript><template><p>tpl</p></template>",
+        "clean": "<p>ns</p><p>tpl</p>",
+        "plain": "ns tpl"
+    },
+    {
+        "input": "<script>a</b>c</script>x",
+        "clean": "x",
+        "plain": "acx"
+    },
+    {
+        "input": "<p>before<script>document.write(\"<p>x</p>\")</script>after</p>",
+        "clean": "<p>before</p>\")after",
+        "plain": "beforedocument.write(\"x \")after"
+    },
+    {
+        "input": "<textarea><p>ta</p></textarea><select><option>o</option></select>",
+        "clean": "<p>ta</p>o",
+        "plain": "ta o"
+    },
+    {
+        "input": "<p>\n  <strong>ws</strong>\n  <em>ws2</em>\n</p>\n\n<p>after blank lines</p>\n",
+        "clean": "<p>\n  <strong>ws</strong>\n  <em>ws2</em>\n</p>\n\n<p>after blank lines</p>",
+        "plain": "ws ws2 after blank lines"
+    },
+    {
+        "input": "<a href=\"https://ritme.app/fa/مقاله?x=۱\">persian url</a><img src=\"/storage/عکس.png\">",
+        "clean": "<a href=\"https://ritme.app/fa/%D9%85%D9%82%D8%A7%D9%84%D9%87?x=%DB%B1\">persian url</a><img src=\"/storage/%D8%B9%DA%A9%D8%B3.png\">",
+        "plain": "persian url"
+    },
+    {
+        "input": "<code>&lt;script&gt;</code>",
+        "clean": "<code>&lt;script&gt;</code>",
+        "plain": "<script>"
+    },
+    {
+        "input": "<p>\"quotes\" and 'single'</p>",
+        "clean": "<p>\"quotes\" and 'single'</p>",
+        "plain": "\"quotes\" and 'single'"
+    },
+    {
+        "input": "<img src=\"http://x/%41%zz\">",
+        "clean": "<img src=\"http://x/%41%zz\">",
+        "plain": null
+    },
+    {
+        "input": "<a href=\"  https://lead.space\">lead</a><a href=\"https://ex.com/ nbsp\">nbsp</a>",
+        "clean": "<a href=\"https://lead.space\">lead</a><a href=\"https://ex.com/%C2%A0nbsp\">nbsp</a>",
+        "plain": "leadnbsp"
+    },
+    {
+        "input": "<a target=\"\">empty target</a><a target>bare target</a><a target=\"_self\" href=\"/\">self</a>",
+        "clean": "<a target=\"\">empty target</a><a target>bare target</a><a target=\"_self\" href=\"/\" rel=\"noopener noreferrer\">self</a>",
+        "plain": "empty targetbare targetself"
+    },
+    {
+        "input": "<td>td outside</td><tr><td>tr outside</td></tr>",
+        "clean": "<td>td outside</td><tr><td>tr outside</td></tr>",
+        "plain": "td outsidetr outside"
+    },
+    {
+        "input": "<dl><dt>t</dt><dd>d</dd></dl>",
+        "clean": "td",
+        "plain": "td"
+    },
+    {
+        "input": "<center><font color=\"red\">old</font></center>",
+        "clean": "old",
+        "plain": "old"
+    },
+    {
+        "input": "<p><span style=\"color:red\">red <span>inner</span></span></p>",
+        "clean": "<p><span>red <span>inner</span></span></p>",
+        "plain": "red inner"
+    },
+    {
+        "input": "<ul><li>one</li>\n<li>two</li>\n</ul>",
+        "clean": "<ul><li>one</li>\n<li>two</li>\n</ul>",
+        "plain": "one two"
+    },
+    {
+        "input": "<p>تست &zwnj; و &zwj; و &lrm; &rlm;</p>",
+        "clean": "<p>تست ‌ و ‍ و ‎ ‏</p>",
+        "plain": "تست ‌ و ‍ و ‎ ‏"
+    },
+    {
+        "input": "<!DOCTYPE html><p>doctype inside</p>",
+        "clean": "<p>doctype inside</p>",
+        "plain": "doctype inside"
+    },
+    {
+        "input": "<p>end with ampersand &</p>",
+        "clean": "<p>end with ampersand &amp;</p>",
+        "plain": "end with ampersand &"
+    },
+    {
+        "input": "<p>&#x1F338; &#128512; &#xD800;</p>",
+        "clean": "<p>🌸 😀 </p>",
+        "plain": "🌸 😀 &#xD800;"
+    },
+    {
+        "input": "<a href=\"https://a.com:8080/p\">port ok</a><a href=\"https://user:pw@a.com/\">userinfo</a><a href=\"https://[::1]/\">v6</a>",
+        "clean": "<a href=\"https://a.com:8080/p\">port ok</a><a href=\"https://user:pw@a.com/\">userinfo</a><a href=\"https://%5B::1%5D/\">v6</a>",
+        "plain": "port okuserinfov6"
+    },
+    {
+        "input": "<a href=\"ftp://files.example/\">ftp</a><a href=\"file:///etc/passwd\">file</a><a href=\"sms:123\">sms</a>",
+        "clean": "<a>ftp</a><a>file</a><a>sms</a>",
+        "plain": "ftpfilesms"
+    },
+    {
+        "input": "<IMG SRC=\"javascript:alert('XSS');\">",
+        "clean": "<img>",
+        "plain": null
+    },
+    {
+        "input": "<a href=\"jav&#x09;ascript:alert(1)\">tab-enc</a>",
+        "clean": "<a>tab-enc</a>",
+        "plain": "tab-enc"
+    },
+    {
+        "input": "<scr<script>ipt>alert(1)</script>",
+        "clean": "ipt&gt;alert(1)",
+        "plain": "alert(1)"
+    },
+    {
+        "input": "<<p>double lt</p>",
+        "clean": "&lt;<p>double lt</p>",
+        "plain": null
+    },
+    {
+        "input": "<p>unterminated <b",
+        "clean": "<p>unterminated <b></b></p>",
+        "plain": "unterminated"
+    },
+    {
+        "input": "<p>unterminated attr <a href=\"x",
+        "clean": "<p>unterminated attr <a href=\"x&lt;/body&gt;&lt;/html&gt;\"></a></p>",
+        "plain": "unterminated attr"
+    },
+    {
+        "input": "<!-- unterminated comment <p>x</p>",
+        "clean": null,
+        "plain": null
+    },
+    {
+        "input": "<h7>h7</h7><custom-el attr=\"1\">custom</custom-el>",
+        "clean": "h7custom",
+        "plain": "h7custom"
+    },
+    {
+        "input": "<br/><hr/><img/>",
+        "clean": "<br><hr><img>",
+        "plain": null
+    },
+    {
+        "input": "<p>very long word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word </p>",
+        "clean": "<p>very long word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word </p>",
+        "plain": "very long word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word"
+    }
+]

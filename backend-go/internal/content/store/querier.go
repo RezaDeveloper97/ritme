@@ -6,12 +6,37 @@ package store
 
 import (
 	"context"
+	"database/sql"
 )
 
 type Querier interface {
-	// Placeholder so the `content` sqlc package exists and compiles before its domain task lands (T-M2-03).
-	// Delete this file when the first real query is added to db/queries/content/.
-	SampleContentArticle(ctx context.Context, id uint64) (Article, error)
+	// articles (App\Models\Article), read side of ArticleController.
+	//
+	// The list filters mirror ArticleController::listQuery(): the category filter applies
+	// only when has_category, the search only when has_term. The search runs over
+	// `title->lang` / `excerpt->lang` for the request locale and fa, compiled the way
+	// Laravel's MySQL grammar does: json_unquote(json_extract(col, '$."<lang>"')) like ?.
+	CountPublishedArticles(ctx context.Context, arg CountPublishedArticlesParams) (int64, error)
+	// phase_contents (App\Models\PhaseContent).
+	// PhaseContent::getByPhase($phase): where('phase', $phase)->first().
+	GetPhaseContent(ctx context.Context, phase string) (GetPhaseContentRow, error)
+	GetPublishedArticleBySlug(ctx context.Context, slug string) (GetPublishedArticleBySlugRow, error)
+	// banners (App\Models\Banner), read side of BannerController.
+	// Banner::active(): is_active, inside the optional [starts_at, ends_at] window at `now`
+	// (bound as Tehran wall-clock 'Y-m-d H:i:s'), ordered sort_order, id DESC. The
+	// controller's whereIn('position', …) is applied by the caller.
+	ListActiveBanners(ctx context.Context, arg ListActiveBannersParams) ([]ListActiveBannersRow, error)
+	// info_sections (App\Models\InfoSection), read side of InfoController.
+	// InfoSection::inGroup($group)->active()->ordered()->get().
+	ListActiveInfoSections(ctx context.Context, group string) ([]ListActiveInfoSectionsRow, error)
+	// ArticleController::categories(): distinct non-empty categories of published articles.
+	ListPublishedArticleCategories(ctx context.Context) ([]sql.NullString, error)
+	// listQuery()->paginate(): sort_order, published_at DESC, id DESC.
+	ListPublishedArticles(ctx context.Context, arg ListPublishedArticlesParams) ([]ListPublishedArticlesRow, error)
+	// ArticleController::related(): published, not the article itself, and (same category
+	// OR tagged with any of its phases — json_contains per phase, i.e. JSON_OVERLAPS with the
+	// phase list); with neither to match on, any article. Newest first, at most 4.
+	ListRelatedArticles(ctx context.Context, arg ListRelatedArticlesParams) ([]ListRelatedArticlesRow, error)
 }
 
 var _ Querier = (*Queries)(nil)

@@ -291,3 +291,11 @@ Nothing needed fixing.
 - Register admin routes with `httpadmin.Handle(r, method, path, kit.Admin(h)|kit.Super(h))`, not `r.Get`.
 - New env: `ADMIN_HOSTS`, `ADMIN_WEB_ORIGINS`, `ADMIN_COOKIE_SECURE` (nginx/compose follow-ups noted in T-M2-25).
   Global CORS now skips `/api/admin/`. sqlc: avoid `NOT IN sqlc.arg` and `BETWEEN` (broken codegen for MySQL).
+
+## T-M2-10 — Content endpoints — languages, info, banners, articles, phase content, /storage
+- `internal/content` (+ `sanitizer`: port of libxml2 HTML parser/serializer — bluemonday can't match PHP; equal on
+  3017 inputs recorded from PHP 8.4.25/libxml 2.9.14), `routes_content.go` (also owns `GET /cycle/phase-content/:phase`).
+- Contract public+content 64/64 (none/fa/en/ar). `/storage` hardened against traversal/encoded/dot-file/symlink escapes.
+- Reuse: `sanitizer.Clean`/`PlainText` (T-M2-21), `content.PublicURL`, `content.RegistryTTL`.
+- Language registry: content routes set a 5-min TTL on `ritme-go:languages.registry` (proper TTL belongs in i18n.Registry).
+- D-13 proposed (/storage error shapes).

@@ -3,7 +3,7 @@ id: T-M2-10
 title: Content endpoints — languages, info, banners, articles, phase content, /storage
 milestone: M2
 type: backend
-status: todo
+status: done
 depends_on: [T-M2-05, T-M2-06, T-M2-07, T-M2-08]
 parallel_group: M2-E
 touches: [backend-go/internal/content, backend-go/internal/http/routes_content.go, backend-go/db/queries/content, backend-go/contract/allowlist/content.yaml, backend-go/contract/allowlist/public.yaml]
