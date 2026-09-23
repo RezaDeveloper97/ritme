@@ -9,9 +9,52 @@ import (
 )
 
 type Querier interface {
-	// Placeholder so the `home` sqlc package exists and compiles before its domain task lands (T-M2-03).
-	// Delete this file when the first real query is added to db/queries/home/.
-	SampleHomeTaskTemplate(ctx context.Context, id uint64) (TaskTemplate, error)
+	// DailyChallengeService::isCompleted().
+	ChallengeCompletedOn(ctx context.Context, arg ChallengeCompletedOnParams) (bool, error)
+	// Home page (backend/app/Services/HomePage/**, DailyChallengeService, HomeController).
+	// The cycle inputs (profile, cycle_histories, the daily-log window) come from the cycle service
+	// (db/queries/cycle/engine.sql); these are the home-only reads and the toggle / notification writes.
+	// `whereDate(col, $d)` on a DATE column is plain equality; ties that Laravel leaves to MariaDB come
+	// back in primary-key order and are made explicit with `id`.
+	// $user->appNotifications()->unread()->count().
+	CountUnreadNotifications(ctx context.Context, userID uint64) (int64, error)
+	CountUserNotifications(ctx context.Context, userID uint64) (int64, error)
+	DeleteChallengeCompletion(ctx context.Context, id uint64) error
+	DeleteTaskCompletion(ctx context.Context, id uint64) error
+	GetChallengeCompletionOn(ctx context.Context, arg GetChallengeCompletionOnParams) (uint64, error)
+	// Route-model binding {challenge}.
+	GetChallengeID(ctx context.Context, id uint64) (uint64, error)
+	// $user->reminders()->active()->ofType('doctor')->relevantOn($date)->orderBy('scheduled_at')->first().
+	GetDoctorReminder(ctx context.Context, arg GetDoctorReminderParams) (GetDoctorReminderRow, error)
+	// ...->ofType('medication')->relevantOn($date)->orderByRaw('COALESCE(recurrence_time, TIME(scheduled_at))')->first().
+	GetMedicationReminder(ctx context.Context, arg GetMedicationReminderParams) (GetMedicationReminderRow, error)
+	// Route-model binding {notification}.
+	GetNotificationOwner(ctx context.Context, id uint64) (GetNotificationOwnerRow, error)
+	GetTaskCompletionOn(ctx context.Context, arg GetTaskCompletionOnParams) (uint64, error)
+	// Route-model binding {task}: TaskTemplate::where('id', $value)->firstOrFail().
+	GetTaskTemplateID(ctx context.Context, id uint64) (uint64, error)
+	InsertChallengeCompletion(ctx context.Context, arg InsertChallengeCompletionParams) error
+	InsertTaskCompletion(ctx context.Context, arg InsertTaskCompletionParams) error
+	// DailyChallengeService::challengeFor(): Challenge::active()->orderBy('sort_order')->orderBy('id').
+	ListActiveChallenges(ctx context.Context) ([]ListActiveChallengesRow, error)
+	// Affirmation::active()->forPhase($phase)->orderBy('sort_order')->orderBy('id').
+	ListAffirmationsForPhase(ctx context.Context, arg ListAffirmationsForPhaseParams) ([]ListAffirmationsForPhaseRow, error)
+	// withoutRecentlyCompleted(): completions with from <= completion_date < before.
+	ListChallengeIDsCompletedBetween(ctx context.Context, arg ListChallengeIDsCompletedBetweenParams) ([]uint64, error)
+	// Article::published()->forPhase($candidates)->limit(6): untagged articles, or tagged with any
+	// candidate (orWhereJsonContains per candidate = JSON_OVERLAPS with the candidate list);
+	// ordered `cycle_phases is null`, sort_order.
+	ListHomeArticles(ctx context.Context, arg ListHomeArticlesParams) ([]ListHomeArticlesRow, error)
+	// $user->taskCompletions()->whereDate('completion_date', $date)->pluck('task_template_id').
+	ListTaskCompletionIDsOn(ctx context.Context, arg ListTaskCompletionIDsOnParams) ([]uint64, error)
+	// TaskTemplate::active()->forPhase($phase): cycle_phase IS NULL, or = $phase when $phase is truthy.
+	ListTaskTemplatesForPhase(ctx context.Context, arg ListTaskTemplatesForPhaseParams) ([]ListTaskTemplatesForPhaseRow, error)
+	// $user->appNotifications()->orderByDesc('created_at')->paginate($perPage).
+	ListUserNotifications(ctx context.Context, arg ListUserNotificationsParams) ([]ListUserNotificationsRow, error)
+	// $user->appNotifications()->unread()->update(['read_at' => now()]) (Eloquent adds updated_at).
+	MarkAllNotificationsRead(ctx context.Context, arg MarkAllNotificationsReadParams) (int64, error)
+	// $notification->update(['read_at' => now()]) (touches updated_at).
+	MarkNotificationRead(ctx context.Context, arg MarkNotificationReadParams) error
 }
 
 var _ Querier = (*Queries)(nil)

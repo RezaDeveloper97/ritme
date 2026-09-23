@@ -3,7 +3,7 @@ id: T-M2-18
 title: Home page sections, task/challenge toggles and notifications
 milestone: M2
 type: backend
-status: todo
+status: done
 depends_on: [T-M2-10, T-M2-15, T-M2-16, T-M2-17]
 parallel_group: M2-H
 touches: [backend-go/internal/home, backend-go/internal/http/routes_home.go, backend-go/db/queries/home, backend-go/contract/allowlist/home.yaml, backend-go/contract/allowlist/notifications.yaml]

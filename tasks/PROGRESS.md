@@ -332,3 +332,10 @@ Nothing needed fixing.
   under profile `go` (orchestrator fix: base `depends_on: backend-go` broke the prod overlay otherwise).
 - Verified login → dashboard → logout in headless Chrome against local backend-go. Conventions: `docs/go-migration/admin-web.md`.
 - Open: Docker image never built (Docker Desktop crashed, disk 98% full); nginx wiring noted in T-M2-25.
+
+## T-M2-18 — Home page sections, task/challenge toggles and notifications
+- `internal/home` (HomeContext on one `cycleservice.Load` snapshot — messages use the same snapshot via
+  `manager.Source`; 17 sections in a registry with error/panic isolation; DailyChallengeService; notifications),
+  `routes_home.go`, queries `db/queries/home/home.sql`. Contract home+notifications 94/94.
+- Integration test builds the page for 17 personas × fa/en/ar × 3 dates with no failing section.
+- Deterministic `id` tie-breaks added where Laravel relied on MariaDB order (tasks, reminders, articles, notifications).
