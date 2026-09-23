@@ -3,7 +3,7 @@ id: T-M2-08
 title: Auth — Passport-compatible tokens, OTP, SMS, rate limiting
 milestone: M2
 type: backend
-status: todo
+status: done
 depends_on: [T-M2-03, T-M2-04, T-M2-06]
 parallel_group: M2-D
 touches: [backend-go/internal/auth, backend-go/internal/platform/ratelimit, backend-go/internal/platform/queue, backend-go/internal/http/routes_auth.go, backend-go/db/queries/auth]

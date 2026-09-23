@@ -44,3 +44,8 @@ Moving groups for real (T-M2-25). Any prod deploy (T-M2-26).
   `X-Backend: go` added by Go in non-prod), `off` → Laravel again; each flip under 5 s with zero failed requests.
 - `docker compose … config -q` passes for base, stage and prod overlays; prod compose changes are inert until T-M2-26.
 - The pinned-upstream rule (no Docker-DNS aliases shared between prod and stage) is preserved.
+
+## Note from T-M2-08
+Rate limiting keys on the leftmost `X-Forwarded-For` value, which the client controls (Laravel has the same
+weakness). When writing the Go upstream locations, have nginx overwrite the header
+(`proxy_set_header X-Forwarded-For $remote_addr;` at the edge) so the per-IP OTP limits can't be bypassed.

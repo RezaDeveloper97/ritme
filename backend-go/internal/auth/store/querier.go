@@ -6,12 +6,44 @@ package store
 
 import (
 	"context"
+	"database/sql"
 )
 
 type Querier interface {
-	// Placeholder so the `auth` sqlc package exists and compiles before its domain task lands (T-M2-03).
-	// Delete this file when the first real query is added to db/queries/auth/.
-	SampleAuthUser(ctx context.Context, id uint64) (User, error)
+	// Atomic attempt claim: whereKey($id)->where('attempts', '<', max)->increment('attempts').
+	// One affected row = a slot was claimed; zero = the cap is reached.
+	ClaimOtpAttempt(ctx context.Context, arg ClaimOtpAttemptParams) (int64, error)
+	// User::create(['mobile' => $mobile]): only mobile + timestamps (mobile_verified_at is not
+	// fillable, so Laravel never sets it — preserved).
+	CreateUser(ctx context.Context, arg CreateUserParams) (sql.Result, error)
+	DeleteOtpsForMobile(ctx context.Context, mobile string) error
+	// Passport tables (oauth_access_tokens, oauth_clients), shared with Laravel.
+	GetAccessToken(ctx context.Context, id string) (GetAccessTokenRow, error)
+	// ClientRepository::find($aud) (findActive checks `revoked`, the guard checks `provider`).
+	GetClient(ctx context.Context, id string) (GetClientRow, error)
+	// ->whereNull('verified_at')->latest()->first().
+	GetLatestUnverifiedOtp(ctx context.Context, mobile string) (GetLatestUnverifiedOtpRow, error)
+	// otp_verifications (App\Models\OtpVerification), as used by OtpAuthController.
+	// OtpVerification::where('mobile', $m)->where('created_at', '>', now()->subSeconds(60))->first().
+	GetRecentOtp(ctx context.Context, arg GetRecentOtpParams) (GetRecentOtpRow, error)
+	// Users as the auth guard and OtpAuthController see them (App\Models\User).
+	// EloquentUserProvider::retrieveById (the token's `sub`).
+	GetUserByID(ctx context.Context, id uint64) (User, error)
+	// User::where('mobile', $mobile)->first().
+	GetUserByMobile(ctx context.Context, mobile sql.NullString) (User, error)
+	// AccessTokenRepository::persistNewAccessToken + PersonalAccessTokenFactory (name, scopes '[]').
+	InsertAccessToken(ctx context.Context, arg InsertAccessTokenParams) error
+	InsertOtp(ctx context.Context, arg InsertOtpParams) error
+	// ClientRepository::personalAccessClient('users'): non-revoked, provider NULL or 'users',
+	// latest first; the caller picks the first whose grant_types contains "personal_access".
+	ListPersonalAccessClientCandidates(ctx context.Context) ([]ListPersonalAccessClientCandidatesRow, error)
+	MarkOtpVerified(ctx context.Context, arg MarkOtpVerifiedParams) error
+	// AccessToken::revoke() (Eloquent update also touches updated_at).
+	RevokeAccessToken(ctx context.Context, arg RevokeAccessTokenParams) (int64, error)
+	// $user->tokens()->update(['revoked' => true]) — admin block / account deletion.
+	RevokeUserAccessTokens(ctx context.Context, arg RevokeUserAccessTokensParams) (int64, error)
+	// $user->profile()->exists().
+	UserHasProfile(ctx context.Context, userID uint64) (bool, error)
 }
 
 var _ Querier = (*Queries)(nil)

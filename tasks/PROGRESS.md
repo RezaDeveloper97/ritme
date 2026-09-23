@@ -237,3 +237,14 @@ Nothing needed fixing.
   per-request memo repository, tip localizer). No DB/Fiber imports.
 - Golden sweep: 2040 days + 204 months equal to Laravel; PHP-generated edge cases in `legacy/testdata/php_cases.json`.
 - Cache signature uses sha256 (Go cache namespace is separate). Open: sqlc adapter + DailyLog builder → T-M2-15 (noted in its file).
+
+## T-M2-08 — Auth — Passport-compatible tokens, OTP, SMS, rate limiting
+- `internal/auth` (+ `passport`, `sms`), `internal/platform/ratelimit`, `internal/platform/queue` (asynq),
+  `routes_auth.go`, queries in `db/queries/auth`. Deps: golang-jwt/v5, asynq, miniredis (tests).
+- Tokens interoperate both ways with Laravel (cross-stack test runs with `CONTRACT_PORT=18090`); contract auth 45/45.
+- API for domains (see `internal/auth/module.go`): `auth.MustGuard(...)` + per-route `guard.RequireUser`,
+  `auth.CurrentUser/CurrentUserID/CurrentToken`, `auth.UserJSON`, `auth.RevokeUserTokens`, `auth.UnauthenticatedError`,
+  `ratelimit.New(cache, clock).Middleware(n, window, auth.ThrottleIdentity)`, `queue.New(...)`.
+- Bad Passport keys / unknown `SMS_PROVIDER` abort start-up. JWT time checks use the real clock (like Laravel).
+- `mobile_verified_at` stays null (Laravel's update is a no-op: not fillable). send/verify OTP share one per-IP counter.
+- Open: XFF-based rate-limit bypass (same as Laravel) → nginx fix noted in T-M2-09.
