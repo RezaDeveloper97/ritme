@@ -54,5 +54,49 @@
             "past_shift_one": "Last cycle the rise came on day :days.",
             "past_shift_many": "In the last :count cycles it came on days :days."
         }
+    },
+    "calendar": "gregorian",
+    "months": [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December"
+    ],
+    "insights": {
+        "evidence": {
+            "cycles": {
+                "title": "Complete cycles",
+                "none": "No complete cycle logged yet.",
+                "length": ":count complete cycles, usually :length days",
+                "variability": ":count complete cycles, usually :length days (±:variability)"
+            },
+            "bbt_shift": {
+                "title": "BBT shift",
+                "none": "No confirmed rise yet.",
+                "one": "A rise on day :days in one cycle",
+                "many": "A rise in :count cycles, on days :days"
+            },
+            "lh": {
+                "title": "LH tests this cycle",
+                "none": "No test logged this cycle.",
+                "negative": ":count tests, none positive yet",
+                "faint": "Faint on day :day",
+                "positive": "Positive on day :day"
+            }
+        },
+        "tips": {
+            "bbt_daily": "Log your basal temperature every morning, before getting up, at the same time.",
+            "lh_from_day": "Start LH tests on cycle day :day and test daily until one is positive.",
+            "log_periods": "Log the start and end of every period so your usual cycle length gets more precise.",
+            "keep_logging": "Your data is complete; keep logging the same way."
+        }
     }
 }

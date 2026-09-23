@@ -20,6 +20,7 @@ func init() {
 
 		r.Get("/api/v1/fertility/today", locale, guard, h.Today)
 		r.Get("/api/v1/fertility/bbt", locale, guard, h.BBT)
+		r.Get("/api/v1/fertility/insights", locale, guard, h.Insights)
 		r.Get("/api/v1/fertility/days/:date", locale, guard, h.ShowDay)
 		r.Put("/api/v1/fertility/days/:date", locale, guard, h.UpdateDay)
 	})

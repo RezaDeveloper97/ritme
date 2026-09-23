@@ -3,7 +3,7 @@ id: T-M5-03
 title: Fertility — GET /fertility/insights (window, confidence, evidence, history)
 milestone: M5
 type: backend
-status: todo
+status: done
 depends_on: [T-M5-02]
 parallel_group: M5-C
 touches: [backend-go/internal/fertility, backend-go/db/queries/fertility, backend-go/internal/http/routes_fertility.go, backend-go/api/openapi.yaml]

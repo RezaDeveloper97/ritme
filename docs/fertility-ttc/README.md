@@ -54,6 +54,12 @@ before the first high reading. Confidence combines cycle count/variability (cycl
 and positive LH tests. The fertile window and chance level come from the existing cycle view (`fertility_level`,
 `estimated_ovulation_date`) — no second prediction model.
 
+Insights confidence (T-M5-03): evidence strengths score strong = 2, medium = 1, none = 0 across `cycles` (strong =
+relatively regular over the last 3 cycles, medium = ≥ 1 valid cycle), `bbt_shift` (confirmed shifts in the current +
+last 5 cycles: ≥ 2 strong, 1 medium) and `lh` (this cycle: positive strong, faint medium). high ≥ 4 with `cycles` ≠
+none; medium ≥ 2; otherwise low (always low without a window). History ovulation = BBT shift − 1, else first positive
+LH + 1, else the engine estimate.
+
 ## Colors — light (`v19_`) → dark (`nb2_`)
 
 Tokens only (frontend/CLAUDE.md §10), both themes, `lint:dark` green. New/specific pairs:

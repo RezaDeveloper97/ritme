@@ -36,11 +36,18 @@ func (s *Service) BBT(ctx context.Context, userID uint64, today civildate.Date, 
 	if len(cycles) == 0 {
 		return bbt.Build(nil, nil, today, rangeSize), nil
 	}
-	rows, err := store.New(s.db).ListBBTReadings(ctx, store.ListBBTReadingsParams{
-		UserID: userID, FromDate: cycles[len(cycles)-1].Start, ToDate: today,
-	})
+	readings, err := s.bbtReadings(ctx, userID, cycles[len(cycles)-1].Start, today)
 	if err != nil {
-		return bbt.Result{}, fmt.Errorf("fertility: load bbt readings: %w", err)
+		return bbt.Result{}, err
+	}
+	return bbt.Build(cycles, readings, today, rangeSize), nil
+}
+
+// bbtReadings are the user's basal temperatures from `from` to `to` (inclusive), oldest first.
+func (s *Service) bbtReadings(ctx context.Context, userID uint64, from, to civildate.Date) ([]bbt.Reading, error) {
+	rows, err := store.New(s.db).ListBBTReadings(ctx, store.ListBBTReadingsParams{UserID: userID, FromDate: from, ToDate: to})
+	if err != nil {
+		return nil, fmt.Errorf("fertility: load bbt readings: %w", err)
 	}
 	readings := make([]bbt.Reading, 0, len(rows))
 	for _, r := range rows {
@@ -49,11 +56,11 @@ func (s *Service) BBT(ctx context.Context, userID uint64, today civildate.Date, 
 		}
 		v, err := bbt.ParseValue(r.BasalBodyTemperature.String)
 		if err != nil {
-			return bbt.Result{}, fmt.Errorf("fertility: bbt reading of %s: %w", r.LogDate, err)
+			return nil, fmt.Errorf("fertility: bbt reading of %s: %w", r.LogDate, err)
 		}
 		readings = append(readings, bbt.Reading{Date: r.LogDate, Value: v})
 	}
-	return bbt.Build(cycles, readings, today, rangeSize), nil
+	return readings, nil
 }
 
 // bbtCycles are the chart's cycle boundaries, newest first: the current cycle is the cycle

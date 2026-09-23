@@ -19,6 +19,9 @@ type Querier interface {
 	// The user's basal-temperature readings from `from` to `to` (inclusive), oldest first.
 	// The value is decimal(4,2) text ("36.55").
 	ListBBTReadings(ctx context.Context, arg ListBBTReadingsParams) ([]ListBBTReadingsRow, error)
+	// Fertility insights (T-M5-03, docs/fertility-ttc/README.md). Every query is scoped by user_id.
+	// The user's LH test results from `from` to `to` (inclusive), oldest first.
+	ListLHTests(ctx context.Context, arg ListLHTestsParams) ([]ListLHTestsRow, error)
 	// One row per (user_id, log_date); created_at is kept on update.
 	UpsertFertilityLog(ctx context.Context, arg UpsertFertilityLogParams) error
 }

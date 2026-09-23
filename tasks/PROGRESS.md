@@ -556,3 +556,9 @@ Nothing needed fixing.
   independent of range.
 - Open (design): artboard legend says «میانگین ۶ روز اول» but the README/engine coverline is the max of the 6 readings
   before the shift — T-M5-07 labels it accordingly.
+
+## T-M5-03 — Fertility — GET /fertility/insights (window, confidence, evidence, history)
+- `internal/fertility/insights.go` (pure core + localisation), query `ListLHTests`, `GET /api/v1/fertility/insights`
+  (4 queries), OpenAPI `getFertilityInsights`; confidence rule documented in `docs/fertility-ttc/README.md`.
+- Window = current cycle until its ovulation passed, then the next predicted one; `null` without a resolvable cycle.
+- Tips are plain localized strings; history rows also carry `date`, `source (bbt|lh|estimate)`, `cycle_start`.

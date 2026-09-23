@@ -88,6 +88,7 @@ func setup(t *testing.T) *env {
 	app.Use(clock.Middleware(clock.Real{}, true))
 	app.Get("/api/v1/fertility/today", locale, guard, h.Today)
 	app.Get("/api/v1/fertility/bbt", locale, guard, h.BBT)
+	app.Get("/api/v1/fertility/insights", locale, guard, h.Insights)
 	app.Get("/api/v1/fertility/days/:date", locale, guard, h.ShowDay)
 	app.Put("/api/v1/fertility/days/:date", locale, guard, h.UpdateDay)
 	app.Post("/api/v1/health-logs", locale, guard, logs.Store)

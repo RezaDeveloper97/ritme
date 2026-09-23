@@ -128,3 +128,17 @@ func (h *Handlers) BBT(c fiber.Ctx) error {
 	}
 	return httpx.OK(c, BBTJSON(res, rangeSize, locale))
 }
+
+// Insights is GET /fertility/insights: the cycle view's fertile window with the confidence,
+// evidence rows, past ovulation days and tips that explain it (insights.go).
+func (h *Handlers) Insights(c fiber.Ctx) error {
+	userID, err := h.user(c)
+	if err != nil {
+		return err
+	}
+	ins, err := h.svc.Insights(c, userID, civildate.InTehran(h.now(c)))
+	if err != nil {
+		return err
+	}
+	return httpx.OK(c, InsightsJSON(ins, i18n.Locale(c)))
+}
