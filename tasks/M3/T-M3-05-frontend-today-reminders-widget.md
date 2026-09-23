@@ -3,7 +3,7 @@ id: T-M3-05
 title: Frontend — «یادآورهای امروز» home card on both homes + AddChooser sheet
 milestone: M3
 type: frontend
-status: todo
+status: done
 depends_on: [T-M3-04]
 parallel_group: M3-B
 touches: [frontend/src/widgets/today-reminders, frontend/src/screens/home/ui/HomePage.tsx, frontend/src/screens/pregnancy/ui/PregnancyPage.tsx, frontend/src/screens/reminders-add, frontend/src/app/sheets/registry.tsx]

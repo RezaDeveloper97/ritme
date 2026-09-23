@@ -16,6 +16,7 @@
     "title": "یادآورهای امروز",
     "all": "همه",
     "add": "افزودن یادآور",
+    "appointmentTitle": "{title} · {with}",
     "remindBefore": "{before} یادآوری",
     "nextAppointmentMeta": "{when} · ساعت {time} · {place}",
     "nextAppointmentMetaNoPlace": "{when} · ساعت {time}",

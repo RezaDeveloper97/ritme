@@ -15,6 +15,7 @@ import {
 import { useDirection, useRouter, type Locale } from '@/shared/i18n';
 import { Icon, type IconName } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
+import { TodayRemindersCard } from '@/widgets/today-reminders';
 
 import { AlertsCard } from './AlertsCard';
 import { WeekContent } from './WeekContent';
@@ -184,6 +185,9 @@ export function PregnancyPage() {
             </div>
           )}
         </div>
+
+        {/* «یادآورهای امروز» — above the quick actions, as in v13_Preg_Home. */}
+        <TodayRemindersCard />
 
         {/* Quick actions */}
         <div className="preg-actions">

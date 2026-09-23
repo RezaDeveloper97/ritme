@@ -23,6 +23,7 @@ import type { MessageNamespace } from '@/shared/i18n';
  */
 export const SHELL_NAMESPACES = [
   'articles',
+  'care',
   'common',
   'notifications',
   'phaseDetails',
@@ -44,12 +45,12 @@ const PREGNANCY = ['common', 'nav', 'pregnancy'] as const satisfies readonly Mes
 
 /** Per route: the namespaces its screen (and everything it imports) uses. */
 export const ROUTE_NAMESPACES = {
-  home: ['banners', 'challenge', 'common', 'home', 'logPeriod', 'nav', 'profileEdit'],
+  home: ['banners', 'care', 'challenge', 'common', 'home', 'logPeriod', 'nav', 'profileEdit'],
   calendar: ['calendar', 'common', 'log', 'logPeriod', 'nav'],
   log: ['common', 'log', 'nav'],
   cycle: ['common', 'cycle', 'home', 'logPeriod', 'nav'],
   profile: ['common', 'nav', 'profile', 'profileEdit'],
-  pregnancy: PREGNANCY,
+  pregnancy: ['care', 'common', 'nav', 'pregnancy'],
   pregnancyLog: PREGNANCY,
   pregnancyOnboarding: ['common', 'nav', 'pregnancy', 'profileEdit'],
   splash: AUTH,

@@ -167,6 +167,13 @@ export default defineConfig([
     rules: { 'fsd/insignificant-slice': 'off' },
   },
   {
+    // «یادآورهای امروز» (M3): the `today-reminders` widget is mounted by the
+    // home and pregnancy screens — invisible to steiger (same reason as the
+    // blocks above), so its references read as zero.
+    files: ['./src/widgets/today-reminders/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
     // «خلاصه هفته»: `entities/wellbeing` holds the weekly mood/sleep/energy
     // scores and `widgets/week-summary` renders them on the home feed. Both are
     // consumed only from `screens` (home mounts the widget, the log screen

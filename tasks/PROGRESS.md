@@ -538,3 +538,11 @@ Nothing needed fixing.
   and `sources` carries `[needs review]`. Sign-off in T-M7-15.
 - Notes: `legend` item in `pregnancy_alert` is not a rule; tip payload `{title, body, read_minutes, article_url}`;
   use `UpsertDailyExtras` / `SetDailyVisitNote`; user-state keys on `week`.
+
+## T-M3-05 — Frontend — «یادآورهای امروز» home card on both homes + AddChooser sheet
+- `widgets/today-reminders` (card + pure `dose-row` helpers, 19 tests), `screens/reminders-add` (AddChooser sheet,
+  registry key `reminders-add`); mounted on the cycle home (replacing the commented DayTasks) and the pregnancy home.
+  Styles in `globals.css` (`trm-*`, `rad-*`), existing tokens only. `care` added to shell + home/pregnancy scopes.
+- Checked headless (fa/en, light/dark, empty state, sheet); tick round-trip updates `/care/today`.
+- Links to `/reminders`, `/reminders/medication/new`, `/reminders/appointment/{new,id}` land in T-M3-06..08.
+- Open: pregnancy-home mount not screenshotted (test user not pregnant).

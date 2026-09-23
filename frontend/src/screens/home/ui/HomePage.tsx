@@ -49,8 +49,8 @@ import { useThemeStore } from '@/shared/theme';
 import { DropSolid, Icon, type IconName } from '@/shared/ui';
 import { BannerSlideshow } from '@/widgets/banner-slideshow';
 import { BottomNav } from '@/widgets/bottom-nav';
-// import { DayTasks } from '@/widgets/day-tasks';
 import { TodayChallengeCard } from '@/widgets/today-challenge';
+import { TodayRemindersCard } from '@/widgets/today-reminders';
 
 const FA = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
 const faNum = (n: string | number) => String(n).replace(/[0-9]/g, d => FA[Number(d)]);
@@ -930,10 +930,9 @@ export function HomePage() {
             />
             <Recommendations t={t} tips={calc?.dailyTips ?? []} dos={dos} />
             <BannerSlideshow position="home_middle" />
-            {/* Today's doctor/medication reminders and to-dos — same source as the
-                daily-log day planner, so items set there appear here (§ home request).
-                Temporarily hidden per product request. */}
-            {/* <DayTasks date={base} /> */}
+            {/* «یادآورهای امروز» — today's doses + next appointment (M3, /care/today).
+                Replaces the hidden DayTasks block; DayTasks stays on the log page. */}
+            <TodayRemindersCard />
             <TodayChallengeCard />
             <Articles t={t} locale={loc} />
             <BannerSlideshow position="home_bottom" />

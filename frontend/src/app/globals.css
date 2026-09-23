@@ -3059,3 +3059,160 @@ body.pwa-locked { overflow: hidden; }
 .pg2-fruit-purple { fill: var(--indigo); }
 .pg2-fruit-brown  { fill: var(--amber-deep); }
 .pg2-fruit-cream  { fill: var(--amber-soft); stroke: var(--amber-deep); stroke-width: 1.5; }
+
+/* ── Today reminders card (widgets/today-reminders, T-M3-05) ── */
+/* «یادآورهای امروز» home card — docs/design/reminders-v13/nbl_v13_Preg_Home
+   (light) / nbd_v13_Preg_Home (dark). Tokens only (CLAUDE.md §10): design
+   colours map as in globals.css "Care reminders (M3)" — card → --surface,
+   line → --line, brand soft tile → --pink-bg, brand icon/link → --brand-strong,
+   taken check → --success, date tile → --amber-tile-ink on --amber-tile,
+   chip fill → --surface-2, capsule tile → --teal-deep on --data-soft. */
+
+.trm-sec { padding: 14px 16px 0; }
+
+.trm-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  box-shadow: var(--care-card-shadow);
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── Header ── */
+.trm-head   { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.trm-head-l { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.trm-head-tile {
+  width: 30px; height: 30px; border-radius: 15px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--pink-bg); color: var(--brand-strong);
+}
+.trm-title { margin: 0; font-size: 15px; font-weight: 800; color: var(--ink); text-align: start; }
+.trm-all {
+  min-height: 44px; min-width: 44px; padding-inline: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12.5px; font-weight: 800; color: var(--brand-strong); text-decoration: none;
+  border-radius: 12px;
+}
+.trm-all:focus-visible { outline: none; box-shadow: var(--ring); }
+
+/* ── Dose row ── */
+.trm-dose { display: flex; align-items: center; gap: 12px; min-height: 44px; }
+.trm-dose-tile {
+  width: 38px; height: 38px; border-radius: 12px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--pink-bg); color: var(--brand-strong);
+}
+.trm-dose-tile.is-teal { background: var(--data-soft); color: var(--teal-deep); }
+.trm-dose-body  { flex: 1; min-width: 0; text-align: start; }
+.trm-dose-title {
+  font-size: 13.5px; font-weight: 800; color: var(--ink);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.trm-dose.is-taken .trm-dose-title { color: var(--muted); text-decoration: line-through; }
+.trm-dose-time  { font-size: 11.5px; font-weight: 600; color: var(--muted); }
+
+/* The check is a 44 px button around the 26 px dot the artboard draws. */
+.trm-check {
+  width: 44px; height: 44px; flex-shrink: 0; margin-inline-end: -9px;
+  display: flex; align-items: center; justify-content: center;
+  background: none; border: 0; padding: 0; border-radius: 22px; cursor: pointer;
+}
+.trm-check:focus-visible { outline: none; box-shadow: var(--ring); }
+.trm-check:disabled { cursor: default; }
+.trm-check-dot {
+  width: 26px; height: 26px; border-radius: 13px; box-sizing: border-box;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid var(--line);
+  transition: background-color .18s ease, border-color .18s ease;
+}
+/* Stroke uses --surface so it reads on the fill in both themes
+   (white on deep green / deep ink on the light dark-mode green). */
+.trm-check[aria-pressed="true"] .trm-check-dot {
+  background: var(--success); border-color: var(--success); color: var(--surface);
+}
+@media (prefers-reduced-motion: reduce) {
+  .trm-check-dot { transition: none; }
+}
+
+.trm-divider { height: 1px; background: var(--line); }
+
+/* ── Next appointment ── */
+.trm-appt {
+  display: flex; align-items: center; gap: 12px; min-height: 44px;
+  color: var(--ink); text-decoration: none; border-radius: 18px;
+}
+.trm-appt:focus-visible { outline: none; box-shadow: var(--ring); }
+.trm-appt-date {
+  width: 52px; height: 52px; border-radius: 18px; flex-shrink: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: var(--amber-tile); color: var(--amber-tile-ink);
+}
+.trm-appt-day   { font-family: "Lalezar", var(--font-sans); font-size: 22px; line-height: 1; font-weight: 400; }
+.trm-appt-month { font-size: 10px; font-weight: 700; }
+.trm-appt-body  { flex: 1; min-width: 0; display: flex; flex-direction: column; text-align: start; }
+.trm-appt-title { font-size: 13.5px; font-weight: 800; overflow-wrap: anywhere; }
+.trm-appt-meta  { font-size: 11.5px; font-weight: 600; color: var(--muted); overflow-wrap: anywhere; }
+.trm-appt-chip {
+  display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;
+  height: 28px; padding: 0 11px; border-radius: 18px;
+  background: var(--surface-2); border: 1px solid var(--amber-tile-ink); color: var(--amber-tile-ink);
+  font-size: 11.5px; font-weight: 800; white-space: nowrap;
+}
+
+/* ── Add button (soft brand) ── */
+.trm-add {
+  height: 44px; border-radius: 12px; border: 0; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  background: var(--pink-bg); color: var(--brand-strong);
+  font-family: inherit; font-size: 13.5px; font-weight: 800;
+}
+.trm-add:hover { filter: brightness(.98); }
+.trm-add:focus-visible { outline: none; box-shadow: var(--ring); }
+
+/* ── States ── */
+.trm-empty { margin: 0; font-size: 13px; font-weight: 600; color: var(--muted); text-align: start; }
+.trm-skel  { width: 100%; height: 38px; border-radius: 12px; }
+.trm-skel.is-short { width: 70%; }
+
+/* ── Add-reminder chooser sheet (screens/reminders-add, T-M3-05) ── */
+/* AddChooser sheet — docs/design/reminders-v13/nbl_v13_AddChooser (light) /
+   nbd_v13_AddChooser (dark). Grip, title and close come from AppSheet. */
+
+.rad-list { display: flex; flex-direction: column; gap: 14px; padding-bottom: 12px; }
+
+.rad-row {
+  display: flex; align-items: center; gap: 14px; min-height: 72px; box-sizing: border-box;
+  padding: 14px; border-radius: 24px;
+  background: var(--surface); border: 1px solid var(--line);
+  color: var(--ink); text-decoration: none;
+  transition: background-color .15s ease;
+}
+.rad-row:hover { background: var(--surface-2); }
+.rad-row:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.rad-tile {
+  width: 48px; height: 48px; border-radius: 22px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.rad-tile.is-brand { background: var(--pink-bg);    color: var(--brand-strong); }
+.rad-tile.is-amber { background: var(--amber-tile); color: var(--amber-tile-ink); }
+.rad-tile.is-teal  { background: var(--data-soft);  color: var(--teal-deep); }
+
+.rad-body  { flex: 1; min-width: 0; display: flex; flex-direction: column; text-align: start; }
+.rad-title { font-size: 15px; font-weight: 800; }
+.rad-desc  { font-size: 12px; font-weight: 600; color: var(--muted); margin-top: 2px; }
+
+.rad-chev  { flex-shrink: 0; color: var(--muted); }
+[dir="ltr"] .rad-chev { transform: scaleX(-1); }
+
+.rad-note {
+  margin: 0; font-size: 11.5px; line-height: 1.8; font-weight: 600;
+  color: var(--muted); text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rad-row { transition: none; }
+}

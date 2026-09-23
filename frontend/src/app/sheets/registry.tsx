@@ -52,6 +52,10 @@ function RemindersTitle() {
   return <>{useTranslations('reminders')('title')}</>;
 }
 
+function AddReminderTitle() {
+  return <>{useTranslations('care')('chooser.title')}</>;
+}
+
 function LanguageTitle() {
   return <>{useTranslations('profile')('rows.language')}</>;
 }
@@ -145,6 +149,19 @@ export const SHEET_REGISTRY: Record<string, SheetDefinition> = {
     Title: RemindersTitle,
     Component: dynamic(
       () => import('@/screens/profile-reminders').then((m) => m.RemindersSheet),
+      { ssr: false },
+    ),
+  },
+
+  /**
+   * AddChooser (M3): medication / doctor visit / consultation. Opened by the
+   * home «یادآورهای امروز» card and the Reminders CTA.
+   */
+  'reminders-add': {
+    size: 'half',
+    Title: AddReminderTitle,
+    Component: dynamic(
+      () => import('@/screens/reminders-add').then((m) => m.AddChooserSheet),
       { ssr: false },
     ),
   },

@@ -16,6 +16,7 @@
     "title": "Today's reminders",
     "all": "All",
     "add": "Add reminder",
+    "appointmentTitle": "{title} · {with}",
     "remindBefore": "Reminder {before}",
     "nextAppointmentMeta": "{when} · {time} · {place}",
     "nextAppointmentMetaNoPlace": "{when} · {time}",
