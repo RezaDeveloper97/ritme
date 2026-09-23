@@ -32,3 +32,5 @@ Files: `LOG.md` = status transitions (append-only, written by `next.sh`), `PROGR
 
 ## Milestones
 - **M1** — Session lifetime (1 year), PWA correctness, performance & cleanup.
+- **M2** — Backend migration Laravel → Go Fiber v3 (`backend-go/`), strangler cutover, new Next.js admin
+  (`admin-web/`). Decisions, inventories and deviations: `docs/go-migration/`.
