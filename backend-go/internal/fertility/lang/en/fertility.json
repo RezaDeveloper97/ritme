@@ -1,0 +1,44 @@
+{
+    "lh": {
+        "negative": "Negative",
+        "faint": "Faint",
+        "positive": "Positive"
+    },
+    "mucus": {
+        "dry": "Dry",
+        "sticky": "Sticky",
+        "creamy": "Creamy",
+        "egg_white": "Egg white"
+    },
+    "intercourse": {
+        "unprotected": "Unprotected",
+        "protected": "Protected"
+    },
+    "chance": {
+        "none": "Very low",
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High",
+        "peak": "Very high",
+        "unknown": "Unknown"
+    },
+    "messages": {
+        "validation_failed": "Validation failed",
+        "day_saved": "Day saved"
+    },
+    "validation": {
+        "bbt_range": "The temperature must be between 35.00 and 38.50 °C.",
+        "date_future": "You cannot log a future day."
+    },
+    "attributes": {
+        "date": "date",
+        "lh": "LH test",
+        "mucus": "cervical mucus",
+        "bbt": "basal body temperature",
+        "bbt_time": "temperature time",
+        "intercourse": "intercourse",
+        "symptoms": "symptoms",
+        "symptoms.*": "symptom",
+        "note": "note"
+    }
+}

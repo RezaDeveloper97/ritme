@@ -1,0 +1,44 @@
+{
+    "lh": {
+        "negative": "منفی",
+        "faint": "کم‌رنگ",
+        "positive": "مثبت"
+    },
+    "mucus": {
+        "dry": "خشک",
+        "sticky": "چسبنده",
+        "creamy": "کرمی",
+        "egg_white": "شفاف و کشسان"
+    },
+    "intercourse": {
+        "unprotected": "بدون محافظت",
+        "protected": "با محافظت"
+    },
+    "chance": {
+        "none": "خیلی کم",
+        "low": "کم",
+        "medium": "متوسط",
+        "high": "زیاد",
+        "peak": "خیلی زیاد",
+        "unknown": "نامشخص"
+    },
+    "messages": {
+        "validation_failed": "اطلاعات واردشده نامعتبر است",
+        "day_saved": "ثبت روز ذخیره شد"
+    },
+    "validation": {
+        "bbt_range": "دما باید بین ۳۵٫۰۰ و ۳۸٫۵۰ درجه باشد.",
+        "date_future": "ثبت برای روزهای آینده ممکن نیست."
+    },
+    "attributes": {
+        "date": "تاریخ",
+        "lh": "تست LH",
+        "mucus": "ترشحات دهانه رحم",
+        "bbt": "دمای پایه بدن",
+        "bbt_time": "ساعت اندازه‌گیری دما",
+        "intercourse": "رابطه جنسی",
+        "symptoms": "علائم",
+        "symptoms.*": "علامت",
+        "note": "یادداشت"
+    }
+}

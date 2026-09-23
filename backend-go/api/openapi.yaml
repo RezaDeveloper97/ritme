@@ -29,6 +29,7 @@ tags:
   - {name: Content, description: "Banners, articles and cycle phase content"}
   - {name: Reminders, description: "Doctor, medication, appointment and custom reminders"}
   - {name: Care, description: "Care reminders (Go only): medications with per-dose intake tracking, appointments, today"}
+  - {name: Fertility, description: "TTC tracking (Go only): home tiles, the merged day log (LH, mucus, BBT, intercourse, symptoms)"}
   - {name: Daily Health Log, description: "One log per day: symptoms, mood, vitals, lifestyle"}
   - {name: Cycle, description: "Cycle engine: today, a date, a month, recalculation"}
   - {name: Period Log, description: "Start, end, add, edit and delete periods"}
@@ -1077,6 +1078,159 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/CareAppointmentNotFound"}
         '422': {$ref: "#/components/responses/CareValidationFailed"}
+  /api/v1/fertility/today:
+    get:
+      tags: [Fertility]
+      summary: Fertility home tiles for today
+      description: |
+        The three TTC tiles on the cycle home (LH test, basal temperature, intercourse) plus today's chance of
+        pregnancy and cycle day, in 3 queries (profile, cycle history, merged day). `date` = today (Tehran).
+        `chance` comes from the cycle engine's `fertility_level` for today (the same value as `cycle_view.fertility_level`;
+        no second prediction model): `low` → 1 bar, `medium` → 3, `high` → 4, `peak` → 5; no resolvable cycle →
+        `level: null`, the localized "unknown" label and 0 bars. Labels follow `Accept-Language`.
+      operationId: getFertilityToday
+      security:
+        - {bearerAuth: []}
+      parameters: [{$ref: "#/components/parameters/AcceptLanguage"}]
+      responses:
+        '200':
+          description: Today's tiles
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [date, cycle_day, chance, lh, bbt, intercourse]
+                    properties:
+                      date: {$ref: "#/components/schemas/Date"}
+                      cycle_day: {type: [integer, "null"]}
+                      chance: {$ref: "#/components/schemas/FertilityChance"}
+                      lh:
+                        type: object
+                        required: [value, label]
+                        properties:
+                          value: {type: [string, "null"], enum: [negative, faint, positive, null]}
+                          label: {type: [string, "null"]}
+                      bbt:
+                        type: object
+                        required: [value]
+                        properties:
+                          value: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/DecimalString"}]}
+                      intercourse:
+                        type: object
+                        required: [value, label]
+                        properties:
+                          value: {type: [string, "null"], enum: [unprotected, protected, null]}
+                          label: {type: [string, "null"]}
+              example:
+                success: true
+                data:
+                  date: "2026-09-23"
+                  cycle_day: 14
+                  chance: {level: peak, label: خیلی زیاد, bars: 5}
+                  lh: {value: positive, label: مثبت}
+                  bbt: {value: "36.70"}
+                  intercourse: {value: null, label: null}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/fertility/days/{date}:
+    get:
+      tags: [Fertility]
+      summary: The merged fertility day
+      description: |
+        One day of the TTC log: `lh`, `mucus`, `bbt_time` from `fertility_logs`; `bbt`, `intercourse`, `symptoms`,
+        `note` from `daily_health_logs` (the same row `GET /health-logs/{date}` shows). `symptoms` (in this order):
+        `ovarian_pain` / `bloating` / `breast_sensitivity` = the matching `*_intensity` column is set (any intensity),
+        `spotting` = `spotting` is true. `cycle_day` and `chance` come from the cycle engine for that date (a future
+        date gets the predicted values). Any date is readable; a malformed one → 422 on `date`.
+      operationId: getFertilityDay
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: date, in: path, required: true, schema: {$ref: "#/components/schemas/Date"}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The day
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/FertilityDay"}
+              example:
+                success: true
+                data: {date: "2026-09-22", cycle_day: 13, lh: positive, mucus: egg_white, bbt: "36.55", bbt_time: "06:45", intercourse: unprotected, symptoms: [ovarian_pain, bloating], note: صبح زود, chance: {level: high, label: زیاد, bars: 4}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/FertilityValidationFailed"}
+    put:
+      tags: [Fertility]
+      summary: Save the fertility day
+      description: |
+        Partial update: every key is optional, an omitted key stays as it is, an explicit `null` clears it
+        (`symptoms: null` or `[]` clears all four). Unknown keys are ignored. One transaction:
+        `lh` / `mucus` / `bbt_time` go to `fertility_logs` (a row left empty is deleted); `bbt` →
+        `basal_body_temperature`, `intercourse` → `intercourse_type`, `note` → `notes` and the symptom chips go to
+        `daily_health_logs` **through the health-log service**, so `POST /health-logs`' validation and side effects
+        (period-start check, recalculation mark) run exactly as there. A selected intensity chip writes `low` unless the
+        column already holds a value (kept); an unselected one is cleared; `spotting` writes `true` / null.
+        When the health log answers the luteal-spotting warning, it is returned as the top-level `warning`.
+        The day must not be in the future (Tehran). `bbt` 35.00–38.50 °C (stored with 2 decimals).
+        Responds with the merged day, like GET.
+      operationId: putFertilityDay
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: date, in: path, required: true, schema: {$ref: "#/components/schemas/Date"}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                lh: {type: [string, "null"], enum: [negative, faint, positive, null]}
+                mucus: {type: [string, "null"], enum: [dry, sticky, creamy, egg_white, null]}
+                bbt: {type: [number, string, "null"], minimum: 35, maximum: 38.5, description: "°C; a numeric string is accepted."}
+                bbt_time: {type: [string, "null"], pattern: "^\\d{2}:\\d{2}$", description: "`H:i`."}
+                intercourse: {type: [string, "null"], enum: [unprotected, protected, null]}
+                symptoms:
+                  type: [array, "null"]
+                  items: {type: string, enum: [ovarian_pain, bloating, breast_sensitivity, spotting]}
+                note: {type: [string, "null"], maxLength: 2000}
+            example: {lh: positive, mucus: egg_white, bbt: 36.55, bbt_time: "06:45", intercourse: unprotected, symptoms: [ovarian_pain, bloating], note: صبح زود}
+      responses:
+        '200':
+          description: Saved; the merged day
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/FertilityDay"}
+                  warning:
+                    type: object
+                    description: "The health log's luteal-spotting warning (same body as `POST /health-logs`)."
+                    required: [type, message]
+                    properties:
+                      type: {type: string, const: luteal_spotting_warning}
+                      message: {type: string}
+              example:
+                success: true
+                message: ثبت روز ذخیره شد
+                data: {date: "2026-09-22", cycle_day: 22, lh: null, mucus: null, bbt: null, bbt_time: null, intercourse: null, symptoms: [spotting], note: null, chance: {level: low, label: کم, bars: 1}}
+                warning: {type: luteal_spotting_warning, message: "این خون‌ریزی ممکن است لکه‌بینی لوتئال باشد نه شروع پریود. آیا مطمئن هستید؟"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/FertilityValidationFailed"}
   /api/v1/cycle/date/{date}:
     get:
       tags: [Cycle]
@@ -6679,6 +6833,23 @@ components:
             success: false
             message: اطلاعات واردشده نامعتبر است
             errors: {ends_on: [برای «تا تاریخ مشخص» تاریخ پایان الزامی است.]}
+    FertilityValidationFailed:
+      description: "Fertility validation failed (controller 422 `{success: false, message, errors}`, message and field errors in the request language)"
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, errors]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              errors:
+                type: object
+                additionalProperties: {type: array, items: {type: string}}
+          example:
+            success: false
+            message: اطلاعات واردشده نامعتبر است
+            errors: {bbt: [دما باید بین ۳۵٫۰۰ و ۳۸٫۵۰ درجه باشد.]}
     CareNotFound:
       description: "Not the user's medication (another user's id, another reminder type, or a malformed id)"
       content:
@@ -6716,6 +6887,30 @@ components:
       pattern: "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}[+-]\\d{2}:\\d{2}$"
       description: "Carbon `toIso8601String()` in Asia/Tehran."
       examples: ["2026-09-23T13:00:00+03:30"]
+    FertilityChance:
+      type: object
+      description: "Chance of pregnancy from the cycle engine's `fertility_level`; `level: null` = no resolvable cycle."
+      required: [level, label, bars]
+      properties:
+        level: {type: [string, "null"], enum: [none, low, medium, high, peak, null]}
+        label: {type: string}
+        bars: {type: integer, minimum: 0, maximum: 5}
+    FertilityDay:
+      type: object
+      required: [date, cycle_day, lh, mucus, bbt, bbt_time, intercourse, symptoms, note, chance]
+      properties:
+        date: {$ref: "#/components/schemas/Date"}
+        cycle_day: {type: [integer, "null"]}
+        lh: {type: [string, "null"], enum: [negative, faint, positive, null]}
+        mucus: {type: [string, "null"], enum: [dry, sticky, creamy, egg_white, null]}
+        bbt: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/DecimalString"}]}
+        bbt_time: {type: [string, "null"], pattern: "^\\d{2}:\\d{2}$"}
+        intercourse: {type: [string, "null"], enum: [unprotected, protected, null]}
+        symptoms:
+          type: array
+          items: {type: string, enum: [ovarian_pain, bloating, breast_sensitivity, spotting]}
+        note: {type: [string, "null"]}
+        chance: {$ref: "#/components/schemas/FertilityChance"}
     DecimalString:
       type: string
       pattern: "^-?\\d+(\\.\\d+)?$"

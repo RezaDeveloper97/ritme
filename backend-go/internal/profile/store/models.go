@@ -231,6 +231,17 @@ type FailedJob struct {
 	FailedAt   time.Time
 }
 
+type FertilityLog struct {
+	ID            uint64
+	UserID        uint64
+	LogDate       civildate.Date
+	LhTest        sql.NullString
+	CervicalMucus sql.NullString
+	BbtTime       sql.NullString
+	CreatedAt     sql.NullTime
+	UpdatedAt     sql.NullTime
+}
+
 type InfoSection struct {
 	ID        uint64
 	Group     string

@@ -487,3 +487,13 @@ Nothing needed fixing.
   fertility/cycle/messages/health-log). 18 `--fert-*` tokens (light+dark), `.fert-tone-*`, `.fert-disc`; icons
   flaskLh/heartLine/target/moonReminder; `fertility` namespace fa/en.
 - Open: add `fertility` to `message-scopes.ts` in T-M5-05..08; LH/BBT tip copy needs content review.
+
+## T-M5-01 — Fertility — fertility_logs table, day log and today API (Go)
+- Migration pair `00004_fertility_logs.sql` + `2026_09_25_000001_create_fertility_logs_table.php`; schema-diff OK (43).
+- `internal/fertility` (merged day over `daily_health_logs` + `fertility_logs`, Save in one tx through
+  `healthlog.Service.Store` so side effects match `POST /health-logs`), routes `GET /fertility/today`,
+  `GET|PUT /fertility/days/:date`; OpenAPI; D-19. `today` = 3 queries.
+- Choices: symptom chip writes severity `low` (no `mild` enum; existing medium/high kept); spotting gives luteal
+  warning + recalculation flag but no period start (same as health-logs); chance from resolver `fertility_level`
+  (`unknown` → `level: null`, label «نامشخص»); `bbt` decimal string, `bbt_time` `HH:MM`.
+- Next goose number: 00005.

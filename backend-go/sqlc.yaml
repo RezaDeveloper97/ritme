@@ -127,3 +127,9 @@ sql:
       go:
         <<: *go
         out: internal/checkups/store
+  - <<: *pkg
+    queries: db/queries/fertility
+    gen:
+      go:
+        <<: *go
+        out: internal/fertility/store

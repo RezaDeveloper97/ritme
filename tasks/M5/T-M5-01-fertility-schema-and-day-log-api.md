@@ -3,7 +3,7 @@ id: T-M5-01
 title: Fertility — fertility_logs table, day log and today API (Go)
 milestone: M5
 type: backend
-status: todo
+status: done
 depends_on: []
 parallel_group: M5-A
 touches: [backend-go/db/migrations, backend-go/db/queries/fertility, backend-go/sqlc.yaml, backend-go/internal/fertility, backend-go/internal/http/routes_fertility.go, backend/database/migrations, backend-go/api/openapi.yaml, docs/go-migration/deviations.md]
