@@ -610,6 +610,161 @@ body {
     background: var(--data);
   }
 
+  /* ── Screens (T-M2-23) ── */
+  .page-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: .75rem 1rem;
+  }
+  .page-title { margin: 0; font-size: 1.25rem; font-weight: 800; line-height: 1.35; }
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: .25rem;
+    inline-size: fit-content;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .back-link:hover { color: var(--brand); }
+
+  /* Filter bar above a table: controls on one wrapping row. */
+  .filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: .75rem;
+    padding: .75rem 1rem;
+    border-block-end: 1px solid var(--line);
+  }
+  .panel-note { margin: 0; padding: .75rem 1rem; border-block-end: 1px solid var(--line); color: var(--ink-3); font-size: 13px; }
+
+  .row-actions { display: flex; flex-wrap: nowrap; justify-content: flex-end; gap: .35rem; }
+  .data-table .cell-actions { inline-size: 1%; white-space: nowrap; text-align: end; }
+  .data-table .cell-wrap { min-inline-size: 9rem; max-inline-size: 26rem; white-space: normal; }
+  .data-table .cell-mono { font-size: 12.5px; color: var(--ink-3); }
+  .thumb {
+    display: block;
+    inline-size: 4.5rem;
+    aspect-ratio: 2 / 1;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    object-fit: cover;
+    background: var(--surface-2);
+  }
+
+  /* Forms: a two-column grid; `.span-2` fields take the full row. */
+  .form-grid { display: grid; gap: 1.1rem 1.25rem; grid-template-columns: minmax(0, 1fr); }
+  @media (min-width: 720px) {
+    .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .form-grid > .span-2 { grid-column: 1 / -1; }
+  }
+  .form-section + .form-section { border-block-start: 1px solid var(--line); padding-block-start: 1.1rem; }
+  .form-actions {
+    position: sticky;
+    inset-block-end: 0;
+    z-index: 5;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .6rem;
+    padding: .75rem 1rem;
+    border-block-start: 1px solid var(--line);
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    backdrop-filter: blur(6px);
+    border-end-start-radius: 14px;
+    border-end-end-radius: 14px;
+  }
+
+  /* Checkbox grid (phase pickers). */
+  .check-grid { display: grid; gap: .4rem; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); }
+  .check-item {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .45rem .6rem;
+    border: 1px solid var(--field-border);
+    border-radius: 10px;
+    background: var(--surface);
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .check-item[data-checked="true"] { border-color: var(--brand-line-soft); background: var(--pink-bg); }
+  .check-item input { accent-color: var(--brand-fill); inline-size: 1rem; block-size: 1rem; margin: 0; }
+
+  /* Link tabs. */
+  .tabs {
+    display: flex;
+    gap: .25rem;
+    overflow-x: auto;
+    padding: .25rem;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--surface);
+    scrollbar-width: thin;
+  }
+  .tab {
+    flex: none;
+    padding: .4rem .85rem;
+    border-radius: 9px;
+    color: var(--ink-3);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .tab:hover { background: var(--surface-2); color: var(--ink); }
+  .tab[aria-current="page"] { background: var(--pink-bg); color: var(--brand); }
+
+  /* Key/value facts (user detail). */
+  .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); margin: 0; }
+  .facts > div { padding: .8rem 1rem; border-inline-start: 1px solid var(--line); border-block-start: 1px solid var(--line); margin-inline-start: -1px; margin-block-start: -1px; }
+  .facts dt { font-size: 12px; font-weight: 600; color: var(--muted); }
+  .facts dd { margin: .15rem 0 0; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  /*
+   * Content maps: the pregnancy weeks as a gestation strip split into
+   * trimesters, the cycle sub-phases as a row of cells. A cell with content is
+   * a filled mark; an empty one is an outline waiting to be written.
+   */
+  .content-map { display: flex; flex-direction: column; gap: 1.25rem; }
+  .content-map-band { display: flex; flex-direction: column; gap: .5rem; }
+  .content-map-legend { display: flex; align-items: baseline; justify-content: space-between; gap: .75rem; font-size: 13px; }
+  .content-map-cells { display: grid; gap: .4rem; grid-template-columns: repeat(auto-fill, minmax(3.4rem, 1fr)); }
+  .content-map-cells[data-wide="true"] { grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr)); }
+  .map-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: .1rem;
+    min-block-size: 3.4rem;
+    padding: .4rem;
+    border: 1.5px dashed var(--field-border);
+    border-radius: 10px;
+    color: var(--muted);
+    text-align: center;
+    text-decoration: none;
+    font-variant-numeric: tabular-nums;
+  }
+  .map-cell:hover { border-color: var(--brand); color: var(--brand); }
+  .map-cell[data-filled="true"] { border-style: solid; border-color: var(--brand-line-soft); background: var(--pink-bg); color: var(--ink); }
+  .map-cell[data-filled="true"]:hover { border-color: var(--brand); }
+  .map-cell-num { font-size: 1rem; font-weight: 800; line-height: 1.1; }
+  .map-cell-label { font-size: 13px; font-weight: 700; line-height: 1.35; }
+  .map-cell-state { font-size: 11px; }
+  .map-cell[data-filled="true"] .map-cell-state { color: var(--brand); }
+  .meter { block-size: .35rem; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+  .meter > span { display: block; block-size: 100%; border-radius: inherit; background: var(--data); }
+
+  /* Translation editor rows. */
+  .i18n-key { font-size: 12px; color: var(--muted); word-break: break-all; }
+  .i18n-ref { color: var(--ink-3); white-space: pre-wrap; }
+  textarea.input.i18n-input { min-block-size: 2.375rem; }
+
   /* Login canvas */
   .login-canvas {
     min-block-size: 100dvh;

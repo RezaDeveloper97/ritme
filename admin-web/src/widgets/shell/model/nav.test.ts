@@ -24,3 +24,17 @@ describe('activeItem', () => {
     expect(activeItem('/nowhere')).toBeNull();
   });
 });
+
+describe('NAV ↔ routes', () => {
+  it('every item is ready and has a page under app/(panel)', async () => {
+    const { existsSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const { NAV } = await import('./nav');
+    const panel = fileURLToPath(new URL('../../../app/(panel)/', import.meta.url));
+    for (const item of NAV.flatMap((g) => g.items)) {
+      expect(item.ready, item.key).toBe(true);
+      const dir = item.href === '/' ? '' : item.href.slice(1);
+      expect(existsSync(`${panel}${dir}/page.tsx`), item.href).toBe(true);
+    }
+  });
+});

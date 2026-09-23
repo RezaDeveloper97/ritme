@@ -368,3 +368,15 @@ Nothing needed fixing.
   deviation approvals (D-01…04, D-08…16), T-M2-09 staging deploy, goose-vs-staging schema diff (F-6).
 - Orchestrator follow-ups done: backend-go storage mount now read-write; cross-stack test creates `contract/.work/`.
 - `pint --test` red on backend/ (68 pre-existing issues, as noted in M1).
+
+## T-M2-23 — admin-web — all admin screens (parity with the Blade panel)
+- Parity checklist vs `backend/routes/admin.php` (every Blade route except the asset routes has a screen):
+  ✔ users (list/detail/edit/block/unblock/delete) ✔ articles ✔ affirmations ✔ challenges + completions report
+  ✔ recommendations ✔ banners ✔ task templates ✔ info sections ✔ pregnancy weeks (40-week map, 10 sections)
+  ✔ phase contents (9 sections) ✔ smart messages (filters, payload editor, approve, toggle) ✔ languages (super)
+  ✔ translations editor ✔ admins (super) ✔ own password ✔ login/logout/dashboard (T-M2-22).
+- 18 nav items / 40 route pages; test asserts every nav item has a page. 55 vitest tests; build green.
+- Checked headless in RTL light/dark at desktop + 390 px and as editor; write flows exercised against local backend-go.
+- Beyond Blade: banner live/scheduled/ended badge, coverage counters on pregnancy/phase maps.
+- Open: CSP allows only `https:` images (local uploads didn't render — check on stage); `cycle_day_to` gte message
+  renders an empty attribute (check against Laravel's output before changing).

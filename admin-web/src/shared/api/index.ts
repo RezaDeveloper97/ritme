@@ -12,3 +12,11 @@ export {
 export type { ListResult, Option, PageMeta } from './envelope';
 export { setCsrfToken, getCsrfToken } from './csrf';
 export { createQueryClient } from './query-client';
+export {
+  createResource,
+  pagedSchema,
+  translationsSchema,
+  stringListSchema,
+  fieldErrorsOf,
+  fieldError,
+} from './resource';

@@ -37,5 +37,7 @@ export function useListParams(filterDefaults: Record<string, string> = {}) {
     setPage: (page: number) => update({ page }),
     setSearch: (q: string) => update({ q }),
     setFilter: (key: string, value: string) => update({ [key]: value }),
+    /** Back to the unfiltered first page (drops every query parameter). */
+    reset: () => router.replace(pathname, { scroll: false }),
   };
 }

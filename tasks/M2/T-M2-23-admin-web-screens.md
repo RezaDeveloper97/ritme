@@ -3,10 +3,10 @@ id: T-M2-23
 title: admin-web — all admin screens (parity with the Blade panel)
 milestone: M2
 type: frontend
-status: todo
+status: done
 depends_on: [T-M2-21, T-M2-22]
 parallel_group: M2-G
-touches: [admin-web/src]
+touches: [admin-web/src, admin-web/messages]
 skills: [frontend-design:frontend-design]
 verify: cd admin-web && npm run typecheck && npm run lint && npm run test && npm run build
 ---

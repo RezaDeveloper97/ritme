@@ -12,3 +12,4 @@ export { useContentLanguages, contentLanguageKeys, contentLanguageSchema } from 
 export type { ContentLanguage } from './content-languages';
 export { setUiLocaleCookie } from './set-ui-locale';
 export { useErrorMessage } from './use-error-message';
+export { useLocalized } from './use-localized';

@@ -18,7 +18,7 @@ export function Panel({
   bodyClassName?: string;
 }) {
   return (
-    <section className={cn('panel overflow-hidden', className)}>
+    <section className={cn('panel overflow-clip', className)}>
       {title || actions ? (
         <header className="panel-head">
           {title ? <h2 className="panel-title">{title}</h2> : null}

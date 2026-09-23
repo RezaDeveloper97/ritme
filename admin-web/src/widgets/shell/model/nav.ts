@@ -3,7 +3,7 @@ import type { IconName } from '@/shared/ui';
 
 /**
  * The sidebar, mirroring the Blade panel's sections (backend/resources/views/
- * admin/layouts/app.blade.php). `ready: false` items render disabled until
+ * admin/layouts/app.blade.php). `ready: true` items render disabled until
  * their screen lands (T-M2-23 flips them). `role: 'super'` items are hidden
  * from editors — the API enforces the same with 403 (admin-api.md §4).
  */
@@ -26,40 +26,40 @@ export const NAV: readonly NavGroup[] = [
     key: 'groupGeneral',
     items: [
       { key: 'dashboard', href: '/', icon: 'dashboard', ready: true },
-      { key: 'users', href: '/users', icon: 'users', ready: false },
+      { key: 'users', href: '/users', icon: 'users', ready: true },
     ],
   },
   {
     key: 'groupContent',
     items: [
-      { key: 'articles', href: '/articles', icon: 'article', ready: false },
-      { key: 'affirmations', href: '/affirmations', icon: 'sparkle', ready: false },
-      { key: 'challenges', href: '/challenges', icon: 'flag', ready: false },
-      { key: 'challengeCompletions', href: '/challenge-completions', icon: 'check', ready: false },
-      { key: 'taskTemplates', href: '/task-templates', icon: 'task', ready: false },
-      { key: 'pregnancyWeeks', href: '/pregnancy-weeks', icon: 'baby', ready: false },
-      { key: 'phaseContents', href: '/phase-contents', icon: 'moon', ready: false },
-      { key: 'recommendations', href: '/recommendations', icon: 'idea', ready: false },
-      { key: 'banners', href: '/banners', icon: 'banner', ready: false },
-      { key: 'infoSections', href: '/info-sections', icon: 'lifeRing', ready: false },
+      { key: 'articles', href: '/articles', icon: 'article', ready: true },
+      { key: 'affirmations', href: '/affirmations', icon: 'sparkle', ready: true },
+      { key: 'challenges', href: '/challenges', icon: 'flag', ready: true },
+      { key: 'challengeCompletions', href: '/challenge-completions', icon: 'check', ready: true },
+      { key: 'taskTemplates', href: '/task-templates', icon: 'task', ready: true },
+      { key: 'pregnancyWeeks', href: '/pregnancy-weeks', icon: 'baby', ready: true },
+      { key: 'phaseContents', href: '/phase-contents', icon: 'moon', ready: true },
+      { key: 'recommendations', href: '/recommendations', icon: 'idea', ready: true },
+      { key: 'banners', href: '/banners', icon: 'banner', ready: true },
+      { key: 'infoSections', href: '/info-sections', icon: 'lifeRing', ready: true },
     ],
   },
   {
     key: 'groupMessages',
-    items: [{ key: 'messages', href: '/messages', icon: 'message', ready: false }],
+    items: [{ key: 'messages', href: '/messages', icon: 'message', ready: true }],
   },
   {
     key: 'groupSettings',
     items: [
-      { key: 'languages', href: '/languages', icon: 'language', role: 'super', ready: false },
+      { key: 'languages', href: '/languages', icon: 'language', role: 'super', ready: true },
       { key: 'uiKit', href: '/ui-kit', icon: 'sparkle', ready: true, devOnly: true },
     ],
   },
   {
     key: 'groupAccount',
     items: [
-      { key: 'password', href: '/account/password', icon: 'key', ready: false },
-      { key: 'admins', href: '/admins', icon: 'shield', role: 'super', ready: false },
+      { key: 'password', href: '/account/password', icon: 'key', ready: true },
+      { key: 'admins', href: '/admins', icon: 'shield', role: 'super', ready: true },
     ],
   },
 ];
