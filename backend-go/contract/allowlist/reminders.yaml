@@ -1,0 +1,23 @@
+group: reminders
+entries:
+  # D-01 (approved 2026-09-23): a locale without recurrence labels falls back to English
+  # instead of Laravel's 500 on $recurrenceLabels[$r][$locale].
+  - case: enums_ar
+    where: status
+    deviation: D-01
+    reason: Laravel 500s on the missing locale label; Go answers 200 with English labels
+  - case: enums_ar
+    where: body
+    deviation: D-01
+    reason: 200 enums envelope (English recurrence labels) instead of the 500 Server Error body
+
+  # D-02 (approved 2026-09-23): a non-numeric typed int route parameter is a JSON 404
+  # instead of Laravel's TypeError 500.
+  - case: "*_non_numeric"
+    where: status
+    deviation: D-02
+    reason: Laravel 500s (TypeError on int $id); Go answers 404
+  - case: "*_non_numeric"
+    where: body
+    deviation: D-02
+    reason: standard JSON 404 body instead of {"message":"Server Error"}

@@ -277,6 +277,13 @@ func TestBannerUploads(t *testing.T) {
 		admintest.File{Field: "image", Name: "a.png", Data: pngOf(t, 1080, 540)})
 	require.Equal(t, 422, r.Status)
 	assert.Contains(t, r.Errors(), "link_url")
+	// D-16: an internal link must be an app path starting with a single "/".
+	for _, link := range []string{"javascript:alert(1)", "//evil.test/x", "https://evil.test", "articles"} {
+		r = c.Multipart(fiber.MethodPost, "/banners", map[string]string{"position": "home_top", "link_type": "internal", "link_url": link},
+			admintest.File{Field: "image", Name: "a.png", Data: pngOf(t, 1080, 540)})
+		require.Equal(t, 422, r.Status, link)
+		assert.Contains(t, r.Errors(), "link_url", link)
+	}
 	r = c.Multipart(fiber.MethodPost, "/banners", map[string]string{"position": "nowhere",
 		"starts_at": "2026-10-10", "ends_at": "2026-10-01"},
 		admintest.File{Field: "image", Name: "a.png", Data: pngOf(t, 1080, 540)})
@@ -299,6 +306,18 @@ func TestBannerUploads(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, pngData, onDisk)
 	bid := id(t, b)
+
+	// D-16 on update: internal links are checked against the sent or the stored link type.
+	r = c.JSON(fiber.MethodPut, "/banners/"+bid, map[string]any{"position": "home_top", "link_type": "internal", "link_url": "//evil.test"})
+	require.Equal(t, 422, r.Status, r.Body)
+	assert.Contains(t, r.Errors(), "link_url")
+	r = c.JSON(fiber.MethodPut, "/banners/"+bid, map[string]any{"position": "home_top", "link_type": "internal", "link_url": "/pregnancy"})
+	require.Equal(t, 200, r.Status, r.Body)
+	assert.Equal(t, "/pregnancy", r.Obj("banner")["link_url"])
+	assert.Equal(t, "internal", r.Obj("banner")["link_type"])
+	r = c.JSON(fiber.MethodPut, "/banners/"+bid, map[string]any{"position": "home_top", "link_url": "javascript:alert(1)"})
+	require.Equal(t, 422, r.Status, r.Body)
+	assert.Contains(t, r.Errors(), "link_url")
 
 	// Update without a file keeps the image; clearing the URL drops both link fields.
 	r = c.JSON(fiber.MethodPut, "/banners/"+bid, map[string]any{"position": "home_top", "link_url": ""})

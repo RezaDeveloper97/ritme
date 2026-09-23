@@ -111,8 +111,10 @@ func bannerRules(c fiber.Ctx) validation.Rules {
 }
 
 // checkBannerLink: link_url is required_with:link_type, and must be a `url` for
-// external links (internal links are app paths).
-func checkBannerLink(c fiber.Ctx) form.Check {
+// external links. Internal links are app paths: they must start with a single `/`
+// (D-16; Laravel accepts any string, incl. `javascript:` and protocol-relative
+// `//host`). On update the link type not sent is the stored one (cur), as saved.
+func checkBannerLink(c fiber.Ctx, cur *store.Banner) form.Check {
 	return func(in phpval.Map, add form.Add) error {
 		linkType, _ := in.Get("link_type")
 		link, _ := in.Get("link_url")
@@ -122,17 +124,47 @@ func checkBannerLink(c fiber.Ctx) form.Check {
 			return nil
 		}
 		s, isStr := link.(string)
-		if isStr && phpval.ToString(linkType) == string(enums.BannerLinkTypeExternal) && !form.IsURL(s) {
+		if !isStr || s == "" {
+			return nil
+		}
+		typ := phpval.ToString(linkType)
+		if linkType == nil && cur != nil && cur.LinkType.Valid {
+			typ = cur.LinkType.String
+		}
+		switch {
+		case typ == string(enums.BannerLinkTypeExternal) && linkType != nil && !form.IsURL(s):
 			add("link_url", form.Msg(c, "validation.url", "link_url"))
+		case typ == string(enums.BannerLinkTypeInternal) && !isInternalPath(s):
+			add("link_url", form.Msg(c, "validation.regex", "link_url"))
 		}
 		return nil
 	}
 }
 
-func (h *Handlers) validateBanner(c fiber.Ctx, create bool) (phpval.Map, *media.Image, error) {
+// isInternalPath reports whether s is a same-origin app path: a leading `/` that is not
+// followed by another `/` or `\` (browsers read both as a protocol-relative URL) and no
+// control characters (browsers drop tabs/newlines, so "/\t/host" would become "//host")
+// (D-16).
+func isInternalPath(s string) bool {
+	if len(s) == 0 || s[0] != '/' {
+		return false
+	}
+	if len(s) > 1 && (s[1] == '/' || s[1] == '\\') {
+		return false
+	}
+	for _, r := range s {
+		if r < ' ' || r == 0x7f {
+			return false
+		}
+	}
+	return true
+}
+
+// validateBanner validates a create (cur == nil) or an update of cur.
+func (h *Handlers) validateBanner(c fiber.Ctx, cur *store.Banner) (phpval.Map, *media.Image, error) {
 	var img *media.Image
-	data, err := form.Validate(c, bannerRules(c), checkBannerLink(c),
-		form.ImageRule{Field: "image", Required: create, MaxKB: bannerImageMaxKB,
+	data, err := form.Validate(c, bannerRules(c), checkBannerLink(c, cur),
+		form.ImageRule{Field: "image", Required: cur == nil, MaxKB: bannerImageMaxKB,
 			MinWidth: bannerMinWidth, MinHeight: bannerMinHeight}.Check(c, &img))
 	return data, img, err
 }
@@ -152,7 +184,7 @@ func bannerLink(data phpval.Map, cur *store.Banner) (url, typ sql.NullString) {
 
 // StoreBanner is POST /banners (multipart: `image` is required).
 func (h *Handlers) StoreBanner(c fiber.Ctx) error {
-	data, img, err := h.validateBanner(c, true)
+	data, img, err := h.validateBanner(c, nil)
 	if err != nil {
 		return err
 	}
@@ -185,7 +217,7 @@ func (h *Handlers) UpdateBanner(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	data, img, err := h.validateBanner(c, false)
+	data, img, err := h.validateBanner(c, &cur)
 	if err != nil {
 		return err
 	}

@@ -380,3 +380,11 @@ Nothing needed fixing.
 - Beyond Blade: banner live/scheduled/ended badge, coverage counters on pregnancy/phase maps.
 - Open: CSP allows only `https:` images (local uploads didn't render — check on stage); `cycle_day_to` gte message
   renders an empty attribute (check against Laravel's output before changing).
+
+## T-M2-24b — Apply the approved deviations consistently
+- User approved all proposed deviations on 2026-09-23; `deviations.md` rows now `decided (approved 2026-09-23)`.
+- D-01: `/reminders/enums` with a label-less locale → English labels (200). D-02: reminders PUT/DELETE non-numeric
+  `{id}` → framework JSON 404 (all other typed-id routes already 404). D-16: internal banner `link_url` must start
+  with a single `/` (422 `validation.regex`).
+- Allow-list `contract/allowlist/reminders.yaml` (D-01, D-02 only): contract all 986 passed, 11 allow-listed diffs.
+- OpenAPI keeps the Laravel-only 500s documented as "until cutover" (golden validation test ignores the allow-list).

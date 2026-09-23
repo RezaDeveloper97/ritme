@@ -25,8 +25,8 @@ import (
 )
 
 // recurrences are the recurrence values with ReminderController::enums' hard-coded labels.
-// Like Laravel, a locale without a label (anything but fa / en) fails the request with a
-// 500 (D-01 proposes an English fallback; not approved, so the 500 is kept).
+// A locale without a label falls back to the English label (D-01; Laravel 500s on
+// $recurrenceLabels[$r][$locale]).
 var recurrences = []struct {
 	value  string
 	labels map[string]string
@@ -36,6 +36,10 @@ var recurrences = []struct {
 	{"weekly", map[string]string{"fa": "هفتگی", "en": "Weekly"}},
 	{"monthly", map[string]string{"fa": "ماهانه", "en": "Monthly"}},
 }
+
+// fallbackLabelLocale is the label set used for locales ReminderController has no labels
+// for (D-01).
+const fallbackLabelLocale = "en"
 
 func recurrenceValues() []string {
 	out := make([]string, 0, len(recurrences))
@@ -78,8 +82,8 @@ func (h *Handlers) Enums(c fiber.Ctx) error {
 	recs := make([]*jsonx.OrderedMap, 0, len(recurrences))
 	for _, r := range recurrences {
 		label, ok := r.labels[locale]
-		if !ok { // $recurrenceLabels[$r][$locale]: undefined array key → 500
-			return fmt.Errorf("reminder: no %q label for recurrence %q", locale, r.value)
+		if !ok {
+			label = r.labels[fallbackLabelLocale]
 		}
 		recs = append(recs, jsonx.Obj("value", r.value, "label", label))
 	}
@@ -206,8 +210,8 @@ func (h *Handlers) Destroy(c fiber.Ctx) error {
 // find is $request->user()->reminders()->find($id) with the `int $id` route parameter.
 func (h *Handlers) find(c fiber.Ctx, userID uint64) (store.Reminder, error) {
 	id, ok := intParam(c.Params("id"))
-	if !ok { // TypeError on the typed controller argument → 500 (D-02 proposes 404; not approved)
-		return store.Reminder{}, httpx.ServerError()
+	if !ok { // non-numeric `int $id` → 404 (D-02; Laravel 500s with a TypeError)
+		return store.Reminder{}, httpx.NotFound()
 	}
 	if id <= 0 {
 		return store.Reminder{}, h.notFound(c)
@@ -232,7 +236,7 @@ func (h *Handlers) notFound(c fiber.Ctx) error {
 
 // intParam is PHP's coercion of a route string to an `int` parameter: numeric strings
 // (surrounding whitespace allowed, fractions truncated) convert, anything else is a
-// TypeError (ok=false).
+// TypeError (ok=false → 404, D-02).
 func intParam(raw string) (int64, bool) {
 	if !phpval.IsNumericString(raw) {
 		return 0, false

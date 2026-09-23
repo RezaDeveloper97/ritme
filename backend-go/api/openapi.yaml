@@ -5789,7 +5789,8 @@ paths:
       description: |
         Available reminder types and recurrence options for building the reminder form.
 
-        A third language answers 500 (D-01, kept as Laravel).
+        A language without recurrence labels gets the English labels (D-01, approved
+        2026-09-23). The Laravel stack still answers 500 for such a language until cutover.
       operationId: getRemindersEnums
       security:
         - {bearerAuth: []}
@@ -5834,7 +5835,12 @@ paths:
                     - {value: weekly, label: Weekly}
                     - {value: monthly, label: Monthly}
         '401': {$ref: "#/components/responses/Unauthenticated"}
-        '500': {$ref: "#/components/responses/ServerError"}
+        '500':
+          description: "Laravel stack only, for a language without recurrence labels (D-01); the Go API answers 200 with English labels."
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/FrameworkError"}
+              example: {message: Server Error}
   /api/v1/reminders/{id}:
     put:
       tags: [Reminders]
@@ -5842,7 +5848,7 @@ paths:
       description: |
         Update any subset of the reminder's fields, including toggling is_active.
 
-        A non-numeric `{id}` answers 500 (D-02, kept as Laravel).
+        A non-numeric `{id}` answers the framework 404 `{message: ""}` (D-02, approved 2026-09-23).
       operationId: putRemindersById
       security:
         - {bearerAuth: []}
@@ -5939,13 +5945,15 @@ paths:
                   updated_at: "2026-09-23T06:30:00.000000Z"
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404':
-          description: Not found
+          description: "Reminder not found (`{success: false, message}`), or a non-numeric `{id}` (framework 404 `{message: \"\"}`, D-02)"
           content:
             application/json:
               schema:
-                type: object
-                required: [success, message]
-                properties: {success: {type: boolean}, message: {type: string}}
+                anyOf:
+                  - type: object
+                    required: [success, message]
+                    properties: {success: {type: boolean}, message: {type: string}}
+                  - {$ref: "#/components/schemas/FrameworkError"}
               example: {success: false, message: Reminder not found}
         '422':
           description: Validation error
@@ -5967,11 +5975,16 @@ paths:
                   type: [The selected type is invalid.]
                   recurrence: [The selected recurrence is invalid.]
                   ends_on: [The ends on field must be a date after or equal to starts on.]
-        '500': {$ref: "#/components/responses/ServerError"}
+        '500':
+          description: "Laravel stack only, for a non-numeric `{id}` (D-02); the Go API answers the framework 404."
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/FrameworkError"}
+              example: {message: Server Error}
     delete:
       tags: [Reminders]
       summary: Delete a reminder
-      description: "A non-numeric `{id}` answers 500 (D-02, kept as Laravel)."
+      description: "A non-numeric `{id}` answers the framework 404 `{message: \"\"}` (D-02, approved 2026-09-23)."
       operationId: deleteRemindersById
       security:
         - {bearerAuth: []}
@@ -5990,15 +6003,22 @@ paths:
               example: {success: true}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404':
-          description: Not found
+          description: "Reminder not found (`{success: false, message}`), or a non-numeric `{id}` (framework 404 `{message: \"\"}`, D-02)"
           content:
             application/json:
               schema:
-                type: object
-                required: [success, message]
-                properties: {success: {type: boolean}, message: {type: string}}
+                anyOf:
+                  - type: object
+                    required: [success, message]
+                    properties: {success: {type: boolean}, message: {type: string}}
+                  - {$ref: "#/components/schemas/FrameworkError"}
               example: {success: false, message: Reminder not found}
-        '500': {$ref: "#/components/responses/ServerError"}
+        '500':
+          description: "Laravel stack only, for a non-numeric `{id}` (D-02); the Go API answers the framework 404."
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/FrameworkError"}
+              example: {message: Server Error}
   /storage/{path}:
     get:
       tags: [System]
