@@ -30,6 +30,7 @@ tags:
   - {name: Reminders, description: "Doctor, medication, appointment and custom reminders"}
   - {name: Care, description: "Care reminders (Go only): medications with per-dose intake tracking, appointments, today"}
   - {name: Fertility, description: "TTC tracking (Go only): home tiles, the merged day log (LH, mucus, BBT, intercourse, symptoms)"}
+  - {name: Checkups, description: "Periodic checkups (Go only): the screening plan, records, custom checkups, per-type settings"}
   - {name: Daily Health Log, description: "One log per day: symptoms, mood, vitals, lifestyle"}
   - {name: Cycle, description: "Cycle engine: today, a date, a month, recalculation"}
   - {name: Period Log, description: "Start, end, add, edit and delete periods"}
@@ -1231,6 +1232,421 @@ paths:
                 warning: {type: luteal_spotting_warning, message: "این خون‌ریزی ممکن است لکه‌بینی لوتئال باشد نه شروع پریود. آیا مطمئن هستید؟"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '422': {$ref: "#/components/responses/FertilityValidationFailed"}
+  /api/v1/checkups:
+    get:
+      tags: [Checkups]
+      summary: The screening plan
+      description: |
+        The user's periodic-checkup plan (docs/checkups/README.md): the shared catalog plus her custom checkups,
+        evaluated by the status engine (`internal/checkups/engine`) for today (Tehran). `age` is null without a
+        profile birthday. `summary` is always over the whole plan (disabled items excluded, `not_yet` counted as
+        up to date); `?filter=action` lists due/overdue items, `done` recorded items that need no action.
+        Labels follow `Accept-Language` (Jalali months and localized digits for fa). Three queries.
+      operationId: getCheckups
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: filter, in: query, required: false, schema: {type: string, enum: [all, action, done]}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The plan
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [age, summary, items]
+                    properties:
+                      age: {type: [integer, "null"]}
+                      summary: {$ref: "#/components/schemas/CheckupSummary"}
+                      items: {type: array, items: {$ref: "#/components/schemas/CheckupItem"}}
+              example:
+                success: true
+                data:
+                  age: 34
+                  summary: {total: 6, up_to_date: 2, due: 3, overdue: 1}
+                  items:
+                    - {id: 5, key: dentist, title: دندان‌پزشکی, subtitle: null, category: six_monthly, section: overdue, status: overdue, icon: tooth, tone: teal, interval_label: هر ۶ ماه, timing_label: null, last_done_on: "2026-01-10", next_due_on: "2026-07-10", next_due_label: عقب‌افتاده از تیر, is_custom: false}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/CheckupValidationFailed"}
+  /api/v1/checkups/home:
+    get:
+      tags: [Checkups]
+      summary: The checkups card on the cycle home
+      description: |
+        The plan summary plus at most two due/overdue items (cycle-timed first, then overdue before due, then catalog
+        order), in three queries (profile + pregnancy flag, cycle history, catalog joined with settings and the latest
+        record per type). `data: null` when nothing applies (no enabled item) — the card hides.
+      operationId: getCheckupsHome
+      security:
+        - {bearerAuth: []}
+      parameters: [{$ref: "#/components/parameters/AcceptLanguage"}]
+      responses:
+        '200':
+          description: The card
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    oneOf:
+                      - {type: "null"}
+                      - type: object
+                        required: [summary, highlights]
+                        properties:
+                          summary: {$ref: "#/components/schemas/CheckupSummary"}
+                          highlights: {type: array, maxItems: 2, items: {$ref: "#/components/schemas/CheckupItem"}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/checkups/preview-next:
+    get:
+      tags: [Checkups]
+      summary: Preview the next due date (MarkDone banner)
+      description: |
+        When a checkup done on `done_on` is next due (`next_due_on`; `due_by` = the day before it turns overdue — the
+        range maximum or the end of the cycle window). A monthly cycle-timed type lands on the window of the first
+        predicted cycle after `done_on` (`cycle_timed: true`). The user's own override is not applied.
+        `reminder_label` reflects the type's reminder switch.
+      operationId: getCheckupsPreviewNext
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: type, in: query, required: true, schema: {type: integer}}
+        - {name: done_on, in: query, required: true, schema: {$ref: "#/components/schemas/Date"}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The preview
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [next_due_on, due_by, next_due_label, interval_label, timing_label, reminder_label, cycle_timed]
+                    properties:
+                      next_due_on: {$ref: "#/components/schemas/Date"}
+                      due_by: {$ref: "#/components/schemas/Date"}
+                      next_due_label: {type: string}
+                      interval_label: {type: string}
+                      timing_label: {type: [string, "null"]}
+                      reminder_label: {type: string}
+                      cycle_timed: {type: boolean}
+              example:
+                success: true
+                data: {next_due_on: "2029-09-20", due_by: "2029-09-20", next_due_label: ۳۰ شهریور ۱۴۰۸, interval_label: هر ۳ سال, timing_label: روز ۱۰ تا ۲۰ سیکل, reminder_label: ۳۰ روز قبل یادآوری می‌کنیم, cycle_timed: false}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CheckupNotFound"}
+        '422': {$ref: "#/components/responses/CheckupValidationFailed"}
+  /api/v1/checkups/records:
+    get:
+      tags: [Checkups]
+      summary: The checkup history
+      description: |
+        The user's records, newest first (`done_on`, then id), 20 per page. `filter=this_year` = since the first day of
+        the current year in the request language's calendar (1 Farvardin for fa, 1 January otherwise);
+        `with_attachment` = `has_attachment` records (the file itself is on the device only); `type` = one checkup.
+      operationId: getCheckupRecords
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: filter, in: query, required: false, schema: {type: string, enum: [all, this_year, with_attachment]}}
+        - {name: type, in: query, required: false, schema: {type: integer}}
+        - {name: page, in: query, required: false, schema: {type: integer, minimum: 1}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: One page of records
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [items, meta]
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          allOf:
+                            - {$ref: "#/components/schemas/CheckupRecord"}
+                            - type: object
+                              required: [checkup_key, checkup_icon, checkup_tone]
+                              properties:
+                                checkup_key: {type: [string, "null"]}
+                                checkup_icon: {type: [string, "null"]}
+                                checkup_tone: {type: string}
+                      meta:
+                        type: object
+                        required: [current_page, last_page, per_page, total]
+                        properties:
+                          current_page: {type: integer}
+                          last_page: {type: integer}
+                          per_page: {type: integer}
+                          total: {type: integer}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/CheckupValidationFailed"}
+  /api/v1/checkups/records/{recordId}:
+    put:
+      tags: [Checkups]
+      summary: Update a checkup record
+      description: |
+        Partial update: only the keys sent change (`{"has_attachment": false}` is the attachment rollback); the merged
+        record is validated like POST. Unknown keys are ignored. Responds with `{item, record}` (`item` null when the
+        type is no longer in the plan).
+      operationId: putCheckupRecord
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: recordId, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/CheckupRecordInput"}
+            example: {has_attachment: false}
+      responses:
+        '200':
+          description: Record updated
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/CheckupRecordResult"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CheckupNotFound"}
+        '422': {$ref: "#/components/responses/CheckupValidationFailed"}
+    delete:
+      tags: [Checkups]
+      summary: Delete a checkup record
+      operationId: deleteCheckupRecord
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: recordId, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Record deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {type: "null"}
+              example: {success: true, message: سابقه چکاپ حذف شد, data: null}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CheckupNotFound"}
+  /api/v1/checkups/custom:
+    post:
+      tags: [Checkups]
+      summary: Add a custom checkup
+      description: |
+        The user's own checkup (`category = custom`, tone `neutral`, icon by `performed_by`, reminder lead 3 / 7 / 14
+        days by interval). `title` and `note` (shown as the subtitle) are stored under the request language.
+        `last_done_on` seeds a first record (result `normal`). Returns **201** with the item.
+      operationId: postCheckupCustom
+      security:
+        - {bearerAuth: []}
+      parameters: [{$ref: "#/components/parameters/AcceptLanguage"}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf: [{$ref: "#/components/schemas/CustomCheckupInput"}]
+              required: [title, interval_months, performed_by]
+            example: {title: چشم‌پزشکی, interval_months: 24, performed_by: doctor, note: عینک, last_done_on: "2026-03-01"}
+      responses:
+        '201':
+          description: Custom checkup created
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/CheckupItem"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/CheckupValidationFailed"}
+  /api/v1/checkups/custom/{id}:
+    put:
+      tags: [Checkups]
+      summary: Update a custom checkup
+      description: "Partial update of the user's own custom checkup (only the keys sent change); a new `last_done_on` adds a record. 404 for a catalog type or another user's checkup."
+      operationId: putCheckupCustom
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/CustomCheckupInput"}
+            example: {interval_months: 12}
+      responses:
+        '200':
+          description: Custom checkup updated
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/CheckupItem"}]}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CheckupNotFound"}
+        '422': {$ref: "#/components/responses/CheckupValidationFailed"}
+    delete:
+      tags: [Checkups]
+      summary: Delete a custom checkup
+      description: "Deletes the user's custom checkup with its records and settings (cascade)."
+      operationId: deleteCheckupCustom
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Custom checkup deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {type: "null"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CheckupNotFound"}
+  /api/v1/checkups/{id}:
+    get:
+      tags: [Checkups]
+      summary: A checkup's detail
+      description: |
+        The item plus the catalog copy (localized `why`, `prep_steps`, `guide_steps`, `finding_options`), the latest two
+        records and the user's switches. Any active type the user sees (a shared catalog row or her own custom
+        checkup); a type the plan leaves out (hidden in pregnancy, past `age_max`) still opens. Admin edits show
+        immediately (no cache).
+      operationId: getCheckup
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The checkup
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/CheckupDetail"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CheckupNotFound"}
+  /api/v1/checkups/{id}/records:
+    post:
+      tags: [Checkups]
+      summary: Record a checkup as done
+      description: |
+        `done_on` must not be in the future (Tehran); `findings` ⊆ the type's `finding_options` keys (none for a type
+        without options), de-duplicated; `next_due_on` (after `done_on`) overrides the computed next due date;
+        `has_attachment` only flags that a report is stored **on the device** (the file never reaches the server).
+        Unknown keys are ignored. Returns **201** with `{item, record}` — the recomputed item and the new record, whose
+        id keys the on-device attachment.
+      operationId: postCheckupRecord
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf: [{$ref: "#/components/schemas/CheckupRecordInput"}]
+              required: [done_on, result]
+            example: {done_on: "2026-09-20", result: normal, findings: [none], note: null, has_attachment: false}
+      responses:
+        '201':
+          description: Record created
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/CheckupRecordResult"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CheckupNotFound"}
+        '422': {$ref: "#/components/responses/CheckupValidationFailed"}
+  /api/v1/checkups/{id}/settings:
+    put:
+      tags: [Checkups]
+      summary: Switch a checkup on/off and its reminder
+      description: "Partial `{enabled?, remind?}` for a type the user sees (no row = both on). A disabled item stays listed with status `disabled` and leaves the summary. Returns the settings and the recomputed item."
+      operationId: putCheckupSettings
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enabled: {type: boolean}
+                remind: {type: boolean}
+            example: {remind: false}
+      responses:
+        '200':
+          description: Settings saved
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data:
+                    type: object
+                    required: [settings, item]
+                    properties:
+                      settings:
+                        type: object
+                        required: [enabled, remind]
+                        properties: {enabled: {type: boolean}, remind: {type: boolean}}
+                      item: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/CheckupItem"}]}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CheckupNotFound"}
+        '422': {$ref: "#/components/responses/CheckupValidationFailed"}
   /api/v1/cycle/date/{date}:
     get:
       tags: [Cycle]
@@ -6850,6 +7266,32 @@ components:
             success: false
             message: اطلاعات واردشده نامعتبر است
             errors: {bbt: [دما باید بین ۳۵٫۰۰ و ۳۸٫۵۰ درجه باشد.]}
+    CheckupValidationFailed:
+      description: "Checkups validation failed (controller 422 `{success: false, message, errors}`, message and field errors in the request language)"
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, errors]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              errors:
+                type: object
+                additionalProperties: {type: array, items: {type: string}}
+          example:
+            success: false
+            message: اطلاعات واردشده نامعتبر است
+            errors: {done_on: [تاریخ نمی‌تواند در آینده باشد.]}
+    CheckupNotFound:
+      description: "Not a checkup (or record) of the user: another user's id, an inactive or unknown type, a catalog type on a custom route, or a malformed id"
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message]
+            properties: {success: {type: boolean, const: false}, message: {type: string}}
+          example: {success: false, message: چکاپ پیدا نشد}
     CareNotFound:
       description: "Not the user's medication (another user's id, another reminder type, or a malformed id)"
       content:
@@ -6869,6 +7311,113 @@ components:
             properties: {success: {type: boolean, const: false}, message: {type: string}}
           example: {success: false, message: نوبت پیدا نشد}
   schemas:
+    CheckupSummary:
+      type: object
+      description: "Over enabled items: `up_to_date` counts up_to_date + soon + not_yet."
+      required: [total, up_to_date, due, overdue]
+      properties:
+        total: {type: integer}
+        up_to_date: {type: integer}
+        due: {type: integer}
+        overdue: {type: integer}
+    CheckupItem:
+      type: object
+      description: "One evaluated checkup. Texts are localized; `next_due_label` e.g. «۳ روز دیگر», «عقب‌افتاده از فروردین», «از ۱۴۰۹ (۴۰ سالگی)», «مهر ۱۴۰۶», «غیرفعال»."
+      required: [id, key, title, subtitle, category, section, status, icon, tone, interval_label, timing_label, last_done_on, next_due_on, next_due_label, is_custom]
+      properties:
+        id: {type: integer}
+        key: {type: [string, "null"], description: "Catalog key; null for a custom checkup."}
+        title: {type: [string, "null"]}
+        subtitle: {type: [string, "null"]}
+        category: {type: string, enum: [monthly, six_monthly, annual, multi_year, age_based, custom]}
+        section: {type: string, enum: [this_month, overdue, monthly, six_monthly, annual, multi_year, age_based, custom]}
+        status: {type: string, enum: [overdue, due, soon, up_to_date, not_yet, disabled]}
+        icon: {type: [string, "null"]}
+        tone: {type: string, enum: [rose, violet, amber, teal, green, neutral]}
+        interval_label: {type: string}
+        timing_label: {type: [string, "null"], description: "Cycle-timed types only («روز ۷ تا ۱۰ سیکل»)."}
+        last_done_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+        next_due_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}], description: "Null when never recorded and not cycle-timed; for not_yet the day the user reaches age_min."}
+        next_due_label: {type: string}
+        is_custom: {type: boolean}
+    CheckupRecord:
+      type: object
+      required: [id, checkup_type_id, checkup_title, done_on, result, findings, note, has_attachment, next_due_on]
+      properties:
+        id: {type: integer}
+        checkup_type_id: {type: integer}
+        checkup_title: {type: [string, "null"]}
+        done_on: {$ref: "#/components/schemas/Date"}
+        result: {type: string, enum: [normal, follow_up, pending]}
+        findings: {type: array, items: {type: string}}
+        note: {type: [string, "null"]}
+        has_attachment: {type: boolean, description: "A report is stored on the user's device (never on the server)."}
+        next_due_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}], description: "The user's override of the next due date."}
+    CheckupRecordInput:
+      type: object
+      properties:
+        done_on: {$ref: "#/components/schemas/Date"}
+        result: {type: string, enum: [normal, follow_up, pending]}
+        findings: {type: [array, "null"], items: {type: string}}
+        note: {type: [string, "null"], maxLength: 2000}
+        has_attachment: {type: boolean}
+        next_due_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+    CheckupRecordResult:
+      type: object
+      required: [success, message, data]
+      properties:
+        success: {type: boolean}
+        message: {type: string}
+        data:
+          type: object
+          required: [item, record]
+          properties:
+            item: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/CheckupItem"}]}
+            record: {$ref: "#/components/schemas/CheckupRecord"}
+    CustomCheckupInput:
+      type: object
+      properties:
+        title: {type: string, maxLength: 120}
+        interval_months: {type: integer, minimum: 1, maximum: 120}
+        performed_by: {type: string, enum: [self, doctor, lab, dentist]}
+        note: {type: [string, "null"], maxLength: 500}
+        last_done_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+    CheckupDetail:
+      allOf:
+        - {$ref: "#/components/schemas/CheckupItem"}
+        - type: object
+          required: [why, performed_by, interval_months, interval_months_max, age_min, age_max, cycle_day_from, cycle_day_to, remind_lead_days, prep_steps, guide_steps, finding_options, records, settings]
+          properties:
+            why: {type: [string, "null"]}
+            performed_by: {type: string, enum: [self, doctor, lab, dentist]}
+            interval_months: {type: integer}
+            interval_months_max: {type: [integer, "null"]}
+            age_min: {type: [integer, "null"]}
+            age_max: {type: [integer, "null"]}
+            cycle_day_from: {type: [integer, "null"]}
+            cycle_day_to: {type: [integer, "null"]}
+            remind_lead_days: {type: integer}
+            prep_steps: {type: array, items: {type: string}}
+            guide_steps:
+              type: array
+              items:
+                type: object
+                required: [title, body]
+                properties: {title: {type: string}, body: {type: [string, "null"]}}
+            finding_options:
+              type: array
+              items:
+                type: object
+                required: [key, label, exclusive]
+                properties:
+                  key: {type: string}
+                  label: {type: string}
+                  exclusive: {type: boolean, description: "The «چیزی متفاوت نبود» chip that clears the others."}
+            records: {type: array, maxItems: 2, items: {$ref: "#/components/schemas/CheckupRecord"}}
+            settings:
+              type: object
+              required: [enabled, remind]
+              properties: {enabled: {type: boolean}, remind: {type: boolean}}
     Date:
       type: string
       format: date

@@ -3,7 +3,7 @@ id: T-M4-02
 title: Checkups — user API (list, home, detail, records, custom, settings)
 milestone: M4
 type: backend
-status: todo
+status: done
 depends_on: [T-M4-01]
 parallel_group: M4-B
 touches: [backend-go/db/queries/checkups, backend-go/internal/checkups, backend-go/internal/http/routes_checkups.go, backend-go/api/openapi.yaml]

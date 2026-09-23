@@ -1,0 +1,67 @@
+{
+    "digits": "۰۱۲۳۴۵۶۷۸۹",
+    "calendar": "jalali",
+    "months": ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"],
+    "date": {
+        "full": ":day :month :year",
+        "month_year": ":month :year"
+    },
+    "interval": {
+        "monthly": "هر ماه",
+        "months": "هر :n ماه",
+        "yearly": "هر سال",
+        "years": "هر :n سال",
+        "range_months": "هر :from تا :to ماه",
+        "range_years": "هر :from تا :to سال"
+    },
+    "timing": {
+        "cycle_days": "روز :from تا :to سیکل"
+    },
+    "due": {
+        "today": "امروز",
+        "tomorrow": "فردا",
+        "in_days": ":n روز دیگر",
+        "now": "زمانش رسیده",
+        "overdue_since": "عقب‌افتاده از :month",
+        "not_yet": "از :year (:age سالگی)",
+        "disabled": "غیرفعال"
+    },
+    "reminder": {
+        "days_before": ":n روز قبل یادآوری می‌کنیم",
+        "same_day": "همان روز یادآوری می‌کنیم",
+        "off": "یادآوری خاموش است"
+    },
+    "messages": {
+        "validation_failed": "اطلاعات واردشده نامعتبر است",
+        "checkup_not_found": "چکاپ پیدا نشد",
+        "record_not_found": "سابقه چکاپ پیدا نشد",
+        "record_created": "انجام چکاپ ثبت شد",
+        "record_updated": "سابقه چکاپ به‌روزرسانی شد",
+        "record_deleted": "سابقه چکاپ حذف شد",
+        "custom_created": "چکاپ سفارشی اضافه شد",
+        "custom_updated": "چکاپ سفارشی به‌روزرسانی شد",
+        "custom_deleted": "چکاپ سفارشی حذف شد",
+        "settings_updated": "تنظیمات چکاپ ذخیره شد"
+    },
+    "validation": {
+        "date_future": "تاریخ نمی‌تواند در آینده باشد.",
+        "findings_invalid": "این مورد جزو گزینه‌های این چکاپ نیست."
+    },
+    "attributes": {
+        "done_on": "تاریخ انجام",
+        "result": "نتیجه",
+        "findings": "یافته‌ها",
+        "findings.*": "یافته",
+        "note": "یادداشت",
+        "has_attachment": "پیوست",
+        "next_due_on": "موعد بعدی",
+        "type": "چکاپ",
+        "filter": "فیلتر",
+        "title": "نام چکاپ",
+        "interval_months": "فاصله",
+        "performed_by": "انجام‌دهنده",
+        "last_done_on": "آخرین بار",
+        "enabled": "فعال",
+        "remind": "یادآوری"
+    }
+}

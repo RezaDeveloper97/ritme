@@ -517,3 +517,11 @@ Nothing needed fixing.
   tokens + `.pg2-*` classes, 11 icons, `pregnancyV2` namespace fa/en.
 - Open: add `pregnancyV2` to `message-scopes.ts` in T-M7-09..14; clinician review for `log.spottingBody`,
   `alerts.legend.*`, `today.disclaimerBody` (T-M7-15).
+
+## T-M4-02 — Checkups — user API (list, home, detail, records, custom, settings)
+- `internal/checkups/{service,handlers,custom,json,request,labels}.go`, queries `db/queries/checkups/user.sql`,
+  `routes_checkups.go` (12 routes), OpenAPI Checkups tag; labels server-side (Jalali months + Persian digits for fa).
+- `LoadPlan` = 3 queries (asserted on `/checkups/home`); `POST`/`PUT` record → `{item, record}`; home `data: null`
+  when nothing is enabled; records list `{items, meta}` 20/page; status `disabled` for switched-off types (frontend
+  enum + `.ck-status-disabled` + labels added in the same commit).
+- Admin edits visible immediately on `GET /checkups/{id}` (tested).

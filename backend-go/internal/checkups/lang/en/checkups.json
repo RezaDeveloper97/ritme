@@ -1,0 +1,67 @@
+{
+    "digits": "0123456789",
+    "calendar": "gregorian",
+    "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+    "date": {
+        "full": ":month :day, :year",
+        "month_year": ":month :year"
+    },
+    "interval": {
+        "monthly": "Every month",
+        "months": "Every :n months",
+        "yearly": "Every year",
+        "years": "Every :n years",
+        "range_months": "Every :from–:to months",
+        "range_years": "Every :from–:to years"
+    },
+    "timing": {
+        "cycle_days": "Cycle day :from–:to"
+    },
+    "due": {
+        "today": "Today",
+        "tomorrow": "Tomorrow",
+        "in_days": "In :n days",
+        "now": "Due now",
+        "overdue_since": "Overdue since :month",
+        "not_yet": "From :year (age :age)",
+        "disabled": "Off"
+    },
+    "reminder": {
+        "days_before": "We'll remind you :n days before",
+        "same_day": "We'll remind you on the day",
+        "off": "Reminders are off"
+    },
+    "messages": {
+        "validation_failed": "Validation failed",
+        "checkup_not_found": "Checkup not found",
+        "record_not_found": "Checkup record not found",
+        "record_created": "Checkup recorded",
+        "record_updated": "Checkup record updated",
+        "record_deleted": "Checkup record deleted",
+        "custom_created": "Custom checkup added",
+        "custom_updated": "Custom checkup updated",
+        "custom_deleted": "Custom checkup deleted",
+        "settings_updated": "Checkup settings saved"
+    },
+    "validation": {
+        "date_future": "The date cannot be in the future.",
+        "findings_invalid": "This is not one of this checkup's options."
+    },
+    "attributes": {
+        "done_on": "date",
+        "result": "result",
+        "findings": "findings",
+        "findings.*": "finding",
+        "note": "note",
+        "has_attachment": "attachment",
+        "next_due_on": "next due date",
+        "type": "checkup",
+        "filter": "filter",
+        "title": "checkup name",
+        "interval_months": "interval",
+        "performed_by": "performed by",
+        "last_done_on": "last done",
+        "enabled": "enabled",
+        "remind": "reminder"
+    }
+}

@@ -2972,6 +2972,7 @@ body.pwa-locked { overflow: hidden; }
 .ck-status-due        { --ck-ink: var(--amber-tile-ink); --ck-soft: var(--amber-tile);     --ck-bar: var(--checkup-due); }
 .ck-status-overdue    { --ck-ink: var(--care-rose);      --ck-soft: var(--care-rose-soft); --ck-bar: var(--care-rose); }
 .ck-status-not_yet    { --ck-ink: var(--ink-3);          --ck-soft: var(--surface-2);      --ck-bar: var(--track); }
+.ck-status-disabled   { --ck-ink: var(--ink-3);          --ck-soft: var(--surface-2);      --ck-bar: var(--track); }
 
 .ck-tone-rose    { --ck-ink: var(--care-rose);      --ck-soft: var(--care-rose-soft); }
 .ck-tone-violet  { --ck-ink: var(--brand-strong);   --ck-soft: var(--pink-bg); }

@@ -14,7 +14,8 @@
     "soon": "Soon",
     "due": "Due",
     "overdue": "Overdue",
-    "not_yet": "Not yet"
+    "not_yet": "Not yet",
+    "disabled": "Off"
   },
   "result": {
     "normal": "Normal",

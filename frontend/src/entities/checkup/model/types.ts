@@ -23,7 +23,7 @@ export const CHECKUP_CATEGORIES = [
 export type CheckupCategory = (typeof CHECKUP_CATEGORIES)[number];
 
 /** Worst → best; `not_yet` = below `age_min`. */
-export const CHECKUP_STATUSES = ['overdue', 'due', 'soon', 'up_to_date', 'not_yet'] as const;
+export const CHECKUP_STATUSES = ['overdue', 'due', 'soon', 'up_to_date', 'not_yet', 'disabled'] as const;
 export type CheckupStatus = (typeof CHECKUP_STATUSES)[number];
 
 /** List sections in the order the artboard shows them (the server sends its own order). */
