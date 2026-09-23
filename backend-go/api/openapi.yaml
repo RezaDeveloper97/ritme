@@ -799,6 +799,213 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/CareNotFound"}
         '422': {$ref: "#/components/responses/CareValidationFailed"}
+  /api/v1/care/appointments:
+    get:
+      tags: [Care]
+      summary: List appointments
+      description: |
+        The user's appointments (reminders with `type = appointment`). `scope`: `upcoming` (default) = status
+        `scheduled` and `scheduled_at` at or after now, soonest first (cancelled excluded); `past` = everything else
+        (earlier, or cancelled), latest first; `all` = every appointment, soonest first. Another value → 422 on `scope`.
+      operationId: getCareAppointments
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - name: scope
+          in: query
+          required: false
+          schema: {type: string, enum: [upcoming, past, all], default: upcoming}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Appointments retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {type: array, items: {$ref: "#/components/schemas/Appointment"}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/CareValidationFailed"}
+    post:
+      tags: [Care]
+      summary: Create an appointment
+      description: |
+        Returns **201** with the appointment. Stored as a `reminders` row (`type = appointment`, `recurrence = none`)
+        with `scheduled_at` (Tehran wall-clock), so `GET /reminders` readers see it; `subtitle` = "with · specialty".
+        `title` falls back to the topic label in the request language. Defaults: `remind_before` 1d,
+        `add_to_calendar` false, `is_active` true, `prep` []. Prep items get server ids (`p1`, `p2`, …); client ids are
+        ignored on create. Every prep item needs a non-blank `text`. Unknown keys (and `status`) are ignored.
+      operationId: postCareAppointments
+      security:
+        - {bearerAuth: []}
+      parameters: [{$ref: "#/components/parameters/AcceptLanguage"}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf: [{$ref: "#/components/schemas/AppointmentInput"}]
+              required: [kind, topic, scheduled_at]
+            example: {kind: in_person, with: دکتر احمدی, specialty: زنان و زایمان, topic: ultrasound, title: سونوگرافی NT, scheduled_at: "2026-09-30 10:30:00", location: مطب, remind_before: 1d, add_to_calendar: true, notes: null, prep: [{text: دفترچه بیمه, done: false}]}
+      responses:
+        '201':
+          description: Appointment created
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/Appointment"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/CareValidationFailed"}
+  /api/v1/care/appointments/{id}:
+    get:
+      tags: [Care]
+      summary: Get an appointment
+      operationId: getCareAppointmentsById
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Appointment retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/Appointment"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CareAppointmentNotFound"}
+    put:
+      tags: [Care]
+      summary: Update an appointment
+      description: |
+        Partial update: only the keys sent change (`{"is_active": false}` is the reminder switch, `{"prep": […]}`
+        replaces the checklist). The merged appointment is validated as a whole. A prep item keeps its id when the id is
+        one of the stored items; any other item gets a new server id. The status is kept (cancel only via `/cancel`).
+      operationId: putCareAppointmentsById
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/AppointmentInput"}
+            example: {prep: [{id: p1, text: دفترچه بیمه, done: true}]}
+      responses:
+        '200':
+          description: Appointment updated
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/Appointment"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CareAppointmentNotFound"}
+        '422': {$ref: "#/components/responses/CareValidationFailed"}
+    delete:
+      tags: [Care]
+      summary: Delete an appointment
+      operationId: deleteCareAppointmentsById
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Appointment deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {type: "null"}
+              example: {success: true, message: نوبت حذف شد, data: null}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CareAppointmentNotFound"}
+  /api/v1/care/appointments/{id}/cancel:
+    post:
+      tags: [Care]
+      summary: Cancel an appointment
+      description: "Sets `status = cancelled` and `is_active = false`; the row is kept for history (it moves from `upcoming` to `past`). Idempotent."
+      operationId: postCareAppointmentsCancel
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Appointment cancelled
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/Appointment"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CareAppointmentNotFound"}
+  /api/v1/care/appointments/{id}/prep/{itemId}:
+    patch:
+      tags: [Care]
+      summary: Tick or untick a prep item
+      description: "Sets `done` of one checklist item. An unknown `itemId` is 404 with its own message."
+      operationId: patchCareAppointmentsPrep
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {name: itemId, in: path, required: true, schema: {type: string, examples: [p1]}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [done]
+              properties: {done: {type: boolean}}
+            example: {done: true}
+      responses:
+        '200':
+          description: Prep item updated
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/Appointment"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CareAppointmentNotFound"}
+        '422': {$ref: "#/components/responses/CareValidationFailed"}
   /api/v1/cycle/date/{date}:
     get:
       tags: [Cycle]
@@ -6410,6 +6617,15 @@ components:
             required: [success, message]
             properties: {success: {type: boolean, const: false}, message: {type: string}}
           example: {success: false, message: یادآور دارو پیدا نشد}
+    CareAppointmentNotFound:
+      description: "Not the user's appointment (another user's id, another reminder type, or a malformed id), or an unknown prep item"
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message]
+            properties: {success: {type: boolean, const: false}, message: {type: string}}
+          example: {success: false, message: نوبت پیدا نشد}
   schemas:
     Date:
       type: string
@@ -6949,6 +7165,85 @@ components:
       properties:
         date: {$ref: "#/components/schemas/Date"}
         slot: {type: string, pattern: "^\\d{2}:\\d{2}$", examples: ["08:00"]}
+    PrepItem:
+      type: object
+      required: [id, text, done]
+      properties:
+        id: {type: string, description: "Server-assigned, stable (`p1`, `p2`, …).", examples: [p1]}
+        text: {type: string}
+        done: {type: boolean}
+    AppointmentInput:
+      type: object
+      description: "Flat body (no `meta` wrapper)."
+      properties:
+        kind: {type: string, enum: [in_person, phone, online]}
+        with: {type: [string, "null"], maxLength: 255}
+        specialty: {type: [string, "null"], maxLength: 255}
+        topic: {type: string, enum: [ultrasound, checkup, lab, consult, vaccine, other]}
+        title: {type: [string, "null"], maxLength: 255, description: "Blank → the topic label."}
+        scheduled_at: {type: string, description: "Tehran wall-clock `Y-m-d H:i:s` (or `Y-m-d H:i`).", examples: ["2026-09-30 10:30:00"]}
+        location: {type: [string, "null"], maxLength: 255}
+        remind_before: {type: string, enum: [1h, 3h, 1d, 2d]}
+        add_to_calendar: {type: boolean}
+        notes: {type: [string, "null"], maxLength: 2000}
+        prep:
+          type: [array, "null"]
+          maxItems: 20
+          items:
+            type: object
+            required: [text]
+            properties:
+              id: {type: [string, "null"], description: "Kept when it is a stored item's id."}
+              text: {type: string, maxLength: 255}
+              done: {type: boolean}
+        is_active: {type: boolean}
+    Appointment:
+      type: object
+      required: [id, type, title, subtitle, notes, kind, with, specialty, topic, location, scheduled_at, remind_before, remind_at, days_until, add_to_calendar, prep, status, is_active, created_at, updated_at]
+      properties:
+        id: {type: integer}
+        type: {type: string, const: appointment}
+        title: {type: string}
+        subtitle: {type: [string, "null"], description: "\"with · specialty\", for legacy readers."}
+        notes: {type: [string, "null"]}
+        kind: {type: string, enum: [in_person, phone, online]}
+        with: {type: [string, "null"]}
+        specialty: {type: [string, "null"]}
+        topic: {type: string, enum: [ultrasound, checkup, lab, consult, vaccine, other]}
+        location: {type: [string, "null"]}
+        scheduled_at: {type: [string, "null"], description: "Tehran wall-clock `Y-m-d H:i:s`."}
+        remind_before: {type: string, enum: [1h, 3h, 1d, 2d]}
+        remind_at: {type: [string, "null"], description: "`scheduled_at − remind_before`, Tehran wall-clock `Y-m-d H:i:s`."}
+        days_until: {type: [integer, "null"], description: "Civil days (Tehran) from today to the appointment day; negative when past."}
+        add_to_calendar: {type: boolean}
+        prep: {type: array, items: {$ref: "#/components/schemas/PrepItem"}}
+        status: {type: string, enum: [scheduled, cancelled]}
+        is_active: {type: boolean}
+        created_at:
+          anyOf: [{$ref: "#/components/schemas/LaravelDateTime"}, {type: "null"}]
+        updated_at:
+          anyOf: [{$ref: "#/components/schemas/LaravelDateTime"}, {type: "null"}]
+      example:
+        id: 40
+        type: appointment
+        title: سونوگرافی NT
+        subtitle: دکتر احمدی · زنان و زایمان
+        notes: null
+        kind: in_person
+        with: دکتر احمدی
+        specialty: زنان و زایمان
+        topic: ultrasound
+        location: مطب
+        scheduled_at: "2026-09-30 10:30:00"
+        remind_before: 1d
+        remind_at: "2026-09-29 10:30:00"
+        days_until: 7
+        add_to_calendar: true
+        prep: [{id: p1, text: دفترچه بیمه, done: false}]
+        status: scheduled
+        is_active: true
+        created_at: "2026-09-23T06:30:00.000000Z"
+        updated_at: "2026-09-23T06:30:00.000000Z"
     Intake:
       type: object
       required: [reminder_id, date, slot, taken, taken_at]

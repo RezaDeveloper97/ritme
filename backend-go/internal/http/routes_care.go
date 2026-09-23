@@ -26,5 +26,12 @@ func init() {
 		r.Delete("/api/v1/care/medications/:id", locale, guard, h.DestroyMedication)
 		r.Post("/api/v1/care/medications/:id/intakes", locale, guard, h.TakeIntake)
 		r.Delete("/api/v1/care/medications/:id/intakes", locale, guard, h.UntakeIntake)
+		r.Get("/api/v1/care/appointments", locale, guard, h.ListAppointments)
+		r.Post("/api/v1/care/appointments", locale, guard, h.StoreAppointment)
+		r.Get("/api/v1/care/appointments/:id", locale, guard, h.ShowAppointment)
+		r.Put("/api/v1/care/appointments/:id", locale, guard, h.UpdateAppointment)
+		r.Delete("/api/v1/care/appointments/:id", locale, guard, h.DestroyAppointment)
+		r.Post("/api/v1/care/appointments/:id/cancel", locale, guard, h.CancelAppointment)
+		r.Patch("/api/v1/care/appointments/:id/prep/:itemId", locale, guard, h.TogglePrepItem)
 	})
 }

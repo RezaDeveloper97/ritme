@@ -3,7 +3,7 @@ id: T-M3-02
 title: Care reminders — appointment API with prep checklist and cancel (Go)
 milestone: M3
 type: backend
-status: todo
+status: done
 depends_on: [T-M3-01]
 parallel_group: M3-B
 touches: [backend-go/db/queries/care, backend-go/internal/care, backend-go/internal/http/routes_care.go, backend-go/api/openapi.yaml]

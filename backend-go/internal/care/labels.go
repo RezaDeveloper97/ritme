@@ -58,9 +58,13 @@ func Label(group, value, locale string) (string, bool) {
 	return str, isStr
 }
 
-// attributes are the validation attribute names for locale (flat "key", "name" pairs).
-func attributes(locale string) []string {
-	line, ok := translator().Get("care.attributes", locale)
+// attributes are the medication validation attribute names for locale.
+func attributes(locale string) []string { return attributesOf("attributes", locale) }
+
+// attributesOf are the validation attribute names of group ("attributes",
+// "appointment_attributes") for locale, as flat "key", "name" pairs.
+func attributesOf(group, locale string) []string {
+	line, ok := translator().Get("care."+group, locale)
 	m, isMap := line.(phpval.Map)
 	if !ok || !isMap {
 		return nil

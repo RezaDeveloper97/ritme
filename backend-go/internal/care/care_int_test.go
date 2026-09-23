@@ -71,6 +71,13 @@ func setup(t *testing.T) *env {
 	app.Delete("/api/v1/care/medications/:id", locale, guard, h.DestroyMedication)
 	app.Post("/api/v1/care/medications/:id/intakes", locale, guard, h.TakeIntake)
 	app.Delete("/api/v1/care/medications/:id/intakes", locale, guard, h.UntakeIntake)
+	app.Get("/api/v1/care/appointments", locale, guard, h.ListAppointments)
+	app.Post("/api/v1/care/appointments", locale, guard, h.StoreAppointment)
+	app.Get("/api/v1/care/appointments/:id", locale, guard, h.ShowAppointment)
+	app.Put("/api/v1/care/appointments/:id", locale, guard, h.UpdateAppointment)
+	app.Delete("/api/v1/care/appointments/:id", locale, guard, h.DestroyAppointment)
+	app.Post("/api/v1/care/appointments/:id/cancel", locale, guard, h.CancelAppointment)
+	app.Patch("/api/v1/care/appointments/:id/prep/:itemId", locale, guard, h.TogglePrepItem)
 	app.Get("/api/v1/reminders", locale, guard, legacy.Index)
 	return &env{db: db, app: app, iss: passport.NewIssuer(key, q, clock.Real{}, 365)}
 }

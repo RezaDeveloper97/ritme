@@ -45,12 +45,19 @@
         "medication_updated": "یادآور دارو به‌روزرسانی شد",
         "medication_deleted": "یادآور دارو حذف شد",
         "intake_taken": "مصرف این نوبت ثبت شد",
-        "intake_untaken": "مصرف این نوبت برداشته شد"
+        "intake_untaken": "مصرف این نوبت برداشته شد",
+        "appointment_not_found": "نوبت پیدا نشد",
+        "appointment_created": "نوبت ذخیره شد",
+        "appointment_updated": "نوبت به‌روزرسانی شد",
+        "appointment_deleted": "نوبت حذف شد",
+        "appointment_cancelled": "نوبت لغو شد",
+        "prep_item_not_found": "این مورد در فهرست آمادگی پیدا نشد"
     },
     "validation": {
         "ends_on_required": "برای «تا تاریخ مشخص» تاریخ پایان الزامی است.",
         "slot_unknown": "این ساعت جزو نوبت‌های این دارو نیست.",
-        "date_not_scheduled": "این دارو در این روز برنامه مصرف ندارد."
+        "date_not_scheduled": "این دارو در این روز برنامه مصرف ندارد.",
+        "scope_invalid": "بازه باید یکی از upcoming، past یا all باشد."
     },
     "attributes": {
         "title": "نام دارو",
@@ -70,5 +77,23 @@
         "is_active": "وضعیت",
         "date": "تاریخ",
         "slot": "نوبت"
+    },
+    "appointment_attributes": {
+        "kind": "نوع نوبت",
+        "with": "پزشک یا مرکز",
+        "specialty": "تخصص",
+        "topic": "موضوع",
+        "title": "توضیح کوتاه",
+        "scheduled_at": "تاریخ و ساعت نوبت",
+        "location": "مکان",
+        "remind_before": "یادآوری",
+        "add_to_calendar": "افزودن به تقویم",
+        "notes": "یادداشت",
+        "prep": "فهرست آمادگی",
+        "prep.*": "مورد فهرست",
+        "prep.*.text": "مورد فهرست",
+        "prep.*.done": "وضعیت مورد",
+        "is_active": "یادآوری",
+        "done": "انجام شد"
     }
 }

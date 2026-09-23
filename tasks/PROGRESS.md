@@ -453,3 +453,11 @@ Nothing needed fixing.
   `.ck-tone-*`; icons ribbon/flask/tooth/camera/history/filterLines/export; `checkups` namespace fa/en.
 - Open: `checkups` must be added to `message-scopes.ts` by T-M4-06..09; orphaned local attachments after deleting a
   custom checkup → clean up in T-M4-09 (compare `useCheckupAttachmentIds` with records).
+
+## T-M3-02 — Care reminders — appointment API with prep checklist and cancel (Go)
+- `internal/care/appointment*.go`, `db/queries/care/appointments.sql`, 7 routes in `routes_care.go`, OpenAPI
+  (`Appointment`, `AppointmentInput`, `PrepItem`).
+- Choices: `scope=upcoming` (default; scheduled & future, soonest first) | `past` (past or cancelled, newest first) |
+  `all`; `scheduled_at` accepts `Y-m-d H:i[:s]` (Tehran), response adds `remind_at`, `days_until`; prep ids `pN`
+  (client temp ids replaced); PUT ignores `status` (only `/cancel`, idempotent); `PATCH …/prep/{itemId}` exists too.
+- Open for T-M3-03: whether an inactive (`is_active=false`) appointment counts as `next_appointment`.

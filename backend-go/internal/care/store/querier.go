@@ -13,18 +13,26 @@ import (
 type Querier interface {
 	// The due date of the user's active pregnancy (pregnancy mode on); drives duration = pregnancy_end.
 	ActivePregnancyDueDate(ctx context.Context, userID uint64) (civildate.NullDate, error)
+	DeleteAppointment(ctx context.Context, arg DeleteAppointmentParams) (int64, error)
 	DeleteIntake(ctx context.Context, arg DeleteIntakeParams) (int64, error)
 	DeleteMedication(ctx context.Context, arg DeleteMedicationParams) (int64, error)
+	GetAppointment(ctx context.Context, arg GetAppointmentParams) (Reminder, error)
 	GetIntake(ctx context.Context, arg GetIntakeParams) (ReminderIntake, error)
 	GetMedication(ctx context.Context, arg GetMedicationParams) (Reminder, error)
+	InsertAppointment(ctx context.Context, arg InsertAppointmentParams) (int64, error)
 	// Care reminders: doses taken (reminder_intakes, T-M3-01). One row per (reminder, day, slot).
 	// Idempotent tick: a second tick of the same dose keeps the first taken_at.
 	InsertIntake(ctx context.Context, arg InsertIntakeParams) (int64, error)
 	InsertMedication(ctx context.Context, arg InsertMedicationParams) (int64, error)
 	ListActiveMedications(ctx context.Context, userID uint64) ([]Reminder, error)
+	// Care reminders: doctor appointments (T-M3-02). Rows live in `reminders` with type = 'appointment';
+	// the structured fields are in `meta` (internal/care). Every query is scoped by user_id.
+	// Soonest first; the scope (upcoming/past/all) is applied by internal/care.
+	ListAppointments(ctx context.Context, userID uint64) ([]Reminder, error)
 	// Care reminders: medications (T-M3-01). Rows live in `reminders` with type = 'medication';
 	// the structured fields are in `meta` (internal/care). Every query is scoped by user_id.
 	ListMedications(ctx context.Context, userID uint64) ([]Reminder, error)
+	UpdateAppointment(ctx context.Context, arg UpdateAppointmentParams) error
 	UpdateMedication(ctx context.Context, arg UpdateMedicationParams) error
 }
 

@@ -45,12 +45,19 @@
         "medication_updated": "Medication reminder updated",
         "medication_deleted": "Medication reminder deleted",
         "intake_taken": "Dose marked as taken",
-        "intake_untaken": "Dose unmarked"
+        "intake_untaken": "Dose unmarked",
+        "appointment_not_found": "Appointment not found",
+        "appointment_created": "Appointment saved",
+        "appointment_updated": "Appointment updated",
+        "appointment_deleted": "Appointment deleted",
+        "appointment_cancelled": "Appointment cancelled",
+        "prep_item_not_found": "Checklist item not found"
     },
     "validation": {
         "ends_on_required": "The end date is required when the duration is until a date.",
         "slot_unknown": "This time is not one of the medication's dose times.",
-        "date_not_scheduled": "This medication is not scheduled on that day."
+        "date_not_scheduled": "This medication is not scheduled on that day.",
+        "scope_invalid": "The scope must be upcoming, past or all."
     },
     "attributes": {
         "title": "medication name",
@@ -70,5 +77,23 @@
         "is_active": "active",
         "date": "date",
         "slot": "dose time"
+    },
+    "appointment_attributes": {
+        "kind": "appointment type",
+        "with": "doctor or clinic",
+        "specialty": "specialty",
+        "topic": "topic",
+        "title": "short description",
+        "scheduled_at": "appointment date and time",
+        "location": "place",
+        "remind_before": "reminder",
+        "add_to_calendar": "add to calendar",
+        "notes": "notes",
+        "prep": "checklist",
+        "prep.*": "checklist item",
+        "prep.*.text": "checklist item",
+        "prep.*.done": "checklist item status",
+        "is_active": "reminder",
+        "done": "done"
     }
 }
