@@ -6,12 +6,48 @@ package store
 
 import (
 	"context"
+
+	"github.com/ritme/backend-go/internal/platform/civildate"
 )
 
 type Querier interface {
-	// Placeholder so the `healthlog` sqlc package exists and compiles before its domain task lands (T-M2-03).
-	// Delete this file when the first real query is added to db/queries/healthlog/.
-	SampleHealthlogDailyLog(ctx context.Context, id uint64) (DailyHealthLog, error)
+	// Total of the index paginator; a NULL bound (?from_date= present but empty) matches nothing.
+	CountDailyHealthLogs(ctx context.Context, arg CountDailyHealthLogsParams) (int64, error)
+	DeleteDailyHealthLog(ctx context.Context, id uint64) error
+	GetCycleHistoryByStart(ctx context.Context, arg GetCycleHistoryByStartParams) (CycleHistory, error)
+	// Daily health logs (App\Models\DailyHealthLog, DailyHealthLogController).
+	//
+	// Date filters that Laravel passes through as raw request strings (whereDate with a query or
+	// route value) are bound as strings too, so MariaDB coerces them exactly as it does for Laravel.
+	GetDailyHealthLog(ctx context.Context, id uint64) (DailyHealthLog, error)
+	// $user->dailyHealthLogs()->whereDate('log_date', $date)->first() with the raw route value.
+	GetDailyHealthLogByDateString(ctx context.Context, arg GetDailyHealthLogByDateStringParams) (DailyHealthLog, error)
+	// DailyHealthLog::where(['user_id' => $u, 'log_date' => $d])->first() /
+	// $user->dailyHealthLogs()->whereDate('log_date', $carbon)->first().
+	GetDailyHealthLogOn(ctx context.Context, arg GetDailyHealthLogOnParams) (DailyHealthLog, error)
+	// CycleHistory::where('user_id', $u)->orderBy('period_start_date', 'desc')->first().
+	GetLatestCycleHistory(ctx context.Context, userID uint64) (CycleHistory, error)
+	// Side effects of POST /health-logs on user_profiles and cycle_histories
+	// (CycleHistoryService, UserProfile::markRecalculated).
+	// $user->profile (hasOne without ordering: the lowest id on MariaDB).
+	GetUserProfile(ctx context.Context, userID uint64) (UserProfile, error)
+	// CycleHistory::create([user_id, period_start_date, cycle_length, is_confirmed => false]);
+	// is_estimated / source / data_quality_flags keep their column defaults.
+	InsertCycleHistory(ctx context.Context, arg InsertCycleHistoryParams) (int64, error)
+	// Every column is written; the ones the request did not send are NULL (their DB default).
+	InsertDailyHealthLog(ctx context.Context, arg InsertDailyHealthLogParams) (int64, error)
+	// CycleHistoryService::updatePreviousPeriodEndDate: the last bleeding day in [from, before).
+	LastBleedingDateBetween(ctx context.Context, arg LastBleedingDateBetweenParams) (civildate.Date, error)
+	// $user->dailyHealthLogs()->orderBy('log_date', 'desc')->paginate(30) (log_date is unique per user).
+	ListDailyHealthLogs(ctx context.Context, arg ListDailyHealthLogsParams) ([]DailyHealthLog, error)
+	// UserProfile::markRecalculated(): increment('calculation_version', 1, [status, started, completed])
+	// (Eloquent's increment also touches updated_at).
+	MarkProfileRecalculated(ctx context.Context, arg MarkProfileRecalculatedParams) error
+	UpdateCycleHistoryEnd(ctx context.Context, arg UpdateCycleHistoryEndParams) error
+	// fill($validated)->save() when an attribute is dirty (the full row is written back).
+	UpdateDailyHealthLog(ctx context.Context, arg UpdateDailyHealthLogParams) error
+	// CycleHistoryService::updateProfileLMP ($profile->update(['last_period_start' => …]) when dirty).
+	UpdateProfileLastPeriodStart(ctx context.Context, arg UpdateProfileLastPeriodStartParams) error
 }
 
 var _ Querier = (*Queries)(nil)

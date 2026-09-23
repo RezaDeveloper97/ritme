@@ -9,9 +9,19 @@ import (
 )
 
 type Querier interface {
-	// Placeholder so the `reminder` sqlc package exists and compiles before its domain task lands (T-M2-03).
-	// Delete this file when the first real query is added to db/queries/reminder/.
-	SampleReminderReminder(ctx context.Context, id uint64) (Reminder, error)
+	DeleteReminder(ctx context.Context, id uint64) error
+	// $user->reminders()->find($id).
+	GetUserReminder(ctx context.Context, arg GetUserReminderParams) (Reminder, error)
+	InsertReminder(ctx context.Context, arg InsertReminderParams) (int64, error)
+	// Reminders (App\Models\Reminder, ReminderController).
+	// $user->reminders()->orderByDesc('created_at')->get(). Ties (same created_at) come back in
+	// primary-key order on MariaDB (index scan by user_id → id), made explicit here.
+	ListReminders(ctx context.Context, userID uint64) ([]Reminder, error)
+	// ...->ofType($type).
+	ListRemindersByType(ctx context.Context, arg ListRemindersByTypeParams) ([]Reminder, error)
+	// $reminder->update($validated) when at least one attribute is dirty (the full row is
+	// written back; untouched columns keep their loaded value).
+	UpdateReminder(ctx context.Context, arg UpdateReminderParams) error
 }
 
 var _ Querier = (*Queries)(nil)

@@ -3,7 +3,7 @@ id: T-M2-12
 title: Reminders and daily health log endpoints
 milestone: M2
 type: backend
-status: todo
+status: done
 depends_on: [T-M2-05, T-M2-06, T-M2-07, T-M2-08]
 parallel_group: M2-E
 touches: [backend-go/internal/reminder, backend-go/internal/healthlog, backend-go/internal/http/routes_reminder.go, backend-go/internal/http/routes_healthlog.go, backend-go/db/queries/reminder, backend-go/db/queries/healthlog, backend-go/contract/allowlist/reminders.yaml, backend-go/contract/allowlist/healthlog.yaml]

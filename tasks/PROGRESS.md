@@ -265,3 +265,11 @@ Nothing needed fixing.
 - `deploy/switch-go-route.sh <stage|prod> <group> <on|off> [--dry-run|--local|--status]` (backup, in-place rewrite,
   `nginx -t`, reload, auto-rollback). Go responses carry `X-Backend: go`. Runbook: `docs/go-migration/cutover.md`.
 - Blocked: staging deploy needs one prod proxy recreate (user OK). Verify needs `ADMIN_SEED_PASSWORD` in `.env`.
+
+## T-M2-12 — Reminders and daily health log endpoints
+- `internal/reminder`, `internal/healthlog` (+ `model`: `DailyHealthLog::toArray()` equivalent, typed accessors,
+  implements `enums.TriggerLog`), `routes_reminder.go`, `routes_healthlog.go`, queries in `db/queries/{reminder,healthlog}`.
+- `CycleHistoryService` is live (only caller: `DailyHealthLogController::store`) → fully ported in `healthlog/cyclehistory.go`.
+- Side-effects integration test replays 10 POSTs and compares DB rows with Laravel (`testdata/sideeffects`).
+- Contract: 83/86 — 3 cases fail only on period-route steps (green after T-M2-15; noted there). D-01/D-02 kept as Laravel (500s).
+- Open: `markRecalculated`/LMP update queries duplicated with the profile store.

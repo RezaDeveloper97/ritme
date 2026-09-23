@@ -51,3 +51,8 @@ Home sections that show cycle data (T-M2-18).
 `/cycle/period/history` and `/cycle/status` — they turn green once this task lands; include `profile` in the
 contract run here. Reuse `internal/profile/model` (`Attributes` Eloquent serializer with CycleHistory and
 DailyHealthLog cast tables) and `profile.MarkRecalculated`.
+
+## Note from T-M2-12
+3 cases in `make contract ROUTES=reminders,healthlog` fail only on later steps calling `/cycle/period/status|history`
+— include `healthlog` in this task's contract run. For `legacy.DailyLog.Source` use
+`healthlog/model.FromRow(store.DailyHealthLog(row)).ToArray()` (it also implements `enums.TriggerLog`).

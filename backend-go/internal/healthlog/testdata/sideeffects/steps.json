@@ -1,0 +1,12 @@
+[
+  {"doc": "overdue_10: bleeding today starts a period, closes nothing (no bleeding logs), moves the LMP", "user": 1010, "mobile": "09900000010", "locale": "en", "body": {"log_date": "2026-09-23", "bleeding_intensity": "medium", "blood_color": "red"}, "now": "2026-09-23T10:00:00+03:30"},
+  {"doc": "short_outlier: low bleeding on cycle day 21 (warning) + new period", "user": 1006, "mobile": "09900000006", "locale": "fa", "body": {"log_date": "2026-09-23", "bleeding_intensity": "low"}, "now": "2026-09-23T10:00:00+03:30"},
+  {"doc": "regular: 09-15 had bleeding → 09-16 continues the period", "user": 1004, "mobile": "09900000004", "locale": "en", "body": {"log_date": "2026-09-16", "bleeding_intensity": "low"}, "now": "2026-09-23T10:00:00+03:30"},
+  {"doc": "regular: update the existing 09-21 log with bleeding → new period, previous closed at 09-16", "user": 1004, "mobile": "09900000004", "locale": "en", "body": {"log_date": "2026-09-21", "bleeding_intensity": "medium", "notes": "updated"}, "now": "2026-09-23T10:20:00+03:30"},
+  {"doc": "regular: back-dated bleeding before the latest period → negative cycle_length, LMP moves back", "user": 1004, "mobile": "09900000004", "locale": "en", "body": {"log_date": "2026-09-01", "bleeding_intensity": "high"}, "now": "2026-09-23T10:00:00+03:30"},
+  {"doc": "no_profile: period row without a profile to update", "user": 1001, "mobile": "09900000001", "locale": "en", "body": {"log_date": "2026-09-23", "bleeding_intensity": "high"}, "now": "2026-09-23T10:00:00+03:30"},
+  {"doc": "irregular: spotting only → warning, no cycle history change", "user": 1005, "mobile": "09900000005", "locale": "fa", "body": {"log_date": "2026-09-23", "spotting": true}, "now": "2026-09-23T10:00:00+03:30"},
+  {"doc": "open_period_day3: new low bleeding day inside the open period", "user": 1007, "mobile": "09900000007", "locale": "en", "body": {"log_date": "2026-09-22", "bleeding_intensity": "low"}, "now": "2026-09-23T10:00:00+03:30"},
+  {"doc": "open_period_day3: continuation", "user": 1007, "mobile": "09900000007", "locale": "en", "body": {"log_date": "2026-09-23", "bleeding_intensity": "medium", "moods": ["sad"], "weight": 58.255}, "now": "2026-09-23T10:00:00+03:30"},
+  {"doc": "open_period_day3: identical re-send → nothing dirty, updated_at kept", "user": 1007, "mobile": "09900000007", "locale": "en", "body": {"log_date": "2026-09-23", "bleeding_intensity": "medium", "moods": ["sad"], "weight": "58.26"}, "now": "2026-09-23T11:00:00+03:30"}
+]
