@@ -195,3 +195,10 @@ Nothing needed fixing.
 - goose v3.26.0 (v3.28 needs go 1.26). `make test-int` passes `TEST_DB_ADMIN_DSN`.
 - Open: baseline not diffed against the staging DB (server read needs user approval):
   `scripts/schema-diff.sh --against <staging --no-data dump>`.
+
+## T-M2-07 — Enums — PHP→Go generator plus hand-ported enum logic
+- `cmd/enumgen` parses `backend/app/Enums` + MessageSystem enums → 58 `internal/enums/zz_generated_*.go`
+  (values in PHP order, From/IsValid/Cases, Label/Description/Icon, Options). `go generate ./internal/enums/...`.
+- Hand-ported logic: `cycle_logic.go`, `health_logic.go`, `recommendation_logic.go` (PHP file:line cited).
+- Parity test vs `testdata/php_enums.json` (refresh: `php internal/enums/testdata/dump_enums.php ../backend > internal/enums/testdata/php_enums.json`).
+- Conventions: PHP null → `""`; `labelFor` → `(string,bool)`; locale-less labels keep `Label(_ string)`.

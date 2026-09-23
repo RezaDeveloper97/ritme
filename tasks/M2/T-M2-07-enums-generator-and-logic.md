@@ -3,7 +3,7 @@ id: T-M2-07
 title: Enums — PHP→Go generator plus hand-ported enum logic
 milestone: M2
 type: backend
-status: todo
+status: done
 depends_on: [T-M2-04]
 parallel_group: M2-C
 touches: [backend-go/cmd/enumgen, backend-go/internal/enums]

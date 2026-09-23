@@ -1,0 +1,3488 @@
+{
+    "enums": {
+        "AlertLevel": {
+            "values": [
+                "info",
+                "warning",
+                "emergency"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "اطلاع‌رسانی",
+                        "هشدار",
+                        "اورژانسی"
+                    ],
+                    "en": [
+                        "Information",
+                        "Warning",
+                        "Emergency"
+                    ],
+                    "de": [
+                        "Information",
+                        "Warning",
+                        "Emergency"
+                    ]
+                },
+                "description": {
+                    "fa": [
+                        "اطلاعات عمومی و راهنمایی",
+                        "نیاز به توجه و احتیاط",
+                        "مراجعه فوری به پزشک"
+                    ],
+                    "en": [
+                        "General information and guidance",
+                        "Requires attention and caution",
+                        "Immediate medical attention required"
+                    ],
+                    "de": [
+                        "General information and guidance",
+                        "Requires attention and caution",
+                        "Immediate medical attention required"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "Amount": {
+            "values": [
+                "low",
+                "medium",
+                "high"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "کم",
+                        "متوسط",
+                        "زیاد"
+                    ],
+                    "en": [
+                        "کم",
+                        "متوسط",
+                        "زیاد"
+                    ],
+                    "de": [
+                        "کم",
+                        "متوسط",
+                        "زیاد"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "BannerLinkType": {
+            "values": [
+                "internal",
+                "external"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "داخلی (درون برنامه)",
+                        "خارجی (تب جدید)"
+                    ],
+                    "en": [
+                        "Internal (in-app)",
+                        "External (new tab)"
+                    ],
+                    "de": [
+                        "Internal (in-app)",
+                        "External (new tab)"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "BannerPosition": {
+            "values": [
+                "home_top",
+                "home_middle",
+                "home_bottom"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "خانه - بالا",
+                        "خانه - میانه",
+                        "خانه - پایین"
+                    ],
+                    "en": [
+                        "Home - Top",
+                        "Home - Middle",
+                        "Home - Bottom"
+                    ],
+                    "de": [
+                        "Home - Top",
+                        "Home - Middle",
+                        "Home - Bottom"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "BloodColor": {
+            "values": [
+                "bright_red",
+                "red",
+                "dark_red",
+                "brown"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "قرمز روشن",
+                        "قرمز",
+                        "قرمز تیره",
+                        "قهوه‌ای"
+                    ],
+                    "en": [
+                        "قرمز روشن",
+                        "قرمز",
+                        "قرمز تیره",
+                        "قهوه‌ای"
+                    ],
+                    "de": [
+                        "قرمز روشن",
+                        "قرمز",
+                        "قرمز تیره",
+                        "قهوه‌ای"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "BloodType": {
+            "values": [
+                "A",
+                "B",
+                "AB",
+                "O"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "A",
+                        "B",
+                        "AB",
+                        "O"
+                    ],
+                    "en": [
+                        "A",
+                        "B",
+                        "AB",
+                        "O"
+                    ],
+                    "de": [
+                        "A",
+                        "B",
+                        "AB",
+                        "O"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "BmiCategory": {
+            "values": [
+                "underweight",
+                "normal",
+                "overweight",
+                "obese"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "کم‌وزن",
+                        "طبیعی",
+                        "اضافه‌وزن",
+                        "چاق"
+                    ],
+                    "en": [
+                        "Underweight",
+                        "Normal",
+                        "Overweight",
+                        "Obese"
+                    ],
+                    "de": [
+                        "Underweight",
+                        "Normal",
+                        "Overweight",
+                        "Obese"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "CalculationStatus": {
+            "values": [
+                "pending",
+                "processing",
+                "completed",
+                "failed"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "در انتظار",
+                        "در حال پردازش",
+                        "محاسبه شده",
+                        "خطا"
+                    ],
+                    "en": [
+                        "Pending",
+                        "Processing",
+                        "Completed",
+                        "Failed"
+                    ],
+                    "de": [
+                        "Pending",
+                        "Processing",
+                        "Completed",
+                        "Failed"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "ChronicCondition": {
+            "values": [
+                "pcos",
+                "hypothyroidism",
+                "hyperthyroidism",
+                "hypertension",
+                "heart_disease",
+                "diabetes"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "تخمدان پلی‌کیستیک (PCOS)",
+                        "کم‌کاری تیروئید",
+                        "پرکاری تیروئید",
+                        "فشار خون بالا",
+                        "بیماری قلبی",
+                        "دیابت (نوع ۱، ۲ یا بارداری)"
+                    ],
+                    "en": [
+                        "Polycystic ovary syndrome (PCOS)",
+                        "Hypothyroidism",
+                        "Hyperthyroidism",
+                        "High blood pressure",
+                        "Heart disease",
+                        "Diabetes (type 1, 2 or gestational)"
+                    ],
+                    "de": [
+                        "Polycystic ovary syndrome (PCOS)",
+                        "Hypothyroidism",
+                        "Hyperthyroidism",
+                        "High blood pressure",
+                        "Heart disease",
+                        "Diabetes (type 1, 2 or gestational)"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "ClotsAmount": {
+            "values": [
+                "none",
+                "low",
+                "medium",
+                "high"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "ندارد",
+                        "کم",
+                        "متوسط",
+                        "زیاد"
+                    ],
+                    "en": [
+                        "None",
+                        "Light",
+                        "Moderate",
+                        "Heavy"
+                    ],
+                    "de": [
+                        "None",
+                        "Light",
+                        "Moderate",
+                        "Heavy"
+                    ]
+                }
+            },
+            "per_case": {
+                "isPresent": [
+                    false,
+                    true,
+                    true,
+                    true
+                ]
+            },
+            "options": null
+        },
+        "ConfidenceLevel": {
+            "values": [
+                "high",
+                "medium",
+                "low",
+                "unknown"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "بالا",
+                        "متوسط",
+                        "پایین",
+                        "نامشخص"
+                    ],
+                    "en": [
+                        "High",
+                        "Medium",
+                        "Low",
+                        "Unknown"
+                    ],
+                    "de": [
+                        "High",
+                        "Medium",
+                        "Low",
+                        "Unknown"
+                    ]
+                },
+                "description": {
+                    "fa": [
+                        "مبتنی بر سونوگرافی",
+                        "مبتنی بر LMP دقیق",
+                        "ورود نامطمئن",
+                        "داده کافی وجود ندارد"
+                    ],
+                    "en": [
+                        "Based on ultrasound",
+                        "Based on accurate LMP",
+                        "Uncertain entry",
+                        "Not enough data"
+                    ],
+                    "de": [
+                        "Based on ultrasound",
+                        "Based on accurate LMP",
+                        "Uncertain entry",
+                        "Not enough data"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "CyclePhase": {
+            "values": [
+                "menstruation",
+                "follicular",
+                "ovulation",
+                "luteal"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "قاعدگی",
+                        "فولیکولار",
+                        "تخمک‌گذاری",
+                        "لوتئال"
+                    ],
+                    "en": [
+                        "Menstruation",
+                        "Follicular",
+                        "Ovulation",
+                        "Luteal"
+                    ],
+                    "de": [
+                        "Menstruation",
+                        "Follicular",
+                        "Ovulation",
+                        "Luteal"
+                    ]
+                },
+                "description": {
+                    "fa": [
+                        "دوران خون‌ریزی ماهانه",
+                        "دوران رشد فولیکول و آماده‌سازی تخمک",
+                        "دوران آزادسازی تخمک",
+                        "دوران پس از تخمک‌گذاری"
+                    ],
+                    "en": [
+                        "Monthly bleeding period",
+                        "Follicle growth and egg preparation phase",
+                        "Egg release period",
+                        "Post-ovulation phase"
+                    ],
+                    "de": [
+                        "Monthly bleeding period",
+                        "Follicle growth and egg preparation phase",
+                        "Egg release period",
+                        "Post-ovulation phase"
+                    ]
+                }
+            },
+            "per_case": {
+                "subphases": [
+                    [
+                        "menstruation"
+                    ],
+                    [
+                        "early_follicular",
+                        "mid_follicular",
+                        "fertile_rising",
+                        "high_fertility"
+                    ],
+                    [
+                        "ovulation_likely",
+                        "post_ovulation"
+                    ],
+                    [
+                        "early_luteal",
+                        "mid_luteal",
+                        "late_luteal",
+                        "pms_possible"
+                    ]
+                ]
+            },
+            "options": {
+                "fa": [
+                    {
+                        "value": "menstruation",
+                        "label": "قاعدگی"
+                    },
+                    {
+                        "value": "follicular",
+                        "label": "فولیکولار"
+                    },
+                    {
+                        "value": "ovulation",
+                        "label": "تخمک‌گذاری"
+                    },
+                    {
+                        "value": "luteal",
+                        "label": "لوتئال"
+                    }
+                ],
+                "en": [
+                    {
+                        "value": "menstruation",
+                        "label": "Menstruation"
+                    },
+                    {
+                        "value": "follicular",
+                        "label": "Follicular"
+                    },
+                    {
+                        "value": "ovulation",
+                        "label": "Ovulation"
+                    },
+                    {
+                        "value": "luteal",
+                        "label": "Luteal"
+                    }
+                ],
+                "de": [
+                    {
+                        "value": "menstruation",
+                        "label": "Menstruation"
+                    },
+                    {
+                        "value": "follicular",
+                        "label": "Follicular"
+                    },
+                    {
+                        "value": "ovulation",
+                        "label": "Ovulation"
+                    },
+                    {
+                        "value": "luteal",
+                        "label": "Luteal"
+                    }
+                ]
+            }
+        },
+        "CycleSubphase": {
+            "values": [
+                "menstruation",
+                "menstrual",
+                "menstrual_possible",
+                "early_follicular",
+                "mid_follicular",
+                "late_follicular_transition",
+                "fertile_rising",
+                "high_fertility",
+                "ovulation_likely",
+                "post_ovulation",
+                "early_luteal",
+                "mid_luteal",
+                "late_luteal",
+                "pms_possible",
+                "period_expected",
+                "unknown"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "قاعدگی",
+                        "قاعدگی",
+                        "احتمال ادامه قاعدگی",
+                        "فولیکولار اولیه",
+                        "فولیکولار میانی",
+                        "گذار فولیکولار پایانی",
+                        "افزایش باروری",
+                        "باروری بالا",
+                        "احتمال تخمک‌گذاری",
+                        "پس از تخمک‌گذاری",
+                        "لوتئال اولیه",
+                        "لوتئال میانی",
+                        "لوتئال پایانی",
+                        "احتمال پی‌ام‌اس",
+                        "انتظار پریود",
+                        "نامشخص"
+                    ],
+                    "en": [
+                        "Menstruation",
+                        "Menstruation",
+                        "Possibly Still Menstruating",
+                        "Early Follicular",
+                        "Mid Follicular",
+                        "Late Follicular Transition",
+                        "Rising Fertility",
+                        "High Fertility",
+                        "Ovulation Likely",
+                        "Post-Ovulation",
+                        "Early Luteal",
+                        "Mid Luteal",
+                        "Late Luteal",
+                        "Possible PMS",
+                        "Period Expected",
+                        "Unknown"
+                    ],
+                    "de": [
+                        "Menstruation",
+                        "Menstruation",
+                        "Possibly Still Menstruating",
+                        "Early Follicular",
+                        "Mid Follicular",
+                        "Late Follicular Transition",
+                        "Rising Fertility",
+                        "High Fertility",
+                        "Ovulation Likely",
+                        "Post-Ovulation",
+                        "Early Luteal",
+                        "Mid Luteal",
+                        "Late Luteal",
+                        "Possible PMS",
+                        "Period Expected",
+                        "Unknown"
+                    ]
+                }
+            },
+            "per_case": {
+                "fertilityLevelV11": [
+                    "low",
+                    "low",
+                    "low",
+                    "low",
+                    "low",
+                    "medium",
+                    "medium",
+                    "high",
+                    "peak",
+                    "low",
+                    "low",
+                    "low",
+                    "low",
+                    "low",
+                    "unknown",
+                    "unknown"
+                ],
+                "fertilityLevel": [
+                    "low",
+                    "low",
+                    "low",
+                    "low",
+                    "low",
+                    "low",
+                    "medium",
+                    "high",
+                    "very_high",
+                    "medium",
+                    "low",
+                    "low",
+                    "low",
+                    "low",
+                    "low",
+                    "low"
+                ],
+                "canonical": [
+                    "menstruation",
+                    "menstruation",
+                    "menstruation",
+                    "early_follicular",
+                    "mid_follicular",
+                    "mid_follicular",
+                    "fertile_rising",
+                    "high_fertility",
+                    "ovulation_likely",
+                    "post_ovulation",
+                    "early_luteal",
+                    "mid_luteal",
+                    "late_luteal",
+                    "pms_possible",
+                    "period_expected",
+                    "period_expected"
+                ]
+            },
+            "options": {
+                "fa": [
+                    {
+                        "value": "menstruation",
+                        "label": "قاعدگی"
+                    },
+                    {
+                        "value": "early_follicular",
+                        "label": "فولیکولار اولیه"
+                    },
+                    {
+                        "value": "mid_follicular",
+                        "label": "فولیکولار میانی"
+                    },
+                    {
+                        "value": "fertile_rising",
+                        "label": "افزایش باروری"
+                    },
+                    {
+                        "value": "high_fertility",
+                        "label": "باروری بالا"
+                    },
+                    {
+                        "value": "ovulation_likely",
+                        "label": "احتمال تخمک‌گذاری"
+                    },
+                    {
+                        "value": "post_ovulation",
+                        "label": "پس از تخمک‌گذاری"
+                    },
+                    {
+                        "value": "early_luteal",
+                        "label": "لوتئال اولیه"
+                    },
+                    {
+                        "value": "mid_luteal",
+                        "label": "لوتئال میانی"
+                    },
+                    {
+                        "value": "late_luteal",
+                        "label": "لوتئال پایانی"
+                    },
+                    {
+                        "value": "pms_possible",
+                        "label": "احتمال پی‌ام‌اس"
+                    },
+                    {
+                        "value": "period_expected",
+                        "label": "انتظار پریود"
+                    }
+                ],
+                "en": [
+                    {
+                        "value": "menstruation",
+                        "label": "Menstruation"
+                    },
+                    {
+                        "value": "early_follicular",
+                        "label": "Early Follicular"
+                    },
+                    {
+                        "value": "mid_follicular",
+                        "label": "Mid Follicular"
+                    },
+                    {
+                        "value": "fertile_rising",
+                        "label": "Rising Fertility"
+                    },
+                    {
+                        "value": "high_fertility",
+                        "label": "High Fertility"
+                    },
+                    {
+                        "value": "ovulation_likely",
+                        "label": "Ovulation Likely"
+                    },
+                    {
+                        "value": "post_ovulation",
+                        "label": "Post-Ovulation"
+                    },
+                    {
+                        "value": "early_luteal",
+                        "label": "Early Luteal"
+                    },
+                    {
+                        "value": "mid_luteal",
+                        "label": "Mid Luteal"
+                    },
+                    {
+                        "value": "late_luteal",
+                        "label": "Late Luteal"
+                    },
+                    {
+                        "value": "pms_possible",
+                        "label": "Possible PMS"
+                    },
+                    {
+                        "value": "period_expected",
+                        "label": "Period Expected"
+                    }
+                ],
+                "de": [
+                    {
+                        "value": "menstruation",
+                        "label": "Menstruation"
+                    },
+                    {
+                        "value": "early_follicular",
+                        "label": "Early Follicular"
+                    },
+                    {
+                        "value": "mid_follicular",
+                        "label": "Mid Follicular"
+                    },
+                    {
+                        "value": "fertile_rising",
+                        "label": "Rising Fertility"
+                    },
+                    {
+                        "value": "high_fertility",
+                        "label": "High Fertility"
+                    },
+                    {
+                        "value": "ovulation_likely",
+                        "label": "Ovulation Likely"
+                    },
+                    {
+                        "value": "post_ovulation",
+                        "label": "Post-Ovulation"
+                    },
+                    {
+                        "value": "early_luteal",
+                        "label": "Early Luteal"
+                    },
+                    {
+                        "value": "mid_luteal",
+                        "label": "Mid Luteal"
+                    },
+                    {
+                        "value": "late_luteal",
+                        "label": "Late Luteal"
+                    },
+                    {
+                        "value": "pms_possible",
+                        "label": "Possible PMS"
+                    },
+                    {
+                        "value": "period_expected",
+                        "label": "Period Expected"
+                    }
+                ]
+            }
+        },
+        "CycleVariability": {
+            "values": [
+                "regular",
+                "semi_irregular",
+                "irregular"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "منظم",
+                        "نیمه‌منظم",
+                        "نامنظم"
+                    ],
+                    "en": [
+                        "Regular",
+                        "Semi-Irregular",
+                        "Irregular"
+                    ],
+                    "de": [
+                        "Regular",
+                        "Semi-Irregular",
+                        "Irregular"
+                    ]
+                }
+            },
+            "per_case": {
+                "uncertaintyRange": [
+                    1,
+                    2,
+                    3
+                ]
+            },
+            "options": null
+        },
+        "CycleWarning": {
+            "values": [
+                "period_end_missing",
+                "period_end_missing_warning_cap_exceeded",
+                "period_end_missing_hard_cap_exceeded",
+                "low_history",
+                "high_cycle_variability",
+                "short_cycle_outlier_detected",
+                "long_cycle_outlier_detected",
+                "onboarding_data_used",
+                "default_values_used",
+                "prediction_based_output",
+                "predicted_period_overdue",
+                "cycle_unresolved_after_expected_period",
+                "insufficient_anchor_data"
+            ],
+            "methods": {},
+            "per_case": {
+                "requiresUserInput": [
+                    false,
+                    true,
+                    true,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    true,
+                    true
+                ]
+            },
+            "options": null
+        },
+        "DataQualityFlag": {
+            "values": [
+                "incomplete_end_missing",
+                "outlier_long_cycle",
+                "outlier_short_cycle",
+                "long_period_flag",
+                "short_period_flag",
+                "irregular_cycle_flag"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "پایان پریود ثبت نشده",
+                        "چرخهٔ بلندِ پرت",
+                        "چرخهٔ کوتاهِ پرت",
+                        "پریود طولانی",
+                        "پریود کوتاه",
+                        "چرخهٔ نامنظم"
+                    ],
+                    "en": [
+                        "Period end missing",
+                        "Outlier long cycle",
+                        "Outlier short cycle",
+                        "Long period",
+                        "Short period",
+                        "Irregular cycle"
+                    ],
+                    "de": [
+                        "Period end missing",
+                        "Outlier long cycle",
+                        "Outlier short cycle",
+                        "Long period",
+                        "Short period",
+                        "Irregular cycle"
+                    ]
+                }
+            },
+            "per_case": {
+                "excludesFromPrediction": [
+                    true,
+                    true,
+                    true,
+                    false,
+                    false,
+                    false
+                ]
+            },
+            "options": null
+        },
+        "DataQualityLevel": {
+            "values": [
+                "good",
+                "partial",
+                "poor",
+                "insufficient"
+            ],
+            "methods": {},
+            "per_case": {},
+            "options": null
+        },
+        "DataSource": {
+            "values": [
+                "user_logged",
+                "user_profile_confirmed",
+                "onboarding_estimate",
+                "onboarding_initial",
+                "system_default",
+                "engine_prediction"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "ثبت‌شده توسط کاربر",
+                        "تأییدشده در پروفایل",
+                        "تخمین اولیهٔ ثبت‌نام",
+                        "مقدار اولیهٔ ثبت‌نام",
+                        "پیش‌فرض سیستم",
+                        "پیش‌بینی موتور"
+                    ],
+                    "en": [
+                        "User logged",
+                        "Profile confirmed",
+                        "Onboarding estimate",
+                        "Onboarding initial",
+                        "System default",
+                        "Engine prediction"
+                    ],
+                    "de": [
+                        "User logged",
+                        "Profile confirmed",
+                        "Onboarding estimate",
+                        "Onboarding initial",
+                        "System default",
+                        "Engine prediction"
+                    ]
+                }
+            },
+            "per_case": {
+                "isActual": [
+                    true,
+                    true,
+                    false,
+                    false,
+                    false,
+                    false
+                ]
+            },
+            "options": null
+        },
+        "DataStatus": {
+            "values": [
+                "actual",
+                "incomplete",
+                "needs_confirmation",
+                "predicted"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "ثبت‌شده",
+                        "اطلاعات ناقص",
+                        "نیاز به تأیید",
+                        "پیش‌بینی‌شده"
+                    ],
+                    "en": [
+                        "Logged",
+                        "Incomplete",
+                        "Needs confirmation",
+                        "Predicted"
+                    ],
+                    "de": [
+                        "Logged",
+                        "Incomplete",
+                        "Needs confirmation",
+                        "Predicted"
+                    ]
+                }
+            },
+            "per_case": {
+                "priority": [
+                    4,
+                    3,
+                    2,
+                    1
+                ]
+            },
+            "options": null
+        },
+        "DischargeColor": {
+            "values": [
+                "clear",
+                "white",
+                "yellow",
+                "green",
+                "gray",
+                "pink_bloody"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "شفاف",
+                        "سفید",
+                        "زرد",
+                        "سبز",
+                        "خاکستری",
+                        "صورتی / خونی"
+                    ],
+                    "en": [
+                        "Clear",
+                        "White",
+                        "Yellow",
+                        "Green",
+                        "Gray",
+                        "Pink / bloody"
+                    ],
+                    "de": [
+                        "Clear",
+                        "White",
+                        "Yellow",
+                        "Green",
+                        "Gray",
+                        "Pink / bloody"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "DischargeTexture": {
+            "values": [
+                "watery",
+                "creamy",
+                "egg_white",
+                "thick"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "آبکی",
+                        "کرمی",
+                        "سفیده تخم‌مرغی",
+                        "غلیظ"
+                    ],
+                    "en": [
+                        "آبکی",
+                        "کرمی",
+                        "سفیده تخم‌مرغی",
+                        "غلیظ"
+                    ],
+                    "de": [
+                        "آبکی",
+                        "کرمی",
+                        "سفیده تخم‌مرغی",
+                        "غلیظ"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "EffectiveSource": {
+            "values": [
+                "recent_valid_cycles",
+                "profile",
+                "default"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "ثبت‌های اخیر",
+                        "مقدار پروفایل",
+                        "پیش‌فرض"
+                    ],
+                    "en": [
+                        "Recent logs",
+                        "Profile value",
+                        "Default"
+                    ],
+                    "de": [
+                        "Recent logs",
+                        "Profile value",
+                        "Default"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "EnergyLevel": {
+            "values": [
+                "very_low",
+                "low",
+                "medium",
+                "high",
+                "very_high"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "خیلی کم",
+                        "کم",
+                        "متوسط",
+                        "زیاد",
+                        "خیلی زیاد"
+                    ],
+                    "en": [
+                        "Very low",
+                        "Low",
+                        "Medium",
+                        "High",
+                        "Very high"
+                    ],
+                    "de": [
+                        "Very low",
+                        "Low",
+                        "Medium",
+                        "High",
+                        "Very high"
+                    ]
+                }
+            },
+            "per_case": {
+                "score": [
+                    15,
+                    35,
+                    60,
+                    80,
+                    100
+                ]
+            },
+            "options": null
+        },
+        "ExerciseIntensity": {
+            "values": [
+                "low",
+                "medium",
+                "high"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "کم",
+                        "متوسط",
+                        "زیاد"
+                    ],
+                    "en": [
+                        "Low",
+                        "Medium",
+                        "High"
+                    ],
+                    "de": [
+                        "Low",
+                        "Medium",
+                        "High"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "ExerciseType": {
+            "values": [
+                "walking",
+                "running",
+                "cycling",
+                "gym",
+                "yoga",
+                "swimming",
+                "dance",
+                "team_sport",
+                "other"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "پیاده‌روی",
+                        "دویدن",
+                        "دوچرخه",
+                        "باشگاه / تمرین قدرتی",
+                        "یوگا / پیلاتس",
+                        "شنا",
+                        "رقص",
+                        "ورزش تیمی",
+                        "سایر"
+                    ],
+                    "en": [
+                        "Walking",
+                        "Running",
+                        "Cycling",
+                        "Gym / strength training",
+                        "Yoga / pilates",
+                        "Swimming",
+                        "Dance",
+                        "Team sport",
+                        "Other"
+                    ],
+                    "de": [
+                        "Walking",
+                        "Running",
+                        "Cycling",
+                        "Gym / strength training",
+                        "Yoga / pilates",
+                        "Swimming",
+                        "Dance",
+                        "Team sport",
+                        "Other"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "FertilityLevel": {
+            "values": [
+                "none",
+                "very_low",
+                "low",
+                "medium",
+                "high",
+                "very_high",
+                "peak",
+                "unknown"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "هیچ",
+                        "خیلی پایین",
+                        "پایین",
+                        "متوسط",
+                        "بالا",
+                        "خیلی بالا",
+                        "اوج",
+                        "نامشخص"
+                    ],
+                    "en": [
+                        "None",
+                        "Very low",
+                        "Low",
+                        "Medium",
+                        "High",
+                        "Very high",
+                        "Peak",
+                        "Unknown"
+                    ],
+                    "de": [
+                        "None",
+                        "Very low",
+                        "Low",
+                        "Medium",
+                        "High",
+                        "Very high",
+                        "Peak",
+                        "Unknown"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "FetalMovementStatus": {
+            "values": [
+                "not_felt_yet",
+                "felt",
+                "normal",
+                "reduced",
+                "increased",
+                "none"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "هنوز حس نکرده‌ام",
+                        "حس کرده‌ام",
+                        "طبیعی",
+                        "کاهش یافته",
+                        "افزایش یافته",
+                        "بدون حرکت"
+                    ],
+                    "en": [
+                        "Not felt yet",
+                        "Felt",
+                        "Normal",
+                        "Reduced",
+                        "Increased",
+                        "No movement"
+                    ],
+                    "de": [
+                        "Not felt yet",
+                        "Felt",
+                        "Normal",
+                        "Reduced",
+                        "Increased",
+                        "No movement"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "Intensity": {
+            "values": [
+                "low",
+                "medium",
+                "high",
+                "very_high"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "کم",
+                        "متوسط",
+                        "زیاد",
+                        "خیلی زیاد"
+                    ],
+                    "en": [
+                        "کم",
+                        "متوسط",
+                        "زیاد",
+                        "خیلی زیاد"
+                    ],
+                    "de": [
+                        "کم",
+                        "متوسط",
+                        "زیاد",
+                        "خیلی زیاد"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "IntercourseType": {
+            "values": [
+                "protected",
+                "unprotected"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "رابطهٔ محافظت‌شده",
+                        "رابطهٔ محافظت‌نشده"
+                    ],
+                    "en": [
+                        "Protected intercourse",
+                        "Unprotected intercourse"
+                    ],
+                    "de": [
+                        "Protected intercourse",
+                        "Unprotected intercourse"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "MainPhase": {
+            "values": [
+                "menstrual",
+                "follicular",
+                "fertile",
+                "luteal",
+                "period_expected",
+                "unknown"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "قاعدگی",
+                        "فولیکولار",
+                        "باروری",
+                        "لوتئال",
+                        "انتظار پریود",
+                        "نامشخص"
+                    ],
+                    "en": [
+                        "Menstrual",
+                        "Follicular",
+                        "Fertile",
+                        "Luteal",
+                        "Period Expected",
+                        "Unknown"
+                    ],
+                    "de": [
+                        "Menstrual",
+                        "Follicular",
+                        "Fertile",
+                        "Luteal",
+                        "Period Expected",
+                        "Unknown"
+                    ]
+                }
+            },
+            "per_case": {
+                "legacyPhase": [
+                    "menstruation",
+                    "follicular",
+                    "ovulation",
+                    "luteal",
+                    "luteal",
+                    null
+                ]
+            },
+            "options": null
+        },
+        "MentalHealthStatus": {
+            "values": [
+                "good",
+                "moderate",
+                "poor"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "خوب",
+                        "متوسط",
+                        "ضعیف"
+                    ],
+                    "en": [
+                        "Good",
+                        "Moderate",
+                        "Poor"
+                    ],
+                    "de": [
+                        "Good",
+                        "Moderate",
+                        "Poor"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "Mood": {
+            "values": [
+                "happy",
+                "calm",
+                "angry",
+                "anxious",
+                "sad",
+                "frustrated",
+                "sensitive",
+                "bored"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "شاد",
+                        "آرام",
+                        "عصبی",
+                        "نگران",
+                        "ناراحت",
+                        "کلافه",
+                        "حساس",
+                        "بی‌حوصله"
+                    ],
+                    "en": [
+                        "شاد",
+                        "آرام",
+                        "عصبی",
+                        "نگران",
+                        "ناراحت",
+                        "کلافه",
+                        "حساس",
+                        "بی‌حوصله"
+                    ],
+                    "de": [
+                        "شاد",
+                        "آرام",
+                        "عصبی",
+                        "نگران",
+                        "ناراحت",
+                        "کلافه",
+                        "حساس",
+                        "بی‌حوصله"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "NotificationType": {
+            "values": [
+                "reminder",
+                "alert",
+                "tip",
+                "achievement",
+                "system"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "یادآوری",
+                        "هشدار",
+                        "نکته",
+                        "دستاورد",
+                        "سیستمی"
+                    ],
+                    "en": [
+                        "Reminder",
+                        "Alert",
+                        "Tip",
+                        "Achievement",
+                        "System"
+                    ],
+                    "de": [
+                        "Reminder",
+                        "Alert",
+                        "Tip",
+                        "Achievement",
+                        "System"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "OverrideType": {
+            "values": [
+                "normal",
+                "pain",
+                "mood_sad",
+                "mood_angry",
+                "heavy_flow",
+                "skin_acne",
+                "discharge",
+                "headache",
+                "ovarian_pain",
+                "stress",
+                "spotting",
+                "pms",
+                "ttc_grief",
+                "ttc_performance_anxiety",
+                "negative_test",
+                "implantation_spotting"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "حالت نرمال",
+                        "درد شدید",
+                        "غمگینی",
+                        "عصبانیت",
+                        "خونریزی شدید",
+                        "جوش صورت",
+                        "ترشحات",
+                        "سردرد",
+                        "درد تخمدان",
+                        "استرس",
+                        "لکه‌بینی",
+                        "سندروم پیش از قاعدگی",
+                        "ناراحتی از پریود شدن",
+                        "اضطراب عملکرد",
+                        "تست منفی",
+                        "لکه‌بینی لانه‌گزینی"
+                    ],
+                    "en": [
+                        "Normal",
+                        "Severe Pain",
+                        "Sad Mood",
+                        "Angry Mood",
+                        "Heavy Flow",
+                        "Acne",
+                        "Discharge",
+                        "Headache",
+                        "Ovarian Pain",
+                        "Stress",
+                        "Spotting",
+                        "PMS",
+                        "TTC Grief",
+                        "Performance Anxiety",
+                        "Negative Test",
+                        "Implantation Spotting"
+                    ],
+                    "de": [
+                        "Normal",
+                        "Severe Pain",
+                        "Sad Mood",
+                        "Angry Mood",
+                        "Heavy Flow",
+                        "Acne",
+                        "Discharge",
+                        "Headache",
+                        "Ovarian Pain",
+                        "Stress",
+                        "Spotting",
+                        "PMS",
+                        "TTC Grief",
+                        "Performance Anxiety",
+                        "Negative Test",
+                        "Implantation Spotting"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "PainIntensity": {
+            "values": [
+                "low",
+                "medium",
+                "high"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "کم",
+                        "متوسط",
+                        "زیاد"
+                    ],
+                    "en": [
+                        "کم",
+                        "متوسط",
+                        "زیاد"
+                    ],
+                    "de": [
+                        "کم",
+                        "متوسط",
+                        "زیاد"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "PeriodEndSource": {
+            "values": [
+                "user_logged",
+                "assumed_from_effective_duration",
+                "unknown"
+            ],
+            "methods": {},
+            "per_case": {},
+            "options": null
+        },
+        "PeriodStartSource": {
+            "values": [
+                "user_logged",
+                "onboarding_declared",
+                "predicted_reference",
+                "unknown"
+            ],
+            "methods": {},
+            "per_case": {},
+            "options": null
+        },
+        "PreExistingCondition": {
+            "values": [
+                "chronic_hypertension",
+                "diabetes",
+                "hypothyroidism",
+                "hyperthyroidism",
+                "none"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "فشار خون مزمن",
+                        "دیابت",
+                        "کم‌کاری تیروئید",
+                        "پرکاری تیروئید",
+                        "هیچ‌کدام"
+                    ],
+                    "en": [
+                        "Chronic Hypertension",
+                        "Diabetes",
+                        "Hypothyroidism",
+                        "Hyperthyroidism",
+                        "None"
+                    ],
+                    "de": [
+                        "Chronic Hypertension",
+                        "Diabetes",
+                        "Hypothyroidism",
+                        "Hyperthyroidism",
+                        "None"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "PregnancyAgeSource": {
+            "values": [
+                "lmp",
+                "ultrasound",
+                "manual"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "تاریخ آخرین پریود",
+                        "سونوگرافی",
+                        "ورود دستی"
+                    ],
+                    "en": [
+                        "Last Menstrual Period",
+                        "Ultrasound",
+                        "Manual Entry"
+                    ],
+                    "de": [
+                        "Last Menstrual Period",
+                        "Ultrasound",
+                        "Manual Entry"
+                    ]
+                },
+                "description": {
+                    "fa": [
+                        "محاسبه بر اساس اولین روز آخرین پریود",
+                        "محاسبه بر اساس اطلاعات سونوگرافی",
+                        "ورود مستقیم هفته و روز بارداری"
+                    ],
+                    "en": [
+                        "Calculation based on first day of last menstrual period",
+                        "Calculation based on ultrasound information",
+                        "Direct entry of pregnancy week and day"
+                    ],
+                    "de": [
+                        "Calculation based on first day of last menstrual period",
+                        "Calculation based on ultrasound information",
+                        "Direct entry of pregnancy week and day"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "PregnancyIntention": {
+            "values": [
+                "avoiding",
+                "pregnant",
+                "trying",
+                "unsure"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "فعلاً قصد بارداری ندارم",
+                        "باردار هستم",
+                        "در حال تلاش برای بارداری هستم",
+                        "مطمئن نیستم / هنوز تصمیم نگرفته‌ام"
+                    ],
+                    "en": [
+                        "Not planning a pregnancy right now",
+                        "I am pregnant",
+                        "Trying to conceive",
+                        "Not sure yet"
+                    ],
+                    "de": [
+                        "Not planning a pregnancy right now",
+                        "I am pregnant",
+                        "Trying to conceive",
+                        "Not sure yet"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "RecommendationTrigger": {
+            "values": [
+                "headache",
+                "cramps",
+                "poor_sleep",
+                "low_mood",
+                "bloating",
+                "fatigue"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "سردرد",
+                        "درد و کرامپ",
+                        "کیفیت خواب بد",
+                        "اضطراب یا غم",
+                        "نفخ",
+                        "خستگی"
+                    ],
+                    "en": [
+                        "Headache",
+                        "Cramps",
+                        "Poor sleep",
+                        "Anxious or sad mood",
+                        "Bloating",
+                        "Fatigue"
+                    ],
+                    "de": [
+                        "Headache",
+                        "Cramps",
+                        "Poor sleep",
+                        "Anxious or sad mood",
+                        "Bloating",
+                        "Fatigue"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": {
+                "fa": [
+                    {
+                        "value": "headache",
+                        "label": "سردرد"
+                    },
+                    {
+                        "value": "cramps",
+                        "label": "درد و کرامپ"
+                    },
+                    {
+                        "value": "poor_sleep",
+                        "label": "کیفیت خواب بد"
+                    },
+                    {
+                        "value": "low_mood",
+                        "label": "اضطراب یا غم"
+                    },
+                    {
+                        "value": "bloating",
+                        "label": "نفخ"
+                    },
+                    {
+                        "value": "fatigue",
+                        "label": "خستگی"
+                    }
+                ],
+                "en": [
+                    {
+                        "value": "headache",
+                        "label": "Headache"
+                    },
+                    {
+                        "value": "cramps",
+                        "label": "Cramps"
+                    },
+                    {
+                        "value": "poor_sleep",
+                        "label": "Poor sleep"
+                    },
+                    {
+                        "value": "low_mood",
+                        "label": "Anxious or sad mood"
+                    },
+                    {
+                        "value": "bloating",
+                        "label": "Bloating"
+                    },
+                    {
+                        "value": "fatigue",
+                        "label": "Fatigue"
+                    }
+                ],
+                "de": [
+                    {
+                        "value": "headache",
+                        "label": "Headache"
+                    },
+                    {
+                        "value": "cramps",
+                        "label": "Cramps"
+                    },
+                    {
+                        "value": "poor_sleep",
+                        "label": "Poor sleep"
+                    },
+                    {
+                        "value": "low_mood",
+                        "label": "Anxious or sad mood"
+                    },
+                    {
+                        "value": "bloating",
+                        "label": "Bloating"
+                    },
+                    {
+                        "value": "fatigue",
+                        "label": "Fatigue"
+                    }
+                ]
+            }
+        },
+        "RecommendationType": {
+            "values": [
+                "nutrition",
+                "hydration",
+                "warmth",
+                "rest",
+                "energy",
+                "exercise",
+                "fertility",
+                "pms",
+                "mood",
+                "mental_health",
+                "pain_relief",
+                "sleep",
+                "digestion",
+                "general"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "تغذیه",
+                        "آب‌رسانی",
+                        "گرما درمانی",
+                        "استراحت",
+                        "انرژی",
+                        "ورزش",
+                        "باروری",
+                        "پی‌ام‌اس",
+                        "خلق‌وخو",
+                        "سلامت روان",
+                        "تسکین درد",
+                        "خواب",
+                        "گوارش",
+                        "توصیه"
+                    ],
+                    "en": [
+                        "Nutrition",
+                        "Hydration",
+                        "Warmth",
+                        "Rest",
+                        "Energy",
+                        "Exercise",
+                        "Fertility",
+                        "PMS",
+                        "Mood",
+                        "Mental health",
+                        "Pain relief",
+                        "Sleep",
+                        "Digestion",
+                        "Tip"
+                    ],
+                    "de": [
+                        "Nutrition",
+                        "Hydration",
+                        "Warmth",
+                        "Rest",
+                        "Energy",
+                        "Exercise",
+                        "Fertility",
+                        "PMS",
+                        "Mood",
+                        "Mental health",
+                        "Pain relief",
+                        "Sleep",
+                        "Digestion",
+                        "Tip"
+                    ]
+                }
+            },
+            "per_case": {
+                "icon": [
+                    "apple",
+                    "water-glass",
+                    "heat",
+                    "bed",
+                    "bolt",
+                    "walking",
+                    "heart",
+                    "flower",
+                    "smile",
+                    "brain",
+                    "bandage",
+                    "moon",
+                    "stomach",
+                    "sparkle"
+                ]
+            },
+            "options": {
+                "fa": [
+                    {
+                        "value": "nutrition",
+                        "label": "تغذیه"
+                    },
+                    {
+                        "value": "hydration",
+                        "label": "آب‌رسانی"
+                    },
+                    {
+                        "value": "warmth",
+                        "label": "گرما درمانی"
+                    },
+                    {
+                        "value": "rest",
+                        "label": "استراحت"
+                    },
+                    {
+                        "value": "energy",
+                        "label": "انرژی"
+                    },
+                    {
+                        "value": "exercise",
+                        "label": "ورزش"
+                    },
+                    {
+                        "value": "fertility",
+                        "label": "باروری"
+                    },
+                    {
+                        "value": "pms",
+                        "label": "پی‌ام‌اس"
+                    },
+                    {
+                        "value": "mood",
+                        "label": "خلق‌وخو"
+                    },
+                    {
+                        "value": "mental_health",
+                        "label": "سلامت روان"
+                    },
+                    {
+                        "value": "pain_relief",
+                        "label": "تسکین درد"
+                    },
+                    {
+                        "value": "sleep",
+                        "label": "خواب"
+                    },
+                    {
+                        "value": "digestion",
+                        "label": "گوارش"
+                    },
+                    {
+                        "value": "general",
+                        "label": "توصیه"
+                    }
+                ],
+                "en": [
+                    {
+                        "value": "nutrition",
+                        "label": "Nutrition"
+                    },
+                    {
+                        "value": "hydration",
+                        "label": "Hydration"
+                    },
+                    {
+                        "value": "warmth",
+                        "label": "Warmth"
+                    },
+                    {
+                        "value": "rest",
+                        "label": "Rest"
+                    },
+                    {
+                        "value": "energy",
+                        "label": "Energy"
+                    },
+                    {
+                        "value": "exercise",
+                        "label": "Exercise"
+                    },
+                    {
+                        "value": "fertility",
+                        "label": "Fertility"
+                    },
+                    {
+                        "value": "pms",
+                        "label": "PMS"
+                    },
+                    {
+                        "value": "mood",
+                        "label": "Mood"
+                    },
+                    {
+                        "value": "mental_health",
+                        "label": "Mental health"
+                    },
+                    {
+                        "value": "pain_relief",
+                        "label": "Pain relief"
+                    },
+                    {
+                        "value": "sleep",
+                        "label": "Sleep"
+                    },
+                    {
+                        "value": "digestion",
+                        "label": "Digestion"
+                    },
+                    {
+                        "value": "general",
+                        "label": "Tip"
+                    }
+                ],
+                "de": [
+                    {
+                        "value": "nutrition",
+                        "label": "Nutrition"
+                    },
+                    {
+                        "value": "hydration",
+                        "label": "Hydration"
+                    },
+                    {
+                        "value": "warmth",
+                        "label": "Warmth"
+                    },
+                    {
+                        "value": "rest",
+                        "label": "Rest"
+                    },
+                    {
+                        "value": "energy",
+                        "label": "Energy"
+                    },
+                    {
+                        "value": "exercise",
+                        "label": "Exercise"
+                    },
+                    {
+                        "value": "fertility",
+                        "label": "Fertility"
+                    },
+                    {
+                        "value": "pms",
+                        "label": "PMS"
+                    },
+                    {
+                        "value": "mood",
+                        "label": "Mood"
+                    },
+                    {
+                        "value": "mental_health",
+                        "label": "Mental health"
+                    },
+                    {
+                        "value": "pain_relief",
+                        "label": "Pain relief"
+                    },
+                    {
+                        "value": "sleep",
+                        "label": "Sleep"
+                    },
+                    {
+                        "value": "digestion",
+                        "label": "Digestion"
+                    },
+                    {
+                        "value": "general",
+                        "label": "Tip"
+                    }
+                ]
+            }
+        },
+        "RegularityStatus": {
+            "values": [
+                "not_enough_data",
+                "relatively_regular",
+                "irregular_possible"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "دادهٔ کافی نیست",
+                        "نسبتاً منظم",
+                        "احتمال نامنظمی"
+                    ],
+                    "en": [
+                        "Not enough data",
+                        "Relatively regular",
+                        "Possibly irregular"
+                    ],
+                    "de": [
+                        "Not enough data",
+                        "Relatively regular",
+                        "Possibly irregular"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "ReminderType": {
+            "values": [
+                "doctor",
+                "medication",
+                "appointment",
+                "custom"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "یادآور دکتر",
+                        "یادآور دارو",
+                        "یادآور نوبت",
+                        "یادآور"
+                    ],
+                    "en": [
+                        "Doctor reminder",
+                        "Medication reminder",
+                        "Appointment reminder",
+                        "Reminder"
+                    ],
+                    "de": [
+                        "Doctor reminder",
+                        "Medication reminder",
+                        "Appointment reminder",
+                        "Reminder"
+                    ]
+                }
+            },
+            "per_case": {
+                "icon": [
+                    "stethoscope",
+                    "pill",
+                    "calendar-clock",
+                    "bell"
+                ]
+            },
+            "options": null
+        },
+        "ResolutionSource": {
+            "values": [
+                "user_logged",
+                "user_logged_with_assumed_end",
+                "prediction",
+                "onboarding_based",
+                "default_based",
+                "unknown"
+            ],
+            "methods": {},
+            "per_case": {
+                "isPredicted": [
+                    false,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ]
+            },
+            "options": null
+        },
+        "RhFactor": {
+            "values": [
+                "positive",
+                "negative"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "مثبت",
+                        "منفی"
+                    ],
+                    "en": [
+                        "Positive",
+                        "Negative"
+                    ],
+                    "de": [
+                        "Positive",
+                        "Negative"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "SexualActivity": {
+            "values": [
+                "high_desire",
+                "protected_intercourse",
+                "unprotected_intercourse",
+                "no_desire",
+                "dryness",
+                "burning",
+                "pain_during_intercourse",
+                "bleeding_after_intercourse",
+                "lubricant_use"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "High sexual desire",
+                        "Protected intercourse",
+                        "Unprotected intercourse",
+                        "No sexual desire",
+                        "Dryness",
+                        "Burning",
+                        "Pain during intercourse",
+                        "Bleeding after intercourse",
+                        "Lubricant use"
+                    ],
+                    "en": [
+                        "High sexual desire",
+                        "Protected intercourse",
+                        "Unprotected intercourse",
+                        "No sexual desire",
+                        "Dryness",
+                        "Burning",
+                        "Pain during intercourse",
+                        "Bleeding after intercourse",
+                        "Lubricant use"
+                    ],
+                    "de": [
+                        "High sexual desire",
+                        "Protected intercourse",
+                        "Unprotected intercourse",
+                        "No sexual desire",
+                        "Dryness",
+                        "Burning",
+                        "Pain during intercourse",
+                        "Bleeding after intercourse",
+                        "Lubricant use"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "SexualDesire": {
+            "values": [
+                "lower",
+                "normal",
+                "higher"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "کمتر از معمول",
+                        "معمولی",
+                        "بیشتر از معمول"
+                    ],
+                    "en": [
+                        "Lower than usual",
+                        "Usual",
+                        "Higher than usual"
+                    ],
+                    "de": [
+                        "Lower than usual",
+                        "Usual",
+                        "Higher than usual"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "SleepDuration": {
+            "values": [
+                "0_3",
+                "3_6",
+                "6_9",
+                "9_plus"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "۰ تا ۳ ساعت",
+                        "۳ تا ۶ ساعت",
+                        "۶ تا ۹ ساعت",
+                        "بیشتر از ۹ ساعت"
+                    ],
+                    "en": [
+                        "۰ تا ۳ ساعت",
+                        "۳ تا ۶ ساعت",
+                        "۶ تا ۹ ساعت",
+                        "بیشتر از ۹ ساعت"
+                    ],
+                    "de": [
+                        "۰ تا ۳ ساعت",
+                        "۳ تا ۶ ساعت",
+                        "۶ تا ۹ ساعت",
+                        "بیشتر از ۹ ساعت"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "SleepQuality": {
+            "values": [
+                "good",
+                "medium",
+                "bad"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "خوب",
+                        "متوسط",
+                        "بد"
+                    ],
+                    "en": [
+                        "خوب",
+                        "متوسط",
+                        "بد"
+                    ],
+                    "de": [
+                        "خوب",
+                        "متوسط",
+                        "بد"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "Smell": {
+            "values": [
+                "normal",
+                "slightly_unusual",
+                "strong_unpleasant"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "طبیعی",
+                        "کمی غیرطبیعی",
+                        "تند"
+                    ],
+                    "en": [
+                        "طبیعی",
+                        "کمی غیرطبیعی",
+                        "تند"
+                    ],
+                    "de": [
+                        "طبیعی",
+                        "کمی غیرطبیعی",
+                        "تند"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "SubscriptionType": {
+            "values": [
+                "free",
+                "premium"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "رایگان",
+                        "پرمیوم"
+                    ],
+                    "en": [
+                        "Free",
+                        "Premium"
+                    ],
+                    "de": [
+                        "Free",
+                        "Premium"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "SwellingLocation": {
+            "values": [
+                "feet",
+                "hands",
+                "face"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "پا",
+                        "دست",
+                        "صورت"
+                    ],
+                    "en": [
+                        "Feet",
+                        "Hands",
+                        "Face"
+                    ],
+                    "de": [
+                        "Feet",
+                        "Hands",
+                        "Face"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "SymptomSeverity": {
+            "values": [
+                "mild",
+                "moderate",
+                "severe"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "خفیف",
+                        "متوسط",
+                        "شدید"
+                    ],
+                    "en": [
+                        "Mild",
+                        "Moderate",
+                        "Severe"
+                    ],
+                    "de": [
+                        "Mild",
+                        "Moderate",
+                        "Severe"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "TaskCategory": {
+            "values": [
+                "tracking",
+                "hydration",
+                "nutrition",
+                "supplement",
+                "exercise",
+                "mindfulness",
+                "medical"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "ثبت و پایش",
+                        "آب‌رسانی",
+                        "تغذیه",
+                        "مکمل",
+                        "ورزش",
+                        "آرامش ذهن",
+                        "پزشکی"
+                    ],
+                    "en": [
+                        "Tracking",
+                        "Hydration",
+                        "Nutrition",
+                        "Supplement",
+                        "Exercise",
+                        "Mindfulness",
+                        "Medical"
+                    ],
+                    "de": [
+                        "Tracking",
+                        "Hydration",
+                        "Nutrition",
+                        "Supplement",
+                        "Exercise",
+                        "Mindfulness",
+                        "Medical"
+                    ]
+                }
+            },
+            "per_case": {
+                "icon": [
+                    "clipboard-check",
+                    "water-glass",
+                    "apple",
+                    "pill",
+                    "walking",
+                    "lotus",
+                    "stethoscope"
+                ]
+            },
+            "options": null
+        },
+        "TextDirection": {
+            "values": [
+                "rtl",
+                "ltr"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "راست‌به‌چپ (RTL)",
+                        "چپ‌به‌راست (LTR)"
+                    ],
+                    "en": [
+                        "Right to left (RTL)",
+                        "Left to right (LTR)"
+                    ],
+                    "de": [
+                        "Right to left (RTL)",
+                        "Left to right (LTR)"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "UserGoal": {
+            "values": [
+                "ttc",
+                "non_ttc"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "اقدام به بارداری",
+                        "بدون قصد بارداری"
+                    ],
+                    "en": [
+                        "Trying to Conceive",
+                        "Not Trying to Conceive"
+                    ],
+                    "de": [
+                        "Trying to Conceive",
+                        "Not Trying to Conceive"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        },
+        "MessageMode": {
+            "values": [
+                "cycle",
+                "pregnancy",
+                "postpartum"
+            ],
+            "methods": {
+                "label": {
+                    "fa": [
+                        "سیکل قاعدگی",
+                        "بارداری",
+                        "پس از زایمان"
+                    ],
+                    "en": [
+                        "Menstrual Cycle",
+                        "Pregnancy",
+                        "Postpartum"
+                    ],
+                    "de": [
+                        "Menstrual Cycle",
+                        "Pregnancy",
+                        "Postpartum"
+                    ]
+                }
+            },
+            "per_case": {},
+            "options": null
+        }
+    },
+    "static": {
+        "CycleVariability::fromStdDev": [
+            [
+                0,
+                "regular"
+            ],
+            [
+                3.9,
+                "regular"
+            ],
+            [
+                4,
+                "regular"
+            ],
+            [
+                4.0001,
+                "semi_irregular"
+            ],
+            [
+                5.5,
+                "semi_irregular"
+            ],
+            [
+                7,
+                "semi_irregular"
+            ],
+            [
+                7.01,
+                "irregular"
+            ],
+            [
+                12,
+                "irregular"
+            ]
+        ],
+        "RegularityStatus::fromCycleLengths": [
+            [
+                [],
+                "not_enough_data"
+            ],
+            [
+                [
+                    28
+                ],
+                "not_enough_data"
+            ],
+            [
+                [
+                    28,
+                    30
+                ],
+                "not_enough_data"
+            ],
+            [
+                [
+                    28,
+                    29,
+                    30
+                ],
+                "relatively_regular"
+            ],
+            [
+                [
+                    25,
+                    32,
+                    28
+                ],
+                "relatively_regular"
+            ],
+            [
+                [
+                    25,
+                    33,
+                    28
+                ],
+                "irregular_possible"
+            ],
+            [
+                [
+                    40,
+                    21,
+                    30,
+                    28
+                ],
+                "irregular_possible"
+            ],
+            [
+                [
+                    30,
+                    30,
+                    30,
+                    30
+                ],
+                "relatively_regular"
+            ]
+        ],
+        "BmiCategory::fromBmi": [
+            [
+                10,
+                "underweight"
+            ],
+            [
+                18.49,
+                "underweight"
+            ],
+            [
+                18.5,
+                "normal"
+            ],
+            [
+                24.99,
+                "normal"
+            ],
+            [
+                25,
+                "overweight"
+            ],
+            [
+                29.99,
+                "overweight"
+            ],
+            [
+                30,
+                "obese"
+            ],
+            [
+                45,
+                "obese"
+            ]
+        ],
+        "CycleSubphase::contentBacked": [
+            "menstruation",
+            "early_follicular",
+            "mid_follicular",
+            "fertile_rising",
+            "high_fertility",
+            "ovulation_likely",
+            "post_ovulation",
+            "early_luteal",
+            "mid_luteal",
+            "late_luteal",
+            "pms_possible",
+            "period_expected"
+        ],
+        "CyclePhase::allSubphases": [
+            "menstruation",
+            "early_follicular",
+            "mid_follicular",
+            "fertile_rising",
+            "high_fertility",
+            "ovulation_likely",
+            "post_ovulation",
+            "early_luteal",
+            "mid_luteal",
+            "late_luteal",
+            "pms_possible"
+        ],
+        "CyclePhase::subphaseValuesFor": [
+            [
+                null,
+                [
+                    "menstruation",
+                    "early_follicular",
+                    "mid_follicular",
+                    "fertile_rising",
+                    "high_fertility",
+                    "ovulation_likely",
+                    "post_ovulation",
+                    "early_luteal",
+                    "mid_luteal",
+                    "late_luteal",
+                    "pms_possible"
+                ]
+            ],
+            [
+                "menstruation",
+                [
+                    "menstruation"
+                ]
+            ],
+            [
+                "follicular",
+                [
+                    "early_follicular",
+                    "mid_follicular",
+                    "fertile_rising",
+                    "high_fertility"
+                ]
+            ],
+            [
+                "ovulation",
+                [
+                    "ovulation_likely",
+                    "post_ovulation"
+                ]
+            ],
+            [
+                "luteal",
+                [
+                    "early_luteal",
+                    "mid_luteal",
+                    "late_luteal",
+                    "pms_possible"
+                ]
+            ],
+            [
+                "bogus",
+                [
+                    "menstruation",
+                    "early_follicular",
+                    "mid_follicular",
+                    "fertile_rising",
+                    "high_fertility",
+                    "ovulation_likely",
+                    "post_ovulation",
+                    "early_luteal",
+                    "mid_luteal",
+                    "late_luteal",
+                    "pms_possible"
+                ]
+            ]
+        ],
+        "CyclePhase::labelFor": [
+            [
+                null,
+                "fa",
+                null
+            ],
+            [
+                null,
+                "en",
+                null
+            ],
+            [
+                "",
+                "fa",
+                null
+            ],
+            [
+                "",
+                "en",
+                null
+            ],
+            [
+                "bogus",
+                "fa",
+                null
+            ],
+            [
+                "bogus",
+                "en",
+                null
+            ],
+            [
+                "menstruation",
+                "fa",
+                "قاعدگی"
+            ],
+            [
+                "menstruation",
+                "en",
+                "Menstruation"
+            ],
+            [
+                "follicular",
+                "fa",
+                "فولیکولار"
+            ],
+            [
+                "follicular",
+                "en",
+                "Follicular"
+            ],
+            [
+                "ovulation",
+                "fa",
+                "تخمک‌گذاری"
+            ],
+            [
+                "ovulation",
+                "en",
+                "Ovulation"
+            ],
+            [
+                "luteal",
+                "fa",
+                "لوتئال"
+            ],
+            [
+                "luteal",
+                "en",
+                "Luteal"
+            ]
+        ],
+        "CycleSubphase::labelFor": [
+            [
+                null,
+                "fa",
+                null
+            ],
+            [
+                null,
+                "en",
+                null
+            ],
+            [
+                "",
+                "fa",
+                null
+            ],
+            [
+                "",
+                "en",
+                null
+            ],
+            [
+                "bogus",
+                "fa",
+                null
+            ],
+            [
+                "bogus",
+                "en",
+                null
+            ],
+            [
+                "menstruation",
+                "fa",
+                "قاعدگی"
+            ],
+            [
+                "menstruation",
+                "en",
+                "Menstruation"
+            ],
+            [
+                "menstrual",
+                "fa",
+                "قاعدگی"
+            ],
+            [
+                "menstrual",
+                "en",
+                "Menstruation"
+            ],
+            [
+                "menstrual_possible",
+                "fa",
+                "احتمال ادامه قاعدگی"
+            ],
+            [
+                "menstrual_possible",
+                "en",
+                "Possibly Still Menstruating"
+            ],
+            [
+                "early_follicular",
+                "fa",
+                "فولیکولار اولیه"
+            ],
+            [
+                "early_follicular",
+                "en",
+                "Early Follicular"
+            ],
+            [
+                "mid_follicular",
+                "fa",
+                "فولیکولار میانی"
+            ],
+            [
+                "mid_follicular",
+                "en",
+                "Mid Follicular"
+            ],
+            [
+                "late_follicular_transition",
+                "fa",
+                "گذار فولیکولار پایانی"
+            ],
+            [
+                "late_follicular_transition",
+                "en",
+                "Late Follicular Transition"
+            ],
+            [
+                "fertile_rising",
+                "fa",
+                "افزایش باروری"
+            ],
+            [
+                "fertile_rising",
+                "en",
+                "Rising Fertility"
+            ],
+            [
+                "high_fertility",
+                "fa",
+                "باروری بالا"
+            ],
+            [
+                "high_fertility",
+                "en",
+                "High Fertility"
+            ],
+            [
+                "ovulation_likely",
+                "fa",
+                "احتمال تخمک‌گذاری"
+            ],
+            [
+                "ovulation_likely",
+                "en",
+                "Ovulation Likely"
+            ],
+            [
+                "post_ovulation",
+                "fa",
+                "پس از تخمک‌گذاری"
+            ],
+            [
+                "post_ovulation",
+                "en",
+                "Post-Ovulation"
+            ],
+            [
+                "early_luteal",
+                "fa",
+                "لوتئال اولیه"
+            ],
+            [
+                "early_luteal",
+                "en",
+                "Early Luteal"
+            ],
+            [
+                "mid_luteal",
+                "fa",
+                "لوتئال میانی"
+            ],
+            [
+                "mid_luteal",
+                "en",
+                "Mid Luteal"
+            ],
+            [
+                "late_luteal",
+                "fa",
+                "لوتئال پایانی"
+            ],
+            [
+                "late_luteal",
+                "en",
+                "Late Luteal"
+            ],
+            [
+                "pms_possible",
+                "fa",
+                "احتمال پی‌ام‌اس"
+            ],
+            [
+                "pms_possible",
+                "en",
+                "Possible PMS"
+            ],
+            [
+                "period_expected",
+                "fa",
+                "انتظار پریود"
+            ],
+            [
+                "period_expected",
+                "en",
+                "Period Expected"
+            ],
+            [
+                "unknown",
+                "fa",
+                "نامشخص"
+            ],
+            [
+                "unknown",
+                "en",
+                "Unknown"
+            ]
+        ],
+        "RecommendationTrigger::labelFor": [
+            [
+                null,
+                "fa",
+                null
+            ],
+            [
+                null,
+                "en",
+                null
+            ],
+            [
+                "",
+                "fa",
+                null
+            ],
+            [
+                "",
+                "en",
+                null
+            ],
+            [
+                "bogus",
+                "fa",
+                null
+            ],
+            [
+                "bogus",
+                "en",
+                null
+            ],
+            [
+                "headache",
+                "fa",
+                "سردرد"
+            ],
+            [
+                "headache",
+                "en",
+                "Headache"
+            ],
+            [
+                "cramps",
+                "fa",
+                "درد و کرامپ"
+            ],
+            [
+                "cramps",
+                "en",
+                "Cramps"
+            ],
+            [
+                "poor_sleep",
+                "fa",
+                "کیفیت خواب بد"
+            ],
+            [
+                "poor_sleep",
+                "en",
+                "Poor sleep"
+            ],
+            [
+                "low_mood",
+                "fa",
+                "اضطراب یا غم"
+            ],
+            [
+                "low_mood",
+                "en",
+                "Anxious or sad mood"
+            ],
+            [
+                "bloating",
+                "fa",
+                "نفخ"
+            ],
+            [
+                "bloating",
+                "en",
+                "Bloating"
+            ],
+            [
+                "fatigue",
+                "fa",
+                "خستگی"
+            ],
+            [
+                "fatigue",
+                "en",
+                "Fatigue"
+            ]
+        ],
+        "RecommendationType::labelFor": [
+            [
+                null,
+                "fa",
+                "توصیه"
+            ],
+            [
+                null,
+                "en",
+                "Tip"
+            ],
+            [
+                "",
+                "fa",
+                "توصیه"
+            ],
+            [
+                "",
+                "en",
+                "Tip"
+            ],
+            [
+                "bogus",
+                "fa",
+                "توصیه"
+            ],
+            [
+                "bogus",
+                "en",
+                "Tip"
+            ],
+            [
+                "nutrition",
+                "fa",
+                "تغذیه"
+            ],
+            [
+                "nutrition",
+                "en",
+                "Nutrition"
+            ],
+            [
+                "hydration",
+                "fa",
+                "آب‌رسانی"
+            ],
+            [
+                "hydration",
+                "en",
+                "Hydration"
+            ],
+            [
+                "warmth",
+                "fa",
+                "گرما درمانی"
+            ],
+            [
+                "warmth",
+                "en",
+                "Warmth"
+            ],
+            [
+                "rest",
+                "fa",
+                "استراحت"
+            ],
+            [
+                "rest",
+                "en",
+                "Rest"
+            ],
+            [
+                "energy",
+                "fa",
+                "انرژی"
+            ],
+            [
+                "energy",
+                "en",
+                "Energy"
+            ],
+            [
+                "exercise",
+                "fa",
+                "ورزش"
+            ],
+            [
+                "exercise",
+                "en",
+                "Exercise"
+            ],
+            [
+                "fertility",
+                "fa",
+                "باروری"
+            ],
+            [
+                "fertility",
+                "en",
+                "Fertility"
+            ],
+            [
+                "pms",
+                "fa",
+                "پی‌ام‌اس"
+            ],
+            [
+                "pms",
+                "en",
+                "PMS"
+            ],
+            [
+                "mood",
+                "fa",
+                "خلق‌وخو"
+            ],
+            [
+                "mood",
+                "en",
+                "Mood"
+            ],
+            [
+                "mental_health",
+                "fa",
+                "سلامت روان"
+            ],
+            [
+                "mental_health",
+                "en",
+                "Mental health"
+            ],
+            [
+                "pain_relief",
+                "fa",
+                "تسکین درد"
+            ],
+            [
+                "pain_relief",
+                "en",
+                "Pain relief"
+            ],
+            [
+                "sleep",
+                "fa",
+                "خواب"
+            ],
+            [
+                "sleep",
+                "en",
+                "Sleep"
+            ],
+            [
+                "digestion",
+                "fa",
+                "گوارش"
+            ],
+            [
+                "digestion",
+                "en",
+                "Digestion"
+            ],
+            [
+                "general",
+                "fa",
+                "توصیه"
+            ],
+            [
+                "general",
+                "en",
+                "Tip"
+            ]
+        ],
+        "RecommendationType::iconFor": [
+            [
+                null,
+                "sparkle"
+            ],
+            [
+                "",
+                "sparkle"
+            ],
+            [
+                "bogus",
+                "sparkle"
+            ],
+            [
+                "nutrition",
+                "apple"
+            ],
+            [
+                "hydration",
+                "water-glass"
+            ],
+            [
+                "warmth",
+                "heat"
+            ],
+            [
+                "rest",
+                "bed"
+            ],
+            [
+                "energy",
+                "bolt"
+            ],
+            [
+                "exercise",
+                "walking"
+            ],
+            [
+                "fertility",
+                "heart"
+            ],
+            [
+                "pms",
+                "flower"
+            ],
+            [
+                "mood",
+                "smile"
+            ],
+            [
+                "mental_health",
+                "brain"
+            ],
+            [
+                "pain_relief",
+                "bandage"
+            ],
+            [
+                "sleep",
+                "moon"
+            ],
+            [
+                "digestion",
+                "stomach"
+            ],
+            [
+                "general",
+                "sparkle"
+            ]
+        ],
+        "RecommendationTrigger::activeFor(null)": []
+    }
+}
