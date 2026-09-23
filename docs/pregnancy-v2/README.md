@@ -77,6 +77,50 @@ Pregnancy-mode bottom nav: امروز · تقویم · (+ ثبت امروز, gra
   `constipation_severity`, `visit_note` — the columns `pregnancy_symptom_logs` lacks, kept separate so the Laravel
   contract of `/pregnancy/symptoms` stays unchanged.
 - `pregnancy_week_user_state` (user_id, week unique pair): `bookmarked`, `done_task_keys` json.
+- Shipped in T-M7-01 as goose `00005_pregnancy_v2.sql` + Laravel twin `2026_09_26_000001_create_pregnancy_v2_tables.php`
+  (identical seeds, insert-or-ignore). sqlc: `db/queries/pregnancy/v2_*.sql` → `internal/pregnancy/store`
+  (`GetWeekDetails`, `ListWeekDetailsRange`, `UpsertWeekDetails`, care-item CRUD + `SetCareItemSortOrder`/`SetCareItemActive`,
+  `UpsertDailyExtras`, `SetDailyVisitNote`, `ListDailyExtrasRange`, `UpsertWeekUserState`, `ListWeekUserStatesRange`, …).
+
+### Stored shapes (T-M7-01)
+
+`{L}` = translatable object keyed by language code (`{"fa": "…", "en": "…"}`, read with `i18n.Pick`).
+
+| Column | Shape |
+|---|---|
+| `size_label` | `{L}` noun only («تمشک» / "raspberry"); the sentence frame («تقریباً هم‌اندازهٔ یک …») is UI copy. NULL for weeks 1–3 |
+| `illustration_key` | slug (`raspberry`, `poppy_seed`, …); NULL for weeks 1–3 |
+| `length_cm` / `weight_g` / `heart_rate` | ASCII text: `"1.6"`, `"<1"`, `"150-170"` (UI localises digits and adds «~» / units); NULL when not meaningful |
+| `headline`, `body_text`, `warning` | `{L}` (the warning's lead line «این موارد رو با پزشکت در میون بذار:» is UI copy) |
+| `highlights` | `[{icon, title: {L}, body: {L}}]` — icons seeded: `hand`, `heart`, `face`, `baby` |
+| `body_symptoms` | `[{key, label: {L}}]`; keys that match the Log screen (`nausea`, `vomiting`, `fatigue`, `headache`, `back_pain`, `breast_pain`, `heartburn`, `constipation`, `spotting`) can deep-link to it; others (`frequent_urination`, `smell_sensitivity`, `morning_sickness`, `braxton_hicks`, …) are display-only |
+| `tasks` | `[{key, text: {L}}]`; done state = `pregnancy_week_user_state.done_task_keys` (`["folic_acid", …]`) |
+| `reviewer_name` / `reviewed_at` / `sources` | `{L}` / date / `[{title: {L}, url}]`. **`reviewed_at IS NULL` = not clinically reviewed**; every seeded row has it NULL and a `[needs review]` entry in `sources` (replace on sign-off, T-M7-15) |
+| `pregnancy_care_items.kind` | `visit` \| `test` \| `scan` \| `vaccine`; `remind_before` in days. Seeded keys: `first_visit` (6–10), `nt_scan` (11–14), `anomaly_scan` (18–22), `gtt` (24–28), `tdap` (27–36) |
+| `pregnancy_daily_extras` | `mood` 1–5, `water_glasses`, `heartburn_severity` / `constipation_severity` ∈ `mild|moderate|severe` |
+
+`message_contents` payloads (one row per locale; placeholders are `{name}`):
+
+- `pregnancy_week_tip` / `1..42`: `{title, body, read_minutes, article_url}` (`article_url` null → the week page).
+- `pregnancy_alert` / rule key (`vomiting_streak`, `severe_symptom_count`, `critical_symptom`, `weight_missing_week`,
+  `week_entered`, `bp_high`, `sugar_high`, `fetal_movement`): `{enabled, level, window_days, params{…}, title, what_we_saw,
+  how_sure, advice, actions: [{key, label}], contact}`. `level` ∈ `info|suggestion|follow_up|urgent`; action keys seeded:
+  `ack`, `add_to_visit_note`, `log_weight`, `open_week`, `call`. `enabled` / `level` / `window_days` / `params` are
+  behaviour, not copy — the engine should read them from the **default-language** row and only the texts from the request
+  locale (the seed keeps them identical in every locale). Seeded params: vomiting_streak `{min_streak_days: 3,
+  severe_min_count: 2}`, severe_symptom_count `{min_count: 3, symptoms: […]}`, critical_symptom `{symptoms: [bleeding,
+  fluid_leakage, severe_sudden_pain, spotting], spotting_until_week: 12}`, weight_missing_week `{from_week: 1}`,
+  bp_high `{systolic_min: 140, diastolic_min: 90}` (v1 thresholds), sugar_high `{fasting_max: 95, post_meal_max: 140}`
+  (v1), fetal_movement `{from_week: 24, statuses: [reduced, none]}` (v1). Placeholders per rule: `{days}`,
+  `{severe_count}`, `{count}`, `{symptom}`, `{week}`, `{basis}`, `{systolic}`, `{diastolic}`, `{fasting}`, `{post_meal}`,
+  `{status}`.
+- `pregnancy_alert` / `legend` (not a rule): `{window_note, title, levels: {info|suggestion|follow_up|urgent: {label,
+  description}}, disclaimer}`.
+- `pregnancy_setup` / `welcome` `{title, body, benefits[], primary, secondary}`, `dating` `{title, body}`,
+  `source_lmp|source_ultrasound|source_manual` `{label, hint}`, `history` `{title, body, disclaimer, skip}` (disclaimer
+  already rewritten for server storage — open point 1), `result` `{lead, suffix, due_label, confidence, range,
+  basis_lmp, basis_ultrasound, basis_manual, primary, secondary}`, `due_disclaimer` `{title, body}`.
+
 - Visits reuse **M3 appointments** (`/api/v1/care/appointments`, docs/care-reminders/README.md) with
   `meta.care_item_key` and `meta.stage` (`booked|done|result`) + `meta.result_note`.
 
@@ -101,6 +145,7 @@ Activation/onboarding keep the v1 endpoints (`/pregnancy/activate`, `/onboarding
 
 1. The Setup artboard says history is «فقط روی گوشی خودت و به‌صورت رمزنگاری‌شده ذخیره می‌شه» but v1 stores it on the
    server (`pregnancy_profiles`). Either change the copy (default in the tasks) or move those fields on-device.
+   T-M7-01 seeded the changed copy (`pregnancy_setup/history.disclaimer`).
 2. The Log artboard promises offline save + later sync. T-M7-12 adds an outbox for this screen; if that's too much,
    the copy changes instead.
 3. All seeded medical copy (week details, care plan windows, alert thresholds) needs a clinician's sign-off (T-M7-15).

@@ -525,3 +525,16 @@ Nothing needed fixing.
   when nothing is enabled; records list `{items, meta}` 20/page; status `disabled` for switched-off types (frontend
   enum + `.ck-status-disabled` + labels added in the same commit).
 - Admin edits visible immediately on `GET /checkups/{id}` (tested).
+
+## T-M7-01 — Pregnancy v2 — new tables and seeds
+- Migration pair `00005_pregnancy_v2.sql` + `2026_09_26_000001_create_pregnancy_v2_tables.php`:
+  `pregnancy_week_details` (weeks 1–42), `pregnancy_care_items` (5), `pregnancy_daily_extras`,
+  `pregnancy_week_user_state`; 118 `message_contents` rows (week tips, 8 alert rules + legend, setup copy; fa+en,
+  no explicit ids — unique on group/item_key/locale). schema-diff OK (47 tables, seed contents equal).
+- sqlc queries `db/queries/pregnancy/v2_*.sql` (incl. admin writes for T-M7-06); D-20.
+- Admin messages/languages integration tests now clear `message_contents` first (migrations seed rows).
+- **Open for the user: ALL seeded pregnancy v2 copy is placeholder needing clinical review** (week sizes/figures,
+  headlines, tasks, warnings, care-plan windows, alert thresholds/levels/texts, tips, setup copy); `reviewed_at` NULL
+  and `sources` carries `[needs review]`. Sign-off in T-M7-15.
+- Notes: `legend` item in `pregnancy_alert` is not a rule; tip payload `{title, body, read_minutes, article_url}`;
+  use `UpsertDailyExtras` / `SetDailyVisitNote`; user-state keys on `week`.

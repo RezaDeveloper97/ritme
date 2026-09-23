@@ -3,7 +3,7 @@ id: T-M7-01
 title: Pregnancy v2 — new tables and seeds (week details, care plan, daily extras, week state, messages)
 milestone: M7
 type: backend
-status: todo
+status: done
 depends_on: []
 parallel_group: M7-A
 touches: [backend-go/db/migrations, backend-go/db/queries/pregnancy, backend-go/sqlc.yaml, backend/database/migrations, docs/go-migration/deviations.md, docs/pregnancy-v2/README.md]

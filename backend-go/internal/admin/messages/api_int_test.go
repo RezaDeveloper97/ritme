@@ -18,6 +18,7 @@ func newEnv(t *testing.T) *admintest.Env {
 	t.Helper()
 	e := admintest.New(t)
 	messages.New(e.DB, admintest.Quiet).Routes(e.Route(), e.Kit)
+	e.Exec("DELETE FROM message_contents") // migrations seed rows (e.g. pregnancy v2); start from a known set
 	e.Exec("INSERT INTO message_contents (id, `group`, item_key, locale, label, payload, is_active, is_approved, sort_order, created_at, updated_at) VALUES " +
 		`(1, 'pattern', 'a', 'fa', 'A', '{"title":"سلام","tips":["x","y"]}', 1, 1, 0, NOW(), NOW()),
 		 (2, 'pattern', 'a', 'en', 'A', '{"title":"Hi","tips":["x"]}', 1, 0, 0, NOW(), NOW()),

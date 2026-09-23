@@ -83,6 +83,7 @@ func TestSuperOnly(t *testing.T) {
 func TestProvisionNewLanguage(t *testing.T) {
 	e := newEnv(t)
 	c := e.As(admintest.SuperID)
+	e.Exec("DELETE FROM message_contents") // migrations seed rows (e.g. pregnancy v2); start from a known set
 	e.Exec(`INSERT INTO message_contents (` + "`group`" + `, item_key, locale, label, payload, is_active, is_approved, sort_order, created_at, updated_at) VALUES
 		('pattern', 'a', 'fa', 'A', '{"text":"سلام"}', 1, 1, 0, NOW(), NOW()),
 		('pattern', 'b', 'fa', NULL, '{"tips":["x","y"]}', 0, 1, 1, NOW(), NOW()),

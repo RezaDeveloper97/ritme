@@ -412,6 +412,34 @@ type PregnancyAlert struct {
 	UpdatedAt           sql.NullTime
 }
 
+type PregnancyCareItem struct {
+	ID           uint64
+	Key          string
+	Title        json.RawMessage
+	Prep         db.NullRawJSON
+	Kind         string
+	WeekFrom     uint8
+	WeekTo       uint8
+	RemindBefore uint16
+	SortOrder    int32
+	IsActive     bool
+	CreatedAt    sql.NullTime
+	UpdatedAt    sql.NullTime
+}
+
+type PregnancyDailyExtra struct {
+	ID                   uint64
+	UserID               uint64
+	LogDate              civildate.Date
+	Mood                 sql.NullInt16
+	WaterGlasses         sql.NullInt16
+	HeartburnSeverity    sql.NullString
+	ConstipationSeverity sql.NullString
+	VisitNote            sql.NullString
+	CreatedAt            sql.NullTime
+	UpdatedAt            sql.NullTime
+}
+
 type PregnancyFetalMovement struct {
 	ID                uint64
 	UserID            uint64
@@ -493,6 +521,37 @@ type PregnancySymptomLog struct {
 	Notes                      sql.NullString
 	CreatedAt                  sql.NullTime
 	UpdatedAt                  sql.NullTime
+}
+
+type PregnancyWeekDetail struct {
+	ID              uint64
+	WeekNumber      uint8
+	SizeLabel       db.NullRawJSON
+	IllustrationKey sql.NullString
+	LengthCm        sql.NullString
+	WeightG         sql.NullString
+	HeartRate       sql.NullString
+	Headline        db.NullRawJSON
+	Highlights      db.NullRawJSON
+	BodySymptoms    db.NullRawJSON
+	BodyText        db.NullRawJSON
+	Tasks           db.NullRawJSON
+	Warning         db.NullRawJSON
+	ReviewerName    db.NullRawJSON
+	ReviewedAt      civildate.NullDate
+	Sources         db.NullRawJSON
+	CreatedAt       sql.NullTime
+	UpdatedAt       sql.NullTime
+}
+
+type PregnancyWeekUserState struct {
+	ID           uint64
+	UserID       uint64
+	Week         uint8
+	Bookmarked   bool
+	DoneTaskKeys db.NullRawJSON
+	CreatedAt    sql.NullTime
+	UpdatedAt    sql.NullTime
 }
 
 type PregnancyWeeklyContent struct {
