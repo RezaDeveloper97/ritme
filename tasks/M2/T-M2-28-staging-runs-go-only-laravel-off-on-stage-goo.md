@@ -3,7 +3,7 @@ id: T-M2-28
 title: Staging runs Go only (Laravel off on stage, goose owns stage schema)
 milestone: M2
 type: release
-status: in_progress
+status: done
 depends_on: [T-M2-25]
 parallel_group: M2-J
 touches: [deploy/vhost-stage.inc,docker-compose.stage.yml,docker-compose.yml,deploy-stage.sh,.claude/skills/deploy-stage/SKILL.md,backend-go/cmd/api,backend-go/internal/platform/db/migrate.go,backend-go/internal/platform/config,docs/go-migration/cutover.md,docs/go-migration/migrations.md]

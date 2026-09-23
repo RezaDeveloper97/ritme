@@ -18,7 +18,15 @@ case "$FILE" in
     cd "$ROOT/frontend" && npx eslint --fix "$FILE" --no-warn-ignored >/dev/null 2>&1
     ;;
   "$ROOT"/backend-go/*.go)
-    gofmt -w "$FILE" 2>/dev/null
+    # gofmt + goimports (local-prefixes from .golangci.yml); plain gofmt if golangci-lint is missing.
+    if command -v golangci-lint >/dev/null 2>&1; then
+      (cd "$ROOT/backend-go" && golangci-lint fmt "$FILE" 2>/dev/null) || gofmt -w "$FILE" 2>/dev/null
+    else
+      gofmt -w "$FILE" 2>/dev/null
+    fi
+    # Lint gate: exit 2 with the file's golangci-lint issues (see go-lint.sh).
+    "$ROOT/.claude/hooks/go-lint.sh" "$FILE"
+    exit $?
     ;;
 esac
 

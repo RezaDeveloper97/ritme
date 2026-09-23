@@ -310,8 +310,11 @@ form; every other locale's input is optional.
 - **Bundled floor.** `fa` and `en` messages are compiled in
   (`shared/i18n/bundled`) so the app renders during a backend outage and at
   build time. `frontend/messages/**` is the source of truth for them — after
-  editing keys there, run `php artisan translations:import` in the backend so
-  languages created later inherit the new keys.
+  editing keys there, copy them into the backend seed so languages created
+  later inherit the new keys: `cp frontend/messages/<code>/*.json
+  backend-go/resources/translations/<code>/` for each bundled locale (embedded
+  in the Go binary), plus `php artisan translations:import` in `backend/`
+  while production still runs Laravel.
 - **Namespaces per slice.** Each feature/widget owns its message namespace and
   loads it lazily. Do NOT dump every string into one giant `common.json`.
 - **ICU MessageFormat** for plurals, gender, and number/date formatting. Persian
@@ -396,19 +399,31 @@ blurring them.
 
 ### 8.1 Backend API
 
-The backend is a separate service. **The full API is documented as an OpenAPI
-3.0 spec** you should treat as the source of truth for endpoints, request/
-response shapes, enums, and auth:
+The backend is a separate service: **`backend-go/`** (Go + Fiber v3) is the
+backend for all new work and serves staging; production still runs the frozen
+Laravel `backend/` until the cutover (T-M2-27). Both answer the same `/api/v1`
+contract byte for byte, so the frontend never branches on which one it talks
+to. New or changed endpoints are added in backend-go (`new-endpoint` skill),
+not in `backend/`. **The API is documented as an OpenAPI spec** you should
+treat as the source of truth for endpoints, request/response shapes, enums,
+and auth:
 
-- **Spec (OpenAPI/Swagger JSON):** `https://api.ritme.app/docs/api-docs.json`
-  (title: *Ritme Salamat API*, version `1.0.0`). The host serves `https` (TLS
-  terminates at the nginx proxy; `http` 301-redirects). **Never point the app
-  at an `http://` API** — the PWA is served over https, so an http API call is
-  mixed content and the browser blocks it.
+- **Spec:** `backend-go/api/openapi.yaml` in the repo (OpenAPI 3.1,
+  hand-maintained, checked against every route by a Go test), served at
+  `/docs/openapi.yaml` behind Basic auth. Production's Laravel copy is still at
+  `https://api.ritme.app/docs/api-docs.json` until cutover. The host serves
+  `https` (TLS terminates at the nginx proxy; `http` 301-redirects). **Never
+  point the app at an `http://` API** — the PWA is served over https, so an
+  http API call is mixed content and the browser blocks it (local dev on
+  `http://127.0.0.1:8020` is the one exception).
+- **Local API:** backend-go on `http://127.0.0.1:8020/api/v1` — set
+  `NEXT_PUBLIC_API_BASE_URL` in `.env.local` (never in a prod build). How to
+  run it, seed it and log in without SMS: the `local-dev` skill.
 - **Base URL:** `https://api.ritme.app/api/v1/`. The frontend is served from a
   **different origin** (`web.ritme.app`), so every browser call is cross-origin
-  and depends on the API's CORS allow-list (`backend/config/cors.php`). Adding a
-  new frontend origin means adding it there too. The admin panel lives on a
+  and depends on the API's CORS allow-list (`CORS_ALLOWED_ORIGINS` in
+  backend-go; `backend/config/cors.php` on production until cutover). Adding a
+  new frontend origin means adding it to both. The admin panel lives on a
   third hostname, `adpanell.ritme.app`.
 - **Auth:** JWT **bearer** token in the `Authorization` header
   (`Authorization: Bearer <token>`). Login is **OTP-based**: `POST

@@ -3,6 +3,12 @@
 Rewrite `backend/` (Laravel 12, ~27k PHP LOC, 74 `/api/v1` routes, Blade admin) as `backend-go/` (Go + Fiber v3)
 without changing the web frontend, the Android app, or the production data. Tasks: `tasks/M2/` (run with `/next-task`).
 
+**Status (2026-09-23):** **dev on Go** — all new backend work goes to `backend-go/`; `backend/` is frozen
+(production fixes + mirror migrations only). **Staging on Go** — every `/api/v1` group and the admin API
+(`admin-web` under `/panel`) are served by backend-go; Laravel is being switched off there (T-M2-28).
+**Production on Laravel** until the prod rollout and cutover (T-M2-26/27). Parity: 986/986 contract cases
+([parity-report.md](parity-report.md)). Local dev: `backend-go/README.md` → *Local dev* (skill `local-dev`).
+
 Inventories (read the relevant one before starting a task):
 - [api-inventory.md](api-inventory.md) — every route, envelope, error family, status code, date format, client usage.
 - [domain-inventory.md](domain-inventory.md) — schema, models/casts, enums, services (cycle engines, pregnancy,

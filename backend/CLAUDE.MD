@@ -1,5 +1,15 @@
 # CLAUDE.MD
 
+> **⛔ FROZEN — production maintenance only (since 2026-09-23).** All new backend work goes to **`backend-go/`**
+> (read `backend-go/CLAUDE.md`, skills `new-endpoint` / `local-dev`). This Laravel app stays only because
+> production still runs it until the cutover (T-M2-26/27); staging runs Go only (T-M2-28).
+> Allowed here: production bug fixes (mirror the fix in backend-go), and the **mirror Laravel migration** that
+> every goose schema change needs until T-M2-27 (`docs/go-migration/migrations.md`). No new features, routes or
+> content types.
+>
+> **⛔ منجمد — فقط نگهداری production.** هر کار جدید بک‌اند در `backend-go/` انجام می‌شود؛ اینجا فقط رفع باگ
+> production و migrationِ آینه‌ی تغییرات schema تا T-M2-27.
+
 ## قوانین کدنویسی (الزامی)
 
 **SOLID + DRY + KISS + YAGNI** در همه جا رعایت شود.

@@ -404,3 +404,17 @@ Nothing needed fixing.
   volume needs Passport keys + personal client created once (cutover.md).
 - Follow-up: move stage-ssl.conf upstream blocks to request-time resolution so a missing stage container can
   never fail `nginx -t` on the shared prod proxy.
+- Deployed 2026-09-23: goose stamped the Laravel-built stage DB (`stamped_laravel_schema`, version 1); Laravel
+  stage containers removed; every deploy-stage check green (`/up`, `/api/*`, unknown `/api/v1/*` all `X-Backend: go`,
+  `/admin` → 301 `/panel/`, `/oauth/token` 404). Smoke 42/42 from Go (diffs only from data written during testing).
+
+## T-M2-29 — Go-first developer tooling
+- `backend-go/CLAUDE.md` + README (THE backend; make targets; schema-change rule goose + mirror Laravel migration +
+  `make schema-diff`), FROZEN banner on `backend/CLAUDE.MD`, `frontend/CLAUDE.md` §8.1 (spec =
+  `backend-go/api/openapi.yaml`, local API `:8020`).
+- Skills: `local-dev` (backend-go on :8020 against the test stack, goose baseline + seed, OTP via `SMS_PROVIDER=log`
+  read from the DB — proven end to end), `verify-all` (Go first, Laravel only when backend/ changed).
+- Agents: `backend-reviewer` rewritten for Go; Go paths/commands in `test-runner` and `security-auditor`.
+- Hooks: `.claude/hooks/go-lint.sh` (golangci-lint fmt + lint gate per edited .go file).
+- Open: `backend-go/resources/translations` drifted from `frontend/messages` (home/profile/pwa) — syncing means
+  re-recording the `public` goldens; a `make migrate` target would help.

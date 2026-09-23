@@ -1,24 +1,37 @@
 # backend-go — Ritme API in Go (Fiber v3)
 
-Port of `backend/` (Laravel 12) during milestone M2. Plan, decisions and inventories: **`docs/go-migration/`**
-(start with `README.md`, then the inventory for your area). Tasks: `tasks/M2/`.
+**This is THE backend for all new work** (decided 2026-09-23). Staging runs Go only (T-M2-28); production still runs
+Laravel (`backend/`) until the cutover (T-M2-26/27), so `backend/` is **frozen — production maintenance only**, no new
+features there. `backend-go/` is renamed to `backend/` at T-M2-27.
 
-The goal is **byte-compatible behaviour**: the web frontend and the Android app must not notice which stack
-answered. When in doubt, read the PHP code and copy what it does, quirks included.
+Plan, decisions and inventories: **`docs/go-migration/`** (start with `README.md`, then the inventory for your area).
+Tasks: `tasks/M2/`. New endpoint → the `new-endpoint` skill. Run it locally → the `local-dev` skill.
+
+Existing routes stay **byte-compatible** with Laravel: the web frontend and the Android app must not notice which
+stack answered. When in doubt, read the PHP code and copy what it does, quirks included.
 
 ## Commands
 
 ```bash
+make help                        # list targets
 make test-db-up                  # MariaDB 11.4 + Redis (docker-compose.test.yml, ports 13317 / 16380)
-make run                         # API on :8020 against the test stack (override DB_*/REDIS_* in .env)
-make test                        # unit tests
+make run                         # API on :8020 against the test stack (DB ritme_test; override DB_*/REDIS_* in .env)
+make test                        # unit tests (integration tests skip)
 make test-int PKG=./internal/x/... # integration tests (TEST_DB_DSN / TEST_REDIS_ADDR are set for you)
+make vet                         # go vet ./...
 make lint                        # golangci-lint v2 (.golangci.yml)
 make fmt                         # gofmt + goimports
-make contract ROUTES=<pattern>   # contract diff vs Laravel goldens (T-M2-05)
+make sqlc                        # regenerate internal/<domain>/store from db/queries/<domain>/*.sql
+make schema-diff                 # Laravel migrations vs goose migrations → identical schema (needs php + backend/vendor)
+make contract ROUTES=<pattern>   # contract diff vs Laravel goldens (docs/go-migration/contract.md)
+make contract-record ROUTES=<g>  # (re)record Laravel goldens from the contract stack
+make docker                      # build ritme-backend-go:dev
 ```
 
 Verify (what `/verify-all` runs): `go vet ./... && go test ./... && golangci-lint run`.
+
+A local dev database with the goose baseline, a seeded user and OTP login without SMS (`SMS_PROVIDER=log`, code read
+from `otp_verifications`) is a step-by-step recipe in `.claude/skills/local-dev/SKILL.md` and `README.md` → *Local dev*.
 
 ## Dependencies (parallel agents — read this)
 
@@ -64,8 +77,10 @@ db/migrations/        goose        db/queries/  sqlc queries per domain
 
 ### Data access
 - **sqlc only.** Queries live in `db/queries/<domain>/*.sql`; handlers and services never build SQL strings.
-- The schema is frozen during M2 and owned by Laravel migrations. A schema change needs a Laravel migration
-  *and* a goose migration (see README → Migrations).
+- **Schema-change rule (until T-M2-27):** Laravel migrations still own the prod schema. Every schema change needs a
+  goose migration (`db/migrations/000NN_<name>.sql`, never edit `00001_baseline.sql`) **and** the mirror Laravel
+  migration in `backend/database/migrations` in the same commit, so prod keeps working; `make schema-diff` must stay
+  green. After T-M2-27 goose alone owns the schema. Details: `docs/go-migration/migrations.md`.
 - DB timestamps are **Asia/Tehran wall-clock**. The DSN has `parseTime=true&loc=Asia%2FTehran`; **never** set
   the session `time_zone` and never convert to UTC before writing.
 - Redis keys always go through `cache.Client.Key()` (prefix `ritme-go:`). Never read Laravel's PHP-serialized
@@ -101,6 +116,10 @@ db/migrations/        goose        db/queries/  sqlc queries per domain
   builder (only the default language is required).
 - Translatable columns are JSON keyed by language code; the key set grows with the `languages` table.
 - `GET /languages` and `GET /languages/{code}/messages` are public; the frontend loads languages at runtime.
+- `resources/translations/<code>/*.json` (embedded) is the seed copy of `frontend/messages/<code>/`. Resync with
+  `cp ../frontend/messages/<code>/*.json resources/translations/<code>/` (and `php artisan translations:import` in
+  `backend/` until cutover); then the `public` contract goldens and `internal/i18n/testdata/messages_*.json`
+  (`TestBundle_MatchesLaravelGoldens`) must be re-recorded, since they pin the bundle content.
 
 ### Code
 - SOLID, DRY, KISS, YAGNI. Small packages, explicit dependencies (`http.Deps`), no globals besides the route
@@ -108,4 +127,6 @@ db/migrations/        goose        db/queries/  sqlc queries per domain
 - Logging: `log/slog` JSON to stderr. Never log tokens, OTP codes, phone numbers in full or passwords.
 - Errors wrap with `%w`; handlers return errors, the error handler maps them (see `platform/httpx`).
 - Tests: `testify`; integration tests `t.Skip()` when `TEST_DB_DSN` / `TEST_REDIS_ADDR` are unset.
-- `gofmt` runs automatically after every Edit/Write (`.claude/hooks/format.sh`).
+- After every Edit/Write of a `.go` file the hooks run `golangci-lint fmt` (gofmt + goimports) and then a lint gate
+  on the file's package (`.claude/hooks/format.sh` → `go-lint.sh`): issues in that file come back as errors to fix
+  immediately; compile errors of a half-written package are ignored (vet/test catch them).
