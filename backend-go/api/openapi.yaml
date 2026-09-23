@@ -1079,6 +1079,90 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/CareAppointmentNotFound"}
         '422': {$ref: "#/components/responses/CareValidationFailed"}
+  /api/v1/fertility/bbt:
+    get:
+      tags: [Fertility]
+      summary: Basal body temperature chart
+      description: |
+        The TTC BBT chart (docs/fertility-ttc/README.md, engine `internal/fertility/bbt`), in 3 queries (profile, cycle
+        history, readings). `cycles` is newest first: the current cycle (the cycle engine's anchor for today, running to
+        the day before the predicted next period, or to today when late) and, for `range` 3 / 6, the previous cycles
+        between the history's period starts (fewer when the history is shorter; empty without a resolvable cycle).
+        Each cycle's `points` are its `daily_health_logs.basal_body_temperature` readings up to today, numbered by
+        **its own** cycle day, so the cycles overlay aligned.
+
+        Shift rule (3-over-6, over readings — days without a reading are skipped): the first reading ≥ 0.20 °C above the
+        maximum of the 6 readings before it, followed by 2 more readings above that maximum, confirms a shift;
+        `coverline` = that maximum and `shift_day` = the cycle day of the first high reading (ovulation ≈ the day before),
+        `phase: post_shift`. Otherwise `shift_day: null`, `phase: pre_shift` and `coverline` is provisional (the
+        baseline of a rise that has fewer than 3 readings yet, else the maximum of the latest 6 readings); `null` with
+        fewer than 6 readings. `fertile_window` is the cycle engine's fertile zone (`main_phase = fertile`) in cycle
+        days, `null` when the cycle has none. Temperatures are `decimal(4,2)` strings.
+
+        `stats` are the current cycle's: `pre_ovulation_avg` = mean of its first 6 readings (fewer when fewer exist;
+        null without any), `logged_days`, `cycle_days_so_far` (up to today) and `gaps` = days so far without a reading.
+        `past_shift_days` = the confirmed shift days of the previous cycles (up to 5, newest first), independent of
+        `range`. `tip` is localized (`Accept-Language`, localized digits) and names the past shift days when known.
+      operationId: getFertilityBbt
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: range, in: query, required: false, schema: {type: integer, enum: [1, 3, 6], default: 1}, description: "Cycles shown."}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The chart
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [range, cycles, stats, past_shift_days, tip]
+                    properties:
+                      range: {type: integer, enum: [1, 3, 6]}
+                      cycles:
+                        type: array
+                        maxItems: 6
+                        items: {$ref: "#/components/schemas/FertilityBbtCycle"}
+                      stats:
+                        type: object
+                        required: [pre_ovulation_avg, logged_days, cycle_days_so_far, gaps]
+                        properties:
+                          pre_ovulation_avg: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/DecimalString"}]}
+                          logged_days: {type: integer, minimum: 0}
+                          cycle_days_so_far: {type: integer, minimum: 0}
+                          gaps: {type: integer, minimum: 0}
+                      past_shift_days:
+                        type: array
+                        items: {type: integer, minimum: 1}
+                      tip:
+                        type: object
+                        required: [title, body]
+                        properties:
+                          title: {type: string}
+                          body: {type: string}
+              example:
+                success: true
+                data:
+                  range: 1
+                  cycles:
+                    - start_date: "2026-09-10"
+                      points: [{cycle_day: 1, date: "2026-09-10", value: "36.20"}, {cycle_day: 2, date: "2026-09-11", value: "36.30"}]
+                      coverline: "36.45"
+                      fertile_window: {from_day: 10, to_day: 15}
+                      shift_day: null
+                      phase: pre_shift
+                  stats: {pre_ovulation_avg: "36.27", logged_days: 13, cycle_days_so_far: 14, gaps: 1}
+                  past_shift_days: [16, 15]
+                  tip:
+                    title: دنبال جهش ۰٫۲ تا ۰٫۵ درجه باش
+                    body: اگر دما سه روز پشت‌سرهم بالاتر از خط مبنا بماند، احتمالاً تخمک‌گذاری یک روز قبل از اولین روز بالا بوده. در ۲ سیکل قبل این جهش روز ۱۶ و ۱۵ بود.
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/FertilityValidationFailed"}
   /api/v1/fertility/today:
     get:
       tags: [Fertility]
@@ -7444,6 +7528,32 @@ components:
         level: {type: [string, "null"], enum: [none, low, medium, high, peak, null]}
         label: {type: string}
         bars: {type: integer, minimum: 0, maximum: 5}
+    FertilityBbtCycle:
+      type: object
+      description: "One cycle of the BBT chart; `points` by the cycle's own day."
+      required: [start_date, points, coverline, fertile_window, shift_day, phase]
+      properties:
+        start_date: {$ref: "#/components/schemas/Date"}
+        points:
+          type: array
+          items:
+            type: object
+            required: [cycle_day, date, value]
+            properties:
+              cycle_day: {type: integer, minimum: 1}
+              date: {$ref: "#/components/schemas/Date"}
+              value: {$ref: "#/components/schemas/DecimalString"}
+        coverline: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/DecimalString"}]}
+        fertile_window:
+          oneOf:
+            - {type: "null"}
+            - type: object
+              required: [from_day, to_day]
+              properties:
+                from_day: {type: integer, minimum: 1}
+                to_day: {type: integer, minimum: 1}
+        shift_day: {type: [integer, "null"], minimum: 1}
+        phase: {type: string, enum: [pre_shift, post_shift]}
     FertilityDay:
       type: object
       required: [date, cycle_day, lh, mucus, bbt, bbt_time, intercourse, symptoms, note, chance]

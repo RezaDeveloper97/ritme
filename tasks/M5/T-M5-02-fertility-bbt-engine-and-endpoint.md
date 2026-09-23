@@ -3,7 +3,7 @@ id: T-M5-02
 title: Fertility — BBT shift engine (3-over-6) and GET /fertility/bbt
 milestone: M5
 type: backend
-status: todo
+status: done
 depends_on: [T-M5-01]
 parallel_group: M5-B
 touches: [backend-go/internal/fertility, backend-go/db/queries/fertility, backend-go/internal/http/routes_fertility.go, backend-go/api/openapi.yaml]

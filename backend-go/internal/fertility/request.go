@@ -3,6 +3,7 @@ package fertility
 import (
 	"fmt"
 	"slices"
+	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
@@ -154,4 +155,31 @@ func validateDay(rawDate string, body phpval.Map, locale string, now time.Time) 
 // failValidation is the controller-style 422 {success:false, message, errors}.
 func failValidation(locale string, errs any) error {
 	return httpx.Fail(fiber.StatusUnprocessableEntity, T("messages.validation_failed", locale), "errors", errs)
+}
+
+// parseRange validates GET /fertility/bbt's ?range= (1, 3 or 6; missing = 1).
+func parseRange(query phpval.Map, locale string, now time.Time) (int, error) {
+	data := phpval.NewMap()
+	if v, ok := query.Get("range"); ok {
+		data.Set("range", v)
+	}
+	allowed := make([]string, len(BBTRanges))
+	for i, r := range BBTRanges {
+		allowed[i] = strconv.Itoa(r)
+	}
+	v := validation.Make(lang.Default(), locale, data,
+		validation.Rules{validation.F("range", "nullable", validation.In(allowed...))},
+		validation.Now(now), validation.Attributes(attributes(locale)...), messages(locale))
+	if v.Fails() {
+		return 0, failValidation(locale, v.ErrorBag())
+	}
+	raw, _ := data.Get("range")
+	if raw == nil {
+		return BBTRanges[0], nil
+	}
+	n, err := strconv.Atoi(phpval.ToString(raw))
+	if err != nil {
+		return 0, fmt.Errorf("fertility: range: %w", err)
+	}
+	return n, nil
 }

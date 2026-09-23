@@ -28,3 +28,7 @@ Artboard `v19_TTC_Insights` explains where the prediction comes from.
 
 ## Acceptance
 - Shape per README; tests green.
+
+## Note from T-M5-02
+`Service.BBT(ctx, userID, today, 6)` returns cycles with `ShiftDay`; `bbt.Cycle.OvulationDay()` = shift_day − 1;
+reuse `cycleInputs`/`resolve` (service.go) and `tr`/`num` (chart.go).

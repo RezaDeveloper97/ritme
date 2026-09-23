@@ -15,6 +15,10 @@ type Querier interface {
 	// The merged day in one statement: the day's daily_health_logs columns the fertility screens use
 	// and its fertility_logs row, either or both missing (all NULL).
 	GetMergedDay(ctx context.Context, arg GetMergedDayParams) (GetMergedDayRow, error)
+	// BBT chart (T-M5-02, docs/fertility-ttc/README.md). Every query is scoped by user_id.
+	// The user's basal-temperature readings from `from` to `to` (inclusive), oldest first.
+	// The value is decimal(4,2) text ("36.55").
+	ListBBTReadings(ctx context.Context, arg ListBBTReadingsParams) ([]ListBBTReadingsRow, error)
 	// One row per (user_id, log_date); created_at is kept on update.
 	UpsertFertilityLog(ctx context.Context, arg UpsertFertilityLogParams) error
 }

@@ -109,3 +109,22 @@ func dateParam(c fiber.Ctx) string {
 	}
 	return raw
 }
+
+// BBT is GET /fertility/bbt?range=1|3|6: the basal-temperature chart of the current cycle and,
+// for range 3 / 6, the previous cycles aligned by cycle day (internal/fertility/bbt).
+func (h *Handlers) BBT(c fiber.Ctx) error {
+	userID, err := h.user(c)
+	if err != nil {
+		return err
+	}
+	locale, now := i18n.Locale(c), h.now(c)
+	rangeSize, err := parseRange(validation.Input(c), locale, now)
+	if err != nil {
+		return err
+	}
+	res, err := h.svc.BBT(c, userID, civildate.InTehran(now), rangeSize)
+	if err != nil {
+		return err
+	}
+	return httpx.OK(c, BBTJSON(res, rangeSize, locale))
+}

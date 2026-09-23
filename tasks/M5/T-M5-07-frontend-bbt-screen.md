@@ -28,3 +28,9 @@ Artboard `v19_TTC_BBT` / `nb2_TTC_BBT`.
 
 ## Acceptance
 - Light/dark × fa/en screenshots; chart unit tests (scales, coverline y, band x); build green.
+
+## Note from T-M5-02
+`cycles[0]` is the current cycle; «امروز صبح» = last point if `date == today`; «روز N» = `stats.cycle_days_so_far`;
+coverline is provisional while `phase` is pre-shift and means **max of the 6 readings before the shift** (not the
+artboard's «میانگین ۶ روز اول» — word the legend to match, e.g. «خط مبنا»); `fertile_window` may be `null`;
+`tip.body` already contains the past-shift sentence.

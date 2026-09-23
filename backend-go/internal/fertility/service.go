@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/ritme/backend-go/internal/cycle/metrics"
+	"github.com/ritme/backend-go/internal/cycle/model"
 	"github.com/ritme/backend-go/internal/cycle/resolver"
 	cycleservice "github.com/ritme/backend-go/internal/cycle/service"
 	cyclestore "github.com/ritme/backend-go/internal/cycle/store"
@@ -37,6 +38,31 @@ func NewService(db DB) *Service { return &Service{db: db} }
 // the cycle history (the cycle engine's own inputs, read-only reuse of internal/cycle) and the
 // merged day. today separates past and predicted cycles, as in the cycle view.
 func (s *Service) Load(ctx context.Context, userID uint64, date, today civildate.Date) (Day, Context, error) {
+	in, err := s.cycleInputs(ctx, userID)
+	if err != nil {
+		return Day{}, Context{}, err
+	}
+	row, err := store.New(s.db).GetMergedDay(ctx, store.GetMergedDayParams{UserID: userID, LogDate: date})
+	if err != nil {
+		return Day{}, Context{}, fmt.Errorf("fertility: load day: %w", err)
+	}
+	return DayFromRow(date, row), ContextOf(in.resolve(date, today)), nil
+}
+
+// cycleInputs are the cycle engine's inputs for a user (read-only reuse of internal/cycle).
+type cycleInputs struct {
+	histories []model.History
+	profile   *model.Profile
+	metrics   metrics.Metrics
+}
+
+// resolve is the cycle engine's status of date.
+func (in cycleInputs) resolve(date, today civildate.Date) resolver.Status {
+	return resolver.Resolve(in.histories, in.profile, date, today, in.metrics)
+}
+
+// cycleInputs reads the profile and the cycle history (two queries).
+func (s *Service) cycleInputs(ctx context.Context, userID uint64) (cycleInputs, error) {
 	cq := cyclestore.New(s.db)
 	var profile *cyclestore.UserProfile
 	p, err := cq.GetProfileByUserID(ctx, userID)
@@ -44,21 +70,15 @@ func (s *Service) Load(ctx context.Context, userID uint64, date, today civildate
 	case err == nil:
 		profile = &p
 	case !errors.Is(err, sql.ErrNoRows):
-		return Day{}, Context{}, fmt.Errorf("fertility: load profile: %w", err)
+		return cycleInputs{}, fmt.Errorf("fertility: load profile: %w", err)
 	}
 	rows, err := cq.ListCycleHistoriesNewestFirst(ctx, userID)
 	if err != nil {
-		return Day{}, Context{}, fmt.Errorf("fertility: load histories: %w", err)
+		return cycleInputs{}, fmt.Errorf("fertility: load histories: %w", err)
 	}
-	row, err := store.New(s.db).GetMergedDay(ctx, store.GetMergedDayParams{UserID: userID, LogDate: date})
-	if err != nil {
-		return Day{}, Context{}, fmt.Errorf("fertility: load day: %w", err)
-	}
-
 	histories := cycleservice.HistoriesFromRows(rows)
 	engineProfile := cycleservice.ProfileFromRow(profile)
-	st := resolver.Resolve(histories, engineProfile, date, today, metrics.Calculate(histories, engineProfile))
-	return DayFromRow(date, row), ContextOf(st), nil
+	return cycleInputs{histories: histories, profile: engineProfile, metrics: metrics.Calculate(histories, engineProfile)}, nil
 }
 
 // Save writes a validated PUT in one transaction: lh / mucus / bbt_time into fertility_logs,

@@ -546,3 +546,13 @@ Nothing needed fixing.
 - Checked headless (fa/en, light/dark, empty state, sheet); tick round-trip updates `/care/today`.
 - Links to `/reminders`, `/reminders/medication/new`, `/reminders/appointment/{new,id}` land in T-M3-06..08.
 - Open: pregnancy-home mount not screenshotted (test user not pregnant).
+
+## T-M5-02 — Fertility — BBT shift engine (3-over-6) and GET /fertility/bbt
+- Pure engine `internal/fertility/bbt` (100 % coverage; hundredths as ints), `chart.go` `Service.BBT` (3 queries),
+  query `ListBBTReadings`, `GET /api/v1/fertility/bbt?range=1|3|6` (422 otherwise), OpenAPI `getFertilityBbt`.
+- Choices: 3-over-6 over consecutive readings (gaps skipped); provisional coverline before a confirmed shift
+  (max of last 6, `null` with < 6); `pre_ovulation_avg` = mean of first 6 readings; `gaps` = days so far − logged;
+  current cycle from the engine's anchor; fertile window from the cycle view's `fertile` phase; `past_shift_days`
+  independent of range.
+- Open (design): artboard legend says «میانگین ۶ روز اول» but the README/engine coverline is the max of the 6 readings
+  before the shift — T-M5-07 labels it accordingly.

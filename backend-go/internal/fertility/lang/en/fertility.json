@@ -39,6 +39,20 @@
         "intercourse": "intercourse",
         "symptoms": "symptoms",
         "symptoms.*": "symptom",
-        "note": "note"
+        "note": "note",
+        "range": "range"
+    },
+    "digits": "0123456789",
+    "list": {
+        "separator": ", ",
+        "last_separator": " and "
+    },
+    "bbt": {
+        "tip": {
+            "title": "Look for a 0.2–0.5 °C rise",
+            "body": "If your temperature stays above the coverline for three days in a row, you probably ovulated the day before the first high day.",
+            "past_shift_one": "Last cycle the rise came on day :days.",
+            "past_shift_many": "In the last :count cycles it came on days :days."
+        }
     }
 }

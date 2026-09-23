@@ -19,6 +19,7 @@ func init() {
 		h := fertility.NewHandlers(d.DB, clock.Real{})
 
 		r.Get("/api/v1/fertility/today", locale, guard, h.Today)
+		r.Get("/api/v1/fertility/bbt", locale, guard, h.BBT)
 		r.Get("/api/v1/fertility/days/:date", locale, guard, h.ShowDay)
 		r.Put("/api/v1/fertility/days/:date", locale, guard, h.UpdateDay)
 	})
