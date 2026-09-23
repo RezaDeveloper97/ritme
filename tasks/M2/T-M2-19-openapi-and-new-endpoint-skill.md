@@ -3,10 +3,10 @@ id: T-M2-19
 title: OpenAPI spec for the Go API and new-endpoint skill for Go
 milestone: M2
 type: backend
-status: todo
+status: done
 depends_on: [T-M2-10, T-M2-11, T-M2-12, T-M2-15, T-M2-16, T-M2-17, T-M2-18]
 parallel_group: M2-I
-touches: [backend-go/api/openapi.yaml, backend-go/internal/http/routes_docs.go, backend-go/internal/http/openapi_test.go, .claude/skills/new-endpoint/SKILL.md]
+touches: [backend-go/api/openapi.yaml, backend-go/api/embed.go, backend-go/internal/http/routes_docs.go, backend-go/internal/http/openapi_test.go, .claude/skills/new-endpoint/SKILL.md]
 skills: [new-endpoint]
 verify: cd backend-go && go test ./internal/http/... -run OpenAPI
 ---

@@ -353,3 +353,9 @@ Nothing needed fixing.
 - `internal/i18n/lang`: `WithStorage(STORAGE_PATH)` overlays `app/lang/<code>/<group>.json` per group (storage wins),
   lazy per locale, reload on name/size/mtime change (checked ≤ 1/s), malformed files skipped + logged, locale regex-guarded.
   `lang.Default()` wires it from `STORAGE_PATH`, so no caller changed.
+
+## T-M2-19 — OpenAPI spec for the Go API and new-endpoint skill for Go
+- `backend-go/api/openapi.yaml` (OpenAPI 3.1, 76 operations: 74 `/api/v1` + `/up` + `/storage`), embedded via
+  `api/embed.go`; `/docs` Swagger UI bundled in the binary, Basic auth `SWAGGER_USER`/`SWAGGER_PASSWORD` (fail closed).
+- `openapi_test.go`: routes ↔ spec both ways (admin API excluded for now), all 3796 golden bodies validate against schemas.
+- `new-endpoint` skill rewritten for Go. Deps: santhosh-tekuri/jsonschema/v6, swaggest/swgui.

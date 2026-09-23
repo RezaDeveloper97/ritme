@@ -51,3 +51,7 @@ Dockerfile (it was never built — Docker Desktop failed during T-M2-22).
 backend-go now writes to the `backend-storage` volume (uploads, `app/translations`, `app/lang`) → mount it
 read-write for backend-go in stage and prod compose. Optional env: `LARAVEL_CACHE_KEY_PREFIX`,
 `LARAVEL_CACHE_REDIS_DB`, `LARAVEL_CACHE_FLUSH` (set `false` after cutover).
+
+## Note from T-M2-19
+Route `/docs` (Swagger UI) to Go when the API host moves; set `SWAGGER_USER`/`SWAGGER_PASSWORD` for backend-go
+(without a password `/docs` is 401 outside local/testing).
