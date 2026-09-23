@@ -3,7 +3,7 @@ id: T-M2-09
 title: Strangler infrastructure on staging (compose service, nginx route groups, rollback switch)
 milestone: M2
 type: release
-status: blocked
+status: done
 depends_on: [T-M2-02, T-M2-08]
 parallel_group: M2-D
 touches: [docker-compose.yml, docker-compose.stage.yml, docker-compose.prod.yml, deploy/go-routes.inc, deploy/vhost-stage.inc, deploy/vhost-api.inc, deploy/proxy-ssl.conf, deploy/stage-ssl.conf, deploy/proxy.conf, deploy/stage-http.conf, deploy/switch-go-route.sh, .claude/skills/deploy-stage/SKILL.md, .claude/skills/deploy/SKILL.md, docs/go-migration/cutover.md]
@@ -50,10 +50,10 @@ Rate limiting keys on the leftmost `X-Forwarded-For` value, which the client con
 weakness). When writing the Go upstream locations, have nginx overwrite the header
 (`proxy_set_header X-Forwarded-For $remote_addr;` at the edge) so the per-IP OTP limits can't be bypassed.
 
-## Blocked
-Everything local is done and validated (compose `config -q` for base/stage/prod, `nginx -t` + routing of 30 paths
-in a local nginx with the real files, 331/331 requests 200 while flipping `content`, automatic rollback when
-`nginx -t` fails). Not done: the staging deploy (scope 6). It needs the shared production proxy to be recreated
-once (`/opt/ritme` sync + `docker compose up -d proxy` for the new `go-routes.inc` mount → ~1–2 s production blip),
-which is a production action → **waiting for the user's OK**. Also still to do then: the `/up`-on-Go assertion in
-`deploy-stage.sh`/`deploy.sh` (commands are written in both skills).
+## Unblocked (2026-09-23, user OK)
+Staging deployed from `stage` (backend-go + admin-web healthy). Production proxy recreated once with
+`up -d --no-deps proxy` after a throwaway-container `nginx -t`; only `go-routes.inc`, `vhost-stage.inc`,
+`stage-ssl.conf` and the two compose files were synced to `/opt/ritme` (backup `/root/ritme-proxy-backup-20260923-113145`).
+Prod `proxy-ssl.conf`/`vhost-api.inc` deliberately NOT synced (they would also ship M1's HSTS and prod route
+groups — do that with T-M2-26). Proven: `switch-go-route.sh stage content on` → `/api/v1/languages` 200 with
+`x-backend: go`; `off` → back to Laravel. Prod api/web/admin answered 200/307/200 after the recreate.

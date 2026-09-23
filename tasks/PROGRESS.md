@@ -388,3 +388,6 @@ Nothing needed fixing.
   with a single `/` (422 `validation.regex`).
 - Allow-list `contract/allowlist/reminders.yaml` (D-01, D-02 only): contract all 986 passed, 11 allow-listed diffs.
 - OpenAPI keeps the Laravel-only 500s documented as "until cutover" (golden validation test ignores the allow-list).
+- T-M2-09 unblocked 2026-09-23: staging deployed, prod proxy recreated once (stage-only files synced; prod
+  `proxy-ssl.conf`/`vhost-api.inc` on the server are still pre-M2 and pre-HSTS → sync with T-M2-26). content flip
+  on/off proven on stage.
