@@ -1,0 +1,7 @@
+{
+    "status": 405,
+    "headers": {
+        "Content-Type": "application/json",
+        "Allow": "GET, HEAD"
+    }
+}

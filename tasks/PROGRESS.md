@@ -175,3 +175,13 @@ Nothing needed fixing.
 - `docker-compose.contract.yml`: contract-mariadb/redis/laravel on `127.0.0.1:${CONTRACT_PORT:-8090}`
   (8090 is taken on this dev machine → use `CONTRACT_PORT=18090`), `contract-reset` (profile tools) rebuilds DB.
 - Persona table and usage: `docs/go-migration/contract.md`. New env: `TEST_CLOCK_ENABLED`.
+
+## T-M2-04 — Platform core — civil dates, clock, PHP-compatible JSON, envelopes and errors
+- `internal/platform/civildate` (Date/NullDate, Tehran today, Saturday week start, `ParseLenient`),
+  `clock` (Real/Fixed, `X-Test-Now` middleware, same gate as Laravel TestClock), `phpround` (exact PHP 8.4
+  `round()` + `(string)$float`, 4000-value PHP corpus), `jsonx` (PHP `json_encode` flags, Laravel date/decimal
+  casts, OrderedMap), `httpx` (envelopes, Laravel error bodies byte-identical incl. 404/405/422/429/500/503,
+  paginators).
+- Orchestrator wired `httpx.ErrorHandler` + `clock.Middleware` into `cmd/api/app.go`; access log uses `httpx.StatusOf`.
+- Deviations D-08 (JSON 404 without Accept), D-09 (no relative date strings), D-10 (`/up` plain OK) proposed.
+- "(and N more errors)" and paginator labels stay English in every locale (as Laravel does).

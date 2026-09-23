@@ -3,7 +3,7 @@ id: T-M2-04
 title: Platform core — civil dates, clock, PHP-compatible JSON, envelopes and errors
 milestone: M2
 type: backend
-status: todo
+status: done
 depends_on: [T-M2-02]
 parallel_group: M2-B
 touches: [backend-go/internal/platform/civildate, backend-go/internal/platform/clock, backend-go/internal/platform/phpround, backend-go/internal/platform/jsonx, backend-go/internal/platform/httpx]

@@ -1,13 +1,14 @@
 package main
 
 import (
-	"errors"
 	"log/slog"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
 
 	apihttp "github.com/ritme/backend-go/internal/http"
+	"github.com/ritme/backend-go/internal/platform/clock"
+	"github.com/ritme/backend-go/internal/platform/httpx"
 )
 
 // bodyLimit matches the upload ceiling of the PHP stack (25 MB).
@@ -27,9 +28,12 @@ func newApp(reg *apihttp.Registry, deps *apihttp.Deps) *fiber.App {
 		TrustProxy:         true,
 		TrustProxyConfig:   fiber.TrustProxyConfig{Proxies: []string{"0.0.0.0/0", "::/0"}},
 		EnableIPValidation: true,
+		ErrorHandler:       httpx.ErrorHandler(deps.Logger),
 	})
 
 	app.Use(accessLog(deps.Logger))
+	// Per-request frozen clock (X-Test-Now), same gate as Laravel's TestClock.
+	app.Use(clock.Middleware(clock.Real{}, clock.TestClockEnabledFromEnv()))
 	app.Use(corsMiddleware(deps.Config.CORS.AllowedOrigins))
 
 	reg.Mount(app, deps)
@@ -43,11 +47,7 @@ func accessLog(logger *slog.Logger) fiber.Handler {
 		err := c.Next()
 		status := c.Response().StatusCode()
 		if err != nil {
-			if fe := (*fiber.Error)(nil); errors.As(err, &fe) {
-				status = fe.Code
-			} else {
-				status = fiber.StatusInternalServerError
-			}
+			status = httpx.StatusOf(err)
 		}
 		level := slog.LevelInfo
 		if status >= fiber.StatusInternalServerError {

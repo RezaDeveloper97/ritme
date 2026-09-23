@@ -1,0 +1,10 @@
+{
+    "status": 429,
+    "headers": {
+        "Content-Type": "application/json",
+        "Retry-After": "42",
+        "X-RateLimit-Limit": "5",
+        "X-RateLimit-Remaining": "0",
+        "X-RateLimit-Reset": "1790000042"
+    }
+}

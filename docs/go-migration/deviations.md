@@ -12,3 +12,6 @@ user's OK. The contract harness allow-list must reference the entry id.
 | D-05 | Messages | `MessageManager::extractSymptoms` / `PatternLayer` read non-existent columns (only `low_energy`, `insufficient_data`, `ttc_tracking`, `chronic_fatigue` can fire) | **preserved** in M2 (fix later as a product change) | decided: preserve |
 | D-06 | Admin sessions | PHP-serialized redis sessions | new Go sessions → admins log in once again | decided |
 | D-07 | Android | `POST /api/diagnostics/crash-reports` → 404 | still 404 (not in M2 scope) | decided |
+| D-08 | Errors | 404/405 without `Accept: application/json` → HTML page | always the JSON body (both clients send the header) | proposed |
+| D-09 | Dates | `Carbon::parse` accepts relative strings (`+1 day`) and military zone letters | `civildate.ParseLenient` rejects them (clients only send `Y-m-d`) | proposed |
+| D-10 | Health | `/up` returns Laravel's HTML health page | plain `OK` (not part of the `/api` contract) | proposed |
