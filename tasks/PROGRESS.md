@@ -444,3 +444,12 @@ Nothing needed fixing.
   Migration integration tests (`cmd/api/migrate_test.go`, `testdb_test.go`) now compare against the latest version
   instead of assuming baseline-only.
 - Open: `GET /reminders` OpenAPI `Reminder.meta` no longer requires `phone`.
+
+## T-M4-05 — Frontend — checkups entity, features, tokens, icons, i18n and on-device attachments
+- `shared/lib/local-files` (`createLocalFileStore`: IndexedDB + memory backend, per-file 15 MB / total 300 MB caps,
+  image/* + PDF only, `LocalFilesError`), `entities/checkup` (types, `checkupIcon()` with aliases, attachments store
+  keyed by record id, `checkupKeys`, tolerant zod parsers, queries incl. infinite records), features `record-checkup`,
+  `manage-custom-checkup` (+ optimistic settings toggles). Tokens `--checkup-due/-body/-row-action` + `.ck-status-*`/
+  `.ck-tone-*`; icons ribbon/flask/tooth/camera/history/filterLines/export; `checkups` namespace fa/en.
+- Open: `checkups` must be added to `message-scopes.ts` by T-M4-06..09; orphaned local attachments after deleting a
+  custom checkup → clean up in T-M4-09 (compare `useCheckupAttachmentIds` with records).

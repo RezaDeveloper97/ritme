@@ -26,3 +26,8 @@ strangler infrastructure (T-M2-09, currently blocked).
 
 ## Acceptance
 - Stage serves `/api/v1/care/*` from Go; e2e checklist passed with screenshots; PROGRESS updated.
+
+## Note (frontend foundation)
+Copy the new frontend namespace JSON (`frontend/messages/{fa,en}/<ns>.json`) into the backend translation seed
+(`backend-go/resources/translations/<code>/`, CLAUDE.md §6.4) if that is still how admin-editable translations are
+seeded.

@@ -154,6 +154,17 @@
   --care-rose-line:   #F9C3D0;  /* cancel button border */
   --care-card-shadow: 0 18px 34px -20px rgba(93, 71, 214, .35);
 
+  /* ── Checkups (M4, docs/checkups/README.md "Colors") ──
+     The status palette reuses the M3 pairs: up-to-date → --success on
+     --success-soft, due pill / overdue row → --amber-tile-ink on --amber-tile,
+     overdue / self-exam row → --care-rose on --care-rose-soft, soon pill →
+     --teal-deep on --data-soft, hero chip line / dashed upload border →
+     --brand-line-soft. The `.ck-status-*` / `.ck-tone-*` classes below bundle
+     them. Only the roles with no fitting token live here (nbd_v14 dark values). */
+  --checkup-due:        #F5A623;  /* due bar segment / dot */
+  --checkup-body:       #4E4E59;  /* why / steps body copy */
+  --checkup-row-action: #FFFFFF;  /* white action button inside a tinted row */
+
   /* ── Cycle marker intensity ramp (calendar day cells) ──
      Each marker tint gets a faint and a strong step around its base tint,
      graded by the day's conception probability. Derived with color-mix from
@@ -266,6 +277,11 @@
   --care-rose-soft:   #3A2140;
   --care-rose-line:   #6B3A4D;
   --care-card-shadow: 0 18px 34px -20px rgba(0, 0, 0, .7);
+
+  /* Checkups (M4) — values from the nbd_v14 artboards. */
+  --checkup-due:        #FFB86B;
+  --checkup-body:       #C9C0E6;
+  --checkup-row-action: #221A3D;
 
   --brand-line:      #5A4BA8;
   --brand-line-soft: #3A3060;
@@ -2863,3 +2879,22 @@ body.pwa-locked { overflow: hidden; }
 .lang-row-name  { display: block; font-size: 14.5px; font-weight: 800; color: var(--ink); }
 .lang-row-code  { display: block; font-size: 12px; color: var(--muted); margin-top: 3px; }
 .lang-row-check { color: var(--brand); flex-shrink: 0; }
+
+/* ── Checkups (M4) — status & tone palette ────────────────────
+   Shared by the home card, the plan list, the detail hero and the history
+   (T-M4-06…09). A status / tone modifier sets three local properties; a
+   component reads them (`color: var(--ck-ink)`, `background: var(--ck-soft)`)
+   instead of re-mapping the palette per screen. Every value is a token that
+   flips in dark mode. */
+.ck-status-up_to_date { --ck-ink: var(--success);        --ck-soft: var(--success-soft);   --ck-bar: var(--success); }
+.ck-status-soon       { --ck-ink: var(--teal-deep);      --ck-soft: var(--data-soft);      --ck-bar: var(--teal-deep); }
+.ck-status-due        { --ck-ink: var(--amber-tile-ink); --ck-soft: var(--amber-tile);     --ck-bar: var(--checkup-due); }
+.ck-status-overdue    { --ck-ink: var(--care-rose);      --ck-soft: var(--care-rose-soft); --ck-bar: var(--care-rose); }
+.ck-status-not_yet    { --ck-ink: var(--ink-3);          --ck-soft: var(--surface-2);      --ck-bar: var(--track); }
+
+.ck-tone-rose    { --ck-ink: var(--care-rose);      --ck-soft: var(--care-rose-soft); }
+.ck-tone-violet  { --ck-ink: var(--brand-strong);   --ck-soft: var(--pink-bg); }
+.ck-tone-amber   { --ck-ink: var(--amber-tile-ink); --ck-soft: var(--amber-tile); }
+.ck-tone-teal    { --ck-ink: var(--teal-deep);      --ck-soft: var(--data-soft); }
+.ck-tone-green   { --ck-ink: var(--success);        --ck-soft: var(--success-soft); }
+.ck-tone-neutral { --ck-ink: var(--ink-3);          --ck-soft: var(--surface-2); }

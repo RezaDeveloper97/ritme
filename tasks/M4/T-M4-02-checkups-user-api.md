@@ -28,3 +28,8 @@ Every screen in `v14_*` reads or writes through these endpoints.
 
 ## Acceptance
 - Contract matches the README; tests green; query budget asserted for `/checkups/home`.
+
+## Note from T-M4-05
+`POST` record should return `{item, record}` (the frontend stores the on-device attachment under the record id; it
+falls back to refetching the detail if `record` is missing). Findings: "nothing different" option key `none` or
+`exclusive: true`.

@@ -10,7 +10,8 @@ export type IconName =
   | 'home' | 'bookOpen' | 'apple' | 'brain'
   | 'globe' | 'shield' | 'logout' | 'download' | 'trash' | 'search'
   | 'sun' | 'contrast' | 'cog' | 'bellPlain' | 'pen'
-  | 'capsule' | 'tablet' | 'video' | 'phone' | 'mapPin' | 'clock' | 'bellRing' | 'note';
+  | 'capsule' | 'tablet' | 'video' | 'phone' | 'mapPin' | 'clock' | 'bellRing' | 'note'
+  | 'ribbon' | 'flask' | 'tooth' | 'camera' | 'history' | 'filterLines' | 'export';
 
 const PATHS: Record<IconName, string> = {
   bell:         '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
@@ -67,6 +68,15 @@ const PATHS: Record<IconName, string> = {
   clock:        '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
   bellRing:     '<path d="M6 16V11a6 6 0 0112 0v5l2 2H4z"/><path d="M10 20a2 2 0 004 0"/><path d="M4 7a8 8 0 012-3M20 7a8 8 0 00-2-3"/>',
   note:         '<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/>',
+  /* Checkups (M4) — copied from the v14 artboards (docs/design/checkups-v14). The
+     artboards' shield-check is `shield` and their file/PDF glyph is `note`. */
+  ribbon:       '<path d="M12 3a5 5 0 015 5c0 3-5 6-5 6s-5-3-5-6a5 5 0 015-5z"/><path d="M9 12l-3 9 6-3 6 3-3-9"/>',
+  flask:        '<path d="M9 3h6M10 3v6l-5 9a2 2 0 002 3h10a2 2 0 002-3l-5-9V3"/><path d="M8 16h8"/>',
+  tooth:        '<path d="M7 3c2 0 3 1 5 1s3-1 5-1c3 0 4 3 3 6-1 2-1 5-2 9-1 3-2 3-3 0l-1-4h-4l-1 4c-1 3-2 3-3 0-1-4-1-7-2-9-1-3 0-6 3-6z"/>',
+  camera:       '<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3"/>',
+  history:      '<path d="M3 12a9 9 0 109-9 9 9 0 00-7 3.5"/><path d="M3 3v5h5M12 7v5l3 2"/>',
+  filterLines:  '<path d="M4 6h16M7 12h10M10 18h4"/>',
+  export:       '<path d="M12 3v12M7 8l5-5 5 5M5 14v5a2 2 0 002 2h10a2 2 0 002-2v-5"/>',
   /* Half-filled disc — the conventional "match the system appearance" mark. */
   contrast:     '<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"/>',
 };

@@ -3,7 +3,7 @@ id: T-M4-05
 title: Frontend — checkups entity, features, tokens, icons, i18n and on-device attachments
 milestone: M4
 type: frontend
-status: todo
+status: done
 depends_on: []
 parallel_group: M4-A
 touches: [frontend/src/entities/checkup, frontend/src/features/record-checkup, frontend/src/features/manage-custom-checkup, frontend/src/shared/lib/local-files, frontend/src/app/globals.css, frontend/src/shared/ui/Icon.tsx, frontend/messages/fa, frontend/messages/en, frontend/src/shared/i18n, frontend/src/app/message-scopes.ts]

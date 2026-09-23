@@ -25,3 +25,8 @@ Go-only feature: reachable only once nginx sends `/api/v1/checkups` (and the adm
 
 ## Acceptance
 - Stage e2e checklist with screenshots in PROGRESS; content sign-off recorded.
+
+## Note (frontend foundation)
+Copy the new frontend namespace JSON (`frontend/messages/{fa,en}/<ns>.json`) into the backend translation seed
+(`backend-go/resources/translations/<code>/`, CLAUDE.md §6.4) if that is still how admin-editable translations are
+seeded.

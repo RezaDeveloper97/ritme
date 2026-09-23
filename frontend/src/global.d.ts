@@ -9,6 +9,7 @@ import type enCycle from '../messages/en/cycle.json';
 import type enDayTasks from '../messages/en/day-tasks.json';
 import type enHome from '../messages/en/home.json';
 import type enCare from '../messages/en/care.json';
+import type enCheckups from '../messages/en/checkups.json';
 import type enLog from '../messages/en/log.json';
 import type enLogPeriod from '../messages/en/log-period.json';
 import type enNav from '../messages/en/nav.json';
@@ -31,6 +32,7 @@ type Messages = {
   common: typeof enCommon;
   home: typeof enHome;
   care: typeof enCare;
+  checkups: typeof enCheckups;
   auth: typeof enAuth;
   banners: typeof enBanners;
   onboarding: typeof enOnboarding;

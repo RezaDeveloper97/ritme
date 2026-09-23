@@ -49,6 +49,17 @@ export default defineConfig([
     rules: { 'fsd/insignificant-slice': 'off' },
   },
   {
+    // Checkups foundation (M4, T-M4-05). Consumed by the checkups screens and
+    // the home card (T-M4-06…09) — references coming FROM `screens` are
+    // invisible to steiger (same reason as the blocks above).
+    files: [
+      './src/entities/checkup/**',
+      './src/features/record-checkup/**',
+      './src/features/manage-custom-checkup/**',
+    ],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
     // `entities/cycle` is a canonical domain entity (CLAUDE.md §5) that will be
     // consumed by more screens as cycle/API wiring lands. Don't nag about it
     // having a single reference today.

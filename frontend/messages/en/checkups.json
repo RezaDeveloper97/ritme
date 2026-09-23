@@ -1,0 +1,181 @@
+{
+  "title": "Periodic checkups",
+  "back": "Back",
+  "close": "Close",
+  "all": "All",
+  "loading": "Loading checkups…",
+  "loadError": "Couldn't load your checkups. Please try again in a moment.",
+  "saveError": "Couldn't save. Please try again in a moment.",
+  "retry": "Retry",
+  "separator": " · ",
+  "noDate": "—",
+  "status": {
+    "up_to_date": "Up to date",
+    "soon": "Soon",
+    "due": "Due",
+    "overdue": "Overdue",
+    "not_yet": "Not yet"
+  },
+  "result": {
+    "normal": "Normal",
+    "follow_up": "Needs follow-up",
+    "pending": "Awaiting results"
+  },
+  "section": {
+    "this_month": "This month",
+    "overdue": "Overdue",
+    "monthly": "Monthly",
+    "six_monthly": "Every 6 months",
+    "annual": "Yearly",
+    "multi_year": "Every few years",
+    "age_based": "Based on age",
+    "custom": "Custom"
+  },
+  "performedBy": {
+    "self": "You",
+    "doctor": "By a doctor",
+    "lab": "Lab",
+    "dentist": "Dentist"
+  },
+  "card": {
+    "title": "Periodic checkups",
+    "all": "All",
+    "ring": "{upToDate}/{total}",
+    "ringLabel": "{upToDate} of {total} up to date",
+    "countUpToDate": "{count} up to date",
+    "countDue": "{count} due",
+    "countOverdue": "{count} overdue",
+    "guide": "Guide",
+    "book": "Book",
+    "disclaimer": "Based on general guidelines and your age; confirm your exact plan with your doctor."
+  },
+  "list": {
+    "ageBasis": "Based on age {age}",
+    "planSettings": "Plan settings",
+    "statusTitle": "Your health plan",
+    "upToDateOf": "{upToDate} of {total} up to date",
+    "tabs": {
+      "all": "All",
+      "action": "Needs action",
+      "done": "Done"
+    },
+    "lastNext": "Last: {last} · Next: {next}",
+    "infoNote": "This list is based on general screening guidelines and your age. Family history or specific conditions may change your plan; check with your doctor or midwife. Ritme does not give medical diagnoses.",
+    "addCustom": "Add a custom checkup",
+    "empty": "No checkups in this section yet.",
+    "emptyAction": "All your checkups are up to date.",
+    "emptyDone": "You haven't logged a checkup yet."
+  },
+  "detail": {
+    "nextDue": "Next due",
+    "lastTime": "Last time {date}",
+    "neverDone": "Not logged yet",
+    "passedMonths": "{count, plural, one {About # month ago} other {About # months ago}}",
+    "markDone": "I did it",
+    "book": "Book",
+    "openGuide": "Guide",
+    "remindOn": "Reminder on",
+    "remindOff": "Reminder off",
+    "why": "Why it matters",
+    "prep": "Before you go",
+    "cycleHint": "Ritme can set the reminder for day {from}–{to} of your cycle.",
+    "history": "History",
+    "historyAll": "All",
+    "attached": "Report attached",
+    "noAttachment": "No attachment",
+    "noHistory": "Nothing logged yet.",
+    "disclaimer": "General information — it doesn't replace your doctor's advice."
+  },
+  "markDone": {
+    "title": "I did my {title}",
+    "subtitle": "Log the details so the next due date can be worked out",
+    "editTitle": "Edit {title}",
+    "date": "Date done",
+    "result": "Result",
+    "attachment": "Attach report",
+    "optional": "(optional)",
+    "photo": "Photo of report",
+    "pdf": "PDF file",
+    "removeAttachment": "Remove attachment",
+    "privacy": "Stored only on your phone; Ritme doesn't interpret the report.",
+    "note": "Note",
+    "notePlaceholder": "E.g. the doctor's name or a note about the result",
+    "nextDue": "Next due: {date}",
+    "nextDueMeta": "{interval} · {reminder}",
+    "change": "Change",
+    "submit": "Save",
+    "delete": "Delete this entry",
+    "deleteConfirm": "Delete this entry and remove its attachment from this phone?",
+    "saved": "Saved",
+    "attachmentNotSaved": "Saved, but the attachment couldn't be stored on this phone.",
+    "attachmentError": {
+      "unavailable": "This browser doesn't allow saving files on the phone.",
+      "too_large": "The file is too large (max {max} MB).",
+      "store_full": "Attachment storage is full; delete some older attachments.",
+      "unsupported_type": "Only a photo or a PDF file.",
+      "quota": "Not enough storage space on this phone.",
+      "failed": "The attachment wasn't saved. Please try again."
+    }
+  },
+  "history": {
+    "title": "Checkup history",
+    "count": "{count, plural, one {# entry} other {# entries}}",
+    "tabs": {
+      "all": "All",
+      "this_year": "This year",
+      "with_attachment": "With attachment"
+    },
+    "attachment": "Attachment",
+    "openAttachment": "Open attachment",
+    "attachmentMissing": "This attachment isn't on this phone.",
+    "summary": "Summary for your doctor",
+    "summarySub": "All checkups and results in one PDF",
+    "export": "Export PDF",
+    "empty": "No checkups logged yet.",
+    "loadMore": "Load more"
+  },
+  "selfExam": {
+    "thisMonth": "This month",
+    "dayWhen": "Cycle day {day} · {when}",
+    "bestTime": "Best time",
+    "bestTimeTitle": "A few days after your period",
+    "bestTimeBody": "Breasts are less tender and swollen; Ritme times the reminder to your cycle.",
+    "ringDay": "Day",
+    "ringOf": "of {total}",
+    "ringLabel": "Day {day} of {total}",
+    "stepsTitle": "{count} steps, about {minutes} minutes",
+    "findingsTitle": "If something felt different",
+    "findingsBody": "You can note a lump, skin change, nipple discharge or ongoing pain here and share it with your doctor. Most changes are benign, but getting them checked matters.",
+    "nudge": "Share it with your doctor",
+    "book": "Book",
+    "done": "I did it this month",
+    "doneAlready": "Logged this month",
+    "adherence": "Done {done} of the last {total} months"
+  },
+  "custom": {
+    "newTitle": "Add a custom checkup",
+    "editTitle": "Edit checkup",
+    "name": "Checkup name",
+    "namePlaceholder": "E.g. eye exam",
+    "interval": "How often?",
+    "intervals": {
+      "m1": "1 month",
+      "m6": "6 months",
+      "m12": "1 year",
+      "m24": "2 years",
+      "m36": "3 years"
+    },
+    "performedBy": "Who does it?",
+    "lastDone": "Last done",
+    "note": "Note",
+    "save": "Save",
+    "delete": "Delete checkup",
+    "deleteConfirm": "Delete this checkup and its history?"
+  },
+  "settings": {
+    "title": "Plan settings",
+    "subtitle": "Remove checkups you don't want from your plan, or turn their reminders off.",
+    "enabled": "In my plan",
+    "remind": "Reminder"
+  }
+}
