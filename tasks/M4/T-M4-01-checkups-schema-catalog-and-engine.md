@@ -3,7 +3,7 @@ id: T-M4-01
 title: Checkups — schema, default catalog seed and status engine (Go)
 milestone: M4
 type: backend
-status: todo
+status: done
 depends_on: []
 parallel_group: M4-A
 touches: [backend-go/db/migrations, backend-go/db/queries/checkups, backend-go/sqlc.yaml, backend-go/internal/checkups, backend/database/migrations, docs/go-migration/deviations.md, docs/checkups/README.md]

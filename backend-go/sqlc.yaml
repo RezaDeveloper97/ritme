@@ -121,3 +121,9 @@ sql:
       go:
         <<: *go
         out: internal/care/store
+  - <<: *pkg
+    queries: db/queries/checkups
+    gen:
+      go:
+        <<: *go
+        out: internal/checkups/store

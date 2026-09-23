@@ -95,6 +95,49 @@ type Challenge struct {
 	UpdatedAt    sql.NullTime
 }
 
+type CheckupRecord struct {
+	ID            uint64
+	UserID        uint64
+	CheckupTypeID uint64
+	DoneOn        civildate.Date
+	Result        string
+	Findings      db.NullRawJSON
+	Note          sql.NullString
+	HasAttachment bool
+	NextDueOn     civildate.NullDate
+	CreatedAt     sql.NullTime
+	UpdatedAt     sql.NullTime
+}
+
+type CheckupType struct {
+	ID                uint64
+	Key               sql.NullString
+	UserID            sql.NullInt64
+	Category          string
+	Title             json.RawMessage
+	Subtitle          db.NullRawJSON
+	Why               db.NullRawJSON
+	PerformedBy       string
+	Icon              sql.NullString
+	Tone              string
+	IntervalMonths    uint16
+	IntervalMonthsMax sql.NullInt16
+	AgeMin            sql.NullInt16
+	AgeMax            sql.NullInt16
+	CycleDayFrom      sql.NullInt16
+	CycleDayTo        sql.NullInt16
+	RemindLeadDays    uint16
+	PrepSteps         db.NullRawJSON
+	GuideSteps        db.NullRawJSON
+	FindingOptions    db.NullRawJSON
+	HideInPregnancy   bool
+	IsActive          bool
+	SortOrder         int32
+	SourceNote        sql.NullString
+	CreatedAt         sql.NullTime
+	UpdatedAt         sql.NullTime
+}
+
 type CycleHistory struct {
 	ID               uint64
 	UserID           uint64
@@ -573,6 +616,16 @@ type UserChallengeCompletion struct {
 	CompletedAt    sql.NullTime
 	CreatedAt      sql.NullTime
 	UpdatedAt      sql.NullTime
+}
+
+type UserCheckupSetting struct {
+	ID            uint64
+	UserID        uint64
+	CheckupTypeID uint64
+	Enabled       bool
+	Remind        bool
+	CreatedAt     sql.NullTime
+	UpdatedAt     sql.NullTime
 }
 
 type UserNotification struct {

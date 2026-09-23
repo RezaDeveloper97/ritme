@@ -461,3 +461,15 @@ Nothing needed fixing.
   `all`; `scheduled_at` accepts `Y-m-d H:i[:s]` (Tehran), response adds `remind_at`, `days_until`; prep ids `pN`
   (client temp ids replaced); PUT ignores `status` (only `/cancel`, idempotent); `PATCH …/prep/{itemId}` exists too.
 - Open for T-M3-03: whether an inactive (`is_active=false`) appointment counts as `next_appointment`.
+
+## T-M4-01 — Checkups — schema, default catalog seed and status engine (Go)
+- Migration pair `00003_checkups.sql` + `2026_09_24_000001_create_checkup_tables.php` (`checkup_types`,
+  `checkup_records`, `user_checkup_settings`; 6 seeded types, `INSERT IGNORE`); schema-diff OK (42 tables).
+- `internal/checkups` (`EngineInputs`, converters), `internal/checkups/engine` (pure `Evaluate`, `NextDueAfter`,
+  `AddMonths`, `CycleFromHistory`, Jalali port) — 98.7 % coverage; D-18 (checkups Go-only).
+- Engine choices to review: `disabled` items stay listed but leave the summary; `not_yet` counts as up to date;
+  only monthly cycle-timed types sit on predicted windows; users above `age_max` get no item; `soon` = 60 days.
+- **Open for the user: seed copy (why/prep text, hide_in_pregnancy flags) needs medical review before production**
+  (flagged in `source_note`, README, migration headers).
+- Notes for T-M4-02/03: `EngineInputs` returns active types only (detail/admin need own queries); callers load
+  birthday/pregnancy/cycle; column `key` must stay backticked.

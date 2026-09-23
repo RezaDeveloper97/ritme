@@ -53,14 +53,44 @@ cycle day 7–10, guide + findings), clinical breast exam (annual, doctor), Pap 
 cycle day 10–20), full blood test (annual — CBC, thyroid, vitamin D, iron), dentist (6 months), mammography (from 40,
 every 1–2 years).
 
+Seeded by `backend-go/db/migrations/00003_checkups.sql` and its twin
+`backend/database/migrations/2026_09_24_000001_create_checkup_tables.php` (identical values, idempotent on `key`;
+`source_note` = "Needs medical review before production"):
+
+| key | category | by | icon / tone | interval | age | cycle days | lead | hidden in pregnancy |
+|---|---|---|---|---|---|---|---|---|
+| `breast_self_exam` | monthly | self | `ribbon` / rose | 1 | – | 7–10 | 3 | yes |
+| `clinical_breast_exam` | annual | doctor | `breast` / violet | 12 | – | – | 30 | no |
+| `pap_smear` | multi_year | doctor | `flask` / violet | 36 | 21–65 | 10–20 | 30 | no |
+| `blood_test` | annual | lab | `blood` / amber | 12 | – | – | 14 | no |
+| `dentist` | six_monthly | dentist | `tooth` / teal | 6 | – | – | 14 | no |
+| `mammography` | age_based | lab | `shieldCheck` / rose | 12–24 | 40+ | – | 30 | yes |
+
+JSON shapes (every text is a bilingual object keyed by language code):
+`prep_steps` `[{"fa":…,"en":…}]` · `guide_steps` `[{"title":{…},"body":{…}}]` ·
+`finding_options` `[{"key":"none","exclusive":true,"label":{…}}, {"key":"lump","label":{…}}, …]` —
+`checkup_records.findings` stores the chosen `key`s; `exclusive` = the «چیزی متفاوت نبود» chip that clears the others.
+`remind_lead_days` defaults to 7, `tone` to `neutral`.
+
 ## Status engine (`internal/checkups/engine`, pure, clock-injected)
 
-For each applicable type: `last = latest record.done_on`; `next_due = record.next_due_on ?? last + interval`
-(monthly cycle-timed → the next date whose predicted cycle day falls in `[from,to]`, from the cycle engine's
-predictions). Status: `overdue` (next_due < today) · `due` (today ≥ next_due − lead, or never recorded) ·
-`soon` (within 60 days) · `up_to_date` · `not_yet` (age below `age_min`). Section: `this_month` (due/overdue
-within the current Jalali month for cycle-timed), else `overdue`, else by category.
-Summary = counts of `up_to_date(+soon)`, `due`, `overdue` over applicable types → the ring `up_to_date/total`.
+`engine.Evaluate(Input, clock)`; `checkups.EngineInputs(ctx, q, userID)` loads types/records/settings (3 queries);
+birthday, pregnancy and the cycle prediction (`engine.CycleFromHistory` — the cycle engine's resolved current period
+start + effective length) come from the caller. Package doc in `engine.go` is the authoritative rule list.
+
+For each applicable type (active; not `hide_in_pregnancy` while pregnant; age ≤ `age_max` when the birthday is known):
+`last = latest record.done_on` (ties → higher id); `next_due = that record.next_due_on ?? last + interval` (calendar
+months, clamped to month end). A range interval (12–24) is due from the minimum and **overdue only after the maximum**.
+A **monthly** cycle-timed type is due at the `[from,to]` window of the first predicted cycle starting after `last`
+(never recorded → this cycle's window, or the next one once it has passed) and overdue after the window end; without
+cycle data it falls back to last + 1 month. Longer cycle-timed types (Pap) keep their calendar date — the window is
+advice for the reminder/label only. Status: `not_yet` (age below `age_min`; `next_due_on` = the day she reaches it,
+for «از ۱۴۰۹ (۴۰ سالگی)») · `overdue` (today after the due-by date) · `due` (never recorded, or today ≥ next_due − lead)
+· `soon` (within 60 days) · `up_to_date` · `disabled` (setting `enabled=false`; still listed, left out of the summary).
+Section: `this_month` for a cycle-timed type that is overdue, or due with next_due inside the current **Jalali** month
+(`engine.ToJalali` / `JalaliMonthEnd`), else `overdue`, else the category.
+Summary over enabled items: `total`, `up_to_date` (= up_to_date + soon + **not_yet**, matching the artboard ring
+«۴ از ۶» where the not-yet mammography counts), `due`, `overdue`.
 
 ## API contract (Go, auth:api, Accept-Language, standard envelope)
 
