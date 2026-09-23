@@ -1,16 +1,26 @@
 ---
 name: verify-all
-description: Run the full Ritme verification suite — backend tests+style, frontend typecheck+lint+FSD rules+style gate+dark-mode gate+unit tests — and report a pass/fail table. Use before commits and always before deploy.
+description: Run the full Ritme verification suite — backend tests+style, backend-go vet+tests+lint, frontend typecheck+lint+FSD rules+style gate+dark-mode gate+unit tests — and report a pass/fail table. Use before commits and always before deploy.
 ---
 
 # Verify everything
 
-Run all of these (parallelize backend and frontend):
+Run all of these (parallelize backend, backend-go and frontend):
 
 ## Backend
 ```bash
 cd backend && vendor/bin/pint --test && php artisan test
 ```
+
+## Backend (Go)
+Skip this row (report it as "skipped") when `backend-go/` does not exist.
+```bash
+[ -d backend-go ] && cd backend-go && go vet ./... && go test ./... && golangci-lint run
+```
+
+`golangci-lint` v2 is required (`brew install golangci-lint`). Integration tests skip without
+`TEST_DB_DSN`; run them with `make test-int PKG=...` when the change touches SQL (see `backend-go/CLAUDE.md`).
+If this is pre-deploy, also run `docker build -t ritme-backend-go:dev backend-go`.
 
 ## Frontend
 ```bash

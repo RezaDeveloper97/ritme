@@ -152,3 +152,16 @@ Nothing needed fixing.
 10. **`env()` outside config/** (`SwaggerBasicAuth`, `bootstrap/app.php` ADMIN_PANEL_ENABLED, `AdminSeeder`): move these to `config()` before relying on a `.env`-only setup with the config cache.
 11. **Same-origin API proxy** for prod, to drop the ~11 CORS preflights per cold load (an owner decision).
 12. Enforce CSP only after watching the Report-Only violations on staging's logged-in pages. Fix the SMS gateway (SMS.ir template / Kavenegar test mode) so real OTP sign-in can be tested.
+
+## T-M2-02 — backend-go skeleton, Fiber v3 app and dev tooling
+- New `backend-go/` (module `github.com/ritme/backend-go`, Go 1.25, Fiber v3.5.0, go-redis v9, go-sql-driver/mysql).
+- `cmd/api`: slog JSON logs, graceful shutdown, `api healthcheck` subcommand, trust-all-proxies XFF client IP,
+  25 MB body limit, CORS port of fruitcake/php-cors (headers verified against the PHP implementation).
+- `internal/platform/{config,db,cache}`, `internal/http` domain registry (`routes_<domain>.go` via `init()`), `/up`.
+- Dockerfile: alpine 3.22 (gcr.io distroless is 403 from here), `USER 33:33`, GOPROXY fallbacks.
+- Makefile targets: run, test, test-int PKG=, test-db-up/down, lint, sqlc, schema-diff, contract(-record) ROUTES=.
+- Test stack `docker-compose.test.yml`: MariaDB 11.4 on 13317, Redis on 16380 (`TEST_DB_PORT`/`TEST_REDIS_PORT`).
+- New env: `HTTP_ADDR`, `STORAGE_PATH`, `REDIS_PREFIX=ritme-go:`; config refuses `APP_DEBUG=true` in production.
+- verify-all skill gained a Go row; format hook runs gofmt on backend-go.
+- Open: `/up` returns plain `OK` (Laravel returns HTML); registry test lives in `cmd/api/app_test.go`.
+  Deps: `go get mod@version` only, no concurrent `go mod tidy` (see backend-go/CLAUDE.md).

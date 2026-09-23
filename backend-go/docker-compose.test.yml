@@ -1,0 +1,40 @@
+# Throw-away MariaDB 11.4 (same engine as prod/stage) + Redis for integration tests
+# and for `make run`. Data lives in tmpfs: `make test-db-down` wipes it.
+#
+#   make test-db-up     # start and wait for health
+#   make test-int PKG=./internal/content/...
+#
+# Integration tests read TEST_DB_DSN / TEST_REDIS_ADDR and t.Skip() when unset.
+name: ritme-go-test
+
+services:
+  mariadb:
+    image: mariadb:11.4
+    environment:
+      MARIADB_DATABASE: ritme_test
+      MARIADB_USER: ritme
+      MARIADB_PASSWORD: ritme
+      MARIADB_ROOT_PASSWORD: root
+      # Same server default as prod: the DB server runs in UTC, the app never
+      # touches the session time_zone (timestamps are Tehran wall-clock).
+      TZ: UTC
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    ports:
+      - "127.0.0.1:${TEST_DB_PORT:-13317}:3306"
+    tmpfs:
+      - /var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "127.0.0.1:${TEST_REDIS_PORT:-16380}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 30

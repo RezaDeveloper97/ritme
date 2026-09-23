@@ -3,7 +3,7 @@ id: T-M2-02
 title: backend-go skeleton, Fiber v3 app and dev tooling
 milestone: M2
 type: backend
-status: todo
+status: done
 depends_on: []
 parallel_group: M2-A
 touches: [backend-go/go.mod, backend-go/go.sum, backend-go/cmd/api, backend-go/internal/platform/config, backend-go/internal/platform/db/db.go, backend-go/internal/platform/cache, backend-go/internal/http/router.go, backend-go/internal/http/routes_health.go, backend-go/Dockerfile, backend-go/.dockerignore, backend-go/Makefile, backend-go/.golangci.yml, backend-go/docker-compose.test.yml, backend-go/CLAUDE.md, backend-go/README.md, .claude/skills/verify-all/SKILL.md, .claude/hooks/format.sh]

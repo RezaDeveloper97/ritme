@@ -17,6 +17,9 @@ case "$FILE" in
   "$ROOT"/frontend/*.ts|"$ROOT"/frontend/*.tsx|"$ROOT"/frontend/*.js|"$ROOT"/frontend/*.jsx)
     cd "$ROOT/frontend" && npx eslint --fix "$FILE" --no-warn-ignored >/dev/null 2>&1
     ;;
+  "$ROOT"/backend-go/*.go)
+    gofmt -w "$FILE" 2>/dev/null
+    ;;
 esac
 
 exit 0

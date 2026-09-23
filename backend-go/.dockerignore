@@ -1,0 +1,16 @@
+# Only the Go sources are needed in the build context.
+.git
+.idea
+.vscode
+*.md
+.env
+.env.*
+bin/
+tmp/
+coverage.out
+docker-compose*.yml
+Makefile
+.golangci.yml
+# Never bake secrets or mounted Laravel storage into the image.
+storage/
+*.key
