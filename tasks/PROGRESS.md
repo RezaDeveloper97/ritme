@@ -230,3 +230,10 @@ Nothing needed fixing.
 - `resources/lang` (PHP lang → JSON via `convert.php`), `resources/translations` (fa/en seed), both embedded.
 - Differences: bootstrap fallback not cached when languages table unreadable; `email` rule approximated via net/mail.
 - Open: registry has no TTL → cross-stack staleness (note added to T-M2-10).
+
+## T-M2-14 — Legacy HealthDataEngine library
+- `internal/cycle/legacy` (engine, probability, text flags, hardcoded tips, `Calculation` full/calendar/localized
+  JSON, month summary, implements `view.BaseCalc`) and `internal/cycle/recommendation` (Source interface,
+  per-request memo repository, tip localizer). No DB/Fiber imports.
+- Golden sweep: 2040 days + 204 months equal to Laravel; PHP-generated edge cases in `legacy/testdata/php_cases.json`.
+- Cache signature uses sha256 (Go cache namespace is separate). Open: sqlc adapter + DailyLog builder → T-M2-15 (noted in its file).

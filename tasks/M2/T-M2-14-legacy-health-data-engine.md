@@ -3,7 +3,7 @@ id: T-M2-14
 title: Legacy HealthDataEngine library (calculation, probability, text flags, tips)
 milestone: M2
 type: backend
-status: todo
+status: done
 depends_on: [T-M2-05, T-M2-13]
 parallel_group: M2-F
 touches: [backend-go/internal/cycle/legacy, backend-go/internal/cycle/recommendation]

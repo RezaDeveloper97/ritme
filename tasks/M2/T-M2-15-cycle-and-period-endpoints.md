@@ -39,3 +39,9 @@ Home sections that show cycle data (T-M2-18).
   delete → today) compared step by step.
 - Integration test: the same period sequence run against Laravel and Go leaves identical `cycle_histories` rows.
 - p95 latency of `/cycle/month` (calendar) on the fixture DB ≤ Laravel's (measured with `hey`, numbers in PROGRESS).
+
+## Note from T-M2-14
+- Write the sqlc adapter for `recommendation.Source` here (queries in `db/queries/cycle`): active rows ordered by
+  `sort_order, id`, and an `EXISTS` over the whole table (inactive rows count for `HasContent`).
+- Build `legacy.DailyLog.Source` as `DailyHealthLog::toArray()` output (reference casts: `dailyLogFromRow` in
+  `internal/cycle/legacy/golden_sweep_test.go`). `legacy.Input.Today` = Tehran today; `Input.Tips` is required.
