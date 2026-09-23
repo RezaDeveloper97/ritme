@@ -21,6 +21,11 @@
 # nginx, which gates the whole hostname behind HTTP Basic auth — so the
 # password cannot be sidestepped by hitting a port directly.
 #
+# Go ONLY since T-M2-28: Laravel's `backend` / `queue` are behind the compose
+# profile `laravel` (docker-compose.stage.yml), so the plain build/up below
+# ships mysql, redis, backend-go, frontend and admin-web; backend-go runs the
+# goose migrations on start. Leftover Laravel containers are removed.
+#
 # Other switches (same meaning as deploy.sh):
 #   SERVICES="frontend" ./deploy-stage.sh
 #   NO_BUILD=1          ./deploy-stage.sh
@@ -117,6 +122,14 @@ fi
 echo "==> Starting staging stack..."
 ssh_run "cd ${REMOTE_DIR} && ${COMPOSE} up -d ${SERVICES}"
 
+# Laravel is retired on stage (T-M2-28). Its services are profiled out, so
+# `up -d` no longer touches the containers an older deploy started — stop and
+# remove them explicitly (volumes are untouched). No-op once they are gone.
+echo "==> Removing retired Laravel stage containers (if any)..."
+ssh_run 'for c in ritme-stage-backend-1 ritme-stage-queue-1; do
+  if docker container inspect "$c" >/dev/null 2>&1; then docker rm -f "$c" >/dev/null && echo "  removed $c"; fi
+done'
+
 echo "==> Pruning dangling images..."
 # Two stacks on one 24 GB disk orphan layers twice as fast as one did.
 ssh_run "docker image prune -f" >/dev/null || true
@@ -129,7 +142,10 @@ echo "==> Ensuring the proxy serves ${STAGE_HOST}..."
 ssh_run "cd ${PROD_DIR} && grep -q '^STAGE_CONF=' .env || echo 'STAGE_CONF=./deploy/stage-http.conf' >> .env"
 # `up -d proxy` is a no-op when the mount sources are unchanged, and recreates
 # the container when STAGE_CONF was just added or flipped.
-ssh_run "cd ${PROD_DIR} && ${PROD_COMPOSE} up -d proxy && ${PROD_COMPOSE} exec -T proxy nginx -t"
+# Then a graceful reload: the stage upstream{} blocks in stage-ssl.conf
+# (stage-backend, stage-backend-go, stage-frontend) are resolved when nginx
+# loads its config, so a recreated container's new IP is only seen after one.
+ssh_run "cd ${PROD_DIR} && ${PROD_COMPOSE} up -d proxy && ${PROD_COMPOSE} exec -T proxy sh -c 'nginx -t && nginx -s reload'"
 
 # ── 5. Verify ───────────────────────────────────────────────────────────────
 echo "==> Verifying..."
@@ -154,13 +170,25 @@ check() { # check <expected> <url> [extra curl args...]
 SCHEME="$(ssh_run "cd ${PROD_DIR} && grep -q 'stage-ssl.conf' .env && echo https || echo http")"
 BASE="${SCHEME}://${STAGE_HOST}"
 
-# /up is deliberately exempt from Basic auth so probes keep working.
+# check_go <url> [extra curl args...] — the response came from backend-go
+# (it adds `X-Backend: go` outside production), i.e. not from a stray Laravel.
+check_go() {
+  local url="$1"; shift
+  if curl -s -o /dev/null -D - -m 25 "$@" "$url" | tr -d '\r' | grep -qi '^x-backend: go$'; then
+    printf '  ok    X-Backend: go  %s\n' "$url"
+  else
+    printf '  FAIL  no X-Backend: go  %s\n' "$url"
+    failures=$((failures + 1))
+  fi
+}
+
+# /up is deliberately exempt from Basic auth so probes keep working. It is Go's.
 check 200 "${BASE}/up"
+check_go "${BASE}/up"
 # No credentials anywhere else => 401. This is the assertion that proves the
 # password gate is actually on; a 200 here means staging is world-readable.
 check 401 "${BASE}/"
 check 401 "${BASE}/api/v1/banners" -H 'Accept: application/json'
-check 401 "${BASE}/admin/login"
 check 401 "${BASE}/panel/login"
 check 401 "${BASE}/api/admin/v1/auth/me" -H 'Accept: application/json'
 
@@ -169,19 +197,46 @@ check 401 "${BASE}/api/admin/v1/auth/me" -H 'Accept: application/json'
 check 200 "${BASE}/manifest.webmanifest"
 check 200 "${BASE}/sw.js"
 
+# Laravel-only surfaces, retired on stage (T-M2-28). Both answer before the
+# password gate (rewrite phase), and neither may mint the gate cookie.
+check 301 "${BASE}/admin"
+check 301 "${BASE}/admin/users"
+loc="$(curl -s -o /dev/null -m 25 -w '%{redirect_url}' "${BASE}/admin/login")" || loc=""
+if [[ "$loc" == */panel/ ]]; then printf '  ok    /admin -> %s\n' "$loc"
+else printf '  FAIL  /admin/login redirects to "%s" (expected …/panel/)\n' "$loc"; failures=$((failures + 1)); fi
+if curl -s -o /dev/null -D - -m 25 "${BASE}/admin" | grep -qi '^set-cookie: ritme_stage='; then
+  printf '  FAIL  the unauthenticated /admin redirect hands out the gate cookie\n'
+  failures=$((failures + 1))
+fi
+check 404 "${BASE}/oauth/token"
+
+# /api/v1/languages is gated from outside; the container-to-container
+# exemption (127/8) lets the proxy itself ask it — through the real vhost.
+if ssh_run "cd ${PROD_DIR} && ${PROD_COMPOSE} exec -T proxy curl -sk -o /dev/null -D - -m 20 \
+     --resolve ${STAGE_HOST}:443:127.0.0.1 --resolve ${STAGE_HOST}:80:127.0.0.1 \
+     ${SCHEME}://${STAGE_HOST}/api/v1/languages" | tr -d '\r' | grep -qi '^x-backend: go$'; then
+  printf '  ok    X-Backend: go  %s/api/v1/languages (via the proxy)\n' "$BASE"
+else
+  printf '  FAIL  /api/v1/languages is not served by Go (via the proxy)\n'
+  failures=$((failures + 1))
+fi
+
 if [[ -n "${STAGE_BASIC_AUTH:-}" ]]; then
   # STAGE_BASIC_AUTH="user:password" — checks what's BEHIND the gate too.
   # 307, not 200: next-intl redirects / to the default locale, same as prod.
   check 307 "${BASE}/" -u "$STAGE_BASIC_AUTH"
-  check 200 "${BASE}/admin/login" -u "$STAGE_BASIC_AUTH"
+  check_go "${BASE}/api/v1/languages" -u "$STAGE_BASIC_AUTH"
   # New admin (T-M2-25): admin-web under /panel, its API on Go. The 401 on
   # /auth/me is backend-go's JSON `unauthenticated` (no admin session) — a 404
   # there means ADMIN_HOSTS is unset/wrong and the admin API is disabled.
   check 200 "${BASE}/panel/login" -u "$STAGE_BASIC_AUTH"
   check 401 "${BASE}/api/admin/v1/auth/me" -u "$STAGE_BASIC_AUTH" -H 'Accept: application/json'
-  # 401 from Laravel (not nginx): proves the framework booted and the auth
-  # middleware ran, rather than PHP merely answering.
+  # 401 from Go (not nginx): proves the service booted and the auth
+  # middleware ran, rather than something merely answering.
   check 401 "${BASE}/api/v1/banners" -u "$STAGE_BASIC_AUTH" -H 'Accept: application/json'
+  check_go "${BASE}/api/v1/banners" -u "$STAGE_BASIC_AUTH" -H 'Accept: application/json'
+  # An /api path no route group claims still lands on Go (JSON 404), not Laravel.
+  check_go "${BASE}/api/v1/does-not-exist" -u "$STAGE_BASIC_AUTH" -H 'Accept: application/json'
 
   # The gate is a cookie, not the password (vhost-stage.inc explains why), so
   # the thing worth asserting is that one page load mints it and that the

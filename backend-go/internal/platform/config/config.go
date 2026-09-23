@@ -2,7 +2,8 @@
 //
 // Variable names match the Laravel backend (backend/config/*.php, docker-compose.yml)
 // so both stacks can be fed from the same .env during the strangler period. Go-only
-// variables are HTTP_ADDR, STORAGE_PATH and REDIS_PREFIX.
+// variables are HTTP_ADDR, STORAGE_PATH and REDIS_PREFIX; RUN_MIGRATIONS is shared (each
+// service's entrypoint reads its own value).
 //
 // Load fails fast: every missing required variable and every malformed value is
 // reported in one error, and cmd/api refuses to start.
@@ -38,6 +39,10 @@ type Config struct {
 	// StoragePath is the mounted Laravel storage/ directory (backend-storage volume):
 	// Passport keys, translations, public uploads.
 	StoragePath string
+	// RunMigrations (RUN_MIGRATIONS, default false) makes cmd/api run db.MigrateOnStart before
+	// serving. True only where goose owns the schema (stage, T-M2-28); prod keeps it false until
+	// T-M2-27 — Laravel's entrypoint migrates there.
+	RunMigrations bool
 }
 
 // App holds the APP_* settings.
@@ -189,7 +194,8 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 			User:     e.str("SWAGGER_USER", "ritme"),
 			Password: e.str("SWAGGER_PASSWORD", ""),
 		},
-		StoragePath: strings.TrimRight(e.required("STORAGE_PATH"), "/"),
+		StoragePath:   strings.TrimRight(e.required("STORAGE_PATH"), "/"),
+		RunMigrations: e.boolean("RUN_MIGRATIONS", false),
 	}
 
 	if cfg.App.Timezone != "" {

@@ -6,6 +6,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log/slog"
 	"net"
@@ -55,6 +56,12 @@ func run(logger *slog.Logger) error {
 	}
 	defer func() { _ = pool.Close() }()
 
+	if cfg.RunMigrations {
+		if err := migrateOnStart(ctx, logger, pool); err != nil {
+			return err
+		}
+	}
+
 	rdb := cache.New(cfg.Redis)
 	defer func() { _ = rdb.Close() }()
 	if err := rdb.Ping(ctx); err != nil {
@@ -75,6 +82,22 @@ func run(logger *slog.Logger) error {
 	})
 	logger.Info("stopped")
 	return err
+}
+
+// migrateOnStart runs db.MigrateOnStart (RUN_MIGRATIONS=true: stage, where goose owns the schema
+// since T-M2-28) and logs what it decided. A failure stops the process: serving on a schema that
+// is behind the code would be worse than not serving.
+func migrateOnStart(ctx context.Context, logger *slog.Logger, pool *sql.DB) error {
+	res, err := db.MigrateOnStart(ctx, pool)
+	if err != nil {
+		return err
+	}
+	logger.Info("migrations",
+		slog.String("action", string(res.Action)),
+		slog.Any("applied", res.Applied),
+		slog.Int64("version", res.Version),
+	)
+	return nil
 }
 
 // healthcheck returns the process exit code for `api healthcheck`.

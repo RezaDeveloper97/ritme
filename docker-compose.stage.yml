@@ -5,9 +5,17 @@
 # project-scoped and cannot collide with `ritme`.
 #
 # It runs NO proxy of its own — production's nginx already owns :80/:443. The
-# two stacks meet on the external `ritme-edge` network, where staging's backend
-# and frontend answer to the aliases `stage-backend` / `stage-frontend` that
+# two stacks meet on the external `ritme-edge` network, where staging's
+# backend-go, frontend and admin-web answer to the stage-only aliases that
 # deploy/vhost-stage.inc proxies to.
+#
+# Go ONLY since T-M2-28: the Laravel `backend` and `queue` services sit behind
+# the `laravel` profile, so a plain `build` / `up -d` neither builds nor starts
+# them, and backend-go owns the stage schema (goose on start, RUN_MIGRATIONS).
+# Start them again only for a side-by-side check:
+#   docker compose -p ritme-stage -f docker-compose.yml -f docker-compose.stage.yml --profile laravel up -d backend
+# (they would then run Laravel's entrypoint migrations too — see
+# docs/go-migration/migrations.md before doing that).
 #
 # Nothing here publishes a host port: the only way in is through that proxy,
 # which means the Basic-auth gate cannot be bypassed by hitting a port directly.
@@ -29,7 +37,11 @@ services:
   redis:
     ports: !override []
 
+  # Retired on stage (T-M2-28) — profile `laravel`, see the header. Its alias
+  # is `stage-backend-laravel`, NOT `stage-backend`: that name now belongs to
+  # backend-go (below), so the proxy can never reach Laravel by accident.
   backend:
+    profiles: [laravel]
     environment:
       APP_ENV: staging
       # Staging exists to be debugged, but it is internet-facing (behind Basic
@@ -39,23 +51,44 @@ services:
     networks:
       default:
       ritme-edge:
-        aliases: [stage-backend]
+        aliases: [stage-backend-laravel]
 
   queue:
+    profiles: [laravel]
     environment:
       APP_ENV: staging
       APP_DEBUG: ${APP_DEBUG:-false}
 
-  # Go API beside Laravel (strangler, T-M2-09). The proxy reaches it only
-  # through the stage-only alias `stage-backend-go` — never the bare service
-  # name `backend-go`, which Docker also registers on ritme-edge (the
-  # 2026-08-31 incident; see deploy/proxy-ssl.conf). Which route groups it
-  # serves is decided by deploy/stage-ssl.conf (deploy/switch-go-route.sh).
+  # The stage API (Go only since T-M2-28). The proxy reaches it through the
+  # stage-only alias `stage-backend-go` — never the bare service name
+  # `backend-go`, which Docker also registers on ritme-edge (the 2026-08-31
+  # incident; see deploy/proxy-ssl.conf). It ALSO answers to `stage-backend`,
+  # Laravel's old alias: deploy/stage-ssl.conf and stage-http.conf still define
+  # `upstream stage_backend_upstream { server stage-backend:80; }`, which nginx
+  # resolves at load — without a container behind that name the SHARED
+  # production proxy would fail `nginx -t`. (`switch-go-route.sh stage <g> off`
+  # therefore also lands on Go now.)
+  #
+  # Passport keys / personal-access client / seed rows: Go reads the keys from
+  # the `backend-storage` volume and the client row from oauth_clients, and
+  # creates neither (nor runs seeders). The existing ritme-stage volumes have
+  # them (Laravel's entrypoint made them). A FRESH stage volume must be
+  # bootstrapped once by Laravel before backend-go first starts:
+  # docs/go-migration/cutover.md → "Stage runs Go only".
   backend-go:
     container_name: ritme-stage-backend-go-1
+    # Laravel is off, so don't wait for it (base: mysql + redis + backend).
+    depends_on: !override
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       APP_ENV: staging
       APP_DEBUG: ${APP_DEBUG:-false}
+      # goose owns the stage schema: on start, stamp a Laravel-built DB, build
+      # an empty one, or apply pending migrations (db.MigrateOnStart).
+      RUN_MIGRATIONS: "true"
       # Admin API (T-M2-20/25) on the single stage origin: admin-web at /panel
       # and /api/admin/ share stage.ritmeapp.ir, so every call is same-origin.
       # Empty ADMIN_HOSTS would disable the admin API outside local/testing.
@@ -66,9 +99,12 @@ services:
     networks:
       default:
       ritme-edge:
-        aliases: [stage-backend-go]
+        aliases: [stage-backend-go, stage-backend]
 
   frontend:
+    # Base depends on Laravel's `backend`, which is profiled off here. The
+    # frontend reaches the API through the proxy anyway; this only orders start-up.
+    depends_on: !override [backend-go]
     ports: !override []
     networks:
       default:
@@ -78,8 +114,7 @@ services:
   # Next.js admin (T-M2-22). Reached only through the stage-only alias
   # `stage-admin-web` (never the bare service name — see backend-go above).
   # Served under /panel (Next basePath, baked in at build time) because staging
-  # has one origin; the Blade panel stays at /admin for comparison
-  # (deploy/vhost-stage.inc).
+  # has one origin; /admin redirects to it (deploy/vhost-stage.inc).
   admin-web:
     container_name: ritme-stage-admin-web-1
     build:

@@ -43,9 +43,9 @@ func NewMigrator(pool *sql.DB) (*goose.Provider, error) {
 
 // Migrate applies every pending goose migration.
 //
-// Used ONLY by tests (testdb) and brand-new environments. The stage/prod entrypoint must not
-// call it before the cutover (T-M2-27): Laravel owns the schema until then, and an existing
-// database is version-stamped with StampBaseline instead of migrated.
+// Used by tests (testdb) and, through MigrateOnStart, by environments where goose owns the schema
+// (stage since T-M2-28). Production must not run it before the cutover (T-M2-27): Laravel owns that
+// schema until then, and an existing database is version-stamped with StampBaseline, not migrated.
 func Migrate(ctx context.Context, pool *sql.DB) error {
 	p, err := NewMigrator(pool)
 	if err != nil {
@@ -92,6 +92,108 @@ func StampBaseline(ctx context.Context, pool *sql.DB) error {
 		}
 	}
 	return nil
+}
+
+// LaravelVersionTable is Laravel's migration bookkeeping table.
+const LaravelVersionTable = "migrations"
+
+// StartAction says what MigrateOnStart found and did.
+type StartAction string
+
+const (
+	// StartBaselineApplied: the database was empty; every goose migration (baseline included) ran.
+	StartBaselineApplied StartAction = "baseline_applied"
+	// StartStamped: the schema was built by Laravel (its `migrations` table, no goose table); the
+	// baseline was recorded as applied WITHOUT running it, then later migrations (if any) ran.
+	StartStamped StartAction = "stamped_laravel_schema"
+	// StartUpToDate: goose already owned the database; only pending migrations ran (maybe none).
+	StartUpToDate StartAction = "goose_managed"
+)
+
+// StartResult reports MigrateOnStart's decision, for the startup log.
+type StartResult struct {
+	Action  StartAction
+	Applied []int64 // versions applied by this call (empty when nothing was pending)
+	Version int64   // goose version after the call
+}
+
+// MigrateOnStart brings a database under goose at process start (RUN_MIGRATIONS=true). It never
+// re-creates tables that already exist:
+//
+//   - goose_db_version present            → apply pending migrations only;
+//   - Laravel `migrations` table, no goose → StampBaseline (the baseline equals the Laravel-built
+//     schema — scripts/schema-diff.sh), then apply migrations added after the baseline;
+//   - no tables at all                    → apply everything, baseline included;
+//   - tables but neither bookkeeping table → refuse: an unknown schema is not goose's to touch.
+//
+// One process at a time: goose's MySQL dialect has no session lock, so run a single migrating
+// replica (stage has exactly one backend-go).
+func MigrateOnStart(ctx context.Context, pool *sql.DB) (StartResult, error) {
+	gooseTable, err := tableExists(ctx, pool, VersionTable)
+	if err != nil {
+		return StartResult{}, err
+	}
+	res := StartResult{Action: StartUpToDate}
+	if !gooseTable {
+		laravelTable, err := tableExists(ctx, pool, LaravelVersionTable)
+		if err != nil {
+			return StartResult{}, err
+		}
+		switch {
+		case laravelTable:
+			if err := StampBaseline(ctx, pool); err != nil {
+				return StartResult{}, err
+			}
+			res.Action = StartStamped
+		default:
+			n, err := tableCount(ctx, pool)
+			if err != nil {
+				return StartResult{}, err
+			}
+			if n > 0 {
+				return StartResult{}, fmt.Errorf("db: migrate on start: %d table(s) but neither %s nor %s — "+
+					"refusing to apply the baseline over an unknown schema", n, VersionTable, LaravelVersionTable)
+			}
+			res.Action = StartBaselineApplied
+		}
+	}
+
+	p, err := NewMigrator(pool)
+	if err != nil {
+		return StartResult{}, err
+	}
+	results, err := p.Up(ctx)
+	if err != nil {
+		return StartResult{}, fmt.Errorf("db: migrate on start (%s): %w", res.Action, err)
+	}
+	for _, r := range results {
+		res.Applied = append(res.Applied, r.Source.Version)
+	}
+	if res.Version, err = p.GetDBVersion(ctx); err != nil {
+		return StartResult{}, fmt.Errorf("db: migrate on start: version: %w", err)
+	}
+	return res, nil
+}
+
+func tableExists(ctx context.Context, pool *sql.DB, name string) (bool, error) {
+	var n int
+	err := pool.QueryRowContext(ctx,
+		`SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?`,
+		name).Scan(&n)
+	if err != nil {
+		return false, fmt.Errorf("db: table %s exists: %w", name, err)
+	}
+	return n > 0, nil
+}
+
+func tableCount(ctx context.Context, pool *sql.DB) (int, error) {
+	var n int
+	err := pool.QueryRowContext(ctx,
+		`SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE()`).Scan(&n)
+	if err != nil {
+		return 0, fmt.Errorf("db: count tables: %w", err)
+	}
+	return n, nil
 }
 
 func mustStore() database.StoreExtender {

@@ -4,15 +4,17 @@
 ## `stage.ritmeapp.ir` has a DNS record pointing here, so staging routes by
 ## path instead:
 ##
-##   /api, /oauth, /storage, /up, /docs  -> stage backend (Laravel)
-##   /admin                              -> stage backend (Blade panel)
-##   /panel                              -> stage admin-web (new Next.js admin)
+##   /up, /api, /storage, /docs          -> stage backend-go (Go)
 ##   /api/admin/                         -> stage backend-go (Go admin API)
+##   /panel                              -> stage admin-web (new Next.js admin)
+##   /admin, /admin/*                    -> 301 /panel/ (Blade panel retired)
+##   /oauth/*                            -> 404 (Passport's routes; no client uses them)
+##   /api/session/flag                   -> stage frontend (Next route handler)
 ##   everything else                     -> stage frontend (Next.js)
 ##
-## …except the strangler route groups (deploy/go-routes.inc), which go to
-## Laravel OR Go per group, as set by the `upstream stage_route_<group>` blocks
-## in stage-ssl.conf (flip with deploy/switch-go-route.sh stage <group> on|off).
+## Staging runs Go ONLY since T-M2-28: no Laravel container is needed to serve
+## any path. The strangler route groups (deploy/go-routes.inc) still go through
+## the `upstream stage_route_<group>` blocks in stage-ssl.conf, all on Go.
 ##
 ## Same-origin is a feature here: the browser never makes a cross-origin call,
 ## so backend/config/cors.php needs no staging entry.
@@ -25,7 +27,7 @@
 ## credentials. Every /api call therefore arrived un-credentialed and nginx
 ## answered 401 — which the frontend's 401 interceptor read as "session
 ## expired", wiped the token and bounced back to /signup. Profile saves never
-## reached Laravel at all. Requests the browser sends with `credentials: omit`
+## reached the backend at all. Requests the browser sends with `credentials: omit`
 ## (the web manifest) failed the same way and re-opened the password dialog on
 ## every page.
 ##
@@ -66,11 +68,23 @@ add_header X-Robots-Tag "noindex, nofollow" always;
 # vhost is served over plain HTTP (stage-http.conf), so it is safe in both.
 add_header Strict-Transport-Security "max-age=31536000" always;
 
+# ── Stage backend (Go) — resolved at REQUEST time ───────────────────────────
+# Variable proxy_pass + Docker's embedded DNS, never an upstream{} block: this
+# file is loaded by PRODUCTION's proxy, so a missing stage container must 502
+# its own paths rather than fail `nginx -t` for the whole shared proxy — and a
+# recreated container's new IP is picked up without a reload. (`set` is a
+# server-level rewrite directive: it runs for every request whatever its
+# position relative to the locations below.)
+resolver 127.0.0.11 valid=10s ipv6=off;
+set $stage_admin_web_target  http://stage-admin-web:3000;
+set $stage_backend_go_target http://stage-backend-go:80;
+
 # Health check must stay reachable for uptime probes and deploy verification.
+# Go's /up (X-Backend: go) — the same probe the container HEALTHCHECK uses.
 location = /up {
     auth_basic off;
     add_header Cache-Control "no-store";
-    proxy_pass http://stage_backend_upstream;
+    proxy_pass $stage_backend_go_target;
     include /etc/nginx/conf.d/proxy-params.inc;
 }
 
@@ -102,7 +116,7 @@ location ^~ /icons/ {
     include /etc/nginx/conf.d/proxy-params.inc;
 }
 
-# The one /api path that is NOT Laravel: a Next.js route handler (session
+# The one /api path that is NOT the backend: a Next.js route handler (session
 # flag, T-M1-03). An exact match beats the `^~ /api/` prefix below. It stays
 # behind the password gate like every other app request. Prod needs nothing:
 # web.ritme.app sends everything, /api/ included, to Next (vhost-web.inc).
@@ -123,20 +137,12 @@ include /etc/nginx/conf.d/go-routes.inc;
 # ── New admin (T-M2-25): admin-web at /panel, its API on Go ─────────────────
 # Production gives the admin its own host (adpanell.ritme.app, vhost-admin.inc)
 # with admin-web at `/`; staging has one origin, so admin-web is built with
-# basePath `/panel` (docker-compose.stage.yml) and the Blade panel stays at
-# /admin for side-by-side comparison. Everything here is same-origin, which is
+# basePath `/panel` (docker-compose.stage.yml); /admin redirects here. Everything here is same-origin, which is
 # what the __Host- session cookie and the CSRF/Origin checks need; backend-go
 # answers the admin API only for ADMIN_HOSTS=stage.ritmeapp.ir (Host is $host).
 # admin-web's other API call, GET /api/v1/languages, is the `content` group in
 # go-routes.inc. Both stay behind the password/cookie gate.
-#
-# Resolved at REQUEST time (variable proxy_pass + Docker's embedded DNS), not
-# through upstream{} blocks: a missing stage container then 502s this path
-# instead of failing `nginx -t` for the whole shared (production) proxy, and a
-# recreated container's new IP is picked up without a reload.
-resolver 127.0.0.11 valid=10s ipv6=off;
-set $stage_admin_web_target  http://stage-admin-web:3000;
-set $stage_backend_go_target http://stage-backend-go:80;
+# Both targets are the request-time variables set at the top of this file.
 
 # `^~`, and longer than `/api/`: wins over the plain `/api/` prefix AND skips
 # the go-routes.inc regexes (none of which match /api/admin/ anyway). Headers
@@ -162,14 +168,51 @@ location ^~ /api/admin/ {
 location = /panel  { proxy_pass $stage_admin_web_target; include /etc/nginx/conf.d/proxy-params.inc; }
 location ^~ /panel/ { proxy_pass $stage_admin_web_target; include /etc/nginx/conf.d/proxy-params.inc; }
 
+# ── Everything else the backend answers: Go (T-M2-28) ──────────────────────
 # Plain prefixes, NOT `^~`: a `^~` match would stop nginx from evaluating the
-# route-group regexes above, pinning every group to Laravel. These now only
-# catch what no group claims (and /oauth, which stays on Laravel).
-location /api/       { proxy_pass http://stage_backend_upstream; include /etc/nginx/conf.d/proxy-params.inc; }
-location ^~ /oauth/  { proxy_pass http://stage_backend_upstream; include /etc/nginx/conf.d/proxy-params.inc; }
-location /storage/   { proxy_pass http://stage_backend_upstream; include /etc/nginx/conf.d/proxy-params.inc; }
-location ^~ /admin   { proxy_pass http://stage_backend_upstream; include /etc/nginx/conf.d/proxy-params.inc; }
-location ^~ /docs    { proxy_pass http://stage_backend_upstream; include /etc/nginx/conf.d/proxy-params.inc; }
+# route-group regexes above. /api/ catches every /api path no group claims
+# (unported ones get Go's JSON 404); /storage/ is normally claimed by the
+# `content` group already. Headers spelled out as for /api/admin/ (edge XFF).
+location /api/ {
+    proxy_pass $stage_backend_go_target;
+    proxy_http_version 1.1;
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $ritme_client_xff;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-Host  $host;
+    proxy_set_header Upgrade           $http_upgrade;
+    proxy_set_header Connection        "upgrade";
+    proxy_read_timeout 120s;
+    proxy_send_timeout 120s;
+}
+location /storage/   { proxy_pass $stage_backend_go_target; include /etc/nginx/conf.d/proxy-params.inc; }
+location ^~ /docs    { proxy_pass $stage_backend_go_target; include /etc/nginx/conf.d/proxy-params.inc; }
+
+# Passport's own /oauth/* routes: no client uses them (the app authenticates
+# through /api/v1/auth), and Go does not implement them.
+#
+# Both blocks below answer from the rewrite phase, i.e. BEFORE auth_basic runs,
+# so they also answer without credentials. That is harmless for a 404 and a
+# redirect, but a 301 is a 3xx and would inherit the server-level Set-Cookie —
+# handing the gate cookie to anyone. Each block therefore sets its own
+# add_header, which cancels that inheritance (as the exempt locations do).
+location ^~ /oauth/ {
+    add_header X-Robots-Tag "noindex, nofollow" always;
+    return 404;
+}
+
+# The Blade panel is retired on stage: its replacement lives at /panel.
+# `= /admin` + `^~ /admin/` rather than a bare `/admin` prefix, which would
+# also swallow e.g. /administrators (a frontend path, if one ever exists).
+location = /admin {
+    add_header X-Robots-Tag "noindex, nofollow" always;
+    return 301 /panel/;
+}
+location ^~ /admin/ {
+    add_header X-Robots-Tag "noindex, nofollow" always;
+    return 301 /panel/;
+}
 
 location / {
     proxy_pass http://stage_frontend_upstream;

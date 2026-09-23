@@ -8,7 +8,7 @@ decides per **route group** which one answers. Moving a group, and moving it bac
 | Piece | What it does |
 |---|---|
 | `docker-compose.yml` → `backend-go` | Go API, uid 33, storage volume **read-only**, healthcheck `/app/api healthcheck` (`/up`). Local: `:8081`. |
-| `docker-compose.stage.yml` | Container `ritme-stage-backend-go-1`, no published port, alias **`stage-backend-go`** on `ritme-edge`. |
+| `docker-compose.stage.yml` | Container `ritme-stage-backend-go-1`, no published port, aliases **`stage-backend-go`** and (since T-M2-28) `stage-backend` on `ritme-edge`; `RUN_MIGRATIONS=true`. Laravel `backend`/`queue` are profile `laravel` (off). |
 | `docker-compose.prod.yml` | Container `ritme-backend-go-1`, `127.0.0.1:8081`, **profile `go`**: not built or started until T-M2-26 sets `COMPOSE_PROFILES=go` in `/opt/ritme/.env`. |
 | `deploy/go-routes.inc` | One regex `location` per group, shared by `vhost-api.inc` (prod) and `vhost-stage.inc` (stage). Each proxies to the upstream `${ritme_env}_route_<group>`. |
 | `deploy/stage-ssl.conf` / `deploy/proxy-ssl.conf` | One `upstream stage_route_<group>` / `prod_route_<group>` line per group. **This line is the switch.** |
@@ -19,7 +19,7 @@ Targets (pinned; never a bare service name such as `backend-go`, which Docker al
 
 | | Laravel | Go |
 |---|---|---|
-| stage | `stage-backend:80` | `stage-backend-go:80` |
+| stage | `stage-backend:80` — **Go too since T-M2-28** (see below) | `stage-backend-go:80` |
 | prod | `ritme-backend-1:80` | `ritme-backend-go-1:80` |
 
 ## Groups and their paths
@@ -81,6 +81,45 @@ Do every step on **stage** first; prod only after stage passed the soak.
 
 **Rollback** at any step: `deploy/switch-go-route.sh <env> <group> off` (about a second, graceful, no dropped
 requests). Both stacks share the DB, so data written by Go is read by Laravel after a rollback.
+
+## Stage runs Go only (T-M2-28)
+
+Since 2026-09-23 staging has no Laravel at all; production is unchanged (Laravel until T-M2-26/27).
+
+- **Routing** (`deploy/vhost-stage.inc`): every group is on Go, and so are `/up`, the `/api/` catch-all (unported
+  paths get Go's JSON 404), `/storage/` and `/docs` — through the request-time `$stage_backend_go_target`, so the
+  shared prod proxy's `nginx -t` never depends on them. `/oauth/*` → 404 (no client uses Passport's own routes).
+  `/admin` and `/admin/*` → 301 `/panel/` (the Blade panel is retired on stage; admin-web is at `/panel`).
+- **Compose** (`docker-compose.stage.yml`): `backend` and `queue` are profile `laravel`, so a plain `up -d` does not
+  start them, and `deploy-stage.sh` removes the old `ritme-stage-backend-1` / `ritme-stage-queue-1` containers.
+  backend-go no longer waits for `backend`. Volumes are kept (`ritme-stage_backend-storage` still holds the
+  Passport keys and uploads).
+- **`stage-backend` alias**: `stage-ssl.conf` / `stage-http.conf` still declare
+  `upstream stage_backend_upstream { server stage-backend:80; }`, resolved when nginx loads. So that name keeps
+  resolving without Laravel, backend-go answers to it too (Laravel's container, if ever started, is
+  `stage-backend-laravel`). Consequence: `switch-go-route.sh stage <group> off` now also lands on Go — there is
+  no Laravel rollback on stage any more; roll back a stage problem by redeploying an earlier `stage` commit.
+- **Schema**: goose owns it on stage (`docs/go-migration/migrations.md` → *Goose on start*). The first start
+  stamps the Laravel-built database; later starts apply pending goose migrations.
+- **Fresh stage volumes** (Passport keys, seeds): Go never generates the Passport key pair, never creates the
+  personal-access client row (`oauth_clients`, needed to issue tokens) and runs no seeders (admin user, message
+  contents, daily recommendations) — Laravel's entrypoint does all of that. The existing stage volumes have them.
+  After wiping `ritme-stage_mysql-data` / `ritme-stage_backend-storage`, bootstrap **once with Laravel, before
+  backend-go first starts** (so Laravel builds the schema and backend-go then stamps it):
+  ```bash
+  C='docker compose -p ritme-stage -f docker-compose.yml -f docker-compose.stage.yml'
+  $C --profile laravel build backend
+  $C up -d mysql redis && $C --profile laravel run --rm --no-deps backend true   # entrypoint: migrate, keys, client, seeds
+  $C up -d                                                                    # backend-go: stamped_laravel_schema
+  ```
+  If backend-go started first on an empty DB (`baseline_applied`), Laravel's `migrate` would collide with the
+  goose-built tables: wipe the DB volume and redo the above.
+- **Queue**: the Laravel worker is gone on stage. `auth` has been on Go since T-M2-25, so Laravel's stage queue
+  should already be empty — check once (commands in the next section) before the first Go-only deploy removes
+  `ritme-stage-queue-1`.
+- **Side-by-side Laravel** (debugging only): `… --profile laravel up -d backend` — its entrypoint runs Laravel's
+  migrations against the goose-owned schema, which is safe only while both sides are kept in step. Not reachable
+  through the proxy (no alias the vhost uses); use `exec`.
 
 ## Before the `auth` group moves — drain the queue
 

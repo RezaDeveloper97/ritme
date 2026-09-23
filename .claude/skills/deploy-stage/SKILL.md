@@ -32,16 +32,18 @@ things: the Docker daemon and production's nginx.
 Only `stage.ritmeapp.ir` has a DNS record here — there is no `api.stage` or
 `admin.stage`. So staging puts everything on one origin (`deploy/vhost-stage.inc`):
 
-- `/api`, `/oauth`, `/storage`, `/docs` → stage backend
-- `/admin` → stage Blade panel (kept for comparison until the prod admin cutover)
-- `/panel` → stage **admin-web** (new Next.js admin, built with basePath `/panel`), `/api/admin/` → stage
-  backend-go (admin API; `ADMIN_HOSTS=stage.ritmeapp.ir`). Both are resolved at request time (Docker DNS), so a
-  missing admin-web/Go container 502s these paths instead of failing `nginx -t` for the shared proxy.
-- everything else → stage Next.js frontend
-- **except the strangler route groups** (`deploy/go-routes.inc`, included by `vhost-stage.inc`): each group
-  (`content`, `reminders`, `healthlog`, `profile`, `pregnancy`, `cycle`, `messages`, `home`, `auth`) goes to Laravel
-  *or* Go per its `upstream stage_route_<group>` line in `deploy/stage-ssl.conf`. All start on Laravel. See
-  "Go backend (strangler)" below.
+**Staging runs Go only (T-M2-28, 2026-09-23)** — no Laravel container serves anything:
+
+- `/up`, `/api/…` (every route group + the catch-all), `/storage`, `/docs` → stage **backend-go**
+- `/api/admin/` → backend-go (admin API; `ADMIN_HOSTS=stage.ritmeapp.ir`)
+- `/panel` → stage **admin-web** (Next.js admin, built with basePath `/panel`)
+- `/admin`, `/admin/*` → **301 `/panel/`** (Blade panel retired on stage); `/oauth/*` → **404**
+- `/api/session/flag` and everything else → stage Next.js frontend
+
+The backend-go / admin-web targets are resolved at **request time** (variable `proxy_pass` + Docker DNS), so a
+missing stage container 502s its paths instead of failing `nginx -t` for the shared production proxy. The strangler
+groups still pass through `deploy/go-routes.inc` and the `upstream stage_route_<group>` lines in
+`deploy/stage-ssl.conf` — all on Go.
 
 Same-origin is a real benefit: **staging needs no entry in `backend/config/cors.php`**,
 because the browser never makes a cross-origin call. `NEXT_PUBLIC_API_BASE_URL` is
@@ -106,9 +108,10 @@ Production's `proxy` container is the only thing on :80/:443. It gained:
   `stage-http.conf`; `deploy/enable-https-stage.sh` flips it to `stage-ssl.conf`.
   The `zz-` prefix keeps it loading after `default.conf`, which owns the
   `default_server` blocks.
-- membership in the external `ritme-edge` bridge network. Staging's backend/frontend
-  join it under the aliases `stage-backend` / `stage-frontend`, which is how nginx
-  resolves them across compose projects. Both deploy scripts create the network if
+- membership in the external `ritme-edge` bridge network. Staging's backend-go,
+  frontend and admin-web join it under the aliases `stage-backend-go` (+ `stage-backend`),
+  `stage-frontend` and `stage-admin-web`, which is how nginx resolves them across
+  compose projects. Both deploy scripts create the network if
   it's missing.
 
 `STAGE_CONF` changes a **mount source**, so the proxy must be *recreated*, not
@@ -118,46 +121,56 @@ reloaded — `up -d proxy`, which both scripts do.
 `docker-compose.prod.yml` or anything in `deploy/`, production's copy is stale until
 you also run `NO_BUILD=1 ./deploy.sh` (or rsync those paths by hand).
 
-## Go backend (strangler, milestone M2)
+## Go backend — the only stage backend (T-M2-28)
 
-Staging runs **both** APIs: `backend` (Laravel) and `backend-go` (Go, `backend-go/`), on the same staging MariaDB,
-Redis and `backend-storage` volume (Go mounts it read-only, runs as uid 33 to read the Passport keys). The plain
-`build` / `up -d` of `deploy-stage.sh` builds and starts it like any other service; `SERVICES="backend-go"` ships
-only Go. It is container `ritme-stage-backend-go-1`, reachable by the proxy only as the stage-only alias
-**`stage-backend-go`** on `ritme-edge` — never as the bare `backend-go`, which Docker also registers there (the
-2026-08-31 incident; prod's own Go container is addressed by its pinned name `ritme-backend-go-1`).
+Staging's API is `backend-go` (container `ritme-stage-backend-go-1`), on the staging MariaDB, Redis and
+`backend-storage` volume (uid 33, reads the Passport keys). Laravel's `backend` and `queue` are behind the compose
+profile **`laravel`**: a plain `build` / `up -d` skips them, and `deploy-stage.sh` removes the old
+`ritme-stage-backend-1` / `ritme-stage-queue-1` containers if they are still around. Production is unchanged
+(Laravel until T-M2-26/27).
 
-Flip a route group (details, order, per-group checklist, rollback: `docs/go-migration/cutover.md`):
+- **Aliases on `ritme-edge`**: `stage-backend-go` (what the vhost and the route-group upstreams use) and also
+  `stage-backend` — `stage-ssl.conf` still declares `upstream stage_backend_upstream { server stage-backend:80; }`,
+  resolved at nginx load, so that name must keep resolving or the *shared prod proxy* fails `nginx -t`. Never the
+  bare `backend-go` (Docker registers that too — the 2026-08-31 incident; prod's Go is `ritme-backend-go-1`).
+- **Schema**: goose owns it on stage. `RUN_MIGRATIONS=true` (stage overlay only) makes backend-go run
+  `db.MigrateOnStart` before serving: stamps a Laravel-built DB (first deploy), builds an empty one, or applies
+  pending migrations; it logs one `"msg":"migrations"` line and exits on failure. Details:
+  `docs/go-migration/migrations.md`. Schema changes still need a goose **and** a Laravel migration until T-M2-27.
+- **Fresh stage volumes**: Go creates no Passport keys, no personal-access client, no seed rows. Bootstrap once
+  with Laravel before backend-go first starts — `docs/go-migration/cutover.md` → "Stage runs Go only".
+- **Rollback**: `switch-go-route.sh stage <group> off` now also lands on Go (the `stage-backend` alias). A stage
+  problem is rolled back by redeploying an earlier `stage` commit (`BRANCH=<sha-or-branch>`).
+
+`SERVICES="backend-go" ./deploy-stage.sh` ships only Go. Go answers with `X-Backend: go` (outside production):
 ```bash
-deploy/switch-go-route.sh --status stage          # live map
-deploy/switch-go-route.sh stage content on         # -> Go   (nginx -t guarded, auto-rollback, graceful reload)
-deploy/switch-go-route.sh stage content off        # -> Laravel (the rollback)
+curl -s -o /dev/null -D - https://stage.ritmeapp.ir/up | grep -i x-backend
+curl -s -o /dev/null -D - -u "$STAGE_BASIC_AUTH" -H "Accept: application/json" https://stage.ritmeapp.ir/api/v1/languages | grep -i x-backend
+ssh root@89.251.8.115 'docker logs ritme-stage-backend-go-1 2>&1 | grep "\"msg\":\"migrations\"" | tail -1'
 ```
-It edits only `stage_route_*` lines of the live `STAGE_CONF` file; the prod upstreams are never touched. A live
-flip is overwritten by the next rsync of `/opt/ritme` — make it permanent with `--local` + commit.
 
-Go on stage answers with `X-Backend: go` (added outside production), so which stack served a request is visible:
+Side-by-side Laravel (debugging only, not proxied):
+`docker compose -p ritme-stage -f docker-compose.yml -f docker-compose.stage.yml --profile laravel up -d backend`
+— its entrypoint runs Laravel's migrations on the goose-owned schema; remove it again with `docker rm -f
+ritme-stage-backend-1`.
+
+**Shipping the nginx side.** `vhost-stage.inc`, `go-routes.inc` and `stage-ssl.conf` are read by *production's*
+proxy from `/opt/ritme/deploy/`, which `deploy-stage.sh` does not sync (see the gotcha above). They are
+**single-file bind mounts**: a plain `rsync` writes a new file and renames it over the old one, and the running
+container keeps seeing the *old* inode. Either recreate the proxy (`up -d proxy`, a 1–2 s prod blip — do it with a
+normal prod deploy) or update the file **in place** and reload:
 ```bash
-curl -s -o /dev/null -D - -u "$STAGE_BASIC_AUTH" -H "Accept: application/json" https://stage.ritmeapp.ir/api/v1/banners | grep -i x-backend
+rsync -a --inplace deploy/vhost-stage.inc root@89.251.8.115:/opt/ritme/deploy/vhost-stage.inc
+ssh root@89.251.8.115 'cd /opt/ritme && docker compose -f docker-compose.yml -f docker-compose.prod.yml exec -T proxy sh -c "nginx -t && nginx -s reload"'
 ```
+(`nginx -t` failing → fix before anything else; the old config keeps serving until a successful reload.)
 
-Verify Go (internal — it has no public path of its own; `/up` on the vhost stays Laravel):
-```bash
-ssh root@89.251.8.115 'cd /opt/ritme-stage && docker compose -p ritme-stage -f docker-compose.yml -f docker-compose.stage.yml exec -T backend-go /app/api healthcheck && echo GO-UP-OK'
-ssh root@89.251.8.115 'cd /opt/ritme && docker compose -f docker-compose.yml -f docker-compose.prod.yml exec -T proxy wget -qSO- http://stage-backend-go/up 2>&1 | head -1'   # HTTP/1.1 200 OK — proves the proxy can reach it
-```
-
-**Shipping the nginx side.** `go-routes.inc`, `vhost-stage.inc` and `stage-ssl.conf` are read by *production's*
-proxy from `/opt/ritme/deploy/`, which `deploy-stage.sh` does not sync (see the gotcha above), and
-`go-routes.inc` is a **new bind mount** in `docker-compose.prod.yml`, so the proxy must be *recreated* once
-(`up -d proxy`), not just reloaded. Until that has happened the staging vhost keeps its old (all-Laravel)
-routing. Recreating the proxy blips production for a second or two — schedule it with a normal prod deploy.
-
-`deploy/stage-http.conf` (the pre-certificate variant) does not define the `stage_route_*` upstreams yet, so
+`deploy/stage-http.conf` (the pre-certificate variant) does not define the `stage_route_*` upstreams, so
 route-group paths would 502 on it; staging runs `stage-ssl.conf`.
 
-After a redeploy recreates `backend-go` (or `backend`), nginx may still hold the old container IP (upstream
-hostnames resolve at load): `… exec -T proxy sh -c 'nginx -t && nginx -s reload'`.
+After a redeploy recreates `backend-go`, nginx may still hold the old container IP for the upstream{} names
+(request-time `$stage_backend_go_target` paths re-resolve by themselves); `deploy-stage.sh` reloads the proxy
+gracefully at the end of step 4.
 
 ## HTTPS
 
@@ -189,7 +202,11 @@ STAGE_BASIC_AUTH='user:pass' ./deploy-stage.sh   # also verify BEHIND the gate
 
 The script asserts exact status codes and exits 1 on mismatch, same discipline as
 `deploy.sh`. The important one is `401` on `/` with no credentials — a `200` there
-means staging is world-readable.
+means staging is world-readable. Go-only assertions (T-M2-28): `/up` 200 with
+`X-Backend: go`; `/api/v1/languages` served by Go (asked from inside the proxy, which
+the gate exempts); `/admin` and `/admin/users` → 301 `…/panel/` without minting the gate
+cookie; `/oauth/token` → 404. With `STAGE_BASIC_AUTH`, banners and an unported `/api`
+path must also carry `X-Backend: go`.
 
 ## Resources
 

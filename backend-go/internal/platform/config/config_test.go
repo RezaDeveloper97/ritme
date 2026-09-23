@@ -38,6 +38,19 @@ func TestLoad_Defaults(t *testing.T) {
 	assert.Equal(t, "1507703", cfg.SMS.Kavenegar.TemplateLoginOTP)
 	assert.Equal(t, "/var/www/html/storage", cfg.StoragePath)
 	assert.Equal(t, ":8020", cfg.HTTP.Addr)
+	assert.False(t, cfg.RunMigrations, "goose never runs unless asked (prod: Laravel owns the schema)")
+}
+
+func TestLoad_RunMigrations(t *testing.T) {
+	env := minimal()
+	env["RUN_MIGRATIONS"] = "true"
+	cfg, err := LoadFrom(lookup(env))
+	require.NoError(t, err)
+	assert.True(t, cfg.RunMigrations)
+
+	env["RUN_MIGRATIONS"] = "sometimes"
+	_, err = LoadFrom(lookup(env))
+	require.ErrorContains(t, err, "RUN_MIGRATIONS")
 }
 
 func TestLoad_LaravelEnvSemantics(t *testing.T) {

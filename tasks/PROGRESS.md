@@ -391,3 +391,16 @@ Nothing needed fixing.
 - T-M2-09 unblocked 2026-09-23: staging deployed, prod proxy recreated once (stage-only files synced; prod
   `proxy-ssl.conf`/`vhost-api.inc` on the server are still pre-M2 and pre-HSTS → sync with T-M2-26). content flip
   on/off proven on stage.
+
+## T-M2-28 — Staging runs Go only
+- `vhost-stage.inc`: `/up`, `/api/` (all), `/storage/`, `/docs` → backend-go (request-time resolve); `/oauth/` 404;
+  `/admin*` → 301 `/panel/` (no gate cookie on the redirect). Nothing routes to Laravel on stage.
+- backend-go `RUN_MIGRATIONS=true` → `db.MigrateOnStart`: goose table → pending only; Laravel-only DB → StampBaseline;
+  empty → baseline; unknown tables → refuse. Tested on MariaDB (5 cases). Only ONE instance may run it.
+- Stage compose: Laravel `backend`/`queue` under profile `laravel` (alias now `stage-backend-laravel`); backend-go
+  also answers the `stage-backend` alias (keeps stage-ssl.conf's load-time upstreams resolvable). Prod unchanged.
+- `deploy-stage.sh` removes the old Laravel stage containers and asserts Go on `/up`, `/api/v1/languages`, etc.
+- Consequence: no Laravel rollback on stage any more (rollback = redeploy an earlier stage commit). A fresh stage
+  volume needs Passport keys + personal client created once (cutover.md).
+- Follow-up: move stage-ssl.conf upstream blocks to request-time resolution so a missing stage container can
+  never fail `nginx -t` on the shared prod proxy.

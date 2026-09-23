@@ -2,18 +2,44 @@
 
 ## Ownership rule
 
-| Period | Owner of the schema | Who runs migrations on stage/prod |
+| Environment / period | Owner of the schema | Who runs migrations |
 |---|---|---|
-| M2 (now → T-M2-27) | **Laravel** (`backend/database/migrations`) | Laravel entrypoint (`RUN_MIGRATIONS`) |
-| After cutover (T-M2-27) | **goose** (`backend-go/db/migrations`) | Go entrypoint |
+| **Stage**, since T-M2-28 (2026-09-23) | **goose** (`backend-go/db/migrations`) | backend-go on start (`RUN_MIGRATIONS=true` in `docker-compose.stage.yml`) |
+| **Prod**, until T-M2-27 | **Laravel** (`backend/database/migrations`) | Laravel entrypoint (`RUN_MIGRATIONS`); prod's backend-go keeps `RUN_MIGRATIONS=false` (base) |
+| Prod, after cutover (T-M2-27) | **goose** | backend-go on start |
 
-- The schema is **frozen** during M2. If a change is unavoidable, the same commit must contain
-  **both** a Laravel migration **and** the matching goose migration (`db/migrations/000NN_<name>.sql`),
-  and `make schema-diff` must stay green.
-- The Go API never runs goose against stage/prod before T-M2-27. `db.Migrate` is called only by
-  `internal/platform/db/testdb` and when bootstrapping a brand-new, empty environment.
+- **Every schema change still needs both** until T-M2-27: a goose migration (`db/migrations/000NN_<name>.sql`,
+  which stage runs) **and** the matching Laravel migration (which prod runs), in the same commit, with
+  `make schema-diff` green. Only goose's half is exercised on stage now — the Laravel half is first run by prod,
+  so `schema-diff` is what keeps them equal.
+- `RUN_MIGRATIONS` defaults to **false** in Go (config) and in the base compose file. Only the stage overlay
+  turns it on. Never set it for prod's backend-go before T-M2-27.
 - Never edit `00001_baseline.sql` to change the schema — add a new migration. The baseline is
   regenerated only if it drifts from what the Laravel migrations produce (see below).
+- One migrating process: goose's MySQL dialect has no session lock, so run a single backend-go replica with
+  `RUN_MIGRATIONS=true` (stage has exactly one).
+
+### Goose on start (`db.MigrateOnStart`, T-M2-28)
+
+`cmd/api` calls it before serving when `RUN_MIGRATIONS=true`, logs one `"msg":"migrations"` line with `action`,
+`applied` and `version`, and **exits non-zero on failure** (the container restarts; it never serves on a schema
+behind the code). It decides from the bookkeeping tables and never re-creates an existing table:
+
+| Database state | `action` | What it does |
+|---|---|---|
+| `goose_db_version` exists | `goose_managed` | applies pending migrations only (usually none) |
+| Laravel `migrations` exists, no `goose_db_version` | `stamped_laravel_schema` | `StampBaseline` (records 0 and 1 **without running** the baseline), then any migrations after 00001 |
+| no tables at all (fresh volume) | `baseline_applied` | applies everything, baseline included |
+| tables, but neither bookkeeping table | — (error) | refuses: an unknown schema is not goose's to touch |
+
+The stamp path relies on the Laravel-built schema being identical to the baseline — checked for staging on
+2026-09-23 (`scripts/schema-diff.sh --against` staging dump: identical, 38 tables). Tests:
+`backend-go/cmd/api/migrate_test.go` (`make test-int PKG=./cmd/api/...`).
+
+Stage's first deploy after T-M2-28 takes the stamp path; every later start is `goose_managed`. Laravel's
+`migrations` table stays (harmless). Starting the retired Laravel `backend` on stage again (profile `laravel`)
+would run **its** entrypoint migrations against a goose-owned schema — it only works while both sides are kept
+in step by the rule above.
 
 ## Files
 
@@ -21,7 +47,7 @@
 |---|---|
 | `backend-go/db/migrations/00001_baseline.sql` | The whole schema (38 tables) + the fa/en `languages` rows (`INSERT IGNORE`). `Down` is refused on purpose. |
 | `backend-go/db/embed.go`, `db/sqltypes.go` | Embed the migrations (`db.Migrations`); `db.NullRawJSON` (sqlc type for NULL-able JSON). |
-| `backend-go/internal/platform/db/migrate.go` | `Migrate`, `NewMigrator` (goose provider), `StampBaseline`. |
+| `backend-go/internal/platform/db/migrate.go` | `Migrate`, `NewMigrator` (goose provider), `StampBaseline`, `MigrateOnStart`. |
 | `backend-go/internal/platform/db/testdb` | Per-package throw-away database for integration tests. |
 | `backend-go/sqlc.yaml` | One sqlc package per domain, declared up front. |
 | `backend-go/db/queries/<domain>/*.sql` | sqlc queries → `internal/<domain>/store` (package `store`, generated). |
@@ -103,13 +129,14 @@ func TestSomething(t *testing.T) {
 ## Cutover (T-M2-27): version-stamping an existing database
 
 Stage/prod already have every baseline table (built by Laravel), so the baseline must be **recorded, not
-run**:
+run**. Stage did this automatically with `MigrateOnStart` (T-M2-28); prod follows the same path at T-M2-27:
 
-1. Stop Laravel migrations (`RUN_MIGRATIONS=false`) and confirm `scripts/schema-diff.sh --against <dump>`
+1. Stop Laravel migrations (`RUN_MIGRATIONS=false` for Laravel) and confirm `scripts/schema-diff.sh --against <dump>`
    is green for that database.
-2. Call `db.StampBaseline(ctx, pool)` once (idempotent): it creates `goose_db_version` and records
-   versions 0 and 1 without executing anything. Equivalent SQL, if done by hand:
+2. Set `RUN_MIGRATIONS=true` for backend-go: on its next start `MigrateOnStart` sees Laravel's `migrations`
+   table without `goose_db_version` and calls `db.StampBaseline` (idempotent): it creates `goose_db_version`
+   and records versions 0 and 1 without executing anything. Equivalent SQL, if done by hand:
    `CREATE TABLE goose_db_version (id bigint(20) unsigned NOT NULL AUTO_INCREMENT, version_id bigint NOT NULL, is_applied boolean NOT NULL, tstamp timestamp NULL default now(), PRIMARY KEY(id));`
    `INSERT INTO goose_db_version (version_id, is_applied) VALUES (0, 1), (1, 1);`
-3. From then on the Go entrypoint may run `db.Migrate`, which applies only migrations after 00001.
+3. From then on every start applies only migrations after 00001.
 4. Laravel's `migrations` table stays (harmless) until Laravel is removed.
