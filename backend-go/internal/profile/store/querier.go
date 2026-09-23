@@ -6,12 +6,49 @@ package store
 
 import (
 	"context"
+	"database/sql"
+	"encoding/json"
 )
 
 type Querier interface {
-	// Placeholder so the `profile` sqlc package exists and compiles before its domain task lands (T-M2-03).
-	// Delete this file when the first real query is added to db/queries/profile/.
-	SampleProfileUserProfile(ctx context.Context, id uint64) (UserProfile, error)
+	// $user->delete(); every user-owned table cascades (FK ON DELETE CASCADE).
+	DeleteUser(ctx context.Context, id uint64) (int64, error)
+	// ProfileController::export: the raw models, in the order Laravel reads them.
+	ExportDailyHealthLogs(ctx context.Context, userID uint64) ([]DailyHealthLog, error)
+	// $user->pregnancyFetalMovements()->get() has no ORDER BY; MariaDB answers in the
+	// (user_id, log_date) unique-index order.
+	ExportPregnancyFetalMovements(ctx context.Context, userID uint64) ([]PregnancyFetalMovement, error)
+	ExportPregnancyProfile(ctx context.Context, userID uint64) (PregnancyProfile, error)
+	ExportPregnancySymptomLogs(ctx context.Context, userID uint64) ([]PregnancySymptomLog, error)
+	ExportPregnancyWeeklyLogs(ctx context.Context, userID uint64) ([]PregnancyWeeklyLog, error)
+	// $user->reminders()->get() has no ORDER BY; MariaDB answers in the
+	// (user_id, type, is_active) index order (the contract golden locks it).
+	ExportReminders(ctx context.Context, userID uint64) ([]Reminder, error)
+	// MessageContentRepository::payload(): a live (active + approved) row's raw JSON payload.
+	GetLiveMessagePayload(ctx context.Context, arg GetLiveMessagePayloadParams) (json.RawMessage, error)
+	// $profile->fresh().
+	GetProfileByID(ctx context.Context, id uint64) (UserProfile, error)
+	// $user->profile (hasOne: the first row in index order).
+	GetProfileByUserID(ctx context.Context, userID uint64) (UserProfile, error)
+	// ProfileController (backend/app/Http/Controllers/Api/V1/ProfileController.php) and UserProfile.
+	// $user->fresh().
+	GetUser(ctx context.Context, id uint64) (User, error)
+	InsertOnboardingCycleHistory(ctx context.Context, arg InsertOnboardingCycleHistoryParams) error
+	// new UserProfile(['user_id' => …])->save(): the row starts with the DB defaults; the
+	// request's attributes follow in UpdateProfileAttributes inside the same transaction.
+	InsertProfile(ctx context.Context, arg InsertProfileParams) (sql.Result, error)
+	// ProfileController::syncOnboardingPeriodLog and export.
+	// CycleHistory::where('user_id', …)->get() / ->orderBy('period_start_date') (unique-index order).
+	ListCycleHistories(ctx context.Context, userID uint64) ([]CycleHistory, error)
+	// UserProfile::markRecalculated(): one atomic increment, so concurrent writes never lose a bump.
+	MarkProfileRecalculated(ctx context.Context, arg MarkProfileRecalculatedParams) error
+	UpdateOnboardingCycleHistory(ctx context.Context, arg UpdateOnboardingCycleHistoryParams) error
+	// $profile->fill($data)->save(): only the dirty attributes are written (set_* flags). The
+	// values are bound as the raw request strings, as PDO binds them, so MariaDB does the same
+	// conversions (and rejects the same values) as it does for Laravel.
+	UpdateProfileAttributes(ctx context.Context, arg UpdateProfileAttributesParams) error
+	// $user->update(['name' => …]) when the name is dirty.
+	UpdateUserName(ctx context.Context, arg UpdateUserNameParams) error
 }
 
 var _ Querier = (*Queries)(nil)

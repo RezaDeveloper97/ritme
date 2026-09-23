@@ -248,3 +248,10 @@ Nothing needed fixing.
 - Bad Passport keys / unknown `SMS_PROVIDER` abort start-up. JWT time checks use the real clock (like Laravel).
 - `mobile_verified_at` stays null (Laravel's update is a no-op: not fillable). send/verify OTP share one per-IP counter.
 - Open: XFF-based rate-limit bypass (same as Laravel) → nginx fix noted in T-M2-09.
+
+## T-M2-11 — Profile and account endpoints
+- `internal/profile` (handlers, service, BMI, `model` = generic Eloquent `toArray()` serializer with cast tables for
+  CycleHistory, DailyHealthLog, Pregnancy models, Reminder), `internal/notify` (Telegram, async), `routes_profile.go`.
+- Contract profile: 101/104 — the 3 failing cases call cycle routes (green after T-M2-15; noted in its file).
+- Concurrent `POST /profile` bumps `calculation_version` exactly once per call (`profile.MarkRecalculated`).
+- Telegram is sent async (Laravel blocks up to 5s) — bodies unchanged. BMI message falls back to the default language.

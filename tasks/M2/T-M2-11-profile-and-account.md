@@ -3,7 +3,7 @@ id: T-M2-11
 title: Profile and account endpoints
 milestone: M2
 type: backend
-status: todo
+status: done
 depends_on: [T-M2-05, T-M2-06, T-M2-07, T-M2-08]
 parallel_group: M2-E
 touches: [backend-go/internal/profile, backend-go/internal/notify, backend-go/internal/http/routes_profile.go, backend-go/db/queries/profile, backend-go/contract/allowlist/profile.yaml]

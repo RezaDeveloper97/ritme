@@ -45,3 +45,9 @@ Home sections that show cycle data (T-M2-18).
   `sort_order, id`, and an `EXISTS` over the whole table (inactive rows count for `HasContent`).
 - Build `legacy.DailyLog.Source` as `DailyHealthLog::toArray()` output (reference casts: `dailyLogFromRow` in
   `internal/cycle/legacy/golden_sweep_test.go`). `legacy.Input.Today` = Tehran today; `Input.Tips` is required.
+
+## Note from T-M2-11
+`make contract ROUTES=profile` has 3 cases (create_profile.none/.en, update_cycle_fields) whose step 3 calls
+`/cycle/period/history` and `/cycle/status` — they turn green once this task lands; include `profile` in the
+contract run here. Reuse `internal/profile/model` (`Attributes` Eloquent serializer with CycleHistory and
+DailyHealthLog cast tables) and `profile.MarkRecalculated`.
