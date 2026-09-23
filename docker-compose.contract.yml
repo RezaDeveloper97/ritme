@@ -1,0 +1,105 @@
+# Contract stack for the Go migration (M2): a reproducible Laravel instance the
+# golden recorder talks to. See docs/go-migration/contract.md.
+#
+# NOT a deployment file. Everything here is throwaway: the database lives on a
+# tmpfs (gone on every `down`), the storage volume only holds throwaway Passport
+# keys, and APP_KEY below is a fixed contract-only value, never a real secret.
+#
+#   docker compose -f docker-compose.contract.yml up -d --build
+#   docker compose -f docker-compose.contract.yml run --rm contract-reset   # fresh DB + fixtures
+#   docker compose -f docker-compose.contract.yml down -v
+#
+# Port 8090 busy? CONTRACT_PORT=18090 docker compose -f docker-compose.contract.yml …
+
+name: ritme-contract
+
+services:
+  contract-mariadb:
+    image: mariadb:11.4
+    environment:
+      MARIADB_DATABASE: ritme_contract
+      MARIADB_USER: ritme
+      MARIADB_PASSWORD: contract
+      MARIADB_ROOT_PASSWORD: contract-root
+    tmpfs:
+      - /var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 3s
+      timeout: 3s
+      retries: 40
+
+  contract-redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  contract-laravel:
+    build: ./backend
+    depends_on:
+      contract-mariadb:
+        condition: service_healthy
+      contract-redis:
+        condition: service_healthy
+    environment: &contract-env
+      APP_NAME: Ritme
+      APP_ENV: contract
+      APP_DEBUG: "false"
+      APP_KEY: ${CONTRACT_APP_KEY:-base64:Y29udHJhY3Qtb25seS1ub3QtYS1zZWNyZXQta2V5ISE=}
+      APP_URL: http://127.0.0.1:${CONTRACT_PORT:-8090}
+      APP_TIMEZONE: Asia/Tehran
+      LOG_CHANNEL: stderr
+      DB_CONNECTION: mysql
+      DB_HOST: contract-mariadb
+      DB_PORT: "3306"
+      DB_DATABASE: ritme_contract
+      DB_USERNAME: ritme
+      DB_PASSWORD: contract
+      REDIS_CLIENT: phpredis
+      REDIS_HOST: contract-redis
+      REDIS_PORT: "6379"
+      CACHE_STORE: array
+      SESSION_DRIVER: array
+      QUEUE_CONNECTION: sync
+      SMS_PROVIDER: log
+      TEST_CLOCK_ENABLED: "true"
+      RUN_MIGRATIONS: "true"
+      ADMIN_PANEL_ENABLED: "false"
+      ADMIN_SEED_EMAIL: admin@contract.test
+      ADMIN_SEED_PASSWORD: contract-admin
+      SWAGGER_PASSWORD: ""
+    volumes:
+      # Throwaway: holds only the Passport key pair the entrypoint generates.
+      - contract-storage:/var/www/html/storage
+    ports:
+      - "127.0.0.1:${CONTRACT_PORT:-8090}:80"
+
+  # One-shot: wipe the contract DB and load ContractFixtureSeeder. Only ever
+  # touches contract-mariadb. migrate:fresh drops oauth_clients, so the personal
+  # access client is recreated before seeding.
+  contract-reset:
+    build: ./backend
+    profiles: ["tools"]
+    depends_on:
+      contract-mariadb:
+        condition: service_healthy
+    environment:
+      <<: *contract-env
+      RUN_MIGRATIONS: "false"
+    volumes:
+      - contract-storage:/var/www/html/storage
+    command:
+      - sh
+      - -c
+      - >-
+        php artisan migrate:fresh --force &&
+        php artisan passport:client --personal --name="Ritme Personal Access" --no-interaction &&
+        php artisan db:seed --class='Database\Seeders\AdminSeeder' --force &&
+        php artisan db:seed --class='Database\Seeders\ContractFixtureSeeder' --force
+
+volumes:
+  contract-storage:

@@ -56,6 +56,13 @@ return [
             ],
         ],
 
+        // Logs instead of sending (contract stack / local dev). The provider
+        // refuses to boot when APP_ENV=production. Not a bypass: the OTP is
+        // still random and still has to be read from otp_verifications.
+        'log' => [
+            'driver' => 'log',
+        ],
+
     ],
 
     /*

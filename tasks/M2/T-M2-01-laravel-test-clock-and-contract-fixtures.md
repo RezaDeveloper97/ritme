@@ -3,10 +3,10 @@ id: T-M2-01
 title: Laravel test clock and deterministic contract fixtures
 milestone: M2
 type: backend
-status: todo
+status: done
 depends_on: []
 parallel_group: M2-A
-touches: [backend/app/Http/Middleware/TestClock.php, backend/bootstrap/app.php, backend/app/Services/Sms/Providers/LogSmsProvider.php, backend/config/sms.php, backend/database/seeders/ContractFixtureSeeder.php, backend/tests/Feature/ContractFixtureTest.php, docker-compose.contract.yml, docs/go-migration/contract.md]
+touches: [backend/app/Http/Middleware/TestClock.php, backend/app/Services/Sms/SmsService.php, backend/bootstrap/app.php, backend/app/Services/Sms/Providers/LogSmsProvider.php, backend/config/sms.php, backend/database/seeders/ContractFixtureSeeder.php, backend/tests/Feature/ContractFixtureTest.php, docker-compose.contract.yml, docs/go-migration/contract.md]
 skills: [local-dev]
 verify: cd backend && php artisan test --filter=ContractFixtureTest
 ---

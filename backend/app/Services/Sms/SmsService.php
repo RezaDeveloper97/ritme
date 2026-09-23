@@ -4,6 +4,7 @@ namespace App\Services\Sms;
 
 use App\Services\Sms\Contracts\SmsProviderInterface;
 use App\Services\Sms\Providers\KavenegarProvider;
+use App\Services\Sms\Providers\LogSmsProvider;
 use App\Services\Sms\Providers\SmsIrProvider;
 use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
@@ -36,6 +37,7 @@ class SmsService
         return match ($name) {
             'smsir' => new SmsIrProvider,
             'kavenegar' => new KavenegarProvider,
+            'log' => new LogSmsProvider,
             default => throw new InvalidArgumentException("Unknown SMS provider: {$name}"),
         };
     }

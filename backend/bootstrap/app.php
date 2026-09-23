@@ -3,6 +3,7 @@
 use App\Http\Middleware\EnsureAdminActive;
 use App\Http\Middleware\EnsureSuperAdmin;
 use App\Http\Middleware\SetLocale;
+use App\Http\Middleware\TestClock;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -46,6 +47,10 @@ return Application::configure(basePath: dirname(__DIR__))
                 | Request::HEADER_X_FORWARDED_PORT
                 | Request::HEADER_X_FORWARDED_PROTO,
         );
+
+        // Contract/test-only fixed clock (X-Test-Now). Inert unless APP_ENV is
+        // local/testing/contract AND TEST_CLOCK_ENABLED=true — never in prod.
+        $middleware->prepend(TestClock::class);
 
         // API requests resolve their locale against the languages table before
         // a controller runs, so nothing downstream has to guess.

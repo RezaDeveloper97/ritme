@@ -165,3 +165,13 @@ Nothing needed fixing.
 - verify-all skill gained a Go row; format hook runs gofmt on backend-go.
 - Open: `/up` returns plain `OK` (Laravel returns HTML); registry test lives in `cmd/api/app_test.go`.
   Deps: `go get mod@version` only, no concurrent `go mod tidy` (see backend-go/CLAUDE.md).
+
+## T-M2-01 — Laravel test clock and deterministic contract fixtures
+- `TestClock` global middleware: `X-Test-Now` header → `Carbon::setTestNow()` per request, only when
+  `APP_ENV∈{local,testing,contract}` **and** `TEST_CLOCK_ENABLED=true`; unparseable header → 400.
+- `LogSmsProvider` (`SMS_PROVIDER=log`, refuses production), wired in `SmsService` (touches extended).
+- `ContractFixtureSeeder`: content seeders + `ar` language row + 3 banners (1 expired), 18 personas (ids 1001+,
+  mobiles 09900000001..18, dependent ids `userId*100+n`), dates from `CONTRACT_TODAY=2026-09-23`; idempotent.
+- `docker-compose.contract.yml`: contract-mariadb/redis/laravel on `127.0.0.1:${CONTRACT_PORT:-8090}`
+  (8090 is taken on this dev machine → use `CONTRACT_PORT=18090`), `contract-reset` (profile tools) rebuilds DB.
+- Persona table and usage: `docs/go-migration/contract.md`. New env: `TEST_CLOCK_ENABLED`.
