@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import type { Admin } from '@/entities/admin';
+import { withBasePath } from '@/shared/config';
 
 import { fetchMe, login, logout, type LoginInput } from './auth-api';
 
@@ -38,6 +39,6 @@ export function useLogout() {
   return useMutation({
     mutationFn: logout,
     // Full document replace: no React tree or query cache survives sign-out.
-    onSettled: () => window.location.replace('/login?signed_out=1'),
+    onSettled: () => window.location.replace(withBasePath('/login?signed_out=1')),
   });
 }

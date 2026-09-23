@@ -56,6 +56,12 @@ services:
     environment:
       APP_ENV: staging
       APP_DEBUG: ${APP_DEBUG:-false}
+      # Admin API (T-M2-20/25) on the single stage origin: admin-web at /panel
+      # and /api/admin/ share stage.ritmeapp.ir, so every call is same-origin.
+      # Empty ADMIN_HOSTS would disable the admin API outside local/testing.
+      ADMIN_HOSTS: stage.ritmeapp.ir
+      ADMIN_WEB_ORIGINS: https://stage.ritmeapp.ir
+      ADMIN_COOKIE_SECURE: "true"
     ports: !override []
     networks:
       default:
@@ -70,10 +76,15 @@ services:
         aliases: [stage-frontend]
 
   # Next.js admin (T-M2-22). Reached only through the stage-only alias
-  # `stage-admin-web` (never the bare service name — see backend-go above);
-  # the stage vhost routes to it in T-M2-25.
+  # `stage-admin-web` (never the bare service name — see backend-go above).
+  # Served under /panel (Next basePath, baked in at build time) because staging
+  # has one origin; the Blade panel stays at /admin for comparison
+  # (deploy/vhost-stage.inc).
   admin-web:
     container_name: ritme-stage-admin-web-1
+    build:
+      args:
+        NEXT_PUBLIC_ADMIN_BASE_PATH: /panel
     networks:
       default:
       ritme-edge:

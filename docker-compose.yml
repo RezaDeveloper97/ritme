@@ -177,6 +177,9 @@ services:
       args:
         NEXT_PUBLIC_ADMIN_API_BASE_URL: ${NEXT_PUBLIC_ADMIN_API_BASE_URL:-/api/admin/v1}
         NEXT_PUBLIC_API_BASE_URL: ${ADMIN_WEB_PUBLIC_API_BASE_URL:-/api/v1}
+        # Next basePath; empty = served at `/` (prod's own admin host). The
+        # stage overlay sets `/panel` (one shared origin).
+        NEXT_PUBLIC_ADMIN_BASE_PATH: ${ADMIN_WEB_BASE_PATH:-}
     restart: unless-stopped
     depends_on:
       - backend-go

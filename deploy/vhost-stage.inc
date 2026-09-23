@@ -6,6 +6,8 @@
 ##
 ##   /api, /oauth, /storage, /up, /docs  -> stage backend (Laravel)
 ##   /admin                              -> stage backend (Blade panel)
+##   /panel                              -> stage admin-web (new Next.js admin)
+##   /api/admin/                         -> stage backend-go (Go admin API)
 ##   everything else                     -> stage frontend (Next.js)
 ##
 ## …except the strangler route groups (deploy/go-routes.inc), which go to
@@ -117,6 +119,48 @@ location = /api/session/flag {
 set $ritme_env        stage;
 set $ritme_client_xff $remote_addr;
 include /etc/nginx/conf.d/go-routes.inc;
+
+# ── New admin (T-M2-25): admin-web at /panel, its API on Go ─────────────────
+# Production gives the admin its own host (adpanell.ritme.app, vhost-admin.inc)
+# with admin-web at `/`; staging has one origin, so admin-web is built with
+# basePath `/panel` (docker-compose.stage.yml) and the Blade panel stays at
+# /admin for side-by-side comparison. Everything here is same-origin, which is
+# what the __Host- session cookie and the CSRF/Origin checks need; backend-go
+# answers the admin API only for ADMIN_HOSTS=stage.ritmeapp.ir (Host is $host).
+# admin-web's other API call, GET /api/v1/languages, is the `content` group in
+# go-routes.inc. Both stay behind the password/cookie gate.
+#
+# Resolved at REQUEST time (variable proxy_pass + Docker's embedded DNS), not
+# through upstream{} blocks: a missing stage container then 502s this path
+# instead of failing `nginx -t` for the whole shared (production) proxy, and a
+# recreated container's new IP is picked up without a reload.
+resolver 127.0.0.11 valid=10s ipv6=off;
+set $stage_admin_web_target  http://stage-admin-web:3000;
+set $stage_backend_go_target http://stage-backend-go:80;
+
+# `^~`, and longer than `/api/`: wins over the plain `/api/` prefix AND skips
+# the go-routes.inc regexes (none of which match /api/admin/ anyway). Headers
+# are spelled out like go-routes.inc so X-Forwarded-For is the edge value
+# (the admin login rate limit keys on it) instead of a forgeable chain.
+location ^~ /api/admin/ {
+    proxy_pass $stage_backend_go_target;
+    proxy_http_version 1.1;
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $ritme_client_xff;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-Host  $host;
+    proxy_set_header Upgrade           $http_upgrade;
+    proxy_set_header Connection        "upgrade";
+    proxy_read_timeout 120s;
+    proxy_send_timeout 120s;
+}
+
+# `/panel` itself is admin-web's root (Next basePath, no trailing slash);
+# `/panel/…` is every page and its /panel/_next assets. Not `/panel` as a bare
+# prefix, which would also swallow e.g. `/panelists`.
+location = /panel  { proxy_pass $stage_admin_web_target; include /etc/nginx/conf.d/proxy-params.inc; }
+location ^~ /panel/ { proxy_pass $stage_admin_web_target; include /etc/nginx/conf.d/proxy-params.inc; }
 
 # Plain prefixes, NOT `^~`: a `^~` match would stop nginx from evaluating the
 # route-group regexes above, pinning every group to Laravel. These now only

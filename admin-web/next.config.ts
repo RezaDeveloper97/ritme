@@ -10,6 +10,16 @@ const proxyTarget = process.env.ADMIN_API_PROXY_TARGET?.replace(/\/+$/, '');
 
 const isProd = process.env.NODE_ENV === 'production';
 
+// Optional URL prefix (Next `basePath`), build time. Empty in production: the
+// admin owns adpanell.ritme.app. Staging serves it at `/panel` on the shared
+// stage.ritmeapp.ir origin (deploy/vhost-stage.inc). The client reads the same
+// variable (src/shared/config/base-path.ts) for its few raw window.location
+// redirects; everything else (Link, router, middleware) is handled by Next.
+const basePath = (process.env.NEXT_PUBLIC_ADMIN_BASE_PATH ?? '').trim().replace(/\/+$/, '');
+if (basePath !== '' && !/^\/[A-Za-z0-9._~-]+(\/[A-Za-z0-9._~-]+)*$/.test(basePath)) {
+  throw new Error(`NEXT_PUBLIC_ADMIN_BASE_PATH must look like "/panel", got "${basePath}"`);
+}
+
 function originOf(url: string | undefined): string | null {
   if (!url) return null;
   try {
@@ -40,6 +50,7 @@ const csp = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  ...(basePath ? { basePath } : {}),
   output: 'standalone',
   // admin-web is its own npm project; don't let a lockfile higher up become the trace root.
   outputFileTracingRoot: __dirname,
@@ -59,7 +70,11 @@ const nextConfig: NextConfig = {
     ];
   },
   async rewrites() {
-    return proxyTarget ? [{ source: '/api/:path*', destination: `${proxyTarget}/api/:path*` }] : [];
+    // `basePath: false`: the APIs live at the origin root (/api/admin/v1,
+    // /api/v1), not under the admin's own base path.
+    return proxyTarget
+      ? [{ source: '/api/:path*', destination: `${proxyTarget}/api/:path*`, basePath: false as const }]
+      : [];
   },
 };
 

@@ -21,13 +21,20 @@ COPY . .
 # paths = same origin as the admin host (the production setup).
 ARG NEXT_PUBLIC_ADMIN_API_BASE_URL=/api/admin/v1
 ARG NEXT_PUBLIC_API_BASE_URL=/api/v1
+# Optional URL prefix (Next basePath). Empty = served at `/` (production's own
+# admin host); staging shares one origin and uses `/panel`.
+ARG NEXT_PUBLIC_ADMIN_BASE_PATH=
 ENV NEXT_PUBLIC_ADMIN_API_BASE_URL=$NEXT_PUBLIC_ADMIN_API_BASE_URL \
     NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL \
+    NEXT_PUBLIC_ADMIN_BASE_PATH=$NEXT_PUBLIC_ADMIN_BASE_PATH \
     NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
 FROM base AS runner
-ENV NODE_ENV=production \
+# Same value as the build stage; only the healthcheck URL needs it at runtime.
+ARG NEXT_PUBLIC_ADMIN_BASE_PATH=
+ENV ADMIN_BASE_PATH=$NEXT_PUBLIC_ADMIN_BASE_PATH \
+    NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     PORT=3000 \
     HOSTNAME=0.0.0.0
@@ -38,5 +45,5 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 USER nextjs
 EXPOSE 3000
 HEALTHCHECK --interval=15s --timeout=3s --start-period=10s --retries=3 \
-  CMD wget -qO /dev/null http://127.0.0.1:3000/login || exit 1
+  CMD wget -qO /dev/null "http://127.0.0.1:3000${ADMIN_BASE_PATH}/login" || exit 1
 CMD ["node", "server.js"]

@@ -161,6 +161,8 @@ check 200 "${BASE}/up"
 check 401 "${BASE}/"
 check 401 "${BASE}/api/v1/banners" -H 'Accept: application/json'
 check 401 "${BASE}/admin/login"
+check 401 "${BASE}/panel/login"
+check 401 "${BASE}/api/admin/v1/auth/me" -H 'Accept: application/json'
 
 # Public by design: the web manifest is fetched with `credentials: omit`, so a
 # gated one 401s forever and re-opens the password dialog on every page.
@@ -172,6 +174,11 @@ if [[ -n "${STAGE_BASIC_AUTH:-}" ]]; then
   # 307, not 200: next-intl redirects / to the default locale, same as prod.
   check 307 "${BASE}/" -u "$STAGE_BASIC_AUTH"
   check 200 "${BASE}/admin/login" -u "$STAGE_BASIC_AUTH"
+  # New admin (T-M2-25): admin-web under /panel, its API on Go. The 401 on
+  # /auth/me is backend-go's JSON `unauthenticated` (no admin session) — a 404
+  # there means ADMIN_HOSTS is unset/wrong and the admin API is disabled.
+  check 200 "${BASE}/panel/login" -u "$STAGE_BASIC_AUTH"
+  check 401 "${BASE}/api/admin/v1/auth/me" -u "$STAGE_BASIC_AUTH" -H 'Accept: application/json'
   # 401 from Laravel (not nginx): proves the framework booted and the auth
   # middleware ran, rather than PHP merely answering.
   check 401 "${BASE}/api/v1/banners" -u "$STAGE_BASIC_AUTH" -H 'Accept: application/json'

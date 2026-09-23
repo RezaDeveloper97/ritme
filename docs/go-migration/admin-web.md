@@ -27,6 +27,13 @@ browser ──► adpanell.ritme.app (nginx, T-M2-25)
               └── /            → admin-web:3000 (Next standalone server)
 ```
 
+- **Base path (build time):** `NEXT_PUBLIC_ADMIN_BASE_PATH` (Docker build arg, compose var `ADMIN_WEB_BASE_PATH`),
+  default empty = served at `/` (production's own host). Staging shares `stage.ritmeapp.ir` with the user app and
+  the Blade panel, so it builds with `/panel` (`docker-compose.stage.yml`); nginx sends `/panel` and `/panel/…` to
+  admin-web. Next's `Link`/router/middleware handle the prefix; the raw `window.location` redirects use
+  `withBasePath`/`stripBasePath` (`shared/config/base-path.ts`). The API bases are **not** prefixed.
+- **Middleware redirects** are built on the public origin (`X-Forwarded-Host`/`Host` + `X-Forwarded-Proto`,
+  `shared/lib/public-origin.ts`): behind nginx the standalone server only knows `localhost:3000`.
 - **One origin.** The session cookie is `__Host-ritme_admin_session` (host-only, `Secure`), so the admin UI and the
   admin API must share the host. Nothing is cross-origin in production and no CORS is involved.
 - **Env (build time, public):** `NEXT_PUBLIC_ADMIN_API_BASE_URL` (default `/api/admin/v1`) and

@@ -33,7 +33,10 @@ Only `stage.ritmeapp.ir` has a DNS record here — there is no `api.stage` or
 `admin.stage`. So staging puts everything on one origin (`deploy/vhost-stage.inc`):
 
 - `/api`, `/oauth`, `/storage`, `/docs` → stage backend
-- `/admin` → stage Blade panel
+- `/admin` → stage Blade panel (kept for comparison until the prod admin cutover)
+- `/panel` → stage **admin-web** (new Next.js admin, built with basePath `/panel`), `/api/admin/` → stage
+  backend-go (admin API; `ADMIN_HOSTS=stage.ritmeapp.ir`). Both are resolved at request time (Docker DNS), so a
+  missing admin-web/Go container 502s these paths instead of failing `nginx -t` for the shared proxy.
 - everything else → stage Next.js frontend
 - **except the strangler route groups** (`deploy/go-routes.inc`, included by `vhost-stage.inc`): each group
   (`content`, `reminders`, `healthlog`, `profile`, `pregnancy`, `cycle`, `messages`, `home`, `auth`) goes to Laravel
