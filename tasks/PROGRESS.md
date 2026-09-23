@@ -359,3 +359,12 @@ Nothing needed fixing.
   `api/embed.go`; `/docs` Swagger UI bundled in the binary, Basic auth `SWAGGER_USER`/`SWAGGER_PASSWORD` (fail closed).
 - `openapi_test.go`: routes ↔ spec both ways (admin API excluded for now), all 3796 golden bodies validate against schemas.
 - `new-endpoint` skill rewritten for Go. Deps: santhosh-tekuri/jsonschema/v6, swaggest/swgui.
+
+## T-M2-24 — Parity gate (report: `docs/go-migration/parity-report.md`)
+- `make contract ROUTES=all`: 986/986, allow-list empty, all 74 Laravel routes covered. Token interop both ways.
+- Web read-flow smoke identical on both stacks (8/11 screenshots byte-identical). Go 1.2×–2.4× RPS on 7/8 hot
+  endpoints, ~¼ memory; `/home` at parity (21 sequential queries).
+- Verdict: conditional GO for T-M2-25 (public groups); blockers: Android smoke (F-1), web write-flow smoke (F-2),
+  deviation approvals (D-01…04, D-08…16), T-M2-09 staging deploy, goose-vs-staging schema diff (F-6).
+- Orchestrator follow-ups done: backend-go storage mount now read-write; cross-stack test creates `contract/.work/`.
+- `pint --test` red on backend/ (68 pre-existing issues, as noted in M1).

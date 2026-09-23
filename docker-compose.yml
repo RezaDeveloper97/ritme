@@ -141,11 +141,10 @@ services:
     # image change can't silently break key access.)
     user: "33:33"
     volumes:
-      # Read-only for now: Go reads the Passport keys, the DB-edited
-      # translations (app/translations) and serves /storage/* (app/public).
-      # app/public and app/translations become writable when the admin API
-      # moves (T-M2-20+), not before.
-      - backend-storage:/var/www/html/storage:ro
+      # Read-write: besides the Passport keys and serving /storage/* (app/public),
+      # the Go admin API (T-M2-21) writes uploads (app/public), DB-edited
+      # translations (app/translations) and admin-created lang files (app/lang).
+      - backend-storage:/var/www/html/storage
     healthcheck:
       test: ["CMD", "/app/api", "healthcheck"]
       interval: 10s

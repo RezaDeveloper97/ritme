@@ -78,6 +78,7 @@ func contractStack(t *testing.T) *laravelStack {
 	require.NoError(t, err)
 
 	// Serialise with `make contract-record` (it resets the shared Laravel DB).
+	_ = os.MkdirAll(filepath.Join(repo, "backend-go", "contract", ".work"), 0o750)
 	lock, err := os.OpenFile(filepath.Join(repo, "backend-go", "contract", ".work", "record.lock"), os.O_CREATE|os.O_RDWR, 0o600) //nolint:gosec // fixed path
 	require.NoError(t, err)
 	require.NoError(t, syscall.Flock(int(lock.Fd()), syscall.LOCK_EX))                         //nolint:gosec // G115: fd fits int

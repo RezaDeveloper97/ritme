@@ -3,7 +3,7 @@ id: T-M2-24
 title: Parity gate — full contract diff, client smoke tests, load comparison
 milestone: M2
 type: investigate
-status: todo
+status: done
 depends_on: [T-M2-10, T-M2-11, T-M2-12, T-M2-15, T-M2-16, T-M2-17, T-M2-18]
 parallel_group: M2-I
 touches: [docs/go-migration/parity-report.md]
