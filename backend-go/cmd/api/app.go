@@ -32,6 +32,11 @@ func newApp(reg *apihttp.Registry, deps *apihttp.Deps) *fiber.App {
 	})
 
 	app.Use(accessLog(deps.Logger))
+	// Lets the strangler smoke tests see which stack answered (deploy/switch-go-route.sh).
+	app.Use(func(c fiber.Ctx) error {
+		c.Set("X-Backend", "go")
+		return c.Next()
+	})
 	// Per-request frozen clock (X-Test-Now), same gate as Laravel's TestClock.
 	app.Use(clock.Middleware(clock.Real{}, clock.TestClockEnabledFromEnv()))
 	app.Use(corsMiddleware(deps.Config.CORS.AllowedOrigins))

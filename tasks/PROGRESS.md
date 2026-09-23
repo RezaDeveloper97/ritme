@@ -255,3 +255,13 @@ Nothing needed fixing.
 - Contract profile: 101/104 — the 3 failing cases call cycle routes (green after T-M2-15; noted in its file).
 - Concurrent `POST /profile` bumps `calculation_version` exactly once per call (`profile.MarkRecalculated`).
 - Telegram is sent async (Laravel blocks up to 5s) — bodies unchanged. BMI message falls back to the default language.
+
+## T-M2-09 — Strangler infrastructure on staging (local part; staging deploy blocked)
+- `backend-go` compose service (uid 33, storage ro, `127.0.0.1:8081`); stage `ritme-stage-backend-go-1` (alias
+  `stage-backend-go`); prod `ritme-backend-go-1` under compose profile `go` (inert until `COMPOSE_PROFILES=go`).
+- `deploy/go-routes.inc`: one regex location per group → `upstream ${ritme_env}_route_<group>`; upstream lines in
+  proxy-ssl/stage-ssl/proxy/stage-http confs (all Laravel). Stage overwrites XFF with `$remote_addr`; prod unchanged
+  (CDN in front → needs `real_ip` first, see cutover.md).
+- `deploy/switch-go-route.sh <stage|prod> <group> <on|off> [--dry-run|--local|--status]` (backup, in-place rewrite,
+  `nginx -t`, reload, auto-rollback). Go responses carry `X-Backend: go`. Runbook: `docs/go-migration/cutover.md`.
+- Blocked: staging deploy needs one prod proxy recreate (user OK). Verify needs `ADMIN_SEED_PASSWORD` in `.env`.

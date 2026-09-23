@@ -111,6 +111,50 @@ services:
     volumes:
       - backend-storage:/var/www/html/storage
 
+  # Go port of the API (milestone M2, strangler cutover — docs/go-migration/).
+  # Runs BESIDE `backend` on the same MariaDB, Redis and storage volume; nginx
+  # moves one route group at a time to it (deploy/go-routes.inc,
+  # deploy/switch-go-route.sh). It never migrates, seeds or generates Passport
+  # keys — Laravel still owns all of that until T-M2-27.
+  backend-go:
+    build: ./backend-go
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      # Laravel's entrypoint runs the migrations and creates the Passport key
+      # pair on a fresh volume; Go only reads them.
+      backend:
+        condition: service_started
+    environment:
+      <<: *backend-env
+      RUN_MIGRATIONS: "false"
+      HTTP_ADDR: ":80"
+      STORAGE_PATH: /var/www/html/storage
+      # Go's own Redis namespace: it never reads Laravel's PHP-serialized
+      # cache/queue entries (ritme-cache-/ritme-database- prefixes).
+      REDIS_PREFIX: "ritme-go:"
+    # uid 33 = www-data in the PHP image: the Passport keys on backend-storage
+    # are 0600 www-data. (The image already runs as 33; pinned here too so an
+    # image change can't silently break key access.)
+    user: "33:33"
+    volumes:
+      # Read-only for now: Go reads the Passport keys, the DB-edited
+      # translations (app/translations) and serves /storage/* (app/public).
+      # app/public and app/translations become writable when the admin API
+      # moves (T-M2-20+), not before.
+      - backend-storage:/var/www/html/storage:ro
+    healthcheck:
+      test: ["CMD", "/app/api", "healthcheck"]
+      interval: 10s
+      timeout: 3s
+      start_period: 5s
+      retries: 3
+    ports:
+      - "8081:80"
+
   frontend:
     build:
       context: ./frontend

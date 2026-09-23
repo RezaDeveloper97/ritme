@@ -48,6 +48,21 @@ services:
       APP_ENV: production
       APP_DEBUG: "false"
 
+  # Go API (strangler, docs/go-migration/cutover.md). INERT until T-M2-26:
+  # the `go` profile keeps it out of every plain `build` / `up -d`, so a
+  # production deploy neither builds nor starts it. T-M2-26 turns it on with
+  # COMPOSE_PROFILES=go in /opt/ritme/.env (compose reads it from there).
+  # The proxy addresses it by its pinned container name only
+  # (upstream ... ritme-backend-go-1:80), never by the service alias.
+  backend-go:
+    profiles: [go]
+    container_name: ritme-backend-go-1
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+    ports: !override
+      - "127.0.0.1:8081:80"
+
   frontend:
     ports: !override
       - "127.0.0.1:3000:3000"
@@ -75,6 +90,11 @@ services:
       - ./deploy/vhost-api.inc:/etc/nginx/conf.d/vhost-api.inc:ro
       - ./deploy/vhost-admin.inc:/etc/nginx/conf.d/vhost-admin.inc:ro
       - ./deploy/vhost-web.inc:/etc/nginx/conf.d/vhost-web.inc:ro
+      # Strangler route groups (Laravel vs Go per group), shared by the api
+      # and stage vhosts. Which backend each group hits is set per
+      # environment by the `upstream <env>_route_<group>` blocks in
+      # proxy-ssl.conf / stage-ssl.conf — see deploy/switch-go-route.sh.
+      - ./deploy/go-routes.inc:/etc/nginx/conf.d/go-routes.inc:ro
       - ./certbot-www:/var/www/certbot:ro
       - ./ssl:/etc/nginx/ssl:ro
       # ── staging (stage.ritmeapp.ir) ──────────────────────────────────────

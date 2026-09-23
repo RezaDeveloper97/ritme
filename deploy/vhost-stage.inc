@@ -8,6 +8,10 @@
 ##   /admin                              -> stage backend (Blade panel)
 ##   everything else                     -> stage frontend (Next.js)
 ##
+## …except the strangler route groups (deploy/go-routes.inc), which go to
+## Laravel OR Go per group, as set by the `upstream stage_route_<group>` blocks
+## in stage-ssl.conf (flip with deploy/switch-go-route.sh stage <group> on|off).
+##
 ## Same-origin is a feature here: the browser never makes a cross-origin call,
 ## so backend/config/cors.php needs no staging entry.
 ##
@@ -105,9 +109,21 @@ location = /api/session/flag {
     include /etc/nginx/conf.d/proxy-params.inc;
 }
 
-location ^~ /api/    { proxy_pass http://stage_backend_upstream; include /etc/nginx/conf.d/proxy-params.inc; }
+# ── Strangler route groups (T-M2-09) ──────────────────────────────────────
+# Environment selector and client-IP policy for deploy/go-routes.inc. Stage is
+# the edge (stage.ritmeapp.ir resolves straight to this server), so the real
+# client is $remote_addr and a forged X-Forwarded-For is DROPPED rather than
+# forwarded — the per-IP OTP limits key on its leftmost value.
+set $ritme_env        stage;
+set $ritme_client_xff $remote_addr;
+include /etc/nginx/conf.d/go-routes.inc;
+
+# Plain prefixes, NOT `^~`: a `^~` match would stop nginx from evaluating the
+# route-group regexes above, pinning every group to Laravel. These now only
+# catch what no group claims (and /oauth, which stays on Laravel).
+location /api/       { proxy_pass http://stage_backend_upstream; include /etc/nginx/conf.d/proxy-params.inc; }
 location ^~ /oauth/  { proxy_pass http://stage_backend_upstream; include /etc/nginx/conf.d/proxy-params.inc; }
-location ^~ /storage/{ proxy_pass http://stage_backend_upstream; include /etc/nginx/conf.d/proxy-params.inc; }
+location /storage/   { proxy_pass http://stage_backend_upstream; include /etc/nginx/conf.d/proxy-params.inc; }
 location ^~ /admin   { proxy_pass http://stage_backend_upstream; include /etc/nginx/conf.d/proxy-params.inc; }
 location ^~ /docs    { proxy_pass http://stage_backend_upstream; include /etc/nginx/conf.d/proxy-params.inc; }
 

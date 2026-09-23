@@ -41,6 +41,27 @@ The `proxy` service (nginx:alpine, in `docker-compose.prod.yml`) owns :80/:443. 
 
 **Because web and api are separate origins, every browser API call is cross-origin.** The allow-list lives in `backend/config/cors.php` (override at runtime with `CORS_ALLOWED_ORIGINS`, comma-separated). A new frontend origin must be added there or the browser blocks it. `bootstrap/app.php` also configures `trustProxies` — without it Laravel can't see that TLS terminated at the proxy and the admin panel emits `http://` assets on an https page.
 
+## Go backend (strangler, milestone M2) — inert until T-M2-26
+
+`docker-compose.prod.yml` defines `backend-go` (container `ritme-backend-go-1`, `127.0.0.1:8081`) under the compose
+**profile `go`**, so today's `./deploy.sh` neither builds nor starts it. T-M2-26 turns it on with
+`COMPOSE_PROFILES=go` in `/opt/ritme/.env` (compose reads it from there; nothing in `deploy.sh` changes).
+
+The proxy already routes `api.ritme.app` through `deploy/go-routes.inc`: one regex location per route group, each
+proxying to `upstream prod_route_<group>` in `deploy/proxy-ssl.conf` — **all pointing at `ritme-backend-1`**
+(Laravel), so behaviour is unchanged, including `X-Forwarded-For` (prod sits behind a CDN; see cutover.md →
+Prod prerequisites before changing it). Moving a group is `deploy/switch-go-route.sh prod <group> on|off`
+(nginx -t guarded, auto-rollback), only after it soaked on stage — `docs/go-migration/cutover.md`.
+
+- `go-routes.inc` is a **new bind mount** on the proxy: the first deploy that ships it recreates the proxy
+  (`up -d` does that on its own), a one-to-two-second blip. It is required: `vhost-api.inc` includes it.
+- `deploy/proxy.conf` (the HTTP-only pre-certificate config) does **not** define the `prod_route_*` upstreams yet;
+  falling back to it would 502 every route-group path. Prod runs `proxy-ssl.conf`.
+- Once `backend-go` runs on prod, add to the verify block: `exec -T backend-go /app/api healthcheck` (exit 0) and
+  `exec -T proxy wget -qSO- http://ritme-backend-go-1/up` (200), keeping every existing Laravel assertion.
+- Pinned names only: the upstreams use `ritme-backend-1` / `ritme-backend-go-1`, never `backend` / `backend-go`,
+  which the stage project also registers on `ritme-edge`.
+
 ## HTTPS
 One SAN certificate covers all three hostnames (issued 2026-08-16, expires 2026-11-14):
 ```bash

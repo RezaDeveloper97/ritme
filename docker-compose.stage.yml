@@ -46,6 +46,22 @@ services:
       APP_ENV: staging
       APP_DEBUG: ${APP_DEBUG:-false}
 
+  # Go API beside Laravel (strangler, T-M2-09). The proxy reaches it only
+  # through the stage-only alias `stage-backend-go` — never the bare service
+  # name `backend-go`, which Docker also registers on ritme-edge (the
+  # 2026-08-31 incident; see deploy/proxy-ssl.conf). Which route groups it
+  # serves is decided by deploy/stage-ssl.conf (deploy/switch-go-route.sh).
+  backend-go:
+    container_name: ritme-stage-backend-go-1
+    environment:
+      APP_ENV: staging
+      APP_DEBUG: ${APP_DEBUG:-false}
+    ports: !override []
+    networks:
+      default:
+      ritme-edge:
+        aliases: [stage-backend-go]
+
   frontend:
     ports: !override []
     networks:
