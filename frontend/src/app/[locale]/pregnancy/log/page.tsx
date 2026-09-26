@@ -1,21 +1,21 @@
 import { setRequestLocale } from 'next-intl/server';
 
-import { PregnancyLogPage } from '@/screens/pregnancy-log';
+import { PregnancyLogRoute } from '@/screens/pregnancy-log';
 
 import { RouteMessages } from '../../../RouteMessages';
 
 interface Props {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; date?: string }>;
 }
 
-export default async function PregnancyLogRoute({ params, searchParams }: Props) {
+export default async function PregnancyLogPageRoute({ params, searchParams }: Props) {
   const { locale } = await params;
-  const { tab } = await searchParams;
+  const { tab, date } = await searchParams;
   setRequestLocale(locale);
   return (
     <RouteMessages route="pregnancyLog">
-      <PregnancyLogPage initialTab={tab} />
+      <PregnancyLogRoute tab={tab} date={date} />
     </RouteMessages>
   );
 }

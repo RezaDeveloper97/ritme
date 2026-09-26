@@ -3,7 +3,7 @@ id: T-M7-12
 title: Frontend — pregnancy «ثبت علائم» (Log) v2 with offline outbox
 milestone: M7
 type: frontend
-status: todo
+status: done
 depends_on: [T-M7-08, T-M7-03]
 parallel_group: M7-C
 touches: [frontend/src/screens/pregnancy-log, frontend/src/shared/lib/outbox, frontend/src/app/[locale]/pregnancy/log]

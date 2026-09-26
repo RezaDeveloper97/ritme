@@ -689,3 +689,8 @@ Nothing needed fixing.
 - Rewrote `screens/pregnancy` on `usePregnancyToday`: date strip, `widgets/pregnancy-week-carousel`, due card, 40-week progress, quick actions (alerts badge), next visit, smart tip, `widgets/pregnancy-care-checklist`, disclaimer, not-active CTA → `/pregnancy/setup`. Removed v1 AlertsCard/WeekContent.
 - `pregnancy` route scope now `care, common, nav, pregnancyV2`; steiger ignores for the two widgets. Commit also carries in-flight T-M7-12 keys in `pregnancy-v2.json` (keys only).
 - Open: `/pregnancy/alerts` arrives with T-M7-14; kept M3 TodayRemindersCard; screenshots/build pending.
+
+## T-M7-12 — Frontend — pregnancy Log v2 with offline outbox
+- `/pregnancy/log?date=` now renders v2 DayLogPage (mood, 9 symptoms + severity, water, weight w/ last entry, visit note, spotting info, inline alerts); `?tab=symptoms|weekly|movement` keeps v1 forms.
+- New `shared/lib/outbox` (IndexedDB, latest-write-per-day, replay on mount/`online`, pending badge).
+- Open: manual offline → reconnect test not done yet (if unreliable, switch offline copy to honest wording); screenshots/build pending.
