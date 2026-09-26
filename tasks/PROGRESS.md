@@ -664,3 +664,8 @@ Nothing needed fixing.
 - Appointment meta gains optional `care_item_key`, `stage` (booked|done|result), `result_note` (backwards compatible).
 - Outside touches: exported date helpers appended to `internal/pregnancy/v2/labels.go`.
 - Open: care_item_key not FK-checked; visit prep comes from care item, not appointment checklist; client filters selected-day visits.
+
+## T-M4-09 — Frontend — checkup history and self-exam
+- Shipped `/checkups/history` (tabs, timeline, infinite list, edit via mark-done sheet, on-device «خلاصه برای پزشک» PDF) and `/checkups/self-exam` (cycle-window hero, guide steps, findings chips, monthly record, adherence).
+- `shared/lib/pdf`: hand-written PDF writer + canvas renderer (Vazirmatn shaping) — no new dependency; pages are images (text not selectable).
+- Open: PDF not verified on a real device; finding labels shown as a count; adherence reads first page only; self-exam resolves `breast_self_exam` key. Screenshots not taken.

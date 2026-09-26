@@ -137,7 +137,20 @@
     "summarySub": "همه چکاپ‌ها و نتایج در یک PDF",
     "export": "خروجی PDF",
     "empty": "هنوز چکاپی ثبت نشده.",
-    "loadMore": "موارد بیشتر"
+    "loadMore": "موارد بیشتر",
+    "pdf": {
+      "title": "خلاصه چکاپ‌ها برای پزشک",
+      "subtitle": "تهیه‌شده در {date} · {count} مورد",
+      "findings": "{count} یافته در معاینه ثبت شده",
+      "note": "یادداشت: {note}",
+      "nextDue": "موعد بعدی: {date}",
+      "attachment": "گزارش پیوست روی گوشی ذخیره شده است.",
+      "disclaimer": "این خلاصه را کاربر در ریتمی ثبت کرده و تشخیص پزشکی نیست.",
+      "footer": "ریتمی · صفحه {page} از {pages}",
+      "filename": "ritme-checkups.pdf",
+      "working": "در حال ساخت PDF…",
+      "error": "ساخت PDF انجام نشد. دوباره امتحان کن."
+    }
   },
   "selfExam": {
     "thisMonth": "این ماه",
@@ -155,7 +168,9 @@
     "book": "ثبت نوبت",
     "done": "این ماه انجام دادم",
     "doneAlready": "این ماه ثبت شده",
-    "adherence": "{done} ماه از {total} ماه اخیر انجام شده"
+    "adherence": "{done} ماه از {total} ماه اخیر انجام شده",
+    "whenNow": "الان بهترین زمان است",
+    "whenIn": "{count} روز دیگر"
   },
   "custom": {
     "newTitle": "افزودن چکاپ سفارشی",

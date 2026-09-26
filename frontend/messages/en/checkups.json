@@ -137,7 +137,20 @@
     "summarySub": "All checkups and results in one PDF",
     "export": "Export PDF",
     "empty": "No checkups logged yet.",
-    "loadMore": "Load more"
+    "loadMore": "Load more",
+    "pdf": {
+      "title": "Checkup summary for your doctor",
+      "subtitle": "Prepared {date} · {count} entries",
+      "findings": "{count} exam findings noted",
+      "note": "Note: {note}",
+      "nextDue": "Next due: {date}",
+      "attachment": "Report attached on the phone.",
+      "disclaimer": "Logged by the user in Ritme; not a medical diagnosis.",
+      "footer": "Ritme · page {page} of {pages}",
+      "filename": "ritme-checkups.pdf",
+      "working": "Building PDF…",
+      "error": "Couldn't build the PDF. Try again."
+    }
   },
   "selfExam": {
     "thisMonth": "This month",
@@ -155,7 +168,9 @@
     "book": "Book",
     "done": "I did it this month",
     "doneAlready": "Logged this month",
-    "adherence": "Done {done} of the last {total} months"
+    "adherence": "Done {done} of the last {total} months",
+    "whenNow": "now is the best time",
+    "whenIn": "{count, plural, one {# day to go} other {# days to go}}"
   },
   "custom": {
     "newTitle": "Add a custom checkup",

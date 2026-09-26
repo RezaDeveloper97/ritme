@@ -3,7 +3,7 @@ id: T-M4-09
 title: Frontend — Checkup history (+ PDF summary) and breast self-exam guide
 milestone: M4
 type: frontend
-status: todo
+status: done
 depends_on: [T-M4-08]
 parallel_group: M4-C
 touches: [frontend/src/screens/checkup-history, frontend/src/screens/checkup-self-exam, frontend/src/app/[locale]/checkups/history, frontend/src/app/[locale]/checkups/self-exam, frontend/src/shared/lib/pdf]
