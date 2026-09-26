@@ -708,3 +708,8 @@ Nothing needed fixing.
 - `/reminders/appointment/new` reads `kind,title,date,care_item_key` prefill; `manage-appointment` body + care-reminder entity carry `care_item_key/stage/result_note`; calendar stage stepper uses `useUpdateAppointment`; remind values from `REMIND_BEFORE`.
 - Full frontend verify on the combined M3–M7 tree green (551 tests, build OK).
 - Open: end-to-end check that booking from the care plan flips the item to `booked`.
+
+## T-M3-09 — Care reminders rollout (staging)
+- verify-all green (Go, frontend 551 tests + build, admin-web 77 tests + build); `stage` deployed; goose v5 applied (reminder_intakes, checkups, fertility, pregnancy v2 tables present).
+- `/api/v1/care/*` served by Go on stage (Go-only vhost, no route change needed); API e2e med→today/home→tick→appointment→detail→cancel passed. Evidence: `docs/care-reminders/README.md` § Rollout.
+- Open: UI screenshots light/dark (needs stage password, human), prod route when asked.

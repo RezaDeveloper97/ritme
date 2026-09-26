@@ -160,3 +160,35 @@ Frontend rule (frontend/CLAUDE.md §10): **no hex in components**; map each desi
 Numbers use Lalezar (`font-family: Lalezar`) for big digits (date tiles, time buttons, amount); text is Vazirmatn.
 All digits localized (fa → Persian digits); dates shown in the locale calendar (Jalali for fa).
 Touch targets ≥ 44 px; switches are real `role="switch"` buttons; the sheet is the app's existing sheet primitive.
+
+## Rollout (T-M3-09) — staging 2026-09-26
+
+**Routing:** staging is Go-only since T-M2-28 — `location /api/` in `deploy/vhost-stage.inc` already proxies every
+`/api/v1/*` path (incl. `/api/v1/care/*`) to `stage-backend-go`, so no `deploy/go-routes.inc` change was needed on
+stage. Production still needs a `care` route line when the user asks (Go-only feature; prod is Laravel until T-M2-26).
+
+**Verify-all (local, pre-deploy):** backend-go `go vet` / `go test` / `golangci-lint` (0 issues) ✔; frontend
+typecheck, lint, fsd:lint, lint:styles, lint:dark, test (551/551), build ✔; admin-web typecheck, lint, fsd:lint,
+test (77/77), build ✔; Laravel skipped (backend/ unchanged).
+
+**Deploy:** `./deploy-stage.sh` (branch `stage` @ 484a4ad). The first full run lost its SSH session mid-build (server
+load ~9 with three parallel Next/Go builds); re-run as `SKIP_SYNC=1 SERVICES=<svc> ./deploy-stage.sh` for
+backend-go, admin-web, frontend — all verification assertions ok.
+
+**Migrations:** backend-go log `{"msg":"migrations","action":"goose_managed","applied":[2,3,4,5],"version":5}`.
+Tables present: `reminders`, `reminder_intakes`, `checkup_types`, `checkup_records`, `user_checkup_settings`,
+`fertility_logs`, `pregnancy_*` v2 tables (alerts, care_items, daily_extras, fetal_movements, symptom_logs, …).
+
+**API e2e** (smoke user 09900000901, token via OTP read from `otp_verifications`, run on the server inside the
+`ritme-edge` network against `stage-backend-go`):
+```
+enums 200 | POST medications 201 | care/today 200 (contains med) | home 200 (contains med)
+POST medications/{id}/intakes 200 → today taken:true, taken_count 1
+POST appointments 201 | GET appointments/{id} 200 | POST appointments/{id}/cancel 200 status "cancelled"
+cleanup: DELETE medication 200, DELETE appointment 200
+```
+Through the shared proxy: `GET https://stage.ritmeapp.ir/api/v1/care/enums` (no bearer) → 401 `x-backend: go`.
+
+**Open (human):** light/dark screenshots of /reminders, medication form, appointment detail and the home card were
+not taken — the browser recipe needs the staging Basic-auth password, which the agent was not permitted to read.
+Click through the same checklist on a phone in both themes.

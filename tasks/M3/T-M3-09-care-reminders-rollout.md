@@ -3,7 +3,7 @@ id: T-M3-09
 title: Care reminders rollout — route /api/v1/care to Go, verify, stage
 milestone: M3
 type: release
-status: todo
+status: done
 depends_on: [T-M3-03, T-M3-06, T-M3-07, T-M3-08, T-M2-09]
 parallel_group: M3-D
 touches: [deploy, tasks/PROGRESS.md, docs/care-reminders/README.md]
