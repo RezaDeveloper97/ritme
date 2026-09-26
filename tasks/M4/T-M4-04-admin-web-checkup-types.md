@@ -3,7 +3,7 @@ id: T-M4-04
 title: admin-web — checkup types screens (list, form, stats)
 milestone: M4
 type: frontend
-status: in_progress
+status: done
 depends_on: [T-M4-03, T-M2-23]
 parallel_group: M4-C
 touches: [admin-web/src/widgets/shell/model/nav.ts, admin-web/messages, admin-web/src/shared/ui/Icon.tsx, admin-web/src/screens/checkup-types, admin-web/src/app/(panel)/checkup-types, admin-web/src/widgets/shell/ui/Sidebar.tsx, admin-web/src/shared/i18n]

@@ -641,3 +641,20 @@ Nothing needed fixing.
 - Shipped `widgets/checkups-card` (ring, counts line, up to 2 highlight rows, disclaimer) mounted on the cycle HomePage.
 - Outside touches: `checkups` in `ROUTE_NAMESPACES.home`; steiger ignore for the widget. Combined frontend build green after T-M3/M4/M5 batch.
 - Open: «ثبت نوبت» passes `title=` but the appointment form ignores it; not shown on pregnancy home; visual check vs artboard pending.
+
+## T-M7-04 — Message engine: pregnancy week tips and v2 alert rules
+- `/messages/daily` pregnancy layer 0 = `pregnancy_week_tip/{week+1}`; overrides also read `pregnancy_symptom_logs` + `pregnancy_daily_extras` (mood ≤2 → mood_sad).
+- New `internal/messages/pregnancyalerts` (8 DB-driven rules; rows `alert_type=v2:<rule>` in `pregnancy_alerts`, texts resolved at read time).
+- New `GET /pregnancy/v2/alerts`, `POST /pregnancy/v2/alerts/{id}/actions/{ack|add_to_visit_note}`; day-log `alerts` now full v2 alerts.
+- Outside touches: `db/queries/pregnancy/v2_alerts.sql` (+sqlc), v1 `AfterLogSave` hook, daylog wiring. Deviation D-21 approved by user 2026-09-26.
+- Contract: messages,pregnancy 278 passed.
+- Open: no scheduler (daily eval runs on GET alerts); fixture lacks v2 tables (1146 treated as no row); v1+v2 duplicate rows for some symptoms; `weight_missing_week` not withdrawn; rule param interpretations need clinical review (T-M7-15).
+
+## T-M5-05 — Frontend — TTC quick tiles on the cycle home
+- Shipped `widgets/fertility-tiles` (LH / BBT / intercourse) on HomePage when `pregnancyIntention === 'trying'`; `fertility` added to home scope; steiger ignore. Full verify incl. build green.
+- Open: tile colours/icons chosen without artboard check; screenshots not taken.
+
+## T-M4-04 — admin-web — checkup types screens
+- Shipped `/checkup-types` list (drag/arrow reorder, active switch via full PUT, stats panel), create/edit form with language tabs and live preview. Touches widened to nav.ts, admin-web/messages, Icon.tsx.
+- Verify (tsc, eslint, steiger, vitest 68, build) green.
+- Open: local smoke vs Go admin API not run; light preview needs `[data-theme="light"]` tokens in admin globals.css; rose/teal tones borrow danger/data tokens.
