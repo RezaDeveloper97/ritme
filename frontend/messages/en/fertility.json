@@ -115,7 +115,8 @@
     "save": "Save",
     "saving": "Saving…",
     "saved": "Saved",
-    "futureDate": "You can't log a day in the future."
+    "futureDate": "You can't log a day in the future.",
+    "discardConfirm": "You have unsaved changes. Leave without saving?"
   },
   "bbt": {
     "title": "Basal body temperature",

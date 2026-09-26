@@ -3,7 +3,7 @@ id: T-M5-06
 title: Frontend — «ثبت روز» fertility day log screen
 milestone: M5
 type: frontend
-status: todo
+status: done
 depends_on: [T-M5-04]
 parallel_group: M5-B
 touches: [frontend/src/screens/fertility-log, frontend/src/app/[locale]/fertility/log]

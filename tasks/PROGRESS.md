@@ -611,3 +611,8 @@ Nothing needed fixing.
 ## T-M3-08 — Frontend — Add/Edit appointment and appointment detail screens
 - Shipped `/reminders/appointment/new`, `/[id]`, `/[id]/edit`; `shared/lib/ics` builder (Asia/Tehran TZID, VALARM = remind_before) with tests.
 - Open: screenshots not taken; prep ticking uses PUT fallback (no apiClient.patch); «مسیریابی» uses a Google Maps search link.
+
+## T-M5-06 — Frontend — «ثبت روز» fertility day log screen
+- Shipped `/fertility/log?date=&focus=` (screens/fertility-log): chance card, LH/mucus/intercourse/symptom chips, BBT stepper with Persian-digit input, changed-fields-only save, dirty guard.
+- Added `fertilityLog` to `frontend/src/app/message-scopes.ts` (outside touches, required by route typing) and key `fertility.log.discardConfirm`.
+- Open: screenshots not taken; back goes to `/home` (no `?from=`); inline toast (no shared primitive).
