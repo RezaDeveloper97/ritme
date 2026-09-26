@@ -1,0 +1,21 @@
+{
+    "symptoms": {
+        "nausea": "Nausea",
+        "vomiting": "Vomiting",
+        "fatigue": "Fatigue",
+        "headache": "Headache",
+        "back_pain": "Back pain",
+        "breast_pain": "Breast tenderness",
+        "heartburn": "Heartburn",
+        "constipation": "Constipation",
+        "spotting": "Spotting",
+        "bleeding": "Bleeding",
+        "fluid_leakage": "Fluid leakage",
+        "severe_sudden_pain": "Severe sudden pain"
+    },
+    "none": "—",
+    "messages": {
+        "action_done": "Done",
+        "visit_note_added": "Added to your visit note"
+    }
+}

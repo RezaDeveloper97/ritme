@@ -3,7 +3,7 @@ id: T-M7-04
 title: Message engine — per-week pregnancy tips and admin-configured alert rules (4 levels)
 milestone: M7
 type: backend
-status: todo
+status: done
 depends_on: [T-M7-03]
 parallel_group: M7-C
 touches: [backend-go/internal/messages, backend-go/internal/pregnancy/alerts, backend-go/internal/pregnancy/v2/alerts, backend-go/internal/http/routes_pregnancy_v2.go, backend-go/api/openapi.yaml, backend-go/messages/content/defaults.json]

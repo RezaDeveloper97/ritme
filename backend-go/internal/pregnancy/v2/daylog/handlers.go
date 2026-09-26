@@ -26,8 +26,8 @@ type Handlers struct {
 }
 
 // NewHandlers wires the handlers; base is the fallback clock (tests pin it per request).
-func NewHandlers(q store.Querier, base clock.Clock) *Handlers {
-	return &Handlers{svc: NewService(q), clock: base}
+func NewHandlers(q store.Querier, alerts Evaluator, base clock.Clock) *Handlers {
+	return &Handlers{svc: NewService(q, alerts), clock: base}
 }
 
 func (h *Handlers) user(c fiber.Ctx) (uint64, error) {
@@ -162,7 +162,7 @@ func (h *Handlers) Update(c fiber.Ctx) error {
 		in.VisitNote = &p
 	}
 
-	out, err := h.svc.Save(c, userID, date, in, now, locale)
+	out, err := h.svc.Save(c, userID, date, in, now, v2.Lang{Locale: locale, Default: i18n.LanguagesOf(c).DefaultCode()})
 	if err != nil {
 		return err
 	}

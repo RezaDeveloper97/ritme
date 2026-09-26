@@ -95,11 +95,20 @@ func attributes(locale string) []string {
 	return kv
 }
 
-// Service reads and writes the day log.
-type Service struct{ q store.Querier }
+// Evaluator runs the v2 alert rules after a save and returns the alerts it created
+// (messages/pregnancyalerts.Engine, T-M7-04).
+type Evaluator interface {
+	Evaluate(ctx context.Context, userID uint64, now time.Time, l v2.Lang) ([]*jsonx.OrderedMap, error)
+}
 
-// NewService wires the service.
-func NewService(q store.Querier) *Service { return &Service{q: q} }
+// Service reads and writes the day log.
+type Service struct {
+	q      store.Querier
+	alerts Evaluator
+}
+
+// NewService wires the service; alerts may be nil (no v2 alert rules).
+func NewService(q store.Querier, alerts Evaluator) *Service { return &Service{q: q, alerts: alerts} }
 
 // Input is a validated PUT body: a nil field was absent (keep); a set field whose inner
 // pointer is nil clears.
@@ -225,7 +234,7 @@ func weightNum(n sql.NullString) any {
 
 // Day is the merged day read model.
 func (s *Service) Day(ctx context.Context, userID uint64, date civildate.Date, now time.Time, locale string,
-	raised []pregnancy.RaisedAlert,
+	raised []*jsonx.OrderedMap,
 ) (*jsonx.OrderedMap, error) {
 	d, err := s.dating(ctx, userID, civildate.InTehran(now), locale)
 	if err != nil {
@@ -277,47 +286,23 @@ func (s *Service) Day(ctx context.Context, userID uint64, date civildate.Date, n
 	), nil
 }
 
-// v2Level maps the v1 alert_level onto the four v2 levels.
-func v2Level(v1 string) string {
-	switch v1 {
-	case "emergency":
-		return "urgent"
-	case "warning":
-		return "follow_up"
-	default:
-		return "info"
-	}
-}
-
-func alertsJSON(raised []pregnancy.RaisedAlert) []any {
+func alertsJSON(raised []*jsonx.OrderedMap) []any {
 	out := make([]any, 0, len(raised))
 	for _, a := range raised {
-		out = append(out, jsonx.Obj(
-			"id", a.ID,
-			"level", v2Level(a.Level),
-			"alert_level", a.Level,
-			"rule_key", a.Type,
-			"title", a.Title,
-			"advice", a.Message,
-			"pregnancy_week", a.Week,
-			"actions", []any{},
-			"created_at", a.CreatedAt.Format(time.RFC3339),
-			"is_read", false,
-			"is_acked", false,
-		))
+		out = append(out, a)
 	}
 	return out
 }
 
 // Save applies a validated PUT and returns the merged day with the alerts this save raised.
 // Writes happen only when something changes, so a resent PUT raises no alerts twice.
-func (s *Service) Save(ctx context.Context, userID uint64, date civildate.Date, in Input, now time.Time, locale string,
+func (s *Service) Save(ctx context.Context, userID uint64, date civildate.Date, in Input, now time.Time, l v2.Lang,
 ) (*jsonx.OrderedMap, error) {
+	locale := l.Locale
 	d, err := s.dating(ctx, userID, civildate.InTehran(now), locale)
 	if err != nil {
 		return nil, err
 	}
-	var raised []pregnancy.RaisedAlert
 
 	if in.Symptoms != nil {
 		row, err := noRows(s.q.GetSymptomLog(ctx, store.GetSymptomLogParams{UserID: userID, LogDate: date}))
@@ -342,11 +327,11 @@ func (s *Service) Save(ctx context.Context, userID uint64, date civildate.Date, 
 			}
 		}
 		if changed {
-			a, err := pregnancy.SaveSymptomDay(ctx, s.q, userID, date, attrs, locale, now)
-			if err != nil {
+			// The v1 rules still write their pregnancy_alerts rows (v1 parity); the day
+			// returns the v2 rule alerts below.
+			if _, err := pregnancy.SaveSymptomDay(ctx, s.q, userID, date, attrs, locale, now); err != nil {
 				return nil, err
 			}
-			raised = append(raised, a...)
 		}
 	}
 
@@ -369,11 +354,15 @@ func (s *Service) Save(ctx context.Context, userID uint64, date civildate.Date, 
 		next := *in.Weight
 		same := (cur == nil && next == nil) || (cur != nil && next != nil && *cur == *next && wl.LogDate == date)
 		if !same && (wl != nil || next != nil) {
-			a, err := pregnancy.SaveWeeklyWeight(ctx, s.q, userID, week, date, in.WeightRaw, locale, now)
-			if err != nil {
+			if _, err := pregnancy.SaveWeeklyWeight(ctx, s.q, userID, week, date, in.WeightRaw, locale, now); err != nil {
 				return nil, err
 			}
-			raised = append(raised, a...)
+		}
+	}
+	var raised []*jsonx.OrderedMap
+	if s.alerts != nil {
+		if raised, err = s.alerts.Evaluate(ctx, userID, now, l); err != nil {
+			return nil, err
 		}
 	}
 	return s.Day(ctx, userID, date, now, locale, raised)

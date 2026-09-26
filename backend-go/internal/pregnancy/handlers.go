@@ -8,6 +8,7 @@
 package pregnancy
 
 import (
+	"context"
 	"strings"
 	"time"
 
@@ -32,11 +33,26 @@ import (
 // Handlers serves the pregnancy routes. Every handler runs behind auth RequireUser and the
 // locale middleware.
 type Handlers struct {
-	q store.Querier
+	q         store.Querier
+	afterSave AfterLogSave
 }
+
+// AfterLogSave runs after every symptom / weekly / fetal-movement save (the v2 alert rules of
+// messages/pregnancyalerts, T-M7-04). It never changes the v1 response.
+type AfterLogSave func(ctx context.Context, userID uint64, locale, defaultLocale string, now time.Time) error
 
 // NewHandlers wires the handlers.
 func NewHandlers(q store.Querier) *Handlers { return &Handlers{q: q} }
+
+// SetAfterLogSave installs the log-save hook.
+func (h *Handlers) SetAfterLogSave(f AfterLogSave) { h.afterSave = f }
+
+func (h *Handlers) afterLogSave(r req) error {
+	if h.afterSave == nil {
+		return nil
+	}
+	return h.afterSave(r.c.Context(), r.userID, r.locale, i18n.LanguagesOf(r.c).DefaultCode(), r.now)
+}
 
 // req is the per-request context the controllers use.
 type req struct {
@@ -376,6 +392,9 @@ func (h *Handlers) SymptomStore(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	if err := h.afterLogSave(r); err != nil {
+		return err
+	}
 	return httpx.Created(c, jsonx.Obj("log", log, "alerts", jsonx.List(created)),
 		r.tr("علائم با موفقیت ذخیره شد", "Symptom log saved successfully"))
 }
@@ -480,6 +499,9 @@ func (h *Handlers) WeeklyStore(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	if err := h.afterLogSave(r); err != nil {
+		return err
+	}
 	return httpx.Created(c, jsonx.Obj("log", log, "alerts", jsonx.List(created)),
 		r.tr("گزارش هفتگی با موفقیت ذخیره شد", "Weekly log saved successfully"))
 }
@@ -580,6 +602,9 @@ func (h *Handlers) FetalStore(c fiber.Ctx) error {
 	drafts := alerts.ForFetalMovement(alerts.Context{Locale: r.locale, Week: cl.CurrentWeek(), Profile: cl.Profile()}, log)
 	created, err := createAlerts(ctx, h.q, r.userID, drafts, r.now)
 	if err != nil {
+		return err
+	}
+	if err := h.afterLogSave(r); err != nil {
 		return err
 	}
 	return httpx.Created(c, jsonx.Obj("log", log, "alerts", jsonx.List(created)),

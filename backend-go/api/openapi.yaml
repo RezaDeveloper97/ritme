@@ -7717,6 +7717,83 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '409': {$ref: "#/components/responses/PregnancyNotActive"}
         '422': {$ref: "#/components/responses/PregnancyV2ValidationFailed"}
+  /api/v1/pregnancy/v2/alerts:
+    get:
+      tags: [PregnancyV2]
+      summary: Pregnancy alerts of the last 7 days + the 4-level legend
+      description: >-
+        Runs the daily evaluation of the alert rules first (deduplicated per rule per window, so at most once per
+        window). Rules, levels, thresholds and texts are `message_contents` rows of group `pregnancy_alert`; texts are
+        rendered at read time in the request locale (fallback: default language). Acked alerts stay listed with
+        `is_acked: true`.
+      operationId: getPregnancyV2Alerts
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Alerts + legend
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [window_days, window_note, title, alerts, legend, disclaimer]
+                    properties:
+                      window_days: {type: integer}
+                      window_note: {type: [string, "null"]}
+                      title: {type: [string, "null"]}
+                      alerts: {type: array, items: {$ref: "#/components/schemas/PregnancyV2Alert"}}
+                      legend:
+                        type: array
+                        items:
+                          type: object
+                          required: [level, label, description]
+                          properties:
+                            level: {type: string, enum: [info, suggestion, follow_up, urgent]}
+                            label: {type: [string, "null"]}
+                            description: {type: [string, "null"]}
+                      disclaimer: {type: [string, "null"]}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '409': {$ref: "#/components/responses/PregnancyNotActive"}
+  /api/v1/pregnancy/v2/alerts/{id}/actions/{action}:
+    post:
+      tags: [PregnancyV2]
+      summary: Run an alert action (ack, add_to_visit_note)
+      description: >-
+        `ack` marks the alert read and dismissed (it leaves the v1 active list). `add_to_visit_note` appends the
+        alert's "what we saw" line (title when empty) to today's `visit_note` once and marks it read.
+      operationId: postPregnancyV2AlertAction
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {name: action, in: path, required: true, schema: {type: string, enum: [ack, add_to_visit_note]}}
+      responses:
+        '200':
+          description: The updated alert (+ today's visit note for add_to_visit_note)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data:
+                    type: object
+                    required: [alert, visit_note]
+                    properties:
+                      alert: {$ref: "#/components/schemas/PregnancyV2Alert"}
+                      visit_note: {type: [string, "null"]}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/ModelNotFound"}
 components:
   securitySchemes:
     bearerAuth:
@@ -7931,20 +8008,34 @@ components:
                 week: {type: integer}
         alerts:
           type: array
+          description: v2 rule alerts this save raised (messages/pregnancyalerts, T-M7-04)
+          items: {$ref: "#/components/schemas/PregnancyV2Alert"}
+    PregnancyV2Alert:
+      type: object
+      required: [id, rule_key, level, alert_level, title, what_we_saw, how_sure, advice, actions, contact, is_read, is_acked]
+      properties:
+        id: {type: integer}
+        rule_key: {type: string, enum: [vomiting_streak, severe_symptom_count, critical_symptom, weight_missing_week, week_entered, bp_high, sugar_high, fetal_movement]}
+        level: {type: string, enum: [info, suggestion, follow_up, urgent]}
+        alert_level: {type: string, enum: [info, warning, emergency], description: "v1 level the row is stored with"}
+        title: {type: string}
+        what_we_saw: {type: [string, "null"]}
+        how_sure: {type: [string, "null"]}
+        advice: {type: [string, "null"]}
+        actions:
+          type: array
           items:
             type: object
+            required: [key, label]
             properties:
-              id: {type: integer}
-              level: {type: string, enum: [info, suggestion, follow_up, urgent]}
-              alert_level: {type: string, enum: [info, warning, emergency]}
-              rule_key: {type: string}
-              title: {type: string}
-              advice: {type: string}
-              pregnancy_week: {type: integer}
-              actions: {type: array}
-              created_at: {$ref: "#/components/schemas/IsoDateTime"}
-              is_read: {type: boolean}
-              is_acked: {type: boolean}
+              key: {type: string, enum: [ack, add_to_visit_note, log_weight, open_week, call]}
+              label: {type: string}
+        contact: {type: [string, "null"], description: "Only on urgent alerts"}
+        pregnancy_week: {type: [integer, "null"]}
+        created_at: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/IsoDateTime"}]}
+        date_label: {type: [string, "null"]}
+        is_read: {type: boolean}
+        is_acked: {type: boolean}
     PregnancyV2Range:
       type: object
       required: [from, to]

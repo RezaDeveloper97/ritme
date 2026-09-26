@@ -6,6 +6,7 @@ import (
 	"github.com/ritme/backend-go/internal/auth"
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
+	"github.com/ritme/backend-go/internal/messages/pregnancyalerts"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/pregnancy/store"
 	pregnancyv2 "github.com/ritme/backend-go/internal/pregnancy/v2"
@@ -13,7 +14,7 @@ import (
 )
 
 // Pregnancy v2 (docs/pregnancy-v2/README.md), Go only: dating preview, Today, week page and
-// per-week state. All auth:api, localized by Accept-Language.
+// per-week state, day log, alerts. All auth:api, localized by Accept-Language.
 func init() {
 	Register("pregnancy_v2", func(r fiber.Router, d *Deps) {
 		guard := auth.MustGuard(r, d.Config, d.DB, d.Logger).RequireUser
@@ -26,9 +27,14 @@ func init() {
 		r.Get(p+"/weeks/:n", locale, guard, h.Week)
 		r.Put(p+"/weeks/:n/state", locale, guard, h.WeekState)
 
-		dl := daylog.NewHandlers(store.New(d.DB), clock.Real{})
+		al := pregnancyalerts.NewHandlers(store.New(d.DB), clock.Real{})
+		dl := daylog.NewHandlers(store.New(d.DB), al.Engine(), clock.Real{})
 		r.Get(p+"/report", locale, guard, dl.Report)
 		r.Get(p+"/days/:date", locale, guard, dl.Show)
 		r.Put(p+"/days/:date", locale, guard, dl.Update)
+
+		// Alert rules of the message engine (T-M7-04).
+		r.Get(p+"/alerts", locale, guard, al.Index)
+		r.Post(p+"/alerts/:id/actions/:action", locale, guard, al.Action)
 	})
 }

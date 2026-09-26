@@ -60,6 +60,13 @@ type Source interface {
 	Cycle(ctx context.Context, date civildate.Date) (legacy.Calculation, error)
 }
 
+// PregnancySymptomSource is an optional Source extension (T-M7-04): in pregnancy mode the
+// override layer reads the day's pregnancy_symptom_logs (+ pregnancy_daily_extras) as symptom
+// names ExtractSymptoms understands (nausea, vomiting, fatigue, backache, mood_sad, …).
+type PregnancySymptomSource interface {
+	PregnancySymptoms(ctx context.Context, date civildate.Date) ([]string, error)
+}
+
 // Manager is one MessageManager (user + locale). Today is the request's Tehran day: the
 // pregnancy context is computed for today whatever date is asked (PregnancyCalculationService
 // uses Carbon::today()).
@@ -114,6 +121,17 @@ func (m *Manager) BuildContext(ctx context.Context, date civildate.Date, force e
 	mc.Symptoms = ExtractSymptoms(mc.DailyLog)
 
 	if mode == enums.MessageModePregnancy {
+		if ps, ok := m.src.(PregnancySymptomSource); ok {
+			extra, err := ps.PregnancySymptoms(ctx, date)
+			if err != nil {
+				return nil, err
+			}
+			for _, s := range extra {
+				if !mc.HasSymptom(s) {
+					mc.Symptoms = append(mc.Symptoms, s)
+				}
+			}
+		}
 		return mc, m.pregnancyContext(ctx, mc)
 	}
 	return mc, m.cycleContext(ctx, mc)

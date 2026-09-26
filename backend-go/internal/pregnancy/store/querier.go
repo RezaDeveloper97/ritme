@@ -9,12 +9,16 @@ import (
 )
 
 type Querier interface {
+	// Action ack («دیدم، ممنون»): read + dismissed (hidden from the v1 active list too).
+	AckV2Alert(ctx context.Context, arg AckV2AlertParams) error
 	CountActiveAlerts(ctx context.Context, userID uint64) (CountActiveAlertsRow, error)
 	CountAppointmentsOfCareItem(ctx context.Context, id uint64) (int64, error)
 	// Pregnancy v2 admin API (T-M7-06, docs/go-migration/admin-api.md §13): care-item delete guard and the
 	// message_contents writes of the alert-rule editor and POST /messages (create in a registered group).
 	// Appointments (reminders type = 'appointment') linked to each care item through meta.care_item_key.
 	CountCareItemAppointments(ctx context.Context) ([]CountCareItemAppointmentsRow, error)
+	// Dedupe: how many alerts of one rule with the same dedupe key exist since `since`.
+	CountV2AlertDedupe(ctx context.Context, arg CountV2AlertDedupeParams) (int64, error)
 	CreateCareItem(ctx context.Context, arg CreateCareItemParams) (int64, error)
 	DeleteCareItem(ctx context.Context, id uint64) (int64, error)
 	DeleteDailyExtras(ctx context.Context, arg DeleteDailyExtrasParams) error
@@ -33,6 +37,7 @@ type Querier interface {
 	// PregnancyProfile (App\Models\PregnancyProfile). One row per user (unique user_id).
 	GetProfileByUser(ctx context.Context, userID uint64) (PregnancyProfile, error)
 	GetSymptomLog(ctx context.Context, arg GetSymptomLogParams) (PregnancySymptomLog, error)
+	GetV2Alert(ctx context.Context, arg GetV2AlertParams) (PregnancyAlert, error)
 	// Pregnancy v2 day log (T-M7-03). Every query is scoped by user_id.
 	// The newest weekly log with a weight (value + the day it was logged).
 	GetV2LastWeight(ctx context.Context, userID uint64) (GetV2LastWeightRow, error)
@@ -70,16 +75,25 @@ type Querier interface {
 	ListDailyExtrasRange(ctx context.Context, arg ListDailyExtrasRangeParams) ([]PregnancyDailyExtra, error)
 	// PregnancyFetalMovement (App\Models\PregnancyFetalMovement). Unique (user_id, log_date).
 	ListFetalMovements(ctx context.Context, arg ListFetalMovementsParams) ([]PregnancyFetalMovement, error)
+	// Pregnancy v2 alert rules (T-M7-04, internal/messages/pregnancyalerts). v2 rows live in pregnancy_alerts
+	// with alert_type = 'v2:<rule_key>' and their v2 metadata (level4, dedupe key, placeholder values) in
+	// trigger_symptoms. Every user-scoped query filters by user_id.
+	// Every live (active + approved) row of one message_contents group, all locales (rules + legend).
+	ListLiveMessageGroup(ctx context.Context, messageGroup string) ([]ListLiveMessageGroupRow, error)
 	// Every (group, item_key, locale) triple — the "missing rows of registered groups" view.
 	ListMessageContentKeys(ctx context.Context) ([]ListMessageContentKeysRow, error)
 	ListMessageContentsOfGroup(ctx context.Context, group string) ([]MessageContent, error)
 	// PregnancySymptomLog (App\Models\PregnancySymptomLog). Unique (user_id, log_date).
 	// from/to are compared as the raw query-string text, like Laravel's where('log_date', '>=', $from).
 	ListSymptomLogs(ctx context.Context, arg ListSymptomLogsParams) ([]PregnancySymptomLog, error)
+	// The user's v2 alerts created at or after `since`, newest first (dismissed = acked ones included).
+	ListV2AlertsSince(ctx context.Context, arg ListV2AlertsSinceParams) ([]PregnancyAlert, error)
 	// The live message_contents rows of one group/item in the given locales (request locale + default
 	// language, for the fallback) — the week tip and the setup templates.
 	ListV2MessagePayloads(ctx context.Context, arg ListV2MessagePayloadsParams) ([]ListV2MessagePayloadsRow, error)
 	ListV2SymptomLogsRange(ctx context.Context, arg ListV2SymptomLogsRangeParams) ([]PregnancySymptomLog, error)
+	// Weekly logs (weight / BP / sugar) logged on or after `date_from`.
+	ListV2WeeklyLogsSince(ctx context.Context, arg ListV2WeeklyLogsSinceParams) ([]PregnancyWeeklyLog, error)
 	// Weighed weekly logs whose log_date is within from..to inclusive (doctor report).
 	ListV2WeightsRange(ctx context.Context, arg ListV2WeightsRangeParams) ([]ListV2WeightsRangeRow, error)
 	ListWeekDetails(ctx context.Context) ([]PregnancyWeekDetail, error)
@@ -91,6 +105,7 @@ type Querier interface {
 	ListWeeklyLogs(ctx context.Context, userID uint64) ([]PregnancyWeeklyLog, error)
 	MarkAlertRead(ctx context.Context, arg MarkAlertReadParams) error
 	MarkAllAlertsRead(ctx context.Context, arg MarkAllAlertsReadParams) (int64, error)
+	MarkV2AlertRead(ctx context.Context, arg MarkV2AlertReadParams) error
 	MessageContentExists(ctx context.Context, arg MessageContentExistsParams) (bool, error)
 	NextCareItemSortOrder(ctx context.Context) (int64, error)
 	SetCareItemActive(ctx context.Context, arg SetCareItemActiveParams) (int64, error)

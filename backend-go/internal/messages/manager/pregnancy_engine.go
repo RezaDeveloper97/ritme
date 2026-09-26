@@ -37,13 +37,23 @@ func (e pregnancyEngine) base(ctx context.Context, mc *Context) (*jsonx.OrderedM
 	if err != nil {
 		return nil, err
 	}
-	chain := func(key string) any { // $weekSpecific[k] ?? $trimesterMessage[k] ?? ''
+	// T-M7-04 layer 0: the admin's pregnancy_week_tip of the exact (1-based) week, the same row the
+	// v2 Today card shows. Without a live row the payload is empty and the Laravel chain applies.
+	tip, err := e.content.Resolve(ctx, WeekTipGroup, strconv.Itoa(week+1), e.locale)
+	if err != nil {
+		return nil, err
+	}
+	tipField := map[string]string{"short": "title", "long": "body"}
+	chain := func(key string) any { // $tip ?? $weekSpecific[k] ?? $trimesterMessage[k] ?? ''
+		if v, ok := tip.Field(tipField[key]); ok && v != "" {
+			return v
+		}
 		if v, ok := ws.Field(key); ok {
 			return v
 		}
 		return tm.Or(key, "")
 	}
-	return jsonx.Obj(
+	out := jsonx.Obj(
 		"week", week,
 		"day", intOrNil(mc.PregnancyDay),
 		"trimester", intOrNil(mc.Trimester),
@@ -56,8 +66,21 @@ func (e pregnancyEngine) base(ctx context.Context, mc *Context) (*jsonx.OrderedM
 		"donts", tm.Or("donts", emptyList()),
 		"baby_development", ws.Or("baby", nil),
 		"body_changes", ws.Or("body", nil),
-	), nil
+	)
+	if title, ok := tip.Field("title"); ok {
+		out.Set("week_tip", jsonx.Obj(
+			"week", week+1,
+			"title", title,
+			"body", tip.Or("body", nil),
+			"read_minutes", tip.Or("read_minutes", nil),
+			"article_url", tip.Or("article_url", nil),
+		))
+	}
+	return out, nil
 }
+
+// WeekTipGroup is the admin-edited smart tip of each 1-based week (item_key 1..42).
+const WeekTipGroup = "pregnancy_week_tip"
 
 // override is getOverrideMessage (Layer 2); nil when none applies.
 func (e pregnancyEngine) override(ctx context.Context, mc *Context) (*jsonx.OrderedMap, error) {

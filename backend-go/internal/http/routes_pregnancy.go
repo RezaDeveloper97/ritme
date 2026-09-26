@@ -6,6 +6,7 @@ import (
 	"github.com/ritme/backend-go/internal/auth"
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
+	"github.com/ritme/backend-go/internal/messages/pregnancyalerts"
 	"github.com/ritme/backend-go/internal/pregnancy"
 	"github.com/ritme/backend-go/internal/pregnancy/store"
 )
@@ -17,6 +18,7 @@ func init() {
 		guard := auth.MustGuard(r, d.Config, d.DB, d.Logger).RequireUser
 		locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(d.DB), d.Cache, d.Logger))
 		h := pregnancy.NewHandlers(store.New(d.DB))
+		h.SetAfterLogSave(pregnancyalerts.New(store.New(d.DB)).AfterSave) // v2 alert rules (T-M7-04)
 		const p = "/api/v1/pregnancy"
 
 		r.Post(p+"/activate", locale, guard, h.Activate)

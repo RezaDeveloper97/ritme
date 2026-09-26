@@ -16,6 +16,7 @@ import (
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/messages/content"
 	"github.com/ritme/backend-go/internal/platform/civildate"
+	"github.com/ritme/backend-go/internal/platform/jsonx"
 	pstore "github.com/ritme/backend-go/internal/pregnancy/store"
 )
 
@@ -250,4 +251,62 @@ func TestPregnancyLowEnergyOverride(t *testing.T) {
 	require.NoError(t, err)
 	v, _ := o.Get("override_type")
 	assert.Equal(t, "fatigue", v)
+}
+
+// tipContent adds one pregnancy_week_tip row on top of the code defaults.
+type tipContent struct{ week string }
+
+func (c tipContent) Resolve(ctx context.Context, group, itemKey, locale string) (content.Payload, error) {
+	if group == WeekTipGroup && itemKey == c.week {
+		return content.NewPayload(jsonx.Obj("title", "Tip title", "body", "Tip body", "read_minutes", 2, "article_url", nil)), nil
+	}
+	return defaultsContent{}.Resolve(ctx, group, itemKey, locale)
+}
+
+// TestWeekTipLayer (T-M7-04): the exact-week tip wins short/long; without a row the chain is unchanged.
+func TestWeekTipLayer(t *testing.T) {
+	ctx := context.Background()
+	sixteen, one, two := 16, 1, 2
+	mc := &Context{Mode: enums.MessageModePregnancy, Locale: "en", PregnancyWeek: &sixteen, PregnancyDay: &one, Trimester: &two}
+
+	base, err := pregnancyEngine{content: tipContent{week: "17"}, locale: "en"}.base(ctx, mc)
+	require.NoError(t, err)
+	short, _ := base.Get("short_message")
+	long, _ := base.Get("long_message")
+	assert.Equal(t, "Tip title", short)
+	assert.Equal(t, "Tip body", long)
+	tip, ok := base.Get("week_tip")
+	require.True(t, ok)
+	wk, _ := tip.(*jsonx.OrderedMap).Get("week")
+	assert.Equal(t, 17, wk)
+
+	base, err = pregnancyEngine{content: tipContent{week: "99"}, locale: "en"}.base(ctx, mc)
+	require.NoError(t, err)
+	short, _ = base.Get("short_message")
+	assert.Equal(t, "Week 16 of pregnancy", short)
+	_, ok = base.Get("week_tip")
+	assert.False(t, ok)
+}
+
+type pregSymSource struct {
+	fakeSource
+	symptoms []string
+}
+
+func (p *pregSymSource) PregnancySymptoms(context.Context, civildate.Date) ([]string, error) {
+	return p.symptoms, nil
+}
+
+// TestPregnancySymptomOverride (T-M7-04): pregnancy symptom logs drive the override layer.
+func TestPregnancySymptomOverride(t *testing.T) {
+	src := &pregSymSource{fakeSource: fakeSource{preg: &pstore.PregnancyProfile{PregnancyMode: true}}, symptoms: []string{"vomiting"}}
+	today := civildate.MustParse("2026-09-23")
+	m := New(src, defaultsContent{}, "en", today)
+	mc, err := m.BuildContext(context.Background(), today, enums.MessageModePregnancy)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"vomiting"}, mc.Symptoms)
+	o, err := pregnancyEngine{content: defaultsContent{}, locale: "en"}.override(context.Background(), mc)
+	require.NoError(t, err)
+	v, _ := o.Get("override_type")
+	assert.Equal(t, "nausea", v)
 }

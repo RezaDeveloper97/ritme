@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/go-sql-driver/mysql"
+
 	"github.com/ritme/backend-go/internal/cycle/legacy"
 	"github.com/ritme/backend-go/internal/cycle/model"
 	"github.com/ritme/backend-go/internal/messages/manager"
@@ -183,4 +185,42 @@ func historyFromRow(r store.ListMessageCycleHistoriesRow) model.History {
 		}
 	}
 	return h
+}
+
+// PregnancySymptoms implements manager.PregnancySymptomSource: the day's pregnancy symptom log
+// and extras as message-system symptom names (T-M7-04). Mood 1–2 of 5 reads as mood_sad.
+func (s *StoreSource) PregnancySymptoms(ctx context.Context, date civildate.Date) ([]string, error) {
+	var out []string
+	add := func(on bool, name string) {
+		if on {
+			out = append(out, name)
+		}
+	}
+	has := func(b sql.NullBool) bool { return b.Valid && b.Bool }
+	row, err := s.pq.GetSymptomLog(ctx, pstore.GetSymptomLogParams{UserID: s.userID, LogDate: date})
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
+	case err != nil:
+		return nil, fmt.Errorf("messages: pregnancy symptoms: %w", err)
+	default:
+		add(has(row.HasNausea), "nausea")
+		add(has(row.HasVomiting), "vomiting")
+		add(has(row.HasFatigue), "fatigue")
+		add(has(row.HasBackPain), "backache")
+		add(has(row.HasHeadache), "headache")
+		add(has(row.HasBreastPain), "breast_tenderness")
+	}
+	ex, err := s.pq.GetDailyExtras(ctx, pstore.GetDailyExtrasParams{UserID: s.userID, LogDate: date})
+	var me *mysql.MySQLError
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
+	case errors.As(err, &me) && me.Number == 1146:
+		// A Laravel-schema database without the v2 tables (the contract fixture dump predates
+		// 2026_09_26_000001): no extras, same as no row.
+	case err != nil:
+		return nil, fmt.Errorf("messages: pregnancy extras: %w", err)
+	default:
+		add(ex.Mood.Valid && ex.Mood.Int16 <= 2, "mood_sad")
+	}
+	return out, nil
 }

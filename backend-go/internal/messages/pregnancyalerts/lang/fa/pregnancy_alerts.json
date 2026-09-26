@@ -1,0 +1,21 @@
+{
+    "symptoms": {
+        "nausea": "تهوع",
+        "vomiting": "استفراغ",
+        "fatigue": "خستگی",
+        "headache": "سردرد",
+        "back_pain": "کمردرد",
+        "breast_pain": "حساسیت پستان",
+        "heartburn": "سوزش سر دل",
+        "constipation": "یبوست",
+        "spotting": "لکه‌بینی",
+        "bleeding": "خونریزی",
+        "fluid_leakage": "خروج مایع",
+        "severe_sudden_pain": "درد شدید و ناگهانی"
+    },
+    "none": "—",
+    "messages": {
+        "action_done": "انجام شد",
+        "visit_note_added": "به یادداشت ویزیت اضافه شد"
+    }
+}

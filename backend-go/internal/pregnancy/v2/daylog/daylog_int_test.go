@@ -22,6 +22,7 @@ import (
 	authstore "github.com/ritme/backend-go/internal/auth/store"
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
+	"github.com/ritme/backend-go/internal/messages/pregnancyalerts"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/db/testdb"
 	"github.com/ritme/backend-go/internal/platform/httpx"
@@ -66,7 +67,7 @@ func setup(t *testing.T) *harness {
 	guard := auth.NewGuardWith(&key.PublicKey, aq, clock.Real{}, quiet).RequireUser
 	locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(db), nil, quiet))
 	q := store.New(db)
-	dl := daylog.NewHandlers(q, clock.Real{})
+	dl := daylog.NewHandlers(q, pregnancyalerts.New(q), clock.Real{})
 	v1 := pregnancy.NewHandlers(q)
 
 	app := fiber.New(fiber.Config{ErrorHandler: httpx.ErrorHandler(quiet)})
@@ -173,24 +174,28 @@ func TestDay_SaveMergeAndV1Visibility(t *testing.T) {
 	assert.Empty(t, r.data()["symptoms"])
 }
 
-func TestDay_SpottingFiresV1AlertOnce(t *testing.T) {
+func TestDay_SpottingFiresV2AlertOnce(t *testing.T) {
 	h := setup(t)
 	uid, tok := h.user(t, "09120000802", true)
+	today := "2026-09-23" // the pinned clock day
 	body := `{"symptoms":{"spotting":"severe"}}`
-	r := h.do(t, http.MethodPut, base+"/days/2026-09-23", tok, "en", body)
+	r := h.do(t, http.MethodPut, base+"/days/"+today, tok, "en", body)
 	require.Equal(t, http.StatusOK, r.status, r.raw)
 	alerts, _ := r.data()["alerts"].([]any)
-	require.NotEmpty(t, alerts, r.raw)
+	require.Len(t, alerts, 1, r.raw)
 	a := alerts[0].(map[string]any)
-	assert.Equal(t, "Warning: Spotting", a["title"])
-	assert.Equal(t, "follow_up", a["level"])
+	assert.Equal(t, "critical_symptom", a["rule_key"])
+	assert.Equal(t, "Spotting logged", a["title"])
+	assert.Equal(t, "urgent", a["level"])
+	assert.NotEmpty(t, a["what_we_saw"])
+	assert.NotEmpty(t, a["actions"])
 	n := h.count(`SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ?`, uid)
-	require.Positive(t, n)
+	// The v1 rule keeps writing its row next to the v2 one.
 	crit := h.count(`SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ? AND alert_level = 'warning' AND title = 'Warning: Spotting'`, uid)
 	assert.Positive(t, crit)
 
 	// The offline outbox resends: no second write, no duplicate alert.
-	r = h.do(t, http.MethodPut, base+"/days/2026-09-23", tok, "en", body)
+	r = h.do(t, http.MethodPut, base+"/days/"+today, tok, "en", body)
 	require.Equal(t, http.StatusOK, r.status, r.raw)
 	assert.Empty(t, r.data()["alerts"])
 	assert.Equal(t, n, h.count(`SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ?`, uid))
