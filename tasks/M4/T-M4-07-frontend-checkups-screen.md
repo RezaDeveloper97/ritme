@@ -3,7 +3,7 @@ id: T-M4-07
 title: Frontend — Checkups screen (/checkups) and custom checkup form
 milestone: M4
 type: frontend
-status: todo
+status: done
 depends_on: [T-M4-05]
 parallel_group: M4-B
 touches: [frontend/src/screens/checkups, frontend/src/screens/checkup-custom-form, frontend/src/app/[locale]/checkups/page.tsx, frontend/src/app/[locale]/checkups/custom]

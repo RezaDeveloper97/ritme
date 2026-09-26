@@ -616,3 +616,8 @@ Nothing needed fixing.
 - Shipped `/fertility/log?date=&focus=` (screens/fertility-log): chance card, LH/mucus/intercourse/symptom chips, BBT stepper with Persian-digit input, changed-fields-only save, dirty guard.
 - Added `fertilityLog` to `frontend/src/app/message-scopes.ts` (outside touches, required by route typing) and key `fertility.log.discardConfirm`.
 - Open: screenshots not taken; back goes to `/home` (no `?from=`); inline toast (no shared primitive).
+
+## T-M4-07 — Frontend — Checkups screen (/checkups) and custom checkup form
+- Shipped `/checkups?filter=` (status card, tabs, sections, plan-settings sheet) and `/checkups/custom/new`, `/checkups/custom/[id]` (edit/delete).
+- Added `checkups` to `frontend/src/app/message-scopes.ts` (outside touches); new `checkups.custom.*` keys.
+- Open: T-M4-08 detail should link custom checkups to `/checkups/custom/{id}`; detail API has no `note` (edit sends note only if changed); settings sheet reads remind per-row via detail. Screenshots not taken.

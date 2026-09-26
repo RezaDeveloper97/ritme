@@ -171,7 +171,17 @@
     "note": "یادداشت",
     "save": "ذخیره",
     "delete": "حذف چکاپ",
-    "deleteConfirm": "این چکاپ و سابقه‌اش حذف شود؟"
+    "deleteConfirm": "این چکاپ و سابقه‌اش حذف شود؟",
+    "pickDate": "انتخاب تاریخ",
+    "clearDate": "پاک کردن تاریخ",
+    "done": "تأیید",
+    "cancel": "بی‌خیال",
+    "saving": "در حال ذخیره…",
+    "notFound": "این چکاپ پیدا نشد.",
+    "optional": "(اختیاری)",
+    "titleRequired": "نام چکاپ را بنویس.",
+    "deleting": "در حال حذف…",
+    "notePlaceholder": "مثلاً اسم پزشک یا مرکز"
   },
   "settings": {
     "title": "تنظیمات برنامه",

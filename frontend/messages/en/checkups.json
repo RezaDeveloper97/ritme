@@ -171,7 +171,17 @@
     "note": "Note",
     "save": "Save",
     "delete": "Delete checkup",
-    "deleteConfirm": "Delete this checkup and its history?"
+    "deleteConfirm": "Delete this checkup and its history?",
+    "pickDate": "Pick a date",
+    "clearDate": "Clear date",
+    "done": "Done",
+    "cancel": "Cancel",
+    "saving": "Saving…",
+    "notFound": "This checkup wasn’t found.",
+    "optional": "(optional)",
+    "titleRequired": "Enter a checkup name.",
+    "deleting": "Deleting…",
+    "notePlaceholder": "e.g. doctor or clinic name"
   },
   "settings": {
     "title": "Plan settings",
