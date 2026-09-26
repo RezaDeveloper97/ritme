@@ -66,7 +66,11 @@ export default defineConfig([
     // tiles widget and the log / BBT / insights screens (T-M5-05…08) —
     // references coming FROM `screens` are invisible to steiger (same reason
     // as the blocks above).
-    files: ['./src/entities/fertility/**', './src/features/log-fertility-day/**'],
+    files: [
+      './src/entities/fertility/**',
+      './src/features/log-fertility-day/**',
+      './src/widgets/fertility-tiles/**',
+    ],
     rules: { 'fsd/insignificant-slice': 'off' },
   },
   {

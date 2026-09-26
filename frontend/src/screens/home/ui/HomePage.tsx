@@ -50,6 +50,7 @@ import { DropSolid, Icon, type IconName } from '@/shared/ui';
 import { BannerSlideshow } from '@/widgets/banner-slideshow';
 import { BottomNav } from '@/widgets/bottom-nav';
 import { CheckupsCard } from '@/widgets/checkups-card';
+import { FertilityTiles } from '@/widgets/fertility-tiles';
 import { TodayChallengeCard } from '@/widgets/today-challenge';
 import { TodayRemindersCard } from '@/widgets/today-reminders';
 
@@ -871,6 +872,9 @@ export function HomePage() {
             loading={loadingInfo}
           />
         </div>
+        {/* TTC quick tiles (M5) — below the phase/chance block, only while trying
+            to conceive; `pregnant` (pregnancy mode) never matches. */}
+        {profileQuery.data?.health?.pregnancyIntention === 'trying' && <FertilityTiles />}
         {!booting && (
           <>
             {/* Admin-managed promo slot — renders nothing until a banner is active */}

@@ -3,7 +3,7 @@ id: T-M5-05
 title: Frontend — TTC quick tiles (LH / BBT / intercourse) on the cycle home
 milestone: M5
 type: frontend
-status: todo
+status: done
 depends_on: [T-M5-04]
 parallel_group: M5-B
 touches: [frontend/src/widgets/fertility-tiles, frontend/src/screens/home/ui/HomePage.tsx]

@@ -46,7 +46,7 @@ const PREGNANCY = ['common', 'nav', 'pregnancy'] as const satisfies readonly Mes
 
 /** Per route: the namespaces its screen (and everything it imports) uses. */
 export const ROUTE_NAMESPACES = {
-  home: ['banners', 'care', 'challenge', 'checkups', 'common', 'home', 'logPeriod', 'nav', 'profileEdit'],
+  home: ['banners', 'care', 'challenge', 'checkups', 'common', 'fertility', 'home', 'logPeriod', 'nav', 'profileEdit'],
   calendar: ['calendar', 'common', 'log', 'logPeriod', 'nav'],
   log: ['common', 'log', 'nav'],
   cycle: ['common', 'cycle', 'home', 'logPeriod', 'nav'],
