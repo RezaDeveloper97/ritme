@@ -3,7 +3,7 @@ id: T-M4-08
 title: Frontend — Checkup detail screen and MarkDone sheet
 milestone: M4
 type: frontend
-status: todo
+status: done
 depends_on: [T-M4-05]
 parallel_group: M4-B
 touches: [frontend/src/screens/checkup-detail, frontend/src/screens/checkup-mark-done, frontend/src/app/[locale]/checkups/[id], frontend/src/app/sheets/registry.tsx]

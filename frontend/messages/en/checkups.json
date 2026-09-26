@@ -85,7 +85,8 @@
     "attached": "Report attached",
     "noAttachment": "No attachment",
     "noHistory": "Nothing logged yet.",
-    "disclaimer": "General information — it doesn't replace your doctor's advice."
+    "disclaimer": "General information — it doesn't replace your doctor's advice.",
+    "editRecord": "Edit this record"
   },
   "markDone": {
     "title": "I did my {title}",
@@ -116,7 +117,10 @@
       "unsupported_type": "Only a photo or a PDF file.",
       "quota": "Not enough storage space on this phone.",
       "failed": "The attachment wasn't saved. Please try again."
-    }
+    },
+    "nextDueTitle": "Next due",
+    "futureDate": "The date can’t be in the future.",
+    "nextBeforeDone": "The next due date must be after the done date."
   },
   "history": {
     "title": "Checkup history",

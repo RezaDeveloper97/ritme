@@ -626,3 +626,8 @@ Nothing needed fixing.
 - Shipped `/fertility/bbt?range=` (screens/fertility-bbt) and `widgets/bbt-chart` (inline SVG, token colours, coverline, fertile band, previous cycles, a11y table); daily 07:00 reminder toggle via `useCreateReminder`.
 - Outside touches: `fertilityBbt` in `message-scopes.ts`; `widgets/bbt-chart` added to insignificant-slice ignore in `frontend/steiger.config.ts`.
 - Open: explainer is an inline AppSheet (not registry); legacy `bbt.legend.coverline` text left as-is (new `legend.baseline` used). Screenshots not taken.
+
+## T-M4-08 — Frontend — Checkup detail screen and MarkDone sheet
+- Shipped `/checkups/[id]` (screens/checkup-detail) and registry sheet `checkup-mark-done` (arg `<typeId>` or `<typeId>-<recordId>`); attachments stay in IndexedDB, only `has_attachment` sent.
+- `checkups` namespace moved into `SHELL_NAMESPACES` (sheet can open over any route).
+- Open: «ثبت نوبت» not prefilled (appointment form only reads `?kind=`); `/checkups/self-exam` and `/checkups/history` come in T-M4-09; toast only on `/checkups/[id]`; no delete in edit flow. Screenshots not taken.

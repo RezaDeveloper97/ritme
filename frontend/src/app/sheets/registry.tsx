@@ -6,6 +6,7 @@ import type { ComponentType } from 'react';
 
 import { isInfoGroup } from '@/entities/info';
 import { ArticleSheet } from '@/screens/article';
+import { MarkDoneTitle } from '@/screens/checkup-mark-done';
 import type { SheetContentProps, SheetSize } from '@/shared/sheet';
 
 export interface SheetDefinition {
@@ -162,6 +163,19 @@ export const SHEET_REGISTRY: Record<string, SheetDefinition> = {
     Title: AddReminderTitle,
     Component: dynamic(
       () => import('@/screens/reminders-add').then((m) => m.AddChooserSheet),
+      { ssr: false },
+    ),
+  },
+
+  /**
+   * MarkDone (M4, `v14_MarkDone`): record a checkup visit, or edit a record —
+   * `arg` is `"<typeId>"` or `"<typeId>-<recordId>"` (ids only, §11).
+   */
+  'checkup-mark-done': {
+    size: 'full',
+    Title: MarkDoneTitle,
+    Component: dynamic(
+      () => import('@/screens/checkup-mark-done').then((m) => m.MarkDoneSheet),
       { ssr: false },
     ),
   },
