@@ -57,6 +57,7 @@ export default defineConfig([
       './src/entities/checkup/**',
       './src/features/record-checkup/**',
       './src/features/manage-custom-checkup/**',
+      './src/widgets/checkups-card/**',
     ],
     rules: { 'fsd/insignificant-slice': 'off' },
   },

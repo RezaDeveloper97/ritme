@@ -3,7 +3,7 @@ id: T-M4-06
 title: Frontend — «چکاپ‌های دوره‌ای» card on the cycle home
 milestone: M4
 type: frontend
-status: todo
+status: done
 depends_on: [T-M4-05]
 parallel_group: M4-B
 touches: [frontend/src/widgets/checkups-card, frontend/src/screens/home/ui/HomePage.tsx]

@@ -49,6 +49,7 @@ import { useThemeStore } from '@/shared/theme';
 import { DropSolid, Icon, type IconName } from '@/shared/ui';
 import { BannerSlideshow } from '@/widgets/banner-slideshow';
 import { BottomNav } from '@/widgets/bottom-nav';
+import { CheckupsCard } from '@/widgets/checkups-card';
 import { TodayChallengeCard } from '@/widgets/today-challenge';
 import { TodayRemindersCard } from '@/widgets/today-reminders';
 
@@ -928,6 +929,8 @@ export function HomePage() {
                 />
               )}
             />
+            {/* «چکاپ‌های دوره‌ای» (M4, /checkups/home) — after the cycle timeline. */}
+            <CheckupsCard />
             <Recommendations t={t} tips={calc?.dailyTips ?? []} dos={dos} />
             <BannerSlideshow position="home_middle" />
             {/* «یادآورهای امروز» — today's doses + next appointment (M3, /care/today).

@@ -636,3 +636,8 @@ Nothing needed fixing.
 - Shipped `/fertility/insights` (screens/fertility-insights): window card with confidence + month calendar, evidence rows, previous-cycle ovulation list, tips, low-data state.
 - `fertilityInsights` added to `message-scopes.ts`; new `fertility.insights.*` keys.
 - Open: evidence icons keyed on `cycles/bbt_shift/bbt/lh/mucus/history`; window spanning two months shows one month only. Screenshots not taken.
+
+## T-M4-06 — Frontend — «چکاپ‌های دوره‌ای» card on the cycle home
+- Shipped `widgets/checkups-card` (ring, counts line, up to 2 highlight rows, disclaimer) mounted on the cycle HomePage.
+- Outside touches: `checkups` in `ROUTE_NAMESPACES.home`; steiger ignore for the widget. Combined frontend build green after T-M3/M4/M5 batch.
+- Open: «ثبت نوبت» passes `title=` but the appointment form ignores it; not shown on pregnancy home; visual check vs artboard pending.
