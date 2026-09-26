@@ -3,7 +3,7 @@ id: T-M7-10
 title: Frontend — pregnancy «امروز» (Today) v2 screen
 milestone: M7
 type: frontend
-status: todo
+status: done
 depends_on: [T-M7-08, T-M7-02]
 parallel_group: M7-C
 touches: [frontend/src/screens/pregnancy, frontend/src/widgets/pregnancy-week-carousel, frontend/src/widgets/pregnancy-care-checklist]

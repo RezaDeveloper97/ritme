@@ -20,6 +20,8 @@ export default defineConfig([
       './src/widgets/bottom-nav/**',
       './src/widgets/smart-tip/**',
       './src/widgets/bbt-chart/**',
+      './src/widgets/pregnancy-week-carousel/**',
+      './src/widgets/pregnancy-care-checklist/**',
     ],
     rules: { 'fsd/insignificant-slice': 'off' },
   },

@@ -51,7 +51,7 @@ export const ROUTE_NAMESPACES = {
   log: ['common', 'log', 'nav'],
   cycle: ['common', 'cycle', 'home', 'logPeriod', 'nav'],
   profile: ['common', 'nav', 'profile', 'profileEdit'],
-  pregnancy: ['care', 'common', 'nav', 'pregnancy'],
+  pregnancy: ['care', 'common', 'nav', 'pregnancyV2'],
   pregnancyLog: PREGNANCY,
   pregnancyWeek: ['common', 'nav', 'pregnancyV2'],
   pregnancyOnboarding: ['common', 'pregnancy', 'pregnancyV2', 'profileEdit'],

@@ -684,3 +684,8 @@ Nothing needed fixing.
 - Intention step back in signup (pregnant → pregnancyBasis → conditions); profile mode switch (→ `/pregnancy/setup`, confirm on switch back); pregnancy bottom nav (امروز · تقویم · FAB log · بارداری `/pregnancy/weeks` · پروفایل); Setup v2 flow (welcome → dating / history / result via dating-preview) at `/pregnancy/setup` (and `/pregnancy/onboarding`).
 - Outside touches: `entities/user/model/steps.test.ts` updated for both branches.
 - Open: signup pregnancy-basis screen doesn't reuse the new SetupSteps (needs a shared `features/pregnancy-setup` slice); `/pregnancy/calendar` comes in T-M7-13. Screenshots / running-app check pending.
+
+## T-M7-10 — Frontend — pregnancy «امروز» (Today) v2 screen
+- Rewrote `screens/pregnancy` on `usePregnancyToday`: date strip, `widgets/pregnancy-week-carousel`, due card, 40-week progress, quick actions (alerts badge), next visit, smart tip, `widgets/pregnancy-care-checklist`, disclaimer, not-active CTA → `/pregnancy/setup`. Removed v1 AlertsCard/WeekContent.
+- `pregnancy` route scope now `care, common, nav, pregnancyV2`; steiger ignores for the two widgets. Commit also carries in-flight T-M7-12 keys in `pregnancy-v2.json` (keys only).
+- Open: `/pregnancy/alerts` arrives with T-M7-14; kept M3 TodayRemindersCard; screenshots/build pending.
