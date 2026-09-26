@@ -247,7 +247,25 @@
       "to_book": "رزرو"
     },
     "book": "رزرو",
-    "report": "گزارش علائم برای پزشک (PDF)"
+    "report": "گزارش علائم برای پزشک (PDF)",
+    "saveResult": "ثبت نتیجه",
+    "pdf": {
+      "title": "گزارش علائم بارداری برای پزشک",
+      "subtitle": "از {from} تا {to}",
+      "age": "سن بارداری: {age}",
+      "due": "تاریخ تقریبی زایمان: {date}",
+      "daysTitle": "حال و علائم روزانه",
+      "weightsTitle": "وزن",
+      "none": "در این بازه چیزی ثبت نشده.",
+      "note": "یادداشت برای ویزیت: {note}",
+      "water": "{count, plural, other {# لیوان آب}}",
+      "kg": "{value, number} کیلوگرم",
+      "disclaimer": "این گزارش از ثبت‌های خود کاربر در ریتمی ساخته شده و تشخیص پزشکی نیست.",
+      "footer": "ریتمی · صفحهٔ {page} از {pages}",
+      "filename": "ritme-pregnancy-report.pdf",
+      "working": "در حال ساخت PDF…",
+      "error": "ساخت گزارش انجام نشد. دوباره امتحان کن."
+    }
   },
   "alerts": {
     "title": "هشدارها و پیام‌ها",

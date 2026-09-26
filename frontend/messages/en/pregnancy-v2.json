@@ -247,7 +247,25 @@
       "to_book": "Book"
     },
     "book": "Book",
-    "report": "Symptom report for your doctor (PDF)"
+    "report": "Symptom report for your doctor (PDF)",
+    "saveResult": "Save result",
+    "pdf": {
+      "title": "Pregnancy symptom report for your doctor",
+      "subtitle": "{from} to {to}",
+      "age": "Gestational age: {age}",
+      "due": "Estimated due date: {date}",
+      "daysTitle": "Daily mood and symptoms",
+      "weightsTitle": "Weight",
+      "none": "Nothing logged in this period.",
+      "note": "Note for the visit: {note}",
+      "water": "{count, plural, one {# glass of water} other {# glasses of water}}",
+      "kg": "{value, number} kg",
+      "disclaimer": "This report is built from the user's own entries in Ritme and is not a medical diagnosis.",
+      "footer": "Ritme · page {page} of {pages}",
+      "filename": "ritme-pregnancy-report.pdf",
+      "working": "Building PDF…",
+      "error": "Couldn't build the report. Try again."
+    }
   },
   "alerts": {
     "title": "Alerts & messages",

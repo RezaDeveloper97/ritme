@@ -694,3 +694,8 @@ Nothing needed fixing.
 - `/pregnancy/log?date=` now renders v2 DayLogPage (mood, 9 symptoms + severity, water, weight w/ last entry, visit note, spotting info, inline alerts); `?tab=symptoms|weekly|movement` keeps v1 forms.
 - New `shared/lib/outbox` (IndexedDB, latest-write-per-day, replay on mount/`online`, pending badge).
 - Open: manual offline → reconnect test not done yet (if unreliable, switch offline copy to honest wording); screenshots/build pending.
+
+## T-M7-13 — Frontend — pregnancy Calendar v2 + doctor PDF
+- `/pregnancy/calendar`: locale month grid with visit dots/week starts, selected-day panel, next-visit card with 3-stage stepper (PUT `{stage}` / result note sheet), care plan rows, source note, 28-day doctor PDF via `shared/lib/pdf`.
+- `pregnancyCalendar` scope added; `calendar.saveResult`/`calendar.pdf.*` keys (commit may also carry in-flight T-M7-14 keys in pregnancy-v2.json).
+- Open: appointment form ignores `title/date/care_item_key` prefill (also affects checkups card/detail) and `manage-appointment` body drops `stage/result_note` — needs a follow-up task; PDF not eyeballed; screenshots/build pending.

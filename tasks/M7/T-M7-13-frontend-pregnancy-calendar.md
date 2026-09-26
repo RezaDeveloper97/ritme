@@ -3,7 +3,7 @@ id: T-M7-13
 title: Frontend — pregnancy «تقویم و ویزیت‌ها» (Calendar) v2 + doctor PDF
 milestone: M7
 type: frontend
-status: todo
+status: done
 depends_on: [T-M7-08, T-M7-05, T-M3-08]
 parallel_group: M7-D
 touches: [frontend/src/screens/pregnancy-calendar, frontend/src/app/[locale]/pregnancy/calendar, frontend/src/shared/lib/pdf]
