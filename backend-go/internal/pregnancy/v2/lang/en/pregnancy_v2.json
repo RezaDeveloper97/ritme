@@ -1,0 +1,50 @@
+{
+    "digits": "0123456789",
+    "calendar": "gregorian",
+    "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+    "date": {
+        "full": ":month :day, :year",
+        "day_month": ":month :day",
+        "range": ":from to :to"
+    },
+    "trimesters": {
+        "1": "First trimester",
+        "2": "Second trimester",
+        "3": "Third trimester"
+    },
+    "week_label": ":tri · Week :week of :term",
+    "age": {
+        "weeks": ":weeks weeks",
+        "weeks_days": ":weeks weeks, :days days"
+    },
+    "size_line": {
+        "past": "The baby was about the size of a :size.",
+        "current": "The baby is now about the size of a :size.",
+        "future": "Next week the baby will be about the size of a :size."
+    },
+    "confidence": {
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low"
+    },
+    "messages": {
+        "validation_failed": "Validation failed",
+        "not_active": "Pregnancy mode is not active.",
+        "state_saved": "Week state saved"
+    },
+    "validation": {
+        "dating_out_of_range": "With these details the pregnancy would be past 42 weeks; please check the date."
+    },
+    "attributes": {
+        "source": "dating source",
+        "lmp_date": "first day of last period",
+        "ultrasound_date": "ultrasound date",
+        "ultrasound_weeks": "ultrasound weeks",
+        "ultrasound_days": "ultrasound days",
+        "manual_weeks": "pregnancy weeks",
+        "manual_days": "pregnancy days",
+        "bookmarked": "bookmark",
+        "done_task_keys": "done tasks",
+        "done_task_keys.*": "done task"
+    }
+}

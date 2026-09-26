@@ -3,7 +3,7 @@ id: T-M7-02
 title: Pregnancy v2 — dating preview, today, week and week-state API
 milestone: M7
 type: backend
-status: todo
+status: done
 depends_on: [T-M7-01]
 parallel_group: M7-B
 touches: [backend-go/internal/pregnancy/v2, backend-go/internal/http/routes_pregnancy_v2.go, backend-go/db/queries/pregnancy, backend-go/api/openapi.yaml]

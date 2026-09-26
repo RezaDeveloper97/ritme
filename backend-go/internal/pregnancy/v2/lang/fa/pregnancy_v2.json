@@ -1,0 +1,50 @@
+{
+    "digits": "۰۱۲۳۴۵۶۷۸۹",
+    "calendar": "jalali",
+    "months": ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"],
+    "date": {
+        "full": ":day :month :year",
+        "day_month": ":day :month",
+        "range": ":from تا :to"
+    },
+    "trimesters": {
+        "1": "سه‌ماههٔ اول",
+        "2": "سه‌ماههٔ دوم",
+        "3": "سه‌ماههٔ سوم"
+    },
+    "week_label": ":tri · هفتهٔ :week از :term",
+    "age": {
+        "weeks": ":weeks هفته",
+        "weeks_days": ":weeks هفته و :days روز"
+    },
+    "size_line": {
+        "past": "جنین تقریباً به اندازهٔ یک :size بود.",
+        "current": "جنین الان تقریباً به اندازهٔ یک :size است.",
+        "future": "هفتهٔ بعد تقریباً به اندازهٔ یک :size می‌شه."
+    },
+    "confidence": {
+        "high": "بالا",
+        "medium": "متوسط",
+        "low": "پایین"
+    },
+    "messages": {
+        "validation_failed": "اطلاعات واردشده نامعتبر است",
+        "not_active": "حالت بارداری فعال نیست.",
+        "state_saved": "وضعیت هفته ذخیره شد"
+    },
+    "validation": {
+        "dating_out_of_range": "با این اطلاعات سن بارداری بیشتر از ۴۲ هفته می‌شه؛ تاریخ رو بررسی کن."
+    },
+    "attributes": {
+        "source": "مبنای محاسبه",
+        "lmp_date": "اولین روز آخرین قاعدگی",
+        "ultrasound_date": "تاریخ سونوگرافی",
+        "ultrasound_weeks": "هفتهٔ سونوگرافی",
+        "ultrasound_days": "روز سونوگرافی",
+        "manual_weeks": "هفتهٔ بارداری",
+        "manual_days": "روز بارداری",
+        "bookmarked": "نشان‌گذاری",
+        "done_task_keys": "کارهای انجام‌شده",
+        "done_task_keys.*": "کار انجام‌شده"
+    }
+}

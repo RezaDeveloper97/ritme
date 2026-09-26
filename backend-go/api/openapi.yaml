@@ -36,6 +36,7 @@ tags:
   - {name: Period Log, description: "Start, end, add, edit and delete periods"}
   - name: Pregnancy
     description: "Pregnancy mode: profile, status, symptoms, weekly logs, fetal movement, content, alerts"
+  - {name: PregnancyV2, description: "Pregnancy v2 (Go only): dating preview, Today, week page, week state"}
   - {name: Messages, description: Personalised daily messages}
   - {name: Home, description: "Home page sections, task and challenge toggles"}
   - {name: Notifications, description: In-app notifications}
@@ -7336,6 +7337,253 @@ paths:
           description: Alive
           content:
             text/plain: {schema: {type: string, const: OK}}
+  /api/v1/pregnancy/v2/dating-preview:
+    post:
+      tags: [PregnancyV2]
+      summary: Preview the gestational age and due date of a dating source (no write)
+      description: |
+        Setup step 3/3. `manual` dates from today. Usual birth range = due date ± (14 + uncertainty) days.
+        `basis` / `range_label` are the `pregnancy_setup/result` templates (message_contents) with dates in the
+        locale's calendar. More than 42w6d → 422 on the dating field.
+      operationId: postPregnancyV2DatingPreview
+      security:
+        - {bearerAuth: []}
+      parameters: [{$ref: "#/components/parameters/AcceptLanguage"}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [source]
+              properties:
+                source: {type: string, enum: [lmp, ultrasound, manual]}
+                lmp_date: {$ref: "#/components/schemas/Date"}
+                ultrasound_date: {$ref: "#/components/schemas/Date"}
+                ultrasound_weeks: {type: integer, minimum: 0, maximum: 42}
+                ultrasound_days: {type: integer, minimum: 0, maximum: 6}
+                manual_weeks: {type: integer, minimum: 0, maximum: 42}
+                manual_days: {type: integer, minimum: 0, maximum: 6}
+      responses:
+        '200':
+          description: The preview
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/PregnancyV2DatingPreview"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/PregnancyV2ValidationFailed"}
+  /api/v1/pregnancy/v2/today:
+    get:
+      tags: [PregnancyV2]
+      summary: Pregnancy Today screen
+      description: |
+        Week carousel (prev / current / next), due card, 40-week progress with trimester start dates, next visit
+        (next upcoming M3 appointment, else the next active care-plan item), week tip (`pregnancy_week_tip/{week}`),
+        this week's tasks with done state and the unread alert count — in ≤ 5 queries. Week counts to 42 when overdue.
+      operationId: getPregnancyV2Today
+      security:
+        - {bearerAuth: []}
+      parameters: [{$ref: "#/components/parameters/AcceptLanguage"}]
+      responses:
+        '200':
+          description: Today
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [date, weeks, days, week, trimester, confidence, carousel, due, progress, next_visit, tip, tasks, unread_alerts]
+                    properties:
+                      date: {$ref: "#/components/schemas/Date"}
+                      date_label: {type: string}
+                      source: {type: string, enum: [lmp, ultrasound, manual]}
+                      weeks: {type: integer}
+                      days: {type: integer}
+                      week: {type: integer, minimum: 1, maximum: 42}
+                      trimester: {type: integer, enum: [1, 2, 3]}
+                      confidence: {$ref: "#/components/schemas/PregnancyV2Confidence"}
+                      uncertainty_days: {type: integer}
+                      carousel:
+                        type: array
+                        items:
+                          type: object
+                          required: [week, trimester, title, relation]
+                          properties:
+                            week: {type: integer}
+                            trimester: {type: integer}
+                            title: {type: string, description: "«سه‌ماههٔ اول · هفتهٔ ۸ از ۴۰»"}
+                            headline: {type: [string, "null"]}
+                            size_line: {type: [string, "null"]}
+                            illustration_key: {type: [string, "null"]}
+                            relation: {type: string, enum: [past, current, future]}
+                      due:
+                        type: object
+                        required: [date, date_label, days_left, overdue_days, range, range_label]
+                        properties:
+                          date: {$ref: "#/components/schemas/Date"}
+                          date_label: {type: string}
+                          days_left: {type: integer}
+                          overdue_days: {type: integer}
+                          range: {$ref: "#/components/schemas/PregnancyV2Range"}
+                          range_label: {type: string}
+                      progress:
+                        type: object
+                        required: [week, percent, trimesters]
+                        properties:
+                          week: {type: integer}
+                          percent: {type: integer, minimum: 0, maximum: 100}
+                          trimesters:
+                            type: array
+                            items:
+                              type: object
+                              required: [trimester, start_date, start_label, percent]
+                              properties:
+                                trimester: {type: integer}
+                                start_date: {$ref: "#/components/schemas/Date"}
+                                start_label: {type: string}
+                                percent: {type: integer, description: position of the start on the 40-week bar}
+                      next_visit:
+                        oneOf:
+                          - {type: "null"}
+                          - type: object
+                            required: [appointment_id, care_item_key, title, date, date_label, time, week, days_until, stage]
+                            properties:
+                              appointment_id: {type: [integer, "null"]}
+                              care_item_key: {type: [string, "null"]}
+                              title: {type: string}
+                              date: {$ref: "#/components/schemas/Date"}
+                              date_label: {type: string}
+                              time: {type: [string, "null"], example: "09:30"}
+                              week: {type: integer}
+                              week_from: {type: integer}
+                              week_to: {type: integer}
+                              days_until: {type: integer}
+                              stage: {type: [string, "null"], enum: [booked, done, result, null]}
+                      tip: {$ref: "#/components/schemas/PregnancyV2Tip"}
+                      tasks: {type: array, items: {$ref: "#/components/schemas/PregnancyV2Task"}}
+                      unread_alerts: {type: integer}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '409': {$ref: "#/components/responses/PregnancyNotActive"}
+  /api/v1/pregnancy/v2/weeks/{n}:
+    get:
+      tags: [PregnancyV2]
+      summary: One week of the week-by-week page
+      description: Admin-defined details (pregnancy_week_details) in the request language, date range, bookmark, tasks with done state and the week tip.
+      operationId: getPregnancyV2Week
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: n, in: path, required: true, schema: {type: integer, minimum: 1, maximum: 42}}
+      responses:
+        '200':
+          description: The week
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [week, trimester, title, relation, range, bookmarked, done_task_keys, details, tasks, tip]
+                    properties:
+                      week: {type: integer}
+                      trimester: {type: integer}
+                      title: {type: string}
+                      relation: {type: string, enum: [past, current, future]}
+                      current_week: {type: integer}
+                      range: {$ref: "#/components/schemas/PregnancyV2Range"}
+                      range_label: {type: string}
+                      size_line: {type: [string, "null"]}
+                      bookmarked: {type: boolean}
+                      done_task_keys: {type: array, items: {type: string}}
+                      details:
+                        type: object
+                        properties:
+                          size_label: {type: [string, "null"]}
+                          illustration_key: {type: [string, "null"]}
+                          length_cm: {type: [string, "null"], example: "1.6"}
+                          weight_g: {type: [string, "null"], example: "<1"}
+                          heart_rate: {type: [string, "null"], example: "150-170"}
+                          headline: {type: [string, "null"]}
+                          highlights:
+                            type: array
+                            items:
+                              type: object
+                              properties: {icon: {type: string}, title: {type: string}, body: {type: string}}
+                          body_symptoms: {type: array, items: {type: string}, description: labels (frontend contract)}
+                          body_symptom_items:
+                            type: array
+                            items:
+                              type: object
+                              properties: {key: {type: string}, label: {type: string}}
+                          body_text: {type: [string, "null"]}
+                          warning: {type: [string, "null"]}
+                          reviewer_name: {type: [string, "null"]}
+                          reviewed_at: {oneOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
+                          sources:
+                            type: array
+                            items:
+                              type: object
+                              properties: {title: {type: string}, url: {type: [string, "null"]}}
+                      tasks: {type: array, items: {$ref: "#/components/schemas/PregnancyV2Task"}}
+                      tip: {$ref: "#/components/schemas/PregnancyV2Tip"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/ModelNotFound"}
+        '409': {$ref: "#/components/responses/PregnancyNotActive"}
+  /api/v1/pregnancy/v2/weeks/{n}/state:
+    put:
+      tags: [PregnancyV2]
+      summary: Bookmark a week / set its done tasks
+      description: Partial update — an omitted key keeps its value. Unknown and duplicate task keys are dropped.
+      operationId: putPregnancyV2WeekState
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: n, in: path, required: true, schema: {type: integer, minimum: 1, maximum: 42}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bookmarked: {type: boolean}
+                done_task_keys: {type: array, items: {type: string}, maxItems: 50}
+      responses:
+        '200':
+          description: Saved state
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data:
+                    type: object
+                    required: [week, bookmarked, done_task_keys]
+                    properties:
+                      week: {type: integer}
+                      bookmarked: {type: boolean}
+                      done_task_keys: {type: array, items: {type: string}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/ModelNotFound"}
+        '409': {$ref: "#/components/responses/PregnancyNotActive"}
+        '422': {$ref: "#/components/responses/PregnancyV2ValidationFailed"}
 components:
   securitySchemes:
     bearerAuth:
@@ -7358,6 +7606,30 @@ components:
       description: "Overrides `Accept-Language`. Some endpoints clamp to the languages they have content for."
       schema: {type: string}
   responses:
+    PregnancyV2ValidationFailed:
+      description: "Pregnancy v2 validation failed (controller 422 `{success: false, message, errors}`)"
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, errors]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              errors:
+                type: object
+                additionalProperties: {type: array, items: {type: string}}
+    PregnancyNotActive:
+      description: "Pregnancy mode is off or the profile has no dating (`error_code: pregnancy_not_active`) — the client goes to Setup"
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, const: pregnancy_not_active}
     Unauthenticated:
       description: "Missing, invalid, expired or revoked Bearer token"
       content:
@@ -7487,6 +7759,53 @@ components:
             properties: {success: {type: boolean, const: false}, message: {type: string}}
           example: {success: false, message: نوبت پیدا نشد}
   schemas:
+    PregnancyV2Range:
+      type: object
+      required: [from, to]
+      properties:
+        from: {$ref: "#/components/schemas/Date"}
+        to: {$ref: "#/components/schemas/Date"}
+    PregnancyV2Confidence:
+      type: object
+      required: [level, label]
+      properties:
+        level: {type: string, enum: [high, medium, low]}
+        label: {type: string}
+    PregnancyV2Task:
+      type: object
+      required: [key, text, done]
+      properties:
+        key: {type: string}
+        text: {type: string}
+        done: {type: boolean}
+    PregnancyV2Tip:
+      oneOf:
+        - {type: "null"}
+        - type: object
+          required: [week, title, body, read_minutes, link]
+          properties:
+            week: {type: integer}
+            title: {type: string}
+            body: {type: string}
+            read_minutes: {type: [integer, "null"]}
+            link: {type: [string, "null"], description: "article_url; null → the week page"}
+    PregnancyV2DatingPreview:
+      type: object
+      required: [source, weeks, days, week, trimester, due_date, due_date_label, range, uncertainty_days, confidence, basis]
+      properties:
+        source: {type: string, enum: [lmp, ultrasound, manual]}
+        weeks: {type: integer}
+        days: {type: integer}
+        week: {type: integer}
+        trimester: {type: integer}
+        age_label: {type: string, example: "۸ هفته و ۳ روز"}
+        due_date: {$ref: "#/components/schemas/Date"}
+        due_date_label: {type: string}
+        range: {$ref: "#/components/schemas/PregnancyV2Range"}
+        range_label: {type: [string, "null"]}
+        uncertainty_days: {type: integer}
+        confidence: {$ref: "#/components/schemas/PregnancyV2Confidence"}
+        basis: {type: [string, "null"]}
     CheckupSummary:
       type: object
       description: "Over enabled items: `up_to_date` counts up_to_date + soon + not_yet."

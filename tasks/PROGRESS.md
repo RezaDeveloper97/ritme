@@ -582,3 +582,17 @@ Nothing needed fixing.
 - Enum sync: seeded illustration keys (pomegranate, butternut_squash, melon, romaine_lettuce, swiss_chard, leek,
   small_watermelon) and highlight icons (baby, face) added to the frontend lists and the Go admin enums.
 - (Commit also carries T-M7-02's generated `v2_read` sqlc query so the shared `querier.go` compiles.)
+
+## T-M7-02 — Pregnancy v2 — dating preview, today, week and week-state API
+- New package `backend-go/internal/pregnancy/v2` (dating on top of `pregnancy/calc`, lang files
+  `lang/{fa,en}/pregnancy_v2.json`, Jalali/Gregorian labels via `checkups/engine`) + `internal/http/routes_pregnancy_v2.go`.
+- Endpoints (Go only, OpenAPI tag `PregnancyV2`): `POST /pregnancy/v2/dating-preview` (no write; basis/range text from
+  `pregnancy_setup/result`), `GET /pregnancy/v2/today` (5 queries, asserted in tests), `GET /pregnancy/v2/weeks/{n}`
+  (1–42, else 404), `PUT /pregnancy/v2/weeks/{n}/state` (partial; unknown/duplicate task keys dropped).
+- 409 `{success:false, message, error_code:"pregnancy_not_active"}` when there is no profile, `pregnancy_mode = 0` or no dating.
+- Decisions: week counts to 42 when overdue (`due.days_left` ≥ 0 plus `overdue_days`); usual birth range = due ± (14 +
+  uncertainty) days; trimester 2/3 start at 13w0d / 28w0d; carousel `title` = «سه‌ماههٔ … · هفتهٔ N از ۴۰», the admin
+  headline is a separate `headline`; week tip read straight from `pregnancy_week_tip` (swap for the T-M7-04 engine layer).
+- Frontend contract notes: `details.body_symptoms` is a list of labels (what `v2-schema.ts` parses); keys for
+  deep-linking are in the extra `details.body_symptom_items: [{key,label}]`. Everything else matches the primary shapes.
+- Open: docs/pregnancy-v2/README.md not updated (outside `touches`); no contract golden (Go-only group).
