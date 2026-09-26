@@ -3,7 +3,7 @@ id: T-M7-14
 title: Frontend — pregnancy «هشدارها» (Alerts) v2 screen
 milestone: M7
 type: frontend
-status: todo
+status: done
 depends_on: [T-M7-08, T-M7-04]
 parallel_group: M7-D
 touches: [frontend/src/screens/pregnancy-alerts, frontend/src/app/[locale]/pregnancy/alerts]
