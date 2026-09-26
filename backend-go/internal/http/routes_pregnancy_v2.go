@@ -10,6 +10,7 @@ import (
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/pregnancy/store"
 	pregnancyv2 "github.com/ritme/backend-go/internal/pregnancy/v2"
+	"github.com/ritme/backend-go/internal/pregnancy/v2/calendar"
 	"github.com/ritme/backend-go/internal/pregnancy/v2/daylog"
 )
 
@@ -32,6 +33,9 @@ func init() {
 		r.Get(p+"/report", locale, guard, dl.Report)
 		r.Get(p+"/days/:date", locale, guard, dl.Show)
 		r.Put(p+"/days/:date", locale, guard, dl.Update)
+
+		// Calendar, care plan and visit stages (T-M7-05).
+		r.Get(p+"/calendar", locale, guard, calendar.NewHandlers(store.New(d.DB), clock.Real{}).Calendar)
 
 		// Alert rules of the message engine (T-M7-04).
 		r.Get(p+"/alerts", locale, guard, al.Index)

@@ -1,0 +1,10 @@
+{
+    "source_note": {
+        "lmp": "Dates are based on the first day of your last period.",
+        "ultrasound": "Dates are based on your ultrasound.",
+        "manual": "Dates are based on the pregnancy age you entered."
+    },
+    "attributes": {
+        "month": "month"
+    }
+}

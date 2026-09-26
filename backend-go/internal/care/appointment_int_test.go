@@ -325,3 +325,39 @@ func TestAppointment_VisibleThroughLegacyReminders(t *testing.T) {
 	assert.Equal(t, "2026-09-30T07:00:00.000000Z", row["scheduled_at"], "Tehran 10:30 as Eloquent UTC")
 	assert.Equal(t, true, row["is_active"])
 }
+
+// Pregnancy v2 visit link (T-M7-05): care_item_key / stage / result_note are optional, kept on PUT
+// when absent, validated, and absent from the stored meta when unset (v1 rows unchanged).
+func TestAppointment_VisitStage(t *testing.T) {
+	e := setup(t)
+	_, tok := e.user(t, "09120000131")
+
+	r := e.do(t, http.MethodPost, "/api/v1/care/appointments", tok, "en",
+		`{"kind":"phone","topic":"consult","scheduled_at":"2026-10-01 18:00:00"}`)
+	require.Equal(t, http.StatusCreated, r.status, r.raw)
+	d := r.data()
+	id := uint64(d["id"].(float64))
+	assert.Nil(t, d["care_item_key"])
+	assert.Nil(t, d["stage"])
+	assert.Nil(t, d["result_note"])
+	var meta string
+	require.NoError(t, e.db.QueryRow(`SELECT meta FROM reminders WHERE id = ?`, id).Scan(&meta))
+	assert.NotContains(t, meta, "stage")
+
+	r = e.do(t, http.MethodPut, apptPath(id, ""), tok, "en", `{"care_item_key":"nt_scan","stage":"booked"}`)
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	assert.Equal(t, "nt_scan", r.data()["care_item_key"])
+	assert.Equal(t, "booked", r.data()["stage"])
+
+	r = e.do(t, http.MethodPut, apptPath(id, ""), tok, "en", `{"stage":"result","result_note":"All normal"}`)
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	assert.Equal(t, "nt_scan", r.data()["care_item_key"], "kept when absent")
+	assert.Equal(t, "result", r.data()["stage"])
+	assert.Equal(t, "All normal", r.data()["result_note"])
+
+	r = e.do(t, http.MethodPut, apptPath(id, ""), tok, "en", `{"stage":"maybe","care_item_key":"a b"}`)
+	require.Equal(t, http.StatusUnprocessableEntity, r.status, r.raw)
+	errs, _ := r.body["errors"].(map[string]any)
+	assert.Contains(t, errs, "stage")
+	assert.Contains(t, errs, "care_item_key")
+}

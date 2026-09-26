@@ -93,6 +93,9 @@
         "prep.*": "checklist item",
         "prep.*.text": "checklist item",
         "prep.*.done": "checklist item status",
+        "care_item_key": "care item",
+        "stage": "visit stage",
+        "result_note": "result note",
         "is_active": "reminder",
         "done": "done"
     }

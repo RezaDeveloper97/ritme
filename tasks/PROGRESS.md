@@ -658,3 +658,9 @@ Nothing needed fixing.
 - Shipped `/checkup-types` list (drag/arrow reorder, active switch via full PUT, stats panel), create/edit form with language tabs and live preview. Touches widened to nav.ts, admin-web/messages, Icon.tsx.
 - Verify (tsc, eslint, steiger, vitest 68, build) green.
 - Open: local smoke vs Go admin API not run; light preview needs `[data-theme="light"]` tokens in admin globals.css; rose/teal tones borrow danger/data tokens.
+
+## T-M7-05 — Pregnancy v2 calendar, care plan and visit stages
+- `GET /api/v1/pregnancy/v2/calendar?month=` (locale calendar; days, visits, next_visit, care_plan with window/state/suggested_date, source_note).
+- Appointment meta gains optional `care_item_key`, `stage` (booked|done|result), `result_note` (backwards compatible).
+- Outside touches: exported date helpers appended to `internal/pregnancy/v2/labels.go`.
+- Open: care_item_key not FK-checked; visit prep comes from care item, not appointment checklist; client filters selected-day visits.

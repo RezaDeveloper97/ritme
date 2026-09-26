@@ -16,6 +16,7 @@ import (
 var appointmentFields = []string{
 	"kind", "with", "specialty", "topic", "title", "scheduled_at", "location",
 	"remind_before", "add_to_calendar", "notes", "prep", "is_active",
+	"care_item_key", "stage", "result_note",
 }
 
 // scheduledAtFormats are the accepted scheduled_at formats (Tehran wall-clock).
@@ -44,6 +45,9 @@ func appointmentRules() validation.Rules {
 		F("prep.*.text", "required", "string", "max:255"),
 		F("prep.*.done", "sometimes", "boolean"),
 		F("is_active", "sometimes", "boolean"),
+		F("care_item_key", "nullable", "string", "max:64", "regex:/^[A-Za-z0-9_-]+$/"),
+		F("stage", "nullable", validation.In(VisitStages...)),
+		F("result_note", "nullable", "string", "max:2000"),
 	}
 }
 
@@ -96,6 +100,9 @@ func storedAppointment(a Appointment, locale string) phpval.Map {
 	data.Set("notes", nullString(a.Row.Notes))
 	data.Set("prep", prep)
 	data.Set("is_active", a.Row.IsActive)
+	data.Set("care_item_key", ptrValue(a.Meta.CareItemKey))
+	data.Set("stage", ptrValue(a.Meta.Stage))
+	data.Set("result_note", ptrValue(a.Meta.ResultNote))
 	return data
 }
 
@@ -137,6 +144,7 @@ func validateAppointment(locale string, data phpval.Map, now time.Time, known []
 		in.IsActive = phpval.Truthy(x)
 	}
 	in.Notes = optional("notes")
+	in.Meta.CareItemKey, in.Meta.Stage, in.Meta.ResultNote = optional("care_item_key"), optional("stage"), optional("result_note")
 	if t := optional("title"); t != nil {
 		in.Title = *t
 	} else if label, ok := Label("topics", in.Meta.Topic, locale); ok {

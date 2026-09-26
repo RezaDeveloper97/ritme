@@ -57,6 +57,10 @@ type AppointmentMeta struct {
 	AddToCalendar bool       `json:"add_to_calendar"`
 	Prep          []PrepItem `json:"prep"`
 	Status        string     `json:"status"`
+	// Pregnancy v2 visit link (T-M7-05), optional and omitted when unset so v1 rows stay byte-identical.
+	CareItemKey *string `json:"care_item_key,omitempty"`
+	Stage       *string `json:"stage,omitempty"`
+	ResultNote  *string `json:"result_note,omitempty"`
 }
 
 // Subtitle is the legacy reminders.subtitle "with · specialty" (the parts that are set);
@@ -152,6 +156,9 @@ func ParseAppointment(r store.Reminder) Appointment {
 	if m.Prep == nil {
 		m.Prep = []PrepItem{}
 	}
+	if m.Stage != nil && !slices.Contains(VisitStages, *m.Stage) {
+		m.Stage = nil
+	}
 	return Appointment{Row: r, Meta: m}
 }
 
@@ -190,6 +197,9 @@ func (a Appointment) JSON(now time.Time) *jsonx.OrderedMap {
 		"add_to_calendar", a.Meta.AddToCalendar,
 		"prep", a.Meta.Prep,
 		"status", a.Meta.Status,
+		"care_item_key", a.Meta.CareItemKey,
+		"stage", a.Meta.Stage,
+		"result_note", a.Meta.ResultNote,
 		"is_active", r.IsActive,
 		"created_at", nullDateTime(r.CreatedAt),
 		"updated_at", nullDateTime(r.UpdatedAt),

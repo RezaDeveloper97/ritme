@@ -3,7 +3,7 @@ id: T-M7-05
 title: Pregnancy v2 — calendar, care plan and visit stages (on top of M3 appointments)
 milestone: M7
 type: backend
-status: todo
+status: done
 depends_on: [T-M7-02, T-M3-02]
 parallel_group: M7-C
 touches: [backend-go/internal/pregnancy/v2/calendar, backend-go/internal/care, backend-go/internal/http/routes_pregnancy_v2.go, backend-go/db/queries/pregnancy, backend-go/api/openapi.yaml]

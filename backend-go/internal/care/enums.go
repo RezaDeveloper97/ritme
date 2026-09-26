@@ -26,6 +26,8 @@ var (
 	AppointmentTopics = []string{"ultrasound", "checkup", "lab", "consult", "vaccine", "other"}
 	// RemindBefore are the appointment reminder offsets (T-M3-02).
 	RemindBefore = []string{"1h", "3h", "1d", "2d"}
+	// VisitStages are the pregnancy-visit stages of an appointment linked to a care item (T-M7-05).
+	VisitStages = []string{"booked", "done", "result"}
 )
 
 // Medication durations.

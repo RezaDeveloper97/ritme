@@ -7584,6 +7584,88 @@ paths:
         '404': {$ref: "#/components/responses/ModelNotFound"}
         '409': {$ref: "#/components/responses/PregnancyNotActive"}
         '422': {$ref: "#/components/responses/PregnancyV2ValidationFailed"}
+  /api/v1/pregnancy/v2/calendar:
+    get:
+      tags: [PregnancyV2]
+      summary: Pregnancy calendar month, visits and care plan
+      description: |
+        Month grid markers (visit / week start / today), the non-cancelled M3 appointments of the month as
+        visits, the next visit, and the active care plan with each item's window (week_from–week_to as dates
+        from the due date), state (done when a linked appointment has stage done|result, booked when any
+        other linked appointment exists, else to_book) and suggested date. `month` is in the locale's
+        calendar (Jalali for fa); default is the current month.
+      operationId: getPregnancyV2Calendar
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: month, in: query, required: false, schema: {type: string, pattern: "^\\d{4}-(0[1-9]|1[0-2])$", examples: ["1405-07"]}}
+      responses:
+        '200':
+          description: Calendar data
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [month, month_label, calendar, from, to, today, week_range, days, visits, next_visit, care_plan, source_note]
+                    properties:
+                      month: {type: string, description: "YYYY-MM in the locale's calendar."}
+                      month_label: {type: string}
+                      calendar: {type: string, enum: [jalali, gregorian]}
+                      from: {$ref: "#/components/schemas/Date"}
+                      to: {$ref: "#/components/schemas/Date"}
+                      today: {$ref: "#/components/schemas/Date"}
+                      week_range:
+                        type: [object, "null"]
+                        properties:
+                          from: {type: integer}
+                          to: {type: integer}
+                      days:
+                        type: array
+                        items:
+                          type: object
+                          required: [date, has_visit, week_start, is_today]
+                          properties:
+                            date: {$ref: "#/components/schemas/Date"}
+                            has_visit: {type: boolean}
+                            week_start: {type: [integer, "null"], description: "Pregnancy week that starts on this day."}
+                            is_today: {type: boolean}
+                      visits: {type: array, items: {$ref: "#/components/schemas/PregnancyV2Visit"}}
+                      next_visit:
+                        anyOf: [{$ref: "#/components/schemas/PregnancyV2Visit"}, {type: "null"}]
+                      care_plan:
+                        type: array
+                        items:
+                          type: object
+                          required: [key, title, kind, week_from, week_to, window, window_label, state, date, date_label, suggested_date, suggested_date_label, appointment_id, prep]
+                          properties:
+                            key: {type: string}
+                            title: {type: string}
+                            kind: {type: string, enum: [visit, test, scan, vaccine]}
+                            week_from: {type: integer}
+                            week_to: {type: integer}
+                            window:
+                              type: object
+                              properties:
+                                from: {$ref: "#/components/schemas/Date"}
+                                to: {$ref: "#/components/schemas/Date"}
+                            window_label: {type: string}
+                            state: {type: string, enum: [done, booked, to_book]}
+                            date: {type: [string, "null"], description: "Linked appointment day."}
+                            date_label: {type: [string, "null"]}
+                            suggested_date: {type: [string, "null"], description: "to_book only; null once the window has ended."}
+                            suggested_date_label: {type: [string, "null"]}
+                            appointment_id: {type: [integer, "null"]}
+                            prep: {type: [string, "null"]}
+                      source_note: {type: [string, "null"]}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '409': {$ref: "#/components/responses/PregnancyNotActive"}
+        '422': {$ref: "#/components/responses/PregnancyV2ValidationFailed"}
   /api/v1/pregnancy/v2/report:
     get:
       tags: [PregnancyV2]
@@ -8785,6 +8867,25 @@ components:
         id: {type: string, description: "Server-assigned, stable (`p1`, `p2`, …).", examples: [p1]}
         text: {type: string}
         done: {type: boolean}
+    PregnancyV2Visit:
+      type: object
+      required: [appointment_id, care_item_key, title, date, date_label, time, week, week_label, stage, prep, doctor, place, remind_before, result_note, days_until]
+      properties:
+        appointment_id: {type: integer}
+        care_item_key: {type: [string, "null"]}
+        title: {type: string}
+        date: {$ref: "#/components/schemas/Date"}
+        date_label: {type: string}
+        time: {type: string, examples: ["10:30"]}
+        week: {type: [integer, "null"]}
+        week_label: {type: [string, "null"]}
+        stage: {type: [string, "null"], enum: [booked, done, result, null]}
+        prep: {type: [string, "null"]}
+        doctor: {type: [string, "null"]}
+        place: {type: [string, "null"]}
+        remind_before: {type: [string, "null"]}
+        result_note: {type: [string, "null"]}
+        days_until: {type: integer}
     AppointmentInput:
       type: object
       description: "Flat body (no `meta` wrapper)."
@@ -8810,6 +8911,9 @@ components:
               text: {type: string, maxLength: 255}
               done: {type: boolean}
         is_active: {type: boolean}
+        care_item_key: {type: [string, "null"], maxLength: 64, pattern: "^[A-Za-z0-9_-]+$", description: "Pregnancy v2 care-plan item this visit covers (T-M7-05)."}
+        stage: {type: [string, "null"], enum: [booked, done, result, null], description: "Pregnancy visit stage."}
+        result_note: {type: [string, "null"], maxLength: 2000}
     Appointment:
       type: object
       required: [id, type, title, subtitle, notes, kind, with, specialty, topic, location, scheduled_at, remind_before, remind_at, days_until, add_to_calendar, prep, status, is_active, created_at, updated_at]
@@ -8831,6 +8935,9 @@ components:
         add_to_calendar: {type: boolean}
         prep: {type: array, items: {$ref: "#/components/schemas/PrepItem"}}
         status: {type: string, enum: [scheduled, cancelled]}
+        care_item_key: {type: [string, "null"]}
+        stage: {type: [string, "null"], enum: [booked, done, result, null]}
+        result_note: {type: [string, "null"]}
         is_active: {type: boolean}
         created_at:
           anyOf: [{$ref: "#/components/schemas/LaravelDateTime"}, {type: "null"}]

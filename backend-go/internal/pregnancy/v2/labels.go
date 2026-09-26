@@ -125,3 +125,17 @@ func attributes(locale string) []string {
 	}
 	return kv
 }
+
+// CalendarDate is d as (year, month, day) in the locale's calendar (T-M7-05 calendar).
+func CalendarDate(d civildate.Date, locale string) (y, m, day int) { return calendarDate(d, locale) }
+
+// IsJalali reports whether the locale's calendar is Jalali.
+func IsJalali(locale string) bool { return T("calendar", locale) == "jalali" }
+
+// MonthLabel is «مهر ۱۴۰۵» / "October 2026" for a month of the locale's calendar.
+func MonthLabel(y, m int, locale string) string {
+	return monthName(m, locale) + " " + num(y, locale)
+}
+
+// Digits is s with the locale's digits.
+func Digits(s, locale string) string { return localizeDigits(s, locale) }

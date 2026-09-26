@@ -88,6 +88,9 @@ type Querier interface {
 	ListSymptomLogs(ctx context.Context, arg ListSymptomLogsParams) ([]PregnancySymptomLog, error)
 	// The user's v2 alerts created at or after `since`, newest first (dismissed = acked ones included).
 	ListV2AlertsSince(ctx context.Context, arg ListV2AlertsSinceParams) ([]PregnancyAlert, error)
+	// Pregnancy v2 calendar (T-M7-05, internal/pregnancy/v2/calendar): the user's M3 appointments that are
+	// not cancelled, soonest first. Month filtering and care-item linking (meta.care_item_key) happen in Go.
+	ListV2CalendarAppointments(ctx context.Context, userID uint64) ([]ListV2CalendarAppointmentsRow, error)
 	// The live message_contents rows of one group/item in the given locales (request locale + default
 	// language, for the fallback) — the week tip and the setup templates.
 	ListV2MessagePayloads(ctx context.Context, arg ListV2MessagePayloadsParams) ([]ListV2MessagePayloadsRow, error)
