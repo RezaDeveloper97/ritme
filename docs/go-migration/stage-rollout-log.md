@@ -59,3 +59,58 @@ recreate; backup `/root/vhost-stage.inc.bak-20260923-114953`). First admin-web i
 - Human smoke of the web app against staging (all groups on Go). (Android excluded from tasks by user decision, 2026-09-23.)
 - Editors click through every `/panel` screen (compare with `/admin` Blade).
 - 48 h soak with all groups on Go, started 2026-09-23 ~11:40 UTC → earliest sign-off 2026-09-25 ~11:40 UTC.
+
+## 48 h soak evidence + automated smoke (2026-09-26 ~09:05 UTC, T-M2-25 close-out)
+No new code deployed for this. Stage is **Go-only** since 2026-09-23 12:36 UTC (T-M2-28: `backend`/`queue` are compose
+profile `laravel` and their containers are removed; `switch-go-route.sh stage <g> off` now lands on Go too). So the
+soak ran on Go alone — the task's "Laravel still running (instant rollback)" precondition no longer holds on stage;
+rollback was proven on 2026-09-23 (profile flip above) before Laravel was removed. Prod rollback remains T-M2-26's job.
+
+### Soak window 2026-09-23 11:40 → 2026-09-26 09:00 UTC (~69 h)
+Containers: `ritme-stage-backend-go-1` started 2026-09-23 12:36, admin-web 11:58, frontend 11:30 — `RestartCount` 0 for all.
+```
+$ docker logs --since 2026-09-23T11:40:00Z ritme-stage-backend-go-1 | jq -r 'select(.msg=="request")|"\(.time[0:10]) \(.status)"' | sort | uniq -c
+     36 2026-09-23 200      # all from the 12:36-12:37 deploy/smoke run
+      4 2026-09-23 401      # deploy-stage checks (/api/admin/v1/auth/me, /api/v1/banners without token)
+     11 2026-09-23 404      # smoke's expected 404s (unknown route, no content/log for date, /notifications, /user)
+     ...                    # 2026-09-24 and 2026-09-25: ZERO requests
+$ ... | jq 'select(.level!="INFO")'        -> (none: no WARN/ERROR lines, no panics)
+$ docker logs --since 2026-09-23T11:40:00Z ritme-proxy-1 | awk '$9 ~ /^5/'   -> (none: 0 5xx on any vhost)
+```
+- 5xx: **0** (Go and proxy). Go-caused regressions: **none**.
+- 401 `error_code` distribution: all `unauthenticated` (only the deliberate no-token / garbage-token probes).
+- Caveat: **no organic traffic at all** on 09-24/09-25 (the proxy log has no host field; backend-go's own request log
+  is the source of truth for Go traffic). The soak therefore proves stability of an idle stack, not behaviour under use.
+- Non-Go observation: proxy error log shows `recv() failed (104: Connection reset by peer)` from the **stage Next.js
+  frontend** for `/icons/icon-192.png` (3× during the headless run, client still got a response — no 5xx in the access log).
+
+### API smoke through Go (fresh token via OTP read from `otp_verifications`, smoke user 09900000901)
+Gate cookie (`ritme_stage`) + Bearer; 39 GET paths × fa/en = 78 requests (`smoke.sh`, paths from the deployed
+`backend-go/api/openapi.yaml`):
+```
+  66 200   12 404   — 78/78 `X-Backend: go`, 0 5xx
+404s (all data-driven, localized): health-logs/<today> (no log yet), cycle/phase-content/menstrual, home/sections/cycle
+(unknown section), pregnancy/profile (not pregnant), pregnancy/content/12 (no content seeded), /api/v1/does-not-exist
+```
+Writes/auth: `POST /api/v1/health-logs` → 201 (go); `POST /auth/refresh-session` → 200 `refreshed:false`;
+send-otp/verify-otp → 200 (go); garbage Bearer and no Bearer → 401 `{"error_code":"unauthenticated"}`;
+wrong Basic credentials → nginx 401.
+
+### Admin API smoke (/api/admin/v1 via Go, staging admin, session cookie)
+```
+login 200 go | auth/me dashboard users admins articles articles/options banners challenges challenge-completions
+info-sections phase-contents pregnancy-weeks recommendations task-templates affirmations languages languages/options
+languages/1/translations messages  -> all 200, X-Backend: go | logout 200
+```
+(covers the list endpoint of every `/panel` screen in admin-web). `/panel/login` 200; `/admin` → 301 `/panel/` → `/panel/login`.
+
+### Headless web smoke (Chrome CDP, gate cookie + `ritme_token` in localStorage, 390 px mobile)
+`/fa/home /en/home /fa/calendar /fa/cycle /fa/log /fa/profile /fa/pregnancy /en/profile` all rendered logged-in
+(correct `dir` rtl/ltr, bottom nav, home cycle card "۱۲ روز تا پریود بعدی"); every `/api/` call the pages made
+answered 200 `X-Backend: go` except `pregnancy/profile` + `pregnancy/content/1` → 404 (user not pregnant → pregnancy
+onboarding screen shown, expected).
+
+### Still open — needs a human (not faked here)
+- **Editor click-through of every `/panel` screen** incl. create/edit/upload flows (only list APIs were exercised).
+- **Real-user smoke of the web app** on a phone (log a period, edit profile, onboarding, pregnancy on/off, reminders).
+- A soak **with real traffic**: 09-24/09-25 had zero requests; if that matters, have someone use staging for a day.
