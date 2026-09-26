@@ -1,8 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { fieldKind, fromDraft, previewOf, toDraft } from './payload';
+import { asPayloadValues, fieldKind, fromDraft, previewOf, toDraft } from './payload';
 
-const payload = { title: 'سلام', body: 'x'.repeat(61), dos: ['آب بنوشید', 'بخوابید'] };
+const payload = {
+  title: 'سلام',
+  body: 'x'.repeat(61),
+  dos: ['آب بنوشید', 'بخوابید'],
+};
 
 describe('smart-message payload editor', () => {
   it('picks the control by shape and length', () => {
@@ -14,11 +18,25 @@ describe('smart-message payload editor', () => {
   it('round-trips lists as lines, trimming and dropping blanks', () => {
     const draft = toDraft(payload);
     expect(draft.dos).toBe('آب بنوشید\nبخوابید');
-    expect(fromDraft(payload, { ...draft, dos: ' a \n\n b\r\n' })).toEqual({ title: 'سلام', body: payload.body, dos: ['a', 'b'] });
+    expect(fromDraft(payload, { ...draft, dos: ' a \n\n b\r\n' })).toEqual({
+      title: 'سلام',
+      body: payload.body,
+      dos: ['a', 'b'],
+    });
   });
 
   it('previews the first value', () => {
     expect(previewOf({ dos: ['a', 'b'] }, '، ')).toBe('a، b');
     expect(previewOf({}, ', ')).toBe('');
+  });
+});
+
+describe('typed payloads', () => {
+  it('previews the first text and stringifies non-text values', () => {
+    expect(previewOf({ enabled: true, title: 'هشدار' }, ', ')).toBe('هشدار');
+    expect(asPayloadValues({ n: 3, list: ['a', 1] })).toEqual({
+      n: '3',
+      list: ['a', '1'],
+    });
   });
 });

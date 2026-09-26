@@ -5,20 +5,12 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { fieldError } from '@/shared/api';
-import {
-  Badge,
-  Button,
-  FormPage,
-  LoadGate,
-  PageHeader,
-  TextArea,
-  TextInput,
-  toast,
-  useNotifyError,
-} from '@/shared/ui';
+import { Badge, Button, Skeleton, FormPage, LoadGate, PageHeader, TextArea, TextInput, toast, useNotifyError } from '@/shared/ui';
 
-import { messagesApi, type Message } from '../api/messages';
-import { fieldKind, fromDraft, toDraft } from '../lib/payload';
+import { messagesApi, useRegistryItem, type Message, type SchemaField } from '../api/messages';
+import { asPayloadValues, fieldKind, fromDraft, toDraft } from '../lib/payload';
+import { normalizeDraft, seedDraft, type Draft } from '../lib/schema-form';
+import { SchemaForm } from './SchemaForm';
 import { useMessageLabels } from './labels';
 
 /** /messages/:id — edit one smart message's payload, keeping its shape (Blade messages.edit). */
@@ -27,12 +19,20 @@ export function MessageEditScreen({ id }: { id: number }) {
   const detail = messagesApi.useDetail(id);
   return (
     <LoadGate queries={[detail]} header={<PageHeader title={t('edit')} backHref="/messages" backLabel={t('backToList')} />}>
-      {() => (detail.data ? <MessageForm message={detail.data.message} /> : null)}
+      {() => (detail.data ? <SchemaGate message={detail.data.message} /> : null)}
     </LoadGate>
   );
 }
 
-function MessageForm({ message }: { message: Message }) {
+/** Registered typed items (admin-api.md §13) get the schema editor; everything else the line editor. */
+function SchemaGate({ message }: { message: Message }) {
+  const item = useRegistryItem(message.group, message.item_key, message.locale);
+  if (item.isPending) return <Skeleton className="h-64 w-full" />;
+  const typed = item.data?.typed ? item.data.fields : null;
+  return <MessageForm message={message} typedFields={typed} />;
+}
+
+function MessageForm({ message, typedFields }: { message: Message; typedFields: SchemaField[] | null }) {
   const t = useTranslations('smartMessages');
   const tc = useTranslations('crud');
   const router = useRouter();
@@ -41,13 +41,17 @@ function MessageForm({ message }: { message: Message }) {
   const save = messagesApi.useSave(message.id);
   const approve = messagesApi.useAction('approve');
   const toggle = messagesApi.useAction('toggle');
-  const [draft, setDraft] = useState<Record<string, string>>(() => toDraft(message.payload));
+  const payload = asPayloadValues(message.payload);
+  const [draft, setDraft] = useState<Record<string, string>>(() => toDraft(payload));
+  const [typedDraft, setTypedDraft] = useState<Draft>(() => (typedFields ? seedDraft(typedFields, message.payload) : {}));
   const dir = labels.direction(message.locale);
   const backHref = `/messages?group=${encodeURIComponent(message.group)}`;
 
   const submit = () =>
     save.mutate(
-      { payload: fromDraft(message.payload, draft) },
+      {
+        payload: typedFields ? normalizeDraft(typedFields, typedDraft) : fromDraft(payload, draft),
+      },
       {
         onSuccess: () => {
           toast.success(tc('saved'));
@@ -57,7 +61,7 @@ function MessageForm({ message }: { message: Message }) {
       },
     );
 
-  const keys = Object.keys(message.payload);
+  const keys = typedFields ? [] : Object.keys(payload);
 
   return (
     <FormPage
@@ -81,7 +85,10 @@ function MessageForm({ message }: { message: Message }) {
             onClick={() =>
               approve.mutate(
                 { id: message.id },
-                { onSuccess: () => toast.success(message.is_approved ? t('unapprovedToast') : t('approvedToast')), onError: notifyError },
+                {
+                  onSuccess: () => toast.success(message.is_approved ? t('unapprovedToast') : t('approvedToast')),
+                  onError: notifyError,
+                },
               )
             }
           >
@@ -89,7 +96,15 @@ function MessageForm({ message }: { message: Message }) {
           </Button>
           <Button
             loading={toggle.isPending}
-            onClick={() => toggle.mutate({ id: message.id }, { onSuccess: () => toast.success(tc('statusChanged')), onError: notifyError })}
+            onClick={() =>
+              toggle.mutate(
+                { id: message.id },
+                {
+                  onSuccess: () => toast.success(tc('statusChanged')),
+                  onError: notifyError,
+                },
+              )
+            }
           >
             {message.is_active ? tc('deactivate') : tc('activate')}
           </Button>
@@ -100,9 +115,10 @@ function MessageForm({ message }: { message: Message }) {
       saving={save.isPending}
     >
       <p className="field-hint m-0">{t('editHint')}</p>
-      {keys.length === 0 ? <p className="m-0 text-ink-3">{t('emptyPayload')}</p> : null}
+      {typedFields ? <SchemaForm fields={typedFields} value={typedDraft} onChange={setTypedDraft} error={save.error} dir={dir} /> : null}
+      {!typedFields && keys.length === 0 ? <p className="m-0 text-ink-3">{t('emptyPayload')}</p> : null}
       {keys.map((key) => {
-        const original = message.payload[key] ?? '';
+        const original = payload[key] ?? '';
         const kind = fieldKind(original);
         const label = (
           <>

@@ -3,7 +3,7 @@ id: T-M7-07
 title: admin-web — pregnancy week details editor, care plan, alert rules, message create
 milestone: M7
 type: frontend
-status: todo
+status: done
 depends_on: [T-M7-06, T-M2-23]
 parallel_group: M7-C
 touches: [admin-web/src/widgets/shell/model/nav.ts, admin-web/messages, admin-web/src/shared/ui/Icon.tsx, admin-web/src/screens/pregnancy-weeks, admin-web/src/screens/pregnancy-care-plan, admin-web/src/screens/pregnancy-alert-rules, admin-web/src/screens/messages, admin-web/src/app/(panel)/pregnancy-care-plan, admin-web/src/app/(panel)/pregnancy-alert-rules, admin-web/src/widgets/shell/ui/Sidebar.tsx, admin-web/src/shared/i18n]

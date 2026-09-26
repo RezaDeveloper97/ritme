@@ -20,26 +20,68 @@ import {
 } from '@/shared/ui';
 
 import { pregnancyWeeksApi, type PregnancyWeek } from '../api/pregnancy-weeks';
+import { WeekDetailsEditor } from './WeekDetailsForm';
 
-/** /pregnancy-weeks/new?week= and /pregnancy-weeks/:id — the ten modules of one week. */
+/**
+ * /pregnancy-weeks/new?week= and /pregnancy-weeks/:id — the ten text modules of one week, and
+ * (`?tab=details`) its structured v2 details, keyed by week number (admin-api.md §13).
+ */
 export function PregnancyWeekFormScreen({ id }: { id: number | null }) {
   const t = useTranslations('pregnancyWeeks');
   const search = useSearchParams();
   const detail = pregnancyWeeksApi.useDetail(id);
   const map = pregnancyWeeksApi.useList();
+  const [tab, setTab] = useState<'texts' | 'details'>(search.get('tab') === 'details' ? 'details' : 'texts');
+  const fromQuery = Number(search.get('week'));
+  const week =
+    detail.data?.pregnancy_week.week_number ?? (Number.isInteger(fromQuery) && fromQuery >= 1 && fromQuery <= 42 ? fromQuery : null);
+  const header = <PageHeader title={id === null ? t('new') : t('edit')} backHref="/pregnancy-weeks" backLabel={t('backToList')} />;
+  return (
+    <div className="flex flex-col gap-4">
+      <div role="tablist" aria-label={t('tabs')} className="tabs">
+        {(['texts', 'details'] as const).map((key) => (
+          <button
+            key={key}
+            type="button"
+            role="tab"
+            className="tab"
+            aria-selected={tab === key}
+            aria-current={tab === key ? 'page' : undefined}
+            disabled={key === 'details' && week === null}
+            title={key === 'details' && week === null ? t('detailsNeedWeek') : undefined}
+            onClick={() => setTab(key)}
+          >
+            {t(key === 'texts' ? 'tabTexts' : 'tabDetails')}
+          </button>
+        ))}
+      </div>
+      {tab === 'details' && week !== null ? (
+        <WeekDetailsEditor week={week} header={header} />
+      ) : (
+        <TextsTab id={id} detail={detail} map={map} initialWeek={search.get('week') ?? ''} />
+      )}
+    </div>
+  );
+}
+
+function TextsTab({
+  id,
+  detail,
+  map,
+  initialWeek,
+}: {
+  id: number | null;
+  detail: ReturnType<typeof pregnancyWeeksApi.useDetail>;
+  map: ReturnType<typeof pregnancyWeeksApi.useList>;
+  initialWeek: string;
+}) {
+  const t = useTranslations('pregnancyWeeks');
   return (
     <LoadGate
       queries={[detail, map]}
       header={<PageHeader title={id === null ? t('new') : t('edit')} backHref="/pregnancy-weeks" backLabel={t('backToList')} />}
     >
-      {() => (
-        <WeekForm
-          id={id}
-          row={detail.data?.pregnancy_week ?? null}
-          fields={map.data?.fields ?? []}
-          initialWeek={search.get('week') ?? ''}
-        />
-      )}
+      {() => <WeekForm id={id} row={detail.data?.pregnancy_week ?? null} fields={map.data?.fields ?? []} initialWeek={initialWeek} />}
     </LoadGate>
   );
 }
@@ -82,7 +124,14 @@ function WeekForm({
 
   const onDelete = async () => {
     if (id === null) return;
-    if (!(await confirm({ message: t('confirmDelete'), confirmLabel: t('deleteWeek'), tone: 'danger' }))) return;
+    if (
+      !(await confirm({
+        message: t('confirmDelete'),
+        confirmLabel: t('deleteWeek'),
+        tone: 'danger',
+      }))
+    )
+      return;
     remove.mutate(id, {
       onSuccess: () => {
         toast.success(tc('deleted'));

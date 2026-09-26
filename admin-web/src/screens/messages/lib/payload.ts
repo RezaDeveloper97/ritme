@@ -17,10 +17,7 @@ export function toDraft(payload: Record<string, PayloadValue>): Record<string, s
 }
 
 /** Draft back to the PUT body: list fields as trimmed, non-empty lines. */
-export function fromDraft(
-  payload: Record<string, PayloadValue>,
-  draft: Record<string, string>,
-): Record<string, PayloadValue> {
+export function fromDraft(payload: Record<string, PayloadValue>, draft: Record<string, string>): Record<string, PayloadValue> {
   const out: Record<string, PayloadValue> = {};
   for (const [key, original] of Object.entries(payload)) {
     const text = draft[key] ?? '';
@@ -34,9 +31,21 @@ export function fromDraft(
   return out;
 }
 
-/** First payload value as a one-line preview (lists joined). */
-export function previewOf(payload: Record<string, PayloadValue>, joiner: string): string {
-  const first = Object.values(payload)[0];
-  if (first === undefined) return '';
-  return Array.isArray(first) ? first.join(joiner) : first;
+/** A raw (untyped-group) payload as texts / text lists; other values are stringified. */
+export function asPayloadValues(payload: Record<string, unknown>): Record<string, PayloadValue> {
+  const one = (v: unknown): string =>
+    typeof v === 'string' ? v : v === null || v === undefined ? '' : typeof v === 'object' ? JSON.stringify(v) : String(v);
+  return Object.fromEntries(Object.entries(payload).map(([k, v]) => [k, Array.isArray(v) ? v.map(one) : one(v)]));
+}
+
+/** First text of a payload as a one-line preview (lists joined; typed rows: first text field). */
+export function previewOf(payload: Record<string, unknown>, joiner: string): string {
+  for (const value of Object.values(payload)) {
+    if (typeof value === 'string') return value;
+    if (Array.isArray(value)) {
+      const texts = value.filter((v): v is string => typeof v === 'string');
+      if (texts.length > 0 || value.length === 0) return texts.join(joiner);
+    }
+  }
+  return '';
 }

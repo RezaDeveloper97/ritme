@@ -37,12 +37,19 @@ export const NAV: readonly NavGroup[] = [
       { key: 'challenges', href: '/challenges', icon: 'flag', ready: true },
       { key: 'challengeCompletions', href: '/challenge-completions', icon: 'check', ready: true },
       { key: 'taskTemplates', href: '/task-templates', icon: 'task', ready: true },
-      { key: 'pregnancyWeeks', href: '/pregnancy-weeks', icon: 'baby', ready: true },
       { key: 'phaseContents', href: '/phase-contents', icon: 'moon', ready: true },
       { key: 'recommendations', href: '/recommendations', icon: 'idea', ready: true },
       { key: 'checkupTypes', href: '/checkup-types', icon: 'shieldCheck', ready: true },
       { key: 'banners', href: '/banners', icon: 'banner', ready: true },
       { key: 'infoSections', href: '/info-sections', icon: 'lifeRing', ready: true },
+    ],
+  },
+  {
+    key: 'groupPregnancy',
+    items: [
+      { key: 'pregnancyWeeks', href: '/pregnancy-weeks', icon: 'baby', ready: true },
+      { key: 'pregnancyCarePlan', href: '/pregnancy-care-plan', icon: 'calendar', ready: true },
+      { key: 'pregnancyAlertRules', href: '/pregnancy-alert-rules', icon: 'alert', ready: true },
     ],
   },
   {

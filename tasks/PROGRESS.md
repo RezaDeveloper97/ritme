@@ -669,3 +669,8 @@ Nothing needed fixing.
 - Shipped `/checkups/history` (tabs, timeline, infinite list, edit via mark-done sheet, on-device «خلاصه برای پزشک» PDF) and `/checkups/self-exam` (cycle-window hero, guide steps, findings chips, monthly record, adherence).
 - `shared/lib/pdf`: hand-written PDF writer + canvas renderer (Vazirmatn shaping) — no new dependency; pages are images (text not selectable).
 - Open: PDF not verified on a real device; finding labels shown as a count; adherence reads first page only; self-exam resolves `breast_self_exam` key. Screenshots not taken.
+
+## T-M7-07 — admin-web — pregnancy v2 editors
+- Week structured details tab (`?tab=details`, PUT /pregnancy-weeks/:n/details) with fa/en tabs and hero preview; new `/pregnancy-care-plan` and `/pregnancy-alert-rules` screens (typed params, sample card); messages screen gets a missing-content panel (week-tip 1–42 grid) and schema-driven create/edit for typed groups; new «بارداری» sidebar group.
+- Verify (tsc, eslint, steiger, vitest 77, build) green.
+- Open: fetal image picker has no real preview (SVGs live in frontend/); some highlight icons missing in admin Icon.tsx; message create lives inside `/messages`; not smoke-tested against the API.
