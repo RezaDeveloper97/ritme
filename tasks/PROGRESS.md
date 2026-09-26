@@ -679,3 +679,8 @@ Nothing needed fixing.
 - Shipped `/pregnancy/weeks` (→ current week) and `/pregnancy/weeks/[n]`: week strip 1–42, hero with fetus size, tabs (fetus / body / tasks with synced checklist), warning, reviewer + sources, bookmark, swipe navigation.
 - Fixed `message-scopes.test.ts` namespace regex to allow digits (`pregnancyV2`).
 - Open: body tab links `/pregnancy/log` (revisit after T-M7-12); nothing links to `/pregnancy/weeks` yet. Screenshots not taken.
+
+## T-M7-09 — Frontend — pregnancy entry points, mode-aware nav, Setup v2
+- Intention step back in signup (pregnant → pregnancyBasis → conditions); profile mode switch (→ `/pregnancy/setup`, confirm on switch back); pregnancy bottom nav (امروز · تقویم · FAB log · بارداری `/pregnancy/weeks` · پروفایل); Setup v2 flow (welcome → dating / history / result via dating-preview) at `/pregnancy/setup` (and `/pregnancy/onboarding`).
+- Outside touches: `entities/user/model/steps.test.ts` updated for both branches.
+- Open: signup pregnancy-basis screen doesn't reuse the new SetupSteps (needs a shared `features/pregnancy-setup` slice); `/pregnancy/calendar` comes in T-M7-13. Screenshots / running-app check pending.

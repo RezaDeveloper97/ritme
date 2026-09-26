@@ -11,6 +11,13 @@ export interface NavItem {
   icon: IconName;
   /** The center "+" renders as a raised gradient FAB instead of a labelled tab. */
   fab?: boolean;
+  /** Also active on sub-paths (`/pregnancy/weeks/12` for `/pregnancy/weeks`). */
+  prefix?: boolean;
+}
+
+/** Is `item` the tab for `pathname`? */
+export function isNavItemActive(item: NavItem, pathname: string): boolean {
+  return pathname === item.href || (!!item.prefix && pathname.startsWith(`${item.href}/`));
 }
 
 /**
@@ -27,24 +34,21 @@ export const NAV_ITEMS: NavItem[] = [
 ];
 
 /**
- * Mode is a first-class concept (CLAUDE.md §1), so the nav adapts: in pregnancy
- * mode the «cycle» tab becomes the week-by-week pregnancy tracker and the log
- * FAB records pregnancy logs. Everything else stays identical between modes.
+ * Pregnancy-mode tabs (docs/pregnancy-v2/README.md): امروز · تقویم · gradient
+ * FAB → today's log · بارداری (week by week) · پروفایل.
  */
-export function navItemsForMode(_mode: AppMode | undefined): NavItem[] {
-  // TEMPORARILY FORCED to the cycle nav: pregnancy mode is hidden from the
-  // frontend for now, so even an account whose backend mode is still
-  // `pregnancy` gets the cycle tabs. Restore the block below to re-enable it.
-  return NAV_ITEMS;
+export const PREGNANCY_NAV_ITEMS: NavItem[] = [
+  { key: 'today', href: '/pregnancy', icon: 'home' },
+  { key: 'calendar', href: '/pregnancy/calendar', icon: 'calendar' },
+  { key: 'log', href: '/pregnancy/log', icon: 'plus', fab: true },
+  { key: 'pregnancy', href: '/pregnancy/weeks', icon: 'heart', prefix: true },
+  { key: 'profile', href: '/profile', icon: 'user' },
+];
 
-  // if (mode !== 'pregnancy') return NAV_ITEMS;
-  // return NAV_ITEMS.map((item) => {
-  //   if (item.key === 'cycle') {
-  //     return { key: 'pregnancy', href: '/pregnancy', icon: 'heart' } as NavItem;
-  //   }
-  //   if (item.key === 'log') {
-  //     return { ...item, href: '/pregnancy/log' };
-  //   }
-  //   return item;
-  // });
+/**
+ * Mode is a first-class concept (CLAUDE.md §1), so the nav adapts: in pregnancy
+ * mode every tab points into the pregnancy tracker (except profile).
+ */
+export function navItemsForMode(mode: AppMode | undefined): NavItem[] {
+  return mode === 'pregnancy' ? PREGNANCY_NAV_ITEMS : NAV_ITEMS;
 }

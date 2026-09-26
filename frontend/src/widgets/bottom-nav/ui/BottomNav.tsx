@@ -11,7 +11,7 @@ import { Icon } from '@/shared/ui';
 import { getNavGoo, restFrame } from '../lib/goo-motion';
 import type { BlobPos, Frame, Rect } from '../lib/goo-motion';
 
-import { navItemsForMode } from '../model/nav-items';
+import { isNavItemActive, navItemsForMode } from '../model/nav-items';
 
 /**
  * Floating bottom navigation shared across the main tabs. The active-tab
@@ -73,8 +73,8 @@ export function BottomNav() {
     blob.classList.add('jelly');
   };
 
-  const activeKey = items.find((item) => pathname === item.href)?.key;
-  const isFabRoute = items.some((item) => item.fab && pathname === item.href);
+  const activeKey = items.find((item) => isNavItemActive(item, pathname))?.key;
+  const isFabRoute = items.some((item) => item.fab && isNavItemActive(item, pathname));
 
   const rafRef = useRef(0);
 
@@ -192,7 +192,7 @@ export function BottomNav() {
         best = i;
       }
     });
-    const item = commit ? items[best] : items.find((it) => pathname === it.href);
+    const item = commit ? items[best] : items.find((it) => isNavItemActive(it, pathname));
     const el = commit ? els[best] : undefined;
     const fabRect: Rect = { left: fabEl.offsetLeft, width: fabEl.offsetWidth };
     const goo = getNavGoo();
@@ -371,7 +371,7 @@ export function BottomNav() {
           );
         }
 
-        const active = pathname === item.href;
+        const active = isNavItemActive(item, pathname);
 
         return (
           <Link

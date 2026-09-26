@@ -77,7 +77,17 @@
     "done": "All set, let's go",
     "changeBasis": "Change the basis",
     "editBasis": "Edit the calculation basis",
-    "previewError": "Couldn't calculate that. Please check the dates."
+    "previewError": "Couldn't calculate that. Please check the dates.",
+    "sourceHints": {
+      "lmp": "If you know the date of your last period, this is the simplest option. The estimate range is usually about ±5 days.",
+      "ultrasound": "Based on an ultrasound result; early scans usually give a narrower estimate range.",
+      "manual": "If your doctor told you how many weeks you are. The estimate range depends on how precise that was."
+    },
+    "historyDisclaimer": "This information is kept only in your account to personalise your care, and never appears in links or automatic reports.",
+    "submitting": "Setting up…",
+    "submitError": "Setup didn't go through. Please try again in a bit.",
+    "fillRequired": "Please complete the calculation basis first.",
+    "calculating": "Calculating…"
   },
   "today": {
     "alerts": "Alerts",

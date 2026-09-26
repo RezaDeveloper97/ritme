@@ -11,37 +11,34 @@ import {
   stepPosition,
 } from './steps';
 
-// Pregnancy mode is postponed and hidden from the frontend, so the intention
-// question and the pregnant branch are disabled: every intention (including
-// 'pregnant', which can no longer be chosen) walks the same cycle sequence.
-// Restore the branch assertions in git history when pregnancy comes back.
-const CYCLE_STEPS = [
-  'name', 'birthday', 'weight', 'height',
-  'periodLen', 'cycleDuration', 'cycleLen', 'conditions',
-];
+const HEAD = ['name', 'birthday', 'weight', 'height', 'intention'];
+const CYCLE_STEPS = [...HEAD, 'periodLen', 'cycleDuration', 'cycleLen', 'conditions'];
+const PREGNANT_STEPS = [...HEAD, 'pregnancyBasis', 'conditions'];
 
 describe('onboardingSteps', () => {
-  it('routes every user through the cycle questions, without pregnancy steps', () => {
-    for (const intention of ['avoiding', 'pregnant', 'trying', 'unsure', null] as const) {
-      const steps = onboardingSteps(intention);
-      expect(steps).toEqual(CYCLE_STEPS);
-      expect(steps).not.toContain('intention');
-      expect(steps).not.toContain('pregnancyBasis');
+  it('branches on intention: pregnant users date the pregnancy, everyone else the cycle', () => {
+    expect(onboardingSteps('pregnant')).toEqual(PREGNANT_STEPS);
+    for (const intention of ['avoiding', 'trying', 'unsure', null] as const) {
+      expect(onboardingSteps(intention)).toEqual(CYCLE_STEPS);
     }
   });
 });
 
 describe('stepPosition', () => {
   it('reports 1-based index and total', () => {
-    expect(stepPosition('name', null)).toEqual({ index: 1, total: 8 });
-    expect(stepPosition('conditions', 'avoiding')).toEqual({ index: 8, total: 8 });
+    expect(stepPosition('name', null)).toEqual({ index: 1, total: 9 });
+    expect(stepPosition('conditions', 'avoiding')).toEqual({ index: 9, total: 9 });
+    expect(stepPosition('pregnancyBasis', 'pregnant')).toEqual({ index: 6, total: 7 });
   });
 });
 
 describe('nextOnboardingRoute', () => {
   it('advances through the head straight into the cycle questions', () => {
     expect(nextOnboardingRoute('name', null)).toBe(onboardingRoute('birthday'));
-    expect(nextOnboardingRoute('height', null)).toBe(onboardingRoute('periodLen'));
+    expect(nextOnboardingRoute('height', null)).toBe(onboardingRoute('intention'));
+    expect(nextOnboardingRoute('intention', 'avoiding')).toBe(onboardingRoute('periodLen'));
+    expect(nextOnboardingRoute('intention', 'pregnant')).toBe(onboardingRoute('pregnancyBasis'));
+    expect(nextOnboardingRoute('pregnancyBasis', 'pregnant')).toBe(onboardingRoute('conditions'));
   });
 
   it('lands on the setting-up screen after the last step', () => {
@@ -98,15 +95,12 @@ describe('previousOnboardingRoute', () => {
     expect(previousOnboardingRoute(onboardingSteps(null)[0], null)).toBeNull();
   });
 
-  // `intention` and `pregnancyBasis` are out of the flow while pregnancy is
-  // postponed, but their route folders — and the screens that ask for their
-  // previous step — still exist. indexOf() returns -1 for them, which used to
-  // read as "before the first step" and eject the user to /signup.
-  it('keeps a key that is not in the current flow inside onboarding', () => {
-    for (const key of ['intention', 'pregnancyBasis'] as const) {
-      expect(previousOnboardingRoute(key, null)).toBe(onboardingRoute('name'));
-      expect(nextOnboardingRoute(key, null)).toBe(onboardingRoute('name'));
-    }
+  // `pregnancyBasis` is outside the cycle branch but its route still exists.
+  // indexOf() returns -1 for it, which used to read as "before the first step"
+  // and eject the user to /signup.
+  it('keeps a key that is not in the current branch inside onboarding', () => {
+    expect(previousOnboardingRoute('pregnancyBasis', null)).toBe(onboardingRoute('name'));
+    expect(nextOnboardingRoute('pregnancyBasis', null)).toBe(onboardingRoute('name'));
   });
 
   it('is the inverse of nextOnboardingRoute for every non-final step', () => {

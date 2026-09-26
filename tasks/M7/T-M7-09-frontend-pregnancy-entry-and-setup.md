@@ -3,7 +3,7 @@ id: T-M7-09
 title: Frontend — re-enable pregnancy entry points, mode-aware nav, Setup v2 flow
 milestone: M7
 type: frontend
-status: todo
+status: done
 depends_on: [T-M7-08, T-M7-02]
 parallel_group: M7-B
 touches: [frontend/src/entities/user/model/steps.ts, frontend/src/widgets/bottom-nav, frontend/src/screens/profile/ui/ProfilePage.tsx, frontend/src/screens/onboarding-intention, frontend/src/screens/onboarding-pregnancy-basis, frontend/src/screens/onboarding-setting-up, frontend/src/screens/pregnancy-onboarding, frontend/src/app/[locale]/pregnancy/setup]

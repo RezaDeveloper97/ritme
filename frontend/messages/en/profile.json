@@ -51,6 +51,7 @@
     "switchToCycle": "Back to cycle mode",
     "switching": "Switching…",
     "cycleActive": "Cycle mode is active",
-    "pregnancyActive": "Pregnancy mode is active"
+    "pregnancyActive": "Pregnancy mode is active",
+    "confirmSwitchToCycle": "Turn off pregnancy mode and go back to cycle tracking?"
   }
 }

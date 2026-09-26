@@ -1,1 +1,1 @@
-export { PregnancyOnboardingPage } from './ui/PregnancyOnboardingPage';
+export { PregnancyOnboardingPage, PregnancySetupPage } from './ui/PregnancyOnboardingPage';

@@ -51,6 +51,7 @@
     "switchToCycle": "برگرد به حالت چرخه",
     "switching": "در حال تغییر…",
     "cycleActive": "حالت چرخه روشنه",
-    "pregnancyActive": "حالت بارداری روشنه"
+    "pregnancyActive": "حالت بارداری روشنه",
+    "confirmSwitchToCycle": "حالت بارداری خاموش بشه و به حالت چرخه برگردی؟"
   }
 }

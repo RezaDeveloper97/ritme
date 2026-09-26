@@ -1,255 +1,183 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 
 import {
+  useActivatePregnancy,
   useCompleteOnboarding,
-  usePregnancyEnums,
-  type AgeSource,
-  type OnboardingInput,
+  useDatingPreview,
 } from '@/entities/pregnancy';
-import { DateWheels, datePartsToApiDate } from '@/features/edit-profile';
-import { Chip, NumberField, PgCard, Segmented, Toggle } from '@/features/track-pregnancy';
 import { useDirection, useRouter, type Locale } from '@/shared/i18n';
-import { todayParts, type DateParts } from '@/shared/lib/date';
+import { formatNumber } from '@/shared/lib/date';
 import { Icon } from '@/shared/ui';
-import { BottomNav } from '@/widgets/bottom-nav';
 
-const AGE_SOURCES: AgeSource[] = ['lmp', 'ultrasound', 'manual'];
-const BLOOD_TYPES = ['A', 'B', 'AB', 'O'];
-const RH_FACTORS = ['positive', 'negative'];
-const CONDITIONS = ['chronic_hypertension', 'diabetes', 'hypothyroidism', 'hyperthyroidism', 'none'];
+import {
+  EMPTY_DATING,
+  EMPTY_HISTORY,
+  isDatingComplete,
+  toOnboardingInput,
+  toPreviewInput,
+  type SetupDating,
+  type SetupHistory,
+} from '../model/setup';
 
-type DynT = (key: string) => string;
+import { DatingStep, HistoryStep, ResultStep } from './SetupSteps';
 
-/** Onboarding: pick a dating method, enter the dates/weeks it needs, and add
- *  optional history. Submits to POST /pregnancy/onboarding, then lands on the
- *  tracker. Sensitive data never leaves the form except in the request (§11). */
+type Phase = 'welcome' | 1 | 2 | 3;
+const TOTAL = 3;
+
+/**
+ * Pregnancy Setup v2 (`/pregnancy/setup`): welcome → dating basis → optional
+ * history → result from `dating-preview`. «تمومه» activates pregnancy mode,
+ * submits the v1 `/pregnancy/onboarding` body, then lands on `/pregnancy`.
+ * Sensitive data only leaves the form in those requests (CLAUDE.md §11).
+ */
 export function PregnancyOnboardingPage() {
-  const t = useTranslations('pregnancy');
-  const locale = useLocale() as Locale;
+  const t = useTranslations('pregnancyV2.setup');
+  const tc = useTranslations('pregnancyV2.common');
+  const loc = useLocale() as Locale;
   const isRtl = useDirection() === 'rtl';
   const router = useRouter();
-  const dyn = t as unknown as DynT;
 
-  const enums = usePregnancyEnums();
-  const onboard = useCompleteOnboarding();
-
-  const [ageSource, setAgeSource] = useState<AgeSource | undefined>(undefined);
-  const [lmp, setLmp] = useState<DateParts>(() => todayParts(locale));
-  const [scanDate, setScanDate] = useState<DateParts>(() => todayParts(locale));
-  const [scanWeeks, setScanWeeks] = useState<number | undefined>();
-  const [scanDays, setScanDays] = useState<number | undefined>();
-  const [manualWeeks, setManualWeeks] = useState<number | undefined>();
-  const [manualDays, setManualDays] = useState<number | undefined>();
-  const [miscarriage, setMiscarriage] = useState(false);
-  const [highRisk, setHighRisk] = useState(false);
-  const [conditions, setConditions] = useState<string[]>([]);
-  const [bloodType, setBloodType] = useState<string | undefined>();
-  const [rhFactor, setRhFactor] = useState<string | undefined>();
+  const [phase, setPhase] = useState<Phase>('welcome');
+  const [dating, setDating] = useState<SetupDating>(EMPTY_DATING);
+  const [history, setHistory] = useState<SetupHistory | null>(EMPTY_HISTORY);
   const [error, setError] = useState<string | null>(null);
 
-  const thisYear = todayParts(locale).year;
-  const dayOptions = useMemo(
-    () => Array.from({ length: 7 }, (_, i) => ({ value: String(i), label: String(i) })),
-    [],
-  );
+  const preview = useDatingPreview(phase === 3 ? toPreviewInput(dating, loc) : null);
+  const activate = useActivatePregnancy();
+  const onboard = useCompleteOnboarding();
+  const submitting = activate.isPending || onboard.isPending;
 
-  const toggleCondition = (value: string) => {
-    setConditions((prev) => {
-      if (value === 'none') return prev.includes('none') ? [] : ['none'];
-      const next = prev.filter((c) => c !== 'none');
-      return next.includes(value) ? next.filter((c) => c !== value) : [...next, value];
-    });
-  };
-
-  const buildPayload = (): OnboardingInput | null => {
-    if (!ageSource) {
-      setError(t('onboarding.selectAgeSource'));
-      return null;
-    }
-    const base: OnboardingInput = { age_source: ageSource };
-    if (ageSource === 'lmp') {
-      base.lmp_date = datePartsToApiDate(lmp, locale);
-    } else if (ageSource === 'ultrasound') {
-      if (scanWeeks == null) {
-        setError(t('onboarding.fillRequired'));
-        return null;
-      }
-      base.ultrasound_date = datePartsToApiDate(scanDate, locale);
-      base.ultrasound_weeks = scanWeeks;
-      base.ultrasound_days = scanDays ?? 0;
-    } else {
-      if (manualWeeks == null) {
-        setError(t('onboarding.fillRequired'));
-        return null;
-      }
-      base.manual_weeks = manualWeeks;
-      base.manual_days = manualDays ?? 0;
-    }
-    if (miscarriage) base.has_miscarriage_history = true;
-    if (highRisk) base.has_high_risk_history = true;
-    if (conditions.length) base.pre_existing_conditions = conditions;
-    if (bloodType) base.blood_type = bloodType;
-    if (rhFactor) base.rh_factor = rhFactor;
-    return base;
-  };
-
-  const handleSubmit = () => {
+  const back = () => {
     setError(null);
-    const payload = buildPayload();
-    if (!payload) return;
-    onboard.mutate(payload, {
-      onSuccess: () => router.replace('/pregnancy'),
-      onError: () => setError(t('error')),
-    });
+    if (phase === 'welcome' || phase === 1) setPhase('welcome');
+    else setPhase((phase - 1) as Phase);
   };
 
-  const ageSources = enums.data?.ageSources ?? AGE_SOURCES;
-  const bloodTypes = enums.data?.bloodTypes ?? BLOOD_TYPES;
-  const rhFactors = enums.data?.rhFactors ?? RH_FACTORS;
-  const conditionOptions = enums.data?.preExistingConditions ?? CONDITIONS;
+  const next = () => {
+    setError(null);
+    if (phase === 1 && !isDatingComplete(dating)) return setError(t('fillRequired'));
+    if (phase === 1 || phase === 2) setPhase((phase + 1) as Phase);
+  };
+
+  const finish = async () => {
+    const body = toOnboardingInput(dating, history, loc);
+    if (!body || submitting) return;
+    setError(null);
+    try {
+      await activate.mutateAsync();
+      await onboard.mutateAsync(body);
+      router.replace('/pregnancy');
+    } catch {
+      setError(t('submitError'));
+    }
+  };
+
+  if (phase === 'welcome') {
+    return (
+      <div className="view onb-page">
+        <div className="scroll onb-body">
+          <div className="onb-center">
+            <Icon name="heart" size={48} />
+            <div className="titr onb-titr">{t('welcomeTitle')}</div>
+            <p className="sub onb-center-text">{t('welcomeBody')}</p>
+          </div>
+        </div>
+        <div className="onb-actions">
+          <button className="btn btn-primary" onClick={() => setPhase(1)}>
+            {t('turnOn')}
+          </button>
+          <button className="btn btn-ghost" onClick={() => router.replace('/profile')}>
+            {t('notNow')}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const title = phase === 1 ? t('datingTitle') : phase === 2 ? t('historyTitle') : null;
+  const body = phase === 1 ? t('datingBody') : phase === 2 ? t('historyBody') : null;
 
   return (
-    <div className="view pon-page">
-      <div className="scroll">
-        <div className="onb-hdr">
-          <button className="iconbtn" onClick={() => router.replace('/home')} aria-label={t('back')}>
-            <Icon name={isRtl ? 'chevronRight' : 'chevronLeft'} size={20} />
-          </button>
-          <div className="titr onb-titr">{t('onboarding.title')}</div>
-          <p className="sub onb-sub">{t('onboarding.subtitle')}</p>
-        </div>
-
-        <div className="pon-stack">
-          {/* Dating method */}
-          <PgCard title={t('onboarding.ageSourceLabel')} icon="calendar">
-            <div className="pon-choices">
-              {ageSources.map((src) => {
-                const on = ageSource === src;
-                return (
-                  <button
-                    key={src}
-                    type="button"
-                    onClick={() => setAgeSource(src as AgeSource)}
-                    className="card"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: 10,
-                      padding: '11px 12px',
-                      textAlign: 'start',
-                      cursor: 'pointer',
-                      border: on ? '2px solid var(--brand)' : '1px solid var(--line)',
-                      background: on ? 'var(--surface-2)' : 'var(--surface)',
-                    }}
-                  >
-                    <span className="dot pon-choice-dot" style={{ background: on ? 'var(--brand)' : 'var(--track)' }}>
-                      {on && <Icon name="check" size={13} />}
-                    </span>
-                    <span>
-                      <span className="pon-choice-t">
-                        {dyn(`onboarding.ageSource.${src}`)}
-                      </span>
-                      <span className="pon-choice-h">
-                        {dyn(`onboarding.ageSourceHint.${src}`)}
-                      </span>
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </PgCard>
-
-          {/* Conditional dating inputs */}
-          {ageSource === 'lmp' && (
-            <PgCard title={t('onboarding.lmpDate')}>
-              <DateWheels idPrefix="lmp" value={lmp} onChange={setLmp} minYear={thisYear - 1} maxYear={thisYear} />
-            </PgCard>
-          )}
-
-          {ageSource === 'ultrasound' && (
-            <PgCard title={t('onboarding.ultrasoundDate')}>
-              <DateWheels idPrefix="scan" value={scanDate} onChange={setScanDate} minYear={thisYear - 1} maxYear={thisYear} />
-              <div className="onb-mt12">
-                <span className="pon-sublabel">{t('onboarding.ultrasoundAge')}</span>
-                <div className="pon-pair">
-                  <div>
-                    <NumberField label={t('onboarding.weeks')} value={scanWeeks} onChange={setScanWeeks} min={1} max={42} />
-                  </div>
-                </div>
-                <div className="onb-mt10">
-                  <span className="pon-sublabel is-block">{t('onboarding.days')}</span>
-                  <Segmented options={dayOptions} value={scanDays != null ? String(scanDays) : undefined} onChange={(v) => setScanDays(v == null ? undefined : Number(v))} />
-                </div>
-              </div>
-            </PgCard>
-          )}
-
-          {ageSource === 'manual' && (
-            <PgCard title={t('onboarding.manualAge')}>
-              <NumberField label={t('onboarding.weeks')} value={manualWeeks} onChange={setManualWeeks} min={1} max={42} />
-              <div className="onb-mt10">
-                <span className="pon-sublabel is-block">{t('onboarding.days')}</span>
-                <Segmented options={dayOptions} value={manualDays != null ? String(manualDays) : undefined} onChange={(v) => setManualDays(v == null ? undefined : Number(v))} />
-              </div>
-            </PgCard>
-          )}
-
-          {/* History */}
-          <PgCard title={t('onboarding.history.title')} icon="shield">
-            <div className="pon-toggle-row">
-              <span className="pon-toggle-lbl">{t('onboarding.history.miscarriage')}</span>
-              <Toggle on={miscarriage} onClick={() => setMiscarriage((v) => !v)} />
-            </div>
-            <div className="pon-toggle-row">
-              <span className="pon-toggle-lbl">{t('onboarding.history.highRisk')}</span>
-              <Toggle on={highRisk} onClick={() => setHighRisk((v) => !v)} />
-            </div>
-          </PgCard>
-
-          {/* Conditions */}
-          <PgCard title={t('onboarding.conditions.title')} icon="stetho" hint={t('onboarding.optional')}>
-            <div className="pon-chips">
-              {conditionOptions.map((c) => (
-                <Chip key={c} on={conditions.includes(c)} label={dyn(`onboarding.conditions.${c}`)} onClick={() => toggleCondition(c)} />
-              ))}
-            </div>
-          </PgCard>
-
-          {/* Blood group + Rh */}
-          <PgCard title={t('onboarding.bloodTypeLabel')} icon="drop" hint={t('onboarding.optional')}>
-            <div className="pon-chips">
-              {bloodTypes.map((b) => (
-                <Chip key={b} on={bloodType === b} label={b} onClick={() => setBloodType(bloodType === b ? undefined : b)} />
-              ))}
-            </div>
-            <div className="onb-mt12">
-              <span className="pon-sublabel is-block">{t('onboarding.rhLabel')}</span>
-              <div className="pon-chips is-row">
-                {rhFactors.map((r) => (
-                  <Chip key={r} on={rhFactor === r} label={dyn(`onboarding.rh.${r}`)} onClick={() => setRhFactor(rhFactor === r ? undefined : r)} />
-                ))}
-              </div>
-            </div>
-          </PgCard>
-
-          {error && (
-            <p className="onb-error">{error}</p>
-          )}
-        </div>
-
-        <div className="pon-tail" />
-      </div>
-
-      <div className="pon-footer">
-        <button className="btn btn-primary onb-cta" onClick={handleSubmit} disabled={onboard.isPending}>
-          {onboard.isPending ? t('onboarding.submitting') : t('onboarding.submit')}
+    <div className="view onb-page">
+      <div className="hdr">
+        <button className="iconbtn" onClick={back} aria-label={tc('back')}>
+          <Icon name={isRtl ? 'chevronRight' : 'chevronLeft'} size={20} />
         </button>
+        <span className="stepcount" aria-label={t('progressLabel')}>
+          {t('step', { step: phase, total: TOTAL })}
+        </span>
+      </div>
+      <div
+        className="seg"
+        role="progressbar"
+        aria-label={t('progressLabel')}
+        aria-valuemin={1}
+        aria-valuemax={TOTAL}
+        aria-valuenow={phase}
+        aria-valuetext={`${formatNumber(phase, loc)} / ${formatNumber(TOTAL, loc)}`}
+      >
+        {Array.from({ length: TOTAL }, (_, i) => (
+          <button key={i} type="button" tabIndex={-1} className={i < phase ? 'on' : undefined} aria-hidden />
+        ))}
       </div>
 
-      <BottomNav />
+      <div className="scroll onb-body">
+        {title && (
+          <div className="onb-intro">
+            <div className="titr">{title}</div>
+            <p className="sub onb-intro-sub">{body}</p>
+          </div>
+        )}
+
+        {phase === 1 && <DatingStep value={dating} onChange={setDating} />}
+        {phase === 2 && <HistoryStep value={history ?? EMPTY_HISTORY} onChange={setHistory} />}
+        {phase === 3 && (
+          <ResultStep preview={preview.data} loading={preview.isLoading} failed={preview.isError} />
+        )}
+
+        {error && <p className="onb-error">{error}</p>}
+        <div className="onb-tail" />
+      </div>
+
+      <div className="onb-actions">
+        {phase === 3 ? (
+          <>
+            <button
+              className="btn btn-primary"
+              onClick={() => void finish()}
+              disabled={submitting || !preview.data}
+            >
+              {submitting ? t('submitting') : t('done')}
+            </button>
+            <button className="btn btn-ghost" onClick={() => setPhase(1)} disabled={submitting}>
+              {t('changeBasis')}
+            </button>
+          </>
+        ) : (
+          <>
+            <button className="btn btn-primary" onClick={next}>
+              {t('continue')}
+            </button>
+            {phase === 2 && (
+              <button
+                className="btn btn-ghost"
+                onClick={() => {
+                  setHistory(null);
+                  setPhase(3);
+                }}
+              >
+                {t('skip')}
+              </button>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
+
+/** Same screen under its v2 route name. */
+export { PregnancyOnboardingPage as PregnancySetupPage };

@@ -3,9 +3,8 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { type CSSProperties, type ReactNode, useEffect, useState } from 'react';
 
-// Pregnancy postponed — kept for the commented-out mode section below:
-// import { useUserMode } from '@/entities/message';
-// import { useDeactivatePregnancy } from '@/entities/pregnancy';
+import { useUserMode } from '@/entities/message';
+import { useDeactivatePregnancy } from '@/entities/pregnancy';
 import { useUserProfile } from '@/entities/user';
 import { useLogout } from '@/features/auth';
 import { QuickEditSheet, type QuickEditField } from '@/features/edit-profile';
@@ -183,8 +182,8 @@ export function ProfilePage() {
   const router = useRouter();
   const loc = useLocale() as Locale;
   const { data: profile } = useUserProfile();
-  // const { data: userMode } = useUserMode();
-  // const deactivatePregnancy = useDeactivatePregnancy();
+  const { data: userMode } = useUserMode();
+  const deactivatePregnancy = useDeactivatePregnancy();
   const logout = useLogout();
   const { locale, languages, isPending: switching } = useSwitchLocale();
   // Labelled in its own language — that is how a language picker reads.
@@ -226,15 +225,15 @@ export function ProfilePage() {
 
 
 
-  // App mode (CLAUDE.md §1). Entering pregnancy mode routes to /pregnancy,
-  // which activates and runs onboarding via its own gate; leaving it flips the
-  // backend mode back to cycle in place.
-  // TEMPORARILY DISABLED with the mode section below (pregnancy postponed):
-  // const isPregnancy = userMode?.mode === 'pregnancy';
-  // const switchToCycle = () => {
-  //   if (deactivatePregnancy.isPending) return;
-  //   deactivatePregnancy.mutate();
-  // };
+  // App mode (CLAUDE.md §1). Entering pregnancy mode runs the Setup flow
+  // (/pregnancy/setup), which dates the pregnancy and activates the mode;
+  // leaving it asks for confirmation, then flips the backend mode back to cycle.
+  const isPregnancy = userMode?.mode === 'pregnancy';
+  const switchToCycle = () => {
+    if (deactivatePregnancy.isPending) return;
+    if (!window.confirm(t('mode.confirmSwitchToCycle'))) return;
+    deactivatePregnancy.mutate(undefined, { onSuccess: () => router.replace('/home') });
+  };
 
   const chevron = <Chevron />;
 
@@ -270,12 +269,7 @@ export function ProfilePage() {
           </div>
         </section>
 
-        {/* App mode — TEMPORARILY HIDDEN. Pregnancy mode is postponed, so the
-            switch/tracker entry point is commented out rather than deleted; the
-            backend, routes and pregnancy slices are all still in place. Restore
-            this block (and `isPregnancy`/`switchToCycle` above) to bring it
-            back.
-
+        {/* App mode — pregnancy tracker entry / switch (CLAUDE.md §1). */}
         <Group title={t('sections.mode')}>
           {isPregnancy ? (
             <>
@@ -298,11 +292,10 @@ export function ProfilePage() {
               icon="heart"
               label={t('mode.switchToPregnancy')}
               trailing={chevron}
-              onClick={() => router.push('/pregnancy')}
+              onClick={() => router.push('/pregnancy/setup')}
             />
           )}
         </Group>
-        */}
 
         {/* Cycle & health — the user's profile data from GET /profile. When the
             account has no health profile yet, a single hint row stands in for
