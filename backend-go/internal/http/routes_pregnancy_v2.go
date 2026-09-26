@@ -9,6 +9,7 @@ import (
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/pregnancy/store"
 	pregnancyv2 "github.com/ritme/backend-go/internal/pregnancy/v2"
+	"github.com/ritme/backend-go/internal/pregnancy/v2/daylog"
 )
 
 // Pregnancy v2 (docs/pregnancy-v2/README.md), Go only: dating preview, Today, week page and
@@ -24,5 +25,10 @@ func init() {
 		r.Get(p+"/today", locale, guard, h.Today)
 		r.Get(p+"/weeks/:n", locale, guard, h.Week)
 		r.Put(p+"/weeks/:n/state", locale, guard, h.WeekState)
+
+		dl := daylog.NewHandlers(store.New(d.DB), clock.Real{})
+		r.Get(p+"/report", locale, guard, dl.Report)
+		r.Get(p+"/days/:date", locale, guard, dl.Show)
+		r.Put(p+"/days/:date", locale, guard, dl.Update)
 	})
 }

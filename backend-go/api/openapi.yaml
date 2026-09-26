@@ -7584,6 +7584,139 @@ paths:
         '404': {$ref: "#/components/responses/ModelNotFound"}
         '409': {$ref: "#/components/responses/PregnancyNotActive"}
         '422': {$ref: "#/components/responses/PregnancyV2ValidationFailed"}
+  /api/v1/pregnancy/v2/report:
+    get:
+      tags: [PregnancyV2]
+      summary: Doctor report timeline (logged days + weights) for a date range
+      description: Days with any logged data between from and to (inclusive, at most 366 days), plus weighed weekly logs.
+      operationId: getPregnancyV2Report
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: from, in: query, required: true, schema: {$ref: "#/components/schemas/Date"}}
+        - {name: to, in: query, required: true, schema: {$ref: "#/components/schemas/Date"}}
+      responses:
+        '200':
+          description: Report data
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [range, range_label, generated_at, profile, due_date, days, weights]
+                    properties:
+                      range:
+                        type: object
+                        properties:
+                          from: {$ref: "#/components/schemas/Date"}
+                          to: {$ref: "#/components/schemas/Date"}
+                      range_label: {type: string}
+                      generated_at: {$ref: "#/components/schemas/IsoDateTime"}
+                      profile:
+                        type: object
+                        properties:
+                          weeks: {type: integer}
+                          days: {type: integer}
+                          week: {type: integer}
+                          due_date: {$ref: "#/components/schemas/Date"}
+                      due_date: {$ref: "#/components/schemas/Date"}
+                      days:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            date: {$ref: "#/components/schemas/Date"}
+                            date_label: {type: string}
+                            week: {type: integer}
+                            mood: {type: [integer, "null"], minimum: 1, maximum: 5}
+                            symptoms: {$ref: "#/components/schemas/PregnancyV2DaySymptoms"}
+                            water_glasses: {type: [integer, "null"]}
+                            visit_note: {type: [string, "null"]}
+                      weights:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            date: {$ref: "#/components/schemas/Date"}
+                            week: {type: integer}
+                            value: {type: number}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '409': {$ref: "#/components/responses/PregnancyNotActive"}
+        '422': {$ref: "#/components/responses/PregnancyV2ValidationFailed"}
+  /api/v1/pregnancy/v2/days/{date}:
+    get:
+      tags: [PregnancyV2]
+      summary: One day of the pregnancy day log (merged v1 symptoms + v2 extras + weight)
+      operationId: getPregnancyV2Day
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: date, in: path, required: true, schema: {$ref: "#/components/schemas/Date"}}
+      responses:
+        '200':
+          description: The day
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/PregnancyV2Day"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '409': {$ref: "#/components/responses/PregnancyNotActive"}
+        '422': {$ref: "#/components/responses/PregnancyV2ValidationFailed"}
+    put:
+      tags: [PregnancyV2]
+      summary: Save one day of the pregnancy day log
+      description: >-
+        Idempotent partial update — an omitted key keeps its value, null clears it. `symptoms` replaces the whole
+        symptom set of the day. nausea/vomiting/fatigue/headache/back_pain/breast_pain/spotting are written to the v1
+        symptom log (same alert rules as POST /pregnancy/symptoms); heartburn/constipation/mood/water/visit note to
+        pregnancy_daily_extras; weight to that week's weekly log. Nothing is written (and no alert raised) when the
+        values are unchanged. The date may not be in the future.
+      operationId: putPregnancyV2Day
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: date, in: path, required: true, schema: {$ref: "#/components/schemas/Date"}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mood: {type: [integer, "null"], minimum: 1, maximum: 5}
+                water_glasses: {type: [integer, "null"], minimum: 0, maximum: 15}
+                weight: {type: [number, "null"], minimum: 30, maximum: 200}
+                visit_note: {type: [string, "null"], maxLength: 2000}
+                symptoms:
+                  oneOf:
+                    - {type: "null"}
+                    - {$ref: "#/components/schemas/PregnancyV2DaySymptoms"}
+      responses:
+        '200':
+          description: Saved day + alerts raised by this save
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/PregnancyV2Day"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '409': {$ref: "#/components/responses/PregnancyNotActive"}
+        '422': {$ref: "#/components/responses/PregnancyV2ValidationFailed"}
 components:
   securitySchemes:
     bearerAuth:
@@ -7759,6 +7892,59 @@ components:
             properties: {success: {type: boolean, const: false}, message: {type: string}}
           example: {success: false, message: نوبت پیدا نشد}
   schemas:
+    PregnancyV2DaySymptoms:
+      description: "Symptom → severity; only logged symptoms are present (empty object when none)."
+      type: [object, array]
+      properties:
+        nausea: {$ref: "#/components/schemas/PregnancyV2Severity"}
+        vomiting: {$ref: "#/components/schemas/PregnancyV2Severity"}
+        fatigue: {$ref: "#/components/schemas/PregnancyV2Severity"}
+        headache: {$ref: "#/components/schemas/PregnancyV2Severity"}
+        back_pain: {$ref: "#/components/schemas/PregnancyV2Severity"}
+        breast_pain: {$ref: "#/components/schemas/PregnancyV2Severity"}
+        heartburn: {$ref: "#/components/schemas/PregnancyV2Severity"}
+        constipation: {$ref: "#/components/schemas/PregnancyV2Severity"}
+        spotting: {$ref: "#/components/schemas/PregnancyV2Severity"}
+    PregnancyV2Severity:
+      type: [string, "null"]
+      enum: [mild, moderate, severe, null]
+    PregnancyV2Day:
+      type: object
+      required: [date, date_label, week, mood, symptoms, water_glasses, weight, visit_note, last_weight, alerts]
+      properties:
+        date: {$ref: "#/components/schemas/Date"}
+        date_label: {type: string}
+        week: {type: integer}
+        mood: {type: [integer, "null"], minimum: 1, maximum: 5}
+        symptoms: {$ref: "#/components/schemas/PregnancyV2DaySymptoms"}
+        water_glasses: {type: [integer, "null"]}
+        weight: {type: [number, "null"], description: "Weight of that pregnancy week's log (kg)"}
+        visit_note: {type: [string, "null"]}
+        last_weight:
+          oneOf:
+            - {type: "null"}
+            - type: object
+              properties:
+                value: {type: number}
+                date: {$ref: "#/components/schemas/Date"}
+                date_label: {type: string}
+                week: {type: integer}
+        alerts:
+          type: array
+          items:
+            type: object
+            properties:
+              id: {type: integer}
+              level: {type: string, enum: [info, suggestion, follow_up, urgent]}
+              alert_level: {type: string, enum: [info, warning, emergency]}
+              rule_key: {type: string}
+              title: {type: string}
+              advice: {type: string}
+              pregnancy_week: {type: integer}
+              actions: {type: array}
+              created_at: {$ref: "#/components/schemas/IsoDateTime"}
+              is_read: {type: boolean}
+              is_acked: {type: boolean}
     PregnancyV2Range:
       type: object
       required: [from, to]

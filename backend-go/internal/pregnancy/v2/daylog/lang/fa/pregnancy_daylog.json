@@ -1,0 +1,23 @@
+{
+    "messages": {
+        "day_saved": "روزت ذخیره شد"
+    },
+    "validation": {
+        "invalid_date": "تاریخ باید به شکل YYYY-MM-DD و معتبر باشد.",
+        "future_date": "برای روزهای آینده نمی‌شه ثبت کرد.",
+        "unknown_symptom": "علامت ناشناخته: :key.",
+        "range_order": "تاریخ شروع باید قبل از تاریخ پایان یا همان روز باشد.",
+        "range_too_long": "گزارش حداکثر ۳۶۶ روز را پوشش می‌دهد."
+    },
+    "attributes": {
+        "date": "تاریخ",
+        "mood": "حال",
+        "water_glasses": "لیوان آب",
+        "weight": "وزن",
+        "visit_note": "یادداشت ویزیت",
+        "symptoms": "علائم",
+        "symptoms.*": "شدت علامت",
+        "from": "تاریخ شروع",
+        "to": "تاریخ پایان"
+    }
+}

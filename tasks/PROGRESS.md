@@ -596,3 +596,9 @@ Nothing needed fixing.
 - Frontend contract notes: `details.body_symptoms` is a list of labels (what `v2-schema.ts` parses); keys for
   deep-linking are in the extra `details.body_symptom_items: [{key,label}]`. Everything else matches the primary shapes.
 - Open: docs/pregnancy-v2/README.md not updated (outside `touches`); no contract golden (Go-only group).
+
+## T-M7-03 — Pregnancy v2 day log API
+- Shipped `GET/PUT /api/v1/pregnancy/v2/days/{date}` and `GET /api/v1/pregnancy/v2/report?from=&to=` (backend-go/internal/pregnancy/v2/daylog).
+- v1 symptoms/weight written through v1 upserts (same alert rules) via new exported bridge `internal/pregnancy/daylog_bridge.go` (outside `touches`, needed because v1 helpers are unexported); extras in `pregnancy_daily_extras`.
+- PUT idempotent; explicit null clears; future/invalid date 422; non-pregnant 409 `pregnancy_not_active`.
+- Open: alerts map v1 levels (emergency→urgent, warning→follow_up); `actions/what_we_saw/how_sure` await T-M7-04 message engine. Multi-table save not transactional (idempotent retry). Day `weight` = that pregnancy week's weight.

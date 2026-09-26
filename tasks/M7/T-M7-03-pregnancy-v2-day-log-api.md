@@ -3,7 +3,7 @@ id: T-M7-03
 title: Pregnancy v2 — day log API (mood, symptoms, water, weight, visit note)
 milestone: M7
 type: backend
-status: todo
+status: done
 depends_on: [T-M7-01]
 parallel_group: M7-B
 touches: [backend-go/internal/pregnancy/v2/daylog, backend-go/internal/http/routes_pregnancy_v2.go, backend-go/db/queries/pregnancy, backend-go/api/openapi.yaml]

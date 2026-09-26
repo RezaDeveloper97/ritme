@@ -33,6 +33,9 @@ type Querier interface {
 	// PregnancyProfile (App\Models\PregnancyProfile). One row per user (unique user_id).
 	GetProfileByUser(ctx context.Context, userID uint64) (PregnancyProfile, error)
 	GetSymptomLog(ctx context.Context, arg GetSymptomLogParams) (PregnancySymptomLog, error)
+	// Pregnancy v2 day log (T-M7-03). Every query is scoped by user_id.
+	// The newest weekly log with a weight (value + the day it was logged).
+	GetV2LastWeight(ctx context.Context, userID uint64) (GetV2LastWeightRow, error)
 	// Pregnancy v2 read model (T-M7-02, internal/pregnancy/v2): the Today screen's extras and the message
 	// rows it reads. Every user-scoped query filters by user_id.
 	// One row for the Today screen: the unread (not dismissed) alert count, the next upcoming non-cancelled
@@ -76,6 +79,9 @@ type Querier interface {
 	// The live message_contents rows of one group/item in the given locales (request locale + default
 	// language, for the fallback) — the week tip and the setup templates.
 	ListV2MessagePayloads(ctx context.Context, arg ListV2MessagePayloadsParams) ([]ListV2MessagePayloadsRow, error)
+	ListV2SymptomLogsRange(ctx context.Context, arg ListV2SymptomLogsRangeParams) ([]PregnancySymptomLog, error)
+	// Weighed weekly logs whose log_date is within from..to inclusive (doctor report).
+	ListV2WeightsRange(ctx context.Context, arg ListV2WeightsRangeParams) ([]ListV2WeightsRangeRow, error)
 	ListWeekDetails(ctx context.Context) ([]PregnancyWeekDetail, error)
 	// Weeks from..to inclusive (the Today carousel reads prev/current/next in one query).
 	ListWeekDetailsRange(ctx context.Context, arg ListWeekDetailsRangeParams) ([]PregnancyWeekDetail, error)

@@ -1,0 +1,23 @@
+{
+    "messages": {
+        "day_saved": "Day saved"
+    },
+    "validation": {
+        "invalid_date": "The date must be a valid YYYY-MM-DD date.",
+        "future_date": "You can't log a day in the future.",
+        "unknown_symptom": "Unknown symptom: :key.",
+        "range_order": "The start date must be on or before the end date.",
+        "range_too_long": "The report can cover at most 366 days."
+    },
+    "attributes": {
+        "date": "date",
+        "mood": "mood",
+        "water_glasses": "water glasses",
+        "weight": "weight",
+        "visit_note": "visit note",
+        "symptoms": "symptoms",
+        "symptoms.*": "symptom severity",
+        "from": "start date",
+        "to": "end date"
+    }
+}
