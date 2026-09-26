@@ -602,3 +602,12 @@ Nothing needed fixing.
 - v1 symptoms/weight written through v1 upserts (same alert rules) via new exported bridge `internal/pregnancy/daylog_bridge.go` (outside `touches`, needed because v1 helpers are unexported); extras in `pregnancy_daily_extras`.
 - PUT idempotent; explicit null clears; future/invalid date 422; non-pregnant 409 `pregnancy_not_active`.
 - Open: alerts map v1 levels (emergency→urgent, warning→follow_up); `actions/what_we_saw/how_sure` await T-M7-04 message engine. Multi-table save not transactional (idempotent retry). Day `weight` = that pregnancy week's weight.
+
+## T-M3-07 — Frontend — Add/Edit medication screen
+- Shipped `/reminders/medication/new` and `/reminders/medication/[id]` (screens/reminder-medication-form): times↔count, weekday summary, zod mirror of Go validation, 422 mapping, delete confirm, `?from=home` return.
+- `frontend/messages/{fa,en}/care.json` keys added (this commit also carries T-M3-08's keys in the shared file).
+- Open: light/dark fa/en screenshots not taken (no local stack running); home card links don't pass `from=home` yet.
+
+## T-M3-08 — Frontend — Add/Edit appointment and appointment detail screens
+- Shipped `/reminders/appointment/new`, `/[id]`, `/[id]/edit`; `shared/lib/ics` builder (Asia/Tehran TZID, VALARM = remind_before) with tests.
+- Open: screenshots not taken; prep ticking uses PUT fallback (no apiClient.patch); «مسیریابی» uses a Google Maps search link.

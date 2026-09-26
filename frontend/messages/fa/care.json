@@ -141,7 +141,34 @@
     "notes": "یادداشت",
     "notesPlaceholder": "مثلاً بعد از غذا",
     "save": "ذخیره یادآور",
-    "saving": "در حال ذخیره…"
+    "saving": "در حال ذخیره…",
+    "slotRow": "نوبت {n} · {period}",
+    "pickTime": "انتخاب ساعت",
+    "hour": "ساعت",
+    "minute": "دقیقه",
+    "done": "تأیید",
+    "cancel": "بی‌خیال",
+    "daysPerWeek": "{count} روز در هفته",
+    "noDays": "هیچ روزی انتخاب نشده",
+    "amountValue": "{amount} {form}",
+    "untilDate": "تا {date}",
+    "delete": "حذف",
+    "deleteTitle": "این یادآور حذف شود؟",
+    "deleteBody": "یادآور و سابقه مصرف آن پاک می‌شود.",
+    "deleting": "در حال حذف…",
+    "deleteError": "حذف نشد. یه‌کم بعد دوباره امتحان کن.",
+    "notFound": "این دارو پیدا نشد.",
+    "errors": {
+      "titleRequired": "نام دارو را بنویس.",
+      "tooLong": "متن خیلی طولانی است.",
+      "timesDuplicate": "دو نوبت ساعت یکسان دارند.",
+      "timesInvalid": "ساعت نوبت‌ها معتبر نیست.",
+      "weekdaysRequired": "دست‌کم یک روز را انتخاب کن.",
+      "amountRange": "مقدار باید بین ۱ تا ۱۰ باشد.",
+      "dateInvalid": "تاریخ معتبر نیست.",
+      "endsOnRequired": "تاریخ پایان را انتخاب کن.",
+      "endsOnBeforeStart": "تاریخ پایان نباید قبل از شروع باشد."
+    }
   },
   "appointmentForm": {
     "title": "افزودن نوبت",
@@ -182,7 +209,23 @@
     "prep": "چیزهایی که باید آماده کنم",
     "prepPlaceholder": "مثلاً جواب آزمایش قبلی، دفترچه بیمه…",
     "save": "ذخیره نوبت",
-    "saving": "در حال ذخیره…"
+    "saving": "در حال ذخیره…",
+    "placeOnline": "لینک جلسه",
+    "placePhone": "شماره تماس",
+    "placeOnlinePlaceholder": "لینک اسکای‌روم، گوگل‌میت…",
+    "placePhonePlaceholder": "شماره‌ای که با آن تماس می‌گیرند",
+    "shortDescriptionPlaceholder": "مثلاً سونوگرافی NT",
+    "pickDate": "انتخاب تاریخ",
+    "pickTime": "انتخاب ساعت",
+    "hour": "ساعت",
+    "minute": "دقیقه",
+    "confirm": "تأیید",
+    "prepHint": "هر خط یک مورد از چک‌لیست می‌شود",
+    "errors": {
+      "with": "نام پزشک یا مشاور را بنویس.",
+      "date": "تاریخ نوبت را انتخاب کن.",
+      "time": "ساعت نوبت را انتخاب کن."
+    }
   },
   "appointmentDetail": {
     "title": "جزئیات نوبت",
@@ -203,7 +246,12 @@
     "cancelled": "لغو شده",
     "confirmCancel": "این نوبت لغو شود؟",
     "confirmCancelYes": "بله، لغو شود",
-    "confirmCancelNo": "نه"
+    "confirmCancelNo": "نه",
+    "loading": "در حال گرفتن نوبت…",
+    "timeAt": "ساعت {time}",
+    "reminderOff": "خاموش",
+    "calendarFile": "نوبت",
+    "descriptionWith": "با {with}"
   },
   "notificationSettings": "تنظیمات اعلان",
   "listSeparator": "، "

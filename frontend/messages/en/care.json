@@ -141,7 +141,34 @@
     "notes": "Note",
     "notesPlaceholder": "e.g. after meals",
     "save": "Save reminder",
-    "saving": "Saving…"
+    "saving": "Saving…",
+    "slotRow": "Dose {n} · {period}",
+    "pickTime": "Pick a time",
+    "hour": "Hour",
+    "minute": "Minute",
+    "done": "Done",
+    "cancel": "Cancel",
+    "daysPerWeek": "{count, plural, one {# day} other {# days}} a week",
+    "noDays": "No days selected",
+    "amountValue": "{amount} {form}",
+    "untilDate": "Until {date}",
+    "delete": "Delete",
+    "deleteTitle": "Delete this reminder?",
+    "deleteBody": "The reminder and its dose history will be removed.",
+    "deleting": "Deleting…",
+    "deleteError": "Couldn't delete. Please try again in a moment.",
+    "notFound": "This medication wasn't found.",
+    "errors": {
+      "titleRequired": "Enter the medication name.",
+      "tooLong": "This text is too long.",
+      "timesDuplicate": "Two doses have the same time.",
+      "timesInvalid": "The dose times are not valid.",
+      "weekdaysRequired": "Pick at least one day.",
+      "amountRange": "Amount must be between 1 and 10.",
+      "dateInvalid": "The date is not valid.",
+      "endsOnRequired": "Pick an end date.",
+      "endsOnBeforeStart": "The end date can't be before the start."
+    }
   },
   "appointmentForm": {
     "title": "Add appointment",
@@ -182,7 +209,23 @@
     "prep": "Things to prepare",
     "prepPlaceholder": "e.g. previous test results, insurance booklet…",
     "save": "Save appointment",
-    "saving": "Saving…"
+    "saving": "Saving…",
+    "placeOnline": "Meeting link",
+    "placePhone": "Phone number",
+    "placeOnlinePlaceholder": "Skyroom, Google Meet link…",
+    "placePhonePlaceholder": "The number they will call",
+    "shortDescriptionPlaceholder": "e.g. NT scan",
+    "pickDate": "Pick a date",
+    "pickTime": "Pick a time",
+    "hour": "Hour",
+    "minute": "Minute",
+    "confirm": "Confirm",
+    "prepHint": "Each line becomes one checklist item",
+    "errors": {
+      "with": "Enter the doctor or counsellor name.",
+      "date": "Pick the appointment date.",
+      "time": "Pick the appointment time."
+    }
   },
   "appointmentDetail": {
     "title": "Appointment details",
@@ -203,7 +246,12 @@
     "cancelled": "Cancelled",
     "confirmCancel": "Cancel this appointment?",
     "confirmCancelYes": "Yes, cancel it",
-    "confirmCancelNo": "No"
+    "confirmCancelNo": "No",
+    "loading": "Loading appointment…",
+    "timeAt": "at {time}",
+    "reminderOff": "Off",
+    "calendarFile": "appointment",
+    "descriptionWith": "With {with}"
   },
   "notificationSettings": "Notification settings",
   "listSeparator": ", "

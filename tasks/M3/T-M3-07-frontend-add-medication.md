@@ -3,7 +3,7 @@ id: T-M3-07
 title: Frontend — Add/Edit medication screen
 milestone: M3
 type: frontend
-status: todo
+status: done
 depends_on: [T-M3-05]
 parallel_group: M3-C
 touches: [frontend/src/screens/reminder-medication-form, frontend/src/app/[locale]/reminders/medication]
