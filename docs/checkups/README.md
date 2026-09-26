@@ -126,3 +126,39 @@ Frontend rule (frontend/CLAUDE.md §10): tokens only, both themes, `lint:dark` g
 | white action button inside tinted row | `#FFFFFF` | `#221A3D` |
 
 Big numbers and dates in Lalezar; Jalali dates for fa; all digits localized; ≥ 44 px targets.
+
+## Rollout (T-M4-10) — staging 2026-09-26
+
+**Routing / deploy:** no redeploy — the code was shipped to stage by T-M3-09 (`stage` @ 484a4ad, goose v5 with
+`checkup_types`, `checkup_records`, `user_checkup_settings`). Staging is Go-only (`location /api/` → `stage-backend-go`),
+so `/api/v1/checkups/*` and `/api/admin/v1/checkup-types*` need no vhost change. Go logs list domains
+`checkups` and `admin_checkups`. Admin API is host-gated (`ADMIN_HOSTS=stage.ritmeapp.ir`). Production still needs a
+`checkups` Go route line (and admin-web) when the user asks.
+
+**API e2e** (run on the server against `stage-backend-go` on `ritme-edge`; user 09900000901, OTP read from
+`otp_verifications`):
+```
+GET checkups 200 (summary total 6, due 5, up_to_date 1; 6 items) | GET checkups/home 200 (2 highlights)
+GET checkups/1 200 status due, 0 records | GET preview-next 200
+POST checkups/1/records 201 (has_attachment) → item status soon, next_due_on 2026-10-14
+GET checkups/records?type=1 200 contains the record | PUT records/{id} 200 | DELETE records/{id} 200
+PUT checkups/1/settings 200
+POST custom 201 → PUT custom/{id} 200 → GET checkups/{id} 200 is_custom:true, new title → DELETE 200 → GET 404
+leftovers for the user: 0 smoke records, 0 custom types
+```
+**Admin API e2e** (temporary `editor` admin inserted with a random throwaway password, session + CSRF cookies,
+`Host: stage.ritmeapp.ir`; deleted afterwards):
+```
+POST auth/login 200 | GET checkup-types 200 (6) | POST checkup-types 201 (key tm410_smoke, fa+en)
+PUT checkup-types/{id} 200 interval 24 | POST reorder 200 → sort_order 1 | PUT is_active:false 200
+GET checkup-types/stats 200 | DELETE checkup-types/{id} 200 (no records) | reorder restored original order 200
+cleanup: 0 tm410_smoke types, 0 smoke admins
+```
+Public proxy: `GET https://stage.ritmeapp.ir/api/v1/checkups` without credentials → 401 (the stage gate).
+
+**Open (human):**
+- Content sign-off of the seeded catalog copy (titles, subtitles, why, prep/guide steps, finding options, intervals,
+  age ranges, cycle-day windows; fa + en) by the user or a named clinician, in admin → Checkup types.
+- UI e2e in light + dark (needs the stage password): home card → list → detail → mark done with a local attachment →
+  history → doctor PDF → self-exam guide; an admin edit of a type showing up in the app; screenshots into PROGRESS.
+- Production rollout only when the user asks.

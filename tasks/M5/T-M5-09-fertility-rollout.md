@@ -3,7 +3,7 @@ id: T-M5-09
 title: Fertility rollout — route /api/v1/fertility to Go, verify, stage
 milestone: M5
 type: release
-status: todo
+status: blocked
 depends_on: [T-M5-03, T-M5-05, T-M5-06, T-M5-07, T-M5-08, T-M2-09]
 parallel_group: M5-D
 touches: [deploy, tasks/PROGRESS.md, docs/fertility-ttc/README.md]
@@ -21,3 +21,6 @@ verify: bash -c 'curl -fsS -u "$STAGE_AUTH" https://stage.ritmeapp.ir/api/v1/fer
 
 ## Acceptance
 - E2E checklist with screenshots in PROGRESS.
+
+## Blocked
+Staging e2e not run (2026-09-26): the agent's ssh/curl to the staging server were refused by the permission classifier. Needs the user to run the flow or allow server access; screenshots need the stage Basic-auth password.

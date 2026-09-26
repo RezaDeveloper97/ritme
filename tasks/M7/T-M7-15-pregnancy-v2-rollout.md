@@ -3,7 +3,7 @@ id: T-M7-15
 title: Pregnancy v2 rollout — clinical content sign-off, route /pregnancy/v2 to Go, stage e2e
 milestone: M7
 type: release
-status: todo
+status: in_progress
 depends_on: [T-M7-07, T-M7-09, T-M7-10, T-M7-11, T-M7-12, T-M7-13, T-M7-14, T-M2-09]
 parallel_group: M7-E
 touches: [deploy, tasks/PROGRESS.md, docs/pregnancy-v2/README.md]

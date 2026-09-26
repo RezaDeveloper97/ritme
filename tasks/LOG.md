@@ -166,3 +166,7 @@
 2026-09-26T08:48Z T-M7-13b -> done
 2026-09-26T09:07Z T-M3-09 -> in_progress
 2026-09-26T09:33Z T-M3-09 -> done
+2026-09-26T09:33Z T-M4-10 -> in_progress
+2026-09-26T09:33Z T-M5-09 -> in_progress
+2026-09-26T09:33Z T-M7-15 -> in_progress
+2026-09-26T09:38Z T-M5-09 -> blocked

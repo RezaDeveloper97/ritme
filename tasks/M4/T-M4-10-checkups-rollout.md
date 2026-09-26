@@ -3,7 +3,7 @@ id: T-M4-10
 title: Checkups rollout — route checkups and admin catalog to Go, content review, stage
 milestone: M4
 type: release
-status: todo
+status: in_progress
 depends_on: [T-M4-02, T-M4-04, T-M4-06, T-M4-07, T-M4-09, T-M2-09]
 parallel_group: M4-D
 touches: [deploy, tasks/PROGRESS.md, docs/checkups/README.md]

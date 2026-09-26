@@ -149,3 +149,37 @@ Activation/onboarding keep the v1 endpoints (`/pregnancy/activate`, `/onboarding
 2. The Log artboard promises offline save + later sync. T-M7-12 adds an outbox for this screen; if that's too much,
    the copy changes instead.
 3. All seeded medical copy (week details, care plan windows, alert thresholds) needs a clinician's sign-off (T-M7-15).
+
+## Rollout (T-M7-15) — staging 2026-09-26
+
+**Deploy/routing:** no redeploy — the code was shipped to staging by T-M3-09 (goose version 5). Staging is Go-only, so
+`/api/v1/pregnancy/v2/*` and the admin endpoints already reach `stage-backend-go`. Production untouched.
+
+**Seeds in the stage DB:** `pregnancy_week_details` 42 rows (weeks 1–42); `pregnancy_care_items` 5
+(`first_visit, nt_scan, anomaly_scan, gtt, tdap`); `message_contents` `pregnancy_week_tip` 42 fa + 42 en,
+`pregnancy_alert` 9 fa + 9 en (8 rules + legend).
+
+**API e2e** (throwaway user 09900000903, OTP read from `otp_verifications`, curl inside `ritme-edge` against
+`stage-backend-go`, LMP 2026-08-01 → week 9):
+```
+POST v2/dating-preview 200 (8w+0d, due 2027-05-08, confidence medium)
+POST /pregnancy/onboarding 201
+GET  v2/today 200 (week 9, 3 tasks) | GET v2/weeks/9 200 (tasks folic_acid, small_meals, book_nt)
+PUT  v2/weeks/9/state {bookmarked, done_task_keys:[folic_acid]} 200 → GET reflects both
+PUT  v2/days/2026-09-26 {mood, water, weight 62.5, note, nausea mild, spotting mild} 200 → alert urgent critical_symptom
+GET  v2/days/2026-09-26 200 (all fields round-trip)
+GET  v2/alerts 200: critical_symptom (urgent) + week_entered (info)
+POST alerts/{id}/actions/add_to_visit_note 200 → day visit_note gains the spotting line
+POST alerts/{id}/actions/ack 200 → is_acked true; today.unread_alerts 1
+GET  v2/calendar 200: 5 care items to_book
+POST /care/appointments {care_item_key: nt_scan, stage: booked, 2026-10-12} 201
+GET  v2/calendar?month=1405-07 → visit on 2026-10-12, next_visit nt_scan booked, care plan nt_scan state booked
+GET  v2/report 200
+cleanup: DELETE appointment 200; user 3 + profile/logs/alerts/state/tokens/otp rows deleted in DB
+```
+Notes: `month=` is in the request locale's calendar (fa → Jalali `1405-07`; `2026-10` under fa resolves to Jalali year
+2026). Spotting also writes a v1 `symptom_based` alert row next to the v2 one (known T-M7-04 duplicate).
+
+**Open (human):** clinical sign-off (list in `tasks/PROGRESS.md` T-M7-15), light/dark UI click-through (signup as
+pregnant → setup → today → week → log incl. offline → alert → calendar visit → PDF → switch back to cycle) and
+screenshots — the agent may not read the staging gate password.

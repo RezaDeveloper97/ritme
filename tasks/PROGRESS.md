@@ -713,3 +713,13 @@ Nothing needed fixing.
 - verify-all green (Go, frontend 551 tests + build, admin-web 77 tests + build); `stage` deployed; goose v5 applied (reminder_intakes, checkups, fertility, pregnancy v2 tables present).
 - `/api/v1/care/*` served by Go on stage (Go-only vhost, no route change needed); API e2e med→today/home→tick→appointment→detail→cancel passed. Evidence: `docs/care-reminders/README.md` § Rollout.
 - Open: UI screenshots light/dark (needs stage password, human), prod route when asked.
+
+## T-M7-15 — Pregnancy v2 rollout (staging API e2e)
+- No redeploy (T-M3-09 shipped it; stage is Go-only). Seeds present: 42 week details, 5 care items, 42+42 week tips, 9+9 alert rows.
+- API e2e on stage-backend-go with 09900000903: dating-preview → onboarding → today → week/9 + state → day PUT/GET (spotting → urgent critical_symptom) → alerts ack + add_to_visit_note → calendar → appointment care_item_key=nt_scan → calendar booked → report; all 2xx. Test data deleted. Evidence: docs/pregnancy-v2/README.md § Rollout (T-M7-15).
+- Human sign-off needed: week details 1–42 + week tips, care plan windows (first_visit, nt_scan, anomaly_scan, gtt, tdap), alert texts, and rule params: vomiting_streak 3 days / 2 severe in 7d; severe_symptom_count ≥3 severe in 7d over 8 symptoms; critical_symptom (bleeding, fluid_leakage, severe_sudden_pain, spotting ≤ week 12 unless severe) 1d; weight_missing_week from week 1; bp_high ≥140/90; sugar_high fasting >95 / post-meal >140; fetal_movement reduced|none from week 24.
+- Open: UI light/dark click-through + screenshots (needs gate password); calendar `month` is locale-calendar (Jalali for fa); v1+v2 duplicate alert rows for spotting.
+
+## T-M4-10 — Checkups rollout (staging)
+- No redeploy (shipped by T-M3-09). Go API e2e on stage passed: list/home/detail/preview → mark done → history → record edit/delete → settings → custom create/edit/delete; admin checkup-types login/list/create/edit/reorder/deactivate/stats/delete with a temporary editor, all cleaned up. Evidence: `docs/checkups/README.md` § Rollout.
+- Open (human): catalog content sign-off, UI light/dark screenshots (needs stage password), prod when asked.
