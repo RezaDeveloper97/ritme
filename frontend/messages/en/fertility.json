@@ -212,6 +212,12 @@
       "day": "Day {day}",
       "unknown": "Unknown"
     },
-    "improve": "How can I make the estimate more accurate?"
+    "improve": "How can I make the estimate more accurate?",
+    "lowData": {
+      "title": "Not enough data yet",
+      "body": "Once you log two full cycles and signs like LH tests and BBT, your predictions will appear here."
+    },
+    "logCta": "Log today's signs",
+    "calendarLabel": "Fertile window calendar"
   }
 }

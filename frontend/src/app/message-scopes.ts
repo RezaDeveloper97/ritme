@@ -58,6 +58,7 @@ export const ROUTE_NAMESPACES = {
   checkups: ['checkups', 'common'],
   fertilityLog: ['common', 'fertility'],
   fertilityBbt: ['common', 'fertility'],
+  fertilityInsights: ['common', 'fertility'],
   splash: AUTH,
   signup: AUTH,
   otp: AUTH,

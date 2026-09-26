@@ -631,3 +631,8 @@ Nothing needed fixing.
 - Shipped `/checkups/[id]` (screens/checkup-detail) and registry sheet `checkup-mark-done` (arg `<typeId>` or `<typeId>-<recordId>`); attachments stay in IndexedDB, only `has_attachment` sent.
 - `checkups` namespace moved into `SHELL_NAMESPACES` (sheet can open over any route).
 - Open: «ثبت نوبت» not prefilled (appointment form only reads `?kind=`); `/checkups/self-exam` and `/checkups/history` come in T-M4-09; toast only on `/checkups/[id]`; no delete in edit flow. Screenshots not taken.
+
+## T-M5-08 — Frontend — «پیش‌بینی‌ها» insights screen
+- Shipped `/fertility/insights` (screens/fertility-insights): window card with confidence + month calendar, evidence rows, previous-cycle ovulation list, tips, low-data state.
+- `fertilityInsights` added to `message-scopes.ts`; new `fertility.insights.*` keys.
+- Open: evidence icons keyed on `cycles/bbt_shift/bbt/lh/mucus/history`; window spanning two months shows one month only. Screenshots not taken.

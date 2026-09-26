@@ -3,7 +3,7 @@ id: T-M5-08
 title: Frontend — «پیش‌بینی‌ها» insights screen
 milestone: M5
 type: frontend
-status: todo
+status: done
 depends_on: [T-M5-04]
 parallel_group: M5-B
 touches: [frontend/src/screens/fertility-insights, frontend/src/app/[locale]/fertility/insights]
