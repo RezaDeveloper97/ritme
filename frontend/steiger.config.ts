@@ -19,6 +19,7 @@ export default defineConfig([
       './src/features/auth/**',
       './src/widgets/bottom-nav/**',
       './src/widgets/smart-tip/**',
+      './src/widgets/bbt-chart/**',
     ],
     rules: { 'fsd/insignificant-slice': 'off' },
   },

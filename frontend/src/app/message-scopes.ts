@@ -24,6 +24,7 @@ import type { MessageNamespace } from '@/shared/i18n';
 export const SHELL_NAMESPACES = [
   'articles',
   'care',
+  'checkups',
   'common',
   'notifications',
   'phaseDetails',
@@ -56,6 +57,7 @@ export const ROUTE_NAMESPACES = {
   reminders: ['care', 'common'],
   checkups: ['checkups', 'common'],
   fertilityLog: ['common', 'fertility'],
+  fertilityBbt: ['common', 'fertility'],
   splash: AUTH,
   signup: AUTH,
   otp: AUTH,

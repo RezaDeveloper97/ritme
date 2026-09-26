@@ -621,3 +621,8 @@ Nothing needed fixing.
 - Shipped `/checkups?filter=` (status card, tabs, sections, plan-settings sheet) and `/checkups/custom/new`, `/checkups/custom/[id]` (edit/delete).
 - Added `checkups` to `frontend/src/app/message-scopes.ts` (outside touches); new `checkups.custom.*` keys.
 - Open: T-M4-08 detail should link custom checkups to `/checkups/custom/{id}`; detail API has no `note` (edit sends note only if changed); settings sheet reads remind per-row via detail. Screenshots not taken.
+
+## T-M5-07 — Frontend — «دمای پایه» BBT chart screen
+- Shipped `/fertility/bbt?range=` (screens/fertility-bbt) and `widgets/bbt-chart` (inline SVG, token colours, coverline, fertile band, previous cycles, a11y table); daily 07:00 reminder toggle via `useCreateReminder`.
+- Outside touches: `fertilityBbt` in `message-scopes.ts`; `widgets/bbt-chart` added to insignificant-slice ignore in `frontend/steiger.config.ts`.
+- Open: explainer is an inline AppSheet (not registry); legacy `bbt.legend.coverline` text left as-is (new `legend.baseline` used). Screenshots not taken.

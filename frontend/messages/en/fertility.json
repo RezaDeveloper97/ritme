@@ -144,7 +144,9 @@
     "legend": {
       "logged": "Logged temperature",
       "coverline": "Coverline · average of first 6 days",
-      "window": "Fertile window"
+      "window": "Fertile window",
+      "baseline": "Coverline · highest of the 6 readings before the rise",
+      "previous": "Previous cycles"
     },
     "stats": {
       "preOvulationAvg": "Pre-ovulation average",
@@ -160,7 +162,24 @@
       "pastShifts": "In previous cycles this rise came on day {days}."
     },
     "remindTomorrow": "Remind me to log tomorrow's temperature",
-    "openInsights": "Predictions"
+    "openInsights": "Predictions",
+    "tabsLabel": "Chart range",
+    "preOvulationHint": "Average of readings before the rise",
+    "explainer": {
+      "title": "What is basal body temperature?",
+      "p1": "Basal body temperature is your temperature at full rest. Take it every morning before getting out of bed, at the same time, with a two-decimal thermometer.",
+      "p2": "After ovulation, progesterone raises your temperature by about 0.2–0.5 degrees. The coverline is the highest of the 6 readings before that rise; three days in a row above it confirms the shift.",
+      "p3": "This chart shows ovulation after it happens and is not a method of contraception. Fever, short sleep or alcohol can shift the numbers."
+    },
+    "empty": {
+      "title": "Not enough temperatures yet",
+      "body": "Log your basal temperature on at least 3 mornings to see the chart.",
+      "cta": "Log today's temperature"
+    },
+    "reminderTitle": "Log basal temperature",
+    "reminderOff": "Daily reminder at 7:00 is on · turn off",
+    "reminderError": "Couldn't save the reminder. Please try again.",
+    "reminderSaving": "Saving…"
   },
   "insights": {
     "title": "Predictions",

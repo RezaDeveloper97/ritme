@@ -3,7 +3,7 @@ id: T-M5-07
 title: Frontend — «دمای پایه» BBT chart screen
 milestone: M5
 type: frontend
-status: todo
+status: done
 depends_on: [T-M5-04]
 parallel_group: M5-B
 touches: [frontend/src/screens/fertility-bbt, frontend/src/widgets/bbt-chart, frontend/src/app/[locale]/fertility/bbt]
