@@ -29,9 +29,10 @@ import { CalendarPicker, Icon, type IconName, WheelPicker } from '@/shared/ui';
 import {
   type AppointmentFormState,
   type FormError,
-  emptyForm,
+  type AppointmentPrefill,
   formFromAppointment,
-  parseKind,
+  formFromPrefill,
+  isoDay,
   prepFromText,
   validateForm,
 } from '../model/form';
@@ -46,8 +47,8 @@ const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
 const MINUTES = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'));
 
 interface Props {
-  /** `?kind=` on the "new" route. */
-  initialKind?: string;
+  /** `?kind=&title=&date=&care_item_key=` on the "new" route. */
+  prefill?: AppointmentPrefill;
   /** Present on `/reminders/appointment/[id]/edit`. */
   id?: number;
 }
@@ -59,12 +60,12 @@ interface Props {
  *
  * Privacy (§11): nothing typed here is logged; it goes to `/care/appointments` only.
  */
-export function AppointmentFormPage({ initialKind, id }: Props) {
+export function AppointmentFormPage({ prefill, id }: Props) {
   const existing = useAppointment(id ?? null);
   if (id !== undefined && !existing.data) {
     return <FormShell id={id} status={existing.isError ? 'error' : 'loading'} onRetry={() => void existing.refetch()} />;
   }
-  return <AppointmentForm key={id ?? 'new'} initialKind={initialKind} existing={existing.data ?? null} />;
+  return <AppointmentForm key={id ?? 'new'} prefill={prefill} existing={existing.data ?? null} />;
 }
 
 function FormShell({ id, status, onRetry }: { id: number; status: 'loading' | 'error'; onRetry: () => void }) {
@@ -109,7 +110,7 @@ function FormHeader({ title, backHref, sub }: { title: string; backHref: string;
   );
 }
 
-function AppointmentForm({ initialKind, existing }: { initialKind?: string; existing: Appointment | null }) {
+function AppointmentForm({ prefill, existing }: { prefill?: AppointmentPrefill; existing: Appointment | null }) {
   const t = useTranslations('care.appointmentForm');
   const tc = useTranslations('care');
   const locale = useLocale() as Locale;
@@ -118,7 +119,7 @@ function AppointmentForm({ initialKind, existing }: { initialKind?: string; exis
   const update = useUpdateAppointment();
 
   const [form, setForm] = useState<AppointmentFormState>(() =>
-    existing ? formFromAppointment(existing) : emptyForm(parseKind(initialKind)),
+    existing ? formFromAppointment(existing) : formFromPrefill(prefill ?? {}, isoDay(new Date())),
   );
   const [error, setError] = useState<FormError | null>(null);
   const [saveFailed, setSaveFailed] = useState(false);
@@ -171,6 +172,8 @@ function AppointmentForm({ initialKind, existing }: { initialKind?: string; exis
       remindBefore: form.remindBefore,
       addToCalendar: form.addToCalendar,
       prep: prepFromText(form.prepText, existing?.prep ?? []),
+      // Links a pregnancy care-plan item (→ `booked`); edit keeps the stored key.
+      careItemKey: form.careItemKey || null,
     };
     const onError = () => setSaveFailed(true);
     if (existing) {

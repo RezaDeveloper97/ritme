@@ -703,3 +703,8 @@ Nothing needed fixing.
 ## T-M7-14 — Frontend — pregnancy «هشدارها» (Alerts) v2 screen
 - `/pregnancy/alerts`: day-grouped v2 alert cards (level chip, what we saw, how sure, advice, actions incl. ack / add_to_visit_note / deep links / tel), urgent contact line, API legend, disclaimer + notifications sheet, marks shown alerts read.
 - Open: log route ignores `?focus=weight`; entity schema drops API title/window_note/disclaimer (i18n used); mark-read uses v1 read-all; `open_week` → current week. Screenshots/build pending.
+
+## T-M7-13b — Frontend — appointment form prefill and stage fields
+- `/reminders/appointment/new` reads `kind,title,date,care_item_key` prefill; `manage-appointment` body + care-reminder entity carry `care_item_key/stage/result_note`; calendar stage stepper uses `useUpdateAppointment`; remind values from `REMIND_BEFORE`.
+- Full frontend verify on the combined M3–M7 tree green (551 tests, build OK).
+- Open: end-to-end check that booking from the care plan flips the item to `booked`.

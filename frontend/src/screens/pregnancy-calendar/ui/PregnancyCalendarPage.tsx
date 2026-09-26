@@ -15,7 +15,8 @@ import {
   pregnancyKeys,
   usePregnancyCalendar,
 } from '@/entities/pregnancy';
-import { apiClient } from '@/shared/api';
+import { REMIND_BEFORE, type RemindBefore } from '@/entities/care-reminder';
+import { useUpdateAppointment } from '@/features/manage-appointment';
 import { type Locale, Link, useDirection } from '@/shared/i18n';
 import {
   addDays,
@@ -290,28 +291,21 @@ function SelectedDay({ data, date }: { data: PregnancyCalendar; date: string }) 
 
 function useSetStage() {
   const queryClient = useQueryClient();
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState(false);
+  const update = useUpdateAppointment();
   const run = async (id: number, stage: VisitStage, resultNote?: string) => {
-    setBusy(true);
-    setError(false);
     try {
-      const body: Record<string, unknown> = { stage };
-      if (resultNote !== undefined) body.result_note = resultNote.trim() || null;
-      await apiClient.put(`/care/appointments/${id}`, body);
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: pregnancyKeys.v2.calendarAll() }),
-        queryClient.invalidateQueries({ queryKey: ['care'] }),
-      ]);
+      await update.mutateAsync({
+        id,
+        patch: resultNote !== undefined ? { stage, resultNote } : { stage },
+      });
+      // The feature invalidates the care lists; the pregnancy calendar is ours.
+      await queryClient.invalidateQueries({ queryKey: pregnancyKeys.v2.calendarAll() });
       return true;
     } catch {
-      setError(true);
       return false;
-    } finally {
-      setBusy(false);
     }
   };
-  return { busy, error, run };
+  return { busy: update.isPending, error: update.isError, run };
 }
 
 function NextVisitCard({ visit }: { visit: CalendarVisit }) {
@@ -345,8 +339,8 @@ function NextVisitCard({ visit }: { visit: CalendarVisit }) {
     .filter(Boolean)
     .join(' · ');
   const who = [visit.doctor, visit.place].filter(Boolean).join(' · ');
-  const remind = visit.remindBefore && ['1h', '3h', '1d', '2d'].includes(visit.remindBefore)
-    ? tc(visit.remindBefore as '1h' | '3h' | '1d' | '2d')
+  const remind = visit.remindBefore && (REMIND_BEFORE as readonly string[]).includes(visit.remindBefore)
+    ? tc(visit.remindBefore as RemindBefore)
     : null;
 
   return (

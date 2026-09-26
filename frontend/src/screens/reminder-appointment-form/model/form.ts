@@ -27,6 +27,40 @@ export interface AppointmentFormState {
   addToCalendar: boolean;
   /** One line = one checklist item. */
   prepText: string;
+  /** Pregnancy care-plan item this visit books (`?care_item_key=`), '' when none. */
+  careItemKey: string;
+}
+
+/** What the "new" route's query string may prefill. */
+export interface AppointmentPrefill {
+  kind?: string | null;
+  title?: string | null;
+  date?: string | null;
+  careItemKey?: string | null;
+}
+
+/** Local `YYYY-MM-DD` of a Date. */
+export function isoDay(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+/** `?date=` → a valid `YYYY-MM-DD` that is not before `today`, else ''. */
+export function parsePrefillDate(value: string | null | undefined, today: string): string {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return '';
+  const d = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(d.getTime()) || isoDay(d) !== value) return '';
+  return value < today ? '' : value;
+}
+
+/** A fresh form seeded from `?kind=&title=&date=&care_item_key=`. */
+export function formFromPrefill(prefill: AppointmentPrefill, today: string): AppointmentFormState {
+  const key = (prefill.careItemKey ?? '').trim();
+  return {
+    ...emptyForm(parseKind(prefill.kind)),
+    title: (prefill.title ?? '').trim().slice(0, 120),
+    date: parsePrefillDate(prefill.date, today),
+    careItemKey: /^[a-z0-9_.-]{1,64}$/i.test(key) ? key : '',
+  };
 }
 
 export function parseKind(value: string | null | undefined): AppointmentKind {
@@ -46,6 +80,7 @@ export function emptyForm(kind: AppointmentKind): AppointmentFormState {
     remindBefore: '1d',
     addToCalendar: false,
     prepText: '',
+    careItemKey: '',
   };
 }
 
@@ -63,6 +98,7 @@ export function formFromAppointment(appt: Appointment): AppointmentFormState {
     remindBefore: appt.remindBefore,
     addToCalendar: appt.addToCalendar,
     prepText: appt.prep.map((item) => item.text).join('\n'),
+    careItemKey: appt.careItemKey ?? '',
   };
 }
 

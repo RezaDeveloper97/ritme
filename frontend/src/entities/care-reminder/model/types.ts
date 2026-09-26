@@ -86,6 +86,11 @@ export interface Appointment {
   /** The reminder (notification) switch. */
   isActive: boolean;
   notes: string | null;
+  /** Pregnancy care-plan item this visit books (M7), e.g. `nt_scan`. */
+  careItemKey?: string | null;
+  /** Pregnancy visit stage (`booked` | `done` | `result`), null outside pregnancy. */
+  stage?: string | null;
+  resultNote?: string | null;
 }
 
 export type AppointmentScope = 'upcoming' | 'past' | 'all';

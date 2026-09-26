@@ -23,6 +23,11 @@ export interface AppointmentInput {
   /** «چیزهایی که باید آماده کنم» — free text. */
   notes?: string | null;
   prep?: PrepItem[];
+  /** Pregnancy care-plan item this visit books (links it → `booked`). */
+  careItemKey?: string | null;
+  /** Pregnancy visit stage (`booked` | `done` | `result`). */
+  stage?: string | null;
+  resultNote?: string | null;
 }
 
 export type AppointmentPatch = Partial<AppointmentInput> & { isActive?: boolean };
@@ -53,6 +58,9 @@ export function toAppointmentBody(input: AppointmentPatch): Record<string, unkno
       .filter((item) => item.text.trim() !== '')
       .map((item) => ({ id: item.id, text: item.text.trim(), done: item.done }));
   }
+  if (input.careItemKey !== undefined) body.care_item_key = blankToNull(input.careItemKey);
+  if (input.stage !== undefined) body.stage = input.stage;
+  if (input.resultNote !== undefined) body.result_note = blankToNull(input.resultNote);
   if (input.isActive !== undefined) body.is_active = input.isActive;
   return body;
 }

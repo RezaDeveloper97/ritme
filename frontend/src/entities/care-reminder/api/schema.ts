@@ -149,6 +149,9 @@ const appointmentRowSchema = z.object({
   scheduled_at: nullableText,
   is_active: z.boolean().catch(true).default(true),
   notes: nullableText,
+  care_item_key: nullableText,
+  stage: nullableText,
+  result_note: nullableText,
 });
 
 /** One appointment (GET /care/appointments/{id}, list items, POST/PUT results). */
@@ -171,6 +174,9 @@ export const appointmentSchema = z.preprocess(
       scheduledAt: r.scheduled_at,
       isActive: r.is_active,
       notes: r.notes,
+      careItemKey: r.care_item_key,
+      stage: r.stage,
+      resultNote: r.result_note,
     }),
   ),
 );

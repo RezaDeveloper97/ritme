@@ -54,3 +54,15 @@ describe('setPrepItemDone', () => {
     expect(prep[1].done).toBe(false);
   });
 });
+
+describe('toAppointmentBody — pregnancy fields', () => {
+  it('maps care_item_key, stage and result_note', () => {
+    expect(toAppointmentBody({ careItemKey: 'nt_scan', stage: 'result', resultNote: ' ok ' })).toEqual({
+      care_item_key: 'nt_scan',
+      stage: 'result',
+      result_note: 'ok',
+    });
+    expect(toAppointmentBody({ careItemKey: '', resultNote: '' })).toEqual({ care_item_key: null, result_note: null });
+    expect(toAppointmentBody({ stage: 'done' })).toEqual({ stage: 'done' });
+  });
+});

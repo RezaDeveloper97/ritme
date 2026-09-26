@@ -3,7 +3,7 @@ id: T-M7-13b
 title: Frontend — appointment form prefill (title, date, care_item_key) and stage fields
 milestone: M7
 type: frontend
-status: in_progress
+status: done
 depends_on: [T-M7-13,T-M4-08]
 parallel_group: M7-D
 touches: [frontend/src/screens/reminder-appointment-form,frontend/src/features/manage-appointment,frontend/src/app/[locale]/reminders/appointment/new/page.tsx,frontend/src/screens/pregnancy-calendar]

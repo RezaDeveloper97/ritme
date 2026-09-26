@@ -175,6 +175,9 @@ describe('appointmentSchema', () => {
       scheduledAt: '2026-09-30 10:30:00',
       isActive: true,
       notes: null,
+      careItemKey: null,
+      stage: null,
+      resultNote: null,
     });
   });
 
