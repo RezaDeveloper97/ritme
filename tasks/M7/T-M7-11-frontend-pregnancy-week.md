@@ -3,7 +3,7 @@ id: T-M7-11
 title: Frontend — pregnancy «هفته‌به‌هفته» (Week) v2 screen
 milestone: M7
 type: frontend
-status: todo
+status: done
 depends_on: [T-M7-08, T-M7-02]
 parallel_group: M7-C
 touches: [frontend/src/screens/pregnancy-week, frontend/src/app/[locale]/pregnancy/weeks]

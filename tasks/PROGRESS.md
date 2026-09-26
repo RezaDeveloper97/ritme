@@ -674,3 +674,8 @@ Nothing needed fixing.
 - Week structured details tab (`?tab=details`, PUT /pregnancy-weeks/:n/details) with fa/en tabs and hero preview; new `/pregnancy-care-plan` and `/pregnancy-alert-rules` screens (typed params, sample card); messages screen gets a missing-content panel (week-tip 1–42 grid) and schema-driven create/edit for typed groups; new «بارداری» sidebar group.
 - Verify (tsc, eslint, steiger, vitest 77, build) green.
 - Open: fetal image picker has no real preview (SVGs live in frontend/); some highlight icons missing in admin Icon.tsx; message create lives inside `/messages`; not smoke-tested against the API.
+
+## T-M7-11 — Frontend — pregnancy «هفته‌به‌هفته» (Week) v2 screen
+- Shipped `/pregnancy/weeks` (→ current week) and `/pregnancy/weeks/[n]`: week strip 1–42, hero with fetus size, tabs (fetus / body / tasks with synced checklist), warning, reviewer + sources, bookmark, swipe navigation.
+- Fixed `message-scopes.test.ts` namespace regex to allow digits (`pregnancyV2`).
+- Open: body tab links `/pregnancy/log` (revisit after T-M7-12); nothing links to `/pregnancy/weeks` yet. Screenshots not taken.

@@ -49,7 +49,7 @@ function infoOf(file: string): FileInfo {
     .map((m) => resolveImport(file, m[1]))
     .filter((dep): dep is string => dep !== null);
   const namespaces = [
-    ...source.matchAll(/(?:useTranslations|getTranslations)\(\s*['"]([A-Za-z]+)/g),
+    ...source.matchAll(/(?:useTranslations|getTranslations)\(\s*['"]([A-Za-z][A-Za-z0-9]*)/g),
   ].map((m) => m[1]);
   const info = { deps, namespaces };
   infoCache.set(file, info);
