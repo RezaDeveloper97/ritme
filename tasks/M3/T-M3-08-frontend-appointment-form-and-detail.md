@@ -3,7 +3,7 @@ id: T-M3-08
 title: Frontend — Add/Edit appointment and appointment detail screens
 milestone: M3
 type: frontend
-status: todo
+status: done
 depends_on: [T-M3-05]
 parallel_group: M3-C
 touches: [frontend/src/screens/reminder-appointment-form, frontend/src/screens/reminder-appointment-detail, frontend/src/app/[locale]/reminders/appointment, frontend/src/shared/lib/ics]
