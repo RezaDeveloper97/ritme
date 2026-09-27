@@ -23,4 +23,7 @@ verify: bash -c 'curl -fsS -u "$STAGE_AUTH" https://stage.ritmeapp.ir/api/v1/fer
 - E2E checklist with screenshots in PROGRESS.
 
 ## Blocked
-Staging e2e not run (2026-09-26): the agent's ssh/curl to the staging server were refused by the permission classifier. Needs the user to run the flow or allow server access; screenshots need the stage Basic-auth password.
+Staging e2e not run: the agent has no access to the server (89.251.8.115 / stage.ritmeapp.ir) — denied by the
+user's permission policy (2026-09-26, again 2026-09-27). Local e2e done instead (2026-09-27): verify-all green, API +
+UI light/dark e2e passed, see docs/fertility-ttc/README.md § Local e2e. Remaining: stage e2e by the user (or grant
+server access), T-M5-10 UI fixes, production when asked.

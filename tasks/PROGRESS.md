@@ -723,3 +723,9 @@ Nothing needed fixing.
 ## T-M4-10 — Checkups rollout (staging)
 - No redeploy (shipped by T-M3-09). Go API e2e on stage passed: list/home/detail/preview → mark done → history → record edit/delete → settings → custom create/edit/delete; admin checkup-types login/list/create/edit/reorder/deactivate/stats/delete with a temporary editor, all cleaned up. Evidence: `docs/checkups/README.md` § Rollout.
 - Open (human): catalog content sign-off, UI light/dark screenshots (needs stage password), prod when asked.
+
+## T-M5-09 — Fertility rollout (local e2e, staging still blocked)
+- verify-all green (Go 63 pkgs, lint 0, fertility int tests; frontend typecheck/lint/fsd/styles/dark/551 tests).
+- Local API e2e as a `trying` user: today → day log (LH+/BBT/intercourse) → 422 validation → 12 days BBT → `/fertility/bbt` coverline 36.40, shift day 13, post_shift → `/fertility/insights` confidence high. UI light/dark screenshots in `docs/fertility-ttc/screenshots/`. Evidence: `docs/fertility-ttc/README.md` § Local e2e.
+- Bugs found → T-M5-10 (tile colours, gutter, card padding, Latin digits, chart decimal, 2-month window calendar).
+- Open: `fertility_level` mismatch `/cycle/today` top-level (low) vs `daily_card` (medium) — product decision; staging e2e needs server access / user.
