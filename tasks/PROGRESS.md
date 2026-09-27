@@ -746,3 +746,8 @@ Nothing needed fixing.
 - `p-4` on checkups list/detail/history/self-exam cards; `formatNumber` for history count and self-exam days; `groupBySection` puts this_month then overdue first (frontend, API order undocumented).
 - Frontend verify green (559 tests); screenshots re-taken in `docs/checkups/screenshots/`.
 - Open: pregnancy calendar PDF not generated in a browser (unit-tested only); minor design items 5a–5d in README.
+
+## T-M7-15 — Pregnancy v2 rollout (local e2e)
+- verify-all green. Local UI e2e light/dark: pregnant signup → Setup v2 → Today → Week → Log (incl. offline outbox sync) → spotting at w10 fires urgent alert → Alerts → Calendar booking from care plan (item → booked) → doctor PDF (Persian footer) → switch back to cycle. 60 compressed screenshots in `docs/pregnancy-v2/screenshots/`; evidence in `docs/pregnancy-v2/README.md` § Local e2e.
+- Bugs 1–8 → T-M7-16. Clinical/content questions for the reviewer: 9c (no `contact.phone` in seed → no call-doctor button), 9j (LMP ±5 vs ±3 days copy; spotting info box says common but rule fires urgent).
+- Still open (human): clinical sign-off, staging UI click-through, production when asked.

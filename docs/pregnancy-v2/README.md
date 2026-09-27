@@ -183,3 +183,147 @@ Notes: `month=` is in the request locale's calendar (fa → Jalali `1405-07`; `2
 **Open (human):** clinical sign-off (list in `tasks/PROGRESS.md` T-M7-15), light/dark UI click-through (signup as
 pregnant → setup → today → week → log incl. offline → alert → calendar visit → PDF → switch back to cycle) and
 screenshots — the agent may not read the staging gate password.
+
+## Local e2e (T-M7-15) — 2026-09-27
+
+Everything below ran locally on branch `stage`. backend-go ran on `:8020` against the docker test-stack MariaDB, using a
+scratch DB `ritme_m715` (goose up to v5, so `00005_pregnancy_v2` seeded 42 week details, 5 care items, 84 week tips,
+18 alert rows and 16 setup rows) with `SMS_PROVIDER=log`. The personal-access OAuth client row was inserted by hand.
+The Next dev server ran on `:3000` with `NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8020/api/v1` passed as an env var
+(`.env.local` untouched). admin-web was not needed. Headless Chrome was driven over CDP (Node's global `WebSocket`,
+20 s timeout per call). The viewport was 390×844 @2x, mobile + touch, locale fa. Three throwaway users signed up
+through the real UI, with the OTP read from `otp_verifications`: `09120000701` (light), `09120000702` (dark) and
+`09120000703` (repro attempt for bug 7). The scratch DB was dropped afterwards and the test stack left running. No
+staging or production host was contacted.
+
+### verify-all
+
+| Check | Result |
+|---|---|
+| `go vet ./...` | ✔ pass |
+| `go test ./...` | ✔ pass (63 packages ok) |
+| `golangci-lint run` | ✔ 0 issues |
+| `npm run typecheck` | ✔ pass |
+| `npm run lint` | ✔ pass |
+| `npm run fsd:lint` | ✔ No problems found |
+| `npm run lint:styles` | ✔ style gate passed (457 files) |
+| `npm run lint:dark` | ✔ passed (57 contrast pairs, 123 tokens; only the pre-existing light-mode ⚠ pairs) |
+| `npm run test` | ✔ 68 files, 559 passed |
+| Laravel (`pint`, `artisan test`) | skipped: `backend/` unchanged |
+
+### UI flow (light and dark, same steps)
+
+Every screen got an automated DOM check. It looked for horizontal overflow (`scrollWidth` > `innerWidth`, or an
+element outside the viewport), raw i18n keys in the text, Latin digits in the fa text, and console errors or
+exceptions. There was **no overflow, no raw key, and no JS exception or `console.error`** on any screen. The Latin
+digits and the non-2xx network lines are listed in the table and under Bugs.
+
+| # | Step | Result |
+|---|---|---|
+| 1 | `/signup` → OTP → name → birthday → weight → height → intention «باردارم» → dating basis (manual 9w+2d) → conditions → setting-up | ✔ light lands on `/pregnancy`, week 10 (9w2d), due ۱۰ اردیبهشت ۱۴۰۶, confidence «کم ±۵ روز». ✘ dark (once): landed on «حالت بارداری روشن نیست» and `/v2/today` returned 409 (bug 7) |
+| 2 | Setup v2 `/pregnancy/setup`: welcome → 1/3 LMP calendar (2 مرداد ۱۴۰۵) → 2/3 history (هیچ‌کدام, O, مثبت) → 3/3 result → «تمومه، بریم» | ✔ result «۹ هفته و ۲ روز», due ۱۰ اردیبهشت ۱۴۰۶, range ۲۴ فروردین–۲۷ اردیبهشت, «متوسط ±۳ روز», basis sentence. The dark user was recovered here. ✘ the step progress bar renders as a segmented control (bug 3) |
+| 3 | Today `/pregnancy` | ✔ date strip, due card, quick actions (4), next visit «اولین ویزیت پزشک», reminders card, week tip + «درباره هفتهٔ ۱۰ بیشتر بخون», «مراقبت‌های این هفته ۰ از ۳», disclaimer. ✘ week carousel collapsed to a 32 px strip (bug 1). ✘ trimester bars filled wrong (bug 2) |
+| 4 | Week `/pregnancy/weeks/10` via «مرور هفته‌ها»: chip strip + legend, hero, tabs جنین / بدن تو / کارهای هفته, warning box, «در انتظار بازبینی متخصص» + sources; bookmark; tick `folic_acid` | ✔ bookmark → `aria-pressed=true`; tick → API `folic_acid done`, and Today shows it checked. ✘ stats `3.1` / `4` / `140-170` in Latin digits (bug 4) |
+| 5 | Log `/pregnancy/log` (FAB): mood «روبه‌راه», تهوع متوسط + خستگی خفیف, water 3, weight 62.5, visit note → save | ✔ «ذخیره شد». `GET v2/days/2026-09-27` returns mood 4, symptoms, `water_glasses 3`, weight 62.5, note and `last_weight` |
+| 6 | Offline outbox: `Network.emulateNetworkConditions offline` → add سردرد + 1 glass → save → back online | ✔ `navigator.onLine=false`, status «بدون اینترنت ذخیره شد — با وصل شدن فرستاده می‌شه». The API was unchanged while offline and had `headache: mild`, `water_glasses: 4` within 4 s of going online (both themes). ✘ the status line stays «queued» after the sync (bug 6) |
+| 7 | Log لکه‌بینی (خفیف) at week 10 → save | ✔ spotting info box shown; «این ثبت یک پیام تازه ساخت · پیگیری زودتر · لکه‌بینی ثبت شده · دیدن هشدارها» |
+| 8 | Alerts `/pregnancy/alerts` | ✔ `critical_symptom` (urgent, contact box with ۱۱۵) + `week_entered` (info), legend of 4 levels, disclaimer. «دیدم، ممنون» on the info card removes its ack button. ✘ «وارد هفتهٔ 10 شدی» in Latin digits (bug 5) |
+| 9 | Calendar `/pregnancy/calendar` → care plan «رزرو» on «سونوگرافی NT و غربالگری اول» → appointment form | ✔ prefilled title, date ۱۰ مهر ۱۴۰۵ (`date=2026-10-02`), `care_item_key=nt_scan`. Time is required. Saved → `/reminders/appointment/1` |
+| 10 | Back to Calendar | ✔ NT row flips to «نوبت داری» with its date; the next-visit card shows the NT scan, «۵ روز دیگه», the stage stepper «نوبت گرفته شد» active, prep text and «یادآور: ۱ روز قبل». The visit dot is on ۱۰ مهر |
+| 11 | «گزارش علائم برای پزشک (PDF)» | ✔ on-device PDF (73 KB, 1 page): title, date range, week, due date, daily moods/symptoms/water, visit note, weight, disclaimer. **Footer «ریتمی · صفحهٔ ۱ از ۱» uses Persian digits** (the T-M4-11 fix holds) |
+| 12 | Profile → «برگرد به حالت چرخه» (native `confirm`, accepted) | ✔ `/home` cycle home with the cycle nav (تحلیل). The booked NT visit shows in «یادآورهای امروز» |
+
+### Screenshots (`screenshots/`)
+
+Each file exists as `-light` and `-dark`, except where noted. They are downscaled to 585×1266 and pngquant'ed
+(60 files, 2.5 MB).
+
+| File | Shows |
+|---|---|
+| `01-signup-intention-*` | signup intention step |
+| `02-signup-pregnancy-basis-*` | signup dating basis (manual week) |
+| `03-signup-setting-up-light` | setting-up ring (light only; the dark capture timed out, see bug 7) |
+| `04-today-after-signup-*` | first landing: light = Today, dark = «حالت بارداری روشن نیست» (bug 7) |
+| `05-setup-welcome-*` … `08-setup-result-*` | Setup v2 welcome, dating (LMP calendar), history, result |
+| `09-today-*`, `11-today-bottom-*` | Today top (collapsed carousel, trimester bars) and bottom |
+| `12-week-*`, `13-week-baby-tab-bottom-*`, `14-week-body-tab-*`, `15-week-tasks-tab-*` | Week 10 hero, tabs, warning, reviewer line |
+| `16-log-empty-*`, `17-log-filled-*`, `19-log-saved-online-*` | Log empty, filled, saved |
+| `20-log-queued-offline-*` | offline save queued in the outbox |
+| `22-log-spotting-info-*`, `23-log-alert-raised-*` | spotting info box, and the new alert after save |
+| `24-alerts-*`, `25-alerts-legend-*`, `26-alerts-after-ack-*` | Alerts screen, legend, after ack |
+| `27-calendar-*`, `28-calendar-care-plan-*` | Calendar and care plan before booking |
+| `29-appointment-form-prefilled-*` | appointment form prefilled from the care plan |
+| `30-calendar-after-booking-*`, `31-calendar-care-plan-booked-*` | next-visit card and «نوبت داری» |
+| `33-pdf-report-page1-light` | doctor PDF page 1 (rendered with `sips`) |
+| `34-profile-*` | Profile with the app-mode section |
+| `36-cycle-home-after-switch-*` | cycle home after switching back |
+
+The round «N» badge bottom-left is the Next.js dev-mode indicator, not app UI.
+
+### Bugs found (not fixed)
+
+1. **Today week carousel collapses to a 32 px strip.** Only «سه‌ماههٔ اول · هفتهٔ ۱۰ از ۴۰» shows (clipped). The
+   illustration, size line, prev/next buttons and «مرور هفته‌ها» link are hidden (`scrollHeight` 370 vs height 32).
+   The cause is the `<section className="mx-4 overflow-hidden …">` in
+   `frontend/src/widgets/pregnancy-week-carousel/ui/PregnancyWeekCarousel.tsx:61`. It is a flex item of the
+   `scroll flex flex-col` column (`frontend/src/screens/pregnancy/ui/PregnancyPage.tsx:41`). With `overflow-hidden` its
+   min-height is 0, so it shrinks when the page is taller than the viewport (needs `shrink-0`). To reproduce: open
+   `/pregnancy` with a dated pregnancy (`09-today-*.png`).
+2. **Trimester progress bars show the wrong fill.** At week 10 the bars read T1 0 %, T2 32 %, T3 70 %. The API's
+   `progress.trimesters[].percent` is the *start position on the 40-week bar*
+   (`backend-go/internal/pregnancy/v2/service.go:148`, OpenAPI "position of the start on the 40-week bar"). The
+   frontend uses it as a per-trimester fill width (`PregnancyPage.tsx:132-135`; the type comment in
+   `frontend/src/entities/pregnancy/model/v2-types.ts:197` says "how much of this trimester is behind the user"). The
+   «از <date>» label rule `s.percent === 0` (`PregnancyPage.tsx:143`) has the same misreading. The contract has to be
+   settled on one side.
+3. **The Setup v2 step progress renders as a segmented control.** The progress bar uses `className="seg"`
+   (`frontend/src/screens/pregnancy-onboarding/ui/PregnancyOnboardingPage.tsx:114`), which is the segmented-tab style
+   (`frontend/src/app/globals.css:507-513`). You get three large white pill buttons edge to edge, with no gutter and
+   no visible fill for the done steps (`06-…`, `08-setup-result-*`).
+4. **Week stats show Latin digits.** `3.1` سانتی‌متر · `4` گرم · `140-170` ضربان: `d.length` / `d.weight` / `d.heartRate` are
+   rendered raw (`frontend/src/screens/pregnancy-week/ui/PregnancyWeekPage.tsx:144-146`). They need
+   locale-digit formatting (the admin stores plain strings).
+5. **The `week_entered` alert has Latin digits in fa.** «وارد هفتهٔ 10 شدی», «هفتهٔ 10 بارداری از امروز شروع شده». The
+   `{week}` var is `strconv.Itoa(f.Week)` (`backend-go/internal/messages/pregnancyalerts/rules.go:123`) and is not
+   localized for fa. Other rules' numeric vars may have the same issue.
+6. **The log status stays «queued» after the outbox syncs.** After going back online the entry is sent (the API has
+   the data), but the line still reads «بدون اینترنت ذخیره شد — با وصل شدن فرستاده می‌شه». While the save was only
+   queued, the button already said «ذخیره شد» (green). `useOutboxReplay`'s `onSent` in
+   `frontend/src/screens/pregnancy-log/model/use-save-day.ts` only invalidates queries and never moves `status` off
+   `queued`; `DayLogPage.tsx:92` treats `queued` as `saved`.
+7. **A pregnant signup was once saved as a cycle user (not reproduced).** For `09120000702` the setting-up screen
+   sent `POST /profile` with the cycle-branch defaults (`pregnancy_intention NULL`, `last_period_start` = today,
+   5/28, `users.name NULL`) and **no** `/pregnancy/activate` or `/pregnancy/onboarding`. The user landed on
+   `/pregnancy` → `v2/today` 409 → «حالت بارداری روشن نیست» (`04-today-after-signup-dark.png`), even though the
+   persisted `ritme-onboarding` store held `intention: pregnant` + basis. The page also stalled about 36 s before
+   redirecting. This run followed a `localStorage.clear()` logout in the same tab, and a clean re-run with
+   `09120000703` was correct. `SettingUpPage.tsx:52-75` reads the store once on mount and swallows every error, so a
+   non-hydrated or reset store silently produces a non-pregnant account. The screen should at least guard that
+   `intention` is set before saving.
+8. **Profile shows Latin digits (outside this module, pre-existing).** «60 کیلوگرم», «165 سانتی‌متر», «28 روز», «5 روز».
+   `measureOrEmpty` / `daysOrEmpty` pass raw numbers (`frontend/src/screens/profile/ui/ProfilePage.tsx:209-212`).
+
+Minor / design:
+- 9a. The care-plan booking link sends no category, so NT (a scan) is prefilled as «ویزیت دوره‌ای» instead of «سونوگرافی»
+  (`frontend/src/screens/pregnancy-calendar/model/view.ts:21`).
+- 9b. After booking from the care plan the app goes to `/reminders/appointment/{id}`, not back to the calendar
+  (`reminder-appointment-form` `router.push`, lines 182/186).
+- 9c. The urgent `critical_symptom` card has no «تماس با پزشک» button. The seed has no `contact.phone`, so
+  `resolveAlertAction` drops `call` (`frontend/src/screens/pregnancy-alerts/model/alerts.ts:41-44`). This is content
+  or config for the sign-off.
+- 9d. The Alerts list puts the info card above the urgent one. Urgent should probably come first.
+- 9e. The Week «کارهای هفته» tab uses native square checkboxes (`WeekTabs.tsx:146-152`), while Today uses round ones.
+- 9f. The Log weight field shows the stored value as `62.5` (Latin) (`DayLogPage.tsx:341`).
+- 9g. «برگرد به حالت چرخه» uses the native `window.confirm` (`ProfilePage.tsx:234`), which is off-brand.
+- 9h. After switching back to cycle, a user without period data gets `GET /messages/daily` 400 («تاریخ آخرین پریود») and a
+  home full of «—» with no prompt to enter the last period.
+- 9i. PDF: in «(خفیف) · ۴ لیوان آب» the `·` sits next to a Persian digit and reads like «۴۰».
+- 9j. Copy (for the clinician): the LMP hint says «حدود ±۵ روز» but the result says «متوسط · حدود ±۳ روز». The spotting
+  info box says mild first-trimester spotting is common, while the rule raises it as «پیگیری زودتر» (urgent).
+
+### Still open (human)
+
+- Clinical content sign-off: the list is in `tasks/PROGRESS.md` T-M7-15 (week details 1–42 + tips, care-plan windows,
+  alert texts and thresholds), plus 9c and 9j above.
+- Staging UI click-through: the agent has no server access.
+- Production when asked.
