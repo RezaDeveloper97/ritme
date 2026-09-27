@@ -729,3 +729,9 @@ Nothing needed fixing.
 - Local API e2e as a `trying` user: today → day log (LH+/BBT/intercourse) → 422 validation → 12 days BBT → `/fertility/bbt` coverline 36.40, shift day 13, post_shift → `/fertility/insights` confidence high. UI light/dark screenshots in `docs/fertility-ttc/screenshots/`. Evidence: `docs/fertility-ttc/README.md` § Local e2e.
 - Bugs found → T-M5-10 (tile colours, gutter, card padding, Latin digits, chart decimal, 2-month window calendar).
 - Open: `fertility_level` mismatch `/cycle/today` top-level (low) vs `daily_card` (medium) — product decision; staging e2e needs server access / user.
+
+## T-M5-10 — Fertility UI polish from local e2e
+- Tiles use `.fert-disc` + `.fert-tone-*` (LH amber, BBT teal, intercourse rose); tiles row `mx-4 mt-4.5`; `p-4` on fertility log/BBT/insights cards (global `.card` untouched).
+- Persian digits via `formatNumber` for basedOn/gaps; chart Y-axis via new `yTickLabel` → `formatBbt`; insights calendar draws every month the window touches (`windowMonths`).
+- Frontend verify green (555 tests, fsd/style/dark gates); 16 light/dark screenshots re-taken in `docs/fertility-ttc/screenshots/`.
+- Open: `fertility_level` mismatch (home «متوسط» vs log «کم»), Lalezar «٫» glyph, insights window teal vs spec amber — design/product decisions.

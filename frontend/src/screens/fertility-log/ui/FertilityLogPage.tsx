@@ -169,7 +169,7 @@ function Section({
       ref={sectionRef}
       aria-labelledby={`fertility-log-${id}-title`}
       className={clsx(
-        'card flex flex-col gap-3 transition-shadow duration-500',
+        'card flex flex-col gap-3 transition-shadow duration-500 p-4',
         highlight && 'ring-2 ring-(--fert-chip-on-line)',
       )}
     >

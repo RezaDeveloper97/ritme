@@ -1,7 +1,9 @@
+import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
 import type { BbtCycle } from "@/entities/fertility";
 import type { Reminder } from "@/entities/reminder";
+import { formatNumber } from "@/shared/lib/date";
 
 import {
   findBbtReminder,
@@ -9,6 +11,8 @@ import {
   parseRange,
   todayReading,
 } from "./view";
+import en from "../../../../messages/en/fertility.json";
+import fa from "../../../../messages/fa/fertility.json";
 
 const cycle: BbtCycle = {
   startDate: "2026-09-01",
@@ -54,5 +58,26 @@ describe("fertility-bbt view model", () => {
     expect(findBbtReminder([r], "BBT")?.id).toBe("1");
     expect(findBbtReminder([{ ...r, isActive: false }], "BBT")).toBeNull();
     expect(findBbtReminder([r], "Other")).toBeNull();
+  });
+});
+
+describe("bbt.stats.gaps count", () => {
+  // The count goes through formatNumber (Persian digits in fa) and must still
+  // drive the English plural.
+  const render = (locale: "fa" | "en", count: number) =>
+    createTranslator({
+      locale,
+      // Only the fertility namespace is loaded; the cast satisfies the global type.
+      messages: { fertility: locale === "fa" ? fa : en } as unknown as IntlMessages,
+      namespace: "fertility",
+    })(
+      "bbt.stats.gaps",
+      { count: formatNumber(count, locale) },
+    );
+
+  it("renders Persian digits in fa and keeps en plurals", () => {
+    expect(render("fa", 3)).toBe("۳ روز جاافتاده");
+    expect(render("en", 3)).toBe("3 days missed");
+    expect(render("en", 1)).toBe("1 day missed");
   });
 });

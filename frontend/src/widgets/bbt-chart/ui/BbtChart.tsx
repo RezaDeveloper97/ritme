@@ -14,6 +14,7 @@ import {
   coverlineY,
   fertileBandX,
   linePath,
+  yTickLabel,
 } from "../model/scale";
 
 interface Props {
@@ -92,7 +93,7 @@ export function BbtChart({ cycles, today }: Props) {
                 dominantBaseline="middle"
                 className="fill-(--fert-chart-label) text-[9px]"
               >
-                {formatNumber(v.toFixed(1), locale)}
+                {yTickLabel(v, locale)}
               </text>
             </g>
           ))}

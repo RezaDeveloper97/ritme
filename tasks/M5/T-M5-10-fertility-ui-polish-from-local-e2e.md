@@ -3,7 +3,7 @@ id: T-M5-10
 title: Fertility UI polish from local e2e
 milestone: M5
 type: frontend
-status: todo
+status: done
 depends_on: [T-M5-05,T-M5-06,T-M5-07,T-M5-08]
 parallel_group: M5-D
 touches: [frontend/src/widgets/fertility-tiles,frontend/src/widgets/bbt-chart,frontend/src/screens/fertility-log,frontend/src/screens/fertility-bbt,frontend/src/screens/fertility-insights,frontend/src/shared/lib, docs/fertility-ttc]

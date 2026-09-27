@@ -9,12 +9,14 @@ import { Icon, type IconName } from '@/shared/ui';
 
 type Tone = 'lh' | 'bbt' | 'intercourse';
 
-/** Icon disc: the tone colour at 13 % fill / 33 % border (v19_Main / nb2_Main). */
-const DISC: Record<Tone, string> = {
-  lh: 'text-(--data-deep) bg-[color-mix(in_srgb,var(--data)_13%,transparent)] border-[color-mix(in_srgb,var(--data)_33%,transparent)]',
-  bbt: 'text-(--amber-deep) bg-[color-mix(in_srgb,var(--amber)_13%,transparent)] border-[color-mix(in_srgb,var(--amber)_33%,transparent)]',
-  intercourse:
-    'text-(--pink) bg-[color-mix(in_srgb,var(--pink)_13%,transparent)] border-[color-mix(in_srgb,var(--pink)_33%,transparent)]',
+/**
+ * Icon disc tone (`v19_Main` / `nb2_Main`): LH amber, BBT teal, intercourse rose —
+ * the `--fert-*` tokens via `.fert-tone-*`; `.fert-disc` draws 13 % fill / 33 % border.
+ */
+const TONE: Record<Tone, string> = {
+  lh: 'fert-tone-amber',
+  bbt: 'fert-tone-teal',
+  intercourse: 'fert-tone-rose',
 };
 
 const ICON: Record<Tone, IconName> = { lh: 'flask', bbt: 'thermo', intercourse: 'heart' };
@@ -36,7 +38,7 @@ function TileLink({ tile }: { tile: Tile }) {
     >
       <span
         aria-hidden
-        className={clsx('flex size-12 items-center justify-center rounded-full border', DISC[tile.tone])}
+        className={clsx('fert-disc size-12 rounded-full', TONE[tile.tone])}
       >
         <Icon name={ICON[tile.tone]} size={22} />
       </span>
@@ -69,7 +71,7 @@ export function FertilityTiles() {
   if (isError) return null;
 
   return (
-    <section aria-label={t('tiles.label')}>
+    <section aria-label={t('tiles.label')} className="mx-4 mt-4.5">
       {isPending || !data ? (
         <TilesSkeleton label={t('tiles.label')} />
       ) : (

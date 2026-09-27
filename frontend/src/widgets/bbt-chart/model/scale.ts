@@ -1,4 +1,5 @@
-import type { BbtCycle } from "@/entities/fertility";
+import { type BbtCycle, formatBbt } from "@/entities/fertility";
+import type { Locale } from "@/shared/i18n";
 
 /** Pixel box the chart draws into (SVG user units). */
 export interface ChartFrame {
@@ -140,4 +141,12 @@ export function areaPath(
   const first = sorted[0]!;
   const last = sorted[sorted.length - 1]!;
   return `${linePath(scales, sorted)} L${scales.x(last.cycleDay).toFixed(1)} ${floor} L${scales.x(first.cycleDay).toFixed(1)} ${floor} Z`;
+}
+
+/**
+ * Y-axis tick label: one decimal through the BBT formatter, so `fa` gets
+ * Persian digits and «٫» like every other temperature on the screen.
+ */
+export function yTickLabel(value: number, locale: Locale): string {
+  return formatBbt(value, locale, 1);
 }

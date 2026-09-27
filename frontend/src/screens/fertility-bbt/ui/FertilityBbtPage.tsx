@@ -75,7 +75,7 @@ export function FertilityBbtPage({ range: rawRange }: { range?: string }) {
     );
   } else if (!hasEnoughReadings(current)) {
     body = (
-      <section className="card flex flex-col items-center gap-3 py-8 text-center">
+      <section className="card flex flex-col items-center gap-3 px-4 py-8 text-center">
         <span className="fert-disc fert-tone-teal grid size-14 place-items-center rounded-full">
           <Icon name="thermo" size={26} />
         </span>
@@ -93,7 +93,7 @@ export function FertilityBbtPage({ range: rawRange }: { range?: string }) {
     const stats = data.stats;
     body = (
       <>
-        <section className="card flex flex-col gap-4">
+        <section className="card flex flex-col gap-4 p-4">
           <div className="flex items-end justify-between gap-3">
             <div className="flex flex-col text-start">
               <span className="text-[12px] text-(--muted)">
@@ -139,13 +139,15 @@ export function FertilityBbtPage({ range: rawRange }: { range?: string }) {
             hint={
               stats.gaps === 0
                 ? t("bbt.stats.noGaps")
-                : t("bbt.stats.gaps", { count: stats.gaps })
+                : t("bbt.stats.gaps", {
+                    count: formatNumber(stats.gaps, locale),
+                  })
             }
           />
         </div>
 
         {data.tip && (
-          <section className="card flex items-start gap-3">
+          <section className="card flex items-start gap-3 p-4">
             <span className="grid size-10 shrink-0 place-items-center rounded-full bg-(--fert-teal-soft) text-(--fert-teal)">
               <Icon name="info" size={20} />
             </span>
@@ -264,7 +266,7 @@ function StatCard({
   hint: string;
 }) {
   return (
-    <div className="card flex flex-col gap-1 text-start">
+    <div className="card flex flex-col gap-1 text-start p-4">
       <span className="text-[12px] text-(--muted)">{label}</span>
       <span
         dir="ltr"

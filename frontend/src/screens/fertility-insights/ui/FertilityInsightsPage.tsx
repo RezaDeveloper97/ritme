@@ -17,12 +17,11 @@ import {
   fromApiDate,
   monthMatrix,
   toApiDate,
-  toParts,
   weekdayLabels,
 } from "@/shared/lib/date";
 import { Icon } from "@/shared/ui";
 
-import { evidenceIcon, isLowData, markFor } from "../model/view";
+import { evidenceIcon, isLowData, markFor, windowMonths } from "../model/view";
 
 const BACK_HREF = "/home";
 const LOG_HREF = "/fertility/log";
@@ -70,7 +69,7 @@ export function FertilityInsightsPage() {
   } else if (isLowData(data)) {
     body = (
       <>
-        <section className="card flex flex-col items-center gap-3 py-8 text-center">
+        <section className="card flex flex-col items-center gap-3 px-4 py-8 text-center">
           <span className="fert-disc fert-tone-violet grid size-14 place-items-center rounded-full">
             <Icon name="sparkle" size={26} />
           </span>
@@ -96,7 +95,7 @@ export function FertilityInsightsPage() {
         <WindowCard data={data} locale={locale} />
         <EvidenceCard data={data} />
         {data.history.length > 0 && (
-          <section className="card flex flex-col gap-2">
+          <section className="card flex flex-col gap-2 p-4">
             <h2 className="text-start text-[15px] font-extrabold text-(--ink)">
               {t("insights.history.title")}
             </h2>
@@ -148,7 +147,7 @@ export function FertilityInsightsPage() {
                 {data.cyclesUsed === 0
                   ? t("insights.noCycles")
                   : t("insights.basedOn", {
-                      count: data.cyclesUsed,
+                      count: formatNumber(data.cyclesUsed, locale),
                     })}
               </p>
             )}
@@ -179,11 +178,10 @@ function WindowCard({
         ovulation: formatDayMonth(fromApiDate(w.ovulation), locale),
       })
     : t("window.rangeNoOvulation", { start, end });
-  const { year, month } = toParts(fromApiDate(w.ovulation ?? w.start), locale);
-  const weeks = monthMatrix(year, month, locale);
+  const months = windowMonths(w, locale);
 
   return (
-    <section className="card flex flex-col gap-3">
+    <section className="card flex flex-col gap-3 p-4">
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-[15px] font-extrabold text-(--ink)">
           {t("window.title")}
@@ -198,36 +196,40 @@ function WindowCard({
         {summary}
       </p>
 
-      <div aria-label={t("calendarLabel")} className="flex flex-col gap-1">
-        <p className="text-center text-[13px] font-bold text-(--ink)">
-          {formatMonthLabel(year, month, locale)}
-        </p>
-        <div className="grid grid-cols-7 gap-1 text-center text-[11px] text-(--muted)">
-          {weekdayLabels(locale).map((d) => (
-            <span key={d}>{d}</span>
-          ))}
-        </div>
-        {weeks.map((week, wi) => (
-          <div key={wi} className="grid grid-cols-7 gap-1">
-            {week.map((cell, ci) => {
-              if (!cell) return <span key={ci} />;
-              const mark = markFor(toApiDate(cell.date), w);
-              return (
-                <span
-                  key={ci}
-                  className={clsx(
-                    "grid aspect-square place-items-center rounded-full text-[12px]",
-                    mark === "ovulation" &&
-                      "bg-(--fert-teal) font-extrabold text-(--on-brand)",
-                    mark === "window" &&
-                      "bg-(--fert-teal-soft) font-bold text-(--fert-teal)",
-                    mark === null && "text-(--ink-3)",
-                  )}
-                >
-                  {formatNumber(cell.day, locale)}
-                </span>
-              );
-            })}
+      <div aria-label={t("calendarLabel")} className="flex flex-col gap-3">
+        {months.map(({ year, month }) => (
+          <div key={`${year}-${month}`} className="flex flex-col gap-1">
+            <p className="text-center text-[13px] font-bold text-(--ink)">
+              {formatMonthLabel(year, month, locale)}
+            </p>
+            <div className="grid grid-cols-7 gap-1 text-center text-[11px] text-(--muted)">
+              {weekdayLabels(locale).map((d) => (
+                <span key={d}>{d}</span>
+              ))}
+            </div>
+            {monthMatrix(year, month, locale).map((week, wi) => (
+              <div key={wi} className="grid grid-cols-7 gap-1">
+                {week.map((cell, ci) => {
+                  if (!cell) return <span key={ci} />;
+                  const mark = markFor(toApiDate(cell.date), w);
+                  return (
+                    <span
+                      key={ci}
+                      className={clsx(
+                        "grid aspect-square place-items-center rounded-full text-[12px]",
+                        mark === "ovulation" &&
+                          "bg-(--fert-teal) font-extrabold text-(--on-brand)",
+                        mark === "window" &&
+                          "bg-(--fert-teal-soft) font-bold text-(--fert-teal)",
+                        mark === null && "text-(--ink-3)",
+                      )}
+                    >
+                      {formatNumber(cell.day, locale)}
+                    </span>
+                  );
+                })}
+              </div>
+            ))}
           </div>
         ))}
         <div className="mt-1 flex flex-wrap items-center justify-center gap-4 text-[11px] text-(--muted)">
@@ -254,7 +256,7 @@ function EvidenceCard({ data }: { data: FertilityInsights }) {
   const t = useTranslations("fertility.insights");
   if (data.evidence.length === 0) return null;
   return (
-    <section className="card flex flex-col gap-2">
+    <section className="card flex flex-col gap-2 p-4">
       <h2 className="text-start text-[15px] font-extrabold text-(--ink)">
         {t("evidence.title")}
       </h2>
@@ -294,7 +296,7 @@ function EvidenceCard({ data }: { data: FertilityInsights }) {
 function TipsCard({ tips }: { tips: string[] }) {
   const t = useTranslations("fertility.insights");
   return (
-    <section className="card flex flex-col gap-2">
+    <section className="card flex flex-col gap-2 p-4">
       <h2 className="text-start text-[15px] font-extrabold text-(--ink)">
         {t("improve")}
       </h2>

@@ -9,6 +9,7 @@ import {
   fertileBandX,
   maxCycleDay,
   yDomain,
+  yTickLabel,
 } from "./scale";
 
 const cycle = (over: Partial<BbtCycle> = {}): BbtCycle => ({
@@ -75,5 +76,13 @@ describe("scales", () => {
     expect(fertileBandX(s, { fromDay: 1, toDay: 2 })!.x).toBe(
       DEFAULT_FRAME.left,
     );
+  });
+});
+
+describe("yTickLabel", () => {
+  it("uses the locale digits and decimal separator", () => {
+    expect(yTickLabel(36.8, "fa")).toBe("۳۶٫۸");
+    expect(yTickLabel(36.8, "en")).toBe("36.8");
+    expect(yTickLabel(36.75, "en")).toBe("36.8");
   });
 });
