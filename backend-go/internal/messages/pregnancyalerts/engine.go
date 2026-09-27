@@ -377,7 +377,8 @@ type texts struct {
 	actions                                    []action
 }
 
-// value localizes a placeholder value (symptom, status, basis, missing reading).
+// value localizes a placeholder value (symptom, status, basis, missing reading); anything else
+// is a number (week, days, count, readings) and gets the locale's digits.
 func value(name, v, locale string) string {
 	switch {
 	case v == none:
@@ -389,7 +390,7 @@ func value(name, v, locale string) string {
 	case name == "basis":
 		return enums.PregnancyAgeSource(v).Label(locale)
 	}
-	return v
+	return v2.Digits(v, locale)
 }
 
 func render(p map[string]any, m meta, locale string) texts {

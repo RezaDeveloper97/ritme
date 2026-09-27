@@ -1,5 +1,6 @@
 'use client';
 
+import clsx from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
@@ -102,26 +103,30 @@ export function PregnancyOnboardingPage() {
 
   return (
     <div className="view onb-page">
-      <div className="hdr">
-        <button className="iconbtn" onClick={back} aria-label={tc('back')}>
+      <div className="hdr gap-3">
+        <button className="iconbtn shrink-0" onClick={back} aria-label={tc('back')}>
           <Icon name={isRtl ? 'chevronRight' : 'chevronLeft'} size={20} />
         </button>
-        <span className="stepcount" aria-label={t('progressLabel')}>
+        <div
+          className="flex flex-1 gap-1.5"
+          role="progressbar"
+          aria-label={t('progressLabel')}
+          aria-valuemin={1}
+          aria-valuemax={TOTAL}
+          aria-valuenow={phase}
+          aria-valuetext={`${formatNumber(phase, loc)} / ${formatNumber(TOTAL, loc)}`}
+        >
+          {Array.from({ length: TOTAL }, (_, i) => (
+            <span
+              key={i}
+              aria-hidden
+              className={clsx('h-1.5 flex-1 rounded-full', i < phase ? 'bg-(--brand-fill)' : 'bg-(--brand-line-soft)')}
+            />
+          ))}
+        </div>
+        <span className="stepcount shrink-0" aria-hidden>
           {t('step', { step: phase, total: TOTAL })}
         </span>
-      </div>
-      <div
-        className="seg"
-        role="progressbar"
-        aria-label={t('progressLabel')}
-        aria-valuemin={1}
-        aria-valuemax={TOTAL}
-        aria-valuenow={phase}
-        aria-valuetext={`${formatNumber(phase, loc)} / ${formatNumber(TOTAL, loc)}`}
-      >
-        {Array.from({ length: TOTAL }, (_, i) => (
-          <button key={i} type="button" tabIndex={-1} className={i < phase ? 'on' : undefined} aria-hidden />
-        ))}
       </div>
 
       <div className="scroll onb-body">

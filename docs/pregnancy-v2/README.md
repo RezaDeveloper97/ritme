@@ -242,13 +242,14 @@ Each file exists as `-light` and `-dark`, except where noted. They are downscale
 |---|---|
 | `01-signup-intention-*` | signup intention step |
 | `02-signup-pregnancy-basis-*` | signup dating basis (manual week) |
-| `03-signup-setting-up-light` | setting-up ring (light only; the dark capture timed out, see bug 7) |
-| `04-today-after-signup-*` | first landing: light = Today, dark = «حالت بارداری روشن نیست» (bug 7) |
+| `03-signup-setting-up-*` | setting-up ring |
+| `04-today-after-signup-*` | first landing on Today |
 | `05-setup-welcome-*` … `08-setup-result-*` | Setup v2 welcome, dating (LMP calendar), history, result |
 | `09-today-*`, `11-today-bottom-*` | Today top (collapsed carousel, trimester bars) and bottom |
 | `12-week-*`, `13-week-baby-tab-bottom-*`, `14-week-body-tab-*`, `15-week-tasks-tab-*` | Week 10 hero, tabs, warning, reviewer line |
 | `16-log-empty-*`, `17-log-filled-*`, `19-log-saved-online-*` | Log empty, filled, saved |
 | `20-log-queued-offline-*` | offline save queued in the outbox |
+| `21-log-synced-online-*` | the same save after reconnect: «ذخیره شد» |
 | `22-log-spotting-info-*`, `23-log-alert-raised-*` | spotting info box, and the new alert after save |
 | `24-alerts-*`, `25-alerts-legend-*`, `26-alerts-after-ack-*` | Alerts screen, legend, after ack |
 | `27-calendar-*`, `28-calendar-care-plan-*` | Calendar and care plan before booking |
@@ -260,7 +261,12 @@ Each file exists as `-light` and `-dark`, except where noted. They are downscale
 
 The round «N» badge bottom-left is the Next.js dev-mode indicator, not app UI.
 
-### Bugs found (not fixed)
+### Bugs found
+
+Items 1–8 and 9f were fixed in T-M7-16. The screenshots of signup, Setup, Today, Week, Log, Alerts, Calendar
+(`27-*`) and Profile were re-taken locally afterwards (scratch DB `ritme_m716`, users `09120000712`/`09120000713`),
+with the same 585×1266 + pngquant compression. The other files are still from T-M7-15. 9a (outside T-M7-16's
+paths) and 9b–9e, 9g–9j are still open.
 
 1. **Today week carousel collapses to a 32 px strip.** Only «سه‌ماههٔ اول · هفتهٔ ۱۰ از ۴۰» shows (clipped). The
    illustration, size line, prev/next buttons and «مرور هفته‌ها» link are hidden (`scrollHeight` 370 vs height 32).

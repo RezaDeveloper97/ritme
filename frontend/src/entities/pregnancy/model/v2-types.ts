@@ -194,7 +194,10 @@ export interface TrimesterSpan {
   trimester: 1 | 2 | 3;
   startDate: string | null;
   startLabel: string | null;
-  /** 0–100: how much of this trimester is behind the user. */
+  /**
+   * 0–100: where this trimester **starts** on the 40-week bar (0 / 32 / 70) —
+   * not a fill. The fill of each segment comes from `trimesterFills`.
+   */
   percent: number;
 }
 

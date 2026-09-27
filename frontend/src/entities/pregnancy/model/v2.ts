@@ -5,6 +5,7 @@ import {
   type HighlightIcon,
   type HighlightTone,
   type Mood,
+  type PregnancyProgressV2,
   V2_MAX_WEEK,
   V2_MIN_WEEK,
   type WeekRelation,
@@ -115,4 +116,31 @@ export function isDatingPreviewReady(input: DatingPreviewInput | null): input is
     case 'manual':
       return input.manual_weeks != null;
   }
+}
+
+/** One segment of the Today 40-week bar. */
+export interface TrimesterFill {
+  trimester: 1 | 2 | 3;
+  /** 0–100: how much of this trimester is behind the user. */
+  fill: number;
+  /** Has the user reached this trimester yet? */
+  started: boolean;
+}
+
+/**
+ * Per-trimester fill of the Today progress bar. The API sends each trimester's
+ * **start** on the 40-week bar (`trimesters[].percent`) and the overall
+ * `percent`; a segment runs from its start to the next one's (or 100).
+ */
+export function trimesterFills(progress: Pick<PregnancyProgressV2, 'percent' | 'trimesters'>): TrimesterFill[] {
+  const spans = [...progress.trimesters].sort((a, b) => a.percent - b.percent);
+  const overall = Math.min(100, Math.max(0, progress.percent));
+  return spans.map((s, i) => {
+    const start = s.percent;
+    const end = spans[i + 1]?.percent ?? 100;
+    const width = end - start;
+    const fill = width > 0 ? Math.round(Math.min(1, Math.max(0, (overall - start) / width)) * 100) : 0;
+    // Overall percent is rounded, so sitting exactly on a later start still means «not yet».
+    return { trimester: s.trimester, fill, started: start === 0 || overall > start };
+  });
 }

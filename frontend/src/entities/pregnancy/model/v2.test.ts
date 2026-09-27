@@ -11,6 +11,7 @@ import {
   moodGlyph,
   taskProgress,
   toggleDoneKey,
+  trimesterFills,
   weekRelation,
 } from './v2';
 import { HIGHLIGHT_ICONS, MOODS } from './v2-types';
@@ -95,5 +96,40 @@ describe('dating preview input', () => {
     expect(isDatingPreviewReady({ source: 'ultrasound', ultrasound_date: '2026-09-16' })).toBe(false);
     expect(isDatingPreviewReady({ source: 'ultrasound', ultrasound_date: '2026-09-16', ultrasound_weeks: 0 })).toBe(true);
     expect(isDatingPreviewReady({ source: 'manual', manual_weeks: 8 })).toBe(true);
+  });
+});
+
+describe('trimesterFills', () => {
+  // What the API sends: `percent` is each trimester's start on the 40-week bar.
+  const trimesters = [
+    { trimester: 1 as const, startDate: null, startLabel: null, percent: 0 },
+    { trimester: 2 as const, startDate: null, startLabel: null, percent: 32 },
+    { trimester: 3 as const, startDate: null, startLabel: null, percent: 70 },
+  ];
+
+  it('fills the current trimester partly and later ones not at all (week 10)', () => {
+    expect(trimesterFills({ percent: 23, trimesters })).toEqual([
+      { trimester: 1, fill: 72, started: true },
+      { trimester: 2, fill: 0, started: false },
+      { trimester: 3, fill: 0, started: false },
+    ]);
+  });
+
+  it('fills past trimesters completely (week 30)', () => {
+    expect(trimesterFills({ percent: 74, trimesters })).toEqual([
+      { trimester: 1, fill: 100, started: true },
+      { trimester: 2, fill: 100, started: true },
+      { trimester: 3, fill: 13, started: true },
+    ]);
+  });
+
+  it('treats a rounded percent on a start as not started, and caps at term', () => {
+    expect(trimesterFills({ percent: 32, trimesters }).map((f) => f.started)).toEqual([true, false, false]);
+    expect(trimesterFills({ percent: 120, trimesters }).map((f) => f.fill)).toEqual([100, 100, 100]);
+  });
+
+  it('orders by start and tolerates an empty list', () => {
+    expect(trimesterFills({ percent: 50, trimesters: [...trimesters].reverse() }).map((f) => f.trimester)).toEqual([1, 2, 3]);
+    expect(trimesterFills({ percent: 50, trimesters: [] })).toEqual([]);
   });
 });

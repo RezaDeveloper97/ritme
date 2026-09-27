@@ -117,3 +117,21 @@ func TestRenderAndLevels(t *testing.T) {
 	assert.Equal(t, "Spotting logged", txt.title)
 	assert.Equal(t, "150/—", txt.whatWeSaw)
 }
+
+// Numeric vars (stored as ASCII) are rendered in the locale's digits: «وارد هفتهٔ ۱۰ شدی».
+func TestRenderLocalizesDigits(t *testing.T) {
+	week := Detect("week_entered", Config{Enabled: true, Level: "info", WindowDays: 7}, Facts{Week: 10, WeekDay: 0, Source: "lmp"})
+	require.Len(t, week, 1)
+	vars := map[string]string{}
+	for _, kv := range week[0].Vars {
+		vars[kv[0]] = kv[1]
+	}
+	assert.Equal(t, "10", vars["week"], "stored vars stay ASCII")
+	p := map[string]any{"title": "وارد هفتهٔ {week} شدی", "what_we_saw": "{systolic}/{diastolic} · {fasting}"}
+	m := meta{Vars: map[string]string{"week": vars["week"], "systolic": "150", "diastolic": none, "fasting": "95.5"}}
+	fa := render(p, m, "fa")
+	assert.Equal(t, "وارد هفتهٔ ۱۰ شدی", fa.title)
+	assert.Equal(t, "۱۵۰/"+T("none", "fa")+" · ۹۵.۵", fa.whatWeSaw)
+	en := render(p, m, "en")
+	assert.Equal(t, "وارد هفتهٔ 10 شدی", en.title)
+}

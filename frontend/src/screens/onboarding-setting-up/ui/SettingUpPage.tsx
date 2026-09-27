@@ -1,77 +1,90 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { useOnboardingStore, type PregnancyBasis } from '@/entities/user';
-import { useActivatePregnancy, useCompleteOnboarding, type OnboardingInput } from '@/entities/pregnancy';
-import { datePartsToApiDate, onboardingToProfileInput, useUpdateProfile } from '@/features/edit-profile';
-import { type Locale } from '@/shared/i18n';
+import { useActivatePregnancy, useCompleteOnboarding } from '@/entities/pregnancy';
+import { useOnboardingStore } from '@/entities/user';
+import { onboardingToProfileInput, useUpdateProfile } from '@/features/edit-profile';
+import { type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { clearOnboardingPending, getAuthToken, setAuthToken } from '@/shared/session';
 
+import { planSetup, runSetup, type SetupPlan, type SetupStep } from '../model/plan';
+
 const CIRCUMFERENCE = 553;
 
-/**
- * Turn the collected dating basis into the pregnancy onboarding body. Returns
- * null when no source was chosen (the pregnancy screen's activation gate will
- * then prompt for it later). The stored parts are in `locale`'s calendar; they
- * cross the boundary as Gregorian (§7).
- */
-function buildPregnancyOnboarding(basis: PregnancyBasis, locale: Locale): OnboardingInput | null {
-  if (!basis.source) return null;
-  const input: OnboardingInput = { age_source: basis.source };
-  if (basis.source === 'lmp' && basis.lmp) {
-    input.lmp_date = datePartsToApiDate(basis.lmp, locale);
-  } else if (basis.source === 'ultrasound') {
-    if (basis.ultrasoundDate) input.ultrasound_date = datePartsToApiDate(basis.ultrasoundDate, locale);
-    if (basis.ultrasoundWeeks != null) input.ultrasound_weeks = basis.ultrasoundWeeks;
-    input.ultrasound_days = basis.ultrasoundDays ?? 0;
-  } else if (basis.source === 'manual') {
-    if (basis.manualWeeks != null) input.manual_weeks = basis.manualWeeks;
-    input.manual_days = basis.manualDays ?? 0;
-  }
-  return input;
-}
+type SavePlan = Extract<SetupPlan, { kind: 'save' }>;
 
 export function SettingUpPage() {
   const t = useTranslations('onboarding.settingUp');
+  // Generic failure copy from namespaces this route already ships (no new keys).
+  const te = useTranslations('profileEdit.errors');
+  const tc = useTranslations('common.actions');
   const locale = useLocale() as Locale;
+  const router = useRouter();
   const update = useUpdateProfile();
   const activate = useActivatePregnancy();
   const completeOnboarding = useCompleteOnboarding();
-  const onboarding = useOnboardingStore();
-  const isPregnant = onboarding.intention === 'pregnant';
 
   const [pct, setPct] = useState(0);
   const [ringDone, setRingDone] = useState(false);
+  const [landing, setLanding] = useState<SavePlan['landing'] | null>(null);
   const [saveDone, setSaveDone] = useState(false);
+  const [failed, setFailed] = useState(false);
   const ringRef = useRef<SVGCircleElement>(null);
-  const savedRef = useRef(false);
+  const startedRef = useRef(false);
+  const planRef = useRef<SavePlan | null>(null);
+  const doneRef = useRef(new Set<SetupStep>());
+  const runningRef = useRef(false);
 
-  // Persist the collected answers exactly once. The guard keeps React 18
-  // StrictMode's double-invoke from firing two POSTs. Pregnant users also get
-  // pregnancy mode activated + dated inline; everyone else just saves cycle data.
+  // Send the plan's requests; a failure shows the retry UI instead of moving
+  // on with a half-saved account, and a retry resumes at the failed step.
+  const save = useCallback(async () => {
+    const plan = planRef.current;
+    if (!plan || runningRef.current) return;
+    runningRef.current = true;
+    setFailed(false);
+    const answers = useOnboardingStore.getState();
+    try {
+      await runSetup(
+        plan.steps,
+        (step) => {
+          if (step === 'profile') return update.mutateAsync(onboardingToProfileInput(answers));
+          if (step === 'activate') return activate.mutateAsync();
+          if (!plan.pregnancy) throw new Error('pregnancy onboarding body missing');
+          return completeOnboarding.mutateAsync(plan.pregnancy);
+        },
+        doneRef.current,
+      );
+      setSaveDone(true);
+    } catch {
+      setFailed(true);
+    } finally {
+      runningRef.current = false;
+    }
+  }, [update, activate, completeOnboarding]);
+
+  // Decide once, from the *hydrated* store: missing answers send the user back
+  // to the step that asks them (never a silent cycle-profile save); otherwise
+  // persist. The ref keeps StrictMode's double-invoke from firing two POSTs.
   useEffect(() => {
-    if (savedRef.current) return;
-    savedRef.current = true;
-
-    void (async () => {
-      try {
-        await update.mutateAsync(onboardingToProfileInput(onboarding));
-        if (onboarding.intention === 'pregnant') {
-          await activate.mutateAsync();
-          const pregnancy = buildPregnancyOnboarding(onboarding.pregnancyBasis, onboarding.locale);
-          if (pregnancy) await completeOnboarding.mutateAsync(pregnancy);
-        }
-      } catch {
-        // Best-effort: proceed to the app regardless — the user can adjust
-        // everything later, and the pregnancy screen re-prompts if needed.
-      } finally {
-        setSaveDone(true);
+    if (startedRef.current) return;
+    startedRef.current = true;
+    const start = () => {
+      const plan = planSetup(useOnboardingStore.getState());
+      if (plan.kind === 'resume') {
+        router.replace(plan.route);
+        return;
       }
-    })();
-    // Run once on mount; the persisted store values are stable by then.
+      planRef.current = plan;
+      setLanding(plan.landing);
+      void save();
+    };
+    const persist = useOnboardingStore.persist;
+    if (persist.hasHydrated()) start();
+    else persist.onFinishHydration(() => start());
+    // Run once on mount.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -105,14 +118,14 @@ export function SettingUpPage() {
   // took them straight in. The auth cookie is also re-asserted first, so the
   // request the middleware sees always carries it.
   useEffect(() => {
-    if (!ringDone || !saveDone) return;
+    if (!ringDone || !saveDone || !landing) return;
     // Registration is done — drop the resume marker, or the middleware would
     // keep herding this session back into the flow it just finished.
     clearOnboardingPending();
     const token = getAuthToken();
     if (token) setAuthToken(token);
-    window.location.replace(`/${locale}${isPregnant ? '/pregnancy' : '/home'}`);
-  }, [ringDone, saveDone, isPregnant, locale]);
+    window.location.replace(`/${locale}${landing}`);
+  }, [ringDone, saveDone, landing, locale]);
 
   return (
     <div className="view onb-page">
@@ -140,7 +153,16 @@ export function SettingUpPage() {
         </p>
       </div>
       <div className="setup-footer">
-        <span className="sub">{t('wait')}</span>
+        {failed ? (
+          <div className="flex flex-col items-center gap-3" role="alert">
+            <span className="text-[13px] leading-[1.7] font-semibold text-(--danger-deep)">{te('generic')}</span>
+            <button type="button" className="btn btn-primary" onClick={() => void save()}>
+              {tc('save')}
+            </button>
+          </div>
+        ) : (
+          <span className="sub">{t('wait')}</span>
+        )}
       </div>
     </div>
   );

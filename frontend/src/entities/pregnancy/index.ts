@@ -165,6 +165,8 @@ export {
   moodGlyph,
   taskProgress,
   toggleDoneKey,
+  trimesterFills,
+  type TrimesterFill,
   weekRelation,
 } from './model/v2';
 export {

@@ -9,6 +9,7 @@ import {
   type NextVisit,
   type PregnancyProgressV2,
   type PregnancyToday,
+  trimesterFills,
   usePregnancyToday,
   V2_TERM_WEEKS,
   type WeekTip,
@@ -38,7 +39,8 @@ type T = ReturnType<typeof useTranslations<'pregnancyV2'>>;
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="view preg-page">
-      <div className="scroll flex flex-col gap-3 pb-6">{children}</div>
+      {/* Children never shrink: an overflow-hidden card would otherwise collapse to 0 in this column. */}
+      <div className="scroll flex flex-col gap-3 pb-6 *:shrink-0">{children}</div>
       <BottomNav />
     </div>
   );
@@ -114,6 +116,8 @@ function DueDateCard({ due, t, locale }: { due: DueCard; t: T; locale: Locale })
 
 // ── 40-week progress with trimester segments ──────────────────
 function ProgressCard({ progress, t, locale }: { progress: PregnancyProgressV2; t: T; locale: Locale }) {
+  const fills = trimesterFills(progress);
+  const byTrimester = new Map(fills.map((f) => [f.trimester, f]));
   return (
     <section className="card mx-4 p-4">
       <div className="flex items-baseline justify-between gap-2">
@@ -129,9 +133,9 @@ function ProgressCard({ progress, t, locale }: { progress: PregnancyProgressV2; 
         aria-valuemax={100}
         aria-valuenow={progress.percent}
       >
-        {progress.trimesters.map((s) => (
-          <div key={s.trimester} className="h-2 flex-1 overflow-hidden rounded-full bg-(--brand-line-soft)">
-            <div className="h-full rounded-full bg-(--brand-fill)" style={{ width: `${s.percent}%` }} />
+        {fills.map((f) => (
+          <div key={f.trimester} className="h-2 flex-1 overflow-hidden rounded-full bg-(--brand-line-soft)">
+            <div className="h-full rounded-full bg-(--brand-fill)" style={{ width: `${f.fill}%` }} />
           </div>
         ))}
       </div>
@@ -141,7 +145,7 @@ function ProgressCard({ progress, t, locale }: { progress: PregnancyProgressV2; 
           const date = s.startLabel ?? (s.startDate ? formatDayMonth(fromApiDate(s.startDate), locale) : null);
           return (
             <span key={s.trimester} className="flex-1 truncate">
-              {s.trimester > 1 && date && s.percent === 0 ? t('today.trimesterFrom', { name, date }) : name}
+              {date && byTrimester.get(s.trimester)?.started === false ? t('today.trimesterFrom', { name, date }) : name}
             </span>
           );
         })}

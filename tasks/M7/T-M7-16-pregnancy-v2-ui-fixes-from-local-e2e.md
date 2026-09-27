@@ -3,7 +3,7 @@ id: T-M7-16
 title: Pregnancy v2 UI fixes from local e2e
 milestone: M7
 type: frontend
-status: todo
+status: done
 depends_on: [T-M7-10,T-M7-11,T-M7-12,T-M7-14,T-M7-09]
 parallel_group: M7-E
 touches: [frontend/src/widgets/pregnancy-week-carousel,frontend/src/screens/pregnancy,frontend/src/screens/pregnancy-onboarding,frontend/src/screens/pregnancy-week,frontend/src/screens/pregnancy-log,frontend/src/screens/onboarding-setting-up,frontend/src/screens/profile,frontend/src/entities/pregnancy,backend-go/internal/messages/pregnancyalerts,docs/pregnancy-v2]

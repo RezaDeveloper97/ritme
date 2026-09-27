@@ -1,7 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import {
   type PregnancyAlertV2,
@@ -21,10 +21,12 @@ import {
   useOutboxReplay,
 } from "@/shared/lib/outbox";
 
+import { type SaveStatus, statusAfterSync } from "./save-status";
+
 /** Outbox key of one day's log — a newer save of the same day replaces it. */
 const dayKey = (date: string) => `pregnancy-day:${date}`;
 
-export type SaveStatus = "idle" | "saving" | "saved" | "queued" | "error";
+export type { SaveStatus };
 
 /** No HTTP response at all = the network, not the server, failed. */
 const isOffline = (error: unknown) => getApiErrorStatus(error) === undefined;
@@ -52,13 +54,18 @@ export function useSaveDay() {
   const pending = useOutboxPending();
   const [status, setStatus] = useState<SaveStatus>("idle");
   const [alerts, setAlerts] = useState<PregnancyAlertV2[]>([]);
+  /** Outbox key of the save this screen is showing as «queued». */
+  const queuedKey = useRef<string | null>(null);
 
-  useOutboxReplay(sendEntry, () => {
+  useOutboxReplay(sendEntry, (sent) => {
     void queryClient.invalidateQueries({ queryKey: pregnancyKeys.all });
+    const keys = sent.map((e) => e.key);
+    setStatus((s) => statusAfterSync(s, queuedKey.current, keys));
   });
 
   const queue = useCallback(async (date: string, input: PregnancyDayInput) => {
     try {
+      queuedKey.current = dayKey(date);
       await getOutbox().enqueue({
         key: dayKey(date),
         method: "put",

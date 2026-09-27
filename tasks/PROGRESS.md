@@ -751,3 +751,11 @@ Nothing needed fixing.
 - verify-all green. Local UI e2e light/dark: pregnant signup → Setup v2 → Today → Week → Log (incl. offline outbox sync) → spotting at w10 fires urgent alert → Alerts → Calendar booking from care plan (item → booked) → doctor PDF (Persian footer) → switch back to cycle. 60 compressed screenshots in `docs/pregnancy-v2/screenshots/`; evidence in `docs/pregnancy-v2/README.md` § Local e2e.
 - Bugs 1–8 → T-M7-16. Clinical/content questions for the reviewer: 9c (no `contact.phone` in seed → no call-doctor button), 9j (LMP ±5 vs ±3 days copy; spotting info box says common but rule fires urgent).
 - Still open (human): clinical sign-off, staging UI click-through, production when asked.
+
+## T-M7-16 — Pregnancy v2 UI fixes from local e2e
+- Today carousel `shrink-0`; trimester fills via new `trimesterFills` (API contract unchanged); Setup v2 stepper per design; locale digits on Week, Profile and Log weight.
+- Go `pregnancyalerts` render localizes numeric vars (`v2.Digits`) — «وارد هفتهٔ ۱۰ شدی».
+- Log: queued vs saved status (`save-status.ts`), «ذخیره شد» only after server ack.
+- SettingUpPage: decision logic in `model/plan.ts` — no save without intention, pregnant path always profile→activate→onboarding, retry UI resumes from the failed step.
+- Verify green (573 frontend tests, Go vet/tests/lint); screenshots re-taken in `docs/pregnancy-v2/screenshots/`.
+- Open: 9a NT prefill category (in pregnancy-calendar view, outside touches); outbox `rejected` leaves status queued; retry button uses generic copy (no new i18n key).

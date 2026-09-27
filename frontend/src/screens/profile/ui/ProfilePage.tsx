@@ -9,7 +9,7 @@ import { useUserProfile } from '@/entities/user';
 import { useLogout } from '@/features/auth';
 import { QuickEditSheet, type QuickEditField } from '@/features/edit-profile';
 import { useSwitchLocale } from '@/features/switch-locale';
-import { formatLongDate } from '@/shared/lib/date';
+import { formatLongDate, formatNumber } from '@/shared/lib/date';
 import { openSheet } from '@/shared/sheet';
 import { useThemeStore } from '@/shared/theme';
 import { localizeHref, useDirection, useRouter, type Locale } from '@/shared/i18n';
@@ -205,11 +205,12 @@ export function ProfilePage() {
   // the locale's calendar (§7), converted here via the shared date layer.
   const localDateOrEmpty = (iso: string | null | undefined) =>
     iso ? formatLongDate(new Date(iso), loc) : t('health.empty');
-  // A count of days, formatted through ICU so digits localize per locale (§6).
+  // The messages use plain `{days}` / `{value}` (no `, number`), which ICU
+  // prints as-is — so the digits are localized here (Persian digits in fa).
   const daysOrEmpty = (value: number | null | undefined) =>
-    value != null ? t('health.days', { days: value }) : t('health.empty');
+    value != null ? t('health.days', { days: formatNumber(value, loc) }) : t('health.empty');
   const measureOrEmpty = (key: 'kg' | 'cm', value: number | null | undefined) =>
-    value != null ? t(`health.${key}`, { value }) : t('health.empty');
+    value != null ? t(`health.${key}`, { value: formatNumber(value, loc) }) : t('health.empty');
 
   // A full document replace, not a client-side one: it drops every React tree,
   // query cache and in-memory token the signed-in session left behind, and it

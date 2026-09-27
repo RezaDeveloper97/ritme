@@ -18,6 +18,7 @@ import { type Locale, Link, useRouter } from "@/shared/i18n";
 import {
   type DateParts,
   formatDayMonth,
+  formatNumber,
   formatWeekdayDayMonth,
   fromApiDate,
   partsToDate,
@@ -38,6 +39,7 @@ import {
   toggleSymptom,
   inputFromDraft,
 } from "../model/draft";
+import { isConfirmedSave } from "../model/save-status";
 import { useSaveDay } from "../model/use-save-day";
 
 const CARD = "rounded-2xl border border-(--line) bg-(--surface) p-4";
@@ -89,7 +91,9 @@ export function DayLogPage({ date: rawDate }: { date?: string }) {
     router.replace(`/pregnancy/log?date=${next}`, { scroll: false });
   };
 
-  const saved = status === "saved" || status === "queued";
+  // «queued» is only on the device: the button stays a save button until the
+  // outbox has actually sent the day (the status line says it is queued).
+  const saved = isConfirmedSave(status);
 
   return (
     <div className="view preg-page">
@@ -338,7 +342,7 @@ export function DayLogPage({ date: rawDate }: { date?: string }) {
                     id="plog-weight"
                     inputMode="decimal"
                     autoComplete="off"
-                    value={draft.weight}
+                    value={formatNumber(draft.weight, locale)}
                     onChange={(e) => edit({ weight: e.target.value })}
                     className="h-10 w-16 bg-transparent text-center text-[15px] font-bold text-(--ink) outline-none"
                   />
@@ -435,7 +439,10 @@ export function DayLogPage({ date: rawDate }: { date?: string }) {
                   {t("common.saveError")}
                 </span>
               ) : status === "queued" ? (
-                t("log.queued")
+                <span className="inline-flex items-center gap-1">
+                  <Icon name="clock" size={13} />
+                  {t("log.queued")}
+                </span>
               ) : (
                 `${t("log.offlineNote")} ${t("log.editNote")}`
               )}

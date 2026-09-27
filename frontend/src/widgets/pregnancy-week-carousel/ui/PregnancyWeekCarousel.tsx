@@ -58,7 +58,7 @@ export function PregnancyWeekCarousel({ slides, confidence, uncertaintyDays }: P
   return (
     <section
       aria-roledescription="carousel"
-      className="mx-4 overflow-hidden rounded-3xl bg-linear-to-b from-(--preg-hero-start) to-(--preg-hero-end) p-4 text-(--on-accent)"
+      className="mx-4 shrink-0 overflow-hidden rounded-3xl bg-linear-to-b from-(--preg-hero-start) to-(--preg-hero-end) p-4 text-(--on-accent)"
       onTouchStart={(e) => (startX.current = e.touches[0]?.clientX ?? null)}
       onTouchEnd={(e) => onTouchEnd(e.changedTouches[0]?.clientX ?? 0)}
     >
