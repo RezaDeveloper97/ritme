@@ -162,3 +162,132 @@ Public proxy: `GET https://stage.ritmeapp.ir/api/v1/checkups` without credential
 - UI e2e in light + dark (needs the stage password): home card → list → detail → mark done with a local attachment →
   history → doctor PDF → self-exam guide; an admin edit of a type showing up in the app; screenshots into PROGRESS.
 - Production rollout only when the user asks.
+
+## Local e2e (T-M4-10) — 2026-09-27
+
+Everything below ran locally on branch `stage`. backend-go ran on `:8020` against the docker test-stack MariaDB. It
+used a scratch DB `ritme_m410` (goose up to v5, which includes `00003_checkups`), with `SMS_PROVIDER=log` and
+`ADMIN_COOKIE_SECURE=false`. The Next dev server ran on `:3000` with
+`NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8020/api/v1` passed as an env var. admin-web ran on `:3001` with
+`ADMIN_API_PROXY_TARGET=http://127.0.0.1:8020`. The test user was `09120000001`, with the OTP read from the DB. Its profile
+has birthday 1992-05-10 (age 34), `user_goal=non_ttc` and a 28-day cycle. Four periods were logged through
+`POST /cycle/period` (06-20, 07-18, 08-15, 09-12), so today, 2026-09-27, is cycle day 16. A dentist record dated 2025-11-10
+was added through the API so the overdue state shows. A temporary `super` admin `editor@local.test` was used. It existed
+only in the scratch DB, which was dropped afterwards. No staging or production host was contacted.
+
+### verify-all
+
+| Check | Result |
+|---|---|
+| `go vet ./...` | ✔ pass |
+| `go test ./...` | ✔ pass (63 packages ok) |
+| `golangci-lint run` | ✔ 0 issues |
+| `npm run typecheck` | ✔ pass |
+| `npm run lint` | ✔ pass |
+| `npm run fsd:lint` | ✔ No problems found |
+| `npm run lint:styles` | ✔ style gate passed (457 files) |
+| `npm run lint:dark` | ✔ passed (57 contrast pairs, 123 tokens; only the pre-existing light-mode ⚠ pairs) |
+| `npm run test` | ✔ 67 files, 555 passed |
+| Laravel (`pint`, `artisan test`) | skipped: `backend/` unchanged |
+
+### UI flow (headless Chrome over CDP, 390×844 @2x, fa, light and dark)
+
+Light used Pap smear (`/checkups/3`) and dark used the full blood test (`/checkups/4`). The results were the same in both themes.
+The automated DOM checks passed on every screen: no horizontal overflow (no element outside the viewport, `scrollWidth`
+≤ `innerWidth`), no raw i18n keys in the DOM text, and no console errors or exceptions. The one exception is the PDF step (bug 1).
+
+| # | Step | Result |
+|---|---|---|
+| 1 | Cycle home → «چکاپ‌های دوره‌ای» card | ✔ ring `۱/۶` (dark run `۲/۶`), counts line, 2 highlight rows (self-exam «راهنما» rose; dark run: dentist overdue amber «ثبت نوبت»), disclaimer |
+| 2 | Card «همه» → `/checkups` | ✔ «بر اساس سن ۳۴ سال», stacked status bar + legend, tabs, sections, info note, «افزودن چکاپ سفارشی»; the «نیاز به اقدام» tab sets `?filter=action` |
+| 3 | Row → detail | ✔ hero (category chip, status pill, next due, «انجام دادم» / «ثبت نوبت»), چرا مهم است؟, قبل از رفتن, cycle hint, سابقه, disclaimer |
+| 4 | «انجام دادم» → MarkDone sheet | ✔ date chip (today, Jalali), 3 result radios, photo/PDF buttons, privacy line, note, next-due banner (`۶ مهر ۱۴۰۸ · هر ۳ سال · ۳۰ روز قبل یادآوری می‌کنیم`) |
+| 5 | Attachment via `DOM.setFileInputFiles` (`lab-report.jpg`) + «نیاز به پیگیری» + note → «ثبت» | ✔ thumbnail + file name shown; toast «ثبت شد»; detail flips to «به‌روز», next due shown, record has «گزارش پیوست شده»; the file is stored in IndexedDB `ritme-local-files` and the API only receives `has_attachment: true` |
+| 6 | `/checkups/history` | ✔ timeline grouped by month, result chips, «پیوست» chip; the «با پیوست» tab filters to the attached record |
+| 7 | «خلاصه برای پزشک» → PDF | ✔ `ritme-checkups.pdf` generated on the device and downloaded (59 KB light / 75 KB dark; it has title, date, records, notes, attachment line, disclaimer). ✘ footer is a raw key and the console logs an `IntlError` (bug 1) |
+| 8 | `/checkups/self-exam` | ✔ cycle-day ring `۱۶ از ۲۸`, best-time box, 3 steps, findings chips, «این ماه انجام دادم», adherence line «۰ ماه از ۱۲ ماه» |
+| 9 | `/checkups/custom/new` | ✔ name, interval chips, performed-by chips, last-done date, note, «ذخیره» |
+| 10 | admin-web login → Checkup types list → edit `blood_test` fa title to «آزمایش خون کامل (ویرایش ادمین)» → «ذخیره تغییرات» | ✔ redirected to the list with the new title; the stats block reads users with records 3, records in the last 30 days 2, overdue users 1 |
+| 11 | App `/checkups` and `/checkups/4` after the admin edit | ✔ both show the new title (no cache issue) |
+
+### Screenshots (`screenshots/`)
+
+App screens were captured in `-light` and `-dark`. Admin screens are light only.
+
+| File | Shows |
+|---|---|
+| `home-card-*.png` | checkups card on the cycle home |
+| `list-*.png`, `list-bottom-*.png`, `list-tab-action-*.png` | Checkups list: top, bottom (info note + add custom), «نیاز به اقدام» tab |
+| `detail-*.png`, `detail-bottom-*.png` | CheckupDetail before marking done |
+| `markdone-sheet-*.png` | MarkDone sheet, empty |
+| `markdone-filled-*.png`, `markdone-filled-bottom-*.png` | sheet with local attachment, «نیاز به پیگیری», note |
+| `detail-after-save-*.png` | detail after save: «به‌روز», next due, record with attachment |
+| `history-*.png`, `history-with-attachment-*.png` | History: all and «با پیوست» |
+| `history-pdf-*.png` | History right after the PDF trigger (it returned to idle, no error line) |
+| `pdf-summary-page1-light.png` | page 1 of the generated PDF, rendered with `sips` (footer bug visible) |
+| `self-exam-*.png`, `self-exam-bottom-*.png` | breast self-exam guide |
+| `custom-form-*.png` | custom checkup form |
+| `admin-login.png`, `admin-checkup-types-list.png` | admin-web login and catalog list + usage stats |
+| `admin-checkup-type-form.png`, `admin-checkup-type-form-edited.png` | type form (preview, texts, steps, appearance, timing) before and after the title edit |
+| `admin-checkup-type-saved.png`, `admin-checkup-types-list-after.png` | list after save with the new title |
+| `app-list-after-admin-edit-light.png`, `app-detail-after-admin-edit-light.png` | the admin edit showing in the app |
+
+Note: the admin form is a full-page capture, so its sticky save bar appears mid-page. That is a capture artifact, not a bug.
+
+### Bugs found (not fixed, report only)
+
+1. **PDF footer is a raw i18n key.** Every page of the doctor summary prints `checkups.history.pdf.footer`, and the console
+   logs `IntlError: FORMATTING_ERROR: The intl string context variable "page" was not provided`. The cause is
+   `frontend/src/screens/checkup-history/ui/CheckupHistoryPage.tsx:82`, which calls `t('history.pdf.footer')` without values. `renderPdf`
+   (`frontend/src/shared/lib/pdf/render.ts:141-143`) expects the template with literal `{page}`/`{pages}`, so the call
+   needs `t.raw(…)`. The same pattern exists in `frontend/src/screens/pregnancy-calendar/ui/PregnancyCalendarPage.tsx:562`.
+   `render.ts` also substitutes `String(p + 1)`, which gives Latin digits in the fa footer once the template works.
+   To reproduce: open History, tap «خلاصه برای پزشک», then open the PDF (`pdf-summary-page1-light.png`).
+2. **Checkups cards have no inner padding.** This is the same root cause as fertility bug 3: `.card` (`frontend/src/app/globals.css:477`)
+   has no padding. Titles, body copy, the icon tile, pills and «همه» touch the card border in both themes. The affected sites are
+   `frontend/src/screens/checkups/ui/CheckupsPage.tsx:57` (status card), `:102` (rows), `:218` (empty state);
+   `frontend/src/screens/checkup-detail/ui/CheckupDetailPage.tsx:182,189,213` (why / prep / history);
+   `frontend/src/screens/checkup-history/ui/CheckupHistoryPage.tsx:122` (record card), `:218` (summary card);
+   `frontend/src/screens/checkup-self-exam/ui/SelfExamPage.tsx:121,145` (steps / findings). The custom form is fine
+   because it uses `fld-card`. See `list-*.png`, `detail-*.png`, `history-*.png`, `self-exam-*.png`.
+3. **Latin digits in fa.** The History header shows «2 مورد ثبت‌شده», from
+   `frontend/src/screens/checkup-history/ui/CheckupHistoryPage.tsx:201` (`count: total`). The self-exam hero shows «19 روز دیگر», from
+   `frontend/src/screens/checkup-self-exam/ui/SelfExamPage.tsx:67` (`count: days`). Both pass the raw count to ICU, while the
+   PDF subtitle on line 61 uses `formatNumber`.
+4. **Overdue section in the wrong place.** The list renders این ماه → سالانه → **عقب‌افتاده** → بر اساس سن, but the spec order
+   (v14_Checkups, above) puts عقب‌افتاده second, right after این ماه. Sections follow the order in which the server first sends them
+   (`frontend/src/screens/checkups/model/view.ts:48-56`), and the server sends the items in `sort_order` without ordering sections
+   (`backend-go/internal/checkups/engine/engine.go:282-292` assigns them). Reproduce with any overdue item whose type sorts
+   after an annual one (see `list-*.png`).
+5. Minor, to confirm with design:
+   - (a) The History «پیوست» chip sits outside and below the record card
+     (`CheckupHistoryPage.tsx:137-147`, a sibling of the card button), while the artboard shows it inside the card.
+   - (b) The detail hero always shows a `shield` icon (`CheckupDetailPage.tsx:82`) instead of the type's icon (the list shows a flask for
+     Pap smear and blood test).
+   - (c) admin-web mixes digits on the fa UI: the list and form use Latin («هر 12 ماه», «ثبت‌های 30 روز اخیر», «21 تا 65
+     سال») while the stats values use Persian («۳», «۰»).
+   - (d) The breast self-exam is «موعدش رسیده» while its row reads «بعدی: ۱۹ روز دیگر» (never done, next cycle window). The
+     wording may confuse users.
+
+### Catalog items that need content sign-off
+
+These values come from the Go seed, `backend-go/db/migrations/00003_checkups.sql`. Every row carries `source_note` "Default catalog (T-M4-01). Needs medical
+review before production." The fa and en title, subtitle, why, prep steps, guide steps and finding options all need review in
+admin → چکاپ‌های دوره‌ای.
+
+| key | fa / en title | category · by | interval | age | cycle days | remind lead | hidden in pregnancy | prep / guide / findings |
+|---|---|---|---|---|---|---|---|---|
+| `breast_self_exam` | خودآزمایی سینه / Breast self-exam | monthly · self | 1 month | – | 7–10 | 3 d | yes | 2 / 3 / 5 |
+| `clinical_breast_exam` | معاینه بالینی سینه / Clinical breast exam | annual · doctor | 12 months | – | – | 30 d | no | 2 / – / – |
+| `pap_smear` | پاپ‌اسمیر / HPV / Pap smear / HPV | multi_year · doctor | 36 months | 21–65 | 10–20 | 30 d | no | 3 / – / – |
+| `blood_test` | آزمایش خون کامل / Full blood test (CBC، تیروئید، ویتامین D، آهن) | annual · lab | 12 months | – | – | 14 d | no | 3 / – / – |
+| `dentist` | دندان‌پزشکی / Dentist | six_monthly · dentist | 6 months | – | – | 14 d | no | 2 / – / – |
+| `mammography` | ماموگرافی / Mammography | age_based · lab | 12–24 months | from 40 | – | 30 d | yes | 3 / – / – |
+
+### Still open (human)
+
+- **Catalog content sign-off in admin**: the user or a named clinician signs off the table above (copy plus intervals, age
+  ranges and cycle-day windows, fa and en).
+- **Staging UI click-through**: the agent has no server access (ssh and curl to the staging host are denied). The same flow in light
+  and dark on stage.ritmeapp.ir, with screenshots into PROGRESS, is still the user's to run.
+- **Production**: only when the user asks.
