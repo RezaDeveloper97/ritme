@@ -54,7 +54,7 @@ function SummaryCard({ summary }: { summary: CheckupSummary }) {
   ];
 
   return (
-    <section className="card flex flex-col gap-3" aria-label={t('list.statusTitle')}>
+    <section className="card flex flex-col gap-3 p-4" aria-label={t('list.statusTitle')}>
       <div className="flex items-start justify-between gap-3">
         <div className="text-start">
           <p className="text-[12px] font-semibold text-(--ink-3)">{t('list.statusTitle')}</p>
@@ -99,7 +99,7 @@ function CheckupRow({ item }: { item: CheckupItem }) {
         href={`/checkups/${item.id}`}
         className={clsx(
           `ck-tone-${item.tone}`,
-          'card flex items-center gap-3 text-start no-underline focus-visible:shadow-(--ring) focus-visible:outline-none',
+          'card flex items-center gap-3 p-4 text-start no-underline focus-visible:shadow-(--ring) focus-visible:outline-none',
         )}
       >
         <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-(--ck-soft) text-(--ck-ink)">
@@ -215,7 +215,7 @@ export function CheckupsPage({ initialFilter }: { initialFilter?: string }) {
                 </button>
               </div>
             ) : groups.length === 0 ? (
-              <div className="card flex flex-col items-center gap-2 py-8 text-center">
+              <div className="card flex flex-col items-center gap-2 px-4 py-8 text-center">
                 <Icon name="stetho" size={28} className="text-(--brand)" />
                 <p className="text-[13px] font-semibold text-(--ink-3)">{emptyText}</p>
               </div>

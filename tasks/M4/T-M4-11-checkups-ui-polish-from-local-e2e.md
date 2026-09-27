@@ -3,7 +3,7 @@ id: T-M4-11
 title: Checkups UI polish from local e2e
 milestone: M4
 type: frontend
-status: todo
+status: done
 depends_on: [T-M4-07,T-M4-08,T-M4-09]
 parallel_group: M4-D
 touches: [frontend/src/screens/checkups,frontend/src/screens/checkup-detail,frontend/src/screens/checkup-history,frontend/src/screens/checkup-self-exam,frontend/src/screens/pregnancy-calendar,frontend/src/shared/lib/pdf,backend-go/internal/checkups,docs/checkups]

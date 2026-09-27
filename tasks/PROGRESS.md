@@ -740,3 +740,9 @@ Nothing needed fixing.
 - verify-all green. Local e2e light/dark: home card → list → detail → MarkDone with on-device attachment (IndexedDB) → history → PDF → self-exam → custom form; admin-web edit of `blood_test` title visible in the app. 41 screenshots in `docs/checkups/screenshots/`; evidence in `docs/checkups/README.md` § Local e2e.
 - Bugs → T-M4-11 (PDF footer raw key, card padding, Latin digits, overdue section order).
 - Still open (human): catalog content sign-off (6 seeded items listed in README), staging UI click-through (no server access for the agent), production when asked.
+
+## T-M4-11 — Checkups UI polish from local e2e
+- PDF footer uses `t.raw` + new `formatPdfFooter` (locale digits; `PdfDocumentSpec.locale` now required) — fixes checkups history and pregnancy calendar PDFs.
+- `p-4` on checkups list/detail/history/self-exam cards; `formatNumber` for history count and self-exam days; `groupBySection` puts this_month then overdue first (frontend, API order undocumented).
+- Frontend verify green (559 tests); screenshots re-taken in `docs/checkups/screenshots/`.
+- Open: pregnancy calendar PDF not generated in a browser (unit-tested only); minor design items 5a–5d in README.

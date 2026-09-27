@@ -179,14 +179,14 @@ export function CheckupDetailPage({ id }: { id: number }) {
         <Hero detail={detail} />
 
         {detail.why && (
-          <section className="card flex flex-col gap-2 text-start">
+          <section className="card flex flex-col gap-2 p-4 text-start">
             <h2 className="text-[14px] font-extrabold text-(--ink)">{t('detail.why')}</h2>
             <p className="text-[13px] leading-relaxed text-(--ink-2)">{detail.why}</p>
           </section>
         )}
 
         {(detail.prepSteps.length > 0 || hasCycleHint) && (
-          <section className="card flex flex-col gap-2.5 text-start">
+          <section className="card flex flex-col gap-2.5 p-4 text-start">
             <h2 className="text-[14px] font-extrabold text-(--ink)">{t('detail.prep')}</h2>
             <ol className="flex flex-col gap-2">
               {detail.prepSteps.map((step, i) => (
@@ -210,7 +210,7 @@ export function CheckupDetailPage({ id }: { id: number }) {
           </section>
         )}
 
-        <section className="card flex flex-col gap-1 text-start">
+        <section className="card flex flex-col gap-1 p-4 text-start">
           <div className="flex items-center justify-between">
             <h2 className="text-[14px] font-extrabold text-(--ink)">{t('detail.history')}</h2>
             {detail.records.length > 0 && (

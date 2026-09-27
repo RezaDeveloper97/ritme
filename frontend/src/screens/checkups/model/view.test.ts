@@ -44,6 +44,24 @@ describe('checkups view', () => {
     expect(groups[0].items.map((i) => i.id)).toEqual([1, 3]);
   });
 
+  it('puts this month first and overdue second, whatever the server order', () => {
+    const groups = groupBySection([
+      item(1, 'annual'),
+      item(2, 'overdue'),
+      item(3, 'age_based'),
+      item(4, 'this_month'),
+      item(5, 'six_monthly'),
+      item(6, 'overdue'),
+    ]);
+    expect(groups.map((g) => g.section)).toEqual(['this_month', 'overdue', 'annual', 'age_based', 'six_monthly']);
+    expect(groups[1].items.map((i) => i.id)).toEqual([2, 6]);
+  });
+
+  it('puts overdue first when there is nothing this month', () => {
+    const groups = groupBySection([item(1, 'annual'), item(2, 'monthly'), item(3, 'overdue')]);
+    expect(groups.map((g) => g.section)).toEqual(['overdue', 'annual', 'monthly']);
+  });
+
   it('picks the worst status and builds bar segments', () => {
     expect(worstStatus({ total: 3, upToDate: 3, due: 0, overdue: 0 })).toBe('up_to_date');
     expect(worstStatus({ total: 3, upToDate: 1, due: 2, overdue: 0 })).toBe('due');

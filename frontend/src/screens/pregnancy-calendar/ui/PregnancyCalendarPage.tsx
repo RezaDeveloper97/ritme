@@ -559,7 +559,7 @@ function ReportButton() {
       }
       blocks.push({ kind: 'rule' }, { kind: 'muted', text: t('calendar.pdf.disclaimer') });
 
-      const blob = await renderPdf({ blocks, dir, footer: t('calendar.pdf.footer') });
+      const blob = await renderPdf({ blocks, dir, locale, footer: t.raw('calendar.pdf.footer') as string });
       await shareOrDownloadFile(blob, t('calendar.pdf.filename'));
       setState('idle');
     } catch {

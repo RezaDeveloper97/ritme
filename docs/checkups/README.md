@@ -234,7 +234,7 @@ App screens were captured in `-light` and `-dark`. Admin screens are light only.
 
 Note: the admin form is a full-page capture, so its sticky save bar appears mid-page. That is a capture artifact, not a bug.
 
-### Bugs found (not fixed, report only)
+### Bugs found (1–4 fixed in T-M4-11)
 
 1. **PDF footer is a raw i18n key.** Every page of the doctor summary prints `checkups.history.pdf.footer`, and the console
    logs `IntlError: FORMATTING_ERROR: The intl string context variable "page" was not provided`. The cause is

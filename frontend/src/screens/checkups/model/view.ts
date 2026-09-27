@@ -45,7 +45,14 @@ export interface SectionGroup {
   items: CheckupItem[];
 }
 
-/** Items grouped by `section`, sections in the order the server first sends them. */
+/** Sections pinned to the top of the list, in this order (v14_Checkups: این ماه → عقب‌افتاده). */
+const PINNED_SECTIONS: readonly CheckupSection[] = ['this_month', 'overdue'];
+
+/**
+ * Items grouped by `section`. «این ماه» and «عقب‌افتاده» always come first (in
+ * that order), whatever order the server sends; the category sections follow in
+ * the order they first appear (the admin's `sort_order`). Items keep their order.
+ */
 export function groupBySection(items: readonly CheckupItem[]): SectionGroup[] {
   const groups = new Map<CheckupSection, CheckupItem[]>();
   for (const item of items) {
@@ -53,7 +60,14 @@ export function groupBySection(items: readonly CheckupItem[]): SectionGroup[] {
     if (list) list.push(item);
     else groups.set(item.section, [item]);
   }
-  return [...groups].map(([section, list]) => ({ section, items: list }));
+  const rank = (section: CheckupSection) => {
+    const i = PINNED_SECTIONS.indexOf(section);
+    return i === -1 ? PINNED_SECTIONS.length : i;
+  };
+  // Array.prototype.sort is stable, so unpinned sections keep first-seen order.
+  return [...groups]
+    .map(([section, list]) => ({ section, items: list }))
+    .sort((a, b) => rank(a.section) - rank(b.section));
 }
 
 export type SummaryStatus = 'overdue' | 'due' | 'up_to_date';

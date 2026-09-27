@@ -79,7 +79,7 @@ function useSummaryPdf(type: number | null) {
       }
       blocks.push({ kind: 'rule' });
       blocks.push({ kind: 'muted', text: t('history.pdf.disclaimer') });
-      const blob = await renderPdf({ blocks, dir, footer: t('history.pdf.footer') });
+      const blob = await renderPdf({ blocks, dir, locale, footer: t.raw('history.pdf.footer') as string });
       await shareOrDownloadFile(blob, t('history.pdf.filename'));
       setState('idle');
     } catch {
@@ -119,7 +119,7 @@ function RecordItem({ record, last }: { record: CheckupRecord; last: boolean }) 
         </span>
         <button
           type="button"
-          className="card flex w-full flex-col gap-1.5 text-start"
+          className="card flex w-full flex-col gap-1.5 p-4 text-start"
           aria-label={t('detail.editRecord')}
           onClick={() => openSheet(MARK_DONE_SHEET, editRecordSheetArg(record))}
         >
@@ -163,6 +163,7 @@ function RecordItem({ record, last }: { record: CheckupRecord; last: boolean }) 
  */
 export function CheckupHistoryPage({ type }: { type: number | null }) {
   const t = useTranslations('checkups');
+  const locale = useLocale() as Locale;
   const dir = useDirection();
   const [filter, setFilter] = useState<CheckupRecordFilter>('all');
   const query = useCheckupRecords({ filter, type });
@@ -198,7 +199,7 @@ export function CheckupHistoryPage({ type }: { type: number | null }) {
           <div className="rmd-hdr-text">
             <h1 className="rmd-hdr-title">{t('history.title')}</h1>
             {query.data && (
-              <p className="rmd-hdr-sub">{t('history.count', { count: total })}</p>
+              <p className="rmd-hdr-sub">{t('history.count', { count: formatNumber(total, locale) })}</p>
             )}
           </div>
           <button
@@ -215,7 +216,7 @@ export function CheckupHistoryPage({ type }: { type: number | null }) {
         <div className="rmd-body flex flex-col gap-3 pb-8">
           <button
             type="button"
-            className="card flex items-center gap-3 text-start"
+            className="card flex items-center gap-3 p-4 text-start"
             disabled={pdf.state === 'working'}
             onClick={() => void pdf.run()}
           >

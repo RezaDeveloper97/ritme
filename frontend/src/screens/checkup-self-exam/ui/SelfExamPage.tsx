@@ -64,7 +64,7 @@ function Hero({ detail }: { detail: CheckupDetail }) {
   let when: string | null = null;
   if (day !== null && total && from !== null && to !== null) {
     const days = daysUntilWindow(day, total, from, to);
-    when = days === 0 ? t('selfExam.whenNow') : t('selfExam.whenIn', { count: days });
+    when = days === 0 ? t('selfExam.whenNow') : t('selfExam.whenIn', { count: formatNumber(days, locale) });
   }
 
   return (
@@ -118,7 +118,7 @@ function Body({ detail }: { detail: CheckupDetail }) {
       <Hero detail={detail} />
 
       {detail.guideSteps.length > 0 && (
-        <section className="card flex flex-col gap-2.5 text-start">
+        <section className="card flex flex-col gap-2.5 p-4 text-start">
           <h2 className="text-[14px] font-extrabold text-(--ink)">
             {t('selfExam.stepsTitle', {
               count: formatNumber(detail.guideSteps.length, locale),
@@ -142,7 +142,7 @@ function Body({ detail }: { detail: CheckupDetail }) {
       )}
 
       {detail.findingOptions.length > 0 && (
-        <section className="card flex flex-col gap-2.5 text-start">
+        <section className="card flex flex-col gap-2.5 p-4 text-start">
           <h2 className="text-[14px] font-extrabold text-(--ink)">{t('selfExam.findingsTitle')}</h2>
           <p className="text-[12px] leading-relaxed text-(--ink-3)">{t('selfExam.findingsBody')}</p>
           <div className="flex flex-wrap gap-2" role="group" aria-label={t('selfExam.findingsTitle')}>

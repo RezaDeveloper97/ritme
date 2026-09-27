@@ -1,3 +1,6 @@
+import type { Locale } from '@/shared/i18n';
+import { formatNumber } from '@/shared/lib/date';
+
 import { A4_POINTS, type PdfImagePage, buildImagePdf } from './writer';
 
 /**
@@ -18,8 +21,20 @@ export interface PdfDocumentSpec {
   dir: 'rtl' | 'ltr';
   /** CSS font-family; defaults to the page's body font (Vazirmatn in the app). */
   fontFamily?: string;
-  /** Footer on every page, e.g. the app name + date. `{page}`/`{pages}` are replaced. */
+  /**
+   * Footer on every page, e.g. the app name + date. `{page}`/`{pages}` are
+   * replaced, so pass the raw message template (`t.raw(...)`), not `t(...)`.
+   */
   footer?: string;
+  /** Locale for the footer's page numbers (fa → Persian digits). */
+  locale: Locale;
+}
+
+/** Fill a footer template's `{page}`/`{pages}` with locale digits. */
+export function formatPdfFooter(template: string, page: number, pages: number, locale: Locale): string {
+  return template
+    .replace('{page}', formatNumber(page, locale))
+    .replace('{pages}', formatNumber(pages, locale));
 }
 
 // A4 at ~144 dpi: sharp enough to read on a phone and to print.
@@ -139,9 +154,7 @@ export async function renderPdf(spec: PdfDocumentSpec): Promise<Blob> {
       ctx.font = font('muted');
       ctx.fillStyle = STYLE.muted.color;
       ctx.textAlign = 'center';
-      const footer = spec.footer
-        .replace('{page}', String(p + 1))
-        .replace('{pages}', String(pagesLines.length));
+      const footer = formatPdfFooter(spec.footer, p + 1, pagesLines.length, spec.locale);
       ctx.fillText(footer, PAGE_W / 2, PAGE_H - MARGIN / 2);
     }
     pages.push({ jpeg: await toJpeg(canvas), pixelWidth: PAGE_W, pixelHeight: PAGE_H });
