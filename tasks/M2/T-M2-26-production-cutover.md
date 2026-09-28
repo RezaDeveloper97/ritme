@@ -35,3 +35,8 @@ Removing Laravel (T-M2-27).
 - All groups and the admin host on Go in production, with the log showing metrics before/after each switch.
 - No increase in 401 `token_*` errors or forced logouts (compare with the baseline); no data-integrity issue.
 - User confirms the 7-day observation period ended OK before T-M2-27 starts.
+
+## Note from T-M2-25 local smoke (2026-09-28)
+`deploy/vhost-admin.inc` is still the Blade config (`/api/` 404, `/` → Laravel). For the prod admin host: `/` →
+admin-web, `/api/admin/` and `GET /api/v1/languages` → backend-go, and `/storage/` must reach backend-go or uploaded
+image previews 404 in admin-web.

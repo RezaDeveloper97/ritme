@@ -759,3 +759,8 @@ Nothing needed fixing.
 - SettingUpPage: decision logic in `model/plan.ts` — no save without intention, pregnant path always profile→activate→onboarding, retry UI resumes from the failed step.
 - Verify green (573 frontend tests, Go vet/tests/lint); screenshots re-taken in `docs/pregnancy-v2/screenshots/`.
 - Open: 9a NT prefill category (in pregnancy-calendar view, outside touches); outbox `rejected` leaves status queued; retry button uses generic copy (no new i18n key).
+
+## T-M2-25 — Staging rollout (local full smoke on Go)
+- verify-all green incl. admin-web (77 tests). Local stack Go-only: web smoke of every route group light/dark (auth, onboarding, cycle, health log, messages, reminders, content, language switch, notifications, home toggles, logout/login, session refresh rotation) — no 5xx, only expected 4xx. admin-web: every nav screen + detail + /new, 163 API calls all 200, CRUD round (affirmation, banner with upload). 144 screenshots in `docs/go-migration/screenshots/`; evidence in `docs/go-migration/stage-rollout-log.md` § Local full smoke on Go.
+- Bugs → T-M2-30 (hydration mismatch, Latin digits, «Ritme» in fa BMI copy, raw article slugs). vhost-admin note added to T-M2-26.
+- Still open (human): staging web smoke on a phone, editor click-through of `/panel` vs Blade, 48h soak sign-off.
