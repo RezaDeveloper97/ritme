@@ -802,3 +802,8 @@ Nothing needed fixing.
 - Log weight field locale decimal. Seed + i18n goldens resynced.
 - Verify: 592 frontend tests; go test ./... ok; contract 986 pass / 206 allow-listed.
 - Open: on-device checkup attachments not cleared on logout (product decision); unsynced outbox entries are dropped on logout (intended); `POST /profile` without `last_period_start` creates a today period — Laravel parity unchecked.
+
+## T-M2-25 — Staging rollout (staging smoke + soak, 2026-09-28)
+- Stage @ ea8a1eb: web app smoke light/dark over every route group — 525 `/api/v1` responses all `X-Backend: go`, 0 5xx, only expected 404/401 (incl. token rotation → `token_revoked`). `/panel`: 233 calls on Go, every nav screen + detail + /new, affirmation CRUD, banner upload → shown in app → deleted. `/admin` → 301 `/panel/` (Blade retired on stage, side-by-side no longer possible).
+- Soak: 09-23→09-26 ~69h 0 5xx; 09-26→09-28 Go logs lost to redeploys; since today's deploy 1450 requests, 0 5xx, no error lines; proxy error log (stage host) no upstream failures. Rollback tested 09-23. Evidence: `docs/go-migration/stage-rollout-log.md` § Staging smoke + soak; 133 `stage-*` screenshots.
+- Bugs → T-M2-32 (old reminder form buttons overflow, Latin digits in fa slide a11y text). Monitoring gaps noted on T-M2-26. Stage has no seeded content.

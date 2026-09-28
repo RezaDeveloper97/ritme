@@ -265,3 +265,140 @@ plus `admin-crud-*` (585 px wide, light).
   compared with Blade `/admin` on stage.
 - **48 h soak sign-off** (a soak with real traffic, if that is wanted — see the evidence above). The agent has no
   server access, so none of this could be done here.
+
+## Staging smoke + soak (T-M2-25) — 2026-09-28
+
+Target: **`https://stage.ritmeapp.ir`** (stage @ `ea8a1eb`, goose v6), which runs Go only. `ritme-stage-backend-go-1` and
+the frontend were recreated at 12:16Z by the last stage deploy, and admin-web on 09-26 09:25Z. `RestartCount` is 0
+for all of them. No redeploy was done for this run. Production was not touched: no prod app, DB or config was read.
+Gate: one Basic-auth page load minted the `ritme_stage` cookie, then the header was dropped. The credentials were
+copied to a 0600 scratch file and never printed. Harness: local headless Chrome 153 on CDP port 9244 with its own
+profile. Every CDP call had a 20 s timeout, and every script ran under a perl `alarm`. Each `/api` response was
+recorded from `Network.responseReceived` with its `X-Backend` header. App: 390×844 @2x, mobile + touch, fa. Panel:
+1440×900. Test users: `09900000981` (light run) and `09900000982` (dark run). Their OTPs were read from the
+`ritme-stage` DB (`otp_verifications`). Run window: 12:47–13:14Z.
+
+**Stage content is empty.** There are 0 articles, banners, affirmations, challenges, task templates, info sections,
+phase contents and pregnancy weeks. There are 25 recommendations, 294 message contents and 7 checkup types. To
+exercise the content and home paths, a temporary article, banner and challenge were created through `/panel`. They
+were checked in the app and then deleted through `/panel`.
+
+### Web app (fa, light + dark, same steps; screenshots `stage-web-NN-<step>-light|dark.png`)
+
+**525 `/api/v1` responses, 525/525 `X-Backend: go`**: 499×200, 6×201, 9×404, 11×401, **0 5xx**. The only non-API
+failures were `POST /api/session/flag`, which is the Next.js route and not Go: `ERR_ABORTED` when the harness
+navigated mid-request. Every screen got a DOM check: no document overflow, no raw i18n keys, no Latin digits in fa
+UI text, and no console exceptions. The exceptions are bugs S1 and S2 below.
+
+| # | Step (route group) | API calls → status (all `go`) | Result |
+|---|---|---|---|
+| 1 | splash → `/welcome` → `/signup` → OTP (auth) | `send-otp` 200, `verify-otp` 200 | ✔ new user → onboarding |
+| 2 | onboarding name → birthday → weight → height → intention «فعلاً قصد بارداری ندارم» → period-len → cycle-duration → cycle-len → conditions → setting-up (profile) | `POST profile` 200, then all home GETs 200 | ✔ lands on `/fa/home`, ring «روز ۱» |
+| 3 | `/calendar`; home «ویرایش پریود» → ۱۰ شهریور → «ذخیره» (cycle) | `cycle/today`, `cycle/month/2026/9|10?view=calendar`, `cycle/period/history` 200; `POST cycle/period` 200 | ✔ `cycle_histories` 2026-09-01→05, prediction moved (next period ۴→۳ آبان, «به ۲۷ روز به‌روزش کن» CTA) |
+| 4 | `/log` → «خلق‌وخو» → «شاد» → «ثبت» (healthlog); `/cycle` analysis (messages) | `health-logs/<today>` **404 (expected, no log yet)**, `POST health-logs` 201; `messages/daily|mode`, `home/sections/*` 200 | ✔ weekly summary «روحیه ۱۰۰٪», smart tip, BMI «ریتمی …» (T-M2-30 fix live) |
+| 5 | `/reminders` → medication «فولیک اسید» → save → «ثبت مصرف» → switch off/on; appointment form; legacy `?sheet=reminders` → new → save → delete (reminders + care) | `POST care/medications` 201, `…/intakes` 200, `PUT care/medications/{id}` 200 ×2, `care/appointments?scope=upcoming` 200; `reminders`, `reminders/enums` 200, `POST reminders` 201, `DELETE reminders/{id}` 200 | ✔ all persisted. ✘ legacy form layout (bug S1). Profile «یادآورها» now opens `/reminders`; the legacy sheet is only reachable by old `?sheet=reminders` links |
+| 6 | articles sheet → article; «بیشتر درباره این فاز»; home banner (content) | `articles?page=1&per_page=12`, `articles/stage-smoke-article`, `banners`, `home/sections/articles` 200; `cycle/phase-content/menstrual` **404 (no phase content on stage)** | ✔ empty states first («هنوز مقاله‌ای منتشر نشده», «فعلاً محتوایی برای این فاز نداریم»). Then with the panel-created rows: article renders with the category chip «تغذیه» (T-M2-30 fix live), and the **panel-uploaded banner renders on the app home (`/storage/banners/…jpg`, `naturalWidth` 1200)** |
+| 7 | Profile → «زبان اپ» → English → `/en/home` → back to فارسی | `languages` 200 | ✔ `lang=en dir=ltr` everywhere, back to `fa/rtl` |
+| 8 | bell → notifications → «همه رو خوندم» (one `user_notifications` row inserted per test user in the stage DB) | `home/notifications?per_page=50` 200, `POST home/notifications/read-all` 200 | ✔ `read_at` set |
+| 9 | home «چالش امروز» toggle on/off (home) | `POST home/challenges/1/toggle` 200 ×2 | ✔ `is-done` on → off. Tasks not exercised: 0 task templates on stage, and the DayTasks widget is commented out |
+| 10 | Profile → «خروج از حساب» | `POST auth/logout` 200 | ✔ token removed, `/fa/home` → `/fa/signup` |
+| 11 | log in again (same number) | `send-otp` 200, `verify-otp` 200 | ✔ straight to `/fa/home` |
+| 12 | `POST auth/refresh-session` with the browser token; then `expires_at` pulled to +10 d (stage DB, test user only) | fresh → 200 `refreshed:false`; near expiry → 200 `refreshed:true` + new `access_token`; old token → **401 `token_revoked`**, new → 200 | ✔ both users. Light: the harness lost the new token, so the next page load 401'd and the app went to `/signup` (correct). Dark: the new token was stored and the app stayed signed in |
+| — | pregnancy (not in the UI flow; in-page fetch with the user token) | `pregnancy/profile`, `pregnancy/content/12` 404 (not pregnant, same as 09-26), `cycle/status` 200 | ✔ served by Go (the pregnancy UI e2e on stage is T-M7-15) |
+
+Expected non-2xx only: `health-logs/<today>` 404 before the first log, `phase-content` 404 (no content), and the
+401 burst after the rotation revoked the light-run browser token.
+
+### `/panel` (admin-web on stage, staging admin, 1440×900, fa, light; screenshots `stage-admin-*.png`)
+
+**233 admin-web API calls (`/api/admin/v1` + `/api/v1/languages`), all `X-Backend: go`**: 217 GET 200, 4 POST 201,
+2 POST 200 (login), 1 PUT 200, 4 DELETE 200, 5× `auth/me` 401. The 401s are expected: the login page before
+sign-in, plus 3 after the harness itself cleared the session cookie between the light and dark runs. No console
+errors, no `[role=alert]`, no overflow, and no raw keys. The `delete.*` keys on the translations screen are that
+editor's key column.
+
+| Screen | List | Detail / edit | New | Notes |
+|---|---|---|---|---|
+| login | ✔ | — | — | login 200 → dashboard |
+| dashboard | ✔ counters + recent users | — | — | the test users show up |
+| users | ✔ 4 | ✔ `/users/9` | — | |
+| admins | ✔ 1 | ✔ `/admins/1` | ✔ | |
+| articles | ✔ (empty) | — (no rows) | ✔ | **temp article:** create 201 (rich text fa/en, phase «قاعدگی», published) → shown in app → delete 200 |
+| affirmations | ✔ (empty) | ✔ `/affirmations/1` (the CRUD row) | ✔ | **CRUD:** create 201 → edit 200 → delete 200, table back to 0 |
+| challenges / challenge-completions | ✔ / ✔ | — (no rows) | ✔ | **temp challenge:** create 201 → toggled in app → delete 200 |
+| task-templates | ✔ (empty) | — | ✔ | |
+| phase-contents | ✔ (empty grid) | — | ✔ | |
+| recommendations | ✔ 20 | ✔ `/recommendations/5` | ✔ | |
+| checkup-types | ✔ | ✔ `/checkup-types/1` | ✔ | |
+| banners | ✔ | — | ✔ | **upload:** jpeg 1200×400 → create 201, thumbnail served from `/storage/banners/…` (w 1200, so local note 6 does not apply on stage) → rendered on the app home (light + dark) → delete 200, and the **file is removed from the `backend-storage` volume** |
+| info-sections | ✔ (empty) | — | ✔ | |
+| pregnancy-weeks / care-plan / alert-rules | ✔ (empty) / ✔ 5 / ✔ 8 | — / ✔ `/1` / ✔ `vomiting_streak` | ✔ / ✔ / — | |
+| messages | ✔ 20 | ✔ `/messages/172` | — | |
+| languages / translations | ✔ 2 | ✔ `/languages/1`, `/languages/1/translations` | ✔ | |
+| account/password | ✔ | — | — | |
+
+**Blade comparison is no longer possible.** `/admin` → `301 https://stage.ritmeapp.ir/panel/`, and so does
+`/admin/users`. Neither mints the gate cookie. `/oauth/token` → 404. Blade was retired on stage by T-M2-28, so the
+side-by-side check in scope item 4 can no longer be done. Parity rests on admin-web's per-screen Blade references
+and the contract suite.
+
+### Soak (stage only, since 2026-09-23)
+
+| Source (host-strict?) | Window | Result |
+|---|---|---|
+| Earlier evidence (§ 48 h soak, 09-26): backend-go request log + proxy | 09-23 11:40 → 09-26 09:00Z (~69 h) | 0 5xx, no WARN/ERROR; idle stack (no traffic 09-24/25) |
+| backend-go stage request log (yes: the container serves only stage) | **09-26 09:00 → 09-28 12:16Z: not available.** Stage deploys recreated `backend-go` (json-file logs go with the container); the current one started 09-28 12:16Z | — |
+| backend-go stage request log | 09-28 12:16 → 13:17Z | 1450 requests: `/api/v1` 1223, `/api/admin/v1` 218, `/storage` 9. `/api/*` status: **1381×200, 19×201, 2×400, 28×401, 9×404, 2×422, 0×5xx**. Levels: 1475 INFO, **0 WARN/ERROR**, no panics |
+| ↳ 401s (paths) | same | admin `auth/me` ×8 (pre-login), and after token revocation (this run): `profile` ×3, `cycle/*` ×4, `messages/*` ×2, `banners`, `refresh-session`. The fertility agent's run added `fertility/today` ×4, `checkups` ×3 and `pregnancy/v2/today` ×2. `error_code` **is not logged** by the Go request log. Client-observed: `token_revoked` for the revoked token |
+| ↳ 400 / 422 | same | `messages/daily` 400 ×2 (12:28, 12:39Z, before this run) is the data-driven "complete your profile first (last period date)" branch, `internal/messages/handlers.go:99`, Laravel parity. `PUT fertility/days/*` 422 ×2 is validation from the fertility agent's run. No Go regression |
+| proxy **error** log, `host: "stage.ritmeapp.ir"` only (yes) | 09-23 11:32Z (proxy start) → now | 14 lines: 3× `recv() failed (104)` from the stage **Next.js** upstream on `/icons/icon-192.png` (09-26, known, the client still got a response); 1× wrong Basic user (09-26 gate test); 10× `[warn]` body/response buffered to temp file (`_next` chunks, screenshots, the banner upload). **No `connect() failed`, no upstream timeout, no 5xx-type entries** |
+| proxy **access** log (no) | — | **Not summarised.** The shared proxy's `log_format main` has no `$host`, so stage lines can't be separated from prod lines, and prod lines were not read |
+| stage frontend / admin-web container logs (yes) | since 12:16Z / since 09-26 09:25Z | 6 lines each, no errors |
+
+### Bugs (not fixed here)
+
+- **S1: legacy reminder form buttons overflow** (`/fa/profile?sheet=reminders` → «یادآور جدید», both themes).
+  «بی‌خیال» spills past the card's left edge and «ذخیره یادآور» is squeezed into a two-line pill (`stage-web-19-*`).
+  Cause: `.btn { width: 100% }` (`frontend/src/app/globals.css:456`) plus `.rem-form-cancel { flex-shrink: 0 }`
+  (`frontend/src/app/globals.css:1998`), used by `frontend/src/screens/profile-reminders/ui/RemindersSheet.tsx:360`.
+  Low impact: this sheet is only reachable through old `?sheet=reminders` links. Frontend-only, not Go.
+- **S2: Latin digits in the fa welcome carousel's screen-reader text.** «اسلاید 1 از 3»:
+  `frontend/messages/fa/welcome.json:10` (`{n}`/`{total}` are not number-formatted), rendered by
+  `frontend/src/widgets/intro-carousel/ui/IntroCarousel.tsx:147`. The same applies to the `goToSlide` aria-labels
+  (`welcome.json:9`, `IntroCarousel.tsx:159`, `widgets/banner-slideshow/ui/BannerSlideshow.tsx:158`). Use `{n, number}`.
+- **S3 (observability, follow-up):** the shared proxy's `log_format main` has no `$host`, so per-vhost status and 5xx
+  analysis is impossible, which matters for T-M2-26's prod soak. backend-go's `request` log line carries no
+  `error_code`, so the 401 mix can't be read from logs. stage backend-go logs are lost on every redeploy (json-file,
+  container recreated). Suggest adding `$host` (and `$upstream_addr`) to the proxy log format during a normal prod
+  deploy, and logging `error_code` on 4xx in Go.
+- **Data note (not a bug):** stage has no seeded content (see top), so real editors see empty lists. The admin
+  articles list shows the stored category slug (`nutrition`): `admin-web/src/screens/articles/ui/ArticlesScreen.tsx:52`,
+  which matches Blade (category is free text).
+
+### Acceptance verdict (T-M2-25)
+
+- **"Every group on Go with evidence"**: **met.** Flips on 09-23 (table above). Today every route group the web app
+  uses (auth, profile, cycle, healthlog, messages, reminders + care, checkups, content: articles/banners/phase,
+  languages, home: notifications/challenges/sections) plus pregnancy and the whole admin API answered with
+  `X-Backend: go`: 525/525 app and 233/233 panel responses.
+- **"48 h soak without Go-caused regressions"**: **met, with caveats.** The 09-23→09-26 window (~69 h) had 0 5xx and
+  no Go WARN/ERROR. Today's window had 0 5xx and 0 WARN/ERROR in ~1450 requests. The host-filtered proxy error log
+  has no upstream failures across the whole 09-23→09-28 period. Caveats: stage had almost no organic traffic, and
+  Go's own logs for 09-26 09:00 → 09-28 12:16Z were lost to container recreation (S3). No 4xx or 5xx seen is
+  attributable to a Go regression.
+- **"Rollback tested at least once per environment"**: **met for staging** on 09-23 (`profile` flipped Go → Laravel →
+  Go, see "Rollback test"). Since T-M2-28 stage has no Laravel, so stage rollback now means redeploying an earlier
+  `stage` commit. Prod rollback is T-M2-26's job.
+- Scope item 4's "Blade stays reachable for comparison" no longer holds on stage (Blade retired, `/admin` → 301
+  `/panel/`). The agent clicked through every `/panel` screen instead. A human editor pass is still worthwhile but is
+  not a blocker.
+
+### Cleanup
+
+The stage DB is clean. Users `09900000981`/`982` (ids 9, 10) were deleted with all FK-cascaded rows (profile,
+cycle_histories, daily_health_logs, reminders + intakes, user_notifications, challenge completions). Their
+`oauth_access_tokens`/`sessions` (no FK) and `otp_verifications` for `0990000098{1,2,3}` were deleted too.
+`09900000983` was never used. `/panel` content is back to the starting state (0 affirmations, articles, banners,
+challenges), and the uploaded banner file is gone from `storage/app/public/banners/` (the empty directory is left).
+Admin audit lines are only in the backend-go log, not in a table. The staging credentials were removed from the
+scratch folder.

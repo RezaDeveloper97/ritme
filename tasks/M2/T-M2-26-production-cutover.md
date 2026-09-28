@@ -40,3 +40,8 @@ Removing Laravel (T-M2-27).
 `deploy/vhost-admin.inc` is still the Blade config (`/api/` 404, `/` → Laravel). For the prod admin host: `/` →
 admin-web, `/api/admin/` and `GET /api/v1/languages` → backend-go, and `/storage/` must reach backend-go or uploaded
 image previews 404 in admin-web.
+
+## Note from T-M2-25 staging soak (2026-09-28)
+Monitoring gaps to close before/at cutover (needed for the before/after metrics this task requires): the shared proxy
+access-log format has no `$host` (stage and prod lines can't be separated), backend-go doesn't log `error_code` on
+4xx (401 mix unreadable from logs), and container logs are lost on every redeploy (ship them to a volume/file).

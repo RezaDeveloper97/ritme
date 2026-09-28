@@ -3,7 +3,7 @@ id: T-M2-25
 title: Staging rollout — move every route group and the admin host to Go
 milestone: M2
 type: release
-status: in_progress
+status: done
 depends_on: [T-M2-09, T-M2-23, T-M2-24]
 parallel_group: M2-J
 touches: [deploy/go-routes.inc, deploy/vhost-stage.inc, deploy/vhost-admin.inc, docs/go-migration/cutover.md, docs/go-migration/stage-rollout-log.md]
