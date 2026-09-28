@@ -764,3 +764,11 @@ Nothing needed fixing.
 - verify-all green incl. admin-web (77 tests). Local stack Go-only: web smoke of every route group light/dark (auth, onboarding, cycle, health log, messages, reminders, content, language switch, notifications, home toggles, logout/login, session refresh rotation) — no 5xx, only expected 4xx. admin-web: every nav screen + detail + /new, 163 API calls all 200, CRUD round (affirmation, banner with upload). 144 screenshots in `docs/go-migration/screenshots/`; evidence in `docs/go-migration/stage-rollout-log.md` § Local full smoke on Go.
 - Bugs → T-M2-30 (hydration mismatch, Latin digits, «Ritme» in fa BMI copy, raw article slugs). vhost-admin note added to T-M2-26.
 - Still open (human): staging web smoke on a phone, editor click-through of `/panel` vs Blade, 48h soak sign-off.
+
+## T-M2-30 — Web app polish from full Go smoke
+- Hydration: DayLogSummary treats not-mounted as loading; CyclePage mounts its cards after hydration (`useMounted`). No hydration errors on /calendar, /cycle (light/dark).
+- Locale digits via `format.number` into existing messages (challenge chip/tooltip, calendar cycle day, period-editor badges + hint).
+- fa BMI copy «ریتمی» in `bmi.go` + `defaults.json` — deviation D-22 (`docs/go-migration/deviations.md`), contract allowlist `contract/allowlist/profile.yaml`; `make contract ROUTES=all` 986 pass / 16 allow-listed.
+- Article category labels `articles.categories.<slug>` (fa/en) via `screens/articles/model/category.ts`.
+- Verify green (576 frontend tests, Go tests/lint).
+- Open → T-M2-31: stage/prod `message_contents` BMI fa rows still say "Ritme" (DB wins over code); raw slugs on home article rail and related-articles rail; backend translation seed out of sync since T-M2-06.

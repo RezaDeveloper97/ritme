@@ -3,10 +3,10 @@ id: T-M2-30
 title: Web app polish from full Go smoke
 milestone: M2
 type: frontend
-status: todo
+status: done
 depends_on: [T-M2-25]
 parallel_group: M2-J
-touches: [frontend/src/screens/calendar,frontend/src/screens/cycle,frontend/src/entities/health-log,frontend/src/entities/cycle,frontend/src/entities/article,frontend/src/screens/articles,frontend/src/features/log-period,frontend/src/widgets,frontend/messages,backend-go/internal/profile,backend-go/internal/messages/content,backend-go/resources/translations,docs/go-migration]
+touches: [frontend/src/screens/calendar,frontend/src/screens/cycle,frontend/src/entities/health-log,frontend/src/entities/cycle,frontend/src/entities/article,frontend/src/screens/articles,frontend/src/features/log-period,frontend/src/widgets,frontend/messages, backend-go/contract/allowlist,backend-go/internal/profile,backend-go/internal/messages/content,backend-go/resources/translations,docs/go-migration]
 skills: [verify-all]
 verify: cd frontend && npm run typecheck && npm run lint && npm run lint:styles && npm run lint:dark && npm run test && cd ../backend-go && go vet ./... && go test ./internal/profile/... ./internal/messages/...
 ---

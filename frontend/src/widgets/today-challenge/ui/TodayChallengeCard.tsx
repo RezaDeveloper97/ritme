@@ -1,7 +1,7 @@
 'use client';
 
 import clsx from 'clsx';
-import { useTranslations } from 'next-intl';
+import { useFormatter, useTranslations } from 'next-intl';
 
 import { useTodayChallenge, type TodayChallenge } from '@/entities/challenge';
 import { useToggleChallenge } from '@/features/complete-challenge';
@@ -23,12 +23,13 @@ const CATEGORY_ICON: Record<string, IconName> = {
 function rangeLabel(
   challenge: TodayChallenge,
   t: ReturnType<typeof useTranslations<'challenge'>>,
+  num: (n: number) => string,
 ): string {
   const { from, to } = challenge.cycleDayRange;
 
-  if (from !== null && to !== null) return t('range.between', { from, to });
-  if (from !== null) return t('range.from', { n: from });
-  if (to !== null) return t('range.to', { n: to });
+  if (from !== null && to !== null) return t('range.between', { from: num(from), to: num(to) });
+  if (from !== null) return t('range.from', { n: num(from) });
+  if (to !== null) return t('range.to', { n: num(to) });
 
   return t('range.any');
 }
@@ -43,6 +44,10 @@ function rangeLabel(
  */
 export function TodayChallengeCard() {
   const t = useTranslations('challenge');
+  // Locale digits (۱ in fa): the messages take a pre-formatted string, so they
+  // stay correct even when the runtime bundle from the API still has plain `{n}`.
+  const format = useFormatter();
+  const num = (n: number): string => format.number(n);
   const { data: challenge } = useTodayChallenge();
   const toggle = useToggleChallenge();
 
@@ -63,8 +68,8 @@ export function TodayChallengeCard() {
           {/* The pick is made for this cycle day, so name it — otherwise a
               day-specific challenge reads as an arbitrary suggestion. */}
           {challenge.cycleDay !== null && (
-            <span className="tc-day-chip" title={rangeLabel(challenge, t)}>
-              {t('cycleDay', { n: challenge.cycleDay })}
+            <span className="tc-day-chip" title={rangeLabel(challenge, t, num)}>
+              {t('cycleDay', { n: num(challenge.cycleDay) })}
             </span>
           )}
         </div>

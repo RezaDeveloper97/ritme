@@ -315,7 +315,7 @@ export function PeriodDateEditor({ open, onClose, initialView, onSaved }: Period
           {/* Hidden for future days outside any run — nothing to count there. */}
           {!isLocked && (
             <span aria-hidden className="pde-badge">
-              {order ?? ''}
+              {order === undefined ? '' : format.number(order)}
             </span>
           )}
         </button>
@@ -333,7 +333,7 @@ export function PeriodDateEditor({ open, onClose, initialView, onSaved }: Period
       footer={
         <div className="pde-foot">
           <div className="pde-hint">
-            {isError ? t('dateEditor.error') : t('dateEditor.hint', { days: periodDuration })}
+            {isError ? t('dateEditor.error') : t('dateEditor.hint', { days: format.number(periodDuration) })}
           </div>
           <div className="pde-actions">
             <button

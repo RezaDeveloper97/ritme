@@ -381,6 +381,7 @@ function DayDetail({ t, locale, selectedDate, calc, marker, showTiles = true }: 
   // Prefer the marker for the label (so PMS/fertile read as themselves) and fall
   // back to the underlying phase.
   const labelKey = marker ?? phase;
+  const format = useFormatter();
 
   return (
     <div className="cal-day-card">
@@ -395,7 +396,7 @@ function DayDetail({ t, locale, selectedDate, calc, marker, showTiles = true }: 
             </div>
             {calc && (
               <div className="cal-day-sub">
-                {t('day.cycleDay', { n: calc.cycleDay })}
+                {t('day.cycleDay', { n: format.number(calc.cycleDay) })}
               </div>
             )}
           </div>

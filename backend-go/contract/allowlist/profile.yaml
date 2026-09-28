@@ -1,0 +1,8 @@
+group: profile
+entries:
+  # D-22 (task T-M2-30): the fa BMI fallback copy says «ریتمی» instead of Laravel's Latin "Ritme".
+  # Only the ar cases hit the code fallback (the fixture has fa/en message_contents rows).
+  - case: "show.*.ar"
+    where: data.bmi.message
+    deviation: D-22
+    reason: fa fallback BMI text names the app «ریتمی»; Laravel's copy has the Latin "Ritme"

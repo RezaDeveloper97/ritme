@@ -15,6 +15,7 @@ import {
 } from '@/entities/health-log';
 import { useDirection, type Locale } from '@/shared/i18n';
 import { formatDayMonth, toApiDate } from '@/shared/lib/date';
+import { useMounted } from '@/shared/lib/use-mounted';
 import { Icon } from '@/shared/ui';
 
 type TCal = ReturnType<typeof useTranslations>;
@@ -121,6 +122,11 @@ export function DayLogSummary({ tCal, selectedDate, onEdit }: DayLogSummaryProps
   // saved log itself — enum option lists aren't required here.
   const logQuery = useHealthLog(toApiDate(selectedDate));
   const log = logQuery.data;
+  // The query is gated on the token in localStorage, so it is off during SSR
+  // and on in the browser. Hold the loading state until mount so the first
+  // client render matches the server's HTML (no hydration mismatch).
+  const mounted = useMounted();
+  const loading = !mounted || logQuery.isLoading;
 
   const groups = log
     ? LOG_CATEGORIES.map((category) => ({
@@ -161,7 +167,7 @@ export function DayLogSummary({ tCal, selectedDate, onEdit }: DayLogSummaryProps
         )}
       </div>
 
-      {logQuery.isLoading ? (
+      {loading ? (
         <div className="dls-loading">
           {tLog('loading')}
         </div>

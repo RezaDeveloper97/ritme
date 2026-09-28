@@ -85,3 +85,14 @@ func TestNameChangedNotice(t *testing.T) {
 	assert.Equal(t, "✏️ <b>تغییر نام کاربر</b>\nشناسه: <code>7</code>\nقبلی: —\n"+
 		"جدید: &lt;b&gt;&quot;Sara&quot; &amp; &#039;co&#039;&lt;/b&gt;", got)
 }
+
+// D-22: the fa fallback copy names the app «ریتمی»; en keeps "Ritme".
+func TestBmiDefaults_BrandPerLocale(t *testing.T) {
+	for cat, byLocale := range bmiDefaults {
+		assert.NotContains(t, byLocale["fa"], "Ritme", cat)
+	}
+	assert.Contains(t, bmiDefaults[enums.BmiCategoryNormal]["fa"], "ریتمی تلاش")
+	assert.Contains(t, bmiDefaults[enums.BmiCategoryObese]["fa"], "در ریتمی سعی")
+	assert.Contains(t, bmiDefaults[enums.BmiCategoryNormal]["en"], "Ritme aims")
+	assert.Contains(t, bmiDefaults[enums.BmiCategoryObese]["en"], "At Ritme")
+}

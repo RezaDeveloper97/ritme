@@ -116,13 +116,14 @@ func (b Bmi) message(ctx context.Context, cat enums.BmiCategory, locale, default
 }
 
 // bmiDefaults is BmiService::messageDefaults() (seed + runtime fallback), category → locale.
+// The fa copy names the app «ریتمی» where PHP has the Latin "Ritme" (deviation D-22).
 var bmiDefaults = map[enums.BmiCategory]map[string]string{
 	enums.BmiCategoryUnderweight: {
 		"fa": "بر اساس قد و وزن وارد شده، در محدوده کم‌وزن قرار می‌گیری. اگر این وضعیت برای مدت طولانی ادامه داشته باشد، می‌تواند روی انرژی، خلق و سیکل قاعدگی‌ات اثر بگذارد. اگر نگران هستی، بهتر است با پزشک یا کارشناس تغذیه صحبت کنی.", //nolint:staticcheck // ST1018: Persian text (ZWNJ) verbatim from BmiService
 		"en": "Based on the height and weight you entered, you fall in the underweight range. If this continues for a long time, it can affect your energy, mood, and menstrual cycle. If you are concerned, it is best to talk to a doctor or a nutrition specialist.",
 	},
 	enums.BmiCategoryNormal: {
-		"fa": "بر اساس قد و وزن وارد شده، در محدوده‌ی وزنی طبیعی قرار می‌گیری. این محدوده معمولاً برای سلامت عمومی و سیکل قاعدگی مناسب است. Ritme تلاش می‌کند به حفظ این وضعیت کمک کند.", //nolint:staticcheck // ST1018: Persian text (ZWNJ) verbatim from BmiService
+		"fa": "بر اساس قد و وزن وارد شده، در محدوده‌ی وزنی طبیعی قرار می‌گیری. این محدوده معمولاً برای سلامت عمومی و سیکل قاعدگی مناسب است. ریتمی تلاش می‌کند به حفظ این وضعیت کمک کند.", //nolint:staticcheck // ST1018: Persian text (ZWNJ) from BmiService, brand as «ریتمی» (D-22)
 		"en": "Based on the height and weight you entered, you are in the normal weight range. This range is usually good for overall health and your menstrual cycle. Ritme aims to help you maintain it.",
 	},
 	enums.BmiCategoryOverweight: {
@@ -130,7 +131,7 @@ var bmiDefaults = map[enums.BmiCategory]map[string]string{
 		"en": "Based on the height and weight you entered, you fall in the overweight range. In some people this can affect energy, sleep, and the menstrual cycle (especially with PCOS). Small, sustainable changes in activity and nutrition help your health more than strict diets.",
 	},
 	enums.BmiCategoryObese: {
-		"fa": "بر اساس قد و وزن وارد شده، در محدوده‌ی چاقی قرار می‌گیری. این می‌تواند در طولانی‌مدت روی سلامت قلب، فشار خون، قند و سیکل قاعدگی اثر بگذارد. اگر امکانش را داری، صحبت با پزشک یا کارشناس تغذیه می‌تواند خیلی کمک‌کننده باشد. در Ritme سعی می‌کنیم با توصیه‌های کوچک قابل‌اجرا، به روند سلامتت کمک کنیم.", //nolint:staticcheck // ST1018: Persian text (ZWNJ) verbatim from BmiService
+		"fa": "بر اساس قد و وزن وارد شده، در محدوده‌ی چاقی قرار می‌گیری. این می‌تواند در طولانی‌مدت روی سلامت قلب، فشار خون، قند و سیکل قاعدگی اثر بگذارد. اگر امکانش را داری، صحبت با پزشک یا کارشناس تغذیه می‌تواند خیلی کمک‌کننده باشد. در ریتمی سعی می‌کنیم با توصیه‌های کوچک قابل‌اجرا، به روند سلامتت کمک کنیم.", //nolint:staticcheck // ST1018: Persian text (ZWNJ) from BmiService, brand as «ریتمی» (D-22)
 		"en": "Based on the height and weight you entered, you fall in the obesity range. Over the long term this can affect heart health, blood pressure, blood sugar, and the menstrual cycle. If possible, talking to a doctor or a nutrition specialist can be very helpful. At Ritme we try to support your health journey with small, doable recommendations.",
 	},
 }

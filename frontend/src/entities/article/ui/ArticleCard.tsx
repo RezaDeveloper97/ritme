@@ -17,6 +17,11 @@ export interface ArticleCardProps {
    * locale-agnostic, like CycleValuesCard).
    */
   readTimeLabel: string | null;
+  /**
+   * Translated category, e.g. «تغذیه» for `nutrition`. The host resolves it
+   * (entities stay locale-agnostic); omitted, the stored value shows as-is.
+   */
+  categoryLabel?: string | null;
   /** Compact variant for horizontal rails (related reads). */
   compact?: boolean;
 }
@@ -29,9 +34,11 @@ export function ArticleCard({
   article,
   onSelect,
   readTimeLabel,
+  categoryLabel,
   compact = false,
 }: ArticleCardProps) {
-  const meta = readTimeLabel ?? article.category;
+  const category = categoryLabel === undefined ? article.category : categoryLabel;
+  const meta = readTimeLabel ?? category;
 
   return (
     <button
@@ -52,7 +59,7 @@ export function ArticleCard({
         ) : (
           <Icon name="bookOpen" size={28} stroke="currentColor" />
         )}
-        {article.category && !compact && <span className="ac-tag">{article.category}</span>}
+        {category && !compact && <span className="ac-tag">{category}</span>}
       </div>
 
       <div className="ac-body">

@@ -2042,7 +2042,7 @@
         },
         "normal": {
             "fa": {
-                "message": "بر اساس قد و وزن وارد شده، در محدوده‌ی وزنی طبیعی قرار می‌گیری. این محدوده معمولاً برای سلامت عمومی و سیکل قاعدگی مناسب است. Ritme تلاش می‌کند به حفظ این وضعیت کمک کند."
+                "message": "بر اساس قد و وزن وارد شده، در محدوده‌ی وزنی طبیعی قرار می‌گیری. این محدوده معمولاً برای سلامت عمومی و سیکل قاعدگی مناسب است. ریتمی تلاش می‌کند به حفظ این وضعیت کمک کند."
             },
             "en": {
                 "message": "Based on the height and weight you entered, you are in the normal weight range. This range is usually good for overall health and your menstrual cycle. Ritme aims to help you maintain it."
@@ -2058,7 +2058,7 @@
         },
         "obese": {
             "fa": {
-                "message": "بر اساس قد و وزن وارد شده، در محدوده‌ی چاقی قرار می‌گیری. این می‌تواند در طولانی‌مدت روی سلامت قلب، فشار خون، قند و سیکل قاعدگی اثر بگذارد. اگر امکانش را داری، صحبت با پزشک یا کارشناس تغذیه می‌تواند خیلی کمک‌کننده باشد. در Ritme سعی می‌کنیم با توصیه‌های کوچک قابل‌اجرا، به روند سلامتت کمک کنیم."
+                "message": "بر اساس قد و وزن وارد شده، در محدوده‌ی چاقی قرار می‌گیری. این می‌تواند در طولانی‌مدت روی سلامت قلب، فشار خون، قند و سیکل قاعدگی اثر بگذارد. اگر امکانش را داری، صحبت با پزشک یا کارشناس تغذیه می‌تواند خیلی کمک‌کننده باشد. در ریتمی سعی می‌کنیم با توصیه‌های کوچک قابل‌اجرا، به روند سلامتت کمک کنیم."
             },
             "en": {
                 "message": "Based on the height and weight you entered, you fall in the obesity range. Over the long term this can affect heart health, blood pressure, blood sugar, and the menstrual cycle. If possible, talking to a doctor or a nutrition specialist can be very helpful. At Ritme we try to support your health journey with small, doable recommendations."

@@ -33,7 +33,28 @@ func TestDefaultsMatchPHPExport(t *testing.T) {
 	cmd.Stderr = &stderr
 	out, err := cmd.Output()
 	require.NoError(t, err, stderr.String())
+	out = applyDecidedDeviations(out)
 	require.True(t, bytes.Equal(out, defaultsJSON), "defaults.json differs from the PHP export — regenerate it (see defaults.go)")
+}
+
+// applyDecidedDeviations rewrites the PHP export the way defaults.json deliberately differs from it.
+// D-22: the fa BMI copy names the app «ریتمی» where Laravel has the Latin "Ritme" (en unchanged).
+func applyDecidedDeviations(export []byte) []byte {
+	export = bytes.ReplaceAll(export, []byte("Ritme تلاش"), []byte("ریتمی تلاش"))
+	return bytes.ReplaceAll(export, []byte("در Ritme سعی"), []byte("در ریتمی سعی"))
+}
+
+// TestDefaultsBmiBrand pins D-22: the brand is Persian in the fa BMI copy and stays "Ritme" in en.
+func TestDefaultsBmiBrand(t *testing.T) {
+	for _, item := range []string{"normal", "obese"} {
+		fa, ok := Default("bmi_message", item, "fa").Field("message")
+		require.True(t, ok, item)
+		assert.Contains(t, fa, "ریتمی", item)
+		assert.NotContains(t, fa, "Ritme", item)
+		en, ok := Default("bmi_message", item, "en").Field("message")
+		require.True(t, ok, item)
+		assert.Contains(t, en, "Ritme", item)
+	}
 }
 
 func TestDefaultsShape(t *testing.T) {

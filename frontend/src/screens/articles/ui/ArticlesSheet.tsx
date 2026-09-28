@@ -8,6 +8,8 @@ import { useMounted } from '@/shared/lib/use-mounted';
 import { openSheet } from '@/shared/sheet';
 import { Icon } from '@/shared/ui';
 
+import { articleCategoryLabel, type CategoryTranslator } from '../model/category';
+
 /** Keystrokes settle before a page is requested — one call per pause, not per key. */
 const SEARCH_DEBOUNCE_MS = 350;
 
@@ -25,6 +27,9 @@ const SEARCH_DEBOUNCE_MS = 350;
 export function ArticlesSheet() {
   const t = useTranslations('articles');
   const mounted = useMounted();
+  // `categories.<slug>` keys are data-driven, so the literal-key typing can't see them.
+  const categoryLabel = (name: string): string =>
+    articleCategoryLabel(name, t as unknown as CategoryTranslator);
 
   const [category, setCategory] = useState<string | null>(null);
   const [search, setSearch] = useState('');
@@ -93,7 +98,7 @@ export function ArticlesSheet() {
             {categories.map((name) => (
               <FilterChip
                 key={name}
-                label={name}
+                label={categoryLabel(name)}
                 active={category === name}
                 onClick={() => setCategory(category === name ? null : name)}
               />
@@ -134,6 +139,7 @@ export function ArticlesSheet() {
                 key={article.id}
                 article={article}
                 onSelect={() => openSheet('article', article.slug)}
+                categoryLabel={article.category === null ? null : categoryLabel(article.category)}
                 readTimeLabel={
                   article.readTimeMinutes === null
                     ? null

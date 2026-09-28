@@ -203,6 +203,15 @@ translations screen (`delete.cancel` …) are the key column of the editor itsel
 
 ### Bugs (not fixed here)
 
+> **Fixed in T-M2-30** (bugs 1–4). 1: `/calendar` holds `DayLogSummary`'s loading state until mount; `/cycle`
+> mounts its cards (my cycles, smart tip, cycle summary, week summary, BMI — all token-gated queries) only after
+> hydration. 2: formatted numbers are passed into the messages (challenge chip + tooltip, calendar day card, period
+> editor badges and hint). 3: fa BMI fallback copy says «ریتمی» — deviation **D-22**; `message_contents` rows already
+> seeded by Laravel keep "Ritme" until edited in admin → messages. 4: `articles.categories.<slug>` labels (fa + en),
+> unknown values shown as stored. Re-check (local, Go `:8020`, persona `09900000004`, fa, light + dark): no hydration
+> error on `/fa/calendar` or `/fa/cycle`, no Latin digits on either; `web-06`, `web-07`, `web-12`, `web-22`,
+> `web-29`, `web-30` re-taken (persona data, so the dates differ from the first run).
+
 1. **Hydration mismatch on `/calendar` and `/cycle`** (dev console `Hydration failed…` on every full page load, both
    themes). Queries gated with `enabled: isAuthenticated()` are disabled during SSR (no `localStorage`) but enabled on
    the client. So the server renders the "not loading" branch and the client's first render the loading branch:
