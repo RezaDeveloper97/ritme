@@ -291,3 +291,63 @@ admin → چکاپ‌های دوره‌ای.
 - **Staging UI click-through**: the agent has no server access (ssh and curl to the staging host are denied). The same flow in light
   and dark on stage.ritmeapp.ir, with screenshots into PROGRESS, is still the user's to run.
 - **Production**: only when the user asks.
+
+## Staging UI e2e (T-M4-10) — 2026-09-28
+
+Ran against `https://stage.ritmeapp.ir` (`stage` @ ea8a1eb, goose v6, Go-only), with no redeploy. The browser was local headless
+Chrome over CDP (port 9242, private profile) at 390×844 @2x in fa, in light and dark. The gate `ritme_stage` cookie came from one page load
+with a Basic `Authorization` header. The header was then dropped, so the app's Bearer calls ran on the cookie alone.
+The login ran through the UI: `/fa/signup` → `09900000961` → `/fa/otp`, with the code read from the **stage** DB
+`otp_verifications` (container `ritme-stage-mysql-1`). The profile was then set through the API: birthday 1992-05-10 (age 34),
+`pregnancy_intention=avoiding`, a 28/5 cycle, and 4 periods through `POST /cycle/period` (06-21, 07-19, 08-16, 09-13), so today is cycle day 16.
+A dentist record dated 2025-11-10 was added so an overdue item exists. Light used Pap smear (`/checkups/3`) and dark used the full blood test
+(`/checkups/4`). The dark `detail-*` shots show clinical breast exam (`/checkups/2`), because the first capture caught the loading state.
+
+**Automated checks passed on every app screen in both themes:** no horizontal overflow (`scrollWidth` = 390 and 0 elements outside the
+viewport), no raw i18n keys, no Latin digits, no console errors or exceptions, and `data-theme` matched the run.
+
+| # | Step | Result |
+|---|---|---|
+| 1 | Cycle home → «چکاپ‌های دوره‌ای» card | ✔ ring `۱/۶` (dark `۲/۶`), counts line, 2 highlight rows (self-exam and Pap «راهنما»; dark run: self-exam and dentist overdue «ثبت نوبت»), disclaimer. ✘ The `·` separator reads as `۰` (bug S1) |
+| 2 | Card → `/checkups` | ✔ «بر اساس سن ۳۴ سال», status bar and legend, and cards with padding. **عقب‌افتاده now comes second, right after این ماه** (local bug 4 is fixed). «نیاز به اقدام» sets `?filter=action` |
+| 3 | Row → detail | ✔ hero, چرا مهم است؟, قبل از رفتن, سابقه, disclaimer |
+| 4 | «انجام دادم» → MarkDone | ✔ Jalali date chip `۶ مهر ۱۴۰۵`, result radios, next-due banner (`۷ مهر ۱۴۰۸ · هر ۳ سال · ۳۰ روز قبل…`) |
+| 5 | `DOM.setFileInputFiles` (`lab-report.jpg`) + «نیاز به پیگیری» + note → «ثبت» | ✔ thumbnail and file name. `POST checkups/{id}/records` 201, then the detail shows «به‌روز», the next due date and «گزارش پیوست شده». IndexedDB `ritme-local-files` exists. The light toast «ثبت شد» was seen. In dark it had already gone by the 3.5 s check |
+| 6 | `/checkups/history` | ✔ month timeline, result chips, «پیوست» chip; «با پیوست» filters (1 of 2 in light, 2 of 3 in dark); header digits are Persian («۲ مورد ثبت‌شده») |
+| 7 | «خلاصه برای پزشک» → PDF | ✔ `ritme-checkups.pdf` (54 KB light / 69 KB dark) with no UI error or IntlError. The page-1 footer reads **«ریتمی · صفحه ۱ از ۱»** with Persian digits (local bug 1 is fixed) |
+| 8 | `/checkups/self-exam` | ✔ ring `۱۶ از ۲۸`, «روز ۱۶ سیکل · ۱۹ روز دیگر» with Persian digits (local bug 3 is fixed), 3 steps, findings |
+| 9 | `/checkups/custom/new` | ✔ name, interval chips, performed-by, last-done, note, «ذخیره» |
+| 10 | admin-web `/panel/login` (stage admin) → چکاپ‌های دوره‌ای → edit `blood_test` fa title to «آزمایش خون کامل (ویرایش ادمین)» → «ذخیره تغییرات» | ✔ `PUT /api/admin/v1/checkup-types/4` 200 and the list shows the new title |
+| 11 | App `/fa/checkups` and `/fa/checkups/4` | ✔ both show the new title straight away |
+| 12 | Restore | ✔ the title was set back through admin (PUT 200). The row was then written back byte-for-byte from a pre-edit snapshot, because admin re-encodes the JSON columns as `\u` escapes and bumps `updated_at`. `diff` against the snapshot shows no changes |
+
+**API statuses (all `/api/v1` and `/api/admin/v1` calls carried `X-Backend: go`):** send-otp 200, verify-otp 200, profile
+200, cycle/period 200 ×4, checkups 200, checkups/home 200, checkups/{id} 200, preview-next 200, records POST 201 ×3,
+checkups/records 200, admin auth/login 200, auth/me 200 (401 before login, as expected), checkup-types 200, options 200, stats 200,
+checkup-types/4 GET 200 and PUT 200 ×2. There were no other 4xx or 5xx responses.
+
+**verify:** the task's `verify:` passed (exit 0) with `STAGE_AUTH`. The request reaches Go (`X-Backend: go`), and Go answers 401 because a
+Basic header is not a Bearer token.
+
+**Screenshots:** `screenshots/stage-*.png` use the same names as the local run (`home-card`, `list`, `list-bottom`,
+`list-tab-action`, `detail`, `detail-bottom`, `markdone-sheet`, `markdone-filled`, `markdone-filled-bottom`, `detail-after-save`,
+`history`, `history-with-attachment`, `history-pdf`, `self-exam`, `self-exam-bottom`, `custom-form`, each `-light` and `-dark`),
+plus `stage-pdf-summary-page1-light.png` and the admin set (`stage-admin-login`, `-checkup-types-list`, `-checkup-type-form`,
+`-checkup-type-form-edited`, `-checkup-type-saved`, `-checkup-types-list-after`, `stage-app-list-after-admin-edit-light`,
+`stage-app-detail-after-admin-edit-light`). All are 585 px wide and compressed with pngquant.
+
+**Bugs / open on stage:**
+- **S1: the middle-dot separator looks like a Persian zero.** In the checkups card counts line, «۲ مورد به‌روز · ۳ موعدش رسیده · ۱
+  عقب‌افتاده» renders as «… ۳۰ موعدش رسیده ۱۰ عقب‌افتاده», because U+00B7 next to a Persian digit is indistinguishable from `۰`
+  (`stage-home-card-*.png`). It comes from `frontend/messages/fa/checkups.json:10` (`separator`), which is used by
+  `frontend/src/widgets/checkups-card/ui/CheckupsCard.tsx:133-136`. The same `·` is in `:63` (`lastNext`), `:106` (`nextDueMeta`, e.g.
+  «هر سال · ۱۴ روز قبل…»), `:143` (PDF subtitle), `:149` (PDF footer) and `:157` (`dayWhen`). Suggestion: use «،» or «–» in fa,
+  or add more spacing.
+- The minor items 5(a)–(d) from the local run are unchanged: the «پیوست» chip sits outside the history card, the detail hero always shows a
+  `shield` icon, admin-web mixes Latin and Persian digits on the fa UI («هر 12 ماه», «ثبت‌های 30 روز اخیر» next to stats «۵»), and
+  the self-exam shows «موعدش رسیده» with «بعدی: ۱۹ روز دیگر».
+- Still open (human): catalog content sign-off; production only when asked.
+
+**Cleanup (stage DB only):** user `09900000961` (id 7) was deleted with its 3 checkup records, 4 cycle histories, profile,
+access token and OTP rows. That leaves 0 users for 961/962, 0 custom types and 0 records. Checkup type 4 is byte-identical to its
+pre-edit state. No prod container, DB or config was read or changed.

@@ -779,3 +779,8 @@ Nothing needed fixing.
 - Backend translation seed resynced with `frontend/messages` (care, checkups, fertility, pregnancy-v2 added; articles/home/profile/pwa updated); `TestSeedMatchesFrontendMessages` guards drift; i18n testdata re-recorded; deviation D-23 + `contract/allowlist/public.yaml`.
 - Verify: go test 65 pkgs, lint 0, schema-diff OK, contract 986 pass / 206 allow-listed; frontend 576 tests, fsd OK.
 - Open: Laravel prod translation seed still old (until cutover); stale comments in `internal/i18n/translations{,_test}.go` and `backend-go/CLAUDE.md` resync paragraph.
+
+## T-M4-10 — Checkups rollout (staging UI e2e, 2026-09-28)
+- Stage @ ea8a1eb (goose v6), light/dark: home card → list → detail → mark done with on-device attachment → history → PDF (Persian footer) → self-exam → custom form; `/panel` edit of `blood_test` title visible in the app, then restored byte-identical. All API responses `X-Backend: go`; verify passed. T-M4-11 fixes confirmed on stage. 41 `stage-*` screenshots in `docs/checkups/screenshots/`; evidence in `docs/checkups/README.md` § Staging UI e2e.
+- New bug S1: fa `·` separator reads like a Persian zero in counts lines (`messages/fa/checkups.json` separator, CheckupsCard).
+- Still open: catalog content sign-off (human); production when asked. Gate password appeared once in agent tool output (curl redirect URL) — consider rotating.
