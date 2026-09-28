@@ -784,3 +784,8 @@ Nothing needed fixing.
 - Stage @ ea8a1eb (goose v6), light/dark: home card → list → detail → mark done with on-device attachment → history → PDF (Persian footer) → self-exam → custom form; `/panel` edit of `blood_test` title visible in the app, then restored byte-identical. All API responses `X-Backend: go`; verify passed. T-M4-11 fixes confirmed on stage. 41 `stage-*` screenshots in `docs/checkups/screenshots/`; evidence in `docs/checkups/README.md` § Staging UI e2e.
 - New bug S1: fa `·` separator reads like a Persian zero in counts lines (`messages/fa/checkups.json` separator, CheckupsCard).
 - Still open: catalog content sign-off (human); production when asked. Gate password appeared once in agent tool output (curl redirect URL) — consider rotating.
+
+## T-M7-15 — Pregnancy v2 rollout (staging UI e2e, 2026-09-28)
+- Stage @ ea8a1eb, light/dark: pregnant signup → Setup v2 → Today → Week → Log (offline outbox queued → saved) → spotting urgent alert → Alerts → Calendar booking from care plan (NT → booked) → PDF (Persian footer) → switch back to cycle. 185 API calls, all `X-Backend: go`, all 2xx except known 9h. T-M7-16 fixes confirmed on stage. 67 `stage-*` screenshots; evidence in `docs/pregnancy-v2/README.md` § Staging UI e2e.
+- New bug (privacy): `ritme-onboarding` persisted store (name, mobile, birth date, weight, height, intention, pregnancy basis) survives logout — `useLogout` only clears token + cache.
+- Still open on stage: 9a/9b/9c/9d/9h/9i; Log weight field ASCII decimal. Clinical sign-off (human); production when asked.

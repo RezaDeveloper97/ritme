@@ -333,3 +333,60 @@ Minor / design:
   alert texts and thresholds), plus 9c and 9j above.
 - Staging UI click-through: the agent has no server access.
 - Production when asked.
+
+## Staging UI e2e (T-M7-15) — 2026-09-28
+
+This run used staging at `stage` @ `ea8a1eb` (goose v6, includes the T-M7-16 fixes). There was no redeploy, and
+production was not touched. Headless Chrome ran locally (port 9243, its own profile) and was driven over CDP, with a
+20 s timeout on every call. The viewport was 390×844 @2x, mobile + touch, locale fa. The gate cookie `ritme_stage` came
+from one Basic-auth page load (`Network.setExtraHTTPHeaders`), and the header was then dropped, so the app's Bearer
+token worked on every call. Two throwaway users signed up through the real UI: `09900000971` (light) and
+`09900000972` (dark). The dark user signed up in the same tab after a UI logout. The OTP was read from
+`otp_verifications` in the `ritme-stage` MariaDB. Afterwards both users and all their rows were deleted from the stage
+DB (tokens, reminders, pregnancy profile/logs/extras/alerts/week state, user profile, OTP rows).
+
+**API:** 185 calls were recorded. Every `/api/v1/*` response carried `X-Backend: go` (0 exceptions). All of them
+returned 2xx except `GET /messages/daily` 400 after switching back to cycle (known 9h). Main calls: `send-otp`/`verify-otp`
+200, `POST /profile` 200, `pregnancy/activate` 200, `pregnancy/onboarding` 201, `v2/dating-preview` 200, `v2/today` 200,
+`v2/weeks/10` 200, `PUT v2/weeks/10/state` 200, `GET/PUT v2/days/2026-09-28` 200, `v2/alerts` 200, `alerts/{id}/actions/ack` 200,
+`v2/calendar?month=1405-07` 200, `POST care/appointments` 201, `v2/report` 200, `pregnancy/deactivate` 200.
+
+The DOM check ran on 65 screens and found no horizontal overflow, no off-screen element, no raw i18n key and no Latin
+digit in fa text. The only JS console errors were the 400 above.
+
+| # | Step | Light | Dark |
+|---|---|---|---|
+| 1 | `/signup` → OTP → name/birthday/weight/height → «باردارم» → manual 9w+2d → conditions → setting-up | ✔ `/fa/pregnancy`, week 10, due ۱۱ اردیبهشت ۱۴۰۶ | ✔ (signup after logout in the same tab — bug 7 not reproduced) |
+| 2 | Setup v2: welcome → LMP ۲ مرداد ۱۴۰۵ → history (هیچ‌کدام, O, مثبت) → result → «تمومه، بریم» | ✔ ۹ هفته و ۳ روز, due ۱۰ اردیبهشت ۱۴۰۶, «متوسط ±۳ روز»; step bar is a real progress bar (bug 3 fixed) | ✔ |
+| 3 | Today | ✔ full week carousel (bug 1 fixed), trimester bars correct (bug 2 fixed), next visit, reminders, tip, 3 tasks | ✔ |
+| 4 | Week 10: tabs, bookmark, tick `folic_acid` | ✔ `aria-pressed=true`, tick → PUT state 200, Today shows it checked; stats in Persian digits (bug 4 fixed) | ✔ |
+| 5 | Log: mood, تهوع متوسط + خستگی خفیف, water, weight 62.5, note → save | ✔ API round-trips every field | ✔ |
+| 6 | Offline: `emulateNetworkConditions offline` → سردرد + 1 glass → save → online | ✔ `onLine=false`, «بدون اینترنت ذخیره شد…», button *not* «ذخیره شد» while queued, API unchanged; synced in 0.7 s → «ذخیره شد» | ✔ synced in 1.3 s; the UI still showed «queued» 1.5 s later and flipped to «ذخیره شد» a few seconds after (bug 6 fixed, with a short lag) |
+| 7 | لکه‌بینی → save | ✔ info box + «این ثبت یک پیام تازه ساخت · پیگیری زودتر · لکه‌بینی ثبت شده» | ✔ |
+| 8 | Alerts | ✔ `critical_symptom` (urgent, ۱۱۵ box) + `week_entered` «وارد هفتهٔ ۱۰ شدی» (bug 5 fixed); ack 200 | ✔ |
+| 9 | Calendar → care plan «رزرو» NT → form (title, ۱۰ مهر ۱۴۰۵, `care_item_key=nt_scan`) → name + time → «ذخیره نوبت» | ✔ 201 | ✔ 201 → `/reminders/appointment/7` |
+| 10 | Back to Calendar | ✔ NT «نوبت داری», next visit «۴ روز دیگه», stage «نوبت گرفته شد», prep, «یادآور: ۱ روز قبل», dot on ۱۰ مهر | ✔ |
+| 11 | «گزارش علائم برای پزشک (PDF)» | ✔ 73 KB, 1 page, footer «ریتمی · صفحهٔ ۱ از ۱» in Persian digits | ✔ 73 KB |
+| 12 | Profile → «برگرد به حالت چرخه» (native confirm accepted) | ✔ deactivate 200 → `/fa/home` cycle home, booked NT in «یادآورهای امروز» | ✔ |
+
+**Screenshots:** they are in `screenshots/stage-*.png` (67 files, 585 px wide, pngquant, 2.5 MB). Each step has a `-light`
+and a `-dark` file. The PDF image `stage-33-pdf-report-page1-light` exists in light only. The names follow the local run: `00-signup`,
+`01`–`04` signup, `05`–`08` Setup v2, `09`/`11` Today, `12`–`15` Week, `16`/`17`/`19` Log, `20` queued offline,
+`21` synced, `22`/`23` spotting + alert, `24`–`26` Alerts, `27`–`31` Calendar + booking, `32` after PDF, `34` Profile, and `36`
+cycle home.
+
+**Still open on stage:**
+- 9a: the NT booking is prefilled as «ویزیت دوره‌ای».
+- 9b: saving goes to `/reminders/appointment/{id}`.
+- 9c: no call button.
+- 9d: the info alert is listed above the urgent one.
+- 9h: `/messages/daily` 400 on the cycle home.
+- 9i: the PDF «(خفیف) · ۴ لیوان آب» reads like «۴۰».
+- 9j: copy.
+- Minor: the Log weight field shows «۶۲.۵» with an ASCII dot, while «آخرین ثبت» shows «۶۲٫۵».
+
+**New:** logout leaves the `ritme-onboarding` store in `localStorage`. It still holds the previous user's name, phone,
+birth date, weight, height, intention and pregnancy basis. `useLogout` only clears the token and the query cache
+(`frontend/src/features/auth/api/mutations.ts:126-129`), and the store is persisted in
+`frontend/src/entities/user/model/store.ts:156`. The next login resets it, so it did not leak into the next account in
+this run. On a shared device, though, it is personal data that stays after logout.
