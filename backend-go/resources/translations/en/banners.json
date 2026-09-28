@@ -1,4 +1,4 @@
 {
   "region": "Promotional banners",
-  "goToSlide": "Go to banner {n}"
+  "goToSlide": "Go to banner {n, number}"
 }

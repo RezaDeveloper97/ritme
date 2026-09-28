@@ -807,3 +807,8 @@ Nothing needed fixing.
 - Stage @ ea8a1eb: web app smoke light/dark over every route group — 525 `/api/v1` responses all `X-Backend: go`, 0 5xx, only expected 404/401 (incl. token rotation → `token_revoked`). `/panel`: 233 calls on Go, every nav screen + detail + /new, affirmation CRUD, banner upload → shown in app → deleted. `/admin` → 301 `/panel/` (Blade retired on stage, side-by-side no longer possible).
 - Soak: 09-23→09-26 ~69h 0 5xx; 09-26→09-28 Go logs lost to redeploys; since today's deploy 1450 requests, 0 5xx, no error lines; proxy error log (stage host) no upstream failures. Rollback tested 09-23. Evidence: `docs/go-migration/stage-rollout-log.md` § Staging smoke + soak; 133 `stage-*` screenshots.
 - Bugs → T-M2-32 (old reminder form buttons overflow, Latin digits in fa slide a11y text). Monitoring gaps noted on T-M2-26. Stage has no seeded content.
+
+## T-M2-32 — Small web fixes from staging smoke
+- Reminder form buttons: scoped `.rem-form-submit/.rem-form-cancel` flex rules (global `.btn` unchanged).
+- Slide a11y text `{n, number}`/`{total, number}` in welcome + banners (fa/en), seed + i18n goldens synced.
+- Verify green: 592 frontend tests, go test ./..., contract 986 pass / 236 allow-listed. Visual check of the reminder form pending (stage).

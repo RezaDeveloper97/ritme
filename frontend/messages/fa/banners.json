@@ -1,4 +1,4 @@
 {
   "region": "بنرهای تبلیغاتی",
-  "goToSlide": "رفتن به بنر {n}"
+  "goToSlide": "رفتن به بنر {n, number}"
 }

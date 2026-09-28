@@ -6,8 +6,8 @@
   "start": "Set up Ritme",
   "startHint": "It takes under a minute. We ask a few simple questions about your age, cycle, and how you generally feel so we can tune Ritme to you.",
   "disclaimer": "Ritme uses data analysis and AI models to personalize its suggestions, but it is not a substitute for diagnosis or a doctor's visit. If your symptoms are severe or worrying, please talk to a health professional.",
-  "goToSlide": "Go to slide {n}",
-  "slideOfCount": "Slide {n} of {total}",
+  "goToSlide": "Go to slide {n, number}",
+  "slideOfCount": "Slide {n, number} of {total, number}",
   "slides": {
     "intro": {
       "title": "Know your body's rhythm, feel better",

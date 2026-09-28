@@ -3,7 +3,7 @@ id: T-M2-32
 title: Small web fixes from staging smoke — reminder form buttons, slide a11y digits
 milestone: M2
 type: frontend
-status: todo
+status: done
 depends_on: [T-M2-25]
 parallel_group: M2-J
 touches: [frontend/src/app/globals.css,frontend/src/screens/profile-reminders,frontend/messages,frontend/src/widgets/intro-carousel,frontend/src/widgets/banner-slideshow,backend-go/resources/translations,backend-go/internal/i18n/testdata]
