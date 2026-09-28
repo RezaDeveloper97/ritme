@@ -3,7 +3,7 @@ id: T-M5-09
 title: Fertility rollout — route /api/v1/fertility to Go, verify, stage
 milestone: M5
 type: release
-status: blocked
+status: in_progress
 depends_on: [T-M5-03, T-M5-05, T-M5-06, T-M5-07, T-M5-08, T-M2-09]
 parallel_group: M5-D
 touches: [deploy, tasks/PROGRESS.md, docs/fertility-ttc/README.md]
