@@ -196,5 +196,40 @@
       "profile": "پروفایلت",
       "default": "مقادیر پیش‌فرض"
     }
+  },
+  "greeting": {
+    "morning": "سلام، صبح‌بخیر",
+    "noon": "سلام، ظهربخیر",
+    "evening": "سلام، عصربخیر",
+    "night": "سلام، شب‌بخیر"
+  },
+  "header": {
+    "notifications": "اعلان‌ها",
+    "cycleSettings": "تنظیمات سیکل",
+    "themeDark": "حالت شب",
+    "themeLight": "حالت روز"
+  },
+  "ring": {
+    "label": "حلقه سیکل: روز {day, number} از {length, number}",
+    "labelEmpty": "حلقه سیکل",
+    "nextPeriod": "پریود بعدی",
+    "period": "پریود",
+    "daysLeft": "روز دیگر",
+    "today": "امروز",
+    "periodDay": "روز {n, number}",
+    "usually": "معمولاً {n, number} روز",
+    "cycleDay": "روز {n, number} سیکل",
+    "editPeriod": "ویرایش پریود"
+  },
+  "phaseCard": {
+    "title": {
+      "period": "پریود · روز {n, number}",
+      "follicular": "فاز فولیکولار",
+      "fertile": "پنجرهٔ باروری",
+      "ovulation": "تخمک‌گذاری",
+      "luteal": "فاز لوتئال"
+    },
+    "nearPeriod": "نزدیک پریود",
+    "more": "بیشتر درباره این فاز"
   }
 }

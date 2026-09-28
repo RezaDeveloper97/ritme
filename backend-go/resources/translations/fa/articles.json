@@ -5,6 +5,14 @@
   "searchPlaceholder": "توی مقاله‌ها بگرد",
   "clearSearch": "پاک کردن جست‌وجو",
   "allCategories": "همه",
+  "categories": {
+    "period_health": "سلامت پریود",
+    "cycle_science": "دانش چرخه",
+    "fertility": "باروری",
+    "wellbeing": "تندرستی",
+    "nutrition": "تغذیه",
+    "mental_health": "سلامت روان"
+  },
   "count": "{n, plural, other {# مقاله}}",
   "min": "{n, number} دقیقه مطالعه",
   "loadMore": "مقاله‌های بیشتر",

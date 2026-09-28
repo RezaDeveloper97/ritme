@@ -3,10 +3,10 @@ id: T-M2-31
 title: Follow-ups from T-M2-30 — BMI data migration, article slugs, translation seed resync
 milestone: M2
 type: backend
-status: todo
+status: done
 depends_on: [T-M2-30]
 parallel_group: M2-J
-touches: [backend-go/db/migrations,backend-go/resources/translations,backend-go/internal/i18n/testdata,backend-go/contract,frontend/src/screens/home,frontend/src/screens/article,frontend/src/screens/articles,docs/go-migration]
+touches: [backend-go/db/migrations,backend-go/resources/translations,backend-go/internal/i18n/testdata,backend-go/contract,frontend/src/screens/home,frontend/src/screens/article,frontend/src/screens/articles, frontend/src/entities/article, frontend/src/app/message-scopes.ts,docs/go-migration]
 skills: [verify-all]
 verify: cd backend-go && go vet ./... && go test ./... && make contract ROUTES=all && cd ../frontend && npm run typecheck && npm run lint && npm run test
 ---

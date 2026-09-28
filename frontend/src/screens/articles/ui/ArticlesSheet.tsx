@@ -3,12 +3,15 @@
 import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 
-import { ArticleCard, useArticles } from '@/entities/article';
+import {
+  ArticleCard,
+  articleCategoryLabel,
+  type CategoryTranslator,
+  useArticles,
+} from '@/entities/article';
 import { useMounted } from '@/shared/lib/use-mounted';
 import { openSheet } from '@/shared/sheet';
 import { Icon } from '@/shared/ui';
-
-import { articleCategoryLabel, type CategoryTranslator } from '../model/category';
 
 /** Keystrokes settle before a page is requested — one call per pause, not per key. */
 const SEARCH_DEBOUNCE_MS = 350;

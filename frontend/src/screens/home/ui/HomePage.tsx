@@ -4,7 +4,11 @@ import clsx from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useId, useMemo, useState, type ReactNode } from 'react';
 
-import { useCycleArticles } from '@/entities/article';
+import {
+  articleCategoryLabel,
+  type CategoryTranslator,
+  useCycleArticles,
+} from '@/entities/article';
 import { useBannersSettled } from '@/entities/banner';
 import {
   CycleValuesCard,
@@ -535,6 +539,10 @@ function Recommendations({ t, tips, dos }: { t: T; tips: CycleDailyTip[]; dos: s
 // nothing here is hardcoded. The whole section disappears when there is
 // nothing published for this phase.
 function Articles({ t, locale }: { t: T; locale: Locale }) {
+  const tArticles = useTranslations('articles');
+  // `categories.<slug>` keys are data-driven, so the literal-key typing can't see them.
+  const categoryLabel = (name: string): string =>
+    articleCategoryLabel(name, tArticles as unknown as CategoryTranslator);
   const { data, isPending } = useCycleArticles();
   const articles = data?.articles ?? [];
 
@@ -578,7 +586,7 @@ function Articles({ t, locale }: { t: T; locale: Locale }) {
                     <Icon name="bookOpen" size={16} stroke="currentColor" />
                     {article.readTimeMinutes !== null
                       ? t('articles.min', { n: localizeNum(article.readTimeMinutes, locale) })
-                      : article.category}
+                      : categoryLabel(article.category ?? '')}
                   </div>
                 )}
               </button>

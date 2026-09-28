@@ -5,6 +5,14 @@
   "searchPlaceholder": "Search articles",
   "clearSearch": "Clear search",
   "allCategories": "All",
+  "categories": {
+    "period_health": "Period health",
+    "cycle_science": "Cycle science",
+    "fertility": "Fertility",
+    "wellbeing": "Wellbeing",
+    "nutrition": "Nutrition",
+    "mental_health": "Mental health"
+  },
   "count": "{n, plural, one {# article} other {# articles}}",
   "min": "{n, number} min read",
   "loadMore": "Load more",

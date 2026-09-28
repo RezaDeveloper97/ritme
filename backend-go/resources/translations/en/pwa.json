@@ -10,5 +10,8 @@
   "installAction": "Install app",
   "iosStep1": "1. Tap the Share button in Safari's bottom bar",
   "iosStep2": "2. Choose \"Add to Home Screen\"",
+  "iosSignInNote": "The installed app asks you to sign in once; after that you stay signed in.",
+  "inAppTitle": "Open Ritme in your browser",
+  "inAppBody": "This page is open inside another app's browser. Use its ⋯ menu to open it in Safari or Chrome, so you can install Ritme and stay signed in.",
   "dismiss": "Dismiss"
 }

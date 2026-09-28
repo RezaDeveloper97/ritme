@@ -1,0 +1,310 @@
+{
+  "common": {
+    "title": "بارداری",
+    "loading": "در حال گرفتن اطلاعات بارداری…",
+    "loadError": "اطلاعات بارداری نیومد. یه‌کم بعد دوباره امتحان کن.",
+    "saveError": "ذخیره نشد. یه‌کم بعد دوباره امتحان کن.",
+    "retry": "دوباره",
+    "back": "بازگشت",
+    "close": "بستن",
+    "notActive": "حالت بارداری روشن نیست.",
+    "weekOf": "هفتهٔ {week, number} از {total, number}",
+    "age": "{days, plural, =0 {{weeks, number} هفته} other {{weeks, number} هفته و {days, number} روز}}",
+    "trimester": {
+      "1": "سه‌ماههٔ اول",
+      "2": "سه‌ماههٔ دوم",
+      "3": "سه‌ماههٔ سوم"
+    },
+    "trimesterWeek": "{trimester} · هفتهٔ {week, number} از {total, number}",
+    "dateRange": "{from} تا {to}",
+    "confidence": {
+      "label": "دقت تخمین: {level}",
+      "withRange": "دقت تخمین: {level} · حدود ±{days, number} روز",
+      "levels": {
+        "high": "زیاد",
+        "medium": "متوسط",
+        "low": "کم"
+      }
+    },
+    "dueDate": "تاریخ تقریبی زایمان",
+    "estimateNote": "این یک تخمینه، نه تشخیص پزشکی."
+  },
+  "nav": {
+    "label": "منوی اصلی",
+    "today": "امروز",
+    "calendar": "تقویم",
+    "logToday": "ثبت امروز",
+    "pregnancy": "بارداری",
+    "profile": "پروفایل"
+  },
+  "setup": {
+    "welcomeTitle": "به حالت بارداری خوش اومدی",
+    "welcomeBody": "با روشن‌کردن حالت بارداری، هفته‌به‌هفته رشد کودکت و تغییرات بدنت رو دنبال می‌کنی و مراقبت‌های هر هفته رو می‌بینی.",
+    "turnOn": "حالت بارداری رو روشن کن",
+    "notNow": "فعلاً نه",
+    "progressLabel": "مرحلهٔ راه‌اندازی",
+    "step": "{step, number} از {total, number}",
+    "continue": "ادامه",
+    "datingTitle": "بیا بارداری‌ات رو تنظیم کنیم",
+    "datingBody": "برای حساب‌کردن سن بارداری و تاریخ تقریبی زایمان، مبنای محاسبه رو انتخاب کن.",
+    "sourceLabel": "مبنای محاسبهٔ سن بارداری",
+    "sources": {
+      "lmp": "اولین روز آخرین قاعدگی",
+      "ultrasound": "سونوگرافی",
+      "manual": "خودم هفته رو وارد می‌کنم"
+    },
+    "lmpPick": "روز اول آخرین قاعدگی",
+    "ultrasoundDate": "تاریخ سونوگرافی",
+    "ultrasoundAge": "سن بارداری در سونوگرافی",
+    "manualAge": "هفتهٔ بارداری فعلی",
+    "week": "هفته",
+    "day": "روز",
+    "historyTitle": "سابقه‌ات رو بگو، اگه خواستی",
+    "historyBody": "این بخش اختیاریه و فقط برای این که مراقبت‌های هر هفته با شرایطت جور بشه.",
+    "miscarriage": "سابقهٔ سقط جنین",
+    "highRisk": "سابقهٔ بارداری پرخطر",
+    "conditions": "بیماری‌های زمینه‌ای",
+    "conditionNone": "هیچ‌کدام",
+    "bloodGroup": "گروه خونی",
+    "rh": "فاکتور Rh",
+    "choose": "انتخاب کن",
+    "rhPositive": "مثبت",
+    "rhNegative": "منفی",
+    "skip": "فعلاً رد می‌شم",
+    "resultLead": "بر اساس داده‌های فعلی، احتمالاً",
+    "resultTail": "باردار هستی",
+    "usualRange": "بازهٔ معمول تولد: {from} تا {to}",
+    "done": "تمومه، بریم",
+    "changeBasis": "مبنای محاسبه رو عوض می‌کنم",
+    "editBasis": "ویرایش مبنای محاسبه",
+    "previewError": "محاسبه انجام نشد. تاریخ‌ها رو یه بار دیگه نگاه کن.",
+    "sourceHints": {
+      "lmp": "اگه تاریخ آخرین قاعدگی‌ات رو می‌دونی، ساده‌ترین گزینه همینه. بازهٔ تخمین معمولاً حدود ±۵ روزه.",
+      "ultrasound": "بر اساس نتیجهٔ سونوگرافی؛ در هفته‌های اول معمولاً بازهٔ تخمین محدودتری می‌ده.",
+      "manual": "اگه هفتهٔ بارداری‌ات رو از پزشکت می‌دونی. بازهٔ تخمین به همون دقت گفتهٔ پزشک بستگی داره."
+    },
+    "historyDisclaimer": "این اطلاعات فقط در حساب کاربری خودت و برای شخصی‌سازی مراقبت‌ها نگه‌داری می‌شه و هیچ‌وقت در لینک‌ها یا گزارش‌های خودکار قرار نمی‌گیره.",
+    "submitting": "در حال راه‌اندازی…",
+    "submitError": "راه‌اندازی انجام نشد. یه‌کم بعد دوباره امتحان کن.",
+    "fillRequired": "اول اطلاعات مبنای محاسبه رو کامل کن.",
+    "calculating": "در حال محاسبه…"
+  },
+  "today": {
+    "alerts": "هشدارها",
+    "newAlerts": "{count, plural, =0 {هشدارها} other {هشدارها، # پیام تازه}}",
+    "prevWeek": "هفتهٔ قبل",
+    "nextWeek": "هفتهٔ بعد",
+    "backToToday": "بازگشت به امروز",
+    "browseWeeks": "مرور هفته‌ها",
+    "daysToDue": "{days, plural, =0 {امروز تاریخ تقریبی زایمانه} other {# روز تا زایمان}}",
+    "usualRange": "بازهٔ معمول {from} تا {to}",
+    "percentDone": "{percent, number}٪ از مسیر رو اومدی",
+    "trimesterFrom": "{name} · از {date}",
+    "trimesterShort": {
+      "1": "سه‌ماههٔ اول",
+      "2": "دوم",
+      "3": "سوم"
+    },
+    "actions": {
+      "log": "ثبت علائم روزانه",
+      "checkup": "چکاپ هفتگی",
+      "weeks": "مرور هفته‌ها",
+      "alerts": "هشدارها"
+    },
+    "nextVisit": "ویزیت بعدی · {days, plural, =0 {امروز} =1 {فردا} other {# روز دیگه}}",
+    "visitMeta": "{weekday} · {time} · هفتهٔ {week, number}",
+    "tipEyebrow": "نکتهٔ هوشمند · این هفته",
+    "readMinutes": "{minutes, plural, other {# دقیقه}}",
+    "readMore": "درباره هفتهٔ {week, number} بیشتر بخون",
+    "careTitle": "مراقبت‌های این هفته",
+    "careDone": "{done, number} از {total, number}",
+    "careEmpty": "برای این هفته کاری ثبت نشده.",
+    "disclaimerTitle": "تاریخ زایمان یک تخمینه.",
+    "disclaimerBody": "بر اساس داده‌های فعلی، بیشتر نوزادها بین {from} تا {to} به دنیا میان. با ثبت نتیجهٔ سونوگرافی، این بازه محدودتر می‌شه.",
+    "setupCta": "راه‌اندازی حالت بارداری"
+  },
+  "week": {
+    "bookmark": "ذخیره در نشان‌شده‌ها",
+    "unbookmark": "حذف از نشان‌شده‌ها",
+    "stripLabel": "هفته‌های بارداری",
+    "chipWeek": "هفته",
+    "legend": {
+      "past": "گذشته",
+      "current": "این هفته",
+      "future": "پیش‌بینی"
+    },
+    "sizePill": "تقریباً هم‌اندازهٔ یک {item}",
+    "stats": {
+      "cm": "سانتی‌متر",
+      "g": "گرم",
+      "bpm": "ضربان در دقیقه"
+    },
+    "averagesNote": "این اعداد میانگین‌اند؛ هر جنین با سرعت خودش رشد می‌کنه.",
+    "tabsLabel": "بخش‌های این هفته",
+    "tabs": {
+      "baby": "جنین",
+      "body": "بدن تو",
+      "tasks": "کارهای هفته"
+    },
+    "bodyTitle": "ممکنه این هفته این‌ها رو حس کنی",
+    "logToday": "علائم امروزت رو ثبت کن",
+    "reviewedBy": "بازبینی‌شده توسط {name}",
+    "sources": "منابع",
+    "notReviewed": "در انتظار بازبینی متخصص",
+    "empty": "محتوای این هفته هنوز آماده نشده.",
+    "illustration": "تصویر اندازهٔ تقریبی جنین"
+  },
+  "log": {
+    "title": "ثبت امروز",
+    "titleOtherDay": "ثبت روز",
+    "sub": "{date} · هفتهٔ {week, number}",
+    "pickDay": "انتخاب روز دیگر",
+    "moodTitle": "حال کلی‌ات",
+    "moodLabel": "حال کلی",
+    "moods": {
+      "5": "خوب",
+      "4": "روبه‌راه",
+      "3": "معمولی",
+      "2": "بی‌حال",
+      "1": "سخت"
+    },
+    "symptomsTitle": "علائم جسمی",
+    "symptomsCount": "{count, plural, other {# مورد}}",
+    "symptoms": {
+      "nausea": "تهوع",
+      "vomiting": "استفراغ",
+      "fatigue": "خستگی",
+      "headache": "سردرد",
+      "back_pain": "کمردرد",
+      "breast_pain": "حساسیت پستان",
+      "heartburn": "سوزش سر دل",
+      "constipation": "یبوست",
+      "spotting": "لکه‌بینی"
+    },
+    "severityLabel": "شدت",
+    "severities": {
+      "mild": "خفیف",
+      "moderate": "متوسط",
+      "severe": "شدید"
+    },
+    "water": "آب",
+    "waterCount": "{count, plural, other {# لیوان امروز}}",
+    "waterLess": "یک لیوان کمتر",
+    "waterMore": "یک لیوان بیشتر",
+    "weight": "وزن",
+    "weightLast": "آخرین ثبت: {value, number} · {date}",
+    "weightNone": "هنوز وزنی ثبت نشده",
+    "kg": "کیلوگرم",
+    "note": "یادداشت برای ویزیت بعدی",
+    "notePlaceholder": "مثلاً: از دیروز سردرد خفیف دارم",
+    "spottingTitle": "لکه‌بینی ثبت شد.",
+    "spottingBody": "لکه‌بینی خفیف در سه‌ماههٔ اول برای خیلی‌ها پیش میاد و به‌تنهایی نشانهٔ مشکل نیست. اگه بیشتر شد، با درد همراه بود، یا برات نگران‌کننده بود، بهتره با پزشک یا مامات در میون بذاری.",
+    "save": "ذخیرهٔ ثبت امروز",
+    "saving": "در حال ذخیره…",
+    "saved": "ذخیره شد",
+    "offlineNote": "بدون اینترنت هم ذخیره می‌شه و بعداً همگام می‌شه.",
+    "editNote": "هر ثبتی رو می‌تونی بعداً ویرایش کنی.",
+    "alertsRaised": "{count, plural, one {این ثبت یک پیام تازه ساخت} other {این ثبت # پیام تازه ساخت}}",
+    "seeAlerts": "دیدن هشدارها",
+    "queued": "بدون اینترنت ذخیره شد — با وصل شدن فرستاده می‌شه",
+    "pending": "{count, plural, other {# ثبت در انتظار همگام‌سازی}}",
+    "otherLogs": "ثبت‌های دیگر",
+    "weeklyCheckup": "چک‌آپ هفتگی",
+    "movement": "حرکات جنین"
+  },
+  "calendar": {
+    "title": "تقویم",
+    "newVisit": "ویزیت جدید",
+    "newVisitLabel": "افزودن ویزیت یا آزمایش",
+    "prevMonth": "ماه قبل",
+    "nextMonth": "ماه بعد",
+    "weekRange": "هفته‌های {from, number} تا {to, number} بارداری",
+    "legend": {
+      "today": "امروز",
+      "visit": "ویزیت یا آزمایش",
+      "weekStart": "شروع هفتهٔ بارداری"
+    },
+    "weekStart": "شروع هفتهٔ {week, number}",
+    "dayEmpty": "برای این روز چیزی ثبت نشده. می‌تونی ویزیت یا آزمایش اضافه کنی.",
+    "nextVisit": "ویزیت بعدی · {days, plural, =0 {امروز} =1 {فردا} other {# روز دیگه}}",
+    "visitMeta": "{weekday} · ساعت {time} · {week}",
+    "stagesLabel": "مرحلهٔ ویزیت",
+    "stages": {
+      "booked": "نوبت گرفته شد",
+      "done": "انجام شد",
+      "result": "نتیجه ثبت شد"
+    },
+    "prep": "آمادگی:",
+    "reminder": "یادآور: {when}",
+    "directions": "مسیریابی",
+    "resultNote": "نتیجه رو یادداشت کن",
+    "carePlanTitle": "برنامهٔ مراقبت‌های بارداری",
+    "weekWindow": "هفتهٔ {from, number} تا {to, number}",
+    "aroundDate": "حدود {date}",
+    "states": {
+      "done": "انجام شد",
+      "booked": "نوبت داری",
+      "to_book": "رزرو"
+    },
+    "book": "رزرو",
+    "report": "گزارش علائم برای پزشک (PDF)",
+    "saveResult": "ثبت نتیجه",
+    "pdf": {
+      "title": "گزارش علائم بارداری برای پزشک",
+      "subtitle": "از {from} تا {to}",
+      "age": "سن بارداری: {age}",
+      "due": "تاریخ تقریبی زایمان: {date}",
+      "daysTitle": "حال و علائم روزانه",
+      "weightsTitle": "وزن",
+      "none": "در این بازه چیزی ثبت نشده.",
+      "note": "یادداشت برای ویزیت: {note}",
+      "water": "{count, plural, other {# لیوان آب}}",
+      "kg": "{value, number} کیلوگرم",
+      "disclaimer": "این گزارش از ثبت‌های خود کاربر در ریتمی ساخته شده و تشخیص پزشکی نیست.",
+      "footer": "ریتمی · صفحهٔ {page} از {pages}",
+      "filename": "ritme-pregnancy-report.pdf",
+      "working": "در حال ساخت PDF…",
+      "error": "ساخت گزارش انجام نشد. دوباره امتحان کن."
+    }
+  },
+  "alerts": {
+    "title": "هشدارها و پیام‌ها",
+    "window": "بر اساس ثبت‌های {days, number} روز اخیر",
+    "settings": "تنظیم یادآورها",
+    "empty": "در این چند روز پیامی نیست.",
+    "levels": {
+      "info": "اطلاع",
+      "suggestion": "پیشنهاد",
+      "follow_up": "ارزش پیگیری داره",
+      "urgent": "پیگیری زودتر"
+    },
+    "levelsShort": {
+      "info": "اطلاع",
+      "suggestion": "پیشنهاد",
+      "follow_up": "ارزش پیگیری",
+      "urgent": "پیگیری زودتر"
+    },
+    "whatWeSaw": "چی دیدیم",
+    "howSure": "چقدر مطمئنیم",
+    "actions": {
+      "add_to_visit_note": "افزودن به یادداشت ویزیت",
+      "ack": "دیدم، ممنون",
+      "log_weight": "ثبت وزن",
+      "log_symptoms": "ثبت علائم",
+      "open_week": "دیدن هفته",
+      "call": "تماس"
+    },
+    "addedToNote": "به یادداشت ویزیت اضافه شد",
+    "call": "تماس",
+    "today": "امروز",
+    "yesterday": "دیروز",
+    "legendTitle": "چهار سطح پیام در ریتمی",
+    "legend": {
+      "info": "اتفاق عادی؛ نیاز به کاری نداره.",
+      "suggestion": "یک کار کوچک که تحلیل رو کامل‌تر می‌کنه.",
+      "follow_up": "الگویی که تکرار شده و بهتره با متخصص در میون بذاری.",
+      "urgent": "شرایطی که نباید نادیده گرفته بشه؛ همراه با راه تماس."
+    },
+    "disclaimer": "هیچ‌کدوم از این پیام‌ها تشخیص پزشکی نیست. یادآورها رو می‌تونی از تنظیمات کم یا خاموش کنی."
+  }
+}

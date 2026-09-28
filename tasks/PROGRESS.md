@@ -772,3 +772,10 @@ Nothing needed fixing.
 - Article category labels `articles.categories.<slug>` (fa/en) via `screens/articles/model/category.ts`.
 - Verify green (576 frontend tests, Go tests/lint).
 - Open → T-M2-31: stage/prod `message_contents` BMI fa rows still say "Ritme" (DB wins over code); raw slugs on home article rail and related-articles rail; backend translation seed out of sync since T-M2-06.
+
+## T-M2-31 — Follow-ups from T-M2-30
+- Migration `00006_bmi_fa_brand.sql` (data only): fa BMI normal/obese "Ritme" → «ریتمی» only where the payload is byte-equal to the old seed (admin edits kept); reversible; `TestBmiFaBrandMigration` integration test. Runs on stage at next deploy, prod at cutover.
+- Article category labels on home rail, article tag and related rail; helper moved to `entities/article/model/category.ts`; `ROUTE_NAMESPACES.home` ships `articles`.
+- Backend translation seed resynced with `frontend/messages` (care, checkups, fertility, pregnancy-v2 added; articles/home/profile/pwa updated); `TestSeedMatchesFrontendMessages` guards drift; i18n testdata re-recorded; deviation D-23 + `contract/allowlist/public.yaml`.
+- Verify: go test 65 pkgs, lint 0, schema-diff OK, contract 986 pass / 206 allow-listed; frontend 576 tests, fsd OK.
+- Open: Laravel prod translation seed still old (until cutover); stale comments in `internal/i18n/translations{,_test}.go` and `backend-go/CLAUDE.md` resync paragraph.

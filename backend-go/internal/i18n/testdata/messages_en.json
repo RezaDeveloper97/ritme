@@ -1,5 +1,5 @@
 {
- "source": "backend-go/contract/golden/public/languages_messages_en.none.json",
+ "source": "backend-go/resources/translations (Go seed = frontend/messages, D-23; the Laravel golden contract/golden/public/languages_messages_en* still has the pre-T-M2-31 seed)",
  "locale": "en",
  "direction": "ltr",
  "messages": {
@@ -23,6 +23,14 @@
    "searchPlaceholder": "Search articles",
    "clearSearch": "Clear search",
    "allCategories": "All",
+   "categories": {
+    "period_health": "Period health",
+    "cycle_science": "Cycle science",
+    "fertility": "Fertility",
+    "wellbeing": "Wellbeing",
+    "nutrition": "Nutrition",
+    "mental_health": "Mental health"
+   },
    "count": "{n, plural, one {# article} other {# articles}}",
    "min": "{n, number} min read",
    "loadMore": "Load more",
@@ -164,6 +172,264 @@
    "endPeriodHere": "End period on this day",
    "addToPeriod": "Add to period days"
   },
+  "care": {
+   "title": "Reminders",
+   "subtitle": "Medications & appointments",
+   "back": "Back",
+   "close": "Close",
+   "notifications": "Notifications",
+   "loading": "Loading reminders…",
+   "loadError": "Couldn't load your reminders. Please try again in a moment.",
+   "saveError": "Couldn't save. Please try again in a moment.",
+   "retry": "Retry",
+   "add": "Add",
+   "addReminder": "Add reminder",
+   "addNewReminder": "Add a new reminder",
+   "all": "All",
+   "home": {
+    "title": "Today's reminders",
+    "all": "All",
+    "add": "Add reminder",
+    "appointmentTitle": "{title} · {with}",
+    "remindBefore": "Reminder {before}",
+    "nextAppointmentMeta": "{when} · {time} · {place}",
+    "nextAppointmentMetaNoPlace": "{when} · {time}",
+    "empty": "No reminders today."
+   },
+   "tabs": {
+    "all": "All",
+    "medications": "Medications",
+    "appointments": "Appointments"
+   },
+   "today": {
+    "title": "Today",
+    "progress": "{taken} of {total} taken",
+    "markTaken": "Mark {title} as taken",
+    "markNotTaken": "Unmark {title}",
+    "empty": "No doses due today."
+   },
+   "slotPeriod": {
+    "morning": "morning",
+    "noon": "noon",
+    "evening": "evening",
+    "night": "night"
+   },
+   "slotWithPeriod": "{time} {period}",
+   "medications": {
+    "title": "Medications & supplements",
+    "empty": "You haven't added any medications or supplements yet.",
+    "rowMeta": "{schedule} · {time} · {amount} {form}",
+    "everyDay": "Every day",
+    "everyOtherDay": "Every other day",
+    "daysPerWeek": "{count, plural, one {# day} other {# days}} a week",
+    "toggle": "Turn the {title} reminder on or off",
+    "delete": "Delete medication",
+    "confirmDelete": "Delete this reminder?",
+    "nameWithDose": "{title} {dose}",
+    "add": "Add a medication or supplement",
+    "daysPerWeekCount": "{count, plural, one {{days} day} other {{days} days}} a week"
+   },
+   "appointments": {
+    "title": "Appointments & consultations",
+    "empty": "No appointments yet.",
+    "rowMeta": "{time} · {kind} · {place}",
+    "rowMetaNoPlace": "{time} · {kind}",
+    "kindShort": {
+     "in_person": "In person",
+     "phone": "Phone",
+     "online": "Online"
+    },
+    "add": "Add an appointment",
+    "rowMetaNoTime": "{kind} · {place}"
+   },
+   "chooser": {
+    "title": "What should I remind you about?",
+    "medication": {
+     "title": "Medication or supplement",
+     "description": "Name, dose, times per day and times"
+    },
+    "appointment": {
+     "title": "Doctor's appointment",
+     "description": "In-person visit, ultrasound or lab test"
+    },
+    "consult": {
+     "title": "Medical consultation",
+     "description": "Phone call or online consultation"
+    },
+    "disclaimer": "Reminders only help you stay organised — they don't replace your doctor's instructions."
+   },
+   "medicationForm": {
+    "title": "Add medication",
+    "editTitle": "Edit medication",
+    "subtitle": "Dose reminder",
+    "name": "Medication or supplement name",
+    "namePlaceholder": "e.g. Folic acid",
+    "dose": "Dose",
+    "unit": "Unit",
+    "form": "Form",
+    "forms": {
+     "tablet": "Tablet",
+     "capsule": "Capsule",
+     "syrup": "Syrup",
+     "injection": "Injection",
+     "drops": "Drops"
+    },
+    "units": {
+     "mg": "mg",
+     "mcg": "mcg",
+     "ml": "ml",
+     "iu": "IU",
+     "drop": "drop"
+    },
+    "timesPerDay": "How many times a day?",
+    "timesOption": "{count}×",
+    "slotTimes": "Dose times",
+    "slotLabel": "Dose {n}",
+    "weekdays": "Days of the week",
+    "weekdayShort": [
+     "Sa",
+     "Su",
+     "Mo",
+     "Tu",
+     "We",
+     "Th",
+     "Fr"
+    ],
+    "everyDay": "Every day",
+    "amount": "Amount per dose",
+    "decrease": "Less",
+    "increase": "More",
+    "startsOn": "Starting",
+    "todayWithDate": "Today · {date}",
+    "pickDate": "Pick a date",
+    "duration": "Duration",
+    "durations": {
+     "ongoing": "No end date",
+     "until_date": "Until a set date",
+     "pregnancy_end": "Until the end of pregnancy"
+    },
+    "endsOn": "Until",
+    "change": "Change",
+    "notify": "Phone notification",
+    "notifyHint": "At each dose time",
+    "notes": "Note",
+    "notesPlaceholder": "e.g. after meals",
+    "save": "Save reminder",
+    "saving": "Saving…",
+    "slotRow": "Dose {n} · {period}",
+    "pickTime": "Pick a time",
+    "hour": "Hour",
+    "minute": "Minute",
+    "done": "Done",
+    "cancel": "Cancel",
+    "daysPerWeek": "{count, plural, one {# day} other {# days}} a week",
+    "noDays": "No days selected",
+    "amountValue": "{amount} {form}",
+    "untilDate": "Until {date}",
+    "delete": "Delete",
+    "deleteTitle": "Delete this reminder?",
+    "deleteBody": "The reminder and its dose history will be removed.",
+    "deleting": "Deleting…",
+    "deleteError": "Couldn't delete. Please try again in a moment.",
+    "notFound": "This medication wasn't found.",
+    "errors": {
+     "titleRequired": "Enter the medication name.",
+     "tooLong": "This text is too long.",
+     "timesDuplicate": "Two doses have the same time.",
+     "timesInvalid": "The dose times are not valid.",
+     "weekdaysRequired": "Pick at least one day.",
+     "amountRange": "Amount must be between 1 and 10.",
+     "dateInvalid": "The date is not valid.",
+     "endsOnRequired": "Pick an end date.",
+     "endsOnBeforeStart": "The end date can't be before the start."
+    }
+   },
+   "appointmentForm": {
+    "title": "Add appointment",
+    "editTitle": "Edit appointment",
+    "subtitle": "Doctor's appointment or consultation",
+    "kinds": {
+     "in_person": "In-person visit",
+     "phone": "Phone consultation",
+     "online": "Online consultation"
+    },
+    "with": "With whom?",
+    "withPlaceholder": "Doctor or counsellor name",
+    "specialty": "Specialty",
+    "specialtyPlaceholder": "e.g. OB-GYN, nutrition",
+    "topic": "What is it about?",
+    "topics": {
+     "ultrasound": "Ultrasound",
+     "checkup": "Check-up",
+     "lab": "Lab test",
+     "consult": "Consultation",
+     "vaccine": "Vaccine",
+     "other": "Other"
+    },
+    "shortDescription": "Short description",
+    "date": "Date",
+    "time": "Time",
+    "place": "Place",
+    "placePlaceholder": "Clinic address or meeting link",
+    "remindBefore": "Remind me before",
+    "remindOptions": {
+     "1h": "1 hour before",
+     "3h": "3 hours before",
+     "1d": "1 day before",
+     "2d": "2 days before"
+    },
+    "addToCalendar": "Add to phone calendar",
+    "addToCalendarHint": "Google / iOS Calendar",
+    "prep": "Things to prepare",
+    "prepPlaceholder": "e.g. previous test results, insurance booklet…",
+    "save": "Save appointment",
+    "saving": "Saving…",
+    "placeOnline": "Meeting link",
+    "placePhone": "Phone number",
+    "placeOnlinePlaceholder": "Skyroom, Google Meet link…",
+    "placePhonePlaceholder": "The number they will call",
+    "shortDescriptionPlaceholder": "e.g. NT scan",
+    "pickDate": "Pick a date",
+    "pickTime": "Pick a time",
+    "hour": "Hour",
+    "minute": "Minute",
+    "confirm": "Confirm",
+    "prepHint": "Each line becomes one checklist item",
+    "errors": {
+     "with": "Enter the doctor or counsellor name.",
+     "date": "Pick the appointment date.",
+     "time": "Pick the appointment time."
+    }
+   },
+   "appointmentDetail": {
+    "title": "Appointment details",
+    "daysUntil": "{days, plural, =0 {Today} =1 {Tomorrow} one {In # day} other {In # days}}",
+    "pregnancyWeek": "Pregnancy week {week}",
+    "weekdayAt": "{weekday} · at",
+    "with": "With",
+    "about": "About",
+    "place": "Place",
+    "directions": "Directions",
+    "reminder": "Reminder",
+    "reminderAt": "{before} · {date} at {time}",
+    "reminderToggle": "Turn the appointment reminder on or off",
+    "prepTitle": "Before the appointment",
+    "addToCalendar": "Add to calendar",
+    "edit": "Edit appointment",
+    "cancel": "Cancel appointment",
+    "cancelled": "Cancelled",
+    "confirmCancel": "Cancel this appointment?",
+    "confirmCancelYes": "Yes, cancel it",
+    "confirmCancelNo": "No",
+    "loading": "Loading appointment…",
+    "timeAt": "at {time}",
+    "reminderOff": "Off",
+    "calendarFile": "appointment",
+    "descriptionWith": "With {with}"
+   },
+   "notificationSettings": "Notification settings",
+   "listSeparator": ", "
+  },
   "challenge": {
    "title": "Today's challenge",
    "cycleDay": "Cycle day {n}",
@@ -172,6 +438,217 @@
     "between": "For cycle days {from}–{to}",
     "from": "From cycle day {n} onwards",
     "to": "Up to cycle day {n}"
+   }
+  },
+  "checkups": {
+   "title": "Periodic checkups",
+   "back": "Back",
+   "close": "Close",
+   "all": "All",
+   "loading": "Loading checkups…",
+   "loadError": "Couldn't load your checkups. Please try again in a moment.",
+   "saveError": "Couldn't save. Please try again in a moment.",
+   "retry": "Retry",
+   "separator": " · ",
+   "noDate": "—",
+   "status": {
+    "up_to_date": "Up to date",
+    "soon": "Soon",
+    "due": "Due",
+    "overdue": "Overdue",
+    "not_yet": "Not yet",
+    "disabled": "Off"
+   },
+   "result": {
+    "normal": "Normal",
+    "follow_up": "Needs follow-up",
+    "pending": "Awaiting results"
+   },
+   "section": {
+    "this_month": "This month",
+    "overdue": "Overdue",
+    "monthly": "Monthly",
+    "six_monthly": "Every 6 months",
+    "annual": "Yearly",
+    "multi_year": "Every few years",
+    "age_based": "Based on age",
+    "custom": "Custom"
+   },
+   "performedBy": {
+    "self": "You",
+    "doctor": "By a doctor",
+    "lab": "Lab",
+    "dentist": "Dentist"
+   },
+   "card": {
+    "title": "Periodic checkups",
+    "all": "All",
+    "ring": "{upToDate}/{total}",
+    "ringLabel": "{upToDate} of {total} up to date",
+    "countUpToDate": "{count} up to date",
+    "countDue": "{count} due",
+    "countOverdue": "{count} overdue",
+    "guide": "Guide",
+    "book": "Book",
+    "disclaimer": "Based on general guidelines and your age; confirm your exact plan with your doctor."
+   },
+   "list": {
+    "ageBasis": "Based on age {age}",
+    "planSettings": "Plan settings",
+    "statusTitle": "Your health plan",
+    "upToDateOf": "{upToDate} of {total} up to date",
+    "tabs": {
+     "all": "All",
+     "action": "Needs action",
+     "done": "Done"
+    },
+    "lastNext": "Last: {last} · Next: {next}",
+    "infoNote": "This list is based on general screening guidelines and your age. Family history or specific conditions may change your plan; check with your doctor or midwife. Ritme does not give medical diagnoses.",
+    "addCustom": "Add a custom checkup",
+    "empty": "No checkups in this section yet.",
+    "emptyAction": "All your checkups are up to date.",
+    "emptyDone": "You haven't logged a checkup yet."
+   },
+   "detail": {
+    "nextDue": "Next due",
+    "lastTime": "Last time {date}",
+    "neverDone": "Not logged yet",
+    "passedMonths": "{count, plural, one {About # month ago} other {About # months ago}}",
+    "markDone": "I did it",
+    "book": "Book",
+    "openGuide": "Guide",
+    "remindOn": "Reminder on",
+    "remindOff": "Reminder off",
+    "why": "Why it matters",
+    "prep": "Before you go",
+    "cycleHint": "Ritme can set the reminder for day {from}–{to} of your cycle.",
+    "history": "History",
+    "historyAll": "All",
+    "attached": "Report attached",
+    "noAttachment": "No attachment",
+    "noHistory": "Nothing logged yet.",
+    "disclaimer": "General information — it doesn't replace your doctor's advice.",
+    "editRecord": "Edit this record"
+   },
+   "markDone": {
+    "title": "I did my {title}",
+    "subtitle": "Log the details so the next due date can be worked out",
+    "editTitle": "Edit {title}",
+    "date": "Date done",
+    "result": "Result",
+    "attachment": "Attach report",
+    "optional": "(optional)",
+    "photo": "Photo of report",
+    "pdf": "PDF file",
+    "removeAttachment": "Remove attachment",
+    "privacy": "Stored only on your phone; Ritme doesn't interpret the report.",
+    "note": "Note",
+    "notePlaceholder": "E.g. the doctor's name or a note about the result",
+    "nextDue": "Next due: {date}",
+    "nextDueMeta": "{interval} · {reminder}",
+    "change": "Change",
+    "submit": "Save",
+    "delete": "Delete this entry",
+    "deleteConfirm": "Delete this entry and remove its attachment from this phone?",
+    "saved": "Saved",
+    "attachmentNotSaved": "Saved, but the attachment couldn't be stored on this phone.",
+    "attachmentError": {
+     "unavailable": "This browser doesn't allow saving files on the phone.",
+     "too_large": "The file is too large (max {max} MB).",
+     "store_full": "Attachment storage is full; delete some older attachments.",
+     "unsupported_type": "Only a photo or a PDF file.",
+     "quota": "Not enough storage space on this phone.",
+     "failed": "The attachment wasn't saved. Please try again."
+    },
+    "nextDueTitle": "Next due",
+    "futureDate": "The date can’t be in the future.",
+    "nextBeforeDone": "The next due date must be after the done date."
+   },
+   "history": {
+    "title": "Checkup history",
+    "count": "{count, plural, one {# entry} other {# entries}}",
+    "tabs": {
+     "all": "All",
+     "this_year": "This year",
+     "with_attachment": "With attachment"
+    },
+    "attachment": "Attachment",
+    "openAttachment": "Open attachment",
+    "attachmentMissing": "This attachment isn't on this phone.",
+    "summary": "Summary for your doctor",
+    "summarySub": "All checkups and results in one PDF",
+    "export": "Export PDF",
+    "empty": "No checkups logged yet.",
+    "loadMore": "Load more",
+    "pdf": {
+     "title": "Checkup summary for your doctor",
+     "subtitle": "Prepared {date} · {count} entries",
+     "findings": "{count} exam findings noted",
+     "note": "Note: {note}",
+     "nextDue": "Next due: {date}",
+     "attachment": "Report attached on the phone.",
+     "disclaimer": "Logged by the user in Ritme; not a medical diagnosis.",
+     "footer": "Ritme · page {page} of {pages}",
+     "filename": "ritme-checkups.pdf",
+     "working": "Building PDF…",
+     "error": "Couldn't build the PDF. Try again."
+    }
+   },
+   "selfExam": {
+    "thisMonth": "This month",
+    "dayWhen": "Cycle day {day} · {when}",
+    "bestTime": "Best time",
+    "bestTimeTitle": "A few days after your period",
+    "bestTimeBody": "Breasts are less tender and swollen; Ritme times the reminder to your cycle.",
+    "ringDay": "Day",
+    "ringOf": "of {total}",
+    "ringLabel": "Day {day} of {total}",
+    "stepsTitle": "{count} steps, about {minutes} minutes",
+    "findingsTitle": "If something felt different",
+    "findingsBody": "You can note a lump, skin change, nipple discharge or ongoing pain here and share it with your doctor. Most changes are benign, but getting them checked matters.",
+    "nudge": "Share it with your doctor",
+    "book": "Book",
+    "done": "I did it this month",
+    "doneAlready": "Logged this month",
+    "adherence": "Done {done} of the last {total} months",
+    "whenNow": "now is the best time",
+    "whenIn": "{count, plural, one {# day to go} other {# days to go}}"
+   },
+   "custom": {
+    "newTitle": "Add a custom checkup",
+    "editTitle": "Edit checkup",
+    "name": "Checkup name",
+    "namePlaceholder": "E.g. eye exam",
+    "interval": "How often?",
+    "intervals": {
+     "m1": "1 month",
+     "m6": "6 months",
+     "m12": "1 year",
+     "m24": "2 years",
+     "m36": "3 years"
+    },
+    "performedBy": "Who does it?",
+    "lastDone": "Last done",
+    "note": "Note",
+    "save": "Save",
+    "delete": "Delete checkup",
+    "deleteConfirm": "Delete this checkup and its history?",
+    "pickDate": "Pick a date",
+    "clearDate": "Clear date",
+    "done": "Done",
+    "cancel": "Cancel",
+    "saving": "Saving…",
+    "notFound": "This checkup wasn’t found.",
+    "optional": "(optional)",
+    "titleRequired": "Enter a checkup name.",
+    "deleting": "Deleting…",
+    "notePlaceholder": "e.g. doctor or clinic name"
+   },
+   "settings": {
+    "title": "Plan settings",
+    "subtitle": "Remove checkups you don't want from your plan, or turn their reminders off.",
+    "enabled": "In my plan",
+    "remind": "Reminder"
    }
   },
   "common": {
@@ -239,6 +716,229 @@
    "toggle": "Toggle done",
    "delete": "Delete",
    "error": "That didn't work; please try again."
+  },
+  "fertility": {
+   "title": "Fertility",
+   "back": "Back",
+   "loading": "Loading your fertility data…",
+   "loadError": "Couldn't load your fertility data. Please try again in a bit.",
+   "saveError": "Couldn't save. Please try again in a bit.",
+   "retry": "Retry",
+   "estimated": "Estimated",
+   "notLogged": "Not logged",
+   "cycleDay": "Day {day}",
+   "dateCycleDay": "{date} · Day {day}",
+   "celsius": "°C",
+   "degrees": "{value}°",
+   "chance": {
+    "today": "Chance of pregnancy today",
+    "barsLabel": "Chance of pregnancy: {level}",
+    "levels": {
+     "none": "Very low",
+     "low": "Low",
+     "medium": "Medium",
+     "high": "High",
+     "peak": "Very high",
+     "unknown": "Unknown"
+    }
+   },
+   "tiles": {
+    "label": "Quick fertility log",
+    "lh": "LH test",
+    "bbt": "Basal temp",
+    "intercourse": "Sex",
+    "notLogged": "Not logged",
+    "bbtValue": "{value}°",
+    "openLh": "Log today's LH test",
+    "openBbt": "Basal body temperature chart",
+    "openIntercourse": "Log sex today"
+   },
+   "home": {
+    "ovulationIn": "Ovulation in",
+    "days": "days",
+    "ringCaption": "Cycle day {day} · {level} chance of pregnancy",
+    "logToday": "Log today",
+    "phases": {
+     "period": "Period",
+     "follicular": "Follicular",
+     "fertile": "Fertile window",
+     "luteal": "Luteal"
+    },
+    "chanceCard": {
+     "title": "Chance of pregnancy today",
+     "estimated": "Estimated",
+     "inWindow": "You're in your fertile window. Sex today and over the next 2 days gives the best chance.",
+     "windowStart": "Window starts",
+     "ovulation": "Ovulation",
+     "nextPeriod": "Next period"
+    },
+    "lhTip": {
+     "title": "Take an LH test today",
+     "body": "Between 10 am and 8 pm, after a few hours without urinating. A positive result means ovulation within the next 24–36 hours."
+    }
+   },
+   "log": {
+    "title": "Log day",
+    "subtitle": "{date} · Day {day}",
+    "lh": {
+     "title": "Ovulation test (LH)",
+     "options": {
+      "none": "Don't log",
+      "negative": "Negative",
+      "faint": "Faint",
+      "positive": "Positive"
+     }
+    },
+    "bbt": {
+     "label": "Basal body temperature",
+     "unit": "°C",
+     "decrease": "Decrease temperature",
+     "increase": "Increase temperature",
+     "hint": "In the morning, before getting out of bed",
+     "outOfRange": "Temperature must be between {min} and {max} degrees.",
+     "invalid": "That doesn't look like a temperature.",
+     "clear": "Clear temperature"
+    },
+    "mucus": {
+     "title": "Cervical mucus",
+     "options": {
+      "none": "Don't log",
+      "dry": "Dry",
+      "sticky": "Sticky",
+      "creamy": "Creamy",
+      "egg_white": "Clear & stretchy"
+     }
+    },
+    "intercourse": {
+     "title": "Sex",
+     "options": {
+      "none": "Don't log",
+      "unprotected": "Unprotected",
+      "protected": "Protected"
+     }
+    },
+    "symptoms": {
+     "title": "Symptoms",
+     "options": {
+      "ovarian_pain": "Ovarian pain",
+      "bloating": "Bloating",
+      "breast_sensitivity": "Breast tenderness",
+      "spotting": "Spotting"
+     }
+    },
+    "note": {
+     "label": "Note",
+     "placeholder": "Anything you think matters…"
+    },
+    "openInsights": "Predictions",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "futureDate": "You can't log a day in the future.",
+    "discardConfirm": "You have unsaved changes. Leave without saving?"
+   },
+   "bbt": {
+    "title": "Basal body temperature",
+    "subtitle": "Current cycle · Day {day}",
+    "help": "Guide",
+    "ranges": {
+     "1": "This cycle",
+     "3": "3 cycles",
+     "6": "6 cycles"
+    },
+    "todayMorning": "This morning",
+    "noReadingToday": "Not logged yet today",
+    "phases": {
+     "pre_shift": "Before shift",
+     "post_shift": "After shift"
+    },
+    "chart": {
+     "label": "Basal body temperature chart",
+     "tableCaption": "Logged temperature by cycle day",
+     "dayColumn": "Cycle day",
+     "valueColumn": "Temperature (°C)",
+     "dateColumn": "Date",
+     "empty": "No temperatures logged in this range yet."
+    },
+    "legend": {
+     "logged": "Logged temperature",
+     "coverline": "Coverline · average of first 6 days",
+     "window": "Fertile window",
+     "baseline": "Coverline · highest of the 6 readings before the rise",
+     "previous": "Previous cycles"
+    },
+    "stats": {
+     "preOvulationAvg": "Pre-ovulation average",
+     "firstSixDays": "First 6 days",
+     "loggedDays": "Days logged",
+     "loggedOfTotal": "{logged} / {total}",
+     "noGaps": "No gaps",
+     "gaps": "{count, plural, one {# day missed} other {# days missed}}"
+    },
+    "tip": {
+     "title": "Look for a 0.2–0.5 degree rise",
+     "body": "If your temperature stays above the coverline for three days in a row, ovulation most likely happened the day before the first high reading.",
+     "pastShifts": "In previous cycles this rise came on day {days}."
+    },
+    "remindTomorrow": "Remind me to log tomorrow's temperature",
+    "openInsights": "Predictions",
+    "tabsLabel": "Chart range",
+    "preOvulationHint": "Average of readings before the rise",
+    "explainer": {
+     "title": "What is basal body temperature?",
+     "p1": "Basal body temperature is your temperature at full rest. Take it every morning before getting out of bed, at the same time, with a two-decimal thermometer.",
+     "p2": "After ovulation, progesterone raises your temperature by about 0.2–0.5 degrees. The coverline is the highest of the 6 readings before that rise; three days in a row above it confirms the shift.",
+     "p3": "This chart shows ovulation after it happens and is not a method of contraception. Fever, short sleep or alcohol can shift the numbers."
+    },
+    "empty": {
+     "title": "Not enough temperatures yet",
+     "body": "Log your basal temperature on at least 3 mornings to see the chart.",
+     "cta": "Log today's temperature"
+    },
+    "reminderTitle": "Log basal temperature",
+    "reminderOff": "Daily reminder at 7:00 is on · turn off",
+    "reminderError": "Couldn't save the reminder. Please try again.",
+    "reminderSaving": "Saving…"
+   },
+   "insights": {
+    "title": "Predictions",
+    "basedOn": "{count, plural, one {Based on # logged cycle} other {Based on # logged cycles}}",
+    "noCycles": "No complete cycle logged yet",
+    "window": {
+     "title": "Fertile window",
+     "range": "Estimated {start} to {end}, ovulation around {ovulation}",
+     "rangeNoOvulation": "Estimated {start} to {end}",
+     "empty": "Not enough data yet to estimate your fertile window.",
+     "disclaimer": "This window is estimated to help you conceive — it is not a method of contraception.",
+     "legendWindow": "Fertile window",
+     "legendOvulation": "Estimated ovulation day"
+    },
+    "confidence": {
+     "low": "Low confidence",
+     "medium": "Medium confidence",
+     "high": "High confidence"
+    },
+    "evidence": {
+     "title": "Where does this estimate come from?",
+     "strength": {
+      "strong": "Strong",
+      "medium": "Medium",
+      "none": "None"
+     }
+    },
+    "history": {
+     "title": "Ovulation in previous cycles",
+     "day": "Day {day}",
+     "unknown": "Unknown"
+    },
+    "improve": "How can I make the estimate more accurate?",
+    "lowData": {
+     "title": "Not enough data yet",
+     "body": "Once you log two full cycles and signs like LH tests and BBT, your predictions will appear here."
+    },
+    "logCta": "Log today's signs",
+    "calendarLabel": "Fertile window calendar"
+   }
   },
   "home": {
    "title": "Welcome to Ritme",
@@ -438,6 +1138,41 @@
      "profile": "your profile",
      "default": "default values"
     }
+   },
+   "greeting": {
+    "morning": "Hi, good morning",
+    "noon": "Hi, good afternoon",
+    "evening": "Hi, good evening",
+    "night": "Hi, good night"
+   },
+   "header": {
+    "notifications": "Notifications",
+    "cycleSettings": "Cycle settings",
+    "themeDark": "Dark mode",
+    "themeLight": "Light mode"
+   },
+   "ring": {
+    "label": "Cycle ring: day {day, number} of {length, number}",
+    "labelEmpty": "Cycle ring",
+    "nextPeriod": "Next period",
+    "period": "Period",
+    "daysLeft": "{n, plural, one{day left} other{days left}}",
+    "today": "Today",
+    "periodDay": "Day {n, number}",
+    "usually": "Usually {n, plural, one{# day} other{# days}}",
+    "cycleDay": "Cycle day {n, number}",
+    "editPeriod": "Edit period"
+   },
+   "phaseCard": {
+    "title": {
+     "period": "Period · day {n, number}",
+     "follicular": "Follicular phase",
+     "fertile": "Fertile window",
+     "ovulation": "Ovulation",
+     "luteal": "Luteal phase"
+    },
+    "nearPeriod": "Period is near",
+    "more": "More about this phase"
    }
   },
   "log": {
@@ -1056,6 +1791,316 @@
     }
    }
   },
+  "pregnancy-v2": {
+   "common": {
+    "title": "Pregnancy",
+    "loading": "Loading your pregnancy…",
+    "loadError": "Couldn't load your pregnancy data. Please try again in a moment.",
+    "saveError": "Couldn't save. Please try again in a moment.",
+    "retry": "Retry",
+    "back": "Back",
+    "close": "Close",
+    "notActive": "Pregnancy mode is off.",
+    "weekOf": "Week {week, number} of {total, number}",
+    "age": "{days, plural, =0 {{weeks, plural, one {# week} other {# weeks}}} other {{weeks, plural, one {# week} other {# weeks}} and {days, plural, one {# day} other {# days}}}}",
+    "trimester": {
+     "1": "First trimester",
+     "2": "Second trimester",
+     "3": "Third trimester"
+    },
+    "trimesterWeek": "{trimester} · week {week, number} of {total, number}",
+    "dateRange": "{from} to {to}",
+    "confidence": {
+     "label": "Estimate accuracy: {level}",
+     "withRange": "Estimate accuracy: {level} · about ±{days, number} days",
+     "levels": {
+      "high": "high",
+      "medium": "medium",
+      "low": "low"
+     }
+    },
+    "dueDate": "Estimated due date",
+    "estimateNote": "This is an estimate, not a medical diagnosis."
+   },
+   "nav": {
+    "label": "Main menu",
+    "today": "Today",
+    "calendar": "Calendar",
+    "logToday": "Log today",
+    "pregnancy": "Pregnancy",
+    "profile": "Profile"
+   },
+   "setup": {
+    "welcomeTitle": "Welcome to pregnancy mode",
+    "welcomeBody": "Turn on pregnancy mode to follow your baby's growth and the changes in your body week by week, and see each week's care.",
+    "turnOn": "Turn on pregnancy mode",
+    "notNow": "Not now",
+    "progressLabel": "Setup step",
+    "step": "{step, number} of {total, number}",
+    "continue": "Continue",
+    "datingTitle": "Let's set up your pregnancy",
+    "datingBody": "Choose what to base the calculation on, so we can work out your pregnancy age and estimated due date.",
+    "sourceLabel": "Basis for your pregnancy age",
+    "sources": {
+     "lmp": "First day of last period",
+     "ultrasound": "Ultrasound",
+     "manual": "I'll enter the week"
+    },
+    "lmpPick": "First day of your last period",
+    "ultrasoundDate": "Ultrasound date",
+    "ultrasoundAge": "Pregnancy age at the ultrasound",
+    "manualAge": "Current pregnancy week",
+    "week": "Week",
+    "day": "Day",
+    "historyTitle": "Tell us your history, if you like",
+    "historyBody": "This part is optional and only helps match each week's care to your situation.",
+    "miscarriage": "History of miscarriage",
+    "highRisk": "History of high-risk pregnancy",
+    "conditions": "Existing conditions",
+    "conditionNone": "None",
+    "bloodGroup": "Blood group",
+    "rh": "Rh factor",
+    "choose": "Choose",
+    "rhPositive": "Positive",
+    "rhNegative": "Negative",
+    "skip": "Skip for now",
+    "resultLead": "Based on your current data, you are probably",
+    "resultTail": "pregnant",
+    "usualRange": "Usual birth range: {from} to {to}",
+    "done": "All set, let's go",
+    "changeBasis": "Change the basis",
+    "editBasis": "Edit the calculation basis",
+    "previewError": "Couldn't calculate that. Please check the dates.",
+    "sourceHints": {
+     "lmp": "If you know the date of your last period, this is the simplest option. The estimate range is usually about ±5 days.",
+     "ultrasound": "Based on an ultrasound result; early scans usually give a narrower estimate range.",
+     "manual": "If your doctor told you how many weeks you are. The estimate range depends on how precise that was."
+    },
+    "historyDisclaimer": "This information is kept only in your account to personalise your care, and never appears in links or automatic reports.",
+    "submitting": "Setting up…",
+    "submitError": "Setup didn't go through. Please try again in a bit.",
+    "fillRequired": "Please complete the calculation basis first.",
+    "calculating": "Calculating…"
+   },
+   "today": {
+    "alerts": "Alerts",
+    "newAlerts": "{count, plural, =0 {Alerts} one {Alerts, # new message} other {Alerts, # new messages}}",
+    "prevWeek": "Previous week",
+    "nextWeek": "Next week",
+    "backToToday": "Back to today",
+    "browseWeeks": "Browse weeks",
+    "daysToDue": "{days, plural, =0 {Your estimated due date is today} one {# day to go} other {# days to go}}",
+    "usualRange": "usual range {from} to {to}",
+    "percentDone": "{percent, number}% of the way there",
+    "trimesterFrom": "{name} · from {date}",
+    "trimesterShort": {
+     "1": "First trimester",
+     "2": "Second",
+     "3": "Third"
+    },
+    "actions": {
+     "log": "Log today's symptoms",
+     "checkup": "Weekly check-up",
+     "weeks": "Browse weeks",
+     "alerts": "Alerts"
+    },
+    "nextVisit": "Next visit · {days, plural, =0 {today} =1 {tomorrow} other {in # days}}",
+    "visitMeta": "{weekday} · {time} · week {week, number}",
+    "tipEyebrow": "Smart tip · this week",
+    "readMinutes": "{minutes, plural, one {# min} other {# min}}",
+    "readMore": "Read more about week {week, number}",
+    "careTitle": "This week's care",
+    "careDone": "{done, number} of {total, number}",
+    "careEmpty": "Nothing planned for this week.",
+    "disclaimerTitle": "Your due date is an estimate.",
+    "disclaimerBody": "Based on your current data, most babies are born between {from} and {to}. Adding your ultrasound result narrows this range.",
+    "setupCta": "Set up pregnancy mode"
+   },
+   "week": {
+    "bookmark": "Save to bookmarks",
+    "unbookmark": "Remove from bookmarks",
+    "stripLabel": "Pregnancy weeks",
+    "chipWeek": "Week",
+    "legend": {
+     "past": "Past",
+     "current": "This week",
+     "future": "Ahead"
+    },
+    "sizePill": "About the size of a {item}",
+    "stats": {
+     "cm": "cm",
+     "g": "g",
+     "bpm": "beats per minute"
+    },
+    "averagesNote": "These numbers are averages; every baby grows at their own pace.",
+    "tabsLabel": "This week's sections",
+    "tabs": {
+     "baby": "Baby",
+     "body": "Your body",
+     "tasks": "This week's to-dos"
+    },
+    "bodyTitle": "You might feel these this week",
+    "logToday": "Log today's symptoms",
+    "reviewedBy": "Reviewed by {name}",
+    "sources": "Sources",
+    "notReviewed": "Awaiting specialist review",
+    "empty": "This week's content isn't ready yet.",
+    "illustration": "Approximate size of your baby"
+   },
+   "log": {
+    "title": "Log today",
+    "titleOtherDay": "Log a day",
+    "sub": "{date} · week {week, number}",
+    "pickDay": "Pick another day",
+    "moodTitle": "How you feel overall",
+    "moodLabel": "Overall mood",
+    "moods": {
+     "5": "Good",
+     "4": "Fine",
+     "3": "Okay",
+     "2": "Low",
+     "1": "Hard"
+    },
+    "symptomsTitle": "Physical symptoms",
+    "symptomsCount": "{count, plural, one {# selected} other {# selected}}",
+    "symptoms": {
+     "nausea": "Nausea",
+     "vomiting": "Vomiting",
+     "fatigue": "Fatigue",
+     "headache": "Headache",
+     "back_pain": "Back pain",
+     "breast_pain": "Breast tenderness",
+     "heartburn": "Heartburn",
+     "constipation": "Constipation",
+     "spotting": "Spotting"
+    },
+    "severityLabel": "Severity",
+    "severities": {
+     "mild": "Mild",
+     "moderate": "Moderate",
+     "severe": "Severe"
+    },
+    "water": "Water",
+    "waterCount": "{count, plural, one {# glass today} other {# glasses today}}",
+    "waterLess": "One glass less",
+    "waterMore": "One glass more",
+    "weight": "Weight",
+    "weightLast": "Last entry: {value, number} · {date}",
+    "weightNone": "No weight logged yet",
+    "kg": "kg",
+    "note": "Note for your next visit",
+    "notePlaceholder": "e.g. I've had a mild headache since yesterday",
+    "spottingTitle": "Spotting logged.",
+    "spottingBody": "Light spotting in the first trimester happens to many people and on its own isn't a sign of a problem. If it gets heavier, comes with pain, or worries you, it's a good idea to talk to your doctor or midwife.",
+    "save": "Save today's log",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "offlineNote": "Saves even without internet and syncs later.",
+    "editNote": "You can edit any entry later.",
+    "alertsRaised": "{count, plural, one {This log created a new message} other {This log created # new messages}}",
+    "seeAlerts": "See alerts",
+    "queued": "Saved offline — it will be sent when you're back online",
+    "pending": "{count, plural, one {# log waiting to sync} other {# logs waiting to sync}}",
+    "otherLogs": "Other logs",
+    "weeklyCheckup": "Weekly checkup",
+    "movement": "Baby's movements"
+   },
+   "calendar": {
+    "title": "Calendar",
+    "newVisit": "New visit",
+    "newVisitLabel": "Add a visit or test",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "weekRange": "Pregnancy weeks {from, number} to {to, number}",
+    "legend": {
+     "today": "Today",
+     "visit": "Visit or test",
+     "weekStart": "Start of a pregnancy week"
+    },
+    "weekStart": "Week {week, number} starts",
+    "dayEmpty": "Nothing logged for this day. You can add a visit or test.",
+    "nextVisit": "Next visit · {days, plural, =0 {today} =1 {tomorrow} other {in # days}}",
+    "visitMeta": "{weekday} · {time} · {week}",
+    "stagesLabel": "Visit stage",
+    "stages": {
+     "booked": "Booked",
+     "done": "Done",
+     "result": "Result saved"
+    },
+    "prep": "Preparation:",
+    "reminder": "Reminder: {when}",
+    "directions": "Directions",
+    "resultNote": "Note the result",
+    "carePlanTitle": "Pregnancy care plan",
+    "weekWindow": "Weeks {from, number} to {to, number}",
+    "aroundDate": "around {date}",
+    "states": {
+     "done": "Done",
+     "booked": "Booked",
+     "to_book": "Book"
+    },
+    "book": "Book",
+    "report": "Symptom report for your doctor (PDF)",
+    "saveResult": "Save result",
+    "pdf": {
+     "title": "Pregnancy symptom report for your doctor",
+     "subtitle": "{from} to {to}",
+     "age": "Gestational age: {age}",
+     "due": "Estimated due date: {date}",
+     "daysTitle": "Daily mood and symptoms",
+     "weightsTitle": "Weight",
+     "none": "Nothing logged in this period.",
+     "note": "Note for the visit: {note}",
+     "water": "{count, plural, one {# glass of water} other {# glasses of water}}",
+     "kg": "{value, number} kg",
+     "disclaimer": "This report is built from the user's own entries in Ritme and is not a medical diagnosis.",
+     "footer": "Ritme · page {page} of {pages}",
+     "filename": "ritme-pregnancy-report.pdf",
+     "working": "Building PDF…",
+     "error": "Couldn't build the report. Try again."
+    }
+   },
+   "alerts": {
+    "title": "Alerts & messages",
+    "window": "Based on your logs from the last {days, number} days",
+    "settings": "Reminder settings",
+    "empty": "No messages in the last few days.",
+    "levels": {
+     "info": "Info",
+     "suggestion": "Suggestion",
+     "follow_up": "Worth following up",
+     "urgent": "Follow up soon"
+    },
+    "levelsShort": {
+     "info": "Info",
+     "suggestion": "Suggestion",
+     "follow_up": "Worth following up",
+     "urgent": "Follow up soon"
+    },
+    "whatWeSaw": "What we saw",
+    "howSure": "How sure we are",
+    "actions": {
+     "add_to_visit_note": "Add to visit note",
+     "ack": "Got it, thanks",
+     "log_weight": "Log weight",
+     "log_symptoms": "Log symptoms",
+     "open_week": "Open week",
+     "call": "Call"
+    },
+    "addedToNote": "Added to your visit note",
+    "call": "Call",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "legendTitle": "Ritme's four message levels",
+    "legend": {
+     "info": "Something ordinary; nothing to do.",
+     "suggestion": "A small step that makes the analysis more complete.",
+     "follow_up": "A pattern that has repeated and is worth raising with a specialist.",
+     "urgent": "Something not to ignore; comes with a way to get in touch."
+    },
+    "disclaimer": "None of these messages is a medical diagnosis. You can reduce or turn off reminders in settings."
+   }
+  },
   "profile": {
    "title": "Profile",
    "guest": "Ritme user",
@@ -1074,7 +2119,7 @@
     "reminders": "Reminders",
     "notifications": "Notifications",
     "language": "App language",
-    "appearance": "Appearance & theme",
+    "darkMode": "Dark mode",
     "privacyPolicy": "Privacy policy",
     "exportData": "Export my data",
     "deleteAccount": "Delete account",
@@ -1097,17 +2142,11 @@
     "notSetUp": "You haven't completed your health info yet"
    },
    "language": {
-    "fa": "فارسی",
-    "en": "English"
+    "hint": "Pick the app language. Anything not translated yet is shown in the default language."
    },
    "logout": "Log out",
    "loggingOut": "Logging out…",
    "version": "Version {version}",
-   "appearance": {
-    "system": "Auto",
-    "light": "Light",
-    "dark": "Dark"
-   },
    "exporting": "Preparing export…",
    "mode": {
     "switchToPregnancy": "Switch to pregnancy mode",
@@ -1115,7 +2154,8 @@
     "switchToCycle": "Back to cycle mode",
     "switching": "Switching…",
     "cycleActive": "Cycle mode is active",
-    "pregnancyActive": "Pregnancy mode is active"
+    "pregnancyActive": "Pregnancy mode is active",
+    "confirmSwitchToCycle": "Turn off pregnancy mode and go back to cycle tracking?"
    }
   },
   "profile-edit": {
@@ -1260,6 +2300,9 @@
    "installAction": "Install app",
    "iosStep1": "1. Tap the Share button in Safari's bottom bar",
    "iosStep2": "2. Choose \"Add to Home Screen\"",
+   "iosSignInNote": "The installed app asks you to sign in once; after that you stay signed in.",
+   "inAppTitle": "Open Ritme in your browser",
+   "inAppBody": "This page is open inside another app's browser. Use its ⋯ menu to open it in Safari or Chrome, so you can install Ritme and stay signed in.",
    "dismiss": "Dismiss"
   },
   "reminders": {

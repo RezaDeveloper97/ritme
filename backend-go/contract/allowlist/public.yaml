@@ -1,0 +1,9 @@
+group: public
+entries:
+  # D-23 (task T-M2-31): the Go translation seed (resources/translations) is resynced with
+  # frontend/messages; Laravel's backend/resources/translations (frozen) still has the older seed,
+  # so every message bundle differs inside data.messages (new namespaces, drifted keys).
+  - case: "languages_messages_*"
+    where: data.messages.**
+    deviation: D-23
+    reason: Go seed = frontend/messages (care, checkups, fertility, pregnancy-v2 added; home, profile, pwa, articles updated); Laravel golden has the pre-T-M2-31 seed

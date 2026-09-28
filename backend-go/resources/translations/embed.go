@@ -1,8 +1,11 @@
 // Package translations embeds the seed UI-string bundles the frontend renders from
-// (<code>/<namespace>.json). They are a verbatim copy of backend/resources/translations
-// (kept in sync with frontend/messages by `php artisan translations:import`); refresh with
+// (<code>/<namespace>.json). They are a verbatim copy of frontend/messages/<code>/
+// (frontend/CLAUDE.md §6.4; TestSeedMatchesFrontendMessages fails on drift); refresh with
 //
-//	rm -rf backend-go/resources/translations/{fa,en} && cp -R backend/resources/translations/{fa,en} backend-go/resources/translations/
+//	cp ../frontend/messages/<code>/*.json resources/translations/<code>/
+//
+// and re-record internal/i18n/testdata/messages_*.json. Since T-M2-31 this seed is ahead of
+// Laravel's backend/resources/translations (deviation D-23).
 //
 // internal/i18n.TranslationStore layers the live, admin-edited files from
 // STORAGE_PATH/app/translations/<code>/ on top of this seed.

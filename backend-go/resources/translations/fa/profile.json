@@ -16,7 +16,7 @@
     "reminders": "یادآورها",
     "notifications": "اعلان‌ها",
     "language": "زبان اپ",
-    "appearance": "ظاهر و پوسته",
+    "darkMode": "حالت شب",
     "privacyPolicy": "حریم خصوصی",
     "exportData": "گرفتن خروجی داده‌ها",
     "deleteAccount": "حذف حساب",
@@ -39,17 +39,11 @@
     "notSetUp": "هنوز اطلاعات سلامتت رو کامل نکردی"
   },
   "language": {
-    "fa": "فارسی",
-    "en": "English"
+    "hint": "زبان اپ را انتخاب کنید. متن‌هایی که هنوز ترجمه نشده‌اند به زبان پیش‌فرض نمایش داده می‌شوند."
   },
   "logout": "خروج از حساب",
   "loggingOut": "در حال خروج…",
   "version": "نسخه {version}",
-  "appearance": {
-    "system": "خودکار",
-    "light": "روشن",
-    "dark": "تیره"
-  },
   "exporting": "داریم خروجی رو آماده می‌کنیم…",
   "mode": {
     "switchToPregnancy": "برو به حالت بارداری",
@@ -57,6 +51,7 @@
     "switchToCycle": "برگرد به حالت چرخه",
     "switching": "در حال تغییر…",
     "cycleActive": "حالت چرخه روشنه",
-    "pregnancyActive": "حالت بارداری روشنه"
+    "pregnancyActive": "حالت بارداری روشنه",
+    "confirmSwitchToCycle": "حالت بارداری خاموش بشه و به حالت چرخه برگردی؟"
   }
 }

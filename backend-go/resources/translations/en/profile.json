@@ -16,7 +16,7 @@
     "reminders": "Reminders",
     "notifications": "Notifications",
     "language": "App language",
-    "appearance": "Appearance & theme",
+    "darkMode": "Dark mode",
     "privacyPolicy": "Privacy policy",
     "exportData": "Export my data",
     "deleteAccount": "Delete account",
@@ -39,17 +39,11 @@
     "notSetUp": "You haven't completed your health info yet"
   },
   "language": {
-    "fa": "فارسی",
-    "en": "English"
+    "hint": "Pick the app language. Anything not translated yet is shown in the default language."
   },
   "logout": "Log out",
   "loggingOut": "Logging out…",
   "version": "Version {version}",
-  "appearance": {
-    "system": "Auto",
-    "light": "Light",
-    "dark": "Dark"
-  },
   "exporting": "Preparing export…",
   "mode": {
     "switchToPregnancy": "Switch to pregnancy mode",
@@ -57,6 +51,7 @@
     "switchToCycle": "Back to cycle mode",
     "switching": "Switching…",
     "cycleActive": "Cycle mode is active",
-    "pregnancyActive": "Pregnancy mode is active"
+    "pregnancyActive": "Pregnancy mode is active",
+    "confirmSwitchToCycle": "Turn off pregnancy mode and go back to cycle tracking?"
   }
 }

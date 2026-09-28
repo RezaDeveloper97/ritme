@@ -2,7 +2,12 @@
 
 import { useLocale, useTranslations } from 'next-intl';
 
-import { ArticleCard, useArticle } from '@/entities/article';
+import {
+  ArticleCard,
+  articleCategoryLabel,
+  type CategoryTranslator,
+  useArticle,
+} from '@/entities/article';
 import { getApiErrorStatus } from '@/shared/api';
 import type { Locale } from '@/shared/i18n';
 import { formatLongDate, fromApiDate } from '@/shared/lib/date';
@@ -26,6 +31,9 @@ export function ArticleSheet({ arg }: SheetContentProps) {
   const t = useTranslations('articles');
   const locale = useLocale() as Locale;
   const mounted = useMounted();
+  // `categories.<slug>` keys are data-driven, so the literal-key typing can't see them.
+  const categoryLabel = (name: string): string =>
+    articleCategoryLabel(name, t as unknown as CategoryTranslator);
 
   const query = useArticle(arg ?? '');
   const article = query.data?.article;
@@ -80,7 +88,7 @@ export function ArticleSheet({ arg }: SheetContentProps) {
       )}
 
       <div className="art-head">
-        {article.category && <span className="art-tag">{article.category}</span>}
+        {article.category && <span className="art-tag">{categoryLabel(article.category)}</span>}
         <h3 className="art-title">{article.title}</h3>
 
         <div className="art-meta">
@@ -134,6 +142,7 @@ export function ArticleSheet({ arg }: SheetContentProps) {
                       ? null
                       : t('min', { n: item.readTimeMinutes })
                   }
+                  categoryLabel={item.category === null ? null : categoryLabel(item.category)}
                   compact
                 />
               ))}

@@ -196,5 +196,40 @@
       "profile": "your profile",
       "default": "default values"
     }
+  },
+  "greeting": {
+    "morning": "Hi, good morning",
+    "noon": "Hi, good afternoon",
+    "evening": "Hi, good evening",
+    "night": "Hi, good night"
+  },
+  "header": {
+    "notifications": "Notifications",
+    "cycleSettings": "Cycle settings",
+    "themeDark": "Dark mode",
+    "themeLight": "Light mode"
+  },
+  "ring": {
+    "label": "Cycle ring: day {day, number} of {length, number}",
+    "labelEmpty": "Cycle ring",
+    "nextPeriod": "Next period",
+    "period": "Period",
+    "daysLeft": "{n, plural, one{day left} other{days left}}",
+    "today": "Today",
+    "periodDay": "Day {n, number}",
+    "usually": "Usually {n, plural, one{# day} other{# days}}",
+    "cycleDay": "Cycle day {n, number}",
+    "editPeriod": "Edit period"
+  },
+  "phaseCard": {
+    "title": {
+      "period": "Period · day {n, number}",
+      "follicular": "Follicular phase",
+      "fertile": "Fertile window",
+      "ovulation": "Ovulation",
+      "luteal": "Luteal phase"
+    },
+    "nearPeriod": "Period is near",
+    "more": "More about this phase"
   }
 }

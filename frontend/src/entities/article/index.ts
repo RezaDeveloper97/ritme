@@ -9,6 +9,7 @@ export {
   fetchCycleArticles,
 } from './api/queries';
 export { ArticleCard } from './ui/ArticleCard';
+export { articleCategoryLabel, type CategoryTranslator } from './model/category';
 export type {
   Article,
   ArticleDetail,
