@@ -390,3 +390,10 @@ birth date, weight, height, intention and pregnancy basis. `useLogout` only clea
 (`frontend/src/features/auth/api/mutations.ts:126-129`), and the store is persisted in
 `frontend/src/entities/user/model/store.ts:156`. The next login resets it, so it did not leak into the next account in
 this run. On a shared device, though, it is personal data that stays after logout.
+
+**Fixed locally in T-M7-17 (not yet on stage):** every session end (logout, account deletion, a session-ending 401) now
+wipes `ritme-onboarding` and drops the offline outbox (`shared/session/cleanup.ts`); 9a — «رزرو» on a care-plan row now
+sends `topic` (scan → سونوگرافی, test → آزمایش, vaccine → واکسن, visit → ویزیت دوره‌ای) and the appointment form
+prefills it; 9h — a `/messages/daily` 400 is "no message yet" and the cycle home shows a
+«تاریخ آخرین پریودت رو ثبت کن» state; 9i — fa separators beside digits are «،» (the PDF day line included); the Log
+weight field shows «۶۲٫۵».

@@ -8,7 +8,7 @@
   "estimated": "تخمینی",
   "notLogged": "ثبت نشده",
   "cycleDay": "روز {day}",
-  "dateCycleDay": "{date} · روز {day}",
+  "dateCycleDay": "{date}، روز {day}",
   "celsius": "°C",
   "degrees": "{value}°",
   "chance": {
@@ -60,7 +60,7 @@
   },
   "log": {
     "title": "ثبت روز",
-    "subtitle": "{date} · روز {day}",
+    "subtitle": "{date}، روز {day}",
     "lh": {
       "title": "تست تخمک‌گذاری (LH)",
       "options": {

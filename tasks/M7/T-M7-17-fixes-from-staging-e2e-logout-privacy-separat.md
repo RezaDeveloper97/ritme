@@ -3,12 +3,12 @@ id: T-M7-17
 title: Fixes from staging e2e — logout privacy, separators, NT prefill, daily message after mode switch
 milestone: M7
 type: frontend
-status: todo
+status: done
 depends_on: [T-M7-15,T-M4-10]
 parallel_group: M7-E
-touches: [frontend/src/features/auth,frontend/src/entities/user,frontend/src/shared/session,frontend/src/screens/pregnancy-calendar,frontend/src/screens/pregnancy-log,frontend/src/screens/home,frontend/src/entities/message,frontend/src/widgets/checkups-card,frontend/messages,backend-go/resources/translations,docs/pregnancy-v2,docs/checkups]
+touches: [frontend/src/app/[locale]/reminders/appointment/new/page.tsx, frontend/src/screens/reminder-appointment-form, backend-go/internal/i18n/testdata, backend-go/contract/allowlist, frontend/src/features/auth,frontend/src/entities/user,frontend/src/shared/session,frontend/src/screens/pregnancy-calendar,frontend/src/screens/pregnancy-log,frontend/src/screens/home,frontend/src/entities/message,frontend/src/widgets/checkups-card,frontend/messages,backend-go/resources/translations,docs/pregnancy-v2,docs/checkups]
 skills: [verify-all]
-verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && cd ../backend-go && go test ./resources/...
+verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && cd ../backend-go && go test ./... && make contract ROUTES=all
 ---
 
 # T-M7-17 — Fixes from staging e2e — logout privacy, separators, NT prefill, daily message after mode switch

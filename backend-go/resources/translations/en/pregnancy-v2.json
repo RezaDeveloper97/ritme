@@ -1,6 +1,8 @@
 {
   "common": {
     "title": "Pregnancy",
+    "separator": " · ",
+    "groupSeparator": "; ",
     "loading": "Loading your pregnancy…",
     "loadError": "Couldn't load your pregnancy data. Please try again in a moment.",
     "saveError": "Couldn't save. Please try again in a moment.",

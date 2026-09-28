@@ -5,6 +5,7 @@ import { persist } from 'zustand/middleware';
 
 import type { Locale } from '@/shared/i18n';
 import { calendarSystem, convertParts, type DateParts } from '@/shared/lib/date';
+import { onSessionEnd } from '@/shared/session';
 
 import type {
   ChronicCondition,
@@ -134,9 +135,12 @@ export const useOnboardingStore = create<OnboardingStore>()(
       setCycleDuration: (cycleDuration) => set({ cycleDuration }),
       setLastPeriod: (lastPeriod) => set({ lastPeriod }),
 
-      syncCalendar: (next) =>
+      syncCalendar: (next) => {
+        // Return before `set`: persist writes the key on every set, even an
+        // empty one, and this runs on every page load — it would re-create
+        // the key a logout just removed.
+        if (calendarSystem(get().locale) === calendarSystem(next)) return;
         set((s) => {
-          if (calendarSystem(s.locale) === calendarSystem(next)) return {};
           const move = (parts: DateParts | null) =>
             parts ? convertParts(parts, s.locale, next) : null;
           const birth = convertParts({ year: s.birth.y, month: s.birth.m, day: s.birth.d }, s.locale, next);
@@ -150,7 +154,8 @@ export const useOnboardingStore = create<OnboardingStore>()(
               ultrasoundDate: move(s.pregnancyBasis.ultrasoundDate),
             },
           };
-        }),
+        });
+      },
     }),
     {
       name: 'ritme-onboarding',
@@ -180,3 +185,20 @@ export const useOnboardingStore = create<OnboardingStore>()(
 export function resetOnboardingFor(userId: number): boolean {
   return useOnboardingStore.getState().claimFor(userId);
 }
+
+/**
+ * Forget the answers and their owner, in memory and on the device. The store
+ * holds name, mobile, birth date, weight, height, intention and pregnancy
+ * dates — personal data that must not outlive the session on a shared phone.
+ * `clearStorage` runs after the reset because persist re-writes the key on
+ * every `setState`.
+ */
+export function wipeOnboarding(): void {
+  useOnboardingStore.setState({ userId: null, ...emptyAnswers });
+  useOnboardingStore.persist.clearStorage();
+}
+
+// Every session end (logout, account deletion, a session-ending 401) runs
+// this. The module is loaded app-wide by `OnboardingCalendarSync` in the root
+// layout, so the registration is in place before any session can end.
+onSessionEnd(wipeOnboarding);

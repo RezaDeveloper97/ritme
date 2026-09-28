@@ -1161,7 +1161,9 @@
     "periodDay": "Day {n, number}",
     "usually": "Usually {n, plural, one{# day} other{# days}}",
     "cycleDay": "Cycle day {n, number}",
-    "editPeriod": "Edit period"
+    "editPeriod": "Edit period",
+    "noData": "No period logged yet",
+    "logPeriod": "Log period"
    },
    "phaseCard": {
     "title": {
@@ -1172,7 +1174,12 @@
      "luteal": "Luteal phase"
     },
     "nearPeriod": "Period is near",
-    "more": "More about this phase"
+    "more": "More about this phase",
+    "noData": {
+     "title": "Add your last period",
+     "text": "Once you add when your last period started, your cycle forecast and daily message will show up here.",
+     "cta": "Add last period"
+    }
    }
   },
   "log": {
@@ -1794,6 +1801,8 @@
   "pregnancy-v2": {
    "common": {
     "title": "Pregnancy",
+    "separator": " · ",
+    "groupSeparator": "; ",
     "loading": "Loading your pregnancy…",
     "loadError": "Couldn't load your pregnancy data. Please try again in a moment.",
     "saveError": "Couldn't save. Please try again in a moment.",

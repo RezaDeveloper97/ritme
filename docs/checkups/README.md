@@ -343,6 +343,9 @@ plus `stage-pdf-summary-page1-light.png` and the admin set (`stage-admin-login`,
   `frontend/src/widgets/checkups-card/ui/CheckupsCard.tsx:133-136`. The same `·` is in `:63` (`lastNext`), `:106` (`nextDueMeta`, e.g.
   «هر سال · ۱۴ روز قبل…»), `:143` (PDF subtitle), `:149` (PDF footer) and `:157` (`dayWhen`). Suggestion: use «،» or «–» in fa,
   or add more spacing.
+  **Fixed locally in T-M7-17 (not yet on stage):** the fa separator is now «، » (`separator`, `lastNext`, `nextDueMeta`,
+  the PDF subtitle and `dayWhen`), e.g. «۱ مورد به‌روز، ۵ موعدش رسیده». The PDF footer «ریتمی · صفحه…» keeps `·` because
+  no digit sits next to it.
 - The minor items 5(a)–(d) from the local run are unchanged: the «پیوست» chip sits outside the history card, the detail hero always shows a
   `shield` icon, admin-web mixes Latin and Persian digits on the fa UI («هر 12 ماه», «ثبت‌های 30 روز اخیر» next to stats «۵»), and
   the self-exam shows «موعدش رسیده» with «بعدی: ۱۹ روز دیگر».

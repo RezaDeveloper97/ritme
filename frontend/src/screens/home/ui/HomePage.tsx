@@ -58,6 +58,8 @@ import { FertilityTiles } from '@/widgets/fertility-tiles';
 import { TodayChallengeCard } from '@/widgets/today-challenge';
 import { TodayRemindersCard } from '@/widgets/today-reminders';
 
+import { needsPeriodData } from '../model/cycle-data';
+
 const FA = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
 const faNum = (n: string | number) => String(n).replace(/[0-9]/g, d => FA[Number(d)]);
 const localizeNum = (n: string | number, loc: Locale) => (loc === 'fa' ? faNum(n) : String(n));
@@ -299,7 +301,7 @@ function CycleRing({
 
 // ── Phase card ─────────────────────────────────────────────────
 function PhaseCard({
-  t, title, dotKind, fertilityLabel, description, showMore, loading,
+  t, title, dotKind, fertilityLabel, description, showMore, loading, action,
 }: {
   t: T;
   title: string;
@@ -310,12 +312,15 @@ function PhaseCard({
   /** The phase sheet reads today's live phase, so it's offered for today only. */
   showMore: boolean;
   loading: boolean;
+  /** A call to action under the text (the empty state's «ثبت آخرین پریود»). */
+  action?: { label: string; onClick: () => void };
 }) {
   return (
     <section className={clsx('home-phase', loading && 'is-loading')}>
       <div className="home-phase-top">
         <div className="home-phase-name">
-          <span className={clsx('home-phase-dot', dotKind && `is-${dotKind}`)} />
+          {/* No phase to mark in the empty state — a brand dot would read as one. */}
+          {!action && <span className={clsx('home-phase-dot', dotKind && `is-${dotKind}`)} />}
           <b>{title}</b>
         </div>
         {!loading && fertilityLabel && (
@@ -330,6 +335,12 @@ function PhaseCard({
         // The sheet reads the phase from live cycle data, never from the URL (§11).
         <button type="button" className="home-phase-more" onClick={() => openSheet('phase')}>
           {t('phaseCard.more')}
+          <Icon name="chevronLeft" size={15} strokeWidth={2.2} className="home-phase-more-chev" />
+        </button>
+      )}
+      {action && (
+        <button type="button" className="home-phase-more" onClick={action.onClick}>
+          {action.label}
           <Icon name="chevronLeft" size={15} strokeWidth={2.2} className="home-phase-more-chev" />
         </button>
       )}
@@ -703,7 +714,7 @@ export function HomePage() {
   const windowRange = windowSlot ? range(windowSlot.start, windowSlot.end) : null;
   const pmsRange = pmsSlot ? range(pmsSlot.start, pmsSlot.end) : null;
 
-  const message: DailyMessage | undefined = daily;
+  const message: DailyMessage | null = daily ?? null;
   const dos = message?.primary.dos ?? [];
 
   // ── Selected-day info for the ring and the phase card ──
@@ -763,6 +774,11 @@ export function HomePage() {
   const booting =
     (todayQuery.isPending && todayQuery.fetchStatus === 'fetching') || !bannersSettled;
   const loadingInfo = infoLoading || booting;
+  // No period on record (e.g. right after leaving pregnancy mode): ask for the
+  // last period instead of a ring and a phase card full of «—». The daily
+  // message is null in this state (the API's 400, see entities/message).
+  const noPeriodData =
+    !booting && todayQuery.isSuccess && needsPeriodData(todayData?.cycleView ?? null, calc);
 
   // ── The ring: the selected day's own cycle, day 1 at the top ──
   const periodLength =
@@ -792,7 +808,11 @@ export function HomePage() {
   const inPeriod = infoPred?.phase === 'period';
   const daysLeft = infoDaysUntilNextPeriod;
   const dash = t('unavailable');
-  const ringOverline = inPeriod && !loadingInfo ? t('ring.period') : t('ring.nextPeriod');
+  const ringOverline = noPeriodData
+    ? t('ring.noData')
+    : inPeriod && !loadingInfo
+      ? t('ring.period')
+      : t('ring.nextPeriod');
   const ringNumber = loadingInfo
     ? dash
     : inPeriod && infoCycleDay != null
@@ -857,28 +877,45 @@ export function HomePage() {
           <section className={clsx('home-ring', loadingInfo && 'is-loading')}>
             <div className="home-ring-glow" aria-hidden />
             <CycleRing days={ringDays} nowIndex={ringNowIndex} label={ringLabel}>
-              <span className="home-ring-over">{ringOverline}</span>
-              <div className="home-ring-big">
-                <span className="home-ring-num">{ringNumber}</span>
-                {ringUnit && <span className="home-ring-unit">{ringUnit}</span>}
-              </div>
-              {ringSub && <span className="home-ring-sub">{ringSub}</span>}
+              {/* `--period` red means menstruation (§10.2); "nothing logged yet"
+                  is not a period, so the empty state takes the neutral caption. */}
+              <span className={noPeriodData ? 'home-ring-sub' : 'home-ring-over'}>{ringOverline}</span>
+              {!noPeriodData && (
+                <div className="home-ring-big">
+                  <span className="home-ring-num">{ringNumber}</span>
+                  {ringUnit && <span className="home-ring-unit">{ringUnit}</span>}
+                </div>
+              )}
+              {ringSub && !noPeriodData && <span className="home-ring-sub">{ringSub}</span>}
               {/* The date editor rises over the home screen itself (§4.1). */}
               <button type="button" className="home-ring-edit" onClick={() => setDateEditorOpen(true)}>
                 <Icon name="pen" size={16} strokeWidth={2.2} />
-                {t('ring.editPeriod')}
+                {noPeriodData ? t('ring.logPeriod') : t('ring.editPeriod')}
               </button>
             </CycleRing>
           </section>
-          <PhaseCard
-            t={t}
-            title={phaseTitle}
-            dotKind={phaseDot}
-            fertilityLabel={infoFertilityLabel}
-            description={infoPhaseDesc}
-            showMore={isToday && Boolean(todayData?.cycleView?.subphase)}
-            loading={loadingInfo}
-          />
+          {noPeriodData ? (
+            <PhaseCard
+              t={t}
+              title={t('phaseCard.noData.title')}
+              dotKind={null}
+              fertilityLabel={null}
+              description={t('phaseCard.noData.text')}
+              showMore={false}
+              loading={false}
+              action={{ label: t('phaseCard.noData.cta'), onClick: () => setDateEditorOpen(true) }}
+            />
+          ) : (
+            <PhaseCard
+              t={t}
+              title={phaseTitle}
+              dotKind={phaseDot}
+              fertilityLabel={infoFertilityLabel}
+              description={infoPhaseDesc}
+              showMore={isToday && Boolean(todayData?.cycleView?.subphase)}
+              loading={loadingInfo}
+            />
+          )}
         </div>
         {/* TTC quick tiles (M5) — below the phase/chance block, only while trying
             to conceive; `pregnant` (pregnancy mode) never matches. */}
@@ -887,60 +924,62 @@ export function HomePage() {
           <>
             {/* Admin-managed promo slot — renders nothing until a banner is active */}
             <BannerSlideshow position="home_top" />
-            <PhaseRows
-              t={t}
-              pred={pred}
-              ovulationDay={calc?.estimatedOvulationDay ?? null}
-              windowRange={windowRange}
-              ovulationDate={ovulationDate}
-              pmsRange={pmsRange}
-              nextPeriodDate={nextPeriodDate}
-              daysTo={{
-                pms: pmsSlot,
-                nextPeriod: nextPeriodSlot,
-                window: windowSlot,
-                ovulation: ovulationSlot,
-              }}
-              /* The §12 value layers — what the profile says, what recent cycles
-                 suggest, and which layer today's prediction actually used. They
-                 took over the slot the two cycle facts used to hold. */
-              footer={todayData?.cycleView && (
-                <CycleValuesCard
-                  title={t('values.title')}
-                  loggedLabel={t('values.logged')}
-                  loggedValue={
-                    todayData.cycleView.profileValues.cycleLength != null
-                      ? t('days', { n: todayData.cycleView.profileValues.cycleLength })
-                      : t('unavailable')
-                  }
-                  suggestion={
-                    todayData.cycleView.calculatedValues.cycleLength != null &&
-                    todayData.cycleView.profileValues.cycleLength != null &&
-                    todayData.cycleView.calculatedValues.cycleLength !==
-                      todayData.cycleView.profileValues.cycleLength
-                      ? {
-                          text: t('values.suggestion', {
-                            n: todayData.cycleView.calculatedValues.cycleLength,
-                          }),
-                          ctaLabel: t('values.syncCta', {
-                            n: todayData.cycleView.calculatedValues.cycleLength,
-                          }),
-                          onSync: () => setCycleSheetOpen(true),
-                        }
-                      : null
-                  }
-                  basedOnText={t('values.basedOn', {
-                    source: t(
-                      todayData.cycleView.effectiveValues.source === 'recent_valid_cycles'
-                        ? 'values.source.recent_valid_cycles'
-                        : todayData.cycleView.effectiveValues.source === 'profile'
-                          ? 'values.source.profile'
-                          : 'values.source.default',
-                    ),
-                  })}
-                />
-              )}
-            />
+            {!noPeriodData && (
+              <PhaseRows
+                t={t}
+                pred={pred}
+                ovulationDay={calc?.estimatedOvulationDay ?? null}
+                windowRange={windowRange}
+                ovulationDate={ovulationDate}
+                pmsRange={pmsRange}
+                nextPeriodDate={nextPeriodDate}
+                daysTo={{
+                  pms: pmsSlot,
+                  nextPeriod: nextPeriodSlot,
+                  window: windowSlot,
+                  ovulation: ovulationSlot,
+                }}
+                /* The §12 value layers — what the profile says, what recent cycles
+                   suggest, and which layer today's prediction actually used. They
+                   took over the slot the two cycle facts used to hold. */
+                footer={todayData?.cycleView && (
+                  <CycleValuesCard
+                    title={t('values.title')}
+                    loggedLabel={t('values.logged')}
+                    loggedValue={
+                      todayData.cycleView.profileValues.cycleLength != null
+                        ? t('days', { n: todayData.cycleView.profileValues.cycleLength })
+                        : t('unavailable')
+                    }
+                    suggestion={
+                      todayData.cycleView.calculatedValues.cycleLength != null &&
+                      todayData.cycleView.profileValues.cycleLength != null &&
+                      todayData.cycleView.calculatedValues.cycleLength !==
+                        todayData.cycleView.profileValues.cycleLength
+                        ? {
+                            text: t('values.suggestion', {
+                              n: todayData.cycleView.calculatedValues.cycleLength,
+                            }),
+                            ctaLabel: t('values.syncCta', {
+                              n: todayData.cycleView.calculatedValues.cycleLength,
+                            }),
+                            onSync: () => setCycleSheetOpen(true),
+                          }
+                        : null
+                    }
+                    basedOnText={t('values.basedOn', {
+                      source: t(
+                        todayData.cycleView.effectiveValues.source === 'recent_valid_cycles'
+                          ? 'values.source.recent_valid_cycles'
+                          : todayData.cycleView.effectiveValues.source === 'profile'
+                            ? 'values.source.profile'
+                            : 'values.source.default',
+                      ),
+                    })}
+                  />
+                )}
+              />
+            )}
             {/* «چکاپ‌های دوره‌ای» (M4, /checkups/home) — after the cycle timeline. */}
             <CheckupsCard />
             <Recommendations t={t} tips={calc?.dailyTips ?? []} dos={dos} />

@@ -11,6 +11,7 @@ export {
   getOnboardingPending,
   setOnboardingPending,
 } from './onboarding';
+export { onSessionEnd } from './cleanup';
 export { hasSeenIntro, markIntroSeen } from './intro';
 export { tokenExpiresAt } from './jwt';
 export { requestPersistentStorage } from './persist';

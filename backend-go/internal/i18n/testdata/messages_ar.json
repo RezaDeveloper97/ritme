@@ -192,8 +192,8 @@
     "add": "افزودن یادآور",
     "appointmentTitle": "{title} · {with}",
     "remindBefore": "{before} یادآوری",
-    "nextAppointmentMeta": "{when} · ساعت {time} · {place}",
-    "nextAppointmentMetaNoPlace": "{when} · ساعت {time}",
+    "nextAppointmentMeta": "{when}، ساعت {time}، {place}",
+    "nextAppointmentMetaNoPlace": "{when}، ساعت {time}",
     "empty": "امروز یادآوری نداری."
    },
    "tabs": {
@@ -218,7 +218,7 @@
    "medications": {
     "title": "داروها و مکمل‌ها",
     "empty": "هنوز دارو یا مکملی اضافه نکردی.",
-    "rowMeta": "{schedule} · {time} · {amount} {form}",
+    "rowMeta": "{schedule}، {time}، {amount} {form}",
     "everyDay": "هر روز",
     "everyOtherDay": "یک روز در میان",
     "daysPerWeek": "{count} روز در هفته",
@@ -232,8 +232,8 @@
    "appointments": {
     "title": "نوبت‌ها و مشاوره‌ها",
     "empty": "نوبتی ثبت نکردی.",
-    "rowMeta": "{time} · {kind} · {place}",
-    "rowMetaNoPlace": "{time} · {kind}",
+    "rowMeta": "{time}، {kind}، {place}",
+    "rowMetaNoPlace": "{time}، {kind}",
     "kindShort": {
      "in_person": "حضوری",
      "phone": "تلفنی",
@@ -300,7 +300,7 @@
     "decrease": "کم",
     "increase": "زیاد",
     "startsOn": "شروع از",
-    "todayWithDate": "امروز · {date}",
+    "todayWithDate": "امروز، {date}",
     "pickDate": "انتخاب تاریخ",
     "duration": "مدت مصرف",
     "durations": {
@@ -316,7 +316,7 @@
     "notesPlaceholder": "مثلاً بعد از غذا",
     "save": "ذخیره یادآور",
     "saving": "در حال ذخیره…",
-    "slotRow": "نوبت {n} · {period}",
+    "slotRow": "نوبت {n}، {period}",
     "pickTime": "انتخاب ساعت",
     "hour": "ساعت",
     "minute": "دقیقه",
@@ -411,7 +411,7 @@
     "place": "محل",
     "directions": "مسیریابی",
     "reminder": "یادآوری",
-    "reminderAt": "{before} · {date} ساعت {time}",
+    "reminderAt": "{before}، {date} ساعت {time}",
     "reminderToggle": "روشن یا خاموش کردن یادآوری نوبت",
     "prepTitle": "قبل از نوبت",
     "addToCalendar": "افزودن به تقویم",
@@ -449,7 +449,7 @@
    "loadError": "چکاپ‌ها بارگذاری نشد. کمی بعد دوباره امتحان کن.",
    "saveError": "ذخیره نشد. کمی بعد دوباره امتحان کن.",
    "retry": "تلاش دوباره",
-   "separator": " · ",
+   "separator": "، ",
    "noDate": "—",
    "status": {
     "up_to_date": "به‌روز",
@@ -502,7 +502,7 @@
      "action": "نیاز به اقدام",
      "done": "انجام‌شده"
     },
-    "lastNext": "آخرین: {last} · بعدی: {next}",
+    "lastNext": "آخرین: {last}، بعدی: {next}",
     "infoNote": "این فهرست بر اساس توصیه‌های عمومی غربالگری و سن توست. سابقه خانوادگی یا شرایط خاص ممکن است برنامه را تغییر دهد؛ با پزشک یا ماما هماهنگ کن. ریتمی تشخیص پزشکی نمی‌دهد.",
     "addCustom": "افزودن چکاپ سفارشی",
     "empty": "فعلاً چکاپی در این بخش نیست.",
@@ -545,7 +545,7 @@
     "note": "یادداشت",
     "notePlaceholder": "مثلاً اسم پزشک یا نکته‌ای از جواب",
     "nextDue": "موعد بعدی: {date}",
-    "nextDueMeta": "{interval} · {reminder}",
+    "nextDueMeta": "{interval}، {reminder}",
     "change": "تغییر",
     "submit": "ثبت",
     "delete": "حذف این ثبت",
@@ -582,7 +582,7 @@
     "loadMore": "موارد بیشتر",
     "pdf": {
      "title": "خلاصه چکاپ‌ها برای پزشک",
-     "subtitle": "تهیه‌شده در {date} · {count} مورد",
+     "subtitle": "تهیه‌شده در {date}، {count} مورد",
      "findings": "{count} یافته در معاینه ثبت شده",
      "note": "یادداشت: {note}",
      "nextDue": "موعد بعدی: {date}",
@@ -596,7 +596,7 @@
    },
    "selfExam": {
     "thisMonth": "این ماه",
-    "dayWhen": "روز {day} سیکل · {when}",
+    "dayWhen": "روز {day} سیکل، {when}",
     "bestTime": "بهترین زمان",
     "bestTimeTitle": "چند روز بعد از پریود",
     "bestTimeBody": "سینه‌ها کمتر حساس و متورم‌اند؛ ریتمی یادآوری را با سیکلت تنظیم می‌کند.",
@@ -727,7 +727,7 @@
    "estimated": "تخمینی",
    "notLogged": "ثبت نشده",
    "cycleDay": "روز {day}",
-   "dateCycleDay": "{date} · روز {day}",
+   "dateCycleDay": "{date}، روز {day}",
    "celsius": "°C",
    "degrees": "{value}°",
    "chance": {
@@ -779,7 +779,7 @@
    },
    "log": {
     "title": "ثبت روز",
-    "subtitle": "{date} · روز {day}",
+    "subtitle": "{date}، روز {day}",
     "lh": {
      "title": "تست تخمک‌گذاری (LH)",
      "options": {
@@ -1161,7 +1161,9 @@
     "periodDay": "روز {n, number}",
     "usually": "معمولاً {n, number} روز",
     "cycleDay": "روز {n, number} سیکل",
-    "editPeriod": "ویرایش پریود"
+    "editPeriod": "ویرایش پریود",
+    "noData": "هنوز پریودی ثبت نشده",
+    "logPeriod": "ثبت پریود"
    },
    "phaseCard": {
     "title": {
@@ -1172,7 +1174,12 @@
      "luteal": "فاز لوتئال"
     },
     "nearPeriod": "نزدیک پریود",
-    "more": "بیشتر درباره این فاز"
+    "more": "بیشتر درباره این فاز",
+    "noData": {
+     "title": "تاریخ آخرین پریودت رو ثبت کن",
+     "text": "وقتی شروع آخرین پریودت رو ثبت کنی، پیش‌بینی چرخه و پیام روزانه‌ات همین‌جا نشون داده می‌شه.",
+     "cta": "ثبت آخرین پریود"
+    }
    }
   },
   "log": {
@@ -1794,6 +1801,8 @@
   "pregnancy-v2": {
    "common": {
     "title": "بارداری",
+    "separator": "، ",
+    "groupSeparator": "؛ ",
     "loading": "در حال گرفتن اطلاعات بارداری…",
     "loadError": "اطلاعات بارداری نیومد. یه‌کم بعد دوباره امتحان کن.",
     "saveError": "ذخیره نشد. یه‌کم بعد دوباره امتحان کن.",
@@ -1904,8 +1913,8 @@
      "weeks": "مرور هفته‌ها",
      "alerts": "هشدارها"
     },
-    "nextVisit": "ویزیت بعدی · {days, plural, =0 {امروز} =1 {فردا} other {# روز دیگه}}",
-    "visitMeta": "{weekday} · {time} · هفتهٔ {week, number}",
+    "nextVisit": "ویزیت بعدی، {days, plural, =0 {امروز} =1 {فردا} other {# روز دیگه}}",
+    "visitMeta": "{weekday}، {time}، هفتهٔ {week, number}",
     "tipEyebrow": "نکتهٔ هوشمند · این هفته",
     "readMinutes": "{minutes, plural, other {# دقیقه}}",
     "readMore": "درباره هفتهٔ {week, number} بیشتر بخون",
@@ -1950,7 +1959,7 @@
    "log": {
     "title": "ثبت امروز",
     "titleOtherDay": "ثبت روز",
-    "sub": "{date} · هفتهٔ {week, number}",
+    "sub": "{date}، هفتهٔ {week, number}",
     "pickDay": "انتخاب روز دیگر",
     "moodTitle": "حال کلی‌ات",
     "moodLabel": "حال کلی",
@@ -1985,7 +1994,7 @@
     "waterLess": "یک لیوان کمتر",
     "waterMore": "یک لیوان بیشتر",
     "weight": "وزن",
-    "weightLast": "آخرین ثبت: {value, number} · {date}",
+    "weightLast": "آخرین ثبت: {value, number}، {date}",
     "weightNone": "هنوز وزنی ثبت نشده",
     "kg": "کیلوگرم",
     "note": "یادداشت برای ویزیت بعدی",
@@ -2019,8 +2028,8 @@
     },
     "weekStart": "شروع هفتهٔ {week, number}",
     "dayEmpty": "برای این روز چیزی ثبت نشده. می‌تونی ویزیت یا آزمایش اضافه کنی.",
-    "nextVisit": "ویزیت بعدی · {days, plural, =0 {امروز} =1 {فردا} other {# روز دیگه}}",
-    "visitMeta": "{weekday} · ساعت {time} · {week}",
+    "nextVisit": "ویزیت بعدی، {days, plural, =0 {امروز} =1 {فردا} other {# روز دیگه}}",
+    "visitMeta": "{weekday}، ساعت {time}، {week}",
     "stagesLabel": "مرحلهٔ ویزیت",
     "stages": {
      "booked": "نوبت گرفته شد",

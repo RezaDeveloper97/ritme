@@ -18,7 +18,6 @@ import { type Locale, Link, useRouter } from "@/shared/i18n";
 import {
   type DateParts,
   formatDayMonth,
-  formatNumber,
   formatWeekdayDayMonth,
   fromApiDate,
   partsToDate,
@@ -31,6 +30,7 @@ import { CalendarPicker, Icon } from "@/shared/ui";
 
 import {
   type DayDraft,
+  displayWeight,
   draftFromDay,
   EMPTY_DRAFT,
   selectedSymptoms,
@@ -342,7 +342,7 @@ export function DayLogPage({ date: rawDate }: { date?: string }) {
                     id="plog-weight"
                     inputMode="decimal"
                     autoComplete="off"
-                    value={formatNumber(draft.weight, locale)}
+                    value={displayWeight(draft.weight, locale)}
                     onChange={(e) => edit({ weight: e.target.value })}
                     className="h-10 w-16 bg-transparent text-center text-[15px] font-bold text-(--ink) outline-none"
                   />

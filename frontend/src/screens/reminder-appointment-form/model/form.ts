@@ -1,5 +1,6 @@
 import {
   APPOINTMENT_KINDS,
+  APPOINTMENT_TOPICS,
   type Appointment,
   type AppointmentKind,
   type AppointmentTopic,
@@ -34,6 +35,8 @@ export interface AppointmentFormState {
 /** What the "new" route's query string may prefill. */
 export interface AppointmentPrefill {
   kind?: string | null;
+  /** What the visit is for (a care-plan «رزرو» sends scan → `ultrasound`, …). */
+  topic?: string | null;
   title?: string | null;
   date?: string | null;
   careItemKey?: string | null;
@@ -52,11 +55,12 @@ export function parsePrefillDate(value: string | null | undefined, today: string
   return value < today ? '' : value;
 }
 
-/** A fresh form seeded from `?kind=&title=&date=&care_item_key=`. */
+/** A fresh form seeded from `?kind=&topic=&title=&date=&care_item_key=`. */
 export function formFromPrefill(prefill: AppointmentPrefill, today: string): AppointmentFormState {
   const key = (prefill.careItemKey ?? '').trim();
   return {
     ...emptyForm(parseKind(prefill.kind)),
+    topic: parseTopic(prefill.topic),
     title: (prefill.title ?? '').trim().slice(0, 120),
     date: parsePrefillDate(prefill.date, today),
     careItemKey: /^[a-z0-9_.-]{1,64}$/i.test(key) ? key : '',
@@ -65,6 +69,11 @@ export function formFromPrefill(prefill: AppointmentPrefill, today: string): App
 
 export function parseKind(value: string | null | undefined): AppointmentKind {
   return APPOINTMENT_KINDS.includes(value as AppointmentKind) ? (value as AppointmentKind) : 'in_person';
+}
+
+/** `?topic=` → a known topic, else the form's default (`checkup`). */
+export function parseTopic(value: string | null | undefined): AppointmentTopic {
+  return APPOINTMENT_TOPICS.includes(value as AppointmentTopic) ? (value as AppointmentTopic) : 'checkup';
 }
 
 export function emptyForm(kind: AppointmentKind): AppointmentFormState {

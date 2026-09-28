@@ -1,12 +1,32 @@
 import { describe, expect, it } from 'vitest';
 
-import { emptyForm, formFromPrefill, parseKind, parsePrefillDate, prepFromText, validateForm } from './form';
+import {
+  emptyForm,
+  formFromPrefill,
+  parseKind,
+  parsePrefillDate,
+  parseTopic,
+  prepFromText,
+  validateForm,
+} from './form';
 
 describe('appointment form model', () => {
   it('parses ?kind=', () => {
     expect(parseKind('phone')).toBe('phone');
     expect(parseKind('bogus')).toBe('in_person');
     expect(parseKind(undefined)).toBe('in_person');
+  });
+
+  it('parses ?topic= against the known topics', () => {
+    expect(parseTopic('ultrasound')).toBe('ultrasound');
+    expect(parseTopic('vaccine')).toBe('vaccine');
+    expect(parseTopic('bogus')).toBe('checkup');
+    expect(parseTopic(null)).toBe('checkup');
+    // The NT «رزرو» link: in person, about an ultrasound.
+    const nt = formFromPrefill({ kind: 'in_person', topic: 'ultrasound', careItemKey: 'nt_scan' }, '2026-09-26');
+    expect(nt.kind).toBe('in_person');
+    expect(nt.topic).toBe('ultrasound');
+    expect(formFromPrefill({ topic: '<script>' }, '2026-09-26').topic).toBe('checkup');
   });
 
   it('maps textarea lines to prep items, keeping existing ticks', () => {

@@ -1,6 +1,8 @@
 {
   "common": {
     "title": "بارداری",
+    "separator": "، ",
+    "groupSeparator": "؛ ",
     "loading": "در حال گرفتن اطلاعات بارداری…",
     "loadError": "اطلاعات بارداری نیومد. یه‌کم بعد دوباره امتحان کن.",
     "saveError": "ذخیره نشد. یه‌کم بعد دوباره امتحان کن.",
@@ -111,8 +113,8 @@
       "weeks": "مرور هفته‌ها",
       "alerts": "هشدارها"
     },
-    "nextVisit": "ویزیت بعدی · {days, plural, =0 {امروز} =1 {فردا} other {# روز دیگه}}",
-    "visitMeta": "{weekday} · {time} · هفتهٔ {week, number}",
+    "nextVisit": "ویزیت بعدی، {days, plural, =0 {امروز} =1 {فردا} other {# روز دیگه}}",
+    "visitMeta": "{weekday}، {time}، هفتهٔ {week, number}",
     "tipEyebrow": "نکتهٔ هوشمند · این هفته",
     "readMinutes": "{minutes, plural, other {# دقیقه}}",
     "readMore": "درباره هفتهٔ {week, number} بیشتر بخون",
@@ -157,7 +159,7 @@
   "log": {
     "title": "ثبت امروز",
     "titleOtherDay": "ثبت روز",
-    "sub": "{date} · هفتهٔ {week, number}",
+    "sub": "{date}، هفتهٔ {week, number}",
     "pickDay": "انتخاب روز دیگر",
     "moodTitle": "حال کلی‌ات",
     "moodLabel": "حال کلی",
@@ -192,7 +194,7 @@
     "waterLess": "یک لیوان کمتر",
     "waterMore": "یک لیوان بیشتر",
     "weight": "وزن",
-    "weightLast": "آخرین ثبت: {value, number} · {date}",
+    "weightLast": "آخرین ثبت: {value, number}، {date}",
     "weightNone": "هنوز وزنی ثبت نشده",
     "kg": "کیلوگرم",
     "note": "یادداشت برای ویزیت بعدی",
@@ -226,8 +228,8 @@
     },
     "weekStart": "شروع هفتهٔ {week, number}",
     "dayEmpty": "برای این روز چیزی ثبت نشده. می‌تونی ویزیت یا آزمایش اضافه کنی.",
-    "nextVisit": "ویزیت بعدی · {days, plural, =0 {امروز} =1 {فردا} other {# روز دیگه}}",
-    "visitMeta": "{weekday} · ساعت {time} · {week}",
+    "nextVisit": "ویزیت بعدی، {days, plural, =0 {امروز} =1 {فردا} other {# روز دیگه}}",
+    "visitMeta": "{weekday}، ساعت {time}، {week}",
     "stagesLabel": "مرحلهٔ ویزیت",
     "stages": {
       "booked": "نوبت گرفته شد",

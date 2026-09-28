@@ -257,14 +257,20 @@ function CalendarBody({ data, selected }: { data: PregnancyCalendar; selected: s
 
 function SelectedDay({ data, date }: { data: PregnancyCalendar; date: string }) {
   const t = useTranslations('pregnancyV2.calendar');
+  const tCommon = useTranslations('pregnancyV2.common');
+  const sep = tCommon('separator');
   const locale = useLocale() as Locale;
   const marker = data.days.find((d) => d.date === date);
   const visits = data.visits.filter((v) => v.date === date);
   const title = [formatDayMonth(fromApiDate(date), locale), marker?.weekStart != null ? t('weekStart', { week: marker.weekStart }) : null]
     .filter(Boolean)
-    .join(' · ');
+    .join(sep);
+  // Each visit's parts are joined by `sep`, so the visits need a stronger mark
+  // between them (fa «؛») — the same one twice would blur where a visit ends.
   const sub = visits.length
-    ? visits.map((v) => [v.title, v.time ? formatNumber(v.time, locale) : null].filter(Boolean).join(' · ')).join('، ')
+    ? visits
+        .map((v) => [v.title, v.time ? formatNumber(v.time, locale) : null].filter(Boolean).join(sep))
+        .join(tCommon('groupSeparator'))
     : t('dayEmpty');
 
   return (
@@ -337,8 +343,8 @@ function NextVisitCard({ visit }: { visit: CalendarVisit }) {
     visit.weekLabel,
   ]
     .filter(Boolean)
-    .join(' · ');
-  const who = [visit.doctor, visit.place].filter(Boolean).join(' · ');
+    .join(t('common.separator'));
+  const who = [visit.doctor, visit.place].filter(Boolean).join(t('common.separator'));
   const remind = visit.remindBefore && (REMIND_BEFORE as readonly string[]).includes(visit.remindBefore)
     ? tc(visit.remindBefore as RemindBefore)
     : null;
@@ -463,12 +469,15 @@ function NextVisitCard({ visit }: { visit: CalendarVisit }) {
 
 function CareRow({ item, last }: { item: CareItem; last: boolean }) {
   const t = useTranslations('pregnancyV2.calendar');
+  const tCommon = useTranslations('pregnancyV2.common');
   const locale = useLocale() as Locale;
   const window =
     item.weekFrom != null && item.weekTo != null ? t('weekWindow', { from: item.weekFrom, to: item.weekTo }) : null;
   const when = item.dateLabel ?? (item.date ? formatDayMonth(fromApiDate(item.date), locale) : null);
   const dateText = when ? (item.state === 'to_book' ? t('aroundDate', { date: when }) : when) : null;
-  const sub = [window, dateText, item.state === 'done' ? t('states.done') : null].filter(Boolean).join(' · ');
+  const sub = [window, dateText, item.state === 'done' ? t('states.done') : null]
+    .filter(Boolean)
+    .join(tCommon('separator'));
 
   return (
     <div className={clsx('flex min-h-16 items-center gap-3', !last && 'border-b border-(--line)')}>
@@ -544,7 +553,8 @@ function ReportButton() {
           d.waterGlasses != null ? t('calendar.pdf.water', { count: d.waterGlasses }) : null,
         ]
           .filter(Boolean)
-          .join(' · ');
+          // fa «،», not «·»: a middle dot beside «۴ لیوان» reads as «۴۰».
+          .join(t('common.separator'));
         blocks.push({ kind: 'text', text: `${long(d.date)}${line ? ' — ' + line : ''}` });
         if (d.visitNote) blocks.push({ kind: 'muted', text: t('calendar.pdf.note', { note: d.visitNote }) });
       }

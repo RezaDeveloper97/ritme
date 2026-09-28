@@ -793,3 +793,12 @@ Nothing needed fixing.
 ## T-M5-09 — Fertility rollout (staging e2e, 2026-09-28)
 - Stage @ ea8a1eb as a `trying` user, light/dark: tiles → log LH/BBT/intercourse → tiles update → BBT chart (coverline 36.42, shift day 13) → insights (3 cycles, high). All `/api/v1/*` `X-Backend: go`; 422 validation in fa; verify passed. T-M5-10 fixes confirmed on stage. 16 `stage-*` screenshots; evidence in `docs/fertility-ttc/README.md` § Staging e2e. Test user deleted.
 - Open: `fertility_level` mismatch home vs log (product decision); tiles wait on `GET /profile` (~5s sometimes on stage → late render/layout shift, `HomePage.tsx:885`); `DELETE /account` leaves revoked `oauth_access_tokens` row (no FK cascade); Lalezar «٫» glyph; insights window colour vs spec.
+
+## T-M7-17 — Fixes from staging e2e
+- Privacy: `shared/session/cleanup.ts` (`onSessionEnd` registry) runs from `clearAuthToken` on logout, account deletion and `endsSession()`; `ritme-onboarding` store wiped + storage cleared; offline outbox cleared (no replay into the next account). Verified headless: no per-user localStorage keys after logout/reload.
+- fa separator `·` next to digits → «، » (checkups, care, fertility, pregnancy-v2 incl. PDF day line); `common.separator/groupSeparator` keys.
+- NT/care-plan booking prefills the appointment topic (`careItemTopic` → `?topic=` → `parseTopic`).
+- `/messages/daily` 400 = no message yet → home empty state «تاریخ آخرین پریودت رو ثبت کن» with period CTA.
+- Log weight field locale decimal. Seed + i18n goldens resynced.
+- Verify: 592 frontend tests; go test ./... ok; contract 986 pass / 206 allow-listed.
+- Open: on-device checkup attachments not cleared on logout (product decision); unsynced outbox entries are dropped on logout (intended); `POST /profile` without `last_period_start` creates a today period — Laravel parity unchecked.

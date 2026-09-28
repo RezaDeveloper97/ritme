@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  displayWeight,
   draftFromDay,
   inputFromDraft,
   parseWeight,
@@ -55,5 +56,14 @@ describe("pregnancy log draft", () => {
       weight: 62.1,
       visitNote: "",
     });
+  });
+
+  it("shows the weight with the locale's digits and decimal separator", () => {
+    expect(displayWeight("62.5", "fa")).toBe("۶۲٫۵");
+    expect(displayWeight("۶۲٫۵", "fa")).toBe("۶۲٫۵");
+    expect(displayWeight("62.5", "en")).toBe("62.5");
+    expect(displayWeight("", "fa")).toBe("");
+    // What the field shows parses back to the same kilograms.
+    expect(parseWeight(displayWeight("62.5", "fa"))).toBe(62.5);
   });
 });

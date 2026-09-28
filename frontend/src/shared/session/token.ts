@@ -19,6 +19,7 @@ import {
   SESSION_CLEARED_EVENT,
   SESSION_FLAG_ROUTE,
 } from './cookie';
+import { runSessionCleanups } from './cleanup';
 
 const TOKEN_KEY = 'ritme_token';
 
@@ -96,6 +97,9 @@ export function setAuthToken(token: string): void {
 export function clearAuthToken(): void {
   inMemoryToken = null;
   if (!isBrowser()) return;
+  // Per-user device data (persisted answers, queued writes) ends with the
+  // session, whichever path ended it: logout, account deletion or a 401.
+  runSessionCleanups();
   try {
     window.localStorage.removeItem(TOKEN_KEY);
   } catch {

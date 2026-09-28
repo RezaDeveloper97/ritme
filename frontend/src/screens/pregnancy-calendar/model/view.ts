@@ -1,4 +1,5 @@
-import { type CareItem, VISIT_STAGES, type VisitStage } from '@/entities/pregnancy';
+import type { AppointmentTopic } from '@/entities/care-reminder';
+import { type CareItem, type CareItemKind, VISIT_STAGES, type VisitStage } from '@/entities/pregnancy';
 
 /** `YYYY-MM` of a (year, month) in the locale's calendar — the API's `month`. */
 export function monthKey(year: number, month: number): string {
@@ -16,9 +17,31 @@ export function stageProgress(stage: VisitStage | null): number {
   return stage == null ? 1 : VISIT_STAGES.indexOf(stage) + 1;
 }
 
-/** M3 AddAppointment prefilled from a care-plan row. */
+/** The AddAppointment topic («در خصوص چه چیزی؟») a care-plan kind books. */
+const TOPIC_BY_CARE_KIND: Record<CareItemKind, AppointmentTopic> = {
+  scan: 'ultrasound',
+  test: 'lab',
+  vaccine: 'vaccine',
+  visit: 'checkup',
+};
+
+/** The topic to prefill for a care item; `checkup` (the form default) when the kind is unknown. */
+export function careItemTopic(kind: CareItemKind | null | undefined): AppointmentTopic {
+  return (kind && TOPIC_BY_CARE_KIND[kind]) || 'checkup';
+}
+
+/**
+ * M3 AddAppointment prefilled from a care-plan row. `kind` is how the visit
+ * happens (every care-plan item is in person); `topic` is what it is for, so
+ * the NT scan opens as «سونوگرافی», not «ویزیت دوره‌ای».
+ */
 export function bookHref(item: CareItem): string {
-  const q = new URLSearchParams({ kind: 'in_person', title: item.title, care_item_key: item.key });
+  const q = new URLSearchParams({
+    kind: 'in_person',
+    topic: careItemTopic(item.kind),
+    title: item.title,
+    care_item_key: item.key,
+  });
   const date = item.suggestedDate ?? item.date;
   if (date) q.set('date', date);
   return `/reminders/appointment/new?${q.toString()}`;

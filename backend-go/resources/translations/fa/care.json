@@ -18,8 +18,8 @@
     "add": "افزودن یادآور",
     "appointmentTitle": "{title} · {with}",
     "remindBefore": "{before} یادآوری",
-    "nextAppointmentMeta": "{when} · ساعت {time} · {place}",
-    "nextAppointmentMetaNoPlace": "{when} · ساعت {time}",
+    "nextAppointmentMeta": "{when}، ساعت {time}، {place}",
+    "nextAppointmentMetaNoPlace": "{when}، ساعت {time}",
     "empty": "امروز یادآوری نداری."
   },
   "tabs": {
@@ -44,7 +44,7 @@
   "medications": {
     "title": "داروها و مکمل‌ها",
     "empty": "هنوز دارو یا مکملی اضافه نکردی.",
-    "rowMeta": "{schedule} · {time} · {amount} {form}",
+    "rowMeta": "{schedule}، {time}، {amount} {form}",
     "everyDay": "هر روز",
     "everyOtherDay": "یک روز در میان",
     "daysPerWeek": "{count} روز در هفته",
@@ -58,8 +58,8 @@
   "appointments": {
     "title": "نوبت‌ها و مشاوره‌ها",
     "empty": "نوبتی ثبت نکردی.",
-    "rowMeta": "{time} · {kind} · {place}",
-    "rowMetaNoPlace": "{time} · {kind}",
+    "rowMeta": "{time}، {kind}، {place}",
+    "rowMetaNoPlace": "{time}، {kind}",
     "kindShort": {
       "in_person": "حضوری",
       "phone": "تلفنی",
@@ -126,7 +126,7 @@
     "decrease": "کم",
     "increase": "زیاد",
     "startsOn": "شروع از",
-    "todayWithDate": "امروز · {date}",
+    "todayWithDate": "امروز، {date}",
     "pickDate": "انتخاب تاریخ",
     "duration": "مدت مصرف",
     "durations": {
@@ -142,7 +142,7 @@
     "notesPlaceholder": "مثلاً بعد از غذا",
     "save": "ذخیره یادآور",
     "saving": "در حال ذخیره…",
-    "slotRow": "نوبت {n} · {period}",
+    "slotRow": "نوبت {n}، {period}",
     "pickTime": "انتخاب ساعت",
     "hour": "ساعت",
     "minute": "دقیقه",
@@ -237,7 +237,7 @@
     "place": "محل",
     "directions": "مسیریابی",
     "reminder": "یادآوری",
-    "reminderAt": "{before} · {date} ساعت {time}",
+    "reminderAt": "{before}، {date} ساعت {time}",
     "reminderToggle": "روشن یا خاموش کردن یادآوری نوبت",
     "prepTitle": "قبل از نوبت",
     "addToCalendar": "افزودن به تقویم",

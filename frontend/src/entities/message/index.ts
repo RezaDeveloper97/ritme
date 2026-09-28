@@ -16,4 +16,5 @@ export {
   useDailyMessage,
   fetchUserMode,
   fetchDailyMessage,
+  isNoDailyMessage,
 } from './api/queries';

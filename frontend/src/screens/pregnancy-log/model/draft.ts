@@ -9,6 +9,8 @@ import {
   WATER_MAX,
   WATER_MIN,
 } from "@/entities/pregnancy";
+import type { Locale } from "@/shared/i18n";
+import { formatNumber } from "@/shared/lib/date";
 
 /** The Log screen's editable state for one day. */
 export interface DayDraft {
@@ -80,6 +82,20 @@ export function parseWeight(text: string): number | null {
   if (!ascii) return null;
   const n = Number(ascii);
   return Number.isFinite(n) && n >= 20 && n <= 300 ? n : null;
+}
+
+/** Persian decimal separator «٫» (U+066B) — what ICU prints for fa numbers. */
+const FA_DECIMAL = "\u066B";
+
+/**
+ * The weight field's text as the user should see it: locale digits and, in fa,
+ * «٫» instead of an ASCII dot, so «۶۲٫۵» in the field matches «آخرین ثبت: ۶۲٫۵»
+ * above it. `parseWeight` reads either form back.
+ */
+export function displayWeight(text: string, locale: Locale): string {
+  const digits = formatNumber(text, locale);
+  // Persian digits and «٫» are the one sanctioned fa special case (CLAUDE.md §6.1).
+  return locale === "fa" ? digits.replace(/\./g, FA_DECIMAL) : digits;
 }
 
 /** Whole-day input for the PUT — every field present, so cleared ones clear. */
