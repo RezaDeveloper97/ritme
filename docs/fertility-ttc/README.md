@@ -178,3 +178,86 @@ Screenshots (`screenshots/`, each in `-light` and `-dark`):
 - **Staging e2e** — the agent has no server access (ssh/curl to the staging host are denied), so
   `/api/v1/fertility` on stage and the stage screenshots still need the user.
 - **Production** — only when the user asks.
+
+## Staging e2e (T-M5-09) — 2026-09-28
+
+Run against `https://stage.ritmeapp.ir` at `stage` @ `ea8a1eb` (goose v6, stage runs Go only). Gate: one plain page
+load with Basic auth (CDP `Network.setExtraHTTPHeaders`, then cleared) minted the `ritme_stage` cookie; every later
+request rode on the cookie + the app's own Bearer. Test user `09900000951`, logged in through the UI (signup → OTP
+read from the stage MariaDB `ritme-stage-mysql-1` → `/fa/onboarding/name`; the profile was then completed over the
+API and the `ritme_onboarding` resume cookie cleared, which is what `verify-otp` does for a completed profile).
+Profile `pregnancy_intention=trying`, `user_goal=ttc`, 28-day cycle; 4 periods through `POST /cycle/period`
+(06-21, 07-19, 08-16, 09-13, 5 days each) → today 2026-09-28 = cycle day 16. Headless Chrome (CDP, port 9241),
+390×844 @2x, fa.
+
+### API e2e (`Accept-Language: fa`, Bearer + gate cookie) — every response `X-Backend: go`
+
+| # | Call | Result |
+|---|---|---|
+| 1 | `POST /profile` (trying/ttc), 4 × `POST /cycle/period` | 200, 200 ×4 |
+| 2 | `GET /fertility/today` | 200 — `cycle_day 16`, chance `low`/«کم»/1 bar, lh/bbt/intercourse `null` |
+| 3 | `PUT /fertility/days/2026-09-28 {"bbt":39.2}` / `PUT …/2026-10-01 {"lh":"negative"}` | 422 «دما باید بین ۳۵٫۰۰ و ۳۸٫۵۰ درجه باشد.» / 422 «ثبت برای روزهای آینده ممکن نیست.» ✔ |
+| 4 | `PUT /fertility/days/{09-16…09-27}` BBT (cd 4–15) | 12 × 200: low 36.30–36.42 (cd 4–12), high 36.66/36.70/36.72 (cd 13–15); LH faint cd 11, positive cd 12 |
+| 5 | `GET /fertility/bbt?range=1` | 200 — 12 points, `coverline 36.42` (max of cd 7–12), `shift_day 13`, `phase post_shift`, `fertile_window 10–15`, stats `pre_ovulation_avg 36.35, logged_days 12, cycle_days_so_far 16, gaps 4`, fa tip ✔ 3-over-6 detected |
+| 6 | `GET /fertility/bbt?range=3` | 200, same shape |
+| 7 | `GET /fertility/insights` | 200 — `cycles_used 3`, window 2026-10-20 → 10-25 (ovulation 10-25), confidence `high`; evidence cycles strong / bbt_shift medium (روز ۱۳) / lh strong (مثبت روز ۱۲); history شهریور/مرداد/تیر day 15 (`estimate`); 1 tip |
+| 8 | `GET /fertility/days/2026-09-24` | 200 — lh `positive`, bbt `36.37`, cycle_day 12, chance `medium`/3 bars |
+
+### UI click-through (light and dark) — API statuses from CDP `Network.responseReceived`
+
+| Step | Light | Dark |
+|---|---|---|
+| Home: TTC tiles, today empty («ثبت نشده» ×3) | ✔ | ✔ |
+| Tap «تست LH» → `/fa/fertility/log?focus=lh`, LH section highlighted, chance «کم» | ✔ | ✔ |
+| LH «مثبت», BBT + ×3 → ۳۶٫۵۲, mucus «شفاف و کشسان», intercourse «بدون محافظت» → «ذخیره» | ✔ `PUT /fertility/days/2026-09-28` 200 | ✔ 200 |
+| Back on home, tiles «مثبت · ۳۶٫۵۲° · بدون محافظت» | ✔ | ✔ |
+| Tap «دمای پایه» → BBT chart (coverline, window band, shift at cd 13, today's 36.52), stats ۱۳ / ۱۶, «۳ روز جاافتاده» | ✔ | ✔ |
+| «پیش‌بینی‌ها» → insights (window card + مهر/آبان calendar, evidence, history, tips) | ✔ | ✔ |
+
+API calls seen during the UI runs, all 2xx and all `/api/v1/*` with `X-Backend: go`: `auth/send-otp`, `auth/verify-otp`,
+`profile`, `cycle/today`, `cycle/month/*`, `cycle/period/history`, `messages/mode|daily`, `banners`, `care/today`,
+`checkups/home`, `home/sections/*`, `reminders`, `fertility/today|days/{date} (GET+PUT)|bbt|insights` — 200; the
+Next route `POST /api/session/flag` — 204. No 4xx/5xx, no console errors or exceptions, no raw i18n keys, no
+horizontal overflow, `<html data-theme>` matched the theme in every step. The chart SVG carries its label
+«نمودار دمای پایه بدن».
+
+Screenshots (`screenshots/`, 585 px wide, pngquant, each `-light` and `-dark`): `stage-home-tiles-empty-*`,
+`stage-log-focus-lh-*`, `stage-log-filled-*`, `stage-home-tiles-updated-*`, `stage-bbt-*`, `stage-insights-*`,
+`stage-insights-middle-*`, `stage-insights-bottom-*`.
+
+### verify
+
+```
+$ STAGE_AUTH=<from /root/ritme-stage-credentials.txt> bash -c 'curl -fsS -u "$STAGE_AUTH" https://stage.ritmeapp.ir/api/v1/fertility/today -H "Accept: application/json" -o /dev/null -w "%{http_code}" | grep -qE "^(200|401)$"'
+curl: (56) The requested URL returned error: 401
+exit 0
+```
+(401 = past the gate, no Bearer → the Go guard; `X-Backend: go`. With a Bearer the same URL returned 200.)
+
+### Local bugs re-checked on stage
+
+Fixed on stage (T-M5-10): #1 tile colours (LH amber, BBT teal), #2 tile gutter, #3 card padding, #4 fa digits
+(«بر اساس ۳ سیکل», «۳ روز جاافتاده»), #5 chart Y-axis «۳۶٫۸», #6 insights calendar now draws مهر and آبان so the whole
+window (۲۸ مهر → ۲ آبان + ovulation ۳ آبان) is highlighted.
+
+Still open (report only, not fixed):
+
+1. **Chance disagrees between home and the fertility screens** (local #7). Home phase card «شانس بارداری: متوسط»,
+   Log chance card «کم» for the same day. `backend-go/internal/fertility/day.go:131` uses top-level
+   `fertility_level`, `frontend/src/screens/home/ui/HomePage.tsx:743` uses `daily_card` (`dailyCard.fertilityLabel`). Home
+   timeline says «پنجره باروری ۳۱ شهریور تا ۶ مهر — در جریانه» (ends cd 16) while `/fertility/bbt` gives cd 10–15
+   (ends ۵ مهر). Repro: `stage-home-tiles-*.png` vs `stage-log-focus-lh-*.png`.
+2. **Insights calendar window is turquoise, spec says amber** (local #8, to confirm with design):
+   `stage-insights-*.png`.
+3. **BBT hero decimal renders as a spaced comma** in Lalezar («۳۶ , ۵۲»), where the log field and the stat card render
+   «۳۶٫۵۲» tightly (local #8). `stage-bbt-*.png`.
+4. **Tiles can appear late.** They mount only after `GET /profile` resolves
+   (`HomePage.tsx:885`); on stage `/profile` occasionally took ~5 s, so in ~1 of 6 loads the tiles showed up 4–12 s
+   after the rest of the home. No error — just a layout jump under the phase card. Could render a skeleton or use
+   `/messages/mode`'s `is_ttc`, which the home already fetches.
+5. Minor: `DELETE /account` leaves the user's revoked row in `oauth_access_tokens` (no FK cascade) — found during
+   cleanup, removed by hand on stage.
+
+Cleanup: test user deleted with `DELETE /api/v1/account` (200; cascades profile, periods, health logs,
+fertility_logs, …), then the leftover revoked `oauth_access_tokens` row and the `otp_verifications` row for
+`09900000951` were deleted from the stage DB. Production was not touched.

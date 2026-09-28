@@ -789,3 +789,7 @@ Nothing needed fixing.
 - Stage @ ea8a1eb, light/dark: pregnant signup → Setup v2 → Today → Week → Log (offline outbox queued → saved) → spotting urgent alert → Alerts → Calendar booking from care plan (NT → booked) → PDF (Persian footer) → switch back to cycle. 185 API calls, all `X-Backend: go`, all 2xx except known 9h. T-M7-16 fixes confirmed on stage. 67 `stage-*` screenshots; evidence in `docs/pregnancy-v2/README.md` § Staging UI e2e.
 - New bug (privacy): `ritme-onboarding` persisted store (name, mobile, birth date, weight, height, intention, pregnancy basis) survives logout — `useLogout` only clears token + cache.
 - Still open on stage: 9a/9b/9c/9d/9h/9i; Log weight field ASCII decimal. Clinical sign-off (human); production when asked.
+
+## T-M5-09 — Fertility rollout (staging e2e, 2026-09-28)
+- Stage @ ea8a1eb as a `trying` user, light/dark: tiles → log LH/BBT/intercourse → tiles update → BBT chart (coverline 36.42, shift day 13) → insights (3 cycles, high). All `/api/v1/*` `X-Backend: go`; 422 validation in fa; verify passed. T-M5-10 fixes confirmed on stage. 16 `stage-*` screenshots; evidence in `docs/fertility-ttc/README.md` § Staging e2e. Test user deleted.
+- Open: `fertility_level` mismatch home vs log (product decision); tiles wait on `GET /profile` (~5s sometimes on stage → late render/layout shift, `HomePage.tsx:885`); `DELETE /account` leaves revoked `oauth_access_tokens` row (no FK cascade); Lalezar «٫» glyph; insights window colour vs spec.
