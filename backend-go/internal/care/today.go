@@ -31,7 +31,7 @@ type Dose struct {
 // TodayDoses are the doses of day: one per slot of every active medication whose
 // weekday/start/end window covers day, sorted by slot (then reminder id); taken when an
 // intake row exists for (reminder, slot).
-func TodayDoses(day civildate.Date, meds []store.Reminder, intakes []store.ListIntakesOnDateRow) []Dose {
+func TodayDoses(day civildate.Date, meds []store.Reminder, intakes []store.ListIntakesOnDateRow, locale string) []Dose {
 	type key struct {
 		id   uint64
 		slot string
@@ -50,8 +50,8 @@ func TodayDoses(day civildate.Date, meds []store.Reminder, intakes []store.ListI
 			continue
 		}
 		title := r.Title
-		if r.Subtitle.Valid && r.Subtitle.String != "" {
-			title += " " + r.Subtitle.String
+		if sub := m.DisplaySubtitle(locale); sub.Valid && sub.String != "" {
+			title += " " + sub.String
 		}
 		for _, slot := range m.Meta.Times {
 			doses = append(doses, Dose{
@@ -151,5 +151,5 @@ func (h *Handlers) Today(c fiber.Ctx) error {
 	if err != nil {
 		return fmt.Errorf("care: today appointments: %w", err)
 	}
-	return httpx.OK(c, TodayJSON(day, TodayDoses(day, meds, intakes), NextAppointment(appts, now), now))
+	return httpx.OK(c, TodayJSON(day, TodayDoses(day, meds, intakes, locale), NextAppointment(appts, now), now))
 }

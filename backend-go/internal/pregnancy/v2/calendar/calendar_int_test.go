@@ -9,6 +9,8 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -21,6 +23,7 @@ import (
 	"github.com/ritme/backend-go/internal/auth"
 	"github.com/ritme/backend-go/internal/auth/passport"
 	authstore "github.com/ritme/backend-go/internal/auth/store"
+	"github.com/ritme/backend-go/internal/care"
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
 	"github.com/ritme/backend-go/internal/platform/clock"
@@ -55,6 +58,7 @@ func setup(t *testing.T) *env {
 	app := fiber.New(fiber.Config{ErrorHandler: httpx.ErrorHandler(quiet)})
 	app.Use(clock.Middleware(clock.Real{}, true))
 	app.Get("/cal", locale, guard, calendar.NewHandlers(store.New(db), clock.Real{}).Calendar)
+	app.Put("/care/appointments/:id", locale, guard, care.NewHandlers(db, clock.Real{}).UpdateAppointment)
 	return &env{db: db, app: app, iss: passport.NewIssuer(key, q, clock.Real{}, 365)}
 }
 
@@ -73,17 +77,32 @@ func (e *env) user(t *testing.T, mobile, lmp string) (uint64, string) {
 	return uint64(id), tok.AccessToken
 }
 
-func (e *env) appointment(t *testing.T, uid uint64, at, meta string) {
+func (e *env) appointment(t *testing.T, uid uint64, at, meta string) int64 {
 	t.Helper()
-	_, err := e.db.Exec(`INSERT INTO reminders (user_id, type, title, scheduled_at, recurrence, is_active, meta, created_at, updated_at)
+	res, err := e.db.Exec(`INSERT INTO reminders (user_id, type, title, scheduled_at, recurrence, is_active, meta, created_at, updated_at)
 		VALUES (?, 'appointment', 'Visit', ?, 'none', 1, ?, NOW(), NOW())`, uid, at, meta)
 	require.NoError(t, err)
+	id, err := res.LastInsertId()
+	require.NoError(t, err)
+	return id
 }
 
 func (e *env) get(t *testing.T, path, tok, lang string) (int, map[string]any, string) {
 	t.Helper()
-	req := httptest.NewRequest(http.MethodGet, path, nil)
+	return e.do(t, http.MethodGet, path, tok, lang, "")
+}
+
+func (e *env) do(t *testing.T, method, path, tok, lang, body string) (int, map[string]any, string) {
+	t.Helper()
+	var rd io.Reader
+	if body != "" {
+		rd = strings.NewReader(body)
+	}
+	req := httptest.NewRequest(method, path, rd)
 	req.Header.Set("Accept", "application/json")
+	if body != "" {
+		req.Header.Set("Content-Type", "application/json")
+	}
 	if tok != "" {
 		req.Header.Set("Authorization", "Bearer "+tok)
 	}
@@ -174,4 +193,42 @@ func TestCalendar(t *testing.T) {
 
 	status, _, _ = e.get(t, "/cal", "", "fa")
 	assert.Equal(t, http.StatusUnauthorized, status)
+}
+
+// Review #1 (T-M2-34): is_active is only the reminder bell. Switching it off keeps the booked
+// (and the done) visit on the calendar and in the care plan; only cancelled visits drop out.
+func TestCalendar_ReminderOffKeepsVisit(t *testing.T) {
+	e := setup(t)
+	_, err := e.db.Exec(`INSERT INTO pregnancy_care_items (` + "`key`" + `, title, kind, week_from, week_to, sort_order, is_active, created_at, updated_at) VALUES
+		('r_nt', '{"fa":"NT","en":"NT scan"}', 'scan', 11, 14, 1, 1, NOW(), NOW()),
+		('r_first', '{"fa":"اول","en":"First"}', 'visit', 6, 8, 2, 1, NOW(), NOW())`)
+	require.NoError(t, err)
+	uid, tok := e.user(t, "09120000911", "2026-07-01")
+	booked := e.appointment(t, uid, "2026-09-30 10:30:00", `{"v":1,"kind":"in_person","topic":"ultrasound","remind_before":"1d","prep":[],"status":"scheduled","care_item_key":"r_nt","stage":"booked"}`)
+	done := e.appointment(t, uid, "2026-08-15 09:00:00", `{"v":1,"kind":"in_person","topic":"checkup","remind_before":"1d","prep":[],"status":"scheduled","care_item_key":"r_first","stage":"result","result_note":"ok"}`)
+
+	for _, id := range []int64{booked, done} {
+		status, _, raw := e.do(t, http.MethodPut, "/care/appointments/"+strconv.FormatInt(id, 10), tok, "fa", `{"is_active":false}`)
+		require.Equal(t, http.StatusOK, status, raw)
+	}
+	var active bool
+	require.NoError(t, e.db.QueryRow(`SELECT is_active FROM reminders WHERE id = ?`, booked).Scan(&active))
+	require.False(t, active)
+
+	status, body, raw := e.get(t, "/cal", tok, "fa")
+	require.Equal(t, http.StatusOK, status, raw)
+	data := body["data"].(map[string]any)
+	require.Len(t, data["visits"], 1, "the bell-off booked visit stays in this month")
+	assert.Equal(t, "2026-09-30", data["next_visit"].(map[string]any)["date"])
+	assert.Equal(t, "booked", planItem(t, data, "r_nt")["state"])
+	assert.Equal(t, "done", planItem(t, data, "r_first")["state"])
+
+	// Cancelling still removes it.
+	_, err = e.db.Exec(`UPDATE reminders SET meta = JSON_SET(meta, '$.status', 'cancelled') WHERE id = ?`, booked)
+	require.NoError(t, err)
+	status, body, raw = e.get(t, "/cal", tok, "fa")
+	require.Equal(t, http.StatusOK, status, raw)
+	data = body["data"].(map[string]any)
+	assert.Empty(t, data["visits"])
+	assert.Equal(t, "to_book", planItem(t, data, "r_nt")["state"])
 }

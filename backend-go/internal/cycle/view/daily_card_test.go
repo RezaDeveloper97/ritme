@@ -164,7 +164,7 @@ func TestDailyCardBuilder(t *testing.T) {
 		})
 
 		assert.Equal(t, "Ovulation is likely near", c.Title)
-		assert.Equal(t, enums.FertilityLevelVeryHigh, c.FertilityLevel)
+		assert.Equal(t, enums.FertilityLevelPeak, c.FertilityLevel) // D-26: v1.1 mapping (Laravel: very_high)
 	})
 
 	t.Run("test_plain_day_counts_down_to_the_fertile_window", func(t *testing.T) {

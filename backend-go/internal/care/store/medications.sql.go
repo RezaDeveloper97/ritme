@@ -254,3 +254,30 @@ func (q *Queries) UpdateMedication(ctx context.Context, arg UpdateMedicationPara
 	)
 	return err
 }
+
+const updateMedicationSwitches = `-- name: UpdateMedicationSwitches :exec
+UPDATE ` + "`" + `reminders` + "`" + `
+SET is_active = ?, meta = ?, updated_at = ?
+WHERE id = ? AND user_id = ? AND ` + "`" + `type` + "`" + ` = 'medication'
+`
+
+type UpdateMedicationSwitchesParams struct {
+	IsActive  bool
+	Meta      db.NullRawJSON
+	UpdatedAt sql.NullTime
+	ID        uint64
+	UserID    uint64
+}
+
+// A PUT that only flips is_active / notify (review #6, T-M2-34): no full re-validation, so legacy
+// rows (POST /reminders: no starts_on / times) can be toggled too.
+func (q *Queries) UpdateMedicationSwitches(ctx context.Context, arg UpdateMedicationSwitchesParams) error {
+	_, err := q.db.ExecContext(ctx, updateMedicationSwitches,
+		arg.IsActive,
+		arg.Meta,
+		arg.UpdatedAt,
+		arg.ID,
+		arg.UserID,
+	)
+	return err
+}

@@ -9,6 +9,7 @@ package pregnancy
 
 import (
 	"context"
+	"log/slog"
 	"strings"
 	"time"
 
@@ -38,7 +39,8 @@ type Handlers struct {
 }
 
 // AfterLogSave runs after every symptom / weekly / fetal-movement save (the v2 alert rules of
-// messages/pregnancyalerts, T-M7-04). It never changes the v1 response.
+// messages/pregnancyalerts, T-M7-04). It is best-effort and never changes the v1 response
+// (D-21): the v1 log is already committed, so a hook error is logged, not returned.
 type AfterLogSave func(ctx context.Context, userID uint64, locale, defaultLocale string, now time.Time) error
 
 // NewHandlers wires the handlers.
@@ -47,11 +49,15 @@ func NewHandlers(q store.Querier) *Handlers { return &Handlers{q: q} }
 // SetAfterLogSave installs the log-save hook.
 func (h *Handlers) SetAfterLogSave(f AfterLogSave) { h.afterSave = f }
 
-func (h *Handlers) afterLogSave(r req) error {
+func (h *Handlers) afterLogSave(r req) {
 	if h.afterSave == nil {
-		return nil
+		return
 	}
-	return h.afterSave(r.c.Context(), r.userID, r.locale, i18n.LanguagesOf(r.c).DefaultCode(), r.now)
+	ctx := r.c.Context()
+	if err := h.afterSave(ctx, r.userID, r.locale, i18n.LanguagesOf(r.c).DefaultCode(), r.now); err != nil {
+		slog.WarnContext(ctx, "pregnancy: v2 alert hook failed after a v1 log save",
+			slog.Uint64("user_id", r.userID), slog.String("error", err.Error()))
+	}
 }
 
 // req is the per-request context the controllers use.
@@ -392,9 +398,7 @@ func (h *Handlers) SymptomStore(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	if err := h.afterLogSave(r); err != nil {
-		return err
-	}
+	h.afterLogSave(r)
 	return httpx.Created(c, jsonx.Obj("log", log, "alerts", jsonx.List(created)),
 		r.tr("علائم با موفقیت ذخیره شد", "Symptom log saved successfully"))
 }
@@ -499,9 +503,7 @@ func (h *Handlers) WeeklyStore(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	if err := h.afterLogSave(r); err != nil {
-		return err
-	}
+	h.afterLogSave(r)
 	return httpx.Created(c, jsonx.Obj("log", log, "alerts", jsonx.List(created)),
 		r.tr("گزارش هفتگی با موفقیت ذخیره شد", "Weekly log saved successfully"))
 }
@@ -604,9 +606,7 @@ func (h *Handlers) FetalStore(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	if err := h.afterLogSave(r); err != nil {
-		return err
-	}
+	h.afterLogSave(r)
 	return httpx.Created(c, jsonx.Obj("log", log, "alerts", jsonx.List(created)),
 		r.tr("حرکات جنین ثبت شد", "Fetal movement logged successfully"))
 }

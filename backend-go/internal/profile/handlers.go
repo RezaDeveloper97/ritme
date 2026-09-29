@@ -14,7 +14,6 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/ritme/backend-go/internal/auth"
-	authstore "github.com/ritme/backend-go/internal/auth/store"
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/i18n"
 	"github.com/ritme/backend-go/internal/i18n/lang"
@@ -37,7 +36,6 @@ var allowedFields = []string{
 // Handlers is Api\V1\ProfileController.
 type Handlers struct {
 	svc    *Service
-	tokens auth.TokenRevoker
 	bmi    Bmi
 	clock  clock.Clock
 	debug  bool
@@ -68,7 +66,6 @@ func NewHandlers(o Options) *Handlers {
 	}
 	return &Handlers{
 		svc:    &Service{DB: o.DB, Q: q, Telegram: o.Telegram},
-		tokens: authstore.New(o.DB),
 		bmi:    Bmi{Content: o.Content},
 		clock:  o.Clock,
 		debug:  o.Debug,
@@ -308,8 +305,10 @@ func (h *Handlers) Export(c fiber.Ctx) error {
 	))
 }
 
-// DestroyAccount is DELETE /account: revoke every token, then delete the user (every
-// user-owned table cascades).
+// DestroyAccount is DELETE /account: delete the user's OAuth tokens and the user in one
+// transaction (every user-owned table cascades). D-25: Laravel only revokes the access
+// tokens and leaves them (and the refresh tokens) behind; the dead token still answers the
+// same 401 `token_revoked`.
 func (h *Handlers) DestroyAccount(c fiber.Ctx) error {
 	u, err := currentUser(c)
 	if err != nil {
@@ -317,11 +316,8 @@ func (h *Handlers) DestroyAccount(c fiber.Ctx) error {
 	}
 	locale := i18n.ResolveLocale(c, "")
 	ctx := c.Context()
-	if _, err := auth.RevokeUserTokens(ctx, h.tokens, u.ID, h.now(c)); err != nil {
-		return fmt.Errorf("profile: revoke tokens: %w", err)
-	}
-	if _, err := h.svc.Q.DeleteUser(ctx, u.ID); err != nil {
-		return fmt.Errorf("profile: delete user: %w", err)
+	if err := h.svc.DeleteAccount(ctx, u.ID); err != nil {
+		return err
 	}
 	// Laravel hard-codes this pair (`$locale === 'fa' ? … : …`); ported as is.
 	msg := "Your account and all associated data have been deleted"

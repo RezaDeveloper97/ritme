@@ -19,7 +19,7 @@ SELECT
 FROM `users` u
 LEFT JOIN `reminders` a ON a.id = (
   SELECT r.id FROM `reminders` r
-  WHERE r.user_id = sqlc.arg(user_id) AND r.`type` = 'appointment' AND r.is_active = 1
+  WHERE r.user_id = sqlc.arg(user_id) AND r.`type` = 'appointment'
     AND r.scheduled_at >= sqlc.arg(now)
     AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(r.meta, '$.status')), 'scheduled') <> 'cancelled'
   ORDER BY r.scheduled_at, r.id

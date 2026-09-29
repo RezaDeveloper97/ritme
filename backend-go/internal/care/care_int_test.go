@@ -467,3 +467,69 @@ func TestEnums_Localized(t *testing.T) {
 	assert.Equal(t, map[string]any{"value": "tablet", "label": "قرص"}, r.data()["forms"].([]any)[0])
 	assert.Equal(t, map[string]any{"value": "1d", "label": "۱ روز قبل"}, r.data()["remind_before"].([]any)[2])
 }
+
+// Review #6 (T-M2-34): a legacy medication (POST /reminders: no starts_on, no recurrence_time,
+// no meta) can be switched off and on through /care; a full edit still validates as a whole.
+func TestMedication_LegacyRowSwitches(t *testing.T) {
+	e := setup(t)
+	uid, tok := e.user(t, "09120000010")
+	res, err := e.db.Exec(`INSERT INTO reminders (user_id, type, title, subtitle, recurrence, is_active, created_at, updated_at)
+		VALUES (?, 'medication', 'Old pill', 'one tablet', 'daily', 1, '2026-08-01 08:00:00', '2026-08-01 08:00:00')`, uid)
+	require.NoError(t, err)
+	id64, err := res.LastInsertId()
+	require.NoError(t, err)
+	id := uint64(id64)
+
+	r := e.do(t, http.MethodPut, medPath(id, ""), tok, "en", `{"is_active":false}`)
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	assert.Equal(t, false, r.data()["is_active"])
+	assert.Equal(t, "one tablet", r.data()["subtitle"], "legacy subtitle kept")
+	assert.Nil(t, r.data()["starts_on"], "a switch changes nothing else")
+
+	r = e.do(t, http.MethodPut, medPath(id, ""), tok, "en", `{"is_active":true,"notify":false}`)
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	assert.Equal(t, true, r.data()["is_active"])
+	assert.Equal(t, false, r.data()["notify"])
+
+	r = e.do(t, http.MethodPut, medPath(id, ""), tok, "en", `{"is_active":"maybe"}`)
+	assert.Equal(t, http.StatusUnprocessableEntity, r.status, r.raw)
+	assert.Contains(t, r.errors(), "is_active")
+
+	// A full edit: starts_on defaults to the row's creation day, times must be given.
+	r = e.do(t, http.MethodPut, medPath(id, ""), tok, "en", `{"title":"Old pill 2"}`)
+	assert.Equal(t, http.StatusUnprocessableEntity, r.status, r.raw)
+	assert.Contains(t, r.errors(), "times")
+	assert.NotContains(t, r.errors(), "starts_on")
+	r = e.do(t, http.MethodPut, medPath(id, ""), tok, "en", `{"title":"Old pill 2","times":["09:00"]}`)
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	assert.Equal(t, "2026-08-01", r.data()["starts_on"])
+
+	// Another user's id is a 404 on the switch path too.
+	_, other := e.user(t, "09120000011")
+	r = e.do(t, http.MethodPut, medPath(id, ""), other, "en", `{"is_active":false}`)
+	assert.Equal(t, http.StatusNotFound, r.status, r.raw)
+}
+
+// Review #7 (T-M2-34): the dose subtitle is rendered in the reading locale, not frozen in the
+// save-time one; the legacy column is written in the default language for GET /reminders.
+func TestMedication_SubtitleFollowsReadLocale(t *testing.T) {
+	e := setup(t)
+	_, tok := e.user(t, "09120000012")
+	id := e.create(t, tok, folic) // saved in fa
+
+	r := e.do(t, http.MethodGet, "/api/v1/care/today", tok, "en", "")
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	doses := r.data()["doses"].([]any)
+	require.NotEmpty(t, doses)
+	assert.Equal(t, "فولیک اسید 400 mcg", doses[0].(map[string]any)["title"])
+	r = e.do(t, http.MethodGet, medPath(id, ""), tok, "en", "")
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	assert.Equal(t, "400 mcg", r.data()["subtitle"])
+
+	// Saved in en: the stored column is still the default language's.
+	r = e.do(t, http.MethodPut, medPath(id, ""), tok, "en", `{"dose":"500"}`)
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	var stored string
+	require.NoError(t, e.db.QueryRow(`SELECT subtitle FROM reminders WHERE id = ?`, id).Scan(&stored))
+	assert.Equal(t, "۵۰۰ میکروگرم", stored)
+}

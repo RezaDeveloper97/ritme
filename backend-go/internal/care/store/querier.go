@@ -39,6 +39,9 @@ type Querier interface {
 	ListMedications(ctx context.Context, userID uint64) ([]Reminder, error)
 	UpdateAppointment(ctx context.Context, arg UpdateAppointmentParams) error
 	UpdateMedication(ctx context.Context, arg UpdateMedicationParams) error
+	// A PUT that only flips is_active / notify (review #6, T-M2-34): no full re-validation, so legacy
+	// rows (POST /reminders: no starts_on / times) can be toggled too.
+	UpdateMedicationSwitches(ctx context.Context, arg UpdateMedicationSwitchesParams) error
 }
 
 var _ Querier = (*Queries)(nil)

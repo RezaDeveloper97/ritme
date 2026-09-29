@@ -259,7 +259,7 @@ func (b cardBuilder) predictedDay(cycleDay int, sub enums.CycleSubphase, daysUnt
 
 	return b.card(
 		title, subtitle,
-		enums.DataStatusPredicted, sub.FertilityLevel(),
+		enums.DataStatusPredicted, sub.FertilityLevelV11(), // D-26 (T-M2-34): Laravel uses the legacy fertilityLevel()
 		b.badges(cycleDay, enums.DataStatusPredicted),
 		b.predictedPrimaryAction(isFuture, isToday),
 		b.detailsAction(!isToday && !isFuture, isToday),

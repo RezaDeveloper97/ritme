@@ -65,10 +65,15 @@ func TestCriticalSymptom(t *testing.T) {
 
 func TestCalendarRules(t *testing.T) {
 	f := facts(nil)
+	// Day 0 of week 13: too early for "weight missing" (default from_weekday 5).
+	assert.Empty(t, Detect("weight_missing_week", cfg(7, map[string]any{"from_week": 13.0}), f))
+	assert.Len(t, Detect("weight_missing_week", cfg(7, map[string]any{"from_week": 13.0, "from_weekday": 0.0}), f), 1)
+	f.WeekDay = 5
 	assert.Len(t, Detect("weight_missing_week", cfg(7, map[string]any{"from_week": 13.0}), f), 1)
 	assert.Empty(t, Detect("weight_missing_week", cfg(7, map[string]any{"from_week": 14.0}), f))
 	f.HasWeight = true
 	assert.Empty(t, Detect("weight_missing_week", cfg(7, map[string]any{"from_week": 1.0}), f))
+	f.HasWeight, f.WeekDay = false, 0
 
 	hits := Detect("week_entered", cfg(1, nil), f)
 	require.Len(t, hits, 1)

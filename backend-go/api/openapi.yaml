@@ -46,7 +46,7 @@ paths:
     delete:
       tags: [Profile]
       summary: Delete account and all personal data
-      description: "Permanently deletes the authenticated user's account together with every related record (profile, health logs, cycle data, pregnancy data, reminders, notifications) and revokes all access tokens. Irreversible."
+      description: "Permanently deletes the authenticated user's account together with every related record (profile, health logs, cycle data, pregnancy data, reminders, notifications) and deletes all its OAuth access and refresh tokens, in one transaction (D-25; Laravel only revokes the access tokens). The old token then answers 401 `token_revoked`. Irreversible."
       operationId: deleteAccount
       security:
         - {bearerAuth: []}
@@ -592,8 +592,8 @@ paths:
       description: |
         The home «یادآورهای امروز» card in one request (3 queries). `doses` = one entry per slot of every **active**
         medication whose weekday/start/end window covers `date`, sorted by slot (then reminder id); `taken` when a
-        `reminder_intakes` row exists for that reminder, date and slot. `title` = title + " " + subtitle (dose and unit)
-        when there is a subtitle. `next_appointment` = the earliest `scheduled` (not cancelled) appointment at or after
+        `reminder_intakes` row exists for that reminder, date and slot. `title` = title + " " + subtitle (dose and unit,
+        rendered in the request language) when there is a subtitle. `next_appointment` = the earliest `scheduled` (not cancelled) appointment at or after
         now — its reminder switch (`is_active`) does not matter — or null; it is relative to now, not to `date`.
         `days_until` = civil days from today (Tehran). A malformed `date` → 422 on `date`.
       operationId: getCareToday
@@ -688,8 +688,8 @@ paths:
       summary: Create a medication reminder
       description: |
         Returns **201** with the medication. Stored as a `reminders` row (`type = medication`) whose legacy columns are
-        derived so `GET /reminders` readers keep working: `subtitle` = "dose unit" in the request language
-        (localized digits), `recurrence` = `daily` (all weekdays) or `weekly`, `recurrence_time` = the first slot.
+        derived so `GET /reminders` readers keep working: the stored `subtitle` column = "dose unit" in the default
+        language (localized digits); the `/care` responses render `subtitle` from dose + unit in the request language, `recurrence` = `daily` (all weekdays) or `weekly`, `recurrence_time` = the first slot.
         `times` are de-duplicated and sorted, `weekdays` (Saturday = 0) likewise. `ends_on` is used only for
         `duration = until_date`; `pregnancy_end` takes the active pregnancy's due date (open-ended without one);
         `ongoing` stores NULL. Unknown keys are ignored.
@@ -745,7 +745,7 @@ paths:
     put:
       tags: [Care]
       summary: Update a medication reminder
-      description: "Partial update: only the keys sent change (`{\"is_active\": false}` is the list switch). The merged medication is validated as a whole and the legacy columns are re-derived."
+      description: "Partial update: only the keys sent change. A body with only `is_active` and/or `notify` (the list switches) updates just those, without re-validating the rest, so legacy `/reminders` medications (no `starts_on` / times) can be toggled too. Any other body is merged over the stored medication (a missing `starts_on` defaults to the row's creation day) and validated as a whole, and the legacy columns are re-derived."
       operationId: putCareMedicationsById
       security:
         - {bearerAuth: []}
@@ -1456,8 +1456,8 @@ paths:
       tags: [Checkups]
       summary: The checkups card on the cycle home
       description: |
-        The plan summary plus at most two due/overdue items (cycle-timed first, then overdue before due, then catalog
-        order), in three queries (profile + pregnancy flag, cycle history, catalog joined with settings and the latest
+        The plan summary plus at most two due/overdue items (the monthly self-exam first, then cycle-timed, then
+        overdue before due, then catalog order), in three queries (profile + pregnancy flag, cycle history, catalog joined with settings and the latest
         record per type). `data: null` when nothing applies (no enabled item) — the card hides.
       operationId: getCheckupsHome
       security:
@@ -6440,7 +6440,7 @@ paths:
     post:
       tags: [Profile]
       summary: Create or update user profile
-      description: "Create or update the authenticated user's profile information including menstrual cycle data"
+      description: "Create or update the authenticated user's profile information including menstrual cycle data. A confirmed onboarding period (cycle_histories, source user_profile_confirmed) is seeded or re-synced only from a sent `last_period_start` (D-24: Go never defaults it to today; Laravel does)."
       operationId: postProfile
       security:
         - {bearerAuth: []}
@@ -6464,7 +6464,7 @@ paths:
                   type: integer
                   examples: [28]
                 last_period_start:
-                  description: "When did your last period start? Defaults to today if not provided"
+                  description: "When did your last period start? Left empty (null) if not provided (D-24; Laravel defaults it to today for non-pregnant users)"
                   type: string
                   format: date
                   examples: ["2024-12-01"]
@@ -7383,7 +7383,7 @@ paths:
       summary: Pregnancy Today screen
       description: |
         Week carousel (prev / current / next), due card, 40-week progress with trimester start dates, next visit
-        (next upcoming M3 appointment, else the next active care-plan item), week tip (`pregnancy_week_tip/{week}`),
+        (next upcoming non-cancelled M3 appointment, whatever its reminder switch, else the next active care-plan item), week tip (`pregnancy_week_tip/{week}`),
         this week's tasks with done state and the unread alert count — in ≤ 5 queries. Week counts to 42 when overdue.
       operationId: getPregnancyV2Today
       security:
@@ -7590,7 +7590,7 @@ paths:
       summary: Pregnancy calendar month, visits and care plan
       description: |
         Month grid markers (visit / week start / today), the non-cancelled M3 appointments of the month as
-        visits, the next visit, and the active care plan with each item's window (week_from–week_to as dates
+        visits (the reminder switch `is_active` does not matter), the next visit, and the active care plan with each item's window (week_from–week_to as dates
         from the due date), state (done when a linked appointment has stage done|result, booked when any
         other linked appointment exists, else to_book) and suggested date. `month` is in the locale's
         calendar (Jalali for fa); default is the current month.
@@ -7762,7 +7762,8 @@ paths:
         symptom set of the day. nausea/vomiting/fatigue/headache/back_pain/breast_pain/spotting are written to the v1
         symptom log (same alert rules as POST /pregnancy/symptoms); heartburn/constipation/mood/water/visit note to
         pregnancy_daily_extras; weight to that week's weekly log. Nothing is written (and no alert raised) when the
-        values are unchanged. The date may not be in the future.
+        values are unchanged. All writes and the alert evaluation run in one transaction. The date may not be in the
+        future nor before the pregnancy start (422 on `date`).
       operationId: putPregnancyV2Day
       security:
         - {bearerAuth: []}
@@ -7805,7 +7806,8 @@ paths:
       summary: Pregnancy alerts of the last 7 days + the 4-level legend
       description: >-
         Runs the daily evaluation of the alert rules first (deduplicated per rule per window, so at most once per
-        window). Rules, levels, thresholds and texts are `message_contents` rows of group `pregnancy_alert`; texts are
+        window); HEAD skips it and never writes. `weight_missing_week` fires from day `from_weekday` (default 5, i.e.
+        the 6th day) of the week. Rules, levels, thresholds and texts are `message_contents` rows of group `pregnancy_alert`; texts are
         rendered at read time in the request locale (fallback: default language). Acked alerts stay listed with
         `is_acked: true`.
       operationId: getPregnancyV2Alerts
@@ -8184,7 +8186,7 @@ components:
         title: {type: [string, "null"]}
         subtitle: {type: [string, "null"]}
         category: {type: string, enum: [monthly, six_monthly, annual, multi_year, age_based, custom]}
-        section: {type: string, enum: [this_month, overdue, monthly, six_monthly, annual, multi_year, age_based, custom]}
+        section: {type: string, enum: [this_month, overdue, monthly, six_monthly, annual, multi_year, age_based, custom], description: "this_month: a cycle-timed type due inside the current month, or an overdue monthly one (self-exam); every other overdue item: overdue; else the category."}
         status: {type: string, enum: [overdue, due, soon, up_to_date, not_yet, disabled]}
         icon: {type: [string, "null"]}
         tone: {type: string, enum: [rose, violet, amber, teal, green, neutral]}
@@ -8567,7 +8569,9 @@ components:
         title: {type: string}
         subtitle: {type: string}
         data_status: {type: string}
-        fertility_level: {type: string}
+        fertility_level:
+          type: string
+          description: "Same v1.1 mapping as `cycle_view.fertility_level` (post_ovulation → low, ovulation_likely → peak); D-26, Laravel uses the legacy mapping"
         fertility_label: {type: string}
         badges: {type: array, items: {type: string}}
         primary_action:

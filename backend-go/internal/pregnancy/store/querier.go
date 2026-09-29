@@ -16,6 +16,7 @@ type Querier interface {
 	// Pregnancy v2 admin API (T-M7-06, docs/go-migration/admin-api.md §13): care-item delete guard and the
 	// message_contents writes of the alert-rule editor and POST /messages (create in a registered group).
 	// Appointments (reminders type = 'appointment') linked to each care item through meta.care_item_key.
+	// Cancelled appointments do not count (review #13, T-M2-34): a cancelled booking never blocks a delete.
 	CountCareItemAppointments(ctx context.Context) ([]CountCareItemAppointmentsRow, error)
 	// Dedupe: how many alerts of one rule with the same dedupe key exist since `since`.
 	CountV2AlertDedupe(ctx context.Context, arg CountV2AlertDedupeParams) (int64, error)
@@ -23,7 +24,8 @@ type Querier interface {
 	DeleteCareItem(ctx context.Context, id uint64) (int64, error)
 	DeleteDailyExtras(ctx context.Context, arg DeleteDailyExtrasParams) error
 	DeleteSymptomLog(ctx context.Context, arg DeleteSymptomLogParams) (int64, error)
-	// Deletes the item only while no appointment references its key (one statement: no race with a new booking).
+	// Deletes the item only while no non-cancelled appointment references its key (one statement: no race with a
+	// new booking).
 	DeleteUnlinkedCareItem(ctx context.Context, id uint64) (int64, error)
 	DismissAlert(ctx context.Context, arg DismissAlertParams) error
 	GetAlert(ctx context.Context, arg GetAlertParams) (PregnancyAlert, error)

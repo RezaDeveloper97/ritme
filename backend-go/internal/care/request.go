@@ -93,8 +93,11 @@ func storedMedication(m Medication) phpval.Map {
 	data.Set("weekdays", weekdays)
 	data.Set("amount", int64(m.Meta.Amount))
 	data.Set("duration", m.Meta.Duration)
-	if m.Row.StartsOn.Valid {
+	switch {
+	case m.Row.StartsOn.Valid:
 		data.Set("starts_on", m.Row.StartsOn.Date.String())
+	case m.Row.CreatedAt.Valid: // legacy POST /reminders row: starts when it was created
+		data.Set("starts_on", civildate.FromTime(m.Row.CreatedAt.Time).String())
 	}
 	if m.Meta.Duration == DurationUntilDate && m.Row.EndsOn.Valid {
 		data.Set("ends_on", m.Row.EndsOn.Date.String())
@@ -103,6 +106,32 @@ func storedMedication(m Medication) phpval.Map {
 	data.Set("notes", nullString(m.Row.Notes))
 	data.Set("is_active", m.Row.IsActive)
 	return data
+}
+
+// switchFields are the keys of a toggle-only PUT (the list switches).
+var switchFields = []string{"is_active", "notify"}
+
+// switchesOnly reports whether the PUT body carries medication keys and all of them are
+// switches (is_active / notify).
+func switchesOnly(in phpval.Map) bool {
+	sent := 0
+	for _, k := range medicationFields {
+		if _, ok := in.Get(k); ok {
+			if !slices.Contains(switchFields, k) {
+				return false
+			}
+			sent++
+		}
+	}
+	return sent > 0
+}
+
+// switchRules validate a toggle-only PUT.
+func switchRules() validation.Rules {
+	return validation.Rules{
+		validation.F("is_active", "sometimes", "boolean"),
+		validation.F("notify", "sometimes", "boolean"),
+	}
 }
 
 func ptrValue(s *string) any {

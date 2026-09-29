@@ -295,7 +295,10 @@ func alertsJSON(raised []*jsonx.OrderedMap) []any {
 }
 
 // Save applies a validated PUT and returns the merged day with the alerts this save raised.
-// Writes happen only when something changes, so a resent PUT raises no alerts twice.
+// Writes happen only when something changes, so a resent PUT raises no alerts twice. The
+// writes (symptom log + its v1 alerts, extras, weekly log + its v1 alerts) and the v2 alert
+// evaluation run in one transaction (review #9, T-M2-34): a failure leaves nothing half-saved.
+// A date before the pregnancy start is a 422 (review #8): it would clamp to week 1.
 func (s *Service) Save(ctx context.Context, userID uint64, date civildate.Date, in Input, now time.Time, l v2.Lang,
 ) (*jsonx.OrderedMap, error) {
 	locale := l.Locale
@@ -303,11 +306,86 @@ func (s *Service) Save(ctx context.Context, userID uint64, date civildate.Date, 
 	if err != nil {
 		return nil, err
 	}
+	if err := checkInPregnancy(d, date, locale); err != nil {
+		return nil, err
+	}
 
-	if in.Symptoms != nil {
-		row, err := noRows(s.q.GetSymptomLog(ctx, store.GetSymptomLogParams{UserID: userID, LogDate: date}))
+	q, commit, rollback, err := s.begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer rollback()
+	if err := s.write(ctx, q, userID, date, d, in, now, locale); err != nil {
+		return nil, err
+	}
+	var raised []*jsonx.OrderedMap
+	if s.alerts != nil {
+		if tx, ok := s.alerts.(TxEvaluator); ok {
+			raised, err = tx.EvaluateOn(ctx, q, userID, now, l)
+		} else {
+			raised, err = s.alerts.Evaluate(ctx, userID, now, l)
+		}
 		if err != nil {
-			return nil, fmt.Errorf("pregnancy daylog: symptoms: %w", err)
+			return nil, err
+		}
+	}
+	if err := commit(); err != nil {
+		return nil, err
+	}
+	return s.Day(ctx, userID, date, now, locale, raised)
+}
+
+// TxEvaluator is an Evaluator that can run on a given querier (the day-log transaction).
+type TxEvaluator interface {
+	EvaluateOn(ctx context.Context, q store.Querier, userID uint64, now time.Time, l v2.Lang) ([]*jsonx.OrderedMap, error)
+}
+
+// begin opens the save transaction when the querier is a *store.Queries on a connection
+// pool; otherwise (a test double, an outer transaction) it writes through s.q directly.
+func (s *Service) begin(ctx context.Context) (store.Querier, func() error, func(), error) {
+	sq, ok := s.q.(*store.Queries)
+	if !ok {
+		return s.q, func() error { return nil }, func() {}, nil
+	}
+	tx, qtx, err := sq.BeginTx(ctx)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("pregnancy daylog: begin: %w", err)
+	}
+	if tx == nil {
+		return qtx, func() error { return nil }, func() {}, nil
+	}
+	done := false
+	commit := func() error {
+		done = true
+		if err := tx.Commit(); err != nil {
+			return fmt.Errorf("pregnancy daylog: commit: %w", err)
+		}
+		return nil
+	}
+	rollback := func() {
+		if !done {
+			_ = tx.Rollback()
+		}
+	}
+	return qtx, commit, rollback, nil
+}
+
+// checkInPregnancy refuses a day before the pregnancy start (422 on date).
+func checkInPregnancy(d v2.Dating, date civildate.Date, locale string) error {
+	if date.Before(d.Start()) {
+		return fieldError(locale, "date", T("validation.before_pregnancy", locale))
+	}
+	return nil
+}
+
+// write applies in through q (the save transaction).
+func (s *Service) write(ctx context.Context, q store.Querier, userID uint64, date civildate.Date, d v2.Dating, in Input,
+	now time.Time, locale string,
+) error {
+	if in.Symptoms != nil {
+		row, err := noRows(q.GetSymptomLog(ctx, store.GetSymptomLogParams{UserID: userID, LogDate: date}))
+		if err != nil {
+			return fmt.Errorf("pregnancy daylog: symptoms: %w", err)
 		}
 		cur := v1Severities(row)
 		want := *in.Symptoms
@@ -328,22 +406,22 @@ func (s *Service) Save(ctx context.Context, userID uint64, date civildate.Date, 
 		}
 		if changed {
 			// The v1 rules still write their pregnancy_alerts rows (v1 parity); the day
-			// returns the v2 rule alerts below.
-			if _, err := pregnancy.SaveSymptomDay(ctx, s.q, userID, date, attrs, locale, now); err != nil {
-				return nil, err
+			// returns the v2 rule alerts.
+			if _, err := pregnancy.SaveSymptomDay(ctx, q, userID, date, attrs, locale, now); err != nil {
+				return err
 			}
 		}
 	}
 
-	if err := s.saveExtras(ctx, userID, date, in, now); err != nil {
-		return nil, err
+	if err := saveExtras(ctx, q, userID, date, in, now); err != nil {
+		return err
 	}
 
 	if in.Weight != nil {
 		week := weekOf(d, date)
-		wl, err := noRows(s.q.GetWeeklyLog(ctx, store.GetWeeklyLogParams{UserID: userID, PregnancyWeek: int32(week)})) //nolint:gosec // 1..42
+		wl, err := noRows(q.GetWeeklyLog(ctx, store.GetWeeklyLogParams{UserID: userID, PregnancyWeek: int32(week)})) //nolint:gosec // 1..42
 		if err != nil {
-			return nil, fmt.Errorf("pregnancy daylog: weekly: %w", err)
+			return fmt.Errorf("pregnancy daylog: weekly: %w", err)
 		}
 		var cur *float64
 		if wl != nil {
@@ -354,18 +432,12 @@ func (s *Service) Save(ctx context.Context, userID uint64, date civildate.Date, 
 		next := *in.Weight
 		same := (cur == nil && next == nil) || (cur != nil && next != nil && *cur == *next && wl.LogDate == date)
 		if !same && (wl != nil || next != nil) {
-			if _, err := pregnancy.SaveWeeklyWeight(ctx, s.q, userID, week, date, in.WeightRaw, locale, now); err != nil {
-				return nil, err
+			if _, err := pregnancy.SaveWeeklyWeight(ctx, q, userID, week, date, in.WeightRaw, locale, now); err != nil {
+				return err
 			}
 		}
 	}
-	var raised []*jsonx.OrderedMap
-	if s.alerts != nil {
-		if raised, err = s.alerts.Evaluate(ctx, userID, now, l); err != nil {
-			return nil, err
-		}
-	}
-	return s.Day(ctx, userID, date, now, locale, raised)
+	return nil
 }
 
 func toNullInt(p *int) sql.NullInt16 {
@@ -382,12 +454,12 @@ func toNullStr(p *string) sql.NullString {
 	return sql.NullString{String: *p, Valid: true}
 }
 
-func (s *Service) saveExtras(ctx context.Context, userID uint64, date civildate.Date, in Input, now time.Time) error {
+func saveExtras(ctx context.Context, q store.Querier, userID uint64, date civildate.Date, in Input, now time.Time) error {
 	touched := in.Mood != nil || in.Water != nil || in.VisitNote != nil || in.Symptoms != nil
 	if !touched {
 		return nil
 	}
-	ex, err := noRows(s.q.GetDailyExtras(ctx, store.GetDailyExtrasParams{UserID: userID, LogDate: date}))
+	ex, err := noRows(q.GetDailyExtras(ctx, store.GetDailyExtrasParams{UserID: userID, LogDate: date}))
 	if err != nil {
 		return fmt.Errorf("pregnancy daylog: extras: %w", err)
 	}
@@ -426,7 +498,7 @@ func (s *Service) saveExtras(ctx context.Context, userID uint64, date civildate.
 		!p.HeartburnSeverity.Valid && !p.ConstipationSeverity.Valid {
 		return nil // nothing to store
 	}
-	if err := s.q.UpsertDailyExtras(ctx, p); err != nil {
+	if err := q.UpsertDailyExtras(ctx, p); err != nil {
 		return fmt.Errorf("pregnancy daylog: upsert extras: %w", err)
 	}
 	return nil

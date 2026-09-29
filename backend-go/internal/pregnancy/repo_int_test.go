@@ -172,3 +172,37 @@ func keys(m map[string]any) []string {
 	}
 	return out
 }
+
+// Review #13 (T-M2-34): a cancelled appointment no longer blocks deleting its care item.
+func TestCareItemDeleteGuardIgnoresCancelled(t *testing.T) {
+	conn, q, uid := setup(t)
+	ctx := context.Background()
+	res, err := conn.Exec("INSERT INTO pregnancy_care_items (`key`, title, kind, week_from, week_to, sort_order, is_active, created_at, updated_at) " +
+		`VALUES ('g_nt', '{"en":"NT"}', 'scan', 11, 14, 1, 1, NOW(), NOW())`)
+	require.NoError(t, err)
+	id64, err := res.LastInsertId()
+	require.NoError(t, err)
+	id := uint64(id64) //nolint:gosec // G115
+	_, err = conn.Exec(`INSERT INTO reminders (user_id, type, title, recurrence, scheduled_at, meta, is_active, created_at, updated_at)
+		VALUES (?, 'appointment', 'NT', 'none', NOW(), '{"care_item_key":"g_nt","status":"scheduled"}', 1, NOW(), NOW())`, uid)
+	require.NoError(t, err)
+
+	n, err := q.CountAppointmentsOfCareItem(ctx, id)
+	require.NoError(t, err)
+	assert.EqualValues(t, 1, n)
+	gone, err := q.DeleteUnlinkedCareItem(ctx, id)
+	require.NoError(t, err)
+	assert.Zero(t, gone, "a scheduled booking blocks")
+
+	_, err = conn.Exec(`UPDATE reminders SET meta = JSON_SET(meta, '$.status', 'cancelled') WHERE user_id = ?`, uid)
+	require.NoError(t, err)
+	n, err = q.CountAppointmentsOfCareItem(ctx, id)
+	require.NoError(t, err)
+	assert.Zero(t, n)
+	counts, err := q.CountCareItemAppointments(ctx)
+	require.NoError(t, err)
+	assert.Empty(t, counts)
+	gone, err = q.DeleteUnlinkedCareItem(ctx, id)
+	require.NoError(t, err)
+	assert.EqualValues(t, 1, gone, "a cancelled booking does not block")
+}

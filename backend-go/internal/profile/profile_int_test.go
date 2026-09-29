@@ -172,12 +172,66 @@ func TestDestroyAccount_RevokesTokensAndDeletes(t *testing.T) {
 	e := setup(t)
 	id, tok := e.user(t, "09120000004")
 	require.Equal(t, 200, e.do(t, http.MethodPost, "/api/v1/profile", tok, `{"weight":60}`).status)
+	// A refresh token of the user's token (Passport keeps them in a separate table, no FK), and
+	// another user's token that must survive.
+	var tokID string
+	require.NoError(t, e.db.QueryRow(`SELECT id FROM oauth_access_tokens WHERE user_id=?`, id).Scan(&tokID))
+	_, err := e.db.Exec(`INSERT INTO oauth_refresh_tokens (id, access_token_id, revoked, expires_at) VALUES ('rt-del', ?, 0, NULL)`, tokID)
+	require.NoError(t, err)
+	otherID, otherTok := e.user(t, "09120000005")
+
 	r := e.do(t, http.MethodDelete, "/api/v1/account", tok, "")
 	require.Equal(t, 200, r.status, r.raw)
-	var users, live int
-	require.NoError(t, e.db.QueryRow(`SELECT COUNT(*) FROM users WHERE id=?`, id).Scan(&users))
-	require.NoError(t, e.db.QueryRow(`SELECT COUNT(*) FROM oauth_access_tokens WHERE user_id=? AND revoked=0`, id).Scan(&live))
-	assert.Zero(t, users)
-	assert.Zero(t, live)
-	assert.Equal(t, 401, e.do(t, http.MethodGet, "/api/v1/profile", tok, "").status)
+	count := func(q string, args ...any) int {
+		var n int
+		require.NoError(t, e.db.QueryRow(q, args...).Scan(&n))
+		return n
+	}
+	assert.Zero(t, count(`SELECT COUNT(*) FROM users WHERE id=?`, id))
+	// D-25 (T-M2-34): the tokens are deleted with the user, not left behind revoked.
+	assert.Zero(t, count(`SELECT COUNT(*) FROM oauth_access_tokens WHERE user_id=?`, id))
+	assert.Zero(t, count(`SELECT COUNT(*) FROM oauth_refresh_tokens WHERE access_token_id=?`, tokID))
+	r = e.do(t, http.MethodGet, "/api/v1/profile", tok, "")
+	assert.Equal(t, 401, r.status)
+	assert.Equal(t, "token_revoked", r.body["error_code"])
+
+	assert.Equal(t, 1, count(`SELECT COUNT(*) FROM oauth_access_tokens WHERE user_id=? AND revoked=0`, otherID))
+	assert.Equal(t, 200, e.do(t, http.MethodGet, "/api/v1/profile", otherTok, "").status)
+}
+
+// Review #2 (T-M2-34, D-24): a profile save without last_period_start no longer fabricates a
+// confirmed period dated today — neither on a new profile nor on an edit of one without it.
+func TestStore_NoLastPeriodStartSeedsNothing(t *testing.T) {
+	e := setup(t)
+	id, tok := e.user(t, "09120000006")
+	cycles := func() int {
+		var n int
+		require.NoError(t, e.db.QueryRow(`SELECT COUNT(*) FROM cycle_histories WHERE user_id=?`, id).Scan(&n))
+		return n
+	}
+	lmp := func() sql.NullString {
+		var v sql.NullString
+		require.NoError(t, e.db.QueryRow(`SELECT last_period_start FROM user_profiles WHERE user_id=?`, id).Scan(&v))
+		return v
+	}
+
+	r := e.do(t, http.MethodPost, "/api/v1/profile", tok, `{"weight":60}`)
+	require.Equal(t, 200, r.status, r.raw)
+	assert.Nil(t, r.body["data"].(map[string]any)["profile"].(map[string]any)["last_period_start"])
+	assert.False(t, lmp().Valid, "new profile: no invented LMP")
+	assert.Zero(t, cycles(), "new profile: no cycle history row")
+
+	r = e.do(t, http.MethodPost, "/api/v1/profile", tok, `{"pregnancy_intention":"unsure","height":165}`)
+	require.Equal(t, 200, r.status, r.raw)
+	assert.False(t, lmp().Valid, "edit: still no LMP")
+	assert.Zero(t, cycles())
+
+	r = e.do(t, http.MethodGet, "/api/v1/profile", tok, "")
+	require.Equal(t, 200, r.status, r.raw)
+
+	// Logging the period later still seeds the onboarding row.
+	r = e.do(t, http.MethodPost, "/api/v1/profile", tok, `{"last_period_start":"2026-09-10"}`)
+	require.Equal(t, 200, r.status, r.raw)
+	assert.Equal(t, "2026-09-10", lmp().String[:10])
+	assert.Equal(t, 1, cycles())
 }

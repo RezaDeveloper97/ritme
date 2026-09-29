@@ -265,7 +265,15 @@ INSERT IGNORE INTO `message_contents` (`group`, `item_key`, `locale`, `label`, `
   ('pregnancy_setup', 'due_disclaimer', 'en', 'pregnancy_setup / due_disclaimer', '{"title":"The due date is an estimate.","body":"Based on the current data, most babies are born between {range_from} and {range_to}. Logging an ultrasound result narrows this range."}', 1, 1, 0, CONVERT_TZ(UTC_TIMESTAMP(), '+00:00', '+03:30'), CONVERT_TZ(UTC_TIMESTAMP(), '+00:00', '+03:30'));
 
 -- +goose Down
-DELETE FROM `message_contents` WHERE `group` IN ('pregnancy_week_tip', 'pregnancy_alert', 'pregnancy_setup');
+-- Removes only the seeded rows nobody touched (T-M2-34, review #14): the seed is fa/en with label
+-- "<group> / <item_key>" and created_at = updated_at; every admin edit bumps updated_at and admin-added
+-- rows in other locales are kept, so a rollback never loses curated copy. Re-running Up re-seeds the
+-- defaults with INSERT IGNORE and leaves the kept rows alone.
+DELETE FROM `message_contents`
+ WHERE `group` IN ('pregnancy_week_tip', 'pregnancy_alert', 'pregnancy_setup')
+   AND `locale` IN ('fa', 'en')
+   AND `label` = CONCAT(`group`, ' / ', `item_key`)
+   AND `updated_at` <=> `created_at`;
 DROP TABLE IF EXISTS `pregnancy_week_user_state`;
 DROP TABLE IF EXISTS `pregnancy_daily_extras`;
 DROP TABLE IF EXISTS `pregnancy_care_items`;

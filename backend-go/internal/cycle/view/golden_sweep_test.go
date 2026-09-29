@@ -115,6 +115,7 @@ func TestCycleViewGoldenSweep(t *testing.T) {
 
 				var want, have any
 				require.NoError(t, json.Unmarshal(step.Body.Data.CycleView, &want))
+				applyD26(want, calc.Subphase(), step.Request.AcceptLanguage)
 				require.NoError(t, json.Unmarshal(got, &have))
 				if !assert.Equal(t, want, have, "%s %s", step.Request.URL, step.Request.AcceptLanguage) {
 					return
@@ -124,6 +125,18 @@ func TestCycleViewGoldenSweep(t *testing.T) {
 		})
 	}
 	t.Logf("%d golden days compared across %d persona×locale files", steps, len(files))
+}
+
+// applyD26 rewrites Laravel's predicted daily_card fertility level (legacy fertilityLevel())
+// to the v1.1 mapping Go uses since T-M2-34 (deviations.md D-26).
+func applyD26(want any, sub enums.CycleSubphase, locale string) {
+	cv, _ := want.(map[string]any)
+	dc, _ := cv["daily_card"].(map[string]any)
+	if dc == nil || dc["data_status"] != string(enums.DataStatusPredicted) || dc["fertility_level"] != string(sub.FertilityLevel()) {
+		return
+	}
+	dc["fertility_level"] = string(sub.FertilityLevelV11())
+	dc["fertility_label"] = sub.FertilityLevelV11().Label(locale)
 }
 
 // loadFixture reads cycle_histories (newest first per user, as HealthDataEngine loads them) and

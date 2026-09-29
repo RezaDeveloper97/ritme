@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"encoding/json"
+	"errors"
 	"io"
 	"log/slog"
 	"net/http"
@@ -26,12 +27,24 @@ import (
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/db/testdb"
 	"github.com/ritme/backend-go/internal/platform/httpx"
+	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/pregnancy"
 	"github.com/ritme/backend-go/internal/pregnancy/store"
+	v2 "github.com/ritme/backend-go/internal/pregnancy/v2"
 	"github.com/ritme/backend-go/internal/pregnancy/v2/daylog"
 )
 
 func TestMain(m *testing.M) { testdb.Main(m) }
+
+type failingEvaluator struct{}
+
+func (failingEvaluator) Evaluate(context.Context, uint64, time.Time, v2.Lang) ([]*jsonx.OrderedMap, error) {
+	return nil, errors.New("evaluate failed")
+}
+
+func (failingEvaluator) EvaluateOn(context.Context, store.Querier, uint64, time.Time, v2.Lang) ([]*jsonx.OrderedMap, error) {
+	return nil, errors.New("evaluate failed")
+}
 
 const (
 	clientID = "0199c0de-0000-7000-8000-00000c0ffee1"
@@ -76,6 +89,9 @@ func setup(t *testing.T) *harness {
 	app.Get(base+"/days/:date", locale, guard, dl.Show)
 	app.Put(base+"/days/:date", locale, guard, dl.Update)
 	app.Get("/api/v1/pregnancy/symptoms/:date", locale, guard, v1.SymptomShow)
+	// A day log whose alert evaluation fails after the writes (review #9, T-M2-34).
+	failing := daylog.NewHandlers(q, failingEvaluator{}, clock.Real{})
+	app.Put("/failing/days/:date", locale, guard, failing.Update)
 	return &harness{
 		app: app, iss: passport.NewIssuer(key, aq, clock.Real{}, 365),
 		exec: func(s string, args ...any) { _, err := db.Exec(s, args...); require.NoError(t, err) },
@@ -275,4 +291,34 @@ func TestReport(t *testing.T) {
 	require.Equal(t, http.StatusUnprocessableEntity, r.status, r.raw)
 	r = h.do(t, http.MethodGet, base+"/report", tok, "fa", "")
 	require.Equal(t, http.StatusUnprocessableEntity, r.status, r.raw)
+}
+
+// Review #8 (T-M2-34): a day before the pregnancy start (LMP 2026-07-01) is refused; it used to
+// clamp to week 1 and overwrite that week's weight.
+func TestDay_BeforePregnancyStart(t *testing.T) {
+	h := setup(t)
+	uid, tok := h.user(t, "09120000871", true)
+	r := h.do(t, http.MethodPut, base+"/days/2024-01-01", tok, "en", `{"weight":70}`)
+	assert.Equal(t, http.StatusUnprocessableEntity, r.status, r.raw)
+	assert.Contains(t, r.body["errors"], "date")
+	r = h.do(t, http.MethodPut, base+"/days/2026-06-30", tok, "fa", `{"symptoms":{"nausea":"mild"}}`)
+	assert.Equal(t, http.StatusUnprocessableEntity, r.status, r.raw)
+	assert.Zero(t, h.count(`SELECT COUNT(*) FROM pregnancy_weekly_logs WHERE user_id = ?`, uid))
+	assert.Zero(t, h.count(`SELECT COUNT(*) FROM pregnancy_symptom_logs WHERE user_id = ?`, uid))
+	// The start day itself is fine.
+	r = h.do(t, http.MethodPut, base+"/days/2026-07-01", tok, "en", `{"weight":60}`)
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+}
+
+// Review #9 (T-M2-34): the day's writes and the alert evaluation are one transaction; a
+// failure after the writes leaves nothing saved.
+func TestDay_SaveIsAtomic(t *testing.T) {
+	h := setup(t)
+	uid, tok := h.user(t, "09120000872", true)
+	r := h.do(t, http.MethodPut, "/failing/days/2026-09-23", tok, "en",
+		`{"mood":2,"water_glasses":4,"weight":64.5,"symptoms":{"nausea":"severe","heartburn":"mild"}}`)
+	require.Equal(t, http.StatusInternalServerError, r.status, r.raw)
+	for _, table := range []string{"pregnancy_symptom_logs", "pregnancy_daily_extras", "pregnancy_weekly_logs", "pregnancy_alerts"} {
+		assert.Zero(t, h.count(`SELECT COUNT(*) FROM `+table+` WHERE user_id = ?`, uid), table)
+	}
 }

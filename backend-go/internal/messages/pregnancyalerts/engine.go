@@ -249,6 +249,12 @@ func (e *Engine) Evaluate(ctx context.Context, userID uint64, now time.Time, l v
 	return e.evaluate(ctx, userID, now, l, false)
 }
 
+// EvaluateOn is Evaluate on q (the caller's transaction, e.g. the day-log save), so the rules
+// see the caller's uncommitted writes and their alerts commit or roll back with them.
+func (e *Engine) EvaluateOn(ctx context.Context, q store.Querier, userID uint64, now time.Time, l v2.Lang) ([]*jsonx.OrderedMap, error) {
+	return (&Engine{q: q}).evaluate(ctx, userID, now, l, false)
+}
+
 // EvaluateAll is the daily evaluation: every rule, including the calendar ones (TimeRules).
 func (e *Engine) EvaluateAll(ctx context.Context, userID uint64, now time.Time, l v2.Lang) ([]*jsonx.OrderedMap, error) {
 	return e.evaluate(ctx, userID, now, l, true)
@@ -490,14 +496,17 @@ func nilIfEmpty(s string) any {
 }
 
 // List is GET /pregnancy/v2/alerts: the daily evaluation (deduplicated, so at most once per
-// window), then the last ListWindowDays days of v2 alerts and the level legend.
-func (e *Engine) List(ctx context.Context, userID uint64, now time.Time, l v2.Lang) (*jsonx.OrderedMap, error) {
+// window) when evaluate is set, then the last ListWindowDays days of v2 alerts and the level
+// legend. HEAD passes evaluate=false so it never writes (review #10, T-M2-34).
+func (e *Engine) List(ctx context.Context, userID uint64, now time.Time, l v2.Lang, evaluate bool) (*jsonx.OrderedMap, error) {
 	today := civildate.InTehran(now)
 	if _, err := e.dating(ctx, userID, today); err != nil {
 		return nil, err
 	}
-	if _, err := e.EvaluateAll(ctx, userID, now, l); err != nil {
-		return nil, err
+	if evaluate {
+		if _, err := e.EvaluateAll(ctx, userID, now, l); err != nil {
+			return nil, err
+		}
 	}
 	rs, err := e.rows(ctx)
 	if err != nil {

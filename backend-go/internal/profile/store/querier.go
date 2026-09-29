@@ -13,6 +13,11 @@ import (
 type Querier interface {
 	// $user->delete(); every user-owned table cascades (FK ON DELETE CASCADE).
 	DeleteUser(ctx context.Context, id uint64) (int64, error)
+	// DELETE /account (D-25): the user's access tokens (no FK to users). A deleted token id still
+	// answers the auth 401 `token_revoked` (passport verifier: row missing).
+	DeleteUserAccessTokens(ctx context.Context, userID sql.NullInt64) error
+	// DELETE /account (D-25, T-M2-34): the refresh tokens of the user's access tokens (no FK, no user_id).
+	DeleteUserRefreshTokens(ctx context.Context, userID sql.NullInt64) error
 	// ProfileController::export: the raw models, in the order Laravel reads them.
 	ExportDailyHealthLogs(ctx context.Context, userID uint64) ([]DailyHealthLog, error)
 	// $user->pregnancyFetalMovements()->get() has no ORDER BY; MariaDB answers in the

@@ -14,6 +14,7 @@ import (
 const countAppointmentsOfCareItem = `-- name: CountAppointmentsOfCareItem :one
 SELECT COUNT(*) FROM ` + "`" + `pregnancy_care_items` + "`" + ` c
 JOIN ` + "`" + `reminders` + "`" + ` r ON r.` + "`" + `type` + "`" + ` = 'appointment' AND JSON_UNQUOTE(JSON_EXTRACT(r.meta, '$.care_item_key')) = c.` + "`" + `key` + "`" + `
+    AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(r.meta, '$.status')), 'scheduled') <> 'cancelled'
 WHERE c.id = ?
 `
 
@@ -29,6 +30,7 @@ const countCareItemAppointments = `-- name: CountCareItemAppointments :many
 SELECT c.id, COUNT(*) AS appointments
 FROM ` + "`" + `pregnancy_care_items` + "`" + ` c
 JOIN ` + "`" + `reminders` + "`" + ` r ON r.` + "`" + `type` + "`" + ` = 'appointment' AND JSON_UNQUOTE(JSON_EXTRACT(r.meta, '$.care_item_key')) = c.` + "`" + `key` + "`" + `
+    AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(r.meta, '$.status')), 'scheduled') <> 'cancelled'
 GROUP BY c.id
 `
 
@@ -40,6 +42,7 @@ type CountCareItemAppointmentsRow struct {
 // Pregnancy v2 admin API (T-M7-06, docs/go-migration/admin-api.md §13): care-item delete guard and the
 // message_contents writes of the alert-rule editor and POST /messages (create in a registered group).
 // Appointments (reminders type = 'appointment') linked to each care item through meta.care_item_key.
+// Cancelled appointments do not count (review #13, T-M2-34): a cancelled booking never blocks a delete.
 func (q *Queries) CountCareItemAppointments(ctx context.Context) ([]CountCareItemAppointmentsRow, error) {
 	rows, err := q.db.QueryContext(ctx, countCareItemAppointments)
 	if err != nil {
@@ -69,10 +72,12 @@ WHERE ` + "`" + `pregnancy_care_items` + "`" + `.id = ? AND NOT EXISTS (
   SELECT 1 FROM ` + "`" + `reminders` + "`" + ` r
   WHERE r.` + "`" + `type` + "`" + ` = 'appointment'
     AND JSON_UNQUOTE(JSON_EXTRACT(r.meta, '$.care_item_key')) = ` + "`" + `pregnancy_care_items` + "`" + `.` + "`" + `key` + "`" + `
+    AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(r.meta, '$.status')), 'scheduled') <> 'cancelled'
 )
 `
 
-// Deletes the item only while no appointment references its key (one statement: no race with a new booking).
+// Deletes the item only while no non-cancelled appointment references its key (one statement: no race with a
+// new booking).
 func (q *Queries) DeleteUnlinkedCareItem(ctx context.Context, id uint64) (int64, error) {
 	result, err := q.db.ExecContext(ctx, deleteUnlinkedCareItem, id)
 	if err != nil {

@@ -69,7 +69,7 @@ func (h *Handlers) ListMedications(c fiber.Ctx) error {
 	}
 	out := make([]*jsonx.OrderedMap, 0, len(rows))
 	for _, r := range rows {
-		out = append(out, ParseMedication(r).JSON())
+		out = append(out, ParseMedication(r).JSON(i18n.Locale(c)))
 	}
 	return httpx.OK(c, out)
 }
@@ -84,7 +84,7 @@ func (h *Handlers) ShowMedication(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	return httpx.OK(c, m.JSON())
+	return httpx.OK(c, m.JSON(i18n.Locale(c)))
 }
 
 // StoreMedication is POST /care/medications: 201 with the medication.
@@ -102,7 +102,7 @@ func (h *Handlers) StoreMedication(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	p, err := h.columns(c, userID, in, locale)
+	p, err := h.columns(c, userID, in, i18n.LanguagesOf(c).DefaultCode())
 	if err != nil {
 		return err
 	}
@@ -119,7 +119,7 @@ func (h *Handlers) StoreMedication(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	return httpx.Created(c, m.JSON(), T("messages.medication_created", locale))
+	return httpx.Created(c, m.JSON(locale), T("messages.medication_created", locale))
 }
 
 // UpdateMedication is PUT /care/medications/{id}: a partial update (only the keys sent
@@ -135,12 +135,16 @@ func (h *Handlers) UpdateMedication(c fiber.Ctx) error {
 		return err
 	}
 	locale, now := i18n.Locale(c), h.now(c)
-	data := pickMedication(storedMedication(m), validation.Input(c))
+	body := validation.Input(c)
+	if switchesOnly(body) {
+		return h.updateSwitches(c, m, body, locale, now)
+	}
+	data := pickMedication(storedMedication(m), body)
 	in, err := validateMedication(locale, data, now)
 	if err != nil {
 		return err
 	}
-	p, err := h.columns(c, userID, in, locale)
+	p, err := h.columns(c, userID, in, i18n.LanguagesOf(c).DefaultCode())
 	if err != nil {
 		return err
 	}
@@ -155,7 +159,40 @@ func (h *Handlers) UpdateMedication(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	return httpx.OK(c, fresh.JSON(), T("messages.medication_updated", locale))
+	return httpx.OK(c, fresh.JSON(locale), T("messages.medication_updated", locale))
+}
+
+// updateSwitches is a PUT that only flips is_active and/or notify: only those change, the
+// rest of the row (including a legacy row's missing starts_on / times) is left as stored.
+func (h *Handlers) updateSwitches(c fiber.Ctx, m Medication, body phpval.Map, locale string, now time.Time) error {
+	v := validation.Make(lang.Default(), locale, body, switchRules(),
+		validation.Now(now), validation.Attributes(attributes(locale)...))
+	if v.Fails() {
+		return failValidation(locale, v.ErrorBag())
+	}
+	active, meta := m.Row.IsActive, m.Row.Meta
+	if x, ok := body.Get("is_active"); ok {
+		active = phpval.Truthy(x)
+	}
+	if x, ok := body.Get("notify"); ok {
+		mm := m.Meta
+		mm.Notify = phpval.Truthy(x)
+		raw, err := json.Marshal(mm)
+		if err != nil {
+			return fmt.Errorf("care: encode meta: %w", err)
+		}
+		meta = rootdb.NullRawJSON{V: raw, Valid: true}
+	}
+	if err := h.q.UpdateMedicationSwitches(c, store.UpdateMedicationSwitchesParams{
+		IsActive: active, Meta: meta, UpdatedAt: sql.NullTime{Time: now, Valid: true}, ID: m.Row.ID, UserID: m.Row.UserID,
+	}); err != nil {
+		return fmt.Errorf("care: update medication switches: %w", err)
+	}
+	fresh, err := h.load(c, m.Row.ID, m.Row.UserID)
+	if err != nil {
+		return err
+	}
+	return httpx.OK(c, fresh.JSON(locale), T("messages.medication_updated", locale))
 }
 
 // DestroyMedication is DELETE /care/medications/{id} (its intakes cascade).
@@ -292,16 +329,17 @@ type medicationColumns struct {
 	Meta           rootdb.NullRawJSON
 }
 
-// columns derives the stored row: legacy subtitle/recurrence/recurrence_time from the meta,
+// columns derives the stored row: legacy subtitle (in subtitleLocale, the default language —
+// /care renders its own subtitle from the meta at read time)/recurrence/recurrence_time from the meta,
 // and ends_on from the duration (until_date: as sent; pregnancy_end: the active pregnancy's
 // due date, else open-ended like ongoing; ongoing: NULL).
-func (h *Handlers) columns(ctx context.Context, userID uint64, in medicationInput, locale string) (medicationColumns, error) {
+func (h *Handlers) columns(ctx context.Context, userID uint64, in medicationInput, subtitleLocale string) (medicationColumns, error) {
 	meta, err := json.Marshal(in.Meta)
 	if err != nil {
 		return medicationColumns{}, fmt.Errorf("care: encode meta: %w", err)
 	}
 	p := medicationColumns{
-		Title: in.Title, Subtitle: in.Meta.Subtitle(locale), Recurrence: in.Meta.Recurrence(),
+		Title: in.Title, Subtitle: in.Meta.Subtitle(subtitleLocale), Recurrence: in.Meta.Recurrence(),
 		RecurrenceTime: in.Meta.RecurrenceTime(), StartsOn: civildate.NullDate{Date: in.StartsOn, Valid: true},
 		IsActive: in.IsActive, Meta: rootdb.NullRawJSON{V: meta, Valid: true},
 	}

@@ -414,7 +414,7 @@ highlights, body_symptoms, body_text, tasks, warning, reviewer_name, reviewed_at
 | GET | `/pregnancy-care-items/:id` | — | `{care_item}` |
 | PUT | `/pregnancy-care-items/:id` | as POST without `key` (fixed: appointments reference it in `meta.care_item_key`) | `{care_item}` |
 | POST | `/pregnancy-care-items/:id/toggle` | — | `{care_item}` (`is_active` flips) |
-| DELETE | `/pregnancy-care-items/:id` | — | `{id}`; **422 `in_use`** (`appointments_count`) while any appointment (`reminders.type = 'appointment'`) has `meta.care_item_key` = the key — admin-web offers deactivate instead. The check and the delete are one statement |
+| DELETE | `/pregnancy-care-items/:id` | — | `{id}`; **422 `in_use`** (`appointments_count`) while any non-cancelled appointment (`reminders.type = 'appointment'`, `meta.status` ≠ `cancelled`; T-M2-34) has `meta.care_item_key` = the key — admin-web offers deactivate instead. The check and the delete are one statement |
 
 Fields: `key` (create only, `^[a-z][a-z0-9_]*$`, ≤ 64, unique), `title` T req (≤ 255), `prep` T (≤ 2000),
 `kind` req `visit|test|scan|vaccine`, `week_from` / `week_to` req 1–42 with `week_to ≥ week_from`,
@@ -446,7 +446,7 @@ not exist; sending texts for an active language without a row creates it (active
 | `vomiting_streak` | `min_streak_days` 2–14, `severe_min_count` 0–14 | `{days}`, `{severe_count}` |
 | `severe_symptom_count` | `min_count` 1–50, `symptoms[]` ⊂ Log symptoms (≥ 1, distinct) | `{count}` |
 | `critical_symptom` | `symptoms[]` ⊂ `spotting, bleeding, fluid_leakage, severe_sudden_pain`, `spotting_until_week` 0–42 | `{symptom}` |
-| `weight_missing_week` | `from_week` 1–42 | `{week}` |
+| `weight_missing_week` | `from_week` 1–42 (the engine also reads `from_weekday`, default 5 = fire from the 6th day of the week, T-M2-34; not editable here yet) | `{week}` |
 | `week_entered` | — (`{}`) | `{week}`, `{basis}` |
 | `bp_high` | `systolic_min` 90–200, `diastolic_min` 50–130 | `{systolic}`, `{diastolic}` |
 | `sugar_high` | `fasting_max` 60–200, `post_meal_max` 80–300 | `{fasting}`, `{post_meal}` |

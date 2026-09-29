@@ -24,6 +24,29 @@ func (q *Queries) DeleteUser(ctx context.Context, id uint64) (int64, error) {
 	return result.RowsAffected()
 }
 
+const deleteUserAccessTokens = `-- name: DeleteUserAccessTokens :exec
+DELETE FROM ` + "`" + `oauth_access_tokens` + "`" + ` WHERE user_id = ?
+`
+
+// DELETE /account (D-25): the user's access tokens (no FK to users). A deleted token id still
+// answers the auth 401 `token_revoked` (passport verifier: row missing).
+func (q *Queries) DeleteUserAccessTokens(ctx context.Context, userID sql.NullInt64) error {
+	_, err := q.db.ExecContext(ctx, deleteUserAccessTokens, userID)
+	return err
+}
+
+const deleteUserRefreshTokens = `-- name: DeleteUserRefreshTokens :exec
+DELETE rt FROM ` + "`" + `oauth_refresh_tokens` + "`" + ` rt
+JOIN ` + "`" + `oauth_access_tokens` + "`" + ` a ON a.id = rt.access_token_id
+WHERE a.user_id = ?
+`
+
+// DELETE /account (D-25, T-M2-34): the refresh tokens of the user's access tokens (no FK, no user_id).
+func (q *Queries) DeleteUserRefreshTokens(ctx context.Context, userID sql.NullInt64) error {
+	_, err := q.db.ExecContext(ctx, deleteUserRefreshTokens, userID)
+	return err
+}
+
 const getLiveMessagePayload = `-- name: GetLiveMessagePayload :one
 SELECT payload FROM ` + "`" + `message_contents` + "`" + `
 WHERE ` + "`" + `group` + "`" + ` = ? AND item_key = ? AND locale = ? AND is_active = 1 AND is_approved = 1

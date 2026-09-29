@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -81,6 +82,14 @@ func setup(t *testing.T) *harness {
 	app.Post("/api/v1/pregnancy/symptoms", locale, guard, v1.SymptomStore)
 	app.Post("/api/v1/pregnancy/weekly", locale, guard, v1.WeeklyStore)
 	app.Get("/api/v1/pregnancy/alerts", locale, guard, v1.AlertIndex)
+	// The same v1 handlers with a hook that always fails (review #5, T-M2-34).
+	broken := pregnancy.NewHandlers(q)
+	broken.SetAfterLogSave(func(context.Context, uint64, string, string, time.Time) error {
+		return errors.New("lock wait timeout")
+	})
+	app.Post("/broken/symptoms", locale, guard, broken.SymptomStore)
+	app.Post("/broken/weekly", locale, guard, broken.WeeklyStore)
+	app.Post("/broken/fetal-movement", locale, guard, broken.FetalStore)
 	return &harness{
 		app: app, iss: passport.NewIssuer(key, aq, clock.Real{}, 365),
 		exec: func(s string, args ...any) { _, err := db.Exec(s, args...); require.NoError(t, err) },
@@ -180,14 +189,13 @@ func TestAlerts_ListLegendAndDailyRules(t *testing.T) {
 	require.Len(t, legend, 4)
 	assert.Equal(t, "info", legend[0].(map[string]any)["level"])
 	assert.Equal(t, "urgent", legend[3].(map[string]any)["level"])
-	// Daily: week 13 entered today (12w0d), weight not logged.
+	// Daily: week 13 entered today (12w0d). Weight not logged, but "weight missing" waits for
+	// day 5 of the week (review #11, T-M2-34).
 	we := byRule(list, "week_entered")
 	require.Len(t, we, 1)
 	assert.Equal(t, "You've entered week 13", we[0]["title"])
 	assert.Equal(t, "info", we[0]["level"])
-	wm := byRule(list, "weight_missing_week")
-	require.Len(t, wm, 1)
-	assert.Equal(t, "suggestion", wm[0]["level"])
+	assert.Empty(t, byRule(list, "weight_missing_week"))
 	// Once per window.
 	n := h.count(`SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ?`, uid)
 	alertsOf(t, h.do(t, http.MethodGet, base+"/alerts", tok, "en", ""))
@@ -258,6 +266,33 @@ func TestAlerts_V1SaveRunsRules(t *testing.T) {
 	assert.NotEmpty(t, bp[0]["contact"])
 }
 
+// Review #5 (T-M2-34): the v2 hook is best-effort. A hook failure after the v1 log committed
+// is logged, and the v1 save still answers 201 with its v1 body (D-21).
+func TestAlerts_V1SaveSurvivesHookFailure(t *testing.T) {
+	h := setup(t)
+	uid, tok := h.user(t, "09120000907", true)
+
+	r := h.do(t, http.MethodPost, "/broken/weekly", tok, "en",
+		`{"pregnancy_week":13,"log_date":"2026-09-23","systolic_pressure":150,"diastolic_pressure":85}`)
+	require.Equal(t, http.StatusCreated, r.status, r.raw)
+	assert.Equal(t, true, r.body["success"])
+	v1, _ := r.data()["alerts"].([]any)
+	assert.Len(t, v1, 1, "v1 alerts unchanged")
+	assert.Equal(t, 1, h.count(`SELECT COUNT(*) FROM pregnancy_weekly_logs WHERE user_id = ?`, uid))
+
+	r = h.do(t, http.MethodPost, "/broken/symptoms", tok, "en",
+		`{"log_date":"2026-09-23","has_nausea":true,"nausea_severity":"mild"}`)
+	require.Equal(t, http.StatusCreated, r.status, r.raw)
+	assert.Equal(t, 1, h.count(`SELECT COUNT(*) FROM pregnancy_symptom_logs WHERE user_id = ?`, uid))
+
+	r = h.do(t, http.MethodPost, "/broken/fetal-movement", tok, "en",
+		`{"log_date":"2026-09-23","pregnancy_week":13,"movement_status":"felt","movement_count":2}`)
+	require.Equal(t, http.StatusCreated, r.status, r.raw)
+
+	assert.Zero(t, h.count(`SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ? AND alert_type LIKE 'v2:%'`, uid),
+		"the failing hook wrote nothing")
+}
+
 func TestAlerts_ActionsAndIDOR(t *testing.T) {
 	h := setup(t)
 	_, tok := h.user(t, "09120000905", true)
@@ -293,4 +328,15 @@ func TestAlerts_ActionsAndIDOR(t *testing.T) {
 	for _, x := range v1.data()["alerts"].([]any) {
 		assert.NotEqual(t, "v2:vomiting_streak", x.(map[string]any)["alert_type"])
 	}
+}
+
+// Review #10 (T-M2-34): HEAD /alerts (answered by the GET route) never runs the evaluation.
+func TestAlerts_HeadIsReadOnly(t *testing.T) {
+	h := setup(t)
+	uid, tok := h.user(t, "09120000908", true)
+	r := h.do(t, http.MethodHead, base+"/alerts", tok, "en", "")
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	assert.Zero(t, h.count(`SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ?`, uid))
+	alertsOf(t, h.do(t, http.MethodGet, base+"/alerts", tok, "en", ""))
+	assert.Positive(t, h.count(`SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ?`, uid), "GET still evaluates (week_entered)")
 }

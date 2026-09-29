@@ -127,8 +127,19 @@ func (m Medication) Covers(d civildate.Date) bool {
 	return slices.Contains(m.Meta.Weekdays, SaturdayWeekday(d))
 }
 
-// JSON is the /care/medications resource.
-func (m Medication) JSON() *jsonx.OrderedMap {
+// DisplaySubtitle is the subtitle in the reading locale: built from the meta (dose + unit) at
+// render time, so a medication saved in one language reads right in another; the stored
+// column (written in the default language for GET /reminders readers) only for legacy rows
+// without a dose/unit in their meta.
+func (m Medication) DisplaySubtitle(locale string) sql.NullString {
+	if sub := m.Meta.Subtitle(locale); sub.Valid {
+		return sub
+	}
+	return m.Row.Subtitle
+}
+
+// JSON is the /care/medications resource in the request locale.
+func (m Medication) JSON(locale string) *jsonx.OrderedMap {
 	r := m.Row
 	var recurrenceTime any
 	if r.RecurrenceTime.Valid && len(r.RecurrenceTime.String) >= 5 {
@@ -138,7 +149,7 @@ func (m Medication) JSON() *jsonx.OrderedMap {
 		"id", r.ID,
 		"type", r.Type,
 		"title", r.Title,
-		"subtitle", nullString(r.Subtitle),
+		"subtitle", nullString(m.DisplaySubtitle(locale)),
 		"notes", nullString(r.Notes),
 		"form", m.Meta.Form,
 		"dose", m.Meta.Dose,

@@ -40,6 +40,10 @@ var RuleKeys = []string{
 	"week_entered", "bp_high", "sugar_high", "fetal_movement",
 }
 
+// WeightMissingFromWeekday is weight_missing_week's default `from_weekday`: the 6th day of the
+// pregnancy week (0-based 5). Not in the admin params schema yet, so the code default applies.
+const WeightMissingFromWeekday = 5
+
 // Config is the behaviour part of a rule row.
 type Config struct {
 	Enabled    bool
@@ -114,7 +118,9 @@ func Detect(rule string, c Config, f Facts) []Hit {
 	case "critical_symptom":
 		return critical(c, f)
 	case "weight_missing_week":
-		if f.Week >= c.intParam("from_week", 1) && !f.HasWeight {
+		// Not before day from_weekday (0-based, default WeightMissingFromWeekday) of the week, so
+		// the user has had most of the week to log it (review #11, T-M2-34).
+		if f.Week >= c.intParam("from_week", 1) && f.WeekDay >= c.intParam("from_weekday", WeightMissingFromWeekday) && !f.HasWeight {
 			w := strconv.Itoa(f.Week)
 			return []Hit{{Rule: rule, Dedupe: "w" + w, Vars: [][2]string{{"week", w}}}}
 		}

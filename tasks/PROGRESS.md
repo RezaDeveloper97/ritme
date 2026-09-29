@@ -822,3 +822,9 @@ Nothing needed fixing.
 - 20 of 27 audit rows fixed (all 4 high + 12 med): appointment kind cards, detail hero (time/date tile), medication form cards/labels/slot buttons, filled fields, chips, stepper, dose strip width, cancel in rose tokens, square prep checkboxes, notes/location shown, Persian digits. New `.cfm-*` / `.apd-*` classes, no new colour tokens.
 - 7 won't-fix with reasons in `docs/care-reminders/design-audit.md` (Resolution column). Follow-up L-6 (home card placement / duplicate visit) folded into T-M5-11 and T-M7-18.
 - Verify: 598 frontend tests, style/dark gates, go test, contract green; check-colors OK. Screenshots re-taken in the audit folder.
+
+## T-M2-34 — Backend fixes from the M3-M7 Go review
+- Pregnancy v2 calendar/today keep bell-off appointments (only cancelled excluded); v1 log alert hook best-effort; day-log Save in one transaction, 422 before pregnancy start; HEAD alerts read-only; `weight_missing_week` from weekday 5; legacy medication switch-only PUT; medication subtitle in request locale; `DELETE /account` deletes tokens + user atomically; care-item delete guard ignores cancelled; 00005 Down keeps admin edits.
+- Deviations: D-24 (no invented LMP on `POST /profile`), D-25 (account tokens deleted), D-26 (`daily_card` fertility level = v1.1). Allowlists `profile.yaml`, `cycle.yaml`, `cycle-sweep.yaml`. OpenAPI + admin-api doc updated.
+- Verify: go vet/test/lint clean, full `make test-int` green, contract 986 pass / 488 allow-listed.
+- Open: Today unread badge misses computed alerts until Alerts is opened (needs routes wiring); admin can't edit `from_weekday`; care_item_key delete-guard JSON scan; contract case description for `create_profile_empty_body`; prod (Laravel) unchanged until cutover.

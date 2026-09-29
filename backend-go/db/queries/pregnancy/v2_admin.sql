@@ -3,23 +3,28 @@
 
 -- name: CountCareItemAppointments :many
 -- Appointments (reminders type = 'appointment') linked to each care item through meta.care_item_key.
+-- Cancelled appointments do not count (review #13, T-M2-34): a cancelled booking never blocks a delete.
 SELECT c.id, COUNT(*) AS appointments
 FROM `pregnancy_care_items` c
 JOIN `reminders` r ON r.`type` = 'appointment' AND JSON_UNQUOTE(JSON_EXTRACT(r.meta, '$.care_item_key')) = c.`key`
+    AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(r.meta, '$.status')), 'scheduled') <> 'cancelled'
 GROUP BY c.id;
 
 -- name: CountAppointmentsOfCareItem :one
 SELECT COUNT(*) FROM `pregnancy_care_items` c
 JOIN `reminders` r ON r.`type` = 'appointment' AND JSON_UNQUOTE(JSON_EXTRACT(r.meta, '$.care_item_key')) = c.`key`
+    AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(r.meta, '$.status')), 'scheduled') <> 'cancelled'
 WHERE c.id = sqlc.arg(id);
 
 -- name: DeleteUnlinkedCareItem :execrows
--- Deletes the item only while no appointment references its key (one statement: no race with a new booking).
+-- Deletes the item only while no non-cancelled appointment references its key (one statement: no race with a
+-- new booking).
 DELETE FROM `pregnancy_care_items`
 WHERE `pregnancy_care_items`.id = sqlc.arg(id) AND NOT EXISTS (
   SELECT 1 FROM `reminders` r
   WHERE r.`type` = 'appointment'
     AND JSON_UNQUOTE(JSON_EXTRACT(r.meta, '$.care_item_key')) = `pregnancy_care_items`.`key`
+    AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(r.meta, '$.status')), 'scheduled') <> 'cancelled'
 );
 
 -- name: NextCareItemSortOrder :one

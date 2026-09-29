@@ -6,3 +6,27 @@ entries:
     where: data.bmi.message
     deviation: D-22
     reason: fa fallback BMI text names the app «ریتمی»; Laravel's copy has the Latin "Ritme"
+
+  # D-24 (task T-M2-34, backend review #2): POST /profile without last_period_start no longer
+  # invents a period dated today, so the profile keeps last_period_start null and no
+  # recalculation runs (calculation_* stay at their defaults).
+  - case: create_profile_empty_body
+    where: "**.last_period_start"
+    deviation: D-24
+    reason: Laravel defaults last_period_start to today; Go leaves it null
+  - case: create_profile_empty_body
+    where: "**.calculation_status"
+    deviation: D-24
+    reason: no cycle field set → no markRecalculated (pending instead of completed)
+  - case: create_profile_empty_body
+    where: "**.calculation_started_at"
+    deviation: D-24
+    reason: no markRecalculated → null
+  - case: create_profile_empty_body
+    where: "**.calculation_completed_at"
+    deviation: D-24
+    reason: no markRecalculated → null
+  - case: create_profile_empty_body
+    where: "**.calculation_version"
+    deviation: D-24
+    reason: no markRecalculated → 0

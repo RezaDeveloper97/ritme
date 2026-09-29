@@ -3,6 +3,6 @@
 
 -- name: ListV2CalendarAppointments :many
 SELECT id, title, scheduled_at, meta FROM `reminders`
-WHERE user_id = sqlc.arg(user_id) AND `type` = 'appointment' AND is_active = 1 AND scheduled_at IS NOT NULL
+WHERE user_id = sqlc.arg(user_id) AND `type` = 'appointment' AND scheduled_at IS NOT NULL
   AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(meta, '$.status')), 'scheduled') <> 'cancelled'
 ORDER BY scheduled_at, id;

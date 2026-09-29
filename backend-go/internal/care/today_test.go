@@ -38,14 +38,14 @@ func TestTodayDoses(t *testing.T) {
 		med(5, "ویتامین", "", `{"v":1,"form":"drops","times":["08:00"],"weekdays":[4]}`, true, "2026-09-24", ""),
 		med(0, "زینک", "", `{"v":1,"form":"tablet","times":["08:00"],"weekdays":[4]}`, true, "", ""),
 	}
-	got := TodayDoses(wed, meds, []store.ListIntakesOnDateRow{{ReminderID: 1, Slot: "20:00"}, {ReminderID: 2, Slot: "13:00"}})
+	got := TodayDoses(wed, meds, []store.ListIntakesOnDateRow{{ReminderID: 1, Slot: "20:00"}, {ReminderID: 2, Slot: "13:00"}}, "fa")
 	assert.Equal(t, []Dose{
 		{ReminderID: 0, Title: "زینک", Form: "tablet", Slot: "08:00"},
 		{ReminderID: 1, Title: "فولیک اسید ۴۰۰ میکروگرم", Form: "tablet", Slot: "08:00"},
 		{ReminderID: 1, Title: "فولیک اسید ۴۰۰ میکروگرم", Form: "tablet", Slot: "20:00", Taken: true},
 	}, got, "weekday, window and is_active filtered; sorted by slot then id")
 
-	assert.Equal(t, []Dose{}, TodayDoses(wed, nil, nil))
+	assert.Equal(t, []Dose{}, TodayDoses(wed, nil, nil, "fa"))
 }
 
 func TestNextAppointment(t *testing.T) {

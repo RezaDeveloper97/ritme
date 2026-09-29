@@ -243,6 +243,18 @@ func TestToday(t *testing.T) {
 	assert.Equal(t, "09:30", visit["time"])
 	assert.Equal(t, "booked", visit["stage"])
 	assert.EqualValues(t, 5, visit["days_until"])
+
+	// Review #1 (T-M2-34): the reminder bell (is_active) off keeps the visit; only cancel drops it.
+	_, err = e.db.Exec(`UPDATE reminders SET is_active = 0 WHERE user_id = ? AND type = 'appointment'`, uid)
+	require.NoError(t, err)
+	r = e.do(t, http.MethodGet, base+"/today", tok, "en", "")
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	assert.Equal(t, "2026-09-28", r.data()["next_visit"].(map[string]any)["date"])
+	_, err = e.db.Exec(`UPDATE reminders SET meta = JSON_SET(meta, '$.status', 'cancelled') WHERE user_id = ? AND type = 'appointment'`, uid)
+	require.NoError(t, err)
+	r = e.do(t, http.MethodGet, base+"/today", tok, "en", "")
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	assert.Nil(t, r.data()["next_visit"].(map[string]any)["appointment_id"], "cancelled → care-plan fallback")
 }
 
 func TestToday_Overdue(t *testing.T) {

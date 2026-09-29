@@ -7,7 +7,8 @@
         "future_date": "You can't log a day in the future.",
         "unknown_symptom": "Unknown symptom: :key.",
         "range_order": "The start date must be on or before the end date.",
-        "range_too_long": "The report can cover at most 366 days."
+        "range_too_long": "The report can cover at most 366 days.",
+        "before_pregnancy": "The date is before the start of this pregnancy."
     },
     "attributes": {
         "date": "date",

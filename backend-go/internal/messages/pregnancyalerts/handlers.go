@@ -58,7 +58,8 @@ func (h *Handlers) Index(c fiber.Ctx) error {
 		return &auth.UnauthenticatedError{Code: auth.CodeUnauthenticated}
 	}
 	l := LangOf(c)
-	out, err := h.eng.List(c, uid, h.now(c), l)
+	// GET answers HEAD too (Fiber); HEAD must stay read-only.
+	out, err := h.eng.List(c, uid, h.now(c), l, c.Method() != fiber.MethodHead)
 	if err != nil {
 		return mapErr(err, l.Locale)
 	}

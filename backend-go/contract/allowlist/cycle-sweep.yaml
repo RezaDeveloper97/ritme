@@ -1,0 +1,12 @@
+group: cycle-sweep
+entries:
+  # D-26 (task T-M2-34, backend review #4): the predicted daily card maps its fertility level with
+  # FertilityLevelV11() like cycle_view.fertility_level (Laravel: legacy fertilityLevel()).
+  - case: "*"
+    where: "**.daily_card.fertility_level"
+    deviation: D-26
+    reason: v1.1 mapping (post_ovulation → low, ovulation_likely → peak) instead of the legacy one
+  - case: "*"
+    where: "**.daily_card.fertility_label"
+    deviation: D-26
+    reason: label of the v1.1 fertility level

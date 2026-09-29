@@ -3,7 +3,7 @@ id: T-M2-34
 title: Backend fixes from the M3-M7 Go review
 milestone: M2
 type: backend
-status: in_progress
+status: done
 depends_on: [T-M2-31]
 parallel_group: M2-J
 touches: [backend-go/db/queries,backend-go/internal/store,backend-go/internal/pregnancy,backend-go/internal/profile,backend-go/internal/cycle,backend-go/internal/enums,backend-go/internal/care,backend-go/internal/account,backend-go/internal/auth,backend-go/internal/messages/pregnancyalerts,backend-go/db/migrations,backend-go/api/openapi.yaml,backend-go/contract/allowlist,docs/go-migration]

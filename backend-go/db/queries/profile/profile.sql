@@ -12,6 +12,17 @@ UPDATE `users` SET name = sqlc.narg(name), updated_at = sqlc.arg(updated_at) WHE
 -- $user->delete(); every user-owned table cascades (FK ON DELETE CASCADE).
 DELETE FROM `users` WHERE id = ?;
 
+-- name: DeleteUserRefreshTokens :exec
+-- DELETE /account (D-25, T-M2-34): the refresh tokens of the user's access tokens (no FK, no user_id).
+DELETE rt FROM `oauth_refresh_tokens` rt
+JOIN `oauth_access_tokens` a ON a.id = rt.access_token_id
+WHERE a.user_id = sqlc.arg(user_id);
+
+-- name: DeleteUserAccessTokens :exec
+-- DELETE /account (D-25): the user's access tokens (no FK to users). A deleted token id still
+-- answers the auth 401 `token_revoked` (passport verifier: row missing).
+DELETE FROM `oauth_access_tokens` WHERE user_id = sqlc.arg(user_id);
+
 -- name: GetProfileByUserID :one
 -- $user->profile (hasOne: the first row in index order).
 SELECT * FROM `user_profiles` WHERE user_id = ? ORDER BY id LIMIT 1;

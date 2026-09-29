@@ -87,15 +87,14 @@ func (s *Service) Save(ctx context.Context, u *auth.User, input phpval.Map, now 
 		}
 	}
 
-	// No bogus period start for pregnant users (period tracking is off in pregnancy mode).
+	// Period tracking is off in pregnancy mode. D-24 (T-M2-34): unlike Laravel, a missing
+	// last_period_start is NOT defaulted to today — that fabricated a confirmed period the cycle
+	// engine treated as real. The cycle history stays empty until the user logs a period.
 	intention := data["pregnancy_intention"]
 	if intention == nil && orig != nil && orig.PregnancyIntention.Valid {
 		intention = orig.PregnancyIntention.String
 	}
 	isPregnant := intention == string(enums.PregnancyIntentionPregnant)
-	if !isPregnant && data["last_period_start"] == nil && (orig == nil || !orig.LastPeriodStart.Valid) {
-		data["last_period_start"] = civildate.InTehran(now).String()
-	}
 
 	changed := cycleFieldsChanged(orig, data)
 
@@ -127,6 +126,35 @@ func (s *Service) Save(ctx context.Context, u *auth.User, input phpval.Map, now 
 		return nil, dbErr("reload user", err)
 	}
 	return &SaveResult{User: auth.User(user), Profile: fresh}, nil
+}
+
+// DeleteAccount deletes the user's refresh and access tokens, then the user (cascading to
+// every user-owned table), in one transaction (D-25).
+func (s *Service) DeleteAccount(ctx context.Context, userID uint64) (err error) {
+	tx, err := s.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("profile: delete account: begin: %w", err)
+	}
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback()
+		}
+	}()
+	q := s.Q.WithTx(tx)
+	uid := sql.NullInt64{Int64: int64(userID), Valid: true} //nolint:gosec // G115: ids fit int64
+	if err = q.DeleteUserRefreshTokens(ctx, uid); err != nil {
+		return fmt.Errorf("profile: delete refresh tokens: %w", err)
+	}
+	if err = q.DeleteUserAccessTokens(ctx, uid); err != nil {
+		return fmt.Errorf("profile: delete access tokens: %w", err)
+	}
+	if _, err = q.DeleteUser(ctx, userID); err != nil {
+		return fmt.Errorf("profile: delete user: %w", err)
+	}
+	if err = tx.Commit(); err != nil {
+		return fmt.Errorf("profile: delete account: commit: %w", err)
+	}
+	return nil
 }
 
 // MarkRecalculated is UserProfile::markRecalculated(): calculation_version + 1 (one atomic

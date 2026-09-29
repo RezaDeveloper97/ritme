@@ -28,6 +28,13 @@ SET title = ?, subtitle = ?, notes = ?, recurrence = ?, recurrence_time = ?,
     starts_on = ?, ends_on = ?, is_active = ?, meta = ?, updated_at = ?
 WHERE id = ? AND user_id = ? AND `type` = 'medication';
 
+-- name: UpdateMedicationSwitches :exec
+-- A PUT that only flips is_active / notify (review #6, T-M2-34): no full re-validation, so legacy
+-- rows (POST /reminders: no starts_on / times) can be toggled too.
+UPDATE `reminders`
+SET is_active = ?, meta = ?, updated_at = ?
+WHERE id = ? AND user_id = ? AND `type` = 'medication';
+
 -- name: DeleteMedication :execrows
 DELETE FROM `reminders`
 WHERE id = ? AND user_id = ? AND `type` = 'medication';
