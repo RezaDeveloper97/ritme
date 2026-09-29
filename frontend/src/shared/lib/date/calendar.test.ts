@@ -7,8 +7,10 @@ import {
   daysInCalendarMonth,
   diffInDays,
   formatDayMonth,
+  formatDecimal,
   formatLongDate,
   formatNumericDate,
+  formatWeekday,
   formatWeekdayDayMonth,
   monthMatrix,
   partsToDate,
@@ -215,5 +217,17 @@ describe('formatWeekdayDayMonth', () => {
 
   it('reads "Weekday, day Month" in the Gregorian calendar for en', () => {
     expect(formatWeekdayDayMonth(nowruz, 'en')).toBe('Wednesday, 20 March');
+  });
+});
+
+describe('formatWeekday / formatDecimal', () => {
+  it('names the weekday in the locale', () => {
+    const sat = new Date(2026, 9, 10); // Saturday
+    expect(formatWeekday(sat, 'fa')).toBe('شنبه');
+    expect(formatWeekday(sat, 'en')).toBe('Saturday');
+  });
+  it('localizes digits and the decimal separator', () => {
+    expect(formatDecimal('1.6', 'fa')).toBe('۱٫۶');
+    expect(formatDecimal(62.5, 'en')).toBe('62.5');
   });
 });

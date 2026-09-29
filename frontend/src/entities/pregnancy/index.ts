@@ -141,6 +141,7 @@ export type {
   ReportDay,
   ReportRange,
   ReportWeight,
+  SetupResultCopy,
   Severity,
   TrimesterSpan,
   VisitStage,

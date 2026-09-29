@@ -20,11 +20,12 @@ import { useUpdateAppointment } from '@/features/manage-appointment';
 import { type Locale, Link, useDirection } from '@/shared/i18n';
 import {
   addDays,
+  diffInDays,
   formatDayMonth,
   formatLongDate,
   formatMonthLabel,
   formatNumber,
-  formatWeekdayDayMonth,
+  formatWeekday,
   fromApiDate,
   monthMatrix,
   monthName,
@@ -54,9 +55,11 @@ export function PregnancyCalendarPage() {
     const p = todayParts(locale);
     return { year: p.year, month: p.month };
   });
-  const [selected, setSelected] = useState<string>(() => toApiDate(today()));
+  const [picked, setPicked] = useState<string | null>(null);
   const query = usePregnancyCalendar(monthKey(ym.year, ym.month));
   const data = query.data;
+  // Until the user picks a day, the month opens on its next visit (Calendar artboard), else today.
+  const selected = picked ?? defaultSelection(data ?? null, toApiDate(today()));
 
   const move = (delta: number) => setYm((c) => shiftMonth(c.year, c.month, delta));
 
@@ -105,7 +108,7 @@ export function PregnancyCalendarPage() {
                 <Icon name={dir === 'rtl' ? 'chevronLeft' : 'chevronRight'} size={18} />
               </button>
             </div>
-            <MonthGrid year={ym.year} month={ym.month} data={data ?? null} selected={selected} onPick={setSelected} />
+            <MonthGrid year={ym.year} month={ym.month} data={data ?? null} selected={selected} onPick={setPicked} />
             <Legend />
           </section>
 
@@ -337,13 +340,13 @@ function NextVisitCard({ visit }: { visit: CalendarVisit }) {
     if (await stage.run(visit.appointmentId, 'result', note)) setNoteOpen(false);
   };
 
-  const meta = [
-    formatWeekdayDayMonth(date, locale),
-    visit.time ? formatNumber(visit.time, locale) : null,
-    visit.weekLabel,
-  ]
-    .filter(Boolean)
-    .join(t('common.separator'));
+  // Weekday · time · age on that day; the date itself is already on the tile (design audit E4).
+  const weekday = formatWeekday(date, locale);
+  const age = visit.ageLabel ?? visit.weekLabel;
+  const meta =
+    visit.time && age
+      ? t('calendar.visitMeta', { weekday, time: formatNumber(visit.time, locale), week: age })
+      : [weekday, visit.time ? formatNumber(visit.time, locale) : null, age].filter(Boolean).join(t('common.separator'));
   const who = [visit.doctor, visit.place].filter(Boolean).join(t('common.separator'));
   const remind = visit.remindBefore && (REMIND_BEFORE as readonly string[]).includes(visit.remindBefore)
     ? tc(visit.remindBefore as RemindBefore)
@@ -425,7 +428,7 @@ function NextVisitCard({ visit }: { visit: CalendarVisit }) {
               href={directionsHref(visit.place)}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex h-11.5 items-center justify-center gap-1.5 rounded-[14px] bg-(--ink) text-[13px] font-extrabold text-(--surface) no-underline"
+              className="flex h-11.5 items-center justify-center gap-1.5 rounded-[14px] border-[1.5px] border-(--line-2) bg-(--surface) text-[13px] font-extrabold text-(--ink) no-underline"
             >
               <Icon name="mapPin" size={16} />
               {t('calendar.directions')}
@@ -467,13 +470,27 @@ function NextVisitCard({ visit }: { visit: CalendarVisit }) {
   );
 }
 
+/** Day + month within a year of today (the care plan fits in one pregnancy), else the full date (audit E5). */
+function carePlanDate(iso: string, locale: Locale): string {
+  const d = fromApiDate(iso);
+  return Math.abs(diffInDays(d, today())) <= 330 ? formatDayMonth(d, locale) : formatLongDate(d, locale);
+}
+
+/** The next visit's day when it falls in the shown month, else today. */
+function defaultSelection(data: PregnancyCalendar | null, todayKey: string): string {
+  const next = data?.nextVisit?.date;
+  return next && data?.days.some((d) => d.date === next) ? next : todayKey;
+}
+
 function CareRow({ item, last }: { item: CareItem; last: boolean }) {
   const t = useTranslations('pregnancyV2.calendar');
   const tCommon = useTranslations('pregnancyV2.common');
   const locale = useLocale() as Locale;
   const window =
     item.weekFrom != null && item.weekTo != null ? t('weekWindow', { from: item.weekFrom, to: item.weekTo }) : null;
-  const when = item.dateLabel ?? (item.date ? formatDayMonth(fromApiDate(item.date), locale) : null);
+  // Booked/done rows show their visit date; unbooked ones «حدود …» the suggested date (audit E1).
+  const iso = item.date ?? item.suggestedDate;
+  const when = iso ? carePlanDate(iso, locale) : null;
   const dateText = when ? (item.state === 'to_book' ? t('aroundDate', { date: when }) : when) : null;
   const sub = [window, dateText, item.state === 'done' ? t('states.done') : null]
     .filter(Boolean)

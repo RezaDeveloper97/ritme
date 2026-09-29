@@ -126,8 +126,11 @@ function AppointmentRow({ appt, t, locale }: { appt: NextAppointment; t: T; loca
  * `nbl_v13_Preg_Home` (light) / `nbd_` (dark).
  *
  * Privacy (§11): which doses were taken is health data — rendered, never logged.
+ *
+ * `hideAppointmentId` drops the appointment row when the host screen already
+ * shows that visit (pregnancy Today's «ویزیت بعدی» card), so it isn't listed twice.
  */
-export function TodayRemindersCard() {
+export function TodayRemindersCard({ hideAppointmentId = null }: { hideAppointmentId?: number | null } = {}) {
   const t = useTranslations('care');
   const locale = useLocale() as Locale;
   const query = useCareToday();
@@ -151,6 +154,7 @@ export function TodayRemindersCard() {
   const data = query.data;
   if (!data) return null;
   const rows = data.doses.map(doseRowState);
+  const appt = data.nextAppointment && data.nextAppointment.id !== hideAppointmentId ? data.nextAppointment : null;
   const pendingKey =
     logIntake.isPending && logIntake.variables
       ? `${logIntake.variables.reminderId}-${logIntake.variables.slot}`
@@ -161,7 +165,7 @@ export function TodayRemindersCard() {
       <div className="trm-card">
         <Header t={t} />
 
-        {status === 'empty' && <p className="trm-empty">{t('home.empty')}</p>}
+        {(status === 'empty' || (rows.length === 0 && !appt)) && <p className="trm-empty">{t('home.empty')}</p>}
 
         {rows.map((row) => (
           <DoseRow
@@ -181,10 +185,10 @@ export function TodayRemindersCard() {
           />
         ))}
 
-        {data.nextAppointment && (
+        {appt && (
           <>
             {rows.length > 0 && <div className="trm-divider" aria-hidden />}
-            <AppointmentRow appt={data.nextAppointment} t={t} locale={locale} />
+            <AppointmentRow appt={appt} t={t} locale={locale} />
           </>
         )}
 

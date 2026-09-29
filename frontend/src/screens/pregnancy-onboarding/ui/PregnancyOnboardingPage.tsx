@@ -12,6 +12,7 @@ import {
 import { useDirection, useRouter, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { Icon } from '@/shared/ui';
+import { WelcomePregnancy } from '@/shared/ui/illustrations';
 
 import {
   EMPTY_DATING,
@@ -27,6 +28,8 @@ import { DatingStep, HistoryStep, ResultStep } from './SetupSteps';
 
 type Phase = 'welcome' | 1 | 2 | 3;
 const TOTAL = 3;
+/** Bundled welcome benefits (`setup.benefits.*`), same order as the seeded `pregnancy_setup/welcome`. */
+const BENEFITS = ['1', '2', '3'] as const;
 
 /**
  * Pregnancy Setup v2 (`/pregnancy/setup`): welcome → dating basis → optional
@@ -78,19 +81,27 @@ export function PregnancyOnboardingPage() {
 
   if (phase === 'welcome') {
     return (
-      <div className="view onb-page">
+      <div className="view onb-page pon-page">
         <div className="scroll onb-body">
-          <div className="onb-center">
-            <Icon name="heart" size={48} />
+          <div className="onb-center pon-welcome">
+            <WelcomePregnancy size={220} />
             <div className="titr onb-titr">{t('welcomeTitle')}</div>
             <p className="sub onb-center-text">{t('welcomeBody')}</p>
+            <ul className="card pon-benefits">
+              {BENEFITS.map((k) => (
+                <li key={k}>
+                  <Icon name="check" size={18} strokeWidth={2.6} className="pon-benefit-check" />
+                  {t(`benefits.${k}`)}
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
         <div className="onb-actions">
           <button className="btn btn-primary" onClick={() => setPhase(1)}>
             {t('turnOn')}
           </button>
-          <button className="btn btn-ghost" onClick={() => router.replace('/profile')}>
+          <button className="pon-textbtn" onClick={() => router.replace('/profile')}>
             {t('notNow')}
           </button>
         </div>
@@ -102,9 +113,9 @@ export function PregnancyOnboardingPage() {
   const body = phase === 1 ? t('datingBody') : phase === 2 ? t('historyBody') : null;
 
   return (
-    <div className="view onb-page">
+    <div className="view onb-page pon-page">
       <div className="hdr gap-3">
-        <button className="iconbtn shrink-0" onClick={back} aria-label={tc('back')}>
+        <button className="pg2-roundbtn" onClick={back} aria-label={tc('back')}>
           <Icon name={isRtl ? 'chevronRight' : 'chevronLeft'} size={20} />
         </button>
         <div
@@ -155,10 +166,10 @@ export function PregnancyOnboardingPage() {
               onClick={() => void finish()}
               disabled={submitting || !preview.data}
             >
-              {submitting ? t('submitting') : t('done')}
+              {submitting ? t('submitting') : (preview.data?.copy.primary ?? t('done'))}
             </button>
-            <button className="btn btn-ghost" onClick={() => setPhase(1)} disabled={submitting}>
-              {t('changeBasis')}
+            <button className="pon-textbtn" onClick={() => setPhase(1)} disabled={submitting}>
+              {preview.data?.copy.secondary ?? t('changeBasis')}
             </button>
           </>
         ) : (
@@ -168,7 +179,7 @@ export function PregnancyOnboardingPage() {
             </button>
             {phase === 2 && (
               <button
-                className="btn btn-ghost"
+                className="pon-textbtn"
                 onClick={() => {
                   setHistory(null);
                   setPhase(3);

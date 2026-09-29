@@ -92,11 +92,13 @@ type Facts struct {
 	HasWeight bool // a weight is logged for the current week
 }
 
-// Hit is one detector firing: a dedupe key and the placeholder values of its texts.
+// Hit is one detector firing: a dedupe key and the placeholder values of its texts. On is the
+// day the fact happened (the week start, the streak's last day); zero means the evaluation day.
 type Hit struct {
 	Rule   string
 	Dedupe string
 	Vars   [][2]string
+	On     civildate.Date
 }
 
 func (f Facts) windowStart(w int) civildate.Date { return f.Today.AddDays(-(max(1, w) - 1)) }
@@ -127,7 +129,10 @@ func Detect(rule string, c Config, f Facts) []Hit {
 	case "week_entered":
 		if f.WeekDay < max(1, c.WindowDays) {
 			w := strconv.Itoa(f.Week)
-			return []Hit{{Rule: rule, Dedupe: "w" + w, Vars: [][2]string{{"week", w}, {"basis", f.Source}}}}
+			return []Hit{{
+				Rule: rule, Dedupe: "w" + w, Vars: [][2]string{{"week", w}, {"basis", f.Source}},
+				On: f.Today.AddDays(-f.WeekDay),
+			}}
 		}
 	case "bp_high":
 		return bpHigh(c, f)
@@ -166,7 +171,7 @@ func vomitingStreak(c Config, f Facts) []Hit {
 	}
 	return []Hit{{Rule: "vomiting_streak", Dedupe: start.String(), Vars: [][2]string{
 		{"days", strconv.Itoa(streak)}, {"severe_count", strconv.Itoa(severe)},
-	}}}
+	}, On: end}}
 }
 
 // severeCount: severe (day, symptom) pairs of the listed symptoms within the window.

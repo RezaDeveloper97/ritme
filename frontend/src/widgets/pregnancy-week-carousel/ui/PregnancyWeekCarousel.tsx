@@ -20,6 +20,8 @@ const SWIPE_PX = 40;
 /**
  * Today hero — swipeable prev / current / next week slides (Main artboard).
  * Opens on the current week; «بازگشت به امروز» appears once the user moves.
+ * It carries no fill of its own: the page's `.pg2-hero` wraps it together
+ * with the date strip, so text here is `--on-accent`.
  */
 export function PregnancyWeekCarousel({ slides, confidence, uncertaintyDays }: Props) {
   const t = useTranslations('pregnancyV2');
@@ -58,7 +60,7 @@ export function PregnancyWeekCarousel({ slides, confidence, uncertaintyDays }: P
   return (
     <section
       aria-roledescription="carousel"
-      className="mx-4 shrink-0 overflow-hidden rounded-3xl bg-linear-to-b from-(--preg-hero-start) to-(--preg-hero-end) p-4 text-(--on-accent)"
+      className="mt-3 shrink-0 overflow-hidden text-(--on-accent)"
       onTouchStart={(e) => (startX.current = e.touches[0]?.clientX ?? null)}
       onTouchEnd={(e) => onTouchEnd(e.changedTouches[0]?.clientX ?? 0)}
     >
@@ -82,7 +84,7 @@ export function PregnancyWeekCarousel({ slides, confidence, uncertaintyDays }: P
                 })
               : t('common.weekOf', { week: slide.week, total: V2_TERM_WEEKS })}
           </div>
-          <div className="mt-1 text-[22px] font-black">{slide.title ?? t('common.weekOf', { week: slide.week, total: V2_TERM_WEEKS })}</div>
+          {slide.title && <div className="pg2-age mt-1">{slide.title}</div>}
         </div>
         <button
           type="button"
@@ -98,7 +100,10 @@ export function PregnancyWeekCarousel({ slides, confidence, uncertaintyDays }: P
       <div className="mt-2 flex min-h-6 justify-center">
         {slide.relation === 'current' ? (
           confidenceText && (
-            <span className="rounded-full bg-(--on-accent)/20 px-3 py-1 text-[11px] font-bold">{confidenceText}</span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-(--data-soft) px-3 py-1 text-[11.5px] font-bold text-(--preg-teal-ink)">
+              <Icon name="info" size={14} />
+              {confidenceText}
+            </span>
           )
         ) : (
           <button

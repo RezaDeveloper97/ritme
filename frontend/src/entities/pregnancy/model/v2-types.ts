@@ -163,10 +163,24 @@ export interface DatingPreview {
   dueDateLabel: string | null;
   /** Usual birth range (due date ± uncertainty). */
   range: DateRange | null;
+  /** «بازهٔ معمول تولد: ۲۸ فروردین تا ۲۵ اردیبهشت.» (admin template, filled). */
+  rangeLabel: string | null;
   uncertaintyDays: number | null;
   confidence: Confidence;
   /** Localized «مبنای این محاسبه …» sentence from `pregnancy_setup` templates. */
   basis: string | null;
+  /** Admin-edited `pregnancy_setup/result` texts; null fields fall back to the bundle. */
+  copy: SetupResultCopy;
+}
+
+/** `pregnancy_setup/result` copy (admin-editable); `confidence` keeps `{confidence}`. */
+export interface SetupResultCopy {
+  lead: string | null;
+  suffix: string | null;
+  dueLabel: string | null;
+  confidence: string | null;
+  primary: string | null;
+  secondary: string | null;
 }
 
 // ── GET /pregnancy/v2/today ────────────────────────────────────
@@ -351,8 +365,10 @@ export interface CalendarVisit {
   dateLabel: string | null;
   time: string | null;
   week: number | null;
-  /** «هفتهٔ ۱۱ و ۱ روز» (server label). */
+  /** «سه‌ماههٔ اول · هفتهٔ ۱۲ از ۴۰» (server label). */
   weekLabel: string | null;
+  /** Age on the visit day, «۱۱ هفته و ۱ روز» (server label). */
+  ageLabel: string | null;
   stage: VisitStage | null;
   prep: string | null;
   doctor: string | null;
@@ -416,6 +432,8 @@ export interface PregnancyAlertV2 {
   actions: AlertActionV2[];
   contact: AlertContact | null;
   createdAt: string | null;
+  /** `YYYY-MM-DD` the fact happened (week start, streak end), else the creation day. */
+  factDate: string | null;
   dateLabel: string | null;
   isRead: boolean;
   isAcked: boolean;

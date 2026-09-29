@@ -117,7 +117,13 @@ func (s *Service) Preview(ctx context.Context, body phpval.Map, now time.Time, l
 		basis = fill(s, "date", FullDate(d.BasisDate, l.Locale))
 	}
 	if s := str(tpl, "range"); s != "" {
-		rangeText = fill(s, "range_from", FullDate(rFrom, l.Locale), "range_to", FullDate(rTo, l.Locale))
+		// Day + month only: the due date line above carries the year (design audit A9).
+		rangeText = fill(s, "range_from", DayMonth(rFrom, l.Locale), "range_to", DayMonth(rTo, l.Locale))
+	}
+	resultCopy := jsonx.Obj()
+	for _, k := range resultCopyKeys {
+		v := str(tpl, k)
+		resultCopy.Set(k, nullStr(v, v != ""))
 	}
 	return jsonx.Obj(
 		"source", d.Source,
@@ -133,8 +139,13 @@ func (s *Service) Preview(ctx context.Context, body phpval.Map, now time.Time, l
 		"uncertainty_days", d.Uncertainty,
 		"confidence", confidenceJSON(d.Confidence, l.Locale),
 		"basis", basis,
+		"copy", resultCopy,
 	), nil
 }
+
+// resultCopyKeys are the admin-edited pregnancy_setup/result texts the result step shows as they
+// are (the basis and range templates are filled above); null when the row lacks one.
+var resultCopyKeys = []string{"lead", "suffix", "due_label", "confidence", "primary", "secondary"}
 
 func previewDateField(source string) string {
 	switch source {
@@ -147,9 +158,12 @@ func previewDateField(source string) string {
 }
 
 // ageLabel is «۸ هفته و ۳ روز».
-func ageLabel(d Dating, locale string) string {
-	if d.Days == 0 {
-		return tr("age.weeks", locale, "weeks", num(d.Weeks, locale))
+func ageLabel(d Dating, locale string) string { return AgeLabel(d.Weeks, d.Days, locale) }
+
+// AgeLabel is a gestational age «۸ هفته و ۳ روز» (or «۸ هفته» when days is 0).
+func AgeLabel(weeks, days int, locale string) string {
+	if days == 0 {
+		return tr("age.weeks", locale, "weeks", num(weeks, locale))
 	}
-	return tr("age.weeks_days", locale, "weeks", num(d.Weeks, locale), "days", num(d.Days, locale))
+	return tr("age.weeks_days", locale, "weeks", num(weeks, locale), "days", num(days, locale))
 }

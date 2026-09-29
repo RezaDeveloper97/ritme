@@ -38,6 +38,7 @@ import {
   type ReportDay,
   type ReportWeight,
   SEVERITIES,
+  type SetupResultCopy,
   type TrimesterSpan,
   V2_TERM_WEEKS,
   VISIT_STAGES,
@@ -206,6 +207,18 @@ const relationSchema = enumOrNull(['past', 'current', 'future'] as const);
 
 // ── POST /pregnancy/v2/dating-preview ──────────────────────────
 
+function setupResultCopy(raw: unknown): SetupResultCopy {
+  const c = (typeof raw === 'object' && raw !== null ? raw : {}) as Record<string, unknown>;
+  return {
+    lead: textOrNull.parse(c.lead),
+    suffix: textOrNull.parse(c.suffix),
+    dueLabel: textOrNull.parse(c.due_label),
+    confidence: textOrNull.parse(c.confidence),
+    primary: textOrNull.parse(c.primary),
+    secondary: textOrNull.parse(c.secondary),
+  };
+}
+
 export const datingPreviewSchema = obj.transform((r, ctx): DatingPreview => {
   const age = ageFrom(r);
   const dueDate = dateOrNull.parse(r.due_date ?? (r.due as Record<string, unknown> | undefined)?.date);
@@ -220,9 +233,11 @@ export const datingPreviewSchema = obj.transform((r, ctx): DatingPreview => {
     dueDate,
     dueDateLabel: textOrNull.parse(r.due_date_label),
     range: rangeOrNull.parse(r.range ?? r.birth_range),
+    rangeLabel: textOrNull.parse(r.range_label),
     uncertaintyDays: intOrNull.parse(r.uncertainty_days),
     confidence: confidenceSchema.parse(r.confidence ?? r.confidence_level),
     basis: textOrNull.parse(r.basis ?? r.basis_sentence),
+    copy: setupResultCopy(r.copy),
   };
 });
 
@@ -506,6 +521,7 @@ export const pregnancyAlertV2Schema = obj.transform((r, ctx): PregnancyAlertV2 =
     actions: listOf(alertActionSchema).parse(r.actions),
     contact: level === 'urgent' ? orNull(contactSchema).parse(r.contact) : null,
     createdAt,
+    factDate: dateOrNull.parse(r.fact_date) ?? createdAt?.slice(0, 10) ?? null,
     dateLabel: textOrNull.parse(r.date_label),
     isRead: bool.parse(r.is_read ?? r.read),
     isAcked: bool.parse(r.is_acked ?? r.acked),
@@ -638,6 +654,7 @@ const calendarVisitSchema = obj.transform((r, ctx): CalendarVisit => {
     time: timeOrNull.parse(r.time),
     week: intOrNull.parse(r.week),
     weekLabel: textOrNull.parse(r.week_label),
+    ageLabel: textOrNull.parse(r.age_label),
     stage: enumOrNull(VISIT_STAGES).parse(r.stage),
     prep: textOrNull.parse(r.prep),
     doctor: textOrNull.parse(r.doctor ?? r.doctor_name),

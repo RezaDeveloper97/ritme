@@ -57,6 +57,14 @@ export function toggleCondition(current: readonly string[], value: string): stri
   return rest.includes(value) ? rest.filter((c) => c !== value) : [...rest, value];
 }
 
+/** «هیچ‌کدام» leads the condition chips (Setup artboard); the others keep their order. */
+export function noneFirst(conditions: readonly string[]): string[] {
+  return [
+    ...conditions.filter((c) => c === SETUP_CONDITION_NONE),
+    ...conditions.filter((c) => c !== SETUP_CONDITION_NONE),
+  ];
+}
+
 /** Has the dating step got everything its source needs? */
 export function isDatingComplete(d: SetupDating): boolean {
   switch (d.source) {

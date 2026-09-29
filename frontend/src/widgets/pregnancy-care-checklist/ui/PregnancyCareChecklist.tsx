@@ -12,6 +12,15 @@ interface Props {
   tasks: readonly WeekTask[];
 }
 
+/** The square brand box both task lists use (Today and the Week «کارهای هفته» tab). */
+export function PregnancyCheckBox({ on }: { on: boolean }) {
+  return (
+    <span className={clsx('pg2-check', on && 'is-on')} aria-hidden>
+      <Icon name="check" size={15} strokeWidth={3} />
+    </span>
+  );
+}
+
 /** «مراقبت‌های این هفته» — the current week's tasks with a done count (optimistic PUT). */
 export function PregnancyCareChecklist({ week, tasks }: Props) {
   const t = useTranslations('pregnancyV2');
@@ -46,16 +55,7 @@ export function PregnancyCareChecklist({ week, tasks }: Props) {
                 onClick={() => toggle(task.key)}
                 className="flex w-full items-center gap-3 py-3 text-start focus-visible:shadow-(--ring) focus-visible:outline-none"
               >
-                <span
-                  className={clsx(
-                    'flex size-6 shrink-0 items-center justify-center rounded-full border-2',
-                    task.done
-                      ? 'border-(--success) bg-(--success) text-(--on-accent)'
-                      : 'border-(--brand-line-soft) text-transparent',
-                  )}
-                >
-                  <Icon name="check" size={14} />
-                </span>
+                <PregnancyCheckBox on={task.done} />
                 <span
                   className={clsx('text-[13.5px] font-bold', task.done ? 'text-(--muted) line-through' : 'text-(--ink)')}
                 >

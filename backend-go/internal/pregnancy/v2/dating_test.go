@@ -62,3 +62,13 @@ func TestLabels(t *testing.T) {
 		assert.NotEmpty(t, attributes(loc))
 	}
 }
+
+// Carousel headline = the age, never the trimester · week eyebrow again (design audit B1).
+func TestSlideTitle(t *testing.T) {
+	d, _ := Resolve(lmpProfile("2026-08-01"), civildate.MustParse("2026-09-29")) // 8 w + 3 d, week 9
+	assert.Equal(t, 9, d.CurrentWeek())
+	assert.Equal(t, "۸ هفته و ۳ روز", slideTitle(d, 9, "fa"))
+	assert.Equal(t, "۷ هفته", slideTitle(d, 8, "fa"))
+	assert.Equal(t, "۹ هفته", slideTitle(d, 10, "fa"))
+	assert.Equal(t, AgeLabel(8, 3, "en"), slideTitle(d, 9, "en"))
+}

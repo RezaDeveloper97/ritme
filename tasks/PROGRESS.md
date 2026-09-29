@@ -828,3 +828,16 @@ Nothing needed fixing.
 - Deviations: D-24 (no invented LMP on `POST /profile`), D-25 (account tokens deleted), D-26 (`daily_card` fertility level = v1.1). Allowlists `profile.yaml`, `cycle.yaml`, `cycle-sweep.yaml`. OpenAPI + admin-api doc updated.
 - Verify: go vet/test/lint clean, full `make test-int` green, contract 986 pass / 488 allow-listed.
 - Open: Today unread badge misses computed alerts until Alerts is opened (needs routes wiring); admin can't edit `from_weekday`; care_item_key delete-guard JSON scan; contract case description for `create_profile_empty_body`; prod (Laravel) unchanged until cutover.
+
+## T-M4-12 — Checkups design fidelity fixes (v14 audit)
+- 38 of 42 audit rows fixed (+ D3 by orchestrator: MarkDone sheet `half`); B10 kept (T-M7-17 separator), B13 and D7 need design decisions. Known 5a–5d fixed (attachment chip in row, hero icon per type, admin-web locale digits, self-exam «به‌زودی»).
+- Backend: overdue cycle-based items now in `overdue` (monthly self-exam window stays `this_month`); self-exam status follows the next window's lead days; highlight order; migration `00007_checkups_catalog_icons.sql` (guarded data update, down). OpenAPI descriptions updated.
+- Frontend: `entities/checkup/model/display.ts`, list/detail/markdone/history/self-exam restyled per design (gradient removed from heroes), `.ck-*` classes.
+- Verify: 613 frontend tests, gates green, go test + test-int (checkups, migrations, admin) green, contract 986 pass, admin-web 77 tests; check-colors OK.
+
+## T-M7-18 — Pregnancy v2 design fidelity fixes (v2 audit)
+- 31 of 37 rows fixed, 4 partly (A1 welcome/dating/history copy still bundled; E2 source note not admin-editable; F4 «از امروز» in seed; D1 contrast pair not in lint:dark), B2 (week numbering kept = completed+1, now shows «۸ هفته و ۳ روز» under «هفتهٔ ۹») and C3 (content) won't fix.
+- API (Go only, OpenAPI updated): carousel title = pregnancy age; dating-preview `copy` (admin result texts) and year-less `range_label`; calendar visits `age_label`; alerts `fact_date`. `--success-fill` token; alerts actions per level (no gradient per card); calendar «حدود …»; `Intl` moved into `shared/lib/date`; today reminders card under the hero, duplicate visit hidden.
+- This commit also carries the T-M4-12 hunks of shared files (globals.css `.ck-*`, i18n goldens checkups keys).
+- Verify: 613 frontend tests, gates, go test/lint, contract 986 pass, pregnancy + alerts int tests green; check-colors OK.
+- Open → T-M7-20: setup-copy route, admin-editable source note, week_entered seed text, lint:dark pair, 9b redirect, ultrasound NumberField digits.

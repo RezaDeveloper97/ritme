@@ -13,11 +13,12 @@ import {
 } from '@/entities/pregnancy';
 import { useUpdateWeekState } from '@/features/track-pregnancy';
 import { type Locale, Link, useDirection, useRouter } from '@/shared/i18n';
-import { formatLongDate, formatNumber, fromApiDate } from '@/shared/lib/date';
+import { formatLongDate, fromApiDate } from '@/shared/lib/date';
 import { Icon } from '@/shared/ui';
 import { FetusSize } from '@/shared/ui/illustrations';
 import { BottomNav } from '@/widgets/bottom-nav';
 
+import { parseWeekStat, type WeekStat } from '../model/stats';
 import { swipeTarget } from '../model/swipe';
 import { WeekStrip } from './WeekStrip';
 import { WeekTabs } from './WeekTabs';
@@ -145,6 +146,14 @@ function WeekBody({ data }: { data: PregnancyWeek }) {
     { value: d.weight, unit: t('stats.g') },
     { value: d.heartRate, unit: t('stats.bpm') },
   ].filter((s): s is { value: string; unit: string } => !!s.value);
+  const statText = (s: WeekStat) =>
+    s.kind === 'range'
+      ? t('stats.range', { from: s.from, to: s.to })
+      : s.kind === 'less'
+        ? t('stats.less', { value: s.value })
+        : s.kind === 'approx'
+          ? t('stats.approx', { value: s.value })
+          : s.value;
 
   return (
     <>
@@ -165,9 +174,7 @@ function WeekBody({ data }: { data: PregnancyWeek }) {
             {stats.map((s) => (
               <div key={s.unit} className="flex flex-col-reverse rounded-[14px] bg-(--surface-2) px-1.5 py-2.5 text-center">
                 <dt className="text-[11px] font-bold text-(--ink-3)">{s.unit}</dt>
-                <dd dir="ltr" className="m-0 text-[17px] font-black text-(--brand-deep)">
-                  {formatNumber(s.value, locale)}
-                </dd>
+                <dd className="m-0 text-[17px] font-black text-(--brand-deep)">{statText(parseWeekStat(s.value, locale))}</dd>
               </div>
             ))}
           </dl>
@@ -184,7 +191,9 @@ function WeekBody({ data }: { data: PregnancyWeek }) {
       {d.warning && (
         <section className="pg2-warn flex items-start gap-3 rounded-2xl p-3.5">
           <Icon name="warning" size={20} className="pg2-warn-icon" />
-          <p className="m-0 text-[12.5px] leading-[1.9]">{d.warning}</p>
+          <p className="m-0 text-[12.5px] leading-[1.9]">
+            <b>{t('warningLead')}</b> {d.warning}
+          </p>
         </section>
       )}
 

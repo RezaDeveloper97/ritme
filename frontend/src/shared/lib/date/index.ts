@@ -24,6 +24,8 @@ export {
   weekdayLabels,
   weekOf,
   formatWeekdayDayMonth,
+  formatWeekday,
+  formatDecimal,
   currentHour,
   WEEKDAY_KEYS,
   addDays,

@@ -1,7 +1,7 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { useMemo } from 'react';
+import { useState } from 'react';
 
 import {
   DATING_SOURCES,
@@ -9,12 +9,14 @@ import {
   type DatingPreview,
   type DatingSource,
 } from '@/entities/pregnancy';
-import { Chip, NumberField, PgCard, Segmented, Toggle } from '@/features/track-pregnancy';
+import { Chip, NumberField, PgCard, Toggle } from '@/features/track-pregnancy';
 import type { Locale } from '@/shared/i18n';
-import { formatLongDate, formatNumber, fromApiDate } from '@/shared/lib/date';
-import { CalendarPicker } from '@/shared/ui';
+import { type DateParts, formatDayMonth, formatLongDate, fromApiDate, partsToDate } from '@/shared/lib/date';
+import { AppSheet } from '@/shared/sheet';
+import { CalendarPicker, Icon } from '@/shared/ui';
+import { ResultBaby } from '@/shared/ui/illustrations';
 
-import { toggleCondition, type SetupDating, type SetupHistory } from '../model/setup';
+import { noneFirst, toggleCondition, type SetupDating, type SetupHistory } from '../model/setup';
 
 const BLOOD_TYPES = ['A', 'B', 'AB', 'O'];
 const RH_FACTORS = ['positive', 'negative'];
@@ -22,11 +24,63 @@ const CONDITIONS = ['chronic_hypertension', 'diabetes', 'hypothyroidism', 'hyper
 
 type DynT = (key: string) => string;
 
-function useDayOptions() {
+/** A read-only date field that opens the calendar in a sheet (Setup artboard, ultrasound). */
+function DateField({
+  label,
+  value,
+  onSelect,
+}: {
+  label: string;
+  value: DateParts | null;
+  onSelect: (value: DateParts) => void;
+}) {
+  const t = useTranslations('pregnancyV2.setup');
   const loc = useLocale() as Locale;
-  return useMemo(
-    () => Array.from({ length: 7 }, (_, i) => ({ value: String(i), label: formatNumber(i, loc) })),
-    [loc],
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <span className="pon-sublabel is-block">{label}</span>
+      <button type="button" className="field pon-datefield" onClick={() => setOpen(true)} aria-haspopup="dialog">
+        <span className={value ? undefined : 'pon-placeholder'}>
+          {value ? formatLongDate(partsToDate(value, loc), loc) : t('pickDate')}
+        </span>
+        <Icon name="calendar" size={18} />
+      </button>
+      <AppSheet open={open} onClose={() => setOpen(false)} size="half" title={label}>
+        <CalendarPicker
+          value={value}
+          onSelect={(d) => {
+            onSelect(d);
+            setOpen(false);
+          }}
+        />
+      </AppSheet>
+    </>
+  );
+}
+
+/** Week + day as two number inputs on one row. */
+function AgeFields({
+  weeks,
+  days,
+  onChange,
+}: {
+  weeks: number | null;
+  days: number;
+  onChange: (weeks: number | null, days: number) => void;
+}) {
+  const t = useTranslations('pregnancyV2.setup');
+  return (
+    <div className="pon-pair">
+      <NumberField label={t('week')} value={weeks ?? undefined} onChange={(w) => onChange(w ?? null, days)} min={1} max={42} />
+      <NumberField
+        label={t('day')}
+        value={days}
+        onChange={(d) => onChange(weeks, Math.min(6, Math.max(0, Math.trunc(d ?? 0))))}
+        min={0}
+        max={6}
+      />
+    </div>
   );
 }
 
@@ -39,14 +93,13 @@ export function DatingStep({
   onChange: (next: SetupDating) => void;
 }) {
   const t = useTranslations('pregnancyV2.setup');
-  const dayOptions = useDayOptions();
+  const loc = useLocale() as Locale;
   const set = (patch: Partial<SetupDating>) => onChange({ ...value, ...patch });
 
   return (
     <div className="pon-stack">
       <div>
-        <span className="pon-sublabel is-block">{t('sourceLabel')}</span>
-        <div className="seg" role="radiogroup" aria-label={t('sourceLabel')}>
+        <div className="seg pon-seg" role="radiogroup" aria-label={t('sourceLabel')}>
           {DATING_SOURCES.map((src: DatingSource) => (
             <button
               key={src}
@@ -64,52 +117,41 @@ export function DatingStep({
       </div>
 
       {value.source === 'lmp' && (
-        <PgCard title={t('lmpPick')} icon="calendar">
+        <div className="pon-cal">
+          <div className="pon-cal-hd">
+            <span className="pon-sublabel">{t('lmpPick')}</span>
+            {value.lmp && (
+              <span className="pon-datechip" aria-live="polite">
+                {formatDayMonth(partsToDate(value.lmp, loc), loc)}
+              </span>
+            )}
+          </div>
           <CalendarPicker value={value.lmp} onSelect={(lmp) => set({ lmp })} />
-        </PgCard>
+        </div>
       )}
 
       {value.source === 'ultrasound' && (
-        <PgCard title={t('ultrasoundDate')} icon="calendar">
-          <CalendarPicker value={value.ultrasoundDate} onSelect={(d) => set({ ultrasoundDate: d })} />
-          <div className="onb-mt12">
+        <PgCard>
+          <DateField label={t('ultrasoundDate')} value={value.ultrasoundDate} onSelect={(d) => set({ ultrasoundDate: d })} />
+          <div className="onb-mt14">
             <span className="pon-sublabel is-block">{t('ultrasoundAge')}</span>
-            <NumberField
-              label={t('week')}
-              value={value.ultrasoundWeeks ?? undefined}
-              onChange={(w) => set({ ultrasoundWeeks: w ?? null })}
-              min={1}
-              max={42}
+            <AgeFields
+              weeks={value.ultrasoundWeeks}
+              days={value.ultrasoundDays}
+              onChange={(w, d) => set({ ultrasoundWeeks: w, ultrasoundDays: d })}
             />
-            <div className="onb-mt10">
-              <span className="pon-sublabel is-block">{t('day')}</span>
-              <Segmented
-                options={dayOptions}
-                value={String(value.ultrasoundDays)}
-                onChange={(v) => set({ ultrasoundDays: v == null ? 0 : Number(v) })}
-              />
-            </div>
           </div>
         </PgCard>
       )}
 
       {value.source === 'manual' && (
-        <PgCard title={t('manualAge')} icon="calendar">
-          <NumberField
-            label={t('week')}
-            value={value.manualWeeks ?? undefined}
-            onChange={(w) => set({ manualWeeks: w ?? null })}
-            min={1}
-            max={42}
+        <PgCard>
+          <span className="pon-sublabel is-block">{t('manualAge')}</span>
+          <AgeFields
+            weeks={value.manualWeeks}
+            days={value.manualDays}
+            onChange={(w, d) => set({ manualWeeks: w, manualDays: d })}
           />
-          <div className="onb-mt10">
-            <span className="pon-sublabel is-block">{t('day')}</span>
-            <Segmented
-              options={dayOptions}
-              value={String(value.manualDays)}
-              onChange={(v) => set({ manualDays: v == null ? 0 : Number(v) })}
-            />
-          </div>
         </PgCard>
       )}
     </div>
@@ -129,13 +171,13 @@ export function HistoryStep({
   const enums = usePregnancyEnums();
   const set = (patch: Partial<SetupHistory>) => onChange({ ...value, ...patch });
 
-  const conditions = enums.data?.preExistingConditions ?? CONDITIONS;
+  const conditions = noneFirst(enums.data?.preExistingConditions ?? CONDITIONS);
   const bloodTypes = enums.data?.bloodTypes ?? BLOOD_TYPES;
   const rhFactors = enums.data?.rhFactors ?? RH_FACTORS;
 
   return (
     <div className="pon-stack">
-      <PgCard icon="shield">
+      <PgCard>
         <div className="pon-toggle-row">
           <span className="pon-toggle-lbl">{t('miscarriage')}</span>
           <Toggle on={value.miscarriage} onClick={() => set({ miscarriage: !value.miscarriage })} />
@@ -146,7 +188,8 @@ export function HistoryStep({
         </div>
       </PgCard>
 
-      <PgCard title={t('conditions')} icon="stetho">
+      <div>
+        <span className="pon-sublabel is-block">{t('conditions')}</span>
         <div className="pon-chips">
           {conditions.map((c) => (
             <Chip
@@ -157,33 +200,40 @@ export function HistoryStep({
             />
           ))}
         </div>
-      </PgCard>
+      </div>
 
-      <PgCard title={t('bloodGroup')} icon="drop">
-        <div className="pon-chips">
-          {bloodTypes.map((b) => (
-            <Chip
-              key={b}
-              on={value.bloodType === b}
-              label={b}
-              onClick={() => set({ bloodType: value.bloodType === b ? null : b })}
-            />
-          ))}
-        </div>
-        <div className="onb-mt12">
-          <span className="pon-sublabel is-block">{t('rh')}</span>
-          <div className="pon-chips is-row">
-            {rhFactors.map((r) => (
-              <Chip
-                key={r}
-                on={value.rhFactor === r}
-                label={r === 'negative' ? t('rhNegative') : t('rhPositive')}
-                onClick={() => set({ rhFactor: value.rhFactor === r ? null : r })}
-              />
+      <div className="pon-pair">
+        <label className="fld-label">
+          <span className="fld-label-t">{t('bloodGroup')}</span>
+          <select
+            className="field pon-select"
+            value={value.bloodType ?? ''}
+            onChange={(e) => set({ bloodType: e.target.value || null })}
+          >
+            <option value="">{t('choose')}</option>
+            {bloodTypes.map((b) => (
+              <option key={b} value={b}>
+                {b}
+              </option>
             ))}
-          </div>
-        </div>
-      </PgCard>
+          </select>
+        </label>
+        <label className="fld-label">
+          <span className="fld-label-t">{t('rh')}</span>
+          <select
+            className="field pon-select"
+            value={value.rhFactor ?? ''}
+            onChange={(e) => set({ rhFactor: e.target.value || null })}
+          >
+            <option value="">{t('choose')}</option>
+            {rhFactors.map((r) => (
+              <option key={r} value={r}>
+                {r === 'negative' ? t('rhNegative') : t('rhPositive')}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
 
       {/* Truthful copy: history is stored on the server (README open point 1). */}
       <p className="sub onb-note is-sub">{t('historyDisclaimer')}</p>
@@ -203,41 +253,53 @@ export function ResultStep({
 }) {
   const t = useTranslations('pregnancyV2');
   const loc = useLocale() as Locale;
-  const date = (iso: string) => formatLongDate(fromApiDate(iso), loc);
 
   if (failed) return <p className="onb-error">{t('setup.previewError')}</p>;
   if (loading || !preview) return <p className="sub onb-note">{t('setup.calculating')}</p>;
 
+  const { copy } = preview;
   const level = preview.confidence.level;
+  const levelText = level ? t(`common.confidence.levels.${level}`) : null;
+  // Admin copy (`pregnancy_setup/result`) first, the bundle as the fallback.
+  const confidence = levelText
+    ? copy.confidence
+      ? copy.confidence.replace('{confidence}', levelText)
+      : t('common.confidence.label', { level: levelText })
+    : null;
+  const range =
+    preview.rangeLabel ??
+    (preview.range
+      ? t('setup.usualRange', {
+          from: formatDayMonth(fromApiDate(preview.range.from), loc),
+          to: formatDayMonth(fromApiDate(preview.range.to), loc),
+        })
+      : null);
+  const detail = [range, preview.basis].filter(Boolean).join(' ');
+
   return (
-    <div className="pon-stack">
-      <PgCard icon="heart">
-        <p className="sub">{t('setup.resultLead')}</p>
-        <div className="titr">{t('common.age', { weeks: preview.age.weeks, days: preview.age.days })}</div>
-        <p className="sub">{t('setup.resultTail')}</p>
-      </PgCard>
+    <div className="pon-result">
+      <ResultBaby size={170} />
+      <h2 className="pon-result-hero">
+        <span>{copy.lead ?? t('setup.resultLead')}</span>
+        <span className="pon-result-age">{t('common.age', { weeks: preview.age.weeks, days: preview.age.days })}</span>
+        <span>{copy.suffix ?? t('setup.resultTail')}</span>
+      </h2>
 
-      <PgCard title={t('common.dueDate')} icon="calendar">
-        <div className="card-titr">{preview.dueDateLabel ?? date(preview.dueDate)}</div>
-        {preview.range && (
-          <p className="sub onb-mt8">
-            {t('setup.usualRange', { from: date(preview.range.from), to: date(preview.range.to) })}
-          </p>
-        )}
-        {level && (
-          <p className="sub onb-mt8">
-            {preview.uncertaintyDays != null
-              ? t('common.confidence.withRange', {
-                  level: t(`common.confidence.levels.${level}`),
-                  days: preview.uncertaintyDays,
-                })
-              : t('common.confidence.label', { level: t(`common.confidence.levels.${level}`) })}
-          </p>
-        )}
-        {preview.basis && <p className="sub onb-note is-sub">{preview.basis}</p>}
+      <PgCard>
+        <div className="pon-due">
+          <div className="min-w-0">
+            <div className="pon-due-lbl">{copy.dueLabel ?? t('common.dueDate')}</div>
+            <div className="pon-due-date">{preview.dueDateLabel ?? formatLongDate(fromApiDate(preview.dueDate), loc)}</div>
+          </div>
+          {confidence && (
+            <span className="pon-conf">
+              <Icon name="info" size={14} />
+              {confidence}
+            </span>
+          )}
+        </div>
+        {detail && <p className="pon-due-detail">{detail}</p>}
       </PgCard>
-
-      <p className="sub onb-note is-sub">{t('common.estimateNote')}</p>
     </div>
   );
 }

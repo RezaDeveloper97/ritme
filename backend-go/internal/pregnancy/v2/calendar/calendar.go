@@ -13,6 +13,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"strings"
 	"sync"
 	"time"
 
@@ -192,6 +193,27 @@ func errNotActive(locale string) error {
 }
 
 // weekOn is the 1-based week containing date (0 before the pregnancy start).
+// sourceNote is the care-plan caveat («… ممکنه پزشکت برنامهٔ متفاوتی بده.») followed by the dating
+// basis sentence (design audit E2); null when neither has copy.
+func sourceNote(source, loc string) any {
+	var parts []string
+	for _, s := range []string{T("plan_note", loc), T("source_note."+source, loc)} {
+		if s != "" && !strings.HasPrefix(s, "pregnancy_calendar.") {
+			parts = append(parts, s)
+		}
+	}
+	return nullIf(strings.Join(parts, " "))
+}
+
+// ageAt is the gestational age on date, «۱۱ هفته و ۱ روز»; nil before the pregnancy start.
+func ageAt(d v2.Dating, date civildate.Date, loc string) any {
+	n := d.Start().DiffDays(date)
+	if n < 0 {
+		return nil
+	}
+	return v2.AgeLabel(n/7, n%7, loc)
+}
+
 func weekOn(d v2.Dating, date civildate.Date) int {
 	n := d.Start().DiffDays(date)
 	if n < 0 {
@@ -271,7 +293,7 @@ func build(d v2.Dating, m Month, visits []Visit, items []store.PregnancyCareItem
 		return jsonx.Obj(
 			"appointment_id", v.ID, "care_item_key", nullIf(v.CareItemKey), "title", v.Title,
 			"date", v.Date.String(), "date_label", v2.FullDate(v.Date, loc), "time", v.At.Format("15:04"),
-			"week", weekAny, "week_label", weekLabel, "stage", nullIf(v.Stage), "prep", prep,
+			"week", weekAny, "week_label", weekLabel, "age_label", ageAt(d, v.Date, loc), "stage", nullIf(v.Stage), "prep", prep,
 			"doctor", nullIf(v.Doctor), "place", nullIf(v.Place), "remind_before", nullIf(v.RemindBefore),
 			"result_note", nullIf(v.ResultNote), "days_until", d.Today.DiffDays(v.Date),
 		)
@@ -342,6 +364,6 @@ func build(d v2.Dating, m Month, visits []Visit, items []store.PregnancyCareItem
 		"visits", monthVisits,
 		"next_visit", next,
 		"care_plan", plan,
-		"source_note", nullIf(T("source_note."+d.Source, loc)),
+		"source_note", sourceNote(d.Source, loc),
 	)
 }

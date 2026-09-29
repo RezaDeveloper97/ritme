@@ -110,3 +110,18 @@ func TestBuild_MonthMarkersAndVisits(t *testing.T) {
 	it, _ := first.Get("is_today")
 	assert.Equal(t, true, it)
 }
+
+// The care-plan note leads with the "your doctor may plan differently" caveat, then the basis
+// (design audit E2); a visit carries the age on its day (E4).
+func TestSourceNoteAndAgeAt(t *testing.T) {
+	note, _ := sourceNote("lmp", "fa").(string)
+	assert.Contains(t, note, "ممکنه پزشکت برنامهٔ متفاوتی بده")
+	assert.Contains(t, note, "اولین روز آخرین قاعدگی")
+	en, _ := sourceNote("ultrasound", "en").(string)
+	assert.Contains(t, en, "different plan")
+	assert.Contains(t, en, "ultrasound")
+
+	d := dating(t, lmp("2026-08-01"), "2026-09-29")
+	assert.Equal(t, "۱۱ هفته و ۱ روز", ageAt(d, civildate.MustParse("2026-10-18"), "fa"))
+	assert.Nil(t, ageAt(d, civildate.MustParse("2026-07-01"), "fa"))
+}

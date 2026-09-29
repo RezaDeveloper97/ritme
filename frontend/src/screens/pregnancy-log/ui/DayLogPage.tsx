@@ -203,7 +203,7 @@ export function DayLogPage({ date: rawDate }: { date?: string }) {
                     </span>
                   )}
                 </div>
-                <div className="mt-3 flex flex-wrap gap-2">
+                <div className="mt-3 grid grid-cols-3 gap-2">
                   {DAY_SYMPTOMS.map((s) => {
                     const on = !!draft.symptoms[s];
                     return (
@@ -215,7 +215,7 @@ export function DayLogPage({ date: rawDate }: { date?: string }) {
                           edit({ symptoms: toggleSymptom(draft.symptoms, s) })
                         }
                         className={clsx(
-                          "inline-flex h-9 items-center gap-1 rounded-full border px-3.5 text-[13px] font-bold",
+                          "inline-flex min-h-11 items-center justify-center gap-1 rounded-2xl border px-1.5 py-1.5 text-center text-[12.5px] leading-snug font-bold",
                           on
                             ? "border-(--brand-fill) bg-(--brand-fill) text-(--on-accent)"
                             : "border-(--line) bg-(--surface) text-(--ink)",
@@ -337,16 +337,16 @@ export function DayLogPage({ date: rawDate }: { date?: string }) {
                       : t("log.weightNone")}
                   </span>
                 </div>
-                <div className="flex items-center gap-1.5 rounded-xl border border-(--field-border) bg-(--surface) px-2.5">
+                <div className="flex items-center gap-1.5">
                   <input
                     id="plog-weight"
                     inputMode="decimal"
                     autoComplete="off"
                     value={displayWeight(draft.weight, locale)}
                     onChange={(e) => edit({ weight: e.target.value })}
-                    className="h-10 w-16 bg-transparent text-center text-[15px] font-bold text-(--ink) outline-none"
+                    className="h-11 w-18 rounded-xl border border-(--field-border) bg-(--surface) text-center text-[15px] font-bold text-(--ink) outline-none focus-visible:border-(--brand)"
                   />
-                  <span className="text-xs font-semibold text-(--ink-3)">
+                  <span className="text-[13px] font-bold text-(--ink-2)">
                     {t("log.kg")}
                   </span>
                 </div>
@@ -418,7 +418,8 @@ export function DayLogPage({ date: rawDate }: { date?: string }) {
               type="button"
               className={clsx(
                 "flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-[15px] font-extrabold text-(--on-accent) disabled:opacity-70",
-                saved ? "bg-(--success)" : "bg-(image:--gradient-brand)",
+                // --success-fill, not --success: dark mode lifts --success to a text green.
+                saved ? "bg-(--success-fill)" : "bg-(image:--gradient-brand)",
               )}
               disabled={status === "saving"}
               onClick={() => void submit(date, inputFromDraft(draft))}

@@ -4,6 +4,7 @@ import {
   EMPTY_DATING,
   EMPTY_HISTORY,
   isDatingComplete,
+  noneFirst,
   toggleCondition,
   toOnboardingInput,
   toPreviewInput,
@@ -44,5 +45,12 @@ describe('dating payloads', () => {
       pre_existing_conditions: ['none'],
       rh_factor: 'negative',
     });
+  });
+});
+
+describe('noneFirst', () => {
+  it('puts «هیچ‌کدام» first', () => {
+    expect(noneFirst(['diabetes', 'hypothyroidism', 'none'])).toEqual(['none', 'diabetes', 'hypothyroidism']);
+    expect(noneFirst(['diabetes'])).toEqual(['diabetes']);
   });
 });

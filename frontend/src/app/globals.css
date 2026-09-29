@@ -147,6 +147,7 @@
      Rose is the design's iron/cancel hue — NOT the period red (§10.2). */
   --success:          #0F7B6C;  /* taken check / "۱ از ۲ مصرف شد" */
   --success-soft:     #E7F8EF;
+  --success-fill:     #0F7B6C;  /* fill under white text («ذخیره شد»); theme-stable like --brand-fill */
   --amber-tile:       #FFF3DF;  /* appointment date tile */
   --amber-tile-ink:   #B45309;
   --care-rose:        #C42D57;  /* iron tile icon, cancel text */
@@ -323,6 +324,7 @@
   /* Care reminders (M3) — values from the nbd_v13 artboards. */
   --success:          #7FE0A8;
   --success-soft:     #1F3A2E;
+  --success-fill:     #0F7B6C;  /* stays saturated: --success is lifted to a text green here */
   --amber-tile:       #3A2F1E;
   --amber-tile-ink:   #FFC98A;
   --care-rose:        #FF8FA3;
@@ -1886,6 +1888,48 @@ body {
 .pon-chips.is-row { flex-wrap: nowrap; }
 .pon-tail     { height: 20px; }
 .pon-footer   { padding: 10px 16px 4px; background: var(--page); }
+/* Pregnancy Setup v2 (Setup artboard, design audit A1–A8) */
+.pon-welcome  { align-items: center; text-align: center; }
+.pon-benefits {
+  list-style: none; margin: 20px 0 0; padding: 14px 16px; width: 100%;
+  display: flex; flex-direction: column; gap: 10px; text-align: start;
+}
+.pon-benefits li { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 800; color: var(--ink); }
+.pon-benefit-check { color: var(--success); flex-shrink: 0; }
+.pon-textbtn {
+  display: flex; align-items: center; justify-content: center; width: 100%; min-height: 44px; margin-top: 6px;
+  background: transparent; border: 0; font-family: inherit; font-size: 14px; font-weight: 800;
+  color: var(--ink-2); cursor: pointer;
+}
+.pon-textbtn:disabled { opacity: .5; cursor: default; }
+.pon-textbtn:focus-visible { outline: none; box-shadow: var(--ring); border-radius: 12px; }
+.seg.pon-seg { background: var(--line-2); border-radius: 16px; }
+.seg.pon-seg button { height: auto; min-height: 44px; padding: 6px 8px; line-height: 1.5; font-size: 13.5px; }
+.pon-cal { display: flex; flex-direction: column; gap: 8px; }
+.pon-cal-hd { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.pon-datechip {
+  padding: 4px 12px; border-radius: 12px; font-size: 12.5px; font-weight: 800;
+  color: var(--brand); background: var(--surface-2);
+}
+.pon-datefield { width: 100%; justify-content: space-between; font-family: inherit; font-weight: 800; cursor: pointer; }
+.pon-datefield svg { color: var(--muted); }
+.pon-placeholder { color: var(--muted-soft); font-weight: 600; }
+.pon-select { width: 100%; font-family: inherit; font-weight: 800; }
+.pon-result { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 12px 16px 0; }
+.pon-result > .card { width: 100%; }
+.pon-result-hero {
+  display: flex; flex-direction: column; gap: 2px; margin: 0; text-align: center;
+  font-size: 22px; line-height: 1.6; font-weight: 900; color: var(--ink);
+}
+.pon-result-age { font-size: 28px; color: var(--brand); }
+.pon-due { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 8px 10px; }
+.pon-due-lbl  { font-size: 12.5px; font-weight: 700; color: var(--muted); }
+.pon-due-date { font-size: 18px; font-weight: 900; color: var(--ink); white-space: nowrap; }
+.pon-conf {
+  display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; padding: 6px 12px; border-radius: 16px;
+  font-size: 12px; font-weight: 800; color: var(--preg-teal-ink); background: var(--data-soft);
+}
+.pon-due-detail { margin: 12px 0 0; font-size: 13px; line-height: 1.9; font-weight: 600; color: var(--ink-2); }
 .onb-dim      { opacity: .5; }
 .onb-note.is-sub { line-height: 1.7; }
 .onb-error.is-spaced { margin: 12px 0 0; }
@@ -2981,6 +3025,58 @@ body.pwa-locked { overflow: hidden; }
 .ck-tone-green   { --ck-ink: var(--success);        --ck-soft: var(--success-soft); }
 .ck-tone-neutral { --ck-ink: var(--ink-3);          --ck-soft: var(--surface-2); }
 
+/* Record results (MarkDone options, detail «سابقه» pills): the status roles §10.2 allows. */
+.ck-result-normal    { --ck-ink: var(--success);        --ck-soft: var(--success-soft); }
+.ck-result-follow_up { --ck-ink: var(--amber-tile-ink); --ck-soft: var(--amber-tile); }
+.ck-result-pending   { --ck-ink: var(--ink-3);          --ck-soft: var(--surface-2); }
+
+/* v14 outlined pill: status / result glyph + label in the modifier's ink. */
+.ck-pill {
+  display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; white-space: nowrap;
+  padding: 3px 10px; border-radius: 999px; border: 1.5px solid var(--ck-ink);
+  background: transparent; color: var(--ck-ink); font-size: 11px; font-weight: 800; line-height: 1.5;
+}
+.ck-pill.is-solid { background: var(--surface); }
+
+/* Detail / self-exam hero (T-M4-12, audit C2/E2): a soft lavender tint with ink text, not the
+   brand gradient — the gradient stays scarce (§10.2). Both stops flip in dark mode. */
+.ck-hero {
+  display: flex; flex-direction: column; gap: 14px; padding: 16px; border-radius: 26px;
+  background: linear-gradient(160deg, var(--pink-bg), var(--surface-2) 80%);
+  border: 1px solid var(--line); color: var(--ink); text-align: start;
+}
+.ck-hero-chip {
+  display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 70%, transparent); border: 1px solid var(--brand-line-soft);
+  color: var(--ink-2); font-size: 11.5px; font-weight: 800;
+}
+.ck-hero-disc {
+  display: grid; place-items: center; flex-shrink: 0; width: 56px; height: 56px; border-radius: 50%;
+  background: var(--pink-bg); border: 1px solid var(--brand-line-soft); color: var(--ck-ink, var(--brand-strong));
+}
+.ck-hero-alt {
+  background: var(--pink-bg); border: 1.5px solid var(--brand-line-soft); color: var(--ink);
+}
+
+/* MarkDone note: a filled one-line field that grows with its text (audit D6). */
+.ck-note {
+  display: flex; align-items: flex-start; gap: 10px; padding: 14px; border-radius: 18px;
+  background: var(--surface-2); border: 1.5px solid transparent; color: var(--muted);
+}
+.ck-note:focus-within { border-color: var(--brand); }
+.ck-note textarea {
+  flex: 1; min-width: 0; min-height: 24px; resize: none; border: 0; outline: 0; padding: 0;
+  background: transparent; field-sizing: content; font-family: inherit;
+  font-size: 13.5px; font-weight: 600; line-height: 1.7; color: var(--ink); text-align: start;
+}
+.ck-note textarea::placeholder { color: var(--muted-soft); }
+
+/* «افزودن چکاپ سفارشی»: the ghost button in neutral ink with a hairline (audit B12). */
+.btn-ghost.ck-neutral { color: var(--ink); border-color: var(--line); }
+
+/* History timeline: tone tile + connector (audit F1). */
+.ck-tl-line { flex: 1; width: 2px; margin-block: 4px; border-radius: 1px; background: var(--line); }
+
 /* ── Fertility / TTC (M5) — tone palette ──────────────────────
    Shared by the home tiles, the log chance card, the BBT stat cards and the
    insights evidence rows (T-M5-05…08). A tone sets `--fert-ink`; `.fert-disc`
@@ -3007,6 +3103,7 @@ body.pwa-locked { overflow: hidden; }
 .pg2-tone-teal   { --pg2-ink: var(--preg-teal-ink); --pg2-soft: var(--data-soft); }
 .pg2-tone-warn   { --pg2-ink: var(--amber-deep);   --pg2-soft: var(--amber-tint); }
 .pg2-tone-green  { --pg2-ink: var(--success);      --pg2-soft: var(--success-soft); }
+.pg2-tone-neutral{ --pg2-ink: var(--ink-2);        --pg2-soft: var(--line); }
 /* Alert levels (Alerts artboard legend): اطلاع · پیشنهاد · ارزش پیگیری · پیگیری زودتر */
 .pg2-level-info       { --pg2-ink: var(--brand-deep);    --pg2-soft: var(--surface-2); }
 .pg2-level-suggestion { --pg2-ink: var(--preg-teal-ink); --pg2-soft: var(--data-soft); }
@@ -3027,6 +3124,69 @@ body.pwa-locked { overflow: hidden; }
   color: var(--preg-warn-ink);
 }
 .pg2-warn-icon { color: var(--amber-deep); flex-shrink: 0; }
+/* Calm note (due-date disclaimer, alerts legend): lavender tint, brand icon —
+   routine notes don't wear the warning amber (design audit B9 / F5). */
+.pg2-note      { background: var(--surface-2); color: var(--ink-2); }
+.pg2-note-icon { color: var(--brand); flex-shrink: 0; }
+/* Round surface button (screen headers, setup back). */
+.pg2-roundbtn {
+  width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--ink); background: var(--surface); border: 1px solid var(--line);
+  cursor: pointer;
+}
+.pg2-roundbtn:focus-visible { outline: none; box-shadow: var(--ring); }
+/* One solid primary per card (not the gradient — §10.2 scarcity). */
+.pg2-btn-solid {
+  background: var(--brand-fill); color: var(--on-accent); border: 0; border-radius: 14px;
+}
+.pg2-btn-solid:disabled { background: var(--brand-disabled); cursor: default; }
+.pg2-textlink {
+  display: inline-flex; align-items: center; gap: 4px; min-height: 44px;
+  font-size: 13px; font-weight: 900; color: var(--brand);
+  background: transparent; border: 0; padding: 0; cursor: pointer; text-decoration: none;
+}
+.pg2-textlink:focus-visible { outline: none; box-shadow: var(--ring); border-radius: 8px; }
+/* Alert cards worth following up carry their level on the border. */
+.pg2-alert.pg2-level-follow_up { border-color: var(--preg-warn-line); }
+.pg2-alert.pg2-level-urgent    { border-color: var(--care-rose-line); }
+.pg2-fact { background: var(--surface-2); border-radius: 14px; padding: 10px 12px; }
+/* Square brand checkbox shared by Today «مراقبت‌های این هفته» and Week tasks. */
+.pg2-check {
+  width: 24px; height: 24px; border-radius: 7px; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 2px solid var(--brand-line-soft); color: transparent; background: var(--surface);
+}
+.pg2-check.is-on { background: var(--brand-fill); border-color: var(--brand-fill); color: var(--on-accent); }
+/* Today hero: full-bleed fill holding the date pill, bell, 7-day strip and carousel. */
+.pg2-hero {
+  background: linear-gradient(to bottom, var(--preg-hero-start), var(--preg-hero-end));
+  color: var(--on-accent); border-radius: 0 0 32px 32px; padding: 14px 16px 18px;
+}
+.pg2-hero-pill {
+  display: inline-flex; align-items: center; height: 36px; padding: 0 14px; border-radius: 18px;
+  font-size: 13px; font-weight: 800; background: color-mix(in srgb, var(--on-accent) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--on-accent) 35%, transparent);
+}
+.pg2-hero-bell {
+  position: relative; width: 44px; height: 44px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center; color: var(--on-accent);
+  background: color-mix(in srgb, var(--on-accent) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--on-accent) 35%, transparent);
+}
+.pg2-hero-dot {
+  position: absolute; inset-block-start: 9px; inset-inline-end: 10px; width: 9px; height: 9px;
+  border-radius: 50%; background: var(--data); box-shadow: 0 0 0 2px var(--preg-hero-start);
+}
+.pg2-day {
+  display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 0;
+  border-radius: 14px; color: var(--on-accent); text-decoration: none;
+  background: color-mix(in srgb, var(--on-accent) 16%, transparent); border: 1.5px solid transparent;
+}
+.pg2-day.is-today  { background: var(--on-accent); color: var(--preg-hero-end); }
+.pg2-day.is-future { background: transparent; border: 1.5px dashed color-mix(in srgb, var(--on-accent) 45%, transparent); }
+.pg2-day:focus-visible { outline: none; box-shadow: var(--ring); }
+.pg2-age { font-size: 30px; line-height: 1.35; font-weight: 900; white-space: nowrap; }
 
 /* Illustrations (`shared/ui/illustrations`). SVG parts carry these classes
    instead of fills so the drawings flip with the theme. */

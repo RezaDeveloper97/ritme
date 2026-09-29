@@ -42,6 +42,11 @@
   "setup": {
     "welcomeTitle": "Welcome to pregnancy mode",
     "welcomeBody": "Turn on pregnancy mode to follow your baby's growth and the changes in your body week by week, and see each week's care.",
+    "benefits": {
+      "1": "Pregnancy tools always stay free",
+      "2": "Your cycle data is kept",
+      "3": "You can switch back to cycle mode any time"
+    },
     "turnOn": "Turn on pregnancy mode",
     "notNow": "Not now",
     "progressLabel": "Setup step",
@@ -57,6 +62,7 @@
     },
     "lmpPick": "First day of your last period",
     "ultrasoundDate": "Ultrasound date",
+    "pickDate": "Pick a date",
     "ultrasoundAge": "Pregnancy age at the ultrasound",
     "manualAge": "Current pregnancy week",
     "week": "Week",
@@ -139,9 +145,13 @@
     "stats": {
       "cm": "cm",
       "g": "g",
-      "bpm": "beats per minute"
+      "bpm": "beats per minute",
+      "approx": "~{value}",
+      "range": "{from}–{to}",
+      "less": "under {value}"
     },
     "averagesNote": "These numbers are averages; every baby grows at their own pace.",
+    "warningLead": "Talk to your doctor about these:",
     "tabsLabel": "This week's sections",
     "tabs": {
       "baby": "Baby",

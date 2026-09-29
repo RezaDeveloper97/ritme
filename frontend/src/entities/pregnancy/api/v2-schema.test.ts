@@ -32,6 +32,8 @@ describe('datingPreviewSchema', () => {
     uncertainty_days: 14,
     confidence: { level: 'medium', label: 'متوسط' },
     basis: 'مبنای این محاسبه اولین روز آخرین قاعدگیه (۳ مرداد).',
+    range_label: 'بازهٔ معمول تولد: ۲۸ فروردین تا ۲۵ اردیبهشت.',
+    copy: { lead: 'بر اساس داده‌های فعلی، احتمالاً', suffix: 'باردار هستی', due_label: null, confidence: 'دقت تخمین: {confidence}' },
   };
 
   it('maps the README shape', () => {
@@ -42,9 +44,18 @@ describe('datingPreviewSchema', () => {
       dueDate: '2027-05-01',
       dueDateLabel: '۱۱ اردیبهشت ۱۴۰۶',
       range: { from: '2027-04-17', to: '2027-05-15' },
+      rangeLabel: 'بازهٔ معمول تولد: ۲۸ فروردین تا ۲۵ اردیبهشت.',
       uncertaintyDays: 14,
       confidence: { level: 'medium', label: 'متوسط' },
       basis: 'مبنای این محاسبه اولین روز آخرین قاعدگیه (۳ مرداد).',
+      copy: {
+        lead: 'بر اساس داده‌های فعلی، احتمالاً',
+        suffix: 'باردار هستی',
+        dueLabel: null,
+        confidence: 'دقت تخمین: {confidence}',
+        primary: null,
+        secondary: null,
+      },
     });
   });
 
@@ -383,9 +394,14 @@ describe('pregnancyAlertsV2Schema', () => {
         { key: 'ack', label: null },
       ],
       contact: null,
+      factDate: '2026-09-22',
       isRead: false,
     });
     expect(parsed.alerts[2].isRead).toBe(true);
+    // fact_date wins over the creation day when the server sends it.
+    expect(pregnancyAlertsV2Schema.parse({ ...alerts, alerts: [{ ...alerts.alerts[0], fact_date: '2026-09-19' }] }).alerts[0].factDate).toBe(
+      '2026-09-19',
+    );
     // Legend ordered info → urgent; unknown levels dropped.
     expect(parsed.legend.map((l) => l.level)).toEqual(['info', 'urgent']);
   });

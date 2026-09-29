@@ -127,7 +127,7 @@ func (s *Service) Today(ctx context.Context, userID uint64, now time.Time, l Lan
 			illustration = nullStr(det.IllustrationKey.String, det.IllustrationKey.Valid)
 		}
 		carousel = append(carousel, jsonx.Obj(
-			"week", w, "trimester", tri(w), "title", WeekLabel(w, l.Locale),
+			"week", w, "trimester", tri(w), "title", slideTitle(d, w, l.Locale),
 			"headline", headline(det, l), "size_line", sizeLine(det, rel, l),
 			"illustration_key", illustration, "relation", rel,
 		))
@@ -167,6 +167,16 @@ func (s *Service) Today(ctx context.Context, userID uint64, now time.Time, l Lan
 		"tasks", tasksJSON(byWeek[cur], doneKeys(st.DoneTaskKeys), l),
 		"unread_alerts", ex.UnreadAlerts,
 	), nil
+}
+
+// slideTitle is the carousel headline: the age «۸ هفته و ۳ روز» on the current week, and the
+// completed weeks at the start of week w («۷ هفته») on the others. The eyebrow above it already
+// carries the trimester · week label, so the title never repeats it (design audit B1).
+func slideTitle(d Dating, w int, locale string) string {
+	if w == d.CurrentWeek() {
+		return ageLabel(d, locale)
+	}
+	return AgeLabel(w-1, 0, locale)
 }
 
 // tri is the trimester of 1-based week w.

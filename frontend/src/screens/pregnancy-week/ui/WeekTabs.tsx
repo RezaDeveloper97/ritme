@@ -12,6 +12,7 @@ import {
 import { useUpdateWeekState } from '@/features/track-pregnancy';
 import { Link, useDirection } from '@/shared/i18n';
 import { Icon } from '@/shared/ui';
+import { PregnancyCheckBox } from '@/widgets/pregnancy-care-checklist';
 
 const TABS = ['baby', 'body', 'tasks'] as const;
 type Tab = (typeof TABS)[number];
@@ -138,23 +139,23 @@ function TasksPanel({ data }: { data: PregnancyWeek }) {
   return (
     <div className="flex flex-col px-3.5 py-1">
       {data.tasks.map((task, i) => (
-        <label
+        <button
           key={task.key}
+          type="button"
+          role="checkbox"
+          aria-checked={task.done}
+          onClick={() =>
+            update.mutate({ week: data.week, state: { done_task_keys: toggleDoneKey(doneKeys, task.key) } })
+          }
           className={clsx(
-            'flex min-h-12 cursor-pointer items-center gap-3 text-[13.5px] font-semibold text-(--ink)',
+            'flex min-h-12 w-full items-center gap-3 text-start text-[13.5px] font-semibold text-(--ink) focus-visible:shadow-(--ring) focus-visible:outline-none',
             i > 0 && 'border-t border-(--line-2)',
           )}
         >
-          <input
-            type="checkbox"
-            checked={task.done}
-            onChange={() =>
-              update.mutate({ week: data.week, state: { done_task_keys: toggleDoneKey(doneKeys, task.key) } })
-            }
-            className="size-[22px] shrink-0 accent-(--brand-fill)"
-          />
-          <span className={clsx(task.done && 'text-(--muted) line-through')}>{task.text}</span>
-        </label>
+          <PregnancyCheckBox on={task.done} />
+          {/* Week tab keeps done tasks in normal ink (Week artboard); the check carries the state. */}
+          <span>{task.text}</span>
+        </button>
       ))}
       {update.isError && (
         <p role="alert" className="m-0 pb-2 text-xs font-semibold text-(--danger)">

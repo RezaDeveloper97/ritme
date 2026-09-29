@@ -242,6 +242,8 @@ type meta struct {
 	Dedupe string            `json:"dedupe"`
 	Vars   map[string]string `json:"vars"`
 	Order  []string          `json:"order,omitempty"`
+	// On is the fact's day (YYYY-MM-DD) when it differs from the evaluation day (Hit.On).
+	On string `json:"on,omitempty"`
 }
 
 // Evaluate runs the log-driven rules after a log save (see EvaluateAll).
@@ -328,6 +330,9 @@ func (e *Engine) persist(ctx context.Context, userID uint64, h Hit, c Config, f 
 		return nil, nil
 	}
 	m := meta{Rule: h.Rule, Level4: c.Level, Dedupe: h.Dedupe, Vars: map[string]string{}}
+	if !h.On.IsZero() && h.On != f.Today {
+		m.On = h.On.String()
+	}
 	for _, kv := range h.Vars {
 		m.Vars[kv[0]] = kv[1]
 		m.Order = append(m.Order, kv[0])
@@ -456,14 +461,18 @@ func alertJSON(r *store.PregnancyAlert, rs rows, l v2.Lang) *jsonx.OrderedMap {
 	for _, a := range t.actions {
 		actions = append(actions, jsonx.Obj("key", a.key, "label", a.label))
 	}
-	var contact, created, dateLabel any
+	var contact, created, factDate, dateLabel any
 	if m.Level4 == "urgent" && t.contact != "" {
 		contact = t.contact
 	}
 	if r.CreatedAt.Valid {
 		c := r.CreatedAt.Time.In(civildate.Tehran)
 		created = c.Format(time.RFC3339)
-		dateLabel = v2.FullDate(civildate.FromTime(c), l.Locale)
+		day := civildate.FromTime(c)
+		if on, err := civildate.Parse(m.On); m.On != "" && err == nil {
+			day = on
+		}
+		factDate, dateLabel = day.String(), v2.FullDate(day, l.Locale)
 	}
 	var week any
 	if r.PregnancyWeek.Valid {
@@ -482,6 +491,7 @@ func alertJSON(r *store.PregnancyAlert, rs rows, l v2.Lang) *jsonx.OrderedMap {
 		"contact", contact,
 		"pregnancy_week", week,
 		"created_at", created,
+		"fact_date", factDate,
 		"date_label", dateLabel,
 		"is_read", r.IsRead,
 		"is_acked", r.IsDismissed,

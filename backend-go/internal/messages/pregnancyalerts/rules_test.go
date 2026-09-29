@@ -78,6 +78,7 @@ func TestCalendarRules(t *testing.T) {
 	hits := Detect("week_entered", cfg(1, nil), f)
 	require.Len(t, hits, 1)
 	assert.Equal(t, "w13", hits[0].Dedupe)
+	assert.Equal(t, f.Today, hits[0].On, "the fact date is the week's first day")
 	f.WeekDay = 1
 	assert.Empty(t, Detect("week_entered", cfg(1, nil), f))
 }
@@ -139,4 +140,14 @@ func TestRenderLocalizesDigits(t *testing.T) {
 	assert.Equal(t, "۱۵۰/"+T("none", "fa")+" · ۹۵.۵", fa.whatWeSaw)
 	en := render(p, m, "en")
 	assert.Equal(t, "وارد هفتهٔ 10 شدی", en.title)
+}
+
+// week_entered found days into the week dates the card by the week start, not the evaluation
+// day (design audit F4).
+func TestWeekEnteredFactDate(t *testing.T) {
+	f := facts(nil)
+	f.WeekDay = 3
+	hits := Detect("week_entered", cfg(7, nil), f)
+	require.Len(t, hits, 1)
+	assert.Equal(t, f.Today.AddDays(-3), hits[0].On)
 }

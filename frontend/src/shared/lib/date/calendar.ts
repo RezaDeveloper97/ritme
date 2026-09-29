@@ -284,6 +284,24 @@ export function formatWeekdayDayMonth(date: Date, locale: Locale): string {
   return `${weekday}${separator}${formatDayMonth(date, locale)}`;
 }
 
+/** Weekday name alone, e.g. «شنبه» (fa) or "Saturday" (en). */
+export function formatWeekday(date: Date, locale: Locale): string {
+  return WEEKDAY_LONG[calendarLocale(locale)][DAY_INDEX_KEYS[dayjs(date).day()]];
+}
+
+/** Persian decimal separator «٫» (U+066B) — what ICU prints for fa numbers. */
+const FA_DECIMAL = '\u066B';
+
+/**
+ * A decimal number as text in the locale's digits, with «٫» instead of an
+ * ASCII dot in fa («۱٫۶»). Accepts an already-formatted string such as «1.6».
+ */
+export function formatDecimal(value: string | number, locale: Locale): string {
+  const digits = formatNumber(value, locale);
+  // Persian digits and «٫» are the one sanctioned fa special case (CLAUDE.md §6.1).
+  return locale === 'fa' ? digits.replace(/\./g, FA_DECIMAL) : digits;
+}
+
 /** Hour of the day on the device clock, 0–23 (e.g. to pick a greeting). */
 export function currentHour(): number {
   return dayjs().hour();

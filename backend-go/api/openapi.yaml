@@ -7420,7 +7420,7 @@ paths:
                           properties:
                             week: {type: integer}
                             trimester: {type: integer}
-                            title: {type: string, description: "«سه‌ماههٔ اول · هفتهٔ ۸ از ۴۰»"}
+                            title: {type: string, description: "The age: «۸ هفته و ۳ روز» on the current week, the completed weeks at the start of the week («۷ هفته») on the others"}
                             headline: {type: [string, "null"]}
                             size_line: {type: [string, "null"]}
                             illustration_key: {type: [string, "null"]}
@@ -7662,7 +7662,7 @@ paths:
                             suggested_date_label: {type: [string, "null"]}
                             appointment_id: {type: [integer, "null"]}
                             prep: {type: [string, "null"]}
-                      source_note: {type: [string, "null"]}
+                      source_note: {type: [string, "null"], description: "Care-plan caveat (the doctor may plan differently), then the dating basis sentence"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '409': {$ref: "#/components/responses/PregnancyNotActive"}
         '422': {$ref: "#/components/responses/PregnancyV2ValidationFailed"}
@@ -8117,7 +8117,8 @@ components:
         contact: {type: [string, "null"], description: "Only on urgent alerts"}
         pregnancy_week: {type: [integer, "null"]}
         created_at: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/IsoDateTime"}]}
-        date_label: {type: [string, "null"]}
+        fact_date: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}], description: "Day the fact happened (week_entered: the week's first day; vomiting_streak: the streak's last day); else the creation day"}
+        date_label: {type: [string, "null"], description: "fact_date in the locale's calendar"}
         is_read: {type: boolean}
         is_acked: {type: boolean}
     PregnancyV2Range:
@@ -8163,10 +8164,21 @@ components:
         due_date: {$ref: "#/components/schemas/Date"}
         due_date_label: {type: string}
         range: {$ref: "#/components/schemas/PregnancyV2Range"}
-        range_label: {type: [string, "null"]}
+        range_label: {type: [string, "null"], description: "pregnancy_setup/result `range` with day + month dates (the due date carries the year)"}
         uncertainty_days: {type: integer}
         confidence: {$ref: "#/components/schemas/PregnancyV2Confidence"}
         basis: {type: [string, "null"]}
+        copy:
+          type: object
+          description: "The admin-edited pregnancy_setup/result texts the result step shows; null when the row lacks one. `confidence` keeps its {confidence} placeholder."
+          required: [lead, suffix, due_label, confidence, primary, secondary]
+          properties:
+            lead: {type: [string, "null"]}
+            suffix: {type: [string, "null"]}
+            due_label: {type: [string, "null"]}
+            confidence: {type: [string, "null"]}
+            primary: {type: [string, "null"]}
+            secondary: {type: [string, "null"]}
     CheckupSummary:
       type: object
       description: "Over enabled items: `up_to_date` counts up_to_date + soon + not_yet."
@@ -8883,6 +8895,7 @@ components:
         time: {type: string, examples: ["10:30"]}
         week: {type: [integer, "null"]}
         week_label: {type: [string, "null"]}
+        age_label: {type: [string, "null"], description: "Gestational age on the visit day, «۱۱ هفته و ۱ روز»"}
         stage: {type: [string, "null"], enum: [booked, done, result, null]}
         prep: {type: [string, "null"]}
         doctor: {type: [string, "null"]}

@@ -3,7 +3,7 @@ id: T-M7-18
 title: Pregnancy v2 — design fidelity fixes (v2 audit)
 milestone: M7
 type: frontend
-status: todo
+status: done
 depends_on: [T-M7-17,T-M2-34]
 parallel_group: M7-E
 touches: [frontend/src/screens/pregnancy,frontend/src/screens/pregnancy-onboarding,frontend/src/screens/pregnancy-week,frontend/src/screens/pregnancy-log,frontend/src/screens/pregnancy-calendar,frontend/src/screens/pregnancy-alerts,frontend/src/widgets,frontend/src/features,frontend/src/entities/pregnancy,frontend/src/shared/lib/date,frontend/src/app/globals.css,frontend/src/app/message-scopes.ts,frontend/messages,backend-go/internal/pregnancy,backend-go/internal/messages/pregnancyalerts,backend-go/api/openapi.yaml,backend-go/contract,backend-go/resources/translations,backend-go/internal/i18n/testdata,docs/pregnancy-v2]
