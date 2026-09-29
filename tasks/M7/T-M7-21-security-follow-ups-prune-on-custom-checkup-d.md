@@ -3,7 +3,7 @@ id: T-M7-21
 title: Security follow-ups — prune on custom-checkup delete, show cap messages
 milestone: M7
 type: frontend
-status: in_progress
+status: done
 depends_on: [T-M7-19]
 parallel_group: M7-E
 touches: [frontend/src/features/manage-custom-checkup,frontend/src/features/manage-medication,frontend/src/features/manage-appointment,frontend/src/screens/reminder-medication-form,frontend/src/screens/reminder-appointment-form,frontend/src/screens/checkup-custom-form,frontend/src/shared/api,docs/security]

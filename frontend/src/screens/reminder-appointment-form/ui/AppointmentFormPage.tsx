@@ -16,6 +16,7 @@ import {
 } from '@/entities/care-reminder';
 import { pregnancyKeys } from '@/entities/pregnancy';
 import { useCreateAppointment, useUpdateAppointment } from '@/features/manage-appointment';
+import { getApiLimitMessage } from '@/shared/api';
 import { Link, type Locale, useDirection, useRouter } from '@/shared/i18n';
 import {
   type DateParts,
@@ -130,7 +131,7 @@ function AppointmentForm({ prefill, existing }: { prefill?: AppointmentPrefill; 
     existing ? formFromAppointment(existing) : formFromPrefill(prefill ?? {}, isoDay(new Date())),
   );
   const [error, setError] = useState<FormError | null>(null);
-  const [saveFailed, setSaveFailed] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [picker, setPicker] = useState<'date' | 'time' | null>(null);
   const [draftDate, setDraftDate] = useState<DateParts | null>(null);
   const [draftTime, setDraftTime] = useState<[number, number]>([10, 0]);
@@ -181,7 +182,7 @@ function AppointmentForm({ prefill, existing }: { prefill?: AppointmentPrefill; 
       setError(problem);
       return;
     }
-    setSaveFailed(false);
+    setSaveError(null);
     const input = {
       kind: form.kind,
       withWhom: form.withWhom,
@@ -197,7 +198,8 @@ function AppointmentForm({ prefill, existing }: { prefill?: AppointmentPrefill; 
       // Links a pregnancy care-plan item (→ `booked`); edit keeps the stored key.
       careItemKey: form.careItemKey || null,
     };
-    const onError = () => setSaveFailed(true);
+    // A per-user cap (422 limit_reached) shows the server's localized message.
+    const onError = (error: unknown) => setSaveError(getApiLimitMessage(error) ?? tc('saveError'));
     const done = (detailHref: string) => {
       clearHandoff();
       if (!returnTo) return router.push(detailHref);
@@ -413,7 +415,7 @@ function AppointmentForm({ prefill, existing }: { prefill?: AppointmentPrefill; 
             </label>
           </section>
 
-          {saveFailed && <p className="cfm-error is-center" role="alert">{tc('saveError')}</p>}
+          {saveError && <p className="cfm-error is-center" role="alert">{saveError}</p>}
 
           <button type="submit" className="rmd-cta" disabled={pending}>
             {pending ? t('saving') : t('save')}

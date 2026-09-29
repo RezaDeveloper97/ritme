@@ -9,6 +9,7 @@ import {
   type CheckupSettings,
   checkupItemSchema,
   checkupKeys,
+  pruneCheckupAttachments,
 } from '@/entities/checkup';
 
 import { type CustomCheckupInput, type CustomCheckupPatch, toCustomCheckupBody } from '../model/body';
@@ -70,9 +71,9 @@ export function useUpdateCustomCheckup() {
 }
 
 /**
- * DELETE /checkups/custom/{id}. The server cascades the type's records; their
- * on-device reports are not known here (only the latest 2 are cached) — see
- * the T-M4-05 notes on sweeping orphaned files.
+ * DELETE /checkups/custom/{id}. The server cascades the type's records, so their
+ * on-device reports are orphaned right away: `afterCustomCheckupDeleted` drops
+ * the caches and sweeps them (security audit M3-M7 #1).
  */
 export function useDeleteCustomCheckup() {
   const queryClient = useQueryClient();
@@ -80,12 +81,31 @@ export function useDeleteCustomCheckup() {
     mutationFn: async (id) => {
       await apiClient.delete(`/checkups/custom/${id}`);
     },
+    // Not returned: React Query would hold the caller's onSuccess (navigation) until the sweep ends.
     onSuccess: (_data, id) => {
-      queryClient.removeQueries({ queryKey: checkupKeys.detail(id) });
-      invalidate(queryClient);
-      void queryClient.invalidateQueries({ queryKey: checkupKeys.recordsAll() });
+      void afterCustomCheckupDeleted(queryClient, id);
     },
   });
+}
+
+/**
+ * After a custom type is gone: forget its detail, refetch lists/home/records,
+ * and prune the report files whose record went with it. Uses the unthrottled
+ * sweep (the "soon" form may skip if Home just ran it); the sweep is
+ * conservative and failures are swallowed — Home/History retry later.
+ */
+export function afterCustomCheckupDeleted(
+  queryClient: QueryClient,
+  id: number,
+  prune: () => Promise<number> = () => pruneCheckupAttachments(),
+): Promise<void> {
+  queryClient.removeQueries({ queryKey: checkupKeys.detail(id) });
+  invalidate(queryClient);
+  void queryClient.invalidateQueries({ queryKey: checkupKeys.recordsAll() });
+  return prune().then(
+    () => undefined,
+    () => undefined,
+  );
 }
 
 export interface UpdateCheckupSettingsVars extends Partial<CheckupSettings> {

@@ -15,7 +15,7 @@ import {
   useDeleteCustomCheckup,
   useUpdateCustomCheckup,
 } from '@/features/manage-custom-checkup';
-import { getApiErrorStatus } from '@/shared/api';
+import { getApiErrorStatus, getApiLimitMessage } from '@/shared/api';
 import { type Locale, Link, useDirection, useRouter } from '@/shared/i18n';
 import {
   type DateParts,
@@ -120,7 +120,8 @@ function CustomForm({ detail }: { detail?: CheckupDetail }) {
   const set = <K extends keyof CustomFormState>(key: K, value: CustomFormState[K]) =>
     setState((s) => ({ ...s, [key]: value }));
   const back = () => router.push(LIST_HREF);
-  const onError = () => setFormError(t('saveError'));
+  // A per-user cap (422 limit_reached) shows the server's localized message.
+  const onError = (error: unknown) => setFormError(getApiLimitMessage(error) ?? t('saveError'));
 
   const onSave = () => {
     setFormError(null);

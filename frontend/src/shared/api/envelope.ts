@@ -10,17 +10,42 @@ export interface ApiEnvelope<T> {
   message?: string;
   data?: T;
   errors?: Record<string, string[]>;
+  /** Machine-readable reason on some failures, e.g. `limit_reached`. */
+  error_code?: string;
   retry_after?: number;
+}
+
+function errorBody(error: unknown): ApiEnvelope<unknown> | undefined {
+  if (!(error instanceof ApiError)) return undefined;
+  const body = error.response?.data;
+  // A non-JSON body (a proxy's HTML page) is a string with nothing to read.
+  return typeof body === 'object' && body !== null ? (body as ApiEnvelope<unknown>) : undefined;
 }
 
 /** Extracts the server-provided message from a failed request, if any. */
 export function getApiErrorMessage(error: unknown): string | undefined {
-  if (error instanceof ApiError) {
-    const body = error.response?.data as ApiEnvelope<unknown> | undefined;
-    // A non-JSON body (a proxy's HTML page) is a string with no message.
-    return typeof body === 'object' && body !== null ? body.message : undefined;
-  }
-  return undefined;
+  return errorBody(error)?.message;
+}
+
+/** The envelope's `error_code` of a failed request, if any. */
+export function getApiErrorCode(error: unknown): string | undefined {
+  const code = errorBody(error)?.error_code;
+  return typeof code === 'string' ? code : undefined;
+}
+
+/**
+ * A per-user cap was hit (422 `error_code: "limit_reached"` — too many
+ * medications, appointments or custom checkups). Returns the server's
+ * localized message (or its `errors.limit` entry) so forms can show it
+ * instead of the generic save error; `undefined` for any other failure.
+ */
+export function getApiLimitMessage(error: unknown): string | undefined {
+  if (getApiErrorStatus(error) !== 422 || getApiErrorCode(error) !== 'limit_reached') return undefined;
+  const body = errorBody(error);
+  const message = typeof body?.message === 'string' && body.message.trim() ? body.message : undefined;
+  const limit = body?.errors?.limit;
+  const fromErrors = Array.isArray(limit) ? limit.find((m) => typeof m === 'string' && m.trim()) : undefined;
+  return message ?? fromErrors;
 }
 
 /** HTTP status of a failed request, when it came from the API. */

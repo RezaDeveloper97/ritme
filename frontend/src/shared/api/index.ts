@@ -8,6 +8,8 @@ export {
 } from './apiClient';
 export {
   type ApiEnvelope,
+  getApiErrorCode,
   getApiErrorMessage,
+  getApiLimitMessage,
   getApiErrorStatus,
 } from './envelope';

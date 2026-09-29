@@ -868,3 +868,8 @@ Nothing needed fixing.
 - (low) ICS escaping (`;`, bare CR, control chars). (low) Per-user caps (100 medications, 100 upcoming / 1000 total appointments, 50 custom checkups → 422 `limit_reached`) and a 60/min per-user write throttle on care/checkups/fertility writes (`ratelimit.Named("writes")`).
 - Verify: 657 frontend tests, build OK, go vet/test/lint 0, contract 998 pass. This commit also carries the T-M5-12 `/fertility/insights` OpenAPI hunks.
 - Open → T-M7-21: prune on custom-checkup delete, show the 422 cap message in forms; throttle not on Laravel-parity routes (X-RateLimit headers pinned in goldens); cap check not atomic.
+
+## T-M7-21 — Security follow-ups
+- Custom checkup delete prunes on-device attachments right away (`afterCustomCheckupDeleted`, fire-and-forget).
+- `getApiErrorCode` / `getApiLimitMessage` in `shared/api`; medication, appointment and custom-checkup forms show the server's localized 422 `limit_reached` message.
+- Verify: 680 frontend tests + gates.

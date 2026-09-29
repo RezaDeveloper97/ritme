@@ -18,7 +18,7 @@ import {
   useDeleteMedication,
   useUpdateMedication,
 } from '@/features/manage-medication';
-import { ApiError, getApiErrorStatus } from '@/shared/api';
+import { ApiError, getApiErrorStatus, getApiLimitMessage } from '@/shared/api';
 import { type Locale, Link, useDirection, useRouter } from '@/shared/i18n';
 import {
   calendarSystem,
@@ -198,6 +198,12 @@ function MedicationForm({ medication, from }: { medication?: Medication; from?: 
     }
     setErrors({});
     const onError = (error: unknown) => {
+      // A per-user cap (422 limit_reached) shows the server's localized message.
+      const limit = getApiLimitMessage(error);
+      if (limit) {
+        setFormError(limit);
+        return;
+      }
       if (error instanceof ApiError && error.response?.status === 422) {
         const mapped = mapServerErrors(error.response.data);
         setErrors(mapped.fields);
