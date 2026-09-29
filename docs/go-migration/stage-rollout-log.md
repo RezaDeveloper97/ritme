@@ -470,3 +470,47 @@ recreate.
 Test users `09900000991`/`992` (ids 11, 12) were deleted from the **stage** DB with their `oauth_access_tokens`,
 `user_profiles`, `cycle_histories` and `pregnancy_profiles` rows, plus their `otp_verifications`. Stage is back to 3
 users. The scratch gate credential and the Chrome profile were removed, and Chrome (port 9260) was stopped.
+
+## Deploy ordering for SSG messages (T-M2-33) — 2026-09-29
+
+Fixes B1 above. `deploy-stage.sh` step 3 now builds backend-go, runs `up -d --wait` on it, logs the goose line and
+reloads the proxy **before** it builds the frontend. `frontend/Dockerfile` takes `ARG BUILD_REV` right before
+`npm run build`, and the script passes `<sha>-<UTC timestamp>`. That layer re-runs on every deploy and `npm ci`
+stays cached. `deploy.sh` does the same thing only when the server's `compose config --services` lists `backend-go`.
+Today it doesn't (prod: `mysql redis backend frontend proxy queue`), so the prod build command is unchanged.
+
+Deploy: `STAGE_BASIC_AUTH=… ./deploy-stage.sh` of `stage` @ `5760c4f`, exit 0, all 23 checks `ok`.
+
+Build log (excerpts, in order):
+
+```
+==> Building and starting backend-go first (the frontend build reads its messages)...
+ Container ritme-stage-backend-go-1 Recreated
+ Container ritme-stage-backend-go-1 Healthy
+{"time":"2026-09-29T05:40:56Z","level":"INFO","msg":"migrations","action":"goose_managed","applied":null,"version":6}
+nginx: configuration file /etc/nginx/nginx.conf test is successful      (graceful reload)
+==> Building staging images on the server (BUILD_REV=5760c4f-20260929T053607Z)...
+#36 [frontend deps 2/2] RUN npm ci
+#36 CACHED
+#38 [frontend builder 2/3] COPY . .
+#38 CACHED
+#40 [frontend builder 3/3] RUN echo "frontend build rev: 5760c4f-20260929T053607Z" && npm run build
+#40 0.675 frontend build rev: 5760c4f-20260929T053607Z
+#40 230.5  ✓ Generating static pages (83/83)
+#40 DONE 296.7s
+==> Starting staging stack...
+```
+
+The frontend source was identical, so every layer up to `COPY . .` was a cache hit. Before this change the
+`npm run build` layer would have been a hit too. Now it ran (296.7 s, never `CACHED`), and that run came *after*
+the new backend-go reported healthy.
+
+SSR HTML check: `GET /fa/welcome` behind the gate returned 200, 81 KB, with `x-nextjs-prerender: 1` and
+`x-nextjs-cache: HIT`, so this is the HTML baked at build time. It contains «اسلاید ۱ از ۳» ×1 and «رفتن به اسلاید ۱»
+×1. The Latin-digit «اسلاید 1 از 3» and «رفتن به اسلاید 1» appear ×0. B1 is fixed without `--no-cache`.
+
+Prod untouched: the `docker inspect` Created times of every `ritme` container were identical before and after, and
+`diff` was empty (`ritme-backend-1` 08-31T08:37:28Z, `ritme-frontend-1` 09-01T13:14:46Z, `ritme-mysql-1`
+08-16T13:39:17Z, `ritme-proxy-1` 09-23T11:32:14Z, `ritme-queue-1` 08-31T08:37:32Z, `ritme-redis-1` 08-16T13:39:17Z).
+The proxy got only the script's graceful `nginx -t && nginx -s reload` twice: once after backend-go came up and once
+in step 4. `up -d proxy` reported `Running`. `deploy.sh` was not run. The scratch gate credentials were deleted.

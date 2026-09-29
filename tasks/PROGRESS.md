@@ -812,3 +812,8 @@ Nothing needed fixing.
 - Reminder form buttons: scoped `.rem-form-submit/.rem-form-cancel` flex rules (global `.btn` unchanged).
 - Slide a11y text `{n, number}`/`{total, number}` in welcome + banners (fa/en), seed + i18n goldens synced.
 - Verify green: 592 frontend tests, go test ./..., contract 986 pass / 236 allow-listed. Visual check of the reminder form pending (stage).
+
+## T-M2-33 — Deploy ordering so SSG pages bake the new messages
+- `deploy-stage.sh`: backend-go built + `up --wait` (goose) + proxy reload BEFORE the other images; frontend build gets `BUILD_REV=<sha>-<utc>` so only its `npm run build` layer re-runs. `deploy.sh`: same ordering, inert until prod compose lists `backend-go` (T-M2-26). Skills documented.
+- Stage deployed @ 5760c4f: frontend build step not cached; prerendered `/fa/welcome` shows «اسلاید ۱ از ۳» (0 Latin). Prod containers unchanged. Evidence in `docs/go-migration/stage-rollout-log.md`.
+- Note: first prod frontend build after this Dockerfile change re-runs `npm run build` once.

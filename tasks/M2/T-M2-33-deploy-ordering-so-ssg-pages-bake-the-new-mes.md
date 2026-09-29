@@ -3,7 +3,7 @@ id: T-M2-33
 title: Deploy ordering so SSG pages bake the new messages
 milestone: M2
 type: release
-status: in_progress
+status: done
 depends_on: [T-M2-25]
 parallel_group: M2-J
 touches: [deploy-stage.sh,deploy.sh,frontend/Dockerfile,docker-compose.stage.yml,docker-compose.prod.yml,.claude/skills/deploy-stage,.claude/skills/deploy,docs/go-migration]
