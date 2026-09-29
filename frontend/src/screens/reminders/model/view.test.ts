@@ -6,11 +6,13 @@ import {
   appointmentRowState,
   doseCardState,
   medicationRowState,
+  medicationSchedule,
   nextTab,
   parseTab,
   sectionStatus,
   slotClock,
   slotPeriod,
+  sortMedications,
   tabHref,
   visibleSections,
 } from './view';
@@ -111,21 +113,47 @@ describe('medicationRowState', () => {
   });
 
   it('counts a weekday subset and tints capsules teal', () => {
-    const row = medicationRowState(med({ form: 'capsule', weekdays: [0, 2, 4], subtitle: ' ' }));
+    const row = medicationRowState(med({ form: 'capsule', weekdays: [0, 1, 4], subtitle: ' ' }));
     expect(row.schedule).toEqual({ kind: 'daysPerWeek', count: 3 });
     expect(row.tone).toBe('teal');
     expect(row.dose).toBeNull();
   });
 });
 
+describe('medicationSchedule', () => {
+  it('reads alternating days as every other day', () => {
+    expect(medicationSchedule([0, 2, 4, 6])).toEqual({ kind: 'everyOtherDay' });
+    expect(medicationSchedule([1, 3, 5])).toEqual({ kind: 'everyOtherDay' });
+    expect(medicationSchedule([0, 2])).toEqual({ kind: 'daysPerWeek', count: 2 });
+    expect(medicationSchedule([0, 1, 2, 3, 4, 5, 6])).toEqual({ kind: 'everyDay' });
+    expect(medicationSchedule([])).toEqual({ kind: 'everyDay' });
+  });
+});
+
+describe('sortMedications', () => {
+  it('lists active reminders first, each by its first slot', () => {
+    const list = sortMedications([
+      med({ id: 3, times: ['13:00'], isActive: false }),
+      med({ id: 2, times: ['21:00'] }),
+      med({ id: 1, times: ['08:00', '20:00'] }),
+    ]);
+    expect(list.map((m) => m.id)).toEqual([1, 2, 3]);
+  });
+});
+
 describe('appointmentRowState', () => {
-  it('splits the wall-clock time and prefers who over where', () => {
+  it('splits the wall-clock time; in person puts who in the title and the place in the meta', () => {
     expect(appointmentRowState(appt())).toMatchObject({
       tone: 'amber',
       date: '2026-09-30',
       time: '10:30',
-      detail: 'دکتر احمدی',
+      titleWith: 'دکتر احمدی',
+      detail: 'مطب',
     });
+  });
+
+  it('shows who in the meta for a phone or online consultation', () => {
+    expect(appointmentRowState(appt({ kind: 'phone' }))).toMatchObject({ titleWith: null, detail: 'دکتر احمدی' });
   });
 
   it('tints consultations teal and falls back to the place', () => {

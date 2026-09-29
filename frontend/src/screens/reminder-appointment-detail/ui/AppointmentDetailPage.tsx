@@ -34,6 +34,7 @@ import {
   pregnancyWeekAt,
   reminderMoment,
   splitScheduled,
+  weekdayOf,
 } from '../model/detail';
 
 const KIND_ICON: Record<AppointmentKind, IconName> = {
@@ -132,6 +133,11 @@ function Detail({ appt }: { appt: Appointment }) {
   const placeLabel =
     appt.kind === 'online' ? tf('placeOnline') : appt.kind === 'phone' ? tf('placePhone') : td('place');
   const fires = when ? reminderMoment(when, appt.remindBefore) : null;
+  const weekday = when ? weekdayOf(when.date) : null;
+  // «در خصوص» is the appointment's own text: title, then the note (as in the artboard).
+  const title = appt.title?.trim() ?? '';
+  const note = appt.notes?.trim() ?? '';
+  const about = title && note ? td('aboutWithNote', { title, note }) : title || note || topic;
 
   const addToCalendar = () => {
     const description = appt.withWhom ? td('descriptionWith', { with: appt.withWhom }) : null;
@@ -157,41 +163,46 @@ function Detail({ appt }: { appt: Appointment }) {
         />
 
         <div className={clsx('rmd-body', cancelled && 'opacity-60')}>
-          <section className="rmd-today">
-            <div className="fld-chips">
-              <span className="chip">
+          <section className="apd-hero">
+            <div className="apd-hero-top">
+              <span className="apd-pill">
                 <Icon name={KIND_ICON[appt.kind]} size={14} strokeWidth={1.8} />
                 {tf(`kinds.${appt.kind}`)}
               </span>
               {week !== null && (
-                <span className="chip on">{td('pregnancyWeek', { week: formatNumber(week, locale) })}</span>
+                <span className="apd-pill">{td('pregnancyWeek', { week: formatNumber(week, locale) })}</span>
               )}
-              {cancelled && <span className="chip">{td('cancelled')}</span>}
+              {cancelled && <span className="apd-pill">{td('cancelled')}</span>}
             </div>
-            <div className="rmd-row">
-              <span className="rmd-date" aria-hidden>
+            <div className="apd-hero-main">
+              <span className="apd-date" aria-hidden>
                 {parts && (
                   <>
-                    <span className="rmd-date-day">{formatNumber(parts.day, locale)}</span>
-                    <span className="rmd-date-month">{monthName(parts.month, locale)}</span>
+                    <span className="apd-date-day">{formatNumber(parts.day, locale)}</span>
+                    <span className="apd-date-month">{monthName(parts.month, locale)}</span>
                   </>
                 )}
               </span>
-              <span className="rmd-row-body">
-                <span className="rmd-row-title">{appt.title || topic}</span>
-                {date && (
-                  <span className="rmd-row-meta">
-                    {formatWeekdayDayMonth(date, locale)} · {td('timeAt', { time })}
+              <div className="apd-hero-body">
+                {date && weekday && (
+                  <span className="apd-eyebrow">
+                    <span className="sr-only">{formatWeekdayDayMonth(date, locale)} · </span>
+                    <span aria-hidden>{td('weekdayAt', { weekday: td(`weekdays.${weekday}`) })}</span>
                   </span>
                 )}
-                <span className="rmd-row-meta">{topic}</span>
-              </span>
+                {time && (
+                  <span className="apd-time" dir="ltr">
+                    {time}
+                  </span>
+                )}
+                <h2 className="apd-title">{appt.title || topic}</h2>
+              </div>
             </div>
           </section>
 
           <div className="rmd-list">
             <InfoRow icon="user" label={td('with')} value={[appt.withWhom, appt.specialty].filter(Boolean).join(' · ')} />
-            <InfoRow icon="note" label={td('about')} value={topic} />
+            <InfoRow icon="note" label={td('about')} value={about} />
             {appt.location && (
               <div className="rmd-row">
                 <span className="rmd-tile" aria-hidden>
@@ -241,42 +252,43 @@ function Detail({ appt }: { appt: Appointment }) {
           </div>
 
           {appt.prep.length > 0 && (
-            <section className="rmd-sec" aria-labelledby="apd-prep">
-              <div className="rmd-sec-head">
-                <h2 className="rmd-sec-title" id="apd-prep">{td('prepTitle')}</h2>
-              </div>
-              <div className="rmd-list">
-                {appt.prep.map((item) => (
-                  <div key={item.id} className="rmd-row">
-                    <button
-                      type="button"
-                      className="rmd-check"
-                      aria-pressed={item.done}
-                      aria-label={item.text}
-                      disabled={cancelled}
-                      onClick={() => togglePrep.mutate({ appointment: appt, itemId: item.id, done: !item.done })}
-                    >
-                      <span className="rmd-check-dot">{item.done && <Icon name="check" size={14} strokeWidth={3} />}</span>
-                    </button>
-                    <span className="rmd-row-body">
-                      <span className={clsx('rmd-row-title', item.done && 'line-through')}>{item.text}</span>
-                    </span>
-                  </div>
-                ))}
-              </div>
+            <section className="apd-prep" aria-labelledby="apd-prep">
+              <h2 className="apd-prep-title" id="apd-prep">{td('prepTitle')}</h2>
+              {appt.prep.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  role="checkbox"
+                  className="apd-item"
+                  aria-checked={item.done}
+                  disabled={cancelled}
+                  onClick={() => togglePrep.mutate({ appointment: appt, itemId: item.id, done: !item.done })}
+                >
+                  <span className="apd-box" aria-hidden>
+                    {item.done && <Icon name="check" size={14} strokeWidth={3} />}
+                  </span>
+                  <span>{item.text}</span>
+                </button>
+              ))}
             </section>
           )}
 
-          {!cancelled && when && (
-            <button type="button" className="rmd-cta" onClick={addToCalendar}>
-              <Icon name="calendar" size={18} strokeWidth={2} />
-              {td('addToCalendar')}
-            </button>
-          )}
           {!cancelled && (
-            <button type="button" className="btn btn-ghost" onClick={() => setConfirming(true)}>
-              {td('cancel')}
-            </button>
+            <div className="apd-actions">
+              {when && (
+                <button type="button" className="apd-cal" onClick={addToCalendar}>
+                  <Icon name="calendar" size={18} strokeWidth={1.8} />
+                  {td('addToCalendar')}
+                </button>
+              )}
+              <button
+                type="button"
+                className={clsx('apd-cancel', !when && 'is-wide')}
+                onClick={() => setConfirming(true)}
+              >
+                {td('cancel')}
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -288,7 +300,12 @@ function Detail({ appt }: { appt: Appointment }) {
         title={td('confirmCancel')}
       >
         <div className="del-btns">
-          <button type="button" className="btn btn-primary" disabled={cancel.isPending} onClick={doCancel}>
+          <button
+            type="button"
+            className="apd-cancel is-wide is-filled"
+            disabled={cancel.isPending}
+            onClick={doCancel}
+          >
             {td('confirmCancelYes')}
           </button>
           <button type="button" className="btn btn-soft" onClick={() => setConfirming(false)}>

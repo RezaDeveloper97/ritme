@@ -206,38 +206,45 @@ function AppointmentForm({ prefill, existing }: { prefill?: AppointmentPrefill; 
             submit();
           }}
         >
-          <div className="rmd-tabs" role="radiogroup" aria-label={t('subtitle')}>
+          <div className="cfm-kinds" role="radiogroup" aria-label={t('subtitle')}>
             {APPOINTMENT_KINDS.map((kind) => (
               <button
                 key={kind}
                 type="button"
                 role="radio"
                 aria-checked={form.kind === kind}
-                className={clsx('rmd-tab', form.kind === kind && 'on')}
+                className="cfm-kind"
                 onClick={() => set('kind', kind)}
               >
-                <Icon name={KIND_ICON[kind]} size={16} strokeWidth={1.8} /> {t(`kinds.${kind}`)}
+                <Icon name={KIND_ICON[kind]} size={20} strokeWidth={1.8} />
+                {t(`kinds.${kind}`)}
               </button>
             ))}
           </div>
 
-          <section className="card fld-card">
-            <label className="fld-label">
-              <span className="fld-label-t">{t('with')}</span>
-              <span className="field">
+          {/* ── Card 1: who and what ── */}
+          <section className="cfm-card">
+            <label className="cfm-group">
+              <span className="cfm-label">{t('with')}</span>
+              <span className="cfm-field">
+                <Icon name="user" size={18} strokeWidth={1.8} />
                 <input
                   value={form.withWhom}
                   placeholder={t('withPlaceholder')}
                   aria-invalid={error === 'with'}
+                  aria-describedby={error === 'with' ? 'apf-err-with' : undefined}
                   onChange={(e) => set('withWhom', e.target.value)}
                 />
               </span>
+              {error === 'with' && (
+                <p className="cfm-error" id="apf-err-with" role="alert">
+                  {t('errors.with')}
+                </p>
+              )}
             </label>
-            {error === 'with' && <p className="rem-form-error" role="alert">{t('errors.with')}</p>}
-            <div className="fld-row" />
-            <label className="fld-label">
-              <span className="fld-label-t">{t('specialty')}</span>
-              <span className="field">
+            <label className="cfm-group">
+              <span className="cfm-label">{t('specialty')}</span>
+              <span className="cfm-field">
                 <input
                   value={form.specialty}
                   placeholder={t('specialtyPlaceholder')}
@@ -245,28 +252,27 @@ function AppointmentForm({ prefill, existing }: { prefill?: AppointmentPrefill; 
                 />
               </span>
             </label>
-          </section>
-
-          <section className="card fld-card">
-            <span className="fld-label-t" id="apf-topic">{t('topic')}</span>
-            <div className="fld-chips" role="radiogroup" aria-labelledby="apf-topic">
-              {APPOINTMENT_TOPICS.map((topic) => (
-                <button
-                  key={topic}
-                  type="button"
-                  role="radio"
-                  aria-checked={form.topic === topic}
-                  className={clsx('chip', form.topic === topic && 'on')}
-                  onClick={() => set('topic', topic)}
-                >
-                  {t(`topics.${topic}`)}
-                </button>
-              ))}
+            <div className="cfm-group is-loose">
+              <span className="cfm-label" id="apf-topic">{t('topic')}</span>
+              <div className="cfm-chips" role="radiogroup" aria-labelledby="apf-topic">
+                {APPOINTMENT_TOPICS.map((topic) => (
+                  <button
+                    key={topic}
+                    type="button"
+                    role="radio"
+                    aria-checked={form.topic === topic}
+                    className="cfm-chip"
+                    onClick={() => set('topic', topic)}
+                  >
+                    {t(`topics.${topic}`)}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="fld-row" />
-            <label className="fld-label">
-              <span className="fld-label-t">{t('shortDescription')}</span>
-              <span className="field">
+            <label className="cfm-group">
+              <span className="cfm-label">{t('shortDescription')}</span>
+              <span className="cfm-field">
+                <Icon name="note" size={18} strokeWidth={1.8} />
                 <input
                   value={form.title}
                   placeholder={t('shortDescriptionPlaceholder')}
@@ -276,56 +282,47 @@ function AppointmentForm({ prefill, existing }: { prefill?: AppointmentPrefill; 
             </label>
           </section>
 
-          <section className="card fld-card">
-            <div className="fld-row">
-              <button
-                type="button"
-                className="rmd-row rmd-row-link"
-                onClick={() => setPicker('date')}
-              >
-                <span className="rmd-date" aria-hidden>
-                  {dateParts ? (
-                    <>
-                      <span className="rmd-date-day">{formatNumber(dateParts.day, locale)}</span>
-                      <span className="rmd-date-month">{monthName(dateParts.month, locale)}</span>
-                    </>
-                  ) : (
-                    <Icon name="calendar" size={20} />
-                  )}
-                </span>
-                <span className="rmd-row-body">
-                  <span className="rmd-row-meta">{t('date')}</span>
-                  <span className="rmd-row-title">
+          {/* ── Card 2: when and where ── */}
+          <section className="cfm-card">
+            <div className="cfm-two">
+              <div className="cfm-group">
+                <span className="cfm-label" id="apf-date">{t('date')}</span>
+                <button
+                  type="button"
+                  className="cfm-pick"
+                  aria-labelledby="apf-date apf-date-v"
+                  onClick={() => setPicker('date')}
+                >
+                  <span id="apf-date-v" className={clsx('cfm-pick-v', !dateParts && 'is-empty')}>
                     {dateParts
-                      ? `${formatNumber(dateParts.day, locale)} ${monthName(dateParts.month, locale)} ${formatNumber(dateParts.year, locale)}`
+                      ? `${formatNumber(dateParts.day, locale)} ${monthName(dateParts.month, locale)}`
                       : t('pickDate')}
                   </span>
-                </span>
-              </button>
-              <button
-                type="button"
-                className="rmd-row rmd-row-link"
-                onClick={() => setPicker('time')}
-              >
-                <span className="rmd-date is-teal" aria-hidden>
-                  {form.time ? (
-                    <span className="rmd-date-day">{formatNumber(form.time, locale)}</span>
-                  ) : (
-                    <Icon name="clock" size={20} />
-                  )}
-                </span>
-                <span className="rmd-row-body">
-                  <span className="rmd-row-meta">{t('time')}</span>
-                  <span className="rmd-row-title">{form.time ? formatNumber(form.time, locale) : t('pickTime')}</span>
-                </span>
-              </button>
+                  <Icon name="calendar" size={18} strokeWidth={1.8} />
+                </button>
+              </div>
+              <div className="cfm-group">
+                <span className="cfm-label" id="apf-time">{t('time')}</span>
+                <button
+                  type="button"
+                  className="cfm-pick"
+                  aria-labelledby="apf-time apf-time-v"
+                  onClick={() => setPicker('time')}
+                >
+                  <span id="apf-time-v" className={clsx('cfm-pick-v', !form.time && 'is-empty')} dir="ltr">
+                    {form.time ? formatNumber(form.time, locale) : t('pickTime')}
+                  </span>
+                  <Icon name="clock" size={18} strokeWidth={1.8} />
+                </button>
+              </div>
             </div>
             {(error === 'date' || error === 'time') && (
-              <p className="rem-form-error" role="alert">{t(`errors.${error}`)}</p>
+              <p className="cfm-error" role="alert">{t(`errors.${error}`)}</p>
             )}
-            <label className="fld-label">
-              <span className="fld-label-t">{placeLabel}</span>
-              <span className="field">
+            <label className="cfm-group">
+              <span className="cfm-label">{placeLabel}</span>
+              <span className="cfm-field">
+                <Icon name={form.kind === 'online' ? 'video' : form.kind === 'phone' ? 'phone' : 'mapPin'} size={18} strokeWidth={1.8} />
                 <input
                   value={form.location}
                   placeholder={placeHint}
@@ -337,26 +334,29 @@ function AppointmentForm({ prefill, existing }: { prefill?: AppointmentPrefill; 
             </label>
           </section>
 
-          <section className="card fld-card">
-            <span className="fld-label-t" id="apf-remind">{t('remindBefore')}</span>
-            <div className="fld-chips" role="radiogroup" aria-labelledby="apf-remind">
-              {REMIND_BEFORE.map((value) => (
-                <button
-                  key={value}
-                  type="button"
-                  role="radio"
-                  aria-checked={form.remindBefore === value}
-                  className={clsx('chip', form.remindBefore === value && 'on')}
-                  onClick={() => set('remindBefore', value)}
-                >
-                  {t(`remindOptions.${value}`)}
-                </button>
-              ))}
+          {/* ── Card 3: reminder and prep ── */}
+          <section className="cfm-card is-tight">
+            <div className="cfm-group is-loose">
+              <span className="cfm-label" id="apf-remind">{t('remindBefore')}</span>
+              <div className="cfm-chips" role="radiogroup" aria-labelledby="apf-remind">
+                {REMIND_BEFORE.map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    role="radio"
+                    aria-checked={form.remindBefore === value}
+                    className="cfm-chip"
+                    onClick={() => set('remindBefore', value)}
+                  >
+                    {t(`remindOptions.${value}`)}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="fld-row">
-              <span className="rmd-row-body">
-                <span className="fld-row-label">{t('addToCalendar')}</span>
-                <span className="rmd-row-meta">{t('addToCalendarHint')}</span>
+            <div className="cfm-set">
+              <span className="cfm-set-body">
+                <span className="cfm-set-t">{t('addToCalendar')}</span>
+                <span className="cfm-set-s">{t('addToCalendarHint')}</span>
               </span>
               <button
                 type="button"
@@ -369,26 +369,23 @@ function AppointmentForm({ prefill, existing }: { prefill?: AppointmentPrefill; 
                 <span className="rmd-switch-knob" />
               </button>
             </div>
-          </section>
-
-          <section className="card fld-card">
-            <label className="fld-label">
-              <span className="fld-label-t">{t('prep')}</span>
+            <label className="cfm-group">
+              <span className="cfm-label">{t('prep')}</span>
               <textarea
-                className="field lfr-textarea fld-textarea"
-                rows={4}
+                className="cfm-textarea"
+                rows={3}
                 value={form.prepText}
                 placeholder={t('prepPlaceholder')}
+                aria-describedby="apf-prep-hint"
                 onChange={(e) => set('prepText', e.target.value)}
               />
+              <span className="cfm-caption" id="apf-prep-hint">{t('prepHint')}</span>
             </label>
-            <p className="rmd-row-meta">{t('prepHint')}</p>
           </section>
 
-          {saveFailed && <p className="rem-form-error" role="alert">{tc('saveError')}</p>}
+          {saveFailed && <p className="cfm-error is-center" role="alert">{tc('saveError')}</p>}
 
           <button type="submit" className="rmd-cta" disabled={pending}>
-            <Icon name="check" size={18} strokeWidth={2.2} />
             {pending ? t('saving') : t('save')}
           </button>
         </form>

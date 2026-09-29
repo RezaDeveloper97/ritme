@@ -76,8 +76,12 @@ export function AppointmentSection() {
             <Link key={row.id} href={`/reminders/appointment/${row.id}`} className="rmd-row rmd-appt">
               <DateTile row={row} locale={locale} />
               <span className="rmd-row-body">
-                <span className="rmd-row-title">{row.title}</span>
-                <span className="rmd-row-meta">{rowMeta(row, t, locale)}</span>
+                <span className="rmd-row-title">
+                  {row.titleWith
+                    ? t('home.appointmentTitle', { title: row.title, with: row.titleWith })
+                    : row.title}
+                </span>
+                <span className="rmd-row-meta is-clamp">{rowMeta(row, t, locale)}</span>
               </span>
               <Icon name="chevronLeft" size={18} strokeWidth={2} className="rmd-chev" />
             </Link>

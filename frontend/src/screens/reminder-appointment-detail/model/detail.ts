@@ -1,4 +1,5 @@
 import type { Appointment, RemindBefore } from '@/entities/care-reminder';
+import type { WeekdayKey } from '@/shared/lib/date';
 import { type IcsEvent } from '@/shared/lib/ics';
 
 /*
@@ -25,6 +26,15 @@ export interface ScheduledParts {
 export function splitScheduled(value: string | null): ScheduledParts | null {
   const m = /^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})/.exec(value ?? '');
   return m ? { date: m[1]!, time: m[2]! } : null;
+}
+
+const DAY_KEYS: readonly WeekdayKey[] = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+
+/** The weekday of a `Y-m-d` date (calendar-independent), for the hero eyebrow. */
+export function weekdayOf(date: string): WeekdayKey | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
+  if (!m) return null;
+  return DAY_KEYS[new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]))).getUTCDay()] ?? null;
 }
 
 /** Whole calendar days from `today` to the appointment date (both `Y-m-d`). */

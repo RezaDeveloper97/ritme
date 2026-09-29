@@ -131,7 +131,21 @@ const FORM_ICON: Record<MedicationForm, IconName> = {
 
 export type MedicationSchedule =
   | { kind: 'everyDay' }
+  | { kind: 'everyOtherDay' }
   | { kind: 'daysPerWeek'; count: number };
+
+/**
+ * All seven (or none) = every day; three or more days each two apart
+ * (ش/د/چ/ج, ی/س/پ) = «یک روز در میان»; anything else is a count.
+ */
+export function medicationSchedule(weekdays: readonly number[]): MedicationSchedule {
+  const days = [...new Set(weekdays)].sort((a, b) => a - b);
+  if (days.length === 0 || days.length >= 7) return { kind: 'everyDay' };
+  if (days.length >= 3 && days.every((d, i) => i === 0 || d - days[i - 1]! === 2)) {
+    return { kind: 'everyOtherDay' };
+  }
+  return { kind: 'daysPerWeek', count: days.length };
+}
 
 export interface MedicationRowState {
   id: number;
@@ -149,7 +163,6 @@ export interface MedicationRowState {
 }
 
 export function medicationRowState(med: Medication): MedicationRowState {
-  const days = new Set(med.weekdays).size;
   return {
     id: med.id,
     title: med.title,
@@ -157,11 +170,29 @@ export function medicationRowState(med: Medication): MedicationRowState {
     icon: FORM_ICON[med.form] ?? 'pill',
     tone: med.form === 'capsule' ? 'teal' : 'brand',
     form: med.form,
-    schedule: days === 0 || days >= 7 ? { kind: 'everyDay' } : { kind: 'daysPerWeek', count: days },
+    schedule: medicationSchedule(med.weekdays),
     slots: med.times.map((slot) => ({ clock: slotClock(slot), period: slotPeriod(slot) })),
     amount: med.amount,
     isActive: med.isActive,
   };
+}
+
+/** Minutes since midnight of a medication's first slot (for ordering the list). */
+function firstSlotMinutes(med: Medication): number {
+  const first = [...med.times].sort()[0];
+  if (!first) return 24 * 60;
+  const { hour, minute } = parseSlot(first);
+  return hour * 60 + minute;
+}
+
+/** List order (artboard): active reminders first, each group by its first dose of the day. */
+export function sortMedications(meds: readonly Medication[]): Medication[] {
+  return [...meds].sort(
+    (a, b) =>
+      Number(b.isActive) - Number(a.isActive) ||
+      firstSlotMinutes(a) - firstSlotMinutes(b) ||
+      a.id - b.id,
+  );
 }
 
 // ── Appointment list ─────────────────────────────────────────────
@@ -182,21 +213,29 @@ export interface AppointmentRowState {
   date: string | null;
   /** `HH:MM`, or null. */
   time: string | null;
-  /** Who the visit is with, else where — the third meta part. */
+  /** Who, appended to the title («{title} · {with}») — in-person visits only. */
+  titleWith: string | null;
+  /**
+   * The third meta part. In person: the place (who is already in the title).
+   * Phone / online: who, since the "place" is a number or a link.
+   */
   detail: string | null;
 }
 
 export function appointmentRowState(appt: Appointment): AppointmentRowState {
   const [date, clock] = (appt.scheduledAt ?? '').split(' ');
-  const detail = appt.withWhom?.trim() || appt.location?.trim() || null;
+  const who = appt.withWhom?.trim() || null;
+  const place = appt.location?.trim() || null;
+  const inPerson = appt.kind === 'in_person';
   return {
     id: appt.id,
     title: appt.title,
+    titleWith: inPerson ? who : null,
+    detail: inPerson ? place : (who ?? place),
     kind: appt.kind,
     tone: appointmentTone(appt.kind),
     date: date ? date : null,
     time: clock ? clock.slice(0, 5) : null,
-    detail,
   };
 }
 

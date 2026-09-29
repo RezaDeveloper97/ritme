@@ -124,6 +124,12 @@ export function parseSlot(slot: string): { hour: number; minute: number } {
   };
 }
 
+/** The slot as the form's time button shows it: 24-hour, no leading zero (`08:00` → `8:00`). */
+export function slotLabel(slot: string): string {
+  const { hour, minute } = parseSlot(slot);
+  return `${hour}:${String(minute).padStart(2, '0')}`;
+}
+
 export type SlotPeriod = 'morning' | 'noon' | 'evening' | 'night';
 
 /** 05–11 morning, 12–14 noon, 15–18 evening, 19–04 night (same as the reminders list). */

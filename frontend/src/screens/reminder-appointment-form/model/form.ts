@@ -87,7 +87,7 @@ export function emptyForm(kind: AppointmentKind): AppointmentFormState {
     time: '',
     location: '',
     remindBefore: '1d',
-    addToCalendar: false,
+    addToCalendar: true,
     prepText: '',
     careItemKey: '',
   };

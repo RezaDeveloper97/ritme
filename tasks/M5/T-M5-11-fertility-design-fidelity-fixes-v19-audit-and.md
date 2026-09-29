@@ -26,6 +26,8 @@ severity with file:line and a suggested fix.
 - Palette rules (frontend/CLAUDE.md §10.2) win over design colours; layout/content/copy follow the design.
 - New/changed copy in fa + en; sync the backend translation seed and i18n goldens (tests enforce it).
 
+- From T-M3-10 (reminders audit L-6): place the «یادآورهای امروز» card where the reminders design shows it on this home and make sure the same visit isn't shown twice on the home.
+
 ## Out of scope
 - Clinical content; other features' screens.
 

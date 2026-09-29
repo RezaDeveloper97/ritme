@@ -9,6 +9,7 @@ import {
   mapsHref,
   pregnancyWeekAt,
   splitScheduled,
+  weekdayOf,
 } from './detail';
 
 const appt: Appointment = {
@@ -67,5 +68,13 @@ describe('reminderMoment', () => {
     const { reminderMoment } = await import('./detail');
     expect(reminderMoment({ date: '2026-10-01', time: '01:30' }, '3h')).toEqual({ date: '2026-09-30', time: '22:30' });
     expect(reminderMoment({ date: '2026-10-05', time: '10:30' }, '1d')).toEqual({ date: '2026-10-04', time: '10:30' });
+  });
+});
+
+describe('weekdayOf', () => {
+  it('names the weekday of a Y-m-d date', () => {
+    expect(weekdayOf('2026-09-30')).toBe('wed'); // ۸ مهر ۱۴۰۵
+    expect(weekdayOf('2026-10-03')).toBe('sat');
+    expect(weekdayOf('garbled')).toBeNull();
   });
 });

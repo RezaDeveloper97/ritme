@@ -3,7 +3,7 @@ id: T-M3-10
 title: Care reminders — design fidelity fixes (v13 audit)
 milestone: M3
 type: frontend
-status: in_progress
+status: done
 depends_on: [T-M3-08]
 parallel_group: M3-D
 touches: [frontend/src/screens/reminder-appointment-form,frontend/src/screens/reminder-medication-form,frontend/src/screens/reminder-appointment-detail,frontend/src/screens/reminders,frontend/src/widgets,frontend/src/features,frontend/src/entities/care-reminder,frontend/src/app/globals.css,frontend/messages,backend-go/resources/translations,backend-go/internal/i18n/testdata,docs/care-reminders]

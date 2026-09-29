@@ -6,6 +6,7 @@ import {
   mapServerErrors,
   returnHref,
   setTimesCount,
+  slotLabel,
   slotPeriod,
   toggleWeekday,
   validateForm,
@@ -40,6 +41,14 @@ describe('setTimesCount (times ↔ count)', () => {
       expect(times).toHaveLength(n);
       expect(new Set(times).size).toBe(n);
     }
+  });
+});
+
+describe('slotLabel', () => {
+  it('drops the leading zero and keeps 24-hour time', () => {
+    expect(slotLabel('08:00')).toBe('8:00');
+    expect(slotLabel('20:05')).toBe('20:05');
+    expect(slotLabel('00:30')).toBe('0:30');
   });
 });
 

@@ -38,6 +38,10 @@ describe('appointment form model', () => {
     ]);
   });
 
+  it('defaults add-to-calendar on, as in the artboard', () => {
+    expect(emptyForm('in_person').addToCalendar).toBe(true);
+  });
+
   it('validates the required fields', () => {
     const f = emptyForm('online');
     expect(validateForm(f)).toBe('with');

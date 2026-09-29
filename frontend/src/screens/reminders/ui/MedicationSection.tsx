@@ -9,7 +9,7 @@ import { Link, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { Icon } from '@/shared/ui';
 
-import { type MedicationRowState, medicationRowState, sectionStatus } from '../model/view';
+import { type MedicationRowState, medicationRowState, sectionStatus, sortMedications } from '../model/view';
 import { SectionHead } from './SectionHead';
 
 type T = ReturnType<typeof useTranslations<'care'>>;
@@ -18,10 +18,12 @@ function rowMeta(row: MedicationRowState, t: T, locale: Locale): string {
   const schedule =
     row.schedule.kind === 'everyDay'
       ? t('medications.everyDay')
-      : t('medications.daysPerWeekCount', {
-          count: row.schedule.count,
-          days: formatNumber(row.schedule.count, locale),
-        });
+      : row.schedule.kind === 'everyOtherDay'
+        ? t('medications.everyOtherDay')
+        : t('medications.daysPerWeekCount', {
+            count: row.schedule.count,
+            days: formatNumber(row.schedule.count, locale),
+          });
   const time = row.slots
     .map((s) =>
       t('slotWithPeriod', { time: formatNumber(s.clock, locale), period: t(`slotPeriod.${s.period}`) }),
@@ -74,7 +76,7 @@ export function MedicationSection() {
         )}
         {status === 'empty' && <p className="rmd-empty rmd-state">{t('medications.empty')}</p>}
         {status === 'ready' &&
-          (query.data ?? []).map(medicationRowState).map((row) => {
+          sortMedications(query.data ?? []).map(medicationRowState).map((row) => {
             const name = row.dose
               ? t('medications.nameWithDose', { title: row.title, dose: row.dose })
               : row.title;

@@ -817,3 +817,8 @@ Nothing needed fixing.
 - `deploy-stage.sh`: backend-go built + `up --wait` (goose) + proxy reload BEFORE the other images; frontend build gets `BUILD_REV=<sha>-<utc>` so only its `npm run build` layer re-runs. `deploy.sh`: same ordering, inert until prod compose lists `backend-go` (T-M2-26). Skills documented.
 - Stage deployed @ 5760c4f: frontend build step not cached; prerendered `/fa/welcome` shows «اسلاید ۱ از ۳» (0 Latin). Prod containers unchanged. Evidence in `docs/go-migration/stage-rollout-log.md`.
 - Note: first prod frontend build after this Dockerfile change re-runs `npm run build` once.
+
+## T-M3-10 — Care reminders design fidelity fixes (v13 audit)
+- 20 of 27 audit rows fixed (all 4 high + 12 med): appointment kind cards, detail hero (time/date tile), medication form cards/labels/slot buttons, filled fields, chips, stepper, dose strip width, cancel in rose tokens, square prep checkboxes, notes/location shown, Persian digits. New `.cfm-*` / `.apd-*` classes, no new colour tokens.
+- 7 won't-fix with reasons in `docs/care-reminders/design-audit.md` (Resolution column). Follow-up L-6 (home card placement / duplicate visit) folded into T-M5-11 and T-M7-18.
+- Verify: 598 frontend tests, style/dark gates, go test, contract green; check-colors OK. Screenshots re-taken in the audit folder.

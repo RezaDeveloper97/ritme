@@ -30,6 +30,8 @@ Design fidelity audit (docs/pregnancy-v2/design-audit.md) compared the implement
   9i (PDF separator readability) if not already fixed.
 - Palette rules win over design colours; copy in fa + en; seed + i18n goldens synced.
 
+- From T-M3-10 (reminders audit L-6): place the «یادآورهای امروز» card where the reminders design shows it on this home and make sure the same visit isn't shown twice on the home.
+
 ## Out of scope
 - Clinical content sign-off (human); content register rewrite.
 
