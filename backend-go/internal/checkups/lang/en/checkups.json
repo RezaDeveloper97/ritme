@@ -41,7 +41,8 @@
         "custom_created": "Custom checkup added",
         "custom_updated": "Custom checkup updated",
         "custom_deleted": "Custom checkup deleted",
-        "settings_updated": "Checkup settings saved"
+        "settings_updated": "Checkup settings saved",
+        "custom_limit": "You have reached the maximum number of custom checkups. Delete one you no longer need to add a new one."
     },
     "validation": {
         "date_future": "The date cannot be in the future.",

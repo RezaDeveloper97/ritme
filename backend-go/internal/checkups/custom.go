@@ -132,6 +132,9 @@ func (h *Handlers) StoreCustom(c fiber.Ctx) error {
 	}
 	defer func() { _ = tx.Rollback() }()
 	q := store.New(tx)
+	if err := checkCustomCap(c, q, userID, l.Locale); err != nil {
+		return err
+	}
 	id, err := q.InsertCustomCheckupType(c, store.InsertCustomCheckupTypeParams{
 		UserID: sql.NullInt64{Int64: int64(userID), Valid: true}, //nolint:gosec // ids fit int64
 		Title:  col.Title, Subtitle: col.Subtitle, PerformedBy: col.PerformedBy, Icon: col.Icon,

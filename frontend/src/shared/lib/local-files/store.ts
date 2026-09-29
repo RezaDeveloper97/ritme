@@ -70,6 +70,8 @@ export interface LocalFilesBackend {
   delete(id: string): Promise<void>;
   /** Every row whose `namespace` matches. */
   list(namespace: string): Promise<LocalFileRow[]>;
+  /** Every row of every namespace — the session-end wipe. Optional for test doubles. */
+  clearAll?(): Promise<void>;
 }
 
 export interface LocalFileStoreOptions {
@@ -80,7 +82,9 @@ export interface LocalFileStoreOptions {
   /** Optional cap on the whole namespace, in bytes (a replaced file doesn't count twice). */
   maxTotalBytes?: number;
   /**
-   * Accepted MIME types; `image/*` style wildcards allowed. Omitted = anything.
+   * Accepted MIME types, exact (`image/jpeg`, `application/pdf`). Omitted =
+   * anything. Wildcards like `image/*` are deliberately NOT supported: they
+   * admit `image/svg+xml`, which can carry script (security audit M3-M7 #2).
    * A file with an empty type is rejected when a list is given.
    */
   accept?: readonly string[];
@@ -106,17 +110,27 @@ export interface LocalFileStore {
   delete(key: string | number): Promise<void>;
   /** Metadata of every file in this namespace, newest first. */
   list(): Promise<LocalFileMeta[]>;
+  /** Deletes every file in this namespace. Never rejects. */
+  clear(): Promise<void>;
+  /** Deletes the files of these keys. Never rejects. */
+  deleteMany(keys: Iterable<string | number>): Promise<void>;
   /** Accept list + caps, for `<input accept>` and pre-checks in the UI. */
   readonly limits: { maxFileBytes: number; maxTotalBytes: number | null; accept: readonly string[] | null };
 }
 
-function matchesAccept(type: string, accept: readonly string[]): boolean {
-  if (!type) return false;
-  const t = type.toLowerCase();
-  return accept.some((pattern) => {
-    const p = pattern.toLowerCase();
-    return p.endsWith('/*') ? t.startsWith(p.slice(0, -1)) : t === p;
-  });
+/** `Image/JPEG; foo=bar` → `image/jpeg`; '' when there is no usable type. */
+export function mimeEssence(type: string): string {
+  return (type.split(';')[0] ?? '').trim().toLowerCase();
+}
+
+/**
+ * Exact allow-list match on the MIME essence. A `*` pattern matches nothing:
+ * see {@link LocalFileStoreOptions.accept}.
+ */
+export function matchesAccept(type: string, accept: readonly string[]): boolean {
+  const t = mimeEssence(type);
+  if (!t) return false;
+  return accept.some((pattern) => !pattern.includes('*') && mimeEssence(pattern) === t);
 }
 
 function toMeta(row: LocalFileRow): LocalFileMeta {
@@ -130,6 +144,26 @@ function isQuotaError(error: unknown): boolean {
     'name' in error &&
     (error as { name: unknown }).name === 'QuotaExceededError'
   );
+}
+
+/**
+ * Every store created in this page, so a session-end wipe also reaches stores
+ * on a non-default backend. The default IndexedDB database is wiped as a whole
+ * by {@link clearAllLocalFiles} even when a store's module was never loaded.
+ */
+const liveStores = new Set<LocalFileStore>();
+
+/**
+ * Wipes every on-device file of every namespace: the whole IndexedDB database
+ * plus any store on another backend. Files kept here are per-user health data
+ * (checkup reports), so `shared/session` runs this on every session end.
+ * Never rejects.
+ */
+export async function clearAllLocalFiles(): Promise<void> {
+  const tasks: Promise<unknown>[] = [...liveStores].map((store) => store.clear());
+  const idb = createIndexedDbBackend();
+  if (idb?.clearAll) tasks.push(idb.clearAll().catch(() => undefined));
+  await Promise.all(tasks);
 }
 
 export function createLocalFileStore(options: LocalFileStoreOptions): LocalFileStore {
@@ -159,7 +193,7 @@ export function createLocalFileStore(options: LocalFileStoreOptions): LocalFileS
     }
   }
 
-  return {
+  const store: LocalFileStore = {
     limits: {
       maxFileBytes,
       maxTotalBytes: maxTotalBytes ?? null,
@@ -253,7 +287,17 @@ export function createLocalFileStore(options: LocalFileStoreOptions): LocalFileS
       const rows = await listRows();
       return rows.map(toMeta).sort((a, b) => b.savedAt - a.savedAt);
     },
+
+    async clear() {
+      await store.deleteMany((await listRows()).map((row) => row.key));
+    },
+
+    async deleteMany(keys) {
+      await Promise.all([...keys].map((key) => store.delete(key)));
+    },
   };
+  liveStores.add(store);
+  return store;
 }
 
 // ── Backends ─────────────────────────────────────────────────────
@@ -273,6 +317,9 @@ export function createMemoryBackend(): LocalFilesBackend {
     },
     async list(namespace) {
       return [...rows.values()].filter((r) => r.namespace === namespace);
+    },
+    async clearAll() {
+      rows.clear();
     },
   };
 }
@@ -364,5 +411,8 @@ export function createIndexedDbBackend(factory?: IDBFactory): LocalFilesBackend 
     },
     list: (namespace) =>
       run('readonly', (s) => s.index('namespace').getAll(namespace) as IDBRequest<LocalFileRow[]>),
+    clearAll: async () => {
+      await run('readwrite', (s) => s.clear());
+    },
   };
 }

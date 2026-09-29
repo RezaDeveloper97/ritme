@@ -31,20 +31,27 @@ export function careItemTopic(kind: CareItemKind | null | undefined): Appointmen
 }
 
 /**
- * M3 AddAppointment prefilled from a care-plan row. `kind` is how the visit
- * happens (every care-plan item is in person); `topic` is what it is for, so
- * the NT scan opens as «سونوگرافی», not «ویزیت دوره‌ای».
+ * M3 AddAppointment for a care-plan row. The URL carries only the visit kind
+ * and the allow-listed way back (T-M7-20 `return_to`); what the visit is for
+ * — the item, its topic and date, i.e. that the user is pregnant and which
+ * test is due — travels as a one-time prefill (`shared/lib/handoff`), never in
+ * the query string (§11, security audit M3-M7 #3).
  */
-export function bookHref(item: CareItem): string {
-  const q = new URLSearchParams({
-    kind: 'in_person',
+export const BOOK_HREF = '/reminders/appointment/new?kind=in_person&return_to=/pregnancy/calendar';
+
+/**
+ * The prefill for a care-plan row. `topic` is what the visit is for (T-M7-17),
+ * so the NT scan opens as «سونوگرافی», not «ویزیت دوره‌ای».
+ */
+export function bookPrefill(item: CareItem): Record<string, string> {
+  const prefill: Record<string, string> = {
     topic: careItemTopic(item.kind),
     title: item.title,
-    care_item_key: item.key,
-  });
+    careItemKey: item.key,
+  };
   const date = item.suggestedDate ?? item.date;
-  if (date) q.set('date', date);
-  return `/reminders/appointment/new?${q.toString()}`;
+  if (date) prefill.date = date;
+  return prefill;
 }
 
 /** Maps search for a visit's place (opened in a new tab). */

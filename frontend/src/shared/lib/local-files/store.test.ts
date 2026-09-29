@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  clearAllLocalFiles,
   createIndexedDbBackend,
   createLocalFileStore,
   createMemoryBackend,
   LocalFilesError,
+  matchesAccept,
   type LocalFilesBackend,
 } from './store';
 
@@ -16,7 +18,7 @@ function makeStore(overrides: Partial<Parameters<typeof createLocalFileStore>[0]
   return createLocalFileStore({
     namespace: 'reports',
     maxFileBytes: 100,
-    accept: ['image/*', 'application/pdf'],
+    accept: ['image/jpeg', 'image/heic', 'application/pdf'],
     backend: createMemoryBackend(),
     now: () => clock++,
     ...overrides,
@@ -88,11 +90,14 @@ describe('createLocalFileStore', () => {
     expect(await codeOf(store.put(2, pdf(50)))).toBeNull();
   });
 
-  it('rejects types outside the accept list (wildcards allowed)', async () => {
+  it('rejects types outside the accept list', async () => {
     const store = makeStore();
     expect(await codeOf(store.put(1, new Blob(['x'], { type: 'text/html' })))).toBe('unsupported_type');
     expect(await codeOf(store.put(1, new Blob(['x'])))).toBe('unsupported_type');
     expect(await codeOf(store.put(1, new Blob(['x'], { type: 'image/heic' })))).toBeNull();
+    // Script-capable image types never get in (audit M3-M7 #2).
+    expect(await codeOf(store.put(1, new Blob(['<svg/>'], { type: 'image/svg+xml' })))).toBe('unsupported_type');
+    expect(await codeOf(store.put(1, new Blob(['x'], { type: 'IMAGE/JPEG; q=1' })))).toBeNull();
     // No accept list = anything goes.
     const open = makeStore({ accept: undefined });
     expect(await codeOf(open.put(1, new Blob(['x'])))).toBeNull();
@@ -111,8 +116,44 @@ describe('createLocalFileStore', () => {
     expect(store.limits).toEqual({
       maxFileBytes: 100,
       maxTotalBytes: 500,
-      accept: ['image/*', 'application/pdf'],
+      accept: ['image/jpeg', 'image/heic', 'application/pdf'],
     });
+  });
+
+  it('matchesAccept is exact and ignores wildcards', () => {
+    expect(matchesAccept('image/png', ['image/*'])).toBe(false);
+    expect(matchesAccept('image/svg+xml', ['image/*', 'image/png'])).toBe(false);
+    expect(matchesAccept('image/png', ['image/png'])).toBe(true);
+    expect(matchesAccept('', ['image/png'])).toBe(false);
+  });
+
+  it('clear() empties only its own namespace; deleteMany() removes the given keys', async () => {
+    const backend = createMemoryBackend();
+    const a = makeStore({ backend });
+    const b = makeStore({ backend, namespace: 'other' });
+    await a.put(1, pdf(1));
+    await a.put(2, pdf(1));
+    await a.put(3, pdf(1));
+    await b.put(1, pdf(1));
+
+    await a.deleteMany([1, '3', 99]);
+    expect((await a.list()).map((m) => m.key)).toEqual(['2']);
+
+    await a.clear();
+    expect(await a.list()).toEqual([]);
+    expect(await b.has(1)).toBe(true);
+  });
+
+  it('clearAllLocalFiles() empties every store (the session-end wipe)', async () => {
+    const a = makeStore();
+    const b = makeStore({ namespace: 'other' });
+    await a.put(1, pdf(1));
+    await b.put(2, jpeg(1));
+
+    await clearAllLocalFiles();
+
+    expect(await a.list()).toEqual([]);
+    expect(await b.list()).toEqual([]);
   });
 
   describe('when storage is unavailable', () => {

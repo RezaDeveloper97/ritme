@@ -12,6 +12,8 @@
  * device preferences, and anything another origin-mate stored.
  */
 
+import { clearHandoff } from '@/shared/lib/handoff';
+import { clearAllLocalFiles } from '@/shared/lib/local-files';
 import { getOutbox, type SendResult } from '@/shared/lib/outbox';
 
 type Cleanup = () => void | Promise<void>;
@@ -56,3 +58,14 @@ async function dropQueuedWrites(): Promise<void> {
 }
 
 onSessionEnd(dropQueuedWrites);
+
+/*
+ * On-device files (checkup report photos / PDFs in `shared/lib/local-files`)
+ * are the ended user's health data. The whole database goes, not one slice's
+ * namespace: a slice that registered its own wipe would only be heard if its
+ * module happened to be loaded in this page (security audit M3-M7 #1).
+ */
+onSessionEnd(clearAllLocalFiles);
+
+/* A pending one-time navigation prefill (`shared/lib/handoff`) belongs to this session too. */
+onSessionEnd(clearHandoff);

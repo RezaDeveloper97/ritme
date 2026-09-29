@@ -51,7 +51,9 @@
         "appointment_updated": "Appointment updated",
         "appointment_deleted": "Appointment deleted",
         "appointment_cancelled": "Appointment cancelled",
-        "prep_item_not_found": "Checklist item not found"
+        "prep_item_not_found": "Checklist item not found",
+        "medication_limit": "You have reached the maximum number of medication reminders. Delete one you no longer need to add a new one.",
+        "appointment_limit": "You have reached the maximum number of appointments. Delete one you no longer need to add a new one."
     },
     "validation": {
         "ends_on_required": "The end date is required when the duration is until a date.",

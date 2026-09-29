@@ -51,10 +51,16 @@ export function guideHref(item: CheckupItem): string {
   return isSelfExam(item) ? '/checkups/self-exam' : `/checkups/${item.id}`;
 }
 
-/** AddAppointment with the checkup as the prefilled title. */
-export function bookHref(item: CheckupItem): string {
-  const q = new URLSearchParams({ kind: 'in_person', title: item.title });
-  return `/reminders/appointment/new?${q.toString()}`;
+/**
+ * AddAppointment for an overdue checkup. The URL carries only the visit kind:
+ * the checkup's title (user-typed for a custom one) travels as a one-time
+ * prefill (`shared/lib/handoff`), never in the query string (§11, audit M3-M7 #3).
+ */
+export const BOOK_HREF = '/reminders/appointment/new?kind=in_person';
+
+/** The AddAppointment prefill for a checkup: its title. */
+export function bookPrefill(item: Pick<CheckupItem, 'title'>): { title: string } {
+  return { title: item.title };
 }
 
 /** Ring arc length fraction, clamped to [0, 1]. */

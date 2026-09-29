@@ -1,22 +1,27 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import clsx from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 
 import {
+  CHECKUP_ATTACHMENT_ACCEPT,
   CHECKUP_RECORD_FILTERS,
   type CheckupRecord,
   type CheckupRecordFilter,
   checkupAttachments,
   checkupIcon,
+  checkupKeys,
   formatCheckupMonth,
   fetchCheckupRecords,
+  pruneCheckupAttachmentsSoon,
   useCheckupAttachmentIds,
   useCheckupRecords,
 } from '@/entities/checkup';
 import { type Locale, Link, useDirection } from '@/shared/i18n';
 import { formatLongDate, formatNumber, fromApiDate, today } from '@/shared/lib/date';
+import { openLocalFile } from '@/shared/lib/local-files';
 import { type PdfBlock, loadPdfGenerator, shareOrDownloadFile } from '@/shared/lib/pdf';
 import { openSheet } from '@/shared/sheet';
 import { Icon } from '@/shared/ui';
@@ -101,9 +106,10 @@ function RecordItem({ record, last }: { record: CheckupRecord; last: boolean }) 
       setMissing(true);
       return;
     }
-    const url = URL.createObjectURL(file.blob);
-    window.open(url, '_blank', 'noopener');
-    window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    // Allow-listed photos / PDFs open in a tab; anything else (a file stored
+    // before the allow-list, e.g. an SVG) is only downloaded, never rendered
+    // as the app's origin (audit M3-M7 #2).
+    openLocalFile(file, CHECKUP_ATTACHMENT_ACCEPT);
   };
 
   return (
@@ -160,6 +166,15 @@ export function CheckupHistoryPage({ type }: { type: number | null }) {
   const query = useCheckupRecords({ filter, type });
   const localIds = useCheckupAttachmentIds();
   const pdf = useSummaryPdf(type);
+  const queryClient = useQueryClient();
+
+  // Drop report files whose record is gone — e.g. every record of a deleted
+  // custom checkup (audit M3-M7 #1) — then refresh the «با پیوست» ids.
+  useEffect(() => {
+    void pruneCheckupAttachmentsSoon().then((removed) => {
+      if (removed > 0) void queryClient.invalidateQueries({ queryKey: checkupKeys.attachmentsAll() });
+    });
+  }, [queryClient]);
 
   const loaded = query.data?.pages.flatMap((p) => p.records) ?? [];
   const records = filter === 'with_attachment' ? withLocalAttachment(loaded, localIds.data) : loaded;

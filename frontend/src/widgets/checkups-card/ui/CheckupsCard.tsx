@@ -2,13 +2,29 @@
 
 import clsx from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
+import { type MouseEvent, useEffect } from 'react';
 
-import { checkupIcon, useCheckupHome, type CheckupItem, type CheckupSummary } from '@/entities/checkup';
-import { Link, type Locale } from '@/shared/i18n';
+import {
+  checkupIcon,
+  pruneCheckupAttachmentsSoon,
+  useCheckupHome,
+  type CheckupItem,
+  type CheckupSummary,
+} from '@/entities/checkup';
+import { Link, type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
+import { withHandoff } from '@/shared/lib/handoff';
 import { Icon } from '@/shared/ui';
 
-import { bookHref, countsLine, guideHref, highlightKind, highlightMeta, ringFraction } from '../model/counts';
+import {
+  BOOK_HREF,
+  bookPrefill,
+  countsLine,
+  guideHref,
+  highlightKind,
+  highlightMeta,
+  ringFraction,
+} from '../model/counts';
 
 type T = ReturnType<typeof useTranslations<'checkups'>>;
 
@@ -76,8 +92,14 @@ function Ring({ summary, t, locale }: { summary: CheckupSummary; t: T; locale: L
 }
 
 function HighlightRow({ item, t }: { item: CheckupItem; t: T }) {
+  const router = useRouter();
   const kind = highlightKind(item);
   const meta = highlightMeta(item, t('separator'));
+  // «ثبت نوبت»: the title rides a one-time prefill, not the URL (audit M3-M7 #3).
+  const book = (event: MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    router.push(withHandoff(BOOK_HREF, bookPrefill(item)));
+  };
   return (
     <div
       className={clsx(
@@ -96,7 +118,8 @@ function HighlightRow({ item, t }: { item: CheckupItem; t: T }) {
         {meta && <span className="block truncate text-[12px] font-semibold text-(--ck-ink)">{meta}</span>}
       </span>
       <Link
-        href={kind === 'book' ? bookHref(item) : guideHref(item)}
+        href={kind === 'book' ? BOOK_HREF : guideHref(item)}
+        onClick={kind === 'book' ? book : undefined}
         className="flex min-h-11 shrink-0 items-center rounded-xl bg-(--checkup-row-action) px-3 text-[12.5px] font-extrabold text-(--ck-ink)"
       >
         {t(kind === 'book' ? 'card.book' : 'card.guide')}
@@ -114,6 +137,11 @@ export function CheckupsCard() {
   const t = useTranslations('checkups');
   const locale = useLocale() as Locale;
   const query = useCheckupHome();
+
+  // Drop report files whose record is gone, e.g. a deleted custom checkup (audit M3-M7 #1).
+  useEffect(() => {
+    void pruneCheckupAttachmentsSoon();
+  }, []);
 
   if (query.isPending && query.fetchStatus !== 'idle') {
     return (

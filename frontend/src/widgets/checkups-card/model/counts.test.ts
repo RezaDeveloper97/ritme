@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { CheckupItem } from '@/entities/checkup';
 
-import { countParts, countsLine, highlightKind, highlightMeta, ringFraction } from './counts';
+import { BOOK_HREF, bookPrefill, countParts, countsLine, highlightKind, highlightMeta, ringFraction } from './counts';
 
 const item = (over: Partial<CheckupItem>): CheckupItem => ({
   id: 3,
@@ -69,5 +69,14 @@ describe('ringFraction', () => {
   it('clamps and handles zero total', () => {
     expect(ringFraction({ total: 0, upToDate: 0, due: 0, overdue: 0 })).toBe(0);
     expect(ringFraction({ total: 4, upToDate: 2, due: 2, overdue: 0 })).toBe(0.5);
+  });
+});
+
+describe('book an overdue checkup (audit M3-M7 #3)', () => {
+  it('keeps the checkup title out of the URL', () => {
+    const url = new URL(BOOK_HREF, 'https://x');
+    expect(url.pathname).toBe('/reminders/appointment/new');
+    expect([...url.searchParams.keys()]).toEqual(['kind']);
+    expect(bookPrefill({ title: 'آزمایش تیروئید من' })).toEqual({ title: 'آزمایش تیروئید من' });
   });
 });

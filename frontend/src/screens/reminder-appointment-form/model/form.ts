@@ -28,11 +28,16 @@ export interface AppointmentFormState {
   addToCalendar: boolean;
   /** One line = one checklist item. */
   prepText: string;
-  /** Pregnancy care-plan item this visit books (`?care_item_key=`), '' when none. */
+  /** Pregnancy care-plan item this visit books (from the prefill), '' when none. */
   careItemKey: string;
 }
 
-/** What the "new" route's query string may prefill. */
+/**
+ * What a new appointment may be prefilled with. Only `kind` comes from the
+ * query string; the rest arrives as a one-time handoff (`?prefill=<id>`,
+ * `shared/lib/handoff`) so no title, topic or date ever sits in a URL (§11,
+ * security audit M3-M7 #3).
+ */
 export interface AppointmentPrefill {
   kind?: string | null;
   /** What the visit is for (a care-plan «رزرو» sends scan → `ultrasound`, …). */
@@ -42,12 +47,19 @@ export interface AppointmentPrefill {
   careItemKey?: string | null;
 }
 
+/** Handoff fields → prefill. Unknown keys are ignored; values are still validated by `formFromPrefill`. */
+export function prefillFromHandoff(data: Readonly<Record<string, string>> | null): AppointmentPrefill {
+  if (!data) return {};
+  const { topic, title, date, careItemKey } = data;
+  return { topic, title, date, careItemKey };
+}
+
 /** Local `YYYY-MM-DD` of a Date. */
 export function isoDay(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-/** `?date=` → a valid `YYYY-MM-DD` that is not before `today`, else ''. */
+/** A prefill date → a valid `YYYY-MM-DD` that is not before `today`, else ''. */
 export function parsePrefillDate(value: string | null | undefined, today: string): string {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return '';
   const d = new Date(`${value}T00:00:00`);
@@ -55,7 +67,7 @@ export function parsePrefillDate(value: string | null | undefined, today: string
   return value < today ? '' : value;
 }
 
-/** A fresh form seeded from `?kind=&topic=&title=&date=&care_item_key=`. */
+/** A fresh form seeded from `?kind=` plus the handoff's topic / title / date / care-plan key. */
 export function formFromPrefill(prefill: AppointmentPrefill, today: string): AppointmentFormState {
   const key = (prefill.careItemKey ?? '').trim();
   return {
@@ -71,7 +83,7 @@ export function parseKind(value: string | null | undefined): AppointmentKind {
   return APPOINTMENT_KINDS.includes(value as AppointmentKind) ? (value as AppointmentKind) : 'in_person';
 }
 
-/** `?topic=` → a known topic, else the form's default (`checkup`). */
+/** A prefill topic → a known topic, else the form's default (`checkup`). */
 export function parseTopic(value: string | null | undefined): AppointmentTopic {
   return APPOINTMENT_TOPICS.includes(value as AppointmentTopic) ? (value as AppointmentTopic) : 'checkup';
 }
@@ -160,7 +172,7 @@ export function parseReturnTo(value: string | null | undefined): ReturnPath | nu
 /**
  * Where to go after saving (and the header's back link): an allowed
  * `?return_to=`, else — for a new visit booked from the pregnancy care plan
- * (`?care_item_key=`, only the pregnancy calendar sends it) — the calendar;
+ * (a prefilled care-plan key, only the pregnancy calendar sends it) — the calendar;
  * null → the default (the appointment's detail page).
  */
 export function returnPathFor(returnTo: string | null | undefined, isNew: boolean, careItemKey: string): ReturnPath | null {

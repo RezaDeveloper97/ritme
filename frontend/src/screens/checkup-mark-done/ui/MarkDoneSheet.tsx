@@ -5,11 +5,13 @@ import { useLocale, useTranslations } from 'next-intl';
 import { type ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
+  CHECKUP_ATTACHMENT_IMAGE_TYPES,
   CHECKUP_RESULTS,
   type CheckupRecord,
   type CheckupResult,
   checkupAttachments,
   checkupResultIcon,
+  isCheckupAttachmentImage,
   useCheckup,
   useCheckupAttachment,
   useCheckupNextPreview,
@@ -36,6 +38,8 @@ import { useMarkDoneToast } from '../model/toast';
 
 const NOTE_MAX = 500;
 const MAX_MB = Math.round(checkupAttachments.limits.maxFileBytes / (1024 * 1024));
+/** The photo picker offers only the allow-listed photo types — never `image/*`, which admits SVG (audit M3-M7 #2). */
+const PHOTO_ACCEPT = CHECKUP_ATTACHMENT_IMAGE_TYPES.join(',');
 
 interface PickedFile {
   file: File;
@@ -131,7 +135,7 @@ function MarkDoneForm({ typeId, record }: { typeId: number; record: CheckupRecor
 
   const existingUrl = useMemo(
     () =>
-      existing.data && existing.data.blob.type.startsWith('image/') ? URL.createObjectURL(existing.data.blob) : null,
+      existing.data && isCheckupAttachmentImage(existing.data.blob.type) ? URL.createObjectURL(existing.data.blob) : null,
     [existing.data],
   );
   useEffect(() => () => void (existingUrl && URL.revokeObjectURL(existingUrl)), [existingUrl]);
@@ -149,7 +153,7 @@ function MarkDoneForm({ typeId, record }: { typeId: number; record: CheckupRecor
       return;
     }
     setFileError(null);
-    setPicked({ file, url: file.type.startsWith('image/') ? URL.createObjectURL(file) : null });
+    setPicked({ file, url: isCheckupAttachmentImage(file.type) ? URL.createObjectURL(file) : null });
   };
 
   const removeAttachment = () => {
@@ -301,7 +305,7 @@ function MarkDoneForm({ typeId, record }: { typeId: number; record: CheckupRecor
             ))}
           </div>
         )}
-        <input ref={photoRef} type="file" accept="image/*" capture="environment" hidden onChange={onFile} />
+        <input ref={photoRef} type="file" accept={PHOTO_ACCEPT} capture="environment" hidden onChange={onFile} />
         <input ref={pdfRef} type="file" accept="application/pdf" hidden onChange={onFile} />
         {fileError && (
           <p role="alert" className="text-start text-[12px] font-bold text-(--danger-deep)">

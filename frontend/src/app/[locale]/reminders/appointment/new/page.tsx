@@ -6,22 +6,19 @@ import { RouteMessages } from '../../../../RouteMessages';
 
 interface Props {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{
-    kind?: string;
-    topic?: string;
-    title?: string;
-    date?: string;
-    care_item_key?: string;
-  }>;
+  // Only the visit kind comes from the URL. Title, topic, date and the
+  // care-plan key arrive as a one-time `?prefill=<id>` handoff read on the
+  // client — health context never goes in a query string (audit M3-M7 #3).
+  searchParams: Promise<{ kind?: string }>;
 }
 
 export default async function NewAppointmentRoute({ params, searchParams }: Props) {
   const { locale } = await params;
-  const { kind, topic, title, date, care_item_key: careItemKey } = await searchParams;
+  const { kind } = await searchParams;
   setRequestLocale(locale);
   return (
     <RouteMessages route="reminders">
-      <AppointmentFormPage prefill={{ kind, topic, title, date, careItemKey }} />
+      <AppointmentFormPage prefill={{ kind }} />
     </RouteMessages>
   );
 }

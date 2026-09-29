@@ -62,13 +62,19 @@ function utcStamp(date: Date): string {
   return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
 }
 
-/** TEXT escaping (RFC 5545 §3.3.11). */
+/**
+ * TEXT escaping (RFC 5545 §3.3.11): backslash first, then `;` and `,`; every
+ * line break — CRLF, LF or a bare CR, which some parsers treat as a line end —
+ * becomes `\n`, and other control characters are dropped (TAB is allowed), so
+ * user text can never start a new property line.
+ */
 export function escapeIcsText(value: string): string {
   return value
     .replace(/\\/g, '\\\\')
-    .replace(/;/g, '\;')
+    .replace(/;/g, '\\;')
     .replace(/,/g, '\\,')
-    .replace(/\r?\n/g, '\\n');
+    .replace(/\r\n?|\n/g, '\\n')
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '');
 }
 
 /** Duration as `-PT1H` / `-P1D` / `-PT90M`. */

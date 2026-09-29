@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { CareItem } from '@/entities/pregnancy';
 
-import { bookHref, careItemTopic, monthKey, nextStage, stageProgress } from './view';
+import { BOOK_HREF, bookPrefill, careItemTopic, monthKey, nextStage, stageProgress } from './view';
 
 describe('pregnancy calendar view helpers', () => {
   it('pads the month key', () => {
@@ -26,13 +26,16 @@ describe('pregnancy calendar view helpers', () => {
       suggestedDate: '2026-10-10',
       date: null,
     } as unknown as CareItem;
-    const url = new URL(bookHref(item), 'https://x');
+    // No health marker in the URL (audit M3-M7 #3): only the kind and the way back.
+    const url = new URL(BOOK_HREF, 'https://x');
     expect(url.pathname).toBe('/reminders/appointment/new');
-    expect(url.searchParams.get('care_item_key')).toBe('nt_scan');
-    expect(url.searchParams.get('title')).toBe('سونوگرافی NT');
-    expect(url.searchParams.get('date')).toBe('2026-10-10');
-    expect(url.searchParams.get('kind')).toBe('in_person');
-    expect(url.searchParams.get('topic')).toBe('ultrasound');
+    expect(Object.fromEntries(url.searchParams)).toEqual({ kind: 'in_person', return_to: '/pregnancy/calendar' });
+    expect(bookPrefill(item)).toEqual({
+      topic: 'ultrasound',
+      title: 'سونوگرافی NT',
+      careItemKey: 'nt_scan',
+      date: '2026-10-10',
+    });
   });
 
   it('maps every care-plan kind to its appointment topic', () => {

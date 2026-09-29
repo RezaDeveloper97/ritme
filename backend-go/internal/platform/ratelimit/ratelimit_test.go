@@ -159,3 +159,27 @@ func TestSignature(t *testing.T) {
 	assert.Len(t, guest, 40)
 	assert.NotEqual(t, guest, user)
 }
+
+func TestNamed_OwnCounter(t *testing.T) {
+	// A named limiter never shares the unnamed per-user counter (auth throttles).
+	l, mr := newLimiter(t)
+	app := fiber.New(fiber.Config{ErrorHandler: httpx.ErrorHandler(nil)})
+	app.Use(clock.Middleware(clock.Real{}, true))
+	user := func(fiber.Ctx) string { return "7" }
+	app.Post("/w", l.Named("writes", 2, time.Minute, user), func(c fiber.Ctx) error { return c.SendString("ok") })
+	app.Post("/u", l.Middleware(2, time.Minute, user), func(c fiber.Ctx) error { return c.SendString("ok") })
+	status := func(path string) int {
+		resp, err := app.Test(httptest.NewRequest(fiber.MethodPost, path, nil))
+		require.NoError(t, err)
+		_ = resp.Body.Close()
+		return resp.StatusCode
+	}
+	assert.Equal(t, 200, status("/w"))
+	assert.Equal(t, 200, status("/w"))
+	assert.Equal(t, 429, status("/w"))
+	// The unnamed counter for the same user is untouched.
+	assert.Equal(t, 200, status("/u"))
+	// sha1("7") under the name.
+	assert.True(t, mr.Exists("ritme-go:throttle:writes:902ba3cda1883801594b6e1b452790cc53948fda"))
+	assert.Panics(t, func() { l.Named("", 1, time.Minute, user) })
+}

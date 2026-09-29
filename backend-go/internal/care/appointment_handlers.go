@@ -96,6 +96,9 @@ func (h *Handlers) StoreAppointment(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	if err := h.checkAppointmentCap(c, userID, in.ScheduledAt, now, locale); err != nil {
+		return err
+	}
 	meta, err := json.Marshal(in.Meta)
 	if err != nil {
 		return fmt.Errorf("care: encode appointment meta: %w", err)

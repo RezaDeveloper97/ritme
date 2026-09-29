@@ -126,10 +126,24 @@ func Signature(c fiber.Ctx, identity Identity) string {
 // Middleware is `throttle:maxAttempts,decayMinutes` (decay = decayMinutes minutes).
 // identity may be nil for guest-only routes.
 func (l *Limiter) Middleware(maxAttempts int, decay time.Duration, identity Identity) fiber.Handler {
+	return l.middleware("", maxAttempts, decay, identity)
+}
+
+// Named is Middleware on a counter of its own: the key is name + ":" + Signature, so it never
+// shares the unnamed per-user/IP counter of the Laravel-compatible throttles (a burst of
+// writes must not use up refresh-session's 10/min). Same headers and 429 as Middleware.
+func (l *Limiter) Named(name string, maxAttempts int, decay time.Duration, identity Identity) fiber.Handler {
+	if name == "" {
+		panic("ratelimit: Named needs a name")
+	}
+	return l.middleware(name+":", maxAttempts, decay, identity)
+}
+
+func (l *Limiter) middleware(prefix string, maxAttempts int, decay time.Duration, identity Identity) fiber.Handler {
 	limit := strconv.Itoa(maxAttempts)
 	return func(c fiber.Ctx) error {
 		now := clock.FromContext(c, l.base).Now()
-		res, err := l.Attempt(c.Context(), Signature(c, identity), maxAttempts, decay, now)
+		res, err := l.Attempt(c.Context(), prefix+Signature(c, identity), maxAttempts, decay, now)
 		if err != nil {
 			return err
 		}

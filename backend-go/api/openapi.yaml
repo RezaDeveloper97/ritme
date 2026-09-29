@@ -693,6 +693,11 @@ paths:
         `times` are de-duplicated and sorted, `weekdays` (Saturday = 0) likewise. `ends_on` is used only for
         `duration = until_date`; `pregnancy_end` takes the active pregnancy's due date (open-ended without one);
         `ongoing` stores NULL. Unknown keys are ignored.
+
+        **Cap:** at most 100 medication reminders per user (active or paused); the 101st gets **422**
+        `{success: false, message, errors: {limit: [message]}, error_code: limit_reached}` in the request language.
+        **Throttle:** every care / checkups / fertility write shares one per-user budget of 60 per minute
+        (**429** "Too Many Attempts.", `Retry-After`).
       operationId: postCareMedications
       security:
         - {bearerAuth: []}
@@ -719,6 +724,7 @@ paths:
                   data: {$ref: "#/components/schemas/Medication"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '422': {$ref: "#/components/responses/CareValidationFailed"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
   /api/v1/care/medications/{id}:
     get:
       tags: [Care]
@@ -773,6 +779,7 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/CareNotFound"}
         '422': {$ref: "#/components/responses/CareValidationFailed"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
     delete:
       tags: [Care]
       summary: Delete a medication reminder
@@ -798,6 +805,7 @@ paths:
               example: {success: true, message: یادآور دارو حذف شد, data: null}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/CareNotFound"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
   /api/v1/care/medications/{id}/intakes:
     post:
       tags: [Care]
@@ -837,6 +845,7 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/CareNotFound"}
         '422': {$ref: "#/components/responses/CareValidationFailed"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
     delete:
       tags: [Care]
       summary: Unmark a dose
@@ -873,6 +882,7 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/CareNotFound"}
         '422': {$ref: "#/components/responses/CareValidationFailed"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
   /api/v1/care/appointments:
     get:
       tags: [Care]
@@ -912,6 +922,11 @@ paths:
         `title` falls back to the topic label in the request language. Defaults: `remind_before` 1d,
         `add_to_calendar` false, `is_active` true, `prep` []. Prep items get server ids (`p1`, `p2`, …); client ids are
         ignored on create. Every prep item needs a non-blank `text`. Unknown keys (and `status`) are ignored.
+
+        **Caps:** at most 100 scheduled appointments still ahead (a new upcoming one past that, and any new one once the
+        user has 1000 appointment rows, gets **422** `{success: false, message, errors: {limit: [message]},
+        error_code: limit_reached}` in the request language). **Throttle:** the shared per-user write budget, 60 per
+        minute (**429**).
       operationId: postCareAppointments
       security:
         - {bearerAuth: []}
@@ -938,6 +953,7 @@ paths:
                   data: {$ref: "#/components/schemas/Appointment"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '422': {$ref: "#/components/responses/CareValidationFailed"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
   /api/v1/care/appointments/{id}:
     get:
       tags: [Care]
@@ -995,6 +1011,7 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/CareAppointmentNotFound"}
         '422': {$ref: "#/components/responses/CareValidationFailed"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
     delete:
       tags: [Care]
       summary: Delete an appointment
@@ -1019,6 +1036,7 @@ paths:
               example: {success: true, message: نوبت حذف شد, data: null}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/CareAppointmentNotFound"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
   /api/v1/care/appointments/{id}/cancel:
     post:
       tags: [Care]
@@ -1044,6 +1062,7 @@ paths:
                   data: {$ref: "#/components/schemas/Appointment"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/CareAppointmentNotFound"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
   /api/v1/care/appointments/{id}/prep/{itemId}:
     patch:
       tags: [Care]
@@ -1080,6 +1099,7 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/CareAppointmentNotFound"}
         '422': {$ref: "#/components/responses/CareValidationFailed"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
   /api/v1/fertility/bbt:
     get:
       tags: [Fertility]
@@ -1175,7 +1195,8 @@ paths:
         is today or later, else of the next predicted cycle (the current one's when the period is late); `null` without
         a resolvable cycle. `cycles_used` = the cycle metrics' valid complete cycles.
 
-        `evidence` is always `cycles`, `bbt_shift`, `lh` (localized `title` / `detail`):
+        `evidence` is always `cycles`, `bbt_shift`, `lh` (localized `title` / `detail`; the title carries the count or
+        fact, e.g. «۶ سیکل کامل ثبت شده» / «طول معمول ۲۹ روز، نوسان ±۲», a zero spread is left out):
         `cycles` strong = relatively regular (last 3 cycles), medium = ≥ 1 valid cycle, none = 0;
         `bbt_shift` = confirmed 3-over-6 shifts in the current + last 5 cycles, strong ≥ 2, medium = 1, none = 0;
         `lh` = this cycle's tests, strong = a positive, medium = a faint, none = negatives only or no test.
@@ -1184,7 +1205,8 @@ paths:
 
         `history` = the last 5 finished cycles, newest first: `ovulation_day` (cycle day) = BBT shift day − 1
         (`source: bbt`), else the first positive LH day + 1 (`lh`), else the cycle engine's estimate (`estimate`);
-        `month_label` = the month of that day in the locale's calendar (Jalali for fa). `tips` are localized strings
+        `month_label` = the month of that day in the locale's calendar (Jalali for fa); `period_days` = that cycle's own
+        logged period length (end − start + 1, else its `bleeding_length`; `null` when unknown). `tips` are localized strings
         chosen by what is missing (daily BBT, LH from the window's first cycle day, logging periods).
       operationId: getFertilityInsights
       security:
@@ -1231,13 +1253,14 @@ paths:
                         maxItems: 5
                         items:
                           type: object
-                          required: [month_label, ovulation_day, date, source, cycle_start]
+                          required: [month_label, ovulation_day, date, source, cycle_start, period_days]
                           properties:
                             month_label: {type: string}
                             ovulation_day: {type: [integer, "null"], minimum: 1}
                             date: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
                             source: {type: string, enum: [bbt, lh, estimate]}
                             cycle_start: {$ref: "#/components/schemas/Date"}
+                            period_days: {type: [integer, "null"], minimum: 1}
                       tips:
                         type: array
                         items: {type: string}
@@ -1248,12 +1271,12 @@ paths:
                   window: {start: "2026-09-19", end: "2026-09-24", ovulation: "2026-09-24"}
                   confidence: high
                   evidence:
-                    - {key: cycles, title: سیکل‌های کامل, detail: "۲ سیکل کامل، معمولاً ۲۸ روز (±۰)", strength: medium}
-                    - {key: bbt_shift, title: جهش دمای پایه, detail: "جهش در ۲ سیکل، روز ۱۶ و ۱۵", strength: strong}
-                    - {key: lh, title: تست LH این سیکل, detail: مثبت در روز ۱۳, strength: strong}
+                    - {key: cycles, title: ۲ سیکل کامل ثبت شده, detail: طول معمول ۲۸ روز, strength: medium}
+                    - {key: bbt_shift, title: جهش دما در ۲ سیکل اخیر, detail: روز ۱۵ و ۱۶ سیکل, strength: strong}
+                    - {key: lh, title: تست LH, detail: مثبت در روز ۱۳ سیکل, strength: strong}
                   history:
-                    - {month_label: شهریور, ovulation_day: 15, date: "2026-08-27", source: bbt, cycle_start: "2026-08-13"}
-                    - {month_label: مرداد, ovulation_day: 14, date: "2026-07-29", source: bbt, cycle_start: "2026-07-16"}
+                    - {month_label: شهریور, ovulation_day: 15, date: "2026-08-27", source: bbt, cycle_start: "2026-08-13", period_days: 5}
+                    - {month_label: مرداد, ovulation_day: 14, date: "2026-07-29", source: bbt, cycle_start: "2026-07-16", period_days: 5}
                   tips: [شروع و پایان هر پریود را ثبت کن تا طول معمول سیکلت دقیق‌تر شود.]
         '401': {$ref: "#/components/responses/Unauthenticated"}
   /api/v1/fertility/today:
@@ -1409,6 +1432,7 @@ paths:
                 warning: {type: luteal_spotting_warning, message: "این خون‌ریزی ممکن است لکه‌بینی لوتئال باشد نه شروع پریود. آیا مطمئن هستید؟"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '422': {$ref: "#/components/responses/FertilityValidationFailed"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
   /api/v1/checkups:
     get:
       tags: [Checkups]
@@ -1605,6 +1629,7 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/CheckupNotFound"}
         '422': {$ref: "#/components/responses/CheckupValidationFailed"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
     delete:
       tags: [Checkups]
       summary: Delete a checkup record
@@ -1629,6 +1654,7 @@ paths:
               example: {success: true, message: سابقه چکاپ حذف شد, data: null}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/CheckupNotFound"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
   /api/v1/checkups/custom:
     post:
       tags: [Checkups]
@@ -1637,6 +1663,10 @@ paths:
         The user's own checkup (`category = custom`, tone `neutral`, icon by `performed_by`, reminder lead 3 / 7 / 14
         days by interval). `title` and `note` (shown as the subtitle) are stored under the request language.
         `last_done_on` seeds a first record (result `normal`). Returns **201** with the item.
+
+        **Cap:** at most 50 custom checkups per user; past that **422** `{success: false, message, errors: {limit:
+        [message]}, error_code: limit_reached}` in the request language. **Throttle:** the shared per-user write budget,
+        60 per minute (**429**).
       operationId: postCheckupCustom
       security:
         - {bearerAuth: []}
@@ -1663,6 +1693,7 @@ paths:
                   data: {$ref: "#/components/schemas/CheckupItem"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '422': {$ref: "#/components/responses/CheckupValidationFailed"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
   /api/v1/checkups/custom/{id}:
     put:
       tags: [Checkups]
@@ -1695,6 +1726,7 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/CheckupNotFound"}
         '422': {$ref: "#/components/responses/CheckupValidationFailed"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
     delete:
       tags: [Checkups]
       summary: Delete a custom checkup
@@ -1719,6 +1751,7 @@ paths:
                   data: {type: "null"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/CheckupNotFound"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
   /api/v1/checkups/{id}:
     get:
       tags: [Checkups]
@@ -1780,6 +1813,7 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/CheckupNotFound"}
         '422': {$ref: "#/components/responses/CheckupValidationFailed"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
   /api/v1/checkups/{id}/settings:
     put:
       tags: [Checkups]
@@ -1824,6 +1858,7 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/CheckupNotFound"}
         '422': {$ref: "#/components/responses/CheckupValidationFailed"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
   /api/v1/cycle/date/{date}:
     get:
       tags: [Cycle]
@@ -8075,6 +8110,10 @@ components:
               errors:
                 type: object
                 additionalProperties: {type: array, items: {type: string}}
+              error_code:
+                type: string
+                enum: [limit_reached]
+                description: Set only when a per-user cap is reached (`errors.limit`).
           example:
             success: false
             message: اطلاعات واردشده نامعتبر است
@@ -8109,6 +8148,10 @@ components:
               errors:
                 type: object
                 additionalProperties: {type: array, items: {type: string}}
+              error_code:
+                type: string
+                enum: [limit_reached]
+                description: Set only when a per-user cap is reached (`errors.limit`).
           example:
             success: false
             message: اطلاعات واردشده نامعتبر است

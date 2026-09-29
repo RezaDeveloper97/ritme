@@ -45,12 +45,19 @@ function originOf(url: string | undefined): string | null {
 // Cross-origin in production (api.ritme.app), same-origin on staging.
 const apiOrigin = originOf(process.env.NEXT_PUBLIC_API_BASE_URL);
 
-// Content-Security-Policy, REPORT-ONLY for now (pwa-audit H-4): violations are
-// logged to the console, nothing is blocked. Before switching to enforcing:
-//  - script-src still needs 'unsafe-inline' for Next's inline bootstrap and
-//    the theme/no-flash scripts (no nonce plumbing yet);
-//  - style-src 'unsafe-inline' is required by Next/font and style attributes.
-// worker-src/manifest-src keep the service worker and manifest allowed.
+// Content-Security-Policy, ENFORCED since T-M7-19 (security audit M3-M7 #2;
+// Report-Only before, pwa-audit H-4). Checked against a production build in
+// headless Chrome — home, a sheet, the checkup PDF export, opening a photo /
+// PDF attachment (blob: tabs inherit this policy) — with nothing blocked, so
+// no directive was added for it. What each allowance is for:
+//  - script-src 'unsafe-inline': Next's inline bootstrap and the theme/no-flash
+//    scripts (no nonce plumbing yet); 'unsafe-eval' only in `next dev`;
+//  - style-src 'unsafe-inline': Next/font and data-driven style attributes;
+//  - img-src data:/blob:/https: — icons, on-device report previews (blob:),
+//    admin-uploaded banners/articles from the API's /storage;
+//  - worker-src/manifest-src keep the service worker and manifest allowed.
+// Anything new (a third-party script, font or API host) must be added here
+// narrowly, or the browser will refuse it.
 const csp = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isProd ? '' : " 'unsafe-eval'"}`,
@@ -117,7 +124,7 @@ const nextConfig: NextConfig = {
         headers: [
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-          { key: 'Content-Security-Policy-Report-Only', value: csp },
+          { key: 'Content-Security-Policy', value: csp },
         ],
       },
       {

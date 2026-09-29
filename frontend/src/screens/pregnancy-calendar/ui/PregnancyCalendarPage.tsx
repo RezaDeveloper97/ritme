@@ -3,7 +3,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import clsx from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
-import { useMemo, useState } from 'react';
+import { type MouseEvent, useMemo, useState } from 'react';
 
 import {
   type CalendarVisit,
@@ -17,7 +17,7 @@ import {
 } from '@/entities/pregnancy';
 import { REMIND_BEFORE, type RemindBefore } from '@/entities/care-reminder';
 import { useUpdateAppointment } from '@/features/manage-appointment';
-import { type Locale, Link, useDirection } from '@/shared/i18n';
+import { type Locale, Link, useDirection, useRouter } from '@/shared/i18n';
 import {
   addDays,
   diffInDays,
@@ -36,12 +36,13 @@ import {
   toParts,
   weekdayLabels,
 } from '@/shared/lib/date';
+import { withHandoff } from '@/shared/lib/handoff';
 import { type PdfBlock, loadPdfGenerator, shareOrDownloadFile } from '@/shared/lib/pdf';
 import { AppSheet } from '@/shared/sheet';
 import { Icon } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
 
-import { REPORT_DAYS, bookHref, directionsHref, monthKey, nextStage, stageProgress } from '../model/view';
+import { BOOK_HREF, REPORT_DAYS, bookPrefill, directionsHref, monthKey, nextStage, stageProgress } from '../model/view';
 
 const CARD = 'rounded-2xl border border-(--line) bg-(--surface)';
 const NEW_VISIT_HREF = '/reminders/appointment/new?kind=in_person&return_to=/pregnancy/calendar';
@@ -486,6 +487,12 @@ function CareRow({ item, last }: { item: CareItem; last: boolean }) {
   const t = useTranslations('pregnancyV2.calendar');
   const tCommon = useTranslations('pregnancyV2.common');
   const locale = useLocale() as Locale;
+  const router = useRouter();
+  // «رزرو»: the item rides a one-time prefill, not the URL (audit M3-M7 #3).
+  const book = (event: MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    router.push(withHandoff(BOOK_HREF, bookPrefill(item)));
+  };
   const window =
     item.weekFrom != null && item.weekTo != null ? t('weekWindow', { from: item.weekFrom, to: item.weekTo }) : null;
   // Booked/done rows show their visit date; unbooked ones «حدود …» the suggested date (audit E1).
@@ -519,7 +526,7 @@ function CareRow({ item, last }: { item: CareItem; last: boolean }) {
         </span>
       )}
       {item.state === 'to_book' && (
-        <Link href={bookHref(item)} className="inline-flex h-11 items-center text-[12.5px] font-extrabold text-(--brand)">
+        <Link href={BOOK_HREF} onClick={book} className="inline-flex h-11 items-center text-[12.5px] font-extrabold text-(--brand)">
           {t('book')}
         </Link>
       )}

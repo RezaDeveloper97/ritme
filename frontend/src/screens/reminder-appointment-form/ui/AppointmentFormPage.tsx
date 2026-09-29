@@ -26,6 +26,7 @@ import {
   toApiDate,
   toParts,
 } from '@/shared/lib/date';
+import { clearHandoff, readHandoff } from '@/shared/lib/handoff';
 import { AppSheet } from '@/shared/sheet';
 import { CalendarPicker, Icon, type IconName, WheelPicker } from '@/shared/ui';
 
@@ -36,6 +37,7 @@ import {
   formFromAppointment,
   formFromPrefill,
   isoDay,
+  prefillFromHandoff,
   prepFromText,
   returnPathFor,
   validateForm,
@@ -51,7 +53,7 @@ const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
 const MINUTES = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'));
 
 interface Props {
-  /** `?kind=&title=&date=&care_item_key=` on the "new" route. */
+  /** `?kind=` on the "new" route; the rest comes from the `?prefill=<id>` handoff. */
   prefill?: AppointmentPrefill;
   /** Present on `/reminders/appointment/[id]/edit`. */
   id?: number;
@@ -138,6 +140,18 @@ function AppointmentForm({ prefill, existing }: { prefill?: AppointmentPrefill; 
     setError(null);
   };
 
+  // A booking from the checkups card or the pregnancy care plan: its title,
+  // topic, date and care-plan key were handed over in memory / sessionStorage
+  // under `?prefill=<id>` — never in the URL (audit M3-M7 #3). Read after mount:
+  // the server render can't see sessionStorage.
+  useEffect(() => {
+    if (existing) return;
+    const handed = readHandoff(searchParams.get('prefill'));
+    if (handed) setForm(formFromPrefill({ ...prefill, ...prefillFromHandoff(handed) }, isoDay(new Date())));
+    // Once, on mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     if (picker === 'date') setDraftDate(form.date ? toParts(fromApiDate(form.date), locale) : null);
     if (picker === 'time') {
@@ -185,6 +199,7 @@ function AppointmentForm({ prefill, existing }: { prefill?: AppointmentPrefill; 
     };
     const onError = () => setSaveFailed(true);
     const done = (detailHref: string) => {
+      clearHandoff();
       if (!returnTo) return router.push(detailHref);
       // The calendar and Today show this visit (booked care-plan state, next visit).
       void queryClient.invalidateQueries({ queryKey: pregnancyKeys.v2.calendarAll() });

@@ -860,3 +860,11 @@ Nothing needed fixing.
 - Home fertile window now from `cycle_view.anchors` per task.md §19 (= `/fertility/bbt`, days 10–15 on the day-16 case).
 - Verify: go test, fertility int tests, contract 998 pass; frontend 657 tests + gates. OpenAPI hunks for `/fertility/insights` land with the T-M7-19 commit (shared file).
 - Open: legacy O−5…O+1 window still in calendar `is_fertile_window` and home `CycleTimelineBar`; stage `/profile` latency to re-check after deploy.
+
+## T-M7-19 — Security fixes from the M3-M7 audit
+- (high) All on-device files (`ritme-local-files` IndexedDB) cleared on session end; orphaned checkup attachments pruned (`pruneCheckupAttachments`, only when the server list loads fully).
+- (med) Attachment allow-list jpeg/png/webp/heic/heif/pdf, exact `matchesAccept`; `openLocalFile` opens only allow-listed MIME, everything else downloads. Frontend CSP now enforced (no new directives; verified with a prod build + headless run).
+- (med) No health data in URLs: appointment prefill via `shared/lib/handoff` (`?prefill=<id>`, memory + sessionStorage, cleared on save/session end); `return_to` allow-list and topic prefill kept.
+- (low) ICS escaping (`;`, bare CR, control chars). (low) Per-user caps (100 medications, 100 upcoming / 1000 total appointments, 50 custom checkups → 422 `limit_reached`) and a 60/min per-user write throttle on care/checkups/fertility writes (`ratelimit.Named("writes")`).
+- Verify: 657 frontend tests, build OK, go vet/test/lint 0, contract 998 pass. This commit also carries the T-M5-12 `/fertility/insights` OpenAPI hunks.
+- Open → T-M7-21: prune on custom-checkup delete, show the 422 cap message in forms; throttle not on Laravel-parity routes (X-RateLimit headers pinned in goldens); cap check not atomic.

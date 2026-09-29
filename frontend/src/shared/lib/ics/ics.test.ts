@@ -43,7 +43,7 @@ describe('buildIcs', () => {
 
   it('escapes text and includes location/description', () => {
     const ics = buildIcs({ ...base, location: 'Tehran, Vali-Asr; No 5', description: 'a\nb' });
-    expect(ics).toContain('LOCATION:Tehran\\, Vali-Asr\; No 5');
+    expect(ics).toContain('LOCATION:Tehran\\, Vali-Asr\\; No 5');
     expect(ics).toContain('DESCRIPTION:a\\nb');
   });
 
@@ -58,6 +58,22 @@ describe('helpers', () => {
   });
   it('escapeIcsText escapes backslashes first', () => {
     expect(escapeIcsText('a\\b,c')).toBe('a\\\\b\\,c');
+  });
+  it('escapeIcsText escapes semicolons (audit #4)', () => {
+    expect(escapeIcsText('a;b')).toBe('a\\;b');
+  });
+  it('escapeIcsText turns CRLF, LF and a bare CR into \\n', () => {
+    expect(escapeIcsText('a\r\nb\nc\rd')).toBe('a\\nb\\nc\\nd');
+  });
+  it('escapeIcsText drops other control characters but keeps TAB', () => {
+    expect(escapeIcsText('a\u0000b\u0007c\u001Fd\u007Fe\tf')).toBe('abcde\tf');
+  });
+  it('a bare CR in user text cannot inject a property line', () => {
+    const ics = buildIcs({ ...base, title: 'Visit\rATTENDEE:mailto:x@y', description: 'x\r\nURL:https://e' });
+    const lines = ics.split('\r\n');
+    expect(lines.some((l) => l.startsWith('ATTENDEE'))).toBe(false);
+    expect(lines.some((l) => l.startsWith('URL'))).toBe(false);
+    expect(ics.replace(/\r\n/g, '')).not.toMatch(/\r/);
   });
   it('foldLine keeps each line within 75 octets and never splits a character', () => {
     const folded = foldLine('SUMMARY:' + 'سونوگرافی '.repeat(20));

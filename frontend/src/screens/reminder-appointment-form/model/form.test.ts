@@ -7,6 +7,7 @@ import {
   parsePrefillDate,
   parseReturnTo,
   parseTopic,
+  prefillFromHandoff,
   prepFromText,
   returnPathFor,
   validateForm,
@@ -52,7 +53,7 @@ describe('appointment form model', () => {
     expect(validateForm({ ...f, withWhom: 'دکتر', date: '2026-10-01', time: '09:30' })).toBeNull();
   });
 
-  it('prefills title, date and care_item_key from the query', () => {
+  it('prefills title, date and the care-plan key', () => {
     const f = formFromPrefill(
       { kind: 'phone', title: ' NT scan ', date: '2026-10-05', careItemKey: 'nt_scan' },
       '2026-09-26',
@@ -63,6 +64,19 @@ describe('appointment form model', () => {
     expect(f.careItemKey).toBe('nt_scan');
     expect(formFromPrefill({}, '2026-09-26')).toEqual(emptyForm('in_person'));
     expect(formFromPrefill({ careItemKey: 'bad key!' }, '2026-09-26').careItemKey).toBe('');
+  });
+
+  it('reads the one-time handoff, not the URL (audit M3-M7 #3)', () => {
+    // What the pregnancy care plan's «رزرو» hands over (T-M7-17 topic kept).
+    const handed = { topic: 'ultrasound', title: 'NT', careItemKey: 'nt_scan', date: '2026-10-05', extra: 'x' };
+    const prefill = prefillFromHandoff(handed);
+    expect(prefill).toEqual({ topic: 'ultrasound', title: 'NT', date: '2026-10-05', careItemKey: 'nt_scan' });
+    const f = formFromPrefill({ kind: 'in_person', ...prefill }, '2026-09-26');
+    expect(f.topic).toBe('ultrasound');
+    expect(f.careItemKey).toBe('nt_scan');
+    // …so a care-plan booking still returns to the calendar after saving (T-M7-20).
+    expect(returnPathFor(null, true, f.careItemKey)).toBe('/pregnancy/calendar');
+    expect(prefillFromHandoff(null)).toEqual({});
   });
 
   it('accepts only real, non-past YYYY-MM-DD dates', () => {

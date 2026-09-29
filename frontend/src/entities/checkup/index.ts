@@ -36,9 +36,11 @@ export { checkupIcon } from './model/icon';
 export { checkupResultIcon, checkupStatusIcon, formatCheckupMonth } from './model/display';
 export {
   CHECKUP_ATTACHMENT_ACCEPT,
+  CHECKUP_ATTACHMENT_IMAGE_TYPES,
   CHECKUP_ATTACHMENT_MAX_BYTES,
   CHECKUP_ATTACHMENTS_MAX_TOTAL_BYTES,
   checkupAttachments,
+  isCheckupAttachmentImage,
 } from './model/attachments';
 
 // ── API: keys, parsers, reads ──────────────────────────────────
@@ -67,3 +69,4 @@ export {
   useCheckupRecords,
   useCheckups,
 } from './api/queries';
+export { pruneCheckupAttachments, pruneCheckupAttachmentsSoon } from './api/prune';

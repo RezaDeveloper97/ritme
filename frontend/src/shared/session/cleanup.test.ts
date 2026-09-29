@@ -48,4 +48,31 @@ describe('session cleanups', () => {
 
     await vi.waitFor(async () => expect(await outbox.pending()).toHaveLength(0));
   });
+
+  it('wipes on-device files (checkup reports) of every namespace (audit M3-M7 #1)', async () => {
+    const { runSessionCleanups } = await load();
+    const files = await import('@/shared/lib/local-files');
+    const backend = files.createMemoryBackend();
+    const reports = files.createLocalFileStore({ namespace: 'checkup-reports', maxFileBytes: 10, backend });
+    const other = files.createLocalFileStore({ namespace: 'other', maxFileBytes: 10, backend });
+    await reports.put(7, new Blob(['x'], { type: 'application/pdf' }));
+    await other.put(1, new Blob(['y']));
+
+    runSessionCleanups();
+
+    await vi.waitFor(async () => {
+      expect(await reports.list()).toEqual([]);
+      expect(await other.list()).toEqual([]);
+    });
+  });
+
+  it('drops a pending navigation prefill', async () => {
+    const { runSessionCleanups } = await load();
+    const { stashHandoff, readHandoff } = await import('@/shared/lib/handoff');
+    const id = stashHandoff({ title: 'NT scan' });
+
+    runSessionCleanups();
+
+    expect(readHandoff(id)).toBeNull();
+  });
 });

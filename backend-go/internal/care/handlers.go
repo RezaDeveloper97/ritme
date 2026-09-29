@@ -102,6 +102,9 @@ func (h *Handlers) StoreMedication(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	if err := h.checkMedicationCap(c, userID, locale); err != nil {
+		return err
+	}
 	p, err := h.columns(c, userID, in, i18n.LanguagesOf(c).DefaultCode())
 	if err != nil {
 		return err

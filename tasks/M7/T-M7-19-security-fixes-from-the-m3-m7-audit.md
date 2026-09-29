@@ -3,7 +3,7 @@ id: T-M7-19
 title: Security fixes from the M3-M7 audit
 milestone: M7
 type: frontend
-status: todo
+status: done
 depends_on: [T-M4-12,T-M2-34,T-M7-18]
 parallel_group: M7-E
 touches: [frontend/src/entities/checkup,frontend/src/shared/lib,frontend/src/shared/session,frontend/src/screens/checkup-history,frontend/src/screens/checkup-mark-done,frontend/src/features/record-checkup,frontend/src/widgets/checkups-card,frontend/src/screens/pregnancy-calendar,frontend/src/screens/reminder-appointment-form,frontend/src/app/[locale]/reminders/appointment/new/page.tsx,frontend/next.config.ts,backend-go/internal/care,backend-go/internal/checkups,backend-go/internal/http,backend-go/internal/platform/ratelimit,backend-go/api/openapi.yaml,docs/security]
