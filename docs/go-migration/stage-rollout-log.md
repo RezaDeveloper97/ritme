@@ -402,3 +402,71 @@ cycle_histories, daily_health_logs, reminders + intakes, user_notifications, cha
 challenges), and the uploaded banner file is gone from `storage/app/public/banners/` (the empty directory is left).
 Admin audit lines are only in the backend-go log, not in a table. The staging credentials were removed from the
 scratch folder.
+
+## Stage redeploy + fix smoke — 2026-09-28/29
+
+Shipped `stage` @ **30e1c97** (T-M7-17 `8650c43` + T-M2-32 `30e1c97` on top of `ea8a1eb`) with `./deploy-stage.sh`.
+
+**verify-all (pre-deploy): green.** backend-go `go vet` ok, `go test ./...` ok (rc 0), `golangci-lint` 0 issues,
+`make docker` ok. Frontend typecheck, lint, fsd:lint, lint:styles (462 files), lint:dark (57 pairs, 123 tokens),
+vitest 592/592 (75 files), `npm run build` ok. Laravel skipped (`backend/` unchanged).
+
+**Deploy tail** (2026-09-28 13:33Z):
+```
+backend-go: Up 17 seconds (healthy)
+frontend: Up 17 seconds
+  ok    200  https://stage.ritmeapp.ir/up
+  ok    X-Backend: go  https://stage.ritmeapp.ir/up
+  ok    401  https://stage.ritmeapp.ir/
+  ok    301  https://stage.ritmeapp.ir/admin
+  ok    404  https://stage.ritmeapp.ir/oauth/token
+  ok    X-Backend: go  https://stage.ritmeapp.ir/api/v1/languages (via the proxy)
+✅ Staging deploy done — https://stage.ritmeapp.ir
+```
+Goose: `{"msg":"migrations","action":"goose_managed","applied":null,"version":6}`.
+
+**Frontend rebuilt a second time** (2026-09-29, `build --no-cache frontend` + `up -d frontend` in `/opt/ritme-stage`):
+after the first deploy the SSG pages still carried the *old* message strings (see B1). `SERVICES=frontend
+./deploy-stage.sh` did not help because every build layer was cached, so it was rebuilt without cache.
+
+### Checks (fa, 390×844, light + dark, headless Chrome over CDP)
+
+| | Check | Result | Screenshots |
+|---|---|---|---|
+| a | Onboard 09900000991, log out → no `ritme-onboarding` in localStorage, also after reload | ✔ before: `ritme_theme, ritme_token, ritme-onboarding`; after logout and after reload: `ritme_theme` only, on `/fa/signup` | `stage-fix-a-logout-{light,dark}` |
+| b | Checkups home card counts line uses «، » | ✔ «۱ مورد به‌روز، ۵ موعدش رسیده», no «·» | `stage-fix-b-checkups-card-{light,dark}` |
+| c | Old reminder form (`/fa/profile?sheet=reminders` → «یادآور جدید») buttons fit | ✔ row 35–355px; «ذخیره یادآور» 124–355, «بی‌خیال» 35–114, one line each, inside the card | `stage-fix-c-reminder-form-{light,dark}` |
+| d | Pregnant 09900000992 (manual week 11 → week 12): care plan NT «رزرو» → topic «سونوگرافی» | ✔ link `topic=ultrasound&care_item_key=nt_scan`; form shows «ویزیت حضوری», «سونوگرافی», title prefilled | `stage-fix-d-care-plan-*`, `stage-fix-d-appointment-topic-*` |
+| d | Log weight field Persian decimal | ✔ typing `62.5` shows «۶۲٫۵» (U+066B) | `stage-fix-d-log-weight-*` |
+| d | Switch back to cycle (profile → «برگرد به حالت چرخه», native confirm) with no period data | ✔ home shows «هنوز پریودی ثبت نشده» + «تاریخ آخرین پریودت رو ثبت کن» card, no dashes | `stage-fix-d-cycle-empty-*` |
+| e | Welcome carousel a11y labels in Persian digits (DOM) | ✔ *after the no-cache frontend rebuild*: live region «اسلاید ۱ از ۳», dots «رفتن به اسلاید ۱/۲/۳». Before it: «اسلاید 1 از 3» (B1) | `stage-fix-e-welcome-{light,dark}` |
+
+**API**: 129 `/api` responses captured from login to the end of d. All 105 `/api/v1/*` had `X-Backend: go`. The other 24
+were `/api/session/flag` 204 (Next.js route, no header by design). 0×5xx. 3×400 `messages/daily` (the known
+"no last period" branch, user 992 after switching to cycle). backend-go log since the deploy: 0 WARN/ERROR, 0 5xx.
+
+### Bugs (not fixed here)
+
+- **B1: a deploy that changes message JSON ships stale strings on SSG pages.** `/[locale]/*` pages are prerendered
+  (`frontend/src/app/[locale]/layout.tsx:129` `generateStaticParams`), and prerendering fetches
+  `/languages/{locale}/messages` from the live API (`frontend/src/shared/i18n/messages.ts:73`), which wins over the
+  bundled JSON. `deploy-stage.sh:119` builds the frontend image while the *old* backend-go is still serving, and
+  `:123` only starts the new one afterwards. So the HTML carries the previous deploy's strings, e.g. «اسلاید {n} از
+  {total}» (Latin digits) after T-M2-32. A plain redeploy doesn't fix it, because the build layer is cached (same
+  source). The same trap applies to `deploy.sh` once prod runs Go. Workaround used here: `build --no-cache frontend`
+  after backend-go is up. Possible fixes: build and start backend-go before building the frontend, render these pages
+  dynamically or with ISR, or skip the remote fetch at build time.
+
+### Prod untouched
+
+`docker inspect` Created times of every `ritme` project container are identical before the deploy, after it and at
+the end (`ritme-backend-1` 08-31T08:37:28Z, `ritme-frontend-1` 09-01T13:14:46Z, `ritme-mysql-1` 08-16T13:39:17Z,
+`ritme-proxy-1` 09-23T11:32:14Z, `ritme-queue-1` 08-31T08:37:32Z, `ritme-redis-1` 08-16T13:39:17Z). The proxy got
+only the deploy script's graceful `nginx -t && nginx -s reload`, and `up -d proxy` reported `Running`, with no
+recreate.
+
+### Cleanup
+
+Test users `09900000991`/`992` (ids 11, 12) were deleted from the **stage** DB with their `oauth_access_tokens`,
+`user_profiles`, `cycle_histories` and `pregnancy_profiles` rows, plus their `otp_verifications`. Stage is back to 3
+users. The scratch gate credential and the Chrome profile were removed, and Chrome (port 9260) was stopped.
