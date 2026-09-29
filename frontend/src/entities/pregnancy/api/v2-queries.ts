@@ -16,6 +16,7 @@ import type {
   PregnancyToday,
   PregnancyWeek,
   ReportRange,
+  SetupCopy,
 } from '../model/v2-types';
 import { pregnancyKeys } from './keys';
 import {
@@ -26,6 +27,7 @@ import {
   pregnancyReportSchema,
   pregnancyTodaySchema,
   pregnancyWeekSchema,
+  setupCopySchema,
 } from './v2-schema';
 
 /*
@@ -139,6 +141,29 @@ export function usePregnancyAlertsV2() {
     queryFn: fetchPregnancyAlertsV2,
     enabled: isAuthenticated(),
     staleTime: 60_000,
+    retry: false,
+  });
+}
+
+// ── Setup copy ─────────────────────────────────────────────────
+
+/** GET /pregnancy/v2/setup-copy — admin-edited `pregnancy_setup` texts (no pregnancy needed). */
+export async function fetchSetupCopy(): Promise<SetupCopy> {
+  const { data } = await apiClient.get<ApiEnvelope<unknown>>(`${V2}/setup-copy`);
+  return setupCopySchema.parse(data.data);
+}
+
+/**
+ * The Setup screens' copy. Until it loads (or when it fails) `data` is
+ * undefined and the screens show their bundled text — the seeded rows say the
+ * same, so there is no visible jump unless an admin changed them.
+ */
+export function useSetupCopy() {
+  return useQuery({
+    queryKey: pregnancyKeys.v2.setupCopy(),
+    queryFn: fetchSetupCopy,
+    enabled: isAuthenticated(),
+    staleTime: 10 * 60_000,
     retry: false,
   });
 }

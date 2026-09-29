@@ -194,10 +194,16 @@ func errNotActive(locale string) error {
 
 // weekOn is the 1-based week containing date (0 before the pregnancy start).
 // sourceNote is the care-plan caveat («… ممکنه پزشکت برنامهٔ متفاوتی بده.») followed by the dating
-// basis sentence (design audit E2); null when neither has copy.
-func sourceNote(source, loc string) any {
+// basis sentence (design audit E2); null when neither has copy. Each part is the admin-edited
+// pregnancy_setup/calendar_note text (`plan_note`, `basis_<source>`; admin is nil without a live
+// row) and falls back to the pregnancy_calendar lang line.
+func sourceNote(source string, admin map[string]any, loc string) any {
 	var parts []string
-	for _, s := range []string{T("plan_note", loc), T("source_note."+source, loc)} {
+	for _, p := range [][2]string{{"plan_note", "plan_note"}, {"basis_" + source, "source_note." + source}} {
+		s, _ := admin[p[0]].(string)
+		if s = strings.TrimSpace(s); s == "" {
+			s = T(p[1], loc)
+		}
 		if s != "" && !strings.HasPrefix(s, "pregnancy_calendar.") {
 			parts = append(parts, s)
 		}
@@ -266,6 +272,11 @@ func (s *Service) Calendar(ctx context.Context, userID uint64, month *[2]int, no
 		return nil, fmt.Errorf("pregnancy calendar: care items: %w", err)
 	}
 
+	note, err := v2.MessagePayload(ctx, s.q, v2.SetupGroup, v2.CalendarNoteItem, l)
+	if err != nil {
+		return nil, fmt.Errorf("pregnancy calendar: %w", err)
+	}
+
 	m := MonthContaining(today, l.Locale)
 	if month != nil {
 		m = MonthOf(month[0], month[1], l.Locale)
@@ -275,10 +286,12 @@ func (s *Service) Calendar(ctx context.Context, userID uint64, month *[2]int, no
 	for _, it := range items {
 		byKey[it.Key] = it
 	}
-	return build(d, m, visits, items, byKey, l), nil
+	return build(d, m, visits, items, byKey, note, l), nil
 }
 
-func build(d v2.Dating, m Month, visits []Visit, items []store.PregnancyCareItem, byKey map[string]store.PregnancyCareItem, l v2.Lang) *jsonx.OrderedMap {
+func build(d v2.Dating, m Month, visits []Visit, items []store.PregnancyCareItem, byKey map[string]store.PregnancyCareItem,
+	note map[string]any, l v2.Lang,
+) *jsonx.OrderedMap {
 	loc := l.Locale
 	visitJSON := func(v Visit) *jsonx.OrderedMap {
 		var prep any
@@ -364,6 +377,6 @@ func build(d v2.Dating, m Month, visits []Visit, items []store.PregnancyCareItem
 		"visits", monthVisits,
 		"next_visit", next,
 		"care_plan", plan,
-		"source_note", sourceNote(d.Source, loc),
+		"source_note", sourceNote(d.Source, note, loc),
 	)
 }

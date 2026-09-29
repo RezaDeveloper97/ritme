@@ -30,6 +30,7 @@ import (
 	"github.com/ritme/backend-go/internal/platform/httpx"
 	"github.com/ritme/backend-go/internal/pregnancy"
 	"github.com/ritme/backend-go/internal/pregnancy/store"
+	v2 "github.com/ritme/backend-go/internal/pregnancy/v2"
 	"github.com/ritme/backend-go/internal/pregnancy/v2/daylog"
 )
 
@@ -79,6 +80,8 @@ func setup(t *testing.T) *harness {
 	app.Put(base+"/days/:date", locale, guard, dl.Update)
 	app.Get(base+"/alerts", locale, guard, al.Index)
 	app.Post(base+"/alerts/:id/actions/:action", locale, guard, al.Action)
+	// As routes_pregnancy_v2.go mounts it (review #10, T-M7-20).
+	app.Get(base+"/today", locale, guard, al.EvaluateFirst(quiet), v2.NewHandlers(q, clock.Real{}).Today)
 	app.Post("/api/v1/pregnancy/symptoms", locale, guard, v1.SymptomStore)
 	app.Post("/api/v1/pregnancy/weekly", locale, guard, v1.WeeklyStore)
 	app.Get("/api/v1/pregnancy/alerts", locale, guard, v1.AlertIndex)
@@ -339,4 +342,31 @@ func TestAlerts_HeadIsReadOnly(t *testing.T) {
 	assert.Zero(t, h.count(`SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ?`, uid))
 	alertsOf(t, h.do(t, http.MethodGet, base+"/alerts", tok, "en", ""))
 	assert.Positive(t, h.count(`SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ?`, uid), "GET still evaluates (week_entered)")
+}
+
+// Today's unread badge counts the calendar alerts without the Alerts screen being opened first
+// (review #10): GET /today evaluates them (deduplicated, so a second GET adds nothing); HEAD stays
+// read-only. weight_missing_week reads the admin-editable params.from_weekday (review #11).
+func TestAlerts_TodayEvaluatesCalendarRules(t *testing.T) {
+	h := setup(t)
+	uid, tok := h.user(t, "09120000909", true) // 12w0d on 2026-09-23: first day of week 13
+	unread := func(method string) any {
+		t.Helper()
+		r := h.do(t, method, base+"/today", tok, "en", "")
+		require.Equal(t, http.StatusOK, r.status, r.raw)
+		return r.data()["unread_alerts"]
+	}
+
+	unread(http.MethodHead)
+	assert.Zero(t, h.count(`SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ?`, uid), "HEAD writes nothing")
+
+	// Day 0 of the week: week_entered fires; weight_missing_week waits for from_weekday (default 5).
+	assert.EqualValues(t, 1, unread(http.MethodGet))
+	assert.EqualValues(t, 1, unread(http.MethodGet), "deduplicated")
+
+	// An admin sets from_weekday = 0: the weight reminder fires today as well.
+	h.exec(`UPDATE message_contents SET payload = JSON_SET(payload, '$.params.from_weekday', 0)
+		WHERE ` + "`group`" + ` = 'pregnancy_alert' AND item_key = 'weight_missing_week'`)
+	assert.EqualValues(t, 2, unread(http.MethodGet))
+	assert.Equal(t, 1, h.count(`SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ? AND alert_type = 'v2:weight_missing_week'`, uid))
 }

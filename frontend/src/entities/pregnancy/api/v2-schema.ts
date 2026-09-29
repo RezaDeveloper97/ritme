@@ -38,6 +38,7 @@ import {
   type ReportDay,
   type ReportWeight,
   SEVERITIES,
+  type SetupCopy,
   type SetupResultCopy,
   type TrimesterSpan,
   V2_TERM_WEEKS,
@@ -759,5 +760,39 @@ export const pregnancyReportSchema = obj.transform((r, ctx): PregnancyReport => 
     dueDate: dateOrNull.parse(r.due_date ?? (r.profile as Record<string, unknown> | undefined)?.due_date),
     days: listOf(reportDaySchema).parse(r.days).sort(byDate),
     weights: listOf(reportWeightSchema).parse(r.weights).sort(byDate),
+  };
+});
+
+// ── GET /pregnancy/v2/setup-copy ───────────────────────────────
+
+const record = (raw: unknown): Record<string, unknown> =>
+  (typeof raw === 'object' && raw !== null && !Array.isArray(raw) ? raw : {}) as Record<string, unknown>;
+
+/** Forgiving: a missing item or text is null (the screen falls back to its bundle). */
+export const setupCopySchema = z.unknown().transform((raw): SetupCopy => {
+  const r = record(raw);
+  const welcome = record(r.welcome);
+  const dating = record(r.dating);
+  const history = record(r.history);
+  const source = (key: string) => {
+    const s = record(r[`source_${key}`]);
+    return { label: textOrNull.parse(s.label), hint: textOrNull.parse(s.hint) };
+  };
+  return {
+    welcome: {
+      title: textOrNull.parse(welcome.title),
+      body: textOrNull.parse(welcome.body),
+      benefits: stringList.parse(welcome.benefits),
+      primary: textOrNull.parse(welcome.primary),
+      secondary: textOrNull.parse(welcome.secondary),
+    },
+    dating: { title: textOrNull.parse(dating.title), body: textOrNull.parse(dating.body) },
+    sources: { lmp: source('lmp'), ultrasound: source('ultrasound'), manual: source('manual') },
+    history: {
+      title: textOrNull.parse(history.title),
+      body: textOrNull.parse(history.body),
+      disclaimer: textOrNull.parse(history.disclaimer),
+      skip: textOrNull.parse(history.skip),
+    },
   };
 });

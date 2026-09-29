@@ -841,3 +841,9 @@ Nothing needed fixing.
 - This commit also carries the T-M4-12 hunks of shared files (globals.css `.ck-*`, i18n goldens checkups keys).
 - Verify: 613 frontend tests, gates, go test/lint, contract 986 pass, pregnancy + alerts int tests green; check-colors OK.
 - Open → T-M7-20: setup-copy route, admin-editable source note, week_entered seed text, lint:dark pair, 9b redirect, ultrasound NumberField digits.
+
+## T-M7-20 — Pregnancy leftovers
+- `GET /api/v1/pregnancy/v2/setup-copy` (admin `pregnancy_setup` texts, locale fallback) read by all Setup steps; contract group `pregnancy-v2` (goldens from Go).
+- Calendar source note admin-editable (`pregnancy_setup/calendar_note`), migration `00008_pregnancy_v2_copy.sql` (guarded: week_entered text without «از امروز», `from_weekday: 5`, calendar_note seed) + Laravel data twin `2026_09_29_000001_seed_pregnancy_calendar_note.php` (schema-diff green).
+- Today evaluates calendar alert rules first (badge correct without opening Alerts); `from_weekday` editable in admin-web (labels added); `--success-fill` pair in lint:dark; `?return_to=` allow-list (calendar) for the appointment form, incl. the calendar «ویزیت جدید» links; `LocaleNumberField` for ultrasound week/day.
+- Verify: go vet/test/lint, contract 991 pass / 488 allow-listed, schema-diff OK, frontend 627 tests + gates, admin-web 79 tests.

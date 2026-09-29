@@ -446,7 +446,7 @@ not exist; sending texts for an active language without a row creates it (active
 | `vomiting_streak` | `min_streak_days` 2–14, `severe_min_count` 0–14 | `{days}`, `{severe_count}` |
 | `severe_symptom_count` | `min_count` 1–50, `symptoms[]` ⊂ Log symptoms (≥ 1, distinct) | `{count}` |
 | `critical_symptom` | `symptoms[]` ⊂ `spotting, bleeding, fluid_leakage, severe_sudden_pain`, `spotting_until_week` 0–42 | `{symptom}` |
-| `weight_missing_week` | `from_week` 1–42 (the engine also reads `from_weekday`, default 5 = fire from the 6th day of the week, T-M2-34; not editable here yet) | `{week}` |
+| `weight_missing_week` | `from_week` 1–42, `from_weekday` 0–6 or null (0-based day of the week it fires from; null / missing = engine default 5, the 6th day; T-M2-34, editable since T-M7-20) | `{week}` |
 | `week_entered` | — (`{}`) | `{week}`, `{basis}` |
 | `bp_high` | `systolic_min` 90–200, `diastolic_min` 50–130 | `{systolic}`, `{diastolic}` |
 | `sugar_high` | `fasting_max` 60–200, `post_meal_max` 80–300 | `{fasting}`, `{post_meal}` |
@@ -460,7 +460,7 @@ nested `fields` (objects) — enough for admin-web to render a form.
 
 The registry (`internal/admin/messages/registry`) lists the groups the engine reads: `pregnancy_week_tip` (`1`…`42`),
 `pregnancy_alert` (the 8 rules + `legend`), `pregnancy_setup` (`welcome, dating, source_lmp, source_ultrasound,
-source_manual, history, result, due_disclaimer`) with explicit schemas (**typed**), then every group of the code
+source_manual, history, result, due_disclaimer, calendar_note`) with explicit schemas (**typed**), then every group of the code
 fallback (`messages/content/defaults.json`) with its keys and a schema derived from the default copy (strings / string
 lists).
 

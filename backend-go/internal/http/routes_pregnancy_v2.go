@@ -14,8 +14,8 @@ import (
 	"github.com/ritme/backend-go/internal/pregnancy/v2/daylog"
 )
 
-// Pregnancy v2 (docs/pregnancy-v2/README.md), Go only: dating preview, Today, week page and
-// per-week state, day log, alerts. All auth:api, localized by Accept-Language.
+// Pregnancy v2 (docs/pregnancy-v2/README.md), Go only: setup copy, dating preview, Today, week page
+// and per-week state, day log, alerts. All auth:api, localized by Accept-Language.
 func init() {
 	Register("pregnancy_v2", func(r fiber.Router, d *Deps) {
 		guard := auth.MustGuard(r, d.Config, d.DB, d.Logger).RequireUser
@@ -23,12 +23,16 @@ func init() {
 		h := pregnancyv2.NewHandlers(store.New(d.DB), clock.Real{})
 		const p = "/api/v1/pregnancy/v2"
 
+		al := pregnancyalerts.NewHandlers(store.New(d.DB), clock.Real{})
+
+		// Setup copy (admin-edited pregnancy_setup texts, T-M7-20).
+		r.Get(p+"/setup-copy", locale, guard, h.SetupCopy)
 		r.Post(p+"/dating-preview", locale, guard, h.DatingPreview)
-		r.Get(p+"/today", locale, guard, h.Today)
+		// Today runs the daily alert evaluation first, so unread_alerts counts the calendar alerts.
+		r.Get(p+"/today", locale, guard, al.EvaluateFirst(d.Logger), h.Today)
 		r.Get(p+"/weeks/:n", locale, guard, h.Week)
 		r.Put(p+"/weeks/:n/state", locale, guard, h.WeekState)
 
-		al := pregnancyalerts.NewHandlers(store.New(d.DB), clock.Real{})
 		dl := daylog.NewHandlers(store.New(d.DB), al.Engine(), clock.Real{})
 		r.Get(p+"/report", locale, guard, dl.Report)
 		r.Get(p+"/days/:date", locale, guard, dl.Show)

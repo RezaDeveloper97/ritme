@@ -93,6 +93,9 @@ type Querier interface {
 	// Pregnancy v2 calendar (T-M7-05, internal/pregnancy/v2/calendar): the user's M3 appointments that are
 	// not cancelled, soonest first. Month filtering and care-item linking (meta.care_item_key) happen in Go.
 	ListV2CalendarAppointments(ctx context.Context, userID uint64) ([]ListV2CalendarAppointmentsRow, error)
+	// Every live message_contents row of one group in the given locales (request locale + default language)
+	// — the Setup screen's copy (GET /pregnancy/v2/setup-copy, T-M7-20).
+	ListV2MessageGroupPayloads(ctx context.Context, arg ListV2MessageGroupPayloadsParams) ([]ListV2MessageGroupPayloadsRow, error)
 	// The live message_contents rows of one group/item in the given locales (request locale + default
 	// language, for the fallback) — the week tip and the setup templates.
 	ListV2MessagePayloads(ctx context.Context, arg ListV2MessagePayloadsParams) ([]ListV2MessagePayloadsRow, error)

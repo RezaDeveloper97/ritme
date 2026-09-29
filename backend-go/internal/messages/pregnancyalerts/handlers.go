@@ -3,6 +3,7 @@ package pregnancyalerts
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"strconv"
 	"time"
 
@@ -64,6 +65,23 @@ func (h *Handlers) Index(c fiber.Ctx) error {
 		return mapErr(err, l.Locale)
 	}
 	return httpx.OK(c, out)
+}
+
+// EvaluateFirst runs the daily evaluation (every rule, deduplicated per window, so idempotent)
+// before the next handler — mounted in front of GET /pregnancy/v2/today so its `unread_alerts`
+// already counts the calendar alerts (week_entered, weight_missing_week) without the Alerts screen
+// being opened first (review #10). HEAD stays read-only. Best effort: a failure is logged and the
+// screen is still served (it only shows the badge without the new alerts).
+func (h *Handlers) EvaluateFirst(log *slog.Logger) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		uid, ok := auth.CurrentUserID(c)
+		if ok && c.Method() != fiber.MethodHead {
+			if _, err := h.eng.EvaluateAll(c, uid, h.now(c), LangOf(c)); err != nil && log != nil {
+				log.WarnContext(c, "pregnancy alerts: evaluation before today failed", "user_id", uid, "error", err)
+			}
+		}
+		return c.Next()
+	}
 }
 
 // Action is POST /pregnancy/v2/alerts/{id}/actions/{action} (ack | add_to_visit_note).

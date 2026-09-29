@@ -134,7 +134,7 @@ func TestMissingAndRegistry(t *testing.T) {
 	r := c.Get("/messages?group=pregnancy_setup&locale=en")
 	require.Equal(t, 200, r.Status, r.Body)
 	missing := r.Data()["missing"].([]any)
-	assert.Len(t, missing, 8)
+	assert.Len(t, missing, 9) // the 9 registered pregnancy_setup items (calendar_note since T-M7-20)
 	assert.Equal(t, map[string]any{"group": "pregnancy_setup", "item_key": "welcome", "locale": "en"}, missing[0])
 	assert.Contains(t, r.Data()["registered_groups"], "pregnancy_alert")
 

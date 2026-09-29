@@ -20,6 +20,7 @@ import {
   type ParamField,
 } from '../api/alert-rules';
 import { fillSample, levelClass } from '../lib/level';
+import { paramsBody } from '../lib/params';
 import { useAlertLabels } from './labels';
 
 /** /pregnancy-alert-rules/:key — behaviour (all locales) + texts per locale + a sample card. */
@@ -85,12 +86,7 @@ function RuleForm({ rule, options, languages }: { rule: AlertRule; options: Aler
       enabled,
       level,
       window_days: Number(windowDays),
-      params: Object.fromEntries(
-        rule.params_schema.map((f) => {
-          const v = params[f.key];
-          return [f.key, f.kind === 'integer' && v !== '' && v !== null && v !== undefined ? Number(v) : v];
-        }),
-      ),
+      params: paramsBody(rule.params_schema, params),
       texts: Object.fromEntries(
         languages
           .filter((l) => hasRow(l.code) || touched(texts[l.code] ?? emptyTexts()))

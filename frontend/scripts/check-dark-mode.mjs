@@ -288,6 +288,7 @@ const PAIRS = [
   ['--brand-deep', '--surface', 4.5, 'brand heading on a card'],
   ['--brand-strong', '--surface', 4.5, 'strongest brand text'],
   ['--on-accent', '--brand-fill', 3.0, 'white label on a brand fill'],
+  ['--on-accent', '--success-fill', 4.5, 'white label on a success fill («ذخیره شد»)'],
   ['--on-accent', '--grad-start', 3.0, 'white label on the gradient (start)'],
   ['--on-accent', '--grad-end', 2.5, 'white label on the gradient (end)'],
 

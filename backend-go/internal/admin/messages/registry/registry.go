@@ -180,6 +180,11 @@ func setupGroup() Group {
 			text("primary", 120), text("secondary", 120),
 		}, []string{"confidence", "range_from", "range_to", "date"}},
 		{"due_disclaimer", []Field{text("title", 255), text("body", 1000)}, []string{"range_from", "range_to"}},
+		// The pregnancy calendar's source note (design audit E2): the care-plan caveat, then the
+		// dating-basis sentence of the user's source (T-M7-20).
+		{"calendar_note", []Field{
+			text("plan_note", 500), text("basis_lmp", 500), text("basis_ultrasound", 500), text("basis_manual", 500),
+		}, nil},
 	}
 	g := Group{Name: SetupGroup}
 	for _, it := range items {

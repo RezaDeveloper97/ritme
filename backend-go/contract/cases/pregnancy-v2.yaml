@@ -1,0 +1,21 @@
+# Pregnancy v2 (/api/v1/pregnancy/v2/*) — Go only (D-20): there is no Laravel route, so these goldens were
+# recorded from the Go server and reviewed by hand (new-endpoint skill, step 8). The fixture dump predates
+# the v2 seeds (no pregnancy_setup rows), so the copy is all null here: the case pins the shape, the
+# locale handling and the 401. Seeded / admin-edited copy is covered by internal/pregnancy/v2 int tests.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: pregnancy-v2
+defaults:
+  locales: [none, en]
+cases:
+  - name: setup_copy
+    doc: Setup copy (T-M7-20); no pregnancy needed, so a user without a profile gets it too
+    persona: [no_profile, pregnant_lmp_w8]
+    method: GET
+    path: /api/v1/pregnancy/v2/setup-copy
+    status: 200
+  - name: setup_copy_anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/pregnancy/v2/setup-copy
+    status: 401

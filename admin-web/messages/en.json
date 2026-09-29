@@ -930,6 +930,7 @@
       "symptoms": "Symptoms",
       "spotting_until_week": "Spotting counts until week",
       "from_week": "From week",
+      "from_weekday": "From day of week (0 = first day)",
       "systolic_min": "Systolic ≥",
       "diastolic_min": "Diastolic ≥",
       "fasting_max": "Fasting >",

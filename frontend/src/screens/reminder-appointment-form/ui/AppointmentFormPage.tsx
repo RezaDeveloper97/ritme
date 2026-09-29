@@ -1,6 +1,8 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import clsx from 'clsx';
+import { useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
@@ -12,6 +14,7 @@ import {
   type AppointmentKind,
   useAppointment,
 } from '@/entities/care-reminder';
+import { pregnancyKeys } from '@/entities/pregnancy';
 import { useCreateAppointment, useUpdateAppointment } from '@/features/manage-appointment';
 import { Link, type Locale, useDirection, useRouter } from '@/shared/i18n';
 import {
@@ -34,6 +37,7 @@ import {
   formFromPrefill,
   isoDay,
   prepFromText,
+  returnPathFor,
   validateForm,
 } from '../model/form';
 
@@ -115,6 +119,8 @@ function AppointmentForm({ prefill, existing }: { prefill?: AppointmentPrefill; 
   const tc = useTranslations('care');
   const locale = useLocale() as Locale;
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
   const create = useCreateAppointment();
   const update = useUpdateAppointment();
 
@@ -142,6 +148,8 @@ function AppointmentForm({ prefill, existing }: { prefill?: AppointmentPrefill; 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [picker]);
 
+  // `?return_to=` (allow-listed) or a care-plan booking → back to that screen after saving (9b).
+  const returnTo = returnPathFor(searchParams.get('return_to'), !existing, form.careItemKey);
   const pending = create.isPending || update.isPending;
   const dateParts = form.date ? toParts(fromApiDate(form.date), locale) : null;
   const placeLabel =
@@ -176,14 +184,21 @@ function AppointmentForm({ prefill, existing }: { prefill?: AppointmentPrefill; 
       careItemKey: form.careItemKey || null,
     };
     const onError = () => setSaveFailed(true);
+    const done = (detailHref: string) => {
+      if (!returnTo) return router.push(detailHref);
+      // The calendar and Today show this visit (booked care-plan state, next visit).
+      void queryClient.invalidateQueries({ queryKey: pregnancyKeys.v2.calendarAll() });
+      void queryClient.invalidateQueries({ queryKey: pregnancyKeys.v2.today() });
+      router.replace(returnTo);
+    };
     if (existing) {
       update.mutate(
         { id: existing.id, patch: input },
-        { onSuccess: () => router.push(`/reminders/appointment/${existing.id}`), onError },
+        { onSuccess: () => done(`/reminders/appointment/${existing.id}`), onError },
       );
     } else {
       create.mutate(input, {
-        onSuccess: (created) => router.push(`/reminders/appointment/${created.id}`),
+        onSuccess: (created) => done(`/reminders/appointment/${created.id}`),
         onError,
       });
     }
@@ -195,7 +210,7 @@ function AppointmentForm({ prefill, existing }: { prefill?: AppointmentPrefill; 
         <FormHeader
           title={existing ? t('editTitle') : t('title')}
           sub={t('subtitle')}
-          backHref={existing ? `/reminders/appointment/${existing.id}` : '/reminders?tab=appointments'}
+          backHref={returnTo ?? (existing ? `/reminders/appointment/${existing.id}` : '/reminders?tab=appointments')}
         />
 
         <form

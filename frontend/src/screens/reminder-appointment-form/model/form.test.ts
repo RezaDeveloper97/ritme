@@ -5,8 +5,10 @@ import {
   formFromPrefill,
   parseKind,
   parsePrefillDate,
+  parseReturnTo,
   parseTopic,
   prepFromText,
+  returnPathFor,
   validateForm,
 } from './form';
 
@@ -70,5 +72,21 @@ describe('appointment form model', () => {
     expect(parsePrefillDate('2026-02-30', today)).toBe('');
     expect(parsePrefillDate('26-10-01', today)).toBe('');
     expect(parsePrefillDate(undefined, today)).toBe('');
+  });
+});
+
+describe('return after save (9b, T-M7-20)', () => {
+  it('only accepts allow-listed in-app paths', () => {
+    expect(parseReturnTo('/pregnancy/calendar')).toBe('/pregnancy/calendar');
+    for (const bad of ['https://evil.example', '//evil.example', '/pregnancy/calendar/../x', '/profile', '', null, undefined]) {
+      expect(parseReturnTo(bad)).toBeNull();
+    }
+  });
+
+  it('a new care-plan booking returns to the pregnancy calendar', () => {
+    expect(returnPathFor(null, true, 'nt_scan')).toBe('/pregnancy/calendar');
+    expect(returnPathFor('/pregnancy/calendar', false, '')).toBe('/pregnancy/calendar');
+    expect(returnPathFor(null, false, 'nt_scan')).toBeNull();
+    expect(returnPathFor('https://evil.example', true, '')).toBeNull();
   });
 });

@@ -1,0 +1,64 @@
+{
+  "case": "pregnancy-v2/setup_copy.no_profile.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pregnancy/v2/setup-copy",
+        "persona": "no_profile",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "welcome": {
+            "title": null,
+            "body": null,
+            "primary": null,
+            "secondary": null,
+            "benefits": []
+          },
+          "dating": {
+            "title": null,
+            "body": null
+          },
+          "source_lmp": {
+            "label": null,
+            "hint": null
+          },
+          "source_ultrasound": {
+            "label": null,
+            "hint": null
+          },
+          "source_manual": {
+            "label": null,
+            "hint": null
+          },
+          "history": {
+            "title": null,
+            "body": null,
+            "disclaimer": null,
+            "skip": null
+          },
+          "result": {
+            "lead": null,
+            "suffix": null,
+            "due_label": null,
+            "confidence": null,
+            "range": null,
+            "basis_lmp": null,
+            "basis_ultrasound": null,
+            "basis_manual": null,
+            "primary": null,
+            "secondary": null
+          }
+        }
+      }
+    }
+  ]
+}

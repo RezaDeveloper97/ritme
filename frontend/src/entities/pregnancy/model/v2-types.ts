@@ -183,6 +183,32 @@ export interface SetupResultCopy {
   secondary: string | null;
 }
 
+// ── GET /pregnancy/v2/setup-copy ───────────────────────────────
+
+/** `label` + `hint` of one dating source (`pregnancy_setup/source_<source>`). */
+export interface SetupSourceCopy {
+  label: string | null;
+  hint: string | null;
+}
+
+/**
+ * Admin-edited `pregnancy_setup` texts of the Setup screens, in the request
+ * locale. Every null (or empty `benefits`) falls back to the bundled copy.
+ * The result step reads `DatingPreview.copy` instead (filled templates).
+ */
+export interface SetupCopy {
+  welcome: {
+    title: string | null;
+    body: string | null;
+    benefits: string[];
+    primary: string | null;
+    secondary: string | null;
+  };
+  dating: { title: string | null; body: string | null };
+  sources: Record<DatingSource, SetupSourceCopy>;
+  history: { title: string | null; body: string | null; disclaimer: string | null; skip: string | null };
+}
+
 // ── GET /pregnancy/v2/today ────────────────────────────────────
 
 /** One slide of the Today week carousel (prev / current / next). */

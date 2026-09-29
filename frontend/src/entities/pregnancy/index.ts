@@ -141,7 +141,9 @@ export type {
   ReportDay,
   ReportRange,
   ReportWeight,
+  SetupCopy,
   SetupResultCopy,
+  SetupSourceCopy,
   Severity,
   TrimesterSpan,
   VisitStage,
@@ -179,6 +181,7 @@ export {
   pregnancyReportSchema,
   pregnancyTodaySchema,
   pregnancyWeekSchema,
+  setupCopySchema,
   weekStateSchema,
 } from './api/v2-schema';
 export {
@@ -189,6 +192,7 @@ export {
   fetchPregnancyReport,
   fetchPregnancyToday,
   fetchPregnancyWeek,
+  fetchSetupCopy,
   useDatingPreview,
   usePregnancyAlertsV2,
   usePregnancyCalendar,
@@ -196,4 +200,5 @@ export {
   usePregnancyReport,
   usePregnancyToday,
   usePregnancyWeek,
+  useSetupCopy,
 } from './api/v2-queries';

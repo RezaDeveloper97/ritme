@@ -62,7 +62,12 @@ var AlertRules = []AlertRule{
 		{Key: "symptoms", Kind: KindEnumList, Values: CriticalSymptoms, MinItems: 1},
 		intParam("spotting_until_week", 0, MaxWeek),
 	}, Placeholders: []string{"symptom"}},
-	{Key: "weight_missing_week", Params: []Field{intParam("from_week", MinWeek, MaxWeek)}, Placeholders: []string{"week"}},
+	// from_weekday: 0-based day of the pregnancy week from which the rule fires (review #11); null
+	// or missing = the engine default (pregnancyalerts.WeightMissingFromWeekday).
+	{Key: "weight_missing_week", Params: []Field{
+		intParam("from_week", MinWeek, MaxWeek),
+		{Key: "from_weekday", Kind: KindInt, Min: 0, Max: 6, Nullable: true},
+	}, Placeholders: []string{"week"}},
 	{Key: "week_entered", Params: []Field{}, Placeholders: []string{"week", "basis"}},
 	{Key: "bp_high", Params: []Field{
 		intParam("systolic_min", 90, 200), intParam("diastolic_min", 50, 130),

@@ -8,6 +8,7 @@ import {
   useActivatePregnancy,
   useCompleteOnboarding,
   useDatingPreview,
+  useSetupCopy,
 } from '@/entities/pregnancy';
 import { useDirection, useRouter, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
@@ -28,7 +29,7 @@ import { DatingStep, HistoryStep, ResultStep } from './SetupSteps';
 
 type Phase = 'welcome' | 1 | 2 | 3;
 const TOTAL = 3;
-/** Bundled welcome benefits (`setup.benefits.*`), same order as the seeded `pregnancy_setup/welcome`. */
+/** Bundled welcome benefits (`setup.benefits.*`), same order as the seeded `pregnancy_setup/welcome` (the fallback). */
 const BENEFITS = ['1', '2', '3'] as const;
 
 /**
@@ -36,6 +37,8 @@ const BENEFITS = ['1', '2', '3'] as const;
  * history → result from `dating-preview`. «تمومه» activates pregnancy mode,
  * submits the v1 `/pregnancy/onboarding` body, then lands on `/pregnancy`.
  * Sensitive data only leaves the form in those requests (CLAUDE.md §11).
+ * Copy: the admin-edited `pregnancy_setup` texts (`GET /pregnancy/v2/setup-copy`)
+ * win; the bundle is the fallback while they load or where a text is missing.
  */
 export function PregnancyOnboardingPage() {
   const t = useTranslations('pregnancyV2.setup');
@@ -49,6 +52,7 @@ export function PregnancyOnboardingPage() {
   const [history, setHistory] = useState<SetupHistory | null>(EMPTY_HISTORY);
   const [error, setError] = useState<string | null>(null);
 
+  const copy = useSetupCopy().data;
   const preview = useDatingPreview(phase === 3 ? toPreviewInput(dating, loc) : null);
   const activate = useActivatePregnancy();
   const onboard = useCompleteOnboarding();
@@ -80,18 +84,19 @@ export function PregnancyOnboardingPage() {
   };
 
   if (phase === 'welcome') {
+    const benefits = copy?.welcome.benefits.length ? copy.welcome.benefits : BENEFITS.map((k) => t(`benefits.${k}`));
     return (
       <div className="view onb-page pon-page">
         <div className="scroll onb-body">
           <div className="onb-center pon-welcome">
             <WelcomePregnancy size={220} />
-            <div className="titr onb-titr">{t('welcomeTitle')}</div>
-            <p className="sub onb-center-text">{t('welcomeBody')}</p>
+            <div className="titr onb-titr">{copy?.welcome.title ?? t('welcomeTitle')}</div>
+            <p className="sub onb-center-text">{copy?.welcome.body ?? t('welcomeBody')}</p>
             <ul className="card pon-benefits">
-              {BENEFITS.map((k) => (
-                <li key={k}>
+              {benefits.map((text, i) => (
+                <li key={i}>
                   <Icon name="check" size={18} strokeWidth={2.6} className="pon-benefit-check" />
-                  {t(`benefits.${k}`)}
+                  {text}
                 </li>
               ))}
             </ul>
@@ -99,18 +104,20 @@ export function PregnancyOnboardingPage() {
         </div>
         <div className="onb-actions">
           <button className="btn btn-primary" onClick={() => setPhase(1)}>
-            {t('turnOn')}
+            {copy?.welcome.primary ?? t('turnOn')}
           </button>
           <button className="pon-textbtn" onClick={() => router.replace('/profile')}>
-            {t('notNow')}
+            {copy?.welcome.secondary ?? t('notNow')}
           </button>
         </div>
       </div>
     );
   }
 
-  const title = phase === 1 ? t('datingTitle') : phase === 2 ? t('historyTitle') : null;
-  const body = phase === 1 ? t('datingBody') : phase === 2 ? t('historyBody') : null;
+  const title =
+    phase === 1 ? (copy?.dating.title ?? t('datingTitle')) : phase === 2 ? (copy?.history.title ?? t('historyTitle')) : null;
+  const body =
+    phase === 1 ? (copy?.dating.body ?? t('datingBody')) : phase === 2 ? (copy?.history.body ?? t('historyBody')) : null;
 
   return (
     <div className="view onb-page pon-page">
@@ -148,8 +155,8 @@ export function PregnancyOnboardingPage() {
           </div>
         )}
 
-        {phase === 1 && <DatingStep value={dating} onChange={setDating} />}
-        {phase === 2 && <HistoryStep value={history ?? EMPTY_HISTORY} onChange={setHistory} />}
+        {phase === 1 && <DatingStep value={dating} onChange={setDating} copy={copy} />}
+        {phase === 2 && <HistoryStep value={history ?? EMPTY_HISTORY} onChange={setHistory} copy={copy} />}
         {phase === 3 && (
           <ResultStep preview={preview.data} loading={preview.isLoading} failed={preview.isError} />
         )}
@@ -185,7 +192,7 @@ export function PregnancyOnboardingPage() {
                   setPhase(3);
                 }}
               >
-                {t('skip')}
+                {copy?.history.skip ?? t('skip')}
               </button>
             )}
           </>

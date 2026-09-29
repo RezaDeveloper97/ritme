@@ -96,7 +96,7 @@ func TestMonthOf_Boundaries(t *testing.T) {
 func TestBuild_MonthMarkersAndVisits(t *testing.T) {
 	d := dating(t, lmp("2026-07-01"), "2026-09-23")
 	vs := []Visit{visit(1, "2026-09-22", "nt", "booked"), visit(2, "2026-09-23", "", ""), visit(3, "2026-10-22", "", "")}
-	out := build(d, MonthOf(1405, 7, "fa"), vs, nil, nil, v2.Lang{Locale: "fa", Default: "fa"})
+	out := build(d, MonthOf(1405, 7, "fa"), vs, nil, nil, nil, v2.Lang{Locale: "fa", Default: "fa"})
 	days, _ := out.Get("days")
 	list := days.([]any)
 	assert.Len(t, list, 30)
@@ -114,12 +114,17 @@ func TestBuild_MonthMarkersAndVisits(t *testing.T) {
 // The care-plan note leads with the "your doctor may plan differently" caveat, then the basis
 // (design audit E2); a visit carries the age on its day (E4).
 func TestSourceNoteAndAgeAt(t *testing.T) {
-	note, _ := sourceNote("lmp", "fa").(string)
+	note, _ := sourceNote("lmp", nil, "fa").(string)
 	assert.Contains(t, note, "ممکنه پزشکت برنامهٔ متفاوتی بده")
 	assert.Contains(t, note, "اولین روز آخرین قاعدگی")
-	en, _ := sourceNote("ultrasound", "en").(string)
+	en, _ := sourceNote("ultrasound", nil, "en").(string)
 	assert.Contains(t, en, "different plan")
 	assert.Contains(t, en, "ultrasound")
+
+	// The admin pregnancy_setup/calendar_note texts win per part; a blank part falls back (T-M7-20).
+	admin := map[string]any{"plan_note": "Admin caveat.", "basis_lmp": "  ", "basis_manual": "Admin basis."}
+	assert.Equal(t, "Admin caveat. Dates are based on the first day of your last period.", sourceNote("lmp", admin, "en"))
+	assert.Equal(t, "Admin caveat. Admin basis.", sourceNote("manual", admin, "en"))
 
 	d := dating(t, lmp("2026-08-01"), "2026-09-29")
 	assert.Equal(t, "۱۱ هفته و ۱ روز", ageAt(d, civildate.MustParse("2026-10-18"), "fa"))

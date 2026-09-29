@@ -91,6 +91,59 @@ func (q *Queries) GetV2TodayExtras(ctx context.Context, arg GetV2TodayExtrasPara
 	return i, err
 }
 
+const listV2MessageGroupPayloads = `-- name: ListV2MessageGroupPayloads :many
+SELECT item_key, locale, payload FROM ` + "`" + `message_contents` + "`" + `
+WHERE ` + "`" + `group` + "`" + ` = ?
+  AND is_active = 1 AND is_approved = 1 AND locale IN (/*SLICE:locales*/?)
+`
+
+type ListV2MessageGroupPayloadsParams struct {
+	MessageGroup string
+	Locales      []string
+}
+
+type ListV2MessageGroupPayloadsRow struct {
+	ItemKey string
+	Locale  string
+	Payload json.RawMessage
+}
+
+// Every live message_contents row of one group in the given locales (request locale + default language)
+// — the Setup screen's copy (GET /pregnancy/v2/setup-copy, T-M7-20).
+func (q *Queries) ListV2MessageGroupPayloads(ctx context.Context, arg ListV2MessageGroupPayloadsParams) ([]ListV2MessageGroupPayloadsRow, error) {
+	query := listV2MessageGroupPayloads
+	var queryParams []interface{}
+	queryParams = append(queryParams, arg.MessageGroup)
+	if len(arg.Locales) > 0 {
+		for _, v := range arg.Locales {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:locales*/?", strings.Repeat(",?", len(arg.Locales))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:locales*/?", "NULL", 1)
+	}
+	rows, err := q.db.QueryContext(ctx, query, queryParams...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListV2MessageGroupPayloadsRow{}
+	for rows.Next() {
+		var i ListV2MessageGroupPayloadsRow
+		if err := rows.Scan(&i.ItemKey, &i.Locale, &i.Payload); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listV2MessagePayloads = `-- name: ListV2MessagePayloads :many
 SELECT locale, payload FROM ` + "`" + `message_contents` + "`" + `
 WHERE ` + "`" + `group` + "`" + ` = ? AND item_key = ?

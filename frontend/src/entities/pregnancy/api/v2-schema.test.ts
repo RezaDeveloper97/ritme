@@ -9,6 +9,7 @@ import {
   pregnancyReportSchema,
   pregnancyTodaySchema,
   pregnancyWeekSchema,
+  setupCopySchema,
   weekStateSchema,
 } from './v2-schema';
 
@@ -517,5 +518,35 @@ describe('pregnancyKeys.v2', () => {
     expect(v2.day('2026-09-22').slice(0, 3)).toEqual(v2.dayAll());
     expect(v2.calendar('2026-10').slice(0, 3)).toEqual(v2.calendarAll());
     expect(v2.report({ from: 'a', to: 'b' }).slice(0, 3)).toEqual(v2.reportAll());
+  });
+});
+
+describe('setupCopySchema', () => {
+  it('maps the admin pregnancy_setup items (T-M7-20)', () => {
+    const parsed = setupCopySchema.parse({
+      welcome: { title: 'به حالت بارداری خوش اومدی', body: 'B', primary: 'P', secondary: null, benefits: ['a', ' ', 'b'] },
+      dating: { title: 'D', body: null },
+      source_lmp: { label: 'L', hint: 'H' },
+      source_ultrasound: { label: null, hint: null },
+      history: { title: 'T', body: 'B', disclaimer: 'X', skip: 'S' },
+      result: { lead: 'ignored here' },
+    });
+    expect(parsed).toEqual({
+      welcome: { title: 'به حالت بارداری خوش اومدی', body: 'B', benefits: ['a', 'b'], primary: 'P', secondary: null },
+      dating: { title: 'D', body: null },
+      sources: {
+        lmp: { label: 'L', hint: 'H' },
+        ultrasound: { label: null, hint: null },
+        manual: { label: null, hint: null },
+      },
+      history: { title: 'T', body: 'B', disclaimer: 'X', skip: 'S' },
+    });
+  });
+
+  it('survives a missing or odd payload (everything falls back)', () => {
+    const parsed = setupCopySchema.parse(null);
+    expect(parsed.welcome).toEqual({ title: null, body: null, benefits: [], primary: null, secondary: null });
+    expect(parsed.sources.manual).toEqual({ label: null, hint: null });
+    expect(setupCopySchema.parse({ welcome: 'x', history: [] }).history.title).toBeNull();
   });
 });

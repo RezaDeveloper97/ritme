@@ -930,6 +930,7 @@
       "symptoms": "علائم",
       "spotting_until_week": "لکه‌بینی تا هفته",
       "from_week": "از هفته",
+      "from_weekday": "از روز هفته (۰ = روز اول)",
       "systolic_min": "سیستولیک ≥",
       "diastolic_min": "دیاستولیک ≥",
       "fasting_max": "ناشتا >",

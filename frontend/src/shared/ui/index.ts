@@ -5,3 +5,4 @@ export { CalendarPicker } from './CalendarPicker';
 export { NavBack } from './NavBack';
 export { RulerPicker } from './RulerPicker';
 export { WheelPicker } from './WheelPicker';
+export { LocaleNumberField } from './LocaleNumberField';

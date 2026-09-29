@@ -44,7 +44,7 @@ import { BottomNav } from '@/widgets/bottom-nav';
 import { REPORT_DAYS, bookHref, directionsHref, monthKey, nextStage, stageProgress } from '../model/view';
 
 const CARD = 'rounded-2xl border border-(--line) bg-(--surface)';
-const NEW_VISIT_HREF = '/reminders/appointment/new?kind=in_person';
+const NEW_VISIT_HREF = '/reminders/appointment/new?kind=in_person&return_to=/pregnancy/calendar';
 
 /** «تقویم و ویزیت‌ها» — `/pregnancy/calendar` (Calendar.dc.html, T-M7-13). */
 export function PregnancyCalendarPage() {

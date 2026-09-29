@@ -8,12 +8,13 @@ import {
   usePregnancyEnums,
   type DatingPreview,
   type DatingSource,
+  type SetupCopy,
 } from '@/entities/pregnancy';
-import { Chip, NumberField, PgCard, Toggle } from '@/features/track-pregnancy';
+import { Chip, PgCard, Toggle } from '@/features/track-pregnancy';
 import type { Locale } from '@/shared/i18n';
 import { type DateParts, formatDayMonth, formatLongDate, fromApiDate, partsToDate } from '@/shared/lib/date';
 import { AppSheet } from '@/shared/sheet';
-import { CalendarPicker, Icon } from '@/shared/ui';
+import { CalendarPicker, Icon, LocaleNumberField } from '@/shared/ui';
 import { ResultBaby } from '@/shared/ui/illustrations';
 
 import { noneFirst, toggleCondition, type SetupDating, type SetupHistory } from '../model/setup';
@@ -59,7 +60,7 @@ function DateField({
   );
 }
 
-/** Week + day as two number inputs on one row. */
+/** Week + day as two number inputs on one row, digits in the locale's script (۸ in fa). */
 function AgeFields({
   weeks,
   days,
@@ -70,14 +71,21 @@ function AgeFields({
   onChange: (weeks: number | null, days: number) => void;
 }) {
   const t = useTranslations('pregnancyV2.setup');
+  const loc = useLocale() as Locale;
   return (
     <div className="pon-pair">
-      <NumberField label={t('week')} value={weeks ?? undefined} onChange={(w) => onChange(w ?? null, days)} min={1} max={42} />
-      <NumberField
+      <LocaleNumberField
+        label={t('week')}
+        locale={loc}
+        value={weeks ?? undefined}
+        onChange={(w) => onChange(w ?? null, days)}
+        max={42}
+      />
+      <LocaleNumberField
         label={t('day')}
+        locale={loc}
         value={days}
         onChange={(d) => onChange(weeks, Math.min(6, Math.max(0, Math.trunc(d ?? 0))))}
-        min={0}
         max={6}
       />
     </div>
@@ -88,9 +96,12 @@ function AgeFields({
 export function DatingStep({
   value,
   onChange,
+  copy,
 }: {
   value: SetupDating;
   onChange: (next: SetupDating) => void;
+  /** Admin copy (`pregnancy_setup/source_*`); undefined → bundle. */
+  copy?: SetupCopy;
 }) {
   const t = useTranslations('pregnancyV2.setup');
   const loc = useLocale() as Locale;
@@ -109,11 +120,11 @@ export function DatingStep({
               className={value.source === src ? 'on' : undefined}
               onClick={() => set({ source: src })}
             >
-              {t(`sources.${src}`)}
+              {copy?.sources[src].label ?? t(`sources.${src}`)}
             </button>
           ))}
         </div>
-        <p className="sub onb-note is-sub">{t(`sourceHints.${value.source}`)}</p>
+        <p className="sub onb-note is-sub">{copy?.sources[value.source].hint ?? t(`sourceHints.${value.source}`)}</p>
       </div>
 
       {value.source === 'lmp' && (
@@ -162,9 +173,12 @@ export function DatingStep({
 export function HistoryStep({
   value,
   onChange,
+  copy,
 }: {
   value: SetupHistory;
   onChange: (next: SetupHistory) => void;
+  /** Admin copy (`pregnancy_setup/history`); undefined → bundle. */
+  copy?: SetupCopy;
 }) {
   const t = useTranslations('pregnancyV2.setup');
   const tp = useTranslations('pregnancy') as unknown as DynT;
@@ -236,7 +250,7 @@ export function HistoryStep({
       </div>
 
       {/* Truthful copy: history is stored on the server (README open point 1). */}
-      <p className="sub onb-note is-sub">{t('historyDisclaimer')}</p>
+      <p className="sub onb-note is-sub">{copy?.history.disclaimer ?? t('historyDisclaimer')}</p>
     </div>
   );
 }

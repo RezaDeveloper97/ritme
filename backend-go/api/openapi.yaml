@@ -7337,6 +7337,91 @@ paths:
           description: Alive
           content:
             text/plain: {schema: {type: string, const: OK}}
+  /api/v1/pregnancy/v2/setup-copy:
+    get:
+      tags: [PregnancyV2]
+      summary: Admin-edited copy of the pregnancy Setup screens
+      description: |
+        The `message_contents` group `pregnancy_setup` (welcome, dating, the three dating sources, history,
+        result) in the request locale: per item the request-locale row, else the default language's row. Every
+        item is always present; a text is null (a list `[]`) when no live row has it, so the app falls back to its
+        bundled copy. The `result` texts are the raw templates (`{confidence}`, `{range_from}`, `{range_to}`,
+        `{date}` unfilled; `dating-preview` returns them filled). No pregnancy needed (Setup runs before
+        activation). One query. Go only (T-M7-20).
+      operationId: getPregnancyV2SetupCopy
+      security:
+        - {bearerAuth: []}
+      parameters: [{$ref: "#/components/parameters/AcceptLanguage"}]
+      responses:
+        '200':
+          description: The Setup copy
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [welcome, dating, source_lmp, source_ultrasound, source_manual, history, result]
+                    properties:
+                      welcome:
+                        type: object
+                        required: [title, body, primary, secondary, benefits]
+                        properties:
+                          title: {type: [string, "null"]}
+                          body: {type: [string, "null"]}
+                          primary: {type: [string, "null"]}
+                          secondary: {type: [string, "null"]}
+                          benefits: {type: array, items: {type: string}}
+                      dating:
+                        type: object
+                        required: [title, body]
+                        properties:
+                          title: {type: [string, "null"]}
+                          body: {type: [string, "null"]}
+                      source_lmp:
+                        type: object
+                        required: [label, hint]
+                        properties:
+                          label: {type: [string, "null"]}
+                          hint: {type: [string, "null"]}
+                      source_ultrasound:
+                        type: object
+                        required: [label, hint]
+                        properties:
+                          label: {type: [string, "null"]}
+                          hint: {type: [string, "null"]}
+                      source_manual:
+                        type: object
+                        required: [label, hint]
+                        properties:
+                          label: {type: [string, "null"]}
+                          hint: {type: [string, "null"]}
+                      history:
+                        type: object
+                        required: [title, body, disclaimer, skip]
+                        properties:
+                          title: {type: [string, "null"]}
+                          body: {type: [string, "null"]}
+                          disclaimer: {type: [string, "null"]}
+                          skip: {type: [string, "null"]}
+                      result:
+                        type: object
+                        required: [lead, suffix, due_label, confidence, range, basis_lmp, basis_ultrasound, basis_manual, primary, secondary]
+                        properties:
+                          lead: {type: [string, "null"]}
+                          suffix: {type: [string, "null"]}
+                          due_label: {type: [string, "null"]}
+                          confidence: {type: [string, "null"]}
+                          range: {type: [string, "null"]}
+                          basis_lmp: {type: [string, "null"]}
+                          basis_ultrasound: {type: [string, "null"]}
+                          basis_manual: {type: [string, "null"]}
+                          primary: {type: [string, "null"]}
+                          secondary: {type: [string, "null"]}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
   /api/v1/pregnancy/v2/dating-preview:
     post:
       tags: [PregnancyV2]
@@ -7385,6 +7470,9 @@ paths:
         Week carousel (prev / current / next), due card, 40-week progress with trimester start dates, next visit
         (next upcoming non-cancelled M3 appointment, whatever its reminder switch, else the next active care-plan item), week tip (`pregnancy_week_tip/{week}`),
         this week's tasks with done state and the unread alert count — in ≤ 5 queries. Week counts to 42 when overdue.
+        A GET first runs the daily alert evaluation (deduplicated per window, idempotent), so `unread_alerts` already
+        counts the calendar alerts (`week_entered`, `weight_missing_week`) before the Alerts screen is opened; HEAD
+        is read-only (T-M7-20).
       operationId: getPregnancyV2Today
       security:
         - {bearerAuth: []}
@@ -7662,7 +7750,7 @@ paths:
                             suggested_date_label: {type: [string, "null"]}
                             appointment_id: {type: [integer, "null"]}
                             prep: {type: [string, "null"]}
-                      source_note: {type: [string, "null"], description: "Care-plan caveat (the doctor may plan differently), then the dating basis sentence"}
+                      source_note: {type: [string, "null"], description: "Care-plan caveat (the doctor may plan differently), then the dating basis sentence: the admin-edited message pregnancy_setup/calendar_note (plan_note, basis_<source>), each part falling back to the server copy"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '409': {$ref: "#/components/responses/PregnancyNotActive"}
         '422': {$ref: "#/components/responses/PregnancyV2ValidationFailed"}

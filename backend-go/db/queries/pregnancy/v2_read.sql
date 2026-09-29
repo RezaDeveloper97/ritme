@@ -39,3 +39,10 @@ WHERE u.id = sqlc.arg(user_id);
 SELECT locale, payload FROM `message_contents`
 WHERE `group` = sqlc.arg(message_group) AND item_key = sqlc.arg(item_key)
   AND is_active = 1 AND is_approved = 1 AND locale IN (sqlc.slice(locales));
+
+-- name: ListV2MessageGroupPayloads :many
+-- Every live message_contents row of one group in the given locales (request locale + default language)
+-- — the Setup screen's copy (GET /pregnancy/v2/setup-copy, T-M7-20).
+SELECT item_key, locale, payload FROM `message_contents`
+WHERE `group` = sqlc.arg(message_group)
+  AND is_active = 1 AND is_approved = 1 AND locale IN (sqlc.slice(locales));

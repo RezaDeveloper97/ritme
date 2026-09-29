@@ -3,10 +3,10 @@ id: T-M7-20
 title: Pregnancy leftovers — admin-editable setup copy, source note, alert seed text, badge, 9b
 milestone: M7
 type: backend
-status: in_progress
+status: done
 depends_on: [T-M7-18,T-M2-34]
 parallel_group: M7-E
-touches: [backend-go/internal/http/routes_pregnancy_v2.go,backend-go/internal/pregnancy,backend-go/internal/messages,backend-go/internal/admin/messages,backend-go/db/migrations,backend-go/db/queries,backend-go/api/openapi.yaml,backend-go/contract,frontend/src/screens/pregnancy-onboarding,frontend/src/screens/pregnancy,frontend/src/screens/reminder-appointment-form,frontend/src/entities/pregnancy,frontend/src/shared/ui,frontend/scripts/check-dark-mode.mjs,admin-web/src,docs/pregnancy-v2,docs/go-migration]
+touches: [backend/database/migrations, admin-web/messages, frontend/src/screens/pregnancy-calendar/ui/PregnancyCalendarPage.tsx, backend-go/internal/http/routes_pregnancy_v2.go,backend-go/internal/pregnancy,backend-go/internal/messages,backend-go/internal/admin/messages,backend-go/db/migrations,backend-go/db/queries,backend-go/api/openapi.yaml,backend-go/contract,frontend/src/screens/pregnancy-onboarding,frontend/src/screens/pregnancy,frontend/src/screens/reminder-appointment-form,frontend/src/entities/pregnancy,frontend/src/shared/ui,frontend/scripts/check-dark-mode.mjs,admin-web/src,docs/pregnancy-v2,docs/go-migration]
 skills: [verify-all,new-endpoint]
 verify: cd backend-go && go vet ./... && go test ./... && golangci-lint run && make contract ROUTES=all && cd ../frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && cd ../admin-web && npm run typecheck && npm run test
 ---

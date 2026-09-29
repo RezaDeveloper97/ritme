@@ -48,7 +48,8 @@ Pregnancy-mode bottom nav: امروز · تقویم · (+ ثبت امروز, gra
 | Care plan (first visit, NT, anomaly scan, GTT, Tdap, …): title, kind (visit/test/scan/vaccine), week window, prep text, reminder default, order, active | admin-web `pregnancy-care-plan` (new) | new `pregnancy_care_items` |
 | Alert rules: enabled, level (info / suggestion / follow_up / urgent), thresholds (e.g. vomiting streak days, severe count, weight-log interval), window days, texts («چی دیدیم», «چقدر مطمئنیم», advice, action labels), contact line for urgent | admin-web `pregnancy-alert-rules` (new) — texts are `message_contents` rows | `message_contents` group `pregnancy_alert` (payload = params + texts) |
 | Smart tip of every week (title, body, read minutes, article link) | admin-web `messages` (group `pregnancy_week_tip`) | `message_contents` group `pregnancy_week_tip`, item_key `1..42` |
-| Setup copy: benefits, per-source hints, history disclaimer, result basis sentence templates | admin-web `messages` (group `pregnancy_setup`) | `message_contents` |
+| Setup copy: welcome (title, body, benefits, buttons), dating intro, per-source label + hint, history intro + disclaimer + skip, result templates | admin-web `messages` (group `pregnancy_setup`), read by the app via `GET /pregnancy/v2/setup-copy` (T-M7-20) | `message_contents` |
+| Calendar source note: care-plan caveat + dating-basis sentence per source | admin-web `messages` (`pregnancy_setup/calendar_note`, seeded by goose 00008, T-M7-20); the server lang text is the fallback | `message_contents` |
 | Condition chips for setup | admin-web `pregnancy-care-plan` (small list) or enum-backed with editable labels | existing `PreExistingCondition` enum labels via translations |
 
 ## Message engine integration («پیام‌ها رو به انجین پیام‌های اصلی سیستم اضافه کن»)
@@ -128,8 +129,9 @@ Pregnancy-mode bottom nav: امروز · تقویم · (+ ثبت امروز, gra
 
 | Method | Path | Notes |
 |---|---|---|
+| GET | `/pregnancy/v2/setup-copy` | admin-edited `pregnancy_setup` texts (welcome, dating, sources, history, result templates) in the request locale; null → the app's bundle (T-M7-20) |
 | POST | `/pregnancy/v2/dating-preview` | body = dating source fields → weeks, days, due date, range, confidence, basis sentence (no write) |
-| GET | `/pregnancy/v2/today` | week carousel (prev/current/next summaries), due card, progress + trimester start dates, next visit, week tip, this week's tasks with done state, alert badge count |
+| GET | `/pregnancy/v2/today` | week carousel (prev/current/next summaries), due card, progress + trimester start dates, next visit, week tip, this week's tasks with done state, alert badge count (a GET first runs the daily alert evaluation, so the badge counts `week_entered` / `weight_missing_week` before Alerts is opened; T-M7-20) |
 | GET | `/pregnancy/v2/weeks/{n}` | details + date range + bookmark + task state + tip |
 | PUT | `/pregnancy/v2/weeks/{n}/state` | `{bookmarked?, done_task_keys?}` |
 | GET/PUT | `/pregnancy/v2/days/{date}` | mood, symptoms {key: severity}, water, weight (→ weekly log of that week), visit_note; response includes last weight + alerts raised |

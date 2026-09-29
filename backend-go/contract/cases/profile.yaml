@@ -49,7 +49,7 @@ cases:
       - {method: GET, path: /api/v1/profile, status: 200}
       - {method: GET, path: /api/v1/cycle/period/history, status: 200}
   - name: create_profile_empty_body
-    doc: "{} still creates a profile and seeds last_period_start = today (non-pregnant)"
+    doc: "{} still creates a profile; Laravel seeds last_period_start = today (non-pregnant), Go keeps it null (D-24, allow-listed)"
     persona: no_profile
     steps:
       - {method: POST, path: /api/v1/profile, body: {}, status: 200}

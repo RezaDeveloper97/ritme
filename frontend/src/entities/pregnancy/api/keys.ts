@@ -31,6 +31,7 @@ export const pregnancyKeys = {
 
   v2: {
     all: () => V2,
+    setupCopy: () => [...V2, 'setup-copy'] as const,
     today: () => [...V2, 'today'] as const,
     weekAll: () => [...V2, 'week'] as const,
     week: (week: number) => [...V2, 'week', week] as const,

@@ -84,6 +84,7 @@ func setup(t *testing.T) *env {
 	app := fiber.New(fiber.Config{ErrorHandler: httpx.ErrorHandler(quiet)})
 	app.Use(clock.Middleware(clock.Real{}, true))
 	const p = "/api/v1/pregnancy/v2"
+	app.Get(p+"/setup-copy", locale, guard, h.SetupCopy)
 	app.Post(p+"/dating-preview", locale, guard, h.DatingPreview)
 	app.Get(p+"/today", locale, guard, h.Today)
 	app.Get(p+"/weeks/:n", locale, guard, h.Week)
@@ -331,4 +332,49 @@ func TestWeekAndState(t *testing.T) {
 
 	r = e.do(t, http.MethodPut, base+"/weeks/20/state", tok, "en", `{"bookmarked":"maybe"}`)
 	assert.Equal(t, http.StatusUnprocessableEntity, r.status, r.raw)
+}
+
+// GET /setup-copy (T-M7-20, design audit A1): the admin-edited pregnancy_setup texts in the request
+// locale, the default language's row where the locale has none, null / [] where no row has a text;
+// no pregnancy needed; one query; 401 without a session.
+func TestSetupCopy(t *testing.T) {
+	e := setup(t)
+	_, tok := e.user(t, "09120000720", "", "") // no pregnancy profile: Setup runs before activation
+
+	assert.Equal(t, http.StatusUnauthorized, e.do(t, http.MethodGet, base+"/setup-copy", "", "en", "").status)
+
+	e.counter.n.Store(0)
+	r := e.do(t, http.MethodGet, base+"/setup-copy", tok, "fa", "")
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	assert.Equal(t, int64(1), e.counter.n.Load(), "one query")
+	d := r.data()
+	for _, k := range []string{"welcome", "dating", "source_lmp", "source_ultrasound", "source_manual", "history", "result"} {
+		assert.Contains(t, d, k)
+	}
+	welcome := d["welcome"].(map[string]any)
+	assert.Equal(t, "به حالت بارداری خوش اومدی", welcome["title"])
+	benefits, _ := welcome["benefits"].([]any)
+	require.Len(t, benefits, 3)
+	assert.Contains(t, benefits[0], "ابزارهای بارداری همیشه رایگان")
+	assert.Equal(t, "فعلاً نه", welcome["secondary"])
+	assert.Contains(t, d["result"].(map[string]any)["range"], "{range_from}", "templates are returned unfilled")
+	assert.NotContains(t, d, "calendar_note")
+
+	// An admin edit shows at once; an item without an en row falls back to the default language (fa);
+	// a text no row has is null and a missing list [].
+	_, err := e.db.Exec("UPDATE message_contents SET payload = JSON_SET(payload, '$.title', 'Hello, pregnancy mode') " +
+		"WHERE `group` = 'pregnancy_setup' AND item_key = 'welcome' AND locale = 'en'")
+	require.NoError(t, err)
+	_, err = e.db.Exec("DELETE FROM message_contents WHERE `group` = 'pregnancy_setup' AND item_key = 'dating' AND locale = 'en'")
+	require.NoError(t, err)
+	_, err = e.db.Exec("DELETE FROM message_contents WHERE `group` = 'pregnancy_setup' AND item_key = 'history'")
+	require.NoError(t, err)
+	r = e.do(t, http.MethodGet, base+"/setup-copy", tok, "en", "")
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	d = r.data()
+	assert.Equal(t, "Hello, pregnancy mode", d["welcome"].(map[string]any)["title"])
+	assert.Equal(t, "Not now", d["welcome"].(map[string]any)["secondary"])
+	assert.Contains(t, d["dating"].(map[string]any)["title"], "تنظیم کنیم", "fa fallback")
+	assert.Equal(t, map[string]any{"title": nil, "body": nil, "disclaimer": nil, "skip": nil}, d["history"])
+	assert.Equal(t, "Ultrasound", d["source_ultrasound"].(map[string]any)["label"])
 }

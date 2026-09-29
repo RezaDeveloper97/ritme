@@ -105,7 +105,7 @@ func (s *Service) Preview(ctx context.Context, body phpval.Map, now time.Time, l
 			[]string{T("validation.dating_out_of_range", l.Locale)}))
 	}
 	rows, err := s.q.ListV2MessagePayloads(ctx, store.ListV2MessagePayloadsParams{
-		MessageGroup: "pregnancy_setup", ItemKey: "result", Locales: l.codes(),
+		MessageGroup: SetupGroup, ItemKey: "result", Locales: l.codes(),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("pregnancy v2: setup copy: %w", err)

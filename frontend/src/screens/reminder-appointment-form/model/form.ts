@@ -144,3 +144,25 @@ export function validateForm(state: AppointmentFormState): FormError | null {
   if (!/^\d{2}:\d{2}$/.test(state.time)) return 'time';
   return null;
 }
+
+/**
+ * In-app screens a saved appointment may return to (`?return_to=`). An
+ * allow-list of exact paths — never a free-form redirect (open redirect).
+ */
+export const RETURN_PATHS = ['/pregnancy/calendar'] as const;
+export type ReturnPath = (typeof RETURN_PATHS)[number];
+
+/** `?return_to=` → an allowed in-app path, else null. */
+export function parseReturnTo(value: string | null | undefined): ReturnPath | null {
+  return RETURN_PATHS.find((path) => path === value) ?? null;
+}
+
+/**
+ * Where to go after saving (and the header's back link): an allowed
+ * `?return_to=`, else — for a new visit booked from the pregnancy care plan
+ * (`?care_item_key=`, only the pregnancy calendar sends it) — the calendar;
+ * null → the default (the appointment's detail page).
+ */
+export function returnPathFor(returnTo: string | null | undefined, isNew: boolean, careItemKey: string): ReturnPath | null {
+  return parseReturnTo(returnTo) ?? (isNew && careItemKey ? '/pregnancy/calendar' : null);
+}

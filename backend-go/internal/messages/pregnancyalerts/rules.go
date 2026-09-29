@@ -41,7 +41,7 @@ var RuleKeys = []string{
 }
 
 // WeightMissingFromWeekday is weight_missing_week's default `from_weekday`: the 6th day of the
-// pregnancy week (0-based 5). Not in the admin params schema yet, so the code default applies.
+// pregnancy week (0-based 5), used while the rule row has no `params.from_weekday` (or null).
 const WeightMissingFromWeekday = 5
 
 // Config is the behaviour part of a rule row.

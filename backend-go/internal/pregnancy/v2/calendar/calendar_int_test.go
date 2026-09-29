@@ -232,3 +232,28 @@ func TestCalendar_ReminderOffKeepsVisit(t *testing.T) {
 	assert.Empty(t, data["visits"])
 	assert.Equal(t, "to_book", planItem(t, data, "r_nt")["state"])
 }
+
+// source_note is the admin-editable pregnancy_setup/calendar_note (seeded by 00008, design audit E2):
+// an edit shows at once; without a row the Go lang text applies (T-M7-20).
+func TestCalendar_SourceNoteIsAdminEditable(t *testing.T) {
+	e := setup(t)
+	_, tok := e.user(t, "09120000912", "2026-07-01")
+	note := func() any {
+		t.Helper()
+		status, body, raw := e.get(t, "/cal", tok, "en")
+		require.Equal(t, http.StatusOK, status, raw)
+		return body["data"].(map[string]any)["source_note"]
+	}
+	seeded := "Timings follow the usual pregnancy care schedule; your doctor may give you a different plan. " +
+		"Dates are based on the first day of your last period."
+	assert.Equal(t, seeded, note())
+
+	_, err := e.db.Exec("UPDATE message_contents SET payload = JSON_SET(payload, '$.plan_note', 'Ask your midwife.') " +
+		"WHERE `group` = 'pregnancy_setup' AND item_key = 'calendar_note' AND locale = 'en'")
+	require.NoError(t, err)
+	assert.Equal(t, "Ask your midwife. Dates are based on the first day of your last period.", note())
+
+	_, err = e.db.Exec("DELETE FROM message_contents WHERE `group` = 'pregnancy_setup' AND item_key = 'calendar_note'")
+	require.NoError(t, err)
+	assert.Equal(t, seeded, note(), "Go lang fallback")
+}

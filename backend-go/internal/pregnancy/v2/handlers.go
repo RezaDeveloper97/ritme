@@ -141,3 +141,15 @@ func (h *Handlers) WeekState(c fiber.Ctx) error {
 	}
 	return httpx.OK(c, out, T("messages.state_saved", locale))
 }
+
+// SetupCopy is GET /pregnancy/v2/setup-copy (no pregnancy needed: the Setup screen runs before it).
+func (h *Handlers) SetupCopy(c fiber.Ctx) error {
+	if _, err := h.user(c); err != nil {
+		return err
+	}
+	out, err := h.svc.SetupCopy(c, langOf(c))
+	if err != nil {
+		return err
+	}
+	return httpx.OK(c, out)
+}
