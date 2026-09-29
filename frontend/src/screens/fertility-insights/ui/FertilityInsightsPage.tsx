@@ -321,7 +321,8 @@ function HistoryCard({
   const t = useTranslations("fertility.insights");
   const cycle = useCycleToday().data?.cycleView ?? null;
   const currentStart = cycle?.anchors?.currentPeriodStart ?? null;
-  const periodLength =
+  // Only for a cycle without a logged period end: each row carries its own `periodDays`.
+  const fallbackPeriodLength =
     cycle?.metrics?.effectivePeriodLength ??
     cycle?.effectiveValues.periodDuration ??
     DEFAULT_PERIOD_DAYS;
@@ -334,7 +335,7 @@ function HistoryCard({
       </h2>
       <ul className="flex flex-col gap-3">
         {data.history.map((row, i) => {
-          const strip = historyStrip(row, next[i], periodLength);
+          const strip = historyStrip(row, next[i], fallbackPeriodLength);
           return (
             <li
               key={`${row.cycleStart ?? row.monthLabel}-${i}`}

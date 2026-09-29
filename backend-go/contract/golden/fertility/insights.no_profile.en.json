@@ -1,0 +1,51 @@
+{
+  "case": "fertility/insights.no_profile.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/fertility/insights",
+        "persona": "no_profile",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "cycles_used": 0,
+          "window": null,
+          "confidence": "low",
+          "evidence": [
+            {
+              "key": "cycles",
+              "title": "No complete cycle logged yet",
+              "detail": "Your usual cycle length shows after the first complete cycle",
+              "strength": "none"
+            },
+            {
+              "key": "bbt_shift",
+              "title": "Temperature rise",
+              "detail": "No confirmed rise yet",
+              "strength": "none"
+            },
+            {
+              "key": "lh",
+              "title": "LH test",
+              "detail": "Not logged this cycle yet",
+              "strength": "none"
+            }
+          ],
+          "history": [],
+          "tips": [
+            "Log your basal temperature every morning, before getting up, at the same time.",
+            "Log the start and end of every period so your usual cycle length gets more precise."
+          ]
+        }
+      }
+    }
+  ]
+}

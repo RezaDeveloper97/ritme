@@ -73,23 +73,28 @@
     "insights": {
         "evidence": {
             "cycles": {
-                "title": "سیکل‌های کامل",
-                "none": "هنوز سیکل کاملی ثبت نشده است.",
-                "length": ":count سیکل کامل، معمولاً :length روز",
-                "variability": ":count سیکل کامل، معمولاً :length روز (±:variability)"
+                "title_none": "هنوز سیکل کاملی ثبت نشده",
+                "title_one": ":count سیکل کامل ثبت شده",
+                "title_many": ":count سیکل کامل ثبت شده",
+                "none": "طول معمول سیکل بعد از اولین سیکل کامل مشخص می‌شود",
+                "length": "طول معمول :length روز",
+                "variability": "طول معمول :length روز، نوسان ±:variability"
             },
             "bbt_shift": {
-                "title": "جهش دمای پایه",
-                "none": "هنوز جهش تأییدشده‌ای دیده نشده است.",
-                "one": "جهش در روز :days یک سیکل",
-                "many": "جهش در :count سیکل، روز :days"
+                "title_none": "جهش دما",
+                "title_one": "جهش دما در :count سیکل اخیر",
+                "title_many": "جهش دما در :count سیکل اخیر",
+                "none": "هنوز جهش تأییدشده‌ای دیده نشده",
+                "one": "روز :days سیکل",
+                "many": "روز :days سیکل"
             },
             "lh": {
-                "title": "تست LH این سیکل",
-                "none": "این سیکل تستی ثبت نشده است.",
-                "negative": ":count تست، هنوز مثبت نشده",
-                "faint": "کم‌رنگ در روز :day",
-                "positive": "مثبت در روز :day"
+                "title": "تست LH",
+                "none": "هنوز در این سیکل ثبت نشده",
+                "negative_one": ":count تست در این سیکل، هنوز مثبت نشده",
+                "negative_many": ":count تست در این سیکل، هنوز مثبت نشده",
+                "faint": "کم‌رنگ در روز :day سیکل",
+                "positive": "مثبت در روز :day سیکل"
             }
         },
         "tips": {

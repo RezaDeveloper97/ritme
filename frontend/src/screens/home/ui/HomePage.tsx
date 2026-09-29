@@ -17,6 +17,7 @@ import {
   daysUntilNextPeriod,
   deriveCycleSchedule,
   deriveCyclePredictions,
+  hasFertileWindow,
   scheduleDayMarker,
   useCycleForDate,
   useCycleMonth,
@@ -66,6 +67,7 @@ import { TodayChallengeCard } from '@/widgets/today-challenge';
 import { TodayRemindersCard } from '@/widgets/today-reminders';
 
 import { needsPeriodData } from '../model/cycle-data';
+import { readTtcHint, writeTtcHint } from '../model/ttc-hint';
 
 const FA = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
 const faNum = (n: string | number) => String(n).replace(/[0-9]/g, d => FA[Number(d)]);
@@ -672,8 +674,17 @@ export function HomePage() {
   const todayData = todayQuery.data;
   const { data: daily } = useDailyMessage();
   const profileQuery = useUserProfile();
+  // The layout the last fresh profile decided (read after mount: localStorage is
+  // client-only). Lets a cold load skip waiting on `/profile` (T-M5-12).
+  const ttcHint = useMemo(() => (mounted ? readTtcHint() : null), [mounted]);
   // TTC home (`v19_Main`): only while trying to conceive; pregnancy mode never matches.
-  const isTtc = profileQuery.data?.health?.pregnancyIntention === 'trying';
+  // The fresh profile wins; until it lands, the remembered layout stands in.
+  const isTtc = profileQuery.data
+    ? profileQuery.data.health?.pregnancyIntention === 'trying'
+    : ttcHint === true;
+  useEffect(() => {
+    if (profileQuery.data) writeTtcHint(isTtc);
+  }, [profileQuery.data, isTtc]);
   // Same cache as the tiles (no extra request): the LH tip hides once today's test is logged.
   const fertilityToday = useFertilityToday();
 
@@ -721,7 +732,12 @@ export function HomePage() {
     ? slotFor(schedule.nextPeriodStart, schedule.nextPeriodStart)
     : null;
   const ovulationSlot = schedule ? slotFor(schedule.ovulation, schedule.ovulation) : null;
-  const windowSlot = schedule ? slotFor(schedule.fertileStart, schedule.fertileEnd) : null;
+  // The §19 display window — the same days `/fertility/bbt` and the insights
+  // screen mark (none when a long period swallows it).
+  const windowSlot =
+    schedule && hasFertileWindow(schedule)
+      ? slotFor(schedule.fertileStart, schedule.fertileEnd)
+      : null;
   const pmsSlot = schedule ? slotFor(schedule.pmsStart, schedule.pmsEnd) : null;
   const nextPeriodDate = nextPeriodSlot ? fmt(nextPeriodSlot.start) : null;
   const ovulationDate = ovulationSlot ? fmt(ovulationSlot.start) : null;
@@ -795,7 +811,10 @@ export function HomePage() {
   // centre), so it is part of the boot too: the ring and phase card hold their
   // loading state instead of the TTC blocks landing late and pushing the page
   // down (audit #27). It is already fetched in parallel with today's cycle.
-  const profileBooting = profileQuery.isPending && profileQuery.fetchStatus === 'fetching';
+  // With a remembered layout the page doesn't wait on it at all: a slow `/profile`
+  // (seen at ~5 s on stage) then only refreshes the hint in the background.
+  const profileBooting =
+    profileQuery.isPending && profileQuery.fetchStatus === 'fetching' && ttcHint === null;
   const booting =
     (todayQuery.isPending && todayQuery.fetchStatus === 'fetching') ||
     !bannersSettled ||

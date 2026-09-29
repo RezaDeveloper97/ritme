@@ -413,6 +413,28 @@ LOCK TABLES `failed_jobs` WRITE;
 /*!40000 ALTER TABLE `failed_jobs` DISABLE KEYS */;
 /*!40000 ALTER TABLE `failed_jobs` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `fertility_logs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `fertility_logs` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `log_date` date NOT NULL,
+  `lh_test` varchar(16) DEFAULT NULL,
+  `cervical_mucus` varchar(16) DEFAULT NULL,
+  `bbt_time` time DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `fertility_logs_user_id_log_date_unique` (`user_id`,`log_date`),
+  CONSTRAINT `fertility_logs_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `fertility_logs` WRITE;
+/*!40000 ALTER TABLE `fertility_logs` DISABLE KEYS */;
+/*!40000 ALTER TABLE `fertility_logs` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `info_sections`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;

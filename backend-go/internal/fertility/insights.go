@@ -3,8 +3,10 @@ package fertility
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	"github.com/ritme/backend-go/internal/checkups/engine"
+	"github.com/ritme/backend-go/internal/cycle/model"
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/fertility/bbt"
 	"github.com/ritme/backend-go/internal/fertility/store"
@@ -31,7 +33,8 @@ import (
 //
 // History: the last 5 finished cycles, newest first; ovulation day = the day before a confirmed BBT
 // shift, else the day after the cycle's first positive LH test, else the cycle engine's estimate
-// (the predicted next period − 14 days, from the cycle's own start).
+// (the predicted next period − 14 days, from the cycle's own start). Each row also carries the
+// cycle's own logged period length (period_days) for the history strip.
 
 // Evidence keys.
 const (
@@ -107,6 +110,8 @@ type HistoryRow struct {
 	Ovulation    civildate.Date // zero when unknown
 	OvulationDay *int
 	Source       string
+	// PeriodDays is the cycle's own logged period length (nil when the period has no end).
+	PeriodDays *int
 }
 
 // Insights is GET /fertility/insights before localisation.
@@ -295,7 +300,7 @@ func (in cycleInputs) window(today civildate.Date) *Window {
 // historyRow is a finished cycle's ovulation: the confirmed BBT shift, else the first positive
 // LH + 1, else the cycle engine's estimate from the cycle's start.
 func (in cycleInputs) historyRow(c bbt.CycleInput, analysed bbt.Cycle, tests []LHTest, today civildate.Date) HistoryRow {
-	row := HistoryRow{Start: c.Start}
+	row := HistoryRow{Start: c.Start, PeriodDays: in.periodDays(c)}
 	day := 0
 	switch {
 	case analysed.OvulationDay() != nil:
@@ -315,11 +320,42 @@ func (in cycleInputs) historyRow(c bbt.CycleInput, analysed bbt.Cycle, tests []L
 		}
 	}
 	if day < 1 || c.Start.AddDays(day-1).After(c.End) {
-		return HistoryRow{Start: c.Start, Source: row.Source}
+		return HistoryRow{Start: c.Start, Source: row.Source, PeriodDays: row.PeriodDays}
 	}
 	row.OvulationDay = &day
 	row.Ovulation = c.Start.AddDays(day - 1)
 	return row
+}
+
+// periodDays is the logged length of the period that opens c (the history row starting on
+// c.Start, confirmed rows first): its end − start + 1, else its bleeding_length; nil when neither
+// is known. Never longer than the cycle itself.
+func (in cycleInputs) periodDays(c bbt.CycleInput) *int {
+	var found *model.History
+	for i := range in.histories {
+		h := &in.histories[i]
+		if h.PeriodStart != c.Start || (!h.IsConfirmed && !h.IsEstimated) {
+			continue
+		}
+		if found == nil || (h.IsConfirmed && !found.IsConfirmed) {
+			found = h
+		}
+	}
+	if found == nil {
+		return nil
+	}
+	days := 0
+	switch {
+	case !found.PeriodEnd.IsZero() && !found.PeriodEnd.Before(c.Start):
+		days = c.Start.DiffDays(found.PeriodEnd) + 1
+	case found.BleedingLength != nil:
+		days = *found.BleedingLength
+	}
+	if days < 1 {
+		return nil
+	}
+	days = min(days, c.Start.DiffDays(c.End)+1)
+	return &days
 }
 
 // InsightsJSON is the GET /fertility/insights body.
@@ -332,18 +368,21 @@ func InsightsJSON(ins Insights, locale string) *jsonx.OrderedMap {
 	for _, e := range ins.Evidence {
 		evidence = append(evidence, jsonx.Obj(
 			"key", e.Key,
-			"title", T("insights.evidence."+e.Key+".title", locale),
+			"title", evidenceTitle(e, locale),
 			"detail", evidenceDetail(e, locale),
 			"strength", e.Strength,
 		))
 	}
 	history := make([]any, 0, len(ins.History))
 	for _, h := range ins.History {
-		var day, date any
+		var day, date, periodDays any
 		label := monthLabel(h.Start, locale)
 		if h.OvulationDay != nil {
 			day, date = *h.OvulationDay, h.Ovulation.String()
 			label = monthLabel(h.Ovulation, locale)
+		}
+		if h.PeriodDays != nil {
+			periodDays = *h.PeriodDays
 		}
 		history = append(history, jsonx.Obj(
 			"month_label", label,
@@ -351,6 +390,7 @@ func InsightsJSON(ins Insights, locale string) *jsonx.OrderedMap {
 			"date", date,
 			"source", h.Source,
 			"cycle_start", h.Start.String(),
+			"period_days", periodDays,
 		))
 	}
 	tips := make([]any, 0, len(ins.Tips))
@@ -371,7 +411,35 @@ func InsightsJSON(ins Insights, locale string) *jsonx.OrderedMap {
 	)
 }
 
-// evidenceDetail is the row's localized detail line.
+// plural is the "_one" / "_many" key suffix for n (the copy's own plural forms).
+func plural(n int) string {
+	if n == 1 {
+		return "_one"
+	}
+	return "_many"
+}
+
+// evidenceTitle is the row's localized title: the count or fact itself, as the design has it
+// («۶ سیکل کامل ثبت شده», «جهش دما در ۲ سیکل اخیر», «تست LH»).
+func evidenceTitle(e Evidence, locale string) string {
+	base := "insights.evidence." + e.Key + "."
+	switch e.Key {
+	case EvidenceCycles:
+		if e.Cycles == 0 {
+			return T(base+"title_none", locale)
+		}
+		return tr(base+"title"+plural(e.Cycles), locale, "count", num(e.Cycles, locale))
+	case EvidenceBBTShift:
+		if len(e.ShiftDays) == 0 {
+			return T(base+"title_none", locale)
+		}
+		return tr(base+"title"+plural(len(e.ShiftDays)), locale, "count", num(len(e.ShiftDays), locale))
+	}
+	return T(base+"title", locale)
+}
+
+// evidenceDetail is the row's localized detail line («طول معمول ۲۹ روز، نوسان ±۲», «روز ۱۵ و ۱۶
+// سیکل», «هنوز در این سیکل ثبت نشده»). A zero spread is left out rather than shown as «±۰».
 func evidenceDetail(e Evidence, locale string) string {
 	base := "insights.evidence." + e.Key + "."
 	switch e.Key {
@@ -379,19 +447,23 @@ func evidenceDetail(e Evidence, locale string) string {
 		switch {
 		case e.Cycles == 0:
 			return T(base+"none", locale)
-		case e.Variability == nil:
-			return tr(base+"length", locale, "count", num(e.Cycles, locale), "length", num(e.Length, locale))
+		case e.Variability == nil || (*e.Variability+1)/2 == 0:
+			return tr(base+"length", locale, "length", num(e.Length, locale))
 		}
-		return tr(base+"variability", locale, "count", num(e.Cycles, locale), "length", num(e.Length, locale),
+		return tr(base+"variability", locale, "length", num(e.Length, locale),
 			"variability", num((*e.Variability+1)/2, locale))
 	case EvidenceBBTShift:
-		switch len(e.ShiftDays) {
-		case 0:
+		if len(e.ShiftDays) == 0 {
 			return T(base+"none", locale)
-		case 1:
-			return tr(base+"one", locale, "days", joinDays(e.ShiftDays, locale))
 		}
-		return tr(base+"many", locale, "count", num(len(e.ShiftDays), locale), "days", joinDays(e.ShiftDays, locale))
+		days := slices.Clone(e.ShiftDays)
+		slices.Sort(days)
+		days = slices.Compact(days)
+		key := base + "many"
+		if len(days) == 1 {
+			key = base + "one"
+		}
+		return tr(key, locale, "days", joinDays(days, locale))
 	case EvidenceLH:
 		switch {
 		case e.Strength == StrengthStrong:
@@ -399,7 +471,7 @@ func evidenceDetail(e Evidence, locale string) string {
 		case e.Strength == StrengthMedium:
 			return tr(base+"faint", locale, "day", num(e.LHDay, locale))
 		case e.LHTests > 0:
-			return tr(base+"negative", locale, "count", num(e.LHTests, locale))
+			return tr(base+"negative"+plural(e.LHTests), locale, "count", num(e.LHTests, locale))
 		}
 		return T(base+"none", locale)
 	}

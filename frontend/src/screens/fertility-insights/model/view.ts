@@ -137,16 +137,18 @@ const FERTILE_DAYS_BEFORE = 5;
  * ovulation turquoise, the last {@link PMS_WINDOW_DAYS} days violet.
  *
  * The cycle's length is the gap to the next cycle's start (`nextStart`: the
- * newer history row, or the current cycle's start for the newest row). The API
- * sends no per-cycle period length, so `periodLength` is the engine's
- * effective one. `null` when the row can't be placed.
+ * newer history row, or the current cycle's start for the newest row). The
+ * period is the cycle's own logged length (`row.periodDays`); only a cycle
+ * without a logged end falls back to `fallbackPeriodLength` (the engine's
+ * effective one). `null` when the row can't be placed.
  */
 export function historyStrip(
   row: OvulationHistoryRow,
   nextStart: string | null,
-  periodLength: number,
+  fallbackPeriodLength: number,
 ): StripDay[] | null {
   if (!row.cycleStart || !nextStart) return null;
+  const periodLength = row.periodDays ?? fallbackPeriodLength;
   const length = diffInDays(fromApiDate(nextStart), fromApiDate(row.cycleStart));
   if (length < 1 || length > MAX_STRIP_DAYS) return null;
   const ov = row.ovulationDay;

@@ -3,7 +3,7 @@ id: T-M5-12
 title: Fertility follow-ups — evidence copy, profile latency, per-cycle period length, window anchors
 milestone: M5
 type: backend
-status: in_progress
+status: done
 depends_on: [T-M5-11]
 parallel_group: M5-D
 touches: [backend-go/internal/fertility,backend-go/internal/profile,backend-go/internal/cycle,backend-go/db/queries,backend-go/api/openapi.yaml,backend-go/contract,frontend/src/screens/fertility-insights,frontend/src/screens/home,frontend/src/entities/fertility,frontend/src/entities/cycle,frontend/src/widgets/fertility-tiles,docs/fertility-ttc,docs/go-migration]

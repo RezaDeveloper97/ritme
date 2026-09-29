@@ -73,23 +73,28 @@
     "insights": {
         "evidence": {
             "cycles": {
-                "title": "Complete cycles",
-                "none": "No complete cycle logged yet.",
-                "length": ":count complete cycles, usually :length days",
-                "variability": ":count complete cycles, usually :length days (±:variability)"
+                "title_none": "No complete cycle logged yet",
+                "title_one": ":count complete cycle logged",
+                "title_many": ":count complete cycles logged",
+                "none": "Your usual cycle length shows after the first complete cycle",
+                "length": "Usual length :length days",
+                "variability": "Usual length :length days, varies ±:variability"
             },
             "bbt_shift": {
-                "title": "BBT shift",
-                "none": "No confirmed rise yet.",
-                "one": "A rise on day :days in one cycle",
-                "many": "A rise in :count cycles, on days :days"
+                "title_none": "Temperature rise",
+                "title_one": "Temperature rise in :count recent cycle",
+                "title_many": "Temperature rise in :count recent cycles",
+                "none": "No confirmed rise yet",
+                "one": "Cycle day :days",
+                "many": "Cycle days :days"
             },
             "lh": {
-                "title": "LH tests this cycle",
-                "none": "No test logged this cycle.",
-                "negative": ":count tests, none positive yet",
-                "faint": "Faint on day :day",
-                "positive": "Positive on day :day"
+                "title": "LH test",
+                "none": "Not logged this cycle yet",
+                "negative_one": ":count test this cycle, not positive yet",
+                "negative_many": ":count tests this cycle, none positive yet",
+                "faint": "Faint on cycle day :day",
+                "positive": "Positive on cycle day :day"
             }
         },
         "tips": {

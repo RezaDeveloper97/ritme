@@ -122,7 +122,7 @@ describe("insights calendar + history strip", () => {
   });
 
   it("draws a finished cycle as a strip", () => {
-    const row = { monthLabel: "شهریور", ovulationDay: 15, cycleStart: "2026-08-17" };
+    const row = { monthLabel: "شهریور", ovulationDay: 15, cycleStart: "2026-08-17", periodDays: null };
     const strip = historyStrip(row, "2026-09-14", 5)!;
     expect(strip).toHaveLength(28);
     expect(strip.slice(0, 5)).toEqual(Array(5).fill("period"));
@@ -136,10 +136,20 @@ describe("insights calendar + history strip", () => {
     expect(historyStrip(row, null, 5)).toBeNull();
   });
 
+  it("paints the cycle's own period length, not the effective one (T-M5-12)", () => {
+    const row = { monthLabel: "شهریور", ovulationDay: 15, cycleStart: "2026-08-17", periodDays: 7 };
+    const strip = historyStrip(row, "2026-09-14", 5)!;
+    expect(strip.slice(0, 7)).toEqual(Array(7).fill("period"));
+    expect(strip[7]).toBe("none");
+    const short = historyStrip({ ...row, periodDays: 3 }, "2026-09-14", 5)!;
+    expect(short.slice(0, 3)).toEqual(Array(3).fill("period"));
+    expect(short[3]).toBe("none");
+  });
+
   it("pairs each row with the next cycle's start", () => {
     const rows = [
-      { monthLabel: "a", ovulationDay: 14, cycleStart: "2026-08-17" },
-      { monthLabel: "b", ovulationDay: 14, cycleStart: "2026-07-20" },
+      { monthLabel: "a", ovulationDay: 14, cycleStart: "2026-08-17", periodDays: 5 },
+      { monthLabel: "b", ovulationDay: 14, cycleStart: "2026-07-20", periodDays: null },
     ];
     expect(nextStarts(rows, "2026-09-14")).toEqual(["2026-09-14", "2026-08-17"]);
   });

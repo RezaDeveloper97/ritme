@@ -72,9 +72,9 @@ func TestInsights_NoCycles(t *testing.T) {
 		"window": {"start": "2026-09-19", "end": "2026-09-24", "ovulation": "2026-09-24"},
 		"confidence": "low",
 		"evidence": [
-			{"key": "cycles", "title": "سیکل\u200cهای کامل", "detail": "هنوز سیکل کاملی ثبت نشده است.", "strength": "none"},
-			{"key": "bbt_shift", "title": "جهش دمای پایه", "detail": "هنوز جهش تأییدشده\u200cای دیده نشده است.", "strength": "none"},
-			{"key": "lh", "title": "تست LH این سیکل", "detail": "این سیکل تستی ثبت نشده است.", "strength": "none"}
+			{"key": "cycles", "title": "هنوز سیکل کاملی ثبت نشده", "detail": "طول معمول سیکل بعد از اولین سیکل کامل مشخص می\u200cشود", "strength": "none"},
+			{"key": "bbt_shift", "title": "جهش دما", "detail": "هنوز جهش تأییدشده\u200cای دیده نشده", "strength": "none"},
+			{"key": "lh", "title": "تست LH", "detail": "هنوز در این سیکل ثبت نشده", "strength": "none"}
 		],
 		"history": [],
 		"tips": [
@@ -122,15 +122,17 @@ func TestInsights_TwoCycles(t *testing.T) {
 	raw, err := InsightsJSON(ins, "fa").MarshalJSON()
 	require.NoError(t, err)
 	s := string(raw)
-	assert.Contains(t, s, `"history":[{"month_label":"شهریور","ovulation_day":15,"date":"2026-08-27","source":"bbt","cycle_start":"2026-08-13"},{"month_label":"مرداد","ovulation_day":14,`)
-	assert.Contains(t, s, `"detail":"جهش در ۲ سیکل، روز ۱۶ و ۱۵"`)
-	assert.Contains(t, s, `"detail":"مثبت در روز ۱۳"`)
-	assert.Contains(t, s, `"detail":"۲ سیکل کامل، معمولاً ۲۸ روز (±۰)"`)
+	assert.Contains(t, s, `"history":[{"month_label":"شهریور","ovulation_day":15,"date":"2026-08-27","source":"bbt","cycle_start":"2026-08-13","period_days":5},{"month_label":"مرداد","ovulation_day":14,`)
+	// v19_TTC_Insights: the count/fact is the title, the detail carries the numbers (audit #18).
+	assert.Contains(t, s, `{"key":"cycles","title":"۲ سیکل کامل ثبت شده","detail":"طول معمول ۲۸ روز","strength":"medium"}`, "no «(±۰)»")
+	assert.Contains(t, s, `{"key":"bbt_shift","title":"جهش دما در ۲ سیکل اخیر","detail":"روز ۱۵ و ۱۶ سیکل","strength":"strong"}`, "days ascending")
+	assert.Contains(t, s, `{"key":"lh","title":"تست LH","detail":"مثبت در روز ۱۳ سیکل","strength":"strong"}`)
 
 	en, err := InsightsJSON(ins, "en").MarshalJSON()
 	require.NoError(t, err)
 	assert.Contains(t, string(en), `"month_label":"August","ovulation_day":15`)
-	assert.Contains(t, string(en), `"detail":"A rise in 2 cycles, on days 16 and 15"`)
+	assert.Contains(t, string(en), `"title":"Temperature rise in 2 recent cycles","detail":"Cycle days 15 and 16"`)
+	assert.Contains(t, string(en), `"title":"2 complete cycles logged","detail":"Usual length 28 days"`)
 }
 
 // Six regular finished cycles, no BBT; one past cycle has a positive LH test.
@@ -164,4 +166,103 @@ func TestConfidenceRule(t *testing.T) {
 	assert.Equal(t, ConfidenceMedium, confidence(true, StrengthNone, StrengthStrong, StrengthStrong), "no cycles → never high")
 	assert.Equal(t, ConfidenceMedium, confidence(true, StrengthMedium, StrengthMedium, StrengthNone))
 	assert.Equal(t, ConfidenceLow, confidence(true, StrengthMedium, StrengthNone, StrengthNone))
+}
+
+func TestEvidenceCopy(t *testing.T) {
+	variability := func(v int) *int { return &v }
+	cases := []struct {
+		name          string
+		e             Evidence
+		title, detail string
+	}{
+		{"cycles with spread", Evidence{Key: EvidenceCycles, Cycles: 6, Length: 29, Variability: variability(3)},
+			"۶ سیکل کامل ثبت شده", "طول معمول ۲۹ روز، نوسان ±۲"},
+		{"cycles, zero spread", Evidence{Key: EvidenceCycles, Cycles: 3, Length: 28, Variability: variability(0)},
+			"۳ سیکل کامل ثبت شده", "طول معمول ۲۸ روز"},
+		{"cycles, one cycle (no spread yet)", Evidence{Key: EvidenceCycles, Cycles: 1, Length: 30},
+			"۱ سیکل کامل ثبت شده", "طول معمول ۳۰ روز"},
+		{"one shift", Evidence{Key: EvidenceBBTShift, ShiftDays: []int{15}},
+			"جهش دما در ۱ سیکل اخیر", "روز ۱۵ سیکل"},
+		{"two shifts, same day once", Evidence{Key: EvidenceBBTShift, ShiftDays: []int{16, 15, 16}},
+			"جهش دما در ۳ سیکل اخیر", "روز ۱۵ و ۱۶ سیکل"},
+		{"lh faint", Evidence{Key: EvidenceLH, Strength: StrengthMedium, LHDay: 12}, "تست LH", "کم\u200cرنگ در روز ۱۲ سیکل"},
+		{"lh negatives", Evidence{Key: EvidenceLH, Strength: StrengthNone, LHTests: 2}, "تست LH", "۲ تست در این سیکل، هنوز مثبت نشده"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			assert.Equal(t, c.title, evidenceTitle(c.e, "fa"))
+			assert.Equal(t, c.detail, evidenceDetail(c.e, "fa"))
+			assert.NotContains(t, evidenceDetail(c.e, "fa"), "(")
+		})
+	}
+	assert.Equal(t, "1 complete cycle logged", evidenceTitle(Evidence{Key: EvidenceCycles, Cycles: 1}, "en"))
+	assert.Equal(t, "Temperature rise in 1 recent cycle", evidenceTitle(Evidence{Key: EvidenceBBTShift, ShiftDays: []int{14}}, "en"))
+	assert.Equal(t, "1 test this cycle, not positive yet", evidenceDetail(Evidence{Key: EvidenceLH, LHTests: 1}, "en"))
+	assert.Equal(t, "Usual length 29 days, varies ±2", evidenceDetail(Evidence{Key: EvidenceCycles, Cycles: 6, Length: 29, Variability: variability(4)}, "en"))
+}
+
+// period_days is each finished cycle's own logged period (end − start + 1), not the effective one.
+func TestInsights_HistoryPeriodDays(t *testing.T) {
+	starts := []string{"2026-09-10", "2026-08-13", "2026-07-16", "2026-06-18"}
+	ends := []int{4, 6, 2, -1} // days after the start; −1 = no logged end
+	histories := make([]model.History, 0, len(starts))
+	for i, s := range starts {
+		d := civildate.MustParse(s)
+		h := model.History{PeriodStart: d, IsConfirmed: true, Source: "user_logged"}
+		if ends[i] >= 0 {
+			h.PeriodEnd = d.AddDays(ends[i])
+		}
+		histories = append(histories, h)
+	}
+	bleeding := 4
+	histories[3].BleedingLength = &bleeding
+	histories = append(histories, model.History{PeriodStart: civildate.MustParse("2026-05-21"), IsConfirmed: true, Source: "user_logged"})
+	profile := &model.Profile{CycleDuration: model.Int(28), PeriodDuration: model.Int(5), LastPeriodStart: civildate.MustParse("2026-09-10")}
+	in := cycleInputs{histories: histories, profile: profile, metrics: metrics.Calculate(histories, profile)}
+	ins := in.insights(in.bbtCycles(insightsToday), nil, nil, insightsToday)
+
+	require.Len(t, ins.History, 4)
+	var got []any
+	for _, h := range ins.History {
+		if h.PeriodDays == nil {
+			got = append(got, nil)
+			continue
+		}
+		got = append(got, *h.PeriodDays)
+	}
+	assert.Equal(t, []any{7, 3, 4, nil}, got, "08-13: 7 days, 07-16: 3 days, 06-18: bleeding_length, 05-21: unknown")
+
+	raw, err := InsightsJSON(ins, "en").MarshalJSON()
+	require.NoError(t, err)
+	assert.Contains(t, string(raw), `"cycle_start":"2026-05-21","period_days":null}`)
+}
+
+// The T-M5-11 staging case (last start 09-13, 5 days, 28-day cycle, today = cycle day 16): the BBT
+// chart's fertile window is task.md §19's display window from the cycle view's anchors —
+// max(O−5, period end + 1) … O — which is what the home schedule now derives too (days 10–15,
+// never day 16).
+func TestBBTWindow_CycleDay16MatchesAnchors(t *testing.T) {
+	today := civildate.MustParse("2026-09-28")
+	var histories []model.History
+	for _, s := range []string{"2026-09-13", "2026-08-16", "2026-07-19", "2026-06-21"} {
+		d := civildate.MustParse(s)
+		histories = append(histories, model.History{PeriodStart: d, PeriodEnd: d.AddDays(4), IsConfirmed: true, Source: "user_logged"})
+	}
+	profile := &model.Profile{CycleDuration: model.Int(28), PeriodDuration: model.Int(5), LastPeriodStart: civildate.MustParse("2026-09-13")}
+	in := cycleInputs{histories: histories, profile: profile, metrics: metrics.Calculate(histories, profile)}
+
+	st := in.resolve(today, today)
+	require.NotNil(t, st.CycleDay)
+	require.Equal(t, 16, *st.CycleDay)
+	ov := st.EstimatedOvulationDate
+	start := ov.AddDays(-5)
+	if next := st.CurrentPeriodEnd.AddDays(1); next.After(start) {
+		start = next
+	}
+	cycles := in.bbtCycles(today)
+	require.NotEmpty(t, cycles)
+	w := cycles[0].FertileWindow
+	require.NotNil(t, w)
+	assert.Equal(t, bbt.DayRange{FromDay: st.CurrentPeriodStart.DiffDays(start) + 1, ToDay: st.CurrentPeriodStart.DiffDays(ov) + 1}, *w)
+	assert.Equal(t, bbt.DayRange{FromDay: 10, ToDay: 15}, *w)
 }

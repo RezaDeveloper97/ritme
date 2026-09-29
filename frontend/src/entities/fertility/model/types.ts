@@ -168,6 +168,8 @@ export interface OvulationHistoryRow {
   ovulationDay: number | null;
   /** First day of that cycle (`Y-m-d`); null when the server omits it. */
   cycleStart: string | null;
+  /** That cycle's own logged period length in days; null when unknown (no logged end). */
+  periodDays: number | null;
 }
 
 /** `GET /fertility/insights`. */

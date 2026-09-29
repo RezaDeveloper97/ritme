@@ -1,0 +1,50 @@
+{
+  "case": "fertility/insights.no_profile.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/fertility/insights",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "cycles_used": 0,
+          "window": null,
+          "confidence": "low",
+          "evidence": [
+            {
+              "key": "cycles",
+              "title": "هنوز سیکل کاملی ثبت نشده",
+              "detail": "طول معمول سیکل بعد از اولین سیکل کامل مشخص می‌شود",
+              "strength": "none"
+            },
+            {
+              "key": "bbt_shift",
+              "title": "جهش دما",
+              "detail": "هنوز جهش تأییدشده‌ای دیده نشده",
+              "strength": "none"
+            },
+            {
+              "key": "lh",
+              "title": "تست LH",
+              "detail": "هنوز در این سیکل ثبت نشده",
+              "strength": "none"
+            }
+          ],
+          "history": [],
+          "tips": [
+            "دمای پایه را هر روز صبح، قبل از بلند شدن و در یک ساعت ثابت ثبت کن.",
+            "شروع و پایان هر پریود را ثبت کن تا طول معمول سیکلت دقیق‌تر شود."
+          ]
+        }
+      }
+    }
+  ]
+}

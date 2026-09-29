@@ -1,0 +1,80 @@
+{
+  "case": "fertility/insights.ttc.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/fertility/insights",
+        "persona": "ttc",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "cycles_used": 3,
+          "window": {
+            "start": "2026-09-20",
+            "end": "2026-09-25",
+            "ovulation": "2026-09-25"
+          },
+          "confidence": "medium",
+          "evidence": [
+            {
+              "key": "cycles",
+              "title": "3 complete cycles logged",
+              "detail": "Usual length 28 days, varies ±1",
+              "strength": "strong"
+            },
+            {
+              "key": "bbt_shift",
+              "title": "Temperature rise",
+              "detail": "No confirmed rise yet",
+              "strength": "none"
+            },
+            {
+              "key": "lh",
+              "title": "LH test",
+              "detail": "Not logged this cycle yet",
+              "strength": "none"
+            }
+          ],
+          "history": [
+            {
+              "month_label": "August",
+              "ovulation_day": 15,
+              "date": "2026-08-28",
+              "source": "estimate",
+              "cycle_start": "2026-08-14",
+              "period_days": 5
+            },
+            {
+              "month_label": "July",
+              "ovulation_day": 15,
+              "date": "2026-07-30",
+              "source": "estimate",
+              "cycle_start": "2026-07-16",
+              "period_days": 5
+            },
+            {
+              "month_label": "July",
+              "ovulation_day": 15,
+              "date": "2026-07-03",
+              "source": "estimate",
+              "cycle_start": "2026-06-19",
+              "period_days": 5
+            }
+          ],
+          "tips": [
+            "Log your basal temperature every morning, before getting up, at the same time.",
+            "Start LH tests on cycle day 10 and test daily until one is positive."
+          ]
+        }
+      }
+    }
+  ]
+}

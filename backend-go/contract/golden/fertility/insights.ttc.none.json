@@ -1,0 +1,79 @@
+{
+  "case": "fertility/insights.ttc.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/fertility/insights",
+        "persona": "ttc",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "cycles_used": 3,
+          "window": {
+            "start": "2026-09-20",
+            "end": "2026-09-25",
+            "ovulation": "2026-09-25"
+          },
+          "confidence": "medium",
+          "evidence": [
+            {
+              "key": "cycles",
+              "title": "۳ سیکل کامل ثبت شده",
+              "detail": "طول معمول ۲۸ روز، نوسان ±۱",
+              "strength": "strong"
+            },
+            {
+              "key": "bbt_shift",
+              "title": "جهش دما",
+              "detail": "هنوز جهش تأییدشده‌ای دیده نشده",
+              "strength": "none"
+            },
+            {
+              "key": "lh",
+              "title": "تست LH",
+              "detail": "هنوز در این سیکل ثبت نشده",
+              "strength": "none"
+            }
+          ],
+          "history": [
+            {
+              "month_label": "شهریور",
+              "ovulation_day": 15,
+              "date": "2026-08-28",
+              "source": "estimate",
+              "cycle_start": "2026-08-14",
+              "period_days": 5
+            },
+            {
+              "month_label": "مرداد",
+              "ovulation_day": 15,
+              "date": "2026-07-30",
+              "source": "estimate",
+              "cycle_start": "2026-07-16",
+              "period_days": 5
+            },
+            {
+              "month_label": "تیر",
+              "ovulation_day": 15,
+              "date": "2026-07-03",
+              "source": "estimate",
+              "cycle_start": "2026-06-19",
+              "period_days": 5
+            }
+          ],
+          "tips": [
+            "دمای پایه را هر روز صبح، قبل از بلند شدن و در یک ساعت ثابت ثبت کن.",
+            "تست LH را از روز ۱۰ سیکل شروع کن و هر روز تا مثبت شدن ادامه بده."
+          ]
+        }
+      }
+    }
+  ]
+}

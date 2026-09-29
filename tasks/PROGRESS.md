@@ -853,3 +853,10 @@ Nothing needed fixing.
 - New: `entities/fertility/ui/BbtNumber.tsx`, `widgets/fertility-tiles/{model/ttc.ts,ui/FertilityChanceCard.tsx,ui/LhTipCard.tsx,ui/TtcPhasePills.tsx}`.
 - Verify: 627 frontend tests + gates, go test, contract 991 pass; check-colors OK.
 - Open → T-M5-12: evidence titles copy; `/profile` latency (home now waits on it; ~5 s seen on stage); per-cycle period length for history strips; home vs `/fertility/bbt` window off-by-one.
+
+## T-M5-12 — Fertility follow-ups
+- Evidence copy per design (count/fact titles, no «(±۰)»); `/fertility/insights` history `period_days`; new contract group `fertility` (goldens from Go; `fertility_logs` added to the fixture dump).
+- `/profile` is fast locally (p95 ~6 ms with 2 years of data) — the stage ~5 s wasn't reproducible; home no longer blocks on it for returning users via a boolean `ritme_home_ttc` hint (cleared on session end). Numbers in `docs/fertility-ttc/README.md`.
+- Home fertile window now from `cycle_view.anchors` per task.md §19 (= `/fertility/bbt`, days 10–15 on the day-16 case).
+- Verify: go test, fertility int tests, contract 998 pass; frontend 657 tests + gates. OpenAPI hunks for `/fertility/insights` land with the T-M7-19 commit (shared file).
+- Open: legacy O−5…O+1 window still in calendar `is_fertile_window` and home `CycleTimelineBar`; stage `/profile` latency to re-check after deploy.

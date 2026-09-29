@@ -233,8 +233,8 @@ describe('fertilityInsightsSchema', () => {
           { key: 'lh', title: 'تست LH', detail: 'هنوز در این سیکل ثبت نشده', strength: 'none' },
         ],
         history: [
-          { month_label: 'شهریور', ovulation_day: 16, cycle_start: '2026-08-13' },
-          { month_label: 'مرداد', ovulation_day: '15' },
+          { month_label: 'شهریور', ovulation_day: 16, cycle_start: '2026-08-13', period_days: 6 },
+          { month_label: 'مرداد', ovulation_day: '15', period_days: null },
         ],
         tips: ['دمای پایه را هر صبح ثبت کن', { title: 'LH', body: 'از روز ۱۰ تست بزن' }],
       }),
@@ -248,8 +248,8 @@ describe('fertilityInsightsSchema', () => {
         { key: 'lh', title: 'تست LH', detail: 'هنوز در این سیکل ثبت نشده', strength: 'none' },
       ],
       history: [
-        { monthLabel: 'شهریور', ovulationDay: 16, cycleStart: '2026-08-13' },
-        { monthLabel: 'مرداد', ovulationDay: 15, cycleStart: null },
+        { monthLabel: 'شهریور', ovulationDay: 16, cycleStart: '2026-08-13', periodDays: 6 },
+        { monthLabel: 'مرداد', ovulationDay: 15, cycleStart: null, periodDays: null },
       ],
       tips: ['دمای پایه را هر صبح ثبت کن', 'از روز ۱۰ تست بزن'],
     });
@@ -269,7 +269,7 @@ describe('fertilityInsightsSchema', () => {
       window: null,
       confidence: null,
       evidence: [{ key: 'x', title: 'ok', detail: null, strength: null }],
-      history: [{ monthLabel: 'تیر', ovulationDay: null, cycleStart: null }],
+      history: [{ monthLabel: 'تیر', ovulationDay: null, cycleStart: null, periodDays: null }],
       tips: [],
     });
   });

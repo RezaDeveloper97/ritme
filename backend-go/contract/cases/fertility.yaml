@@ -1,0 +1,29 @@
+# Fertility / TTC (/api/v1/fertility/*) — Go only (docs/fertility-ttc/README.md): there is no Laravel route, so
+# these goldens were recorded from the Go server and reviewed by hand (new-endpoint skill, step 8).
+# The fixture dump carries the fertility_logs table (goose 00004 / Laravel 2026_09_25_000001, schema only, no rows),
+# so the ttc persona (4 logged periods, last start 2026-09-11, cycle day 13 on 2026-09-23) has cycles but no BBT/LH:
+# the cases pin the shape, the evidence copy (T-M5-12, audit #18), history `period_days` and the locale handling.
+# Logged BBT / LH data is covered by internal/fertility int tests.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: fertility
+defaults:
+  locales: [none, en]
+cases:
+  - name: insights
+    doc: Insights (T-M5-03); history rows carry the cycle's own period length (T-M5-12)
+    persona: [ttc, no_profile]
+    method: GET
+    path: /api/v1/fertility/insights
+    status: 200
+  - name: insights_anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/fertility/insights
+    status: 401
+  - name: bbt
+    doc: BBT chart; fertile_window = the cycle view's main_phase fertile days (task.md §19)
+    persona: ttc
+    method: GET
+    path: /api/v1/fertility/bbt
+    status: 200

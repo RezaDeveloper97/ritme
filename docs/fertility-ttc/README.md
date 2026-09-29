@@ -261,3 +261,85 @@ Still open (report only, not fixed):
 Cleanup: test user deleted with `DELETE /api/v1/account` (200; cascades profile, periods, health logs,
 fertility_logs, …), then the leftover revoked `oauth_access_tokens` row and the `otp_verifications` row for
 `09900000951` were deleted from the stage DB. Production was not touched.
+
+## Follow-ups (T-M5-12) — 2026-09-29
+
+### 1. Evidence copy (audit #18)
+
+The count or fact is the evidence **title**, the numbers are the detail, as in `v19_TTC_Insights`
+(`backend-go/internal/fertility/lang/*/fertility.json` → `insights.evidence`, `insights.go` `evidenceTitle` /
+`evidenceDetail`):
+
+| key | title | detail |
+|---|---|---|
+| `cycles` | «۶ سیکل کامل ثبت شده» (none: «هنوز سیکل کاملی ثبت نشده») | «طول معمول ۲۹ روز، نوسان ±۲»; a zero spread is left out («طول معمول ۲۸ روز»), no more «(±۰)» |
+| `bbt_shift` | «جهش دما در ۲ سیکل اخیر» (none: «جهش دما») | «روز ۱۵ و ۱۶ سیکل» (days ascending, de-duplicated) |
+| `lh` | «تست LH» | «هنوز در این سیکل ثبت نشده» / «مثبت در روز ۱۳ سیکل» / «کم‌رنگ در روز ۱۲ سیکل» / «۲ تست در این سیکل، هنوز مثبت نشده» |
+
+«اخیر» instead of the artboard's «قبل»: the shift count covers the current cycle plus the last 5, so «قبل» would be
+wrong once this cycle has a shift. English has `_one` / `_many` forms.
+
+### 2. `/profile` latency
+
+Measured locally: backend-go on `:8036` against a scratch DB on the docker test stack, a TTC user with **2 years of
+data** (27 confirmed periods 2024-09-12 → 2026-09-14, 747 `daily_health_logs` rows with BBT, 135 `fertility_logs`
+rows with LH/mucus), `Accept-Language: fa`, 50 sequential requests after one warm-up (Python `urllib`, p50/p95 in ms):
+
+| request | before p50 / p95 | after p50 / p95 |
+|---|---|---|
+| `GET /profile` | 3.0 / 4.2 | 3.1 / 6.0 |
+| `GET /cycle/today` | 4.5 / 6.2 | 4.4 / 5.5 |
+| `GET /fertility/today` | 3.9 / 5.4 | 3.5 / 4.9 |
+| `GET /fertility/insights` | 5.2 / 11.8 | 5.3 / 7.7 |
+| `GET /fertility/bbt?range=6` | — | 5.0 / 7.1 |
+| `GET /profile` inside the home burst (11 parallel home requests × 30) | 8.9 / 14.4 | 10.2 / 14.1 |
+| `GET /profile`, first request after a server restart with an empty Redis prefix | — | 10 ms |
+
+The handler is not the slow part: `GET /profile` reads nothing of the cycle data (token + user, profile by
+`user_id` index, one `message_contents` row by its unique `(group,item_key,locale)` index for the BMI copy), there
+is no N+1 and no side work, and the pool (25 open / 10 idle) is never exhausted by the home burst. Data volume does
+not change it. The ~5 s seen on stage must come from outside the handler (host, network, proxy); it could not be
+reproduced locally, and stage was not touched in this task.
+
+So the fix is on the frontend (`screens/home`): the home no longer holds its boot on `/profile` when it already
+knows the layout. `screens/home/model/ttc-hint.ts` keeps **one boolean** (`ritme_home_ttc`, TTC or not) from the
+last fresh profile, wiped on session end (`onSessionEnd`); nothing else from the profile is stored (§11). With the
+hint the ring, phase/chance card and tiles render at once, and the fresh profile still wins when it lands. The very
+first load on a device (no hint yet) still waits, as before, so the TTC blocks never land late (audit #27).
+
+Measured in headless Chrome (390 × 844, Next dev on `:3036`), with a proxy that delays only `GET /profile` by 5 s,
+time from navigation to the TTC tiles on the home (after a warm-up load):
+
+| home load | before | after |
+|---|---|---|
+| returning user (hint stored) | 5 393 – 5 487 ms | 464 – 633 ms |
+| first load on the device (no hint) | 5 463 ms | 5 624 ms (unchanged by design) |
+
+### 3. History strips: per-cycle period length
+
+`GET /fertility/insights` history rows carry `period_days`: the cycle's own logged period (end − start + 1, else its
+`bleeding_length`; `null` without a logged end, capped at the cycle's length). The strip paints that many period
+days and only falls back to the engine's effective length for `null` (`screens/fertility-insights/model/view.ts`).
+OpenAPI updated; new contract group `fertility` (`contract/cases/fertility.yaml`: insights for `ttc` / `no_profile`,
+401, BBT for `ttc`), goldens recorded from Go (no Laravel route). The fixture dump got the empty `fertility_logs`
+table (the DDL of goose `00004` / the Laravel twin), which the group needs.
+
+### 4. Fertile window: one anchor for home and `/fertility/bbt`
+
+task.md §19 is the rule for anything the UI shows: **display window = `max(O − 5, current period end + 1)` …
+`O`** (`O = estimated_ovulation_date` = predicted next start − 14, §17). `/fertility/bbt` (and `/fertility/insights`)
+already drew it — they read the cycle engine's `main_phase = fertile` days, which the resolver builds from those
+anchors. The home schedule used the cycle view's legacy `predictions.fertile_window_*`, the *biological* window
+O − 5 … O + 1 (§18, `CyclePredictionService`), so its «پنجره باروری» row and the chance card's «شروع پنجره» ran one
+day past ovulation. `entities/cycle/model/schedule.ts` now derives the window from `cycle_view.anchors`
+(`estimated_ovulation_date`, `current_period_end`) with the §19 rule; `hasFertileWindow` covers the §19 empty
+window (a long period). No backend response changed (the `predictions` block keeps its Laravel-parity O + 1).
+
+Cycle-day-16 case (last start 09-13, 5 days, 28-day cycle): both give cycle days **10–15** (ovulation day 15); on
+day 16 the home rolls the window to the next cycle, the same dates `/fertility/insights` shows. Tests:
+`schedule.test.ts` («matches /fertility/bbt on cycle day 16»), Go `TestBBTWindow_CycleDay16MatchesAnchors`.
+Checked in the browser for the 2-year user (today = cycle day 16): home «پنجره باروری ۲۹ مهر تا ۴ آبان» =
+insights window 2026-10-21 → 10-26, BBT window days 10–15.
+
+Still different by design: the calendar's per-day `is_fertile_window` (legacy calculation, O − 5 … O + 1) and the
+home cycle bar, which draws its band from the legacy `estimated_ovulation_day`.

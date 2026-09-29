@@ -32,6 +32,7 @@ func TestInsights_TwoCyclesOverHTTP(t *testing.T) {
 	d := r.data()
 	evidence := d["evidence"].([]any)
 	require.Len(t, evidence, 3)
+	assert.Equal(t, "۲ سیکل کامل ثبت شده", evidence[0].(map[string]any)["title"], "audit #18: the count is the title")
 	var keys, strengths []any
 	for _, row := range evidence {
 		m := row.(map[string]any)
@@ -46,6 +47,7 @@ func TestInsights_TwoCyclesOverHTTP(t *testing.T) {
 	require.Len(t, history, 2)
 	assert.Equal(t, map[string]any{
 		"month_label": "شهریور", "ovulation_day": float64(15), "date": "2026-08-27", "source": "bbt", "cycle_start": "2026-08-13",
+		"period_days": float64(5),
 	}, history[0])
 	assert.Len(t, d["tips"], 1)
 

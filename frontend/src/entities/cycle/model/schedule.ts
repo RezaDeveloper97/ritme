@@ -1,10 +1,6 @@
 import { addDays, diffInDays, fromApiDate } from '@/shared/lib/date';
 
-import {
-  FERTILE_WINDOW_LEAD_DAYS,
-  FERTILE_WINDOW_TRAIL_DAYS,
-  PMS_WINDOW_DAYS,
-} from './predictions';
+import { FERTILE_WINDOW_LEAD_DAYS, PMS_WINDOW_DAYS } from './predictions';
 import type { CycleCalculation, CycleDayMarker, CycleView } from './types';
 
 /** Fixed ovulation → next-period offset the engine uses (`CyclePredictionService`). */
@@ -30,6 +26,13 @@ export interface CycleSchedule {
   cycleLength: number;
   nextPeriodStart: Date;
   ovulation: Date;
+  /**
+   * The display fertile window (task.md §19): from `max(ovulation − 5, period
+   * end + 1)` to the ovulation day itself — the days the engine resolves as
+   * `main_phase = fertile`, and the window `/fertility/bbt` and
+   * `/fertility/insights` draw. Empty (`fertileEnd` before `fertileStart`) when
+   * a long period swallows it; see {@link hasFertileWindow}.
+   */
   fertileStart: Date;
   fertileEnd: Date;
   /** First PMS day (the run of days ending the day before the next period). */
@@ -78,15 +81,22 @@ export function deriveCycleSchedule(
     (calc ? addDays(cycleStart, calc.estimatedOvulationDay - 1) : null) ??
     addDays(nextPeriodStart, -LUTEAL_LENGTH);
 
+  // §19 display window from the same anchors as the engine's phases. Not the
+  // legacy `predictions.fertile_window_*` (the biological O−5 … O+1): that one
+  // ran a day past ovulation and disagreed with the fertility screens.
+  const biologicalStart = addDays(ovulation, -FERTILE_WINDOW_LEAD_DAYS);
+  const periodEnd = anchors?.currentPeriodStart ? parse(anchors.currentPeriodEnd) : null;
+  const dayAfterPeriod = periodEnd ? addDays(periodEnd, 1) : null;
+  const fertileStart =
+    dayAfterPeriod && diffInDays(dayAfterPeriod, biologicalStart) > 0 ? dayAfterPeriod : biologicalStart;
+
   return {
     cycleStart,
     cycleLength,
     nextPeriodStart,
     ovulation,
-    fertileStart:
-      parse(forecast?.fertileWindowStart) ?? addDays(ovulation, -FERTILE_WINDOW_LEAD_DAYS),
-    fertileEnd:
-      parse(forecast?.fertileWindowEnd) ?? addDays(ovulation, FERTILE_WINDOW_TRAIL_DAYS),
+    fertileStart,
+    fertileEnd: ovulation,
     pmsEnd: addDays(nextPeriodStart, -1),
     pmsStart: addDays(nextPeriodStart, -PMS_WINDOW_DAYS),
   };
@@ -113,6 +123,11 @@ export function cycleScheduleFor(schedule: CycleSchedule, date: Date): CycleSche
     pmsStart: addDays(schedule.pmsStart, shift),
     pmsEnd: addDays(schedule.pmsEnd, shift),
   };
+}
+
+/** Whether the schedule has a non-empty display fertile window (task.md §19). */
+export function hasFertileWindow(schedule: CycleSchedule): boolean {
+  return diffInDays(schedule.fertileEnd, schedule.fertileStart) >= 0;
 }
 
 /** Whole days from `date` to that cycle's next period start (never negative). */

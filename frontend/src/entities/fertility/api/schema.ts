@@ -318,12 +318,18 @@ const evidenceSchema = z
   );
 
 const historyRowSchema = z
-  .object({ month_label: z.string(), ovulation_day: intOrNull.optional(), cycle_start: textOrNull.optional() })
+  .object({
+    month_label: z.string(),
+    ovulation_day: intOrNull.optional(),
+    cycle_start: textOrNull.optional(),
+    period_days: intOrNull.optional(),
+  })
   .transform(
     (r): OvulationHistoryRow => ({
       monthLabel: r.month_label,
       ovulationDay: r.ovulation_day ?? null,
       cycleStart: r.cycle_start ? r.cycle_start.slice(0, 10) : null,
+      periodDays: r.period_days != null && r.period_days > 0 ? r.period_days : null,
     }),
   );
 

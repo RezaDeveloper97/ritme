@@ -1,0 +1,47 @@
+{
+  "case": "fertility/bbt.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/fertility/bbt",
+        "persona": "ttc",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "range": 1,
+          "cycles": [
+            {
+              "start_date": "2026-09-11",
+              "points": [],
+              "coverline": null,
+              "fertile_window": {
+                "from_day": 10,
+                "to_day": 15
+              },
+              "shift_day": null,
+              "phase": "pre_shift"
+            }
+          ],
+          "stats": {
+            "pre_ovulation_avg": null,
+            "logged_days": 0,
+            "cycle_days_so_far": 13,
+            "gaps": 13
+          },
+          "past_shift_days": [],
+          "tip": {
+            "title": "دنبال جهش ۰٫۲ تا ۰٫۵ درجه باش",
+            "body": "اگر دما سه روز پشت‌سرهم بالاتر از خط مبنا بماند، احتمالاً تخمک‌گذاری یک روز قبل از اولین روز بالا بوده."
+          }
+        }
+      }
+    }
+  ]
+}

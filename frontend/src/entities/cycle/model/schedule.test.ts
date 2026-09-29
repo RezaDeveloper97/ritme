@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import { fromApiDate, toApiDate } from '@/shared/lib/date';
+import { diffInDays, fromApiDate, toApiDate } from '@/shared/lib/date';
 
 import {
   cycleProgressPercent,
   cycleScheduleFor,
   daysUntilNextPeriod,
   deriveCycleSchedule,
+  hasFertileWindow,
   scheduleDayMarker,
 } from './schedule';
 import type { CycleCalculation, CycleView } from './types';
@@ -93,8 +94,67 @@ describe('deriveCycleSchedule', () => {
     expect(iso(s.nextPeriodStart)).toBe('2026-08-11');
     expect(iso(s.ovulation)).toBe('2026-07-28');
     expect(iso(s.fertileStart)).toBe('2026-07-23');
-    expect(iso(s.fertileEnd)).toBe('2026-07-29');
+    // §19 display window ends on ovulation, not on the forecast's biological O+1 (07-29).
+    expect(iso(s.fertileEnd)).toBe('2026-07-28');
+    expect(hasFertileWindow(s)).toBe(true);
     expect(s.cycleLength).toBe(28);
+  });
+
+  // The T-M5-11 staging case: last start 09-13 (5 days), 28-day cycle, today =
+  // cycle day 16. `/fertility/bbt` draws the window on cycle days 10–15; the
+  // home schedule must give the same days (it used to end on day 16).
+  it('matches /fertility/bbt on cycle day 16: window = days 10–15, ending on ovulation', () => {
+    const s = deriveCycleSchedule(
+      makeView({
+        date: '2026-09-28',
+        cycleDay: 16,
+        anchors: {
+          currentPeriodStart: '2026-09-13',
+          currentPeriodStartSource: 'user_logged',
+          currentPeriodEnd: '2026-09-17',
+          currentPeriodEndSource: 'user_logged',
+          currentPeriodEndIsConfirmed: true,
+          predictedNextPeriodStart: '2026-10-11',
+          estimatedOvulationDate: '2026-09-27',
+        },
+        forecast: {
+          nextPeriodStart: '2026-10-11',
+          nextPeriodEnd: '2026-10-15',
+          estimatedOvulationDate: '2026-09-27',
+          fertileWindowStart: '2026-09-22',
+          fertileWindowEnd: '2026-09-28',
+          source: 'recent_valid_cycles',
+          confidence: 'high',
+          confidenceReasons: [],
+        },
+      }),
+      makeCalc({ calculationDate: '2026-09-28', cycleDay: 16 }),
+    )!;
+    const cycleDay = (d: Date) => diffInDays(d, s.cycleStart) + 1;
+
+    expect(cycleDay(s.fertileStart)).toBe(10);
+    expect(cycleDay(s.fertileEnd)).toBe(15);
+    expect(iso(s.fertileEnd)).toBe('2026-09-27');
+    expect(scheduleDayMarker(s, fromApiDate('2026-09-28'), 5)).toBeNull();
+  });
+
+  it('starts the window the day after a long period (max(O−5, period end + 1))', () => {
+    const view = makeView();
+    const s = deriveCycleSchedule(
+      makeView({ anchors: { ...view.anchors!, currentPeriodEnd: '2026-07-24' } }),
+      makeCalc(),
+    )!;
+    expect(iso(s.fertileStart)).toBe('2026-07-25');
+    expect(iso(s.fertileEnd)).toBe('2026-07-28');
+  });
+
+  it('has no window when the period runs past ovulation (§19 empty window)', () => {
+    const view = makeView();
+    const s = deriveCycleSchedule(
+      makeView({ anchors: { ...view.anchors!, currentPeriodEnd: '2026-07-28' } }),
+      makeCalc(),
+    )!;
+    expect(hasFertileWindow(s)).toBe(false);
   });
 
   it('derives the PMS run as the four days before the next period', () => {
@@ -162,7 +222,7 @@ describe('cycleProgressPercent', () => {
 });
 
 describe('scheduleDayMarker', () => {
-  // Cycle starts 2026-07-14, ovulation 2026-07-28, fertile 07-23…07-29,
+  // Cycle starts 2026-07-14, ovulation 2026-07-28, fertile 07-23…07-28,
   // PMS 08-07…08-10, next period 2026-08-11.
   const schedule = deriveCycleSchedule(makeView(), makeCalc())!;
   const at = (iso: string) => scheduleDayMarker(schedule, fromApiDate(iso), 5);
@@ -176,7 +236,8 @@ describe('scheduleDayMarker', () => {
   it('lets ovulation win over the fertile window around it', () => {
     expect(at('2026-07-23')).toBe('fertile');
     expect(at('2026-07-28')).toBe('ovulation');
-    expect(at('2026-07-29')).toBe('fertile');
+    // The display window ends on ovulation (§19): the day after is luteal.
+    expect(at('2026-07-29')).toBeNull();
   });
 
   it('marks the run of days before the next period as PMS', () => {
