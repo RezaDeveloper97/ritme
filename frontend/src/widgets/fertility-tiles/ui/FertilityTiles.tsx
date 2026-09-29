@@ -34,7 +34,7 @@ function TileLink({ tile }: { tile: Tile }) {
     <Link
       href={tile.href}
       aria-label={`${tile.aria} — ${tile.value}`}
-      className="flex min-h-11 min-w-11 flex-col items-center gap-2 rounded-2xl bg-(--surface) px-2 py-3 text-center focus-visible:outline-2 focus-visible:outline-(--brand)"
+      className="flex min-h-11 min-w-11 flex-col items-center gap-2 rounded-3xl border border-(--line) bg-(--surface) px-2 py-4 text-center focus-visible:outline-2 focus-visible:outline-(--brand)"
     >
       <span
         aria-hidden
@@ -42,17 +42,17 @@ function TileLink({ tile }: { tile: Tile }) {
       >
         <Icon name={ICON[tile.tone]} size={22} />
       </span>
-      <span className="text-sm font-bold text-(--ink)">{tile.label}</span>
-      <span className="text-xs text-(--muted)">{tile.value}</span>
+      <span className="text-[13px] font-bold text-(--ink)">{tile.label}</span>
+      <span className="text-[10.5px] font-semibold text-(--ink-3)">{tile.value}</span>
     </Link>
   );
 }
 
 function TilesSkeleton({ label }: { label: string }) {
   return (
-    <div role="status" aria-busy="true" aria-label={label} className="grid grid-cols-3 gap-3">
+    <div role="status" aria-busy="true" aria-label={label} className="grid grid-cols-3 gap-2.5">
       {[0, 1, 2].map((i) => (
-        <div key={i} className="h-[116px] animate-pulse rounded-2xl bg-(--surface)" />
+        <div key={i} className="h-[134px] animate-pulse rounded-3xl border border-(--line) bg-(--surface)" />
       ))}
     </div>
   );
@@ -60,7 +60,8 @@ function TilesSkeleton({ label }: { label: string }) {
 
 /**
  * TTC quick tiles (LH / BBT / intercourse) for the cycle home, read from
- * `/fertility/today`. The home mounts it only for `pregnancyIntention === 'trying'`.
+ * `/fertility/today`. The home mounts it only for `pregnancyIntention === 'trying'`,
+ * inside its padded top block (below the chance card, `v19_Main`).
  * Renders nothing on error so the rest of the home is unaffected.
  */
 export function FertilityTiles() {
@@ -71,11 +72,11 @@ export function FertilityTiles() {
   if (isError) return null;
 
   return (
-    <section aria-label={t('tiles.label')} className="mx-4 mt-4.5">
+    <section aria-label={t('tiles.label')}>
       {isPending || !data ? (
         <TilesSkeleton label={t('tiles.label')} />
       ) : (
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-2.5">
           {(
             [
               {

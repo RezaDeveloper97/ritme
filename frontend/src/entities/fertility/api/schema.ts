@@ -318,8 +318,14 @@ const evidenceSchema = z
   );
 
 const historyRowSchema = z
-  .object({ month_label: z.string(), ovulation_day: intOrNull.optional() })
-  .transform((r): OvulationHistoryRow => ({ monthLabel: r.month_label, ovulationDay: r.ovulation_day ?? null }));
+  .object({ month_label: z.string(), ovulation_day: intOrNull.optional(), cycle_start: textOrNull.optional() })
+  .transform(
+    (r): OvulationHistoryRow => ({
+      monthLabel: r.month_label,
+      ovulationDay: r.ovulation_day ?? null,
+      cycleStart: r.cycle_start ? r.cycle_start.slice(0, 10) : null,
+    }),
+  );
 
 /** Parse each row on its own and drop the ones that fail. */
 const listOf = <T>(schema: z.ZodType<T, z.ZodTypeDef, unknown>) =>

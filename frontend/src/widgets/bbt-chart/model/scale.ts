@@ -89,10 +89,23 @@ export function buildScales(
     frame.left + ((day - 1) / Math.max(1, maxDay - 1)) * plotW;
   const y = (value: number): number =>
     frame.top + ((domain.max - value) / (domain.max - domain.min)) * plotH;
-  const xTicks: number[] = [1];
-  for (let d = 7; d < maxDay; d += 7) xTicks.push(d);
-  if (xTicks[xTicks.length - 1] !== maxDay) xTicks.push(maxDay);
-  return { frame, domain, maxDay, x, y, xTicks };
+  return { frame, domain, maxDay, x, y, xTicks: dayTicks(maxDay) };
+}
+
+/** X-axis step (`v19_TTC_BBT`: 1, 5, 10 … and the last cycle day). */
+const X_TICK_STEP = 5;
+
+/**
+ * Cycle-day ticks: day 1, every 5th day, and the last day — a 5th day that sits
+ * right next to the last one is dropped so the two labels never collide.
+ */
+export function dayTicks(maxDay: number): number[] {
+  const ticks: number[] = [1];
+  for (let d = X_TICK_STEP; d < maxDay; d += X_TICK_STEP) {
+    if (maxDay - d >= 2) ticks.push(d);
+  }
+  if (ticks[ticks.length - 1] !== maxDay) ticks.push(maxDay);
+  return ticks;
 }
 
 /** y of the dashed coverline; null when the cycle has none yet. */

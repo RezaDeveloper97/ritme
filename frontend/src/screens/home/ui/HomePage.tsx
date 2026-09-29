@@ -29,11 +29,12 @@ import {
   type CyclePredictions,
   type CycleSchedule,
 } from '@/entities/cycle';
+import { useFertilityToday } from '@/entities/fertility';
 import { useDailyMessage, type DailyMessage } from '@/entities/message';
 import { useUserProfile } from '@/entities/user';
 import { QuickEditSheet } from '@/features/edit-profile';
 import { PeriodDateEditor } from '@/features/log-period';
-import type { Locale } from '@/shared/i18n';
+import { Link, type Locale } from '@/shared/i18n';
 import {
   addDays,
   currentHour,
@@ -54,7 +55,13 @@ import { DropSolid, Icon, type IconName } from '@/shared/ui';
 import { BannerSlideshow } from '@/widgets/banner-slideshow';
 import { BottomNav } from '@/widgets/bottom-nav';
 import { CheckupsCard } from '@/widgets/checkups-card';
-import { FertilityTiles } from '@/widgets/fertility-tiles';
+import {
+  FertilityChanceCard,
+  FertilityTiles,
+  LhTipCard,
+  TtcPhasePills,
+  ttcPhase,
+} from '@/widgets/fertility-tiles';
 import { TodayChallengeCard } from '@/widgets/today-challenge';
 import { TodayRemindersCard } from '@/widgets/today-reminders';
 
@@ -642,6 +649,9 @@ function ArticlesSkeleton({ t }: { t: T }) {
 // ── Main export ────────────────────────────────────────────────
 export function HomePage() {
   const t = useTranslations('home');
+  // Chance labels and the TTC home copy live with the fertility screens, so the
+  // home and «ثبت روز» say the same word for the same level (audit #1).
+  const tf = useTranslations('fertility');
   const loc = useLocale() as Locale;
   // This route is statically prerendered, so anything derived from "now" would
   // be frozen at build time in the server HTML and disagree with the client on
@@ -662,6 +672,10 @@ export function HomePage() {
   const todayData = todayQuery.data;
   const { data: daily } = useDailyMessage();
   const profileQuery = useUserProfile();
+  // TTC home (`v19_Main`): only while trying to conceive; pregnancy mode never matches.
+  const isTtc = profileQuery.data?.health?.pregnancyIntention === 'trying';
+  // Same cache as the tiles (no extra request): the LH tip hides once today's test is logged.
+  const fertilityToday = useFertilityToday();
 
   const calc = todayData?.calculation ?? null;
   const pred = calc ? deriveCyclePredictions(calc) : null;
@@ -751,7 +765,13 @@ export function HomePage() {
   // user different things about the same day. Behind it: the personalized
   // message for today, then a tense-neutral phase blurb (a tapped day must
   // never say «امروز»).
-  const infoFertilityLabel = infoView?.dailyCard?.fertilityLabel || null;
+  // The v1.1 top-level level (§26) — what `/fertility/*` reads too — not the
+  // daily card's legacy calendar mapping; `unknown` shows no pill (audit #1).
+  const infoFertilityLevel = infoView?.fertilityLevel ?? null;
+  const infoFertilityLabel =
+    infoFertilityLevel && infoFertilityLevel !== 'unknown'
+      ? tf(`chance.levels.${infoFertilityLevel}`)
+      : null;
   const infoPhaseDesc =
     infoView?.dailyCard?.subtitle ||
     (isToday
@@ -771,8 +791,15 @@ export function HomePage() {
   const bannersSettled = useBannersSettled();
   // Only while a request is actually in flight: a disabled or offline-paused
   // query must never hold the page back.
+  // The profile decides whether this is the TTC home (tiles, chance card, ring
+  // centre), so it is part of the boot too: the ring and phase card hold their
+  // loading state instead of the TTC blocks landing late and pushing the page
+  // down (audit #27). It is already fetched in parallel with today's cycle.
+  const profileBooting = profileQuery.isPending && profileQuery.fetchStatus === 'fetching';
   const booting =
-    (todayQuery.isPending && todayQuery.fetchStatus === 'fetching') || !bannersSettled;
+    (todayQuery.isPending && todayQuery.fetchStatus === 'fetching') ||
+    !bannersSettled ||
+    profileBooting;
   const loadingInfo = infoLoading || booting;
   // No period on record (e.g. right after leaving pregnancy mode): ask for the
   // last period instead of a ring and a phase card full of «—». The daily
@@ -808,30 +835,52 @@ export function HomePage() {
   const inPeriod = infoPred?.phase === 'period';
   const daysLeft = infoDaysUntilNextPeriod;
   const dash = t('unavailable');
+  // TTC ring centre (`v19_Main`): «تخمک‌گذاری تا N روز» while ovulation is still
+  // ahead in this cycle; once it has passed (or during the period) the ring
+  // counts down to the next period like every other cycle home.
+  const daysToOvulation = infoView?.daysToOvulation ?? null;
+  const ttcRing =
+    isTtc && !noPeriodData && !loadingInfo && !inPeriod && daysToOvulation != null && daysToOvulation >= 0;
   const ringOverline = noPeriodData
     ? t('ring.noData')
-    : inPeriod && !loadingInfo
-      ? t('ring.period')
-      : t('ring.nextPeriod');
+    : ttcRing
+      ? tf('home.ovulationIn')
+      : inPeriod && !loadingInfo
+        ? t('ring.period')
+        : t('ring.nextPeriod');
   const ringNumber = loadingInfo
     ? dash
-    : inPeriod && infoCycleDay != null
-      ? t('ring.periodDay', { n: infoCycleDay })
-      : daysLeft == null
-        ? dash
-        : daysLeft === 0
-          ? t('ring.today')
-          : formatNumber(daysLeft, loc);
-  const ringUnit = !loadingInfo && !inPeriod && daysLeft != null && daysLeft > 0
-    ? t('ring.daysLeft', { n: daysLeft })
-    : null;
+    : ttcRing
+      ? daysToOvulation === 0
+        ? t('ring.today')
+        : formatNumber(daysToOvulation, loc)
+      : inPeriod && infoCycleDay != null
+        ? t('ring.periodDay', { n: infoCycleDay })
+        : daysLeft == null
+          ? dash
+          : daysLeft === 0
+            ? t('ring.today')
+            : formatNumber(daysLeft, loc);
+  const ringUnit = loadingInfo
+    ? null
+    : ttcRing
+      ? daysToOvulation > 0
+        ? tf('home.days')
+        : null
+      : !inPeriod && daysLeft != null && daysLeft > 0
+        ? t('ring.daysLeft', { n: daysLeft })
+        : null;
   const ringSub = loadingInfo
     ? null
     : inPeriod
       ? t('ring.usually', { n: periodLength })
       : infoCycleDay != null
-        ? t('ring.cycleDay', { n: infoCycleDay })
+        ? isTtc && infoFertilityLabel
+          ? tf('home.ringCaption', { day: formatNumber(infoCycleDay, loc), level: infoFertilityLabel })
+          : t('ring.cycleDay', { n: infoCycleDay })
         : null;
+  // «ثبت امروز» opens the day log for the selected day (never a future one).
+  const logHref = selApiDate < toApiDate(base) ? `/fertility/log?date=${selApiDate}` : '/fertility/log';
   const ringLabel = ringCycleDay != null
     ? t('ring.label', { day: ringCycleDay, length: ringLength })
     : t('ring.labelEmpty');
@@ -844,6 +893,19 @@ export function HomePage() {
       ? t('phaseCard.nearPeriod')
       : t(`phaseCard.title.${infoPred.phase}`, { n: infoCycleDay ?? infoPred.cycleDay });
   const phaseDot: CyclePhase | null = loadingInfo || !infoPred ? null : nearPeriod ? 'period' : infoPred.phase;
+
+  // ── TTC blocks (`v19_Main`) ──
+  const chanceTitle = isToday
+    ? tf('home.chanceCard.title')
+    : tf('home.chanceCard.titleDay', { date: fmt(selectedDate) });
+  const chanceDesc =
+    isToday && infoView?.mainPhase === 'fertile' ? tf('home.chanceCard.inWindow') : infoPhaseDesc;
+  // «امروز تست LH بزن»: today is in the fertile window and no LH test is logged yet.
+  const showLhTip =
+    isTtc &&
+    todayData?.cycleView?.mainPhase === 'fertile' &&
+    fertilityToday.data != null &&
+    fertilityToday.data.lh.value === null;
 
   // Server pass / first client render: backdrop only, so both sides match.
   if (!mounted) {
@@ -875,11 +937,13 @@ export function HomePage() {
             markOf={markOf}
           />
           <section className={clsx('home-ring', loadingInfo && 'is-loading')}>
-            <div className="home-ring-glow" aria-hidden />
+            <div className={clsx('home-ring-glow', ttcRing && 'is-ttc')} aria-hidden />
             <CycleRing days={ringDays} nowIndex={ringNowIndex} label={ringLabel}>
               {/* `--period` red means menstruation (§10.2); "nothing logged yet"
                   is not a period, so the empty state takes the neutral caption. */}
-              <span className={noPeriodData ? 'home-ring-sub' : 'home-ring-over'}>{ringOverline}</span>
+              <span className={noPeriodData ? 'home-ring-sub' : clsx('home-ring-over', ttcRing && 'is-ttc')}>
+                {ringOverline}
+              </span>
               {!noPeriodData && (
                 <div className="home-ring-big">
                   <span className="home-ring-num">{ringNumber}</span>
@@ -887,11 +951,18 @@ export function HomePage() {
                 </div>
               )}
               {ringSub && !noPeriodData && <span className="home-ring-sub">{ringSub}</span>}
-              {/* The date editor rises over the home screen itself (§4.1). */}
-              <button type="button" className="home-ring-edit" onClick={() => setDateEditorOpen(true)}>
-                <Icon name="pen" size={16} strokeWidth={2.2} />
-                {noPeriodData ? t('ring.logPeriod') : t('ring.editPeriod')}
-              </button>
+              {ttcRing ? (
+                <Link href={logHref} className="home-ring-edit is-ink">
+                  <Icon name="plus" size={16} strokeWidth={2.4} />
+                  {tf('home.logToday')}
+                </Link>
+              ) : (
+                // The date editor rises over the home screen itself (§4.1).
+                <button type="button" className="home-ring-edit" onClick={() => setDateEditorOpen(true)}>
+                  <Icon name="pen" size={16} strokeWidth={2.2} />
+                  {noPeriodData ? t('ring.logPeriod') : t('ring.editPeriod')}
+                </button>
+              )}
             </CycleRing>
           </section>
           {noPeriodData ? (
@@ -905,6 +976,20 @@ export function HomePage() {
               loading={false}
               action={{ label: t('phaseCard.noData.cta'), onClick: () => setDateEditorOpen(true) }}
             />
+          ) : isTtc ? (
+            <>
+              <TtcPhasePills active={loadingInfo ? null : ttcPhase(infoView?.mainPhase ?? null)} />
+              <FertilityChanceCard
+                title={chanceTitle}
+                level={loadingInfo ? null : infoFertilityLevel}
+                levelLabel={loadingInfo ? dash : (infoFertilityLabel ?? tf('chance.levels.unknown'))}
+                description={loadingInfo ? t('unavailable') : chanceDesc}
+                windowStart={windowSlot ? fmt(windowSlot.start) : null}
+                ovulation={ovulationDate}
+                nextPeriod={nextPeriodDate}
+                loading={loadingInfo}
+              />
+            </>
           ) : (
             <PhaseCard
               t={t}
@@ -916,14 +1001,19 @@ export function HomePage() {
               loading={loadingInfo}
             />
           )}
+          {/* TTC quick tiles (M5) — under the chance card, then the LH tip (`v19_Main`). */}
+          {isTtc && !booting && <FertilityTiles />}
+          {showLhTip && !booting && <LhTipCard />}
         </div>
-        {/* TTC quick tiles (M5) — below the phase/chance block, only while trying
-            to conceive; `pregnant` (pregnancy mode) never matches. */}
-        {profileQuery.data?.health?.pregnancyIntention === 'trying' && <FertilityTiles />}
         {!booting && (
           <>
             {/* Admin-managed promo slot — renders nothing until a banner is active */}
             <BannerSlideshow position="home_top" />
+            {/* «یادآورهای امروز» — today's doses + next appointment (M3, /care/today),
+                right under the hero like the reminders artboard (T-M3-10 audit L-6).
+                The cycle home has no other visit card, so the appointment row is the
+                only place a visit shows here. */}
+            <TodayRemindersCard />
             {!noPeriodData && (
               <PhaseRows
                 t={t}
@@ -984,9 +1074,6 @@ export function HomePage() {
             <CheckupsCard />
             <Recommendations t={t} tips={calc?.dailyTips ?? []} dos={dos} />
             <BannerSlideshow position="home_middle" />
-            {/* «یادآورهای امروز» — today's doses + next appointment (M3, /care/today).
-                Replaces the hidden DayTasks block; DayTasks stays on the log page. */}
-            <TodayRemindersCard />
             <TodayChallengeCard />
             <Articles t={t} locale={loc} />
             <BannerSlideshow position="home_bottom" />

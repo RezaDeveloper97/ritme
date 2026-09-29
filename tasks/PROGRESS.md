@@ -847,3 +847,9 @@ Nothing needed fixing.
 - Calendar source note admin-editable (`pregnancy_setup/calendar_note`), migration `00008_pregnancy_v2_copy.sql` (guarded: week_entered text without «از امروز», `from_weekday: 5`, calendar_note seed) + Laravel data twin `2026_09_29_000001_seed_pregnancy_calendar_note.php` (schema-diff green).
 - Today evaluates calendar alert rules first (badge correct without opening Alerts); `from_weekday` editable in admin-web (labels added); `--success-fill` pair in lint:dark; `?return_to=` allow-list (calendar) for the appointment form, incl. the calendar «ویزیت جدید» links; `LocaleNumberField` for ultrasound week/day.
 - Verify: go vet/test/lint, contract 991 pass / 488 allow-listed, schema-diff OK, frontend 627 tests + gates, admin-web 79 tests.
+
+## T-M5-11 — Fertility design fidelity fixes (v19 audit) and TTC home
+- 26 of 27 audit rows fixed (#18 evidence titles are backend copy → T-M5-12). Home reads top-level `fertility_level` (same word as Log). TTC home for `trying`: ring «تخمک‌گذاری تا N روز», phase pills, «شانس بارداری امروز» card, LH tip card; tiles no longer pop in late (profile in the home boot gate, fixed-height skeleton). Insights history strips per cycle, window headline hierarchy, amber dashed window days + today marker; BBT/Log restyled; reminders card under the hero (L-6).
+- New: `entities/fertility/ui/BbtNumber.tsx`, `widgets/fertility-tiles/{model/ttc.ts,ui/FertilityChanceCard.tsx,ui/LhTipCard.tsx,ui/TtcPhasePills.tsx}`.
+- Verify: 627 frontend tests + gates, go test, contract 991 pass; check-colors OK.
+- Open → T-M5-12: evidence titles copy; `/profile` latency (home now waits on it; ~5 s seen on stage); per-cycle period length for history strips; home vs `/fertility/bbt` window off-by-one.

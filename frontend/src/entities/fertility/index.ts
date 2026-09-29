@@ -48,6 +48,9 @@ export {
   stepBbt,
 } from './model/bbt';
 
+// ── UI ─────────────────────────────────────────────────────────
+export { BbtNumber } from './ui/BbtNumber';
+
 // ── API: keys, parsers, reads ──────────────────────────────────
 export { fertilityKeys } from './api/keys';
 export {

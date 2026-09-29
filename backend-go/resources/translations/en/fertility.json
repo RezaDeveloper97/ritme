@@ -39,6 +39,7 @@
     "days": "days",
     "ringCaption": "Cycle day {day} · {level} chance of pregnancy",
     "logToday": "Log today",
+    "phasesLabel": "Cycle phases",
     "phases": {
       "period": "Period",
       "follicular": "Follicular",
@@ -47,6 +48,7 @@
     },
     "chanceCard": {
       "title": "Chance of pregnancy today",
+      "titleDay": "Chance of pregnancy on {date}",
       "estimated": "Estimated",
       "inWindow": "You're in your fertile window. Sex today and over the next 2 days gives the best chance.",
       "windowStart": "Window starts",
@@ -77,13 +79,11 @@
       "increase": "Increase temperature",
       "hint": "In the morning, before getting out of bed",
       "outOfRange": "Temperature must be between {min} and {max} degrees.",
-      "invalid": "That doesn't look like a temperature.",
-      "clear": "Clear temperature"
+      "invalid": "That doesn't look like a temperature."
     },
     "mucus": {
       "title": "Cervical mucus",
       "options": {
-        "none": "Don't log",
         "dry": "Dry",
         "sticky": "Sticky",
         "creamy": "Creamy",
@@ -143,14 +143,12 @@
     },
     "legend": {
       "logged": "Logged temperature",
-      "coverline": "Coverline · average of first 6 days",
       "window": "Fertile window",
-      "baseline": "Coverline · highest of the 6 readings before the rise",
+      "baseline": "Coverline",
       "previous": "Previous cycles"
     },
     "stats": {
       "preOvulationAvg": "Pre-ovulation average",
-      "firstSixDays": "First 6 days",
       "loggedDays": "Days logged",
       "loggedOfTotal": "{logged} / {total}",
       "noGaps": "No gaps",
@@ -158,8 +156,7 @@
     },
     "tip": {
       "title": "Look for a 0.2–0.5 degree rise",
-      "body": "If your temperature stays above the coverline for three days in a row, ovulation most likely happened the day before the first high reading.",
-      "pastShifts": "In previous cycles this rise came on day {days}."
+      "body": "If your temperature stays above the coverline for three days in a row, ovulation most likely happened the day before the first high reading."
     },
     "remindTomorrow": "Remind me to log tomorrow's temperature",
     "openInsights": "Predictions",
@@ -192,7 +189,8 @@
       "empty": "Not enough data yet to estimate your fertile window.",
       "disclaimer": "This window is estimated to help you conceive — it is not a method of contraception.",
       "legendWindow": "Fertile window",
-      "legendOvulation": "Estimated ovulation day"
+      "legendOvulation": "Estimated ovulation day",
+      "legendToday": "Today"
     },
     "confidence": {
       "low": "Low confidence",

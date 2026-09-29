@@ -1,6 +1,12 @@
 // Public API of the `cycle` entity. Import only from here (CLAUDE.md §3.3).
 export { cycleDayInfo } from './model/phase';
-export { deriveCyclePredictions, normalizePhase, calcToPhase, cycleDayMarker } from './model/predictions';
+export {
+  deriveCyclePredictions,
+  normalizePhase,
+  calcToPhase,
+  cycleDayMarker,
+  PMS_WINDOW_DAYS,
+} from './model/predictions';
 export {
   deriveCycleSchedule,
   cycleScheduleFor,

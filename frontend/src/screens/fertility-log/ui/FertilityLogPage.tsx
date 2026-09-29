@@ -36,7 +36,8 @@ import {
 } from '../model/form';
 
 const INSIGHTS_HREF = '/fertility/insights';
-const BAR_HEIGHTS = ['h-2', 'h-3', 'h-4', 'h-5', 'h-6'] as const;
+/** `v19_TTC_Log` chance bars: 10 → 30 px in 5 px steps. */
+const BAR_HEIGHTS = ['h-2.5', 'h-[15px]', 'h-5', 'h-[25px]', 'h-7.5'] as const;
 
 /** Back never walks history (CLAUDE.md §4.2): the log always returns to home. */
 const BACK_HREF = '/home';
@@ -96,25 +97,26 @@ function Shell({
   return (
     <div className="view">
       <div className="scroll">
-        <header className="flex items-center gap-3 px-4 pt-4 pb-3">
+        <header className="rmd-hdr">
           <button
             type="button"
-            className="iconbtn"
+            className="rmd-hdr-btn"
             aria-label={t('back')}
             onClick={onBack ?? (() => router.push(BACK_HREF))}
           >
-            <Icon name={dir === 'rtl' ? 'chevronRight' : 'chevronLeft'} size={22} />
+            <Icon name={dir === 'rtl' ? 'chevronRight' : 'chevronLeft'} size={20} strokeWidth={1.8} />
           </button>
-          <div className="flex min-w-0 flex-1 flex-col text-start">
-            <h1 className="text-[18px] font-extrabold text-(--ink)">{t('log.title')}</h1>
-            <p className="text-[13px] text-(--muted)">
+          <div className="rmd-hdr-text">
+            <h1 className="rmd-hdr-title">{t('log.title')}</h1>
+            <p className="rmd-hdr-sub">
               {cycleDay === null
                 ? dateLabel
                 : t('log.subtitle', { date: dateLabel, day: formatNumber(cycleDay, locale) })}
             </p>
           </div>
+          <span className="rmd-hdr-btn invisible" aria-hidden />
         </header>
-        <div className="flex flex-col gap-3 px-4 pb-32">{children}</div>
+        <div className="flex flex-col gap-4.5 px-4 pt-1 pb-32">{children}</div>
       </div>
     </div>
   );
@@ -128,21 +130,21 @@ function ChanceCard({ chance }: { chance: FertilityChance }) {
   return (
     <Link
       href={INSIGHTS_HREF}
-      className="flex items-center gap-3 rounded-[20px] border border-(--fert-chance-line) bg-linear-to-l from-(--fert-chance-from) to-(--fert-chance-to) p-4"
+      className="flex items-center gap-3.5 rounded-3xl border border-(--fert-chance-line) bg-linear-to-l from-(--fert-chance-from) to-(--fert-chance-to) p-4"
       aria-label={`${t('chance.today')}: ${levelLabel} · ${t('log.openInsights')}`}
     >
-      <span className="grid size-11 shrink-0 place-items-center rounded-full bg-(--fert-chance-disc) text-(--fert-amber)">
-        <Icon name="target" size={22} />
+      <span className="grid size-12 shrink-0 place-items-center rounded-full bg-(--fert-chance-disc) text-(--fert-amber)">
+        <Icon name="target" size={24} />
       </span>
       <span className="flex min-w-0 flex-1 flex-col text-start">
-        <span className="text-[12px] text-(--muted)">{t('chance.today')}</span>
-        <span className="text-[17px] font-extrabold text-(--fert-amber)">{levelLabel}</span>
+        <span className="text-[11px] font-extrabold text-(--fert-amber)">{t('chance.today')}</span>
+        <span className="text-[20px] font-extrabold text-(--ink)">{levelLabel}</span>
       </span>
       <span className="flex items-end gap-1" aria-hidden>
         {BAR_HEIGHTS.map((h, i) => (
           <span
             key={h}
-            className={clsx('w-1.5 rounded-full', h, i < bars ? 'bg-(--fert-amber)' : 'bg-(--fert-bar-off)')}
+            className={clsx('w-2 rounded-sm', h, i < bars ? 'bg-(--fert-amber)' : 'bg-(--fert-bar-off)')}
           />
         ))}
       </span>
@@ -150,6 +152,7 @@ function ChanceCard({ chance }: { chance: FertilityChance }) {
   );
 }
 
+/** One group inside the shared log card (`v19_TTC_Log`: title + control, 22 px apart). */
 function Section({
   id,
   title,
@@ -169,11 +172,11 @@ function Section({
       ref={sectionRef}
       aria-labelledby={`fertility-log-${id}-title`}
       className={clsx(
-        'card flex flex-col gap-3 transition-shadow duration-500 p-4',
-        highlight && 'ring-2 ring-(--fert-chip-on-line)',
+        'flex scroll-m-24 flex-col gap-2.5 rounded-2xl transition-shadow duration-500',
+        highlight && 'ring-2 ring-(--fert-chip-on-line) ring-offset-4 ring-offset-(--surface)',
       )}
     >
-      <h2 id={`fertility-log-${id}-title`} className="text-start text-[15px] font-bold text-(--ink)">
+      <h2 id={`fertility-log-${id}-title`} className="text-start text-[14.5px] font-extrabold text-(--ink)">
         {title}
       </h2>
       {children}
@@ -188,10 +191,10 @@ function Chip({ on, label, onClick }: { on: boolean; label: string; onClick: () 
       aria-pressed={on}
       onClick={onClick}
       className={clsx(
-        'rounded-full border px-3.5 py-2 text-[13px] font-bold transition-colors',
+        'h-11 rounded-full border-[1.5px] px-4 text-[13.5px] font-bold transition-colors',
         on
-          ? 'border-(--fert-chip-on-line) bg-(--fert-chip-on-bg) text-(--brand)'
-          : 'border-(--line) bg-(--surface) text-(--ink-3)',
+          ? 'border-(--fert-chip-on-line) bg-(--fert-chip-on-bg) text-(--ink)'
+          : 'border-(--line) bg-transparent text-(--ink-3)',
       )}
     >
       {label}
@@ -199,6 +202,11 @@ function Chip({ on, label, onClick }: { on: boolean; label: string; onClick: () 
   );
 }
 
+/**
+ * One-of chips. With `noneLabel` a «ثبت نشه» chip clears the value (LH,
+ * intercourse, as drawn); without it (mucus, audit #25) tapping the selected
+ * chip again clears it.
+ */
 function SingleChips<T extends string>({
   values,
   value,
@@ -209,14 +217,19 @@ function SingleChips<T extends string>({
   values: readonly T[];
   value: T | null;
   labelOf: (v: T) => string;
-  noneLabel: string;
+  noneLabel?: string;
   onChange: (v: T | null) => void;
 }) {
   return (
     <div className="flex flex-wrap gap-2">
-      <Chip on={value === null} label={noneLabel} onClick={() => onChange(null)} />
+      {noneLabel !== undefined && <Chip on={value === null} label={noneLabel} onClick={() => onChange(null)} />}
       {values.map((v) => (
-        <Chip key={v} on={value === v} label={labelOf(v)} onClick={() => onChange(v)} />
+        <Chip
+          key={v}
+          on={value === v}
+          label={labelOf(v)}
+          onClick={() => onChange(noneLabel === undefined && value === v ? null : v)}
+        />
       ))}
     </div>
   );
@@ -313,120 +326,117 @@ function LogForm({ day, date, focus }: { day: FertilityDay; date: string; focus:
     <Shell day={day} date={date} onBack={onBack}>
       {day.chance && <ChanceCard chance={day.chance} />}
 
-      <Section id="lh" title={tl('lh.title')} highlight={highlight === 'lh'} sectionRef={refFor('lh')}>
-        <SingleChips
-          values={LH_RESULTS}
-          value={state.lh}
-          labelOf={(v) => tl(`lh.options.${v}`)}
-          noneLabel={tl('lh.options.none')}
-          onChange={(v) => set('lh', v)}
-        />
-      </Section>
+      <div className="fert-card flex flex-col gap-5.5">
+        <Section id="lh" title={tl('lh.title')} highlight={highlight === 'lh'} sectionRef={refFor('lh')}>
+          <SingleChips
+            values={LH_RESULTS}
+            value={state.lh}
+            labelOf={(v) => tl(`lh.options.${v}`)}
+            noneLabel={tl('lh.options.none')}
+            onChange={(v) => set('lh', v)}
+          />
+        </Section>
 
-      <Section id="bbt" title={tl('bbt.label')} highlight={highlight === 'bbt'} sectionRef={refFor('bbt')}>
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            className="grid size-11 shrink-0 place-items-center rounded-full bg-(--fert-chip-on-bg) text-[22px] font-bold text-(--brand)"
-            aria-label={tl('bbt.decrease')}
-            onClick={() => onStep(-1)}
-          >
-            −
-          </button>
-          <label className="flex min-w-0 flex-1 items-baseline justify-center gap-1 rounded-2xl bg-(--fert-field) px-3 py-2">
-            <span className="sr-only">{tl('bbt.label')}</span>
-            <input
-              inputMode="decimal"
-              dir="ltr"
-              value={state.bbtText}
-              placeholder={formatBbt(36.5, locale)}
-              aria-invalid={bbtError !== null}
-              aria-describedby={bbtError ? bbtErrorId : 'fertility-log-bbt-hint'}
-              onChange={(e) => set('bbtText', e.target.value)}
-              className="w-28 bg-transparent text-center font-['Lalezar',var(--font-sans)] text-[34px] leading-none text-(--ink) outline-none placeholder:text-(--muted)"
-            />
-            <span className="text-[14px] font-bold text-(--muted)">{tl('bbt.unit')}</span>
-          </label>
-          <button
-            type="button"
-            className="grid size-11 shrink-0 place-items-center rounded-full bg-(--fert-chip-on-bg) text-[22px] font-bold text-(--brand)"
-            aria-label={tl('bbt.increase')}
-            onClick={() => onStep(1)}
-          >
-            +
-          </button>
-        </div>
-        {state.bbtText !== '' && (
-          <button
-            type="button"
-            className="self-start text-[12px] font-bold text-(--brand)"
-            onClick={() => set('bbtText', '')}
-          >
-            {tl('bbt.clear')}
-          </button>
-        )}
-        {bbtError ? (
-          <p id={bbtErrorId} role="alert" className="text-start text-[12px] font-bold text-(--danger-deep)">
-            {bbtError}
-          </p>
-        ) : (
-          <p id="fertility-log-bbt-hint" className="text-start text-[12px] text-(--muted)">
-            {tl('bbt.hint')}
-          </p>
-        )}
-      </Section>
+        <Section id="bbt" title={tl('bbt.label')} highlight={highlight === 'bbt'} sectionRef={refFor('bbt')}>
+          {/* One bordered field: the value at the start, then the unit and both
+              steppers together at the end (`v19_TTC_Log`). Empty = not logged. */}
+          <div className="flex items-center gap-2 rounded-[20px] border border-(--line) bg-(--fert-field) py-1.5 ps-4.5 pe-1.5">
+            <label className="flex min-w-0 flex-1 items-center">
+              <span className="sr-only">{tl('bbt.label')}</span>
+              {/* Body font, not Lalezar: an input can't set «٫» apart, and Lalezar
+                  draws it like «/» (audit #23). */}
+              <input
+                inputMode="decimal"
+                dir="ltr"
+                value={state.bbtText}
+                placeholder={formatBbt(36.5, locale)}
+                aria-invalid={bbtError !== null}
+                aria-describedby={bbtError ? bbtErrorId : 'fertility-log-bbt-hint'}
+                onChange={(e) => set('bbtText', e.target.value)}
+                className="w-full min-w-0 bg-transparent text-start text-[28px] leading-none font-extrabold text-(--ink) outline-none placeholder:text-(--muted)"
+              />
+            </label>
+            <span className="text-[13px] font-bold text-(--ink-3)">{tl('bbt.unit')}</span>
+            <button
+              type="button"
+              className="grid size-11 shrink-0 place-items-center rounded-[14px] bg-(--fert-chip-on-bg) text-[22px] font-extrabold text-(--ink)"
+              aria-label={tl('bbt.decrease')}
+              onClick={() => onStep(-1)}
+            >
+              −
+            </button>
+            <button
+              type="button"
+              className="grid size-11 shrink-0 place-items-center rounded-[14px] bg-(--fert-chip-on-bg) text-[22px] font-extrabold text-(--ink)"
+              aria-label={tl('bbt.increase')}
+              onClick={() => onStep(1)}
+            >
+              +
+            </button>
+          </div>
+          {bbtError ? (
+            <p id={bbtErrorId} role="alert" className="text-start text-[12px] font-bold text-(--danger-deep)">
+              {bbtError}
+            </p>
+          ) : (
+            <p id="fertility-log-bbt-hint" className="text-start text-[11.5px] font-semibold text-(--muted)">
+              {tl('bbt.hint')}
+            </p>
+          )}
+        </Section>
 
-      <Section id="mucus" title={tl('mucus.title')} highlight={highlight === 'mucus'} sectionRef={refFor('mucus')}>
-        <SingleChips
-          values={CERVICAL_MUCUS}
-          value={state.mucus}
-          labelOf={(v) => tl(`mucus.options.${v}`)}
-          noneLabel={tl('mucus.options.none')}
-          onChange={(v) => set('mucus', v)}
-        />
-      </Section>
+        <Section id="mucus" title={tl('mucus.title')} highlight={highlight === 'mucus'} sectionRef={refFor('mucus')}>
+          <SingleChips
+            values={CERVICAL_MUCUS}
+            value={state.mucus}
+            labelOf={(v) => tl(`mucus.options.${v}`)}
+            onChange={(v) => set('mucus', v)}
+          />
+        </Section>
 
-      <Section
-        id="intercourse"
-        title={tl('intercourse.title')}
-        highlight={highlight === 'intercourse'}
-        sectionRef={refFor('intercourse')}
-      >
-        <SingleChips
-          values={INTERCOURSE_TYPES}
-          value={state.intercourse}
-          labelOf={(v) => tl(`intercourse.options.${v}`)}
-          noneLabel={tl('intercourse.options.none')}
-          onChange={(v) => set('intercourse', v)}
-        />
-      </Section>
+        <Section
+          id="intercourse"
+          title={tl('intercourse.title')}
+          highlight={highlight === 'intercourse'}
+          sectionRef={refFor('intercourse')}
+        >
+          <SingleChips
+            values={INTERCOURSE_TYPES}
+            value={state.intercourse}
+            labelOf={(v) => tl(`intercourse.options.${v}`)}
+            noneLabel={tl('intercourse.options.none')}
+            onChange={(v) => set('intercourse', v)}
+          />
+        </Section>
 
-      <Section
-        id="symptoms"
-        title={tl('symptoms.title')}
-        highlight={highlight === 'symptoms'}
-        sectionRef={refFor('symptoms')}
-      >
-        <div className="flex flex-wrap gap-2">
-          {FERTILITY_SYMPTOMS.map((s) => (
-            <Chip
-              key={s}
-              on={state.symptoms.includes(s)}
-              label={tl(`symptoms.options.${s}`)}
-              onClick={() => set('symptoms', toggleSymptom(state.symptoms, s))}
-            />
-          ))}
-        </div>
-      </Section>
+        <Section
+          id="symptoms"
+          title={tl('symptoms.title')}
+          highlight={highlight === 'symptoms'}
+          sectionRef={refFor('symptoms')}
+        >
+          <div className="flex flex-wrap gap-2">
+            {FERTILITY_SYMPTOMS.map((s) => (
+              <Chip
+                key={s}
+                on={state.symptoms.includes(s)}
+                label={tl(`symptoms.options.${s}`)}
+                onClick={() => set('symptoms', toggleSymptom(state.symptoms, s))}
+              />
+            ))}
+          </div>
+        </Section>
+      </div>
 
+      {/* The note sits outside the card with its own label, above the button. */}
       <Section id="note" title={tl('note.label')} highlight={highlight === 'note'} sectionRef={refFor('note')}>
         <textarea
-          aria-label={tl('note.label')}
-          rows={3}
+          aria-labelledby="fertility-log-note-title"
+          rows={4}
           value={state.note}
           placeholder={tl('note.placeholder')}
           onChange={(e) => set('note', e.target.value)}
-          className="w-full resize-none rounded-2xl bg-(--fert-field) p-3 text-start text-[14px] text-(--ink) outline-none placeholder:text-(--muted)"
+          className="w-full resize-none rounded-[20px] border border-(--line) bg-(--fert-field) p-4 text-start text-[14px] text-(--ink) outline-none placeholder:text-(--muted) focus-visible:shadow-(--ring)"
         />
       </Section>
 

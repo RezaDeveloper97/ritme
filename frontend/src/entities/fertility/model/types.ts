@@ -166,6 +166,8 @@ export interface InsightEvidence {
 export interface OvulationHistoryRow {
   monthLabel: string;
   ovulationDay: number | null;
+  /** First day of that cycle (`Y-m-d`); null when the server omits it. */
+  cycleStart: string | null;
 }
 
 /** `GET /fertility/insights`. */

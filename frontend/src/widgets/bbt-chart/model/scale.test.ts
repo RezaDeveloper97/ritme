@@ -5,6 +5,7 @@ import type { BbtCycle } from "@/entities/fertility";
 import {
   buildScales,
   coverlineY,
+  dayTicks,
   DEFAULT_FRAME,
   fertileBandX,
   maxCycleDay,
@@ -84,5 +85,15 @@ describe("yTickLabel", () => {
     expect(yTickLabel(36.8, "fa")).toBe("۳۶٫۸");
     expect(yTickLabel(36.8, "en")).toBe("36.8");
     expect(yTickLabel(36.75, "en")).toBe("36.8");
+  });
+});
+
+describe("dayTicks", () => {
+  it("steps by 5 to the last cycle day, like the artboard", () => {
+    expect(dayTicks(29)).toEqual([1, 5, 10, 15, 20, 25, 29]);
+    // A 5th day right next to the last one is dropped.
+    expect(dayTicks(26)).toEqual([1, 5, 10, 15, 20, 26]);
+    expect(dayTicks(28)).toEqual([1, 5, 10, 15, 20, 25, 28]);
+    expect(dayTicks(1)).toEqual([1]);
   });
 });

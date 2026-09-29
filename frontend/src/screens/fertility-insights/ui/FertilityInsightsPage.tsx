@@ -2,35 +2,44 @@
 
 import clsx from "clsx";
 import { useLocale, useTranslations } from "next-intl";
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 
+import { useCycleToday } from "@/entities/cycle";
 import {
-  type EvidenceStrength,
   type FertilityInsights,
   useFertilityInsights,
 } from "@/entities/fertility";
-import { type Locale, Link, useDirection, useRouter } from "@/shared/i18n";
+import { type Locale, Link, useDirection } from "@/shared/i18n";
 import {
   formatDayMonth,
   formatMonthLabel,
   formatNumber,
   fromApiDate,
-  monthMatrix,
   toApiDate,
+  today,
+  toParts,
   weekdayLabels,
 } from "@/shared/lib/date";
+import { AppSheet } from "@/shared/sheet";
 import { Icon } from "@/shared/ui";
 
-import { evidenceIcon, isLowData, markFor, windowMonths } from "../model/view";
+import {
+  CONFIDENCE_TONE,
+  STRENGTH_TONE,
+  calendarMark,
+  evidenceIcon,
+  evidenceTone,
+  historyStrip,
+  isLowData,
+  nextStarts,
+  windowMonths,
+  windowWeeks,
+} from "../model/view";
 
 const BACK_HREF = "/home";
 const LOG_HREF = "/fertility/log";
-
-const STRENGTH_CLASS: Record<EvidenceStrength, string> = {
-  strong: "fert-tone-green",
-  medium: "fert-tone-amber",
-  none: "fert-tone-rose",
-};
+/** Engine default when the cycle view has no period length yet. */
+const DEFAULT_PERIOD_DAYS = 5;
 
 /**
  * «پیش‌بینی‌ها» — fertility insights (`v19_TTC_Insights` / `nb2_TTC_Insights`),
@@ -40,8 +49,8 @@ export function FertilityInsightsPage() {
   const t = useTranslations("fertility");
   const locale = useLocale() as Locale;
   const dir = useDirection();
-  const router = useRouter();
   const query = useFertilityInsights();
+  const [tipsOpen, setTipsOpen] = useState(false);
   const data = query.data;
 
   let body: ReactNode;
@@ -69,7 +78,7 @@ export function FertilityInsightsPage() {
   } else if (isLowData(data)) {
     body = (
       <>
-        <section className="card flex flex-col items-center gap-3 px-4 py-8 text-center">
+        <section className="fert-card flex flex-col items-center gap-3 px-4 py-8 text-center">
           <span className="fert-disc fert-tone-violet grid size-14 place-items-center rounded-full">
             <Icon name="sparkle" size={26} />
           </span>
@@ -94,31 +103,15 @@ export function FertilityInsightsPage() {
       <>
         <WindowCard data={data} locale={locale} />
         <EvidenceCard data={data} />
-        {data.history.length > 0 && (
-          <section className="card flex flex-col gap-2 p-4">
-            <h2 className="text-start text-[15px] font-extrabold text-(--ink)">
-              {t("insights.history.title")}
-            </h2>
-            <ul className="flex flex-col">
-              {data.history.map((row, i) => (
-                <li
-                  key={`${row.monthLabel}-${i}`}
-                  className="flex items-center justify-between border-b border-(--line) py-2 text-[13px] last:border-b-0"
-                >
-                  <span className="text-(--ink-3)">{row.monthLabel}</span>
-                  <span className="font-bold text-(--ink)">
-                    {row.ovulationDay === null
-                      ? t("insights.history.unknown")
-                      : t("insights.history.day", {
-                          day: formatNumber(row.ovulationDay, locale),
-                        })}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-        <TipsCard tips={data.tips} />
+        {data.history.length > 0 && <HistoryCard data={data} locale={locale} />}
+        <button
+          type="button"
+          className="fert-improve"
+          onClick={() => setTipsOpen(true)}
+        >
+          <Icon name="sparkle" size={18} />
+          {t("insights.improve")}
+        </button>
       </>
     );
   }
@@ -126,24 +119,18 @@ export function FertilityInsightsPage() {
   return (
     <div className="view">
       <div className="scroll">
-        <header className="flex items-center gap-3 px-4 pt-4 pb-3">
-          <button
-            type="button"
-            className="iconbtn"
-            aria-label={t("back")}
-            onClick={() => router.push(BACK_HREF)}
-          >
+        <header className="rmd-hdr">
+          <Link href={BACK_HREF} className="rmd-hdr-btn" aria-label={t("back")}>
             <Icon
               name={dir === "rtl" ? "chevronRight" : "chevronLeft"}
-              size={22}
+              size={20}
+              strokeWidth={1.8}
             />
-          </button>
-          <div className="flex min-w-0 flex-1 flex-col text-start">
-            <h1 className="text-[18px] font-extrabold text-(--ink)">
-              {t("insights.title")}
-            </h1>
+          </Link>
+          <div className="rmd-hdr-text">
+            <h1 className="rmd-hdr-title">{t("insights.title")}</h1>
             {data && (
-              <p className="text-[13px] text-(--muted)">
+              <p className="rmd-hdr-sub">
                 {data.cyclesUsed === 0
                   ? t("insights.noCycles")
                   : t("insights.basedOn", {
@@ -152,9 +139,30 @@ export function FertilityInsightsPage() {
               </p>
             )}
           </div>
+          <span className="rmd-hdr-btn invisible" aria-hidden />
         </header>
-        <div className="flex flex-col gap-3 px-4 pb-32">{body}</div>
+        <div className="flex flex-col gap-3.5 px-4 pt-1 pb-32">{body}</div>
       </div>
+
+      <AppSheet
+        open={tipsOpen}
+        onClose={() => setTipsOpen(false)}
+        size="half"
+        title={t("insights.improve")}
+      >
+        <div className="flex flex-col gap-4 pb-2">
+          {data && data.tips.length > 0 && (
+            <ul className="flex list-disc flex-col gap-1 ps-5 text-start text-[14px] leading-7 text-(--ink-3)">
+              {data.tips.map((tip) => (
+                <li key={tip}>{tip}</li>
+              ))}
+            </ul>
+          )}
+          <Link href={LOG_HREF} className="btn btn-ghost w-full">
+            {t("insights.logCta")}
+          </Link>
+        </div>
+      </AppSheet>
     </div>
   );
 }
@@ -178,76 +186,76 @@ function WindowCard({
         ovulation: formatDayMonth(fromApiDate(w.ovulation), locale),
       })
     : t("window.rangeNoOvulation", { start, end });
-  const months = windowMonths(w, locale);
+  const todayIso = toApiDate(today());
+  const weeks = windowWeeks(w, locale);
+  const caption = windowMonths(w, locale)
+    .map(({ year, month }) => formatMonthLabel(year, month, locale))
+    .join(" · ");
+  const showsToday = weeks.some((week) => week.some((d) => toApiDate(d) === todayIso));
 
   return (
-    <section className="card flex flex-col gap-3 p-4">
+    <section className="fert-card flex flex-col gap-3.5">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-[15px] font-extrabold text-(--ink)">
-          {t("window.title")}
-        </h2>
+        <h2 className="fert-overline">{t("window.title")}</h2>
         {data.confidence && (
-          <span className="rounded-full bg-(--fert-chip-on-bg) px-3 py-1 text-[12px] font-bold text-(--brand)">
+          <span
+            className={clsx(
+              "fert-pill",
+              `fert-tone-${CONFIDENCE_TONE[data.confidence]}`,
+            )}
+          >
             {t(`confidence.${data.confidence}`)}
           </span>
         )}
       </div>
-      <p className="text-start text-[13px] leading-6 text-(--ink-3)">
+      <p className="text-start text-[19px] leading-[1.7] font-extrabold text-(--ink)">
         {summary}
       </p>
 
-      <div aria-label={t("calendarLabel")} className="flex flex-col gap-3">
-        {months.map(({ year, month }) => (
-          <div key={`${year}-${month}`} className="flex flex-col gap-1">
-            <p className="text-center text-[13px] font-bold text-(--ink)">
-              {formatMonthLabel(year, month, locale)}
-            </p>
-            <div className="grid grid-cols-7 gap-1 text-center text-[11px] text-(--muted)">
-              {weekdayLabels(locale).map((d) => (
-                <span key={d}>{d}</span>
-              ))}
-            </div>
-            {monthMatrix(year, month, locale).map((week, wi) => (
-              <div key={wi} className="grid grid-cols-7 gap-1">
-                {week.map((cell, ci) => {
-                  if (!cell) return <span key={ci} />;
-                  const mark = markFor(toApiDate(cell.date), w);
-                  return (
-                    <span
-                      key={ci}
-                      className={clsx(
-                        "grid aspect-square place-items-center rounded-full text-[12px]",
-                        mark === "ovulation" &&
-                          "bg-(--fert-teal) font-extrabold text-(--on-brand)",
-                        mark === "window" &&
-                          "bg-(--fert-teal-soft) font-bold text-(--fert-teal)",
-                        mark === null && "text-(--ink-3)",
-                      )}
-                    >
-                      {formatNumber(cell.day, locale)}
-                    </span>
-                  );
-                })}
-              </div>
-            ))}
+      <div aria-label={t("calendarLabel")} className="flex flex-col gap-1.5">
+        <p className="text-center text-[12px] font-bold text-(--muted)">
+          {caption}
+        </p>
+        <div className="grid grid-cols-7 text-center text-[10.5px] font-bold text-(--muted)">
+          {weekdayLabels(locale).map((d) => (
+            <span key={d}>{d}</span>
+          ))}
+        </div>
+        {weeks.map((week) => (
+          <div key={toApiDate(week[0])} className="grid grid-cols-7 gap-y-1.5">
+            {week.map((date) => {
+              const iso = toApiDate(date);
+              const mark = calendarMark(iso, w, todayIso);
+              return (
+                <span
+                  key={iso}
+                  className={clsx("fert-cal-day", mark && `is-${mark}`)}
+                >
+                  {formatNumber(toParts(date, locale).day, locale)}
+                </span>
+              );
+            })}
           </div>
         ))}
         <div className="mt-1 flex flex-wrap items-center justify-center gap-4 text-[11px] text-(--muted)">
-          <span className="flex items-center gap-1">
-            <span className="size-3 rounded-full bg-(--fert-teal-soft)" />
+          <span className="flex items-center gap-1.5">
+            <span className="fert-cal-swatch is-window" />
             {t("window.legendWindow")}
           </span>
-          <span className="flex items-center gap-1">
-            <span className="size-3 rounded-full bg-(--fert-teal)" />
+          <span className="flex items-center gap-1.5">
+            <span className="fert-cal-swatch is-ovulation" />
             {t("window.legendOvulation")}
           </span>
+          {showsToday && (
+            <span className="flex items-center gap-1.5">
+              <span className="fert-cal-swatch is-today" />
+              {t("window.legendToday")}
+            </span>
+          )}
         </div>
       </div>
 
-      <p className="flex items-start gap-2 rounded-xl bg-(--fert-note-bg) p-3 text-start text-[12px] leading-5 text-(--ink-3)">
-        <Icon name="info" size={16} />
-        <span>{t("window.disclaimer")}</span>
-      </p>
+      <p className="fert-disclaimer">{t("window.disclaimer")}</p>
     </section>
   );
 }
@@ -256,22 +264,27 @@ function EvidenceCard({ data }: { data: FertilityInsights }) {
   const t = useTranslations("fertility.insights");
   if (data.evidence.length === 0) return null;
   return (
-    <section className="card flex flex-col gap-2 p-4">
+    <section className="fert-card flex flex-col gap-3.5">
       <h2 className="text-start text-[15px] font-extrabold text-(--ink)">
         {t("evidence.title")}
       </h2>
-      <ul className="flex flex-col gap-2">
+      <ul className="flex flex-col gap-3.5">
         {data.evidence.map((row) => (
           <li key={row.key} className="flex items-center gap-3">
-            <span className="fert-disc fert-tone-teal grid size-9 shrink-0 place-items-center rounded-full">
-              <Icon name={evidenceIcon(row.key)} size={18} />
+            <span
+              className={clsx(
+                "fert-disc grid size-10 shrink-0 place-items-center rounded-full",
+                `fert-tone-${evidenceTone(row.key)}`,
+              )}
+            >
+              <Icon name={evidenceIcon(row.key)} size={18} strokeWidth={2.2} />
             </span>
             <div className="flex min-w-0 flex-1 flex-col text-start">
-              <span className="text-[13px] font-bold text-(--ink)">
+              <span className="text-[13.5px] font-extrabold text-(--ink)">
                 {row.title}
               </span>
               {row.detail && (
-                <span className="text-[12px] text-(--muted)">
+                <span className="text-[12px] font-semibold text-(--ink-3)">
                   {row.detail}
                 </span>
               )}
@@ -279,8 +292,8 @@ function EvidenceCard({ data }: { data: FertilityInsights }) {
             {row.strength && (
               <span
                 className={clsx(
-                  "fert-disc rounded-full px-2.5 py-0.5 text-[11px] font-bold",
-                  STRENGTH_CLASS[row.strength],
+                  "fert-pill",
+                  `fert-tone-${STRENGTH_TONE[row.strength]}`,
                 )}
               >
                 {t(`evidence.strength.${row.strength}`)}
@@ -293,23 +306,63 @@ function EvidenceCard({ data }: { data: FertilityInsights }) {
   );
 }
 
-function TipsCard({ tips }: { tips: string[] }) {
+/**
+ * «تخمک‌گذاری در سیکل‌های قبل»: one day strip per finished cycle (audit #2) —
+ * period red, fertile days amber, ovulation turquoise, PMS violet — plus the
+ * ovulation day. A row the strip can't be drawn for keeps the plain day.
+ */
+function HistoryCard({
+  data,
+  locale,
+}: {
+  data: FertilityInsights;
+  locale: Locale;
+}) {
   const t = useTranslations("fertility.insights");
+  const cycle = useCycleToday().data?.cycleView ?? null;
+  const currentStart = cycle?.anchors?.currentPeriodStart ?? null;
+  const periodLength =
+    cycle?.metrics?.effectivePeriodLength ??
+    cycle?.effectiveValues.periodDuration ??
+    DEFAULT_PERIOD_DAYS;
+  const next = nextStarts(data.history, currentStart);
+
   return (
-    <section className="card flex flex-col gap-2 p-4">
+    <section className="fert-card flex flex-col gap-3">
       <h2 className="text-start text-[15px] font-extrabold text-(--ink)">
-        {t("improve")}
+        {t("history.title")}
       </h2>
-      {tips.length > 0 && (
-        <ul className="flex list-disc flex-col gap-1 ps-5 text-start text-[13px] leading-6 text-(--ink-3)">
-          {tips.map((tip) => (
-            <li key={tip}>{tip}</li>
-          ))}
-        </ul>
-      )}
-      <Link href={LOG_HREF} className="btn btn-primary mt-1">
-        {t("logCta")}
-      </Link>
+      <ul className="flex flex-col gap-3">
+        {data.history.map((row, i) => {
+          const strip = historyStrip(row, next[i], periodLength);
+          return (
+            <li
+              key={`${row.cycleStart ?? row.monthLabel}-${i}`}
+              className="flex items-center gap-2.5"
+            >
+              <span className="w-15 shrink-0 text-start text-[12px] font-bold text-(--ink-3)">
+                {row.monthLabel}
+              </span>
+              {strip ? (
+                <span className="fert-strip" aria-hidden>
+                  {strip.map((kind, d) => (
+                    <span key={d} className={clsx("fert-strip-dot", `is-${kind}`)} />
+                  ))}
+                </span>
+              ) : (
+                <span className="flex-1" />
+              )}
+              <span className="shrink-0 text-[12px] font-extrabold whitespace-nowrap text-(--fert-teal)">
+                {row.ovulationDay === null
+                  ? t("history.unknown")
+                  : t("history.day", {
+                      day: formatNumber(row.ovulationDay, locale),
+                    })}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
     </section>
   );
 }

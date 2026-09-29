@@ -140,6 +140,17 @@ export function BbtChart({ cycles, today }: Props) {
             strokeLinejoin="round"
             strokeLinecap="round"
           />
+          {points.map((p) =>
+            p.date === today ? (
+              <circle
+                key={`halo-${p.cycleDay}`}
+                cx={scales.x(p.cycleDay)}
+                cy={scales.y(p.value)}
+                r={12}
+                className="fill-(--fert-teal) opacity-25"
+              />
+            ) : null,
+          )}
           {points.map((p) => {
             const isToday = p.date === today;
             return (
@@ -162,17 +173,17 @@ export function BbtChart({ cycles, today }: Props) {
         </svg>
       </div>
 
-      <figcaption className="flex flex-wrap gap-x-4 gap-y-1.5 text-[11px] text-(--ink-3)">
+      <figcaption className="flex flex-wrap gap-x-3.5 gap-y-2 text-[11.5px] font-semibold text-(--ink-3)">
         <LegendItem
-          swatch="h-2.5 w-2.5 rounded-full bg-(--fert-teal)"
+          swatch="size-2.5 rounded-full bg-(--fert-teal) shadow-[0_0_8px_var(--fert-teal)]"
           label={t("legend.logged")}
         />
         <LegendItem
-          swatch="h-0 w-4 border-t-2 border-dashed border-(--fert-amber)"
+          swatch="size-2.5 rounded-full bg-(--fert-amber)"
           label={t("legend.baseline")}
         />
         <LegendItem
-          swatch="h-2.5 w-4 rounded-sm bg-(--fert-amber-band)"
+          swatch="size-2.5 rounded-full bg-(--fert-amber-band)"
           label={t("legend.window")}
         />
         {previous.length > 0 && (
