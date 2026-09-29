@@ -126,20 +126,47 @@ func Signature(c fiber.Ctx, identity Identity) string {
 // Middleware is `throttle:maxAttempts,decayMinutes` (decay = decayMinutes minutes).
 // identity may be nil for guest-only routes.
 func (l *Limiter) Middleware(maxAttempts int, decay time.Duration, identity Identity) fiber.Handler {
-	return l.middleware("", maxAttempts, decay, identity)
+	return l.middleware("", maxAttempts, decay, identity, nil)
 }
 
 // Named is Middleware on a counter of its own: the key is name + ":" + Signature, so it never
 // shares the unnamed per-user/IP counter of the Laravel-compatible throttles (a burst of
 // writes must not use up refresh-session's 10/min). Same headers and 429 as Middleware.
 func (l *Limiter) Named(name string, maxAttempts int, decay time.Duration, identity Identity) fiber.Handler {
+	return l.NamedWith(name, maxAttempts, decay, identity, nil)
+}
+
+// Rejection is what a rejected request carries: seconds until the window ends, the limit and
+// the unix time the window ends (the Retry-After / X-RateLimit-* values).
+type Rejection struct {
+	RetryAfter int
+	Limit      int
+	Reset      int64
+}
+
+// Headers are the throttle headers Laravel sends with a 429.
+func (r Rejection) Headers() map[string]string {
+	return map[string]string{
+		fiber.HeaderRetryAfter:  strconv.Itoa(r.RetryAfter),
+		"X-RateLimit-Limit":     strconv.Itoa(r.Limit),
+		"X-RateLimit-Remaining": "0",
+		"X-RateLimit-Reset":     strconv.FormatInt(r.Reset, 10),
+	}
+}
+
+// Reject builds the error a rejected request answers with. Only for Go-only routes: the
+// Laravel-parity throttles keep the framework's 429 "Too Many Attempts." (pinned in goldens).
+type Reject func(c fiber.Ctx, r Rejection) error
+
+// NamedWith is Named with its own 429 (nil reject = the framework 429).
+func (l *Limiter) NamedWith(name string, maxAttempts int, decay time.Duration, identity Identity, reject Reject) fiber.Handler {
 	if name == "" {
 		panic("ratelimit: Named needs a name")
 	}
-	return l.middleware(name+":", maxAttempts, decay, identity)
+	return l.middleware(name+":", maxAttempts, decay, identity, reject)
 }
 
-func (l *Limiter) middleware(prefix string, maxAttempts int, decay time.Duration, identity Identity) fiber.Handler {
+func (l *Limiter) middleware(prefix string, maxAttempts int, decay time.Duration, identity Identity, reject Reject) fiber.Handler {
 	limit := strconv.Itoa(maxAttempts)
 	return func(c fiber.Ctx) error {
 		now := clock.FromContext(c, l.base).Now()
@@ -149,6 +176,9 @@ func (l *Limiter) middleware(prefix string, maxAttempts int, decay time.Duration
 		}
 		if !res.Allowed {
 			retry := res.RetryAfter(now)
+			if reject != nil {
+				return reject(c, Rejection{RetryAfter: retry, Limit: maxAttempts, Reset: now.Unix() + int64(retry)})
+			}
 			return httpx.TooManyRequests(retry, maxAttempts, 0, now.Unix()+int64(retry))
 		}
 		err = c.Next()

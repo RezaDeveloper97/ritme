@@ -3,7 +3,7 @@
 import clsx from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
 
-import { type NextAppointment, useAppointment, useCareToday } from '@/entities/care-reminder';
+import { type NextAppointment, useCareToday } from '@/entities/care-reminder';
 import { useLogIntake } from '@/features/log-intake';
 import { Link, type Locale } from '@/shared/i18n';
 import { formatNumber, fromApiDate, monthName, toParts } from '@/shared/lib/date';
@@ -94,8 +94,6 @@ function AppointmentRow({ appt, t, locale }: { appt: NextAppointment; t: T; loca
   const parts = toParts(fromApiDate(date), locale);
   const when = t('appointmentDetail.daysUntil', { days: appt.daysUntil });
   const time = formatNumber(clock.slice(0, 5), locale);
-  // The bell switch is not in /care/today; the appointment itself says whether it is on.
-  const detail = useAppointment(appt.id);
 
   return (
     <Link href={`/reminders/appointment/${appt.id}`} className="trm-appt">
@@ -115,7 +113,7 @@ function AppointmentRow({ appt, t, locale }: { appt: NextAppointment; t: T; loca
             : t('home.nextAppointmentMetaNoPlace', { when, time })}
         </span>
       </span>
-      {showRemindChip(detail.data) && (
+      {showRemindChip(appt) && (
         <span className="trm-appt-chip">
           <Icon name="bellPlain" size={13} strokeWidth={2.4} />
           {t('home.remindBefore', { before: t(`appointmentForm.remindOptions.${appt.remindBefore}`) })}

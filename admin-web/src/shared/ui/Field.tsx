@@ -1,5 +1,6 @@
 'use client';
 
+import { useLocale } from 'next-intl';
 import {
   useId,
   type InputHTMLAttributes,
@@ -8,7 +9,7 @@ import {
   type TextareaHTMLAttributes,
 } from 'react';
 
-import { cn } from '@/shared/lib';
+import { cn, toLocaleDigits, toNumberText } from '@/shared/lib';
 
 /**
  * Label + control + hint + error. Controls are plain controlled elements
@@ -68,17 +69,56 @@ export function TextInput({
 }: Common & InputHTMLAttributes<HTMLInputElement>) {
   const auto = useId();
   const inputId = id ?? auto;
+  const control = {
+    id: inputId,
+    className: 'input',
+    required,
+    'aria-invalid': error ? true : undefined,
+    'aria-describedby': error ? `${inputId}-error` : undefined,
+    ...rest,
+  };
   return (
     <Field label={label} hint={hint} error={error} required={required} htmlFor={inputId} className={className}>
-      <input
-        id={inputId}
-        className="input"
-        required={required}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={error ? `${inputId}-error` : undefined}
-        {...rest}
-      />
+      {rest.type === 'number' ? <NumberInput {...control} /> : <input {...control} />}
     </Field>
+  );
+}
+
+/**
+ * `type="number"` always renders ASCII digits, so number fields are text inputs with a numeric
+ * keyboard: the value shows in the UI locale's digits (۱۲ in fa) and whatever digits are typed
+ * (Persian, Arabic-Indic or ASCII) are stored as ASCII number text — callers keep reading
+ * `e.target.value` exactly as before. Bounds (`min` / `max`) are the API's 422 to report; a text
+ * input has no native range check.
+ */
+function NumberInput({
+  value,
+  defaultValue,
+  onChange,
+  step,
+  ...rest
+}: InputHTMLAttributes<HTMLInputElement>) {
+  const locale = useLocale();
+  // No native range check on a text input: min/max are dropped, the API reports bounds.
+  const props = { ...rest };
+  delete props.min;
+  delete props.max;
+  const integer = step === undefined || Number.isInteger(Number(step));
+  const show = (v: typeof value) => (v === undefined || v === null ? v : toLocaleDigits(String(v), locale));
+  return (
+    <input
+      {...props}
+      type="text"
+      inputMode={integer ? 'numeric' : 'decimal'}
+      autoComplete="off"
+      value={show(value) as string | undefined}
+      defaultValue={show(defaultValue) as string | undefined}
+      onChange={(e) => {
+        const text = toNumberText(e.target.value);
+        if (text !== e.target.value) e.target.value = text;
+        onChange?.(e);
+      }}
+    />
   );
 }
 

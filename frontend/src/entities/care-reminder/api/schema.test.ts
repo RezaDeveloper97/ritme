@@ -220,8 +220,22 @@ describe('careTodaySchema', () => {
         daysUntil: 8,
         location: 'مطب',
         remindBefore: '1d',
+        isActive: true,
       },
     });
+  });
+
+  it('carries the appointment bell (is_active) so the card needs no second request', () => {
+    const off = careTodaySchema.parse({
+      ...todayFixture,
+      next_appointment: { ...todayFixture.next_appointment, is_active: false },
+    });
+    expect(off.nextAppointment?.isActive).toBe(false);
+    const on = careTodaySchema.parse({
+      ...todayFixture,
+      next_appointment: { ...todayFixture.next_appointment, is_active: true },
+    });
+    expect(on.nextAppointment?.isActive).toBe(true);
   });
 
   it('sorts doses by slot, derives missing counts, maps unknown form', () => {

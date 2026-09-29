@@ -29,6 +29,7 @@ export {
   type Weekday,
 } from './model/types';
 export { applyIntake, type IntakeChange } from './model/intake';
+export { medicationSchedule, type MedicationSchedule } from './model/schedule';
 
 // ── API: keys, parsers, reads ──────────────────────────────────
 export { careKeys, type MedicationFilters } from './api/keys';

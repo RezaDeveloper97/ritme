@@ -1,6 +1,6 @@
 // Public API of shared/lib.
 export { formatDate, formatDateTime, tehranHour } from './date';
-export { formatNumber } from './number';
+export { formatNumber, toLatinDigits, toLocaleDigits, toNumberText } from './number';
 export { useNumber } from './use-number';
 export { cn } from './cn';
 export { parseListParams, toApiQuery, nextSearch, DEFAULT_PER_PAGE } from './list-params';

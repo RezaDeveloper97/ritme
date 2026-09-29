@@ -113,6 +113,8 @@ export interface NextAppointment {
   daysUntil: number;
   location: string | null;
   remindBefore: RemindBefore;
+  /** The appointment's reminder bell: off → no «… قبل یادآوری» on the home card. */
+  isActive: boolean;
 }
 
 /** GET /care/today. */

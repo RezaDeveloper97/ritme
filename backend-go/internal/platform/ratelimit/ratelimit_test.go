@@ -183,3 +183,36 @@ func TestNamed_OwnCounter(t *testing.T) {
 	assert.True(t, mr.Exists("ritme-go:throttle:writes:902ba3cda1883801594b6e1b452790cc53948fda"))
 	assert.Panics(t, func() { l.Named("", 1, time.Minute, user) })
 }
+
+func TestNamedWith_CustomRejection(t *testing.T) {
+	// A Go-only route may answer its own 429; the counter, headers and window are unchanged.
+	l, _ := newLimiter(t)
+	app := fiber.New(fiber.Config{ErrorHandler: httpx.ErrorHandler(nil)})
+	app.Use(clock.Middleware(clock.Real{}, true))
+	var got ratelimit.Rejection
+	reject := func(_ fiber.Ctx, r ratelimit.Rejection) error {
+		got = r
+		return httpx.Fail(429, "wait", "error_code", "too_many_requests").WithHeader("Retry-After", r.Headers()["Retry-After"])
+	}
+	app.Post("/w", l.NamedWith("writes", 1, time.Minute, func(fiber.Ctx) string { return "7" }, reject),
+		func(c fiber.Ctx) error { return c.SendString("ok") })
+	send := func() (int, string, string) {
+		r := httptest.NewRequest(fiber.MethodPost, "/w", nil)
+		r.Header.Set(clock.Header, "2026-09-23T10:00:00+03:30")
+		resp, err := app.Test(r)
+		require.NoError(t, err)
+		defer func() { _ = resp.Body.Close() }()
+		body, _ := io.ReadAll(resp.Body)
+		return resp.StatusCode, resp.Header.Get("Retry-After"), string(body)
+	}
+	status, _, _ := send()
+	assert.Equal(t, 200, status)
+	status, retry, body := send()
+	assert.Equal(t, 429, status)
+	assert.Equal(t, "60", retry)
+	assert.JSONEq(t, `{"success":false,"message":"wait","error_code":"too_many_requests"}`, body)
+	assert.Equal(t, ratelimit.Rejection{RetryAfter: 60, Limit: 1, Reset: 1790145060}, got)
+	assert.Equal(t, map[string]string{
+		"Retry-After": "60", "X-RateLimit-Limit": "1", "X-RateLimit-Remaining": "0", "X-RateLimit-Reset": "1790145060",
+	}, got.Headers())
+}

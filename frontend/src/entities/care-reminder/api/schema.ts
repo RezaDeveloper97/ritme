@@ -200,6 +200,8 @@ const nextAppointmentSchema = z.object({
   days_until: z.coerce.number().int().catch(0).default(0),
   location: nullableText,
   remind_before: remindBeforeSchema.default('1d'),
+  // The reminder bell. Missing (an older API) reads as on — the card then keeps showing the chip.
+  is_active: z.boolean().catch(true).default(true),
 });
 
 /** GET /care/today. */
@@ -238,6 +240,7 @@ export const careTodaySchema = z
             daysUntil: na.days_until,
             location: na.location,
             remindBefore: na.remind_before,
+            isActive: na.is_active,
           }
         : null,
     };

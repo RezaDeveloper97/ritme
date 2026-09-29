@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
 import { ApiError } from './apiClient';
-import { getApiErrorCode, getApiErrorMessage, getApiLimitMessage } from './envelope';
+import {
+  getApiErrorCode,
+  getApiErrorMessage,
+  getApiLimitMessage,
+  getApiSaveErrorMessage,
+  getApiThrottleMessage,
+} from './envelope';
 
 function failed(status: number, data: unknown): ApiError {
   return new ApiError(`Request failed with status code ${status}`, {
@@ -58,5 +64,34 @@ describe('getApiLimitMessage', () => {
 
   it('is undefined when the body carries no usable text', () => {
     expect(getApiLimitMessage(failed(422, { success: false, error_code: 'limit_reached' }))).toBeUndefined();
+  });
+});
+
+const THROTTLE_BODY = {
+  success: false,
+  message: 'یه لحظه صبر کن و دوباره ذخیره کن؛ توی این یک دقیقه تغییرهای زیادی فرستاده شده.',
+  error_code: 'too_many_requests',
+  retry_after: 42,
+};
+
+describe('getApiThrottleMessage', () => {
+  it("returns the write throttle's localized message", () => {
+    expect(getApiThrottleMessage(failed(429, THROTTLE_BODY))).toBe(THROTTLE_BODY.message);
+  });
+
+  it("ignores the framework 429 and every other failure", () => {
+    expect(getApiThrottleMessage(failed(429, { message: 'Too Many Attempts.' }))).toBeUndefined();
+    expect(getApiThrottleMessage(failed(422, { ...THROTTLE_BODY }))).toBeUndefined();
+    expect(getApiThrottleMessage(failed(429, { ...THROTTLE_BODY, message: ' ' }))).toBeUndefined();
+    expect(getApiThrottleMessage(new Error('boom'))).toBeUndefined();
+  });
+});
+
+describe('getApiSaveErrorMessage', () => {
+  it('prefers the cap, then the throttle message, then the fallback', () => {
+    expect(getApiSaveErrorMessage(failed(422, LIMIT_BODY), 'x')).toBe(LIMIT_BODY.message);
+    expect(getApiSaveErrorMessage(failed(429, THROTTLE_BODY), 'x')).toBe(THROTTLE_BODY.message);
+    expect(getApiSaveErrorMessage(failed(429, { message: 'Too Many Attempts.' }), 'x')).toBe('x');
+    expect(getApiSaveErrorMessage(failed(500, '<html/>'), 'x')).toBe('x');
   });
 });

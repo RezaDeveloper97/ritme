@@ -8,6 +8,7 @@ import { type FormEvent, useState } from 'react';
 import {
   type Appointment,
   type Medication,
+  medicationSchedule,
   useAppointments,
   useMedications,
 } from '@/entities/care-reminder';
@@ -27,7 +28,7 @@ import { formatLongDate } from '@/shared/lib/date';
 import type { Locale } from '@/shared/i18n';
 import { Icon, type IconName } from '@/shared/ui';
 
-import { appointmentParts, byReminderId, clockLabel, isCancelled, rowSchedule } from '../model/row';
+import { appointmentParts, byReminderId, clockLabel, isCancelled } from '../model/row';
 
 const FA = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
 const localizeNum = (value: string, loc: Locale) =>
@@ -140,7 +141,7 @@ function ReminderRow({
     // A care medication: its weekdays and first slot, worded like /reminders
     // («یک روز در میان ساعت ۸:۰۰»), not the legacy weekly/daily column.
     if (medication) {
-      const schedule = rowSchedule(medication.weekdays);
+      const schedule = medicationSchedule(medication.weekdays);
       const label =
         schedule.kind === 'everyDay'
           ? t('recurrence.daily')

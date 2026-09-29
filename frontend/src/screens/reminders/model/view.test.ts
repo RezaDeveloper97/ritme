@@ -6,7 +6,6 @@ import {
   appointmentRowState,
   doseCardState,
   medicationRowState,
-  medicationSchedule,
   nextTab,
   parseTab,
   sectionStatus,
@@ -117,16 +116,6 @@ describe('medicationRowState', () => {
     expect(row.schedule).toEqual({ kind: 'daysPerWeek', count: 3 });
     expect(row.tone).toBe('teal');
     expect(row.dose).toBeNull();
-  });
-});
-
-describe('medicationSchedule', () => {
-  it('reads alternating days as every other day', () => {
-    expect(medicationSchedule([0, 2, 4, 6])).toEqual({ kind: 'everyOtherDay' });
-    expect(medicationSchedule([1, 3, 5])).toEqual({ kind: 'everyOtherDay' });
-    expect(medicationSchedule([0, 2])).toEqual({ kind: 'daysPerWeek', count: 2 });
-    expect(medicationSchedule([0, 1, 2, 3, 4, 5, 6])).toEqual({ kind: 'everyDay' });
-    expect(medicationSchedule([])).toEqual({ kind: 'everyDay' });
   });
 });
 

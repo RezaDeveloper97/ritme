@@ -98,6 +98,7 @@ describe('cardStatus', () => {
       daysUntil: 7,
       location: null,
       remindBefore: '1d' as const,
+      isActive: true,
     };
     expect(
       cardStatus({ isLoading: false, isError: false, data: today({ nextAppointment: appointment }) }),

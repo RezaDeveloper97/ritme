@@ -16,7 +16,7 @@ import {
 } from '@/entities/care-reminder';
 import { pregnancyKeys } from '@/entities/pregnancy';
 import { useCreateAppointment, useUpdateAppointment } from '@/features/manage-appointment';
-import { getApiLimitMessage } from '@/shared/api';
+import { getApiErrorStatus, getApiSaveErrorMessage } from '@/shared/api';
 import { Link, type Locale, useDirection, useRouter } from '@/shared/i18n';
 import {
   type DateParts,
@@ -198,8 +198,15 @@ function AppointmentForm({ prefill, existing }: { prefill?: AppointmentPrefill; 
       // Links a pregnancy care-plan item (→ `booked`); edit keeps the stored key.
       careItemKey: form.careItemKey || null,
     };
-    // A per-user cap (422 limit_reached) shows the server's localized message.
-    const onError = (error: unknown) => setSaveError(getApiLimitMessage(error) ?? tc('saveError'));
+    // A per-user cap (422 limit_reached) or the write limit (429) shows the server's
+    // localized message; a 429 without one still says «wait a moment», not «couldn't save».
+    const onError = (error: unknown) =>
+      setSaveError(
+        getApiSaveErrorMessage(
+          error,
+          getApiErrorStatus(error) === 429 ? tc('tooManyRequests') : tc('saveError'),
+        ),
+      );
     const done = (detailHref: string) => {
       clearHandoff();
       if (!returnTo) return router.push(detailHref);

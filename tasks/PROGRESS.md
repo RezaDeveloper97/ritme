@@ -892,3 +892,11 @@ Nothing needed fixing.
 - Legacy reminders sheet: cancelled rows disabled, «، » separators, «ساعت ۸:۰۰», alternate-day label; checkup detail «ثبت نوبت» uses the prefill handoff; pregnant default medication duration «تا پایان بارداری»; medication form + fertility log show a localized 429 message.
 - Verify: 696 frontend tests + gates, go test/lint, int tests, contract 998 pass / 714 allow-listed. This commit also carries the T-M7-22 OpenAPI hunks.
 - Open → T-M7-23: Go 429 body localized; 429 message on appointment/checkup forms; move the duplicated medication schedule rule into `entities/care-reminder`.
+
+## T-M7-23 — Last polish
+- Profile «گرفتن خروجی داده‌ها» restored (`GET /profile/export` → `ritme-data-export.json`).
+- `/care/today` `next_appointment.is_active`; home card no longer fetches each appointment.
+- Write throttle 429 localized (`care.TooManyWrites`, `error_code: too_many_requests`, `retry_after`; `ratelimit.NamedWith`), OpenAPI `WriteThrottled` on 18 writes; appointment, custom checkup and MarkDone forms show it. Laravel-parity 429s unchanged.
+- `medicationSchedule` moved to `entities/care-reminder`; admin-web numeric inputs show locale digits (text + inputMode); `--z-*` stacking tokens, PWA install banner below dialogs/sheets and hidden while a modal is open.
+- Verify: frontend 699 tests + gates, admin-web 91 tests, go test/lint, care+http int tests, contract 998 pass; check-colors OK.
+- Minor open: `.pwa-toast` (soft update) still above sheets; admin numeric min/max now enforced by the server (422).

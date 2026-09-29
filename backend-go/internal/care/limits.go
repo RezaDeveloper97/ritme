@@ -76,3 +76,20 @@ func upcomingCount(rows []store.Reminder, now time.Time) int {
 	}
 	return n
 }
+
+// ErrorCodeTooManyRequests is the error_code of the per-user write throttle's 429.
+const ErrorCodeTooManyRequests = "too_many_requests"
+
+// TooManyWrites is the per-user write throttle's 429 (internal/http writeThrottle) for the
+// Go-only care / checkups / fertility writes: the controller envelope in the request language,
+// {success:false, message, error_code:"too_many_requests", retry_after}, with headers (the
+// Retry-After / X-RateLimit-* set). Not the framework's English "Too Many Attempts.": no
+// Laravel route shares this throttle, so no golden pins it (T-M7-23).
+func TooManyWrites(locale string, retryAfter int, headers map[string]string) *httpx.FailError {
+	e := httpx.Fail(fiber.StatusTooManyRequests, T("messages.too_many_writes", locale),
+		"error_code", ErrorCodeTooManyRequests, "retry_after", retryAfter)
+	for k, v := range headers {
+		e = e.WithHeader(k, v)
+	}
+	return e
+}

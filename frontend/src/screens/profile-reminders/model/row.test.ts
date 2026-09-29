@@ -1,15 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { appointmentParts, byReminderId, clockLabel, isCancelled, rowSchedule } from './row';
+import { appointmentParts, byReminderId, clockLabel, isCancelled } from './row';
 
 describe('legacy reminders sheet rows', () => {
-  it('names an alternate-day medication «یک روز در میان», not «هفتگی» (B-3)', () => {
-    expect(rowSchedule([0, 2, 4, 6])).toEqual({ kind: 'everyOtherDay' });
-    expect(rowSchedule([1, 3, 5])).toEqual({ kind: 'everyOtherDay' });
-    expect(rowSchedule([0, 1, 2, 3, 4, 5, 6])).toEqual({ kind: 'everyDay' });
-    expect(rowSchedule([])).toEqual({ kind: 'everyDay' });
-    expect(rowSchedule([0, 3])).toEqual({ kind: 'daysPerWeek', count: 2 });
-  });
 
   it('shows the hour without a leading zero (B-2)', () => {
     expect(clockLabel('08:00')).toBe('8:00');

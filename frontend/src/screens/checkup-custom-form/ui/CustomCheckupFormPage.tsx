@@ -15,7 +15,7 @@ import {
   useDeleteCustomCheckup,
   useUpdateCustomCheckup,
 } from '@/features/manage-custom-checkup';
-import { getApiErrorStatus, getApiLimitMessage } from '@/shared/api';
+import { getApiErrorStatus, getApiSaveErrorMessage } from '@/shared/api';
 import { type Locale, Link, useDirection, useRouter } from '@/shared/i18n';
 import {
   type DateParts,
@@ -120,8 +120,9 @@ function CustomForm({ detail }: { detail?: CheckupDetail }) {
   const set = <K extends keyof CustomFormState>(key: K, value: CustomFormState[K]) =>
     setState((s) => ({ ...s, [key]: value }));
   const back = () => router.push(LIST_HREF);
-  // A per-user cap (422 limit_reached) shows the server's localized message.
-  const onError = (error: unknown) => setFormError(getApiLimitMessage(error) ?? t('saveError'));
+  // A per-user cap (422 limit_reached) or the write limit (429) shows the server's
+  // localized message.
+  const onError = (error: unknown) => setFormError(getApiSaveErrorMessage(error, t('saveError')));
 
   const onSave = () => {
     setFormError(null);
@@ -322,7 +323,7 @@ function CustomForm({ detail }: { detail?: CheckupDetail }) {
           <p className="text-start text-[13.5px] text-(--ink)">{tc('deleteConfirm')}</p>
           {remove.isError && (
             <p role="alert" className="mt-2 text-start text-[12px] font-bold text-(--danger-deep)">
-              {t('saveError')}
+              {getApiSaveErrorMessage(remove.error, t('saveError'))}
             </p>
           )}
         </AppSheet>

@@ -3,7 +3,7 @@ id: T-M7-23
 title: Last polish — data export, care/today bell state, 429 copy, admin number inputs, PWA banner layering
 milestone: M7
 type: frontend
-status: in_progress
+status: done
 depends_on: [T-M2-35,T-M7-22]
 parallel_group: M7-E
 touches: [frontend/src/screens/profile,frontend/src/features/manage-account,frontend/src/entities/care-reminder,frontend/src/widgets/today-reminders,frontend/src/screens/reminders,frontend/src/screens/profile-reminders,frontend/src/screens/reminder-appointment-form,frontend/src/screens/checkup-custom-form,frontend/src/screens/checkup-mark-done,frontend/src/shared/api,frontend/src/features/pwa-install,frontend/src/widgets/pwa-install,frontend/src/app/globals.css,frontend/src/app/message-scopes.ts,frontend/messages,backend-go/internal/care,backend-go/internal/http/write_throttle.go,backend-go/internal/platform/ratelimit,backend-go/resources/translations,backend-go/internal/i18n/testdata,backend-go/api/openapi.yaml,backend-go/contract,admin-web/src,admin-web/messages,docs/qa]

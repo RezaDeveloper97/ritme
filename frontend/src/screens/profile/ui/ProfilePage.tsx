@@ -8,7 +8,7 @@ import { useDeactivatePregnancy } from '@/entities/pregnancy';
 import { useUserProfile } from '@/entities/user';
 import { useLogout } from '@/features/auth';
 import { QuickEditSheet, type QuickEditField } from '@/features/edit-profile';
-import { DeleteAccountConfirm } from '@/features/manage-account';
+import { DeleteAccountConfirm, useExportData } from '@/features/manage-account';
 import { useSwitchLocale } from '@/features/switch-locale';
 import { formatLongDate, formatNumber } from '@/shared/lib/date';
 import { openSheet } from '@/shared/sheet';
@@ -180,6 +180,7 @@ function ThemeSwitch({ label }: { label: string }) {
 
 export function ProfilePage() {
   const t = useTranslations('profile');
+  const ta = useTranslations('account');
   const router = useRouter();
   const loc = useLocale() as Locale;
   const { data: profile } = useUserProfile();
@@ -194,6 +195,8 @@ export function ProfilePage() {
   const [editing, setEditing] = useState<QuickEditField | null>(null);
   // Account deletion (§11 — delete is a first-class user right).
   const [deleteOpen, setDeleteOpen] = useState(false);
+  // Data export (§11): GET /profile/export saved as a local JSON file.
+  const { exportData, isPending: exporting, isError: exportFailed } = useExportData();
 
   const user = profile;
   const health = profile?.health;
@@ -400,8 +403,21 @@ export function ProfilePage() {
         <Group title={t('sections.privacy')}>
           <Row icon="shield" label={t('rows.privacyPolicy')} trailing={chevron} onClick={() => openSheet('info', 'privacy')} />
           <Divider />
+          <Row
+            icon="download"
+            label={exporting ? t('exporting') : t('rows.exportData')}
+            trailing={chevron}
+            onClick={() => exportData()}
+            disabled={exporting}
+          />
+          <Divider />
           <Row icon="trash" label={t('rows.deleteAccount')} danger trailing={chevron} onClick={() => setDeleteOpen(true)} />
         </Group>
+        {exportFailed && (
+          <p className="prof-row-error" role="alert">
+            {ta('export.error')}
+          </p>
+        )}
 
         {/* Support */}
         <Group title={t('sections.support')}>

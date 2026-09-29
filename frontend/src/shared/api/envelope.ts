@@ -48,6 +48,27 @@ export function getApiLimitMessage(error: unknown): string | undefined {
   return message ?? fromErrors;
 }
 
+/**
+ * The per-user write limit was hit (429 `error_code: "too_many_requests"` — the
+ * Go-only care, checkup and fertility writes). Returns the server's message,
+ * already in the request language; `undefined` for any other failure,
+ * including a Laravel-style 429 whose body is the framework's English
+ * "Too Many Attempts." — callers fall back to their own copy.
+ */
+export function getApiThrottleMessage(error: unknown): string | undefined {
+  if (getApiErrorStatus(error) !== 429 || getApiErrorCode(error) !== 'too_many_requests') return undefined;
+  const message = errorBody(error)?.message;
+  return typeof message === 'string' && message.trim() ? message : undefined;
+}
+
+/**
+ * What a save form shows for a failed write: the server's localized cap (422
+ * `limit_reached`) or write-throttle (429) message, else `fallback`.
+ */
+export function getApiSaveErrorMessage(error: unknown, fallback: string): string {
+  return getApiLimitMessage(error) ?? getApiThrottleMessage(error) ?? fallback;
+}
+
 /** HTTP status of a failed request, when it came from the API. */
 export function getApiErrorStatus(error: unknown): number | undefined {
   return error instanceof ApiError ? error.response?.status : undefined;

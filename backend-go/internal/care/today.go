@@ -105,6 +105,9 @@ func TodayJSON(day civildate.Date, doses []Dose, next *Appointment, now time.Tim
 			"days_until", civildate.InTehran(now).DiffDays(civildate.FromTime(at)),
 			"location", next.Meta.Location,
 			"remind_before", next.Meta.RemindBefore,
+			// The reminder switch, so the home card can hide «… قبل یادآوری» when the bell is
+			// off without fetching the appointment (T-M7-23).
+			"is_active", next.Row.IsActive,
 		)
 	}
 	return jsonx.Obj(

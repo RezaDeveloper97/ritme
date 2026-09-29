@@ -1,9 +1,11 @@
-import type {
-  Appointment,
-  AppointmentKind,
-  Medication,
-  MedicationForm,
-  TodayDose,
+import {
+  type Appointment,
+  type AppointmentKind,
+  type Medication,
+  type MedicationForm,
+  type MedicationSchedule,
+  medicationSchedule,
+  type TodayDose,
 } from '@/entities/care-reminder';
 import type { IconName } from '@/shared/ui';
 
@@ -128,24 +130,6 @@ const FORM_ICON: Record<MedicationForm, IconName> = {
   injection: 'pill',
   drops: 'drop',
 };
-
-export type MedicationSchedule =
-  | { kind: 'everyDay' }
-  | { kind: 'everyOtherDay' }
-  | { kind: 'daysPerWeek'; count: number };
-
-/**
- * All seven (or none) = every day; three or more days each two apart
- * (ش/د/چ/ج, ی/س/پ) = «یک روز در میان»; anything else is a count.
- */
-export function medicationSchedule(weekdays: readonly number[]): MedicationSchedule {
-  const days = [...new Set(weekdays)].sort((a, b) => a - b);
-  if (days.length === 0 || days.length >= 7) return { kind: 'everyDay' };
-  if (days.length >= 3 && days.every((d, i) => i === 0 || d - days[i - 1]! === 2)) {
-    return { kind: 'everyOtherDay' };
-  }
-  return { kind: 'daysPerWeek', count: days.length };
-}
 
 export interface MedicationRowState {
   id: number;

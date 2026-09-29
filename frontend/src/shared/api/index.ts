@@ -12,4 +12,6 @@ export {
   getApiErrorMessage,
   getApiLimitMessage,
   getApiErrorStatus,
+  getApiSaveErrorMessage,
+  getApiThrottleMessage,
 } from './envelope';

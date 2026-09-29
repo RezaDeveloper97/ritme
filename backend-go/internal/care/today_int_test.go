@@ -79,7 +79,7 @@ func TestToday_Fixture(t *testing.T) {
 		`{"reminder_id":%d,"title":"فولیک اسید ۴۰۰ میکروگرم","form":"tablet","slot":"20:00","taken":false}],`+
 		`"taken_count":1,"total":3,`+
 		`"next_appointment":{"id":%d,"kind":"in_person","title":"سونوگرافی NT","with":"دکتر احمدی",`+
-		`"scheduled_at":"2026-09-30 10:30:00","days_until":7,"location":"مطب","remind_before":"1d"}}}`,
+		`"scheduled_at":"2026-09-30 10:30:00","days_until":7,"location":"مطب","remind_before":"1d","is_active":false}}}`,
 		folic, vitc, folic, scan)
 	assert.JSONEq(t, want, r.raw)
 	assert.Equal(t, phpJSON(want), r.raw, "byte for byte (non-ASCII escaped like PHP json_encode)")

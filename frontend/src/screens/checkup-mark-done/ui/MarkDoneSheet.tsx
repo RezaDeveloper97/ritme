@@ -18,6 +18,7 @@ import {
   useCheckupRecords,
 } from '@/entities/checkup';
 import { useCreateCheckupRecord, useUpdateCheckupRecord } from '@/features/record-checkup';
+import { getApiSaveErrorMessage } from '@/shared/api';
 import type { Locale } from '@/shared/i18n';
 import {
   type DateParts,
@@ -194,7 +195,8 @@ function MarkDoneForm({ typeId, record }: { typeId: number; record: CheckupRecor
     };
     const onError = (error: unknown) => {
       if (error instanceof LocalFilesError) setFileError(error.code);
-      else setFormError(t('saveError'));
+      // The write limit (429) shows the server's localized «wait a moment».
+      else setFormError(getApiSaveErrorMessage(error, t('saveError')));
     };
     if (record) {
       update.mutate(

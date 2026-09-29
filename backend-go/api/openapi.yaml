@@ -594,7 +594,8 @@ paths:
         medication whose weekday/start/end window covers `date`, sorted by slot (then reminder id); `taken` when a
         `reminder_intakes` row exists for that reminder, date and slot. `title` = title + " " + subtitle (dose and unit,
         rendered in the request language) when there is a subtitle. `next_appointment` = the earliest `scheduled` (not cancelled) appointment at or after
-        now — its reminder switch (`is_active`) does not matter — or null; it is relative to now, not to `date`.
+        now — its reminder switch (`is_active`) does not matter for picking it and is returned so the card can hide the
+        reminder lead time when the bell is off — or null; it is relative to now, not to `date`.
         `days_until` = civil days from today (Tehran). A malformed `date` → 422 on `date`.
       operationId: getCareToday
       security:
@@ -634,7 +635,7 @@ paths:
                         oneOf:
                           - type: "null"
                           - type: object
-                            required: [id, kind, title, with, scheduled_at, days_until, location, remind_before]
+                            required: [id, kind, title, with, scheduled_at, days_until, location, remind_before, is_active]
                             properties:
                               id: {type: integer}
                               kind: {type: string, enum: [in_person, phone, online]}
@@ -644,6 +645,7 @@ paths:
                               days_until: {type: integer}
                               location: {type: [string, "null"]}
                               remind_before: {type: string, enum: [1h, 3h, 1d, 2d]}
+                              is_active: {type: boolean, description: "The appointment's reminder switch (bell)."}
               example:
                 success: true
                 data:
@@ -653,7 +655,7 @@ paths:
                     - {reminder_id: 12, title: فولیک اسید ۴۰۰ میکروگرم, form: tablet, slot: "20:00", taken: false}
                   taken_count: 1
                   total: 2
-                  next_appointment: {id: 40, kind: in_person, title: سونوگرافی NT, with: دکتر احمدی, scheduled_at: "2026-09-30 10:30:00", days_until: 7, location: مطب, remind_before: 1d}
+                  next_appointment: {id: 40, kind: in_person, title: سونوگرافی NT, with: دکتر احمدی, scheduled_at: "2026-09-30 10:30:00", days_until: 7, location: مطب, remind_before: 1d, is_active: true}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '422': {$ref: "#/components/responses/CareValidationFailed"}
   /api/v1/care/medications:
@@ -697,7 +699,7 @@ paths:
         **Cap:** at most 100 medication reminders per user (active or paused); the 101st gets **422**
         `{success: false, message, errors: {limit: [message]}, error_code: limit_reached}` in the request language.
         **Throttle:** every care / checkups / fertility write shares one per-user budget of 60 per minute
-        (**429** "Too Many Attempts.", `Retry-After`).
+        (**429** in the request language, see `WriteThrottled`).
       operationId: postCareMedications
       security:
         - {bearerAuth: []}
@@ -724,7 +726,7 @@ paths:
                   data: {$ref: "#/components/schemas/Medication"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '422': {$ref: "#/components/responses/CareValidationFailed"}
-        '429': {$ref: "#/components/responses/TooManyAttempts"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/care/medications/{id}:
     get:
       tags: [Care]
@@ -779,7 +781,7 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/CareNotFound"}
         '422': {$ref: "#/components/responses/CareValidationFailed"}
-        '429': {$ref: "#/components/responses/TooManyAttempts"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
     delete:
       tags: [Care]
       summary: Delete a medication reminder
@@ -805,7 +807,7 @@ paths:
               example: {success: true, message: یادآور دارو حذف شد, data: null}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/CareNotFound"}
-        '429': {$ref: "#/components/responses/TooManyAttempts"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/care/medications/{id}/intakes:
     post:
       tags: [Care]
@@ -845,7 +847,7 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/CareNotFound"}
         '422': {$ref: "#/components/responses/CareValidationFailed"}
-        '429': {$ref: "#/components/responses/TooManyAttempts"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
     delete:
       tags: [Care]
       summary: Unmark a dose
@@ -882,7 +884,7 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/CareNotFound"}
         '422': {$ref: "#/components/responses/CareValidationFailed"}
-        '429': {$ref: "#/components/responses/TooManyAttempts"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/care/appointments:
     get:
       tags: [Care]
@@ -953,7 +955,7 @@ paths:
                   data: {$ref: "#/components/schemas/Appointment"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '422': {$ref: "#/components/responses/CareValidationFailed"}
-        '429': {$ref: "#/components/responses/TooManyAttempts"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/care/appointments/{id}:
     get:
       tags: [Care]
@@ -1012,7 +1014,7 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/CareAppointmentNotFound"}
         '422': {$ref: "#/components/responses/CareValidationFailed"}
-        '429': {$ref: "#/components/responses/TooManyAttempts"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
     delete:
       tags: [Care]
       summary: Delete an appointment
@@ -1037,7 +1039,7 @@ paths:
               example: {success: true, message: نوبت حذف شد, data: null}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/CareAppointmentNotFound"}
-        '429': {$ref: "#/components/responses/TooManyAttempts"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/care/appointments/{id}/cancel:
     post:
       tags: [Care]
@@ -1063,7 +1065,7 @@ paths:
                   data: {$ref: "#/components/schemas/Appointment"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/CareAppointmentNotFound"}
-        '429': {$ref: "#/components/responses/TooManyAttempts"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/care/appointments/{id}/prep/{itemId}:
     patch:
       tags: [Care]
@@ -1100,7 +1102,7 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/CareAppointmentNotFound"}
         '422': {$ref: "#/components/responses/CareValidationFailed"}
-        '429': {$ref: "#/components/responses/TooManyAttempts"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/fertility/bbt:
     get:
       tags: [Fertility]
@@ -1433,7 +1435,7 @@ paths:
                 warning: {type: luteal_spotting_warning, message: "این خون‌ریزی ممکن است لکه‌بینی لوتئال باشد نه شروع پریود. آیا مطمئن هستید؟"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '422': {$ref: "#/components/responses/FertilityValidationFailed"}
-        '429': {$ref: "#/components/responses/TooManyAttempts"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/checkups:
     get:
       tags: [Checkups]
@@ -1630,7 +1632,7 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/CheckupNotFound"}
         '422': {$ref: "#/components/responses/CheckupValidationFailed"}
-        '429': {$ref: "#/components/responses/TooManyAttempts"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
     delete:
       tags: [Checkups]
       summary: Delete a checkup record
@@ -1655,7 +1657,7 @@ paths:
               example: {success: true, message: سابقه چکاپ حذف شد, data: null}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/CheckupNotFound"}
-        '429': {$ref: "#/components/responses/TooManyAttempts"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/checkups/custom:
     post:
       tags: [Checkups]
@@ -1694,7 +1696,7 @@ paths:
                   data: {$ref: "#/components/schemas/CheckupItem"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '422': {$ref: "#/components/responses/CheckupValidationFailed"}
-        '429': {$ref: "#/components/responses/TooManyAttempts"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/checkups/custom/{id}:
     put:
       tags: [Checkups]
@@ -1727,7 +1729,7 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/CheckupNotFound"}
         '422': {$ref: "#/components/responses/CheckupValidationFailed"}
-        '429': {$ref: "#/components/responses/TooManyAttempts"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
     delete:
       tags: [Checkups]
       summary: Delete a custom checkup
@@ -1752,7 +1754,7 @@ paths:
                   data: {type: "null"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/CheckupNotFound"}
-        '429': {$ref: "#/components/responses/TooManyAttempts"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/checkups/{id}:
     get:
       tags: [Checkups]
@@ -1814,7 +1816,7 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/CheckupNotFound"}
         '422': {$ref: "#/components/responses/CheckupValidationFailed"}
-        '429': {$ref: "#/components/responses/TooManyAttempts"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/checkups/{id}/settings:
     put:
       tags: [Checkups]
@@ -1859,7 +1861,7 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/CheckupNotFound"}
         '422': {$ref: "#/components/responses/CheckupValidationFailed"}
-        '429': {$ref: "#/components/responses/TooManyAttempts"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/cycle/date/{date}:
     get:
       tags: [Cycle]
@@ -8094,6 +8096,27 @@ components:
         application/json:
           schema: {$ref: "#/components/schemas/FrameworkError"}
           example: {message: Too Many Attempts.}
+    WriteThrottled:
+      description: |
+        The per-user write throttle of the Go-only care / checkups / fertility routes (60 writes per minute, shared).
+        Controller-style envelope with the message in the request language (not the framework's "Too Many
+        Attempts."); `retry_after` = seconds until the window ends (same as `Retry-After`).
+      headers:
+        Retry-After: {schema: {type: integer}}
+        X-RateLimit-Limit: {schema: {type: integer}}
+        X-RateLimit-Remaining: {schema: {type: integer}}
+        X-RateLimit-Reset: {schema: {type: integer}}
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code, retry_after]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, const: too_many_requests}
+              retry_after: {type: integer, minimum: 0}
+          example: {success: false, message: یه لحظه صبر کن و دوباره ذخیره کن؛ توی این یک دقیقه تغییرهای زیادی فرستاده شده., error_code: too_many_requests, retry_after: 42}
     ServerError:
       description: Unhandled error (framework 500)
       content:
