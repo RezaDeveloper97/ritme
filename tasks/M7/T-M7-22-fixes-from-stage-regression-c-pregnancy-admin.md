@@ -6,7 +6,7 @@ type: frontend
 status: in_progress
 depends_on: [T-M7-21]
 parallel_group: M7-E
-touches: [admin-web/src,admin-web/messages,backend-go/internal/admin,backend-go/internal/pregnancy,backend-go/db/queries/pregnancy,backend-go/internal/messages/pregnancyalerts,frontend/src/screens/pregnancy-calendar,frontend/src/screens/pregnancy-log,frontend/src/screens/onboarding-pregnancy-basis,frontend/src/screens/profile,frontend/src/features/delete-account,frontend/src/widgets/today-reminders,backend-go/api/openapi.yaml,docs/qa]
+touches: [admin-web/src,admin-web/messages,backend-go/internal/admin,backend-go/internal/pregnancy,backend-go/db/queries/pregnancy,backend-go/internal/messages/pregnancyalerts,frontend/src/screens/pregnancy-calendar,frontend/src/screens/pregnancy-log,frontend/src/screens/onboarding-pregnancy-basis,frontend/src/screens/profile,frontend/src/features/manage-account,frontend/src/widgets/today-reminders,backend-go/api/openapi.yaml,docs/qa]
 skills: [verify-all,check-colors]
 verify: cd admin-web && npm run typecheck && npm run lint && npm run test && cd ../frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run test && cd ../backend-go && go vet ./... && go test ./... && golangci-lint run && make contract ROUTES=all
 ---
