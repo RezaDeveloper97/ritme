@@ -3,7 +3,7 @@ id: T-M5-11
 title: Fertility — design fidelity fixes (v19 audit) and TTC home
 milestone: M5
 type: frontend
-status: todo
+status: in_progress
 depends_on: [T-M5-10]
 parallel_group: M5-D
 touches: [frontend/src/screens/home,frontend/src/screens/fertility-log,frontend/src/screens/fertility-bbt,frontend/src/screens/fertility-insights,frontend/src/widgets,frontend/src/features,frontend/src/entities/fertility,frontend/src/entities/cycle,frontend/src/app/globals.css,frontend/src/app/message-scopes.ts,frontend/messages,backend-go/resources/translations,backend-go/internal/i18n/testdata,docs/fertility-ttc]
