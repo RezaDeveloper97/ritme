@@ -148,3 +148,68 @@ Info:
 - **Profile:** `f-15` privacy rows; `f-16` signup after delete
 - **Pregnancy:** `f-17` / `f-18` Today badge + Alerts (light); `f-19` Today + Alerts (dark)
 - **Admin:** `f-20` week grid; `f-21` numeric fa digits; `f-22` / `f-23` dark lists
+
+## T-M2-36 stage check
+
+Re-check of **F-1** after T-M2-36 (commit `90876a3`, D-30). The fix reads `/cycle/today|date` by the §19 display
+window. On O+1 that means: luteal, not fertile, and early-luteal tips.
+
+**Result: F-1 fixed.** On O+1 the home shows no fertile or "peak" copy.
+
+### Deploy
+
+- `./deploy-stage.sh` shipped branch `stage` @ `90876a3`. It exited 0 and ended with «✅ Staging deploy done».
+  - The frontend build layer re-ran (`frontend build rev: 90876a3-20260929T112954Z`).
+  - Goose stayed at version 8 with no new migrations (`{"msg":"migrations","action":"goose_managed","applied":null,"version":8}`).
+  - Every assertion in the script passed: `/up` 200 + `X-Backend: go`, `/` 401, `/admin` 301 → `/panel/`, `/oauth/token` 404, languages from Go.
+- **Stage containers:** `backend-go` Up (healthy), `admin-web` Up (healthy), `frontend` Up, `mysql` and `redis` Up (healthy).
+- **Production was not touched.** `deploy.sh` was not run. The `Created` timestamps before and after were identical (`diff` empty):
+
+  | Container | Created | State |
+  |---|---|---|
+  | `ritme-proxy-1` | 2026-09-23T11:32:14Z | running |
+  | `ritme-frontend-1` | 2026-09-01T13:14:46Z | running |
+  | `ritme-backend-1` | 2026-08-31T08:37:28Z | running |
+  | `ritme-queue-1` | 2026-08-31T08:37:32Z | running |
+  | `ritme-mysql-1` | 2026-08-16T13:39:17Z | running (healthy) |
+  | `ritme-redis-1` | 2026-08-16T13:39:17Z | running (healthy) |
+
+  After the deploy, `https://api.ritme.app/up` returned 200. The only production-side action was the script's own
+  graceful proxy reload (`nginx -t` ok).
+
+### Test user
+
+- **09900001501** (uid 27), avoiding: `user_goal non_ttc`, `pregnancy_intention avoiding`. Profile: cycle 28, period 5.
+- Periods logged through the API: 06-22, 07-20, 08-17 and 09-14, each 5 days.
+- Today, 2026-09-29, is cycle day 16. O = 15, so today is **O+1**.
+
+### API (`X-Backend: go`, `Accept-Language: fa`)
+
+| Call | Result |
+|---|---|
+| `GET /cycle/today` → `calculation` | ✔ `cycle_day 16`, `estimated_ovulation_day 15`, `phase luteal`, `subphase post_ovulation`, `is_fertile_window false`, `final_probability 7.14` |
+| `calculation.text_flags` | ✔ only `probability_message` and `phase_info` «فاز فعلی: لوتئال (پس از تخمک‌گذاری)». There is no `fertility_status` |
+| `calculation.daily_tips` (4) | ✔ early-luteal: تغذیه «روی غذاهای غنی از منیزیم و ویتامین B6…», ورزش «به حرکات ملایم‌تر…», خواب «کمی زودتر بخوابید…», سلامت روان «زمان خوبی برای تمام‌کردن کارهای نیمه‌تمام…» |
+| `cycle_view` | ✔ `main_phase luteal`, `fertility_level low` |
+| `GET /messages/daily` → `context_info` | ✔ `luteal`, `post_ovulation`, `is_fertile_window false` (D-28, unchanged) |
+| Control: `GET /cycle/date/2026-09-28` (O) | ✔ still `ovulation` / `ovulation_likely` / fertile, with tips `fertility, energy, hydration, sleep` |
+
+### Home (`/fa/home`, 390 px, light + dark)
+
+- **«توصیه‌های امروز»** shows the same 4 early-luteal tips in both themes.
+- **Whole page:** a DOM check of the page text found no «اوج باروری», «بهترین زمان است» or «اعتماد به نفس و اجتماعی».
+- **Console:** 0 JS exceptions.
+- **Screenshots:** `f-24-t36-home-o1-avoid-light.png`, `f-24-t36-home-o1-avoid-dark.png`. The 4th tip is under the PWA install
+  banner in the capture, but it is present in the DOM.
+
+### Method and cleanup
+
+- **Browser:** headless Chrome 154 on CDP port 9311 with its own profile in a private scratch folder. 390×844 @1.5,
+  mobile, `ritme_theme` light/dark.
+- **Gate:** a chmod-600 netrc; the credentials were never printed. One gated page load minted the `ritme_stage` cookie.
+- **Login:** `send-otp`, then the OTP was read from `otp_verifications` in the **stage** DB, then `verify-otp`.
+- **Cleanup:**
+  - The test user was deleted with `DELETE /api/v1/account` (200); the old token then returned 401.
+  - Its `otp_verifications` rows were deleted (stage DB only).
+  - `users` has 0 rows. A sweep of all 23 `user_id` tables for uid 27 found 0 rows.
+  - Chrome was stopped. The netrc, cookie jar, token, OTP and profile were deleted.
