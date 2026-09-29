@@ -3,10 +3,10 @@ id: T-M4-12
 title: Checkups — design fidelity fixes (v14 audit)
 milestone: M4
 type: frontend
-status: todo
+status: done
 depends_on: [T-M4-11]
 parallel_group: M4-D
-touches: [frontend/src/screens/checkups,frontend/src/screens/checkup-detail,frontend/src/screens/checkup-history,frontend/src/screens/checkup-self-exam,frontend/src/screens/checkup-mark-done,frontend/src/screens/checkup-custom-form,frontend/src/widgets/checkups-card,frontend/src/features,frontend/src/entities/checkup,frontend/src/app/globals.css,frontend/messages,backend-go/internal/checkups,backend-go/db,backend-go/api/openapi.yaml,backend-go/contract,backend-go/resources/translations,backend-go/internal/i18n/testdata,admin-web/src,docs/checkups]
+touches: [frontend/src/app/sheets/registry.tsx, frontend/src/screens/checkups,frontend/src/screens/checkup-detail,frontend/src/screens/checkup-history,frontend/src/screens/checkup-self-exam,frontend/src/screens/checkup-mark-done,frontend/src/screens/checkup-custom-form,frontend/src/widgets/checkups-card,frontend/src/features,frontend/src/entities/checkup,frontend/src/app/globals.css,frontend/messages,backend-go/internal/checkups,backend-go/db,backend-go/api/openapi.yaml,backend-go/contract,backend-go/resources/translations,backend-go/internal/i18n/testdata,admin-web/src,docs/checkups]
 skills: [verify-all,check-colors]
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && cd ../backend-go && go vet ./... && go test ./... && make contract ROUTES=all && cd ../admin-web && npm run typecheck && npm run test
 ---

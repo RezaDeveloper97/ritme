@@ -3,15 +3,23 @@
 import clsx from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
 
-import { type CheckupDetail, type CheckupRecord, useCheckup } from '@/entities/checkup';
+import {
+  type CheckupDetail,
+  type CheckupRecord,
+  checkupIcon,
+  checkupResultIcon,
+  checkupStatusIcon,
+  formatCheckupMonth,
+  useCheckup,
+} from '@/entities/checkup';
 import { useUpdateCheckupSettings } from '@/features/manage-custom-checkup';
 import { getApiErrorStatus } from '@/shared/api';
 import { type Locale, Link, useDirection } from '@/shared/i18n';
-import { formatLongDate, formatNumber, fromApiDate } from '@/shared/lib/date';
+import { formatNumber } from '@/shared/lib/date';
 import { openSheet } from '@/shared/sheet';
 import { Icon } from '@/shared/ui';
 
-import { MARK_DONE_SHEET, markDoneSheetArg, monthsSince } from '../model/view';
+import { MARK_DONE_SHEET, heroRelative, markDoneSheetArg } from '../model/view';
 
 const LIST_HREF = '/checkups';
 const GUIDE_HREF = '/checkups/self-exam';
@@ -56,47 +64,51 @@ function Hero({ detail }: { detail: CheckupDetail }) {
   const t = useTranslations('checkups');
   const locale = useLocale() as Locale;
   const hasGuide = detail.guideSteps.length > 0;
-  const months = monthsSince(detail.lastDoneOn);
-  const next = detail.nextDueOn ? formatLongDate(fromApiDate(detail.nextDueOn), locale) : t('noDate');
-  const relative = detail.lastDoneOn
-    ? [
-        months !== null && months > 0 ? t('detail.passedMonths', { count: months }) : null,
-        t('detail.lastTime', { date: formatLongDate(fromApiDate(detail.lastDoneOn), locale) }),
-      ]
-        .filter(Boolean)
-        .join(t('separator'))
-    : t('detail.neverDone');
+  const next = detail.nextDueOn ? formatCheckupMonth(detail.nextDueOn, locale) : t('noDate');
+  const rel = heroRelative(detail);
+  // «حدود ۶ ماه از موعد گذشته، آخرین بار فروردین ۱۴۰۱» — months past the *due date*, and only when overdue.
+  const relative =
+    rel.kind === 'never'
+      ? t('detail.neverDone')
+      : [
+          rel.overdueMonths ? t('detail.overdueMonths', { count: rel.overdueMonths }) : null,
+          t('detail.lastTime', { date: formatCheckupMonth(rel.lastDoneOn, locale) }),
+        ]
+          .filter(Boolean)
+          .join(t('separator'));
 
   return (
-    <section className="flex flex-col gap-3 rounded-3xl bg-(image:--gradient-brand) p-4 text-(--on-accent)">
+    <section className={clsx('ck-hero', `ck-tone-${detail.tone}`)}>
       <div className="flex items-start justify-between gap-3">
-        <div className="flex flex-wrap gap-1.5">
-          <span className="rounded-full bg-white/20 px-2.5 py-1 text-[11px] font-extrabold">
-            {t(`section.${detail.category}`)}
-          </span>
-          <span className="rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-extrabold text-(--brand)">
-            {t(`status.${detail.status}`)}
-          </span>
-        </div>
-        <span className="grid size-12 shrink-0 place-items-center rounded-full bg-white/20" aria-hidden>
-          <Icon name="shield" size={22} />
+        <span className="ck-hero-chip">
+          <Icon name={checkupIcon(detail.icon, { performedBy: detail.performedBy })} size={13} />
+          {detail.subtitle ?? t(`section.${detail.category}`)}
+        </span>
+        <span className={clsx(`ck-status-${detail.status}`, 'ck-pill is-solid')}>
+          <Icon name={checkupStatusIcon(detail.status)} size={12} strokeWidth={2.2} />
+          {t(`status.${detail.status}`)}
         </span>
       </div>
-      <div className="text-start">
-        <p className="text-[12px] font-semibold opacity-85">{t('detail.nextDue')}</p>
-        <p className="font-['Lalezar'] text-[28px] leading-tight font-normal">{next}</p>
-        <p className="mt-1 text-[12px] opacity-85">{relative}</p>
+      <div className="flex items-center gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-[12px] font-semibold text-(--ink-3)">{t('detail.nextDue')}</p>
+          <p className="font-['Lalezar'] text-[30px] leading-tight font-normal text-(--ink)">{next}</p>
+          <p className="mt-1 text-[12px] font-semibold text-(--ink-2)">{relative}</p>
+        </div>
+        <span className="ck-hero-disc" aria-hidden>
+          <Icon name={checkupIcon(detail.icon, { performedBy: detail.performedBy })} size={26} strokeWidth={1.8} />
+        </span>
       </div>
       <div className="flex gap-2">
         {hasGuide ? (
-          <Link href={GUIDE_HREF} className="btn flex-1 bg-white text-(--brand)">
+          <Link href={GUIDE_HREF} className="btn flex-1 bg-(--surface) text-(--brand-strong)">
             <Icon name="bookOpen" size={16} />
             {t('detail.openGuide')}
           </Link>
         ) : (
           <button
             type="button"
-            className="btn flex-1 bg-white text-(--brand)"
+            className="btn flex-1 bg-(--surface) text-(--brand-strong)"
             disabled={detail.status === 'disabled'}
             onClick={() => openSheet(MARK_DONE_SHEET, markDoneSheetArg(detail.id))}
           >
@@ -105,7 +117,7 @@ function Hero({ detail }: { detail: CheckupDetail }) {
           </button>
         )}
         {detail.performedBy !== 'self' && (
-          <Link href={BOOK_HREF} className="btn flex-1 bg-white/20 text-(--on-accent)">
+          <Link href={BOOK_HREF} className="btn ck-hero-alt flex-1">
             <Icon name="calendar" size={16} />
             {t('detail.book')}
           </Link>
@@ -119,25 +131,24 @@ function RecordRow({ detail, record }: { detail: CheckupDetail; record: CheckupR
   const t = useTranslations('checkups');
   const locale = useLocale() as Locale;
   return (
-    <li>
+    <li className={`ck-result-${record.result}`}>
       <button
         type="button"
         className="flex w-full items-center gap-3 py-2.5 text-start"
         aria-label={t('detail.editRecord')}
         onClick={() => openSheet(MARK_DONE_SHEET, markDoneSheetArg(detail.id, record.id))}
       >
+        <span className="size-2.5 shrink-0 rounded-full bg-(--ck-ink)" aria-hidden />
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="text-[13px] font-extrabold text-(--ink)">
-            {formatLongDate(fromApiDate(record.doneOn), locale)}
-            {t('separator')}
-            {t(`result.${record.result}`)}
-          </span>
-          <span className="flex items-center gap-1 text-[11.5px] text-(--ink-3)">
-            <Icon name={record.hasAttachment ? 'note' : 'x'} size={12} />
+          <span className="text-[13.5px] font-extrabold text-(--ink)">{formatCheckupMonth(record.doneOn, locale)}</span>
+          <span className="text-[11.5px] text-(--ink-3)">
             {record.hasAttachment ? t('detail.attached') : t('detail.noAttachment')}
           </span>
         </span>
-        <Icon name="pencil" size={14} className="shrink-0 text-(--ink-3)" />
+        <span className="ck-pill">
+          <Icon name={checkupResultIcon(record.result)} size={12} strokeWidth={2.2} />
+          {t(`result.${record.result}`)}
+        </span>
       </button>
     </li>
   );
@@ -190,7 +201,7 @@ export function CheckupDetailPage({ id }: { id: number }) {
             <h2 className="text-[14px] font-extrabold text-(--ink)">{t('detail.prep')}</h2>
             <ol className="flex flex-col gap-2">
               {detail.prepSteps.map((step, i) => (
-                <li key={i} className="flex items-start gap-2.5 text-[13px] text-(--ink-2)">
+                <li key={i} className="flex items-start gap-2.5 text-[13px] leading-relaxed font-semibold text-(--ink)">
                   <span className="grid size-6 shrink-0 place-items-center rounded-full bg-(--pink-bg) text-[11px] font-extrabold text-(--brand)">
                     {formatNumber(i + 1, locale)}
                   </span>
@@ -199,8 +210,7 @@ export function CheckupDetailPage({ id }: { id: number }) {
               ))}
             </ol>
             {hasCycleHint && (
-              <p className="flex items-start gap-2 rounded-2xl bg-(--surface-2) p-2.5 text-[12px] text-(--ink-3)">
-                <Icon name="drop" size={14} className="mt-0.5 shrink-0 text-(--brand)" />
+              <p className="text-[12px] text-(--ink-3)">
                 {t('detail.cycleHint', {
                   from: formatNumber(detail.cycleDayFrom as number, locale),
                   to: formatNumber(detail.cycleDayTo as number, locale),
@@ -237,10 +247,7 @@ export function CheckupDetailPage({ id }: { id: number }) {
           </Link>
         )}
 
-        <p className="flex items-start gap-2 rounded-2xl bg-(--surface-2) p-3 text-start text-[11.5px] leading-relaxed text-(--ink-3)">
-          <Icon name="info" size={16} className="mt-0.5 shrink-0" />
-          {t('detail.disclaimer')}
-        </p>
+        <p className="text-center text-[11.5px] leading-relaxed text-(--ink-3)">{t('detail.disclaimer')}</p>
       </>
     );
   }

@@ -121,8 +121,8 @@ func matchesFilter(it engine.Item, filter string) bool {
 	}
 }
 
-// Home is GET /checkups/home: the summary and up to two due/overdue items (cycle-timed first,
-// then overdue before due), in three queries. `data: null` when nothing applies.
+// Home is GET /checkups/home: the summary and up to two due/overdue items (the monthly self-exam
+// first, then cycle-timed, then overdue before due), in three queries. `data: null` when nothing applies.
 func (h *Handlers) Home(c fiber.Ctx) error {
 	userID, err := h.user(c)
 	if err != nil {
@@ -147,8 +147,12 @@ func Highlights(p *Plan, l Lang) []*jsonx.OrderedMap {
 		}
 	}
 	rank := func(it engine.Item) int {
-		r := 0
-		if !p.Types[it.TypeID].CycleTimed() {
+		t := p.Types[it.TypeID]
+		if t.CycleTimed() && t.Category == engine.CategoryMonthly {
+			return 0 // the self-exam guide leads (artboard v14_Main)
+		}
+		r := 1
+		if !t.CycleTimed() {
 			r += 2
 		}
 		if it.Status != engine.StatusOverdue {

@@ -33,6 +33,7 @@ export {
   type CheckupTone,
 } from './model/types';
 export { checkupIcon } from './model/icon';
+export { checkupResultIcon, checkupStatusIcon, formatCheckupMonth } from './model/display';
 export {
   CHECKUP_ATTACHMENT_ACCEPT,
   CHECKUP_ATTACHMENT_MAX_BYTES,

@@ -484,7 +484,7 @@ func TestRecords_List(t *testing.T) {
 	assert.Equal(t, "2026-03-25", first["done_on"], "newest first")
 	assert.Equal(t, "dentist", first["checkup_key"])
 	assert.Equal(t, "tooth", first["checkup_icon"])
-	assert.Equal(t, "teal", first["checkup_tone"])
+	assert.Equal(t, "green", first["checkup_tone"], "00007 catalog tone")
 	assert.NotEmpty(t, first["checkup_title"])
 	assert.Equal(t, map[string]any{"current_page": 1.0, "last_page": 2.0, "per_page": 20.0, "total": 24.0}, d["meta"])
 
@@ -648,7 +648,7 @@ func TestList_CycleTimedSelfExam(t *testing.T) {
 	r := e.do(t, http.MethodGet, fmt.Sprintf("/api/v1/checkups/%d", selfExam), tok, "fa", "")
 	require.Equal(t, http.StatusOK, r.status, r.raw)
 	d := r.data()
-	assert.Equal(t, "due", d["status"])
+	assert.Equal(t, "soon", d["status"], "never recorded, but the window is weeks away (audit 5d)")
 	assert.Equal(t, "2026-10-14", d["next_due_on"], "cycle day 7 of the cycle starting 2026-10-08")
 	assert.Equal(t, "۲۱ روز دیگر", d["next_due_label"])
 	assert.Equal(t, "this_month", d["section"], "inside Mehr 1405")

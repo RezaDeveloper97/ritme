@@ -172,7 +172,7 @@ export const SHEET_REGISTRY: Record<string, SheetDefinition> = {
    * `arg` is `"<typeId>"` or `"<typeId>-<recordId>"` (ids only, §11).
    */
   'checkup-mark-done': {
-    size: 'full',
+    size: 'half',
     Title: MarkDoneTitle,
     Component: dynamic(
       () => import('@/screens/checkup-mark-done').then((m) => m.MarkDoneSheet),

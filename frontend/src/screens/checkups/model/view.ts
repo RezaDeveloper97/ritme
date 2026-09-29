@@ -99,3 +99,14 @@ export function barSegments(summary: CheckupSummary): BarSegment[] {
     .filter(([, n]) => n > 0)
     .map(([status, count]) => ({ status, count, percent: (count / total) * 100 }));
 }
+
+/**
+ * Line 2 of a plan row: the interval, then the cycle window or — for a type
+ * without one — its subtitle («هر سال، توسط پزشک», «هر ماه، روز ۷ تا ۱۰ سیکل»).
+ */
+export function rowMeta(
+  item: Pick<CheckupItem, 'intervalLabel' | 'timingLabel' | 'subtitle'>,
+  separator: string,
+): string {
+  return [item.intervalLabel, item.timingLabel ?? item.subtitle].filter(Boolean).join(separator);
+}

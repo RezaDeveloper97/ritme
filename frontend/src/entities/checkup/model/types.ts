@@ -119,6 +119,10 @@ export interface CheckupRecord {
   checkupTypeId: number;
   /** Present on the history list (records of several types). */
   checkupTitle: string | null;
+  /** History list only: the type's catalog key, icon and tone (null / `neutral` elsewhere). */
+  checkupKey: string | null;
+  checkupIcon: string | null;
+  checkupTone: CheckupTone;
   doneOn: string;
   result: CheckupResult;
   /** Self-exam finding keys. */

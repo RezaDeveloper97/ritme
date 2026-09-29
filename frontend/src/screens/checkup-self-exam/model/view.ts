@@ -2,6 +2,12 @@ import type { CheckupItem, CheckupRecord } from '@/entities/checkup';
 
 export const SELF_EXAM_KEY = 'breast_self_exam';
 
+/**
+ * «سه مرحله، حدود ۵ دقیقه» — the artboard and the seeded prep step («حدود ۵
+ * دقیقه وقت آرام») both say five; never derived from the step count (audit E1).
+ */
+export const SELF_EXAM_MINUTES = 5;
+
 export function findSelfExam(items: readonly CheckupItem[] | undefined): CheckupItem | null {
   return items?.find((i) => i.key === SELF_EXAM_KEY) ?? null;
 }

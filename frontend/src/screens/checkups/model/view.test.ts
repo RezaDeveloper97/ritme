@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { CheckupItem } from '@/entities/checkup';
 
-import { barSegments, filterHref, groupBySection, nextFilter, parseFilter, worstStatus } from './view';
+import { barSegments, filterHref, groupBySection, nextFilter, parseFilter, rowMeta, worstStatus } from './view';
 
 const item = (id: number, section: CheckupItem['section']): CheckupItem => ({
   id,
@@ -72,5 +72,15 @@ describe('checkups view', () => {
       ['up_to_date', 50],
       ['overdue', 50],
     ]);
+  });
+});
+
+describe('rowMeta', () => {
+  it('interval + cycle window, else interval + subtitle', () => {
+    expect(rowMeta({ intervalLabel: 'هر ماه', timingLabel: 'روز ۷ تا ۱۰ سیکل', subtitle: 'x' }, '، ')).toBe(
+      'هر ماه، روز ۷ تا ۱۰ سیکل',
+    );
+    expect(rowMeta({ intervalLabel: 'هر سال', timingLabel: null, subtitle: 'توسط پزشک' }, '، ')).toBe('هر سال، توسط پزشک');
+    expect(rowMeta({ intervalLabel: null, timingLabel: null, subtitle: null }, '، ')).toBe('');
   });
 });

@@ -8,14 +8,15 @@ import {
   CHECKUP_RECORD_FILTERS,
   type CheckupRecord,
   type CheckupRecordFilter,
-  type CheckupResult,
   checkupAttachments,
+  checkupIcon,
+  formatCheckupMonth,
   fetchCheckupRecords,
   useCheckupAttachmentIds,
   useCheckupRecords,
 } from '@/entities/checkup';
 import { type Locale, Link, useDirection } from '@/shared/i18n';
-import { formatLongDate, formatMonthLabel, formatNumber, fromApiDate, toParts, today } from '@/shared/lib/date';
+import { formatLongDate, formatNumber, fromApiDate, today } from '@/shared/lib/date';
 import { type PdfBlock, loadPdfGenerator, shareOrDownloadFile } from '@/shared/lib/pdf';
 import { openSheet } from '@/shared/sheet';
 import { Icon } from '@/shared/ui';
@@ -23,12 +24,6 @@ import { Icon } from '@/shared/ui';
 import { MARK_DONE_SHEET, editRecordSheetArg, withLocalAttachment } from '../model/view';
 
 const PANEL_ID = 'ckh-panel';
-
-const RESULT_CHIP: Record<CheckupResult, string> = {
-  normal: 'bg-(--success-soft) text-(--success)',
-  follow_up: 'bg-(--amber-soft) text-(--amber-deep)',
-  pending: 'bg-(--surface-2) text-(--ink-3)',
-};
 
 /** Fetch every record page (the doctor summary covers all of them). */
 async function fetchAllRecords(type: number | null): Promise<CheckupRecord[]> {
@@ -90,11 +85,15 @@ function useSummaryPdf(type: number | null) {
   return { state, run };
 }
 
+/**
+ * One timeline entry (v14_History): the type's tone tile with the connector,
+ * month + year, title, «result، note», and the «پیوست» chip inline (known 5a).
+ */
 function RecordItem({ record, last }: { record: CheckupRecord; last: boolean }) {
   const t = useTranslations('checkups');
   const locale = useLocale() as Locale;
   const [missing, setMissing] = useState(false);
-  const parts = toParts(fromApiDate(record.doneOn), locale);
+  const line = [t(`result.${record.result}`), record.note].filter(Boolean).join(t('separator'));
 
   const openAttachment = async () => {
     const file = await checkupAttachments.get(record.id);
@@ -108,45 +107,37 @@ function RecordItem({ record, last }: { record: CheckupRecord; last: boolean }) 
   };
 
   return (
-    <li className="relative flex gap-3 ps-1">
+    <li className={clsx(`ck-tone-${record.checkupTone}`, 'flex gap-3')}>
       <span className="flex flex-col items-center" aria-hidden>
-        <span className="mt-1.5 size-3 shrink-0 rounded-full bg-(--brand-fill) ring-4 ring-(--pink-bg)" />
-        {!last && <span className="w-0.5 flex-1 bg-(--line)" />}
-      </span>
-      <div className="flex min-w-0 flex-1 flex-col gap-1.5 pb-4 text-start">
-        <span className="text-[11.5px] font-bold text-(--ink-3)">
-          {formatMonthLabel(parts.year, parts.month, locale)}
+        <span className="grid size-11 shrink-0 place-items-center rounded-full bg-(--ck-soft) text-(--ck-ink)">
+          <Icon name={checkupIcon(record.checkupIcon)} size={19} />
         </span>
+        {!last && <span className="ck-tl-line" />}
+      </span>
+      <div className={clsx('flex min-w-0 flex-1 flex-col gap-1 text-start', !last && 'pb-4')}>
         <button
           type="button"
-          className="card flex w-full flex-col gap-1.5 p-4 text-start"
-          aria-label={t('detail.editRecord')}
+          className="flex w-full flex-col gap-0.5 text-start"
+          aria-label={`${t('detail.editRecord')}: ${record.checkupTitle ?? t('title')}`}
           onClick={() => openSheet(MARK_DONE_SHEET, editRecordSheetArg(record))}
         >
-          <span className="flex items-center justify-between gap-2">
-            <span className="text-[13.5px] font-extrabold text-(--ink)">{record.checkupTitle ?? t('title')}</span>
-            <Icon name="pencil" size={14} className="shrink-0 text-(--ink-3)" />
-          </span>
-          <span className="text-[11.5px] text-(--ink-3)">
-            {formatLongDate(fromApiDate(record.doneOn), locale)}
-          </span>
-          <span className="flex flex-wrap gap-1.5">
-            <span className={clsx('rounded-full px-2.5 py-0.5 text-[11px] font-extrabold', RESULT_CHIP[record.result])}>
-              {t(`result.${record.result}`)}
-            </span>
-          </span>
+          <span className="text-[11.5px] font-bold text-(--ink-3)">{formatCheckupMonth(record.doneOn, locale)}</span>
+          <span className="text-[14px] font-extrabold text-(--ink)">{record.checkupTitle ?? t('title')}</span>
         </button>
-        {record.hasAttachment && (
-          <button
-            type="button"
-            className="flex w-fit items-center gap-1 rounded-full bg-(--pink-bg) px-2.5 py-1 text-[11px] font-extrabold text-(--brand)"
-            aria-label={t('history.openAttachment')}
-            onClick={() => void openAttachment()}
-          >
-            <Icon name="note" size={12} />
-            {t('history.attachment')}
-          </button>
-        )}
+        <span className="flex flex-wrap items-center gap-2">
+          <span className="text-[12px] leading-5 font-semibold text-(--ink-2)">{line}</span>
+          {record.hasAttachment && (
+            <button
+              type="button"
+              className="flex min-h-8 items-center gap-1 rounded-full border-[1.5px] border-(--brand) px-3 text-[11.5px] font-extrabold text-(--brand-strong)"
+              aria-label={t('history.openAttachment')}
+              onClick={() => void openAttachment()}
+            >
+              <Icon name="note" size={12} />
+              {t('history.attachment')}
+            </button>
+          )}
+        </span>
         {missing && (
           <p className="text-[11px] text-(--ink-3)" role="status">
             {t('history.attachmentMissing')}
@@ -209,34 +200,11 @@ export function CheckupHistoryPage({ type }: { type: number | null }) {
             disabled={pdf.state === 'working'}
             onClick={() => void pdf.run()}
           >
-            <Icon name="download" size={20} strokeWidth={1.8} />
+            <Icon name="export" size={20} strokeWidth={1.8} />
           </button>
         </header>
 
         <div className="rmd-body flex flex-col gap-3 pb-8">
-          <button
-            type="button"
-            className="card flex items-center gap-3 p-4 text-start"
-            disabled={pdf.state === 'working'}
-            onClick={() => void pdf.run()}
-          >
-            <span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-(--pink-bg) text-(--brand)" aria-hidden>
-              <Icon name="note" size={18} />
-            </span>
-            <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <span className="text-[13.5px] font-extrabold text-(--ink)">{t('history.summary')}</span>
-              <span className="text-[11.5px] text-(--ink-3)">
-                {pdf.state === 'working' ? t('history.pdf.working') : t('history.summarySub')}
-              </span>
-            </span>
-            <span className="text-[12px] font-bold text-(--brand)">{t('history.export')}</span>
-          </button>
-          {pdf.state === 'error' && (
-            <p className="text-[12px] text-(--danger)" role="alert">
-              {t('history.pdf.error')}
-            </p>
-          )}
-
           <div className="rmd-tabs" role="tablist" aria-label={t('history.title')}>
             {CHECKUP_RECORD_FILTERS.map((key) => (
               <button
@@ -270,7 +238,7 @@ export function CheckupHistoryPage({ type }: { type: number | null }) {
               <p className="rmd-state">{t('history.empty')}</p>
             ) : (
               <>
-                <ol className="flex flex-col">
+                <ol className="card flex flex-col p-4">
                   {records.map((r, i) => (
                     <RecordItem key={r.id} record={r} last={i === records.length - 1} />
                   ))}
@@ -289,6 +257,29 @@ export function CheckupHistoryPage({ type }: { type: number | null }) {
               </>
             )}
           </div>
+
+          <button
+            type="button"
+            className="card flex items-center gap-3 p-4 text-start"
+            disabled={pdf.state === 'working'}
+            onClick={() => void pdf.run()}
+          >
+            <span className="grid size-11 shrink-0 place-items-center rounded-full bg-(--pink-bg) text-(--brand-strong)" aria-hidden>
+              <Icon name="note" size={18} />
+            </span>
+            <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+              <span className="text-[13.5px] font-extrabold text-(--ink)">{t('history.summary')}</span>
+              <span className="text-[11.5px] text-(--ink-3)">
+                {pdf.state === 'working' ? t('history.pdf.working') : t('history.summarySub')}
+              </span>
+            </span>
+            <Icon name={dir === 'rtl' ? 'chevronLeft' : 'chevronRight'} size={18} className="shrink-0 text-(--ink-3)" />
+          </button>
+          {pdf.state === 'error' && (
+            <p className="text-[12px] text-(--danger)" role="alert">
+              {t('history.pdf.error')}
+            </p>
+          )}
         </div>
       </div>
     </div>

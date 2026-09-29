@@ -70,9 +70,12 @@ func TestEvaluate_Item(t *testing.T) {
 	}{
 		{name: "never recorded is due without a date", typ: clinical,
 			want: StatusDue, sect: Section(CategoryAnnual)},
-		{name: "overdue by months, cycle-timed Pap lands in this month", typ: pap,
+		{name: "overdue by months, cycle-timed Pap lands in the overdue section", typ: pap,
 			in:   Input{Birthday: born34, Records: []Record{rec(1, 3, "2022-03-25")}},
-			want: StatusOverdue, sect: SectionThisMonth, next: "2025-03-25"},
+			want: StatusOverdue, sect: SectionOverdue, next: "2025-03-25"},
+		{name: "overdue cycle-timed Pap with cycle data still lands in the overdue section", typ: pap,
+			in:   Input{Birthday: born34, Cycle: cycle28, Records: []Record{rec(1, 3, "2022-04-10")}},
+			want: StatusOverdue, sect: SectionOverdue, next: "2025-04-10"},
 		{name: "overdue by months, plain annual lands in the overdue section", typ: blood,
 			in:   Input{Records: []Record{rec(1, 4, "2025-01-01")}},
 			want: StatusOverdue, sect: SectionOverdue, next: "2026-01-01"},
@@ -128,9 +131,12 @@ func TestEvaluate_Item(t *testing.T) {
 			want: StatusDisabled, sect: Section(CategoryAnnual), next: "2025-01-01"},
 		{name: "self-exam never recorded: upcoming window this month", typ: selfExam, in: Input{Cycle: cycle28},
 			want: StatusDue, sect: SectionThisMonth, next: "2026-09-26", by: "2026-09-29", cycle: true},
-		{name: "self-exam never recorded after this cycle's window: next cycle, next month", typ: selfExam,
+		{name: "self-exam never recorded, window weeks away: soon, not due (audit 5d)", typ: selfExam,
 			now: "2026-10-01", in: Input{Cycle: cycle28},
-			want: StatusDue, sect: Section(CategoryMonthly), next: "2026-10-24", by: "2026-10-27", cycle: true},
+			want: StatusSoon, sect: Section(CategoryMonthly), next: "2026-10-24", by: "2026-10-27", cycle: true},
+		{name: "self-exam never recorded, inside its window: due", typ: selfExam,
+			now: "2026-09-27", in: Input{Cycle: cycle28},
+			want: StatusDue, sect: SectionThisMonth, next: "2026-09-26", by: "2026-09-29", cycle: true},
 		{name: "self-exam done last cycle: due in the lead days before the window", typ: selfExam,
 			in:   Input{Cycle: cycle28, Records: []Record{rec(1, 1, "2026-08-31")}},
 			want: StatusDue, sect: SectionThisMonth, next: "2026-09-26", by: "2026-09-29", cycle: true},
@@ -276,7 +282,7 @@ func TestEvaluate_ArtboardSummary(t *testing.T) {
 		"blood_test": StatusUpToDate, "dentist": StatusUpToDate, "mammography": StatusNotYet,
 	}, statuses)
 	assert.Equal(t, map[string]Section{
-		"breast_self_exam": SectionThisMonth, "pap_smear": SectionThisMonth, "clinical_breast_exam": "annual",
+		"breast_self_exam": SectionThisMonth, "pap_smear": SectionOverdue, "clinical_breast_exam": "annual",
 		"blood_test": "annual", "dentist": "six_monthly", "mammography": "age_based",
 	}, sections)
 

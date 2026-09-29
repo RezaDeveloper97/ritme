@@ -8,12 +8,15 @@ import {
   CHECKUP_LIST_FILTERS,
   type CheckupItem,
   type CheckupListFilter,
+  type CheckupStatus,
   type CheckupSummary,
   checkupIcon,
+  checkupStatusIcon,
+  formatCheckupMonth,
   useCheckups,
 } from '@/entities/checkup';
 import { type Locale, Link, useDirection, useRouter } from '@/shared/i18n';
-import { formatLongDate, formatNumber, fromApiDate } from '@/shared/lib/date';
+import { formatNumber } from '@/shared/lib/date';
 import { Icon } from '@/shared/ui';
 
 import {
@@ -22,20 +25,18 @@ import {
   groupBySection,
   nextFilter,
   parseFilter,
+  rowMeta,
   worstStatus,
 } from '../model/view';
 import { PlanSettingsSheet } from './PlanSettingsSheet';
 
 const PANEL_ID = 'ck-panel';
 
-function StatusPill({ status, label }: { status: string; label: string }) {
+/** v14 outlined pill with the status glyph (bell / info / clock / check). */
+function StatusPill({ status, label }: { status: CheckupStatus; label: string }) {
   return (
-    <span
-      className={clsx(
-        `ck-status-${status}`,
-        'shrink-0 rounded-full bg-(--ck-soft) px-2.5 py-1 text-[11px] font-extrabold text-(--ck-ink)',
-      )}
-    >
+    <span className={clsx(`ck-status-${status}`, 'ck-pill')}>
+      <Icon name={checkupStatusIcon(status)} size={12} strokeWidth={2.2} />
       {label}
     </span>
   );
@@ -88,10 +89,10 @@ function SummaryCard({ summary }: { summary: CheckupSummary }) {
 function CheckupRow({ item }: { item: CheckupItem }) {
   const t = useTranslations('checkups');
   const locale = useLocale() as Locale;
-  const dir = useDirection();
-  const date = (d: string | null) => (d ? formatLongDate(fromApiDate(d), locale) : t('noDate'));
+  // Lists read month + year («مهر ۱۴۰۴»); the full date stays on the detail page.
+  const date = (d: string | null) => (d ? formatCheckupMonth(d, locale) : t('noDate'));
   const next = item.nextDueLabel ?? date(item.nextDueOn);
-  const meta = [item.intervalLabel, item.timingLabel].filter(Boolean).join(t('separator'));
+  const meta = rowMeta(item, t('separator'));
 
   return (
     <li>
@@ -99,21 +100,20 @@ function CheckupRow({ item }: { item: CheckupItem }) {
         href={`/checkups/${item.id}`}
         className={clsx(
           `ck-tone-${item.tone}`,
-          'card flex items-center gap-3 p-4 text-start no-underline focus-visible:shadow-(--ring) focus-visible:outline-none',
+          'flex items-center gap-3 p-4 text-start no-underline focus-visible:bg-(--surface-2) focus-visible:outline-none',
         )}
       >
         <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-(--ck-soft) text-(--ck-ink)">
           <Icon name={checkupIcon(item.icon, { category: item.category })} size={20} />
         </span>
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="truncate text-[14px] font-extrabold text-(--ink)">{item.title}</span>
-          {meta && <span className="truncate text-[11.5px] font-semibold text-(--ink-3)">{meta}</span>}
-          <span className="truncate text-[11.5px] text-(--ink-3)">
+          <span className="text-[14px] font-extrabold text-(--ink)">{item.title}</span>
+          {meta && <span className="text-[11.5px] leading-5 font-semibold text-(--ink-3)">{meta}</span>}
+          <span className="text-[11.5px] leading-5 text-(--ink-3)">
             {t('list.lastNext', { last: date(item.lastDoneOn), next })}
           </span>
         </span>
         <StatusPill status={item.status} label={t(`status.${item.status}`)} />
-        <Icon name={dir === 'rtl' ? 'chevronLeft' : 'chevronRight'} size={16} className="shrink-0 text-(--ink-3)" />
       </Link>
     </li>
   );
@@ -174,7 +174,7 @@ export function CheckupsPage({ initialFilter }: { initialFilter?: string }) {
             aria-label={t('list.planSettings')}
             onClick={() => setSettingsOpen(true)}
           >
-            <Icon name="cog" size={20} strokeWidth={1.8} />
+            <Icon name="filterLines" size={20} strokeWidth={1.8} />
           </button>
         </header>
 
@@ -224,11 +224,12 @@ export function CheckupsPage({ initialFilter }: { initialFilter?: string }) {
                 <section key={group.section} aria-labelledby={`ck-sec-${group.section}`}>
                   <h2
                     id={`ck-sec-${group.section}`}
-                    className="mb-2 text-start text-[13px] font-extrabold text-(--ink-3)"
+                    className="mb-2 text-start text-[15px] font-extrabold text-(--ink)"
                   >
                     {t(`section.${group.section}`)}
                   </h2>
-                  <ul className="flex flex-col gap-2">
+                  {/* One card per section, rows split by hairlines (v14_Checkups «سالانه»). */}
+                  <ul className="card flex flex-col divide-y divide-(--line) overflow-hidden p-0">
                     {group.items.map((item) => (
                       <CheckupRow key={item.id} item={item} />
                     ))}
@@ -238,12 +239,14 @@ export function CheckupsPage({ initialFilter }: { initialFilter?: string }) {
             )}
           </div>
 
-          <p className="flex items-start gap-2 rounded-2xl bg-(--surface-2) p-3 text-start text-[11.5px] leading-relaxed text-(--ink-3)">
-            <Icon name="info" size={16} className="mt-0.5 shrink-0" />
+          <p className="card flex items-start gap-3 p-4 text-start text-[12px] leading-relaxed text-(--ink-2)">
+            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-(--pink-bg) text-(--brand-strong)" aria-hidden>
+              <Icon name="info" size={17} />
+            </span>
             {t('list.infoNote')}
           </p>
 
-          <Link href="/checkups/custom/new" className="btn btn-ghost w-full border-[1.5px] border-(--brand)">
+          <Link href="/checkups/custom/new" className="btn btn-ghost ck-neutral w-full">
             <Icon name="plus" size={16} strokeWidth={2.2} />
             {t('list.addCustom')}
           </Link>

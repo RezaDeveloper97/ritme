@@ -201,6 +201,9 @@ describe('checkupRecordSchema', () => {
       id: 55,
       checkupTypeId: 3,
       checkupTitle: null,
+      checkupKey: null,
+      checkupIcon: null,
+      checkupTone: 'neutral',
       doneOn: '2022-03-25',
       result: 'normal',
       findings: [],
@@ -222,6 +225,12 @@ describe('checkupRecordSchema', () => {
     expect(r.findings).toEqual(['lump', 'skin', 'lump']);
     expect(r.hasAttachment).toBe(false);
     expect(r.checkupTitle).toBe('خودآزمایی سینه');
+  });
+
+  it('history rows carry the type key, icon and tone (unknown tone → neutral)', () => {
+    const r = checkupRecordSchema.parse({ ...record, checkup_key: 'dentist', checkup_icon: 'tooth', checkup_tone: 'green' });
+    expect([r.checkupKey, r.checkupIcon, r.checkupTone]).toEqual(['dentist', 'tooth', 'green']);
+    expect(checkupRecordSchema.parse({ ...record, checkup_tone: 'purple' }).checkupTone).toBe('neutral');
   });
 
   it('rejects a record without a date', () => {

@@ -9,6 +9,7 @@ import {
   type CheckupRecord,
   type CheckupResult,
   checkupAttachments,
+  checkupResultIcon,
   useCheckup,
   useCheckupAttachment,
   useCheckupNextPreview,
@@ -214,16 +215,18 @@ function MarkDoneForm({ typeId, record }: { typeId: number; record: CheckupRecor
     <div className="flex flex-col gap-3.5 pb-2">
       <p className="text-start text-[12.5px] text-(--ink-3)">{tm('subtitle')}</p>
 
-      <div className="fld-row">
-        <span className="fld-row-label text-(--ink)">{tm('date')}</span>
-        <button type="button" className="chip on" onClick={() => openPicker('done')}>
-          <Icon name="calendar" size={14} />
-          {date(doneOn)}
+      <div className="cfm-group">
+        <span className="cfm-label" id="ckm-date">
+          {tm('date')}
+        </span>
+        <button type="button" className="cfm-pick" aria-labelledby="ckm-date" onClick={() => openPicker('done')}>
+          <span className="cfm-pick-v">{date(doneOn)}</span>
+          <Icon name="calendar" size={18} />
         </button>
       </div>
 
       <div className="flex flex-col gap-2">
-        <span className="fld-label-t text-start">{tm('result')}</span>
+        <span className="cfm-label">{tm('result')}</span>
         <div role="radiogroup" aria-label={tm('result')} className="grid grid-cols-3 gap-2">
           {CHECKUP_RESULTS.map((r) => (
             <button
@@ -232,13 +235,16 @@ function MarkDoneForm({ typeId, record }: { typeId: number; record: CheckupRecor
               role="radio"
               aria-checked={result === r}
               className={clsx(
-                'rounded-2xl border-[1.5px] px-2 py-3 text-[12.5px] font-extrabold',
+                `ck-result-${r}`,
+                'flex flex-col items-center gap-1.5 rounded-2xl border-[1.5px] px-2 py-3 text-[12.5px] font-extrabold',
+                // Coloured by result (normal → success, follow-up → amber, pending → neutral).
                 result === r
-                  ? 'border-(--brand) bg-(--pink-bg) text-(--brand)'
+                  ? 'border-(--ck-ink) bg-(--ck-soft) text-(--ck-ink)'
                   : 'border-(--line) bg-(--surface) text-(--ink-2)',
               )}
               onClick={() => setResult(r)}
             >
+              <Icon name={checkupResultIcon(r)} size={18} strokeWidth={2} />
               {t(`result.${r}`)}
             </button>
           ))}
@@ -246,8 +252,8 @@ function MarkDoneForm({ typeId, record }: { typeId: number; record: CheckupRecor
       </div>
 
       <div className="flex flex-col gap-2">
-        <span className="fld-label-t text-start">
-          {tm('attachment')} <span className="text-(--ink-3)">{tm('optional')}</span>
+        <span className="cfm-label">
+          {tm('attachment')} <span className="text-[12px] font-semibold text-(--ink-3)">{tm('optional')}</span>
         </span>
         {picked || showExisting ? (
           <div className="flex items-center gap-3 rounded-2xl bg-(--surface-2) p-2.5">
@@ -277,14 +283,22 @@ function MarkDoneForm({ typeId, record }: { typeId: number; record: CheckupRecor
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-2">
-            <button type="button" className="btn btn-ghost" onClick={() => photoRef.current?.click()}>
-              <Icon name="camera" size={16} />
-              {tm('photo')}
-            </button>
-            <button type="button" className="btn btn-ghost" onClick={() => pdfRef.current?.click()}>
-              <Icon name="note" size={16} />
-              {tm('pdf')}
-            </button>
+            {(
+              [
+                ['camera', 'photo', photoRef],
+                ['note', 'pdf', pdfRef],
+              ] as const
+            ).map(([icon, label, ref]) => (
+              <button
+                key={label}
+                type="button"
+                className="flex flex-col items-center gap-1 rounded-2xl border-[1.5px] border-dashed border-(--brand-line-soft) px-2 py-3.5 text-[13px] font-extrabold text-(--brand-strong)"
+                onClick={() => ref.current?.click()}
+              >
+                <Icon name={icon} size={18} />
+                {tm(label)}
+              </button>
+            ))}
           </div>
         )}
         <input ref={photoRef} type="file" accept="image/*" capture="environment" hidden onChange={onFile} />
@@ -294,34 +308,35 @@ function MarkDoneForm({ typeId, record }: { typeId: number; record: CheckupRecor
             {tm(`attachmentError.${fileError}`, { max: MAX_MB })}
           </p>
         )}
-        <p className="flex items-start gap-1.5 text-start text-[11.5px] text-(--ink-3)">
-          <Icon name="shield" size={14} className="mt-0.5 shrink-0" />
-          {tm('privacy')}
-        </p>
+        <p className="text-start text-[11.5px] text-(--ink-3)">{tm('privacy')}</p>
       </div>
 
-      <label className="fld-label">
-        <span className="fld-label-t">
-          {tm('note')} <span className="text-(--ink-3)">{tm('optional')}</span>
+      <label className="cfm-group">
+        <span className="cfm-label">{tm('note')}</span>
+        <span className="ck-note">
+          <textarea
+            rows={1}
+            maxLength={NOTE_MAX}
+            value={note}
+            placeholder={tm('notePlaceholder')}
+            onChange={(e) => setNote(e.target.value)}
+          />
+          <Icon name="note" size={18} className="mt-0.5 shrink-0" />
         </span>
-        <textarea
-          className="field fld-textarea h-auto min-h-20 py-3"
-          rows={2}
-          maxLength={NOTE_MAX}
-          value={note}
-          placeholder={tm('notePlaceholder')}
-          onChange={(e) => setNote(e.target.value)}
-        />
       </label>
 
       {shownNext && (
-        <div className="flex items-center gap-3 rounded-2xl bg-(--pink-bg) p-3">
-          <Icon name="calendar" size={18} className="shrink-0 text-(--brand)" />
+        <div className="flex items-center gap-3 rounded-2xl bg-(--success-soft) p-3.5">
+          <Icon name="bellPlain" size={18} className="shrink-0 text-(--success)" />
           <span className="flex min-w-0 flex-1 flex-col text-start">
-            <span className="text-[13px] font-extrabold text-(--ink)">{tm('nextDue', { date: shownNext })}</span>
-            {nextMeta && <span className="text-[11.5px] text-(--ink-3)">{nextMeta}</span>}
+            <span className="text-[13.5px] font-extrabold text-(--success)">{tm('nextDue', { date: shownNext })}</span>
+            {nextMeta && <span className="text-[11.5px] font-semibold text-(--ink-2)">{nextMeta}</span>}
           </span>
-          <button type="button" className="chip" onClick={() => openPicker('next')}>
+          <button
+            type="button"
+            className="min-h-11 shrink-0 px-1 text-[12.5px] font-extrabold text-(--brand-strong)"
+            onClick={() => openPicker('next')}
+          >
             {tm('change')}
           </button>
         </div>

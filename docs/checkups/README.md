@@ -85,10 +85,11 @@ A **monthly** cycle-timed type is due at the `[from,to]` window of the first pre
 (never recorded → this cycle's window, or the next one once it has passed) and overdue after the window end; without
 cycle data it falls back to last + 1 month. Longer cycle-timed types (Pap) keep their calendar date — the window is
 advice for the reminder/label only. Status: `not_yet` (age below `age_min`; `next_due_on` = the day she reaches it,
-for «از ۱۴۰۹ (۴۰ سالگی)») · `overdue` (today after the due-by date) · `due` (never recorded, or today ≥ next_due − lead)
+for «از ۱۴۰۹ (۴۰ سالگی)») · `overdue` (today after the due-by date) · `due` (never recorded — except a monthly cycle-timed type with cycle data, which follows the lead days of its upcoming window, so a self-exam never done reads `soon` «۱۸ روز دیگر» rather than «موعدش رسیده» — or today ≥ next_due − lead)
 · `soon` (within 60 days) · `up_to_date` · `disabled` (setting `enabled=false`; still listed, left out of the summary).
-Section: `this_month` for a cycle-timed type that is overdue, or due with next_due inside the current **Jalali** month
-(`engine.ToJalali` / `JalaliMonthEnd`), else `overdue`, else the category.
+Section: `this_month` for a cycle-timed type that is due (or a never-recorded self-exam that is `soon`) with next_due inside the current **Jalali** month
+(`engine.ToJalali` / `JalaliMonthEnd`), or a **monthly** cycle-timed type (the self-exam) that is overdue — a missed
+window is this month's miss; any other overdue item (an overdue Pap smear included) → `overdue`; else the category.
 Summary over enabled items: `total`, `up_to_date` (= up_to_date + soon + **not_yet**, matching the artboard ring
 «۴ از ۶» where the not-yet mammography counts), `due`, `overdue`.
 
@@ -97,7 +98,7 @@ Summary over enabled items: `total`, `up_to_date` (= up_to_date + soon + **not_y
 | Method | Path | Notes |
 |---|---|---|
 | GET | `/api/v1/checkups` | `{age, summary:{total,up_to_date,due,overdue}, items:[{id,key,title,subtitle,category,section,status,icon,tone,interval_label,timing_label,last_done_on,next_due_on,next_due_label,is_custom}]}` (`?filter=action|done`) |
-| GET | `/api/v1/checkups/home` | `{summary, highlights:[max 2 items: due/overdue, cycle-timed first]}` — hidden when nothing applies |
+| GET | `/api/v1/checkups/home` | `{summary, highlights:[max 2 items: due/overdue, the self-exam first, then cycle-timed, overdue before due]}` — hidden when nothing applies |
 | GET | `/api/v1/checkups/{id}` | item + `why`, `prep_steps`, `guide_steps`, `finding_options`, `records` (latest 2), `settings` |
 | POST | `/api/v1/checkups/{id}/records` | `{done_on,result,findings?,note?,has_attachment,next_due_on?}` → 201 + recomputed item |
 | PUT/DELETE | `/api/v1/checkups/records/{recordId}` | |

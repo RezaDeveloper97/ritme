@@ -1,6 +1,46 @@
 import { describe, expect, it } from 'vitest';
 
-import { countParts, countsLine, ringFraction } from './counts';
+import type { CheckupItem } from '@/entities/checkup';
+
+import { countParts, countsLine, highlightKind, highlightMeta, ringFraction } from './counts';
+
+const item = (over: Partial<CheckupItem>): CheckupItem => ({
+  id: 3,
+  key: 'pap_smear',
+  title: 'Pap',
+  subtitle: null,
+  category: 'multi_year',
+  section: 'overdue',
+  status: 'overdue',
+  icon: 'shield',
+  tone: 'violet',
+  intervalLabel: 'هر ۳ سال',
+  timingLabel: 'روز ۱۰ تا ۲۰ سیکل',
+  lastDoneOn: '2022-04-10',
+  nextDueOn: '2025-04-10',
+  nextDueLabel: 'عقب‌افتاده از فروردین',
+  isCustom: false,
+  ...over,
+});
+
+describe('highlight rows (v14_Main)', () => {
+  it('an overdue cycle-timed Pap is a «ثبت نوبت» booking row', () => {
+    expect(highlightKind(item({}))).toBe('book');
+  });
+
+  it('the self-exam stays a «راهنما» row, due or overdue', () => {
+    expect(highlightKind(item({ key: 'breast_self_exam', status: 'overdue' }))).toBe('guide');
+    expect(highlightKind(item({ key: 'breast_self_exam', status: 'due' }))).toBe('guide');
+  });
+
+  it('the sub-line says when: overdue-since alone, or days left + the cycle window', () => {
+    expect(highlightMeta(item({}), '، ')).toBe('عقب‌افتاده از فروردین');
+    expect(highlightMeta(item({ status: 'due', nextDueLabel: '۳ روز دیگر', timingLabel: 'روز ۷ تا ۱۰ سیکل' }), '، ')).toBe(
+      '۳ روز دیگر، روز ۷ تا ۱۰ سیکل',
+    );
+    expect(highlightMeta(item({ status: 'due', nextDueLabel: null, timingLabel: null, subtitle: 'x' }), '، ')).toBe('x');
+  });
+});
 
 const label = (key: string, n: number) => `${n} ${key}`;
 

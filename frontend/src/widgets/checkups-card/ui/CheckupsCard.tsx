@@ -8,7 +8,7 @@ import { Link, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { Icon } from '@/shared/ui';
 
-import { bookHref, countsLine, guideHref, highlightKind, ringFraction } from '../model/counts';
+import { bookHref, countsLine, guideHref, highlightKind, highlightMeta, ringFraction } from '../model/counts';
 
 type T = ReturnType<typeof useTranslations<'checkups'>>;
 
@@ -58,7 +58,7 @@ function Ring({ summary, t, locale }: { summary: CheckupSummary; t: T; locale: L
         strokeLinecap="round"
         strokeDasharray={`${arc} ${RING_C}`}
         transform={`rotate(-90 ${RING_SIZE / 2} ${RING_SIZE / 2})`}
-        className="stroke-(--success)"
+        className="stroke-(--brand)"
       />
       <text
         x="50%"
@@ -77,11 +77,11 @@ function Ring({ summary, t, locale }: { summary: CheckupSummary; t: T; locale: L
 
 function HighlightRow({ item, t }: { item: CheckupItem; t: T }) {
   const kind = highlightKind(item);
-  const meta = item.timingLabel ?? item.nextDueLabel ?? item.subtitle;
+  const meta = highlightMeta(item, t('separator'));
   return (
     <div
       className={clsx(
-        'mt-2.5 flex items-center gap-3 rounded-2xl bg-(--ck-soft) px-3 py-2.5',
+        'flex items-center gap-3 rounded-2xl bg-(--ck-soft) px-3 py-2.5',
         kind === 'book' ? 'ck-tone-amber' : 'ck-tone-rose',
       )}
     >
@@ -146,9 +146,13 @@ export function CheckupsCard() {
             {counts}
           </p>
         </div>
-        {data.highlights.map((item) => (
-          <HighlightRow key={item.id} item={item} t={t} />
-        ))}
+        {data.highlights.length > 0 && (
+          <div className="mt-2.5 flex flex-col gap-2">
+            {data.highlights.map((item) => (
+              <HighlightRow key={item.id} item={item} t={t} />
+            ))}
+          </div>
+        )}
         <p className="mt-2.5 mb-0 text-start text-[11.5px] leading-5 text-(--ink-3)">{t('card.disclaimer')}</p>
       </div>
     </section>

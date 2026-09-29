@@ -13,11 +13,14 @@
 //     first predicted cycle that starts after `last` and overdue after that window; without cycle
 //     data it falls back to last + 1 month.
 //   - status: not_yet (age below age_min; next due = the day the user reaches it) · due (never
-//     recorded, or today ≥ next due − remind_lead_days) · overdue (today after the due-by date) ·
+//     recorded — except a monthly cycle-timed type placed on its upcoming window, which follows the
+//     lead days like a recorded one — or today ≥ next due − remind_lead_days) · overdue (today after the due-by date) ·
 //     soon (within 60 days) · up_to_date · disabled (the user switched it off; kept in the list,
 //     left out of the summary).
-//   - section: this_month for a cycle-timed type that is overdue, or due with its next due inside
-//     the current Jalali month; else overdue; else the type's category.
+//   - section: this_month for a cycle-timed type that is due (a never-recorded monthly one also
+//     soon) with its next due inside the current Jalali month, or a monthly cycle-timed type (the
+//     self-exam) that is overdue; else overdue for any other overdue item (a cycle-timed Pap smear
+//     included); else the type's category.
 //   - summary: total = every enabled item; up_to_date counts up_to_date + soon + not_yet (the
 //     artboard ring «۴ از ۶» counts the not-yet mammography as fine); due; overdue.
 //
@@ -255,6 +258,12 @@ func evaluateType(t Type, last Record, in Input, age *int, today civildate.Date)
 		// Never recorded: due now; a cycle-timed type still gets its upcoming window.
 		if w, ok := upcomingWindow(t, in.Cycle, today); ok {
 			item.NextDueOn, item.DueBy, item.CycleTimed = w.from, w.to, true
+			if t.Category == CategoryMonthly {
+				// A monthly habit (the self-exam) is not "due" weeks before its window: that read
+				// «موعدش رسیده» next to «۱۸ روز دیگر» (audit 5d). It follows the lead days instead.
+				item.Status = status(t, item, today)
+				return item
+			}
 		}
 		item.Status = StatusDue
 		return item
@@ -283,14 +292,23 @@ func section(t Type, item Item, monthEnd civildate.Date) Section {
 	switch {
 	case item.Status == StatusDisabled:
 		return Section(t.Category)
-	case t.CycleTimed() && (item.Status == StatusOverdue ||
-		(item.Status == StatusDue && (item.NextDueOn.IsZero() || !item.NextDueOn.After(monthEnd)))):
+	case t.CycleTimed() && item.Status == StatusOverdue && t.Category == CategoryMonthly:
+		// A missed monthly window (the self-exam) is this month's miss, not a long-overdue visit.
+		return SectionThisMonth
+	case t.CycleTimed() && (item.Status == StatusDue || neverDoneMonthly(t, item)) &&
+		(item.NextDueOn.IsZero() || !item.NextDueOn.After(monthEnd)):
 		return SectionThisMonth
 	case item.Status == StatusOverdue:
 		return SectionOverdue
 	default:
 		return Section(t.Category)
 	}
+}
+
+// neverDoneMonthly: a never-recorded monthly cycle-timed type (the self-exam) whose window is
+// still ahead — `soon` since audit 5d, but it keeps its place in «این ماه» like the `due` it was.
+func neverDoneMonthly(t Type, item Item) bool {
+	return t.Category == CategoryMonthly && item.LastDoneOn.IsZero() && item.Status == StatusSoon
 }
 
 // Due is the computed due window of a checkup done on a given day.

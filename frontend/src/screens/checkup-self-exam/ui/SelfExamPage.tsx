@@ -6,12 +6,13 @@ import { useState } from 'react';
 
 import { useCycleToday } from '@/entities/cycle';
 import { type CheckupDetail, useCheckup, useCheckupRecords, useCheckups } from '@/entities/checkup';
+import { useUpdateCheckupSettings } from '@/features/manage-custom-checkup';
 import { selfExamResult, toggleFinding, useCreateCheckupRecord } from '@/features/record-checkup';
 import { type Locale, Link, useDirection } from '@/shared/i18n';
 import { formatNumber, toApiDate, today } from '@/shared/lib/date';
 import { Icon } from '@/shared/ui';
 
-import { adherence, daysUntilWindow, doneThisMonth, findSelfExam } from '../model/view';
+import { SELF_EXAM_MINUTES, adherence, daysUntilWindow, doneThisMonth, findSelfExam } from '../model/view';
 
 /** M3 AddAppointment (same target as the checkup detail «ثبت نوبت»). */
 const BOOK_HREF = '/reminders/appointment/new?kind=in_person';
@@ -29,23 +30,23 @@ function CycleRing({ day, total }: { day: number; total: number }) {
       aria-label={t('selfExam.ringLabel', { day: formatNumber(day, locale), total: formatNumber(total, locale) })}
     >
       <svg viewBox="0 0 76 76" className="absolute inset-0 -rotate-90" aria-hidden>
-        <circle cx="38" cy="38" r={RING_R} fill="none" stroke="currentColor" strokeOpacity="0.25" strokeWidth="6" />
+        <circle cx="38" cy="38" r={RING_R} fill="none" strokeWidth="6" className="stroke-(--track)" />
         <circle
           cx="38"
           cy="38"
           r={RING_R}
           fill="none"
-          stroke="currentColor"
           strokeWidth="6"
+          className="stroke-(--brand)"
           strokeLinecap="round"
           strokeDasharray={RING_C}
           strokeDashoffset={RING_C * (1 - pct)}
         />
       </svg>
       <span className="flex flex-col items-center leading-none" aria-hidden>
-        <span className="text-[10px] opacity-85">{t('selfExam.ringDay')}</span>
-        <span className="text-[20px] font-extrabold">{formatNumber(day, locale)}</span>
-        <span className="text-[9.5px] opacity-85">{t('selfExam.ringOf', { total: formatNumber(total, locale) })}</span>
+        <span className="text-[10px] text-(--ink-3)">{t('selfExam.ringDay')}</span>
+        <span className="font-['Lalezar'] text-[22px] text-(--ink)">{formatNumber(day, locale)}</span>
+        <span className="text-[9.5px] text-(--ink-3)">{t('selfExam.ringOf', { total: formatNumber(total, locale) })}</span>
       </span>
     </div>
   );
@@ -61,6 +62,7 @@ function Hero({ detail }: { detail: CheckupDetail }) {
   const from = detail.cycleDayFrom;
   const to = detail.cycleDayTo;
 
+  // The window chip names the *window* («روز ۷ سیکل، ۳ روز دیگر»), not today's cycle day (audit E2).
   let when: string | null = null;
   if (day !== null && total && from !== null && to !== null) {
     const days = daysUntilWindow(day, total, from, to);
@@ -68,28 +70,25 @@ function Hero({ detail }: { detail: CheckupDetail }) {
   }
 
   return (
-    <section className="flex flex-col gap-3 rounded-3xl bg-(image:--gradient-brand) p-4 text-(--on-accent)">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex min-w-0 flex-col items-start gap-2 text-start">
-          <span className="rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-extrabold text-(--brand)">
-            {t('selfExam.thisMonth')}
-          </span>
-          <h2 className="font-['Lalezar'] text-[24px] leading-tight font-normal">{detail.title}</h2>
-          {day !== null && when && (
-            <p className="text-[12px] font-semibold opacity-90">
-              {t('selfExam.dayWhen', { day: formatNumber(day, locale), when })}
-            </p>
-          )}
+    <section className="ck-hero ck-tone-violet">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="ck-hero-chip">
+          <Icon name="calendar" size={13} />
+          {t('selfExam.thisMonth')}
+        </span>
+        {from !== null && when && (
+          <span className="ck-hero-chip">{t('selfExam.dayWhen', { day: formatNumber(from, locale), when })}</span>
+        )}
+      </div>
+      <div className="flex items-center gap-3">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <span className="text-[12px] font-semibold text-(--ink-3)">{t('selfExam.bestTime')}</span>
+          <h2 className="font-['Lalezar'] text-[26px] leading-tight font-normal text-(--ink)">
+            {t('selfExam.bestTimeTitle')}
+          </h2>
+          <p className="text-[12.5px] leading-relaxed font-semibold text-(--ink-2)">{t('selfExam.bestTimeBody')}</p>
         </div>
         {day !== null && total ? <CycleRing day={day} total={total} /> : null}
-      </div>
-      <div className="flex items-start gap-2 rounded-2xl bg-white/15 p-3 text-start">
-        <Icon name="clock" size={16} className="mt-0.5 shrink-0" />
-        <div className="flex flex-col gap-0.5">
-          <span className="text-[11px] opacity-85">{t('selfExam.bestTime')}</span>
-          <span className="text-[13px] font-extrabold">{t('selfExam.bestTimeTitle')}</span>
-          <span className="text-[11.5px] leading-relaxed opacity-90">{t('selfExam.bestTimeBody')}</span>
-        </div>
       </div>
     </section>
   );
@@ -98,13 +97,14 @@ function Hero({ detail }: { detail: CheckupDetail }) {
 function Body({ detail }: { detail: CheckupDetail }) {
   const t = useTranslations('checkups');
   const locale = useLocale() as Locale;
-  const [findings, setFindings] = useState<string[]>([]);
+  const exclusive = detail.findingOptions.filter((o) => o.exclusive).map((o) => o.key);
+  // «چیزی متفاوت نبود» starts selected (v14_SelfExam).
+  const [findings, setFindings] = useState<string[]>(() => exclusive.slice(0, 1));
   const create = useCreateCheckupRecord();
   const records = useCheckupRecords({ type: detail.id });
   const todayYmd = toApiDate(today());
   const loaded = records.data?.pages.flatMap((p) => p.records) ?? [];
   const done = doneThisMonth(loaded, todayYmd) || create.isSuccess;
-  const exclusive = detail.findingOptions.filter((o) => o.exclusive).map((o) => o.key);
   const hasFinding = findings.some((k) => !exclusive.includes(k));
 
   const submit = () =>
@@ -122,7 +122,7 @@ function Body({ detail }: { detail: CheckupDetail }) {
           <h2 className="text-[14px] font-extrabold text-(--ink)">
             {t('selfExam.stepsTitle', {
               count: formatNumber(detail.guideSteps.length, locale),
-              minutes: formatNumber(Math.max(3, detail.guideSteps.length), locale),
+              minutes: formatNumber(SELF_EXAM_MINUTES, locale),
             })}
           </h2>
           <ol className="flex flex-col gap-3">
@@ -155,9 +155,9 @@ function Body({ detail }: { detail: CheckupDetail }) {
                   aria-pressed={on}
                   disabled={done}
                   className={clsx(
-                    'rounded-full border px-3 py-1.5 text-[12px] font-bold',
+                    'min-h-11 rounded-full border-[1.5px] px-4 text-[12.5px] font-bold',
                     on
-                      ? 'border-transparent bg-(--brand-fill) text-(--on-accent)'
+                      ? 'border-(--brand) bg-(--pink-bg) text-(--ink)'
                       : 'border-(--line) bg-(--surface) text-(--ink-2)',
                   )}
                   onClick={() => setFindings((s) => toggleFinding(s, o.key, exclusive))}
@@ -189,18 +189,19 @@ function Body({ detail }: { detail: CheckupDetail }) {
         </p>
       )}
       {records.data && (
-        <p className="text-center text-[12px] text-(--ink-3)">
+        <Link
+          href={`/checkups/history?type=${detail.id}`}
+          className="flex min-h-11 items-center justify-center gap-1.5 text-[12px] font-semibold text-(--ink-3)"
+        >
+          <Icon name="history" size={15} />
           {t('selfExam.adherence', {
             done: formatNumber(adherence(loaded, todayYmd) + (create.isSuccess && !doneThisMonth(loaded, todayYmd) ? 1 : 0), locale),
             total: formatNumber(12, locale),
           })}
-        </p>
+        </Link>
       )}
 
-      <p className="flex items-start gap-2 rounded-2xl bg-(--surface-2) p-3 text-start text-[11.5px] leading-relaxed text-(--ink-3)">
-        <Icon name="info" size={16} className="mt-0.5 shrink-0" />
-        {t('detail.disclaimer')}
-      </p>
+      <p className="text-center text-[11.5px] leading-relaxed text-(--ink-3)">{t('detail.disclaimer')}</p>
     </>
   );
 }
@@ -215,6 +216,10 @@ export function SelfExamPage() {
   const list = useCheckups();
   const item = findSelfExam(list.data?.items);
   const query = useCheckup(item?.id ?? null);
+  const update = useUpdateCheckupSettings();
+  const detail = query.data;
+  const remind = detail?.settings.remind ?? false;
+  const subtitle = [item?.intervalLabel, item?.timingLabel].filter(Boolean).join(t('separator'));
 
   let body;
   if (list.isPending || (item && query.isPending)) {
@@ -251,10 +256,23 @@ export function SelfExamPage() {
           </Link>
           <div className="rmd-hdr-text">
             <h1 className="rmd-hdr-title">{item?.title ?? t('title')}</h1>
+            {subtitle && <p className="rmd-hdr-sub">{subtitle}</p>}
           </div>
-          <Link href="/checkups/history" className="rmd-hdr-btn" aria-label={t('history.title')}>
-            <Icon name="history" size={20} strokeWidth={1.8} />
-          </Link>
+          {detail ? (
+            <button
+              type="button"
+              role="switch"
+              aria-checked={remind}
+              className={clsx('rmd-hdr-btn', remind && 'text-(--brand)')}
+              aria-label={remind ? t('detail.remindOn') : t('detail.remindOff')}
+              disabled={update.isPending || !detail.settings.enabled}
+              onClick={() => update.mutate({ id: detail.id, remind: !remind })}
+            >
+              <Icon name={remind ? 'bellRing' : 'bellPlain'} size={20} strokeWidth={1.8} />
+            </button>
+          ) : (
+            <span className="rmd-hdr-btn invisible" aria-hidden />
+          )}
         </header>
         <div className="rmd-body flex flex-col gap-3 pb-8">{body}</div>
       </div>

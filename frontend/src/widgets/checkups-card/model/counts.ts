@@ -25,14 +25,30 @@ export function countsLine(
 
 export type HighlightKind = 'guide' | 'book';
 
-/** Overdue → amber «ثبت نوبت»; cycle-timed / due → rose «راهنما». */
+const isSelfExam = (item: Pick<CheckupItem, 'key'>) => item.key?.includes('self_exam') ?? false;
+
+/**
+ * Overdue → amber «ثبت نوبت» (a visit to book), whatever its cycle timing;
+ * the self-exam and anything merely due → rose «راهنما».
+ */
 export function highlightKind(item: CheckupItem): HighlightKind {
-  return item.status === 'overdue' && item.timingLabel == null ? 'book' : 'guide';
+  return item.status === 'overdue' && !isSelfExam(item) ? 'book' : 'guide';
+}
+
+/**
+ * The row's sub-line: the *when* first — «عقب‌افتاده از فروردین» alone for an
+ * overdue row, else «۳ روز دیگر، روز ۷ تا ۱۰ سیکل».
+ */
+export function highlightMeta(item: CheckupItem, separator: string): string | null {
+  const parts =
+    item.status === 'overdue' ? [item.nextDueLabel] : [item.nextDueLabel, item.timingLabel];
+  const line = parts.filter(Boolean).join(separator);
+  return line || item.timingLabel || item.subtitle;
 }
 
 /** Self-exam types open the step-by-step guide; everything else the detail page. */
 export function guideHref(item: CheckupItem): string {
-  return item.key?.includes('self_exam') ? '/checkups/self-exam' : `/checkups/${item.id}`;
+  return isSelfExam(item) ? '/checkups/self-exam' : `/checkups/${item.id}`;
 }
 
 /** AddAppointment with the checkup as the prefilled title. */
