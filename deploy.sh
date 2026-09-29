@@ -143,12 +143,45 @@ ssh_run "test -e ${REMOTE_DIR}/stage.htpasswd || : > ${REMOTE_DIR}/stage.htpassw
 source ./deploy/stage-gate.sh
 ensure_stage_gate "${REMOTE_DIR}"
 
+# Build order once prod runs Go (T-M2-33, bug B1 on stage). The frontend's
+# `/[locale]/*` pages are prerendered at `npm run build` and fetch the UI
+# messages from the LIVE API, so the new backend-go must be up (healthy) before
+# the frontend builds, and that build layer must not be a cache hit (BUILD_REV,
+# consumed right before `npm run build` in frontend/Dockerfile).
+# INERT while prod is Laravel: backend-go sits behind the compose profile `go`,
+# so `config --services` does not list it and GO_ACTIVE stays 0 — then the
+# build below is exactly the old `build ${SERVICES}` (no build arg, same cache).
+# T-M2-26 (COMPOSE_PROFILES=go in /opt/ritme/.env) switches it on by itself.
+# (Captured first, not piped into `grep -q`: under pipefail an early grep exit
+# could SIGPIPE ssh and read as "no Go". A failed lookup also means 0.)
+ACTIVE_SERVICES="$(ssh_run "cd ${REMOTE_DIR} && ${COMPOSE} config --services" 2>/dev/null || true)"
+GO_ACTIVE=0
+if grep -qx 'backend-go' <<<"$ACTIVE_SERVICES"; then
+  GO_ACTIVE=1
+fi
+# True when this run touches <service> (an empty SERVICES means all of them).
+wants() { [[ -z "$SERVICES" || " $SERVICES " == *" $1 "* ]]; }
+
 if [[ "${NO_BUILD:-0}" != "1" ]]; then
+  BUILD_ARGS=""
+  if [[ "$GO_ACTIVE" == "1" ]]; then
+    BUILD_REV="$(git rev-parse --short HEAD 2>/dev/null || echo tree)-$(date -u +%Y%m%dT%H%M%SZ)"
+    BUILD_ARGS="--build-arg BUILD_REV=${BUILD_REV}"
+    if wants backend-go; then
+      echo "==> Building and starting backend-go first (the frontend build reads its messages)..."
+      ssh_run "cd ${REMOTE_DIR} && ${COMPOSE} build backend-go"
+      # --wait: non-zero (=> abort under set -e) if it never turns healthy.
+      ssh_run "cd ${REMOTE_DIR} && ${COMPOSE} up -d --wait --wait-timeout 180 backend-go"
+      # upstream{} blocks (ritme-backend-go-1) resolve at nginx load; the SSG
+      # fetch goes through this proxy, so re-resolve before building.
+      ssh_run "cd ${REMOTE_DIR} && ${COMPOSE} exec -T proxy sh -c 'nginx -t && nginx -s reload'"
+    fi
+  fi
   echo "==> Building images on the server (this is the slow part)..."
   # The build arg (NEXT_PUBLIC_API_BASE_URL) comes from the server's .env,
   # which compose loads automatically — so the public API URL baked into the
   # browser bundle is configured once, on the server.
-  ssh_run "cd ${REMOTE_DIR} && ${COMPOSE} build ${SERVICES}"
+  ssh_run "cd ${REMOTE_DIR} && ${COMPOSE} build ${BUILD_ARGS} ${SERVICES}"
 fi
 
 echo "==> Starting stack..."

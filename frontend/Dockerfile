@@ -31,7 +31,15 @@ ARG NEXT_PUBLIC_API_BASE_URL=https://api.ritme.app/api/v1
 ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL \
     NEXT_TELEMETRY_DISABLED=1
 
-RUN npm run build
+# `/[locale]/*` pages are prerendered, and prerendering fetches the UI messages
+# from the LIVE API (src/shared/i18n/messages.ts), so the HTML bakes whatever
+# that API serves at build time. With identical source this layer would be
+# served from cache and keep the previous deploy's strings (T-M2-33, bug B1).
+# The deploy scripts pass a fresh BUILD_REV each time; an ARG is part of the
+# cache key of every RUN after it, so only `npm run build` (not `npm ci`)
+# re-runs. Unset (local builds, today's Laravel prod) = the old caching.
+ARG BUILD_REV=
+RUN echo "frontend build rev: ${BUILD_REV:-none}" && npm run build
 
 # ---- Runner -----------------------------------------------------------------
 FROM base AS runner

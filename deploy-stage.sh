@@ -26,6 +26,10 @@
 # ships mysql, redis, backend-go, frontend and admin-web; backend-go runs the
 # goose migrations on start. Leftover Laravel containers are removed.
 #
+# Build order (T-M2-33): backend-go is built and started (healthy) BEFORE the
+# frontend is built, and the frontend's `npm run build` never comes from cache,
+# because its SSG step bakes the messages the live API serves — see step 3.
+#
 # Other switches (same meaning as deploy.sh):
 #   SERVICES="frontend" ./deploy-stage.sh
 #   NO_BUILD=1          ./deploy-stage.sh
@@ -114,9 +118,33 @@ ssh_run "test -s ${PROD_DIR}/stage.htpasswd" || {
 }
 
 # ── 3. Build and start staging ──────────────────────────────────────────────
+# ORDER MATTERS (T-M2-33, bug B1). The frontend's `/[locale]/*` pages are
+# prerendered at `npm run build`, and prerendering fetches the UI messages from
+# the LIVE stage API. So the NEW backend-go must already be up — healthy, which
+# on stage implies goose ran (RUN_MIGRATIONS exits before serving on failure) —
+# before the frontend image is built, or the HTML bakes the previous deploy's
+# copy. And the build layer must not come from cache: BUILD_REV is fresh every
+# run and consumed by frontend/Dockerfile right before `npm run build`.
+BUILD_REV="$(git rev-parse --short "${BRANCH}" 2>/dev/null || echo worktree)-$(date -u +%Y%m%dT%H%M%SZ)"
+# True when this run touches <service> (an empty SERVICES means all of them).
+wants() { [[ -z "$SERVICES" || " $SERVICES " == *" $1 "* ]]; }
+
 if [[ "${NO_BUILD:-0}" != "1" ]]; then
-  echo "==> Building staging images on the server..."
-  ssh_run "cd ${REMOTE_DIR} && ${COMPOSE} build ${SERVICES}"
+  if wants backend-go; then
+    echo "==> Building and starting backend-go first (the frontend build reads its messages)..."
+    ssh_run "cd ${REMOTE_DIR} && ${COMPOSE} build backend-go"
+    # --wait: returns once the healthcheck passes, non-zero (=> abort under
+    # set -e) if it goes unhealthy — nothing gets built against a dead API.
+    ssh_run "cd ${REMOTE_DIR} && ${COMPOSE} up -d --wait --wait-timeout 180 backend-go"
+    ssh_run "docker logs ritme-stage-backend-go-1 2>&1 | grep '\"msg\":\"migrations\"' | tail -1" || true
+    # The route-group upstream{} blocks in stage-ssl.conf resolve at nginx
+    # load; the SSG fetch goes through the proxy, so point them at the new
+    # container before building (same graceful reload as step 4).
+    ssh_run "cd ${PROD_DIR} && ${PROD_COMPOSE} exec -T proxy sh -c 'nginx -t && nginx -s reload'"
+  fi
+  echo "==> Building staging images on the server (BUILD_REV=${BUILD_REV})..."
+  # backend-go is already built above, so it is a cache hit here.
+  ssh_run "cd ${REMOTE_DIR} && ${COMPOSE} build --build-arg BUILD_REV=${BUILD_REV} ${SERVICES}"
 fi
 
 echo "==> Starting staging stack..."

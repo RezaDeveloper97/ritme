@@ -62,6 +62,17 @@ Prod prerequisites before changing it). Moving a group is `deploy/switch-go-rout
 - Pinned names only: the upstreams use `ritme-backend-1` / `ritme-backend-go-1`, never `backend` / `backend-go`,
   which the stage project also registers on `ritme-edge`.
 
+### Build order once Go is on (T-M2-33) — inert today
+
+The frontend's `/[locale]/*` pages are prerendered and fetch the UI messages from the live API at build time, so
+building the frontend while the old API serves bakes stale copy (stage bug B1). `deploy.sh` asks the server
+`compose config --services`; **only if `backend-go` is listed** (i.e. `COMPOSE_PROFILES=go`, T-M2-26) it builds
+backend-go, `up -d --wait`s it, reloads the proxy, and then builds with `--build-arg BUILD_REV=<sha>-<timestamp>`
+(consumed right before `npm run build` in `frontend/Dockerfile`, so that layer always re-runs). While prod is
+Laravel the list has no `backend-go`, so the build is the old `build ${SERVICES}` — no build arg, same cache, same
+order. (Adding the `ARG` line changed the Dockerfile, so the first prod frontend build after it re-runs `npm run
+build` once; the resulting image is equivalent.)
+
 ## HTTPS
 One SAN certificate covers all three hostnames (issued 2026-08-16, expires 2026-11-14):
 ```bash

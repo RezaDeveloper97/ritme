@@ -187,6 +187,26 @@ Note `deploy/acme.inc` now carries `auth_basic off` — without it the staging v
 password would make the ACME challenge unfetchable, and an unfetchable challenge means
 no certificate. It's a no-op for the production vhosts.
 
+## Build order: backend-go before the frontend (T-M2-33)
+
+`/[locale]/*` pages are **prerendered** at `npm run build`, and prerendering fetches the UI messages from the
+**live** stage API (`frontend/src/shared/i18n/messages.ts`; the remote bundle wins over the bundled JSON). So the
+HTML bakes whatever backend-go serves *while the frontend image builds*. Bug B1 (2026-09-28): the script used to
+build everything while the OLD backend-go was still serving and only then `up -d`, so changed copy stayed stale —
+and a plain redeploy didn't help because the build layer was cached (same source).
+
+`deploy-stage.sh` step 3 therefore:
+1. `build backend-go` → `up -d --wait backend-go` (healthy ⇒ goose ran; a failure aborts the deploy) → logs the
+   `"msg":"migrations"` line → graceful proxy reload (the SSG fetch goes through the proxy, whose route-group
+   `upstream{}`s resolve at load).
+2. `build --build-arg BUILD_REV=<sha>-<utc-timestamp> ${SERVICES}`. `frontend/Dockerfile` declares `ARG BUILD_REV`
+   right before `RUN npm run build`, so exactly that layer re-runs every deploy (`npm ci` stays cached — no
+   blanket `--no-cache`). The build log prints `frontend build rev: …`.
+3. `up -d ${SERVICES}` as before.
+
+Step 1 runs only when `SERVICES` is empty or contains `backend-go`; `SERVICES="frontend"` rebuilds the frontend
+against whatever backend-go is already live (still uncached). Don't reach for `build --no-cache frontend` any more.
+
 ## Switches
 
 ```bash
