@@ -3,7 +3,7 @@ id: T-M5-13
 title: One fertile window everywhere — calendar and home timeline use the v1.1 anchors
 milestone: M5
 type: frontend
-status: in_progress
+status: done
 depends_on: [T-M5-12]
 parallel_group: M5-D
 touches: [frontend/src/screens/calendar,frontend/src/widgets/cycle-timeline,frontend/src/widgets,frontend/src/entities/cycle,frontend/src/screens/home,docs/fertility-ttc]

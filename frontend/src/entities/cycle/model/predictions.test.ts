@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
-import { calcToPhase, cycleDayMarker, deriveCyclePredictions, normalizePhase } from './predictions';
+import {
+  calcInFertileWindow,
+  calcMainPhase,
+  calcToPhase,
+  cycleDayMarker,
+  deriveCyclePredictions,
+  markerPhase,
+  normalizePhase,
+} from './predictions';
 import type { CycleCalculation } from './types';
 
 function makeCalc(overrides: Partial<CycleCalculation> = {}): CycleCalculation {
@@ -113,5 +121,48 @@ describe('deriveCyclePredictions', () => {
   it('clamps the fertility probability to 0–100', () => {
     expect(deriveCyclePredictions(makeCalc({ fertilityPercent: 140 })).fertilityPercent).toBe(100);
     expect(deriveCyclePredictions(makeCalc({ fertilityPercent: -5 })).fertilityPercent).toBe(0);
+  });
+});
+
+// Legacy calcs draw the biological O−5 … O+1 window (phase `ovulation` on O and
+// O+1). Every reader goes through the §19 display window, which ends on O.
+describe('§19 reading of a legacy calculation', () => {
+  const day = (cycleDay: number, over: Partial<CycleCalculation> = {}) =>
+    makeCalc({ cycleDay, estimatedOvulationDay: 15, cycleLength: 28, ...over });
+
+  it('reads the legacy O+1 `ovulation` day as luteal, outside the window', () => {
+    const o1 = day(16, { phase: 'ovulation', isFertileWindow: true });
+    expect(calcMainPhase(o1)).toBe('luteal');
+    expect(calcInFertileWindow(o1)).toBe(false);
+    expect(cycleDayMarker(o1)).toBeNull();
+    expect(calcToPhase(o1)).toBe('luteal');
+    expect(deriveCyclePredictions(o1).phase).toBe('luteal');
+    expect(deriveCyclePredictions(o1).isFertileWindow).toBe(false);
+  });
+
+  it('keeps O−5 … O−1 fertile and O as ovulation', () => {
+    expect(cycleDayMarker(day(10, { isFertileWindow: true }))).toBe('fertile');
+    expect(cycleDayMarker(day(14, { isFertileWindow: true }))).toBe('fertile');
+    const o = day(15, { phase: 'ovulation', isFertileWindow: true });
+    expect(cycleDayMarker(o)).toBe('ovulation');
+    expect(calcInFertileWindow(o)).toBe(true);
+  });
+
+  it('never marks a bleeding day fertile (menstrual overrides the window)', () => {
+    const bleeding = day(10, { phase: 'menstruation', isFertileWindow: true });
+    expect(calcInFertileWindow(bleeding)).toBe(false);
+    expect(cycleDayMarker(bleeding)).toBe('period');
+  });
+});
+
+describe('markerPhase', () => {
+  it('follows a window marker and splits an unmarked day around ovulation', () => {
+    const c = makeCalc({ cycleDay: 12, estimatedOvulationDay: 15, isFertileWindow: true });
+    expect(markerPhase(c, 'fertile')).toBe('fertile');
+    expect(markerPhase(c, null)).toBe('follicular');
+    expect(markerPhase(makeCalc({ cycleDay: 16, estimatedOvulationDay: 15, phase: 'ovulation' }), null)).toBe(
+      'luteal',
+    );
+    expect(markerPhase(makeCalc({ phase: 'luteal', cycleDay: 20 }), 'pms')).toBe('luteal');
   });
 });

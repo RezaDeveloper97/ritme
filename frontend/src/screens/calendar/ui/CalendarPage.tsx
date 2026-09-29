@@ -7,14 +7,16 @@ import { useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import {
-  calcToPhase,
-  cycleDayMarker,
+  cycleDayMarkerAt,
   cycleMarkerBg,
   cycleMarkerStyle,
+  deriveCycleSchedule,
   markerIntensityByDate,
+  markerPhase,
   normalizePhase,
   useCycleMonth,
   useCycleStatus,
+  useCycleToday,
   type CycleCalculation,
   type CycleDayMarker,
   type CyclePhase,
@@ -375,7 +377,9 @@ interface DayDetailProps {
 }
 
 function DayDetail({ t, locale, selectedDate, calc, marker, showTiles = true }: DayDetailProps) {
-  const phase = calc ? calcToPhase(calc) : undefined;
+  // The phase follows the marker, so the tile never contradicts the cell colour
+  // (e.g. the day after ovulation is luteal, not «ovulation» — task.md §19).
+  const phase = calc ? markerPhase(calc, marker) : undefined;
   const style = (marker && MARKER_STYLE[marker]) ?? NEUTRAL_STYLE;
   const isToday = isSameDay(selectedDate, today());
   // Prefer the marker for the label (so PMS/fertile read as themselves) and fall
@@ -514,17 +518,37 @@ export function CalendarPage() {
     else if (!watching && dataFreshness > overlay.since) setOverlay(null);
   }, [overlay, calcMap, watching, dataFreshness]);
 
+  // The anchored cycle calendar (engine `cycle_view.anchors`) — the same one the
+  // home timeline reads. From the current cycle on, it decides the fertile
+  // window and ovulation, so the grid shows the days home, `/fertility/bbt` and
+  // the insights show (task.md §19, T-M5-13). Same cache as home: no extra
+  // request when coming from there.
+  const todayCycle = useCycleToday();
+  const schedule = useMemo(
+    () =>
+      deriveCycleSchedule(todayCycle.data?.cycleView ?? null, todayCycle.data?.calculation ?? null),
+    [todayCycle.data],
+  );
+  const dayMarker = useMemo(
+    () => (calc: CycleCalculation) =>
+      cycleDayMarkerAt(fromApiDate(calc.calculationDate), calc, schedule, schedule?.periodLength ?? periodDuration),
+    [schedule, periodDuration],
+  );
+
   const markerFor = (date: Date): CycleDayMarker | null => {
     const iso = toApiDate(date);
     if (overlay?.paint.has(iso)) return 'period';
     if (overlay?.clear.has(iso)) return null;
     const c = calcMap.get(iso);
-    return c ? cycleDayMarker(c) : null;
+    return c ? dayMarker(c) : null;
   };
 
   // Tint depth per day, graded by conception probability within each marker
   // group (overlay-painted days have no calculation yet → medium).
-  const intensityMap = useMemo(() => markerIntensityByDate(calcMap.values()), [calcMap]);
+  const intensityMap = useMemo(
+    () => markerIntensityByDate(calcMap.values(), dayMarker),
+    [calcMap, dayMarker],
+  );
   const intensityFor = (date: Date): MarkerIntensity =>
     intensityMap.get(toApiDate(date)) ?? 'medium';
 

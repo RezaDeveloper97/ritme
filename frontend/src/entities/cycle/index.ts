@@ -4,7 +4,10 @@ export {
   deriveCyclePredictions,
   normalizePhase,
   calcToPhase,
+  calcMainPhase,
+  calcInFertileWindow,
   cycleDayMarker,
+  markerPhase,
   PMS_WINDOW_DAYS,
 } from './model/predictions';
 export {
@@ -14,6 +17,8 @@ export {
   cycleProgressPercent,
   scheduleDayMarker,
   hasFertileWindow,
+  fertileWindowDays,
+  cycleDayMarkerAt,
 } from './model/schedule';
 export type { CycleSchedule } from './model/schedule';
 export { cycleMarkerStyle, cycleMarkerBg, markerIntensityByDate } from './model/markers';

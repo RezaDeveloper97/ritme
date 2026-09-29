@@ -12,13 +12,13 @@ import {
 import { useBannersSettled } from '@/entities/banner';
 import {
   CycleValuesCard,
-  cycleDayMarker,
+  cycleDayMarkerAt,
   cycleScheduleFor,
   daysUntilNextPeriod,
   deriveCycleSchedule,
   deriveCyclePredictions,
+  fertileWindowDays,
   hasFertileWindow,
-  scheduleDayMarker,
   useCycleForDate,
   useCycleMonth,
   useCycleStatus,
@@ -27,7 +27,6 @@ import {
   type CycleDailyTip,
   type CycleDayMarker,
   type CyclePhase,
-  type CyclePredictions,
   type CycleSchedule,
 } from '@/entities/cycle';
 import { useFertilityToday } from '@/entities/fertility';
@@ -154,7 +153,9 @@ function gregYearMonth(date: Date): { year: number; month: number } {
  * repaints the week strip and the ring too. The days asked for (this week plus
  * the ring's cycle) span at most three Gregorian months, so the first, middle
  * and last month are fetched; a day none of them covers yet falls back to the
- * schedule's own reading of it.
+ * schedule's own reading of it. From the current cycle on, the fertile window
+ * and ovulation come from the anchored `schedule` (task.md §19) — the same days
+ * the calendar, the timeline bar and `/fertility/*` show.
  */
 function useDayMarks(
   dates: Date[],
@@ -180,11 +181,8 @@ function useDayMarks(
     return map;
   }, [monthA.data, monthM.data, monthB.data]);
 
-  return (date: Date) => {
-    const calc = calcMap.get(toApiDate(date));
-    if (calc) return cycleDayMarker(calc);
-    return schedule ? scheduleDayMarker(schedule, date, periodLength) : null;
-  };
+  return (date: Date) =>
+    cycleDayMarkerAt(date, calcMap.get(toApiDate(date)), schedule, periodLength);
 }
 
 // ── Week strip ─────────────────────────────────────────────────
@@ -360,24 +358,34 @@ function PhaseCard({
 // ── Cycle timeline bar (ported from the cycle screen) ──────────
 // A linear day-1 → day-N reading of the cycle: the fertile band, the ovulation
 // tick and where today sits. Pinned LTR because a cycle always runs 1 → N
-// (§12-safe: it is a chart, not layout chrome).
-function CycleTimelineBar({ pred, ovulationDay }: { pred: CyclePredictions; ovulationDay: number }) {
-  const at = (day: number) => Math.min(100, Math.max(0, (day / pred.cycleLength) * 100));
-  const fertileStart = ovulationDay - 5; // matches the backend fertile window (ovulation − 5)
-  const todayPos = at(pred.cycleDay);
+// (§12-safe: it is a chart, not layout chrome). Day d occupies the slice
+// (d − 1)/N … d/N; the band is the anchored §19 window (the schedule's own
+// dates — the ones the rows below, the calendar and `/fertility/*` show), and
+// is absent when a long period swallowed it.
+function CycleTimelineBar({ schedule, date }: { schedule: CycleSchedule; date: Date }) {
+  const cycle = cycleScheduleFor(schedule, date);
+  const length = cycle.cycleLength;
+  const at = (edge: number) => Math.min(100, Math.max(0, (edge / length) * 100));
+  const cycleDay = diffInDays(date, cycle.cycleStart) + 1;
+  const window = fertileWindowDays(cycle);
+  const ovulationDay = diffInDays(cycle.ovulation, cycle.cycleStart) + 1;
+  const todayPos = at(cycleDay - 0.5);
 
   return (
     // Only the positions along the bar stay inline — they are the data.
     <div dir="ltr" className="cyclebar">
-      {/* Fertile band */}
-      <span
-        className="cyclebar-band"
-        style={{ left: `${at(fertileStart)}%`, width: `${at(ovulationDay + 1) - at(fertileStart)}%` }}
-      />
       {/* Progress up to today */}
       <span className="cyclebar-fill" style={{ width: `${todayPos}%` }} />
+      {/* Fertile band — over the progress fill, so a window already behind
+          today still reads on the bar. */}
+      {window && (
+        <span
+          className="cyclebar-band"
+          style={{ left: `${at(window.startDay - 1)}%`, width: `${at(window.endDay) - at(window.startDay - 1)}%` }}
+        />
+      )}
       {/* Ovulation tick */}
-      <span className="cyclebar-tick" style={{ left: `${at(ovulationDay)}%` }} />
+      <span className="cyclebar-tick" style={{ left: `${at(ovulationDay - 0.5)}%` }} />
       {/* Today marker */}
       <span className="cyclebar-now" style={{ left: `${todayPos}%` }} />
     </div>
@@ -396,11 +404,12 @@ interface TimelineSlot {
 // «رویدادهای پیش‌رو» — the cycle timeline bar, the dates of the upcoming events,
 // and the two cycle facts (length, ovulation day) the cycle screen showed.
 function PhaseRows({
-  t, pred, ovulationDay, windowRange, ovulationDate, pmsRange, nextPeriodDate, daysTo, footer,
+  t, schedule, date, windowRange, ovulationDate, pmsRange, nextPeriodDate, daysTo, footer,
 }: {
   t: T;
-  pred: CyclePredictions | null;
-  ovulationDay: number | null;
+  /** Today's anchored cycle calendar — the timeline bar draws from it. */
+  schedule: CycleSchedule | null;
+  date: Date;
   windowRange: string | null;
   ovulationDate: string | null;
   pmsRange: string | null;
@@ -443,7 +452,7 @@ function PhaseRows({
           {t('timeline.title')}
         </div>
 
-        {pred && ovulationDay != null && <CycleTimelineBar pred={pred} ovulationDay={ovulationDay} />}
+        {schedule && <CycleTimelineBar schedule={schedule} date={date} />}
 
         <div className="ev-list">
           {rows.map(r => (
@@ -689,7 +698,6 @@ export function HomePage() {
   const fertilityToday = useFertilityToday();
 
   const calc = todayData?.calculation ?? null;
-  const pred = calc ? deriveCyclePredictions(calc) : null;
 
   // While the backend recalculates, poll status and refetch today's calc once it
   // settles, so the page reflects the fresh result without a manual reload.
@@ -844,7 +852,9 @@ export function HomePage() {
   const ringDates = ringStart
     ? Array.from({ length: ringLength }, (_, i) => addDays(ringStart, i))
     : [];
-  const markOf = useDayMarks([...weekDays, ...ringDates], selectedSchedule, periodLength);
+  // Today's anchored schedule (not the tapped day's): the window it gives the
+  // current and predicted cycles must not move when another day is selected.
+  const markOf = useDayMarks([...weekDays, ...ringDates], schedule ?? selectedSchedule, periodLength);
   const ringDays = ringDates.map(date => ({
     marker: markOf(date),
     ahead: diffInDays(date, base) > 0,
@@ -1036,8 +1046,8 @@ export function HomePage() {
             {!noPeriodData && (
               <PhaseRows
                 t={t}
-                pred={pred}
-                ovulationDay={calc?.estimatedOvulationDay ?? null}
+                schedule={schedule}
+                date={base}
                 windowRange={windowRange}
                 ovulationDate={ovulationDate}
                 pmsRange={pmsRange}

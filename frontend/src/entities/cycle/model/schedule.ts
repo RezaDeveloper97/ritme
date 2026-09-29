@@ -1,12 +1,20 @@
 import { addDays, diffInDays, fromApiDate } from '@/shared/lib/date';
 
-import { FERTILE_WINDOW_LEAD_DAYS, PMS_WINDOW_DAYS } from './predictions';
+import {
+  calcMainPhase,
+  cycleDayMarker,
+  FERTILE_WINDOW_LEAD_DAYS,
+  PMS_WINDOW_DAYS,
+} from './predictions';
 import type { CycleCalculation, CycleDayMarker, CycleView } from './types';
 
 /** Fixed ovulation → next-period offset the engine uses (`CyclePredictionService`). */
 const LUTEAL_LENGTH = 14;
 
 const DEFAULT_CYCLE_LENGTH = 28;
+
+/** Bleeding length when the engine gave none (the backend's default). */
+const DEFAULT_PERIOD_LENGTH = 5;
 
 /**
  * The calendar of one cycle, as **absolute dates**.
@@ -24,6 +32,12 @@ export interface CycleSchedule {
   cycleStart: Date;
   /** Effective cycle length in days (start → next start). */
   cycleLength: number;
+  /**
+   * Effective bleeding length — what a *predicted* cycle's period lasts, so a
+   * rolled-forward cycle opens its window after its own period (§19), not
+   * after the current one's logged end.
+   */
+  periodLength: number;
   nextPeriodStart: Date;
   ovulation: Date;
   /**
@@ -70,6 +84,13 @@ export function deriveCycleSchedule(
       DEFAULT_CYCLE_LENGTH,
   );
 
+  const periodLength = Math.max(
+    1,
+    view?.metrics?.effectivePeriodLength ??
+      view?.effectiveValues.periodDuration ??
+      DEFAULT_PERIOD_LENGTH,
+  );
+
   const nextPeriodStart =
     parse(forecast?.nextPeriodStart) ??
     parse(anchors?.predictedNextPeriodStart) ??
@@ -84,15 +105,13 @@ export function deriveCycleSchedule(
   // §19 display window from the same anchors as the engine's phases. Not the
   // legacy `predictions.fertile_window_*` (the biological O−5 … O+1): that one
   // ran a day past ovulation and disagreed with the fertility screens.
-  const biologicalStart = addDays(ovulation, -FERTILE_WINDOW_LEAD_DAYS);
   const periodEnd = anchors?.currentPeriodStart ? parse(anchors.currentPeriodEnd) : null;
-  const dayAfterPeriod = periodEnd ? addDays(periodEnd, 1) : null;
-  const fertileStart =
-    dayAfterPeriod && diffInDays(dayAfterPeriod, biologicalStart) > 0 ? dayAfterPeriod : biologicalStart;
+  const fertileStart = displayFertileStart(ovulation, periodEnd);
 
   return {
     cycleStart,
     cycleLength,
+    periodLength,
     nextPeriodStart,
     ovulation,
     fertileStart,
@@ -100,6 +119,17 @@ export function deriveCycleSchedule(
     pmsEnd: addDays(nextPeriodStart, -1),
     pmsStart: addDays(nextPeriodStart, -PMS_WINDOW_DAYS),
   };
+}
+
+/**
+ * task.md §19 display window start: `max(ovulation − 5, period end + 1)`. With
+ * no known period end it is the biological start (ovulation − 5).
+ */
+function displayFertileStart(ovulation: Date, periodEnd: Date | null): Date {
+  const biologicalStart = addDays(ovulation, -FERTILE_WINDOW_LEAD_DAYS);
+  if (!periodEnd) return biologicalStart;
+  const dayAfterPeriod = addDays(periodEnd, 1);
+  return diffInDays(dayAfterPeriod, biologicalStart) > 0 ? dayAfterPeriod : biologicalStart;
 }
 
 /**
@@ -113,12 +143,16 @@ export function cycleScheduleFor(schedule: CycleSchedule, date: Date): CycleSche
   if (cycles === 0) return schedule;
 
   const shift = cycles * schedule.cycleLength;
+  const cycleStart = addDays(schedule.cycleStart, shift);
+  const ovulation = addDays(schedule.ovulation, shift);
   return {
     ...schedule,
-    cycleStart: addDays(schedule.cycleStart, shift),
+    cycleStart,
     nextPeriodStart: addDays(schedule.nextPeriodStart, shift),
-    ovulation: addDays(schedule.ovulation, shift),
-    fertileStart: addDays(schedule.fertileStart, shift),
+    ovulation,
+    // Another cycle's period is a predicted one of the effective length (the
+    // engine's roll-forward), so its window opens after *that* period.
+    fertileStart: displayFertileStart(ovulation, addDays(cycleStart, schedule.periodLength - 1)),
     fertileEnd: addDays(schedule.fertileEnd, shift),
     pmsStart: addDays(schedule.pmsStart, shift),
     pmsEnd: addDays(schedule.pmsEnd, shift),
@@ -162,4 +196,50 @@ export function scheduleDayMarker(
   if (within(s.fertileStart, s.fertileEnd)) return 'fertile';
   if (within(s.pmsStart, s.pmsEnd)) return 'pms';
   return null;
+}
+
+/**
+ * The §19 window of the schedule's own cycle as 1-based cycle days (for linear
+ * day-1 → day-N charts), or `null` when a long period swallowed it.
+ */
+export function fertileWindowDays(
+  schedule: CycleSchedule,
+): { startDay: number; endDay: number; ovulationDay: number } | null {
+  if (!hasFertileWindow(schedule)) return null;
+  const day = (d: Date) => diffInDays(d, schedule.cycleStart) + 1;
+  return {
+    startDay: day(schedule.fertileStart),
+    endDay: day(schedule.fertileEnd),
+    ovulationDay: day(schedule.ovulation),
+  };
+}
+
+/**
+ * THE calendar marker for a day — every surface that paints cycle days (the
+ * calendar grid and day sheet, the home week strip and ring) asks this, so the
+ * fertile window is the same days everywhere (task.md §19, T-M5-13):
+ *
+ * - From the current cycle on (the schedule's cycle and the predicted ones
+ *   after it) the **window and ovulation come from the anchored schedule** —
+ *   the very dates the home timeline, `/fertility/bbt` and `/fertility/insights`
+ *   show. Period and PMS still come from the engine's per-day calculation
+ *   (logged periods), and a period day always wins.
+ * - Before the current cycle (history) the per-day calculation is read by the
+ *   same §19 rule ({@link cycleDayMarker}).
+ * - A day with no calculation falls back to the schedule alone.
+ */
+export function cycleDayMarkerAt(
+  date: Date,
+  calc: CycleCalculation | null | undefined,
+  schedule: CycleSchedule | null,
+  periodLength: number,
+): CycleDayMarker | null {
+  if (!calc) return schedule ? scheduleDayMarker(schedule, date, periodLength) : null;
+  if (!schedule || diffInDays(date, schedule.cycleStart) < 0) return cycleDayMarker(calc);
+
+  if (calcMainPhase(calc) === 'period') return 'period';
+  const s = cycleScheduleFor(schedule, date);
+  if (diffInDays(date, s.ovulation) === 0) return 'ovulation';
+  if (diffInDays(date, s.fertileStart) >= 0 && diffInDays(s.fertileEnd, date) >= 0) return 'fertile';
+  return calc.isPmsWindow ? 'pms' : null;
 }

@@ -72,15 +72,20 @@ const bucket = (t: number): MarkerIntensity =>
  * day) falls back to its position in the graded days' overall probability
  * range, and to `medium` when even that is flat. Purely visual and
  * informational (§11).
+ *
+ * `markerOf` is how the surface paints each day — pass the same resolver the
+ * cells use (e.g. `cycleDayMarkerAt` with the anchored schedule) so the
+ * grading groups exactly the days that carry each marker.
  */
 export function markerIntensityByDate(
   calcs: Iterable<CycleCalculation>,
+  markerOf: (calc: CycleCalculation) => CycleDayMarker | null = cycleDayMarker,
 ): Map<string, MarkerIntensity> {
   const groups = new Map<CycleDayMarker, CycleCalculation[]>();
   let globalMin = Infinity;
   let globalMax = -Infinity;
   for (const calc of calcs) {
-    const marker = cycleDayMarker(calc);
+    const marker = markerOf(calc);
     if (!marker || !GRADED_MARKERS.has(marker)) continue;
     const group = groups.get(marker);
     if (group) group.push(calc);

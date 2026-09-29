@@ -341,5 +341,42 @@ day 16 the home rolls the window to the next cycle, the same dates `/fertility/i
 Checked in the browser for the 2-year user (today = cycle day 16): home «پنجره باروری ۲۹ مهر تا ۴ آبان» =
 insights window 2026-10-21 → 10-26, BBT window days 10–15.
 
-Still different by design: the calendar's per-day `is_fertile_window` (legacy calculation, O − 5 … O + 1) and the
-home cycle bar, which draws its band from the legacy `estimated_ovulation_day`.
+Left for T-M5-13 (below): the calendar's per-day `is_fertile_window` (legacy calculation, O − 5 … O + 1) and the
+home cycle bar, which drew its band from the legacy `estimated_ovulation_day`.
+
+## T-M5-13 — One fertile window everywhere
+
+Every surface that paints cycle days now resolves a day through one helper, `cycleDayMarkerAt` in
+`entities/cycle/model/schedule.ts` (frontend only; no API change):
+
+- **Current and predicted cycles** (on/after the anchored cycle start): window and ovulation come from the
+  anchored schedule (`deriveCycleSchedule`, `cycle_view.anchors`, §19) — the dates the home rows, `/fertility/bbt`
+  and `/fertility/insights` show. Period and PMS still come from the per-day calculation; a period day always wins.
+  A rolled-forward cycle opens its window after its own predicted period (effective period length, as the engine's
+  roll-forward does), not after the current cycle's logged end.
+- **Past cycles**: the legacy per-day calculation is read by the same §19 rule — `calcInFertileWindow` /
+  `calcMainPhase` in `model/predictions.ts` drop the legacy O + 1 day (flag + phase `ovulation`), which is all that
+  separates the biological window from the display one (the legacy engine already clears bleeding days).
+
+Users: the calendar grid, its intensity grading (`markerIntensityByDate(calcs, markerOf)`), the day sheet's phase /
+chance tiles (`markerPhase`, so O + 1 reads «luteal», not «ovulation»), the home week strip and ring (always today's
+schedule, so the window does not move when another day is tapped), and the home cycle bar (band = the schedule's
+§19 days via `fertileWindowDays`, drawn over the progress fill so a passed window still shows; no band for an empty
+window). Tests: `schedule.test.ts` («cycleDayMarkerAt — one §19 window…», cycle-day-16 case, short 21-day cycle
+with a 7-day period where only the ovulation day is left), `predictions.test.ts` («§19 reading of a legacy
+calculation»), `markers.test.ts`.
+
+Checked locally (Go on a scratch DB with the contract fixtures, TTC persona `09900000012`: logged starts 06-19,
+07-16, 08-14, 09-11, 5-day periods, 28-day effective cycle, today 2026-09-29 = cycle day 19, BBT logged 09-11…09-29):
+
+| Screen | Window shown |
+|---|---|
+| Calendar, September (`window-calendar-light.png`) | 09-20 … 09-24 fertile, 09-25 ovulation, 09-26 neutral (was ovulation) |
+| Calendar, October (`window-calendar-next-light.png`) | 10-18 … 10-22 fertile, 10-23 ovulation, 10-24 neutral |
+| Home ring (`window-home-ring-light.png`) | cycle days 10–14 amber, day 15 ovulation; chance card «window starts 18 October» |
+| Home timeline bar + rows (`window-home-timeline-light.png`) | band cycle days 10–15, tick on 15; rows «18 October – 23 October», ovulation 23 October |
+| Insights (`window-insights-light.png`) | 18 October – 23 October, ovulation 23 October |
+| BBT (`window-bbt-light.png`) | band cycle days 10–15 (09-20 … 09-25) |
+
+Current cycle = days 10–15 = 09-20 … 09-25 (calendar, ring, bar, BBT); next cycle = days 10–15 = 10-18 … 10-23
+(calendar, home rows, insights). Screenshots are light only, 585 px, pngquant.

@@ -68,4 +68,17 @@ describe('markerIntensityByDate', () => {
     ]);
     expect(map.size).toBe(0);
   });
+
+  it('groups by the marker the surface paints when given a resolver', () => {
+    const calcs = [
+      makeCalc({ calculationDate: '2026-01-12', isFertileWindow: true, fertilityPercent: 10 }),
+      makeCalc({ calculationDate: '2026-01-13', isFertileWindow: true, fertilityPercent: 20 }),
+      makeCalc({ calculationDate: '2026-01-14', fertilityPercent: 30 }),
+    ];
+    // The resolver (e.g. the anchored schedule) calls 01-14 fertile, not the legacy flag.
+    const map = markerIntensityByDate(calcs, (c) => (c.calculationDate === '2026-01-12' ? null : 'fertile'));
+    expect(map.has('2026-01-12')).toBe(false);
+    expect(map.get('2026-01-13')).toBe('faint');
+    expect(map.get('2026-01-14')).toBe('strong');
+  });
 });

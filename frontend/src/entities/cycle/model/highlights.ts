@@ -1,4 +1,4 @@
-import { normalizePhase } from './predictions';
+import { calcInFertileWindow, calcMainPhase } from './predictions';
 import type { CycleCalculation } from './types';
 
 /**
@@ -13,14 +13,15 @@ export type CycleDayHighlight = 'period' | 'fertile' | 'ovulation' | 'pms' | 'pe
  * Derive the ordered highlights for a day's calculation. Ovulation sits inside
  * the fertile window, so it wins over the plain `fertile` badge; PMS and an
  * imminent period can co-occur with the luteal phase and are shown alongside.
+ * The window is the task.md §19 display window (it ends on ovulation).
  * Pure and locale-free (CLAUDE.md §7) so it stays unit-testable.
  */
 export function deriveDayHighlights(calc: CycleCalculation): CycleDayHighlight[] {
-  const phase = normalizePhase(calc.phase);
+  const phase = calcMainPhase(calc);
   const out: CycleDayHighlight[] = [];
   if (phase === 'period') out.push('period');
   if (phase === 'ovulation') out.push('ovulation');
-  else if (calc.isFertileWindow) out.push('fertile');
+  else if (calcInFertileWindow(calc)) out.push('fertile');
   if (calc.isPmsWindow) out.push('pms');
   if (calc.isPeriodTomorrow) out.push('period_tomorrow');
   return out;

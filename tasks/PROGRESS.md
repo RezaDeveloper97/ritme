@@ -873,3 +873,8 @@ Nothing needed fixing.
 - Custom checkup delete prunes on-device attachments right away (`afterCustomCheckupDeleted`, fire-and-forget).
 - `getApiErrorCode` / `getApiLimitMessage` in `shared/api`; medication, appointment and custom-checkup forms show the server's localized 422 `limit_reached` message.
 - Verify: 680 frontend tests + gates.
+
+## T-M5-13 — One fertile window everywhere
+- Shared `cycleDayMarkerAt` / `fertileWindowDays` (entities/cycle): current + predicted cycles take the window and ovulation from the anchored schedule (task.md §19), past cycles read the legacy calc with the same rule (O+1 → luteal); period always wins.
+- Calendar grid/intensity/aria/day sheet, home week strip, ring and `CycleTimelineBar` all use it. Verified on one TTC user: calendar, ring, timeline, home text, insights and BBT all show cycle days 10–15.
+- Verify: 680 frontend tests + gates. Open: timeline band now drawn above the progress fill (design check); legacy `is_fertile_window` stays in the API for Laravel parity.

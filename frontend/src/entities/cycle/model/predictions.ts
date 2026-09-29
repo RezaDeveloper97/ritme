@@ -1,14 +1,10 @@
 import type { CycleCalculation, CycleDayMarker, CyclePhase, CyclePredictions } from './types';
 
 /**
- * Days before ovulation the fertile window opens — matches the backend
- * (`isInFertileWindow`: ovulation − 5 … ovulation + 1) so the label and the
- * calendar's fertile-colored cells agree.
+ * Days before ovulation the fertile window opens (task.md §18/§19: the window
+ * runs from `max(O − 5, period end + 1)` to O).
  */
 export const FERTILE_WINDOW_LEAD_DAYS = 5;
-
-/** Days the fertile window stays open after ovulation (matches the backend). */
-export const FERTILE_WINDOW_TRAIL_DAYS = 1;
 
 /** Length of the PMS window (the run of days ending the day before next period). */
 export const PMS_WINDOW_DAYS = 4;
@@ -46,30 +42,78 @@ export function normalizePhase(phase: string): CyclePhase {
 }
 
 /**
+ * The legacy per-day calculation (`cycle/month`, `cycle/today`) still draws the
+ * *biological* window: `is_fertile_window` on O−5 … O+1 and phase `ovulation`
+ * on both O and O+1. The display window every screen shows is task.md §19 —
+ * `max(O−5, period end + 1)` … O — so the day after ovulation is luteal. Since
+ * the legacy engine already clears the flags on bleeding days, dropping O+1 is
+ * all it takes to read a calculation by the §19 rule.
+ */
+function isAfterOvulation(calc: CycleCalculation): boolean {
+  return calc.cycleDay > calc.estimatedOvulationDay;
+}
+
+/**
+ * {@link normalizePhase} for a calculation, with the legacy O+1 `ovulation`
+ * day read as luteal (§19: the display window ends on ovulation). Never
+ * `fertile` — see {@link calcToPhase} for the window-aware colour phase.
+ */
+export function calcMainPhase(calc: CycleCalculation): CyclePhase {
+  const phase = normalizePhase(calc.phase);
+  return phase === 'ovulation' && isAfterOvulation(calc) ? 'luteal' : phase;
+}
+
+/**
+ * Whether a calculation's day is inside the §19 display fertile window
+ * (ovulation day included). The one reading of the legacy flag every screen
+ * uses — never `calc.isFertileWindow` directly.
+ */
+export function calcInFertileWindow(calc: CycleCalculation): boolean {
+  const phase = calcMainPhase(calc);
+  if (phase === 'period' || isAfterOvulation(calc)) return false;
+  return phase === 'ovulation' || calc.isFertileWindow;
+}
+
+/**
  * Phase for calendar/day coloring. Like {@link normalizePhase}, but surfaces the
  * fertile window as its own `fertile` color — the backend flags it separately
  * (`is_fertile_window`) during the follicular phase rather than as a phase of
- * its own. Period and ovulation always win over the fertile tint.
+ * its own. Period and ovulation always win over the fertile tint; the window is
+ * the §19 one ({@link calcInFertileWindow}).
  */
 export function calcToPhase(calc: CycleCalculation): CyclePhase {
-  const phase = normalizePhase(calc.phase);
+  const phase = calcMainPhase(calc);
   if (phase === 'period' || phase === 'ovulation') return phase;
-  return calc.isFertileWindow ? 'fertile' : phase;
+  return calcInFertileWindow(calc) ? 'fertile' : phase;
 }
 
 /**
  * The colored marker for a calendar day, or `null` for a neutral day. Priority:
  * period → ovulation → fertile window → PMS window. Ovulation and the fertile
  * window overlap (ovulation sits inside it), so ovulation wins; period always
- * wins. This is what paints the calendar cells and drives the legend.
+ * wins. The window is the §19 one, so the day after ovulation carries no
+ * fertile/ovulation marker.
  */
 export function cycleDayMarker(calc: CycleCalculation): CycleDayMarker | null {
-  const phase = normalizePhase(calc.phase);
+  const phase = calcMainPhase(calc);
   if (phase === 'period') return 'period';
   if (phase === 'ovulation') return 'ovulation';
-  if (calc.isFertileWindow) return 'fertile';
+  if (calcInFertileWindow(calc)) return 'fertile';
   if (calc.isPmsWindow) return 'pms';
   return null;
+}
+
+/**
+ * The phase a day reads as once its marker is known — so the label never
+ * contradicts the colour. Window markers are phases themselves; a day without
+ * one (e.g. the anchored window says "not fertile" where the legacy flag
+ * disagreed) reads as follicular before ovulation and luteal after it.
+ */
+export function markerPhase(calc: CycleCalculation, marker: CycleDayMarker | null): CyclePhase {
+  if (marker === 'period' || marker === 'ovulation' || marker === 'fertile') return marker;
+  const phase = calcMainPhase(calc);
+  if (phase !== 'ovulation' && phase !== 'fertile') return phase;
+  return calc.cycleDay < calc.estimatedOvulationDay ? 'follicular' : 'luteal';
 }
 
 /**
@@ -90,7 +134,7 @@ export function deriveCyclePredictions(calc: CycleCalculation): CyclePredictions
 
   return {
     cycleDay: calc.cycleDay,
-    phase: normalizePhase(calc.phase),
+    phase: calcMainPhase(calc),
     cycleLength: calc.cycleLength,
     fertilityPercent: Math.round(Math.min(100, Math.max(0, calc.fertilityPercent))),
     daysUntilNextPeriod,
@@ -99,6 +143,6 @@ export function deriveCyclePredictions(calc: CycleCalculation): CyclePredictions
     daysUntilPmsStart,
     daysUntilPmsEnd,
     isPeriodTomorrow: calc.isPeriodTomorrow,
-    isFertileWindow: calc.isFertileWindow,
+    isFertileWindow: calcInFertileWindow(calc),
   };
 }
