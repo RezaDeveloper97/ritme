@@ -94,6 +94,19 @@ document start. One warm-up load first. `/profile` = the XHR's Resource Timing d
 | B-9 | low (design) | `FertilityBbtPage.tsx:189`, `FertilityInsightsPage.tsx:120` and the Log root: `.view` has no background, so the white `.app-shell` shows | Light mode: the Log / BBT / Insights canvas is white `#FFF`. The artboards (and home/calendar/checkups) use the lavender canvas `rgb(242,236,255)` with the violet glow. Dark mode is fine. | Any fertility screen, light (`ttc-bbt-*-light.png` vs `docs/fertility-ttc/screenshots/audit/bbt-light-design.png`). |
 | B-10 | low (colour) | home timeline «تخمک‌گذاری» row + bar tick | The ovulation drop and «N روز دیگه» pill are **green**, while the ring, week strip, chance card, calendar and insights use **turquoise** for ovulation (§10.2: turquoise = data/ovulation). | `ttc-home-cd12-light.png`, «چیزهایی که در پیشه». |
 
+### Resolutions (T-M2-35, local only — not yet on stage)
+
+- **B-1** Resolution: the day sheet reads the day's `/fertility/days/{date}` chance (v1.1 `fertility_level`, the Log's own request and cache entry) and shows its label; the calendar's `chance` keys now carry every level (خیلی کم … خیلی زیاد, نامشخص). Local check (TTC cd 12): ۷ مهر «متوسط», ۹ مهر «زیاد», ۱۰ مهر «خیلی زیاد».
+- **B-2** Resolution: Go `daily_card` has its own post-ovulation note («… پنجره باروری احتمالاً تمام شده و احتمال باروری از این روز کمتر است …»), deviation **D-27**, allow-list `cycle-sweep.yaml`, `TestCycleViewGoldenSweep` rewrites the Laravel goldens (`applyD27`).
+- **B-3** Resolution: `/messages/daily` reads the legacy calculation by the §19 display window (after O: phase `luteal`, `is_fertile_window` false, so base/nutrition/sleep/exercise copy is luteal), deviation **D-28**, allow-list `messages.yaml` (`daily_dates.ttc.*`). Done inside `messages/manager` on the legacy calculation (same reading as the frontend's `calcMainPhase`); reading the v1.1 resolver status directly would need `internal/messages/source.go`, outside the task's paths.
+- **B-4** Resolution: `PMS_WINDOW_DAYS` = 3 (task.md §25.2) in `entities/cycle`; the calendar paints PMS from the anchored schedule for the current and later cycles and through `calcInPmsWindow` (legacy flag narrowed to 1–3 days before the period) for history. Calendar, home timeline and insights strips all show 3 days (local: ۲۱–۲۳ مهر everywhere).
+- **B-5** Resolution: the day log is read with `GET /health-logs?from_date=D&to_date=D` (a 0/1-row page) instead of `GET /health-logs/{date}`, so an unlogged day is a 200 and no console error (local calendar run: 0 console errors).
+- **B-6** Resolution: `home.chanceCard.inWindow` is ICU on the ring's days-to-ovulation (0 → «امروز احتمالاً روز تخمک‌گذاری است…», 1 → «امروز و فردا», N → «امروز و N روز آینده»).
+- **B-7** Resolution: the Log's chance card says «شانس بارداری در این روز» (`chance.day`) for any date but today.
+- **B-8** Resolution: the caption lists the months of the grid rows (`gridMonths`), local: «شهریور ۱۴۰۵ · مهر ۱۴۰۵» over a first row of ۲۸–۳۱ شهریور.
+- **B-9** Resolution: `.fert-page` (`--page`) on the Log and Insights roots (light: `rgb(242, 236, 255)`). **BBT not done**: `screens/fertility-bbt` is outside T-M2-35's paths; it needs the same one-class change on `FertilityBbtPage.tsx:189`.
+- **B-10** Resolution: the timeline's ovulation row uses `cycleMarkerStyle.ovulation` (turquoise `--data-deep` on `--data-soft`) and the bar tick `--data-deep`.
+
 Not bugs, noted: BBT «۳ روز جاافتاده» counts cycle days 1–3 (the period, before the first reading) as gaps. That is
 engine-consistent, though the artboard shows «بدون جاافتادگی» for readings from day 1. `/fertility/today` is also
 fetched for non-TTC homes (harmless, 200).

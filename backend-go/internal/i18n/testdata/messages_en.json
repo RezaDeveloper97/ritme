@@ -151,9 +151,12 @@
     "logMood": "Log this day"
    },
    "chance": {
+    "none": "Very low",
     "low": "Low",
     "medium": "Medium",
-    "high": "High"
+    "high": "High",
+    "peak": "Very high",
+    "unknown": "Unknown"
    },
    "dayLog": {
     "title": "This day's log",
@@ -181,6 +184,7 @@
    "loading": "Loading reminders…",
    "loadError": "Couldn't load your reminders. Please try again in a moment.",
    "saveError": "Couldn't save. Please try again in a moment.",
+   "tooManyRequests": "Too many changes in the last minute. Wait a moment and save again.",
    "retry": "Retry",
    "add": "Add",
    "addReminder": "Add reminder",
@@ -741,6 +745,7 @@
    "degrees": "{value}°",
    "chance": {
     "today": "Chance of pregnancy today",
+    "day": "Chance of pregnancy on this day",
     "barsLabel": "Chance of pregnancy: {level}",
     "levels": {
      "none": "Very low",
@@ -778,7 +783,7 @@
      "title": "Chance of pregnancy today",
      "titleDay": "Chance of pregnancy on {date}",
      "estimated": "Estimated",
-     "inWindow": "You're in your fertile window. Sex today and over the next 2 days gives the best chance.",
+     "inWindow": "{days, plural, =0 {Ovulation is likely today, so sex today gives the best chance.} =1 {You're in your fertile window. Sex today and tomorrow gives the best chance.} other {You're in your fertile window. Sex today and over the next {n} days gives the best chance.}}",
      "windowStart": "Window starts",
      "ovulation": "Ovulation",
      "nextPeriod": "Next period"
@@ -844,7 +849,8 @@
     "saving": "Saving…",
     "saved": "Saved",
     "futureDate": "You can't log a day in the future.",
-    "discardConfirm": "You have unsaved changes. Leave without saving?"
+    "discardConfirm": "You have unsaved changes. Leave without saving?",
+    "tooManyRequests": "Too many changes in the last minute. Wait a moment and save again."
    },
    "bbt": {
     "title": "Basal body temperature",
@@ -2354,11 +2360,18 @@
     "monthly": "Monthly"
    },
    "recurrenceAt": "{recurrence} at {time}",
+   "schedule": {
+    "everyOtherDay": "Every other day",
+    "daysPerWeek": "{count, plural, one {{n} day a week} other {{n} days a week}}"
+   },
+   "listSeparator": ", ",
    "row": {
     "active": "Active",
     "inactive": "Inactive",
     "toggle": "Turn reminder on or off",
-    "delete": "Delete reminder"
+    "delete": "Delete reminder",
+    "cancelled": "Cancelled",
+    "cancelledToggle": "This appointment was cancelled, so its reminder can't be turned on"
    },
    "confirmDelete": {
     "question": "Delete this reminder?",

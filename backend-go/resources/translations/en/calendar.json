@@ -50,9 +50,12 @@
     "logMood": "Log this day"
   },
   "chance": {
+    "none": "Very low",
     "low": "Low",
     "medium": "Medium",
-    "high": "High"
+    "high": "High",
+    "peak": "Very high",
+    "unknown": "Unknown"
   },
   "dayLog": {
     "title": "This day's log",

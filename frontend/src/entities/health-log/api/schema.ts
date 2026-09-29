@@ -117,3 +117,15 @@ export const dailyHealthLogSchema = z
     }
     return out;
   });
+
+/**
+ * `GET /health-logs?from_date=D&to_date=D` → that day's log, or `null` when the
+ * page is empty. The index is a Laravel paginator (`{current_page, data: […]}`);
+ * `log_date` is unique per user, so a one-day range holds at most one row.
+ */
+const dayPageSchema = z.object({ data: z.array(z.unknown()) });
+
+export function pickDayLog(page: unknown): HealthLogInput | null {
+  const first = dayPageSchema.parse(page).data[0];
+  return first === undefined ? null : dailyHealthLogSchema.parse(first);
+}

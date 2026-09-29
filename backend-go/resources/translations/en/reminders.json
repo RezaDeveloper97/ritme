@@ -21,11 +21,18 @@
     "monthly": "Monthly"
   },
   "recurrenceAt": "{recurrence} at {time}",
+  "schedule": {
+    "everyOtherDay": "Every other day",
+    "daysPerWeek": "{count, plural, one {{n} day a week} other {{n} days a week}}"
+  },
+  "listSeparator": ", ",
   "row": {
     "active": "Active",
     "inactive": "Inactive",
     "toggle": "Turn reminder on or off",
-    "delete": "Delete reminder"
+    "delete": "Delete reminder",
+    "cancelled": "Cancelled",
+    "cancelledToggle": "This appointment was cancelled, so its reminder can't be turned on"
   },
   "confirmDelete": {
     "question": "Delete this reminder?",

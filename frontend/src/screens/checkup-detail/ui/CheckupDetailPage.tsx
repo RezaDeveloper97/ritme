@@ -14,16 +14,17 @@ import {
 } from '@/entities/checkup';
 import { useUpdateCheckupSettings } from '@/features/manage-custom-checkup';
 import { getApiErrorStatus } from '@/shared/api';
-import { type Locale, Link, useDirection } from '@/shared/i18n';
+import { type Locale, Link, useDirection, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
+import { withHandoff } from '@/shared/lib/handoff';
 import { openSheet } from '@/shared/sheet';
 import { Icon } from '@/shared/ui';
 
-import { MARK_DONE_SHEET, heroRelative, markDoneSheetArg } from '../model/view';
+import { MARK_DONE_SHEET, bookPrefill, heroRelative, markDoneSheetArg } from '../model/view';
 
 const LIST_HREF = '/checkups';
 const GUIDE_HREF = '/checkups/self-exam';
-/** M3 AddAppointment; it reads `?kind=` only (see open items of T-M4-08). */
+/** M3 AddAppointment: `?kind=` in the URL, the title through the `?prefill=` handoff. */
 const BOOK_HREF = '/reminders/appointment/new?kind=in_person';
 
 function Header({ detail }: { detail?: CheckupDetail }) {
@@ -63,6 +64,7 @@ function Header({ detail }: { detail?: CheckupDetail }) {
 function Hero({ detail }: { detail: CheckupDetail }) {
   const t = useTranslations('checkups');
   const locale = useLocale() as Locale;
+  const router = useRouter();
   const hasGuide = detail.guideSteps.length > 0;
   const next = detail.nextDueOn ? formatCheckupMonth(detail.nextDueOn, locale) : t('noDate');
   const rel = heroRelative(detail);
@@ -117,10 +119,14 @@ function Hero({ detail }: { detail: CheckupDetail }) {
           </button>
         )}
         {detail.performedBy !== 'self' && (
-          <Link href={BOOK_HREF} className="btn ck-hero-alt flex-1">
+          <button
+            type="button"
+            className="btn ck-hero-alt flex-1"
+            onClick={() => router.push(withHandoff(BOOK_HREF, bookPrefill(detail)))}
+          >
             <Icon name="calendar" size={16} />
             {t('detail.book')}
-          </Link>
+          </button>
         )}
       </div>
     </section>

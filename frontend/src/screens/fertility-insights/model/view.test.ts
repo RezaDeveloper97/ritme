@@ -10,6 +10,7 @@ import {
   calendarMark,
   evidenceIcon,
   evidenceTone,
+  gridMonths,
   historyStrip,
   isLowData,
   markFor,
@@ -67,6 +68,20 @@ describe("fertility insights view", () => {
     ]);
     expect(windowMonths(base.window, "en")).toEqual([{ year: 2026, month: 9 }]);
     expect(windowMonths(null, "fa")).toEqual([]);
+  });
+
+  it("captions every month the grid shows, not only the window's (B-8)", () => {
+    // User 1101 on stage: window 5–10 مهر (2026-09-27 … 10-02). The padded grid
+    // opens on ۲۸ شهریور (2026-09-19), so the caption names both months.
+    const w = { start: "2026-09-27", end: "2026-10-02", ovulation: "2026-10-02" };
+    expect(windowMonths(w, "fa")).toEqual([{ year: 1405, month: 7 }]);
+    const weeks = windowWeeks(w, "fa");
+    expect(toApiDate(weeks[0][0])).toBe("2026-09-19");
+    expect(gridMonths(weeks, "fa")).toEqual([
+      { year: 1405, month: 6 },
+      { year: 1405, month: 7 },
+    ]);
+    expect(gridMonths([], "fa")).toEqual([]);
   });
 });
 
@@ -129,7 +144,8 @@ describe("insights calendar + history strip", () => {
     expect(strip[5]).toBe("none");
     expect(strip.slice(9, 14)).toEqual(Array(5).fill("fertile"));
     expect(strip[14]).toBe("ovulation");
-    expect(strip.slice(24)).toEqual(Array(4).fill("pms"));
+    expect(strip[24]).toBe("none");
+    expect(strip.slice(25)).toEqual(Array(3).fill("pms"));
     // Unknown ovulation → no window, still a strip.
     expect(historyStrip({ ...row, ovulationDay: null }, "2026-09-14", 5)).not.toContain("ovulation");
     expect(historyStrip({ ...row, cycleStart: null }, "2026-09-14", 5)).toBeNull();

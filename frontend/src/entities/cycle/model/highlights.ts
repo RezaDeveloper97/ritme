@@ -1,4 +1,4 @@
-import { calcInFertileWindow, calcMainPhase } from './predictions';
+import { calcInFertileWindow, calcInPmsWindow, calcMainPhase } from './predictions';
 import type { CycleCalculation } from './types';
 
 /**
@@ -22,7 +22,7 @@ export function deriveDayHighlights(calc: CycleCalculation): CycleDayHighlight[]
   if (phase === 'period') out.push('period');
   if (phase === 'ovulation') out.push('ovulation');
   else if (calcInFertileWindow(calc)) out.push('fertile');
-  if (calc.isPmsWindow) out.push('pms');
+  if (calcInPmsWindow(calc)) out.push('pms');
   if (calc.isPeriodTomorrow) out.push('period_tomorrow');
   return out;
 }

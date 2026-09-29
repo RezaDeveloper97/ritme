@@ -13,6 +13,7 @@ import { useBannersSettled } from '@/entities/banner';
 import {
   CycleValuesCard,
   cycleDayMarkerAt,
+  cycleMarkerStyle,
   cycleScheduleFor,
   daysUntilNextPeriod,
   deriveCycleSchedule,
@@ -439,7 +440,8 @@ function PhaseRows({
     { l: t('pms.label'),         d: pmsRange ?? dash,       n: badge(daysTo.pms),        c: 'var(--violet)', bg: 'var(--violet-soft)' },
     { l: t('phases.nextPeriod'), d: nextPeriodDate ?? dash, n: badge(daysTo.nextPeriod), c: 'var(--pink)', bg: 'var(--pink-bg)' },
     { l: t('phases.window'),     d: windowRange ?? dash,    n: badge(daysTo.window),     c: 'var(--amber)', bg: 'var(--amber-soft)' },
-    { l: t('phases.ovulation'),  d: ovulationDate ?? dash,  n: badge(daysTo.ovulation),  c: 'var(--green-dot)', bg: 'var(--teal-soft)' },
+    // Ovulation is algorithmic data: turquoise, like the ring, the calendar and insights (§10.2).
+    { l: t('phases.ovulation'),  d: ovulationDate ?? dash,  n: badge(daysTo.ovulation),  c: cycleMarkerStyle.ovulation.color, bg: cycleMarkerStyle.ovulation.bg },
   ];
 
   // «جادهٔ چرخه»: the events as stations on a vertical rail — each row a
@@ -927,8 +929,12 @@ export function HomePage() {
   const chanceTitle = isToday
     ? tf('home.chanceCard.title')
     : tf('home.chanceCard.titleDay', { date: fmt(selectedDate) });
+  // In the window the line names the days the ring counts down to (ovulation
+  // in N days), never a fixed «۲ روز» that only fits one day of the window.
   const chanceDesc =
-    isToday && infoView?.mainPhase === 'fertile' ? tf('home.chanceCard.inWindow') : infoPhaseDesc;
+    isToday && infoView?.mainPhase === 'fertile' && daysToOvulation != null && daysToOvulation >= 0
+      ? tf('home.chanceCard.inWindow', { days: daysToOvulation, n: formatNumber(daysToOvulation, loc) })
+      : infoPhaseDesc;
   // «امروز تست LH بزن»: today is in the fertile window and no LH test is logged yet.
   const showLhTip =
     isTtc &&

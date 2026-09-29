@@ -97,6 +97,15 @@ checked against the *Resolution* columns of both design audits and `docs/securit
 | B-3 | low | `backend-go/internal/care/medication.go:42-46` (`Recurrence()` → `weekly` for any weekday subset) → legacy label `messages/fa/reminders.json` `recurrence.weekly` | A medication taken 4 days a week («یک روز در میان» on /reminders) appears in the legacy sheet as «هفتگی ساعت ۱۳:۰۰» (weekly). | Create a medication on ش/د/چ/ج → Profile → یادآورها. |
 | B-4 | low | `frontend/src/screens/checkup-detail/ui/CheckupDetailPage.tsx:27,119-123` (`BOOK_HREF` without a handoff) | «ثبت نوبت» on the checkup **detail** opens an empty appointment form, while the same action on the home checkups card prefills the checkup title through `?prefill=` (T-M7-19). No privacy problem (nothing in the URL), just an inconsistent prefill. | /fa/checkups/3 → «ثبت نوبت» → «توضیح کوتاه» is empty; compare home card → «ثبت نوبت». |
 
+### Resolutions (T-M2-35, local only — not yet on stage)
+
+- **B-1** Resolution: `PUT /reminders/{id}` and `PUT /care/appointments/{id}` answer 422 on `is_active` when a cancelled appointment's reminder is switched on (deviation **D-29**, integration test `TestAppointment_CancelledReminderStaysOff`); the legacy sheet shows the row as «لغو شده» with the switch off and disabled.
+- **B-2** Resolution: the legacy sheet joins with the locale's `reminders.listSeparator` («، » in fa), rebuilds appointments' «پزشک، تخصص» from the care row instead of the stored « · » subtitle, and shows hours without a leading zero («ساعت ۸:۰۰»).
+- **B-3** Resolution: medication rows take their schedule from the care row's weekdays («یک روز در میان» / «N روز در هفته» / «هر روز»), same rule as /reminders; the legacy `recurrence` column is unchanged (only daily/weekly exist there).
+- **B-4** Resolution: the checkup detail's «ثبت نوبت» navigates with the `?prefill=` handoff (`{title}`), like the home card; local check: the form opens with «پاپ‌اسمیر / HPV».
+- **N-1** Resolution: a new medication defaults to «تا پایان بارداری» for a pregnant user (also once the mode loads after mount, unless a duration was picked).
+- **N-2** Resolution (partial): the medication form and the fertility Log show a localized «wait a moment» message on 429. The Go 429 body is still the framework's English «Too Many Attempts.»: localizing it needs `internal/http/write_throttle.go` / `internal/platform/ratelimit`, outside T-M2-35's paths; the appointment and checkup forms (also outside) still show their generic error.
+
 ## Notes (no action required / design calls)
 
 - **N-1** Medication form default «مدت مصرف» is «بدون تاریخ پایان» even for a pregnant user; the artboard shows

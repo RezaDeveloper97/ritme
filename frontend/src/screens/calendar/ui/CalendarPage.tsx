@@ -19,9 +19,9 @@ import {
   useCycleToday,
   type CycleCalculation,
   type CycleDayMarker,
-  type CyclePhase,
   type MarkerIntensity,
 } from '@/entities/cycle';
+import { useFertilityDay } from '@/entities/fertility';
 import { useUserProfile } from '@/entities/user';
 import {
   PeriodDateEditor,
@@ -68,6 +68,9 @@ const NEUTRAL_STYLE = { bg: 'var(--indigo-soft)', color: 'var(--indigo)' };
 const DEFAULT_PERIOD_DAYS = 5;
 
 const isSameDay = (a: Date, b: Date) => diffInDays(a, b) === 0;
+
+/** Placeholder while the day's chance loads (or when it can't be read). */
+const CHANCE_PENDING = '—';
 
 /** Every ISO day in the inclusive [start, end] range. */
 function isoRange(start: string, end: string): string[] {
@@ -126,13 +129,6 @@ type T = ReturnType<typeof useTranslations>;
 function gregYearMonth(date: Date): { year: number; month: number } {
   const [year, month] = toApiDate(date).split('-');
   return { year: Number(year), month: Number(month) };
-}
-
-/** Relative conception likelihood for the day, from its phase (informational, §11). */
-function chanceKey(phase: CyclePhase): 'low' | 'medium' | 'high' {
-  if (phase === 'ovulation') return 'high';
-  if (phase === 'fertile') return 'medium';
-  return 'low';
 }
 
 // ── Month navigation bar ───────────────────────────────────────
@@ -386,6 +382,14 @@ function DayDetail({ t, locale, selectedDate, calc, marker, showTiles = true }: 
   // back to the underlying phase.
   const labelKey = marker ?? phase;
   const format = useFormatter();
+  // «احتمال باردار شدن» is the engine's v1.1 `fertility_level` for this day —
+  // the same `/fertility/days/{date}` read (and cache entry) the day log shows,
+  // so the calendar and the log never name a different level (§26).
+  const showChance = showTiles && !!phase && !!labelKey;
+  const dayChance = useFertilityDay(showChance ? toApiDate(selectedDate) : '').data?.chance ?? null;
+  const chanceLabel = dayChance
+    ? (dayChance.label ?? t(`chance.${dayChance.level ?? 'unknown'}`))
+    : CHANCE_PENDING;
 
   return (
     <div className="cal-day-card">
@@ -420,7 +424,7 @@ function DayDetail({ t, locale, selectedDate, calc, marker, showTiles = true }: 
           </div>
           <div className="cal-day-stat">
             <div className="cal-day-stat-l">{t('day.chanceLabel')}</div>
-            <div className="cal-day-stat-v">{t(`chance.${chanceKey(phase)}`)}</div>
+            <div className="cal-day-stat-v">{chanceLabel}</div>
           </div>
         </div>
       )}

@@ -132,10 +132,15 @@ func (h *Handlers) UpdateAppointment(c fiber.Ctx) error {
 		return err
 	}
 	locale, now := i18n.Locale(c), h.now(c)
-	data := pickAppointment(storedAppointment(a, locale), validation.Input(c))
+	body := validation.Input(c)
+	data := pickAppointment(storedAppointment(a, locale), body)
 	in, err := validateAppointment(locale, data, now, a.Meta.Prep, a.Meta.Status)
 	if err != nil {
 		return err
+	}
+	// A cancelled visit keeps its reminder off (D-29); the other fields stay editable.
+	if on, sent := body.Get("is_active"); sent && a.Meta.Status == StatusCancelled && phpval.Truthy(on) {
+		return fieldError(locale, "is_active", CancelledReminderMessage(locale))
 	}
 	fresh, err := h.saveAppointment(c, a.Row.ID, userID, in, now)
 	if err != nil {

@@ -12,6 +12,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/ritme/backend-go/internal/auth"
+	"github.com/ritme/backend-go/internal/care"
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/i18n"
 	"github.com/ritme/backend-go/internal/i18n/lang"
@@ -164,6 +165,12 @@ func (h *Handlers) Update(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	// D-29: a cancelled appointment (care, M3) keeps its reminder off. Laravel had no care rows,
+	// so it never had to refuse this; the care screens skip cancelled visits, only this legacy
+	// route could re-arm one (stage regression B, B-1).
+	if on, ok := attrs.Get("is_active"); ok && phpval.Truthy(on) && care.IsCancelledAppointment(row.Type, cancelledMeta(row)) {
+		return h.cancelledReminder(c)
+	}
 	now := h.now(c)
 	dirty := false
 	for _, k := range attrs.Keys() {
@@ -226,6 +233,20 @@ func (h *Handlers) find(c fiber.Ctx, userID uint64) (store.Reminder, error) {
 	return row, nil
 }
 
+// cancelledMeta is the row's raw meta JSON (nil when NULL).
+func cancelledMeta(row store.Reminder) []byte {
+	if !row.Meta.Valid {
+		return nil
+	}
+	return row.Meta.V
+}
+
+// cancelledReminder is the controller-style 422 (same body as a validation failure) for
+// switching a cancelled appointment's reminder on.
+func (h *Handlers) cancelledReminder(c fiber.Ctx) error {
+	return validationFailed(c, jsonx.Obj("is_active", []string{care.CancelledReminderMessage(i18n.Locale(c))}))
+}
+
 func (h *Handlers) notFound(c fiber.Ctx) error {
 	msg := "Reminder not found"
 	if i18n.ResolveLocale(c, "") == "fa" {
@@ -282,11 +303,16 @@ func (h *Handlers) validate(c fiber.Ctx, required bool) (phpval.Map, error) {
 		return v.Validated(), nil
 	}
 	errs, _ := v.Errors().Body().Get("errors")
+	return nil, validationFailed(c, errs)
+}
+
+// validationFailed is the controller's own 422 body {success:false, message (fa|en), errors}.
+func validationFailed(c fiber.Ctx, errs any) error {
 	msg := "Validation failed"
 	if i18n.ResolveLocale(c, "") == "fa" {
 		msg = "اطلاعات واردشده نامعتبر است"
 	}
-	return nil, httpx.Fail(fiber.StatusUnprocessableEntity, msg, "errors", errs)
+	return httpx.Fail(fiber.StatusUnprocessableEntity, msg, "errors", errs)
 }
 
 // assign is $reminder->setAttribute($key, $value) for a validated attribute: it updates row

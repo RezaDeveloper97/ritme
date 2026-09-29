@@ -69,7 +69,9 @@ describe('cycleDayMarker', () => {
 
   it('marks the fertile and PMS windows', () => {
     expect(cycleDayMarker(makeCalc({ phase: 'follicular', isFertileWindow: true }))).toBe('fertile');
-    expect(cycleDayMarker(makeCalc({ phase: 'luteal', isPmsWindow: true }))).toBe('pms');
+    expect(cycleDayMarker(makeCalc({ phase: 'luteal', cycleDay: 27, isPmsWindow: true }))).toBe('pms');
+    // The legacy flag's first days (7-day run) are plain luteal (§25.2: 3 days).
+    expect(cycleDayMarker(makeCalc({ phase: 'luteal', cycleDay: 23, isPmsWindow: true }))).toBeNull();
   });
 
   it('prioritizes period/ovulation over the window flags', () => {
@@ -97,7 +99,7 @@ describe('deriveCyclePredictions', () => {
   it('derives the PMS window as the days before the next period', () => {
     const p = deriveCyclePredictions(makeCalc()); // next period in 20 days
     expect(p.daysUntilPmsEnd).toBe(20); // day before next period
-    expect(p.daysUntilPmsStart).toBe(17); // 4-day window
+    expect(p.daysUntilPmsStart).toBe(18); // 3-day window (task.md §25.2)
   });
 
   it('clamps the PMS window to today when a period is imminent', () => {

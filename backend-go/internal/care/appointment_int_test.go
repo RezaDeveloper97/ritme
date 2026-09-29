@@ -361,3 +361,49 @@ func TestAppointment_VisitStage(t *testing.T) {
 	assert.Contains(t, errs, "stage")
 	assert.Contains(t, errs, "care_item_key")
 }
+
+// D-29 (T-M2-35, stage regression B B-1): a cancelled appointment's reminder can't be switched
+// back on, neither through PUT /care/appointments/{id} nor the legacy PUT /reminders/{id}.
+func TestAppointment_CancelledReminderStaysOff(t *testing.T) {
+	e := setup(t)
+	_, tok := e.user(t, "09120000109")
+	id := e.createAppt(t, tok, nt)
+	r := e.do(t, http.MethodPost, apptPath(id, "/cancel"), tok, "fa", "")
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	legacy := fmt.Sprintf("/api/v1/reminders/%d", id)
+
+	r = e.do(t, http.MethodPut, legacy, tok, "fa", `{"is_active":true}`)
+	require.Equal(t, http.StatusUnprocessableEntity, r.status, r.raw)
+	assert.Equal(t, false, r.body["success"])
+	assert.Equal(t, "اطلاعات واردشده نامعتبر است", r.body["message"])
+	assert.Equal(t, []any{"این نوبت لغو شده است و یادآور آن را نمی\u200cتوان دوباره روشن کرد."},
+		r.body["errors"].(map[string]any)["is_active"])
+
+	r = e.do(t, http.MethodPut, legacy, tok, "en", `{"is_active":1}`)
+	require.Equal(t, http.StatusUnprocessableEntity, r.status, r.raw)
+	assert.Equal(t, "Validation failed", r.body["message"])
+
+	r = e.do(t, http.MethodPut, apptPath(id, ""), tok, "en", `{"is_active":true}`)
+	require.Equal(t, http.StatusUnprocessableEntity, r.status, r.raw)
+	assert.Equal(t, []any{"This appointment was cancelled, so its reminder can't be turned back on."},
+		r.body["errors"].(map[string]any)["is_active"])
+
+	var active bool
+	require.NoError(t, e.db.QueryRow(`SELECT is_active FROM reminders WHERE id = ?`, id).Scan(&active))
+	assert.False(t, active, "still off")
+
+	// Switching it off, and editing other fields, still work.
+	r = e.do(t, http.MethodPut, legacy, tok, "fa", `{"is_active":false,"title":"لغو شده"}`)
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	r = e.do(t, http.MethodPut, apptPath(id, ""), tok, "fa", `{"location":"بیمارستان"}`)
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	assert.Equal(t, "cancelled", r.data()["status"])
+
+	// A scheduled appointment's reminder still toggles through the legacy route.
+	other := e.createAppt(t, tok, nt)
+	r = e.do(t, http.MethodPut, fmt.Sprintf("/api/v1/reminders/%d", other), tok, "fa", `{"is_active":false}`)
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	r = e.do(t, http.MethodPut, fmt.Sprintf("/api/v1/reminders/%d", other), tok, "fa", `{"is_active":true}`)
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	assert.Equal(t, true, r.data()["is_active"])
+}

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  defaultDuration,
   durationOptions,
   emptyForm,
   mapServerErrors,
@@ -150,5 +151,21 @@ describe('navigation + durations', () => {
     expect(durationOptions(false, 'ongoing')).toEqual(['ongoing', 'until_date']);
     expect(durationOptions(true, 'ongoing')).toContain('pregnancy_end');
     expect(durationOptions(false, 'pregnancy_end')).toContain('pregnancy_end');
+  });
+});
+
+describe('default duration', () => {
+  it('starts a pregnant user on «تا پایان بارداری», everyone else on «بدون تاریخ پایان»', () => {
+    expect(defaultDuration(true)).toBe('pregnancy_end');
+    expect(defaultDuration(false)).toBe('ongoing');
+    expect(emptyForm('2026-09-29', true).duration).toBe('pregnancy_end');
+    expect(emptyForm('2026-09-29').duration).toBe('ongoing');
+    expect(emptyForm('2026-09-29', true).endsOn).toBeNull();
+  });
+
+  it('a pregnancy_end medication validates without an end date', () => {
+    const r = validateForm({ ...emptyForm('2026-09-29', true), title: 'Folic acid', dose: '400' });
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.input).toMatchObject({ duration: 'pregnancy_end', endsOn: null });
   });
 });

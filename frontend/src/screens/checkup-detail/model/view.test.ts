@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { heroRelative, markDoneSheetArg, monthsSince } from './view';
+import { bookPrefill, heroRelative, markDoneSheetArg, monthsSince } from './view';
 
 describe('checkup detail view', () => {
   it('counts whole months since the last visit', () => {
@@ -26,5 +26,11 @@ describe('checkup detail view', () => {
       lastDoneOn: '2026-02-01',
       overdueMonths: null,
     });
+  });
+});
+
+describe('bookPrefill (B-4)', () => {
+  it('hands the checkup title to the appointment form, like the home card', () => {
+    expect(bookPrefill({ title: 'پاپ‌اسمیر / HPV' })).toEqual({ title: 'پاپ‌اسمیر / HPV' });
   });
 });

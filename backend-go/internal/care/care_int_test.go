@@ -104,6 +104,7 @@ func setup(t *testing.T) *env {
 	app.Post("/api/v1/care/appointments/:id/cancel", locale, guard, h.CancelAppointment)
 	app.Patch("/api/v1/care/appointments/:id/prep/:itemId", locale, guard, h.TogglePrepItem)
 	app.Get("/api/v1/reminders", locale, guard, legacy.Index)
+	app.Put("/api/v1/reminders/:id", locale, guard, legacy.Update)
 	return &env{db: db, app: app, iss: passport.NewIssuer(key, q, clock.Real{}, 365), queries: counter}
 }
 

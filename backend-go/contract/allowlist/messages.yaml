@@ -1,0 +1,27 @@
+group: messages
+entries:
+  # D-28 (task T-M2-35, stage regression A B-3): /messages/daily reads the day by the v1.1
+  # display window (task.md §19, ends on ovulation). The fixture's ttc persona has one date on
+  # the legacy O + 1 day (2026-09-26): Laravel says phase ovulation + fertile window there, Go
+  # luteal + not fertile, so every phase-keyed layer (base message, nutrition, sleep, exercise)
+  # carries the luteal copy.
+  - case: "daily_dates.ttc.*"
+    where: data.context_info.phase
+    deviation: D-28
+    reason: O + 1 is luteal by the §19 display window (legacy engine says ovulation)
+  - case: "daily_dates.ttc.*"
+    where: data.context_info.phase_label
+    deviation: D-28
+    reason: label of the §19 phase
+  - case: "daily_dates.ttc.*"
+    where: data.context_info.is_fertile_window
+    deviation: D-28
+    reason: the §19 display window ends on ovulation
+  - case: "daily_dates.ttc.*"
+    where: data.primary_message.**
+    deviation: D-28
+    reason: base message of the §19 phase (luteal instead of ovulation copy)
+  - case: "daily_dates.ttc.*"
+    where: data.supplements.**
+    deviation: D-28
+    reason: nutrition / sleep / exercise modules keyed by the §19 phase

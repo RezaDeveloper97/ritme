@@ -2,7 +2,7 @@
 
 import clsx from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 
 import {
   MEDICATION_FORMS,
@@ -35,6 +35,7 @@ import { Icon } from '@/shared/ui';
 import {
   AMOUNT_MAX,
   AMOUNT_MIN,
+  defaultDuration,
   durationOptions,
   emptyForm,
   type FieldErrors,
@@ -161,8 +162,18 @@ function MedicationForm({ medication, from }: { medication?: Medication; from?: 
 
   const todayApi = toApiDate(today());
   const [state, setState] = useState<MedicationFormState>(() =>
-    medication ? fromMedication(medication, todayApi) : emptyForm(todayApi),
+    medication ? fromMedication(medication, todayApi) : emptyForm(todayApi, pregnancy),
   );
+  // A new form opened before the mode loaded starts as «بدون تاریخ پایان»; once
+  // the mode says pregnant, switch to «تا پایان بارداری» unless the user already
+  // picked a duration.
+  const durationPicked = useRef(false);
+  useEffect(() => {
+    if (edit || !pregnancy || durationPicked.current) return;
+    setState((s) =>
+      s.duration === defaultDuration(false) ? { ...s, duration: defaultDuration(true), endsOn: null } : s,
+    );
+  }, [edit, pregnancy]);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [sheet, setSheet] = useState<OpenSheet>(null);
@@ -202,6 +213,12 @@ function MedicationForm({ medication, from }: { medication?: Medication; from?: 
       const limit = getApiLimitMessage(error);
       if (limit) {
         setFormError(limit);
+        return;
+      }
+      // 429 = the per-user write limit (60/min): a localized «wait a moment», not
+      // the framework's English body.
+      if (getApiErrorStatus(error) === 429) {
+        setFormError(t('tooManyRequests'));
         return;
       }
       if (error instanceof ApiError && error.response?.status === 422) {
@@ -518,6 +535,7 @@ function MedicationForm({ medication, from }: { medication?: Medication; from?: 
           endsOn={state.endsOn}
           onClose={close}
           onPick={(duration: MedicationDuration, endsOn) => {
+            durationPicked.current = true;
             setState((s) => ({ ...s, duration, endsOn }));
             setErrors((e) => ({ ...e, duration: undefined, endsOn: undefined }));
             close();

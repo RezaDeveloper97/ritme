@@ -3,10 +3,10 @@ id: T-M2-35
 title: Fixes from stage regression A+B (cycle, fertility, care, checkups)
 milestone: M2
 type: frontend
-status: in_progress
+status: done
 depends_on: [T-M5-13,T-M7-21]
 parallel_group: M2-J
-touches: [frontend/src/screens/calendar,frontend/src/screens/home,frontend/src/screens/fertility-log,frontend/src/screens/fertility-insights,frontend/src/screens/profile-reminders,frontend/src/screens/checkup-detail,frontend/src/screens/reminder-medication-form,frontend/src/entities/cycle,frontend/src/entities/health-log,frontend/src/entities/fertility,frontend/src/widgets/fertility-tiles,frontend/src/app/globals.css,frontend/messages,backend-go/internal/cycle,backend-go/internal/messages/manager,backend-go/internal/reminder,backend-go/internal/care,backend-go/resources/translations,backend-go/internal/i18n/testdata,backend-go/api/openapi.yaml,backend-go/contract/allowlist,docs/go-migration/deviations.md,docs/qa]
+touches: [frontend/src/screens/fertility-bbt/ui/FertilityBbtPage.tsx, frontend/src/screens/calendar,frontend/src/screens/home,frontend/src/screens/fertility-log,frontend/src/screens/fertility-insights,frontend/src/screens/profile-reminders,frontend/src/screens/checkup-detail,frontend/src/screens/reminder-medication-form,frontend/src/entities/cycle,frontend/src/entities/health-log,frontend/src/entities/fertility,frontend/src/widgets/fertility-tiles,frontend/src/app/globals.css,frontend/messages,backend-go/internal/cycle,backend-go/internal/messages/manager,backend-go/internal/reminder,backend-go/internal/care,backend-go/resources/translations,backend-go/internal/i18n/testdata,backend-go/api/openapi.yaml,backend-go/contract/allowlist,docs/go-migration/deviations.md,docs/qa]
 skills: [verify-all,check-colors]
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && cd ../backend-go && go vet ./... && go test ./... && golangci-lint run && make contract ROUTES=all
 ---

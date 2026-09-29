@@ -69,3 +69,11 @@ func TestParseScheduledAt(t *testing.T) {
 	_, err = parseScheduledAt("nope")
 	assert.Error(t, err)
 }
+
+func TestIsCancelledAppointment(t *testing.T) {
+	assert.True(t, IsCancelledAppointment("appointment", []byte(`{"v":1,"status":"cancelled"}`)))
+	assert.False(t, IsCancelledAppointment("appointment", []byte(`{"v":1,"status":"scheduled"}`)))
+	assert.False(t, IsCancelledAppointment("medication", []byte(`{"status":"cancelled"}`)))
+	assert.False(t, IsCancelledAppointment("appointment", nil))
+	assert.False(t, IsCancelledAppointment("appointment", []byte(`not json`)))
+}

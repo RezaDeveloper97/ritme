@@ -6,6 +6,7 @@ export {
   calcToPhase,
   calcMainPhase,
   calcInFertileWindow,
+  calcInPmsWindow,
   cycleDayMarker,
   markerPhase,
   PMS_WINDOW_DAYS,

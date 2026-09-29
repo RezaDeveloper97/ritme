@@ -160,10 +160,10 @@ describe('deriveCycleSchedule', () => {
     expect(hasFertileWindow(s)).toBe(false);
   });
 
-  it('derives the PMS run as the four days before the next period', () => {
+  it('derives the PMS run as the three days before the next period (task.md §25.2)', () => {
     const s = deriveCycleSchedule(makeView(), makeCalc())!;
 
-    expect(iso(s.pmsStart)).toBe('2026-08-07');
+    expect(iso(s.pmsStart)).toBe('2026-08-08');
     expect(iso(s.pmsEnd)).toBe('2026-08-10');
   });
 
@@ -244,7 +244,8 @@ describe('scheduleDayMarker', () => {
   });
 
   it('marks the run of days before the next period as PMS', () => {
-    expect(at('2026-08-07')).toBe('pms');
+    expect(at('2026-08-07')).toBeNull();
+    expect(at('2026-08-08')).toBe('pms');
     expect(at('2026-08-10')).toBe('pms');
   });
 
@@ -346,7 +347,12 @@ describe('cycleDayMarkerAt — one §19 window for every surface (T-M5-13)', () 
     // The legacy O+1 day (flag + phase `ovulation`) is luteal now.
     expect(m['2026-09-28']).toBeNull();
     expect(m['2026-09-13']).toBe('period');
-    expect(m['2026-10-04']).toBe('pms');
+    // PMS = the §25.2 three days before 10-11, as on the home timeline — not
+    // the legacy 7-day `is_pms_window` run (10-04 … 10-10).
+    expect(m['2026-10-04']).toBeNull();
+    expect(m['2026-10-07']).toBeNull();
+    expect(m['2026-10-08']).toBe('pms');
+    expect(m['2026-10-10']).toBe('pms');
     // The same days as the timeline bar (cycle days) and the home rows (dates).
     expect(fertileWindowDays(schedule)).toEqual({ startDay: 10, endDay: 15, ovulationDay: 15 });
     expect(iso(schedule.fertileStart)).toBe('2026-09-22');

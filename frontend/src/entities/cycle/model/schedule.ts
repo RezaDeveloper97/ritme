@@ -220,10 +220,11 @@ export function fertileWindowDays(
  * fertile window is the same days everywhere (task.md §19, T-M5-13):
  *
  * - From the current cycle on (the schedule's cycle and the predicted ones
- *   after it) the **window and ovulation come from the anchored schedule** —
- *   the very dates the home timeline, `/fertility/bbt` and `/fertility/insights`
- *   show. Period and PMS still come from the engine's per-day calculation
- *   (logged periods), and a period day always wins.
+ *   after it) the **window, ovulation and PMS come from the anchored
+ *   schedule** — the very dates the home timeline, `/fertility/bbt` and
+ *   `/fertility/insights` show (PMS: the §25.2 {@link PMS_WINDOW_DAYS} days
+ *   before the next period). Period still comes from the engine's per-day
+ *   calculation (logged periods), and a period day always wins.
  * - Before the current cycle (history) the per-day calculation is read by the
  *   same §19 rule ({@link cycleDayMarker}).
  * - A day with no calculation falls back to the schedule alone.
@@ -241,5 +242,6 @@ export function cycleDayMarkerAt(
   const s = cycleScheduleFor(schedule, date);
   if (diffInDays(date, s.ovulation) === 0) return 'ovulation';
   if (diffInDays(date, s.fertileStart) >= 0 && diffInDays(s.fertileEnd, date) >= 0) return 'fertile';
-  return calc.isPmsWindow ? 'pms' : null;
+  if (diffInDays(date, s.pmsStart) >= 0 && diffInDays(s.pmsEnd, date) >= 0) return 'pms';
+  return null;
 }

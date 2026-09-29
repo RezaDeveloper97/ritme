@@ -19,6 +19,7 @@ import {
   useFertilityDay,
 } from '@/entities/fertility';
 import { useSaveFertilityDay } from '@/features/log-fertility-day';
+import { getApiErrorStatus } from '@/shared/api';
 import { type Locale, Link, useDirection, useRouter } from '@/shared/i18n';
 import { formatDayMonth, formatNumber, fromApiDate, toApiDate, today } from '@/shared/lib/date';
 import { Icon } from '@/shared/ui';
@@ -95,7 +96,7 @@ function Shell({
   const dateLabel = formatDayMonth(fromApiDate(date), locale);
   const cycleDay = day?.cycleDay ?? null;
   return (
-    <div className="view">
+    <div className="view fert-page">
       <div className="scroll">
         <header className="rmd-hdr">
           <button
@@ -122,8 +123,10 @@ function Shell({
   );
 }
 
-function ChanceCard({ chance }: { chance: FertilityChance }) {
+function ChanceCard({ chance, isToday }: { chance: FertilityChance; isToday: boolean }) {
   const t = useTranslations('fertility');
+  // A past day's log must not say «امروز» (stage regression A, B-7).
+  const title = isToday ? t('chance.today') : t('chance.day');
   const level = chance.level ?? 'unknown';
   const levelLabel = chance.label ?? t(`chance.levels.${level}`);
   const bars = Math.max(0, Math.min(CHANCE_MAX_BARS, chance.bars));
@@ -131,13 +134,13 @@ function ChanceCard({ chance }: { chance: FertilityChance }) {
     <Link
       href={INSIGHTS_HREF}
       className="flex items-center gap-3.5 rounded-3xl border border-(--fert-chance-line) bg-linear-to-l from-(--fert-chance-from) to-(--fert-chance-to) p-4"
-      aria-label={`${t('chance.today')}: ${levelLabel} · ${t('log.openInsights')}`}
+      aria-label={`${title}: ${levelLabel} · ${t('log.openInsights')}`}
     >
       <span className="grid size-12 shrink-0 place-items-center rounded-full bg-(--fert-chance-disc) text-(--fert-amber)">
         <Icon name="target" size={24} />
       </span>
       <span className="flex min-w-0 flex-1 flex-col text-start">
-        <span className="text-[11px] font-extrabold text-(--fert-amber)">{t('chance.today')}</span>
+        <span className="text-[11px] font-extrabold text-(--fert-amber)">{title}</span>
         <span className="text-[20px] font-extrabold text-(--ink)">{levelLabel}</span>
       </span>
       <span className="flex items-end gap-1" aria-hidden>
@@ -246,7 +249,7 @@ function LogForm({ day, date, focus }: { day: FertilityDay; date: string; focus:
   const [state, setState] = useState<LogFormState>(() => fromDay(day, fmt));
   const [highlight, setHighlight] = useState<LogSection | null>(focus);
   const [toast, setToast] = useState<string | null>(null);
-  const [saveError, setSaveError] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const focusRef = useRef<HTMLElement | null>(null);
 
   const dirty = isDirty(day, state);
@@ -290,7 +293,7 @@ function LogForm({ day, date, focus }: { day: FertilityDay; date: string; focus:
   const onSave = () => {
     const input = changedInput(day, state);
     if (input === null || save.isPending) return;
-    setSaveError(false);
+    setSaveError(null);
     if (Object.keys(input).length === 0) {
       router.push(BACK_HREF);
       return;
@@ -303,7 +306,10 @@ function LogForm({ day, date, focus }: { day: FertilityDay; date: string; focus:
           setToast(tl('saved'));
           window.setTimeout(() => router.push(BACK_HREF), 900);
         },
-        onError: () => setSaveError(true),
+        // 429 = the per-user write limit (60/min): say so, in the user's language,
+        // instead of the generic failure (the API body is the framework's English).
+        onError: (error) =>
+          setSaveError(getApiErrorStatus(error) === 429 ? tl('tooManyRequests') : t('saveError')),
       },
     );
   };
@@ -324,7 +330,7 @@ function LogForm({ day, date, focus }: { day: FertilityDay; date: string; focus:
 
   return (
     <Shell day={day} date={date} onBack={onBack}>
-      {day.chance && <ChanceCard chance={day.chance} />}
+      {day.chance && <ChanceCard chance={day.chance} isToday={date === toApiDate(today())} />}
 
       <div className="fert-card flex flex-col gap-5.5">
         <Section id="lh" title={tl('lh.title')} highlight={highlight === 'lh'} sectionRef={refFor('lh')}>
@@ -442,7 +448,7 @@ function LogForm({ day, date, focus }: { day: FertilityDay; date: string; focus:
 
       {saveError && (
         <p role="alert" className="text-center text-[13px] font-bold text-(--danger-deep)">
-          {t('saveError')}
+          {saveError}
         </p>
       )}
 

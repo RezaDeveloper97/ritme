@@ -36,3 +36,12 @@ export function markDoneSheetArg(typeId: number, recordId?: number): string {
 }
 
 export const MARK_DONE_SHEET = 'checkup-mark-done';
+
+/**
+ * The «ثبت نوبت» handoff (`?prefill=<id>`, never the title in the URL — §11,
+ * audit M3-M7 #3): the same `{ title }` the home checkups card sends, so the
+ * appointment form opens prefilled from either entry point.
+ */
+export function bookPrefill(detail: Pick<CheckupDetail, 'title'>): { title: string } {
+  return { title: detail.title };
+}

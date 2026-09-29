@@ -885,3 +885,10 @@ Nothing needed fixing.
 - Go: Today `unread_alerts` = what Alerts shows (v2 rows, 7-day window, `v2.AlertsSince`); `week_entered` refreshes after re-dating (keeps read/ack).
 - Verify: admin-web 85 tests, frontend gates + tests (after the message-scopes line), go test + int tests green. OpenAPI hunks land with T-M2-35.
 - Open → T-M7-23: data export row missing from Profile (§11), `/care/today` should carry `is_active` (avoid per-appointment fetch), admin `type=number` Latin digits, PWA install banner above dialogs.
+
+## T-M2-35 — Fixes from stage regression A+B
+- Calendar day sheet reads `/fertility/days/{date}` (v1.1 level, 6 labels); PMS 3 days everywhere (`PMS_WINDOW_DAYS`); unlogged day via `GET /health-logs?from_date=D&to_date=D` (no 404 noise); chance-card copy follows days to ovulation; Log title for past dates; insights caption spans both months; lavender page on Log/BBT/Insights; ovulation row/tick turquoise.
+- Go: D-27 (post-ovulation card note), D-28 (`/messages/daily` ends the window on ovulation day), D-29 (no re-enabling a cancelled appointment's reminder → 422); allowlists `cycle-sweep.yaml`, `messages.yaml`.
+- Legacy reminders sheet: cancelled rows disabled, «، » separators, «ساعت ۸:۰۰», alternate-day label; checkup detail «ثبت نوبت» uses the prefill handoff; pregnant default medication duration «تا پایان بارداری»; medication form + fertility log show a localized 429 message.
+- Verify: 696 frontend tests + gates, go test/lint, int tests, contract 998 pass / 714 allow-listed. This commit also carries the T-M7-22 OpenAPI hunks.
+- Open → T-M7-23: Go 429 body localized; 429 message on appointment/checkup forms; move the duplicated medication schedule rule into `entities/care-reminder`.

@@ -116,6 +116,7 @@ func TestCycleViewGoldenSweep(t *testing.T) {
 				var want, have any
 				require.NoError(t, json.Unmarshal(step.Body.Data.CycleView, &want))
 				applyD26(want, calc.Subphase(), step.Request.AcceptLanguage)
+				applyD27(want, calc.Subphase(), step.Request.AcceptLanguage)
 				require.NoError(t, json.Unmarshal(got, &have))
 				if !assert.Equal(t, want, have, "%s %s", step.Request.URL, step.Request.AcceptLanguage) {
 					return
@@ -137,6 +138,19 @@ func applyD26(want any, sub enums.CycleSubphase, locale string) {
 	}
 	dc["fertility_level"] = string(sub.FertilityLevelV11())
 	dc["fertility_label"] = sub.FertilityLevelV11().Label(locale)
+}
+
+// applyD27 rewrites Laravel's post-ovulation daily_card subtitle (the fertile window's
+// "fertility is estimated higher" note) to the low-fertility note Go shows since T-M2-35
+// (deviations.md D-27).
+func applyD27(want any, sub enums.CycleSubphase, locale string) {
+	cv, _ := want.(map[string]any)
+	dc, _ := cv["daily_card"].(map[string]any)
+	b := cardBuilder{locale: locale}
+	if dc == nil || sub != enums.CycleSubphasePostOvulation || dc["subtitle"] != b.fertileNote() {
+		return
+	}
+	dc["subtitle"] = b.postOvulationNote()
 }
 
 // loadFixture reads cycle_histories (newest first per user, as HealthDataEngine loads them) and

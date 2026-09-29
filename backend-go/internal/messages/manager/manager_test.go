@@ -310,3 +310,38 @@ func TestPregnancySymptomOverride(t *testing.T) {
 	v, _ := o.Get("override_type")
 	assert.Equal(t, "nausea", v)
 }
+
+// D-28 (T-M2-35, stage regression A B-3): /messages/daily reads the day by the v1.1 display
+// window (§19, ends on ovulation). The legacy O + 1 day (phase ovulation, fertile flag) is luteal
+// and outside the window, so an avoiding user gets no "peak fertility" copy on a low day.
+func TestCycleContextUsesDisplayWindow(t *testing.T) {
+	calc := func(d int, phase enums.CyclePhase, sub enums.CycleSubphase, fertile bool) legacy.Calculation {
+		return legacy.Calculation{Complete: true, Day: d, Phase: phase, CurrentSubphase: sub,
+			CycleLength: 28, OvulationDay: 15, IsFertileWindow: fertile}
+	}
+	for _, tc := range []struct {
+		name        string
+		calc        legacy.Calculation
+		wantPhase   string
+		wantFertile bool
+	}{
+		{"O+1 is luteal, outside the window", calc(16, enums.CyclePhaseOvulation, enums.CycleSubphasePostOvulation, true), "luteal", false},
+		{"ovulation day stays in the window", calc(15, enums.CyclePhaseOvulation, enums.CycleSubphaseOvulationLikely, true), "ovulation", true},
+		{"fertile ramp unchanged", calc(12, enums.CyclePhaseFollicular, enums.CycleSubphaseFertileRising, true), "follicular", true},
+		{"luteal unchanged", calc(20, enums.CyclePhaseLuteal, enums.CycleSubphaseEarlyLuteal, false), "luteal", false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			for _, goal := range []string{"non_ttc", "ttc"} {
+				src := &fakeSource{profile: &Profile{UserGoal: goal, SubscriptionType: "free", HasLastPeriodStart: true}, calc: tc.calc}
+				res, err := New(src, defaultsContent{}, "fa", day).Generate(context.Background(), day, "")
+				require.NoError(t, err)
+				m := toJSON(t, res.JSON())
+				ci := m["context_info"].(map[string]any)
+				assert.Equal(t, tc.wantPhase, ci["phase"], goal)
+				assert.Equal(t, tc.wantFertile, ci["is_fertile_window"], goal)
+				assert.Equal(t, string(tc.calc.CurrentSubphase), ci["subphase"], goal)
+				assert.Equal(t, tc.wantPhase, m["primary_message"].(map[string]any)["phase"], goal)
+			}
+		})
+	}
+}

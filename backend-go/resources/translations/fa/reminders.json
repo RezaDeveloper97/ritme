@@ -21,11 +21,18 @@
     "monthly": "ماهانه"
   },
   "recurrenceAt": "{recurrence} ساعت {time}",
+  "schedule": {
+    "everyOtherDay": "یک روز در میان",
+    "daysPerWeek": "{n} روز در هفته"
+  },
+  "listSeparator": "، ",
   "row": {
     "active": "روشن",
     "inactive": "خاموش",
     "toggle": "روشن یا خاموش کردن یادآور",
-    "delete": "حذف یادآور"
+    "delete": "حذف یادآور",
+    "cancelled": "لغو شده",
+    "cancelledToggle": "این نوبت لغو شده و یادآورش روشن نمی‌شه"
   },
   "confirmDelete": {
     "question": "این یادآور حذف بشه؟",

@@ -6,6 +6,12 @@ import { useLocale, useTranslations } from 'next-intl';
 import { type FormEvent, useState } from 'react';
 
 import {
+  type Appointment,
+  type Medication,
+  useAppointments,
+  useMedications,
+} from '@/entities/care-reminder';
+import {
   type Reminder,
   type ReminderRecurrence,
   type ReminderType,
@@ -20,6 +26,8 @@ import {
 import { formatLongDate } from '@/shared/lib/date';
 import type { Locale } from '@/shared/i18n';
 import { Icon, type IconName } from '@/shared/ui';
+
+import { appointmentParts, byReminderId, clockLabel, isCancelled, rowSchedule } from '../model/row';
 
 const FA = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
 const localizeNum = (value: string, loc: Locale) =>
@@ -96,6 +104,8 @@ function Toggle({
 // ── One reminder row ──────────────────────────────────────────
 function ReminderRow({
   reminder,
+  medication,
+  appointment,
   loc,
   confirming,
   onAskDelete,
@@ -106,6 +116,10 @@ function ReminderRow({
   deletePending,
 }: {
   reminder: Reminder;
+  /** The care row behind a medication reminder (M3), when there is one. */
+  medication?: Medication;
+  /** The care row behind an appointment reminder (M3), when there is one. */
+  appointment?: Appointment;
   loc: Locale;
   confirming: boolean;
   onAskDelete: () => void;
@@ -117,16 +131,29 @@ function ReminderRow({
 }) {
   const t = useTranslations('reminders');
 
+  const cancelled = isCancelled(appointment);
+  const time = (value: string | null | undefined) =>
+    value ? localizeNum(clockLabel(value), loc) : null;
+
   // Second line: the optional subtitle plus a human schedule summary.
   const scheduleText = (() => {
+    // A care medication: its weekdays and first slot, worded like /reminders
+    // («یک روز در میان ساعت ۸:۰۰»), not the legacy weekly/daily column.
+    if (medication) {
+      const schedule = rowSchedule(medication.weekdays);
+      const label =
+        schedule.kind === 'everyDay'
+          ? t('recurrence.daily')
+          : schedule.kind === 'everyOtherDay'
+            ? t('schedule.everyOtherDay')
+            : t('schedule.daysPerWeek', { count: schedule.count, n: localizeNum(String(schedule.count), loc) });
+      const at = time(medication.times[0] ?? reminder.recurrenceTime);
+      return at ? t('recurrenceAt', { recurrence: label, time: at }) : label;
+    }
     if (reminder.recurrence !== 'none') {
       const label = t(`recurrence.${reminder.recurrence}`);
-      return reminder.recurrenceTime
-        ? t('recurrenceAt', {
-            recurrence: label,
-            time: localizeNum(reminder.recurrenceTime, loc),
-          })
-        : label;
+      const at = time(reminder.recurrenceTime);
+      return at ? t('recurrenceAt', { recurrence: label, time: at }) : label;
     }
     // One-off: show the localized date when there is one (§7 — never raw ISO).
     return reminder.scheduledAt
@@ -134,17 +161,22 @@ function ReminderRow({
       : null;
   })();
 
-  const secondLine = [reminder.subtitle, scheduleText].filter(Boolean).join(' · ');
+  // «،» between parts (a « · » next to digits reads as a Persian zero, T-M7-17).
+  const subtitleParts = appointment ? appointmentParts(appointment) : [reminder.subtitle];
+  // «لغو شده» leads: the line is clamped to one row.
+  const secondLine = [cancelled ? t('row.cancelled') : null, ...subtitleParts, scheduleText]
+    .filter(Boolean)
+    .join(t('listSeparator'));
 
   return (
     <div>
       <div className="rem-row">
-        <span className={clsx('rem-row-icon', !reminder.isActive && 'is-off')}>
+        <span className={clsx('rem-row-icon', (!reminder.isActive || cancelled) && 'is-off')}>
           <Icon name={TYPE_ICON[reminder.type]} size={19} />
         </span>
 
         <div className="rem-row-body">
-          <div className={clsx('rem-row-title', !reminder.isActive && 'is-off')}>
+          <div className={clsx('rem-row-title', (!reminder.isActive || cancelled) && 'is-off')}>
             {reminder.title}
           </div>
           {secondLine ? (
@@ -155,9 +187,9 @@ function ReminderRow({
         </div>
 
         <Toggle
-          on={reminder.isActive}
-          disabled={togglePending || deletePending}
-          label={t('row.toggle')}
+          on={reminder.isActive && !cancelled}
+          disabled={togglePending || deletePending || cancelled}
+          label={cancelled ? t('row.cancelledToggle') : t('row.toggle')}
           onToggle={onToggleActive}
         />
 
@@ -374,6 +406,10 @@ export function RemindersSheet() {
   const loc = useLocale() as Locale;
 
   const { data: reminders, isLoading, isError } = useReminders();
+  // The care rows behind medication / appointment reminders (cached with the
+  // /reminders screens): schedules, «who، specialty» and the cancelled status.
+  const medications = byReminderId(useMedications().data);
+  const appointments = byReminderId(useAppointments('all').data);
   const update = useUpdateReminder();
   const remove = useDeleteReminder();
 
@@ -381,7 +417,7 @@ export function RemindersSheet() {
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
 
   const handleToggle = (r: Reminder) => {
-    if (update.isPending) return;
+    if (update.isPending || isCancelled(appointments.get(r.id))) return;
     update.mutate({ id: r.id, isActive: !r.isActive });
   };
 
@@ -422,6 +458,8 @@ export function RemindersSheet() {
                 {i > 0 ? <Divider /> : null}
                 <ReminderRow
                   reminder={r}
+                  medication={r.type === 'medication' ? medications.get(r.id) : undefined}
+                  appointment={r.type === 'appointment' ? appointments.get(r.id) : undefined}
                   loc={loc}
                   confirming={confirmingId === r.id}
                   onAskDelete={() => setConfirmingId(r.id)}

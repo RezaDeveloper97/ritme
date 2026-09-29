@@ -56,7 +56,15 @@ export type FormField =
   | 'endsOn'
   | 'notes';
 
-export function emptyForm(todayApi: string): MedicationFormState {
+/**
+ * The duration a new medication starts with: «تا پایان بارداری» for a pregnant
+ * user (the `v13` artboard's default), else «بدون تاریخ پایان».
+ */
+export function defaultDuration(pregnancy: boolean): MedicationDuration {
+  return pregnancy ? 'pregnancy_end' : 'ongoing';
+}
+
+export function emptyForm(todayApi: string, pregnancy = false): MedicationFormState {
   return {
     title: '',
     dose: '',
@@ -66,7 +74,7 @@ export function emptyForm(todayApi: string): MedicationFormState {
     weekdays: [...ALL_WEEKDAYS],
     amount: 1,
     startsOn: todayApi,
-    duration: 'ongoing',
+    duration: defaultDuration(pregnancy),
     endsOn: null,
     notify: true,
     notes: '',

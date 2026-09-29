@@ -32,8 +32,18 @@ describe('deriveDayHighlights', () => {
   });
 
   it('stacks PMS and an imminent period in the luteal phase', () => {
-    expect(deriveDayHighlights({ ...base, phase: 'luteal', isPmsWindow: true, isPeriodTomorrow: true }))
+    expect(deriveDayHighlights({ ...base, phase: 'luteal', cycleDay: 27, isPmsWindow: true, isPeriodTomorrow: true }))
       .toEqual(['pms', 'period_tomorrow']);
+  });
+
+  it('reads the legacy 7-day PMS flag as the §25.2 three days before the period', () => {
+    const luteal = { ...base, phase: 'luteal', isPmsWindow: true };
+    expect(deriveDayHighlights({ ...luteal, cycleDay: 22 })).toEqual([]);
+    expect(deriveDayHighlights({ ...luteal, cycleDay: 25 })).toEqual([]);
+    expect(deriveDayHighlights({ ...luteal, cycleDay: 26 })).toEqual(['pms']);
+    expect(deriveDayHighlights({ ...luteal, cycleDay: 28 })).toEqual(['pms']);
+    // Overdue (past the expected start) is not PMS.
+    expect(deriveDayHighlights({ ...luteal, cycleDay: 30 })).toEqual([]);
   });
 
   it('returns nothing notable for a plain follicular day', () => {

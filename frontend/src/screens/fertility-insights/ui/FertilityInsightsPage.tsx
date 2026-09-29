@@ -32,7 +32,7 @@ import {
   historyStrip,
   isLowData,
   nextStarts,
-  windowMonths,
+  gridMonths,
   windowWeeks,
 } from "../model/view";
 
@@ -117,7 +117,7 @@ export function FertilityInsightsPage() {
   }
 
   return (
-    <div className="view">
+    <div className="view fert-page">
       <div className="scroll">
         <header className="rmd-hdr">
           <Link href={BACK_HREF} className="rmd-hdr-btn" aria-label={t("back")}>
@@ -188,7 +188,7 @@ function WindowCard({
     : t("window.rangeNoOvulation", { start, end });
   const todayIso = toApiDate(today());
   const weeks = windowWeeks(w, locale);
-  const caption = windowMonths(w, locale)
+  const caption = gridMonths(weeks, locale)
     .map(({ year, month }) => formatMonthLabel(year, month, locale))
     .join(" · ");
   const showsToday = weeks.some((week) => week.some((d) => toApiDate(d) === todayIso));

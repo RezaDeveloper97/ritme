@@ -6,8 +6,14 @@ import type { CycleCalculation, CycleDayMarker, CyclePhase, CyclePredictions } f
  */
 export const FERTILE_WINDOW_LEAD_DAYS = 5;
 
-/** Length of the PMS window (the run of days ending the day before next period). */
-export const PMS_WINDOW_DAYS = 4;
+/**
+ * Length of the PMS window: the run of days ending the day before the next
+ * period. task.md §25.2 — `pms_possible` is `days_until_period ∈ {1, 2, 3}`.
+ * The one PMS length every surface draws (calendar, home timeline, insights
+ * strips); the legacy per-day `is_pms_window` flag (7 days) is only read
+ * through {@link calcInPmsWindow}.
+ */
+export const PMS_WINDOW_DAYS = 3;
 
 const KNOWN_PHASES: readonly CyclePhase[] = [
   'period',
@@ -75,6 +81,18 @@ export function calcInFertileWindow(calc: CycleCalculation): boolean {
 }
 
 /**
+ * Whether a calculation's day is a §25.2 PMS day: 1…{@link PMS_WINDOW_DAYS}
+ * days before the next period. The legacy `is_pms_window` flag runs 7 days (and
+ * on past the expected start), so it is narrowed here — never read
+ * `calc.isPmsWindow` directly.
+ */
+export function calcInPmsWindow(calc: CycleCalculation): boolean {
+  if (!calc.isPmsWindow) return false;
+  const daysUntilNextPeriod = calc.cycleLength - calc.cycleDay + 1;
+  return daysUntilNextPeriod >= 1 && daysUntilNextPeriod <= PMS_WINDOW_DAYS;
+}
+
+/**
  * Phase for calendar/day coloring. Like {@link normalizePhase}, but surfaces the
  * fertile window as its own `fertile` color — the backend flags it separately
  * (`is_fertile_window`) during the follicular phase rather than as a phase of
@@ -99,7 +117,7 @@ export function cycleDayMarker(calc: CycleCalculation): CycleDayMarker | null {
   if (phase === 'period') return 'period';
   if (phase === 'ovulation') return 'ovulation';
   if (calcInFertileWindow(calc)) return 'fertile';
-  if (calc.isPmsWindow) return 'pms';
+  if (calcInPmsWindow(calc)) return 'pms';
   return null;
 }
 

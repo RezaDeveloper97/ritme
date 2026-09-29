@@ -59,7 +59,8 @@
         "ends_on_required": "برای «تا تاریخ مشخص» تاریخ پایان الزامی است.",
         "slot_unknown": "این ساعت جزو نوبت‌های این دارو نیست.",
         "date_not_scheduled": "این دارو در این روز برنامه مصرف ندارد.",
-        "scope_invalid": "بازه باید یکی از upcoming، past یا all باشد."
+        "scope_invalid": "بازه باید یکی از upcoming، past یا all باشد.",
+        "cancelled_reminder": "این نوبت لغو شده است و یادآور آن را نمی‌توان دوباره روشن کرد."
     },
     "attributes": {
         "title": "نام دارو",

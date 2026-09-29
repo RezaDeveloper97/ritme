@@ -7,6 +7,7 @@
   "loading": "Loading reminders…",
   "loadError": "Couldn't load your reminders. Please try again in a moment.",
   "saveError": "Couldn't save. Please try again in a moment.",
+  "tooManyRequests": "Too many changes in the last minute. Wait a moment and save again.",
   "retry": "Retry",
   "add": "Add",
   "addReminder": "Add reminder",

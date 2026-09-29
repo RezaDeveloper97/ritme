@@ -1198,7 +1198,7 @@ body {
 .cyclebar      { position: relative; height: 10px; border-radius: 99px; background: var(--line); margin-bottom: 22px; }
 .cyclebar-band { position: absolute; top: 0; bottom: 0; background: var(--amber-soft); border-radius: 99px; }
 .cyclebar-fill { position: absolute; top: 0; bottom: 0; left: 0; background: linear-gradient(90deg, var(--grad-start), var(--grad-end)); border-radius: 99px; opacity: .85; }
-.cyclebar-tick { position: absolute; top: 50%; width: 10px; height: 10px; margin-top: -5px; margin-left: -5px; border-radius: 50%; background: var(--green-dot); border: 2px solid var(--surface); }
+.cyclebar-tick { position: absolute; top: 50%; width: 10px; height: 10px; margin-top: -5px; margin-left: -5px; border-radius: 50%; background: var(--data-deep); border: 2px solid var(--surface); }
 .cyclebar-now  { position: absolute; top: -5px; width: 4px; height: 20px; margin-left: -2px; border-radius: 2px; background: var(--brand); }
 
 /* Upcoming-events panel — «جادهٔ چرخه»: the events as stations on a vertical
@@ -3094,6 +3094,10 @@ body.pwa-locked { overflow: hidden; }
 
 /* History timeline: tone tile + connector (audit F1). */
 .ck-tl-line { flex: 1; width: 2px; margin-block: 4px; border-radius: 1px; background: var(--line); }
+
+/* Fertility screens (Log / BBT / Insights) sit on the lavender canvas like
+   home, calendar and checkups (`v19_TTC_*` artboards), not on the white shell. */
+.fert-page { background: var(--page); }
 
 /* ── Fertility / TTC (M5) — tone palette ──────────────────────
    Shared by the home tiles, the log chance card, the BBT stat cards and the

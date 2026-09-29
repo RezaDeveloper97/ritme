@@ -78,6 +78,24 @@ func (m AppointmentMeta) Subtitle() sql.NullString {
 	return sql.NullString{String: strings.Join(parts, " · "), Valid: true}
 }
 
+// IsCancelledAppointment reports whether a reminders row (its type and raw meta) is a cancelled
+// appointment. Its reminder stays off: switching it back on is a 422 on both PUT
+// /care/appointments/{id} and the legacy PUT /reminders/{id} (D-29).
+func IsCancelledAppointment(reminderType string, meta []byte) bool {
+	if reminderType != TypeAppointment || len(meta) == 0 {
+		return false
+	}
+	var m struct {
+		Status string `json:"status"`
+	}
+	return json.Unmarshal(meta, &m) == nil && m.Status == StatusCancelled
+}
+
+// CancelledReminderMessage is the 422 message for switching a cancelled appointment's reminder on.
+func CancelledReminderMessage(locale string) string {
+	return T("validation.cancelled_reminder", locale)
+}
+
 // RemindOffset is the remind_before duration.
 func RemindOffset(v string) time.Duration {
 	switch v {

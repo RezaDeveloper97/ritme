@@ -10,3 +10,9 @@ entries:
     where: "**.daily_card.fertility_label"
     deviation: D-26
     reason: label of the v1.1 fertility level
+  # D-27 (task T-M2-35, stage regression A B-2): the post-ovulation predicted card has its own
+  # "fertility is lower now" note instead of the fertile window's "fertility is higher here".
+  - case: "*"
+    where: "**.daily_card.subtitle"
+    deviation: D-27
+    reason: post_ovulation note (fertility level low) instead of Laravel's reused fertile-window note

@@ -186,7 +186,7 @@ export function FertilityBbtPage({ range: rawRange }: { range?: string }) {
   }
 
   return (
-    <div className="view">
+    <div className="view fert-page">
       <div className="scroll">
         <header className="rmd-hdr">
           <Link href={BACK_HREF} className="rmd-hdr-btn" aria-label={t("back")}>

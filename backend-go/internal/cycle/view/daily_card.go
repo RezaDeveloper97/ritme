@@ -240,7 +240,7 @@ func (b cardBuilder) predictedDay(cycleDay int, sub enums.CycleSubphase, daysUnt
 		subtitle = b.fertileNote()
 	case sub == enums.CycleSubphasePostOvulation:
 		title = b.t("احتمالاً از پنجره باروری عبور کرده\u200cای", "You've likely passed your fertile window")
-		subtitle = b.fertileNote()
+		subtitle = b.postOvulationNote() // D-27: Laravel reuses fertileNote() ("fertility is higher") on a low day
 	case hasDaysToFertile && daysToFertile > 0:
 		title = b.t(b.num(daysToFertile)+" روز تا پنجره باروری", strconv.Itoa(daysToFertile)+" day(s) to your fertile window")
 		subtitle = b.t("بر اساس پیش\u200cبینی چرخه، پنجره باروری از حدود "+b.num(daysToFertile)+" روز دیگر شروع می\u200cشود.",
@@ -280,6 +280,13 @@ func (b cardBuilder) predictedPrimaryAction(isFuture, isToday bool) *Action {
 func (b cardBuilder) fertileNote() string {
 	return b.t("در این بازه احتمال باروری بر اساس پیش\u200cبینی چرخه بالاتر است، اما زمان واقعی تخمک\u200cگذاری می\u200cتواند متفاوت باشد.",
 		"Fertility is estimated higher here based on your cycle, but real ovulation timing can differ.")
+}
+
+// postOvulationNote is the subtitle of the day after ovulation (fertility level low, §26). Laravel
+// shows fertileNote() here, which says the chance is *higher* right under «کم» (D-27).
+func (b cardBuilder) postOvulationNote() string {
+	return b.t("بر اساس پیش\u200cبینی چرخه، پنجره باروری احتمالاً تمام شده و احتمال باروری از این روز کمتر است، اما زمان واقعی تخمک\u200cگذاری می\u200cتواند متفاوت باشد.",
+		"Based on your cycle, your fertile window has likely closed and fertility is estimated lower from here, but real ovulation timing can differ.")
 }
 
 func (b cardBuilder) detailsAction(isPast, isToday bool) *Action {

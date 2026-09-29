@@ -2,11 +2,11 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { type ApiEnvelope, apiClient, getApiErrorStatus } from '@/shared/api';
+import { type ApiEnvelope, apiClient } from '@/shared/api';
 import { isAuthenticated } from '@/shared/session';
 
 import type { HealthLogEnums, HealthLogInput } from '../model/types';
-import { dailyHealthLogSchema, healthLogEnumsSchema } from './schema';
+import { dailyHealthLogSchema, healthLogEnumsSchema, pickDayLog } from './schema';
 
 /**
  * Query-key factory for daily health logs (CLAUDE.md §8). Each day is keyed by
@@ -41,17 +41,18 @@ export function useHealthLogEnums() {
 }
 
 /**
- * GET /health-logs/{date} — the saved log for a day, or `null` when nothing has
- * been recorded yet (the API answers 404). Never logs the payload (§11).
+ * The saved log for a day, or `null` when nothing has been recorded yet. Read
+ * through the index filtered to that one day (`GET /health-logs?from_date=D&
+ * to_date=D`, a paginator of 0 or 1 rows) rather than `GET /health-logs/{date}`:
+ * the latter answers an empty day with a 404, which the browser reports as a
+ * console error on every calendar open (stage regression A, B-5). Never logs
+ * the payload (§11).
  */
 export async function fetchHealthLog(date: string): Promise<HealthLogInput | null> {
-  try {
-    const { data } = await apiClient.get<ApiEnvelope<unknown>>(`/health-logs/${date}`);
-    return dailyHealthLogSchema.parse(data.data);
-  } catch (error) {
-    if (getApiErrorStatus(error) === 404) return null;
-    throw error;
-  }
+  const { data } = await apiClient.get<ApiEnvelope<unknown>>('/health-logs', {
+    params: { from_date: date, to_date: date },
+  });
+  return pickDayLog(data.data);
 }
 
 /** Reads a day's saved log so the form can prefill (empty day → `null`). */

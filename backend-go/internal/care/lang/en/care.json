@@ -59,7 +59,8 @@
         "ends_on_required": "The end date is required when the duration is until a date.",
         "slot_unknown": "This time is not one of the medication's dose times.",
         "date_not_scheduled": "This medication is not scheduled on that day.",
-        "scope_invalid": "The scope must be upcoming, past or all."
+        "scope_invalid": "The scope must be upcoming, past or all.",
+        "cancelled_reminder": "This appointment was cancelled, so its reminder can't be turned back on."
     },
     "attributes": {
         "title": "medication name",

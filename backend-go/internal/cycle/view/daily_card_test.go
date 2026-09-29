@@ -230,3 +230,30 @@ func TestDailyCardBuilder(t *testing.T) {
 		assert.Equal(t, "ثبت علائم امروز", c.PrimaryAction.Label)
 	})
 }
+
+// D-27 (T-M2-35, stage regression A B-2): the day after ovulation is a low-fertility day, so its
+// note must not repeat the fertile window's "fertility is estimated higher here".
+func TestDailyCardPostOvulationNote(t *testing.T) {
+	for _, locale := range []string{"en", "fa"} {
+		t.Run(locale, func(t *testing.T) {
+			c := card(cardOpts{
+				selected: "2026-07-15", today: "2026-07-15", cycleDay: 16,
+				nextStart: "2026-07-28", ovulation: "2026-07-14",
+				subphase: enums.CycleSubphasePostOvulation, locale: locale,
+			})
+			b := cardBuilder{locale: locale}
+
+			assert.Equal(t, b.t("احتمالاً از پنجره باروری عبور کرده\u200cای", "You've likely passed your fertile window"), c.Title)
+			assert.Equal(t, b.postOvulationNote(), c.Subtitle)
+			assert.NotEqual(t, b.fertileNote(), c.Subtitle)
+			assert.Equal(t, enums.FertilityLevelLow, c.FertilityLevel)
+		})
+	}
+
+	// The fertile sub-phases keep the window note.
+	c := card(cardOpts{
+		selected: "2026-07-12", today: "2026-07-12", cycleDay: 12,
+		nextStart: "2026-07-28", ovulation: "2026-07-14", subphase: enums.CycleSubphaseHighFertility,
+	})
+	assert.Equal(t, cardBuilder{locale: "en"}.fertileNote(), c.Subtitle)
+}

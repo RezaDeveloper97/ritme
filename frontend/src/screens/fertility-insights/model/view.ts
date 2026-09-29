@@ -35,6 +35,21 @@ export function markFor(
   return null;
 }
 
+/** Every (year, month) of the locale's calendar from `first` to `last`, in order. */
+function monthsBetween(first: Date, last: Date, locale: Locale): { year: number; month: number }[] {
+  const from = toParts(first, locale);
+  const to = toParts(last, locale);
+  const months: { year: number; month: number }[] = [];
+  let cur = { year: from.year, month: from.month };
+  // Bounded loop: a window / its calendar is days long, never more than a handful of months.
+  for (let i = 0; i < 12; i++) {
+    months.push(cur);
+    if (cur.year > to.year || (cur.year === to.year && cur.month >= to.month)) break;
+    cur = shiftMonth(cur.year, cur.month, 1);
+  }
+  return months;
+}
+
 /**
  * Every (year, month) of the locale's calendar that the window touches, in
  * order — a window that crosses a month boundary (27 مهر → 2 آبان) yields both
@@ -45,17 +60,23 @@ export function windowMonths(
   locale: Locale,
 ): { year: number; month: number }[] {
   if (!window) return [];
-  const first = toParts(fromApiDate(window.start), locale);
-  const last = toParts(fromApiDate(window.end), locale);
-  const months: { year: number; month: number }[] = [];
-  let cur = { year: first.year, month: first.month };
-  // Bounded loop: a window is days long, never more than a handful of months.
-  for (let i = 0; i < 12; i++) {
-    months.push(cur);
-    if (cur.year > last.year || (cur.year === last.year && cur.month >= last.month)) break;
-    cur = shiftMonth(cur.year, cur.month, 1);
-  }
-  return months;
+  return monthsBetween(fromApiDate(window.start), fromApiDate(window.end), locale);
+}
+
+/**
+ * The months the calendar grid shows ({@link windowWeeks}), for its caption: a
+ * first row that starts in the previous month (۲۸–۳۱ شهریور above a مهر window)
+ * names both months, not just the window's (stage regression A, B-8).
+ */
+export function gridMonths(
+  weeks: readonly (readonly Date[])[],
+  locale: Locale,
+): { year: number; month: number }[] {
+  const first = weeks[0]?.[0];
+  const lastWeek = weeks[weeks.length - 1];
+  const last = lastWeek?.[lastWeek.length - 1];
+  if (!first || !last) return [];
+  return monthsBetween(first, last, locale);
 }
 
 /**
