@@ -18,7 +18,8 @@ const getV2TodayExtras = `-- name: GetV2TodayExtras :one
 
 SELECT
   (SELECT COUNT(*) FROM ` + "`" + `pregnancy_alerts` + "`" + ` pa
-    WHERE pa.user_id = ? AND pa.is_dismissed = 0 AND pa.is_read = 0) AS unread_alerts,
+    WHERE pa.user_id = ? AND pa.is_dismissed = 0 AND pa.is_read = 0
+      AND pa.alert_type LIKE 'v2:%' AND pa.created_at >= ?) AS unread_alerts,
   a.id AS appointment_id,
   a.title AS appointment_title,
   a.scheduled_at AS appointment_at,
@@ -47,6 +48,7 @@ WHERE u.id = ?
 
 type GetV2TodayExtrasParams struct {
 	UserID      uint64
+	AlertsSince sql.NullTime
 	Now         sql.NullTime
 	CurrentWeek uint8
 }
@@ -68,9 +70,13 @@ type GetV2TodayExtrasRow struct {
 // One row for the Today screen: the unread (not dismissed) alert count, the next upcoming non-cancelled
 // M3 appointment at or after `now`, and the first active care-plan item whose week window has not ended
 // (the next-visit fallback). The users row only anchors the single result row.
+// The count covers exactly what GET /pregnancy/v2/alerts lists (ListV2AlertsSince): v2 rows created at
+// or after `alerts_since`. Legacy v1 rows (e.g. `symptom_based`) are never shown there, so they must
+// not inflate the badge either (QA 2026-09-29-c L1).
 func (q *Queries) GetV2TodayExtras(ctx context.Context, arg GetV2TodayExtrasParams) (GetV2TodayExtrasRow, error) {
 	row := q.db.QueryRowContext(ctx, getV2TodayExtras,
 		arg.UserID,
+		arg.AlertsSince,
 		arg.UserID,
 		arg.Now,
 		arg.CurrentWeek,

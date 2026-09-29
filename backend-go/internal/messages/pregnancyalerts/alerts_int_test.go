@@ -370,3 +370,35 @@ func TestAlerts_TodayEvaluatesCalendarRules(t *testing.T) {
 	assert.EqualValues(t, 2, unread(http.MethodGet))
 	assert.Equal(t, 1, h.count(`SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ? AND alert_type = 'v2:weight_missing_week'`, uid))
 }
+
+// QA 2026-09-29-c L5: re-dating (manual → LMP) in Setup refreshes the current week's week_entered
+// alert — basis in the text and fact date — instead of keeping the facts frozen at creation. The
+// read state survives, and no second alert is created.
+func TestAlerts_WeekEnteredFollowsReDating(t *testing.T) {
+	h := setup(t)
+	uid, tok := h.user(t, "09120000910", false)
+	// Manual entry today: 12w0d → week 13 starts today (2026-09-23).
+	h.exec(`INSERT INTO pregnancy_profiles (user_id, pregnancy_mode, age_source, manual_weeks, manual_days, manual_entry_date,
+		created_at, updated_at) VALUES (?, 1, 'manual', 12, 0, '2026-09-23', '2026-09-23 09:00:00', '2026-09-23 09:00:00')`, uid)
+	we := byRule(alertsOf(t, h.do(t, http.MethodGet, base+"/alerts", tok, "en", "")), "week_entered")
+	require.Len(t, we, 1)
+	assert.Equal(t, "2026-09-23", we[0]["fact_date"])
+	assert.Contains(t, we[0]["advice"], "Manual Entry")
+	h.exec(`UPDATE pregnancy_alerts SET is_read = 1 WHERE user_id = ?`, uid)
+
+	// Setup re-dates by LMP: 12w2d, so week 13 started two days ago.
+	h.exec(`UPDATE pregnancy_profiles SET age_source = 'lmp', lmp_date = '2026-06-29' WHERE user_id = ?`, uid)
+	we = byRule(alertsOf(t, h.do(t, http.MethodGet, base+"/alerts", tok, "en", "")), "week_entered")
+	require.Len(t, we, 1, "refreshed, not duplicated")
+	assert.EqualValues(t, 13, we[0]["pregnancy_week"])
+	assert.Equal(t, "2026-09-21", we[0]["fact_date"])
+	assert.Contains(t, we[0]["advice"], "Last Menstrual Period")
+	assert.NotContains(t, we[0]["advice"], "Manual Entry")
+	assert.Equal(t, true, we[0]["is_read"])
+	fa := byRule(alertsOf(t, h.do(t, http.MethodGet, base+"/alerts", tok, "fa", "")), "week_entered")
+	require.Len(t, fa, 1)
+	assert.NotContains(t, fa[0]["advice"], "ورود دستی")
+	// The stored fallback text follows too.
+	assert.Zero(t, h.count(`SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ? AND message LIKE '%Manual%'`, uid))
+
+}

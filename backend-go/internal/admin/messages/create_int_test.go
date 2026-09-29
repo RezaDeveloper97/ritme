@@ -47,7 +47,8 @@ func TestStoreRegistered(t *testing.T) {
 	assert.Equal(t, true, m["is_approved"])
 	assert.Equal(t, map[string]any{"title": "Tip", "body": "Body", "read_minutes": float64(2),
 		"article_url": "/pregnancy/weeks/8"}, m["payload"], "schema order, unknown keys dropped")
-	assert.Equal(t, `{"title":"Tip","body":"Body","read_minutes":2,"article_url":"\/pregnancy\/weeks\/8"}`,
+	// Stored raw, like the seed rows: no \/ or \uXXXX escaping (QA 2026-09-29-c L8).
+	assert.Equal(t, `{"title":"Tip","body":"Body","read_minutes":2,"article_url":"/pregnancy/weeks/8"}`,
 		e.String("SELECT payload FROM message_contents WHERE `group` = 'pregnancy_week_tip' AND item_key = '8' AND locale = 'fa'"))
 
 	// The same row again → unique.

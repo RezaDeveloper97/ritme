@@ -113,6 +113,10 @@ func VisitsOf(rows []store.ListV2CalendarAppointmentsRow) []Visit {
 			_ = json.Unmarshal(r.Meta.V, &m)
 		}
 		at := r.ScheduledAt.Time.In(civildate.Tehran)
+		remind := deref(m.RemindBefore)
+		if !r.IsActive {
+			remind = "" // bell off: no reminder lead time to show (QA 2026-09-29-c L4)
+		}
 		stage := deref(m.Stage)
 		if stage != "booked" && stage != "done" && stage != "result" {
 			stage = ""
@@ -120,7 +124,7 @@ func VisitsOf(rows []store.ListV2CalendarAppointmentsRow) []Visit {
 		out = append(out, Visit{
 			ID: r.ID, Title: r.Title, At: at, Date: civildate.FromTime(at),
 			CareItemKey: deref(m.CareItemKey), Stage: stage, ResultNote: deref(m.ResultNote),
-			Doctor: deref(m.With), Place: deref(m.Location), RemindBefore: deref(m.RemindBefore),
+			Doctor: deref(m.With), Place: deref(m.Location), RemindBefore: remind,
 		})
 	}
 	return out

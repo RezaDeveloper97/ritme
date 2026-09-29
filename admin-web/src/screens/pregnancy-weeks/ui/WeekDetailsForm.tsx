@@ -5,7 +5,7 @@ import { useState, type ReactNode } from 'react';
 
 import { fieldError, fieldErrorsOf } from '@/shared/api';
 import { useContentLanguages, type ContentLanguage } from '@/shared/i18n';
-import { cn, formatNumber } from '@/shared/lib';
+import { cn, formatNumber, useNumber } from '@/shared/lib';
 import {
   Badge,
   Button,
@@ -604,10 +604,11 @@ function Repeat({
   children: ReactNode;
 }) {
   const t = useTranslations('pregnancyWeeks.details');
+  const n = useNumber();
   return (
     <div className="flex flex-col gap-2">
       <span className="field-label">
-        {title} <span className="text-xs text-muted">({t('countOf', { count, max })})</span>
+        {title} <span className="text-xs text-muted">({t('countOf', { count: n(count), max: n(max) })})</span>
       </span>
       {hint ? <span className="field-hint">{hint}</span> : null}
       {children}

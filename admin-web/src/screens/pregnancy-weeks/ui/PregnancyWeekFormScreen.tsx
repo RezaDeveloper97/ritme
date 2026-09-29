@@ -2,9 +2,9 @@
 
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-import { fieldError, fieldErrorsOf } from '@/shared/api';
+import { fieldError, fieldErrorsOf, isApiError } from '@/shared/api';
 import { formatNumber, sectionsOf, toIntOrNull } from '@/shared/lib';
 import {
   Button,
@@ -20,6 +20,8 @@ import {
 } from '@/shared/ui';
 
 import { pregnancyWeeksApi, type PregnancyWeek } from '../api/pregnancy-weeks';
+import { useWeekDetailsList } from '../api/week-details';
+import { detailsFallback } from '../lib/cells';
 import { WeekDetailsEditor } from './WeekDetailsForm';
 
 /**
@@ -28,14 +30,31 @@ import { WeekDetailsEditor } from './WeekDetailsForm';
  */
 export function PregnancyWeekFormScreen({ id }: { id: number | null }) {
   const t = useTranslations('pregnancyWeeks');
+  const locale = useLocale();
+  const router = useRouter();
   const search = useSearchParams();
   const detail = pregnancyWeeksApi.useDetail(id);
   const map = pregnancyWeeksApi.useList();
+  const detailsList = useWeekDetailsList();
+  // /pregnancy-weeks/:n with no text row n but structured details for week n → open those (QA L7).
+  const fallback =
+    id === null ? null : detailsFallback(id, isApiError(detail.error) && detail.error.status === 404, detailsList.data?.items);
+  useEffect(() => {
+    if (fallback) router.replace(fallback);
+  }, [fallback, router]);
   const [tab, setTab] = useState<'texts' | 'details'>(search.get('tab') === 'details' ? 'details' : 'texts');
   const fromQuery = Number(search.get('week'));
   const week =
     detail.data?.pregnancy_week.week_number ?? (Number.isInteger(fromQuery) && fromQuery >= 1 && fromQuery <= 42 ? fromQuery : null);
-  const header = <PageHeader title={id === null ? t('new') : t('edit')} backHref="/pregnancy-weeks" backLabel={t('backToList')} />;
+  // The details tab edits one week in place (it upserts), so it is titled by the week, not «new».
+  const header = (
+    <PageHeader
+      title={week !== null ? t('weekTitle', { week: formatNumber(week, locale) }) : id === null ? t('new') : t('edit')}
+      backHref="/pregnancy-weeks"
+      backLabel={t('backToList')}
+    />
+  );
+  if (fallback) return null;
   return (
     <div className="flex flex-col gap-4">
       <div role="tablist" aria-label={t('tabs')} className="tabs">

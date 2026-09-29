@@ -259,7 +259,7 @@ function StatsPanel({ rows, stats }: { rows: CheckupType[]; stats: ReturnType<ty
             {(
               [
                 ['users_with_records', t('usersWithRecords')],
-                ['records_last_30_days', t('recordsLast30', { days: stats.data.window_days })],
+                ['records_last_30_days', t('recordsLast30', { days: n(stats.data.window_days) })],
                 ['overdue_users', t('overdueUsers')],
               ] as const
             ).map(([k, text]) => (
@@ -276,7 +276,7 @@ function StatsPanel({ rows, stats }: { rows: CheckupType[]; stats: ReturnType<ty
                 <tr>
                   <th scope="col">{t('titleField')}</th>
                   <th scope="col">{t('usersWithRecords')}</th>
-                  <th scope="col">{t('recordsLast30', { days: stats.data.window_days })}</th>
+                  <th scope="col">{t('recordsLast30', { days: n(stats.data.window_days) })}</th>
                   <th scope="col">{t('overdueUsers')}</th>
                 </tr>
               </thead>

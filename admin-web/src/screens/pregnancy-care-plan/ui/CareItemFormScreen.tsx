@@ -6,7 +6,7 @@ import { useState } from 'react';
 
 import { fieldError, fieldErrorsOf } from '@/shared/api';
 import { useLocalized } from '@/shared/i18n';
-import { toIntOrNull } from '@/shared/lib';
+import { toIntOrNull, useNumber } from '@/shared/lib';
 import {
   FormPage,
   LoadGate,
@@ -44,6 +44,7 @@ const num = (v: number | null | undefined) => (v === null || v === undefined ? '
 function CareItemForm({ id, row, options }: { id: number | null; row: CareItem | null; options: CareOptions }) {
   const t = useTranslations('pregnancyCarePlan');
   const tc = useTranslations('crud');
+  const n = useNumber();
   const router = useRouter();
   const localize = useLocalized();
   const kindLabel = useKindLabel();
@@ -159,7 +160,7 @@ function CareItemForm({ id, row, options }: { id: number | null; row: CareItem |
         />
       </div>
       <Switch label={tc('isActive')} checked={active} onChange={setActive} />
-      {row && row.appointments_count > 0 ? <p className="field-hint m-0">{t('inUseHint', { count: row.appointments_count })}</p> : null}
+      {row && row.appointments_count > 0 ? <p className="field-hint m-0">{t('inUseHint', { count: n(row.appointments_count) })}</p> : null}
     </FormPage>
   );
 }

@@ -15,7 +15,7 @@ export function Pagination({ meta, onPage }: { meta: PageMeta | undefined; onPag
   if (!meta) return null;
   const last = Math.max(meta.last_page, 1);
   return (
-    <nav className="flex flex-wrap items-center gap-3 border-t border-line px-4 py-3 text-ink-3" aria-label={t('page', { page: meta.current_page, last })}>
+    <nav className="flex flex-wrap items-center gap-3 border-t border-line px-4 py-3 text-ink-3" aria-label={t('page', { page: formatNumber(meta.current_page, locale), last: formatNumber(last, locale) })}>
       <span className="text-[13px]">{t('total', { total: meta.total })}</span>
       <div className="flex-1" />
       <span className="text-[13px] tabular-nums">

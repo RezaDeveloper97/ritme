@@ -14,7 +14,7 @@ import (
 
 const listV2CalendarAppointments = `-- name: ListV2CalendarAppointments :many
 
-SELECT id, title, scheduled_at, meta FROM ` + "`" + `reminders` + "`" + `
+SELECT id, title, scheduled_at, meta, is_active FROM ` + "`" + `reminders` + "`" + `
 WHERE user_id = ? AND ` + "`" + `type` + "`" + ` = 'appointment' AND scheduled_at IS NOT NULL
   AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(meta, '$.status')), 'scheduled') <> 'cancelled'
 ORDER BY scheduled_at, id
@@ -25,10 +25,12 @@ type ListV2CalendarAppointmentsRow struct {
 	Title       string
 	ScheduledAt sql.NullTime
 	Meta        db.NullRawJSON
+	IsActive    bool
 }
 
 // Pregnancy v2 calendar (T-M7-05, internal/pregnancy/v2/calendar): the user's M3 appointments that are
 // not cancelled, soonest first. Month filtering and care-item linking (meta.care_item_key) happen in Go.
+// is_active is the reminder bell: off → the visit stays, but it has no «remind before» (QA 2026-09-29-c L4).
 func (q *Queries) ListV2CalendarAppointments(ctx context.Context, userID uint64) ([]ListV2CalendarAppointmentsRow, error) {
 	rows, err := q.db.QueryContext(ctx, listV2CalendarAppointments, userID)
 	if err != nil {
@@ -43,6 +45,7 @@ func (q *Queries) ListV2CalendarAppointments(ctx context.Context, userID uint64)
 			&i.Title,
 			&i.ScheduledAt,
 			&i.Meta,
+			&i.IsActive,
 		); err != nil {
 			return nil, err
 		}

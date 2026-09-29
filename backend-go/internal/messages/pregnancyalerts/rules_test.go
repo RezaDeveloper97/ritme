@@ -3,10 +3,12 @@ package pregnancyalerts
 import (
 	"database/sql"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/ritme/backend-go/db"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/pregnancy/store"
 )
@@ -150,4 +152,23 @@ func TestWeekEnteredFactDate(t *testing.T) {
 	hits := Detect("week_entered", cfg(7, nil), f)
 	require.Len(t, hits, 1)
 	assert.Equal(t, f.Today.AddDays(-3), hits[0].On)
+}
+
+func TestSameFacts(t *testing.T) {
+	row := func(trigger, created string) *store.PregnancyAlert {
+		ts, err := time.ParseInLocation(time.DateTime, created, civildate.Tehran)
+		require.NoError(t, err)
+		return &store.PregnancyAlert{
+			AlertType:       "v2:week_entered",
+			TriggerSymptoms: db.NullRawJSON{V: []byte(trigger), Valid: true},
+			CreatedAt:       sql.NullTime{Time: ts, Valid: true},
+		}
+	}
+	hit := meta{Rule: "week_entered", On: "2026-09-23", Vars: map[string]string{"week": "13", "basis": "lmp"}}
+	// No stored `on` = the creation day.
+	assert.True(t, sameFacts(row(`{"vars":{"week":"13","basis":"lmp"}}`, "2026-09-23 10:00:00"), hit))
+	assert.True(t, sameFacts(row(`{"on":"2026-09-23","vars":{"week":"13","basis":"lmp"}}`, "2026-09-25 10:00:00"), hit))
+	assert.False(t, sameFacts(row(`{"vars":{"week":"13","basis":"lmp"}}`, "2026-09-25 10:00:00"), hit), "fact day moved")
+	assert.False(t, sameFacts(row(`{"vars":{"week":"13","basis":"manual"}}`, "2026-09-23 10:00:00"), hit), "basis changed")
+	assert.False(t, sameFacts(row(`{"vars":{"week":"13"}}`, "2026-09-23 10:00:00"), hit))
 }

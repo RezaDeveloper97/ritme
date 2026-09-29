@@ -5,7 +5,7 @@ import { useMemo, useState } from 'react';
 
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber, todayParts, type DateParts } from '@/shared/lib/date';
-import { Icon, NavBack } from '@/shared/ui';
+import { Icon, LocaleNumberField, NavBack } from '@/shared/ui';
 import {
   nextOnboardingRoute,
   previousOnboardingRoute,
@@ -14,9 +14,12 @@ import {
   type OnboardingAgeSource,
 } from '@/entities/user';
 import { DateWheels } from '@/features/edit-profile';
-import { NumberField, Segmented } from '@/features/track-pregnancy';
+import { Segmented } from '@/features/track-pregnancy';
 
 const SOURCES: OnboardingAgeSource[] = ['lmp', 'ultrasound', 'manual'];
+
+/** A pregnancy week is 1…42; LocaleNumberField leaves the clamping to its caller. */
+const clampWeek = (w: number | undefined) => (w == null ? undefined : Math.min(42, Math.max(1, w)));
 
 /**
  * Pregnant branch: pick a basis for dating the pregnancy (last period /
@@ -130,7 +133,7 @@ export function PregnancyBasisPage() {
           <div className="onb-mt16">
             <DateWheels idPrefix="scan" value={scanDate} onChange={setScanDate} minYear={thisYear - 1} maxYear={thisYear} />
             <div className="onb-mt14">
-              <NumberField label={t('pregnancyBasis.weeks')} value={scanWeeks} onChange={setScanWeeks} min={1} max={42} />
+              <LocaleNumberField label={t('pregnancyBasis.weeks')} locale={loc} value={scanWeeks} onChange={(w) => setScanWeeks(clampWeek(w))} max={42} />
             </div>
             <div className="onb-mt12">
               <span className="onb-sublabel">{t('pregnancyBasis.days')}</span>
@@ -141,7 +144,7 @@ export function PregnancyBasisPage() {
 
         {source === 'manual' && (
           <div className="onb-mt16">
-            <NumberField label={t('pregnancyBasis.weeks')} value={manualWeeks} onChange={setManualWeeks} min={1} max={42} />
+            <LocaleNumberField label={t('pregnancyBasis.weeks')} locale={loc} value={manualWeeks} onChange={(w) => setManualWeeks(clampWeek(w))} max={42} />
             <div className="onb-mt12">
               <span className="onb-sublabel">{t('pregnancyBasis.days')}</span>
               <Segmented options={dayOptions} value={manualDays != null ? String(manualDays) : undefined} onChange={(v) => setManualDays(v == null ? undefined : Number(v))} />

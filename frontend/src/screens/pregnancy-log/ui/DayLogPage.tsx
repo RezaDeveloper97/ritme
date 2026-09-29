@@ -473,9 +473,10 @@ function RaisedAlerts({ alerts }: { alerts: PregnancyAlertV2[] }) {
         {alerts.map((a) => (
           <li
             key={a.id}
-            className="flex items-start gap-2 text-[13px] text-(--ink)"
+            className={clsx("pg2-level-" + a.level, "flex items-start gap-2 text-[13px] text-(--ink)")}
           >
-            <span className="mt-1 rounded-full bg-(--surface-2) px-2 py-0.5 text-[11px] font-bold text-(--brand-deep)">
+            {/* The level chip of the Alerts screen and its legend (QA 2026-09-29-c L6). */}
+            <span className="pg2-chip mt-1 shrink-0 rounded-full px-2 py-0.5 text-[11px]">
               {t(`alerts.levelsShort.${a.level}`)}
             </span>
             <span className="min-w-0 flex-1 font-semibold">{a.title}</span>

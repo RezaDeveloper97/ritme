@@ -258,6 +258,30 @@ func TestToday(t *testing.T) {
 	assert.Nil(t, r.data()["next_visit"].(map[string]any)["appointment_id"], "cancelled → care-plan fallback")
 }
 
+// QA 2026-09-29-c L1: the badge counts exactly what the Alerts screen lists — unread, not dismissed
+// v2 rows of the last AlertsWindowDays days — never legacy v1 rows (symptom_based) nor older v2 rows.
+func TestToday_UnreadAlertsMatchAlertsList(t *testing.T) {
+	e := setup(t)
+	uid, tok := e.lmpUser(t, "09120000705", "2026-07-01")
+	ins := func(typ, level, created string, read, dismissed int) {
+		t.Helper()
+		_, err := e.db.Exec(`INSERT INTO pregnancy_alerts (user_id, alert_level, alert_type, title, message, pregnancy_week,
+			is_read, is_dismissed, created_at, updated_at) VALUES (?, ?, ?, 't', 'm', 13, ?, ?, ?, ?)`,
+			uid, level, typ, read, dismissed, created, created)
+		require.NoError(t, err)
+	}
+	ins("v2:week_entered", "info", "2026-09-23 08:00:00", 0, 0)          // counted
+	ins("v2:critical_symptom", "emergency", "2026-09-17 00:00:00", 0, 0) // first day of the window: counted
+	ins("symptom_based", "emergency", "2026-09-23 08:00:00", 0, 0)       // legacy v1: never listed
+	ins("v2:weight_missing_week", "info", "2026-09-16 23:59:59", 0, 0)   // before the window
+	ins("v2:week_entered", "info", "2026-09-22 08:00:00", 1, 0)          // read
+	ins("v2:critical_symptom", "warning", "2026-09-22 08:00:00", 0, 1)   // dismissed (acked)
+
+	r := e.do(t, http.MethodGet, base+"/today", tok, "fa", "")
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	assert.EqualValues(t, 2, r.data()["unread_alerts"])
+}
+
 func TestToday_Overdue(t *testing.T) {
 	e := setup(t)
 	_, tok := e.lmpUser(t, "09120000704", "2025-12-10") // 41w0d

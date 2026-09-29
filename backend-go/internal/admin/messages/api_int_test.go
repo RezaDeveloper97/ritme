@@ -93,3 +93,19 @@ func TestEditApproveToggle(t *testing.T) {
 	c.CSRF = ""
 	assert.Equal(t, 419, c.JSON(fiber.MethodPost, "/messages/3/toggle", nil).Status)
 }
+
+// QA 2026-09-29-c L8: an admin save stores Persian as raw UTF-8 (like the seed rows), so the
+// column stays compact and a plain `LIKE '%فارسی%'` on the DB finds it.
+func TestEditStoresRawUTF8(t *testing.T) {
+	e := newEnv(t)
+	c := e.As(admintest.EditorID)
+	r := c.JSON(fiber.MethodPut, "/messages/1", map[string]any{
+		"payload": map[string]any{"title": "درود بر تو", "tips": []string{"آب/بخور"}},
+	})
+	require.Equal(t, 200, r.Status, r.Body)
+	stored := e.String("SELECT payload FROM message_contents WHERE id = 1")
+	assert.Contains(t, stored, "درود بر تو")
+	assert.Contains(t, stored, "آب/بخور")
+	assert.NotContains(t, stored, `\u`)
+	assert.Equal(t, 1, e.Int("SELECT COUNT(*) FROM message_contents WHERE payload LIKE '%درود بر تو%'"))
+}

@@ -6,7 +6,7 @@ import { useState, type ReactNode } from 'react';
 
 import { fieldError, fieldErrorsOf } from '@/shared/api';
 import { useContentLanguages, useLocalized, type ContentLanguage } from '@/shared/i18n';
-import { blankToNull, cn, toIntOrNull } from '@/shared/lib';
+import { blankToNull, cn, toIntOrNull, useNumber } from '@/shared/lib';
 import {
   Button,
   FormPage,
@@ -75,6 +75,7 @@ function CheckupTypeForm({
 }) {
   const t = useTranslations('checkupTypes');
   const tc = useTranslations('crud');
+  const n = useNumber();
   const router = useRouter();
   const localize = useLocalized();
   const { label } = useCheckupLabels();
@@ -234,7 +235,7 @@ function CheckupTypeForm({
             {prep.map((step, i) => (
               <ItemRow key={i} index={i} count={prep.length} onMove={(to) => setPrep(moveItem(prep, i, to))} onRemove={() => setPrep(prep.filter((_, j) => j !== i))}>
                 {langInput(`prep_steps.${i}`, step, (v) => setPrep(prep.map((s, j) => (j === i ? v : s))), {
-                  label: t('stepN', { n: i + 1 }),
+                  label: t('stepN', { n: n(i + 1) }),
                   maxLength: 500,
                 })}
               </ItemRow>
@@ -253,7 +254,7 @@ function CheckupTypeForm({
               const set = (patch: Partial<GuideStep>) => setGuide(guide.map((s, j) => (j === i ? { ...s, ...patch } : s)));
               return (
                 <ItemRow key={i} index={i} count={guide.length} onMove={(to) => setGuide(moveItem(guide, i, to))} onRemove={() => setGuide(guide.filter((_, j) => j !== i))}>
-                  {langInput(`guide_steps.${i}.title`, step.title, (v) => set({ title: v }), { label: t('stepTitle', { n: i + 1 }), maxLength: 120 })}
+                  {langInput(`guide_steps.${i}.title`, step.title, (v) => set({ title: v }), { label: t('stepTitle', { n: n(i + 1) }), maxLength: 120 })}
                   {langInput(`guide_steps.${i}.body`, step.body, (v) => set({ body: v }), { label: t('stepBody'), area: true, maxLength: 1000 })}
                 </ItemRow>
               );
@@ -391,10 +392,11 @@ function Repeat({
   children: ReactNode;
 }) {
   const t = useTranslations('checkupTypes');
+  const n = useNumber();
   return (
     <div className="flex flex-col gap-2">
       <span className="field-label">
-        {title} <span className="text-xs text-muted">({t('countOf', { count, max })})</span>
+        {title} <span className="text-xs text-muted">({t('countOf', { count: n(count), max: n(max) })})</span>
       </span>
       {hint ? <span className="field-hint">{hint}</span> : null}
       {children}

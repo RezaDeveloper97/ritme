@@ -220,6 +220,8 @@ func TestCalendar_ReminderOffKeepsVisit(t *testing.T) {
 	data := body["data"].(map[string]any)
 	require.Len(t, data["visits"], 1, "the bell-off booked visit stays in this month")
 	assert.Equal(t, "2026-09-30", data["next_visit"].(map[string]any)["date"])
+	// QA 2026-09-29-c L4: with the bell off there is no «یادآور: … قبل».
+	assert.Nil(t, data["next_visit"].(map[string]any)["remind_before"])
 	assert.Equal(t, "booked", planItem(t, data, "r_nt")["state"])
 	assert.Equal(t, "done", planItem(t, data, "r_first")["state"])
 

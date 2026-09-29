@@ -8,17 +8,20 @@ import { formatNumber } from '@/shared/lib';
 import { ErrorState, Panel, Skeleton } from '@/shared/ui';
 
 import { pregnancyWeeksApi } from '../api/pregnancy-weeks';
+import { useWeekDetailsList } from '../api/week-details';
+import { cellFilled, cellHref, weekCells } from '../lib/cells';
 import { byTrimester } from '../lib/trimesters';
 
 /**
- * /pregnancy-weeks — the 40 weeks as a gestation strip in three trimesters;
- * a filled cell has content, an outlined one opens a new week
+ * /pregnancy-weeks — the weeks as a gestation strip in three trimesters; a filled cell has
+ * content (a v1 text row or structured details), an outlined one opens a new week
  * (Blade pregnancy-weeks.index).
  */
 export function PregnancyWeeksScreen() {
   const t = useTranslations('pregnancyWeeks');
   const locale = useLocale();
   const query = pregnancyWeeksApi.useList();
+  const details = useWeekDetailsList();
   const n = (v: number) => formatNumber(v, locale);
 
   if (query.error && !query.data) {
@@ -29,8 +32,10 @@ export function PregnancyWeeksScreen() {
     );
   }
 
-  const items = query.data?.items;
-  const filled = items?.filter((w) => w.id !== null).length ?? 0;
+  // The details list only adds to the grid: wait for it, but a failure still shows the text rows.
+  const detailsSettled = details.data !== undefined || details.error !== null;
+  const items = query.data && detailsSettled ? weekCells(query.data.items, details.data?.items) : undefined;
+  const filled = items?.filter(cellFilled).length ?? 0;
 
   return (
     <Panel
@@ -50,7 +55,7 @@ export function PregnancyWeeksScreen() {
       ) : (
         <div className="content-map">
           {byTrimester(items).map((band) => {
-            const bandFilled = band.weeks.filter((w) => w.id !== null).length;
+            const bandFilled = band.weeks.filter(cellFilled).length;
             const meter = { inlineSize: `${(bandFilled / band.weeks.length) * 100}%` } as CSSProperties;
             return (
               <section key={band.key} className="content-map-band" aria-label={t(`bands.${band.key}`)}>
@@ -72,13 +77,13 @@ export function PregnancyWeeksScreen() {
                   {band.weeks.map((w) => (
                     <Link
                       key={w.week}
-                      href={w.id !== null ? `/pregnancy-weeks/${w.id}` : `/pregnancy-weeks/new?week=${w.week}`}
+                      href={cellHref(w)}
                       className="map-cell"
-                      data-filled={w.id !== null || undefined}
-                      aria-label={w.id !== null ? t('editWeek', { week: n(w.week) }) : t('addWeek', { week: n(w.week) })}
+                      data-filled={cellFilled(w) || undefined}
+                      aria-label={cellFilled(w) ? t('editWeek', { week: n(w.week) }) : t('addWeek', { week: n(w.week) })}
                     >
                       <span className="map-cell-num">{n(w.week)}</span>
-                      <span className="map-cell-state">{w.id !== null ? t('hasContent') : t('add')}</span>
+                      <span className="map-cell-state">{cellFilled(w) ? t('hasContent') : t('add')}</span>
                     </Link>
                   ))}
                 </div>

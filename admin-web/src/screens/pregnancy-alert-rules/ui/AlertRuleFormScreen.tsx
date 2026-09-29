@@ -6,7 +6,7 @@ import { useState } from 'react';
 
 import { fieldError, fieldErrorsOf } from '@/shared/api';
 import { useContentLanguages, type ContentLanguage } from '@/shared/i18n';
-import { cn } from '@/shared/lib';
+import { cn, useNumber } from '@/shared/lib';
 import { Button, FormPage, Icon, LoadGate, PageHeader, Select, Switch, TextArea, TextInput, toast, useNotifyError } from '@/shared/ui';
 
 import {
@@ -60,6 +60,7 @@ const emptyTexts = (): AlertTexts => ({
 function RuleForm({ rule, options, languages }: { rule: AlertRule; options: AlertOptions; languages: ContentLanguage[] }) {
   const t = useTranslations('pregnancyAlertRules');
   const tc = useTranslations('crud');
+  const n = useNumber();
   const router = useRouter();
   const labels = useAlertLabels();
   const notifyError = useNotifyError();
@@ -140,7 +141,7 @@ function RuleForm({ rule, options, languages }: { rule: AlertRule; options: Aler
       submitLabel={tc('saveChanges')}
       saving={save.isPending}
     >
-      <AlertPreview level={level} texts={cur} dir={current?.direction} />
+      <AlertPreview level={level} texts={cur} dir={current?.direction} locale={current?.code ?? lang} />
 
       <fieldset className="form-section m-0 flex min-w-0 flex-col gap-4 border-0 p-0">
         <legend className="field-label p-0">{t('behaviour')}</legend>
@@ -185,7 +186,7 @@ function RuleForm({ rule, options, languages }: { rule: AlertRule; options: Aler
               <TextInput
                 key={f.key}
                 label={labels.param(f.key)}
-                hint={f.min !== undefined && f.max !== undefined ? t('range', { min: f.min, max: f.max }) : undefined}
+                hint={f.min !== undefined && f.max !== undefined ? t('range', { min: n(f.min), max: n(f.max) }) : undefined}
                 type="number"
                 min={f.min}
                 max={f.max}
@@ -319,12 +320,13 @@ function ActionsEditor({
   errorOf: (path: string) => string | undefined;
 }) {
   const t = useTranslations('pregnancyAlertRules');
+  const n = useNumber();
   const labels = useAlertLabels();
   const free = keys.filter((k) => !actions.some((a) => a.key === k));
   return (
     <div className="flex flex-col gap-2">
       <span className="field-label">
-        {t('fields.actions')} <span className="text-xs text-muted">({t('countOf', { count: actions.length, max: MAX_ACTIONS })})</span>
+        {t('fields.actions')} <span className="text-xs text-muted">({t('countOf', { count: n(actions.length), max: n(MAX_ACTIONS) })})</span>
       </span>
       {actions.map((a, i) => (
         <div key={i} className="flex flex-wrap items-end gap-2 rounded-xl border border-line p-3">
@@ -364,7 +366,7 @@ function ActionsEditor({
 }
 
 /** A sample rendering of the app's alert card (placeholders filled with sample values). */
-function AlertPreview({ level, texts, dir }: { level: string; texts: AlertTexts; dir?: 'rtl' | 'ltr' }) {
+function AlertPreview({ level, texts, dir, locale }: { level: string; texts: AlertTexts; dir?: 'rtl' | 'ltr'; locale: string }) {
   const t = useTranslations('pregnancyAlertRules');
   const labels = useAlertLabels();
   return (
@@ -378,11 +380,11 @@ function AlertPreview({ level, texts, dir }: { level: string; texts: AlertTexts;
               <span className={cn('self-start rounded-full px-2 py-0.5 text-xs font-semibold', levelClass(level, 'chip'))}>
                 {labels.level(level)}
               </span>
-              <strong className="text-[14px]">{fillSample(texts.title ?? '') || t('previewUntitled')}</strong>
-              {texts.what_we_saw ? <p className="m-0 text-xs text-[var(--ink-3)]">{fillSample(texts.what_we_saw)}</p> : null}
-              {texts.how_sure ? <p className="m-0 text-xs text-[var(--muted)]">{fillSample(texts.how_sure)}</p> : null}
-              {texts.advice ? <p className="m-0 text-sm">{fillSample(texts.advice)}</p> : null}
-              {level === 'urgent' && texts.contact ? <p className="m-0 text-sm font-semibold">{fillSample(texts.contact)}</p> : null}
+              <strong className="text-[14px]">{fillSample(texts.title ?? '', locale) || t('previewUntitled')}</strong>
+              {texts.what_we_saw ? <p className="m-0 text-xs text-[var(--ink-3)]">{fillSample(texts.what_we_saw, locale)}</p> : null}
+              {texts.how_sure ? <p className="m-0 text-xs text-[var(--muted)]">{fillSample(texts.how_sure, locale)}</p> : null}
+              {texts.advice ? <p className="m-0 text-sm">{fillSample(texts.advice, locale)}</p> : null}
+              {level === 'urgent' && texts.contact ? <p className="m-0 text-sm font-semibold">{fillSample(texts.contact, locale)}</p> : null}
               {texts.actions.length > 0 ? (
                 <div className="flex flex-wrap gap-1.5">
                   {texts.actions.map((a, i) => (

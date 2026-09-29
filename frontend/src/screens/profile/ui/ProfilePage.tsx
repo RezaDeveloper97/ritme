@@ -8,6 +8,7 @@ import { useDeactivatePregnancy } from '@/entities/pregnancy';
 import { useUserProfile } from '@/entities/user';
 import { useLogout } from '@/features/auth';
 import { QuickEditSheet, type QuickEditField } from '@/features/edit-profile';
+import { DeleteAccountConfirm } from '@/features/manage-account';
 import { useSwitchLocale } from '@/features/switch-locale';
 import { formatLongDate, formatNumber } from '@/shared/lib/date';
 import { openSheet } from '@/shared/sheet';
@@ -191,6 +192,8 @@ export function ProfilePage() {
     languages.find((language) => language.code === locale)?.name ?? locale;
   // Which stat row is being edited in the quick-edit sheet (null = closed).
   const [editing, setEditing] = useState<QuickEditField | null>(null);
+  // Account deletion (§11 — delete is a first-class user right).
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   const user = profile;
   const health = profile?.health;
@@ -396,6 +399,8 @@ export function ProfilePage() {
         {/* Privacy & data (§11 — export & delete are first-class) */}
         <Group title={t('sections.privacy')}>
           <Row icon="shield" label={t('rows.privacyPolicy')} trailing={chevron} onClick={() => openSheet('info', 'privacy')} />
+          <Divider />
+          <Row icon="trash" label={t('rows.deleteAccount')} danger trailing={chevron} onClick={() => setDeleteOpen(true)} />
         </Group>
 
         {/* Support */}
@@ -440,6 +445,10 @@ export function ProfilePage() {
         }}
         onClose={() => setEditing(null)}
       />
+
+      {/* Deleting ends the session (token, flag cookie, per-user device data,
+          query cache) and lands on /signup. */}
+      <DeleteAccountConfirm open={deleteOpen} onClose={() => setDeleteOpen(false)} />
 
       <BottomNav />
     </div>

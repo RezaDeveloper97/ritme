@@ -20,6 +20,22 @@ SELECT COUNT(*) FROM `pregnancy_alerts`
 WHERE user_id = sqlc.arg(user_id) AND alert_type = sqlc.arg(alert_type) AND created_at >= sqlc.arg(since)
   AND JSON_UNQUOTE(JSON_EXTRACT(trigger_symptoms, '$.dedupe')) = CAST(sqlc.arg(dedupe) AS CHAR);
 
+-- name: ListV2AlertsByDedupe :many
+-- The alerts behind CountV2AlertDedupe (same filter), for the rules whose facts come from the dating
+-- (week_entered): a re-dating refreshes their stored placeholders and fact date (QA 2026-09-29-c L5).
+SELECT * FROM `pregnancy_alerts`
+WHERE user_id = sqlc.arg(user_id) AND alert_type = sqlc.arg(alert_type) AND created_at >= sqlc.arg(since)
+  AND JSON_UNQUOTE(JSON_EXTRACT(trigger_symptoms, '$.dedupe')) = CAST(sqlc.arg(dedupe) AS CHAR)
+ORDER BY id;
+
+-- name: RefreshV2AlertFacts :exec
+-- Rewrites the facts of one v2 alert (v2 metadata + the stored fallback title / message); the read and
+-- ack state are kept.
+UPDATE `pregnancy_alerts`
+SET title = sqlc.arg(title), message = sqlc.arg(message), trigger_symptoms = sqlc.arg(trigger_symptoms),
+    updated_at = sqlc.arg(now)
+WHERE user_id = sqlc.arg(user_id) AND id = sqlc.arg(id);
+
 -- name: GetV2Alert :one
 SELECT * FROM `pregnancy_alerts`
 WHERE user_id = sqlc.arg(user_id) AND id = sqlc.arg(id) AND alert_type LIKE 'v2:%' LIMIT 1;

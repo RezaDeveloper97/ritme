@@ -48,6 +48,9 @@ type Querier interface {
 	// One row for the Today screen: the unread (not dismissed) alert count, the next upcoming non-cancelled
 	// M3 appointment at or after `now`, and the first active care-plan item whose week window has not ended
 	// (the next-visit fallback). The users row only anchors the single result row.
+	// The count covers exactly what GET /pregnancy/v2/alerts lists (ListV2AlertsSince): v2 rows created at
+	// or after `alerts_since`. Legacy v1 rows (e.g. `symptom_based`) are never shown there, so they must
+	// not inflate the badge either (QA 2026-09-29-c L1).
 	GetV2TodayExtras(ctx context.Context, arg GetV2TodayExtrasParams) (GetV2TodayExtrasRow, error)
 	// Pregnancy v2 week details (table pregnancy_week_details, T-M7-01, docs/pregnancy-v2/README.md § Data).
 	// One row per week 1–42, admin-defined; translatable columns are JSON keyed by language code.
@@ -88,10 +91,14 @@ type Querier interface {
 	// PregnancySymptomLog (App\Models\PregnancySymptomLog). Unique (user_id, log_date).
 	// from/to are compared as the raw query-string text, like Laravel's where('log_date', '>=', $from).
 	ListSymptomLogs(ctx context.Context, arg ListSymptomLogsParams) ([]PregnancySymptomLog, error)
+	// The alerts behind CountV2AlertDedupe (same filter), for the rules whose facts come from the dating
+	// (week_entered): a re-dating refreshes their stored placeholders and fact date (QA 2026-09-29-c L5).
+	ListV2AlertsByDedupe(ctx context.Context, arg ListV2AlertsByDedupeParams) ([]PregnancyAlert, error)
 	// The user's v2 alerts created at or after `since`, newest first (dismissed = acked ones included).
 	ListV2AlertsSince(ctx context.Context, arg ListV2AlertsSinceParams) ([]PregnancyAlert, error)
 	// Pregnancy v2 calendar (T-M7-05, internal/pregnancy/v2/calendar): the user's M3 appointments that are
 	// not cancelled, soonest first. Month filtering and care-item linking (meta.care_item_key) happen in Go.
+	// is_active is the reminder bell: off → the visit stays, but it has no «remind before» (QA 2026-09-29-c L4).
 	ListV2CalendarAppointments(ctx context.Context, userID uint64) ([]ListV2CalendarAppointmentsRow, error)
 	// Every live message_contents row of one group in the given locales (request locale + default language)
 	// — the Setup screen's copy (GET /pregnancy/v2/setup-copy, T-M7-20).
@@ -116,6 +123,9 @@ type Querier interface {
 	MarkV2AlertRead(ctx context.Context, arg MarkV2AlertReadParams) error
 	MessageContentExists(ctx context.Context, arg MessageContentExistsParams) (bool, error)
 	NextCareItemSortOrder(ctx context.Context) (int64, error)
+	// Rewrites the facts of one v2 alert (v2 metadata + the stored fallback title / message); the read and
+	// ack state are kept.
+	RefreshV2AlertFacts(ctx context.Context, arg RefreshV2AlertFactsParams) error
 	SetCareItemActive(ctx context.Context, arg SetCareItemActiveParams) (int64, error)
 	SetCareItemSortOrder(ctx context.Context, arg SetCareItemSortOrderParams) (int64, error)
 	// Alert action add_to_visit_note (T-M7-04): creates the day's row when missing, keeps the other fields.

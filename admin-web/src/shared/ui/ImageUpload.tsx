@@ -1,7 +1,9 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useId, useRef, useState, type DragEvent } from 'react';
+
+import { formatNumber } from '@/shared/lib';
 
 import { Button } from './Button';
 import { Field } from './Field';
@@ -48,6 +50,7 @@ export function ImageUpload({
   hint?: string;
 }) {
   const t = useTranslations('upload');
+  const locale = useLocale();
   const id = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const [drag, setDrag] = useState(false);
@@ -68,7 +71,7 @@ export function ImageUpload({
     if (!file) return;
     const problem = checkImageFile(file, accept, maxMb);
     if (problem) {
-      setLocalError(problem === 'tooLarge' ? t('tooLarge', { size: maxMb }) : t('badType'));
+      setLocalError(problem === 'tooLarge' ? t('tooLarge', { size: formatNumber(maxMb, locale) }) : t('badType'));
       return;
     }
     setLocalError(null);
@@ -90,7 +93,7 @@ export function ImageUpload({
       required={required}
       htmlFor={id}
       error={localError ?? error}
-      hint={hint ?? t('hint', { types, size: maxMb })}
+      hint={hint ?? t('hint', { types, size: formatNumber(maxMb, locale) })}
     >
       <input
         ref={inputRef}

@@ -356,7 +356,10 @@ body {
   .badge-data { background: var(--data-soft); color: var(--data-deep); }
 
   /* Data table */
-  .table-wrap { overflow-x: auto; }
+  /* position: relative makes this the containing block of the absolutely positioned
+     .sr-only header/caption text; without it that text escapes the scroll box and
+     widens the whole page on narrow screens (QA 2026-09-29-c M1). */
+  .table-wrap { position: relative; overflow-x: auto; }
   .data-table { inline-size: 100%; border-collapse: collapse; font-size: 13.5px; }
   .data-table th {
     text-align: start;

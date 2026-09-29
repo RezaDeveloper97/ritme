@@ -878,3 +878,10 @@ Nothing needed fixing.
 - Shared `cycleDayMarkerAt` / `fertileWindowDays` (entities/cycle): current + predicted cycles take the window and ovulation from the anchored schedule (task.md §19), past cycles read the legacy calc with the same rule (O+1 → luteal); period always wins.
 - Calendar grid/intensity/aria/day sheet, home week strip, ring and `CycleTimelineBar` all use it. Verified on one TTC user: calendar, ring, timeline, home text, insights and BBT all show cycle days 10–15.
 - Verify: 680 frontend tests + gates. Open: timeline band now drawn above the progress fill (design check); legacy `is_fertile_window` stays in the API for Laravel parity.
+
+## T-M7-22 — Fixes from stage regression C (pregnancy, admin-web)
+- admin-web: `.table-wrap` relative (no sideways scroll at 390 px), `useNumber()` for fa digits everywhere, week grid merges structured details (42/42), `/pregnancy-weeks/{n}` opens details; Go admin `form.JSON` stores raw UTF-8 (search finds both forms).
+- Web: Profile «حذف حساب» restored (`DeleteAccountConfirm`, profile route ships `account` namespace); onboarding week fields `LocaleNumberField` (1–42); Log spotting chip uses the Alerts level colour; bell-off appointments show no «یادآور …» (calendar `remind_before: null`, home card via `remind-chip`).
+- Go: Today `unread_alerts` = what Alerts shows (v2 rows, 7-day window, `v2.AlertsSince`); `week_entered` refreshes after re-dating (keeps read/ack).
+- Verify: admin-web 85 tests, frontend gates + tests (after the message-scopes line), go test + int tests green. OpenAPI hunks land with T-M2-35.
+- Open → T-M7-23: data export row missing from Profile (§11), `/care/today` should carry `is_active` (avoid per-appointment fetch), admin `type=number` Latin digits, PWA install banner above dialogs.

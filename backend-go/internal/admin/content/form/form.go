@@ -122,9 +122,13 @@ func NullInt16(data phpval.Map, key string) sql.NullInt16 {
 	return sql.NullInt16{Int16: int16(max(math.MinInt16, min(math.MaxInt16, n))), Valid: true} //nolint:gosec // G115: clamped
 }
 
-// JSON encodes a value as PHP's json_encode would store it in a JSON column.
+// JSON encodes a value for a JSON column as raw UTF-8 (json_encode with JSON_UNESCAPED_UNICODE |
+// JSON_UNESCAPED_SLASHES), the way the seed rows are stored. Plain json_encode wrote every Persian
+// letter as \uXXXX: the same meaning, but ~6× the bytes and invisible to a `LIKE '%فارسی%'` on the
+// DB (QA 2026-09-29-c L8). Rows Laravel stored escaped stay as they are; readers decode JSON, and
+// the admin search matches both spellings (Contains + ContainsJSON).
 func JSON(v any) json.RawMessage {
-	b, err := jsonx.Marshal(v, 0)
+	b, err := jsonx.Marshal(v, jsonx.UnescapedUnicode|jsonx.UnescapedSlashes)
 	if err != nil {
 		return json.RawMessage("null")
 	}

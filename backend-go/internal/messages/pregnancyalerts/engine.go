@@ -27,8 +27,8 @@ const Group = "pregnancy_alert"
 // LegendKey is the legend row of Group.
 const LegendKey = "legend"
 
-// ListWindowDays is the window of GET /pregnancy/v2/alerts.
-const ListWindowDays = 7
+// ListWindowDays is the window of GET /pregnancy/v2/alerts (the Today badge counts the same window).
+const ListWindowDays = v2.AlertsWindowDays
 
 const typePrefix = "v2:"
 
@@ -317,20 +317,21 @@ func (e *Engine) evaluate(ctx context.Context, userID uint64, now time.Time, l v
 	return out, nil
 }
 
-func (e *Engine) persist(ctx context.Context, userID uint64, h Hit, c Config, f Facts, now time.Time, rs rows, l v2.Lang,
-) (*jsonx.OrderedMap, error) {
-	since := f.windowStart(c.WindowDays).TehranMidnight()
-	n, err := e.q.CountV2AlertDedupe(ctx, store.CountV2AlertDedupeParams{
-		UserID: userID, AlertType: typePrefix + h.Rule, Since: sql.NullTime{Time: since, Valid: true}, Dedupe: h.Dedupe,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("pregnancy alerts: dedupe: %w", err)
-	}
-	if n > 0 {
-		return nil, nil
-	}
+// RefreshRules take their facts from the dating alone (week, basis, week start), so a deduplicated
+// hit rewrites the existing alert instead of being dropped: re-dating in Setup must not leave the
+// alert with the old basis and fact date (QA 2026-09-29-c L5). Read / ack state is kept.
+var RefreshRules = []string{"week_entered"}
+
+// hitRow is what a hit stores: the v2 metadata and the locale-rendered fallback title / message.
+type hitRow struct {
+	trigger, actions []byte
+	title, advice    string
+}
+
+func buildHit(h Hit, c Config, f Facts, rs rows, l v2.Lang, pinOn bool) (hitRow, error) {
 	m := meta{Rule: h.Rule, Level4: c.Level, Dedupe: h.Dedupe, Vars: map[string]string{}}
-	if !h.On.IsZero() && h.On != f.Today {
+	// A refreshed row was created on another day, so its fact day is always pinned.
+	if !h.On.IsZero() && (pinOn || h.On != f.Today) {
 		m.On = h.On.String()
 	}
 	for _, kv := range h.Vars {
@@ -339,7 +340,7 @@ func (e *Engine) persist(ctx context.Context, userID uint64, h Hit, c Config, f 
 	}
 	trigger, err := json.Marshal(m)
 	if err != nil {
-		return nil, err
+		return hitRow{}, err
 	}
 	txt := render(rs.texts(h.Rule, l), m, l.Locale)
 	labels := make([]string, 0, len(txt.actions))
@@ -348,19 +349,46 @@ func (e *Engine) persist(ctx context.Context, userID uint64, h Hit, c Config, f 
 	}
 	actions, err := json.Marshal(labels)
 	if err != nil {
-		return nil, err
+		return hitRow{}, err
 	}
 	title := txt.title
 	if title == "" {
 		title = h.Rule
 	}
+	return hitRow{trigger: trigger, actions: actions, title: truncate(title, 255), advice: txt.advice}, nil
+}
+
+func (e *Engine) persist(ctx context.Context, userID uint64, h Hit, c Config, f Facts, now time.Time, rs rows, l v2.Lang,
+) (*jsonx.OrderedMap, error) {
+	since := sql.NullTime{Time: f.windowStart(c.WindowDays).TehranMidnight(), Valid: true}
 	ts := sql.NullTime{Time: now.In(civildate.Tehran), Valid: true}
+	if contains(RefreshRules, h.Rule) {
+		return e.refresh(ctx, userID, h, c, f, since, ts, rs, l)
+	}
+	n, err := e.q.CountV2AlertDedupe(ctx, store.CountV2AlertDedupeParams{
+		UserID: userID, AlertType: typePrefix + h.Rule, Since: since, Dedupe: h.Dedupe,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("pregnancy alerts: dedupe: %w", err)
+	}
+	if n > 0 {
+		return nil, nil
+	}
+	return e.insert(ctx, userID, h, c, f, ts, rs, l)
+}
+
+func (e *Engine) insert(ctx context.Context, userID uint64, h Hit, c Config, f Facts, ts sql.NullTime, rs rows, l v2.Lang,
+) (*jsonx.OrderedMap, error) {
+	hr, err := buildHit(h, c, f, rs, l, false)
+	if err != nil {
+		return nil, err
+	}
 	id, err := e.q.InsertAlert(ctx, store.InsertAlertParams{
 		UserID: userID, AlertLevel: V1Level(c.Level), AlertType: typePrefix + h.Rule,
-		Title: truncate(title, 255), Message: txt.advice,
+		Title: hr.title, Message: hr.advice,
 		PregnancyWeek:      sql.NullInt32{Int32: int32(f.Week), Valid: true}, //nolint:gosec // 1..42
-		TriggerSymptoms:    db.NullRawJSON{V: trigger, Valid: true},
-		RecommendedActions: db.NullRawJSON{V: actions, Valid: true},
+		TriggerSymptoms:    db.NullRawJSON{V: hr.trigger, Valid: true},
+		RecommendedActions: db.NullRawJSON{V: hr.actions, Valid: true},
 		CreatedAt:          ts, UpdatedAt: ts,
 	})
 	if err != nil {
@@ -371,6 +399,56 @@ func (e *Engine) persist(ctx context.Context, userID uint64, h Hit, c Config, f 
 		return nil, fmt.Errorf("pregnancy alerts: reload: %w", err)
 	}
 	return alertJSON(&row, rs, l), nil
+}
+
+// refresh is persist for a RefreshRules hit: a new alert when the window has none (returned as
+// created), else the existing ones get the hit's current facts when they differ (not "created").
+func (e *Engine) refresh(ctx context.Context, userID uint64, h Hit, c Config, f Facts, since, ts sql.NullTime, rs rows, l v2.Lang,
+) (*jsonx.OrderedMap, error) {
+	list, err := e.q.ListV2AlertsByDedupe(ctx, store.ListV2AlertsByDedupeParams{
+		UserID: userID, AlertType: typePrefix + h.Rule, Since: since, Dedupe: h.Dedupe,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("pregnancy alerts: dedupe: %w", err)
+	}
+	if len(list) == 0 {
+		return e.insert(ctx, userID, h, c, f, ts, rs, l)
+	}
+	hr, err := buildHit(h, c, f, rs, l, true)
+	if err != nil {
+		return nil, err
+	}
+	cur := decodeMeta(&store.PregnancyAlert{TriggerSymptoms: db.NullRawJSON{V: hr.trigger, Valid: true}})
+	for i := range list {
+		if sameFacts(&list[i], cur) {
+			continue
+		}
+		if err := e.q.RefreshV2AlertFacts(ctx, store.RefreshV2AlertFactsParams{
+			Title: hr.title, Message: hr.advice, TriggerSymptoms: db.NullRawJSON{V: hr.trigger, Valid: true},
+			Now: ts, UserID: userID, ID: list[i].ID,
+		}); err != nil {
+			return nil, fmt.Errorf("pregnancy alerts: refresh: %w", err)
+		}
+	}
+	return nil, nil
+}
+
+// sameFacts: the row's placeholders and fact day (`on`, else its creation day) match the hit's.
+func sameFacts(r *store.PregnancyAlert, hit meta) bool {
+	m := decodeMeta(r)
+	on := m.On
+	if on == "" && r.CreatedAt.Valid {
+		on = civildate.FromTime(r.CreatedAt.Time.In(civildate.Tehran)).String()
+	}
+	if on != hit.On || len(m.Vars) != len(hit.Vars) {
+		return false
+	}
+	for k, v := range m.Vars {
+		if hit.Vars[k] != v {
+			return false
+		}
+	}
+	return true
 }
 
 func truncate(s string, n int) string {
@@ -522,7 +600,7 @@ func (e *Engine) List(ctx context.Context, userID uint64, now time.Time, l v2.La
 	if err != nil {
 		return nil, err
 	}
-	since := today.AddDays(-(ListWindowDays - 1)).TehranMidnight()
+	since := v2.AlertsSince(today)
 	list, err := e.q.ListV2AlertsSince(ctx, store.ListV2AlertsSinceParams{UserID: userID, Since: sql.NullTime{Time: since, Valid: true}})
 	if err != nil {
 		return nil, fmt.Errorf("pregnancy alerts: list: %w", err)

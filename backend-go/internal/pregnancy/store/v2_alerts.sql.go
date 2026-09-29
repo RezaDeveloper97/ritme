@@ -10,6 +10,7 @@ import (
 	"database/sql"
 	"encoding/json"
 
+	"github.com/ritme/backend-go/db"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 )
 
@@ -125,6 +126,67 @@ func (q *Queries) ListLiveMessageGroup(ctx context.Context, messageGroup string)
 	for rows.Next() {
 		var i ListLiveMessageGroupRow
 		if err := rows.Scan(&i.ItemKey, &i.Locale, &i.Payload); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listV2AlertsByDedupe = `-- name: ListV2AlertsByDedupe :many
+SELECT id, user_id, alert_level, alert_type, title, message, pregnancy_week, trigger_symptoms, medical_history_flags, is_read, is_dismissed, read_at, dismissed_at, recommended_actions, created_at, updated_at FROM ` + "`" + `pregnancy_alerts` + "`" + `
+WHERE user_id = ? AND alert_type = ? AND created_at >= ?
+  AND JSON_UNQUOTE(JSON_EXTRACT(trigger_symptoms, '$.dedupe')) = CAST(? AS CHAR)
+ORDER BY id
+`
+
+type ListV2AlertsByDedupeParams struct {
+	UserID    uint64
+	AlertType string
+	Since     sql.NullTime
+	Dedupe    interface{}
+}
+
+// The alerts behind CountV2AlertDedupe (same filter), for the rules whose facts come from the dating
+// (week_entered): a re-dating refreshes their stored placeholders and fact date (QA 2026-09-29-c L5).
+func (q *Queries) ListV2AlertsByDedupe(ctx context.Context, arg ListV2AlertsByDedupeParams) ([]PregnancyAlert, error) {
+	rows, err := q.db.QueryContext(ctx, listV2AlertsByDedupe,
+		arg.UserID,
+		arg.AlertType,
+		arg.Since,
+		arg.Dedupe,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []PregnancyAlert{}
+	for rows.Next() {
+		var i PregnancyAlert
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.AlertLevel,
+			&i.AlertType,
+			&i.Title,
+			&i.Message,
+			&i.PregnancyWeek,
+			&i.TriggerSymptoms,
+			&i.MedicalHistoryFlags,
+			&i.IsRead,
+			&i.IsDismissed,
+			&i.ReadAt,
+			&i.DismissedAt,
+			&i.RecommendedActions,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -263,6 +325,36 @@ type MarkV2AlertReadParams struct {
 func (q *Queries) MarkV2AlertRead(ctx context.Context, arg MarkV2AlertReadParams) error {
 	_, err := q.db.ExecContext(ctx, markV2AlertRead,
 		arg.Now,
+		arg.Now,
+		arg.UserID,
+		arg.ID,
+	)
+	return err
+}
+
+const refreshV2AlertFacts = `-- name: RefreshV2AlertFacts :exec
+UPDATE ` + "`" + `pregnancy_alerts` + "`" + `
+SET title = ?, message = ?, trigger_symptoms = ?,
+    updated_at = ?
+WHERE user_id = ? AND id = ?
+`
+
+type RefreshV2AlertFactsParams struct {
+	Title           string
+	Message         string
+	TriggerSymptoms db.NullRawJSON
+	Now             sql.NullTime
+	UserID          uint64
+	ID              uint64
+}
+
+// Rewrites the facts of one v2 alert (v2 metadata + the stored fallback title / message); the read and
+// ack state are kept.
+func (q *Queries) RefreshV2AlertFacts(ctx context.Context, arg RefreshV2AlertFactsParams) error {
+	_, err := q.db.ExecContext(ctx, refreshV2AlertFacts,
+		arg.Title,
+		arg.Message,
+		arg.TriggerSymptoms,
 		arg.Now,
 		arg.UserID,
 		arg.ID,

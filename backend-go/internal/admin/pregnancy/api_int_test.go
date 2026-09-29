@@ -152,6 +152,9 @@ func TestWeekDetailsUpdate(t *testing.T) {
 	var tasks []map[string]any
 	require.NoError(t, json.Unmarshal([]byte(e.String("SELECT tasks FROM pregnancy_week_details WHERE week_number = 8")), &tasks))
 	assert.Equal(t, "folic_acid", tasks[0]["key"])
+	// QA 2026-09-29-c L8: translatable columns are stored as raw UTF-8, not \uXXXX.
+	assert.Equal(t, 1, e.Int(`SELECT COUNT(*) FROM pregnancy_week_details WHERE week_number = 8
+		AND highlights LIKE '%"دست"%' AND highlights NOT LIKE '%\\\\u%' AND sources LIKE '%https://who.int/x%'`))
 
 	// Partial update: absent fields keep their value; [] / null clear.
 	r = c.JSON(fiber.MethodPut, "/pregnancy-weeks/8/details", map[string]any{
@@ -239,6 +242,8 @@ func TestCareItemsCRUD(t *testing.T) {
 	assert.Equal(t, "iron_check", it["key"])
 	assert.Equal(t, float64(6), it["sort_order"], "appended")
 	assert.Equal(t, float64(2), it["remind_before"])
+	assert.Equal(t, `{"fa":"آزمایش آهن","en":"Iron check"}`,
+		e.String("SELECT title FROM pregnancy_care_items WHERE `key` = 'iron_check'"), "raw UTF-8 (L8)")
 	id := int(it["id"].(float64))
 	path := "/pregnancy-care-items/" + strconv.Itoa(id)
 

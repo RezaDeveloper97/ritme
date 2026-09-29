@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 
 import { fieldError } from '@/shared/api';
-import { cn } from '@/shared/lib';
+import { cn, useNumber } from '@/shared/lib';
 import { Button, Icon, Select, Switch, TextArea, TextInput } from '@/shared/ui';
 
 import type { SchemaField } from '../api/messages';
@@ -62,6 +62,7 @@ function SchemaInput({
   path: string;
 }) {
   const t = useTranslations('smartMessages');
+  const n = useNumber();
   const err = fieldError(error, path);
   const label = (
     <>
@@ -114,7 +115,7 @@ function SchemaInput({
           type="number"
           min={field.min}
           max={field.max}
-          hint={field.min !== undefined && field.max !== undefined ? t('range', { min: field.min, max: field.max }) : undefined}
+          hint={field.min !== undefined && field.max !== undefined ? t('range', { min: n(field.min), max: n(field.max) }) : undefined}
           value={str}
           onChange={(e) => onChange(e.target.value)}
           error={err}
@@ -193,7 +194,7 @@ function SchemaInput({
       return (
         <fieldset className="m-0 flex min-w-0 flex-col gap-3 border-0 p-0">
           <legend className="field-label p-0">
-            <span dir="ltr">{field.key}</span> <span className="text-xs text-muted">({t('countOf', { count: list.length, max })})</span>
+            <span dir="ltr">{field.key}</span> <span className="text-xs text-muted">({t('countOf', { count: n(list.length), max: n(max) })})</span>
           </legend>
           {list.map((item, i) => (
             <div key={i} className="flex flex-col gap-3 rounded-xl border border-line p-3">

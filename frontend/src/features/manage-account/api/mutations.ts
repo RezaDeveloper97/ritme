@@ -1,6 +1,11 @@
 'use client';
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  type MutationOptions,
+  type QueryClient,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query';
 
 import { type ApiEnvelope, apiClient } from '@/shared/api';
 import { clearAuthToken } from '@/shared/session';
@@ -55,12 +60,14 @@ export function useExportData() {
 
 /**
  * DELETE /account — permanently deletes the account and all its data and
- * revokes tokens server-side. On success the local session and the entire
- * query cache are cleared so no health data lingers in memory.
+ * revokes tokens server-side. On success the local session (token, flag
+ * cookie, per-user device data via the session cleanups) and the entire query
+ * cache are cleared so no health data lingers on the device or in memory.
  */
-export function useDeleteAccount() {
-  const queryClient = useQueryClient();
-  return useMutation<void, unknown, void>({
+export function deleteAccountMutationOptions(
+  queryClient: QueryClient,
+): MutationOptions<void, unknown, void> {
+  return {
     mutationFn: async () => {
       await apiClient.delete<ApiEnvelope<never>>('/account');
     },
@@ -68,5 +75,10 @@ export function useDeleteAccount() {
       clearAuthToken();
       queryClient.clear();
     },
-  });
+  };
+}
+
+export function useDeleteAccount() {
+  const queryClient = useQueryClient();
+  return useMutation<void, unknown, void>(deleteAccountMutationOptions(queryClient));
 }

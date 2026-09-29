@@ -108,7 +108,10 @@ func (s *Service) Today(ctx context.Context, userID uint64, now time.Time, l Lan
 		return nil, err
 	}
 	ex, err := s.q.GetV2TodayExtras(ctx, store.GetV2TodayExtrasParams{
-		UserID: userID, Now: sql.NullTime{Time: now.In(civildate.Tehran), Valid: true}, CurrentWeek: wk(cur),
+		UserID:      userID,
+		AlertsSince: sql.NullTime{Time: AlertsSince(today), Valid: true},
+		Now:         sql.NullTime{Time: now.In(civildate.Tehran), Valid: true},
+		CurrentWeek: wk(cur),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("pregnancy v2: today extras: %w", err)
@@ -167,6 +170,15 @@ func (s *Service) Today(ctx context.Context, userID uint64, now time.Time, l Lan
 		"tasks", tasksJSON(byWeek[cur], doneKeys(st.DoneTaskKeys), l),
 		"unread_alerts", ex.UnreadAlerts,
 	), nil
+}
+
+// AlertsWindowDays is the window of GET /pregnancy/v2/alerts; the Today badge counts the same rows.
+const AlertsWindowDays = 7
+
+// AlertsSince is the first instant of the alerts window that ends on today (Tehran midnight,
+// AlertsWindowDays-1 days back), shared by the Alerts list and the Today badge.
+func AlertsSince(today civildate.Date) time.Time {
+	return today.AddDays(-(AlertsWindowDays - 1)).TehranMidnight()
 }
 
 // slideTitle is the carousel headline: the age «۸ هفته و ۳ روز» on the current week, and the

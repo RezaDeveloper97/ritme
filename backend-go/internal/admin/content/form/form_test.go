@@ -41,6 +41,16 @@ func TestLikePatterns(t *testing.T) {
 	assert.Equal(t, `%a\\/b%`, ContainsJSON("a/b"))
 }
 
+// QA 2026-09-29-c L8: JSON columns are written as raw UTF-8, like the seed rows — not \uXXXX.
+func TestJSONStoresRawUTF8(t *testing.T) {
+	got := string(JSON(map[string]any{"fa": "سلام <b>/x</b>", "en": "Hi"}))
+	assert.Equal(t, `{"en":"Hi","fa":"سلام <b>/x</b>"}`, got)
+	assert.NotContains(t, got, `\u`)
+	assert.NotContains(t, got, `\/`)
+	// A LIKE on the raw text (Contains) now finds a row this admin wrote.
+	assert.Equal(t, "%سلام%", Contains("سلام"))
+}
+
 func TestKeepAndInts(t *testing.T) {
 	m := phpval.NewMap()
 	m.Set("n", "12")

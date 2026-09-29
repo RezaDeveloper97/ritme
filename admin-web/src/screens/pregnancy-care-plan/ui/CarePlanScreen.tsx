@@ -213,7 +213,7 @@ function CareTable({ rows: serverRows }: { rows: CareItem[] }) {
                   <Button
                     size="sm"
                     variant="danger"
-                    title={r.appointments_count > 0 ? t('inUseHint', { count: r.appointments_count }) : undefined}
+                    title={r.appointments_count > 0 ? t('inUseHint', { count: n(r.appointments_count) }) : undefined}
                     loading={remove.isPending && remove.variables === r.id}
                     onClick={() => del(r)}
                   >

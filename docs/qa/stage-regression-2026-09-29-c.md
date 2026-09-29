@@ -94,6 +94,44 @@ blockers and no high-severity bugs. I found 1 medium bug, 8 low bugs and 3 info 
 | L8 | low | admin save path (messages, care items, week details) | Every admin save rewrites the JSON columns with `\uXXXX` escapes (seed rows are raw UTF-8). The meaning is unchanged (checked with `jq -S`), but the stored size is about 6× larger and `LIKE '%فارسی%'` searches on the DB stop matching. Likely json_encode parity; flagging it only |
 | **M2** | med (product) | `frontend/src/features/manage-account` — `DeleteAccountConfirm` is exported but mounted nowhere (the import was dropped from `ProfilePage` in `42f9b94` "pwa") | The web app has no in-app way to delete an account. `DELETE /account` works (D1–D3), but a user cannot reach it. This matters for store policy and privacy. It may be a deliberate product decision; please confirm |
 
+### Resolution (T-M7-22)
+
+- **M1:** Resolved. `.table-wrap` is now `position: relative`, so it is the containing block of the `.sr-only` header
+  and caption text. Every admin list (DataTable, checkup types, care plan, alert rules, translations) uses that
+  wrapper. Test: `admin-web/src/app/globals.test.ts`.
+- **M2:** Resolved. Profile → «حریم خصوصی» has a «حذف حساب» row again, and it opens `DeleteAccountConfirm`. On success,
+  `clearAuthToken()` runs: the token, the flag cookie, the onboarding marker and the per-user device data (session
+  cleanups) are removed. The query cache is cleared and the app lands on `/signup`. Test:
+  `features/manage-account/api/mutations.test.ts`. The route needs the `account` namespace in
+  `frontend/src/app/message-scopes.ts` (outside this task's `touches`; see the task report).
+- **L1:** Resolved. `unread_alerts` counts exactly what Alerts lists: unread, not dismissed `v2:` rows from the
+  7-day window (`v2.AlertsSince`, shared with the list). Legacy v1 rows no longer count. Test:
+  `TestToday_UnreadAlertsMatchAlertsList`.
+- **L2:** Resolved. The onboarding week fields (manual and ultrasound) use `LocaleNumberField` and are clamped to 1–42.
+- **L3:** Resolved. Every ICU number argument in admin-web now goes through the admin formatter (`useNumber()` /
+  `formatNumber`). That covers the «n از max» counters, the «min تا max» ranges, «ثبت‌های N روز اخیر», the care-item
+  «N نوبت…» hint, step labels, the upload size, the pagination label, and the smart-message week labels and «و N
+  مورد دیگر». The sample numbers in the alert preview use the digits of the text's language. `type=number` inputs
+  still show Latin digits (browser behaviour).
+- **L4:** Resolved. With the bell off, the pregnancy calendar sends `remind_before: null`, so the card shows «نوبت داری»
+  instead of «یادآور: … قبل». The home reminders card hides its «… قبل یادآوری» chip once the appointment's
+  `is_active` is false. `/care/today` does not include the switch, so the card reads it from the appointment. Test:
+  `TestCalendar_ReminderOffKeepsVisit`, `widgets/today-reminders/model/remind-chip.test.ts`.
+- **L5:** Resolved. `week_entered` is a refresh rule. When the daily evaluation hits an alert that already exists for
+  the week, it rewrites the placeholders (basis), the fact date and the stored fallback text if they changed. The
+  read and ack state are kept, and no duplicate is created. Test: `TestAlerts_WeekEnteredFollowsReDating`,
+  `TestSameFacts`.
+- **L6:** Resolved. The «این ثبت یک پیام تازه ساخت» box uses the Alerts level chip (`pg2-level-<level>` + `pg2-chip`),
+  so «پیگیری زودتر» has the same colour as on Alerts and in the legend.
+- **L7:** Resolved. The week grid merges the text rows with the structured details (1–42). A details-only week counts
+  as filled, and its cell opens `/pregnancy-weeks/new?week=N&tab=details`, whose title is the week. If
+  `/pregnancy-weeks/{n}` has no text row n but week n has details, the page redirects to those details. Test:
+  `screens/pregnancy-weeks/lib/cells.test.ts`.
+- **L8:** Resolved. Admin JSON columns are written as raw UTF-8 (`JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES`, in
+  `form.JSON`). This only affects future writes, so there is no data migration. Rows stored escaped still decode the
+  same, and the admin search still matches both forms. Tests: `TestJSONStoresRawUTF8`, `TestEditStoresRawUTF8`, plus
+  the week-details and care-item assertions.
+
 ### Info
 
 - **I1:** In headless Chrome, `navigator.canShare({files})` is true, and `share()` never settles, so the PDF button stays on «در حال ساخت PDF…». This is a test-environment artefact. With `canShare` stubbed the download path works. If a real browser ever leaves `share()` pending, the button has no timeout (`shared/lib/pdf/share.ts:9-16`).

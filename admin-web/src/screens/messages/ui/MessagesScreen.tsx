@@ -5,7 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-import { cn, excerpt, formatNumber, useListParams } from '@/shared/lib';
+import { cn, excerpt, formatNumber, useListParams, useNumber } from '@/shared/lib';
 import { Badge, Button, DataTable, Pagination, Panel, RowActions, Select, toast, useNotifyError, type Column } from '@/shared/ui';
 
 import { messagesApi, type Message, type MissingMessage } from '../api/messages';
@@ -195,6 +195,7 @@ function MissingPanel({
   onGroup: (group: string) => void;
 }) {
   const t = useTranslations('smartMessages');
+  const n = useNumber();
   const labels = useMessageLabels();
   if (group && !registered.includes(group)) return null;
 
@@ -235,7 +236,7 @@ function MissingPanel({
             </li>
           ))}
           {missing.length > MAX_MISSING_ROWS ? (
-            <li className="text-muted">{t('moreMissing', { count: missing.length - MAX_MISSING_ROWS })}</li>
+            <li className="text-muted">{t('moreMissing', { count: n(missing.length - MAX_MISSING_ROWS) })}</li>
           ) : null}
         </ul>
       )}
@@ -259,10 +260,10 @@ function WeekTipGrid({ missing, onCreate }: { missing: MissingMessage[]; onCreat
           const first = gaps[0];
           const title = first
             ? t('weekMissing', {
-                week: w,
+                week: formatNumber(Number(w), uiLocale),
                 locales: gaps.map((g) => labels.locale(g.locale)).join('، '),
               })
-            : t('weekFilled', { week: w });
+            : t('weekFilled', { week: formatNumber(Number(w), uiLocale) });
           return (
             <button
               key={w}

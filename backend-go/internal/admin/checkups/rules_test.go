@@ -6,7 +6,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/platform/validation/phpval"
 )
 
@@ -22,9 +21,8 @@ func TestTranslated_KeepsActiveLanguagesWithText(t *testing.T) {
 	v := decoded(t, `{"en":"Eye","fa":"چشم","de":"Auge"}`)
 	assert.JSONEq(t, `{"fa":"چشم","en":"Eye"}`, string(translated(v, codes)))
 
-	b, err := jsonx.Marshal(translatedObj(v, codes), 0)
-	require.NoError(t, err)
-	assert.Equal(t, "{\"fa\":\"\\u0686\\u0634\\u0645\",\"en\":\"Eye\"}", string(b), "language order, PHP escaping")
+	// Stored bytes: language order, raw UTF-8 (QA 2026-09-29-c L8), not \uXXXX.
+	assert.Equal(t, `{"fa":"چشم","en":"Eye"}`, string(translated(v, codes)))
 
 	assert.Nil(t, translated(decoded(t, `{"fa":"","en":null}`), codes))
 	assert.Nil(t, translated(nil, codes))
