@@ -514,3 +514,44 @@ Prod untouched: the `docker inspect` Created times of every `ritme` container we
 08-16T13:39:17Z, `ritme-proxy-1` 09-23T11:32:14Z, `ritme-queue-1` 08-31T08:37:32Z, `ritme-redis-1` 08-16T13:39:17Z).
 The proxy got only the script's graceful `nginx -t && nginx -s reload` twice: once after backend-go came up and once
 in step 4. `up -d proxy` reported `Running`. `deploy.sh` was not run. The scratch gate credentials were deleted.
+
+## Stage deploy — wave 3 (2026-09-29)
+
+Ships `stage` @ `e3aea8d` (T-M5-13 single fertile window, T-M7-19/T-M7-21 security fixes, goose 00007
+`checkups_catalog_icons` + 00008 `pregnancy_v2_copy`).
+
+Pre-deploy `verify-all`, all green: backend-go `go vet` + `go test ./...` + `golangci-lint` (0 issues), `make docker`
+built. Frontend typecheck, lint, fsd:lint, lint:styles, lint:dark (the 14 pre-existing AA pairs only), 680/680 tests,
+and `npm run build` passed. admin-web typecheck, lint, fsd:lint, 79/79 tests and build passed. `make schema-diff`
+reported "laravel and goose baseline are identical (47 tables)". `make contract ROUTES=all` reported
+998 passed, 0 failed, 488 allow-listed. Laravel was skipped because `backend/` is unchanged.
+
+Deploy: `STAGE_BASIC_AUTH=… ./deploy-stage.sh`, exit 0, all 23 script checks `ok`.
+
+```
+==> Building and starting backend-go first (the frontend build reads its messages)...
+ Container ritme-stage-backend-go-1 Recreated
+ Container ritme-stage-backend-go-1 Healthy
+{"time":"2026-09-29T08:54:37Z","level":"INFO","msg":"migrations","action":"goose_managed","applied":[7,8],"version":8}
+nginx: configuration file /etc/nginx/nginx.conf test is successful      (graceful reload)
+==> Building staging images on the server (BUILD_REV=e3aea8d-20260929T085217Z)...
+#33 [frontend deps 2/2] RUN npm ci          CACHED
+#39 [frontend builder 3/3] RUN echo "frontend build rev: e3aea8d-20260929T085217Z" && npm run build
+#39 229.9  ✓ Generating static pages (83/83)
+#39 DONE 292.1s                             (not CACHED)
+```
+
+`goose_db_version` on stage has versions 5 and 6 from earlier deploys, then 7 and 8, both `is_applied=1` and
+stamped 2026-09-29 08:54:37. The container states are `backend-go` healthy, `admin-web` healthy, and `frontend`
+Up. The frontend defines no healthcheck, and it served `/fa/signup` 200 behind the gate.
+
+CSP (T-M7-19): `GET /fa/home` behind the gate returned 307 → `/fa/signup` 200 (no session). Both responses carry an
+enforced `Content-Security-Policy` header. Neither has a `Content-Security-Policy-Report-Only` header:
+`default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:;
+img-src 'self' data: blob: https:; connect-src 'self' https://stage.ritmeapp.ir; worker-src 'self'; manifest-src
+'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'`.
+
+Prod untouched: the `docker inspect` Created times of every `ritme` container were identical before and after, and
+`diff` was empty (`ritme-backend-1` 08-31T08:37:28Z, `ritme-frontend-1` 09-01T13:14:46Z, `ritme-mysql-1`
+08-16T13:39:17Z, `ritme-proxy-1` 09-23T11:32:14Z, `ritme-queue-1` 08-31T08:37:32Z, `ritme-redis-1` 08-16T13:39:17Z).
+The proxy got only the script's graceful reloads. `deploy.sh` was not run. The scratch gate credentials were deleted.
