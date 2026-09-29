@@ -3,7 +3,7 @@ id: T-M2-36
 title: Daily tips on /cycle/today use the display fertile window (F-1)
 milestone: M2
 type: backend
-status: in_progress
+status: done
 depends_on: [T-M2-35]
 parallel_group: M2-J
 touches: [backend-go/internal/cycle,backend-go/internal/messages,backend-go/api/openapi.yaml,backend-go/contract/allowlist,docs/go-migration/deviations.md,docs/qa,frontend/src/screens/home]

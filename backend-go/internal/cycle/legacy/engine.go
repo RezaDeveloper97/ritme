@@ -72,6 +72,20 @@ func (e *Engine) Metrics() metrics.Metrics { return e.metrics }
 // CalculateForDate is HealthDataEngine::calculateForDate. With withContent false (calendar mode)
 // only CalendarFields are emitted and no text flags, tips or snapshots are built.
 func (e *Engine) CalculateForDate(ctx context.Context, date civildate.Date, withContent bool) (Calculation, error) {
+	return e.calculate(ctx, date, withContent, false)
+}
+
+// CalculateForDisplay is the full calculation of /cycle/today and /cycle/date read by the §19
+// display window (DisplayWindow, deviations.md D-30): on the legacy O + 1 day the phase is
+// `luteal` and is_fertile_window false, the text flags are built from those and the daily tips are
+// looked up for luteal + early_luteal, so the home's «توصیه‌های امروز» carries luteal, not fertile,
+// copy there. The emitted sub-phase (post_ovulation), scores and every other day are
+// CalculateForDate(date, true).
+func (e *Engine) CalculateForDisplay(ctx context.Context, date civildate.Date) (Calculation, error) {
+	return e.calculate(ctx, date, true, true)
+}
+
+func (e *Engine) calculate(ctx context.Context, date civildate.Date, withContent, display bool) (Calculation, error) {
 	profile := e.in.Profile
 	if profile == nil || profile.LastPeriodStart.IsZero() {
 		return emptyCalculation(date, withContent), nil
@@ -93,6 +107,17 @@ func (e *Engine) CalculateForDate(ctx context.Context, date civildate.Date, with
 	isPeriodDay := phase == enums.CyclePhaseMenstruation
 	isFertile := InFertileWindow(cycleDay, ovulationDay) && !isPeriodDay
 	isPms := InPmsWindow(cycleDay, cycleLength) && !isPeriodDay
+	// tipSubphase keys the daily tips; only the display rewrite of O + 1 changes it.
+	tipSubphase := subphase
+	if display {
+		shown, fertile := DisplayWindow(phase, isFertile, cycleDay, ovulationDay)
+		if shown != phase {
+			// O + 1 opens the luteal phase: its tips are the early-luteal ones (no content is keyed
+			// to luteal + post_ovulation, so the card would be empty). subphase itself stays.
+			tipSubphase = enums.CycleSubphaseEarlyLuteal
+		}
+		phase, isFertile = shown, fertile
+	}
 	isPeriodTomorrow := PeriodTomorrow(cycleDay, cycleLength, variability)
 	isLutealSpotting := LutealSpotting(cycleDay, log)
 
@@ -128,7 +153,7 @@ func (e *Engine) CalculateForDate(ctx context.Context, date civildate.Date, with
 	}
 
 	c.TextFlags = TextFlags(phase, subphase, isFertile, isPms, isPeriodTomorrow, finalProbability, variability)
-	tips, err := e.dailyTips(ctx, phase, subphase, log)
+	tips, err := e.dailyTips(ctx, phase, tipSubphase, log)
 	if err != nil {
 		return Calculation{}, err
 	}

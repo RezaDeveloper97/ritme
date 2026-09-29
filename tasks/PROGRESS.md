@@ -900,3 +900,7 @@ Nothing needed fixing.
 - `medicationSchedule` moved to `entities/care-reminder`; admin-web numeric inputs show locale digits (text + inputMode); `--z-*` stacking tokens, PWA install banner below dialogs/sheets and hidden while a modal is open.
 - Verify: frontend 699 tests + gates, admin-web 91 tests, go test/lint, care+http int tests, contract 998 pass; check-colors OK.
 - Minor open: `.pwa-toast` (soft update) still above sheets; admin numeric min/max now enforced by the server (422).
+
+## T-M2-36 — Daily tips on /cycle/today use the display fertile window (F-1)
+- Shared `legacy.DisplayWindow` (§19) used by `/messages/daily` (D-28) and new `Engine.CalculateForDisplay` behind `/cycle/today` + `/cycle/date` (D-30): O+1 = luteal, not fertile, no fertility flag; tips looked up as `early_luteal` (product decision 2026-09-29); scores/subphase unchanged; `/cycle/month`, `/home`, calendar keep the legacy calc. Cycle engine cache schema → 2.
+- Verify: go test/lint, cycle + messages int tests, contract 998 pass / 1994 allow-listed (all D-30 O+1 days), frontend 699 tests.

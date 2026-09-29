@@ -16,3 +16,28 @@ entries:
     where: "**.daily_card.subtitle"
     deviation: D-27
     reason: post_ovulation note (fertility level low) instead of Laravel's reused fertile-window note
+  # D-30 (task T-M2-36, stage final smoke F-1): /cycle/date reads the day by the §19 display
+  # window (legacy.DisplayWindow, shared with D-28). On the legacy O + 1 day (phase ovulation after
+  # the ovulation day) Go says luteal, not fertile, drops the fertility_status flag, names the
+  # luteal phase in phase_info and looks the tips up for luteal + early_luteal. TestLegacyGoldenSweep (applyD30)
+  # pins the exact rewrite; these entries only let the HTTP diff through.
+  - case: "date.*"
+    where: data.calculation.phase
+    deviation: D-30
+    reason: O + 1 is luteal by the §19 display window (legacy engine says ovulation)
+  - case: "date.*"
+    where: data.calculation.is_fertile_window
+    deviation: D-30
+    reason: the §19 display window ends on ovulation
+  - case: "date.*"
+    where: data.calculation.text_flags.fertility_status
+    deviation: D-30
+    reason: no fertile-window flag outside the §19 display window
+  - case: "date.*"
+    where: data.calculation.text_flags.phase_info
+    deviation: D-30
+    reason: label of the §19 phase (luteal)
+  - case: "date.*"
+    where: data.calculation.daily_tips.**
+    deviation: D-30
+    reason: early-luteal tips (luteal + early_luteal) instead of the ovulation tips

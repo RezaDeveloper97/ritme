@@ -39,7 +39,7 @@ import (
 const TTL = 24 * time.Hour
 
 // schema is bumped when the cached payload shape changes, so old entries are ignored.
-const schema = 1
+const schema = 2 // 2: /cycle/today|date by the §19 display window (D-30)
 
 // Key identifies one cached computation.
 type Key struct {

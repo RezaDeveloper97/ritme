@@ -2,6 +2,7 @@ package legacy
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -20,6 +21,7 @@ import (
 	"github.com/ritme/backend-go/internal/cycle/model"
 	"github.com/ritme/backend-go/internal/cycle/recommendation"
 	"github.com/ritme/backend-go/internal/cycle/view"
+	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 )
@@ -71,7 +73,7 @@ func TestLegacyGoldenSweep(t *testing.T) {
 	}
 	fx := loadFixture(t)
 	ctx := context.Background()
-	days, months := 0, 0
+	days, months, rewritten := 0, 0, 0
 
 	for _, file := range files {
 		parts := strings.Split(filepath.Base(file), ".") // <kind>.<persona>.<locale>.json
@@ -102,12 +104,16 @@ func TestLegacyGoldenSweep(t *testing.T) {
 				switch kind {
 				case "date":
 					date := civildate.MustParse(step.Request.URL[strings.LastIndex(step.Request.URL, "/")+1:])
-					calc, err := engine.CalculateForDate(ctx, date, true)
+					calc, err := engine.CalculateForDisplay(ctx, date)
 					require.NoError(t, err)
-					if !assertJSON(t, step.Body.Data.Calculation, calc.Localize(step.Request.AcceptLanguage), step.Request.URL) {
+					want := applyD30(t, engine, date, step.Body.Data.Calculation, step.Request.AcceptLanguage)
+					if !assertJSON(t, want, calc.Localize(step.Request.AcceptLanguage), step.Request.URL) {
 						return
 					}
 					days++
+					if !bytes.Equal(want, step.Body.Data.Calculation) {
+						rewritten++
+					}
 				case "month_full", "month_calendar":
 					m := monthURL.FindStringSubmatch(step.Request.URL)
 					require.NotNil(t, m, step.Request.URL)
@@ -131,9 +137,55 @@ func TestLegacyGoldenSweep(t *testing.T) {
 			}
 		})
 	}
-	t.Logf("%d golden days and %d golden months compared across %d files", days, months, len(files))
+	t.Logf("%d golden days (%d rewritten by D-30) and %d golden months compared across %d files", days, rewritten, months, len(files))
 	assert.Positive(t, days)
+	assert.Positive(t, rewritten, "the fixture has O + 1 days")
 	assert.Positive(t, months)
+}
+
+// applyD30 rewrites Laravel's /cycle/date calculation to the §19 display window Go serves since
+// T-M2-36 (deviations.md D-30): on the legacy O + 1 day (phase ovulation after the ovulation day)
+// the phase is luteal, is_fertile_window false, the fertility_status flag is gone, phase_info names
+// the luteal phase and daily_tips are the early-luteal ones (luteal + early_luteal, same log; the
+// emitted sub-phase stays post_ovulation). Every other
+// day, and every other field, is compared unchanged.
+func applyD30(t *testing.T, e *Engine, date civildate.Date, raw json.RawMessage, locale string) json.RawMessage {
+	t.Helper()
+	var want map[string]any
+	require.NoError(t, json.Unmarshal(raw, &want))
+	day, _ := want["cycle_day"].(float64)
+	ovulation, _ := want["estimated_ovulation_day"].(float64)
+	if want["phase"] != string(enums.CyclePhaseOvulation) || day <= ovulation {
+		return raw
+	}
+	sub := enums.CycleSubphase(want["subphase"].(string))
+	luteal := enums.CyclePhaseLuteal
+	want["phase"] = string(luteal)
+	want["is_fertile_window"] = false
+
+	flags, _ := want["text_flags"].(map[string]any)
+	delete(flags, "fertility_status")
+	phaseInfo := func(l string) string {
+		prefix := map[string]string{"en": "Current phase: ", "fa": "فاز فعلی: "}[l]
+		return prefix + luteal.Label(l) + " (" + sub.Label(l) + ")"
+	}
+	if _, bilingual := flags["phase_info"].(map[string]any); bilingual {
+		flags["phase_info"] = map[string]any{"en": phaseInfo("en"), "fa": phaseInfo("fa")}
+	} else {
+		flags["phase_info"] = phaseInfo(locale)
+	}
+
+	tips, err := e.dailyTips(context.Background(), luteal, enums.CycleSubphaseEarlyLuteal, e.in.Logs[date])
+	require.NoError(t, err)
+	var tipsJSON any
+	b, err := json.Marshal(recommendation.Localize(tips, locale))
+	require.NoError(t, err)
+	require.NoError(t, json.Unmarshal(b, &tipsJSON))
+	want["daily_tips"] = tipsJSON
+
+	out, err := json.Marshal(want)
+	require.NoError(t, err)
+	return out
 }
 
 func assertJSON(t *testing.T, want json.RawMessage, got any, msg string) bool {

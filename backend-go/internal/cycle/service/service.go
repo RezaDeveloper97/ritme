@@ -134,9 +134,9 @@ func (sn *Snapshot) Version() int64 {
 }
 
 // Day is getCalculationForDate's computation: the request-locale calculation
-// (localizeCalculation) and the §19 cycle_view.
+// (localizeCalculation, read by the §19 display window — D-30) and the §19 cycle_view.
 func (sn *Snapshot) Day(ctx context.Context, date civildate.Date, locale string) (legacy.Calculation, view.CycleView, error) {
-	calc, err := sn.Engine().CalculateForDate(ctx, date, true)
+	calc, err := sn.Engine().CalculateForDisplay(ctx, date)
 	if err != nil {
 		return legacy.Calculation{}, view.CycleView{}, err
 	}

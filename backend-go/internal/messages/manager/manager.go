@@ -147,28 +147,12 @@ func (m *Manager) cycleContext(ctx context.Context, mc *Context) error {
 		return nil
 	}
 	day, length, ovulation := c.Day, c.CycleLength, c.OvulationDay
-	phase, fertile := displayWindow(c.Phase, c.IsFertileWindow, day, ovulation)
+	// D-28: the §19 display window, shared with /cycle/today|date (D-30).
+	phase, fertile := legacy.DisplayWindow(c.Phase, c.IsFertileWindow, day, ovulation)
 	mc.CyclePhase, mc.CycleSubphase = string(phase), string(c.CurrentSubphase)
 	mc.CycleDay, mc.CycleLength, mc.EstimatedOvulationDay = &day, &length, &ovulation
 	mc.IsFertileWindow, mc.IsPmsWindow = fertile, c.IsPmsWindow
 	return nil
-}
-
-// displayWindow reads the legacy calculation by the v1.1 display fertile window (task.md §19:
-// max(O − 5, period end + 1) … O). The legacy engine runs the biological window O − 5 … O + 1
-// and calls both O and O + 1 phase `ovulation`, so on O + 1 — sub-phase post_ovulation, fertility
-// level low everywhere else (cycle view, calendar, /fertility/*) — Laravel's /messages/daily still
-// said «ovulation» and is_fertile_window = true, handing an avoiding user "peak fertility" copy
-// (D-28). Bleeding days are already cleared by the legacy engine, so dropping the days after
-// ovulation is the whole difference. The sub-phase (post_ovulation on O + 1) is unchanged.
-func displayWindow(phase enums.CyclePhase, fertile bool, day, ovulation int) (enums.CyclePhase, bool) {
-	if day <= ovulation {
-		return phase, fertile
-	}
-	if phase == enums.CyclePhaseOvulation {
-		phase = enums.CyclePhaseLuteal
-	}
-	return phase, false
 }
 
 // pregnancyContext is buildPregnancyContext: getPregnancyStatus() for today; the week is the

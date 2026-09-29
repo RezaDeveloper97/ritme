@@ -1866,7 +1866,9 @@ paths:
     get:
       tags: [Cycle]
       summary: Get cycle calculation for specific date
-      description: Retrieve calculated cycle data for a specific date
+      description: >-
+        Retrieve calculated cycle data for a specific date.
+        `phase`, `is_fertile_window`, `text_flags` and `daily_tips` follow the §19 display fertile window (ends on the ovulation day): on the day after ovulation `phase` is `luteal`, `is_fertile_window` false, there is no `fertility_status` flag and the tips are the early-luteal ones; `subphase` stays `post_ovulation` (D-30).
       operationId: getCycleDateByDate
       security:
         - {bearerAuth: []}
@@ -2703,7 +2705,9 @@ paths:
     get:
       tags: [Cycle]
       summary: "Get today's cycle calculation"
-      description: "Retrieve calculated cycle data for today including phase, fertility window, and pregnancy probability"
+      description: >-
+        Retrieve calculated cycle data for today including phase, fertility window, and pregnancy probability.
+        `phase`, `is_fertile_window`, `text_flags` and `daily_tips` follow the §19 display fertile window (ends on the ovulation day): on the day after ovulation `phase` is `luteal`, `is_fertile_window` false, there is no `fertility_status` flag and the tips are the early-luteal ones; `subphase` stays `post_ovulation` (D-30).
       operationId: getCycleToday
       security:
         - {bearerAuth: []}
