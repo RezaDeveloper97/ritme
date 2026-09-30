@@ -259,3 +259,34 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   detail, history, self-exam, home, `en_reminders`, `en_checkups`), `sheets/` (AddChooser, MarkDone), `artboards/`.
 - **Outside touches:** only `globals.css` + bloom docs. `screens/checkup-custom-form` (not in touches) still has the old
   `.rmd-hdr` header; it inherits the radius/skeleton CSS only. QUESTIONS #29–#30.
+
+## B-N1-11 — Notification settings — categories, quiet hours, discreet copy
+
+- **Backend (Go):** migration `00011_notification_preferences` (+ Laravel mirror `2026_10_01_000002_…`, schema-diff
+  green), `internal/notifications` (prefs load/save, `Decide` = category + quiet hours, `Render` = neutral copy, unit
+  tests), `GET/PUT /api/v1/profile/notification-settings` (partial PUT, Laravel-style 422 with localized attributes),
+  OpenAPI, contract group `notification-settings` (Go-recorded goldens; empty table added to `contract/fixtures/dump.sql`).
+- **No push sender exists yet** anywhere; any future push/web-push sender must call `Load → Decide → Render`.
+- **Frontend:** new `screens/notification-settings` (optimistic instant-save, rollback on error) at
+  `/profile/notifications`; Me row now links there (was the inbox sheet). Copy `me.notifSettings` fa/en + backend seed +
+  goldens. `.ntf-*` block in `globals.css`.
+- **Screenshots:** `docs/qa/bloom/B-N1-11/` (fa/en light+dark, artboards/). **Open:** QUESTIONS #31–#36.
+
+## B-N1-07 — Calendar redesign (cycle + TTC variants)
+
+- `screens/calendar` rewritten: month ⇄ year tabs (`?view=year`), two stacked months, legend, swipe, skeleton / empty /
+  error, `DayCard` (cycle day + phase pill + logged chips; TTC: pregnancy chance + «ثبت جزئیات این روز» → `/fertility/log`);
+  old period actions moved into the day card. `DayLogSummary` deleted. New widget `widgets/cycle-calendar`
+  (`MonthCard`, `YearView`, `CalendarLegend`, tones + tests; steiger exception added). Copy fa/en + backend seed.
+- **Screenshots:** `docs/qa/bloom/B-N1-07/` (cycle persona 04, TTC persona 12, empty, error, artboards, before).
+- **Env:** `ritme_dev` rebuilt from the contract dump (docker was down). **Open:** QUESTIONS #37–#38.
+
+## B-N1-06 — Cycle home redesign — normal / near period / during period
+
+- **Backend:** `GET /api/v1/home/cycle-overview` (`internal/home/cycle_overview.go` + tests incl. 401, OpenAPI). Go-only.
+- **Frontend:** `HomePage` hero states from engine `cycle_view.main_phase` (`hero-state.ts` + tests): start/end-period
+  prompts (`useStartPeriod`/`useEndPeriod`, per-day dismiss), «پایان پریود هنوز ثبت نشده» banner, error/skeleton,
+  `TodayLogCard` (not in TTC), `PredictionsCard`, `PmsInsightCard`, restyled today-challenge. `CycleValuesCard` only
+  when profile length differs from recent cycles. `Icon` union + `symptom`, `star`. `/* B-N1-06 */` CSS block.
+- **States on dev data (2026-10-01):** normal = persona 04, near = 06, during = 07 (also `X-Test-Now`).
+- **Screenshots:** `docs/qa/bloom/B-N1-06/{normal,near,during}/`, `artboards/`. **Open:** QUESTIONS #39–#41.

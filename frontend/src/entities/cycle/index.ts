@@ -73,6 +73,8 @@ export {
   fetchCycleMonth,
 } from './api/queries';
 export { useMyCyclesSection, useCycleSummarySection } from './api/sections';
+export { useCycleOverview, fetchCycleOverview, cycleOverviewKey, cycleOverviewSchema } from './api/overview';
+export type { CycleOverview } from './api/overview';
 export type {
   HomeSection,
   MyCyclesData,

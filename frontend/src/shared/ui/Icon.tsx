@@ -16,7 +16,8 @@ export type IconName =
   | 'hand' | 'eye' | 'scale' | 'bookmark' | 'warning' | 'doctor'
   | 'faceGreat' | 'faceGood' | 'faceOkay' | 'faceLow' | 'faceHard'
   | 'lock' | 'minus' | 'arrowR'
-  | 'users' | 'gradCap' | 'todo' | 'box' | 'watch' | 'help' | 'chat' | 'crown' | 'smartphone' | 'modeRing';
+  | 'users' | 'gradCap' | 'todo' | 'box' | 'watch' | 'help' | 'chat' | 'crown' | 'smartphone' | 'modeRing'
+  | 'symptom' | 'star';
 
 const PATHS: Record<IconName, string> = {
   bell:         '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
@@ -89,6 +90,9 @@ const PATHS: Record<IconName, string> = {
   flaskLh:      '<path d="M9 3h6M10 3v7l-5 8a2 2 0 002 3h10a2 2 0 002-3l-5-8V3"/>',
   heartLine:    '<path d="M12 20s-7-4.5-7-10a4 4 0 017-2.5A4 4 0 0119 10c0 5.5-7 10-7 10z"/>',
   target:       '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>',
+  // B-N1-06 (nbl_Cycle_Home): symptoms disc (wave in a circle) and the challenges star.
+  symptom:      '<circle cx="12" cy="12" r="8"/><path d="M8 12c1.3-2 2.7-2 4 0s2.7 2 4 0"/>',
+  star:         '<path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/>',
   moonReminder: '<path d="M20 14.5A8 8 0 019.5 4 8 8 0 1020 14.5z"/>',
   /* Pregnancy v2 (M7) — copied from the artboards (docs/design/pregnancy-v2).
      Reused rather than re-added: heart → `heartLine`, water → `drop`, bell →

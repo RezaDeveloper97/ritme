@@ -3,7 +3,7 @@ id: B-N1-06
 title: Cycle home redesign — normal / near period / during period
 milestone: N1
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N1-04]
 parallel_group: N1-F
 touches: [frontend/src/screens/home,frontend/src/widgets/banner-slideshow,frontend/src/widgets/today-challenge,frontend/src/widgets/day-tasks,frontend/src/widgets/smart-tip,frontend/src/widgets/week-summary,frontend/src/widgets/home-cycle,frontend/src/entities/cycle,backend-go/internal/home,backend-go/internal/cycle,backend-go/api]

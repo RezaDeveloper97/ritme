@@ -174,7 +174,50 @@
    "editThisPeriod": "Edit this period",
    "removeThisDay": "Not a period day",
    "endPeriodHere": "End period on this day",
-   "addToPeriod": "Add to period days"
+   "addToPeriod": "Add to period days",
+   "nb": {
+    "back": "Back",
+    "ttcTitle": "Fertility calendar",
+    "viewLabel": "Calendar view",
+    "month": "Month",
+    "year": "Year",
+    "twoMonths": "{first} & {second}",
+    "yearSubtitle": "Year {year}",
+    "prevYear": "Previous year",
+    "nextYear": "Next year",
+    "openMonth": "Open {month}",
+    "legendTitle": "Colour key",
+    "legend": {
+     "period": "Period",
+     "predicted": "Predicted period",
+     "fertile": "Fertile window",
+     "ovulation": "Estimated ovulation",
+     "pms": "PMS"
+    },
+    "phase": {
+     "period": "Period",
+     "follicular": "Follicular",
+     "fertile": "Fertile window",
+     "ovulation": "Ovulation",
+     "luteal": "Luteal",
+     "pms": "PMS"
+    },
+    "dayHead": "{date} · cycle day {n}",
+    "chanceTitle": "Chance of pregnancy:",
+    "ttcHintHigh": "Logging LH tests and basal temperature on these days makes the estimate more accurate.",
+    "ttcHint": "Logging basal temperature and discharge daily sharpens your next fertile window.",
+    "logDetails": "Log details",
+    "logDayDetails": "Log this day's details",
+    "futureDay": "This day hasn't come yet; the colours are predictions.",
+    "noLogs": "Nothing logged for this day.",
+    "loggedLabel": "Logged this day",
+    "moreLogs": "+{n}",
+    "loadingDay": "Loading the day's logs…",
+    "loadError": "Couldn't load the calendar",
+    "loadErrorBody": "Check your connection and try again.",
+    "emptyTitle": "No period logged yet",
+    "emptyBody": "Log your first period and the calendar will predict period days, the fertile window and PMS."
+   }
   },
   "care": {
    "title": "Reminders",
@@ -452,7 +495,11 @@
     "between": "For cycle days {from}–{to}",
     "from": "From cycle day {n} onwards",
     "to": "Up to cycle day {n}"
-   }
+   },
+   "listTitle": "Today's challenges",
+   "progress": "{done} of {total}",
+   "progressLabel": "Today's challenge progress",
+   "footer": "A few small things each day, matched to your cycle phase."
   },
   "checkups": {
    "title": "Periodic checkups",
@@ -1194,6 +1241,75 @@
      "text": "Once you add when your last period started, your cycle forecast and daily message will show up here.",
      "cta": "Add last period"
     }
+   },
+   "nb": {
+    "loading": "Loading today",
+    "loadError": "Today's data couldn't be loaded.",
+    "retry": "Try again",
+    "hero": {
+     "periodIn": "Period in",
+     "late": "Period late",
+     "lateUnit": "days",
+     "started": "My period started",
+     "notYet": "Not yet",
+     "ended": "My period ended",
+     "stillGoing": "Still going"
+    },
+    "endMissing": {
+     "title": "Period end not logged yet",
+     "text": "If it has ended, log it; if it's still going, there's nothing to do."
+    },
+    "nearText": "{days, plural, =0 {Your period will likely start today.} =1 {Your period will likely start tomorrow.} other {Your period will likely start in {n} days.}} If it starts, log it right here so the next prediction gets sharper.",
+    "lateText": "Your period is {n} days past the predicted date. If it has started, log it here; a few days late is usually normal.",
+    "phasePill": {
+     "period": "Period",
+     "follicular": "Follicular",
+     "fertile": "Fertile",
+     "ovulation": "Ovulation",
+     "luteal": "Luteal"
+    },
+    "log": {
+     "title": "Today's log",
+     "streak": "{n} days in a row",
+     "bleeding": "Bleeding",
+     "bleedingHint": "Period or spotting",
+     "symptoms": "Symptoms",
+     "mood": "Mood & energy",
+     "empty": "Not logged yet",
+     "logged": "Logged",
+     "add": "Log {name}"
+    },
+    "predictions": {
+     "title": "Predictions",
+     "details": "Details",
+     "nextPeriod": "Next period",
+     "pms": "PMS",
+     "window": "Fertile window",
+     "ovulation": "Ovulation",
+     "about": "Around {date}",
+     "estimated": "Estimated",
+     "inDays": "In {n} days",
+     "tomorrow": "Tomorrow",
+     "fromTomorrow": "From tomorrow",
+     "today": "Today",
+     "ongoing": "Ongoing",
+     "lengthTitle": "Cycle length (median of {n} cycles)",
+     "lengthTitleBasic": "Cycle length",
+     "lengthUnit": "days",
+     "lengthSpread": "days · ±{n} variation",
+     "regularity": {
+      "relatively_regular": "Regular",
+      "irregular_possible": "Irregular",
+      "not_enough_data": "Little data"
+     }
+    },
+    "insight": {
+     "pmsTomorrow": "PMS likely from tomorrow",
+     "pmsIn": "PMS likely in {n} days",
+     "pmsNow": "Likely PMS days",
+     "basis": "Based on your last {n} cycles · see analysis",
+     "basisBasic": "Based on your past cycles · see analysis"
+    }
    }
   },
   "log": {
@@ -1577,6 +1693,87 @@
     "calendar": "Calendar",
     "calendarNote": "The calendar follows the language: Persian uses the Solar Hijri calendar, English the Gregorian one. Dates are always stored correctly.",
     "today": "Today: {date}"
+   },
+   "notifSettings": {
+    "title": "Notifications & reminders",
+    "back": "Back",
+    "loading": "Loading notification settings",
+    "groups": {
+     "cycle": "Cycle",
+     "health": "Health",
+     "other": "Other",
+     "quiet": "Quiet hours"
+    },
+    "items": {
+     "before_period": {
+      "title": "Before your period",
+      "sub": "2 days before · 9:00"
+     },
+     "pms": {
+      "title": "PMS starts",
+      "sub": "Cycle day 24"
+     },
+     "fertile_window": {
+      "title": "Fertile window",
+      "sub": "First day of the window"
+     },
+     "daily_log": {
+      "title": "Daily log reminder",
+      "sub": "Every night at 22:00"
+     },
+     "medications": {
+      "title": "Medications & supplements",
+      "sub": "On each medication's schedule"
+     },
+     "appointments": {
+      "title": "Doctor appointments",
+      "sub": "1 day before"
+     },
+     "checkups": {
+      "title": "Routine checkups",
+      "sub": "1 month before due"
+     },
+     "vitals": {
+      "title": "Blood pressure & sugar checks",
+      "sub": "On your weekly schedule"
+     },
+     "learning": {
+      "title": "Learning & courses",
+      "sub": "New access, next lesson"
+     },
+     "companion": {
+      "title": "Ritme companion",
+      "sub": "When your partner shares something"
+     },
+     "articles": {
+      "title": "Tips & articles",
+      "sub": "At most once a week"
+     }
+    },
+    "quiet": {
+     "title": "Don't send notifications",
+     "range": "{start} to {end}",
+     "off": "Off — notifications arrive at any hour",
+     "edit": "Change quiet hours",
+     "from": "From",
+     "to": "To",
+     "done": "Done"
+    },
+    "neutral": {
+     "title": "Neutral text",
+     "on": "Notification text is neutral — e.g. “Ritme reminder” instead of “Your period is close” — so nothing shows on the lock screen.",
+     "off": "Full reminder text shows on the lock screen. Turn on “Neutral text” to keep it private."
+    },
+    "saveError": "Couldn't save. Check your connection and try again.",
+    "error": {
+     "title": "Couldn't load notification settings",
+     "body": "Check your internet connection and try again.",
+     "retry": "Try again"
+    },
+    "empty": {
+     "title": "Nothing to set up",
+     "body": "No notification categories are active for your account yet."
+    }
    }
   },
   "nav": {

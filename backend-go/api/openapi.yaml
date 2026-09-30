@@ -3736,6 +3736,75 @@ paths:
               example: {success: true, data: {challenge_id: 1, is_completed: true}}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/ModelNotFound"}
+  /api/v1/home/cycle-overview:
+    get:
+      tags: [Home]
+      summary: Cycle home summary — logging streak, period / PMS range, cycle length and regularity
+      description: |
+        Go only (B-N1-06, Night & Bloom cycle home). No second prediction model: `next_period.start` is the §35
+        resolver's `predicted_next_period_start` (the same as `cycle_view.anchors`), `end` = start + effective period
+        length − 1; `pms_window` = the resolver's `pms_possible` days (start − 3 … start − 1). Both `null` without a
+        resolvable cycle. `cycle_length.median` = the effective cycle length (median of the last ≤ 3 valid cycles, else
+        profile, else 28; `source` says which), `based_on_cycles` = valid cycles (null when 0), `spread_days` =
+        ceil((max − min) / 2) of the last ≤ 3 valid lengths (null with fewer than 2), `regularity` = the metrics'
+        regularity status. `logging.streak_days` = consecutive days with a daily health log ending today, or
+        yesterday while today has none yet (capped at 90).
+      operationId: getHomeCycleOverview
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The overview
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [date, logging, next_period, pms_window, cycle_length]
+                    properties:
+                      date: {$ref: "#/components/schemas/Date"}
+                      logging:
+                        type: object
+                        required: [streak_days, logged_today]
+                        properties:
+                          streak_days: {type: integer, minimum: 0}
+                          logged_today: {type: boolean}
+                      next_period:
+                        oneOf:
+                          - {type: "null"}
+                          - type: object
+                            required: [start, end]
+                            properties: {start: {$ref: "#/components/schemas/Date"}, end: {$ref: "#/components/schemas/Date"}}
+                      pms_window:
+                        oneOf:
+                          - {type: "null"}
+                          - type: object
+                            required: [start, end]
+                            properties: {start: {$ref: "#/components/schemas/Date"}, end: {$ref: "#/components/schemas/Date"}}
+                      cycle_length:
+                        type: object
+                        required: [median, source, based_on_cycles, spread_days, regularity]
+                        properties:
+                          median: {type: integer}
+                          source: {type: string, enum: [recent_valid_cycles, profile, default]}
+                          based_on_cycles: {type: [integer, "null"]}
+                          spread_days: {type: [integer, "null"]}
+                          regularity: {type: string, enum: [not_enough_data, relatively_regular, irregular_possible]}
+              example:
+                success: true
+                data:
+                  date: "2026-10-01"
+                  logging: {streak_days: 6, logged_today: true}
+                  next_period: {start: "2026-10-12", end: "2026-10-16"}
+                  pms_window: {start: "2026-10-09", end: "2026-10-11"}
+                  cycle_length: {median: 28, source: recent_valid_cycles, based_on_cycles: 5, spread_days: 1, regularity: relatively_regular}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
   /api/v1/home/notifications:
     get:
       tags: [Notifications]
@@ -6942,6 +7011,97 @@ paths:
                 success: false
                 message: "Validation failed: Birthday must be a valid date."
                 errors: {birthday: [Birthday must be a valid date.]}
+  /api/v1/profile/notification-settings:
+    get:
+      tags: [Profile]
+      summary: Notification settings
+      description: |
+        Go only (B-N1-11). The categories a push may be sent for (grouped cycle · health · other, screen order),
+        the quiet-hours window (Tehran wall-clock, `start` > `end` wraps midnight) and `neutral_copy` («متن خنثی»:
+        push title/body never carry health data). A user who never saved gets the defaults (fertile window, vitals
+        and articles off; quiet 23:00–08:00; neutral copy on).
+      operationId: getNotificationSettings
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The settings
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/NotificationSettings"}
+              example:
+                success: true
+                data:
+                  groups:
+                    - {code: cycle, items: [{code: before_period, enabled: true}, {code: pms, enabled: true}, {code: fertile_window, enabled: false}, {code: daily_log, enabled: true}]}
+                    - {code: health, items: [{code: medications, enabled: true}, {code: appointments, enabled: true}, {code: checkups, enabled: true}, {code: vitals, enabled: false}]}
+                    - {code: other, items: [{code: learning, enabled: true}, {code: companion, enabled: true}, {code: articles, enabled: false}]}
+                  quiet_hours: {enabled: true, start: "23:00", end: "08:00"}
+                  neutral_copy: true
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+    put:
+      tags: [Profile]
+      summary: Update notification settings
+      description: |
+        Partial update: omitted keys keep their value; unknown category codes are ignored. Responds with the full
+        settings. Per-user write throttle.
+      operationId: updateNotificationSettings
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                categories:
+                  type: object
+                  additionalProperties: {type: boolean}
+                quiet_hours:
+                  type: object
+                  properties:
+                    enabled: {type: boolean}
+                    start: {type: string, pattern: "^[0-2][0-9]:[0-5][0-9]$"}
+                    end: {type: string, pattern: "^[0-2][0-9]:[0-5][0-9]$"}
+                neutral_copy: {type: boolean}
+            example: {categories: {fertile_window: true}, quiet_hours: {enabled: true, start: "22:30", end: "07:00"}, neutral_copy: true}
+      responses:
+        '200':
+          description: Saved; the settings
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/NotificationSettings"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422':
+          description: "Validation failed (controller 422 `{success: false, message, errors}`, request language)"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, errors]
+                properties:
+                  success: {type: boolean, const: false}
+                  message: {type: string}
+                  errors:
+                    type: object
+                    additionalProperties: {type: array, items: {type: string}}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/profile/export:
     get:
       tags: [Profile]
@@ -8783,6 +8943,33 @@ components:
                 to_day: {type: integer, minimum: 1}
         shift_day: {type: [integer, "null"], minimum: 1}
         phase: {type: string, enum: [pre_shift, post_shift]}
+    NotificationSettings:
+      type: object
+      required: [groups, quiet_hours, neutral_copy]
+      properties:
+        groups:
+          type: array
+          items:
+            type: object
+            required: [code, items]
+            properties:
+              code: {type: string, enum: [cycle, health, other]}
+              items:
+                type: array
+                items:
+                  type: object
+                  required: [code, enabled]
+                  properties:
+                    code: {type: string, enum: [before_period, pms, fertile_window, daily_log, medications, appointments, checkups, vitals, learning, companion, articles]}
+                    enabled: {type: boolean}
+        quiet_hours:
+          type: object
+          required: [enabled, start, end]
+          properties:
+            enabled: {type: boolean}
+            start: {type: string, pattern: "^[0-2][0-9]:[0-5][0-9]$"}
+            end: {type: string, pattern: "^[0-2][0-9]:[0-5][0-9]$"}
+        neutral_copy: {type: boolean}
     PelvicOverview:
       type: object
       description: "The plan screen (`GET /pelvic` and every program/session write)."

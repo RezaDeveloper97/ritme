@@ -30,6 +30,7 @@ func init() {
 
 		g := r.Group("/api/v1/home")
 		g.Get("", locale, guard, h.Index)
+		g.Get("/cycle-overview", locale, guard, h.CycleOverview) // Go only (B-N1-06)
 		g.Get("/sections/:section", locale, guard, h.Section)
 		g.Post("/tasks/:task/toggle", locale, guard, h.ToggleTask)
 		g.Post("/challenges/:challenge/toggle", locale, guard, h.ToggleChallenge)

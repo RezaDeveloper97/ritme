@@ -13,15 +13,14 @@ import { useBannersSettled } from '@/entities/banner';
 import {
   CycleValuesCard,
   cycleDayMarkerAt,
-  cycleMarkerStyle,
   cycleScheduleFor,
   daysUntilNextPeriod,
   deriveCycleSchedule,
   deriveCyclePredictions,
-  fertileWindowDays,
   hasFertileWindow,
   useCycleForDate,
   useCycleMonth,
+  useCycleOverview,
   useCycleStatus,
   useCycleToday,
   type CycleCalculation,
@@ -34,7 +33,7 @@ import { useFertilityToday } from '@/entities/fertility';
 import { useDailyMessage, type DailyMessage } from '@/entities/message';
 import { useUserProfile } from '@/entities/user';
 import { QuickEditSheet } from '@/features/edit-profile';
-import { PeriodDateEditor } from '@/features/log-period';
+import { PeriodDateEditor, useEndPeriod, useStartPeriod } from '@/features/log-period';
 import { Link, type Locale } from '@/shared/i18n';
 import {
   addDays,
@@ -43,6 +42,7 @@ import {
   formatDayMonth,
   formatNumber,
   formatWeekdayDayMonth,
+  fromApiDate,
   toApiDate,
   toParts,
   today,
@@ -51,8 +51,17 @@ import {
 } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
 import { openSheet } from '@/shared/sheet';
-import { useThemeStore } from '@/shared/theme';
-import { DropSolid, Icon, type IconName } from '@/shared/ui';
+import {
+  Card,
+  Icon,
+  IconCircle,
+  PrimaryButton,
+  Skeleton,
+  SkeletonGroup,
+  StatusPill,
+  type IconName,
+  type Tone,
+} from '@/shared/ui';
 import { BannerSlideshow } from '@/widgets/banner-slideshow';
 import { BottomNav } from '@/widgets/bottom-nav';
 import { CheckupsCard } from '@/widgets/checkups-card';
@@ -67,7 +76,12 @@ import { TodayChallengeCard } from '@/widgets/today-challenge';
 import { TodayRemindersCard } from '@/widgets/today-reminders';
 
 import { needsPeriodData } from '../model/cycle-data';
+import { heroState, phaseFromMainPhase } from '../model/hero-state';
+import { dismissPrompt, isPromptDismissed } from '../model/prompt-dismiss';
 import { readTtcHint, writeTtcHint } from '../model/ttc-hint';
+
+import { PmsInsightCard, PredictionsCard, type PredictionSlot } from './PredictionsCard';
+import { TodayLogCard } from './TodayLogCard';
 
 const FA = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
 const faNum = (n: string | number) => String(n).replace(/[0-9]/g, d => FA[Number(d)]);
@@ -83,28 +97,6 @@ function greetingKey(hour: number): 'morning' | 'noon' | 'evening' | 'night' {
   return 'night';
 }
 
-// Light ↔ dark in one tap. The preference lives in localStorage, which the
-// server can't see, so the button renders its light state until mounted —
-// the page itself is already painted in the right theme by the inline
-// bootstrap (see `shared/theme`).
-function ThemeToggle({ t }: { t: T }) {
-  const theme = useThemeStore((s) => s.theme);
-  const setTheme = useThemeStore((s) => s.setTheme);
-  const mounted = useMounted();
-  const dark = mounted && theme === 'dark';
-
-  return (
-    <button
-      type="button"
-      className="home-hdr-btn"
-      onClick={() => setTheme(dark ? 'light' : 'dark')}
-      aria-label={t(dark ? 'header.themeLight' : 'header.themeDark')}
-    >
-      <Icon name={dark ? 'sun' : 'moon'} size={20} strokeWidth={1.8} />
-    </button>
-  );
-}
-
 function HomeHeader({ t, loc }: { t: T; loc: Locale }) {
   return (
     <header className="home-hdr">
@@ -113,7 +105,6 @@ function HomeHeader({ t, loc }: { t: T; loc: Locale }) {
         <div className="home-hdr-greet">{t(`greeting.${greetingKey(currentHour())}`)}</div>
       </div>
       <div className="home-hdr-actions">
-        <ThemeToggle t={t} />
         <button
           type="button"
           className="home-hdr-btn"
@@ -356,131 +347,6 @@ function PhaseCard({
   );
 }
 
-// ── Cycle timeline bar (ported from the cycle screen) ──────────
-// A linear day-1 → day-N reading of the cycle: the fertile band, the ovulation
-// tick and where today sits. Pinned LTR because a cycle always runs 1 → N
-// (§12-safe: it is a chart, not layout chrome). Day d occupies the slice
-// (d − 1)/N … d/N; the band is the anchored §19 window (the schedule's own
-// dates — the ones the rows below, the calendar and `/fertility/*` show), and
-// is absent when a long period swallowed it.
-function CycleTimelineBar({ schedule, date }: { schedule: CycleSchedule; date: Date }) {
-  const cycle = cycleScheduleFor(schedule, date);
-  const length = cycle.cycleLength;
-  const at = (edge: number) => Math.min(100, Math.max(0, (edge / length) * 100));
-  const cycleDay = diffInDays(date, cycle.cycleStart) + 1;
-  const window = fertileWindowDays(cycle);
-  const ovulationDay = diffInDays(cycle.ovulation, cycle.cycleStart) + 1;
-  const todayPos = at(cycleDay - 0.5);
-
-  return (
-    // Only the positions along the bar stay inline — they are the data.
-    <div dir="ltr" className="cyclebar">
-      {/* Progress up to today */}
-      <span className="cyclebar-fill" style={{ width: `${todayPos}%` }} />
-      {/* Fertile band — over the progress fill, so a window already behind
-          today still reads on the bar. */}
-      {window && (
-        <span
-          className="cyclebar-band"
-          style={{ left: `${at(window.startDay - 1)}%`, width: `${at(window.endDay) - at(window.startDay - 1)}%` }}
-        />
-      )}
-      {/* Ovulation tick */}
-      <span className="cyclebar-tick" style={{ left: `${at(ovulationDay - 0.5)}%` }} />
-      {/* Today marker */}
-      <span className="cyclebar-now" style={{ left: `${todayPos}%` }} />
-    </div>
-  );
-}
-
-/** One upcoming (or currently running) cycle event: its dates and the countdown
- *  to its start — negative once the event itself is under way. */
-interface TimelineSlot {
-  start: Date;
-  end: Date;
-  days: number;
-}
-
-// ── Phase rows ─────────────────────────────────────────────────
-// «رویدادهای پیش‌رو» — the cycle timeline bar, the dates of the upcoming events,
-// and the two cycle facts (length, ovulation day) the cycle screen showed.
-function PhaseRows({
-  t, schedule, date, windowRange, ovulationDate, pmsRange, nextPeriodDate, daysTo, footer,
-}: {
-  t: T;
-  /** Today's anchored cycle calendar — the timeline bar draws from it. */
-  schedule: CycleSchedule | null;
-  date: Date;
-  windowRange: string | null;
-  ovulationDate: string | null;
-  pmsRange: string | null;
-  nextPeriodDate: string | null;
-  /** Days from today to each event's start — the countdown chips. */
-  daysTo: {
-    pms: TimelineSlot | null;
-    nextPeriod: TimelineSlot | null;
-    window: TimelineSlot | null;
-    ovulation: TimelineSlot | null;
-  };
-  /** The §12 value layers, rendered where the two cycle facts used to sit. */
-  footer?: ReactNode;
-}) {
-  const dash = t('unavailable');
-  // Countdown label: today / in N days; an already-started event shows no chip
-  // rather than a negative count.
-  const badge = (slot: TimelineSlot | null) => {
-    if (!slot) return null;
-    if (slot.days > 0) return t('timeline.inDays', { n: slot.days });
-    if (slot.days === 0) return t('timeline.today');
-    return t('timeline.ongoing');
-  };
-  // Ordered as the events unfold from here: PMS → period → fertile window,
-  // closing on ovulation (per product request: PMS first, ovulation last).
-  const rows = [
-    { l: t('pms.label'),         d: pmsRange ?? dash,       n: badge(daysTo.pms),        c: 'var(--violet)', bg: 'var(--violet-soft)' },
-    { l: t('phases.nextPeriod'), d: nextPeriodDate ?? dash, n: badge(daysTo.nextPeriod), c: 'var(--pink)', bg: 'var(--pink-bg)' },
-    { l: t('phases.window'),     d: windowRange ?? dash,    n: badge(daysTo.window),     c: 'var(--amber)', bg: 'var(--amber-soft)' },
-    // Ovulation is algorithmic data: turquoise, like the ring, the calendar and insights (§10.2).
-    { l: t('phases.ovulation'),  d: ovulationDate ?? dash,  n: badge(daysTo.ovulation),  c: cycleMarkerStyle.ovulation.color, bg: cycleMarkerStyle.ovulation.bg },
-  ];
-
-  // «جادهٔ چرخه»: the events as stations on a vertical rail — each row a
-  // phase-coloured node on the line, its date beneath the label, and the
-  // planner's number (the countdown) as the end-side chip.
-  return (
-    <div className="sec">
-      <div className="home-panel">
-        <div className="card-titr">
-          {t('timeline.title')}
-        </div>
-
-        {schedule && <CycleTimelineBar schedule={schedule} date={date} />}
-
-        <div className="ev-list">
-          {rows.map(r => (
-            <div key={r.l} className="ev-row">
-              <span className="dot ev-node" style={{ background: r.bg, color: r.c }}>
-                <DropSolid size={15} color={r.c} />
-              </span>
-              <div className="ev-body">
-                <span className="ev-label">{r.l}</span>
-                <span className="ev-date">{r.d}</span>
-              </div>
-              {r.n && (
-                <span className="ev-count" style={{ background: r.bg, color: r.c }}>
-                  {r.n}
-                </span>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {footer}
-      </div>
-    </div>
-  );
-}
-
 // ── Daily recommendations ──────────────────────────────────────
 /**
  * Category icon per engine tip `type`. Unknown/new backend categories fall back
@@ -511,7 +377,18 @@ const TIP_ICONS: Record<string, IconName> = {
  * message stand in; with neither, the section renders nothing rather than
  * showing invented advice.
  */
-function Recommendations({ t, tips, dos }: { t: T; tips: CycleDailyTip[]; dos: string[] }) {
+/** Tint per row, in the artboard's order (data → warm → brand). */
+const REC_TONES: Tone[] = ['data', 'warm', 'brand', 'bloom'];
+
+function Recommendations({
+  t, tips, dos, phase,
+}: {
+  t: T;
+  tips: CycleDailyTip[];
+  dos: string[];
+  /** Today's phase — the pill beside the title (none while unknown). */
+  phase: CyclePhase | null;
+}) {
   const items = tips.length > 0
     ? tips.slice(0, 4).map(tip => ({
         // `hasOwn`, not `in`: `in` also matches Object.prototype keys, so a
@@ -522,10 +399,7 @@ function Recommendations({ t, tips, dos }: { t: T; tips: CycleDailyTip[]; dos: s
         // override, else the category label), so a text edit in the panel shows
         // up without a client release. Only when it sends none do we fall back
         // to our own translation — and only for categories we ship a key for,
-        // so a new backend category can't raise a missing-key error. The icon
-        // table stays client-side by design: the backend's icon vocabulary is
-        // its own, so a brand-new category renders the generic sparkle until a
-        // client release adds its glyph.
+        // so a new backend category can't raise a missing-key error.
         title: tip.title
           ?? (Object.hasOwn(TIP_ICONS, tip.type)
             ? t(`recommendations.types.${tip.type}` as 'recommendations.types.nutrition')
@@ -541,25 +415,25 @@ function Recommendations({ t, tips, dos }: { t: T; tips: CycleDailyTip[]; dos: s
   if (items.length === 0) return null;
 
   return (
-    <div className="sec">
-      <div className="card pad-card-sm">
-        <div className="home-rec-title">
-          {t('recommendations.title')}
-        </div>
-        {/* Figma item: soft green→pink gradient, white circular category badge */}
-        {items.map((item, i) => (
-          <div key={i} className="home-rec-item">
-            <span className="home-rec-badge">
-              <Icon name={item.icon} size={18} stroke="currentColor" />
-            </span>
-            <div className="home-rec-body">
-              <div className="home-rec-name">{item.title}</div>
-              {item.desc && <div className="home-rec-desc">{item.desc}</div>}
-            </div>
-          </div>
-        ))}
+    <Card as="section" className="ch-rec" aria-labelledby="ch-rec-title">
+      <div className="ch-card-head">
+        <h2 id="ch-rec-title" className="ch-card-title">{t('recommendations.title')}</h2>
+        {phase && (
+          <StatusPill tone={phase === 'period' ? 'period' : 'brand'} className="ch-rec-pill">
+            {t(`nb.phasePill.${phase}`)}
+          </StatusPill>
+        )}
       </div>
-    </div>
+      {items.map((item, i) => (
+        <div key={i} className="ch-rec-row">
+          <IconCircle icon={item.icon} tone={REC_TONES[i % REC_TONES.length]} />
+          <div className="ch-rec-body">
+            <b className="ch-rec-name">{item.title}</b>
+            {item.desc && <p className="ch-rec-desc">{item.desc}</p>}
+          </div>
+        </div>
+      ))}
+    </Card>
   );
 }
 
@@ -659,6 +533,13 @@ function ArticlesSkeleton({ t }: { t: T }) {
   );
 }
 
+/** One upcoming (or running) cycle event: its dates and the countdown to its start. */
+interface TimelineSlot {
+  start: Date;
+  end: Date;
+  days: number;
+}
+
 // ── Main export ────────────────────────────────────────────────
 export function HomePage() {
   const t = useTranslations('home');
@@ -722,12 +603,16 @@ export function HomePage() {
   const schedule = deriveCycleSchedule(todayData?.cycleView ?? null, calc);
   // Calendar formatting happens only here, at the display boundary (§7).
   const fmt = (date: Date) => formatDayMonth(date, loc);
-  const range = (from: Date, to: Date) => t('dateRange', { from: fmt(from), to: fmt(to) });
-  // Every timeline row describes the occurrence the user is actually waiting on:
+  // «۱۷ تا ۲۱ مهر»: a range inside one month names the month once.
+  const range = (from: Date, to: Date) => {
+    const a = toParts(from, loc);
+    const b = toParts(to, loc);
+    const sameMonth = a.year === b.year && a.month === b.month;
+    return t('dateRange', { from: sameMonth ? formatNumber(a.day, loc) : fmt(from), to: fmt(to) });
+  };
+  // Every prediction row describes the occurrence the user is actually waiting on:
   // an event whose window is already running is reported as in-progress, and one
-  // that is wholly behind us rolls forward a cycle. Without this the chip simply
-  // vanished the moment an event started (a negative countdown), which is what
-  // made the fertile-window row lose its badge for a whole week.
+  // that is wholly behind us rolls forward a cycle.
   const slotFor = (start: Date, end: Date): TimelineSlot | null => {
     if (!schedule) return null;
     let from = start;
@@ -738,9 +623,20 @@ export function HomePage() {
     }
     return { start: from, end: to, days: diffInDays(from, base) };
   };
-  const nextPeriodSlot = schedule
-    ? slotFor(schedule.nextPeriodStart, schedule.nextPeriodStart)
-    : null;
+  // `/home/cycle-overview` (B-N1-06): the engine's period range, PMS window,
+  // streak and cycle-length summary. Absent on a backend without the route —
+  // the schedule derived from `cycle_view` stands in.
+  const overviewQuery = useCycleOverview();
+  const overview = overviewQuery.data ?? null;
+  const periodDays =
+    todayData?.cycleView?.effectiveValues.periodDuration ??
+    profileQuery.data?.health?.periodDuration ??
+    DEFAULT_PERIOD_DAYS;
+  const nextPeriodSlot = overview?.nextPeriod
+    ? slotFor(fromApiDate(overview.nextPeriod.start), fromApiDate(overview.nextPeriod.end))
+    : schedule
+      ? slotFor(schedule.nextPeriodStart, addDays(schedule.nextPeriodStart, periodDays - 1))
+      : null;
   const ovulationSlot = schedule ? slotFor(schedule.ovulation, schedule.ovulation) : null;
   // The §19 display window — the same days `/fertility/bbt` and the insights
   // screen mark (none when a long period swallows it).
@@ -748,11 +644,19 @@ export function HomePage() {
     schedule && hasFertileWindow(schedule)
       ? slotFor(schedule.fertileStart, schedule.fertileEnd)
       : null;
-  const pmsSlot = schedule ? slotFor(schedule.pmsStart, schedule.pmsEnd) : null;
+  const pmsSlot = overview?.pmsWindow
+    ? slotFor(fromApiDate(overview.pmsWindow.start), fromApiDate(overview.pmsWindow.end))
+    : schedule
+      ? slotFor(schedule.pmsStart, schedule.pmsEnd)
+      : null;
   const nextPeriodDate = nextPeriodSlot ? fmt(nextPeriodSlot.start) : null;
   const ovulationDate = ovulationSlot ? fmt(ovulationSlot.start) : null;
-  const windowRange = windowSlot ? range(windowSlot.start, windowSlot.end) : null;
-  const pmsRange = pmsSlot ? range(pmsSlot.start, pmsSlot.end) : null;
+  const toPrediction = (slot: TimelineSlot | null, single = false): PredictionSlot | null =>
+    slot && {
+      text: single ? fmt(slot.start) : range(slot.start, slot.end),
+      startIn: slot.days,
+      endIn: diffInDays(slot.end, base),
+    };
 
   const message: DailyMessage | null = daily ?? null;
   const dos = message?.primary.dos ?? [];
@@ -779,6 +683,8 @@ export function HomePage() {
   // The engine's own read-out for the selected day — the very same `cycle_view`
   // that renders the day-status card — so the ring can never disagree with it.
   const infoView = (isToday ? todayData : dateData)?.cycleView ?? null;
+  // The engine's main phase wins over the legacy calculation's phase.
+  const infoPhase: CyclePhase | null = phaseFromMainPhase(infoView?.mainPhase) ?? infoPred?.phase ?? null;
   const infoDaysUntilNextPeriod =
     infoView?.daysToPeriod ??
     (selectedSchedule ? daysUntilNextPeriod(selectedSchedule, selectedDate) : null);
@@ -802,7 +708,7 @@ export function HomePage() {
     infoView?.dailyCard?.subtitle ||
     (isToday
       ? (infoMessage?.primary.shortMessage || t('nextPeriod.phaseDesc'))
-      : (infoPred ? t(`phaseDescription.${infoPred.phase}`) : t('nextPeriod.phaseDesc')));
+      : (infoPhase ? t(`phaseDescription.${infoPhase}`) : t('nextPeriod.phaseDesc')));
   // Selecting a past/future day fetches its data; dim the ring and the card
   // meanwhile so the placeholder values read as "loading", not as a broken
   // empty state (§ loading).
@@ -863,9 +769,35 @@ export function HomePage() {
   }));
   const ringNowIndex = ringStart && !loadingInfo ? diffInDays(selectedDate, ringStart) : null;
 
-  const inPeriod = infoPred?.phase === 'period';
+  const inPeriod = infoPhase === 'period';
   const daysLeft = infoDaysUntilNextPeriod;
   const dash = t('unavailable');
+
+  // ── Hero variant (nbl_Cycle_Home / _Near / _During) ──
+  // The prompts only act on today; «هنوز نه» / «هنوز ادامه دارد» hide them until tomorrow.
+  const todayIso = toApiDate(base);
+  const [dismissTick, setDismissTick] = useState(0);
+  const startDismissed = mounted && dismissTick >= 0 && isPromptDismissed('start', todayIso);
+  const endDismissed = mounted && dismissTick >= 0 && isPromptDismissed('end', todayIso);
+  const dismiss = (kind: 'start' | 'end') => {
+    dismissPrompt(kind, todayIso);
+    setDismissTick((n) => n + 1);
+  };
+  const hero = heroState({
+    isToday: isToday && !loadingInfo && !noPeriodData,
+    inPeriod,
+    daysLeft,
+    daysLate: infoView?.daysLate ?? null,
+    periodOpen: infoView?.anchors?.currentPeriodEndIsConfirmed === false,
+    cycleDay: infoCycleDay,
+    periodLength,
+    startDismissed,
+    endDismissed,
+  });
+  const startPeriod = useStartPeriod();
+  const endPeriod = useEndPeriod();
+  const daysLate = infoView?.daysLate ?? 0;
+
   // TTC ring centre (`v19_Main`): «تخمک‌گذاری تا N روز» while ovulation is still
   // ahead in this cycle; once it has passed (or during the period) the ring
   // counts down to the next period like every other cycle home.
@@ -878,7 +810,11 @@ export function HomePage() {
       ? tf('home.ovulationIn')
       : inPeriod && !loadingInfo
         ? t('ring.period')
-        : t('ring.nextPeriod');
+        : hero.variant === 'late'
+          ? t('nb.hero.late')
+          : hero.variant === 'near' && daysLeft !== 0
+            ? t('nb.hero.periodIn')
+            : t('ring.nextPeriod');
   const ringNumber = loadingInfo
     ? dash
     : ttcRing
@@ -887,20 +823,24 @@ export function HomePage() {
         : formatNumber(daysToOvulation, loc)
       : inPeriod && infoCycleDay != null
         ? t('ring.periodDay', { n: infoCycleDay })
-        : daysLeft == null
-          ? dash
-          : daysLeft === 0
-            ? t('ring.today')
-            : formatNumber(daysLeft, loc);
+        : hero.variant === 'late'
+          ? formatNumber(daysLate, loc)
+          : daysLeft == null
+            ? dash
+            : daysLeft === 0
+              ? t('ring.today')
+              : formatNumber(daysLeft, loc);
   const ringUnit = loadingInfo
     ? null
     : ttcRing
       ? daysToOvulation > 0
         ? tf('home.days')
         : null
-      : !inPeriod && daysLeft != null && daysLeft > 0
-        ? t('ring.daysLeft', { n: daysLeft })
-        : null;
+      : hero.variant === 'late'
+        ? t('nb.hero.lateUnit')
+        : !inPeriod && daysLeft != null && daysLeft > 0
+          ? t('ring.daysLeft', { n: daysLeft })
+          : null;
   const ringSub = loadingInfo
     ? null
     : inPeriod
@@ -917,13 +857,21 @@ export function HomePage() {
     : t('ring.labelEmpty');
 
   // ── The phase card ──
-  const nearPeriod = !inPeriod && daysLeft != null && daysLeft > 0 && daysLeft <= 2;
-  const phaseTitle = loadingInfo || !infoPred
+  const nearPeriod = hero.variant === 'near' || hero.variant === 'late';
+  const phaseTitle = loadingInfo || !infoPhase
     ? dash
     : nearPeriod
       ? t('phaseCard.nearPeriod')
-      : t(`phaseCard.title.${infoPred.phase}`, { n: infoCycleDay ?? infoPred.cycleDay });
-  const phaseDot: CyclePhase | null = loadingInfo || !infoPred ? null : nearPeriod ? 'period' : infoPred.phase;
+      : t(`phaseCard.title.${infoPhase}`, { n: infoCycleDay ?? infoPred?.cycleDay ?? 1 });
+  const phaseDot: CyclePhase | null = loadingInfo || !infoPhase ? null : nearPeriod ? 'period' : infoPhase;
+  const phaseText =
+    !isToday || loadingInfo
+      ? infoPhaseDesc
+      : hero.variant === 'late'
+        ? t('nb.lateText', { n: formatNumber(daysLate, loc) })
+        : hero.variant === 'near' && daysLeft != null
+          ? t('nb.nearText', { days: daysLeft, n: formatNumber(daysLeft, loc) })
+          : infoPhaseDesc;
 
   // ── TTC blocks (`v19_Main`) ──
   const chanceTitle = isToday
@@ -941,6 +889,58 @@ export function HomePage() {
     todayData?.cycleView?.mainPhase === 'fertile' &&
     fertilityToday.data != null &&
     fertilityToday.data.lh.value === null;
+
+  // Today's data failed and nothing is cached: an error card with a retry
+  // instead of a ring and cards full of «—».
+  const loadFailed = !booting && todayQuery.isError && !todayData;
+  const todayPred = calc ? deriveCyclePredictions(calc) : null;
+  const todayPhase: CyclePhase | null =
+    phaseFromMainPhase(todayData?.cycleView?.mainPhase) ?? todayPred?.phase ?? null;
+
+  // «طول سیکل (میانه N سیکل)» — the engine's summary; without the overview
+  // route the effective length alone stands in.
+  const cycleLengthSummary = overview
+    ? {
+        median: overview.cycleLength.median,
+        basedOnCycles: overview.cycleLength.basedOnCycles,
+        spreadDays: overview.cycleLength.spreadDays,
+        regularity: overview.cycleLength.regularity,
+      }
+    : todayData?.cycleView?.effectiveValues.cycleLength != null
+      ? {
+          median: todayData.cycleView.effectiveValues.cycleLength,
+          basedOnCycles: null,
+          spreadDays: null,
+          regularity: null,
+        }
+      : null;
+
+  // The §12 sync nudge: only when recent cycles disagree with the profile value.
+  const view = todayData?.cycleView ?? null;
+  const suggested = view?.calculatedValues.cycleLength ?? null;
+  const logged = view?.profileValues.cycleLength ?? null;
+  const syncNudge =
+    view && suggested != null && logged != null && suggested !== logged ? (
+      <CycleValuesCard
+        title={t('values.title')}
+        loggedLabel={t('values.logged')}
+        loggedValue={t('days', { n: logged })}
+        suggestion={{
+          text: t('values.suggestion', { n: suggested }),
+          ctaLabel: t('values.syncCta', { n: suggested }),
+          onSync: () => setCycleSheetOpen(true),
+        }}
+        basedOnText={t('values.basedOn', {
+          source: t(
+            view.effectiveValues.source === 'recent_valid_cycles'
+              ? 'values.source.recent_valid_cycles'
+              : view.effectiveValues.source === 'profile'
+                ? 'values.source.profile'
+                : 'values.source.default',
+          ),
+        })}
+      />
+    ) : null;
 
   // Server pass / first client render: backdrop only, so both sides match.
   if (!mounted) {
@@ -972,7 +972,10 @@ export function HomePage() {
             markOf={markOf}
           />
           <section className={clsx('home-ring', loadingInfo && 'is-loading')}>
-            <div className={clsx('home-ring-glow', ttcRing && 'is-ttc')} aria-hidden />
+            <div
+              className={clsx('home-ring-glow', ttcRing && 'is-ttc', !ttcRing && hero.variant !== 'normal' && 'is-period')}
+              aria-hidden
+            />
             <CycleRing days={ringDays} nowIndex={ringNowIndex} label={ringLabel}>
               {/* `--period` red means menstruation (§10.2); "nothing logged yet"
                   is not a period, so the empty state takes the neutral caption. */}
@@ -991,6 +994,38 @@ export function HomePage() {
                   <Icon name="plus" size={16} strokeWidth={2.4} />
                   {tf('home.logToday')}
                 </Link>
+              ) : hero.startPrompt ? (
+                // «پریودم شروع شد / هنوز نه» (nbl_Cycle_Home_Near): logs today as day 1.
+                <>
+                  <button
+                    type="button"
+                    className="home-ring-cta is-period"
+                    onClick={() => startPeriod.mutate()}
+                    disabled={startPeriod.isPending}
+                  >
+                    <Icon name="drop" size={16} strokeWidth={2.2} />
+                    {t('nb.hero.started')}
+                  </button>
+                  <button type="button" className="home-ring-later" onClick={() => dismiss('start')}>
+                    {t('nb.hero.notYet')}
+                  </button>
+                </>
+              ) : hero.endPrompt ? (
+                // «پریودم تموم شد / هنوز ادامه دارد» (nbl_Cycle_Home_During): closes the open period today.
+                <>
+                  <button
+                    type="button"
+                    className="home-ring-cta"
+                    onClick={() => endPeriod.mutate()}
+                    disabled={endPeriod.isPending}
+                  >
+                    <Icon name="check" size={16} strokeWidth={2.4} />
+                    {t('nb.hero.ended')}
+                  </button>
+                  <button type="button" className="home-ring-later" onClick={() => dismiss('end')}>
+                    {t('nb.hero.stillGoing')}
+                  </button>
+                </>
               ) : (
                 // The date editor rises over the home screen itself (§4.1).
                 <button type="button" className="home-ring-edit" onClick={() => setDateEditorOpen(true)}>
@@ -1000,7 +1035,24 @@ export function HomePage() {
               )}
             </CycleRing>
           </section>
-          {noPeriodData ? (
+          {hero.endMissing && (
+            <div role="status" className="ch-alert">
+              <IconCircle icon="info" tone="warm" size="sm" />
+              <span className="ch-alert-body">
+                <b className="ch-alert-title">{t('nb.endMissing.title')}</b>
+                <span className="ch-alert-text">{t('nb.endMissing.text')}</span>
+              </span>
+            </div>
+          )}
+          {loadFailed ? (
+            <Card as="section" className="ch-error" role="alert">
+              <IconCircle icon="warning" tone="danger" />
+              <p className="ch-error-text">{t('nb.loadError')}</p>
+              <PrimaryButton block={false} className="ch-error-retry" onClick={() => void todayQuery.refetch()}>
+                {t('nb.retry')}
+              </PrimaryButton>
+            </Card>
+          ) : noPeriodData ? (
             <PhaseCard
               t={t}
               title={t('phaseCard.noData.title')}
@@ -1031,7 +1083,7 @@ export function HomePage() {
               title={phaseTitle}
               dotKind={phaseDot}
               fertilityLabel={infoFertilityLabel}
-              description={infoPhaseDesc}
+              description={phaseText}
               showMore={isToday && Boolean(todayData?.cycleView?.subphase)}
               loading={loadingInfo}
             />
@@ -1040,79 +1092,48 @@ export function HomePage() {
           {isTtc && !booting && <FertilityTiles />}
           {showLhTip && !booting && <LhTipCard />}
         </div>
-        {!booting && (
-          <>
+        {booting ? (
+          // First load: card-shaped placeholders in the feed's rhythm (no layout jump when it lands).
+          <SkeletonGroup label={t('nb.loading')} className="ch-feed">
+            <Skeleton shape="card" />
+            <Skeleton shape="card" />
+            <Skeleton shape="card" />
+          </SkeletonGroup>
+        ) : (
+          <div className="ch-feed">
             {/* Admin-managed promo slot — renders nothing until a banner is active */}
             <BannerSlideshow position="home_top" />
             {/* «یادآورهای امروز» — today's doses + next appointment (M3, /care/today),
-                right under the hero like the reminders artboard (T-M3-10 audit L-6).
-                The cycle home has no other visit card, so the appointment row is the
-                only place a visit shows here. */}
+                right under the hero like the reminders artboard (T-M3-10 audit L-6). */}
             <TodayRemindersCard />
-            {!noPeriodData && (
-              <PhaseRows
-                t={t}
-                schedule={schedule}
-                date={base}
-                windowRange={windowRange}
-                ovulationDate={ovulationDate}
-                pmsRange={pmsRange}
-                nextPeriodDate={nextPeriodDate}
-                daysTo={{
-                  pms: pmsSlot,
-                  nextPeriod: nextPeriodSlot,
-                  window: windowSlot,
-                  ovulation: ovulationSlot,
-                }}
-                /* The §12 value layers — what the profile says, what recent cycles
-                   suggest, and which layer today's prediction actually used. They
-                   took over the slot the two cycle facts used to hold. */
-                footer={todayData?.cycleView && (
-                  <CycleValuesCard
-                    title={t('values.title')}
-                    loggedLabel={t('values.logged')}
-                    loggedValue={
-                      todayData.cycleView.profileValues.cycleLength != null
-                        ? t('days', { n: todayData.cycleView.profileValues.cycleLength })
-                        : t('unavailable')
-                    }
-                    suggestion={
-                      todayData.cycleView.calculatedValues.cycleLength != null &&
-                      todayData.cycleView.profileValues.cycleLength != null &&
-                      todayData.cycleView.calculatedValues.cycleLength !==
-                        todayData.cycleView.profileValues.cycleLength
-                        ? {
-                            text: t('values.suggestion', {
-                              n: todayData.cycleView.calculatedValues.cycleLength,
-                            }),
-                            ctaLabel: t('values.syncCta', {
-                              n: todayData.cycleView.calculatedValues.cycleLength,
-                            }),
-                            onSync: () => setCycleSheetOpen(true),
-                          }
-                        : null
-                    }
-                    basedOnText={t('values.basedOn', {
-                      source: t(
-                        todayData.cycleView.effectiveValues.source === 'recent_valid_cycles'
-                          ? 'values.source.recent_valid_cycles'
-                          : todayData.cycleView.effectiveValues.source === 'profile'
-                            ? 'values.source.profile'
-                            : 'values.source.default',
-                      ),
-                    })}
-                  />
-                )}
+            {/* «ثبت امروز» + streak (nbl_Cycle_Home). The TTC home logs through its tiles. */}
+            {!noPeriodData && !loadFailed && !isTtc && <TodayLogCard streakDays={overview?.streakDays ?? null} />}
+            {!noPeriodData && !loadFailed && (
+              <PredictionsCard
+                nextPeriod={toPrediction(nextPeriodSlot)}
+                pms={toPrediction(pmsSlot)}
+                window={toPrediction(windowSlot)}
+                ovulation={ovulationDate}
+                length={cycleLengthSummary}
+                footer={syncNudge}
               />
             )}
-            {/* «چکاپ‌های دوره‌ای» (M4, /checkups/home) — after the cycle timeline. */}
+            {/* «چکاپ‌های دوره‌ای» (M4, /checkups/home) — after the cycle predictions. */}
             <CheckupsCard />
-            <Recommendations t={t} tips={calc?.dailyTips ?? []} dos={dos} />
+            <Recommendations
+              t={t}
+              tips={calc?.dailyTips ?? []}
+              dos={dos}
+              phase={todayPhase}
+            />
             <BannerSlideshow position="home_middle" />
             <TodayChallengeCard />
+            {!noPeriodData && !loadFailed && (
+              <PmsInsightCard pms={toPrediction(pmsSlot)} basedOnCycles={overview?.cycleLength.basedOnCycles ?? null} />
+            )}
             <Articles t={t} locale={loc} />
             <BannerSlideshow position="home_bottom" />
-          </>
+          </div>
         )}
         <div className="page-tail" />
       </div>

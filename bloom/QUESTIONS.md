@@ -35,3 +35,14 @@ default taken so work could continue. Review at the end of the run.
 | 28 | B-N1-14 | Two now-unused paths could not be deleted by the agent (permission prompt): `frontend/src/widgets/pregnancy-week-carousel/`, `frontend/src/screens/pregnancy-week/ui/WeekStrip.tsx`. OK to delete? | Left in place (dead code). |
 | 29 | B-N1-15 | All 20 dark `v13`/`v14` switches paint the knob in the card colour (`#221A3D`), but the shared `nb-switch` knob is `--on-accent` (white at night). | Scoped override (`.rmd-hit .nb-switch-knob { background: var(--surface) }`) on the reminder/checkup switches only; the primitive is unchanged. Move it into `Switch` for every screen? |
 | 30 | B-N1-15 | `ScreenHeader` back button is an arrow (→ in RTL); every `v13`/`v14` artboard draws a chevron. | Kept the primitive's arrow for app-wide consistency (B-N1-03 decision). |
+| 31 | B-N1-11 | Artboard has no «متن خنثی» switch; added one inside the note card (default on). OK? | switch in note card |
+| 32 | B-N1-11 | Quiet-hours editing UI not in artboard → tap the range to open two time fields. OK? | inline time pickers |
+| 33 | B-N1-11 | Row subtitles («۲ روز قبل · ۹:۰۰») are static copy, not read from real schedules. | static |
+| 34 | B-N1-11 | Prod `/api/v1/profile/*` still routes to Laravel → notification settings is Go-only (stage works). Add deviation D-33? | Go-only |
+| 35 | B-N1-11 | PregnancyAlertsPage gear still opens the inbox sheet; should it go to `/profile/notifications`? | untouched |
+| 36 | B-N1-11 | No real push/web-push sender exists yet; future senders must call notifications Load→Decide→Render. | gate only |
+| 37 | B-N1-07 | Cycle calendar shows current month first then previous; TTC in date order. Ovulation dot/legend only in TTC mode (cycle artboard legend has none). Year view has no artboard. | as described |
+| 38 | infra | Local `ritme_dev` was rebuilt from contract dump (docker was down) — hand-made data (persona 12 BBT days) is gone. | re-seed if needed |
+| 39 | B-N1-06 | «Near period» = 0–2 days before prediction (`NEAR_PERIOD_DAYS=2`); late period shows the same start prompt. Dark «پریودم شروع شد» uses dark text (contrast) instead of the artboard's white. | as described |
+| 40 | B-N1-06 | Challenges API returns one challenge/day, so the card shows «۰ از ۱»; the artboard's 5-item list with per-row actions («+ لیوان») has no data. Legacy home widgets kept (banners, reminders, checkups, articles) in a chosen order. | kept |
+| 41 | B-N1-06 | `/home/cycle-overview` is Go-only → no Laravel contract golden (unit + 401 + OpenAPI tests only). `/care/today`, `/checkups/home` return 500 on `ritme_dev` (env data). | as is |

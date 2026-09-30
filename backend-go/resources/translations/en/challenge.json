@@ -6,5 +6,9 @@
     "between": "For cycle days {from}–{to}",
     "from": "From cycle day {n} onwards",
     "to": "Up to cycle day {n}"
-  }
+  },
+  "listTitle": "Today's challenges",
+  "progress": "{done} of {total}",
+  "progressLabel": "Today's challenge progress",
+  "footer": "A few small things each day, matched to your cycle phase."
 }
