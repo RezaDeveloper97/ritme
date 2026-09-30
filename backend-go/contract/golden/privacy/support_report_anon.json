@@ -1,0 +1,24 @@
+{
+  "case": "privacy/support_report_anon",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/support/reports",
+        "persona": "anon",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "message": "Prediction looks wrong after editing a period date"
+        }
+      },
+      "status": 401,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "Unauthenticated.",
+        "error_code": "unauthenticated"
+      }
+    }
+  ]
+}

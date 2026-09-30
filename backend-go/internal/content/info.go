@@ -11,8 +11,9 @@ import (
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 )
 
-// InfoGroups is InfoSection::GROUPS (the screens the table feeds, admin order).
-var InfoGroups = []string{"help", "privacy", "terms", "about"}
+// InfoGroups is InfoSection::GROUPS (the screens the table feeds, admin order) plus `support` (B-N1-12, Go
+// only): the support channels of the Support screen (tel: → phone line, http(s)/mailto → the chat card).
+var InfoGroups = []string{"help", "privacy", "terms", "about", "support"}
 
 // Info is GET /info/{group} (InfoController::show): unknown group → abort(404).
 func (h *Handlers) Info(c fiber.Ctx) error {

@@ -1,0 +1,102 @@
+# Privacy & support (B-N1-12) — Go only: /api/v1/profile/consents, /api/v1/support/reports and the public
+# /api/v1/info-pages/{group}. No Laravel route, so these goldens were recorded from the Go server and reviewed by hand
+# (new-endpoint skill, step 8). The fixture dump carries the empty `user_consents` / `support_reports` tables (goose
+# 00012 / Laravel 2026_10_01_000003), added by hand — the DDL a full re-record reproduces; its info_sections rows are
+# the Laravel seeder's (no `summary` / `support` rows, which come from the migration on real databases).
+# Screenshot uploads, the hourly flood guard and user isolation are covered by internal/profile integration tests.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: privacy
+defaults:
+  persona: regular
+  locales: [none, en]
+cases:
+  - name: consents_defaults
+    doc: Never answered → every consent off, no timestamps
+    locales: [none, fa, en]
+    method: GET
+    path: /api/v1/profile/consents
+    status: 200
+  - name: consents_anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/profile/consents
+    status: 401
+  - name: consents_round_trip
+    doc: Grant, then withdraw one consent; the withdrawal keeps the last grant time; unknown codes ignored
+    steps:
+      - method: PUT
+        path: /api/v1/profile/consents
+        body: {consents: {ai_lab_analysis: true, anonymous_stats: false, unknown: true}}
+        status: 200
+      - method: PUT
+        path: /api/v1/profile/consents
+        body: {consents: {ai_lab_analysis: false}}
+        status: 200
+      - method: GET
+        path: /api/v1/profile/consents
+        status: 200
+  - name: consents_invalid
+    doc: Controller-style 422 with localized attribute names
+    locales: [none, fa, en]
+    method: PUT
+    path: /api/v1/profile/consents
+    body: {consents: {assistant_profile: "maybe"}}
+    status: 422
+  - name: consents_anon_update
+    persona: anon
+    locales: none
+    method: PUT
+    path: /api/v1/profile/consents
+    body: {consents: {anonymous_stats: true}}
+    status: 401
+
+  - name: support_report_json
+    doc: A text-only report (JSON) → 201 {id, status, created_at}
+    method: POST
+    path: /api/v1/support/reports
+    body: {message: "Prediction looks wrong after editing a period date", app_version: "1.1.0"}
+    status: 201
+  - name: support_report_multipart
+    doc: The same as multipart form data (no screenshot)
+    locales: none
+    method: POST
+    path: /api/v1/support/reports
+    content_type: "multipart/form-data; boundary=RITMEBOUNDARY"
+    raw_body: "--RITMEBOUNDARY\r\nContent-Disposition: form-data; name=\"message\"\r\n\r\nThe calendar does not open after update\r\n--RITMEBOUNDARY--\r\n"
+    status: 201
+  - name: support_report_invalid
+    doc: Message too short, screenshot sent as text → 422 (localized)
+    locales: [none, fa, en]
+    method: POST
+    path: /api/v1/support/reports
+    body: {message: "short", screenshot: "not-a-file"}
+    status: 422
+  - name: support_report_anon
+    persona: anon
+    locales: none
+    method: POST
+    path: /api/v1/support/reports
+    body: {message: "Prediction looks wrong after editing a period date"}
+    status: 401
+
+  - name: info_page_privacy
+    doc: Public; boxes with key, the page's last edit day
+    persona: anon
+    locales: [none, fa, en]
+    method: GET
+    path: /api/v1/info-pages/privacy
+    status: 200
+  - name: info_page_support_empty
+    doc: The new support group with no rows → empty sections, updated_at null
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/info-pages/support
+    status: 200
+  - name: info_page_unknown
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/info-pages/nope
+    status: 404

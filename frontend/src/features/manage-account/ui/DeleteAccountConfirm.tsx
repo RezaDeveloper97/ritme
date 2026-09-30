@@ -8,8 +8,6 @@ import { Icon } from '@/shared/ui';
 
 import { useDeleteAccount } from '../api/mutations';
 
-const DANGER = 'var(--danger)';
-
 interface DeleteAccountConfirmProps {
   open: boolean;
   onClose: () => void;
@@ -52,18 +50,7 @@ export function DeleteAccountConfirm({ open, onClose }: DeleteAccountConfirmProp
         className="card del-card"
         onClick={(event) => event.stopPropagation()}
       >
-        <span
-          style={{
-            width: 46,
-            height: 46,
-            borderRadius: 14,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'var(--danger-soft)',
-            color: DANGER,
-          }}
-        >
+        <span className="del-icon" aria-hidden>
           <Icon name="trash" size={22} />
         </span>
 
@@ -75,7 +62,7 @@ export function DeleteAccountConfirm({ open, onClose }: DeleteAccountConfirmProp
         </p>
 
         {deleteAccount.isError ? (
-          <p style={{ fontSize: 13, color: DANGER, margin: '10px 0 0' }}>
+          <p className="del-error" role="alert">
             {getApiErrorMessage(deleteAccount.error) ?? t('delete.error')}
           </p>
         ) : null}
@@ -83,41 +70,13 @@ export function DeleteAccountConfirm({ open, onClose }: DeleteAccountConfirmProp
         <div className="del-btns">
           <button
             type="button"
+            className="del-confirm"
             onClick={handleConfirm}
             disabled={deleteAccount.isPending}
-            style={{
-              width: '100%',
-              padding: '13px 16px',
-              borderRadius: 14,
-              border: 0,
-              font: 'inherit',
-              fontSize: 14,
-              fontWeight: 700,
-              cursor: deleteAccount.isPending ? 'default' : 'pointer',
-              background: DANGER,
-              color: 'var(--on-accent)',
-              opacity: deleteAccount.isPending ? 0.65 : 1,
-            }}
           >
             {deleteAccount.isPending ? t('delete.deleting') : t('delete.confirm')}
           </button>
-          <button
-            type="button"
-            onClick={handleClose}
-            disabled={deleteAccount.isPending}
-            style={{
-              width: '100%',
-              padding: '13px 16px',
-              borderRadius: 14,
-              border: '1px solid var(--line)',
-              font: 'inherit',
-              fontSize: 14,
-              fontWeight: 700,
-              cursor: deleteAccount.isPending ? 'default' : 'pointer',
-              background: 'transparent',
-              color: 'var(--ink)',
-            }}
-          >
+          <button type="button" className="del-cancel" onClick={handleClose} disabled={deleteAccount.isPending}>
             {t('delete.cancel')}
           </button>
         </div>

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log/slog"
 	"strings"
 	"time"
 
@@ -40,9 +41,11 @@ func dbErr(what string, err error) error {
 
 // Service holds the write side of ProfileController.
 type Service struct {
-	DB       *sql.DB
-	Q        *store.Queries
-	Telegram *notify.Telegram
+	DB          *sql.DB
+	Q           *store.Queries
+	Telegram    *notify.Telegram
+	StoragePath string // STORAGE_PATH: support-report screenshots are removed with the account
+	Logger      *slog.Logger
 }
 
 // SaveResult is what POST /profile answers with.
@@ -131,6 +134,10 @@ func (s *Service) Save(ctx context.Context, u *auth.User, input phpval.Map, now 
 // DeleteAccount deletes the user's refresh and access tokens, then the user (cascading to
 // every user-owned table), in one transaction (D-25).
 func (s *Service) DeleteAccount(ctx context.Context, userID uint64) (err error) {
+	shots, err := s.Q.ListUserSupportScreenshots(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("profile: delete account: screenshots: %w", err)
+	}
 	tx, err := s.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("profile: delete account: begin: %w", err)
@@ -154,6 +161,7 @@ func (s *Service) DeleteAccount(ctx context.Context, userID uint64) (err error) 
 	if err = tx.Commit(); err != nil {
 		return fmt.Errorf("profile: delete account: commit: %w", err)
 	}
+	RemoveSupportFiles(s.StoragePath, shots, s.Logger)
 	return nil
 }
 

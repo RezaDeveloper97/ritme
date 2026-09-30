@@ -24,6 +24,7 @@ import (
 // Querier is the subset of store.Queries the handlers use (fakes in tests).
 type Querier interface {
 	ListActiveInfoSections(ctx context.Context, group string) ([]store.ListActiveInfoSectionsRow, error)
+	ListActiveInfoPageSections(ctx context.Context, group string) ([]store.ListActiveInfoPageSectionsRow, error)
 	ListActiveBanners(ctx context.Context, arg store.ListActiveBannersParams) ([]store.ListActiveBannersRow, error)
 	GetPhaseContent(ctx context.Context, phase string) (store.GetPhaseContentRow, error)
 	CountPublishedArticles(ctx context.Context, arg store.CountPublishedArticlesParams) (int64, error)

@@ -1,2 +1,2 @@
-export { useDeleteAccount, useExportData } from './api/mutations';
+export { useDeleteAccount, useExportData, useExportPdf } from './api/mutations';
 export { DeleteAccountConfirm } from './ui/DeleteAccountConfirm';

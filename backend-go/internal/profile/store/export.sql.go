@@ -7,6 +7,7 @@ package store
 
 import (
 	"context"
+	"database/sql"
 )
 
 const exportDailyHealthLogs = `-- name: ExportDailyHealthLogs :many
@@ -328,6 +329,94 @@ func (q *Queries) ExportReminders(ctx context.Context, userID uint64) ([]Reminde
 			&i.EndsOn,
 			&i.IsActive,
 			&i.Meta,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const exportSupportReports = `-- name: ExportSupportReports :many
+SELECT id, message, status, CAST(screenshot_path IS NOT NULL AS SIGNED) AS has_screenshot, created_at
+FROM ` + "`" + `support_reports` + "`" + ` WHERE user_id = ? ORDER BY id
+`
+
+type ExportSupportReportsRow struct {
+	ID            uint64
+	Message       string
+	Status        string
+	HasScreenshot int64
+	CreatedAt     sql.NullTime
+}
+
+// B-N1-12: the user's support reports — no file path, only whether a screenshot was attached.
+func (q *Queries) ExportSupportReports(ctx context.Context, userID uint64) ([]ExportSupportReportsRow, error) {
+	rows, err := q.db.QueryContext(ctx, exportSupportReports, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ExportSupportReportsRow{}
+	for rows.Next() {
+		var i ExportSupportReportsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Message,
+			&i.Status,
+			&i.HasScreenshot,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const exportUserConsents = `-- name: ExportUserConsents :many
+SELECT consent, granted, granted_at, revoked_at, created_at, updated_at
+FROM ` + "`" + `user_consents` + "`" + ` WHERE user_id = ? ORDER BY id
+`
+
+type ExportUserConsentsRow struct {
+	Consent   string
+	Granted   bool
+	GrantedAt sql.NullTime
+	RevokedAt sql.NullTime
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
+// B-N1-12: the consents with their timestamps.
+func (q *Queries) ExportUserConsents(ctx context.Context, userID uint64) ([]ExportUserConsentsRow, error) {
+	rows, err := q.db.QueryContext(ctx, exportUserConsents, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ExportUserConsentsRow{}
+	for rows.Next() {
+		var i ExportUserConsentsRow
+		if err := rows.Scan(
+			&i.Consent,
+			&i.Granted,
+			&i.GrantedAt,
+			&i.RevokedAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {

@@ -13,5 +13,28 @@
   "calendar": {
     "prevMonth": "Previous month",
     "nextMonth": "Next month"
+  },
+  "appLock": {
+    "title": "Ritme is locked",
+    "subtitle": "Enter your Ritme passcode",
+    "entered": "{count} of {total} digits entered",
+    "erase": "Delete digit",
+    "wrong": "That passcode isn't right. Try again.",
+    "blocked": "Too many wrong tries. Try again in {seconds} seconds.",
+    "biometric": "Unlock with fingerprint or face",
+    "biometricFailed": "Couldn't verify. Enter your passcode.",
+    "forgot": "Forgot your passcode?",
+    "forgotBody": "To open Ritme without the passcode you need to sign out and sign in again with the SMS code. Your data stays on the server and the lock is removed.",
+    "forgotConfirm": "Sign out and sign in again",
+    "forgotCancel": "Back",
+    "sheetTitle": "App lock passcode",
+    "createTitle": "Choose a new passcode",
+    "confirmTitle": "Enter the passcode again",
+    "verifyTitle": "Enter your current passcode",
+    "mismatch": "The two passcodes didn't match. Start again.",
+    "lengthLabel": "Passcode length",
+    "digits": "{count, plural, one {# digit} other {# digits}}",
+    "localNote": "The passcode is kept only on this phone, encrypted, and is never sent to the server.",
+    "lockedOut": "Too many wrong passcodes. To protect your data you are being signed out; sign in again with the SMS code."
   }
 }

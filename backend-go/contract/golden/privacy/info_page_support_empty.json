@@ -1,0 +1,25 @@
+{
+  "case": "privacy/info_page_support_empty",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/info-pages/support",
+        "persona": "anon",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "group": "support",
+          "updated_at": null,
+          "sections": []
+        }
+      }
+    }
+  ]
+}

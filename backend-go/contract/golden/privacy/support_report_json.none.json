@@ -1,0 +1,32 @@
+{
+  "case": "privacy/support_report_json.none",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/support/reports",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "message": "Prediction looks wrong after editing a period date",
+          "app_version": "1.1.0"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "گزارشت رسید؛ ممنون که کمک می‌کنی ریتمی بهتر شود",
+        "data": {
+          "id": 1,
+          "status": "open",
+          "created_at": "2026-09-23T10:00:00+03:30"
+        }
+      }
+    }
+  ]
+}

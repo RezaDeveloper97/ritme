@@ -30,3 +30,18 @@ entries:
     where: "**.calculation_version"
     deviation: D-24
     reason: no markRecalculated → 0
+
+  # D-33 (task B-N1-12, security audit L3): the export also carries the Go-only consents, support reports
+  # and notification settings (Laravel has none of these tables).
+  - case: "export*"
+    where: data.consents
+    deviation: D-33
+    reason: Go-only user_consents rows in the data export
+  - case: "export*"
+    where: data.support_reports
+    deviation: D-33
+    reason: Go-only support reports (no file path) in the data export
+  - case: "export*"
+    where: data.notification_settings
+    deviation: D-33
+    reason: Go-only notification settings in the data export

@@ -1,0 +1,36 @@
+{
+  "case": "privacy/support_report_invalid.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/support/reports",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "message": "short",
+          "screenshot": "not-a-file"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": false,
+        "message": "اطلاعات واردشده نامعتبر است",
+        "errors": {
+          "message": [
+            "متن گزارش باید حداقل 10 نویسه باشد."
+          ],
+          "screenshot": [
+            "اسکرین‌شات باید یک تصویر باشد."
+          ]
+        }
+      }
+    }
+  ]
+}

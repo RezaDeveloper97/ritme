@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation';
 import type { ReactNode } from 'react';
 
 import { OnboardingCalendarSync } from '@/entities/user';
+import { AppLockGate, appLockInitScript } from '@/features/app-lock';
 import { SessionRefresher } from '@/features/auth';
 import { BackGuard } from '@/shared/back-guard';
 import {
@@ -153,6 +154,8 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
       <body className={vazirmatn.className}>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <script dangerouslySetInnerHTML={{ __html: chromeInitScript }} />
+        {/* B-N1-12: hides the shell before first paint while an app lock is set. */}
+        <script dangerouslySetInnerHTML={{ __html: appLockInitScript }} />
         {/* Only what the shell itself renders (PWA prompts, sheets); each
             route adds its own namespaces with <RouteMessages> — see
             app/message-scopes.ts. */}
@@ -173,11 +176,15 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
             <InstallPrompt />
             <div className="stage">
               <div className="app-shell">
-                {children}
-                {/* Mounted beside the screen, not inside it: every secondary
-                    screen is a sheet over whatever is showing, and it has to
-                    outlive the screen that opened it (see app/sheets). */}
-                <SheetHost />
+                {/* B-N1-12: while the app lock is closed neither the screen
+                    nor any sheet renders — whatever the route or history. */}
+                <AppLockGate>
+                  {children}
+                  {/* Mounted beside the screen, not inside it: every secondary
+                      screen is a sheet over whatever is showing, and it has to
+                      outlive the screen that opened it (see app/sheets). */}
+                  <SheetHost />
+                </AppLockGate>
               </div>
             </div>
             </AppProviders>

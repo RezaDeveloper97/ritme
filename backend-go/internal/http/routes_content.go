@@ -39,6 +39,7 @@ func init() {
 		r.Get("/api/v1/languages/:code/messages", ttl, locale, h.Messages)
 		r.Get("/api/v1/info/:group", ttl, locale, h.Info)
 		r.Get("/api/v1/privacy", ttl, locale, h.Privacy)
+		r.Get("/api/v1/info-pages/:group", ttl, locale, h.InfoPage) // B-N1-12, Go only
 
 		// auth:api.
 		r.Get("/api/v1/banners", ttl, locale, guard, h.Banners)

@@ -1,0 +1,42 @@
+{
+  "case": "privacy/consents_defaults.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/profile/consents",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "consents": [
+            {
+              "code": "ai_lab_analysis",
+              "granted": false,
+              "granted_at": null,
+              "revoked_at": null
+            },
+            {
+              "code": "assistant_profile",
+              "granted": false,
+              "granted_at": null,
+              "revoked_at": null
+            },
+            {
+              "code": "anonymous_stats",
+              "granted": false,
+              "granted_at": null,
+              "revoked_at": null
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -24,6 +24,8 @@ import (
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/platform/validation"
+	"github.com/ritme/backend-go/internal/profile"
+	profilestore "github.com/ritme/backend-go/internal/profile/store"
 )
 
 // Status filter values (?status=).
@@ -35,14 +37,21 @@ const (
 
 // Handlers serve /users.
 type Handlers struct {
-	db     *sql.DB
-	q      *store.Queries
-	logger *slog.Logger
+	db          *sql.DB
+	q           *store.Queries
+	logger      *slog.Logger
+	storagePath string // STORAGE_PATH: support-report screenshots are removed with the user (B-N1-12)
 }
 
 // NewHandlers wires the handlers.
 func NewHandlers(db *sql.DB, logger *slog.Logger) *Handlers {
 	return &Handlers{db: db, q: store.New(db), logger: logger}
+}
+
+// WithStoragePath sets STORAGE_PATH so Destroy also removes the user's support-report screenshots.
+func (h *Handlers) WithStoragePath(p string) *Handlers {
+	h.storagePath = p
+	return h
 }
 
 // escapeLike escapes LIKE wildcards so the search is a plain substring match.
@@ -324,6 +333,11 @@ func (h *Handlers) Destroy(c fiber.Ctx) error {
 		return err
 	}
 	nowTime := httpadmin.Now(c)
+	// The files outlive the rows (support_reports goes by ON DELETE CASCADE): list them first.
+	shots, err := profilestore.New(h.db).ListUserSupportScreenshots(c.Context(), id)
+	if err != nil {
+		return fmt.Errorf("users: support screenshots: %w", err)
+	}
 	var revoked int64
 	err = h.inTx(c.Context(), func(q *store.Queries, tx *sql.Tx) error {
 		n, err := auth.RevokeUserTokens(c.Context(), authstore.New(tx), id, nowTime)
@@ -343,6 +357,7 @@ func (h *Handlers) Destroy(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	profile.RemoveSupportFiles(h.storagePath, shots, h.logger)
 	httpadmin.Audit(c, h.logger, "user.delete", "user", id, slog.Int64("revoked_tokens", revoked))
 	return httpadmin.OK(c, jsonx.Obj("id", id, "revoked_tokens", revoked), "User deleted.")
 }

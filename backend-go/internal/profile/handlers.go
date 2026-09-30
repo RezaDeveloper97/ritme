@@ -46,10 +46,12 @@ type Handlers struct {
 type Options struct {
 	DB       *sql.DB
 	Telegram *notify.Telegram // nil → no notices
-	Content  MessageContents  // nil → the store-backed message_contents lookup
-	Clock    clock.Clock      // fallback when the request carries no test clock
-	Debug    bool             // APP_DEBUG: 500 bodies carry the error text
-	Logger   *slog.Logger
+	// StoragePath is STORAGE_PATH (support-report screenshots are removed with the account; "" = none stored).
+	StoragePath string
+	Content     MessageContents // nil → the store-backed message_contents lookup
+	Clock       clock.Clock     // fallback when the request carries no test clock
+	Debug       bool            // APP_DEBUG: 500 bodies carry the error text
+	Logger      *slog.Logger
 }
 
 // NewHandlers builds the controller.
@@ -65,7 +67,7 @@ func NewHandlers(o Options) *Handlers {
 		o.Logger = slog.Default()
 	}
 	return &Handlers{
-		svc:    &Service{DB: o.DB, Q: q, Telegram: o.Telegram},
+		svc:    &Service{DB: o.DB, Q: q, Telegram: o.Telegram, StoragePath: o.StoragePath, Logger: o.Logger},
 		bmi:    Bmi{Content: o.Content},
 		clock:  o.Clock,
 		debug:  o.Debug,
@@ -276,6 +278,10 @@ func (h *Handlers) Export(c fiber.Ctx) error {
 	if err != nil {
 		return fmt.Errorf("profile: export reminders: %w", err)
 	}
+	privacy, err := exportPrivacy(ctx, q, u.ID)
+	if err != nil {
+		return err
+	}
 
 	var createdAt any
 	if u.CreatedAt.Valid {
@@ -302,6 +308,10 @@ func (h *Handlers) Export(c fiber.Ctx) error {
 			"fetal_movements", model.List(movements, model.PregnancyFetalMovementCasts),
 		),
 		"reminders", model.List(reminders, model.ReminderCasts),
+		// B-N1-12 (Go only): consents, support reports, notification settings.
+		"consents", privacy.consents,
+		"support_reports", privacy.reports,
+		"notification_settings", privacy.notifications,
 	))
 }
 

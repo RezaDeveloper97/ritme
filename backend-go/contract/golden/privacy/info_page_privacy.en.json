@@ -1,0 +1,59 @@
+{
+  "case": "privacy/info_page_privacy.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/info-pages/privacy",
+        "persona": "anon",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "group": "privacy",
+          "updated_at": "2026-09-23",
+          "sections": [
+            {
+              "id": 6,
+              "key": "commitment",
+              "heading": "Our commitment to you",
+              "body": "Ritme is built to hold some of your most personal health information, so privacy is our default, not an option. We collect only the minimum data the app needs to work, and we never store anything \"just in case\".",
+              "link_label": null,
+              "link_url": null
+            },
+            {
+              "id": 7,
+              "key": "never-sold",
+              "heading": "Your data is never sold",
+              "body": "Your information is never sold or rented to any person or company, and it is not used for advertising. Your data is used solely to provide Ritme's services to you.",
+              "link_label": null,
+              "link_url": null
+            },
+            {
+              "id": 8,
+              "key": "health-confidential",
+              "heading": "Health data stays confidential",
+              "body": "Period dates, symptoms, pregnancy status, and predictions are never written to technical logs, analytics tools, or error reports, and they are never shared with third-party services. This data is only accessible through your own secure sign-in.",
+              "link_label": null,
+              "link_url": null
+            },
+            {
+              "id": 9,
+              "key": "export-delete",
+              "heading": "Your right to export and delete",
+              "body": "You own your data. At any time, you can download a complete copy of your information as a file from your profile, or permanently delete your account and everything in it. Account deletion is immediate and irreversible.",
+              "link_label": null,
+              "link_url": null
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -26,6 +26,8 @@ type Querier interface {
 	// (bound as Tehran wall-clock 'Y-m-d H:i:s'), ordered sort_order, id DESC. The
 	// controller's whereIn('position', …) is applied by the caller.
 	ListActiveBanners(ctx context.Context, arg ListActiveBannersParams) ([]ListActiveBannersRow, error)
+	// GET /info-pages/{group} (B-N1-12, Go only): the info boxes of one screen with their stable key and last edit.
+	ListActiveInfoPageSections(ctx context.Context, group string) ([]ListActiveInfoPageSectionsRow, error)
 	// info_sections (App\Models\InfoSection), read side of InfoController.
 	// InfoSection::inGroup($group)->active()->ordered()->get().
 	ListActiveInfoSections(ctx context.Context, group string) ([]ListActiveInfoSectionsRow, error)

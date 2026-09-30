@@ -8,7 +8,10 @@ import {
 } from '@tanstack/react-query';
 
 import { type ApiEnvelope, apiClient } from '@/shared/api';
+import { loadPdfGenerator, shareOrDownloadFile } from '@/shared/lib/pdf';
 import { clearAuthToken } from '@/shared/session';
+
+import { exportPdfSpec, type PdfExportLabels } from './export-pdf';
 
 /**
  * Account data actions (CLAUDE.md §11 — export & delete are first-class user
@@ -18,6 +21,7 @@ import { clearAuthToken } from '@/shared/session';
  */
 
 const EXPORT_FILENAME = 'ritme-data-export.json';
+const EXPORT_PDF_FILENAME = 'ritme-data-export.pdf';
 
 /**
  * GET /profile/export — downloads the user's full personal data as a JSON file
@@ -53,6 +57,28 @@ export function useExportData() {
   });
   return {
     exportData: mutation.mutate,
+    isPending: mutation.isPending,
+    isError: mutation.isError,
+  };
+}
+
+/**
+ * The same export as a PDF (B-N1-12, «JSON و PDF»): GET /profile/export,
+ * rendered to a paper document on the device by `shared/lib/pdf` and handed to
+ * the share sheet / a download. Nothing is uploaded or logged; the labels come
+ * from the caller (this slice owns no copy).
+ */
+export function useExportPdf() {
+  const mutation = useMutation<void, unknown, PdfExportLabels>({
+    mutationFn: async (labels) => {
+      const { data } = await apiClient.get<ApiEnvelope<Record<string, unknown>>>('/profile/export');
+      const { renderPdf } = await loadPdfGenerator();
+      const blob = await renderPdf(exportPdfSpec(data.data ?? {}, labels));
+      await shareOrDownloadFile(blob, EXPORT_PDF_FILENAME);
+    },
+  });
+  return {
+    exportPdf: mutation.mutate,
     isPending: mutation.isPending,
     isError: mutation.isError,
   };

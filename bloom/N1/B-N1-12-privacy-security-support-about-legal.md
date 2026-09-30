@@ -3,7 +3,7 @@ id: B-N1-12
 title: Privacy & security, support, about, legal
 milestone: N1
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N1-10]
 parallel_group: N1-L
 touches: [frontend/src/screens/privacy,frontend/src/screens/support,frontend/src/screens/about,frontend/src/features/app-lock,frontend/src/features/manage-account,backend-go/internal/profile,backend-go/internal/content,backend-go/api]
