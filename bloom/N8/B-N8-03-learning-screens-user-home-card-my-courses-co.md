@@ -29,6 +29,7 @@ Option A (home card) chosen by the user.
 
 ## Scope
 - Home card (continue / new from instructor), my courses (filters, access days, expired), course (chapters, progress, locked chapter note), video player (speed, audio-only, notes, files, next), audio player (background, speed, sleep timer, transcript), PDF viewer, unlocked notification screen, learning entry in Me.
+- (B-N1-01) `a-start-plus/nbd_User_Library` / `nbd_User_Player` (dark-only) are superseded by `Learn_Hub` / `Learn_Video` / `Learn_Audio`; `Learn_Profile` is an older Me-hub variant — only its «دوره‌های من» / «دانلودها» rows apply (Me hub itself is B-N1-10).
 
 ## Out of scope
 - Android (android-shell/, application/, twa/) — never.

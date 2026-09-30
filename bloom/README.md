@@ -32,6 +32,7 @@ skill (`.claude/skills/bloom-task/SKILL.md`). `/next-task` and `tasks/` are unto
 | `bash bloom/bin/next.sh --check` | validate ids, deps, statuses |
 | `bash bloom/bin/new.sh ID "Title" TYPE "deps" GROUP "touches" "skills" "verify"` | add a task |
 | `bash bloom/bin/index.sh` | regenerate `bloom/INDEX.md` |
+| `node bloom/bin/shot.mjs --out docs/qa/bloom/<ID> --mobile 09900000001 /fa/home` | full-page light+dark screenshots of the local app (OTP read from `ritme_dev`); `--files <artboard.dc.html…>` renders artboards for side-by-side; header of the file lists options |
 
 Task ids: `B-N<milestone>-<nn>` (follow-ups get a letter suffix, `B-N1-06b`). Frontmatter and body sections are the same
 as `tasks/README.md` (Why / Design / Scope / Out of scope / Acceptance).

@@ -6,7 +6,7 @@ type: frontend
 status: todo
 depends_on: [B-N1-03]
 parallel_group: N1-D
-touches: [frontend/src/widgets/bottom-nav,frontend/src/app/[locale]/(app),frontend/src/screens/services]
+touches: [frontend/src/widgets/bottom-nav,frontend/src/app/[locale],frontend/src/shared/config,frontend/CLAUDE.md,frontend/src/screens/services]
 skills: [new-fsd-slice,verify-all]
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && npm run build
 ---
@@ -25,6 +25,9 @@ The new nav adds «خدمات» and makes the second tab depend on the life-stag
 - Tabs: امروز · <mode tab> · FAB(+) · خدمات · من. Mode tab: cycle→تقویم, ttc→باروری, pregnancy→بارداری, postpartum→کودک, menopause→علائم, teen→تقویم. FAB opens the mode's log sheet.
 - New `/services` route with a placeholder hub (real hub in B-N7-01) so the tab works now.
 - Safe-area, active states and badge support per artboards.
+- (B-N1-01) Spec in `docs/night-bloom/nav.md`: solid FAB (drop gradient/goo), glass pill geometry, nav shown only on tab roots and first-level hubs, hidden on back-header screens/forms/sheets; the `/cycle` tab leaves the nav.
+- (B-N1-01) FAB opens `?sheet=log` (full `AppSheet`) for the mode; `/log` stays as a route. Postpartum «کودک» → `/children/[id]` for one child else `/children`; menopause «علائم» → `/analysis/symptoms` (placeholder until N3); male companion nav has no FAB/mode tab (N4).
+- (B-N1-01) There is no `(app)` route group today — routes live under `frontend/src/app/[locale]/`; add the group or place `/services` there. Update `frontend/CLAUDE.md` §4.1 (routes vs sheets) to match the route map in `docs/night-bloom/routes.md`.
 
 ## Out of scope
 - Android (android-shell/, application/, twa/) — never.

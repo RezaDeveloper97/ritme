@@ -23,6 +23,7 @@ The men's side.
 
 ## Scope
 - Gender=male → partner code entry (6 chars, what you'll see, invite link) → linked screen → companion home with its own nav.
+- (B-N1-01) `Hamdam_Home` has no nav drawn: companion nav = امروز (`/companion`) · خدمات · من, no FAB, no mode tab.
 
 ## Out of scope
 - Android (android-shell/, application/, twa/) — never.

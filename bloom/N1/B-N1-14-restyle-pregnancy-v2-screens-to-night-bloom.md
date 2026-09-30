@@ -24,6 +24,7 @@ M7 shipped pregnancy v2; the canvas re-skins it (PregFull set).
 - `docs/design/night-bloom/b2-ttc-pregnancy-postpartum-child/nbl_PregFull_Calendar.dc.html` (+ `nbd_PregFull_Calendar`)
 - `docs/design/night-bloom/b2-ttc-pregnancy-postpartum-child/nbl_PregFull_Alerts.dc.html` (+ `nbd_PregFull_Alerts`)
 - `docs/design/night-bloom/c-health-record/nbl_v13_Preg_Home.dc.html` (+ `nbd_v13_Preg_Home`)
+- (B-N1-01) Reference only, superseded by `PregFull_*` (pregnancy v1): `b2-ttc-pregnancy-postpartum-child/v19_Preg_Home|Baby|Onboard|Symptoms|Timeline.dc.html` (+ `nb2_`; `nb2_Preg_Timeline` is empty). `Preg_Onboard` = copy reference for the TTC → pregnancy prompt.
 
 ## Scope
 - Setup (4 steps, dating basis, history), Today, Week-by-week, Log, Calendar & visits, Alerts (4 levels). Also the reminders block from `v13_Preg_Home`.

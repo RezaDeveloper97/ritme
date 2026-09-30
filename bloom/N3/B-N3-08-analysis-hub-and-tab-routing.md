@@ -21,6 +21,7 @@ Entry to all reports.
 
 ## Scope
 - Hub with range + category filters, top finding, cards per category, Plus locks; mode-specific hub chosen by mode.
+- (B-N1-01) No artboard has an analysis tab or link into `An_Hub`: entry points are home cards («در تحلیل ببین», predictions «جزئیات»), a segment/icon on the mode-tab screen (calendar: ماه · سال · تحلیل) and a Me row; `/analysis` highlights the mode tab. Older artboards with a «تحلیل» nav tab are ignored (`docs/night-bloom/nav.md`).
 
 ## Out of scope
 - Android (android-shell/, application/, twa/) — never.

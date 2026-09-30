@@ -6,7 +6,7 @@ type: frontend
 status: todo
 depends_on: [B-N1-01]
 parallel_group: N1-B
-touches: [frontend/src/app/globals.css,frontend/src/shared/theme,frontend/src/app/[locale]/layout.tsx,frontend/CLAUDE.md,frontend/scripts,frontend/public/splash]
+touches: [frontend/src/app/globals.css,frontend/src/shared/theme,frontend/src/app/[locale]/layout.tsx,frontend/CLAUDE.md,frontend/scripts,frontend/public/splash,frontend/src/app/fonts,frontend/src/app/manifest.ts,frontend/package.json]
 skills: [verify-all]
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && npm run build
 ---
@@ -25,6 +25,11 @@ The whole app moves to the Night & Bloom palette in both themes; the current pur
 - Dark background: starfield + radial glow as a reusable layer (CSS only, no images), disabled under reduced motion if animated.
 - Update `frontend/CLAUDE.md` §10.2/§10.3 (palette rules, theme-color meta) and the `lint:styles` / `lint:dark` scripts + baselines so the gates enforce the new palette.
 - Regenerate iOS startup images / theme-color if they encode old colours.
+- (B-N1-01) Canonical light palette is dialect A (`#6E54F0` primary, `#231B3B`/`#5E5873`/`#6A6480` inks, `#F7F3FF` canvas); implement the table + legacy aliases in `docs/night-bloom/tokens.md` §2–§3.
+- (B-N1-01) Add `--on-brand` (white light / `#17112B` dark) for text on primary fills — primary fills are light lavender at night; update `THEME_STABLE` in `scripts/check-dark-mode.mjs`.
+- (B-N1-01) Add radius, shadow, type-scale and spacing tokens (tokens.md §5–§8); solid-fill CTAs/FAB — retire the brand-gradient rule in `frontend/CLAUDE.md` §10.2 (gradients only as soft tints).
+- (B-N1-01) Replace `src/app/fonts/Lalezar-Subset.woff2` with a full Arabic-script + Latin Lalezar subset (display titles use it, not only digits); `theme-color`/`manifest.ts` colours → `#F7F3FF` / `#17112B`.
+- (B-N1-01) Fresh installs default to `system`; a stored `light`/`dark` preference is kept (see `bloom/QUESTIONS.md`).
 
 ## Out of scope
 - Android (android-shell/, application/, twa/) — never.

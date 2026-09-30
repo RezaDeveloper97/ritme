@@ -25,6 +25,7 @@ Every screen in the canvas is assembled from ~15 repeated parts; build them once
 - Per N1-01 inventory: ScreenHeader (round 44px back/action, title + subtitle), DateStrip (week, Jalali), Card, SectionTitle, PillChip (toggle/multi), SegmentedTabs, NumberStepper (big Lalezar value, −/+), StatusPill, ListRow, Accordion, BottomSheet, PrimaryButton/SecondaryButton (54px pill), IconCircle, InfoNote, Skeleton, EmptyState, ProgressRing, simple SVG LineChart/BarChart (RTL-safe, `direction:ltr` plot).
 - Stories/usage page in the existing ui-kit route (or a dev-only route) showing each in light + dark.
 - Replace old primitives in place when the API matches; otherwise add alongside and mark old ones deprecated.
+- (B-N1-01) Also: HubHeader, HeroCard (`--hero-tint`), TileButton (58px), Switch (48×30), PlusLock pill, InfoNote/UrgentCard, ProgressSteps, Avatar, background layer (glow + dark starfield). Sizes/specs per `docs/night-bloom/components.md`; BottomSheet = restyle of the existing `AppSheet`, not a second implementation.
 
 ## Out of scope
 - Android (android-shell/, application/, twa/) — never.

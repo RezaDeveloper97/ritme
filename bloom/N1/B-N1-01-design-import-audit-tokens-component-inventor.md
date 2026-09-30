@@ -3,7 +3,7 @@ id: B-N1-01
 title: Design import audit — tokens, component inventory, screen→route map
 milestone: N1
 type: investigate
-status: todo
+status: done
 depends_on: []
 parallel_group: N1-A
 touches: [docs/night-bloom]

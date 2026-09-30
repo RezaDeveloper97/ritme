@@ -23,6 +23,7 @@ Me → حالت اپ lists six modes, each changing tabs, home and log tiles.
 - Mode screen per artboard (tab + log hint per mode, IVF/IUI toggle, contraception tracking, data kept).
 - Menopause home: reuse cycle home layout with menopause copy + symptom tiles (hot flash, sleep, mood); teen: simplified cycle home, no ads/shop. Record the missing-artboard decision in `docs/night-bloom/README.md`.
 - Pregnancy-loss path: a calm exit option inside pregnancy mode (copy from admin), no celebratory content afterwards.
+- (B-N1-01) Defaults already recorded in `docs/night-bloom/gaps.md` #3 and `nav.md` (menopause tab «علائم» → `/analysis/symptoms`; teen tab «تقویم», no ads/shop/Plus upsell); the full menopause/teen versions come from `roadmap/E02-meno` / `E09-teen`.
 
 ## Out of scope
 - Android (android-shell/, application/, twa/) — never.
