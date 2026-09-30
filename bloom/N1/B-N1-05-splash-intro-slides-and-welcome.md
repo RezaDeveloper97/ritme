@@ -3,7 +3,7 @@ id: B-N1-05
 title: Splash, intro slides and welcome
 milestone: N1
 type: frontend
-status: todo
+status: done
 depends_on: [B-N1-03]
 parallel_group: N1-E
 touches: [frontend/src/screens/auth-splash,frontend/src/screens/welcome,frontend/src/widgets/intro-carousel]

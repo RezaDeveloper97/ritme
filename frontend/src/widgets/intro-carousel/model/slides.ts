@@ -1,52 +1,32 @@
 /**
- * The intro carousel's slides, in order. This is pure config — copy lives in
- * the `welcome` i18n namespace and is looked up by `id`; the visual identity
- * (which illustration, which accent) is decided here so the UI stays a plain
- * renderer. Accents are token names, resolved to CSS custom properties at
- * render time so both light and dark themes stay correct.
+ * The intro carousel's slides, in order (Night & Bloom `Intro_1` … `Intro_5`).
+ * Pure config — copy lives in the `welcome` i18n namespace under
+ * `slides.<id>`; the UI picks the illustration by id.
  */
-export type IntroSlideId = 'intro' | 'track' | 'smart';
+export type IntroSlideId = 'cycle' | 'journey' | 'health' | 'privacy' | 'free';
 
-export type IntroIllustration = 'rhythm' | 'track' | 'insight';
+export const INTRO_SLIDES: readonly IntroSlideId[] = [
+  'cycle',
+  'journey',
+  'health',
+  'privacy',
+  'free',
+] as const;
 
-/** Names of CSS custom properties (see app/globals.css `:root`). */
-export type AccentToken = '--brand' | '--pink' | '--violet' | '--green';
+/** Slides whose copy has a paragraph under the title (4 and 5 show a list instead). */
+export type BodySlideId = Exclude<IntroSlideId, 'privacy' | 'free'>;
 
-export interface IntroSlide {
-  id: IntroSlideId;
-  illustration: IntroIllustration;
-  /** Gradient stops for this slide's ambient glow + illustration accent. */
-  accentFrom: AccentToken;
-  accentTo: AccentToken;
-  /** Whether this slide renders the two feature bullets. */
-  bullets: boolean;
-  /** Whether this slide renders the AI/medical disclaimer + the CTA hint. */
-  disclaimer: boolean;
+export function hasSlideBody(id: IntroSlideId): id is BodySlideId {
+  return id !== 'privacy' && id !== 'free';
 }
 
-export const INTRO_SLIDES: readonly IntroSlide[] = [
-  {
-    id: 'intro',
-    illustration: 'rhythm',
-    accentFrom: '--pink',
-    accentTo: '--brand',
-    bullets: false,
-    disclaimer: false,
-  },
-  {
-    id: 'track',
-    illustration: 'track',
-    accentFrom: '--brand',
-    accentTo: '--violet',
-    bullets: true,
-    disclaimer: false,
-  },
-  {
-    id: 'smart',
-    illustration: 'insight',
-    accentFrom: '--violet',
-    accentTo: '--brand',
-    bullets: false,
-    disclaimer: true,
-  },
-] as const;
+/**
+ * «رد کردن» jumps to the last slide rather than leaving: slide 5 is the
+ * always-free promise, which the design wants every newcomer to see.
+ */
+export const SKIP_TARGET = INTRO_SLIDES.length - 1;
+
+/** The illustrative "today" of slide 1's cycle ring (day 23 of 29) and slide 2's pregnancy week. */
+export const INTRO_CYCLE_TODAY = 22;
+export const INTRO_NEXT_PERIOD_DAYS = 6;
+export const INTRO_PREGNANCY_WEEK = 32;

@@ -1,28 +1,61 @@
 {
   "region": "Introducing Ritme",
-  "brand": "Ritme",
   "skip": "Skip",
-  "next": "Continue",
-  "start": "Set up Ritme",
-  "startHint": "It takes under a minute. We ask a few simple questions about your age, cycle, and how you generally feel so we can tune Ritme to you.",
-  "disclaimer": "Ritme uses data analysis and AI models to personalize its suggestions, but it is not a substitute for diagnosis or a doctor's visit. If your symptoms are severe or worrying, please talk to a health professional.",
-  "goToSlide": "Go to slide {n, number}",
+  "next": "Next",
+  "start": "Get started",
+  "login": "I have an account · Sign in",
   "slideOfCount": "Slide {n, number} of {total, number}",
   "slides": {
-    "intro": {
-      "title": "Know your body's rhythm, feel better",
-      "body": "Ritme is a women's health app that helps you see your menstrual cycle, mood, sleep, and energy together — and understand the rhythm your body has each day.",
-      "note": "Ritme is here to help you treat your body a little more easily, knowingly, and kindly every day."
+    "cycle": {
+      "title": "Know your cycle",
+      "body": "Period and fertile-window predictions, symptoms and mood in every phase — the more you log, the more accurate it gets.",
+      "ringLabel": "Sample cycle ring: next period in 6 days",
+      "nextPeriod": "Next period",
+      "days": "{n, number}",
+      "daysUnit": "days to go"
     },
-    "track": {
-      "title": "More than period dates — your patterns matter",
-      "body": "In Ritme you don't just mark your period days. Your daily mood, aches, sleep, and energy are logged alongside your cycle, so you can understand why some days feel more tired, sensitive, or on edge.",
-      "bullet1": "See symptoms like cramps, bloating, headaches, and mood swings on your body's calendar.",
-      "bullet2": "Learn what — like short sleep or stress — affects your body the most."
+    "journey": {
+      "title": "From trying to motherhood",
+      "body": "Trying to conceive, pregnancy week by week and life after birth — with you and your child.",
+      "ringLabel": "Sample pregnancy-week ring: week 32",
+      "week": "Week {n, number}",
+      "size": "About the size of a cabbage"
     },
-    "smart": {
-      "title": "Smart insights, made for your body",
-      "body": "Ritme isn't just a logbook. By bringing your own patterns together, it builds insights that are about you."
+    "health": {
+      "title": "Your health in one place",
+      "body": "Blood pressure and sugar, AI lab-result analysis and, when you need it, an online doctor.",
+      "vitals": "Vital signs",
+      "labs": "Lab analysis",
+      "doctor": "Online doctor",
+      "assistant": "Health assistant"
+    },
+    "privacy": {
+      "title": "Privacy first",
+      "ownTitle": "Your data is yours",
+      "ownSub": "We don't sell it or use it for ads",
+      "consentTitle": "Shared only with your permission",
+      "consentSub": "Doctor, companion or AI — each one separately",
+      "deleteTitle": "Delete whenever you want",
+      "deleteSub": "All data, from your phone and our servers"
+    },
+    "free": {
+      "title": "Ritme's social commitment",
+      "cardTitle": "Always free",
+      "cycle": "Cycle tracking",
+      "pregnancy": "Pregnancy",
+      "menopause": "Menopause",
+      "child": "Child",
+      "accessTitle": "Knowing your body shouldn't depend on what you can pay",
+      "accessSub": "We see this as our social responsibility to women, children and families.",
+      "revenueTitle": "Revenue only from added-value services",
+      "revenueSub": "Like deep analysis, AI and doctor consultations — the core services will never be paid."
     }
+  },
+  "card": {
+    "brand": "Ritme",
+    "tagline": "Know your body's rhythm",
+    "body": "Cycle tracking, trying to conceive and support through pregnancy — in one app, with complete privacy.",
+    "start": "Get started",
+    "login": "Already registered? Sign in"
   }
 }

@@ -1,13 +1,16 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import Image from 'next/image';
 import { useEffect } from 'react';
 
-import { Icon } from '@/shared/ui';
 import { useRouter } from '@/shared/i18n';
 import { hasSeenIntro } from '@/shared/session';
+import { CycleDotRing } from '@/widgets/intro-carousel';
 
+/**
+ * Night & Bloom `Splash`: the dotted cycle ring around the wordmark on the
+ * page canvas (light and dark), a soft glow and three loading dots.
+ */
 export function SplashPage() {
   const t = useTranslations('auth.splash');
   const router = useRouter();
@@ -29,39 +32,17 @@ export function SplashPage() {
   }, [router]);
 
   return (
-    <div className="view splash" onClick={next}>
-      {/* Figma: faint concentric-circles mark peeking from the top corner */}
-      <div aria-hidden className="splash-mark">
-        <svg width="180" height="180" viewBox="0 0 86 86" fill="none">
-          <circle cx="43" cy="43" r="36" stroke="var(--on-accent)" strokeWidth="1.5" />
-          <circle cx="43" cy="43" r="25" stroke="var(--on-accent)" strokeWidth="1.5" />
-          <circle cx="43" cy="43" r="14.5" fill="var(--on-accent)" />
-        </svg>
-      </div>
-
-      <div className="splash-center">
-        {/* App icon */}
-        <Image
-          src="/logo.webp"
-          alt=""
-          aria-hidden
-          width={84}
-          height={84}
-          priority
-          className="splash-logo"
-        />
-
-        <div className="splash-name">ریـتمی</div>
-        <div className="splash-tagline">{t('tagline')}</div>
-      </div>
-
-      {/* Bottom */}
-      <div className="splash-bottom">
-        <span className="splash-spinner">
-          <Icon name="loader" size={24} stroke="var(--on-accent)" />
-        </span>
-        <span className="splash-copy">{t('copyright')}</span>
-      </div>
+    <div className="view ib-splash" onClick={next}>
+      <span className="ib-splash-glow" aria-hidden />
+      <CycleDotRing today={0} className="is-splash">
+        <h1 className="ib-brand is-xl">{t('brand')}</h1>
+      </CycleDotRing>
+      <p className="ib-splash-tag">{t('tagline')}</p>
+      <span className="ib-loading" role="status" aria-label={t('loading')}>
+        <span />
+        <span />
+        <span />
+      </span>
     </div>
   );
 }
