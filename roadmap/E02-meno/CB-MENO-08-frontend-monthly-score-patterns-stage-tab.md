@@ -4,9 +4,9 @@ title: Frontend: monthly score + patterns (stage tab 'علائم')
 epic: MENO
 type: frontend
 status: todo
-depends_on: [CB-MENO-05]
+depends_on: [CB-MENO-05, B-N1-04]
 parallel_group: MENO-D
-touches: [frontend/src/screens/menopause-score, frontend/src/app/[locale]/(app)/menopause/score]
+touches: [frontend/src/screens/menopause-score, frontend/src/app/[locale]/(app)/menopause/score, frontend/src/widgets/bottom-nav]
 skills: [new-fsd-slice]
 boards: [nbl_Meno_Score.dc.html]
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && npm run build
@@ -23,6 +23,7 @@ Snapshot in `docs/design/canvas-v1/boards/` (text in `docs/design/canvas-v1/text
 
 ## Scope
 1. Score header with band bar, domain breakdown, 6-month chart (bloom chart primitives), HRT annotation, patterns + disclaimer, 11-question monthly flow (0–4).
+2. (CB-CORE-01) Re-point the menopause mode tab «علائم» from bloom's default (`/analysis/symptoms`, docs/night-bloom/nav.md) to this screen — `nbl_Meno_Home`/`nbl_Meno_Score` nav: امروز → menopause home, علائم → score. Bloom's symptom analysis stays reachable from the score screen.
 
 ## Out of scope
 - Anything owned by another CB task; Android/native work (never); online payment (MVP).

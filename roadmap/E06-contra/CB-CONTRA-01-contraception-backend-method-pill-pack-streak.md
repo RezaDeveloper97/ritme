@@ -4,7 +4,7 @@ title: Contraception backend: method, pill pack, streak, long-acting reminders
 epic: CONTRA
 type: backend
 status: todo
-depends_on: [B-N2-03, CB-CORE-03]
+depends_on: [B-N2-03, CB-CORE-03, B-N1-09]
 parallel_group: CONTRA-A
 touches: [backend-go/internal/contraception, backend-go/internal/http/routes_contraception.go, backend-go/db/queries/contraception, backend-go/api/openapi.yaml, backend-go/contract, backend-go/resources/translations, backend-go/db/migrations, backend/database/migrations, docs/go-migration/deviations.md]
 skills: [new-endpoint]
@@ -28,6 +28,7 @@ Snapshot in `docs/design/canvas-v1/boards/` (text in `docs/design/canvas-v1/text
 1. contraception_methods (combined/progestin pill, copper/hormonal IUD, injection, implant, condom, other; pack type 21+7/28/24+4, pack start, reminder time, IUD lifetime, insert/injection/implant dates).
 2. Pill logs, pack day, placebo days, streak, next pack, refill reminder 5 days before; IUD monthly string check + replacement + 6-week check; injection every 12 weeks; implant date — all via care reminders.
 3. Catalog missed_pill_rules `[needs review]`.
+4. (CB-CORE-01) One pill reminder only: bloom's cycle-settings «قرص» reminder (B-N1-09) and the mode switcher's «track contraception» flag (B-N2-01/03) become this method's reminder/switch — migrate/reuse, never two schedules.
 
 ## Out of scope
 - Anything owned by another CB task; Android/native work (never); online payment (MVP).

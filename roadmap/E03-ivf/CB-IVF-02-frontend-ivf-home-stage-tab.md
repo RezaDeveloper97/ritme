@@ -4,9 +4,9 @@ title: Frontend: IVF home = stage tab 'درمان'
 epic: IVF
 type: frontend
 status: todo
-depends_on: [CB-IVF-01, CB-CORE-02]
+depends_on: [CB-IVF-01, CB-CORE-02, B-N1-04]
 parallel_group: IVF-B
-touches: [frontend/src/screens/ivf, frontend/src/entities/ivf, frontend/messages/fa/ivf.json, frontend/messages/en/ivf.json, frontend/src/app/[locale]/(app)/ivf, frontend/src/app/message-scopes.ts]
+touches: [frontend/src/screens/ivf, frontend/src/entities/ivf, frontend/messages/fa/ivf.json, frontend/messages/en/ivf.json, frontend/src/app/[locale]/(app)/ivf, frontend/src/app/message-scopes.ts, frontend/src/widgets/bottom-nav, frontend/src/screens/home]
 skills: [new-fsd-slice]
 boards: [nbl_IVF_Home.dc.html]
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && npm run build
@@ -23,6 +23,7 @@ Snapshot in `docs/design/canvas-v1/boards/` (text in `docs/design/canvas-v1/text
 
 ## Scope
 1. StepTimeline (6 stages), today's injections (done/log), next appointment, companion reminder toggle (hidden without a linked companion).
+2. (CB-CORE-01) IVF is a sub-mode (bloom `ivf_iui` flag, B-N2-01/03) with its own nav: امروز → IVF home, stage tab «درمان» (syringe icon) → injection schedule (CB-IVF-03 route; placeholder until it lands). Bloom's nav.md has no IVF row (ttc → باروری) — add it here; flag off → ttc nav.
 
 ## Out of scope
 - Anything owned by another CB task; Android/native work (never); online payment (MVP).

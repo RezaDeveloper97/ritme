@@ -24,8 +24,9 @@ Snapshot in `docs/design/canvas-v1/boards/` (text in `docs/design/canvas-v1/text
 - `nbl_Rec_Emergency.dc.html`
 
 ## Scope
-1. `discreet_notifications` flag: push/SMS texts become neutral ('یادآور امروز') everywhere (notify layer, not per feature); switch in privacy settings per board.
+1. `discreet_notifications` flag: push/SMS texts become neutral ('یادآور امروز') everywhere (notify layer, not per feature); switch in privacy settings per board. (CB-CORE-01) Bloom B-N1-11 already ships a «متن خنثی» neutral-push preference checked by every push/web-push sender — reuse that preference as this flag (no second column); this task only extends it to SMS/any sender B-N1-11 missed and shows the switch in privacy settings.
 2. Lock screen shows an 'emergency card' link when the user enabled it (CB-REC-03).
+3. (CB-CORE-01) Board rows that are native-only are not built (DECISIONS #5): «آیکون و نام اپ» (`nbl_Priv_Icon`) is dropped; «مخفی در صفحه برنامه‌های اخیر» maps to bloom's web hide-preview blur (B-N1-12). Lock/passcode/WebAuthn, export and delete are bloom's (B-N1-12) — only restyle to the board.
 
 ## Out of scope
 - Anything owned by another CB task; Android/native work (never); online payment (MVP).

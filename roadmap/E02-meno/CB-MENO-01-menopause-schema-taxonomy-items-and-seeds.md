@@ -4,7 +4,7 @@ title: Menopause schema, taxonomy items and seeds
 epic: MENO
 type: backend
 status: todo
-depends_on: [CB-CORE-03, B-N3-01, B-N2-03]
+depends_on: [CB-CORE-03, B-N3-01, B-N2-01, B-N2-03]
 parallel_group: MENO-A
 touches: [backend-go/db/migrations, backend/database/migrations, backend-go/db/queries/menopause, backend-go/sqlc.yaml, backend-go/seeds, docs/canvas-build/menopause.md]
 skills: [new-endpoint]
@@ -30,7 +30,7 @@ Snapshot in `docs/design/canvas-v1/boards/` (text in `docs/design/canvas-v1/text
 
 ## Scope
 1. Daily symptoms (13, grouped), bleeding none/spot/bleed and triggers are **log-taxonomy v2 items scoped to menopause** (B-N3-01) — no parallel day-log table.
-2. New tables: menopause_profiles (stage peri/meno/post/unsure, last period month, surgical, on_hrt), hot_flashes (started_at, duration_s, severity 1–4, night, sweat, triggers[]), menopause_scores (month, 11 answers 0–4, total/44, domain subtotals 16/16/12), treatment_items (hrt/supplement/lifestyle, schedule, dose text, start, review date, weekly goal), treatment_intakes, side_effect_logs.
+2. (CB-CORE-01) Stage, approx. last period, surgical and HRT are **bloom's profile columns (B-N2-01, asked by Onb_Meno in B-N2-02)** — reuse them, no `menopause_profiles` table; add a column only if B-N2-01 lacks one. New tables: hot_flashes (started_at, duration_s, severity 1–4, night, sweat, triggers[]), menopause_scores (month, 11 answers 0–4, total/44, domain subtotals 16/16/12), treatment_items (hrt/supplement/lifestyle, schedule, dose text, start, review date, weekly goal), treatment_intakes, side_effect_logs.
 3. Catalog seeds: meno_score_items, meno_alerts, meno_tips; M4 checkup catalog rows with audience=menopause for the Checkups board — all copy `[needs clinical review]`.
 4. docs/canvas-build/menopause.md: model + stage rule (12 months without period ⇒ menopause).
 

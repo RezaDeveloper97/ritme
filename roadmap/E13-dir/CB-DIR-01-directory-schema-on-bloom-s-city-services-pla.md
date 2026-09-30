@@ -27,6 +27,7 @@ Snapshot in `docs/design/canvas-v1/boards/` (text in `docs/design/canvas-v1/text
 ## Scope
 1. Extend `cityservices`: place fields (district, lat/lng, age ranges, amenities, weekly hours, about, public photos, verified, status, booking mode online/request/phone, cancel policy, rules), services (duration, age range, capacity, price, packages), slots, bookings (child from bloom children, status requested/confirmed/rejected/cancelled/completed, code), reviews (completed bookings only, sub-scores), reports, business_applications (4-step draft, private docs, tracking code).
 2. Catalog seeds dir_categories, dir_amenities, dir_age_ranges.
+3. (CB-CORE-01) DECISIONS #13/#14: booking mode `online` (board «رزرو آنلاین با تقویم ریتمی») still creates a **request** confirmed by the Ritme team in admin — no auto-confirm, no payment fields; «پیام به مجموعه» has no messaging backend (hide or route to support).
 
 ## Out of scope
 - Anything owned by another CB task; Android/native work (never); online payment (MVP).

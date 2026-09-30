@@ -24,6 +24,7 @@ Snapshot in `docs/design/canvas-v1/boards/` (text in `docs/design/canvas-v1/text
 
 ## Scope
 1. Share per board (doctor code + QR, insurer rows, family row, history). Public /d/[token] read-only page (noindex, no nav). Emergency card + lock-screen toggle.
+2. (CB-CORE-01) DECISIONS #12: nothing is ever sent to an insurer — the board's «بیمه» rows are informational (claim docs she attaches herself, questionnaire exported as PDF by her), no insurer access and no insurer rows in the access history; history lists only doctor-code/share-link views.
 
 ## Out of scope
 - Anything owned by another CB task; Android/native work (never); online payment (MVP).

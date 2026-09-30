@@ -6,7 +6,7 @@ type: frontend
 status: todo
 depends_on: [CB-SHOP-07, CB-SHOP-03]
 parallel_group: SHOP-G
-touches: [frontend/src/screens/shop-cart, frontend/src/screens/shop-checkout, frontend/src/screens/shop-order, frontend/src/screens/my-orders, frontend/src/app/[locale]/(app)/services/shop/cart, frontend/src/app/[locale]/(app)/services/shop/checkout, frontend/src/app/[locale]/(app)/me/orders]
+touches: [frontend/src/screens/shop-cart, frontend/src/screens/shop-checkout, frontend/src/screens/shop-order, frontend/src/screens/my-orders, frontend/src/app/[locale]/(app)/services/shop/cart, frontend/src/app/[locale]/(app)/services/shop/checkout, frontend/src/app/[locale]/(app)/profile/orders]
 skills: [new-fsd-slice]
 boards: [nbd_Shop_Cart.dc.html, nbd_Shop_Checkout.dc.html, nbd_Shop_Order.dc.html]
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && npm run build
@@ -25,6 +25,7 @@ Snapshot in `docs/design/canvas-v1/boards/` (text in `docs/design/canvas-v1/text
 
 ## Scope
 1. Cart (seller groups, qty, discount, totals, free-shipping hint if configured). Checkout (stepper, address, recipient, per-seller slots, discreet packaging, pay on delivery only). Order placed (per-seller timelines, checklist link, returns). My orders in Me.
+2. (CB-CORE-01) Me is bloom's `/profile` hub (B-N1-10) → route `/profile/orders`. This replaces bloom B-N10-03's «سفارش‌ها» partner-orders row (DECISIONS #15: internal COD shop supersedes link-out). No bank-gateway row on checkout (DECISIONS #13).
 
 ## Out of scope
 - Anything owned by another CB task; Android/native work (never); online payment (MVP).

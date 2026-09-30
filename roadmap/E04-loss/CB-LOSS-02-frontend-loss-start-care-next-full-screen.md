@@ -26,6 +26,7 @@ Snapshot in `docs/design/canvas-v1/boards/` (text in `docs/design/canvas-v1/text
 ## Scope
 1. Start (types, date, stop-content switch, tell-companion switch), Care (danger card + 115, follow-up rows, mood chips, counsellor row hidden until N7 doctors exist, private note, hotlines), Next (3 options).
 2. No tab bar, no banners/ads/shop, no celebratory UI.
+3. (CB-CORE-01) Entry = bloom's calm exit option inside pregnancy mode (B-N2-03) and the IVF negative result (CB-IVF-05): point it at `/loss` instead of building a second entry.
 
 ## Out of scope
 - Anything owned by another CB task; Android/native work (never); online payment (MVP).

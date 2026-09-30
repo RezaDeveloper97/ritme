@@ -3,7 +3,7 @@ id: CB-CORE-01
 title: Canvas-v1 → bloom → code map, gaps and token mapping
 epic: CORE
 type: investigate
-status: todo
+status: done
 depends_on: [B-N1-01]
 parallel_group: CORE-A
 touches: [docs/canvas-build]
