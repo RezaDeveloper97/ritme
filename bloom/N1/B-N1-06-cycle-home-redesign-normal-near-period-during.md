@@ -6,7 +6,7 @@ type: fullstack
 status: todo
 depends_on: [B-N1-04]
 parallel_group: N1-F
-touches: [frontend/src/screens/home,frontend/src/widgets,frontend/src/entities/cycle,backend-go/internal/home,backend-go/internal/cycle,backend-go/api]
+touches: [frontend/src/screens/home,frontend/src/widgets/banner-slideshow,frontend/src/widgets/today-challenge,frontend/src/widgets/day-tasks,frontend/src/widgets/smart-tip,frontend/src/widgets/week-summary,frontend/src/widgets/home-cycle,frontend/src/entities/cycle,backend-go/internal/home,backend-go/internal/cycle,backend-go/api]
 skills: [new-endpoint,new-fsd-slice,verify-all]
 verify: cd backend-go && go vet ./... && go test ./... && make lint && cd .. && cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && npm run build
 ---

@@ -13,3 +13,16 @@ export {
   type ResolvedTheme,
 } from './store';
 export { ThemeApplier, themeInitScript } from './ThemeApplier';
+export {
+  useDisplayStore,
+  clampTextScaleIndex,
+  isMotionPreference,
+  reducesMotion,
+  systemReducesMotion,
+  watchSystemMotion,
+  TEXT_SCALES,
+  DEFAULT_TEXT_SCALE_INDEX,
+  TEXT_SCALE_KEY,
+  MOTION_KEY,
+  type MotionPreference,
+} from './display';

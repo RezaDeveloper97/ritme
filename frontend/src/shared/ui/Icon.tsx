@@ -15,7 +15,8 @@ export type IconName =
   | 'flaskLh' | 'heartLine' | 'target' | 'moonReminder'
   | 'hand' | 'eye' | 'scale' | 'bookmark' | 'warning' | 'doctor'
   | 'faceGreat' | 'faceGood' | 'faceOkay' | 'faceLow' | 'faceHard'
-  | 'lock' | 'minus' | 'arrowR';
+  | 'lock' | 'minus' | 'arrowR'
+  | 'users' | 'gradCap' | 'todo' | 'box' | 'watch' | 'help' | 'chat' | 'crown' | 'smartphone' | 'modeRing';
 
 const PATHS: Record<IconName, string> = {
   bell:         '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
@@ -112,6 +113,17 @@ const PATHS: Record<IconName, string> = {
   lock:         '<rect x="4.5" y="10.5" width="15" height="10.5" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/>',
   minus:        '<path d="M5 12h14"/>',
   arrowR:       '<path d="M5 12h14M12 5l7 7-7 7"/>',
+  /* Me hub / account (B-N1-10) — copied from nbl_Me_Hub / nbl_Me_Profile. */
+  users:        '<circle cx="9" cy="8" r="3"/><circle cx="17" cy="10" r="2.2"/><path d="M3 20c.8-3.5 3.2-5.5 6-5.5s5.2 2 6 5.5M15 15.5c2.6-.3 4.6 1.3 5.3 4.5"/>',
+  gradCap:      '<path d="M3 9l9-5 9 5-9 5z"/><path d="M7 11v5c3 2 7 2 10 0v-5"/>',
+  todo:         '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8 12l3 3 5-6"/>',
+  box:          '<path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/>',
+  watch:        '<rect x="7" y="6" width="10" height="12" rx="3"/><path d="M9 6l1-3h4l1 3M9 18l1 3h4l1-3"/>',
+  help:         '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 015 .5c0 2-2.5 2-2.5 4M12 17h.01"/>',
+  chat:         '<path d="M4 5h16v11H9l-5 4z"/>',
+  crown:        '<path d="M3 8l4 4 5-7 5 7 4-4-2 11H5z"/>',
+  smartphone:   '<rect x="7" y="3" width="10" height="18" rx="2.5"/><path d="M11 18h2"/>',
+  modeRing:     '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>',
 };
 
 interface IconProps {

@@ -13,6 +13,7 @@ import type enCheckups from '../messages/en/checkups.json';
 import type enFertility from '../messages/en/fertility.json';
 import type enLog from '../messages/en/log.json';
 import type enLogPeriod from '../messages/en/log-period.json';
+import type enMe from '../messages/en/me.json';
 import type enNav from '../messages/en/nav.json';
 import type enNotifications from '../messages/en/notifications.json';
 import type enOnboarding from '../messages/en/onboarding.json';
@@ -44,6 +45,7 @@ type Messages = {
   pregnancy: typeof enPregnancy;
   pregnancyV2: typeof enPregnancyV2;
   pwa: typeof enPwa;
+  me: typeof enMe;
   nav: typeof enNav;
   calendar: typeof enCalendar;
   cycle: typeof enCycle;

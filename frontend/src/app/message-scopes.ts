@@ -51,7 +51,10 @@ export const ROUTE_NAMESPACES = {
   calendar: ['calendar', 'common', 'log', 'logPeriod', 'nav'],
   log: ['common', 'log', 'nav'],
   cycle: ['common', 'cycle', 'home', 'logPeriod', 'nav'],
-  profile: ['account', 'common', 'nav', 'profile', 'profileEdit'],
+  profile: ['account', 'common', 'me', 'nav', 'profile', 'profileEdit'],
+  profileAccount: ['account', 'common', 'me', 'nav', 'profile', 'profileEdit'], // B-N1-10 /profile/account
+  profileAppearance: ['common', 'me'], // B-N1-10 /profile/appearance
+  profileLanguage: ['common', 'me'], // B-N1-10 /profile/language
   pregnancy: ['care', 'common', 'nav', 'pregnancyV2'],
   pregnancyLog: [...PREGNANCY, 'pregnancyV2'],
   pregnancyWeek: ['common', 'nav', 'pregnancyV2'],

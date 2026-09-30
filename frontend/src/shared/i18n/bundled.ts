@@ -15,6 +15,7 @@ import enFertility from '../../../messages/en/fertility.json';
 import enHome from '../../../messages/en/home.json';
 import enLog from '../../../messages/en/log.json';
 import enLogPeriod from '../../../messages/en/log-period.json';
+import enMe from '../../../messages/en/me.json';
 import enNav from '../../../messages/en/nav.json';
 import enNotifications from '../../../messages/en/notifications.json';
 import enOnboarding from '../../../messages/en/onboarding.json';
@@ -43,6 +44,7 @@ import faFertility from '../../../messages/fa/fertility.json';
 import faHome from '../../../messages/fa/home.json';
 import faLog from '../../../messages/fa/log.json';
 import faLogPeriod from '../../../messages/fa/log-period.json';
+import faMe from '../../../messages/fa/me.json';
 import faNav from '../../../messages/fa/nav.json';
 import faNotifications from '../../../messages/fa/notifications.json';
 import faOnboarding from '../../../messages/fa/onboarding.json';
@@ -104,6 +106,7 @@ const bundled = {
     phaseDetails: faPhaseDetails,
     pregnancy: faPregnancy,
     pregnancyV2: faPregnancyV2,
+    me: faMe,
     nav: faNav,
     calendar: faCalendar,
     cycle: faCycle,
@@ -134,6 +137,7 @@ const bundled = {
     phaseDetails: enPhaseDetails,
     pregnancy: enPregnancy,
     pregnancyV2: enPregnancyV2,
+    me: enMe,
     nav: enNav,
     calendar: enCalendar,
     cycle: enCycle,

@@ -1462,6 +1462,123 @@
     "open": "ویرایش تاریخ پریود"
    }
   },
+  "me": {
+   "title": "من",
+   "settings": "تنظیمات",
+   "guest": "کاربر ریتمی",
+   "noPhone": "شماره‌ای ثبت نشده",
+   "loading": "در حال بارگذاری",
+   "soon": "به‌زودی",
+   "error": {
+    "title": "اطلاعات حسابت نیامد",
+    "body": "اتصال را بررسی کن و دوباره امتحان کن.",
+    "retry": "تلاش دوباره"
+   },
+   "modes": {
+    "cycle": "چرخه",
+    "ttc": "اقدام به بارداری",
+    "pregnancy": "بارداری",
+    "postpartum": "پس از زایمان",
+    "menopause": "یائسگی",
+    "teen": "نوجوان",
+    "companion": "همدم"
+   },
+   "modeLabel": "حالت فعلی: {mode}",
+   "plus": {
+    "title": "ریتمی پلاس",
+    "active": "ریتمی پلاس · فعال",
+    "activeSub": "اشتراکت فعال است",
+    "soonSub": "اشتراک پلاس به‌زودی می‌آید"
+   },
+   "groups": {
+    "family": "من و خانواده",
+    "tasks": "کارها و خریدها",
+    "data": "داده و دستگاه",
+    "settings": "تنظیمات",
+    "support": "پشتیبانی"
+   },
+   "rows": {
+    "mode": "حالت اپ",
+    "modeToPregnancy": "{mode} · رفتن به حالت بارداری",
+    "modeToCycle": "{mode} · برگشت به حالت چرخه",
+    "modeSwitching": "در حال تغییر…",
+    "confirmToCycle": "حالت بارداری خاموش شود و به حالت چرخه برگردی؟",
+    "companions": "همدم‌ها و خانواده",
+    "children": "فرزندان",
+    "courses": "دوره‌های من",
+    "todo": "لیست کارها",
+    "bookings": "رزروها",
+    "orders": "سفارش‌ها",
+    "devices": "ساعت و گجت‌ها",
+    "backup": "پشتیبان و خروجی داده",
+    "backupSub": "دریافت همه داده‌ها · فایل JSON",
+    "exporting": "در حال آماده‌سازی خروجی…",
+    "exportError": "خروجی گرفته نشد. دوباره امتحان کن.",
+    "privacy": "حریم خصوصی و قفل",
+    "notifications": "اعلان‌ها و یادآورها",
+    "appearance": "ظاهر",
+    "language": "زبان و تقویم",
+    "help": "راهنما و سؤالات",
+    "chat": "گفت‌وگو با پشتیبانی",
+    "about": "درباره ریتمی و قوانین"
+   },
+   "logout": "خروج از حساب",
+   "loggingOut": "در حال خروج…",
+   "version": "نسخه {version}",
+   "theme": {
+    "light": "روشن",
+    "dark": "تیره",
+    "system": "هماهنگ با گوشی"
+   },
+   "calendars": {
+    "jalali": "شمسی",
+    "gregorian": "میلادی"
+   },
+   "account": {
+    "title": "حساب کاربری",
+    "back": "بازگشت",
+    "photoHint": "عکس اختیاری است",
+    "photoSoon": "افزودن عکس به‌زودی",
+    "name": "نام",
+    "familyName": "نام خانوادگی",
+    "mobile": "شماره موبایل",
+    "birthday": "تاریخ تولد",
+    "email": "ایمیل (برای رسید و بازیابی)",
+    "empty": "—",
+    "edit": "ویرایش",
+    "change": "تغییر",
+    "add": "افزودن",
+    "editLabel": "ویرایش {field}",
+    "subscription": "اشتراک",
+    "sessions": "دستگاه‌های وارد شده",
+    "sessionsSub": "همین دستگاه",
+    "health": "چرخه و سلامت",
+    "delete": "حذف حساب کاربری"
+   },
+   "appearance": {
+    "title": "ظاهر",
+    "back": "بازگشت",
+    "theme": "پوسته",
+    "followSystem": "هماهنگ با تنظیمات گوشی",
+    "textSize": "اندازه متن",
+    "textSizeSmall": "کوچک‌تر",
+    "textSizeLarge": "بزرگ‌تر",
+    "textSizeValue": "{percent}٪",
+    "sample": "الف",
+    "reduceMotion": "کاهش حرکت و انیمیشن",
+    "reduceMotionSub": "برای حساسیت به حرکت",
+    "reduceMotionSystem": "تنظیمات گوشی حرکت را کم کرده است"
+   },
+   "language": {
+    "title": "زبان و تقویم",
+    "back": "بازگشت",
+    "languages": "زبان اپ",
+    "hint": "متن‌هایی که هنوز ترجمه نشده‌اند به زبان پیش‌فرض نمایش داده می‌شوند.",
+    "calendar": "تقویم",
+    "calendarNote": "تقویم همراه زبان عوض می‌شود: فارسی با تقویم شمسی و انگلیسی با میلادی. تاریخ‌ها همیشه درست ذخیره می‌شوند.",
+    "today": "امروز: {date}"
+   }
+  },
   "nav": {
    "label": "ناوبری اصلی",
    "today": "امروز",
@@ -1953,7 +2070,8 @@
     "submitting": "در حال راه‌اندازی…",
     "submitError": "راه‌اندازی انجام نشد. یه‌کم بعد دوباره امتحان کن.",
     "fillRequired": "اول اطلاعات مبنای محاسبه رو کامل کن.",
-    "calculating": "در حال محاسبه…"
+    "calculating": "در حال محاسبه…",
+    "stepOf": "مرحلهٔ {step} از {total}"
    },
    "today": {
     "alerts": "هشدارها",
@@ -1975,7 +2093,8 @@
      "log": "ثبت علائم روزانه",
      "checkup": "چکاپ هفتگی",
      "weeks": "مرور هفته‌ها",
-     "alerts": "هشدارها"
+     "alerts": "هشدارها",
+     "logShort": "ثبت علائم"
     },
     "nextVisit": "ویزیت بعدی، {days, plural, =0 {امروز} =1 {فردا} other {# روز دیگه}}",
     "visitMeta": "{weekday}، {time}، هفتهٔ {week, number}",
@@ -1987,7 +2106,11 @@
     "careEmpty": "برای این هفته کاری ثبت نشده.",
     "disclaimerTitle": "تاریخ زایمان یک تخمینه.",
     "disclaimerBody": "بر اساس داده‌های فعلی، بیشتر نوزادها بین {from} تا {to} به دنیا میان. با ثبت نتیجهٔ سونوگرافی، این بازه محدودتر می‌شه.",
-    "setupCta": "راه‌اندازی حالت بارداری"
+    "setupCta": "راه‌اندازی حالت بارداری",
+    "ringLabel": "هفتهٔ {week, number} از {total, number}، {days, number} روز تا زایمان",
+    "daysToBirth": "روز تا زایمان",
+    "percentShort": "{percent, number}٪ از مسیر",
+    "calendarLink": "تقویم"
    },
    "week": {
     "bookmark": "ذخیره در نشان‌شده‌ها",
@@ -2006,7 +2129,12 @@
      "bpm": "ضربان در دقیقه",
      "approx": "~{value}",
      "range": "{from} تا {to}",
-     "less": "کمتر از {value}"
+     "less": "کمتر از {value}",
+     "labels": {
+      "length": "طول",
+      "weight": "وزن",
+      "heart": "ضربان"
+     }
     },
     "averagesNote": "این اعداد میانگین‌اند؛ هر جنین با سرعت خودش رشد می‌کنه.",
     "warningLead": "این موارد رو با پزشکت در میون بذار:",
@@ -2022,7 +2150,11 @@
     "sources": "منابع",
     "notReviewed": "در انتظار بازبینی متخصص",
     "empty": "محتوای این هفته هنوز آماده نشده.",
-    "illustration": "تصویر اندازهٔ تقریبی جنین"
+    "illustration": "تصویر اندازهٔ تقریبی جنین",
+    "headerTitle": "بارداری — هفتهٔ {week}",
+    "tabWeek": "هفتهٔ {week}",
+    "babyTitle": "این هفته در جنین",
+    "tasksTitle": "کارهای این هفته"
    },
    "log": {
     "title": "ثبت امروز",
@@ -2080,7 +2212,12 @@
     "pending": "{count, plural, other {# ثبت در انتظار همگام‌سازی}}",
     "otherLogs": "ثبت‌های دیگر",
     "weeklyCheckup": "چک‌آپ هفتگی",
-    "movement": "حرکات جنین"
+    "movement": "حرکات جنین",
+    "waterGlass": "{count, plural, other {# لیوان}}",
+    "spottingCard": {
+     "title": "لکه‌بینی یا خون‌ریزی",
+     "body": "در بارداری همیشه با پزشک در میان بگذار"
+    }
    },
    "calendar": {
     "title": "تقویم",
@@ -2135,7 +2272,8 @@
      "filename": "ritme-pregnancy-report.pdf",
      "working": "در حال ساخت PDF…",
      "error": "ساخت گزارش انجام نشد. دوباره امتحان کن."
-    }
+    },
+    "screenTitle": "تقویم و ویزیت‌ها"
    },
    "alerts": {
     "title": "هشدارها و پیام‌ها",

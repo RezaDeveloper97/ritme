@@ -1,0 +1,117 @@
+{
+  "title": "Me",
+  "settings": "Settings",
+  "guest": "Ritme user",
+  "noPhone": "No number yet",
+  "loading": "Loading",
+  "soon": "Soon",
+  "error": {
+    "title": "Couldn't load your account",
+    "body": "Check your connection and try again.",
+    "retry": "Try again"
+  },
+  "modes": {
+    "cycle": "Cycle",
+    "ttc": "Trying to conceive",
+    "pregnancy": "Pregnancy",
+    "postpartum": "Postpartum",
+    "menopause": "Menopause",
+    "teen": "Teen",
+    "companion": "Companion"
+  },
+  "modeLabel": "Current mode: {mode}",
+  "plus": {
+    "title": "Ritme Plus",
+    "active": "Ritme Plus · active",
+    "activeSub": "Your subscription is active",
+    "soonSub": "Plus subscriptions are coming soon"
+  },
+  "groups": {
+    "family": "Me & family",
+    "tasks": "Tasks & purchases",
+    "data": "Data & devices",
+    "settings": "Settings",
+    "support": "Support"
+  },
+  "rows": {
+    "mode": "App mode",
+    "modeToPregnancy": "{mode} · switch to pregnancy",
+    "modeToCycle": "{mode} · back to cycle mode",
+    "modeSwitching": "Switching…",
+    "confirmToCycle": "Turn pregnancy mode off and go back to cycle mode?",
+    "companions": "Companions & family",
+    "children": "Children",
+    "courses": "My courses",
+    "todo": "To-do list",
+    "bookings": "Bookings",
+    "orders": "Orders",
+    "devices": "Watches & gadgets",
+    "backup": "Backup & data export",
+    "backupSub": "Download all your data · JSON file",
+    "exporting": "Preparing your export…",
+    "exportError": "The export failed. Please try again.",
+    "privacy": "Privacy & lock",
+    "notifications": "Notifications & reminders",
+    "appearance": "Appearance",
+    "language": "Language & calendar",
+    "help": "Help & FAQ",
+    "chat": "Chat with support",
+    "about": "About Ritme & terms"
+  },
+  "logout": "Log out",
+  "loggingOut": "Logging out…",
+  "version": "Version {version}",
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "Match phone"
+  },
+  "calendars": {
+    "jalali": "Solar Hijri",
+    "gregorian": "Gregorian"
+  },
+  "account": {
+    "title": "Account",
+    "back": "Back",
+    "photoHint": "A photo is optional",
+    "photoSoon": "Adding a photo is coming soon",
+    "name": "First name",
+    "familyName": "Last name",
+    "mobile": "Mobile number",
+    "birthday": "Date of birth",
+    "email": "Email (for receipts and recovery)",
+    "empty": "—",
+    "edit": "Edit",
+    "change": "Change",
+    "add": "Add",
+    "editLabel": "Edit {field}",
+    "subscription": "Subscription",
+    "sessions": "Signed-in devices",
+    "sessionsSub": "This device",
+    "health": "Cycle & health",
+    "delete": "Delete account"
+  },
+  "appearance": {
+    "title": "Appearance",
+    "back": "Back",
+    "theme": "Theme",
+    "followSystem": "Match phone settings",
+    "textSize": "Text size",
+    "textSizeSmall": "Smaller",
+    "textSizeLarge": "Larger",
+    "textSizeValue": "{percent}%",
+    "sample": "Aa",
+    "reduceMotion": "Reduce motion & animation",
+    "reduceMotionSub": "For motion sensitivity",
+    "reduceMotionSystem": "Your phone already reduces motion"
+  },
+  "language": {
+    "title": "Language & calendar",
+    "back": "Back",
+    "languages": "App language",
+    "hint": "Text that isn't translated yet is shown in the default language.",
+    "calendar": "Calendar",
+    "calendarNote": "The calendar follows the language: Persian uses the Solar Hijri calendar, English the Gregorian one. Dates are always stored correctly.",
+    "today": "Today: {date}"
+  }
+}

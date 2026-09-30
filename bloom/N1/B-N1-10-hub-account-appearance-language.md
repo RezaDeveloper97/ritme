@@ -3,7 +3,7 @@ id: B-N1-10
 title: «من» hub, account, appearance, language
 milestone: N1
 type: frontend
-status: todo
+status: done
 depends_on: [B-N1-04]
 parallel_group: N1-J
 touches: [frontend/src/screens/profile,frontend/src/screens/profile-info,frontend/src/screens/appearance,frontend/src/shared/theme]

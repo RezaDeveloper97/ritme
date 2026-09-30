@@ -170,3 +170,38 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
 - **Open:** QUESTIONS #13–#15 (welcome-card placement / signup back link, dropped AI disclaimer, skip target).
   `--splash-from/to` tokens are now unused (left for B-N1-02 owners). No loading/error states apply (static,
   no data).
+
+## B-N1-10 — «من» hub, account, appearance, language
+
+- **Hub** `/profile` (`screens/profile/ui/ProfilePage.tsx`, rewritten on nb primitives): Lalezar «من» + appearance
+  `HeaderButton`, profile card (initial avatar, masked phone `۰۹۱۲ ••• ••۴۵` via `me-format.ts`, mode pill toned
+  per `resolveNavMode` — drawn inside the card, the artboard's nested `<a>` pushed it out), Plus card (`isPremium`
+  from `/messages/mode`, else «به‌زودی»), groups من و خانواده · کارها و خریدها · داده و دستگاه · تنظیمات ·
+  پشتیبانی, «خروج از حساب» text button. Live rows: mode (pregnancy setup / back to cycle, as before), backup →
+  `GET /profile/export`, privacy → `?sheet=info&privacy`, notifications → `?sheet=notifications`, appearance,
+  language, help/about → info sheet. «به‌زودی» (static, not buttons): companions, children, courses, todo,
+  bookings, orders, gadgets, support chat. Skeleton (rendered until mount → no hydration mismatch) + error card.
+- **Account** `/profile/account` (`AccountPage`, Me_Profile): 96px initial avatar + camera badge, field card
+  (name/birth date → `QuickEditSheet`; family name, phone change, email = «به‌زودی»), subscription + devices rows,
+  the old inline cycle & health rows as a group below (QUESTIONS #20), period-soft logout pill, delete account →
+  `DeleteAccountConfirm`.
+- **Appearance** `/profile/appearance` (`screens/appearance`): theme radiogroup with dark/light previews (roving
+  arrows) + «هماهنگ با تنظیمات گوشی» `Checkbox` = `system`; text-size range (5 stops); reduce-motion `Switch`;
+  haptics row hidden on web. **Language & calendar** `/profile/language`: language `RadioCardGroup` from
+  `GET /languages` + read-only calendar row (QUESTIONS #21).
+- **shared/theme:** new `display.ts` store (`useDisplayStore`: `textScale` index into `TEXT_SCALES`, `motion`
+  `system|reduce`; keys `ritme_text_scale`, `ritme_motion`), applied by `ThemeApplier` (+ cross-tab) and before
+  paint by `themeInitScript` (unit-tested against a fake DOM, `display.test.ts`). CSS: `.view > .scroll { zoom:
+  var(--text-scale) }`, `html[data-motion="reduce"]` kill switch.
+- **CSS/tokens:** `/* B-N1-10 */` block at the end of `globals.css`; theme-stable preview tokens `--theme-pv-*` in
+  both token blocks.
+- **i18n:** new `me` namespace (`messages/{fa,en}/me.json`, `bundled.ts`, `global.d.ts`), copied to
+  `backend-go/resources/translations/{fa,en}/me.json`; `internal/i18n/testdata/messages_{fa,en,ar}.json` got the
+  `me` block (golden test green). Routes `profileAccount/Appearance/Language` in `message-scopes.ts`.
+- **Outside `touches`** (minimal, flagged): `shared/ui/Icon.tsx` (+10 glyphs from the artboards: users, gradCap,
+  todo, box, watch, help, chat, crown, smartphone, modeRing), `app/[locale]/profile/{account,appearance,language}`,
+  the shared i18n/css files above.
+- **Screenshots:** `docs/qa/bloom/B-N1-10/` fa hub/account/appearance/language × light+dark, `en_profile*`,
+  `side-by-side_Me_{Hub,Profile,Appearance}.png` (artboard light | app light | artboard dark | app dark), `artboards/`.
+- **Open:** QUESTIONS #19–#23. `screens/profile-personal` / `profile-language` sheets are now unreferenced from the
+  hub (still registered for old `?sheet=` links). The PWA install banner still overlaps the nav (pre-existing).

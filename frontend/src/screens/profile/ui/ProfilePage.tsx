@@ -1,228 +1,90 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { type CSSProperties, type ReactNode, useEffect, useState } from 'react';
 
 import { useUserMode } from '@/entities/message';
 import { useDeactivatePregnancy } from '@/entities/pregnancy';
 import { useUserProfile } from '@/entities/user';
 import { useLogout } from '@/features/auth';
-import { QuickEditSheet, type QuickEditField } from '@/features/edit-profile';
-import { DeleteAccountConfirm, useExportData } from '@/features/manage-account';
+import { useExportData } from '@/features/manage-account';
 import { useSwitchLocale } from '@/features/switch-locale';
-import { formatLongDate, formatNumber } from '@/shared/lib/date';
+import { localizeHref, useRouter, type Locale } from '@/shared/i18n';
+import { calendarSystem } from '@/shared/lib/date';
+import { useMounted } from '@/shared/lib/use-mounted';
 import { openSheet } from '@/shared/sheet';
 import { useThemeStore } from '@/shared/theme';
-import { localizeHref, useDirection, useRouter, type Locale } from '@/shared/i18n';
-import { Icon, type IconName } from '@/shared/ui';
-import { BottomNav } from '@/widgets/bottom-nav';
+import {
+  HeaderButton,
+  Icon,
+  IconCircle,
+  ListGroup,
+  ListRow,
+  SectionTitle,
+  Skeleton,
+  SkeletonGroup,
+  SkyLayer,
+  StatusPill,
+  type IconName,
+  type Tone,
+} from '@/shared/ui';
+import { BottomNav, resolveNavMode } from '@/widgets/bottom-nav';
+
+import { MeErrorCard } from './MeErrorCard';
+import { firstLetter, localizeDigits, maskMobile, MODE_TONE } from './me-format';
 
 const APP_VERSION = '1.0.0';
 
-const FA = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-const localizeNum = (value: string | number, loc: Locale) =>
-  loc === 'fa' ? String(value).replace(/[0-9]/g, (d) => FA[Number(d)]) : String(value);
-
-// ── A single settings row ─────────────────────────────────────
-// Presentational only. Rows that lead somewhere pass `onClick`; the rest are
-// static list items (rendered as <div>, not fake buttons) until their
-// destination screens exist.
-function Row({
-  icon,
-  label,
-  trailing,
-  danger,
-  onClick,
-  disabled,
-}: {
+/** A hub row whose feature ships with a later bloom task: visible, not tappable, «به‌زودی». */
+interface SoonRow {
+  key: 'companions' | 'children' | 'courses' | 'todo' | 'bookings' | 'orders' | 'devices' | 'chat';
   icon: IconName;
-  label: string;
-  trailing?: ReactNode;
-  danger?: boolean;
-  onClick?: () => void;
-  disabled?: boolean;
-}) {
-  const color = danger ? 'var(--danger)' : 'var(--ink)';
-  const inner = (
-    <>
-      <span
-        style={{
-          width: 34,
-          height: 34,
-          borderRadius: 11,
-          flexShrink: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: danger ? 'var(--danger-soft)' : 'var(--line)',
-          color: danger ? 'var(--danger)' : 'var(--brand)',
-        }}
-      >
-        <Icon name={icon} size={19} />
-      </span>
-      <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color, textAlign: 'start' }}>
-        {label}
-      </span>
-      {trailing}
-    </>
-  );
-
-  const style: CSSProperties = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 12,
-    width: '100%',
-    padding: '13px 14px',
-    background: 'transparent',
-    border: 0,
-    font: 'inherit',
-    textAlign: 'start',
-    cursor: onClick && !disabled ? 'pointer' : 'default',
-    opacity: disabled ? 0.55 : 1,
-  };
-
-  if (onClick) {
-    return (
-      <button type="button" style={style} onClick={onClick} disabled={disabled}>
-        {inner}
-      </button>
-    );
-  }
-  return <div style={style}>{inner}</div>;
+  tone: Tone;
 }
 
-// ── A grouped card of rows ────────────────────────────────────
-function Group({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <section className="prof-group">
-      <div className="prof-group-t">
-        {title}
-      </div>
-      <div className="card prof-card">
-        {children}
-      </div>
-    </section>
-  );
-}
+const FAMILY_SOON: readonly SoonRow[] = [
+  { key: 'companions', icon: 'users', tone: 'brand' }, // B-N4
+  { key: 'children', icon: 'user', tone: 'bloom' }, // B-N5
+];
+const TASK_ROWS: readonly SoonRow[] = [
+  { key: 'courses', icon: 'gradCap', tone: 'bloom' }, // B-N8-03
+  { key: 'todo', icon: 'todo', tone: 'brand' }, // B-N6-08
+  { key: 'bookings', icon: 'calendar', tone: 'data' }, // B-N7
+  { key: 'orders', icon: 'box', tone: 'brand' }, // B-N10
+];
 
-// Hairline between rows, inset past the icon (logical start — RTL-safe).
-function Divider() {
-  return <div className="prof-divider" />;
-}
-
-// Direction-aware disclosure chevron: points "into" the row (§12 — logical, not
-// hardcoded left/right). RTL forward = left, LTR forward = right. Read from the
-// active language's direction, not from "is it Persian" — any RTL language an
-// admin adds (CLAUDE.md §6) points the same way.
-function Chevron() {
-  return (
-    <Icon
-      name={useDirection() === 'rtl' ? 'chevronLeft' : 'chevronRight'}
-      size={18}
-      className="prof-chev"
-    />
-  );
-}
-
-// Right-aligned value shown at the end of a stat row. Muted so the label
-// (in ink) stays dominant; `--` while the profile is still loading.
-function StatValue({ children }: { children: ReactNode }) {
-  return (
-    <span className="prof-stat">
-      {children}
-    </span>
-  );
-}
-
-// Trailing content for a stat row the user can tap to edit: the value plus a
-// small pencil so the row reads as actionable rather than as a read-only fact.
-function EditableValue({ children }: { children: ReactNode }) {
-  return (
-    <span className="prof-inline">
-      <StatValue>{children}</StatValue>
-      <Icon name="pencil" size={15} className="prof-chev" />
-    </span>
-  );
-}
-
-// ── Dark-mode switch ──────────────────────────────────────────
-// Two states, and light is where everyone starts: the OS setting is never
-// consulted (see `shared/theme`), so "off" is both the default and the honest
-// initial render.
-//
-// The preference lives in localStorage, so the server has no answer for it and
-// rendering the real state on the first client paint would contradict the
-// server's HTML (a hydration mismatch on every profile visit). The switch
-// therefore renders "off" until mounted, then settles into the real value —
-// the DOM already has the right theme by then, painted by the inline bootstrap.
-function ThemeSwitch({ label }: { label: string }) {
-  const theme = useThemeStore((s) => s.theme);
-  const setTheme = useThemeStore((s) => s.setTheme);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
-
-  const on = mounted && theme === 'dark';
-
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={on}
-      aria-label={label}
-      className="prof-switch"
-      onClick={() => setTheme(on ? 'light' : 'dark')}
-    >
-      <span className="prof-switch-knob" />
-    </button>
-  );
-}
-
+/**
+ * «من» hub (B-N1-10, `nbl_Me_Hub` / `nbd_Me_Hub`): profile header (masked
+ * phone, mode, Plus status) and the grouped sections. Rows whose screens ship
+ * with later bloom tasks show «به‌زودی» and are not buttons until they land.
+ */
 export function ProfilePage() {
-  const t = useTranslations('profile');
-  const ta = useTranslations('account');
+  const t = useTranslations('me');
   const router = useRouter();
   const loc = useLocale() as Locale;
-  const { data: profile } = useUserProfile();
+  const mounted = useMounted();
+  const profileQuery = useUserProfile();
   const { data: userMode } = useUserMode();
   const deactivatePregnancy = useDeactivatePregnancy();
   const logout = useLogout();
-  const { locale, languages, isPending: switching } = useSwitchLocale();
-  // Labelled in its own language — that is how a language picker reads.
-  const activeLanguageName =
-    languages.find((language) => language.code === locale)?.name ?? locale;
-  // Which stat row is being edited in the quick-edit sheet (null = closed).
-  const [editing, setEditing] = useState<QuickEditField | null>(null);
-  // Account deletion (§11 — delete is a first-class user right).
-  const [deleteOpen, setDeleteOpen] = useState(false);
-  // Data export (§11): GET /profile/export saved as a local JSON file.
   const { exportData, isPending: exporting, isError: exportFailed } = useExportData();
+  const { locale, languages } = useSwitchLocale();
+  const preference = useThemeStore((s) => s.preference);
 
-  const user = profile;
-  const health = profile?.health;
+  const profile = profileQuery.data;
+  const navMode = resolveNavMode({ mode: userMode?.mode, isTtc: userMode?.isTtc ?? false });
+  const modeName = t(`modes.${navMode}`);
+  const isPregnancy = navMode === 'pregnancy';
+  const languageName = languages.find((l) => l.code === locale)?.name ?? locale;
+  const calendarName = t(`calendars.${calendarSystem(loc)}`);
+  const soon = <StatusPill tone="neutral">{t('soon')}</StatusPill>;
 
-  // These fallbacks must depend ONLY on the fetched value — never on loading
-  // state. `useUserProfile` is gated on `isAuthenticated()` (which reads
-  // localStorage), so the server always sees "logged out" while the client
-  // sees "loading"; branching on that would cause a hydration mismatch. On both
-  // the server and the first client render `health` is undefined, so both emit
-  // the "not set" label, then the client re-renders once data arrives.
-  // Dates cross the API boundary in Gregorian ISO and are only ever shown as
-  // the locale's calendar (§7), converted here via the shared date layer.
-  const localDateOrEmpty = (iso: string | null | undefined) =>
-    iso ? formatLongDate(new Date(iso), loc) : t('health.empty');
-  // The messages use plain `{days}` / `{value}` (no `, number`), which ICU
-  // prints as-is — so the digits are localized here (Persian digits in fa).
-  const daysOrEmpty = (value: number | null | undefined) =>
-    value != null ? t('health.days', { days: formatNumber(value, loc) }) : t('health.empty');
-  const measureOrEmpty = (key: 'kg' | 'cm', value: number | null | undefined) =>
-    value != null ? t(`health.${key}`, { value: formatNumber(value, loc) }) : t('health.empty');
+  // Loading is decided only after mount: the profile query is gated on a
+  // localStorage token, so the server always renders the skeleton and the first
+  // client pass must match it (no hydration mismatch).
+  const loading = !mounted || profileQuery.isLoading;
 
-  // A full document replace, not a client-side one: it drops every React tree,
-  // query cache and in-memory token the signed-in session left behind, and it
-  // overwrites the current history entry so the profile screen cannot be
-  // restored from the bfcache. `onSettled` — a logout whose network call failed
-  // has still cleared the local session, so the user must still leave.
+  // A full document replace: drops every React tree, cache and token of the
+  // signed-in session; `onSettled` — a failed logout call still cleared it.
   const handleLogout = () => {
     if (logout.isPending) return;
     logout.mutate(undefined, {
@@ -230,242 +92,157 @@ export function ProfilePage() {
     });
   };
 
-
-
-  // App mode (CLAUDE.md §1). Entering pregnancy mode runs the Setup flow
-  // (/pregnancy/setup), which dates the pregnancy and activates the mode;
-  // leaving it asks for confirmation, then flips the backend mode back to cycle.
-  const isPregnancy = userMode?.mode === 'pregnancy';
-  const switchToCycle = () => {
-    if (deactivatePregnancy.isPending) return;
-    if (!window.confirm(t('mode.confirmSwitchToCycle'))) return;
+  // App mode (CLAUDE.md §1) until the mode switcher (B-N2-03, /profile/mode):
+  // cycle → pregnancy setup; pregnancy → confirm, then back to cycle.
+  const onModeRow = () => {
+    if (!isPregnancy) return router.push('/pregnancy/setup');
+    if (deactivatePregnancy.isPending || !window.confirm(t('rows.confirmToCycle'))) return;
     deactivatePregnancy.mutate(undefined, { onSuccess: () => router.replace('/home') });
   };
 
-  const chevron = <Chevron />;
-
   return (
-    <div className="view prof-page">
+    <div className="view me-page">
+      <SkyLayer />
+      <div className="scroll me-scroll">
+        <header className="me-hdr">
+          <h1 className="me-title">{t('title')}</h1>
+          <HeaderButton
+            label={t('rows.appearance')}
+            icon="sun"
+            variant="soft"
+            onClick={() => router.push('/profile/appearance')}
+          />
+        </header>
 
-      <div className="scroll prof-scroll">
-        <div className="prof-hdr">
-          <div className="titr">{t('title')}</div>
-        </div>
-
-        {/* Identity card */}
-        <section className="prof-group is-tight">
-          <div className="card prof-id">
-            <span className="prof-avatar">
-              <Icon name="user" size={30} />
+        {loading ? (
+          <SkeletonGroup label={t('loading')} className="me-id is-skel">
+            <Skeleton shape="circle" />
+            <span className="me-id-body">
+              <Skeleton width="medium" />
+              <Skeleton width="short" />
             </span>
-            <div className="prof-id-body">
-              <div className="prof-id-name">
-                {user?.name ?? t('guest')}
-              </div>
-              <div className="prof-id-phone">
-                {user?.mobile ? localizeNum(user.mobile, loc) : t('noPhone')}
-              </div>
-            </div>
-            <button
-              className="iconbtn prof-id-edit"
-              aria-label={t('editProfile')}
-              onClick={() => setEditing('name')}
-            >
-              <Icon name="pencil" size={18} />
-            </button>
-          </div>
-        </section>
-
-        {/* App mode — pregnancy tracker entry / switch (CLAUDE.md §1). */}
-        <Group title={t('sections.mode')}>
-          {isPregnancy ? (
-            <>
-              <Row
-                icon="heart"
-                label={t('mode.pregnancyTracker')}
-                trailing={chevron}
-                onClick={() => router.push('/pregnancy')}
-              />
-              <Divider />
-              <Row
-                icon="refresh"
-                label={deactivatePregnancy.isPending ? t('mode.switching') : t('mode.switchToCycle')}
-                onClick={switchToCycle}
-                disabled={deactivatePregnancy.isPending}
-              />
-            </>
-          ) : (
-            <Row
-              icon="heart"
-              label={t('mode.switchToPregnancy')}
-              trailing={chevron}
-              onClick={() => router.push('/pregnancy/setup')}
-            />
-          )}
-        </Group>
-
-        {/* Cycle & health — the user's profile data from GET /profile. When the
-            account has no health profile yet, a single hint row stands in for
-            the stats. */}
-        <Group title={t('health.title')}>
-          {profile && !health ? (
-            <Row icon="heart" label={t('health.notSetUp')} />
-          ) : (
-            <>
-              <Row
-                icon="refresh"
-                label={t('health.cycleDuration')}
-                trailing={<EditableValue>{daysOrEmpty(health?.cycleDuration)}</EditableValue>}
-                onClick={() => setEditing('cycleDuration')}
-              />
-              <Divider />
-              <Row
-                icon="drop"
-                label={t('health.periodDuration')}
-                trailing={<EditableValue>{daysOrEmpty(health?.periodDuration)}</EditableValue>}
-                onClick={() => setEditing('periodDuration')}
-              />
-              <Divider />
-              <Row
-                icon="calendar"
-                label={t('health.lastPeriod')}
-                trailing={
-                  <EditableValue>{localDateOrEmpty(health?.lastPeriodStart)}</EditableValue>
-                }
-                onClick={() => setEditing('lastPeriod')}
-              />
-              <Divider />
-              <Row
-                icon="sparkle"
-                label={t('health.birthday')}
-                trailing={<EditableValue>{localDateOrEmpty(health?.birthday)}</EditableValue>}
-                onClick={() => setEditing('birthday')}
-              />
-              <Divider />
-              <Row
-                icon="chart"
-                label={t('health.weight')}
-                trailing={<EditableValue>{measureOrEmpty('kg', health?.weight)}</EditableValue>}
-                onClick={() => setEditing('weight')}
-              />
-              <Divider />
-              <Row
-                icon="walk"
-                label={t('health.height')}
-                trailing={<EditableValue>{measureOrEmpty('cm', health?.height)}</EditableValue>}
-                onClick={() => setEditing('height')}
-              />
-              {/* BMI and its supportive message now live on the analysis
-                  screen, next to the rest of the user's own numbers. */}
-            </>
-          )}
-        </Group>
-
-        {/* Account */}
-        <Group title={t('sections.account')}>
-          {/* Personal-info and cycle/health-settings rows hidden per product
-              request; the same fields are editable inline above. */}
-          {/* Reminders lead to the M3 hub (/reminders); the legacy `reminders`
-              sheet stays registered for old `?sheet=reminders` links. */}
-          <Row icon="alarm" label={t('rows.reminders')} trailing={chevron} onClick={() => router.push('/reminders')} />
-          <Divider />
-          <Row icon="bell" label={t('rows.notifications')} trailing={chevron} onClick={() => openSheet('notifications')} />
-        </Group>
-
-        {/* App */}
-        <Group title={t('sections.app')}>
-          {/* The app can ship any number of languages (CLAUDE.md §6), so this
-              opens a picker rather than toggling between two. */}
-          <Row
-            icon="globe"
-            label={t('rows.language')}
-            onClick={() => openSheet('language')}
-            disabled={switching}
-            trailing={
-              <span className="prof-inline">
-                <span className="prof-inline-t">{activeLanguageName}</span>
-                {chevron}
+          </SkeletonGroup>
+        ) : profileQuery.isError ? (
+          <MeErrorCard onRetry={() => profileQuery.refetch()} />
+        ) : (
+          <div className="me-id">
+            <button type="button" className="me-id-main" onClick={() => router.push('/profile/account')}>
+              <span className="me-avatar" aria-hidden>
+                {profile?.name ? firstLetter(profile.name) : <Icon name="user" size={26} />}
               </span>
-            }
-          />
-          <Divider />
-          {/* Dark mode, flipped in place. Static row (no `onClick`) because the
-              switch is itself the button — a button inside a button is invalid
-              markup and swallows the tap. */}
-          <Row
-            icon="moon"
-            label={t('rows.darkMode')}
-            trailing={<ThemeSwitch label={t('rows.darkMode')} />}
-          />
-        </Group>
-
-        {/* Privacy & data (§11 — export & delete are first-class) */}
-        <Group title={t('sections.privacy')}>
-          <Row icon="shield" label={t('rows.privacyPolicy')} trailing={chevron} onClick={() => openSheet('info', 'privacy')} />
-          <Divider />
-          <Row
-            icon="download"
-            label={exporting ? t('exporting') : t('rows.exportData')}
-            trailing={chevron}
-            onClick={() => exportData()}
-            disabled={exporting}
-          />
-          <Divider />
-          <Row icon="trash" label={t('rows.deleteAccount')} danger trailing={chevron} onClick={() => setDeleteOpen(true)} />
-        </Group>
-        {exportFailed && (
-          <p className="prof-row-error" role="alert">
-            {ta('export.error')}
-          </p>
+              <span className="me-id-body">
+                <span className="me-id-name">{profile?.name || t('guest')}</span>
+                <bdi dir="ltr" className="me-id-phone">
+                  {profile?.mobile ? maskMobile(profile.mobile, loc) : t('noPhone')}
+                </bdi>
+              </span>
+            </button>
+            <span className={`me-mode-pill tone-${MODE_TONE[navMode]}`} aria-label={t('modeLabel', { mode: modeName })}>
+              <span className="me-mode-dot" aria-hidden />
+              {modeName}
+            </span>
+          </div>
         )}
 
-        {/* Support */}
-        <Group title={t('sections.support')}>
-          <Row icon="info" label={t('rows.help')} trailing={chevron} onClick={() => openSheet('info', 'help')} />
-          <Divider />
-          <Row icon="sparkle" label={t('rows.about')} trailing={chevron} onClick={() => openSheet('info', 'about')} />
-          <Divider />
-          <Row icon="book" label={t('rows.terms')} trailing={chevron} onClick={() => openSheet('info', 'terms')} />
-        </Group>
+        {/* Plus status. Plans/payment arrive with N2 (B-N2-05+); until then a static card. */}
+        <div className="me-plus">
+          <IconCircle icon="sparkle" tone="brand" size="md" />
+          <span className="nb-row-text">
+            <span className="nb-row-title">{userMode?.isPremium ? t('plus.active') : t('plus.title')}</span>
+            <span className="nb-row-desc">{userMode?.isPremium ? t('plus.activeSub') : t('plus.soonSub')}</span>
+          </span>
+          {userMode?.isPremium ? null : soon}
+        </div>
 
-        {/* Logout */}
-        <section className="prof-group">
-          <div className="card prof-card is-plain">
-            <Row
-              icon="logout"
-              label={logout.isPending ? t('loggingOut') : t('logout')}
-              danger
-              onClick={handleLogout}
-              disabled={logout.isPending}
+        <section className="me-sec" aria-labelledby="me-g-family">
+          <SectionTitle id="me-g-family" title={t('groups.family')} />
+          <ListGroup>
+            <ListRow
+              icon="modeRing"
+              iconTone={MODE_TONE[navMode]}
+              title={t('rows.mode')}
+              description={
+                deactivatePregnancy.isPending
+                  ? t('rows.modeSwitching')
+                  : t(isPregnancy ? 'rows.modeToCycle' : 'rows.modeToPregnancy', { mode: modeName })
+              }
+              onClick={onModeRow}
             />
-          </div>
+            {FAMILY_SOON.map((row) => (
+              <ListRow key={row.key} icon={row.icon} iconTone={row.tone} title={t(`rows.${row.key}`)} trailing={soon} />
+            ))}
+          </ListGroup>
         </section>
 
-        <div className="prof-version">
-          {t('version', { version: localizeNum(APP_VERSION, loc) })}
-        </div>
+        <section className="me-sec" aria-labelledby="me-g-tasks">
+          <SectionTitle id="me-g-tasks" title={t('groups.tasks')} />
+          <ListGroup>
+            {TASK_ROWS.map((row) => (
+              <ListRow key={row.key} icon={row.icon} iconTone={row.tone} title={t(`rows.${row.key}`)} trailing={soon} />
+            ))}
+          </ListGroup>
+        </section>
+
+        <section className="me-sec" aria-labelledby="me-g-data">
+          <SectionTitle id="me-g-data" title={t('groups.data')} />
+          <ListGroup>
+            <ListRow icon="watch" iconTone="data" title={t('rows.devices')} trailing={soon} />
+            {/* §11 — export is a first-class right: GET /profile/export as a JSON file. */}
+            <ListRow
+              icon="download"
+              title={t('rows.backup')}
+              description={exporting ? t('rows.exporting') : t('rows.backupSub')}
+              onClick={() => (exporting ? undefined : exportData())}
+            />
+          </ListGroup>
+          {exportFailed ? (
+            <p className="me-inline-error" role="alert">
+              {t('rows.exportError')}
+            </p>
+          ) : null}
+        </section>
+
+        <section className="me-sec" aria-labelledby="me-g-settings">
+          <SectionTitle id="me-g-settings" title={t('groups.settings')} />
+          <ListGroup>
+            {/* Privacy & lock screen = B-N1-12; the policy sheet until then. */}
+            <ListRow
+              icon="lock"
+              iconTone="success"
+              title={t('rows.privacy')}
+              onClick={() => openSheet('info', 'privacy')}
+            />
+            {/* Notification categories screen = B-N1-11; the existing sheet until then. */}
+            <ListRow icon="bell" title={t('rows.notifications')} onClick={() => openSheet('notifications')} />
+            <ListRow
+              icon="moon"
+              title={t('rows.appearance')}
+              description={mounted ? t(`theme.${preference}`) : undefined}
+              onClick={() => router.push('/profile/appearance')}
+            />
+            <ListRow
+              icon="calendar"
+              title={t('rows.language')}
+              description={`${languageName} · ${calendarName}`}
+              onClick={() => router.push('/profile/language')}
+            />
+          </ListGroup>
+        </section>
+
+        <section className="me-sec" aria-labelledby="me-g-support">
+          <SectionTitle id="me-g-support" title={t('groups.support')} />
+          <ListGroup>
+            <ListRow icon="help" title={t('rows.help')} onClick={() => openSheet('info', 'help')} />
+            <ListRow icon="chat" title={t('rows.chat')} trailing={soon} />
+            <ListRow icon="info" iconTone="neutral" title={t('rows.about')} onClick={() => openSheet('info', 'about')} />
+          </ListGroup>
+        </section>
+
+        <button type="button" className="me-logout" onClick={handleLogout} disabled={logout.isPending}>
+          {logout.isPending ? t('loggingOut') : t('logout')}
+        </button>
+        <p className="me-version">{t('version', { version: localizeDigits(APP_VERSION, loc) })}</p>
       </div>
-
-      {/* Tap-to-edit sheet for the stat rows above; saving invalidates the
-          profile query so the row re-renders with the new value. */}
-      <QuickEditSheet
-        field={editing}
-        values={{
-          name: user?.name,
-          cycleDuration: health?.cycleDuration,
-          periodDuration: health?.periodDuration,
-          birthday: health?.birthday,
-          lastPeriodStart: health?.lastPeriodStart,
-          weight: health?.weight,
-          height: health?.height,
-        }}
-        onClose={() => setEditing(null)}
-      />
-
-      {/* Deleting ends the session (token, flag cookie, per-user device data,
-          query cache) and lands on /signup. */}
-      <DeleteAccountConfirm open={deleteOpen} onClose={() => setDeleteOpen(false)} />
-
       <BottomNav />
     </div>
   );

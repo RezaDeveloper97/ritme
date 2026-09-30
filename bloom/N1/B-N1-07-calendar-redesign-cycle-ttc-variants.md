@@ -6,7 +6,7 @@ type: frontend
 status: todo
 depends_on: [B-N1-04]
 parallel_group: N1-G
-touches: [frontend/src/screens/calendar,frontend/src/widgets]
+touches: [frontend/src/screens/calendar,frontend/src/widgets/cycle-calendar]
 skills: [verify-all]
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && npm run build
 ---
