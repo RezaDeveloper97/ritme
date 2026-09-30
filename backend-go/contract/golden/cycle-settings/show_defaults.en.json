@@ -1,0 +1,66 @@
+{
+  "case": "cycle-settings/show_defaults.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/profile/cycle-settings",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "lengths": {
+            "auto": true,
+            "cycle_length": 28,
+            "period_length": 5,
+            "calculated": {
+              "cycle_length": 28,
+              "period_length": 5,
+              "based_on_cycles": 5
+            },
+            "manual": {
+              "cycle_length": 28,
+              "period_length": 5
+            }
+          },
+          "reminders": [
+            {
+              "code": "before_period",
+              "enabled": true,
+              "time": "09:00",
+              "days_before": 2
+            },
+            {
+              "code": "pms",
+              "enabled": true,
+              "time": "09:00",
+              "cycle_day": 26
+            },
+            {
+              "code": "fertile_window",
+              "enabled": false,
+              "time": "09:00"
+            },
+            {
+              "code": "daily_log",
+              "enabled": true,
+              "time": "22:00"
+            },
+            {
+              "code": "pill",
+              "enabled": false,
+              "time": "21:00"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

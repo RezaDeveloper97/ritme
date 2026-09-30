@@ -113,14 +113,10 @@ function HomeHeader({ t, loc }: { t: T; loc: Locale }) {
         >
           <Icon name="bellPlain" size={20} strokeWidth={1.8} />
         </button>
-        <button
-          type="button"
-          className="home-hdr-btn"
-          onClick={() => openSheet('health')}
-          aria-label={t('header.cycleSettings')}
-        >
+        {/* B-N1-09: the cog opens the cycle settings screen (nbl_Cycle_Home → nbl_Cycle_Settings). */}
+        <Link href="/cycle/settings" className="home-hdr-btn" aria-label={t('header.cycleSettings')}>
           <Icon name="cog" size={20} strokeWidth={1.8} />
-        </button>
+        </Link>
       </div>
     </header>
   );

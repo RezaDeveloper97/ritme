@@ -23,6 +23,49 @@ func (q *Queries) AnyRecommendationExists(ctx context.Context) (bool, error) {
 	return present, err
 }
 
+const getEngineProfileByUserID = `-- name: GetEngineProfileByUserID :one
+SELECT p.id, p.user_id, p.birthday, p.weight, p.height, p.period_duration, p.cycle_duration, p.last_period_start, p.user_goal, p.pregnancy_intention, p.chronic_conditions, p.subscription_type, p.calculation_status, p.calculation_started_at, p.calculation_completed_at, p.calculation_version, p.created_at, p.updated_at, COALESCE(cp.lengths_auto, 1) AS lengths_auto
+FROM ` + "`" + `user_profiles` + "`" + ` p
+LEFT JOIN ` + "`" + `cycle_preferences` + "`" + ` cp ON cp.user_id = p.user_id
+WHERE p.user_id = ?
+ORDER BY p.id
+LIMIT 1
+`
+
+type GetEngineProfileByUserIDRow struct {
+	UserProfile UserProfile
+	LengthsAuto bool
+}
+
+// GetProfileByUserID plus B-N1-09 «خودکار از داده‌ها» (goose 00013) in the same round trip: no
+// cycle_preferences row = automatic (1); 0 = the engine prefers the profile lengths.
+func (q *Queries) GetEngineProfileByUserID(ctx context.Context, userID uint64) (GetEngineProfileByUserIDRow, error) {
+	row := q.db.QueryRowContext(ctx, getEngineProfileByUserID, userID)
+	var i GetEngineProfileByUserIDRow
+	err := row.Scan(
+		&i.UserProfile.ID,
+		&i.UserProfile.UserID,
+		&i.UserProfile.Birthday,
+		&i.UserProfile.Weight,
+		&i.UserProfile.Height,
+		&i.UserProfile.PeriodDuration,
+		&i.UserProfile.CycleDuration,
+		&i.UserProfile.LastPeriodStart,
+		&i.UserProfile.UserGoal,
+		&i.UserProfile.PregnancyIntention,
+		&i.UserProfile.ChronicConditions,
+		&i.UserProfile.SubscriptionType,
+		&i.UserProfile.CalculationStatus,
+		&i.UserProfile.CalculationStartedAt,
+		&i.UserProfile.CalculationCompletedAt,
+		&i.UserProfile.CalculationVersion,
+		&i.UserProfile.CreatedAt,
+		&i.UserProfile.UpdatedAt,
+		&i.LengthsAuto,
+	)
+	return i, err
+}
+
 const getProfileByUserID = `-- name: GetProfileByUserID :one
 
 SELECT id, user_id, birthday, weight, height, period_duration, cycle_duration, last_period_start, user_goal, pregnancy_intention, chronic_conditions, subscription_type, calculation_status, calculation_started_at, calculation_completed_at, calculation_version, created_at, updated_at FROM ` + "`" + `user_profiles` + "`" + ` WHERE user_id = ? ORDER BY id LIMIT 1

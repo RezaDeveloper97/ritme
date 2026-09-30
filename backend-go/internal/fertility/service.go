@@ -65,10 +65,12 @@ func (in cycleInputs) resolve(date, today civildate.Date) resolver.Status {
 func (s *Service) cycleInputs(ctx context.Context, userID uint64) (cycleInputs, error) {
 	cq := cyclestore.New(s.db)
 	var profile *cyclestore.UserProfile
-	p, err := cq.GetProfileByUserID(ctx, userID)
+	manual := false
+	p, err := cq.GetEngineProfileByUserID(ctx, userID) // B-N1-09: + «خودکار از داده‌ها»
 	switch {
 	case err == nil:
-		profile = &p
+		profile = &p.UserProfile
+		manual = !p.LengthsAuto
 	case !errors.Is(err, sql.ErrNoRows):
 		return cycleInputs{}, fmt.Errorf("fertility: load profile: %w", err)
 	}
@@ -78,6 +80,9 @@ func (s *Service) cycleInputs(ctx context.Context, userID uint64) (cycleInputs, 
 	}
 	histories := cycleservice.HistoriesFromRows(rows)
 	engineProfile := cycleservice.ProfileFromRow(profile)
+	if engineProfile != nil { // «خودکار از داده‌ها» off → the profile lengths win
+		engineProfile.LengthsManual = manual
+	}
 	return cycleInputs{histories: histories, profile: engineProfile, metrics: metrics.Calculate(histories, engineProfile)}, nil
 }
 

@@ -168,6 +168,14 @@ type CycleHistory struct {
 	UpdatedAt        sql.NullTime
 }
 
+type CyclePreference struct {
+	ID          uint64
+	UserID      uint64
+	LengthsAuto bool
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+}
+
 type DailyHealthLog struct {
 	ID                         uint64
 	UserID                     uint64
@@ -319,6 +327,19 @@ type MessageContent struct {
 	SortOrder  uint32
 	CreatedAt  sql.NullTime
 	UpdatedAt  sql.NullTime
+}
+
+type NotificationPreference struct {
+	ID                uint64
+	UserID            uint64
+	Categories        db.NullRawJSON
+	QuietHoursEnabled bool
+	QuietStart        string
+	QuietEnd          string
+	NeutralCopy       bool
+	CreatedAt         sql.NullTime
+	UpdatedAt         sql.NullTime
+	Schedule          db.NullRawJSON
 }
 
 type OauthAccessToken struct {
@@ -696,6 +717,18 @@ type Session struct {
 	LastActivity int32
 }
 
+type SupportReport struct {
+	ID             uint64
+	UserID         uint64
+	Message        string
+	ScreenshotPath sql.NullString
+	AppVersion     sql.NullString
+	UserAgent      sql.NullString
+	Status         string
+	CreatedAt      sql.NullTime
+	UpdatedAt      sql.NullTime
+}
+
 type TaskTemplate struct {
 	ID          uint64
 	Key         string
@@ -742,6 +775,17 @@ type UserCheckupSetting struct {
 	Remind        bool
 	CreatedAt     sql.NullTime
 	UpdatedAt     sql.NullTime
+}
+
+type UserConsent struct {
+	ID        uint64
+	UserID    uint64
+	Consent   string
+	Granted   bool
+	GrantedAt sql.NullTime
+	RevokedAt sql.NullTime
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
 }
 
 type UserNotification struct {

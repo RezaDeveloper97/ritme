@@ -1,0 +1,28 @@
+{
+    "messages": {
+        "validation_failed": "The given data was invalid.",
+        "saved": "Cycle settings saved"
+    },
+    "attributes": {
+        "lengths_auto": "automatic from your data",
+        "cycle_length": "cycle length",
+        "period_length": "period length",
+        "reminders": "reminders",
+        "reminders.before_period": "before your period",
+        "reminders.before_period.enabled": "before your period",
+        "reminders.before_period.time": "before-period reminder time",
+        "reminders.before_period.days_before": "days before your period",
+        "reminders.pms": "PMS starts",
+        "reminders.pms.enabled": "PMS starts",
+        "reminders.pms.time": "PMS reminder time",
+        "reminders.fertile_window": "fertile window",
+        "reminders.fertile_window.enabled": "fertile window",
+        "reminders.fertile_window.time": "fertile window reminder time",
+        "reminders.daily_log": "daily log reminder",
+        "reminders.daily_log.enabled": "daily log reminder",
+        "reminders.daily_log.time": "daily log reminder time",
+        "reminders.pill": "birth control pill",
+        "reminders.pill.enabled": "birth control pill",
+        "reminders.pill.time": "pill reminder time"
+    }
+}

@@ -3,7 +3,7 @@ id: B-N1-09
 title: Cycle settings screen with reminder preferences
 milestone: N1
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N1-06]
 parallel_group: N1-I
 touches: [frontend/src/screens/cycle-settings,backend-go/internal/profile,backend-go/internal/reminders,backend-go/db,backend-go/api]

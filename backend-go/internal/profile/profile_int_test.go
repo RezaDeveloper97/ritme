@@ -26,6 +26,7 @@ import (
 	"github.com/ritme/backend-go/internal/platform/db/testdb"
 	"github.com/ritme/backend-go/internal/platform/httpx"
 	"github.com/ritme/backend-go/internal/profile"
+	profilestore "github.com/ritme/backend-go/internal/profile/store"
 )
 
 func TestMain(m *testing.M) { testdb.Main(m) }
@@ -38,9 +39,10 @@ const (
 var quiet = slog.New(slog.NewTextHandler(io.Discard, nil))
 
 type env struct {
-	db  *sql.DB
-	app *fiber.App
-	iss *passport.Issuer
+	db      *sql.DB
+	app     *fiber.App
+	iss     *passport.Issuer
+	storage string // STORAGE_PATH of the handlers (support-report screenshots)
 }
 
 func setup(t *testing.T) *env {
@@ -53,7 +55,9 @@ func setup(t *testing.T) *env {
 	require.NoError(t, err)
 	q := authstore.New(db)
 	guard := auth.NewGuardWith(&key.PublicKey, q, clock.Real{}, quiet)
-	h := profile.NewHandlers(profile.Options{DB: db, Logger: quiet})
+	storage := t.TempDir()
+	h := profile.NewHandlers(profile.Options{DB: db, Logger: quiet, StoragePath: storage})
+	ph := profile.NewPrivacyHandlers(profile.PrivacyOptions{Store: profilestore.New(db), StoragePath: storage, Logger: quiet})
 
 	app := fiber.New(fiber.Config{ErrorHandler: httpx.ErrorHandler(quiet)})
 	app.Use(clock.Middleware(clock.Real{}, true))
@@ -61,7 +65,13 @@ func setup(t *testing.T) *env {
 	app.Post("/api/v1/profile", guard.RequireUser, h.Store)
 	app.Get("/api/v1/profile/export", guard.RequireUser, h.Export)
 	app.Delete("/api/v1/account", guard.RequireUser, h.DestroyAccount)
-	return &env{db: db, app: app, iss: passport.NewIssuer(key, q, clock.Real{}, 365)}
+	app.Get("/api/v1/profile/consents", guard.RequireUser, ph.Consents)
+	app.Put("/api/v1/profile/consents", guard.RequireUser, ph.UpdateConsents)
+	app.Post("/api/v1/support/reports", guard.RequireUser, ph.CreateSupportReport)
+	cs := profile.NewCycleSettingsHandlers(db, clock.Real{}) // B-N1-09
+	app.Get("/api/v1/profile/cycle-settings", guard.RequireUser, cs.Show)
+	app.Put("/api/v1/profile/cycle-settings", guard.RequireUser, cs.Update)
+	return &env{db: db, app: app, iss: passport.NewIssuer(key, q, clock.Real{}, 365), storage: storage}
 }
 
 func (e *env) user(t *testing.T, mobile string) (uint64, string) {

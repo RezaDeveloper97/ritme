@@ -50,12 +50,18 @@ export const ROUTE_NAMESPACES = {
   home: ['articles', 'banners', 'care', 'challenge', 'checkups', 'common', 'fertility', 'home', 'log', 'logPeriod', 'nav', 'profileEdit'],
   calendar: ['calendar', 'common', 'log', 'logPeriod', 'nav'],
   log: ['common', 'log', 'nav'],
-  cycle: ['common', 'cycle', 'home', 'logPeriod', 'nav'],
+  cycle: ['common', 'cycle', 'logPeriod'], // B-N1-08 cycle history (back header, no nav)
+  cycleSymptoms: ['common', 'cycle', 'logPeriod'], // B-N1-08 /cycle/symptoms (screen slice shares the editor)
+  cycleSettings: ['common', 'me'], // B-N1-09 /cycle/settings (copy lives under me.cycleSettings)
   profile: ['account', 'common', 'me', 'nav', 'profile', 'profileEdit'],
   profileAccount: ['account', 'common', 'me', 'nav', 'profile', 'profileEdit'], // B-N1-10 /profile/account
   profileAppearance: ['common', 'me'], // B-N1-10 /profile/appearance
   profileLanguage: ['common', 'me'], // B-N1-10 /profile/language
   profileNotifications: ['common', 'me'], // B-N1-11 /profile/notifications
+  profilePrivacy: ['account', 'common', 'me'], // B-N1-12 /profile/privacy (DeleteAccountConfirm = account)
+  profileSupport: ['common', 'me'], // B-N1-12 /profile/support
+  profileAbout: ['common', 'me'], // B-N1-12 /profile/about
+  profileLegal: ['common', 'me'], // B-N1-12 /profile/legal
   pregnancy: ['care', 'common', 'nav', 'pregnancyV2'],
   pregnancyLog: [...PREGNANCY, 'pregnancyV2'],
   pregnancyWeek: ['common', 'nav', 'pregnancyV2'],

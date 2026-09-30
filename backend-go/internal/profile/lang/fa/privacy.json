@@ -1,0 +1,18 @@
+{
+    "messages": {
+        "validation_failed": "اطلاعات واردشده نامعتبر است",
+        "consents_saved": "رضایت‌ها ذخیره شد",
+        "report_sent": "گزارشت رسید؛ ممنون که کمک می‌کنی ریتمی بهتر شود",
+        "too_many_reports": "در یک ساعت گذشته چند گزارش فرستاده‌ای. کمی بعد دوباره امتحان کن.",
+        "busy": "الان سرور مشغول است. چند لحظه دیگر دوباره امتحان کن."
+    },
+    "attributes": {
+        "consents": "رضایت‌ها",
+        "consents.ai_lab_analysis": "تحلیل آزمایش با هوش مصنوعی",
+        "consents.assistant_profile": "استفاده دستیار سلامت از پروفایل",
+        "consents.anonymous_stats": "کمک به بهبود ریتمی",
+        "message": "متن گزارش",
+        "screenshot": "اسکرین‌شات",
+        "app_version": "نسخه اپ"
+    }
+}

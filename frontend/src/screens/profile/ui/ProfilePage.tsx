@@ -5,13 +5,13 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useUserMode } from '@/entities/message';
 import { useDeactivatePregnancy } from '@/entities/pregnancy';
 import { useUserProfile } from '@/entities/user';
+import { useAppLock } from '@/features/app-lock';
 import { useLogout } from '@/features/auth';
 import { useExportData } from '@/features/manage-account';
 import { useSwitchLocale } from '@/features/switch-locale';
 import { localizeHref, useRouter, type Locale } from '@/shared/i18n';
 import { calendarSystem } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
-import { openSheet } from '@/shared/sheet';
 import { useThemeStore } from '@/shared/theme';
 import {
   HeaderButton,
@@ -69,6 +69,7 @@ export function ProfilePage() {
   const { exportData, isPending: exporting, isError: exportFailed } = useExportData();
   const { locale, languages } = useSwitchLocale();
   const preference = useThemeStore((s) => s.preference);
+  const appLock = useAppLock();
 
   const profile = profileQuery.data;
   const navMode = resolveNavMode({ mode: userMode?.mode, isTtc: userMode?.isTtc ?? false });
@@ -205,15 +206,26 @@ export function ProfilePage() {
         <section className="me-sec" aria-labelledby="me-g-settings">
           <SectionTitle id="me-g-settings" title={t('groups.settings')} />
           <ListGroup>
-            {/* Privacy & lock screen = B-N1-12; the policy sheet until then. */}
             <ListRow
               icon="lock"
               iconTone="success"
               title={t('rows.privacy')}
-              onClick={() => openSheet('info', 'privacy')}
+              description={appLock?.enabled ? t('rows.privacyLockOn') : undefined}
+              onClick={() => router.push('/profile/privacy')}
             />
-            {/* Notification categories screen = B-N1-11; the existing sheet until then. */}
-            <ListRow icon="bell" title={t('rows.notifications')} onClick={() => openSheet('notifications')} />
+            <ListRow
+              icon="bell"
+              title={t('rows.notifications')}
+              onClick={() => router.push('/profile/notifications')}
+            />
+            {/* B-N1-09: cycle length + cycle reminders. */}
+            <ListRow
+              icon="drop"
+              iconTone="period"
+              title={t('rows.cycleSettings')}
+              description={t('rows.cycleSettingsSub')}
+              onClick={() => router.push('/cycle/settings')}
+            />
             <ListRow
               icon="moon"
               title={t('rows.appearance')}
@@ -232,9 +244,9 @@ export function ProfilePage() {
         <section className="me-sec" aria-labelledby="me-g-support">
           <SectionTitle id="me-g-support" title={t('groups.support')} />
           <ListGroup>
-            <ListRow icon="help" title={t('rows.help')} onClick={() => openSheet('info', 'help')} />
-            <ListRow icon="chat" title={t('rows.chat')} trailing={soon} />
-            <ListRow icon="info" iconTone="neutral" title={t('rows.about')} onClick={() => openSheet('info', 'about')} />
+            <ListRow icon="help" title={t('rows.help')} onClick={() => router.push('/profile/support')} />
+            <ListRow icon="chat" title={t('rows.chat')} onClick={() => router.push('/profile/support')} />
+            <ListRow icon="info" iconTone="neutral" title={t('rows.about')} onClick={() => router.push('/profile/about')} />
           </ListGroup>
         </section>
 

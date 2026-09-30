@@ -1,0 +1,18 @@
+{
+    "messages": {
+        "validation_failed": "The given data was invalid.",
+        "consents_saved": "Consents saved",
+        "report_sent": "Report received — thanks for helping make Ritme better",
+        "too_many_reports": "You have sent several reports in the last hour. Please try again a little later.",
+        "busy": "The server is busy right now. Please try again in a moment."
+    },
+    "attributes": {
+        "consents": "consents",
+        "consents.ai_lab_analysis": "AI lab analysis",
+        "consents.assistant_profile": "health assistant using your profile",
+        "consents.anonymous_stats": "helping improve Ritme",
+        "message": "report text",
+        "screenshot": "screenshot",
+        "app_version": "app version"
+    }
+}

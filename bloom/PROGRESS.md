@@ -290,3 +290,50 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   when profile length differs from recent cycles. `Icon` union + `symptom`, `star`. `/* B-N1-06 */` CSS block.
 - **States on dev data (2026-10-01):** normal = persona 04, near = 06, during = 07 (also `X-Test-Now`).
 - **Screenshots:** `docs/qa/bloom/B-N1-06/{normal,near,during}/`, `artboards/`. **Open:** QUESTIONS #39–#41.
+
+## B-N1-08 — Edit period, cycle history, symptom pattern and phase sheet
+
+- **Backend (Go-only):** `internal/cycle/insights` — `GET /api/v1/cycle/history` (median cycle/period length,
+  variability, regularity verdict, per-cycle bars with in-range flag; last 6 complete cycles) and
+  `GET /api/v1/cycle/symptom-pattern` (heat strip per symptom over the typical cycle, groups symptoms/mood/pain, needs
+  ≥3 cycles). Built on `cycleservice.Load`, no new queries. Unit + integration (IDOR) tests, OpenAPI. Routes in
+  `routes_cycle_insights.go`. No contract golden (Go-only, same as B-N1-06).
+- **Frontend:** `features/log-period/PeriodDateEditor` redesigned (month grid, dashed suggestions, first-day tick,
+  «فقط لکه‌بینی است» → `spotting` health-log; selection model + tests; props unchanged + optional `intent`).
+  `screens/cycle` rewritten (`/cycle` with ScreenHeader, no bottom nav — `/cycle` removed from `NAV_ROOT_PATHS`), new
+  `CycleSymptomsPage` at `/cycle/symptoms`, `screens/phase-details` sheet with 5 tabs from phase-contents. Unused
+  `BmiCard`, `CycleSummaryCard`, `MyCyclesCard`, `SectionHead` deleted. `/* B-N1-08 */` CSS block.
+- **Screenshots:** `docs/qa/bloom/B-N1-08/`. **Open:** QUESTIONS #46–#49.
+
+## B-N1-12 — Privacy & security, support, about, legal
+
+- **Backend (Go-only):** migration `00012_privacy_support` (`user_consents`, `support_reports`, seeded info-section keys
+  `privacy/summary`, `terms/summary`, `about/disclaimer`, `support/email`; Laravel mirror `2026_10_01_000003_…`).
+  `GET/PUT /api/v1/profile/consents`, `POST /api/v1/support/reports` (multipart or data URL; re-encoded WebP in
+  `STORAGE_PATH/app/private/support-reports`, 0600; ≤12 Mpx, 2 concurrent encodes → 503, Redis limiter 5/h → 429,
+  bad image → 422), public `GET /api/v1/info-pages/{group}` (new `support` group). Screenshots removed on self and
+  admin account deletion (`profile.RemoveSupportFiles`). `GET /profile/export` now includes consents, support reports
+  (no file path) and notification settings — **D-33 proposed** (contract allow-list). Contract group `privacy`.
+- **Frontend:** `features/app-lock` (PBKDF2 passcode in localStorage, optional WebAuthn local check, lock on open /
+  resume after 0/1/5/15 min, pre-paint `html[data-app-locked]`, gate above routes + sheets, app not hydrated while
+  locked, lock-out + logout after 10 failures, tests for reload/back bypass), hide-preview blur,
+  `features/manage-account` PDF export (on-device) + restyled delete. Screens `privacy`, `support` (+ `ReportSheet`),
+  `about` (About + Legal) at `/profile/{privacy,support,about,legal}`; Me rows linked.
+- **Security audit:** no Critical/High; M1/M2/L1–L3 fixed; L4 (no push sender uses the notification gate yet) noted.
+- **Screenshots:** `docs/qa/bloom/B-N1-12/`. **Open:** QUESTIONS #42–#45, #50; follow-up **B-N1-12b** (admin inbox).
+
+## B-N1-09 — Cycle settings screen with reminder preferences
+
+- **Backend:** migration `00013_cycle_settings` (`notification_preferences.schedule` json, `cycle_preferences.lengths_auto`;
+  Laravel mirror `2026_10_01_000004_…`). `GET/PUT /api/v1/profile/cycle-settings` (engine medians or manual values via
+  `Service.Save`, bumps `calculation_version`). Engine honours manual lengths: `Profile.LengthsManual` (from
+  `GetEngineProfileByUserID` LEFT JOIN), `metrics.resolveManual`, cache key gets `lengths_manual` only when on — auto
+  path byte-identical (`make contract ROUTES=all` 1061 passed). TTC predictions read the flag too.
+  `internal/notifications` gained `Pill` (not in the settings groups) + `Schedule` (times, days-before).
+  New `internal/reminders.Plan` = the day's reminders through `notifications.Decide` (no real sender yet).
+  Contract group `cycle-settings` (Go-recorded).
+- **Frontend:** `screens/cycle-settings` at `/cycle/settings` (auto toggle, lengths, reminder rows with inline time /
+  days-before editor, mode section: pregnancy → `/pregnancy/setup`, others «به‌زودی»). Linked from Me hub and the home
+  header gear. `cys-*` CSS block.
+- **Screenshots:** `docs/qa/bloom/B-N1-09/`. **Open:** QUESTIONS #51–#53; `checkups` builds its own profile row and
+  ignores the manual flag (only coarse dates used).

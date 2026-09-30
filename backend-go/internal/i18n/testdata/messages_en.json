@@ -727,6 +727,29 @@
    "calendar": {
     "prevMonth": "Previous month",
     "nextMonth": "Next month"
+   },
+   "appLock": {
+    "title": "Ritme is locked",
+    "subtitle": "Enter your Ritme passcode",
+    "entered": "{count} of {total} digits entered",
+    "erase": "Delete digit",
+    "wrong": "That passcode isn't right. Try again.",
+    "blocked": "Too many wrong tries. Try again in {seconds} seconds.",
+    "biometric": "Unlock with fingerprint or face",
+    "biometricFailed": "Couldn't verify. Enter your passcode.",
+    "forgot": "Forgot your passcode?",
+    "forgotBody": "To open Ritme without the passcode you need to sign out and sign in again with the SMS code. Your data stays on the server and the lock is removed.",
+    "forgotConfirm": "Sign out and sign in again",
+    "forgotCancel": "Back",
+    "sheetTitle": "App lock passcode",
+    "createTitle": "Choose a new passcode",
+    "confirmTitle": "Enter the passcode again",
+    "verifyTitle": "Enter your current passcode",
+    "mismatch": "The two passcodes didn't match. Start again.",
+    "lengthLabel": "Passcode length",
+    "digits": "{count, plural, one {# digit} other {# digits}}",
+    "localNote": "The passcode is kept only on this phone, encrypted, and is never sent to the server.",
+    "lockedOut": "Too many wrong passcodes. To protect your data you are being signed out; sign in again with the SMS code."
    }
   },
   "cycle": {
@@ -759,6 +782,100 @@
    },
    "bmi": {
     "title": "Body mass index (BMI)"
+   },
+   "back": "Back",
+   "loading": "Loading",
+   "retry": "Try again",
+   "history": {
+    "title": "My cycles",
+    "subtitle": "{n, plural, =0 {No complete cycle yet} one {Last # cycle} other {Last # cycles}}",
+    "stats": {
+     "cycle": "Cycle length",
+     "period": "Period length",
+     "spread": "Variation",
+     "days": "days",
+     "median": "days · median",
+     "spreadValue": "±{n, number}"
+    },
+    "verdict": {
+     "regular": "Your cycles are regular",
+     "irregular": "Your cycle length varies",
+     "not_enough_data": "Too early to tell",
+     "range": "{inRange, number} of {total, number} cycles between {min, number} and {max, number} days",
+     "notEnough": "Log at least two complete cycles to see how regular they are."
+    },
+    "current": "Current cycle",
+    "toToday": "{from} – today",
+    "range": "{from} – {to}",
+    "days": "days",
+    "barLabel": "{length, plural, one {# day} other {# days}}, period {period, plural, one {# day} other {# days}}",
+    "outOfRange": "Outside your usual range",
+    "listLabel": "Recent cycles",
+    "symptomPattern": "Symptom patterns across cycles",
+    "legend": {
+     "period": "Period",
+     "cycle": "Cycle length",
+     "outOfRange": "Outside usual range"
+    },
+    "addPrevious": "Add previous cycles",
+    "empty": {
+     "title": "No cycles logged yet",
+     "body": "Log your past periods to see cycle lengths, variation and regularity here."
+    },
+    "error": "Your cycles couldn't be loaded right now."
+   },
+   "symptoms": {
+    "title": "Symptom patterns",
+    "subtitle": "{n, plural, one {Based on # cycle} other {Based on # cycles}}",
+    "tabsLabel": "Symptom categories",
+    "tabs": {
+     "symptoms": "Symptoms",
+     "mood": "Mood",
+     "pain": "Pain"
+    },
+    "typical": "On your typical cycle",
+    "scale": "low → high",
+    "day": "Day {n, number}",
+    "dayN": "{n, number}",
+    "bandsLabel": "Typical cycle: period days 1 to {period, number}, ovulation around day {ovulation, number}, {length, number} days long",
+    "stripLabel": "{name}: in {n, number} of {total, number} cycles",
+    "names": {
+     "cramps": "Cramps",
+     "breast_tenderness": "Breast tenderness",
+     "bloating": "Bloating",
+     "acne": "Acne",
+     "energetic": "Energetic",
+     "fatigue": "Fatigue",
+     "food_craving": "Food cravings",
+     "nausea": "Nausea",
+     "happy": "Happy",
+     "calm": "Calm",
+     "sensitive": "Sensitive",
+     "anxious": "Anxious",
+     "sad": "Sad",
+     "angry": "Angry",
+     "frustrated": "Frustrated",
+     "bored": "Bored",
+     "headache": "Headache",
+     "stomach_ache": "Stomach ache",
+     "pelvic_pain": "Pelvic pain",
+     "back_pain": "Back pain",
+     "breast_pain": "Breast pain",
+     "ovarian_pain": "Ovarian pain",
+     "other": "Other symptom"
+    },
+    "window": {
+     "before_period": "In {n, number} of {total, number} cycles it showed up about {days, number} days before your period.",
+     "early": "In {n, number} of {total, number} cycles it showed up in the first {days, plural, one {# day} other {# days}} of your cycle.",
+     "mid": "In {n, number} of {total, number} cycles it showed up around cycle days {from, number} to {to, number}."
+    },
+    "note": "These patterns show what happens together, not what causes what.",
+    "notReady": {
+     "title": "Not enough cycles yet",
+     "body": "Patterns need at least {needed, plural, one {# complete cycle} other {# complete cycles}}; so far {n, plural, =0 {none are} one {# is} other {# are}} logged. Keep logging your symptoms and the pattern will take shape."
+    },
+    "emptyGroup": "Nothing logged in this category yet.",
+    "error": "Symptom patterns couldn't be loaded right now."
    }
   },
   "day-tasks": {
@@ -1575,7 +1692,22 @@
     "cancel": "Cancel",
     "close": "Close",
     "error": "Couldn't save. Please try again.",
-    "open": "Edit period date"
+    "open": "Edit period date",
+    "titleStart": "Did your period start?",
+    "titleEdit": "Edit period",
+    "subtitle": "Select the days you bled",
+    "start": "Start",
+    "estimatedEnd": "Estimated end",
+    "end": "End",
+    "today": "Today · {date}",
+    "none": "—",
+    "suggestHint": "Dashed days are suggested from your usual period length ({days, plural, one {# day} other {# days}}); tap any day to add or remove it.",
+    "spotting": "Not yet, it's just spotting",
+    "spottingError": "Spotting couldn't be saved. Please try again.",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "daySuggested": "{day}, suggested",
+    "gridLabel": "Days of {month}"
    }
   },
   "me": {
@@ -1631,12 +1763,15 @@
     "exporting": "Preparing your export…",
     "exportError": "The export failed. Please try again.",
     "privacy": "Privacy & lock",
+    "privacyLockOn": "App lock on",
     "notifications": "Notifications & reminders",
     "appearance": "Appearance",
     "language": "Language & calendar",
     "help": "Help & FAQ",
     "chat": "Chat with support",
-    "about": "About Ritme & terms"
+    "about": "About Ritme & terms",
+    "cycleSettings": "Cycle settings",
+    "cycleSettingsSub": "Cycle, period length and reminders"
    },
    "logout": "Log out",
    "loggingOut": "Logging out…",
@@ -1773,6 +1908,192 @@
     "empty": {
      "title": "Nothing to set up",
      "body": "No notification categories are active for your account yet."
+    }
+   },
+   "privacy": {
+    "title": "Privacy & security",
+    "back": "Back to Me",
+    "groups": {
+     "lock": "App lock",
+     "data": "Data & AI",
+     "access": "Who can see my data",
+     "mine": "My data"
+    },
+    "lock": {
+     "title": "Lock with fingerprint or passcode",
+     "off": "When opening Ritme",
+     "on": "On · asks for the passcode when you come back",
+     "after": "Lock after",
+     "timeout": "{minutes, plural, =0 {Immediately} one {# minute} other {# minutes}}",
+     "biometric": "Unlock with fingerprint or face",
+     "biometricSub": "Instead of typing the passcode",
+     "biometricFailed": "Fingerprint or face wasn't set up. Try again.",
+     "hidePreview": "Hide preview",
+     "hidePreviewSub": "Blur the app in the recent-apps list"
+    },
+    "consents": {
+     "ai_lab_analysis": {
+      "title": "AI lab analysis",
+      "sub": "Only when you send a lab result for analysis"
+     },
+     "assistant_profile": {
+      "title": "Let the health assistant use my profile",
+      "sub": "Age, mode, medications"
+     },
+     "anonymous_stats": {
+      "title": "Help improve Ritme",
+      "sub": "Anonymous, aggregated data"
+     },
+     "granted": "Consent given · {date}",
+     "loading": "Loading consents",
+     "error": "Couldn't load your consents.",
+     "retry": "Try again",
+     "saveError": "Not saved. Try again."
+    },
+    "access": {
+     "companion": "Ritme companion",
+     "companionSub": "You haven't shared with anyone yet",
+     "doctors": "Doctors who viewed a report",
+     "doctorsSub": "You haven't created a report link yet"
+    },
+    "mine": {
+     "export": "Download all my data",
+     "exportSub": "JSON or PDF file",
+     "exporting": "Preparing…",
+     "exportJson": "JSON file",
+     "exportPdf": "PDF file",
+     "exportError": "The export failed. Try again.",
+     "pdfTitle": "My data in Ritme",
+     "pdfSubtitle": "Full account export · {date}",
+     "pdfFooter": "Ritme · page {page} of {pages}",
+     "backup": "Backup & sync",
+     "backupSub": "Your data is kept on Ritme's server",
+     "delete": "Delete all my data",
+     "deleteNote": "Everything is deleted from this phone and the server, and it can't be undone."
+    }
+   },
+   "support": {
+    "title": "Support",
+    "back": "Back to Me",
+    "search": "Search your question…",
+    "clear": "Clear",
+    "chat": "Chat with support",
+    "chatSoon": "Coming soon",
+    "report": "Report a problem",
+    "reportSub": "With a screenshot",
+    "faq": "Frequently asked",
+    "noResults": "No question matches “{query}”.",
+    "empty": "No questions yet.",
+    "loading": "Loading questions",
+    "error": "Couldn't load the questions.",
+    "retry": "Try again",
+    "reportSheet": {
+     "title": "Report a problem",
+     "label": "What happened?",
+     "placeholder": "Describe the problem in a few sentences — which screen, and what you did before it happened.",
+     "hint": "At least 10 characters. Please don't include health details here.",
+     "attach": "Add a screenshot",
+     "replace": "Change screenshot",
+     "remove": "Remove screenshot",
+     "tooLarge": "The image must be smaller than 5 MB.",
+     "send": "Send report",
+     "sent": "Report received",
+     "sentBody": "Thanks for helping make Ritme better. If needed, support will get back to you.",
+     "done": "OK",
+     "error": "Not sent. Try again."
+    }
+   },
+   "about": {
+    "title": "About Ritme",
+    "back": "Back to Me",
+    "terms": "Terms of use",
+    "privacy": "Privacy policy",
+    "version": "Version {version} · © {year} Ritme",
+    "loading": "Loading",
+    "error": "Couldn't load this section.",
+    "retry": "Try again"
+   },
+   "legal": {
+    "title": "Terms & privacy",
+    "back": "Back to About Ritme",
+    "updated": "Updated: {date}",
+    "share": "Share",
+    "tabs": {
+     "label": "Section",
+     "terms": "Terms of use",
+     "privacy": "Privacy"
+    },
+    "toc": "Contents",
+    "loading": "Loading",
+    "error": "Couldn't load the text.",
+    "retry": "Try again",
+    "empty": "No text has been added for this section yet."
+   },
+   "cycleSettings": {
+    "title": "Cycle settings",
+    "subtitle": "Predictions and reminders",
+    "back": "Back",
+    "loading": "Loading cycle settings",
+    "yourCycle": "Your cycle",
+    "cycleLength": "Cycle length",
+    "periodLength": "Period length",
+    "days": "days",
+    "autoCaption": "Automatic from your data",
+    "manualCaption": "Set manually",
+    "auto": {
+     "title": "Automatic calculation",
+     "basedOn": "From your last {count} cycles",
+     "noData": "Not enough data yet — logging periods makes it more accurate",
+     "manual": "You set the lengths yourself"
+    },
+    "decrease": "Decrease {what}",
+    "increase": "Increase {what}",
+    "reminders": {
+     "title": "Reminders",
+     "edit": "Change time",
+     "time": "Time",
+     "daysBefore": "Days before",
+     "done": "Done",
+     "empty": "There are no reminders to set.",
+     "items": {
+      "before_period": {
+       "title": "Before your period",
+       "sub": "{days} days before · {time}"
+      },
+      "pms": {
+       "title": "PMS starts",
+       "sub": "Cycle day {day}",
+       "subUnknown": "3 days before your period"
+      },
+      "fertile_window": {
+       "title": "Fertile window",
+       "sub": "First day of the window"
+      },
+      "daily_log": {
+       "title": "Daily log reminder",
+       "sub": "Every night at {time}"
+      },
+      "pill": {
+       "title": "Birth control pill",
+       "sub": "Every day at {time}"
+      }
+     }
+    },
+    "modes": {
+     "title": "Ritme mode",
+     "cycle": "Cycle tracking",
+     "ttc": "Trying to conceive",
+     "pregnancy": "Pregnancy",
+     "active": "Active",
+     "switch": "Switch mode",
+     "soon": "Soon"
+    },
+    "disclaimer": "Predictions are estimates and are not a method of birth control.",
+    "saveError": "Couldn't save — check your connection and try again.",
+    "error": {
+     "title": "Couldn't load cycle settings",
+     "body": "Check your connection and try again.",
+     "retry": "Try again"
     }
    }
   },
@@ -1949,7 +2270,36 @@
     "exercise": "Exercise",
     "skin_care": "Skin care",
     "sleep": "Sleep"
-   }
+   },
+   "tabsLabel": "Topics",
+   "tabs": {
+    "body": "Body",
+    "mood": "Mood",
+    "nutrition": "Nutrition",
+    "movement": "Movement",
+    "relationship": "Intimacy"
+   },
+   "items": {
+    "hormonal_changes": "What's happening",
+    "symptom_prediction": "What you might feel",
+    "vaginal_discharge": "Discharge",
+    "sleep": "Sleep",
+    "skin_care": "Caring for yourself",
+    "nutrition": "What helps",
+    "exercise": "Movement for these days",
+    "sex_tips": "Intimacy these days",
+    "fertility": "Chance of pregnancy"
+   },
+   "phases": {
+    "menstrual": "Period phase",
+    "follicular": "Follicular phase",
+    "fertile": "Fertile window",
+    "luteal": "Luteal phase",
+    "period_expected": "Period due"
+   },
+   "dayRange": "Days {from, number} to {to, number} of your cycle",
+   "disclaimer": "General information only. If your symptoms are severe or unusual, talk to a doctor.",
+   "gotIt": "Got it"
   },
   "pregnancy": {
    "title": "Pregnancy",

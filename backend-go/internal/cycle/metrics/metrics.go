@@ -6,7 +6,8 @@
 // consecutive confirmed starts, valid in 21–45 (outliers only raise flags). A period duration is
 // end−start+1 of a closed period, valid in 2–10. The calculated value is the median of the last ≤3
 // valid records (even count: PHP round() of the mean, half away from zero); the effective value is
-// calculated → profile (0/NULL = missing, floored at 1) → default 28/5.
+// calculated → profile (0/NULL = missing, floored at 1) → default 28/5; with Profile.LengthsManual (B-N1-09)
+// the profile comes first.
 //
 // # Test mapping (backend/tests/Unit/CycleMetricsCalculatorTest.php → TestCycleMetricsCalculator)
 //
@@ -157,8 +158,12 @@ func Calculate(histories []model.History, profile *model.Profile) Metrics {
 		profileDuration = &v
 	}
 
-	effCycle, cycleSource := resolveEffective(calculatedCycle, profileCycle, DefaultCycleLength)
-	effDuration, durationSource := resolveEffective(calculatedDuration, profileDuration, DefaultPeriodDuration)
+	resolve := resolveEffective
+	if profile != nil && profile.LengthsManual {
+		resolve = resolveManual // B-N1-09: the user set the lengths herself
+	}
+	effCycle, cycleSource := resolve(calculatedCycle, profileCycle, DefaultCycleLength)
+	effDuration, durationSource := resolve(calculatedDuration, profileDuration, DefaultPeriodDuration)
 
 	return Metrics{
 		ProfileCycleLength:        profileCycle,
@@ -223,6 +228,14 @@ func resolveEffective(calculated, profile *int, def int) (int, enums.EffectiveSo
 		return max(*profile, 1), enums.EffectiveSourceProfile
 	}
 	return def, enums.EffectiveSourceDefault
+}
+
+// resolveManual is the order when «خودکار از داده‌ها» is off (B-N1-09): profile → calculated → default.
+func resolveManual(calculated, profile *int, def int) (int, enums.EffectiveSource) {
+	if profile != nil {
+		return max(*profile, 1), enums.EffectiveSourceProfile
+	}
+	return resolveEffective(calculated, nil, def)
 }
 
 // median of values (nil for none); an even count averages the middle pair with PHP round().

@@ -45,6 +45,9 @@ type Profile struct {
 	Birthday civildate.Date
 	// Goal is the `goal` column (UserGoal value, "" = NULL).
 	Goal string
+	// LengthsManual is «خودکار از داده‌ها» switched off (B-N1-09, cycle_preferences.lengths_auto = 0): the
+	// profile's cycle / period length win over the medians of the history.
+	LengthsManual bool
 }
 
 // Int returns a pointer to v (for literals in tables and tests).

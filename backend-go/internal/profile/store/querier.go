@@ -11,6 +11,10 @@ import (
 )
 
 type Querier interface {
+	// Per-user flood guard: reports created since `since`.
+	CountRecentSupportReports(ctx context.Context, arg CountRecentSupportReportsParams) (int64, error)
+	// Support reports (B-N1-12, goose 00012): «گزارش مشکل» from the Support screen, Go only.
+	CreateSupportReport(ctx context.Context, arg CreateSupportReportParams) (int64, error)
 	// $user->delete(); every user-owned table cascades (FK ON DELETE CASCADE).
 	DeleteUser(ctx context.Context, id uint64) (int64, error)
 	// DELETE /account (D-25): the user's access tokens (no FK to users). A deleted token id still
@@ -29,8 +33,19 @@ type Querier interface {
 	// $user->reminders()->get() has no ORDER BY; MariaDB answers in the
 	// (user_id, type, is_active) index order (the contract golden locks it).
 	ExportReminders(ctx context.Context, userID uint64) ([]Reminder, error)
+	// B-N1-12: the user's support reports — no file path, only whether a screenshot was attached.
+	ExportSupportReports(ctx context.Context, userID uint64) ([]ExportSupportReportsRow, error)
+	// B-N1-12: the consents with their timestamps.
+	ExportUserConsents(ctx context.Context, userID uint64) ([]ExportUserConsentsRow, error)
+	// Cycle settings (B-N1-09, goose 00013): GET/PUT /profile/cycle-settings, Go only. The reminder switches and
+	// times live on the B-N1-11 `notification_preferences` row (categories + schedule); the «خودکار از داده‌ها»
+	// flag in `cycle_preferences`. Every statement is scoped by user_id.
+	GetCyclePreferences(ctx context.Context, userID uint64) (CyclePreference, error)
 	// MessageContentRepository::payload(): a live (active + approved) row's raw JSON payload.
 	GetLiveMessagePayload(ctx context.Context, arg GetLiveMessagePayloadParams) (json.RawMessage, error)
+	// Notification settings (B-N1-11, goose 00011): one row per user, Go only. Read by
+	// GET /profile/notification-settings and by every push sender through internal/notifications.
+	GetNotificationPreferences(ctx context.Context, userID uint64) (NotificationPreference, error)
 	// $profile->fresh().
 	GetProfileByID(ctx context.Context, id uint64) (UserProfile, error)
 	// $user->profile (hasOne: the first row in index order).
@@ -38,6 +53,8 @@ type Querier interface {
 	// ProfileController (backend/app/Http/Controllers/Api/V1/ProfileController.php) and UserProfile.
 	// $user->fresh().
 	GetUser(ctx context.Context, id uint64) (User, error)
+	// A grant keeps revoked_at (the last withdrawal) and stamps granted_at; a repeated grant leaves the row untouched.
+	GrantUserConsent(ctx context.Context, arg GrantUserConsentParams) error
 	InsertOnboardingCycleHistory(ctx context.Context, arg InsertOnboardingCycleHistoryParams) error
 	// new UserProfile(['user_id' => …])->save(): the row starts with the DB defaults; the
 	// request's attributes follow in UpdateProfileAttributes inside the same transaction.
@@ -45,8 +62,16 @@ type Querier interface {
 	// ProfileController::syncOnboardingPeriodLog and export.
 	// CycleHistory::where('user_id', …)->get() / ->orderBy('period_start_date') (unique-index order).
 	ListCycleHistories(ctx context.Context, userID uint64) ([]CycleHistory, error)
+	// Consents (B-N1-12, goose 00012): one row per (user, consent) once answered, Go only.
+	// Read and written by GET/PUT /profile/consents. Always scoped by user_id.
+	ListUserConsents(ctx context.Context, userID uint64) ([]ListUserConsentsRow, error)
+	// Screenshot files to remove with the account (the rows go by ON DELETE CASCADE).
+	ListUserSupportScreenshots(ctx context.Context, userID uint64) ([]sql.NullString, error)
 	// UserProfile::markRecalculated(): one atomic increment, so concurrent writes never lose a bump.
 	MarkProfileRecalculated(ctx context.Context, arg MarkProfileRecalculatedParams) error
+	// A withdrawal keeps granted_at (the last grant) and stamps revoked_at; revoking what was never granted stores
+	// an explicit «no» without a revoked_at.
+	RevokeUserConsent(ctx context.Context, arg RevokeUserConsentParams) error
 	UpdateOnboardingCycleHistory(ctx context.Context, arg UpdateOnboardingCycleHistoryParams) error
 	// $profile->fill($data)->save(): only the dirty attributes are written (set_* flags). The
 	// values are bound as the raw request strings, as PDO binds them, so MariaDB does the same
@@ -54,6 +79,11 @@ type Querier interface {
 	UpdateProfileAttributes(ctx context.Context, arg UpdateProfileAttributesParams) error
 	// $user->update(['name' => …]) when the name is dirty.
 	UpdateUserName(ctx context.Context, arg UpdateUserNameParams) error
+	UpsertCyclePreferences(ctx context.Context, arg UpsertCyclePreferencesParams) error
+	UpsertNotificationPreferences(ctx context.Context, arg UpsertNotificationPreferencesParams) error
+	// Writes the category switches and the schedule; on first save the other columns take the loaded values
+	// (the defaults), and an existing row keeps its quiet hours / neutral copy.
+	UpsertReminderPreferences(ctx context.Context, arg UpsertReminderPreferencesParams) error
 }
 
 var _ Querier = (*Queries)(nil)

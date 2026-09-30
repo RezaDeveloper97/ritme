@@ -51,12 +51,15 @@
     "exporting": "Preparing your export…",
     "exportError": "The export failed. Please try again.",
     "privacy": "Privacy & lock",
+    "privacyLockOn": "App lock on",
     "notifications": "Notifications & reminders",
     "appearance": "Appearance",
     "language": "Language & calendar",
     "help": "Help & FAQ",
     "chat": "Chat with support",
-    "about": "About Ritme & terms"
+    "about": "About Ritme & terms",
+    "cycleSettings": "Cycle settings",
+    "cycleSettingsSub": "Cycle, period length and reminders"
   },
   "logout": "Log out",
   "loggingOut": "Logging out…",
@@ -113,5 +116,272 @@
     "calendar": "Calendar",
     "calendarNote": "The calendar follows the language: Persian uses the Solar Hijri calendar, English the Gregorian one. Dates are always stored correctly.",
     "today": "Today: {date}"
+  },
+  "notifSettings": {
+    "title": "Notifications & reminders",
+    "back": "Back",
+    "loading": "Loading notification settings",
+    "groups": {
+      "cycle": "Cycle",
+      "health": "Health",
+      "other": "Other",
+      "quiet": "Quiet hours"
+    },
+    "items": {
+      "before_period": {
+        "title": "Before your period",
+        "sub": "2 days before · 9:00"
+      },
+      "pms": {
+        "title": "PMS starts",
+        "sub": "Cycle day 24"
+      },
+      "fertile_window": {
+        "title": "Fertile window",
+        "sub": "First day of the window"
+      },
+      "daily_log": {
+        "title": "Daily log reminder",
+        "sub": "Every night at 22:00"
+      },
+      "medications": {
+        "title": "Medications & supplements",
+        "sub": "On each medication's schedule"
+      },
+      "appointments": {
+        "title": "Doctor appointments",
+        "sub": "1 day before"
+      },
+      "checkups": {
+        "title": "Routine checkups",
+        "sub": "1 month before due"
+      },
+      "vitals": {
+        "title": "Blood pressure & sugar checks",
+        "sub": "On your weekly schedule"
+      },
+      "learning": {
+        "title": "Learning & courses",
+        "sub": "New access, next lesson"
+      },
+      "companion": {
+        "title": "Ritme companion",
+        "sub": "When your partner shares something"
+      },
+      "articles": {
+        "title": "Tips & articles",
+        "sub": "At most once a week"
+      }
+    },
+    "quiet": {
+      "title": "Don't send notifications",
+      "range": "{start} to {end}",
+      "off": "Off — notifications arrive at any hour",
+      "edit": "Change quiet hours",
+      "from": "From",
+      "to": "To",
+      "done": "Done"
+    },
+    "neutral": {
+      "title": "Neutral text",
+      "on": "Notification text is neutral — e.g. “Ritme reminder” instead of “Your period is close” — so nothing shows on the lock screen.",
+      "off": "Full reminder text shows on the lock screen. Turn on “Neutral text” to keep it private."
+    },
+    "saveError": "Couldn't save. Check your connection and try again.",
+    "error": {
+      "title": "Couldn't load notification settings",
+      "body": "Check your internet connection and try again.",
+      "retry": "Try again"
+    },
+    "empty": {
+      "title": "Nothing to set up",
+      "body": "No notification categories are active for your account yet."
+    }
+  },
+  "privacy": {
+    "title": "Privacy & security",
+    "back": "Back to Me",
+    "groups": {
+      "lock": "App lock",
+      "data": "Data & AI",
+      "access": "Who can see my data",
+      "mine": "My data"
+    },
+    "lock": {
+      "title": "Lock with fingerprint or passcode",
+      "off": "When opening Ritme",
+      "on": "On · asks for the passcode when you come back",
+      "after": "Lock after",
+      "timeout": "{minutes, plural, =0 {Immediately} one {# minute} other {# minutes}}",
+      "biometric": "Unlock with fingerprint or face",
+      "biometricSub": "Instead of typing the passcode",
+      "biometricFailed": "Fingerprint or face wasn't set up. Try again.",
+      "hidePreview": "Hide preview",
+      "hidePreviewSub": "Blur the app in the recent-apps list"
+    },
+    "consents": {
+      "ai_lab_analysis": {
+        "title": "AI lab analysis",
+        "sub": "Only when you send a lab result for analysis"
+      },
+      "assistant_profile": {
+        "title": "Let the health assistant use my profile",
+        "sub": "Age, mode, medications"
+      },
+      "anonymous_stats": {
+        "title": "Help improve Ritme",
+        "sub": "Anonymous, aggregated data"
+      },
+      "granted": "Consent given · {date}",
+      "loading": "Loading consents",
+      "error": "Couldn't load your consents.",
+      "retry": "Try again",
+      "saveError": "Not saved. Try again."
+    },
+    "access": {
+      "companion": "Ritme companion",
+      "companionSub": "You haven't shared with anyone yet",
+      "doctors": "Doctors who viewed a report",
+      "doctorsSub": "You haven't created a report link yet"
+    },
+    "mine": {
+      "export": "Download all my data",
+      "exportSub": "JSON or PDF file",
+      "exporting": "Preparing…",
+      "exportJson": "JSON file",
+      "exportPdf": "PDF file",
+      "exportError": "The export failed. Try again.",
+      "pdfTitle": "My data in Ritme",
+      "pdfSubtitle": "Full account export · {date}",
+      "pdfFooter": "Ritme · page {page} of {pages}",
+      "backup": "Backup & sync",
+      "backupSub": "Your data is kept on Ritme's server",
+      "delete": "Delete all my data",
+      "deleteNote": "Everything is deleted from this phone and the server, and it can't be undone."
+    }
+  },
+  "support": {
+    "title": "Support",
+    "back": "Back to Me",
+    "search": "Search your question…",
+    "clear": "Clear",
+    "chat": "Chat with support",
+    "chatSoon": "Coming soon",
+    "report": "Report a problem",
+    "reportSub": "With a screenshot",
+    "faq": "Frequently asked",
+    "noResults": "No question matches “{query}”.",
+    "empty": "No questions yet.",
+    "loading": "Loading questions",
+    "error": "Couldn't load the questions.",
+    "retry": "Try again",
+    "reportSheet": {
+      "title": "Report a problem",
+      "label": "What happened?",
+      "placeholder": "Describe the problem in a few sentences — which screen, and what you did before it happened.",
+      "hint": "At least 10 characters. Please don't include health details here.",
+      "attach": "Add a screenshot",
+      "replace": "Change screenshot",
+      "remove": "Remove screenshot",
+      "tooLarge": "The image must be smaller than 5 MB.",
+      "send": "Send report",
+      "sent": "Report received",
+      "sentBody": "Thanks for helping make Ritme better. If needed, support will get back to you.",
+      "done": "OK",
+      "error": "Not sent. Try again."
+    }
+  },
+  "about": {
+    "title": "About Ritme",
+    "back": "Back to Me",
+    "terms": "Terms of use",
+    "privacy": "Privacy policy",
+    "version": "Version {version} · © {year} Ritme",
+    "loading": "Loading",
+    "error": "Couldn't load this section.",
+    "retry": "Try again"
+  },
+  "legal": {
+    "title": "Terms & privacy",
+    "back": "Back to About Ritme",
+    "updated": "Updated: {date}",
+    "share": "Share",
+    "tabs": {
+      "label": "Section",
+      "terms": "Terms of use",
+      "privacy": "Privacy"
+    },
+    "toc": "Contents",
+    "loading": "Loading",
+    "error": "Couldn't load the text.",
+    "retry": "Try again",
+    "empty": "No text has been added for this section yet."
+  },
+  "cycleSettings": {
+    "title": "Cycle settings",
+    "subtitle": "Predictions and reminders",
+    "back": "Back",
+    "loading": "Loading cycle settings",
+    "yourCycle": "Your cycle",
+    "cycleLength": "Cycle length",
+    "periodLength": "Period length",
+    "days": "days",
+    "autoCaption": "Automatic from your data",
+    "manualCaption": "Set manually",
+    "auto": {
+      "title": "Automatic calculation",
+      "basedOn": "From your last {count} cycles",
+      "noData": "Not enough data yet — logging periods makes it more accurate",
+      "manual": "You set the lengths yourself"
+    },
+    "decrease": "Decrease {what}",
+    "increase": "Increase {what}",
+    "reminders": {
+      "title": "Reminders",
+      "edit": "Change time",
+      "time": "Time",
+      "daysBefore": "Days before",
+      "done": "Done",
+      "empty": "There are no reminders to set.",
+      "items": {
+        "before_period": {
+          "title": "Before your period",
+          "sub": "{days} days before · {time}"
+        },
+        "pms": {
+          "title": "PMS starts",
+          "sub": "Cycle day {day}",
+          "subUnknown": "3 days before your period"
+        },
+        "fertile_window": {
+          "title": "Fertile window",
+          "sub": "First day of the window"
+        },
+        "daily_log": {
+          "title": "Daily log reminder",
+          "sub": "Every night at {time}"
+        },
+        "pill": {
+          "title": "Birth control pill",
+          "sub": "Every day at {time}"
+        }
+      }
+    },
+    "modes": {
+      "title": "Ritme mode",
+      "cycle": "Cycle tracking",
+      "ttc": "Trying to conceive",
+      "pregnancy": "Pregnancy",
+      "active": "Active",
+      "switch": "Switch mode",
+      "soon": "Soon"
+    },
+    "disclaimer": "Predictions are estimates and are not a method of birth control.",
+    "saveError": "Couldn't save — check your connection and try again.",
+    "error": {
+      "title": "Couldn't load cycle settings",
+      "body": "Check your connection and try again.",
+      "retry": "Try again"
+    }
   }
 }

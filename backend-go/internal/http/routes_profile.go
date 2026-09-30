@@ -21,7 +21,9 @@ func init() {
 			DB:       d.DB,
 			Telegram: notify.NewTelegram(d.Config.Telegram, &http.Client{}, d.Logger),
 			Debug:    d.Config.App.Debug,
-			Logger:   d.Logger,
+			// B-N1-12: account deletion also removes support-report screenshots.
+			StoragePath: d.Config.StoragePath,
+			Logger:      d.Logger,
 		})
 
 		r.Get("/api/v1/profile", locale, guard, h.Show)

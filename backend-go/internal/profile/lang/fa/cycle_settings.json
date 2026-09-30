@@ -1,0 +1,28 @@
+{
+    "messages": {
+        "validation_failed": "اطلاعات واردشده نامعتبر است",
+        "saved": "تنظیمات سیکل ذخیره شد"
+    },
+    "attributes": {
+        "lengths_auto": "خودکار از داده‌ها",
+        "cycle_length": "طول سیکل",
+        "period_length": "طول پریود",
+        "reminders": "یادآورها",
+        "reminders.before_period": "قبل از پریود",
+        "reminders.before_period.enabled": "قبل از پریود",
+        "reminders.before_period.time": "ساعت یادآور قبل از پریود",
+        "reminders.before_period.days_before": "چند روز قبل از پریود",
+        "reminders.pms": "شروع PMS",
+        "reminders.pms.enabled": "شروع PMS",
+        "reminders.pms.time": "ساعت یادآور PMS",
+        "reminders.fertile_window": "پنجره باروری",
+        "reminders.fertile_window.enabled": "پنجره باروری",
+        "reminders.fertile_window.time": "ساعت یادآور پنجره باروری",
+        "reminders.daily_log": "یادآور ثبت روزانه",
+        "reminders.daily_log.enabled": "یادآور ثبت روزانه",
+        "reminders.daily_log.time": "ساعت یادآور ثبت روزانه",
+        "reminders.pill": "قرص پیشگیری",
+        "reminders.pill.enabled": "قرص پیشگیری",
+        "reminders.pill.time": "ساعت یادآور قرص"
+    }
+}

@@ -60,6 +60,8 @@ type Snapshot struct {
 	Tips *recommendation.Repository
 	// Today is the Tehran calendar day of the request clock.
 	Today civildate.Date
+	// LengthsManual is «خودکار از داده‌ها» off (B-N1-09).
+	LengthsManual bool
 
 	engineOnce sync.Once
 	engine     *legacy.Engine
@@ -72,10 +74,11 @@ func (s *Service) Load(ctx context.Context, userID uint64, from, to, today civil
 		Tips: recommendation.New(RecommendationSource{Q: s.q}),
 		Logs: map[civildate.Date]*legacy.DailyLog{},
 	}
-	p, err := s.q.GetProfileByUserID(ctx, userID)
+	p, err := s.q.GetEngineProfileByUserID(ctx, userID) // profile + «خودکار از داده‌ها», one query
 	switch {
 	case err == nil:
-		sn.Profile = &p
+		sn.Profile = &p.UserProfile
+		sn.LengthsManual = !p.LengthsAuto
 	case !errors.Is(err, sql.ErrNoRows):
 		return nil, fmt.Errorf("cycle: load profile: %w", err)
 	}
@@ -96,7 +99,13 @@ func (s *Service) Load(ctx context.Context, userID uint64, from, to, today civil
 }
 
 // EngineProfile is the profile as the engines read it (nil = no profile).
-func (sn *Snapshot) EngineProfile() *model.Profile { return ProfileFromRow(sn.Profile) }
+func (sn *Snapshot) EngineProfile() *model.Profile {
+	p := ProfileFromRow(sn.Profile)
+	if p != nil {
+		p.LengthsManual = sn.LengthsManual
+	}
+	return p
+}
 
 // Engine is the legacy HealthDataEngine over the snapshot (built once).
 func (sn *Snapshot) Engine() *legacy.Engine {
@@ -174,13 +183,17 @@ func (sn *Snapshot) cacheKey(ctx context.Context, locale, scope string, withCont
 		}
 		sig = &s
 	}
+	inputs := []any{sn.Profile, sn.HistoryRows, sn.From, sn.To, sn.LogRows, sig}
+	if sn.LengthsManual { // only then, so the automatic (default) key is unchanged
+		inputs = append(inputs, "lengths_manual")
+	}
 	return cache.Key{
 		UserID:  sn.UserID,
 		Version: sn.Version(),
 		Locale:  locale,
 		Today:   sn.Today,
 		Scope:   scope,
-		Inputs:  []any{sn.Profile, sn.HistoryRows, sn.From, sn.To, sn.LogRows, sig},
+		Inputs:  inputs,
 	}, nil
 }
 

@@ -321,6 +321,25 @@ INSERT INTO `cycle_histories` VALUES
 (101804,1018,'2026-09-17','2026-09-21',NULL,5,1,0,'user_logged',NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00');
 /*!40000 ALTER TABLE `cycle_histories` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `cycle_preferences`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cycle_preferences` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `lengths_auto` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `cycle_preferences_user_id_unique` (`user_id`),
+  CONSTRAINT `cycle_preferences_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `cycle_preferences` WRITE;
+/*!40000 ALTER TABLE `cycle_preferences` DISABLE KEYS */;
+/*!40000 ALTER TABLE `cycle_preferences` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `daily_health_logs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -853,6 +872,30 @@ INSERT INTO `migrations` VALUES
 (54,'2026_09_19_000001_drop_redundant_cycle_histories_user_start_index',1),
 (55,'2026_09_19_000002_drop_cycle_calculations_table',1);
 /*!40000 ALTER TABLE `migrations` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `notification_preferences`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `notification_preferences` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `categories` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`categories`)),
+  `schedule` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`schedule`)),
+  `quiet_hours_enabled` tinyint(1) NOT NULL DEFAULT 1,
+  `quiet_start` time NOT NULL DEFAULT '23:00:00',
+  `quiet_end` time NOT NULL DEFAULT '08:00:00',
+  `neutral_copy` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `notification_preferences_user_id_unique` (`user_id`),
+  CONSTRAINT `notification_preferences_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `notification_preferences` WRITE;
+/*!40000 ALTER TABLE `notification_preferences` DISABLE KEYS */;
+/*!40000 ALTER TABLE `notification_preferences` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `oauth_access_tokens`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -1481,6 +1524,30 @@ LOCK TABLES `sessions` WRITE;
 /*!40000 ALTER TABLE `sessions` DISABLE KEYS */;
 /*!40000 ALTER TABLE `sessions` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `support_reports`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `support_reports` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `message` text NOT NULL,
+  `screenshot_path` varchar(255) DEFAULT NULL,
+  `app_version` varchar(32) DEFAULT NULL,
+  `user_agent` varchar(255) DEFAULT NULL,
+  `status` varchar(16) NOT NULL DEFAULT 'open',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `support_reports_user_id_foreign` (`user_id`),
+  KEY `support_reports_status_created_at_index` (`status`,`created_at`),
+  CONSTRAINT `support_reports_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `support_reports` WRITE;
+/*!40000 ALTER TABLE `support_reports` DISABLE KEYS */;
+/*!40000 ALTER TABLE `support_reports` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `task_templates`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -1538,6 +1605,28 @@ INSERT INTO `user_challenge_completions` VALUES
 (101801,1018,1,'2026-09-22','2026-09-22 20:00:00','2026-09-23 09:00:00','2026-09-23 09:00:00'),
 (101802,1018,2,'2026-09-21','2026-09-21 20:00:00','2026-09-23 09:00:00','2026-09-23 09:00:00');
 /*!40000 ALTER TABLE `user_challenge_completions` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `user_consents`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `user_consents` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `consent` varchar(64) NOT NULL,
+  `granted` tinyint(1) NOT NULL DEFAULT 0,
+  `granted_at` timestamp NULL DEFAULT NULL,
+  `revoked_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `user_consents_user_id_consent_unique` (`user_id`,`consent`),
+  CONSTRAINT `user_consents_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `user_consents` WRITE;
+/*!40000 ALTER TABLE `user_consents` DISABLE KEYS */;
+/*!40000 ALTER TABLE `user_consents` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `user_notifications`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

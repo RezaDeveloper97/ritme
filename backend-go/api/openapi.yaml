@@ -2251,6 +2251,174 @@ paths:
                 required: [success, message]
                 properties: {success: {type: boolean}, message: {type: string}}
               example: {success: false, message: Invalid date format. Use YYYY-MM-DD.}
+  /api/v1/cycle/history:
+    get:
+      tags: [Cycle]
+      summary: Cycle history — median length, period length, spread, regularity verdict and per-cycle bars
+      description: |
+        Go only (B-N1-08, Night & Bloom «سیکل‌های من»). Reads the user's confirmed, non-estimated periods that started
+        on or before today. `cycles` is the current cycle first (`is_current`, `end` null, `length` = days so far,
+        today inclusive) and then the newest ≤ 6 completed cycles, newest first (`end` = the day before the next
+        start). `period_days` = end − start + 1 of a closed period; an open one counts the days so far, capped at the
+        effective period length (`period_ongoing: true`). `cycle_length.median` = median of the window's valid
+        (21–45 d) lengths; `spread_days` = max(2, round(median absolute deviation)); `range` = median ± spread;
+        `in_range` marks a completed cycle inside that band (null without a band, always null for the current one).
+        `regularity.status` = `regular` when at most one cycle falls outside the band and the spread is ≤ 4 days,
+        `irregular` otherwise, `not_enough_data` with fewer than two valid lengths. `predicted` = the effective cycle
+        length the predictions use. Descriptive only, never diagnostic.
+      operationId: getCycleHistory
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The history
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [date, based_on_cycles, cycle_length, period_length, regularity, cycles]
+                    properties:
+                      date: {$ref: "#/components/schemas/Date"}
+                      based_on_cycles: {type: integer, minimum: 0}
+                      cycle_length:
+                        type: object
+                        required: [median, spread_days, range, predicted]
+                        properties:
+                          median: {type: [integer, "null"]}
+                          spread_days: {type: [integer, "null"]}
+                          range:
+                            oneOf:
+                              - {type: "null"}
+                              - type: object
+                                required: [min, max]
+                                properties: {min: {type: integer}, max: {type: integer}}
+                          predicted: {type: integer}
+                      period_length:
+                        type: object
+                        required: [median]
+                        properties: {median: {type: [integer, "null"]}}
+                      regularity:
+                        type: object
+                        required: [status, in_range, total]
+                        properties:
+                          status: {type: string, enum: [regular, irregular, not_enough_data]}
+                          in_range: {type: integer, minimum: 0}
+                          total: {type: integer, minimum: 0}
+                      cycles:
+                        type: array
+                        items:
+                          type: object
+                          required: [start, end, period_end, period_days, period_ongoing, length, is_current, in_range]
+                          properties:
+                            start: {$ref: "#/components/schemas/Date"}
+                            end:
+                              oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]
+                            period_end:
+                              oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]
+                            period_days: {type: integer, minimum: 0}
+                            period_ongoing: {type: boolean}
+                            length: {type: integer, minimum: 1}
+                            is_current: {type: boolean}
+                            in_range: {type: [boolean, "null"]}
+              example:
+                success: true
+                data:
+                  date: "2026-10-01"
+                  based_on_cycles: 2
+                  cycle_length: {median: 29, spread_days: 2, range: {min: 27, max: 31}, predicted: 29}
+                  period_length: {median: 5}
+                  regularity: {status: regular, in_range: 2, total: 2}
+                  cycles:
+                    - {start: "2026-09-10", end: null, period_end: "2026-09-14", period_days: 5, period_ongoing: false, length: 22, is_current: true, in_range: null}
+                    - {start: "2026-08-12", end: "2026-09-09", period_end: "2026-08-16", period_days: 5, period_ongoing: false, length: 29, is_current: false, in_range: true}
+                    - {start: "2026-07-14", end: "2026-08-11", period_end: "2026-07-18", period_days: 5, period_ongoing: false, length: 29, is_current: false, in_range: true}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/cycle/symptom-pattern:
+    get:
+      tags: [Cycle]
+      summary: Per-symptom pattern over the typical cycle (heat strips)
+      description: |
+        Go only (B-N1-08, Night & Bloom «الگوی علائم»). The newest ≤ 6 completed cycles with a valid length
+        (21–45 d) are mapped onto a typical cycle of `typical.cycle_length` days (their median; the effective length
+        until then): the last 14 days line up with the next period, the earlier part stretches proportionally. Each
+        `strip` has one value per typical day — the mean logged weight across the cycles, 0–1 (pain scale low/medium/high
+        = ⅓/⅔/1, a yes/no symptom or a mood = 1). `cycles` counts the cycles in which the symptom was logged at all;
+        items are sorted by it (catalogue order for ties) and only logged symptoms appear. `window` is the run around
+        the strip's peak that stays ≥ half of it (1-based days); `relation` `before_period` (it reaches the end;
+        `days` = days before the period it starts), `early` (it starts on day 1–2; `days` = its length) or `mid`.
+        Until `cycles_counted` reaches `cycles_needed` (3) `ready` is false and every group is empty. Groups and
+        symptom keys are stable codes the clients label. The patterns show co-occurrence, not cause.
+      operationId: getCycleSymptomPattern
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The pattern
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [ready, cycles_counted, cycles_needed, typical, groups]
+                    properties:
+                      ready: {type: boolean}
+                      cycles_counted: {type: integer, minimum: 0}
+                      cycles_needed: {type: integer}
+                      typical:
+                        type: object
+                        required: [cycle_length, period_length, ovulation_day]
+                        properties:
+                          cycle_length: {type: integer}
+                          period_length: {type: integer}
+                          ovulation_day: {type: integer}
+                      groups:
+                        type: array
+                        items:
+                          type: object
+                          required: [key, items]
+                          properties:
+                            key: {type: string, enum: [symptoms, mood, pain]}
+                            items:
+                              type: array
+                              items:
+                                type: object
+                                required: [key, cycles, strip, window]
+                                properties:
+                                  key: {type: string}
+                                  cycles: {type: integer, minimum: 1}
+                                  strip: {type: array, items: {type: number, minimum: 0, maximum: 1}}
+                                  window:
+                                    oneOf:
+                                      - {type: "null"}
+                                      - type: object
+                                        required: [start_day, end_day, relation, days]
+                                        properties:
+                                          start_day: {type: integer}
+                                          end_day: {type: integer}
+                                          relation: {type: string, enum: [before_period, early, mid]}
+                                          days: {type: integer}
+              example:
+                success: true
+                data:
+                  ready: false
+                  cycles_counted: 2
+                  cycles_needed: 3
+                  typical: {cycle_length: 28, period_length: 5, ovulation_day: 14}
+                  groups: [{key: symptoms, items: []}, {key: mood, items: []}, {key: pain, items: []}]
+        '401': {$ref: "#/components/responses/Unauthenticated"}
   /api/v1/cycle/month/{year}/{month}:
     get:
       tags: [Cycle]
@@ -4141,7 +4309,7 @@ paths:
           in: path
           description: Which screen to fetch.
           required: true
-          schema: {type: string, enum: [help, privacy, terms, about]}
+          schema: {type: string, enum: [help, privacy, terms, about, support]}
         - {$ref: "#/components/parameters/LocaleQuery"}
         - {$ref: "#/components/parameters/AcceptLanguage"}
       responses:
@@ -4180,6 +4348,64 @@ paths:
                       body: "If you have a question or run into a problem, write to us and we'll get back to you as soon as we can."
                       link_label: Email support
                       link_url: "mailto:support@ritmesalamat.com"
+        '404': {$ref: "#/components/responses/ModelNotFound"}
+  /api/v1/info-pages/{group}:
+    get:
+      tags: [Info]
+      summary: Boxes of a text screen with keys and last edit
+      description: |
+        Go only (B-N1-12): the Night & Bloom Support / About / Legal screens. Like `/info/{group}` (active boxes,
+        display order, one locale) plus each box's stable `key` (seeded: `summary` in privacy/terms = the Legal
+        «خلاصه در ۳ خط», one line per `\n`; `about/disclaimer` = the About footer; `support/email`) and the page's last edit day `updated_at` (null when
+        empty). `link_label` / `link_url` are both set or both null. `support` holds the support channels
+        (`tel:` → phone line with the hours in `body`, `http(s):` / `mailto:` → the chat card). Public.
+      operationId: getInfoPage
+      security: []
+      parameters:
+        - name: group
+          in: path
+          required: true
+          schema: {type: string, enum: [help, privacy, terms, about, support]}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The page
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [group, updated_at, sections]
+                    properties:
+                      group: {type: string}
+                      updated_at:
+                        oneOf:
+                          - {$ref: "#/components/schemas/Date"}
+                          - {type: "null"}
+                      sections:
+                        type: array
+                        items:
+                          type: object
+                          required: [id, key, heading, body, link_label, link_url]
+                          properties:
+                            id: {type: integer}
+                            key: {type: [string, "null"]}
+                            heading: {type: string}
+                            body: {type: string}
+                            link_label: {type: [string, "null"]}
+                            link_url: {type: [string, "null"]}
+              example:
+                success: true
+                data:
+                  group: privacy
+                  updated_at: "2026-09-23"
+                  sections:
+                    - {id: 20, key: summary, heading: "In 3 lines", body: "We never sell your health data or use it for advertising\nSharing with a doctor, a companion or AI happens only with your explicit consent\nYou can download or delete your data at any time", link_label: null, link_url: null}
+                    - {id: 6, key: commitment, heading: "Our commitment to you", body: "Ritme is built to hold some of your most personal health information…", link_label: null, link_url: null}
         '404': {$ref: "#/components/responses/ModelNotFound"}
   /api/v1/languages:
     get:
@@ -7102,11 +7328,278 @@ paths:
                     type: object
                     additionalProperties: {type: array, items: {type: string}}
         '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/profile/cycle-settings:
+    get:
+      tags: [Profile]
+      summary: Cycle settings
+      description: |
+        Go only (B-N1-09). «سیکل تو»: the cycle / period length the screen shows, whether it is «خودکار از داده‌ها»
+        (`auto`: the engine's median of the last valid cycles → profile → default) or manual (the profile's
+        `cycle_duration` / `period_duration`), with both layers. «یادآورها»: the timed cycle reminders in screen
+        order — switches are notification-settings categories (`pill` is set only here), times are Tehran
+        wall-clock; `days_before` (before_period) and `cycle_day` (pms, the first day of the 3-day PMS window).
+        Never saved = automatic lengths and the default reminders.
+      operationId: getCycleSettings
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The settings
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/CycleSettings"}
+              example:
+                success: true
+                data:
+                  lengths:
+                    auto: true
+                    cycle_length: 29
+                    period_length: 5
+                    calculated: {cycle_length: 29, period_length: 5, based_on_cycles: 6}
+                    manual: {cycle_length: 28, period_length: 5}
+                  reminders:
+                    - {code: before_period, enabled: true, time: "09:00", days_before: 2}
+                    - {code: pms, enabled: true, time: "09:00", cycle_day: 27}
+                    - {code: fertile_window, enabled: false, time: "09:00"}
+                    - {code: daily_log, enabled: true, time: "22:00"}
+                    - {code: pill, enabled: false, time: "21:00"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+    put:
+      tags: [Profile]
+      summary: Update cycle settings
+      description: |
+        Partial update: omitted keys keep their value. `cycle_length` / `period_length` are written to the profile
+        like `POST /profile` (the engine recalculates). Reminder switches and times are stored on the
+        notification preferences (quiet hours and neutral copy are untouched). Responds with the full settings.
+        Per-user write throttle.
+      operationId: updateCycleSettings
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                lengths_auto: {type: boolean}
+                cycle_length: {type: integer, minimum: 15, maximum: 60}
+                period_length: {type: integer, minimum: 1, maximum: 15}
+                reminders:
+                  type: object
+                  description: "Keyed by reminder code (before_period, pms, fertile_window, daily_log, pill)."
+                  additionalProperties:
+                    type: object
+                    properties:
+                      enabled: {type: boolean}
+                      time: {type: string, pattern: "^[0-2][0-9]:[0-5][0-9]$"}
+                      days_before: {type: integer, minimum: 1, maximum: 7, description: "before_period only"}
+            example: {lengths_auto: false, cycle_length: 30, reminders: {before_period: {days_before: 3, time: "20:00"}, pill: {enabled: true}}}
+      responses:
+        '200':
+          description: Saved; the settings
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/CycleSettings"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422':
+          description: "Validation failed (controller 422 `{success: false, message, errors}`, request language)"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, errors]
+                properties:
+                  success: {type: boolean, const: false}
+                  message: {type: string}
+                  errors:
+                    type: object
+                    additionalProperties: {type: array, items: {type: string}}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/profile/consents:
+    get:
+      tags: [Profile]
+      summary: Privacy consents
+      description: |
+        Go only (B-N1-12). The consents of the Privacy screen in screen order: `ai_lab_analysis` (lab results may
+        be read by the AI analysis), `assistant_profile` (the health assistant may use age, mode and medications),
+        `anonymous_stats` (anonymous usage statistics). Every consent is opt-in: never answered = `granted: false`.
+        `granted_at` / `revoked_at` are the last grant / withdrawal (null when never).
+      operationId: getConsents
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The consents
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/Consents"}
+              example:
+                success: true
+                data:
+                  consents:
+                    - {code: ai_lab_analysis, granted: true, granted_at: "2026-09-23T10:00:00+03:30", revoked_at: null}
+                    - {code: assistant_profile, granted: false, granted_at: null, revoked_at: null}
+                    - {code: anonymous_stats, granted: false, granted_at: null, revoked_at: null}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+    put:
+      tags: [Profile]
+      summary: Update privacy consents
+      description: |
+        Partial update `{consents: {<code>: bool}}`: omitted codes keep their answer, unknown codes are ignored.
+        A change is stamped with the request time (grant → `granted_at`, withdrawal of a grant → `revoked_at`).
+        Responds with all consents. Per-user write throttle.
+      operationId: updateConsents
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [consents]
+              properties:
+                consents:
+                  type: object
+                  properties:
+                    ai_lab_analysis: {type: boolean}
+                    assistant_profile: {type: boolean}
+                    anonymous_stats: {type: boolean}
+            example: {consents: {ai_lab_analysis: true, anonymous_stats: false}}
+      responses:
+        '200':
+          description: Saved; the consents
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/Consents"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422':
+          description: "Validation failed (controller 422 `{success: false, message, errors}`, request language)"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, errors]
+                properties:
+                  success: {type: boolean, const: false}
+                  message: {type: string}
+                  errors:
+                    type: object
+                    additionalProperties: {type: array, items: {type: string}}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/support/reports:
+    post:
+      tags: [Profile]
+      summary: Report a problem
+      description: |
+        Go only (B-N1-12, «گزارش مشکل»). Multipart, or JSON with the screenshot as a base64 data URL: `message` (10–2000 chars),
+        optional `app_version` and `screenshot` (jpeg/png/webp judged by its bytes, ≤ 5 MB). The screenshot is
+        re-encoded (metadata dropped) and kept on the private storage volume; the report is read by the support
+        team in the admin and is not sent to third parties. The user agent is stored with it. More than 5 reports
+        in an hour → 429; also under the per-user write throttle.
+      operationId: createSupportReport
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [message]
+              properties:
+                message: {type: string, minLength: 10, maxLength: 2000}
+                app_version: {type: string, maxLength: 32}
+                screenshot: {type: string, format: binary}
+          application/json:
+            schema:
+              type: object
+              required: [message]
+              properties:
+                message: {type: string, minLength: 10, maxLength: 2000}
+                app_version: {type: string, maxLength: 32}
+                screenshot: {type: string, description: "Optional base64 data URL `data:image/<type>;base64,…` (the web client)"}
+            example: {message: "The period prediction looks wrong after I edited a date.", app_version: "1.1.0"}
+      responses:
+        '201':
+          description: Stored
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data:
+                    type: object
+                    required: [id, status, created_at]
+                    properties:
+                      id: {type: integer}
+                      status: {type: string, enum: [open]}
+                      created_at: {$ref: "#/components/schemas/IsoDateTime"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422':
+          description: "Validation failed (controller 422 `{success: false, message, errors}`, request language)"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, errors]
+                properties:
+                  success: {type: boolean, const: false}
+                  message: {type: string}
+                  errors:
+                    type: object
+                    additionalProperties: {type: array, items: {type: string}}
+        '429':
+          description: "Too many reports in the last hour (`{success: false, message}`, request language), or the write throttle"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message]
+                properties:
+                  success: {type: boolean, const: false}
+                  message: {type: string}
   /api/v1/profile/export:
     get:
       tags: [Profile]
       summary: Export all personal data
-      description: "Returns a full JSON export of the authenticated user's data (account, profile, health logs, cycle history, pregnancy data, reminders) for data-portability."
+      description: "Returns a full JSON export of the authenticated user's data (account, profile, health logs, cycle history, pregnancy data, reminders; in Go also consents, support reports and notification settings, D-33) for data-portability."
       operationId: getProfileExport
       security:
         - {bearerAuth: []}
@@ -7419,6 +7912,32 @@ paths:
                                 updated_at: {$ref: "#/components/schemas/LaravelDateTime"}
                           fetal_movements: {type: array, items: {$ref: "#/components/schemas/FetalMovement"}}
                       reminders: {type: array, items: {$ref: "#/components/schemas/Reminder"}}
+                      consents:
+                        description: "Go only (B-N1-12, D-33): every consent row with its timestamps."
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code: {type: string}
+                            granted: {type: boolean}
+                            granted_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
+                            revoked_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
+                            created_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
+                            updated_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
+                      support_reports:
+                        description: "Go only (B-N1-12, D-33): the user's support reports, never the screenshot path."
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id: {type: integer}
+                            message: {type: string}
+                            status: {type: string}
+                            has_screenshot: {type: boolean}
+                            created_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
+                      notification_settings:
+                        description: "Go only (B-N1-11/12, D-33): the effective notification settings."
+                        $ref: "#/components/schemas/NotificationSettings"
         '401': {$ref: "#/components/responses/Unauthenticated"}
   /api/v1/reminders:
     get:
@@ -8943,6 +9462,62 @@ components:
                 to_day: {type: integer, minimum: 1}
         shift_day: {type: [integer, "null"], minimum: 1}
         phase: {type: string, enum: [pre_shift, post_shift]}
+    Consents:
+      type: object
+      description: "Privacy consents (B-N1-12), screen order; opt-in."
+      required: [consents]
+      properties:
+        consents:
+          type: array
+          items:
+            type: object
+            required: [code, granted, granted_at, revoked_at]
+            properties:
+              code: {type: string, enum: [ai_lab_analysis, assistant_profile, anonymous_stats]}
+              granted: {type: boolean}
+              granted_at:
+                oneOf:
+                  - {$ref: "#/components/schemas/IsoDateTime"}
+                  - {type: "null"}
+              revoked_at:
+                oneOf:
+                  - {$ref: "#/components/schemas/IsoDateTime"}
+                  - {type: "null"}
+    CycleSettings:
+      type: object
+      required: [lengths, reminders]
+      properties:
+        lengths:
+          type: object
+          required: [auto, cycle_length, period_length, calculated, manual]
+          properties:
+            auto: {type: boolean}
+            cycle_length: {type: integer, description: "shown value: auto → effective engine value; manual → profile value"}
+            period_length: {type: integer}
+            calculated:
+              type: object
+              required: [cycle_length, period_length, based_on_cycles]
+              properties:
+                cycle_length: {type: [integer, "null"]}
+                period_length: {type: [integer, "null"]}
+                based_on_cycles: {type: [integer, "null"]}
+            manual:
+              type: object
+              required: [cycle_length, period_length]
+              properties:
+                cycle_length: {type: [integer, "null"]}
+                period_length: {type: [integer, "null"]}
+        reminders:
+          type: array
+          items:
+            type: object
+            required: [code, enabled, time]
+            properties:
+              code: {type: string, enum: [before_period, pms, fertile_window, daily_log, pill]}
+              enabled: {type: boolean}
+              time: {type: string, pattern: "^[0-2][0-9]:[0-5][0-9]$"}
+              days_before: {type: integer, minimum: 1, maximum: 7}
+              cycle_day: {type: integer, minimum: 0}
     NotificationSettings:
       type: object
       required: [groups, quiet_hours, neutral_copy]

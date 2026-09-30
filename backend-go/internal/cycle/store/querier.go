@@ -17,6 +17,9 @@ type Querier interface {
 	// blockingOpenPeriod(): an open, non-estimated period that started before $start but within the
 	// hard cap (period_start_date >= today - 12 days).
 	GetBlockingOpenPeriod(ctx context.Context, arg GetBlockingOpenPeriodParams) (CycleHistory, error)
+	// GetProfileByUserID plus B-N1-09 «خودکار از داده‌ها» (goose 00013) in the same round trip: no
+	// cycle_preferences row = automatic (1); 0 = the engine prefers the profile lengths.
+	GetEngineProfileByUserID(ctx context.Context, userID uint64) (GetEngineProfileByUserIDRow, error)
 	// CycleHistory::where('user_id')->orderBy('period_start_date', 'desc')->first().
 	GetLatestPeriod(ctx context.Context, userID uint64) (CycleHistory, error)
 	// PeriodLogController (backend/app/Http/Controllers/Api/V1/PeriodLogController.php).

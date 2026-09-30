@@ -22,3 +22,13 @@ SELECT * FROM `recommendations` WHERE is_active = 1 ORDER BY sort_order, id;
 -- name: AnyRecommendationExists :one
 -- RecommendationRepository::hasContent(): Recommendation::query()->exists() (inactive rows count).
 SELECT EXISTS (SELECT 1 FROM `recommendations`) AS present;
+
+-- name: GetEngineProfileByUserID :one
+-- GetProfileByUserID plus B-N1-09 «خودکار از داده‌ها» (goose 00013) in the same round trip: no
+-- cycle_preferences row = automatic (1); 0 = the engine prefers the profile lengths.
+SELECT sqlc.embed(p), COALESCE(cp.lengths_auto, 1) AS lengths_auto
+FROM `user_profiles` p
+LEFT JOIN `cycle_preferences` cp ON cp.user_id = p.user_id
+WHERE p.user_id = ?
+ORDER BY p.id
+LIMIT 1;

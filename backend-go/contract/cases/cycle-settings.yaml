@@ -1,0 +1,54 @@
+# Cycle settings (/api/v1/profile/cycle-settings) — Go only (B-N1-09): there is no Laravel route, so these goldens
+# were recorded from the Go server and reviewed by hand (new-endpoint skill, step 8). The fixture dump carries the
+# empty `cycle_preferences` table and `notification_preferences.schedule` (goose 00013 / Laravel
+# 2026_10_01_000004), added by hand — the DDL a full re-record reproduces. No persona has a row, so GET answers
+# automatic lengths from the engine (regular: 6 confirmed 28-day cycles) and the default reminders.
+# User isolation, the manual-length profile write and the scheduler gate are covered by internal/profile and
+# internal/reminders tests.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: cycle-settings
+defaults:
+  persona: regular
+  locales: [none, en]
+cases:
+  - name: show_defaults
+    doc: No rows → automatic lengths (median 28 / 5), board reminders (fertile window and pill off)
+    locales: [none, fa, en]
+    method: GET
+    path: /api/v1/profile/cycle-settings
+    status: 200
+  - name: show_anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/profile/cycle-settings
+    status: 401
+
+  - name: update_round_trip
+    doc: Partial PUTs keep omitted keys; the next GET reads the saved rows
+    steps:
+      - method: PUT
+        path: /api/v1/profile/cycle-settings
+        body: {reminders: {before_period: {days_before: 3, time: "20:15"}, pill: {enabled: true, time: "21:30"}}}
+        status: 200
+      - method: PUT
+        path: /api/v1/profile/cycle-settings
+        body: {lengths_auto: false, reminders: {daily_log: {enabled: false}}}
+        status: 200
+      - method: GET
+        path: /api/v1/profile/cycle-settings
+        status: 200
+  - name: update_invalid
+    doc: Controller-style 422 with localized attribute names
+    locales: [none, fa, en]
+    method: PUT
+    path: /api/v1/profile/cycle-settings
+    body: {lengths_auto: "x", cycle_length: 99, reminders: {pill: {time: "25:00"}, before_period: {days_before: 9}}}
+    status: 422
+  - name: update_anon
+    persona: anon
+    locales: none
+    method: PUT
+    path: /api/v1/profile/cycle-settings
+    body: {lengths_auto: false}
+    status: 401
