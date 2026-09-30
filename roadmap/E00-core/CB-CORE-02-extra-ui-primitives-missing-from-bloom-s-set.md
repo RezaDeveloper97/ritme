@@ -3,7 +3,7 @@ id: CB-CORE-02
 title: Extra UI primitives missing from bloom's set
 epic: CORE
 type: frontend
-status: todo
+status: done
 depends_on: [CB-CORE-01, B-N1-03]
 parallel_group: CORE-B
 touches: [frontend/src/shared/ui]

@@ -9,3 +9,5 @@
 2026-09-30T18:53Z CB-CORE-02 -> in_progress
 2026-09-30T18:53Z CB-CORE-03b -> in_progress
 2026-09-30T20:43Z CB-CORE-03b -> done
+2026-09-30T20:44Z CB-PELV-01 -> in_progress
+2026-09-30T20:49Z CB-CORE-02 -> done

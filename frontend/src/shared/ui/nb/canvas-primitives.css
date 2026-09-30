@@ -1,0 +1,212 @@
+/*
+ * Canvas-v1 primitives (CB-CORE-02) — companions of the B-N1-03 set in
+ * globals.css. Night & Bloom tokens only (no literals): every colour is a
+ * var() declared in globals.css :root + [data-theme="dark"], or a tone mix
+ * (`.nb-tone-*` sets --nb-tone / --nb-tone-ink). Logical properties only.
+ * Hit targets ≥ 44px.
+ */
+
+/* Shared keyboard ring for the controls below. */
+.nb-sev-opt:focus-visible, .nb-nscale-cell:focus-visible, .nb-rcard:focus-visible,
+.nb-search-clear:focus-visible, .nb-hotline:focus-visible,
+.nb-check-input:focus-visible + .nb-check-box {
+  outline: none; box-shadow: var(--ring);
+}
+
+.nb-scale-label { margin-block-end: 10px; font-size: var(--fs-base); font-weight: 800; color: var(--text-1); }
+
+/* ── SeverityScale (4-level segmented radiogroup) ── */
+.nb-sev-track {
+  display: flex; gap: 4px; padding: 4px; border-radius: var(--r-lg);
+  background: var(--surface-2); border: 1px solid var(--line);
+}
+.nb-sev-opt {
+  flex: 1 1 0; min-width: 0; min-height: 44px; padding: 0 6px; border-radius: var(--r-md);
+  border: 1.5px solid transparent; background: transparent; color: var(--text-2);
+  font-family: inherit; font-size: var(--fs-md); font-weight: 700; cursor: pointer;
+}
+.nb-sev-opt[aria-checked="true"] {
+  background: color-mix(in srgb, var(--nb-tone) 15%, var(--surface));
+  border-color: var(--nb-tone); color: var(--text-1); font-weight: 800;
+}
+
+/* ── NumericScale (0–10 / 1–6 radio cells + end labels) ── */
+.nb-nscale-row { display: flex; }
+.nb-nscale-cell {
+  flex: 1 1 0; min-width: 0; min-height: 48px; padding: 2px 3px;
+  background: none; border: 0; font-family: inherit; cursor: pointer; border-radius: var(--r-md);
+}
+.nb-nscale.is-dense .nb-nscale-cell { padding: 2px 1.5px; }
+.nb-nscale-num {
+  display: flex; align-items: center; justify-content: center; block-size: 100%; min-block-size: 44px;
+  border-radius: 12px; border: 1.5px solid var(--line); background: var(--surface);
+  color: var(--text-2); font-size: var(--fs-base); font-weight: 800;
+}
+.nb-nscale.is-dense .nb-nscale-num { border-radius: 10px; font-size: var(--fs-md); }
+.nb-nscale.is-soft .nb-nscale-cell[aria-checked="true"] .nb-nscale-num {
+  background: color-mix(in srgb, var(--nb-tone) 15%, var(--surface)); border-color: var(--nb-tone); color: var(--nb-tone-ink);
+}
+/* Solid = brand / danger / period tones (their fills carry --on-brand in both themes). */
+.nb-nscale.is-solid .nb-nscale-cell[aria-checked="true"] .nb-nscale-num {
+  background: var(--nb-tone); border-color: var(--nb-tone); color: var(--on-brand);
+}
+.nb-nscale-ends {
+  display: flex; justify-content: space-between; gap: 12px; margin-block-start: 6px;
+  font-size: var(--fs-sm); font-weight: 700; color: var(--text-2);
+}
+
+/* ── StepTimeline (vertical done / current / todo) ── */
+.nb-tl { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.nb-tl-step { position: relative; display: flex; align-items: flex-start; gap: 12px; padding-block: 8px; }
+.nb-tl-marker {
+  flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
+  inline-size: 30px; block-size: 30px; border-radius: 10px;
+  border: 1.5px solid var(--line); background: var(--surface);
+  color: var(--text-2); font-size: var(--fs-base); font-weight: 800;
+}
+.nb-tl-step.is-current .nb-tl-marker,
+.nb-tl-step.is-done .nb-tl-marker {
+  border-color: var(--nb-tone); background: color-mix(in srgb, var(--nb-tone) 15%, var(--surface)); color: var(--nb-tone-ink);
+}
+.nb-tl-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; padding-block-start: 4px; }
+.nb-tl-title { font-size: var(--fs-base); font-weight: 700; color: var(--text-2); }
+.nb-tl-step.is-done .nb-tl-title,
+.nb-tl-step.is-current .nb-tl-title { font-weight: 800; color: var(--text-1); }
+.nb-tl-meta { font-size: var(--fs-md); font-weight: 600; color: var(--text-2); }
+/* Dot variant: 18px markers joined by a rail. */
+.nb-tl.is-dot .nb-tl-marker { inline-size: 18px; block-size: 18px; border-radius: 6px; border-width: 1.5px; }
+.nb-tl.is-dot .nb-tl-step.is-done .nb-tl-marker,
+.nb-tl.is-dot .nb-tl-step.is-current .nb-tl-marker { background: var(--nb-tone-ink); border-color: var(--nb-tone-ink); color: var(--on-brand); }
+.nb-tl.is-dot .nb-tl-step.is-todo .nb-tl-marker { border-color: var(--line-strong); }
+.nb-tl.is-dot .nb-tl-text { padding-block-start: 0; }
+.nb-tl.is-dot .nb-tl-step:not(:last-child)::after {
+  content: ''; position: absolute; inset-inline-start: 8px; inset-block: 30px -6px; inline-size: 2px;
+  border-radius: 1px; background: var(--line);
+}
+.nb-tl.is-dot .nb-tl-step.is-done:not(:last-child)::after { background: color-mix(in srgb, var(--nb-tone) 45%, var(--line)); }
+
+/* ── CountdownRing (ProgressRing timer face) ── */
+.nb-countdown { border-radius: 50%; }
+.nb-countdown.is-glow {
+  background: radial-gradient(circle closest-side,
+    color-mix(in srgb, var(--nb-tone) 30%, transparent) 0%,
+    color-mix(in srgb, var(--nb-tone) 12%, transparent) 88%,
+    transparent 100%);
+}
+.nb-countdown .nb-ring-center { gap: 6px; }
+.nb-countdown-caption { font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); }
+.nb-countdown-value {
+  font-family: var(--font-display); font-weight: 400; font-size: var(--fs-num-l); line-height: 1.1;
+  color: var(--text-1); font-variant-numeric: tabular-nums;
+}
+.nb-countdown-footer { font-size: var(--fs-md); font-weight: 700; color: var(--text-2); }
+
+/* ── WeekDots (7-day adherence) ── */
+.nb-wdots { list-style: none; margin: 0; padding: 0; display: flex; justify-content: space-between; gap: 4px; }
+.nb-wdot { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1 1 0; min-width: 0; }
+.nb-wdot-disc {
+  display: inline-flex; align-items: center; justify-content: center;
+  inline-size: 36px; block-size: 36px; border-radius: 50%;
+  border: 1.5px solid var(--line); background: var(--surface); color: var(--nb-tone-ink);
+}
+.nb-wdot.is-done .nb-wdot-disc { border-color: var(--nb-tone); background: color-mix(in srgb, var(--nb-tone) 15%, var(--surface)); }
+.nb-wdot.is-missed .nb-wdot-disc { border-color: var(--line-strong); }
+.nb-wdot.is-future .nb-wdot-disc { border-style: dashed; }
+.nb-wdot.is-today .nb-wdot-disc { box-shadow: 0 0 0 2px var(--brand); }
+.nb-wdot-day { font-size: var(--fs-sm); font-weight: 700; color: var(--text-2); }
+.nb-wdot.is-today .nb-wdot-day { color: var(--brand); font-weight: 800; }
+
+/* ── ProgressBar («X از Y» on --track) ── */
+.nb-pbar { display: flex; flex-direction: column; }
+.nb-pbar-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.nb-pbar-label { font-size: var(--fs-base); font-weight: 800; color: var(--text-1); }
+.nb-pbar-value { flex-shrink: 0; font-size: var(--fs-md); font-weight: 700; color: var(--text-2); }
+.nb-pbar-track {
+  margin-block-start: 8px; block-size: 8px; border-radius: var(--r-pill); overflow: hidden;
+  background: var(--track); border: 1px solid var(--line);
+}
+.nb-pbar-fill {
+  display: block; block-size: 100%; border-radius: var(--r-pill); background: var(--nb-tone);
+  transition: inline-size .4s ease;
+}
+.nb-pbar-hint { margin-block-start: 6px; font-size: var(--fs-sm); font-weight: 600; color: var(--text-2); }
+@media (prefers-reduced-motion: reduce) { .nb-pbar-fill { transition: none; } }
+
+/* ── RadioCard (title + description, radio dot at the end) ── */
+.nb-rcards { display: flex; flex-direction: column; gap: 12px; }
+.nb-rcard {
+  display: flex; align-items: center; gap: 12px; inline-size: 100%; min-block-size: 72px; padding: 16px;
+  border-radius: var(--r-card); border: 1.5px solid var(--line); background: var(--surface);
+  color: var(--text-1); font-family: inherit; text-align: start; cursor: pointer;
+}
+.nb-rcard[aria-checked="true"] { background: var(--brand-soft); border-color: var(--brand); }
+.nb-rcard:disabled { opacity: .5; cursor: default; }
+.nb-rcard-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.nb-rcard-title { font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); }
+.nb-rcard-desc { font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+.nb-rcard-dot {
+  flex-shrink: 0; inline-size: 22px; block-size: 22px; border-radius: 50%;
+  border: 2px solid var(--line-strong); background: var(--surface);
+}
+.nb-rcard[aria-checked="true"] .nb-rcard-dot {
+  border-color: var(--brand); background: var(--brand-fill); box-shadow: inset 0 0 0 4px var(--surface);
+}
+
+/* ── SearchField ── */
+.nb-search {
+  display: flex; align-items: center; gap: 8px; min-block-size: 48px; padding-inline: 14px 2px;
+  border-radius: var(--r-pill); background: var(--surface); border: 1px solid var(--line);
+}
+.nb-search:focus-within { border-color: var(--brand); box-shadow: var(--ring); }
+.nb-search-icon { flex-shrink: 0; color: var(--text-3); }
+.nb-search-input {
+  flex: 1; min-width: 0; min-block-size: 44px; border: 0; background: transparent; outline: none;
+  font-family: inherit; font-size: var(--fs-base); font-weight: 600; color: var(--text-1);
+}
+.nb-search-input::placeholder { color: var(--text-3); }
+.nb-search-input::-webkit-search-cancel-button { appearance: none; }
+.nb-search-clear {
+  flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
+  inline-size: 44px; block-size: 44px; border-radius: 50%; border: 0; background: transparent;
+  color: var(--text-2); cursor: pointer;
+}
+.nb-search-clear:hover { background: var(--surface-3); }
+
+/* ── Checkbox (native input, custom box) ── */
+.nb-check {
+  position: relative; display: flex; align-items: flex-start; gap: 12px; min-block-size: 44px;
+  padding-block: 10px; cursor: pointer;
+}
+.nb-check.is-disabled { opacity: .5; cursor: default; }
+.nb-check-input {
+  position: absolute; inset-inline-start: 0; inset-block-start: 10px; inline-size: 22px; block-size: 22px;
+  margin: 0; opacity: 0;
+}
+.nb-check-box {
+  flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
+  inline-size: 22px; block-size: 22px; border-radius: 7px;
+  border: 2px solid var(--line-strong); background: var(--surface); color: transparent;
+}
+.nb-check-input:checked + .nb-check-box { background: var(--brand-fill); border-color: var(--brand-fill); color: var(--on-brand); }
+.nb-check-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; padding-block-start: 1px; }
+.nb-check-label { font-size: var(--fs-base); font-weight: 700; color: var(--text-1); }
+.nb-check-desc { font-size: var(--fs-md); font-weight: 600; color: var(--text-2); }
+
+/* ── UrgentCard extensions: hotlines, extra actions, `note` variant (DangerNote) ── */
+.nb-urgent-hotlines { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.nb-hotline {
+  display: inline-flex; align-items: center; gap: 6px; min-block-size: 44px; padding-inline: 14px;
+  border-radius: var(--r-pill); background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent);
+  color: var(--danger-deep); font-size: var(--fs-md); font-weight: 700; text-decoration: none;
+}
+.nb-hotline-num { font-weight: 800; font-variant-numeric: tabular-nums; }
+.nb-urgent-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.nb-urgent.is-note {
+  gap: 10px; padding: 14px 16px; border-radius: var(--r-xl);
+  background: var(--surface); border-color: var(--line);
+}
+.nb-urgent.is-note .nb-urgent-head { gap: 8px; }
+.nb-urgent-icon { flex-shrink: 0; margin-block-start: 3px; color: var(--danger); }
+.nb-urgent.is-note .nb-urgent-title { font-size: var(--fs-md); font-weight: 700; line-height: 1.8; color: var(--text-1); }
+.nb-urgent.is-note .nb-hotline { background: var(--danger-soft); border-color: transparent; }

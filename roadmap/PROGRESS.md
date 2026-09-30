@@ -53,3 +53,10 @@ TODO (ask user):
 - `POST /api/admin/v1/catalog/:group/reorder {ids}` — full set, one transaction via new `SetCatalogSortOrder` query (only sort_order/updated_at), cache flush, audit `catalog_item.reorder`. admin-web uses it (one POST instead of per-row PUTs).
 - Duplicate/missing catalog `code` now reads «کد آیتم» / "item code" via new lang group `resources/lang/{fa,en}/catalog.json`; shared OTP label untouched.
 - Verify: vet, unit + int (Reorder, ReorderIsAtomic, CodeAttributeLabel), golangci-lint 0 issues, admin-web typecheck + 105 tests — green. Documented in docs/canvas-build/catalog.md §3.
+
+## CB-CORE-02 — Extra UI primitives missing from bloom's set
+- `frontend/src/shared/ui/nb`: SeverityScale, NumericScale (0–10 / 1–6, solid/soft), StepTimeline (numbered / dotted), CountdownRing (on bloom's ProgressRing) + `useTimer`, WeekDots, ProgressBar, RadioCardGroup (roving tabindex), SearchField, Checkbox; UrgentCard extended (`hotlines`, `actions`, `variant: card|note`) = DangerNote. 25 new tests.
+- Verify: typecheck, lint, fsd:lint, lint:styles, lint:dark, build green; tests 774/775 — the one red (`message-scopes.test.ts` splash → welcome) is bloom B-N1-05 in flight, not this task.
+- Fidelity: showcase light/dark `docs/qa/canvas/core/CB-CORE-02/` vs boards — ✔ (structure/states match; colours via tokens).
+- Follow-up CB-CORE-02b: styles in side file `canvas-primitives.css` (not scanned by gates) → globals.css after bloom B-N1-04/05/13; ui-kit showcase entries; 0–10 scale touch width at 390 px; solid contrast.
+- TODO (ask user / designer): SeverityScale colours (moderate = bloom, severe = danger) taken from boards — confirm.

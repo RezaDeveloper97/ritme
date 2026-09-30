@@ -25,30 +25,88 @@ export function InfoNote({ icon = 'info', source, className, children }: InfoNot
   );
 }
 
+export interface Hotline {
+  /** Who answers («اورژانس», «صدای مشاور», «اورژانس اجتماعی»). */
+  label: ReactNode;
+  /** Dialled number, digits only (`115`, `1480`, `123`). */
+  number: string;
+  /** Number as shown, in locale digits («۱۱۵»). */
+  display: ReactNode;
+}
+
 interface UrgentCardProps {
   title: ReactNode;
   /** The call-to-action, usually a {@link PrimaryButton} or a `tel:` link. */
   action?: ReactNode;
+  /** Extra actions under the primary one (e.g. «نوبت پزشک زنان» next to «تماس با ۱۱۵»). */
+  actions?: ReactNode;
+  /** One-tap `tel:` pills (115, 1480, 123), each a ≥ 44px link. */
+  hotlines?: readonly Hotline[];
+  /** Accessible name of the hotline list, e.g. «شماره‌های کمک». */
+  hotlinesLabel?: string;
   icon?: IconName;
+  /**
+   * `card` = the `--danger-soft` alert card; `note` = the quiet bordered
+   * safety line on `--surface` (Cond_PMDD hotlines, IVF_TWW OHSS) with no CTA
+   * required — the DangerNote of the canvas.
+   */
+  variant?: 'card' | 'note';
+  /**
+   * `true` (default for `card`) mounts as `role=alert` and is announced; a
+   * standing safety note (default for `note`) is `role=note`.
+   */
+  urgent?: boolean;
   className?: string;
   children?: ReactNode;
 }
 
 /**
  * `--danger-soft` card for safety messages (call 115). `role=alert` so it is
- * announced when it appears — mount it only when it is actually urgent.
+ * announced when it appears — mount it only when it is actually urgent. The
+ * `note` variant is the persistent danger note (hotlines, warning signs).
  */
-export function UrgentCard({ title, action, icon = 'warning', className, children }: UrgentCardProps) {
+export function UrgentCard({
+  title,
+  action,
+  actions,
+  hotlines,
+  hotlinesLabel,
+  icon = 'warning',
+  variant = 'card',
+  urgent,
+  className,
+  children,
+}: UrgentCardProps) {
+  const isNote = variant === 'note';
+  const announce = urgent ?? !isNote;
   return (
-    <div role="alert" className={clsx('nb-urgent', className)}>
+    <div role={announce ? 'alert' : 'note'} className={clsx('nb-urgent', isNote && 'is-note', className)}>
       <div className="nb-urgent-head">
-        <IconCircle icon={icon} tone="danger" size="md" />
+        {isNote ? (
+          <Icon name={icon} size={18} className="nb-urgent-icon" />
+        ) : (
+          <IconCircle icon={icon} tone="danger" size="md" />
+        )}
         <div className="nb-urgent-text">
           <p className="nb-urgent-title">{title}</p>
           {children ? <div className="nb-urgent-body">{children}</div> : null}
         </div>
       </div>
+      {hotlines && hotlines.length ? (
+        <ul className="nb-urgent-hotlines" aria-label={hotlinesLabel}>
+          {hotlines.map((line) => (
+            <li key={line.number}>
+              <a className="nb-hotline" href={`tel:${line.number}`}>
+                <Icon name="phone" size={16} />
+                <span className="nb-hotline-label">{line.label}</span>
+                <span className="nb-hotline-num">{line.display}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      ) : null}
       {action ? <div className="nb-urgent-action">{action}</div> : null}
+      {actions ? <div className="nb-urgent-actions">{actions}</div> : null}
     </div>
   );
 }
