@@ -25,3 +25,11 @@ TODO (ask user):
 - [ ] Desktop web store badges (W_Dir_Booked, W_Shop_Done): link the Android WebView shell listing or hide?
 - [ ] Directory cooperation terms («کارمزد یا اشتراک؛ هنوز تعیین نشده»): admin-editable placeholder OK?
 - [ ] CB-NAV-03 waits on B-N7-01 (N7) + B-N3-03 — split into shell rules now / Services order after N7 (DECISIONS #3 "IA first")?
+
+## CB-CORE-06 — Neshan map wrapper
+- Shipped `@/shared/ui/map` (`NeshanMap`: dynamic, ssr:false; pins via portals, `top`/`controls`/`card` slots, "search this area", tap-only my-location, day/night Neshan styles from `data-theme`) and `shared/config/map.ts` (`resolveNeshanKey`, pinned SDK neshan-sdk 1.1.5 / mapbox-gl 1.13.2). No key / load failure → renders nothing + `onUnavailable`, so screens fall back to the list.
+- New env: `NEXT_PUBLIC_NESHAN_KEY` (build-time). Contract + CSP needs in `docs/canvas-build/map.md`.
+- Verify: typecheck, lint, fsd:lint, lint:styles, lint:dark, 711 tests, build — green. No screenshots (visible only in CB-DIR-07 / CB-INS-06, fidelity checked there).
+- CSP change moved into CB-DIR-07 Scope (next.config.ts added to its touches).
+- TODO (ask user): a Neshan *web* map key restricted to the app domains, supplied at build time on stage/prod.
+- TODO (ask user): Neshan has no custom Night & Bloom style — uses Neshan's own day/night vector styles. Default centre = Tehran.

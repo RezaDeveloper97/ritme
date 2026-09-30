@@ -3,7 +3,7 @@ id: CB-CORE-06
 title: Neshan map wrapper
 epic: CORE
 type: frontend
-status: todo
+status: done
 depends_on: [CB-CORE-01]
 parallel_group: CORE-B
 touches: [frontend/src/shared/ui/map, frontend/src/shared/config, docs/canvas-build/map.md]
