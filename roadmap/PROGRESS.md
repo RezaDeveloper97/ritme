@@ -48,3 +48,8 @@ TODO (ask user):
 - Verify: typecheck, lint, fsd:lint, 109 tests, build — green. Screenshots `docs/qa/canvas/core/CB-CORE-04/` (fa/en, light/dark, 390px) — ✔.
 - Follow-up CB-CORE-03b: atomic bulk reorder endpoint (today: one partial PUT per moved row) + duplicate-code 422 says «کد تایید» (shared OTP attribute label).
 - Open: meta hints for `missed_pill_rules`, `pelvic_levels`, `_alerts`, `_score_items` are proposals in `admin-web/src/screens/catalog/lib/hints.ts` — CB-CONTRA-01 / CB-PELV-01 / CB-MENO-04 confirm or adjust.
+
+## CB-CORE-03b — Catalog bulk reorder endpoint and code attribute label
+- `POST /api/admin/v1/catalog/:group/reorder {ids}` — full set, one transaction via new `SetCatalogSortOrder` query (only sort_order/updated_at), cache flush, audit `catalog_item.reorder`. admin-web uses it (one POST instead of per-row PUTs).
+- Duplicate/missing catalog `code` now reads «کد آیتم» / "item code" via new lang group `resources/lang/{fa,en}/catalog.json`; shared OTP label untouched.
+- Verify: vet, unit + int (Reorder, ReorderIsAtomic, CodeAttributeLabel), golangci-lint 0 issues, admin-web typecheck + 105 tests — green. Documented in docs/canvas-build/catalog.md §3.

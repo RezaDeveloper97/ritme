@@ -3,10 +3,10 @@ id: CB-CORE-03b
 title: Catalog bulk reorder endpoint and code attribute label
 epic: CORE
 type: backend
-status: todo
+status: done
 depends_on: [CB-CORE-04]
 parallel_group: CORE-B
-touches: [backend-go/internal/catalog,backend-go/internal/http/routes_admin_catalog.go,backend-go/api/openapi.yaml,backend-go/resources/translations,admin-web/src/screens/catalog]
+touches: [backend-go/internal/catalog,backend-go/resources/lang,backend-go/db/queries/catalog,docs/canvas-build/catalog.md,backend-go/internal/http/routes_admin_catalog.go,backend-go/api/openapi.yaml,backend-go/resources/translations,admin-web/src/screens/catalog]
 skills: [new-endpoint]
 boards: []
 verify: cd backend-go && go vet ./... && go test ./internal/catalog/... && make test-int PKG=./internal/catalog/... && golangci-lint run && cd ../admin-web && npm run typecheck && npm run test

@@ -24,6 +24,8 @@ type Querier interface {
 	// Every group with its item counts (admin group picker).
 	ListCatalogGroups(ctx context.Context) ([]ListCatalogGroupsRow, error)
 	NextCatalogSortOrder(ctx context.Context, group string) (int64, error)
+	// Reorder (POST /catalog/{group}/reorder): only sort_order changes, so a concurrent edit of the other columns survives.
+	SetCatalogSortOrder(ctx context.Context, arg SetCatalogSortOrderParams) error
 	UpdateCatalogItem(ctx context.Context, arg UpdateCatalogItemParams) error
 }
 

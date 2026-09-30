@@ -15,6 +15,8 @@ import (
 	"github.com/ritme/backend-go/internal/admin/httpadmin"
 	"github.com/ritme/backend-go/internal/catalog/store"
 	"github.com/ritme/backend-go/internal/i18n"
+	"github.com/ritme/backend-go/internal/i18n/lang"
+	"github.com/ritme/backend-go/internal/platform/httpx"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/platform/validation"
 	"github.com/ritme/backend-go/internal/platform/validation/phpval"
@@ -25,6 +27,7 @@ type Route func(method, path string, chain httpadmin.Chain)
 
 // Admin serves /api/admin/v1/catalog (editor and super admins).
 type Admin struct {
+	db     *sql.DB
 	q      *store.Queries
 	reader *Reader
 	logger *slog.Logger
@@ -35,7 +38,7 @@ func NewAdmin(conn *sql.DB, reader *Reader, logger *slog.Logger) *Admin {
 	if logger == nil {
 		logger = slog.Default()
 	}
-	return &Admin{q: store.New(conn), reader: reader, logger: logger}
+	return &Admin{db: conn, q: store.New(conn), reader: reader, logger: logger}
 }
 
 // Routes registers the endpoints; static paths before params.
@@ -44,6 +47,7 @@ func (h *Admin) Routes(route Route, kit *httpadmin.Kit) {
 	route(fiber.MethodGet, "/catalog", a(h.Groups))
 	route(fiber.MethodGet, "/catalog/:group", a(h.List))
 	route(fiber.MethodPost, "/catalog/:group", a(h.Store))
+	route(fiber.MethodPost, "/catalog/:group/reorder", a(h.Reorder))
 	route(fiber.MethodGet, "/catalog/:group/:id", a(h.Show))
 	route(fiber.MethodPut, "/catalog/:group/:id", a(h.Update))
 	route(fiber.MethodDelete, "/catalog/:group/:id", a(h.Destroy))
@@ -313,12 +317,56 @@ func (h *Admin) validate(c fiber.Ctx, g string, cur *store.CatalogItem) (phpval.
 				return err
 			}
 			if found {
-				add("code", form.Msg(c, "validation.unique", "code"))
+				add("code", httpadmin.Trans(c, "validation.unique", map[string]string{"attribute": codeAttribute(c)}))
 			}
 			return nil
 		})
 	}
-	return form.Validate(c, rules(c, cur == nil), checks...)
+	return validateForm(c, rules(c, cur == nil), checks...)
+}
+
+// codeAttributeKey is the catalog's own :attribute for `code` (an item code). The shared
+// validation.attributes.code means the OTP code, so catalog errors must not use it.
+const codeAttributeKey = "catalog.attributes.code"
+
+// codeAttribute is the catalog label for `code`, else the shared one (AttributeName) when the
+// language has no catalog label.
+func codeAttribute(c fiber.Ctx) string {
+	if s, ok := lang.Default().Get(codeAttributeKey, i18n.Locale(c)); ok {
+		if str, isStr := s.(string); isStr && str != "" {
+			return str
+		}
+	}
+	return httpadmin.AttributeName(c, "code")
+}
+
+// validateForm is form.Validate with the catalog attribute names (`code` → item code).
+func validateForm(c fiber.Ctx, r validation.Rules, checks ...form.Check) (phpval.Map, error) {
+	in := validation.Input(c)
+	v := validation.Make(lang.Default(), i18n.Locale(c), in, r, validation.Now(httpadmin.Now(c)),
+		validation.Attributes("code", codeAttribute(c)))
+	ve := httpx.NewValidationError()
+	if v.Fails() {
+		for _, f := range v.Fields() {
+			for _, m := range v.Messages(f) {
+				ve.Add(f, m)
+			}
+		}
+	}
+	add := func(field, msg string) {
+		if len(ve.Messages(field)) == 0 {
+			ve.Add(field, msg)
+		}
+	}
+	for _, check := range checks {
+		if err := check(in, add); err != nil {
+			return nil, err
+		}
+	}
+	if !ve.Empty() {
+		return nil, httpadmin.Invalid(ve)
+	}
+	return v.Validated(), nil
 }
 
 // ---------------------------------------------------------------------------

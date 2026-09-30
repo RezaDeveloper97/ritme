@@ -23,6 +23,7 @@ import (
 	"github.com/ritme/backend-go/internal/catalog"
 	"github.com/ritme/backend-go/internal/catalog/store"
 	"github.com/ritme/backend-go/internal/i18n"
+	"github.com/ritme/backend-go/internal/i18n/lang"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/db/testdb"
 )
@@ -294,3 +295,114 @@ func TestAdmin_CRUDFlushesPublicCache(t *testing.T) {
 }
 
 func itoa(n int) string { return strconv.Itoa(n) }
+
+// ---------------------------------------------------------------------------
+// Reorder (CB-CORE-03b)
+
+func (e *env) orders(group string) map[string]int {
+	e.T.Helper()
+	rows, err := e.DB.QueryContext(e.T.Context(), "SELECT code, sort_order FROM catalog_items WHERE `group` = ?", group)
+	require.NoError(e.T, err)
+	defer func() { _ = rows.Close() }()
+	out := map[string]int{}
+	for rows.Next() {
+		var code string
+		var n int
+		require.NoError(e.T, rows.Scan(&code, &n))
+		out[code] = n
+	}
+	require.NoError(e.T, rows.Err())
+	return out
+}
+
+func (e *env) id(group, code string) int {
+	return e.Int("SELECT id FROM catalog_items WHERE `group` = ? AND code = ?", group, code)
+}
+
+func TestAdmin_Reorder(t *testing.T) {
+	e := newEnv(t)
+	for i, code := range []string{"a", "b", "c"} {
+		e.seed("teen_faq", code, 0, i != 1, nil, map[string]any{"fa": code}, nil, nil) // colliding orders
+	}
+	e.seed("other", "x", 0, true, nil, map[string]any{"fa": "x"}, nil, nil)
+	a, b, c, x := e.id("teen_faq", "a"), e.id("teen_faq", "b"), e.id("teen_faq", "c"), e.id("other", "x")
+	const path = "/catalog/teen_faq/reorder"
+
+	// Guards: auth, CSRF, group format.
+	assert.Equal(t, 401, e.Anonymous().JSON(fiber.MethodPost, path, map[string]any{"ids": []int{c, a, b}}).Status)
+	noCSRF := e.As(admintest.EditorID)
+	noCSRF.CSRF = ""
+	assert.Equal(t, 419, noCSRF.JSON(fiber.MethodPost, path, map[string]any{"ids": []int{c, a, b}}).Status)
+	ed := e.As(admintest.EditorID)
+	assert.Equal(t, 404, ed.JSON(fiber.MethodPost, "/catalog/Bad-Group/reorder", map[string]any{"ids": []int{}}).Status)
+
+	// Validation: every id of the group exactly once.
+	for name, body := range map[string]map[string]any{
+		"missing":     {},
+		"partial":     {"ids": []int{c, a}},
+		"duplicate":   {"ids": []int{c, a, a}},
+		"other group": {"ids": []int{c, a, x}},
+		"not ints":    {"ids": []any{"z", a, b}},
+	} {
+		r := ed.JSON(fiber.MethodPost, path, body)
+		assert.Equal(t, 422, r.Status, name)
+	}
+	r := ed.JSON(fiber.MethodPost, path, map[string]any{"ids": []int{c, a, a}})
+	assert.Contains(t, r.Errors(), "ids.2")
+	assert.Equal(t, map[string]int{"a": 0, "b": 0, "c": 0}, e.orders("teen_faq"), "a 422 writes nothing")
+
+	// Warm the public cache, then reorder (inactive rows included).
+	assert.Equal(t, []string{"a", "c"}, codes(e.get(t, "/api/v1/catalog/teen_faq", "fa")))
+	r = ed.JSON(fiber.MethodPost, path, map[string]any{"ids": []int{c, b, a}})
+	require.Equal(t, 200, r.Status, string(r.Raw))
+	assert.Equal(t, "Order saved.", r.Body["message"])
+	assert.Equal(t, []any{
+		map[string]any{"id": float64(c), "sort_order": float64(1)},
+		map[string]any{"id": float64(b), "sort_order": float64(2)},
+		map[string]any{"id": float64(a), "sort_order": float64(3)},
+	}, r.Items())
+	assert.Equal(t, map[string]int{"c": 1, "b": 2, "a": 3}, e.orders("teen_faq"))
+	assert.Equal(t, map[string]int{"x": 0}, e.orders("other"), "other group untouched")
+	assert.Equal(t, []string{"c", "a"}, codes(e.get(t, "/api/v1/catalog/teen_faq", "fa")), "the reorder flushed the cache")
+	assert.Equal(t, "b", e.String("SELECT code FROM catalog_items WHERE id = ? AND is_active = 0", b), "other columns kept")
+}
+
+// A failure on a later row rolls back the rows already written: all or nothing.
+func TestAdmin_ReorderIsAtomic(t *testing.T) {
+	e := newEnv(t)
+	for i, code := range []string{"a", "b", "boom"} {
+		e.seed("teen_faq", code, i+1, true, nil, map[string]any{"fa": code}, nil, nil)
+	}
+	e.Exec("CREATE TRIGGER catalog_boom BEFORE UPDATE ON catalog_items FOR EACH ROW " +
+		"IF NEW.code = 'boom' THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'boom'; END IF")
+	a, b, boom := e.id("teen_faq", "a"), e.id("teen_faq", "b"), e.id("teen_faq", "boom")
+
+	// b → 1 is written first, then writing boom → 2 fails: b's write must be rolled back.
+	r := e.As(admintest.EditorID).JSON(fiber.MethodPost, "/catalog/teen_faq/reorder",
+		map[string]any{"ids": []int{b, boom, a}})
+	assert.Equal(t, 500, r.Status, string(r.Raw))
+	assert.Equal(t, map[string]int{"a": 1, "b": 2, "boom": 3}, e.orders("teen_faq"), "nothing written")
+}
+
+// The duplicate-code 422 names the catalog item code, not the shared `code` label (the OTP code).
+func TestAdmin_CodeAttributeLabel(t *testing.T) {
+	e := newEnv(t)
+	a := e.As(admintest.EditorID)
+	require.Equal(t, 201, a.JSON(fiber.MethodPost, "/catalog/teen_faq", validBody()).Status)
+	r := a.JSON(fiber.MethodPost, "/catalog/teen_faq", validBody())
+	require.Equal(t, 422, r.Status)
+	msgs, _ := r.Errors()["code"].([]any)
+	require.Len(t, msgs, 1)
+	assert.Equal(t, "کد آیتم قبلاً ثبت شده است.", msgs[0])
+	shared, _ := lang.Default().Get("validation.attributes.code", "fa")
+	assert.Equal(t, "کد تایید", shared, "the shared OTP label is unchanged")
+	en, _ := lang.Default().Get("catalog.attributes.code", "en")
+	assert.Equal(t, "item code", en)
+
+	// Rule messages for code use the catalog label too.
+	r = a.JSON(fiber.MethodPost, "/catalog/teen_faq", map[string]any{"title": map[string]any{"fa": "x"}})
+	require.Equal(t, 422, r.Status)
+	msgs, _ = r.Errors()["code"].([]any)
+	require.Len(t, msgs, 1)
+	assert.Contains(t, msgs[0], "کد آیتم")
+}

@@ -308,6 +308,29 @@ func (q *Queries) NextCatalogSortOrder(ctx context.Context, group string) (int64
 	return next_sort_order, err
 }
 
+const setCatalogSortOrder = `-- name: SetCatalogSortOrder :exec
+UPDATE ` + "`" + `catalog_items` + "`" + ` SET sort_order = ?, updated_at = ?
+WHERE id = ? AND ` + "`" + `group` + "`" + ` = ?
+`
+
+type SetCatalogSortOrderParams struct {
+	SortOrder    int32
+	Now          sql.NullTime
+	ID           uint64
+	CatalogGroup string
+}
+
+// Reorder (POST /catalog/{group}/reorder): only sort_order changes, so a concurrent edit of the other columns survives.
+func (q *Queries) SetCatalogSortOrder(ctx context.Context, arg SetCatalogSortOrderParams) error {
+	_, err := q.db.ExecContext(ctx, setCatalogSortOrder,
+		arg.SortOrder,
+		arg.Now,
+		arg.ID,
+		arg.CatalogGroup,
+	)
+	return err
+}
+
 const updateCatalogItem = `-- name: UpdateCatalogItem :exec
 UPDATE ` + "`" + `catalog_items` + "`" + `
 SET sort_order = ?, is_active = ?, audiences = ?,

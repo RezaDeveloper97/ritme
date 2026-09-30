@@ -1,6 +1,6 @@
 /**
  * Pure helpers for the catalog editor (docs/canvas-build/catalog.md §2–§4): code checks,
- * audiences / meta text ↔ API values, write bodies and the reorder plan.
+ * audiences / meta text ↔ API values and write bodies.
  */
 
 /** Lowercase snake case starting with a letter — groups, item codes and audience codes (backend codePattern). */
@@ -80,7 +80,7 @@ export interface RowForWrite {
 
 /**
  * A partial PUT: the API keeps every absent optional field (catalog.md §3), but `title` is
- * required on each write, so list-level edits (active switch, reorder) send it along.
+ * required on each write, so list-level edits (the active switch) send it along.
  */
 export function partialUpdate(row: RowForWrite, patch: { sort_order?: number; is_active?: boolean }) {
   return { title: row.title, ...patch };
@@ -93,23 +93,6 @@ export function moveItem<T>(items: readonly T[], from: number, to: number): T[] 
   const [item] = next.splice(from, 1);
   next.splice(to, 0, item as T);
   return next;
-}
-
-/**
- * The PUTs that make `ordered` (rows in their new order) the stored order. The rows' current
- * sort_order values are reused as slots when they are distinct, so moving one row only touches
- * the rows between its old and new position; duplicate orders (seeds, legacy) are renumbered 1…n.
- */
-export function planReorder(ordered: readonly RowForWrite[]): Array<{ id: number; sort_order: number }> {
-  const current = ordered.map((r) => r.sort_order).sort((a, b) => a - b);
-  const distinct = current.every((v, i) => i === 0 || v > (current[i - 1] as number));
-  const slots = distinct ? current : ordered.map((_, i) => i + 1);
-  const out: Array<{ id: number; sort_order: number }> = [];
-  ordered.forEach((row, i) => {
-    const slot = slots[i] as number;
-    if (row.sort_order !== slot) out.push({ id: row.id, sort_order: slot });
-  });
-  return out;
 }
 
 /** First message for `audiences` or any `audiences.N` in a 422 bag. */

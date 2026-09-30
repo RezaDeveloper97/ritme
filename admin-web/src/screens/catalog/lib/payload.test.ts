@@ -11,7 +11,6 @@ import {
   parseAudiences,
   parseMeta,
   partialUpdate,
-  planReorder,
 } from './payload';
 
 const row = (id: number, sort_order: number) => ({ id, sort_order, title: { fa: `ع${id}` }, is_active: true });
@@ -78,32 +77,6 @@ describe('reorder', () => {
   it('moveItem moves and ignores out-of-range moves', () => {
     expect(moveItem([1, 2, 3], 2, 0)).toEqual([3, 1, 2]);
     expect(moveItem([1, 2], 1, 2)).toEqual([1, 2]);
-  });
-  it('swapping neighbours reuses their slots (two PUTs)', () => {
-    const rows = [row(1, 10), row(2, 20), row(3, 30)];
-    expect(planReorder(moveItem(rows, 2, 1))).toEqual([
-      { id: 3, sort_order: 20 },
-      { id: 2, sort_order: 30 },
-    ]);
-  });
-  it('moving to the top shifts only the rows in between', () => {
-    const rows = [row(1, 1), row(2, 2), row(3, 3), row(4, 4)];
-    expect(planReorder(moveItem(rows, 2, 0))).toEqual([
-      { id: 3, sort_order: 1 },
-      { id: 1, sort_order: 2 },
-      { id: 2, sort_order: 3 },
-    ]);
-  });
-  it('renumbers 1…n when stored orders collide', () => {
-    const rows = [row(1, 0), row(2, 0), row(3, 0)];
-    expect(planReorder(moveItem(rows, 0, 2))).toEqual([
-      { id: 2, sort_order: 1 },
-      { id: 3, sort_order: 2 },
-      { id: 1, sort_order: 3 },
-    ]);
-  });
-  it('an unchanged order needs no writes', () => {
-    expect(planReorder([row(1, 1), row(2, 5)])).toEqual([]);
   });
 });
 

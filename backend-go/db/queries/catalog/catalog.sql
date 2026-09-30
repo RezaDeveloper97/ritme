@@ -57,5 +57,10 @@ SET sort_order = sqlc.arg(sort_order), is_active = sqlc.arg(is_active), audience
     updated_at = sqlc.arg(now)
 WHERE id = sqlc.arg(id) AND `group` = sqlc.arg(catalog_group);
 
+-- name: SetCatalogSortOrder :exec
+-- Reorder (POST /catalog/{group}/reorder): only sort_order changes, so a concurrent edit of the other columns survives.
+UPDATE `catalog_items` SET sort_order = sqlc.arg(sort_order), updated_at = sqlc.arg(now)
+WHERE id = sqlc.arg(id) AND `group` = sqlc.arg(catalog_group);
+
 -- name: DeleteCatalogItem :execresult
 DELETE FROM `catalog_items` WHERE id = sqlc.arg(id) AND `group` = sqlc.arg(catalog_group);
