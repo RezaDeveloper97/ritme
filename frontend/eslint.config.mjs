@@ -13,7 +13,7 @@ const eslintConfig = [
   {
     // `sample/` is a standalone design prototype (plain HTML/CSS/JS), not app
     // source — kept for reference but excluded from linting and the build.
-    ignores: ['.next/**', 'node_modules/**', 'next-env.d.ts', 'sample/**'],
+    ignores: ['.next/**', '.next-dev/**', 'node_modules/**', 'next-env.d.ts', 'sample/**'],
   },
   ...compat.extends('next/core-web-vitals', 'next/typescript'),
 ];

@@ -110,6 +110,8 @@ const nextConfig: NextConfig = {
   // Emit a self-contained server bundle (.next/standalone) so the Docker
   // runtime image can ship without node_modules or the full source tree.
   output: 'standalone',
+  // Local only: `NEXT_DIST_DIR=.next-dev npm run dev` keeps the dev server alive while `npm run build` runs.
+  distDir: process.env.NEXT_DIST_DIR || '.next',
   env: {
     NEXT_PUBLIC_APP_VERSION: pkg.version,
     NEXT_PUBLIC_BUILD_ID: buildId ?? '',
