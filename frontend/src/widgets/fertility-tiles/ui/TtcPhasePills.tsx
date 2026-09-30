@@ -20,7 +20,7 @@ const TONE: Record<TtcPhase, string> = {
 export function TtcPhasePills({ active }: { active: TtcPhase | null }) {
   const t = useTranslations('fertility.home');
   return (
-    <ul className="flex flex-wrap justify-center gap-2" aria-label={t('phasesLabel')}>
+    <ul className="ttc-phase-pills" aria-label={t('phasesLabel')}>
       {TTC_PHASES.map((phase) => (
         <li
           key={phase}

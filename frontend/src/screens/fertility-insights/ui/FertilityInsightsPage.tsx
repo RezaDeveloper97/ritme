@@ -9,7 +9,7 @@ import {
   type FertilityInsights,
   useFertilityInsights,
 } from "@/entities/fertility";
-import { type Locale, Link, useDirection } from "@/shared/i18n";
+import { type Locale, Link, useRouter } from "@/shared/i18n";
 import {
   formatDayMonth,
   formatMonthLabel,
@@ -21,7 +21,17 @@ import {
   weekdayLabels,
 } from "@/shared/lib/date";
 import { AppSheet } from "@/shared/sheet";
-import { Icon } from "@/shared/ui";
+import {
+  Card,
+  EmptyState,
+  Icon,
+  PrimaryButton,
+  ScreenHeader,
+  SecondaryButton,
+  Skeleton,
+  SkeletonGroup,
+  SkyLayer,
+} from "@/shared/ui";
 
 import {
   CONFIDENCE_TONE,
@@ -48,7 +58,7 @@ const DEFAULT_PERIOD_DAYS = 5;
 export function FertilityInsightsPage() {
   const t = useTranslations("fertility");
   const locale = useLocale() as Locale;
-  const dir = useDirection();
+  const router = useRouter();
   const query = useFertilityInsights();
   const [tipsOpen, setTipsOpen] = useState(false);
   const data = query.data;
@@ -56,45 +66,49 @@ export function FertilityInsightsPage() {
   let body: ReactNode;
   if (query.isPending) {
     body = (
-      <p className="py-10 text-center text-[14px] text-(--muted)">
-        {t("loading")}
-      </p>
+      <SkeletonGroup label={t("loading")}>
+        <Skeleton shape="card" className="ttc-skel-tall" />
+        <Skeleton shape="card" />
+        <Skeleton shape="card" />
+      </SkeletonGroup>
     );
   } else if (query.isError || !data) {
     body = (
-      <div className="flex flex-col items-center gap-3 py-10">
-        <p className="text-center text-[14px] text-(--muted)">
-          {t("loadError")}
-        </p>
-        <button
-          type="button"
-          className="rounded-full bg-(--fert-chip-on-bg) px-5 py-2 text-[14px] font-bold text-(--brand)"
+      <Card className="ttc-state" role="alert">
+        <span className="ttc-state-disc" aria-hidden>
+          <Icon name="warning" size={24} />
+        </span>
+        <p className="ttc-state-text">{t("loadError")}</p>
+        <SecondaryButton
+          icon="refresh"
+          block={false}
           onClick={() => void query.refetch()}
         >
           {t("retry")}
-        </button>
-      </div>
+        </SecondaryButton>
+      </Card>
     );
   } else if (isLowData(data)) {
     body = (
       <>
-        <section className="fert-card flex flex-col items-center gap-3 px-4 py-8 text-center">
-          <span className="fert-disc fert-tone-violet grid size-14 place-items-center rounded-full">
-            <Icon name="sparkle" size={26} />
-          </span>
-          <h2 className="text-[16px] font-extrabold text-(--ink)">
-            {t("insights.lowData.title")}
-          </h2>
-          <p className="text-[13px] leading-6 text-(--muted)">
-            {t("insights.lowData.body")}
-          </p>
-          <p className="text-[12px] text-(--muted)">
-            {t("insights.window.disclaimer")}
-          </p>
-          <Link href={LOG_HREF} className="btn btn-primary mt-1">
-            {t("insights.logCta")}
-          </Link>
-        </section>
+        <Card>
+          <EmptyState
+            icon="sparkle"
+            className="ttc-empty"
+            title={t("insights.lowData.title")}
+            body={
+              <>
+                {t("insights.lowData.body")}
+                <span className="ttc-empty-note">{t("insights.window.disclaimer")}</span>
+              </>
+            }
+            action={
+              <PrimaryButton onClick={() => router.push(LOG_HREF)}>
+                {t("insights.logCta")}
+              </PrimaryButton>
+            }
+          />
+        </Card>
         {data.evidence.length > 0 && <EvidenceCard data={data} />}
       </>
     );
@@ -106,7 +120,7 @@ export function FertilityInsightsPage() {
         {data.history.length > 0 && <HistoryCard data={data} locale={locale} />}
         <button
           type="button"
-          className="fert-improve"
+          className="nb-btn is-block fert-improve"
           onClick={() => setTipsOpen(true)}
         >
           <Icon name="sparkle" size={18} />
@@ -118,30 +132,23 @@ export function FertilityInsightsPage() {
 
   return (
     <div className="view fert-page">
-      <div className="scroll">
-        <header className="rmd-hdr">
-          <Link href={BACK_HREF} className="rmd-hdr-btn" aria-label={t("back")}>
-            <Icon
-              name={dir === "rtl" ? "chevronRight" : "chevronLeft"}
-              size={20}
-              strokeWidth={1.8}
-            />
-          </Link>
-          <div className="rmd-hdr-text">
-            <h1 className="rmd-hdr-title">{t("insights.title")}</h1>
-            {data && (
-              <p className="rmd-hdr-sub">
-                {data.cyclesUsed === 0
-                  ? t("insights.noCycles")
-                  : t("insights.basedOn", {
-                      count: formatNumber(data.cyclesUsed, locale),
-                    })}
-              </p>
-            )}
-          </div>
-          <span className="rmd-hdr-btn invisible" aria-hidden />
-        </header>
-        <div className="flex flex-col gap-3.5 px-4 pt-1 pb-32">{body}</div>
+      <div className="scroll ttc-screen">
+        <SkyLayer />
+        <ScreenHeader
+          title={t("insights.title")}
+          subtitle={
+            data
+              ? data.cyclesUsed === 0
+                ? t("insights.noCycles")
+                : t("insights.basedOn", {
+                    count: formatNumber(data.cyclesUsed, locale),
+                  })
+              : undefined
+          }
+          onBack={() => router.push(BACK_HREF)}
+          backLabel={t("back")}
+        />
+        <div className="ttc-body">{body}</div>
       </div>
 
       <AppSheet
@@ -152,13 +159,13 @@ export function FertilityInsightsPage() {
       >
         <div className="flex flex-col gap-4 pb-2">
           {data && data.tips.length > 0 && (
-            <ul className="flex list-disc flex-col gap-1 ps-5 text-start text-[14px] leading-7 text-(--ink-3)">
+            <ul className="ttc-sheet-list">
               {data.tips.map((tip) => (
                 <li key={tip}>{tip}</li>
               ))}
             </ul>
           )}
-          <Link href={LOG_HREF} className="btn btn-ghost w-full">
+          <Link href={LOG_HREF} className="nb-btn is-outline is-block">
             {t("insights.logCta")}
           </Link>
         </div>
@@ -194,8 +201,8 @@ function WindowCard({
   const showsToday = weeks.some((week) => week.some((d) => toApiDate(d) === todayIso));
 
   return (
-    <section className="fert-card flex flex-col gap-3.5">
-      <div className="flex items-center justify-between gap-2">
+    <Card as="section" padding="lg" className="ttc-stack">
+      <div className="ttc-row-between">
         <h2 className="fert-overline">{t("window.title")}</h2>
         {data.confidence && (
           <span
@@ -208,21 +215,21 @@ function WindowCard({
           </span>
         )}
       </div>
-      <p className="text-start text-[19px] leading-[1.7] font-extrabold text-(--ink)">
+      <p className="ttc-window-summary">
         {summary}
       </p>
 
-      <div aria-label={t("calendarLabel")} className="flex flex-col gap-1.5">
-        <p className="text-center text-[12px] font-bold text-(--muted)">
+      <div role="group" aria-label={t("calendarLabel")} className="ttc-cal">
+        <p className="ttc-cal-caption">
           {caption}
         </p>
-        <div className="grid grid-cols-7 text-center text-[10.5px] font-bold text-(--muted)">
+        <div className="ttc-cal-week is-head">
           {weekdayLabels(locale).map((d) => (
             <span key={d}>{d}</span>
           ))}
         </div>
         {weeks.map((week) => (
-          <div key={toApiDate(week[0])} className="grid grid-cols-7 gap-y-1.5">
+          <div key={toApiDate(week[0])} className="ttc-cal-week">
             {week.map((date) => {
               const iso = toApiDate(date);
               const mark = calendarMark(iso, w, todayIso);
@@ -237,17 +244,17 @@ function WindowCard({
             })}
           </div>
         ))}
-        <div className="mt-1 flex flex-wrap items-center justify-center gap-4 text-[11px] text-(--muted)">
-          <span className="flex items-center gap-1.5">
+        <div className="ttc-cal-legend">
+          <span className="ttc-legend-item">
             <span className="fert-cal-swatch is-window" />
             {t("window.legendWindow")}
           </span>
-          <span className="flex items-center gap-1.5">
+          <span className="ttc-legend-item">
             <span className="fert-cal-swatch is-ovulation" />
             {t("window.legendOvulation")}
           </span>
           {showsToday && (
-            <span className="flex items-center gap-1.5">
+            <span className="ttc-legend-item">
               <span className="fert-cal-swatch is-today" />
               {t("window.legendToday")}
             </span>
@@ -256,7 +263,7 @@ function WindowCard({
       </div>
 
       <p className="fert-disclaimer">{t("window.disclaimer")}</p>
-    </section>
+    </Card>
   );
 }
 
@@ -264,27 +271,23 @@ function EvidenceCard({ data }: { data: FertilityInsights }) {
   const t = useTranslations("fertility.insights");
   if (data.evidence.length === 0) return null;
   return (
-    <section className="fert-card flex flex-col gap-3.5">
-      <h2 className="text-start text-[15px] font-extrabold text-(--ink)">
-        {t("evidence.title")}
-      </h2>
-      <ul className="flex flex-col gap-3.5">
+    <Card as="section" padding="lg" className="ttc-stack">
+      <h2 className="ttc-card-title">{t("evidence.title")}</h2>
+      <ul className="ttc-evidence">
         {data.evidence.map((row) => (
-          <li key={row.key} className="flex items-center gap-3">
+          <li key={row.key} className="ttc-evidence-row">
             <span
               className={clsx(
-                "fert-disc grid size-10 shrink-0 place-items-center rounded-full",
+                "fert-disc ttc-evidence-disc",
                 `fert-tone-${evidenceTone(row.key)}`,
               )}
             >
               <Icon name={evidenceIcon(row.key)} size={18} strokeWidth={2.2} />
             </span>
-            <div className="flex min-w-0 flex-1 flex-col text-start">
-              <span className="text-[13.5px] font-extrabold text-(--ink)">
-                {row.title}
-              </span>
+            <div className="ttc-evidence-text">
+              <span className="ttc-evidence-title">{row.title}</span>
               {row.detail && (
-                <span className="text-[12px] font-semibold text-(--ink-3)">
+                <span className="ttc-evidence-detail">
                   {row.detail}
                 </span>
               )}
@@ -302,7 +305,7 @@ function EvidenceCard({ data }: { data: FertilityInsights }) {
           </li>
         ))}
       </ul>
-    </section>
+    </Card>
   );
 }
 
@@ -329,19 +332,17 @@ function HistoryCard({
   const next = nextStarts(data.history, currentStart);
 
   return (
-    <section className="fert-card flex flex-col gap-3">
-      <h2 className="text-start text-[15px] font-extrabold text-(--ink)">
-        {t("history.title")}
-      </h2>
-      <ul className="flex flex-col gap-3">
+    <Card as="section" padding="lg" className="ttc-stack">
+      <h2 className="ttc-card-title">{t("history.title")}</h2>
+      <ul className="ttc-history">
         {data.history.map((row, i) => {
           const strip = historyStrip(row, next[i], fallbackPeriodLength);
           return (
             <li
               key={`${row.cycleStart ?? row.monthLabel}-${i}`}
-              className="flex items-center gap-2.5"
+              className="ttc-history-row"
             >
-              <span className="w-15 shrink-0 text-start text-[12px] font-bold text-(--ink-3)">
+              <span className="ttc-history-month">
                 {row.monthLabel}
               </span>
               {strip ? (
@@ -351,9 +352,9 @@ function HistoryCard({
                   ))}
                 </span>
               ) : (
-                <span className="flex-1" />
+                <span className="ttc-grow" />
               )}
-              <span className="shrink-0 text-[12px] font-extrabold whitespace-nowrap text-(--fert-teal)">
+              <span className="ttc-history-day">
                 {row.ovulationDay === null
                   ? t("history.unknown")
                   : t("history.day", {
@@ -364,6 +365,6 @@ function HistoryCard({
           );
         })}
       </ul>
-    </section>
+    </Card>
   );
 }

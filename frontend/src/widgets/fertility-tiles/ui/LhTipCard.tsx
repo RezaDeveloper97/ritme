@@ -12,9 +12,9 @@ export function LhTipCard() {
       <span className="ttc-tip-disc" aria-hidden>
         <Icon name="sparkle" size={20} fill="currentColor" strokeWidth={0} />
       </span>
-      <div className="flex min-w-0 flex-col gap-1 text-start">
-        <h2 className="text-[14.5px] font-extrabold text-(--ink)">{t('title')}</h2>
-        <p className="text-[13px] leading-[1.9] text-(--ink-3)">{t('body')}</p>
+      <div className="ttc-tip-card-text">
+        <h2 className="ttc-tip-card-title">{t('title')}</h2>
+        <p className="ttc-tip-card-body">{t('body')}</p>
       </div>
     </section>
   );

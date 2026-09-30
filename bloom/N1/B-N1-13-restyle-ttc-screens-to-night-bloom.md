@@ -3,7 +3,7 @@ id: B-N1-13
 title: Restyle TTC screens to Night & Bloom
 milestone: N1
 type: frontend
-status: todo
+status: done
 depends_on: [B-N1-03]
 parallel_group: N1-M
 touches: [frontend/src/screens/fertility-log,frontend/src/screens/fertility-bbt,frontend/src/screens/fertility-insights,frontend/src/widgets/fertility-tiles,frontend/src/widgets/bbt-chart]

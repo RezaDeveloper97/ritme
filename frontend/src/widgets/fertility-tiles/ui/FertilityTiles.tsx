@@ -5,7 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 
 import { formatBbt, useFertilityToday } from '@/entities/fertility';
 import { Link, type Locale } from '@/shared/i18n';
-import { Icon, type IconName } from '@/shared/ui';
+import { Icon, type IconName, Skeleton, SkeletonGroup } from '@/shared/ui';
 
 type Tone = 'lh' | 'bbt' | 'intercourse';
 
@@ -34,27 +34,27 @@ function TileLink({ tile }: { tile: Tile }) {
     <Link
       href={tile.href}
       aria-label={`${tile.aria} — ${tile.value}`}
-      className="flex min-h-11 min-w-11 flex-col items-center gap-2 rounded-3xl border border-(--line) bg-(--surface) px-2 py-4 text-center focus-visible:outline-2 focus-visible:outline-(--brand)"
+      className="nb-card ttc-tile"
     >
       <span
         aria-hidden
-        className={clsx('fert-disc size-12 rounded-full', TONE[tile.tone])}
+        className={clsx('fert-disc ttc-tile-disc', TONE[tile.tone])}
       >
         <Icon name={ICON[tile.tone]} size={22} />
       </span>
-      <span className="text-[13px] font-bold text-(--ink)">{tile.label}</span>
-      <span className="text-[10.5px] font-semibold text-(--ink-3)">{tile.value}</span>
+      <span className="ttc-tile-label">{tile.label}</span>
+      <span className="ttc-tile-value">{tile.value}</span>
     </Link>
   );
 }
 
 function TilesSkeleton({ label }: { label: string }) {
   return (
-    <div role="status" aria-busy="true" aria-label={label} className="grid grid-cols-3 gap-2.5">
+    <SkeletonGroup label={label} className="ttc-tiles">
       {[0, 1, 2].map((i) => (
-        <div key={i} className="h-[134px] animate-pulse rounded-3xl border border-(--line) bg-(--surface)" />
+        <Skeleton key={i} shape="card" className="ttc-tile-skel" />
       ))}
-    </div>
+    </SkeletonGroup>
   );
 }
 
@@ -76,7 +76,7 @@ export function FertilityTiles() {
       {isPending || !data ? (
         <TilesSkeleton label={t('tiles.label')} />
       ) : (
-        <div className="grid grid-cols-3 gap-2.5">
+        <div className="ttc-tiles">
           {(
             [
               {

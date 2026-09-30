@@ -47,7 +47,7 @@ export function BbtChart({ cycles, today }: Props) {
   const points = [...current.points].sort((a, b) => a.cycleDay - b.cycleDay);
 
   return (
-    <figure className="flex flex-col gap-3">
+    <figure className="ttc-chart">
       <div dir="ltr">
         <svg
           viewBox={`0 0 ${frame.width} ${frame.height}`}
@@ -59,11 +59,11 @@ export function BbtChart({ cycles, today }: Props) {
             <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
               <stop
                 offset="0%"
-                className="[stop-color:var(--fert-teal)] [stop-opacity:0.28]"
+                className="ttc-chart-stop-top"
               />
               <stop
                 offset="100%"
-                className="[stop-color:var(--fert-teal)] [stop-opacity:0]"
+                className="ttc-chart-stop-bottom"
               />
             </linearGradient>
           </defs>
@@ -91,7 +91,7 @@ export function BbtChart({ cycles, today }: Props) {
                 y={scales.y(v)}
                 textAnchor="end"
                 dominantBaseline="middle"
-                className="fill-(--fert-chart-label) text-[9px]"
+                className="ttc-axis"
               >
                 {yTickLabel(v, locale)}
               </text>
@@ -103,7 +103,7 @@ export function BbtChart({ cycles, today }: Props) {
               x={scales.x(d)}
               y={floor + 16}
               textAnchor="middle"
-              className="fill-(--fert-chart-label) text-[9px]"
+              className="ttc-axis"
             >
               {formatNumber(d, locale)}
             </text>
@@ -173,22 +173,22 @@ export function BbtChart({ cycles, today }: Props) {
         </svg>
       </div>
 
-      <figcaption className="flex flex-wrap gap-x-3.5 gap-y-2 text-[11.5px] font-semibold text-(--ink-3)">
+      <figcaption className="ttc-chart-legend">
         <LegendItem
-          swatch="size-2.5 rounded-full bg-(--fert-teal) shadow-[0_0_8px_var(--fert-teal)]"
+          swatch="ttc-sw is-data"
           label={t("legend.logged")}
         />
         <LegendItem
-          swatch="size-2.5 rounded-full bg-(--fert-amber)"
+          swatch="ttc-sw is-warm"
           label={t("legend.baseline")}
         />
         <LegendItem
-          swatch="size-2.5 rounded-full bg-(--fert-amber-band)"
+          swatch="ttc-sw is-band"
           label={t("legend.window")}
         />
         {previous.length > 0 && (
           <LegendItem
-            swatch="h-0 w-4 border-t-2 border-(--fert-chart-label) opacity-40"
+            swatch="ttc-sw is-prev"
             label={t("legend.previous")}
           />
         )}
@@ -219,8 +219,8 @@ export function BbtChart({ cycles, today }: Props) {
 
 function LegendItem({ swatch, label }: { swatch: string; label: string }) {
   return (
-    <span className="flex items-center gap-1.5">
-      <span className={clsx("inline-block shrink-0", swatch)} aria-hidden />
+    <span className="ttc-legend-item">
+      <span className={swatch} aria-hidden />
       {label}
     </span>
   );

@@ -83,3 +83,22 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
 - **Open:** FAB/BottomNav (B-N1-04), home CycleRing with phase arcs + home date strip (B-N1-06), Checkbox/TaskRow,
   Table, AdSlot, Toast not built (not in scope list). Sheets now sit on `--page`; sheet content that painted its own
   `--surface` block may look boxed until its screen task. QUESTIONS #9–#10.
+
+## B-N1-13 — Restyle TTC screens to Night & Bloom
+
+- **Screens** `/fertility/log`, `/fertility/bbt`, `/fertility/insights` now use the nb primitives: `ScreenHeader`
+  (back → `/home`, BBT info = `HeaderButton`), `SkyLayer` (glow + dark stars), `Card`, `SegmentedTabs` (1/3/6 cycles,
+  route-driven), `PillChip` (log chips, `ttc-chip` = soft «on» + 44px), `PrimaryButton`/`SecondaryButton`,
+  `EmptyState` (no BBT readings / low data), `SkeletonGroup` loading, a shared error card (danger disc + retry).
+  Log save footer = `--surface-glass` + blur; BBT steppers 44px icon buttons.
+- **Widgets:** `fertility-tiles` (tiles, chance card donut, LH tip, phase pills) and `bbt-chart` moved from Tailwind
+  colour utilities to `ttc-*` classes on semantic tokens; tile skeleton = `Skeleton`. Fertile band token
+  `--fert-amber-band` = `--warm` @ 12% in both themes (artboard value; was two hexes). Text on white uses `-deep`
+  tokens (QUESTIONS #11).
+- **CSS:** one `/* B-N1-13 */` block at the end of `globals.css` (+ the `--fert-amber-band` token line). No new i18n
+  keys (fa/en/backend seed untouched).
+- **Data:** persona 09900000012 got 18 BBT days + LH/mucus/intercourse rows via `PUT /fertility/days/*` (ritme_dev).
+- **Screenshots:** `docs/qa/bloom/B-N1-13/` — log/bbt/insights/home × light+dark, `en_fertility_bbt` (LTR),
+  `side-by-side_*.png` (artboard light | app light | artboard dark | app dark), `artboards/`.
+- **Open:** verify's `npm run test` fails only in `message-scopes.test.ts` (splash/welcome namespaces — B-N1-05 in
+  progress), everything else green. `lint:styles:accept` not run (shared baseline, parallel agents). QUESTIONS #11–#12.

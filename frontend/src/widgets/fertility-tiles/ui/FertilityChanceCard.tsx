@@ -45,21 +45,21 @@ export function FertilityChanceCard({
   const dash = '—';
   const filled = chanceFraction(level) * C;
   const facts = [
-    { key: 'windowStart', label: t('windowStart'), value: windowStart, tone: 'text-(--fert-amber)' },
-    { key: 'ovulation', label: t('ovulation'), value: ovulation, tone: 'text-(--fert-teal)' },
-    { key: 'nextPeriod', label: t('nextPeriod'), value: nextPeriod, tone: 'text-(--period)' },
+    { key: 'windowStart', label: t('windowStart'), value: windowStart, tone: 'is-warm' },
+    { key: 'ovulation', label: t('ovulation'), value: ovulation, tone: 'is-data' },
+    { key: 'nextPeriod', label: t('nextPeriod'), value: nextPeriod, tone: 'is-period' },
   ];
 
   return (
-    <section className="fert-card flex flex-col gap-3.5 transition-opacity data-[loading=true]:opacity-55" data-loading={loading}>
-      <div className="flex items-center justify-between gap-2">
-        <h2 className="text-[15px] font-extrabold text-(--ink)">{title}</h2>
-        <span className="text-[11.5px] font-semibold text-(--ink-3)">{t('estimated')}</span>
+    <section className="nb-card ttc-chancecard" data-loading={loading} aria-busy={loading || undefined}>
+      <div className="ttc-row-between">
+        <h2 className="ttc-card-title">{title}</h2>
+        <span className="ttc-muted-cap">{t('estimated')}</span>
       </div>
-      <div className="flex items-center gap-3.5">
-        <span className="relative grid size-19 shrink-0 place-items-center" aria-hidden>
-          <svg viewBox="0 0 76 76" className="absolute inset-0 size-full -rotate-90">
-            <circle cx="38" cy="38" r={R} fill="none" strokeWidth="9" className="stroke-(--fert-chip-on-bg)" />
+      <div className="ttc-chancecard-main">
+        <span className="ttc-donut" aria-hidden>
+          <svg viewBox="0 0 76 76" className="ttc-donut-svg">
+            <circle cx="38" cy="38" r={R} fill="none" strokeWidth="9" className="ttc-donut-track" />
             {filled > 0 && (
               <circle
                 cx="38"
@@ -69,22 +69,22 @@ export function FertilityChanceCard({
                 strokeWidth="9"
                 strokeLinecap="round"
                 strokeDasharray={`${filled.toFixed(1)} ${C.toFixed(1)}`}
-                className="stroke-(--fert-amber)"
+                className="ttc-donut-fill"
               />
             )}
           </svg>
-          <Icon name="target" size={26} className="relative text-(--fert-amber)" />
+          <Icon name="target" size={26} className="ttc-donut-icon" />
         </span>
-        <div className="flex min-w-0 flex-1 flex-col text-start">
-          <span className="text-[22px] font-extrabold text-(--fert-amber)">{levelLabel}</span>
-          <p className="mt-1 text-[12.5px] leading-[1.8] text-(--ink-3)">{description}</p>
+        <div className="ttc-chancecard-text">
+          <span className="ttc-chancecard-level">{levelLabel}</span>
+          <p className="ttc-chancecard-desc">{description}</p>
         </div>
       </div>
-      <dl className="grid grid-cols-3 gap-2">
+      <dl className="ttc-facts">
         {facts.map((f) => (
-          <div key={f.key} className="flex flex-col gap-0.5 rounded-2xl bg-(--fert-field) px-3 py-2.5 text-start">
-            <dt className={`text-[10.5px] font-extrabold ${f.tone}`}>{f.label}</dt>
-            <dd className="text-[13.5px] font-bold text-(--ink)">{f.value ?? dash}</dd>
+          <div key={f.key} className="ttc-fact">
+            <dt className={`ttc-fact-label ${f.tone}`}>{f.label}</dt>
+            <dd className="ttc-fact-value">{f.value ?? dash}</dd>
           </div>
         ))}
       </dl>

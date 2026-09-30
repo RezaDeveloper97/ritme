@@ -20,9 +20,19 @@ import {
 } from '@/entities/fertility';
 import { useSaveFertilityDay } from '@/features/log-fertility-day';
 import { getApiErrorStatus } from '@/shared/api';
-import { type Locale, Link, useDirection, useRouter } from '@/shared/i18n';
+import { type Locale, Link, useRouter } from '@/shared/i18n';
 import { formatDayMonth, formatNumber, fromApiDate, toApiDate, today } from '@/shared/lib/date';
-import { Icon } from '@/shared/ui';
+import {
+  Card,
+  Icon,
+  PillChip,
+  PrimaryButton,
+  ScreenHeader,
+  SecondaryButton,
+  Skeleton,
+  SkeletonGroup,
+  SkyLayer,
+} from '@/shared/ui';
 
 import {
   changedInput,
@@ -57,25 +67,37 @@ export function FertilityLogPage({ date, focus }: { date?: string; focus?: strin
   if (query.isPending) {
     return (
       <Shell day={null} date={logDate} onBack={null}>
-        <p className="py-10 text-center text-[14px] text-(--muted)">{t('loading')}</p>
+        <SkeletonGroup label={t('loading')}>
+          <Skeleton shape="block" className="ttc-skel-chance" />
+          <Skeleton shape="card" className="ttc-skel-tall" />
+          <Skeleton shape="block" />
+        </SkeletonGroup>
       </Shell>
     );
   }
   if (query.isError || !query.data) {
     return (
       <Shell day={null} date={logDate} onBack={null}>
-        <p className="py-10 text-center text-[14px] text-(--muted)">{t('loadError')}</p>
-        <button
-          type="button"
-          className="mx-auto rounded-full bg-(--fert-chip-on-bg) px-5 py-2 text-[14px] font-bold text-(--brand)"
-          onClick={() => void query.refetch()}
-        >
-          {t('retry')}
-        </button>
+        <LoadError message={t('loadError')} retryLabel={t('retry')} onRetry={() => void query.refetch()} />
       </Shell>
     );
   }
   return <LogForm key={query.data.date} day={query.data} date={logDate} focus={parseFocus(focus)} />;
+}
+
+/** Error card with a retry — the same shape on every TTC screen. */
+function LoadError({ message, retryLabel, onRetry }: { message: string; retryLabel: string; onRetry: () => void }) {
+  return (
+    <Card className="ttc-state" role="alert">
+      <span className="ttc-state-disc" aria-hidden>
+        <Icon name="warning" size={24} />
+      </span>
+      <p className="ttc-state-text">{message}</p>
+      <SecondaryButton icon="refresh" block={false} onClick={onRetry}>
+        {retryLabel}
+      </SecondaryButton>
+    </Card>
+  );
 }
 
 function Shell({
@@ -91,33 +113,24 @@ function Shell({
 }) {
   const t = useTranslations('fertility');
   const locale = useLocale() as Locale;
-  const dir = useDirection();
   const router = useRouter();
   const dateLabel = formatDayMonth(fromApiDate(date), locale);
   const cycleDay = day?.cycleDay ?? null;
   return (
     <div className="view fert-page">
-      <div className="scroll">
-        <header className="rmd-hdr">
-          <button
-            type="button"
-            className="rmd-hdr-btn"
-            aria-label={t('back')}
-            onClick={onBack ?? (() => router.push(BACK_HREF))}
-          >
-            <Icon name={dir === 'rtl' ? 'chevronRight' : 'chevronLeft'} size={20} strokeWidth={1.8} />
-          </button>
-          <div className="rmd-hdr-text">
-            <h1 className="rmd-hdr-title">{t('log.title')}</h1>
-            <p className="rmd-hdr-sub">
-              {cycleDay === null
-                ? dateLabel
-                : t('log.subtitle', { date: dateLabel, day: formatNumber(cycleDay, locale) })}
-            </p>
-          </div>
-          <span className="rmd-hdr-btn invisible" aria-hidden />
-        </header>
-        <div className="flex flex-col gap-4.5 px-4 pt-1 pb-32">{children}</div>
+      <div className="scroll ttc-screen">
+        <SkyLayer />
+        <ScreenHeader
+          title={t('log.title')}
+          subtitle={
+            cycleDay === null
+              ? dateLabel
+              : t('log.subtitle', { date: dateLabel, day: formatNumber(cycleDay, locale) })
+          }
+          onBack={onBack ?? (() => router.push(BACK_HREF))}
+          backLabel={t('back')}
+        />
+        <div className="ttc-body is-form">{children}</div>
       </div>
     </div>
   );
@@ -133,22 +146,19 @@ function ChanceCard({ chance, isToday }: { chance: FertilityChance; isToday: boo
   return (
     <Link
       href={INSIGHTS_HREF}
-      className="flex items-center gap-3.5 rounded-3xl border border-(--fert-chance-line) bg-linear-to-l from-(--fert-chance-from) to-(--fert-chance-to) p-4"
+      className="ttc-chance"
       aria-label={`${title}: ${levelLabel} · ${t('log.openInsights')}`}
     >
-      <span className="grid size-12 shrink-0 place-items-center rounded-full bg-(--fert-chance-disc) text-(--fert-amber)">
+      <span className="ttc-chance-disc">
         <Icon name="target" size={24} />
       </span>
-      <span className="flex min-w-0 flex-1 flex-col text-start">
-        <span className="text-[11px] font-extrabold text-(--fert-amber)">{title}</span>
-        <span className="text-[20px] font-extrabold text-(--ink)">{levelLabel}</span>
+      <span className="ttc-chance-text">
+        <span className="ttc-chance-over">{title}</span>
+        <span className="ttc-chance-level">{levelLabel}</span>
       </span>
-      <span className="flex items-end gap-1" aria-hidden>
+      <span className="ttc-chance-bars" aria-hidden>
         {BAR_HEIGHTS.map((h, i) => (
-          <span
-            key={h}
-            className={clsx('w-2 rounded-sm', h, i < bars ? 'bg-(--fert-amber)' : 'bg-(--fert-bar-off)')}
-          />
+          <span key={h} className={clsx('ttc-chance-bar', h, i < bars && 'is-on')} />
         ))}
       </span>
     </Link>
@@ -174,12 +184,9 @@ function Section({
       id={`fertility-log-${id}`}
       ref={sectionRef}
       aria-labelledby={`fertility-log-${id}-title`}
-      className={clsx(
-        'flex scroll-m-24 flex-col gap-2.5 rounded-2xl transition-shadow duration-500',
-        highlight && 'ring-2 ring-(--fert-chip-on-line) ring-offset-4 ring-offset-(--surface)',
-      )}
+      className={clsx('ttc-log-sect', highlight && 'is-highlight')}
     >
-      <h2 id={`fertility-log-${id}-title`} className="text-start text-[14.5px] font-extrabold text-(--ink)">
+      <h2 id={`fertility-log-${id}-title`} className="ttc-log-title">
         {title}
       </h2>
       {children}
@@ -187,21 +194,15 @@ function Section({
   );
 }
 
+/**
+ * `v19_TTC_Log` chip: 44 px (touch target), tinted `--brand-soft` + 1.5 px brand
+ * outline when on — the soft look of the artboard, not the solid single chip.
+ */
 function Chip({ on, label, onClick }: { on: boolean; label: string; onClick: () => void }) {
   return (
-    <button
-      type="button"
-      aria-pressed={on}
-      onClick={onClick}
-      className={clsx(
-        'h-11 rounded-full border-[1.5px] px-4 text-[13.5px] font-bold transition-colors',
-        on
-          ? 'border-(--fert-chip-on-line) bg-(--fert-chip-on-bg) text-(--ink)'
-          : 'border-(--line) bg-transparent text-(--ink-3)',
-      )}
-    >
+    <PillChip pressed={on} onClick={onClick} className="ttc-chip">
       {label}
-    </button>
+    </PillChip>
   );
 }
 
@@ -224,7 +225,7 @@ function SingleChips<T extends string>({
   onChange: (v: T | null) => void;
 }) {
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="nb-chips">
       {noneLabel !== undefined && <Chip on={value === null} label={noneLabel} onClick={() => onChange(null)} />}
       {values.map((v) => (
         <Chip
@@ -332,7 +333,7 @@ function LogForm({ day, date, focus }: { day: FertilityDay; date: string; focus:
     <Shell day={day} date={date} onBack={onBack}>
       {day.chance && <ChanceCard chance={day.chance} isToday={date === toApiDate(today())} />}
 
-      <div className="fert-card flex flex-col gap-5.5">
+      <Card as="section" padding="lg" className="ttc-log-card" aria-label={tl('title')}>
         <Section id="lh" title={tl('lh.title')} highlight={highlight === 'lh'} sectionRef={refFor('lh')}>
           <SingleChips
             values={LH_RESULTS}
@@ -346,8 +347,8 @@ function LogForm({ day, date, focus }: { day: FertilityDay; date: string; focus:
         <Section id="bbt" title={tl('bbt.label')} highlight={highlight === 'bbt'} sectionRef={refFor('bbt')}>
           {/* One bordered field: the value at the start, then the unit and both
               steppers together at the end (`v19_TTC_Log`). Empty = not logged. */}
-          <div className="flex items-center gap-2 rounded-[20px] border border-(--line) bg-(--fert-field) py-1.5 ps-4.5 pe-1.5">
-            <label className="flex min-w-0 flex-1 items-center">
+          <div className="ttc-bbt-field">
+            <label className="ttc-bbt-label">
               <span className="sr-only">{tl('bbt.label')}</span>
               {/* Body font, not Lalezar: an input can't set «٫» apart, and Lalezar
                   draws it like «/» (audit #23). */}
@@ -359,33 +360,33 @@ function LogForm({ day, date, focus }: { day: FertilityDay; date: string; focus:
                 aria-invalid={bbtError !== null}
                 aria-describedby={bbtError ? bbtErrorId : 'fertility-log-bbt-hint'}
                 onChange={(e) => set('bbtText', e.target.value)}
-                className="w-full min-w-0 bg-transparent text-start text-[28px] leading-none font-extrabold text-(--ink) outline-none placeholder:text-(--muted)"
+                className="ttc-bbt-input"
               />
             </label>
-            <span className="text-[13px] font-bold text-(--ink-3)">{tl('bbt.unit')}</span>
+            <span className="ttc-bbt-unit">{tl('bbt.unit')}</span>
             <button
               type="button"
-              className="grid size-11 shrink-0 place-items-center rounded-[14px] bg-(--fert-chip-on-bg) text-[22px] font-extrabold text-(--ink)"
+              className="ttc-bbt-step"
               aria-label={tl('bbt.decrease')}
               onClick={() => onStep(-1)}
             >
-              −
+              <Icon name="minus" size={20} strokeWidth={2.4} />
             </button>
             <button
               type="button"
-              className="grid size-11 shrink-0 place-items-center rounded-[14px] bg-(--fert-chip-on-bg) text-[22px] font-extrabold text-(--ink)"
+              className="ttc-bbt-step"
               aria-label={tl('bbt.increase')}
               onClick={() => onStep(1)}
             >
-              +
+              <Icon name="plus" size={20} strokeWidth={2.4} />
             </button>
           </div>
           {bbtError ? (
-            <p id={bbtErrorId} role="alert" className="text-start text-[12px] font-bold text-(--danger-deep)">
+            <p id={bbtErrorId} role="alert" className="ttc-field-error">
               {bbtError}
             </p>
           ) : (
-            <p id="fertility-log-bbt-hint" className="text-start text-[11.5px] font-semibold text-(--muted)">
+            <p id="fertility-log-bbt-hint" className="ttc-field-hint">
               {tl('bbt.hint')}
             </p>
           )}
@@ -421,7 +422,7 @@ function LogForm({ day, date, focus }: { day: FertilityDay; date: string; focus:
           highlight={highlight === 'symptoms'}
           sectionRef={refFor('symptoms')}
         >
-          <div className="flex flex-wrap gap-2">
+          <div className="nb-chips">
             {FERTILITY_SYMPTOMS.map((s) => (
               <Chip
                 key={s}
@@ -432,7 +433,7 @@ function LogForm({ day, date, focus }: { day: FertilityDay; date: string; focus:
             ))}
           </div>
         </Section>
-      </div>
+      </Card>
 
       {/* The note sits outside the card with its own label, above the button. */}
       <Section id="note" title={tl('note.label')} highlight={highlight === 'note'} sectionRef={refFor('note')}>
@@ -442,30 +443,25 @@ function LogForm({ day, date, focus }: { day: FertilityDay; date: string; focus:
           value={state.note}
           placeholder={tl('note.placeholder')}
           onChange={(e) => set('note', e.target.value)}
-          className="w-full resize-none rounded-[20px] border border-(--line) bg-(--fert-field) p-4 text-start text-[14px] text-(--ink) outline-none placeholder:text-(--muted) focus-visible:shadow-(--ring)"
+          className="ttc-note"
         />
       </Section>
 
       {saveError && (
-        <p role="alert" className="text-center text-[13px] font-bold text-(--danger-deep)">
+        <p role="alert" className="ttc-save-error">
           {saveError}
         </p>
       )}
 
-      <div className="fixed inset-x-0 bottom-0 z-10 mx-auto flex max-w-[480px] flex-col items-center gap-2 bg-(--page) px-4 pt-3 pb-[calc(16px+env(safe-area-inset-bottom))]">
+      <div className="ttc-footer">
         {toast && (
-          <p role="status" className="rounded-full bg-(--ink) px-4 py-2 text-[13px] font-bold text-(--surface)">
+          <p role="status" className="ttc-toast">
             {toast}
           </p>
         )}
-        <button
-          type="button"
-          className="btn btn-primary w-full"
-          disabled={!bbtCheck.ok || save.isPending || toast !== null}
-          onClick={onSave}
-        >
+        <PrimaryButton loading={save.isPending} disabled={!bbtCheck.ok || toast !== null} onClick={onSave}>
           {save.isPending ? tl('saving') : tl('save')}
-        </button>
+        </PrimaryButton>
       </div>
     </Shell>
   );

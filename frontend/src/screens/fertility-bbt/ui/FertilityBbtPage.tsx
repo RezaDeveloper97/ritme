@@ -20,7 +20,20 @@ import { BbtChart } from "@/widgets/bbt-chart";
 import { type Locale, Link, useDirection, useRouter } from "@/shared/i18n";
 import { formatNumber, toApiDate, today } from "@/shared/lib/date";
 import { AppSheet } from "@/shared/sheet";
-import { Icon, type IconName } from "@/shared/ui";
+import {
+  Card,
+  EmptyState,
+  HeaderButton,
+  Icon,
+  type IconName,
+  ScreenHeader,
+  SecondaryButton,
+  type SegmentedTab,
+  SegmentedTabs,
+  Skeleton,
+  SkeletonGroup,
+  SkyLayer,
+} from "@/shared/ui";
 
 import {
   findBbtReminder,
@@ -47,6 +60,10 @@ export function FertilityBbtPage({ range: rawRange }: { range?: string }) {
   const query = useFertilityBbt(range);
   const [explainer, setExplainer] = useState(false);
   const todayStr = toApiDate(today());
+  const rangeTabs: SegmentedTab<`${BbtRange}`>[] = BBT_RANGES.map((r) => ({
+    value: `${r}` as `${BbtRange}`,
+    label: t(`bbt.ranges.${r}`),
+  }));
 
   const data = query.data;
   const current = data?.cycles[0];
@@ -55,73 +72,80 @@ export function FertilityBbtPage({ range: rawRange }: { range?: string }) {
   let body: ReactNode;
   if (query.isPending) {
     body = (
-      <p className="py-10 text-center text-[14px] text-(--muted)">
-        {t("loading")}
-      </p>
+      <SkeletonGroup label={t("loading")}>
+        <Skeleton shape="card" className="ttc-skel-chart" />
+        <div className="ttc-grid-2">
+          <Skeleton shape="card" />
+          <Skeleton shape="card" />
+        </div>
+        <Skeleton shape="block" />
+      </SkeletonGroup>
     );
   } else if (query.isError || !data) {
     body = (
-      <div className="flex flex-col items-center gap-3 py-10">
-        <p className="text-center text-[14px] text-(--muted)">
-          {t("loadError")}
-        </p>
-        <button
-          type="button"
-          className="rounded-full bg-(--fert-chip-on-bg) px-5 py-2 text-[14px] font-bold text-(--brand)"
+      <Card className="ttc-state" role="alert">
+        <span className="ttc-state-disc" aria-hidden>
+          <Icon name="warning" size={24} />
+        </span>
+        <p className="ttc-state-text">{t("loadError")}</p>
+        <SecondaryButton
+          icon="refresh"
+          block={false}
           onClick={() => void query.refetch()}
         >
           {t("retry")}
-        </button>
-      </div>
+        </SecondaryButton>
+      </Card>
     );
   } else if (!hasEnoughReadings(current)) {
     body = (
-      <section className="fert-card flex flex-col items-center gap-3 px-4 py-8 text-center">
-        <span className="fert-disc fert-tone-teal grid size-14 place-items-center rounded-full">
-          <Icon name="thermo" size={26} />
-        </span>
-        <h2 className="text-[16px] font-extrabold text-(--ink)">
-          {t("bbt.empty.title")}
-        </h2>
-        <p className="text-[13px] text-(--muted)">{t("bbt.empty.body")}</p>
-        <Link href={LOG_HREF} className="btn btn-primary mt-1">
-          {t("bbt.empty.cta")}
-        </Link>
-      </section>
+      <Card>
+        <EmptyState
+          icon="thermo"
+          className="ttc-empty"
+          title={t("bbt.empty.title")}
+          body={t("bbt.empty.body")}
+          action={
+            <Link href={LOG_HREF} className="nb-btn is-primary is-block">
+              {t("bbt.empty.cta")}
+            </Link>
+          }
+        />
+      </Card>
     );
   } else {
     const reading = todayReading(current, todayStr);
     const stats = data.stats;
     body = (
       <>
-        <section className="fert-card flex flex-col gap-3 px-3">
-          <div className="flex items-start justify-between gap-3 px-1">
-            <div className="flex flex-col text-start">
-              <span className="text-[12px] font-bold text-(--ink-3)">
+        <Card as="section" className="ttc-chart-card" aria-label={t("bbt.title")}>
+          <div className="ttc-chart-head">
+            <div className="ttc-chart-now">
+              <span className="ttc-chart-over">
                 {reading ? t("bbt.todayMorning") : t("bbt.noReadingToday")}
               </span>
               {reading && (
-                <span dir="ltr" className="flex items-baseline gap-1">
+                <span dir="ltr" className="ttc-chart-value">
                   <BbtNumber
                     text={formatBbt(reading.value, locale)}
-                    className="font-['Lalezar'] text-[44px] leading-none text-(--ink)"
+                    className="ttc-chart-num"
                   />
-                  <span className="text-[16px] font-bold text-(--ink-3)">
+                  <span className="ttc-chart-unit">
                     {t("celsius")}
                   </span>
                 </span>
               )}
             </div>
             {current?.phase && (
-              <span className="fert-pill fert-tone-teal">
+              <span className="fert-pill fert-tone-teal ttc-phase-pill">
                 {t(`bbt.phases.${current.phase}`)}
               </span>
             )}
           </div>
           <BbtChart cycles={data.cycles} today={todayStr} />
-        </section>
+        </Card>
 
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="ttc-grid-2">
           <StatCard
             icon="thermo"
             tone="teal"
@@ -154,21 +178,16 @@ export function FertilityBbtPage({ range: rawRange }: { range?: string }) {
         </div>
 
         {data.tip && (
-          <section className="fert-card flex items-start gap-3.5 p-4">
-            <span className="grid size-11 shrink-0 place-items-center rounded-full bg-(--fert-teal-soft) text-(--fert-teal)">
+          <Card as="section" className="ttc-tip-card">
+            <span className="ttc-tip-card-disc" aria-hidden>
               <Icon name="sparkle" size={20} fill="currentColor" strokeWidth={0} />
             </span>
-            <div className="flex min-w-0 flex-col gap-1 text-start">
-              <h2 className="text-[14.5px] font-extrabold text-(--ink)">
+            <div className="ttc-tip-card-text">
+              <h2 className="ttc-tip-card-title">
                 {data.tip.title ?? t("bbt.tip.title")}
               </h2>
-              <p className="text-[13px] leading-[1.9] text-(--ink-3)">
-                {data.tip.body}
-              </p>
-              <Link
-                href={INSIGHTS_HREF}
-                className="mt-1 inline-flex items-center gap-1 self-start text-[13px] font-extrabold text-(--brand)"
-              >
+              <p className="ttc-tip-card-body">{data.tip.body}</p>
+              <Link href={INSIGHTS_HREF} className="ttc-link">
                 {t("bbt.openInsights")}
                 <Icon
                   name={dir === "rtl" ? "chevronLeft" : "chevronRight"}
@@ -177,7 +196,7 @@ export function FertilityBbtPage({ range: rawRange }: { range?: string }) {
                 />
               </Link>
             </div>
-          </section>
+          </Card>
         )}
 
         <ReminderButton />
@@ -187,52 +206,33 @@ export function FertilityBbtPage({ range: rawRange }: { range?: string }) {
 
   return (
     <div className="view fert-page">
-      <div className="scroll">
-        <header className="rmd-hdr">
-          <Link href={BACK_HREF} className="rmd-hdr-btn" aria-label={t("back")}>
-            <Icon
-              name={dir === "rtl" ? "chevronRight" : "chevronLeft"}
-              size={20}
-              strokeWidth={1.8}
+      <div className="scroll ttc-screen">
+        <SkyLayer />
+        <ScreenHeader
+          title={t("bbt.title")}
+          subtitle={
+            data ? t("bbt.subtitle", { day: formatNumber(day, locale) }) : undefined
+          }
+          onBack={() => router.push(BACK_HREF)}
+          backLabel={t("back")}
+          action={
+            <HeaderButton
+              icon="info"
+              label={t("bbt.help")}
+              onClick={() => setExplainer(true)}
             />
-          </Link>
-          <div className="rmd-hdr-text">
-            <h1 className="rmd-hdr-title">{t("bbt.title")}</h1>
-            {data && (
-              <p className="rmd-hdr-sub">
-                {t("bbt.subtitle", { day: formatNumber(day, locale) })}
-              </p>
-            )}
-          </div>
-          <button
-            type="button"
-            className="rmd-hdr-btn"
-            aria-label={t("bbt.help")}
-            onClick={() => setExplainer(true)}
-          >
-            <Icon name="info" size={20} strokeWidth={1.8} />
-          </button>
-        </header>
+          }
+        />
 
-        <div className="flex flex-col gap-3.5 px-4 pt-1 pb-32">
-          <div role="tablist" aria-label={t("bbt.tabsLabel")} className="rmd-tabs">
-            {BBT_RANGES.map((r: BbtRange) => (
-              <button
-                key={r}
-                type="button"
-                role="tab"
-                aria-selected={r === range}
-                onClick={() =>
-                  router.replace(
-                    r === 1 ? "/fertility/bbt" : `/fertility/bbt?range=${r}`,
-                  )
-                }
-                className={clsx("rmd-tab", r === range && "on")}
-              >
-                {t(`bbt.ranges.${r}`)}
-              </button>
-            ))}
-          </div>
+        <div className="ttc-body">
+          <SegmentedTabs
+            label={t("bbt.tabsLabel")}
+            value={String(range) as `${BbtRange}`}
+            tabs={rangeTabs}
+            onChange={(v) =>
+              router.replace(v === "1" ? "/fertility/bbt" : `/fertility/bbt?range=${v}`)
+            }
+          />
           {body}
         </div>
       </div>
@@ -243,7 +243,7 @@ export function FertilityBbtPage({ range: rawRange }: { range?: string }) {
         size="full"
         title={t("bbt.explainer.title")}
       >
-        <div className="flex flex-col gap-3 text-start text-[14px] leading-7 text-(--ink-3)">
+        <div className="ttc-sheet-copy">
           <p>{t("bbt.explainer.p1")}</p>
           <p>{t("bbt.explainer.p2")}</p>
           <p>{t("bbt.explainer.p3")}</p>
@@ -278,17 +278,14 @@ function StatCard({
   return (
     <Link
       href={href}
-      className={clsx("fert-card flex flex-col gap-1.5 p-4 text-start", STAT_TONE[tone])}
+      className={clsx("nb-card ttc-stat", STAT_TONE[tone])}
     >
-      <span className="fert-disc size-9.5 rounded-full" aria-hidden>
+      <span className="fert-disc ttc-stat-disc" aria-hidden>
         <Icon name={icon} size={19} />
       </span>
-      <span className="text-[12px] font-bold text-(--ink-3)">{label}</span>
-      <BbtNumber
-        text={value}
-        className="font-['Lalezar'] text-[26px] leading-[1.1] text-(--ink)"
-      />
-      <span className="text-[11px] font-bold text-(--fert-ink)">{hint}</span>
+      <span className="ttc-stat-label">{label}</span>
+      <BbtNumber text={value} className="ttc-stat-num" />
+      <span className="ttc-stat-hint">{hint}</span>
     </Link>
   );
 }
@@ -316,13 +313,13 @@ function ReminderButton() {
   };
 
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="ttc-reminder">
       <button
         type="button"
         aria-pressed={existing !== null}
         disabled={busy}
         onClick={toggle}
-        className="flex h-13 items-center justify-center gap-2 rounded-full border border-(--line) bg-(--surface) text-[14.5px] font-extrabold text-(--ink) disabled:opacity-60 focus-visible:shadow-(--ring) focus-visible:outline-none"
+        className="nb-btn is-block ttc-reminder-btn"
       >
         <Icon name={existing ? "bellRing" : "moon"} size={18} />
         {busy && !reminders.isPending
@@ -332,7 +329,7 @@ function ReminderButton() {
             : t("remindTomorrow")}
       </button>
       {failed && (
-        <p role="alert" className="text-center text-[12px] text-(--danger)">
+        <p role="alert" className="ttc-save-error">
           {t("reminderError")}
         </p>
       )}
