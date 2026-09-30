@@ -95,7 +95,8 @@
     "submitting": "Setting up…",
     "submitError": "Setup didn't go through. Please try again in a bit.",
     "fillRequired": "Please complete the calculation basis first.",
-    "calculating": "Calculating…"
+    "calculating": "Calculating…",
+    "stepOf": "Step {step} of {total}"
   },
   "today": {
     "alerts": "Alerts",
@@ -117,7 +118,8 @@
       "log": "Log today's symptoms",
       "checkup": "Weekly check-up",
       "weeks": "Browse weeks",
-      "alerts": "Alerts"
+      "alerts": "Alerts",
+      "logShort": "Log symptoms"
     },
     "nextVisit": "Next visit · {days, plural, =0 {today} =1 {tomorrow} other {in # days}}",
     "visitMeta": "{weekday} · {time} · week {week, number}",
@@ -129,7 +131,11 @@
     "careEmpty": "Nothing planned for this week.",
     "disclaimerTitle": "Your due date is an estimate.",
     "disclaimerBody": "Based on your current data, most babies are born between {from} and {to}. Adding your ultrasound result narrows this range.",
-    "setupCta": "Set up pregnancy mode"
+    "setupCta": "Set up pregnancy mode",
+    "ringLabel": "Week {week, number} of {total, number}, {days, number} days to go",
+    "daysToBirth": "days to go",
+    "percentShort": "{percent, number}% of the way",
+    "calendarLink": "Calendar"
   },
   "week": {
     "bookmark": "Save to bookmarks",
@@ -148,7 +154,12 @@
       "bpm": "beats per minute",
       "approx": "~{value}",
       "range": "{from}–{to}",
-      "less": "under {value}"
+      "less": "under {value}",
+      "labels": {
+        "length": "Length",
+        "weight": "Weight",
+        "heart": "Heartbeat"
+      }
     },
     "averagesNote": "These numbers are averages; every baby grows at their own pace.",
     "warningLead": "Talk to your doctor about these:",
@@ -164,7 +175,11 @@
     "sources": "Sources",
     "notReviewed": "Awaiting specialist review",
     "empty": "This week's content isn't ready yet.",
-    "illustration": "Approximate size of your baby"
+    "illustration": "Approximate size of your baby",
+    "headerTitle": "Pregnancy — week {week}",
+    "tabWeek": "Week {week}",
+    "babyTitle": "Your baby this week",
+    "tasksTitle": "This week's to-dos"
   },
   "log": {
     "title": "Log today",
@@ -222,7 +237,12 @@
     "pending": "{count, plural, one {# log waiting to sync} other {# logs waiting to sync}}",
     "otherLogs": "Other logs",
     "weeklyCheckup": "Weekly checkup",
-    "movement": "Baby's movements"
+    "movement": "Baby's movements",
+    "waterGlass": "{count, plural, one {# glass} other {# glasses}}",
+    "spottingCard": {
+      "title": "Spotting or bleeding",
+      "body": "In pregnancy, always tell your doctor"
+    }
   },
   "calendar": {
     "title": "Calendar",
@@ -277,7 +297,8 @@
       "filename": "ritme-pregnancy-report.pdf",
       "working": "Building PDF…",
       "error": "Couldn't build the report. Try again."
-    }
+    },
+    "screenTitle": "Calendar & visits"
   },
   "alerts": {
     "title": "Alerts & messages",

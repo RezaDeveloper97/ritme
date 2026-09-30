@@ -5,8 +5,8 @@ import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 
 import {
+  type AlertLevelV2,
   DAY_SYMPTOMS,
-  moodGlyph,
   MOODS_DISPLAY_ORDER,
   type PregnancyAlertV2,
   SEVERITIES,
@@ -26,7 +26,22 @@ import {
   today,
 } from "@/shared/lib/date";
 import { AppSheet } from "@/shared/sheet";
-import { CalendarPicker, Icon } from "@/shared/ui";
+import {
+  CalendarPicker,
+  Card,
+  EmptyState,
+  HeaderButton,
+  Icon,
+  IconCircle,
+  PillChip,
+  PrimaryButton,
+  ScreenHeader,
+  SecondaryButton,
+  Skeleton,
+  SkeletonGroup,
+  SkyLayer,
+  type Tone,
+} from "@/shared/ui";
 
 import {
   type DayDraft,
@@ -42,8 +57,15 @@ import {
 import { isConfirmedSave } from "../model/save-status";
 import { useSaveDay } from "../model/use-save-day";
 
-const CARD = "rounded-2xl border border-(--line) bg-(--surface) p-4";
-const H2 = "m-0 text-[15px] font-extrabold text-(--ink)";
+/** The Log artboard's glass row; more than eight still counts through −/+. */
+const WATER_GLASSES = 8;
+
+const LEVEL_TONE: Record<AlertLevelV2, Tone> = {
+  info: "data",
+  suggestion: "brand",
+  follow_up: "warm",
+  urgent: "danger",
+};
 
 /** A valid, non-future `YYYY-MM-DD`, else today. */
 function resolveDate(raw: string | undefined): string {
@@ -51,7 +73,7 @@ function resolveDate(raw: string | undefined): string {
   return raw && /^\d{4}-\d{2}-\d{2}$/.test(raw) && raw <= now ? raw : now;
 }
 
-/** «ثبت علائم» v2 — `/pregnancy/log?date=` (Log.dc.html, T-M7-12). */
+/** «ثبت علائم» v2 — `/pregnancy/log?date=` (PregFull_Log). */
 export function DayLogPage({ date: rawDate }: { date?: string }) {
   const t = useTranslations("pregnancyV2");
   const locale = useLocale() as Locale;
@@ -95,352 +117,284 @@ export function DayLogPage({ date: rawDate }: { date?: string }) {
   // outbox has actually sent the day (the status line says it is queued).
   const saved = isConfirmedSave(status);
 
-  return (
-    <div className="view preg-page">
-      <div className="scroll">
-        <header className="rmd-hdr">
-          <Link
-            href="/pregnancy"
-            className="rmd-hdr-btn"
-            aria-label={t("common.close")}
-          >
-            <Icon name="x" size={18} />
-          </Link>
-          <div className="rmd-hdr-text">
-            <h1 className="rmd-hdr-title">
-              {isToday ? t("log.title") : t("log.titleOtherDay")}
-            </h1>
-            <p className="rmd-hdr-sub">{subtitle}</p>
-          </div>
-          <button
-            type="button"
-            className="rmd-hdr-btn"
-            aria-label={t("log.pickDay")}
-            onClick={() => setPicking(true)}
-          >
-            <Icon name="calendar" size={18} strokeWidth={1.8} />
-          </button>
-        </header>
+  const header = (
+    <ScreenHeader
+      title={isToday ? t("log.title") : t("log.titleOtherDay")}
+      subtitle={subtitle}
+      onBack={() => router.push("/pregnancy")}
+      backLabel={t("common.back")}
+      action={<HeaderButton icon="calendar" label={t("log.pickDay")} onClick={() => setPicking(true)} />}
+    />
+  );
 
+  let body: React.ReactNode;
+  if (query.isPending) {
+    body = (
+      <SkeletonGroup label={t("common.loading")} className="pgn-skel">
+        <Skeleton shape="card" />
+        <Skeleton shape="card" className="pgn-skel-hero" />
+        <Skeleton shape="block" />
+        <Skeleton shape="block" />
+      </SkeletonGroup>
+    );
+  } else if (query.isError) {
+    body = (
+      <Card className="pgn-state" role="alert">
+        <span className="pgn-state-disc" aria-hidden>
+          <Icon name="warning" size={24} />
+        </span>
+        <p className="pgn-state-text">{t("common.loadError")}</p>
+        <SecondaryButton icon="refresh" block={false} onClick={() => void query.refetch()}>
+          {t("common.retry")}
+        </SecondaryButton>
+      </Card>
+    );
+  } else if (query.data === null) {
+    body = (
+      <Card>
+        <EmptyState
+          icon="heart"
+          title={t("common.notActive")}
+          action={
+            <Link href="/pregnancy/setup" className="nb-btn is-primary is-block">
+              {t("today.setupCta")}
+            </Link>
+          }
+        />
+      </Card>
+    );
+  } else {
+    const chipSymptoms = DAY_SYMPTOMS.filter((s) => s !== "spotting");
+    const spotting = !!draft.symptoms.spotting;
+    body = (
+      <>
+        <Card as="section" className="pgn-sect" aria-labelledby="plog-mood">
+          <h2 id="plog-mood" className="pgn-sect-title">
+            {t("log.moodTitle")}
+          </h2>
+          <div role="group" aria-labelledby="plog-mood" className="nb-chips pgn-chips">
+            {MOODS_DISPLAY_ORDER.map((m) => (
+              <PillChip
+                key={m}
+                mode="multi"
+                tone="brand"
+                className="pgn-chip"
+                pressed={draft.mood === m}
+                onPressedChange={(on) => edit({ mood: on ? m : null })}
+              >
+                {t(`log.moods.${m}`)}
+              </PillChip>
+            ))}
+          </div>
+        </Card>
+
+        <Card as="section" className="pgn-sect" aria-labelledby="plog-symptoms">
+          <div className="pgn-sect-head">
+            <h2 id="plog-symptoms" className="pgn-sect-title">
+              {t("log.symptomsTitle")}
+            </h2>
+            {selected.length > 0 && (
+              <span className="pgn-meta">{t("log.symptomsCount", { count: selected.length })}</span>
+            )}
+          </div>
+          <div role="group" aria-labelledby="plog-symptoms" className="nb-chips pgn-chips">
+            {chipSymptoms.map((s) => (
+              <PillChip
+                key={s}
+                mode="multi"
+                tone="warm"
+                className="pgn-chip"
+                pressed={!!draft.symptoms[s]}
+                onPressedChange={() => edit({ symptoms: toggleSymptom(draft.symptoms, s) })}
+              >
+                {t(`log.symptoms.${s}`)}
+              </PillChip>
+            ))}
+          </div>
+          {selected.length > 0 && (
+            <div className="pgn-severity">
+              {selected.map((s) => (
+                <div key={s} className="pgn-severity-row">
+                  <span className="pgn-row-title">{t(`log.symptoms.${s}`)}</span>
+                  <div
+                    role="radiogroup"
+                    aria-label={`${t("log.severityLabel")} — ${t(`log.symptoms.${s}`)}`}
+                    className="pgn-severity-opts"
+                  >
+                    {SEVERITIES.map((lv) => (
+                      <button
+                        key={lv}
+                        type="button"
+                        role="radio"
+                        aria-checked={draft.symptoms[s] === lv}
+                        onClick={() => edit({ symptoms: setSeverity(draft.symptoms, s, lv) })}
+                        className="pgn-severity-opt"
+                      >
+                        {t(`log.severities.${lv}`)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+
+        <Card as="section" className="pgn-sect" aria-labelledby="plog-water">
+          <h2 id="plog-water" className="pgn-sect-title">
+            {t("log.water")}
+          </h2>
+          <div className="pgn-glasses" role="group" aria-labelledby="plog-water">
+            {Array.from({ length: WATER_GLASSES }, (_, i) => i + 1).map((n) => (
+              <button
+                key={n}
+                type="button"
+                aria-pressed={draft.water >= n}
+                aria-label={t("log.waterGlass", { count: n })}
+                className="pgn-glass"
+                onClick={() => edit({ water: draft.water === n ? n - 1 : n })}
+              />
+            ))}
+          </div>
+          <div className="pgn-water-foot">
+            <span className="pgn-caption" aria-live="polite">
+              {t("log.waterCount", { count: draft.water })}
+            </span>
+            <button
+              type="button"
+              className="pgn-step"
+              aria-label={t("log.waterLess")}
+              disabled={draft.water <= WATER_MIN}
+              onClick={() => edit({ water: stepWater(draft.water, -1) })}
+            >
+              <Icon name="minus" size={18} strokeWidth={2.2} />
+            </button>
+            <button
+              type="button"
+              className="pgn-step"
+              aria-label={t("log.waterMore")}
+              disabled={draft.water >= WATER_MAX}
+              onClick={() => edit({ water: stepWater(draft.water, 1) })}
+            >
+              <Icon name="plus" size={18} strokeWidth={2.2} />
+            </button>
+          </div>
+        </Card>
+
+        <Card as="section" className="pgn-sect">
+          <label htmlFor="plog-weight" className="pgn-sect-title">
+            {t("log.weight")}
+          </label>
+          <div className="pgn-weight">
+            <input
+              id="plog-weight"
+              inputMode="decimal"
+              autoComplete="off"
+              placeholder="—"
+              value={displayWeight(draft.weight, locale)}
+              onChange={(e) => edit({ weight: e.target.value })}
+              className="pgn-weight-input"
+              aria-describedby="plog-weight-last"
+            />
+            <span id="plog-weight-last" className="pgn-caption">
+              {t("log.kg")}
+              {t("common.separator")}
+              {day?.lastWeight
+                ? t("log.weightLast", {
+                    value: day.lastWeight.value,
+                    date: formatDayMonth(fromApiDate(day.lastWeight.date), locale),
+                  })
+                : t("log.weightNone")}
+            </span>
+          </div>
+        </Card>
+
+        <button
+          type="button"
+          aria-pressed={spotting}
+          className="pgn-spotting"
+          onClick={() => edit({ symptoms: toggleSymptom(draft.symptoms, "spotting") })}
+        >
+          <Icon name="drop" size={20} strokeWidth={1.8} className="pgn-spotting-icon" />
+          <span className="pgn-row-text">
+            <b className="pgn-row-title">{t("log.spottingCard.title")}</b>
+            <span className="pgn-row-desc">{t("log.spottingCard.body")}</span>
+          </span>
+          <Icon name={spotting ? "check" : "plus"} size={16} strokeWidth={2.4} className="pgn-spotting-icon" />
+        </button>
+
+        {spotting && (
+          <section className="pgn-warn" role="note">
+            <Icon name="warning" size={20} className="pgn-warn-icon" />
+            <p className="pgn-warn-text">
+              <b>{t("log.spottingTitle")}</b> {t("log.spottingBody")}
+            </p>
+          </section>
+        )}
+
+        <Card as="section" className="pgn-sect">
+          <label htmlFor="plog-note" className="pgn-sect-title">
+            {t("log.note")}
+          </label>
+          <textarea
+            id="plog-note"
+            rows={3}
+            value={draft.visitNote}
+            placeholder={t("log.notePlaceholder")}
+            onChange={(e) => edit({ visitNote: e.target.value })}
+            className="pgn-textarea"
+          />
+        </Card>
+
+        {alerts.length > 0 && <RaisedAlerts alerts={alerts} />}
+
+        <nav aria-labelledby="plog-other" className="pgn-other">
+          <h2 id="plog-other" className="pgn-other-title">
+            {t("log.otherLogs")}
+          </h2>
+          <div className="pgn-other-row">
+            <Link href="/pregnancy/log?tab=weekly" className="pgn-tile is-row">
+              <IconCircle icon="doctor" tone="data" size="sm" />
+              <b className="pgn-tile-label">{t("log.weeklyCheckup")}</b>
+            </Link>
+            <Link href="/pregnancy/log?tab=movement" className="pgn-tile is-row">
+              <IconCircle icon="heartLine" tone="bloom" size="sm" />
+              <b className="pgn-tile-label">{t("log.movement")}</b>
+            </Link>
+          </div>
+        </nav>
+      </>
+    );
+  }
+
+  return (
+    <div className="view preg-page pgn-screen">
+      <SkyLayer />
+      <div className="scroll">
+        {header}
         {pending > 0 && (
-          <p className="mx-4 mb-2 flex items-center gap-2 rounded-xl bg-(--data-soft) px-3 py-2 text-xs font-bold text-(--data-deep)">
+          <p className="pgn-pending">
             <Icon name="refresh" size={14} />
             {t("log.pending", { count: pending })}
           </p>
         )}
-
-        <div className="flex flex-col gap-3.5 px-4 pt-1 pb-6">
-          {query.isPending ? (
-            <p className="m-0 py-10 text-center text-sm font-semibold text-(--ink-3)">
-              {t("common.loading")}
-            </p>
-          ) : query.isError ? (
-            <div className="flex flex-col items-center gap-3 py-10 text-center">
-              <p
-                role="alert"
-                className="m-0 text-sm font-semibold text-(--ink-3)"
-              >
-                {t("common.loadError")}
-              </p>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={() => void query.refetch()}
-              >
-                {t("common.retry")}
-              </button>
-            </div>
-          ) : query.data === null ? (
-            <div className="flex flex-col items-center gap-3 py-10 text-center">
-              <p className="m-0 text-sm font-semibold text-(--ink-3)">
-                {t("common.notActive")}
-              </p>
-              <Link href="/pregnancy" className="btn btn-primary no-underline">
-                {t("common.back")}
-              </Link>
-            </div>
-          ) : (
-            <>
-              <section className={CARD}>
-                <h2 id="plog-mood" className={H2}>
-                  {t("log.moodTitle")}
-                </h2>
-                <div
-                  role="radiogroup"
-                  aria-labelledby="plog-mood"
-                  className="mt-3 grid grid-cols-5 gap-2"
-                >
-                  {MOODS_DISPLAY_ORDER.map((m) => {
-                    const on = draft.mood === m;
-                    return (
-                      <button
-                        key={m}
-                        type="button"
-                        role="radio"
-                        aria-checked={on}
-                        onClick={() => edit({ mood: on ? null : m })}
-                        className={clsx(
-                          "flex flex-col items-center gap-1 rounded-2xl py-2.5 text-[11.5px] font-bold",
-                          on
-                            ? "border-2 border-(--brand-fill) bg-(--surface-2) text-(--brand-deep)"
-                            : "border border-(--line) bg-(--surface) text-(--ink-2)",
-                        )}
-                      >
-                        <Icon name={moodGlyph(m)} size={26} strokeWidth={1.8} />
-                        {t(`log.moods.${m}`)}
-                      </button>
-                    );
-                  })}
-                </div>
-              </section>
-
-              <section className={CARD}>
-                <div className="flex items-center justify-between">
-                  <h2 className={H2}>{t("log.symptomsTitle")}</h2>
-                  {selected.length > 0 && (
-                    <span className="text-xs font-bold text-(--ink-3)">
-                      {t("log.symptomsCount", { count: selected.length })}
-                    </span>
-                  )}
-                </div>
-                <div className="mt-3 grid grid-cols-3 gap-2">
-                  {DAY_SYMPTOMS.map((s) => {
-                    const on = !!draft.symptoms[s];
-                    return (
-                      <button
-                        key={s}
-                        type="button"
-                        aria-pressed={on}
-                        onClick={() =>
-                          edit({ symptoms: toggleSymptom(draft.symptoms, s) })
-                        }
-                        className={clsx(
-                          "inline-flex min-h-11 items-center justify-center gap-1 rounded-2xl border px-1.5 py-1.5 text-center text-[12.5px] leading-snug font-bold",
-                          on
-                            ? "border-(--brand-fill) bg-(--brand-fill) text-(--on-accent)"
-                            : "border-(--line) bg-(--surface) text-(--ink)",
-                        )}
-                      >
-                        {on && <Icon name="check" size={14} strokeWidth={3} />}
-                        {t(`log.symptoms.${s}`)}
-                      </button>
-                    );
-                  })}
-                </div>
-                {selected.length > 0 && (
-                  <div className="mt-3 flex flex-col gap-2 border-t border-(--line) pt-3">
-                    {selected.map((s) => (
-                      <div
-                        key={s}
-                        className="flex items-center justify-between gap-2"
-                      >
-                        <span className="text-[13px] font-bold text-(--ink)">
-                          {t(`log.symptoms.${s}`)}
-                        </span>
-                        <div
-                          role="radiogroup"
-                          aria-label={`${t("log.severityLabel")} — ${t(`log.symptoms.${s}`)}`}
-                          className="flex gap-1.5"
-                        >
-                          {SEVERITIES.map((lv) => {
-                            const on = draft.symptoms[s] === lv;
-                            return (
-                              <button
-                                key={lv}
-                                type="button"
-                                role="radio"
-                                aria-checked={on}
-                                onClick={() =>
-                                  edit({
-                                    symptoms: setSeverity(
-                                      draft.symptoms,
-                                      s,
-                                      lv,
-                                    ),
-                                  })
-                                }
-                                className={clsx(
-                                  "h-8 rounded-full border px-3 text-xs font-bold",
-                                  on
-                                    ? "border-(--brand-fill) bg-(--brand-fill) text-(--on-accent)"
-                                    : "border-(--line) bg-(--surface) text-(--ink)",
-                                )}
-                              >
-                                {t(`log.severities.${lv}`)}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </section>
-
-              <section className={clsx(CARD, "flex items-center gap-3")}>
-                <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-(--data-soft) text-(--data-deep)">
-                  <Icon name="drop" size={22} strokeWidth={1.8} />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <b className="block text-[15px] text-(--ink)">
-                    {t("log.water")}
-                  </b>
-                  <span
-                    className="text-xs font-semibold text-(--ink-3)"
-                    aria-live="polite"
-                  >
-                    {t("log.waterCount", { count: draft.water })}
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  className="flex size-10 items-center justify-center rounded-full border border-(--line) bg-(--surface) text-(--ink) disabled:opacity-40"
-                  aria-label={t("log.waterLess")}
-                  disabled={draft.water <= WATER_MIN}
-                  onClick={() => edit({ water: stepWater(draft.water, -1) })}
-                >
-                  <span aria-hidden className="text-lg leading-none font-black">
-                    −
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  className="flex size-10 items-center justify-center rounded-full bg-(--brand-fill) text-(--on-accent) disabled:opacity-40"
-                  aria-label={t("log.waterMore")}
-                  disabled={draft.water >= WATER_MAX}
-                  onClick={() => edit({ water: stepWater(draft.water, 1) })}
-                >
-                  <Icon name="plus" size={18} strokeWidth={2.4} />
-                </button>
-              </section>
-
-              <section className={clsx(CARD, "flex items-center gap-3")}>
-                <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-(--surface-2) text-(--brand)">
-                  <Icon name="scale" size={22} strokeWidth={1.8} />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <label
-                    htmlFor="plog-weight"
-                    className="block text-[15px] font-bold text-(--ink)"
-                  >
-                    {t("log.weight")}
-                  </label>
-                  <span className="text-xs font-semibold text-(--ink-3)">
-                    {day?.lastWeight
-                      ? t("log.weightLast", {
-                          value: day.lastWeight.value,
-                          date: formatDayMonth(
-                            fromApiDate(day.lastWeight.date),
-                            locale,
-                          ),
-                        })
-                      : t("log.weightNone")}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <input
-                    id="plog-weight"
-                    inputMode="decimal"
-                    autoComplete="off"
-                    value={displayWeight(draft.weight, locale)}
-                    onChange={(e) => edit({ weight: e.target.value })}
-                    className="h-11 w-18 rounded-xl border border-(--field-border) bg-(--surface) text-center text-[15px] font-bold text-(--ink) outline-none focus-visible:border-(--brand)"
-                  />
-                  <span className="text-[13px] font-bold text-(--ink-2)">
-                    {t("log.kg")}
-                  </span>
-                </div>
-              </section>
-
-              <section className={CARD}>
-                <label htmlFor="plog-note" className={clsx(H2, "block")}>
-                  {t("log.note")}
-                </label>
-                <textarea
-                  id="plog-note"
-                  rows={3}
-                  value={draft.visitNote}
-                  placeholder={t("log.notePlaceholder")}
-                  onChange={(e) => edit({ visitNote: e.target.value })}
-                  className="mt-2 w-full resize-none rounded-xl border border-(--field-border) bg-(--surface) p-3 text-sm text-(--ink)"
-                />
-              </section>
-
-              {draft.symptoms.spotting && (
-                <section
-                  className="pg2-warn flex items-start gap-3 rounded-2xl p-3.5"
-                  role="note"
-                >
-                  <Icon name="warning" size={20} className="pg2-warn-icon" />
-                  <p className="m-0 text-[12.5px] leading-[1.9]">
-                    <b>{t("log.spottingTitle")}</b> {t("log.spottingBody")}
-                  </p>
-                </section>
-              )}
-
-              {alerts.length > 0 && <RaisedAlerts alerts={alerts} />}
-
-              <nav
-                aria-label={t("log.otherLogs")}
-                className="flex flex-col gap-2"
-              >
-                <h2 className="m-0 px-1 text-xs font-bold text-(--ink-3)">
-                  {t("log.otherLogs")}
-                </h2>
-                <div className="flex gap-2">
-                  <Link
-                    href="/pregnancy/log?tab=weekly"
-                    className={clsx(
-                      CARD,
-                      "flex-1 py-3 text-center text-[13px] font-bold text-(--ink) no-underline",
-                    )}
-                  >
-                    {t("log.weeklyCheckup")}
-                  </Link>
-                  <Link
-                    href="/pregnancy/log?tab=movement"
-                    className={clsx(
-                      CARD,
-                      "flex-1 py-3 text-center text-[13px] font-bold text-(--ink) no-underline",
-                    )}
-                  >
-                    {t("log.movement")}
-                  </Link>
-                </div>
-              </nav>
-            </>
-          )}
-        </div>
+        <div className="pgn-body is-form">{body}</div>
 
         {day && (
-          <div className="sticky bottom-0 z-10 flex flex-col gap-1.5 border-t border-(--line) bg-(--page) px-4 pt-3 pb-[max(12px,env(safe-area-inset-bottom))]">
-            <button
-              type="button"
-              className={clsx(
-                "flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-[15px] font-extrabold text-(--on-accent) disabled:opacity-70",
-                // --success-fill, not --success: dark mode lifts --success to a text green.
-                saved ? "bg-(--success-fill)" : "bg-(image:--gradient-brand)",
-              )}
-              disabled={status === "saving"}
+          <div className="pgn-footer">
+            <PrimaryButton
+              className={clsx(saved && "pgn-saved")}
+              icon={saved ? "check" : undefined}
+              loading={status === "saving"}
               onClick={() => void submit(date, inputFromDraft(draft))}
             >
-              {saved && <Icon name="check" size={18} strokeWidth={2.6} />}
-              {status === "saving"
-                ? t("log.saving")
-                : saved
-                  ? t("log.saved")
-                  : t("log.save")}
-            </button>
-            <span
-              role="status"
-              className="text-center text-[11.5px] font-semibold text-(--ink-3)"
-            >
+              {status === "saving" ? t("log.saving") : saved ? t("log.saved") : t("log.save")}
+            </PrimaryButton>
+            <span role="status" className="pgn-footer-note">
               {status === "error" ? (
-                <span className="text-(--danger-deep)">
-                  {t("common.saveError")}
-                </span>
+                <span className="pgn-error-text">{t("common.saveError")}</span>
               ) : status === "queued" ? (
-                <span className="inline-flex items-center gap-1">
+                <span className="pgn-inline">
                   <Icon name="clock" size={13} />
                   {t("log.queued")}
                 </span>
@@ -452,12 +406,7 @@ export function DayLogPage({ date: rawDate }: { date?: string }) {
         )}
       </div>
 
-      <AppSheet
-        open={picking}
-        onClose={() => setPicking(false)}
-        size="half"
-        title={t("log.pickDay")}
-      >
+      <AppSheet open={picking} onClose={() => setPicking(false)} size="half" title={t("log.pickDay")}>
         <CalendarPicker value={pickerValue} onSelect={pickDay} />
       </AppSheet>
     </div>
@@ -467,28 +416,24 @@ export function DayLogPage({ date: rawDate }: { date?: string }) {
 function RaisedAlerts({ alerts }: { alerts: PregnancyAlertV2[] }) {
   const t = useTranslations("pregnancyV2");
   return (
-    <section className={clsx(CARD, "flex flex-col gap-2")} aria-live="polite">
-      <h2 className={H2}>{t("log.alertsRaised", { count: alerts.length })}</h2>
-      <ul className="m-0 flex list-none flex-col gap-1.5 p-0">
+    <Card as="section" className="pgn-sect" aria-live="polite" aria-labelledby="plog-raised">
+      <h2 id="plog-raised" className="pgn-sect-title">
+        {t("log.alertsRaised", { count: alerts.length })}
+      </h2>
+      <ul className="pgn-rows">
         {alerts.map((a) => (
-          <li
-            key={a.id}
-            className={clsx("pg2-level-" + a.level, "flex items-start gap-2 text-[13px] text-(--ink)")}
-          >
-            {/* The level chip of the Alerts screen and its legend (QA 2026-09-29-c L6). */}
-            <span className="pg2-chip mt-1 shrink-0 rounded-full px-2 py-0.5 text-[11px]">
+          <li key={a.id} className="pgn-row">
+            {/* The level pill of the Alerts screen and its legend (QA 2026-09-29-c L6). */}
+            <span className={clsx("pgn-opill", `nb-tone-${LEVEL_TONE[a.level]}`)}>
               {t(`alerts.levelsShort.${a.level}`)}
             </span>
-            <span className="min-w-0 flex-1 font-semibold">{a.title}</span>
+            <span className="pgn-row-title">{a.title}</span>
           </li>
         ))}
       </ul>
-      <Link
-        href="/pregnancy/alerts"
-        className="text-[13px] font-extrabold text-(--brand) no-underline"
-      >
+      <Link href="/pregnancy/alerts" className="pgn-link">
         {t("log.seeAlerts")}
       </Link>
-    </section>
+    </Card>
   );
 }

@@ -1,6 +1,5 @@
 'use client';
 
-import clsx from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
@@ -10,9 +9,17 @@ import {
   useDatingPreview,
   useSetupCopy,
 } from '@/entities/pregnancy';
-import { useDirection, useRouter, type Locale } from '@/shared/i18n';
+import { useRouter, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
-import { Icon } from '@/shared/ui';
+import {
+  Card,
+  IconCircle,
+  PrimaryButton,
+  ProgressSteps,
+  ScreenHeader,
+  SecondaryButton,
+  SkyLayer,
+} from '@/shared/ui';
 import { WelcomePregnancy } from '@/shared/ui/illustrations';
 
 import {
@@ -27,47 +34,47 @@ import {
 
 import { DatingStep, HistoryStep, ResultStep } from './SetupSteps';
 
-type Phase = 'welcome' | 1 | 2 | 3;
-const TOTAL = 3;
+/** welcome → dating basis → optional history → result: the four steps of PregFull_Setup. */
+type Step = 1 | 2 | 3 | 4;
+const TOTAL = 4;
 /** Bundled welcome benefits (`setup.benefits.*`), same order as the seeded `pregnancy_setup/welcome` (the fallback). */
 const BENEFITS = ['1', '2', '3'] as const;
 
 /**
- * Pregnancy Setup v2 (`/pregnancy/setup`): welcome → dating basis → optional
- * history → result from `dating-preview`. «تمومه» activates pregnancy mode,
- * submits the v1 `/pregnancy/onboarding` body, then lands on `/pregnancy`.
- * Sensitive data only leaves the form in those requests (CLAUDE.md §11).
+ * Pregnancy Setup v2 (`/pregnancy/setup`, PregFull_Setup): welcome → dating
+ * basis → optional history → result from `dating-preview`. «تمومه» activates
+ * pregnancy mode, submits the v1 `/pregnancy/onboarding` body, then lands on
+ * `/pregnancy`. Sensitive data only leaves the form in those requests (§11).
  * Copy: the admin-edited `pregnancy_setup` texts (`GET /pregnancy/v2/setup-copy`)
  * win; the bundle is the fallback while they load or where a text is missing.
  */
 export function PregnancyOnboardingPage() {
   const t = useTranslations('pregnancyV2.setup');
-  const tc = useTranslations('pregnancyV2.common');
+  const tv = useTranslations('pregnancyV2');
   const loc = useLocale() as Locale;
-  const isRtl = useDirection() === 'rtl';
   const router = useRouter();
 
-  const [phase, setPhase] = useState<Phase>('welcome');
+  const [step, setStep] = useState<Step>(1);
   const [dating, setDating] = useState<SetupDating>(EMPTY_DATING);
   const [history, setHistory] = useState<SetupHistory | null>(EMPTY_HISTORY);
   const [error, setError] = useState<string | null>(null);
 
   const copy = useSetupCopy().data;
-  const preview = useDatingPreview(phase === 3 ? toPreviewInput(dating, loc) : null);
+  const preview = useDatingPreview(step === 4 ? toPreviewInput(dating, loc) : null);
   const activate = useActivatePregnancy();
   const onboard = useCompleteOnboarding();
   const submitting = activate.isPending || onboard.isPending;
 
   const back = () => {
     setError(null);
-    if (phase === 'welcome' || phase === 1) setPhase('welcome');
-    else setPhase((phase - 1) as Phase);
+    if (step === 1) router.push('/profile');
+    else setStep((step - 1) as Step);
   };
 
   const next = () => {
     setError(null);
-    if (phase === 1 && !isDatingComplete(dating)) return setError(t('fillRequired'));
-    if (phase === 1 || phase === 2) setPhase((phase + 1) as Phase);
+    if (step === 2 && !isDatingComplete(dating)) return setError(t('fillRequired'));
+    if (step < TOTAL) setStep((step + 1) as Step);
   };
 
   const finish = async () => {
@@ -83,121 +90,100 @@ export function PregnancyOnboardingPage() {
     }
   };
 
-  if (phase === 'welcome') {
-    const benefits = copy?.welcome.benefits.length ? copy.welcome.benefits : BENEFITS.map((k) => t(`benefits.${k}`));
-    return (
-      <div className="view onb-page pon-page">
-        <div className="scroll onb-body">
-          <div className="onb-center pon-welcome">
-            <WelcomePregnancy size={220} />
-            <div className="titr onb-titr">{copy?.welcome.title ?? t('welcomeTitle')}</div>
-            <p className="sub onb-center-text">{copy?.welcome.body ?? t('welcomeBody')}</p>
-            <ul className="card pon-benefits">
-              {benefits.map((text, i) => (
-                <li key={i}>
-                  <Icon name="check" size={18} strokeWidth={2.6} className="pon-benefit-check" />
-                  {text}
-                </li>
-              ))}
-            </ul>
-          </div>
+  const stepText = t('stepOf', { step: formatNumber(step, loc), total: formatNumber(TOTAL, loc) });
+  const benefits = copy?.welcome.benefits.length ? copy.welcome.benefits : BENEFITS.map((k) => t(`benefits.${k}`));
+
+  let content: React.ReactNode;
+  let actions: React.ReactNode;
+  if (step === 1) {
+    content = (
+      <>
+        <div className="pgn-setup-illu">
+          <WelcomePregnancy size={180} />
         </div>
-        <div className="onb-actions">
-          <button className="btn btn-primary" onClick={() => setPhase(1)}>
-            {copy?.welcome.primary ?? t('turnOn')}
-          </button>
-          <button className="pon-textbtn" onClick={() => router.replace('/profile')}>
-            {copy?.welcome.secondary ?? t('notNow')}
-          </button>
-        </div>
-      </div>
+        <Card as="section" className="pgn-sect" aria-labelledby="pgn-setup-welcome">
+          <h2 id="pgn-setup-welcome" className="pgn-sect-title">
+            {copy?.welcome.title ?? t('welcomeTitle')}
+          </h2>
+          <p className="pgn-body-text">{copy?.welcome.body ?? t('welcomeBody')}</p>
+          <ul className="pgn-rows">
+            {benefits.map((text, i) => (
+              <li key={i} className="pgn-row">
+                <IconCircle icon="check" tone="data" size="sm" />
+                <b className="pgn-row-title">{text}</b>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      </>
+    );
+    actions = (
+      <>
+        <PrimaryButton onClick={() => setStep(2)}>{copy?.welcome.primary ?? t('turnOn')}</PrimaryButton>
+        <SecondaryButton variant="text" block onClick={() => router.replace('/profile')}>
+          {copy?.welcome.secondary ?? t('notNow')}
+        </SecondaryButton>
+      </>
+    );
+  } else if (step === 4) {
+    content = <ResultStep preview={preview.data} loading={preview.isLoading} failed={preview.isError} />;
+    actions = (
+      <>
+        <PrimaryButton loading={submitting} disabled={!preview.data} onClick={() => void finish()}>
+          {submitting ? t('submitting') : (preview.data?.copy.primary ?? t('done'))}
+        </PrimaryButton>
+        <SecondaryButton variant="text" block disabled={submitting} onClick={() => setStep(2)}>
+          {preview.data?.copy.secondary ?? t('changeBasis')}
+        </SecondaryButton>
+      </>
+    );
+  } else {
+    content =
+      step === 2 ? (
+        <DatingStep value={dating} onChange={setDating} copy={copy} />
+      ) : (
+        <HistoryStep value={history ?? EMPTY_HISTORY} onChange={setHistory} copy={copy} />
+      );
+    actions = (
+      <>
+        <PrimaryButton onClick={next}>{t('continue')}</PrimaryButton>
+        {step === 3 && (
+          <SecondaryButton
+            variant="text"
+            block
+            onClick={() => {
+              setHistory(null);
+              setStep(4);
+            }}
+          >
+            {copy?.history.skip ?? t('skip')}
+          </SecondaryButton>
+        )}
+      </>
     );
   }
 
-  const title =
-    phase === 1 ? (copy?.dating.title ?? t('datingTitle')) : phase === 2 ? (copy?.history.title ?? t('historyTitle')) : null;
-  const body =
-    phase === 1 ? (copy?.dating.body ?? t('datingBody')) : phase === 2 ? (copy?.history.body ?? t('historyBody')) : null;
-
   return (
-    <div className="view onb-page pon-page">
-      <div className="hdr gap-3">
-        <button className="pg2-roundbtn" onClick={back} aria-label={tc('back')}>
-          <Icon name={isRtl ? 'chevronRight' : 'chevronLeft'} size={20} />
-        </button>
-        <div
-          className="flex flex-1 gap-1.5"
-          role="progressbar"
-          aria-label={t('progressLabel')}
-          aria-valuemin={1}
-          aria-valuemax={TOTAL}
-          aria-valuenow={phase}
-          aria-valuetext={`${formatNumber(phase, loc)} / ${formatNumber(TOTAL, loc)}`}
-        >
-          {Array.from({ length: TOTAL }, (_, i) => (
-            <span
-              key={i}
-              aria-hidden
-              className={clsx('h-1.5 flex-1 rounded-full', i < phase ? 'bg-(--brand-fill)' : 'bg-(--brand-line-soft)')}
-            />
-          ))}
+    <div className="view pon-page pgn-screen">
+      <SkyLayer />
+      <div className="scroll">
+        <ScreenHeader
+          title={tv('today.setupCta')}
+          subtitle={stepText}
+          onBack={back}
+          backLabel={tv('common.back')}
+        />
+        <div className="pgn-body is-form">
+          <ProgressSteps total={TOTAL} current={step} label={stepText} className="pgn-steps" />
+          {content}
+          {error && (
+            <p role="alert" className="pgn-error-text">
+              {error}
+            </p>
+          )}
         </div>
-        <span className="stepcount shrink-0" aria-hidden>
-          {t('step', { step: phase, total: TOTAL })}
-        </span>
       </div>
-
-      <div className="scroll onb-body">
-        {title && (
-          <div className="onb-intro">
-            <div className="titr">{title}</div>
-            <p className="sub onb-intro-sub">{body}</p>
-          </div>
-        )}
-
-        {phase === 1 && <DatingStep value={dating} onChange={setDating} copy={copy} />}
-        {phase === 2 && <HistoryStep value={history ?? EMPTY_HISTORY} onChange={setHistory} copy={copy} />}
-        {phase === 3 && (
-          <ResultStep preview={preview.data} loading={preview.isLoading} failed={preview.isError} />
-        )}
-
-        {error && <p className="onb-error">{error}</p>}
-        <div className="onb-tail" />
-      </div>
-
-      <div className="onb-actions">
-        {phase === 3 ? (
-          <>
-            <button
-              className="btn btn-primary"
-              onClick={() => void finish()}
-              disabled={submitting || !preview.data}
-            >
-              {submitting ? t('submitting') : (preview.data?.copy.primary ?? t('done'))}
-            </button>
-            <button className="pon-textbtn" onClick={() => setPhase(1)} disabled={submitting}>
-              {preview.data?.copy.secondary ?? t('changeBasis')}
-            </button>
-          </>
-        ) : (
-          <>
-            <button className="btn btn-primary" onClick={next}>
-              {t('continue')}
-            </button>
-            {phase === 2 && (
-              <button
-                className="pon-textbtn"
-                onClick={() => {
-                  setHistory(null);
-                  setPhase(3);
-                }}
-              >
-                {copy?.history.skip ?? t('skip')}
-              </button>
-            )}
-          </>
-        )}
-      </div>
+      <div className="pgn-actions">{actions}</div>
     </div>
   );
 }

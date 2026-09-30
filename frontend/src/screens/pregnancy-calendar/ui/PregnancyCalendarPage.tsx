@@ -28,30 +28,42 @@ import {
   formatWeekday,
   fromApiDate,
   monthMatrix,
-  monthName,
   shiftMonth,
   toApiDate,
   today,
   todayParts,
-  toParts,
   weekdayLabels,
 } from '@/shared/lib/date';
 import { withHandoff } from '@/shared/lib/handoff';
 import { type PdfBlock, loadPdfGenerator, shareOrDownloadFile } from '@/shared/lib/pdf';
 import { AppSheet } from '@/shared/sheet';
-import { Icon } from '@/shared/ui';
+import {
+  Card,
+  EmptyState,
+  HeaderButton,
+  Icon,
+  IconCircle,
+  InfoNote,
+  PrimaryButton,
+  ScreenHeader,
+  SecondaryButton,
+  Skeleton,
+  SkeletonGroup,
+  SkyLayer,
+  type Tone,
+} from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
 
 import { BOOK_HREF, REPORT_DAYS, bookPrefill, directionsHref, monthKey, nextStage, stageProgress } from '../model/view';
 
-const CARD = 'rounded-2xl border border-(--line) bg-(--surface)';
 const NEW_VISIT_HREF = '/reminders/appointment/new?kind=in_person&return_to=/pregnancy/calendar';
 
-/** «تقویم و ویزیت‌ها» — `/pregnancy/calendar` (Calendar.dc.html, T-M7-13). */
+/** «تقویم و ویزیت‌ها» — `/pregnancy/calendar` (PregFull_Calendar). */
 export function PregnancyCalendarPage() {
   const t = useTranslations('pregnancyV2');
   const locale = useLocale() as Locale;
   const dir = useDirection();
+  const router = useRouter();
   const [ym, setYm] = useState(() => {
     const p = todayParts(locale);
     return { year: p.year, month: p.month };
@@ -64,77 +76,79 @@ export function PregnancyCalendarPage() {
 
   const move = (delta: number) => setYm((c) => shiftMonth(c.year, c.month, delta));
 
-  return (
-    <div className="view preg-page">
-      <div className="scroll">
-        <header className="flex items-center justify-between px-4 pt-4.5 pb-2">
-          <h1 className="m-0 text-2xl font-black text-(--ink)">{t('calendar.title')}</h1>
-          <Link
-            href={NEW_VISIT_HREF}
-            aria-label={t('calendar.newVisitLabel')}
-            className="inline-flex h-11 items-center gap-1.5 rounded-full bg-(--brand-fill) px-3.5 text-[13px] font-extrabold text-(--on-accent) no-underline"
-          >
-            <Icon name="plus" size={16} strokeWidth={2.2} />
-            {t('calendar.newVisit')}
-          </Link>
-        </header>
-
-        <div className="flex flex-col gap-3.5 px-4 pt-1 pb-28">
-          <section className={clsx(CARD, 'p-3.5')}>
-            <div className="mb-2.5 flex items-center justify-between">
-              <button
-                type="button"
-                className="flex size-11 items-center justify-center rounded-full border border-(--line) bg-(--surface) text-(--ink)"
-                aria-label={t('calendar.prevMonth')}
-                onClick={() => move(-1)}
-              >
-                <Icon name={dir === 'rtl' ? 'chevronRight' : 'chevronLeft'} size={18} />
-              </button>
-              <div className="text-center">
-                <b className="text-base text-(--ink)">
-                  {data?.monthLabel ?? formatMonthLabel(ym.year, ym.month, locale)}
-                </b>
-                {data?.weekRange && (
-                  <div className="text-[11.5px] font-bold text-(--ink-2)">
-                    {t('calendar.weekRange', { from: data.weekRange.from, to: data.weekRange.to })}
-                  </div>
-                )}
-              </div>
-              <button
-                type="button"
-                className="flex size-11 items-center justify-center rounded-full border border-(--line) bg-(--surface) text-(--ink)"
-                aria-label={t('calendar.nextMonth')}
-                onClick={() => move(1)}
-              >
-                <Icon name={dir === 'rtl' ? 'chevronLeft' : 'chevronRight'} size={18} />
-              </button>
-            </div>
-            <MonthGrid year={ym.year} month={ym.month} data={data ?? null} selected={selected} onPick={setPicked} />
-            <Legend />
-          </section>
-
-          {query.isPending ? (
-            <p className="m-0 py-10 text-center text-sm font-semibold text-(--ink-3)">{t('common.loading')}</p>
-          ) : query.isError ? (
-            <div className="flex flex-col items-center gap-3 py-10 text-center">
-              <p role="alert" className="m-0 text-sm font-semibold text-(--ink-3)">
-                {t('common.loadError')}
-              </p>
-              <button type="button" className="btn btn-primary" onClick={() => void query.refetch()}>
-                {t('common.retry')}
-              </button>
-            </div>
-          ) : data ? (
-            <CalendarBody data={data} selected={selected} />
-          ) : (
-            <div className="flex flex-col items-center gap-3 py-10 text-center">
-              <p className="m-0 text-sm font-semibold text-(--ink-3)">{t('common.notActive')}</p>
-              <Link href="/pregnancy" className="btn btn-primary no-underline">
-                {t('common.back')}
-              </Link>
-            </div>
+  const month = (
+    <Card as="section" className="pgn-sect" aria-label={t('calendar.title')}>
+      <div className="pgn-month-head">
+        <button type="button" className="pgn-step" aria-label={t('calendar.prevMonth')} onClick={() => move(-1)}>
+          <Icon name={dir === 'rtl' ? 'chevronRight' : 'chevronLeft'} size={18} />
+        </button>
+        <div className="pgn-month-title">
+          <b>{data?.monthLabel ?? formatMonthLabel(ym.year, ym.month, locale)}</b>
+          {data?.weekRange && (
+            <span className="pgn-caption">
+              {t('calendar.weekRange', { from: data.weekRange.from, to: data.weekRange.to })}
+            </span>
           )}
         </div>
+        <button type="button" className="pgn-step" aria-label={t('calendar.nextMonth')} onClick={() => move(1)}>
+          <Icon name={dir === 'rtl' ? 'chevronLeft' : 'chevronRight'} size={18} />
+        </button>
+      </div>
+      <MonthGrid year={ym.year} month={ym.month} data={data ?? null} selected={selected} onPick={setPicked} />
+      <Legend />
+    </Card>
+  );
+
+  let body: React.ReactNode;
+  if (query.isPending) {
+    body = (
+      <SkeletonGroup label={t('common.loading')} className="pgn-skel">
+        <Skeleton shape="card" className="pgn-skel-hero" />
+        <Skeleton shape="card" />
+        <Skeleton shape="card" />
+      </SkeletonGroup>
+    );
+  } else if (query.isError) {
+    body = (
+      <Card className="pgn-state" role="alert">
+        <span className="pgn-state-disc" aria-hidden>
+          <Icon name="warning" size={24} />
+        </span>
+        <p className="pgn-state-text">{t('common.loadError')}</p>
+        <SecondaryButton icon="refresh" block={false} onClick={() => void query.refetch()}>
+          {t('common.retry')}
+        </SecondaryButton>
+      </Card>
+    );
+  } else if (data) {
+    body = <CalendarBody data={data} selected={selected} month={month} />;
+  } else {
+    body = (
+      <Card>
+        <EmptyState
+          icon="heart"
+          title={t('common.notActive')}
+          action={
+            <Link href="/pregnancy/setup" className="nb-btn is-primary is-block">
+              {t('today.setupCta')}
+            </Link>
+          }
+        />
+      </Card>
+    );
+  }
+
+  return (
+    <div className="view preg-page pgn-screen">
+      <SkyLayer />
+      <div className="scroll">
+        <ScreenHeader
+          title={t('calendar.screenTitle')}
+          onBack={() => router.push('/pregnancy')}
+          backLabel={t('common.back')}
+          action={<HeaderButton icon="plus" label={t('calendar.newVisitLabel')} onClick={() => router.push(NEW_VISIT_HREF)} />}
+        />
+        <div className="pgn-body">{body}</div>
       </div>
       <BottomNav />
     </div>
@@ -163,12 +177,12 @@ function MonthGrid({
 
   return (
     <>
-      <div className="mb-1 grid grid-cols-7 gap-1 text-center text-[11px] font-extrabold text-(--ink-2)" aria-hidden>
+      <div className="pgn-grid pgn-grid-wd" aria-hidden>
         {weekdayLabels(locale).map((w) => (
           <span key={w}>{w}</span>
         ))}
       </div>
-      <div className="grid grid-cols-7 gap-1">
+      <div className="pgn-grid">
         {rows.flat().map((cell, i) => {
           if (!cell) return <span key={`e${i}`} aria-hidden />;
           const key = toApiDate(cell.date);
@@ -188,25 +202,12 @@ function MonthGrid({
               type="button"
               aria-label={aria}
               aria-pressed={isSel}
+              aria-current={isToday ? 'date' : undefined}
               onClick={() => onPick(key)}
-              className={clsx(
-                'flex h-11.5 flex-col items-center justify-center gap-0.75 rounded-xl text-[13.5px]',
-                isToday
-                  ? 'bg-(--brand-fill) font-black text-(--on-accent)'
-                  : isSel
-                    ? 'border-[1.5px] border-(--brand) bg-(--pink-bg) font-black text-(--ink)'
-                    : 'font-semibold text-(--ink)',
-                !isToday && !isSel && (m?.weekStart != null ? 'border border-dashed border-(--brand-line)' : 'border border-transparent'),
-              )}
+              className={clsx('pgn-day', isToday && 'is-today', m?.weekStart != null && 'is-week-start')}
             >
               <span>{formatNumber(cell.day, locale)}</span>
-              <span
-                aria-hidden
-                className={clsx(
-                  'size-1.25 rounded-full',
-                  m?.hasVisit ? (isToday ? 'bg-(--on-accent)' : 'bg-(--data)') : 'bg-transparent',
-                )}
-              />
+              <span aria-hidden className={clsx('pgn-day-dot', m?.hasVisit && 'is-on')} />
             </button>
           );
         })}
@@ -218,43 +219,44 @@ function MonthGrid({
 function Legend() {
   const t = useTranslations('pregnancyV2.calendar.legend');
   return (
-    <div className="mt-2.5 flex flex-wrap gap-3.5 text-[10.5px] font-bold text-(--ink-2)">
-      <span className="inline-flex items-center gap-1.25">
-        <span className="size-2.5 rounded-full bg-(--brand-fill)" aria-hidden />
+    <div className="pgn-legend">
+      <span>
+        <span className="pgn-legend-mark is-today" aria-hidden />
         {t('today')}
       </span>
-      <span className="inline-flex items-center gap-1.25">
-        <span className="size-1.5 rounded-full bg-(--data)" aria-hidden />
+      <span>
+        <span className="pgn-legend-mark is-visit" aria-hidden />
         {t('visit')}
       </span>
-      <span className="inline-flex items-center gap-1.25">
-        <span className="size-2.5 rounded-[3px] border border-dashed border-(--brand-line)" aria-hidden />
+      <span>
+        <span className="pgn-legend-mark is-week" aria-hidden />
         {t('weekStart')}
       </span>
     </div>
   );
 }
 
-function CalendarBody({ data, selected }: { data: PregnancyCalendar; selected: string }) {
+function CalendarBody({ data, selected, month }: { data: PregnancyCalendar; selected: string; month: React.ReactNode }) {
   const t = useTranslations('pregnancyV2.calendar');
   return (
     <>
-      <SelectedDay data={data} date={selected} />
       {data.nextVisit && <NextVisitCard visit={data.nextVisit} />}
       {data.carePlan.length > 0 && (
-        <>
-          <h2 className="m-0 mt-2 text-base font-black text-(--ink)">{t('carePlanTitle')}</h2>
-          <section className={clsx(CARD, 'px-3.5 py-1.5')}>
-            {data.carePlan.map((item, i) => (
-              <CareRow key={item.key} item={item} last={i === data.carePlan.length - 1} />
+        <Card as="section" className="pgn-sect" aria-labelledby="pgn-care-plan">
+          <h2 id="pgn-care-plan" className="pgn-sect-title">
+            {t('carePlanTitle')}
+          </h2>
+          <ul className="pgn-rows">
+            {data.carePlan.map((item) => (
+              <CareRow key={item.key} item={item} />
             ))}
-          </section>
-        </>
+          </ul>
+        </Card>
       )}
-      {data.sourceNote && (
-        <p className="m-0 text-[11.5px] leading-[1.8] font-semibold text-(--ink-2)">{data.sourceNote}</p>
-      )}
+      {month}
+      <SelectedDay data={data} date={selected} />
       <ReportButton />
+      {data.sourceNote && <InfoNote>{data.sourceNote}</InfoNote>}
     </>
   );
 }
@@ -278,24 +280,18 @@ function SelectedDay({ data, date }: { data: PregnancyCalendar; date: string }) 
     : t('dayEmpty');
 
   return (
-    <section className={clsx(CARD, 'flex items-center gap-3 px-3.5 py-3')} aria-live="polite">
-      <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-(--pink-bg) text-(--brand)" aria-hidden>
-        <Icon name="calendar" size={18} />
+    <Card className="pgn-row pgn-day-card" aria-live="polite">
+      <IconCircle icon="calendar" tone="brand" size="md" />
+      <span className="pgn-row-text">
+        <b className="pgn-row-title">{title}</b>
+        <span className="pgn-row-desc">{sub}</span>
       </span>
-      <div className="min-w-0 flex-1">
-        <b className="text-sm text-(--ink)">{title}</b>
-        <div className="text-xs font-semibold text-(--ink-2)">{sub}</div>
-      </div>
       {!visits.length && (
-        <Link
-          href={`${NEW_VISIT_HREF}&date=${date}`}
-          aria-label={t('newVisitLabel')}
-          className="flex size-11 shrink-0 items-center justify-center rounded-full text-(--brand)"
-        >
+        <Link href={`${NEW_VISIT_HREF}&date=${date}`} aria-label={t('newVisitLabel')} className="pgn-icon-link">
           <Icon name="plus" size={18} strokeWidth={2.2} />
         </Link>
       )}
-    </section>
+    </Card>
   );
 }
 
@@ -323,7 +319,6 @@ function NextVisitCard({ visit }: { visit: CalendarVisit }) {
   const tc = useTranslations('care.appointmentForm.remindOptions');
   const locale = useLocale() as Locale;
   const date = fromApiDate(visit.date);
-  const parts = toParts(date, locale);
   const stage = useSetStage();
   const [noteOpen, setNoteOpen] = useState(false);
   const [note, setNote] = useState(visit.resultNote ?? '');
@@ -353,92 +348,89 @@ function NextVisitCard({ visit }: { visit: CalendarVisit }) {
     ? tc(visit.remindBefore as RemindBefore)
     : null;
 
+  const lines = [meta, visit.daysUntil != null ? t('calendar.nextVisit', { days: visit.daysUntil }) : null]
+    .filter(Boolean)
+    .join(t('common.separator'));
+
   return (
     <>
-      {visit.daysUntil != null && (
-        <span className="mt-1 text-xs font-black text-(--brand)">
-          {t('calendar.nextVisit', { days: visit.daysUntil })}
-        </span>
-      )}
-      <section className={clsx(CARD, 'flex flex-col gap-3.5 rounded-[20px] p-4 shadow-(--care-card-shadow)')}>
-        <div className="flex items-center gap-3">
-          <div className="flex h-15 w-14 shrink-0 flex-col items-center justify-center rounded-[14px] bg-(--pink-bg)">
-            <span className="text-[11px] font-extrabold text-(--brand)">{monthName(parts.month, locale)}</span>
-            <b className="text-[22px] leading-[1.1] font-black text-(--brand-deep)">{formatNumber(parts.day, locale)}</b>
-          </div>
-          <div className="min-w-0 flex-1">
-            <b className="text-base text-(--ink)">{visit.title}</b>
-            <div className="mt-0.5 text-[12.5px] font-semibold text-(--ink-2)">{meta}</div>
-            {who && <div className="text-[12.5px] font-semibold text-(--ink-2)">{who}</div>}
-          </div>
+      <Card as="section" className="pgn-sect pgn-visit" aria-labelledby="pgn-next-visit">
+        <div className="pgn-sect-head">
+          <h2 id="pgn-next-visit" className="pgn-sect-title">
+            {visit.title}
+          </h2>
+          <span className="pgn-opill nb-tone-brand">{visit.stage
+              ? t(`calendar.stages.${visit.stage}`)
+              : visit.appointmentId != null
+                ? t('calendar.stages.booked')
+                : t('calendar.states.to_book')}</span>
         </div>
+        <p className="pgn-visit-meta">
+          <span className="pgn-visit-date">{formatDayMonth(date, locale)}</span>
+          {t('common.separator')}
+          {lines}
+          {who && (
+            <>
+              <br />
+              {who}
+            </>
+          )}
+        </p>
+        {visit.prep && (
+          <p className="pgn-visit-prep">
+            <b>{t('calendar.prep')}</b> {visit.prep}
+          </p>
+        )}
 
         <button
           type="button"
-          className="flex flex-col gap-1.5 border-0 bg-transparent p-0 text-start disabled:cursor-default"
+          className="pgn-stages"
           aria-label={t('calendar.stagesLabel')}
           disabled={!canAdvance}
           onClick={advance}
         >
-          <span className="flex w-full gap-1">
+          <span className="pgn-stages-bars">
             {VISIT_STAGES.map((s, i) => (
-              <span
-                key={s}
-                aria-hidden
-                className={clsx('h-1.25 flex-1 rounded-full', i < filled ? 'bg-(--brand-fill)' : 'bg-(--line)')}
-              />
+              <span key={s} aria-hidden className={clsx('pgn-stages-bar', i < filled && 'is-on')} />
             ))}
           </span>
-          <span className="flex w-full justify-between text-[11.5px] font-bold">
+          <span className="pgn-stages-labels">
             {VISIT_STAGES.map((s, i) => (
-              <span key={s} className={i < filled ? 'text-(--brand)' : 'text-(--ink-2)'}>
+              <span key={s} className={clsx(i < filled && 'is-on')}>
                 {t(`calendar.stages.${s}`)}
               </span>
             ))}
           </span>
         </button>
         {stage.error && (
-          <p role="alert" className="m-0 text-xs font-semibold text-(--danger)">
+          <p role="alert" className="pgn-error-text">
             {t('common.saveError')}
           </p>
         )}
-        {visit.resultNote && (
-          <p className="m-0 text-[12.5px] leading-[1.9] text-(--ink-2)">{visit.resultNote}</p>
-        )}
+        {visit.resultNote && <p className="pgn-body-text">{visit.resultNote}</p>}
 
-        {visit.prep && (
-          <div className="rounded-xl bg-(--pink-bg) px-3 py-2.5 text-[12.5px] leading-[1.9] text-(--ink-2)">
-            <b className="text-(--ink)">{t('calendar.prep')}</b> {visit.prep}
+        {(visit.appointmentId != null || visit.place) && (
+          <div className="pgn-visit-actions">
+            {visit.appointmentId != null && (
+              <Link href={`/reminders/appointment/${visit.appointmentId}`} className="pgn-apill nb-tone-data">
+                <Icon name="bell" size={15} />
+                {remind ? t('calendar.reminder', { when: remind }) : t('calendar.stages.booked')}
+              </Link>
+            )}
+            {visit.place && (
+              <a
+                href={directionsHref(visit.place)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="pgn-apill nb-tone-brand"
+              >
+                <Icon name="mapPin" size={15} />
+                {t('calendar.directions')}
+              </a>
+            )}
           </div>
         )}
-
-        <div className="grid grid-cols-2 gap-2">
-          {visit.appointmentId != null ? (
-            <Link
-              href={`/reminders/appointment/${visit.appointmentId}`}
-              className="flex h-11.5 items-center justify-center gap-1.5 rounded-[14px] border-[1.5px] border-(--line-2) bg-(--surface) text-[13px] font-extrabold text-(--ink) no-underline"
-            >
-              <Icon name="bell" size={16} />
-              {remind ? t('calendar.reminder', { when: remind }) : t('calendar.stages.booked')}
-            </Link>
-          ) : (
-            <span />
-          )}
-          {visit.place ? (
-            <a
-              href={directionsHref(visit.place)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex h-11.5 items-center justify-center gap-1.5 rounded-[14px] border-[1.5px] border-(--line-2) bg-(--surface) text-[13px] font-extrabold text-(--ink) no-underline"
-            >
-              <Icon name="mapPin" size={16} />
-              {t('calendar.directions')}
-            </a>
-          ) : (
-            <span />
-          )}
-        </div>
-      </section>
+      </Card>
 
       <AppSheet
         open={noteOpen}
@@ -446,23 +438,23 @@ function NextVisitCard({ visit }: { visit: CalendarVisit }) {
         size="half"
         title={t('calendar.stages.result')}
         footer={
-          <button type="button" className="btn btn-primary w-full" disabled={stage.busy} onClick={() => void saveNote()}>
+          <PrimaryButton loading={stage.busy} onClick={() => void saveNote()}>
             {t('calendar.saveResult')}
-          </button>
+          </PrimaryButton>
         }
       >
-        <label className="flex flex-col gap-2 text-sm font-bold text-(--ink)">
+        <label className="pgn-field-label">
           {t('calendar.resultNote')}
           <textarea
             value={note}
             maxLength={2000}
             rows={4}
             onChange={(e) => setNote(e.target.value)}
-            className="rounded-xl border border-(--field-border) bg-(--surface) p-3 text-sm font-medium text-(--ink)"
+            className="pgn-textarea"
           />
         </label>
         {stage.error && (
-          <p role="alert" className="m-0 mt-2 text-xs font-semibold text-(--danger)">
+          <p role="alert" className="pgn-error-text">
             {t('common.saveError')}
           </p>
         )}
@@ -483,7 +475,7 @@ function defaultSelection(data: PregnancyCalendar | null, todayKey: string): str
   return next && data?.days.some((d) => d.date === next) ? next : todayKey;
 }
 
-function CareRow({ item, last }: { item: CareItem; last: boolean }) {
+function CareRow({ item }: { item: CareItem }) {
   const t = useTranslations('pregnancyV2.calendar');
   const tCommon = useTranslations('pregnancyV2.common');
   const locale = useLocale() as Locale;
@@ -499,38 +491,26 @@ function CareRow({ item, last }: { item: CareItem; last: boolean }) {
   const iso = item.date ?? item.suggestedDate;
   const when = iso ? carePlanDate(iso, locale) : null;
   const dateText = when ? (item.state === 'to_book' ? t('aroundDate', { date: when }) : when) : null;
-  const sub = [window, dateText, item.state === 'done' ? t('states.done') : null]
+  const sub = [window, dateText]
     .filter(Boolean)
     .join(tCommon('separator'));
 
+  const tone: Tone = item.state === 'done' ? 'data' : item.state === 'booked' ? 'brand' : 'neutral';
   return (
-    <div className={clsx('flex min-h-16 items-center gap-3', !last && 'border-b border-(--line)')}>
-      {item.state === 'done' ? (
-        <span className="flex size-8.5 shrink-0 items-center justify-center rounded-full bg-(--success-soft) text-(--success)" aria-hidden>
-          <Icon name="check" size={16} strokeWidth={2.4} />
-        </span>
-      ) : item.state === 'booked' ? (
-        <span className="flex size-8.5 shrink-0 items-center justify-center rounded-full bg-(--data-soft)" aria-hidden>
-          <span className="size-2.5 rounded-full bg-(--data)" />
-        </span>
-      ) : (
-        <span className="size-8.5 shrink-0 rounded-full border-2 border-dashed border-(--line-2)" aria-hidden />
-      )}
-      <div className="min-w-0 flex-1">
-        <b className="text-sm text-(--ink)">{item.title}</b>
-        {sub && <div className="text-xs font-semibold text-(--ink-2)">{sub}</div>}
-      </div>
-      {item.state === 'booked' && (
-        <span className="inline-flex h-6 items-center rounded-full bg-(--data-soft) px-2.25 text-[11px] font-extrabold text-(--data-deep)">
-          {t('states.booked')}
-        </span>
-      )}
-      {item.state === 'to_book' && (
-        <Link href={BOOK_HREF} onClick={book} className="inline-flex h-11 items-center text-[12.5px] font-extrabold text-(--brand)">
+    <li className="pgn-row">
+      <IconCircle icon={item.state === 'done' ? 'check' : 'calendar'} tone={tone} size="sm" />
+      <span className="pgn-row-text">
+        <b className="pgn-row-title">{item.title}</b>
+        {sub && <span className="pgn-row-desc">{sub}</span>}
+      </span>
+      {item.state === 'to_book' ? (
+        <Link href={BOOK_HREF} onClick={book} className="pgn-apill nb-tone-brand">
           {t('book')}
         </Link>
+      ) : (
+        <span className={clsx('pgn-opill', `nb-tone-${tone}`)}>{t(`states.${item.state}`)}</span>
       )}
-    </div>
+    </li>
   );
 }
 
@@ -604,17 +584,11 @@ function ReportButton() {
 
   return (
     <>
-      <button
-        type="button"
-        disabled={state === 'working'}
-        onClick={() => void run()}
-        className="flex h-13 items-center justify-center gap-2 rounded-[14px] border-[1.5px] border-(--line-2) bg-(--surface) text-sm font-extrabold text-(--ink)"
-      >
-        <Icon name={state === 'working' ? 'loader' : 'download'} size={18} />
+      <SecondaryButton icon={state === 'working' ? 'loader' : 'download'} loading={state === 'working'} onClick={() => void run()}>
         {state === 'working' ? t('calendar.pdf.working') : t('calendar.report')}
-      </button>
+      </SecondaryButton>
       {state === 'error' && (
-        <p role="alert" className="m-0 text-center text-xs font-semibold text-(--danger)">
+        <p role="alert" className="pgn-error-text is-center">
           {t('calendar.pdf.error')}
         </p>
       )}

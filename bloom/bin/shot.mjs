@@ -78,7 +78,7 @@ if (flags.has('files')) {
 } else {
   const base = flags.has('admin') && !args.includes('--base') ? 'http://localhost:3001' : opt.base;
   await send('Page.navigate', { url: base }); await sleep(2500);
-  if (token && !flags.has('admin')) await ev(`localStorage.setItem('ritme_token',${JSON.stringify(token)}); document.cookie='ritme_auth=1; path=/'; true`);
+  if (token && !flags.has('admin')) await ev(`localStorage.setItem('ritme-install-dismissed','1'); localStorage.setItem('ritme_token',${JSON.stringify(token)}); document.cookie='ritme_auth=1; path=/'; true`);
   for (const theme of opt.themes.split(',')) {
     await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: theme }] });
     await ev(`try{localStorage.setItem('ritme_theme',${JSON.stringify(theme)})}catch(e){}; document.documentElement.dataset.theme=${JSON.stringify(theme)}; true`);

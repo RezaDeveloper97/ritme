@@ -205,3 +205,36 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   `side-by-side_Me_{Hub,Profile,Appearance}.png` (artboard light | app light | artboard dark | app dark), `artboards/`.
 - **Open:** QUESTIONS #19–#23. `screens/profile-personal` / `profile-language` sheets are now unreferenced from the
   hub (still registered for old `?sheet=` links). The PWA install banner still overlaps the nav (pre-existing).
+
+## B-N1-14 — Restyle pregnancy v2 screens to Night & Bloom
+
+- **Screens** (all on nb primitives + `SkyLayer`, back → `/pregnancy` via `router.push`):
+  `/pregnancy` (PregFull_Main: `HubHeader` Lalezar «بارداری» + soft bell w/ unread dot, 40-dot week ring `ui/WeekRing.tsx`
+  with days-to-due in Lalezar 64, trimester + confidence outline pills, due-date card (edit → setup), 4 tone tiles,
+  «یادآورهای امروز» card (v13_Preg_Home; B-N1-15's widget, gutter neutralised), next visit, tinted smart tip, care list);
+  `/pregnancy/weeks[/n]` (PregFull_Week: header «بارداری — هفتهٔ N» + bookmark, `SegmentedTabs` prev/this/next week
+  (route-driven, swipe kept), bloom-tint size hero, Lalezar stat cards, `InfoNote`s, baby / «ممکنه حس کنی» / tasks
+  sections, warning, reviewer note + sources); `/pregnancy/log` (PregFull_Log: mood + symptom `PillChip`s (brand/warm),
+  severity radios, 8-glass water row + −/+, big weight input, period-tint spotting toggle card, note, glass sticky save
+  footer; v1 `?tab=` page got `ScreenHeader` + `SegmentedTabs`); `/pregnancy/calendar` (PregFull_Calendar: header +
+  «ویزیت جدید» button, next-visit card with stage pill/prep/stepper/44px reminder+directions pills, care plan rows with
+  status pills / «رزرو», month grid, selected day, PDF `SecondaryButton`, source `InfoNote`); `/pregnancy/alerts`
+  (PregFull_Alerts: follow-up/urgent = tone-tinted card, inline facts, outline actions + «دیدم، ممنون» text button;
+  info/suggestion = compact pill rows; legend with tone discs); `/pregnancy/setup` (PregFull_Setup: 4-step
+  `ProgressSteps` in bloom, welcome card, basis chips (radio) + field boxes, history chips + select boxes, result card).
+- **States:** `SkeletonGroup` loading, danger-disc error card + retry, `EmptyState` (not active / no alerts) on every
+  screen; all hit targets ≥ 44px (chips 44, glasses 44, action pills 44).
+- **Widget** `pregnancy-care-checklist` rebuilt (disc rows, `variant="today"|"week"`, `title`); `PregnancyCheckBox`
+  export removed.
+- **CSS:** one `/* B-N1-14 */` block (`pgn-*`) at the end of `globals.css`. `.pg2-*` left for the illustrations.
+- **Copy:** 17 new `pregnancyV2` keys (fa/en) — frontend `messages/{fa,en}/pregnancy-v2.json`, backend seed
+  `backend-go/resources/translations/{fa,en}/pregnancy-v2.json`, goldens `internal/i18n/testdata/messages_{fa,en,ar}.json`
+  (ar = fa) patched for those keys only; `go test ./internal/i18n` green. Restart the dev API to serve them.
+- **Outside `touches`** (flagged): `screens/pregnancy-onboarding` (the real home of `/pregnancy/setup`; `touches` names a
+  non-existent `pregnancy-setup`), backend-go translation seed + i18n testdata (acceptance requires sync).
+- **Screenshots:** `docs/qa/bloom/B-N1-14/` — 6 screens × light/dark (persona 15), `p14/` (week-8 persona + `/en`
+  LTR), `side-by-side_*.png` (artboard light | app light | artboard dark | app dark), `artboards/`.
+- **Open:** QUESTIONS #24–#27. Unused, left for deletion (deletion was blocked in this session):
+  `widgets/pregnancy-week-carousel/`, `screens/pregnancy-week/ui/WeekStrip.tsx`. v1 Symptoms/Weekly/Movement forms
+  inside `?tab=` still use `features/track-pregnancy` old controls. Persona 15 has no booked visit / follow-up alert, so
+  those card variants were checked in code only.

@@ -3,7 +3,7 @@ id: B-N1-14
 title: Restyle pregnancy v2 screens to Night & Bloom
 milestone: N1
 type: frontend
-status: todo
+status: done
 depends_on: [B-N1-03]
 parallel_group: N1-N
 touches: [frontend/src/screens/pregnancy,frontend/src/screens/pregnancy-setup,frontend/src/screens/pregnancy-week,frontend/src/screens/pregnancy-log,frontend/src/screens/pregnancy-calendar,frontend/src/screens/pregnancy-alerts,frontend/src/widgets/pregnancy-week-carousel,frontend/src/widgets/pregnancy-care-checklist]

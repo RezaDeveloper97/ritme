@@ -1,20 +1,17 @@
 'use client';
 
-import clsx from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 import {
   type DueCard,
   type NextVisit,
-  type PregnancyProgressV2,
   type PregnancyToday,
-  trimesterFills,
   usePregnancyToday,
   V2_TERM_WEEKS,
   type WeekTip,
 } from '@/entities/pregnancy';
-import { Link, type Locale, useDirection } from '@/shared/i18n';
+import { Link, type Locale, useDirection, useRouter } from '@/shared/i18n';
 import {
   formatDayMonth,
   formatLongDate,
@@ -22,211 +19,175 @@ import {
   formatWeekday,
   formatWeekdayDayMonth,
   fromApiDate,
-  monthName,
   today as todayDate,
-  toApiDate,
-  toParts,
-  weekdayLabels,
-  weekOf,
 } from '@/shared/lib/date';
-import { Icon, type IconName } from '@/shared/ui';
+import {
+  Card,
+  EmptyState,
+  HeaderButton,
+  HubHeader,
+  Icon,
+  type IconName,
+  IconCircle,
+  SecondaryButton,
+  Skeleton,
+  SkeletonGroup,
+  SkyLayer,
+  type Tone,
+} from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
 import { PregnancyCareChecklist } from '@/widgets/pregnancy-care-checklist';
-import { PregnancyWeekCarousel } from '@/widgets/pregnancy-week-carousel';
 import { TodayRemindersCard } from '@/widgets/today-reminders';
+
+import { WeekRing } from './WeekRing';
 
 type T = ReturnType<typeof useTranslations<'pregnancyV2'>>;
 
-function Shell({ children }: { children: React.ReactNode }) {
+function Shell({ header, children }: { header?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="view preg-page">
-      {/* Children never shrink: an overflow-hidden card would otherwise collapse to 0 in this column. */}
-      <div className="scroll flex flex-col gap-3 pb-6 *:shrink-0">{children}</div>
+    <div className="view preg-page pgn-screen">
+      <SkyLayer />
+      <div className="scroll">
+        {header}
+        <div className="pgn-body is-hub">{children}</div>
+      </div>
       <BottomNav />
     </div>
   );
 }
 
-const range = (value: { from: string; to: string }, locale: Locale) => ({
-  from: formatDayMonth(fromApiDate(value.from), locale),
-  to: formatDayMonth(fromApiDate(value.to), locale),
-});
-
-// ── Hero: date pill + bell, 7-day strip, week carousel ───────────
-function Hero({ data, t, locale }: { data: PregnancyToday; t: T; locale: Locale }) {
-  const now = todayDate();
-  const days = weekOf(now, locale);
-  const labels = weekdayLabels(locale);
-  const todayKey = toApiDate(now);
+function Header({ unread, t }: { unread: number; t: T }) {
+  const locale = useLocale() as Locale;
+  const router = useRouter();
   return (
-    <section className="pg2-hero shrink-0">
-      <div className="flex items-center justify-between gap-2">
-        <h1 className="pg2-hero-pill">{formatWeekdayDayMonth(now, locale)}</h1>
-        <Link
-          href="/pregnancy/alerts"
-          className="pg2-hero-bell no-underline"
-          aria-label={t('today.newAlerts', { count: data.unreadAlerts })}
-        >
-          <Icon name="bell" size={20} />
-          {data.unreadAlerts > 0 && <span className="pg2-hero-dot" aria-hidden />}
-        </Link>
-      </div>
-      <div className="mt-3 grid grid-cols-7 gap-1.5">
-        {days.map((d, k) => {
-          const key = toApiDate(d);
-          const isToday = key === todayKey;
-          const isFuture = key > todayKey;
-          const body = (
-            <>
-              <span className="text-[10.5px] font-bold">{labels[k]}</span>
-              <span className="text-[14px] font-black">{formatNumber(toParts(d, locale).day, locale)}</span>
-            </>
-          );
-          const cls = clsx('pg2-day', isToday && 'is-today', isFuture && 'is-future');
-          return isFuture ? (
-            <div key={key} className={cls}>
-              {body}
-            </div>
-          ) : (
-            <Link key={key} href={`/pregnancy/log?date=${key}`} className={cls} aria-current={isToday ? 'date' : undefined}>
-              {body}
-            </Link>
-          );
-        })}
-      </div>
-      {data.carousel.length > 0 && (
-        <PregnancyWeekCarousel slides={data.carousel} confidence={data.confidence} uncertaintyDays={data.uncertaintyDays} />
-      )}
-    </section>
+    <HubHeader
+      className="pgn-hub"
+      date={formatWeekdayDayMonth(todayDate(), locale)}
+      greeting={t('common.title')}
+      actions={
+        <HeaderButton
+          variant="soft"
+          icon="bell"
+          badge={unread > 0}
+          label={t('today.newAlerts', { count: unread })}
+          onClick={() => router.push('/pregnancy/alerts')}
+        />
+      }
+    />
   );
 }
 
-// ── Due date + 40-week progress (one card) ─────────────────────
-function DueProgressCard({
-  due,
-  progress,
-  t,
-  locale,
-}: {
-  due: DueCard | null;
-  progress: PregnancyProgressV2;
-  t: T;
-  locale: Locale;
-}) {
-  const r = due?.range ? range(due.range, locale) : null;
-  const fills = trimesterFills(progress);
-  const byTrimester = new Map(fills.map((f) => [f.trimester, f]));
+// ── Ring + status pills ────────────────────────────────────────
+function RingHero({ data, t }: { data: PregnancyToday; t: T }) {
+  const locale = useLocale() as Locale;
+  const week = data.progress.week;
+  const days = data.due?.daysLeft ?? null;
+  const trimester = data.trimester as 1 | 2 | 3 | null;
+  const level = data.confidence.level;
+  const levelText = level ? t(`common.confidence.levels.${level}`) : null;
+  const weekText = t('common.weekOf', { week, total: V2_TERM_WEEKS });
   return (
-    <section className="card mx-4 p-4">
-      <div className="flex items-start gap-3">
-        <div className="min-w-0 flex-1">
-          <div className="text-[12px] font-bold text-(--muted)">{t('common.dueDate')}</div>
-          {due && (
-            <>
-              <div className="text-[18px] font-black text-(--ink)">
-                {due.dateLabel ?? formatLongDate(fromApiDate(due.date), locale)}
-              </div>
-              <div className="text-[12px] font-bold text-(--steel)">
-                {due.daysLeft != null && t('today.daysToDue', { days: due.daysLeft })}
-                {due.daysLeft != null && r && t('common.separator')}
-                {r && t('today.usualRange', r)}
-              </div>
-            </>
+    <>
+      <WeekRing
+        week={week}
+        label={days != null ? t('today.ringLabel', { week, total: V2_TERM_WEEKS, days }) : weekText}
+      >
+        <span className="pgn-ring-week">{weekText}</span>
+        {days != null ? (
+          <>
+            <span className="pgn-ring-num">{formatNumber(days, locale)}</span>
+            <span className="pgn-ring-cap">{t('today.daysToBirth')}</span>
+          </>
+        ) : (
+          <span className="pgn-ring-num">{formatNumber(week, locale)}</span>
+        )}
+        <span className="pgn-ring-sub">{t('today.percentShort', { percent: data.progress.percent })}</span>
+      </WeekRing>
+      {(trimester || levelText) && (
+        <div className="pgn-pills">
+          {trimester && <span className="pgn-opill nb-tone-bloom">{t(`common.trimester.${trimester}`)}</span>}
+          {levelText && (
+            <span className="pgn-opill nb-tone-warm">
+              {data.uncertaintyDays != null
+                ? t('common.confidence.withRange', { level: levelText, days: data.uncertaintyDays })
+                : t('common.confidence.label', { level: levelText })}
+            </span>
           )}
         </div>
-        <Link
-          href="/pregnancy/setup"
-          aria-label={t('setup.editBasis')}
-          className="pg2-tile pg2-tone-brand flex size-11 shrink-0 items-center justify-center rounded-xl no-underline"
-        >
-          <Icon name="pen" size={18} />
-        </Link>
-      </div>
-      <div
-        className="mt-3 h-2 overflow-hidden rounded-full bg-(--brand-line-soft)"
-        role="progressbar"
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={progress.percent}
-        aria-label={t('common.weekOf', { week: progress.week, total: V2_TERM_WEEKS })}
-      >
-        <div className="h-full rounded-full bg-(--brand-fill)" style={{ width: `${progress.percent}%` }} />
-      </div>
-      <div className="mt-2 flex items-baseline justify-between gap-2">
-        <span className="text-[13px] font-black text-(--ink)">
-          {t('common.weekOf', { week: progress.week, total: V2_TERM_WEEKS })}
-        </span>
-        <span className="text-[12px] font-bold text-(--steel)">{t('today.percentDone', { percent: progress.percent })}</span>
-      </div>
-      <div className="mt-3 flex gap-1" aria-hidden>
-        {fills.map((f) => (
-          <div key={f.trimester} className="h-1.5 flex-1 overflow-hidden rounded-full bg-(--line)">
-            <div className="h-full rounded-full bg-(--brand-fill)" style={{ width: `${f.fill}%` }} />
-          </div>
-        ))}
-      </div>
-      <div className="mt-1.5 flex gap-1 text-[10.5px] font-bold text-(--muted)">
-        {progress.trimesters.map((s) => {
-          const name = t(`today.trimesterShort.${s.trimester}`);
-          const date = s.startLabel ?? (s.startDate ? formatDayMonth(fromApiDate(s.startDate), locale) : null);
-          const started = byTrimester.get(s.trimester)?.started !== false;
-          return (
-            <span key={s.trimester} className={clsx('flex-1 truncate', started && 'text-(--ink)')}>
-              {date && !started ? t('today.trimesterFrom', { name, date }) : name}
-            </span>
-          );
-        })}
-      </div>
-    </section>
+      )}
+    </>
   );
 }
 
-// ── Quick actions (2 × 2) ──────────────────────────────────────
-function Action({
+// ── Due date ───────────────────────────────────────────────────
+function DueDateCard({ due, t }: { due: DueCard; t: T }) {
+  const locale = useLocale() as Locale;
+  const range = due.range
+    ? t('today.usualRange', {
+        from: formatDayMonth(fromApiDate(due.range.from), locale),
+        to: formatDayMonth(fromApiDate(due.range.to), locale),
+      })
+    : null;
+  return (
+    <Card as="section" className="pgn-sect" aria-labelledby="pgn-due">
+      <div className="pgn-sect-head">
+        <h2 id="pgn-due" className="pgn-sect-title">
+          {t('common.dueDate')}
+        </h2>
+        <Link href="/pregnancy/setup" className="pgn-icon-link" aria-label={t('setup.editBasis')}>
+          <Icon name="pen" size={18} strokeWidth={1.8} />
+        </Link>
+      </div>
+      <span className="pgn-display">{due.dateLabel ?? formatLongDate(fromApiDate(due.date), locale)}</span>
+      <p className="pgn-caption">
+        {range ? `${range}${t('common.separator')}${t('common.estimateNote')}` : t('common.estimateNote')}
+      </p>
+    </Card>
+  );
+}
+
+// ── Quick tiles (4 across) ─────────────────────────────────────
+function Tile({
   href,
   icon,
   tone,
   label,
   badge,
   ariaLabel,
-  locale,
 }: {
-  locale: Locale;
   href: string;
   icon: IconName;
-  tone: 'pink' | 'brand' | 'neutral' | 'warn';
+  tone: Tone;
   label: string;
-  badge?: number;
+  badge?: string;
   ariaLabel?: string;
 }) {
   return (
-    <Link href={href} aria-label={ariaLabel} className="card relative flex items-center gap-3 p-3.5 no-underline">
-      <span className={clsx('pg2-tile flex size-11 items-center justify-center rounded-xl', `pg2-tone-${tone}`)}>
-        <Icon name={icon} size={20} />
-      </span>
-      <span className="min-w-0 text-[13px] font-black text-(--ink)">{label}</span>
-      {badge != null && badge > 0 && (
-        <span className="absolute end-2 top-2 min-w-5 rounded-full bg-(--care-rose) px-1.5 text-center text-[10.5px] font-black text-(--on-accent)">
-          {formatNumber(badge, locale)}
+    <Link href={href} aria-label={ariaLabel} className="pgn-tile">
+      <IconCircle icon={icon} tone={tone} size="md" />
+      <b className="pgn-tile-label">{label}</b>
+      {badge && (
+        <span className="pgn-tile-badge" aria-hidden>
+          {badge}
         </span>
       )}
     </Link>
   );
 }
 
-function QuickActions({ data, t, locale }: { data: PregnancyToday; t: T; locale: Locale }) {
+function QuickTiles({ data, t }: { data: PregnancyToday; t: T }) {
+  const locale = useLocale() as Locale;
   return (
-    <nav className="mx-4 grid grid-cols-2 gap-2.5">
-      <Action locale={locale} href="/pregnancy/log" icon="pen" tone="pink" label={t('today.actions.log')} />
-      <Action locale={locale} href="/pregnancy/log?tab=weekly" icon="stetho" tone="brand" label={t('today.actions.checkup')} />
-      <Action locale={locale} href={`/pregnancy/weeks/${data.progress.week}`} icon="calendar" tone="neutral" label={t('today.actions.weeks')} />
-      <Action
-        locale={locale}
+    <nav className="pgn-tiles" aria-label={t('common.title')}>
+      <Tile href="/pregnancy/log" icon="plus" tone="bloom" label={t('today.actions.logShort')} />
+      <Tile href="/pregnancy/log?tab=weekly" icon="check" tone="data" label={t('today.actions.checkup')} />
+      <Tile href={`/pregnancy/weeks/${data.progress.week}`} icon="calendar" tone="brand" label={t('today.actions.weeks')} />
+      <Tile
         href="/pregnancy/alerts"
-        icon="warning"
-        tone="warn"
+        icon="bell"
+        tone="danger"
         label={t('today.actions.alerts')}
-        badge={data.unreadAlerts}
+        badge={data.unreadAlerts > 0 ? formatNumber(data.unreadAlerts, locale) : undefined}
         ariaLabel={t('today.newAlerts', { count: data.unreadAlerts })}
       />
     </nav>
@@ -234,33 +195,33 @@ function QuickActions({ data, t, locale }: { data: PregnancyToday; t: T; locale:
 }
 
 // ── Next visit ─────────────────────────────────────────────────
-function NextVisitCard({ visit, t, locale }: { visit: NextVisit; t: T; locale: Locale }) {
-  const isRtl = useDirection() === 'rtl';
+function NextVisitCard({ visit, t }: { visit: NextVisit; t: T }) {
+  const locale = useLocale() as Locale;
   const date = visit.date ? fromApiDate(visit.date) : null;
-  const parts = date ? toParts(date, locale) : null;
   const weekday = date ? formatWeekday(date, locale) : null;
   const time = visit.time ? formatNumber(visit.time, locale) : null;
   const meta =
     weekday && time && visit.week != null
       ? t('today.visitMeta', { weekday, time, week: visit.week })
-      : [weekday, time].filter(Boolean).join(t('common.separator'));
+      : [weekday ?? visit.dateLabel, time].filter(Boolean).join(t('common.separator'));
   return (
-    <Link href="/pregnancy/calendar" className="card mx-4 flex items-center gap-3 p-4 no-underline">
-      {parts && (
-        <div className="pg2-tile pg2-tone-brand flex size-13 shrink-0 flex-col items-center justify-center rounded-xl">
-          <span className="text-[10.5px] font-bold">{monthName(parts.month, locale)}</span>
-          <span className="text-[17px] font-black">{formatNumber(parts.day, locale)}</span>
-        </div>
-      )}
-      <div className="min-w-0 flex-1">
-        {visit.daysUntil != null && (
-          <div className="text-[11.5px] font-bold text-(--muted)">{t('today.nextVisit', { days: visit.daysUntil })}</div>
-        )}
-        <div className="text-[14.5px] font-black text-(--ink)">{visit.title}</div>
-        {meta && <div className="text-[12px] font-bold text-(--steel)">{meta}</div>}
+    <Card as="section" className="pgn-sect" aria-labelledby="pgn-visit">
+      <div className="pgn-sect-head">
+        <h2 id="pgn-visit" className="pgn-sect-title">
+          {visit.daysUntil != null ? t('today.nextVisit', { days: visit.daysUntil }) : visit.title}
+        </h2>
+        <Link href="/pregnancy/calendar" className="pgn-sect-link">
+          {t('today.calendarLink')}
+        </Link>
       </div>
-      <Icon name={isRtl ? 'chevronLeft' : 'chevronRight'} size={18} className="shrink-0 text-(--muted)" />
-    </Link>
+      <Link href="/pregnancy/calendar" className="pgn-row is-link">
+        <IconCircle icon="calendar" tone="brand" size="sm" />
+        <span className="pgn-row-text">
+          <b className="pgn-row-title">{visit.title}</b>
+          {meta && <span className="pgn-row-desc">{meta}</span>}
+        </span>
+      </Link>
+    </Card>
   );
 }
 
@@ -269,69 +230,74 @@ function TipCard({ tip, week, t }: { tip: WeekTip; week: number; t: T }) {
   const isRtl = useDirection() === 'rtl';
   const tipWeek = tip.week ?? week;
   const href = tip.link ?? `/pregnancy/weeks/${tipWeek}`;
-  const external = /^https?:\/\//.test(href);
   const more = (
     <>
       {t('today.readMore', { week: tipWeek })}
-      <Icon name={isRtl ? 'chevronLeft' : 'chevronRight'} size={16} />
+      <Icon name={isRtl ? 'chevronLeft' : 'chevronRight'} size={15} strokeWidth={2.2} />
     </>
   );
-  const linkCls = 'mt-3 flex items-center gap-1 text-[12.5px] font-black text-(--brand) no-underline';
   return (
-    <section className="card mx-4 p-4">
-      <div className="flex items-center gap-2 text-[11.5px] font-bold text-(--muted)">
-        <span className="font-black text-(--brand)">{t('today.tipEyebrow')}</span>
-        {tip.readMinutes != null && <span className="ms-auto">{t('today.readMinutes', { minutes: tip.readMinutes })}</span>}
+    <Card as="section" className="pgn-sect pgn-tip" aria-labelledby="pgn-tip">
+      <div className="pgn-sect-head">
+        <span className="pgn-eyebrow">{t('today.tipEyebrow')}</span>
+        {tip.readMinutes != null && (
+          <span className="pgn-meta">{t('today.readMinutes', { minutes: tip.readMinutes })}</span>
+        )}
       </div>
-      <h2 className="mt-2 text-[15px] font-black text-(--ink)">{tip.title}</h2>
-      <p className="mt-1.5 text-[13px] leading-6 text-(--steel)">{tip.body}</p>
-      {external ? (
-        <a href={href} target="_blank" rel="noopener noreferrer" className={linkCls}>
+      <h2 id="pgn-tip" className="pgn-sect-title">
+        {tip.title}
+      </h2>
+      <p className="pgn-body-text">{tip.body}</p>
+      {/^https?:\/\//.test(href) ? (
+        <a href={href} target="_blank" rel="noopener noreferrer" className="pgn-link">
           {more}
         </a>
       ) : (
-        <Link href={href} className={linkCls}>
+        <Link href={href} className="pgn-link">
           {more}
         </Link>
       )}
-    </section>
+    </Card>
   );
 }
 
 // ── States ─────────────────────────────────────────────────────
-function Skeleton() {
-  const t = useTranslations('pregnancyV2');
+function Loading({ t }: { t: T }) {
   return (
     <Shell>
-      <span className="sr-only" role="status">
-        {t('common.loading')}
-      </span>
-      {[56, 300, 84, 70, 90, 110].map((h, k) => (
-        <div key={k} className="mx-4 animate-pulse rounded-2xl bg-(--surface-2)" style={{ height: h }} aria-hidden />
-      ))}
+      <SkeletonGroup label={t('common.loading')} className="pgn-skel">
+        <Skeleton width="medium" />
+        <Skeleton shape="circle" className="pgn-skel-ring" />
+        <Skeleton shape="card" />
+        <Skeleton shape="block" />
+        <Skeleton shape="card" />
+      </SkeletonGroup>
     </Shell>
   );
 }
 
 // ── Main export ────────────────────────────────────────────────
+/** «بارداری» today — `/pregnancy` (PregFull_Main + v13_Preg_Home reminders block). */
 export function PregnancyPage() {
   const t = useTranslations('pregnancyV2');
-  const locale = useLocale() as Locale;
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   const query = usePregnancyToday();
 
-  if (!mounted || query.isLoading) return <Skeleton />;
+  if (!mounted || query.isLoading) return <Loading t={t} />;
 
   if (query.isError) {
     return (
-      <Shell>
-        <div className="card mx-4 mt-6 p-5 text-center" role="alert">
-          <p className="text-[14px] font-bold text-(--ink)">{t('common.loadError')}</p>
-          <button type="button" className="btn btn-primary mt-4" onClick={() => void query.refetch()}>
+      <Shell header={<Header unread={0} t={t} />}>
+        <Card className="pgn-state" role="alert">
+          <span className="pgn-state-disc" aria-hidden>
+            <Icon name="warning" size={24} />
+          </span>
+          <p className="pgn-state-text">{t('common.loadError')}</p>
+          <SecondaryButton icon="refresh" block={false} onClick={() => void query.refetch()}>
             {t('common.retry')}
-          </button>
-        </div>
+          </SecondaryButton>
+        </Card>
       </Shell>
     );
   }
@@ -339,36 +305,32 @@ export function PregnancyPage() {
   const data = query.data;
   if (!data) {
     return (
-      <Shell>
-        <div className="card mx-4 mt-6 p-5 text-center">
-          <p className="text-[14px] font-bold text-(--ink)">{t('common.notActive')}</p>
-          <Link href="/pregnancy/setup" className="btn btn-primary mt-4 no-underline">
-            {t('today.setupCta')}
-          </Link>
-        </div>
+      <Shell header={<Header unread={0} t={t} />}>
+        <Card>
+          <EmptyState
+            icon="heart"
+            title={t('common.notActive')}
+            action={
+              <Link href="/pregnancy/setup" className="nb-btn is-primary is-block">
+                {t('today.setupCta')}
+              </Link>
+            }
+          />
+        </Card>
       </Shell>
     );
   }
 
-  const disclaimerRange = data.due?.range ? range(data.due.range, locale) : null;
-
   return (
-    <Shell>
-      <Hero data={data} t={t} locale={locale} />
+    <Shell header={<Header unread={data.unreadAlerts} t={t} />}>
+      <RingHero data={data} t={t} />
+      {data.due && <DueDateCard due={data.due} t={t} />}
+      <QuickTiles data={data} t={t} />
       {/* The «ویزیت بعدی» card below already shows this appointment. */}
       <TodayRemindersCard hideAppointmentId={data.nextVisit?.appointmentId ?? null} />
-      <DueProgressCard due={data.due} progress={data.progress} t={t} locale={locale} />
-      <QuickActions data={data} t={t} locale={locale} />
-      {data.nextVisit && <NextVisitCard visit={data.nextVisit} t={t} locale={locale} />}
+      {data.nextVisit && <NextVisitCard visit={data.nextVisit} t={t} />}
       {data.tip && <TipCard tip={data.tip} week={data.progress.week} t={t} />}
       <PregnancyCareChecklist week={data.progress.week} tasks={data.tasks} />
-      <aside className="pg2-note mx-4 flex gap-2 rounded-2xl p-3 text-[12px] leading-6">
-        <Icon name="info" size={16} className="pg2-note-icon" />
-        <p>
-          <strong className="text-(--ink)">{t('today.disclaimerTitle')}</strong>{' '}
-          {disclaimerRange ? t('today.disclaimerBody', disclaimerRange) : t('common.estimateNote')}
-        </p>
-      </aside>
     </Shell>
   );
 }

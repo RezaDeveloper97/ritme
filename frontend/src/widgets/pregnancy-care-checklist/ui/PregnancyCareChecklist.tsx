@@ -5,27 +5,30 @@ import { useTranslations } from 'next-intl';
 
 import { taskProgress, toggleDoneKey, type WeekTask } from '@/entities/pregnancy';
 import { useUpdateWeekState } from '@/features/track-pregnancy';
-import { Icon } from '@/shared/ui';
+import { Card, Icon } from '@/shared/ui';
 
 interface Props {
   week: number;
   tasks: readonly WeekTask[];
+  /** Section title; «مراقبت‌های این هفته» by default. */
+  title?: string;
+  /**
+   * `today` (PregFull_Main) shows the «۲ از ۳» count and an «انجام شد» pill on
+   * done rows; `week` (PregFull_Week «کارهای این هفته») keeps just the discs.
+   */
+  variant?: 'today' | 'week';
 }
 
-/** The square brand box both task lists use (Today and the Week «کارهای هفته» tab). */
-export function PregnancyCheckBox({ on }: { on: boolean }) {
-  return (
-    <span className={clsx('pg2-check', on && 'is-on')} aria-hidden>
-      <Icon name="check" size={15} strokeWidth={3} />
-    </span>
-  );
-}
-
-/** «مراقبت‌های این هفته» — the current week's tasks with a done count (optimistic PUT). */
-export function PregnancyCareChecklist({ week, tasks }: Props) {
+/**
+ * The week's care tasks as checkbox rows (optimistic PUT; Today and Week share
+ * one mutation). Each row: 34px disc (turquoise check when done, a quiet plus
+ * when not) + text, ≥ 52px tall.
+ */
+export function PregnancyCareChecklist({ week, tasks, title, variant = 'today' }: Props) {
   const t = useTranslations('pregnancyV2');
   const update = useUpdateWeekState();
   const { done, total } = taskProgress(tasks);
+  const headingId = `pgn-care-${variant}`;
 
   const toggle = (key: string) => {
     const doneKeys = tasks.filter((x) => x.done).map((x) => x.key);
@@ -33,44 +36,47 @@ export function PregnancyCareChecklist({ week, tasks }: Props) {
   };
 
   return (
-    <section className="card mx-4 p-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-[15px] font-black text-(--ink)">{t('today.careTitle')}</h2>
-        {total > 0 && (
-          <span className="rounded-full bg-(--surface-2) px-2.5 py-0.5 text-[11.5px] font-black text-(--brand-deep)">
-            {t('today.careDone', { done, total })}
-          </span>
+    <Card as="section" className="pgn-sect" aria-labelledby={headingId}>
+      <div className="pgn-sect-head">
+        <h2 id={headingId} className="pgn-sect-title">
+          {title ?? t('today.careTitle')}
+        </h2>
+        {variant === 'today' && total > 0 && (
+          <span className="pgn-opill nb-tone-data">{t('today.careDone', { done, total })}</span>
         )}
       </div>
       {total === 0 ? (
-        <p className="mt-3 text-[13px] text-(--muted)">{t('today.careEmpty')}</p>
+        <p className="pgn-muted">{t('today.careEmpty')}</p>
       ) : (
-        <ul className="mt-2">
+        <ul className="pgn-rows">
           {tasks.map((task) => (
-            <li key={task.key} className="border-b border-(--line-2) last:border-b-0">
+            <li key={task.key}>
               <button
                 type="button"
                 role="checkbox"
                 aria-checked={task.done}
                 onClick={() => toggle(task.key)}
-                className="flex w-full items-center gap-3 py-3 text-start focus-visible:shadow-(--ring) focus-visible:outline-none"
+                className="pgn-row pgn-task"
               >
-                <PregnancyCheckBox on={task.done} />
-                <span
-                  className={clsx('text-[13.5px] font-bold', task.done ? 'text-(--muted) line-through' : 'text-(--ink)')}
-                >
-                  {task.text}
+                <span className={clsx('pgn-task-disc', task.done && 'is-done')} aria-hidden>
+                  <Icon name={task.done ? 'check' : 'plus'} size={16} strokeWidth={task.done ? 2.6 : 2} />
                 </span>
+                <span className="pgn-row-title">{task.text}</span>
+                {variant === 'today' && task.done && (
+                  <span className="pgn-opill nb-tone-data" aria-hidden>
+                    {t('calendar.states.done')}
+                  </span>
+                )}
               </button>
             </li>
           ))}
         </ul>
       )}
       {update.isError && (
-        <p role="alert" className="mt-2 text-[12px] font-bold text-(--care-rose)">
+        <p role="alert" className="pgn-error-text">
           {t('common.saveError')}
         </p>
       )}
-    </section>
+    </Card>
   );
 }
