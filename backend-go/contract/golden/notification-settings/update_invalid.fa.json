@@ -1,0 +1,44 @@
+{
+  "case": "notification-settings/update_invalid.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/profile/notification-settings",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "categories": {
+            "pms": "maybe"
+          },
+          "quiet_hours": {
+            "start": "25:00"
+          },
+          "neutral_copy": "x"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": false,
+        "message": "اطلاعات واردشده نامعتبر است",
+        "errors": {
+          "quiet_hours.start": [
+            "شروع ساعت سکوت با قالب H:i مطابقت ندارد."
+          ],
+          "neutral_copy": [
+            "فیلد متن خنثی باید درست یا نادرست باشد."
+          ],
+          "categories.pms": [
+            "فیلد شروع PMS باید درست یا نادرست باشد."
+          ]
+        }
+      }
+    }
+  ]
+}

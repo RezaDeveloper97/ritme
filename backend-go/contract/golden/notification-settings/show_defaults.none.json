@@ -1,0 +1,89 @@
+{
+  "case": "notification-settings/show_defaults.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/profile/notification-settings",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "groups": [
+            {
+              "code": "cycle",
+              "items": [
+                {
+                  "code": "before_period",
+                  "enabled": true
+                },
+                {
+                  "code": "pms",
+                  "enabled": true
+                },
+                {
+                  "code": "fertile_window",
+                  "enabled": false
+                },
+                {
+                  "code": "daily_log",
+                  "enabled": true
+                }
+              ]
+            },
+            {
+              "code": "health",
+              "items": [
+                {
+                  "code": "medications",
+                  "enabled": true
+                },
+                {
+                  "code": "appointments",
+                  "enabled": true
+                },
+                {
+                  "code": "checkups",
+                  "enabled": true
+                },
+                {
+                  "code": "vitals",
+                  "enabled": false
+                }
+              ]
+            },
+            {
+              "code": "other",
+              "items": [
+                {
+                  "code": "learning",
+                  "enabled": true
+                },
+                {
+                  "code": "companion",
+                  "enabled": true
+                },
+                {
+                  "code": "articles",
+                  "enabled": false
+                }
+              ]
+            }
+          ],
+          "quiet_hours": {
+            "enabled": true,
+            "start": "23:00",
+            "end": "08:00"
+          },
+          "neutral_copy": true
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+    "messages": {
+        "validation_failed": "Validation failed",
+        "saved": "Notification settings saved"
+    },
+    "push": {
+        "neutral_title": "Ritme reminder",
+        "neutral_body": "You have a new reminder. Open Ritme to see it."
+    },
+    "attributes": {
+        "categories": "categories",
+        "categories.before_period": "before your period",
+        "categories.pms": "PMS starts",
+        "categories.fertile_window": "fertile window",
+        "categories.daily_log": "daily log reminder",
+        "categories.medications": "medications and supplements",
+        "categories.appointments": "doctor appointments",
+        "categories.checkups": "routine checkups",
+        "categories.vitals": "blood pressure and sugar checks",
+        "categories.learning": "learning and courses",
+        "categories.companion": "Ritme companion",
+        "categories.articles": "tips and articles",
+        "quiet_hours": "quiet hours",
+        "quiet_hours.enabled": "quiet hours",
+        "quiet_hours.start": "quiet hours start",
+        "quiet_hours.end": "quiet hours end",
+        "neutral_copy": "neutral text"
+    }
+}

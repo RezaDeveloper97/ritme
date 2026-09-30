@@ -3,7 +3,7 @@ id: B-N1-11
 title: Notification settings — categories, quiet hours, discreet copy
 milestone: N1
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N1-10]
 parallel_group: N1-K
 touches: [frontend/src/screens/profile-notifications,backend-go/internal/notifications,backend-go/internal/profile,backend-go/db,backend-go/api]

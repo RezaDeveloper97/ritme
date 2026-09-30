@@ -1,0 +1,29 @@
+{
+    "messages": {
+        "validation_failed": "اطلاعات واردشده نامعتبر است",
+        "saved": "تنظیمات اعلان‌ها ذخیره شد"
+    },
+    "push": {
+        "neutral_title": "یادآور ریتمی",
+        "neutral_body": "یک یادآور تازه داری. برای دیدنش ریتمی را باز کن."
+    },
+    "attributes": {
+        "categories": "دسته‌ها",
+        "categories.before_period": "قبل از پریود",
+        "categories.pms": "شروع PMS",
+        "categories.fertile_window": "پنجره باروری",
+        "categories.daily_log": "یادآور ثبت روزانه",
+        "categories.medications": "دارو و مکمل",
+        "categories.appointments": "نوبت پزشک",
+        "categories.checkups": "چکاپ‌های دوره‌ای",
+        "categories.vitals": "اندازه‌گیری فشار و قند",
+        "categories.learning": "آموزش و دوره‌ها",
+        "categories.companion": "ریتمی همراه",
+        "categories.articles": "پیشنهادها و مقاله‌ها",
+        "quiet_hours": "ساعت سکوت",
+        "quiet_hours.enabled": "ساعت سکوت",
+        "quiet_hours.start": "شروع ساعت سکوت",
+        "quiet_hours.end": "پایان ساعت سکوت",
+        "neutral_copy": "متن خنثی"
+    }
+}

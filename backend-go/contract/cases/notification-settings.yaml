@@ -1,0 +1,52 @@
+# Notification settings (/api/v1/profile/notification-settings) — Go only (B-N1-11): there is no Laravel route, so
+# these goldens were recorded from the Go server and reviewed by hand (new-endpoint skill, step 8).
+# The fixture dump carries the empty `notification_preferences` table (goose 00011 / Laravel 2026_10_01_000002),
+# added by hand — the DDL a full re-record reproduces. No persona has a row, so GET returns the defaults.
+# User isolation and the quiet-hours / neutral-copy decisions are covered by internal/notifications tests.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: notification-settings
+defaults:
+  persona: regular
+  locales: [none, en]
+cases:
+  - name: show_defaults
+    doc: No row → board defaults (fertile window, vitals, articles off; quiet 23:00–08:00; neutral copy on)
+    locales: [none, fa, en]
+    method: GET
+    path: /api/v1/profile/notification-settings
+    status: 200
+  - name: show_anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/profile/notification-settings
+    status: 401
+
+  - name: update_round_trip
+    doc: Partial PUT keeps omitted keys; the next GET reads the saved row
+    steps:
+      - method: PUT
+        path: /api/v1/profile/notification-settings
+        body: {categories: {fertile_window: true, daily_log: false}, quiet_hours: {start: "22:30"}}
+        status: 200
+      - method: PUT
+        path: /api/v1/profile/notification-settings
+        body: {quiet_hours: {enabled: false}, neutral_copy: false}
+        status: 200
+      - method: GET
+        path: /api/v1/profile/notification-settings
+        status: 200
+  - name: update_invalid
+    doc: Controller-style 422 with localized attribute names
+    locales: [none, fa, en]
+    method: PUT
+    path: /api/v1/profile/notification-settings
+    body: {categories: {pms: "maybe"}, quiet_hours: {start: "25:00"}, neutral_copy: "x"}
+    status: 422
+  - name: update_anon
+    persona: anon
+    locales: none
+    method: PUT
+    path: /api/v1/profile/notification-settings
+    body: {neutral_copy: false}
+    status: 401
