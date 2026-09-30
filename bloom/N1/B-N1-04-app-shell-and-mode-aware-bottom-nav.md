@@ -3,7 +3,7 @@ id: B-N1-04
 title: App shell and mode-aware bottom nav (امروز · حالت · + · خدمات · من)
 milestone: N1
 type: frontend
-status: todo
+status: done
 depends_on: [B-N1-03]
 parallel_group: N1-D
 touches: [frontend/src/widgets/bottom-nav,frontend/src/app/[locale],frontend/src/shared/config,frontend/CLAUDE.md,frontend/src/screens/services]

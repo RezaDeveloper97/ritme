@@ -31,6 +31,7 @@ export const SHELL_NAMESPACES = [
   'profile',
   'profileEdit',
   'profileInfo',
+  'nav', // B-N1-04: the FAB's `?sheet=log` (LogSheet) can open over any route
   'pwa',
   'reminders',
 ] as const satisfies readonly MessageNamespace[];
@@ -61,10 +62,11 @@ export const ROUTE_NAMESPACES = {
   reminders: ['care', 'common'],
   checkups: ['checkups', 'common'],
   uiKit: ['common'], // dev-only /dev/ui-kit showcase (B-N1-03)
+  services: ['common', 'nav', 'services'], // «خدمات» tab (B-N1-04)
   fertilityLog: ['common', 'fertility'],
   fertilityBbt: ['common', 'fertility'],
   fertilityInsights: ['common', 'fertility'],
-  splash: AUTH,
+  splash: [...AUTH, 'welcome'], // B-N1-05: the splash ring comes from widgets/intro-carousel
   signup: AUTH,
   otp: AUTH,
   welcome: ['common', 'welcome'],

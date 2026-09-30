@@ -102,3 +102,71 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   `side-by-side_*.png` (artboard light | app light | artboard dark | app dark), `artboards/`.
 - **Open:** verify's `npm run test` fails only in `message-scopes.test.ts` (splash/welcome namespaces — B-N1-05 in
   progress), everything else green. `lint:styles:accept` not run (shared baseline, parallel agents). QUESTIONS #11–#12.
+
+## B-N1-04 — App shell and mode-aware bottom nav
+
+- **Nav** (`widgets/bottom-nav`, rewritten): floating glass pill per nav.md (70px, r35, `--surface-glass` + blur,
+  `--shadow-float`), tabs 56px / icon 22 / label 11, active = `--text-1` 800 + 16×3 `--brand` bar + `aria-current`,
+  solid 56px FAB (`--brand-fill`, `--shadow-fab`, `--on-brand` plus) — goo/liquid-glass sim + `lib/goo-motion.ts` and
+  the old `.tabbar/.tab/.goo-*` CSS deleted (`.fab` kept: calendar DayLogSummary uses it). Glyphs copied from the
+  artboards (`ui/NavIcon.tsx`). Badges: `<BottomNav badges={{ services: 3, me: true }} />` (count in locale digits
+  + sr-only text, or a dot). Mode tab is a placeholder until hydration / while `/messages/mode` loads (no SSR mismatch,
+  no flash of the wrong tab); on error it falls back to the cycle nav.
+- **Modes** (`model/nav-items.ts`, unit-tested): `resolveNavMode({mode,isTtc})` → cycle | ttc | pregnancy |
+  postpartum | menopause | teen | companion (unknown → cycle); `navConfig(mode, {childIds})` gives امروز · mode tab ·
+  FAB · خدمات · من per the nav.md table (postpartum «کودک» → `/children/<id>` for one child else `/children`;
+  companion: no mode tab, no FAB); `activeTabKey` lights `/services/*` → خدمات and `/cycle`, `/analysis*` → mode tab.
+  N2/N4/N5 only need the API to return the new `mode` strings (and pass `childIds` once N5 has children).
+- **Where it shows:** `shared/config/app-nav.ts` (`NAV_ROOT_PATHS` / `NAV_ROOT_PREFIXES`, `isNavRootPath`). Screens
+  keep mounting `<BottomNav />`; it renders `null` elsewhere (now hidden on `/pregnancy/alerts`, `/pregnancy/log`).
+  `/cycle`, `/log`, `/pregnancy/calendar` are listed as *transitional* (no back button yet) — their restyle tasks
+  remove them. A new hub = one line there. The nav floats (absolute in `.view`); `.view:has(> .nbnav) > .scroll::after`
+  adds the clearing tail, so screens need no padding change.
+- **FAB** → `openSheet('log')`; `log` registered in `app/sheets/registry.tsx` (half) with interim content
+  `LogSheet` from the widget (mode's existing log routes as `TileButton` cards + add-reminder sheet). **B-N3-03**:
+  build `screens/log-sheet`, point the registry entry at it (size `full`), delete `LogSheet` from the widget.
+  `nav` added to `SHELL_NAMESPACES`.
+- **`/services`** (`screens/services`, route `app/[locale]/services`, namespace `services`): placeholder hub —
+  HubHeader + bell (notifications sheet), «مراقبت سلامت» grid as «به‌زودی» tiles, live rows to `/checkups` and
+  `/reminders`, «اورژانس است؟» `tel:115` card, SkyLayer. **B-N7-01** replaces the page body.
+- **Docs:** `frontend/CLAUDE.md` §4.1 rewritten (routes = back-header screens, sheets = short decisions; nav rules).
+- **i18n:** `messages/{fa,en}/nav.json` (+tabs, badge, logSheet), new `services.json`; copied to
+  `backend-go/resources/translations/` and `internal/i18n/testdata/messages_{fa,en,ar}.json` re-recorded for those two
+  namespaces only.
+- **Outside `touches`** (minimal, flagged): `app/sheets/registry.tsx` (log entry), `shared/i18n/bundled.ts` +
+  `src/global.d.ts` (services namespace), `backend-go/resources/translations/{fa,en}/{nav,services}.json`,
+  `backend-go/internal/i18n/testdata/messages_*.json`.
+- **Screenshots:** `docs/qa/bloom/B-N1-04/` full-page cycle persona 04 (home, services, profile, `?sheet=log`),
+  `viewport/` (04 incl. `/en/services`), `ttc/` (12: باروری tab + TTC log sheet), `pregnancy/` (14: بارداری tab on
+  `/pregnancy/weeks`, pregnancy log sheet), `artboards/` (Cycle_Home, v17_Main, Me_Hub light/dark).
+- **Open:** QUESTIONS #16–#18. Old nav keys `cycle`/`profile` in `nav.json` unused now (kept for admin-edited
+  translations). The PWA install banner overlaps the floating nav on first visit (pre-existing `shared/pwa`).
+
+## B-N1-05 — Splash, intro slides and welcome
+
+- **Splash** (`screens/auth-splash`): violet-gradient splash replaced by the `Splash` artboard — page canvas in both
+  themes, 29-dot cycle ring around the Lalezar wordmark, centre glow, tagline, three pulsing loading dots
+  (`role=status`, static under reduced motion). Timer, tap-to-continue and the route's no-JS fallback unchanged.
+- **Intro** (`widgets/intro-carousel`): 5 swipeable slides `Intro_1…5` (cycle ring · pregnancy 40-week ring · 2×2
+  health tiles · privacy rows · «همیشه رایگان» card + chips). Header page-dots + «رد کردن» (jumps to slide 5, as drawn);
+  footer `PrimaryButton` «بعدی / شروع کن» + text button «حساب دارم · ورود». Track follows the reading direction (RTL:
+  next slide from the left, rightward swipe advances); off-screen slides `inert` + `aria-hidden`; live region.
+  Rings are inline SVG from token classes: `ui/DotRing.tsx` (`CycleDotRing` exported for splash/welcome,
+  `PregnancyDotRing`), geometry in `lib/ring.ts` (unit-tested against artboard coordinates). Icons = artboard paths.
+- **Welcome** (`screens/welcome`): `Onb_Welcome` card (`WelcomeCard`). `/welcome` shows the slides to first-time
+  visitors, the card once the intro was seen or with `?step=welcome`; `?slide=N` opens a slide (QA/deep link) —
+  `lib/view.ts` (+ test). Start / sign-in both mark the intro seen → `/signup`.
+- **Copy:** `welcome` namespace rewritten (fa/en, artboard text); `auth.splash` → `brand/tagline/loading`
+  (`copyright` dropped). Backend seed `backend-go/resources/translations/{fa,en}/{welcome,auth}.json` synced and
+  `internal/i18n/testdata/messages_{fa,en,ar}.json` patched for those two keys only (`go test ./internal/i18n` green).
+  The Laravel-era `contract/golden/public/languages_messages_*` goldens were not re-recorded (already stale, see
+  their `source` note). The running dev API embeds the seed → restart it to serve the new strings.
+- **CSS:** one `/* B-N1-05 … */` block in `globals.css` (`ib-*`) replacing the old `.splash*` and `.ic-*` rules.
+- **Outside `touches`** (minimal): `app/message-scopes.ts` (`splash` + `welcome`, the splash imports the widget),
+  `messages/{fa,en}/{welcome,auth}.json`, backend-go translation seed + i18n testdata.
+- **Screenshots:** `docs/qa/bloom/B-N1-05/` (splash, slides 1–5, welcome card × light/dark, `en` slide 5) +
+  `artboards/`. Fidelity: layout, sizes and colours match; the artboards' 54px fake status bar is not reproduced
+  (safe-area inset instead), light uses dialect A tokens.
+- **Open:** QUESTIONS #13–#15 (welcome-card placement / signup back link, dropped AI disclaimer, skip target).
+  `--splash-from/to` tokens are now unused (left for B-N1-02 owners). No loading/error states apply (static,
+  no data).

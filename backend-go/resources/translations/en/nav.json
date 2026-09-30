@@ -5,5 +5,25 @@
   "cycle": "Analysis",
   "pregnancy": "Pregnancy",
   "profile": "Profile",
-  "log": "Log"
+  "log": "Log",
+  "fertility": "Fertility",
+  "child": "Child",
+  "symptoms": "Symptoms",
+  "services": "Services",
+  "me": "Me",
+  "badgeNew": "New",
+  "badgeCount": "{count, plural, one {# new item} other {# new items}}",
+  "logSheet": {
+    "title": "Log",
+    "lead": "What would you like to log?",
+    "loading": "Getting ready",
+    "daily": { "title": "Log today", "sub": "Period, mood and symptoms" },
+    "fertility": { "title": "Fertility log", "sub": "LH test and discharge" },
+    "bbt": { "title": "Basal temperature", "sub": "Morning temperature" },
+    "pregDaily": { "title": "Daily log", "sub": "Today's mood and symptoms" },
+    "pregWeekly": { "title": "Weekly log", "sub": "Weight and blood pressure" },
+    "pregMovement": { "title": "Baby movements", "sub": "Count the kicks" },
+    "checkup": { "title": "Checkup", "sub": "Record a visit" },
+    "reminder": { "title": "Reminder", "sub": "Medication or visit" }
+  }
 }

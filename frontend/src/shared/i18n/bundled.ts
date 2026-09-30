@@ -27,6 +27,7 @@ import enProfileInfo from '../../../messages/en/profile-info.json';
 import enPwa from '../../../messages/en/pwa.json';
 import enReminders from '../../../messages/en/reminders.json';
 import enWelcome from '../../../messages/en/welcome.json';
+import enServices from '../../../messages/en/services.json';
 import faAccount from '../../../messages/fa/account.json';
 import faArticles from '../../../messages/fa/articles.json';
 import faAuth from '../../../messages/fa/auth.json';
@@ -54,6 +55,7 @@ import faProfileInfo from '../../../messages/fa/profile-info.json';
 import faPwa from '../../../messages/fa/pwa.json';
 import faReminders from '../../../messages/fa/reminders.json';
 import faWelcome from '../../../messages/fa/welcome.json';
+import faServices from '../../../messages/fa/services.json';
 
 /**
  * The locales compiled into the bundle, and their strings.
@@ -119,6 +121,7 @@ const bundled = {
     log: faLog,
     logPeriod: faLogPeriod,
     welcome: faWelcome,
+    services: faServices,
     pwa: faPwa,
     articles: faArticles,
   },
@@ -148,6 +151,7 @@ const bundled = {
     log: enLog,
     logPeriod: enLogPeriod,
     welcome: enWelcome,
+    services: enServices,
     pwa: enPwa,
     articles: enArticles,
   },

@@ -143,11 +143,26 @@ to untangle.
 
 ### 4.1 Routes vs sheets — where a screen appears
 
-The app has **exactly five routed screens**: the bottom-nav tabs (`/home`,
-`/calendar`, `/log`, `/cycle`, `/profile`), plus the sign-up + onboarding flow
-(`/splash`, `/welcome`, `/signup`, `/otp`, `/onboarding/*`) and the pregnancy
-section. **Every other screen is a sheet** — a panel that rises from the bottom
-over whatever the user was already looking at. Do not add a route for one.
+Night & Bloom rule (B-N1-04, route map: `docs/night-bloom/routes.md`): a
+screen with **a back-button header and its own scroll is a route**; a **short
+decision, picker or quick form is a sheet** — a panel that rises from the
+bottom over whatever the user was already looking at. Routes live directly
+under `src/app/[locale]/` (there is no `(app)` group): the tab roots (`/home`,
+`/calendar`, `/services`, `/profile`, `/pregnancy`, `/pregnancy/weeks`), the
+sign-up + onboarding flow (`/splash`, `/welcome`, `/signup`, `/otp`,
+`/onboarding/*`) and the sub-screens with a back header (`/cycle`, `/log`,
+`/checkups/*`, `/reminders/*`, `/fertility/*`, `/pregnancy/*`, and every NEW
+route in routes.md). Don't add a route for something that is a short decision.
+
+**Bottom nav** (`widgets/bottom-nav`, spec `docs/night-bloom/nav.md`):
+امروز · mode tab · FAB · خدمات · من, where the mode tab follows the life-stage
+(تقویم / باروری / بارداری / کودک / علائم) and the FAB opens `?sheet=log`. It
+renders only on the paths in `shared/config/app-nav.ts` (tab roots and
+first-level hubs) — screens may keep mounting `<BottomNav />`, it stays out on
+back-header screens by itself. A new hub adds its path there. It floats over
+the screen, so the screen's `.scroll` gets a clearing tail automatically.
+
+**Sheets:**
 
 - **Open one:** `openSheet('<id>', arg?)` from `@/shared/sheet`. The id comes
   from `src/app/sheets/registry.tsx`; `arg` is one short, non-sensitive string

@@ -7,6 +7,7 @@ import type { ComponentType } from 'react';
 import { isInfoGroup } from '@/entities/info';
 import { ArticleSheet } from '@/screens/article';
 import { MarkDoneTitle } from '@/screens/checkup-mark-done';
+import { LogSheetTitle } from '@/widgets/bottom-nav';
 import type { SheetContentProps, SheetSize } from '@/shared/sheet';
 
 export interface SheetDefinition {
@@ -178,6 +179,19 @@ export const SHEET_REGISTRY: Record<string, SheetDefinition> = {
       () => import('@/screens/checkup-mark-done').then((m) => m.MarkDoneSheet),
       { ssr: false },
     ),
+  },
+
+  /**
+   * The nav FAB's target (B-N1-04, gaps.md #17): the mode's log entries.
+   * Interim content from `widgets/bottom-nav`; B-N3-03 swaps in the full
+   * Log_Sheet_* designs (and `full` size) from a `screens` slice.
+   */
+  log: {
+    size: 'half',
+    Title: LogSheetTitle,
+    Component: dynamic(() => import('@/widgets/bottom-nav').then((m) => m.LogSheet), {
+      ssr: false,
+    }),
   },
 
   /** App language. The list is fetched, so this can't be a two-way toggle. */

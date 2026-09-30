@@ -5,5 +5,25 @@
   "cycle": "تحلیل",
   "pregnancy": "بارداری",
   "profile": "پروفایل",
-  "log": "ثبت"
+  "log": "ثبت",
+  "fertility": "باروری",
+  "child": "کودک",
+  "symptoms": "علائم",
+  "services": "خدمات",
+  "me": "من",
+  "badgeNew": "مورد جدید",
+  "badgeCount": "{count, plural, other {# مورد جدید}}",
+  "logSheet": {
+    "title": "ثبت",
+    "lead": "چی رو می‌خوای ثبت کنی؟",
+    "loading": "در حال آماده‌سازی",
+    "daily": { "title": "ثبت امروز", "sub": "پریود، حال و علائم" },
+    "fertility": { "title": "ثبت باروری", "sub": "تست LH و ترشحات" },
+    "bbt": { "title": "دمای پایه", "sub": "دمای صبحگاهی" },
+    "pregDaily": { "title": "ثبت روزانه", "sub": "حال و علائم امروز" },
+    "pregWeekly": { "title": "ثبت هفتگی", "sub": "وزن و فشار" },
+    "pregMovement": { "title": "حرکات جنین", "sub": "شمارش ضربه‌ها" },
+    "checkup": { "title": "چکاپ", "sub": "ثبت مراجعه" },
+    "reminder": { "title": "یادآور", "sub": "دارو یا ویزیت" }
+  }
 }
