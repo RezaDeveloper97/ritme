@@ -50,3 +50,36 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   `--on-brand`. Theme picker UI (light/dark/system) for Me belongs to the Me-screen task (store API ready).
   `frontend/.claude/skills/check-colors` still describes the old palette. `admin-web/` still on the old palette (N9).
   QUESTIONS #6–#7.
+
+## B-N1-03 — Shared UI primitives in Night & Bloom
+
+- **Primitives** (`frontend/src/shared/ui/nb/`, all exported from `@/shared/ui`; CSS = `nb-*` block at the end of
+  `globals.css`; accent tones via `Tone` = `brand | data | warm | period | bloom | success | danger | neutral`):
+  `ScreenHeader` (44px back/close via `onBack`+`backLabel`, title/subtitle, `action`, `center` slot for steps),
+  `HeaderButton` (44px round, `variant="soft"`, `badge`), `HubHeader` (date over greeting + actions),
+  `Card` (`variant` default/secondary/hero/inset, `padding`, `as`), `HeroCard`, `SectionTitle` (end link),
+  `PrimaryButton` / `SecondaryButton` (54px pill; `variant="outline"|"text"`, `loading`, `block`),
+  `TileButton` (`layout="compact"` 58px | `"card"` quick-log card with `sub`; `pressed`),
+  `PillChip` (`aria-pressed`, `mode="single"|"multi"`, `tone`, `suggested` dashed, `shape="square"`) + `ChipGroup`
+  (`layout="fill"`), `SegmentedTabs` (tablist, roving tabindex, RTL-aware arrows, `track="surface"`),
+  `NumberStepper` (Lalezar value in locale digits, −/+ clamped, `boxed`), `Switch` (role=switch 48×30, `compact`,
+  `labelledBy`), `StatusPill` (`tone`, `solid`), `PlusLock` (blurred inert teaser + «پلاس» pill, `onUnlock`),
+  `ListRow` (icon disc, value/`trailing`, `onClick` → button + chevron, `id` → `${id}-title` for Switch labelling) +
+  `ListGroup`, `Accordion` (aria-expanded/controls region, `active` tone), `IconCircle` (34/40/44, `outlined`),
+  `Avatar`, `InfoNote` (role=note, `source`), `UrgentCard` (role=alert), `EmptyState`, `Skeleton` +
+  `SkeletonGroup` (role=status, static under reduced motion), `ProgressRing`, `ProgressSteps`, `DateStrip`
+  (Jalali week via `shared/lib/date`, `marker` tone dots, `maxDate`), `LineChart` (series/band/today glow, null =
+  gap) / `BarChart` — SVG, `direction:ltr` plot, geometry in `nb/chart-geometry.ts`; `SkyLayer` (`.nb-sky`).
+- **BottomSheet** = `AppSheet` (`@/shared/sheet`) restyled in place: `--page` panel, radius `--r-sheet`, 40×5
+  `--line` grip, 44px round close, 17/800 title, 16px gutters. No second implementation.
+- **Old primitives:** `Button`, `NavBack` marked `@deprecated` (API differs; not replaced in callers — screen
+  tasks switch). `Icon` now renders `aria-hidden`/`focusable=false` and gained `lock`, `minus`, `arrowR`.
+- **Tests:** `nb/primitives.test.ts` (a11y contract of every primitive on SSR markup) + `nb/chart-geometry.test.ts`;
+  `vitest.config.ts` got `esbuild.jsx = 'automatic'` so `.test.ts` files can render components.
+- **Showcase:** dev-only route `/fa/dev/ui-kit` (`screens/ui-kit`, 404 in production), theme toggle in the header.
+  Screenshots `docs/qa/bloom/B-N1-03/` (light+dark) + `artboards/` (Log_Sheet_Cycle, Cycle_Settings, Onb_Cycle).
+- **Outside `touches`** (minimal, flagged): `app/globals.css` (nb block + `.osheet` restyle + `.uikit-*`),
+  `app/message-scopes.ts` (`uiKit`), `app/[locale]/dev/ui-kit/page.tsx`, `screens/ui-kit/`, `vitest.config.ts`.
+- **Open:** FAB/BottomNav (B-N1-04), home CycleRing with phase arcs + home date strip (B-N1-06), Checkbox/TaskRow,
+  Table, AdSlot, Toast not built (not in scope list). Sheets now sit on `--page`; sheet content that painted its own
+  `--surface` block may look boxed until its screen task. QUESTIONS #9–#10.

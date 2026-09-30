@@ -60,6 +60,7 @@ export const ROUTE_NAMESPACES = {
   pregnancySetup: ['common', 'pregnancy', 'pregnancyV2', 'profileEdit'],
   reminders: ['care', 'common'],
   checkups: ['checkups', 'common'],
+  uiKit: ['common'], // dev-only /dev/ui-kit showcase (B-N1-03)
   fertilityLog: ['common', 'fertility'],
   fertilityBbt: ['common', 'fertility'],
   fertilityInsights: ['common', 'fertility'],

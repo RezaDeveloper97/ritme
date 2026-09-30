@@ -32,6 +32,9 @@ const sizes: Record<ButtonSize, string> = {
  * Shared button primitive — domain-agnostic and RTL-safe (logical spacing, no
  * hardcoded left/right). Visible text is always passed in by the caller via
  * i18n; this component never hardcodes copy (CLAUDE.md §6, §10, §12).
+ *
+ * @deprecated Pre-Night & Bloom (Tailwind pink). Use `PrimaryButton` /
+ * `SecondaryButton` from `@/shared/ui` (B-N1-03).
  */
 export function Button({
   variant = 'primary',

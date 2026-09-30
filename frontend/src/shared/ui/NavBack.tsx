@@ -16,6 +16,9 @@ interface NavBackProps {
  *
  * Keyed off the active language's direction, not off "is it Persian" — any RTL
  * language an admin adds (CLAUDE.md §6) must point the same way.
+ *
+ * @deprecated Pre-Night & Bloom 36px transparent button. Use `ScreenHeader`
+ * (`onBack`) or `HeaderButton` from `@/shared/ui` (B-N1-03).
  */
 export function NavBack({ onClick, label }: NavBackProps) {
   const iconName = useDirection() === 'rtl' ? 'chevronRight' : 'chevronLeft';

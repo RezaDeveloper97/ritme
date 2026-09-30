@@ -868,8 +868,8 @@ body {
   display: flex; flex-direction: column;
   width: 100%;
   max-height: 92%;
-  background: var(--surface);
-  border-radius: 26px 26px 0 0;
+  background: var(--page);   /* Night & Bloom BottomSheet (B-N1-03) */
+  border-radius: var(--r-sheet) var(--r-sheet) 0 0;
   box-shadow: 0 -12px 40px -6px var(--sheet-shadow);
   animation: osheetUp .36s cubic-bezier(.22,.61,.36,1);
   outline: 0;
@@ -886,21 +886,24 @@ body {
 .osheet-handle { padding: 10px 0 2px; cursor: grab; touch-action: none; }
 .osheet-handle:active { cursor: grabbing; }
 .osheet-grip {
-  display: block; width: 44px; height: 5px; border-radius: 99px;
-  background: var(--track); margin: 0 auto;
+  display: block; width: 40px; height: 5px; border-radius: 99px;
+  background: var(--line); margin: 0 auto;
 }
 
-.osheet-hdr { display: flex; align-items: center; gap: 10px; padding: 6px 18px 10px; }
+.osheet-hdr { display: flex; align-items: center; gap: 10px; padding: 6px 16px 10px; }
 .osheet-title {
   flex: 1; min-width: 0; margin: 0;
-  font-size: 16px; font-weight: 800; color: var(--ink); text-align: start;
+  font-size: var(--fs-xl); font-weight: 800; color: var(--text-1); text-align: start;
 }
-.osheet-close { flex-shrink: 0; }
+.osheet-close {
+  flex-shrink: 0; width: var(--size-icon-btn); height: var(--size-icon-btn);
+  background: var(--surface-2); border: 1px solid var(--line); color: var(--text-1);
+}
 
 .osheet-body {
   flex: 1; min-height: 0;
   overflow: hidden;
-  padding-inline: 18px;
+  padding-inline: var(--gutter);
   padding-bottom: calc(18px + env(safe-area-inset-bottom));
 }
 .osheet.is-full > .osheet-body,
@@ -911,7 +914,7 @@ body {
 
 .osheet-foot {
   flex-shrink: 0;
-  padding: 12px 18px calc(12px + env(safe-area-inset-bottom));
+  padding: 12px var(--gutter) calc(12px + env(safe-area-inset-bottom));
   border-top: 1px solid var(--line);
   background: var(--surface);
 }
@@ -3929,3 +3932,345 @@ body.pwa-locked { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) {
   .cfm-chip, .cfm-kind, .cfm-day, .apd-box { transition: none; }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   Night & Bloom primitives (B-N1-03) — `@/shared/ui` (shared/ui/nb/).
+   Specs: docs/night-bloom/components.md; sizes/radii/type from the
+   shape tokens above. Tones: `.nb-tone-*` sets --nb-tone (accent) and
+   --nb-tone-ink (AA text); components mix the tint from them.
+   ══════════════════════════════════════════════════════════════════ */
+.nb-tone-brand   { --nb-tone: var(--brand);   --nb-tone-ink: var(--brand-strong); }
+.nb-tone-data    { --nb-tone: var(--data);    --nb-tone-ink: var(--data-deep); }
+.nb-tone-warm    { --nb-tone: var(--warm);    --nb-tone-ink: var(--warm-deep); }
+.nb-tone-period  { --nb-tone: var(--period);  --nb-tone-ink: var(--period-deep); }
+.nb-tone-bloom   { --nb-tone: var(--bloom);   --nb-tone-ink: var(--bloom-deep); }
+.nb-tone-success { --nb-tone: var(--success); --nb-tone-ink: var(--success); }
+.nb-tone-danger  { --nb-tone: var(--danger);  --nb-tone-ink: var(--danger-deep); }
+.nb-tone-neutral { --nb-tone: var(--text-3);  --nb-tone-ink: var(--text-2); }
+
+/* Shared keyboard ring for every nb control. */
+.nb-hbtn:focus-visible, .nb-btn:focus-visible, .nb-tile:focus-visible, .nb-chip:focus-visible,
+.nb-seg-tab:focus-visible, .nb-stepper-btn:focus-visible, .nb-switch:focus-visible,
+.nb-row.is-action:focus-visible, .nb-acc-btn:focus-visible, .nb-date:focus-visible,
+.nb-sect-link:focus-visible, .nb-lock-hit:focus-visible {
+  outline: none; box-shadow: var(--ring);
+}
+
+/* ── ScreenHeader / HeaderButton / HubHeader ── */
+.nb-hdr {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 6px var(--gutter) 10px; position: relative;
+}
+.nb-hdr-spacer { width: var(--size-icon-btn); height: var(--size-icon-btn); flex-shrink: 0; }
+.nb-hdr-titles { flex: 1; min-width: 0; text-align: center; }
+.nb-hdr-title { margin: 0; font-size: var(--fs-xl); font-weight: 800; color: var(--text-1); line-height: 1.4; }
+.nb-hdr-sub { margin: 2px 0 0; font-size: var(--fs-sm); font-weight: 600; color: var(--text-2); }
+.nb-hbtn {
+  position: relative; flex-shrink: 0;
+  width: var(--size-icon-btn); height: var(--size-icon-btn); border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--surface-2); border: 1px solid var(--line); color: var(--text-1);
+  cursor: pointer; font-family: inherit;
+}
+.nb-hbtn.is-soft { background: var(--brand-soft); border-color: transparent; color: var(--brand); }
+.nb-hbtn-dot {
+  position: absolute; top: 9px; inset-inline-end: 10px; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--period); box-shadow: 0 0 0 2px var(--page);
+}
+.nb-hub { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px var(--gutter) 10px; position: relative; }
+.nb-hub-text { min-width: 0; }
+.nb-hub-date { margin: 0; font-size: 12px; font-weight: 700; color: var(--text-2); }
+.nb-hub-greeting { margin: 2px 0 0; font-size: var(--fs-2xl); font-weight: 800; color: var(--text-1); }
+.nb-hub-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+/* ── Card / SectionTitle (extends the B-N1-02 `.nb-card` utility) ── */
+.nb-card { display: block; color: var(--text-1); }
+.nb-card.pad-sm { padding: 14px; }
+.nb-card.pad-md { padding: 16px; }
+.nb-card.pad-lg { padding: 18px 16px; }
+.nb-card.is-secondary { border-radius: var(--r-xl); }
+.nb-card.is-hero { background: var(--hero-tint); box-shadow: var(--shadow-hero); }
+.nb-card.is-inset { background: var(--surface-3); border-color: transparent; }
+.nb-sect { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.nb-sect-title { margin: 0; font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); }
+.nb-sect-link {
+  background: none; border: 0; padding: 4px 2px; cursor: pointer; font-family: inherit;
+  font-size: var(--fs-md); font-weight: 800; color: var(--brand-strong); border-radius: 8px;
+}
+
+/* ── Buttons: Primary / Secondary (54px pill) + TileButton (58px) ── */
+.nb-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: var(--h-btn); padding: 0 24px; border-radius: var(--r-pill);
+  font-family: inherit; font-size: var(--fs-lg); font-weight: 800; cursor: pointer;
+  transition: filter .15s ease, box-shadow .15s ease, opacity .15s ease;
+}
+.nb-btn.is-block { width: 100%; }
+.nb-btn.is-primary { background: var(--brand-fill); color: var(--on-brand); border: 0; box-shadow: var(--shadow-cta); }
+.nb-btn.is-primary:focus-visible { box-shadow: var(--ring), var(--shadow-cta); }
+.nb-btn.is-outline { background: transparent; color: var(--brand-strong); border: 1.5px solid var(--line-strong); }
+.nb-btn.is-text { background: transparent; color: var(--brand-strong); border: 0; height: 44px; }
+.nb-btn:hover:not(:disabled) { filter: brightness(.96); }
+.nb-btn:disabled { opacity: .5; cursor: default; box-shadow: none; }
+.nb-btn.is-loading { opacity: .7; }
+.nb-tile {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  min-height: var(--h-btn-2); padding: 8px 6px; border-radius: 16px;
+  background: var(--surface); border: 1.5px solid var(--line); color: var(--nb-tone-ink);
+  font-family: inherit; cursor: pointer;
+}
+.nb-tile-label { font-size: 12px; font-weight: 800; color: var(--text-1); }
+.nb-tile[aria-pressed="true"] {
+  border-color: var(--nb-tone); background: color-mix(in srgb, var(--nb-tone) 15%, var(--surface));
+}
+.nb-tile.is-card { border-radius: var(--r-card); border-width: 1px; padding: 10px 4px; gap: 5px; justify-content: flex-start; }
+.nb-tile-disc {
+  width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  background: color-mix(in srgb, var(--nb-tone) 13%, transparent); color: var(--nb-tone-ink);
+}
+.nb-tile.is-card .nb-tile-label { font-size: var(--fs-sm); }
+.nb-tile-sub { font-size: var(--fs-2xs); font-weight: 800; color: var(--nb-tone-ink); }
+
+/* ── PillChip / ChipGroup (40px, aria-pressed) ── */
+.nb-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.nb-chips.is-fill { flex-wrap: nowrap; gap: 6px; }
+.nb-chips.is-fill > .nb-chip { flex: 1 1 0; justify-content: center; }
+.nb-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: var(--h-chip); padding: 0 14px; border-radius: var(--r-xl);
+  background: transparent; border: 1.5px solid var(--line); color: var(--text-2);
+  font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap;
+  transition: background .15s ease, border-color .15s ease, color .15s ease;
+}
+.nb-chip.is-square { border-radius: var(--r-md); font-size: var(--fs-md); font-weight: 800; }
+.nb-chip.is-single[aria-pressed="true"] { background: var(--brand-fill); border-color: var(--brand-fill); color: var(--on-brand); }
+.nb-chip.is-multi[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--nb-tone) 15%, transparent); border-color: var(--nb-tone); color: var(--text-1);
+}
+.nb-chip-check { color: var(--nb-tone); }
+.nb-chip.is-suggested { border-style: dashed; border-color: var(--period); }
+.nb-chip:disabled { opacity: .5; cursor: default; }
+
+/* ── SegmentedTabs (role=tablist) ── */
+.nb-seg {
+  display: flex; gap: 4px; padding: 4px; border-radius: var(--r-lg);
+  background: var(--surface-2); border: 1px solid var(--line);
+}
+.nb-seg.is-surface { background: var(--surface); border-radius: 16px; }
+.nb-seg-tab {
+  flex: 1; min-width: 0; height: var(--h-chip); border-radius: var(--r-md);
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  background: transparent; border: 0; color: var(--text-2);
+  font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer;
+  transition: background .15s ease, color .15s ease;
+}
+.nb-seg.is-surface .nb-seg-tab { border-radius: 12px; }
+.nb-seg-tab[aria-selected="true"] { background: var(--brand-fill); color: var(--on-brand); }
+
+/* ── NumberStepper ── */
+.nb-stepper { display: flex; align-items: center; gap: 12px; }
+.nb-stepper-text { flex: 1; min-width: 0; }
+.nb-stepper-label { font-size: var(--fs-base); font-weight: 800; color: var(--text-1); }
+.nb-stepper-desc { font-size: var(--fs-sm); font-weight: 600; color: var(--text-2); margin-top: 2px; }
+.nb-stepper-btn {
+  width: var(--size-icon-btn); height: var(--size-icon-btn); border-radius: 50%; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: transparent; border: 1.5px solid var(--line); color: var(--text-1); cursor: pointer;
+}
+.nb-stepper-btn:disabled { opacity: .4; cursor: default; }
+.nb-stepper-value { min-width: 64px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.nb-stepper-num { font-family: var(--font-display); font-size: var(--fs-num-m); line-height: 1; color: var(--text-1); }
+.nb-stepper-unit { font-size: var(--fs-xs); font-weight: 700; color: var(--text-2); }
+
+/* ── Switch (role=switch, 48×30; the knob rides to the inline end when on) ── */
+.nb-switch {
+  position: relative; flex-shrink: 0; width: 48px; height: 30px; padding: 0;
+  border-radius: 15px; border: 0; background: var(--line); cursor: pointer;
+  transition: background .18s ease;
+}
+.nb-switch[aria-checked="true"] { background: var(--brand-fill); }
+.nb-switch-knob {
+  position: absolute; top: 3px; inset-inline-start: 3px; width: 24px; height: 24px; border-radius: 50%;
+  background: var(--on-accent); box-shadow: var(--shadow-knob);
+  transition: inset-inline-start .18s ease;
+}
+.nb-switch[aria-checked="true"] .nb-switch-knob { inset-inline-start: 21px; }
+.nb-switch.is-compact { width: 46px; height: 28px; border-radius: 14px; }
+.nb-switch.is-compact .nb-switch-knob { width: 22px; height: 22px; }
+.nb-switch.is-compact[aria-checked="true"] .nb-switch-knob { inset-inline-start: 21px; }
+.nb-switch:disabled { opacity: .5; cursor: default; }
+
+/* ── StatusPill / PlusLock ── */
+.nb-pill {
+  display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0;
+  height: 22px; padding: 0 9px; border-radius: var(--r-pill);
+  font-size: 11px; font-weight: 800; white-space: nowrap;
+  background: color-mix(in srgb, var(--nb-tone) 16%, transparent); color: var(--nb-tone-ink);
+}
+.nb-pill.is-solid { background: var(--brand-fill); color: var(--on-brand); }
+.nb-lock { position: relative; border-radius: var(--r-card); overflow: hidden; }
+.nb-lock-body { filter: blur(5px); opacity: .75; pointer-events: none; user-select: none; }
+.nb-lock-pill { position: absolute; top: 12px; inset-inline-end: 12px; z-index: 1; }
+.nb-lock-hit {
+  position: absolute; inset: 0; z-index: 2; background: transparent; border: 0; padding: 0;
+  cursor: pointer; border-radius: inherit;
+}
+
+/* ── IconCircle / Avatar ── */
+.nb-icircle {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 50%;
+  background: color-mix(in srgb, var(--nb-tone) 13%, transparent); color: var(--nb-tone-ink);
+}
+.nb-icircle.is-sm { width: 34px; height: 34px; }
+.nb-icircle.is-md { width: 40px; height: 40px; }
+.nb-icircle.is-lg { width: 44px; height: 44px; }
+.nb-icircle.is-outlined { border: 1px solid color-mix(in srgb, var(--nb-tone) 33%, transparent); }
+.nb-avatar {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 50%;
+  background: var(--avatar-grad); color: var(--text-1); font-weight: 800;
+}
+.nb-avatar.is-sm { width: 32px; height: 32px; font-size: 13px; }
+.nb-avatar.is-md { width: 44px; height: 44px; font-size: 17px; }
+.nb-avatar.is-lg { width: 64px; height: 64px; font-size: 24px; }
+
+/* ── ListRow / ListGroup ── */
+.nb-row {
+  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 52px;
+  padding: 6px 0; text-align: start; color: var(--text-1);
+  background: transparent; border: 0; font-family: inherit; border-radius: 12px;
+}
+.nb-row.is-action { cursor: pointer; }
+.nb-row-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.nb-row-title { font-size: 14px; font-weight: 800; color: var(--text-1); }
+.nb-row-desc { font-size: var(--fs-sm); font-weight: 600; color: var(--text-2); }
+.nb-row-value { flex-shrink: 0; font-size: 12.5px; font-weight: 700; color: var(--text-2); }
+.nb-row-chev { flex-shrink: 0; color: var(--text-3); }
+.nb-list { padding: 18px 16px; display: flex; flex-direction: column; gap: 14px; }
+.nb-list-title { margin: 0; font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); }
+.nb-list-rows { display: flex; flex-direction: column; }
+.nb-list-rows > * { padding-block: 14px; }
+.nb-list-rows > :first-child { padding-top: 0; }
+.nb-list-rows > :last-child { padding-bottom: 0; }
+.nb-list-rows > * + * { border-top: 1px solid var(--line); }
+
+/* ── Accordion ── */
+.nb-acc { padding: 4px 14px; }
+.nb-acc.is-active { border-color: color-mix(in srgb, var(--nb-tone) 33%, var(--line)); }
+.nb-acc-h { margin: 0; font: inherit; }
+.nb-acc-btn {
+  display: flex; align-items: center; gap: 10px; width: 100%; min-height: 56px; padding: 0;
+  background: transparent; border: 0; color: var(--text-1); font-family: inherit; text-align: start;
+  cursor: pointer; border-radius: 12px;
+}
+.nb-acc-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.nb-acc-title { font-size: 14px; font-weight: 800; }
+.nb-acc-summary { font-size: var(--fs-sm); font-weight: 700; color: var(--text-2); }
+.nb-acc.is-active .nb-acc-summary { color: var(--nb-tone-ink); }
+.nb-acc-chev { flex-shrink: 0; color: var(--text-3); transition: transform .2s ease; }
+.nb-acc-btn[aria-expanded="true"] .nb-acc-chev { transform: rotate(180deg); }
+.nb-acc-panel { padding: 4px 0 14px; display: flex; flex-direction: column; gap: 10px; }
+.nb-acc-panel[hidden] { display: none; }
+
+/* ── InfoNote / UrgentCard / EmptyState ── */
+.nb-note {
+  display: flex; align-items: flex-start; gap: 8px; padding: 12px 14px; border-radius: 16px;
+  background: var(--surface-3); color: var(--text-3); font-size: var(--fs-sm); font-weight: 600; line-height: 1.7;
+}
+.nb-note-icon { flex-shrink: 0; margin-top: 2px; }
+.nb-note-text { flex: 1; min-width: 0; }
+.nb-note-source { margin-top: 4px; font-size: var(--fs-xs); font-weight: 700; color: var(--text-3); }
+.nb-urgent {
+  display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: var(--r-card);
+  background: var(--danger-soft); border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent); color: var(--text-1);
+}
+.nb-urgent-head { display: flex; align-items: flex-start; gap: 12px; }
+.nb-urgent-text { flex: 1; min-width: 0; }
+.nb-urgent-title { margin: 0; font-size: var(--fs-lg); font-weight: 800; color: var(--danger-deep); }
+.nb-urgent-body { margin-top: 4px; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-1); }
+.nb-empty { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; padding: 28px 20px; }
+.nb-empty-disc {
+  width: 112px; height: 112px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  background: var(--brand-soft); color: var(--brand); margin-bottom: 6px;
+}
+.nb-empty-title { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: var(--fs-display); line-height: 1.3; color: var(--text-1); }
+.nb-empty-body { margin: 0; font-size: 13px; font-weight: 600; line-height: var(--lh-body); color: var(--text-2); max-width: 300px; }
+.nb-empty-action { width: 100%; margin-top: 8px; }
+
+/* ── Skeleton (Card geometry, --surface-3 shimmer) ── */
+.nb-skel-group { display: flex; flex-direction: column; gap: 10px; }
+.nb-skel {
+  display: block; background: var(--surface-3); border-radius: 8px;
+  background-image: linear-gradient(90deg, transparent, color-mix(in srgb, var(--surface) 55%, transparent), transparent);
+  background-size: 200% 100%; background-repeat: no-repeat;
+  animation: nbShimmer 1.4s ease-in-out infinite;
+}
+.nb-skel.is-line { height: 12px; }
+.nb-skel.is-line.w-short { width: 35%; }
+.nb-skel.is-line.w-medium { width: 65%; }
+.nb-skel.is-block { height: 72px; border-radius: var(--r-xl); }
+.nb-skel.is-card { height: 140px; border-radius: var(--r-card); }
+.nb-skel.is-circle { width: 44px; height: 44px; border-radius: 50%; }
+@keyframes nbShimmer { from { background-position: 150% 0; } to { background-position: -50% 0; } }
+@media (prefers-reduced-motion: reduce) { .nb-skel { animation: none; background-image: none; } }
+
+/* ── DateStrip (7 × 42×54 cells, radius 16) ── */
+.nb-dates { display: flex; gap: 4px; }
+.nb-date {
+  position: relative; flex: 1 1 0; min-width: 0; height: 54px; border-radius: 16px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  background: transparent; border: 1.5px solid var(--line); color: var(--text-2);
+  font-family: inherit; cursor: pointer;
+}
+.nb-date-wd { font-size: var(--fs-xs); font-weight: 700; }
+.nb-date-num { font-size: 14px; font-weight: 800; color: var(--text-1); }
+.nb-date.is-today .nb-date-wd { color: var(--brand); font-weight: 800; }
+.nb-date.is-selected { border-color: var(--brand); background: color-mix(in srgb, var(--brand) 13%, transparent); }
+.nb-date-dot {
+  position: absolute; bottom: 5px; width: 5px; height: 5px; border-radius: 50%; background: var(--nb-tone);
+}
+.nb-date:disabled { opacity: .45; cursor: default; }
+
+/* ── ProgressRing / ProgressSteps ── */
+.nb-ring { position: relative; display: inline-grid; place-items: center; }
+.nb-ring > svg { display: block; }
+.nb-ring-track { fill: none; stroke: var(--track); }
+.nb-ring-arc { fill: none; stroke: var(--nb-tone); stroke-linecap: round; transition: stroke-dasharray .4s ease; }
+.nb-ring-center {
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; color: var(--text-1);
+}
+.nb-steps { flex: 1; display: flex; gap: 4px; }
+.nb-step { flex: 1 1 0; height: 4px; border-radius: 2px; background: var(--line); }
+.nb-step.is-done { background: var(--brand-fill); }
+@media (prefers-reduced-motion: reduce) { .nb-ring-arc { transition: none; } }
+
+/* ── Charts (SVG; the plot always runs left → right) ── */
+.nb-chart { display: block; direction: ltr; height: auto; overflow: visible; }
+.nb-chart-grid { stroke: var(--line); stroke-width: 1; }
+.nb-chart-axis { fill: var(--text-3); font-size: var(--fs-2xs); font-weight: 600; font-family: inherit; }
+.nb-chart-value { fill: var(--text-2); font-size: 10px; font-weight: 800; font-family: inherit; }
+.nb-chart-line { fill: none; stroke: var(--nb-tone); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.nb-chart-line.is-dashed { stroke-dasharray: 4 4; stroke-width: 1.8; }
+.nb-chart-point { fill: var(--surface); stroke: var(--nb-tone); stroke-width: 2; }
+.nb-chart-band { fill: color-mix(in srgb, var(--nb-tone) 14%, transparent); stroke: none; }
+.nb-chart-today { fill: var(--data); stroke: var(--surface); stroke-width: 2; filter: drop-shadow(0 0 4px var(--data)); }
+.nb-chart-bar { fill: color-mix(in srgb, var(--nb-tone) 35%, transparent); }
+.nb-chart-bar.is-highlight { fill: var(--nb-tone); }
+
+/* ── BottomSheet = AppSheet (restyled onto Night & Bloom, see .osheet*) ── */
+
+/* ── Dev-only /dev/ui-kit showcase (screens/ui-kit, B-N1-03) ── */
+.uikit { background: var(--page); }
+.uikit-scroll { position: relative; }
+.uikit-scroll > :not(.nb-sky) { position: relative; }
+.uikit-body { display: flex; flex-direction: column; gap: 14px; padding: 4px var(--gutter) var(--pad-nav-clear); }
+.uikit-flush { padding-inline: 0; }
+.uikit-hero { display: flex; align-items: center; gap: 16px; }
+.uikit-hero-side { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.uikit-num { font-family: var(--font-display); font-size: var(--fs-num-l); line-height: 1; color: var(--text-1); }
+.uikit-cap { margin: 4px 0 0; font-size: var(--fs-sm); font-weight: 600; color: var(--text-2); }
+.uikit-stack { display: flex; flex-direction: column; gap: 10px; background: transparent; border: 0; }
+.uikit-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.uikit-tiles.is-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.uikit-row { display: flex; align-items: center; gap: 12px; }
+.uikit-sheet-cta { margin-top: 16px; }

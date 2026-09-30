@@ -14,7 +14,8 @@ export type IconName =
   | 'ribbon' | 'flask' | 'tooth' | 'camera' | 'history' | 'filterLines' | 'export'
   | 'flaskLh' | 'heartLine' | 'target' | 'moonReminder'
   | 'hand' | 'eye' | 'scale' | 'bookmark' | 'warning' | 'doctor'
-  | 'faceGreat' | 'faceGood' | 'faceOkay' | 'faceLow' | 'faceHard';
+  | 'faceGreat' | 'faceGood' | 'faceOkay' | 'faceLow' | 'faceHard'
+  | 'lock' | 'minus' | 'arrowR';
 
 const PATHS: Record<IconName, string> = {
   bell:         '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
@@ -107,6 +108,10 @@ const PATHS: Record<IconName, string> = {
   faceHard:     '<circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01"/><path d="M8 17c1.5-2.5 6.5-2.5 8 0"/>',
   /* Half-filled disc — the conventional "match the system appearance" mark. */
   contrast:     '<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"/>',
+  /* Night & Bloom primitives (B-N1-03): Plus lock pill, stepper minus. */
+  lock:         '<rect x="4.5" y="10.5" width="15" height="10.5" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/>',
+  minus:        '<path d="M5 12h14"/>',
+  arrowR:       '<path d="M5 12h14M12 5l7 7-7 7"/>',
 };
 
 interface IconProps {
@@ -140,6 +145,9 @@ export function Icon({
       strokeLinejoin="round"
       style={style}
       className={className}
+      // Decorative by contract: the meaning lives in the control's label.
+      aria-hidden="true"
+      focusable="false"
       dangerouslySetInnerHTML={{ __html: PATHS[name] ?? '' }}
     />
   );

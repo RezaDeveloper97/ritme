@@ -3,7 +3,7 @@ id: B-N1-03
 title: Shared UI primitives in Night & Bloom
 milestone: N1
 type: frontend
-status: todo
+status: done
 depends_on: [B-N1-02]
 parallel_group: N1-C
 touches: [frontend/src/shared/ui]

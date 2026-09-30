@@ -19,6 +19,8 @@ Every milestone ends with a side-by-side audit, as in M3–M7.
 ## Scope
 - Screenshot every N1 screen light + dark (headless, see memory «Headless UI verification»), compare with the artboards, list deviations by severity with file:line in `docs/night-bloom/audit-n1.md`, fix all high/med, write a Resolution per row.
 
+- Leftover from B-N1-02: components still using `--on-accent` on a brand fill (white on light-lavender in dark) — onboarding checks, DayTasks, TodayChallenge, PeriodButton, DailyStatusCard, IntroIllustration, DayLogPage — switch to `--on-brand` if their screen task did not.
+
 ## Out of scope
 - Android (android-shell/, application/, twa/) — never.
 - Anything owned by another bloom task.
