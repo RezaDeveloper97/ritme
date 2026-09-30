@@ -1,0 +1,24 @@
+{
+    "messages": {
+        "validation_failed": "Validation failed",
+        "program_started": "Your pelvic floor program has started",
+        "program_stopped": "Your pelvic floor program has stopped",
+        "session_saved": "Session saved",
+        "diary_saved": "Bladder diary saved"
+    },
+    "validation": {
+        "date_future": "You cannot log a future day.",
+        "program_required": "Start the pelvic floor program first."
+    },
+    "attributes": {
+        "date": "date",
+        "started_on": "start date",
+        "sets_completed": "completed sets",
+        "duration_sec": "duration",
+        "leak": "leak",
+        "night_voids": "night-time voids",
+        "uti_symptoms": "urinary symptoms",
+        "uti_symptoms.*": "urinary symptom",
+        "program": "program"
+    }
+}

@@ -392,6 +392,37 @@ type PasswordResetToken struct {
 	CreatedAt sql.NullTime
 }
 
+type PelvicBladderLog struct {
+	ID          uint64
+	UserID      uint64
+	LogDate     civildate.Date
+	Leak        sql.NullString
+	NightVoids  sql.NullInt16
+	UtiSymptoms db.NullRawJSON
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+}
+
+type PelvicProgram struct {
+	ID        uint64
+	UserID    uint64
+	StartedOn civildate.Date
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
+type PelvicSession struct {
+	ID            uint64
+	UserID        uint64
+	SessionDate   civildate.Date
+	SessionsCount uint16
+	SetsCompleted uint16
+	DurationSec   uint32
+	LevelCode     sql.NullString
+	CreatedAt     sql.NullTime
+	UpdatedAt     sql.NullTime
+}
+
 type PhaseContent struct {
 	ID                uint64
 	Phase             string

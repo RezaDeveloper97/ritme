@@ -60,3 +60,10 @@ TODO (ask user):
 - Fidelity: showcase light/dark `docs/qa/canvas/core/CB-CORE-02/` vs boards — ✔ (structure/states match; colours via tokens).
 - Follow-up CB-CORE-02b: styles in side file `canvas-primitives.css` (not scanned by gates) → globals.css after bloom B-N1-04/05/13; ui-kit showcase entries; 0–10 scale touch width at 390 px; solid contrast.
 - TODO (ask user / designer): SeverityScale colours (moderate = bloom, severe = danger) taken from boards — confirm.
+
+## CB-PELV-01 — Pelvic floor backend: 8-week program, sessions, bladder diary
+- Routes (Go-only, auth:api): `GET /api/v1/pelvic`, `POST|DELETE /api/v1/pelvic/program`, `POST /api/v1/pelvic/sessions`, `GET|PUT /api/v1/pelvic/diary/{date}` (uti_alert). OpenAPI tag `Pelvic`, contract `cases/pelvic.yaml` (21 goldens), deviation D-32.
+- Migration `00010_pelvic_floor` (+ Laravel twin `2026_10_01_000001`): `pelvic_programs`, `pelvic_sessions`, `pelvic_bladder_logs` (user-scoped, cascade), plus catalog seed `pelvic_levels` / `pelvic_alerts` (doc: docs/canvas-build/pelvic.md).
+- Verify: sqlc, vet, unit, int (16), golangci-lint 0, schema-diff OK (51 tables); full `go test ./...` green.
+- CB-PELV-02 touches += backend-go/resources/translations (Go copy of frontend messages must be re-synced).
+- TODO (ask user): include pelvic data in the account data export? Defaults: one session row/day (summed), stopping keeps history, level table needs clinical review.

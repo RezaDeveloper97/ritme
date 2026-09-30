@@ -157,6 +157,39 @@ LOCK TABLES `cache_locks` WRITE;
 /*!40000 ALTER TABLE `cache_locks` DISABLE KEYS */;
 /*!40000 ALTER TABLE `cache_locks` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `catalog_items`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `catalog_items` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `group` varchar(64) NOT NULL,
+  `code` varchar(64) NOT NULL,
+  `sort_order` int(11) NOT NULL DEFAULT 0,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `audiences` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`audiences`)),
+  `title` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`title`)),
+  `body` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`body`)),
+  `meta` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`meta`)),
+  `needs_review` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `catalog_items_group_code_unique` (`group`,`code`),
+  KEY `catalog_items_group_is_active_sort_order_index` (`group`,`is_active`,`sort_order`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `catalog_items` WRITE;
+/*!40000 ALTER TABLE `catalog_items` DISABLE KEYS */;
+INSERT INTO `catalog_items` VALUES
+(1,'pelvic_levels','level_1',1,1,NULL,'{\"fa\":\"سطح ۱\",\"en\":\"Level 1\"}','{\"fa\":\"عضلاتی را منقبض کن که با آن جلوی ادرار را می‌گیری. شکم، باسن و ران‌ها شل بمانند و نفست را حبس نکن.\",\"en\":\"Squeeze the muscles you use to stop the flow of urine. Keep your belly, buttocks and thighs relaxed and don\'t hold your breath.\"}','{\"week_from\":1,\"hold_sec\":3,\"rest_sec\":3,\"reps\":10,\"sets\":3}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(2,'pelvic_levels','level_2',2,1,NULL,'{\"fa\":\"سطح ۲\",\"en\":\"Level 2\"}','{\"fa\":\"عضلاتی را منقبض کن که با آن جلوی ادرار را می‌گیری. شکم، باسن و ران‌ها شل بمانند و نفست را حبس نکن.\",\"en\":\"Squeeze the muscles you use to stop the flow of urine. Keep your belly, buttocks and thighs relaxed and don\'t hold your breath.\"}','{\"week_from\":3,\"hold_sec\":5,\"rest_sec\":5,\"reps\":10,\"sets\":3}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(3,'pelvic_levels','level_3',3,1,NULL,'{\"fa\":\"سطح ۳\",\"en\":\"Level 3\"}','{\"fa\":\"عضلاتی را منقبض کن که با آن جلوی ادرار را می‌گیری. شکم، باسن و ران‌ها شل بمانند و نفست را حبس نکن.\",\"en\":\"Squeeze the muscles you use to stop the flow of urine. Keep your belly, buttocks and thighs relaxed and don\'t hold your breath.\"}','{\"week_from\":5,\"hold_sec\":8,\"rest_sec\":8,\"reps\":10,\"sets\":3}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(4,'pelvic_levels','level_4',4,1,NULL,'{\"fa\":\"سطح ۴\",\"en\":\"Level 4\"}','{\"fa\":\"عضلاتی را منقبض کن که با آن جلوی ادرار را می‌گیری. شکم، باسن و ران‌ها شل بمانند و نفست را حبس نکن.\",\"en\":\"Squeeze the muscles you use to stop the flow of urine. Keep your belly, buttocks and thighs relaxed and don\'t hold your breath.\"}','{\"week_from\":7,\"hold_sec\":10,\"rest_sec\":10,\"reps\":10,\"sets\":3}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(5,'pelvic_alerts','uti_warning',1,1,NULL,'{\"fa\":\"اگر تب، لرز یا درد پهلو داری، زودتر به پزشک مراجعه کن.\",\"en\":\"If you have a fever, chills or pain in your side, see a doctor soon.\"}',NULL,'{\"severity\":\"urgent\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(6,'pelvic_alerts','program_suitability',2,1,NULL,'{\"fa\":\"مناسب بعد از زایمان، یائسگی و هر وقت نشت ادرار داری. اگر درد لگن یا سنگینی داری، اول با پزشک یا فیزیوتراپ لگن مشورت کن.\",\"en\":\"Suited to after childbirth, menopause and any time you leak urine. If you have pelvic pain or heaviness, talk to a doctor or pelvic physiotherapist first.\"}',NULL,'{\"severity\":\"info\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00');
+/*!40000 ALTER TABLE `catalog_items` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `challenges`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -964,6 +997,70 @@ CREATE TABLE `password_reset_tokens` (
 LOCK TABLES `password_reset_tokens` WRITE;
 /*!40000 ALTER TABLE `password_reset_tokens` DISABLE KEYS */;
 /*!40000 ALTER TABLE `password_reset_tokens` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `pelvic_bladder_logs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `pelvic_bladder_logs` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `log_date` date NOT NULL,
+  `leak` varchar(16) DEFAULT NULL,
+  `night_voids` tinyint(3) unsigned DEFAULT NULL,
+  `uti_symptoms` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`uti_symptoms`)),
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `pelvic_bladder_logs_user_id_log_date_unique` (`user_id`,`log_date`),
+  CONSTRAINT `pelvic_bladder_logs_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `pelvic_bladder_logs` WRITE;
+/*!40000 ALTER TABLE `pelvic_bladder_logs` DISABLE KEYS */;
+/*!40000 ALTER TABLE `pelvic_bladder_logs` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `pelvic_programs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `pelvic_programs` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `started_on` date NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `pelvic_programs_user_id_unique` (`user_id`),
+  CONSTRAINT `pelvic_programs_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `pelvic_programs` WRITE;
+/*!40000 ALTER TABLE `pelvic_programs` DISABLE KEYS */;
+/*!40000 ALTER TABLE `pelvic_programs` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `pelvic_sessions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `pelvic_sessions` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `session_date` date NOT NULL,
+  `sessions_count` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `sets_completed` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `duration_sec` int(10) unsigned NOT NULL DEFAULT 0,
+  `level_code` varchar(64) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `pelvic_sessions_user_id_session_date_unique` (`user_id`,`session_date`),
+  CONSTRAINT `pelvic_sessions_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `pelvic_sessions` WRITE;
+/*!40000 ALTER TABLE `pelvic_sessions` DISABLE KEYS */;
+/*!40000 ALTER TABLE `pelvic_sessions` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `phase_contents`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

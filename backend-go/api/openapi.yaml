@@ -32,6 +32,7 @@ tags:
   - {name: Fertility, description: "TTC tracking (Go only): home tiles, the merged day log (LH, mucus, BBT, intercourse, symptoms)"}
   - {name: Checkups, description: "Periodic checkups (Go only): the screening plan, records, custom checkups, per-type settings"}
   - {name: Catalog, description: "Admin-editable content catalog (Go only): one localized group of items (FAQs, warning signs, kit items, …)"}
+  - {name: Pelvic, description: "Pelvic floor program (Go only): 8-week Kegel plan, trained days, bladder diary"}
   - {name: Daily Health Log, description: "One log per day: symptoms, mood, vitals, lifestyle"}
   - {name: Cycle, description: "Cycle engine: today, a date, a month, recalculation"}
   - {name: Period Log, description: "Start, end, add, edit and delete periods"}
@@ -1495,6 +1496,213 @@ paths:
                     - {code: first_period, title: "اولین پریود کی میاد؟", body: "…", meta: null, audiences: [teen], needs_review: true}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/ModelNotFound"}
+  /api/v1/pelvic:
+    get:
+      tags: [Pelvic]
+      summary: The pelvic floor plan screen
+      description: |
+        The 8-week Kegel program as of today (Tehran): week, the catalog level of that week (`pelvic_levels`, meta
+        `{week_from, hold_sec, rest_sec, reps, sets}`; the last level whose `week_from` ≤ week), the streak, the
+        Saturday-to-Friday trained days, plus today's bladder diary. `program` is null without a program.
+        Health data: only the caller's own rows.
+      operationId: getPelvic
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The plan
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/PelvicOverview"}
+              example:
+                success: true
+                data:
+                  program:
+                    started_on: "2026-09-09"
+                    week: 3
+                    weeks_total: 8
+                    completed: false
+                    level: {code: level_2, number: 2, title: سطح ۲, body: "عضلاتی را منقبض کن…", hold_sec: 5, rest_sec: 5, reps: 10, sets: 3, session_sec: 300, needs_review: true}
+                    streak_days: 4
+                    today_done: false
+                    week_days: [{date: "2026-09-19", done: true}, {date: "2026-09-20", done: true}, {date: "2026-09-21", done: true}, {date: "2026-09-22", done: true}, {date: "2026-09-23", done: false}, {date: "2026-09-24", done: false}, {date: "2026-09-25", done: false}]
+                  diary_today: {date: "2026-09-23", leak: cough, night_voids: 2, uti_symptoms: [], uti_alert: false}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/pelvic/program:
+    post:
+      tags: [Pelvic]
+      summary: Start or restart the program
+      description: |
+        One program per user: starting again moves `started_on` (trained days and diary are kept).
+        `started_on` defaults to today and must not be in the future. Responds with the plan screen.
+      operationId: startPelvicProgram
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                started_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+            example: {started_on: "2026-09-09"}
+      responses:
+        '200':
+          description: Started; the plan screen
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/PelvicOverview"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/PelvicValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+    delete:
+      tags: [Pelvic]
+      summary: Stop the program
+      description: "Deletes the program row; trained days and the bladder diary stay. Idempotent. Responds with the plan screen (`program: null`)."
+      operationId: stopPelvicProgram
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Stopped; the plan screen
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/PelvicOverview"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/pelvic/sessions:
+    post:
+      tags: [Pelvic]
+      summary: Save a Kegel session
+      description: |
+        Adds one guided session to its day (`date`, default today, not in the future): one row per day accumulates
+        the session count, completed sets and seconds, tagged with the level code of that day's program week.
+        A stopped session counts too (send the sets actually done). Needs a program (422 on `program` otherwise).
+        Responds with the plan screen.
+      operationId: addPelvicSession
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [sets_completed, duration_sec]
+              properties:
+                date: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+                sets_completed: {type: integer, minimum: 0, maximum: 20}
+                duration_sec: {type: integer, minimum: 1, maximum: 3600}
+            example: {sets_completed: 3, duration_sec: 300}
+      responses:
+        '200':
+          description: Saved; the plan screen
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/PelvicOverview"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/PelvicValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/pelvic/diary/{date}:
+    get:
+      tags: [Pelvic]
+      summary: One bladder-diary day
+      description: "Any well-formed date; a day without a log answers the empty day. Malformed → 422 on `date`."
+      operationId: getPelvicDiaryDay
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: date, in: path, required: true, schema: {$ref: "#/components/schemas/Date"}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The day
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/PelvicDiaryDay"}
+              example:
+                success: true
+                data: {date: "2026-09-22", leak: cough, night_voids: 2, uti_symptoms: [burning, frequency], uti_alert: true}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/PelvicValidationFailed"}
+    put:
+      tags: [Pelvic]
+      summary: Save a bladder-diary day
+      description: |
+        Partial update: every key is optional, an omitted key stays, an explicit `null` clears it (`uti_symptoms:
+        null` or `[]` clears all). Unknown keys are ignored; symptoms are de-duplicated into the enum order. A day
+        left empty is deleted. The day must not be in the future (Tehran). Responds with the day.
+      operationId: putPelvicDiaryDay
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: date, in: path, required: true, schema: {$ref: "#/components/schemas/Date"}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                leak: {type: [string, "null"], enum: [none, cough, urgency, unexplained, null]}
+                night_voids: {type: [integer, "null"], minimum: 0, maximum: 20}
+                uti_symptoms:
+                  type: [array, "null"]
+                  items: {type: string, enum: [burning, frequency, cloudy_odor]}
+            example: {leak: cough, night_voids: 2, uti_symptoms: [burning]}
+      responses:
+        '200':
+          description: Saved; the day
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/PelvicDiaryDay"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/PelvicValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/checkups:
     get:
       tags: [Checkups]
@@ -8224,6 +8432,23 @@ components:
             success: false
             message: اطلاعات واردشده نامعتبر است
             errors: {bbt: [دما باید بین ۳۵٫۰۰ و ۳۸٫۵۰ درجه باشد.]}
+    PelvicValidationFailed:
+      description: "Pelvic validation failed (controller 422 `{success: false, message, errors}`, message and field errors in the request language). `POST /pelvic/sessions` without a program answers `errors.program`."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, errors]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              errors:
+                type: object
+                additionalProperties: {type: array, items: {type: string}}
+          example:
+            success: false
+            message: اطلاعات واردشده نامعتبر است
+            errors: {program: [اول برنامهٔ تمرین کف لگن را شروع کنید.]}
     CheckupValidationFailed:
       description: "Checkups validation failed (controller 422 `{success: false, message, errors}`, message and field errors in the request language)"
       content:
@@ -8558,6 +8783,67 @@ components:
                 to_day: {type: integer, minimum: 1}
         shift_day: {type: [integer, "null"], minimum: 1}
         phase: {type: string, enum: [pre_shift, post_shift]}
+    PelvicOverview:
+      type: object
+      description: "The plan screen (`GET /pelvic` and every program/session write)."
+      required: [program, diary_today]
+      properties:
+        program:
+          description: "null when the user has no program."
+          oneOf:
+            - {type: "null"}
+            - type: object
+              required: [started_on, week, weeks_total, completed, level, streak_days, today_done, week_days]
+              properties:
+                started_on: {$ref: "#/components/schemas/Date"}
+                week: {type: integer, minimum: 1, maximum: 8, description: "days since start / 7 + 1, capped at weeks_total"}
+                weeks_total: {type: integer, const: 8}
+                completed: {type: boolean, description: "56 days or more since the start"}
+                level:
+                  description: "The catalog level of this week; null when `pelvic_levels` has no valid active item."
+                  oneOf:
+                    - {type: "null"}
+                    - {$ref: "#/components/schemas/PelvicLevel"}
+                streak_days: {type: integer, minimum: 0, description: "consecutive trained days ending today (or yesterday when today has no session yet)"}
+                today_done: {type: boolean}
+                week_days:
+                  type: array
+                  minItems: 7
+                  maxItems: 7
+                  description: "Saturday → Friday of the current week."
+                  items:
+                    type: object
+                    required: [date, done]
+                    properties:
+                      date: {$ref: "#/components/schemas/Date"}
+                      done: {type: boolean}
+        diary_today: {$ref: "#/components/schemas/PelvicDiaryDay"}
+    PelvicLevel:
+      type: object
+      description: "A `pelvic_levels` catalog item: title/body picked for the request locale, the timing from its meta."
+      required: [code, number, title, body, hold_sec, rest_sec, reps, sets, session_sec, needs_review]
+      properties:
+        code: {type: string}
+        number: {type: integer, minimum: 1, description: "1-based position among the valid levels (ordered by week_from)"}
+        title: {type: [string, "null"]}
+        body: {type: [string, "null"], description: "The Kegel cue shown under the trainer"}
+        hold_sec: {type: integer, minimum: 1}
+        rest_sec: {type: integer, minimum: 1}
+        reps: {type: integer, minimum: 1}
+        sets: {type: integer, minimum: 1}
+        session_sec: {type: integer, description: "sets × reps × (hold_sec + rest_sec)"}
+        needs_review: {type: boolean, description: "Copy still awaits clinical review"}
+    PelvicDiaryDay:
+      type: object
+      required: [date, leak, night_voids, uti_symptoms, uti_alert]
+      properties:
+        date: {$ref: "#/components/schemas/Date"}
+        leak: {type: [string, "null"], enum: [none, cough, urgency, unexplained, null]}
+        night_voids: {type: [integer, "null"], minimum: 0, maximum: 20}
+        uti_symptoms:
+          type: array
+          items: {type: string, enum: [burning, frequency, cloudy_odor]}
+        uti_alert: {type: boolean, description: "Any UTI symptom logged → show the `pelvic_alerts` / `uti_warning` catalog item"}
     FertilityDay:
       type: object
       required: [date, cycle_day, lh, mucus, bbt, bbt_time, intercourse, symptoms, note, chance]

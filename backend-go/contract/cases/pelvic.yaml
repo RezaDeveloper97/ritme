@@ -1,0 +1,115 @@
+# Pelvic floor program (/api/v1/pelvic/*) — Go only (CB-PELV-01, deviations.md D-32): there is no Laravel route, so
+# these goldens were recorded from the Go server and reviewed by hand (new-endpoint skill, step 8).
+# The fixture dump carries the pelvic_* tables (goose 00010 / Laravel 2026_10_01_000001, no rows) and catalog_items
+# with only the rows 00010 seeds (pelvic_levels level_1..4, pelvic_alerts) — added by hand, the DDL/rows a full
+# re-record reproduces. No persona has a program, so the write cases start one first (every case runs on a fresh
+# dump). Streak / week-dot edge cases and user isolation are covered by internal/pelvic int tests.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: pelvic
+defaults:
+  persona: regular
+  locales: [none, en]
+cases:
+  - name: show_empty
+    doc: No program → program null; today's diary is the empty day
+    method: GET
+    path: /api/v1/pelvic
+    status: 200
+  - name: show_anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/pelvic
+    status: 401
+
+  - name: program_flow
+    doc: Start 2 weeks ago → week 3, level_2 (board «هفته ۳ · سطح ۲», 5 min); a session → streak 1; stop → program null
+    steps:
+      - method: POST
+        path: /api/v1/pelvic/program
+        body: {started_on: "2026-09-09"}
+        status: 200
+      - method: POST
+        path: /api/v1/pelvic/sessions
+        body: {sets_completed: 3, duration_sec: 300}
+        status: 200
+      - method: GET
+        path: /api/v1/pelvic
+        status: 200
+      - method: DELETE
+        path: /api/v1/pelvic/program
+        status: 200
+  - name: program_future
+    method: POST
+    path: /api/v1/pelvic/program
+    body: {started_on: "2026-09-24"}
+    status: 422
+  - name: program_anon
+    persona: anon
+    locales: none
+    method: POST
+    path: /api/v1/pelvic/program
+    status: 401
+  - name: stop_anon
+    persona: anon
+    locales: none
+    method: DELETE
+    path: /api/v1/pelvic/program
+    status: 401
+  - name: session_without_program
+    method: POST
+    path: /api/v1/pelvic/sessions
+    body: {sets_completed: 3, duration_sec: 300}
+    status: 422
+  - name: session_invalid
+    locales: en
+    steps:
+      - method: POST
+        path: /api/v1/pelvic/program
+        body: {}
+        status: 200
+      - method: POST
+        path: /api/v1/pelvic/sessions
+        body: {date: "2026-09-24", sets_completed: 21}
+        status: 422
+  - name: session_anon
+    persona: anon
+    locales: none
+    method: POST
+    path: /api/v1/pelvic/sessions
+    status: 401
+
+  - name: diary_empty
+    method: GET
+    path: /api/v1/pelvic/diary/2026-09-22
+    status: 200
+  - name: diary_round_trip
+    doc: Symptoms de-duplicated into enum order; uti_alert; null clears; omitted keys stay
+    steps:
+      - method: PUT
+        path: /api/v1/pelvic/diary/2026-09-22
+        body: {leak: cough, night_voids: 2, uti_symptoms: [frequency, burning, burning]}
+        status: 200
+      - method: PUT
+        path: /api/v1/pelvic/diary/2026-09-22
+        body: {uti_symptoms: ~}
+        status: 200
+      - method: GET
+        path: /api/v1/pelvic/diary/2026-09-22
+        status: 200
+  - name: diary_invalid
+    method: PUT
+    path: /api/v1/pelvic/diary/2026-09-24
+    body: {leak: sometimes, night_voids: 21, uti_symptoms: [fever]}
+    status: 422
+  - name: diary_bad_date
+    locales: en
+    method: GET
+    path: /api/v1/pelvic/diary/23-09-2026
+    status: 422
+  - name: diary_anon
+    persona: anon
+    locales: none
+    method: PUT
+    path: /api/v1/pelvic/diary/2026-09-22
+    status: 401

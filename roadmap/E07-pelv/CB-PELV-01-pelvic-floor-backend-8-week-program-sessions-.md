@@ -3,7 +3,7 @@ id: CB-PELV-01
 title: Pelvic floor backend: 8-week program, sessions, bladder diary
 epic: PELV
 type: backend
-status: todo
+status: done
 depends_on: [CB-CORE-03]
 parallel_group: PELV-A
 touches: [backend-go/internal/pelvic, backend-go/internal/http/routes_pelvic.go, backend-go/db/queries/pelvic, backend-go/api/openapi.yaml, backend-go/contract, backend-go/resources/translations, backend-go/db/migrations, backend/database/migrations, docs/go-migration/deviations.md]

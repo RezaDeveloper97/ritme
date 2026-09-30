@@ -1,0 +1,24 @@
+{
+    "messages": {
+        "validation_failed": "اطلاعات واردشده نامعتبر است",
+        "program_started": "برنامهٔ تمرین کف لگن شروع شد",
+        "program_stopped": "برنامهٔ تمرین کف لگن متوقف شد",
+        "session_saved": "تمرین ثبت شد",
+        "diary_saved": "دفترچهٔ مثانه ذخیره شد"
+    },
+    "validation": {
+        "date_future": "ثبت برای روزهای آینده ممکن نیست.",
+        "program_required": "اول برنامهٔ تمرین کف لگن را شروع کنید."
+    },
+    "attributes": {
+        "date": "تاریخ",
+        "started_on": "تاریخ شروع",
+        "sets_completed": "ست‌های انجام‌شده",
+        "duration_sec": "مدت",
+        "leak": "نشت ادرار",
+        "night_voids": "بیدار شدن شبانه برای ادرار",
+        "uti_symptoms": "علائم ادراری",
+        "uti_symptoms.*": "علامت ادراری",
+        "program": "برنامه"
+    }
+}
