@@ -33,3 +33,12 @@ TODO (ask user):
 - CSP change moved into CB-DIR-07 Scope (next.config.ts added to its touches).
 - TODO (ask user): a Neshan *web* map key restricted to the app domains, supplied at build time on stage/prod.
 - TODO (ask user): Neshan has no custom Night & Bloom style — uses Neshan's own day/night vector styles. Default centre = Tehran.
+
+## CB-CORE-03 — Admin-editable content catalog
+- Migration `00009_catalog_items` (+ Laravel schema twin `2026_09_30_000001`); `catalog_items(group, code, sort_order, is_active, audiences JSON, title/body/meta JSON i18n, needs_review)`.
+- Routes: `GET /api/v1/catalog/:group?audience=` (auth:api, Redis cache per group, 10 min, flushed on admin write); admin CRUD `/api/admin/v1/catalog[/:group[/:id]]` (editor+, CSRF, audit). OpenAPI tag `Catalog`; deviation D-31.
+- Seed convention per epic in `docs/canvas-build/catalog.md` (goose data migration `000NN_catalog_<group>.sql` + Laravel `insertOrIgnore` twin).
+- Also touched `backend-go/sqlc.yaml` (catalog package) — required by sqlc; regenerated models.go across packages.
+- Verify: sqlc, vet, unit + int tests, golangci-lint 0 issues, schema-diff OK (48 tables).
+- TODO (ask user): catalog read is behind auth — should FAQ-type groups be public before login?
+- Open: `admin-api.md` not updated (catalog admin endpoints documented in catalog.md §3); no bulk reorder endpoint (add in CB-CORE-04 if needed).

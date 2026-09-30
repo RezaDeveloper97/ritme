@@ -133,3 +133,9 @@ sql:
       go:
         <<: *go
         out: internal/fertility/store
+  - <<: *pkg
+    queries: db/queries/catalog
+    gen:
+      go:
+        <<: *go
+        out: internal/catalog/store

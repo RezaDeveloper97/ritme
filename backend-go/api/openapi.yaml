@@ -31,6 +31,7 @@ tags:
   - {name: Care, description: "Care reminders (Go only): medications with per-dose intake tracking, appointments, today"}
   - {name: Fertility, description: "TTC tracking (Go only): home tiles, the merged day log (LH, mucus, BBT, intercourse, symptoms)"}
   - {name: Checkups, description: "Periodic checkups (Go only): the screening plan, records, custom checkups, per-type settings"}
+  - {name: Catalog, description: "Admin-editable content catalog (Go only): one localized group of items (FAQs, warning signs, kit items, …)"}
   - {name: Daily Health Log, description: "One log per day: symptoms, mood, vitals, lifestyle"}
   - {name: Cycle, description: "Cycle engine: today, a date, a month, recalculation"}
   - {name: Period Log, description: "Start, end, add, edit and delete periods"}
@@ -1436,6 +1437,64 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '422': {$ref: "#/components/responses/FertilityValidationFailed"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/catalog/{group}:
+    get:
+      tags: [Catalog]
+      summary: One content-catalog group, localized
+      description: |
+        The active items of an admin-editable catalog group (warning signs, FAQs, kit items, score items, …;
+        docs/canvas-build/catalog.md) in display order (`sort_order`, id). Groups are data: an unknown group is an
+        empty list, a malformed name (not lowercase snake case, max 64) is a 404. `title` / `body` are picked for the
+        request locale (then the default language, then the first non-empty translation); inside `meta`, every
+        object whose keys are language codes (at least one active) is replaced by its picked value, the rest is
+        returned as stored. `audiences` null = for everyone; with `?audience=` only those items and the ones
+        listing that audience are returned. `needs_review` = copy still awaits clinical review. Cached per group
+        (Redis, flushed on every admin write).
+      operationId: getCatalogGroup
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: group, in: path, required: true, schema: {type: string, pattern: "^[a-z][a-z0-9_]*$", maxLength: 64}}
+        - {name: audience, in: query, required: false, description: "Mode/audience code (e.g. `menopause`, `teen`)", schema: {type: string}}
+        - {$ref: "#/components/parameters/LocaleQuery"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The group's items
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [group, locale, items]
+                    properties:
+                      group: {type: string}
+                      locale: {type: string}
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          required: [code, title, body, meta, audiences, needs_review]
+                          properties:
+                            code: {type: string}
+                            title: {type: [string, "null"]}
+                            body: {type: [string, "null"]}
+                            meta: {description: "Free-form per group, translations picked; null when none"}
+                            audiences: {oneOf: [{type: "null"}, {type: array, items: {type: string}}]}
+                            needs_review: {type: boolean}
+              example:
+                success: true
+                data:
+                  group: teen_faq
+                  locale: fa
+                  items:
+                    - {code: first_period, title: "اولین پریود کی میاد؟", body: "…", meta: null, audiences: [teen], needs_review: true}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/ModelNotFound"}
   /api/v1/checkups:
     get:
       tags: [Checkups]

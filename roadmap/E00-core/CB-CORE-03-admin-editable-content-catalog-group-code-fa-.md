@@ -3,7 +3,7 @@ id: CB-CORE-03
 title: Admin-editable content catalog (group / code / fa+en / meta)
 epic: CORE
 type: backend
-status: todo
+status: done
 depends_on: [CB-CORE-01]
 parallel_group: CORE-B
 touches: [backend-go/internal/catalog, backend-go/internal/http/routes_catalog.go, backend-go/db/queries/catalog, backend-go/api/openapi.yaml, backend-go/contract, backend-go/resources/translations, backend-go/db/migrations, backend/database/migrations, docs/go-migration/deviations.md, backend-go/internal/http/routes_admin_catalog.go]

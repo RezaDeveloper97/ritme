@@ -81,6 +81,21 @@ type CacheLock struct {
 	Expiration int32
 }
 
+type CatalogItem struct {
+	ID          uint64
+	Group       string
+	Code        string
+	SortOrder   int32
+	IsActive    bool
+	Audiences   db.NullRawJSON
+	Title       json.RawMessage
+	Body        db.NullRawJSON
+	Meta        db.NullRawJSON
+	NeedsReview bool
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+}
+
 type Challenge struct {
 	ID           uint64
 	Slug         sql.NullString
