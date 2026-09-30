@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>Todo_Add</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lalezar&amp;family=Vazirmatn:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:Vazirmatn,Tahoma,sans-serif;color:#F6F1FF;background:#17112B}
+a{color:#B9A6FF;text-decoration:none}a:hover{color:#D6CBFF}
+button{font-family:inherit;cursor:pointer}
+input,textarea{font-family:inherit}
+</style>
+</helmet>
+<div style="width:390px;height:844px;position:relative;background:#17112B;overflow:hidden;"><div style="height:54px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 28px 6px;font-size:15px;font-weight:700;color:#F6F1FF;box-sizing:border-box;"><span>۹:۴۱</span><span style="display:flex;gap:6px;align-items:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="#F6F1FF" stroke="#F6F1FF" stroke-width="0" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d='M2 16h3v4H2zM8 12h3v8H8zM14 8h3v12h-3zM20 4h3v16h-3z'/></svg><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F6F1FF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x='3' y='7' width='16' height='10' rx='3'/><rect x='5' y='9' width='12' height='6' rx='1.5' fill='#F6F1FF'/><path d='M21 10v4'/></svg></span></div><div style="padding:4px 20px;opacity:.35;"><span style="font-family:Lalezar,Vazirmatn,sans-serif;font-size:36px;line-height:1;color:#F6F1FF;font-weight:400;">کارهای من</span></div><div aria-hidden="true" style="position:absolute;inset:0;background:rgba(0,0,0,0.55);"></div>
+<section role="dialog" aria-label="کار جدید" style="position:absolute;left:0;right:0;bottom:300px;background:#221A3D;border-radius:28px 28px 0 0;padding:18px 18px 16px;display:flex;flex-direction:column;gap:14px;">
+<div style="display:flex;align-items:center;gap:12px;"><span style="width:26px;height:26px;border-radius:13px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border:2px solid #34295A;box-sizing:border-box;"></span><label for="tt" style="position:absolute;left:-9999px;">عنوان کار</label><input id="tt" value="خرید نوار بهداشتی" style="flex-grow:1;border:none;background:transparent;color:#F6F1FF;font-family:inherit;font-size:18px;font-weight:800;min-width:0;"></div>
+<input aria-label="یادداشت" placeholder="یادداشت (اختیاری)" style="border:none;background:transparent;color:#B8AED6;font-family:inherit;font-size:13.5px;padding-right:38px;">
+<div style="display:flex;gap:8px;flex-wrap:wrap;"><button style="height:40px;padding:0 12px;border-radius:20px;border:1.5px solid #B9A6FF;background:#B9A6FF22;color:#F6F1FF;font-size:12.5px;font-weight:800;display:flex;align-items:center;gap:6px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#B9A6FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>امروز</button><button style="height:40px;padding:0 12px;border-radius:20px;border:1.5px solid #34295A;background:transparent;color:#B8AED6;font-size:12.5px;font-weight:800;display:flex;align-items:center;gap:6px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#B8AED6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>فردا</button><button style="height:40px;padding:0 12px;border-radius:20px;border:1.5px solid #4CE0C3;background:#4CE0C322;color:#F6F1FF;font-size:12.5px;font-weight:800;display:flex;align-items:center;gap:6px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4CE0C3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>۱۸:۰۰</button><button style="height:40px;padding:0 12px;border-radius:20px;border:1.5px solid #FFB86B;background:#FFB86B22;color:#F6F1FF;font-size:12.5px;font-weight:800;display:flex;align-items:center;gap:6px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FFB86B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1 12H6z"/><path d="M9 8V6a3 3 0 016 0v2"/></svg>خرید</button><button style="height:40px;padding:0 12px;border-radius:20px;border:1.5px solid #34295A;background:transparent;color:#B8AED6;font-size:12.5px;font-weight:800;display:flex;align-items:center;gap:6px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#B8AED6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0112 0v5l2 2H4z"/><path d="M10 20a2 2 0 004 0"/></svg>یادآور</button></div>
+<div style="display:flex;justify-content:flex-end;"><a href="nbd_Todo_Home.dc.html" aria-label="ذخیره" style="width:48px;height:48px;border-radius:24px;background:#B9A6FF;display:flex;align-items:center;justify-content:center;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#17112B" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg></a></div></section>
+<div aria-hidden="true" style="position:absolute;left:0;right:0;bottom:0;height:300px;background:#2A2150;display:flex;align-items:center;justify-content:center;color:#B8AED6;font-size:12px;font-weight:700;">کیبورد</div></div></x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

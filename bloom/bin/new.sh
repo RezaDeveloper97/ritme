@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# Create a task file with a valid frontmatter skeleton.
+# Usage: bloom/bin/new.sh ID "Title" TYPE "deps,comma" GROUP "touches,comma" "skills,comma" "verify command"
+#   e.g. bloom/bin/new.sh B-N1-30 "Fix X" frontend "B-N1-03" N1-C "frontend/src/shared/x" "new-fsd-slice" "cd frontend && npm run test"
+# Then edit the Scope/Acceptance sections by hand. Never overwrites an existing file.
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+[ $# -ge 8 ] || { sed -n 2,5p "$0"; exit 1; }
+id="$1" title="$2" type="$3" deps="$4" group="$5" touches="$6" skills="$7" verify="$8"
+ms=$(echo "$id" | cut -d- -f2)
+slug=$(echo "$title" | tr 'A-Z' 'a-z' | sed -E 's/[^a-z0-9]+/-/g; s/^-|-$//g' | cut -c1-45)
+mkdir -p "$ROOT/$ms"; f="$ROOT/$ms/$id-$slug.md"
+[ -e "$f" ] && { echo "exists: $f" >&2; exit 1; }
+cat > "$f" <<MD
+---
+id: $id
+title: $title
+milestone: $ms
+type: $type
+status: todo
+depends_on: [$deps]
+parallel_group: $group
+touches: [$touches]
+skills: [$skills]
+verify: $verify
+---
+
+# $id — $title
+
+## Why
+
+## Scope
+- 
+
+## Out of scope
+- 
+
+## Acceptance
+- 
+MD
+echo "$f"
