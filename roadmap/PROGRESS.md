@@ -67,3 +67,10 @@ TODO (ask user):
 - Verify: sqlc, vet, unit, int (16), golangci-lint 0, schema-diff OK (51 tables); full `go test ./...` green.
 - CB-PELV-02 touches += backend-go/resources/translations (Go copy of frontend messages must be re-synced).
 - TODO (ask user): include pelvic data in the account data export? Defaults: one session row/day (summed), stopping keeps history, level table needs clinical review.
+
+## CB-CORE-02b — Canvas primitives into globals.css and ui-kit showcase
+- Primitives' CSS moved into a delimited `CB-CORE-02 / CB-CORE-02b` block at the end of `globals.css` (side file removed) — now scanned by lint:styles (541 files ✔) and lint:dark ✔.
+- `/dev/ui-kit`: «اجزای کانواس» section with every CB-CORE-02 primitive. Screenshots light/dark 390 px in `docs/qa/canvas/core/CB-CORE-02b/` — ✔.
+- NumericScale: >7 steps wrap to rows (0–10 → 6+5, cells 54×48 px at 390); `solid` limited to brand/danger/success (AA with `--on-brand`).
+- Verify: fsd:lint ✔, lint:styles ✔, lint:dark ✔, shared/ui tests 65/65 ✔; typecheck / lint / build / 1 test red **only** in bloom's in-flight B-N1-10/14/15 files (pregnancy*, checkup*, profile/account) — re-run full verify in the next frontend task after they land.
+- TODO (ask user): 0–10 as two rows OK? `period` solid (3.8:1 light) dropped — use danger, or add a `--on-period` pair later.

@@ -1,7 +1,6 @@
 // Night & Bloom primitives (B-N1-03). Specs: docs/night-bloom/components.md.
 // BottomSheet is not here: it is `AppSheet` from `@/shared/sheet`, restyled.
-// CB-CORE-02 styles are co-located (not in globals.css) so that task stays in shared/ui.
-import './canvas-primitives.css';
+// Styles for all of them (B-N1-03 + CB-CORE-02) live in app/globals.css.
 
 export { Accordion } from './Accordion';
 export { PrimaryButton, SecondaryButton, TileButton } from './Buttons';

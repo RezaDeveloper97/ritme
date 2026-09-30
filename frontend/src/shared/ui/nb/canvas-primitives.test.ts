@@ -19,7 +19,7 @@ import {
   timerProgress,
 } from './index';
 import { barPercent } from './ProgressBar';
-import { scaleValues } from './NumericScale';
+import { scaleColumns, scaleValues, SOLID_SCALE_TONES } from './NumericScale';
 import { radioStep } from './radio-group';
 
 /*
@@ -98,6 +98,24 @@ describe('NumericScale', () => {
     expect(out).toMatch(/aria-describedby="([^"]+)"[\s\S]*<div id="\1" class="nb-nscale-ends"><span>بدون درد<\/span>/);
     expect(out).toMatch(/aria-checked="true" tabindex="0" class="nb-nscale-cell"><span class="nb-nscale-num">۷<\/span>/);
     expect(out).toContain('nb-nscale is-solid nb-tone-danger is-dense');
+  });
+
+  it('0–10 wraps into two rows of 6 + 5 so each cell stays ≥ 44px at 390px', () => {
+    expect(scaleColumns(11)).toBe(6);
+    expect(scaleColumns(6)).toBe(6);
+    expect(scaleColumns(7)).toBe(7);
+    expect(scaleColumns(10)).toBe(5);
+    const out = html(h(NumericScale, { min: 0, max: 10, value: null, onChange: noop, locale: 'en', ariaLabel: 'Pain' }));
+    expect(out).toContain('is-dense is-cols-6');
+  });
+
+  it('solid only paints AA-safe tones; anything else falls back to brand', () => {
+    expect([...SOLID_SCALE_TONES]).toEqual(['brand', 'danger', 'success']);
+    const props = { min: 1, max: 6, value: 2, onChange: noop, locale: 'en', ariaLabel: 'x', variant: 'solid', tone: 'warm' };
+    const out = html(h(NumericScale, props as unknown as Parameters<typeof NumericScale>[0]));
+    expect(out).toContain('nb-nscale is-solid nb-tone-brand');
+    const soft = html(h(NumericScale, { ...props, variant: 'soft', tone: 'warm' } as Parameters<typeof NumericScale>[0]));
+    expect(soft).toContain('nb-tone-warm');
   });
 
   it('1–6 without end labels has no describedby', () => {

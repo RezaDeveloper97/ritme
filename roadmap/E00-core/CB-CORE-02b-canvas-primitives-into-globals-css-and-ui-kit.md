@@ -3,7 +3,7 @@ id: CB-CORE-02b
 title: Canvas primitives into globals.css and ui-kit showcase
 epic: CORE
 type: frontend
-status: todo
+status: done
 depends_on: [CB-CORE-02,B-N1-04,B-N1-05,B-N1-13]
 parallel_group: CORE-C
 touches: [frontend/src/app/globals.css,frontend/src/shared/ui/nb,frontend/src/screens/ui-kit,frontend/src/app/[locale]/dev/ui-kit]

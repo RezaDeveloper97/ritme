@@ -18,7 +18,9 @@ import {
   Avatar,
   BarChart,
   Card,
+  Checkbox,
   ChipGroup,
+  CountdownRing,
   DateStrip,
   EmptyState,
   HeaderButton,
@@ -29,28 +31,65 @@ import {
   ListGroup,
   ListRow,
   NumberStepper,
+  NumericScale,
   PillChip,
   PlusLock,
   PrimaryButton,
+  ProgressBar,
   ProgressRing,
   ProgressSteps,
+  RadioCardGroup,
   ScreenHeader,
+  SearchField,
   SecondaryButton,
   SectionTitle,
   SegmentedTabs,
+  SeverityScale,
   Skeleton,
   SkeletonGroup,
   SkyLayer,
   StatusPill,
+  StepTimeline,
   Switch,
   TileButton,
   UrgentCard,
+  WeekDots,
+  type TimelineStep,
 } from '@/shared/ui';
 
 const PAIN = ['بدون درد', 'شکم', 'لگن', 'یک‌طرفه پایین', 'کمر', 'سر', 'سینه'] as const;
 const LEVELS = ['کم', 'متوسط', 'شدید'] as const;
 const BBT = [36.35, 36.4, 36.3, 36.38, null, 36.42, 36.36, 36.5, 36.62, 36.7, 36.68, 36.72];
 const CYCLES = [28, 30, 27, 29, 31, 29];
+
+// Canvas-v1 samples (CB-CORE-02b) — lifted from nbl_Cond_Endo, nbl_Cond_PMDD,
+// nbl_IVF_Home, nbl_Ins_ClaimDetail, nbl_Pelv_Session, nbl_Contra_Pill.
+const SEVERITY = [
+  { value: 'none', label: 'ندارم' },
+  { value: 'mild', label: 'خفیف' },
+  { value: 'moderate', label: 'متوسط' },
+  { value: 'severe', label: 'شدید' },
+] as const;
+type Severity = (typeof SEVERITY)[number]['value'];
+const STEP_STATES = { done: 'انجام شد', current: 'مرحله فعلی', todo: 'بعدی' } as const;
+const IVF_STEPS: TimelineStep[] = [
+  { id: 'stim', title: 'تحریک تخمک‌گذاری', meta: '۱ تا ۱۰ مهر', state: 'done' },
+  { id: 'retrieval', title: 'تخمک‌کشی', meta: '۱۲ مهر', state: 'current' },
+  { id: 'transfer', title: 'انتقال جنین', meta: 'حدود ۳ تا ۵ روز بعد', state: 'todo' },
+];
+const CLAIM_STEPS: TimelineStep[] = [
+  { id: 'sent', title: 'ارسال شد', meta: '۵ مهر', state: 'done' },
+  { id: 'review', title: 'درخواست مدرک', meta: 'مهلت تا ۱۶ مهر', state: 'current', tone: 'bloom' },
+  { id: 'paid', title: 'پرداخت', state: 'todo' },
+];
+const WEEK = ['done', 'done', 'missed', 'done', 'done', 'future', 'future'] as const;
+const WEEK_STATES = { done: 'خورده شد', missed: 'جا افتاد', future: 'هنوز نرسیده' } as const;
+type Method = 'pill' | 'iud' | 'none';
+const HOTLINES = [
+  { label: 'اورژانس', number: '115', display: '۱۱۵' },
+  { label: 'صدای مشاور', number: '1480', display: '۱۴۸۰' },
+  { label: 'اورژانس اجتماعی', number: '123', display: '۱۲۳' },
+];
 
 export function UiKitPage() {
   const locale = useLocale();
@@ -67,6 +106,13 @@ export function UiKitPage() {
   const [pain, setPain] = useState<string[]>(['شکم']);
   const [level, setLevel] = useState<string>('متوسط');
   const [sheet, setSheet] = useState(false);
+  const [severity, setSeverity] = useState<Severity | null>('moderate');
+  const [pain10, setPain10] = useState<number | null>(7);
+  const [mood6, setMood6] = useState<number | null>(3);
+  const [method, setMethod] = useState<Method | null>('pill');
+  const [query, setQuery] = useState('');
+  const [consent, setConsent] = useState(true);
+  const [share, setShare] = useState(false);
 
   const togglePain = (item: string) =>
     setPain((prev) => (prev.includes(item) ? prev.filter((p) => p !== item) : [...prev, item]));
@@ -77,7 +123,7 @@ export function UiKitPage() {
         <SkyLayer />
         <ScreenHeader
           title="کیت رابط کاربری"
-          subtitle="Night & Bloom · B-N1-03"
+          subtitle="Night & Bloom · B-N1-03 + CB-CORE-02"
           onBack={() => setTab('manual')}
           backLabel="بازگشت"
           action={
@@ -321,6 +367,118 @@ export function UiKitPage() {
               action={<SecondaryButton icon="plus">افزودن کار</SecondaryButton>}
             />
           </Card>
+
+          <SectionTitle title="اجزای کانواس" level={2} />
+          <p className="uikit-note">Canvas v1 · CB-CORE-02</p>
+          <Card as="section" aria-label="شدت علائم">
+            <SeverityScale
+              label="گرگرفتگی"
+              options={SEVERITY}
+              value={severity}
+              onChange={setSeverity}
+            />
+          </Card>
+          <Card as="section" aria-label="مقیاس درد">
+            <NumericScale
+              label="چقدر درد داری؟"
+              min={0}
+              max={10}
+              value={pain10}
+              onChange={setPain10}
+              locale={locale}
+              minLabel="بدون درد"
+              maxLabel="بدترین درد ممکن"
+              variant="solid"
+              tone="danger"
+            />
+          </Card>
+          <Card as="section" aria-label="مقیاس خلق">
+            <NumericScale
+              label="غمگینی یا ناامیدی"
+              min={1}
+              max={6}
+              value={mood6}
+              onChange={setMood6}
+              locale={locale}
+              minLabel="اصلاً"
+              maxLabel="خیلی شدید"
+              tone="bloom"
+            />
+          </Card>
+          <Card as="section" aria-label="مراحل درمان">
+            <StepTimeline label="مراحل درمان" steps={IVF_STEPS} stateLabels={STEP_STATES} locale={locale} />
+          </Card>
+          <Card as="section" aria-label="روند خسارت">
+            <StepTimeline
+              label="روند خسارت"
+              steps={CLAIM_STEPS}
+              stateLabels={STEP_STATES}
+              marker="dot"
+              locale={locale}
+            />
+          </Card>
+          <Card as="section" aria-label="تایمر تمرین" className="uikit-center">
+            <CountdownRing
+              elapsedMs={4 * 60_000 + 20_000}
+              totalMs={10 * 60_000}
+              mode="countdown"
+              label="زمان باقی‌مانده تمرین"
+              locale={locale}
+              caption="انقباض"
+              footer="ست ۲ از ۳"
+              size={180}
+              tone="data"
+              glow
+            />
+          </Card>
+          <Card as="section" aria-label="قرص این هفته">
+            <WeekDots days={WEEK} todayIndex={4} locale={locale} label="قرص این هفته" stateLabels={WEEK_STATES} />
+          </Card>
+          <Card as="section" aria-label="پیشرفت">
+            <ProgressBar value={3} max={8} label="برنامه کف لگن" valueLabel="۳ از ۸" valueText="هفته ۳ از ۸" hint="هفته بعد سطح ۲" tone="data" />
+          </Card>
+          <RadioCardGroup
+            label="روش پیشگیری"
+            value={method}
+            onChange={setMethod}
+            options={[
+              { value: 'pill', title: 'قرص ترکیبی', description: 'هر روز یک قرص، ساعت ثابت', icon: 'pill', iconTone: 'brand' },
+              { value: 'iud', title: 'آی‌یو‌دی', description: 'تا ۵ سال', icon: 'shield', iconTone: 'data' },
+              { value: 'none', title: 'فعلاً هیچ‌کدام', disabled: true },
+            ]}
+          />
+          <SearchField
+            value={query}
+            onValueChange={setQuery}
+            label="جستجوی پزشک"
+            clearLabel="پاک کردن"
+            placeholder="نام پزشک یا تخصص"
+          />
+          <Card as="section" aria-label="رضایت‌ها">
+            <Checkbox checked={consent} onCheckedChange={setConsent} label="قوانین را خواندم" />
+            <Checkbox
+              checked={share}
+              onCheckedChange={setShare}
+              label="اشتراک با پزشک"
+              description="فقط خلاصه‌ی ۳ ماه اخیر"
+            />
+            <Checkbox checked={false} onCheckedChange={() => undefined} label="غیرفعال" disabled />
+          </Card>
+          <UrgentCard
+            variant="note"
+            title="اگر فکر آسیب به خودت داری، همین حالا با یکی از این شماره‌ها تماس بگیر."
+            hotlines={HOTLINES}
+            hotlinesLabel="شماره‌های کمک"
+          />
+          <UrgentCard
+            title="درد شدید یک‌طرفه یا خون‌ریزی زیاد"
+            action={<PrimaryButton icon="phone">تماس با ۱۱۵</PrimaryButton>}
+            actions={<SecondaryButton>نوبت پزشک زنان</SecondaryButton>}
+            hotlines={HOTLINES.slice(0, 1)}
+            hotlinesLabel="شماره اورژانس"
+          >
+            اگر با این علائم همراه است، معطل نکن.
+          </UrgentCard>
 
           <PrimaryButton onClick={() => setSheet(true)}>باز کردن برگه</PrimaryButton>
           <SecondaryButton>ویرایش</SecondaryButton>
