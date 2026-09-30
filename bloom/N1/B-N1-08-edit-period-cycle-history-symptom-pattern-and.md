@@ -3,7 +3,7 @@ id: B-N1-08
 title: Edit period, cycle history, symptom pattern and phase sheet
 milestone: N1
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N1-06]
 parallel_group: N1-H
 touches: [frontend/src/screens/cycle,frontend/src/screens/phase-details,frontend/src/features/log-period,backend-go/internal/cycle,backend-go/internal/healthlog,backend-go/api]

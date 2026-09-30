@@ -22,9 +22,8 @@ export const NAV_ROOT_PATHS: readonly string[] = [
   '/analysis',
   // Transitional (B-N1-04): these screens have no back button yet, so hiding
   // the nav would strand the user. Their restyle tasks add a ScreenHeader and
-  // drop them from this list: /cycle (B-N1-06/07), /log (B-N3-03),
+  // drop them from this list: /log (B-N3-03),
   // /pregnancy/calendar (B-N1-14).
-  '/cycle',
   '/log',
   '/pregnancy/calendar',
 ];

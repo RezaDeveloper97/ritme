@@ -14,5 +14,34 @@
     "exercise": "Exercise",
     "skin_care": "Skin care",
     "sleep": "Sleep"
-  }
+  },
+  "tabsLabel": "Topics",
+  "tabs": {
+    "body": "Body",
+    "mood": "Mood",
+    "nutrition": "Nutrition",
+    "movement": "Movement",
+    "relationship": "Intimacy"
+  },
+  "items": {
+    "hormonal_changes": "What's happening",
+    "symptom_prediction": "What you might feel",
+    "vaginal_discharge": "Discharge",
+    "sleep": "Sleep",
+    "skin_care": "Caring for yourself",
+    "nutrition": "What helps",
+    "exercise": "Movement for these days",
+    "sex_tips": "Intimacy these days",
+    "fertility": "Chance of pregnancy"
+  },
+  "phases": {
+    "menstrual": "Period phase",
+    "follicular": "Follicular phase",
+    "fertile": "Fertile window",
+    "luteal": "Luteal phase",
+    "period_expected": "Period due"
+  },
+  "dayRange": "Days {from, number} to {to, number} of your cycle",
+  "disclaimer": "General information only. If your symptoms are severe or unusual, talk to a doctor.",
+  "gotIt": "Got it"
 }

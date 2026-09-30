@@ -14,5 +14,34 @@
     "exercise": "ورزش",
     "skin_care": "مراقبت از پوست",
     "sleep": "خواب"
-  }
+  },
+  "tabsLabel": "موضوع‌ها",
+  "tabs": {
+    "body": "بدن",
+    "mood": "حال",
+    "nutrition": "تغذیه",
+    "movement": "حرکت",
+    "relationship": "رابطه"
+  },
+  "items": {
+    "hormonal_changes": "چه اتفاقی می‌افتد",
+    "symptom_prediction": "چه چیزی ممکن است حس کنی",
+    "vaginal_discharge": "ترشحات",
+    "sleep": "خواب",
+    "skin_care": "مراقبت از خودت",
+    "nutrition": "چه چیزی کمک می‌کند",
+    "exercise": "حرکت مناسب این روزها",
+    "sex_tips": "رابطه در این روزها",
+    "fertility": "احتمال بارداری"
+  },
+  "phases": {
+    "menstrual": "فاز پریود",
+    "follicular": "فاز فولیکولار",
+    "fertile": "پنجره باروری",
+    "luteal": "فاز لوتئال",
+    "period_expected": "نزدیک پریود"
+  },
+  "dayRange": "روز {from, number} تا {to, number} سیکل تو",
+  "disclaimer": "اطلاعات عمومی است. اگر علائمت شدید یا غیرمعمول است، با پزشک مشورت کن.",
+  "gotIt": "متوجه شدم"
 }

@@ -28,5 +28,99 @@
   },
   "bmi": {
     "title": "Body mass index (BMI)"
+  },
+  "back": "Back",
+  "loading": "Loading",
+  "retry": "Try again",
+  "history": {
+    "title": "My cycles",
+    "subtitle": "{n, plural, =0 {No complete cycle yet} one {Last # cycle} other {Last # cycles}}",
+    "stats": {
+      "cycle": "Cycle length",
+      "period": "Period length",
+      "spread": "Variation",
+      "days": "days",
+      "median": "days · median",
+      "spreadValue": "±{n, number}"
+    },
+    "verdict": {
+      "regular": "Your cycles are regular",
+      "irregular": "Your cycle length varies",
+      "not_enough_data": "Too early to tell",
+      "range": "{inRange, number} of {total, number} cycles between {min, number} and {max, number} days",
+      "notEnough": "Log at least two complete cycles to see how regular they are."
+    },
+    "current": "Current cycle",
+    "toToday": "{from} – today",
+    "range": "{from} – {to}",
+    "days": "days",
+    "barLabel": "{length, plural, one {# day} other {# days}}, period {period, plural, one {# day} other {# days}}",
+    "outOfRange": "Outside your usual range",
+    "listLabel": "Recent cycles",
+    "symptomPattern": "Symptom patterns across cycles",
+    "legend": {
+      "period": "Period",
+      "cycle": "Cycle length",
+      "outOfRange": "Outside usual range"
+    },
+    "addPrevious": "Add previous cycles",
+    "empty": {
+      "title": "No cycles logged yet",
+      "body": "Log your past periods to see cycle lengths, variation and regularity here."
+    },
+    "error": "Your cycles couldn't be loaded right now."
+  },
+  "symptoms": {
+    "title": "Symptom patterns",
+    "subtitle": "{n, plural, one {Based on # cycle} other {Based on # cycles}}",
+    "tabsLabel": "Symptom categories",
+    "tabs": {
+      "symptoms": "Symptoms",
+      "mood": "Mood",
+      "pain": "Pain"
+    },
+    "typical": "On your typical cycle",
+    "scale": "low → high",
+    "day": "Day {n, number}",
+    "dayN": "{n, number}",
+    "bandsLabel": "Typical cycle: period days 1 to {period, number}, ovulation around day {ovulation, number}, {length, number} days long",
+    "stripLabel": "{name}: in {n, number} of {total, number} cycles",
+    "names": {
+      "cramps": "Cramps",
+      "breast_tenderness": "Breast tenderness",
+      "bloating": "Bloating",
+      "acne": "Acne",
+      "energetic": "Energetic",
+      "fatigue": "Fatigue",
+      "food_craving": "Food cravings",
+      "nausea": "Nausea",
+      "happy": "Happy",
+      "calm": "Calm",
+      "sensitive": "Sensitive",
+      "anxious": "Anxious",
+      "sad": "Sad",
+      "angry": "Angry",
+      "frustrated": "Frustrated",
+      "bored": "Bored",
+      "headache": "Headache",
+      "stomach_ache": "Stomach ache",
+      "pelvic_pain": "Pelvic pain",
+      "back_pain": "Back pain",
+      "breast_pain": "Breast pain",
+      "ovarian_pain": "Ovarian pain",
+      "other": "Other symptom"
+    },
+    "window": {
+      "before_period": "In {n, number} of {total, number} cycles it showed up about {days, number} days before your period.",
+      "early": "In {n, number} of {total, number} cycles it showed up in the first {days, plural, one {# day} other {# days}} of your cycle.",
+      "mid": "In {n, number} of {total, number} cycles it showed up around cycle days {from, number} to {to, number}."
+    },
+    "note": "These patterns show what happens together, not what causes what.",
+    "notReady": {
+      "title": "Not enough cycles yet",
+      "body": "Patterns need at least {needed, plural, one {# complete cycle} other {# complete cycles}}; so far {n, plural, =0 {none are} one {# is} other {# are}} logged. Keep logging your symptoms and the pattern will take shape."
+    },
+    "emptyGroup": "Nothing logged in this category yet.",
+    "error": "Symptom patterns couldn't be loaded right now."
   }
 }

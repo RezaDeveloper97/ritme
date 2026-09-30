@@ -37,6 +37,21 @@
     "cancel": "Cancel",
     "close": "Close",
     "error": "Couldn't save. Please try again.",
-    "open": "Edit period date"
+    "open": "Edit period date",
+    "titleStart": "Did your period start?",
+    "titleEdit": "Edit period",
+    "subtitle": "Select the days you bled",
+    "start": "Start",
+    "estimatedEnd": "Estimated end",
+    "end": "End",
+    "today": "Today · {date}",
+    "none": "—",
+    "suggestHint": "Dashed days are suggested from your usual period length ({days, plural, one {# day} other {# days}}); tap any day to add or remove it.",
+    "spotting": "Not yet, it's just spotting",
+    "spottingError": "Spotting couldn't be saved. Please try again.",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "daySuggested": "{day}, suggested",
+    "gridLabel": "Days of {month}"
   }
 }

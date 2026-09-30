@@ -28,5 +28,99 @@
   },
   "bmi": {
     "title": "شاخص توده بدنی (BMI)"
+  },
+  "back": "بازگشت",
+  "loading": "در حال بارگذاری",
+  "retry": "تلاش دوباره",
+  "history": {
+    "title": "سیکل‌های من",
+    "subtitle": "{n, plural, =0 {هنوز سیکل کاملی ثبت نشده} other {# سیکل اخیر}}",
+    "stats": {
+      "cycle": "طول سیکل",
+      "period": "طول پریود",
+      "spread": "نوسان",
+      "days": "روز",
+      "median": "روز · میانه",
+      "spreadValue": "±{n, number}"
+    },
+    "verdict": {
+      "regular": "سیکل‌هایت منظم‌اند",
+      "irregular": "طول سیکل‌هایت متغیر است",
+      "not_enough_data": "هنوز برای نتیجه‌گیری زود است",
+      "range": "{inRange, number} از {total, number} سیکل بین {min, number} تا {max, number} روز",
+      "notEnough": "با ثبت دست‌کم دو سیکل کامل، نظم سیکل‌هایت را این‌جا می‌بینی."
+    },
+    "current": "سیکل فعلی",
+    "toToday": "{from} – امروز",
+    "range": "{from} – {to}",
+    "days": "روز",
+    "barLabel": "{length, plural, other {# روز}}، پریود {period, plural, other {# روز}}",
+    "outOfRange": "خارج از بازه معمول",
+    "listLabel": "سیکل‌های اخیر",
+    "symptomPattern": "الگوی علائم در سیکل‌ها",
+    "legend": {
+      "period": "پریود",
+      "cycle": "طول سیکل",
+      "outOfRange": "خارج از بازه معمول"
+    },
+    "addPrevious": "افزودن سیکل‌های قبلی",
+    "empty": {
+      "title": "هنوز سیکلی ثبت نکردی",
+      "body": "پریودهای گذشته‌ات را ثبت کن تا طول سیکل‌ها، نوسان و نظم آن‌ها این‌جا نمایش داده شود."
+    },
+    "error": "سیکل‌هایت الان بارگذاری نشد."
+  },
+  "symptoms": {
+    "title": "الگوی علائم",
+    "subtitle": "{n, plural, other {بر اساس # سیکل}}",
+    "tabsLabel": "دسته‌بندی علائم",
+    "tabs": {
+      "symptoms": "علائم",
+      "mood": "حال",
+      "pain": "درد"
+    },
+    "typical": "روی سیکل معمول تو",
+    "scale": "کم → زیاد",
+    "day": "روز {n, number}",
+    "dayN": "{n, number}",
+    "bandsLabel": "سیکل معمول: پریود روز ۱ تا {period, number}، تخمک‌گذاری حدود روز {ovulation, number}، طول {length, number} روز",
+    "stripLabel": "{name}: در {n, number} از {total, number} سیکل",
+    "names": {
+      "cramps": "گرفتگی",
+      "breast_tenderness": "حساسیت سینه",
+      "bloating": "نفخ",
+      "acne": "آکنه",
+      "energetic": "پرانرژی",
+      "fatigue": "خستگی",
+      "food_craving": "ولع غذا",
+      "nausea": "تهوع",
+      "happy": "شاد",
+      "calm": "آرام",
+      "sensitive": "حساس",
+      "anxious": "مضطرب",
+      "sad": "غمگین",
+      "angry": "عصبانی",
+      "frustrated": "کلافه",
+      "bored": "بی‌حوصله",
+      "headache": "سردرد",
+      "stomach_ache": "دل‌درد",
+      "pelvic_pain": "درد لگن",
+      "back_pain": "کمردرد",
+      "breast_pain": "درد سینه",
+      "ovarian_pain": "درد تخمدان",
+      "other": "علامت دیگر"
+    },
+    "window": {
+      "before_period": "در {n, number} از {total, number} سیکل، از حدود {days, number} روز قبل از پریود دیده شده است.",
+      "early": "در {n, number} از {total, number} سیکل، در {days, plural, other {# روز}} اول سیکل دیده شده است.",
+      "mid": "در {n, number} از {total, number} سیکل، حدود روز {from, number} تا {to, number} سیکل دیده شده است."
+    },
+    "note": "این الگوها هم‌زمانی را نشان می‌دهند، نه علت را.",
+    "notReady": {
+      "title": "الگو هنوز آماده نیست",
+      "body": "برای دیدن الگوی علائم دست‌کم {needed, plural, other {# سیکل کامل}} لازم است و تا الان {n, plural, =0 {هیچ سیکلی} other {# سیکل}} ثبت شده. علائمت را روزانه ثبت کن تا الگو شکل بگیرد."
+    },
+    "emptyGroup": "هنوز در این دسته چیزی ثبت نکردی.",
+    "error": "الگوی علائم الان بارگذاری نشد."
   }
 }
