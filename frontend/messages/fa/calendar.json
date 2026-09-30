@@ -72,5 +72,48 @@
   "editThisPeriod": "این پریود رو ویرایش کن",
   "removeThisDay": "پریود نبودم",
   "endPeriodHere": "پریودم این روز تموم شد",
-  "addToPeriod": "به روزهای پریود اضافه کن"
+  "addToPeriod": "به روزهای پریود اضافه کن",
+  "nb": {
+    "back": "بازگشت",
+    "ttcTitle": "تقویم باروری",
+    "viewLabel": "نمای تقویم",
+    "month": "ماه",
+    "year": "سال",
+    "twoMonths": "{first} و {second}",
+    "yearSubtitle": "سال {year}",
+    "prevYear": "سال قبل",
+    "nextYear": "سال بعد",
+    "openMonth": "باز کردن {month}",
+    "legendTitle": "راهنمای رنگ‌ها",
+    "legend": {
+      "period": "پریود",
+      "predicted": "پریود تخمینی",
+      "fertile": "پنجره باروری",
+      "ovulation": "تخمک‌گذاری تخمینی",
+      "pms": "PMS"
+    },
+    "phase": {
+      "period": "پریود",
+      "follicular": "فولیکولار",
+      "fertile": "پنجره باروری",
+      "ovulation": "تخمک‌گذاری",
+      "luteal": "لوتئال",
+      "pms": "PMS"
+    },
+    "dayHead": "{date} · روز {n} سیکل",
+    "chanceTitle": "شانس بارداری:",
+    "ttcHintHigh": "ثبت تست LH و دمای پایه در این روزها تخمین را دقیق‌تر می‌کند.",
+    "ttcHint": "ثبت روزانه دمای پایه و ترشحات، پنجره باروری بعدی را دقیق‌تر می‌کند.",
+    "logDetails": "ثبت جزئیات",
+    "logDayDetails": "ثبت جزئیات این روز",
+    "futureDay": "این روز هنوز نرسیده؛ رنگ‌ها پیش‌بینی‌اند.",
+    "noLogs": "برای این روز چیزی ثبت نشده.",
+    "loggedLabel": "ثبت‌های این روز",
+    "moreLogs": "+{n}",
+    "loadingDay": "در حال بارگیری ثبت‌های روز…",
+    "loadError": "تقویم بارگیری نشد",
+    "loadErrorBody": "اتصال را بررسی کن و دوباره امتحان کن.",
+    "emptyTitle": "هنوز پریودی ثبت نکردی",
+    "emptyBody": "با ثبت اولین پریود، روزهای پریود، پنجره باروری و PMS روی تقویم پیش‌بینی می‌شوند."
+  }
 }

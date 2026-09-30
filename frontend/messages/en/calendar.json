@@ -72,5 +72,48 @@
   "editThisPeriod": "Edit this period",
   "removeThisDay": "Not a period day",
   "endPeriodHere": "End period on this day",
-  "addToPeriod": "Add to period days"
+  "addToPeriod": "Add to period days",
+  "nb": {
+    "back": "Back",
+    "ttcTitle": "Fertility calendar",
+    "viewLabel": "Calendar view",
+    "month": "Month",
+    "year": "Year",
+    "twoMonths": "{first} & {second}",
+    "yearSubtitle": "Year {year}",
+    "prevYear": "Previous year",
+    "nextYear": "Next year",
+    "openMonth": "Open {month}",
+    "legendTitle": "Colour key",
+    "legend": {
+      "period": "Period",
+      "predicted": "Predicted period",
+      "fertile": "Fertile window",
+      "ovulation": "Estimated ovulation",
+      "pms": "PMS"
+    },
+    "phase": {
+      "period": "Period",
+      "follicular": "Follicular",
+      "fertile": "Fertile window",
+      "ovulation": "Ovulation",
+      "luteal": "Luteal",
+      "pms": "PMS"
+    },
+    "dayHead": "{date} · cycle day {n}",
+    "chanceTitle": "Chance of pregnancy:",
+    "ttcHintHigh": "Logging LH tests and basal temperature on these days makes the estimate more accurate.",
+    "ttcHint": "Logging basal temperature and discharge daily sharpens your next fertile window.",
+    "logDetails": "Log details",
+    "logDayDetails": "Log this day's details",
+    "futureDay": "This day hasn't come yet; the colours are predictions.",
+    "noLogs": "Nothing logged for this day.",
+    "loggedLabel": "Logged this day",
+    "moreLogs": "+{n}",
+    "loadingDay": "Loading the day's logs…",
+    "loadError": "Couldn't load the calendar",
+    "loadErrorBody": "Check your connection and try again.",
+    "emptyTitle": "No period logged yet",
+    "emptyBody": "Log your first period and the calendar will predict period days, the fertile window and PMS."
+  }
 }

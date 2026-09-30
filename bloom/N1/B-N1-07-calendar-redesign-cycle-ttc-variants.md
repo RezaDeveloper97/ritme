@@ -3,7 +3,7 @@ id: B-N1-07
 title: Calendar redesign (cycle + TTC variants)
 milestone: N1
 type: frontend
-status: todo
+status: done
 depends_on: [B-N1-04]
 parallel_group: N1-G
 touches: [frontend/src/screens/calendar,frontend/src/widgets/cycle-calendar]
