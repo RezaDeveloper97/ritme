@@ -3,7 +3,7 @@ id: B-N1-02
 title: Night & Bloom tokens, light/dark/system theme and gates
 milestone: N1
 type: frontend
-status: todo
+status: done
 depends_on: [B-N1-01]
 parallel_group: N1-B
 touches: [frontend/src/app/globals.css,frontend/src/shared/theme,frontend/src/app/[locale]/layout.tsx,frontend/CLAUDE.md,frontend/scripts,frontend/public/splash,frontend/src/app/fonts,frontend/src/app/manifest.ts,frontend/package.json]

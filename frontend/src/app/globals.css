@@ -1,227 +1,231 @@
 @import "tailwindcss";
 
-@theme {
+/* Tailwind theme colours point at the live tokens, so a utility such as
+   `bg-brand` flips with <html data-theme> like everything else. */
+@theme inline {
   --font-sans: "Vazirmatn", "Tahoma", system-ui, sans-serif;
-  --color-brand:      #7B61FF;
-  --color-brand-deep: #6A4FE8;
-  --color-ritme-pink: #FF6FAE;
-  --color-ink:        #2F2F35;
-  --color-muted:      #6F6F78;
-  --color-steel:      #4E4E59;
-  --color-line:       #E7E1F4;
-  --color-page:       #F2ECFF;
-  --color-green:      #22B07D;
-  --color-green-dot:  #34C77B;
-  --color-amber:      #F5A623;
-  --color-violet:     #7B61FF;
+  --color-brand:      var(--brand);
+  --color-brand-deep: var(--brand-strong);
+  --color-ritme-pink: var(--bloom);
+  --color-ink:        var(--text-1);
+  --color-muted:      var(--text-3);
+  --color-steel:      var(--text-2);
+  --color-line:       var(--line);
+  --color-page:       var(--page);
+  --color-green:      var(--success);
+  --color-green-dot:  var(--success);
+  --color-amber:      var(--warm);
+  --color-violet:     var(--brand);
 }
 
-/* ── CSS variables (used in inline styles & legacy classes) ── */
+/* ── Colour tokens — Night & Bloom (B-N1-02) ─────────────────────────────
+   Source of truth: docs/night-bloom/tokens.md §2–§4 (light = dialect A of the
+   `nbl_` artboards, dark = the `nbd_` artboards). CLAUDE.md §10.2 has the rules.
+   :root is LIGHT; [data-theme="dark"] below overrides the same names.
+
+   Layout of this block:
+     1. semantic tokens   — the only place a light hex lives
+     2. soft tints/glows  — gradients, the dark sky, shadows
+     3. legacy aliases    — yesterday's names re-pointed at (1), so every
+                            existing screen restyles without touching it
+     4. feature tokens    — M3/M4/M5/M7 roles with no generic equivalent
+     5. marker ramp       — calendar intensity steps, derived with color-mix */
 :root {
-  /* ── Ritme palette (see CLAUDE.md §10.2 — the ONLY brand hues allowed) ──
-     Primary accent  = the purple→rose gradient (#7B61FF → #FF6FAE), sparingly.
-     Data accent     = turquoise #3DD6F3, only for data / active / insight.
-     Canvas          = lavender #F2ECFF; surfaces are pure white.
-     Text            = dark gray #2F2F35 + a gray ramp for secondary/dividers. */
   /* Tells the browser to paint ITS OWN surfaces (scrollbars, form controls,
      the autofill highlight, the caret) for this theme. CSS variables cannot
      reach any of those, so without this the widgets stay light on dark. */
   color-scheme: light;
 
-  --brand:      #7B61FF;
-  --brand-deep: #6A4FE8;
-  /* The brand purple used as a FILL under white text. It stays put in dark
-     mode, because what sits on it (--on-accent) stays white: lifting it the
-     way --brand is lifted for text would push white-on-brand below 3.5:1. */
-  --brand-fill: #7B61FF;
-  --pink:       #FF6FAE;
-  --pink-soft:  #FFD9E9;
-  --ink:        #2F2F35;
-  --muted:      #6F6F78;
-  --slate:      #45454F;
-  --steel:      #4E4E59;
-  --line:       #E7E1F4;
-  --page:       #F2ECFF;
-  --green:      #22B07D;
-  --green-dot:  #34C77B;
-  --amber:      #F5A623;
-  --violet:     #7B61FF;
-  --surface:    #fff;
-  --surface-2:  #F4F0FF;
-  --field-border: #E3DDF2;
+  /* ── 1. Semantic tokens ── */
+  --page:          #F7F3FF;  /* canvas / body background */
+  --surface:       #FFFFFF;  /* cards, sheets */
+  --surface-2:     #F4F0FF;  /* round header buttons, tab track, fields */
+  --surface-3:     #F1EDFB;  /* inset tiles inside a card */
+  --surface-4:     #F1EDFB;  /* OPAQUE inset (tooltips, overlapping tiles) */
+  --surface-glass: rgba(255, 255, 255, .94);  /* bottom nav, sticky footers (+ blur) */
+  --line:          #E7E1F4;  /* 1px card/control border — cards have no shadow */
+  --line-strong:   #DDD6FA;  /* ghost-button / selected outline */
+  --track:         #E7E1F4;  /* progress rail, empty bars, switch off */
 
-  /* ── Primary/Brand gradient (use SPARINGLY: main CTAs, active progress,
-     active tab, hero/branding elements — nothing else) ── */
-  --grad-start: #7B61FF;
-  --grad-end:   #FF6FAE;
-  --gradient-brand: linear-gradient(135deg, var(--grad-start) 0%, var(--grad-end) 100%);
+  --text-1: #231B3B;  /* titles, body */
+  --text-2: #5E5873;  /* secondary text, inactive nav */
+  --text-3: #6A6480;  /* captions, axis labels */
+  --text-4: #8C82AD;  /* placeholder / disabled only (below AA on purpose) */
 
-  /* ── Secondary/Data accent (turquoise): current cycle state, new/active
-     badges, ovulation-day data, insights, algorithmic prediction curves ── */
-  --data:       #3DD6F3;
-  --data-deep:  #0FA3C9;  /* text-safe turquoise on light surfaces */
-  --data-soft:  #E3F9FE;  /* soft turquoise surface */
+  --brand:        #6E54F0;  /* primary as text/icon, active-tab bar */
+  --brand-fill:   #6E54F0;  /* CTA, FAB, switch on, selected chip — carries --on-brand */
+  --on-brand:     #FFFFFF;  /* text/icon on --brand-fill — FLIPS (dark text at night) */
+  --brand-strong: #5B41E6;  /* links, pressed/hover */
+  --brand-ink:    #4428B8;  /* text on --brand-soft */
+  --brand-soft:   #ECE6FF;  /* tint chips, icon circles, avatars */
+  --brand-2:      #5B41E6;  /* second chart series / illustration */
 
-  /* ── Menstruation (period) — the ONE red in the system. Users read bleeding
-     days as red; that convention outranks the brand palette, so period keeps a
-     red that is tuned to the rose end of the gradient rather than a raw red.
-     Calendar period markers ONLY — see CLAUDE.md §10.2. ── */
-  --period:      #E8436F;  /* period marker / dot */
-  --period-deep: #C92C57;  /* text-safe red on light surfaces */
-  --period-soft: #FFE4EC;  /* period day-cell surface */
+  --data:      #0FA3C9;  /* ovulation, chart lines, measured/predicted markers */
+  --data-deep: #0A7390;  /* turquoise as text */
+  --data-soft: #E3F9FE;  /* turquoise surface */
 
-  /* ── Neutral text ramp (strongest → faintest) ── */
-  --ink-2:      #2F2F35;  /* strong body text */
-  --ink-3:      #5A5A66;  /* medium body text, pill values */
-  --muted-2:    #6F6F78;  /* secondary labels, weekday names */
-  --muted-3:    #8B8B96;  /* tertiary / description text */
-  --muted-soft: #ACACB8;  /* placeholder, disabled, completed */
+  --warm:      #F5A623;  /* fertile window, streaks, Plus, warnings */
+  --warm-deep: #B45309;  /* amber as text */
+  --warm-soft: #FFF3DF;  /* amber surface */
 
-  /* ── Lines, tracks, faint surfaces ── */
-  --line-2:     #EBE5F6;  /* unselected control border */
-  --track:      #DBD4EC;  /* switch track (off), progress rail */
-  --surface-3:  #FAF8FF;  /* inner panel, faint tile */
+  --period:      #E8436F;  /* period marker / fill — red means menstruation */
+  --period-deep: #B82A52;  /* period text, hero numbers */
+  --period-soft: #FDE4EB;  /* period day cell */
+  --period-line: #F9C3D0;  /* rose outlines (cancel) */
 
-  /* ── Overlay sheets (shared/sheet) ── */
-  --scrim:        rgba(17, 32, 47, .38);  /* dim behind a sheet / dialog */
-  --sheet-shadow: rgba(17, 32, 47, .18);  /* lift under a sheet's top edge */
+  --bloom:      #FF6FAE;  /* illustration / avatar / companion accent (peach at night) */
+  --bloom-deep: #D9447F;  /* bloom as text */
 
-  /* Text/icons sitting ON a saturated fill. Deliberately does NOT flip in
-     dark mode — the fill underneath stays saturated, so the label stays white. */
-  --on-accent:  #fff;
+  --success:      #0F7B6C;
+  --success-soft: #E7F8EF;
+  --success-fill: #0F7B6C;  /* fill under white text; theme-stable */
+  --danger:       #C42D57;  /* errors, destructive text — the design's rose ramp */
+  --danger-deep:  #A8234A;  /* error text on --danger-soft */
+  --danger-soft:  #FDE4EB;
+  --caution-soft: #FEF3C6;  /* «ارزش پیگیری» boxes */
 
-  /* ── Brand tints ── */
-  --pink-bg:      #ECE6FF;  /* soft purple avatar / pill background */
-  --pink-mid:     #9B85FF;
-  --pink-vivid:   #8A6BFF;
-  --blush:        #FF8FC0;
-  --rose:         #FF5FA5;
-  --rose-deep:    #D8407E;  /* text-safe rose on light surfaces */
-  --rose-grad:    linear-gradient(135deg, var(--rose-deep) 0%, var(--pink) 100%);
-  --brand-strong: #5B41E6;
-  --purple:       #FF6FAE;  /* far end of the brand gradient */
-  --brand-line:      #A794FF;  /* hairline on filled brand controls */
-  --brand-line-soft: #DDD6FA;  /* hairline on ghost brand controls */
-  --brand-disabled:  #D6CEF4;  /* filled brand control, disabled */
-  --home-grad-1:     #F2ECFF;  /* home page backdrop, top (lavender) */
-  --home-grad-2:     #E3F9FE;  /* home page backdrop, bottom (soft turquoise) */
+  --scrim:        rgba(0, 0, 0, .35);  /* behind sheets / dialogs */
+  --sheet-shadow: rgba(17, 32, 47, .18);
 
-  /* ── Status: danger ── */
-  --danger:      #E5484D;
-  --danger-deep: #C13438;
-  --danger-line: #F3C5C7;
-  --danger-soft: #FCE7E7;
+  /* Text/icons on the few fills that stay saturated in BOTH themes
+     (--success-fill, the pregnancy hero, the splash). Theme-stable white.
+     Anything on --brand-fill uses --on-brand instead. */
+  --on-accent: #fff;
+  /* The splash / launch fill: saturated violet in both themes, under white. */
+  --splash-from: #6E54F0;
+  --splash-to:   #4428B8;
 
-  /* ── Status: success ── */
-  --green-deep: #0F7B6C;
-  --green-mid:  #66BB6A;
-  --green-soft: #DCFCE7;
-  --green-tint: #E7F8EF;
+  /* ── 2. Soft tints, the dark sky, shadows ──
+     The saturated purple→pink brand gradient is retired: CTAs and the FAB are
+     solid --brand-fill. Gradients survive only as soft tints. */
+  --hero-tint:   linear-gradient(135deg, rgba(110, 84, 240, .14), var(--surface) 72%);
+  --avatar-grad: linear-gradient(135deg, color-mix(in srgb, var(--bloom) 67%, transparent), rgba(123, 97, 255, .33));
+  --bg-glow:     radial-gradient(circle, rgba(124, 92, 255, .32), rgba(124, 92, 255, 0) 65%);
+  /* Nine stars in the top 390×300 band — invisible by day. */
+  --star: transparent;
 
-  /* ── Status: warning ── */
-  --amber-deep: #B45309;
-  --amber-soft: #FEF3C6;
-  --amber-tint: #FFF4E5;
+  --shadow-cta:   0 14px 28px -14px rgba(110, 84, 240, .8);
+  --shadow-fab:   0 0 0 6px rgba(110, 84, 240, .18), 0 12px 24px -10px rgba(110, 84, 240, .8);
+  --shadow-float: 0 20px 40px -18px rgba(0, 0, 0, .45);
+  --shadow-hero:  0 18px 34px -20px rgba(93, 71, 214, .35);
+  --shadow-modal: 0 8px 30px rgba(17, 32, 47, .14);
+  --shadow-knob:  0 1px 4px rgba(0, 0, 0, .2);
+  --glow-data:    0 0 6px var(--data);
 
-  /* ── Category accents + their soft surfaces ── */
-  --violet-soft: #ECE6FF;
-  --indigo:      #8D7BF5;
-  --indigo-deep: #6A5AE0;
-  --indigo-soft: #F0EDFF;
-  --teal:        #0FA3C9;
-  --teal-deep:   #0C87A7;
-  --teal-soft:   #E9FAFE;
-  --teal-tint:   #CFF4FC;
-  --orange:      #E9662E;
-  --orange-soft: #FDEBE2;
-  --blue:        #19BFE8;
-  --blue-soft:   #E3F6FD;
+  /* ── 3. Legacy aliases (tokens.md §3) ──
+     Yesterday's names, re-pointed. They are derived, so they flip with the
+     semantic token under them and need no dark value. New code should use the
+     semantic names above. */
+  --ink:          var(--text-1);
+  --ink-2:        var(--text-1);
+  --ink-3:        var(--text-2);
+  --muted:        var(--text-2);
+  --slate:        var(--text-2);
+  --steel:        var(--text-2);
+  --muted-2:      var(--text-3);
+  --muted-3:      var(--text-3);
+  --muted-soft:   var(--text-4);
+  --line-2:       var(--line);
+  --field-border: var(--line);
 
-  /* ── Care reminders (M3, docs/care-reminders/README.md "Colors") ──
-     Most design colours map onto existing tokens: page → --page, card →
-     --surface, field/chip → --surface-2, line → --line, text → --ink, muted →
-     --muted, secondary → --ink-3, brand fill → --brand-fill, brand link/icon →
-     --brand-strong, brand soft tile/selected chip → --pink-bg, teal (capsule,
-     online) → --teal-deep on --data-soft, sheet scrim → --scrim. Only the pairs
-     with no fitting token live here, with the nbd_ artboards' dark values.
-     Rose is the design's iron/cancel hue — NOT the period red (§10.2). */
-  --success:          #0F7B6C;  /* taken check / "۱ از ۲ مصرف شد" */
-  --success-soft:     #E7F8EF;
-  --success-fill:     #0F7B6C;  /* fill under white text («ذخیره شد»); theme-stable like --brand-fill */
-  --amber-tile:       #FFF3DF;  /* appointment date tile */
-  --amber-tile-ink:   #B45309;
-  --care-rose:        #C42D57;  /* iron tile icon, cancel text */
-  --care-rose-soft:   #FDE4EB;
-  --care-rose-line:   #F9C3D0;  /* cancel button border */
-  --care-card-shadow: 0 18px 34px -20px rgba(93, 71, 214, .35);
+  --brand-deep:      var(--brand-strong);
+  --violet:          var(--brand);
+  --pink-vivid:      var(--brand);
+  --indigo:          var(--brand);
+  --indigo-deep:     var(--brand-strong);
+  --indigo-soft:     var(--brand-soft);
+  --pink-bg:         var(--brand-soft);
+  --violet-soft:     var(--brand-soft);
+  --pink-mid:        color-mix(in srgb, var(--brand) 65%, var(--surface));
+  --brand-line:      color-mix(in srgb, var(--brand) 55%, var(--surface));
+  --brand-line-soft: var(--line-strong);
+  --brand-disabled:  color-mix(in srgb, var(--brand-fill) 32%, var(--surface));
+  --purple:          var(--brand-2);
+  /* The old gradient names now paint the solid fill (§10.2): CTAs, FAB, active
+     tab and progress bars all go solid without touching the screens. Kept as a
+     gradient *value* so `background-image: var(--gradient-brand)` still works. */
+  --grad-start:      var(--brand-fill);
+  --grad-end:        var(--brand-fill);
+  --gradient-brand:  linear-gradient(135deg, var(--brand-fill), var(--brand-fill));
+  --home-grad-1:     var(--page);
+  --home-grad-2:     var(--page);
 
-  /* ── Checkups (M4, docs/checkups/README.md "Colors") ──
-     The status palette reuses the M3 pairs: up-to-date → --success on
-     --success-soft, due pill / overdue row → --amber-tile-ink on --amber-tile,
-     overdue / self-exam row → --care-rose on --care-rose-soft, soon pill →
-     --teal-deep on --data-soft, hero chip line / dashed upload border →
-     --brand-line-soft. The `.ck-status-*` / `.ck-tone-*` classes below bundle
-     them. Only the roles with no fitting token live here (nbd_v14 dark values). */
-  --checkup-due:        #F5A623;  /* due bar segment / dot */
-  --checkup-body:       #4E4E59;  /* why / steps body copy */
-  --checkup-row-action: #FFFFFF;  /* white action button inside a tinted row */
+  --pink:       var(--bloom);
+  --blush:      var(--bloom);
+  --rose:       var(--period-deep);
+  --rose-deep:  var(--bloom-deep);
+  --rose-grad:  linear-gradient(135deg, var(--period-deep), var(--period));
+  --pink-soft:  color-mix(in srgb, var(--bloom) 22%, var(--surface));
 
-  /* ── Fertility / TTC (M5, docs/fertility-ttc/README.md "Colors") ──
-     Reused: logged-days ok → --success, hero chip line → --brand-line-soft,
-     card → --surface, text → --ink / --ink-3 / --muted, soft info disc on
-     the Log tip → --fert-teal-soft. Amber is the sanctioned fertile-window
-     hue (§10.2); rose is the intercourse tile — NOT the period red. Tile
-     discs (colour at 13 % fill / 33 % border) are the `.fert-tone-*` classes
-     below, derived with color-mix so they flip with the ink. */
-  --fert-amber:        #F5A623;  /* LH tile, chance level/bars, coverline, window */
+  --teal:       var(--data);
+  --teal-deep:  var(--data-deep);
+  --teal-soft:  var(--data-soft);
+  --teal-tint:  var(--data-soft);
+  --blue:       var(--data);
+  --blue-soft:  var(--data-soft);
+
+  --amber:      var(--warm);
+  --amber-deep: var(--warm-deep);
+  --amber-soft: var(--caution-soft);
+  --amber-tint: var(--warm-soft);
+  --orange:      var(--warm);
+  --orange-soft: var(--warm-soft);
+
+  --green:      var(--success);
+  --green-dot:  var(--success);
+  --green-mid:  var(--success);
+  --green-deep: var(--success);
+  --green-soft: var(--success-soft);
+  --green-tint: var(--success-soft);
+
+  --danger-line: var(--period-line);
+
+  /* ── 4. Feature tokens ──
+     Care reminders (M3), checkups (M4), fertility (M5), pregnancy v2 (M7).
+     Most roles are aliases now; only the ones with no generic token keep a
+     value of their own (with a dark value below). */
+  --amber-tile:       var(--warm-soft);
+  --amber-tile-ink:   var(--warm-deep);
+  --care-rose:        var(--danger);
+  --care-rose-soft:   var(--period-soft);
+  --care-rose-line:   var(--period-line);
+  --care-card-shadow: var(--shadow-hero);
+
+  --checkup-due:        var(--warm);
+  --checkup-body:       var(--text-2);
+  --checkup-row-action: var(--surface);
+
+  --fert-amber:        var(--warm);
   --fert-amber-band:   #FEF3C6;  /* fertile-window band behind the BBT chart */
   --fert-note-bg:      #FFF4E5;  /* contraception disclaimer box */
   --fert-note-line:    #FEF3C6;
-  --fert-teal:         #0FA3C9;  /* BBT line / BBT tile */
-  --fert-teal-soft:    #E3F9FE;  /* BBT tip disc */
-  --fert-rose:         #E8436F;  /* intercourse tile */
-  --fert-field:        #F4F0FF;  /* BBT input, note field */
-  --fert-chip-on-line: #7B61FF;  /* selected chip border */
-  --fert-chip-on-bg:   #ECE6FF;  /* selected chip fill, − / + buttons */
+  --fert-teal:         var(--data);
+  --fert-teal-soft:    var(--data-soft);
+  --fert-rose:         var(--period);
+  --fert-field:        var(--surface-2);
+  --fert-chip-on-line: var(--brand);
+  --fert-chip-on-bg:   var(--brand-soft);
   --fert-chance-from:  rgba(245, 166, 35, .22);  /* chance card gradient start */
-  --fert-chance-to:    #FFFFFF;                  /* chance card gradient end */
+  --fert-chance-to:    var(--surface);
   --fert-chance-line:  rgba(255, 184, 107, .35);
   --fert-chance-disc:  rgba(255, 184, 107, .2);
-  --fert-bar-off:      #E7E1F4;  /* unfilled chance bar */
-  --fert-chart-grid:   #E7E1F4;
-  --fert-chart-label:  #6F6F78;
-  --fert-chart-point:  #F7F3FF;  /* BBT point fill (ring in --fert-teal) */
+  --fert-bar-off:      var(--track);
+  --fert-chart-grid:   var(--line);
+  --fert-chart-label:  var(--text-3);
+  --fert-chart-point:  var(--page);  /* BBT point fill (ring in --fert-teal) */
 
-  /* ── Pregnancy v2 (M7, docs/pregnancy-v2/README.md "palette → tokens") ──
-     There is no dark artboard: every design colour maps onto an existing token
-     (both themes) and only the roles nothing fits get a `--preg-*` pair.
-     Reused: page #F2ECFF → --page · surface → --surface · line #E7E1F4 →
-     --line, field #E3DDF2 → --field-border, row divider #F0EBFA → --line-2 ·
-     soft surface #F4F0FF → --surface-2 · segmented track #E6DEFF → --pink-bg ·
-     ink → --ink, muted #4E4E59 → --steel, #6F6F78 → --muted · brand → --brand
-     (text) / --brand-fill (fill) · #6A4FE8 → --brand-deep, #5B41E6 →
-     --brand-strong · gradient → --gradient-brand · pink soft #FFD9E9 →
-     --pink-soft · teal soft #E3F9FE → --data-soft, visit dot #0FA3C9 →
-     --data-deep · success #22B07D → --green (done row: --success on
-     --success-soft) · warning box bg → --amber-tint, icon → --amber-deep ·
-     urgent chip → --care-rose on --care-rose-soft · dashed future/week-start
-     #A794FF → --brand-line, dashed care row #CFC7EE / idle bar #DDD6FA →
-     --brand-line-soft · focus ring → --ring. Illustrations: disc → --surface-2,
-     body → --pink-soft, baby → --blush, head → --pink, arc → --brand, leaf →
-     --green, berry → --rose-deep; fruit tints reuse the category hues
-     (`.pg2-fruit-*` below). */
-  --preg-hero-start: #6A4FE8;  /* Today hero fill (top) — carries white text */
-  --preg-hero-end:   #5B41E6;  /* Today hero fill (bottom) */
+  /* Pregnancy v2 today hero: a saturated fill that keeps white text. */
+  --preg-hero-start: #6A4FE8;
+  --preg-hero-end:   #5B41E6;
   --preg-pink-ink:   #B02A63;  /* text/icon on --pink-soft (size pill, heart tile) */
-  --preg-teal-ink:   #0C6F89;  /* text/icon on --data-soft (confidence, «پیشنهاد») */
+  --preg-teal-ink:   #0C6F89;  /* text/icon on --data-soft */
   --preg-warn-line:  #F5DDA6;  /* warning box / follow-up card border */
   --preg-warn-ink:   #5C3D00;  /* warning box body, «ارزش پیگیری» chip */
-  --preg-illu-ring:  color-mix(in srgb, var(--pink) 45%, var(--surface));  /* dashed ring round the fetus disc */
+  --preg-illu-ring:  color-mix(in srgb, var(--pink) 45%, var(--surface));
 
-  /* ── Cycle marker intensity ramp (calendar day cells) ──
-     Each marker tint gets a faint and a strong step around its base tint,
-     graded by the day's conception probability. Derived with color-mix from
-     tokens that already flip in dark mode, so no dark overrides are needed. */
+  /* ── 5. Cycle marker intensity ramp (calendar day cells) ──
+     A faint and a strong step around each marker tint, graded by the day's
+     conception probability. Derived, so no dark overrides are needed. */
   --pink-bg-faint:      color-mix(in srgb, var(--pink-bg) 45%, var(--surface));
   --pink-bg-strong:     color-mix(in srgb, var(--brand) 30%, var(--pink-bg));
   --amber-soft-faint:   color-mix(in srgb, var(--amber-soft) 45%, var(--surface));
@@ -236,141 +240,89 @@
   --period-soft-strong: color-mix(in srgb, var(--period) 30%, var(--period-soft));
 }
 
-/* Dark appearance — variables flipped via <html data-theme="dark">
-   (set from the profile dark-mode switch; see shared/theme). */
+/* Dark appearance — the same names, flipped via <html data-theme="dark">
+   (resolved from light | dark | system by shared/theme). Only semantic tokens
+   and the few feature tokens with their own value appear here; every alias
+   follows the token it points at. */
 [data-theme="dark"] {
   color-scheme: dark;
 
-  --ink:        #EDECF2;
-  --muted:      #A0A0AC;
-  --slate:      #C9C9D5;
-  --steel:      #B9B9C6;
-  --line:       #2A2440;
-  --page:       #131022;
-  --pink-soft:  #3A2438;
-  --surface:    #1B172B;
-  --surface-2:  #251E3E;
-  --field-border: #322A4C;
+  --page:          #17112B;
+  --surface:       #221A3D;
+  --surface-2:     rgba(255, 255, 255, .07);
+  --surface-3:     rgba(255, 255, 255, .05);
+  --surface-4:     #2A2150;
+  --surface-glass: rgba(34, 26, 61, .92);
+  --line:          #34295A;
+  --line-strong:   #3B2F63;
+  --track:         rgba(255, 255, 255, .15);
 
-  /* Neutral ramp inverts: text lightens, lines/surfaces darken. */
-  --ink-2:      #ECEBF2;
-  --ink-3:      #C7C5D6;
-  --muted-2:    #9C9AAF;
-  --muted-3:    #817F94;
-  --muted-soft: #6A6880;
-  --line-2:     #2C2545;
-  --track:      #3D3560;
-  --surface-3:  #211C36;
+  --text-1: #F6F1FF;
+  --text-2: #B8AED6;
+  --text-3: #8C82AD;
+  --text-4: #6E6392;
 
-  /* Dark mode needs a heavier scrim: the screen underneath is already dark, so
-     a light dim wouldn't separate the sheet from it. */
-  --scrim:        rgba(4, 2, 12, .62);
+  /* Primary fills turn light lavender at night, so the label on them flips
+     to the canvas colour (--on-brand). */
+  --brand:        #B9A6FF;
+  --brand-fill:   #B9A6FF;
+  --on-brand:     #17112B;
+  --brand-strong: #D6CBFF;
+  --brand-ink:    #D6CBFF;
+  --brand-soft:   rgba(185, 166, 255, .16);
+  --brand-2:      #7C5CFF;
+
+  --data:      #4CE0C3;
+  --data-deep: #6FE7D0;
+  --data-soft: #1E3340;
+
+  --warm:      #FFB86B;
+  --warm-deep: #FFC98A;
+  --warm-soft: #3A2F1E;
+
+  --period:      #FF6B8B;
+  --period-deep: #FF6B8B;
+  --period-soft: #3A2140;
+  --period-line: #6B3A4D;
+
+  --bloom:      #FFD5B8;
+  --bloom-deep: #FFD5B8;
+
+  --success:      #7FE0A8;
+  --success-soft: #1F3A2E;
+  --danger:       #FF8FA3;
+  --danger-deep:  #FFB3C1;
+  --danger-soft:  #5A2A3D;
+  --caution-soft: #3A2F14;
+
+  --scrim:        rgba(0, 0, 0, .6);
   --sheet-shadow: rgba(0, 0, 0, .5);
 
-  /* --on-accent is intentionally absent: it must stay #fff in both themes. */
+  --hero-tint:   linear-gradient(135deg, rgba(124, 92, 255, .38), var(--surface) 72%);
+  --avatar-grad: linear-gradient(135deg, color-mix(in srgb, var(--bloom) 67%, transparent), rgba(185, 166, 255, .33));
+  --star: #FFFFFF;
 
-  /* Soft tinted surfaces become dark tints of the same hue; the saturated
-     accents that sit on them are lightened so contrast survives the flip. */
-  --pink-bg:      #2C2450;
-  --pink-mid:     #7462C9;
-  --rose:         #FF7FB6;
-  --rose-deep:    #FF9AC4;
-  --brand-strong: #B3A5FF;
+  --shadow-cta:   0 14px 28px -14px rgba(185, 166, 255, .9);
+  --shadow-fab:   0 0 0 6px rgba(185, 166, 255, .18), 0 12px 24px -10px rgba(185, 166, 255, .9);
+  --shadow-float: 0 20px 40px -18px rgba(0, 0, 0, .8);
+  --shadow-hero:  0 20px 40px -22px rgba(0, 0, 0, .7);
+  --shadow-modal: 0 8px 30px rgba(0, 0, 0, .8);
 
-  /* Saturated accents that are used as TEXT/ICON colour need lifting: #7B61FF
-     only reaches 4.15:1 on --surface. These values clear 4.5:1 there while
-     still carrying white at AA-large on the few filled controls that use them.
-     The gradient itself is NOT lifted — it keeps --grad-start/--grad-end, so
-     brand fills stay the brand gradient exactly as in light mode. */
-  --brand:      #8A72FF;
-  --brand-deep: #A594FF;
-  --violet:     #8A72FF;
-  --pink-vivid: #A48FFF;
-  --indigo:     #A79BFF;
-  --orange:     #F5834F;
-  --danger:     #FF7B7E;
+  /* Feature tokens with their own value (nb2_ / nbd_v13 / derived). */
+  --fert-amber-band:  #5A4A2E;
+  --fert-note-bg:     rgba(255, 184, 107, .1);
+  --fert-note-line:   rgba(255, 184, 107, .3);
+  --fert-chance-from: rgba(255, 184, 107, .28);
+  --fert-chance-line: rgba(255, 184, 107, .35);
+  --fert-chance-disc: rgba(255, 184, 107, .2);
 
-  /* Data accent: turquoise already reads well on dark; deepen the soft tint. */
-  --data-deep:  #5FDCF5;
-  --data-soft:  #10303B;
-
-  /* Period red: lighten so it stays legible, soft surface becomes a dark tint. */
-  --period:      #FF6D91;
-  --period-deep: #FF8FAB;
-  --period-soft: #3E1B29;
-
-  --danger-deep: #F58A8D;
-  --danger-line: #5A3033;
-  --danger-soft: #3A2224;
-
-  --green-deep: #4FD1B4;
-  --green-soft: #183024;
-  --green-tint: #172C22;
-
-  --amber-deep: #F0B45E;
-  --amber-soft: #3A2F14;
-  --amber-tint: #3A2C18;
-
-  --violet-soft: #2A2148;
-  --indigo-deep: #A79BFF;
-  --indigo-soft: #232045;
-  --teal:        #3DD6F3;
-  --teal-deep:   #6FDCF0;
-  --teal-soft:   #0F2E38;
-  --teal-tint:   #0F3140;
-  --orange-soft: #3A2519;
-  --blue-soft:   #14293A;
-
-  /* Care reminders (M3) — values from the nbd_v13 artboards. */
-  --success:          #7FE0A8;
-  --success-soft:     #1F3A2E;
-  --success-fill:     #0F7B6C;  /* stays saturated: --success is lifted to a text green here */
-  --amber-tile:       #3A2F1E;
-  --amber-tile-ink:   #FFC98A;
-  --care-rose:        #FF8FA3;
-  --care-rose-soft:   #3A2140;
-  --care-rose-line:   #6B3A4D;
-  --care-card-shadow: 0 18px 34px -20px rgba(0, 0, 0, .7);
-
-  /* Checkups (M4) — values from the nbd_v14 artboards. */
-  --checkup-due:        #FFB86B;
-  --checkup-body:       #C9C0E6;
-  --checkup-row-action: #221A3D;
-
-  /* Fertility / TTC (M5) — values from the nb2_ artboards. */
-  --fert-amber:        #FFB86B;
-  --fert-amber-band:   #5A4A2E;
-  --fert-note-bg:      rgba(255, 184, 107, .1);
-  --fert-note-line:    rgba(255, 184, 107, .3);
-  --fert-teal:         #4CE0C3;
-  --fert-teal-soft:    rgba(76, 224, 195, .14);
-  --fert-rose:         #FF6B8B;
-  --fert-field:        rgba(255, 255, 255, .05);
-  --fert-chip-on-line: #B9A6FF;
-  --fert-chip-on-bg:   rgba(185, 166, 255, .16);
-  --fert-chance-from:  rgba(255, 184, 107, .28);
-  --fert-chance-to:    #221A3D;
-  --fert-chance-line:  rgba(255, 184, 107, .35);
-  --fert-chance-disc:  rgba(255, 184, 107, .2);
-  --fert-bar-off:      rgba(255, 255, 255, .15);
-  --fert-chart-grid:   #34295A;
-  --fert-chart-label:  #8C82AD;
-  --fert-chart-point:  #17112B;
-
-  /* Pregnancy v2 (M7) — no dark artboard; derived from the dark palette.
-     The hero keeps white text, so it deepens instead of lifting. */
+  /* The pregnancy hero keeps white text, so it deepens instead of lifting. */
   --preg-hero-start: #4E3AC0;
   --preg-hero-end:   #3F2DA6;
-  --preg-pink-ink:   #FF9AC4;
-  --preg-teal-ink:   #6FDCF0;
+  --preg-pink-ink:   #FFD5B8;
+  --preg-teal-ink:   #6FE7D0;
   --preg-warn-line:  #5A4A2E;
   --preg-warn-ink:   #F3DDB5;
-
-  --brand-line:      #5A4BA8;
-  --brand-line-soft: #3A3060;
-  --brand-disabled:  #3C3563;
-  --home-grad-1:     #1B1430;
-  --home-grad-2:     #0E2530;
 }
 [data-theme="dark"] body { background: var(--page); }
 
@@ -418,6 +370,82 @@ body {
   --z-forced: 999;
 }
 
+/* ── Shape, type and spacing — Night & Bloom (tokens.md §5, §6, §8) ──
+   Not colours: identical in both themes. */
+:root {
+  /* Radii */
+  --r-xs:    4px;   /* bars, progress segments, chart bars */
+  --r-sm:    12px;  /* small tiles, day cells, tags */
+  --r-md:    14px;  /* inputs, segmented-tab buttons, list tiles */
+  --r-lg:    18px;  /* tab-list track, list groups */
+  --r-xl:    20px;  /* secondary cards, 40px chips */
+  --r-card:  24px;  /* cards */
+  --r-pill:  999px; /* 54px buttons, status pills */
+  --r-sheet: 32px;  /* bottom-sheet top corners */
+  --r-nav:   35px;  /* floating bottom nav */
+
+  /* Type scale. Lalezar (--font-display) sets numerals AND display titles. */
+  --font-display: "Lalezar", var(--font-sans);
+  --fs-num-xl:  72px;   /* hero number (home ring) */
+  --fs-num-l:   40px;   /* big stat / hero title */
+  --fs-num-m:   30px;   /* stat number */
+  --fs-display: 24px;   /* Lalezar display title */
+  --fs-2xl:     20px;   /* greeting / page H1, 800 */
+  --fs-xl:      17px;   /* screen title, 800 */
+  --fs-lg:      15px;   /* button, section title, 800 */
+  --fs-base:    13.5px; /* body strong, 700 */
+  --fs-md:      12.5px; /* body, 600 */
+  --fs-sm:      11.5px; /* caption */
+  --fs-xs:      10.5px; /* nav label, micro caption */
+  --fs-2xs:     9.5px;  /* chart axis */
+  --lh-body:    1.8;
+
+  /* Spacing & touch sizes (4px grid) */
+  --gutter:      16px;  /* hub screens */
+  --gutter-form: 20px;  /* forms / detail screens */
+  --gap-section: 14px;
+  --pad-card:    16px;
+  --h-btn:       54px;  /* primary button */
+  --h-btn-2:     58px;  /* secondary tile button */
+  --h-chip:      40px;
+  --size-icon-btn: 44px;
+  --size-fab:    56px;
+  --h-nav:       70px;
+  --pad-nav-clear: 140px; /* scroll bottom padding under the floating nav */
+}
+
+/* ── Night & Bloom sky: the radial glow + (dark only) starfield ──
+   One reusable, static layer (nothing animates in the artboards, so there is
+   nothing to switch off under prefers-reduced-motion). Put `.nb-sky` as the
+   first child of a positioned screen; content above it needs `position:
+   relative`. The stars are painted in --star, which is transparent by day. */
+.nb-sky {
+  position: absolute; inset: 0 0 auto 0; height: 300px;
+  pointer-events: none; overflow: hidden; z-index: 0;
+}
+.nb-sky::before {
+  content: ""; position: absolute; width: 300px; height: 300px; border-radius: 50%;
+  top: -120px; inset-inline-start: -80px;
+  background: var(--bg-glow);
+}
+.nb-sky::after {
+  content: ""; position: absolute; top: 0; inset-inline-start: 0; width: 390px; height: 300px;
+  background:
+    radial-gradient(circle at 30px 90px,  color-mix(in srgb, var(--star) 50%, transparent) 1.2px, transparent 1.7px),
+    radial-gradient(circle at 120px 60px, color-mix(in srgb, var(--star) 35%, transparent) .9px,  transparent 1.4px),
+    radial-gradient(circle at 300px 110px, color-mix(in srgb, var(--star) 55%, transparent) 1.4px, transparent 1.9px),
+    radial-gradient(circle at 360px 70px, color-mix(in srgb, var(--star) 30%, transparent) .8px,  transparent 1.3px),
+    radial-gradient(circle at 200px 140px, color-mix(in srgb, var(--star) 40%, transparent) 1px,  transparent 1.5px),
+    radial-gradient(circle at 80px 200px, color-mix(in srgb, var(--star) 30%, transparent) .9px,  transparent 1.4px),
+    radial-gradient(circle at 340px 220px, color-mix(in srgb, var(--star) 35%, transparent) 1.2px, transparent 1.7px),
+    radial-gradient(circle at 160px 30px, color-mix(in srgb, var(--star) 30%, transparent) .8px,  transparent 1.3px),
+    radial-gradient(circle at 260px 40px, color-mix(in srgb, var(--star) 40%, transparent) 1px,   transparent 1.5px);
+}
+[dir="rtl"] .nb-sky::after { transform: scaleX(-1); }
+
+/* Cards are flat in Night & Bloom: 1px line, radius 24, no shadow. */
+.nb-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); }
+
 /* ── App shell (mobile-width column, centered on desktop) ── */
 .stage {
   min-height: var(--app-vh, 100dvh);
@@ -433,7 +461,9 @@ body {
   /* --app-vh tracks the visual viewport so the bottom action bar rides above
      the mobile keyboard instead of hiding behind it (see ViewportHeight). */
   height: var(--app-vh, 100dvh);
-  background: var(--surface);
+  /* Night & Bloom: every screen sits on the lavender / night canvas; cards
+     are the white (--surface) layer on top of it. */
+  background: var(--page);
   overflow: hidden;
   /* No fixed top gap: the Android build runs immersive fullscreen (inset 0),
      so the shell sits flush. Only a real notch/status-bar inset pads. */
@@ -445,7 +475,7 @@ body {
 }
 /* Mobile: edge-to-edge, no backdrop */
 @media (max-width: 480px) {
-  .stage { background: var(--surface); }
+  .stage { background: var(--page); }
 }
 
 /* ── Screen / scroll shell ── */
@@ -473,12 +503,12 @@ body {
   gap: 8px; width: 100%;
 }
 .btn-primary {
-  background: var(--gradient-brand); color: var(--on-accent);
+  background: var(--gradient-brand); color: var(--on-brand);
   border: 1px solid var(--brand-line);
-  box-shadow: 0 10px 22px -10px rgba(123,97,255,.7);
+  box-shadow: var(--shadow-cta);
 }
 .btn-primary:active   { transform: translateY(1px); }
-.btn-primary:disabled { background: var(--brand-disabled); color: var(--on-accent); box-shadow: none; cursor: default; }
+.btn-primary:disabled { background: var(--brand-disabled); color: var(--on-brand); box-shadow: none; cursor: default; }
 .btn-ghost {
   background: var(--surface); color: var(--brand);
   border: 1.5px solid var(--brand-line-soft); height: 44px; border-radius: 24px;
@@ -497,7 +527,7 @@ body {
   display: flex; align-items: center; padding: 0 16px; gap: 10px;
   font-size: 15px; color: var(--ink);
 }
-.field:focus-within { border-color: var(--brand); box-shadow: 0 0 0 4px rgba(123,97,255,.12); }
+.field:focus-within { border-color: var(--brand); box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 14%, transparent); }
 .field input {
   border: 0; outline: 0; background: transparent; flex: 1;
   font-family: inherit; font-size: 15px;
@@ -596,11 +626,11 @@ body {
 }
 .tab .ic { color: var(--ink-3); }
 .tab.on {
-  color: var(--on-accent);
+  color: var(--on-brand);
   font-weight: 800;
   background: var(--gradient-brand);
 }
-.tab.on .ic { color: var(--on-accent); }
+.tab.on .ic { color: var(--on-brand); }
 /* ── Gooey nav highlight ──
    The active-tab gradient is a "goo blob" living under an SVG metaball filter
    together with an echo circle behind the FAB: when the highlight crosses the
@@ -664,7 +694,7 @@ body {
   box-shadow:
     inset 0 1px 1px rgba(255, 255, 255, .55),
     inset 0 -7px 10px -7px rgba(47, 47, 53, .30),
-    0 10px 22px -8px rgba(123, 97, 255, .40);
+    0 10px 22px -8px color-mix(in srgb, var(--brand-fill) 40%, transparent);
   will-change: transform, opacity;
 }
 [data-theme="dark"] .goo-lens {
@@ -716,13 +746,13 @@ body {
   height: 56px;
   border-radius: 50%;
   background: var(--gradient-brand);
-  color: var(--on-accent);
+  color: var(--on-brand);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 12px 24px -6px rgba(123, 97, 255, .55);
+  box-shadow: var(--shadow-fab);
 }
-.fab .ic { color: var(--on-accent); }
+.fab .ic { color: var(--on-brand); }
 
 /* ── OTP boxes ── */
 .otp-box {
@@ -731,7 +761,7 @@ body {
   font-family: var(--font-sans, "Vazirmatn", inherit); color: var(--ink);
   outline: none; background: var(--surface);
 }
-.otp-box:focus  { border-color: var(--brand); box-shadow: 0 0 0 4px rgba(123,97,255,.14); }
+.otp-box:focus  { border-color: var(--brand); box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 16%, transparent); }
 .otp-box.filled { border-color: var(--brand); background: var(--surface-2); }
 
 /* ── Wheel picker ── */
@@ -789,7 +819,7 @@ body {
   font-variant-numeric: tabular-nums;
 }
 .cday:hover { background: var(--surface-2); }
-.cday.on    { background: var(--brand-fill); color: var(--on-accent); font-weight: 800; }
+.cday.on    { background: var(--brand-fill); color: var(--on-brand); font-weight: 800; }
 
 /* ── Progress bar ── */
 .bar { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; }
@@ -934,7 +964,7 @@ body {
   position: absolute; inset: 12px;
   display: flex; align-items: center; justify-content: center;
   border-radius: 50%; background: var(--pink-bg); color: var(--brand);
-  box-shadow: 0 6px 18px -6px rgba(123, 97, 255, .5);
+  box-shadow: 0 6px 18px -6px color-mix(in srgb, var(--brand-fill) 50%, transparent);
   animation: calLoaderPulse 1.5s ease-in-out infinite;
 }
 @keyframes calLoaderPulse {
@@ -987,7 +1017,7 @@ body {
   box-shadow: var(--ring);
 }
 /* The primary button already carries a drop shadow — keep it under the ring. */
-.btn-primary:focus-visible { box-shadow: var(--ring), 0 10px 22px -10px rgba(123, 97, 255, .7); }
+.btn-primary:focus-visible { box-shadow: var(--ring), var(--shadow-cta); }
 
 .btn:hover:not(:disabled),
 .iconbtn:hover:not(:disabled) { filter: brightness(.96); }
@@ -1039,10 +1069,16 @@ body {
    Home screen
    ══════════════════════════════════════════════════════════════════ */
 
-/* Lalezar — display face for the home ring's countdown only. A 13 KB subset
-   (Latin + Persian/Arabic digits + the letters of «روز»/«امروز»); anything else
-   falls back to Vazirmatn glyph by glyph. Not preloaded: it is fetched only
-   when the ring renders. OFL-1.1, © The Lalezar Project Authors. */
+/* Lalezar — Night & Bloom's display face: numerals AND display titles
+   (`var(--font-display)`). A 45 KB subset of Lalezar-Regular 1.0 covering Basic
+   Latin, the whole Arabic block (U+0600–06FF: Persian letters, digits, «٫»),
+   ZWNJ/ZWJ and general punctuation, with every OpenType feature kept so Persian
+   shapes correctly. Rebuild: `python3 -m fontTools.subset Lalezar-Regular.ttf
+   --unicodes="U+0020-007E,U+00A0,U+00AB,U+00BB,U+00D7,U+00F7,U+0600-06FF,
+   U+200C-200F,U+2010-2027,U+2030,U+2039-203A,U+2212,U+25CC"
+   --layout-features='*' --flavor=woff2`. Not preloaded: fetched only when a
+   screen uses it; `swap` keeps text visible meanwhile. OFL-1.1, © The Lalezar
+   Project Authors. */
 @font-face {
   font-family: "Lalezar";
   src: url("./fonts/Lalezar-Subset.woff2") format("woff2");
@@ -1279,7 +1315,7 @@ body {
 .home-tip-badge {
   width: 26px; height: 26px; border-radius: 50%; flex: 0 0 auto;
   display: flex; align-items: center; justify-content: center;
-  background: var(--gradient-brand); color: var(--on-accent);
+  background: var(--gradient-brand); color: var(--on-brand);
 }
 .home-tip-title  { font-size: 15px; font-weight: 800; color: var(--ink); text-align: start; }
 /* Phase chip speaks turquoise: it is the engine's detected state (data). */
@@ -1536,7 +1572,7 @@ body {
 .cal-toast {
   position: fixed; inset-inline-start: 16px; inset-inline-end: 16px; z-index: var(--z-toast);
   bottom: calc(88px + env(safe-area-inset-bottom, 0px));
-  background: var(--danger); color: var(--on-accent);
+  background: var(--danger); color: var(--on-brand);
   border-radius: 14px; padding: 12px 16px;
   font-size: 13px; font-weight: 700; line-height: 1.6; text-align: start;
   box-shadow: 0 12px 28px -10px rgba(214, 69, 69, .6);
@@ -1627,9 +1663,9 @@ body {
   margin-top: 8px;
   border-radius: 20px;
   padding: 18px;
-  background: linear-gradient(135deg, var(--brand) 0%, var(--pink-vivid) 60%, var(--pink) 100%);
-  color: var(--on-accent);
-  box-shadow: 0 18px 34px -20px rgba(123, 97, 255, .6);
+  background: linear-gradient(135deg, var(--brand-fill) 0%, color-mix(in srgb, var(--brand-fill) 72%, var(--bloom)) 100%);
+  color: var(--on-brand);
+  box-shadow: var(--shadow-hero);
   text-align: start;
 }
 .pd-hero-deco     { position: absolute; border-radius: 50%; background: rgba(255, 255, 255, .13); }
@@ -1841,7 +1877,7 @@ body {
   font-family: inherit; font-size: 12.5px; font-weight: 700;
   background: transparent; color: var(--muted);
 }
-.plog-tab.on { background: var(--brand-fill); color: var(--on-accent); }
+.plog-tab.on { background: var(--brand-fill); color: var(--on-brand); }
 
 /* Pregnancy log forms (shared by symptoms / weekly / movement) */
 .plog-daynav   { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; }
@@ -1908,7 +1944,7 @@ body {
 .pon-page     { background: var(--page); }
 .pon-stack    { display: flex; flex-direction: column; gap: 12px; padding: 16px 16px 0; }
 .pon-choices  { display: flex; flex-direction: column; gap: 8px; }
-.pon-choice-dot { width: 20px; height: 20px; margin-top: 2px; color: var(--on-accent); }
+.pon-choice-dot { width: 20px; height: 20px; margin-top: 2px; color: var(--on-brand); }
 .pon-choice-t { display: block; font-size: 14px; font-weight: 800; color: var(--ink); }
 .pon-choice-h { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
 .pon-sublabel { font-size: 13px; font-weight: 700; color: var(--ink); }
@@ -2261,7 +2297,7 @@ body {
 
 /* Splash */
 .splash {
-  background: linear-gradient(160deg, var(--brand) 0%, var(--purple) 100%);
+  background: linear-gradient(160deg, var(--splash-from) 0%, var(--splash-to) 100%);
   color: var(--on-accent); cursor: pointer;
   position: relative; height: 100%; overflow: hidden;
 }
@@ -2443,9 +2479,9 @@ body {
    the sheet's own chrome, the action buttons and the inline data-driven colours
    in PeriodDateEditor all follow along. */
 .pde-sheet {
-  --brand: var(--rose-deep); --brand-deep: var(--rose-deep);
+  --brand: var(--period-deep); --brand-deep: var(--period-deep); --brand-fill: var(--period-deep);
   --gradient-brand: var(--rose-grad);
-  --brand-line: var(--rose); --brand-line-soft: var(--period-soft);
+  --brand-line: var(--period); --brand-line-soft: var(--period-soft);
 }
 /* Day cells reach nearly the panel edge — the sheet's default 18px inline
    padding would squeeze a 7-column grid of circles. */
@@ -2455,8 +2491,8 @@ body {
    the top of the sheet's scroll so the columns stay labelled all the way back. */
 .pde-weekdays {
   position: sticky; top: 0; z-index: 2;
-  background: linear-gradient(180deg, var(--rose-deep), var(--rose));
-  color: var(--on-accent);
+  background: linear-gradient(180deg, var(--period-deep), var(--period));
+  color: var(--on-brand);
   border-radius: 14px;
   padding: 9px 0; margin-bottom: 2px;
 }
@@ -2511,7 +2547,7 @@ body {
   border: 1.5px solid var(--line);
 }
 .pde-day.is-today .pde-badge    { background: var(--surface-2); border-color: var(--track); }
-.pde-day.is-selected .pde-badge { color: var(--on-accent); background: var(--brand-fill); border-color: transparent; }
+.pde-day.is-selected .pde-badge { color: var(--on-brand); background: var(--brand-fill); border-color: transparent; }
 .pde-foot     { display: flex; flex-direction: column; gap: 10px; }
 .pde-hint     { background: var(--surface-2); color: var(--brand); text-align: center; font-size: clamp(12px, 3.2vw, 13px); font-weight: 700; padding: 9px 14px; border-radius: 999px; }
 .pde-actions  { display: flex; gap: clamp(8px, 3vw, 12px); }
@@ -2557,7 +2593,7 @@ body {
 .cvc-sugg    { margin-top: 16px; background: var(--surface-2); border: 1px solid var(--line-2); border-radius: 14px; padding: 14px; }
 .cvc-sugg-t  { font-size: 13px; color: var(--ink-2); margin: 0 0 12px; line-height: 1.8; }
 .cvc-sugg-cta{
-  border: none; cursor: pointer; background: var(--brand-fill); color: var(--on-accent);
+  border: none; cursor: pointer; background: var(--brand-fill); color: var(--on-brand);
   font-size: 13px; font-weight: 700; border-radius: 999px; padding: 10px 18px;
   transition: transform .18s cubic-bezier(.22,.61,.36,1), opacity .18s ease;
 }
@@ -2795,7 +2831,7 @@ body {
   font-family: inherit; font-size: 12.5px; font-weight: 700; color: var(--muted-2);
   cursor: pointer; white-space: nowrap;
 }
-.ar-chip.is-active { background: var(--brand-fill); border-color: var(--brand-line); color: var(--on-accent); }
+.ar-chip.is-active { background: var(--brand-fill); border-color: var(--brand-line); color: var(--on-brand); }
 .ar-chip:focus-visible { outline: none; box-shadow: var(--ring); }
 .ar-count { margin: 16px 2px 10px; font-size: 12px; font-weight: 700; color: var(--muted-3); text-align: start; }
 .ar-grid  { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 4px; }
@@ -2933,7 +2969,7 @@ body {
   font: inherit;
   font-size: 13px;
   font-weight: 700;
-  color: var(--on-accent);
+  color: var(--on-brand);
   background: var(--gradient-brand);
   border: 0;
   border-radius: 999px;
@@ -3236,7 +3272,7 @@ body.pwa-locked { overflow: hidden; }
 .pg2-roundbtn:focus-visible { outline: none; box-shadow: var(--ring); }
 /* One solid primary per card (not the gradient — §10.2 scarcity). */
 .pg2-btn-solid {
-  background: var(--brand-fill); color: var(--on-accent); border: 0; border-radius: 14px;
+  background: var(--brand-fill); color: var(--on-brand); border: 0; border-radius: 14px;
 }
 .pg2-btn-solid:disabled { background: var(--brand-disabled); cursor: default; }
 .pg2-textlink {
@@ -3255,7 +3291,7 @@ body.pwa-locked { overflow: hidden; }
   display: inline-flex; align-items: center; justify-content: center;
   border: 2px solid var(--brand-line-soft); color: transparent; background: var(--surface);
 }
-.pg2-check.is-on { background: var(--brand-fill); border-color: var(--brand-fill); color: var(--on-accent); }
+.pg2-check.is-on { background: var(--brand-fill); border-color: var(--brand-fill); color: var(--on-brand); }
 /* Today hero: full-bleed fill holding the date pill, bell, 7-day strip and carousel. */
 .pg2-hero {
   background: linear-gradient(to bottom, var(--preg-hero-start), var(--preg-hero-end));
@@ -3516,7 +3552,7 @@ body.pwa-locked { overflow: hidden; }
   font-family: inherit; font-size: 13px; font-weight: 800;
   transition: background-color .18s ease, color .18s ease;
 }
-.rmd-tab.on { background: var(--brand-fill); color: var(--on-accent); }
+.rmd-tab.on { background: var(--brand-fill); color: var(--on-brand); }
 .rmd-tab:focus-visible { outline: none; box-shadow: var(--ring); }
 
 /* ── «امروز» card ── */
@@ -3661,7 +3697,7 @@ body.pwa-locked { overflow: hidden; }
 .rmd-cta {
   height: 54px; border: 0; border-radius: 27px; cursor: pointer;
   display: flex; align-items: center; justify-content: center; gap: 8px;
-  background: var(--brand-fill); color: var(--on-accent);
+  background: var(--brand-fill); color: var(--on-brand);
   box-shadow: 0 14px 28px -14px color-mix(in srgb, var(--brand-fill) 80%, transparent);
   font-family: inherit; font-size: 15px; font-weight: 800;
 }
@@ -3778,7 +3814,7 @@ body.pwa-locked { overflow: hidden; }
   font-family: inherit; font-size: 13px; font-weight: 800;
   transition: background-color .15s ease, border-color .15s ease;
 }
-.cfm-day[aria-pressed="true"] { background: var(--brand-fill); border-color: var(--brand-fill); color: var(--on-accent); }
+.cfm-day[aria-pressed="true"] { background: var(--brand-fill); border-color: var(--brand-fill); color: var(--on-brand); }
 .cfm-day:focus-visible { outline: none; box-shadow: var(--ring); }
 .cfm-caption { margin: 0; font-size: 11.5px; font-weight: 600; color: var(--muted); text-align: start; }
 
@@ -3869,7 +3905,7 @@ body.pwa-locked { overflow: hidden; }
 .apd-box {
   width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0; box-sizing: border-box;
   display: grid; place-items: center; border: 2px solid var(--track); background: var(--surface);
-  color: var(--on-accent); transition: background-color .15s ease, border-color .15s ease;
+  color: var(--on-brand); transition: background-color .15s ease, border-color .15s ease;
 }
 .apd-item[aria-checked="true"] .apd-box { background: var(--brand-fill); border-color: var(--brand-fill); }
 

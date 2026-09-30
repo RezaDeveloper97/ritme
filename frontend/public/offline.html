@@ -3,20 +3,21 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#F2ECFF" />
+  <meta name="theme-color" content="#F7F3FF" />
   <meta name="color-scheme" content="light dark" />
   <title>ریتمی — آفلاین</title>
   <style>
     /* Standalone offline page: served straight from the SW cache, so it cannot
-       depend on app CSS. Values mirror the globals.css light tokens. */
+       depend on app CSS. Values mirror the Night & Bloom tokens in globals.css
+       (--page, --surface, --text-1/2, --brand-fill, --on-brand). */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #F2ECFF;
-      color: #2F2F35;
+      background: #F7F3FF;
+      color: #231B3B;
       font-family: Vazirmatn, system-ui, -apple-system, sans-serif;
       text-align: center;
       padding: 24px;
@@ -26,28 +27,28 @@
       border-radius: 24px;
       padding: 40px 32px;
       max-width: 360px;
-      box-shadow: 0 8px 32px rgba(123, 97, 255, 0.12);
+      border: 1px solid #E7E1F4;
     }
     .card img { width: 96px; height: 96px; border-radius: 24px; margin-bottom: 20px; }
     h1 { font-size: 20px; font-weight: 700; margin-bottom: 10px; }
-    p { font-size: 14px; color: #6B6B76; line-height: 1.9; margin-bottom: 24px; }
+    p { font-size: 14px; color: #5E5873; line-height: 1.9; margin-bottom: 24px; }
     button {
       font: inherit;
       font-weight: 600;
       color: #FFFFFF;
-      background: linear-gradient(135deg, #7B61FF 0%, #FF6FAE 100%);
+      background: #6E54F0;
       border: 0;
       border-radius: 999px;
       padding: 12px 32px;
       cursor: pointer;
     }
-    /* Dark appearance, driven only by [data-theme] — written by the inline
-       script below from the same `ritme_theme` key the app uses. No
-       prefers-color-scheme fallback on purpose: the app is light until the user
-       turns dark mode on, so a dark phone must not darken this page either. */
-    html[data-theme="dark"] body { background: #131022; color: #F3F1FA; }
-    html[data-theme="dark"] .card { background: #1C1830; box-shadow: none; }
-    html[data-theme="dark"] p { color: #A9A4BC; }
+    /* Dark appearance, driven by [data-theme] — written by the inline script
+       below with the app's rule: a stored light/dark wins, otherwise (system,
+       the default) prefers-color-scheme decides. */
+    html[data-theme="dark"] body { background: #17112B; color: #F6F1FF; }
+    html[data-theme="dark"] .card { background: #221A3D; border-color: #34295A; }
+    html[data-theme="dark"] p { color: #B8AED6; }
+    html[data-theme="dark"] button { background: #B9A6FF; color: #17112B; }
   </style>
   <script>
     // Same bootstrap as the app (shared/theme). This page is served from the
@@ -55,10 +56,13 @@
     // itself rather than importing anything.
     (function () {
       try {
-        var dark = localStorage.getItem('ritme_theme') === 'dark';
+        var s = null;
+        try { s = localStorage.getItem('ritme_theme'); } catch (e) {}
+        var dark = s === 'dark' || (s !== 'light' && !!window.matchMedia &&
+          window.matchMedia('(prefers-color-scheme: dark)').matches);
         document.documentElement.dataset.theme = dark ? 'dark' : 'light';
         document.querySelector('meta[name="theme-color"]')
-          .setAttribute('content', dark ? '#131022' : '#F2ECFF');
+          .setAttribute('content', dark ? '#17112B' : '#F7F3FF');
       } catch (e) {}
     })();
   </script>

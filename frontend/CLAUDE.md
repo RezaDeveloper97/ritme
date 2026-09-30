@@ -496,7 +496,7 @@ violations each file still carries, and the gate fails only when a file goes
   `inset-inline-start`, `text-align: start`); hardcoded `left`/`right` breaks
   RTL and is a bug here (§12).
 - **Colours:** always a CSS variable from the `:root` block in `globals.css`
-  (`var(--brand)`, `var(--muted-2)`, `var(--pink-bg)`). **Never a hex literal.**
+  (`var(--brand)`, `var(--text-2)`, `var(--brand-soft)`). **Never a hex literal.**
   A hex bypasses the `[data-theme="dark"]` overrides, so it silently breaks dark
   mode — the single most common visual bug this codebase has had. If no token
   fits, add one to *both* `:root` and `[data-theme="dark"]` first.
@@ -549,112 +549,126 @@ style objects reduced to 13, all of them data-driven.
 literal. A `PostToolUse` hook runs it automatically on every `.tsx` write, and
 it is part of the definition of done (§9).
 
-### 10.2 Colour palette — the Ritme brand system (non-negotiable)
+### 10.2 Colour palette — Night & Bloom (non-negotiable)
 
-The app has exactly **three brand hues + three neutrals**. Every colour on
-screen must trace back to one of these groups via a token in `globals.css`.
-Do not introduce new hues; status colours (danger/success/warning) and the
-amber fertile-window marker are the only sanctioned exceptions.
+Since B-N1-02 the app wears the **Night & Bloom** palette in both themes. The
+source of truth is `docs/night-bloom/tokens.md` (light = dialect A of the
+`nbl_` artboards, dark = `nbd_`); `globals.css` implements it. Every colour on
+screen traces back to a token below — no new hues.
 
-| Group | Value | Tokens | Use for | Never for |
-| ----- | ----- | ------ | ------- | --------- |
-| **Primary / Brand gradient** | `#7B61FF → #FF6FAE` | `--gradient-brand`, `--grad-start`, `--grad-end` (solid fallback: `--brand`) | Main CTAs ("Log Symptom" etc.), FAB, active progress bars, active bottom-nav tab, hero/branding headers, loading animation | Large surfaces, body text, more than ~2 elements per screen — scarcity is what makes it read as premium |
-| **Secondary / Data accent** | turquoise `#3DD6F3` | `--data`, `--data-deep` (text-safe), `--data-soft` (surface) | Data & active/new states only: current cycle status, new-notification dots, ovulation-day marker, insight lines ("Fertile window starts today"), algorithmic prediction curves in charts | Decoration, buttons, backgrounds unrelated to data |
-| **Background / Canvas** | lavender `#F2ECFF` | `--page` (dark: deep-lavender) | App/page background, onboarding & long-read screens, calm "breathing" space | Text, borders on white |
-| **Neutral: white** | `#FFFFFF` | `--surface`, `--on-accent` | Cards, modals/sheets, text & icons on gradient/saturated fills | — |
-| **Neutral: dark gray** | `#2F2F35` | `--ink`, `--ink-2` | Primary text, headings, active icons | — |
-| **Neutral: mid/light grays** | ramp | `--muted*`, `--ink-3`, `--line*`, `--track`, `--field-border` | Secondary text, dividers, inactive icons, borders | — |
+| Role | Light → Dark | Tokens | Use for | Never for |
+| ---- | ------------ | ------ | ------- | --------- |
+| **Canvas / surfaces** | `#F7F3FF` / `#FFFFFF` → `#17112B` / `#221A3D` | `--page`, `--surface`, `--surface-2/3` (tints, translucent at night), `--surface-4` (opaque inset), `--surface-glass` (nav, sticky footers + blur) | page background; cards, sheets | text |
+| **Text** | `#231B3B` `#5E5873` `#6A6480` `#8C82AD` → `#F6F1FF` `#B8AED6` `#8C82AD` `#6E6392` | `--text-1` … `--text-4` | titles/body, secondary, captions; `--text-4` placeholder/disabled only (below AA) | — |
+| **Lines** | `#E7E1F4` / `#DDD6FA` → `#34295A` / `#3B2F63` | `--line`, `--line-strong`, `--track` | 1px card border (cards are flat, **no shadow**), selected outline, rails | — |
+| **Primary** | `#6E54F0` → `#B9A6FF` | `--brand` (text/icon), `--brand-fill` (fill), `--on-brand` (label on the fill: white → `#17112B`), `--brand-strong`, `--brand-ink` (text on `--brand-soft`), `--brand-soft`, `--brand-2` | CTAs, FAB, switch on, selected tab/chip, active nav, links | large surfaces |
+| **Data (turquoise)** | `#0FA3C9` → `#4CE0C3` | `--data`, `--data-deep` (text), `--data-soft` | measured/predicted markers, ovulation, chart lines, «طبیعی» verdicts | decoration, buttons |
+| **Warm (amber)** | `#F5A623` → `#FFB86B` | `--warm`, `--warm-deep` (text), `--warm-soft`, `--caution-soft` | fertile window, streaks, Plus, warnings | text (use `-deep`) |
+| **Period (red)** | `#E8436F` → `#FF6B8B` | `--period`, `--period-deep`, `--period-soft`, `--period-line` | menstruation — see below | general UI |
+| **Bloom** | `#FF6FAE` → `#FFD5B8` (peach at night) | `--bloom`, `--bloom-deep`, `--avatar-grad` | illustration, avatars, companion accent | — |
+| **Status** | success `#0F7B6C` → `#7FE0A8`; danger `#C42D57` → `#FF8FA3` | `--success*`, `--danger`, `--danger-deep`, `--danger-soft` | done/taken; errors | — |
+
+**Gradients are soft tints only.** The saturated purple→pink brand gradient is
+retired: CTAs and the FAB are **solid `--brand-fill`** with `--on-brand` text
+and `--shadow-cta` / `--shadow-fab`. Allowed gradients: `--hero-tint` (hero
+cards), the tint pattern `linear-gradient(135deg, <accent> 15–20%,
+var(--surface) 70%)`, `--avatar-grad`, `--bg-glow`. The old names
+(`--gradient-brand`, `--grad-start`, `--grad-end`) survive as aliases that paint
+the solid fill — don't use them in new code.
+
+**The dark sky.** `.nb-sky` is the reusable background layer: the violet
+`--bg-glow` circle (both themes) plus nine static stars painted in `--star`
+(transparent by day, white at night). Static by design, so nothing to disable
+under reduced motion.
+
+**Legacy aliases.** Yesterday's names (`--ink*`, `--muted*`, `--violet`,
+`--pink-bg`, `--teal*`, `--amber*`, `--green*`, `--care-rose*`, `--fert-*`, …)
+are re-pointed at the semantic tokens (tokens.md §3) so unported screens restyle
+for free. New code uses the semantic names.
+
+**Shape, type and spacing tokens** (non-colour, one `:root` block): radii
+`--r-xs … --r-nav` (cards `--r-card` 24px), type `--fs-num-xl … --fs-2xs` +
+`--font-display` (Lalezar: numerals *and* display titles; Vazirmatn 600/700/800
+for UI), spacing `--gutter` 16 / `--gutter-form` 20, touch sizes `--h-btn` 54,
+`--size-icon-btn` 44, `--size-fab` 56, `--h-nav` 70.
 
 #### Menstruation (period) — the one sanctioned red
 
-Period days are the single deliberate exception to the palette. **Bleeding days
-must read as red on every calendar surface.** Users have decades of convention
-attached to that colour; a purple or pink period day is a comprehension bug, not
-a style choice. The red is *tuned to the theme* — it sits at the rose end of the
-brand gradient rather than being a raw fire-engine red — so it belongs to the
-system instead of fighting it.
+**Bleeding days must read as red on every calendar surface** — a purple or pink
+period day is a comprehension bug. Tokens: `--period` (marker/dot/fill),
+`--period-deep` (text), `--period-soft` (day cell) + `--period-soft-faint` /
+`--period-soft-strong`. Defined once in `entities/cycle/model/markers.ts`; never
+re-define a period colour in a component.
 
-- Tokens: `--period` (`#E8436F`, marker / dot / accent), `--period-deep`
-  (text-safe on light), `--period-soft` (day-cell surface), plus the
-  intensity steps `--period-soft-faint` / `--period-soft-strong`. All flip in
-  dark mode.
-- **Scope:** calendar period markers and period-specific indicators (day cells,
-  legend dot, period badges/labels) — defined once in
-  `entities/cycle/model/markers.ts`, which both the calendar screen and the home
-  mini-calendar read from. Never re-define a period colour in a component.
-- **Do not** use `--period*` for general UI (buttons, headers, generic pink
-  tints — those stay on the brand gradient / `--pink-bg`), and **do not** use a
-  brand-gradient or turquoise colour for a period day.
-- Turquoise still owns ovulation, amber still owns the fertile window, violet
-  still owns PMS — red is *only* menstruation.
+- Turquoise owns ovulation, amber the fertile window, violet PMS — red is *only*
+  menstruation.
+- **Danger shares the rose ramp in the design** (`--danger` `#C42D57`). Tell an
+  error apart by icon + copy + the `--danger-soft` surface, never by a period
+  marker shape (docs/night-bloom/gaps.md #11).
 
 Hard rules:
 
-- **The gradient is scarce by design.** If a screen already shows the gradient
-  twice, the next element takes a neutral or a soft tint (`--pink-bg`,
-  `--surface-2`), not the gradient again.
-- **Turquoise means "this is data"** (measured, detected, or predicted by the
-  algorithm). If the element isn't data or an active/new state, turquoise is
-  the wrong colour.
-- **Red means menstruation** — nothing else may be red except genuine
-  error/danger states (`--danger*`).
-- **Never re-introduce the legacy pink-brand palette** (`#E91E63` era) or any
-  off-palette hue. Retheming happens by changing token *values* in
-  `globals.css`, never by adding parallel colour systems.
+- **Solid primary, one label token.** Anything on `--brand-fill` uses
+  `--on-brand` (it flips to dark text at night). `--on-accent` (theme-stable
+  white) is only for the fills that stay saturated in both themes:
+  `--success-fill`, the pregnancy hero (`--preg-hero-*`), the splash
+  (`--splash-from/to`).
+- **Text uses the `-deep` token.** `--data` (2.96:1), `--warm` (2.03:1),
+  `--period` (3.84:1) and `--text-4` fail AA as text on white.
+- **Never re-introduce a retired hex** (`#7B61FF`, `#3DD6F3`, `#F2ECFF`,
+  `#2F2F35`, `#131022`, …) — `lint:dark` fails on them in `src/` and
+  `public/offline.html`. Retheming happens by changing token *values*.
 - All the §10 rules still apply: tokens only, no hex literals in `src/`, every
-  token defined in both `:root` and `[data-theme="dark"]`.
+  token defined in both `:root` and `[data-theme="dark"]` (or derived, or
+  listed as theme-stable).
 
-**Enforcement:** run the **`check-colors` skill** (`/check-colors`) after any
-change that touches colours, styles, or new UI — it audits token conformance,
-off-palette hues, and dark-mode coverage. It is part of the definition of done
-for UI work (§9). The mechanical half of that audit is automated as
-`npm run lint:dark` (§10.3).
+**Enforcement:** `npm run lint:dark` (§10.3) is the mechanical half; the
+**`check-colors` skill** audits the rest for UI work (§9).
 
 ### 10.3 Dark mode
 
-The app ships **light, dark and follow-the-system**. The preference lives in
-`shared/theme` (`localStorage['ritme_theme']`, a Zustand store) and is exposed
-to the user as Profile → «ظاهر و پوسته» (`?sheet=appearance`).
+Every screen ships **light and dark**, and the default is **follow the system**.
+The preference lives in `shared/theme` (`localStorage['ritme_theme']` =
+`light | dark | system`, a Zustand store). Fresh installs get `system`; a stored
+`light`/`dark` is kept (bloom/QUESTIONS.md #2).
 
-How it works, and the rules that keep it working:
-
-- **One switch, one attribute.** `applyTheme` writes the *resolved* theme onto
-  `<html data-theme>`; every dark value in the app is a token override under
-  `[data-theme="dark"]` in `globals.css`. Nothing else branches on the theme —
-  no `useTheme()` in a component, no dark-specific JSX.
-- **`themeInitScript` runs before first paint** (rendered inline at the top of
-  `<body>`), so a dark-mode user never sees a white flash. It is a deliberate
-  duplicate of `applyTheme` in plain JS; if you change the storage key or the
-  resolution rule, change both — `lint:dark` fails when they drift apart.
-- **`color-scheme` is declared in both blocks.** It is the only way to darken
-  what CSS variables cannot reach: scrollbars, native form controls, the caret,
-  the autofill highlight.
-- **`<meta name="theme-color">` is created at runtime, never by Next.** It
-  cannot hold a CSS variable, so `chromeInitScript` (right after
-  `themeInitScript` in the layout) creates a single meta from the live `--page`,
-  and the theme store updates it on toggle. Don't set `viewport.themeColor`:
-  React 19 hydration would add a second, stale meta (audit I-6). The same script
-  prepends `apple-mobile-web-app-status-bar-style: black-translucent` for dark
-  mode only. `manifest.ts` is the *only* sanctioned colour literal in `src/`.
-- **Every token needs both values.** A token in `:root` with no
-  `[data-theme="dark"]` value must be either derived from tokens that do flip,
-  or listed in `THEME_STABLE` in `scripts/check-dark-mode.mjs` *with the reason*
-  (e.g. `--on-accent` stays white because the fill under it stays saturated).
-- **`--brand` is text; `--brand-fill` is a fill.** Dark mode lifts `--brand` so
-  it stays readable as text on a dark card. A saturated fill that carries white
-  text must therefore use `--brand-fill`, which does not move. The gradient
-  (`--grad-start`/`--grad-end`) is identical in both themes by design.
+- **Preference vs resolved.** The store holds `preference` (what the user
+  chose) and `theme` (what is painted, `light | dark`). `setPreference()` sets
+  either of the three; `setTheme('light' | 'dark')` is the one-tap toggle.
+  Components read `theme`, never `matchMedia`.
+- **One attribute.** `applyTheme` writes the *resolved* theme onto
+  `<html data-theme>`; every dark value is a token override under
+  `[data-theme="dark"]` in `globals.css`. No dark-specific JSX.
+- **`system` follows the OS live.** `ThemeApplier` listens to
+  `(prefers-color-scheme: dark)` changes and the store re-resolves (ignored for
+  an explicit choice). It also syncs a change made in another tab.
+- **`themeInitScript` runs before first paint** (inline, top of `<body>`) with
+  the same rule — stored light/dark wins, anything else follows the OS — so no
+  one sees a flash. It duplicates `resolveTheme` in plain JS; a unit test runs
+  it against a fake DOM, and `lint:dark` checks key, default and media query.
+- **`color-scheme` is declared in both blocks** — it darkens scrollbars, native
+  controls, the caret and autofill.
+- **`<meta name="theme-color">` is created at runtime, never by Next.**
+  `chromeInitScript` creates one meta from the live `--page` (`#F7F3FF` /
+  `#17112B`) and the store rewrites it on every switch. Don't set
+  `viewport.themeColor` (React 19 would add a stale twin, audit I-6). Dark also
+  gets `apple-mobile-web-app-status-bar-style: black-translucent`.
+  `manifest.ts` (`#F7F3FF`) is the only sanctioned colour literal in `src/`.
+  iOS startup images (`public/splash/{light,dark}-*.png`) are the two canvases
+  with the logo; regenerate them if `--page` changes.
+- **Every token needs both values** — or is derived (at any depth) from tokens
+  that flip, or is listed in `THEME_STABLE` in `scripts/check-dark-mode.mjs`
+  *with the reason*.
 - **A translucent white overlay is only allowed on a saturated fill** (the
-  gradient heroes), because that fill is the same in both themes. Over a
-  surface, use `color-mix(in srgb, var(--surface) N%, transparent)` so it flips.
-- **Dark may never read worse than light.** `lint:dark` resolves ~57
-  foreground/background token pairs in *both* themes, scores them against WCAG,
-  and fails when dark drops materially below light. It also reports the pairs
-  that are under AA in light mode today — those are pre-existing brand-palette
-  decisions, held at their current value rather than silently drifting down.
+  `ON_GRADIENT` selectors). Over a surface, use `color-mix(in srgb,
+  var(--surface) N%, transparent)` so it flips.
+- **Contrast is checked in both themes.** `lint:dark` scores ~60 token pairs
+  against WCAG; dark may not fall materially below light unless it still clears
+  AA or the pair is marked `design` (values taken from the artboards). The `⚠`
+  block lists the design's sub-AA marker colours — use the `-deep` token for text.
 - **The offline page (`public/offline.html`) carries its own copy** of the
-  bootstrap: it is served straight from the service-worker cache with no bundle,
-  so it re-reads `ritme_theme` itself.
+  bootstrap and the palette: it is served from the service-worker cache with no
+  bundle.
 
 ---
 

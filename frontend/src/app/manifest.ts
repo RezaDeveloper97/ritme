@@ -12,8 +12,9 @@ import type { MetadataRoute } from 'next';
 // - `display: fullscreen` is a deliberate product choice (no browser chrome, no
 //   status bar — the app should not read as a web page); `display_override`
 //   spells out the fallback for platforms without fullscreen (iOS → standalone).
-// - One light theme/background colour: the manifest has no per-scheme colours
-//   and the app starts light, so the launch splash stays light on purpose.
+// - One theme/background colour: the manifest has no per-scheme colours, so it
+//   carries the Night & Bloom light canvas (#F7F3FF = --page). The runtime
+//   theme-color meta switches to #17112B at night (chromeInitScript / store).
 // - Every icon is generated from one master (see public/icons); maskable icons
 //   keep the round mark inside the 80% safe-zone circle on a white plate.
 export default function manifest(): MetadataRoute.Manifest {
@@ -30,8 +31,8 @@ export default function manifest(): MetadataRoute.Manifest {
     dir: 'rtl',
     lang: 'fa',
     categories: ['health', 'medical', 'lifestyle'],
-    background_color: '#F2ECFF',
-    theme_color: '#F2ECFF',
+    background_color: '#F7F3FF',
+    theme_color: '#F7F3FF',
     icons: [
       { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
       { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },

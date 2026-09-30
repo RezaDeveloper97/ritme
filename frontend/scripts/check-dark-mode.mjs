@@ -10,8 +10,9 @@
  *
  * Checks:
  *   1. plumbing   — <html data-theme> is written before first paint, the inline
- *                   bootstrap and the store agree on the storage key, and both
- *                   themes declare `color-scheme`.
+ *                   bootstrap and the store agree on the storage key, `system`
+ *                   (the default) follows prefers-color-scheme before paint and
+ *                   live, and both themes declare `color-scheme`.
  *   2. parity     — every colour token in :root either flips in
  *                   [data-theme="dark"], is derived from tokens that do, or is
  *                   listed here as deliberately theme-stable *with a reason*.
@@ -21,6 +22,9 @@
  *   4. literals   — colour literals in rule bodies (not the token blocks) that
  *                   would not flip, outside the on-gradient allowlist.
  *   5. components — colour literals in .ts/.tsx.
+ *   6. retired    — the pre-Night & Bloom palette (#7B61FF gradient, #3DD6F3
+ *                   turquoise, #F2ECFF canvas, …) may not come back anywhere in
+ *                   src/ or the offline page (B-N1-02).
  *
  *   node scripts/check-dark-mode.mjs            check
  *   node scripts/check-dark-mode.mjs --verbose  also print every passing pair
@@ -181,14 +185,21 @@ else if (!applier.includes(`'${storeKey}'`)) {
 if (!/dataset\.theme|setAttribute\(\s*'data-theme'/.test(applier)) {
   fail('shared/theme/ThemeApplier.tsx', 'themeInitScript never writes data-theme, so dark users get a light flash');
 }
-// The OS must NOT reach the theme: light is the default until the user turns
-// dark mode on in Profile. A `prefers-color-scheme` read creeping back into the
-// theme slice would silently restore "follow the system".
-if (/prefers-color-scheme/.test(applier) || /prefers-color-scheme/.test(store)) {
-  fail('shared/theme', 'the theme slice reads prefers-color-scheme — the OS setting must not decide the app theme (default is light)');
+// Night & Bloom ships light | dark | system, default system (bloom/QUESTIONS.md
+// #2). The pre-paint script and the store must both resolve 'system' from
+// prefers-color-scheme, and the store must follow the OS live.
+if (!/DEFAULT_THEME[^=]*=\s*'system'/.test(store)) {
+  fail('shared/theme/store.ts', "DEFAULT_THEME is not 'system' — fresh installs must follow the OS");
 }
-if (!/'dark'/.test(applier)) {
-  fail('shared/theme/ThemeApplier.tsx', 'themeInitScript never checks for the stored dark value');
+const initScript = applier.match(/themeInitScript\s*=\s*`([\s\S]*?)`/)?.[1] ?? '';
+if (!/prefers-color-scheme:\s*dark/.test(initScript)) {
+  fail('shared/theme/ThemeApplier.tsx', 'themeInitScript never reads prefers-color-scheme — a system-theme user gets a light flash on a dark phone');
+}
+if (!/'dark'/.test(initScript) || !/'light'/.test(initScript)) {
+  fail('shared/theme/ThemeApplier.tsx', 'themeInitScript must honour an explicitly stored light/dark preference');
+}
+if (!/prefers-color-scheme:\s*dark/.test(store) || !/addEventListener\(\s*'change'/.test(store + applier)) {
+  fail('shared/theme', 'the theme slice does not listen to prefers-color-scheme changes — "system" would not switch live');
 }
 if (!layout.includes('themeInitScript')) {
   fail('app/[locale]/layout.tsx', 'themeInitScript is not rendered — nothing sets the theme before hydration');
@@ -210,30 +221,34 @@ if (!/^\s*color-scheme:\s*dark/m.test(dark?.body ?? '')) {
  * and not derived from a flipping token must appear in the dark block.
  */
 const THEME_STABLE = {
-  '--on-accent': 'text on a saturated fill; the fill stays saturated in dark',
-  '--grad-start': 'the brand gradient is identical in both themes by design',
-  '--grad-end': 'the brand gradient is identical in both themes by design',
-  '--gradient-brand': 'derived from --grad-start/--grad-end',
-  '--pink': 'reads at 6.8:1 on the dark surface as-is',
-  '--data': 'turquoise already clears 10:1 on the dark surface',
-  '--green': 'clears 6.3:1 on the dark surface',
-  '--green-dot': 'clears 8:1 on the dark surface',
-  '--green-mid': 'clears 7.4:1 on the dark surface',
-  '--amber': 'clears 8.6:1 on the dark surface',
-  '--blue': 'clears 8:1 on the dark surface',
-  '--blush': 'clears 8.3:1 on the dark surface',
-  '--purple': 'the far end of the brand gradient; stable with it',
-  '--brand-fill': 'a fill under white text; lifting it would sink white-on-brand',
+  '--on-accent': 'white on the fills that stay saturated in both themes (success fill, pregnancy hero, splash); primary fills use the flipping --on-brand',
+  '--success-fill': 'a fill under white text; --success is the lifted text green at night',
+  '--splash-from': 'the launch fill is the same saturated violet in both themes, under white',
+  '--splash-to': 'the launch fill is the same saturated violet in both themes, under white',
+  '--bg-glow': 'the artboards use the same violet glow on light and dark canvases (tokens.md §4)',
+  '--shadow-knob': 'a switch-thumb shadow; alpha black reads in both themes',
 };
+
+/**
+ * A token flips when the dark block declares it, or when it references (at any
+ * depth) a token that does — the legacy aliases (`--ink: var(--text-1)`) and
+ * the color-mix ramps are all derived this way.
+ */
+function flips(name, seen = new Set()) {
+  if (dark.map.has(name)) return true;
+  if (seen.has(name)) return false;
+  seen.add(name);
+  const value = light.map.get(name);
+  if (!value) return false;
+  const refs = [...value.matchAll(/var\(\s*(--[\w-]+)/g)].map((m) => m[1]);
+  return refs.some((r) => flips(r, seen));
+}
 
 if (light && dark) {
   for (const [name, value] of light.map) {
     if (dark.map.has(name)) continue;
     if (THEME_STABLE[name]) continue;
-    // Derived: if the value only references other tokens and at least one of
-    // them flips, the derived value flips with it.
-    const refs = [...value.matchAll(/var\(\s*(--[\w-]+)/g)].map((m) => m[1]);
-    if (refs.length && refs.some((r) => dark.map.has(r))) continue;
+    if (flips(name)) continue;
     fail(
       `globals.css ${name}`,
       `declared in :root but never in [data-theme="dark"] (value ${value}). Add a dark value, or list it in THEME_STABLE with the reason.`,
@@ -270,48 +285,52 @@ const AA_TARGET = (label, floor) => {
   return 3.0;
 };
 const PAIRS = [
-  ['--ink', '--surface', 4.5, 'body text on a card'],
-  ['--ink', '--page', 4.5, 'body text on the canvas'],
-  ['--ink-2', '--surface', 4.5, 'strong text on a card'],
-  ['--ink-3', '--surface', 4.5, 'medium text on a card'],
-  ['--muted', '--surface', 4.5, 'secondary text on a card'],
-  ['--muted-2', '--surface', 4.5, 'secondary label on a card'],
-  ['--muted-3', '--surface', 3.0, 'tertiary text on a card'],
-  ['--muted-soft', '--surface', 2.2, 'placeholder / disabled text'],
-  ['--ink', '--surface-2', 4.5, 'text on the faint panel'],
-  ['--ink', '--surface-3', 4.5, 'text on the inner panel'],
-  ['--muted', '--page', 4.3, 'secondary text on the canvas'],
+  // Semantic text ramp (Night & Bloom, tokens.md §9).
+  ['--text-1', '--surface', 4.5, 'body text on a card'],
+  ['--text-1', '--page', 4.5, 'body text on the canvas'],
+  ['--text-2', '--surface', 4.5, 'secondary text on a card'],
+  ['--text-2', '--page', 4.5, 'secondary text on the canvas'],
+  ['--text-3', '--surface', 4.5, 'caption text on a card'],
+  ['--text-4', '--surface', 2.2, 'placeholder / disabled text', 'design'],
+  ['--text-1', '--surface-2', 4.5, 'text on the faint panel'],
+  ['--text-1', '--surface-3', 4.5, 'text on the inner panel'],
+  ['--text-1', '--surface-4', 4.5, 'text on an opaque inset'],
+  // Legacy aliases still used by most screens.
+  ['--ink', '--surface', 4.5, 'body text on a card (legacy --ink)'],
+  ['--muted', '--surface', 4.5, 'secondary text on a card (legacy --muted)'],
+  ['--muted-3', '--surface', 3.0, 'tertiary text on a card (legacy --muted-3)'],
 
-  ['--brand', '--surface', 4.1, 'brand text/icon on a card'],
-  ['--brand', '--page', 3.6, 'brand text/icon on the canvas'],
+  ['--brand', '--surface', 4.5, 'brand text/icon on a card'],
+  ['--brand', '--page', 4.1, 'brand text/icon on the canvas'],
+  ['--brand-ink', '--brand-soft', 4.5, 'brand text on its own soft tint'],
   ['--brand', '--pink-bg', 3.0, 'brand glyph on its own soft tint'],
-  ['--brand-deep', '--surface', 4.5, 'brand heading on a card'],
   ['--brand-strong', '--surface', 4.5, 'strongest brand text'],
-  ['--on-accent', '--brand-fill', 3.0, 'white label on a brand fill'],
+  ['--on-brand', '--brand-fill', 4.5, 'label on a primary fill (CTA, FAB, selected chip)'],
   ['--on-accent', '--success-fill', 4.5, 'white label on a success fill («ذخیره شد»)'],
-  ['--on-accent', '--grad-start', 3.0, 'white label on the gradient (start)'],
-  ['--on-accent', '--grad-end', 2.5, 'white label on the gradient (end)'],
+  ['--on-accent', '--splash-to', 4.5, 'white label on the splash fill'],
+  ['--on-accent', '--preg-hero-start', 4.5, 'white text on the pregnancy hero'],
 
-  ['--data-deep', '--surface', 2.9, 'data text on a card'],
-  ['--data-deep', '--data-soft', 2.7, 'data text on its own tint'],
+  ['--data-deep', '--surface', 4.5, 'data text on a card'],
+  ['--data-deep', '--data-soft', 4.3, 'data text on its own tint'],
+  ['--data', '--surface', 2.9, 'data marker on a card'],
   ['--period-deep', '--surface', 4.5, 'period text on a card'],
   ['--period-deep', '--period-soft', 4.3, 'period text on a period day cell'],
   ['--period', '--surface', 3.0, 'period marker on a card'],
   ['--danger-deep', '--surface', 4.5, 'error text on a card'],
   ['--danger-deep', '--danger-soft', 4.5, 'error text on its own tint'],
   ['--danger', '--surface', 3.0, 'danger icon on a card'],
-  ['--green-deep', '--surface', 4.5, 'success text on a card'],
-  ['--green-deep', '--green-tint', 4.5, 'success text on its own tint'],
-  ['--amber-deep', '--surface', 4.5, 'warning text on a card'],
-  ['--amber-deep', '--amber-soft', 4.5, 'warning text on its own tint'],
-  ['--teal-deep', '--teal-soft', 3.8, 'category text on its own tint'],
-  ['--indigo-deep', '--indigo-soft', 4.3, 'category text on its own tint'],
-  ['--rose-deep', '--surface', 3.0, 'rose accent on a card'],
+  ['--success', '--surface', 4.5, 'success text on a card'],
+  ['--success', '--success-soft', 4.5, 'success text on its own tint'],
+  ['--warm-deep', '--surface', 4.5, 'warning text on a card'],
+  ['--warm-deep', '--warm-soft', 4.5, 'warning text on its own tint'],
+  ['--amber-deep', '--amber-soft', 4.5, 'warning text on the caution tint'],
+  ['--warm', '--surface', 2.0, 'fertile-window marker on a card'],
+  ['--bloom-deep', '--surface', 3.0, 'bloom accent on a card'],
 
   ['--line', '--surface', 1.06, 'hairline on a card'],
   ['--line', '--page', 1.06, 'hairline on the canvas'],
+  ['--line-strong', '--surface', 1.06, 'selected-outline hairline on a card'],
   ['--track', '--surface', 1.15, 'progress rail on a card'],
-  ['--field-border', '--surface', 1.06, 'input border on a card'],
   ['--surface', '--page', 1.03, 'card standing off the canvas'],
 ];
 
@@ -323,7 +342,7 @@ for (const t of ['--pink-bg', '--amber-soft', '--green-tint', '--violet-soft', '
 }
 
 if (light && dark) {
-  for (const [fgName, bgName, min, label] of PAIRS) {
+  for (const [fgName, bgName, min, label, source] of PAIRS) {
     const scores = {};
     let broken = false;
     for (const theme of ['light', 'dark']) {
@@ -335,7 +354,7 @@ if (light && dark) {
         break;
       }
       // A translucent token is judged as it renders: composited on its backdrop.
-      const bg = over(bgRaw, theme === 'dark' ? [19, 16, 34] : [255, 255, 255]);
+      const bg = over(bgRaw, theme === 'dark' ? [34, 26, 61] : [255, 255, 255]);
       scores[theme] = contrast(over(fgRaw, bg), bg);
     }
     if (broken) continue;
@@ -354,8 +373,10 @@ if (light && dark) {
         );
       }
     }
-    // Dark must not be a downgrade even where both clear the floor.
-    if (scores.dark < scores.light * 0.85 && scores.light >= min) {
+    // Dark must not be a downgrade even where both clear the floor — unless it
+    // still clears WCAG AA, or the pair is marked 'design' (both values taken
+    // from the Night & Bloom artboards, tokens.md §9).
+    if (source !== 'design' && scores.dark < aa && scores.dark < scores.light * 0.85 && scores.light >= min) {
       fail(
         `contrast ${fgName} on ${bgName}`,
         `dark ${scores.dark.toFixed(2)}:1 is materially worse than light ${scores.light.toFixed(2)}:1 — ${label}`,
@@ -457,6 +478,30 @@ for (const file of walk(SRC)) {
   });
 }
 
+// ── 6. the retired palette ───────────────────────────────────────
+
+/**
+ * Hexes of the palette Night & Bloom replaced. #FF6FAE survives only as the
+ * light value of --bloom (the design's illustration/companion pink), so it is
+ * allowed on that one declaration and nowhere else.
+ */
+const RETIRED = ['#7B61FF', '#3DD6F3', '#F2ECFF', '#131022', '#1B172B', '#2F2F35', '#8A72FF', '#FF6FAE'];
+const RETIRED_ALLOWED = [/^\s*--bloom:\s*#FF6FAE;/i];
+{
+  const targets = [...walk(SRC), GLOBALS, join(ROOT, 'public', 'offline.html')];
+  for (const file of targets) {
+    const rel = relative(ROOT, file);
+    readFileSync(file, 'utf8').split('\n').forEach((line, i) => {
+      if (RETIRED_ALLOWED.some((re) => re.test(line))) return;
+      for (const hex of RETIRED) {
+        if (line.toUpperCase().includes(hex)) {
+          fail(`${rel}:${i + 1}`, `${hex} belongs to the retired palette — use the Night & Bloom token (docs/night-bloom/tokens.md)`);
+        }
+      }
+    });
+  }
+}
+
 // ── report ───────────────────────────────────────────────────────
 
 if (VERBOSE && notes.length) {
@@ -466,7 +511,7 @@ if (VERBOSE && notes.length) {
 }
 
 if (warnings.length) {
-  console.warn(`⚠ ${warnings.length} contrast pair${warnings.length === 1 ? '' : 's'} under WCAG AA (pre-existing in the brand palette — not a regression):\n`);
+  console.warn(`⚠ ${warnings.length} contrast pair${warnings.length === 1 ? '' : 's'} under WCAG AA (Night & Bloom design values, tokens.md §9 — use the -deep token for text):\n`);
   for (const w of warnings) console.warn(`  ${w}`);
   console.warn('');
 }
