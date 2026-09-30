@@ -1,0 +1,1890 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "IA_Map.dc.html": {
+      "h": 1280,
+      "page": "p_ia",
+      "title": "نقشه ساختار اپ",
+      "w": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "IA_Nav.dc.html": {
+      "h": 1550,
+      "page": "p_ia",
+      "title": "قواعد ناوبری پایین",
+      "w": 1440,
+      "x": 1520,
+      "y": 0
+    },
+    "Main.dc.html": {
+      "h": 1890,
+      "is_interactive": true,
+      "page": "p_meno",
+      "title": "۱ · خانه یائسگی",
+      "w": 390,
+      "x": 0,
+      "y": 0
+    },
+    "W_Dir_Booked.dc.html": {
+      "h": 1118,
+      "is_interactive": true,
+      "page": "p_dir",
+      "title": "وب ۳ · رزرو ثبت شد",
+      "w": 1440,
+      "x": 3040,
+      "y": 6360
+    },
+    "W_Dir_Business.dc.html": {
+      "h": 2978,
+      "is_interactive": true,
+      "page": "p_dir",
+      "title": "وب ۴ · صفحه کسب‌وکارها",
+      "w": 1440,
+      "x": 4560,
+      "y": 6360
+    },
+    "W_Dir_Join.dc.html": {
+      "h": 2358,
+      "is_interactive": true,
+      "page": "p_dir",
+      "title": "وب ۵ · فرم ثبت مجموعه",
+      "w": 1440,
+      "x": 6080,
+      "y": 6360
+    },
+    "W_Dir_JoinDone.dc.html": {
+      "h": 1049,
+      "is_interactive": true,
+      "page": "p_dir",
+      "title": "وب ۶ · درخواست در حال بررسی",
+      "w": 1440,
+      "x": 7600,
+      "y": 6360
+    },
+    "W_Dir_Place.dc.html": {
+      "h": 3246,
+      "is_interactive": true,
+      "page": "p_dir",
+      "title": "وب ۲ · صفحه مجموعه و رزرو",
+      "w": 1440,
+      "x": 1520,
+      "y": 6360
+    },
+    "W_Dir_Search.dc.html": {
+      "h": 2348,
+      "is_interactive": true,
+      "page": "p_dir",
+      "title": "وب ۱ · جست‌وجو و نقشه",
+      "w": 1440,
+      "x": 0,
+      "y": 6360
+    },
+    "W_Shop_Cart.dc.html": {
+      "h": 1560,
+      "is_interactive": true,
+      "page": "p_shop",
+      "title": "وب ۴ · سبد خرید",
+      "w": 1440,
+      "x": 4560,
+      "y": 2560
+    },
+    "W_Shop_Checkout.dc.html": {
+      "h": 1324,
+      "is_interactive": true,
+      "page": "p_shop",
+      "title": "وب ۵ · ارسال و پرداخت",
+      "w": 1440,
+      "x": 6080,
+      "y": 2560
+    },
+    "W_Shop_Done.dc.html": {
+      "h": 1268,
+      "is_interactive": true,
+      "page": "p_shop",
+      "title": "وب ۶ · سفارش ثبت شد",
+      "w": 1440,
+      "x": 7600,
+      "y": 2560
+    },
+    "W_Shop_Home.dc.html": {
+      "h": 2750,
+      "is_interactive": true,
+      "page": "p_shop",
+      "title": "وب ۱ · خانه فروشگاه",
+      "w": 1440,
+      "x": 0,
+      "y": 2560
+    },
+    "W_Shop_List.dc.html": {
+      "h": 1708,
+      "is_interactive": true,
+      "page": "p_shop",
+      "title": "وب ۲ · فهرست و فیلتر",
+      "w": 1440,
+      "x": 1520,
+      "y": 2560
+    },
+    "W_Shop_Product.dc.html": {
+      "h": 2261,
+      "is_interactive": true,
+      "page": "p_shop",
+      "title": "وب ۳ · صفحه محصول",
+      "w": 1440,
+      "x": 3040,
+      "y": 2560
+    },
+    "nbd_Cond_Bleed.dc.html": {
+      "h": 1460,
+      "is_interactive": true,
+      "page": "p_cond",
+      "title": "۴ · جدول خونریزی",
+      "w": 390,
+      "x": 1410,
+      "y": 0
+    },
+    "nbd_Cond_Endo.dc.html": {
+      "h": 1640,
+      "is_interactive": true,
+      "page": "p_cond",
+      "title": "۲ · دفترچه درد اندومتریوز",
+      "w": 390,
+      "x": 470,
+      "y": 0
+    },
+    "nbd_Cond_Hub.dc.html": {
+      "h": 1290,
+      "is_interactive": true,
+      "page": "p_cond",
+      "title": "۱ · برنامه‌ها",
+      "w": 390,
+      "x": 0,
+      "y": 0
+    },
+    "nbd_Cond_PMDD.dc.html": {
+      "h": 1560,
+      "is_interactive": true,
+      "page": "p_cond",
+      "title": "۳ · پرسشنامه PMDD",
+      "w": 390,
+      "x": 940,
+      "y": 0
+    },
+    "nbd_Contra_Missed.dc.html": {
+      "h": 1300,
+      "is_interactive": true,
+      "page": "p_contra",
+      "title": "۳ · قرص جا افتاده",
+      "w": 390,
+      "x": 940,
+      "y": 0
+    },
+    "nbd_Contra_Other.dc.html": {
+      "h": 1260,
+      "is_interactive": true,
+      "page": "p_contra",
+      "title": "۴ · آی‌یو‌دی، آمپول، کاشتنی",
+      "w": 390,
+      "x": 1410,
+      "y": 0
+    },
+    "nbd_Contra_Pill.dc.html": {
+      "h": 1380,
+      "is_interactive": true,
+      "page": "p_contra",
+      "title": "۲ · بسته قرص",
+      "w": 390,
+      "x": 470,
+      "y": 0
+    },
+    "nbd_Contra_Setup.dc.html": {
+      "h": 1200,
+      "is_interactive": true,
+      "page": "p_contra",
+      "title": "۱ · انتخاب روش",
+      "w": 390,
+      "x": 0,
+      "y": 0
+    },
+    "nbd_Dir_Book.dc.html": {
+      "h": 1300,
+      "is_interactive": true,
+      "page": "p_dir",
+      "title": "۵ · انتخاب وقت",
+      "w": 390,
+      "x": 1880,
+      "y": 0
+    },
+    "nbd_Dir_Booked.dc.html": {
+      "h": 1210,
+      "is_interactive": true,
+      "page": "p_dir",
+      "title": "۶ · رزرو ثبت شد",
+      "w": 390,
+      "x": 2350,
+      "y": 0
+    },
+    "nbd_Dir_Home.dc.html": {
+      "h": 1730,
+      "is_interactive": true,
+      "page": "p_dir",
+      "title": "۱ · خانه خدمات",
+      "w": 390,
+      "x": 0,
+      "y": 0
+    },
+    "nbd_Dir_Join.dc.html": {
+      "h": 1350,
+      "is_interactive": true,
+      "page": "p_dir",
+      "title": "۸ · ثبت مجموعه: معرفی",
+      "w": 390,
+      "x": 3290,
+      "y": 0
+    },
+    "nbd_Dir_JoinDocs.dc.html": {
+      "h": 1350,
+      "is_interactive": true,
+      "page": "p_dir",
+      "title": "۱۰ · ثبت مجموعه: خدمات و مدارک",
+      "w": 390,
+      "x": 4230,
+      "y": 0
+    },
+    "nbd_Dir_JoinDone.dc.html": {
+      "h": 950,
+      "is_interactive": true,
+      "page": "p_dir",
+      "title": "۱۱ · درخواست در حال بررسی",
+      "w": 390,
+      "x": 4700,
+      "y": 0
+    },
+    "nbd_Dir_JoinForm.dc.html": {
+      "h": 1830,
+      "is_interactive": true,
+      "page": "p_dir",
+      "title": "۹ · ثبت مجموعه: مکان و تصاویر",
+      "w": 390,
+      "x": 3760,
+      "y": 0
+    },
+    "nbd_Dir_List.dc.html": {
+      "h": 1210,
+      "is_interactive": true,
+      "page": "p_dir",
+      "title": "۳ · فهرست و فیلتر",
+      "w": 390,
+      "x": 940,
+      "y": 0
+    },
+    "nbd_Dir_Map.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "p_dir",
+      "title": "۲ · نقشه",
+      "w": 390,
+      "x": 470,
+      "y": 0
+    },
+    "nbd_Dir_MyBookings.dc.html": {
+      "h": 1000,
+      "is_interactive": true,
+      "page": "p_dir",
+      "title": "۷ · رزروهای من",
+      "w": 390,
+      "x": 2820,
+      "y": 0
+    },
+    "nbd_Dir_Place.dc.html": {
+      "h": 2580,
+      "is_interactive": true,
+      "page": "p_dir",
+      "title": "۴ · صفحه مجموعه",
+      "w": 390,
+      "x": 1410,
+      "y": 0
+    },
+    "nbd_IVF_Home.dc.html": {
+      "h": 1670,
+      "is_interactive": true,
+      "page": "p_ivf",
+      "title": "۱ · خانه درمان",
+      "w": 390,
+      "x": 0,
+      "y": 0
+    },
+    "nbd_IVF_Meds.dc.html": {
+      "h": 1610,
+      "is_interactive": true,
+      "page": "p_ivf",
+      "title": "۲ · برنامه تزریق",
+      "w": 390,
+      "x": 470,
+      "y": 0
+    },
+    "nbd_IVF_Scan.dc.html": {
+      "h": 1400,
+      "is_interactive": true,
+      "page": "p_ivf",
+      "title": "۳ · ثبت سونو",
+      "w": 390,
+      "x": 940,
+      "y": 0
+    },
+    "nbd_IVF_TWW.dc.html": {
+      "h": 1320,
+      "is_interactive": true,
+      "page": "p_ivf",
+      "title": "۴ · دو هفته انتظار",
+      "w": 390,
+      "x": 1410,
+      "y": 0
+    },
+    "nbd_Ins_Centers.dc.html": {
+      "h": 1560,
+      "is_interactive": true,
+      "page": "p_ins",
+      "title": "۸ · مراکز طرف قرارداد",
+      "w": 390,
+      "x": 3290,
+      "y": 0
+    },
+    "nbd_Ins_ClaimDetail.dc.html": {
+      "h": 1480,
+      "is_interactive": true,
+      "page": "p_ins",
+      "title": "۷ · جزئیات خسارت",
+      "w": 390,
+      "x": 2820,
+      "y": 0
+    },
+    "nbd_Ins_ClaimNew.dc.html": {
+      "h": 1560,
+      "is_interactive": true,
+      "page": "p_ins",
+      "title": "۶ · ثبت خسارت",
+      "w": 390,
+      "x": 2350,
+      "y": 0
+    },
+    "nbd_Ins_Claims.dc.html": {
+      "h": 1600,
+      "is_interactive": true,
+      "page": "p_ins",
+      "title": "۵ · سوابق خسارت",
+      "w": 390,
+      "x": 1880,
+      "y": 0
+    },
+    "nbd_Ins_Coverage.dc.html": {
+      "h": 1500,
+      "is_interactive": true,
+      "page": "p_ins",
+      "title": "۲ · پوشش‌ها و سقف‌ها",
+      "w": 390,
+      "x": 470,
+      "y": 0
+    },
+    "nbd_Ins_Health.dc.html": {
+      "h": 1640,
+      "is_interactive": true,
+      "page": "p_ins",
+      "title": "۳ · پرسشنامه سلامت",
+      "w": 390,
+      "x": 940,
+      "y": 0
+    },
+    "nbd_Ins_Home.dc.html": {
+      "h": 1710,
+      "is_interactive": true,
+      "page": "p_ins",
+      "title": "۱ · خانه بیمه",
+      "w": 390,
+      "x": 0,
+      "y": 0
+    },
+    "nbd_Ins_Status.dc.html": {
+      "h": 1240,
+      "is_interactive": true,
+      "page": "p_ins",
+      "title": "۴ · وضعیت درخواست‌ها",
+      "w": 390,
+      "x": 1410,
+      "y": 0
+    },
+    "nbd_Loss_Care.dc.html": {
+      "h": 1500,
+      "is_interactive": true,
+      "page": "p_loss",
+      "title": "۲ · مراقبت و حمایت",
+      "w": 390,
+      "x": 470,
+      "y": 0
+    },
+    "nbd_Loss_Next.dc.html": {
+      "h": 1000,
+      "is_interactive": true,
+      "page": "p_loss",
+      "title": "۳ · قدم بعدی",
+      "w": 390,
+      "x": 940,
+      "y": 0
+    },
+    "nbd_Loss_Start.dc.html": {
+      "h": 1260,
+      "is_interactive": true,
+      "page": "p_loss",
+      "title": "۱ · ثبت با لحن آرام",
+      "w": 390,
+      "x": 0,
+      "y": 0
+    },
+    "nbd_Meno_Alert.dc.html": {
+      "h": 1420,
+      "is_interactive": true,
+      "page": "p_meno",
+      "title": "۵ · هشدار خونریزی و علائم خطر",
+      "w": 390,
+      "x": 1880,
+      "y": 0
+    },
+    "nbd_Meno_Checkups.dc.html": {
+      "h": 1760,
+      "is_interactive": true,
+      "page": "p_meno",
+      "title": "۷ · چکاپ‌ها و آزمایش‌ها",
+      "w": 390,
+      "x": 2820,
+      "y": 0
+    },
+    "nbd_Meno_HotFlash.dc.html": {
+      "h": 1320,
+      "is_interactive": true,
+      "page": "p_meno",
+      "title": "۴ · ثبت گرگرفتگی",
+      "w": 390,
+      "x": 1410,
+      "y": 0
+    },
+    "nbd_Meno_Log.dc.html": {
+      "h": 2260,
+      "is_interactive": true,
+      "page": "p_meno",
+      "title": "۳ · ثبت علائم روزانه",
+      "w": 390,
+      "x": 940,
+      "y": 0
+    },
+    "nbd_Meno_Report.dc.html": {
+      "h": 1880,
+      "is_interactive": true,
+      "page": "p_meno",
+      "title": "۹ · گزارش برای پزشک",
+      "w": 390,
+      "x": 3760,
+      "y": 0
+    },
+    "nbd_Meno_Score.dc.html": {
+      "h": 1590,
+      "is_interactive": true,
+      "page": "p_meno",
+      "title": "۶ · امتیاز علائم (ماهانه)",
+      "w": 390,
+      "x": 2350,
+      "y": 0
+    },
+    "nbd_Meno_Stage.dc.html": {
+      "h": 1080,
+      "is_interactive": true,
+      "page": "p_meno",
+      "title": "۲ · انتخاب مرحله",
+      "w": 390,
+      "x": 470,
+      "y": 0
+    },
+    "nbd_Meno_Treatment.dc.html": {
+      "h": 1720,
+      "is_interactive": true,
+      "page": "p_meno",
+      "title": "۸ · درمان و مراقبت",
+      "w": 390,
+      "x": 3290,
+      "y": 0
+    },
+    "nbd_Nav_Me.dc.html": {
+      "h": 1940,
+      "is_interactive": true,
+      "page": "p_ia",
+      "title": "۵ · تب من",
+      "w": 390,
+      "x": 1880,
+      "y": 2150
+    },
+    "nbd_Nav_Mode.dc.html": {
+      "h": 1180,
+      "is_interactive": true,
+      "page": "p_ia",
+      "title": "۶ · انتخاب مرحله زندگی",
+      "w": 390,
+      "x": 2350,
+      "y": 2150
+    },
+    "nbd_Nav_Plus.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "p_ia",
+      "title": "۳ · برگه ثبت (+)",
+      "w": 390,
+      "x": 940,
+      "y": 2150
+    },
+    "nbd_Nav_Search.dc.html": {
+      "h": 1050,
+      "is_interactive": true,
+      "page": "p_ia",
+      "title": "۷ · جست‌وجوی سراسری",
+      "w": 390,
+      "x": 2820,
+      "y": 2150
+    },
+    "nbd_Nav_Services.dc.html": {
+      "h": 1670,
+      "is_interactive": true,
+      "page": "p_ia",
+      "title": "۴ · تب خدمات",
+      "w": 390,
+      "x": 1410,
+      "y": 2150
+    },
+    "nbd_Nav_Stage.dc.html": {
+      "h": 980,
+      "is_interactive": true,
+      "page": "p_ia",
+      "title": "۲ · تب مرحله: تقویم و تحلیل",
+      "w": 390,
+      "x": 470,
+      "y": 2150
+    },
+    "nbd_Nav_Today.dc.html": {
+      "h": 1260,
+      "is_interactive": true,
+      "page": "p_ia",
+      "title": "۱ · امروز (هدر با چیپ حالت و جست‌وجو)",
+      "w": 390,
+      "x": 0,
+      "y": 2150
+    },
+    "nbd_Pelvic_Kegel.dc.html": {
+      "h": 1000,
+      "is_interactive": true,
+      "page": "p_pelvic",
+      "title": "۲ · تمرین کگل",
+      "w": 390,
+      "x": 470,
+      "y": 0
+    },
+    "nbd_Pelvic_Plan.dc.html": {
+      "h": 1410,
+      "is_interactive": true,
+      "page": "p_pelvic",
+      "title": "۱ · برنامه و دفترچه",
+      "w": 390,
+      "x": 0,
+      "y": 0
+    },
+    "nbd_Priv_Icon.dc.html": {
+      "h": 1020,
+      "is_interactive": true,
+      "page": "p_priv",
+      "title": "۳ · آیکون خنثی",
+      "w": 390,
+      "x": 940,
+      "y": 0
+    },
+    "nbd_Priv_Lock.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "p_priv",
+      "title": "۲ · صفحه قفل",
+      "w": 390,
+      "x": 470,
+      "y": 0
+    },
+    "nbd_Priv_Settings.dc.html": {
+      "h": 1430,
+      "is_interactive": true,
+      "page": "p_priv",
+      "title": "۱ · تنظیمات",
+      "w": 390,
+      "x": 0,
+      "y": 0
+    },
+    "nbd_Rec_Doc.dc.html": {
+      "h": 1320,
+      "is_interactive": true,
+      "page": "p_rec",
+      "title": "۳ · جزئیات سند",
+      "w": 390,
+      "x": 940,
+      "y": 0
+    },
+    "nbd_Rec_Emergency.dc.html": {
+      "h": 1240,
+      "is_interactive": true,
+      "page": "p_rec",
+      "title": "۵ · کارت اضطراری",
+      "w": 390,
+      "x": 1880,
+      "y": 0
+    },
+    "nbd_Rec_Home.dc.html": {
+      "h": 1650,
+      "is_interactive": true,
+      "page": "p_rec",
+      "title": "۱ · خلاصه پرونده",
+      "w": 390,
+      "x": 0,
+      "y": 0
+    },
+    "nbd_Rec_Share.dc.html": {
+      "h": 1360,
+      "is_interactive": true,
+      "page": "p_rec",
+      "title": "۴ · دسترسی‌ها",
+      "w": 390,
+      "x": 1410,
+      "y": 0
+    },
+    "nbd_Rec_Timeline.dc.html": {
+      "h": 1360,
+      "is_interactive": true,
+      "page": "p_rec",
+      "title": "۲ · سوابق و اسناد",
+      "w": 390,
+      "x": 470,
+      "y": 0
+    },
+    "nbd_Shop_Beauty.dc.html": {
+      "h": 1770,
+      "is_interactive": true,
+      "page": "p_shop",
+      "title": "۲ · فروشگاه آرایشی و بهداشتی",
+      "w": 390,
+      "x": 470,
+      "y": 0
+    },
+    "nbd_Shop_Cart.dc.html": {
+      "h": 990,
+      "is_interactive": true,
+      "page": "p_shop",
+      "title": "۷ · سبد خرید",
+      "w": 390,
+      "x": 2820,
+      "y": 0
+    },
+    "nbd_Shop_Checklist.dc.html": {
+      "h": 1290,
+      "is_interactive": true,
+      "page": "p_shop",
+      "title": "۶ · لیست سیسمونی",
+      "w": 390,
+      "x": 2350,
+      "y": 0
+    },
+    "nbd_Shop_Checkout.dc.html": {
+      "h": 1320,
+      "is_interactive": true,
+      "page": "p_shop",
+      "title": "۸ · ارسال و پرداخت",
+      "w": 390,
+      "x": 3290,
+      "y": 0
+    },
+    "nbd_Shop_Home.dc.html": {
+      "h": 2070,
+      "is_interactive": true,
+      "page": "p_shop",
+      "title": "۱ · فروشگاه سیسمونی و نوزاد",
+      "w": 390,
+      "x": 0,
+      "y": 0
+    },
+    "nbd_Shop_List.dc.html": {
+      "h": 1270,
+      "is_interactive": true,
+      "page": "p_shop",
+      "title": "۳ · فهرست و فیلتر",
+      "w": 390,
+      "x": 940,
+      "y": 0
+    },
+    "nbd_Shop_Order.dc.html": {
+      "h": 1150,
+      "is_interactive": true,
+      "page": "p_shop",
+      "title": "۹ · سفارش ثبت شد",
+      "w": 390,
+      "x": 3760,
+      "y": 0
+    },
+    "nbd_Shop_Product.dc.html": {
+      "h": 1780,
+      "is_interactive": true,
+      "page": "p_shop",
+      "title": "۴ · صفحه محصول نوزاد",
+      "w": 390,
+      "x": 1410,
+      "y": 0
+    },
+    "nbd_Shop_ProductBeauty.dc.html": {
+      "h": 1420,
+      "is_interactive": true,
+      "page": "p_shop",
+      "title": "۵ · صفحه محصول آرایشی",
+      "w": 390,
+      "x": 1880,
+      "y": 0
+    },
+    "nbd_Teen_Home.dc.html": {
+      "h": 1670,
+      "is_interactive": true,
+      "page": "p_teen",
+      "title": "۲ · خانه نوجوان",
+      "w": 390,
+      "x": 470,
+      "y": 0
+    },
+    "nbd_Teen_Onb.dc.html": {
+      "h": 1100,
+      "is_interactive": true,
+      "page": "p_teen",
+      "title": "۱ · شروع",
+      "w": 390,
+      "x": 0,
+      "y": 0
+    },
+    "nbd_Teen_Parent.dc.html": {
+      "h": 1060,
+      "is_interactive": true,
+      "page": "p_teen",
+      "title": "۳ · همراهی مادر",
+      "w": 390,
+      "x": 940,
+      "y": 0
+    },
+    "nbd_Voice_Entry.dc.html": {
+      "h": 1360,
+      "is_interactive": true,
+      "page": "p_voice",
+      "title": "۱ · انتخاب ثبت با صدا",
+      "w": 390,
+      "x": 0,
+      "y": 0
+    },
+    "nbd_Voice_Record.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "p_voice",
+      "title": "۲ · ضبط و متن زنده",
+      "w": 390,
+      "x": 470,
+      "y": 0
+    },
+    "nbd_Voice_Review.dc.html": {
+      "h": 1900,
+      "is_interactive": true,
+      "page": "p_voice",
+      "title": "۳ · بررسی و ویرایش",
+      "w": 390,
+      "x": 940,
+      "y": 0
+    },
+    "nbd_Voice_Saved.dc.html": {
+      "h": 1300,
+      "is_interactive": true,
+      "page": "p_voice",
+      "title": "۴ · ثبت شد",
+      "w": 390,
+      "x": 1410,
+      "y": 0
+    },
+    "nbd_Wear_Connect.dc.html": {
+      "h": 1610,
+      "is_interactive": true,
+      "page": "p_wear",
+      "title": "۱ · منبع‌ها",
+      "w": 390,
+      "x": 0,
+      "y": 0
+    },
+    "nbd_Wear_Data.dc.html": {
+      "h": 1260,
+      "is_interactive": true,
+      "page": "p_wear",
+      "title": "۲ · داده‌های دریافتی",
+      "w": 390,
+      "x": 470,
+      "y": 0
+    },
+    "nbl_Cond_Bleed.dc.html": {
+      "h": 1460,
+      "is_interactive": true,
+      "page": "p_cond",
+      "title": "۴ · جدول خونریزی",
+      "w": 390,
+      "x": 1410,
+      "y": 2240
+    },
+    "nbl_Cond_Endo.dc.html": {
+      "h": 1640,
+      "is_interactive": true,
+      "page": "p_cond",
+      "title": "۲ · دفترچه درد اندومتریوز",
+      "w": 390,
+      "x": 470,
+      "y": 2240
+    },
+    "nbl_Cond_Hub.dc.html": {
+      "h": 1290,
+      "is_interactive": true,
+      "page": "p_cond",
+      "title": "۱ · برنامه‌ها",
+      "w": 390,
+      "x": 0,
+      "y": 2240
+    },
+    "nbl_Cond_PMDD.dc.html": {
+      "h": 1560,
+      "is_interactive": true,
+      "page": "p_cond",
+      "title": "۳ · پرسشنامه PMDD",
+      "w": 390,
+      "x": 940,
+      "y": 2240
+    },
+    "nbl_Contra_Missed.dc.html": {
+      "h": 1300,
+      "is_interactive": true,
+      "page": "p_contra",
+      "title": "۳ · قرص جا افتاده",
+      "w": 390,
+      "x": 940,
+      "y": 1980
+    },
+    "nbl_Contra_Other.dc.html": {
+      "h": 1260,
+      "is_interactive": true,
+      "page": "p_contra",
+      "title": "۴ · آی‌یو‌دی، آمپول، کاشتنی",
+      "w": 390,
+      "x": 1410,
+      "y": 1980
+    },
+    "nbl_Contra_Pill.dc.html": {
+      "h": 1380,
+      "is_interactive": true,
+      "page": "p_contra",
+      "title": "۲ · بسته قرص",
+      "w": 390,
+      "x": 470,
+      "y": 1980
+    },
+    "nbl_Contra_Setup.dc.html": {
+      "h": 1200,
+      "is_interactive": true,
+      "page": "p_contra",
+      "title": "۱ · انتخاب روش",
+      "w": 390,
+      "x": 0,
+      "y": 1980
+    },
+    "nbl_Dir_Book.dc.html": {
+      "h": 1300,
+      "is_interactive": true,
+      "page": "p_dir",
+      "title": "۵ · انتخاب وقت",
+      "w": 390,
+      "x": 1880,
+      "y": 3180
+    },
+    "nbl_Dir_Booked.dc.html": {
+      "h": 1210,
+      "is_interactive": true,
+      "page": "p_dir",
+      "title": "۶ · رزرو ثبت شد",
+      "w": 390,
+      "x": 2350,
+      "y": 3180
+    },
+    "nbl_Dir_Home.dc.html": {
+      "h": 1730,
+      "is_interactive": true,
+      "page": "p_dir",
+      "title": "۱ · خانه خدمات",
+      "w": 390,
+      "x": 0,
+      "y": 3180
+    },
+    "nbl_Dir_Join.dc.html": {
+      "h": 1350,
+      "is_interactive": true,
+      "page": "p_dir",
+      "title": "۸ · ثبت مجموعه: معرفی",
+      "w": 390,
+      "x": 3290,
+      "y": 3180
+    },
+    "nbl_Dir_JoinDocs.dc.html": {
+      "h": 1350,
+      "is_interactive": true,
+      "page": "p_dir",
+      "title": "۱۰ · ثبت مجموعه: خدمات و مدارک",
+      "w": 390,
+      "x": 4230,
+      "y": 3180
+    },
+    "nbl_Dir_JoinDone.dc.html": {
+      "h": 950,
+      "is_interactive": true,
+      "page": "p_dir",
+      "title": "۱۱ · درخواست در حال بررسی",
+      "w": 390,
+      "x": 4700,
+      "y": 3180
+    },
+    "nbl_Dir_JoinForm.dc.html": {
+      "h": 1830,
+      "is_interactive": true,
+      "page": "p_dir",
+      "title": "۹ · ثبت مجموعه: مکان و تصاویر",
+      "w": 390,
+      "x": 3760,
+      "y": 3180
+    },
+    "nbl_Dir_List.dc.html": {
+      "h": 1210,
+      "is_interactive": true,
+      "page": "p_dir",
+      "title": "۳ · فهرست و فیلتر",
+      "w": 390,
+      "x": 940,
+      "y": 3180
+    },
+    "nbl_Dir_Map.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "p_dir",
+      "title": "۲ · نقشه",
+      "w": 390,
+      "x": 470,
+      "y": 3180
+    },
+    "nbl_Dir_MyBookings.dc.html": {
+      "h": 1000,
+      "is_interactive": true,
+      "page": "p_dir",
+      "title": "۷ · رزروهای من",
+      "w": 390,
+      "x": 2820,
+      "y": 3180
+    },
+    "nbl_Dir_Place.dc.html": {
+      "h": 2580,
+      "is_interactive": true,
+      "page": "p_dir",
+      "title": "۴ · صفحه مجموعه",
+      "w": 390,
+      "x": 1410,
+      "y": 3180
+    },
+    "nbl_IVF_Home.dc.html": {
+      "h": 1670,
+      "is_interactive": true,
+      "page": "p_ivf",
+      "title": "۱ · خانه درمان",
+      "w": 390,
+      "x": 0,
+      "y": 2160
+    },
+    "nbl_IVF_Meds.dc.html": {
+      "h": 1610,
+      "is_interactive": true,
+      "page": "p_ivf",
+      "title": "۲ · برنامه تزریق",
+      "w": 390,
+      "x": 470,
+      "y": 2160
+    },
+    "nbl_IVF_Scan.dc.html": {
+      "h": 1400,
+      "is_interactive": true,
+      "page": "p_ivf",
+      "title": "۳ · ثبت سونو",
+      "w": 390,
+      "x": 940,
+      "y": 2160
+    },
+    "nbl_IVF_TWW.dc.html": {
+      "h": 1320,
+      "is_interactive": true,
+      "page": "p_ivf",
+      "title": "۴ · دو هفته انتظار",
+      "w": 390,
+      "x": 1410,
+      "y": 2160
+    },
+    "nbl_Ins_Centers.dc.html": {
+      "h": 1560,
+      "is_interactive": true,
+      "page": "p_ins",
+      "title": "۸ · مراکز طرف قرارداد",
+      "w": 390,
+      "x": 3290,
+      "y": 2240
+    },
+    "nbl_Ins_ClaimDetail.dc.html": {
+      "h": 1480,
+      "is_interactive": true,
+      "page": "p_ins",
+      "title": "۷ · جزئیات خسارت",
+      "w": 390,
+      "x": 2820,
+      "y": 2240
+    },
+    "nbl_Ins_ClaimNew.dc.html": {
+      "h": 1560,
+      "is_interactive": true,
+      "page": "p_ins",
+      "title": "۶ · ثبت خسارت",
+      "w": 390,
+      "x": 2350,
+      "y": 2240
+    },
+    "nbl_Ins_Claims.dc.html": {
+      "h": 1600,
+      "is_interactive": true,
+      "page": "p_ins",
+      "title": "۵ · سوابق خسارت",
+      "w": 390,
+      "x": 1880,
+      "y": 2240
+    },
+    "nbl_Ins_Coverage.dc.html": {
+      "h": 1500,
+      "is_interactive": true,
+      "page": "p_ins",
+      "title": "۲ · پوشش‌ها و سقف‌ها",
+      "w": 390,
+      "x": 470,
+      "y": 2240
+    },
+    "nbl_Ins_Health.dc.html": {
+      "h": 1640,
+      "is_interactive": true,
+      "page": "p_ins",
+      "title": "۳ · پرسشنامه سلامت",
+      "w": 390,
+      "x": 940,
+      "y": 2240
+    },
+    "nbl_Ins_Home.dc.html": {
+      "h": 1710,
+      "is_interactive": true,
+      "page": "p_ins",
+      "title": "۱ · خانه بیمه",
+      "w": 390,
+      "x": 0,
+      "y": 2240
+    },
+    "nbl_Ins_Status.dc.html": {
+      "h": 1240,
+      "is_interactive": true,
+      "page": "p_ins",
+      "title": "۴ · وضعیت درخواست‌ها",
+      "w": 390,
+      "x": 1410,
+      "y": 2240
+    },
+    "nbl_Loss_Care.dc.html": {
+      "h": 1500,
+      "is_interactive": true,
+      "page": "p_loss",
+      "title": "۲ · مراقبت و حمایت",
+      "w": 390,
+      "x": 470,
+      "y": 2100
+    },
+    "nbl_Loss_Next.dc.html": {
+      "h": 1000,
+      "is_interactive": true,
+      "page": "p_loss",
+      "title": "۳ · قدم بعدی",
+      "w": 390,
+      "x": 940,
+      "y": 2100
+    },
+    "nbl_Loss_Start.dc.html": {
+      "h": 1260,
+      "is_interactive": true,
+      "page": "p_loss",
+      "title": "۱ · ثبت با لحن آرام",
+      "w": 390,
+      "x": 0,
+      "y": 2100
+    },
+    "nbl_Meno_Alert.dc.html": {
+      "h": 1420,
+      "is_interactive": true,
+      "page": "p_meno",
+      "title": "۵ · هشدار خونریزی و علائم خطر",
+      "w": 390,
+      "x": 1880,
+      "y": 2600
+    },
+    "nbl_Meno_Checkups.dc.html": {
+      "h": 1760,
+      "is_interactive": true,
+      "page": "p_meno",
+      "title": "۷ · چکاپ‌ها و آزمایش‌ها",
+      "w": 390,
+      "x": 2820,
+      "y": 2600
+    },
+    "nbl_Meno_Home.dc.html": {
+      "h": 1890,
+      "is_interactive": true,
+      "page": "p_meno",
+      "title": "۱ · خانه یائسگی",
+      "w": 390,
+      "x": 0,
+      "y": 2600
+    },
+    "nbl_Meno_HotFlash.dc.html": {
+      "h": 1320,
+      "is_interactive": true,
+      "page": "p_meno",
+      "title": "۴ · ثبت گرگرفتگی",
+      "w": 390,
+      "x": 1410,
+      "y": 2600
+    },
+    "nbl_Meno_Log.dc.html": {
+      "h": 2260,
+      "is_interactive": true,
+      "page": "p_meno",
+      "title": "۳ · ثبت علائم روزانه",
+      "w": 390,
+      "x": 940,
+      "y": 2600
+    },
+    "nbl_Meno_Report.dc.html": {
+      "h": 1880,
+      "is_interactive": true,
+      "page": "p_meno",
+      "title": "۹ · گزارش برای پزشک",
+      "w": 390,
+      "x": 3760,
+      "y": 2600
+    },
+    "nbl_Meno_Score.dc.html": {
+      "h": 1590,
+      "is_interactive": true,
+      "page": "p_meno",
+      "title": "۶ · امتیاز علائم (ماهانه)",
+      "w": 390,
+      "x": 2350,
+      "y": 2600
+    },
+    "nbl_Meno_Stage.dc.html": {
+      "h": 1080,
+      "is_interactive": true,
+      "page": "p_meno",
+      "title": "۲ · انتخاب مرحله",
+      "w": 390,
+      "x": 470,
+      "y": 2600
+    },
+    "nbl_Meno_Treatment.dc.html": {
+      "h": 1720,
+      "is_interactive": true,
+      "page": "p_meno",
+      "title": "۸ · درمان و مراقبت",
+      "w": 390,
+      "x": 3290,
+      "y": 2600
+    },
+    "nbl_Pelvic_Kegel.dc.html": {
+      "h": 1000,
+      "is_interactive": true,
+      "page": "p_pelvic",
+      "title": "۲ · تمرین کگل",
+      "w": 390,
+      "x": 470,
+      "y": 1900
+    },
+    "nbl_Pelvic_Plan.dc.html": {
+      "h": 1410,
+      "is_interactive": true,
+      "page": "p_pelvic",
+      "title": "۱ · برنامه و دفترچه",
+      "w": 390,
+      "x": 0,
+      "y": 1900
+    },
+    "nbl_Priv_Icon.dc.html": {
+      "h": 1020,
+      "is_interactive": true,
+      "page": "p_priv",
+      "title": "۳ · آیکون خنثی",
+      "w": 390,
+      "x": 940,
+      "y": 1920
+    },
+    "nbl_Priv_Lock.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "p_priv",
+      "title": "۲ · صفحه قفل",
+      "w": 390,
+      "x": 470,
+      "y": 1920
+    },
+    "nbl_Priv_Settings.dc.html": {
+      "h": 1430,
+      "is_interactive": true,
+      "page": "p_priv",
+      "title": "۱ · تنظیمات",
+      "w": 390,
+      "x": 0,
+      "y": 1920
+    },
+    "nbl_Rec_Doc.dc.html": {
+      "h": 1320,
+      "is_interactive": true,
+      "page": "p_rec",
+      "title": "۳ · جزئیات سند",
+      "w": 390,
+      "x": 940,
+      "y": 2140
+    },
+    "nbl_Rec_Emergency.dc.html": {
+      "h": 1240,
+      "is_interactive": true,
+      "page": "p_rec",
+      "title": "۵ · کارت اضطراری",
+      "w": 390,
+      "x": 1880,
+      "y": 2140
+    },
+    "nbl_Rec_Home.dc.html": {
+      "h": 1650,
+      "is_interactive": true,
+      "page": "p_rec",
+      "title": "۱ · خلاصه پرونده",
+      "w": 390,
+      "x": 0,
+      "y": 2140
+    },
+    "nbl_Rec_Share.dc.html": {
+      "h": 1360,
+      "is_interactive": true,
+      "page": "p_rec",
+      "title": "۴ · دسترسی‌ها",
+      "w": 390,
+      "x": 1410,
+      "y": 2140
+    },
+    "nbl_Rec_Timeline.dc.html": {
+      "h": 1360,
+      "is_interactive": true,
+      "page": "p_rec",
+      "title": "۲ · سوابق و اسناد",
+      "w": 390,
+      "x": 470,
+      "y": 2140
+    },
+    "nbl_Teen_Home.dc.html": {
+      "h": 1670,
+      "is_interactive": true,
+      "page": "p_teen",
+      "title": "۲ · خانه نوجوان",
+      "w": 390,
+      "x": 470,
+      "y": 2160
+    },
+    "nbl_Teen_Onb.dc.html": {
+      "h": 1100,
+      "is_interactive": true,
+      "page": "p_teen",
+      "title": "۱ · شروع",
+      "w": 390,
+      "x": 0,
+      "y": 2160
+    },
+    "nbl_Teen_Parent.dc.html": {
+      "h": 1060,
+      "is_interactive": true,
+      "page": "p_teen",
+      "title": "۳ · همراهی مادر",
+      "w": 390,
+      "x": 940,
+      "y": 2160
+    },
+    "nbl_Voice_Entry.dc.html": {
+      "h": 1360,
+      "is_interactive": true,
+      "page": "p_voice",
+      "title": "۱ · انتخاب ثبت با صدا",
+      "w": 390,
+      "x": 0,
+      "y": 2500
+    },
+    "nbl_Voice_Record.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "page": "p_voice",
+      "title": "۲ · ضبط و متن زنده",
+      "w": 390,
+      "x": 470,
+      "y": 2500
+    },
+    "nbl_Voice_Review.dc.html": {
+      "h": 1900,
+      "is_interactive": true,
+      "page": "p_voice",
+      "title": "۳ · بررسی و ویرایش",
+      "w": 390,
+      "x": 940,
+      "y": 2500
+    },
+    "nbl_Voice_Saved.dc.html": {
+      "h": 1300,
+      "is_interactive": true,
+      "page": "p_voice",
+      "title": "۴ · ثبت شد",
+      "w": 390,
+      "x": 1410,
+      "y": 2500
+    },
+    "nbl_Wear_Connect.dc.html": {
+      "h": 1610,
+      "is_interactive": true,
+      "page": "p_wear",
+      "title": "۱ · منبع‌ها",
+      "w": 390,
+      "x": 0,
+      "y": 2100
+    },
+    "nbl_Wear_Data.dc.html": {
+      "h": 1260,
+      "is_interactive": true,
+      "page": "p_wear",
+      "title": "۲ · داده‌های دریافتی",
+      "w": 390,
+      "x": 470,
+      "y": 2100
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-09-26T14:10:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "page": "p_ia",
+    "view": "canvas"
+  },
+  "notes": {
+    "p_cond_d": {
+      "kind": "title1",
+      "maxW": 1800,
+      "page": "p_cond",
+      "text": "برنامه‌های بیماری‌ها — تم تیره",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "p_cond_l": {
+      "kind": "title1",
+      "maxW": 1800,
+      "page": "p_cond",
+      "text": "برنامه‌های بیماری‌ها — تم روشن",
+      "w": 240,
+      "x": 0,
+      "y": 1940
+    },
+    "p_contra_d": {
+      "kind": "title1",
+      "maxW": 1800,
+      "page": "p_contra",
+      "text": "پیشگیری از بارداری — تم تیره",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "p_contra_l": {
+      "kind": "title1",
+      "maxW": 1800,
+      "page": "p_contra",
+      "text": "پیشگیری از بارداری — تم روشن",
+      "w": 240,
+      "x": 0,
+      "y": 1680
+    },
+    "p_dir_d": {
+      "kind": "title1",
+      "maxW": 5000,
+      "page": "p_dir",
+      "text": "خدمات مادر و کودک — تم تیره",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "p_dir_l": {
+      "kind": "title1",
+      "maxW": 5000,
+      "page": "p_dir",
+      "text": "خدمات مادر و کودک — تم روشن",
+      "w": 240,
+      "x": 0,
+      "y": 2880
+    },
+    "p_dir_w": {
+      "kind": "title1",
+      "maxW": 5000,
+      "page": "p_dir",
+      "text": "خدمات مادر و کودک — نسخه وب",
+      "w": 240,
+      "x": 0,
+      "y": 6060
+    },
+    "p_ia_a": {
+      "kind": "title1",
+      "maxW": 3200,
+      "page": "p_ia",
+      "text": "ناوبری جدید — صفحه‌های کلیدی",
+      "w": 240,
+      "x": 0,
+      "y": 1850
+    },
+    "p_ins_d": {
+      "kind": "title1",
+      "maxW": 3680,
+      "page": "p_ins",
+      "text": "بیمه — تم تیره",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "p_ins_l": {
+      "kind": "title1",
+      "maxW": 3680,
+      "page": "p_ins",
+      "text": "بیمه — تم روشن",
+      "w": 240,
+      "x": 0,
+      "y": 1940
+    },
+    "p_ivf_d": {
+      "kind": "title1",
+      "maxW": 1800,
+      "page": "p_ivf",
+      "text": "درمان ناباروری (IVF) — تم تیره",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "p_ivf_l": {
+      "kind": "title1",
+      "maxW": 1800,
+      "page": "p_ivf",
+      "text": "درمان ناباروری (IVF) — تم روشن",
+      "w": 240,
+      "x": 0,
+      "y": 1860
+    },
+    "p_loss_d": {
+      "kind": "title1",
+      "maxW": 1330,
+      "page": "p_loss",
+      "text": "سقط و از دست دادن بارداری — تم تیره",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "p_loss_l": {
+      "kind": "title1",
+      "maxW": 1330,
+      "page": "p_loss",
+      "text": "سقط و از دست دادن بارداری — تم روشن",
+      "w": 240,
+      "x": 0,
+      "y": 1800
+    },
+    "p_pelvic_d": {
+      "kind": "title1",
+      "maxW": 1200,
+      "page": "p_pelvic",
+      "text": "کف لگن و مثانه — تم تیره",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "p_pelvic_l": {
+      "kind": "title1",
+      "maxW": 1200,
+      "page": "p_pelvic",
+      "text": "کف لگن و مثانه — تم روشن",
+      "w": 240,
+      "x": 0,
+      "y": 1600
+    },
+    "p_priv_d": {
+      "kind": "title1",
+      "maxW": 1330,
+      "page": "p_priv",
+      "text": "قفل و حریم خصوصی — تم تیره",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "p_priv_l": {
+      "kind": "title1",
+      "maxW": 1330,
+      "page": "p_priv",
+      "text": "قفل و حریم خصوصی — تم روشن",
+      "w": 240,
+      "x": 0,
+      "y": 1620
+    },
+    "p_rec_d": {
+      "kind": "title1",
+      "maxW": 2270,
+      "page": "p_rec",
+      "text": "پرونده سلامت — تم تیره",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "p_rec_l": {
+      "kind": "title1",
+      "maxW": 2270,
+      "page": "p_rec",
+      "text": "پرونده سلامت — تم روشن",
+      "w": 240,
+      "x": 0,
+      "y": 1840
+    },
+    "p_shop_d": {
+      "kind": "title1",
+      "maxW": 4100,
+      "page": "p_shop",
+      "text": "فروشگاه — اپ",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "p_shop_w": {
+      "kind": "title1",
+      "maxW": 5000,
+      "page": "p_shop",
+      "text": "فروشگاه — وب",
+      "w": 240,
+      "x": 0,
+      "y": 2260
+    },
+    "p_teen_d": {
+      "kind": "title1",
+      "maxW": 1330,
+      "page": "p_teen",
+      "text": "حالت نوجوان — تم تیره",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "p_teen_l": {
+      "kind": "title1",
+      "maxW": 1330,
+      "page": "p_teen",
+      "text": "حالت نوجوان — تم روشن",
+      "w": 240,
+      "x": 0,
+      "y": 1860
+    },
+    "p_voice_d": {
+      "kind": "title1",
+      "maxW": 1800,
+      "page": "p_voice",
+      "text": "ثبت با صدا — تم تیره",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "p_voice_l": {
+      "kind": "title1",
+      "maxW": 1800,
+      "page": "p_voice",
+      "text": "ثبت با صدا — تم روشن",
+      "w": 240,
+      "x": 0,
+      "y": 2200
+    },
+    "p_wear_d": {
+      "kind": "title1",
+      "maxW": 1200,
+      "page": "p_wear",
+      "text": "اتصال به ساعت و گجت‌ها — تم تیره",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "p_wear_l": {
+      "kind": "title1",
+      "maxW": 1200,
+      "page": "p_wear",
+      "text": "اتصال به ساعت و گجت‌ها — تم روشن",
+      "w": 240,
+      "x": 0,
+      "y": 1800
+    },
+    "t_d": {
+      "kind": "title1",
+      "maxW": 4100,
+      "page": "p_meno",
+      "text": "یائسگی — تم تیره",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "t_l": {
+      "kind": "title1",
+      "maxW": 4100,
+      "page": "p_meno",
+      "text": "یائسگی — تم روشن",
+      "w": 240,
+      "x": 0,
+      "y": 2300
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "nbd_Meno_Stage.dc.html",
+    "nbd_Meno_Log.dc.html",
+    "nbd_Meno_HotFlash.dc.html",
+    "nbd_Meno_Alert.dc.html",
+    "nbd_Meno_Score.dc.html",
+    "nbd_Meno_Checkups.dc.html",
+    "nbd_Meno_Treatment.dc.html",
+    "nbd_Meno_Report.dc.html",
+    "nbl_Meno_Home.dc.html",
+    "nbl_Meno_Stage.dc.html",
+    "nbl_Meno_Log.dc.html",
+    "nbl_Meno_HotFlash.dc.html",
+    "nbl_Meno_Alert.dc.html",
+    "nbl_Meno_Score.dc.html",
+    "nbl_Meno_Checkups.dc.html",
+    "nbl_Meno_Treatment.dc.html",
+    "nbl_Meno_Report.dc.html",
+    "nbd_IVF_Home.dc.html",
+    "nbd_IVF_Meds.dc.html",
+    "nbd_IVF_Scan.dc.html",
+    "nbd_IVF_TWW.dc.html",
+    "nbl_IVF_Home.dc.html",
+    "nbl_IVF_Meds.dc.html",
+    "nbl_IVF_Scan.dc.html",
+    "nbl_IVF_TWW.dc.html",
+    "nbd_Loss_Start.dc.html",
+    "nbd_Loss_Care.dc.html",
+    "nbd_Loss_Next.dc.html",
+    "nbl_Loss_Start.dc.html",
+    "nbl_Loss_Care.dc.html",
+    "nbl_Loss_Next.dc.html",
+    "nbd_Cond_Hub.dc.html",
+    "nbd_Cond_Endo.dc.html",
+    "nbd_Cond_PMDD.dc.html",
+    "nbd_Cond_Bleed.dc.html",
+    "nbl_Cond_Hub.dc.html",
+    "nbl_Cond_Endo.dc.html",
+    "nbl_Cond_PMDD.dc.html",
+    "nbl_Cond_Bleed.dc.html",
+    "nbd_Contra_Setup.dc.html",
+    "nbd_Contra_Pill.dc.html",
+    "nbd_Contra_Missed.dc.html",
+    "nbd_Contra_Other.dc.html",
+    "nbl_Contra_Setup.dc.html",
+    "nbl_Contra_Pill.dc.html",
+    "nbl_Contra_Missed.dc.html",
+    "nbl_Contra_Other.dc.html",
+    "nbd_Wear_Connect.dc.html",
+    "nbd_Wear_Data.dc.html",
+    "nbl_Wear_Connect.dc.html",
+    "nbl_Wear_Data.dc.html",
+    "nbd_Priv_Settings.dc.html",
+    "nbd_Priv_Lock.dc.html",
+    "nbd_Priv_Icon.dc.html",
+    "nbl_Priv_Settings.dc.html",
+    "nbl_Priv_Lock.dc.html",
+    "nbl_Priv_Icon.dc.html",
+    "nbd_Teen_Onb.dc.html",
+    "nbd_Teen_Home.dc.html",
+    "nbd_Teen_Parent.dc.html",
+    "nbl_Teen_Onb.dc.html",
+    "nbl_Teen_Home.dc.html",
+    "nbl_Teen_Parent.dc.html",
+    "nbd_Pelvic_Plan.dc.html",
+    "nbd_Pelvic_Kegel.dc.html",
+    "nbl_Pelvic_Plan.dc.html",
+    "nbl_Pelvic_Kegel.dc.html",
+    "nbd_Ins_Home.dc.html",
+    "nbd_Ins_Coverage.dc.html",
+    "nbd_Ins_Health.dc.html",
+    "nbd_Ins_Status.dc.html",
+    "nbd_Ins_Claims.dc.html",
+    "nbd_Ins_ClaimNew.dc.html",
+    "nbd_Ins_ClaimDetail.dc.html",
+    "nbd_Ins_Centers.dc.html",
+    "nbl_Ins_Home.dc.html",
+    "nbl_Ins_Coverage.dc.html",
+    "nbl_Ins_Health.dc.html",
+    "nbl_Ins_Status.dc.html",
+    "nbl_Ins_Claims.dc.html",
+    "nbl_Ins_ClaimNew.dc.html",
+    "nbl_Ins_ClaimDetail.dc.html",
+    "nbl_Ins_Centers.dc.html",
+    "nbd_Rec_Home.dc.html",
+    "nbd_Rec_Timeline.dc.html",
+    "nbd_Rec_Doc.dc.html",
+    "nbd_Rec_Share.dc.html",
+    "nbd_Rec_Emergency.dc.html",
+    "nbl_Rec_Home.dc.html",
+    "nbl_Rec_Timeline.dc.html",
+    "nbl_Rec_Doc.dc.html",
+    "nbl_Rec_Share.dc.html",
+    "nbl_Rec_Emergency.dc.html",
+    "nbd_Voice_Entry.dc.html",
+    "nbd_Voice_Record.dc.html",
+    "nbd_Voice_Review.dc.html",
+    "nbd_Voice_Saved.dc.html",
+    "nbl_Voice_Entry.dc.html",
+    "nbl_Voice_Record.dc.html",
+    "nbl_Voice_Review.dc.html",
+    "nbl_Voice_Saved.dc.html",
+    "nbd_Dir_Home.dc.html",
+    "nbd_Dir_Map.dc.html",
+    "nbd_Dir_List.dc.html",
+    "nbd_Dir_Place.dc.html",
+    "nbd_Dir_Book.dc.html",
+    "nbd_Dir_Booked.dc.html",
+    "nbd_Dir_MyBookings.dc.html",
+    "nbd_Dir_Join.dc.html",
+    "nbd_Dir_JoinForm.dc.html",
+    "nbd_Dir_JoinDocs.dc.html",
+    "nbd_Dir_JoinDone.dc.html",
+    "nbl_Dir_Home.dc.html",
+    "nbl_Dir_Map.dc.html",
+    "nbl_Dir_List.dc.html",
+    "nbl_Dir_Place.dc.html",
+    "nbl_Dir_Book.dc.html",
+    "nbl_Dir_Booked.dc.html",
+    "nbl_Dir_MyBookings.dc.html",
+    "nbl_Dir_Join.dc.html",
+    "nbl_Dir_JoinForm.dc.html",
+    "nbl_Dir_JoinDocs.dc.html",
+    "nbl_Dir_JoinDone.dc.html",
+    "W_Dir_Search.dc.html",
+    "W_Dir_Place.dc.html",
+    "W_Dir_Booked.dc.html",
+    "W_Dir_Business.dc.html",
+    "W_Dir_Join.dc.html",
+    "W_Dir_JoinDone.dc.html",
+    "nbd_Shop_Home.dc.html",
+    "nbd_Shop_Beauty.dc.html",
+    "nbd_Shop_List.dc.html",
+    "nbd_Shop_Product.dc.html",
+    "nbd_Shop_ProductBeauty.dc.html",
+    "nbd_Shop_Checklist.dc.html",
+    "nbd_Shop_Cart.dc.html",
+    "nbd_Shop_Checkout.dc.html",
+    "nbd_Shop_Order.dc.html",
+    "W_Shop_Home.dc.html",
+    "W_Shop_List.dc.html",
+    "W_Shop_Product.dc.html",
+    "W_Shop_Cart.dc.html",
+    "W_Shop_Checkout.dc.html",
+    "W_Shop_Done.dc.html",
+    "IA_Map.dc.html",
+    "IA_Nav.dc.html",
+    "nbd_Nav_Today.dc.html",
+    "nbd_Nav_Stage.dc.html",
+    "nbd_Nav_Plus.dc.html",
+    "nbd_Nav_Services.dc.html",
+    "nbd_Nav_Me.dc.html",
+    "nbd_Nav_Mode.dc.html",
+    "nbd_Nav_Search.dc.html"
+  ],
+  "pages": [
+    {
+      "id": "p_ia",
+      "name": "ساختار و ناوبری"
+    },
+    {
+      "id": "p_meno",
+      "name": "یائسگی"
+    },
+    {
+      "id": "p_ivf",
+      "name": "درمان ناباروری (IVF)"
+    },
+    {
+      "id": "p_loss",
+      "name": "سقط و از دست دادن بارداری"
+    },
+    {
+      "id": "p_cond",
+      "name": "برنامه‌های بیماری‌ها"
+    },
+    {
+      "id": "p_contra",
+      "name": "پیشگیری از بارداری"
+    },
+    {
+      "id": "p_wear",
+      "name": "اتصال به ساعت و گجت‌ها"
+    },
+    {
+      "id": "p_priv",
+      "name": "قفل و حریم خصوصی"
+    },
+    {
+      "id": "p_teen",
+      "name": "حالت نوجوان"
+    },
+    {
+      "id": "p_pelvic",
+      "name": "کف لگن و مثانه"
+    },
+    {
+      "id": "p_ins",
+      "name": "بیمه"
+    },
+    {
+      "id": "p_rec",
+      "name": "پرونده سلامت"
+    },
+    {
+      "id": "p_voice",
+      "name": "ثبت با صدا"
+    },
+    {
+      "id": "p_dir",
+      "name": "خدمات مادر و کودک"
+    },
+    {
+      "id": "p_shop",
+      "name": "فروشگاه"
+    }
+  ],
+  "title": "ریتمی — یائسگی"
+}
