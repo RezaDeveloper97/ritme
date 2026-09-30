@@ -3,7 +3,7 @@ id: CB-CORE-04
 title: admin-web: catalog editor
 epic: CORE
 type: frontend
-status: todo
+status: done
 depends_on: [CB-CORE-03]
 parallel_group: CORE-C
 touches: [admin-web/src/screens/catalog, admin-web/src/app/(panel)/catalog, admin-web/src/widgets/shell/model/nav.ts, admin-web/messages]

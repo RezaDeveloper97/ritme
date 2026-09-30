@@ -42,6 +42,8 @@ export const NAV: readonly NavGroup[] = [
       { key: 'checkupTypes', href: '/checkup-types', icon: 'shieldCheck', ready: true },
       { key: 'banners', href: '/banners', icon: 'banner', ready: true },
       { key: 'infoSections', href: '/info-sections', icon: 'lifeRing', ready: true },
+      // Editor + super (the content permission); switch to B-N9-02's content role once it lands.
+      { key: 'catalog', href: '/catalog', icon: 'listBullet', ready: true },
     ],
   },
   {

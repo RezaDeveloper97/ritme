@@ -42,3 +42,9 @@ TODO (ask user):
 - Verify: sqlc, vet, unit + int tests, golangci-lint 0 issues, schema-diff OK (48 tables).
 - TODO (ask user): catalog read is behind auth — should FAQ-type groups be public before login?
 - Open: `admin-api.md` not updated (catalog admin endpoints documented in catalog.md §3); no bulk reorder endpoint (add in CB-CORE-04 if needed).
+
+## CB-CORE-04 — admin-web: catalog editor
+- `/catalog` (groups + counts, open new group), `/catalog/[group]` (search, status filter, drag/↑↓ reorder, active toggle, needs-review badge, audience chips), new/edit form (fa/en TranslatableField, audiences, JSON meta with per-group hints, 422 mapped to fields). Nav item under Content (editor+).
+- Verify: typecheck, lint, fsd:lint, 109 tests, build — green. Screenshots `docs/qa/canvas/core/CB-CORE-04/` (fa/en, light/dark, 390px) — ✔.
+- Follow-up CB-CORE-03b: atomic bulk reorder endpoint (today: one partial PUT per moved row) + duplicate-code 422 says «کد تایید» (shared OTP attribute label).
+- Open: meta hints for `missed_pill_rules`, `pelvic_levels`, `_alerts`, `_score_items` are proposals in `admin-web/src/screens/catalog/lib/hints.ts` — CB-CONTRA-01 / CB-PELV-01 / CB-MENO-04 confirm or adjust.
