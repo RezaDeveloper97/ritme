@@ -15,7 +15,7 @@ import {
   toParts,
 } from '@/shared/lib/date';
 import { AppSheet } from '@/shared/sheet';
-import { CalendarPicker, WheelPicker } from '@/shared/ui';
+import { CalendarPicker, PrimaryButton, SecondaryButton, WheelPicker } from '@/shared/ui';
 
 import { parseSlot, toSlot } from '../model/form';
 
@@ -27,12 +27,12 @@ function SheetFooter({ onCancel, onDone, disabled }: { onCancel: () => void; onD
   const t = useTranslations('care.medicationForm');
   return (
     <div className="flex gap-2.5">
-      <button type="button" className="btn btn-ghost flex-1" onClick={onCancel}>
+      <SecondaryButton block={false} className="flex-1" onClick={onCancel}>
         {t('cancel')}
-      </button>
-      <button type="button" className="btn btn-primary flex-1" onClick={onDone} disabled={disabled}>
+      </SecondaryButton>
+      <PrimaryButton block={false} className="flex-1" onClick={onDone} disabled={disabled}>
         {t('done')}
-      </button>
+      </PrimaryButton>
     </div>
   );
 }
@@ -209,17 +209,12 @@ export function DeleteSheet({
       title={t('deleteTitle')}
       footer={
         <div className="flex gap-2.5">
-          <button type="button" className="btn btn-ghost flex-1" onClick={onClose}>
+          <SecondaryButton block={false} className="flex-1" onClick={onClose}>
             {t('cancel')}
-          </button>
-          <button
-            type="button"
-            className="btn flex-1 bg-(--danger) text-(--on-accent)"
-            onClick={onConfirm}
-            disabled={pending}
-          >
+          </SecondaryButton>
+          <PrimaryButton block={false} className="flex-1 rmd-danger-btn" onClick={onConfirm} loading={pending}>
             {pending ? t('deleting') : t('delete')}
-          </button>
+          </PrimaryButton>
         </div>
       }
     >

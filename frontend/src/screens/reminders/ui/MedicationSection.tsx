@@ -7,7 +7,7 @@ import { useMedications } from '@/entities/care-reminder';
 import { useToggleMedicationActive } from '@/features/manage-medication';
 import { Link, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
-import { Icon } from '@/shared/ui';
+import { Icon, Skeleton, SkeletonGroup, Switch } from '@/shared/ui';
 
 import { type MedicationRowState, medicationRowState, sectionStatus, sortMedications } from '../model/view';
 import { SectionHead } from './SectionHead';
@@ -61,10 +61,10 @@ export function MedicationSection() {
 
       <div className="rmd-list">
         {status === 'loading' && (
-          <div className="rmd-state" aria-busy="true" aria-label={t('loading')}>
-            <span className="skeleton-line rmd-row-skel" />
-            <span className="skeleton-line rmd-row-skel" />
-          </div>
+          <SkeletonGroup label={t('loading')} className="rmd-state">
+            <Skeleton shape="block" className="rmd-row-skel" />
+            <Skeleton shape="block" className="rmd-row-skel" />
+          </SkeletonGroup>
         )}
         {status === 'error' && (
           <div className="rmd-state">
@@ -94,17 +94,14 @@ export function MedicationSection() {
                     <span className="rmd-row-meta">{rowMeta(row, t, locale)}</span>
                   </span>
                 </Link>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={on}
-                  aria-label={t('medications.toggle', { title: row.title })}
-                  className="rmd-switch"
+                <Switch
+                  compact
+                  className="rmd-hit"
+                  checked={on}
+                  label={t('medications.toggle', { title: row.title })}
                   disabled={pending}
-                  onClick={() => toggle.mutate({ id: row.id, isActive: !row.isActive })}
-                >
-                  <span className="rmd-switch-knob" aria-hidden />
-                </button>
+                  onCheckedChange={(next) => toggle.mutate({ id: row.id, isActive: next })}
+                />
               </div>
             );
           })}

@@ -32,7 +32,7 @@ import {
 } from '@/shared/lib/date';
 import { LocalFilesError, type LocalFilesErrorCode } from '@/shared/lib/local-files';
 import { AppSheet, type SheetContentProps, closeSheet } from '@/shared/sheet';
-import { CalendarPicker, Icon } from '@/shared/ui';
+import { CalendarPicker, Icon, PrimaryButton, SecondaryButton, Skeleton, SkeletonGroup } from '@/shared/ui';
 
 import { parseMarkDoneArg } from '../model/arg';
 import { useMarkDoneToast } from '../model/toast';
@@ -70,9 +70,10 @@ export function MarkDoneSheet({ arg }: SheetContentProps) {
   if (!target) return <p className="rmd-state">{t('loadError')}</p>;
   if (detail.isPending) {
     return (
-      <p className="rmd-state" role="status">
-        {t('loading')}
-      </p>
+      <SkeletonGroup label={t('loading')} className="rmd-form-skel">
+        <Skeleton shape="card" />
+        <Skeleton shape="card" />
+      </SkeletonGroup>
     );
   }
   if (!detail.data) {
@@ -94,9 +95,10 @@ export function MarkDoneSheet({ arg }: SheetContentProps) {
       null;
     if (!record) {
       return records.isPending ? (
-        <p className="rmd-state" role="status">
-          {t('loading')}
-        </p>
+        <SkeletonGroup label={t('loading')} className="rmd-form-skel">
+          <Skeleton shape="card" />
+          <Skeleton shape="card" />
+        </SkeletonGroup>
       ) : (
         <p className="rmd-state" role="alert">
           {t('loadError')}
@@ -354,9 +356,9 @@ function MarkDoneForm({ typeId, record }: { typeId: number; record: CheckupRecor
         </p>
       )}
 
-      <button type="button" className="btn btn-primary w-full" disabled={saving} onClick={onSubmit}>
+      <PrimaryButton loading={saving} onClick={onSubmit}>
         {saving ? t('custom.saving') : tm('submit')}
-      </button>
+      </PrimaryButton>
 
       <AppSheet
         open={picker !== null}
@@ -365,12 +367,12 @@ function MarkDoneForm({ typeId, record }: { typeId: number; record: CheckupRecor
         title={picker === 'next' ? tm('nextDueTitle') : tm('date')}
         footer={
           <div className="flex gap-2.5">
-            <button type="button" className="btn btn-ghost flex-1" onClick={() => setPicker(null)}>
+            <SecondaryButton block={false} className="flex-1" onClick={() => setPicker(null)}>
               {t('custom.cancel')}
-            </button>
-            <button type="button" className="btn btn-primary flex-1" disabled={draftInvalid} onClick={confirmPicker}>
+            </SecondaryButton>
+            <PrimaryButton block={false} className="flex-1" disabled={draftInvalid} onClick={confirmPicker}>
               {t('custom.done')}
-            </button>
+            </PrimaryButton>
           </div>
         }
       >

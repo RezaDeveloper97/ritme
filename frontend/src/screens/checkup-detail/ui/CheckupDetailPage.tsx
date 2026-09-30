@@ -14,11 +14,11 @@ import {
 } from '@/entities/checkup';
 import { useUpdateCheckupSettings } from '@/features/manage-custom-checkup';
 import { getApiErrorStatus } from '@/shared/api';
-import { type Locale, Link, useDirection, useRouter } from '@/shared/i18n';
+import { type Locale, Link, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { withHandoff } from '@/shared/lib/handoff';
 import { openSheet } from '@/shared/sheet';
-import { Icon } from '@/shared/ui';
+import { Icon, ScreenHeader, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
 
 import { MARK_DONE_SHEET, bookPrefill, heroRelative, markDoneSheetArg } from '../model/view';
 
@@ -29,35 +29,32 @@ const BOOK_HREF = '/reminders/appointment/new?kind=in_person';
 
 function Header({ detail }: { detail?: CheckupDetail }) {
   const t = useTranslations('checkups');
-  const dir = useDirection();
+  const router = useRouter();
   const update = useUpdateCheckupSettings();
   const remind = detail?.settings.remind ?? false;
 
   return (
-    <header className="rmd-hdr">
-      <Link href={LIST_HREF} className="rmd-hdr-btn" aria-label={t('back')}>
-        <Icon name={dir === 'rtl' ? 'chevronRight' : 'chevronLeft'} size={20} strokeWidth={1.8} />
-      </Link>
-      <div className="rmd-hdr-text">
-        <h1 className="rmd-hdr-title">{detail?.title ?? t('title')}</h1>
-        {detail?.intervalLabel && <p className="rmd-hdr-sub">{detail.intervalLabel}</p>}
-      </div>
-      {detail ? (
-        <button
-          type="button"
-          role="switch"
-          aria-checked={remind}
-          className={clsx('rmd-hdr-btn', remind && 'text-(--brand)')}
-          aria-label={remind ? t('detail.remindOn') : t('detail.remindOff')}
-          disabled={update.isPending || !detail.settings.enabled}
-          onClick={() => update.mutate({ id: detail.id, remind: !remind })}
-        >
-          <Icon name={remind ? 'bellRing' : 'bellPlain'} size={20} strokeWidth={1.8} />
-        </button>
-      ) : (
-        <span className="rmd-hdr-btn invisible" aria-hidden />
-      )}
-    </header>
+    <ScreenHeader
+      title={detail?.title ?? t('title')}
+      subtitle={detail?.intervalLabel || undefined}
+      onBack={() => router.push(LIST_HREF)}
+      backLabel={t('back')}
+      action={
+        detail ? (
+          <button
+            type="button"
+            role="switch"
+            aria-checked={remind}
+            className={clsx('nb-hbtn', remind && 'is-on')}
+            aria-label={remind ? t('detail.remindOn') : t('detail.remindOff')}
+            disabled={update.isPending || !detail.settings.enabled}
+            onClick={() => update.mutate({ id: detail.id, remind: !remind })}
+          >
+            <Icon name={remind ? 'bellRing' : 'bellPlain'} size={20} strokeWidth={1.8} />
+          </button>
+        ) : undefined
+      }
+    />
   );
 }
 
@@ -173,9 +170,10 @@ export function CheckupDetailPage({ id }: { id: number }) {
   let body;
   if (query.isPending) {
     body = (
-      <p className="rmd-state" role="status">
-        {t('loading')}
-      </p>
+      <SkeletonGroup label={t('loading')} className="rmd-form-skel">
+        <Skeleton shape="card" />
+        <Skeleton shape="card" />
+      </SkeletonGroup>
     );
   } else if (!detail) {
     const missing = getApiErrorStatus(query.error) === 404;
@@ -247,7 +245,7 @@ export function CheckupDetailPage({ id }: { id: number }) {
         </section>
 
         {detail.isCustom && (
-          <Link href={`/checkups/custom/${detail.id}`} className="btn btn-ghost w-full">
+          <Link href={`/checkups/custom/${detail.id}`} className="nb-btn is-outline is-block">
             <Icon name="pencil" size={16} />
             {t('custom.editTitle')}
           </Link>
@@ -260,7 +258,8 @@ export function CheckupDetailPage({ id }: { id: number }) {
 
   return (
     <div className="view rmd-page">
-      <div className="scroll">
+      <div className="scroll rmd-screen">
+        <SkyLayer />
         <Header detail={detail} />
         <div className="rmd-body flex flex-col gap-3 pb-8">{body}</div>
       </div>

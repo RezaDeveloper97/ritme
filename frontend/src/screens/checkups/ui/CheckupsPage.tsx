@@ -2,7 +2,7 @@
 
 import clsx from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
-import { type KeyboardEvent, useRef, useState } from 'react';
+import { useState } from 'react';
 
 import {
   CHECKUP_LIST_FILTERS,
@@ -15,15 +15,23 @@ import {
   formatCheckupMonth,
   useCheckups,
 } from '@/entities/checkup';
-import { type Locale, Link, useDirection, useRouter } from '@/shared/i18n';
+import { type Locale, Link, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
-import { Icon } from '@/shared/ui';
+import {
+  EmptyState,
+  HeaderButton,
+  Icon,
+  ScreenHeader,
+  SegmentedTabs,
+  Skeleton,
+  SkeletonGroup,
+  SkyLayer,
+} from '@/shared/ui';
 
 import {
   barSegments,
   filterHref,
   groupBySection,
-  nextFilter,
   parseFilter,
   rowMeta,
   worstStatus,
@@ -127,26 +135,17 @@ function CheckupRow({ item }: { item: CheckupItem }) {
 export function CheckupsPage({ initialFilter }: { initialFilter?: string }) {
   const t = useTranslations('checkups');
   const router = useRouter();
-  const dir = useDirection();
   const locale = useLocale() as Locale;
   const [filter, setFilter] = useState<CheckupListFilter>(() => parseFilter(initialFilter));
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const tabRefs = useRef<Partial<Record<CheckupListFilter, HTMLButtonElement | null>>>({});
   const query = useCheckups(filter);
   // The settings sheet always lists the whole plan, whatever the tab.
   const all = useCheckups('all');
 
-  const select = (next: CheckupListFilter, focus = false) => {
-    if (focus) tabRefs.current[next]?.focus();
+  const select = (next: CheckupListFilter) => {
     if (next === filter) return;
     setFilter(next);
     router.replace(filterHref(next), { scroll: false });
-  };
-  const onTabKey = (event: KeyboardEvent<HTMLDivElement>) => {
-    const next = nextFilter(filter, event.key, dir === 'rtl' ? 'rtl' : 'ltr');
-    if (!next) return;
-    event.preventDefault();
-    select(next, true);
   };
 
   const age = query.data?.age ?? all.data?.age ?? null;
@@ -157,56 +156,36 @@ export function CheckupsPage({ initialFilter }: { initialFilter?: string }) {
 
   return (
     <div className="view rmd-page">
-      <div className="scroll">
-        <header className="rmd-hdr">
-          <Link href="/home" className="rmd-hdr-btn" aria-label={t('back')}>
-            <Icon name={dir === 'rtl' ? 'chevronRight' : 'chevronLeft'} size={20} strokeWidth={1.8} />
-          </Link>
-          <div className="rmd-hdr-text">
-            <h1 className="rmd-hdr-title">{t('title')}</h1>
-            {age !== null && (
-              <p className="rmd-hdr-sub">{t('list.ageBasis', { age: formatNumber(age, locale) })}</p>
-            )}
-          </div>
-          <button
-            type="button"
-            className="rmd-hdr-btn"
-            aria-label={t('list.planSettings')}
-            onClick={() => setSettingsOpen(true)}
-          >
-            <Icon name="filterLines" size={20} strokeWidth={1.8} />
-          </button>
-        </header>
+      <div className="scroll rmd-screen">
+        <SkyLayer />
+        <ScreenHeader
+          title={t('title')}
+          subtitle={age !== null ? t('list.ageBasis', { age: formatNumber(age, locale) }) : undefined}
+          onBack={() => router.push('/home')}
+          backLabel={t('back')}
+          action={
+            <HeaderButton icon="filterLines" label={t('list.planSettings')} onClick={() => setSettingsOpen(true)} />
+          }
+        />
 
         <div className="rmd-body flex flex-col gap-3 pb-8">
           {summary && summary.total > 0 && <SummaryCard summary={summary} />}
 
-          <div className="rmd-tabs" role="tablist" aria-label={t('title')} onKeyDown={onTabKey}>
-            {CHECKUP_LIST_FILTERS.map((key) => (
-              <button
-                key={key}
-                ref={(el) => {
-                  tabRefs.current[key] = el;
-                }}
-                type="button"
-                role="tab"
-                id={`ck-tab-${key}`}
-                aria-selected={filter === key}
-                aria-controls={PANEL_ID}
-                tabIndex={filter === key ? 0 : -1}
-                className={clsx('rmd-tab', filter === key && 'on')}
-                onClick={() => select(key)}
-              >
-                {t(`list.tabs.${key}`)}
-              </button>
-            ))}
-          </div>
+          <SegmentedTabs
+            tabs={CHECKUP_LIST_FILTERS.map((key) => ({ value: key, label: t(`list.tabs.${key}`) }))}
+            value={filter}
+            onChange={select}
+            label={t('title')}
+            panelId={() => PANEL_ID}
+          />
 
-          <div id={PANEL_ID} role="tabpanel" aria-labelledby={`ck-tab-${filter}`} className="flex flex-col gap-4">
+          <div id={PANEL_ID} role="tabpanel" aria-label={t(`list.tabs.${filter}`)} className="flex flex-col gap-4">
             {query.isPending ? (
-              <p className="rmd-state" role="status">
-                {t('loading')}
-              </p>
+              <SkeletonGroup label={t('loading')} className="rmd-form-skel">
+                <Skeleton shape="card" />
+                <Skeleton shape="card" />
+                <Skeleton shape="card" />
+              </SkeletonGroup>
             ) : query.isError ? (
               <div className="rmd-state" role="alert">
                 <p>{t('loadError')}</p>
@@ -215,10 +194,7 @@ export function CheckupsPage({ initialFilter }: { initialFilter?: string }) {
                 </button>
               </div>
             ) : groups.length === 0 ? (
-              <div className="card flex flex-col items-center gap-2 px-4 py-8 text-center">
-                <Icon name="stetho" size={28} className="text-(--brand)" />
-                <p className="text-[13px] font-semibold text-(--ink-3)">{emptyText}</p>
-              </div>
+              <EmptyState icon="stetho" title={emptyText} className="card" />
             ) : (
               groups.map((group) => (
                 <section key={group.section} aria-labelledby={`ck-sec-${group.section}`}>
@@ -246,7 +222,7 @@ export function CheckupsPage({ initialFilter }: { initialFilter?: string }) {
             {t('list.infoNote')}
           </p>
 
-          <Link href="/checkups/custom/new" className="btn btn-ghost ck-neutral w-full">
+          <Link href="/checkups/custom/new" className="nb-btn is-outline is-block">
             <Icon name="plus" size={16} strokeWidth={2.2} />
             {t('list.addCustom')}
           </Link>

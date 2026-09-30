@@ -12,7 +12,7 @@ import {
   useTogglePrepItem,
   useUpdateAppointment,
 } from '@/features/manage-appointment';
-import { Link, type Locale, useDirection, useRouter } from '@/shared/i18n';
+import { type Locale, useRouter } from '@/shared/i18n';
 import {
   formatDayMonth,
   formatNumber,
@@ -25,7 +25,17 @@ import {
 } from '@/shared/lib/date';
 import { buildIcs, downloadIcs } from '@/shared/lib/ics';
 import { AppSheet } from '@/shared/sheet';
-import { Icon, type IconName } from '@/shared/ui';
+import {
+  HeaderButton,
+  Icon,
+  type IconName,
+  ScreenHeader,
+  SecondaryButton,
+  Skeleton,
+  SkeletonGroup,
+  SkyLayer,
+  Switch,
+} from '@/shared/ui';
 
 import {
   appointmentIcsEvent,
@@ -55,7 +65,8 @@ export function AppointmentDetailPage({ id }: { id: number }) {
   if (!query.data) {
     return (
       <div className="view rmd-page">
-        <div className="scroll">
+        <div className="scroll rmd-screen">
+          <SkyLayer />
           <DetailHeader id={id} />
           <div className="rmd-body">
             {query.isError || !Number.isFinite(id) ? (
@@ -66,9 +77,10 @@ export function AppointmentDetailPage({ id }: { id: number }) {
                 </button>
               </div>
             ) : (
-              <div className="rmd-state" aria-busy="true" aria-label={t('appointmentDetail.loading')}>
-                <span className="skeleton-line rmd-row-skel" />
-              </div>
+              <SkeletonGroup label={t('appointmentDetail.loading')} className="rmd-form-skel">
+                <Skeleton shape="card" />
+                <Skeleton shape="card" />
+              </SkeletonGroup>
             )}
           </div>
         </div>
@@ -80,28 +92,23 @@ export function AppointmentDetailPage({ id }: { id: number }) {
 
 function DetailHeader({ id, sub, editable = false }: { id: number; sub?: string; editable?: boolean }) {
   const t = useTranslations('care');
-  const dir = useDirection();
+  const router = useRouter();
   return (
-    <header className="rmd-hdr">
-      <Link href="/reminders?tab=appointments" className="rmd-hdr-btn" aria-label={t('back')}>
-        <Icon name={dir === 'rtl' ? 'chevronRight' : 'chevronLeft'} size={20} strokeWidth={1.8} />
-      </Link>
-      <div className="rmd-hdr-text">
-        <h1 className="rmd-hdr-title">{t('appointmentDetail.title')}</h1>
-        {sub && <p className="rmd-hdr-sub">{sub}</p>}
-      </div>
-      {editable ? (
-        <Link
-          href={`/reminders/appointment/${id}/edit`}
-          className="rmd-hdr-btn"
-          aria-label={t('appointmentDetail.edit')}
-        >
-          <Icon name="pencil" size={18} strokeWidth={1.8} />
-        </Link>
-      ) : (
-        <span className="rmd-hdr-btn invisible" aria-hidden />
-      )}
-    </header>
+    <ScreenHeader
+      title={t('appointmentDetail.title')}
+      subtitle={sub}
+      onBack={() => router.push('/reminders?tab=appointments')}
+      backLabel={t('back')}
+      action={
+        editable ? (
+          <HeaderButton
+            icon="pencil"
+            label={t('appointmentDetail.edit')}
+            onClick={() => router.push(`/reminders/appointment/${id}/edit`)}
+          />
+        ) : undefined
+      }
+    />
   );
 }
 
@@ -155,7 +162,8 @@ function Detail({ appt }: { appt: Appointment }) {
 
   return (
     <div className="view rmd-page">
-      <div className="scroll">
+      <div className="scroll rmd-screen">
+        <SkyLayer />
         <DetailHeader
           id={appt.id}
           editable={!cancelled}
@@ -205,23 +213,23 @@ function Detail({ appt }: { appt: Appointment }) {
             <InfoRow icon="note" label={td('about')} value={about} />
             {appt.location && (
               <div className="rmd-row">
-                <span className="rmd-tile" aria-hidden>
-                  <Icon name={appt.kind === 'online' ? 'video' : appt.kind === 'phone' ? 'phone' : 'mapPin'} size={20} />
+                <span className="rmd-tile is-info" aria-hidden>
+                  <Icon name={appt.kind === 'online' ? 'video' : appt.kind === 'phone' ? 'phone' : 'mapPin'} size={18} />
                 </span>
                 <span className="rmd-row-body">
                   <span className="rmd-row-meta">{placeLabel}</span>
                   <span className="rmd-row-title" dir="auto">{appt.location}</span>
                 </span>
                 {maps && (
-                  <a className="rmd-sec-add" href={maps} target="_blank" rel="noopener noreferrer">
-                    {td('directions')}
+                  <a className="rmd-sec-add rmd-pill-link" href={maps} target="_blank" rel="noopener noreferrer">
+                    <span>{td('directions')}</span>
                   </a>
                 )}
               </div>
             )}
             <div className="rmd-row">
-              <span className="rmd-tile" aria-hidden>
-                <Icon name="bellRing" size={20} />
+              <span className="rmd-tile is-info" aria-hidden>
+                <Icon name="bellRing" size={18} />
               </span>
               <span className="rmd-row-body">
                 <span className="rmd-row-meta">{td('reminder')}</span>
@@ -237,17 +245,14 @@ function Detail({ appt }: { appt: Appointment }) {
                     : td('reminderOff')}
                 </span>
               </span>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={appt.isActive}
-                aria-label={td('reminderToggle')}
-                className="rmd-switch"
+              <Switch
+                compact
+                className="rmd-hit"
+                checked={appt.isActive}
+                label={td('reminderToggle')}
                 disabled={cancelled || update.isPending}
-                onClick={() => update.mutate({ id: appt.id, patch: { isActive: !appt.isActive } })}
-              >
-                <span className="rmd-switch-knob" />
-              </button>
+                onCheckedChange={(next) => update.mutate({ id: appt.id, patch: { isActive: next } })}
+              />
             </div>
           </div>
 
@@ -308,9 +313,7 @@ function Detail({ appt }: { appt: Appointment }) {
           >
             {td('confirmCancelYes')}
           </button>
-          <button type="button" className="btn btn-soft" onClick={() => setConfirming(false)}>
-            {td('confirmCancelNo')}
-          </button>
+          <SecondaryButton onClick={() => setConfirming(false)}>{td('confirmCancelNo')}</SecondaryButton>
           {cancel.isError && <p className="rem-form-error" role="alert">{t('saveError')}</p>}
         </div>
       </AppSheet>
@@ -322,8 +325,8 @@ function InfoRow({ icon, label, value }: { icon: IconName; label: string; value:
   if (!value) return null;
   return (
     <div className="rmd-row">
-      <span className="rmd-tile" aria-hidden>
-        <Icon name={icon} size={20} />
+      <span className="rmd-tile is-info" aria-hidden>
+        <Icon name={icon} size={18} />
       </span>
       <span className="rmd-row-body">
         <span className="rmd-row-meta">{label}</span>

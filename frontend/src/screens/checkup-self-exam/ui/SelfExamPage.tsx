@@ -8,9 +8,9 @@ import { useCycleToday } from '@/entities/cycle';
 import { type CheckupDetail, useCheckup, useCheckupRecords, useCheckups } from '@/entities/checkup';
 import { useUpdateCheckupSettings } from '@/features/manage-custom-checkup';
 import { selfExamResult, toggleFinding, useCreateCheckupRecord } from '@/features/record-checkup';
-import { type Locale, Link, useDirection } from '@/shared/i18n';
+import { type Locale, Link, useRouter } from '@/shared/i18n';
 import { formatNumber, toApiDate, today } from '@/shared/lib/date';
-import { Icon } from '@/shared/ui';
+import { Icon, ScreenHeader, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
 
 import { SELF_EXAM_MINUTES, adherence, daysUntilWindow, doneThisMonth, findSelfExam } from '../model/view';
 
@@ -212,7 +212,7 @@ function Body({ detail }: { detail: CheckupDetail }) {
  */
 export function SelfExamPage() {
   const t = useTranslations('checkups');
-  const dir = useDirection();
+  const router = useRouter();
   const list = useCheckups();
   const item = findSelfExam(list.data?.items);
   const query = useCheckup(item?.id ?? null);
@@ -224,9 +224,10 @@ export function SelfExamPage() {
   let body;
   if (list.isPending || (item && query.isPending)) {
     body = (
-      <p className="rmd-state" role="status">
-        {t('loading')}
-      </p>
+      <SkeletonGroup label={t('loading')} className="rmd-form-skel">
+        <Skeleton shape="card" />
+        <Skeleton shape="card" />
+      </SkeletonGroup>
     );
   } else if (!item || !query.data) {
     body = (
@@ -249,31 +250,29 @@ export function SelfExamPage() {
 
   return (
     <div className="view rmd-page">
-      <div className="scroll">
-        <header className="rmd-hdr">
-          <Link href={item ? `/checkups/${item.id}` : '/checkups'} className="rmd-hdr-btn" aria-label={t('back')}>
-            <Icon name={dir === 'rtl' ? 'chevronRight' : 'chevronLeft'} size={20} strokeWidth={1.8} />
-          </Link>
-          <div className="rmd-hdr-text">
-            <h1 className="rmd-hdr-title">{item?.title ?? t('title')}</h1>
-            {subtitle && <p className="rmd-hdr-sub">{subtitle}</p>}
-          </div>
-          {detail ? (
-            <button
-              type="button"
-              role="switch"
-              aria-checked={remind}
-              className={clsx('rmd-hdr-btn', remind && 'text-(--brand)')}
-              aria-label={remind ? t('detail.remindOn') : t('detail.remindOff')}
-              disabled={update.isPending || !detail.settings.enabled}
-              onClick={() => update.mutate({ id: detail.id, remind: !remind })}
-            >
-              <Icon name={remind ? 'bellRing' : 'bellPlain'} size={20} strokeWidth={1.8} />
-            </button>
-          ) : (
-            <span className="rmd-hdr-btn invisible" aria-hidden />
-          )}
-        </header>
+      <div className="scroll rmd-screen">
+        <SkyLayer />
+        <ScreenHeader
+          title={item?.title ?? t('title')}
+          subtitle={subtitle || undefined}
+          onBack={() => router.push(item ? `/checkups/${item.id}` : '/checkups')}
+          backLabel={t('back')}
+          action={
+            detail ? (
+              <button
+                type="button"
+                role="switch"
+                aria-checked={remind}
+                className={clsx('nb-hbtn', remind && 'is-on')}
+                aria-label={remind ? t('detail.remindOn') : t('detail.remindOff')}
+                disabled={update.isPending || !detail.settings.enabled}
+                onClick={() => update.mutate({ id: detail.id, remind: !remind })}
+              >
+                <Icon name={remind ? 'bellRing' : 'bellPlain'} size={20} strokeWidth={1.8} />
+              </button>
+            ) : undefined
+          }
+        />
         <div className="rmd-body flex flex-col gap-3 pb-8">{body}</div>
       </div>
     </div>

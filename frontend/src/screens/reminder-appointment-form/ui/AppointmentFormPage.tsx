@@ -17,7 +17,7 @@ import {
 import { pregnancyKeys } from '@/entities/pregnancy';
 import { useCreateAppointment, useUpdateAppointment } from '@/features/manage-appointment';
 import { getApiErrorStatus, getApiSaveErrorMessage } from '@/shared/api';
-import { Link, type Locale, useDirection, useRouter } from '@/shared/i18n';
+import { type Locale, useRouter } from '@/shared/i18n';
 import {
   type DateParts,
   formatNumber,
@@ -29,7 +29,18 @@ import {
 } from '@/shared/lib/date';
 import { clearHandoff, readHandoff } from '@/shared/lib/handoff';
 import { AppSheet } from '@/shared/sheet';
-import { CalendarPicker, Icon, type IconName, WheelPicker } from '@/shared/ui';
+import {
+  CalendarPicker,
+  Icon,
+  type IconName,
+  PrimaryButton,
+  ScreenHeader,
+  Skeleton,
+  SkeletonGroup,
+  SkyLayer,
+  Switch,
+  WheelPicker,
+} from '@/shared/ui';
 
 import {
   type AppointmentFormState,
@@ -79,13 +90,15 @@ function FormShell({ id, status, onRetry }: { id: number; status: 'loading' | 'e
   const t = useTranslations('care');
   return (
     <div className="view rmd-page">
-      <div className="scroll">
+      <div className="scroll rmd-screen">
+        <SkyLayer />
         <FormHeader title={t('appointmentForm.editTitle')} backHref={`/reminders/appointment/${id}`} />
         <div className="rmd-body">
           {status === 'loading' ? (
-            <div className="rmd-state" aria-busy="true" aria-label={t('loading')}>
-              <span className="skeleton-line rmd-row-skel" />
-            </div>
+            <SkeletonGroup label={t('loading')} className="rmd-form-skel">
+              <Skeleton shape="card" />
+              <Skeleton shape="card" />
+            </SkeletonGroup>
           ) : (
             <div className="rmd-state">
               <p className="rmd-empty">{t('loadError')}</p>
@@ -102,19 +115,8 @@ function FormShell({ id, status, onRetry }: { id: number; status: 'loading' | 'e
 
 function FormHeader({ title, backHref, sub }: { title: string; backHref: string; sub?: string }) {
   const t = useTranslations('care');
-  const dir = useDirection();
-  return (
-    <header className="rmd-hdr">
-      <Link href={backHref} className="rmd-hdr-btn" aria-label={t('back')}>
-        <Icon name={dir === 'rtl' ? 'chevronRight' : 'chevronLeft'} size={20} strokeWidth={1.8} />
-      </Link>
-      <div className="rmd-hdr-text">
-        <h1 className="rmd-hdr-title">{title}</h1>
-        {sub && <p className="rmd-hdr-sub">{sub}</p>}
-      </div>
-      <span className="rmd-hdr-btn invisible" aria-hidden />
-    </header>
-  );
+  const router = useRouter();
+  return <ScreenHeader title={title} subtitle={sub} onBack={() => router.push(backHref)} backLabel={t('back')} />;
 }
 
 function AppointmentForm({ prefill, existing }: { prefill?: AppointmentPrefill; existing: Appointment | null }) {
@@ -230,7 +232,8 @@ function AppointmentForm({ prefill, existing }: { prefill?: AppointmentPrefill; 
 
   return (
     <div className="view rmd-page">
-      <div className="scroll">
+      <div className="scroll rmd-screen">
+        <SkyLayer />
         <FormHeader
           title={existing ? t('editTitle') : t('title')}
           sub={t('subtitle')}
@@ -397,16 +400,13 @@ function AppointmentForm({ prefill, existing }: { prefill?: AppointmentPrefill; 
                 <span className="cfm-set-t">{t('addToCalendar')}</span>
                 <span className="cfm-set-s">{t('addToCalendarHint')}</span>
               </span>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={form.addToCalendar}
-                aria-label={t('addToCalendar')}
-                className="rmd-switch"
-                onClick={() => set('addToCalendar', !form.addToCalendar)}
-              >
-                <span className="rmd-switch-knob" />
-              </button>
+              <Switch
+                compact
+                className="rmd-hit"
+                checked={form.addToCalendar}
+                label={t('addToCalendar')}
+                onCheckedChange={(next) => set('addToCalendar', next)}
+              />
             </div>
             <label className="cfm-group">
               <span className="cfm-label">{t('prep')}</span>
@@ -424,9 +424,9 @@ function AppointmentForm({ prefill, existing }: { prefill?: AppointmentPrefill; 
 
           {saveError && <p className="cfm-error is-center" role="alert">{saveError}</p>}
 
-          <button type="submit" className="rmd-cta" disabled={pending}>
+          <PrimaryButton type="submit" loading={pending}>
             {pending ? t('saving') : t('save')}
-          </button>
+          </PrimaryButton>
         </form>
       </div>
 
@@ -436,9 +436,7 @@ function AppointmentForm({ prefill, existing }: { prefill?: AppointmentPrefill; 
         size="half"
         title={t('date')}
         footer={
-          <button
-            type="button"
-            className="btn btn-primary"
+          <PrimaryButton
             disabled={!draftDate}
             onClick={() => {
               if (draftDate) set('date', toApiDate(partsToDate(draftDate, locale)));
@@ -446,7 +444,7 @@ function AppointmentForm({ prefill, existing }: { prefill?: AppointmentPrefill; 
             }}
           >
             {t('confirm')}
-          </button>
+          </PrimaryButton>
         }
       >
         <CalendarPicker value={draftDate} onSelect={setDraftDate} />
@@ -458,16 +456,14 @@ function AppointmentForm({ prefill, existing }: { prefill?: AppointmentPrefill; 
         size="half"
         title={t('time')}
         footer={
-          <button
-            type="button"
-            className="btn btn-primary"
+          <PrimaryButton
             onClick={() => {
               set('time', `${HOURS[draftTime[0]]}:${MINUTES[draftTime[1]]}`);
               setPicker(null);
             }}
           >
             {t('confirm')}
-          </button>
+          </PrimaryButton>
         }
       >
         <div className="jdw-row" dir="ltr">

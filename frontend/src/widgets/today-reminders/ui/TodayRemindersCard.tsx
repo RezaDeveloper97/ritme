@@ -8,7 +8,7 @@ import { useLogIntake } from '@/features/log-intake';
 import { Link, type Locale } from '@/shared/i18n';
 import { formatNumber, fromApiDate, monthName, toParts } from '@/shared/lib/date';
 import { openSheet } from '@/shared/sheet';
-import { Icon } from '@/shared/ui';
+import { Icon, Skeleton } from '@/shared/ui';
 
 import { cardStatus, doseRowState, type DoseRowState } from '../model/dose-row';
 import { showRemindChip } from '../model/remind-chip';
@@ -147,8 +147,8 @@ export function TodayRemindersCard({ hideAppointmentId = null }: { hideAppointme
       <section className="trm-sec" aria-busy="true" aria-label={t('loading')}>
         <div className="trm-card">
           <Header t={t} />
-          <span className="skeleton-line trm-skel" />
-          <span className="skeleton-line trm-skel is-short" />
+          <Skeleton shape="block" className="trm-skel" />
+          <Skeleton shape="block" className="trm-skel is-short" />
         </div>
       </section>
     );

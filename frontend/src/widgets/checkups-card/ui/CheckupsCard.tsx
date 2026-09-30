@@ -14,7 +14,7 @@ import {
 import { Link, type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { withHandoff } from '@/shared/lib/handoff';
-import { Icon } from '@/shared/ui';
+import { Icon, Skeleton } from '@/shared/ui';
 
 import {
   BOOK_HREF,
@@ -103,7 +103,7 @@ function HighlightRow({ item, t }: { item: CheckupItem; t: T }) {
   return (
     <div
       className={clsx(
-        'flex items-center gap-3 rounded-2xl bg-(--ck-soft) px-3 py-2.5',
+        'ckc-row flex items-center gap-3 bg-(--ck-soft)',
         kind === 'book' ? 'ck-tone-amber' : 'ck-tone-rose',
       )}
     >
@@ -115,12 +115,12 @@ function HighlightRow({ item, t }: { item: CheckupItem; t: T }) {
       </span>
       <span className="min-w-0 flex-1 text-start">
         <span className="block truncate text-[13.5px] font-extrabold text-(--ink)">{item.title}</span>
-        {meta && <span className="block truncate text-[12px] font-semibold text-(--ck-ink)">{meta}</span>}
+        {meta && <span className="block truncate text-[12px] font-semibold text-(--text-3)">{meta}</span>}
       </span>
       <Link
         href={kind === 'book' ? BOOK_HREF : guideHref(item)}
         onClick={kind === 'book' ? book : undefined}
-        className="flex min-h-11 shrink-0 items-center rounded-xl bg-(--checkup-row-action) px-3 text-[12.5px] font-extrabold text-(--ck-ink)"
+        className="ckc-action flex min-h-11 shrink-0 items-center bg-(--checkup-row-action) text-[12.5px] font-extrabold text-(--ck-ink)"
       >
         {t(kind === 'book' ? 'card.book' : 'card.guide')}
       </Link>
@@ -148,8 +148,8 @@ export function CheckupsCard() {
       <section className="trm-sec" aria-busy="true" aria-label={t('loading')}>
         <div className="trm-card">
           <Header t={t} />
-          <span className="skeleton-line trm-skel" />
-          <span className="skeleton-line trm-skel is-short" />
+          <Skeleton shape="block" className="trm-skel" />
+          <Skeleton shape="block" className="trm-skel is-short" />
         </div>
       </section>
     );
@@ -167,12 +167,16 @@ export function CheckupsCard() {
   return (
     <section className="trm-sec">
       <div className="trm-card">
-        <Header t={t} />
-        <div className="mt-1 flex items-center gap-3">
+        {/* v14_Main: ring at the start, title + counts beside it, «همه» at the end. */}
+        <div className="ckc-head">
           <Ring summary={data.summary} t={t} locale={locale} />
-          <p className="m-0 min-w-0 flex-1 text-start text-[12.5px] leading-6 font-semibold text-(--muted)">
-            {counts}
-          </p>
+          <div className="ckc-head-text">
+            <h2 className="trm-title">{t('card.title')}</h2>
+            <p className="ckc-counts">{counts}</p>
+          </div>
+          <Link href="/checkups" className="trm-all ckc-all">
+            {t('card.all')}
+          </Link>
         </div>
         {data.highlights.length > 0 && (
           <div className="mt-2.5 flex flex-col gap-2">

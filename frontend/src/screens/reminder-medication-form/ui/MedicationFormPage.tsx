@@ -19,7 +19,7 @@ import {
   useUpdateMedication,
 } from '@/features/manage-medication';
 import { ApiError, getApiErrorStatus, getApiLimitMessage } from '@/shared/api';
-import { type Locale, Link, useDirection, useRouter } from '@/shared/i18n';
+import { type Locale, useRouter } from '@/shared/i18n';
 import {
   calendarSystem,
   formatDayMonth,
@@ -30,7 +30,15 @@ import {
   today,
 } from '@/shared/lib/date';
 import { toAsciiDigits } from '@/shared/lib/phone';
-import { Icon } from '@/shared/ui';
+import {
+  Icon,
+  PrimaryButton,
+  ScreenHeader,
+  Skeleton,
+  SkeletonGroup,
+  SkyLayer,
+  Switch as NbSwitch,
+} from '@/shared/ui';
 
 import {
   AMOUNT_MAX,
@@ -83,9 +91,7 @@ function FieldError({ id, message }: { id: string; message?: string }) {
 
 function Switch({ on, label, onClick }: { on: boolean; label: string; onClick: () => void }) {
   return (
-    <button type="button" role="switch" aria-checked={on} aria-label={label} className="rmd-switch" onClick={onClick}>
-      <span className="rmd-switch-knob" />
-    </button>
+    <NbSwitch compact className="rmd-hit" checked={on} label={label} onCheckedChange={() => onClick()} />
   );
 }
 
@@ -107,7 +113,10 @@ export function MedicationFormPage({ id, from }: { id?: number; from?: string })
   if (query.isPending) {
     return (
       <Shell from={from} edit>
-        <p className="rmd-state">{t('loading')}</p>
+        <SkeletonGroup label={t('loading')} className="rmd-form-skel">
+          <Skeleton shape="card" />
+          <Skeleton shape="card" />
+        </SkeletonGroup>
       </Shell>
     );
   }
@@ -129,22 +138,17 @@ export function MedicationFormPage({ id, from }: { id?: number; from?: string })
 
 function Shell({ from, edit, children }: { from?: string; edit: boolean; children: ReactNode }) {
   const t = useTranslations('care');
-  const dir = useDirection();
+  const router = useRouter();
   return (
     <div className="view rmd-page">
-      <div className="scroll">
-        <header className="rmd-hdr">
-          <Link href={returnHref(from)} className="rmd-hdr-btn" aria-label={t('back')}>
-            <Icon name={dir === 'rtl' ? 'chevronRight' : 'chevronLeft'} size={20} strokeWidth={1.8} />
-          </Link>
-          <div className="rmd-hdr-text">
-            <h1 className="rmd-hdr-title">
-              {edit ? t('medicationForm.editTitle') : t('medicationForm.title')}
-            </h1>
-            <p className="rmd-hdr-sub">{t('medicationForm.subtitle')}</p>
-          </div>
-          <span className="rmd-hdr-btn invisible" aria-hidden />
-        </header>
+      <div className="scroll rmd-screen">
+        <SkyLayer />
+        <ScreenHeader
+          title={edit ? t('medicationForm.editTitle') : t('medicationForm.title')}
+          subtitle={t('medicationForm.subtitle')}
+          onBack={() => router.push(returnHref(from))}
+          backLabel={t('back')}
+        />
         <div className="rmd-body">{children}</div>
       </div>
     </div>
@@ -491,9 +495,9 @@ function MedicationForm({ medication, from }: { medication?: Medication; from?: 
         </p>
       )}
 
-      <button type="button" className="rmd-cta" disabled={saving} onClick={onSave}>
+      <PrimaryButton loading={saving} onClick={onSave}>
         {saving ? tf('saving') : tf('save')}
-      </button>
+      </PrimaryButton>
       {edit && (
         <button type="button" className="cfm-delete" onClick={() => openSheet({ kind: 'delete' })}>
           <Icon name="trash" size={16} />

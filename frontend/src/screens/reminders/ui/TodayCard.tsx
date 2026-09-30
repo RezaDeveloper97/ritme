@@ -7,7 +7,7 @@ import { useCareToday } from '@/entities/care-reminder';
 import { useLogIntake } from '@/features/log-intake';
 import type { Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
-import { Icon } from '@/shared/ui';
+import { Icon, Skeleton, SkeletonGroup } from '@/shared/ui';
 
 import { doseCardState } from '../model/view';
 
@@ -55,10 +55,10 @@ export function TodayCard() {
           </button>
         </div>
       ) : !data ? (
-        <div className="rmd-doses" aria-busy="true" aria-label={t('loading')}>
-          <span className="skeleton-line rmd-dose-skel" />
-          <span className="skeleton-line rmd-dose-skel" />
-        </div>
+        <SkeletonGroup label={t('loading')} className="rmd-doses">
+          <Skeleton shape="block" className="rmd-dose-skel" />
+          <Skeleton shape="block" className="rmd-dose-skel" />
+        </SkeletonGroup>
       ) : data.doses.length === 0 ? (
         <p className="rmd-empty rmd-today-empty">{t('today.empty')}</p>
       ) : (

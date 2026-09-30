@@ -3,7 +3,7 @@ id: B-N1-15
 title: Restyle reminders (v13) and checkups (v14) screens
 milestone: N1
 type: frontend
-status: todo
+status: done
 depends_on: [B-N1-03]
 parallel_group: N1-O
 touches: [frontend/src/screens/reminders,frontend/src/screens/reminder-medication-form,frontend/src/screens/reminder-appointment-form,frontend/src/screens/reminder-appointment-detail,frontend/src/screens/reminders-add,frontend/src/screens/checkups,frontend/src/screens/checkup-detail,frontend/src/screens/checkup-history,frontend/src/screens/checkup-self-exam,frontend/src/screens/checkup-mark-done,frontend/src/widgets/checkups-card,frontend/src/widgets/today-reminders]

@@ -19,12 +19,12 @@ import {
   useCheckupAttachmentIds,
   useCheckupRecords,
 } from '@/entities/checkup';
-import { type Locale, Link, useDirection } from '@/shared/i18n';
+import { type Locale, useDirection, useRouter } from '@/shared/i18n';
 import { formatLongDate, formatNumber, fromApiDate, today } from '@/shared/lib/date';
 import { openLocalFile } from '@/shared/lib/local-files';
 import { type PdfBlock, loadPdfGenerator, shareOrDownloadFile } from '@/shared/lib/pdf';
 import { openSheet } from '@/shared/sheet';
-import { Icon } from '@/shared/ui';
+import { EmptyState, Icon, ScreenHeader, SegmentedTabs, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
 
 import { MARK_DONE_SHEET, editRecordSheetArg, withLocalAttachment } from '../model/view';
 
@@ -131,7 +131,7 @@ function RecordItem({ record, last }: { record: CheckupRecord; last: boolean }) 
           <span className="text-[14px] font-extrabold text-(--ink)">{record.checkupTitle ?? t('title')}</span>
         </button>
         <span className="flex flex-wrap items-center gap-2">
-          <span className="text-[12px] leading-5 font-semibold text-(--ink-2)">{line}</span>
+          <span className="text-[12px] leading-5 font-semibold text-(--text-2)">{line}</span>
           {record.hasAttachment && (
             <button
               type="button"
@@ -162,6 +162,7 @@ export function CheckupHistoryPage({ type }: { type: number | null }) {
   const t = useTranslations('checkups');
   const locale = useLocale() as Locale;
   const dir = useDirection();
+  const router = useRouter();
   const [filter, setFilter] = useState<CheckupRecordFilter>('all');
   const query = useCheckupRecords({ filter, type });
   const localIds = useCheckupAttachmentIds();
@@ -197,51 +198,41 @@ export function CheckupHistoryPage({ type }: { type: number | null }) {
 
   return (
     <div className="view rmd-page">
-      <div className="scroll">
-        <header className="rmd-hdr">
-          <Link href={backHref} className="rmd-hdr-btn" aria-label={t('back')}>
-            <Icon name={dir === 'rtl' ? 'chevronRight' : 'chevronLeft'} size={20} strokeWidth={1.8} />
-          </Link>
-          <div className="rmd-hdr-text">
-            <h1 className="rmd-hdr-title">{t('history.title')}</h1>
-            {query.data && (
-              <p className="rmd-hdr-sub">{t('history.count', { count: formatNumber(total, locale) })}</p>
-            )}
-          </div>
-          <button
-            type="button"
-            className="rmd-hdr-btn"
-            aria-label={t('history.export')}
-            disabled={pdf.state === 'working'}
-            onClick={() => void pdf.run()}
-          >
-            <Icon name="export" size={20} strokeWidth={1.8} />
-          </button>
-        </header>
+      <div className="scroll rmd-screen">
+        <SkyLayer />
+        <ScreenHeader
+          title={t('history.title')}
+          subtitle={query.data ? t('history.count', { count: formatNumber(total, locale) }) : undefined}
+          onBack={() => router.push(backHref)}
+          backLabel={t('back')}
+          action={
+            <button
+              type="button"
+              className="nb-hbtn"
+              aria-label={t('history.export')}
+              disabled={pdf.state === 'working'}
+              onClick={() => void pdf.run()}
+            >
+              <Icon name="export" size={20} strokeWidth={1.8} />
+            </button>
+          }
+        />
 
         <div className="rmd-body flex flex-col gap-3 pb-8">
-          <div className="rmd-tabs" role="tablist" aria-label={t('history.title')}>
-            {CHECKUP_RECORD_FILTERS.map((key) => (
-              <button
-                key={key}
-                type="button"
-                role="tab"
-                id={`ckh-tab-${key}`}
-                aria-selected={filter === key}
-                aria-controls={PANEL_ID}
-                className={clsx('rmd-tab', filter === key && 'on')}
-                onClick={() => setFilter(key)}
-              >
-                {t(`history.tabs.${key}`)}
-              </button>
-            ))}
-          </div>
+          <SegmentedTabs
+            tabs={CHECKUP_RECORD_FILTERS.map((key) => ({ value: key, label: t(`history.tabs.${key}`) }))}
+            value={filter}
+            onChange={setFilter}
+            label={t('history.title')}
+            panelId={() => PANEL_ID}
+          />
 
-          <div id={PANEL_ID} role="tabpanel" aria-labelledby={`ckh-tab-${filter}`}>
+          <div id={PANEL_ID} role="tabpanel" aria-label={t(`history.tabs.${filter}`)}>
             {query.isPending ? (
-              <p className="rmd-state" role="status">
-                {t('loading')}
-              </p>
+              <SkeletonGroup label={t('loading')} className="rmd-form-skel">
+                <Skeleton shape="card" />
+                <Skeleton shape="card" />
+              </SkeletonGroup>
             ) : query.isError ? (
               <div className="rmd-state" role="alert">
                 <p>{t('loadError')}</p>
@@ -250,7 +241,7 @@ export function CheckupHistoryPage({ type }: { type: number | null }) {
                 </button>
               </div>
             ) : records.length === 0 && !query.hasNextPage ? (
-              <p className="rmd-state">{t('history.empty')}</p>
+              <EmptyState icon="note" title={t('history.empty')} className="card" />
             ) : (
               <>
                 <ol className="card flex flex-col p-4">
@@ -262,7 +253,7 @@ export function CheckupHistoryPage({ type }: { type: number | null }) {
                 {query.hasNextPage && (
                   <button
                     type="button"
-                    className="btn btn-ghost w-full"
+                    className="nb-btn is-outline is-block"
                     disabled={query.isFetchingNextPage}
                     onClick={() => void query.fetchNextPage()}
                   >

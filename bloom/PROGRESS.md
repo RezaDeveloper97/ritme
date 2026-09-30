@@ -238,3 +238,24 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   `widgets/pregnancy-week-carousel/`, `screens/pregnancy-week/ui/WeekStrip.tsx`. v1 Symptoms/Weekly/Movement forms
   inside `?tab=` still use `features/track-pregnancy` old controls. Persona 15 has no booked visit / follow-up alert, so
   those card variants were checked in code only.
+
+## B-N1-15 — Restyle reminders (v13) and checkups (v14) screens
+
+- **Artboards = M3/M4 designs:** every `c-health-record/*_v13_*`/`*_v14_*` file is byte-identical to
+  `docs/design/{reminders-v13,checkups-v14}` except `v14_Main` (dialect-A colours only), so this is a fidelity pass on
+  the nb primitives rather than a relayout.
+- **Screens** reminders hub, medication form, appointment form/detail, checkups list/detail/history/self-exam:
+  custom `.rmd-hdr` → `ScreenHeader` (+ `HeaderButton` bell/filter/edit; the checkup-reminder bell and history export
+  stay `role=switch`/disabled-able buttons on `.nb-hbtn`), `SkyLayer` on every screen (`.rmd-screen`), `.rmd-tabs` →
+  `SegmentedTabs` (reminders/checkups/history; panel labelled by aria-label), `.rmd-cta`/`.btn` → `PrimaryButton` /
+  `SecondaryButton` (incl. picker sheet footers, MarkDone, delete confirm = `.rmd-danger-btn`), every hand-rolled
+  `role=switch` → nb `Switch compact` with a 44px hit area (`.rmd-hit`), text/`skeleton-line` loading → `Skeleton` +
+  `SkeletonGroup`, empty checkups/history → `EmptyState`. Detail rows: 36px round inset discs, «مسیریابی» outlined pill.
+- **Home cards:** `checkups-card` header rebuilt per `v14_Main` (ring · title + counts · «همه»), highlight rows r18,
+  pill action; `today-reminders` skeleton → `Skeleton`. `.card` inside these screens → radius 24.
+- **CSS:** one `/* B-N1-15 */` block after `end B-N1-04` in `globals.css`. No i18n changes (fa/en/backend untouched).
+- **Data:** persona 09900000018 got 2 appointments (8 & 20 Mehr), a 2nd medication, 3 checkup records (ritme_dev).
+- **Screenshots:** `docs/qa/bloom/B-N1-15/` full page light+dark (reminders, med new/edit, appt new/detail, checkups,
+  detail, history, self-exam, home, `en_reminders`, `en_checkups`), `sheets/` (AddChooser, MarkDone), `artboards/`.
+- **Outside touches:** only `globals.css` + bloom docs. `screens/checkup-custom-form` (not in touches) still has the old
+  `.rmd-hdr` header; it inherits the radius/skeleton CSS only. QUESTIONS #29–#30.

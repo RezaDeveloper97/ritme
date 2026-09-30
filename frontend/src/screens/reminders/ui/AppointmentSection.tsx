@@ -6,7 +6,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useAppointments } from '@/entities/care-reminder';
 import { Link, type Locale } from '@/shared/i18n';
 import { formatNumber, fromApiDate, monthName, toParts } from '@/shared/lib/date';
-import { Icon } from '@/shared/ui';
+import { Icon, Skeleton, SkeletonGroup } from '@/shared/ui';
 
 import { type AppointmentRowState, appointmentRowState, sectionStatus } from '../model/view';
 import { SectionHead } from './SectionHead';
@@ -58,9 +58,9 @@ export function AppointmentSection() {
 
       <div className="rmd-list">
         {status === 'loading' && (
-          <div className="rmd-state" aria-busy="true" aria-label={t('loading')}>
-            <span className="skeleton-line rmd-row-skel" />
-          </div>
+          <SkeletonGroup label={t('loading')} className="rmd-state">
+            <Skeleton shape="block" className="rmd-row-skel" />
+          </SkeletonGroup>
         )}
         {status === 'error' && (
           <div className="rmd-state">

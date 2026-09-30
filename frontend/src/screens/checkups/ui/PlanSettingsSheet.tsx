@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { type CheckupItem, checkupIcon, useCheckup } from '@/entities/checkup';
 import { useUpdateCheckupSettings } from '@/features/manage-custom-checkup';
 import { AppSheet } from '@/shared/sheet';
-import { Icon } from '@/shared/ui';
+import { Icon, Switch as NbSwitch } from '@/shared/ui';
 
 function Switch({
   on,
@@ -19,17 +19,7 @@ function Switch({
   onClick: () => void;
 }) {
   return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={on}
-      aria-label={label}
-      disabled={disabled}
-      className="rmd-switch"
-      onClick={onClick}
-    >
-      <span className="rmd-switch-knob" />
-    </button>
+    <NbSwitch compact className="rmd-hit" checked={on} label={label} disabled={disabled} onCheckedChange={() => onClick()} />
   );
 }
 
