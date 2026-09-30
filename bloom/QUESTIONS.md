@@ -58,3 +58,5 @@ default taken so work could continue. Review at the end of the run.
 | 51 | B-N1-09 | Mode rows: pregnancy → `/pregnancy/setup`; «اقدام به بارداری» and back-to-cycle disabled with «به‌زودی» until the switcher (B-N2-03). | as described |
 | 52 | B-N1-09 | Pill reminder is configured only on cycle settings, not listed on the notification-settings screen (B-N1-11). Add it to the `health` group there too? | not listed |
 | 53 | B-N1-09 | Home header gear now opens `/cycle/settings` (artboard link) instead of the `health` sheet. | changed |
+| 54 | B-N1-12b | Support reports visible to any active admin (like `/users`, both show the mobile). Restrict to super admins? Laravel `InfoSection::GROUPS` not updated (frozen backend). | any admin |
+| 55 | B-N1-12b | `ritme_dev` has QA admin `qa@ritme.local` (local only) + users 09900000071/72 + 3 support reports. | dev data only |

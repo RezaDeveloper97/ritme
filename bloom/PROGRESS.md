@@ -337,3 +337,14 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   header gear. `cys-*` CSS block.
 - **Screenshots:** `docs/qa/bloom/B-N1-09/`. **Open:** QUESTIONS #51–#53; `checkups` builds its own profile row and
   ignores the manual flag (only coarse dates used).
+
+## B-N1-12b — Admin — support reports inbox and support info group
+
+- **Backend:** `/api/admin/v1/support-reports` list (`status=open|resolved|all`, counts, 160-char preview only), detail,
+  `/:id/screenshot` (private stream, `no-store`, path check via shared `profile.SupportFilePath`), `resolve`/`reopen`
+  (CSRF, audit log). Any active admin. Info-section box `key` editable (slug, unique per group). No migration
+  (status came with 00012). Documented in `docs/go-migration/admin-api.md` §14; integration tests.
+- **admin-web:** «گزارش‌های مشکل» list/detail pages + sidebar entry; `support` group + «کلید» field in info-sections.
+- **Screenshots:** `docs/qa/bloom/B-N1-12b/` (1440px light+dark). **Tooling TODO:** `shot.mjs --admin` has no admin
+  login, wrong theme key (`ritme_admin_theme`) and a clipped RTL capture — fix before the N9 admin tasks.
+- **Open:** QUESTIONS #54–#55.

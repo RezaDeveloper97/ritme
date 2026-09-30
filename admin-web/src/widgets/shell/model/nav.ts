@@ -27,6 +27,8 @@ export const NAV: readonly NavGroup[] = [
     items: [
       { key: 'dashboard', href: '/', icon: 'dashboard', ready: true },
       { key: 'users', href: '/users', icon: 'users', ready: true },
+      // Any active admin, like /users (B-N1-12b).
+      { key: 'supportReports', href: '/support-reports', icon: 'inbox', ready: true },
     ],
   },
   {

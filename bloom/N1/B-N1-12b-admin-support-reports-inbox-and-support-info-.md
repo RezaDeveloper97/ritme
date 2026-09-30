@@ -3,7 +3,7 @@ id: B-N1-12b
 title: Admin — support reports inbox and support info group
 milestone: N1
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N1-12]
 parallel_group: N1-L2
 touches: [admin-web/src,backend-go/internal/admin,backend-go/internal/profile,backend-go/api,backend-go/contract]

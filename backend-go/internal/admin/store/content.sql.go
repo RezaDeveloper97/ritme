@@ -513,13 +513,14 @@ func (q *Queries) CreateChallenge(ctx context.Context, arg CreateChallengeParams
 }
 
 const createInfoSection = `-- name: CreateInfoSection :execresult
-INSERT INTO ` + "`" + `info_sections` + "`" + ` (` + "`" + `group` + "`" + `, heading, body, link_label, link_url, is_active, sort_order, created_at, updated_at)
+INSERT INTO ` + "`" + `info_sections` + "`" + ` (` + "`" + `group` + "`" + `, ` + "`" + `key` + "`" + `, heading, body, link_label, link_url, is_active, sort_order, created_at, updated_at)
 VALUES (?, ?, ?, ?, ?,
-        ?, ?, ?, ?)
+        ?, ?, ?, ?, ?)
 `
 
 type CreateInfoSectionParams struct {
 	SectionGroup string
+	SectionKey   sql.NullString
 	Heading      json.RawMessage
 	Body         json.RawMessage
 	LinkLabel    db.NullRawJSON
@@ -532,6 +533,7 @@ type CreateInfoSectionParams struct {
 func (q *Queries) CreateInfoSection(ctx context.Context, arg CreateInfoSectionParams) (sql.Result, error) {
 	return q.db.ExecContext(ctx, createInfoSection,
 		arg.SectionGroup,
+		arg.SectionKey,
 		arg.Heading,
 		arg.Body,
 		arg.LinkLabel,
@@ -1080,6 +1082,25 @@ func (q *Queries) GetTaskTemplate(ctx context.Context, id uint64) (TaskTemplate,
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const infoSectionKeyTaken = `-- name: InfoSectionKeyTaken :one
+SELECT EXISTS(SELECT 1 FROM ` + "`" + `info_sections` + "`" + `
+              WHERE ` + "`" + `group` + "`" + ` = ? AND ` + "`" + `key` + "`" + ` = ? AND id <> ?) AS taken
+`
+
+type InfoSectionKeyTakenParams struct {
+	SectionGroup string
+	SectionKey   sql.NullString
+	ExceptID     uint64
+}
+
+// unique:info_sections,key per group (the (group, key) unique index; NULL keys never collide).
+func (q *Queries) InfoSectionKeyTaken(ctx context.Context, arg InfoSectionKeyTakenParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, infoSectionKeyTaken, arg.SectionGroup, arg.SectionKey, arg.ExceptID)
+	var taken bool
+	err := row.Scan(&taken)
+	return taken, err
 }
 
 const languageCodeTaken = `-- name: LanguageCodeTaken :one
@@ -2184,7 +2205,7 @@ func (q *Queries) UpdateChallenge(ctx context.Context, arg UpdateChallengeParams
 
 const updateInfoSection = `-- name: UpdateInfoSection :exec
 UPDATE ` + "`" + `info_sections` + "`" + `
-SET ` + "`" + `group` + "`" + ` = ?, heading = ?, body = ?,
+SET ` + "`" + `group` + "`" + ` = ?, ` + "`" + `key` + "`" + ` = ?, heading = ?, body = ?,
     link_label = ?, link_url = ?, is_active = ?,
     sort_order = ?, updated_at = ?
 WHERE id = ?
@@ -2192,6 +2213,7 @@ WHERE id = ?
 
 type UpdateInfoSectionParams struct {
 	SectionGroup string
+	SectionKey   sql.NullString
 	Heading      json.RawMessage
 	Body         json.RawMessage
 	LinkLabel    db.NullRawJSON
@@ -2205,6 +2227,7 @@ type UpdateInfoSectionParams struct {
 func (q *Queries) UpdateInfoSection(ctx context.Context, arg UpdateInfoSectionParams) error {
 	_, err := q.db.ExecContext(ctx, updateInfoSection,
 		arg.SectionGroup,
+		arg.SectionKey,
 		arg.Heading,
 		arg.Body,
 		arg.LinkLabel,

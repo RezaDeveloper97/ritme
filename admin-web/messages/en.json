@@ -75,6 +75,7 @@
     "groupAccount": "Account",
     "dashboard": "Dashboard",
     "users": "Users",
+    "supportReports": "Problem reports",
     "articles": "Articles",
     "affirmations": "Affirmations",
     "challenges": "Challenges",
@@ -274,6 +275,44 @@
       "days": "{count, plural, one {# day} other {# days}}"
     }
   },
+  "supportReports": {
+    "title": "Problem reports",
+    "intro": "Reports users sent from Support → Report a problem in the app, newest first. Mark a report resolved once it has been handled.",
+    "tabs": {
+      "open": "Open",
+      "resolved": "Resolved",
+      "all": "All"
+    },
+    "status": {
+      "open": "Open",
+      "resolved": "Resolved"
+    },
+    "statusLabel": "Status",
+    "reporter": "From",
+    "message": "Report",
+    "hasScreenshot": "Has a screenshot",
+    "appVersion": "App version",
+    "sentAt": "Sent",
+    "sentOn": "Sent {date}",
+    "updatedAt": "Last change",
+    "userAgent": "Device & browser",
+    "actions": "Actions",
+    "view": "View",
+    "empty": "No reports here.",
+    "emptyOpen": "No open reports — everything has been handled.",
+    "detailTitle": "Problem report",
+    "detailHeading": "Report #{id}",
+    "backToList": "Back to reports",
+    "details": "Details",
+    "screenshot": "Screenshot",
+    "screenshotAlt": "Screenshot the user attached to the report",
+    "noScreenshot": "No screenshot attached.",
+    "loadingScreenshot": "Loading screenshot…",
+    "resolve": "Mark resolved",
+    "reopen": "Reopen",
+    "resolvedToast": "Report marked resolved.",
+    "reopenedToast": "Report reopened."
+  },
   "articles": {
     "title": "Articles",
     "new": "New article",
@@ -442,7 +481,8 @@
       "help": "Help & support",
       "privacy": "Privacy",
       "terms": "Terms",
-      "about": "About"
+      "about": "About",
+      "support": "Support"
     },
     "intro": "Each row is one box on the app's \"{page}\" screen; active boxes show in sort order.",
     "introHelp": "The support box can also carry a contact button (email, phone or link).",
@@ -453,6 +493,8 @@
     "linkFallback": "Link",
     "page": "Screen",
     "pageHint": "The box shows on this screen of the app.",
+    "key": "Key (optional)",
+    "keyHint": "A stable id the app finds this box by (e.g. email). Lowercase letters, digits, - and _ only. Leave empty for ordinary boxes; changing the key of a built-in box can remove it from its app screen.",
     "contactButton": "Contact button (optional)",
     "contactButtonHint": "Fill in both label and address for a button under the text, or leave both empty. The address can be mailto:, tel: or https://.",
     "linkLabel": "Button label",

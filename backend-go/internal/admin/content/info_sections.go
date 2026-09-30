@@ -13,6 +13,7 @@ import (
 	publiccontent "github.com/ritme/backend-go/internal/content"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/platform/validation"
+	"github.com/ritme/backend-go/internal/platform/validation/phpval"
 )
 
 func infoSectionJSON(s *store.InfoSection) *jsonx.OrderedMap {
@@ -50,7 +51,7 @@ func infoGroup(c fiber.Ctx) string {
 	return publiccontent.InfoGroups[0]
 }
 
-// ListInfoSections is GET /info-sections?group=help|privacy|terms|about (sort_order, id).
+// ListInfoSections is GET /info-sections?group=help|privacy|terms|about|support (sort_order, id).
 func (h *Handlers) ListInfoSections(c fiber.Ctx) error {
 	group := infoGroup(c)
 	total, err := h.q.CountAdminInfoSections(c.Context(), group)
@@ -88,7 +89,11 @@ func (h *Handlers) InfoSectionOptions(c fiber.Ctx) error {
 func (h *Handlers) ShowInfoSection(c fiber.Ctx) error { return h.infoSections().show(c) }
 
 func infoSectionRules(c fiber.Ctx) validation.Rules {
-	rules := validation.Rules{validation.F("group", "required|string", validation.In(publiccontent.InfoGroups...))}
+	rules := validation.Rules{
+		validation.F("group", "required|string", validation.In(publiccontent.InfoGroups...)),
+		// Optional stable id the app reads a box by (privacy/summary, support/email, …): a lowercase slug.
+		validation.F("key", "nullable|string|max:64", validation.Regex(infoKeyPattern)),
+	}
 	rules = append(rules, form.Translatable(c, "heading", true, "max:200")...)
 	rules = append(rules, form.Translatable(c, "body", true)...)
 	rules = append(rules, form.Translatable(c, "link_label", false, "max:60")...)
@@ -100,14 +105,40 @@ func infoSectionRules(c fiber.Ctx) validation.Rules {
 	)
 }
 
+// infoKeyPattern is the slug an info box `key` must be: lowercase letters / digits, words joined by - or _.
+const infoKeyPattern = `/^[a-z0-9]+(?:[-_][a-z0-9]+)*$/`
+
+// uniqueInfoKey is unique:info_sections,key scoped to the submitted group (the (group, key) unique index).
+func (h *Handlers) uniqueInfoKey(c fiber.Ctx, exceptID uint64) form.Check {
+	return func(in phpval.Map, add form.Add) error {
+		key, _ := in.Get("key")
+		group, _ := in.Get("group")
+		k, isKey := key.(string)
+		g, isGroup := group.(string)
+		if !isKey || !isGroup || k == "" {
+			return nil
+		}
+		taken, err := h.q.InfoSectionKeyTaken(c.Context(), store.InfoSectionKeyTakenParams{
+			SectionGroup: g, SectionKey: sql.NullString{String: k, Valid: true}, ExceptID: exceptID,
+		})
+		if err != nil {
+			return err
+		}
+		if taken {
+			add("key", form.Msg(c, "validation.unique", "key"))
+		}
+		return nil
+	}
+}
+
 // StoreInfoSection is POST /info-sections.
 func (h *Handlers) StoreInfoSection(c fiber.Ctx) error {
-	data, err := form.Validate(c, infoSectionRules(c))
+	data, err := form.Validate(c, infoSectionRules(c), h.uniqueInfoKey(c, 0))
 	if err != nil {
 		return err
 	}
 	res, err := h.q.CreateInfoSection(c.Context(), store.CreateInfoSectionParams{
-		SectionGroup: httpadmin.String(data, "group"), Heading: form.ReqJSON(data, "heading"),
+		SectionGroup: httpadmin.String(data, "group"), SectionKey: form.Str(data, "key"), Heading: form.ReqJSON(data, "heading"),
 		Body: form.ReqJSON(data, "body"), LinkLabel: form.Clean(data, "link_label"), LinkUrl: form.Str(data, "link_url"),
 		IsActive: httpadmin.Bool(data, "is_active"), SortOrder: form.Int32(data, "sort_order", 0), Now: h.now(c),
 	})
@@ -122,18 +153,19 @@ func (h *Handlers) StoreInfoSection(c fiber.Ctx) error {
 	return h.infoSections().respond(c, id, true, "Info section created.")
 }
 
-// UpdateInfoSection is PUT /info-sections/:id (a cleared link becomes null).
+// UpdateInfoSection is PUT /info-sections/:id (a cleared link becomes null; `key` absent = unchanged,
+// null / "" = cleared — older clients that never send it keep the seeded keys the app reads).
 func (h *Handlers) UpdateInfoSection(c fiber.Ctx) error {
 	cur, err := find(c, "Info section", h.q.GetInfoSection)
 	if err != nil {
 		return err
 	}
-	data, err := form.Validate(c, infoSectionRules(c))
+	data, err := form.Validate(c, infoSectionRules(c), h.uniqueInfoKey(c, cur.ID))
 	if err != nil {
 		return err
 	}
 	if err := h.q.UpdateInfoSection(c.Context(), store.UpdateInfoSectionParams{
-		SectionGroup: httpadmin.String(data, "group"), Heading: form.ReqJSON(data, "heading"),
+		SectionGroup: httpadmin.String(data, "group"), SectionKey: form.KeepStr(data, "key", cur.Key), Heading: form.ReqJSON(data, "heading"),
 		Body: form.ReqJSON(data, "body"), LinkLabel: form.Clean(data, "link_label"), LinkUrl: form.Str(data, "link_url"),
 		IsActive: httpadmin.Bool(data, "is_active"), SortOrder: form.Int32(data, "sort_order", 0),
 		Now: h.now(c), ID: cur.ID,

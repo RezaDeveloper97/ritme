@@ -37,7 +37,21 @@ export function InfoSectionsScreen() {
 
   const columns: Column<InfoSection>[] = [
     { key: 'id', header: '#', cell: (r) => formatNumber(r.id, locale), className: 'cell-num w-14 text-muted' },
-    { key: 'heading', header: t('heading'), cell: (r) => localize(r.heading) || '—', className: 'cell-wrap font-semibold' },
+    {
+      key: 'heading',
+      header: t('heading'),
+      cell: (r) => (
+        <span className="flex flex-col items-start gap-0.5">
+          <span>{localize(r.heading) || '—'}</span>
+          {r.key ? (
+            <span dir="ltr" className="font-mono text-xs font-normal text-muted">
+              {r.key}
+            </span>
+          ) : null}
+        </span>
+      ),
+      className: 'cell-wrap font-semibold',
+    },
     { key: 'body', header: t('body'), cell: (r) => excerpt(localize(r.body), 90) || '—', className: 'cell-wrap text-ink-3' },
     {
       key: 'link',

@@ -269,9 +269,9 @@ the updated record.
 | GET | `/task-templates` · `/task-templates/options` | A | — | list · `{phases, categories}` |
 | POST · PUT | `/task-templates` · `/:id` | A | `key` req unique, `title` T req, `description` T, `category` req, `icon?`, `cycle_phase?`, `sort_order?`, `is_active?` | `{task_template}` |
 | GET · DELETE · POST | `/task-templates/:id` · `/:id` · `/:id/toggle` | A | — | `{task_template}` · `{id}` · `{task_template}` |
-| GET | `/info-sections` | A | `group=help\|privacy\|terms\|about` (unknown → help) | list + `filters{group}` (sort_order, id) |
+| GET | `/info-sections` | A | `group=help\|privacy\|terms\|about\|support` (unknown → help) | list + `filters{group}` (sort_order, id) |
 | GET | `/info-sections/options` | A | `group` | `{groups, group, next_sort_order}` |
-| POST · PUT | `/info-sections` · `/:id` | A | `group` req, `heading` T req (≤200), `body` T req, `link_label` T (≤60, empty → null), `link_url?` (≤500, `https?://`, `mailto:` or `tel:`), `sort_order?`, `is_active?` | `{info_section}` |
+| POST · PUT | `/info-sections` · `/:id` | A | `group` req, `key?` (≤64, slug `^[a-z0-9]+([-_][a-z0-9]+)*$`, unique within the group; PUT: absent = unchanged, null/"" = cleared — B-N1-12b), `heading` T req (≤200), `body` T req, `link_label` T (≤60, empty → null), `link_url?` (≤500, `https?://`, `mailto:` or `tel:`), `sort_order?`, `is_active?` | `{info_section}` |
 | GET · DELETE · POST | `/info-sections/:id` · `/:id` · `/:id/toggle` | A | — | `{info_section}` · `{id}` · `{info_section}` |
 | GET | `/pregnancy-weeks` | A | — | `{items:[{week, id\|null}] (1…40 + stored weeks above), fields:[…10]}` |
 | POST · PUT | `/pregnancy-weeks` · `/:id` | A | `week_number` req (1–42, unique), each of the 10 fields T optional | `{pregnancy_week}` |
@@ -477,3 +477,19 @@ validated against the schema (422 on `payload.<path>`). Untyped groups keep the 
 
 Audit lines: `pregnancy_week_details.update` (target `pregnancy_week`, id = week), `pregnancy_care_item.create|update|
 toggle|delete|reorder`, `pregnancy_alert_rule.update` (attr `rule`, `rows_created`), `message.create`.
+
+## 14. Support reports inbox (B-N1-12b)
+
+«گزارش مشکل» reports sent from the app (`POST /api/v1/support/reports`, `support_reports`). Any active admin (**A**, the
+same role as `/users`: rows carry the user's mobile and free text). No health data beyond the report text itself.
+
+| Method | Path | Role | Body / query | `data` |
+|---|---|---|---|---|
+| GET | `/support-reports` | A | `status=open\|resolved\|all` (default / unknown → `open`), `page`, `per_page` | list, newest first (`created_at DESC, id DESC`); items `{id, user{id, name, mobile}, preview (first 160 chars), has_screenshot, app_version, status, created_at, updated_at}` + `filters{status}` + `counts{open, resolved}` |
+| GET | `/support-reports/:id` | A | — | `{support_report: {id, user{…}, message, has_screenshot, app_version, user_agent, status, created_at, updated_at}}` |
+| GET | `/support-reports/:id/screenshot` | A | — | the WebP bytes (`image/webp`, `Cache-Control: private, no-store`, `nosniff`); 404 when none / file gone / path outside `app/private/support-reports` |
+| POST | `/support-reports/:id/resolve` · `/:id/reopen` | A | — | `{support_report}` (idempotent), message `Report resolved.` / `Report reopened.` |
+
+The screenshot lives on the private part of the storage volume and has no public URL; the storage path is never
+sent. admin-web fetches it with the session cookie (`credentials: 'include'`) and shows it from an object URL.
+Audit lines: `support_report.resolve|reopen|screenshot`.

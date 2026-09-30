@@ -20,7 +20,7 @@ import {
   type Translations,
 } from '@/shared/ui';
 
-import { INFO_GROUPS, infoSectionsApi, type InfoSection } from '../api/info-sections';
+import { INFO_GROUPS, INFO_KEY_PATTERN, infoSectionsApi, type InfoSection } from '../api/info-sections';
 import { useGroupLabel } from './group-label';
 
 const listHref = (group: string) => (group === 'help' ? '/info-sections' : `/info-sections?group=${group}`);
@@ -73,6 +73,7 @@ function InfoSectionForm({
   const save = infoSectionsApi.useSave(id);
 
   const [group, setGroup] = useState(row?.group ?? initialGroup);
+  const [key, setKey] = useState(row?.key ?? '');
   const [heading, setHeading] = useState<Translations>(row?.heading ?? {});
   const [body, setBody] = useState<Translations>(row?.body ?? {});
   const [linkLabel, setLinkLabel] = useState<Translations>(row?.link_label ?? {});
@@ -86,6 +87,7 @@ function InfoSectionForm({
     save.mutate(
       {
         group,
+        key: blankToNull(key.trim()),
         heading,
         body,
         link_label: linkLabel,
@@ -119,6 +121,19 @@ function InfoSectionForm({
         options={groups.map((g) => ({ value: g, label: groupLabel(g) }))}
         required
         error={err('group')}
+      />
+      <TextInput
+        label={t('key')}
+        hint={t('keyHint')}
+        value={key}
+        onChange={(e) => setKey(e.target.value)}
+        dir="ltr"
+        maxLength={64}
+        pattern={INFO_KEY_PATTERN}
+        autoComplete="off"
+        spellCheck={false}
+        placeholder="email"
+        error={err('key')}
       />
       <TranslatableField name="heading" label={t('heading')} value={heading} onChange={setHeading} required maxLength={200} errors={errors} />
       <TranslatableField name="body" label={t('body')} value={body} onChange={setBody} kind="textarea" required errors={errors} />

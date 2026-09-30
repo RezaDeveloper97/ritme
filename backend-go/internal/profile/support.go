@@ -176,6 +176,17 @@ func decodeDataURL(s string) ([]byte, error) {
 	return b, nil
 }
 
+// SupportFilePath resolves a stored support_reports.screenshot_path (relative to storagePath) to its absolute
+// path. ok=false for an empty path, an unset storagePath, or anything outside the private support-report
+// directory (so a tampered row can never point the admin screenshot stream or a delete elsewhere).
+func SupportFilePath(storagePath string, rel sql.NullString) (string, bool) {
+	if storagePath == "" || !rel.Valid || !strings.HasPrefix(rel.String, supportReportDir+"/") ||
+		strings.Contains(rel.String, "..") || strings.ContainsRune(rel.String, '\\') {
+		return "", false
+	}
+	return filepath.Join(storagePath, filepath.FromSlash(rel.String)), true
+}
+
 // RemoveSupportFiles deletes support-report screenshots (paths relative to storagePath, as stored in
 // support_reports.screenshot_path) after their rows are gone — account deletion and the admin user delete.
 // Only paths under the support-report directory are touched; a missing file is fine, any other failure is
@@ -188,10 +199,11 @@ func RemoveSupportFiles(storagePath string, paths []sql.NullString, logger *slog
 		logger = slog.Default()
 	}
 	for _, p := range paths {
-		if !p.Valid || !strings.HasPrefix(p.String, supportReportDir+"/") || strings.Contains(p.String, "..") {
+		abs, ok := SupportFilePath(storagePath, p)
+		if !ok {
 			continue
 		}
-		if err := os.Remove(filepath.Join(storagePath, filepath.FromSlash(p.String))); err != nil && !errors.Is(err, fs.ErrNotExist) {
+		if err := os.Remove(abs); err != nil && !errors.Is(err, fs.ErrNotExist) {
 			reason := err.Error()
 			if pe := (*fs.PathError)(nil); errors.As(err, &pe) {
 				reason = pe.Err.Error() // PathError carries the absolute path; log the relative one only

@@ -62,6 +62,10 @@ type Querier interface {
 	CountAdminTaskTemplates(ctx context.Context) (int64, error)
 	CountAdmins(ctx context.Context) (int64, error)
 	CountCompletionsOn(ctx context.Context, completionDate civildate.Date) (int64, error)
+	// Admin support reports inbox (B-N1-12b): «گزارش مشکل» rows from POST /api/v1/support/reports, newest first.
+	// The status filter is a LIKE pattern ('%' = all, 'open' / 'resolved' = exact), like the other admin lists.
+	CountSupportReports(ctx context.Context, status string) (int64, error)
+	CountSupportReportsByStatus(ctx context.Context) ([]CountSupportReportsByStatusRow, error)
 	// ---------------------------------------------------------------------------
 	// Users (UserController)
 	// Filters: pattern is a LIKE pattern over name/mobile/email ('%' = no search; Go escapes % and _ in
@@ -117,8 +121,11 @@ type Querier interface {
 	GetPhaseContentByID(ctx context.Context, id uint64) (PhaseContent, error)
 	GetPregnancyWeek(ctx context.Context, id uint64) (PregnancyWeeklyContent, error)
 	GetRecommendation(ctx context.Context, id uint64) (Recommendation, error)
+	GetSupportReport(ctx context.Context, id uint64) (GetSupportReportRow, error)
 	GetTaskTemplate(ctx context.Context, id uint64) (TaskTemplate, error)
 	GetUserDetail(ctx context.Context, id uint64) (GetUserDetailRow, error)
+	// unique:info_sections,key per group (the (group, key) unique index; NULL keys never collide).
+	InfoSectionKeyTaken(ctx context.Context, arg InfoSectionKeyTakenParams) (bool, error)
 	LanguageCodeTaken(ctx context.Context, arg LanguageCodeTakenParams) (bool, error)
 	ListAdminAffirmations(ctx context.Context, arg ListAdminAffirmationsParams) ([]Affirmation, error)
 	// Article::orderBy('sort_order')->orderByDesc('id')->paginate(20).
@@ -148,6 +155,7 @@ type Querier interface {
 	// ---------------------------------------------------------------------------
 	// Pregnancy weeks (pregnancy_weekly_content)
 	ListPregnancyWeekIDs(ctx context.Context) ([]ListPregnancyWeekIDsRow, error)
+	ListSupportReports(ctx context.Context, arg ListSupportReportsParams) ([]ListSupportReportsRow, error)
 	// User::with('profile')->…->latest()->paginate(20). The profile is the user's first row (hasOne).
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]ListUsersRow, error)
 	MaxInfoSectionSortOrder(ctx context.Context, group string) (int64, error)
@@ -160,6 +168,7 @@ type Querier interface {
 	SetArticlePublished(ctx context.Context, arg SetArticlePublishedParams) error
 	SetLanguageActive(ctx context.Context, arg SetLanguageActiveParams) error
 	SetLanguageDefault(ctx context.Context, arg SetLanguageDefaultParams) error
+	SetSupportReportStatus(ctx context.Context, arg SetSupportReportStatusParams) (sql.Result, error)
 	// forceFill(['blocked_at' => now()|null])->save().
 	SetUserBlockedAt(ctx context.Context, arg SetUserBlockedAtParams) error
 	TaskTemplateKeyTaken(ctx context.Context, arg TaskTemplateKeyTakenParams) (bool, error)

@@ -51,6 +51,8 @@ const PATHS = {
   note: 'M7 3h7l5 5v13H7zM14 3v5h5M10 13h6M10 17h6',
   shieldCheck: 'M12 3l7 3v5c0 4.4-3 8.2-7 10-4-1.8-7-5.6-7-10V6zM9.2 12l2 2 3.6-4',
   external: 'M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5',
+  inbox: 'M4 13l2.5-8h11l2.5 8v6H4zM4 13h4.5l1.5 2.5h4l1.5-2.5H20',
+  image: 'M4 5h16v14H4zM4 16l4.5-4.5 3.5 3.5 2.5-2.5L20 17M15.5 9.5h.01',
 } as const;
 
 export type IconName = keyof typeof PATHS;

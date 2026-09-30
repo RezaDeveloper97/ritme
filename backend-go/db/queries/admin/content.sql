@@ -293,14 +293,19 @@ SELECT CAST(IFNULL(MAX(sort_order), 0) AS SIGNED) AS max_sort FROM `info_section
 -- name: GetInfoSection :one
 SELECT * FROM `info_sections` WHERE id = ? LIMIT 1;
 
+-- name: InfoSectionKeyTaken :one
+-- unique:info_sections,key per group (the (group, key) unique index; NULL keys never collide).
+SELECT EXISTS(SELECT 1 FROM `info_sections`
+              WHERE `group` = sqlc.arg(section_group) AND `key` = sqlc.arg(section_key) AND id <> sqlc.arg(except_id)) AS taken;
+
 -- name: CreateInfoSection :execresult
-INSERT INTO `info_sections` (`group`, heading, body, link_label, link_url, is_active, sort_order, created_at, updated_at)
-VALUES (sqlc.arg(section_group), sqlc.arg(heading), sqlc.arg(body), sqlc.narg(link_label), sqlc.narg(link_url),
-        sqlc.arg(is_active), sqlc.arg(sort_order), sqlc.arg(now), sqlc.arg(now));
+INSERT INTO `info_sections` (`group`, `key`, heading, body, link_label, link_url, is_active, sort_order, created_at, updated_at)
+VALUES (sqlc.arg(section_group), sqlc.narg(section_key), sqlc.arg(heading), sqlc.arg(body), sqlc.narg(link_label),
+        sqlc.narg(link_url), sqlc.arg(is_active), sqlc.arg(sort_order), sqlc.arg(now), sqlc.arg(now));
 
 -- name: UpdateInfoSection :exec
 UPDATE `info_sections`
-SET `group` = sqlc.arg(section_group), heading = sqlc.arg(heading), body = sqlc.arg(body),
+SET `group` = sqlc.arg(section_group), `key` = sqlc.narg(section_key), heading = sqlc.arg(heading), body = sqlc.arg(body),
     link_label = sqlc.narg(link_label), link_url = sqlc.narg(link_url), is_active = sqlc.arg(is_active),
     sort_order = sqlc.arg(sort_order), updated_at = sqlc.arg(now)
 WHERE id = sqlc.arg(id);
