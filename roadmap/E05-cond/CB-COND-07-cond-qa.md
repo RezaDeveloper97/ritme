@@ -4,7 +4,7 @@ title: COND QA
 epic: COND
 type: qa
 status: todo
-depends_on: [CB-COND-03, CB-COND-04, CB-COND-05, CB-COND-06]
+depends_on: [CB-COND-03, CB-COND-04, CB-COND-05, CB-COND-06, CB-COND-06b]
 parallel_group: COND-D
 touches: [docs/qa/canvas]
 skills: [verify-all]

@@ -3,7 +3,7 @@ id: CB-COND-06
 title: Nudges: heavy pain/bleeding → suggest program & doctor
 epic: COND
 type: backend
-status: todo
+status: done
 depends_on: [CB-COND-01]
 parallel_group: COND-B
 touches: [backend-go/internal/messages, backend-go/resources/translations]

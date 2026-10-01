@@ -134,3 +134,10 @@ TODO (ask user):
 - Verify: sqlc, vet, go test ./..., unit + int conditions, golangci-lint 0, OpenAPI, contract all, schema-diff OK. Pre-existing red: internal/catalog admin tests.
 - Open: pain diary rewrites every location with one score (overwrites per-location scores from the log sheet); board's finer pain locations not in bloom's taxonomy; admin hints for meta `log`/`logs`/`hotlines`; not in /profile/export; no docs/canvas-build/conditions.md.
 - TODO (ask user): writes require enrolment; `associated: null` clears slot-backed symptoms; PMDD mean over rated items only; export inclusion. All clinical rules/copy [needs clinical review].
+
+## CB-COND-06 — Nudges: heavy pain/bleeding → suggest program & doctor
+- Engine `internal/messages/conditionnudges` (pure `Detect` rules + engine + handler): `heavy_pain` = pain ≥7 (score; level `severe` when unscored) on ≥2 days of the current cycle while not enrolled in endo → pain diary; `heavy_bleeding` = flow heavy/very_heavy on ≥2 days while not enrolled in heavy_bleeding → PBAC. Cycle window = last period start (cycle_histories / profile) to today, else last 28 days (or profile cycle 21–45). Modes cycle/ttc/teen only. Reads bloom's health_log_entries; nothing stored; recomputed per request.
+- Copy: live `message_contents` group `condition_nudge` with per-field fallback to embedded fa/en (`needs_review` true while any fallback is used); not seeded (no migration). Doctor hook `DoctorDirectory` returns null until B-N7-02 — no dead link.
+- Verify: vet, go test ./..., golangci-lint 0, int messages (17), contract all green.
+- Follow-up CB-COND-06b: admin registry group + mount `GET /api/v1/messages/nudges` + OpenAPI/contract/deviation; CB-COND-02 shows the card.
+- TODO (ask user): PBAC ≥100 should also trigger the bleeding nudge? show in teen mode (yes now)? thresholds [needs clinical review]; no dismiss/dedupe yet.

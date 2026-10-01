@@ -1,0 +1,15 @@
+{
+    "review": "needs clinical review",
+    "heavy_pain": {
+        "title": "Strong pain on several days",
+        "body": "You logged pain of 7 or more on {days} days this cycle. A pain diary helps you and your doctor see the pattern.",
+        "action": "Open the pain diary",
+        "doctor_action": "Find a gynaecologist"
+    },
+    "heavy_bleeding": {
+        "title": "Heavy flow on several days",
+        "body": "You logged heavy flow on {days} days this cycle. The pad chart (PBAC) measures how much you bleed so it can be checked.",
+        "action": "Open the bleeding chart",
+        "doctor_action": "Find a gynaecologist"
+    }
+}
