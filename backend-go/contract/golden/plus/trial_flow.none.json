@@ -1,0 +1,255 @@
+{
+  "case": "plus/trial_flow.none",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/plus/trial/start",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "دوره رایگان ریتمی پلاس شروع شد",
+        "data": {
+          "tier": "trial",
+          "is_plus": true,
+          "subscription": null,
+          "trial": {
+            "started_at": "2026-09-23T10:00:00+03:30",
+            "ends_at": "2026-09-30T10:00:00+03:30",
+            "is_active": true,
+            "days_left": 7
+          },
+          "trial_available": false,
+          "period_start": "2026-09-01",
+          "resets_at": "2026-10-01T00:00:00+03:30",
+          "entitlements": [
+            {
+              "key": "plus.deep_analysis",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.lab_ai",
+              "allowed": true,
+              "unlimited": false,
+              "limit": 10,
+              "used": 0,
+              "remaining": 10
+            },
+            {
+              "key": "plus.assistant_unlimited",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.pdf_share",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.visit_discount",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.voice_log",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/plus/trial/start",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": false,
+        "message": "از دوره رایگان قبلاً استفاده کرده‌ای.",
+        "error_code": "trial_used"
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/plus/usage",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "tier": "trial",
+          "period_start": "2026-09-01",
+          "resets_at": "2026-10-01T00:00:00+03:30",
+          "features": [
+            {
+              "key": "plus.deep_analysis",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.lab_ai",
+              "allowed": true,
+              "unlimited": false,
+              "limit": 10,
+              "used": 0,
+              "remaining": 10
+            },
+            {
+              "key": "plus.assistant_unlimited",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.pdf_share",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.visit_discount",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.voice_log",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/plus/status",
+        "persona": "no_profile",
+        "now": "2026-09-30T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "tier": "free",
+          "is_plus": false,
+          "subscription": null,
+          "trial": {
+            "started_at": "2026-09-23T10:00:00+03:30",
+            "ends_at": "2026-09-30T10:00:00+03:30",
+            "is_active": false,
+            "days_left": 0
+          },
+          "trial_available": false,
+          "period_start": "2026-09-01",
+          "resets_at": "2026-10-01T00:00:00+03:30",
+          "entitlements": [
+            {
+              "key": "plus.deep_analysis",
+              "allowed": false,
+              "unlimited": false,
+              "limit": 0,
+              "used": 0,
+              "remaining": 0
+            },
+            {
+              "key": "plus.lab_ai",
+              "allowed": false,
+              "unlimited": false,
+              "limit": 0,
+              "used": 0,
+              "remaining": 0
+            },
+            {
+              "key": "plus.assistant_unlimited",
+              "allowed": true,
+              "unlimited": false,
+              "limit": 5,
+              "used": 0,
+              "remaining": 5
+            },
+            {
+              "key": "plus.pdf_share",
+              "allowed": false,
+              "unlimited": false,
+              "limit": 0,
+              "used": 0,
+              "remaining": 0
+            },
+            {
+              "key": "plus.visit_discount",
+              "allowed": false,
+              "unlimited": false,
+              "limit": 0,
+              "used": 0,
+              "remaining": 0
+            },
+            {
+              "key": "plus.voice_log",
+              "allowed": false,
+              "unlimited": false,
+              "limit": 0,
+              "used": 0,
+              "remaining": 0
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

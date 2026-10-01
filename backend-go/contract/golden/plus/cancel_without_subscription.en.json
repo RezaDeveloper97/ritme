@@ -1,0 +1,25 @@
+{
+  "case": "plus/cancel_without_subscription.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/plus/cancel",
+        "persona": "no_profile",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": false,
+        "message": "You have no active subscription.",
+        "error_code": "no_subscription"
+      }
+    }
+  ]
+}

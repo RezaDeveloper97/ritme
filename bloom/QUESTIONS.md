@@ -68,3 +68,7 @@ default taken so work could continue. Review at the end of the run.
 | 61 | B-N2-01 | New condition lists (`chronic_illnesses`, `gyn_conditions`, `medications`) are separate from legacy `chronic_conditions`; «سایر» has no free text (artboard has none). Choosing pill/IUD does not auto-enable `track_contraception` (left to canvas CB-CONTRA). | as described |
 | 62 | B-N1-17 | Calendar predicts periods/fertile windows for months before the first logged period (ported PHP engine behaviour, `cycle/legacy/engine.go:212`). Keep, or leave those months empty? | kept |
 | 63 | B-N1-17 | Stage support FAQ is empty, and stage has 3 test users (`0990•••••01/02/03`) + 1 QA support report. Please add FAQ content in the stage admin. | content gap |
+| 64 | B-N2-04 | Free-user quotas: assistant 5/month, everything else Plus-only; quotas live in code (admin-editable?). Quota period = Gregorian month in Tehran time (Jalali month preferred?). | as described |
+| 65 | B-N2-04 | VAT from env `PLUS_VAT_RATE_BPS` (10%); B-N2-09 mentions VAT config in admin — DB override needed? Artboard shows ۲۱٬۳۰۰ but exact maths gives ۲۱٬۳۳۰ (rounded down, exact). | env, exact |
+| 66 | B-N2-04 | Account deletion cascades invoices/receipts. Keep anonymised financial records for tax instead? | cascade |
+| 67 | B-N2-04 | Money stored as integer rials (`currency: IRR`), UI shows toman (/10). Prod has no gateway wired → checkout/verify 503 until a real adapter (B-N2-05); stage uses the fake (anyone can get Plus free on stage). Deviation **D-35** proposed. | as described |

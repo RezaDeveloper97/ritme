@@ -145,3 +145,9 @@ sql:
       go:
         <<: *go
         out: internal/pelvic/store
+  - <<: *pkg
+    queries: db/queries/plus
+    gen:
+      go:
+        <<: *go
+        out: internal/plus/store

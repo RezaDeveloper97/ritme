@@ -33,6 +33,7 @@ tags:
   - {name: Checkups, description: "Periodic checkups (Go only): the screening plan, records, custom checkups, per-type settings"}
   - {name: Catalog, description: "Admin-editable content catalog (Go only): one localized group of items (FAQs, warning signs, kit items, …)"}
   - {name: Pelvic, description: "Pelvic floor program (Go only): 8-week Kegel plan, trained days, bladder diary"}
+  - {name: Plus, description: "Ritme Plus (Go only): plans, trial, checkout through the payment port, verify, cancel, restore, history, entitlements and usage. Amounts are integer rials"}
   - {name: Daily Health Log, description: "One log per day: symptoms, mood, vitals, lifestyle"}
   - {name: Cycle, description: "Cycle engine: today, a date, a month, recalculation"}
   - {name: Period Log, description: "Start, end, add, edit and delete periods"}
@@ -1496,6 +1497,307 @@ paths:
                     - {code: first_period, title: "اولین پریود کی میاد؟", body: "…", meta: null, audiences: [teen], needs_review: true}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/ModelNotFound"}
+  /api/v1/plus/plans:
+    get:
+      tags: [Plus]
+      summary: Ritme Plus plans (public)
+      description: |
+        The active plans in display order (admin data). Amounts are integer **rials** (`currency: IRR`; clients show
+        toman = rials / 10). `monthly_price` is the admin override or `price / duration_months` (floor);
+        `savings_percent` compares it with the per-month price of the shortest plan (floor). `vat_rate_bps` is the
+        VAT rate applied at checkout in basis points (1000 = 10 %), `trial_days` the length of the one free trial.
+      operationId: listPlusPlans
+      security: []
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The plans
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/PlusPlans"}
+              example:
+                success: true
+                data:
+                  currency: IRR
+                  vat_rate_bps: 1000
+                  trial_days: 7
+                  plans:
+                    - {id: 1, code: plus_1m, title: ۱ ماهه, badge: null, duration_months: 1, price: 990000, monthly_price: 990000, savings_percent: 0, is_highlighted: false}
+                    - {id: 2, code: plus_3m, title: ۳ ماهه, badge: محبوب‌ترین, duration_months: 3, price: 2370000, monthly_price: 790000, savings_percent: 20, is_highlighted: true}
+                    - {id: 3, code: plus_6m, title: ۶ ماهه, badge: null, duration_months: 6, price: 3900000, monthly_price: 650000, savings_percent: 34, is_highlighted: false}
+  /api/v1/plus/status:
+    get:
+      tags: [Plus]
+      summary: The caller's Plus status and entitlements
+      description: |
+        `tier` is `plus` (a subscription period covers now), `trial` (the free trial is running) or `free`.
+        `subscription` is the covering period (`canceled` = auto-renew off, still valid until `ends_at`);
+        `trial` the trial row (running or not); `trial_available` = never trialled and never subscribed.
+        `entitlements` is every Plus feature for this month (Tehran calendar month from `period_start`, resetting at
+        `resets_at`): `limit`/`remaining` are null when unlimited and 0 when locked. Trials get the Plus quotas.
+      operationId: getPlusStatus
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The status
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/PlusStatus"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/plus/usage:
+    get:
+      tags: [Plus]
+      summary: This month's feature usage
+      description: "Every Plus feature with this month's counter (the trial sheet's usage lines and quota display)."
+      operationId: getPlusUsage
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The usage
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/PlusUsage"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/plus/history:
+    get:
+      tags: [Plus]
+      summary: Payment history
+      description: "The caller's latest 50 invoices, newest first, each with its receipt (null unless paid)."
+      operationId: getPlusHistory
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The invoices
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {type: array, items: {$ref: "#/components/schemas/PlusInvoice"}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/plus/trial/start:
+    post:
+      tags: [Plus]
+      summary: Start the free trial
+      description: |
+        Once per user, ever (enforced by a unique key, so concurrent starts cannot both win), and only before any
+        subscription. Responds with the status.
+      operationId: startPlusTrial
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Started; the status
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/PlusStatus"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/PlusFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/plus/checkout:
+    post:
+      tags: [Plus]
+      summary: Price a plan or create an invoice and a payment
+      description: |
+        The server prices the plan; the body never carries an amount (any amount field is ignored).
+        `discount_code` is case-insensitive; a rejected code is 422 on `discount_code` with `error_code`
+        `discount_invalid|discount_not_started|discount_expired|discount_plan|discount_exhausted|discount_used`.
+        VAT applies after the discount and is rounded down.
+
+        - `preview: true` → `{quote}`; nothing is written.
+        - otherwise → a pending invoice (it holds the discount for `PLUS_INVOICE_TTL_MINUTES`, default 30) and
+          `payment` (send the user to `redirect_url`; the gateway returns them to the web app's return page with
+          `reference`, `authority`, `status`). A 100 % discount is settled at once: invoice `paid`, `payment` null.
+
+        503 `payment_unavailable` when no payment provider is configured (production until B-N2-05) or the provider
+        failed.
+      operationId: plusCheckout
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [plan_id]
+              properties:
+                plan_id: {type: integer, minimum: 1}
+                discount_code: {type: [string, "null"], maxLength: 64}
+                preview: {type: [boolean, "null"]}
+            example: {plan_id: 2, discount_code: RITME10}
+      responses:
+        '200':
+          description: "A quote (preview) or the invoice and payment"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data:
+                    oneOf:
+                      - type: object
+                        required: [quote]
+                        properties:
+                          quote: {$ref: "#/components/schemas/PlusQuote"}
+                      - type: object
+                        required: [invoice, payment]
+                        properties:
+                          invoice: {$ref: "#/components/schemas/PlusInvoice"}
+                          payment: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/PlusPayment"}]}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/PlusFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+        '503': {$ref: "#/components/responses/PlusPaymentUnavailable"}
+  /api/v1/plus/verify:
+    post:
+      tags: [Plus]
+      summary: Verify a payment
+      description: |
+        Settles the caller's invoice with the gateway after the return page. Idempotent: a verified invoice answers
+        200 with `already_verified: true`, unchanged, without asking the gateway or adding time; concurrent verifies
+        are serialised on the invoice row. Checks: the invoice belongs to the caller (else 404), `authority` is the
+        invoice's own payment, the provider's settled amount equals the invoice total (`amount_mismatch`), and a
+        bank reference can pay one invoice only. A declined payment marks the invoice failed (`payment_failed`;
+        verifying again is `invoice_closed`); a provider error leaves it pending (503). A paid invoice adds a
+        subscription period starting now, or right after the last valid period.
+      operationId: plusVerify
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reference, authority]
+              properties:
+                reference: {type: string, maxLength: 32}
+                authority: {type: string, maxLength: 191}
+                status: {type: [string, "null"], maxLength: 32, description: "The gateway's callback status, passed through"}
+            example: {reference: RPABCDEFGHIJKLMNOP, authority: FAKE-RPABCDEFGHIJKLMNOP, status: OK}
+      responses:
+        '200':
+          description: Paid (or already paid); the invoice with its receipt and the status
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data:
+                    type: object
+                    required: [invoice, already_verified, status]
+                    properties:
+                      invoice: {$ref: "#/components/schemas/PlusInvoice"}
+                      already_verified: {type: boolean}
+                      status: {$ref: "#/components/schemas/PlusStatus"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/PlusFailed"}
+        '422': {$ref: "#/components/responses/PlusFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+        '503': {$ref: "#/components/responses/PlusPaymentUnavailable"}
+  /api/v1/plus/cancel:
+    post:
+      tags: [Plus]
+      summary: Turn auto-renew off
+      description: "Every valid (current or queued) period becomes `canceled` and stays valid until it ends. Idempotent while a period runs; 422 `no_subscription` without one. Responds with the status."
+      operationId: plusCancel
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Canceled; the status
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/PlusStatus"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/PlusFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/plus/restore:
+    post:
+      tags: [Plus]
+      summary: Restore purchases
+      description: |
+        Re-checks the caller's pending checkouts with the gateway (paid, but the return page never verified) and
+        settles the paid ones. An unpaid checkout stays pending until its reservation expires, then is failed.
+        Responds with how many were restored and the status.
+      operationId: plusRestore
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The restored count and the status
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data:
+                    type: object
+                    required: [restored, status]
+                    properties:
+                      restored: {type: integer, minimum: 0}
+                      status: {$ref: "#/components/schemas/PlusStatus"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/pelvic:
     get:
       tags: [Pelvic]
@@ -7655,6 +7957,43 @@ paths:
                     type: object
                     additionalProperties: {type: array, items: {type: string}}
         '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/profile/life-stage/loss-copy:
+    get:
+      tags: [Profile]
+      summary: Calm pregnancy-exit copy
+      description: |
+        Go only (B-N2-03). The admin-edited texts of the mode switcher's calm pregnancy exit («اگر بارداری‌ات
+        ادامه پیدا نکرد»): message_contents `pregnancy_setup` / `loss_exit` in the request language, else the
+        default language's row (live = active + approved). Every key is always present; a text is null while no
+        live row has it, so the app falls back to its translation bundle. The exit itself is
+        `POST /pregnancy/deactivate` + `PUT /profile/life-stage`.
+      operationId: getLifeStageLossCopy
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The copy
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [title, body, confirm, cancel, done_title, done_body, done_action]
+                    properties:
+                      title: {type: [string, "null"]}
+                      body: {type: [string, "null"]}
+                      confirm: {type: [string, "null"]}
+                      cancel: {type: [string, "null"]}
+                      done_title: {type: [string, "null"]}
+                      done_body: {type: [string, "null"]}
+                      done_action: {type: [string, "null"]}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
   /api/v1/profile/consents:
     get:
       tags: [Profile]
@@ -9224,6 +9563,32 @@ components:
       description: "Overrides `Accept-Language`. Some endpoints clamp to the languages they have content for."
       schema: {type: string}
   responses:
+    PlusFailed:
+      description: "Plus business failure (controller body `{success: false, message, error_code?, errors?}`): `trial_used`, `trial_unavailable`, `no_subscription`, `invoice_not_found` (404), `invoice_closed`, `authority_mismatch`, `payment_failed`, `amount_mismatch`, `discount_*`, or field validation (`errors`)"
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              errors:
+                type: object
+                additionalProperties: {type: array, items: {type: string}}
+              error_code: {type: string}
+          example: {success: false, message: You have already used your free trial., error_code: trial_used}
+    PlusPaymentUnavailable:
+      description: "No payment provider is configured, or the provider failed (`error_code: payment_unavailable`); a pending invoice stays pending"
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, const: payment_unavailable}
     PregnancyV2ValidationFailed:
       description: "Pregnancy v2 validation failed (controller 422 `{success: false, message, errors}`)"
       content:
@@ -9423,6 +9788,139 @@ components:
             properties: {success: {type: boolean, const: false}, message: {type: string}}
           example: {success: false, message: نوبت پیدا نشد}
   schemas:
+    PlusPlan:
+      type: object
+      required: [id, code, title, badge, duration_months, price, monthly_price, savings_percent, is_highlighted]
+      properties:
+        id: {type: integer}
+        code: {type: string}
+        title: {type: string, description: Localized}
+        badge: {type: [string, "null"], description: "Localized («محبوب‌ترین»)"}
+        duration_months: {type: integer, minimum: 1}
+        price: {type: integer, description: Rials}
+        monthly_price: {type: integer, description: Rials per month}
+        savings_percent: {type: integer, minimum: 0, maximum: 100}
+        is_highlighted: {type: boolean}
+    PlusPlans:
+      type: object
+      required: [currency, vat_rate_bps, trial_days, plans]
+      properties:
+        currency: {type: string, const: IRR}
+        vat_rate_bps: {type: integer, minimum: 0, maximum: 10000}
+        trial_days: {type: integer, minimum: 1}
+        plans: {type: array, items: {$ref: "#/components/schemas/PlusPlan"}}
+    PlusPlanRef:
+      type: object
+      required: [id, code, title, duration_months]
+      properties:
+        id: {type: integer}
+        code: {type: string}
+        title: {type: string}
+        duration_months: {type: integer}
+    PlusEntitlement:
+      type: object
+      required: [key, allowed, unlimited, limit, used, remaining]
+      properties:
+        key:
+          type: string
+          description: "Stable key; known today: plus.deep_analysis, plus.lab_ai, plus.assistant_unlimited, plus.pdf_share, plus.visit_discount, plus.voice_log (more may be added)"
+          examples: [plus.lab_ai]
+        allowed: {type: boolean, description: May use it now}
+        unlimited: {type: boolean}
+        limit: {type: [integer, "null"], description: "Uses per month; null = unlimited, 0 = locked"}
+        used: {type: integer, minimum: 0}
+        remaining: {type: [integer, "null"], description: "null = unlimited"}
+    PlusStatus:
+      type: object
+      required: [tier, is_plus, subscription, trial, trial_available, period_start, resets_at, entitlements]
+      properties:
+        tier: {type: string, enum: [free, trial, plus]}
+        is_plus: {type: boolean}
+        subscription:
+          oneOf:
+            - type: "null"
+            - type: object
+              required: [id, plan, status, source, starts_at, ends_at, days_left, auto_renew, canceled_at]
+              properties:
+                id: {type: integer}
+                plan: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/PlusPlanRef"}]}
+                status: {type: string, enum: [active, canceled]}
+                source: {type: string, enum: [purchase, admin]}
+                starts_at: {$ref: "#/components/schemas/IsoDateTime"}
+                ends_at: {$ref: "#/components/schemas/IsoDateTime"}
+                days_left: {type: integer, minimum: 0}
+                auto_renew: {type: boolean}
+                canceled_at: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/IsoDateTime"}]}
+        trial:
+          oneOf:
+            - type: "null"
+            - type: object
+              required: [started_at, ends_at, is_active, days_left]
+              properties:
+                started_at: {$ref: "#/components/schemas/IsoDateTime"}
+                ends_at: {$ref: "#/components/schemas/IsoDateTime"}
+                is_active: {type: boolean}
+                days_left: {type: integer, minimum: 0}
+        trial_available: {type: boolean}
+        period_start: {$ref: "#/components/schemas/Date"}
+        resets_at: {$ref: "#/components/schemas/IsoDateTime"}
+        entitlements: {type: array, items: {$ref: "#/components/schemas/PlusEntitlement"}}
+    PlusUsage:
+      type: object
+      required: [tier, period_start, resets_at, features]
+      properties:
+        tier: {type: string, enum: [free, trial, plus]}
+        period_start: {$ref: "#/components/schemas/Date"}
+        resets_at: {$ref: "#/components/schemas/IsoDateTime"}
+        features: {type: array, items: {$ref: "#/components/schemas/PlusEntitlement"}}
+    PlusQuote:
+      type: object
+      required: [plan, currency, subtotal, discount, discount_code, vat_rate_bps, vat, total]
+      properties:
+        plan: {$ref: "#/components/schemas/PlusPlanRef"}
+        currency: {type: string, const: IRR}
+        subtotal: {type: integer}
+        discount: {type: integer}
+        discount_code: {type: [string, "null"]}
+        vat_rate_bps: {type: integer}
+        vat: {type: integer}
+        total: {type: integer}
+    PlusInvoice:
+      type: object
+      required: [reference, status, plan, duration_months, currency, subtotal, discount, discount_code, vat_rate_bps, vat, total, gateway, created_at, expires_at, paid_at, receipt]
+      properties:
+        reference: {type: string, description: Public invoice id}
+        status: {type: string, enum: [pending, paid, failed, expired, refunded]}
+        plan: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/PlusPlanRef"}]}
+        duration_months: {type: integer}
+        currency: {type: string, const: IRR}
+        subtotal: {type: integer}
+        discount: {type: integer}
+        discount_code: {type: [string, "null"]}
+        vat_rate_bps: {type: integer}
+        vat: {type: integer}
+        total: {type: integer}
+        gateway: {type: [string, "null"]}
+        created_at: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/IsoDateTime"}]}
+        expires_at: {$ref: "#/components/schemas/IsoDateTime"}
+        paid_at: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/IsoDateTime"}]}
+        receipt:
+          oneOf:
+            - type: "null"
+            - type: object
+              required: [ref_id, card_pan, amount, paid_at]
+              properties:
+                ref_id: {type: string}
+                card_pan: {type: [string, "null"]}
+                amount: {type: integer}
+                paid_at: {$ref: "#/components/schemas/IsoDateTime"}
+    PlusPayment:
+      type: object
+      required: [gateway, authority, redirect_url]
+      properties:
+        gateway: {type: string}
+        authority: {type: string}
+        redirect_url: {type: string, format: uri}
     PregnancyV2DaySymptoms:
       description: "Symptom → severity; only logged symptoms are present (empty object when none)."
       type: [object, array]

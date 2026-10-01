@@ -1,0 +1,84 @@
+{
+  "case": "plus/checkout_invalid.none",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/plus/checkout",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {}
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": false,
+        "message": "اطلاعات ارسالی معتبر نیست",
+        "errors": {
+          "plan_id": [
+            "فیلد اشتراک الزامی است."
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/plus/checkout",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "plan_id": 99
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": false,
+        "message": "اطلاعات ارسالی معتبر نیست",
+        "errors": {
+          "plan_id": [
+            "این اشتراک در دسترس نیست."
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/plus/checkout",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "plan_id": 1,
+          "discount_code": "NOPE",
+          "preview": true
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57"
+      },
+      "body": {
+        "success": false,
+        "message": "اطلاعات ارسالی معتبر نیست",
+        "errors": {
+          "discount_code": [
+            "این کد تخفیف معتبر نیست."
+          ]
+        },
+        "error_code": "discount_invalid"
+      }
+    }
+  ]
+}

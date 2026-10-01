@@ -36,6 +36,7 @@ type Config struct {
 	SMS      SMS
 	Telegram Telegram
 	Swagger  Swagger
+	Plus     Plus
 	// StoragePath is the mounted Laravel storage/ directory (backend-storage volume):
 	// Passport keys, translations, public uploads.
 	StoragePath string
@@ -133,6 +134,15 @@ type Swagger struct {
 	Password string
 }
 
+// Plus holds the Ritme Plus checkout settings (B-N2-04). Amounts are rials; the VAT rate is in basis points
+// (1000 = 10 %) and is snapshotted onto every invoice at checkout.
+type Plus struct {
+	VATRateBps  int           // PLUS_VAT_RATE_BPS, 0–10000 (default 1000 = 10 %)
+	TrialDays   int           // PLUS_TRIAL_DAYS, 1–90 (default 7)
+	InvoiceTTL  time.Duration // PLUS_INVOICE_TTL_MINUTES (default 30): how long a pending checkout holds a discount
+	CallbackURL string        // PLUS_CALLBACK_URL: where the gateway sends the user back (the web app's return page)
+}
+
 // Load reads the process environment.
 func Load() (*Config, error) { return LoadFrom(os.LookupEnv) }
 
@@ -194,6 +204,12 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 			User:     e.str("SWAGGER_USER", "ritme"),
 			Password: e.str("SWAGGER_PASSWORD", ""),
 		},
+		Plus: Plus{
+			VATRateBps:  e.integer("PLUS_VAT_RATE_BPS", 1000),
+			TrialDays:   e.integer("PLUS_TRIAL_DAYS", 7),
+			InvoiceTTL:  time.Duration(e.integer("PLUS_INVOICE_TTL_MINUTES", 30)) * time.Minute,
+			CallbackURL: e.str("PLUS_CALLBACK_URL", "http://localhost:3000/plus/return"),
+		},
 		StoragePath:   strings.TrimRight(e.required("STORAGE_PATH"), "/"),
 		RunMigrations: e.boolean("RUN_MIGRATIONS", false),
 	}
@@ -207,6 +223,15 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 	}
 	if len(cfg.CORS.AllowedOrigins) == 0 {
 		e.fail("CORS_ALLOWED_ORIGINS: no origins after parsing")
+	}
+	if cfg.Plus.VATRateBps < 0 || cfg.Plus.VATRateBps > 10000 {
+		e.fail("PLUS_VAT_RATE_BPS: must be between 0 and 10000")
+	}
+	if cfg.Plus.TrialDays < 1 || cfg.Plus.TrialDays > 90 {
+		e.fail("PLUS_TRIAL_DAYS: must be between 1 and 90")
+	}
+	if cfg.Plus.InvoiceTTL < time.Minute {
+		e.fail("PLUS_INVOICE_TTL_MINUTES: must be at least 1")
 	}
 	if cfg.App.IsProduction() && cfg.App.Debug {
 		e.fail("APP_DEBUG must be false when APP_ENV=production")

@@ -3,7 +3,7 @@ id: B-N2-04
 title: Subscription domain — plans, trials, subscriptions, discounts, entitlements
 milestone: N2
 type: backend
-status: todo
+status: done
 depends_on: [B-N2-01]
 parallel_group: N2-D
 touches: [backend-go/db,backend-go/internal/plus,backend-go/internal/http,backend-go/api]

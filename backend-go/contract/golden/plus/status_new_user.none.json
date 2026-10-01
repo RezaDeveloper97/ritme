@@ -1,0 +1,79 @@
+{
+  "case": "plus/status_new_user.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/plus/status",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "tier": "free",
+          "is_plus": false,
+          "subscription": null,
+          "trial": null,
+          "trial_available": true,
+          "period_start": "2026-09-01",
+          "resets_at": "2026-10-01T00:00:00+03:30",
+          "entitlements": [
+            {
+              "key": "plus.deep_analysis",
+              "allowed": false,
+              "unlimited": false,
+              "limit": 0,
+              "used": 0,
+              "remaining": 0
+            },
+            {
+              "key": "plus.lab_ai",
+              "allowed": false,
+              "unlimited": false,
+              "limit": 0,
+              "used": 0,
+              "remaining": 0
+            },
+            {
+              "key": "plus.assistant_unlimited",
+              "allowed": true,
+              "unlimited": false,
+              "limit": 5,
+              "used": 0,
+              "remaining": 5
+            },
+            {
+              "key": "plus.pdf_share",
+              "allowed": false,
+              "unlimited": false,
+              "limit": 0,
+              "used": 0,
+              "remaining": 0
+            },
+            {
+              "key": "plus.visit_discount",
+              "allowed": false,
+              "unlimited": false,
+              "limit": 0,
+              "used": 0,
+              "remaining": 0
+            },
+            {
+              "key": "plus.voice_log",
+              "allowed": false,
+              "unlimited": false,
+              "limit": 0,
+              "used": 0,
+              "remaining": 0
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

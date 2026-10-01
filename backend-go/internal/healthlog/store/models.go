@@ -460,6 +460,106 @@ type PhaseContent struct {
 	UpdatedAt         sql.NullTime
 }
 
+type PlusDiscountCode struct {
+	ID             uint64
+	Code           string
+	Kind           string
+	Value          uint64
+	MaxRedemptions sql.NullInt32
+	PerUserLimit   sql.NullInt32
+	PlanIds        db.NullRawJSON
+	StartsAt       sql.NullTime
+	ExpiresAt      sql.NullTime
+	IsActive       bool
+	CreatedAt      sql.NullTime
+	UpdatedAt      sql.NullTime
+}
+
+type PlusInvoice struct {
+	ID             uint64
+	Reference      string
+	UserID         uint64
+	PlanID         sql.NullInt64
+	DurationMonths uint16
+	Status         string
+	Currency       string
+	SubtotalRials  uint64
+	DiscountRials  uint64
+	VatRateBps     uint32
+	VatRials       uint64
+	TotalRials     uint64
+	DiscountCodeID sql.NullInt64
+	DiscountCode   sql.NullString
+	Gateway        sql.NullString
+	Authority      sql.NullString
+	ExpiresAt      time.Time
+	PaidAt         sql.NullTime
+	CreatedAt      sql.NullTime
+	UpdatedAt      sql.NullTime
+}
+
+type PlusPlan struct {
+	ID                  uint64
+	Code                string
+	Title               json.RawMessage
+	Badge               db.NullRawJSON
+	DurationMonths      uint16
+	PriceRials          uint64
+	MonthlyDisplayRials sql.NullInt64
+	IsHighlighted       bool
+	IsActive            bool
+	SortOrder           uint32
+	CreatedAt           sql.NullTime
+	UpdatedAt           sql.NullTime
+}
+
+type PlusReceipt struct {
+	ID          uint64
+	InvoiceID   uint64
+	UserID      uint64
+	Gateway     string
+	RefID       string
+	CardPan     sql.NullString
+	AmountRials uint64
+	PaidAt      time.Time
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+}
+
+type PlusSubscription struct {
+	ID         uint64
+	UserID     uint64
+	PlanID     sql.NullInt64
+	InvoiceID  sql.NullInt64
+	Status     string
+	Source     string
+	StartsAt   time.Time
+	EndsAt     time.Time
+	AutoRenew  bool
+	CanceledAt sql.NullTime
+	CreatedAt  sql.NullTime
+	UpdatedAt  sql.NullTime
+}
+
+type PlusTrial struct {
+	ID        uint64
+	UserID    uint64
+	StartedAt time.Time
+	EndsAt    time.Time
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
+type PlusUsageCounter struct {
+	ID          uint64
+	UserID      uint64
+	Feature     string
+	PeriodStart civildate.Date
+	Used        uint32
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+}
+
 type PregnancyAlert struct {
 	ID                  uint64
 	UserID              uint64

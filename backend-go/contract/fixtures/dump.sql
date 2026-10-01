@@ -1144,6 +1144,198 @@ INSERT INTO `phase_contents` VALUES
 (12,'period_expected','{\"fa\":\"\\u0627\\u0645\\u0631\\u0648\\u0632 \\u062f\\u0631 \\u0645\\u062d\\u062f\\u0648\\u062f\\u0647 \\u067e\\u06cc\\u0634\\u200c\\u0628\\u06cc\\u0646\\u06cc\\u200c\\u0634\\u062f\\u0647 \\u0634\\u0631\\u0648\\u0639 \\u067e\\u0631\\u06cc\\u0648\\u062f \\u0642\\u0631\\u0627\\u0631 \\u062f\\u0627\\u0631\\u06cc\\u060c \\u0627\\u0645\\u0627 \\u0647\\u0646\\u0648\\u0632 \\u0634\\u0631\\u0648\\u0639 \\u0622\\u0646 \\u062b\\u0628\\u062a \\u0646\\u0634\\u062f\\u0647 \\u0627\\u0633\\u062a. \\u0645\\u0645\\u06a9\\u0646 \\u0627\\u0633\\u062a \\u06af\\u0631\\u0641\\u062a\\u06af\\u06cc\\u060c \\u0646\\u0641\\u062e\\u060c \\u062e\\u0633\\u062a\\u06af\\u06cc\\u060c \\u062d\\u0633\\u0627\\u0633\\u06cc\\u062a \\u0633\\u06cc\\u0646\\u0647 \\u06cc\\u0627 \\u062a\\u063a\\u06cc\\u06cc\\u0631 \\u062e\\u0644\\u0642 \\u062f\\u0627\\u0634\\u062a\\u0647 \\u0628\\u0627\\u0634\\u06cc\\u061b \\u0645\\u0645\\u06a9\\u0646 \\u0627\\u0633\\u062a \\u0647\\u0645 \\u0647\\u06cc\\u0686 \\u0639\\u0644\\u0627\\u0645\\u062a\\u06cc \\u0627\\u062d\\u0633\\u0627\\u0633 \\u0646\\u06a9\\u0646\\u06cc.\\n\\n\\u0686\\u0646\\u062f \\u0631\\u0648\\u0632 \\u0627\\u062e\\u062a\\u0644\\u0627\\u0641 \\u0628\\u0627 \\u062a\\u0627\\u0631\\u06cc\\u062e \\u067e\\u06cc\\u0634\\u200c\\u0628\\u06cc\\u0646\\u06cc\\u200c\\u0634\\u062f\\u0647 \\u0645\\u0639\\u0645\\u0648\\u0644\\u0627\\u064b \\u0645\\u0645\\u06a9\\u0646 \\u0627\\u0633\\u062a \\u0631\\u062e \\u062f\\u0647\\u062f\\u060c \\u0628\\u0647\\u200c\\u062e\\u0635\\u0648\\u0635 \\u0627\\u06af\\u0631 \\u0686\\u0631\\u062e\\u0647\\u200c\\u0647\\u0627 \\u0645\\u062a\\u063a\\u06cc\\u0631 \\u0628\\u0627\\u0634\\u0646\\u062f \\u06cc\\u0627 \\u062a\\u062e\\u0645\\u06a9\\u200c\\u06af\\u0630\\u0627\\u0631\\u06cc \\u062f\\u06cc\\u0631\\u062a\\u0631 \\u0627\\u062a\\u0641\\u0627\\u0642 \\u0627\\u0641\\u062a\\u0627\\u062f\\u0647 \\u0628\\u0627\\u0634\\u062f.\",\"en\":null}','{\"fa\":\"\\u0645\\u0645\\u06a9\\u0646 \\u0627\\u0633\\u062a \\u062a\\u0631\\u0634\\u062d\\u0627\\u062a \\u06a9\\u0645\\u060c \\u06a9\\u0631\\u0645\\u06cc \\u06cc\\u0627 \\u0686\\u0633\\u0628\\u0646\\u0627\\u06a9 \\u0628\\u0627\\u0634\\u0646\\u062f \\u06cc\\u0627 \\u0646\\u0632\\u062f\\u06cc\\u06a9 \\u0634\\u0631\\u0648\\u0639 \\u062e\\u0648\\u0646\\u200c\\u0631\\u06cc\\u0632\\u06cc \\u062a\\u063a\\u06cc\\u06cc\\u0631 \\u06a9\\u0646\\u0646\\u062f. \\u0644\\u06a9\\u0647\\u200c\\u0628\\u06cc\\u0646\\u06cc \\u062e\\u0641\\u06cc\\u0641 \\u0646\\u06cc\\u0632 \\u0645\\u0645\\u06a9\\u0646 \\u0627\\u0633\\u062a \\u0631\\u062e \\u062f\\u0647\\u062f\\u060c \\u0627\\u0645\\u0627 \\u0644\\u0632\\u0648\\u0645\\u0627\\u064b \\u0628\\u0647 \\u0645\\u0639\\u0646\\u06cc \\u0634\\u0631\\u0648\\u0639 \\u0642\\u0637\\u0639\\u06cc \\u067e\\u0631\\u06cc\\u0648\\u062f \\u0646\\u06cc\\u0633\\u062a.\\n\\n\\u062b\\u0628\\u062a Start Period \\u0628\\u0647\\u062a\\u0631 \\u0627\\u0633\\u062a \\u0632\\u0645\\u0627\\u0646\\u06cc \\u0627\\u0646\\u062c\\u0627\\u0645 \\u0634\\u0648\\u062f \\u06a9\\u0647 \\u062e\\u0648\\u0646\\u200c\\u0631\\u06cc\\u0632\\u06cc \\u0648\\u0627\\u0642\\u0639\\u06cc \\u067e\\u0631\\u06cc\\u0648\\u062f \\u0634\\u0631\\u0648\\u0639 \\u0634\\u062f\\u0647 \\u0628\\u0627\\u0634\\u062f\\u060c \\u0646\\u0647 \\u0635\\u0631\\u0641\\u0627\\u064b \\u0628\\u0627 \\u062f\\u06cc\\u062f\\u0646 \\u06cc\\u06a9 \\u0644\\u06a9\\u0647 \\u0645\\u062d\\u062f\\u0648\\u062f.\",\"en\":null}','{\"fa\":\"\\u0628\\u0631 \\u0627\\u0633\\u0627\\u0633 \\u062a\\u0642\\u0648\\u06cc\\u0645\\u060c \\u0627\\u062d\\u062a\\u0645\\u0627\\u0644 \\u0628\\u0627\\u0631\\u0648\\u0631\\u06cc \\u067e\\u0627\\u06cc\\u06cc\\u0646 \\u062a\\u062e\\u0645\\u06cc\\u0646 \\u0632\\u062f\\u0647 \\u0645\\u06cc\\u200c\\u0634\\u0648\\u062f\\u061b \\u0627\\u0645\\u0627 \\u0639\\u0642\\u0628 \\u0627\\u0641\\u062a\\u0627\\u062f\\u0646 \\u067e\\u0631\\u06cc\\u0648\\u062f \\u0645\\u06cc\\u200c\\u062a\\u0648\\u0627\\u0646\\u062f \\u0628\\u0647 \\u0645\\u0639\\u0646\\u06cc \\u062c\\u0627\\u0628\\u0647\\u200c\\u062c\\u0627\\u06cc\\u06cc \\u0632\\u0645\\u0627\\u0646 \\u062a\\u062e\\u0645\\u06a9\\u200c\\u06af\\u0630\\u0627\\u0631\\u06cc \\u0646\\u06cc\\u0632 \\u0628\\u0627\\u0634\\u062f. \\u0628\\u0646\\u0627\\u0628\\u0631\\u0627\\u06cc\\u0646 \\u0627\\u067e \\u0646\\u0628\\u0627\\u06cc\\u062f \\u0627\\u06cc\\u0646 \\u0631\\u0648\\u0632 \\u0631\\u0627 \\u0628\\u0647\\u200c\\u0639\\u0646\\u0648\\u0627\\u0646 \\u0631\\u0648\\u0632 \\u0642\\u0637\\u0639\\u06cc \\u0648 \\u0628\\u062f\\u0648\\u0646 \\u0627\\u062d\\u062a\\u0645\\u0627\\u0644 \\u0628\\u0627\\u0631\\u0648\\u0631\\u06cc \\u0646\\u0645\\u0627\\u06cc\\u0634 \\u062f\\u0647\\u062f.\\n\\n\\u0627\\u06af\\u0631 \\u0627\\u062d\\u062a\\u0645\\u0627\\u0644 \\u0628\\u0627\\u0631\\u062f\\u0627\\u0631\\u06cc \\u0648\\u062c\\u0648\\u062f \\u062f\\u0627\\u0631\\u062f \\u0648 \\u067e\\u0631\\u06cc\\u0648\\u062f \\u0634\\u0631\\u0648\\u0639 \\u0646\\u0634\\u062f\\u0647\\u060c \\u0622\\u0632\\u0645\\u0627\\u06cc\\u0634 \\u0628\\u0627\\u0631\\u062f\\u0627\\u0631\\u06cc \\u062f\\u0631 \\u0632\\u0645\\u0627\\u0646 \\u0645\\u0646\\u0627\\u0633\\u0628 \\u0645\\u06cc\\u200c\\u062a\\u0648\\u0627\\u0646\\u062f \\u0627\\u0637\\u0644\\u0627\\u0639\\u0627\\u062a \\u0642\\u0627\\u0628\\u0644\\u200c\\u0627\\u0639\\u062a\\u0645\\u0627\\u062f\\u200c\\u062a\\u0631\\u06cc \\u0627\\u0632 \\u0639\\u0644\\u0627\\u0626\\u0645 \\u06cc\\u0627 \\u067e\\u06cc\\u0634\\u200c\\u0628\\u06cc\\u0646\\u06cc \\u062a\\u0642\\u0648\\u06cc\\u0645\\u06cc \\u0628\\u062f\\u0647\\u062f. \\u0627\\u06af\\u0631 \\u0646\\u062a\\u06cc\\u062c\\u0647 \\u0645\\u0646\\u0641\\u06cc \\u0628\\u0648\\u062f \\u0648\\u0644\\u06cc \\u067e\\u0631\\u06cc\\u0648\\u062f \\u0647\\u0645\\u0686\\u0646\\u0627\\u0646 \\u0634\\u0631\\u0648\\u0639 \\u0646\\u0634\\u062f\\u060c \\u062a\\u06a9\\u0631\\u0627\\u0631 \\u0622\\u0632\\u0645\\u0627\\u06cc\\u0634 \\u0645\\u0637\\u0627\\u0628\\u0642 \\u062f\\u0633\\u062a\\u0648\\u0631 \\u0622\\u0646 \\u06cc\\u0627 \\u0645\\u0634\\u0648\\u0631\\u062a \\u062d\\u0631\\u0641\\u0647\\u200c\\u0627\\u06cc \\u0645\\u0646\\u0637\\u0642\\u06cc \\u0627\\u0633\\u062a.\",\"en\":null}','{\"fa\":\"\\u0627\\u06af\\u0631 \\u0628\\u0627\\u0631\\u062f\\u0627\\u0631\\u06cc \\u0631\\u062e \\u0646\\u062f\\u0627\\u062f\\u0647 \\u0628\\u0627\\u0634\\u062f\\u060c \\u06a9\\u0627\\u0647\\u0634 \\u0647\\u0648\\u0631\\u0645\\u0648\\u0646\\u200c\\u0647\\u0627\\u06cc \\u0641\\u0627\\u0632 \\u0644\\u0648\\u062a\\u0626\\u0627\\u0644 \\u0645\\u0639\\u0645\\u0648\\u0644\\u0627\\u064b \\u0628\\u0647 \\u0634\\u0631\\u0648\\u0639 \\u062e\\u0648\\u0646\\u200c\\u0631\\u06cc\\u0632\\u06cc \\u0645\\u0646\\u062c\\u0631 \\u0645\\u06cc\\u200c\\u0634\\u0648\\u062f. \\u0628\\u0627\\u0627\\u06cc\\u0646\\u200c\\u062d\\u0627\\u0644\\u060c \\u0632\\u0645\\u0627\\u0646 \\u062a\\u062e\\u0645\\u06a9\\u200c\\u06af\\u0630\\u0627\\u0631\\u06cc \\u0648 \\u062f\\u0631 \\u0646\\u062a\\u06cc\\u062c\\u0647 \\u062a\\u0627\\u0631\\u06cc\\u062e \\u067e\\u0631\\u06cc\\u0648\\u062f \\u0645\\u06cc\\u200c\\u062a\\u0648\\u0627\\u0646\\u062f \\u062a\\u062d\\u062a\\u200c\\u062a\\u0623\\u062b\\u06cc\\u0631 \\u0627\\u0633\\u062a\\u0631\\u0633\\u060c \\u0628\\u06cc\\u0645\\u0627\\u0631\\u06cc\\u060c \\u062a\\u063a\\u06cc\\u06cc\\u0631 \\u062e\\u0648\\u0627\\u0628\\u060c \\u0633\\u0641\\u0631\\u060c \\u0648\\u0631\\u0632\\u0634 \\u0634\\u062f\\u06cc\\u062f \\u06cc\\u0627 \\u062a\\u063a\\u06cc\\u06cc\\u0631 \\u0648\\u0632\\u0646 \\u062c\\u0627\\u0628\\u0647\\u200c\\u062c\\u0627 \\u0634\\u0648\\u062f.\\n\\n\\u0627\\u067e \\u0646\\u0645\\u06cc\\u200c\\u062a\\u0648\\u0627\\u0646\\u062f \\u0641\\u0642\\u0637 \\u0627\\u0632 \\u0631\\u0648\\u06cc \\u062a\\u0623\\u062e\\u06cc\\u0631\\u060c \\u0639\\u0644\\u062a \\u0622\\u0646 \\u0631\\u0627 \\u0645\\u0634\\u062e\\u0635 \\u06a9\\u0646\\u062f.\",\"en\":null}','{\"fa\":\"\\u0645\\u0645\\u06a9\\u0646 \\u0627\\u0633\\u062a \\u0628\\u0647\\u200c\\u062f\\u0644\\u06cc\\u0644 \\u0646\\u0641\\u062e\\u060c \\u06af\\u0631\\u0641\\u062a\\u06af\\u06cc\\u060c \\u062e\\u0634\\u06a9\\u06cc \\u06cc\\u0627 \\u0646\\u06af\\u0631\\u0627\\u0646\\u06cc \\u062f\\u0631\\u0628\\u0627\\u0631\\u0647 \\u062a\\u0623\\u062e\\u06cc\\u0631 \\u067e\\u0631\\u06cc\\u0648\\u062f\\u060c \\u0645\\u06cc\\u0644 \\u06cc\\u0627 \\u0631\\u0627\\u062d\\u062a\\u06cc\\u200c\\u0627\\u062a \\u062a\\u063a\\u06cc\\u06cc\\u0631 \\u06a9\\u0646\\u062f. \\u0631\\u0627\\u0628\\u0637\\u0647 \\u0628\\u0627\\u06cc\\u062f \\u0628\\u0631 \\u0627\\u0633\\u0627\\u0633 \\u0631\\u0636\\u0627\\u06cc\\u062a\\u060c \\u0622\\u0631\\u0627\\u0645\\u0634 \\u0648 \\u0648\\u0636\\u0639\\u06cc\\u062a \\u0648\\u0627\\u0642\\u0639\\u06cc \\u0628\\u062f\\u0646\\u062a \\u062a\\u0646\\u0638\\u06cc\\u0645 \\u0634\\u0648\\u062f.\\n\\n\\u0627\\u06af\\u0631 \\u0642\\u0635\\u062f \\u0628\\u0627\\u0631\\u062f\\u0627\\u0631\\u06cc \\u0646\\u062f\\u0627\\u0631\\u06cc\\u060c \\u062a\\u0627 \\u0631\\u0648\\u0634\\u0646 \\u0634\\u062f\\u0646 \\u0648\\u0636\\u0639\\u06cc\\u062a \\u0686\\u0631\\u062e\\u0647 \\u0647\\u0645\\u0686\\u0646\\u0627\\u0646 \\u0627\\u0632 \\u0631\\u0648\\u0634 \\u0645\\u0646\\u0627\\u0633\\u0628 \\u067e\\u06cc\\u0634\\u06af\\u06cc\\u0631\\u06cc \\u0627\\u0633\\u062a\\u0641\\u0627\\u062f\\u0647 \\u06a9\\u0646\\u061b \\u062a\\u0623\\u062e\\u06cc\\u0631 \\u067e\\u0631\\u06cc\\u0648\\u062f \\u0628\\u0647 \\u0645\\u0639\\u0646\\u06cc \\u0646\\u0628\\u0648\\u062f \\u0627\\u062d\\u062a\\u0645\\u0627\\u0644 \\u0628\\u0627\\u0631\\u0648\\u0631\\u06cc \\u0646\\u06cc\\u0633\\u062a.\",\"en\":null}','{\"fa\":\"\\u0648\\u0639\\u062f\\u0647\\u200c\\u0647\\u0627\\u06cc \\u0633\\u0628\\u06a9 \\u0648 \\u0645\\u0646\\u0638\\u0645\\u060c \\u0622\\u0628 \\u06a9\\u0627\\u0641\\u06cc \\u0648 \\u06a9\\u0627\\u0647\\u0634 \\u063a\\u0630\\u0627\\u0647\\u0627\\u06cc \\u0628\\u0633\\u06cc\\u0627\\u0631 \\u0634\\u0648\\u0631 \\u0645\\u0645\\u06a9\\u0646 \\u0627\\u0633\\u062a \\u0628\\u0647 \\u0646\\u0641\\u062e \\u0648 \\u0633\\u0646\\u06af\\u06cc\\u0646\\u06cc \\u06a9\\u0645\\u06a9 \\u06a9\\u0646\\u0646\\u062f. \\u0627\\u06af\\u0631 \\u062d\\u0627\\u0644\\u062a \\u062a\\u0647\\u0648\\u0639\\u060c \\u0628\\u06cc\\u200c\\u0627\\u0634\\u062a\\u0647\\u0627\\u06cc\\u06cc \\u06cc\\u0627 \\u0627\\u0641\\u0632\\u0627\\u06cc\\u0634 \\u0627\\u0634\\u062a\\u0647\\u0627 \\u062f\\u0627\\u0631\\u06cc\\u060c \\u063a\\u0630\\u0627\\u0647\\u0627\\u06cc \\u0633\\u0627\\u062f\\u0647 \\u0648 \\u0642\\u0627\\u0628\\u0644\\u200c\\u062a\\u062d\\u0645\\u0644 \\u0631\\u0627 \\u0627\\u0646\\u062a\\u062e\\u0627\\u0628 \\u06a9\\u0646.\\n\\n\\u0627\\u067e \\u0646\\u0628\\u0627\\u06cc\\u062f \\u062e\\u0648\\u0631\\u0627\\u06a9\\u06cc \\u06cc\\u0627 \\u0645\\u06a9\\u0645\\u0644\\u06cc \\u0631\\u0627 \\u0628\\u0647\\u200c\\u0639\\u0646\\u0648\\u0627\\u0646 \\u0631\\u0648\\u0634 \\u0642\\u0637\\u0639\\u06cc \\u0628\\u0631\\u0627\\u06cc \\u201c\\u0628\\u0627\\u0632 \\u06a9\\u0631\\u062f\\u0646 \\u067e\\u0631\\u06cc\\u0648\\u062f\\u201d \\u067e\\u06cc\\u0634\\u0646\\u0647\\u0627\\u062f \\u062f\\u0647\\u062f\\u061b \\u0686\\u0646\\u06cc\\u0646 \\u062a\\u0648\\u0635\\u06cc\\u0647\\u200c\\u0627\\u06cc \\u0645\\u06cc\\u200c\\u062a\\u0648\\u0627\\u0646\\u062f \\u0628\\u06cc\\u200c\\u0627\\u062b\\u0631 \\u06cc\\u0627 \\u062d\\u062a\\u06cc \\u0646\\u0627\\u0627\\u06cc\\u0645\\u0646 \\u0628\\u0627\\u0634\\u062f.\",\"en\":null}','{\"fa\":\"\\u0627\\u06af\\u0631 \\u062d\\u0627\\u0644 \\u0639\\u0645\\u0648\\u0645\\u06cc\\u200c\\u0627\\u062a \\u062e\\u0648\\u0628 \\u0627\\u0633\\u062a\\u060c \\u0641\\u0639\\u0627\\u0644\\u06cc\\u062a \\u0633\\u0628\\u06a9 \\u062a\\u0627 \\u0645\\u062a\\u0648\\u0633\\u0637 \\u0645\\u06cc\\u200c\\u062a\\u0648\\u0627\\u0646\\u062f \\u0628\\u0647 \\u062e\\u0644\\u0642\\u060c \\u0646\\u0641\\u062e \\u0648 \\u06af\\u0631\\u0641\\u062a\\u06af\\u06cc \\u06a9\\u0645\\u06a9 \\u06a9\\u0646\\u062f. \\u0627\\u06af\\u0631 \\u062f\\u0631\\u062f\\u060c \\u0636\\u0639\\u0641 \\u06cc\\u0627 \\u0633\\u0631\\u06af\\u06cc\\u062c\\u0647 \\u062f\\u0627\\u0631\\u06cc\\u060c \\u0634\\u062f\\u062a \\u0641\\u0639\\u0627\\u0644\\u06cc\\u062a \\u0631\\u0627 \\u06a9\\u0627\\u0647\\u0634 \\u0628\\u062f\\u0647 \\u0648 \\u0627\\u0633\\u062a\\u0631\\u0627\\u062d\\u062a \\u06a9\\u0646.\\n\\n\\u0648\\u0631\\u0632\\u0634 \\u0646\\u0628\\u0627\\u06cc\\u062f \\u0628\\u0647\\u200c\\u0639\\u0646\\u0648\\u0627\\u0646 \\u0631\\u0648\\u0634\\u06cc \\u062a\\u0636\\u0645\\u06cc\\u0646\\u06cc \\u0628\\u0631\\u0627\\u06cc \\u0634\\u0631\\u0648\\u0639 \\u067e\\u0631\\u06cc\\u0648\\u062f \\u0645\\u0639\\u0631\\u0641\\u06cc \\u0634\\u0648\\u062f.\",\"en\":null}','{\"fa\":\"\\u0645\\u0645\\u06a9\\u0646 \\u0627\\u0633\\u062a \\u0686\\u0631\\u0628\\u06cc \\u067e\\u0648\\u0633\\u062a \\u06cc\\u0627 \\u062c\\u0648\\u0634\\u200c\\u0647\\u0627\\u06cc \\u0647\\u0648\\u0631\\u0645\\u0648\\u0646\\u06cc \\u0647\\u0645\\u0686\\u0646\\u0627\\u0646 \\u0627\\u062f\\u0627\\u0645\\u0647 \\u062f\\u0627\\u0634\\u062a\\u0647 \\u0628\\u0627\\u0634\\u0646\\u062f. \\u0631\\u0648\\u062a\\u06cc\\u0646 \\u0645\\u0644\\u0627\\u06cc\\u0645 \\u0648 \\u062b\\u0627\\u0628\\u062a \\u0631\\u0627 \\u062d\\u0641\\u0638 \\u06a9\\u0646 \\u0648 \\u0628\\u0631\\u0627\\u06cc \\u062a\\u063a\\u06cc\\u06cc\\u0631 \\u0645\\u0648\\u0642\\u062a\\u06cc \\u067e\\u0648\\u0633\\u062a\\u060c \\u062f\\u0631\\u0645\\u0627\\u0646\\u200c\\u0647\\u0627\\u06cc \\u062a\\u0647\\u0627\\u062c\\u0645\\u06cc \\u0631\\u0627 \\u0634\\u0631\\u0648\\u0639 \\u0646\\u06a9\\u0646.\\n\\n\\u0627\\u06af\\u0631 \\u0627\\u062d\\u062a\\u0645\\u0627\\u0644 \\u0628\\u0627\\u0631\\u062f\\u0627\\u0631\\u06cc \\u0645\\u0637\\u0631\\u062d \\u0627\\u0633\\u062a\\u060c \\u067e\\u06cc\\u0634 \\u0627\\u0632 \\u0645\\u0635\\u0631\\u0641 \\u06cc\\u0627 \\u0634\\u0631\\u0648\\u0639 \\u062f\\u0627\\u0631\\u0648\\u0647\\u0627 \\u0648 \\u062a\\u0631\\u06a9\\u06cc\\u0628\\u0627\\u062a \\u067e\\u0648\\u0633\\u062a\\u06cc \\u0646\\u06cc\\u0627\\u0632\\u0645\\u0646\\u062f \\u0627\\u062d\\u062a\\u06cc\\u0627\\u0637\\u060c \\u0631\\u0627\\u0647\\u0646\\u0645\\u0627\\u06cc\\u06cc \\u062d\\u0631\\u0641\\u0647\\u200c\\u0627\\u06cc \\u0628\\u06af\\u06cc\\u0631.\",\"en\":null}','{\"fa\":\"\\u0627\\u0646\\u062a\\u0638\\u0627\\u0631 \\u0628\\u0631\\u0627\\u06cc \\u0634\\u0631\\u0648\\u0639 \\u067e\\u0631\\u06cc\\u0648\\u062f \\u06cc\\u0627 \\u0646\\u06af\\u0631\\u0627\\u0646\\u06cc \\u062f\\u0631\\u0628\\u0627\\u0631\\u0647 \\u062a\\u0623\\u062e\\u06cc\\u0631 \\u0645\\u06cc\\u200c\\u062a\\u0648\\u0627\\u0646\\u062f \\u062e\\u0648\\u0627\\u0628 \\u0631\\u0627 \\u0645\\u062e\\u062a\\u0644 \\u06a9\\u0646\\u062f. \\u0628\\u0647\\u062a\\u0631 \\u0627\\u0633\\u062a \\u0628\\u0647\\u200c\\u062c\\u0627\\u06cc \\u0628\\u0631\\u0631\\u0633\\u06cc \\u0645\\u062f\\u0627\\u0648\\u0645 \\u0639\\u0644\\u0627\\u0626\\u0645\\u060c \\u0632\\u0645\\u0627\\u0646 \\u0645\\u0634\\u062e\\u0635\\u06cc \\u0628\\u0631\\u0627\\u06cc \\u062b\\u0628\\u062a \\u0648\\u0636\\u0639\\u06cc\\u062a \\u0686\\u0631\\u062e\\u0647 \\u062f\\u0627\\u0634\\u062a\\u0647 \\u0628\\u0627\\u0634\\u06cc \\u0648 \\u0631\\u0648\\u062a\\u06cc\\u0646 \\u062e\\u0648\\u0627\\u0628 \\u0631\\u0627 \\u062d\\u0641\\u0638 \\u06a9\\u0646\\u06cc.\\n\\n\\u0627\\u06af\\u0631 \\u062a\\u0623\\u062e\\u06cc\\u0631 \\u0627\\u062f\\u0627\\u0645\\u0647 \\u067e\\u06cc\\u062f\\u0627 \\u06a9\\u0631\\u062f\\u060c \\u0627\\u067e \\u0628\\u0627\\u06cc\\u062f \\u0627\\u0642\\u062f\\u0627\\u0645 \\u0645\\u062a\\u0646\\u0627\\u0633\\u0628 \\u067e\\u06cc\\u0634\\u0646\\u0647\\u0627\\u062f \\u062f\\u0647\\u062f\\u060c \\u0646\\u0647 \\u0627\\u06cc\\u0646\\u06a9\\u0647 \\u0647\\u0631 \\u0631\\u0648\\u0632 \\u0647\\u0645\\u0627\\u0646 \\u067e\\u06cc\\u0627\\u0645 \\u0627\\u0636\\u0637\\u0631\\u0627\\u0628\\u200c\\u0622\\u0648\\u0631 \\u0631\\u0627 \\u062a\\u06a9\\u0631\\u0627\\u0631 \\u06a9\\u0646\\u062f.\",\"en\":null}','2026-09-23 09:00:00','2026-09-23 09:00:00');
 /*!40000 ALTER TABLE `phase_contents` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `plus_discount_codes`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `plus_discount_codes` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `code` varchar(64) NOT NULL,
+  `kind` varchar(16) NOT NULL,
+  `value` bigint(20) unsigned NOT NULL,
+  `max_redemptions` int(10) unsigned DEFAULT NULL,
+  `per_user_limit` int(10) unsigned DEFAULT 1,
+  `plan_ids` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`plan_ids`)),
+  `starts_at` datetime DEFAULT NULL,
+  `expires_at` datetime DEFAULT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `plus_discount_codes_code_unique` (`code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `plus_discount_codes` WRITE;
+/*!40000 ALTER TABLE `plus_discount_codes` DISABLE KEYS */;
+/*!40000 ALTER TABLE `plus_discount_codes` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `plus_invoices`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `plus_invoices` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `reference` varchar(32) NOT NULL,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `plan_id` bigint(20) unsigned DEFAULT NULL,
+  `duration_months` smallint(5) unsigned NOT NULL,
+  `status` varchar(16) NOT NULL DEFAULT 'pending',
+  `currency` varchar(3) NOT NULL DEFAULT 'IRR',
+  `subtotal_rials` bigint(20) unsigned NOT NULL,
+  `discount_rials` bigint(20) unsigned NOT NULL DEFAULT 0,
+  `vat_rate_bps` int(10) unsigned NOT NULL,
+  `vat_rials` bigint(20) unsigned NOT NULL,
+  `total_rials` bigint(20) unsigned NOT NULL,
+  `discount_code_id` bigint(20) unsigned DEFAULT NULL,
+  `discount_code` varchar(64) DEFAULT NULL,
+  `gateway` varchar(32) DEFAULT NULL,
+  `authority` varchar(191) DEFAULT NULL,
+  `expires_at` datetime NOT NULL,
+  `paid_at` datetime DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `plus_invoices_reference_unique` (`reference`),
+  UNIQUE KEY `plus_invoices_authority_unique` (`authority`),
+  KEY `plus_invoices_plan_id_foreign` (`plan_id`),
+  KEY `plus_invoices_user_id_status_index` (`user_id`,`status`),
+  KEY `plus_invoices_discount_code_id_status_index` (`discount_code_id`,`status`),
+  CONSTRAINT `plus_invoices_discount_code_id_foreign` FOREIGN KEY (`discount_code_id`) REFERENCES `plus_discount_codes` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `plus_invoices_plan_id_foreign` FOREIGN KEY (`plan_id`) REFERENCES `plus_plans` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `plus_invoices_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `plus_invoices` WRITE;
+/*!40000 ALTER TABLE `plus_invoices` DISABLE KEYS */;
+/*!40000 ALTER TABLE `plus_invoices` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `plus_plans`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `plus_plans` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `code` varchar(64) NOT NULL,
+  `title` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`title`)),
+  `badge` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`badge`)),
+  `duration_months` smallint(5) unsigned NOT NULL,
+  `price_rials` bigint(20) unsigned NOT NULL,
+  `monthly_display_rials` bigint(20) unsigned DEFAULT NULL,
+  `is_highlighted` tinyint(1) NOT NULL DEFAULT 0,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `sort_order` int(10) unsigned NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `plus_plans_code_unique` (`code`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `plus_plans` WRITE;
+/*!40000 ALTER TABLE `plus_plans` DISABLE KEYS */;
+INSERT INTO `plus_plans` VALUES
+(1,'plus_1m','{\"fa\":\"۱ ماهه\",\"en\":\"1 month\"}',NULL,1,990000,NULL,0,1,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(2,'plus_3m','{\"fa\":\"۳ ماهه\",\"en\":\"3 months\"}','{\"fa\":\"محبوب‌ترین\",\"en\":\"Most popular\"}',3,2370000,NULL,1,1,2,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(3,'plus_6m','{\"fa\":\"۶ ماهه\",\"en\":\"6 months\"}',NULL,6,3900000,NULL,0,1,3,'2026-09-23 06:30:00','2026-09-23 06:30:00');
+/*!40000 ALTER TABLE `plus_plans` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `plus_receipts`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `plus_receipts` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `invoice_id` bigint(20) unsigned NOT NULL,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `gateway` varchar(32) NOT NULL,
+  `ref_id` varchar(191) NOT NULL,
+  `card_pan` varchar(32) DEFAULT NULL,
+  `amount_rials` bigint(20) unsigned NOT NULL,
+  `paid_at` datetime NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `plus_receipts_gateway_ref_id_unique` (`gateway`,`ref_id`),
+  UNIQUE KEY `plus_receipts_invoice_id_unique` (`invoice_id`),
+  KEY `plus_receipts_user_id_foreign` (`user_id`),
+  CONSTRAINT `plus_receipts_invoice_id_foreign` FOREIGN KEY (`invoice_id`) REFERENCES `plus_invoices` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `plus_receipts_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `plus_receipts` WRITE;
+/*!40000 ALTER TABLE `plus_receipts` DISABLE KEYS */;
+/*!40000 ALTER TABLE `plus_receipts` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `plus_subscriptions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `plus_subscriptions` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `plan_id` bigint(20) unsigned DEFAULT NULL,
+  `invoice_id` bigint(20) unsigned DEFAULT NULL,
+  `status` varchar(16) NOT NULL DEFAULT 'active',
+  `source` varchar(16) NOT NULL DEFAULT 'purchase',
+  `starts_at` datetime NOT NULL,
+  `ends_at` datetime NOT NULL,
+  `auto_renew` tinyint(1) NOT NULL DEFAULT 1,
+  `canceled_at` datetime DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `plus_subscriptions_invoice_id_unique` (`invoice_id`),
+  KEY `plus_subscriptions_plan_id_foreign` (`plan_id`),
+  KEY `plus_subscriptions_user_id_ends_at_index` (`user_id`,`ends_at`),
+  CONSTRAINT `plus_subscriptions_invoice_id_foreign` FOREIGN KEY (`invoice_id`) REFERENCES `plus_invoices` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `plus_subscriptions_plan_id_foreign` FOREIGN KEY (`plan_id`) REFERENCES `plus_plans` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `plus_subscriptions_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `plus_subscriptions` WRITE;
+/*!40000 ALTER TABLE `plus_subscriptions` DISABLE KEYS */;
+/*!40000 ALTER TABLE `plus_subscriptions` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `plus_trials`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `plus_trials` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `started_at` datetime NOT NULL,
+  `ends_at` datetime NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `plus_trials_user_id_unique` (`user_id`),
+  CONSTRAINT `plus_trials_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `plus_trials` WRITE;
+/*!40000 ALTER TABLE `plus_trials` DISABLE KEYS */;
+/*!40000 ALTER TABLE `plus_trials` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `plus_usage_counters`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `plus_usage_counters` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `feature` varchar(64) NOT NULL,
+  `period_start` date NOT NULL,
+  `used` int(10) unsigned NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `plus_usage_counters_user_id_feature_period_start_unique` (`user_id`,`feature`,`period_start`),
+  CONSTRAINT `plus_usage_counters_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `plus_usage_counters` WRITE;
+/*!40000 ALTER TABLE `plus_usage_counters` DISABLE KEYS */;
+/*!40000 ALTER TABLE `plus_usage_counters` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `pregnancy_alerts`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;

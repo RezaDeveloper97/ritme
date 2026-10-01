@@ -386,3 +386,20 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   `docs/qa/bloom/n1-stage/`.
 - Low bugs: B-1 → B-N2-10 scope; B-2 (pregnancy deep link to /home) and B-3 (pregnancy setup guard) → B-N2-03.
   QUESTIONS #62–#63.
+
+## B-N2-04 — Subscription domain — plans, trials, subscriptions, discounts, entitlements
+
+- **Migration** `00015_plus_subscriptions` (+ Laravel `2026_10_01_000006_…`): `plus_plans` (translatable title/badge,
+  duration, `price_rials`, optional `monthly_display_rials`, highlighted, active, sort; 3 seeded per `nbl_Prem_Plans`),
+  `plus_trials` (unique user), `plus_discount_codes`, `plus_invoices` (random reference, `vat_rate_bps` snapshot),
+  `plus_receipts` (unique gateway+ref), `plus_subscriptions`, `plus_usage_counters`. Money = integer rials.
+- **Config:** `PLUS_VAT_RATE_BPS` (1000), `PLUS_TRIAL_DAYS` (7), `PLUS_INVOICE_TTL_MINUTES` (30), `PLUS_CALLBACK_URL`.
+- **Endpoints (Go-only, D-35 proposed):** public `GET /plus/plans`; auth `GET /plus/{status,usage,history}`,
+  `POST /plus/{trial/start,checkout,verify,cancel,restore}` (checkout `preview:true` for discount check; 100% discount
+  settles at once; verify idempotent). Payment port `plus.Gateway` + in-package `FakeGateway`; no gateway in prod →
+  503 `payment_unavailable`.
+- **Entitlements:** `internal/plus/entitlements.go` (`Resolve`/`ResolveOne` pure + tests), `Service.Entitlement` /
+  `Service.Consume` (atomic counters, `ErrNotEntitled` / `ErrQuotaExceeded`) for later tasks.
+- **Security tests:** amount tampering, replayed/concurrent verify (row lock), reused bank ref, trial race, IDOR,
+  discount caps under concurrency (fixed a REPEATABLE READ bug → READ COMMITTED). Contract group `plus` (25 goldens).
+- **Open:** QUESTIONS #64–#67. B-N2-05 must add `PLUS_*` to `.env.stage.example`.

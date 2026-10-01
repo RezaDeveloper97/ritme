@@ -1,0 +1,41 @@
+{
+    "messages": {
+        "validation_failed": "Validation failed",
+        "trial_started": "Your free Ritme Plus trial has started",
+        "checkout_created": "Invoice created",
+        "checkout_paid": "Ritme Plus is active",
+        "payment_verified": "Payment confirmed. Ritme Plus is active",
+        "payment_already_verified": "This payment was already confirmed",
+        "subscription_canceled": "Auto-renewal is off. Plus stays active until the end of your subscription",
+        "restored": "Purchases restored",
+        "nothing_to_restore": "No purchase to restore"
+    },
+    "errors": {
+        "trial_used": "You have already used your free trial.",
+        "trial_unavailable": "The free trial is only for your first subscription.",
+        "no_subscription": "You have no active subscription.",
+        "plan_invalid": "The selected plan is not available.",
+        "invoice_not_found": "Invoice not found.",
+        "invoice_closed": "This invoice can no longer be paid. Start a new checkout.",
+        "authority_mismatch": "The payment does not belong to this invoice.",
+        "payment_failed": "The payment was not completed. No money was taken, or it will be returned by your bank.",
+        "amount_mismatch": "The paid amount does not match the invoice. Contact support; your bank will return it.",
+        "payment_unavailable": "Payment is not available right now. Please try again later."
+    },
+    "discount": {
+        "invalid": "This discount code is not valid.",
+        "not_started": "This discount code is not active yet.",
+        "expired": "This discount code has expired.",
+        "plan": "This discount code does not apply to this plan.",
+        "exhausted": "This discount code has been fully used.",
+        "used": "You have already used this discount code."
+    },
+    "attributes": {
+        "plan_id": "plan",
+        "discount_code": "discount code",
+        "preview": "preview",
+        "reference": "invoice reference",
+        "authority": "payment id",
+        "status": "payment status"
+    }
+}
