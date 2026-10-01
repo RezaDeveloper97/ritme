@@ -1,0 +1,57 @@
+{
+  "case": "logs/save_invalid.none",
+  "steps": [
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/logs/days/2026-09-22",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "categories": {
+            "measurements": {
+              "weight": 500
+            },
+            "pain": {
+              "location": {
+                "abdomen": {
+                  "level": "moderate",
+                  "score": 11
+                }
+              }
+            },
+            "bleeding": {
+              "flow": "torrential"
+            },
+            "horoscope": {
+              "sign": "leo"
+            }
+          }
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "message": "The categories.measurements.weight field must be between 20 and 300. (and 3 more errors)",
+        "errors": {
+          "categories.measurements.weight": [
+            "The categories.measurements.weight field must be between 20 and 300."
+          ],
+          "categories.pain.location.abdomen.score": [
+            "The categories.pain.location.abdomen.score field must be between 1 and 10."
+          ],
+          "categories.bleeding.flow": [
+            "categories.bleeding.flow انتخاب‌شده معتبر نیست."
+          ],
+          "categories.horoscope": [
+            "categories.horoscope انتخاب‌شده معتبر نیست."
+          ]
+        }
+      }
+    }
+  ]
+}

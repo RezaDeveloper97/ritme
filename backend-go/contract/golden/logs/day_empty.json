@@ -1,0 +1,24 @@
+{
+  "case": "logs/day_empty",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/logs/days/2026-09-01",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "date": "2026-09-01",
+          "categories": {}
+        }
+      }
+    }
+  ]
+}

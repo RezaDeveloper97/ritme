@@ -1,0 +1,93 @@
+{
+  "case": "logs/days_range",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/logs/days?from=2026-09-01&to=2026-09-23",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "from": "2026-09-01",
+          "to": "2026-09-23",
+          "days": [
+            {
+              "date": "2026-09-14",
+              "categories": {
+                "bleeding": {
+                  "flow": "heavy",
+                  "color": "red"
+                },
+                "pain": {
+                  "location": {
+                    "abdomen": {
+                      "level": "moderate",
+                      "score": null
+                    }
+                  }
+                },
+                "mood": {
+                  "moods": [
+                    "sensitive"
+                  ]
+                }
+              }
+            },
+            {
+              "date": "2026-09-15",
+              "categories": {
+                "bleeding": {
+                  "flow": "medium"
+                },
+                "mood": {
+                  "moods": [
+                    "calm"
+                  ]
+                }
+              }
+            },
+            {
+              "date": "2026-09-21",
+              "categories": {
+                "sleep": {
+                  "duration": "6_9",
+                  "quality": "good"
+                },
+                "appetite_energy": {
+                  "energy": "high"
+                }
+              }
+            },
+            {
+              "date": "2026-09-23",
+              "categories": {
+                "mood": {
+                  "moods": [
+                    "happy",
+                    "calm"
+                  ]
+                },
+                "appetite_energy": {
+                  "energy": "medium"
+                },
+                "measurements": {
+                  "weight": 61.5
+                },
+                "note": {
+                  "text": "contract"
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

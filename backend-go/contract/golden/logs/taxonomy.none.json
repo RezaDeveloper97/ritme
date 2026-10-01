@@ -1,0 +1,2222 @@
+{
+  "case": "logs/taxonomy.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/logs/taxonomy",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "categories": [
+            {
+              "code": "bleeding",
+              "label": "پریود و لکه‌بینی",
+              "group": {
+                "value": "body",
+                "label": "بدن"
+              },
+              "modes": [
+                "cycle",
+                "ttc",
+                "menopause",
+                "teen",
+                "pregnancy",
+                "postpartum"
+              ],
+              "conditions": {},
+              "params": [
+                {
+                  "code": "flow",
+                  "type": "single",
+                  "label": "شدت",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "menopause",
+                    "teen",
+                    "pregnancy"
+                  ],
+                  "detail": false,
+                  "alert": true,
+                  "options": [
+                    {
+                      "value": "light",
+                      "label": "کم",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "medium",
+                      "label": "متوسط",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "heavy",
+                      "label": "زیاد",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "very_heavy",
+                      "label": "خیلی زیاد",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "spotting",
+                  "type": "bool",
+                  "label": "لکه‌بینی",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "menopause",
+                    "teen",
+                    "pregnancy"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "color",
+                  "type": "single",
+                  "label": "رنگ",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": true,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "pink",
+                      "label": "صورتی",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "bright_red",
+                      "label": "قرمز روشن",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "dark_red",
+                      "label": "قرمز تیره",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "brown",
+                      "label": "قهوه‌ای",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "black",
+                      "label": "سیاه",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "clots",
+                  "type": "bool",
+                  "label": "لخته",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "menopause",
+                    "teen",
+                    "postpartum"
+                  ],
+                  "detail": true,
+                  "alert": false,
+                  "options": [],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "clot_size",
+                  "type": "single",
+                  "label": "اندازه لخته",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "menopause",
+                    "teen",
+                    "postpartum"
+                  ],
+                  "detail": true,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "small",
+                      "label": "کوچک",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "large",
+                      "label": "بزرگ‌تر از سکه",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "odor",
+                  "type": "single",
+                  "label": "بو",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "menopause",
+                    "teen",
+                    "postpartum"
+                  ],
+                  "detail": true,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "normal",
+                      "label": "طبیعی",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "changed",
+                      "label": "تغییر کرده",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                }
+              ]
+            },
+            {
+              "code": "pain",
+              "label": "درد",
+              "group": {
+                "value": "body",
+                "label": "بدن"
+              },
+              "modes": [
+                "cycle",
+                "ttc",
+                "pregnancy",
+                "postpartum",
+                "menopause",
+                "teen"
+              ],
+              "conditions": {},
+              "params": [
+                {
+                  "code": "none",
+                  "type": "bool",
+                  "label": "بدون درد",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "location",
+                  "type": "items",
+                  "label": "محل درد",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "abdomen",
+                      "label": "شکم",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "pelvis",
+                      "label": "لگن",
+                      "modes": [
+                        "cycle",
+                        "ttc",
+                        "menopause",
+                        "teen",
+                        "pregnancy"
+                      ],
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "ovary",
+                      "label": "یک‌طرفه پایین",
+                      "modes": [
+                        "cycle",
+                        "ttc",
+                        "menopause",
+                        "teen"
+                      ],
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "back",
+                      "label": "کمر",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "head",
+                      "label": "سر",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "breast",
+                      "label": "سینه",
+                      "modes": [
+                        "cycle",
+                        "ttc",
+                        "menopause",
+                        "teen",
+                        "postpartum"
+                      ],
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [
+                    {
+                      "value": "mild",
+                      "label": "کم"
+                    },
+                    {
+                      "value": "moderate",
+                      "label": "متوسط"
+                    },
+                    {
+                      "value": "severe",
+                      "label": "شدید"
+                    }
+                  ],
+                  "score": {
+                    "min": 1,
+                    "max": 10
+                  },
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "relief",
+                  "type": "multi",
+                  "label": "چه چیزی کمک کرد؟",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "heat",
+                      "label": "کیسه آب گرم",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "painkiller",
+                      "label": "مسکن",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "rest",
+                      "label": "استراحت",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "light_exercise",
+                      "label": "ورزش سبک",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "none",
+                      "label": "هیچ‌کدام",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                }
+              ]
+            },
+            {
+              "code": "mood",
+              "label": "حال و روحیه",
+              "group": {
+                "value": "mind",
+                "label": "ذهن"
+              },
+              "modes": [
+                "cycle",
+                "ttc",
+                "pregnancy",
+                "postpartum",
+                "menopause",
+                "teen"
+              ],
+              "conditions": {},
+              "params": [
+                {
+                  "code": "moods",
+                  "type": "multi",
+                  "label": "حس امروز",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "calm",
+                      "label": "آرام",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "happy",
+                      "label": "شاد",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "energetic",
+                      "label": "پرانرژی",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "sensitive",
+                      "label": "حساس",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "irritable",
+                      "label": "زودرنج",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "sad",
+                      "label": "غمگین",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "anxious",
+                      "label": "نگران",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "angry",
+                      "label": "عصبانی",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "bored",
+                      "label": "بی‌حوصله",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "frustrated",
+                      "label": "کلافه",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                }
+              ]
+            },
+            {
+              "code": "symptoms",
+              "label": "علائم بدن",
+              "group": {
+                "value": "body",
+                "label": "بدن"
+              },
+              "modes": [
+                "cycle",
+                "ttc",
+                "pregnancy",
+                "postpartum",
+                "menopause",
+                "teen"
+              ],
+              "conditions": {},
+              "params": [
+                {
+                  "code": "digestive",
+                  "type": "items",
+                  "label": "گوارش",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "nausea",
+                      "label": "تهوع",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "bloating",
+                      "label": "نفخ",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "constipation",
+                      "label": "یبوست",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "diarrhea",
+                      "label": "اسهال",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "heartburn",
+                      "label": "سوزش سر دل",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [
+                    {
+                      "value": "yes",
+                      "label": "دارم"
+                    },
+                    {
+                      "value": "no",
+                      "label": "ندارم"
+                    },
+                    {
+                      "value": "mild",
+                      "label": "کم"
+                    },
+                    {
+                      "value": "moderate",
+                      "label": "متوسط"
+                    },
+                    {
+                      "value": "severe",
+                      "label": "شدید"
+                    }
+                  ],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "general",
+                  "type": "items",
+                  "label": "عمومی",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "fatigue",
+                      "label": "خستگی",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "dizziness",
+                      "label": "سرگیجه",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "breast_tenderness",
+                      "label": "حساسیت سینه",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "swelling",
+                      "label": "ورم",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "hot_flashes",
+                      "label": "گرگرفتگی",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "chills",
+                      "label": "لرز",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "insomnia",
+                      "label": "بی‌خوابی",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [
+                    {
+                      "value": "yes",
+                      "label": "دارم"
+                    },
+                    {
+                      "value": "no",
+                      "label": "ندارم"
+                    },
+                    {
+                      "value": "mild",
+                      "label": "کم"
+                    },
+                    {
+                      "value": "moderate",
+                      "label": "متوسط"
+                    },
+                    {
+                      "value": "severe",
+                      "label": "شدید"
+                    }
+                  ],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                }
+              ]
+            },
+            {
+              "code": "discharge",
+              "label": "ترشحات",
+              "group": {
+                "value": "body",
+                "label": "بدن"
+              },
+              "modes": [
+                "cycle",
+                "ttc",
+                "menopause",
+                "teen",
+                "pregnancy"
+              ],
+              "conditions": {},
+              "params": [
+                {
+                  "code": "consistency",
+                  "type": "single",
+                  "label": "قوام",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "menopause",
+                    "teen",
+                    "pregnancy"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "none",
+                      "label": "ندارم",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "sticky",
+                      "label": "چسبنده",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "creamy",
+                      "label": "کرمی",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "watery",
+                      "label": "آبکی",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "egg_white",
+                      "label": "سفیده تخم‌مرغی",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "amount",
+                  "type": "single",
+                  "label": "مقدار",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "menopause",
+                    "teen",
+                    "pregnancy"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "light",
+                      "label": "کم",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "medium",
+                      "label": "متوسط",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "heavy",
+                      "label": "زیاد",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "color",
+                  "type": "single",
+                  "label": "رنگ",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "menopause",
+                    "teen",
+                    "pregnancy"
+                  ],
+                  "detail": true,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "clear",
+                      "label": "شفاف",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "white",
+                      "label": "سفید",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "yellow",
+                      "label": "زرد",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "green",
+                      "label": "سبز",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "gray",
+                      "label": "خاکستری",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "pink_bloody",
+                      "label": "صورتی یا خونی",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "odor",
+                  "type": "single",
+                  "label": "بو",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "menopause",
+                    "teen",
+                    "pregnancy"
+                  ],
+                  "detail": true,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "normal",
+                      "label": "طبیعی",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "changed",
+                      "label": "تغییر کرده",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "symptoms",
+                  "type": "items",
+                  "label": "علائم همراه",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "menopause",
+                    "teen",
+                    "pregnancy"
+                  ],
+                  "detail": true,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "itching",
+                      "label": "خارش",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "burning",
+                      "label": "سوزش",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [
+                    {
+                      "value": "yes",
+                      "label": "دارم"
+                    },
+                    {
+                      "value": "no",
+                      "label": "ندارم"
+                    }
+                  ],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                }
+              ]
+            },
+            {
+              "code": "sleep",
+              "label": "خواب",
+              "group": {
+                "value": "lifestyle",
+                "label": "سبک زندگی"
+              },
+              "modes": [
+                "cycle",
+                "ttc",
+                "pregnancy",
+                "postpartum",
+                "menopause",
+                "teen"
+              ],
+              "conditions": {},
+              "params": [
+                {
+                  "code": "duration",
+                  "type": "single",
+                  "label": "مدت",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "0_3",
+                      "label": "کمتر از ۳ ساعت",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "3_6",
+                      "label": "۳ تا ۶ ساعت",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "6_9",
+                      "label": "۶ تا ۹ ساعت",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "9_plus",
+                      "label": "بیشتر از ۹ ساعت",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "quality",
+                  "type": "single",
+                  "label": "کیفیت",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "great",
+                      "label": "عالی",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "good",
+                      "label": "خوب",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "fair",
+                      "label": "متوسط",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "poor",
+                      "label": "بد",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                }
+              ]
+            },
+            {
+              "code": "appetite_energy",
+              "label": "اشتها و انرژی",
+              "group": {
+                "value": "mind",
+                "label": "ذهن"
+              },
+              "modes": [
+                "cycle",
+                "ttc",
+                "pregnancy",
+                "postpartum",
+                "menopause",
+                "teen"
+              ],
+              "conditions": {},
+              "params": [
+                {
+                  "code": "energy",
+                  "type": "single",
+                  "label": "انرژی",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "low",
+                      "label": "کم",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "medium",
+                      "label": "متوسط",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "high",
+                      "label": "زیاد",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "appetite",
+                  "type": "single",
+                  "label": "اشتها",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "decreased",
+                      "label": "کم شده",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "normal",
+                      "label": "معمولی",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "increased",
+                      "label": "زیاد شده",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "cravings",
+                  "type": "items",
+                  "label": "هوس",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "sweet",
+                      "label": "شیرینی",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "salty",
+                      "label": "شور",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "fatty",
+                      "label": "چرب",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "carbs",
+                      "label": "نشاسته‌ای",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "sour",
+                      "label": "ترش",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "any",
+                      "label": "هوس غذا",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [
+                    {
+                      "value": "yes",
+                      "label": "دارم"
+                    },
+                    {
+                      "value": "no",
+                      "label": "ندارم"
+                    }
+                  ],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                }
+              ]
+            },
+            {
+              "code": "activity",
+              "label": "فعالیت بدنی",
+              "group": {
+                "value": "lifestyle",
+                "label": "سبک زندگی"
+              },
+              "modes": [
+                "cycle",
+                "ttc",
+                "pregnancy",
+                "postpartum",
+                "menopause",
+                "teen"
+              ],
+              "conditions": {},
+              "params": [
+                {
+                  "code": "types",
+                  "type": "multi",
+                  "label": "نوع",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "walking",
+                      "label": "پیاده‌روی",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "running",
+                      "label": "دویدن",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "cycling",
+                      "label": "دوچرخه",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "gym",
+                      "label": "باشگاه",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "yoga",
+                      "label": "یوگا",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "pilates",
+                      "label": "پیلاتس",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "swimming",
+                      "label": "شنا",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "dance",
+                      "label": "رقص",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "team_sport",
+                      "label": "ورزش گروهی",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "stretching",
+                      "label": "کشش",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "pelvic_floor",
+                      "label": "تمرین کف لگن",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "other",
+                      "label": "سایر",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "duration",
+                  "type": "integer",
+                  "label": "مدت",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [],
+                  "levels": [],
+                  "score": null,
+                  "range": {
+                    "min": 1,
+                    "max": 600
+                  },
+                  "scale": null,
+                  "unit": {
+                    "value": "min",
+                    "label": "دقیقه"
+                  },
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "intensity",
+                  "type": "single",
+                  "label": "شدت",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "low",
+                      "label": "سبک",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "medium",
+                      "label": "متوسط",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "high",
+                      "label": "شدید",
+                      "modes": [
+                        "cycle",
+                        "ttc",
+                        "postpartum",
+                        "menopause",
+                        "teen"
+                      ],
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                }
+              ]
+            },
+            {
+              "code": "urogenital",
+              "label": "ادراری و تناسلی",
+              "group": {
+                "value": "body",
+                "label": "بدن"
+              },
+              "modes": [
+                "cycle",
+                "ttc",
+                "pregnancy",
+                "postpartum",
+                "menopause",
+                "teen"
+              ],
+              "conditions": {},
+              "params": [
+                {
+                  "code": "symptoms",
+                  "type": "items",
+                  "label": "علائم",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "frequent_urination",
+                      "label": "تکرر ادرار",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "urination_burning",
+                      "label": "سوزش ادرار",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "urgency",
+                      "label": "فوریت ادرار",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "leakage",
+                      "label": "نشت ادرار",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "vaginal_dryness",
+                      "label": "خشکی",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "vaginal_itching",
+                      "label": "خارش",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "vaginal_burning",
+                      "label": "سوزش واژن",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "odor_change",
+                      "label": "تغییر بو",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [
+                    {
+                      "value": "yes",
+                      "label": "دارم"
+                    },
+                    {
+                      "value": "no",
+                      "label": "ندارم"
+                    },
+                    {
+                      "value": "mild",
+                      "label": "کم"
+                    },
+                    {
+                      "value": "moderate",
+                      "label": "متوسط"
+                    },
+                    {
+                      "value": "severe",
+                      "label": "شدید"
+                    }
+                  ],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "urination",
+                  "type": "single",
+                  "label": "دفعات ادرار",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "increased",
+                      "label": "بیشتر از معمول",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "decreased",
+                      "label": "کمتر از معمول",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "normal",
+                      "label": "معمولی",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                }
+              ]
+            },
+            {
+              "code": "sex",
+              "label": "رابطه و میل جنسی",
+              "group": {
+                "value": "lifestyle",
+                "label": "سبک زندگی"
+              },
+              "modes": [
+                "cycle",
+                "ttc",
+                "pregnancy",
+                "postpartum",
+                "menopause"
+              ],
+              "conditions": {},
+              "params": [
+                {
+                  "code": "desire",
+                  "type": "single",
+                  "label": "میل",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "lower",
+                      "label": "کمتر از معمول",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "normal",
+                      "label": "معمولی",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "higher",
+                      "label": "بیشتر از معمول",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "intercourse",
+                  "type": "single",
+                  "label": "رابطه",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "protected",
+                      "label": "با محافظت",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "unprotected",
+                      "label": "بدون محافظت",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "symptoms",
+                  "type": "multi",
+                  "label": "علائم حین یا بعد",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "dryness",
+                      "label": "خشکی",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "burning",
+                      "label": "سوزش",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "pain_during_intercourse",
+                      "label": "درد حین رابطه",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "bleeding_after_intercourse",
+                      "label": "خون‌ریزی بعد از رابطه",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "lubricant_use",
+                      "label": "استفاده از لوبریکانت",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                }
+              ]
+            },
+            {
+              "code": "measurements",
+              "label": "وزن و دمای پایه",
+              "group": {
+                "value": "measure",
+                "label": "اندازه‌گیری"
+              },
+              "modes": [
+                "cycle",
+                "ttc",
+                "pregnancy",
+                "postpartum",
+                "menopause",
+                "teen"
+              ],
+              "conditions": {},
+              "params": [
+                {
+                  "code": "weight",
+                  "type": "number",
+                  "label": "وزن",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [],
+                  "levels": [],
+                  "score": null,
+                  "range": {
+                    "min": 20,
+                    "max": 300
+                  },
+                  "scale": 2,
+                  "unit": {
+                    "value": "kg",
+                    "label": "کیلوگرم"
+                  },
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "bbt",
+                  "type": "number",
+                  "label": "دمای پایه بدن",
+                  "modes": [
+                    "cycle",
+                    "ttc"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [],
+                  "levels": [],
+                  "score": null,
+                  "range": {
+                    "min": 35,
+                    "max": 42
+                  },
+                  "scale": 2,
+                  "unit": {
+                    "value": "celsius",
+                    "label": "°C"
+                  },
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "lh_test",
+                  "type": "single",
+                  "label": "تست تخمک‌گذاری (LH)",
+                  "modes": [
+                    "cycle",
+                    "ttc"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "negative",
+                      "label": "منفی",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "faint",
+                      "label": "کم‌رنگ",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "positive",
+                      "label": "مثبت",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "pregnancy_test",
+                  "type": "single",
+                  "label": "تست بارداری",
+                  "modes": [
+                    "cycle",
+                    "ttc"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "negative",
+                      "label": "منفی",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "positive",
+                      "label": "مثبت",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                }
+              ]
+            },
+            {
+              "code": "meds",
+              "label": "دارو و مکمل",
+              "group": {
+                "value": "other",
+                "label": "سایر"
+              },
+              "modes": [
+                "cycle",
+                "ttc",
+                "pregnancy",
+                "postpartum",
+                "menopause",
+                "teen"
+              ],
+              "conditions": {},
+              "params": [
+                {
+                  "code": "taken",
+                  "type": "items",
+                  "label": "از یادآورها",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [],
+                  "levels": [
+                    {
+                      "value": "yes",
+                      "label": "دارم"
+                    },
+                    {
+                      "value": "no",
+                      "label": "ندارم"
+                    }
+                  ],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": true,
+                  "source": null
+                },
+                {
+                  "code": "other",
+                  "type": "text_items",
+                  "label": "سایر داروها",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "painkillers",
+                      "label": "مسکن",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "hormonal_pills",
+                      "label": "قرص هورمونی",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "antibiotics",
+                      "label": "آنتی‌بیوتیک",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "supplements",
+                      "label": "مکمل",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": 255,
+                  "dynamic": true,
+                  "source": null
+                }
+              ]
+            },
+            {
+              "code": "skin_hair",
+              "label": "پوست و مو",
+              "group": {
+                "value": "body",
+                "label": "بدن"
+              },
+              "modes": [
+                "cycle",
+                "ttc",
+                "pregnancy",
+                "postpartum",
+                "menopause",
+                "teen"
+              ],
+              "conditions": {},
+              "params": [
+                {
+                  "code": "symptoms",
+                  "type": "items",
+                  "label": "علائم",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "acne",
+                      "label": "آکنه",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "oily_skin",
+                      "label": "پوست چرب",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "dry_skin",
+                      "label": "پوست خشک",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "hair_loss",
+                      "label": "ریزش مو",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [
+                    {
+                      "value": "yes",
+                      "label": "دارم"
+                    },
+                    {
+                      "value": "no",
+                      "label": "ندارم"
+                    },
+                    {
+                      "value": "mild",
+                      "label": "کم"
+                    },
+                    {
+                      "value": "moderate",
+                      "label": "متوسط"
+                    },
+                    {
+                      "value": "severe",
+                      "label": "شدید"
+                    }
+                  ],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                }
+              ]
+            },
+            {
+              "code": "note",
+              "label": "یادداشت",
+              "group": {
+                "value": "other",
+                "label": "سایر"
+              },
+              "modes": [
+                "cycle",
+                "ttc",
+                "pregnancy",
+                "postpartum",
+                "menopause",
+                "teen"
+              ],
+              "conditions": {},
+              "params": [
+                {
+                  "code": "text",
+                  "type": "text",
+                  "label": "یادداشت",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": 2000,
+                  "dynamic": false,
+                  "source": null
+                }
+              ]
+            },
+            {
+              "code": "custom",
+              "label": "موارد سفارشی",
+              "group": {
+                "value": "other",
+                "label": "سایر"
+              },
+              "modes": [
+                "cycle",
+                "ttc",
+                "pregnancy",
+                "postpartum",
+                "menopause",
+                "teen"
+              ],
+              "conditions": {},
+              "params": [
+                {
+                  "code": "items",
+                  "type": "items",
+                  "label": "موارد سفارشی",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [],
+                  "levels": [
+                    {
+                      "value": "yes",
+                      "label": "دارم"
+                    },
+                    {
+                      "value": "no",
+                      "label": "ندارم"
+                    }
+                  ],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": true,
+                  "source": null
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

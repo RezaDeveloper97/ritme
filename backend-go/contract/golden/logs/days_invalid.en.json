@@ -1,0 +1,26 @@
+{
+  "case": "logs/days_invalid.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/logs/days?from=2026-09-10&to=2026-09-01",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "The to field must be a date after or equal to from.",
+        "errors": {
+          "to": [
+            "The to field must be a date after or equal to from."
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -3,7 +3,7 @@ id: B-N3-01
 title: Log taxonomy v2 (backend) with backfill
 milestone: N3
 type: backend
-status: todo
+status: done
 depends_on: [B-N2-11]
 parallel_group: N3-A
 touches: [backend-go/db,backend-go/internal/healthlog,backend-go/internal/enums,backend-go/api,backend-go/resources/translations]

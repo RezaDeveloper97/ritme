@@ -26,11 +26,38 @@ const PerPage = 30
 
 // Service holds the DB access of the domain.
 type Service struct {
-	q *store.Queries
+	q  *store.Queries
+	db *sql.DB // nil when the Service already runs inside a transaction
 }
 
-// NewService returns a Service on db.
-func NewService(db store.DBTX) *Service { return &Service{q: store.New(db)} }
+// NewService returns a Service on db (a *sql.DB or a transaction).
+func NewService(db store.DBTX) *Service {
+	s := &Service{q: store.New(db)}
+	if pool, ok := db.(*sql.DB); ok {
+		s.db = pool
+	}
+	return s
+}
+
+// inTx runs fn on a Service bound to one READ COMMITTED transaction (so createOrFirst's re-read sees a
+// concurrent insert, as it does without a transaction), or on s itself when s is already transactional.
+func (s *Service) inTx(ctx context.Context, fn func(t *Service) error) error {
+	if s.db == nil {
+		return fn(s)
+	}
+	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelReadCommitted})
+	if err != nil {
+		return fmt.Errorf("healthlog: begin: %w", err)
+	}
+	if err := fn(&Service{q: store.New(tx)}); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("healthlog: commit: %w", err)
+	}
+	return nil
+}
 
 // StoreResult is the outcome of DailyHealthLog::updateOrCreate plus its side effects.
 type StoreResult struct {
@@ -50,8 +77,32 @@ func (r *StoreResult) Data() *jsonx.OrderedMap {
 
 // Store is DailyHealthLogController::store after validation: updateOrCreate on
 // (user_id, log_date), then getSpottingWarning, checkAndUpdatePeriodStart and
-// markRecalculatedIfNeeded — in that order, as Laravel runs them.
+// markRecalculatedIfNeeded — in that order, as Laravel runs them. The columns written are then
+// projected into the log taxonomy v2 entries (B-N3-01) in the same transaction, so the v2 day keeps
+// matching the legacy row until the client switches (B-N3-03).
 func (s *Service) Store(ctx context.Context, userID uint64, attrs phpval.Map, locale string, now time.Time) (*StoreResult, error) {
+	var res *StoreResult
+	err := s.inTx(ctx, func(t *Service) error {
+		r, err := t.store(ctx, userID, attrs, locale, now)
+		if err != nil {
+			return err
+		}
+		columns := []string{}
+		for _, k := range attrs.Keys() {
+			if k != "log_date" {
+				columns = append(columns, k)
+			}
+		}
+		if err := t.syncFromLegacy(ctx, r.Log, columns, dbNow(now)); err != nil {
+			return err
+		}
+		res = r
+		return nil
+	})
+	return res, err
+}
+
+func (s *Service) store(ctx context.Context, userID uint64, attrs phpval.Map, locale string, now time.Time) (*StoreResult, error) {
 	now = dbNow(now)
 	rawDate, _ := attrs.Get("log_date")
 	t, err := civildate.ParseLenient(phpval.ToString(rawDate), now, civildate.Tehran)
@@ -193,12 +244,15 @@ func (s *Service) Find(ctx context.Context, userID uint64, date string) (*model.
 	return model.FromRow(row), nil
 }
 
-// Delete removes the log.
+// Delete removes the log and the v2 entries its columns projected (entries only the v2 sheet can
+// write — custom items, pain scores… — stay).
 func (s *Service) Delete(ctx context.Context, l *model.DailyHealthLog) error {
-	if err := s.q.DeleteDailyHealthLog(ctx, l.Row.ID); err != nil {
-		return fmt.Errorf("healthlog: delete: %w", err)
-	}
-	return nil
+	return s.inTx(ctx, func(t *Service) error {
+		if err := t.q.DeleteDailyHealthLog(ctx, l.Row.ID); err != nil {
+			return fmt.Errorf("healthlog: delete: %w", err)
+		}
+		return t.deleteLegacySlots(ctx, l.Row.UserID, l.Row.LogDate, nil)
+	})
 }
 
 // Filter is the index's optional whereDate bounds: Has* mirrors $request->has(), the value

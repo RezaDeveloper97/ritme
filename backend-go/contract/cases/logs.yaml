@@ -1,0 +1,134 @@
+# Log taxonomy v2 (/api/v1/logs*) — Go only (B-N3-01, deviations.md D-37): there is no Laravel route, so these
+# goldens were recorded from the Go server and reviewed by hand (new-endpoint skill, step 8).
+# The fixture dump carries health_log_entries with the 00020 backfill of the fixture's daily_health_logs (added by
+# hand: the DDL/rows goose 00020 / Laravel 2026_10_01_000020 produce on the seeded data). The regular persona's
+# backfilled days (2026-09-14 bleeding high + red → flow heavy + colour red) and the write-back into
+# daily_health_logs (save_flow reads it through the old GET /health-logs/{date}) are pinned here; the backfill of
+# odd legacy values, the two-way sync and IDOR are covered by internal/healthlog and db/migrations tests.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: logs
+defaults:
+  persona: regular
+  locales: [none, en]
+cases:
+  - name: taxonomy
+    doc: The user's mode (regular → cycle), labels in the request language (none → fa default)
+    method: GET
+    path: /api/v1/logs/taxonomy
+    status: 200
+  - name: taxonomy_postpartum
+    locales: en
+    method: GET
+    path: /api/v1/logs/taxonomy
+    query: {mode: postpartum}
+    status: 200
+  - name: taxonomy_invalid_mode
+    method: GET
+    path: /api/v1/logs/taxonomy
+    query: {mode: martian}
+    status: 422
+  - name: taxonomy_anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/logs/taxonomy
+    status: 401
+
+  - name: day_backfilled
+    doc: A legacy day read through v2 (the 00020 backfill)
+    locales: none
+    method: GET
+    path: /api/v1/logs/days/2026-09-14
+    status: 200
+  - name: day_empty
+    locales: none
+    method: GET
+    path: /api/v1/logs/days/2026-09-01
+    status: 200
+  - name: day_invalid_date
+    method: GET
+    path: /api/v1/logs/days/2026-02-30
+    status: 422
+  - name: day_anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/logs/days/2026-09-14
+    status: 401
+  - name: days_range
+    locales: none
+    method: GET
+    path: /api/v1/logs/days
+    query: {from: "2026-09-01", to: "2026-09-23"}
+    status: 200
+  - name: days_invalid
+    method: GET
+    path: /api/v1/logs/days
+    query: {from: "2026-09-10", to: "2026-09-01"}
+    status: 422
+
+  - name: save_flow
+    doc: Save today (v2-only values stay in v2; legacy-representable ones are written back), read both ways, delete
+    locales: none
+    steps:
+      - method: PUT
+        path: /api/v1/logs/days/2026-09-23
+        body:
+          categories:
+            bleeding: {flow: medium, color: pink}
+            pain: {location: {abdomen: {level: moderate, score: 6}, back: mild}, relief: [heat]}
+            mood: {moods: [calm, energetic]}
+            measurements: {weight: 58.4}
+            note: {text: "یادداشت"}
+            custom: {items: {coffee: "yes"}}
+        status: 200
+      - method: GET
+        path: /api/v1/logs/days/2026-09-23
+        status: 200
+      - method: GET
+        path: /api/v1/health-logs/2026-09-23
+        status: 200
+      - method: PUT
+        path: /api/v1/logs/days/2026-09-23
+        body: {categories: {bleeding: null, mood: {moods: null}}}
+        status: 200
+      - method: DELETE
+        path: /api/v1/logs/days/2026-09-23
+        status: 200
+  - name: save_invalid
+    doc: Per-category ranges and value sets (weight 20–300, pain score 1–10, unknown option / category)
+    method: PUT
+    path: /api/v1/logs/days/2026-09-22
+    body:
+      categories:
+        measurements: {weight: 500}
+        pain: {location: {abdomen: {level: moderate, score: 11}}}
+        bleeding: {flow: torrential}
+        horoscope: {sign: leo}
+    status: 422
+  - name: save_future
+    locales: none
+    method: PUT
+    path: /api/v1/logs/days/2026-09-24
+    body: {categories: {note: {text: "x"}}}
+    status: 422
+  - name: save_mode_specific
+    doc: Pregnant persona — postpartum lochia refused, a pregnancy-only symptom accepted
+    persona: pregnant_lmp_w8
+    locales: none
+    steps:
+      - method: PUT
+        path: /api/v1/logs/days/2026-09-22
+        body: {categories: {bleeding: {lochia_amount: heavy}}}
+        status: 422
+      - method: PUT
+        path: /api/v1/logs/days/2026-09-22
+        body: {categories: {symptoms: {general: {leg_cramps: moderate}}}}
+        status: 200
+  - name: save_anon
+    persona: anon
+    locales: none
+    method: PUT
+    path: /api/v1/logs/days/2026-09-22
+    body: {categories: {}}
+    status: 401

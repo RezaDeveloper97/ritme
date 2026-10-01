@@ -33,6 +33,7 @@ tags:
   - {name: Checkups, description: "Periodic checkups (Go only): the screening plan, records, custom checkups, per-type settings"}
   - {name: Catalog, description: "Admin-editable content catalog (Go only): one localized group of items (FAQs, warning signs, kit items, …)"}
   - {name: Pelvic, description: "Pelvic floor program (Go only): 8-week Kegel plan, trained days, bladder diary"}
+  - {name: Log Taxonomy, description: "Day log v2 (Go only, B-N3-01): taxonomy with labels, per-day entries, the two-way sync with daily_health_logs"}
   - {name: Contraception, description: "Contraception (Go only): method, pill pack (day, placebo/break days, streak, refill), pill log and the care reminders of long-acting methods"}
   - {name: Plus, description: "Ritme Plus (Go only): plans, trial, checkout through the payment port, verify, cancel, restore, history, entitlements and usage. Amounts are integer rials"}
   - {name: Payments, description: "Payment gateway adapter (Go only): browser return hop and the fake provider's TEST page. PAYMENT_PROVIDER = fake (default outside production) | zarinpal | none. Café Bazaar / Myket billing is Android-only and out of scope"}
@@ -2120,6 +2121,190 @@ paths:
                   data: {$ref: "#/components/schemas/PelvicDiaryDay"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '422': {$ref: "#/components/responses/PelvicValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/logs/taxonomy:
+    get:
+      tags: [Log Taxonomy]
+      summary: The log taxonomy with labels
+      description: |
+        Categories → params → value sets of the day log v2 (Log_Taxonomy artboard, `internal/healthlog/taxonomy`),
+        labelled in the request language (translation namespace `log-taxonomy`; a missing label falls back to the
+        code). Without `mode` the user's current life-stage mode filters it (only what shows in that mode, no
+        legacy-only values); `mode=all` lists everything with `legacy_only` flags. Param types: `single`, `multi`,
+        `items` (per item a level, optional `score`), `number`, `integer`, `text`, `text_items`, `bool`, `link`
+        (read-only tile owned by another feature, `source`).
+      operationId: getLogTaxonomy
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - name: mode
+          in: query
+          required: false
+          schema: {type: string, enum: [cycle, ttc, pregnancy, postpartum, menopause, teen, all]}
+      responses:
+        '200':
+          description: The taxonomy
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [mode, categories]
+                    properties:
+                      mode: {type: [string, "null"], description: "the mode applied (null for `all`)"}
+                      categories:
+                        type: array
+                        items: {$ref: "#/components/schemas/LogCategory"}
+              example:
+                success: true
+                data:
+                  mode: cycle
+                  categories:
+                    - code: bleeding
+                      label: پریود و لکه‌بینی
+                      group: {value: body, label: بدن}
+                      modes: [cycle, ttc, menopause, teen, pregnancy, postpartum]
+                      conditions: {}
+                      params:
+                        - {code: flow, type: single, label: شدت, modes: [cycle, ttc, menopause, teen, pregnancy], detail: false, alert: true, options: [{value: light, label: کم, modes: null, legacy_only: false}], levels: [], score: null, range: null, scale: null, unit: null, max_length: null, dynamic: false, source: null}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
+  /api/v1/logs/days:
+    get:
+      tags: [Log Taxonomy]
+      summary: Logged days in a range
+      description: "The caller's days in [from, to] (at most 366 days) that have at least one entry, oldest first, each in the PUT body shape."
+      operationId: listLogDays
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: from, in: query, required: true, schema: {$ref: "#/components/schemas/Date"}}
+        - {name: to, in: query, required: true, schema: {$ref: "#/components/schemas/Date"}, description: "on or after `from`, at most 366 days later"}
+      responses:
+        '200':
+          description: The days
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [from, to, days]
+                    properties:
+                      from: {$ref: "#/components/schemas/Date"}
+                      to: {$ref: "#/components/schemas/Date"}
+                      days:
+                        type: array
+                        items: {$ref: "#/components/schemas/LogDay"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
+  /api/v1/logs/days/{date}:
+    get:
+      tags: [Log Taxonomy]
+      summary: One logged day
+      description: "The caller's day in the PUT body shape (`categories` is `{}` when nothing is logged). Legacy days are read through the 00020 backfill and the live sync with `/health-logs`."
+      operationId: getLogDay
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: date, in: path, required: true, description: "the day (Y-m-d, a real date)", schema: {$ref: "#/components/schemas/Date"}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The day
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/LogDay"}
+              example:
+                success: true
+                data: {date: "2026-09-14", categories: {bleeding: {flow: heavy, color: red}, pain: {location: {abdomen: {level: moderate, score: null}}}, mood: {moods: [sensitive]}}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
+    put:
+      tags: [Log Taxonomy]
+      summary: Save a day
+      description: |
+        Each param sent replaces the stored one (`null` clears it; a category sent as `null` clears all of it); params
+        not sent are kept. Values per type: `single` → option code, `multi` → list of codes, `items` →
+        `{item: {level, score?}}` or `{item: level}`, `number` / `integer` → number in the param's range, `text` →
+        string, `text_items` → `{item: string}`, `bool` → boolean; `link` params are read-only. A new value must be
+        available in the caller's mode (`GET /logs/taxonomy`); a value equal to the stored one always passes. Future
+        days are refused. The legacy-representable values of the changed params are written back into
+        `daily_health_logs` through the `/health-logs` save (period-start reconciliation included), so the engines
+        keep reading them; v2-only values (pain score, pink blood, custom items…) live only here.
+      operationId: putLogDay
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: date, in: path, required: true, description: "the day (Y-m-d, a real date)", schema: {$ref: "#/components/schemas/Date"}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [categories]
+              properties:
+                categories: {$ref: "#/components/schemas/LogCategories"}
+            example:
+              categories:
+                bleeding: {flow: medium, color: pink}
+                pain: {location: {abdomen: {level: moderate, score: 6}}, relief: [heat]}
+                mood: {moods: [calm]}
+                measurements: {weight: 58.4}
+                note: {text: "یادداشت"}
+      responses:
+        '200':
+          description: Saved; the whole day
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/LogDay"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+    delete:
+      tags: [Log Taxonomy]
+      summary: Delete a day
+      description: "Removes every v2 entry of the day and its `daily_health_logs` row. Idempotent."
+      operationId: deleteLogDay
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: date, in: path, required: true, description: "the day (Y-m-d, a real date)", schema: {$ref: "#/components/schemas/Date"}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Deleted; the (empty) day
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/LogDay"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/contraception:
     get:
@@ -10777,6 +10962,74 @@ components:
     ContraceptionMethodCode:
       type: string
       enum: [combined_pill, progestin_pill, copper_iud, hormonal_iud, injection, implant, condom, other]
+    LogLabeled:
+      type: object
+      required: [value, label]
+      properties:
+        value: {type: string}
+        label: {type: string}
+    LogCategory:
+      type: object
+      required: [code, label, group, modes, conditions, params]
+      properties:
+        code: {type: string}
+        label: {type: string}
+        group: {$ref: "#/components/schemas/LogLabeled"}
+        modes: {type: array, items: {type: string}}
+        conditions:
+          type: object
+          description: "per mode an availability note (postpartum: after_6_weeks)"
+          additionalProperties: {$ref: "#/components/schemas/LogLabeled"}
+        params:
+          type: array
+          items: {$ref: "#/components/schemas/LogParam"}
+    LogParam:
+      type: object
+      required: [code, type, label, modes, detail, alert, options, levels, score, range, scale, unit, max_length, dynamic, source]
+      properties:
+        code: {type: string}
+        type: {type: string, enum: [single, multi, items, number, integer, text, text_items, bool, link]}
+        label: {type: string}
+        modes: {type: array, items: {type: string}}
+        detail: {type: boolean, description: "optional detail behind «جزئیات»"}
+        alert: {type: boolean, description: "always discuss with a doctor (bleeding in pregnancy)"}
+        options:
+          type: array
+          description: "single/multi values; items/text_items items"
+          items:
+            type: object
+            required: [value, label, modes, legacy_only]
+            properties:
+              value: {type: string}
+              label: {type: string}
+              modes: {type: [array, "null"], items: {type: string}}
+              legacy_only: {type: boolean}
+        levels: {type: array, items: {$ref: "#/components/schemas/LogLabeled"}}
+        score: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/LogRange"}]}
+        range: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/LogRange"}]}
+        scale: {type: [integer, "null"]}
+        unit: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/LogLabeled"}]}
+        max_length: {type: [integer, "null"]}
+        dynamic: {type: boolean, description: "free item codes (custom items, care reminder ids)"}
+        source: {type: [string, "null"], description: "link: the feature that owns the data"}
+    LogRange:
+      type: object
+      required: [min, max]
+      properties:
+        min: {type: number}
+        max: {type: number}
+    LogCategories:
+      type: object
+      description: "{category: {param: value}} — see PUT /logs/days/{date} for the value per param type"
+      additionalProperties:
+        type: [object, "null"]
+        additionalProperties: true
+    LogDay:
+      type: object
+      required: [date, categories]
+      properties:
+        date: {$ref: "#/components/schemas/Date"}
+        categories: {$ref: "#/components/schemas/LogCategories"}
     ContraceptionOverview:
       type: object
       description: "The contraception screen (`GET /contraception` and every write)."

@@ -1,0 +1,2106 @@
+{
+  "case": "logs/taxonomy_postpartum",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/logs/taxonomy?mode=postpartum",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "postpartum",
+          "categories": [
+            {
+              "code": "bleeding",
+              "label": "Period & spotting",
+              "group": {
+                "value": "body",
+                "label": "Body"
+              },
+              "modes": [
+                "cycle",
+                "ttc",
+                "menopause",
+                "teen",
+                "pregnancy",
+                "postpartum"
+              ],
+              "conditions": {},
+              "params": [
+                {
+                  "code": "clots",
+                  "type": "bool",
+                  "label": "Clots",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "menopause",
+                    "teen",
+                    "postpartum"
+                  ],
+                  "detail": true,
+                  "alert": false,
+                  "options": [],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "clot_size",
+                  "type": "single",
+                  "label": "Clot size",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "menopause",
+                    "teen",
+                    "postpartum"
+                  ],
+                  "detail": true,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "small",
+                      "label": "Small",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "large",
+                      "label": "Larger than a coin",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "odor",
+                  "type": "single",
+                  "label": "Odour",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "menopause",
+                    "teen",
+                    "postpartum"
+                  ],
+                  "detail": true,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "normal",
+                      "label": "Normal",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "changed",
+                      "label": "Changed",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "lochia_amount",
+                  "type": "single",
+                  "label": "Postpartum bleeding",
+                  "modes": [
+                    "postpartum"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "light",
+                      "label": "Light",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "medium",
+                      "label": "Medium",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "heavy",
+                      "label": "Heavy",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "lochia_color",
+                  "type": "single",
+                  "label": "Postpartum bleeding colour",
+                  "modes": [
+                    "postpartum"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "red",
+                      "label": "Red",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "pink_brown",
+                      "label": "Pink or brown",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "yellow_white",
+                      "label": "Yellow or white",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                }
+              ]
+            },
+            {
+              "code": "pain",
+              "label": "Pain",
+              "group": {
+                "value": "body",
+                "label": "Body"
+              },
+              "modes": [
+                "cycle",
+                "ttc",
+                "pregnancy",
+                "postpartum",
+                "menopause",
+                "teen"
+              ],
+              "conditions": {},
+              "params": [
+                {
+                  "code": "none",
+                  "type": "bool",
+                  "label": "No pain",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "location",
+                  "type": "items",
+                  "label": "Where",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "abdomen",
+                      "label": "Abdomen",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "back",
+                      "label": "Back",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "head",
+                      "label": "Head",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "breast",
+                      "label": "Breast",
+                      "modes": [
+                        "cycle",
+                        "ttc",
+                        "menopause",
+                        "teen",
+                        "postpartum"
+                      ],
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "stitches",
+                      "label": "Stitches",
+                      "modes": [
+                        "postpartum"
+                      ],
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [
+                    {
+                      "value": "mild",
+                      "label": "Mild"
+                    },
+                    {
+                      "value": "moderate",
+                      "label": "Moderate"
+                    },
+                    {
+                      "value": "severe",
+                      "label": "Severe"
+                    }
+                  ],
+                  "score": {
+                    "min": 1,
+                    "max": 10
+                  },
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "relief",
+                  "type": "multi",
+                  "label": "What helped?",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "heat",
+                      "label": "Hot water bottle",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "painkiller",
+                      "label": "Painkiller",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "rest",
+                      "label": "Rest",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "light_exercise",
+                      "label": "Light exercise",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "none",
+                      "label": "Nothing",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                }
+              ]
+            },
+            {
+              "code": "mood",
+              "label": "Mood",
+              "group": {
+                "value": "mind",
+                "label": "Mind"
+              },
+              "modes": [
+                "cycle",
+                "ttc",
+                "pregnancy",
+                "postpartum",
+                "menopause",
+                "teen"
+              ],
+              "conditions": {},
+              "params": [
+                {
+                  "code": "moods",
+                  "type": "multi",
+                  "label": "How you feel",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "calm",
+                      "label": "Calm",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "happy",
+                      "label": "Happy",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "energetic",
+                      "label": "Energetic",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "sensitive",
+                      "label": "Sensitive",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "irritable",
+                      "label": "Irritable",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "sad",
+                      "label": "Sad",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "anxious",
+                      "label": "Anxious",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "angry",
+                      "label": "Angry",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "bored",
+                      "label": "Unmotivated",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "frustrated",
+                      "label": "Frustrated",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "weekly_checkin",
+                  "type": "link",
+                  "label": "Weekly check-in",
+                  "modes": [
+                    "postpartum"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": "postpartum_checkin"
+                }
+              ]
+            },
+            {
+              "code": "symptoms",
+              "label": "Body symptoms",
+              "group": {
+                "value": "body",
+                "label": "Body"
+              },
+              "modes": [
+                "cycle",
+                "ttc",
+                "pregnancy",
+                "postpartum",
+                "menopause",
+                "teen"
+              ],
+              "conditions": {},
+              "params": [
+                {
+                  "code": "digestive",
+                  "type": "items",
+                  "label": "Digestion",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "nausea",
+                      "label": "Nausea",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "bloating",
+                      "label": "Bloating",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "constipation",
+                      "label": "Constipation",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "diarrhea",
+                      "label": "Diarrhoea",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "heartburn",
+                      "label": "Heartburn",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [
+                    {
+                      "value": "yes",
+                      "label": "Yes"
+                    },
+                    {
+                      "value": "no",
+                      "label": "No"
+                    },
+                    {
+                      "value": "mild",
+                      "label": "Mild"
+                    },
+                    {
+                      "value": "moderate",
+                      "label": "Moderate"
+                    },
+                    {
+                      "value": "severe",
+                      "label": "Severe"
+                    }
+                  ],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "general",
+                  "type": "items",
+                  "label": "General",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "fatigue",
+                      "label": "Fatigue",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "dizziness",
+                      "label": "Dizziness",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "breast_tenderness",
+                      "label": "Breast tenderness",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "swelling",
+                      "label": "Swelling",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "hot_flashes",
+                      "label": "Hot flashes",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "chills",
+                      "label": "Chills",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "insomnia",
+                      "label": "Insomnia",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [
+                    {
+                      "value": "yes",
+                      "label": "Yes"
+                    },
+                    {
+                      "value": "no",
+                      "label": "No"
+                    },
+                    {
+                      "value": "mild",
+                      "label": "Mild"
+                    },
+                    {
+                      "value": "moderate",
+                      "label": "Moderate"
+                    },
+                    {
+                      "value": "severe",
+                      "label": "Severe"
+                    }
+                  ],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                }
+              ]
+            },
+            {
+              "code": "sleep",
+              "label": "Sleep",
+              "group": {
+                "value": "lifestyle",
+                "label": "Lifestyle"
+              },
+              "modes": [
+                "cycle",
+                "ttc",
+                "pregnancy",
+                "postpartum",
+                "menopause",
+                "teen"
+              ],
+              "conditions": {},
+              "params": [
+                {
+                  "code": "duration",
+                  "type": "single",
+                  "label": "Duration",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "0_3",
+                      "label": "Under 3 hours",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "3_6",
+                      "label": "3–6 hours",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "6_9",
+                      "label": "6–9 hours",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "9_plus",
+                      "label": "Over 9 hours",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "quality",
+                  "type": "single",
+                  "label": "Quality",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "great",
+                      "label": "Great",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "good",
+                      "label": "Good",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "fair",
+                      "label": "Fair",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "poor",
+                      "label": "Poor",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                }
+              ]
+            },
+            {
+              "code": "appetite_energy",
+              "label": "Appetite & energy",
+              "group": {
+                "value": "mind",
+                "label": "Mind"
+              },
+              "modes": [
+                "cycle",
+                "ttc",
+                "pregnancy",
+                "postpartum",
+                "menopause",
+                "teen"
+              ],
+              "conditions": {},
+              "params": [
+                {
+                  "code": "energy",
+                  "type": "single",
+                  "label": "Energy",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "low",
+                      "label": "Low",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "medium",
+                      "label": "Medium",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "high",
+                      "label": "High",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "appetite",
+                  "type": "single",
+                  "label": "Appetite",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "decreased",
+                      "label": "Lower",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "normal",
+                      "label": "Normal",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "increased",
+                      "label": "Higher",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "cravings",
+                  "type": "items",
+                  "label": "Cravings",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "sweet",
+                      "label": "Sweet",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "salty",
+                      "label": "Salty",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "fatty",
+                      "label": "Fatty",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "carbs",
+                      "label": "Carbs",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "sour",
+                      "label": "Sour",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "any",
+                      "label": "Food cravings",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [
+                    {
+                      "value": "yes",
+                      "label": "Yes"
+                    },
+                    {
+                      "value": "no",
+                      "label": "No"
+                    }
+                  ],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                }
+              ]
+            },
+            {
+              "code": "activity",
+              "label": "Activity",
+              "group": {
+                "value": "lifestyle",
+                "label": "Lifestyle"
+              },
+              "modes": [
+                "cycle",
+                "ttc",
+                "pregnancy",
+                "postpartum",
+                "menopause",
+                "teen"
+              ],
+              "conditions": {
+                "postpartum": {
+                  "value": "after_6_weeks",
+                  "label": "After 6 weeks"
+                }
+              },
+              "params": [
+                {
+                  "code": "types",
+                  "type": "multi",
+                  "label": "Type",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "walking",
+                      "label": "Walking",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "running",
+                      "label": "Running",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "cycling",
+                      "label": "Cycling",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "gym",
+                      "label": "Gym",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "yoga",
+                      "label": "Yoga",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "pilates",
+                      "label": "Pilates",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "swimming",
+                      "label": "Swimming",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "dance",
+                      "label": "Dance",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "team_sport",
+                      "label": "Team sport",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "stretching",
+                      "label": "Stretching",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "pelvic_floor",
+                      "label": "Pelvic floor",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "other",
+                      "label": "Other",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "duration",
+                  "type": "integer",
+                  "label": "Duration",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [],
+                  "levels": [],
+                  "score": null,
+                  "range": {
+                    "min": 1,
+                    "max": 600
+                  },
+                  "scale": null,
+                  "unit": {
+                    "value": "min",
+                    "label": "min"
+                  },
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "intensity",
+                  "type": "single",
+                  "label": "Intensity",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "low",
+                      "label": "Light",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "medium",
+                      "label": "Moderate",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "high",
+                      "label": "Vigorous",
+                      "modes": [
+                        "cycle",
+                        "ttc",
+                        "postpartum",
+                        "menopause",
+                        "teen"
+                      ],
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                }
+              ]
+            },
+            {
+              "code": "urogenital",
+              "label": "Urinary & genital",
+              "group": {
+                "value": "body",
+                "label": "Body"
+              },
+              "modes": [
+                "cycle",
+                "ttc",
+                "pregnancy",
+                "postpartum",
+                "menopause",
+                "teen"
+              ],
+              "conditions": {},
+              "params": [
+                {
+                  "code": "symptoms",
+                  "type": "items",
+                  "label": "Symptoms",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "frequent_urination",
+                      "label": "Frequent urination",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "urination_burning",
+                      "label": "Burning when peeing",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "urgency",
+                      "label": "Urgency",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "leakage",
+                      "label": "Leaking",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "vaginal_dryness",
+                      "label": "Dryness",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "vaginal_itching",
+                      "label": "Itching",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "vaginal_burning",
+                      "label": "Vaginal burning",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "odor_change",
+                      "label": "Changed odour",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [
+                    {
+                      "value": "yes",
+                      "label": "Yes"
+                    },
+                    {
+                      "value": "no",
+                      "label": "No"
+                    },
+                    {
+                      "value": "mild",
+                      "label": "Mild"
+                    },
+                    {
+                      "value": "moderate",
+                      "label": "Moderate"
+                    },
+                    {
+                      "value": "severe",
+                      "label": "Severe"
+                    }
+                  ],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "urination",
+                  "type": "single",
+                  "label": "Urination",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "increased",
+                      "label": "More than usual",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "decreased",
+                      "label": "Less than usual",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "normal",
+                      "label": "Normal",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                }
+              ]
+            },
+            {
+              "code": "sex",
+              "label": "Sex & libido",
+              "group": {
+                "value": "lifestyle",
+                "label": "Lifestyle"
+              },
+              "modes": [
+                "cycle",
+                "ttc",
+                "pregnancy",
+                "postpartum",
+                "menopause"
+              ],
+              "conditions": {
+                "postpartum": {
+                  "value": "after_6_weeks",
+                  "label": "After 6 weeks"
+                }
+              },
+              "params": [
+                {
+                  "code": "desire",
+                  "type": "single",
+                  "label": "Libido",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "lower",
+                      "label": "Lower than usual",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "normal",
+                      "label": "Normal",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "higher",
+                      "label": "Higher than usual",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "intercourse",
+                  "type": "single",
+                  "label": "Sex",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "protected",
+                      "label": "Protected",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "unprotected",
+                      "label": "Unprotected",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "symptoms",
+                  "type": "multi",
+                  "label": "During or after",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "dryness",
+                      "label": "Dryness",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "burning",
+                      "label": "Burning",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "pain_during_intercourse",
+                      "label": "Pain during sex",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "bleeding_after_intercourse",
+                      "label": "Bleeding after sex",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "lubricant_use",
+                      "label": "Used lubricant",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                }
+              ]
+            },
+            {
+              "code": "measurements",
+              "label": "Weight & BBT",
+              "group": {
+                "value": "measure",
+                "label": "Measurements"
+              },
+              "modes": [
+                "cycle",
+                "ttc",
+                "pregnancy",
+                "postpartum",
+                "menopause",
+                "teen"
+              ],
+              "conditions": {},
+              "params": [
+                {
+                  "code": "weight",
+                  "type": "number",
+                  "label": "Weight",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [],
+                  "levels": [],
+                  "score": null,
+                  "range": {
+                    "min": 20,
+                    "max": 300
+                  },
+                  "scale": 2,
+                  "unit": {
+                    "value": "kg",
+                    "label": "kg"
+                  },
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "heart_rate",
+                  "type": "integer",
+                  "label": "Heart rate",
+                  "modes": [
+                    "pregnancy",
+                    "postpartum",
+                    "menopause"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [],
+                  "levels": [],
+                  "score": null,
+                  "range": {
+                    "min": 30,
+                    "max": 250
+                  },
+                  "scale": null,
+                  "unit": {
+                    "value": "bpm",
+                    "label": "bpm"
+                  },
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "bp_systolic",
+                  "type": "integer",
+                  "label": "Blood pressure (systolic)",
+                  "modes": [
+                    "pregnancy",
+                    "postpartum",
+                    "menopause"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [],
+                  "levels": [],
+                  "score": null,
+                  "range": {
+                    "min": 50,
+                    "max": 300
+                  },
+                  "scale": null,
+                  "unit": {
+                    "value": "mmhg",
+                    "label": "mmHg"
+                  },
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "bp_diastolic",
+                  "type": "integer",
+                  "label": "Blood pressure (diastolic)",
+                  "modes": [
+                    "pregnancy",
+                    "postpartum",
+                    "menopause"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [],
+                  "levels": [],
+                  "score": null,
+                  "range": {
+                    "min": 30,
+                    "max": 200
+                  },
+                  "scale": null,
+                  "unit": {
+                    "value": "mmhg",
+                    "label": "mmHg"
+                  },
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "blood_sugar",
+                  "type": "number",
+                  "label": "Blood sugar",
+                  "modes": [
+                    "pregnancy",
+                    "postpartum"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [],
+                  "levels": [],
+                  "score": null,
+                  "range": {
+                    "min": 20,
+                    "max": 600
+                  },
+                  "scale": 1,
+                  "unit": {
+                    "value": "mg_dl",
+                    "label": "mg/dL"
+                  },
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                }
+              ]
+            },
+            {
+              "code": "meds",
+              "label": "Meds & supplements",
+              "group": {
+                "value": "other",
+                "label": "Other"
+              },
+              "modes": [
+                "cycle",
+                "ttc",
+                "pregnancy",
+                "postpartum",
+                "menopause",
+                "teen"
+              ],
+              "conditions": {},
+              "params": [
+                {
+                  "code": "taken",
+                  "type": "items",
+                  "label": "From reminders",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [],
+                  "levels": [
+                    {
+                      "value": "yes",
+                      "label": "Yes"
+                    },
+                    {
+                      "value": "no",
+                      "label": "No"
+                    }
+                  ],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": true,
+                  "source": null
+                },
+                {
+                  "code": "other",
+                  "type": "text_items",
+                  "label": "Other medicines",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "painkillers",
+                      "label": "Painkillers",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "hormonal_pills",
+                      "label": "Hormonal pills",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "antibiotics",
+                      "label": "Antibiotics",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "supplements",
+                      "label": "Supplements",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": 255,
+                  "dynamic": true,
+                  "source": null
+                }
+              ]
+            },
+            {
+              "code": "skin_hair",
+              "label": "Skin & hair",
+              "group": {
+                "value": "body",
+                "label": "Body"
+              },
+              "modes": [
+                "cycle",
+                "ttc",
+                "pregnancy",
+                "postpartum",
+                "menopause",
+                "teen"
+              ],
+              "conditions": {},
+              "params": [
+                {
+                  "code": "symptoms",
+                  "type": "items",
+                  "label": "Symptoms",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "acne",
+                      "label": "Acne",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "oily_skin",
+                      "label": "Oily skin",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "dry_skin",
+                      "label": "Dry skin",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "hair_loss",
+                      "label": "Hair loss",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [
+                    {
+                      "value": "yes",
+                      "label": "Yes"
+                    },
+                    {
+                      "value": "no",
+                      "label": "No"
+                    },
+                    {
+                      "value": "mild",
+                      "label": "Mild"
+                    },
+                    {
+                      "value": "moderate",
+                      "label": "Moderate"
+                    },
+                    {
+                      "value": "severe",
+                      "label": "Severe"
+                    }
+                  ],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                }
+              ]
+            },
+            {
+              "code": "breasts",
+              "label": "Breasts",
+              "group": {
+                "value": "body",
+                "label": "Body"
+              },
+              "modes": [
+                "postpartum"
+              ],
+              "conditions": {},
+              "params": [
+                {
+                  "code": "symptoms",
+                  "type": "items",
+                  "label": "Symptoms",
+                  "modes": [
+                    "postpartum"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [
+                    {
+                      "value": "engorgement",
+                      "label": "Engorgement",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "nipple_pain",
+                      "label": "Sore nipples",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "redness",
+                      "label": "Redness",
+                      "modes": null,
+                      "legacy_only": false
+                    }
+                  ],
+                  "levels": [
+                    {
+                      "value": "yes",
+                      "label": "Yes"
+                    },
+                    {
+                      "value": "no",
+                      "label": "No"
+                    },
+                    {
+                      "value": "mild",
+                      "label": "Mild"
+                    },
+                    {
+                      "value": "moderate",
+                      "label": "Moderate"
+                    },
+                    {
+                      "value": "severe",
+                      "label": "Severe"
+                    }
+                  ],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                }
+              ]
+            },
+            {
+              "code": "baby",
+              "label": "Baby",
+              "group": {
+                "value": "mode",
+                "label": "Mode specific"
+              },
+              "modes": [
+                "postpartum"
+              ],
+              "conditions": {},
+              "params": [
+                {
+                  "code": "feeding",
+                  "type": "link",
+                  "label": "Breast / bottle",
+                  "modes": [
+                    "postpartum"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": "feeding"
+                },
+                {
+                  "code": "pumping",
+                  "type": "link",
+                  "label": "Pumping",
+                  "modes": [
+                    "postpartum"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": "feeding"
+                },
+                {
+                  "code": "diapers",
+                  "type": "link",
+                  "label": "Diapers",
+                  "modes": [
+                    "postpartum"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": "diapers"
+                },
+                {
+                  "code": "baby_sleep",
+                  "type": "link",
+                  "label": "Baby's sleep",
+                  "modes": [
+                    "postpartum"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": "baby_sleep"
+                }
+              ]
+            },
+            {
+              "code": "note",
+              "label": "Note",
+              "group": {
+                "value": "other",
+                "label": "Other"
+              },
+              "modes": [
+                "cycle",
+                "ttc",
+                "pregnancy",
+                "postpartum",
+                "menopause",
+                "teen"
+              ],
+              "conditions": {},
+              "params": [
+                {
+                  "code": "text",
+                  "type": "text",
+                  "label": "Note",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [],
+                  "levels": [],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": 2000,
+                  "dynamic": false,
+                  "source": null
+                }
+              ]
+            },
+            {
+              "code": "custom",
+              "label": "Custom items",
+              "group": {
+                "value": "other",
+                "label": "Other"
+              },
+              "modes": [
+                "cycle",
+                "ttc",
+                "pregnancy",
+                "postpartum",
+                "menopause",
+                "teen"
+              ],
+              "conditions": {},
+              "params": [
+                {
+                  "code": "items",
+                  "type": "items",
+                  "label": "Custom items",
+                  "modes": [
+                    "cycle",
+                    "ttc",
+                    "pregnancy",
+                    "postpartum",
+                    "menopause",
+                    "teen"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [],
+                  "levels": [
+                    {
+                      "value": "yes",
+                      "label": "Yes"
+                    },
+                    {
+                      "value": "no",
+                      "label": "No"
+                    }
+                  ],
+                  "score": null,
+                  "range": null,
+                  "scale": null,
+                  "unit": null,
+                  "max_length": null,
+                  "dynamic": true,
+                  "source": null
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

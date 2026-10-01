@@ -1917,6 +1917,514 @@
     "gridLabel": "Days of {month}"
    }
   },
+  "log-taxonomy": {
+   "groups": {
+    "body": "Body",
+    "mind": "Mind",
+    "lifestyle": "Lifestyle",
+    "measure": "Measurements",
+    "mode": "Mode specific",
+    "other": "Other"
+   },
+   "levels": {
+    "yes": "Yes",
+    "no": "No",
+    "mild": "Mild",
+    "moderate": "Moderate",
+    "severe": "Severe"
+   },
+   "units": {
+    "kg": "kg",
+    "celsius": "°C",
+    "min": "min",
+    "bpm": "bpm",
+    "mmhg": "mmHg",
+    "mg_dl": "mg/dL"
+   },
+   "conditions": {
+    "after_6_weeks": "After 6 weeks",
+    "optional": "Optional"
+   },
+   "categories": {
+    "bleeding": {
+     "title": "Period & spotting",
+     "params": {
+      "flow": {
+       "title": "Flow",
+       "options": {
+        "light": "Light",
+        "medium": "Medium",
+        "heavy": "Heavy",
+        "very_heavy": "Very heavy"
+       }
+      },
+      "spotting": {
+       "title": "Spotting"
+      },
+      "color": {
+       "title": "Colour",
+       "options": {
+        "pink": "Pink",
+        "bright_red": "Bright red",
+        "red": "Red",
+        "dark_red": "Dark red",
+        "brown": "Brown",
+        "black": "Black"
+       }
+      },
+      "clots": {
+       "title": "Clots"
+      },
+      "clot_size": {
+       "title": "Clot size",
+       "options": {
+        "small": "Small",
+        "large": "Larger than a coin",
+        "none": "None",
+        "medium": "Medium"
+       }
+      },
+      "odor": {
+       "title": "Odour",
+       "options": {
+        "normal": "Normal",
+        "changed": "Changed",
+        "slightly_unusual": "Slightly unusual",
+        "strong_unpleasant": "Strong, unpleasant"
+       }
+      },
+      "lochia_amount": {
+       "title": "Postpartum bleeding",
+       "options": {
+        "light": "Light",
+        "medium": "Medium",
+        "heavy": "Heavy"
+       }
+      },
+      "lochia_color": {
+       "title": "Postpartum bleeding colour",
+       "options": {
+        "red": "Red",
+        "pink_brown": "Pink or brown",
+        "yellow_white": "Yellow or white"
+       }
+      }
+     }
+    },
+    "pain": {
+     "title": "Pain",
+     "params": {
+      "none": {
+       "title": "No pain"
+      },
+      "location": {
+       "title": "Where",
+       "options": {
+        "abdomen": "Abdomen",
+        "pelvis": "Pelvis",
+        "ovary": "One side, low",
+        "back": "Back",
+        "head": "Head",
+        "breast": "Breast",
+        "leg": "Legs",
+        "stitches": "Stitches",
+        "joints": "Joints"
+       }
+      },
+      "relief": {
+       "title": "What helped?",
+       "options": {
+        "heat": "Hot water bottle",
+        "painkiller": "Painkiller",
+        "rest": "Rest",
+        "light_exercise": "Light exercise",
+        "none": "Nothing"
+       }
+      }
+     }
+    },
+    "mood": {
+     "title": "Mood",
+     "params": {
+      "moods": {
+       "title": "How you feel",
+       "options": {
+        "calm": "Calm",
+        "happy": "Happy",
+        "energetic": "Energetic",
+        "sensitive": "Sensitive",
+        "irritable": "Irritable",
+        "sad": "Sad",
+        "anxious": "Anxious",
+        "angry": "Angry",
+        "bored": "Unmotivated",
+        "frustrated": "Frustrated"
+       }
+      },
+      "weekly_checkin": {
+       "title": "Weekly check-in"
+      }
+     }
+    },
+    "symptoms": {
+     "title": "Body symptoms",
+     "params": {
+      "digestive": {
+       "title": "Digestion",
+       "options": {
+        "nausea": "Nausea",
+        "bloating": "Bloating",
+        "constipation": "Constipation",
+        "diarrhea": "Diarrhoea",
+        "heartburn": "Heartburn"
+       }
+      },
+      "general": {
+       "title": "General",
+       "options": {
+        "fatigue": "Fatigue",
+        "dizziness": "Dizziness",
+        "breast_tenderness": "Breast tenderness",
+        "swelling": "Swelling",
+        "hot_flashes": "Hot flashes",
+        "chills": "Chills",
+        "insomnia": "Insomnia",
+        "leg_cramps": "Leg cramps",
+        "night_sweats": "Night sweats",
+        "brain_fog": "Brain fog",
+        "palpitations": "Palpitations"
+       }
+      }
+     }
+    },
+    "discharge": {
+     "title": "Discharge",
+     "params": {
+      "consistency": {
+       "title": "Consistency",
+       "options": {
+        "none": "None",
+        "sticky": "Sticky",
+        "creamy": "Creamy",
+        "watery": "Watery",
+        "egg_white": "Egg white"
+       }
+      },
+      "amount": {
+       "title": "Amount",
+       "options": {
+        "light": "Light",
+        "medium": "Medium",
+        "heavy": "Heavy"
+       }
+      },
+      "color": {
+       "title": "Colour",
+       "options": {
+        "clear": "Clear",
+        "white": "White",
+        "yellow": "Yellow",
+        "green": "Green",
+        "gray": "Grey",
+        "pink_bloody": "Pink or bloody"
+       }
+      },
+      "odor": {
+       "title": "Odour",
+       "options": {
+        "normal": "Normal",
+        "changed": "Changed",
+        "slightly_unusual": "Slightly unusual",
+        "strong_unpleasant": "Strong, unpleasant"
+       }
+      },
+      "symptoms": {
+       "title": "Along with it",
+       "options": {
+        "itching": "Itching",
+        "burning": "Burning"
+       }
+      }
+     }
+    },
+    "sleep": {
+     "title": "Sleep",
+     "params": {
+      "duration": {
+       "title": "Duration",
+       "options": {
+        "0_3": "Under 3 hours",
+        "3_6": "3–6 hours",
+        "6_9": "6–9 hours",
+        "9_plus": "Over 9 hours"
+       }
+      },
+      "quality": {
+       "title": "Quality",
+       "options": {
+        "great": "Great",
+        "good": "Good",
+        "fair": "Fair",
+        "poor": "Poor"
+       }
+      }
+     }
+    },
+    "appetite_energy": {
+     "title": "Appetite & energy",
+     "params": {
+      "energy": {
+       "title": "Energy",
+       "options": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High",
+        "very_low": "Very low",
+        "very_high": "Very high"
+       }
+      },
+      "appetite": {
+       "title": "Appetite",
+       "options": {
+        "decreased": "Lower",
+        "normal": "Normal",
+        "increased": "Higher"
+       }
+      },
+      "cravings": {
+       "title": "Cravings",
+       "options": {
+        "sweet": "Sweet",
+        "salty": "Salty",
+        "fatty": "Fatty",
+        "carbs": "Carbs",
+        "sour": "Sour",
+        "any": "Food cravings"
+       }
+      }
+     }
+    },
+    "activity": {
+     "title": "Activity",
+     "params": {
+      "types": {
+       "title": "Type",
+       "options": {
+        "walking": "Walking",
+        "running": "Running",
+        "cycling": "Cycling",
+        "gym": "Gym",
+        "yoga": "Yoga",
+        "pilates": "Pilates",
+        "swimming": "Swimming",
+        "dance": "Dance",
+        "team_sport": "Team sport",
+        "stretching": "Stretching",
+        "pelvic_floor": "Pelvic floor",
+        "other": "Other"
+       }
+      },
+      "duration": {
+       "title": "Duration"
+      },
+      "intensity": {
+       "title": "Intensity",
+       "options": {
+        "low": "Light",
+        "medium": "Moderate",
+        "high": "Vigorous"
+       }
+      }
+     }
+    },
+    "urogenital": {
+     "title": "Urinary & genital",
+     "params": {
+      "symptoms": {
+       "title": "Symptoms",
+       "options": {
+        "frequent_urination": "Frequent urination",
+        "urination_burning": "Burning when peeing",
+        "urgency": "Urgency",
+        "leakage": "Leaking",
+        "vaginal_dryness": "Dryness",
+        "vaginal_itching": "Itching",
+        "vaginal_burning": "Vaginal burning",
+        "odor_change": "Changed odour"
+       }
+      },
+      "urination": {
+       "title": "Urination",
+       "options": {
+        "increased": "More than usual",
+        "decreased": "Less than usual",
+        "normal": "Normal"
+       }
+      }
+     }
+    },
+    "sex": {
+     "title": "Sex & libido",
+     "params": {
+      "desire": {
+       "title": "Libido",
+       "options": {
+        "lower": "Lower than usual",
+        "normal": "Normal",
+        "higher": "Higher than usual"
+       }
+      },
+      "intercourse": {
+       "title": "Sex",
+       "options": {
+        "protected": "Protected",
+        "unprotected": "Unprotected"
+       }
+      },
+      "symptoms": {
+       "title": "During or after",
+       "options": {
+        "dryness": "Dryness",
+        "burning": "Burning",
+        "pain_during_intercourse": "Pain during sex",
+        "bleeding_after_intercourse": "Bleeding after sex",
+        "lubricant_use": "Used lubricant",
+        "high_desire": "High libido",
+        "no_desire": "No libido",
+        "protected_intercourse": "Protected sex",
+        "unprotected_intercourse": "Unprotected sex"
+       }
+      }
+     }
+    },
+    "measurements": {
+     "title": "Weight & BBT",
+     "params": {
+      "weight": {
+       "title": "Weight"
+      },
+      "bbt": {
+       "title": "Basal body temperature"
+      },
+      "lh_test": {
+       "title": "Ovulation test (LH)",
+       "options": {
+        "negative": "Negative",
+        "faint": "Faint",
+        "positive": "Positive"
+       }
+      },
+      "pregnancy_test": {
+       "title": "Pregnancy test",
+       "options": {
+        "negative": "Negative",
+        "positive": "Positive"
+       }
+      },
+      "heart_rate": {
+       "title": "Heart rate"
+      },
+      "bp_systolic": {
+       "title": "Blood pressure (systolic)"
+      },
+      "bp_diastolic": {
+       "title": "Blood pressure (diastolic)"
+      },
+      "blood_sugar": {
+       "title": "Blood sugar"
+      }
+     }
+    },
+    "meds": {
+     "title": "Meds & supplements",
+     "params": {
+      "taken": {
+       "title": "From reminders"
+      },
+      "other": {
+       "title": "Other medicines",
+       "options": {
+        "painkillers": "Painkillers",
+        "hormonal_pills": "Hormonal pills",
+        "antibiotics": "Antibiotics",
+        "supplements": "Supplements"
+       }
+      }
+     }
+    },
+    "skin_hair": {
+     "title": "Skin & hair",
+     "params": {
+      "symptoms": {
+       "title": "Symptoms",
+       "options": {
+        "acne": "Acne",
+        "oily_skin": "Oily skin",
+        "dry_skin": "Dry skin",
+        "hair_loss": "Hair loss"
+       }
+      }
+     }
+    },
+    "breasts": {
+     "title": "Breasts",
+     "params": {
+      "symptoms": {
+       "title": "Symptoms",
+       "options": {
+        "engorgement": "Engorgement",
+        "nipple_pain": "Sore nipples",
+        "redness": "Redness"
+       }
+      }
+     }
+    },
+    "pregnancy": {
+     "title": "Pregnancy",
+     "params": {
+      "kicks": {
+       "title": "Baby movements"
+      },
+      "contractions": {
+       "title": "Contractions"
+      }
+     }
+    },
+    "baby": {
+     "title": "Baby",
+     "params": {
+      "feeding": {
+       "title": "Breast / bottle"
+      },
+      "pumping": {
+       "title": "Pumping"
+      },
+      "diapers": {
+       "title": "Diapers"
+      },
+      "baby_sleep": {
+       "title": "Baby's sleep"
+      }
+     }
+    },
+    "note": {
+     "title": "Note",
+     "params": {
+      "text": {
+       "title": "Note"
+      }
+     }
+    },
+    "custom": {
+     "title": "Custom items",
+     "params": {
+      "items": {
+       "title": "Custom items"
+      }
+     }
+    }
+   }
+  },
   "me": {
    "title": "Me",
    "settings": "Settings",

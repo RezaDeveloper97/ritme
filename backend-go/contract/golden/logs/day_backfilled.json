@@ -1,0 +1,42 @@
+{
+  "case": "logs/day_backfilled",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/logs/days/2026-09-14",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "date": "2026-09-14",
+          "categories": {
+            "bleeding": {
+              "flow": "heavy",
+              "color": "red"
+            },
+            "pain": {
+              "location": {
+                "abdomen": {
+                  "level": "moderate",
+                  "score": null
+                }
+              }
+            },
+            "mood": {
+              "moods": [
+                "sensitive"
+              ]
+            }
+          }
+        }
+      }
+    }
+  ]
+}

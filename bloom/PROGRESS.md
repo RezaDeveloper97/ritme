@@ -500,3 +500,16 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   banner slide dropped on image `onError`, `/profile/notifications` PMS subtitle reads the real `cycle_day`
   (`usePmsReminderDay` via `/profile/cycle-settings`).
 - Screenshots `docs/qa/bloom/B-N2-10/`. QUESTIONS #79.
+
+## B-N3-01 — Log taxonomy v2 (backend) with backfill
+
+- **Migration** `00020_health_log_entries` (+ Laravel `2026_10_01_000020_…`): one row per (user, day, category, param,
+  item) with `value_code` / `value_num` / `value_text`, `source` manual|legacy|voice; unique + analysis index. Backfill
+  from `daily_health_logs` generated from the Go mapping (`taxonomy.BackfillSQL()`), idempotent, Down drops only the
+  new table (legacy table untouched).
+- `internal/healthlog/taxonomy`: 18 categories, typed params, mode lists (6 modes), conditions, `link` tiles for N5.
+- **Endpoints (Go-only, D-37 proposed):** `GET /logs/taxonomy[?mode=]`, `GET /logs/days?from&to`,
+  `GET|PUT|DELETE /logs/days/{date}` (partial PUT, null clears). Two-way sync with legacy `/health-logs` (byte-identical
+  goldens) so cycle/fertility/messages/export engines keep working.
+- Labels `log-taxonomy` namespace (seed + frontend copies; registration in message-scopes/bundled is B-N3-03).
+- Contract `ROUTES=all` 1150 passed; schema-diff OK. QUESTIONS #80.

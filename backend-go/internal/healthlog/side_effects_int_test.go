@@ -73,15 +73,17 @@ func TestStoreSideEffectsMatchLaravel(t *testing.T) {
 	snapshot, err := os.ReadFile(filepath.Join(dir, "snapshot.sql"))
 	require.NoError(t, err)
 	for _, q := range strings.Split(strings.TrimSpace(string(snapshot)), ";\n") {
-		rows, err := db.QueryContext(ctx, strings.TrimSuffix(q, ";"))
-		require.NoError(t, err)
-		for rows.Next() {
-			var s string
-			require.NoError(t, rows.Scan(&s))
-			got = append(got, s)
-		}
-		require.NoError(t, rows.Err())
-		require.NoError(t, rows.Close())
+		func() {
+			rows, err := db.QueryContext(ctx, strings.TrimSuffix(q, ";"))
+			require.NoError(t, err)
+			defer func() { _ = rows.Close() }()
+			for rows.Next() {
+				var s string
+				require.NoError(t, rows.Scan(&s))
+				got = append(got, s)
+			}
+			require.NoError(t, rows.Err())
+		}()
 	}
 
 	want := readLines(t, filepath.Join(dir, "laravel.jsonl"))

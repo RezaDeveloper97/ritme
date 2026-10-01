@@ -301,6 +301,21 @@ type FertilityLog struct {
 	UpdatedAt     sql.NullTime
 }
 
+type HealthLogEntry struct {
+	ID        uint64
+	UserID    uint64
+	LogDate   civildate.Date
+	Category  string
+	Param     string
+	Item      string
+	ValueCode sql.NullString
+	ValueNum  sql.NullString
+	ValueText sql.NullString
+	Source    string
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
 type InfoSection struct {
 	ID        uint64
 	Group     string

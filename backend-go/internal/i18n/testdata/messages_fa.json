@@ -1917,6 +1917,514 @@
     "gridLabel": "روزهای {month}"
    }
   },
+  "log-taxonomy": {
+   "groups": {
+    "body": "بدن",
+    "mind": "ذهن",
+    "lifestyle": "سبک زندگی",
+    "measure": "اندازه‌گیری",
+    "mode": "ویژه حالت",
+    "other": "سایر"
+   },
+   "levels": {
+    "yes": "دارم",
+    "no": "ندارم",
+    "mild": "کم",
+    "moderate": "متوسط",
+    "severe": "شدید"
+   },
+   "units": {
+    "kg": "کیلوگرم",
+    "celsius": "°C",
+    "min": "دقیقه",
+    "bpm": "ضربه در دقیقه",
+    "mmhg": "میلی‌متر جیوه",
+    "mg_dl": "میلی‌گرم در دسی‌لیتر"
+   },
+   "conditions": {
+    "after_6_weeks": "بعد از ۶ هفته",
+    "optional": "اختیاری"
+   },
+   "categories": {
+    "bleeding": {
+     "title": "پریود و لکه‌بینی",
+     "params": {
+      "flow": {
+       "title": "شدت",
+       "options": {
+        "light": "کم",
+        "medium": "متوسط",
+        "heavy": "زیاد",
+        "very_heavy": "خیلی زیاد"
+       }
+      },
+      "spotting": {
+       "title": "لکه‌بینی"
+      },
+      "color": {
+       "title": "رنگ",
+       "options": {
+        "pink": "صورتی",
+        "bright_red": "قرمز روشن",
+        "red": "قرمز",
+        "dark_red": "قرمز تیره",
+        "brown": "قهوه‌ای",
+        "black": "سیاه"
+       }
+      },
+      "clots": {
+       "title": "لخته"
+      },
+      "clot_size": {
+       "title": "اندازه لخته",
+       "options": {
+        "small": "کوچک",
+        "large": "بزرگ‌تر از سکه",
+        "none": "ندارد",
+        "medium": "متوسط"
+       }
+      },
+      "odor": {
+       "title": "بو",
+       "options": {
+        "normal": "طبیعی",
+        "changed": "تغییر کرده",
+        "slightly_unusual": "کمی غیرعادی",
+        "strong_unpleasant": "تند و ناخوشایند"
+       }
+      },
+      "lochia_amount": {
+       "title": "میزان خون‌ریزی بعد از زایمان",
+       "options": {
+        "light": "کم",
+        "medium": "متوسط",
+        "heavy": "زیاد"
+       }
+      },
+      "lochia_color": {
+       "title": "رنگ خون‌ریزی بعد از زایمان",
+       "options": {
+        "red": "قرمز",
+        "pink_brown": "صورتی یا قهوه‌ای",
+        "yellow_white": "زرد یا سفید"
+       }
+      }
+     }
+    },
+    "pain": {
+     "title": "درد",
+     "params": {
+      "none": {
+       "title": "بدون درد"
+      },
+      "location": {
+       "title": "محل درد",
+       "options": {
+        "abdomen": "شکم",
+        "pelvis": "لگن",
+        "ovary": "یک‌طرفه پایین",
+        "back": "کمر",
+        "head": "سر",
+        "breast": "سینه",
+        "leg": "پا",
+        "stitches": "محل بخیه",
+        "joints": "مفاصل"
+       }
+      },
+      "relief": {
+       "title": "چه چیزی کمک کرد؟",
+       "options": {
+        "heat": "کیسه آب گرم",
+        "painkiller": "مسکن",
+        "rest": "استراحت",
+        "light_exercise": "ورزش سبک",
+        "none": "هیچ‌کدام"
+       }
+      }
+     }
+    },
+    "mood": {
+     "title": "حال و روحیه",
+     "params": {
+      "moods": {
+       "title": "حس امروز",
+       "options": {
+        "calm": "آرام",
+        "happy": "شاد",
+        "energetic": "پرانرژی",
+        "sensitive": "حساس",
+        "irritable": "زودرنج",
+        "sad": "غمگین",
+        "anxious": "نگران",
+        "angry": "عصبانی",
+        "bored": "بی‌حوصله",
+        "frustrated": "کلافه"
+       }
+      },
+      "weekly_checkin": {
+       "title": "چک‌این هفتگی"
+      }
+     }
+    },
+    "symptoms": {
+     "title": "علائم بدن",
+     "params": {
+      "digestive": {
+       "title": "گوارش",
+       "options": {
+        "nausea": "تهوع",
+        "bloating": "نفخ",
+        "constipation": "یبوست",
+        "diarrhea": "اسهال",
+        "heartburn": "سوزش سر دل"
+       }
+      },
+      "general": {
+       "title": "عمومی",
+       "options": {
+        "fatigue": "خستگی",
+        "dizziness": "سرگیجه",
+        "breast_tenderness": "حساسیت سینه",
+        "swelling": "ورم",
+        "hot_flashes": "گرگرفتگی",
+        "chills": "لرز",
+        "insomnia": "بی‌خوابی",
+        "leg_cramps": "گرفتگی پا",
+        "night_sweats": "تعریق شبانه",
+        "brain_fog": "مه مغزی",
+        "palpitations": "تپش قلب"
+       }
+      }
+     }
+    },
+    "discharge": {
+     "title": "ترشحات",
+     "params": {
+      "consistency": {
+       "title": "قوام",
+       "options": {
+        "none": "ندارم",
+        "sticky": "چسبنده",
+        "creamy": "کرمی",
+        "watery": "آبکی",
+        "egg_white": "سفیده تخم‌مرغی"
+       }
+      },
+      "amount": {
+       "title": "مقدار",
+       "options": {
+        "light": "کم",
+        "medium": "متوسط",
+        "heavy": "زیاد"
+       }
+      },
+      "color": {
+       "title": "رنگ",
+       "options": {
+        "clear": "شفاف",
+        "white": "سفید",
+        "yellow": "زرد",
+        "green": "سبز",
+        "gray": "خاکستری",
+        "pink_bloody": "صورتی یا خونی"
+       }
+      },
+      "odor": {
+       "title": "بو",
+       "options": {
+        "normal": "طبیعی",
+        "changed": "تغییر کرده",
+        "slightly_unusual": "کمی غیرعادی",
+        "strong_unpleasant": "تند و ناخوشایند"
+       }
+      },
+      "symptoms": {
+       "title": "علائم همراه",
+       "options": {
+        "itching": "خارش",
+        "burning": "سوزش"
+       }
+      }
+     }
+    },
+    "sleep": {
+     "title": "خواب",
+     "params": {
+      "duration": {
+       "title": "مدت",
+       "options": {
+        "0_3": "کمتر از ۳ ساعت",
+        "3_6": "۳ تا ۶ ساعت",
+        "6_9": "۶ تا ۹ ساعت",
+        "9_plus": "بیشتر از ۹ ساعت"
+       }
+      },
+      "quality": {
+       "title": "کیفیت",
+       "options": {
+        "great": "عالی",
+        "good": "خوب",
+        "fair": "متوسط",
+        "poor": "بد"
+       }
+      }
+     }
+    },
+    "appetite_energy": {
+     "title": "اشتها و انرژی",
+     "params": {
+      "energy": {
+       "title": "انرژی",
+       "options": {
+        "low": "کم",
+        "medium": "متوسط",
+        "high": "زیاد",
+        "very_low": "خیلی کم",
+        "very_high": "خیلی زیاد"
+       }
+      },
+      "appetite": {
+       "title": "اشتها",
+       "options": {
+        "decreased": "کم شده",
+        "normal": "معمولی",
+        "increased": "زیاد شده"
+       }
+      },
+      "cravings": {
+       "title": "هوس",
+       "options": {
+        "sweet": "شیرینی",
+        "salty": "شور",
+        "fatty": "چرب",
+        "carbs": "نشاسته‌ای",
+        "sour": "ترش",
+        "any": "هوس غذا"
+       }
+      }
+     }
+    },
+    "activity": {
+     "title": "فعالیت بدنی",
+     "params": {
+      "types": {
+       "title": "نوع",
+       "options": {
+        "walking": "پیاده‌روی",
+        "running": "دویدن",
+        "cycling": "دوچرخه",
+        "gym": "باشگاه",
+        "yoga": "یوگا",
+        "pilates": "پیلاتس",
+        "swimming": "شنا",
+        "dance": "رقص",
+        "team_sport": "ورزش گروهی",
+        "stretching": "کشش",
+        "pelvic_floor": "تمرین کف لگن",
+        "other": "سایر"
+       }
+      },
+      "duration": {
+       "title": "مدت"
+      },
+      "intensity": {
+       "title": "شدت",
+       "options": {
+        "low": "سبک",
+        "medium": "متوسط",
+        "high": "شدید"
+       }
+      }
+     }
+    },
+    "urogenital": {
+     "title": "ادراری و تناسلی",
+     "params": {
+      "symptoms": {
+       "title": "علائم",
+       "options": {
+        "frequent_urination": "تکرر ادرار",
+        "urination_burning": "سوزش ادرار",
+        "urgency": "فوریت ادرار",
+        "leakage": "نشت ادرار",
+        "vaginal_dryness": "خشکی",
+        "vaginal_itching": "خارش",
+        "vaginal_burning": "سوزش واژن",
+        "odor_change": "تغییر بو"
+       }
+      },
+      "urination": {
+       "title": "دفعات ادرار",
+       "options": {
+        "increased": "بیشتر از معمول",
+        "decreased": "کمتر از معمول",
+        "normal": "معمولی"
+       }
+      }
+     }
+    },
+    "sex": {
+     "title": "رابطه و میل جنسی",
+     "params": {
+      "desire": {
+       "title": "میل",
+       "options": {
+        "lower": "کمتر از معمول",
+        "normal": "معمولی",
+        "higher": "بیشتر از معمول"
+       }
+      },
+      "intercourse": {
+       "title": "رابطه",
+       "options": {
+        "protected": "با محافظت",
+        "unprotected": "بدون محافظت"
+       }
+      },
+      "symptoms": {
+       "title": "علائم حین یا بعد",
+       "options": {
+        "dryness": "خشکی",
+        "burning": "سوزش",
+        "pain_during_intercourse": "درد حین رابطه",
+        "bleeding_after_intercourse": "خون‌ریزی بعد از رابطه",
+        "lubricant_use": "استفاده از لوبریکانت",
+        "high_desire": "میل زیاد",
+        "no_desire": "بی‌میلی",
+        "protected_intercourse": "رابطه با محافظت",
+        "unprotected_intercourse": "رابطه بدون محافظت"
+       }
+      }
+     }
+    },
+    "measurements": {
+     "title": "وزن و دمای پایه",
+     "params": {
+      "weight": {
+       "title": "وزن"
+      },
+      "bbt": {
+       "title": "دمای پایه بدن"
+      },
+      "lh_test": {
+       "title": "تست تخمک‌گذاری (LH)",
+       "options": {
+        "negative": "منفی",
+        "faint": "کم‌رنگ",
+        "positive": "مثبت"
+       }
+      },
+      "pregnancy_test": {
+       "title": "تست بارداری",
+       "options": {
+        "negative": "منفی",
+        "positive": "مثبت"
+       }
+      },
+      "heart_rate": {
+       "title": "ضربان قلب"
+      },
+      "bp_systolic": {
+       "title": "فشار خون (بالا)"
+      },
+      "bp_diastolic": {
+       "title": "فشار خون (پایین)"
+      },
+      "blood_sugar": {
+       "title": "قند خون"
+      }
+     }
+    },
+    "meds": {
+     "title": "دارو و مکمل",
+     "params": {
+      "taken": {
+       "title": "از یادآورها"
+      },
+      "other": {
+       "title": "سایر داروها",
+       "options": {
+        "painkillers": "مسکن",
+        "hormonal_pills": "قرص هورمونی",
+        "antibiotics": "آنتی‌بیوتیک",
+        "supplements": "مکمل"
+       }
+      }
+     }
+    },
+    "skin_hair": {
+     "title": "پوست و مو",
+     "params": {
+      "symptoms": {
+       "title": "علائم",
+       "options": {
+        "acne": "آکنه",
+        "oily_skin": "پوست چرب",
+        "dry_skin": "پوست خشک",
+        "hair_loss": "ریزش مو"
+       }
+      }
+     }
+    },
+    "breasts": {
+     "title": "سینه‌ها",
+     "params": {
+      "symptoms": {
+       "title": "علائم",
+       "options": {
+        "engorgement": "احتقان",
+        "nipple_pain": "زخم نوک سینه",
+        "redness": "قرمزی"
+       }
+      }
+     }
+    },
+    "pregnancy": {
+     "title": "ویژه بارداری",
+     "params": {
+      "kicks": {
+       "title": "حرکات جنین"
+      },
+      "contractions": {
+       "title": "انقباض"
+      }
+     }
+    },
+    "baby": {
+     "title": "نوزاد",
+     "params": {
+      "feeding": {
+       "title": "شیردهی / شیشه"
+      },
+      "pumping": {
+       "title": "پمپ شیر"
+      },
+      "diapers": {
+       "title": "پوشک"
+      },
+      "baby_sleep": {
+       "title": "خواب نوزاد"
+      }
+     }
+    },
+    "note": {
+     "title": "یادداشت",
+     "params": {
+      "text": {
+       "title": "یادداشت"
+      }
+     }
+    },
+    "custom": {
+     "title": "موارد سفارشی",
+     "params": {
+      "items": {
+       "title": "موارد سفارشی"
+      }
+     }
+    }
+   }
+  },
   "me": {
    "title": "من",
    "settings": "تنظیمات",
