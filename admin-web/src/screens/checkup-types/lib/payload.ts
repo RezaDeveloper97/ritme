@@ -40,6 +40,7 @@ export function rowToBody(row: CheckupType): Record<string, unknown> {
     guide_steps: row.guide_steps,
     finding_options: row.finding_options.map((f) => ({ key: f.key, label: f.label, ...(f.exclusive ? { exclusive: true } : {}) })),
     hide_in_pregnancy: row.hide_in_pregnancy,
+    audiences: row.audiences.length ? row.audiences : null,
     is_active: row.is_active,
     sort_order: row.sort_order,
     source_note: row.source_note,

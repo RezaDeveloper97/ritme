@@ -148,3 +148,10 @@ TODO (ask user):
 - Goose `00024_activate_menopause_checkups` (data only; no Laravel twin — schema-diff compares schema + counts) activates the 9 `meno_*` rows.
 - Verify: sqlc, vet, go test ./..., golangci-lint 0, int checkups/admin checkups/search/migrations, schema-diff OK, contract all green. No contract case (fixture has no checkup_types; admin routes not in the runner) — int tests cover it.
 - TODO (ask user): after a mode switch, records of now-hidden types stay in `/checkups/records` history (detail 404, own record update/delete still allowed) — OK?
+
+## CB-MENO-04 — admin-web: menopause content
+- Catalog hints (with «درج مثال» from the shipped seeds) for `meno_score_items`, `meno_score_bands`, `meno_alerts`, `meno_tips`, `meno_checkup_groups`; aligned shipped groups: `missed_pill_rules` (+`methods`, `pack_week`), condition groups (`condition_programs` logs, `pain_associated` log, `condition_alerts` severity/hotlines, `pain_types`, `pmdd_items`); `_score_items` hint key fixed `score_max` → `max`. Closes CB-CORE-04's "proposed hints" open item.
+- Checkup types: `audiences` multi-select (empty = everyone), «نمایش برای» column, life-mode list filter (client-side; reorder disabled while filtered); toggling «فعال» keeps audiences.
+- Log taxonomy is code (not exposed by bloom's admin) — nothing to build.
+- Verify: typecheck, lint, fsd:lint, 123 tests, build — green. No screenshots: local admin login was blocked by the permission system in this session.
+- TODO (ask user): filter «یائسگی» shows only explicitly targeted rows (shared under «همه») — or include shared? fa mode labels OK? allow local admin login for screenshots in CB-MENO-13.

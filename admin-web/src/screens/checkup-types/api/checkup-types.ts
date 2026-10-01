@@ -5,6 +5,8 @@ import { z } from 'zod';
 
 import { api, createResource, pagedSchema, translationsSchema } from '@/shared/api';
 
+import { LIFE_MODES } from '../lib/audience';
+
 const guideStepSchema = z.object({ title: translationsSchema, body: translationsSchema });
 const findingSchema = z.object({
   key: z.string(),
@@ -36,6 +38,8 @@ export const checkupTypeSchema = z.object({
   guide_steps: listOf(guideStepSchema),
   finding_options: listOf(findingSchema),
   hide_in_pregnancy: z.boolean(),
+  /** Life modes the row is shown to; the API answers `null` for everyone — normalised to `[]`. */
+  audiences: z.preprocess((v) => (Array.isArray(v) ? v : []), z.array(z.string())),
   is_active: z.boolean(),
   sort_order: z.number(),
   source_note: z.string().nullable(),
@@ -50,6 +54,7 @@ export const checkupOptionsSchema = z.object({
   performed_by: z.array(z.string()),
   icons: z.array(z.string()),
   tones: z.array(z.string()),
+  audiences: z.array(z.string()).optional().default([...LIFE_MODES]),
   default_tone: z.string(),
   default_remind_lead_days: z.number(),
   max_steps: z.number(),

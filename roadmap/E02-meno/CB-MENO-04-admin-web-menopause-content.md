@@ -3,7 +3,7 @@ id: CB-MENO-04
 title: admin-web: menopause content
 epic: MENO
 type: frontend
-status: todo
+status: done
 depends_on: [CB-CORE-04, CB-MENO-01, CB-MENO-01b]
 parallel_group: MENO-C
 touches: [admin-web/src/screens/catalog, admin-web/src/screens/checkup-types, admin-web/messages]

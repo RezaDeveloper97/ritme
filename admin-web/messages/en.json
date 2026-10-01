@@ -876,6 +876,23 @@
       "doctor": "Doctor",
       "lab": "Lab",
       "dentist": "Dentist"
+    },
+    "audiences": "Life modes",
+    "audiencesHint": "Show this checkup only to users in the ticked modes. None ticked = everyone.",
+    "audienceColumn": "Shown to",
+    "audienceFilter": "Life mode",
+    "audienceAll": "All checkups",
+    "audienceEveryone": "Everyone",
+    "audienceFilterHint": "A mode lists the checkups targeted at it; shared checkups («Everyone») are shown in every mode too.",
+    "emptyFiltered": "No checkups match this filter.",
+    "reorderFiltered": "Clear the filter to reorder checkups.",
+    "audienceOpt": {
+      "cycle": "Cycle tracking",
+      "ttc": "Trying to conceive",
+      "pregnancy": "Pregnancy",
+      "postpartum": "Postpartum",
+      "menopause": "Menopause",
+      "teen": "Teen"
     }
   },
   "pregnancyCarePlan": {
@@ -1047,11 +1064,21 @@
       "conventions": "Keep it flat. Translated text inside meta is an object keyed by language code (\"fa\", \"en\"); numbers and enums the app branches on stay plain values.",
       "generic": "No documented meta shape for this group yet — leave it empty unless the feature's docs describe one.",
       "faq": "FAQ items: the question is the title and the answer is the body. Usually no meta.",
-      "missedPill": "One rule per number of missed pills: missed (count), severity (ok | caution | urgent) and the translated steps list.",
+      "missedPill": "One rule per missed-pill situation: methods (pill types it applies to: combined_pill | progestin_pill), missed (count; omit for a note), severity (ok | caution | urgent), optional pack_week (the week-1 rule) and the translated steps list.",
       "pelvicLevels": "One level of the pelvic-floor program: week_from, hold_sec, rest_sec, reps and sets (plain numbers).",
       "alerts": "Warning signs: severity (info | caution | urgent) and an optional translated cta label.",
-      "scoreItems": "Score questions: score_max (the highest answer value) and an optional domain code.",
-      "tips": "Tips: the title and body are the whole item. Usually no meta."
+      "scoreItems": "Score questions: max (the highest answer value) and an optional domain code.",
+      "tips": "Tips: the title and body are the whole item. Usually no meta.",
+      "menoScoreItems": "Monthly menopause score question (title = question, body = hint): domain (somatic | psychological | urogenital — the subtotal it counts towards), max (4) and log: the related log-taxonomy slots (\"category.param.item\") used by patterns and the report.",
+      "menoScoreBands": "Score band on the monthly total (0–44): min and max, inclusive. Bands must not overlap and should cover 0–44.",
+      "menoAlerts": "Menopause warning signs: severity (caution | urgent), optional flags primary (the top card), emergency (call now), hrt (only for HRT users), hotline (a number, e.g. \"115\"), stages (peri | meno | post | unsure; omit = every stage) and a translated cta label.",
+      "menoTips": "Menopause tips and notes: placement (home | log | hot_flash | treatment | treatment_lifestyle | checkups | score), optional stages (peri | meno | post | unsure), weekly_goal + goal_unit (sessions | minutes) for lifestyle items, review_after_months for HRT.",
+      "menoCheckupGroups": "Sections of the menopause checkups board: checkups = the checkup type keys shown in this section, in order (see Checkup types).",
+      "conditionPrograms": "Condition program hub card (endo | pmdd | heavy_bleeding | pcos): logs = the translated «what you log» line.",
+      "painTypes": "Pain-diary «what kind of pain?» chips: the title is the chip. No meta.",
+      "painAssociated": "Pain-diary «along with» chips: optional log = the log-taxonomy slot (\"category.param.item\") the choice is stored in; without it the code is kept in the pain diary.",
+      "pmddItems": "PMDD daily questionnaire items, each scored 1 (not at all) … 6 (extreme). No meta.",
+      "conditionAlerts": "Condition program notes and alerts: severity (info | caution | urgent) and optional hotlines: [{number, label: translated}]."
     },
     "confirmDelete": "Delete this item for good? Clients that reference its code will lose it — deactivating is safer.",
     "sortOrderNewHint": "Leave empty to add it to the end.",

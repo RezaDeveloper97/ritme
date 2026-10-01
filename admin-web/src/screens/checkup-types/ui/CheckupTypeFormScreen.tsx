@@ -9,6 +9,7 @@ import { useContentLanguages, useLocalized, type ContentLanguage } from '@/share
 import { blankToNull, cn, toIntOrNull, useNumber } from '@/shared/lib';
 import {
   Button,
+  CheckboxGrid,
   FormPage,
   Icon,
   LoadGate,
@@ -29,6 +30,7 @@ import {
   type FindingOption,
   type GuideStep,
 } from '../api/checkup-types';
+import { audiencesBody, audiencesError } from '../lib/audience';
 import { checkupIcon } from '../lib/icon';
 import { cleanTranslations, moveItem } from '../lib/payload';
 import { toneClass } from '../lib/tone';
@@ -102,6 +104,7 @@ function CheckupTypeForm({
   const [cycleTo, setCycleTo] = useState(num(row?.cycle_day_to));
   const [remindLead, setRemindLead] = useState(num(row?.remind_lead_days ?? options.default_remind_lead_days));
   const [hideInPregnancy, setHideInPregnancy] = useState(row?.hide_in_pregnancy ?? false);
+  const [audiences, setAudiences] = useState<string[]>(row?.audiences ?? []);
   const [active, setActive] = useState(row?.is_active ?? true);
   const [sortOrder, setSortOrder] = useState(num(row?.sort_order ?? options.next_sort_order));
   const [sourceNote, setSourceNote] = useState(row?.source_note ?? '');
@@ -135,6 +138,7 @@ function CheckupTypeForm({
         guide_steps: guide,
         finding_options: findings.map((f) => ({ key: f.key.trim(), label: f.label, ...(f.exclusive ? { exclusive: true } : {}) })),
         hide_in_pregnancy: hideInPregnancy,
+        audiences: audiencesBody(audiences, options.audiences),
         is_active: active,
         sort_order: toIntOrNull(sortOrder) ?? undefined,
         source_note: blankToNull(sourceNote),
@@ -355,6 +359,17 @@ function CheckupTypeForm({
           <Switch label={t('hideInPregnancy')} hint={t('hideInPregnancyHint')} checked={hideInPregnancy} onChange={setHideInPregnancy} />
           <Switch label={tc('isActive')} checked={active} onChange={setActive} />
         </div>
+        <CheckboxGrid
+          label={t('audiences')}
+          hint={t('audiencesHint')}
+          error={audiencesError(errors)}
+          options={[...options.audiences, ...audiences.filter((a) => !options.audiences.includes(a))].map((a) => ({
+            value: a,
+            label: label('audience', a),
+          }))}
+          value={audiences}
+          onChange={setAudiences}
+        />
       </Section>
 
       <TextArea label={t('sourceNote')} hint={t('sourceNoteHint')} value={sourceNote} onChange={(e) => setSourceNote(e.target.value)} maxLength={1000} error={err('source_note')} />

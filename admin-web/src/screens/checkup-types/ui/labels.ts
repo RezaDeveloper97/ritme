@@ -21,7 +21,7 @@ export function useCheckupLabels() {
   // Numbers go through the admin formatter so fa reads «هر ۱۲ ماه», not «هر 12 ماه» (known 5c).
   const n = useCallback((v: number) => formatNumber(v, locale), [locale]);
   const label = useCallback(
-    (group: 'category' | 'performer' | 'tone', value: string) => {
+    (group: 'category' | 'performer' | 'tone' | 'audience', value: string) => {
       const key = `${group}Opt.${value}` as 'categoryOpt.monthly';
       return t.has(key) ? t(key) : value;
     },

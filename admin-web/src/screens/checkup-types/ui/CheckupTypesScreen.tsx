@@ -14,6 +14,7 @@ import {
   Icon,
   Panel,
   RowActions,
+  Select,
   Skeleton,
   Switch,
   confirm,
@@ -22,6 +23,7 @@ import {
 } from '@/shared/ui';
 
 import { checkupTypesApi, useCheckupStats, useReorder, useUpdateRow, type CheckupType } from '../api/checkup-types';
+import { filterByAudience, type AudienceFilter } from '../lib/audience';
 import { checkupIcon } from '../lib/icon';
 import { moveItem, rowToBody } from '../lib/payload';
 import { toneClass } from '../lib/tone';
@@ -31,8 +33,12 @@ import { useCheckupLabels } from './labels';
 export function CheckupTypesScreen() {
   const t = useTranslations('checkupTypes');
   const query = checkupTypesApi.useList({ per_page: 100 });
+  const options = checkupTypesApi.useOptions();
   const stats = useCheckupStats();
   const byId = new Map((stats.data?.items ?? []).map((s) => [s.id, s]));
+  const { label } = useCheckupLabels();
+  const [audience, setAudience] = useState<AudienceFilter>('all');
+  const filtered = audience !== 'all';
 
   return (
     <div className="flex flex-col gap-4">
@@ -47,6 +53,20 @@ export function CheckupTypesScreen() {
         }
       >
         <p className="panel-note">{t('intro')}</p>
+        <div className="flex flex-wrap items-end gap-3 border-b border-line p-4">
+          <Select
+            className="min-w-48"
+            label={t('audienceFilter')}
+            hint={t('audienceFilterHint')}
+            value={audience}
+            options={[
+              { value: 'all', label: t('audienceAll') },
+              { value: 'everyone', label: t('audienceEveryone') },
+              ...(options.data?.audiences ?? []).map((a) => ({ value: a, label: label('audience', a) })),
+            ]}
+            onChange={(e) => setAudience(e.target.value)}
+          />
+        </div>
         {query.error && !query.data ? (
           <ErrorState error={query.error} onRetry={() => query.refetch()} />
         ) : !query.data ? (
@@ -55,8 +75,9 @@ export function CheckupTypesScreen() {
             <Skeleton className="h-10 w-full" />
           </div>
         ) : (
-          <CatalogTable rows={query.data.items} stats={byId} />
+          <CatalogTable rows={filterByAudience(query.data.items, audience)} stats={byId} reorderable={!filtered} filtered={filtered} />
         )}
+        {filtered && query.data ? <p className="field-hint px-4 pb-3">{t('reorderFiltered')}</p> : null}
       </Panel>
       <StatsPanel rows={query.data?.items ?? []} stats={stats} />
     </div>
@@ -65,7 +86,18 @@ export function CheckupTypesScreen() {
 
 type StatsById = Map<number, NonNullable<ReturnType<typeof useCheckupStats>['data']>['items'][number]>;
 
-function CatalogTable({ rows: serverRows, stats }: { rows: CheckupType[]; stats: StatsById }) {
+function CatalogTable({
+  rows: serverRows,
+  stats,
+  reorderable,
+  filtered,
+}: {
+  rows: CheckupType[];
+  stats: StatsById;
+  /** Reorder sends every id, so it is off while a filter hides rows. */
+  reorderable: boolean;
+  filtered: boolean;
+}) {
   const t = useTranslations('checkupTypes');
   const tc = useTranslations('crud');
   const locale = useLocale();
@@ -122,7 +154,8 @@ function CatalogTable({ rows: serverRows, stats }: { rows: CheckupType[]; stats:
     setDragFrom(null);
   };
 
-  if (rows.length === 0) return <p className="cell-empty p-8 text-center text-muted">{t('empty')}</p>;
+  if (rows.length === 0) return <p className="cell-empty p-8 text-center text-muted">{filtered ? t('emptyFiltered') : t('empty')}</p>;
+  const canMove = reorderable && !reorder.isPending;
 
   return (
     <div className="table-wrap">
@@ -137,6 +170,7 @@ function CatalogTable({ rows: serverRows, stats }: { rows: CheckupType[]; stats:
             <th scope="col">{t('category')}</th>
             <th scope="col">{t('interval')}</th>
             <th scope="col">{t('ageWindow')}</th>
+            <th scope="col">{t('audienceColumn')}</th>
             <th scope="col">{t('recordsCount')}</th>
             <th scope="col">{tc('status')}</th>
             <th scope="col">
@@ -151,7 +185,7 @@ function CatalogTable({ rows: serverRows, stats }: { rows: CheckupType[]; stats:
               <tr
                 key={r.id}
                 data-clickable="true"
-                draggable={!reorder.isPending}
+                draggable={canMove}
                 onDragStart={() => setDragFrom(i)}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => onDrop(e, i)}
@@ -161,10 +195,12 @@ function CatalogTable({ rows: serverRows, stats }: { rows: CheckupType[]; stats:
               >
                 <td className="cell-actions">
                   <RowActions>
-                    <span className="cursor-grab text-muted" aria-hidden="true" title={t('dragHint')}>
-                      ⋮⋮
-                    </span>
-                    <Button size="sm" icon variant="ghost" aria-label={t('moveUp')} disabled={i === 0 || reorder.isPending} onClick={() => move(i, i - 1)}>
+                    {canMove ? (
+                      <span className="cursor-grab text-muted" aria-hidden="true" title={t('dragHint')}>
+                        ⋮⋮
+                      </span>
+                    ) : null}
+                    <Button size="sm" icon variant="ghost" aria-label={t('moveUp')} disabled={i === 0 || !canMove} onClick={() => move(i, i - 1)}>
                       ↑
                     </Button>
                     <Button
@@ -172,7 +208,7 @@ function CatalogTable({ rows: serverRows, stats }: { rows: CheckupType[]; stats:
                       icon
                       variant="ghost"
                       aria-label={t('moveDown')}
-                      disabled={i === rows.length - 1 || reorder.isPending}
+                      disabled={i === rows.length - 1 || !canMove}
                       onClick={() => move(i, i + 1)}
                     >
                       ↓
@@ -197,6 +233,19 @@ function CatalogTable({ rows: serverRows, stats }: { rows: CheckupType[]; stats:
                 </td>
                 <td>{interval(r)}</td>
                 <td>{age(r)}</td>
+                <td>
+                  {r.audiences.length ? (
+                    <span className="flex flex-wrap gap-1">
+                      {r.audiences.map((a) => (
+                        <Badge key={a} tone="data">
+                          {label('audience', a)}
+                        </Badge>
+                      ))}
+                    </span>
+                  ) : (
+                    <span className="text-muted">{t('audienceEveryone')}</span>
+                  )}
+                </td>
                 <td className="cell-num">{n(records)}</td>
                 <td onClick={(e) => e.stopPropagation()}>
                   <Switch

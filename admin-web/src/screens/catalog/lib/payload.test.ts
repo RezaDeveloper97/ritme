@@ -83,7 +83,7 @@ describe('reorder', () => {
 describe('hints', () => {
   it('matches exact groups, then suffix conventions, else generic', () => {
     expect(hintFor('pelvic_levels').key).toBe('pelvicLevels');
-    expect(hintFor('meno_alerts').key).toBe('alerts');
+    expect(hintFor('pelvic_alerts').key).toBe('alerts');
     expect(hintFor('teen_faq')).toEqual({ key: 'faq', example: null });
     expect(hintFor('whatever').key).toBe('generic');
   });
