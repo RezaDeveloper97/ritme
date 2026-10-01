@@ -33,24 +33,25 @@ type Querier interface {
 	GetAdminCheckupType(ctx context.Context, id uint64) (CheckupType, error)
 	GetCheckupRecord(ctx context.Context, arg GetCheckupRecordParams) (CheckupRecord, error)
 	GetCheckupSetting(ctx context.Context, arg GetCheckupSettingParams) (UserCheckupSetting, error)
-	// An active type the user can see: a shared catalog row or her own custom checkup.
+	// An active type the user can see: a shared catalog row for her life mode or her own custom checkup.
 	GetCheckupTypeForUser(ctx context.Context, arg GetCheckupTypeForUserParams) (CheckupType, error)
 	// Checkups user API (T-M4-02, /api/v1/checkups/*). Every query is scoped by user_id; a catalog
 	// read returns the shared rows plus the user's own custom checkups only.
-	// The profile columns the cycle engine and the age rules read, plus pregnancy mode, in one read.
+	// The profile columns the cycle engine and the age rules read, plus pregnancy mode and the stored life mode
+	// (enums.ResolveLifeMode inputs, CB-MENO-01b audience filter), in one read.
 	GetCheckupUserContext(ctx context.Context, id uint64) (GetCheckupUserContextRow, error)
 	GetCustomCheckupType(ctx context.Context, arg GetCustomCheckupTypeParams) (CheckupType, error)
 	InsertCheckupRecord(ctx context.Context, arg InsertCheckupRecordParams) (int64, error)
 	InsertCustomCheckupType(ctx context.Context, arg InsertCustomCheckupTypeParams) (int64, error)
 	// Checkups (T-M4-01): the inputs of the status engine (internal/checkups/engine) for one user.
-	// Every query is scoped by user_id; the catalog query returns the shared rows plus the user's own
-	// custom checkups only.
-	ListActiveCheckupTypesForUser(ctx context.Context, userID int64) ([]CheckupType, error)
+	// Every query is scoped by user_id; the catalog query returns the shared rows for the user's life mode
+	// (audiences NULL or listing life_mode, CB-MENO-01b) plus the user's own custom checkups only.
+	ListActiveCheckupTypesForUser(ctx context.Context, arg ListActiveCheckupTypesForUserParams) ([]CheckupType, error)
 	// The whole catalog in display order (reorder check, stats).
 	ListAdminCheckupTypeIDs(ctx context.Context) ([]uint64, error)
 	ListAdminCheckupTypes(ctx context.Context, arg ListAdminCheckupTypesParams) ([]CheckupType, error)
-	// The active catalog with the user's setting and latest record per type, in one read
-	// (latest = highest done_on, ties → higher id, like the engine).
+	// The active catalog the user's life mode sees (audiences NULL or listing life_mode, CB-MENO-01b) with the
+	// user's setting and latest record per type, in one read (latest = highest done_on, ties → higher id, like the engine).
 	ListCheckupPlanRows(ctx context.Context, arg ListCheckupPlanRowsParams) ([]ListCheckupPlanRowsRow, error)
 	// The History timeline, newest first, with the checkup's title/icon/tone.
 	ListCheckupRecordHistory(ctx context.Context, arg ListCheckupRecordHistoryParams) ([]ListCheckupRecordHistoryRow, error)

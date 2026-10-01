@@ -3,7 +3,7 @@ id: CB-MENO-01b
 title: Checkups audience filter and menopause checkup activation
 epic: MENO
 type: backend
-status: todo
+status: done
 depends_on: [CB-MENO-01]
 parallel_group: MENO-A
 touches: [backend-go/internal/checkups,backend-go/internal/admin/checkups,backend-go/db/queries/checkups,backend-go/db/queries/admin,backend-go/api/openapi.yaml,backend-go/contract,backend-go/db/migrations,backend/database/migrations,backend-go/internal/i18n/testdata]

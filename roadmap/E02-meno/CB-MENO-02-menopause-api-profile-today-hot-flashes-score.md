@@ -3,7 +3,7 @@ id: CB-MENO-02
 title: Menopause API: profile, today, hot flashes, score, patterns
 epic: MENO
 type: backend
-status: todo
+status: in_progress
 depends_on: [CB-MENO-01, B-N3-07]
 parallel_group: MENO-B
 touches: [backend-go/internal/menopause, backend-go/internal/http/routes_menopause.go, backend-go/db/queries/menopause, backend-go/api/openapi.yaml, backend-go/contract, backend-go/resources/translations]

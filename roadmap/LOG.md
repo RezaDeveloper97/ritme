@@ -34,3 +34,5 @@
 2026-10-01T04:51Z CB-MENO-01b -> in_progress
 2026-10-01T04:51Z CB-COND-06 -> in_progress
 2026-10-01T05:02Z CB-COND-06 -> done
+2026-10-01T05:03Z CB-COND-06b -> in_progress
+2026-10-01T05:05Z CB-MENO-01b -> done

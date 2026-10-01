@@ -2,7 +2,8 @@
 -- read returns the shared rows plus the user's own custom checkups only.
 
 -- name: GetCheckupUserContext :one
--- The profile columns the cycle engine and the age rules read, plus pregnancy mode, in one read.
+-- The profile columns the cycle engine and the age rules read, plus pregnancy mode and the stored life mode
+-- (enums.ResolveLifeMode inputs, CB-MENO-01b audience filter), in one read.
 SELECT
   p.id AS profile_id,
   p.birthday,
@@ -12,15 +13,17 @@ SELECT
   p.user_goal,
   CAST(EXISTS (
     SELECT 1 FROM `pregnancy_profiles` pp WHERE pp.user_id = u.id AND pp.pregnancy_mode = 1
-  ) AS SIGNED) AS pregnant
+  ) AS SIGNED) AS pregnant,
+  lp.life_mode
 FROM `users` u
 LEFT JOIN `user_profiles` p ON p.user_id = u.id
+LEFT JOIN `user_life_profiles` lp ON lp.user_id = u.id
 WHERE u.id = ?
 LIMIT 1;
 
 -- name: ListCheckupPlanRows :many
--- The active catalog with the user's setting and latest record per type, in one read
--- (latest = highest done_on, ties → higher id, like the engine).
+-- The active catalog the user's life mode sees (audiences NULL or listing life_mode, CB-MENO-01b) with the
+-- user's setting and latest record per type, in one read (latest = highest done_on, ties → higher id, like the engine).
 SELECT
   sqlc.embed(t),
   s.enabled AS setting_enabled,
@@ -38,12 +41,14 @@ LEFT JOIN `checkup_records` r ON r.id = (
   LIMIT 1
 )
 WHERE t.is_active = 1 AND (t.user_id IS NULL OR t.user_id = CAST(sqlc.arg(user_id) AS UNSIGNED))
+  AND (t.audiences IS NULL OR JSON_CONTAINS(t.audiences, JSON_QUOTE(sqlc.arg(life_mode))))
 ORDER BY t.sort_order, t.id;
 
 -- name: GetCheckupTypeForUser :one
--- An active type the user can see: a shared catalog row or her own custom checkup.
+-- An active type the user can see: a shared catalog row for her life mode or her own custom checkup.
 SELECT * FROM `checkup_types`
 WHERE id = sqlc.arg(id) AND is_active = 1 AND (user_id IS NULL OR user_id = CAST(sqlc.arg(user_id) AS UNSIGNED))
+  AND (audiences IS NULL OR JSON_CONTAINS(audiences, JSON_QUOTE(sqlc.arg(life_mode))))
 LIMIT 1;
 
 -- name: ListCheckupRecordsOfType :many

@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	carestore "github.com/ritme/backend-go/internal/care/store"
+	checkupsvc "github.com/ritme/backend-go/internal/checkups"
 	checkupstore "github.com/ritme/backend-go/internal/checkups/store"
 	contentstore "github.com/ritme/backend-go/internal/content/store"
 	cyclestore "github.com/ritme/backend-go/internal/cycle/store"
@@ -128,7 +129,14 @@ func (a articles) PublishedArticles(ctx context.Context) ([]Article, error) {
 type checkups struct{ q *checkupstore.Queries }
 
 func (c checkups) VisibleCheckups(ctx context.Context, userID uint64) ([]Checkup, error) {
-	rows, err := c.q.ListCheckupPlanRows(ctx, checkupstore.ListCheckupPlanRowsParams{UserID: int64(userID)}) //nolint:gosec // G115: user ids fit int64
+	// The catalog for her life mode (checkup_types.audiences, CB-MENO-01b), like the checkups plan.
+	mode, err := checkupsvc.UserLifeMode(ctx, c.q, userID)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := c.q.ListCheckupPlanRows(ctx, checkupstore.ListCheckupPlanRowsParams{
+		UserID: int64(userID), LifeMode: string(mode), //nolint:gosec // G115: user ids fit int64
+	})
 	if err != nil {
 		return nil, fmt.Errorf("checkups: %w", err)
 	}

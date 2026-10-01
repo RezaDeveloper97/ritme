@@ -141,3 +141,10 @@ TODO (ask user):
 - Verify: vet, go test ./..., golangci-lint 0, int messages (17), contract all green.
 - Follow-up CB-COND-06b: admin registry group + mount `GET /api/v1/messages/nudges` + OpenAPI/contract/deviation; CB-COND-02 shows the card.
 - TODO (ask user): PBAC ≥100 should also trigger the bleeding nudge? show in teen mode (yes now)? thresholds [needs clinical review]; no dismiss/dedupe yet.
+
+## CB-MENO-01b — Checkups audience filter and menopause checkup activation
+- Checkups engine: shared types filtered by `audiences IS NULL OR JSON_CONTAINS(audiences, life_mode)` (mode via `enums.ResolveLifeMode`) in plan/list/detail queries; out-of-audience detail/record/settings → 404; `LoadPlan` still 3 queries. Search (`internal/search` VisibleCheckups) passes the user's mode.
+- Admin checkup-types: `audiences` read/write (nullable list of the 6 modes, validated; `[]`/null → NULL; absent on update keeps value) + `options.audiences`. Docs: admin-api.md §12, menopause.md §6.
+- Goose `00024_activate_menopause_checkups` (data only; no Laravel twin — schema-diff compares schema + counts) activates the 9 `meno_*` rows.
+- Verify: sqlc, vet, go test ./..., golangci-lint 0, int checkups/admin checkups/search/migrations, schema-diff OK, contract all green. No contract case (fixture has no checkup_types; admin routes not in the runner) — int tests cover it.
+- TODO (ask user): after a mode switch, records of now-hidden types stay in `/checkups/records` history (detail 404, own record update/delete still allowed) — OK?

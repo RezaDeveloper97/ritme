@@ -166,12 +166,12 @@ const createAdminCheckupType = `-- name: CreateAdminCheckupType :execresult
 INSERT INTO ` + "`" + `checkup_types` + "`" + ` (` + "`" + `key` + "`" + `, user_id, category, title, subtitle, why, performed_by, icon, tone,
                              interval_months, interval_months_max, age_min, age_max, cycle_day_from, cycle_day_to,
                              remind_lead_days, prep_steps, guide_steps, finding_options, hide_in_pregnancy,
-                             is_active, sort_order, source_note, created_at, updated_at)
+                             audiences, is_active, sort_order, source_note, created_at, updated_at)
 VALUES (?, NULL, ?, ?, ?, ?,
         ?, ?, ?, ?,
         ?, ?, ?, ?,
         ?, ?, ?, ?,
-        ?, ?, ?, ?,
+        ?, ?, ?, ?, ?,
         ?, ?, ?)
 `
 
@@ -195,6 +195,7 @@ type CreateAdminCheckupTypeParams struct {
 	GuideSteps        db.NullRawJSON
 	FindingOptions    db.NullRawJSON
 	HideInPregnancy   bool
+	Audiences         db.NullRawJSON
 	IsActive          bool
 	SortOrder         int32
 	SourceNote        sql.NullString
@@ -222,6 +223,7 @@ func (q *Queries) CreateAdminCheckupType(ctx context.Context, arg CreateAdminChe
 		arg.GuideSteps,
 		arg.FindingOptions,
 		arg.HideInPregnancy,
+		arg.Audiences,
 		arg.IsActive,
 		arg.SortOrder,
 		arg.SourceNote,
@@ -427,7 +429,7 @@ SET category = ?, title = ?, subtitle = ?, why = ?,
     cycle_day_from = ?, cycle_day_to = ?,
     remind_lead_days = ?, prep_steps = ?,
     guide_steps = ?, finding_options = ?,
-    hide_in_pregnancy = ?, is_active = ?,
+    hide_in_pregnancy = ?, audiences = ?, is_active = ?,
     sort_order = ?, source_note = ?, updated_at = ?
 WHERE id = ? AND user_id IS NULL
 `
@@ -451,6 +453,7 @@ type UpdateAdminCheckupTypeParams struct {
 	GuideSteps        db.NullRawJSON
 	FindingOptions    db.NullRawJSON
 	HideInPregnancy   bool
+	Audiences         db.NullRawJSON
 	IsActive          bool
 	SortOrder         int32
 	SourceNote        sql.NullString
@@ -478,6 +481,7 @@ func (q *Queries) UpdateAdminCheckupType(ctx context.Context, arg UpdateAdminChe
 		arg.GuideSteps,
 		arg.FindingOptions,
 		arg.HideInPregnancy,
+		arg.Audiences,
 		arg.IsActive,
 		arg.SortOrder,
 		arg.SourceNote,

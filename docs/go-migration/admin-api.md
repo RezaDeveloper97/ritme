@@ -315,7 +315,7 @@ user's custom checkup id answers 404 everywhere and is never listed, counted or 
 | Method | Path | Who | Body / query | `data` |
 |---|---|---|---|---|
 | GET | `/checkup-types` | A | `q` (key / title, substring), `status=all\|active\|inactive`, `page`, `per_page` | list of `CheckupType` (sort_order, id) + `filters{q,status}` |
-| GET | `/checkup-types/options` | A | — | `{categories[], performed_by[], icons[], tones[], default_tone, default_remind_lead_days, max_steps, max_cycle_day, max_interval_months, next_sort_order}` (plain value lists; admin-web labels them) |
+| GET | `/checkup-types/options` | A | — | `{categories[], performed_by[], icons[], tones[], audiences[], default_tone, default_remind_lead_days, max_steps, max_cycle_day, max_interval_months, next_sort_order}` (plain value lists; admin-web labels them) |
 | GET | `/checkup-types/stats` | A | — | `{items:[{id, key, title, category, is_active, records_total, users_with_records, records_last_30_days, overdue_users}] (sort order), window_days: 30, since, today}` |
 | POST | `/checkup-types/reorder` | A | `ids[]` — every catalog id exactly once, in the new order | `{items:[{id, sort_order}]}`; `sort_order` becomes 1…n (one transaction). Partial lists, duplicates, custom or unknown ids → 422 on `ids` / `ids.N` |
 | POST | `/checkup-types` | A | see *Fields* | `{checkup_type}` |
@@ -344,6 +344,7 @@ translatable text that is sent — the catalog is shown in each of them; other c
 | `guide_steps` | optional list ≤ 10 of `{title: T (≤ 120), body: T (≤ 1000)}` |
 | `finding_options` | optional list ≤ 10 of `{key (^[a-z][a-z0-9_]*$, ≤ 40, distinct), exclusive?: bool, label: T (≤ 120)}`; `exclusive` is stored only when true |
 | `hide_in_pregnancy`, `is_active` | `$request->boolean()`: absent = `false` (send both on every save) |
+| `audiences` | optional list ≤ 6 of life modes (`options.audiences`: `cycle`, `ttc`, `pregnancy`, `postpartum`, `menopause`, `teen`; distinct, order kept). `null` / `[]` = every mode (stored as SQL `NULL`, answered as `null`). The user API shows a shared row only to users whose resolved life mode is listed (CB-MENO-01b) |
 | `sort_order` | optional integer; create default = last + 1 |
 | `source_note` | optional string ≤ 1000 (medical-review note) |
 
@@ -353,7 +354,7 @@ answered as `[]`.
 
 `CheckupType` = the `checkup_types` columns (`id, key, category, title, subtitle, why, performed_by, icon, tone,
 interval_months, interval_months_max, age_min, age_max, cycle_day_from, cycle_day_to, remind_lead_days, prep_steps,
-guide_steps, finding_options, hide_in_pregnancy, is_active, sort_order, source_note`) + `records_count` (records of
+guide_steps, finding_options, hide_in_pregnancy, audiences, is_active, sort_order, source_note`) + `records_count` (records of
 all users) + `created_at`, `updated_at` (ISO 8601).
 
 Stats: `records_last_30_days` counts records with `done_on ≥ today − 30`. `overdue_users` counts users whose

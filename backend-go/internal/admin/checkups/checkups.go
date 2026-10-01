@@ -93,6 +93,7 @@ func typeJSON(t *store.CheckupType, recordsCount int64) *jsonx.OrderedMap {
 		"guide_steps", listOrEmpty(t.GuideSteps),
 		"finding_options", listOrEmpty(t.FindingOptions),
 		"hide_in_pregnancy", t.HideInPregnancy,
+		"audiences", form.NullRaw(t.Audiences),
 		"is_active", t.IsActive,
 		"sort_order", t.SortOrder,
 		"source_note", httpadmin.NullString(t.SourceNote),
@@ -171,6 +172,7 @@ func (h *Handlers) Options(c fiber.Ctx) error {
 		"performed_by", jsonx.List(Performers),
 		"icons", jsonx.List(Icons),
 		"tones", jsonx.List(Tones),
+		"audiences", jsonx.List(Audiences()),
 		"default_tone", DefaultTone,
 		"default_remind_lead_days", DefaultRemindLeadDays,
 		"max_steps", MaxSteps,
@@ -305,7 +307,7 @@ func (h *Handlers) Store(c fiber.Ctx) error {
 		IntervalMonthsMax: p.IntervalMonthsMax, AgeMin: p.AgeMin, AgeMax: p.AgeMax,
 		CycleDayFrom: p.CycleDayFrom, CycleDayTo: p.CycleDayTo, RemindLeadDays: p.RemindLeadDays,
 		PrepSteps: p.PrepSteps, GuideSteps: p.GuideSteps, FindingOptions: p.FindingOptions,
-		HideInPregnancy: p.HideInPregnancy, IsActive: p.IsActive,
+		HideInPregnancy: p.HideInPregnancy, Audiences: p.Audiences, IsActive: p.IsActive,
 		SortOrder:  int32(sortOrder), //nolint:gosec // G115: clamped to int32 by form.Int / a small MAX()+1
 		SourceNote: p.SourceNote, Now: httpadmin.DBTime(httpadmin.Now(c)),
 	})

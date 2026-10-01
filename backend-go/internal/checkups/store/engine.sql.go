@@ -13,14 +13,20 @@ const listActiveCheckupTypesForUser = `-- name: ListActiveCheckupTypesForUser :m
 
 SELECT id, ` + "`" + `key` + "`" + `, user_id, category, title, subtitle, why, performed_by, icon, tone, interval_months, interval_months_max, age_min, age_max, cycle_day_from, cycle_day_to, remind_lead_days, prep_steps, guide_steps, finding_options, hide_in_pregnancy, is_active, sort_order, source_note, created_at, updated_at, audiences FROM ` + "`" + `checkup_types` + "`" + `
 WHERE is_active = 1 AND (user_id IS NULL OR user_id = CAST(? AS UNSIGNED))
+  AND (audiences IS NULL OR JSON_CONTAINS(audiences, JSON_QUOTE(?)))
 ORDER BY sort_order, id
 `
 
+type ListActiveCheckupTypesForUserParams struct {
+	UserID   int64
+	LifeMode string
+}
+
 // Checkups (T-M4-01): the inputs of the status engine (internal/checkups/engine) for one user.
-// Every query is scoped by user_id; the catalog query returns the shared rows plus the user's own
-// custom checkups only.
-func (q *Queries) ListActiveCheckupTypesForUser(ctx context.Context, userID int64) ([]CheckupType, error) {
-	rows, err := q.db.QueryContext(ctx, listActiveCheckupTypesForUser, userID)
+// Every query is scoped by user_id; the catalog query returns the shared rows for the user's life mode
+// (audiences NULL or listing life_mode, CB-MENO-01b) plus the user's own custom checkups only.
+func (q *Queries) ListActiveCheckupTypesForUser(ctx context.Context, arg ListActiveCheckupTypesForUserParams) ([]CheckupType, error) {
+	rows, err := q.db.QueryContext(ctx, listActiveCheckupTypesForUser, arg.UserID, arg.LifeMode)
 	if err != nil {
 		return nil, err
 	}

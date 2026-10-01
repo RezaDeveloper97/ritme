@@ -11,11 +11,18 @@ import (
 	"github.com/ritme/backend-go/internal/checkups/store"
 )
 
-// EngineInputs loads the catalog (shared rows + the user's custom checkups, active only), the
-// user's records and settings, and converts them to engine inputs. Birthday, pregnancy and the
-// cycle prediction are the caller's (profile / pregnancy / cycle services). Three queries.
+// EngineInputs loads the catalog (shared rows for the user's life mode + her custom checkups,
+// active only), the user's records and settings, and converts them to engine inputs. Birthday,
+// pregnancy and the cycle prediction are the caller's (profile / pregnancy / cycle services).
+// Four queries.
 func EngineInputs(ctx context.Context, q store.Querier, userID uint64) (engine.Input, error) {
-	types, err := q.ListActiveCheckupTypesForUser(ctx, int64(userID)) //nolint:gosec // ids fit int64
+	mode, err := UserLifeMode(ctx, q, userID)
+	if err != nil {
+		return engine.Input{}, err
+	}
+	types, err := q.ListActiveCheckupTypesForUser(ctx, store.ListActiveCheckupTypesForUserParams{
+		UserID: int64(userID), LifeMode: string(mode), //nolint:gosec // ids fit int64
+	})
 	if err != nil {
 		return engine.Input{}, fmt.Errorf("checkups: list types: %w", err)
 	}

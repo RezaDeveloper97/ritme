@@ -89,7 +89,9 @@ pressure, fasting sugar/HbA1c, lipids, weight & waist, bone density (from 65), v
 (from 45), thyroid, eye exam. Existing rows mammography, pap_smear and dentist stay for everyone and appear in the
 menopause groups. The board's «معاینه چشم و دندان» is split into `meno_eye_exam` + the existing `dentist`.
 
-**Follow-up (not in any MENO task's touches):** the checkups engine/API (`internal/checkups`) and the admin
-checkup-types API do not read `audiences` yet. Until they hide audience-scoped rows from users of other modes (and the
-admin form edits the field, CB-MENO-04), the rows stay inactive; activating them is one `UPDATE … SET is_active = 1`
-data migration in the task that adds the filter.
+**CB-MENO-01b (done):** the checkups user API (`internal/checkups`: plan, home card, detail, records, settings, and
+search's checkup source) shows a shared row only when `audiences` is NULL or lists the user's resolved life mode
+(`enums.ResolveLifeMode`: active pregnancy → pregnancy, stored postpartum/menopause/teen, else ttc/cycle by
+`user_goal`); outside the audience a type id answers 404. The admin checkup-types API reads/writes `audiences`
+(validated against the life modes, `options.audiences`); the admin-web form field is CB-MENO-04. Goose
+`00024_activate_menopause_checkups` sets the nine rows `is_active = 1` (data only, no Laravel twin).

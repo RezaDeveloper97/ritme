@@ -195,9 +195,15 @@ func (h *Handlers) Show(c fiber.Ctx) error {
 	return httpx.OK(c, p.DetailJSON(it, records, langOf(c)))
 }
 
-// visibleType is an active type the user sees (shared or her custom), else the 404.
+// visibleType is an active type the user sees (shared for her life mode, or her custom), else the 404.
 func (h *Handlers) visibleType(c fiber.Ctx, id, userID uint64) (store.CheckupType, error) {
-	t, err := h.q.GetCheckupTypeForUser(c, store.GetCheckupTypeForUserParams{ID: id, UserID: int64(userID)}) //nolint:gosec // ids fit int64
+	mode, err := UserLifeMode(c, h.q, userID)
+	if err != nil {
+		return store.CheckupType{}, err
+	}
+	t, err := h.q.GetCheckupTypeForUser(c, store.GetCheckupTypeForUserParams{
+		ID: id, UserID: int64(userID), LifeMode: string(mode), //nolint:gosec // ids fit int64
+	})
 	if errors.Is(err, sql.ErrNoRows) {
 		return t, notFound(c, "checkup_not_found")
 	}

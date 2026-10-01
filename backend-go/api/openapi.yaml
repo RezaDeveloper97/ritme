@@ -3642,8 +3642,13 @@ paths:
       tags: [Checkups]
       summary: The screening plan
       description: |
-        The user's periodic-checkup plan (docs/checkups/README.md): the shared catalog plus her custom checkups,
-        evaluated by the status engine (`internal/checkups/engine`) for today (Tehran). `age` is null without a
+        The user's periodic-checkup plan (docs/checkups/README.md): the shared catalog plus her custom checkups.
+        Shared rows are filtered by life mode (CB-MENO-01b): a row whose
+        `checkup_types.audiences` lists modes is shown only to users whose resolved mode (active pregnancy, else the
+        stored `user_life_profiles.life_mode` postpartum / menopause / teen, else ttc / cycle by `user_goal`) is
+        listed — e.g. the nine `meno_*` checkups for menopause mode only; NULL = everyone. The same filter applies to
+        `/checkups/home`, `/checkups/{id}` and its records / settings (404 outside the audience) and to search.
+        Evaluated by the status engine (`internal/checkups/engine`) for today (Tehran). `age` is null without a
         profile birthday. `summary` is always over the whole plan (disabled items excluded, `not_yet` counted as
         up to date); `?filter=action` lists due/overdue items, `done` recorded items that need no action.
         Labels follow `Accept-Language` (Jalali months and localized digits for fa). Three queries.
@@ -3962,8 +3967,8 @@ paths:
       summary: A checkup's detail
       description: |
         The item plus the catalog copy (localized `why`, `prep_steps`, `guide_steps`, `finding_options`), the latest two
-        records and the user's switches. Any active type the user sees (a shared catalog row or her own custom
-        checkup); a type the plan leaves out (hidden in pregnancy, past `age_max`) still opens. Admin edits show
+        records and the user's switches. Any active type the user sees (a shared catalog row for her life mode — see
+        `GET /checkups` — or her own custom checkup; 404 otherwise); a type the plan leaves out (hidden in pregnancy, past `age_max`) still opens. Admin edits show
         immediately (no cache).
       operationId: getCheckup
       security:

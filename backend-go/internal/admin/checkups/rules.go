@@ -12,6 +12,7 @@ import (
 	"github.com/ritme/backend-go/internal/admin/httpadmin"
 	"github.com/ritme/backend-go/internal/checkups/engine"
 	"github.com/ritme/backend-go/internal/checkups/store"
+	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/i18n"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/platform/validation"
@@ -40,6 +41,11 @@ var Performers = []string{"self", "doctor", "lab", "dentist"}
 
 // Tones are checkup_types.tone values (docs/checkups/README.md).
 var Tones = []string{"rose", "violet", "amber", "teal", "green", "neutral"}
+
+// Audiences are the values checkup_types.audiences may list: the life modes (enums.LifeMode, screen
+// order). NULL / an empty list = every mode; otherwise only users whose resolved mode is listed see
+// the row (CB-MENO-01b).
+func Audiences() []string { return enums.LifeModeValues() }
 
 // Icons are the names the frontend resolves (frontend/src/entities/checkup/model/icon.ts,
 // the seeded names included). Unknown names would fall back by performer there; the admin
@@ -123,6 +129,8 @@ func rules(in phpval.Map, codes []string, create bool) validation.Rules {
 	}
 	return append(r,
 		validation.F("hide_in_pregnancy", "nullable"),
+		validation.F("audiences", "nullable|array|max:"+strconv.Itoa(len(Audiences()))),
+		validation.F("audiences.*", "required|string", validation.In(Audiences()...)),
 		validation.F("is_active", "nullable"),
 		validation.F("sort_order", "nullable|integer"),
 		validation.F("source_note", "nullable|string|max:1000"),
@@ -351,6 +359,13 @@ func buildParams(c fiber.Ctx, data phpval.Map, cur *store.CheckupType) store.Upd
 		IsActive:        httpadmin.Bool(data, "is_active"),
 	}
 
+	if keep("audiences") {
+		p.Audiences = st.Audiences
+	} else {
+		v, _ := data.Get("audiences")
+		p.Audiences = audiences(v)
+	}
+
 	switch {
 	case keep("icon"):
 		p.Icon = st.Icon
@@ -378,6 +393,27 @@ func buildParams(c fiber.Ctx, data phpval.Map, cur *store.CheckupType) store.Upd
 		p.SourceNote = form.Str(data, "source_note")
 	}
 	return p
+}
+
+// audiences is the validated life modes, distinct, in the order sent (NULL when null or empty =
+// every mode).
+func audiences(v any) db.NullRawJSON {
+	if !phpval.IsArray(v) {
+		return db.NullRawJSON{}
+	}
+	_, vals := phpval.Entries(v)
+	seen := map[string]bool{}
+	out := make([]string, 0, len(vals))
+	for _, x := range vals {
+		if s := phpval.ToString(x); s != "" && !seen[s] {
+			seen[s] = true
+			out = append(out, s)
+		}
+	}
+	if len(out) == 0 {
+		return db.NullRawJSON{}
+	}
+	return db.NullRawJSON{V: form.JSON(out), Valid: true}
 }
 
 func mustGet(data phpval.Map, key string) any {

@@ -137,17 +137,19 @@ func (q *Queries) GetCheckupSetting(ctx context.Context, arg GetCheckupSettingPa
 const getCheckupTypeForUser = `-- name: GetCheckupTypeForUser :one
 SELECT id, ` + "`" + `key` + "`" + `, user_id, category, title, subtitle, why, performed_by, icon, tone, interval_months, interval_months_max, age_min, age_max, cycle_day_from, cycle_day_to, remind_lead_days, prep_steps, guide_steps, finding_options, hide_in_pregnancy, is_active, sort_order, source_note, created_at, updated_at, audiences FROM ` + "`" + `checkup_types` + "`" + `
 WHERE id = ? AND is_active = 1 AND (user_id IS NULL OR user_id = CAST(? AS UNSIGNED))
+  AND (audiences IS NULL OR JSON_CONTAINS(audiences, JSON_QUOTE(?)))
 LIMIT 1
 `
 
 type GetCheckupTypeForUserParams struct {
-	ID     uint64
-	UserID int64
+	ID       uint64
+	UserID   int64
+	LifeMode string
 }
 
-// An active type the user can see: a shared catalog row or her own custom checkup.
+// An active type the user can see: a shared catalog row for her life mode or her own custom checkup.
 func (q *Queries) GetCheckupTypeForUser(ctx context.Context, arg GetCheckupTypeForUserParams) (CheckupType, error) {
-	row := q.db.QueryRowContext(ctx, getCheckupTypeForUser, arg.ID, arg.UserID)
+	row := q.db.QueryRowContext(ctx, getCheckupTypeForUser, arg.ID, arg.UserID, arg.LifeMode)
 	var i CheckupType
 	err := row.Scan(
 		&i.ID,
@@ -192,9 +194,11 @@ SELECT
   p.user_goal,
   CAST(EXISTS (
     SELECT 1 FROM ` + "`" + `pregnancy_profiles` + "`" + ` pp WHERE pp.user_id = u.id AND pp.pregnancy_mode = 1
-  ) AS SIGNED) AS pregnant
+  ) AS SIGNED) AS pregnant,
+  lp.life_mode
 FROM ` + "`" + `users` + "`" + ` u
 LEFT JOIN ` + "`" + `user_profiles` + "`" + ` p ON p.user_id = u.id
+LEFT JOIN ` + "`" + `user_life_profiles` + "`" + ` lp ON lp.user_id = u.id
 WHERE u.id = ?
 LIMIT 1
 `
@@ -207,11 +211,13 @@ type GetCheckupUserContextRow struct {
 	PeriodDuration  sql.NullInt16
 	UserGoal        sql.NullString
 	Pregnant        int64
+	LifeMode        sql.NullString
 }
 
 // Checkups user API (T-M4-02, /api/v1/checkups/*). Every query is scoped by user_id; a catalog
 // read returns the shared rows plus the user's own custom checkups only.
-// The profile columns the cycle engine and the age rules read, plus pregnancy mode, in one read.
+// The profile columns the cycle engine and the age rules read, plus pregnancy mode and the stored life mode
+// (enums.ResolveLifeMode inputs, CB-MENO-01b audience filter), in one read.
 func (q *Queries) GetCheckupUserContext(ctx context.Context, id uint64) (GetCheckupUserContextRow, error) {
 	row := q.db.QueryRowContext(ctx, getCheckupUserContext, id)
 	var i GetCheckupUserContextRow
@@ -223,6 +229,7 @@ func (q *Queries) GetCheckupUserContext(ctx context.Context, id uint64) (GetChec
 		&i.PeriodDuration,
 		&i.UserGoal,
 		&i.Pregnant,
+		&i.LifeMode,
 	)
 	return i, err
 }
@@ -368,11 +375,13 @@ LEFT JOIN ` + "`" + `checkup_records` + "`" + ` r ON r.id = (
   LIMIT 1
 )
 WHERE t.is_active = 1 AND (t.user_id IS NULL OR t.user_id = CAST(? AS UNSIGNED))
+  AND (t.audiences IS NULL OR JSON_CONTAINS(t.audiences, JSON_QUOTE(?)))
 ORDER BY t.sort_order, t.id
 `
 
 type ListCheckupPlanRowsParams struct {
-	UserID int64
+	UserID   int64
+	LifeMode string
 }
 
 type ListCheckupPlanRowsRow struct {
@@ -384,10 +393,15 @@ type ListCheckupPlanRowsRow struct {
 	RecordNextDueOn civildate.NullDate
 }
 
-// The active catalog with the user's setting and latest record per type, in one read
-// (latest = highest done_on, ties → higher id, like the engine).
+// The active catalog the user's life mode sees (audiences NULL or listing life_mode, CB-MENO-01b) with the
+// user's setting and latest record per type, in one read (latest = highest done_on, ties → higher id, like the engine).
 func (q *Queries) ListCheckupPlanRows(ctx context.Context, arg ListCheckupPlanRowsParams) ([]ListCheckupPlanRowsRow, error) {
-	rows, err := q.db.QueryContext(ctx, listCheckupPlanRows, arg.UserID, arg.UserID, arg.UserID)
+	rows, err := q.db.QueryContext(ctx, listCheckupPlanRows,
+		arg.UserID,
+		arg.UserID,
+		arg.UserID,
+		arg.LifeMode,
+	)
 	if err != nil {
 		return nil, err
 	}

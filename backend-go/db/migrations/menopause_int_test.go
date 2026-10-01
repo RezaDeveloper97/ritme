@@ -36,7 +36,8 @@ func TestMenopauseMigration_SeedsAndRoundTrip(t *testing.T) {
 	for g, n := range want {
 		assert.Equal(t, n, groupCount(g), g)
 	}
-	assert.Equal(t, 9, count("SELECT COUNT(*) FROM checkup_types WHERE `key` LIKE 'meno\\_%' AND is_active = 0 AND JSON_CONTAINS(audiences, '\"menopause\"')"))
+	// Seeded inactive here; 00024_activate_menopause_checkups turns them on (menopause_checkups_int_test.go).
+	assert.Equal(t, 9, count("SELECT COUNT(*) FROM checkup_types WHERE `key` LIKE 'meno\\_%' AND JSON_CONTAINS(audiences, '\"menopause\"')"))
 	assert.Zero(t, count("SELECT COUNT(*) FROM checkup_types WHERE `key` NOT LIKE 'meno\\_%' AND audiences IS NOT NULL"),
 		"existing M4 rows stay for everyone")
 

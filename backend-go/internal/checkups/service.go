@@ -10,6 +10,7 @@ import (
 	"github.com/ritme/backend-go/internal/checkups/store"
 	cycleservice "github.com/ritme/backend-go/internal/cycle/service"
 	cyclestore "github.com/ritme/backend-go/internal/cycle/store"
+	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 )
 
@@ -18,7 +19,9 @@ type Plan struct {
 	Today  civildate.Date
 	Input  engine.Input
 	Result engine.Result
-	// Rows are the active catalog rows the user sees (shared + her custom), by type id.
+	// LifeMode is the user's effective life mode: shared rows are limited to its audience.
+	LifeMode enums.LifeMode
+	// Rows are the active catalog rows the user sees (shared for her life mode + her custom), by type id.
 	Rows map[uint64]store.CheckupType
 	// Types are the engine types, by id.
 	Types map[uint64]engine.Type
@@ -27,9 +30,10 @@ type Plan struct {
 	now   civildate.Nower
 }
 
-// LoadPlan evaluates the user's plan in three queries: the profile + pregnancy flag, the cycle
-// history (the cycle engine's own inputs, read-only reuse of internal/cycle) and the catalog
-// joined with the user's settings and latest record per type.
+// LoadPlan evaluates the user's plan in three queries: the profile + pregnancy flag + stored life
+// mode, the cycle history (the cycle engine's own inputs, read-only reuse of internal/cycle) and
+// the catalog for her life mode (CB-MENO-01b audiences) joined with the user's settings and latest
+// record per type.
 func LoadPlan(ctx context.Context, db store.DBTX, userID uint64, now civildate.Nower) (*Plan, error) {
 	q := store.New(db)
 	uc, err := q.GetCheckupUserContext(ctx, userID)
@@ -40,7 +44,8 @@ func LoadPlan(ctx context.Context, db store.DBTX, userID uint64, now civildate.N
 	if err != nil {
 		return nil, fmt.Errorf("checkups: load cycle history: %w", err)
 	}
-	rows, err := q.ListCheckupPlanRows(ctx, store.ListCheckupPlanRowsParams{UserID: int64(userID)}) //nolint:gosec // ids fit int64
+	mode := lifeModeOf(uc)
+	rows, err := q.ListCheckupPlanRows(ctx, store.ListCheckupPlanRowsParams{UserID: int64(userID), LifeMode: string(mode)}) //nolint:gosec // ids fit int64
 	if err != nil {
 		return nil, fmt.Errorf("checkups: load plan: %w", err)
 	}
@@ -64,10 +69,11 @@ func LoadPlan(ctx context.Context, db store.DBTX, userID uint64, now civildate.N
 	in.Cycle = engine.CycleFromHistory(cycleservice.HistoriesFromRows(histories), cycleservice.ProfileFromRow(profile), now)
 
 	p := &Plan{
-		Today: civildate.Today(now),
-		now:   now,
-		Rows:  make(map[uint64]store.CheckupType, len(rows)),
-		Types: make(map[uint64]engine.Type, len(rows)),
+		Today:    civildate.Today(now),
+		LifeMode: mode,
+		now:      now,
+		Rows:     make(map[uint64]store.CheckupType, len(rows)),
+		Types:    make(map[uint64]engine.Type, len(rows)),
 	}
 	for _, r := range rows {
 		t := TypeFromRow(r.CheckupType)
@@ -92,6 +98,22 @@ func LoadPlan(ctx context.Context, db store.DBTX, userID uint64, now civildate.N
 		p.items[it.TypeID] = i
 	}
 	return p, nil
+}
+
+// lifeModeOf is the effective life mode of a user context row (enums.ResolveLifeMode: an active
+// pregnancy wins, then a stored postpartum / menopause / teen mode, else ttc / cycle by user_goal).
+func lifeModeOf(uc store.GetCheckupUserContextRow) enums.LifeMode {
+	return enums.ResolveLifeMode(uc.LifeMode.String, uc.Pregnant != 0, uc.UserGoal.String)
+}
+
+// UserLifeMode is the user's effective life mode, the audience the shared catalog is filtered by
+// (checkup_types.audiences NULL = everyone, else the list of modes that see the row).
+func UserLifeMode(ctx context.Context, q store.Querier, userID uint64) (enums.LifeMode, error) {
+	uc, err := q.GetCheckupUserContext(ctx, userID)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return "", fmt.Errorf("checkups: load life mode: %w", err)
+	}
+	return lifeModeOf(uc), nil
 }
 
 // Item is the evaluated item of a type the user sees. A type the engine left out of the plan

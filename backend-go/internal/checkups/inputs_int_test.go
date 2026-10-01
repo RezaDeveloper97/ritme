@@ -39,7 +39,7 @@ func newUser(t *testing.T, db *sql.DB, mobile string) uint64 {
 func TestSeededCatalog(t *testing.T) {
 	db := testdb.New(t)
 	q := store.New(db)
-	rows, err := q.ListActiveCheckupTypesForUser(context.Background(), 0)
+	rows, err := q.ListActiveCheckupTypesForUser(context.Background(), store.ListActiveCheckupTypesForUserParams{LifeMode: "cycle"})
 	require.NoError(t, err)
 
 	keys := []string{}
