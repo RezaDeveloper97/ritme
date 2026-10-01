@@ -6,6 +6,7 @@ import (
 	"github.com/ritme/backend-go/internal/auth"
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
+	"github.com/ritme/backend-go/internal/payments"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/plus"
 )
@@ -13,16 +14,16 @@ import (
 // Ritme Plus (B-N2-04), Go only — no Laravel counterpart (deviations.md D-35). /plus/plans is public (the paywall
 // shows prices before login); everything else is auth:api and user-scoped. Localized by Accept-Language.
 //
-// Payment provider: the in-package fake everywhere except production, where none is wired until B-N2-05 adds the
-// adapter package with a real gateway behind config — checkout/verify then answer 503 payment_unavailable instead
-// of granting Plus for free.
+// Payment provider: the internal/payments adapter chosen by PAYMENT_PROVIDER (B-N2-05) — the fake TEST gateway by
+// default outside production, Zarinpal once configured, none in production until then (checkout/verify answer 503
+// payment_unavailable instead of granting Plus for free). The gateway's return/TEST-page routes: routes_payments.go.
 func init() {
 	Register("plus", func(r fiber.Router, d *Deps) {
 		guard := auth.MustGuard(r, d.Config, d.DB, d.Logger).RequireUser
 		locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(d.DB), d.Cache, d.Logger))
 		var gateway plus.Gateway
-		if !d.Config.App.IsProduction() {
-			gateway = plus.FakeGateway{}
+		if gw := payments.New(paymentDeps(d)); gw != nil { // a nil *Gateway must stay a nil interface
+			gateway = gw
 		}
 		h := plus.NewHandlers(plus.NewService(d.DB, d.Config.Plus, gateway, d.Logger), clock.Real{})
 		writes := writeThrottle(d)

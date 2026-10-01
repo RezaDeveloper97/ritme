@@ -1,8 +1,10 @@
 # Ritme Plus (/api/v1/plus/*) — Go only (B-N2-04, deviations D-35): there is no Laravel route, so these goldens were
 # recorded from the Go server and reviewed by hand (new-endpoint skill, step 8). The fixture dump carries the seven
 # empty plus_* tables plus the three seed plans (goose 00015 / Laravel 2026_10_01_000006), added by hand — the DDL a
-# full re-record reproduces. The contract server runs with APP_ENV=contract → the in-package fake gateway and the
-# default config (VAT 1000 bps, 7-day trial, 30-minute invoice reservation, callback http://localhost:3000/plus/return).
+# full re-record reproduces. The contract server runs with APP_ENV=contract → PAYMENT_PROVIDER defaults to the
+# internal/payments fake (B-N2-05: TEST page at /api/v1/payments/fake/pay/{authority}, state in Redis; verify asks the
+# fake, not the posted status) and the default config (VAT 1000 bps, 7-day trial, 30-minute invoice reservation,
+# return page http://localhost:3000/plus/return). Paying = POSTing the TEST page's form (decision=success|fail).
 # Invoice references are random (80 bits), so they and everything derived from them (authority, bank ref,
 # redirect URL) are pattern-checked and passed between steps with capture.
 # Races (double trial, concurrent verify, discount limits), amount tampering, replayed bank references, IDOR and
@@ -18,7 +20,7 @@ defaults:
     data.payment.authority: '^FAKE-RP[A-Z2-7]{16}$'
     data.invoice.receipt.ref_id: '^FAKE-REF-RP[A-Z2-7]{16}$'
     "data[*].receipt.ref_id": '^FAKE-REF-RP[A-Z2-7]{16}$'
-    data.payment.redirect_url: '^http://localhost:3000/plus/return\?authority=FAKE-RP[A-Z2-7]{16}&reference=RP[A-Z2-7]{16}&status=OK$'
+    data.payment.redirect_url: '^http://127\.0\.0\.1:8090/api/v1/payments/fake/pay/FAKE-RP[A-Z2-7]{16}$'
 cases:
   - name: plans_public
     doc: Public plan list — seeded 1/3/6-month plans with per-month price, savings and the highlighted badge
@@ -97,7 +99,7 @@ cases:
         status: 422
 
   - name: purchase_flow
-    doc: Checkout (client amounts ignored) → verify with the fake gateway → idempotent replay → history → cancel
+    doc: Checkout (client amounts ignored) → pay on the fake TEST page → return hop → verify → idempotent replay → history → cancel
     locales: none
     steps:
       - method: POST
@@ -105,6 +107,23 @@ cases:
         body: {plan_id: 2, total: 1}
         status: 200
         capture: {ref: data.invoice.reference, auth: data.payment.authority}
+      - method: GET
+        path: "/api/v1/payments/fake/pay/{{auth}}"
+        status: 200
+        ignore_body: true
+      - method: POST
+        path: "/api/v1/payments/fake/pay/{{auth}}"
+        raw_body: decision=success
+        content_type: application/x-www-form-urlencoded
+        status: 303
+        ignore_body: true
+        ignore: ["header:location"]
+      - method: GET
+        path: /api/v1/payments/fake/return
+        query: {reference: "{{ref}}", authority: "{{auth}}", status: OK, next: "https://evil.example/plus/return"}
+        status: 303
+        ignore_body: true
+        ignore: ["header:location"]
       - method: POST
         path: /api/v1/plus/verify
         now: "2026-09-23T10:05:00+03:30"
@@ -128,7 +147,7 @@ cases:
         status: 200
 
   - name: payment_declined
-    doc: The user cancelled at the bank → payment_failed; the invoice is closed
+    doc: The user cancelled on the TEST page → payment_failed even when the client posts status OK; the invoice is closed
     locales: [none, en]
     steps:
       - method: POST
@@ -136,6 +155,13 @@ cases:
         body: {plan_id: 1}
         status: 200
         capture: {ref: data.invoice.reference, auth: data.payment.authority}
+      - method: POST
+        path: "/api/v1/payments/fake/pay/{{auth}}"
+        raw_body: decision=fail
+        content_type: application/x-www-form-urlencoded
+        status: 303
+        ignore_body: true
+        ignore: ["header:location"]
       - method: POST
         path: /api/v1/plus/verify
         body: {reference: "{{ref}}", authority: "{{auth}}", status: NOK}

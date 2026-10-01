@@ -34,6 +34,7 @@ tags:
   - {name: Catalog, description: "Admin-editable content catalog (Go only): one localized group of items (FAQs, warning signs, kit items, …)"}
   - {name: Pelvic, description: "Pelvic floor program (Go only): 8-week Kegel plan, trained days, bladder diary"}
   - {name: Plus, description: "Ritme Plus (Go only): plans, trial, checkout through the payment port, verify, cancel, restore, history, entitlements and usage. Amounts are integer rials"}
+  - {name: Payments, description: "Payment gateway adapter (Go only): browser return hop and the fake provider's TEST page. PAYMENT_PROVIDER = fake (default outside production) | zarinpal | none. Café Bazaar / Myket billing is Android-only and out of scope"}
   - {name: Daily Health Log, description: "One log per day: symptoms, mood, vitals, lifestyle"}
   - {name: Cycle, description: "Cycle engine: today, a date, a month, recalculation"}
   - {name: Period Log, description: "Start, end, add, edit and delete periods"}
@@ -1797,6 +1798,90 @@ paths:
                       restored: {type: integer, minimum: 0}
                       status: {$ref: "#/components/schemas/PlusStatus"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/payments/{provider}/return:
+    get:
+      tags: [Payments]
+      summary: Gateway return hop
+      description: |
+        The payment gateway redirects the browser here after the payment (`callback_url` given at checkout). It changes
+        nothing (CSRF-safe): it normalizes the provider's parameters (`authority`/`status` for the fake,
+        `Authority`/`Status` for Zarinpal) and answers **303** to the web-app page named by `next` — honored only when
+        it is on the allow-list (`PLUS_CALLBACK_URL`, `PAYMENT_RETURN_URLS`; scheme, host and path), otherwise the
+        first allowed page (no open redirect) — with `?reference&authority&status` (`status` is `OK` or `NOK`;
+        malformed values are dropped). The web app then calls `POST /plus/verify`, which settles server to server with
+        the invoice's stored amount; these query values are never trusted for the verdict or the amount. Only the
+        active `PAYMENT_PROVIDER` answers; any other provider is a 404.
+      operationId: paymentsReturn
+      security: []
+      parameters:
+        - {name: provider, in: path, required: true, schema: {type: string, enum: [fake, zarinpal]}}
+        - {name: reference, in: query, required: false, schema: {type: string}}
+        - {name: next, in: query, required: false, description: The allow-listed web-app page to land on, schema: {type: string, format: uri}}
+        - {name: authority, in: query, required: false, description: "Provider payment id (Zarinpal: `Authority`)", schema: {type: string}}
+        - {name: status, in: query, required: false, description: "OK / NOK (Zarinpal: `Status`)", schema: {type: string}}
+      responses:
+        '303':
+          description: Redirect to the allow-listed web-app return page
+          headers:
+            Location: {schema: {type: string, format: uri}}
+            Cache-Control: {schema: {type: string, const: no-store}}
+            Referrer-Policy: {schema: {type: string, const: no-referrer}}
+        '404': {$ref: "#/components/responses/RouteNotFound"}
+  /api/v1/payments/fake/pay/{authority}:
+    get:
+      tags: [Payments]
+      summary: Fake gateway TEST page
+      description: |
+        Only while `PAYMENT_PROVIDER=fake` (the default outside production; refused at start-up in production). An
+        HTML page clearly marked **TEST — FAKE GATEWAY** showing the amount and reference with "Simulate success" /
+        "Simulate failure" buttons. No scripts, `frame-ancestors 'none'`, `no-store`, `no-referrer`.
+      operationId: paymentsFakePage
+      security: []
+      parameters:
+        - {name: authority, in: path, required: true, schema: {type: string, pattern: "^FAKE-"}}
+      responses:
+        '200':
+          description: The TEST page
+          content:
+            text/html: {schema: {type: string}}
+        '404':
+          description: Unknown or expired test payment (HTML)
+          content:
+            text/html: {schema: {type: string}}
+    post:
+      tags: [Payments]
+      summary: Fake gateway decision
+      description: |
+        The TEST page's form. Records the simulated outcome of a pending fake payment (a settled one keeps its
+        outcome) and answers 303 to `/api/v1/payments/fake/return` with `authority` and `status`. Changes only the fake
+        provider's own state (Redis, 7 days); the invoice is settled later by `POST /plus/verify`.
+      operationId: paymentsFakeDecide
+      security: []
+      parameters:
+        - {name: authority, in: path, required: true, schema: {type: string, pattern: "^FAKE-"}}
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: {type: string, enum: [success, fail]}
+      responses:
+        '303':
+          description: Redirect to the gateway return hop
+          headers:
+            Location: {schema: {type: string, format: uri}}
+        '404':
+          description: Unknown or expired test payment (HTML)
+          content:
+            text/html: {schema: {type: string}}
+        '422':
+          description: Missing or unknown decision (HTML)
+          content:
+            text/html: {schema: {type: string}}
         '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/pelvic:
     get:

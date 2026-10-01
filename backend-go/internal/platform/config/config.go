@@ -12,6 +12,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -37,6 +38,7 @@ type Config struct {
 	Telegram Telegram
 	Swagger  Swagger
 	Plus     Plus
+	Payment  Payment
 	// StoragePath is the mounted Laravel storage/ directory (backend-storage volume):
 	// Passport keys, translations, public uploads.
 	StoragePath string
@@ -143,6 +145,37 @@ type Plus struct {
 	CallbackURL string        // PLUS_CALLBACK_URL: where the gateway sends the user back (the web app's return page)
 }
 
+// Payment provider ids accepted by PAYMENT_PROVIDER (internal/payments implements them).
+const (
+	PaymentProviderNone     = "none"     // no provider: checkout/verify answer 503 payment_unavailable
+	PaymentProviderFake     = "fake"     // local TEST gateway (success/fail page served by Go); never in production
+	PaymentProviderZarinpal = "zarinpal" // Zarinpal v4 REST web gateway
+)
+
+// Payment holds the payment-gateway adapter settings (B-N2-05). No secret has a default; the merchant id lives only
+// in the server's .env.
+type Payment struct {
+	// Provider is PAYMENT_PROVIDER: none | fake | zarinpal. Unset → fake outside production, none in production.
+	// PAYMENT_PROVIDER=fake with APP_ENV=production is refused at start-up.
+	Provider string
+	// CallbackBaseURL (PAYMENT_CALLBACK_BASE_URL, default APP_URL) is the public origin of this API; the gateway sends
+	// the user back to {CallbackBaseURL}/api/v1/payments/{provider}/return.
+	CallbackBaseURL string
+	// ReturnURLs is the allow-list of web-app pages a payment may finally redirect to: PLUS_CALLBACK_URL plus
+	// PAYMENT_RETURN_URLS (comma separated). Compared on scheme, host and path; anything else falls back to the first.
+	ReturnURLs []string
+	// Timeout (PAYMENT_HTTP_TIMEOUT_SECONDS, default 15) bounds every server-to-server gateway call.
+	Timeout  time.Duration
+	Zarinpal Zarinpal
+}
+
+// Zarinpal holds ZARINPAL_* (empty merchant id = provider disabled, payments answer 503).
+type Zarinpal struct {
+	MerchantID string // ZARINPAL_MERCHANT_ID (secret: server .env only)
+	Sandbox    bool   // ZARINPAL_SANDBOX: sandbox.zarinpal.com instead of payment.zarinpal.com
+	BaseURL    string // ZARINPAL_BASE_URL: override of the gateway origin (tests); empty = from Sandbox
+}
+
 // Load reads the process environment.
 func Load() (*Config, error) { return LoadFrom(os.LookupEnv) }
 
@@ -210,6 +243,15 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 			InvoiceTTL:  time.Duration(e.integer("PLUS_INVOICE_TTL_MINUTES", 30)) * time.Minute,
 			CallbackURL: e.str("PLUS_CALLBACK_URL", "http://localhost:3000/plus/return"),
 		},
+		Payment: Payment{
+			Provider: strings.ToLower(e.str("PAYMENT_PROVIDER", "")),
+			Timeout:  time.Duration(e.integer("PAYMENT_HTTP_TIMEOUT_SECONDS", 15)) * time.Second,
+			Zarinpal: Zarinpal{
+				MerchantID: e.str("ZARINPAL_MERCHANT_ID", ""),
+				Sandbox:    e.boolean("ZARINPAL_SANDBOX", false),
+				BaseURL:    strings.TrimRight(e.str("ZARINPAL_BASE_URL", ""), "/"),
+			},
+		},
 		StoragePath:   strings.TrimRight(e.required("STORAGE_PATH"), "/"),
 		RunMigrations: e.boolean("RUN_MIGRATIONS", false),
 	}
@@ -233,6 +275,28 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 	if cfg.Plus.InvoiceTTL < time.Minute {
 		e.fail("PLUS_INVOICE_TTL_MINUTES: must be at least 1")
 	}
+	cfg.Payment.Provider = DefaultPaymentProvider(cfg.Payment.Provider, cfg.App)
+	cfg.Payment.CallbackBaseURL = strings.TrimRight(e.str("PAYMENT_CALLBACK_BASE_URL", cfg.App.URL), "/")
+	cfg.Payment.ReturnURLs = append([]string{cfg.Plus.CallbackURL}, e.list("PAYMENT_RETURN_URLS", nil)...)
+	switch cfg.Payment.Provider {
+	case PaymentProviderNone, PaymentProviderZarinpal:
+	case PaymentProviderFake:
+		if cfg.App.IsProduction() {
+			e.fail("PAYMENT_PROVIDER=fake is not allowed when APP_ENV=production (it grants Plus without payment)")
+		}
+	default:
+		e.fail("PAYMENT_PROVIDER: %q is not one of none, fake, zarinpal", cfg.Payment.Provider)
+	}
+	if cfg.Payment.Timeout < time.Second {
+		e.fail("PAYMENT_HTTP_TIMEOUT_SECONDS: must be at least 1")
+	}
+	if cfg.Payment.Provider != PaymentProviderNone { // the URLs are only used while a provider is active
+		for _, u := range append([]string{cfg.Payment.CallbackBaseURL}, cfg.Payment.ReturnURLs...) {
+			if err := checkPublicURL(u, cfg.App.IsProduction()); err != nil {
+				e.fail("payment URL %q (PAYMENT_CALLBACK_BASE_URL / PLUS_CALLBACK_URL / PAYMENT_RETURN_URLS): %v", u, err)
+			}
+		}
+	}
 	if cfg.App.IsProduction() && cfg.App.Debug {
 		e.fail("APP_DEBUG must be false when APP_ENV=production")
 	}
@@ -241,6 +305,32 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 		return nil, fmt.Errorf("config: %w", errors.Join(e.errs...))
 	}
 	return cfg, nil
+}
+
+// DefaultPaymentProvider resolves an unset PAYMENT_PROVIDER: the fake outside production, none in production (so a
+// production deploy without a configured gateway keeps answering 503 instead of granting Plus for free).
+func DefaultPaymentProvider(provider string, app App) string {
+	if provider != "" {
+		return provider
+	}
+	if app.IsProduction() {
+		return PaymentProviderNone
+	}
+	return PaymentProviderFake
+}
+
+// checkPublicURL accepts an absolute http(s) URL with a host and no credentials; https only in production.
+func checkPublicURL(raw string, production bool) error {
+	u, err := url.Parse(raw)
+	switch {
+	case err != nil:
+		return err
+	case u.Scheme != "https" && (production || u.Scheme != "http"):
+		return errors.New("must be an absolute https URL (http allowed outside production)")
+	case u.Host == "" || u.User != nil:
+		return errors.New("must have a host and no user info")
+	}
+	return nil
 }
 
 // env reads variables with Laravel's env() semantics: "null"/"(null)" and

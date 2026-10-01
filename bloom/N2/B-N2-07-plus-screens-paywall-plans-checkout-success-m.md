@@ -26,6 +26,8 @@ User-facing purchase flow.
 ## Scope
 - Paywall (free vs plus table, testimonial, restore), Plans (1/3/6 months, popular badge), Checkout (discount code, VAT, method list — web shows bank gateway only; Bazaar/Myket rows hidden on web), redirect + return handling, Success, Manage (days left ring, auto-renew toggle, upgrade, payment history, cancel).
 
+- Gateway return (from B-N2-05): Go redirects to `PLUS_CALLBACK_URL` (default `/plus/return`) with `reference`, `authority`, `status`; that page calls `POST /api/v1/plus/verify` and then shows success/failure (`/plus/success` per routes.md can be the result view). Money comes as integer rials (`currency: IRR`) — display toman (/10).
+
 ## Out of scope
 - Android (android-shell/, application/, twa/) — never.
 - Anything owned by another bloom task.

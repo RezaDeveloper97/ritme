@@ -4,11 +4,13 @@ import (
 	"context"
 	"net/url"
 	"strings"
+
+	"github.com/ritme/backend-go/internal/payments"
 )
 
-// Gateway is the payment port checkout and verify talk to. B-N2-05 builds the adapter package (the configurable
-// fake provider with its local success/fail page, and one real Iranian web bank gateway); this package only owns
-// the contract and a minimal in-package FakeGateway so the domain runs and is tested without network.
+// Gateway is the payment port checkout and verify talk to. At runtime it is the internal/payments adapter
+// (payments.Gateway: the configurable fake provider with its TEST page, or Zarinpal), chosen by PAYMENT_PROVIDER in
+// the routes file; this package keeps a minimal stateless FakeGateway as the domain's test double.
 //
 // Rules every adapter must keep:
 //   - amounts are rials; the domain always sends the invoice total it computed (never a client value);
@@ -26,40 +28,22 @@ type Gateway interface {
 	Verify(ctx context.Context, req VerifyRequest) (VerifyResult, error)
 }
 
-// PaymentRequest is one invoice to charge.
-type PaymentRequest struct {
-	Reference   string // the invoice's public reference
-	AmountRials uint64
-	Description string
-	CallbackURL string // the web app's return page
-}
-
-// PaymentSession is the provider's answer to Create.
-type PaymentSession struct {
-	Authority   string // provider payment id; the user brings it back to verify
-	RedirectURL string
-}
-
-// VerifyRequest asks the provider whether Authority was paid AmountRials.
-type VerifyRequest struct {
-	Authority   string
-	AmountRials uint64
-	// Callback holds the query parameters the provider sent the user back with (lower-case keys), or nil when the
-	// domain re-checks a payment on its own (restore).
-	Callback map[string]string
-}
-
-// VerifyResult is the provider's verdict.
-type VerifyResult struct {
-	Paid        bool
-	RefID       string
-	CardPAN     string // masked, when the provider reports it
-	AmountRials uint64 // what the provider settled
-}
+// The payment value types are internal/payments' (B-N2-05): any payments.Gateway satisfies Gateway.
+type (
+	// PaymentRequest is one invoice to charge (CallbackURL = PLUS_CALLBACK_URL, the web app's return page).
+	PaymentRequest = payments.Request
+	// PaymentSession is the provider's answer to Create.
+	PaymentSession = payments.Session
+	// VerifyRequest asks the provider whether Authority was paid AmountRials (the invoice total).
+	VerifyRequest = payments.VerifyRequest
+	// VerifyResult is the provider's verdict.
+	VerifyResult = payments.Result
+)
 
 // FakeGateway is the in-package fake provider: stateless and deterministic. Create sends the user straight back to
 // the callback with status=OK; Verify reports paid exactly when the callback says status=OK, for the requested
-// amount. It never moves money — production refuses to run without a real provider (see the routes file).
+// amount. It is the domain's test double only; the runtime fake is payments.Fake (it asks its own state, not the
+// callback).
 type FakeGateway struct{}
 
 // FakeName is FakeGateway's provider id.

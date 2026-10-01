@@ -47,10 +47,27 @@
           "payment": {
             "gateway": "fake",
             "authority": "<pattern:^FAKE-RP[A-Z2-7]{16}$>",
-            "redirect_url": "<pattern:^http://localhost:3000/plus/return\\?authority=FAKE-RP[A-Z2-7]{16}&reference=RP[A-Z2-7]{16}&status=OK$>"
+            "redirect_url": "<pattern:^http://127\\.0\\.0\\.1:8090/api/v1/payments/fake/pay/FAKE-RP[A-Z2-7]{16}$>"
           }
         }
       }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/payments/fake/pay/{{auth}}",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30",
+        "raw_body": "decision=fail"
+      },
+      "status": 303,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59",
+        "location": "<ignored>"
+      },
+      "body_ignored": true
     },
     {
       "request": {

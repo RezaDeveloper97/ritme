@@ -95,6 +95,19 @@ services:
       ADMIN_HOSTS: stage.ritmeapp.ir
       ADMIN_WEB_ORIGINS: https://stage.ritmeapp.ir
       ADMIN_COOKIE_SECURE: "true"
+      # Ritme Plus + payment adapter (B-N2-04/05). Non-secret defaults only; the
+      # Zarinpal merchant id comes from the server .env (empty = payments off).
+      # PAYMENT_PROVIDER=fake is the TEST gateway (refused under APP_ENV=production).
+      PLUS_VAT_RATE_BPS: ${PLUS_VAT_RATE_BPS:-1000}
+      PLUS_TRIAL_DAYS: ${PLUS_TRIAL_DAYS:-7}
+      PLUS_INVOICE_TTL_MINUTES: ${PLUS_INVOICE_TTL_MINUTES:-30}
+      PLUS_CALLBACK_URL: ${PLUS_CALLBACK_URL:-https://stage.ritmeapp.ir/plus/return}
+      PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-fake}
+      PAYMENT_CALLBACK_BASE_URL: ${PAYMENT_CALLBACK_BASE_URL:-https://stage.ritmeapp.ir}
+      PAYMENT_RETURN_URLS: ${PAYMENT_RETURN_URLS:-}
+      PAYMENT_HTTP_TIMEOUT_SECONDS: ${PAYMENT_HTTP_TIMEOUT_SECONDS:-15}
+      ZARINPAL_MERCHANT_ID: ${ZARINPAL_MERCHANT_ID:-}
+      ZARINPAL_SANDBOX: ${ZARINPAL_SANDBOX:-false}
     ports: !override []
     networks:
       default:

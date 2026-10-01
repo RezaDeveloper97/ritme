@@ -3,7 +3,7 @@ id: B-N2-05
 title: Payment gateway adapter (fake + web bank gateway)
 milestone: N2
 type: backend
-status: todo
+status: done
 depends_on: [B-N2-04]
 parallel_group: N2-E
 touches: [backend-go/internal/payments,backend-go/internal/plus,backend-go/config,backend-go/api,.env.stage.example]

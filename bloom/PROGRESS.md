@@ -419,3 +419,15 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   `docs/night-bloom/README.md`.
 - **Screenshots:** `docs/qa/bloom/B-N2-03/` (menopause 0990…81, teen 0990…82, cycle 04, ttc 12, pregnancy 15).
 - **Open:** QUESTIONS #68–#70. No contract golden for loss-copy (Go-only; int + OpenAPI tests).
+
+## B-N2-05 — Payment gateway adapter (fake + web bank gateway)
+
+- `internal/payments`: `Provider` (Create/Verify/Refund/ReturnParams) + `Gateway` wrapper (input validation, callback
+  allow-list, PAN masking, slog audit `payments: create|verify|refund`, no PII). Providers: `fake` (Redis state, TEST
+  page `GET/POST /api/v1/payments/fake/pay/{authority}`, refunds) and `zarinpal` (v4 REST, IRR, code 101 idempotent,
+  refunds unsupported). Return hop `GET /api/v1/payments/{provider}/return` (no state change, 303 to allow-listed
+  front-end URL, no open redirect); settlement stays in authenticated `POST /plus/verify`.
+- Env: `PAYMENT_PROVIDER` (fake outside prod, `none` in prod; fake+production refused at startup),
+  `PAYMENT_CALLBACK_BASE_URL`, `PAYMENT_RETURN_URLS`, `PAYMENT_HTTP_TIMEOUT_SECONDS`, `ZARINPAL_MERCHANT_ID` (server
+  only), `ZARINPAL_SANDBOX`, `ZARINPAL_BASE_URL`; `PLUS_*` added to `.env.stage.example` and `docker-compose.stage.yml`.
+- No migration (00016 unused; invoices/receipts are the durable record). Contract `plus` 25 passed. QUESTIONS #71.

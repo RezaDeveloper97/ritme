@@ -2,6 +2,7 @@ package config
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -84,4 +85,44 @@ func TestLoad_ProductionRefusesDebug(t *testing.T) {
 	env["APP_DEBUG"] = "true"
 	_, err := LoadFrom(lookup(env))
 	require.ErrorContains(t, err, "APP_DEBUG must be false")
+}
+
+func TestLoad_PaymentProvider(t *testing.T) {
+	// Production without PAYMENT_PROVIDER: no provider (checkout answers 503), never the fake.
+	cfg, err := LoadFrom(lookup(minimal()))
+	require.NoError(t, err)
+	assert.Equal(t, PaymentProviderNone, cfg.Payment.Provider)
+	assert.Equal(t, 15*time.Second, cfg.Payment.Timeout)
+
+	// Outside production the fake is the default; the return allow-list starts with PLUS_CALLBACK_URL.
+	env := minimal()
+	env["APP_ENV"] = "staging"
+	env["APP_URL"] = "https://stage.example"
+	env["PLUS_CALLBACK_URL"] = "https://stage.example/plus/return"
+	env["PAYMENT_RETURN_URLS"] = "https://stage.example/shop/return"
+	cfg, err = LoadFrom(lookup(env))
+	require.NoError(t, err)
+	assert.Equal(t, PaymentProviderFake, cfg.Payment.Provider)
+	assert.Equal(t, "https://stage.example", cfg.Payment.CallbackBaseURL)
+	assert.Equal(t, []string{"https://stage.example/plus/return", "https://stage.example/shop/return"}, cfg.Payment.ReturnURLs)
+
+	// The fake is refused in production, at start-up.
+	env = minimal()
+	env["PAYMENT_PROVIDER"] = "fake"
+	_, err = LoadFrom(lookup(env))
+	require.ErrorContains(t, err, "PAYMENT_PROVIDER=fake is not allowed")
+
+	// Unknown provider; a real provider in production needs https URLs.
+	env = minimal()
+	env["PAYMENT_PROVIDER"] = "paypal"
+	_, err = LoadFrom(lookup(env))
+	require.ErrorContains(t, err, "PAYMENT_PROVIDER")
+	env["PAYMENT_PROVIDER"] = "zarinpal"
+	_, err = LoadFrom(lookup(env))
+	require.ErrorContains(t, err, "https")
+	env["APP_URL"] = "https://api.example"
+	env["PLUS_CALLBACK_URL"] = "https://web.example/plus/return"
+	cfg, err = LoadFrom(lookup(env))
+	require.NoError(t, err)
+	assert.Equal(t, PaymentProviderZarinpal, cfg.Payment.Provider)
 }
