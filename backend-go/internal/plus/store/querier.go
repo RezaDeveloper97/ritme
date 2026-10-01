@@ -19,6 +19,8 @@ type Querier interface {
 	GetActivePlan(ctx context.Context, id uint64) (PlusPlan, error)
 	GetInvoiceReceipt(ctx context.Context, arg GetInvoiceReceiptParams) (PlusReceipt, error)
 	GetPlan(ctx context.Context, id uint64) (PlusPlan, error)
+	// Admin-editable Plus settings (key/value; code defaults when a row is missing).
+	GetSetting(ctx context.Context, key string) (string, error)
 	// Trials and subscription periods. Every query is scoped by user_id (IDOR).
 	GetTrial(ctx context.Context, userID uint64) (PlusTrial, error)
 	GetUserInvoiceByReference(ctx context.Context, arg GetUserInvoiceByReferenceParams) (PlusInvoice, error)
@@ -52,6 +54,10 @@ type Querier interface {
 	// A 100 % discount: nothing to charge, paid at checkout.
 	MarkInvoicePaidFree(ctx context.Context, arg MarkInvoicePaidFreeParams) error
 	SetInvoiceAuthority(ctx context.Context, arg SetInvoiceAuthorityParams) error
+	// The trial sheet's «این روزها از پلاس استفاده کردی» lines: uses per feature over every quota month from `since`
+	// (the first day of the trial's start month) on — a 7-day trial can straddle two months.
+	SumUsageSince(ctx context.Context, arg SumUsageSinceParams) ([]SumUsageSinceRow, error)
+	UpsertSetting(ctx context.Context, arg UpsertSettingParams) error
 }
 
 var _ Querier = (*Queries)(nil)

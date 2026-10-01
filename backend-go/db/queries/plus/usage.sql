@@ -18,3 +18,10 @@ VALUES (sqlc.arg(user_id), sqlc.arg(feature), sqlc.arg(period_start), 1, sqlc.ar
 ON DUPLICATE KEY UPDATE
   updated_at = IF(used < sqlc.arg(quota), VALUES(updated_at), updated_at),
   used = IF(used < sqlc.arg(quota), used + 1, used);
+
+-- name: SumUsageSince :many
+-- The trial sheet's «این روزها از پلاس استفاده کردی» lines: uses per feature over every quota month from `since`
+-- (the first day of the trial's start month) on — a 7-day trial can straddle two months.
+SELECT feature, CAST(SUM(used) AS UNSIGNED) AS used FROM plus_usage_counters
+WHERE user_id = sqlc.arg(user_id) AND period_start >= sqlc.arg(since)
+GROUP BY feature;

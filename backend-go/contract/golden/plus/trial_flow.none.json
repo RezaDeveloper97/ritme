@@ -79,7 +79,32 @@
               "used": 0,
               "remaining": null
             }
-          ]
+          ],
+          "trial_offer": {
+            "percent": 50,
+            "ends_at": "2026-09-30T10:00:00+03:30",
+            "seconds_left": 604800,
+            "days_left": 7,
+            "countdown": {
+              "days": 7,
+              "hours": 0,
+              "minutes": 0
+            },
+            "currency": "IRR",
+            "plan": {
+              "id": 2,
+              "code": "plus_3m",
+              "title": "۳ ماهه",
+              "badge": "محبوب‌ترین",
+              "duration_months": 3,
+              "price": 2370000,
+              "monthly_price": 790000,
+              "savings_percent": 20,
+              "is_highlighted": true,
+              "offer_price": 1185000,
+              "offer_monthly_price": 395000
+            }
+          }
         }
       }
     },
@@ -247,7 +272,8 @@
               "used": 0,
               "remaining": 0
             }
-          ]
+          ],
+          "trial_offer": null
         }
       }
     }

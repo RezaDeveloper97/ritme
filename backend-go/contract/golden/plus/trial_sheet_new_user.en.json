@@ -1,0 +1,110 @@
+{
+  "case": "plus/trial_sheet_new_user.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/plus/trial",
+        "persona": "no_profile",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "tier": "free",
+          "trial": null,
+          "trial_available": true,
+          "offer": null,
+          "currency": "IRR",
+          "plans": [
+            {
+              "id": 1,
+              "code": "plus_1m",
+              "title": "1 month",
+              "badge": null,
+              "duration_months": 1,
+              "price": 990000,
+              "monthly_price": 990000,
+              "savings_percent": 0,
+              "is_highlighted": false,
+              "offer_price": null,
+              "offer_monthly_price": null
+            },
+            {
+              "id": 2,
+              "code": "plus_3m",
+              "title": "3 months",
+              "badge": "Most popular",
+              "duration_months": 3,
+              "price": 2370000,
+              "monthly_price": 790000,
+              "savings_percent": 20,
+              "is_highlighted": true,
+              "offer_price": null,
+              "offer_monthly_price": null
+            },
+            {
+              "id": 3,
+              "code": "plus_6m",
+              "title": "6 months",
+              "badge": null,
+              "duration_months": 6,
+              "price": 3900000,
+              "monthly_price": 650000,
+              "savings_percent": 34,
+              "is_highlighted": false,
+              "offer_price": null,
+              "offer_monthly_price": null
+            }
+          ],
+          "usage": {
+            "since": "2026-09-01",
+            "features": [
+              {
+                "key": "plus.deep_analysis",
+                "used": 0,
+                "unlimited": true,
+                "plus_limit": null
+              },
+              {
+                "key": "plus.lab_ai",
+                "used": 0,
+                "unlimited": false,
+                "plus_limit": 10
+              },
+              {
+                "key": "plus.assistant_unlimited",
+                "used": 0,
+                "unlimited": true,
+                "plus_limit": null
+              },
+              {
+                "key": "plus.pdf_share",
+                "used": 0,
+                "unlimited": true,
+                "plus_limit": null
+              },
+              {
+                "key": "plus.visit_discount",
+                "used": 0,
+                "unlimited": true,
+                "plus_limit": null
+              },
+              {
+                "key": "plus.voice_log",
+                "used": 0,
+                "unlimited": true,
+                "plus_limit": null
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

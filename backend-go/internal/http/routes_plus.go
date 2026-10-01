@@ -11,7 +11,7 @@ import (
 	"github.com/ritme/backend-go/internal/plus"
 )
 
-// Ritme Plus (B-N2-04), Go only — no Laravel counterpart (deviations.md D-35). /plus/plans is public (the paywall
+// Ritme Plus (B-N2-04, gating/trial offer B-N2-06), Go only — no Laravel counterpart (deviations.md D-35). /plus/plans is public (the paywall
 // shows prices before login); everything else is auth:api and user-scoped. Localized by Accept-Language.
 //
 // Payment provider: the internal/payments adapter chosen by PAYMENT_PROVIDER (B-N2-05) — the fake TEST gateway by
@@ -32,6 +32,7 @@ func init() {
 		r.Get("/api/v1/plus/status", locale, guard, h.Status)
 		r.Get("/api/v1/plus/usage", locale, guard, h.Usage)
 		r.Get("/api/v1/plus/history", locale, guard, h.History)
+		r.Get("/api/v1/plus/trial", locale, guard, h.TrialSheet) // trial sheet + offer (B-N2-06)
 		r.Post("/api/v1/plus/trial/start", locale, guard, writes, h.StartTrial)
 		r.Post("/api/v1/plus/checkout", locale, guard, writes, h.Checkout)
 		r.Post("/api/v1/plus/verify", locale, guard, writes, h.Verify)

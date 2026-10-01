@@ -1265,6 +1265,26 @@ LOCK TABLES `plus_receipts` WRITE;
 /*!40000 ALTER TABLE `plus_receipts` DISABLE KEYS */;
 /*!40000 ALTER TABLE `plus_receipts` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `plus_settings`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `plus_settings` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `key` varchar(64) NOT NULL,
+  `value` varchar(255) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `plus_settings_key_unique` (`key`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `plus_settings` WRITE;
+/*!40000 ALTER TABLE `plus_settings` DISABLE KEYS */;
+INSERT INTO `plus_settings` VALUES
+(1,'trial_offer_percent','50','2026-09-23 06:30:00','2026-09-23 06:30:00');
+/*!40000 ALTER TABLE `plus_settings` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `plus_subscriptions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;

@@ -82,10 +82,11 @@ func (g tamperGateway) Verify(ctx context.Context, req plus.VerifyRequest) (plus
 }
 
 type env struct {
-	db  *sql.DB
-	app *fiber.App
-	iss *passport.Issuer
-	svc *plus.Service
+	db    *sql.DB
+	app   *fiber.App
+	iss   *passport.Issuer
+	svc   *plus.Service
+	guard fiber.Handler
 }
 
 func setup(t *testing.T, gw plus.Gateway) *env {
@@ -113,7 +114,7 @@ func setup(t *testing.T, gw plus.Gateway) *env {
 	app.Post("/api/v1/plus/verify", locale, guard, h.Verify)
 	app.Post("/api/v1/plus/cancel", locale, guard, h.Cancel)
 	app.Post("/api/v1/plus/restore", locale, guard, h.Restore)
-	return &env{db: db, app: app, iss: passport.NewIssuer(key, q, clock.Real{}, 365), svc: svc}
+	return &env{db: db, app: app, iss: passport.NewIssuer(key, q, clock.Real{}, 365), svc: svc, guard: guard}
 }
 
 func (e *env) user(t *testing.T, mobile string) (uint64, string) {
@@ -332,7 +333,7 @@ func TestCheckoutVerify_HappyPathAndIdempotentReplay(t *testing.T) {
 	// Preview: nothing is written.
 	r := e.do(t, http.MethodPost, "/api/v1/plus/checkout", tok, "en", `{"plan_id":2,"discount_code":" ritme10 ","preview":true}`)
 	require.Equal(t, http.StatusOK, r.status, r.raw)
-	assert.JSONEq(t, `{"plan":{"id":2,"code":"plus_3m","title":"3 months","duration_months":3},"currency":"IRR","subtotal":2370000,"discount":237000,"discount_code":"RITME10","vat_rate_bps":1000,"vat":213300,"total":2346300}`,
+	assert.JSONEq(t, `{"plan":{"id":2,"code":"plus_3m","title":"3 months","duration_months":3},"currency":"IRR","subtotal":2370000,"discount":237000,"discount_code":"RITME10","vat_rate_bps":1000,"vat":213300,"total":2346300,"discount_source":"code","trial_offer":null}`,
 		mustJSON(t, r.data()["quote"]))
 	assert.Equal(t, 0, e.count(t, `SELECT COUNT(*) FROM plus_invoices`))
 

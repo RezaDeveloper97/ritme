@@ -110,3 +110,44 @@ func (q *Queries) ListUsage(ctx context.Context, arg ListUsageParams) ([]ListUsa
 	}
 	return items, nil
 }
+
+const sumUsageSince = `-- name: SumUsageSince :many
+SELECT feature, CAST(SUM(used) AS UNSIGNED) AS used FROM plus_usage_counters
+WHERE user_id = ? AND period_start >= ?
+GROUP BY feature
+`
+
+type SumUsageSinceParams struct {
+	UserID uint64
+	Since  civildate.Date
+}
+
+type SumUsageSinceRow struct {
+	Feature string
+	Used    int64
+}
+
+// The trial sheet's «این روزها از پلاس استفاده کردی» lines: uses per feature over every quota month from `since`
+// (the first day of the trial's start month) on — a 7-day trial can straddle two months.
+func (q *Queries) SumUsageSince(ctx context.Context, arg SumUsageSinceParams) ([]SumUsageSinceRow, error) {
+	rows, err := q.db.QueryContext(ctx, sumUsageSince, arg.UserID, arg.Since)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []SumUsageSinceRow{}
+	for rows.Next() {
+		var i SumUsageSinceRow
+		if err := rows.Scan(&i.Feature, &i.Used); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

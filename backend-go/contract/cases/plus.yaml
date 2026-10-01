@@ -75,6 +75,43 @@ cases:
     path: /api/v1/plus/trial/start
     status: 401
 
+  # B-N2-06: the trial offer (admin percent, seeded 50 in plus_settings), the trial sheet and checkout pricing.
+  - name: trial_sheet_new_user
+    doc: No trial yet → no offer, list-price plans (offer_price null), this month's (empty) usage lines
+    method: GET
+    path: /api/v1/plus/trial
+    status: 200
+  - name: trial_sheet_anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/plus/trial
+    status: 401
+  - name: trial_offer_flow
+    doc: Start the trial → status carries the offer → trial sheet with countdown and half prices → checkout preview applies 50 % server-side → at the trial end the offer is gone and checkout is list price
+    steps:
+      - method: POST
+        path: /api/v1/plus/trial/start
+        status: 200
+      - method: GET
+        path: /api/v1/plus/trial
+        now: "2026-09-25T19:38:00+03:30"
+        status: 200
+      - method: POST
+        path: /api/v1/plus/checkout
+        now: "2026-09-25T19:38:00+03:30"
+        body: {plan_id: 2, preview: true}
+        status: 200
+      - method: GET
+        path: /api/v1/plus/status
+        now: "2026-09-30T10:00:00+03:30"
+        status: 200
+      - method: POST
+        path: /api/v1/plus/checkout
+        now: "2026-09-30T10:00:00+03:30"
+        body: {plan_id: 2, preview: true}
+        status: 200
+
   - name: checkout_preview
     doc: Price the 3-month plan (VAT 10 % on 2,370,000 rials); nothing is written
     method: POST

@@ -12,6 +12,7 @@ import (
 	"github.com/ritme/backend-go/internal/cycle/model"
 	"github.com/ritme/backend-go/internal/cycle/resolver"
 	"github.com/ritme/backend-go/internal/enums"
+	"github.com/ritme/backend-go/internal/i18n"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/httpx"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
@@ -117,7 +118,8 @@ func (o CycleOverview) JSON() *jsonx.OrderedMap {
 	)
 }
 
-// CycleOverview is GET /home/cycle-overview: the current user's own rows only (no id parameter).
+// CycleOverview is GET /home/cycle-overview: the current user's own rows only (no id parameter), plus the Ritme
+// Plus trial banner (`plus_trial_offer`, null when no trial offer runs; B-N2-06).
 func (h *Handlers) CycleOverview(c fiber.Ctx) error {
 	user, err := currentUser(c)
 	if err != nil {
@@ -132,5 +134,11 @@ func (h *Handlers) CycleOverview(c fiber.Ctx) error {
 	for _, r := range sn.LogRows {
 		dates = append(dates, r.LogDate)
 	}
-	return httpx.OK(c, BuildCycleOverview(sn.Histories, sn.EngineProfile(), dates, today).JSON())
+	var banner any
+	if h.deps.Plus != nil {
+		if banner, err = h.deps.Plus.TrialBannerJSON(c.Context(), user.ID, h.now(c), i18n.Locale(c), i18n.LanguagesOf(c).DefaultCode()); err != nil {
+			return err
+		}
+	}
+	return httpx.OK(c, BuildCycleOverview(sn.Histories, sn.EngineProfile(), dates, today).JSON().Set("plus_trial_offer", banner))
 }

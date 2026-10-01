@@ -1542,6 +1542,8 @@ paths:
         `trial` the trial row (running or not); `trial_available` = never trialled and never subscribed.
         `entitlements` is every Plus feature for this month (Tehran calendar month from `period_start`, resetting at
         `resets_at`): `limit`/`remaining` are null when unlimited and 0 when locked. Trials get the Plus quotas.
+        `trial_offer` is the running trial offer (B-N2-06; null unless the trial runs, the user has no subscription and
+        the admin percent is above 0) — the same object as the home banner.
       operationId: getPlusStatus
       security:
         - {bearerAuth: []}
@@ -1602,6 +1604,34 @@ paths:
                 properties:
                   success: {type: boolean}
                   data: {type: array, items: {$ref: "#/components/schemas/PlusInvoice"}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/plus/trial:
+    get:
+      tags: [Plus]
+      summary: The trial sheet — countdown, trial offer, offer prices and Plus usage since the trial began
+      description: |
+        Go only (B-N2-06, `nbl_Prem_TrialSheet`). `trial` adds `seconds_left` to the status trial object. `offer` is
+        the running trial offer (null when none — see `PlusTrialOffer`); `plans` are the active plans with
+        `offer_price` / `offer_monthly_price` (rials, before VAT; null when no offer runs). `usage.features` are the
+        «این روزها از پلاس استفاده کردی» lines in display order: uses summed over the quota months since the trial's
+        start month (`usage.since`; this month without a trial), `plus_limit` = the Plus monthly quota (null =
+        unlimited). Checkout applies the same offer server-side.
+      operationId: getPlusTrialSheet
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The trial sheet
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/PlusTrialSheet"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
   /api/v1/plus/trial/start:
     post:
@@ -4303,7 +4333,8 @@ paths:
         profile, else 28; `source` says which), `based_on_cycles` = valid cycles (null when 0), `spread_days` =
         ceil((max − min) / 2) of the last ≤ 3 valid lengths (null with fewer than 2), `regularity` = the metrics'
         regularity status. `logging.streak_days` = consecutive days with a daily health log ending today, or
-        yesterday while today has none yet (capped at 90).
+        yesterday while today has none yet (capped at 90). `plus_trial_offer` is the Ritme Plus trial banner
+        (`nbl_Prem_TrialHome`, B-N2-06): the running trial offer with its countdown, null when none runs.
       operationId: getHomeCycleOverview
       security:
         - {bearerAuth: []}
@@ -4321,7 +4352,7 @@ paths:
                   success: {type: boolean}
                   data:
                     type: object
-                    required: [date, logging, next_period, pms_window, cycle_length]
+                    required: [date, logging, next_period, pms_window, cycle_length, plus_trial_offer]
                     properties:
                       date: {$ref: "#/components/schemas/Date"}
                       logging:
@@ -4351,6 +4382,7 @@ paths:
                           based_on_cycles: {type: [integer, "null"]}
                           spread_days: {type: [integer, "null"]}
                           regularity: {type: string, enum: [not_enough_data, relatively_regular, irregular_possible]}
+                      plus_trial_offer: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/PlusTrialOffer"}]}
               example:
                 success: true
                 data:
@@ -4359,6 +4391,7 @@ paths:
                   next_period: {start: "2026-10-12", end: "2026-10-16"}
                   pms_window: {start: "2026-10-09", end: "2026-10-11"}
                   cycle_length: {median: 28, source: recent_valid_cycles, based_on_cycles: 5, spread_days: 1, regularity: relatively_regular}
+                  plus_trial_offer: null
         '401': {$ref: "#/components/responses/Unauthenticated"}
   /api/v1/home/notifications:
     get:
@@ -9663,6 +9696,40 @@ components:
                 additionalProperties: {type: array, items: {type: string}}
               error_code: {type: string}
           example: {success: false, message: You have already used your free trial., error_code: trial_used}
+    PlusRequired:
+      description: |
+        The feature needs Ritme Plus (B-N2-06 gate, `error_code: plus_required`): `reason` `locked` = not in the free
+        tier, `quota` = the free monthly allowance is spent (`limit`, `resets_at`). The client shows the paywall /
+        trial offer. Never a 401, so the session is kept.
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code, feature, reason, limit, resets_at]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, const: plus_required}
+              feature: {type: string, description: "Entitlement key (see PlusEntitlement.key)"}
+              reason: {type: string, enum: [locked, quota]}
+              limit: {type: [integer, "null"]}
+              resets_at: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/IsoDateTime"}]}
+          example: {success: false, message: This feature is part of Ritme Plus., error_code: plus_required, feature: plus.deep_analysis, reason: locked, limit: null, resets_at: null}
+    PlusQuotaExceeded:
+      description: "A Plus or trial user spent a monthly quota (`error_code: plus_quota_exceeded`, e.g. plus.lab_ai 10/month); it renews at `resets_at`"
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code, feature, reason, limit, resets_at]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, const: plus_quota_exceeded}
+              feature: {type: string}
+              reason: {type: string, const: quota}
+              limit: {type: integer}
+              resets_at: {$ref: "#/components/schemas/IsoDateTime"}
     PlusPaymentUnavailable:
       description: "No payment provider is configured, or the provider failed (`error_code: payment_unavailable`); a pending invoice stays pending"
       content:
@@ -9917,7 +9984,7 @@ components:
         remaining: {type: [integer, "null"], description: "null = unlimited"}
     PlusStatus:
       type: object
-      required: [tier, is_plus, subscription, trial, trial_available, period_start, resets_at, entitlements]
+      required: [tier, is_plus, subscription, trial, trial_available, period_start, resets_at, entitlements, trial_offer]
       properties:
         tier: {type: string, enum: [free, trial, plus]}
         is_plus: {type: boolean}
@@ -9950,6 +10017,73 @@ components:
         period_start: {$ref: "#/components/schemas/Date"}
         resets_at: {$ref: "#/components/schemas/IsoDateTime"}
         entitlements: {type: array, items: {$ref: "#/components/schemas/PlusEntitlement"}}
+        trial_offer: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/PlusTrialOffer"}]}
+    PlusOfferPlan:
+      description: A plan card with its trial-offer prices (rials, before VAT; null when no offer runs).
+      allOf:
+        - {$ref: "#/components/schemas/PlusPlan"}
+        - type: object
+          required: [offer_price, offer_monthly_price]
+          properties:
+            offer_price: {type: [integer, "null"]}
+            offer_monthly_price: {type: [integer, "null"]}
+    PlusTrialOffer:
+      description: |
+        The running trial offer (B-N2-06): while the free trial runs and the user has no subscription, every plan is
+        `percent` cheaper (admin setting `trial_offer_percent`, default 50) until `ends_at` (= the trial's end).
+        `seconds_left` / `countdown` are computed at the request time (server clock) for the live timer; `plan` is
+        the featured plan (highlighted, else the first). Money in rials.
+      type: object
+      required: [percent, ends_at, seconds_left, days_left, countdown, currency, plan]
+      properties:
+        percent: {type: integer, minimum: 1, maximum: 100}
+        ends_at: {$ref: "#/components/schemas/IsoDateTime"}
+        seconds_left: {type: integer, minimum: 0}
+        days_left: {type: integer, minimum: 0, description: Whole days rounded up}
+        countdown:
+          type: object
+          required: [days, hours, minutes]
+          properties:
+            days: {type: integer, minimum: 0}
+            hours: {type: integer, minimum: 0, maximum: 23}
+            minutes: {type: integer, minimum: 0, maximum: 59}
+        currency: {type: string, const: IRR}
+        plan: {$ref: "#/components/schemas/PlusOfferPlan"}
+    PlusTrialSheet:
+      type: object
+      required: [tier, trial, trial_available, offer, currency, plans, usage]
+      properties:
+        tier: {type: string, enum: [free, trial, plus]}
+        trial:
+          oneOf:
+            - type: "null"
+            - type: object
+              required: [started_at, ends_at, is_active, days_left, seconds_left]
+              properties:
+                started_at: {$ref: "#/components/schemas/IsoDateTime"}
+                ends_at: {$ref: "#/components/schemas/IsoDateTime"}
+                is_active: {type: boolean}
+                days_left: {type: integer, minimum: 0}
+                seconds_left: {type: integer, minimum: 0}
+        trial_available: {type: boolean}
+        offer: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/PlusTrialOffer"}]}
+        currency: {type: string, const: IRR}
+        plans: {type: array, items: {$ref: "#/components/schemas/PlusOfferPlan"}}
+        usage:
+          type: object
+          required: [since, features]
+          properties:
+            since: {$ref: "#/components/schemas/Date"}
+            features:
+              type: array
+              items:
+                type: object
+                required: [key, used, unlimited, plus_limit]
+                properties:
+                  key: {type: string, examples: [plus.deep_analysis]}
+                  used: {type: integer, minimum: 0}
+                  unlimited: {type: boolean, description: Unlimited for Plus}
+                  plus_limit: {type: [integer, "null"], description: "Plus monthly quota; null = unlimited"}
     PlusUsage:
       type: object
       required: [tier, period_start, resets_at, features]
@@ -9960,7 +10094,7 @@ components:
         features: {type: array, items: {$ref: "#/components/schemas/PlusEntitlement"}}
     PlusQuote:
       type: object
-      required: [plan, currency, subtotal, discount, discount_code, vat_rate_bps, vat, total]
+      required: [plan, currency, subtotal, discount, discount_code, vat_rate_bps, vat, total, discount_source, trial_offer]
       properties:
         plan: {$ref: "#/components/schemas/PlusPlanRef"}
         currency: {type: string, const: IRR}
@@ -9970,9 +10104,19 @@ components:
         vat_rate_bps: {type: integer}
         vat: {type: integer}
         total: {type: integer}
+        discount_source: {type: [string, "null"], enum: [code, trial_offer, null], description: "Where the discount came from (codes and the trial offer never stack; the larger wins)"}
+        trial_offer:
+          oneOf:
+            - type: "null"
+            - type: object
+              required: [percent, ends_at, offer_price]
+              properties:
+                percent: {type: integer}
+                ends_at: {$ref: "#/components/schemas/IsoDateTime"}
+                offer_price: {type: integer, description: Rials before VAT}
     PlusInvoice:
       type: object
-      required: [reference, status, plan, duration_months, currency, subtotal, discount, discount_code, vat_rate_bps, vat, total, gateway, created_at, expires_at, paid_at, receipt]
+      required: [reference, status, plan, duration_months, currency, subtotal, discount, discount_code, vat_rate_bps, vat, total, gateway, created_at, expires_at, paid_at, receipt, discount_source]
       properties:
         reference: {type: string, description: Public invoice id}
         status: {type: string, enum: [pending, paid, failed, expired, refunded]}
@@ -9999,6 +10143,7 @@ components:
                 card_pan: {type: [string, "null"]}
                 amount: {type: integer}
                 paid_at: {$ref: "#/components/schemas/IsoDateTime"}
+        discount_source: {type: [string, "null"], enum: [code, trial_offer, null]}
     PlusPayment:
       type: object
       required: [gateway, authority, redirect_url]

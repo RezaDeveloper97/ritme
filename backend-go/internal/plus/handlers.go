@@ -265,3 +265,17 @@ func (h *Handlers) History(c fiber.Ctx) error {
 	}
 	return httpx.OK(c, HistoryJSON(entries, localizer(c)))
 }
+
+// TrialSheet is GET /plus/trial: the trial sheet (nbl_Prem_TrialSheet) — trial countdown, the running trial
+// offer, every plan with its offer price and the Plus features used since the trial began.
+func (h *Handlers) TrialSheet(c fiber.Ctx) error {
+	userID, err := h.user(c)
+	if err != nil {
+		return err
+	}
+	sh, err := h.svc.TrialSheet(c, userID, h.now(c))
+	if err != nil {
+		return err
+	}
+	return httpx.OK(c, TrialSheetJSON(sh, localizer(c)))
+}

@@ -11,6 +11,7 @@ import (
 	"context"
 	"database/sql"
 	"log/slog"
+	"time"
 
 	"github.com/ritme/backend-go/internal/cycle/legacy"
 	"github.com/ritme/backend-go/internal/cycle/metrics"
@@ -40,6 +41,14 @@ type Deps struct {
 	// AppURL is APP_URL (article image URLs).
 	AppURL string
 	Logger *slog.Logger
+	// Plus renders the Ritme Plus trial banner of /home/cycle-overview (nil = always null).
+	Plus TrialBanner
+}
+
+// TrialBanner is the Plus port of the home (internal/plus.Service): the trial-offer banner of the user at now,
+// null when no offer runs (B-N2-06).
+type TrialBanner interface {
+	TrialBannerJSON(ctx context.Context, userID uint64, now time.Time, locale, defaultLocale string) (any, error)
 }
 
 // Context is HomeContext: the request's inputs plus memoised derived data.

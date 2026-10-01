@@ -3,7 +3,7 @@ id: B-N2-06
 title: Plus gating, trial offer engine and usage counters
 milestone: N2
 type: backend
-status: todo
+status: done
 depends_on: [B-N2-04]
 parallel_group: N2-F
 touches: [backend-go/internal/plus,backend-go/internal/http,backend-go/internal/home,backend-go/api]

@@ -526,6 +526,14 @@ type PlusReceipt struct {
 	UpdatedAt   sql.NullTime
 }
 
+type PlusSetting struct {
+	ID        uint64
+	Key       string
+	Value     string
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
 type PlusSubscription struct {
 	ID         uint64
 	UserID     uint64

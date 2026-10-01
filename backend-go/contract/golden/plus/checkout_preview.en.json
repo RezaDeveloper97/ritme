@@ -35,7 +35,9 @@
             "discount_code": null,
             "vat_rate_bps": 1000,
             "vat": 237000,
-            "total": 2607000
+            "total": 2607000,
+            "discount_source": null,
+            "trial_offer": null
           }
         }
       }

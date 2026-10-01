@@ -100,6 +100,7 @@ type State struct {
 	Trial            *store.PlusTrial        // the trial row, running or not
 	TrialAvailable   bool                    // never trialled and never subscribed
 	Usage            Usage
+	Offer            *Offer // the running trial offer (nil when none)
 }
 
 // Usage is this month's resolved entitlements.
@@ -190,6 +191,17 @@ func (s *Service) Status(ctx context.Context, userID uint64, now time.Time) (Sta
 	if st.Usage, err = s.usage(ctx, userID, tier, now); err != nil {
 		return State{}, err
 	}
+	if tier == TierTrial {
+		pct, err := s.TrialOfferPercent(ctx)
+		if err != nil {
+			return State{}, err
+		}
+		if pct > 0 {
+			if st.Offer, err = s.offer(ctx, pct, trial.EndsAt, now); err != nil {
+				return State{}, err
+			}
+		}
+	}
 	return st, nil
 }
 
@@ -204,20 +216,30 @@ func (s *Service) Usage(ctx context.Context, userID uint64, now time.Time) (Usag
 
 // Entitlement resolves one feature for the user without counting a use (gating checks, B-N2-06).
 func (s *Service) Entitlement(ctx context.Context, userID uint64, key Key, now time.Time) (Entitlement, error) {
+	e, _, err := s.entitlement(ctx, userID, key, now)
+	return e, err
+}
+
+// entitlement is Entitlement plus the tier it was resolved for.
+func (s *Service) entitlement(ctx context.Context, userID uint64, key Key, now time.Time) (Entitlement, Tier, error) {
 	def, ok := Lookup(key)
 	if !ok {
-		return Entitlement{}, ErrUnknownFeature
+		return Entitlement{}, "", ErrUnknownFeature
 	}
-	u, err := s.Usage(ctx, userID, now)
+	tier, _, _, err := tierOf(ctx, s.q, userID, now)
 	if err != nil {
-		return Entitlement{}, err
+		return Entitlement{}, "", err
+	}
+	u, err := s.usage(ctx, userID, tier, now)
+	if err != nil {
+		return Entitlement{}, "", err
 	}
 	for _, e := range u.Entitlements {
 		if e.Key == def.Key {
-			return e, nil
+			return e, tier, nil
 		}
 	}
-	return Entitlement{}, ErrUnknownFeature
+	return Entitlement{}, "", ErrUnknownFeature
 }
 
 // Consume counts one use of key for the user at now and returns the entitlement after it. A locked feature is
@@ -300,12 +322,20 @@ func (s *Service) StartTrial(ctx context.Context, userID uint64, now time.Time) 
 // ---------------------------------------------------------------------------
 // Checkout
 
-// Quote is a priced plan with an optional discount.
+// Quote is a priced plan with an optional discount: a discount code or the running trial offer, whichever is
+// larger (they never stack; on a tie the offer wins and the code is not redeemed).
 type Quote struct {
 	Plan           store.PlusPlan
 	Amounts        Amounts
 	DiscountCodeID sql.NullInt64
 	DiscountCode   string
+	TrialOffer     *AppliedOffer // the trial offer priced this quote (nil when a code or nothing did)
+}
+
+// AppliedOffer is the trial offer a quote used.
+type AppliedOffer struct {
+	Percent int
+	EndsAt  time.Time
 }
 
 // quote prices planID with code through q. The code row is read FOR UPDATE: inside a transaction this serialises
@@ -319,8 +349,17 @@ func (s *Service) quote(ctx context.Context, q *store.Queries, userID, planID ui
 		return Quote{}, fmt.Errorf("plus: plan: %w", err)
 	}
 	vat := uint32(s.cfg.VATRateBps) //nolint:gosec // G115: validated 0–10000 by config
+	base := Quote{Plan: plan, Amounts: Price(plan.PriceRials, "", 0, vat)}
+	pct, trial, err := offerPercent(ctx, q, s, userID, now)
+	if err != nil {
+		return Quote{}, err
+	}
+	if pct > 0 {
+		base.Amounts = Price(plan.PriceRials, DiscountPercent, uint64(pct), vat) //nolint:gosec // G115: 1–100
+		base.TrialOffer = &AppliedOffer{Percent: pct, EndsAt: trial.EndsAt}
+	}
 	if code == "" {
-		return Quote{Plan: plan, Amounts: Price(plan.PriceRials, "", 0, vat)}, nil
+		return base, nil
 	}
 	dc, err := q.LockDiscountCode(ctx, code)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -341,7 +380,11 @@ func (s *Service) quote(ctx context.Context, q *store.Queries, userID, planID ui
 	if err := CheckDiscount(dc, planID, now, total, mine); err != nil {
 		return Quote{}, err
 	}
-	return Quote{Plan: plan, Amounts: Price(plan.PriceRials, dc.Kind, dc.Value, vat), DiscountCodeID: id, DiscountCode: dc.Code}, nil
+	withCode := Quote{Plan: plan, Amounts: Price(plan.PriceRials, dc.Kind, dc.Value, vat), DiscountCodeID: id, DiscountCode: dc.Code}
+	if base.TrialOffer != nil && base.Amounts.Discount >= withCode.Amounts.Discount {
+		return base, nil
+	}
+	return withCode, nil
 }
 
 // Preview prices a checkout without creating anything (the «اعمال شد» discount line).

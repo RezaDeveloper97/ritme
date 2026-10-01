@@ -11,6 +11,7 @@ import (
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
 	msgstore "github.com/ritme/backend-go/internal/messages/store"
 	"github.com/ritme/backend-go/internal/platform/clock"
+	"github.com/ritme/backend-go/internal/plus"
 	pstore "github.com/ritme/backend-go/internal/pregnancy/store"
 )
 
@@ -26,6 +27,7 @@ func init() {
 			Pregnancy: pstore.New(d.DB),
 			AppURL:    d.Config.App.URL,
 			Logger:    d.Logger,
+			Plus:      plus.NewService(d.DB, d.Config.Plus, nil, d.Logger), // trial banner only: no gateway needed
 		}, cycleservice.New(d.DB, nil), clock.Real{})
 
 		g := r.Group("/api/v1/home")

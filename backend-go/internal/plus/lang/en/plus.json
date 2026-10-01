@@ -20,7 +20,9 @@
         "authority_mismatch": "The payment does not belong to this invoice.",
         "payment_failed": "The payment was not completed. No money was taken, or it will be returned by your bank.",
         "amount_mismatch": "The paid amount does not match the invoice. Contact support; your bank will return it.",
-        "payment_unavailable": "Payment is not available right now. Please try again later."
+        "payment_unavailable": "Payment is not available right now. Please try again later.",
+        "plus_required": "This feature is part of Ritme Plus.",
+        "quota_exceeded": "You have reached this month's limit for this feature. It renews at the start of next month."
     },
     "discount": {
         "invalid": "This discount code is not valid.",

@@ -1,0 +1,415 @@
+{
+  "case": "plus/trial_offer_flow.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/plus/trial/start",
+        "persona": "no_profile",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "Your free Ritme Plus trial has started",
+        "data": {
+          "tier": "trial",
+          "is_plus": true,
+          "subscription": null,
+          "trial": {
+            "started_at": "2026-09-23T10:00:00+03:30",
+            "ends_at": "2026-09-30T10:00:00+03:30",
+            "is_active": true,
+            "days_left": 7
+          },
+          "trial_available": false,
+          "period_start": "2026-09-01",
+          "resets_at": "2026-10-01T00:00:00+03:30",
+          "entitlements": [
+            {
+              "key": "plus.deep_analysis",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.lab_ai",
+              "allowed": true,
+              "unlimited": false,
+              "limit": 10,
+              "used": 0,
+              "remaining": 10
+            },
+            {
+              "key": "plus.assistant_unlimited",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.pdf_share",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.visit_discount",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.voice_log",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            }
+          ],
+          "trial_offer": {
+            "percent": 50,
+            "ends_at": "2026-09-30T10:00:00+03:30",
+            "seconds_left": 604800,
+            "days_left": 7,
+            "countdown": {
+              "days": 7,
+              "hours": 0,
+              "minutes": 0
+            },
+            "currency": "IRR",
+            "plan": {
+              "id": 2,
+              "code": "plus_3m",
+              "title": "3 months",
+              "badge": "Most popular",
+              "duration_months": 3,
+              "price": 2370000,
+              "monthly_price": 790000,
+              "savings_percent": 20,
+              "is_highlighted": true,
+              "offer_price": 1185000,
+              "offer_monthly_price": 395000
+            }
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/plus/trial",
+        "persona": "no_profile",
+        "accept_language": "en",
+        "now": "2026-09-25T19:38:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "tier": "trial",
+          "trial": {
+            "started_at": "2026-09-23T10:00:00+03:30",
+            "ends_at": "2026-09-30T10:00:00+03:30",
+            "is_active": true,
+            "days_left": 5,
+            "seconds_left": 397320
+          },
+          "trial_available": false,
+          "offer": {
+            "percent": 50,
+            "ends_at": "2026-09-30T10:00:00+03:30",
+            "seconds_left": 397320,
+            "days_left": 5,
+            "countdown": {
+              "days": 4,
+              "hours": 14,
+              "minutes": 22
+            },
+            "currency": "IRR",
+            "plan": {
+              "id": 2,
+              "code": "plus_3m",
+              "title": "3 months",
+              "badge": "Most popular",
+              "duration_months": 3,
+              "price": 2370000,
+              "monthly_price": 790000,
+              "savings_percent": 20,
+              "is_highlighted": true,
+              "offer_price": 1185000,
+              "offer_monthly_price": 395000
+            }
+          },
+          "currency": "IRR",
+          "plans": [
+            {
+              "id": 1,
+              "code": "plus_1m",
+              "title": "1 month",
+              "badge": null,
+              "duration_months": 1,
+              "price": 990000,
+              "monthly_price": 990000,
+              "savings_percent": 0,
+              "is_highlighted": false,
+              "offer_price": 495000,
+              "offer_monthly_price": 495000
+            },
+            {
+              "id": 2,
+              "code": "plus_3m",
+              "title": "3 months",
+              "badge": "Most popular",
+              "duration_months": 3,
+              "price": 2370000,
+              "monthly_price": 790000,
+              "savings_percent": 20,
+              "is_highlighted": true,
+              "offer_price": 1185000,
+              "offer_monthly_price": 395000
+            },
+            {
+              "id": 3,
+              "code": "plus_6m",
+              "title": "6 months",
+              "badge": null,
+              "duration_months": 6,
+              "price": 3900000,
+              "monthly_price": 650000,
+              "savings_percent": 34,
+              "is_highlighted": false,
+              "offer_price": 1950000,
+              "offer_monthly_price": 325000
+            }
+          ],
+          "usage": {
+            "since": "2026-09-01",
+            "features": [
+              {
+                "key": "plus.deep_analysis",
+                "used": 0,
+                "unlimited": true,
+                "plus_limit": null
+              },
+              {
+                "key": "plus.lab_ai",
+                "used": 0,
+                "unlimited": false,
+                "plus_limit": 10
+              },
+              {
+                "key": "plus.assistant_unlimited",
+                "used": 0,
+                "unlimited": true,
+                "plus_limit": null
+              },
+              {
+                "key": "plus.pdf_share",
+                "used": 0,
+                "unlimited": true,
+                "plus_limit": null
+              },
+              {
+                "key": "plus.visit_discount",
+                "used": 0,
+                "unlimited": true,
+                "plus_limit": null
+              },
+              {
+                "key": "plus.voice_log",
+                "used": 0,
+                "unlimited": true,
+                "plus_limit": null
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/plus/checkout",
+        "persona": "no_profile",
+        "accept_language": "en",
+        "now": "2026-09-25T19:38:00+03:30",
+        "body": {
+          "plan_id": 2,
+          "preview": true
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "quote": {
+            "plan": {
+              "id": 2,
+              "code": "plus_3m",
+              "title": "3 months",
+              "duration_months": 3
+            },
+            "currency": "IRR",
+            "subtotal": 2370000,
+            "discount": 1185000,
+            "discount_code": null,
+            "vat_rate_bps": 1000,
+            "vat": 118500,
+            "total": 1303500,
+            "discount_source": "trial_offer",
+            "trial_offer": {
+              "percent": 50,
+              "ends_at": "2026-09-30T10:00:00+03:30",
+              "offer_price": 1185000
+            }
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/plus/status",
+        "persona": "no_profile",
+        "accept_language": "en",
+        "now": "2026-09-30T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "tier": "free",
+          "is_plus": false,
+          "subscription": null,
+          "trial": {
+            "started_at": "2026-09-23T10:00:00+03:30",
+            "ends_at": "2026-09-30T10:00:00+03:30",
+            "is_active": false,
+            "days_left": 0
+          },
+          "trial_available": false,
+          "period_start": "2026-09-01",
+          "resets_at": "2026-10-01T00:00:00+03:30",
+          "entitlements": [
+            {
+              "key": "plus.deep_analysis",
+              "allowed": false,
+              "unlimited": false,
+              "limit": 0,
+              "used": 0,
+              "remaining": 0
+            },
+            {
+              "key": "plus.lab_ai",
+              "allowed": false,
+              "unlimited": false,
+              "limit": 0,
+              "used": 0,
+              "remaining": 0
+            },
+            {
+              "key": "plus.assistant_unlimited",
+              "allowed": true,
+              "unlimited": false,
+              "limit": 5,
+              "used": 0,
+              "remaining": 5
+            },
+            {
+              "key": "plus.pdf_share",
+              "allowed": false,
+              "unlimited": false,
+              "limit": 0,
+              "used": 0,
+              "remaining": 0
+            },
+            {
+              "key": "plus.visit_discount",
+              "allowed": false,
+              "unlimited": false,
+              "limit": 0,
+              "used": 0,
+              "remaining": 0
+            },
+            {
+              "key": "plus.voice_log",
+              "allowed": false,
+              "unlimited": false,
+              "limit": 0,
+              "used": 0,
+              "remaining": 0
+            }
+          ],
+          "trial_offer": null
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/plus/checkout",
+        "persona": "no_profile",
+        "accept_language": "en",
+        "now": "2026-09-30T10:00:00+03:30",
+        "body": {
+          "plan_id": 2,
+          "preview": true
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "quote": {
+            "plan": {
+              "id": 2,
+              "code": "plus_3m",
+              "title": "3 months",
+              "duration_months": 3
+            },
+            "currency": "IRR",
+            "subtotal": 2370000,
+            "discount": 0,
+            "discount_code": null,
+            "vat_rate_bps": 1000,
+            "vat": 237000,
+            "total": 2607000,
+            "discount_source": null,
+            "trial_offer": null
+          }
+        }
+      }
+    }
+  ]
+}

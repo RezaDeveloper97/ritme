@@ -431,3 +431,16 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   `PAYMENT_CALLBACK_BASE_URL`, `PAYMENT_RETURN_URLS`, `PAYMENT_HTTP_TIMEOUT_SECONDS`, `ZARINPAL_MERCHANT_ID` (server
   only), `ZARINPAL_SANDBOX`, `ZARINPAL_BASE_URL`; `PLUS_*` added to `.env.stage.example` and `docker-compose.stage.yml`.
 - No migration (00016 unused; invoices/receipts are the durable record). Contract `plus` 25 passed. QUESTIONS #71.
+
+## B-N2-06 — Plus gating, trial offer engine and usage counters
+
+- **Migration** `00018_plus_settings` (key/value, seeded `trial_offer_percent=50`; Laravel `2026_10_01_000018_…`).
+  00016 intentionally unused; 00017 belongs to the canvas session (CB-CONTRA-01).
+- **Gate:** `plus.NewGate(svc, clock).Require(plus.<Key>)` → 402 `plus_required` (`reason` locked|quota, `limit`,
+  `resets_at`) or 429 `plus_quota_exceeded`; handlers `svc.Consume` then `gate.GateError`. OpenAPI responses
+  `PlusRequired`, `PlusQuotaExceeded`.
+- **Trial offer:** `PlusTrialOffer` (percent, ends_at, seconds_left, countdown, featured plan with offer prices) in
+  `GET /home/cycle-overview` `data.plus_trial_offer`, `GET /plus/status` `data.trial_offer`, new `GET /plus/trial`
+  (trial, offer, plans with offer prices, usage since trial month). Checkout prices at the offer server-side;
+  `discount_source` code|trial_offer on quotes/invoices. Admin hooks `svc.TrialOfferPercent` / `SetTrialOfferPercent`.
+- Contract `ROUTES=all` 1111 passed; schema-diff OK. QUESTIONS #72.
