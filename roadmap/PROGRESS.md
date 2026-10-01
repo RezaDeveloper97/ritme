@@ -105,3 +105,7 @@ TODO (ask user):
 - Final verdicts (`docs/qa/canvas/contra.md` § CB-CONTRA-04): Setup ~ (injection/implant icons → CB-CONTRA-04b), Pill ✔, Missed ✔, Other ✔. No ✘.
 - Verify: typecheck, lint, fsd:lint, lint:styles (669), lint:dark, 954 tests, build — green.
 - For the future push sender: skip pill on break days; pill time inside quiet hours currently defers to 08:00 (ask user). No Home entry point to /contraception yet (reached via /profile/mode) — ask user whether a home card is wanted.
+
+## CB-CONTRA-04b — Syringe and implant icons for contraception methods
+- `syringe` and `implant` glyphs added to `shared/ui/Icon.tsx` (paths from the board's tiles; the board's implant is a circle with rays, not a rod); `METHOD_LOOK` uses them for injection / implant (setup tiles, other-methods cards, pill screen).
+- Verify: typecheck, lint, lint:styles, lint:dark, 954 tests — green. Setup verdict → ✔ (`docs/qa/canvas/contra/CB-CONTRA-04b/`).

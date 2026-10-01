@@ -3,7 +3,7 @@ id: CB-CONTRA-04b
 title: Syringe and implant icons for contraception methods
 epic: CONTRA
 type: frontend
-status: todo
+status: done
 depends_on: [CB-CONTRA-04]
 parallel_group: CONTRA-E
 touches: [frontend/src/shared/ui/Icon.tsx,frontend/src/entities/contraception/model/look.ts,docs/qa/canvas/contra.md,docs/qa/canvas/contra]

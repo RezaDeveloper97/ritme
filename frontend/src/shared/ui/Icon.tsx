@@ -19,7 +19,8 @@ export type IconName =
   | 'users' | 'gradCap' | 'todo' | 'box' | 'watch' | 'help' | 'chat' | 'crown' | 'smartphone' | 'modeRing'
   | 'symptom' | 'star' | 'sprout'
   | 'female' | 'male' | 'cake'
-  | 'card';
+  | 'card'
+  | 'syringe' | 'implant';
 
 const PATHS: Record<IconName, string> = {
   bell:         '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
@@ -138,6 +139,9 @@ const PATHS: Record<IconName, string> = {
   sprout:       '<path d="M12 21v-8"/><path d="M12 13c0-4-3-6-7-6 0 4 3 6 7 6zM12 11c0-4 3-6 7-6 0 4-3 6-7 6z"/>',
   // B-N2-07: payment method row (nbl_Prem_Checkout)
   card:         '<rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10.5h18"/>',
+  // CB-CONTRA-04b: injection + implant setup tiles (nbl_Contra_Setup)
+  syringe:      '<path d="M18 2l4 4M20 4l-9 9M13 7l4 4M4 20l3-3M7 17l-2-2 8-8 4 4-8 8z"/>',
+  implant:      '<circle cx="12" cy="12" r="3"/><path d="M12 3v6M12 15v6M5 5l4 4M15 15l4 4"/>',
 };
 
 interface IconProps {

@@ -11,8 +11,8 @@ export const METHOD_LOOK: Record<ContraceptionMethodCode, { icon: IconName; tone
   progestin_pill: { icon: 'capsule', tone: 'data' },
   copper_iud: { icon: 'shield', tone: 'bloom' },
   hormonal_iud: { icon: 'shield', tone: 'warm' },
-  injection: { icon: 'calendar', tone: 'brand' },
-  implant: { icon: 'hand', tone: 'data' },
+  injection: { icon: 'syringe', tone: 'brand' },
+  implant: { icon: 'implant', tone: 'data' },
   condom: { icon: 'heart', tone: 'bloom' },
   other: { icon: 'info', tone: 'neutral' },
 };
