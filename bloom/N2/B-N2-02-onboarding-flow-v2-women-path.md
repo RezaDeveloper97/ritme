@@ -3,7 +3,7 @@ id: B-N2-02
 title: Onboarding flow v2 (women path)
 milestone: N2
 type: frontend
-status: todo
+status: done
 depends_on: [B-N2-01,B-N1-03]
 parallel_group: N2-B
 touches: [frontend/src/screens/onboarding-*,frontend/src/screens/auth-signup,frontend/src/screens/auth-otp,frontend/src/app/[locale]/onboarding,frontend/src/features/auth]

@@ -89,7 +89,7 @@
     "title": "Verification code",
     "subtitle": "Enter the {count, number}-digit code sent to <phone>{number}</phone>.",
     "boxesLabel": "Verification code",
-    "digitLabel": "Digit {n}",
+    "digitLabel": "Digit {n, number}",
     "editPhone": "Change number",
     "resendIn": "Resend in",
     "resend": "Resend code",

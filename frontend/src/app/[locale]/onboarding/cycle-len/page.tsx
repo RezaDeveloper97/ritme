@@ -1,17 +1,9 @@
-import { setRequestLocale } from 'next-intl/server';
-
-import { CycleLenPage } from '@/screens/onboarding-cycle-len';
-
-import { RouteMessages } from '../../../RouteMessages';
+import { redirect } from 'next/navigation';
 
 interface Props { params: Promise<{ locale: string }> }
 
+/** Legacy step, merged into `/onboarding/cycle` by onboarding v2 (B-N2-02); kept so old links and resume markers land. */
 export default async function CycleLenRoute({ params }: Props) {
   const { locale } = await params;
-  setRequestLocale(locale);
-  return (
-    <RouteMessages route="onboardingCycleLen">
-      <CycleLenPage />
-    </RouteMessages>
-  );
+  redirect(`/${locale}/onboarding/cycle`);
 }

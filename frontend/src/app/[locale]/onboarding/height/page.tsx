@@ -1,17 +1,9 @@
-import { setRequestLocale } from 'next-intl/server';
-
-import { HeightPage } from '@/screens/onboarding-height';
-
-import { RouteMessages } from '../../../RouteMessages';
+import { redirect } from 'next/navigation';
 
 interface Props { params: Promise<{ locale: string }> }
 
+/** Legacy step, merged into `/onboarding/health` by onboarding v2 (B-N2-02); kept so old links and resume markers land. */
 export default async function HeightRoute({ params }: Props) {
   const { locale } = await params;
-  setRequestLocale(locale);
-  return (
-    <RouteMessages route="onboardingHeight">
-      <HeightPage />
-    </RouteMessages>
-  );
+  redirect(`/${locale}/onboarding/health`);
 }

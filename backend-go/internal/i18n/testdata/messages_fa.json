@@ -89,7 +89,7 @@
     "title": "کد تأیید",
     "subtitle": "کد {count, number} رقمی ارسال‌شده به <phone>{number}</phone> را وارد کن.",
     "boxesLabel": "کد تأیید",
-    "digitLabel": "رقم {n}",
+    "digitLabel": "رقم {n, number}",
     "editPhone": "ویرایش شماره",
     "resendIn": "ارسال دوباره تا",
     "resend": "ارسال دوباره کد",

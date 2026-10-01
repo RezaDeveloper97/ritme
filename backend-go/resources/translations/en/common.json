@@ -36,5 +36,11 @@
     "digits": "{count, plural, one {# digit} other {# digits}}",
     "localNote": "The passcode is kept only on this phone, encrypted, and is never sent to the server.",
     "lockedOut": "Too many wrong passcodes. To protect your data you are being signed out; sign in again with the SMS code."
+  },
+  "onbFrame": {
+    "back": "Back",
+    "skip": "Skip",
+    "progress": "Step {step, number} of {total, number}",
+    "privacy": "Your information stays confidential with Ritme and is never shared with anyone."
   }
 }

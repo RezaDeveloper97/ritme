@@ -444,3 +444,13 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   (trial, offer, plans with offer prices, usage since trial month). Checkout prices at the offer server-side;
   `discount_source` code|trial_offer on quotes/invoices. Admin hooks `svc.TrialOfferPercent` / `SetTrialOfferPercent`.
 - Contract `ROUTES=all` 1111 passed; schema-diff OK. QUESTIONS #72.
+
+## B-N2-02 — Onboarding flow v2 (women path)
+
+- New `screens/onboarding-flow` (flow model + branching, pregnancy dating maths, zod state, API for `GET/PUT/POST
+  /onboarding*`, steps Name/Gender/Goal/Cycle/Pregnancy/Menopause/Conditions/Health/Partner(stub)/Ready, tests).
+  `features/auth` `OnbFrame` + `useWebOtp`; signup (+98, two consent ticks) and OTP (WebOTP, paste, resend timer)
+  rewritten. Routes under `/onboarding/*` (new gender/cycle/menopause/health/partner; old birthday/height/weight →
+  health, cycle-len/period-len/cycle-duration → cycle). 11 old onboarding slices deleted.
+- Messages: `auth.phone|code`, `common.onbFrame`, `onboarding.flow` (dead keys removed), seed + goldens.
+- E2E in browser: TTC → `/home`, pregnancy → `/pregnancy`. Screenshots `docs/qa/bloom/B-N2-02/`. QUESTIONS #73–#75.

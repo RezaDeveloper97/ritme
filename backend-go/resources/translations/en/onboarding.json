@@ -1,91 +1,4 @@
 {
-  "stepOf": "{step} / 8",
-  "continue": "Continue",
-  "finish": "Finish",
-  "helper": "Help us get to know you better",
-  "name": {
-    "title": "What should we call you on Ritme?",
-    "subtitle": "You'll see this name in the app and we'll use it to address you",
-    "label": "Display name",
-    "placeholder": "e.g. Sameh",
-    "terms": "By continuing you accept the <link>Terms & Conditions</link> and privacy policy."
-  },
-  "birthday": {
-    "title": "What is your date of birth?",
-    "subtitle": "Help us get to know you better"
-  },
-  "weight": {
-    "title": "What is your weight?",
-    "subtitle": "Help us get to know you better",
-    "helper": "This is used for weight and general-health analysis, and it is confidential."
-  },
-  "height": {
-    "title": "What is your height?",
-    "subtitle": "Help us get to know you better",
-    "helper": "This is used for weight and general-health analysis, and it is confidential."
-  },
-  "intention": {
-    "title": "Where are you with pregnancy right now?",
-    "subtitle": "We'll personalise your plan based on your answer",
-    "options": {
-      "avoiding": "Not planning a pregnancy right now",
-      "pregnant": "I am pregnant",
-      "trying": "I'm trying to conceive",
-      "unsure": "Not sure yet"
-    }
-  },
-  "pregnancyBasis": {
-    "title": "How should we date your pregnancy?",
-    "subtitle": "Choose one of the methods below",
-    "source": {
-      "lmp": "First day of last period",
-      "ultrasound": "Ultrasound",
-      "manual": "Enter the week manually"
-    },
-    "sourceHint": {
-      "lmp": "If you know your last period date, this is the simple accurate option.",
-      "ultrasound": "Based on your ultrasound result; the most accurate method.",
-      "manual": "If you know your pregnancy week from your doctor."
-    },
-    "weeks": "Weeks",
-    "days": "Days",
-    "note": "During pregnancy, Ritme focuses more on your mood, sleep and general care, and period tracking is turned off.",
-    "selectSource": "Please choose a method",
-    "fillRequired": "Please enter the week"
-  },
-  "periodLen": {
-    "title": "How many days does your period usually last?",
-    "subtitle": "Help us get to know you better",
-    "unit": "days"
-  },
-  "cycleDuration": {
-    "title": "How long is your cycle, usually?",
-    "subtitle": "The gap between the start of two periods; if unsure, 28 days is typical",
-    "unit": "days"
-  },
-  "cycleLen": {
-    "title": "When did your last period start?",
-    "subtitle": "Help us get to know you better",
-    "hint": "Select the day your last period began"
-  },
-  "conditions": {
-    "title": "Do you have any chronic conditions?",
-    "subtitle": "This section is optional — share as much as you like to make your recommendations more accurate.",
-    "items": {
-      "pcos": "Polycystic ovary syndrome (PCOS)",
-      "hypothyroidism": "Hypothyroidism",
-      "hyperthyroidism": "Hyperthyroidism",
-      "hypertension": "High blood pressure",
-      "heart_disease": "Heart disease",
-      "diabetes": "Diabetes (type 1, 2 or gestational)"
-    }
-  },
-  "settingUp": {
-    "title": "We are setting up your personalised calendar…",
-    "subtitle": "Help us get to know you better",
-    "wait": "Please wait a few seconds…",
-    "disclaimer": "Ritme is not a substitute for a doctor or counsellor visit. The information you enter is used to personalise recommendations and help you understand your own body. If you have severe or worrying symptoms, be sure to contact a health professional."
-  },
   "enums": {
     "gender": {
       "female": "Female",
@@ -133,5 +46,148 @@
       "hormonal_medication": "Hormonal medication"
     }
   },
-  "dayCount": "{days, plural, one {# day} other {# days}}"
+  "dayCount": "{days, plural, one {# day} other {# days}}",
+  "flow": {
+    "continue": "Continue",
+    "notNow": "Not now",
+    "retry": "Try again",
+    "loading": "Loading",
+    "saveError": "Couldn't save. Please try again.",
+    "loadError": {
+      "title": "Couldn't load your answers",
+      "body": "Check your connection and try again."
+    },
+    "decrease": "Decrease",
+    "increase": "Increase",
+    "unitDay": "days",
+    "calendar": {
+      "prev": "Previous month",
+      "next": "Next month"
+    },
+    "name": {
+      "title": "What's your name?",
+      "subtitle": "Ritme will call you by this name.",
+      "label": "Name",
+      "placeholder": "e.g. Sara",
+      "hint": "You can change it later in settings."
+    },
+    "gender": {
+      "title": "What's your gender?",
+      "subtitle": "We'll set up the right path for you based on your answer.",
+      "maleNote": "If you're a man, Ritme Companion helps you stand by your partner."
+    },
+    "goal": {
+      "title": "Why did you install Ritme?",
+      "subtitle": "You can change it any time in settings.",
+      "desc": {
+        "cycle": "Period predictions, symptoms and knowing my body",
+        "ttc": "Fertile window, ovulation and the best days",
+        "pregnancy": "Week-by-week baby growth and caring for myself",
+        "menopause": "Perimenopause and beyond: symptoms, check-ups and a report for your doctor"
+      }
+    },
+    "cycle": {
+      "title": "When did your last period start?",
+      "unsure": "I don't remember exactly",
+      "periodLabel": "Period length",
+      "periodDesc": "How many days do you usually bleed?",
+      "cycleLabel": "Cycle length",
+      "cycleDesc": "From the start of one period to the next",
+      "note": "Not sure? Keep the defaults; Ritme refines them after a few cycles."
+    },
+    "pregnancy": {
+      "title": "Congratulations! How should we date your pregnancy?",
+      "subtitle": "Pick the most accurate basis; an early ultrasound is usually the most accurate.",
+      "basisLabel": "Dating basis",
+      "basis": {
+        "lmp": "Last period",
+        "ultrasound": "Ultrasound",
+        "due": "Due date",
+        "week": "Current week"
+      },
+      "panel": {
+        "lmp": "First day of your last period",
+        "ultrasound": "Ultrasound details",
+        "due": "Due date from your doctor",
+        "week": "Current week of pregnancy"
+      },
+      "lmpDate": "Period start date",
+      "scanDate": "Ultrasound date",
+      "dueDate": "Due date",
+      "pickDate": "Pick a date",
+      "weeks": "Weeks",
+      "days": "Days",
+      "scanNote": "The gestational age written in the ultrasound report.",
+      "today": "Today",
+      "ga": "{weeks} weeks and {days} days",
+      "due": "Estimated due date"
+    },
+    "menopause": {
+      "title": "Where are you on the menopause path?",
+      "subtitle": "We'll tailor symptoms, check-ups and content to your stage.",
+      "desc": {
+        "peri": "I still have periods, but they've become irregular or I have new symptoms",
+        "meno": "I haven't had a period for 12 months or more",
+        "post": "It's been a few years since my last period",
+        "unsure": "A few questions will help you find your stage"
+      },
+      "lastPeriod": "Last period",
+      "about": "Around {month}",
+      "notSet": "Not set",
+      "surgical": "Was your menopause caused by surgery or treatment (e.g. ovary removal)?",
+      "hrt": "Are you taking hormone therapy or menopause medication now?",
+      "yes": "Yes",
+      "no": "No"
+    },
+    "conditions": {
+      "title": "Do you have any conditions?",
+      "subtitle": "You can pick several. This is taken into account in predictions and suggestions.",
+      "chronic": "Chronic conditions",
+      "gyn": "Gynaecological conditions",
+      "meds": "Regular medication or contraception",
+      "none": "None",
+      "noMeds": "None",
+      "disclaimer": "Ritme doesn't diagnose; this only makes predictions and content more accurate and can be deleted any time."
+    },
+    "health": {
+      "title": "A little about you",
+      "subtitle": "Your age, height and weight personalise suggestions; they're saved to your account only.",
+      "birthday": "Date of birth",
+      "pickBirthday": "Pick your date of birth",
+      "age": "{age} years",
+      "height": "Height",
+      "weight": "Weight",
+      "cm": "cm",
+      "kg": "kg",
+      "optional": "You can leave any of these empty."
+    },
+    "ready": {
+      "title": "Your Ritme is ready",
+      "subtitle": "Get to know your body's rhythm with Ritme",
+      "nextPeriod": "Next period",
+      "about": "Around {date}",
+      "fertile": "Fertile window",
+      "range": "{from} to {to}",
+      "mode": "Mode",
+      "partnerMode": "Companion",
+      "reminder": "Reminder before your period",
+      "reminderDesc": "We'll let you know {days, plural, one {# day} other {# days}} before",
+      "enter": "Enter Ritme"
+    },
+    "partner": {
+      "title": "Companion code",
+      "subtitle": "If your partner added you as their companion, enter the code they gave you to see what they share with you.",
+      "soon": "Linking with a companion code is coming soon. Enter Ritme for now; you can link later.",
+      "seesTitle": "What do you see with this code?",
+      "sees": {
+        "phase": "Current phase and next period",
+        "fertile": "Fertile window (if your partner wants)",
+        "tips": "\"How to support her\" tips",
+        "private": "Symptoms, notes and medical data"
+      },
+      "revoke": "Your partner can revoke access at any time.",
+      "connect": "Connect",
+      "later": "I'll connect later"
+    }
+  }
 }

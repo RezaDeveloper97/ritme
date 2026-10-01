@@ -1,17 +1,18 @@
 import { setRequestLocale } from 'next-intl/server';
 
-import { NamePage } from '@/screens/onboarding-name';
+import { NameStep } from '@/screens/onboarding-flow';
 
 import { RouteMessages } from '../../../RouteMessages';
 
 interface Props { params: Promise<{ locale: string }> }
 
+/** `/onboarding/name` — nbl_Onb_Name (B-N2-02). */
 export default async function NameRoute({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   return (
     <RouteMessages route="onboardingName">
-      <NamePage />
+      <NameStep />
     </RouteMessages>
   );
 }
