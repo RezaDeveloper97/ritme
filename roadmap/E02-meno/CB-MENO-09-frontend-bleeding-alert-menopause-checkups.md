@@ -4,7 +4,7 @@ title: Frontend: bleeding alert + menopause checkups
 epic: MENO
 type: frontend
 status: todo
-depends_on: [CB-MENO-05, B-N1-15]
+depends_on: [CB-MENO-05, B-N1-15, CB-MENO-01b]
 parallel_group: MENO-D
 touches: [frontend/src/screens/menopause-alert, frontend/src/app/[locale]/menopause/alert, frontend/src/screens/checkups]
 skills: [new-fsd-slice]

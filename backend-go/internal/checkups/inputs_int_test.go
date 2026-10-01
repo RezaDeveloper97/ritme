@@ -140,9 +140,11 @@ func TestUserDeleteCascades(t *testing.T) {
 		VALUES (?, 1, '2026-09-01', 'normal', NOW(), NOW())`, alice)
 	exec(t, db, `INSERT INTO user_checkup_settings (user_id, checkup_type_id, created_at, updated_at) VALUES (?, 1, NOW(), NOW())`, alice)
 
+	var shared int // the seeded catalog rows (M4 + later audience-scoped seeds) stay
+	require.NoError(t, db.QueryRowContext(context.Background(), "SELECT COUNT(*) FROM checkup_types WHERE user_id IS NULL").Scan(&shared))
 	_, err := db.ExecContext(context.Background(), "DELETE FROM users WHERE id = ?", alice)
 	require.NoError(t, err)
-	for table, want := range map[string]int{"checkup_types": 6, "checkup_records": 0, "user_checkup_settings": 0} {
+	for table, want := range map[string]int{"checkup_types": shared, "checkup_records": 0, "user_checkup_settings": 0} {
 		var n int
 		require.NoError(t, db.QueryRowContext(context.Background(), "SELECT COUNT(*) FROM "+table).Scan(&n))
 		assert.Equal(t, want, n, table)

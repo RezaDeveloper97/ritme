@@ -42,6 +42,14 @@
         "spotting": {
           "title": "لکه‌بینی"
         },
+        "presence": {
+          "title": "خونریزی یا لکه‌بینی",
+          "options": {
+            "none": "نداشتم",
+            "spotting": "لکه‌بینی",
+            "bleeding": "خونریزی"
+          }
+        },
         "color": {
           "title": "رنگ",
           "options": {
@@ -173,7 +181,10 @@
             "leg_cramps": "گرفتگی پا",
             "night_sweats": "تعریق شبانه",
             "brain_fog": "مه مغزی",
-            "palpitations": "تپش قلب"
+            "palpitations": "تپش قلب",
+            "anxiety": "اضطراب یا بی‌قراری",
+            "irritability": "تحریک‌پذیری",
+            "low_mood": "غمگینی یا بی‌حوصلگی"
           }
         }
       }
@@ -331,7 +342,9 @@
             "vaginal_dryness": "خشکی",
             "vaginal_itching": "خارش",
             "vaginal_burning": "سوزش واژن",
-            "odor_change": "تغییر بو"
+            "odor_change": "تغییر بو",
+            "bladder_symptoms": "تکرر یا نشت ادرار",
+            "low_libido": "کاهش میل جنسی"
           }
         },
         "urination": {
@@ -471,6 +484,22 @@
         }
       }
     },
+    "menopause": {
+      "title": "یائسگی",
+      "params": {
+        "triggers": {
+          "title": "عوامل امروز",
+          "options": {
+            "caffeine": "قهوه یا چای پررنگ",
+            "spicy_food": "غذای تند",
+            "stress": "استرس",
+            "exercise": "ورزش",
+            "warm_room": "اتاق گرم",
+            "hot_drink": "نوشیدنی داغ"
+          }
+        }
+      }
+    },
     "baby": {
       "title": "نوزاد",
       "params": {
@@ -503,6 +532,17 @@
           "title": "موارد سفارشی"
         }
       }
+    }
+  },
+  "presets": {
+    "menopause": {
+      "vasomotor": "گرگرفتگی و قلب",
+      "sleep": "خواب",
+      "mind": "حال و ذهن",
+      "body": "بدن",
+      "urogenital": "ادراری و تناسلی",
+      "bleeding": "خونریزی یا لکه‌بینی",
+      "triggers": "امروز چه چیزهایی داشتی؟"
     }
   }
 }

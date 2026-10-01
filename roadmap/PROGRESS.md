@@ -117,3 +117,11 @@ TODO (ask user):
 - Verify: vet, golangci-lint 0, go test ./..., test-int search, OpenAPI test, `make contract ROUTES=all` (12 search goldens) — green.
 - Open: contract fixture lacks checkup_types (services covered by int tests only); routes not yet built (/programs/pelvic CB-PELV-02, /analysis/* B-N3-08/09, /articles/{slug}) — CB-NAV-02 maps or hides them; add sources when condition programs (CB-COND-01), courses (B-N8), directory (B-N7/CB-DIR) ship.
 - TODO (ask user): insight window = current cycle for cycle/ttc/teen, 30 days otherwise; response echoes raw query; keep pelvic link before CB-PELV-02.
+
+## CB-MENO-01 — Menopause schema, taxonomy items and seeds
+- Goose `00022_menopause` (+ Laravel twin `2026_10_01_000022`): `hot_flashes`, `menopause_scores` (Jalali month, 11 answers, domain subtotals 16/16/12), `treatment_items` (→ reminders, set null), `treatment_intakes`, `side_effect_logs`; `checkup_types.audiences` (JSON modes, NULL = everyone). Profile fields reuse bloom's `user_life_profiles.menopause_*`.
+- Taxonomy (bloom B-N3-01, extended — no parallel log): menopause-only items anxiety/irritability/low_mood, bladder_symptoms/low_libido, param `bleeding.presence` (alert), mode category `menopause.triggers`; `taxonomy.MenopausePreset()` (board's 5 groups + bleeding + triggers). Labels in log-taxonomy.json (Go + frontend copies) and i18n goldens.
+- Catalog (audience menopause, needs_review): `meno_score_items` 11, `meno_score_bands` 4, `meno_alerts` 7, `meno_tips` 14, `meno_checkup_groups` 4. 9 `meno_*` checkups seeded **inactive** → CB-MENO-01b (audience filter + activation). Doc `docs/canvas-build/menopause.md`.
+- Verify: sqlc, vet, go test ./..., golangci-lint 0, schema-diff OK, contract all green, migrations round-trip int test.
+- Pre-existing red int tests (not this task): internal/catalog admin tests assume empty catalog_items (broken since 00010/00017 seeds); internal/admin/languages, internal/admin/messages.
+- TODO (ask user): Jalali score month; checkups inactive until CB-MENO-01b; eye/dental split; relaxation 70 min/week; «گرما» → warm_room. All 40 catalog rows + 9 checkups [needs clinical review].

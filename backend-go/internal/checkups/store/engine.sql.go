@@ -11,7 +11,7 @@ import (
 
 const listActiveCheckupTypesForUser = `-- name: ListActiveCheckupTypesForUser :many
 
-SELECT id, ` + "`" + `key` + "`" + `, user_id, category, title, subtitle, why, performed_by, icon, tone, interval_months, interval_months_max, age_min, age_max, cycle_day_from, cycle_day_to, remind_lead_days, prep_steps, guide_steps, finding_options, hide_in_pregnancy, is_active, sort_order, source_note, created_at, updated_at FROM ` + "`" + `checkup_types` + "`" + `
+SELECT id, ` + "`" + `key` + "`" + `, user_id, category, title, subtitle, why, performed_by, icon, tone, interval_months, interval_months_max, age_min, age_max, cycle_day_from, cycle_day_to, remind_lead_days, prep_steps, guide_steps, finding_options, hide_in_pregnancy, is_active, sort_order, source_note, created_at, updated_at, audiences FROM ` + "`" + `checkup_types` + "`" + `
 WHERE is_active = 1 AND (user_id IS NULL OR user_id = CAST(? AS UNSIGNED))
 ORDER BY sort_order, id
 `
@@ -55,6 +55,7 @@ func (q *Queries) ListActiveCheckupTypesForUser(ctx context.Context, userID int6
 			&i.SourceNote,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.Audiences,
 		); err != nil {
 			return nil, err
 		}

@@ -49,7 +49,7 @@ const (
 var AllModes = []string{ModeCycle, ModeTTC, ModePregnancy, ModePostpartum, ModeMenopause, ModeTeen}
 
 // Mode sets used by the registry (the taxonomy table's «سیکل/TTC · بارداری · بعد زایمان» columns; teen
-// follows cycle, menopause gets the general categories until CB-MENO-01 adds its own items).
+// follows cycle; menopause gets the general categories plus its own items, CB-MENO-01 — see menopause.go).
 var (
 	all      = AllModes
 	cycleish = []string{ModeCycle, ModeTTC, ModeMenopause, ModeTeen}
@@ -163,6 +163,8 @@ var registry = []Category{
 	{Code: "bleeding", Group: "body", Modes: modes(cycleish, preg, post), Params: []Param{
 		{Code: "flow", Type: Single, Options: opts("light", "medium", "heavy", "very_heavy"), Modes: modes(cycleish, preg), Alert: true},
 		{Code: "spotting", Type: Bool, Modes: modes(cycleish, preg)},
+		// CB-MENO-01: the menopause log's none · spotting · bleeding (any bleeding after menopause → alert).
+		{Code: "presence", Type: Single, Options: opts("none", "spotting", "bleeding"), Modes: []string{ModeMenopause}, Alert: true},
 		{Code: "color", Type: Single, Detail: true, Modes: cycleish,
 			Options: join(opts("pink", "bright_red"), legacy("red"), opts("dark_red", "brown", "black"))},
 		{Code: "clots", Type: Bool, Detail: true, Modes: modes(cycleish, post)},
@@ -197,7 +199,7 @@ var registry = []Category{
 		{Code: "general", Type: Items, Levels: symptomLevels, Custom: true, Options: join(
 			opts("fatigue", "dizziness", "breast_tenderness", "swelling", "hot_flashes", "chills", "insomnia"),
 			only(preg, "leg_cramps"),
-			only([]string{ModeMenopause}, "night_sweats", "brain_fog", "palpitations"),
+			only([]string{ModeMenopause}, "night_sweats", "brain_fog", "palpitations", "anxiety", "irritability", "low_mood"),
 		)},
 	}},
 	{Code: "discharge", Group: "body", Modes: modes(cycleish, preg), Params: []Param{
@@ -225,9 +227,10 @@ var registry = []Category{
 			only([]string{ModeCycle, ModeTTC, ModePostpartum, ModeMenopause, ModeTeen}, "high"))},
 	}},
 	{Code: "urogenital", Group: "body", Modes: all, Params: []Param{
-		{Code: "symptoms", Type: Items, Levels: symptomLevels, Custom: true, Options: opts(
+		{Code: "symptoms", Type: Items, Levels: symptomLevels, Custom: true, Options: join(opts(
 			"frequent_urination", "urination_burning", "urgency", "leakage", "vaginal_dryness", "vaginal_itching",
-			"vaginal_burning", "odor_change")},
+			"vaginal_burning", "odor_change"),
+			only([]string{ModeMenopause}, "bladder_symptoms", "low_libido"))},
 		{Code: "urination", Type: Single, Options: opts("increased", "decreased", "normal")},
 	}},
 	{Code: "sex", Group: "lifestyle", Modes: []string{ModeCycle, ModeTTC, ModePregnancy, ModePostpartum, ModeMenopause},
@@ -262,6 +265,9 @@ var registry = []Category{
 	{Code: "pregnancy", Group: "mode", Modes: preg, Params: []Param{
 		{Code: "kicks", Type: Link, Source: "kick_counter"},
 		{Code: "contractions", Type: Link, Source: "contraction_timer"},
+	}},
+	{Code: "menopause", Group: "mode", Modes: []string{ModeMenopause}, Params: []Param{ // CB-MENO-01
+		{Code: "triggers", Type: Multi, Options: opts("caffeine", "spicy_food", "stress", "exercise", "warm_room", "hot_drink")},
 	}},
 	{Code: "baby", Group: "mode", Modes: post, Params: []Param{
 		{Code: "feeding", Type: Link, Source: "feeding"},

@@ -42,6 +42,14 @@
         "spotting": {
           "title": "Spotting"
         },
+        "presence": {
+          "title": "Bleeding or spotting",
+          "options": {
+            "none": "None",
+            "spotting": "Spotting",
+            "bleeding": "Bleeding"
+          }
+        },
         "color": {
           "title": "Colour",
           "options": {
@@ -173,7 +181,10 @@
             "leg_cramps": "Leg cramps",
             "night_sweats": "Night sweats",
             "brain_fog": "Brain fog",
-            "palpitations": "Palpitations"
+            "palpitations": "Palpitations",
+            "anxiety": "Anxiety or restlessness",
+            "irritability": "Irritability",
+            "low_mood": "Low mood"
           }
         }
       }
@@ -331,7 +342,9 @@
             "vaginal_dryness": "Dryness",
             "vaginal_itching": "Itching",
             "vaginal_burning": "Vaginal burning",
-            "odor_change": "Changed odour"
+            "odor_change": "Changed odour",
+            "bladder_symptoms": "Frequent or leaking urine",
+            "low_libido": "Low sex drive"
           }
         },
         "urination": {
@@ -471,6 +484,22 @@
         }
       }
     },
+    "menopause": {
+      "title": "Menopause",
+      "params": {
+        "triggers": {
+          "title": "Today's triggers",
+          "options": {
+            "caffeine": "Coffee or strong tea",
+            "spicy_food": "Spicy food",
+            "stress": "Stress",
+            "exercise": "Exercise",
+            "warm_room": "Warm room",
+            "hot_drink": "Hot drink"
+          }
+        }
+      }
+    },
     "baby": {
       "title": "Baby",
       "params": {
@@ -503,6 +532,17 @@
           "title": "Custom items"
         }
       }
+    }
+  },
+  "presets": {
+    "menopause": {
+      "vasomotor": "Hot flashes & heart",
+      "sleep": "Sleep",
+      "mind": "Mood & mind",
+      "body": "Body",
+      "urogenital": "Urinary & genital",
+      "bleeding": "Bleeding or spotting",
+      "triggers": "What did you have today?"
     }
   }
 }

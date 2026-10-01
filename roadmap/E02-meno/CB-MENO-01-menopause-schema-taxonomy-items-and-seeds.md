@@ -3,7 +3,7 @@ id: CB-MENO-01
 title: Menopause schema, taxonomy items and seeds
 epic: MENO
 type: backend
-status: todo
+status: done
 depends_on: [CB-CORE-03, B-N3-01, B-N2-01, B-N2-03]
 parallel_group: MENO-A
 touches: [backend-go/db/migrations, backend/database/migrations, backend-go/db/queries/menopause, backend-go/sqlc.yaml, backend-go/seeds, docs/canvas-build/menopause.md]

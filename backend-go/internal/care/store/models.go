@@ -151,6 +151,7 @@ type CheckupType struct {
 	SourceNote        sql.NullString
 	CreatedAt         sql.NullTime
 	UpdatedAt         sql.NullTime
+	Audiences         db.NullRawJSON
 }
 
 type ContraceptionMethod struct {
@@ -338,6 +339,19 @@ type HealthLogPreference struct {
 	UpdatedAt     sql.NullTime
 }
 
+type HotFlash struct {
+	ID        uint64
+	UserID    uint64
+	StartedAt time.Time
+	DurationS sql.NullInt32
+	Severity  sql.NullInt16
+	Night     bool
+	Sweat     bool
+	Triggers  db.NullRawJSON
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
 type InfoSection struct {
 	ID        uint64
 	Group     string
@@ -386,6 +400,19 @@ type Language struct {
 	SortOrder   int32
 	CreatedAt   sql.NullTime
 	UpdatedAt   sql.NullTime
+}
+
+type MenopauseScore struct {
+	ID            uint64
+	UserID        uint64
+	Month         civildate.Date
+	Answers       json.RawMessage
+	Total         uint8
+	Somatic       uint8
+	Psychological uint8
+	Urogenital    uint8
+	CreatedAt     sql.NullTime
+	UpdatedAt     sql.NullTime
 }
 
 type MessageContent struct {
@@ -915,6 +942,16 @@ type Session struct {
 	LastActivity int32
 }
 
+type SideEffectLog struct {
+	ID              uint64
+	UserID          uint64
+	TreatmentItemID sql.NullInt64
+	LogDate         civildate.Date
+	Code            string
+	CreatedAt       sql.NullTime
+	UpdatedAt       sql.NullTime
+}
+
 type SupportReport struct {
 	ID             uint64
 	UserID         uint64
@@ -939,6 +976,35 @@ type TaskTemplate struct {
 	SortOrder   int32
 	CreatedAt   sql.NullTime
 	UpdatedAt   sql.NullTime
+}
+
+type TreatmentIntake struct {
+	ID              uint64
+	UserID          uint64
+	TreatmentItemID uint64
+	IntakeDate      civildate.Date
+	Amount          sql.NullInt16
+	TakenAt         time.Time
+	CreatedAt       sql.NullTime
+	UpdatedAt       sql.NullTime
+}
+
+type TreatmentItem struct {
+	ID         uint64
+	UserID     uint64
+	Kind       string
+	Name       string
+	Dose       sql.NullString
+	Schedule   sql.NullString
+	StartedOn  civildate.NullDate
+	ReviewOn   civildate.NullDate
+	WeeklyGoal sql.NullInt16
+	GoalUnit   sql.NullString
+	StoppedOn  civildate.NullDate
+	ReminderID sql.NullInt64
+	SortOrder  int32
+	CreatedAt  sql.NullTime
+	UpdatedAt  sql.NullTime
 }
 
 type User struct {

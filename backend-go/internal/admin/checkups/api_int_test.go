@@ -26,6 +26,9 @@ func newEnv(t *testing.T) *admintest.Env {
 	t.Helper()
 	e := admintest.New(t)
 	admincheckups.New(e.DB, admintest.Quiet).Routes(e.Route(), e.Kit)
+	// These tests pin the M4 default catalog; audience-scoped seeds (menopause, goose 00022) are not part of it.
+	_, err := e.DB.Exec("DELETE FROM checkup_types WHERE user_id IS NULL AND audiences IS NOT NULL")
+	require.NoError(t, err)
 	return e
 }
 

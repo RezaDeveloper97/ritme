@@ -135,7 +135,7 @@ func (q *Queries) GetCheckupSetting(ctx context.Context, arg GetCheckupSettingPa
 }
 
 const getCheckupTypeForUser = `-- name: GetCheckupTypeForUser :one
-SELECT id, ` + "`" + `key` + "`" + `, user_id, category, title, subtitle, why, performed_by, icon, tone, interval_months, interval_months_max, age_min, age_max, cycle_day_from, cycle_day_to, remind_lead_days, prep_steps, guide_steps, finding_options, hide_in_pregnancy, is_active, sort_order, source_note, created_at, updated_at FROM ` + "`" + `checkup_types` + "`" + `
+SELECT id, ` + "`" + `key` + "`" + `, user_id, category, title, subtitle, why, performed_by, icon, tone, interval_months, interval_months_max, age_min, age_max, cycle_day_from, cycle_day_to, remind_lead_days, prep_steps, guide_steps, finding_options, hide_in_pregnancy, is_active, sort_order, source_note, created_at, updated_at, audiences FROM ` + "`" + `checkup_types` + "`" + `
 WHERE id = ? AND is_active = 1 AND (user_id IS NULL OR user_id = CAST(? AS UNSIGNED))
 LIMIT 1
 `
@@ -176,6 +176,7 @@ func (q *Queries) GetCheckupTypeForUser(ctx context.Context, arg GetCheckupTypeF
 		&i.SourceNote,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Audiences,
 	)
 	return i, err
 }
@@ -227,7 +228,7 @@ func (q *Queries) GetCheckupUserContext(ctx context.Context, id uint64) (GetChec
 }
 
 const getCustomCheckupType = `-- name: GetCustomCheckupType :one
-SELECT id, ` + "`" + `key` + "`" + `, user_id, category, title, subtitle, why, performed_by, icon, tone, interval_months, interval_months_max, age_min, age_max, cycle_day_from, cycle_day_to, remind_lead_days, prep_steps, guide_steps, finding_options, hide_in_pregnancy, is_active, sort_order, source_note, created_at, updated_at FROM ` + "`" + `checkup_types` + "`" + `
+SELECT id, ` + "`" + `key` + "`" + `, user_id, category, title, subtitle, why, performed_by, icon, tone, interval_months, interval_months_max, age_min, age_max, cycle_day_from, cycle_day_to, remind_lead_days, prep_steps, guide_steps, finding_options, hide_in_pregnancy, is_active, sort_order, source_note, created_at, updated_at, audiences FROM ` + "`" + `checkup_types` + "`" + `
 WHERE id = ? AND user_id = ? AND category = 'custom'
 LIMIT 1
 `
@@ -267,6 +268,7 @@ func (q *Queries) GetCustomCheckupType(ctx context.Context, arg GetCustomCheckup
 		&i.SourceNote,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Audiences,
 	)
 	return i, err
 }
@@ -350,7 +352,7 @@ func (q *Queries) InsertCustomCheckupType(ctx context.Context, arg InsertCustomC
 
 const listCheckupPlanRows = `-- name: ListCheckupPlanRows :many
 SELECT
-  t.id, t.` + "`" + `key` + "`" + `, t.user_id, t.category, t.title, t.subtitle, t.why, t.performed_by, t.icon, t.tone, t.interval_months, t.interval_months_max, t.age_min, t.age_max, t.cycle_day_from, t.cycle_day_to, t.remind_lead_days, t.prep_steps, t.guide_steps, t.finding_options, t.hide_in_pregnancy, t.is_active, t.sort_order, t.source_note, t.created_at, t.updated_at,
+  t.id, t.` + "`" + `key` + "`" + `, t.user_id, t.category, t.title, t.subtitle, t.why, t.performed_by, t.icon, t.tone, t.interval_months, t.interval_months_max, t.age_min, t.age_max, t.cycle_day_from, t.cycle_day_to, t.remind_lead_days, t.prep_steps, t.guide_steps, t.finding_options, t.hide_in_pregnancy, t.is_active, t.sort_order, t.source_note, t.created_at, t.updated_at, t.audiences,
   s.enabled AS setting_enabled,
   s.remind AS setting_remind,
   r.id AS record_id,
@@ -420,6 +422,7 @@ func (q *Queries) ListCheckupPlanRows(ctx context.Context, arg ListCheckupPlanRo
 			&i.CheckupType.SourceNote,
 			&i.CheckupType.CreatedAt,
 			&i.CheckupType.UpdatedAt,
+			&i.CheckupType.Audiences,
 			&i.SettingEnabled,
 			&i.SettingRemind,
 			&i.RecordID,
