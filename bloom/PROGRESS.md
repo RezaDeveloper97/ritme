@@ -513,3 +513,14 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   goldens) so cycle/fertility/messages/export engines keep working.
 - Labels `log-taxonomy` namespace (seed + frontend copies; registration in message-scopes/bundled is B-N3-03).
 - Contract `ROUTES=all` 1150 passed; schema-diff OK. QUESTIONS #80.
+
+## B-N3-02 — Log preferences — quick tiles, order, custom items
+
+- **Migration** `00021_health_log_preferences` (+ Laravel twin): `health_log_preferences` (per user+mode, JSON
+  `category_order` / `hidden` / `pinned`, NULL = default) and `health_log_custom_items` (label ≤40, soft delete; item
+  code `custom_<id>` in `health_log_entries`).
+- **Endpoints:** `GET|PUT|DELETE /api/v1/logs/preferences[?mode=]` (≤8 pinned tile keys = category or
+  `category.param`; defaults per mode and today's phase in `taxonomy/prefs.go`), `GET|POST /logs/custom-items`,
+  `PATCH|DELETE /logs/custom-items/{id}` (≤20 active, unique label per category, 404 on others' ids). `PUT /logs/days`
+  validation now accepts only the user's custom items on host params.
+- Contract `logs` 34 passed; schema-diff OK. QUESTIONS #81.

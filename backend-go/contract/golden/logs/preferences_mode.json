@@ -1,0 +1,158 @@
+{
+  "case": "logs/preferences_mode",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/logs/preferences?mode=pregnancy",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "pregnancy",
+          "phase": null,
+          "is_default": true,
+          "customized": {
+            "order": false,
+            "hidden": false,
+            "pinned": false
+          },
+          "max_pinned": 8,
+          "pinned": [
+            "pregnancy.kicks",
+            "pregnancy.contractions",
+            "symptoms",
+            "mood",
+            "measurements.weight",
+            "measurements.bp_systolic",
+            "sleep",
+            "note"
+          ],
+          "categories": [
+            {
+              "code": "bleeding",
+              "label": "Period & spotting",
+              "hidden": false,
+              "pinned": false,
+              "custom_param": null
+            },
+            {
+              "code": "pain",
+              "label": "Pain",
+              "hidden": false,
+              "pinned": false,
+              "custom_param": null
+            },
+            {
+              "code": "mood",
+              "label": "Mood",
+              "hidden": false,
+              "pinned": true,
+              "custom_param": "moods"
+            },
+            {
+              "code": "symptoms",
+              "label": "Body symptoms",
+              "hidden": false,
+              "pinned": true,
+              "custom_param": "general"
+            },
+            {
+              "code": "discharge",
+              "label": "Discharge",
+              "hidden": false,
+              "pinned": false,
+              "custom_param": null
+            },
+            {
+              "code": "sleep",
+              "label": "Sleep",
+              "hidden": false,
+              "pinned": true,
+              "custom_param": null
+            },
+            {
+              "code": "appetite_energy",
+              "label": "Appetite & energy",
+              "hidden": false,
+              "pinned": false,
+              "custom_param": "cravings"
+            },
+            {
+              "code": "activity",
+              "label": "Activity",
+              "hidden": false,
+              "pinned": false,
+              "custom_param": "types"
+            },
+            {
+              "code": "urogenital",
+              "label": "Urinary & genital",
+              "hidden": false,
+              "pinned": false,
+              "custom_param": "symptoms"
+            },
+            {
+              "code": "sex",
+              "label": "Sex & libido",
+              "hidden": false,
+              "pinned": false,
+              "custom_param": null
+            },
+            {
+              "code": "measurements",
+              "label": "Weight & BBT",
+              "hidden": false,
+              "pinned": false,
+              "custom_param": null
+            },
+            {
+              "code": "meds",
+              "label": "Meds & supplements",
+              "hidden": false,
+              "pinned": false,
+              "custom_param": null
+            },
+            {
+              "code": "skin_hair",
+              "label": "Skin & hair",
+              "hidden": false,
+              "pinned": false,
+              "custom_param": "symptoms"
+            },
+            {
+              "code": "pregnancy",
+              "label": "Pregnancy",
+              "hidden": false,
+              "pinned": false,
+              "custom_param": null
+            },
+            {
+              "code": "note",
+              "label": "Note",
+              "hidden": false,
+              "pinned": true,
+              "custom_param": null
+            },
+            {
+              "code": "custom",
+              "label": "Custom items",
+              "hidden": false,
+              "pinned": false,
+              "custom_param": "items"
+            }
+          ],
+          "max_custom_items": 20,
+          "custom_items": []
+        }
+      }
+    }
+  ]
+}

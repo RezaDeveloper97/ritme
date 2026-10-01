@@ -5,6 +5,9 @@
 # backfilled days (2026-09-14 bleeding high + red → flow heavy + colour red) and the write-back into
 # daily_health_logs (save_flow reads it through the old GET /health-logs/{date}) are pinned here; the backfill of
 # odd legacy values, the two-way sync and IDOR are covered by internal/healthlog and db/migrations tests.
+# B-N3-02 added preferences (order / hidden / quick tiles, defaults by mode and phase) and custom items; the dump got
+# the empty health_log_custom_items / health_log_preferences tables (00021) by hand. Custom item ids restart at 1 after
+# every reset (the dump recreates the table), so the cases write their codes ("custom_1") directly.
 # Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
 group: logs
 defaults:
@@ -71,6 +74,10 @@ cases:
     doc: Save today (v2-only values stay in v2; legacy-representable ones are written back), read both ways, delete
     locales: none
     steps:
+      - method: POST
+        path: /api/v1/logs/custom-items
+        body: {category: custom, label: قهوه}
+        status: 201
       - method: PUT
         path: /api/v1/logs/days/2026-09-23
         body:
@@ -80,7 +87,7 @@ cases:
             mood: {moods: [calm, energetic]}
             measurements: {weight: 58.4}
             note: {text: "یادداشت"}
-            custom: {items: {coffee: "yes"}}
+            custom: {items: {custom_1: "yes"}}
         status: 200
       - method: GET
         path: /api/v1/logs/days/2026-09-23
@@ -131,4 +138,134 @@ cases:
     method: PUT
     path: /api/v1/logs/days/2026-09-22
     body: {categories: {}}
+    status: 401
+
+  - name: preferences
+    doc: Defaults for the regular persona (cycle; tiles by today's phase), category labels in the request language
+    method: GET
+    path: /api/v1/logs/preferences
+    status: 200
+  - name: preferences_mode
+    locales: en
+    method: GET
+    path: /api/v1/logs/preferences
+    query: {mode: pregnancy}
+    status: 200
+  - name: preferences_invalid_mode
+    method: GET
+    path: /api/v1/logs/preferences
+    query: {mode: all}
+    status: 422
+  - name: preferences_anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/logs/preferences
+    status: 401
+  - name: preferences_flow
+    doc: Save order / hidden / tiles, reset the tiles only (null), reset everything
+    locales: none
+    steps:
+      - method: PUT
+        path: /api/v1/logs/preferences
+        body: {order: [note, mood], hidden: [sex], pinned: [note, pain, measurements.bbt]}
+        status: 200
+      - method: GET
+        path: /api/v1/logs/preferences
+        status: 200
+      - method: PUT
+        path: /api/v1/logs/preferences
+        body: {pinned: null}
+        status: 200
+      - method: DELETE
+        path: /api/v1/logs/preferences
+        status: 200
+  - name: preferences_invalid
+    doc: More than 8 tiles, a tile of another mode, an unknown category, a duplicate
+    steps:
+      - method: PUT
+        path: /api/v1/logs/preferences
+        body: {pinned: [bleeding, pain, mood, symptoms, discharge, sleep, note, meds, activity]}
+        status: 422
+      - method: PUT
+        path: /api/v1/logs/preferences
+        body: {pinned: [baby.feeding], order: [horoscope], hidden: [note, note]}
+        status: 422
+
+  - name: custom_items_flow
+    doc: Add (custom + symptom), log it, rename, soft-delete (history kept, new input refused), list with deleted
+    locales: none
+    steps:
+      - method: POST
+        path: /api/v1/logs/custom-items
+        body: {category: custom, label: "  Coffee  "}
+        status: 201
+        capture: {coffee_id: data.id}
+      - method: POST
+        path: /api/v1/logs/custom-items
+        body: {category: symptoms, label: Jaw pain}
+        status: 201
+      - method: PUT
+        path: /api/v1/logs/days/2026-09-22
+        body: {categories: {custom: {items: {custom_1: "yes"}}, symptoms: {general: {custom_2: moderate}}}}
+        status: 200
+      - method: PATCH
+        path: "/api/v1/logs/custom-items/{{coffee_id}}"
+        body: {label: Espresso}
+        status: 200
+      - method: DELETE
+        path: "/api/v1/logs/custom-items/{{coffee_id}}"
+        status: 200
+      - method: GET
+        path: /api/v1/logs/custom-items
+        status: 200
+      - method: GET
+        path: /api/v1/logs/days/2026-09-22
+        status: 200
+      - method: PUT
+        path: /api/v1/logs/days/2026-09-21
+        body: {categories: {custom: {items: {custom_1: "yes"}}}}
+        status: 422
+      - method: DELETE
+        path: "/api/v1/logs/custom-items/{{coffee_id}}"
+        status: 404
+  - name: custom_items_invalid
+    doc: Unknown host category, missing / too long / blank label
+    steps:
+      - method: POST
+        path: /api/v1/logs/custom-items
+        body: {category: bleeding, label: "1234567890123456789012345678901234567890X"}
+        status: 422
+      - method: POST
+        path: /api/v1/logs/custom-items
+        body: {category: custom, label: "   "}
+        status: 422
+  - name: custom_items_idor
+    doc: Another user's custom item is not found and cannot be logged
+    locales: none
+    steps:
+      - method: POST
+        path: /api/v1/logs/custom-items
+        body: {category: custom, label: Mine}
+        status: 201
+        capture: {id: data.id}
+      - method: PATCH
+        as: pregnant_lmp_w8
+        path: "/api/v1/logs/custom-items/{{id}}"
+        body: {label: Theirs}
+        status: 404
+      - method: PUT
+        as: pregnant_lmp_w8
+        path: /api/v1/logs/days/2026-09-22
+        body: {categories: {custom: {items: {custom_1: "yes"}}}}
+        status: 422
+      - method: GET
+        as: pregnant_lmp_w8
+        path: /api/v1/logs/custom-items
+        status: 200
+  - name: custom_items_anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/logs/custom-items
     status: 401

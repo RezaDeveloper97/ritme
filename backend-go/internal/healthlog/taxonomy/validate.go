@@ -26,8 +26,19 @@ func (c Change) Key() string { return c.Category + "." + c.Param }
 // dynamicItem is the shape of a free item code (custom items, care reminder ids).
 var dynamicItem = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]{0,63}$`)
 
+// CustomItems are a user's active custom items (B-N3-02) as "category.param.code" slots: the only
+// non-taxonomy item codes a Custom param accepts for new input.
+type CustomItems map[string]bool
+
+// Has reports whether code is an active custom item of cat.param.
+func (c CustomItems) Has(cat, param, code string) bool { return c[cat+"."+param+"."+code] }
+
+// Add registers an active custom item.
+func (c CustomItems) Add(cat, param, code string) { c[cat+"."+param+"."+code] = true }
+
 // parser validates a PUT /logs/days/{date} body.
 type parser struct {
+	custom   CustomItems
 	mode     string
 	locale   string
 	existing map[string]Entry // slot → stored entry (unchanged values always pass)
@@ -42,9 +53,11 @@ type parser struct {
 // Rules: categories, params, options, items and levels must exist; a new value must be available in the
 // user's mode (legacy-only values never are), but a value equal to the stored one always passes, so a
 // re-save of a legacy day (or of a day logged in another mode) never fails; numbers stay inside the
-// param's range; texts inside their length; link params are read-only.
-func Parse(body phpval.Map, mode, locale string, existing []Entry) ([]Change, error) {
-	p := &parser{mode: mode, locale: locale, existing: map[string]Entry{}, errs: httpx.NewValidationError()}
+// param's range; texts inside their length; link params are read-only. Custom params (B-N3-02) take,
+// besides their options, only the user's active custom items (custom); a deleted custom item stays valid
+// where it is stored.
+func Parse(body phpval.Map, mode, locale string, existing []Entry, custom CustomItems) ([]Change, error) {
+	p := &parser{custom: custom, mode: mode, locale: locale, existing: map[string]Entry{}, errs: httpx.NewValidationError()}
 	for _, e := range existing {
 		p.existing[e.Slot()] = e
 	}
@@ -291,7 +304,8 @@ func (p *parser) itemLevel(cat *Category, par *Param, paramOK bool, field, item 
 	return e, true
 }
 
-// itemOK: a known item available in the mode, a free code for dynamic params, or the stored item.
+// itemOK: a known item available in the mode, one of the user's custom items for custom params, a free
+// code for (other) dynamic params, or the stored item.
 func (p *parser) itemOK(cat *Category, par *Param, paramOK bool, item string) bool {
 	if _, had := p.existing[cat.Code+"."+par.Code+"."+item]; had {
 		return true
@@ -301,6 +315,9 @@ func (p *parser) itemOK(cat *Category, par *Param, paramOK bool, item string) bo
 	}
 	if o, ok := par.Option(item); ok {
 		return o.OptionAvailable(p.mode)
+	}
+	if par.Custom {
+		return p.custom.Has(cat.Code, par.Code, item)
 	}
 	return par.Dynamic && dynamicItem.MatchString(item)
 }
@@ -315,7 +332,10 @@ func (p *parser) codeOK(cat *Category, par *Param, paramOK bool, item, code stri
 		return false
 	}
 	o, ok := par.Option(code)
-	return ok && o.OptionAvailable(p.mode)
+	if !ok {
+		return par.Custom && item != "" && p.custom.Has(cat.Code, par.Code, code)
+	}
+	return o.OptionAvailable(p.mode)
 }
 
 func (p *parser) sameCode(item string, base Entry, code string) bool {

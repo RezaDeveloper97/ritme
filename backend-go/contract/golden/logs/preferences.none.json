@@ -1,0 +1,150 @@
+{
+  "case": "logs/preferences.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/logs/preferences",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "phase": "fertile",
+          "is_default": true,
+          "customized": {
+            "order": false,
+            "hidden": false,
+            "pinned": false
+          },
+          "max_pinned": 8,
+          "pinned": [
+            "discharge",
+            "sex",
+            "mood",
+            "symptoms",
+            "pain",
+            "sleep",
+            "measurements.weight",
+            "note"
+          ],
+          "categories": [
+            {
+              "code": "bleeding",
+              "label": "پریود و لکه‌بینی",
+              "hidden": false,
+              "pinned": false,
+              "custom_param": null
+            },
+            {
+              "code": "pain",
+              "label": "درد",
+              "hidden": false,
+              "pinned": true,
+              "custom_param": null
+            },
+            {
+              "code": "mood",
+              "label": "حال و روحیه",
+              "hidden": false,
+              "pinned": true,
+              "custom_param": "moods"
+            },
+            {
+              "code": "symptoms",
+              "label": "علائم بدن",
+              "hidden": false,
+              "pinned": true,
+              "custom_param": "general"
+            },
+            {
+              "code": "discharge",
+              "label": "ترشحات",
+              "hidden": false,
+              "pinned": true,
+              "custom_param": null
+            },
+            {
+              "code": "sleep",
+              "label": "خواب",
+              "hidden": false,
+              "pinned": true,
+              "custom_param": null
+            },
+            {
+              "code": "appetite_energy",
+              "label": "اشتها و انرژی",
+              "hidden": false,
+              "pinned": false,
+              "custom_param": "cravings"
+            },
+            {
+              "code": "activity",
+              "label": "فعالیت بدنی",
+              "hidden": false,
+              "pinned": false,
+              "custom_param": "types"
+            },
+            {
+              "code": "urogenital",
+              "label": "ادراری و تناسلی",
+              "hidden": false,
+              "pinned": false,
+              "custom_param": "symptoms"
+            },
+            {
+              "code": "sex",
+              "label": "رابطه و میل جنسی",
+              "hidden": false,
+              "pinned": true,
+              "custom_param": null
+            },
+            {
+              "code": "measurements",
+              "label": "وزن و دمای پایه",
+              "hidden": false,
+              "pinned": false,
+              "custom_param": null
+            },
+            {
+              "code": "meds",
+              "label": "دارو و مکمل",
+              "hidden": false,
+              "pinned": false,
+              "custom_param": null
+            },
+            {
+              "code": "skin_hair",
+              "label": "پوست و مو",
+              "hidden": false,
+              "pinned": false,
+              "custom_param": "symptoms"
+            },
+            {
+              "code": "note",
+              "label": "یادداشت",
+              "hidden": false,
+              "pinned": true,
+              "custom_param": null
+            },
+            {
+              "code": "custom",
+              "label": "موارد سفارشی",
+              "hidden": false,
+              "pinned": false,
+              "custom_param": "items"
+            }
+          ],
+          "max_custom_items": 20,
+          "custom_items": []
+        }
+      }
+    }
+  ]
+}

@@ -13,6 +13,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -68,6 +69,13 @@ func setupLogs(t *testing.T) *logsEnv {
 	app.Get("/api/v1/logs/days/:date", locale, guard, h.Day)
 	app.Put("/api/v1/logs/days/:date", locale, guard, h.Save)
 	app.Delete("/api/v1/logs/days/:date", locale, guard, h.Destroy)
+	app.Get("/api/v1/logs/preferences", locale, guard, h.Preferences)
+	app.Put("/api/v1/logs/preferences", locale, guard, h.SavePreferences)
+	app.Delete("/api/v1/logs/preferences", locale, guard, h.ResetPreferences)
+	app.Get("/api/v1/logs/custom-items", locale, guard, h.CustomItems)
+	app.Post("/api/v1/logs/custom-items", locale, guard, h.AddCustomItem)
+	app.Patch("/api/v1/logs/custom-items/:id", locale, guard, h.RenameCustomItem)
+	app.Delete("/api/v1/logs/custom-items/:id", locale, guard, h.DeleteCustomItem)
 	app.Post("/api/v1/health-logs", locale, guard, old.Store)
 	app.Get("/api/v1/health-logs/:date", locale, guard, old.Show)
 	app.Delete("/api/v1/health-logs/:date", locale, guard, old.Destroy)
@@ -87,6 +95,17 @@ func (e *logsEnv) user(t *testing.T, mobile, mode string) (uint64, string) {
 	tok, err := e.iss.Issue(context.Background(), uint64(id), time.Now()) //nolint:gosec // positive id
 	require.NoError(t, err)
 	return uint64(id), tok.AccessToken //nolint:gosec // positive id
+}
+
+// customItem stores an active custom item of the user and returns its item code ("custom_<id>").
+func (e *logsEnv) customItem(t *testing.T, userID uint64, category, param, label string) string {
+	t.Helper()
+	res, err := e.db.Exec(`INSERT INTO health_log_custom_items (user_id, category, param, label, created_at, updated_at)
+		VALUES (?, ?, ?, ?, NOW(), NOW())`, userID, category, param, label)
+	require.NoError(t, err)
+	id, err := res.LastInsertId()
+	require.NoError(t, err)
+	return "custom_" + strconv.FormatInt(id, 10)
 }
 
 type logsResp struct {
@@ -197,6 +216,7 @@ func TestLogs_Taxonomy(t *testing.T) {
 func TestLogs_SaveReadDelete_WritesLegacyBack(t *testing.T) {
 	e := setupLogs(t)
 	uid, tok := e.user(t, "09120000001", "")
+	coffee := e.customItem(t, uid, "custom", "items", "قهوه")
 	body := `{"categories":{
 		"bleeding":{"flow":"heavy","color":"pink","spotting":false},
 		"pain":{"location":{"abdomen":{"level":"moderate","score":6}},"relief":["heat"]},
@@ -205,6 +225,7 @@ func TestLogs_SaveReadDelete_WritesLegacyBack(t *testing.T) {
 		"note":{"text":"سلام"},
 		"custom":{"items":{"coffee":"yes"}}
 	}}`
+	body = strings.ReplaceAll(body, `"coffee"`, `"`+coffee+`"`)
 	r := e.do(t, "PUT", "/api/v1/logs/days/2026-09-22", tok, "en", body)
 	require.Equal(t, 200, r.status, r.raw)
 	assert.Equal(t, "2026-09-22", r.data()["date"])
@@ -239,7 +260,7 @@ func TestLogs_SaveReadDelete_WritesLegacyBack(t *testing.T) {
 	assert.Equal(t, "58.40", e.legacy(t, uid, "2026-09-22", "weight").String)
 
 	// a day with only v2-only values creates no legacy row
-	r = e.do(t, "PUT", "/api/v1/logs/days/2026-09-21", tok, "en", `{"categories":{"custom":{"items":{"coffee":"yes"}},"bleeding":{"color":"black"}}}`)
+	r = e.do(t, "PUT", "/api/v1/logs/days/2026-09-21", tok, "en", `{"categories":{"custom":{"items":{"`+coffee+`":"yes"}},"bleeding":{"color":"black"}}}`)
 	require.Equal(t, 200, r.status, r.raw)
 	assert.Equal(t, 0, e.count(t, "SELECT COUNT(*) FROM daily_health_logs WHERE user_id = ? AND log_date = '2026-09-21'", uid))
 
@@ -260,6 +281,7 @@ func TestLogs_SaveReadDelete_WritesLegacyBack(t *testing.T) {
 func TestLogs_OldEndpointKeepsV2InStep(t *testing.T) {
 	e := setupLogs(t)
 	uid, tok := e.user(t, "09120000001", "")
+	coffee := e.customItem(t, uid, "custom", "items", "قهوه")
 	r := e.do(t, "POST", "/api/v1/health-logs", tok, "en",
 		`{"log_date":"2026-09-20","headache_intensity":"high","moods":["sad"],"weight":60,"spotting":true,"vaginal_burning":true}`)
 	require.Equal(t, 201, r.status, r.raw)
@@ -278,7 +300,7 @@ func TestLogs_OldEndpointKeepsV2InStep(t *testing.T) {
 	assert.Equal(t, 1, e.count(t, "SELECT COUNT(*) FROM health_log_entries WHERE user_id = ? AND item = 'vaginal_burning' AND value_code = 'mild'", uid))
 
 	// v2-only values survive old-endpoint writes and deletes
-	r = e.do(t, "PUT", "/api/v1/logs/days/2026-09-20", tok, "en", `{"categories":{"custom":{"items":{"coffee":"yes"}},"pain":{"location":{"head":{"level":"severe","score":9}}}}}`)
+	r = e.do(t, "PUT", "/api/v1/logs/days/2026-09-20", tok, "en", `{"categories":{"custom":{"items":{"`+coffee+`":"yes"}},"pain":{"location":{"head":{"level":"severe","score":9}}}}}`)
 	require.Equal(t, 200, r.status, r.raw)
 	r = e.do(t, "POST", "/api/v1/health-logs", tok, "en", `{"log_date":"2026-09-20","moods":["calm"],"headache_intensity":null}`)
 	require.Equal(t, 200, r.status, r.raw)

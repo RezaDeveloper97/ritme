@@ -3,7 +3,7 @@ id: B-N3-02
 title: Log preferences — quick tiles, order, custom items
 milestone: N3
 type: backend
-status: todo
+status: done
 depends_on: [B-N3-01]
 parallel_group: N3-B
 touches: [backend-go/internal/healthlog,backend-go/db,backend-go/api]

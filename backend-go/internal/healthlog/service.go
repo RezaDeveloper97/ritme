@@ -26,13 +26,14 @@ const PerPage = 30
 
 // Service holds the DB access of the domain.
 type Service struct {
-	q  *store.Queries
-	db *sql.DB // nil when the Service already runs inside a transaction
+	q   *store.Queries
+	db  *sql.DB    // nil when the Service already runs inside a transaction
+	raw store.DBTX // the pool or the transaction (cross-domain reads: the cycle phase)
 }
 
 // NewService returns a Service on db (a *sql.DB or a transaction).
 func NewService(db store.DBTX) *Service {
-	s := &Service{q: store.New(db)}
+	s := &Service{q: store.New(db), raw: db}
 	if pool, ok := db.(*sql.DB); ok {
 		s.db = pool
 	}
@@ -49,7 +50,7 @@ func (s *Service) inTx(ctx context.Context, fn func(t *Service) error) error {
 	if err != nil {
 		return fmt.Errorf("healthlog: begin: %w", err)
 	}
-	if err := fn(&Service{q: store.New(tx)}); err != nil {
+	if err := fn(&Service{q: store.New(tx), raw: tx}); err != nil {
 		_ = tx.Rollback()
 		return err
 	}

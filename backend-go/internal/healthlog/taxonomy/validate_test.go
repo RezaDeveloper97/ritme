@@ -14,7 +14,7 @@ import (
 
 func parse(t *testing.T, body, mode string, existing ...taxonomy.Entry) ([]taxonomy.Change, *httpx.ValidationError) {
 	t.Helper()
-	changes, err := taxonomy.Parse(validation.DecodeBody([]byte(body)), mode, "en", existing)
+	changes, err := taxonomy.Parse(validation.DecodeBody([]byte(body)), mode, "en", existing, testCustom)
 	if err == nil {
 		return changes, nil
 	}
@@ -22,6 +22,9 @@ func parse(t *testing.T, body, mode string, existing ...taxonomy.Entry) ([]taxon
 	require.ErrorAs(t, err, &ve)
 	return nil, ve
 }
+
+// testCustom: the user's active custom items in these tests.
+var testCustom = taxonomy.CustomItems{"custom.items.coffee": true, "mood.moods.custom_7": true}
 
 func fields(ve *httpx.ValidationError) []string {
 	var out []string
@@ -160,4 +163,31 @@ func TestParse_StoredValuesPass(t *testing.T) {
 
 	_, ve = parse(t, `{"categories":{"measurements":{"bbt":36.6}}}`, taxonomy.ModePregnancy, existing...)
 	assert.NotNil(t, ve, "a changed value must be available in the mode")
+}
+
+func TestParse_CustomItems(t *testing.T) {
+	// the user's active custom items pass in their param (items and multi)
+	changes, ve := parse(t, `{"categories": {"custom": {"items": {"coffee": "yes"}}, "mood": {"moods": ["calm", "custom_7"]}}}`, taxonomy.ModeCycle)
+	require.Nil(t, ve)
+	require.Len(t, changes, 2)
+	assert.Equal(t, "custom_7", changes[1].Entries[1].Item)
+
+	// anything else is refused: an unknown code, another user's item, an item of another param
+	_, ve = parse(t, `{"categories": {"custom": {"items": {"custom_99": "yes"}}}}`, taxonomy.ModeCycle)
+	require.NotNil(t, ve)
+	assert.Equal(t, []string{"categories.custom.items.custom_99"}, fields(ve))
+	_, ve = parse(t, `{"categories": {"mood": {"moods": ["coffee"]}}}`, taxonomy.ModeCycle)
+	require.NotNil(t, ve)
+	assert.Equal(t, []string{"categories.mood.moods.0"}, fields(ve))
+	_, ve = parse(t, `{"categories": {"symptoms": {"general": {"custom_7": "yes"}}}}`, taxonomy.ModeCycle)
+	require.NotNil(t, ve)
+
+	// a deleted custom item (not in the active set) stays valid where it is stored
+	stored := taxonomy.Entry{Category: "custom", Param: "items", Item: "custom_3", Code: sql.NullString{String: "yes", Valid: true}}
+	_, ve = parse(t, `{"categories": {"custom": {"items": {"custom_3": "no"}}}}`, taxonomy.ModeCycle, stored)
+	assert.Nil(t, ve)
+
+	// care reminder ids in meds.taken stay free codes
+	_, ve = parse(t, `{"categories": {"meds": {"taken": {"42": "yes"}}}}`, taxonomy.ModeCycle)
+	assert.Nil(t, ve)
 }

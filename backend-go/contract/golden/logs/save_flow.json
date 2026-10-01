@@ -3,6 +3,37 @@
   "steps": [
     {
       "request": {
+        "method": "POST",
+        "url": "/api/v1/logs/custom-items",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "category": "custom",
+          "label": "قهوه"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "id": 1,
+          "code": "custom_1",
+          "category": "custom",
+          "param": "items",
+          "label": "قهوه",
+          "created_at": "2026-09-23T06:30:00.000000Z",
+          "updated_at": "2026-09-23T06:30:00.000000Z",
+          "deleted_at": null
+        }
+      }
+    },
+    {
+      "request": {
         "method": "PUT",
         "url": "/api/v1/logs/days/2026-09-23",
         "persona": "regular",
@@ -39,7 +70,7 @@
             },
             "custom": {
               "items": {
-                "coffee": "yes"
+                "custom_1": "yes"
               }
             }
           }
@@ -49,7 +80,7 @@
       "headers": {
         "content-type": "application/json",
         "x-ratelimit-limit": "60",
-        "x-ratelimit-remaining": "59"
+        "x-ratelimit-remaining": "58"
       },
       "body": {
         "success": true,
@@ -92,7 +123,7 @@
             },
             "custom": {
               "items": {
-                "coffee": {
+                "custom_1": {
                   "level": "yes",
                   "score": null
                 }
@@ -154,7 +185,7 @@
             },
             "custom": {
               "items": {
-                "coffee": {
+                "custom_1": {
                   "level": "yes",
                   "score": null
                 }
@@ -267,7 +298,7 @@
       "headers": {
         "content-type": "application/json",
         "x-ratelimit-limit": "60",
-        "x-ratelimit-remaining": "58"
+        "x-ratelimit-remaining": "57"
       },
       "body": {
         "success": true,
@@ -300,7 +331,7 @@
             },
             "custom": {
               "items": {
-                "coffee": {
+                "custom_1": {
                   "level": "yes",
                   "score": null
                 }
@@ -321,7 +352,7 @@
       "headers": {
         "content-type": "application/json",
         "x-ratelimit-limit": "60",
-        "x-ratelimit-remaining": "57"
+        "x-ratelimit-remaining": "56"
       },
       "body": {
         "success": true,

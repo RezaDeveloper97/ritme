@@ -107,6 +107,7 @@ type Param struct {
 	Unit    string   // number, integer: unit code (labels: log-taxonomy.units)
 	MaxLen  int      // text, text_items
 	Dynamic bool     // items, text_items: item codes are free (custom items, care reminders, legacy keys)
+	Custom  bool     // multi, items: hosts the user's custom items of the category (B-N3-02, CustomItemCode)
 	Modes   []string // nil = the category's modes
 	Detail  bool     // optional detail behind «جزئیات» (colour, clots, odour…)
 	Alert   bool     // always discuss with a doctor in this mode set (bleeding in pregnancy)
@@ -186,14 +187,14 @@ var registry = []Category{
 		{Code: "relief", Type: Multi, Options: opts("heat", "painkiller", "rest", "light_exercise", "none")},
 	}},
 	{Code: "mood", Group: "mind", Modes: all, Params: []Param{
-		{Code: "moods", Type: Multi, Options: opts(
+		{Code: "moods", Type: Multi, Custom: true, Options: opts(
 			"calm", "happy", "energetic", "sensitive", "irritable", "sad", "anxious", "angry", "bored", "frustrated")},
 		{Code: "weekly_checkin", Type: Link, Modes: post, Source: "postpartum_checkin"},
 	}},
 	{Code: "symptoms", Group: "body", Modes: all, Params: []Param{
 		{Code: "digestive", Type: Items, Levels: symptomLevels, Options: join(
 			opts("nausea", "bloating", "constipation", "diarrhea", "heartburn"))},
-		{Code: "general", Type: Items, Levels: symptomLevels, Options: join(
+		{Code: "general", Type: Items, Levels: symptomLevels, Custom: true, Options: join(
 			opts("fatigue", "dizziness", "breast_tenderness", "swelling", "hot_flashes", "chills", "insomnia"),
 			only(preg, "leg_cramps"),
 			only([]string{ModeMenopause}, "night_sweats", "brain_fog", "palpitations"),
@@ -213,10 +214,10 @@ var registry = []Category{
 	{Code: "appetite_energy", Group: "mind", Modes: all, Params: []Param{
 		{Code: "energy", Type: Single, Options: join(opts("low", "medium", "high"), legacy("very_low", "very_high"))},
 		{Code: "appetite", Type: Single, Options: opts("decreased", "normal", "increased")},
-		{Code: "cravings", Type: Items, Levels: yesNo, Options: opts("sweet", "salty", "fatty", "carbs", "sour", "any")},
+		{Code: "cravings", Type: Items, Levels: yesNo, Custom: true, Options: opts("sweet", "salty", "fatty", "carbs", "sour", "any")},
 	}},
 	{Code: "activity", Group: "lifestyle", Modes: all, Conditions: map[string]string{ModePostpartum: "after_6_weeks"}, Params: []Param{
-		{Code: "types", Type: Multi, Options: opts(
+		{Code: "types", Type: Multi, Custom: true, Options: opts(
 			"walking", "running", "cycling", "gym", "yoga", "pilates", "swimming", "dance", "team_sport", "stretching",
 			"pelvic_floor", "other")},
 		{Code: "duration", Type: Integer, Range: &Range{1, 600}, Unit: "min"},
@@ -224,7 +225,7 @@ var registry = []Category{
 			only([]string{ModeCycle, ModeTTC, ModePostpartum, ModeMenopause, ModeTeen}, "high"))},
 	}},
 	{Code: "urogenital", Group: "body", Modes: all, Params: []Param{
-		{Code: "symptoms", Type: Items, Levels: symptomLevels, Options: opts(
+		{Code: "symptoms", Type: Items, Levels: symptomLevels, Custom: true, Options: opts(
 			"frequent_urination", "urination_burning", "urgency", "leakage", "vaginal_dryness", "vaginal_itching",
 			"vaginal_burning", "odor_change")},
 		{Code: "urination", Type: Single, Options: opts("increased", "decreased", "normal")},
@@ -253,7 +254,7 @@ var registry = []Category{
 			Options: opts("painkillers", "hormonal_pills", "antibiotics", "supplements")},
 	}},
 	{Code: "skin_hair", Group: "body", Modes: all, Params: []Param{
-		{Code: "symptoms", Type: Items, Levels: symptomLevels, Options: opts("acne", "oily_skin", "dry_skin", "hair_loss")},
+		{Code: "symptoms", Type: Items, Levels: symptomLevels, Custom: true, Options: opts("acne", "oily_skin", "dry_skin", "hair_loss")},
 	}},
 	{Code: "breasts", Group: "body", Modes: post, Params: []Param{
 		{Code: "symptoms", Type: Items, Levels: symptomLevels, Options: opts("engorgement", "nipple_pain", "redness")},
@@ -272,7 +273,7 @@ var registry = []Category{
 		{Code: "text", Type: Text, MaxLen: 2000},
 	}},
 	{Code: "custom", Group: "other", Modes: all, Params: []Param{
-		{Code: "items", Type: Items, Levels: yesNo, Dynamic: true}, // user's custom items (B-N3-02)
+		{Code: "items", Type: Items, Levels: yesNo, Dynamic: true, Custom: true}, // user's custom items (B-N3-02)
 	}},
 }
 
@@ -333,6 +334,16 @@ func (p *Param) Storable() bool { return p.Type != Link }
 // HasItems reports whether the param stores one row per item.
 func (p *Param) HasItems() bool {
 	return p.Type == Multi || p.Type == Items || p.Type == TextItems
+}
+
+// CustomParam is the param of the category that hosts the user's custom items (nil: none).
+func (c *Category) CustomParam() *Param {
+	for i := range c.Params {
+		if c.Params[i].Custom {
+			return &c.Params[i]
+		}
+	}
+	return nil
 }
 
 // IsMode reports whether m is a known life-stage mode.

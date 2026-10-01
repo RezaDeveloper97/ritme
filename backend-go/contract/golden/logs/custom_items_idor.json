@@ -1,0 +1,106 @@
+{
+  "case": "logs/custom_items_idor",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/logs/custom-items",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "category": "custom",
+          "label": "Mine"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "id": 1,
+          "code": "custom_1",
+          "category": "custom",
+          "param": "items",
+          "label": "Mine",
+          "created_at": "2026-09-23T06:30:00.000000Z",
+          "updated_at": "2026-09-23T06:30:00.000000Z",
+          "deleted_at": null
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PATCH",
+        "url": "/api/v1/logs/custom-items/1",
+        "persona": "pregnant_lmp_w8",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "label": "Theirs"
+        }
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "message": "No query results for model [App\\Models\\HealthLogCustomItem] 1"
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/logs/days/2026-09-22",
+        "persona": "pregnant_lmp_w8",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "categories": {
+            "custom": {
+              "items": {
+                "custom_1": "yes"
+              }
+            }
+          }
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "message": "categories.custom.items.custom 1 انتخاب‌شده معتبر نیست.",
+        "errors": {
+          "categories.custom.items.custom_1": [
+            "categories.custom.items.custom 1 انتخاب‌شده معتبر نیست."
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/logs/custom-items",
+        "persona": "pregnant_lmp_w8",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "max_custom_items": 20,
+          "custom_items": []
+        }
+      }
+    }
+  ]
+}

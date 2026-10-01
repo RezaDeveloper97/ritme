@@ -562,6 +562,28 @@ LOCK TABLES `fertility_logs` WRITE;
 /*!40000 ALTER TABLE `fertility_logs` DISABLE KEYS */;
 /*!40000 ALTER TABLE `fertility_logs` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `health_log_custom_items`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `health_log_custom_items` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `category` varchar(32) NOT NULL,
+  `param` varchar(32) NOT NULL,
+  `label` varchar(40) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `health_log_custom_items_user_id_deleted_at_index` (`user_id`,`deleted_at`),
+  CONSTRAINT `health_log_custom_items_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `health_log_custom_items` WRITE;
+/*!40000 ALTER TABLE `health_log_custom_items` DISABLE KEYS */;
+/*!40000 ALTER TABLE `health_log_custom_items` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `health_log_entries`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -671,6 +693,28 @@ INSERT INTO `health_log_entries` VALUES
 (106,1018,'2026-09-23','appetite_energy','energy','','high',NULL,NULL,'legacy','2026-09-23 09:00:00','2026-09-23 09:00:00'),
 (115,1004,'2026-09-23','note','text','',NULL,NULL,'contract','legacy','2026-09-23 09:00:00','2026-09-23 09:00:00');
 /*!40000 ALTER TABLE `health_log_entries` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `health_log_preferences`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `health_log_preferences` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `mode` varchar(16) NOT NULL,
+  `category_order` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`category_order`)),
+  `hidden` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`hidden`)),
+  `pinned` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`pinned`)),
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `health_log_preferences_user_id_mode_unique` (`user_id`,`mode`),
+  CONSTRAINT `health_log_preferences_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `health_log_preferences` WRITE;
+/*!40000 ALTER TABLE `health_log_preferences` DISABLE KEYS */;
+/*!40000 ALTER TABLE `health_log_preferences` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `info_sections`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

@@ -163,7 +163,11 @@ func (h *LogHandlers) Save(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	changes, err := taxonomy.Parse(validation.Input(c), mode, i18n.Locale(c), existing)
+	custom, err := h.svc.CustomSet(c.Context(), userID)
+	if err != nil {
+		return err
+	}
+	changes, err := taxonomy.Parse(validation.Input(c), mode, i18n.Locale(c), existing, custom)
 	if err != nil {
 		return err
 	}

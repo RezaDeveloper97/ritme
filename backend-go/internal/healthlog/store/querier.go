@@ -12,6 +12,7 @@ import (
 )
 
 type Querier interface {
+	CountActiveLogCustomItems(ctx context.Context, userID uint64) (int64, error)
 	// Total of the index paginator; a NULL bound (?from_date= present but empty) matches nothing.
 	CountDailyHealthLogs(ctx context.Context, arg CountDailyHealthLogsParams) (int64, error)
 	DeleteDailyHealthLog(ctx context.Context, id uint64) error
@@ -19,6 +20,7 @@ type Querier interface {
 	// One param of a day (every item of a multi / items / text_items param).
 	DeleteLogEntryParam(ctx context.Context, arg DeleteLogEntryParamParams) error
 	DeleteLogEntrySlot(ctx context.Context, arg DeleteLogEntrySlotParams) error
+	DeleteLogPreferences(ctx context.Context, arg DeleteLogPreferencesParams) error
 	GetCycleHistoryByStart(ctx context.Context, arg GetCycleHistoryByStartParams) (CycleHistory, error)
 	// Daily health logs (App\Models\DailyHealthLog, DailyHealthLogController).
 	//
@@ -32,8 +34,12 @@ type Querier interface {
 	GetDailyHealthLogOn(ctx context.Context, arg GetDailyHealthLogOnParams) (DailyHealthLog, error)
 	// CycleHistory::where('user_id', $u)->orderBy('period_start_date', 'desc')->first().
 	GetLatestCycleHistory(ctx context.Context, userID uint64) (CycleHistory, error)
+	GetLogCustomItem(ctx context.Context, arg GetLogCustomItemParams) (HealthLogCustomItem, error)
 	// enums.ResolveLifeMode input: the stored life mode (no row / NULL = legacy detection).
 	GetLogLifeMode(ctx context.Context, userID uint64) (sql.NullString, error)
+	// Log preferences and custom items (B-N3-02, health_log_preferences / health_log_custom_items, migration
+	// 00021). Every query is scoped by user_id.
+	GetLogPreferences(ctx context.Context, arg GetLogPreferencesParams) (HealthLogPreference, error)
 	// Side effects of POST /health-logs on user_profiles and cycle_histories
 	// (CycleHistoryService, UserProfile::markRecalculated).
 	// $user->profile (hasOne without ordering: the lowest id on MariaDB).
@@ -43,11 +49,15 @@ type Querier interface {
 	InsertCycleHistory(ctx context.Context, arg InsertCycleHistoryParams) (int64, error)
 	// Every column is written; the ones the request did not send are NULL (their DB default).
 	InsertDailyHealthLog(ctx context.Context, arg InsertDailyHealthLogParams) (int64, error)
+	InsertLogCustomItem(ctx context.Context, arg InsertLogCustomItemParams) (int64, error)
 	InsertLogEntry(ctx context.Context, arg InsertLogEntryParams) error
 	// CycleHistoryService::updatePreviousPeriodEndDate: the last bleeding day in [from, before).
 	LastBleedingDateBetween(ctx context.Context, arg LastBleedingDateBetweenParams) (civildate.Date, error)
+	ListActiveLogCustomItems(ctx context.Context, userID uint64) ([]HealthLogCustomItem, error)
 	// $user->dailyHealthLogs()->orderBy('log_date', 'desc')->paginate(30) (log_date is unique per user).
 	ListDailyHealthLogs(ctx context.Context, arg ListDailyHealthLogsParams) ([]DailyHealthLog, error)
+	// Active and deleted (history labels), oldest first.
+	ListLogCustomItems(ctx context.Context, userID uint64) ([]HealthLogCustomItem, error)
 	ListLogEntriesBetween(ctx context.Context, arg ListLogEntriesBetweenParams) ([]HealthLogEntry, error)
 	// Log taxonomy v2 entries (B-N3-01, health_log_entries; internal/healthlog/taxonomy). Every query is
 	// scoped by user_id.
@@ -57,11 +67,14 @@ type Querier interface {
 	// UserProfile::markRecalculated(): increment('calculation_version', 1, [status, started, completed])
 	// (Eloquent's increment also touches updated_at).
 	MarkProfileRecalculated(ctx context.Context, arg MarkProfileRecalculatedParams) error
+	RenameLogCustomItem(ctx context.Context, arg RenameLogCustomItemParams) error
+	SoftDeleteLogCustomItem(ctx context.Context, arg SoftDeleteLogCustomItemParams) error
 	UpdateCycleHistoryEnd(ctx context.Context, arg UpdateCycleHistoryEndParams) error
 	// fill($validated)->save() when an attribute is dirty (the full row is written back).
 	UpdateDailyHealthLog(ctx context.Context, arg UpdateDailyHealthLogParams) error
 	// CycleHistoryService::updateProfileLMP ($profile->update(['last_period_start' => …]) when dirty).
 	UpdateProfileLastPeriodStart(ctx context.Context, arg UpdateProfileLastPeriodStartParams) error
+	UpsertLogPreferences(ctx context.Context, arg UpsertLogPreferencesParams) error
 }
 
 var _ Querier = (*Queries)(nil)

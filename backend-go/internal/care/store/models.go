@@ -301,6 +301,17 @@ type FertilityLog struct {
 	UpdatedAt     sql.NullTime
 }
 
+type HealthLogCustomItem struct {
+	ID        uint64
+	UserID    uint64
+	Category  string
+	Param     string
+	Label     string
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+	DeletedAt sql.NullTime
+}
+
 type HealthLogEntry struct {
 	ID        uint64
 	UserID    uint64
@@ -314,6 +325,17 @@ type HealthLogEntry struct {
 	Source    string
 	CreatedAt sql.NullTime
 	UpdatedAt sql.NullTime
+}
+
+type HealthLogPreference struct {
+	ID            uint64
+	UserID        uint64
+	Mode          string
+	CategoryOrder db.NullRawJSON
+	Hidden        db.NullRawJSON
+	Pinned        db.NullRawJSON
+	CreatedAt     sql.NullTime
+	UpdatedAt     sql.NullTime
 }
 
 type InfoSection struct {

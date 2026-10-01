@@ -2306,6 +2306,213 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '422': {$ref: "#/components/responses/ValidationFailed"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/logs/preferences:
+    get:
+      tags: [Log Taxonomy]
+      summary: Log sheet preferences (order, visibility, quick tiles)
+      description: |
+        The caller's log sheet preferences for a life-stage mode (B-N3-02, nbl_Log_Customize): every category of the
+        mode in her order with its label (request language), whether it is hidden or pinned and the param that takes
+        her custom items (`custom_param`, null when none), the quick tiles (`pinned`, at most `max_pinned` = 8) and her
+        active custom items. Without saved preferences (`is_default`) the order is the taxonomy order and the tiles
+        follow the mode and, in `cycle` / `ttc` / `teen`, today's cycle phase (`phase`: menstrual, follicular,
+        fertile, luteal, period_expected; null outside those modes or without cycle data). `customized` tells which
+        of the three lists she saved; a list she did not save keeps following the default (tiles stay phase-aware).
+        A tile key is a category code (`pain`: open the section) or `category.param` (`measurements.weight`,
+        `pregnancy.kicks`: open that param). Tiles of hidden categories are not listed.
+      operationId: getLogPreferences
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {$ref: "#/components/parameters/LogPrefsMode"}
+      responses:
+        '200':
+          description: The preferences in force
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/LogPreferencesResponse"}
+              example:
+                success: true
+                data:
+                  mode: cycle
+                  phase: luteal
+                  is_default: true
+                  customized: {order: false, hidden: false, pinned: false}
+                  max_pinned: 8
+                  pinned: [bleeding, pain, mood, symptoms, discharge, sleep, measurements.weight, note]
+                  categories:
+                    - {code: bleeding, label: پریود و لکه‌بینی, hidden: false, pinned: true, custom_param: null}
+                    - {code: symptoms, label: علائم بدن, hidden: false, pinned: true, custom_param: general}
+                  max_custom_items: 20
+                  custom_items: []
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
+    put:
+      tags: [Log Taxonomy]
+      summary: Save log sheet preferences
+      description: |
+        Each list sent replaces the saved one for the mode (`null` resets that list to the default); lists not sent
+        are kept. `order` and `hidden` take category codes of the mode (categories missing from `order` follow in
+        taxonomy order), `pinned` takes at most 8 tile keys of the mode, in order (`[]` = no quick tiles). No
+        duplicates. Pinning a hidden category is allowed; its tile shows again once the category is unhidden.
+        Returns the preferences as GET does.
+      operationId: putLogPreferences
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {$ref: "#/components/parameters/LogPrefsMode"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                order: {type: [array, "null"], items: {type: string}}
+                hidden: {type: [array, "null"], items: {type: string}}
+                pinned: {type: [array, "null"], maxItems: 8, items: {type: string}}
+            example: {order: [note, mood], hidden: [sex], pinned: [note, pain, measurements.bbt]}
+      responses:
+        '200':
+          description: Saved; the preferences in force
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/LogPreferencesResponse"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+    delete:
+      tags: [Log Taxonomy]
+      summary: Reset log sheet preferences
+      description: "Drops the saved preferences of the mode (custom items are kept). Returns the default preferences."
+      operationId: deleteLogPreferences
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {$ref: "#/components/parameters/LogPrefsMode"}
+      responses:
+        '200':
+          description: Reset; the default preferences
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/LogPreferencesResponse"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/logs/custom-items:
+    get:
+      tags: [Log Taxonomy]
+      summary: The caller's custom log items
+      description: "Every custom item of the caller, deleted ones included (`deleted_at` set) so logged days keep their labels; oldest first."
+      operationId: listLogCustomItems
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The custom items
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [max_custom_items, custom_items]
+                    properties:
+                      max_custom_items: {type: integer}
+                      custom_items: {type: array, items: {$ref: "#/components/schemas/LogCustomItem"}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+    post:
+      tags: [Log Taxonomy]
+      summary: Add a custom log item
+      description: |
+        A user-defined item (e.g. «قهوه», a custom symptom) inside a category's custom param: `custom` → `items`,
+        `symptoms` → `general`, `mood` → `moods`, `activity` → `types`, `appetite_energy` → `cravings`,
+        `urogenital` → `symptoms`, `skin_hair` → `symptoms` (the `custom_param` of GET /logs/preferences). The label
+        is trimmed and its whitespace collapsed (1–40 characters) and must be unique among the caller's active
+        items of the category (case-insensitive); at most 20 active items. The returned `code` (`custom_<id>`) is
+        the item code PUT /logs/days/{date} accepts in that param for this user only.
+      operationId: createLogCustomItem
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [category, label]
+              properties:
+                category: {type: string, enum: [mood, symptoms, appetite_energy, activity, urogenital, skin_hair, custom]}
+                label: {type: string, maxLength: 40}
+            example: {category: custom, label: قهوه}
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/LogCustomItemResponse"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/logs/custom-items/{id}:
+    patch:
+      tags: [Log Taxonomy]
+      summary: Rename a custom log item
+      description: "Changes the label of an active item of the caller (same label rules as POST); the code and logged days stay. 404 for another user's, a deleted or an unknown id."
+      operationId: updateLogCustomItem
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [label]
+              properties:
+                label: {type: string, maxLength: 40}
+      responses:
+        '200':
+          description: Renamed
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/LogCustomItemResponse"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/ModelNotFound"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+    delete:
+      tags: [Log Taxonomy]
+      summary: Delete a custom log item
+      description: "Soft delete: logged days keep the item (and may still be re-saved with it), new input refuses it. Returns the item with `deleted_at`. 404 for another user's, an already deleted or an unknown id."
+      operationId: deleteLogCustomItem
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/LogCustomItemResponse"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/ModelNotFound"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/contraception:
     get:
       tags: [Contraception]
@@ -10049,6 +10256,12 @@ components:
       description: "Any language code from `GET /api/v1/languages` (the list is data, not code). Parsed like Laravel: split on `,`, strip `;q`, lowercase, `_`→`-`, exact or base match, else the default language. `?locale=` wins when present."
       schema: {type: string}
       example: en
+    LogPrefsMode:
+      name: mode
+      in: query
+      required: false
+      description: "the life-stage mode the preferences are for (default: the caller's current mode)"
+      schema: {type: string, enum: [cycle, ttc, pregnancy, postpartum, menopause, teen]}
     LocaleQuery:
       name: locale
       in: query
@@ -11030,6 +11243,59 @@ components:
       properties:
         date: {$ref: "#/components/schemas/Date"}
         categories: {$ref: "#/components/schemas/LogCategories"}
+    LogCustomItem:
+      type: object
+      required: [id, code, category, param, label, created_at, updated_at, deleted_at]
+      properties:
+        id: {type: integer}
+        code: {type: string, description: "item code in health_log_entries / PUT /logs/days (custom_<id>)"}
+        category: {type: string}
+        param: {type: string}
+        label: {type: string}
+        created_at: {$ref: "#/components/schemas/LaravelDateTime"}
+        updated_at: {$ref: "#/components/schemas/LaravelDateTime"}
+        deleted_at: {oneOf: [{$ref: "#/components/schemas/LaravelDateTime"}, {type: "null"}]}
+    LogCustomItemResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success: {type: boolean}
+        data: {$ref: "#/components/schemas/LogCustomItem"}
+    LogPreferences:
+      type: object
+      required: [mode, phase, is_default, customized, max_pinned, pinned, categories, max_custom_items, custom_items]
+      properties:
+        mode: {type: string, enum: [cycle, ttc, pregnancy, postpartum, menopause, teen]}
+        phase: {type: [string, "null"], enum: [menstrual, follicular, fertile, luteal, period_expected, null]}
+        is_default: {type: boolean}
+        customized:
+          type: object
+          required: [order, hidden, pinned]
+          properties:
+            order: {type: boolean}
+            hidden: {type: boolean}
+            pinned: {type: boolean}
+        max_pinned: {type: integer}
+        pinned: {type: array, maxItems: 8, items: {type: string}}
+        categories:
+          type: array
+          items:
+            type: object
+            required: [code, label, hidden, pinned, custom_param]
+            properties:
+              code: {type: string}
+              label: {type: string}
+              hidden: {type: boolean}
+              pinned: {type: boolean, description: "the category tile itself is pinned"}
+              custom_param: {type: [string, "null"]}
+        max_custom_items: {type: integer}
+        custom_items: {type: array, items: {$ref: "#/components/schemas/LogCustomItem"}}
+    LogPreferencesResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success: {type: boolean}
+        data: {$ref: "#/components/schemas/LogPreferences"}
     ContraceptionOverview:
       type: object
       description: "The contraception screen (`GET /contraception` and every write)."
