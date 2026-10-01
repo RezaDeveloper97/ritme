@@ -1,0 +1,88 @@
+{
+  "month": {
+    "key": "2026-09",
+    "calendar": "gregorian",
+    "from": "2026-09-01",
+    "to": "2026-09-23",
+    "complete": false
+  },
+  "headline": {
+    "key": "monthly.headline.little_data",
+    "params": {},
+    "text": "این ماه داده کمی ثبت شده"
+  },
+  "summary": {
+    "parts": [
+      {
+        "key": "monthly.summary.days",
+        "params": {
+          "days": 1
+        },
+        "text": "۱ روز ثبت"
+      },
+      {
+        "key": "monthly.summary.cycle_irregular",
+        "params": {
+          "length": 24
+        },
+        "text": "سیکل ۲۴ روزه و نامنظم"
+      }
+    ],
+    "text": "۱ روز ثبت و سیکل ۲۴ روزه و نامنظم."
+  },
+  "metrics": [
+    {
+      "key": "cycle_length",
+      "value": 24,
+      "delta": -11,
+      "unit": "days"
+    },
+    {
+      "key": "days_logged",
+      "value": 1,
+      "delta": 0,
+      "unit": "days"
+    },
+    {
+      "key": "sleep",
+      "value": null,
+      "delta": null,
+      "unit": "hours"
+    },
+    {
+      "key": "weight",
+      "value": null,
+      "delta": null,
+      "unit": "kg"
+    },
+    {
+      "key": "blood_pressure",
+      "value": null,
+      "delta": null,
+      "unit": "mmhg"
+    },
+    {
+      "key": "good_mood",
+      "value": null,
+      "delta": null,
+      "unit": "percent"
+    }
+  ],
+  "top_symptoms": [
+    {
+      "key": "pain.location.back",
+      "label": "کمردرد",
+      "days": 1,
+      "cycles": 1
+    }
+  ],
+  "suggestion": {
+    "key": "monthly.suggestion.log_sleep",
+    "params": {},
+    "text": "خوابت را هر روز ثبت کن تا ارتباط خواب با حال و علائمت دیده شود."
+  },
+  "pdf": {
+    "plus": true,
+    "locked": true
+  }
+}

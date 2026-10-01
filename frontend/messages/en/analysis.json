@@ -1,0 +1,90 @@
+{
+  "format": {
+    "digits": "0123456789",
+    "decimal": ".",
+    "list_separator": ", ",
+    "list_last": " and "
+  },
+  "phases": {
+    "period": "period",
+    "follicular": "follicular",
+    "fertile": "fertile",
+    "luteal": "luteal"
+  },
+  "symptom_names": {
+    "pain": {
+      "location": {
+        "head": "Headache",
+        "abdomen": "Cramps",
+        "pelvis": "Pelvic pain",
+        "ovary": "Ovary pain",
+        "back": "Back pain",
+        "breast": "Breast pain",
+        "leg": "Leg pain",
+        "stitches": "Stitch pain",
+        "joints": "Joint pain"
+      }
+    }
+  },
+  "findings": {
+    "cycle": {
+      "regular": "Your cycles are regular (variation {days} days).",
+      "irregular": "Your cycle length varied by {days} days, more than the regular range (≤{limit} days).",
+      "frequent": "Your median cycle is {days} days, shorter than the normal range ({min}–{max}).",
+      "infrequent": "Your median cycle is {days} days, longer than the normal range ({min}–{max})."
+    },
+    "period": {
+      "prolonged": "Your median period is {days} days; talk to a doctor about periods longer than {max} days."
+    },
+    "pattern": {
+      "before_period": "{symptom} came back in {cycles} of {total} cycles, {days} days before your period.",
+      "early": "{symptom} came back in {cycles} of {total} cycles, in the first {days} days of the cycle.",
+      "mid": "{symptom} came back in {cycles} of {total} cycles, around cycle days {start}–{end}.",
+      "mid_day": "{symptom} came back in {cycles} of {total} cycles, around cycle day {start}."
+    },
+    "not_enough_data": "Log {needed} more cycles to see your patterns.",
+    "no_data": "Nothing to analyse yet. Start with a daily log."
+  },
+  "correlations": {
+    "sleep_mood": {
+      "more": "After nights under 6 hours of sleep, “frustrated” or “irritable” was logged {ratio}× as often ({hits} of {days} days).",
+      "only": "“Frustrated” or “irritable” was only logged after nights under 6 hours of sleep ({hits} of {days} days).",
+      "less": "After nights under 6 hours of sleep, “frustrated” or “irritable” was logged less often."
+    },
+    "phase_energy": {
+      "more": "“High” energy was logged {ratio}× as often in the {high_phase} phase as in the {low_phase} phase.",
+      "only": "“High” energy was logged mostly in the {high_phase} phase."
+    },
+    "exercise_cramps": {
+      "less": "On period days with exercise, severe cramps were logged less often.",
+      "more": "On period days with exercise, severe cramps were logged more often."
+    },
+    "phase_mood": {
+      "best": "Good moods were logged most in the {phase} phase ({pct}% of days)."
+    },
+    "not_causal": "These are things that happen together in your own data, not cause and effect."
+  },
+  "monthly": {
+    "headline": {
+      "calm": "A calm month",
+      "busy": "A month with many symptoms",
+      "little_data": "Little was logged this month"
+    },
+    "summary": {
+      "sentence": "{list}.",
+      "days": "{days} days logged",
+      "cycle": "a {length}-day cycle",
+      "cycle_regular": "a regular {length}-day cycle",
+      "cycle_irregular": "an irregular {length}-day cycle",
+      "sleep": "{hours} hours of sleep on average",
+      "symptoms": "{count} frequent symptoms"
+    },
+    "suggestion": {
+      "log_sleep": "Log your sleep every day to see how it relates to your mood and symptoms.",
+      "sleep_symptom_needs_cycles": "Keep logging your sleep; {needed} more cycles are needed to see how sleep and {symptom} relate.",
+      "more_cycles": "Keep logging daily; {needed} more cycles are needed to see your patterns.",
+      "log_more": "Log more days to make next month’s report more accurate.",
+      "keep_going": "Keep logging regularly; you have enough data for next month’s report."
+    }
+  }
+}

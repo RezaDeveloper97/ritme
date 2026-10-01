@@ -1,0 +1,73 @@
+{
+  "range": {
+    "key": "6m",
+    "from": "2026-03-26",
+    "to": "2026-09-23",
+    "days": 182
+  },
+  "ready": true,
+  "based_on_cycles": 2,
+  "figo": {
+    "applies": false,
+    "cycle": {
+      "min": 24,
+      "max": 38
+    },
+    "period": {
+      "max": 8
+    },
+    "variation": {
+      "max": 9
+    }
+  },
+  "cycle_length": {
+    "median": 22,
+    "status": "frequent"
+  },
+  "period_length": {
+    "median": 9,
+    "status": "prolonged"
+  },
+  "variation": {
+    "days": null,
+    "max": 9,
+    "status": "not_enough_data",
+    "cycles_needed": 3
+  },
+  "typical": {
+    "cycle_length": 22,
+    "ovulation_day": 10,
+    "fertile_start_day": 10,
+    "fertile_end_day": 10,
+    "days": {
+      "period": 9,
+      "follicular": 0,
+      "fertile": 1,
+      "luteal": 12
+    }
+  },
+  "current": {
+    "start": "2026-09-10",
+    "day": 14
+  },
+  "cycles": [
+    {
+      "start": "2026-08-20",
+      "end": "2026-09-09",
+      "length": 21,
+      "period_days": 9,
+      "in_figo_range": false,
+      "counted": true,
+      "excluded": null
+    },
+    {
+      "start": "2026-07-29",
+      "end": "2026-08-19",
+      "length": 22,
+      "period_days": 9,
+      "in_figo_range": false,
+      "counted": true,
+      "excluded": null
+    }
+  ]
+}

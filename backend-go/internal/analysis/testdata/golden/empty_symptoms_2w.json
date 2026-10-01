@@ -1,0 +1,93 @@
+{
+  "range": {
+    "key": "2w",
+    "from": "2026-09-10",
+    "to": "2026-09-23",
+    "days": 14
+  },
+  "days_logged": 0,
+  "symptom_days": 0,
+  "top": [],
+  "trend": {
+    "ready": false,
+    "bucket": "day",
+    "keys": [],
+    "points": [
+      {
+        "start": "2026-09-10",
+        "values": []
+      },
+      {
+        "start": "2026-09-11",
+        "values": []
+      },
+      {
+        "start": "2026-09-12",
+        "values": []
+      },
+      {
+        "start": "2026-09-13",
+        "values": []
+      },
+      {
+        "start": "2026-09-14",
+        "values": []
+      },
+      {
+        "start": "2026-09-15",
+        "values": []
+      },
+      {
+        "start": "2026-09-16",
+        "values": []
+      },
+      {
+        "start": "2026-09-17",
+        "values": []
+      },
+      {
+        "start": "2026-09-18",
+        "values": []
+      },
+      {
+        "start": "2026-09-19",
+        "values": []
+      },
+      {
+        "start": "2026-09-20",
+        "values": []
+      },
+      {
+        "start": "2026-09-21",
+        "values": []
+      },
+      {
+        "start": "2026-09-22",
+        "values": []
+      },
+      {
+        "start": "2026-09-23",
+        "values": []
+      }
+    ]
+  },
+  "pattern": {
+    "ready": false,
+    "cycles_counted": 0,
+    "cycles_needed": 3,
+    "typical": {
+      "cycle_length": 28,
+      "ovulation_day": 15,
+      "fertile_start_day": 10,
+      "fertile_end_day": 15,
+      "days": {
+        "period": 5,
+        "follicular": 4,
+        "fertile": 6,
+        "luteal": 13
+      }
+    },
+    "items": []
+  },
+  "highlight": null
+}

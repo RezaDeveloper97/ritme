@@ -1,0 +1,194 @@
+{
+  "case": "analysis/period",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/analysis/period",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "range": {
+            "key": "6m",
+            "from": "2026-03-26",
+            "to": "2026-09-23",
+            "days": 182
+          },
+          "ready": true,
+          "based_on_periods": 6,
+          "figo": {
+            "period": {
+              "max": 8
+            }
+          },
+          "period_length": {
+            "median": 5,
+            "status": "normal"
+          },
+          "peak": {
+            "day": 1,
+            "level": "heavy"
+          },
+          "spotting": {
+            "days": 0,
+            "cycles": 0,
+            "of_cycles": 6
+          },
+          "average": [
+            {
+              "day": 1,
+              "score": 3,
+              "level": "heavy"
+            },
+            {
+              "day": 2,
+              "score": 2,
+              "level": "medium"
+            },
+            {
+              "day": 3,
+              "score": null,
+              "level": null
+            },
+            {
+              "day": 4,
+              "score": null,
+              "level": null
+            },
+            {
+              "day": 5,
+              "score": null,
+              "level": null
+            }
+          ],
+          "periods": [
+            {
+              "start": "2026-09-14",
+              "length": 5,
+              "closed": true,
+              "is_current": true,
+              "days": [
+                {
+                  "day": 1,
+                  "date": "2026-09-14",
+                  "flow": "heavy"
+                },
+                {
+                  "day": 2,
+                  "date": "2026-09-15",
+                  "flow": "medium"
+                },
+                {
+                  "day": 3,
+                  "date": "2026-09-16",
+                  "flow": null
+                },
+                {
+                  "day": 4,
+                  "date": "2026-09-17",
+                  "flow": null
+                },
+                {
+                  "day": 5,
+                  "date": "2026-09-18",
+                  "flow": null
+                }
+              ]
+            },
+            {
+              "start": "2026-08-17",
+              "length": 5,
+              "closed": true,
+              "is_current": false,
+              "days": [
+                {
+                  "day": 1,
+                  "date": "2026-08-17",
+                  "flow": null
+                },
+                {
+                  "day": 2,
+                  "date": "2026-08-18",
+                  "flow": null
+                },
+                {
+                  "day": 3,
+                  "date": "2026-08-19",
+                  "flow": null
+                },
+                {
+                  "day": 4,
+                  "date": "2026-08-20",
+                  "flow": null
+                },
+                {
+                  "day": 5,
+                  "date": "2026-08-21",
+                  "flow": null
+                }
+              ]
+            },
+            {
+              "start": "2026-07-20",
+              "length": 5,
+              "closed": true,
+              "is_current": false,
+              "days": [
+                {
+                  "day": 1,
+                  "date": "2026-07-20",
+                  "flow": null
+                },
+                {
+                  "day": 2,
+                  "date": "2026-07-21",
+                  "flow": null
+                },
+                {
+                  "day": 3,
+                  "date": "2026-07-22",
+                  "flow": null
+                },
+                {
+                  "day": 4,
+                  "date": "2026-07-23",
+                  "flow": null
+                },
+                {
+                  "day": 5,
+                  "date": "2026-07-24",
+                  "flow": null
+                }
+              ]
+            }
+          ],
+          "co_symptoms": {
+            "ready": true,
+            "periods_needed": 3,
+            "items": [
+              {
+                "key": "mood.moods.sensitive",
+                "label": "حساس",
+                "periods": 1,
+                "pct": 17
+              },
+              {
+                "key": "pain.location.abdomen",
+                "label": "گرفتگی",
+                "periods": 1,
+                "pct": 17
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

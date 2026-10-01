@@ -1,0 +1,512 @@
+{
+  "case": "analysis/correlations_trial",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/plus/trial/start",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "دوره رایگان ریتمی پلاس شروع شد",
+        "data": {
+          "tier": "trial",
+          "is_plus": true,
+          "subscription": null,
+          "trial": {
+            "started_at": "2026-09-23T10:00:00+03:30",
+            "ends_at": "2026-09-30T10:00:00+03:30",
+            "is_active": true,
+            "days_left": 7
+          },
+          "trial_available": false,
+          "period_start": "2026-09-01",
+          "resets_at": "2026-10-01T00:00:00+03:30",
+          "entitlements": [
+            {
+              "key": "plus.deep_analysis",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.lab_ai",
+              "allowed": true,
+              "unlimited": false,
+              "limit": 10,
+              "used": 0,
+              "remaining": 10
+            },
+            {
+              "key": "plus.assistant_unlimited",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.pdf_share",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.visit_discount",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.voice_log",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            }
+          ],
+          "trial_offer": {
+            "percent": 50,
+            "ends_at": "2026-09-30T10:00:00+03:30",
+            "seconds_left": 604800,
+            "days_left": 7,
+            "countdown": {
+              "days": 7,
+              "hours": 0,
+              "minutes": 0
+            },
+            "currency": "IRR",
+            "plan": {
+              "id": 2,
+              "code": "plus_3m",
+              "title": "۳ ماهه",
+              "badge": "محبوب‌ترین",
+              "duration_months": 3,
+              "price": 2370000,
+              "monthly_price": 790000,
+              "savings_percent": 20,
+              "is_highlighted": true,
+              "offer_price": 1185000,
+              "offer_monthly_price": 395000
+            }
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/analysis/correlations",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "range": {
+            "key": "6m",
+            "from": "2026-03-26",
+            "to": "2026-09-23",
+            "days": 182
+          },
+          "not_causal": true,
+          "plus": true,
+          "locked": false,
+          "ready": false,
+          "data": {
+            "days_logged": 4,
+            "items": [
+              {
+                "key": "sleep_mood",
+                "status": "not_enough_data",
+                "statistic": "phi",
+                "value": null,
+                "strength": null,
+                "n": 0,
+                "min_days": 20,
+                "groups": [
+                  {
+                    "key": "sleep_6_plus",
+                    "days": 0,
+                    "hits": 0,
+                    "pct": 0
+                  },
+                  {
+                    "key": "sleep_under_6",
+                    "days": 0,
+                    "hits": 0,
+                    "pct": 0
+                  }
+                ],
+                "ratio": null,
+                "finding": null,
+                "not_causal": true
+              },
+              {
+                "key": "phase_energy",
+                "status": "not_enough_data",
+                "statistic": "cramers_v",
+                "value": null,
+                "strength": null,
+                "n": 2,
+                "min_days": 20,
+                "groups": [
+                  {
+                    "key": "period",
+                    "days": 0,
+                    "hits": 0,
+                    "pct": 0
+                  },
+                  {
+                    "key": "follicular",
+                    "days": 1,
+                    "hits": 1,
+                    "pct": 100
+                  },
+                  {
+                    "key": "fertile",
+                    "days": 1,
+                    "hits": 0,
+                    "pct": 0
+                  },
+                  {
+                    "key": "luteal",
+                    "days": 0,
+                    "hits": 0,
+                    "pct": 0
+                  }
+                ],
+                "ratio": null,
+                "finding": null,
+                "not_causal": true
+              },
+              {
+                "key": "exercise_cramps",
+                "status": "not_enough_data",
+                "statistic": "phi",
+                "value": null,
+                "strength": null,
+                "n": 2,
+                "min_days": 20,
+                "groups": [
+                  {
+                    "key": "no_exercise",
+                    "days": 2,
+                    "hits": 0,
+                    "pct": 0
+                  },
+                  {
+                    "key": "exercise",
+                    "days": 0,
+                    "hits": 0,
+                    "pct": 0
+                  }
+                ],
+                "ratio": null,
+                "finding": null,
+                "not_causal": true
+              },
+              {
+                "key": "phase_mood",
+                "status": "not_enough_data",
+                "statistic": "cramers_v",
+                "value": null,
+                "strength": null,
+                "n": 3,
+                "min_days": 20,
+                "groups": [
+                  {
+                    "key": "period",
+                    "days": 2,
+                    "hits": 1,
+                    "pct": 50
+                  },
+                  {
+                    "key": "follicular",
+                    "days": 0,
+                    "hits": 0,
+                    "pct": 0
+                  },
+                  {
+                    "key": "fertile",
+                    "days": 1,
+                    "hits": 1,
+                    "pct": 100
+                  },
+                  {
+                    "key": "luteal",
+                    "days": 0,
+                    "hits": 0,
+                    "pct": 0
+                  }
+                ],
+                "ratio": null,
+                "finding": null,
+                "not_causal": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/analysis/summary",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "range": {
+            "key": "6m",
+            "from": "2026-03-26",
+            "to": "2026-09-23",
+            "days": 182
+          },
+          "top_finding": {
+            "kind": "cycle_regular",
+            "parts": [
+              {
+                "key": "findings.cycle.regular",
+                "params": {
+                  "days": 0
+                },
+                "text": "سیکل‌هایت منظم‌اند (نوسان ۰ روز)."
+              }
+            ],
+            "text": "سیکل‌هایت منظم‌اند (نوسان ۰ روز)."
+          },
+          "sections": {
+            "cycle": {
+              "plus": false,
+              "locked": false,
+              "ready": true,
+              "data": {
+                "median_cycle": 28,
+                "median_period": 5,
+                "cycle_status": "normal",
+                "regularity": "regular",
+                "variation_days": 0,
+                "variation_max": 7,
+                "based_on_cycles": 5,
+                "bars": [
+                  {
+                    "start": "2026-04-27",
+                    "length": 28,
+                    "in_figo_range": true
+                  },
+                  {
+                    "start": "2026-05-25",
+                    "length": 28,
+                    "in_figo_range": true
+                  },
+                  {
+                    "start": "2026-06-22",
+                    "length": 28,
+                    "in_figo_range": true
+                  },
+                  {
+                    "start": "2026-07-20",
+                    "length": 28,
+                    "in_figo_range": true
+                  },
+                  {
+                    "start": "2026-08-17",
+                    "length": 28,
+                    "in_figo_range": true
+                  }
+                ]
+              }
+            },
+            "recent_cycles": {
+              "plus": false,
+              "locked": false,
+              "ready": true,
+              "data": [
+                {
+                  "start": "2026-09-14",
+                  "length": 28,
+                  "is_current": true,
+                  "days_so_far": 10,
+                  "period_days": 5,
+                  "fertile_start_day": 10,
+                  "fertile_end_day": 15,
+                  "ovulation_day": 15
+                },
+                {
+                  "start": "2026-08-17",
+                  "length": 28,
+                  "is_current": false,
+                  "days_so_far": null,
+                  "period_days": 5,
+                  "fertile_start_day": 10,
+                  "fertile_end_day": 15,
+                  "ovulation_day": 15
+                },
+                {
+                  "start": "2026-07-20",
+                  "length": 28,
+                  "is_current": false,
+                  "days_so_far": null,
+                  "period_days": 5,
+                  "fertile_start_day": 10,
+                  "fertile_end_day": 15,
+                  "ovulation_day": 15
+                }
+              ]
+            },
+            "symptoms": {
+              "plus": false,
+              "locked": false,
+              "ready": true,
+              "data": {
+                "cycles_counted": 5,
+                "cycles_needed": 3,
+                "top": [
+                  {
+                    "key": "mood.moods.sensitive",
+                    "label": "حساس",
+                    "days": 1,
+                    "cycles": 1
+                  },
+                  {
+                    "key": "pain.location.abdomen",
+                    "label": "گرفتگی",
+                    "days": 1,
+                    "cycles": 1
+                  }
+                ],
+                "highlight": null
+              }
+            },
+            "mood_by_phase": {
+              "plus": true,
+              "locked": false,
+              "ready": false,
+              "data": {
+                "phases": [
+                  {
+                    "phase": "period",
+                    "good_pct": 50,
+                    "days": 2
+                  },
+                  {
+                    "phase": "follicular",
+                    "good_pct": null,
+                    "days": 0
+                  },
+                  {
+                    "phase": "fertile",
+                    "good_pct": 100,
+                    "days": 1
+                  },
+                  {
+                    "phase": "luteal",
+                    "good_pct": null,
+                    "days": 0
+                  }
+                ],
+                "finding": null,
+                "not_causal": true
+              }
+            },
+            "sleep_mood": {
+              "plus": true,
+              "locked": false,
+              "ready": false,
+              "data": {
+                "key": "sleep_mood",
+                "status": "not_enough_data",
+                "statistic": "phi",
+                "value": null,
+                "strength": null,
+                "n": 0,
+                "min_days": 20,
+                "groups": [
+                  {
+                    "key": "sleep_6_plus",
+                    "days": 0,
+                    "hits": 0,
+                    "pct": 0
+                  },
+                  {
+                    "key": "sleep_under_6",
+                    "days": 0,
+                    "hits": 0,
+                    "pct": 0
+                  }
+                ],
+                "ratio": null,
+                "finding": null,
+                "not_causal": true
+              }
+            },
+            "weight": {
+              "plus": false,
+              "locked": false,
+              "ready": false,
+              "data": {
+                "ready": false,
+                "unit": "kg",
+                "current": 61.5,
+                "as_of": "2026-09-23",
+                "delta_7d": null,
+                "delta_30d": null,
+                "delta_range": null,
+                "bmi": 22.6,
+                "moving_average_days": 7,
+                "points": [
+                  {
+                    "date": "2026-09-23",
+                    "value": 61.5,
+                    "avg7": 61.5
+                  }
+                ]
+              }
+            },
+            "vitals": {
+              "plus": false,
+              "locked": false,
+              "ready": false,
+              "data": {
+                "blood_pressure": null,
+                "blood_sugar": null
+              }
+            },
+            "labs": {
+              "plus": true,
+              "locked": false,
+              "ready": false,
+              "data": null
+            }
+          }
+        }
+      }
+    }
+  ]
+}

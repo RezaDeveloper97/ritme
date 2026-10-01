@@ -1,0 +1,193 @@
+{
+  "range": {
+    "key": "2w",
+    "from": "2026-09-10",
+    "to": "2026-09-23",
+    "days": 14
+  },
+  "days_logged": 14,
+  "symptom_days": 10,
+  "top": [
+    {
+      "key": "pain.location.abdomen",
+      "label": "گرفتگی",
+      "days": 4,
+      "cycles": 1
+    },
+    {
+      "key": "symptoms.digestive.bloating",
+      "label": "نفخ",
+      "days": 4,
+      "cycles": 1
+    },
+    {
+      "key": "mood.moods.irritable",
+      "label": "زودرنج",
+      "days": 3,
+      "cycles": 2
+    },
+    {
+      "key": "pain.location.head",
+      "label": "سردرد",
+      "days": 2,
+      "cycles": 1
+    }
+  ],
+  "trend": {
+    "ready": true,
+    "bucket": "day",
+    "keys": [
+      "pain.location.abdomen",
+      "symptoms.digestive.bloating",
+      "mood.moods.irritable",
+      "pain.location.head"
+    ],
+    "points": [
+      {
+        "start": "2026-09-10",
+        "values": [
+          0,
+          0.33,
+          1,
+          0
+        ]
+      },
+      {
+        "start": "2026-09-11",
+        "values": [
+          0,
+          0.33,
+          0,
+          0.67
+        ]
+      },
+      {
+        "start": "2026-09-12",
+        "values": [
+          0,
+          0.33,
+          0,
+          0.67
+        ]
+      },
+      {
+        "start": "2026-09-13",
+        "values": [
+          0,
+          0.33,
+          0,
+          0
+        ]
+      },
+      {
+        "start": "2026-09-14",
+        "values": [
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "start": "2026-09-15",
+        "values": [
+          0.33,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "start": "2026-09-16",
+        "values": [
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "start": "2026-09-17",
+        "values": [
+          0.33,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "start": "2026-09-18",
+        "values": [
+          0,
+          0,
+          1,
+          0
+        ]
+      },
+      {
+        "start": "2026-09-19",
+        "values": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "start": "2026-09-20",
+        "values": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "start": "2026-09-21",
+        "values": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "start": "2026-09-22",
+        "values": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "start": "2026-09-23",
+        "values": [
+          0,
+          0,
+          1,
+          0
+        ]
+      }
+    ]
+  },
+  "pattern": {
+    "ready": false,
+    "cycles_counted": 0,
+    "cycles_needed": 3,
+    "typical": {
+      "cycle_length": 29,
+      "ovulation_day": 16,
+      "fertile_start_day": 11,
+      "fertile_end_day": 16,
+      "days": {
+        "period": 5,
+        "follicular": 5,
+        "fertile": 6,
+        "luteal": 13
+      }
+    },
+    "items": []
+  },
+  "highlight": null
+}

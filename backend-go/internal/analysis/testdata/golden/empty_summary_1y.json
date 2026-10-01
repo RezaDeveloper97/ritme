@@ -1,0 +1,97 @@
+{
+  "range": {
+    "key": "1y",
+    "from": "2025-09-24",
+    "to": "2026-09-23",
+    "days": 365
+  },
+  "top_finding": {
+    "kind": "no_data",
+    "parts": [
+      {
+        "key": "findings.no_data",
+        "params": {},
+        "text": "هنوز داده‌ای برای تحلیل نیست؛ با ثبت روزانه شروع کن."
+      }
+    ],
+    "text": "هنوز داده‌ای برای تحلیل نیست؛ با ثبت روزانه شروع کن."
+  },
+  "sections": {
+    "cycle": {
+      "plus": false,
+      "locked": false,
+      "ready": false,
+      "data": {
+        "median_cycle": null,
+        "median_period": null,
+        "cycle_status": null,
+        "regularity": "not_enough_data",
+        "variation_days": null,
+        "variation_max": 7,
+        "based_on_cycles": 0,
+        "bars": []
+      }
+    },
+    "recent_cycles": {
+      "plus": false,
+      "locked": false,
+      "ready": false,
+      "data": []
+    },
+    "symptoms": {
+      "plus": false,
+      "locked": false,
+      "ready": false,
+      "data": {
+        "cycles_counted": 0,
+        "cycles_needed": 3,
+        "top": [],
+        "highlight": null
+      }
+    },
+    "mood_by_phase": {
+      "plus": true,
+      "locked": true,
+      "ready": false,
+      "data": null
+    },
+    "sleep_mood": {
+      "plus": true,
+      "locked": true,
+      "ready": false,
+      "data": null
+    },
+    "weight": {
+      "plus": false,
+      "locked": false,
+      "ready": false,
+      "data": {
+        "ready": false,
+        "unit": "kg",
+        "current": null,
+        "as_of": null,
+        "delta_7d": null,
+        "delta_30d": null,
+        "delta_range": null,
+        "bmi": null,
+        "moving_average_days": 7,
+        "points": []
+      }
+    },
+    "vitals": {
+      "plus": false,
+      "locked": false,
+      "ready": false,
+      "data": {
+        "blood_pressure": null,
+        "blood_sugar": null
+      }
+    },
+    "labs": {
+      "plus": true,
+      "locked": true,
+      "ready": false,
+      "data": null
+    }
+  }
+}

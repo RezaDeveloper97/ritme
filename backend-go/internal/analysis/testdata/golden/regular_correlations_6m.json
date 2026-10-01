@@ -1,0 +1,158 @@
+{
+  "days_logged": 182,
+  "items": [
+    {
+      "key": "sleep_mood",
+      "status": "ready",
+      "statistic": "phi",
+      "value": 0.57,
+      "strength": "strong",
+      "n": 112,
+      "min_days": 20,
+      "groups": [
+        {
+          "key": "sleep_6_plus",
+          "days": 76,
+          "hits": 10,
+          "pct": 13
+        },
+        {
+          "key": "sleep_under_6",
+          "days": 36,
+          "hits": 25,
+          "pct": 69
+        }
+      ],
+      "ratio": 5.3,
+      "finding": {
+        "key": "correlations.sleep_mood.more",
+        "params": {
+          "ratio": 5.3,
+          "hits": 25,
+          "days": 36
+        },
+        "text": "در شب‌های زیر ۶ ساعت خواب، فردایش «کلافه» یا «زودرنج» ۵٫۳ برابر بیشتر ثبت شده (۲۵ از ۳۶ روز)."
+      },
+      "not_causal": true
+    },
+    {
+      "key": "phase_energy",
+      "status": "ready",
+      "statistic": "cramers_v",
+      "value": 0.77,
+      "strength": "strong",
+      "n": 182,
+      "min_days": 20,
+      "groups": [
+        {
+          "key": "period",
+          "days": 31,
+          "hits": 1,
+          "pct": 3
+        },
+        {
+          "key": "follicular",
+          "days": 38,
+          "hits": 32,
+          "pct": 84
+        },
+        {
+          "key": "fertile",
+          "days": 35,
+          "hits": 14,
+          "pct": 40
+        },
+        {
+          "key": "luteal",
+          "days": 78,
+          "hits": 0,
+          "pct": 0
+        }
+      ],
+      "ratio": null,
+      "finding": {
+        "key": "correlations.phase_energy.only",
+        "params": {
+          "high_phase": "follicular"
+        },
+        "text": "انرژی «زیاد» بیشتر در فاز فولیکولار ثبت شده."
+      },
+      "not_causal": true
+    },
+    {
+      "key": "exercise_cramps",
+      "status": "ready",
+      "statistic": "phi",
+      "value": -0.72,
+      "strength": "strong",
+      "n": 31,
+      "min_days": 20,
+      "groups": [
+        {
+          "key": "no_exercise",
+          "days": 17,
+          "hits": 12,
+          "pct": 71
+        },
+        {
+          "key": "exercise",
+          "days": 14,
+          "hits": 0,
+          "pct": 0
+        }
+      ],
+      "ratio": 0,
+      "finding": {
+        "key": "correlations.exercise_cramps.less",
+        "params": {},
+        "text": "در روزهای پریود با ورزش، گرفتگی شدید کمتر ثبت شده."
+      },
+      "not_causal": true
+    },
+    {
+      "key": "phase_mood",
+      "status": "ready",
+      "statistic": "cramers_v",
+      "value": 0.24,
+      "strength": "weak",
+      "n": 112,
+      "min_days": 20,
+      "groups": [
+        {
+          "key": "period",
+          "days": 12,
+          "hits": 6,
+          "pct": 50
+        },
+        {
+          "key": "follicular",
+          "days": 35,
+          "hits": 28,
+          "pct": 80
+        },
+        {
+          "key": "fertile",
+          "days": 29,
+          "hits": 22,
+          "pct": 76
+        },
+        {
+          "key": "luteal",
+          "days": 36,
+          "hits": 21,
+          "pct": 58
+        }
+      ],
+      "ratio": 1.6,
+      "finding": {
+        "key": "correlations.phase_mood.best",
+        "params": {
+          "phase": "follicular",
+          "pct": 80
+        },
+        "text": "حال خوب بیشتر در فاز فولیکولار ثبت شده (۸۰٪ روزها)."
+      },
+      "not_causal": true
+    }
+  ]
+}

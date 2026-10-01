@@ -1,0 +1,81 @@
+{
+  "month": {
+    "key": "1405-06",
+    "calendar": "jalali",
+    "from": "2026-08-23",
+    "to": "2026-09-22",
+    "complete": true
+  },
+  "headline": {
+    "key": "monthly.headline.little_data",
+    "params": {},
+    "text": "این ماه داده کمی ثبت شده"
+  },
+  "summary": {
+    "parts": [
+      {
+        "key": "monthly.summary.days",
+        "params": {
+          "days": 0
+        },
+        "text": "۰ روز ثبت"
+      },
+      {
+        "key": "monthly.summary.cycle",
+        "params": {
+          "length": 21
+        },
+        "text": "سیکل ۲۱ روزه"
+      }
+    ],
+    "text": "۰ روز ثبت و سیکل ۲۱ روزه."
+  },
+  "metrics": [
+    {
+      "key": "cycle_length",
+      "value": 21,
+      "delta": -1,
+      "unit": "days"
+    },
+    {
+      "key": "days_logged",
+      "value": 0,
+      "delta": 0,
+      "unit": "days"
+    },
+    {
+      "key": "sleep",
+      "value": null,
+      "delta": null,
+      "unit": "hours"
+    },
+    {
+      "key": "weight",
+      "value": null,
+      "delta": null,
+      "unit": "kg"
+    },
+    {
+      "key": "blood_pressure",
+      "value": null,
+      "delta": null,
+      "unit": "mmhg"
+    },
+    {
+      "key": "good_mood",
+      "value": null,
+      "delta": null,
+      "unit": "percent"
+    }
+  ],
+  "top_symptoms": [],
+  "suggestion": {
+    "key": "monthly.suggestion.log_sleep",
+    "params": {},
+    "text": "خوابت را هر روز ثبت کن تا ارتباط خواب با حال و علائمت دیده شود."
+  },
+  "pdf": {
+    "plus": true,
+    "locked": false
+  }
+}

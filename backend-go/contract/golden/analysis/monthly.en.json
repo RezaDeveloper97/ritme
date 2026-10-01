@@ -1,0 +1,122 @@
+{
+  "case": "analysis/monthly.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/analysis/monthly/2026-09",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "month": {
+            "key": "2026-09",
+            "calendar": "gregorian",
+            "from": "2026-09-01",
+            "to": "2026-09-23",
+            "complete": false
+          },
+          "headline": {
+            "key": "monthly.headline.little_data",
+            "params": {},
+            "text": "Little was logged this month"
+          },
+          "summary": {
+            "parts": [
+              {
+                "key": "monthly.summary.days",
+                "params": {
+                  "days": 4
+                },
+                "text": "4 days logged"
+              },
+              {
+                "key": "monthly.summary.cycle_regular",
+                "params": {
+                  "length": 28
+                },
+                "text": "a regular 28-day cycle"
+              },
+              {
+                "key": "monthly.summary.sleep",
+                "params": {
+                  "hours": 7.5
+                },
+                "text": "7.5 hours of sleep on average"
+              }
+            ],
+            "text": "4 days logged, a regular 28-day cycle and 7.5 hours of sleep on average."
+          },
+          "metrics": [
+            {
+              "key": "cycle_length",
+              "value": 28,
+              "delta": 0,
+              "unit": "days"
+            },
+            {
+              "key": "days_logged",
+              "value": 4,
+              "delta": 4,
+              "unit": "days"
+            },
+            {
+              "key": "sleep",
+              "value": 7.5,
+              "delta": null,
+              "unit": "hours"
+            },
+            {
+              "key": "weight",
+              "value": 61.5,
+              "delta": null,
+              "unit": "kg"
+            },
+            {
+              "key": "blood_pressure",
+              "value": null,
+              "delta": null,
+              "unit": "mmhg"
+            },
+            {
+              "key": "good_mood",
+              "value": 67,
+              "delta": null,
+              "unit": "percent"
+            }
+          ],
+          "top_symptoms": [
+            {
+              "key": "mood.moods.sensitive",
+              "label": "Sensitive",
+              "days": 1,
+              "cycles": 1
+            },
+            {
+              "key": "pain.location.abdomen",
+              "label": "Cramps",
+              "days": 1,
+              "cycles": 1
+            }
+          ],
+          "suggestion": {
+            "key": "monthly.suggestion.log_sleep",
+            "params": {},
+            "text": "Log your sleep every day to see how it relates to your mood and symptoms."
+          },
+          "pdf": {
+            "plus": true,
+            "locked": true
+          }
+        }
+      }
+    }
+  ]
+}

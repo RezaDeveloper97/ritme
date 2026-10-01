@@ -1,0 +1,126 @@
+# Analysis tab (/api/v1/analysis/*) — Go only (B-N3-07): there is no Laravel route, so these goldens were recorded
+# from the Go server and reviewed by hand (new-endpoint skill, step 8). The fixture personas carry little day-log data
+# (the regular persona's backfilled bleeding days, the premium persona's headaches and fatigue), so these pin the
+# payload shapes, the Plus locks (free personas → `locked: true`, no data; a started trial opens them), the FIGO
+# blocks, validation and the 401. The statistics on rich histories are golden-tested in internal/analysis/testdata.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: analysis
+defaults:
+  persona: regular
+  locales: none
+cases:
+  - name: summary
+    doc: The hub — free cards with the regular persona's data, Plus cards locked, top finding in the request language
+    locales: [none, en]
+    method: GET
+    path: /api/v1/analysis/summary
+    status: 200
+  - name: summary_irregular
+    persona: irregular
+    method: GET
+    path: /api/v1/analysis/summary
+    query: {range: 1y}
+    status: 200
+  - name: summary_premium
+    doc: Headache / fatigue day logs of the premium persona (legacy subscription_type is not Plus → still locked)
+    persona: premium
+    method: GET
+    path: /api/v1/analysis/summary
+    query: {range: 3m}
+    status: 200
+  - name: summary_no_profile
+    persona: no_profile
+    method: GET
+    path: /api/v1/analysis/summary
+    status: 200
+  - name: summary_invalid_range
+    locales: [none, en]
+    method: GET
+    path: /api/v1/analysis/summary
+    query: {range: 5y}
+    status: 422
+  - name: summary_anon
+    persona: anon
+    method: GET
+    path: /api/v1/analysis/summary
+    status: 401
+
+  - name: cycle
+    method: GET
+    path: /api/v1/analysis/cycle
+    status: 200
+  - name: cycle_irregular
+    persona: irregular
+    method: GET
+    path: /api/v1/analysis/cycle
+    query: {range: all}
+    status: 200
+  - name: period
+    method: GET
+    path: /api/v1/analysis/period
+    status: 200
+  - name: symptoms
+    persona: premium
+    method: GET
+    path: /api/v1/analysis/symptoms
+    query: {range: 1m}
+    status: 200
+  - name: body
+    method: GET
+    path: /api/v1/analysis/body
+    query: {range: 1m}
+    status: 200
+
+  - name: correlations_locked
+    doc: A free user gets 200 with locked true and no data
+    method: GET
+    path: /api/v1/analysis/correlations
+    status: 200
+  - name: correlations_trial
+    doc: Start the trial → the correlations and the hub's Plus cards open (little data → not ready)
+    steps:
+      - method: POST
+        path: /api/v1/plus/trial/start
+        status: 200
+      - method: GET
+        path: /api/v1/analysis/correlations
+        status: 200
+      - method: GET
+        path: /api/v1/analysis/summary
+        status: 200
+  - name: correlations_anon
+    persona: anon
+    method: GET
+    path: /api/v1/analysis/correlations
+    status: 401
+
+  - name: monthly
+    locales: [none, en]
+    method: GET
+    path: /api/v1/analysis/monthly/2026-09
+    status: 200
+  - name: monthly_jalali
+    doc: Shahrivar 1405 = 2026-08-23 … 2026-09-22
+    method: GET
+    path: /api/v1/analysis/monthly/1405-06
+    query: {calendar: jalali}
+    status: 200
+  - name: monthly_invalid_ym
+    locales: [none, en]
+    method: GET
+    path: /api/v1/analysis/monthly/2026-13
+    status: 422
+  - name: monthly_future
+    method: GET
+    path: /api/v1/analysis/monthly/2026-11
+    status: 422
+  - name: monthly_invalid_calendar
+    method: GET
+    path: /api/v1/analysis/monthly/2026-09
+    query: {calendar: lunar}
+    status: 422
+  - name: monthly_anon
+    persona: anon
+    method: GET
+    path: /api/v1/analysis/monthly/2026-09
+    status: 401

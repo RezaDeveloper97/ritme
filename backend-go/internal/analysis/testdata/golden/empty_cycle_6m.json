@@ -1,0 +1,51 @@
+{
+  "range": {
+    "key": "6m",
+    "from": "2026-03-26",
+    "to": "2026-09-23",
+    "days": 182
+  },
+  "ready": false,
+  "based_on_cycles": 0,
+  "figo": {
+    "applies": true,
+    "cycle": {
+      "min": 24,
+      "max": 38
+    },
+    "period": {
+      "max": 8
+    },
+    "variation": {
+      "max": 7
+    }
+  },
+  "cycle_length": {
+    "median": null,
+    "status": null
+  },
+  "period_length": {
+    "median": null,
+    "status": null
+  },
+  "variation": {
+    "days": null,
+    "max": 7,
+    "status": "not_enough_data",
+    "cycles_needed": 3
+  },
+  "typical": {
+    "cycle_length": 28,
+    "ovulation_day": 15,
+    "fertile_start_day": 10,
+    "fertile_end_day": 15,
+    "days": {
+      "period": 5,
+      "follicular": 4,
+      "fertile": 6,
+      "luteal": 13
+    }
+  },
+  "current": null,
+  "cycles": []
+}

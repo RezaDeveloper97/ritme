@@ -1,0 +1,120 @@
+{
+  "case": "analysis/cycle_irregular",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/analysis/cycle?range=all",
+        "persona": "irregular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "range": {
+            "key": "all",
+            "from": "2016-09-26",
+            "to": "2026-09-23",
+            "days": 3650
+          },
+          "ready": true,
+          "based_on_cycles": 5,
+          "figo": {
+            "applies": true,
+            "cycle": {
+              "min": 24,
+              "max": 38
+            },
+            "period": {
+              "max": 8
+            },
+            "variation": {
+              "max": 7
+            }
+          },
+          "cycle_length": {
+            "median": 29,
+            "status": "normal"
+          },
+          "period_length": {
+            "median": 5,
+            "status": "normal"
+          },
+          "variation": {
+            "days": 17,
+            "max": 7,
+            "status": "irregular",
+            "cycles_needed": 3
+          },
+          "typical": {
+            "cycle_length": 29,
+            "ovulation_day": 16,
+            "fertile_start_day": 11,
+            "fertile_end_day": 16,
+            "days": {
+              "period": 5,
+              "follicular": 5,
+              "fertile": 6,
+              "luteal": 13
+            }
+          },
+          "current": {
+            "start": "2026-09-09",
+            "day": 15
+          },
+          "cycles": [
+            {
+              "start": "2026-08-14",
+              "end": "2026-09-08",
+              "length": 26,
+              "period_days": 5,
+              "in_figo_range": true,
+              "counted": true,
+              "excluded": null
+            },
+            {
+              "start": "2026-07-04",
+              "end": "2026-08-13",
+              "length": 41,
+              "period_days": 5,
+              "in_figo_range": false,
+              "counted": true,
+              "excluded": null
+            },
+            {
+              "start": "2026-06-05",
+              "end": "2026-07-03",
+              "length": 29,
+              "period_days": 5,
+              "in_figo_range": true,
+              "counted": true,
+              "excluded": null
+            },
+            {
+              "start": "2026-05-01",
+              "end": "2026-06-04",
+              "length": 35,
+              "period_days": 5,
+              "in_figo_range": true,
+              "counted": true,
+              "excluded": null
+            },
+            {
+              "start": "2026-04-07",
+              "end": "2026-04-30",
+              "length": 24,
+              "period_days": 5,
+              "in_figo_range": true,
+              "counted": true,
+              "excluded": null
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

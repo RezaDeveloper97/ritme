@@ -1,0 +1,183 @@
+{
+  "range": {
+    "key": "6m",
+    "from": "2026-03-26",
+    "to": "2026-09-23",
+    "days": 182
+  },
+  "top_finding": {
+    "kind": "cycle_irregular",
+    "parts": [
+      {
+        "key": "findings.cycle.irregular",
+        "params": {
+          "days": 17,
+          "limit": 7
+        },
+        "text": "طول سیکل‌هایت ۱۷ روز نوسان داشته که از بازه منظم (≤۷ روز) بیشتر است."
+      },
+      {
+        "key": "findings.pattern.early",
+        "params": {
+          "symptom": "pain.location.back",
+          "cycles": 5,
+          "total": 5,
+          "days": 1
+        },
+        "text": "کمردرد در ۵ از ۵ سیکل در ۱ روز اول سیکل تکرار شده است."
+      }
+    ],
+    "text": "طول سیکل‌هایت ۱۷ روز نوسان داشته که از بازه منظم (≤۷ روز) بیشتر است. کمردرد در ۵ از ۵ سیکل در ۱ روز اول سیکل تکرار شده است."
+  },
+  "sections": {
+    "cycle": {
+      "plus": false,
+      "locked": false,
+      "ready": true,
+      "data": {
+        "median_cycle": 29,
+        "median_period": 4,
+        "cycle_status": "normal",
+        "regularity": "irregular",
+        "variation_days": 17,
+        "variation_max": 7,
+        "based_on_cycles": 5,
+        "bars": [
+          {
+            "start": "2026-04-07",
+            "length": 26,
+            "in_figo_range": true
+          },
+          {
+            "start": "2026-05-03",
+            "length": 41,
+            "in_figo_range": false
+          },
+          {
+            "start": "2026-06-13",
+            "length": 29,
+            "in_figo_range": true
+          },
+          {
+            "start": "2026-07-12",
+            "length": 35,
+            "in_figo_range": true
+          },
+          {
+            "start": "2026-08-16",
+            "length": 24,
+            "in_figo_range": true
+          }
+        ]
+      }
+    },
+    "recent_cycles": {
+      "plus": false,
+      "locked": false,
+      "ready": true,
+      "data": [
+        {
+          "start": "2026-09-09",
+          "length": 29,
+          "is_current": true,
+          "days_so_far": 15,
+          "period_days": 4,
+          "fertile_start_day": 11,
+          "fertile_end_day": 16,
+          "ovulation_day": 16
+        },
+        {
+          "start": "2026-08-16",
+          "length": 24,
+          "is_current": false,
+          "days_so_far": null,
+          "period_days": 4,
+          "fertile_start_day": 6,
+          "fertile_end_day": 11,
+          "ovulation_day": 11
+        },
+        {
+          "start": "2026-07-12",
+          "length": 35,
+          "is_current": false,
+          "days_so_far": null,
+          "period_days": 4,
+          "fertile_start_day": 17,
+          "fertile_end_day": 22,
+          "ovulation_day": 22
+        }
+      ]
+    },
+    "symptoms": {
+      "plus": false,
+      "locked": false,
+      "ready": true,
+      "data": {
+        "cycles_counted": 5,
+        "cycles_needed": 3,
+        "top": [
+          {
+            "key": "pain.location.back",
+            "label": "کمردرد",
+            "days": 6,
+            "cycles": 6
+          }
+        ],
+        "highlight": {
+          "key": "pain.location.back",
+          "label": "کمردرد",
+          "cycles": 5,
+          "of_cycles": 5,
+          "relation": "early",
+          "days": 1,
+          "start_day": 1,
+          "end_day": 1
+        }
+      }
+    },
+    "mood_by_phase": {
+      "plus": true,
+      "locked": true,
+      "ready": false,
+      "data": null
+    },
+    "sleep_mood": {
+      "plus": true,
+      "locked": true,
+      "ready": false,
+      "data": null
+    },
+    "weight": {
+      "plus": false,
+      "locked": false,
+      "ready": false,
+      "data": {
+        "ready": false,
+        "unit": "kg",
+        "current": null,
+        "as_of": null,
+        "delta_7d": null,
+        "delta_30d": null,
+        "delta_range": null,
+        "bmi": null,
+        "moving_average_days": 7,
+        "points": []
+      }
+    },
+    "vitals": {
+      "plus": false,
+      "locked": false,
+      "ready": false,
+      "data": {
+        "blood_pressure": null,
+        "blood_sugar": null
+      }
+    },
+    "labs": {
+      "plus": true,
+      "locked": true,
+      "ready": false,
+      "data": null
+    }
+  }
+}

@@ -1,0 +1,141 @@
+{
+  "range": {
+    "key": "6m",
+    "from": "2026-03-26",
+    "to": "2026-09-23",
+    "days": 182
+  },
+  "top_finding": {
+    "kind": "not_enough_data",
+    "parts": [
+      {
+        "key": "findings.not_enough_data",
+        "params": {
+          "needed": 1
+        },
+        "text": "برای دیدن الگوها، ۱ سیکل دیگر ثبت کن."
+      }
+    ],
+    "text": "برای دیدن الگوها، ۱ سیکل دیگر ثبت کن."
+  },
+  "sections": {
+    "cycle": {
+      "plus": false,
+      "locked": false,
+      "ready": true,
+      "data": {
+        "median_cycle": 22,
+        "median_period": 9,
+        "cycle_status": "frequent",
+        "regularity": "not_enough_data",
+        "variation_days": null,
+        "variation_max": 9,
+        "based_on_cycles": 2,
+        "bars": [
+          {
+            "start": "2026-07-29",
+            "length": 22,
+            "in_figo_range": false
+          },
+          {
+            "start": "2026-08-20",
+            "length": 21,
+            "in_figo_range": false
+          }
+        ]
+      }
+    },
+    "recent_cycles": {
+      "plus": false,
+      "locked": false,
+      "ready": true,
+      "data": [
+        {
+          "start": "2026-09-10",
+          "length": 22,
+          "is_current": true,
+          "days_so_far": 14,
+          "period_days": 9,
+          "fertile_start_day": 10,
+          "fertile_end_day": 10,
+          "ovulation_day": 10
+        },
+        {
+          "start": "2026-08-20",
+          "length": 21,
+          "is_current": false,
+          "days_so_far": null,
+          "period_days": 9,
+          "fertile_start_day": 10,
+          "fertile_end_day": 10,
+          "ovulation_day": 10
+        },
+        {
+          "start": "2026-07-29",
+          "length": 22,
+          "is_current": false,
+          "days_so_far": null,
+          "period_days": 9,
+          "fertile_start_day": 10,
+          "fertile_end_day": 10,
+          "ovulation_day": 10
+        }
+      ]
+    },
+    "symptoms": {
+      "plus": false,
+      "locked": false,
+      "ready": false,
+      "data": {
+        "cycles_counted": 2,
+        "cycles_needed": 3,
+        "top": [],
+        "highlight": null
+      }
+    },
+    "mood_by_phase": {
+      "plus": true,
+      "locked": true,
+      "ready": false,
+      "data": null
+    },
+    "sleep_mood": {
+      "plus": true,
+      "locked": true,
+      "ready": false,
+      "data": null
+    },
+    "weight": {
+      "plus": false,
+      "locked": false,
+      "ready": false,
+      "data": {
+        "ready": false,
+        "unit": "kg",
+        "current": null,
+        "as_of": null,
+        "delta_7d": null,
+        "delta_30d": null,
+        "delta_range": null,
+        "bmi": null,
+        "moving_average_days": 7,
+        "points": []
+      }
+    },
+    "vitals": {
+      "plus": false,
+      "locked": false,
+      "ready": false,
+      "data": {
+        "blood_pressure": null,
+        "blood_sugar": null
+      }
+    },
+    "labs": {
+      "plus": true,
+      "locked": true,
+      "ready": false,
+      "data": null
+    }
+  }
+}

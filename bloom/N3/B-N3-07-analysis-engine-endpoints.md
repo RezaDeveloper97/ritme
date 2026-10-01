@@ -3,7 +3,7 @@ id: B-N3-07
 title: Analysis engine endpoints
 milestone: N3
 type: backend
-status: todo
+status: done
 depends_on: [B-N3-01]
 parallel_group: N3-G
 touches: [backend-go/internal/analysis,backend-go/internal/http,backend-go/api]

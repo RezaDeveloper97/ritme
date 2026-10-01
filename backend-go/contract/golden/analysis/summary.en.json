@@ -1,0 +1,196 @@
+{
+  "case": "analysis/summary.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/analysis/summary",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "range": {
+            "key": "6m",
+            "from": "2026-03-26",
+            "to": "2026-09-23",
+            "days": 182
+          },
+          "top_finding": {
+            "kind": "cycle_regular",
+            "parts": [
+              {
+                "key": "findings.cycle.regular",
+                "params": {
+                  "days": 0
+                },
+                "text": "Your cycles are regular (variation 0 days)."
+              }
+            ],
+            "text": "Your cycles are regular (variation 0 days)."
+          },
+          "sections": {
+            "cycle": {
+              "plus": false,
+              "locked": false,
+              "ready": true,
+              "data": {
+                "median_cycle": 28,
+                "median_period": 5,
+                "cycle_status": "normal",
+                "regularity": "regular",
+                "variation_days": 0,
+                "variation_max": 7,
+                "based_on_cycles": 5,
+                "bars": [
+                  {
+                    "start": "2026-04-27",
+                    "length": 28,
+                    "in_figo_range": true
+                  },
+                  {
+                    "start": "2026-05-25",
+                    "length": 28,
+                    "in_figo_range": true
+                  },
+                  {
+                    "start": "2026-06-22",
+                    "length": 28,
+                    "in_figo_range": true
+                  },
+                  {
+                    "start": "2026-07-20",
+                    "length": 28,
+                    "in_figo_range": true
+                  },
+                  {
+                    "start": "2026-08-17",
+                    "length": 28,
+                    "in_figo_range": true
+                  }
+                ]
+              }
+            },
+            "recent_cycles": {
+              "plus": false,
+              "locked": false,
+              "ready": true,
+              "data": [
+                {
+                  "start": "2026-09-14",
+                  "length": 28,
+                  "is_current": true,
+                  "days_so_far": 10,
+                  "period_days": 5,
+                  "fertile_start_day": 10,
+                  "fertile_end_day": 15,
+                  "ovulation_day": 15
+                },
+                {
+                  "start": "2026-08-17",
+                  "length": 28,
+                  "is_current": false,
+                  "days_so_far": null,
+                  "period_days": 5,
+                  "fertile_start_day": 10,
+                  "fertile_end_day": 15,
+                  "ovulation_day": 15
+                },
+                {
+                  "start": "2026-07-20",
+                  "length": 28,
+                  "is_current": false,
+                  "days_so_far": null,
+                  "period_days": 5,
+                  "fertile_start_day": 10,
+                  "fertile_end_day": 15,
+                  "ovulation_day": 15
+                }
+              ]
+            },
+            "symptoms": {
+              "plus": false,
+              "locked": false,
+              "ready": true,
+              "data": {
+                "cycles_counted": 5,
+                "cycles_needed": 3,
+                "top": [
+                  {
+                    "key": "mood.moods.sensitive",
+                    "label": "Sensitive",
+                    "days": 1,
+                    "cycles": 1
+                  },
+                  {
+                    "key": "pain.location.abdomen",
+                    "label": "Cramps",
+                    "days": 1,
+                    "cycles": 1
+                  }
+                ],
+                "highlight": null
+              }
+            },
+            "mood_by_phase": {
+              "plus": true,
+              "locked": true,
+              "ready": false,
+              "data": null
+            },
+            "sleep_mood": {
+              "plus": true,
+              "locked": true,
+              "ready": false,
+              "data": null
+            },
+            "weight": {
+              "plus": false,
+              "locked": false,
+              "ready": false,
+              "data": {
+                "ready": false,
+                "unit": "kg",
+                "current": 61.5,
+                "as_of": "2026-09-23",
+                "delta_7d": null,
+                "delta_30d": null,
+                "delta_range": null,
+                "bmi": 22.6,
+                "moving_average_days": 7,
+                "points": [
+                  {
+                    "date": "2026-09-23",
+                    "value": 61.5,
+                    "avg7": 61.5
+                  }
+                ]
+              }
+            },
+            "vitals": {
+              "plus": false,
+              "locked": false,
+              "ready": false,
+              "data": {
+                "blood_pressure": null,
+                "blood_sugar": null
+              }
+            },
+            "labs": {
+              "plus": true,
+              "locked": true,
+              "ready": false,
+              "data": null
+            }
+          }
+        }
+      }
+    }
+  ]
+}

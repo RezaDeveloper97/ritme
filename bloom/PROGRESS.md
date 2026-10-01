@@ -524,3 +524,14 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   `PATCH|DELETE /logs/custom-items/{id}` (≤20 active, unique label per category, 404 on others' ids). `PUT /logs/days`
   validation now accepts only the user's custom items on host params.
 - Contract `logs` 34 passed; schema-diff OK. QUESTIONS #81.
+
+## B-N3-07 — Analysis engine endpoints
+
+- `internal/analysis` (pure computation + thin handlers): `GET /api/v1/analysis/{summary,cycle,period,symptoms,
+  correlations,body}` and `/analysis/monthly/:ym[?calendar=]`, `range` 7d|2w|1m|3m|6m(default)|1y|all. Sections are
+  `{plus,locked,ready,data}`; Plus (`plus.deep_analysis`): mood_by_phase, sleep_mood, correlations, labs (labs empty
+  until B-N6-06); monthly `pdf` gated by `plus.pdf_share`.
+- FIGO 2018 constants (cycle 24–38, period ≤8, variation 9/7/9 by age, not applied outside 18–45), min-data rules
+  (patterns ≥3 cycles, trends ≥2 points), top finding phrases (namespace `analysis`), correlations phi / Cramér's V with
+  Cohen strengths, ≥20 paired days, `not_causal: true`; 7-day moving-average weight.
+- 41 engine goldens (fixed clock), 24 contract goldens (`ROUTES=all` 1200 passed), D-39 proposed. QUESTIONS #82.

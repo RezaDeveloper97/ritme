@@ -1,0 +1,419 @@
+{
+  "range": {
+    "key": "6m",
+    "from": "2026-03-26",
+    "to": "2026-09-23",
+    "days": 182
+  },
+  "top_finding": {
+    "kind": "cycle_regular",
+    "parts": [
+      {
+        "key": "findings.cycle.regular",
+        "params": {
+          "days": 2
+        },
+        "text": "Your cycles are regular (variation 2 days)."
+      },
+      {
+        "key": "findings.pattern.before_period",
+        "params": {
+          "symptom": "pain.location.head",
+          "cycles": 4,
+          "total": 5,
+          "days": 3
+        },
+        "text": "Headache came back in 4 of 5 cycles, 3 days before your period."
+      }
+    ],
+    "text": "Your cycles are regular (variation 2 days). Headache came back in 4 of 5 cycles, 3 days before your period."
+  },
+  "sections": {
+    "cycle": {
+      "plus": false,
+      "locked": false,
+      "ready": true,
+      "data": {
+        "median_cycle": 29,
+        "median_period": 5,
+        "cycle_status": "normal",
+        "regularity": "regular",
+        "variation_days": 2,
+        "variation_max": 7,
+        "based_on_cycles": 5,
+        "bars": [
+          {
+            "start": "2026-04-13",
+            "length": 38,
+            "in_figo_range": true
+          },
+          {
+            "start": "2026-05-21",
+            "length": 29,
+            "in_figo_range": true
+          },
+          {
+            "start": "2026-06-19",
+            "length": 28,
+            "in_figo_range": true
+          },
+          {
+            "start": "2026-07-17",
+            "length": 30,
+            "in_figo_range": true
+          },
+          {
+            "start": "2026-08-16",
+            "length": 29,
+            "in_figo_range": true
+          }
+        ]
+      }
+    },
+    "recent_cycles": {
+      "plus": false,
+      "locked": false,
+      "ready": true,
+      "data": [
+        {
+          "start": "2026-09-14",
+          "length": 29,
+          "is_current": true,
+          "days_so_far": 10,
+          "period_days": 5,
+          "fertile_start_day": 11,
+          "fertile_end_day": 16,
+          "ovulation_day": 16
+        },
+        {
+          "start": "2026-08-16",
+          "length": 29,
+          "is_current": false,
+          "days_so_far": null,
+          "period_days": 5,
+          "fertile_start_day": 11,
+          "fertile_end_day": 16,
+          "ovulation_day": 16
+        },
+        {
+          "start": "2026-07-17",
+          "length": 30,
+          "is_current": false,
+          "days_so_far": null,
+          "period_days": 5,
+          "fertile_start_day": 12,
+          "fertile_end_day": 17,
+          "ovulation_day": 17
+        }
+      ]
+    },
+    "symptoms": {
+      "plus": false,
+      "locked": false,
+      "ready": true,
+      "data": {
+        "cycles_counted": 5,
+        "cycles_needed": 3,
+        "top": [
+          {
+            "key": "mood.moods.irritable",
+            "label": "Irritable",
+            "days": 35,
+            "cycles": 7
+          },
+          {
+            "key": "symptoms.digestive.bloating",
+            "label": "Bloating",
+            "days": 30,
+            "cycles": 6
+          },
+          {
+            "key": "pain.location.abdomen",
+            "label": "Cramps",
+            "days": 24,
+            "cycles": 6
+          }
+        ],
+        "highlight": {
+          "key": "pain.location.head",
+          "label": "Headache",
+          "cycles": 4,
+          "of_cycles": 5,
+          "relation": "before_period",
+          "days": 3,
+          "start_day": 27,
+          "end_day": 28
+        }
+      }
+    },
+    "mood_by_phase": {
+      "plus": true,
+      "locked": false,
+      "ready": true,
+      "data": {
+        "phases": [
+          {
+            "phase": "period",
+            "good_pct": 50,
+            "days": 12
+          },
+          {
+            "phase": "follicular",
+            "good_pct": 80,
+            "days": 35
+          },
+          {
+            "phase": "fertile",
+            "good_pct": 76,
+            "days": 29
+          },
+          {
+            "phase": "luteal",
+            "good_pct": 58,
+            "days": 36
+          }
+        ],
+        "finding": {
+          "key": "correlations.phase_mood.best",
+          "params": {
+            "phase": "follicular",
+            "pct": 80
+          },
+          "text": "Good moods were logged most in the follicular phase (80% of days)."
+        },
+        "not_causal": true
+      }
+    },
+    "sleep_mood": {
+      "plus": true,
+      "locked": false,
+      "ready": true,
+      "data": {
+        "key": "sleep_mood",
+        "status": "ready",
+        "statistic": "phi",
+        "value": 0.57,
+        "strength": "strong",
+        "n": 112,
+        "min_days": 20,
+        "groups": [
+          {
+            "key": "sleep_6_plus",
+            "days": 76,
+            "hits": 10,
+            "pct": 13
+          },
+          {
+            "key": "sleep_under_6",
+            "days": 36,
+            "hits": 25,
+            "pct": 69
+          }
+        ],
+        "ratio": 5.3,
+        "finding": {
+          "key": "correlations.sleep_mood.more",
+          "params": {
+            "ratio": 5.3,
+            "hits": 25,
+            "days": 36
+          },
+          "text": "After nights under 6 hours of sleep, “frustrated” or “irritable” was logged 5.3× as often (25 of 36 days)."
+        },
+        "not_causal": true
+      }
+    },
+    "weight": {
+      "plus": false,
+      "locked": false,
+      "ready": true,
+      "data": {
+        "ready": true,
+        "unit": "kg",
+        "current": 57.8,
+        "as_of": "2026-09-23",
+        "delta_7d": -0.4,
+        "delta_30d": -0.3,
+        "delta_range": -1.8,
+        "bmi": 21.2,
+        "moving_average_days": 7,
+        "points": [
+          {
+            "date": "2026-08-25",
+            "value": 58.08,
+            "avg7": 58.1
+          },
+          {
+            "date": "2026-08-26",
+            "value": 58.07,
+            "avg7": 58.1
+          },
+          {
+            "date": "2026-08-27",
+            "value": 58.06,
+            "avg7": 58.1
+          },
+          {
+            "date": "2026-08-28",
+            "value": 58.05,
+            "avg7": 58.1
+          },
+          {
+            "date": "2026-08-29",
+            "value": 58.04,
+            "avg7": 58.1
+          },
+          {
+            "date": "2026-08-30",
+            "value": 58.03,
+            "avg7": 58.1
+          },
+          {
+            "date": "2026-08-31",
+            "value": 58.02,
+            "avg7": 58.1
+          },
+          {
+            "date": "2026-09-01",
+            "value": 58.01,
+            "avg7": 58
+          },
+          {
+            "date": "2026-09-02",
+            "value": 58,
+            "avg7": 58
+          },
+          {
+            "date": "2026-09-03",
+            "value": 57.99,
+            "avg7": 58
+          },
+          {
+            "date": "2026-09-04",
+            "value": 57.98,
+            "avg7": 58
+          },
+          {
+            "date": "2026-09-05",
+            "value": 57.97,
+            "avg7": 58
+          },
+          {
+            "date": "2026-09-06",
+            "value": 57.96,
+            "avg7": 58
+          },
+          {
+            "date": "2026-09-07",
+            "value": 57.95,
+            "avg7": 58
+          },
+          {
+            "date": "2026-09-08",
+            "value": 57.94,
+            "avg7": 58
+          },
+          {
+            "date": "2026-09-09",
+            "value": 57.93,
+            "avg7": 58
+          },
+          {
+            "date": "2026-09-10",
+            "value": 58.52,
+            "avg7": 58
+          },
+          {
+            "date": "2026-09-11",
+            "value": 58.51,
+            "avg7": 58.1
+          },
+          {
+            "date": "2026-09-12",
+            "value": 58.5,
+            "avg7": 58.2
+          },
+          {
+            "date": "2026-09-13",
+            "value": 58.49,
+            "avg7": 58.3
+          },
+          {
+            "date": "2026-09-14",
+            "value": 57.88,
+            "avg7": 58.3
+          },
+          {
+            "date": "2026-09-15",
+            "value": 57.87,
+            "avg7": 58.2
+          },
+          {
+            "date": "2026-09-16",
+            "value": 57.86,
+            "avg7": 58.2
+          },
+          {
+            "date": "2026-09-17",
+            "value": 57.85,
+            "avg7": 58.1
+          },
+          {
+            "date": "2026-09-18",
+            "value": 57.84,
+            "avg7": 58
+          },
+          {
+            "date": "2026-09-19",
+            "value": 57.83,
+            "avg7": 57.9
+          },
+          {
+            "date": "2026-09-20",
+            "value": 57.82,
+            "avg7": 57.9
+          },
+          {
+            "date": "2026-09-21",
+            "value": 57.81,
+            "avg7": 57.8
+          },
+          {
+            "date": "2026-09-22",
+            "value": 57.8,
+            "avg7": 57.8
+          },
+          {
+            "date": "2026-09-23",
+            "value": 57.79,
+            "avg7": 57.8
+          }
+        ]
+      }
+    },
+    "vitals": {
+      "plus": false,
+      "locked": false,
+      "ready": true,
+      "data": {
+        "blood_pressure": {
+          "systolic": 120,
+          "diastolic": 77,
+          "readings": 26,
+          "unit": "mmhg"
+        },
+        "blood_sugar": {
+          "avg": 92,
+          "readings": 19,
+          "unit": "mg_dl"
+        }
+      }
+    },
+    "labs": {
+      "plus": true,
+      "locked": false,
+      "ready": false,
+      "data": null
+    }
+  }
+}

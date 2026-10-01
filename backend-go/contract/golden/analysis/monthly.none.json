@@ -1,0 +1,121 @@
+{
+  "case": "analysis/monthly.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/analysis/monthly/2026-09",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "month": {
+            "key": "2026-09",
+            "calendar": "gregorian",
+            "from": "2026-09-01",
+            "to": "2026-09-23",
+            "complete": false
+          },
+          "headline": {
+            "key": "monthly.headline.little_data",
+            "params": {},
+            "text": "این ماه داده کمی ثبت شده"
+          },
+          "summary": {
+            "parts": [
+              {
+                "key": "monthly.summary.days",
+                "params": {
+                  "days": 4
+                },
+                "text": "۴ روز ثبت"
+              },
+              {
+                "key": "monthly.summary.cycle_regular",
+                "params": {
+                  "length": 28
+                },
+                "text": "سیکل ۲۸ روزه و منظم"
+              },
+              {
+                "key": "monthly.summary.sleep",
+                "params": {
+                  "hours": 7.5
+                },
+                "text": "خواب میانگین ۷٫۵ ساعت"
+              }
+            ],
+            "text": "۴ روز ثبت، سیکل ۲۸ روزه و منظم و خواب میانگین ۷٫۵ ساعت."
+          },
+          "metrics": [
+            {
+              "key": "cycle_length",
+              "value": 28,
+              "delta": 0,
+              "unit": "days"
+            },
+            {
+              "key": "days_logged",
+              "value": 4,
+              "delta": 4,
+              "unit": "days"
+            },
+            {
+              "key": "sleep",
+              "value": 7.5,
+              "delta": null,
+              "unit": "hours"
+            },
+            {
+              "key": "weight",
+              "value": 61.5,
+              "delta": null,
+              "unit": "kg"
+            },
+            {
+              "key": "blood_pressure",
+              "value": null,
+              "delta": null,
+              "unit": "mmhg"
+            },
+            {
+              "key": "good_mood",
+              "value": 67,
+              "delta": null,
+              "unit": "percent"
+            }
+          ],
+          "top_symptoms": [
+            {
+              "key": "mood.moods.sensitive",
+              "label": "حساس",
+              "days": 1,
+              "cycles": 1
+            },
+            {
+              "key": "pain.location.abdomen",
+              "label": "گرفتگی",
+              "days": 1,
+              "cycles": 1
+            }
+          ],
+          "suggestion": {
+            "key": "monthly.suggestion.log_sleep",
+            "params": {},
+            "text": "خوابت را هر روز ثبت کن تا ارتباط خواب با حال و علائمت دیده شود."
+          },
+          "pdf": {
+            "plus": true,
+            "locked": true
+          }
+        }
+      }
+    }
+  ]
+}

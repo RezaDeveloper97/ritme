@@ -1,0 +1,26 @@
+{
+  "case": "analysis/monthly_invalid_ym.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/analysis/monthly/2026-13",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "The ym field must match the format Y-m.",
+        "errors": {
+          "ym": [
+            "The ym field must match the format Y-m."
+          ]
+        }
+      }
+    }
+  ]
+}

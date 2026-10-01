@@ -34,6 +34,7 @@ tags:
   - {name: Catalog, description: "Admin-editable content catalog (Go only): one localized group of items (FAQs, warning signs, kit items, …)"}
   - {name: Pelvic, description: "Pelvic floor program (Go only): 8-week Kegel plan, trained days, bladder diary"}
   - {name: Log Taxonomy, description: "Day log v2 (Go only, B-N3-01): taxonomy with labels, per-day entries, the two-way sync with daily_health_logs"}
+  - {name: Analysis, description: "Analysis tab (Go only, B-N3-07): hub, cycle, period, symptoms, correlations (Plus), body, monthly report — FIGO 2018 ranges, min-data rules, never causal"}
   - {name: Search, description: "Global search (Go only, CB-NAV-01): grouped hits over the caller's logs and reminders, care programs, education and services; shop excluded"}
   - {name: Contraception, description: "Contraception (Go only): method, pill pack (day, placebo/break days, streak, refill), pill log and the care reminders of long-acting methods"}
   - {name: Plus, description: "Ritme Plus (Go only): plans, trial, checkout through the payment port, verify, cancel, restore, history, entitlements and usage. Amounts are integer rials"}
@@ -69,6 +70,479 @@ paths:
                 properties: {success: {type: boolean}, message: {type: string}}
               example: {success: true, message: Your account and all associated data have been deleted}
         '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/analysis/summary:
+    get:
+      tags: [Analysis]
+      summary: Analysis hub — top finding and one card per category (Plus cards locked for free users)
+      description: |
+        Go only (B-N3-07, An_Hub). `range` (default 6m) selects the window ending today. `top_finding` is up to two
+        localized sentences (`parts[].key` under the `analysis` translation namespace + `params` with codes and plain
+        numbers, `text` rendered in the request language): the cycle verdict (FIGO frequency 24–38 d, period ≤ 8 d,
+        variation ≤ 7–9 d by age; only for ages 18–45) and the strongest symptom pattern (≥ 3 cycles), or a nudge
+        (`not_enough_data`, `no_data`). Every section is `{plus, locked, ready, data}`: a Plus section
+        (`mood_by_phase`, `sleep_mood`, `labs` — entitlement `plus.deep_analysis`) is `locked: true, data: null` for a
+        free user and nothing is computed for it. `labs` stays empty until lab results exist (B-N6-06). Descriptive
+        only, never diagnostic; correlations carry `not_causal: true`.
+      operationId: getAnalysisSummary
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {$ref: "#/components/parameters/AnalysisRange"}
+      responses:
+        '200':
+          description: The hub
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [range, top_finding, sections]
+                    properties:
+                      range: {$ref: "#/components/schemas/AnalysisRange"}
+                      top_finding:
+                        type: object
+                        required: [kind, parts, text]
+                        properties:
+                          kind: {type: string, enum: [cycle_frequent, cycle_infrequent, period_prolonged, cycle_irregular, cycle_regular, pattern, not_enough_data, no_data]}
+                          parts: {type: array, items: {$ref: "#/components/schemas/AnalysisPhrase"}}
+                          text: {type: string}
+                      sections:
+                        type: object
+                        required: [cycle, recent_cycles, symptoms, mood_by_phase, sleep_mood, weight, vitals, labs]
+                        properties:
+                          cycle: {$ref: "#/components/schemas/AnalysisSection"}
+                          recent_cycles: {$ref: "#/components/schemas/AnalysisSection"}
+                          symptoms: {$ref: "#/components/schemas/AnalysisSection"}
+                          mood_by_phase: {$ref: "#/components/schemas/AnalysisSection"}
+                          sleep_mood: {$ref: "#/components/schemas/AnalysisSection"}
+                          weight: {$ref: "#/components/schemas/AnalysisSection"}
+                          vitals: {$ref: "#/components/schemas/AnalysisSection"}
+                          labs: {$ref: "#/components/schemas/AnalysisSection"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
+  /api/v1/analysis/cycle:
+    get:
+      tags: [Analysis]
+      summary: Cycle analysis — median cycle / period length, variation and FIGO 2018 ranges
+      description: |
+        Go only (B-N3-07, An_Cycle). The completed, confirmed cycles that started in the window (newest first).
+        `counted` cycles feed the medians and the variation; `excluded` = `implausible` (outside 21–45 d) or
+        `outlier` (the window's single cycle further than the FIGO variation limit from the median of the others;
+        two or more stay counted). `figo`: cycle 24–38 d, period ≤ 8 d, variation ≤ 9 d (18–25 y) / ≤ 7 d (26–41) /
+        ≤ 9 d (42–45); `applies` false outside 18–45. `variation` needs ≥ 3 counted cycles, `ready` (bars) ≥ 2.
+        `typical` = the phase split of the typical cycle (ovulation = next start − 14, 6-day fertile window).
+      operationId: getAnalysisCycle
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {$ref: "#/components/parameters/AnalysisRange"}
+      responses:
+        '200':
+          description: The cycle report
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [range, ready, based_on_cycles, figo, cycle_length, period_length, variation, typical, current, cycles]
+                    properties:
+                      range: {$ref: "#/components/schemas/AnalysisRange"}
+                      ready: {type: boolean}
+                      based_on_cycles: {type: integer, minimum: 0}
+                      figo: {$ref: "#/components/schemas/AnalysisFIGO"}
+                      cycle_length:
+                        type: object
+                        required: [median, status]
+                        properties:
+                          median: {type: [integer, "null"]}
+                          status: {type: [string, "null"], enum: [normal, frequent, infrequent, null]}
+                      period_length:
+                        type: object
+                        required: [median, status]
+                        properties:
+                          median: {type: [integer, "null"]}
+                          status: {type: [string, "null"], enum: [normal, prolonged, null]}
+                      variation:
+                        type: object
+                        required: [days, max, status, cycles_needed]
+                        properties:
+                          days: {type: [integer, "null"]}
+                          max: {type: integer}
+                          status: {type: string, enum: [regular, irregular, not_enough_data]}
+                          cycles_needed: {type: integer}
+                      typical: {$ref: "#/components/schemas/AnalysisLayout"}
+                      current:
+                        oneOf:
+                          - {type: "null"}
+                          - type: object
+                            required: [start, day]
+                            properties: {start: {$ref: "#/components/schemas/Date"}, day: {type: integer}}
+                      cycles:
+                        type: array
+                        items:
+                          type: object
+                          required: [start, end, length, period_days, in_figo_range, counted, excluded]
+                          properties:
+                            start: {$ref: "#/components/schemas/Date"}
+                            end: {$ref: "#/components/schemas/Date"}
+                            length: {type: integer}
+                            period_days: {type: [integer, "null"]}
+                            in_figo_range: {type: boolean}
+                            counted: {type: boolean}
+                            excluded: {type: [string, "null"], enum: [implausible, outlier, null]}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
+  /api/v1/analysis/period:
+    get:
+      tags: [Analysis]
+      summary: Period analysis — length vs FIGO (≤ 8 days), daily intensity, spotting, symptoms during the period
+      description: |
+        Go only (B-N3-07, An_Period). Periods that started in the window (the current one included). Flow scores:
+        light 1, medium 2, heavy 3, very_heavy 4; `average[]` is the mean per bleed day over the periods that logged
+        it, `peak` its highest day. `spotting` counts spotting days outside the bleed days and the cycles they fall
+        in. `co_symptoms` (≥ 3 periods) = share of periods with the symptom on any bleed day. `periods` = the last 3.
+      operationId: getAnalysisPeriod
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {$ref: "#/components/parameters/AnalysisRange"}
+      responses:
+        '200':
+          description: The period report
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [range, ready, based_on_periods, figo, period_length, peak, spotting, average, periods, co_symptoms]
+                    properties:
+                      range: {$ref: "#/components/schemas/AnalysisRange"}
+                      ready: {type: boolean}
+                      based_on_periods: {type: integer}
+                      figo: {type: object}
+                      period_length:
+                        type: object
+                        required: [median, status]
+                        properties:
+                          median: {type: [integer, "null"]}
+                          status: {type: [string, "null"], enum: [normal, prolonged, null]}
+                      peak:
+                        oneOf:
+                          - {type: "null"}
+                          - type: object
+                            required: [day, level]
+                            properties: {day: {type: integer}, level: {type: string}}
+                      spotting:
+                        type: object
+                        required: [days, cycles, of_cycles]
+                        properties: {days: {type: integer}, cycles: {type: integer}, of_cycles: {type: integer}}
+                      average:
+                        type: array
+                        items:
+                          type: object
+                          required: [day, score, level]
+                          properties:
+                            day: {type: integer}
+                            score: {type: [number, "null"]}
+                            level: {type: [string, "null"]}
+                      periods:
+                        type: array
+                        items:
+                          type: object
+                          required: [start, length, closed, is_current, days]
+                          properties:
+                            start: {$ref: "#/components/schemas/Date"}
+                            length: {type: integer}
+                            closed: {type: boolean}
+                            is_current: {type: boolean}
+                            days:
+                              type: array
+                              items:
+                                type: object
+                                required: [day, date, flow]
+                                properties:
+                                  day: {type: integer}
+                                  date: {$ref: "#/components/schemas/Date"}
+                                  flow: {type: [string, "null"], enum: [light, medium, heavy, very_heavy, null]}
+                      co_symptoms:
+                        type: object
+                        required: [ready, periods_needed, items]
+                        properties:
+                          ready: {type: boolean}
+                          periods_needed: {type: integer}
+                          items:
+                            type: array
+                            items:
+                              type: object
+                              required: [key, label, periods, pct]
+                              properties:
+                                key: {type: string}
+                                label: {type: string}
+                                periods: {type: integer}
+                                pct: {type: integer}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
+  /api/v1/analysis/symptoms:
+    get:
+      tags: [Analysis]
+      summary: Symptom trend and the pattern on the typical cycle
+      description: |
+        Go only (B-N3-07, An_Symptoms). Symptom keys are `category.param.item` of the log taxonomy (labels from the
+        `log-taxonomy` namespace; pain locations read as symptoms via `analysis.symptom_names`). Weights: severe / yes
+        1, moderate ⅔, mild ⅓ (a 1–10 pain score counts score/10 when higher). `top` = up to 5 by days. `trend` buckets
+        by day for windows ≤ 31 days, else by Saturday-start week; `values[i]` = the summed weight of `keys[i]`;
+        `ready` needs ≥ 2 buckets with data. `pattern` (≥ 3 completed cycles) lays the window's cycles on the typical
+        cycle (internal/cycle/insights strips) and keeps symptoms logged in ≥ 3 cycles. `highlight` = pre-menstrual
+        windows first, then the highest peak.
+      operationId: getAnalysisSymptoms
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {$ref: "#/components/parameters/AnalysisRange"}
+      responses:
+        '200':
+          description: The symptom report
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [range, days_logged, symptom_days, top, trend, pattern, highlight]
+                    properties:
+                      range: {$ref: "#/components/schemas/AnalysisRange"}
+                      days_logged: {type: integer}
+                      symptom_days: {type: integer}
+                      top: {type: array, items: {$ref: "#/components/schemas/AnalysisSymptomCount"}}
+                      trend:
+                        type: object
+                        required: [ready, bucket, keys, points]
+                        properties:
+                          ready: {type: boolean}
+                          bucket: {type: string, enum: [day, week]}
+                          keys: {type: array, items: {type: string}}
+                          points:
+                            type: array
+                            items:
+                              type: object
+                              required: [start, values]
+                              properties:
+                                start: {$ref: "#/components/schemas/Date"}
+                                values: {type: array, items: {type: number}}
+                      pattern:
+                        type: object
+                        required: [ready, cycles_counted, cycles_needed, typical, items]
+                        properties:
+                          ready: {type: boolean}
+                          cycles_counted: {type: integer}
+                          cycles_needed: {type: integer}
+                          typical: {$ref: "#/components/schemas/AnalysisLayout"}
+                          items:
+                            type: array
+                            items:
+                              type: object
+                              required: [key, label, cycles, strip, window]
+                              properties:
+                                key: {type: string}
+                                label: {type: string}
+                                cycles: {type: integer}
+                                strip: {type: array, items: {type: number}}
+                                window: {type: [object, "null"]}
+                      highlight: {type: [object, "null"]}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
+  /api/v1/analysis/correlations:
+    get:
+      tags: [Analysis]
+      summary: Correlations in the user's own data (Plus) — strength strong / medium / weak, never causal
+      description: |
+        Go only (B-N3-07, An_Correlations), entitlement `plus.deep_analysis`. A free user gets 200 with
+        `locked: true, ready: false, data: null` (nothing is computed). Cards: `sleep_mood` (nights under 6 h ×
+        «کلافه»/«زودرنج» logged that day, φ), `phase_energy` (high energy × phase, Cramér's V), `exercise_cramps`
+        (activity × severe cramps on period days, φ), `phase_mood` (good mood × phase, Cramér's V). Strength by |r|
+        (Cohen): ≥ 0.5 strong, ≥ 0.3 medium, ≥ 0.1 weak, else `no_association`. Minimum data: ≥ 20 paired days, every
+        group ≥ 5 days, the outcome ≥ 3 times, else `not_enough_data` (value and strength null). `ratio` = exposed ÷
+        unexposed rate (or highest ÷ lowest phase), null when the denominator is 0. Every card and the response carry
+        `not_causal: true`.
+      operationId: getAnalysisCorrelations
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {$ref: "#/components/parameters/AnalysisRange"}
+      responses:
+        '200':
+          description: The correlations (or the lock)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [range, not_causal, plus, locked, ready, data]
+                    properties:
+                      range: {$ref: "#/components/schemas/AnalysisRange"}
+                      not_causal: {type: boolean, const: true}
+                      plus: {type: boolean, const: true}
+                      locked: {type: boolean}
+                      ready: {type: boolean}
+                      data:
+                        oneOf:
+                          - {type: "null"}
+                          - type: object
+                            required: [days_logged, items]
+                            properties:
+                              days_logged: {type: integer}
+                              items: {type: array, items: {$ref: "#/components/schemas/AnalysisCorrelation"}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
+  /api/v1/analysis/body:
+    get:
+      tags: [Analysis]
+      summary: Body & lifestyle — 7-day moving-average weight, BMI, sleep, activity
+      description: |
+        Go only (B-N3-07, An_Body). `weight.points[]` = every day of the window with a trailing 7-day moving average
+        (`avg7` = the mean of the weights logged on d−6…d; days without a log are skipped, not zero); `current` = the
+        latest avg7, `delta_7d` / `delta_30d` = against the avg7 7 / 30 days earlier, `bmi` = current / height². Sleep
+        hours are the duration-bucket midpoints (0_3 → 1.5, 3_6 → 4.5, 6_9 → 7.5, 9_plus → 10); `by_weekday` starts on
+        Saturday. Activity buckets are 7 days from the window start (`all`: from the first logged day). Trends need ≥ 2
+        points.
+      operationId: getAnalysisBody
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {$ref: "#/components/parameters/AnalysisRange"}
+      responses:
+        '200':
+          description: The body report
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [range, weight, sleep, activity]
+                    properties:
+                      range: {$ref: "#/components/schemas/AnalysisRange"}
+                      weight: {$ref: "#/components/schemas/AnalysisWeight"}
+                      sleep:
+                        type: object
+                        required: [ready, nights, avg_hours, luteal_avg_hours, by_weekday]
+                        properties:
+                          ready: {type: boolean}
+                          nights: {type: integer}
+                          avg_hours: {type: [number, "null"]}
+                          luteal_avg_hours: {type: [number, "null"]}
+                          by_weekday: {type: array, minItems: 7, maxItems: 7, items: {type: [number, "null"]}}
+                      activity:
+                        type: object
+                        required: [active_days, days, weeks]
+                        properties:
+                          active_days: {type: integer}
+                          days: {type: integer}
+                          weeks:
+                            type: array
+                            items:
+                              type: object
+                              required: [start, days, active_days]
+                              properties:
+                                start: {$ref: "#/components/schemas/Date"}
+                                days: {type: integer}
+                                active_days: {type: integer}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
+  /api/v1/analysis/monthly/{ym}:
+    get:
+      tags: [Analysis]
+      summary: Monthly report — headline, summary sentence, metrics with change, top symptoms, next-month suggestion
+      description: |
+        Go only (B-N3-07, An_Monthly). `ym` = YYYY-MM in `calendar` (gregorian default, or jalali: 1405-07 = Mehr);
+        the running month is clipped to today (`complete: false`), a future month is 422. Metrics: the last completed
+        cycle ending in the month (delta vs the cycle before), days logged, mean sleep hours, the month-end 7-day
+        weight average, mean blood pressure, good-mood share (delta vs the previous month). `headline`, `summary`
+        and `suggestion` are localized phrases (`analysis` namespace). `pdf` marks the doctor PDF (B-N6-04) as Plus
+        (`plus.pdf_share`).
+      operationId: getAnalysisMonthly
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: ym, in: path, required: true, schema: {type: string, pattern: '^\d{4}-(0[1-9]|1[0-2])$'}, example: "2026-09"}
+        - {name: calendar, in: query, required: false, schema: {type: string, enum: [gregorian, jalali]}}
+      responses:
+        '200':
+          description: The monthly report
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [month, headline, summary, metrics, top_symptoms, suggestion, pdf]
+                    properties:
+                      month:
+                        type: object
+                        required: [key, calendar, from, to, complete]
+                        properties:
+                          key: {type: string}
+                          calendar: {type: string, enum: [gregorian, jalali]}
+                          from: {$ref: "#/components/schemas/Date"}
+                          to: {$ref: "#/components/schemas/Date"}
+                          complete: {type: boolean}
+                      headline: {$ref: "#/components/schemas/AnalysisPhrase"}
+                      summary:
+                        type: object
+                        required: [parts, text]
+                        properties:
+                          parts: {type: array, items: {$ref: "#/components/schemas/AnalysisPhrase"}}
+                          text: {type: string}
+                      metrics:
+                        type: array
+                        items:
+                          type: object
+                          required: [key, value, delta, unit]
+                          properties:
+                            key: {type: string, enum: [cycle_length, days_logged, sleep, weight, blood_pressure, good_mood]}
+                            value: {type: [number, object, "null"]}
+                            delta: {type: [number, object, "null"]}
+                            unit: {type: [string, "null"]}
+                      top_symptoms: {type: array, items: {$ref: "#/components/schemas/AnalysisSymptomCount"}}
+                      suggestion: {$ref: "#/components/schemas/AnalysisPhrase"}
+                      pdf:
+                        type: object
+                        required: [plus, locked]
+                        properties: {plus: {type: boolean}, locked: {type: boolean}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
   /api/v1/articles:
     get:
       tags: [Content]
@@ -10350,6 +10824,12 @@ components:
       bearerFormat: JWT
       description: "Passport access token from `POST /api/v1/auth/verify-otp`."
   parameters:
+    AnalysisRange:
+      name: range
+      in: query
+      required: false
+      description: "Window ending today: 7d, 2w, 1m (30 days), 3m (91), 6m (182, default), 1y (365), all (10 years)"
+      schema: {type: string, enum: [7d, 2w, 1m, 3m, 6m, 1y, all], default: 6m}
     AcceptLanguage:
       name: Accept-Language
       in: header
@@ -10646,6 +11126,105 @@ components:
             properties: {success: {type: boolean, const: false}, message: {type: string}}
           example: {success: false, message: نوبت پیدا نشد}
   schemas:
+    AnalysisRange:
+      type: object
+      required: [key, from, to, days]
+      properties:
+        key: {type: string, enum: [7d, 2w, 1m, 3m, 6m, 1y, all]}
+        from: {$ref: "#/components/schemas/Date"}
+        to: {$ref: "#/components/schemas/Date"}
+        days: {type: integer, minimum: 1}
+    AnalysisPhrase:
+      type: object
+      description: A localized sentence — key under the `analysis` translation namespace, ICU-style params (codes and plain numbers), text rendered in the request language ("" when the template is missing)
+      required: [key, params, text]
+      properties:
+        key: {type: string}
+        params: {type: [object, array]}
+        text: {type: string}
+    AnalysisSection:
+      type: object
+      description: "A report card. plus = needs plus.deep_analysis; locked = plus and not entitled (ready false, data null); ready = enough data (≥ 3 cycles for patterns, ≥ 2 points for trends)"
+      required: [plus, locked, ready, data]
+      properties:
+        plus: {type: boolean}
+        locked: {type: boolean}
+        ready: {type: boolean}
+        data: {type: [object, array, "null"]}
+    AnalysisFIGO:
+      type: object
+      required: [applies, cycle, period, variation]
+      properties:
+        applies: {type: boolean}
+        cycle: {type: object, required: [min, max], properties: {min: {type: integer, const: 24}, max: {type: integer, const: 38}}}
+        period: {type: object, required: [max], properties: {max: {type: integer, const: 8}}}
+        variation: {type: object, required: [max], properties: {max: {type: integer, enum: [7, 9]}}}
+    AnalysisLayout:
+      type: object
+      required: [cycle_length, ovulation_day, fertile_start_day, fertile_end_day, days]
+      properties:
+        cycle_length: {type: integer}
+        ovulation_day: {type: integer}
+        fertile_start_day: {type: integer}
+        fertile_end_day: {type: integer}
+        days:
+          type: object
+          required: [period, follicular, fertile, luteal]
+          properties:
+            period: {type: integer}
+            follicular: {type: integer}
+            fertile: {type: integer}
+            luteal: {type: integer}
+    AnalysisSymptomCount:
+      type: object
+      required: [key, label, days, cycles]
+      properties:
+        key: {type: string, description: "category.param.item of the log taxonomy"}
+        label: {type: string}
+        days: {type: integer}
+        cycles: {type: integer}
+    AnalysisWeight:
+      type: object
+      required: [ready, unit, current, as_of, delta_7d, delta_30d, delta_range, bmi, moving_average_days, points]
+      properties:
+        ready: {type: boolean}
+        unit: {type: string, const: kg}
+        current: {type: [number, "null"]}
+        as_of: {anyOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
+        delta_7d: {type: [number, "null"]}
+        delta_30d: {type: [number, "null"]}
+        delta_range: {type: [number, "null"]}
+        bmi: {type: [number, "null"]}
+        moving_average_days: {type: integer, const: 7}
+        points:
+          type: array
+          items:
+            type: object
+            required: [date, value, avg7]
+            properties:
+              date: {$ref: "#/components/schemas/Date"}
+              value: {type: [number, "null"]}
+              avg7: {type: number}
+    AnalysisCorrelation:
+      type: object
+      required: [key, status, statistic, value, strength, n, min_days, groups, ratio, finding, not_causal]
+      properties:
+        key: {type: string, enum: [sleep_mood, phase_energy, exercise_cramps, phase_mood]}
+        status: {type: string, enum: [ready, not_enough_data, no_association]}
+        statistic: {type: string, enum: [phi, cramers_v]}
+        value: {type: [number, "null"], description: "φ (signed, −1…1) or Cramér's V (0…1), 2 decimals"}
+        strength: {type: [string, "null"], enum: [strong, medium, weak, null]}
+        n: {type: integer}
+        min_days: {type: integer}
+        groups:
+          type: array
+          items:
+            type: object
+            required: [key, days, hits, pct]
+            properties: {key: {type: string}, days: {type: integer}, hits: {type: integer}, pct: {type: integer}}
+        ratio: {type: [number, "null"]}
+        finding: {anyOf: [{$ref: "#/components/schemas/AnalysisPhrase"}, {type: "null"}]}
+        not_causal: {type: boolean, const: true}
     PlusPlan:
       type: object
       required: [id, code, title, badge, duration_months, price, monthly_price, savings_percent, is_highlighted]

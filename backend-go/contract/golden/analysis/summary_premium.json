@@ -1,0 +1,174 @@
+{
+  "case": "analysis/summary_premium",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/analysis/summary?range=3m",
+        "persona": "premium",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "range": {
+            "key": "3m",
+            "from": "2026-06-25",
+            "to": "2026-09-23",
+            "days": 91
+          },
+          "top_finding": {
+            "kind": "not_enough_data",
+            "parts": [
+              {
+                "key": "findings.not_enough_data",
+                "params": {
+                  "needed": 1
+                },
+                "text": "برای دیدن الگوها، ۱ سیکل دیگر ثبت کن."
+              }
+            ],
+            "text": "برای دیدن الگوها، ۱ سیکل دیگر ثبت کن."
+          },
+          "sections": {
+            "cycle": {
+              "plus": false,
+              "locked": false,
+              "ready": true,
+              "data": {
+                "median_cycle": 31,
+                "median_period": 5,
+                "cycle_status": "normal",
+                "regularity": "not_enough_data",
+                "variation_days": null,
+                "variation_max": 7,
+                "based_on_cycles": 2,
+                "bars": [
+                  {
+                    "start": "2026-07-08",
+                    "length": 31,
+                    "in_figo_range": true
+                  },
+                  {
+                    "start": "2026-08-08",
+                    "length": 30,
+                    "in_figo_range": true
+                  }
+                ]
+              }
+            },
+            "recent_cycles": {
+              "plus": false,
+              "locked": false,
+              "ready": true,
+              "data": [
+                {
+                  "start": "2026-09-07",
+                  "length": 31,
+                  "is_current": true,
+                  "days_so_far": 17,
+                  "period_days": 5,
+                  "fertile_start_day": 13,
+                  "fertile_end_day": 18,
+                  "ovulation_day": 18
+                },
+                {
+                  "start": "2026-08-08",
+                  "length": 30,
+                  "is_current": false,
+                  "days_so_far": null,
+                  "period_days": 5,
+                  "fertile_start_day": 12,
+                  "fertile_end_day": 17,
+                  "ovulation_day": 17
+                },
+                {
+                  "start": "2026-07-08",
+                  "length": 31,
+                  "is_current": false,
+                  "days_so_far": null,
+                  "period_days": 5,
+                  "fertile_start_day": 13,
+                  "fertile_end_day": 18,
+                  "ovulation_day": 18
+                }
+              ]
+            },
+            "symptoms": {
+              "plus": false,
+              "locked": false,
+              "ready": true,
+              "data": {
+                "cycles_counted": 2,
+                "cycles_needed": 3,
+                "top": [
+                  {
+                    "key": "symptoms.general.fatigue",
+                    "label": "خستگی",
+                    "days": 20,
+                    "cycles": 2
+                  },
+                  {
+                    "key": "pain.location.head",
+                    "label": "سردرد",
+                    "days": 6,
+                    "cycles": 2
+                  }
+                ],
+                "highlight": null
+              }
+            },
+            "mood_by_phase": {
+              "plus": true,
+              "locked": true,
+              "ready": false,
+              "data": null
+            },
+            "sleep_mood": {
+              "plus": true,
+              "locked": true,
+              "ready": false,
+              "data": null
+            },
+            "weight": {
+              "plus": false,
+              "locked": false,
+              "ready": false,
+              "data": {
+                "ready": false,
+                "unit": "kg",
+                "current": null,
+                "as_of": null,
+                "delta_7d": null,
+                "delta_30d": null,
+                "delta_range": null,
+                "bmi": null,
+                "moving_average_days": 7,
+                "points": []
+              }
+            },
+            "vitals": {
+              "plus": false,
+              "locked": false,
+              "ready": false,
+              "data": {
+                "blood_pressure": null,
+                "blood_sugar": null
+              }
+            },
+            "labs": {
+              "plus": true,
+              "locked": true,
+              "ready": false,
+              "data": null
+            }
+          }
+        }
+      }
+    }
+  ]
+}

@@ -221,25 +221,45 @@ func BuildPattern(histories []model.History, profile *model.Profile, logs map[ci
 	}
 	out.Ready = true
 
-	typical := out.CycleLength
+	starts := make([]civildate.Date, len(cycles))
+	lens := make([]int, len(cycles))
+	for i, c := range cycles {
+		starts[i], lens[i] = c.start, c.length
+	}
 	for _, d := range catalogue {
-		ck := catalogueKey(d.group, d.key)
+		for _, s := range Strips(starts, lens, out.CycleLength, logs, []string{catalogueKey(d.group, d.key)}) {
+			s.Key = d.key
+			out.Groups[d.group] = append(out.Groups[d.group], s)
+		}
+	}
+	for g, items := range out.Groups {
+		sortByCycles(items)
+		out.Groups[g] = items
+	}
+	return out
+}
+
+// Strips maps each cycle (starts[i], lens[i] days) onto a typical cycle of typical days and averages the
+// weight of every key per typical day across the cycles. A key never logged in any cycle is left out;
+// Key is the logs key. Shared by BuildPattern and the analysis tab (internal/analysis, B-N3-07).
+func Strips(starts []civildate.Date, lens []int, typical int, logs map[civildate.Date]DayLog, keys []string) []SymptomPattern {
+	out := []SymptomPattern{}
+	if len(starts) == 0 || typical <= 0 {
+		return out
+	}
+	for _, ck := range keys {
 		sum := make([]float64, typical)
 		seen := 0
-		for _, c := range cycles {
-			logged := false
+		for i, start := range starts {
+			n := lens[i]
 			for t := range typical {
-				w := logs[c.start.AddDays(sourceDay(t, typical, c.length))][ck]
-				sum[t] += w
+				sum[t] += logs[start.AddDays(sourceDay(t, typical, n))][ck]
 			}
-			for day := range c.length {
-				if logs[c.start.AddDays(day)][ck] > 0 {
-					logged = true
+			for day := range n {
+				if logs[start.AddDays(day)][ck] > 0 {
+					seen++
 					break
 				}
-			}
-			if logged {
-				seen++
 			}
 		}
 		if seen == 0 {
@@ -247,15 +267,9 @@ func BuildPattern(histories []model.History, profile *model.Profile, logs map[ci
 		}
 		strip := make([]float64, typical)
 		for t := range sum {
-			strip[t] = math.Round(sum[t]/float64(len(cycles))*100) / 100
+			strip[t] = math.Round(sum[t]/float64(len(starts))*100) / 100
 		}
-		out.Groups[d.group] = append(out.Groups[d.group], SymptomPattern{
-			Key: d.key, Cycles: seen, Strip: strip, Window: window(strip),
-		})
-	}
-	for g, items := range out.Groups {
-		sortByCycles(items)
-		out.Groups[g] = items
+		out = append(out, SymptomPattern{Key: ck, Cycles: seen, Strip: strip, Window: window(strip)})
 	}
 	return out
 }

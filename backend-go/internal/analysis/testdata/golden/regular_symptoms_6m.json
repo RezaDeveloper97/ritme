@@ -1,0 +1,488 @@
+{
+  "range": {
+    "key": "6m",
+    "from": "2026-03-26",
+    "to": "2026-09-23",
+    "days": 182
+  },
+  "days_logged": 182,
+  "symptom_days": 79,
+  "top": [
+    {
+      "key": "mood.moods.irritable",
+      "label": "زودرنج",
+      "days": 35,
+      "cycles": 7
+    },
+    {
+      "key": "symptoms.digestive.bloating",
+      "label": "نفخ",
+      "days": 30,
+      "cycles": 6
+    },
+    {
+      "key": "pain.location.abdomen",
+      "label": "گرفتگی",
+      "days": 24,
+      "cycles": 6
+    },
+    {
+      "key": "pain.location.head",
+      "label": "سردرد",
+      "days": 8,
+      "cycles": 4
+    }
+  ],
+  "trend": {
+    "ready": true,
+    "bucket": "week",
+    "keys": [
+      "mood.moods.irritable",
+      "symptoms.digestive.bloating",
+      "pain.location.abdomen",
+      "pain.location.head"
+    ],
+    "points": [
+      {
+        "start": "2026-03-21",
+        "values": [
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "start": "2026-03-28",
+        "values": [
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "start": "2026-04-04",
+        "values": [
+          1,
+          1,
+          0,
+          0
+        ]
+      },
+      {
+        "start": "2026-04-11",
+        "values": [
+          1,
+          0.67,
+          2.67,
+          0
+        ]
+      },
+      {
+        "start": "2026-04-18",
+        "values": [
+          2,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "start": "2026-04-25",
+        "values": [
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "start": "2026-05-02",
+        "values": [
+          2,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "start": "2026-05-09",
+        "values": [
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "start": "2026-05-16",
+        "values": [
+          2,
+          1.67,
+          1.33,
+          1.33
+        ]
+      },
+      {
+        "start": "2026-05-23",
+        "values": [
+          1,
+          0,
+          1.33,
+          0
+        ]
+      },
+      {
+        "start": "2026-05-30",
+        "values": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "start": "2026-06-06",
+        "values": [
+          2,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "start": "2026-06-13",
+        "values": [
+          1,
+          1.67,
+          1,
+          1.33
+        ]
+      },
+      {
+        "start": "2026-06-20",
+        "values": [
+          2,
+          0,
+          1.67,
+          0
+        ]
+      },
+      {
+        "start": "2026-06-27",
+        "values": [
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "start": "2026-07-04",
+        "values": [
+          2,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "start": "2026-07-11",
+        "values": [
+          1,
+          1.67,
+          1,
+          0
+        ]
+      },
+      {
+        "start": "2026-07-18",
+        "values": [
+          2,
+          0,
+          1.67,
+          0
+        ]
+      },
+      {
+        "start": "2026-07-25",
+        "values": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "start": "2026-08-01",
+        "values": [
+          2,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "start": "2026-08-08",
+        "values": [
+          1,
+          1.33,
+          0,
+          1.33
+        ]
+      },
+      {
+        "start": "2026-08-15",
+        "values": [
+          2,
+          0.33,
+          2.67,
+          0
+        ]
+      },
+      {
+        "start": "2026-08-22",
+        "values": [
+          2,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "start": "2026-08-29",
+        "values": [
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "start": "2026-09-05",
+        "values": [
+          1,
+          1,
+          0,
+          0.67
+        ]
+      },
+      {
+        "start": "2026-09-12",
+        "values": [
+          1,
+          0.67,
+          2.67,
+          0.67
+        ]
+      },
+      {
+        "start": "2026-09-19",
+        "values": [
+          1,
+          0,
+          0,
+          0
+        ]
+      }
+    ]
+  },
+  "pattern": {
+    "ready": true,
+    "cycles_counted": 5,
+    "cycles_needed": 3,
+    "typical": {
+      "cycle_length": 29,
+      "ovulation_day": 16,
+      "fertile_start_day": 11,
+      "fertile_end_day": 16,
+      "days": {
+        "period": 5,
+        "follicular": 5,
+        "fertile": 6,
+        "luteal": 13
+      }
+    },
+    "items": [
+      {
+        "key": "mood.moods.irritable",
+        "label": "زودرنج",
+        "cycles": 5,
+        "strip": [
+          0.2,
+          0.2,
+          0,
+          0.4,
+          0.2,
+          0.2,
+          0,
+          0,
+          0.2,
+          0.2,
+          0,
+          0,
+          0.6,
+          0,
+          0.2,
+          0.2,
+          0.2,
+          0.2,
+          0,
+          0.2,
+          0.2,
+          0.4,
+          0.2,
+          0,
+          0.4,
+          0.2,
+          0,
+          0,
+          0.4
+        ],
+        "window": {
+          "start_day": 13,
+          "end_day": 13,
+          "relation": "mid",
+          "days": 0
+        }
+      },
+      {
+        "key": "pain.location.abdomen",
+        "label": "گرفتگی",
+        "cycles": 5,
+        "strip": [
+          1,
+          0.47,
+          0.87,
+          0.27,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "window": {
+          "start_day": 1,
+          "end_day": 1,
+          "relation": "early",
+          "days": 1
+        }
+      },
+      {
+        "key": "symptoms.digestive.bloating",
+        "label": "نفخ",
+        "cycles": 5,
+        "strip": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0.33,
+          0.33,
+          0.33,
+          0.33,
+          0.33
+        ],
+        "window": {
+          "start_day": 25,
+          "end_day": 29,
+          "relation": "before_period",
+          "days": 5
+        }
+      },
+      {
+        "key": "pain.location.head",
+        "label": "سردرد",
+        "cycles": 4,
+        "strip": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0.53,
+          0.53,
+          0
+        ],
+        "window": {
+          "start_day": 27,
+          "end_day": 28,
+          "relation": "before_period",
+          "days": 3
+        }
+      }
+    ]
+  },
+  "highlight": {
+    "key": "pain.location.head",
+    "label": "سردرد",
+    "cycles": 4,
+    "of_cycles": 5,
+    "relation": "before_period",
+    "days": 3,
+    "start_day": 27,
+    "end_day": 28
+  }
+}
