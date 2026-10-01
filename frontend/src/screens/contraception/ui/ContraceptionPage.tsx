@@ -250,6 +250,7 @@ function PackGrid({ pill }: { pill: PillPack }) {
 function StatTiles({ pill }: { pill: PillPack }) {
   const t = useTranslations('contraception.pill');
   const locale = useLocale() as Locale;
+  const nextPack = formatDayMonth(fromApiDate(pill.nextPackOn), locale);
   return (
     <Card className="ctr-stats">
       <div className="ctr-stat is-streak">
@@ -257,7 +258,8 @@ function StatTiles({ pill }: { pill: PillPack }) {
         <span className="ctr-stat-cap">{t('streakCap')}</span>
       </div>
       <div className="ctr-stat is-next">
-        <span className="ctr-stat-num">{formatDayMonth(fromApiDate(pill.nextPackOn), locale)}</span>
+        {/* «22 October» / «۳۰ اردیبهشت» don't fit the half-width tile at the stat size — step down instead of wrapping. */}
+        <span className={clsx('ctr-stat-num', nextPack.length > 9 && 'is-long')}>{nextPack}</span>
         <span className="ctr-stat-cap">{t('nextPackCap')}</span>
       </div>
     </Card>

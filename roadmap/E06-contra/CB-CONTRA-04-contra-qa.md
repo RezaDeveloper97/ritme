@@ -3,7 +3,7 @@ id: CB-CONTRA-04
 title: CONTRA QA
 epic: CONTRA
 type: qa
-status: todo
+status: done
 depends_on: [CB-CONTRA-03]
 parallel_group: CONTRA-D
 touches: [docs/qa/canvas]

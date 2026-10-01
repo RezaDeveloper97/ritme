@@ -97,3 +97,11 @@ TODO (ask user):
 - Entity: `missedGuide`, `methodReminder`, `useMissedPillRules`. Scopes `contraceptionMissed`, `contraceptionOther`. i18n goldens updated (contraception only).
 - Verify: typecheck, lint, fsd:lint, lint:styles (669), lint:dark, 954 tests, build — green; `go test ./internal/i18n` ok. Fidelity `docs/qa/canvas/contra.md` both ✔ (board shows all three methods stacked; real data shows the user's own).
 - TODO (ask user): «انجام شد» via followup_done (not appointments) OK? injection button from 21 days before? default missed chip «۱ قرص»? neutral note copy for injection/implant [needs clinical review].
+
+## CB-CONTRA-04 — CONTRA QA
+- Journey from the UI (mode switch on → setup → pill log/undo → missed → injection → switch off → restore) with DB/API checks after each step — all as specified; pill log survives stop.
+- Reminders: nothing is *sent* yet (no push sender/cron in backend-go). Pill pref `pill` on (21:00) for pill methods, off otherwise; `internal/reminders.Plan` emits `send=true` / `category_off` accordingly. Injection/IUD/implant reminders exist as care `reminders` rows with correct dates (visible in GET /reminders and /care/appointments).
+- Fix: next-pack tile date no longer wraps («22 October», «۳۰ اردیبهشت») — `.ctr-stat-num.is-long`.
+- Final verdicts (`docs/qa/canvas/contra.md` § CB-CONTRA-04): Setup ~ (injection/implant icons → CB-CONTRA-04b), Pill ✔, Missed ✔, Other ✔. No ✘.
+- Verify: typecheck, lint, fsd:lint, lint:styles (669), lint:dark, 954 tests, build — green.
+- For the future push sender: skip pill on break days; pill time inside quiet hours currently defers to 08:00 (ask user). No Home entry point to /contraception yet (reached via /profile/mode) — ask user whether a home card is wanted.

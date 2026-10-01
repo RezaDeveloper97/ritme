@@ -5958,6 +5958,7 @@ html[data-motion="reduce"] *::after {
 .ctr-stat-num { font-family: var(--font-display); font-size: var(--fs-num-m); line-height: 1.1; }
 .ctr-stat.is-streak .ctr-stat-num { color: var(--data-deep); }
 .ctr-stat.is-next .ctr-stat-num { color: var(--brand); }
+.ctr-stat-num.is-long { font-size: 22px; line-height: 1.5; }
 .ctr-stat-cap { font-size: 12px; font-weight: 700; line-height: 1.6; color: var(--text-2); }
 .nb-card.ctr-refill { padding: 10px 16px; }
 .mode-contra .nb-row + .nb-row { border-top: 1px solid var(--line); border-radius: 0; }
