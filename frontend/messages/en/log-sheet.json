@@ -1,0 +1,135 @@
+{
+  "title": {
+    "today": "Log today",
+    "day": "Log a day"
+  },
+  "subtitle": "{date} · cycle day {day}",
+  "close": "Close",
+  "customize": "Customize",
+  "dates": {
+    "label": "Recent days",
+    "logged": "logged"
+  },
+  "tabs": {
+    "label": "How to log",
+    "manual": "Manual",
+    "voice": "Voice",
+    "plus": "Plus"
+  },
+  "voice": {
+    "title": "Tell us how today went",
+    "body": "Soon you'll just say how you feel; Ritme will pick out the items and show them to you before saving.",
+    "soon": "Coming soon",
+    "manual": "Log manually for now"
+  },
+  "quick": {
+    "title": "Quick log",
+    "hint": "Tap one and it opens right below",
+    "open": "open"
+  },
+  "tiles": {
+    "bleeding": "Period",
+    "pain": "Pain",
+    "mood": "Mood",
+    "symptoms": "Symptoms",
+    "discharge": "Discharge",
+    "sleep": "Sleep",
+    "appetite_energy": "Energy",
+    "activity": "Exercise",
+    "urogenital": "Urinary",
+    "sex": "Sex",
+    "measurements": "Measures",
+    "meds": "Meds",
+    "skin_hair": "Skin & hair",
+    "breasts": "Breasts",
+    "pregnancy": "Pregnancy",
+    "baby": "Baby",
+    "note": "Note",
+    "custom": "Custom"
+  },
+  "all": "Everything",
+  "search": {
+    "label": "Search log items",
+    "placeholder": "Search: headache, discharge, weight…",
+    "clear": "Clear",
+    "emptyTitle": "Nothing found",
+    "emptyBody": "Try another word or pick from the full list."
+  },
+  "separator": ", ",
+  "notLogged": "Not logged",
+  "unknownValue": "Logged",
+  "more": "More details",
+  "less": "Hide details",
+  "bodyMapLink": "Pick on the body map",
+  "measureLink": "Log precisely",
+  "bleedingLink": "Colour, clots and odour",
+  "severity": "Intensity",
+  "link": {
+    "open": "Open",
+    "soon": "Coming soon"
+  },
+  "number": {
+    "clear": "Clear",
+    "placeholder": "Number"
+  },
+  "text": {
+    "placeholder": "Anything you want to remember…",
+    "itemPlaceholder": "Details (optional)",
+    "count": "{count} of {max}"
+  },
+  "meds": {
+    "empty": "You have no active medication reminders.",
+    "removed": "Removed medication"
+  },
+  "footer": {
+    "count": "{count, plural, =0 {Nothing logged yet} one {# item logged} other {# items logged}}",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "error": "Couldn't save. Please try again."
+  },
+  "loading": "Loading the log…",
+  "error": {
+    "title": "The log didn't load",
+    "body": "Check your connection and try again.",
+    "retry": "Try again"
+  },
+  "panel": {
+    "confirm": "Done",
+    "save": "Save",
+    "today": "Today",
+    "sub": "{date} · day {day}"
+  },
+  "bleeding": {
+    "intensity": "Flow",
+    "spotting": "Spotting",
+    "hint": "Logging a flow also marks a period day; spotting doesn't.",
+    "clotsNone": "None",
+    "clotsSmall": "Small",
+    "clotsLarge": "Bigger than a coin",
+    "warn": "If you change a pad every hour or pass clots bigger than a coin, talk to a doctor."
+  },
+  "pain": {
+    "sub": "Where, and how much?",
+    "map": "Body map — pick where it hurts",
+    "scale": "{region} pain intensity",
+    "min": "Mild",
+    "max": "Unbearable",
+    "which": "Intensity of which area?",
+    "pick": "Pick where it hurts on the map first.",
+    "relief": "What helped?"
+  },
+  "measure": {
+    "decrease": "Decrease {name}",
+    "increase": "Increase {name}",
+    "empty": "Not logged — start with + or −",
+    "clear": "Clear",
+    "diffLess": "{n} less than last time",
+    "diffMore": "{n} more than last time",
+    "diffSame": "Same as last time",
+    "bbtHint": "In the morning, before getting up",
+    "tests": "Tests",
+    "testNone": "Not logged",
+    "other": "Other measures"
+  }
+}

@@ -3,7 +3,7 @@ id: B-N3-08
 title: Analysis hub and tab routing
 milestone: N3
 type: frontend
-status: todo
+status: done
 depends_on: [B-N3-07,B-N1-04]
 parallel_group: N3-H
 touches: [frontend/src/screens/analysis,frontend/src/entities/analysis,frontend/src/app/[locale]/analysis]

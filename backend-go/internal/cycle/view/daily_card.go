@@ -55,6 +55,9 @@ type CardInput struct {
 	// EstimatedOvulation is the zero Date for PHP null.
 	EstimatedOvulation civildate.Date
 	Locale             string
+	// NoFertilityCopy (teen, menopause — B-N2-11b) keeps the predicted-day title and subtitle off the
+	// fertile window / ovulation: those days read as plain cycle days or the period countdown.
+	NoFertilityCopy bool
 }
 
 // cardBuilder carries the locale for one build (PHP $currentLocale).
@@ -106,7 +109,7 @@ func BuildDailyCard(in CardInput) DailyCard {
 		}
 	}
 
-	return b.predictedDay(in.CycleDay, in.Subphase, daysUntilPeriod, isFuture, isToday, sel, in.EstimatedOvulation)
+	return b.predictedDay(in.CycleDay, in.Subphase, daysUntilPeriod, isFuture, isToday, sel, in.EstimatedOvulation, !in.NoFertilityCopy)
 }
 
 func (b cardBuilder) card(title, subtitle string, status enums.DataStatus, fertility enums.FertilityLevel, badges []string, primary *Action, secondary ...*Action) DailyCard {
@@ -211,7 +214,9 @@ func (b cardBuilder) periodOverdue(daysSince int) DailyCard {
 	)
 }
 
-func (b cardBuilder) predictedDay(cycleDay int, sub enums.CycleSubphase, daysUntilPeriod int, isFuture, isToday bool, selected, estimatedOvulation civildate.Date) DailyCard {
+// predictedDay is the predicted-day card. fertility false (teen, menopause — B-N2-11b) skips the fertile
+// window / ovulation copy: those days read as the period countdown or a plain cycle day.
+func (b cardBuilder) predictedDay(cycleDay int, sub enums.CycleSubphase, daysUntilPeriod int, isFuture, isToday bool, selected, estimatedOvulation civildate.Date, fertility bool) DailyCard {
 	hasDaysToFertile := !estimatedOvulation.IsZero()
 	daysToFertile := 0
 	if hasDaysToFertile {
@@ -229,19 +234,19 @@ func (b cardBuilder) predictedDay(cycleDay int, sub enums.CycleSubphase, daysUnt
 	case daysUntilPeriod == 1:
 		title = b.t("احتمالاً پریود نزدیک است", "Your period is likely near")
 		subtitle = b.t("ممکن است به\u200cزودی خون\u200cریزی شروع شود.", "Bleeding may start soon.")
-	case sub == enums.CycleSubphaseFertileRising:
+	case fertility && sub == enums.CycleSubphaseFertileRising:
 		title = b.t("پنجره باروری ممکن است نزدیک باشد", "Your fertile window may be approaching")
 		subtitle = b.fertileNote()
-	case sub == enums.CycleSubphaseHighFertility:
+	case fertility && sub == enums.CycleSubphaseHighFertility:
 		title = b.t("احتمالاً در پنجره باروری هستی", "You're likely in your fertile window")
 		subtitle = b.fertileNote()
-	case sub == enums.CycleSubphaseOvulationLikely:
+	case fertility && sub == enums.CycleSubphaseOvulationLikely:
 		title = b.t("تخمک\u200cگذاری احتمالی نزدیک است", "Ovulation is likely near")
 		subtitle = b.fertileNote()
-	case sub == enums.CycleSubphasePostOvulation:
+	case fertility && sub == enums.CycleSubphasePostOvulation:
 		title = b.t("احتمالاً از پنجره باروری عبور کرده\u200cای", "You've likely passed your fertile window")
 		subtitle = b.postOvulationNote() // D-27: Laravel reuses fertileNote() ("fertility is higher") on a low day
-	case hasDaysToFertile && daysToFertile > 0:
+	case fertility && hasDaysToFertile && daysToFertile > 0:
 		title = b.t(b.num(daysToFertile)+" روز تا پنجره باروری", strconv.Itoa(daysToFertile)+" day(s) to your fertile window")
 		subtitle = b.t("بر اساس پیش\u200cبینی چرخه، پنجره باروری از حدود "+b.num(daysToFertile)+" روز دیگر شروع می\u200cشود.",
 			"Based on your cycle prediction, your fertile window starts in about "+strconv.Itoa(daysToFertile)+" day(s).")

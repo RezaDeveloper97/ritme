@@ -3,7 +3,7 @@ id: B-N3-10
 title: Monthly report and labs trend screen
 milestone: N3
 type: frontend
-status: todo
+status: done
 depends_on: [B-N3-08]
 parallel_group: N3-J
 touches: [frontend/src/screens/analysis-monthly,frontend/src/screens/analysis-labs]

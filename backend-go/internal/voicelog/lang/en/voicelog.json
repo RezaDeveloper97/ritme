@@ -1,0 +1,17 @@
+{
+    "messages": {
+        "ai_unavailable": "Voice logging isn't available right now. Try again later or log by hand.",
+        "ai_failed": "We couldn't understand the recording. Try again or log by hand.",
+        "too_many": "You recorded several times in a row. Wait a moment and try again."
+    },
+    "attributes": {
+        "audio": "audio file",
+        "duration_ms": "recording length"
+    },
+    "labels": {
+        "pain_location": ":item pain",
+        "graded": ":item · :level",
+        "single": ":category · :param: :option",
+        "number": ":param · :value :unit"
+    }
+}

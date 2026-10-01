@@ -7,7 +7,6 @@ import type { ComponentType } from 'react';
 import { isInfoGroup } from '@/entities/info';
 import { ArticleSheet } from '@/screens/article';
 import { MarkDoneTitle } from '@/screens/checkup-mark-done';
-import { LogSheetTitle } from '@/widgets/bottom-nav';
 import type { SheetContentProps, SheetSize } from '@/shared/sheet';
 
 export interface SheetDefinition {
@@ -184,14 +183,14 @@ export const SHEET_REGISTRY: Record<string, SheetDefinition> = {
   },
 
   /**
-   * The nav FAB's target (B-N1-04, gaps.md #17): the mode's log entries.
-   * Interim content from `widgets/bottom-nav`; B-N3-03 swaps in the full
-   * Log_Sheet_* designs (and `full` size) from a `screens` slice.
+   * Log sheet v2 (B-N3-03, nbl_Log_Sheet_Cycle): the nav FAB, home «ثبت امروز»
+   * and calendar «ثبت جزئیات». `arg` = the day (`YYYY-MM-DD`), today if absent.
    */
   log: {
-    size: 'half',
-    Title: LogSheetTitle,
-    Component: dynamic(() => import('@/widgets/bottom-nav').then((m) => m.LogSheet), {
+    size: 'full',
+    // Lazy like the content: a static import would pull the whole log feature into every route.
+    Title: dynamic(() => import('@/screens/log').then((m) => m.LogSheetTitle), { ssr: false }),
+    Component: dynamic(() => import('@/screens/log').then((m) => m.LogSheet), {
       ssr: false,
     }),
   },

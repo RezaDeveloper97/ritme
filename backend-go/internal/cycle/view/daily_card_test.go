@@ -20,6 +20,7 @@ type cardOpts struct {
 	open                                          *OpenPeriodState
 	loggedDay                                     *int
 	loggedClosed                                  bool
+	noFertility                                   bool
 }
 
 func or(v, def string) string {
@@ -40,6 +41,7 @@ func card(o cardOpts) DailyCard {
 		LoggedPeriodDay:    o.loggedDay,
 		LoggedPeriodClosed: o.loggedClosed,
 		Locale:             or(o.locale, "en"),
+		NoFertilityCopy:    o.noFertility,
 	}
 	if o.cycleDay != 0 {
 		in.CycleDay = o.cycleDay
@@ -256,4 +258,38 @@ func TestDailyCardPostOvulationNote(t *testing.T) {
 		nextStart: "2026-07-28", ovulation: "2026-07-14", subphase: enums.CycleSubphaseHighFertility,
 	})
 	assert.Equal(t, cardBuilder{locale: "en"}.fertileNote(), c.Subtitle)
+}
+
+// B-N2-11b (N2 stage smoke B-3): teen / menopause never read fertile-window or ovulation copy on a
+// predicted day — the same days read as the period countdown or a plain cycle day.
+func TestDailyCardNoFertilityCopy(t *testing.T) {
+	cases := []cardOpts{
+		{cycleDay: 8, nextStart: "2026-08-04", ovulation: "2026-07-21", subphase: enums.CycleSubphaseMidFollicular}, // days to fertile window
+		{selected: "2026-07-12", today: "2026-07-12", cycleDay: 12, nextStart: "2026-07-28", ovulation: "2026-07-14", subphase: enums.CycleSubphaseFertileRising},
+		{selected: "2026-07-12", today: "2026-07-12", cycleDay: 12, nextStart: "2026-07-28", ovulation: "2026-07-14", subphase: enums.CycleSubphaseHighFertility},
+		{selected: "2026-07-14", today: "2026-07-14", cycleDay: 14, nextStart: "2026-07-28", ovulation: "2026-07-14", subphase: enums.CycleSubphaseOvulationLikely},
+		{selected: "2026-07-15", today: "2026-07-15", cycleDay: 16, nextStart: "2026-07-28", ovulation: "2026-07-14", subphase: enums.CycleSubphasePostOvulation},
+		{selected: "2026-07-20", today: "2026-07-12", cycleDay: 17, nextStart: "2026-07-28", ovulation: "2026-07-14", subphase: enums.CycleSubphasePostOvulation}, // future day
+	}
+	for _, locale := range []string{"fa", "en"} {
+		for i, o := range cases {
+			o.locale = locale
+			withFertility := card(o)
+			o.noFertility = true
+			c := card(o)
+			for _, s := range []string{c.Title, c.Subtitle} {
+				for _, word := range []string{"باروری", "تخمک", "fertil", "ovulat", "Fertil", "Ovulat"} {
+					assert.NotContains(t, s, word, "%s case %d", locale, i)
+				}
+			}
+			assert.NotEqual(t, withFertility.Title, c.Title, "%s case %d: the regular card talks about fertility", locale, i)
+			assert.Equal(t, withFertility.DataStatus, c.DataStatus)
+			assert.Equal(t, withFertility.PrimaryAction, c.PrimaryAction)
+		}
+	}
+	// The flag changes nothing on a day without fertility copy (the period countdown).
+	o := cardOpts{cycleDay: 24, nextStart: "2026-07-20", ovulation: "2026-07-06", subphase: enums.CycleSubphaseLateLuteal}
+	regular := card(o)
+	o.noFertility = true
+	assert.Equal(t, regular, card(o))
 }

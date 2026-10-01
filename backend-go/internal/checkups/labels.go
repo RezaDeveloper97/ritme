@@ -154,6 +154,19 @@ func TimingLabel(t engine.Type, locale string) string {
 	return tr("timing.cycle_days", locale, "from", num(t.CycleDayFrom, locale), "to", num(t.CycleDayTo, locale))
 }
 
+// TimingLabel is the item's timing line for this plan: the cycle-day window, or — for a life mode
+// without a cycle (menopause, B-N2-11b) — «یک روز ثابت از ماه» for a monthly cycle-timed type, else "".
+func (p *Plan) TimingLabel(t engine.Type, locale string) string {
+	switch {
+	case p.LifeMode.TracksCycle():
+		return TimingLabel(t, locale)
+	case t.CycleTimed() && t.IntervalMonths <= 1:
+		return T("timing.same_day_monthly", locale)
+	default:
+		return ""
+	}
+}
+
 // soonLabelDays: a next due date at most this many days away is written as «N روز دیگر».
 const soonLabelDays = 30
 

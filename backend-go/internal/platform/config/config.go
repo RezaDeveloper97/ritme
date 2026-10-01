@@ -39,6 +39,7 @@ type Config struct {
 	Swagger  Swagger
 	Plus     Plus
 	Payment  Payment
+	AI       AI
 	// StoragePath is the mounted Laravel storage/ directory (backend-storage volume):
 	// Passport keys, translations, public uploads.
 	StoragePath string
@@ -176,6 +177,31 @@ type Zarinpal struct {
 	BaseURL    string // ZARINPAL_BASE_URL: override of the gateway origin (tests); empty = from Sandbox
 }
 
+// AI provider ids accepted by AI_PROVIDER (internal/ai implements them).
+const (
+	AIProviderNone   = "none"   // no provider: AI features answer 503 ai_unavailable
+	AIProviderFake   = "fake"   // deterministic fixtures (dev, tests, stage); never in production
+	AIProviderGemini = "gemini" // Google Gemini REST (server-side key)
+)
+
+// AI holds the AI adapter settings (B-N3-05, extended by B-N6-05). No secret has a default: the provider key lives
+// only in the server's .env and is never logged.
+type AI struct {
+	// Provider is AI_PROVIDER: none | fake | gemini. Unset → fake outside production, none in production.
+	// AI_PROVIDER=fake with APP_ENV=production is refused at start-up (it would invent health data).
+	Provider string
+	// Timeout (AI_HTTP_TIMEOUT_SECONDS, default 30) bounds every provider call.
+	Timeout time.Duration
+	Gemini  Gemini
+}
+
+// Gemini holds GEMINI_* (empty key = provider disabled, AI features answer 503).
+type Gemini struct {
+	APIKey  string // GEMINI_API_KEY (secret: server .env only)
+	Model   string // GEMINI_MODEL (default gemini-flash-latest)
+	BaseURL string // GEMINI_BASE_URL: override of the API origin (tests); default generativelanguage.googleapis.com
+}
+
 // Load reads the process environment.
 func Load() (*Config, error) { return LoadFrom(os.LookupEnv) }
 
@@ -252,6 +278,15 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 				BaseURL:    strings.TrimRight(e.str("ZARINPAL_BASE_URL", ""), "/"),
 			},
 		},
+		AI: AI{
+			Provider: strings.ToLower(e.str("AI_PROVIDER", "")),
+			Timeout:  time.Duration(e.integer("AI_HTTP_TIMEOUT_SECONDS", 30)) * time.Second,
+			Gemini: Gemini{
+				APIKey:  e.str("GEMINI_API_KEY", ""),
+				Model:   e.str("GEMINI_MODEL", "gemini-flash-latest"),
+				BaseURL: strings.TrimRight(e.str("GEMINI_BASE_URL", ""), "/"),
+			},
+		},
 		StoragePath:   strings.TrimRight(e.required("STORAGE_PATH"), "/"),
 		RunMigrations: e.boolean("RUN_MIGRATIONS", false),
 	}
@@ -297,6 +332,24 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 			}
 		}
 	}
+	cfg.AI.Provider = DefaultAIProvider(cfg.AI.Provider, cfg.App)
+	switch cfg.AI.Provider {
+	case AIProviderNone, AIProviderGemini:
+	case AIProviderFake:
+		if cfg.App.IsProduction() {
+			e.fail("AI_PROVIDER=fake is not allowed when APP_ENV=production (it returns canned fixtures)")
+		}
+	default:
+		e.fail("AI_PROVIDER: %q is not one of none, fake, gemini", cfg.AI.Provider)
+	}
+	if cfg.AI.Timeout < time.Second {
+		e.fail("AI_HTTP_TIMEOUT_SECONDS: must be at least 1")
+	}
+	if u := cfg.AI.Gemini.BaseURL; u != "" {
+		if err := checkPublicURL(u, cfg.App.IsProduction()); err != nil {
+			e.fail("GEMINI_BASE_URL %q: %v", u, err)
+		}
+	}
 	if cfg.App.IsProduction() && cfg.App.Debug {
 		e.fail("APP_DEBUG must be false when APP_ENV=production")
 	}
@@ -317,6 +370,17 @@ func DefaultPaymentProvider(provider string, app App) string {
 		return PaymentProviderNone
 	}
 	return PaymentProviderFake
+}
+
+// DefaultAIProvider resolves an unset AI_PROVIDER: the fake outside production, none in production.
+func DefaultAIProvider(provider string, app App) string {
+	if provider != "" {
+		return provider
+	}
+	if app.IsProduction() {
+		return AIProviderNone
+	}
+	return AIProviderFake
 }
 
 // checkPublicURL accepts an absolute http(s) URL with a host and no credentials; https only in production.

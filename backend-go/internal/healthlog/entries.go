@@ -33,6 +33,7 @@ import (
 const (
 	SourceManual = "manual"
 	SourceLegacy = taxonomy.SourceLegacy
+	SourceVoice  = "voice" // B-N3-05: values confirmed from a voice-log suggestion
 )
 
 // MaxRangeDays bounds GET /logs/days.
@@ -192,7 +193,11 @@ func (s *Service) SaveDay(ctx context.Context, userID uint64, date civildate.Dat
 			}); err != nil {
 				return fmt.Errorf("healthlog: replace entries: %w", err)
 			}
-			if err := t.insertEntries(ctx, userID, date, ch.Entries, SourceManual, now); err != nil {
+			source := SourceManual
+			if ch.Source != "" {
+				source = ch.Source
+			}
+			if err := t.insertEntries(ctx, userID, date, ch.Entries, source, now); err != nil {
 				return err
 			}
 		}

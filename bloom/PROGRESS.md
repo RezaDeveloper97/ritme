@@ -545,3 +545,83 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   masking, per-page 4xx/5xx/console summary; `--mobile`, `--new-user`, `--admin`).
 - Bugs: B-1 (medium, male lands on women home) → B-N4-05 scope; B-2..B-5 (low) → new task B-N2-11b.
 - Stage test data: 5 users + 4 half-onboarded, 4 fake invoices, code `QAN2SMOKE` (deactivated).
+
+## B-N3-08 — Analysis hub and tab routing
+
+- `entities/analysis` (summary schema tolerant per section, `HUB_RANGES` 3m/6m/1y, `useAnalysisSummary`, layout
+  helpers, `analysisKeys.report|monthly` for B-N3-09..12; schema tests run against the Go engine goldens).
+- `screens/analysis` hub at `/analysis`: range tabs, category chips, top finding, 8 cards with `PlusBadge` /
+  `PlusGate` blurred locks, skeleton / error / `no_data` / not-enough-data per card, accessible charts. Mode choice:
+  cycle/teen/menopause hub; ttc/postpartum → cycle hub for now; pregnancy → placeholder. Stub detail routes
+  (`AnalysisDetailStub`) for cycle/period/symptoms/correlations/body/labs/monthly — B-N3-09/10 swap the bodies.
+- Entries: home predictions «جزئیات» + PMS card → `/analysis`, calendar segment «تحلیل», Me row «تحلیل و گزارش‌ها».
+  `NAV_READY.analysis` still false (flip in B-N3-09 when `/analysis/symptoms` is real).
+- Screenshots `docs/qa/bloom/B-N3-08/`. QUESTIONS #83. `dev-up.sh web` now kills only :3000 (was killing admin-web).
+
+## B-N3-03 — Log sheet v2 — quick tiles, accordion, detail panels, body map
+
+- `entities/health-log` v2 API (`useLogTaxonomy`, `useLogPreferences`, `useLogDay(s)`, `saveLogDay`); new
+  `features/log-day` (pure draft/diff/search model + tests, optimistic save invalidating logs/health-log/cycle/fertility/
+  message caches, generic `ParamField` for all 9 param types, date strip, quick tiles, accordion, search, summary
+  footer, voice tab with `plus.voice_log` lock, detail panels bleeding / pain / measurements); `widgets/body-map`
+  (token-only SVG, each region an `aria-pressed` button). `/log?date=` and the `log` sheet (now full height) render v2;
+  home «ثبت امروز» rows and calendar «ثبت جزئیات» open it; companion keeps the old sheet. Old `CategorySheet`/`FieldRow`
+  removed. Namespaces `logSheet` (+ `logTaxonomy` bundled) registered; `plus` added to the shell.
+- `bloom/bin/shot.mjs` gained `--click 'sel||text=..'` and `--name`.
+- Screenshots `docs/qa/bloom/B-N3-03/`. QUESTIONS #84. Customize gear waits for B-N3-04.
+
+## B-N2-11b — N2 stage smoke follow-ups
+
+- B-2: checkout counts a code as applied only when `discount_source == 'code'` (`plus-checkout/lib/code-state.ts` +
+  test); when the trial offer wins it shows «پیشنهاد ویژه‌ات تخفیف بیشتری دارد…» and doesn't send the code.
+- B-3: teen/menopause get no fertility copy in `cycle_view.daily_card` — engine profile joins `user_life_profiles.life_mode`,
+  `Profile.NoFertilityCopy`, cache key extended only for those modes; unit + int tests; contract goldens unchanged.
+- B-4: `LifeMode.TracksCycle()` (false for menopause) → checkups plan by interval, `TimingLabel` «یک روز ثابت از ماه»,
+  detail cycle-day hint null for menopause.
+- B-5: `shared/config/app-version.ts` (`NEXT_PUBLIC_APP_VERSION`) in Me hub + About.
+- Screenshots `docs/qa/bloom/B-N2-11b/`. QUESTIONS #85.
+
+## B-N3-04 — Log customization screen
+
+- `/log/customize` (`screens/log-customize` + `features/customize-log`): drag or ↑↓/Home/End reorder with focus kept
+  and live announcement, pin ≤8 (counter, amber at cap, reason when full), show/hide, custom items add / inline rename /
+  delete with 422 → copy mapping, reset (DELETE), single PUT of changed lists, optimistic + rollback, unsaved-changes
+  sheet on back. Gear in `features/log-day` now links here. `entities/health-log/api/log-prefs.ts` mutations;
+  `apiClient.patch` added. Namespace `logCustomize`.
+- Screenshots `docs/qa/bloom/B-N3-04/`. Minor: a pinned+hidden tile isn't returned by GET, so it shows unpinned until
+  reload after unhiding. Add `/log/customize` to `docs/night-bloom/routes.md`.
+
+## B-N3-09 — Analysis details — cycle, period, symptoms, correlations, body
+
+- `widgets/charts` (pure SVG, tokens, `role=img` + `aria-label` + sr-only tables; LTR time axes): ColumnChart,
+  PhaseBar, CycleDots, HeatGrid, SeriesBars, StripRows, TrendLine, blocks, ReportFrame, geometry + tests.
+- Screens `analysis-{cycle,period,symptoms,correlations,body}` replacing the B-N3-08 stubs, footnotes (FIGO, not-causal,
+  moving average), range tabs per artboard, Plus lock on correlations (teen: no upsell), all states.
+  `entities/analysis` report schemas/hooks tested against Go goldens. `NAV_READY.analysis = true` (menopause «علائم» →
+  `/analysis/symptoms`). Scope `analysisReport`.
+- Backend: moods excluded from symptom patterns (`isMoodKey`), one engine golden updated.
+- Screenshots `docs/qa/bloom/B-N3-09/`. QUESTIONS #86.
+
+## B-N3-05 — Voice logging (Plus) — record, transcribe, parse, review
+
+- `internal/ai` (ports `Transcriber`, `LogParser`; `ai.Client` tags calls with `Feature` and reports `Usage` to a
+  `Recorder` — slog only, no payload/user; providers `fake` (deterministic fixtures, lexicon NLU incl. custom items) and
+  `gemini` (REST, key header, no error bodies); `AI_PROVIDER` fake outside prod, `none` in prod, fake refused in prod).
+  B-N6-05 extends it (chat, vision, consent, DB usage/cost).
+- `POST /api/v1/logs/voice` (`internal/voicelog`): Plus gate before reading, throttle 6/min 60/h, streamed multipart
+  ≤2048 KB, sniffed audio types, no temp files, audio + raw body zeroed right after transcription (tested), suggestions
+  validated with `taxonomy.Parse` (≥0.5 confidence, ≤20), never auto-saved; quota consumed after success.
+  `PUT /logs/days` accepts `voice_params` → rows tagged `source=voice`. D-44 proposed.
+- Frontend `features/voice-log` (MediaRecorder + permission/unsupported/mic errors, timer, upload, «این‌ها را فهمیدیم»
+  chips opening the manual section with merged values) slotted into the log sheet's voice tab; `apiClient` FormData +
+  `timeoutMs`. Env `AI_*`, `GEMINI_*` in `.env.stage.example` + `docker-compose.stage.yml`. `shot.mjs --fake-media`.
+- Screenshots `docs/qa/bloom/B-N3-05/`. QUESTIONS #87.
+
+## B-N3-10 — Monthly report and labs trend screen
+
+- `/analysis/monthly/[ym]?calendar=` (`screens/analysis-monthly`): Jalali/Gregorian month title + stepper (no future,
+  ≤24 back, calendar switch via `convertParts`), headline, metrics table with coloured deltas, top symptoms, next-month
+  suggestion, running-month subtitle, empty state; «ساخت PDF برای پزشک» = Plus lock or «به‌زودی» (B-N6-04).
+  `/analysis/labs` (`screens/analysis-labs`) empty state until B-N6-06 with Plus note. `entities/analysis` monthly
+  schema tested against 8 Go goldens.
+- Screenshots `docs/qa/bloom/B-N3-10/`. QUESTIONS #88.

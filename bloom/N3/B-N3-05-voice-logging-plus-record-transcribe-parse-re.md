@@ -3,7 +3,7 @@ id: B-N3-05
 title: Voice logging (Plus) — record, transcribe, parse, review
 milestone: N3
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N3-03,B-N2-06]
 parallel_group: N3-E
 touches: [frontend/src/features/voice-log,frontend/src/screens/log,backend-go/internal/voicelog,backend-go/internal/ai,backend-go/api]

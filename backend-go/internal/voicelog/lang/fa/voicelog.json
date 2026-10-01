@@ -1,0 +1,17 @@
+{
+    "messages": {
+        "ai_unavailable": "ثبت با صدا الان در دسترس نیست. کمی بعد دوباره امتحان کن یا دستی ثبت کن.",
+        "ai_failed": "نتوانستیم صدایت را بفهمیم. دوباره امتحان کن یا دستی ثبت کن.",
+        "too_many": "چند بار پشت سر هم ضبط کردی. کمی صبر کن و دوباره امتحان کن."
+    },
+    "attributes": {
+        "audio": "فایل صدا",
+        "duration_ms": "مدت ضبط"
+    },
+    "labels": {
+        "pain_location": "درد :item",
+        "graded": ":item · :level",
+        "single": ":category · :param: :option",
+        "number": ":param · :value :unit"
+    }
+}

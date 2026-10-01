@@ -480,7 +480,7 @@ func (h *Handlers) PreviewNext(c fiber.Ctx) error {
 		"due_by", due.By.String(),
 		"next_due_label", FullDate(due.From, l.Locale),
 		"interval_label", IntervalLabel(t.IntervalMonths, t.IntervalMonthsMax, l.Locale),
-		"timing_label", emptyToNil(TimingLabel(t, l.Locale)),
+		"timing_label", emptyToNil(p.TimingLabel(t, l.Locale)),
 		"reminder_label", ReminderLabel(t.RemindLeadDays, p.Remind(typeID), l.Locale),
 		"cycle_timed", due.CycleTimed,
 	))

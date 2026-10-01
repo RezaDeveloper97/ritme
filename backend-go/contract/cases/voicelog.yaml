@@ -1,0 +1,76 @@
+# Voice logging (POST /api/v1/logs/voice, B-N3-05) — Go only (no Laravel route), so these goldens were recorded from
+# the Go server with the fake AI provider (APP_ENV=contract → AI_PROVIDER defaults to fake) and reviewed by hand
+# (new-endpoint skill, step 8). The recording is a hand-written multipart body: an Ogg page header (sniffed
+# server-side) followed by the fake's fixture marker (RITME-FAKE:<key>, internal/ai/fake.go). The audio wipe, temp
+# files, per-user custom items, throttles and the voice_params source marking are covered by internal/voicelog tests.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: voicelog
+defaults:
+  persona: regular
+  locales: [none, en]
+cases:
+  - name: voice_locked
+    doc: A free user → 402 plus_required (locked) before the recording is read
+    method: POST
+    path: /api/v1/logs/voice
+    content_type: multipart/form-data; boundary=ritmeB
+    raw_body: "--ritmeB\r\nContent-Disposition: form-data; name=\"audio\"; filename=\"voice.ogg\"\r\nContent-Type: audio/ogg\r\n\r\nOggS\0\x02 RITME-FAKE:default\r\n--ritmeB--\r\n"
+    status: 402
+  - name: voice_trial
+    doc: During the trial → transcript + reviewed suggestions (pain, bloating, mood); nothing saved
+    steps:
+      - method: POST
+        path: /api/v1/plus/trial/start
+        status: 200
+      - method: POST
+        path: /api/v1/logs/voice
+        content_type: multipart/form-data; boundary=ritmeB
+        raw_body: "--ritmeB\r\nContent-Disposition: form-data; name=\"duration_ms\"\r\n\r\n7000\r\n--ritmeB\r\nContent-Disposition: form-data; name=\"audio\"; filename=\"voice.ogg\"\r\nContent-Type: audio/ogg\r\n\r\nOggS\0\x02 RITME-FAKE:default\r\n--ritmeB--\r\n"
+        status: 200
+  - name: voice_weight
+    locales: en
+    doc: Numbers and single options (weight, sleep quality) with their labels
+    steps:
+      - method: POST
+        path: /api/v1/plus/trial/start
+        status: 200
+      - method: POST
+        path: /api/v1/logs/voice
+        content_type: multipart/form-data; boundary=ritmeB
+        raw_body: "--ritmeB\r\nContent-Disposition: form-data; name=\"audio\"; filename=\"voice.ogg\"\r\n\r\nOggS\0\x02 RITME-FAKE:weight\r\n--ritmeB--\r\n"
+        status: 200
+  - name: voice_provider_error
+    locales: none
+    doc: The provider fails → 503 ai_failed (Retry-After), no use counted
+    steps:
+      - method: POST
+        path: /api/v1/plus/trial/start
+        status: 200
+      - method: POST
+        path: /api/v1/logs/voice
+        content_type: multipart/form-data; boundary=ritmeB
+        raw_body: "--ritmeB\r\nContent-Disposition: form-data; name=\"audio\"; filename=\"voice.ogg\"\r\n\r\nOggS\0\x02 RITME-FAKE:error\r\n--ritmeB--\r\n"
+        status: 503
+  - name: voice_invalid
+    doc: Not a multipart upload / not audio → 422
+    steps:
+      - method: POST
+        path: /api/v1/plus/trial/start
+        status: 200
+      - method: POST
+        path: /api/v1/logs/voice
+        body: {audio: AAAA}
+        status: 422
+      - method: POST
+        path: /api/v1/logs/voice
+        content_type: multipart/form-data; boundary=ritmeB
+        raw_body: "--ritmeB\r\nContent-Disposition: form-data; name=\"audio\"; filename=\"voice.ogg\"\r\n\r\n%PDF-1.7 not audio\r\n--ritmeB--\r\n"
+        status: 422
+  - name: voice_anon
+    persona: anon
+    locales: none
+    method: POST
+    path: /api/v1/logs/voice
+    content_type: multipart/form-data; boundary=ritmeB
+    raw_body: "--ritmeB--\r\n"
+    status: 401

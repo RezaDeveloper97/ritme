@@ -306,48 +306,6 @@
     },
     "items": [
       {
-        "key": "mood.moods.irritable",
-        "label": "زودرنج",
-        "cycles": 5,
-        "strip": [
-          0.2,
-          0.2,
-          0,
-          0.4,
-          0.2,
-          0.2,
-          0,
-          0,
-          0.2,
-          0.2,
-          0,
-          0,
-          0.6,
-          0,
-          0.2,
-          0.2,
-          0.2,
-          0.2,
-          0,
-          0.2,
-          0.2,
-          0.4,
-          0.2,
-          0,
-          0.4,
-          0.2,
-          0,
-          0,
-          0.4
-        ],
-        "window": {
-          "start_day": 13,
-          "end_day": 13,
-          "relation": "mid",
-          "days": 0
-        }
-      },
-      {
         "key": "pain.location.abdomen",
         "label": "گرفتگی",
         "cycles": 5,

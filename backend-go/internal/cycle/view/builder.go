@@ -145,6 +145,7 @@ func Build(histories []model.History, profile *model.Profile, selected, today ci
 		LoggedPeriodClosed: loggedClosed,
 		EstimatedOvulation: status.EstimatedOvulationDate,
 		Locale:             locale,
+		NoFertilityCopy:    profile != nil && profile.NoFertilityCopy,
 	})
 
 	confidence := ConfidenceForPrediction(m, openState.PastHardCap)

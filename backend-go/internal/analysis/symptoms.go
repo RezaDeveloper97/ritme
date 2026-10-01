@@ -2,6 +2,7 @@ package analysis
 
 import (
 	"sort"
+	"strings"
 
 	"github.com/ritme/backend-go/internal/cycle/insights"
 	"github.com/ritme/backend-go/internal/platform/civildate"
@@ -114,7 +115,13 @@ func (in *Input) symptomCounts() (counts []SymptomCount, logged, withSymptoms in
 	return counts, logged, withSymptoms
 }
 
-// symptomPattern lays the range's plausible completed cycles onto the typical cycle.
+// isMoodKey: mood.moods items count as symptoms in the top list and the trend («زودرنج» in the legend),
+// but not in the cycle pattern — moods have their own phase card, and «حساس» on the typical cycle read
+// as a physical symptom (bloom QUESTIONS #83).
+func isMoodKey(k string) bool { return strings.HasPrefix(k, "mood.") }
+
+// symptomPattern lays the range's plausible completed cycles onto the typical cycle; moods are left out
+// (isMoodKey).
 func (in *Input) symptomPattern() (n int, typical Layout, items []insights.SymptomPattern) {
 	var starts []civildate.Date
 	var lens []int
@@ -127,7 +134,9 @@ func (in *Input) symptomPattern() (n int, typical Layout, items []insights.Sympt
 		for i := range c.Length {
 			if day := in.day(c.Start.AddDays(i)); day != nil {
 				for k := range day.Symptoms {
-					keys[k] = true
+					if !isMoodKey(k) {
+						keys[k] = true
+					}
 				}
 			}
 		}

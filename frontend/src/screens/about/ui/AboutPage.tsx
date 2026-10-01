@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
+import { APP_VERSION } from '@/shared/config';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber, formatYear, todayParts } from '@/shared/lib/date';
 import { AppSheet } from '@/shared/sheet';
@@ -21,8 +22,6 @@ import {
 
 import { useInfoPage } from '../api/info-page';
 import { type InfoPageSection, splitAbout } from '../model/info-page';
-
-const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? '1.0.0';
 
 /** Icons for admin rows, in order (the content is data; the icons are decoration). */
 const ROW_ICONS: ReadonlyArray<readonly [IconName, Tone]> = [

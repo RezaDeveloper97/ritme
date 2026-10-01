@@ -86,5 +86,400 @@
       "log_more": "Log more days to make next month’s report more accurate.",
       "keep_going": "Keep logging regularly; you have enough data for next month’s report."
     }
+  },
+  "hub": {
+    "title": "Analysis",
+    "report": "{month} report",
+    "rangeLabel": "Analysis range",
+    "ranges": {
+      "3m": "3 months",
+      "6m": "6 months",
+      "1y": "1 year"
+    },
+    "filterLabel": "Analysis categories",
+    "categories": {
+      "all": "All",
+      "cycle": "Cycle",
+      "symptoms": "Symptoms",
+      "moodSleep": "Mood & sleep",
+      "body": "Body",
+      "labs": "Labs"
+    },
+    "groups": {
+      "cycle": "Cycle",
+      "symptomsMood": "Symptoms & mood",
+      "bodyLabs": "Body & labs"
+    },
+    "topFinding": "Top finding · {range}",
+    "loading": "Loading your analysis",
+    "updating": "Updating",
+    "error": {
+      "title": "Couldn’t load your analysis",
+      "body": "Check your connection and try again.",
+      "retry": "Try again"
+    },
+    "empty": {
+      "title": "Nothing to analyse yet",
+      "body": "Log your period, symptoms and mood each day and your body’s patterns will show up here.",
+      "cta": "Log today"
+    },
+    "noFilterMatch": "No cards in this category.",
+    "cycle": {
+      "title": "Cycle & period length",
+      "median": "day median",
+      "medianPeriod": "day median · period {days} days",
+      "regular": "Regular",
+      "irregular": "Irregular",
+      "notReady": "At least 2 complete cycles are needed to show your median cycle length.",
+      "monthAbbrLength": "3",
+      "chart": "Length of the last {count} cycles, oldest first: {list} days"
+    },
+    "period": {
+      "title": "Periods & cycle history",
+      "row": "{month} cycle: {length} days, period {period} days",
+      "rowCurrent": "Current cycle from {month}: day {day} of about {length}, period {period} days",
+      "legend": {
+        "period": "Period",
+        "fertile": "Fertile window",
+        "ovulation": "Ovulation"
+      }
+    },
+    "symptoms": {
+      "title": "Symptom pattern",
+      "sub": "Last {n} cycles",
+      "highlight": {
+        "before_period": "{symptom} is logged most in the <b>{days} days before your period</b>.",
+        "early": "{symptom} is logged most in the <b>first {days} days of your cycle</b>.",
+        "mid": "{symptom} is logged most around <b>cycle days {start}–{end}</b>.",
+        "mid_day": "{symptom} is logged most around <b>cycle day {start}</b>."
+      },
+      "count": "{n} days",
+      "notReady": "Log {n} more cycles to see a pattern.",
+      "none": "No symptoms logged in this range yet."
+    },
+    "mood": {
+      "title": "Mood across your cycle",
+      "caption": "Share of days with a good mood",
+      "phases": {
+        "period": "Period",
+        "follicular": "Follicular",
+        "fertile": "Fertile",
+        "luteal": "Luteal"
+      },
+      "pct": "{n}%",
+      "chart": "Share of good-mood days per phase: {list}",
+      "notReady": "Log your mood for a few weeks to fill this chart."
+    },
+    "sleep": {
+      "title": "Sleep & mood",
+      "groups": {
+        "sleep_6_plus": "6+ hours of sleep",
+        "sleep_under_6": "Under 6 hours"
+      },
+      "pct": "{n}% of days",
+      "notReady": "At least {n} days with both sleep and mood logged are needed."
+    },
+    "weight": {
+      "title": "Weight",
+      "delta": "<n>{delta}</n> in 30 days",
+      "chart": "Weight over the last 30 days, 7-day average",
+      "notReady": "Log your weight for a few days to see its trend here."
+    },
+    "vitals": {
+      "title": "Blood pressure & sugar",
+      "bp": "Pressure (average)",
+      "sugar": "Fasting sugar",
+      "none": "—",
+      "notReady": "Log your blood pressure or sugar to see the average here."
+    },
+    "labs": {
+      "title": "Lab trends",
+      "empty": "No lab results yet — once you add a test, its markers’ trends show up here."
+    },
+    "pregnancy": {
+      "title": "Pregnancy analysis is coming",
+      "body": "Weight, blood pressure and baby movement trends during pregnancy will appear here soon.",
+      "cta": "Go to pregnancy"
+    }
+  },
+  "detail": {
+    "back": "Back to analysis",
+    "soonTitle": "This report is coming soon",
+    "soonBody": "You can already see its summary on the analysis page.",
+    "toHub": "Go to analysis",
+    "titles": {
+      "cycle": "Cycle analysis",
+      "period": "Periods & history",
+      "symptoms": "Symptom pattern",
+      "correlations": "Correlations",
+      "body": "Body & lifestyle",
+      "labs": "Lab trends",
+      "monthly": "Monthly report"
+    }
+  },
+  "reports": {
+    "back": "Back to analysis",
+    "loading": "Preparing your report…",
+    "rangeLabel": "Time range",
+    "ranges": {
+      "7d": "7 days",
+      "2w": "2 weeks",
+      "1m": "1 month",
+      "3m": "3 months",
+      "6m": "6 months",
+      "1y": "1 year",
+      "all": "All"
+    },
+    "recent": "Last {range}",
+    "error": {
+      "title": "Couldn't load the report",
+      "body": "Check your connection and try again.",
+      "retry": "Try again"
+    },
+    "empty": {
+      "title": "No data for this report yet",
+      "body": "Log daily and this report fills in over time.",
+      "cta": "Log today"
+    },
+    "days": "{n} days",
+    "none": "—",
+    "cycle": {
+      "title": "Cycle analysis",
+      "sub": "Last {n} cycles",
+      "tilesLabel": "Cycle summary",
+      "tiles": {
+        "cycle": "Cycle length",
+        "period": "Period length",
+        "variation": "Variation"
+      },
+      "verdict": {
+        "normal": "Normal ({min}–{max})",
+        "frequent": "Shorter than range ({min}–{max})",
+        "infrequent": "Longer than range ({min}–{max})",
+        "periodNormal": "Normal (≤{max})",
+        "prolonged": "Over {max} days",
+        "regular": "Regular (≤{max})",
+        "irregular": "Irregular (over {max})",
+        "needMore": "{n} more cycles needed",
+        "unrated": "Not compared with a range"
+      },
+      "lengths": {
+        "title": "Length of each cycle",
+        "chart": "Length of the last {n} cycles in days, oldest to newest: {list}",
+        "colCycle": "Cycle",
+        "colLength": "Length (days)",
+        "outlier": "{month} ({days} days) was far from your other cycles and is left out of the median.",
+        "implausible": "{month} ({days} days) was outside the reliable range (21–45 days) and is left out of the median.",
+        "excludedTag": "left out"
+      },
+      "phases": {
+        "title": "Your typical cycle phases",
+        "chart": "Typical {length}-day cycle: period {period}, follicular {follicular}, fertile {fertile} and luteal {luteal} days",
+        "chartNoFertility": "Typical {length}-day cycle: period {period} days",
+        "legend": "{phase} {days}"
+      },
+      "history": {
+        "title": "History",
+        "chart": "History of {n} cycles with period, fertile and ovulation days",
+        "colMonth": "Started in",
+        "colLength": "Length (days)",
+        "colPeriod": "Period (days)"
+      },
+      "notReady": "At least {n} complete cycles in this range are needed for the cycle analysis.",
+      "figo": "Ranges follow the FIGO criteria for non-pregnant adults; they differ for teens and around menopause.",
+      "figoNotApplied": "The FIGO ranges are for adults aged 18–45 and are not applied at your age; more variation is common in the teen years and around menopause."
+    },
+    "period": {
+      "title": "Period analysis",
+      "sub": "Last {n} periods",
+      "tilesLabel": "Period summary",
+      "tiles": {
+        "length": "Period length",
+        "peak": "Peak day",
+        "spotting": "Spotting"
+      },
+      "verdict": {
+        "normal": "Normal (≤{max})",
+        "prolonged": "Over {max} days"
+      },
+      "peakSub": "Heaviest",
+      "spottingSub": "days in {n} cycles",
+      "levels": {
+        "light": "Light",
+        "medium": "Medium",
+        "heavy": "Heavy",
+        "very_heavy": "Very heavy"
+      },
+      "flow": {
+        "title": "Flow by day",
+        "average": "Average",
+        "chart": "Flow on each period day for the last {n} periods and the average",
+        "day1": "Day {n}",
+        "colPeriod": "Period",
+        "noFlow": "No flow logged yet. Log “flow” on your period days to fill this chart."
+      },
+      "co": {
+        "title": "Symptoms during your period",
+        "label": "Symptoms during your period and the share of periods they were logged in",
+        "pct": "{n}%",
+        "notReady": "At least {n} logged periods are needed to see symptoms during your period.",
+        "none": "No symptoms logged during your periods."
+      },
+      "notReady": "Log at least 2 periods in this range for the period analysis.",
+      "figo": "Talk to a doctor about periods longer than {max} days or needing a new pad every hour (FIGO 2018)."
+    },
+    "symptoms": {
+      "title": "Symptom trends",
+      "pick": "Symptoms shown on the chart",
+      "chart": "Trend of {list} over the last {range}",
+      "colDate": "From",
+      "trendNotReady": "Log symptoms on more days in this range to see a trend.",
+      "pattern": {
+        "title": "On your typical cycle",
+        "chart": "Pattern of {list} on a typical {length}-day cycle",
+        "day": "Day {n}",
+        "colSymptom": "Symptom",
+        "colWindow": "Mostly",
+        "notReady": "Log {n} more cycles to see patterns on your cycle.",
+        "none": "No symptom has repeated in 3 or more cycles yet."
+      },
+      "footnote": "A pattern is shown only when a symptom was logged in at least {n} cycles."
+    },
+    "correlations": {
+      "title": "Connections",
+      "sub": "{range} · {n} days logged",
+      "items": {
+        "sleep_mood": "Sleep and mood",
+        "phase_energy": "Phase and energy",
+        "exercise_cramps": "Exercise and cramps",
+        "phase_mood": "Phase and mood"
+      },
+      "strength": {
+        "strong": "Strong",
+        "medium": "Moderate",
+        "weak": "Weak"
+      },
+      "groups": {
+        "sleep_6_plus": "6+ hours",
+        "sleep_under_6": "Under 6",
+        "no_exercise": "No exercise",
+        "exercise": "Exercise"
+      },
+      "chart": "{title}: {list}",
+      "groupValue": "{group} {pct}%",
+      "colGroup": "Group",
+      "colPct": "Share of days",
+      "colDays": "Days",
+      "hitsOf": "{hits} of {days}",
+      "notEnough": "This connection needs at least {n} days logged together ({have} so far).",
+      "noAssociation": "No clear connection between these two in your data.",
+      "locked": {
+        "title": "Connections with Ritme Plus",
+        "body": "See how sleep, exercise and your cycle phase line up with your mood and symptoms."
+      }
+    },
+    "body": {
+      "title": "Body and lifestyle",
+      "ranges": {
+        "7d": "7 days",
+        "1m": "30 days",
+        "3m": "3 months",
+        "1y": "1 year"
+      },
+      "weight": {
+        "title": "Weight ({n}-day average)",
+        "delta": "<n>{delta}</n> kg",
+        "d7": "7 days",
+        "d30": "30 days",
+        "bmi": "BMI",
+        "statsLabel": "Weight change and BMI",
+        "chart": "Weight trend as a {n}-day moving average, from {from} to {to} kg",
+        "colDate": "Date",
+        "colAvg": "Average (kg)",
+        "notReady": "Log your weight at least twice to see a trend."
+      },
+      "sleep": {
+        "title": "Sleep",
+        "avg": "average hours",
+        "luteal": "Luteal: {n}",
+        "chart": "Average hours of sleep on each weekday: {list}",
+        "colDay": "Weekday",
+        "colHours": "Hours",
+        "notReady": "Log your sleep for at least 2 nights to see a pattern."
+      },
+      "activity": {
+        "title": "Physical activity",
+        "sub": "active days in {n}",
+        "week": "Week {n}",
+        "chart": "Active days per week: {list}",
+        "colWeek": "Week",
+        "colDays": "Active days"
+      },
+      "weekdays": {
+        "sat": "Saturday",
+        "sun": "Sunday",
+        "mon": "Monday",
+        "tue": "Tuesday",
+        "wed": "Wednesday",
+        "thu": "Thursday",
+        "fri": "Friday"
+      },
+      "footnote": "Weight is shown as a 7-day moving average so day-to-day water swings (for example before your period) don't mislead."
+    },
+    "monthly": {
+      "title": "{month} report",
+      "running": "So far, to {date}",
+      "stepper": "Report month",
+      "prev": "Previous month: {month}",
+      "next": "Next month: {month}",
+      "table": {
+        "caption": "{month} compared with the month before",
+        "metric": "Measure",
+        "value": "This month",
+        "delta": "Change"
+      },
+      "metrics": {
+        "cycle_length": "Cycle length",
+        "days_logged": "Days logged",
+        "sleep": "Sleep",
+        "weight": "Weight",
+        "blood_pressure": "Average blood pressure",
+        "good_mood": "Good-mood days"
+      },
+      "units": {
+        "days": "{n} days",
+        "hours": "{n} h",
+        "kg": "{n}",
+        "percent": "{n}%",
+        "deltaPercent": "{n}%"
+      },
+      "top": {
+        "title": "Most frequent symptoms",
+        "days": "{n} days",
+        "none": "No frequent symptoms logged this month."
+      },
+      "suggestion": "For next month",
+      "pdf": {
+        "cta": "Create a PDF for your doctor",
+        "soon": "Soon",
+        "soonNote": "PDFs for your doctor are coming soon.",
+        "locked": "PDFs for your doctor are part of Ritme Plus."
+      },
+      "invalid": {
+        "title": "This month's report isn't available",
+        "body": "Monthly reports aren't made for future months or for months more than 2 years back.",
+        "cta": "This month's report"
+      }
+    },
+    "labs": {
+      "title": "Lab trends",
+      "sub": "No lab results yet",
+      "emptyTitle": "No trends to show yet",
+      "emptyBody": "Once you add your lab reports, the trend of each marker — ferritin, haemoglobin, vitamin D and more — shows here against that lab's own reference range.",
+      "cta": "Lab analysis",
+      "soon": "Soon",
+      "locked": "Lab trends are part of Ritme Plus.",
+      "note": "Each value is rated against the reference range on its own lab report; a trend shows only once a marker appears in at least 2 reports."
+    }
   }
 }

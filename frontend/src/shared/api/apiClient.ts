@@ -23,6 +23,8 @@ type ParamValue = string | number | boolean | null | undefined;
 export interface RequestConfig {
   /** Query string. `null`/`undefined` values are dropped, as axios did. */
   params?: Record<string, ParamValue>;
+  /** Overrides {@link REQUEST_TIMEOUT_MS} (e.g. an upload that waits for speech-to-text). */
+  timeoutMs?: number;
 }
 
 export interface ApiResponse<T> {
@@ -95,7 +97,7 @@ async function readBody(response: Response): Promise<unknown> {
 }
 
 async function request<T>(
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
   path: string,
   body: unknown,
   config: RequestConfig | undefined,
@@ -119,9 +121,12 @@ async function request<T>(
       ? document.documentElement.lang
       : 'fa';
 
-  // Like axios: a JSON Content-Type only when there is a body to describe.
+  // Like axios: a JSON Content-Type only when there is a body to describe. A
+  // FormData body (file upload) goes as is; the browser sets the multipart
+  // Content-Type with its boundary.
   const hasBody = body !== undefined;
-  if (hasBody) headers['Content-Type'] = 'application/json';
+  const isForm = typeof FormData !== 'undefined' && body instanceof FormData;
+  if (hasBody && !isForm) headers['Content-Type'] = 'application/json';
 
   const sentToken = bearerOf(headers.Authorization);
 
@@ -132,14 +137,14 @@ async function request<T>(
   const timer = setTimeout(() => {
     timedOut = true;
     controller.abort();
-  }, REQUEST_TIMEOUT_MS);
+  }, config?.timeoutMs ?? REQUEST_TIMEOUT_MS);
 
   let result: ApiResponse<unknown>;
   try {
     const response = await fetch(buildUrl(path, config?.params), {
       method,
       headers,
-      body: hasBody ? JSON.stringify(body) : undefined,
+      body: isForm ? (body as FormData) : hasBody ? JSON.stringify(body) : undefined,
       signal: controller.signal,
     });
     // The budget covers the body too, as axios' did.
@@ -195,5 +200,8 @@ export const apiClient = {
   },
   put<T = unknown>(path: string, data?: unknown, config?: RequestConfig): Promise<ApiResponse<T>> {
     return request<T>('PUT', path, data, config);
+  },
+  patch<T = unknown>(path: string, data?: unknown, config?: RequestConfig): Promise<ApiResponse<T>> {
+    return request<T>('PATCH', path, data, config);
   },
 };

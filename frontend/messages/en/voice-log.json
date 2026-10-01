@@ -1,0 +1,47 @@
+{
+  "title": "Tell me how you are today",
+  "example": "e.g. “My belly has hurt since this morning, moderate, I’m a bit bloated and feeling bored”",
+  "plus": "Plus",
+  "start": "Start recording",
+  "stop": "Stop recording",
+  "idle": "Tap the microphone to start",
+  "requesting": "Waiting for microphone permission…",
+  "listening": "Listening · {time}",
+  "maxHint": "Up to 60 seconds",
+  "uploading": "Understanding what you said…",
+  "heard": "We heard: “{text}”",
+  "review": {
+    "title": "Here’s what we understood",
+    "hint": "Check before saving",
+    "help": "Tap an item to open its section in “Manual” and adjust it.",
+    "open": "{label}, open in manual logging"
+  },
+  "empty": {
+    "title": "Nothing to log found",
+    "body": "Try again a little more clearly — say the symptom and how strong it is. Or log by hand.",
+    "silentTitle": "We didn’t hear anything",
+    "silentBody": "Hold the microphone closer and try again."
+  },
+  "again": "Record again",
+  "manual": "Log manually",
+  "privacy": "Your recording is sent to an external AI service to be turned into text, then deleted — Ritme doesn't keep it. Voice logging is part of Ritme Plus.",
+  "footer": {
+    "count": "{count, plural, =0 {Nothing from your voice} one {# item from your voice} other {# items from your voice}}",
+    "save": "Save",
+    "saving": "Saving…",
+    "error": "Couldn't save. Please try again."
+  },
+  "error": {
+    "deniedTitle": "Microphone permission denied",
+    "deniedBody": "To log by voice, allow microphone access for Ritme in your browser settings. Until then you can log by hand.",
+    "unsupportedTitle": "Recording isn't possible in this browser",
+    "unsupportedBody": "Your browser doesn't support audio recording or the page isn't secure. Update the browser or log by hand.",
+    "noMicTitle": "No microphone found",
+    "noMicBody": "Connect a microphone or log by hand.",
+    "tooShort": "That was too short — tap, say how you feel, then tap again.",
+    "uploadTitle": "Your recording wasn't sent",
+    "uploadBody": "Check your connection and try again.",
+    "retry": "Try again"
+  },
+  "separator": ", "
+}

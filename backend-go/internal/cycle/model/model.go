@@ -48,6 +48,9 @@ type Profile struct {
 	// LengthsManual is «خودکار از داده‌ها» switched off (B-N1-09, cycle_preferences.lengths_auto = 0): the
 	// profile's cycle / period length win over the medians of the history.
 	LengthsManual bool
+	// NoFertilityCopy is a stored life-stage mode that never gets fertility content (teen, menopause —
+	// enums.LifeMode.AllowsFertilityContent, B-N2-11b): the daily card's copy stays off the fertile window.
+	NoFertilityCopy bool
 }
 
 // Int returns a pointer to v (for literals in tables and tests).

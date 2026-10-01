@@ -1,0 +1,121 @@
+// Package ai is the AI adapter layer (bloom decision: every external AI service sits behind a port with a
+// deterministic `fake` provider as the default outside production).
+//
+// B-N3-05 needs speech-to-text and free text → log taxonomy NLU (voice logging); B-N6-05 extends this same
+// package with streaming chat, vision / document extraction, consent records and a durable usage + cost log.
+// The shape that stays stable for that:
+//
+//   - one small interface per capability (Transcriber, LogParser; later Chat, Vision),
+//   - providers implement any subset (Fake and Gemini implement both today),
+//   - Client is what domains hold: it picks the configured provider (New), labels every call with the
+//     Feature that made it and reports a Usage to the Recorder (a slog line today, a DB row in B-N6-05),
+//   - provider errors surface as ErrUpstream / ErrUnavailable so handlers map them to one envelope.
+//
+// Privacy: requests carry only what the capability needs (the audio, the transcript, the taxonomy vocabulary,
+// a language hint). Never a name, phone, user id or other account field. Neither the Client nor a provider
+// logs payloads: the Recorder sees counts, durations and the outcome only.
+package ai
+
+import (
+	"context"
+	"errors"
+	"time"
+)
+
+// Feature names the product feature a call is made for (usage log, quotas, consent in B-N6-05).
+type Feature string
+
+// Features.
+const (
+	FeatureVoiceLog Feature = "voice_log" // B-N3-05
+)
+
+// Errors every provider maps its failures to.
+var (
+	// ErrUnavailable: no provider is configured (AI_PROVIDER=none, or a real provider without its key).
+	ErrUnavailable = errors.New("ai: no provider configured")
+	// ErrUpstream: the provider failed, timed out or answered something unusable. Safe to retry later.
+	ErrUpstream = errors.New("ai: provider error")
+)
+
+// Audio is a recording held in memory only. The owner wipes it (Wipe) as soon as it has been transcribed.
+type Audio struct {
+	Data []byte
+	MIME string // sniffed server-side, never the client's claim
+}
+
+// Wipe zeroes the recording and drops the reference, so no copy of the audio outlives the request.
+func (a *Audio) Wipe() {
+	clear(a.Data[:cap(a.Data)]) // the whole buffer, not just the recorded length
+	a.Data = nil
+}
+
+// TranscribeRequest is one speech-to-text call.
+type TranscribeRequest struct {
+	Audio Audio
+	// Language is the expected spoken language (the request locale, e.g. "fa"); providers treat it as a hint.
+	Language string
+}
+
+// Transcript is what was heard.
+type Transcript struct {
+	Text     string
+	Language string
+}
+
+// Transcriber turns speech into text.
+type Transcriber interface {
+	Transcribe(ctx context.Context, req TranscribeRequest) (Transcript, Usage, error)
+}
+
+// VocabEntry is one loggable slot the parser may answer with: "category.param" or "category.param.item".
+type VocabEntry struct {
+	Key   string // "pain.location.abdomen"
+	Type  string // taxonomy param type: single | multi | items | number | integer | bool
+	Label string // human label in the request language ("درد › محل درد › شکم")
+	// Values are the accepted codes with their labels: single → options, items → levels.
+	Values []VocabValue
+	// Min / Max / Unit describe number and integer slots.
+	Min, Max float64
+	Unit     string
+}
+
+// VocabValue is one accepted value code with its label.
+type VocabValue struct {
+	Code  string
+	Label string
+}
+
+// LogParseRequest asks for the taxonomy slots a free-text description of the day mentions.
+type LogParseRequest struct {
+	Text       string
+	Language   string
+	Vocabulary []VocabEntry // only the slots the user may log now (mode, custom items)
+}
+
+// Candidate is one slot the parser believes the text mentions. Value follows the slot type: single → option
+// code (string), multi → true, items → level code (string), number/integer → float64, bool → bool. Callers
+// must validate candidates against the taxonomy: a provider is never trusted.
+type Candidate struct {
+	Key        string
+	Value      any
+	Confidence float64 // 0–1
+}
+
+// LogParser maps free text to log taxonomy slots.
+type LogParser interface {
+	ParseLog(ctx context.Context, req LogParseRequest) ([]Candidate, Usage, error)
+}
+
+// Usage is the metering of one call. No payload, no user data.
+type Usage struct {
+	Provider     string
+	Model        string
+	Feature      Feature
+	Op           string // "transcribe" | "parse_log"
+	InputTokens  int
+	OutputTokens int
+	AudioBytes   int
+	Latency      time.Duration
+	OK           bool
+}

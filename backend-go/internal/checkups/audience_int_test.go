@@ -3,6 +3,7 @@ package checkups_test
 import (
 	"context"
 	"fmt"
+	"maps"
 	"net/http"
 	"sort"
 	"strings"
@@ -88,11 +89,28 @@ func TestAudience_ListByLifeMode(t *testing.T) {
 	for key, it := range cycle {
 		mi, ok := meno[key]
 		require.True(t, ok, key)
+		if key == "breast_self_exam" || key == "pap_smear" { // B-N2-11b: no cycle-day timing in menopause
+			assert.NotNil(t, it["timing_label"], key)
+			it, mi = maps.Clone(it), maps.Clone(mi)
+			delete(it, "timing_label")
+			delete(mi, "timing_label")
+		}
 		assert.Equal(t, it, mi, "shared row %s unchanged", key)
 	}
+	assert.Equal(t, "A set day of the month", meno["breast_self_exam"]["timing_label"])
+	assert.Nil(t, meno["pap_smear"]["timing_label"])
+	selfExam := e.typeID(t, "breast_self_exam")
+	r := e.do(t, http.MethodGet, fmt.Sprintf("/api/v1/checkups/%d", selfExam), menoTok, "fa", "")
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	assert.Equal(t, "یک روز ثابت از ماه", r.data()["timing_label"])
+	assert.Nil(t, r.data()["cycle_day_from"], "no cycle-day hint without a cycle")
+	r = e.do(t, http.MethodGet, fmt.Sprintf("/api/v1/checkups/%d", selfExam), cycleTok, "fa", "")
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	assert.Equal(t, "روز ۷ تا ۱۰ سیکل", r.data()["timing_label"])
+	assert.EqualValues(t, 7, r.data()["cycle_day_from"])
 
 	// The home card keeps its three-query budget and counts the menopause rows for her only.
-	r := e.home(t, menoTok, "fa")
+	r = e.home(t, menoTok, "fa")
 	require.Equal(t, http.StatusOK, r.status, r.raw)
 	menoTotal := r.data()["summary"].(map[string]any)["total"].(float64)
 	r = e.home(t, cycleTok, "fa")

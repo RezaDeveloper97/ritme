@@ -18,6 +18,9 @@ import (
 type Change struct {
 	Category, Param string
 	Entries         []Entry
+	// Source is the health_log_entries.source of the new rows ("" = manual; "voice" for params the client
+	// took from a voice-log suggestion, B-N3-05).
+	Source string
 }
 
 // Key is "cat.param".

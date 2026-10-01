@@ -67,6 +67,7 @@
     "applied": "Applied",
     "removeCode": "Remove discount code",
     "codeInvalid": "This discount code isn't valid.",
+    "codeOutranked": "Your special offer gives a bigger discount, so the code wasn't used.",
     "methods": "Payment method",
     "gateway": "Bank gateway",
     "gatewaySub": "All Shetab member cards",

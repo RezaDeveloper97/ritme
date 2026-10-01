@@ -149,6 +149,27 @@ export default defineConfig([
     rules: { 'fsd/insignificant-slice': 'off' },
   },
   {
+    // Log sheet v2 (B-N3-03): `features/log-day` and `widgets/body-map` are
+    // composed by `screens/log` (the `?sheet=log` panel and the `/log` route)
+    // and later by the pregnancy / postpartum sheets — references coming FROM
+    // `screens` are invisible to steiger (same reason as the blocks above).
+    files: ['./src/features/log-day/**', './src/widgets/body-map/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
+    // Log customisation (B-N3-04): `features/customize-log` is composed by
+    // `screens/log-customize` only — references FROM `screens` are invisible
+    // to steiger (same reason as the blocks above).
+    files: ['./src/features/customize-log/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
+    // Voice logging (B-N3-05): `features/voice-log` is handed to the log sheet as its `VoiceLog` slot by
+    // `screens/log` only — references FROM `screens` are invisible to steiger (same reason as above).
+    files: ['./src/features/voice-log/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
     // `widgets/intro-carousel` is the pre-signup welcome slideshow, mounted only
     // by the `welcome` screen — invisible to steiger (same reason as the blocks
     // above), so its single reference reads as zero.
@@ -225,6 +246,18 @@ export default defineConfig([
     // CB-CONTRA-02: `entities/contraception` is consumed by the contraception
     // screens and the mode screen — references FROM `screens` are invisible to steiger.
     files: ['./src/entities/contraception/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
+    // B-N3-08: `entities/analysis` is consumed by the analysis screens (hub now,
+    // B-N3-09…12 details) — references FROM `screens` are invisible to steiger.
+    files: ['./src/entities/analysis/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
+    // B-N3-09: `widgets/charts` (analysis report charts + frame) is consumed by
+    // the five screens/analysis-* slices — references FROM `screens` are invisible to steiger.
+    files: ['./src/widgets/charts/**'],
     rules: { 'fsd/insignificant-slice': 'off' },
   },
 ]);

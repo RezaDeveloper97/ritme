@@ -108,6 +108,11 @@ services:
       PAYMENT_HTTP_TIMEOUT_SECONDS: ${PAYMENT_HTTP_TIMEOUT_SECONDS:-15}
       ZARINPAL_MERCHANT_ID: ${ZARINPAL_MERCHANT_ID:-}
       ZARINPAL_SANDBOX: ${ZARINPAL_SANDBOX:-false}
+      # AI adapter (B-N3-05): fake fixtures on stage; the Gemini key (if any) comes from the server .env only.
+      AI_PROVIDER: ${AI_PROVIDER:-fake}
+      AI_HTTP_TIMEOUT_SECONDS: ${AI_HTTP_TIMEOUT_SECONDS:-30}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-flash-latest}
     ports: !override []
     networks:
       default:

@@ -1,6 +1,7 @@
 import type { AbstractIntlMessages } from 'next-intl';
 
 import enAccount from '../../../messages/en/account.json';
+import enAnalysis from '../../../messages/en/analysis.json';
 import enArticles from '../../../messages/en/articles.json';
 import enAuth from '../../../messages/en/auth.json';
 import enBanners from '../../../messages/en/banners.json';
@@ -16,6 +17,10 @@ import enFertility from '../../../messages/en/fertility.json';
 import enHome from '../../../messages/en/home.json';
 import enLog from '../../../messages/en/log.json';
 import enLogPeriod from '../../../messages/en/log-period.json';
+import enLogCustomize from '../../../messages/en/log-customize.json';
+import enLogSheet from '../../../messages/en/log-sheet.json';
+import enVoiceLog from '../../../messages/en/voice-log.json';
+import enLogTaxonomy from '../../../messages/en/log-taxonomy.json';
 import enMe from '../../../messages/en/me.json';
 import enNav from '../../../messages/en/nav.json';
 import enNotifications from '../../../messages/en/notifications.json';
@@ -32,6 +37,7 @@ import enWelcome from '../../../messages/en/welcome.json';
 import enServices from '../../../messages/en/services.json';
 import enPlus from '../../../messages/en/plus.json';
 import faAccount from '../../../messages/fa/account.json';
+import faAnalysis from '../../../messages/fa/analysis.json';
 import faArticles from '../../../messages/fa/articles.json';
 import faAuth from '../../../messages/fa/auth.json';
 import faBanners from '../../../messages/fa/banners.json';
@@ -47,6 +53,10 @@ import faFertility from '../../../messages/fa/fertility.json';
 import faHome from '../../../messages/fa/home.json';
 import faLog from '../../../messages/fa/log.json';
 import faLogPeriod from '../../../messages/fa/log-period.json';
+import faLogCustomize from '../../../messages/fa/log-customize.json';
+import faLogSheet from '../../../messages/fa/log-sheet.json';
+import faVoiceLog from '../../../messages/fa/voice-log.json';
+import faLogTaxonomy from '../../../messages/fa/log-taxonomy.json';
 import faMe from '../../../messages/fa/me.json';
 import faNav from '../../../messages/fa/nav.json';
 import faNotifications from '../../../messages/fa/notifications.json';
@@ -126,8 +136,13 @@ const bundled = {
     fertility: faFertility,
     notifications: faNotifications,
     account: faAccount,
+    analysis: faAnalysis,
     log: faLog,
     logPeriod: faLogPeriod,
+    logCustomize: faLogCustomize,
+    logSheet: faLogSheet,
+    voiceLog: faVoiceLog,
+    logTaxonomy: faLogTaxonomy,
     welcome: faWelcome,
     services: faServices,
     plus: faPlus,
@@ -159,8 +174,13 @@ const bundled = {
     fertility: enFertility,
     notifications: enNotifications,
     account: enAccount,
+    analysis: enAnalysis,
     log: enLog,
     logPeriod: enLogPeriod,
+    logCustomize: enLogCustomize,
+    logSheet: enLogSheet,
+    voiceLog: enVoiceLog,
+    logTaxonomy: enLogTaxonomy,
     welcome: enWelcome,
     services: enServices,
     plus: enPlus,

@@ -11,6 +11,7 @@ import (
 	"github.com/ritme/backend-go/internal/platform/httpx"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/platform/validation"
+	"github.com/ritme/backend-go/internal/platform/validation/phpval"
 )
 
 // TaxonomyNamespace is the translation namespace of the taxonomy labels.
@@ -167,15 +168,57 @@ func (h *LogHandlers) Save(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	changes, err := taxonomy.Parse(validation.Input(c), mode, i18n.Locale(c), existing, custom)
+	input := validation.Input(c)
+	changes, err := taxonomy.Parse(input, mode, i18n.Locale(c), existing, custom)
 	if err != nil {
 		return err
 	}
+	markVoice(input, changes)
 	day, err := h.svc.SaveDay(c.Context(), userID, date, changes, i18n.ResolveLocale(c, ""), now)
 	if err != nil {
 		return err
 	}
 	return httpx.OK(c, dayJSON(date, day))
+}
+
+// markVoice sets source=voice on the changes listed in the optional "voice_params" (["cat.param", …]): the
+// params whose new value the user confirmed from a voice-log suggestion (B-N3-05). Anything else in the list
+// (not a changed param, not a string) is ignored — it only labels rows, it never widens what is saved.
+func markVoice(input phpval.Map, changes []taxonomy.Change) {
+	raw, ok := input.Get("voice_params")
+	list, isList := raw.([]any)
+	if !ok || !isList {
+		return
+	}
+	voice := map[string]bool{}
+	for _, v := range list {
+		if s, isStr := v.(string); isStr {
+			voice[s] = true
+		}
+	}
+	for i := range changes {
+		if voice[changes[i].Key()] && len(changes[i].Entries) > 0 && voiceFillable(changes[i]) {
+			changes[i].Source = SourceVoice
+		}
+	}
+}
+
+// voiceFillable: only the param types a voice suggestion can fill (internal/voicelog) may carry source=voice —
+// never free text (note, other meds) or reminder ids.
+func voiceFillable(ch taxonomy.Change) bool {
+	cat, ok := taxonomy.CategoryByCode(ch.Category)
+	if !ok {
+		return false
+	}
+	p, ok := cat.Param(ch.Param)
+	if !ok || p.Dynamic && !p.Custom {
+		return false
+	}
+	switch p.Type {
+	case taxonomy.Single, taxonomy.Multi, taxonomy.Items, taxonomy.Number, taxonomy.Integer, taxonomy.Bool:
+		return true
+	}
+	return false
 }
 
 // Destroy is DELETE /logs/days/{date}: removes the whole day (v2 entries and the legacy row).

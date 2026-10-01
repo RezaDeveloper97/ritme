@@ -15,7 +15,8 @@
         "range_years": "Every :from–:to years"
     },
     "timing": {
-        "cycle_days": "Cycle day :from–:to"
+        "cycle_days": "Cycle day :from–:to",
+        "same_day_monthly": "A set day of the month"
     },
     "due": {
         "today": "Today",

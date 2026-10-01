@@ -15,7 +15,8 @@
         "range_years": "هر :from تا :to سال"
     },
     "timing": {
-        "cycle_days": "روز :from تا :to سیکل"
+        "cycle_days": "روز :from تا :to سیکل",
+        "same_day_monthly": "یک روز ثابت از ماه"
     },
     "due": {
         "today": "امروز",

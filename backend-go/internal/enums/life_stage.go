@@ -42,6 +42,10 @@ func (e LifeMode) MessageMode() MessageMode {
 	return MessageModeCycle
 }
 
+// TracksCycle is false for the mode without a menstrual cycle to time things by (menopause, B-N2-11b):
+// e.g. a checkup's «روز ۷ تا ۱۰ سیکل» window does not apply.
+func (e LifeMode) TracksCycle() bool { return e != LifeModeMenopause }
+
 // AllowsFertilityContent is false for the modes that must never get conception / fertile-window targeted
 // content (TTC copy, "best days" nudges): menopause and teen. The engines treat such a user as non-TTC whatever
 // user_goal says.

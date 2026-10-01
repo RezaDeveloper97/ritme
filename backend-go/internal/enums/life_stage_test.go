@@ -57,6 +57,10 @@ func TestLifeModeEngineMapping(t *testing.T) {
 	for _, m := range []LifeMode{LifeModeCycle, LifeModeTTC, LifeModePregnancy, LifeModePostpartum} {
 		assert.True(t, m.AllowsFertilityContent(), m)
 	}
+	assert.False(t, LifeModeMenopause.TracksCycle())
+	for _, m := range []LifeMode{LifeModeCycle, LifeModeTTC, LifeModePregnancy, LifeModePostpartum, LifeModeTeen} {
+		assert.True(t, m.TracksCycle(), m)
+	}
 	assert.Equal(t, UserGoalTtc, LifeModeTTC.LegacyUserGoal())
 	for _, m := range []LifeMode{LifeModeCycle, LifeModePregnancy, LifeModePostpartum, LifeModeMenopause, LifeModeTeen} {
 		assert.Equal(t, UserGoalNonTtc, m.LegacyUserGoal(), m)

@@ -21,6 +21,8 @@ import {
 } from '@/shared/ui';
 import { useNavMode } from '@/widgets/bottom-nav';
 
+import { codeState } from '../lib/code-state';
+
 /** The server's localized `errors.discount_code[0]` of a rejected code (422 `discount_*`). */
 function discountError(error: unknown): string | null | undefined {
   if (getApiErrorStatus(error) !== 422 || !getApiErrorCode(error)?.startsWith('discount_')) return undefined;
@@ -60,8 +62,10 @@ export function CheckoutPage() {
   }, [navMode, router]);
 
   const codeError = applied && withCode.isError ? discountError(withCode.error) : undefined;
-  const codeAccepted = Boolean(applied && withCode.data);
-  const quote: PlusQuote | undefined = (codeAccepted ? withCode.data : undefined) ?? base.data;
+  const codeQuoted = applied && withCode.data ? withCode.data : undefined;
+  const codeAccepted = codeState(codeQuoted) === 'accepted';
+  const codeOutranked = codeState(codeQuoted) === 'outranked';
+  const quote: PlusQuote | undefined = codeQuoted ?? base.data;
 
   const onApply = (event: FormEvent) => {
     event.preventDefault();
@@ -218,6 +222,10 @@ export function CheckoutPage() {
         ) : applied && withCode.isError ? (
           <p className="plus-field-error" role="alert">
             {t('error.body')}
+          </p>
+        ) : codeOutranked ? (
+          <p className="plus-notice" role="status">
+            {t('checkout.codeOutranked')}
           </p>
         ) : null}
 

@@ -70,7 +70,7 @@ export interface NavOptions {
 export interface NavReady {
   /** `/postpartum` + `/children` exist (B-N5-01/05). */
   postpartum: boolean;
-  /** `/analysis/symptoms` exists (B-N3-08). */
+  /** `/analysis/symptoms` exists (B-N3-09 — on). */
   analysis: boolean;
 }
 
@@ -81,7 +81,7 @@ export interface NavReady {
  * «تقویم» tab; menopause «علائم» → the symptom pattern `/cycle/symptoms`.
  * The owning tasks flip their flag — nothing else changes.
  */
-export const NAV_READY: NavReady = { postpartum: false, analysis: false };
+export const NAV_READY: NavReady = { postpartum: false, analysis: true };
 
 const SERVICES: NavTab = { key: 'services', href: '/services', icon: 'services' };
 const ME: NavTab = { key: 'me', href: '/profile', icon: 'me' };

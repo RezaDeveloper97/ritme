@@ -3,8 +3,9 @@
 import { useLocale, useTranslations } from 'next-intl';
 
 import { useHealthLog } from '@/entities/health-log';
-import { Link, type Locale } from '@/shared/i18n';
+import type { Locale } from '@/shared/i18n';
 import { formatNumber, toApiDate, today } from '@/shared/lib/date';
+import { openSheet } from '@/shared/sheet';
 import { Card, Icon, IconCircle, type IconName, type Tone } from '@/shared/ui';
 
 import { summarizeTodayLog } from '../model/today-log';
@@ -23,8 +24,8 @@ interface Row {
 
 /**
  * «ثبت امروز» (nbl_Cycle_Home): today's bleeding, symptoms and mood at a glance
- * with the logging streak. Every row opens the day log (`/log`); the rows are
- * links, so the + disc is decoration, not a second target.
+ * with the logging streak. Every row opens the log sheet (`?sheet=log`, B-N3-03);
+ * the rows are buttons, so the + disc is decoration, not a second target.
  */
 export function TodayLogCard({ streakDays }: { streakDays: number | null }) {
   const t = useTranslations('home.nb.log');
@@ -78,9 +79,10 @@ export function TodayLogCard({ streakDays }: { streakDays: number | null }) {
         )}
       </div>
       {rows.map((row) => (
-        <Link
+        <button
           key={row.key}
-          href="/log"
+          type="button"
+          onClick={() => openSheet('log')}
           className="ch-log-row"
           aria-label={row.count === 0 ? t('add', { name: row.title }) : `${row.title} · ${row.sub}`}
         >
@@ -102,7 +104,7 @@ export function TodayLogCard({ streakDays }: { streakDays: number | null }) {
               {formatNumber(row.count, loc)}
             </span>
           )}
-        </Link>
+        </button>
       ))}
     </Card>
   );

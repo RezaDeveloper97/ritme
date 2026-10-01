@@ -2838,6 +2838,13 @@ paths:
               required: [categories]
               properties:
                 categories: {$ref: "#/components/schemas/LogCategories"}
+                voice_params:
+                  type: array
+                  items: {type: string}
+                  description: >-
+                    Optional (B-N3-05): `category.param` keys whose new value the user confirmed from a voice-log
+                    suggestion — their rows are stored with `source: voice`. Keys not changed by this request are
+                    ignored; the list never changes what is saved.
             example:
               categories:
                 bleeding: {flow: medium, color: pink}
@@ -2883,6 +2890,119 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '422': {$ref: "#/components/responses/ValidationFailed"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/logs/voice:
+    post:
+      tags: [Log Taxonomy]
+      summary: Voice logging — transcribe a recording and suggest log items (Plus)
+      description: |
+        «ثبت با صدا» (B-N3-05). Uploads one short recording (multipart, field `audio`, ≤ 2048 KB, ≤ 60 s; the container
+        is sniffed from the bytes — webm, ogg, m4a/mp4 (brands M4A / isom / mp42), wav, mp3 — the client's Content-Type is
+        ignored; only the fields `audio` and `duration_ms` are accepted, at most 4 parts). The AI work is bounded to 40 s
+        (then 503 `ai_failed`). The recording is sent to the configured external AI provider for transcription. The AI
+        adapter (`AI_PROVIDER`: fake outside production, none in production) transcribes it, then maps the transcript
+        to taxonomy suggestions validated against the caller's mode and active custom items exactly like
+        `PUT /logs/days/{date}` would (unknown slots, unavailable options, out-of-range numbers and confidence < 0.5
+        are dropped; at most 20). **Nothing is saved**: the client reviews the suggestions, merges them into its draft
+        and saves through `PUT /logs/days/{date}` with `voice_params`. Suggestion `value` per param type: `single` →
+        option code, `multi` → `true` (the item is `item`), `items` → level code, `number` / `integer` → number,
+        `bool` → boolean. The recording is held only in memory and zeroed right after transcription; transcript and
+        values are never stored or logged. Plus-gated (`plus.voice_log`; free users get 402 before anything is read);
+        one use is counted only when something was heard (empty transcript → no suggestions, no use). Per-user
+        throttles: 6 per minute and 60 per hour.
+      operationId: postLogVoice
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [audio]
+              properties:
+                audio: {type: string, format: binary, description: "the recording (≤ 2048 KB)"}
+                duration_ms: {type: integer, maximum: 60000, description: "client-measured length (informational; > 60 s is refused)"}
+      responses:
+        '200':
+          description: What was heard and understood
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean, const: true}
+                  data:
+                    type: object
+                    required: [transcript, language, mode, suggestions]
+                    properties:
+                      transcript: {type: string, description: "≤ 2000 characters; empty when nothing intelligible was said"}
+                      language: {type: string}
+                      mode: {type: string, description: "the caller's life-stage mode the suggestions were validated for"}
+                      suggestions:
+                        type: array
+                        maxItems: 20
+                        items:
+                          type: object
+                          required: [category, param, item, value, confidence, label]
+                          properties:
+                            category: {type: string}
+                            param: {type: string}
+                            item: {type: [string, "null"], description: "multi / items params: the option or item code (custom items `custom_<id>`)"}
+                            value: {type: [string, number, boolean]}
+                            confidence: {type: number, minimum: 0.5, maximum: 1}
+                            label: {type: string, description: "chip text in the request language («درد شکم · متوسط»)"}
+              example:
+                success: true
+                data:
+                  transcript: "از صبح دلم درد می‌کنه، متوسط، یه کم هم نفخ دارم و بی‌حوصله‌ام"
+                  language: fa
+                  mode: cycle
+                  suggestions:
+                    - {category: pain, param: location, item: abdomen, value: moderate, confidence: 0.9, label: "درد شکم · متوسط"}
+                    - {category: symptoms, param: digestive, item: bloating, value: "yes", confidence: 0.9, label: "نفخ"}
+                    - {category: mood, param: moods, item: bored, value: true, confidence: 0.9, label: "بی‌حوصله"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '402': {$ref: "#/components/responses/PlusRequired"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
+        '429':
+          description: |
+            Throttled (`error_code: too_many_requests`, `retry_after` seconds, 6/minute and 60/hour per user) or a
+            monthly Plus quota spent (`plus_quota_exceeded`, see PlusQuotaExceeded; voice logging is unlimited today).
+          headers:
+            Retry-After: {schema: {type: integer}}
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, error_code]
+                properties:
+                  success: {type: boolean, const: false}
+                  message: {type: string}
+                  error_code: {type: string, enum: [too_many_requests, plus_quota_exceeded]}
+                  retry_after: {type: integer}
+                  feature: {type: string}
+                  reason: {type: string}
+                  limit: {type: integer}
+                  resets_at: {$ref: "#/components/schemas/IsoDateTime"}
+        '503':
+          description: |
+            `ai_unavailable` — no AI provider is configured; `ai_failed` — the provider failed or timed out
+            (`Retry-After: 10`). The recording is discarded either way and no use is counted.
+          headers:
+            Retry-After: {schema: {type: integer}}
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, error_code]
+                properties:
+                  success: {type: boolean, const: false}
+                  message: {type: string}
+                  error_code: {type: string, enum: [ai_unavailable, ai_failed]}
+              example: {success: false, message: "We couldn't understand the recording. Try again or log by hand.", error_code: ai_failed}
   /api/v1/logs/preferences:
     get:
       tags: [Log Taxonomy]

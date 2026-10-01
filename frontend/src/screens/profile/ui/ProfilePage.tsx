@@ -9,6 +9,7 @@ import { useAppLock } from '@/features/app-lock';
 import { useLogout } from '@/features/auth';
 import { useExportData } from '@/features/manage-account';
 import { useSwitchLocale } from '@/features/switch-locale';
+import { APP_VERSION } from '@/shared/config';
 import { localizeHref, useDirection, useRouter, type Locale } from '@/shared/i18n';
 import { calendarSystem } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
@@ -31,8 +32,6 @@ import { BottomNav, useNavMode } from '@/widgets/bottom-nav';
 
 import { MeErrorCard } from './MeErrorCard';
 import { firstLetter, localizeDigits, maskMobile, MODE_TONE } from './me-format';
-
-const APP_VERSION = '1.0.0';
 
 /** A hub row whose feature ships with a later bloom task: visible, not tappable, «به‌زودی». */
 interface SoonRow {
@@ -185,6 +184,16 @@ export function ProfilePage() {
         <section className="me-sec" aria-labelledby="me-g-data">
           <SectionTitle id="me-g-data" title={t('groups.data')} />
           <ListGroup>
+            {/* B-N3-08: Me entry into the analysis hub (QUESTIONS #3); the companion has no cycle data. */}
+            {navMode !== 'companion' ? (
+              <ListRow
+                icon="chart"
+                iconTone="data"
+                title={t('rows.analysis')}
+                description={t('rows.analysisSub')}
+                onClick={() => router.push('/analysis')}
+              />
+            ) : null}
             <ListRow icon="watch" iconTone="data" title={t('rows.devices')} trailing={soon} />
             {/* §11 — export is a first-class right: GET /profile/export as a JSON file. */}
             <ListRow

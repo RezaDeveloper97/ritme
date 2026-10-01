@@ -126,3 +126,49 @@ func TestLoad_PaymentProvider(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, PaymentProviderZarinpal, cfg.Payment.Provider)
 }
+
+func TestLoad_AIProvider(t *testing.T) {
+	// Production without AI_PROVIDER: none (AI features answer 503), never the fake.
+	cfg, err := LoadFrom(lookup(minimal()))
+	require.NoError(t, err)
+	assert.Equal(t, AIProviderNone, cfg.AI.Provider)
+	assert.Equal(t, 30*time.Second, cfg.AI.Timeout)
+	assert.Equal(t, "gemini-flash-latest", cfg.AI.Gemini.Model)
+	assert.Empty(t, cfg.AI.Gemini.APIKey)
+
+	// Outside production the fake is the default.
+	env := minimal()
+	env["APP_ENV"] = "staging"
+	env["APP_URL"] = "https://stage.example"
+	env["PLUS_CALLBACK_URL"] = "https://stage.example/plus/return"
+	cfg, err = LoadFrom(lookup(env))
+	require.NoError(t, err)
+	assert.Equal(t, AIProviderFake, cfg.AI.Provider)
+
+	// The fake is refused in production; unknown providers are refused anywhere.
+	env = minimal()
+	env["AI_PROVIDER"] = "fake"
+	_, err = LoadFrom(lookup(env))
+	require.ErrorContains(t, err, "AI_PROVIDER=fake is not allowed")
+	env["AI_PROVIDER"] = "openai"
+	_, err = LoadFrom(lookup(env))
+	require.ErrorContains(t, err, "AI_PROVIDER")
+	env["AI_PROVIDER"] = "Gemini"
+	env["GEMINI_API_KEY"] = "k"
+	env["GEMINI_BASE_URL"] = "http://127.0.0.1:1/"
+	_, err = LoadFrom(lookup(env))
+	require.ErrorContains(t, err, "GEMINI_BASE_URL", "https only in production")
+	env["GEMINI_BASE_URL"] = "https://user:pw@gemini.example"
+	_, err = LoadFrom(lookup(env))
+	require.ErrorContains(t, err, "GEMINI_BASE_URL")
+	env["GEMINI_BASE_URL"] = "https://gemini-proxy.example/"
+	cfg, err = LoadFrom(lookup(env))
+	require.NoError(t, err)
+	assert.Equal(t, AIProviderGemini, cfg.AI.Provider)
+	assert.Equal(t, "https://gemini-proxy.example", cfg.AI.Gemini.BaseURL)
+	// http is fine outside production (local proxy / tests)
+	env["APP_ENV"] = "local"
+	env["GEMINI_BASE_URL"] = "http://127.0.0.1:1"
+	_, err = LoadFrom(lookup(env))
+	require.NoError(t, err)
+}

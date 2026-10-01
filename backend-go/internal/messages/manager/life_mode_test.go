@@ -2,11 +2,14 @@ package manager
 
 import (
 	"context"
+	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/ritme/backend-go/internal/cycle/legacy"
 	"github.com/ritme/backend-go/internal/enums"
 	pstore "github.com/ritme/backend-go/internal/pregnancy/store"
 )
@@ -63,4 +66,30 @@ func TestLifeMode_MenopauseAndTeenNeverTTC(t *testing.T) {
 	res, err := New(src, defaultsContent{}, "en", day).Generate(context.Background(), day, "")
 	require.NoError(t, err)
 	assert.Contains(t, toJSON(t, res.JSON())["primary_message"], "ttc_tips")
+}
+
+// B-N2-11b (N2 stage smoke B-3): a teen / menopause user in the fertile window never reads fertility or
+// conception copy in the daily message (the cycle_base_ttc fertility_info line, TTC tips), whatever
+// user_goal says — the phase blurb the home card falls back to stays a plain cycle message.
+func TestLifeMode_NoFertilityCopyInFertileWindow(t *testing.T) {
+	fertile := legacy.Calculation{
+		Complete: true, Day: 14, Phase: enums.CyclePhaseOvulation, CurrentSubphase: enums.CycleSubphaseOvulationLikely,
+		CycleLength: 28, OvulationDay: 14, IsFertileWindow: true,
+	}
+	for _, mode := range []string{"teen", "menopause"} {
+		for _, locale := range []string{"fa", "en"} {
+			src := &lifeSource{
+				fakeSource: fakeSource{profile: &Profile{UserGoal: "ttc", SubscriptionType: "premium", HasLastPeriodStart: true}, calc: fertile},
+				mode:       mode,
+			}
+			res, err := New(src, defaultsContent{}, locale, day).Generate(context.Background(), day, "")
+			require.NoError(t, err, mode)
+			primary, err := json.Marshal(toJSON(t, res.JSON())["primary_message"])
+			require.NoError(t, err)
+			text := strings.ToLower(string(primary))
+			for _, w := range []string{"باروری", "باردار", "fertil", "conceive", "ttc_tips", "fertility_info"} {
+				assert.NotContains(t, text, w, "%s %s", mode, locale)
+			}
+		}
+	}
 }

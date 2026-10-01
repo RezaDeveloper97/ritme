@@ -1,4 +1,5 @@
 import type enAccount from '../messages/en/account.json';
+import type enAnalysis from '../messages/en/analysis.json';
 import type enArticles from '../messages/en/articles.json';
 import type enAuth from '../messages/en/auth.json';
 import type enBanners from '../messages/en/banners.json';
@@ -14,6 +15,10 @@ import type enCheckups from '../messages/en/checkups.json';
 import type enFertility from '../messages/en/fertility.json';
 import type enLog from '../messages/en/log.json';
 import type enLogPeriod from '../messages/en/log-period.json';
+import type enLogCustomize from '../messages/en/log-customize.json';
+import type enLogSheet from '../messages/en/log-sheet.json';
+import type enVoiceLog from '../messages/en/voice-log.json';
+import type enLogTaxonomy from '../messages/en/log-taxonomy.json';
 import type enMe from '../messages/en/me.json';
 import type enNav from '../messages/en/nav.json';
 import type enNotifications from '../messages/en/notifications.json';
@@ -60,8 +65,13 @@ type Messages = {
   reminders: typeof enReminders;
   notifications: typeof enNotifications;
   account: typeof enAccount;
+  analysis: typeof enAnalysis;
   log: typeof enLog;
   logPeriod: typeof enLogPeriod;
+  logCustomize: typeof enLogCustomize;
+  logSheet: typeof enLogSheet;
+  voiceLog: typeof enVoiceLog; // B-N3-05 features/voice-log
+  logTaxonomy: typeof enLogTaxonomy;
   welcome: typeof enWelcome;
   services: typeof enServices;
   plus: typeof enPlus;

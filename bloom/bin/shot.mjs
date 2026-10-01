@@ -9,6 +9,10 @@
 // Options: --themes light,dark (default both; ignored with --files) --width 390 --height 844 --wait 5000
 //          --base http://localhost:3000 --api http://127.0.0.1:8020/api/v1 --db ritme_dev --viewport (no full page)
 //          --token <jwt> (skip OTP login)
+//          --click 'sel||text=Label||text*=Part' (after load, click each step in order — CSS selector, exact
+//          or partial button/link/tab text — waiting 1s between; `wait=3000` pauses longer) --name <suffix>
+//          (file = <slug>.<suffix>.<theme>.png) --fake-media (Chrome's fake microphone + auto-granted permission,
+//          for the voice recorder, B-N3-05)
 // Admin panel (admin-web; desktop 1440×900, theme key ritme_admin_theme, tall-viewport capture — no clip, so RTL
 // pages are not cut off). Signs in through the admin API on the same origin (session + CSRF cookies):
 //   node bloom/bin/shot.mjs --admin --out docs/qa/bloom/B-N2-09 --admin-email qa@ritme.local --admin-password '…' /plus/plans
@@ -24,7 +28,7 @@ const opt = { themes: 'light,dark', width: '390', height: '844', wait: '5000', b
 const flags = new Set(); const targets = [];
 for (let i = 0; i < args.length; i++) {
   const a = args[i];
-  if (['--files', '--viewport', '--admin'].includes(a)) flags.add(a.slice(2));
+  if (['--files', '--viewport', '--admin', '--fake-media'].includes(a)) flags.add(a.slice(2));
   else if (a.startsWith('--')) opt[a.slice(2)] = args[++i];
   else targets.push(a);
 }
@@ -53,7 +57,8 @@ async function login(mobile) {
 const token = opt.token || (opt.mobile && !flags.has('files') ? await login(opt.mobile) : null);
 const port = 9300 + Math.floor(Math.random() * 600);
 const chrome = spawn('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', ['--headless=new', `--remote-debugging-port=${port}`,
-  `--user-data-dir=${mkdtempSync(join(tmpdir(), 'shot-'))}`, '--hide-scrollbars', '--allow-file-access-from-files', 'about:blank'], { stdio: 'ignore' });
+  `--user-data-dir=${mkdtempSync(join(tmpdir(), 'shot-'))}`, '--hide-scrollbars', '--allow-file-access-from-files',
+  ...(flags.has('fake-media') ? ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream'] : []), 'about:blank'], { stdio: 'ignore' });
 let list; for (let i = 0; i < 60 && !list; i++) { try { list = await (await fetch(`http://127.0.0.1:${port}/json`)).json(); } catch { await sleep(250); } }
 const ws = new WebSocket(list.find((t) => t.type === 'page').webSocketDebuggerUrl); await new Promise((r) => ws.addEventListener('open', r));
 let id = 0; const pend = new Map(); const errors = [];
@@ -107,7 +112,18 @@ if (flags.has('files')) {
     for (const p of targets) {
       errors.length = 0;
       await send('Page.navigate', { url: base + p }); await sleep(+opt.wait);
-      const out = join(opt.out, `${slug(p)}.${theme}.png`); await capture(out);
+      for (const step of (opt.click ? opt.click.split('||') : [])) {
+        if (/^wait=\d+$/.test(step)) { await sleep(+step.slice(5)); continue; }
+        const r = await ev(`(() => { const s = ${JSON.stringify(step)}; let el;
+          const pool = () => [...document.querySelectorAll('button,a,[role=tab],[role=button]')];
+          if (s.startsWith('text=')) el = pool().find((e) => e.textContent.trim() === s.slice(5));
+          else if (s.startsWith('text*=')) el = pool().find((e) => e.textContent.includes(s.slice(6)));
+          else el = document.querySelector(s);
+          if (!el) return 'missing ' + s; el.scrollIntoView({ block: 'center' }); el.click(); return 'ok'; })()`);
+        if (r !== 'ok') console.log('   click:', r);
+        await sleep(1000);
+      }
+      const out = join(opt.out, `${slug(p)}${opt.name ? '.' + opt.name : ''}.${theme}.png`); await capture(out);
       const info = await ev(`location.pathname + ' | ' + document.documentElement.dataset.theme + ' | ' + document.body.innerText.slice(0,60).replace(/\\s+/g,' ')`);
       console.log('✔', out, '→', info, errors.length ? '\n   errors: ' + [...new Set(errors)].join(' | ') : '');
     }

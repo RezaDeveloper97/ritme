@@ -66,7 +66,9 @@ func LoadPlan(ctx context.Context, db store.DBTX, userID uint64, now civildate.N
 			CycleDuration: uc.CycleDuration, PeriodDuration: uc.PeriodDuration, UserGoal: uc.UserGoal.String,
 		}
 	}
-	in.Cycle = engine.CycleFromHistory(cycleservice.HistoriesFromRows(histories), cycleservice.ProfileFromRow(profile), now)
+	if mode.TracksCycle() { // B-N2-11b: menopause has no cycle to place a window on — interval scheduling only
+		in.Cycle = engine.CycleFromHistory(cycleservice.HistoriesFromRows(histories), cycleservice.ProfileFromRow(profile), now)
+	}
 
 	p := &Plan{
 		Today:    civildate.Today(now),

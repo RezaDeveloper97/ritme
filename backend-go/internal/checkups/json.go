@@ -69,7 +69,7 @@ func (p *Plan) ItemJSON(it engine.Item, l Lang) *jsonx.OrderedMap {
 		"icon", emptyToNil(row.Icon.String),
 		"tone", row.Tone,
 		"interval_label", IntervalLabel(t.IntervalMonths, t.IntervalMonthsMax, l.Locale),
-		"timing_label", emptyToNil(TimingLabel(t, l.Locale)),
+		"timing_label", emptyToNil(p.TimingLabel(t, l.Locale)),
 		"last_done_on", dateOrNil(it.LastDoneOn),
 		"next_due_on", dateOrNil(it.NextDueOn),
 		"next_due_label", NextDueLabel(it, t, p.Today, l.Locale),
@@ -99,8 +99,12 @@ func (p *Plan) DetailJSON(it engine.Item, records []store.CheckupRecord, l Lang)
 	out.Set("interval_months_max", intOrNil(t.IntervalMonthsMax))
 	out.Set("age_min", intOrNil(t.AgeMin))
 	out.Set("age_max", intOrNil(t.AgeMax))
-	out.Set("cycle_day_from", intOrNil(t.CycleDayFrom))
-	out.Set("cycle_day_to", intOrNil(t.CycleDayTo))
+	cycleFrom, cycleTo := t.CycleDayFrom, t.CycleDayTo
+	if !p.LifeMode.TracksCycle() { // B-N2-11b: no «روز ۷ تا ۱۰ سیکل» hint without a cycle
+		cycleFrom, cycleTo = 0, 0
+	}
+	out.Set("cycle_day_from", intOrNil(cycleFrom))
+	out.Set("cycle_day_to", intOrNil(cycleTo))
 	out.Set("remind_lead_days", t.RemindLeadDays)
 	out.Set("prep_steps", prepSteps(row.PrepSteps, l))
 	out.Set("guide_steps", guideSteps(row.GuideSteps, l))

@@ -3,7 +3,7 @@ id: B-N3-03
 title: Log sheet v2 — quick tiles, accordion, detail panels, body map
 milestone: N3
 type: frontend
-status: todo
+status: done
 depends_on: [B-N3-01,B-N3-02]
 parallel_group: N3-C
 touches: [frontend/src/screens/log,frontend/src/features/log-day,frontend/src/entities/health-log,frontend/src/widgets/body-map]

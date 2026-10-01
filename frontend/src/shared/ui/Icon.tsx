@@ -20,7 +20,9 @@ export type IconName =
   | 'symptom' | 'star' | 'sprout'
   | 'female' | 'male' | 'cake'
   | 'card'
-  | 'syringe' | 'implant';
+  | 'syringe' | 'implant'
+  | 'mic' | 'gut' | 'dropLine' | 'bed' | 'urine' | 'run' | 'scaleSquare'
+  | 'grip' | 'pin' | 'chevronUp';
 
 const PATHS: Record<IconName, string> = {
   bell:         '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
@@ -142,6 +144,18 @@ const PATHS: Record<IconName, string> = {
   // CB-CONTRA-04b: injection + implant setup tiles (nbl_Contra_Setup)
   syringe:      '<path d="M18 2l4 4M20 4l-9 9M13 7l4 4M4 20l3-3M7 17l-2-2 8-8 4 4-8 8z"/>',
   implant:      '<circle cx="12" cy="12" r="3"/><path d="M12 3v6M12 15v6M5 5l4 4M15 15l4 4"/>',
+  // B-N3-03: log sheet v2 category discs + voice tab (nbl_Log_Sheet_Cycle)
+  mic:          '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/>',
+  gut:          '<path d="M9 3v4a4 4 0 004 4h1a5 5 0 010 10H9a5 5 0 01-5-5"/>',
+  dropLine:     '<path d="M12 3s5 6 5 10a5 5 0 01-10 0c0-4 5-10 5-10z"/><path d="M9 14c1 1 2 1.5 3 1.5"/>',
+  bed:          '<path d="M3 18v-8h18v8M3 14h18M7 10V7h5v3"/>',
+  urine:        '<path d="M12 3v6M8 9h8l-1 12H9z"/>',
+  run:          '<circle cx="14" cy="4" r="2"/><path d="M8 21l3-6 3 3v4M9 12l2-4 4 2 3 3"/>',
+  scaleSquare:  '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M9 10a3 3 0 016 0"/>',
+  // B-N3-04 (nbl_Log_Customize): drag handle, quick-tile pin, move up.
+  grip:         '<path d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01"/>',
+  pin:          '<path d="M9 3h6l-1 6 4 4H6l4-4z"/><path d="M12 13v8"/>',
+  chevronUp:    '<path d="M18 15l-6-6-6 6"/>',
 };
 
 interface IconProps {

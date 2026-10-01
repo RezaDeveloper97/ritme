@@ -1,0 +1,27 @@
+{
+  "case": "voicelog/voice_locked.none",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/logs/voice",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "raw_body": "--ritmeB\r\nContent-Disposition: form-data; name=\"audio\"; filename=\"voice.ogg\"\r\nContent-Type: audio/ogg\r\n\r\nOggS\u0000\u0002 RITME-FAKE:default\r\n--ritmeB--\r\n"
+      },
+      "status": 402,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "این امکان بخشی از ریتمی پلاس است.",
+        "error_code": "plus_required",
+        "feature": "plus.voice_log",
+        "reason": "locked",
+        "limit": null,
+        "resets_at": null
+      }
+    }
+  ]
+}

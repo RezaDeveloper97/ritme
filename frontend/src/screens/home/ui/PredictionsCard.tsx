@@ -86,7 +86,8 @@ export function PredictionsCard({
     <Card as="section" className="ch-pred" aria-labelledby="ch-pred-title">
       <div className="ch-card-head">
         <h2 id="ch-pred-title" className="ch-overline">{t('title')}</h2>
-        <Link href="/cycle" className="ch-link">{t('details')}</Link>
+        {/* B-N3-08: «جزئیات» opens the analysis hub; the cycle-length row below keeps /cycle (history). */}
+        <Link href="/analysis" className="ch-link">{t('details')}</Link>
       </div>
       <ul className="ch-pred-list">
         {rows.map((row) => (
@@ -125,7 +126,8 @@ export function PredictionsCard({
 
 /**
  * The insight row under the challenges (nbl_Cycle_Home «PMS احتمالاً از فردا»):
- * shown while the PMS window is at most a week away or running.
+ * shown while the PMS window is at most a week away or running. Its «در تحلیل ببین»
+ * opens the analysis hub (B-N3-08).
  */
 export function PmsInsightCard({ pms, basedOnCycles }: { pms: PredictionSlot | null; basedOnCycles: number | null }) {
   const t = useTranslations('home.nb.insight');
@@ -138,7 +140,7 @@ export function PmsInsightCard({ pms, basedOnCycles }: { pms: PredictionSlot | n
         ? t('pmsTomorrow')
         : t('pmsIn', { n: formatNumber(pms.startIn, loc) });
   return (
-    <Link href="/cycle" className="ch-insight">
+    <Link href="/analysis" className="ch-insight">
       <IconCircle icon="sparkle" tone="brand" />
       <span className="ch-insight-body">
         <b className="ch-insight-title">{title}</b>

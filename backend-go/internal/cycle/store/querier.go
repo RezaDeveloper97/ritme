@@ -18,7 +18,8 @@ type Querier interface {
 	// hard cap (period_start_date >= today - 12 days).
 	GetBlockingOpenPeriod(ctx context.Context, arg GetBlockingOpenPeriodParams) (CycleHistory, error)
 	// GetProfileByUserID plus B-N1-09 «خودکار از داده‌ها» (goose 00013) in the same round trip: no
-	// cycle_preferences row = automatic (1); 0 = the engine prefers the profile lengths.
+	// cycle_preferences row = automatic (1); 0 = the engine prefers the profile lengths. B-N2-11b: plus the
+	// stored life-stage mode (NULL = none) so teen / menopause day copy never talks about fertility.
 	GetEngineProfileByUserID(ctx context.Context, userID uint64) (GetEngineProfileByUserIDRow, error)
 	// CycleHistory::where('user_id')->orderBy('period_start_date', 'desc')->first().
 	GetLatestPeriod(ctx context.Context, userID uint64) (CycleHistory, error)

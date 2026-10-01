@@ -9,7 +9,7 @@ if [ "$what" != web ]; then
   until curl -s 127.0.0.1:8020/up >/dev/null; do sleep 2; done; echo "api up (log $LOG/api.log)"
 fi
 if [ "$what" != api ]; then
-  pkill -f "next dev" 2>/dev/null || true
+  lsof -ti tcp:3000 | xargs kill 2>/dev/null || true
   (cd "$ROOT/frontend" && NEXT_DIST_DIR=.next-dev nohup npm run dev >"$LOG/web.log" 2>&1 &)
   until curl -s -o /dev/null localhost:3000/fa/splash; do sleep 2; done; echo "web up (log $LOG/web.log)"
 fi

@@ -61,7 +61,9 @@
     "chat": "Chat with support",
     "about": "About Ritme & terms",
     "cycleSettings": "Cycle settings",
-    "cycleSettingsSub": "Cycle, period length and reminders"
+    "cycleSettingsSub": "Cycle, period length and reminders",
+    "analysis": "Analysis & reports",
+    "analysisSub": "Cycle, symptoms, mood and body"
   },
   "logout": "Log out",
   "loggingOut": "Logging out…",

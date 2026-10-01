@@ -3,7 +3,7 @@ id: B-N3-09
 title: Analysis details — cycle, period, symptoms, correlations, body
 milestone: N3
 type: frontend
-status: todo
+status: done
 depends_on: [B-N3-08]
 parallel_group: N3-I
 touches: [frontend/src/screens/analysis-*,frontend/src/widgets/charts]

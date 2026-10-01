@@ -7,6 +7,7 @@ package store
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/ritme/backend-go/internal/platform/civildate"
 )
@@ -24,9 +25,10 @@ func (q *Queries) AnyRecommendationExists(ctx context.Context) (bool, error) {
 }
 
 const getEngineProfileByUserID = `-- name: GetEngineProfileByUserID :one
-SELECT p.id, p.user_id, p.birthday, p.weight, p.height, p.period_duration, p.cycle_duration, p.last_period_start, p.user_goal, p.pregnancy_intention, p.chronic_conditions, p.subscription_type, p.calculation_status, p.calculation_started_at, p.calculation_completed_at, p.calculation_version, p.created_at, p.updated_at, COALESCE(cp.lengths_auto, 1) AS lengths_auto
+SELECT p.id, p.user_id, p.birthday, p.weight, p.height, p.period_duration, p.cycle_duration, p.last_period_start, p.user_goal, p.pregnancy_intention, p.chronic_conditions, p.subscription_type, p.calculation_status, p.calculation_started_at, p.calculation_completed_at, p.calculation_version, p.created_at, p.updated_at, COALESCE(cp.lengths_auto, 1) AS lengths_auto, lp.life_mode
 FROM ` + "`" + `user_profiles` + "`" + ` p
 LEFT JOIN ` + "`" + `cycle_preferences` + "`" + ` cp ON cp.user_id = p.user_id
+LEFT JOIN ` + "`" + `user_life_profiles` + "`" + ` lp ON lp.user_id = p.user_id
 WHERE p.user_id = ?
 ORDER BY p.id
 LIMIT 1
@@ -35,10 +37,12 @@ LIMIT 1
 type GetEngineProfileByUserIDRow struct {
 	UserProfile UserProfile
 	LengthsAuto bool
+	LifeMode    sql.NullString
 }
 
 // GetProfileByUserID plus B-N1-09 «خودکار از داده‌ها» (goose 00013) in the same round trip: no
-// cycle_preferences row = automatic (1); 0 = the engine prefers the profile lengths.
+// cycle_preferences row = automatic (1); 0 = the engine prefers the profile lengths. B-N2-11b: plus the
+// stored life-stage mode (NULL = none) so teen / menopause day copy never talks about fertility.
 func (q *Queries) GetEngineProfileByUserID(ctx context.Context, userID uint64) (GetEngineProfileByUserIDRow, error) {
 	row := q.db.QueryRowContext(ctx, getEngineProfileByUserID, userID)
 	var i GetEngineProfileByUserIDRow
@@ -62,6 +66,7 @@ func (q *Queries) GetEngineProfileByUserID(ctx context.Context, userID uint64) (
 		&i.UserProfile.CreatedAt,
 		&i.UserProfile.UpdatedAt,
 		&i.LengthsAuto,
+		&i.LifeMode,
 	)
 	return i, err
 }

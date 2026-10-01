@@ -3,7 +3,7 @@ id: B-N2-11b
 title: N2 stage smoke follow-ups (checkout code label, teen/menopause copy, version)
 milestone: N2
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N2-11]
 parallel_group: N2-L2
 touches: [frontend/src/screens/plus-checkout,frontend/src/screens/home,frontend/src/screens/profile,frontend/src/widgets/checkups-card,backend-go/internal/messages,backend-go/internal/checkups]

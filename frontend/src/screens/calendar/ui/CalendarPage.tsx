@@ -42,6 +42,7 @@ import {
   weekdayKeys,
 } from '@/shared/lib/date';
 import { getApiErrorMessage } from '@/shared/api';
+import { openSheet } from '@/shared/sheet';
 import {
   EmptyState,
   HeaderButton,
@@ -79,6 +80,8 @@ const EXTEND_GAP_DAYS = 7;
 const NEW_PERIOD_MIN_GAP_DAYS = 21;
 
 type View = 'month' | 'year';
+/** Segment values: the two views + the analysis link (B-N3-08). */
+type Segment = View | 'analysis';
 
 const isSameDay = (a: Date, b: Date) => diffInDays(a, b) === 0;
 
@@ -522,14 +525,20 @@ export function CalendarPage() {
         />
 
         <div className="cc-body">
-          <SegmentedTabs
+          <SegmentedTabs<Segment>
             label={tn('viewLabel')}
             value={view}
             tabs={[
               { value: 'month', label: tn('month') },
               { value: 'year', label: tn('year') },
+              // B-N3-08: «تحلیل» is the calendar's entry into /analysis (QUESTIONS #3) — a link, not a view.
+              { value: 'analysis', label: tn('analysis') },
             ]}
             onChange={(v) => {
+              if (v === 'analysis') {
+                router.push('/analysis');
+                return;
+              }
               if (v === 'year') setYearShown(anchor.year);
               setView(v);
             }}
@@ -570,7 +579,7 @@ export function CalendarPage() {
               phaseLabel={phaseKey ? tn(`phase.${phaseKey}`) : null}
               ttc={isTtc}
               isFuture={isFuture}
-              onLog={() => router.push(isTtc ? `/fertility/log?date=${toApiDate(selectedDate)}` : `/log?date=${toApiDate(selectedDate)}`)}
+              onLog={() => (isTtc ? router.push(`/fertility/log?date=${toApiDate(selectedDate)}`) : openSheet('log', toApiDate(selectedDate)))}
               actions={actions}
             />
           ) : null}

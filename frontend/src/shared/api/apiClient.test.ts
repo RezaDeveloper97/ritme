@@ -96,6 +96,16 @@ describe('apiClient', () => {
       expect(bare.body).toBeUndefined();
     });
 
+    it('sends a FormData body as is, without a JSON Content-Type (B-N3-05 upload)', async () => {
+      const { apiClient } = await load();
+      const form = new FormData();
+      form.append('duration_ms', '7000');
+      await apiClient.post('/logs/voice', form, { timeoutMs: 45_000 });
+      const [, init] = apiCalls(env.fetchSpy)[0];
+      expect(init.body).toBe(form);
+      expect((init.headers as Record<string, string>)['Content-Type']).toBeUndefined();
+    });
+
     it('omits Authorization when signed out', async () => {
       env.store.clear();
       const { apiClient } = await load();

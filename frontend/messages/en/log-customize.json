@@ -1,0 +1,75 @@
+{
+  "title": "Customize logging",
+  "subtitle": "Order and visibility of categories",
+  "back": "Back",
+  "hint": "= in quick log (up to {max}) · drag to reorder.",
+  "pinCount": "Quick log: {count} of {max}",
+  "pinsFull": "You've reached {max} tiles — unpin one to add another.",
+  "listLabel": "Log categories",
+  "dragHandle": "Move {label}",
+  "dragHelp": "Drag, or use the up and down arrow keys, to move.",
+  "moveUp": "Move {label} up",
+  "moveDown": "Move {label} down",
+  "moved": "{label} moved to row {position} of {total}.",
+  "pin": "Pin {label} to quick log",
+  "show": "Show {label} on the log screen",
+  "save": "Save",
+  "discard": "Cancel",
+  "unsaved": "Unsaved changes",
+  "saved": "Saved",
+  "saveError": "Couldn't save. Try again.",
+  "loading": "Loading…",
+  "loadError": {
+    "title": "Couldn't open log settings",
+    "body": "Check your connection and try again.",
+    "retry": "Try again"
+  },
+  "empty": {
+    "title": "No categories for this mode",
+    "body": "Categories added for your current mode will show up here."
+  },
+  "reset": {
+    "action": "Restore default layout",
+    "confirm": "Restore the default order, visibility and quick log? Your custom items stay.",
+    "yes": "Restore",
+    "no": "Cancel",
+    "error": "Couldn't restore. Try again.",
+    "done": "Default layout restored."
+  },
+  "leave": {
+    "title": "Unsaved changes",
+    "body": "Save them before you leave?",
+    "save": "Save and leave",
+    "discard": "Leave without saving"
+  },
+  "custom": {
+    "title": "Custom items",
+    "count": "{count} of {max}",
+    "add": "Add a custom item (e.g. “coffee”)",
+    "formTitle": "New custom item",
+    "label": "Item name",
+    "placeholder": "e.g. coffee",
+    "category": "Which category?",
+    "submit": "Add",
+    "cancel": "Cancel",
+    "rename": "Rename {label}",
+    "renameSave": "Save name",
+    "delete": "Delete {label}",
+    "deleteConfirm": "Delete “{label}”? Days you already logged keep it.",
+    "deleteYes": "Delete",
+    "deleteNo": "Cancel",
+    "full": "You've reached {max} custom items.",
+    "inCategory": "In {category}",
+    "added": "“{label}” added.",
+    "removed": "“{label}” deleted."
+  },
+  "errors": {
+    "empty": "Enter a name.",
+    "tooLong": "Up to {max} characters.",
+    "duplicate": "This name already exists in this category.",
+    "limit": "You can have up to {max} active custom items.",
+    "category": "Choose a category.",
+    "throttled": "Wait a moment and try again.",
+    "generic": "That didn't work. Try again."
+  }
+}

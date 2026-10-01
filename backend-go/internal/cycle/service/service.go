@@ -62,6 +62,8 @@ type Snapshot struct {
 	Today civildate.Date
 	// LengthsManual is «خودکار از داده‌ها» off (B-N1-09).
 	LengthsManual bool
+	// LifeMode is the stored life-stage mode ("" = none, B-N2-11b).
+	LifeMode enums.LifeMode
 
 	engineOnce sync.Once
 	engine     *legacy.Engine
@@ -79,6 +81,7 @@ func (s *Service) Load(ctx context.Context, userID uint64, from, to, today civil
 	case err == nil:
 		sn.Profile = &p.UserProfile
 		sn.LengthsManual = !p.LengthsAuto
+		sn.LifeMode = enums.LifeMode(p.LifeMode.String)
 	case !errors.Is(err, sql.ErrNoRows):
 		return nil, fmt.Errorf("cycle: load profile: %w", err)
 	}
@@ -103,6 +106,7 @@ func (sn *Snapshot) EngineProfile() *model.Profile {
 	p := ProfileFromRow(sn.Profile)
 	if p != nil {
 		p.LengthsManual = sn.LengthsManual
+		p.NoFertilityCopy = sn.LifeMode != "" && !sn.LifeMode.AllowsFertilityContent()
 	}
 	return p
 }
@@ -186,6 +190,9 @@ func (sn *Snapshot) cacheKey(ctx context.Context, locale, scope string, withCont
 	inputs := []any{sn.Profile, sn.HistoryRows, sn.From, sn.To, sn.LogRows, sig}
 	if sn.LengthsManual { // only then, so the automatic (default) key is unchanged
 		inputs = append(inputs, "lengths_manual")
+	}
+	if sn.LifeMode != "" && !sn.LifeMode.AllowsFertilityContent() { // B-N2-11b: the day copy differs; others keep their key
+		inputs = append(inputs, "no_fertility_copy")
 	}
 	return cache.Key{
 		UserID:  sn.UserID,

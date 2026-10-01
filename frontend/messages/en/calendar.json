@@ -114,6 +114,7 @@
     "loadError": "Couldn't load the calendar",
     "loadErrorBody": "Check your connection and try again.",
     "emptyTitle": "No period logged yet",
-    "emptyBody": "Log your first period and the calendar will predict period days, the fertile window and PMS."
+    "emptyBody": "Log your first period and the calendar will predict period days, the fertile window and PMS.",
+    "analysis": "Analysis"
   }
 }

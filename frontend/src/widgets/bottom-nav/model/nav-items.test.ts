@@ -49,8 +49,10 @@ describe('navConfig (nav.md per-mode table)', () => {
 
   it('uses interim targets until the postpartum and analysis screens exist (QUESTIONS #60)', () => {
     expect(keys('postpartum', ['7'], {})).toEqual(['today:/home', 'calendar:/calendar', 'FAB', 'services', 'me']);
-    expect(keys('menopause', undefined, {})).toEqual(['today:/home', 'symptoms:/cycle/symptoms', 'FAB', 'services', 'me']);
-    expect(activeTabKey(navConfig('menopause', { ready: {} }), '/cycle/symptoms')).toBe('symptoms');
+    expect(keys('menopause', undefined, { analysis: false })).toEqual(['today:/home', 'symptoms:/cycle/symptoms', 'FAB', 'services', 'me']);
+    expect(activeTabKey(navConfig('menopause', { ready: { analysis: false } }), '/cycle/symptoms')).toBe('symptoms');
+    // B-N3-09: the analysis screens exist, so the default flags send «علائم» to the symptom report.
+    expect(keys('menopause', undefined, {})[1]).toBe('symptoms:/analysis/symptoms');
   });
 
   it('companion has no mode tab and no FAB', () => {

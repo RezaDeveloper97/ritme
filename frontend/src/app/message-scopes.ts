@@ -31,7 +31,10 @@ export const SHELL_NAMESPACES = [
   'profile',
   'profileEdit',
   'profileInfo',
+  'logSheet', // B-N3-03: `?sheet=log` (log sheet v2) opens over any route
+  'voiceLog', // B-N3-05: the log sheet's voice tab (features/voice-log)
   'nav', // B-N1-04: the FAB's `?sheet=log` (LogSheet) can open over any route
+  'plus', // B-N3-03: the log sheet's voice tab is a PlusFeatureGate (plus.voice_log)
   'pwa',
   'reminders',
 ] as const satisfies readonly MessageNamespace[];
@@ -46,7 +49,8 @@ const PREGNANCY = ['common', 'nav', 'pregnancy'] as const satisfies readonly Mes
 export const ROUTE_NAMESPACES = {
   home: ['articles', 'banners', 'care', 'challenge', 'checkups', 'common', 'fertility', 'home', 'log', 'logPeriod', 'nav', 'plus', 'profileEdit'], // B-N2-08 trial banner + sheet
   calendar: ['calendar', 'common', 'log', 'logPeriod', 'nav'],
-  log: ['common', 'log', 'nav'],
+  log: ['common', 'logSheet', 'nav', 'plus', 'voiceLog'], // B-N3-03: /log renders the log sheet v2 as a page
+  logCustomize: ['common', 'logCustomize', 'logSheet', 'plus'], // B-N3-04 /log/customize (the log sheet's gear; categoryLook comes via features/log-day)
   cycle: ['common', 'cycle', 'logPeriod'], // B-N1-08 cycle history (back header, no nav)
   cycleSymptoms: ['common', 'cycle', 'logPeriod'], // B-N1-08 /cycle/symptoms (screen slice shares the editor)
   cycleSettings: ['common', 'me'], // B-N1-09 /cycle/settings (copy lives under me.cycleSettings)
@@ -81,6 +85,8 @@ export const ROUTE_NAMESPACES = {
   contraceptionOther: ['common', 'contraception'], // CB-CONTRA-03 /contraception/other
   uiKit: ['common'], // dev-only /dev/ui-kit showcase (B-N1-03)
   services: ['common', 'nav', 'services'], // «خدمات» tab (B-N1-04)
+  analysis: ['analysis', 'common', 'nav', 'plus'], // B-N3-08 /analysis hub + /analysis/* stubs (one screen slice; PlusGate copy = plus.gate)
+  analysisReport: ['analysis', 'common', 'nav'], // B-N3-09 /analysis/{cycle,period,symptoms,body} (no Plus gate; correlations keeps `analysis`)
   fertilityLog: ['common', 'fertility'],
   fertilityBbt: ['common', 'fertility'],
   fertilityInsights: ['common', 'fertility'],

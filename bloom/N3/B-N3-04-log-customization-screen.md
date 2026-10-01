@@ -3,7 +3,7 @@ id: B-N3-04
 title: Log customization screen
 milestone: N3
 type: frontend
-status: todo
+status: done
 depends_on: [B-N3-03]
 parallel_group: N3-D
 touches: [frontend/src/screens/log-customize,frontend/src/features/customize-log]
