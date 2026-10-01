@@ -24,7 +24,8 @@
     "title": "Ritme Plus",
     "active": "Ritme Plus · active",
     "activeSub": "Your subscription is active",
-    "soonSub": "Plus subscriptions are coming soon"
+    "soonSub": "Plus subscriptions are coming soon",
+    "upsellSub": "Full analysis, a health assistant and doctor reports"
   },
   "groups": {
     "family": "Me & family",

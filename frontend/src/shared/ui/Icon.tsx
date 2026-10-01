@@ -18,7 +18,8 @@ export type IconName =
   | 'lock' | 'minus' | 'arrowR'
   | 'users' | 'gradCap' | 'todo' | 'box' | 'watch' | 'help' | 'chat' | 'crown' | 'smartphone' | 'modeRing'
   | 'symptom' | 'star' | 'sprout'
-  | 'female' | 'male' | 'cake';
+  | 'female' | 'male' | 'cake'
+  | 'card';
 
 const PATHS: Record<IconName, string> = {
   bell:         '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
@@ -135,6 +136,8 @@ const PATHS: Record<IconName, string> = {
   cake:         '<path d="M4 20h16v-6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2z"/><path d="M4 16c1.5 1 3 1 4 0s2.5-1 4 0 2.5 1 4 0 2.5-1 4 0"/><path d="M8 12V9M12 12V9M16 12V9"/>',
   // B-N2-03: teen mode (nbl_Me_Mode)
   sprout:       '<path d="M12 21v-8"/><path d="M12 13c0-4-3-6-7-6 0 4 3 6 7 6zM12 11c0-4 3-6 7-6 0 4-3 6-7 6z"/>',
+  // B-N2-07: payment method row (nbl_Prem_Checkout)
+  card:         '<rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10.5h18"/>',
 };
 
 interface IconProps {

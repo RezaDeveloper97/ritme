@@ -336,15 +336,15 @@
     "slotTimes": "Dose times",
     "slotLabel": "Dose {n}",
     "weekdays": "Days of the week",
-    "weekdayShort": [
-     "Sa",
-     "Su",
-     "Mo",
-     "Tu",
-     "We",
-     "Th",
-     "Fr"
-    ],
+    "weekdayShort": {
+     "0": "Sa",
+     "1": "Su",
+     "2": "Mo",
+     "3": "Tu",
+     "4": "We",
+     "5": "Th",
+     "6": "Fr"
+    },
     "everyDay": "Every day",
     "amount": "Amount per dose",
     "decrease": "Less",
@@ -1770,7 +1770,8 @@
     "title": "Ritme Plus",
     "active": "Ritme Plus · active",
     "activeSub": "Your subscription is active",
-    "soonSub": "Plus subscriptions are coming soon"
+    "soonSub": "Plus subscriptions are coming soon",
+    "upsellSub": "Full analysis, a health assistant and doctor reports"
    },
    "groups": {
     "family": "Me & family",
@@ -2531,6 +2532,147 @@
    "dayRange": "Days {from, number} to {to, number} of your cycle",
    "disclaimer": "General information only. If your symptoms are severe or unusual, talk to a doctor.",
    "gotIt": "Got it"
+  },
+  "plus": {
+   "back": "Back",
+   "close": "Close",
+   "loading": "Loading…",
+   "retry": "Try again",
+   "toman": "{amount} toman",
+   "error": {
+    "title": "Couldn't load your subscription",
+    "body": "Check your connection and try again."
+   },
+   "steps": "Step {current} of {total}",
+   "paywall": {
+    "restore": "Restore purchase",
+    "restored": "Your purchase was restored.",
+    "nothingToRestore": "No pending purchase to restore.",
+    "restoreFailed": "Couldn't restore. Try again.",
+    "title": "Ritme Plus",
+    "lead": "Know your body more deeply: full analysis, a health assistant and doctor reports.",
+    "tableLabel": "Free vs Plus",
+    "feature": "Feature",
+    "free": "Free",
+    "plus": "Plus",
+    "included": "Included",
+    "excluded": "Not included",
+    "features": {
+     "analysis": "Deep cycle and symptom-pattern analysis",
+     "prediction": "Sharper predictions with BBT and LH",
+     "assistant": "Unlimited health assistant",
+     "pdf": "PDF report for your doctor",
+     "tracking": "Period tracking and reminders",
+     "todo": "To-do list"
+    },
+    "cta": "Choose a plan",
+    "manage": "Manage subscription",
+    "active": "Ritme Plus is active for you",
+    "trial": "{days} days free on your first subscription",
+    "trialFailed": "Couldn't start the free trial. Try again."
+   },
+   "plans": {
+    "title": "Choose your plan",
+    "lead": "The longer, the cheaper. Cancel any time.",
+    "groupLabel": "Plan length",
+    "monthly": "{price} toman · monthly",
+    "every": "{price} toman · every {months} months",
+    "perMonth": "toman / month",
+    "save": "Save {percent}%",
+    "perks": {
+     "trial": "{days} days free on your first subscription",
+     "reminder": "A reminder 2 days before every renewal",
+     "devices": "Your subscription works on all your devices"
+    },
+    "cta": "Continue · {plan}",
+    "empty": "No plans are available right now. Check back a little later."
+   },
+   "checkout": {
+    "title": "Review and pay",
+    "summary": "Ritme Plus · {plan}",
+    "change": "Change",
+    "price": "Price",
+    "offer": "Special offer discount",
+    "vat": "VAT",
+    "total": "Amount due",
+    "minus": "−{amount} toman",
+    "codeLabel": "Discount code",
+    "codePlaceholder": "Have a discount code?",
+    "apply": "Apply",
+    "applied": "Applied",
+    "removeCode": "Remove discount code",
+    "codeInvalid": "This discount code isn't valid.",
+    "methods": "Payment method",
+    "gateway": "Bank gateway",
+    "gatewaySub": "All Shetab member cards",
+    "secure": "Secure payment · auto-renew can be turned off",
+    "pay": "Pay and activate",
+    "payFailed": "Couldn't reach the payment gateway. Try again.",
+    "unavailable": "Payments aren't available right now. Try again a little later."
+   },
+   "return": {
+    "verifying": "Confirming your payment…",
+    "failedTitle": "The payment didn't go through",
+    "failedBody": "If money was taken from your account, check again with “Restore purchase” on the Ritme Plus page.",
+    "invalidTitle": "The gateway's return details are incomplete",
+    "invalidBody": "Start again from the Ritme Plus page.",
+    "backToPlans": "Back to plans"
+   },
+   "success": {
+    "title": "Welcome to Ritme Plus",
+    "body": "Your {plan} plan is active until <b>{date}</b>.",
+    "trialBody": "Your free trial is active until <b>{date}</b>.",
+    "refLabel": "Reference:",
+    "startHere": "Start here",
+    "rows": {
+     "analysis": "Full analysis of your cycles",
+     "report": "Report for your doctor",
+     "assistant": "Health assistant"
+    },
+    "soon": "Soon",
+    "cta": "Let's go"
+   },
+   "manage": {
+    "title": "My subscription",
+    "daysLeft": "days left",
+    "ringLabel": "Days left in your subscription",
+    "ringValue": "{days} days left",
+    "plan": "Ritme Plus · {plan}",
+    "trial": "Ritme Plus free trial",
+    "renewsOn": "Auto-renews: {date}",
+    "endsOn": "Ends: {date}",
+    "upgrade": "Upgrade to {plan}",
+    "upgradeSub": "Save {percent}% vs monthly",
+    "buy": "Buy a subscription",
+    "buySub": "Keep Plus after the free trial",
+    "autoRenew": "Auto-renew",
+    "autoRenewOn": "We'll let you know 2 days before",
+    "autoRenewOff": "Off — Plus ends with this period",
+    "history": "Payment history",
+    "historyCount": "{n, plural, one {{count} payment} other {{count} payments}}",
+    "historyEmpty": "No payments yet",
+    "historyLabel": "Payments",
+    "historyError": "Couldn't load the history.",
+    "invoice": "{plan} · {date}",
+    "invoiceStatus": {
+     "paid": "Paid",
+     "pending": "Pending",
+     "failed": "Failed",
+     "expired": "Expired",
+     "refunded": "Refunded",
+     "other": "Unknown"
+    },
+    "cancel": "Cancel subscription",
+    "cancelTitle": "Cancel your subscription?",
+    "cancelBody": "Auto-renew turns off and Ritme Plus stays active until {date}.",
+    "cancelConfirm": "Yes, cancel",
+    "cancelKeep": "No, keep it",
+    "canceled": "Auto-renew is off; Plus stays active until the period ends.",
+    "cancelFailed": "Couldn't cancel. Try again.",
+    "noneTitle": "You have no active subscription",
+    "noneBody": "Get full analysis, a health assistant and doctor reports with Ritme Plus.",
+    "noneCta": "See plans"
+   }
   },
   "pregnancy": {
    "title": "Pregnancy",

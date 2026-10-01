@@ -61,6 +61,11 @@ export const ROUTE_NAMESPACES = {
   profileLegal: ['common', 'me'], // B-N1-12 /profile/legal
   profileMode: ['common', 'me'], // B-N2-03 /profile/mode (copy under me.mode)
   profileModeLoss: ['common', 'me'], // B-N2-03 /profile/mode/loss
+  plusPaywall: ['common', 'nav', 'plus'], // B-N2-07 /plus (teen guard reads widgets/bottom-nav)
+  plusPlans: ['common', 'nav', 'plus'], // B-N2-07 /plus/plans
+  plusCheckout: ['common', 'nav', 'plus'], // B-N2-07 /plus/checkout
+  plusSuccess: ['common', 'plus'], // B-N2-07 /plus/success + gateway return /plus/return
+  plusManage: ['common', 'plus'], // B-N2-07 /plus/manage
   pregnancy: ['care', 'common', 'nav', 'pregnancyV2'],
   pregnancyLog: [...PREGNANCY, 'pregnancyV2'],
   pregnancyWeek: ['common', 'nav', 'pregnancyV2'],

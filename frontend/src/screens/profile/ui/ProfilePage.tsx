@@ -3,12 +3,13 @@
 import { useLocale, useTranslations } from 'next-intl';
 
 import { useUserMode } from '@/entities/message';
+import { usePlusStatus } from '@/entities/plus';
 import { useUserProfile } from '@/entities/user';
 import { useAppLock } from '@/features/app-lock';
 import { useLogout } from '@/features/auth';
 import { useExportData } from '@/features/manage-account';
 import { useSwitchLocale } from '@/features/switch-locale';
-import { localizeHref, useRouter, type Locale } from '@/shared/i18n';
+import { localizeHref, useDirection, useRouter, type Locale } from '@/shared/i18n';
 import { calendarSystem } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
 import { useThemeStore } from '@/shared/theme';
@@ -63,6 +64,9 @@ export function ProfilePage() {
   const mounted = useMounted();
   const profileQuery = useUserProfile();
   const { data: userMode } = useUserMode();
+  const { data: plusStatus } = usePlusStatus();
+  const isPlus = plusStatus ? plusStatus.isPlus : Boolean(userMode?.isPremium);
+  const rtl = useDirection() === 'rtl';
   const logout = useLogout();
   const { exportData, isPending: exporting, isError: exportFailed } = useExportData();
   const { locale, languages } = useSwitchLocale();
@@ -136,17 +140,21 @@ export function ProfilePage() {
           </div>
         )}
 
-        {/* Plus status. Plans/payment arrive with N2 (B-N2-05+); until then a static card.
+        {/* Plus status → /plus (paywall) or /plus/manage (B-N2-07).
             Teen mode never shows a Plus upsell (B-N2-03, gaps.md #3). */}
         {navMode === 'teen' ? null : (
-          <div className="me-plus">
+          <button
+            type="button"
+            className="me-plus"
+            onClick={() => router.push(isPlus ? '/plus/manage' : '/plus')}
+          >
             <IconCircle icon="sparkle" tone="brand" size="md" />
             <span className="nb-row-text">
-              <span className="nb-row-title">{userMode?.isPremium ? t('plus.active') : t('plus.title')}</span>
-              <span className="nb-row-desc">{userMode?.isPremium ? t('plus.activeSub') : t('plus.soonSub')}</span>
+              <span className="nb-row-title">{isPlus ? t('plus.active') : t('plus.title')}</span>
+              <span className="nb-row-desc">{isPlus ? t('plus.activeSub') : t('plus.upsellSub')}</span>
             </span>
-            {userMode?.isPremium ? null : soon}
-          </div>
+            <Icon name={rtl ? 'chevronLeft' : 'chevronRight'} size={18} className="nb-row-chev" />
+          </button>
         )}
 
         <section className="me-sec" aria-labelledby="me-g-family">

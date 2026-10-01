@@ -467,3 +467,15 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
 - **Tooling:** `bloom/bin/shot.mjs --admin` fixed (`--admin-email/--admin-password` login, `ritme_admin_theme`,
   1440×900 tall viewport instead of clipped RTL capture).
 - Screenshots `docs/qa/bloom/B-N2-09/`. QUESTIONS #76.
+
+## B-N2-07 — Plus screens — paywall, plans, checkout, success, manage
+
+- `entities/plus` (zod schemas incl. optional B-N2-06 fields, query hooks, `formatToman` rials→toman with Persian
+  digits, plan/upgrade/return-param helpers, `PlusCrown`), `features/purchase-plus` (checkout, verify, cancel, restore,
+  trial start, `goToGateway` http(s) only), screens `plus-{paywall,plans,checkout,success,manage}`, routes `/plus`,
+  `/plus/{plans,checkout,success,return,manage}` (return → `POST /plus/verify`). Me hub Plus card → `/plus` or
+  `/plus/manage` (hidden for teen; teen redirected away from paywall/plans/checkout). New `plus` namespace registered.
+- Full fake-gateway purchase walked light + dark: `docs/qa/bloom/B-N2-07/{with-code,no-code,me-hub,artboards}`.
+- Orchestrator: removed the artboard placeholder testimonial («سارا» + stars); fixed i18n goldens (`me`, `plus`, and the
+  stale `care` namespace that made `TestBundle_MatchesLaravelGoldens` red at HEAD).
+- Local dev needs `PAYMENT_CALLBACK_BASE_URL=http://127.0.0.1:8020` (APP_URL has no port). QUESTIONS #77.

@@ -27,6 +27,7 @@ import type enProfileInfo from '../messages/en/profile-info.json';
 import type enReminders from '../messages/en/reminders.json';
 import type enWelcome from '../messages/en/welcome.json';
 import type enServices from '../messages/en/services.json';
+import type enPlus from '../messages/en/plus.json';
 
 // English is the reference locale for key completeness; next-intl uses this
 // to type translation keys and ICU params (a wrong key becomes a compile
@@ -61,6 +62,7 @@ type Messages = {
   logPeriod: typeof enLogPeriod;
   welcome: typeof enWelcome;
   services: typeof enServices;
+  plus: typeof enPlus;
   articles: typeof enArticles;
 };
 

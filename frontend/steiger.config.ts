@@ -209,4 +209,10 @@ export default defineConfig([
     files: ['./src/entities/article/**'],
     rules: { 'fsd/insignificant-slice': 'off' },
   },
+  {
+    // B-N2-07 Ritme Plus: consumed by the plus-* screens and the «من» hub —
+    // references coming FROM `screens` are invisible to steiger.
+    files: ['./src/entities/plus/**', './src/features/purchase-plus/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
 ]);

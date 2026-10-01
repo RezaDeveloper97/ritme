@@ -3,7 +3,7 @@ id: B-N2-07
 title: Plus screens — paywall, plans, checkout, success, manage
 milestone: N2
 type: frontend
-status: todo
+status: done
 depends_on: [B-N2-04,B-N2-05]
 parallel_group: N2-G
 touches: [frontend/src/screens/plus-*,frontend/src/entities/plus,frontend/src/features/purchase-plus,frontend/src/app/[locale]/plus]
