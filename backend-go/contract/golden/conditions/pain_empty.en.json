@@ -1,0 +1,33 @@
+{
+  "case": "conditions/pain_empty.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/conditions/pain/2026-09-22",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "date": "2026-09-22",
+          "score": null,
+          "locations": [],
+          "relief": [],
+          "types": [],
+          "associated": [],
+          "missed_activity": null,
+          "analgesic": null,
+          "analgesic_time": null,
+          "analgesic_effect": null
+        }
+      }
+    }
+  ]
+}

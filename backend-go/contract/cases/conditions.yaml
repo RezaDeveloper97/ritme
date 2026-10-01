@@ -1,0 +1,235 @@
+# Condition programs (/api/v1/conditions*) — Go only (CB-COND-01, deviations.md D-40): there is no Laravel route, so
+# these goldens were recorded from the Go server and reviewed by hand (new-endpoint skill, step 8).
+# The fixture dump carries the condition_enrolments / condition_pain_entries / pmdd_entries / pbac_entries tables
+# (goose 00023 / Laravel 2026_10_01_000023, no rows) and catalog_items with the rows 00023 seeds (condition_programs,
+# pain_types, pain_associated, pmdd_items, condition_alerts) — re-exported with mariadb-dump after applying 00023 to
+# the committed dump, timestamps pinned to the fixture's. No persona is enrolled, so the write cases enrol first
+# (every case runs on a fresh dump). Pattern / completeness edge cases, the associated-symptom slots and user
+# isolation are covered by internal/conditions tests.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: conditions
+defaults:
+  persona: regular
+  locales: [none, en]
+cases:
+  - name: show
+    doc: Every program in hub order, none enrolled
+    method: GET
+    path: /api/v1/conditions
+    status: 200
+  - name: show_anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/conditions
+    status: 401
+
+  - name: enrol_flow
+    doc: Join PCOS (enrolment only) on a past date, join again (date kept), leave
+    steps:
+      - method: POST
+        path: /api/v1/conditions/enrolments
+        body: {program: pcos, enrolled_on: "2026-09-01"}
+        status: 200
+      - method: POST
+        path: /api/v1/conditions/enrolments
+        body: {program: pcos}
+        status: 200
+      - method: DELETE
+        path: /api/v1/conditions/enrolments/pcos
+        status: 200
+  - name: enrol_invalid
+    method: POST
+    path: /api/v1/conditions/enrolments
+    body: {program: diabetes, enrolled_on: "2026-09-24"}
+    status: 422
+  - name: enrol_anon
+    persona: anon
+    locales: none
+    method: POST
+    path: /api/v1/conditions/enrolments
+    status: 401
+  - name: leave_invalid
+    locales: en
+    method: DELETE
+    path: /api/v1/conditions/enrolments/diabetes
+    status: 422
+  - name: leave_anon
+    persona: anon
+    locales: none
+    method: DELETE
+    path: /api/v1/conditions/enrolments/endo
+    status: 401
+
+  - name: pain_empty
+    method: GET
+    path: /api/v1/conditions/pain/2026-09-22
+    status: 200
+  - name: pain_anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/conditions/pain/2026-09-22
+    status: 401
+  - name: pain_without_program
+    method: PUT
+    path: /api/v1/conditions/pain/2026-09-22
+    body: {score: 5, locations: [back]}
+    status: 422
+  - name: pain_flow
+    doc: Board «دفترچه درد» — score 7 at pelvis + back, cramping, pain during sex (log slot) + bowel pain (row), ibuprofen helped a little; then 0 = no pain
+    steps:
+      - method: POST
+        path: /api/v1/conditions/enrolments
+        body: {program: endo}
+        status: 200
+      - method: PUT
+        path: /api/v1/conditions/pain/2026-09-22
+        body: {score: 7, locations: [pelvis, back], relief: [painkiller], types: [cramping], associated: [dyspareunia, dyschezia], missed_activity: true, analgesic: Ibuprofen, analgesic_time: "08:00", analgesic_effect: a_little}
+        status: 200
+      - method: GET
+        path: /api/v1/conditions/pain/2026-09-22
+        status: 200
+      - method: PUT
+        path: /api/v1/conditions/pain/2026-09-22
+        body: {score: 0}
+        status: 200
+  - name: pain_invalid
+    steps:
+      - method: POST
+        path: /api/v1/conditions/enrolments
+        body: {program: endo}
+        status: 200
+      - method: PUT
+        path: /api/v1/conditions/pain/2026-09-22
+        body: {score: 11, locations: [stitches], types: [sharp], analgesic_effect: maybe}
+        status: 422
+      - method: PUT
+        path: /api/v1/conditions/pain/2026-09-22
+        body: {score: 4}
+        status: 422
+  - name: pain_save_anon
+    persona: anon
+    locales: none
+    method: PUT
+    path: /api/v1/conditions/pain/2026-09-22
+    status: 401
+
+  - name: pmdd_chart
+    doc: The regular persona's recorded cycles, nothing rated yet → not enough data, needs 2 cycles, crisis note
+    method: GET
+    path: /api/v1/conditions/pmdd/chart
+    status: 200
+  - name: pmdd_chart_anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/conditions/pmdd/chart
+    status: 401
+  - name: pmdd_flow
+    doc: Board «پرسشنامه خلق روزانه» — six items rated, one cleared; the chart shows the day in the current cycle
+    steps:
+      - method: POST
+        path: /api/v1/conditions/enrolments
+        body: {program: pmdd}
+        status: 200
+      - method: PUT
+        path: /api/v1/conditions/pmdd/2026-09-23
+        body: {scores: {sadness: 5, anxiety: 4, mood_swings: 6, anger: 3, loss_of_interest: 4, concentration: 2}}
+        status: 200
+      - method: PUT
+        path: /api/v1/conditions/pmdd/2026-09-23
+        body: {scores: {anger: null}}
+        status: 200
+      - method: GET
+        path: /api/v1/conditions/pmdd/2026-09-23
+        status: 200
+      - method: GET
+        path: /api/v1/conditions/pmdd/chart
+        status: 200
+  - name: pmdd_invalid
+    steps:
+      - method: POST
+        path: /api/v1/conditions/enrolments
+        body: {program: pmdd}
+        status: 200
+      - method: PUT
+        path: /api/v1/conditions/pmdd/2026-09-23
+        body: {scores: {sadness: 7}}
+        status: 422
+      - method: PUT
+        path: /api/v1/conditions/pmdd/2026-09-23
+        body: {scores: {joy: 3}}
+        status: 422
+  - name: pmdd_without_program
+    method: PUT
+    path: /api/v1/conditions/pmdd/2026-09-23
+    body: {scores: {sadness: 3}}
+    status: 422
+  - name: pmdd_bad_date
+    locales: en
+    method: GET
+    path: /api/v1/conditions/pmdd/23-09-2026
+    status: 422
+  - name: pmdd_anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/conditions/pmdd/2026-09-23
+    status: 401
+  - name: pmdd_save_anon
+    persona: anon
+    locales: none
+    method: PUT
+    path: /api/v1/conditions/pmdd/2026-09-23
+    status: 401
+
+  - name: pbac_empty
+    method: GET
+    path: /api/v1/conditions/pbac/2026-09-22
+    status: 200
+  - name: pbac_anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/conditions/pbac/2026-09-22
+    status: 401
+  - name: pbac_flow
+    doc: Board «جدول خونریزی» — two logged days of a period (large clot + leak, then 1/2/3 pads = 71) → over 100 alert
+    steps:
+      - method: POST
+        path: /api/v1/conditions/enrolments
+        body: {program: heavy_bleeding}
+        status: 200
+      - method: PUT
+        path: /api/v1/conditions/pbac/2026-09-21
+        body: {medium: 2, heavy: 2, clots: large, flooding: true}
+        status: 200
+      - method: PUT
+        path: /api/v1/conditions/pbac/2026-09-22
+        body: {light: 1, medium: 2, heavy: 3, clots: none}
+        status: 200
+      - method: GET
+        path: /api/v1/conditions/pbac/2026-09-22
+        status: 200
+  - name: pbac_invalid
+    steps:
+      - method: POST
+        path: /api/v1/conditions/enrolments
+        body: {program: heavy_bleeding}
+        status: 200
+      - method: PUT
+        path: /api/v1/conditions/pbac/2026-09-22
+        body: {light: 51, clots: huge, flooding: maybe}
+        status: 422
+  - name: pbac_without_program
+    method: PUT
+    path: /api/v1/conditions/pbac/2026-09-22
+    body: {light: 1}
+    status: 422
+  - name: pbac_save_anon
+    persona: anon
+    locales: none
+    method: PUT
+    path: /api/v1/conditions/pbac/2026-09-22
+    status: 401

@@ -3,7 +3,7 @@ id: CB-COND-01
 title: Condition programs backend: enrolment, pain diary, PMDD, PBAC
 epic: COND
 type: backend
-status: todo
+status: done
 depends_on: [CB-CORE-03, B-N3-01]
 parallel_group: COND-A
 touches: [backend-go/internal/conditions, backend-go/internal/http/routes_conditions.go, backend-go/db/queries/conditions, backend-go/api/openapi.yaml, backend-go/contract, backend-go/resources/translations, backend-go/db/migrations, backend/database/migrations, docs/go-migration/deviations.md]

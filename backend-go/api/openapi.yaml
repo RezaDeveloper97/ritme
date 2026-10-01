@@ -37,6 +37,7 @@ tags:
   - {name: Analysis, description: "Analysis tab (Go only, B-N3-07): hub, cycle, period, symptoms, correlations (Plus), body, monthly report — FIGO 2018 ranges, min-data rules, never causal"}
   - {name: Search, description: "Global search (Go only, CB-NAV-01): grouped hits over the caller's logs and reminders, care programs, education and services; shop excluded"}
   - {name: Contraception, description: "Contraception (Go only): method, pill pack (day, placebo/break days, streak, refill), pill log and the care reminders of long-acting methods"}
+  - {name: Conditions, description: "Condition programs (Go only): enrolment (endometriosis, PMDD, heavy bleeding, PCOS), pain diary on the log taxonomy, PMDD questionnaire + cycle chart, PBAC pad chart"}
   - {name: Plus, description: "Ritme Plus (Go only): plans, trial, checkout through the payment port, verify, cancel, restore, history, entitlements and usage. Amounts are integer rials"}
   - {name: Payments, description: "Payment gateway adapter (Go only): browser return hop and the fake provider's TEST page. PAYMENT_PROVIDER = fake (default outside production) | zarinpal | none. Café Bazaar / Myket billing is Android-only and out of scope"}
   - {name: Daily Health Log, description: "One log per day: symptoms, mood, vitals, lifestyle"}
@@ -3276,6 +3277,365 @@ paths:
                   data: {$ref: "#/components/schemas/ContraceptionOverview"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '422': {$ref: "#/components/responses/ContraceptionValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/conditions:
+    get:
+      tags: [Conditions]
+      summary: The care programs and the user's enrolment
+      description: |
+        Every condition program in hub order (`endo`, `pmdd`, `heavy_bleeding`, `pcos`) with the caller's enrolment.
+        Card copy is the catalog group `condition_programs` (`GET /catalog/condition_programs`; meta `logs` = the
+        «ثبت می‌کنی» line), the hub note is `condition_alerts` / `not_a_diagnosis`. PCOS is enrolment only and reads
+        the existing logs. Health data: only the caller's own rows.
+      operationId: getConditions
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The programs
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/ConditionsOverview"}
+              example:
+                success: true
+                data:
+                  programs:
+                    - {code: endo, enrolled: true, enrolled_on: "2026-09-01"}
+                    - {code: pmdd, enrolled: false, enrolled_on: null}
+                    - {code: heavy_bleeding, enrolled: false, enrolled_on: null}
+                    - {code: pcos, enrolled: false, enrolled_on: null}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/conditions/enrolments:
+    post:
+      tags: [Conditions]
+      summary: Join a program
+      description: "Joins `program` on `enrolled_on` (default today, not in the future). Joining again keeps the first date. Responds with the programs."
+      operationId: enrolCondition
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [program]
+              properties:
+                program: {type: string, enum: [endo, pmdd, heavy_bleeding, pcos]}
+                enrolled_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+            example: {program: endo}
+      responses:
+        '200':
+          description: Joined; the programs
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/ConditionsOverview"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ConditionsValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/conditions/enrolments/{program}:
+    delete:
+      tags: [Conditions]
+      summary: Leave a program
+      description: "Deletes the enrolment; the diary data stays. Idempotent. Unknown program → 422 on `program`. Responds with the programs."
+      operationId: leaveCondition
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: program, in: path, required: true, schema: {type: string, enum: [endo, pmdd, heavy_bleeding, pcos]}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Left; the programs
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/ConditionsOverview"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ConditionsValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/conditions/pain/{date}:
+    get:
+      tags: [Conditions]
+      summary: One pain-diary day (endometriosis)
+      description: |
+        The pain diary of a day. `score`, `locations` and `relief` are the day log's `pain` category (log taxonomy
+        v2, `health_log_entries`): `score` 0 = `pain.none`, 1–10 = the highest `pain.location` score (null when
+        nothing — or only a level without a score — was logged). `associated` lists the `pain_associated` catalog
+        codes, including those whose taxonomy slot (`meta.log`, e.g. `symptoms.digestive.bloating`) is set in the day
+        log. Malformed date → 422 on `date`.
+      operationId: getConditionPainDay
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: date, in: path, required: true, schema: {$ref: "#/components/schemas/Date"}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The day
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/ConditionPainDay"}
+              example:
+                success: true
+                data: {date: "2026-09-22", score: 7, locations: [pelvis, back], relief: [heat, painkiller], types: [cramping], associated: [dyspareunia, bloating], missed_activity: true, analgesic: Ibuprofen, analgesic_time: "08:00", analgesic_effect: a_little}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ConditionsValidationFailed"}
+    put:
+      tags: [Conditions]
+      summary: Save a pain-diary day
+      description: |
+        Partial update (an omitted key stays, `null` clears). Needs the `endo` enrolment (422 on `program`). The day
+        must not be in the future. Writes the log-taxonomy half through the day log (so the legacy
+        `daily_health_logs` pain columns follow): `score` 0 sets `pain.none` and clears the locations; 1–10 writes
+        every location as an item `{level, score}` (level 1–3 mild, 4–6 moderate, 7–10 severe). A score above 0 needs
+        a location (422 on `locations`), a location needs a score (422 on `score`). `locations` / `relief` accept the
+        taxonomy options of the user's life mode (plus what the day already stores); `types` / `associated` the
+        active `pain_types` / `pain_associated` catalog codes. An associated code with a taxonomy slot the mode can
+        take is stored in the day log, the others in the program row. Responds with the day.
+      operationId: putConditionPainDay
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: date, in: path, required: true, schema: {$ref: "#/components/schemas/Date"}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                score: {type: [integer, "null"], minimum: 0, maximum: 10}
+                locations: {type: [array, "null"], items: {type: string}}
+                relief: {type: [array, "null"], items: {type: string}}
+                types: {type: [array, "null"], items: {type: string}}
+                associated: {type: [array, "null"], items: {type: string}}
+                missed_activity: {type: [boolean, "null"]}
+                analgesic: {type: [string, "null"], maxLength: 100}
+                analgesic_time: {type: [string, "null"], pattern: "^\\d{2}:\\d{2}$"}
+                analgesic_effect: {type: [string, "null"], enum: ["no", a_little, helped, null]}
+            example: {score: 7, locations: [pelvis, back], types: [cramping], associated: [bloating], analgesic: Ibuprofen, analgesic_time: "08:00", analgesic_effect: a_little}
+      responses:
+        '200':
+          description: Saved; the day
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/ConditionPainDay"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ConditionsValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/conditions/pmdd/chart:
+    get:
+      tags: [Conditions]
+      summary: The PMDD cycle chart
+      description: |
+        The current cycle (open; expected end = start + profile cycle length − 1, at least today) and up to two closed
+        cycles before it, newest first, from the recorded period starts (`cycle_histories`). Per cycle: the period
+        band, the late-luteal band (the last 10 days), the follicular window (cycle days 4–10), the rated days with
+        their mean, and the window means. A closed cycle is `complete` with ≥ 7 rated late-luteal days and ≥ 4 rated
+        follicular days; `ready` = 2 complete cycles. `pattern`: `luteal` when every evaluable cycle (≥ 3 rated days
+        in each window) has a late-luteal mean ≥ 1.3 × the follicular mean, `unclear` otherwise, `not_enough_data`
+        without an evaluable cycle. `alerts` (catalog `condition_alerts`): the pattern sentence, `pmdd_needs_two_cycles`
+        until ready, and always `pmdd_crisis` (hotlines in meta). Thresholds are [needs clinical review].
+      operationId: getConditionPmddChart
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The chart
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/ConditionPmddChart"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/conditions/pmdd/{date}:
+    get:
+      tags: [Conditions]
+      summary: One PMDD questionnaire day
+      description: "`scores` maps `pmdd_items` codes (catalog order) to 1–6; `mean` is null when nothing was rated. Malformed date → 422."
+      operationId: getConditionPmddDay
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: date, in: path, required: true, schema: {$ref: "#/components/schemas/Date"}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The day
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/ConditionPmddDay"}
+              example:
+                success: true
+                data: {date: "2026-09-23", scores: {sadness: 5, anxiety: 4, mood_swings: 6, anger: 3, loss_of_interest: 4, concentration: 2}, mean: 4}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ConditionsValidationFailed"}
+    put:
+      tags: [Conditions]
+      summary: Save a PMDD questionnaire day
+      description: |
+        `scores` per item 1 (not at all) … 6 (extreme), or `null` to clear that item; items not sent stay. Keys are the
+        active `pmdd_items` codes (plus codes the day already stores). Needs the `pmdd` enrolment (422 on `program`);
+        not in the future. A day left empty is deleted. Responds with the day.
+      operationId: putConditionPmddDay
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: date, in: path, required: true, schema: {$ref: "#/components/schemas/Date"}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [scores]
+              properties:
+                scores:
+                  type: object
+                  additionalProperties: {type: [integer, "null"], minimum: 1, maximum: 6}
+            example: {scores: {sadness: 5, anxiety: 4, mood_swings: 6, anger: 3, loss_of_interest: 4, concentration: 2}}
+      responses:
+        '200':
+          description: Saved; the day
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/ConditionPmddDay"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ConditionsValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/conditions/pbac/{date}:
+    get:
+      tags: [Conditions]
+      summary: One PBAC pad-chart day with its period score
+      description: |
+        Pads per soak level (light ×1, medium ×5, heavy ×20 points), the clot chip (the day log's `bleeding.clots` /
+        `bleeding.clot_size`: small +1, large +5), flooding (+5). `period`: the recorded period start within the last
+        10 days, else the run of consecutive logged days ending on the date; the window is 10 days and its `score` sums
+        the logged days. `alert` is `condition_alerts` / `pbac_over_100` when the period score ≥ `alert_threshold`.
+        Malformed date → 422.
+      operationId: getConditionPbacDay
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: date, in: path, required: true, schema: {$ref: "#/components/schemas/Date"}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The day
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/ConditionPbacDay"}
+              example:
+                success: true
+                data:
+                  date: "2026-09-22"
+                  light: 1
+                  medium: 2
+                  heavy: 3
+                  clots: none
+                  flooding: false
+                  score: 71
+                  period: {start: "2026-09-21", end: "2026-09-30", day: 2, score: 112, days_logged: 2}
+                  alert_threshold: 100
+                  alert: {code: pbac_over_100, title: امتیاز این پریود از ۱۰۰ بیشتر شده, body: "معمولاً یعنی خونریزی شدید است…", meta: {severity: caution}, audiences: null, needs_review: true}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ConditionsValidationFailed"}
+    put:
+      tags: [Conditions]
+      summary: Save a PBAC pad-chart day
+      description: |
+        Partial update (an omitted key stays, `null` clears; a null count is 0). Counts 0–50 per level. `clots`
+        (`none` | `small` | `large`) is written to the day log (`bleeding.clots` / `clot_size`) and is only accepted
+        when the user's life mode has the clot param (or the day already stores one). Needs the `heavy_bleeding`
+        enrolment (422 on `program`); not in the future. Responds with the day.
+      operationId: putConditionPbacDay
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: date, in: path, required: true, schema: {$ref: "#/components/schemas/Date"}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                light: {type: [integer, "null"], minimum: 0, maximum: 50}
+                medium: {type: [integer, "null"], minimum: 0, maximum: 50}
+                heavy: {type: [integer, "null"], minimum: 0, maximum: 50}
+                clots: {type: [string, "null"], enum: [none, small, large, null]}
+                flooding: {type: [boolean, "null"]}
+            example: {light: 1, medium: 2, heavy: 3, clots: none, flooding: false}
+      responses:
+        '200':
+          description: Saved; the day
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/ConditionPbacDay"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ConditionsValidationFailed"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/checkups:
     get:
@@ -11060,6 +11420,23 @@ components:
             success: false
             message: اطلاعات واردشده نامعتبر است
             errors: {program: [اول برنامهٔ تمرین کف لگن را شروع کنید.]}
+    ConditionsValidationFailed:
+      description: "Condition-program validation failed (controller 422 `{success: false, message, errors}`, message and field errors in the request language). A diary write without the program's enrolment answers `errors.program`."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, errors]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              errors:
+                type: object
+                additionalProperties: {type: array, items: {type: string}}
+          example:
+            success: false
+            message: اطلاعات واردشده نامعتبر است
+            errors: {program: [اول به این برنامه بپیوند.]}
     ContraceptionValidationFailed:
       description: "Contraception validation failed (controller 422 `{success: false, message, errors}`, message and field errors in the request language). `POST /contraception/pills` without a pill method answers `errors.method`; before the pack start or on a break day `errors.date`."
       content:
@@ -12121,6 +12498,124 @@ components:
           type: array
           items: {type: string, enum: [burning, frequency, cloudy_odor]}
         uti_alert: {type: boolean, description: "Any UTI symptom logged → show the `pelvic_alerts` / `uti_warning` catalog item"}
+    ConditionsOverview:
+      type: object
+      required: [programs]
+      properties:
+        programs:
+          type: array
+          items:
+            type: object
+            required: [code, enrolled, enrolled_on]
+            properties:
+              code: {type: string, enum: [endo, pmdd, heavy_bleeding, pcos]}
+              enrolled: {type: boolean}
+              enrolled_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+    ConditionPainDay:
+      type: object
+      required: [date, score, locations, relief, types, associated, missed_activity, analgesic, analgesic_time, analgesic_effect]
+      properties:
+        date: {$ref: "#/components/schemas/Date"}
+        score: {type: [integer, "null"], minimum: 0, maximum: 10}
+        locations: {type: array, items: {type: string}, description: "log taxonomy pain.location items"}
+        relief: {type: array, items: {type: string}, description: "log taxonomy pain.relief options"}
+        types: {type: array, items: {type: string}, description: "catalog pain_types codes"}
+        associated: {type: array, items: {type: string}, description: "catalog pain_associated codes"}
+        missed_activity: {type: [boolean, "null"], description: "couldn't go to work or school"}
+        analgesic: {type: [string, "null"]}
+        analgesic_time: {type: [string, "null"], pattern: "^\\d{2}:\\d{2}$"}
+        analgesic_effect: {type: [string, "null"], enum: ["no", a_little, helped, null]}
+    ConditionPmddDay:
+      type: object
+      required: [date, scores, mean]
+      properties:
+        date: {$ref: "#/components/schemas/Date"}
+        scores:
+          type: object
+          description: "pmdd_items code → 1–6, in catalog order"
+          additionalProperties: {type: integer, minimum: 1, maximum: 6}
+        mean: {type: [number, "null"]}
+    ConditionWindow:
+      type: object
+      required: [from, to]
+      properties:
+        from: {$ref: "#/components/schemas/Date"}
+        to: {$ref: "#/components/schemas/Date"}
+    ConditionPmddChart:
+      type: object
+      required: [required_cycles, complete_cycles, ready, pattern, cycles, alerts]
+      properties:
+        required_cycles: {type: integer, const: 2}
+        complete_cycles: {type: integer, minimum: 0, maximum: 2}
+        ready: {type: boolean}
+        pattern: {type: string, enum: [luteal, unclear, not_enough_data]}
+        cycles:
+          type: array
+          maxItems: 3
+          description: "The current cycle first, then up to two closed ones."
+          items:
+            type: object
+            required: [start, end, closed, complete, period, late_luteal, follicular, luteal_days, follicular_days, luteal_mean, follicular_mean, days]
+            properties:
+              start: {$ref: "#/components/schemas/Date"}
+              end: {$ref: "#/components/schemas/Date"}
+              closed: {type: boolean}
+              complete: {type: boolean}
+              period: {$ref: "#/components/schemas/ConditionWindow"}
+              late_luteal: {$ref: "#/components/schemas/ConditionWindow"}
+              follicular: {$ref: "#/components/schemas/ConditionWindow"}
+              luteal_days: {type: integer}
+              follicular_days: {type: integer}
+              luteal_mean: {type: [number, "null"]}
+              follicular_mean: {type: [number, "null"]}
+              days:
+                type: array
+                items:
+                  type: object
+                  required: [date, cycle_day, in_period, late_luteal, mean, scores]
+                  properties:
+                    date: {$ref: "#/components/schemas/Date"}
+                    cycle_day: {type: integer, minimum: 1}
+                    in_period: {type: boolean}
+                    late_luteal: {type: boolean}
+                    mean: {type: number}
+                    scores: {type: object, additionalProperties: {type: integer}}
+        alerts: {type: array, items: {$ref: "#/components/schemas/ConditionAlert"}}
+    ConditionPbacDay:
+      type: object
+      required: [date, light, medium, heavy, clots, flooding, score, period, alert_threshold, alert]
+      properties:
+        date: {$ref: "#/components/schemas/Date"}
+        light: {type: integer, minimum: 0, maximum: 50}
+        medium: {type: integer, minimum: 0, maximum: 50}
+        heavy: {type: integer, minimum: 0, maximum: 50}
+        clots: {type: [string, "null"], enum: [none, small, large, null]}
+        flooding: {type: boolean}
+        score: {type: integer, minimum: 0, description: "the day's PBAC score"}
+        period:
+          oneOf:
+            - {type: "null"}
+            - type: object
+              required: [start, end, day, score, days_logged]
+              properties:
+                start: {$ref: "#/components/schemas/Date"}
+                end: {$ref: "#/components/schemas/Date"}
+                day: {type: integer, minimum: 1, description: "«روز ۲ پریود»"}
+                score: {type: integer, minimum: 0}
+                days_logged: {type: integer, minimum: 0}
+        alert_threshold: {type: integer, const: 100}
+        alert: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/ConditionAlert"}]}
+    ConditionAlert:
+      type: object
+      description: "A `condition_alerts` catalog item, title/body/meta picked for the request locale (meta.severity info|caution|urgent; pmdd_crisis meta.hotlines [{number, label}])."
+      required: [code, title, body, meta, audiences, needs_review]
+      properties:
+        code: {type: string}
+        title: {type: [string, "null"]}
+        body: {type: [string, "null"]}
+        meta: {}
+        audiences: {oneOf: [{type: "null"}, {type: array, items: {type: string}}]}
+        needs_review: {type: boolean}
     FertilityDay:
       type: object
       required: [date, cycle_day, lh, mucus, bbt, bbt_time, intercourse, symptoms, note, chance]

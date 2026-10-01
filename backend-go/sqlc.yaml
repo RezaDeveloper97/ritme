@@ -163,3 +163,9 @@ sql:
       go:
         <<: *go
         out: internal/menopause/store
+  - <<: *pkg
+    queries: db/queries/conditions
+    gen:
+      go:
+        <<: *go
+        out: internal/conditions/store

@@ -1,0 +1,27 @@
+{
+  "case": "conditions/pmdd_bad_date",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/conditions/pmdd/23-09-2026",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errors": {
+          "date": [
+            "The date field must match the format Y-m-d."
+          ]
+        }
+      }
+    }
+  ]
+}

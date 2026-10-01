@@ -1,0 +1,41 @@
+{
+    "messages": {
+        "validation_failed": "اطلاعات واردشده نامعتبر است",
+        "enrolled": "به برنامه پیوستی",
+        "left": "از برنامه خارج شدی؛ ثبت‌هایت می‌ماند",
+        "pain_saved": "دفترچه درد ذخیره شد",
+        "pmdd_saved": "پرسشنامه امروز ذخیره شد",
+        "pbac_saved": "جدول خونریزی ذخیره شد"
+    },
+    "validation": {
+        "date_future": "ثبت برای روزهای آینده ممکن نیست.",
+        "program_required": "اول به این برنامه بپیوند.",
+        "locations_required": "برای درد بالاتر از ۰، محل درد را انتخاب کن.",
+        "score_required": "شدت درد را انتخاب کن."
+    },
+    "attributes": {
+        "date": "تاریخ",
+        "program": "برنامه",
+        "enrolled_on": "تاریخ پیوستن",
+        "score": "شدت درد",
+        "locations": "محل درد",
+        "locations.*": "محل درد",
+        "relief": "روش تسکین",
+        "relief.*": "روش تسکین",
+        "types": "نوع درد",
+        "types.*": "نوع درد",
+        "associated": "علائم همراه",
+        "associated.*": "علامت همراه",
+        "missed_activity": "نرفتن سر کار یا درس",
+        "analgesic": "مسکن",
+        "analgesic_time": "ساعت مصرف مسکن",
+        "analgesic_effect": "اثر مسکن",
+        "scores": "امتیازها",
+        "scores.*": "امتیاز",
+        "light": "نوار کمی خیس",
+        "medium": "نوار نیمه خیس",
+        "heavy": "نوار کاملاً خیس",
+        "clots": "لخته",
+        "flooding": "نشت از نوار به لباس"
+    }
+}

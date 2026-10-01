@@ -1,0 +1,139 @@
+{
+  "case": "conditions/pmdd_chart.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/conditions/pmdd/chart",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "required_cycles": 2,
+          "complete_cycles": 0,
+          "ready": false,
+          "pattern": "not_enough_data",
+          "cycles": [
+            {
+              "start": "2026-09-14",
+              "end": "2026-10-11",
+              "closed": false,
+              "complete": false,
+              "period": {
+                "from": "2026-09-14",
+                "to": "2026-09-18"
+              },
+              "late_luteal": {
+                "from": "2026-10-02",
+                "to": "2026-10-11"
+              },
+              "follicular": {
+                "from": "2026-09-17",
+                "to": "2026-09-23"
+              },
+              "luteal_days": 0,
+              "follicular_days": 0,
+              "luteal_mean": null,
+              "follicular_mean": null,
+              "days": []
+            },
+            {
+              "start": "2026-08-17",
+              "end": "2026-09-13",
+              "closed": true,
+              "complete": false,
+              "period": {
+                "from": "2026-08-17",
+                "to": "2026-08-21"
+              },
+              "late_luteal": {
+                "from": "2026-09-04",
+                "to": "2026-09-13"
+              },
+              "follicular": {
+                "from": "2026-08-20",
+                "to": "2026-08-26"
+              },
+              "luteal_days": 0,
+              "follicular_days": 0,
+              "luteal_mean": null,
+              "follicular_mean": null,
+              "days": []
+            },
+            {
+              "start": "2026-07-20",
+              "end": "2026-08-16",
+              "closed": true,
+              "complete": false,
+              "period": {
+                "from": "2026-07-20",
+                "to": "2026-07-24"
+              },
+              "late_luteal": {
+                "from": "2026-08-07",
+                "to": "2026-08-16"
+              },
+              "follicular": {
+                "from": "2026-07-23",
+                "to": "2026-07-29"
+              },
+              "luteal_days": 0,
+              "follicular_days": 0,
+              "luteal_mean": null,
+              "follicular_mean": null,
+              "days": []
+            }
+          ],
+          "alerts": [
+            {
+              "code": "pmdd_not_enough_data",
+              "title": "هنوز داده کافی نیست",
+              "body": "برای دیدن الگو، هم در هفته بعد از پریود و هم در ۱۰ روز آخر سیکل هر روز ثبت کن.",
+              "meta": {
+                "severity": "info"
+              },
+              "audiences": null,
+              "needs_review": true
+            },
+            {
+              "code": "pmdd_needs_two_cycles",
+              "title": "برای جمع‌بندی، ۲ سیکل ثبت کامل لازم است",
+              "body": "یک سیکل کامل یعنی دست‌کم ۷ روز از ۱۰ روز آخر سیکل و ۴ روز از روزهای ۴ تا ۱۰ سیکل را ثبت کرده باشی.",
+              "meta": {
+                "severity": "info"
+              },
+              "audiences": null,
+              "needs_review": true
+            },
+            {
+              "code": "pmdd_crisis",
+              "title": "اگر به آسیب زدن به خودت فکر می‌کنی",
+              "body": "همین حالا با صدای مشاور ۱۴۸۰ یا اورژانس اجتماعی ۱۲۳ تماس بگیر.",
+              "meta": {
+                "severity": "urgent",
+                "hotlines": [
+                  {
+                    "number": "1480",
+                    "label": "صدای مشاور"
+                  },
+                  {
+                    "number": "123",
+                    "label": "اورژانس اجتماعی"
+                  }
+                ]
+              },
+              "audiences": null,
+              "needs_review": true
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

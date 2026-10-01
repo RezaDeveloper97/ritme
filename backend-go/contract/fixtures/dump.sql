@@ -176,7 +176,7 @@ CREATE TABLE `catalog_items` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `catalog_items_group_code_unique` (`group`,`code`),
   KEY `catalog_items_group_is_active_sort_order_index` (`group`,`is_active`,`sort_order`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 LOCK TABLES `catalog_items` WRITE;
@@ -191,7 +191,35 @@ INSERT INTO `catalog_items` VALUES
 (7,'missed_pill_rules','combined_one',1,1,NULL,'{\"fa\":\"۱ قرص (کمتر از ۴۸ ساعت دیر)\",\"en\":\"1 pill (less than 48 hours late)\"}','{\"fa\":\"این راهنمای عمومی قرص ترکیبی است. در صورت شک با پزشک یا داروساز صحبت کن.\",\"en\":\"This is general guidance for the combined pill. If in doubt, talk to a doctor or pharmacist.\"}','{\"methods\":[\"combined_pill\"],\"missed\":1,\"severity\":\"caution\",\"steps\":[{\"fa\":\"قرص جاافتاده را همین حالا بخور، حتی اگر یعنی امروز دو قرص بخوری.\",\"en\":\"Take the missed pill now, even if it means taking two pills today.\"},{\"fa\":\"بقیه قرص‌ها را طبق معمول ادامه بده.\",\"en\":\"Carry on with the rest of the pack as usual.\"}]}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
 (8,'missed_pill_rules','combined_two_plus',2,1,NULL,'{\"fa\":\"۲ قرص یا بیشتر\",\"en\":\"2 or more pills\"}','{\"fa\":\"این راهنمای عمومی قرص ترکیبی است. در صورت شک با پزشک یا داروساز صحبت کن.\",\"en\":\"This is general guidance for the combined pill. If in doubt, talk to a doctor or pharmacist.\"}','{\"methods\":[\"combined_pill\"],\"missed\":2,\"severity\":\"caution\",\"steps\":[{\"fa\":\"آخرین قرص جاافتاده را همین حالا بخور، حتی اگر یعنی امروز دو قرص بخوری.\",\"en\":\"Take the last missed pill now, even if it means taking two pills today.\"},{\"fa\":\"بقیه قرص‌ها را طبق معمول ادامه بده.\",\"en\":\"Carry on with the rest of the pack as usual.\"},{\"fa\":\"تا ۷ روز پشت سر هم قرص نخورده‌ای، از کاندوم استفاده کن.\",\"en\":\"Use condoms until you have taken 7 pills in a row.\"},{\"fa\":\"اگر در ۷ روز آخر قرص‌های فعال هستی، بعد از تمام شدنشان روزهای استراحت را حذف کن و بسته بعد را مستقیم شروع کن.\",\"en\":\"If you are in the last 7 active pills, skip the break after them and start the next pack straight away.\"}]}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
 (9,'missed_pill_rules','week1_unprotected',3,1,NULL,'{\"fa\":\"اگر در هفته اول بسته رابطه محافظت‌نشده داشتی\",\"en\":\"If you had unprotected sex in the first week of the pack\"}','{\"fa\":\"ممکن است به پیشگیری اضطراری نیاز داشته باشی. هر چه زودتر با پزشک یا داروساز مشورت کن.\",\"en\":\"You may need emergency contraception. Talk to a doctor or pharmacist as soon as possible.\"}','{\"methods\":[\"combined_pill\"],\"severity\":\"urgent\",\"pack_week\":1}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
-(10,'missed_pill_rules','progestin_note',4,1,NULL,'{\"fa\":\"قرص تک‌هورمونی\",\"en\":\"Progestogen-only pill\"}','{\"fa\":\"برای قرص تک‌هورمونی قواعد فرق دارد و به نوع قرص بستگی دارد؛ در صورت شک با پزشک یا داروساز صحبت کن.\",\"en\":\"The rules differ for the progestogen-only pill and depend on the type of pill; if in doubt, talk to a doctor or pharmacist.\"}','{\"methods\":[\"progestin_pill\"],\"severity\":\"caution\",\"steps\":[{\"fa\":\"قرص جاافتاده را به محض یادآوری بخور و قرص بعدی را سر ساعت همیشگی بخور.\",\"en\":\"Take the missed pill as soon as you remember and the next one at the usual time.\"},{\"fa\":\"اگر بیشتر از زمان مجاز نوع قرصت دیر کردی، تا ۲ روز از کاندوم استفاده کن.\",\"en\":\"If you are later than your pill type allows, use condoms for the next 2 days.\"}]}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00');
+(10,'missed_pill_rules','progestin_note',4,1,NULL,'{\"fa\":\"قرص تک‌هورمونی\",\"en\":\"Progestogen-only pill\"}','{\"fa\":\"برای قرص تک‌هورمونی قواعد فرق دارد و به نوع قرص بستگی دارد؛ در صورت شک با پزشک یا داروساز صحبت کن.\",\"en\":\"The rules differ for the progestogen-only pill and depend on the type of pill; if in doubt, talk to a doctor or pharmacist.\"}','{\"methods\":[\"progestin_pill\"],\"severity\":\"caution\",\"steps\":[{\"fa\":\"قرص جاافتاده را به محض یادآوری بخور و قرص بعدی را سر ساعت همیشگی بخور.\",\"en\":\"Take the missed pill as soon as you remember and the next one at the usual time.\"},{\"fa\":\"اگر بیشتر از زمان مجاز نوع قرصت دیر کردی، تا ۲ روز از کاندوم استفاده کن.\",\"en\":\"If you are later than your pill type allows, use condoms for the next 2 days.\"}]}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(11,'condition_programs','endo',1,1,NULL,'{\"fa\":\"اندومتریوز\",\"en\":\"Endometriosis\"}','{\"fa\":\"دفترچه درد با محل و شدت\",\"en\":\"A pain diary with location and intensity\"}','{\"logs\":{\"fa\":\"محل درد، شدت، نوع درد، اثر دارو\",\"en\":\"pain location, intensity, type of pain, painkiller effect\"}}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(12,'condition_programs','pmdd',2,1,NULL,'{\"fa\":\"اختلال شدید پیش از قاعدگی (PMDD)\",\"en\":\"Premenstrual dysphoric disorder (PMDD)\"}','{\"fa\":\"پرسشنامه روزانه خلق برای ۲ سیکل\",\"en\":\"A daily mood questionnaire for 2 cycles\"}','{\"logs\":{\"fa\":\"خلق، اضطراب، تحریک‌پذیری، تمرکز\",\"en\":\"mood, anxiety, irritability, concentration\"}}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(13,'condition_programs','heavy_bleeding',3,1,NULL,'{\"fa\":\"خونریزی شدید\",\"en\":\"Heavy bleeding\"}','{\"fa\":\"جدول امتیاز خونریزی و خطر کم‌خونی\",\"en\":\"A bleeding score chart and anaemia risk\"}','{\"logs\":{\"fa\":\"تعداد و میزان خیس شدن نوار، لخته\",\"en\":\"number of pads and how soaked they are, clots\"}}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(14,'condition_programs','pcos',4,1,NULL,'{\"fa\":\"سندرم تخمدان پلی‌کیستیک\",\"en\":\"Polycystic ovary syndrome (PCOS)\"}','{\"fa\":\"نظم سیکل، پوست و مو، وزن و قند\",\"en\":\"Cycle regularity, skin and hair, weight and blood sugar\"}','{\"logs\":{\"fa\":\"فاصله پریودها، آکنه، موهای زائد، وزن\",\"en\":\"time between periods, acne, unwanted hair, weight\"}}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(15,'pain_types','cramping',1,1,NULL,'{\"fa\":\"گرفتگی\",\"en\":\"Cramping\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(16,'pain_types','stabbing',2,1,NULL,'{\"fa\":\"تیر کشنده\",\"en\":\"Stabbing\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(17,'pain_types','burning',3,1,NULL,'{\"fa\":\"سوزشی\",\"en\":\"Burning\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(18,'pain_types','dull_heavy',4,1,NULL,'{\"fa\":\"مبهم و سنگین\",\"en\":\"Dull and heavy\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(19,'pain_associated','dyspareunia',1,1,NULL,'{\"fa\":\"درد در رابطه\",\"en\":\"Pain during sex\"}',NULL,'{\"log\":\"sex.symptoms.pain_during_intercourse\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(20,'pain_associated','dyschezia',2,1,NULL,'{\"fa\":\"درد هنگام اجابت مزاج\",\"en\":\"Pain with bowel movements\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(21,'pain_associated','dysuria',3,1,NULL,'{\"fa\":\"درد هنگام ادرار\",\"en\":\"Pain when urinating\"}',NULL,'{\"log\":\"urogenital.symptoms.urination_burning\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(22,'pain_associated','bloating',4,1,NULL,'{\"fa\":\"نفخ\",\"en\":\"Bloating\"}',NULL,'{\"log\":\"symptoms.digestive.bloating\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(23,'pain_associated','nausea',5,1,NULL,'{\"fa\":\"تهوع\",\"en\":\"Nausea\"}',NULL,'{\"log\":\"symptoms.digestive.nausea\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(24,'pmdd_items','sadness',1,1,NULL,'{\"fa\":\"غمگینی یا ناامیدی\",\"en\":\"Sadness or hopelessness\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(25,'pmdd_items','anxiety',2,1,NULL,'{\"fa\":\"اضطراب یا تنش\",\"en\":\"Anxiety or tension\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(26,'pmdd_items','mood_swings',3,1,NULL,'{\"fa\":\"نوسان خلق و زودرنجی\",\"en\":\"Mood swings or feeling easily hurt\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(27,'pmdd_items','anger',4,1,NULL,'{\"fa\":\"عصبانیت یا درگیری با دیگران\",\"en\":\"Anger or conflicts with others\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(28,'pmdd_items','loss_of_interest',5,1,NULL,'{\"fa\":\"بی‌علاقگی به کارهای معمول\",\"en\":\"Less interest in usual activities\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(29,'pmdd_items','concentration',6,1,NULL,'{\"fa\":\"سختی در تمرکز\",\"en\":\"Difficulty concentrating\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(30,'condition_alerts','not_a_diagnosis',1,1,NULL,'{\"fa\":\"این برنامه‌ها تشخیص نمی‌دهند\",\"en\":\"These programs do not diagnose\"}','{\"fa\":\"کمک می‌کنند با داده دقیق نزد پزشک بروی.\",\"en\":\"They help you see your doctor with accurate data.\"}','{\"severity\":\"info\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(31,'condition_alerts','pain_scale',2,1,NULL,'{\"fa\":\"شدت درد از ۰ تا ۱۰\",\"en\":\"Pain from 0 to 10\"}','{\"fa\":\"۰ یعنی بدون درد و ۱۰ بدترین درد ممکن. درد شدید یا ناگهانی، تب یا غش را همان روز به پزشک بگو.\",\"en\":\"0 means no pain and 10 the worst pain possible. Tell a doctor the same day about severe or sudden pain, fever or fainting.\"}','{\"severity\":\"info\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(32,'condition_alerts','pbac_scoring',3,1,NULL,'{\"fa\":\"امتیاز خونریزی چطور حساب می‌شود؟\",\"en\":\"How is the bleeding score counted?\"}','{\"fa\":\"هر نوار کمی خیس ۱ امتیاز، نیمه خیس ۵ و کاملاً خیس ۲۰ امتیاز دارد؛ لخته کوچک ۱، لخته بزرگ ۵ و نشت از نوار به لباس ۵ امتیاز. جمع یک پریود بالای ۱۰۰ معمولاً یعنی خونریزی شدید.\",\"en\":\"Each lightly soaked pad scores 1, half soaked 5 and fully soaked 20; a small clot 1, a large clot 5 and leaking through to clothes 5. A period total over 100 usually means heavy bleeding.\"}','{\"severity\":\"info\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(33,'condition_alerts','pbac_over_100',4,1,NULL,'{\"fa\":\"امتیاز این پریود از ۱۰۰ بیشتر شده\",\"en\":\"This period\'s score is over 100\"}','{\"fa\":\"معمولاً یعنی خونریزی شدید است. به پزشک بگو و درباره آزمایش کم‌خونی (هموگلوبین و فریتین) بپرس.\",\"en\":\"This usually means heavy bleeding. Tell your doctor and ask about an anaemia test (haemoglobin and ferritin).\"}','{\"severity\":\"caution\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(34,'condition_alerts','pmdd_needs_two_cycles',5,1,NULL,'{\"fa\":\"برای جمع‌بندی، ۲ سیکل ثبت کامل لازم است\",\"en\":\"2 fully logged cycles are needed for a summary\"}','{\"fa\":\"یک سیکل کامل یعنی دست‌کم ۷ روز از ۱۰ روز آخر سیکل و ۴ روز از روزهای ۴ تا ۱۰ سیکل را ثبت کرده باشی.\",\"en\":\"A cycle counts as fully logged when you rated at least 7 of its last 10 days and 4 of its days 4 to 10.\"}','{\"severity\":\"info\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(35,'condition_alerts','pmdd_pattern_luteal',6,1,NULL,'{\"fa\":\"الگوی تو\",\"en\":\"Your pattern\"}','{\"fa\":\"علائم در ۱۰ روز آخر سیکل بالا می‌رود و با شروع پریود کم می‌شود.\",\"en\":\"Symptoms rise in the last 10 days of the cycle and ease when your period starts.\"}','{\"severity\":\"info\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(36,'condition_alerts','pmdd_pattern_unclear',7,1,NULL,'{\"fa\":\"الگوی تو\",\"en\":\"Your pattern\"}','{\"fa\":\"هنوز الگوی روشنی بین ۱۰ روز آخر سیکل و هفته بعد از پریود دیده نمی‌شود. ثبت روزانه را ادامه بده.\",\"en\":\"There is no clear difference yet between the last 10 days of the cycle and the week after your period. Keep rating every day.\"}','{\"severity\":\"info\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(37,'condition_alerts','pmdd_not_enough_data',8,1,NULL,'{\"fa\":\"هنوز داده کافی نیست\",\"en\":\"Not enough data yet\"}','{\"fa\":\"برای دیدن الگو، هم در هفته بعد از پریود و هم در ۱۰ روز آخر سیکل هر روز ثبت کن.\",\"en\":\"To see a pattern, rate every day in the week after your period and in the last 10 days of the cycle.\"}','{\"severity\":\"info\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(38,'condition_alerts','pmdd_crisis',9,1,NULL,'{\"fa\":\"اگر به آسیب زدن به خودت فکر می‌کنی\",\"en\":\"If you are thinking about hurting yourself\"}','{\"fa\":\"همین حالا با صدای مشاور ۱۴۸۰ یا اورژانس اجتماعی ۱۲۳ تماس بگیر.\",\"en\":\"Call the 1480 counselling line or the 123 social emergency line right now.\"}','{\"severity\":\"urgent\",\"hotlines\":[{\"number\":\"1480\",\"label\":{\"fa\":\"صدای مشاور\",\"en\":\"Counselling line\"}},{\"number\":\"123\",\"label\":{\"fa\":\"اورژانس اجتماعی\",\"en\":\"Social emergency\"}}]}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00');
 /*!40000 ALTER TABLE `catalog_items` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `challenges`;
@@ -244,6 +272,51 @@ INSERT INTO `challenges` VALUES
 (24,'magnesium-before-period','{\"fa\":\"\\u0645\\u0646\\u06cc\\u0632\\u06cc\\u0645 \\u0642\\u0628\\u0644 \\u0627\\u0632 \\u067e\\u0631\\u06cc\\u0648\\u062f\",\"en\":\"Magnesium before your period\"}','{\"fa\":\"\\u062e\\u0648\\u0631\\u0627\\u06a9\\u06cc\\u200c\\u0647\\u0627\\u06cc \\u067e\\u0631\\u0645\\u0646\\u06cc\\u0632\\u06cc\\u0645 \\u0645\\u062b\\u0644 \\u0628\\u0627\\u062f\\u0627\\u0645 \\u0648 \\u0634\\u06a9\\u0644\\u0627\\u062a \\u062a\\u0644\\u062e \\u0628\\u0647 \\u0633\\u0646\\u062f\\u0631\\u0645 \\u067e\\u06cc\\u0634 \\u0627\\u0632 \\u0642\\u0627\\u0639\\u062f\\u06af\\u06cc \\u06a9\\u0645\\u06a9 \\u0645\\u06cc\\u200c\\u06a9\\u0646\\u0646\\u062f\",\"en\":\"Magnesium-rich foods like almonds and dark chocolate help with PMS\"}',20,28,'nutrition',1,24,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
 (25,'gentle-with-yourself-pms','{\"fa\":\"\\u0628\\u0627 \\u062e\\u0648\\u062f\\u062a \\u0645\\u0647\\u0631\\u0628\\u0627\\u0646 \\u0628\\u0627\\u0634\",\"en\":\"Be gentle with yourself\"}','{\"fa\":\"\\u0631\\u0648\\u0632\\u0647\\u0627\\u06cc \\u067e\\u06cc\\u0634 \\u0627\\u0632 \\u0642\\u0627\\u0639\\u062f\\u06af\\u06cc \\u0646\\u0648\\u0633\\u0627\\u0646 \\u062e\\u0644\\u0642 \\u0637\\u0628\\u06cc\\u0639\\u06cc \\u0627\\u0633\\u062a\\u061b \\u0627\\u0645\\u0631\\u0648\\u0632 \\u06cc\\u06a9 \\u06a9\\u0627\\u0631 \\u0622\\u0631\\u0627\\u0645\\u200c\\u0628\\u062e\\u0634 \\u0628\\u0631\\u0627\\u06cc \\u062e\\u0648\\u062f\\u062a \\u0628\\u06a9\\u0646\",\"en\":\"Mood swings before your period are normal \\u2014 do one calming thing for yourself today\"}',24,35,'mindfulness',1,25,'2026-09-23 09:00:00','2026-09-23 09:00:00');
 /*!40000 ALTER TABLE `challenges` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `condition_enrolments`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `condition_enrolments` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `program` varchar(32) NOT NULL,
+  `enrolled_on` date NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `condition_enrolments_user_id_program_unique` (`user_id`,`program`),
+  CONSTRAINT `condition_enrolments_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `condition_enrolments` WRITE;
+/*!40000 ALTER TABLE `condition_enrolments` DISABLE KEYS */;
+/*!40000 ALTER TABLE `condition_enrolments` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `condition_pain_entries`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `condition_pain_entries` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `entry_date` date NOT NULL,
+  `pain_types` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`pain_types`)),
+  `associated` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`associated`)),
+  `missed_activity` tinyint(1) DEFAULT NULL,
+  `analgesic` varchar(100) DEFAULT NULL,
+  `analgesic_time` varchar(5) DEFAULT NULL,
+  `analgesic_effect` varchar(16) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `condition_pain_entries_user_id_entry_date_unique` (`user_id`,`entry_date`),
+  CONSTRAINT `condition_pain_entries_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `condition_pain_entries` WRITE;
+/*!40000 ALTER TABLE `condition_pain_entries` DISABLE KEYS */;
+/*!40000 ALTER TABLE `condition_pain_entries` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `contraception_methods`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -1270,6 +1343,29 @@ LOCK TABLES `password_reset_tokens` WRITE;
 /*!40000 ALTER TABLE `password_reset_tokens` DISABLE KEYS */;
 /*!40000 ALTER TABLE `password_reset_tokens` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `pbac_entries`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `pbac_entries` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `entry_date` date NOT NULL,
+  `light_count` tinyint(3) unsigned NOT NULL DEFAULT 0,
+  `medium_count` tinyint(3) unsigned NOT NULL DEFAULT 0,
+  `heavy_count` tinyint(3) unsigned NOT NULL DEFAULT 0,
+  `flooding` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `pbac_entries_user_id_entry_date_unique` (`user_id`,`entry_date`),
+  CONSTRAINT `pbac_entries_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `pbac_entries` WRITE;
+/*!40000 ALTER TABLE `pbac_entries` DISABLE KEYS */;
+/*!40000 ALTER TABLE `pbac_entries` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `pelvic_bladder_logs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -1613,6 +1709,26 @@ CREATE TABLE `plus_usage_counters` (
 LOCK TABLES `plus_usage_counters` WRITE;
 /*!40000 ALTER TABLE `plus_usage_counters` DISABLE KEYS */;
 /*!40000 ALTER TABLE `plus_usage_counters` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `pmdd_entries`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `pmdd_entries` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `entry_date` date NOT NULL,
+  `scores` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`scores`)),
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `pmdd_entries_user_id_entry_date_unique` (`user_id`,`entry_date`),
+  CONSTRAINT `pmdd_entries_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `pmdd_entries` WRITE;
+/*!40000 ALTER TABLE `pmdd_entries` DISABLE KEYS */;
+/*!40000 ALTER TABLE `pmdd_entries` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `pregnancy_alerts`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

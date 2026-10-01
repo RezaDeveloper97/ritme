@@ -125,3 +125,12 @@ TODO (ask user):
 - Verify: sqlc, vet, go test ./..., golangci-lint 0, schema-diff OK, contract all green, migrations round-trip int test.
 - Pre-existing red int tests (not this task): internal/catalog admin tests assume empty catalog_items (broken since 00010/00017 seeds); internal/admin/languages, internal/admin/messages.
 - TODO (ask user): Jalali score month; checkups inactive until CB-MENO-01b; eye/dental split; relaxation 70 min/week; «گرما» → warm_room. All 40 catalog rows + 9 checkups [needs clinical review].
+
+## CB-COND-01 — Condition programs backend: enrolment, pain diary, PMDD, PBAC
+- Routes (Go-only, auth:api, throttled writes; deviation D-40): `GET /api/v1/conditions`, `POST /conditions/enrolments`, `DELETE /conditions/enrolments/{program}`, `GET|PUT /conditions/pain/{date}`, `GET /conditions/pmdd/chart`, `GET|PUT /conditions/pmdd/{date}`, `GET|PUT /conditions/pbac/{date}`. OpenAPI tag `Conditions` (10 ops), contract `cases/conditions.yaml` (42 goldens).
+- Goose `00023` (+ twin `2026_10_01_000023`): `condition_enrolments`, `condition_pain_entries`, `pmdd_entries`, `pbac_entries`. Pain locations/score/relief, slot-backed associated symptoms and PBAC clots are written to bloom's `health_log_entries` via `healthlog.Service.SaveDay` in the same tx — no parallel log.
+- Catalog (needs_review): `condition_programs` 4, `pain_types` 4, `pain_associated` 5 (meta `log`), `pmdd_items` 6, `condition_alerts` 9 (crisis hotlines 1480/123).
+- PMDD: late-luteal = last 10 days, follicular = days 4–10, complete cycle 7+4 rated days, ready = 2 cycles, luteal pattern at ≥1.3× rise. PBAC 1/5/20, clots 1/5, flooding 5, alert ≥100, 10-day window.
+- Verify: sqlc, vet, go test ./..., unit + int conditions, golangci-lint 0, OpenAPI, contract all, schema-diff OK. Pre-existing red: internal/catalog admin tests.
+- Open: pain diary rewrites every location with one score (overwrites per-location scores from the log sheet); board's finer pain locations not in bloom's taxonomy; admin hints for meta `log`/`logs`/`hotlines`; not in /profile/export; no docs/canvas-build/conditions.md.
+- TODO (ask user): writes require enrolment; `associated: null` clears slot-backed symptoms; PMDD mean over rated items only; export inclusion. All clinical rules/copy [needs clinical review].

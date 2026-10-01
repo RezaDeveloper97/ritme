@@ -154,6 +154,29 @@ type CheckupType struct {
 	Audiences         db.NullRawJSON
 }
 
+type ConditionEnrolment struct {
+	ID         uint64
+	UserID     uint64
+	Program    string
+	EnrolledOn civildate.Date
+	CreatedAt  sql.NullTime
+	UpdatedAt  sql.NullTime
+}
+
+type ConditionPainEntry struct {
+	ID              uint64
+	UserID          uint64
+	EntryDate       civildate.Date
+	PainTypes       db.NullRawJSON
+	Associated      db.NullRawJSON
+	MissedActivity  sql.NullBool
+	Analgesic       sql.NullString
+	AnalgesicTime   sql.NullString
+	AnalgesicEffect sql.NullString
+	CreatedAt       sql.NullTime
+	UpdatedAt       sql.NullTime
+}
+
 type ContraceptionMethod struct {
 	ID               uint64
 	UserID           uint64
@@ -513,6 +536,18 @@ type PasswordResetToken struct {
 	CreatedAt sql.NullTime
 }
 
+type PbacEntry struct {
+	ID          uint64
+	UserID      uint64
+	EntryDate   civildate.Date
+	LightCount  uint8
+	MediumCount uint8
+	HeavyCount  uint8
+	Flooding    bool
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+}
+
 type PelvicBladderLog struct {
 	ID          uint64
 	UserID      uint64
@@ -683,6 +718,15 @@ type PlusUsageCounter struct {
 	Used        uint32
 	CreatedAt   sql.NullTime
 	UpdatedAt   sql.NullTime
+}
+
+type PmddEntry struct {
+	ID        uint64
+	UserID    uint64
+	EntryDate civildate.Date
+	Scores    json.RawMessage
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
 }
 
 type PregnancyAlert struct {

@@ -1,0 +1,33 @@
+{
+  "case": "conditions/pmdd_without_program.none",
+  "steps": [
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/conditions/pmdd/2026-09-23",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "scores": {
+            "sadness": 3
+          }
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": false,
+        "message": "اطلاعات واردشده نامعتبر است",
+        "errors": {
+          "program": [
+            "اول به این برنامه بپیوند."
+          ]
+        }
+      }
+    }
+  ]
+}

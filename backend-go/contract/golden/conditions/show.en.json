@@ -1,0 +1,45 @@
+{
+  "case": "conditions/show.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/conditions",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "programs": [
+            {
+              "code": "endo",
+              "enrolled": false,
+              "enrolled_on": null
+            },
+            {
+              "code": "pmdd",
+              "enrolled": false,
+              "enrolled_on": null
+            },
+            {
+              "code": "heavy_bleeding",
+              "enrolled": false,
+              "enrolled_on": null
+            },
+            {
+              "code": "pcos",
+              "enrolled": false,
+              "enrolled_on": null
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

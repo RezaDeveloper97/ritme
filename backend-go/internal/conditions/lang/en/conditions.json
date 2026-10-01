@@ -1,0 +1,41 @@
+{
+    "messages": {
+        "validation_failed": "Validation failed",
+        "enrolled": "You joined the program",
+        "left": "You left the program; your entries are kept",
+        "pain_saved": "Pain diary saved",
+        "pmdd_saved": "Today's questionnaire saved",
+        "pbac_saved": "Bleeding chart saved"
+    },
+    "validation": {
+        "date_future": "You cannot log a future day.",
+        "program_required": "Join this program first.",
+        "locations_required": "Choose where it hurts for a pain above 0.",
+        "score_required": "Choose how strong the pain is."
+    },
+    "attributes": {
+        "date": "date",
+        "program": "program",
+        "enrolled_on": "join date",
+        "score": "pain score",
+        "locations": "pain location",
+        "locations.*": "pain location",
+        "relief": "relief",
+        "relief.*": "relief",
+        "types": "pain type",
+        "types.*": "pain type",
+        "associated": "associated symptoms",
+        "associated.*": "associated symptom",
+        "missed_activity": "missed work or school",
+        "analgesic": "painkiller",
+        "analgesic_time": "painkiller time",
+        "analgesic_effect": "painkiller effect",
+        "scores": "scores",
+        "scores.*": "score",
+        "light": "lightly soaked pads",
+        "medium": "half soaked pads",
+        "heavy": "fully soaked pads",
+        "clots": "clots",
+        "flooding": "leaking through to clothes"
+    }
+}
