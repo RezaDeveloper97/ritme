@@ -16,6 +16,8 @@ type Querier interface {
 	CountUserDiscountRedemptions(ctx context.Context, arg CountUserDiscountRedemptionsParams) (int64, error)
 	// The period that covers `now` (canceled = auto-renew off, still valid); the latest-ending one wins.
 	CurrentSubscription(ctx context.Context, arg CurrentSubscriptionParams) (PlusSubscription, error)
+	// Clears an override so the code / env default applies again.
+	DeleteSetting(ctx context.Context, key string) error
 	GetActivePlan(ctx context.Context, id uint64) (PlusPlan, error)
 	GetInvoiceReceipt(ctx context.Context, arg GetInvoiceReceiptParams) (PlusReceipt, error)
 	GetPlan(ctx context.Context, id uint64) (PlusPlan, error)

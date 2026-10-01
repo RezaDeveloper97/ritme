@@ -493,3 +493,61 @@ same role as `/users`: rows carry the user's mobile and free text). No health da
 The screenshot lives on the private part of the storage volume and has no public URL; the storage path is never
 sent. admin-web fetches it with the session cookie (`credentials: 'include'`) and shows it from an object URL.
 Audit lines: `support_report.resolve|reopen|screenshot`.
+
+## 15. Subscriptions & payments — «اشتراک‌ها و پرداخت» (B-N2-09)
+
+Ritme Plus admin over `plus_plans`, `plus_discount_codes`, `plus_settings`, `plus_subscriptions`, `plus_invoices`,
+`plus_receipts` (B-N2-04/05/06). Package `internal/admin/billing`, routes `routes_admin_billing.go`. Money is integer
+**rials** (`*_rials`); admin-web shows and takes toman (÷/× 10). VAT is in basis points (1000 = 10 %).
+
+**Roles.** Every read: any active admin (**A**) — list rows carry the subscriber's name and a **masked** mobile
+(`0912•••4567`, the Admin_Users artboard rule; the full number stays on `/users/:id`). Every write: super admin
+(**S**) — plan prices, discount codes, settings, refunds and extensions all change what users pay or get. Writes pass
+the CSRF check of the admin chain (419 without the token) and each one writes a **`plus_admin_actions`** row (migration
+00019: admin id, action, target, user id, amount, days, gateway + gateway refund id, note, details JSON) plus the slog
+`admin audit` line `plus.<action>`.
+
+| Method | Path | Role | Body / query | `data` |
+|---|---|---|---|---|
+| GET | `/plus/plans` | A | — | `{items: [Plan], currency: "IRR", limits{min_price_rials, max_price_rials, max_duration_months}, next_sort_order}` (every plan, `sort_order, id`; not paginated) |
+| POST | `/plus/plans` | S | `code` (`^[a-z][a-z0-9_]*$`, unique, fixed afterwards), `title` (translatable, default language required, ≤ 64), `badge?` (translatable, ≤ 32), `duration_months` (1–36), `price_rials` (10,000 – 10¹¹), `monthly_display_rials?`, `is_highlighted?` (false), `is_active?` (true), `sort_order?` (default max + 1) | 201 `{plan}` |
+| GET | `/plus/plans/:id` | A | — | `{plan}` |
+| PUT | `/plus/plans/:id` | S | as POST without `code`; absent optional fields keep their value | `{plan}` — existing invoices keep the price they were charged |
+| DELETE | `/plus/plans/:id` | S | — | `{id, deleted, deactivated}` — a plan referenced by invoices or subscriptions is **deactivated** (and un-highlighted) instead |
+| GET | `/plus/discount-codes` | A | `q` (code substring), `status=all\|active\|inactive`, `page`, `per_page` | list of `DiscountCode` (newest first) + `filters` |
+| POST | `/plus/discount-codes` | S | `code` (3–64, `[A-Za-z0-9_-]`, stored upper-case, unique case-insensitively, fixed afterwards), `kind=percent\|amount`, `value` (percent 1–100 / rials), `max_redemptions?` (null = unlimited), `per_user_limit?` (absent = 1, null = unlimited), `plan_ids?` (existing plan ids; empty / null = every plan), `starts_at?`, `expires_at?` (≥ starts_at), `is_active?` | 201 `{discount_code}` |
+| GET | `/plus/discount-codes/:id` | A | — | `{discount_code}` |
+| PUT | `/plus/discount-codes/:id` | S | as POST without `code`; absent optional fields keep their value | `{discount_code}` |
+| DELETE | `/plus/discount-codes/:id` | S | — | `{id, deleted, deactivated}` — a code used on any invoice is deactivated instead |
+| GET | `/plus/settings` | A | — | `{settings: {trial_offer_percent, vat_rate_bps (effective), vat_override_bps\|null, vat_env_rate_bps, vat_source: env\|admin, trial_days}}` |
+| PUT | `/plus/settings` | S | `trial_offer_percent` (0–100, 0 = no offer), `vat_rate_bps?` (0–10000; **null** removes the override → `PLUS_VAT_RATE_BPS`; absent = unchanged) | same as GET; a ledger row only when something changed |
+| GET | `/plus/subscriptions` | A | `status=all\|active\|canceled\|expired\|refunded` (expired = active/canceled with `ends_at` ≤ now), `plan_id`, `from`/`to` (start date, Tehran, inclusive), `q` (part of the mobile; Persian digits accepted), `page`, `per_page` | list of `{id, user{id, name, mobile (masked)}, plan{id, code, title}\|null, invoice_reference, status, effective_status, source, starts_at, ends_at, days_left, auto_renew, canceled_at, created_at}` + `filters` + `counts{active, canceled, expired, refunded}` |
+| POST | `/plus/subscriptions/:id/extend` | S | `days` (1–365), `note` (3–500, required) | `{id, ends_at, days, queued_shifted}` — only a running period (active / canceled, not ended; else 422 `subscription_not_active`); the user's queued periods starting at/after the old end move back by the same days |
+| GET | `/plus/payments` | A | `status=all\|pending\|paid\|failed\|expired\|refunded`, `gateway`, `from`/`to` (created date), `q` (invoice reference, bank reference or part of the mobile), `page`, `per_page` | list of `{id, reference, user{…masked}, plan, duration_months, status, effective_status, subtotal_rials, discount_rials, vat_rate_bps, vat_rials, total_rials, discount_code, gateway, receipt{ref_id, amount_rials, paid_at}\|null, paid_at, created_at}` + `filters` + `summary{paid_count, paid_rials, refunded_rials}` (of the filtered rows) + `gateways` + `statuses` |
+| GET | `/plus/payments/:id` | A | — | `{payment: {…, authority, receipt{gateway, ref_id, amount_rials, paid_at}, subscriptions[{id, status, source, starts_at, ends_at}], refund{refundable, gateway_available, amount_rials}, actions[{id, action, admin{id, name}, amount_rials, days, gateway, gateway_ref, note, details, created_at}]}}` |
+| POST | `/plus/payments/:id/refund` | S | `mode=gateway\|manual`, `note` (manual: required 3–500; gateway: optional) | `{payment}` (refreshed) |
+
+`Plan` = `{id, code, title, badge, duration_months, price_rials, monthly_display_rials, monthly_price_rials, is_highlighted,
+is_active, sort_order, invoices_count, subscriptions_count, active_subscriptions, created_at, updated_at}`.
+`DiscountCode` = `{id, code, kind, value, max_redemptions, per_user_limit, plan_ids|null, starts_at, expires_at, is_active,
+uses{paid, pending}, state: active|scheduled|expired|exhausted|inactive, created_at, updated_at}`.
+
+**Card data** never leaves the API: `plus_receipts.card_pan` is not selected by any admin query.
+
+**Refunds** are full refunds of a `paid` invoice, in one READ COMMITTED transaction holding the invoice row lock (a
+second refund sees `refunded` → 422 `invoice_not_refundable`). Effects: invoice `refunded`, the subscription period(s)
+it bought `refunded` (auto-renew off; no longer entitles), one ledger row.
+- `mode=gateway` calls `payments.Gateway.Refund` (the `PAYMENT_PROVIDER` adapter) with the invoice authority, the
+  receipt's bank reference and the **receipt amount** (never a client value). The fake provider refunds; **Zarinpal
+  answers not-supported** (QUESTIONS #71) → 422 `refund_not_supported` and nothing changes; refund in the Zarinpal
+  panel, then `mode=manual`. Also `refund_not_supported` when no provider is configured or the receipt came from a
+  different provider. Provider refusal → 422 `refund_rejected`; transport failure → 502 `refund_failed`. A free
+  (100 %-discount) invoice has nothing to refund through a gateway (422 `invoice_not_refundable`) — use manual to revoke.
+- `mode=manual` records a refund made outside Ritme; the note is required. Ledger action `invoice.refund_manual`.
+
+**VAT override.** `plus_settings.vat_rate_bps` (no row = env `PLUS_VAT_RATE_BPS`). Checkout (`plus.Service` quote) and
+the public `GET /api/v1/plus/plans` read it at request time; every invoice keeps its own `vat_rate_bps` snapshot.
+
+Ledger actions: `plan.create|update|delete|deactivate`, `discount.create|update|delete|deactivate`, `settings.update`,
+`invoice.refund`, `invoice.refund_manual`, `subscription.extend`. Error codes: `invoice_not_refundable`,
+`refund_not_supported`, `refund_rejected`, `refund_failed`, `subscription_not_active` (+ the generic ones of §2).

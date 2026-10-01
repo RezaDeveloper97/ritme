@@ -61,7 +61,7 @@ func NewService(db *sql.DB, cfg config.Plus, gateway Gateway, logger *slog.Logge
 	return &Service{db: db, q: store.New(db), cfg: cfg, gateway: gateway, logger: logger}
 }
 
-// Config is the checkout configuration (VAT rate, trial length).
+// Config is the checkout configuration (env VAT rate — see VATRateBps for the effective one —, trial length).
 func (s *Service) Config() config.Plus { return s.cfg }
 
 // ---------------------------------------------------------------------------
@@ -348,7 +348,11 @@ func (s *Service) quote(ctx context.Context, q *store.Queries, userID, planID ui
 	if err != nil {
 		return Quote{}, fmt.Errorf("plus: plan: %w", err)
 	}
-	vat := uint32(s.cfg.VATRateBps) //nolint:gosec // G115: validated 0–10000 by config
+	rate, err := vatRateBps(ctx, q, s) // admin override (B-N2-09), else PLUS_VAT_RATE_BPS; the invoice snapshots it
+	if err != nil {
+		return Quote{}, err
+	}
+	vat := uint32(rate) //nolint:gosec // G115: validated 0–10000 (config / parseBps)
 	base := Quote{Plan: plan, Amounts: Price(plan.PriceRials, "", 0, vat)}
 	pct, trial, err := offerPercent(ctx, q, s, userID, now)
 	if err != nil {

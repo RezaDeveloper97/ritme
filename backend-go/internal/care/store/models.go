@@ -496,6 +496,23 @@ type PhaseContent struct {
 	UpdatedAt         sql.NullTime
 }
 
+type PlusAdminAction struct {
+	ID          uint64
+	AdminID     sql.NullInt64
+	Action      string
+	TargetType  string
+	TargetID    uint64
+	UserID      sql.NullInt64
+	AmountRials sql.NullInt64
+	Days        sql.NullInt32
+	Gateway     sql.NullString
+	GatewayRef  sql.NullString
+	Note        sql.NullString
+	Details     db.NullRawJSON
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+}
+
 type PlusDiscountCode struct {
 	ID             uint64
 	Code           string

@@ -7,13 +7,66 @@ package store
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/ritme/backend-go/internal/platform/civildate"
 )
 
 type Querier interface {
+	// ---------------------------------------------------------------------------
+	// Discount codes
+	AdminCountPlusDiscounts(ctx context.Context, arg AdminCountPlusDiscountsParams) (int64, error)
+	// ---------------------------------------------------------------------------
+	// Payment log (invoices + receipts). The receipt's card_pan is never selected.
+	AdminCountPlusInvoices(ctx context.Context, arg AdminCountPlusInvoicesParams) (int64, error)
+	// ---------------------------------------------------------------------------
+	// Subscriptions
+	//
+	// Status filter (resolved in Go): status_a / status_b are the stored statuses to match, ends_after < ends_at <=
+	// ends_until the window ("active" = stored active and ends_at > now; "expired" = active|canceled with ends_at <= now).
+	AdminCountPlusSubscriptions(ctx context.Context, arg AdminCountPlusSubscriptionsParams) (int64, error)
+	AdminCreatePlusDiscount(ctx context.Context, arg AdminCreatePlusDiscountParams) (int64, error)
+	AdminCreatePlusPlan(ctx context.Context, arg AdminCreatePlusPlanParams) (int64, error)
+	AdminDeactivatePlusDiscount(ctx context.Context, arg AdminDeactivatePlusDiscountParams) error
+	AdminDeactivatePlusPlan(ctx context.Context, arg AdminDeactivatePlusPlanParams) error
+	AdminDeleteUnusedPlusDiscount(ctx context.Context, id uint64) (int64, error)
+	// Deletes only while nothing references the plan (invoices / subscriptions keep plan_id for the history).
+	AdminDeleteUnusedPlusPlan(ctx context.Context, id uint64) (int64, error)
 	// unique:admins,email (->ignore($admin) when except_id > 0).
 	AdminEmailTaken(ctx context.Context, arg AdminEmailTakenParams) (bool, error)
+	AdminGetPlusDiscount(ctx context.Context, id uint64) (PlusDiscountCode, error)
+	AdminGetPlusInvoice(ctx context.Context, id uint64) (AdminGetPlusInvoiceRow, error)
+	AdminGetPlusPlan(ctx context.Context, id uint64) (PlusPlan, error)
+	AdminListPlusDiscounts(ctx context.Context, arg AdminListPlusDiscountsParams) ([]AdminListPlusDiscountsRow, error)
+	AdminListPlusInvoices(ctx context.Context, arg AdminListPlusInvoicesParams) ([]AdminListPlusInvoicesRow, error)
+	// Admin «اشتراک‌ها و پرداخت» module (B-N2-09): plans, discount codes, subscriptions, the payment log, refunds,
+	// extensions and the plus_admin_actions ledger. Admin-only: these read every user's rows by design (the admin chain
+	// guards them); nothing here is reachable from /api/v1.
+	// ---------------------------------------------------------------------------
+	// Plans
+	AdminListPlusPlans(ctx context.Context, now time.Time) ([]AdminListPlusPlansRow, error)
+	AdminListPlusSubscriptions(ctx context.Context, arg AdminListPlusSubscriptionsParams) ([]AdminListPlusSubscriptionsRow, error)
+	AdminLockPlusInvoice(ctx context.Context, id uint64) (PlusInvoice, error)
+	AdminLockPlusSubscription(ctx context.Context, id uint64) (PlusSubscription, error)
+	AdminMarkPlusInvoiceRefunded(ctx context.Context, arg AdminMarkPlusInvoiceRefundedParams) (int64, error)
+	AdminNextPlusPlanSortOrder(ctx context.Context) (int64, error)
+	AdminPlusDiscountCodeTaken(ctx context.Context, arg AdminPlusDiscountCodeTakenParams) (bool, error)
+	AdminPlusDiscountUses(ctx context.Context, arg AdminPlusDiscountUsesParams) (AdminPlusDiscountUsesRow, error)
+	AdminPlusGateways(ctx context.Context) ([]sql.NullString, error)
+	AdminPlusInvoiceReceipt(ctx context.Context, invoiceID uint64) (AdminPlusInvoiceReceiptRow, error)
+	AdminPlusInvoiceSubscriptions(ctx context.Context, invoiceID sql.NullInt64) ([]AdminPlusInvoiceSubscriptionsRow, error)
+	AdminPlusInvoiceSummary(ctx context.Context, arg AdminPlusInvoiceSummaryParams) (AdminPlusInvoiceSummaryRow, error)
+	AdminPlusPlanCodeTaken(ctx context.Context, arg AdminPlusPlanCodeTakenParams) (bool, error)
+	AdminPlusPlanOptions(ctx context.Context) ([]AdminPlusPlanOptionsRow, error)
+	AdminPlusPlanRefs(ctx context.Context, arg AdminPlusPlanRefsParams) (AdminPlusPlanRefsRow, error)
+	AdminPlusSubscriptionCounts(ctx context.Context, arg AdminPlusSubscriptionCountsParams) (AdminPlusSubscriptionCountsRow, error)
+	AdminRefundPlusSubscriptionsOfInvoice(ctx context.Context, arg AdminRefundPlusSubscriptionsOfInvoiceParams) (int64, error)
+	AdminSetPlusSubscriptionEnd(ctx context.Context, arg AdminSetPlusSubscriptionEndParams) error
+	// An extension pushes the user's queued periods (starting at or after the extended period's old end) back by the
+	// same number of days, so periods never overlap.
+	AdminShiftQueuedPlusSubscriptions(ctx context.Context, arg AdminShiftQueuedPlusSubscriptionsParams) (int64, error)
+	AdminUpdatePlusDiscount(ctx context.Context, arg AdminUpdatePlusDiscountParams) error
+	AdminUpdatePlusPlan(ctx context.Context, arg AdminUpdatePlusPlanParams) error
 	AnyDefaultLanguage(ctx context.Context) (bool, error)
 	// unique:articles,slug (->ignore($article) when except_id > 0).
 	ArticleSlugTaken(ctx context.Context, arg ArticleSlugTakenParams) (bool, error)
@@ -126,6 +179,9 @@ type Querier interface {
 	GetUserDetail(ctx context.Context, id uint64) (GetUserDetailRow, error)
 	// unique:info_sections,key per group (the (group, key) unique index; NULL keys never collide).
 	InfoSectionKeyTaken(ctx context.Context, arg InfoSectionKeyTakenParams) (bool, error)
+	// ---------------------------------------------------------------------------
+	// Ledger
+	InsertPlusAdminAction(ctx context.Context, arg InsertPlusAdminActionParams) error
 	LanguageCodeTaken(ctx context.Context, arg LanguageCodeTakenParams) (bool, error)
 	ListAdminAffirmations(ctx context.Context, arg ListAdminAffirmationsParams) ([]Affirmation, error)
 	// Article::orderBy('sort_order')->orderByDesc('id')->paginate(20).
@@ -152,6 +208,7 @@ type Querier interface {
 	// ---------------------------------------------------------------------------
 	// Phase contents
 	ListPhaseContentIDs(ctx context.Context) ([]ListPhaseContentIDsRow, error)
+	ListPlusAdminActionsFor(ctx context.Context, arg ListPlusAdminActionsForParams) ([]ListPlusAdminActionsForRow, error)
 	// ---------------------------------------------------------------------------
 	// Pregnancy weeks (pregnancy_weekly_content)
 	ListPregnancyWeekIDs(ctx context.Context) ([]ListPregnancyWeekIDsRow, error)

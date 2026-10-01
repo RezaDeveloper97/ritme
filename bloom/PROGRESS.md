@@ -454,3 +454,16 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   health, cycle-len/period-len/cycle-duration → cycle). 11 old onboarding slices deleted.
 - Messages: `auth.phone|code`, `common.onbFrame`, `onboarding.flow` (dead keys removed), seed + goldens.
 - E2E in browser: TTC → `/home`, pregnancy → `/pregnancy`. Screenshots `docs/qa/bloom/B-N2-02/`. QUESTIONS #73–#75.
+
+## B-N2-09 — Admin — subscriptions & payments module
+
+- **Migration** `00019_plus_admin_actions` (+ Laravel `2026_10_01_000019_…`): audit + manual refund notes + gateway
+  refund ids. `plus_settings.vat_rate_bps` override (null → env), read by checkout and `/plus/plans`.
+- **Admin API** `/api/admin/v1/plus/*`: plans + discount codes CRUD (delete → deactivate when referenced), settings
+  (trial %, VAT), subscriptions list + `extend` (1–365 days, shifts queued periods), payments list/detail + `refund`
+  (gateway refund via `payments.Gateway.Refund`, or manual with note; subscription → refunded). Reads any admin, writes
+  super; CSRF; audit rows + slog; masked mobiles; never `card_pan`. Docs: `admin-api.md` §15. Int tests (9).
+- **admin-web:** «اشتراک‌ها و پرداخت» group (subscriptions, payments, plans, discount codes, settings), toman input.
+- **Tooling:** `bloom/bin/shot.mjs --admin` fixed (`--admin-email/--admin-password` login, `ritme_admin_theme`,
+  1440×900 tall viewport instead of clipped RTL capture).
+- Screenshots `docs/qa/bloom/B-N2-09/`. QUESTIONS #76.

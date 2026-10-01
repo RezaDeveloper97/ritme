@@ -10,6 +10,16 @@ import (
 	"database/sql"
 )
 
+const deleteSetting = `-- name: DeleteSetting :exec
+DELETE FROM plus_settings WHERE ` + "`" + `key` + "`" + ` = ?
+`
+
+// Clears an override so the code / env default applies again.
+func (q *Queries) DeleteSetting(ctx context.Context, key string) error {
+	_, err := q.db.ExecContext(ctx, deleteSetting, key)
+	return err
+}
+
 const getSetting = `-- name: GetSetting :one
 
 SELECT ` + "`" + `value` + "`" + ` FROM plus_settings WHERE ` + "`" + `key` + "`" + ` = ?

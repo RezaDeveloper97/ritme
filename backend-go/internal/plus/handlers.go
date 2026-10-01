@@ -42,9 +42,12 @@ func localizer(c fiber.Ctx) Localizer {
 	return Localizer{Locale: i18n.Locale(c), Default: i18n.LanguagesOf(c).DefaultCode()}
 }
 
-func (h *Handlers) configured() Configured {
-	cfg := h.svc.Config()
-	return Configured{VATRateBps: cfg.VATRateBps, TrialDays: cfg.TrialDays}
+func (h *Handlers) configured(c fiber.Ctx) (Configured, error) {
+	vat, err := h.svc.VATRateBps(c)
+	if err != nil {
+		return Configured{}, err
+	}
+	return Configured{VATRateBps: vat, TrialDays: h.svc.Config().TrialDays}, nil
 }
 
 // fail maps a domain error to its response (unknown errors fall through to the 500 handler).
@@ -96,7 +99,11 @@ func (h *Handlers) Plans(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	return httpx.OK(c, PlansJSON(plans, h.configured(), localizer(c)))
+	cfg, err := h.configured(c)
+	if err != nil {
+		return err
+	}
+	return httpx.OK(c, PlansJSON(plans, cfg, localizer(c)))
 }
 
 // Status is GET /plus/status: tier, subscription, trial and this month's entitlements.

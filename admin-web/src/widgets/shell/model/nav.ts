@@ -32,6 +32,17 @@ export const NAV: readonly NavGroup[] = [
     ],
   },
   {
+    // «اشتراک‌ها و پرداخت» (B-N2-09): every admin reads; writes are super-only (API 403 + hidden buttons).
+    key: 'groupPlus',
+    items: [
+      { key: 'plusSubscriptions', href: '/plus/subscriptions', icon: 'users', ready: true },
+      { key: 'plusPayments', href: '/plus/payments', icon: 'card', ready: true },
+      { key: 'plusPlans', href: '/plus/plans', icon: 'crown', ready: true },
+      { key: 'plusDiscounts', href: '/plus/discount-codes', icon: 'tag', ready: true },
+      { key: 'plusSettings', href: '/plus/settings', icon: 'gear', ready: true },
+    ],
+  },
+  {
     key: 'groupContent',
     items: [
       { key: 'articles', href: '/articles', icon: 'article', ready: true },

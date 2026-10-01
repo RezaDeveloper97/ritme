@@ -8,7 +8,11 @@
 //   node bloom/bin/shot.mjs --out docs/qa/bloom/B-N1-06/artboards --files docs/design/night-bloom/b1-cycle-log-analysis/nbl_Home.dc.html
 // Options: --themes light,dark (default both; ignored with --files) --width 390 --height 844 --wait 5000
 //          --base http://localhost:3000 --api http://127.0.0.1:8020/api/v1 --db ritme_dev --viewport (no full page)
-//          --token <jwt> (skip OTP login) --admin (base defaults to http://localhost:3001, no ritme_token)
+//          --token <jwt> (skip OTP login)
+// Admin panel (admin-web; desktop 1440×900, theme key ritme_admin_theme, tall-viewport capture — no clip, so RTL
+// pages are not cut off). Signs in through the admin API on the same origin (session + CSRF cookies):
+//   node bloom/bin/shot.mjs --admin --out docs/qa/bloom/B-N2-09 --admin-email qa@ritme.local --admin-password '…' /plus/plans
+//   --base http://localhost:3001 (default with --admin) --admin-api /api/admin/v1 (path on --base, or a full URL)
 import { spawn, execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -23,6 +27,12 @@ for (let i = 0; i < args.length; i++) {
   if (['--files', '--viewport', '--admin'].includes(a)) flags.add(a.slice(2));
   else if (a.startsWith('--')) opt[a.slice(2)] = args[++i];
   else targets.push(a);
+}
+const ADMIN = flags.has('admin');
+if (ADMIN) {
+  if (!args.includes('--width')) opt.width = '1440';
+  if (!args.includes('--height')) opt.height = '900';
+  if (!args.includes('--base')) opt.base = 'http://localhost:3001';
 }
 if (!opt.out || !targets.length) { console.error('usage: shot.mjs --out DIR [--mobile M | --token T | --files] targets…'); process.exit(2); }
 mkdirSync(opt.out, { recursive: true });
@@ -53,7 +63,8 @@ ws.addEventListener('message', (e) => { const m = JSON.parse(e.data); if (m.id &
 const send = (method, params = {}) => new Promise((r) => { const i = ++id; pend.set(i, r); ws.send(JSON.stringify({ id: i, method, params })); });
 const ev = async (x) => (await send('Runtime.evaluate', { expression: x, awaitPromise: true, returnByValue: true })).result?.result?.value;
 await send('Network.enable'); await send('Runtime.enable');
-await send('Emulation.setDeviceMetricsOverride', { width: +opt.width, height: +opt.height, deviceScaleFactor: 2, mobile: !FILES });
+const MOBILE = !FILES && !ADMIN;
+await send('Emulation.setDeviceMetricsOverride', { width: +opt.width, height: +opt.height, deviceScaleFactor: 2, mobile: MOBILE });
 
 async function capture(file) {
   let clip;
@@ -61,12 +72,13 @@ async function capture(file) {
     // Full page: grow the viewport to the tallest scroll container so inner scrollers are captured too.
     const h = await ev(`Math.max(document.documentElement.scrollHeight, ...[...document.querySelectorAll('*')].filter(e=>{const s=getComputedStyle(e);return /(auto|scroll)/.test(s.overflowY)&&e.scrollHeight>e.clientHeight}).map(e=>e.scrollHeight+e.getBoundingClientRect().top))`);
     const height = Math.min(Math.max(+opt.height, Math.ceil(h || 0)), 12000);
-    await send('Emulation.setDeviceMetricsOverride', { width: +opt.width, height, deviceScaleFactor: 2, mobile: !FILES }); await sleep(800);
-    clip = { x: 0, y: 0, width: +opt.width, height, scale: 1 };
+    await send('Emulation.setDeviceMetricsOverride', { width: +opt.width, height, deviceScaleFactor: 2, mobile: MOBILE }); await sleep(800);
+    // Admin: the viewport is now as tall as the page — capture it as is (a clip from x=0 cuts RTL layouts).
+    if (!ADMIN) clip = { x: 0, y: 0, width: +opt.width, height, scale: 1 };
   }
-  const s = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true, ...(clip ? { clip } : {}) });
+  const s = await send('Page.captureScreenshot', { format: 'png', ...(clip ? { clip, captureBeyondViewport: true } : {}) });
   writeFileSync(file, Buffer.from(s.result.data, 'base64'));
-  await send('Emulation.setDeviceMetricsOverride', { width: +opt.width, height: +opt.height, deviceScaleFactor: 2, mobile: !FILES });
+  await send('Emulation.setDeviceMetricsOverride', { width: +opt.width, height: +opt.height, deviceScaleFactor: 2, mobile: MOBILE });
 }
 
 const slug = (p) => (p.replace(/^\/+|\/+$/g, '').replace(/[^\w.-]+/g, '_') || 'root');
@@ -76,12 +88,22 @@ if (flags.has('files')) {
     const out = join(opt.out, basename(f).replace(/\.dc\.html$|\.html$/, '') + '.png'); await capture(out); console.log('✔', out);
   }
 } else {
-  const base = flags.has('admin') && !args.includes('--base') ? 'http://localhost:3001' : opt.base;
-  await send('Page.navigate', { url: base }); await sleep(2500);
-  if (token && !flags.has('admin')) await ev(`localStorage.setItem('ritme-install-dismissed','1'); localStorage.setItem('ritme_token',${JSON.stringify(token)}); document.cookie='ritme_auth=1; path=/'; true`);
+  const base = opt.base;
+  await send('Page.navigate', { url: ADMIN ? `${base}/login` : base }); await sleep(2500);
+  if (token && !ADMIN) await ev(`localStorage.setItem('ritme-install-dismissed','1'); localStorage.setItem('ritme_token',${JSON.stringify(token)}); document.cookie='ritme_auth=1; path=/'; true`);
+  if (ADMIN && opt['admin-email']) {
+    // Same-origin login from the page, so the browser keeps the session + CSRF cookies the panel expects.
+    const apiBase = opt['admin-api'] || '/api/admin/v1';
+    const res = await ev(`fetch(${JSON.stringify(apiBase.replace(/\/+$/, '') + '/auth/login')}, { method: 'POST', credentials: 'include',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ email: ${JSON.stringify(opt['admin-email'])}, password: ${JSON.stringify(opt['admin-password'] ?? '')} }) })
+      .then(async (r) => r.status + ' ' + ((await r.json().catch(() => ({})))?.data?.admin?.email ?? ''))`);
+    if (!String(res).startsWith('200')) throw new Error('admin login failed: ' + res);
+  }
+  const themeKey = ADMIN ? 'ritme_admin_theme' : 'ritme_theme';
   for (const theme of opt.themes.split(',')) {
     await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: theme }] });
-    await ev(`try{localStorage.setItem('ritme_theme',${JSON.stringify(theme)})}catch(e){}; document.documentElement.dataset.theme=${JSON.stringify(theme)}; true`);
+    await ev(`try{localStorage.setItem(${JSON.stringify(themeKey)},${JSON.stringify(theme)})}catch(e){}; document.documentElement.dataset.theme=${JSON.stringify(theme)}; true`);
     for (const p of targets) {
       errors.length = 0;
       await send('Page.navigate', { url: base + p }); await sleep(+opt.wait);

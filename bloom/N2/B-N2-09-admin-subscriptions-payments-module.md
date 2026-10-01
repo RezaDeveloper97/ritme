@@ -3,7 +3,7 @@ id: B-N2-09
 title: Admin — subscriptions & payments module
 milestone: N2
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N2-04]
 parallel_group: N2-I
 touches: [admin-web/src,backend-go/internal/admin,backend-go/internal/plus,backend-go/api]
