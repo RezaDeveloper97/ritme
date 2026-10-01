@@ -5,7 +5,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"; LOG="${TMPDIR:-/tmp}/ritme-dev"; mkdir -p "$LOG"; what="${1:-all}"
 if [ "$what" != web ]; then
   lsof -ti tcp:8020 | xargs kill 2>/dev/null || true
-  (cd "$ROOT/backend-go" && DB_DATABASE=ritme_dev SMS_PROVIDER=log nohup make run >"$LOG/api.log" 2>&1 &)
+  (cd "$ROOT/backend-go" && DB_DATABASE=ritme_dev SMS_PROVIDER=log RUN_MIGRATIONS="${RUN_MIGRATIONS:-true}" PAYMENT_CALLBACK_BASE_URL="${PAYMENT_CALLBACK_BASE_URL:-http://127.0.0.1:8020}" nohup make run >"$LOG/api.log" 2>&1 &)
   until curl -s 127.0.0.1:8020/up >/dev/null; do sleep 2; done; echo "api up (log $LOG/api.log)"
 fi
 if [ "$what" != api ]; then
