@@ -215,4 +215,10 @@ export default defineConfig([
     files: ['./src/entities/plus/**', './src/features/purchase-plus/**'],
     rules: { 'fsd/insignificant-slice': 'off' },
   },
+  {
+    // CB-CONTRA-02: `entities/contraception` is consumed by the contraception
+    // screens and the mode screen — references FROM `screens` are invisible to steiger.
+    files: ['./src/entities/contraception/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
 ]);

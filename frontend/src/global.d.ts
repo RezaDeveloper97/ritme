@@ -5,6 +5,7 @@ import type enBanners from '../messages/en/banners.json';
 import type enCalendar from '../messages/en/calendar.json';
 import type enChallenge from '../messages/en/challenge.json';
 import type enCommon from '../messages/en/common.json';
+import type enContraception from '../messages/en/contraception.json';
 import type enCycle from '../messages/en/cycle.json';
 import type enDayTasks from '../messages/en/day-tasks.json';
 import type enHome from '../messages/en/home.json';
@@ -35,6 +36,7 @@ import type enPlus from '../messages/en/plus.json';
 // `src/shared/i18n/messages.ts`.
 type Messages = {
   common: typeof enCommon;
+  contraception: typeof enContraception;
   home: typeof enHome;
   care: typeof enCare;
   checkups: typeof enCheckups;

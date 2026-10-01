@@ -5,8 +5,10 @@ import { clsx } from 'clsx';
 import { useTranslations } from 'next-intl';
 import { useId, useRef, useState, type KeyboardEvent } from 'react';
 
+import { useStopContraception } from '@/entities/contraception';
 import { useDeactivatePregnancy } from '@/entities/pregnancy';
 import {
+  lifeStageKeys,
   useLifeStage,
   useUpdateLifeStage,
   writeLifeModeHint,
@@ -99,11 +101,13 @@ export function ModePage() {
 
 function ModeBody({ stage }: { stage: LifeStage }) {
   const t = useTranslations('me.mode');
+  const tc = useTranslations('contraception.mode');
   const router = useRouter();
   const rtl = useDirection() === 'rtl';
   const queryClient = useQueryClient();
   const update = useUpdateLifeStage();
   const deactivate = useDeactivatePregnancy();
+  const stopContraception = useStopContraception();
   const groupId = useId();
   const refs = useRef<Array<HTMLButtonElement | null>>([]);
   const [confirm, setConfirm] = useState<Confirmable | null>(null);
@@ -164,6 +168,20 @@ function ModeBody({ stage }: { stage: LifeStage }) {
   const toggle = (patch: { ivfIui?: boolean; trackContraception?: boolean }) => {
     setFailed(false);
     update.mutate(patch, { onError: () => setFailed(true) });
+  };
+
+  // CB-CONTRA-02: switching contraception on opens the method setup (its save turns
+  // the flag on); off stops tracking — method + its reminders go, the pill log stays.
+  const toggleContraception = (on: boolean) => {
+    setFailed(false);
+    if (on) {
+      router.push('/contraception/setup');
+      return;
+    }
+    stopContraception.mutate(undefined, {
+      onSuccess: () => void queryClient.invalidateQueries({ queryKey: lifeStageKeys.all }),
+      onError: () => setFailed(true),
+    });
   };
 
   const confirmTarget = confirm?.kind === 'leavePregnancy' ? confirm.target : 'pregnancy';
@@ -227,11 +245,21 @@ function ModeBody({ stage }: { stage: LifeStage }) {
           trailing={
             <Switch
               checked={stage.trackContraception}
-              onCheckedChange={(trackContraception) => toggle({ trackContraception })}
+              disabled={stopContraception.isPending}
+              onCheckedChange={toggleContraception}
               labelledBy={`${groupId}-contra-title`}
             />
           }
         />
+        {stage.trackContraception ? (
+          <ListRow
+            icon="pill"
+            iconTone="brand"
+            title={tc('manage')}
+            description={tc('manageDesc')}
+            onClick={() => router.push('/contraception')}
+          />
+        ) : null}
       </div>
 
       <div className="mode-note">

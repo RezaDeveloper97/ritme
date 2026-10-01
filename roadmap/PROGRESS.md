@@ -82,3 +82,11 @@ TODO (ask user):
 - Built in a worktree, landed on top of bloom B-N2-06 (sqlc regenerated). Verify: sqlc, vet, unit, int, golangci-lint 0 issues, schema-diff OK (67 tables), OpenAPI test, `make contract ROUTES=all` 1130 passed / 0 failed.
 - Open: future push sender must skip break days and respect `track_contraception`; `PUT /profile/life-stage` turning the flag off doesn't disable the pill pref (profile code — follow-up); admin hints.ts add `methods` meta key; contraception not in `/profile/export`.
 - TODO (ask user): days before setup = `untracked` (not missed) OK? export inclusion? clinical review of `missed_pill_rules` [needs clinical review]. Defaults: 28-day packs, streak includes break days, method reminders 09:00 Tehran, stop keeps pill history.
+
+## CB-CONTRA-02 — Frontend: method setup + pill pack
+- Routes `/contraception/setup` (method chips, pack type, start date, reminder time) and `/contraception` (today card, «یک قرص را جا انداختم» → /contraception/missed, pack grid taken/today/placebo, streak + next-pack tiles, refill row with packs-left sheet). Slices: `entities/contraception` (zod schema, queries, mutations writing the overview into the cache), `screens/contraception`, `screens/contraception-setup`; scopes `contraception`, `contraceptionSetup` (+ `profileMode*` load `contraception`).
+- Mode screen (B-N2-03): switch ON → setup (save turns the flag on); OFF → `DELETE /contraception/method` (method + reminders removed, pill log kept) — closes CB-CONTRA-01's "flag off leaves pill reminder on" item. Manage row «روش و بسته قرص» while tracking.
+- Task touches corrected: routes live at `app/[locale]/contraception` (no `(app)` group). Go copy of messages in `backend-go/resources/translations/{fa,en}/contraception.json`.
+- Verify: typecheck, lint, fsd:lint, lint:styles (651), lint:dark, 939 tests, build — green. Fidelity `docs/qa/canvas/contra.md`: Setup ✔, Pill ~ (settings button in header for the unlabelled board link; legend says «تیک‌دار» not «سبز»; hormonal IUD `warm` tone).
+- Open: `/contraception/other` + `/missed` links 404 until CB-CONTRA-03; no Home entry point yet (CB-CONTRA-04); i18n goldens need re-recording once bloom's message changes land.
+- TODO (ask user): switch OFF deletes the method — OK? IUD default lifetime copper 10 y / hormonal 5 y [needs clinical review]; start date defaults to today.

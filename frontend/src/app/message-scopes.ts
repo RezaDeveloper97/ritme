@@ -59,8 +59,8 @@ export const ROUTE_NAMESPACES = {
   profileSupport: ['common', 'me'], // B-N1-12 /profile/support
   profileAbout: ['common', 'me'], // B-N1-12 /profile/about
   profileLegal: ['common', 'me'], // B-N1-12 /profile/legal
-  profileMode: ['common', 'me'], // B-N2-03 /profile/mode (copy under me.mode)
-  profileModeLoss: ['common', 'me'], // B-N2-03 /profile/mode/loss
+  profileMode: ['common', 'contraception', 'me'], // B-N2-03 /profile/mode (copy under me.mode; CB-CONTRA-02 manage row)
+  profileModeLoss: ['common', 'contraception', 'me'], // B-N2-03 /profile/mode/loss (same screen slice as /profile/mode)
   plusPaywall: ['common', 'nav', 'plus'], // B-N2-07 /plus (teen guard reads widgets/bottom-nav)
   plusPlans: ['common', 'nav', 'plus'], // B-N2-07 /plus/plans
   plusCheckout: ['common', 'nav', 'plus'], // B-N2-07 /plus/checkout
@@ -75,6 +75,8 @@ export const ROUTE_NAMESPACES = {
   pregnancySetup: ['common', 'pregnancy', 'pregnancyV2', 'profileEdit'],
   reminders: ['care', 'common'],
   checkups: ['checkups', 'common'],
+  contraception: ['common', 'contraception'], // CB-CONTRA-02 /contraception (pill pack)
+  contraceptionSetup: ['common', 'contraception'], // CB-CONTRA-02 /contraception/setup
   uiKit: ['common'], // dev-only /dev/ui-kit showcase (B-N1-03)
   services: ['common', 'nav', 'services'], // «خدمات» tab (B-N1-04)
   fertilityLog: ['common', 'fertility'],

@@ -9,6 +9,7 @@ import enCare from '../../../messages/en/care.json';
 import enChallenge from '../../../messages/en/challenge.json';
 import enCheckups from '../../../messages/en/checkups.json';
 import enCommon from '../../../messages/en/common.json';
+import enContraception from '../../../messages/en/contraception.json';
 import enCycle from '../../../messages/en/cycle.json';
 import enDayTasks from '../../../messages/en/day-tasks.json';
 import enFertility from '../../../messages/en/fertility.json';
@@ -39,6 +40,7 @@ import faCare from '../../../messages/fa/care.json';
 import faChallenge from '../../../messages/fa/challenge.json';
 import faCheckups from '../../../messages/fa/checkups.json';
 import faCommon from '../../../messages/fa/common.json';
+import faContraception from '../../../messages/fa/contraception.json';
 import faCycle from '../../../messages/fa/cycle.json';
 import faDayTasks from '../../../messages/fa/day-tasks.json';
 import faFertility from '../../../messages/fa/fertility.json';
@@ -101,6 +103,7 @@ export function isBundledLocale(value: unknown): value is BundledLocale {
 const bundled = {
   fa: {
     common: faCommon,
+    contraception: faContraception,
     home: faHome,
     auth: faAuth,
     banners: faBanners,
@@ -133,6 +136,7 @@ const bundled = {
   },
   en: {
     common: enCommon,
+    contraception: enContraception,
     home: enHome,
     auth: enAuth,
     banners: enBanners,

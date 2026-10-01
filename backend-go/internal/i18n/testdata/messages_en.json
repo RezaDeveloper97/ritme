@@ -336,15 +336,15 @@
     "slotTimes": "Dose times",
     "slotLabel": "Dose {n}",
     "weekdays": "Days of the week",
-    "weekdayShort": {
-     "0": "Sa",
-     "1": "Su",
-     "2": "Mo",
-     "3": "Tu",
-     "4": "We",
-     "5": "Th",
-     "6": "Fr"
-    },
+    "weekdayShort": [
+     "Sa",
+     "Su",
+     "Mo",
+     "Tu",
+     "We",
+     "Th",
+     "Fr"
+    ],
     "everyDay": "Every day",
     "amount": "Amount per dose",
     "decrease": "Less",
@@ -758,6 +758,117 @@
     "skip": "Skip",
     "progress": "Step {step, number} of {total, number}",
     "privacy": "Your information stays confidential with Ritme and is never shared with anyone."
+   }
+  },
+  "contraception": {
+   "setup": {
+    "title": "Contraception method",
+    "back": "Back",
+    "question": "Which method do you use?",
+    "lead": "Reminders and guidance are set up around your method.",
+    "methods": {
+     "combined_pill": "Combined pill",
+     "progestin_pill": "Progestogen-only pill",
+     "copper_iud": "Copper IUD",
+     "hormonal_iud": "Hormonal IUD",
+     "injection": "3-month injection",
+     "implant": "Implant",
+     "condom": "Condom",
+     "other": "Another method or none"
+    },
+    "details": "Method details",
+    "packType": "Pack type",
+    "packTypes": {
+     "21_7": "21 pills + 7-day break",
+     "28": "28 pills",
+     "24_4": "24 + 4"
+    },
+    "packStart": "Current pack started",
+    "reminderTime": "Reminder time",
+    "insertedOn": "Insertion date",
+    "implantInsertedOn": "Insertion date",
+    "injectedOn": "Last injection",
+    "lifetime": "IUD lifetime",
+    "years": "years",
+    "decrease": "Decrease {what}",
+    "increase": "Increase {what}",
+    "choose": "Choose",
+    "optional": "Optional",
+    "noDetails": "This method needs no separate reminders. You can change your method any time.",
+    "futureDate": "This date can't be after today.",
+    "pickMethod": "Pick a method first.",
+    "save": "Save",
+    "saveError": "Couldn't save. Please try again.",
+    "cancel": "Cancel",
+    "done": "Done",
+    "hour": "Hour",
+    "minute": "Minute",
+    "loading": "Loading your contraception method"
+   },
+   "pill": {
+    "title": "Birth control pill",
+    "back": "Back",
+    "settings": "Contraception settings",
+    "subtitle": "Pack {pack} · day {day}",
+    "todayAt": "Today's pill · {time}",
+    "today": "Today's pill",
+    "dayOf": "Day {day} of {total}",
+    "breakTitle": "Break day",
+    "breakBody": "Today is one of your pack's break days — no pill needed.",
+    "placeboTitle": "Inactive pill · day {day}",
+    "taken": "I took it",
+    "takenDone": "Taken today",
+    "undo": "Undo",
+    "missed": "I missed one",
+    "logError": "Couldn't log it. Please try again.",
+    "packTitle": "Current pack",
+    "packLabel": "Days of the current pack",
+    "legendTaken": "Ticked circle: taken",
+    "legendBreak": "Dashed: break days",
+    "dayLabel": "Day {day}, {state}",
+    "states": {
+     "taken": "taken",
+     "todayTaken": "today, taken",
+     "today": "today",
+     "missed": "missed",
+     "upcoming": "upcoming",
+     "untracked": "before you set up the method",
+     "placebo": "inactive pill",
+     "break": "break day"
+    },
+    "streak": "{days} days",
+    "streakCap": "in a row without a missed pill",
+    "nextPackCap": "next pack starts",
+    "packsLeft": "{count, plural, =0 {No packs left} =1 {One more pack left} other {{n} more packs left}}",
+    "packsUnknown": "How many packs do you have left?",
+    "packsUnknownSub": "So we can remind you to buy the next one",
+    "refillSub": "Buying reminder 5 days before you run out",
+    "packsSheetTitle": "Packs left",
+    "packsStepper": "Unopened packs",
+    "packsUnit": "packs",
+    "save": "Save",
+    "cancel": "Cancel"
+   },
+   "other": {
+    "current": "Your current method",
+    "change": "Change method",
+    "reminders": "Method reminders",
+    "remindersSub": "Dates and reminders for this method"
+   },
+   "empty": {
+    "title": "No method yet",
+    "body": "Choose your contraception method so reminders can be set up around it.",
+    "cta": "Choose a method"
+   },
+   "error": {
+    "title": "Couldn't load your contraception",
+    "body": "Check your connection and try again.",
+    "retry": "Try again"
+   },
+   "loading": "Loading your pill pack",
+   "mode": {
+    "manage": "Method & pill pack",
+    "manageDesc": "Method, reminder and current pack"
    }
   },
   "cycle": {

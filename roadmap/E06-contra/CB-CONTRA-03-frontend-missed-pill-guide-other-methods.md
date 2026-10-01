@@ -6,7 +6,7 @@ type: frontend
 status: todo
 depends_on: [CB-CONTRA-02]
 parallel_group: CONTRA-C
-touches: [frontend/src/screens/contraception-missed, frontend/src/screens/contraception-other, frontend/src/app/[locale]/(app)/contraception/missed, frontend/src/app/[locale]/(app)/contraception/other]
+touches: [frontend/src/screens/contraception-missed, frontend/src/screens/contraception-other, frontend/src/app/[locale]/contraception/missed, frontend/src/app/[locale]/(app)/contraception/other]
 skills: [new-fsd-slice]
 boards: [nbl_Contra_Missed.dc.html, nbl_Contra_Other.dc.html]
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && npm run build

@@ -1,0 +1,10 @@
+# CONTRA — design fidelity (canvas-build §5)
+
+Board renders: `docs/qa/canvas/boards/<board>.png`. Screens: 390 px, fa, headless Chrome over CDP against the local Go API
+(test user with a combined pill, 21+7 pack started 7 days earlier, days 1–7 logged). Colours are checked against the token
+map (`docs/canvas-build/README.md` §4), not the board hex.
+
+| Board | Route | Light | Dark | Verdict | Fix / note |
+|---|---|---|---|---|---|
+| `nbl_Contra_Setup` | `/contraception/setup` | [light](contra/CB-CONTRA-02/contraception-setup-light.png) | [dark](contra/CB-CONTRA-02/contraception-setup-dark.png) | ✔ | Same order: back header «روش پیشگیری», 24/900 question + lead, 2×4 method tiles (icon over label, selected = `--brand-soft` + `--brand` border), details card (pack-type chips, «شروع بسته فعلی» Jalali date, «ساعت یادآور»), sticky full-width «ذخیره». No bottom nav. Hormonal-IUD shield is `warm`, not the board rose (red is menstruation-only, CLAUDE.md §10.2). Non-pill methods swap the card for their dates (IUD insertion + lifetime, injection, implant) — no board for those states. |
+| `nbl_Contra_Pill` | `/contraception` | [light](contra/CB-CONTRA-02/contraception-light.png) | [dark](contra/CB-CONTRA-02/contraception-dark.png) | ~ | Header «قرص پیشگیری» + «بسته ۱ · روز ۸» (real pack number, board shows 4), today card (pill disc, «قرص امروز · ۲۱:۰۰», Lalezar «روز ۸ از ۲۱», «خوردم», «یک قرص را جا انداختم» → `/contraception/missed`), «بسته فعلی» 4×7 grid (taken = `--data-soft`/`--data-deep` tick, today = `--brand` ring, break = dashed), streak (`--data-deep`) + next-pack (`--brand`) tiles, refill row. Deliberate differences: a settings button at the header end opens setup (the board's `[→Contra_Setup]` link has no visible control); legend reads «دایره تیک‌دار: خورده شد» instead of «دایره سبز» (taken is turquoise in the tokens and colour alone mustn't carry meaning); the refill row is tappable (chevron) to set packs left. In en, «22 October» wraps to two lines in the next-pack tile. |

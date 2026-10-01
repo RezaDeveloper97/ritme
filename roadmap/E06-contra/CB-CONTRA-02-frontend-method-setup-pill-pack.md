@@ -3,10 +3,10 @@ id: CB-CONTRA-02
 title: Frontend: method setup + pill pack
 epic: CONTRA
 type: frontend
-status: todo
+status: done
 depends_on: [CB-CONTRA-01]
 parallel_group: CONTRA-B
-touches: [frontend/src/screens/contraception, frontend/src/screens/contraception-setup, frontend/src/entities/contraception, frontend/messages/fa/contraception.json, frontend/messages/en/contraception.json, frontend/src/app/[locale]/(app)/contraception, frontend/src/app/message-scopes.ts, frontend/src/screens/mode]
+touches: [frontend/src/screens/contraception, frontend/src/screens/contraception-setup, frontend/src/entities/contraception, frontend/messages/fa/contraception.json, frontend/messages/en/contraception.json, frontend/src/app/[locale]/contraception, frontend/src/app/message-scopes.ts, frontend/src/screens/mode]
 skills: [new-fsd-slice]
 boards: [nbl_Contra_Setup.dc.html, nbl_Contra_Pill.dc.html]
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && npm run build
