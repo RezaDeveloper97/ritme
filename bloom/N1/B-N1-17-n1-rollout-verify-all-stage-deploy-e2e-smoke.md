@@ -3,7 +3,7 @@ id: B-N1-17
 title: N1 rollout — verify-all, stage deploy, e2e smoke
 milestone: N1
 type: release
-status: todo
+status: done
 depends_on: [B-N1-16]
 parallel_group: N1-Q
 touches: [docs/qa/bloom,bloom/PROGRESS.md]

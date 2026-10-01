@@ -376,3 +376,13 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
 - Contract group `onboarding` (20 Go-recorded goldens), existing goldens byte-identical (`ROUTES=all` 1081 passed).
   fa/en enum labels `onboarding.enums.*` in seed + frontend messages + goldens.
 - **Open:** QUESTIONS #59–#61.
+
+## B-N1-17 — N1 rollout — verify-all, stage deploy, e2e smoke
+
+- verify green on the combined tree; `stage` pushed (`d7bc901`) and deployed with `./deploy-stage.sh` (all checks ok;
+  goose applied 9–13, version 13). Smoke on https://stage.ritmeapp.ir, fa 390px light + dark: 38 checks, 36 pass,
+  2 warn, 0 fail; no 4xx/5xx or console errors; admin `/panel/support-reports` received an in-app report end to end.
+- Stage has no `is_test` OTP; codes read read-only from `ritme_stage`. Report: `docs/qa/bloom/n1-stage.md`, shots in
+  `docs/qa/bloom/n1-stage/`.
+- Low bugs: B-1 → B-N2-10 scope; B-2 (pregnancy deep link to /home) and B-3 (pregnancy setup guard) → B-N2-03.
+  QUESTIONS #62–#63.

@@ -66,3 +66,5 @@ default taken so work could continue. Review at the end of the run.
 | 59 | B-N2-01 | Deviation **D-34** proposed: Go-only onboarding v2 endpoints, `life_profile` in export, `profile_completed` false while onboarding v2 is started but unfinished. Approve? | applied, allow-listed |
 | 60 | B-N2-01 | Stored `postpartum` → message engine returns empty (PHP behaviour) while home still shows cycle until B-N5. Menopause/teen run the cycle engine, never TTC. | as described |
 | 61 | B-N2-01 | New condition lists (`chronic_illnesses`, `gyn_conditions`, `medications`) are separate from legacy `chronic_conditions`; «سایر» has no free text (artboard has none). Choosing pill/IUD does not auto-enable `track_contraception` (left to canvas CB-CONTRA). | as described |
+| 62 | B-N1-17 | Calendar predicts periods/fertile windows for months before the first logged period (ported PHP engine behaviour, `cycle/legacy/engine.go:212`). Keep, or leave those months empty? | kept |
+| 63 | B-N1-17 | Stage support FAQ is empty, and stage has 3 test users (`0990•••••01/02/03`) + 1 QA support report. Please add FAQ content in the stage admin. | content gap |
