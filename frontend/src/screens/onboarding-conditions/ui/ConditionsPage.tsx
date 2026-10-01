@@ -75,7 +75,7 @@ export function ConditionsPage() {
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     background: on ? 'var(--pink)' : 'var(--surface)',
                     border: `2px solid ${on ? 'var(--pink)' : 'var(--track)'}`,
-                    color: 'var(--on-accent)',
+                    color: 'var(--on-brand)',
                   }}
                 >
                   {on && <Icon name="check" size={13} />}

@@ -19,6 +19,8 @@ Milestone audit.
 ## Scope
 - As B-N1-16 for every N2 screen.
 
+- Leftover from B-N1-16 (`docs/night-bloom/audit-n1.md` open lows): add an `--on-danger` token (white text on `--danger` fails in dark: `.del-confirm`, `controls.tsx`, `MarkDoneToast`), banner image `onError` fallback, and the other open N1 lows if cheap.
+
 ## Out of scope
 - Android (android-shell/, application/, twa/) — never.
 - Anything owned by another bloom task.

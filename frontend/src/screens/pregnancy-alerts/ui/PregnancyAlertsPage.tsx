@@ -14,7 +14,6 @@ import {
 } from '@/entities/pregnancy';
 import { addDays, today as todayDate, toApiDate } from '@/shared/lib/date';
 import { Link, useDirection, useRouter } from '@/shared/i18n';
-import { openSheet } from '@/shared/sheet';
 import {
   Card,
   EmptyState,
@@ -63,7 +62,7 @@ function Shell({ children, windowNote }: { children: React.ReactNode; windowNote
           subtitle={windowNote}
           onBack={() => router.push('/pregnancy')}
           backLabel={t('common.back')}
-          action={<HeaderButton icon="cog" label={t('alerts.settings')} onClick={() => openSheet('notifications')} />}
+          action={<HeaderButton icon="cog" label={t('alerts.settings')} onClick={() => router.push('/profile/notifications')} />}
         />
         <div className="pgn-body">{children}</div>
       </div>

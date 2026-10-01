@@ -60,3 +60,6 @@ default taken so work could continue. Review at the end of the run.
 | 53 | B-N1-09 | Home header gear now opens `/cycle/settings` (artboard link) instead of the `health` sheet. | changed |
 | 54 | B-N1-12b | Support reports visible to any active admin (like `/users`, both show the mobile). Restrict to super admins? Laravel `InfoSection::GROUPS` not updated (frozen backend). | any admin |
 | 55 | B-N1-12b | `ritme_dev` has QA admin `qa@ritme.local` (local only) + users 09900000071/72 + 3 support reports. | dev data only |
+| 56 | B-N1-16 | Timeline axes in `/cycle` and symptom pattern made LTR like every chart artboard (and the BBT chart). Keep LTR or RTL? | LTR |
+| 57 | B-N1-16 | All sheet backgrounds → `--surface` (artboards + tokens.md), overriding the B-N1-03 `--page` choice. | `--surface` |
+| 58 | B-N1-16 | `--danger` fills keep white text (low contrast on `#FF8FA3` in dark). Add an `--on-danger` token — folded into the N2 fidelity audit (B-N2-10). | queued |

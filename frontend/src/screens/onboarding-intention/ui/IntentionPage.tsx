@@ -78,7 +78,7 @@ export function IntentionPage() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     background: on ? 'var(--pink)' : 'var(--line-2)',
-                    color: 'var(--on-accent)',
+                    color: 'var(--on-brand)',
                   }}
                 >
                   {on && <Icon name="check" size={14} />}

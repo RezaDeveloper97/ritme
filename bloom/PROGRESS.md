@@ -348,3 +348,17 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
 - **Screenshots:** `docs/qa/bloom/B-N1-12b/` (1440px light+dark). **Tooling TODO:** `shot.mjs --admin` has no admin
   login, wrong theme key (`ritme_admin_theme`) and a clipped RTL capture — fix before the N9 admin tasks.
 - **Open:** QUESTIONS #54–#55.
+
+## B-N1-16 — N1 design-fidelity audit and fixes
+
+- `docs/night-bloom/audit-n1.md`: 1 high, 7 med, 9 low; all high/med + 2 low fixed, 7 low open (X4 `--on-danger`, H5
+  banner image `onError`, H7 new-user ring dotted path, C4 phase-sheet close row, T2 TTC calendar filter icon, P4
+  pregnancy sources contrast, M1 Me mode pill full-width). Deliberate defaults listed as «accepted (QUESTIONS #n)».
+- Fixes: column scrollers no longer shrink bottom buttons (`.scroll > * { flex-shrink: 0 }`), sheets on `--surface`,
+  LTR chart axes in `/cycle` + `/cycle/symptoms`, BBT value side in RTL, flat home article/reminder/checkup cards,
+  `--on-accent` → `--on-brand` on brand fills (onboarding pages, DayTasks, PeriodButton, DailyStatusCard, WeekStrip),
+  phase sheet small title sr-only, PregnancyAlerts gear → `/profile/notifications`.
+- Screenshots: `docs/qa/bloom/B-N1-16/` (personas 01/04/06/07/12/15/18, public, `side-by-side/`; rendered artboards not
+  committed — regenerate with `shot.mjs --files`).
+- Env: `ritme_dev` was missing tables of goose 00002/00003/00005 (+ data of 00007/00008) despite goose rows; Up applied
+  by hand (dev only).

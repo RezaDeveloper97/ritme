@@ -157,7 +157,7 @@ export function DayTasks({ date }: { date: Date }) {
                   aria-pressed={done}
                   className={clsx('cbx', 'dt-check', done && 'on')}
                 >
-                  <Icon name="check" size={14} stroke="var(--on-accent)" />
+                  <Icon name="check" size={14} stroke="var(--on-brand)" />
                 </button>
                 <button
                   type="button"

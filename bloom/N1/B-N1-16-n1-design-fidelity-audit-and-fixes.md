@@ -3,7 +3,7 @@ id: B-N1-16
 title: N1 design-fidelity audit and fixes
 milestone: N1
 type: frontend
-status: todo
+status: done
 depends_on: [B-N1-05,B-N1-06,B-N1-07,B-N1-08,B-N1-09,B-N1-10,B-N1-11,B-N1-12,B-N1-13,B-N1-14,B-N1-15]
 parallel_group: N1-P
 touches: [docs/night-bloom/audit-n1.md,frontend/src,frontend/messages,backend-go/resources/translations]

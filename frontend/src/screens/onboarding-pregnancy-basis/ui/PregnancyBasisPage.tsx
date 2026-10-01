@@ -105,7 +105,7 @@ export function PregnancyBasisPage() {
                   style={{
                     flex: '0 0 auto', width: 22, height: 22, borderRadius: '50%', marginTop: 1,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    background: on ? 'var(--pink)' : 'var(--line-2)', color: 'var(--on-accent)',
+                    background: on ? 'var(--pink)' : 'var(--line-2)', color: 'var(--on-brand)',
                   }}
                 >
                   {on && <Icon name="check" size={14} />}

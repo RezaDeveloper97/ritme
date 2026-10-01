@@ -56,9 +56,9 @@ export function PeriodButton() {
           borderRadius: 14,
           gap: 8,
           fontSize: 14,
-          background: confirming ? 'var(--brand)' : 'var(--surface)',
+          background: confirming ? 'var(--brand-fill)' : 'var(--surface)',
           border: '1px solid var(--pink-bg)',
-          color: confirming ? 'var(--on-accent)' : 'var(--brand)',
+          color: confirming ? 'var(--on-brand)' : 'var(--brand)',
           fontWeight: 600,
           cursor: isPending ? 'default' : 'pointer',
           opacity: isPending ? 0.75 : 1,
@@ -68,7 +68,7 @@ export function PeriodButton() {
         <Icon
           name="drop"
           size={16}
-          fill={confirming ? 'var(--on-accent)' : 'var(--brand)'}
+          fill={confirming ? 'var(--on-brand)' : 'var(--brand)'}
           strokeWidth={0}
         />
         {label}

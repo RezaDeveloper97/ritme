@@ -34,8 +34,10 @@ function NotificationsTitle() {
   return <>{useTranslations('notifications')('title')}</>;
 }
 
+/** Visually hidden: the sheet body opens with the big phase name (`Cycle_Phase`), so a second small
+ *  «جزئیات فاز» above it only duplicated it. It still names the dialog for screen readers. */
 function PhaseTitle() {
-  return <>{useTranslations('phaseDetails')('title')}</>;
+  return <span className="sr-only">{useTranslations('phaseDetails')('title')}</span>;
 }
 
 function ArticlesTitle() {

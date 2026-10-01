@@ -503,6 +503,9 @@ body {
 .view   { padding-bottom: env(safe-area-inset-bottom, 0px); }
 .scroll { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
 .scroll::-webkit-scrollbar { width: 0; height: 0; }
+/* A scroller that is also a flex column must never squeeze its children to fit:
+   past the fold a 54px button shrank to its text line (B-N1-16 audit). */
+.scroll > * { flex-shrink: 0; }
 
 /* slide-in transition for page enter */
 .view.enter { animation: slideIn .34s cubic-bezier(.22,.61,.36,1); }
@@ -724,7 +727,7 @@ body {
   display: flex; flex-direction: column;
   width: 100%;
   max-height: 92%;
-  background: var(--page);   /* Night & Bloom BottomSheet (B-N1-03) */
+  background: var(--surface);   /* Night & Bloom BottomSheet: every sheet board paints the panel --surface (B-N1-16 audit) */
   border-radius: var(--r-sheet) var(--r-sheet) 0 0;
   box-shadow: 0 -12px 40px -6px var(--sheet-shadow);
   animation: osheetUp .36s cubic-bezier(.22,.61,.36,1);
@@ -1201,17 +1204,17 @@ body {
 .home-skel-block { height: 44px; border-radius: 12px; margin-top: 6px; }
 
 /* Articles */
-.home-articles       { background: var(--surface); border-radius: 12px; padding: 20px 16px; }
-.home-articles-title { font-size: 17px; font-weight: 700; color: var(--ink); text-align: start; margin-bottom: 16px; }
+.home-articles       { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); padding: 16px; } /* flat N&B card (B-N1-16) */
+.home-articles-title { font-size: 15px; font-weight: 800; color: var(--text-1); text-align: start; margin-bottom: 14px; }
 .home-articles-track { display: flex; gap: 16px; min-width: min-content; }
 .home-article        { width: 162px; flex: 0 0 162px; display: flex; flex-direction: column; gap: 4px; }
-.home-article-cover  { height: 130px; border-radius: 12px; background: linear-gradient(135deg, var(--surface-2), var(--indigo-soft)); display: flex; align-items: center; justify-content: center; color: var(--pink); overflow: hidden; }
+.home-article-cover  { height: 130px; border-radius: var(--r-lg); background: linear-gradient(135deg, var(--surface-2), var(--indigo-soft)); display: flex; align-items: center; justify-content: center; color: var(--pink); overflow: hidden; }
 .home-article-img    { width: 100%; height: 100%; object-fit: cover; display: block; }
 /* Real titles vary in length — clamp so every card in the row lines up. */
 .home-article-name   { font-size: 13.5px; font-weight: 700; color: var(--ink); text-align: start; line-height: 1.55; padding: 8px 0 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .home-article-meta   { display: flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
 .home-article-skel   { height: 130px; border-radius: 12px; }
-.home-articles-cta   { margin-top: 18px; height: 40px; }
+.home-articles-cta   { margin-top: 16px; height: var(--h-btn); border-radius: calc(var(--h-btn) / 2); }
 
 /* Today status */
 .home-status-card  { background: var(--surface); border: 1px solid var(--teal-soft); border-radius: 12px; padding: 14px 12px; }
@@ -4305,6 +4308,9 @@ body.pwa-locked { overflow: hidden; }
   font-family: inherit; font-size: 28px; line-height: 1; font-weight: 800; color: var(--text-1);
 }
 .ttc-bbt-input::placeholder { color: var(--text-4); }
+/* The input is dir=ltr (digits), so `start` is the left edge; in RTL the value
+   sits at the field's start, the right (v19_TTC_Log, B-N1-16 audit). */
+[dir="rtl"] .ttc-bbt-input { text-align: right; }
 .ttc-bbt-unit { font-size: 13px; font-weight: 700; color: var(--text-2); }
 .ttc-bbt-step {
   width: 44px; height: 44px; flex-shrink: 0; border-radius: 14px; border: 0; cursor: pointer;
@@ -5521,7 +5527,9 @@ html[data-motion="reduce"] *::after {
 .ch-feed { display: flex; flex-direction: column; gap: 18px; padding: 18px var(--gutter) 0; }
 /* Legacy home blocks (banners, reminders, checkups, articles) carry their own
    `.sec` gutter — inside the feed the column already has it. */
-.ch-feed > .sec, .ch-feed > .sec-tight { padding: 0; margin: 0; }
+.ch-feed > .sec, .ch-feed > .sec-tight, .ch-feed > .trm-sec { padding: 0; margin: 0; }
+/* Cards are flat in Night & Bloom (1px line, no shadow) — the M3/M4 care cards kept theirs (B-N1-16). */
+.ch-feed .trm-card { box-shadow: none; }
 .ch-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-bottom: 6px; }
 .ch-card-title { margin: 0; font-size: 15px; font-weight: 800; color: var(--text-1); text-align: start; }
 .ch-overline { margin: 0; font-size: 11px; font-weight: 800; letter-spacing: .12em; color: var(--text-2); }
@@ -5782,6 +5790,9 @@ html[data-motion="reduce"] *::after {
 .csp-heat.l1 { background: color-mix(in srgb, var(--nb-tone) 35%, transparent); }
 .csp-heat.l2 { background: color-mix(in srgb, var(--nb-tone) 65%, transparent); }
 .csp-note { margin: 4px 0 0; text-align: center; font-size: 12px; font-weight: 700; color: var(--text-2); }
+/* Day axes run left→right in both locales, as in every chart board (Cycle_History, Cycle_Symptoms,
+   TTC_BBT, TTC_Insights): day 1 / the period sits at the left (B-N1-16 audit). */
+.cyh-bar, .csp-typ-bar, .csp-axis, .csp-strip { direction: ltr; }
 
 /* Edit period sheet (features/log-period) */
 .osheet.epd-sheet { background: var(--surface); }

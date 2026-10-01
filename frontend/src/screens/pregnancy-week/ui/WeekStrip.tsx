@@ -13,7 +13,7 @@ const WEEKS = Array.from({ length: V2_MAX_WEEK - V2_MIN_WEEK + 1 }, (_, i) => V2
 /** past = solid white, current = brand fill, future = dashed (Week artboard). */
 const CHIP: Record<WeekRelation, string> = {
   past: 'bg-(--surface) border border-(--line) text-(--ink)',
-  current: 'bg-(--brand-fill) border border-(--brand-fill) text-(--on-accent) font-black',
+  current: 'bg-(--brand-fill) border border-(--brand-fill) text-(--on-brand) font-black',
   future: 'bg-(--surface) border border-dashed border-(--brand-line) text-(--ink-3)',
 };
 

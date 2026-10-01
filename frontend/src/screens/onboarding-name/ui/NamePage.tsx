@@ -71,7 +71,7 @@ export function NamePage() {
               })}
             </span>
             <span className={`cbx pink${terms ? ' on' : ''}`}>
-              <Icon name="check" size={13} stroke="var(--on-accent)" />
+              <Icon name="check" size={13} stroke="var(--on-brand)" />
             </span>
           </div>
         </div>
