@@ -1,0 +1,31 @@
+{
+  "case": "search/mine_other_user",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/search?q=%D8%A2%D9%87%D9%86&scope=mine",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "query": "آهن",
+          "scope": "mine",
+          "groups": [
+            {
+              "key": "mine",
+              "total": 0,
+              "items": []
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

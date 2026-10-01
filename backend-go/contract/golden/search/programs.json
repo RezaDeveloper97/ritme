@@ -1,0 +1,40 @@
+{
+  "case": "search/programs",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/search?q=%D9%83%DA%AF%D9%84&scope=programs",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "query": "كگل",
+          "scope": "programs",
+          "groups": [
+            {
+              "key": "programs",
+              "total": 1,
+              "items": [
+                {
+                  "type": "program",
+                  "id": "pelvic",
+                  "title": "کف لگن",
+                  "subtitle": "برنامه ۸ هفته‌ای",
+                  "route": "/programs/pelvic",
+                  "meta": {}
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

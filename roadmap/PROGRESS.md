@@ -109,3 +109,11 @@ TODO (ask user):
 ## CB-CONTRA-04b — Syringe and implant icons for contraception methods
 - `syringe` and `implant` glyphs added to `shared/ui/Icon.tsx` (paths from the board's tiles; the board's implant is a circle with rays, not a rod); `METHOD_LOOK` uses them for injection / implant (setup tiles, other-methods cards, pill screen).
 - Verify: typecheck, lint, lint:styles, lint:dark, 954 tests — green. Setup verdict → ✔ (`docs/qa/canvas/contra/CB-CONTRA-04b/`).
+
+## CB-NAV-01 — Global search API
+- `GET /api/v1/search?q=&scope=all|mine|education|programs|services&limit=` (auth:api, Go-only, D-38). Groups in board order mine → programs → education → services; `total` + up to `limit` items (3 on all, 20 per scope); `shop` rejected (422).
+- mine = caller's log insights (log-taxonomy labels for her mode; days + peak score in the current cycle or last 30 days), analysis links, her care medications/appointments. programs = contraception, pelvic. education = published articles. services = checkups/reminders screens + visible checkup types.
+- Persian normalisation (ي/ك, alef/heh variants, digits, diacritics, ZWNJ) with tests. Query never logged, nothing cached; user-isolation int test. No migration, no new SQL.
+- Verify: vet, golangci-lint 0, go test ./..., test-int search, OpenAPI test, `make contract ROUTES=all` (12 search goldens) — green.
+- Open: contract fixture lacks checkup_types (services covered by int tests only); routes not yet built (/programs/pelvic CB-PELV-02, /analysis/* B-N3-08/09, /articles/{slug}) — CB-NAV-02 maps or hides them; add sources when condition programs (CB-COND-01), courses (B-N8), directory (B-N7/CB-DIR) ship.
+- TODO (ask user): insight window = current cycle for cycle/ttc/teen, 30 days otherwise; response echoes raw query; keep pelvic link before CB-PELV-02.

@@ -1,0 +1,43 @@
+{
+  "case": "search/mine_reminder",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/search?q=%D8%A2%D9%87%D9%86&scope=mine",
+        "persona": "engaged",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "query": "آهن",
+          "scope": "mine",
+          "groups": [
+            {
+              "key": "mine",
+              "total": 1,
+              "items": [
+                {
+                  "type": "reminder",
+                  "id": "101802",
+                  "title": "آهن",
+                  "subtitle": "۱ قرص",
+                  "route": "/reminders/medication/101802",
+                  "meta": {
+                    "kind": "medication",
+                    "active": true
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

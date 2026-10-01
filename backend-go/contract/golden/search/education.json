@@ -1,0 +1,56 @@
+{
+  "case": "search/education",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/search?q=%D8%AF%D8%B1%D8%AF+%D9%BE%D8%B1%D9%8A%D9%88%D8%AF&scope=education",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "query": "درد پريود",
+          "scope": "education",
+          "groups": [
+            {
+              "key": "education",
+              "total": 2,
+              "items": [
+                {
+                  "type": "article",
+                  "id": "period-pain-relief",
+                  "title": "راه‌های کاهش درد پریود",
+                  "subtitle": null,
+                  "route": "/articles/period-pain-relief",
+                  "meta": {
+                    "kind": "article",
+                    "category": "period_health",
+                    "read_time_minutes": 5
+                  }
+                },
+                {
+                  "type": "article",
+                  "id": "period-blood-clots",
+                  "title": "لخته‌های خون در دوران پریود؛ معنی آن چیست؟",
+                  "subtitle": null,
+                  "route": "/articles/period-blood-clots",
+                  "meta": {
+                    "kind": "article",
+                    "category": "period_health",
+                    "read_time_minutes": 4
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

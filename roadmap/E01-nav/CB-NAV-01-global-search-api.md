@@ -3,7 +3,7 @@ id: CB-NAV-01
 title: Global search API
 epic: NAV
 type: backend
-status: todo
+status: done
 depends_on: [CB-CORE-01, B-N3-01]
 parallel_group: NAV-A
 touches: [backend-go/internal/search, backend-go/internal/http/routes_search.go, backend-go/db/queries/search, backend-go/api/openapi.yaml, backend-go/contract, backend-go/resources/translations]

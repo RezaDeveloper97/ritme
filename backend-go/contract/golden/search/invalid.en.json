@@ -1,0 +1,32 @@
+{
+  "case": "search/invalid.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/search?scope=shop&limit=50",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "The search term field is required. (and 2 more errors)",
+        "errors": {
+          "q": [
+            "The search term field is required."
+          ],
+          "scope": [
+            "The selected search scope is invalid."
+          ],
+          "limit": [
+            "The result count field must not be greater than 20."
+          ]
+        }
+      }
+    }
+  ]
+}

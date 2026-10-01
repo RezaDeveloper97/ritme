@@ -1,0 +1,31 @@
+{
+    "attributes": {
+        "q": "search term",
+        "scope": "search scope",
+        "limit": "result count"
+    },
+    "programs": {
+        "contraception": {
+            "title": "Contraception",
+            "subtitle": "Pill and other methods",
+            "keywords": "birth control, contraceptive pill, missed pill, IUD, condom, injection, implant"
+        },
+        "pelvic": {
+            "title": "Pelvic floor",
+            "subtitle": "8-week program",
+            "keywords": "kegel, pelvic floor exercise, bladder leak, incontinence, bladder diary"
+        }
+    },
+    "services": {
+        "checkups": {
+            "title": "Regular checkups",
+            "subtitle": "When your exams and tests are due",
+            "keywords": "checkup, exam, test, pap smear, mammogram, ultrasound, breast exam"
+        },
+        "reminders": {
+            "title": "Medicine and visit reminders",
+            "subtitle": "Pills, supplements and doctor visits",
+            "keywords": "reminder, medicine, medication, pill, supplement, doctor appointment, visit"
+        }
+    }
+}

@@ -1,0 +1,45 @@
+{
+  "case": "search/education_en_limit",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/search?q=period&scope=education&limit=1",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "query": "period",
+          "scope": "education",
+          "groups": [
+            {
+              "key": "education",
+              "total": 4,
+              "items": [
+                {
+                  "type": "article",
+                  "id": "period-blood-clots",
+                  "title": "Blood clots during your period: what do they mean?",
+                  "subtitle": null,
+                  "route": "/articles/period-blood-clots",
+                  "meta": {
+                    "kind": "article",
+                    "category": "period_health",
+                    "read_time_minutes": 4
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

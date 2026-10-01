@@ -1,0 +1,41 @@
+{
+  "case": "search/programs_en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/search?q=IUD&scope=programs",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "query": "IUD",
+          "scope": "programs",
+          "groups": [
+            {
+              "key": "programs",
+              "total": 1,
+              "items": [
+                {
+                  "type": "program",
+                  "id": "contraception",
+                  "title": "Contraception",
+                  "subtitle": "Pill and other methods",
+                  "route": "/contraception",
+                  "meta": {}
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

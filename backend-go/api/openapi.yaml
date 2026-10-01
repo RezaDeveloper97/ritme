@@ -34,6 +34,7 @@ tags:
   - {name: Catalog, description: "Admin-editable content catalog (Go only): one localized group of items (FAQs, warning signs, kit items, …)"}
   - {name: Pelvic, description: "Pelvic floor program (Go only): 8-week Kegel plan, trained days, bladder diary"}
   - {name: Log Taxonomy, description: "Day log v2 (Go only, B-N3-01): taxonomy with labels, per-day entries, the two-way sync with daily_health_logs"}
+  - {name: Search, description: "Global search (Go only, CB-NAV-01): grouped hits over the caller's logs and reminders, care programs, education and services; shop excluded"}
   - {name: Contraception, description: "Contraception (Go only): method, pill pack (day, placebo/break days, streak, refill), pill log and the care reminders of long-acting methods"}
   - {name: Plus, description: "Ritme Plus (Go only): plans, trial, checkout through the payment port, verify, cancel, restore, history, entitlements and usage. Amounts are integer rials"}
   - {name: Payments, description: "Payment gateway adapter (Go only): browser return hop and the fake provider's TEST page. PAYMENT_PROVIDER = fake (default outside production) | zarinpal | none. Café Bazaar / Myket billing is Android-only and out of scope"}
@@ -2122,6 +2123,106 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '422': {$ref: "#/components/responses/PelvicValidationFailed"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/search:
+    get:
+      tags: [Search]
+      summary: Global search (Today header)
+      description: |
+        One query over the caller's own logs and care reminders (`mine`), care programs (`programs`), published
+        articles (`education`) and the services that exist plus the checkup catalog she sees (`services`). The shop is
+        never searched here (it has its own search). The query is normalised before matching: Arabic ي/ى/ك → Persian
+        ی/ک, alef / heh variants folded, Persian and Arabic-Indic digits → ASCII, diacritics and tatweel dropped, and
+        spaces / ZWNJ / punctuation ignored inside words; every query word must occur. Groups come in the board's order
+        (`mine`, `programs`, `education`, `services`), only those of `scope`, each with its full match count (`total`)
+        and at most `limit` items (default 3 on `all`, 20 inside one scope).
+
+        `mine` hits: `log_insight` (days with the matched taxonomy item in the window — the current cycle in cycle /
+        ttc / teen mode when a period start is known and under 60 days old, else the last 30 days — and the peak 1–10
+        score of scored items), `log_analysis` (the analysis screen of a matched category) and `reminder`. Only the
+        caller's rows are read; the query text is never logged.
+      operationId: search
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - name: q
+          in: query
+          required: true
+          schema: {type: string, minLength: 2, maxLength: 100}
+        - name: scope
+          in: query
+          required: false
+          schema: {type: string, enum: [all, mine, education, programs, services], default: all}
+        - name: limit
+          in: query
+          required: false
+          description: Items per group (default 3 for `all`, 20 for one scope)
+          schema: {type: integer, minimum: 1, maximum: 20}
+      responses:
+        '200':
+          description: Grouped hits
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [query, scope, groups]
+                    properties:
+                      query: {type: string, description: the query as sent (trimmed)}
+                      scope: {type: string, enum: [all, mine, education, programs, services]}
+                      groups:
+                        type: array
+                        items:
+                          type: object
+                          required: [key, total, items]
+                          properties:
+                            key: {type: string, enum: [mine, programs, education, services]}
+                            total: {type: integer, minimum: 0}
+                            items:
+                              type: array
+                              items:
+                                type: object
+                                required: [type, id, title, subtitle, route, meta]
+                                properties:
+                                  type: {type: string, enum: [log_insight, log_analysis, reminder, program, article, service, checkup]}
+                                  id: {type: string, description: "taxonomy path (`pain`, `pain.location.head`), row id, slug or registry code"}
+                                  title: {type: string}
+                                  subtitle: {type: [string, "null"]}
+                                  route: {type: string, description: in-app route (locale prefix not included)}
+                                  meta:
+                                    type: object
+                                    description: |
+                                      log_insight: category, param, item, days, window {kind cycle|days, from, to}, peak {score, date, cycle_day}|null;
+                                      log_analysis: category; reminder: kind (medication|appointment), active; article: kind, category, read_time_minutes;
+                                      checkup: category, custom; program / service: {}.
+              example:
+                success: true
+                data:
+                  query: درد
+                  scope: all
+                  groups:
+                    - key: mine
+                      total: 2
+                      items:
+                        - type: log_insight
+                          id: pain
+                          title: درد
+                          subtitle: null
+                          route: /analysis/symptoms?category=pain
+                          meta: {category: pain, param: null, item: null, days: 3, window: {kind: cycle, from: '2026-09-14', to: '2026-09-23'}, peak: {score: 6, date: '2026-09-15', cycle_day: 2}}
+                        - {type: log_analysis, id: pain, title: درد, subtitle: null, route: /analysis/symptoms, meta: {category: pain}}
+                    - {key: programs, total: 0, items: []}
+                    - key: education
+                      total: 12
+                      items:
+                        - {type: article, id: period-pain, title: "درد پریود؛ کی عادی است؟", subtitle: null, route: /articles/period-pain, meta: {kind: article, category: body, read_time_minutes: 4}}
+                    - {key: services, total: 0, items: []}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
   /api/v1/logs/taxonomy:
     get:
       tags: [Log Taxonomy]

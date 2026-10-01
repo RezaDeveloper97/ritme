@@ -1,0 +1,62 @@
+{
+  "case": "search/mine_log_insight_en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/search?q=period&scope=mine",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "query": "period",
+          "scope": "mine",
+          "groups": [
+            {
+              "key": "mine",
+              "total": 2,
+              "items": [
+                {
+                  "type": "log_insight",
+                  "id": "bleeding",
+                  "title": "Period & spotting",
+                  "subtitle": null,
+                  "route": "/analysis/period?category=bleeding",
+                  "meta": {
+                    "category": "bleeding",
+                    "param": null,
+                    "item": null,
+                    "days": 2,
+                    "window": {
+                      "kind": "cycle",
+                      "from": "2026-09-14",
+                      "to": "2026-09-23"
+                    },
+                    "peak": null
+                  }
+                },
+                {
+                  "type": "log_analysis",
+                  "id": "bleeding",
+                  "title": "Period & spotting",
+                  "subtitle": null,
+                  "route": "/analysis/period",
+                  "meta": {
+                    "category": "bleeding"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

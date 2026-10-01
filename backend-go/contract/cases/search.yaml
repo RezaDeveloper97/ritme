@@ -1,0 +1,78 @@
+# Global search (/api/v1/search) — Go only (CB-NAV-01, deviations.md D-38): there is no Laravel route, so these
+# goldens were recorded from the Go server and reviewed by hand (new-endpoint skill, step 8).
+# The fixture dump has no checkup_types table (the checkups domain is Go-only and not in the Laravel fixture), so the
+# `services` group (and therefore scope=all) is covered by internal/search integration tests, not here. The regular
+# persona's backfilled bleeding entries (2026-09-14/15) and the engaged persona's medication «آهن» are pinned; the
+# user isolation (A never sees B's logs, reminders or custom checkups) is covered by internal/search tests.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: search
+defaults:
+  persona: regular
+  locales: none
+cases:
+  - name: mine_log_insight
+    doc: The bleeding category matched by «پریود» → days with bleeding in the current cycle + the analysis link
+    method: GET
+    path: /api/v1/search
+    query: {q: پريود, scope: mine}
+    status: 200
+  - name: mine_log_insight_en
+    locales: en
+    method: GET
+    path: /api/v1/search
+    query: {q: period, scope: mine}
+    status: 200
+  - name: mine_reminder
+    doc: The engaged persona's medication reminder by name (Arabic yeh/kaf-free query, own rows only)
+    persona: engaged
+    method: GET
+    path: /api/v1/search
+    query: {q: آهن, scope: mine}
+    status: 200
+  - name: mine_other_user
+    doc: The regular persona has no reminder «آهن» — the engaged persona's row never shows
+    method: GET
+    path: /api/v1/search
+    query: {q: آهن, scope: mine}
+    status: 200
+  - name: education
+    doc: Published articles, title hits before excerpt hits, ZWNJ-insensitive
+    method: GET
+    path: /api/v1/search
+    query: {q: درد پريود, scope: education}
+    status: 200
+  - name: education_en_limit
+    locales: en
+    method: GET
+    path: /api/v1/search
+    query: {q: period, scope: education, limit: '1'}
+    status: 200
+  - name: programs
+    method: GET
+    path: /api/v1/search
+    query: {q: كگل, scope: programs}
+    status: 200
+  - name: programs_en
+    locales: en
+    method: GET
+    path: /api/v1/search
+    query: {q: IUD, scope: programs}
+    status: 200
+  - name: invalid
+    doc: q missing, scope outside the list (shop is never a scope), limit out of range
+    locales: [none, en]
+    method: GET
+    path: /api/v1/search
+    query: {scope: shop, limit: '50'}
+    status: 422
+  - name: too_short
+    method: GET
+    path: /api/v1/search
+    query: {q: د}
+    status: 422
+  - name: anon
+    persona: anon
+    method: GET
+    path: /api/v1/search
+    query: {q: درد}
+    status: 401
