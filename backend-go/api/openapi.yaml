@@ -7051,6 +7051,123 @@ paths:
                       dates: ['2026-09-09', '2026-09-11']
                       needs_review: true
         '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/messages/menopause:
+    get:
+      tags: [Messages]
+      summary: Menopause alerts, reminders and stage tips
+      description: >-
+        Go-only (D-43, CB-MENO-12). The menopause home's messages, computed per request from the menopause API's own
+        rules (nothing stored), in display order: `postmenopausal_bleeding` (alert, high — bleeding or spotting logged
+        in the last 30 days while the stage is meno or post), `checkup_overdue` (reminder, medium — a menopause
+        checkup of the M4 plan is overdue), `score_worsened` (alert, medium — the newest monthly score, of this or
+        the previous Jalali month, is 4+ points above the questionnaire before it), `hrt_review` (reminder, medium —
+        an active HRT item's `review_on` is today or within 14 days; one per item), `checkup_due` (reminder, low —
+        only when none is overdue; never done counts as due), then the stage tips (kind `tip`, key = the catalog
+        `meno_tips` code placed on the home for her stage; no stage yet → the `unsure` tips). Only users whose
+        effective life mode is menopause get messages; for everyone else `messages` is `[]`. Texts: the bleeding
+        alert and the tips are the catalog items (`meno_alerts` / `meno_tips`, title, body, `meta.cta` as action);
+        the other rules are admin `menopause_message` rows in the request language, falling back per field to the
+        embedded copy (`needs_review` true while any fallback is used or the catalog item is flagged). All
+        thresholds and copy [needs clinical review].
+      operationId: getMessagesMenopause
+      security:
+        - {bearerAuth: []}
+      parameters: [{$ref: "#/components/parameters/AcceptLanguage"}]
+      responses:
+        '200':
+          description: The caller's menopause messages (possibly none)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [mode, stage, messages]
+                    properties:
+                      mode: {type: string, enum: [cycle, ttc, pregnancy, postpartum, menopause, teen], description: Effective life mode}
+                      stage: {oneOf: [{type: 'null'}, {type: string, enum: [peri, meno, post]}], description: Effective menopause stage (null outside menopause or when unknown)}
+                      messages:
+                        type: array
+                        items:
+                          type: object
+                          required: [key, kind, priority, title, body, action, link, needs_review, data]
+                          properties:
+                            key: {type: string, description: 'Rule key (postmenopausal_bleeding, checkup_overdue, score_worsened, hrt_review, checkup_due) or, for a tip, its meno_tips code'}
+                            kind: {type: string, enum: [alert, reminder, tip]}
+                            priority: {type: string, enum: [high, medium, low]}
+                            title: {type: ['string', 'null']}
+                            body: {type: ['string', 'null']}
+                            action: {type: ['string', 'null']}
+                            link: {type: ['string', 'null'], description: In-app path (null for tips)}
+                            needs_review: {type: boolean}
+                            data:
+                              description: >-
+                                The rule's facts — bleeding {last_on}; checkup_* {count, checkup (CheckupItem)};
+                                score_worsened {month, total, previous_month, previous, delta}; hrt_review
+                                {treatment_item_id, name, review_on, days_left}; null for tips
+                              oneOf:
+                                - type: 'null'
+                                - type: object
+                                  required: [last_on]
+                                  properties:
+                                    last_on: {oneOf: [{type: 'null'}, {$ref: "#/components/schemas/Date"}]}
+                                - type: object
+                                  required: [count, checkup]
+                                  properties:
+                                    count: {type: integer, minimum: 1}
+                                    checkup: {$ref: "#/components/schemas/CheckupItem"}
+                                - type: object
+                                  required: [month, total, previous_month, previous, delta]
+                                  properties:
+                                    month: {$ref: "#/components/schemas/Date"}
+                                    total: {type: integer}
+                                    previous_month: {$ref: "#/components/schemas/Date"}
+                                    previous: {type: integer}
+                                    delta: {type: integer, minimum: 4}
+                                - type: object
+                                  required: [treatment_item_id, name, review_on, days_left]
+                                  properties:
+                                    treatment_item_id: {type: integer}
+                                    name: {type: string}
+                                    review_on: {$ref: "#/components/schemas/Date"}
+                                    days_left: {type: integer, minimum: 0}
+              example:
+                success: true
+                data:
+                  mode: menopause
+                  stage: meno
+                  messages:
+                    - key: postmenopausal_bleeding
+                      kind: alert
+                      priority: high
+                      title: Bleeding after menopause
+                      body: Any bleeding or spotting, even a little, 12 months or more after your last period should be checked. Usually the cause is simple, but an early check matters.
+                      action: Tell your doctor about this
+                      link: /menopause/alert
+                      needs_review: true
+                      data: {last_on: '2026-09-28'}
+                    - key: score_worsened
+                      kind: alert
+                      priority: medium
+                      title: Your symptom score went up
+                      body: Your latest score is 14, 5 points higher than the time before (9). Note what changed, and talk to your doctor if it stays high.
+                      action: See my score
+                      link: /menopause/score
+                      needs_review: true
+                      data: {month: '2026-09-23', total: 14, previous_month: '2026-08-23', previous: 9, delta: 5}
+                    - key: stage_meno
+                      kind: tip
+                      priority: low
+                      title: Menopause
+                      body: It has been more than 12 months, which means you have reached menopause. From now on, log any bleeding or spotting and tell your doctor.
+                      action: null
+                      link: null
+                      needs_review: true
+                      data: null
+        '401': {$ref: "#/components/responses/Unauthenticated"}
   /api/v1/pregnancy/activate:
     post:
       tags: [Pregnancy]

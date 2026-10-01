@@ -1,0 +1,25 @@
+{
+  "case": "messages/menopause.no_profile.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/menopause",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "stage": null,
+          "messages": []
+        }
+      }
+    }
+  ]
+}

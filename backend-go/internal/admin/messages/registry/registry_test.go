@@ -11,6 +11,7 @@ import (
 	"github.com/ritme/backend-go/internal/admin/messages/registry"
 	"github.com/ritme/backend-go/internal/messages/conditionnudges"
 	"github.com/ritme/backend-go/internal/messages/content"
+	"github.com/ritme/backend-go/internal/messages/menomessages"
 	"github.com/ritme/backend-go/internal/platform/validation/phpval"
 )
 
@@ -58,6 +59,25 @@ func TestConditionNudgeGroup(t *testing.T) {
 			assert.False(t, f.Nullable, f.Key)
 		}
 		assert.Equal(t, conditionnudges.TextKeys, keys)
+	}
+}
+
+// menopause_message mirrors the menopause message engine (CB-MENO-12): same group, item keys and payload keys.
+func TestMenopauseMessageGroup(t *testing.T) {
+	assert.Equal(t, menomessages.Group, registry.MenopauseMessageGroup)
+	assert.Contains(t, registry.GroupNames(), registry.MenopauseMessageGroup)
+	assert.Equal(t, menomessages.TextRules, registry.Keys(registry.MenopauseMessageGroup))
+	for _, k := range menomessages.TextRules {
+		it, ok := registry.Lookup(registry.MenopauseMessageGroup, k)
+		require.True(t, ok)
+		assert.True(t, it.Typed)
+		assert.NotEmpty(t, it.Placeholders)
+		keys := []string{}
+		for _, f := range it.Fields {
+			keys = append(keys, f.Key)
+			assert.False(t, f.Nullable, f.Key)
+		}
+		assert.Equal(t, menomessages.TextKeys, keys)
 	}
 }
 

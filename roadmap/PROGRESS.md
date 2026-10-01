@@ -167,3 +167,10 @@ TODO (ask user):
 - Contract fixture dump.sql now has the checkup + menopause tables (additions only). Doc `docs/canvas-build/menopause.md` §7.
 - Verify (landed on top of CB-MENO-01b): sqlc, vet, go test ./..., golangci-lint 0, int menopause, contract all 1290 passed — green.
 - TODO (ask user): bleeding alert also for older period logs within 30 days after switching to menopause? score delta vs previous filled questionnaire; upcoming checkups include never-done; pattern sentences in package lang. Clinical constants (12 months, 30-day bleeding window, night 22–06, patterns) [needs clinical review].
+
+## CB-MENO-12 — Message engine: menopause tips & alerts
+- `GET /api/v1/messages/menopause` (auth:api, localized; D-43; OpenAPI `getMessagesMenopause`; contract `menopause`, `menopause_flow`, `menopause_anon`, 11 goldens) → `{mode, stage, messages[{key, kind, priority, title, body, action, link, needs_review, data}]}`; non-menopause users get `[]`. Package `internal/messages/menomessages` (pure rules + engine + handler); facts from new `menopause.Service.Signals` (reuses stage rule, bleeding flag, score delta, checkups plan, treatment activeOn).
+- Rules (constants, [needs clinical review]): `postmenopausal_bleeding` (high) → /menopause/alert; `checkup_overdue` → /checkups/{id}; `score_worsened` (≥4 vs previous, fresh within 2 Jalali months) → /menopause/score; `hrt_review` (review_on within 14 days) → /menopause/treatment; `checkup_due` (only when nothing overdue; never-done counts); stage tips from `meno_tips` (placement=home).
+- Copy: bleeding + tips from catalog; other rules via new admin registry group `menopause_message` (typed, unseeded, per-field fallback to embedded fa/en). No migration (00025 unused).
+- Verify: vet, go test ./..., int menomessages/menopause/admin messages/checkups/http, OpenAPI, contract — green at HEAD. Bloom's in-flight B-N2-11b (checkups timing for menopause) will turn `messages/menopause_flow` `timing_label` to null → re-record those 2 goldens after it lands.
+- TODO (ask user): `checkup_due` fires for never-done checkups (almost always shown) — only re-due ones? no dismiss/dedupe; tips uncapped.

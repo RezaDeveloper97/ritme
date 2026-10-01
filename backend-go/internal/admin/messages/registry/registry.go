@@ -72,7 +72,7 @@ func Keys(group string) []string {
 var groups = buildGroups()
 
 func buildGroups() []Group {
-	out := []Group{weekTipGroup(), alertGroup(), setupGroup(), conditionNudgeGroup()}
+	out := []Group{weekTipGroup(), alertGroup(), setupGroup(), conditionNudgeGroup(), menopauseMessageGroup()}
 	defaults, _ := phpval.Decode(content.DefaultsJSON())
 	for _, name := range content.Groups() {
 		if slices.ContainsFunc(out, func(g Group) bool { return g.Name == name }) {
@@ -195,6 +195,40 @@ func setupGroup() Group {
 	g := Group{Name: SetupGroup}
 	for _, it := range items {
 		g.Items = append(g.Items, Item{Group: SetupGroup, Key: it.key, Fields: it.fields, Placeholders: it.placeholders, Typed: true})
+	}
+	return g
+}
+
+// ---------------------------------------------------------------------------
+// Menopause (roadmap E02)
+
+// MenopauseMessageGroup is the copy of the menopause reminders and alerts (CB-MENO-12,
+// internal/messages/menomessages: Group, TextRules, TextKeys — kept equal by registry_test). Unseeded: the engine
+// falls back to its embedded copy, per field, until an admin writes a row. The bleeding alert and the stage tips are
+// catalog items (meno_alerts / meno_tips), edited in the catalog, not here.
+const MenopauseMessageGroup = "menopause_message"
+
+// MenopauseMessageRule is one rule (= item key) of MenopauseMessageGroup and its `{name}` placeholders.
+type MenopauseMessageRule struct {
+	Key          string
+	Placeholders []string
+}
+
+// MenopauseMessageRules are the rules in display order.
+var MenopauseMessageRules = []MenopauseMessageRule{
+	{"checkup_overdue", []string{"checkup", "count"}},
+	{"score_worsened", []string{"total", "previous", "delta"}},
+	{"hrt_review", []string{"name", "date", "when", "days"}},
+	{"checkup_due", []string{"checkup", "count"}},
+}
+
+func menopauseMessageGroup() Group {
+	fields := []Field{text("title", 255), text("body", 1000), text("action", 120)}
+	g := Group{Name: MenopauseMessageGroup}
+	for _, r := range MenopauseMessageRules {
+		g.Items = append(g.Items, Item{
+			Group: MenopauseMessageGroup, Key: r.Key, Fields: fields, Placeholders: r.Placeholders, Typed: true,
+		})
 	}
 	return g
 }

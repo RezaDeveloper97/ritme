@@ -4,10 +4,14 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/ritme/backend-go/internal/auth"
+	"github.com/ritme/backend-go/internal/catalog"
+	catalogstore "github.com/ritme/backend-go/internal/catalog/store"
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
+	"github.com/ritme/backend-go/internal/menopause"
 	"github.com/ritme/backend-go/internal/messages"
 	"github.com/ritme/backend-go/internal/messages/conditionnudges"
+	"github.com/ritme/backend-go/internal/messages/menomessages"
 	"github.com/ritme/backend-go/internal/platform/clock"
 )
 
@@ -25,5 +29,11 @@ func init() {
 		// Heavy pain / heavy bleeding nudges of the condition programs (CB-COND-06b): Go-only, D-41.
 		nudges := conditionnudges.NewHandlers(d.DB, clock.Real{})
 		r.Get(p+"/nudges", locale, guard, nudges.Index)
+
+		// Menopause alerts and stage tips (CB-MENO-12): Go-only, D-43. Facts from the menopause API's rules, texts
+		// from its catalog and message_contents group menopause_message.
+		cat := catalog.NewReader(catalogstore.New(d.DB), d.Cache, 0, d.Logger)
+		meno := menomessages.NewHandlers(d.DB, menopause.NewService(d.DB, cat), clock.Real{})
+		r.Get(p+"/menopause", locale, guard, meno.Index)
 	})
 }

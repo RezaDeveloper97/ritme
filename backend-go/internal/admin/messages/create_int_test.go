@@ -216,4 +216,31 @@ func TestStoreAndEditConditionNudge(t *testing.T) {
 	assert.Equal(t, []any{"days"}, r.Data()["placeholders"])
 }
 
+// menopause_message (CB-MENO-12): the menopause reminder / alert copy is a typed group like condition_nudge; the
+// engine (internal/messages/menomessages) reads the row by (group, rule key, locale).
+func TestStoreMenopauseMessage(t *testing.T) {
+	e := newEnv(t)
+	c := e.As(admintest.EditorID)
+
+	r := c.JSON(fiber.MethodPost, "/messages", map[string]any{
+		"group": "menopause_message", "item_key": "score_worsened", "locale": "fa",
+		"payload": map[string]any{"title": "امتیاز بالا رفت", "body": "{delta} واحد بیشتر", "action": "امتیاز", "x": "dropped"},
+	})
+	require.Equal(t, 201, r.Status, r.Body)
+	assert.Equal(t, map[string]any{"title": "امتیاز بالا رفت", "body": "{delta} واحد بیشتر", "action": "امتیاز"},
+		r.Obj("message")["payload"])
+
+	// The bleeding alert is catalog content, not a message_contents item.
+	r = c.JSON(fiber.MethodPost, "/messages", map[string]any{
+		"group": "menopause_message", "item_key": "postmenopausal_bleeding", "locale": "en",
+		"payload": map[string]any{"title": "T", "body": "B", "action": "A"},
+	})
+	require.Equal(t, 422, r.Status)
+	assert.Contains(t, r.Errors(), "item_key")
+
+	r = c.Get("/messages/registry/menopause_message/hrt_review")
+	require.Equal(t, 200, r.Status, r.Body)
+	assert.Equal(t, []any{"name", "date", "when", "days"}, r.Data()["placeholders"])
+}
+
 func ftoa(f float64) string { return strconv.FormatInt(int64(f), 10) }

@@ -1,0 +1,28 @@
+{
+    "review": "needs clinical review",
+    "postmenopausal_bleeding": {
+        "title": "Bleeding after menopause",
+        "body": "You logged bleeding or spotting. Any bleeding 12 months or more after your last period should be checked by a doctor. Usually the cause is simple, but an early check matters.",
+        "action": "Tell your doctor about this"
+    },
+    "checkup_overdue": {
+        "title": "A checkup is overdue",
+        "body": "{checkup} is past its due time. Booking it soon keeps your health plan on track.",
+        "action": "See my checkups"
+    },
+    "score_worsened": {
+        "title": "Your symptom score went up",
+        "body": "Your latest score is {total}, {delta} points higher than the time before ({previous}). Note what changed, and talk to your doctor if it stays high.",
+        "action": "See my score"
+    },
+    "hrt_review": {
+        "title": "Treatment review coming up",
+        "body": "{when}: the review of {name} with your doctor ({date}). Write down how you have felt and any side effects to take with you.",
+        "action": "Open my treatment"
+    },
+    "checkup_due": {
+        "title": "A checkup is due",
+        "body": "It is time for {checkup}. Regular checks matter more for your bones and heart after menopause.",
+        "action": "See my checkups"
+    }
+}

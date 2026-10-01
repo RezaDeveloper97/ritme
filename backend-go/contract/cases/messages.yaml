@@ -1,4 +1,5 @@
-# Smart messages: /messages/daily, /messages/mode and the condition nudges /messages/nudges (Go only, D-41).
+# Smart messages: /messages/daily, /messages/mode, the condition nudges /messages/nudges (Go only, D-41) and the
+# menopause messages /messages/menopause (Go only, D-43).
 # Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
 group: messages
 defaults:
@@ -116,4 +117,47 @@ cases:
     locales: none
     method: GET
     path: /api/v1/messages/nudges
+    status: 401
+
+  # ---- menopause messages (Go only, CB-MENO-12, deviations.md D-43) ----
+  # No Laravel route: these goldens were recorded from the Go server and reviewed by hand (new-endpoint skill,
+  # step 8). Score / HRT review / overdue checkup rules, the stage edges and user isolation are covered by
+  # internal/messages/menomessages (no persona has menopause data).
+  - name: menopause
+    doc: No persona is in menopause mode → mode cycle / ttc / pregnancy, messages []
+    persona: [regular, ttc, pregnant_lmp_w8, no_profile]
+    method: GET
+    path: /api/v1/messages/menopause
+    status: 200
+  - name: menopause_flow
+    doc: >-
+      regular switches to menopause (stage meno, last period 2025-08) → postmenopausal_bleeding (catalog alert; her
+      cycle-mode period of 2026-09-14 is inside the 30-day window, the menopause today flag's rule), checkup_due
+      (never-done checkups of the menopause groups) and the stage_meno tip; spotting logged on 2026-09-22 moves the
+      alert's last_on
+    persona: regular
+    steps:
+      - method: PUT
+        path: /api/v1/profile/life-stage
+        body: {mode: menopause}
+        status: 200
+      - method: PUT
+        path: /api/v1/menopause/profile
+        body: {stage: meno, last_period: "2025-08-01"}
+        status: 200
+      - method: GET
+        path: /api/v1/messages/menopause
+        status: 200
+      - method: PUT
+        path: /api/v1/logs/days/2026-09-22
+        body: {categories: {bleeding: {presence: spotting}}}
+        status: 200
+      - method: GET
+        path: /api/v1/messages/menopause
+        status: 200
+  - name: menopause_anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/messages/menopause
     status: 401

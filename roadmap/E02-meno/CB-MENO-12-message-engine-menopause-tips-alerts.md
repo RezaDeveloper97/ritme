@@ -3,7 +3,7 @@ id: CB-MENO-12
 title: Message engine: menopause tips & alerts
 epic: MENO
 type: backend
-status: todo
+status: done
 depends_on: [CB-MENO-02]
 parallel_group: MENO-C
 touches: [backend-go/internal/messages, backend-go/db/migrations, backend/database/migrations, backend-go/resources/translations]

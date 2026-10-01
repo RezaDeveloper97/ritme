@@ -196,13 +196,23 @@ func statusRank(st engine.Status) int {
 // upcomingCheckups are up to UpcomingCheckups items of her M4 plan — the menopause groups' checkups (and her own
 // custom ones) that are overdue, due, soon or never done — overdue first, then by due date.
 func (s *Service) upcomingCheckups(ctx context.Context, userID uint64, now time.Time) (*checkups.Plan, []engine.Item, error) {
-	keys, err := s.checkupKeys(ctx)
-	if err != nil {
-		return nil, nil, err
-	}
 	p, err := checkups.LoadPlan(ctx, s.db, userID, clock.At(now))
 	if err != nil {
 		return nil, nil, err
+	}
+	out, err := s.pendingCheckups(ctx, p)
+	if err != nil {
+		return nil, nil, err
+	}
+	return p, out[:min(len(out), UpcomingCheckups)], nil
+}
+
+// pendingCheckups are every plan item of the menopause groups (and her custom ones) that is overdue, due, soon or
+// never done, overdue first, then by due date.
+func (s *Service) pendingCheckups(ctx context.Context, p *checkups.Plan) ([]engine.Item, error) {
+	keys, err := s.checkupKeys(ctx)
+	if err != nil {
+		return nil, err
 	}
 	var out []engine.Item
 	for _, it := range p.Result.Items {
@@ -231,5 +241,5 @@ func (s *Service) upcomingCheckups(ctx context.Context, userID uint64, now time.
 		}
 		return a.NextDueOn.Compare(b.NextDueOn)
 	})
-	return p, out[:min(len(out), UpcomingCheckups)], nil
+	return out, nil
 }
