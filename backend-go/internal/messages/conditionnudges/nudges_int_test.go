@@ -187,6 +187,8 @@ func TestNudges_HeavyPainAndBleeding(t *testing.T) {
 	fa := e.get(t, tok, "fa")
 	require.Equal(t, http.StatusOK, fa.status, fa.raw)
 	assert.Contains(t, fa.nudges()[0]["title"], "درد")
+	assert.Contains(t, fa.nudges()[0]["body"], "۲ روز", "{days} in Persian digits for fa")
+	assert.NotContains(t, fa.nudges()[0]["body"], "2")
 }
 
 func TestNudges_BelowThresholdNothing(t *testing.T) {

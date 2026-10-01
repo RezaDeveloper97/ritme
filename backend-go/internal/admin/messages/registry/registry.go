@@ -72,7 +72,7 @@ func Keys(group string) []string {
 var groups = buildGroups()
 
 func buildGroups() []Group {
-	out := []Group{weekTipGroup(), alertGroup(), setupGroup()}
+	out := []Group{weekTipGroup(), alertGroup(), setupGroup(), conditionNudgeGroup()}
 	defaults, _ := phpval.Decode(content.DefaultsJSON())
 	for _, name := range content.Groups() {
 		if slices.ContainsFunc(out, func(g Group) bool { return g.Name == name }) {
@@ -195,6 +195,28 @@ func setupGroup() Group {
 	g := Group{Name: SetupGroup}
 	for _, it := range items {
 		g.Items = append(g.Items, Item{Group: SetupGroup, Key: it.key, Fields: it.fields, Placeholders: it.placeholders, Typed: true})
+	}
+	return g
+}
+
+// ---------------------------------------------------------------------------
+// Condition programs (roadmap E05)
+
+// ConditionNudgeGroup is the copy of the heavy pain / heavy bleeding nudges (CB-COND-06,
+// internal/messages/conditionnudges: Group, Rules, TextKeys — kept equal by registry_test). Unseeded: the engine
+// falls back to its embedded copy, per field, until an admin writes a row. `{days}` is the qualifying day count.
+const ConditionNudgeGroup = "condition_nudge"
+
+// ConditionNudgeRules are the nudge rule keys (= item keys) in display order.
+var ConditionNudgeRules = []string{"heavy_pain", "heavy_bleeding"}
+
+func conditionNudgeGroup() Group {
+	fields := []Field{text("title", 255), text("body", 1000), text("action", 120), text("doctor_action", 120)}
+	g := Group{Name: ConditionNudgeGroup}
+	for _, k := range ConditionNudgeRules {
+		g.Items = append(g.Items, Item{
+			Group: ConditionNudgeGroup, Key: k, Fields: fields, Placeholders: []string{"days"}, Typed: true,
+		})
 	}
 	return g
 }

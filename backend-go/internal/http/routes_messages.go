@@ -7,6 +7,7 @@ import (
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
 	"github.com/ritme/backend-go/internal/messages"
+	"github.com/ritme/backend-go/internal/messages/conditionnudges"
 	"github.com/ritme/backend-go/internal/platform/clock"
 )
 
@@ -20,5 +21,9 @@ func init() {
 
 		r.Get(p+"/daily", locale, guard, h.Daily)
 		r.Get(p+"/mode", locale, guard, h.Mode)
+
+		// Heavy pain / heavy bleeding nudges of the condition programs (CB-COND-06b): Go-only, D-41.
+		nudges := conditionnudges.NewHandlers(d.DB, clock.Real{})
+		r.Get(p+"/nudges", locale, guard, nudges.Index)
 	})
 }

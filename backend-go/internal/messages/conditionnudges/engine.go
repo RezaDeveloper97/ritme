@@ -18,6 +18,7 @@ import (
 	"github.com/ritme/backend-go/internal/messages/store"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
+	"github.com/ritme/backend-go/internal/platform/phpround"
 )
 
 //go:embed lang/*/*.json
@@ -104,6 +105,9 @@ func (e *Engine) Evaluate(ctx context.Context, userID uint64, today civildate.Da
 			admin = content.NewPayload(v)
 		}
 		days := strconv.Itoa(len(h.Dates))
+		if locale == "fa" {
+			days = phpround.PersianDigits(days) // «۲ روز», like the daily card (cycle/view)
+		}
 		for _, k := range TextKeys {
 			s, _ := admin.Or(k, "").(string)
 			if strings.TrimSpace(s) == "" {

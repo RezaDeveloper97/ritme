@@ -1,4 +1,4 @@
-# Smart messages: /messages/daily and /messages/mode.
+# Smart messages: /messages/daily, /messages/mode and the condition nudges /messages/nudges (Go only, D-41).
 # Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
 group: messages
 defaults:
@@ -75,4 +75,45 @@ cases:
     locales: none
     method: GET
     path: /api/v1/messages/mode
+    status: 401
+
+  # ---- condition nudges (Go only, CB-COND-06b, deviations.md D-41) ----
+  # No Laravel route: these goldens were recorded from the Go server and reviewed by hand (new-endpoint skill,
+  # step 8). Thresholds, windows, mode gating and user isolation are covered by internal/messages/conditionnudges.
+  - name: nudges
+    doc: No qualifying days in the fixture (regular has one heavy-flow day, 2026-09-14) → nudges []
+    persona: [regular, ttc, pregnant_lmp_w8, no_profile]
+    method: GET
+    path: /api/v1/messages/nudges
+    status: 200
+  - name: nudges_flow
+    doc: >-
+      regular's cycle runs from 2026-09-14 (heavy flow). Heavy flow + strong pain on 09-15 and strong pain (level
+      severe, no score) on 09-16 → heavy_pain (2 days) and heavy_bleeding (09-14, 09-15), embedded copy so
+      needs_review; after joining the endometriosis program only heavy_bleeding is left
+    persona: regular
+    steps:
+      - method: PUT
+        path: /api/v1/logs/days/2026-09-15
+        body: {categories: {bleeding: {flow: heavy}, pain: {location: {abdomen: {level: severe, score: 8}}}}}
+        status: 200
+      - method: PUT
+        path: /api/v1/logs/days/2026-09-16
+        body: {categories: {pain: {location: {back: severe}}}}
+        status: 200
+      - method: GET
+        path: /api/v1/messages/nudges
+        status: 200
+      - method: POST
+        path: /api/v1/conditions/enrolments
+        body: {program: endo}
+        status: 200
+      - method: GET
+        path: /api/v1/messages/nudges
+        status: 200
+  - name: nudges_anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/messages/nudges
     status: 401

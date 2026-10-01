@@ -135,7 +135,7 @@ func TestMissingAndRegistry(t *testing.T) {
 	r := c.Get("/messages?group=pregnancy_setup&locale=en")
 	require.Equal(t, 200, r.Status, r.Body)
 	missing := r.Data()["missing"].([]any)
-	assert.Len(t, missing, 9) // the 9 registered pregnancy_setup items (calendar_note since T-M7-20)
+	assert.Len(t, missing, 10) // the 10 registered pregnancy_setup items (calendar_note since T-M7-20, loss_exit since B-N2-03)
 	assert.Equal(t, map[string]any{"group": "pregnancy_setup", "item_key": "welcome", "locale": "en"}, missing[0])
 	assert.Contains(t, r.Data()["registered_groups"], "pregnancy_alert")
 
@@ -169,6 +169,51 @@ func TestMissingAndRegistry(t *testing.T) {
 	assert.NotEmpty(t, r.Data()["template"].(map[string]any)["short"], "template = code fallback copy")
 
 	assert.Equal(t, 404, c.Get("/messages/registry/pregnancy_alert/nope").Status)
+}
+
+// condition_nudge (CB-COND-06b): the heavy pain / bleeding nudge copy is created and edited like any typed group;
+// the engine (internal/messages/conditionnudges) reads the row by (group, rule key, locale).
+func TestStoreAndEditConditionNudge(t *testing.T) {
+	e := newEnv(t)
+	c := e.As(admintest.EditorID)
+
+	r := c.JSON(fiber.MethodPost, "/messages", map[string]any{
+		"group": "condition_nudge", "item_key": "heavy_pain", "locale": "fa",
+		"payload": map[string]any{"title": "درد زیاد", "body": "{days} روز درد", "action": "دفترچه درد",
+			"doctor_action": "پزشک", "extra": "dropped"},
+	})
+	require.Equal(t, 201, r.Status, r.Body)
+	m := r.Obj("message")
+	assert.Equal(t, "condition_nudge", m["group"])
+	assert.Equal(t, "heavy_pain", m["item_key"])
+	assert.Equal(t, map[string]any{"title": "درد زیاد", "body": "{days} روز درد", "action": "دفترچه درد",
+		"doctor_action": "پزشک"}, m["payload"], "schema order, unknown keys dropped")
+
+	id := ftoa(m["id"].(float64))
+	r = c.JSON(fiber.MethodPut, "/messages/"+id, map[string]any{
+		"payload": map[string]any{"title": "درد شدید", "body": "{days} روز", "action": "باز کن", "doctor_action": "پزشک"},
+	})
+	require.Equal(t, 200, r.Status, r.Body)
+	assert.Equal(t, "درد شدید", r.Obj("message")["payload"].(map[string]any)["title"])
+
+	// Every text is required; an unknown rule key is refused.
+	r = c.JSON(fiber.MethodPost, "/messages", map[string]any{
+		"group": "condition_nudge", "item_key": "heavy_bleeding", "locale": "en",
+		"payload": map[string]any{"title": "Heavy flow"},
+	})
+	require.Equal(t, 422, r.Status)
+	assert.Contains(t, r.Errors(), "payload.body")
+	r = c.JSON(fiber.MethodPost, "/messages", map[string]any{
+		"group": "condition_nudge", "item_key": "spotting", "locale": "en",
+		"payload": map[string]any{"title": "T", "body": "B", "action": "A", "doctor_action": "D"},
+	})
+	require.Equal(t, 422, r.Status)
+	assert.Contains(t, r.Errors(), "item_key")
+
+	r = c.Get("/messages/registry/condition_nudge/heavy_bleeding")
+	require.Equal(t, 200, r.Status, r.Body)
+	assert.Equal(t, true, r.Data()["typed"])
+	assert.Equal(t, []any{"days"}, r.Data()["placeholders"])
 }
 
 func ftoa(f float64) string { return strconv.FormatInt(int64(f), 10) }

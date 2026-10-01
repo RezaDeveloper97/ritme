@@ -1,0 +1,229 @@
+{
+  "case": "messages/nudges_flow.none",
+  "steps": [
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/logs/days/2026-09-15",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "categories": {
+            "bleeding": {
+              "flow": "heavy"
+            },
+            "pain": {
+              "location": {
+                "abdomen": {
+                  "level": "severe",
+                  "score": 8
+                }
+              }
+            }
+          }
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "date": "2026-09-15",
+          "categories": {
+            "bleeding": {
+              "flow": "heavy"
+            },
+            "pain": {
+              "location": {
+                "abdomen": {
+                  "level": "severe",
+                  "score": 8
+                }
+              }
+            },
+            "mood": {
+              "moods": [
+                "calm"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/logs/days/2026-09-16",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "categories": {
+            "pain": {
+              "location": {
+                "back": "severe"
+              }
+            }
+          }
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "date": "2026-09-16",
+          "categories": {
+            "pain": {
+              "location": {
+                "back": {
+                  "level": "severe",
+                  "score": null
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/nudges",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "from": "2026-09-14",
+          "to": "2026-09-23",
+          "nudges": [
+            {
+              "key": "heavy_pain",
+              "program": "endo",
+              "title": "درد شدید در چند روز",
+              "body": "در این چرخه ۲ روز درد ۷ یا بیشتر ثبت کرده‌ای. دفترچه درد کمک می‌کند تو و پزشکت الگوی آن را ببینید.",
+              "action": "باز کردن دفترچه درد",
+              "link": "/programs/pain",
+              "doctor": null,
+              "days": 2,
+              "dates": [
+                "2026-09-15",
+                "2026-09-16"
+              ],
+              "needs_review": true
+            },
+            {
+              "key": "heavy_bleeding",
+              "program": "heavy_bleeding",
+              "title": "خونریزی سنگین در چند روز",
+              "body": "در این چرخه ۲ روز خونریزی سنگین ثبت کرده‌ای. جدول نوار بهداشتی (PBAC) مقدار خونریزی را می‌سنجد تا بشود بررسی‌اش کرد.",
+              "action": "باز کردن جدول خونریزی",
+              "link": "/programs/bleeding",
+              "doctor": null,
+              "days": 2,
+              "dates": [
+                "2026-09-14",
+                "2026-09-15"
+              ],
+              "needs_review": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/conditions/enrolments",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "program": "endo"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57"
+      },
+      "body": {
+        "success": true,
+        "message": "به برنامه پیوستی",
+        "data": {
+          "programs": [
+            {
+              "code": "endo",
+              "enrolled": true,
+              "enrolled_on": "2026-09-23"
+            },
+            {
+              "code": "pmdd",
+              "enrolled": false,
+              "enrolled_on": null
+            },
+            {
+              "code": "heavy_bleeding",
+              "enrolled": false,
+              "enrolled_on": null
+            },
+            {
+              "code": "pcos",
+              "enrolled": false,
+              "enrolled_on": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/nudges",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "from": "2026-09-14",
+          "to": "2026-09-23",
+          "nudges": [
+            {
+              "key": "heavy_bleeding",
+              "program": "heavy_bleeding",
+              "title": "خونریزی سنگین در چند روز",
+              "body": "در این چرخه ۲ روز خونریزی سنگین ثبت کرده‌ای. جدول نوار بهداشتی (PBAC) مقدار خونریزی را می‌سنجد تا بشود بررسی‌اش کرد.",
+              "action": "باز کردن جدول خونریزی",
+              "link": "/programs/bleeding",
+              "doctor": null,
+              "days": 2,
+              "dates": [
+                "2026-09-14",
+                "2026-09-15"
+              ],
+              "needs_review": true
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

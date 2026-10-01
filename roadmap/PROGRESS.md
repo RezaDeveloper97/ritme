@@ -155,3 +155,9 @@ TODO (ask user):
 - Log taxonomy is code (not exposed by bloom's admin) — nothing to build.
 - Verify: typecheck, lint, fsd:lint, 123 tests, build — green. No screenshots: local admin login was blocked by the permission system in this session.
 - TODO (ask user): filter «یائسگی» shows only explicitly targeted rows (shared under «همه») — or include shared? fa mode labels OK? allow local admin login for screenshots in CB-MENO-13.
+
+## CB-COND-06b — Condition nudges route and admin registry
+- `GET /api/v1/messages/nudges` (auth:api, localized; D-41) → `conditionnudges.Handlers.Index`; OpenAPI `getMessagesNudges`; contract `nudges` / `nudges_flow` / `nudges_anon` (11 Go-recorded goldens). Admin registry group `condition_nudge` (typed heavy_pain / heavy_bleeding; title/body/action/doctor_action; `{days}`), create/edit int test. fa `{days}` in Persian digits.
+- Also fixed stale `TestMissingAndRegistry` count (9 → 10, red since `loss_exit`).
+- Verify: vet, messages + admin/messages tests, int conditionnudges + http, golangci-lint 0, OpenAPI, contract all (1253 passed) — green.
+- Open: a later heavy-flow day starts a new period → cycle window resets and earlier heavy days stop counting (by design; review). Frontend card = CB-COND-02.

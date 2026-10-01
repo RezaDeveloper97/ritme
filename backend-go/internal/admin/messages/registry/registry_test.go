@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/ritme/backend-go/internal/admin/messages/registry"
+	"github.com/ritme/backend-go/internal/messages/conditionnudges"
 	"github.com/ritme/backend-go/internal/messages/content"
 	"github.com/ritme/backend-go/internal/platform/validation/phpval"
 )
@@ -39,6 +40,25 @@ func TestGroups(t *testing.T) {
 	assert.False(t, ok)
 	_, ok = registry.Lookup("free_text_group", "x")
 	assert.False(t, ok)
+}
+
+// condition_nudge mirrors the nudge engine (CB-COND-06b): same group, item keys and payload keys.
+func TestConditionNudgeGroup(t *testing.T) {
+	assert.Equal(t, conditionnudges.Group, registry.ConditionNudgeGroup)
+	assert.Contains(t, registry.GroupNames(), registry.ConditionNudgeGroup)
+	assert.Equal(t, conditionnudges.Rules, registry.Keys(registry.ConditionNudgeGroup))
+	for _, k := range conditionnudges.Rules {
+		it, ok := registry.Lookup(registry.ConditionNudgeGroup, k)
+		require.True(t, ok)
+		assert.True(t, it.Typed)
+		assert.Equal(t, []string{"days"}, it.Placeholders)
+		keys := []string{}
+		for _, f := range it.Fields {
+			keys = append(keys, f.Key)
+			assert.False(t, f.Nullable, f.Key)
+		}
+		assert.Equal(t, conditionnudges.TextKeys, keys)
+	}
 }
 
 // weight_missing_week.from_weekday is editable (review #11, T-M2-34 → T-M7-20): 0..6, nullable so a

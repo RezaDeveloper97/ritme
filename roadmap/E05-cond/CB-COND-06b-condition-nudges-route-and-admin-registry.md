@@ -3,7 +3,7 @@ id: CB-COND-06b
 title: Condition nudges route and admin registry
 epic: COND
 type: backend
-status: todo
+status: done
 depends_on: [CB-COND-06]
 parallel_group: COND-B
 touches: [backend-go/internal/admin/messages/registry,backend-go/internal/http/routes_messages.go,backend-go/internal/messages/conditionnudges,backend-go/api/openapi.yaml,backend-go/contract,docs/go-migration/deviations.md]

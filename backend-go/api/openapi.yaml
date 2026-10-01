@@ -6668,6 +6668,79 @@ paths:
                   is_ttc: false
                   is_premium: false
         '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/messages/nudges:
+    get:
+      tags: [Messages]
+      summary: Condition nudges of the current cycle
+      description: >-
+        Go-only (D-41, CB-COND-06b). Heavy pain (score ≥7, or level `severe` when unscored) or heavy / very heavy
+        flow on 2+ days of the current cycle while not enrolled in the matching condition program suggests the pain
+        diary or the PBAC chart. Computed per request from the day log; nothing is stored. Only the cycle, ttc and
+        teen modes are nudged — otherwise `nudges` is `[]`. Texts are the admin `condition_nudge` message rows in the
+        request language, falling back per field to the embedded copy (`needs_review` true while any fallback is
+        used). `doctor` is null until the doctors directory exists.
+      operationId: getMessagesNudges
+      security:
+        - {bearerAuth: []}
+      parameters: [{$ref: "#/components/parameters/AcceptLanguage"}]
+      responses:
+        '200':
+          description: The nudges of the current cycle window (possibly none)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [from, to, nudges]
+                    properties:
+                      from: {$ref: "#/components/schemas/Date"}
+                      to: {$ref: "#/components/schemas/Date"}
+                      nudges:
+                        type: array
+                        items:
+                          type: object
+                          required: [key, program, title, body, action, link, doctor, days, dates, needs_review]
+                          properties:
+                            key: {type: string, enum: [heavy_pain, heavy_bleeding]}
+                            program: {type: string, enum: [endo, heavy_bleeding]}
+                            title: {type: string}
+                            body: {type: string}
+                            action: {type: string}
+                            link: {type: string, description: In-app path of the suggested program screen}
+                            doctor:
+                              oneOf:
+                                - type: 'null'
+                                - type: object
+                                  required: [action, link]
+                                  properties:
+                                    action: {type: string}
+                                    link: {type: string}
+                            days: {type: integer, minimum: 2}
+                            dates:
+                              type: array
+                              items: {$ref: "#/components/schemas/Date"}
+                            needs_review: {type: boolean}
+              example:
+                success: true
+                data:
+                  from: '2026-09-08'
+                  to: '2026-09-20'
+                  nudges:
+                    - key: heavy_pain
+                      program: endo
+                      title: Strong pain on several days
+                      body: You logged pain of 7 or more on 2 days this cycle. A pain diary helps you and your doctor see the pattern.
+                      action: Open the pain diary
+                      link: /programs/pain
+                      doctor: null
+                      days: 2
+                      dates: ['2026-09-09', '2026-09-11']
+                      needs_review: true
+        '401': {$ref: "#/components/responses/Unauthenticated"}
   /api/v1/pregnancy/activate:
     post:
       tags: [Pregnancy]
