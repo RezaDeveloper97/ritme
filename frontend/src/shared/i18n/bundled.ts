@@ -35,6 +35,7 @@ import enPwa from '../../../messages/en/pwa.json';
 import enReminders from '../../../messages/en/reminders.json';
 import enWelcome from '../../../messages/en/welcome.json';
 import enServices from '../../../messages/en/services.json';
+import enSearch from '../../../messages/en/search.json';
 import enPlus from '../../../messages/en/plus.json';
 import faAccount from '../../../messages/fa/account.json';
 import faAnalysis from '../../../messages/fa/analysis.json';
@@ -71,6 +72,7 @@ import faPwa from '../../../messages/fa/pwa.json';
 import faReminders from '../../../messages/fa/reminders.json';
 import faWelcome from '../../../messages/fa/welcome.json';
 import faServices from '../../../messages/fa/services.json';
+import faSearch from '../../../messages/fa/search.json';
 import faPlus from '../../../messages/fa/plus.json';
 
 /**
@@ -145,6 +147,7 @@ const bundled = {
     logTaxonomy: faLogTaxonomy,
     welcome: faWelcome,
     services: faServices,
+    search: faSearch,
     plus: faPlus,
     pwa: faPwa,
     articles: faArticles,
@@ -183,6 +186,7 @@ const bundled = {
     logTaxonomy: enLogTaxonomy,
     welcome: enWelcome,
     services: enServices,
+    search: enSearch,
     plus: enPlus,
     pwa: enPwa,
     articles: enArticles,

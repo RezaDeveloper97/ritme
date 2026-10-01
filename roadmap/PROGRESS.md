@@ -174,3 +174,11 @@ TODO (ask user):
 - Copy: bleeding + tips from catalog; other rules via new admin registry group `menopause_message` (typed, unseeded, per-field fallback to embedded fa/en). No migration (00025 unused).
 - Verify: vet, go test ./..., int menomessages/menopause/admin messages/checkups/http, OpenAPI, contract — green at HEAD. Bloom's in-flight B-N2-11b (checkups timing for menopause) will turn `messages/menopause_flow` `timing_label` to null → re-record those 2 goldens after it lands.
 - TODO (ask user): `checkup_due` fires for never-done checkups (almost always shown) — only re-due ones? no dismiss/dedupe; tips uncapped.
+
+## CB-NAV-02 — Global search screen
+- `/search` (flow, no bottom nav): field + cancel, scope chips (همه / از ثبت‌های تو / آموزش / خدمات / برنامه‌ها), grouped lists with «همه N» → scope, skeleton/too-short/error/no-results states, shop note («فروشگاه در خدمات › فروشگاه»). 300 ms debounce, TanStack Query, query never in the URL. Recent searches: localStorage (try/catch), max 6, clearable, stamped with user id and dropped for another account.
+- Result routing whitelist (no 404 links): contraception, checkups (+self-exam, {id}), reminders, analysis/*, articles → article sheet; everything else hidden (e.g. /programs/pelvic until CB-PELV-02).
+- Search button in the Today header of every mode (HomeHeader covers cycle/ttc/teen/postpartum/menopause; PregnancyPage Header). Search lives in the screen slice (an `entities/search` slice tripped steiger excessive-slicing; only consumer is the screen). Messages `search.json` (+ Go copy + i18n goldens).
+- Verify: typecheck, lint, fsd:lint, lint:styles (727), lint:dark, build green; 1050 tests (on top of bloom batch faba825). Fidelity `docs/qa/canvas/nav.md` ✔ (chip «خدمات» instead of «پزشک» until doctors exist).
+- Open: add /programs/pelvic, doctors (B-N7), courses (B-N8), condition programs to the whitelist when they ship; drop /analysis/* if B-N3-08 doesn't land.
+- TODO (ask user): «خدمات» vs «پزشک» chip; cycle count on the analysis row needs CB-NAV-01 meta; on-device recents OK for privacy?

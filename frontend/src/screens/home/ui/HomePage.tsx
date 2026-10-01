@@ -106,6 +106,7 @@ function greetingKey(hour: number): 'morning' | 'noon' | 'evening' | 'night' {
 }
 
 function HomeHeader({ t, loc }: { t: T; loc: Locale }) {
+  const tSearch = useTranslations('search');
   return (
     <header className="home-hdr">
       <div>
@@ -113,6 +114,10 @@ function HomeHeader({ t, loc }: { t: T; loc: Locale }) {
         <div className="home-hdr-greet">{t(`greeting.${greetingKey(currentHour())}`)}</div>
       </div>
       <div className="home-hdr-actions">
+        {/* CB-NAV-02: global search (nbd_Nav_Today header). */}
+        <Link href="/search" className="home-hdr-btn" aria-label={tSearch('open')}>
+          <Icon name="search" size={20} strokeWidth={1.8} />
+        </Link>
         <button
           type="button"
           className="home-hdr-btn"

@@ -3,7 +3,7 @@ id: CB-NAV-02
 title: Global search screen
 epic: NAV
 type: frontend
-status: todo
+status: done
 depends_on: [CB-NAV-01, B-N1-06]
 parallel_group: NAV-B
 touches: [frontend/src/screens/search, frontend/src/entities/search, frontend/messages/fa/search.json, frontend/messages/en/search.json, frontend/src/app/[locale]/search, frontend/src/app/message-scopes.ts, frontend/src/screens/home]

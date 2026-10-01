@@ -59,19 +59,24 @@ function Shell({ header, children }: { header?: React.ReactNode; children: React
 function Header({ unread, t }: { unread: number; t: T }) {
   const locale = useLocale() as Locale;
   const router = useRouter();
+  const tSearch = useTranslations('search');
   return (
     <HubHeader
       className="pgn-hub"
       date={formatWeekdayDayMonth(todayDate(), locale)}
       greeting={t('common.title')}
       actions={
-        <HeaderButton
-          variant="soft"
-          icon="bell"
-          badge={unread > 0}
-          label={t('today.newAlerts', { count: unread })}
-          onClick={() => router.push('/pregnancy/alerts')}
-        />
+        <>
+          {/* CB-NAV-02: global search (nbd_Nav_Today header). */}
+          <HeaderButton variant="soft" icon="search" label={tSearch('open')} onClick={() => router.push('/search')} />
+          <HeaderButton
+            variant="soft"
+            icon="bell"
+            badge={unread > 0}
+            label={t('today.newAlerts', { count: unread })}
+            onClick={() => router.push('/pregnancy/alerts')}
+          />
+        </>
       }
     />
   );

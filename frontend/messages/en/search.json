@@ -1,0 +1,61 @@
+{
+  "open": "Search",
+  "title": "Search",
+  "field": {
+    "label": "Search Ritme",
+    "placeholder": "Symptom, medication, article or service…",
+    "clear": "Clear text"
+  },
+  "cancel": "Cancel",
+  "scopes": {
+    "label": "Search scope",
+    "all": "All",
+    "mine": "My logs",
+    "education": "Learning",
+    "services": "Services",
+    "programs": "Programs"
+  },
+  "groups": {
+    "mine": "From your logs",
+    "programs": "Programs",
+    "education": "Learning",
+    "services": "Services & care"
+  },
+  "seeAll": "All {count}",
+  "hit": {
+    "insightCycle": "{count, plural, one {{days} day} other {{days} days}} with {label} this cycle",
+    "insightDays": "{count, plural, one {{days} day} other {{days} days}} with {label} in the last {window} days",
+    "peak": "Highest: day {day} · {score} of {max}",
+    "peakNoDay": "Highest: {score} of {max}",
+    "analysisTitle": "{label} pattern",
+    "analysisSub": "In analysis",
+    "article": "Article",
+    "articleTime": "Article · {minutes} min",
+    "medication": "Medication reminder",
+    "appointment": "Appointment reminder",
+    "program": "Care program",
+    "service": "Service",
+    "checkup": "Checkup"
+  },
+  "shopNote": "Shop results are searched only in the Services › Shop tab, not here.",
+  "recent": {
+    "title": "Recent searches",
+    "clear": "Clear",
+    "again": "Search again for {query}"
+  },
+  "loading": "Searching…",
+  "start": {
+    "title": "What are you looking for?",
+    "body": "Type a symptom, medication, article or service to find it in your logs, programs and learning."
+  },
+  "short": "Type at least 2 characters.",
+  "empty": {
+    "title": "Nothing found",
+    "body": "No results for “{query}”. Try another word."
+  },
+  "error": {
+    "title": "Search didn't work",
+    "body": "Check your connection and try again.",
+    "retry": "Try again"
+  }
+}
