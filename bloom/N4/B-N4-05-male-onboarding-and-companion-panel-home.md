@@ -25,6 +25,8 @@ The men's side.
 - Gender=male → partner code entry (6 chars, what you'll see, invite link) → linked screen → companion home with its own nav.
 - (B-N1-01) `Hamdam_Home` has no nav drawn: companion nav = امروز (`/companion`) · خدمات · من, no FAB, no mode tab.
 
+- From the N2 stage smoke (B-1, medium): after the partner-code stub a male user lands on the women cycle home («ثبت پریود», breast self-exam, pap smear) — route males to the companion panel home (`screens/onboarding-flow/model/flow.ts` `landingRoute`, `HomePage.tsx` guard).
+
 ## Out of scope
 - Android (android-shell/, application/, twa/) — never.
 - Anything owned by another bloom task.

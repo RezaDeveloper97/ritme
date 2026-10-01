@@ -34,6 +34,7 @@ skill (`.claude/skills/bloom-task/SKILL.md`). `/next-task` and `tasks/` are unto
 | `bash bloom/bin/index.sh` | regenerate `bloom/INDEX.md` |
 | `bash bloom/bin/dev-up.sh [api|web|all]` | (re)start local API :8020 (ritme_dev) + web :3000 detached; restart `api` after translation/migration changes |
 | `node bloom/bin/shot.mjs --out docs/qa/bloom/<ID> --mobile 09900000001 /fa/home` | full-page light+dark screenshots of the local app (OTP read from `ritme_dev`); `--files <artboard.dc.html…>` renders artboards for side-by-side; header of the file lists options |
+| `node bloom/bin/stage-smoke.mjs --out docs/qa/bloom/<rel> --mobile 0990… \| --new-user \| --admin /fa/home …` | **stage** smoke (https://stage.ritmeapp.ir): gate cookie + admin creds read over ssh at runtime (never stored), OTP read read-only from `ritme_stage`, light+dark shots with phone numbers masked, per-page 4xx/5xx + console errors → `<out>/summary.{json,md}`; exports `stage()` / `openBrowser()` / `Summary` for scripted click flows (header lists options) |
 
 Task ids: `B-N<milestone>-<nn>` (follow-ups get a letter suffix, `B-N1-06b`). Frontmatter and body sections are the same
 as `tasks/README.md` (Why / Design / Scope / Out of scope / Acceptance).

@@ -3,7 +3,7 @@ id: B-N2-11
 title: N2 rollout — stage deploy and e2e (signup branches, purchase, trial)
 milestone: N2
 type: release
-status: todo
+status: done
 depends_on: [B-N2-09,B-N2-10]
 parallel_group: N2-K
 touches: [docs/qa/bloom,bloom/PROGRESS.md]

@@ -535,3 +535,13 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   (patterns ≥3 cycles, trends ≥2 points), top finding phrases (namespace `analysis`), correlations phi / Cramér's V with
   Cohen strengths, ≥20 paired days, `not_causal: true`; 7-day moving-average weight.
 - 41 engine goldens (fixed clock), 24 contract goldens (`ROUTES=all` 1200 passed), D-39 proposed. QUESTIONS #82.
+
+## B-N2-11 — N2 rollout — stage deploy and e2e
+
+- verify green on HEAD (worktree); `stage` pushed and deployed (goose 14–19 applied; frontend rev 46fdb93). Smoke:
+  39 checks — 35 pass, 4 warn, 0 fail; no 5xx/console errors; N1 bugs B-1/B-2/B-3 confirmed fixed. Report
+  `docs/qa/bloom/n2-stage.md`, shots `docs/qa/bloom/n2-stage/`.
+- New reusable `bloom/bin/stage-smoke.mjs` (gate cookie + OTP read at runtime over ssh, light/dark shots with PII
+  masking, per-page 4xx/5xx/console summary; `--mobile`, `--new-user`, `--admin`).
+- Bugs: B-1 (medium, male lands on women home) → B-N4-05 scope; B-2..B-5 (low) → new task B-N2-11b.
+- Stage test data: 5 users + 4 half-onboarded, 4 fake invoices, code `QAN2SMOKE` (deactivated).

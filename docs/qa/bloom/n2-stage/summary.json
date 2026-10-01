@@ -1,0 +1,1200 @@
+[
+  {
+    "route": "S1-01-signup",
+    "theme": "light",
+    "landed": "/fa/signup",
+    "shot": "S1-01-signup.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S1-02-otp",
+    "theme": "light",
+    "landed": "/fa/otp",
+    "shot": "S1-02-otp.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S1-03-name",
+    "theme": "light",
+    "landed": "/fa/onboarding/name",
+    "shot": "S1-03-name.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S1-04-gender",
+    "theme": "light",
+    "landed": "/fa/onboarding/gender",
+    "shot": "S1-04-gender.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S1-05-goal",
+    "theme": "light",
+    "landed": "/fa/onboarding/intention",
+    "shot": "S1-05-goal.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S1-06-cycle",
+    "theme": "light",
+    "landed": "/fa/onboarding/cycle",
+    "shot": "S1-06-cycle.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S1-07-conditions",
+    "theme": "light",
+    "landed": "/fa/onboarding/conditions",
+    "shot": "S1-07-conditions.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S1-08-health",
+    "theme": "light",
+    "landed": "/fa/onboarding/health",
+    "shot": "S1-08-health.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S1-09-ready",
+    "theme": "light",
+    "landed": "/fa/onboarding/setting-up",
+    "shot": "S1-09-ready.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S1-10-landing",
+    "theme": "light",
+    "landed": "/fa/home",
+    "shot": "S1-10-landing.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S2-01-signup",
+    "theme": "dark",
+    "landed": "/fa/signup",
+    "shot": "S2-01-signup.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S2-02-otp",
+    "theme": "dark",
+    "landed": "/fa/otp",
+    "shot": "S2-02-otp.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S2-03-name",
+    "theme": "dark",
+    "landed": "/fa/onboarding/name",
+    "shot": "S2-03-name.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S2-04-gender",
+    "theme": "dark",
+    "landed": "/fa/onboarding/gender",
+    "shot": "S2-04-gender.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S2-05-goal",
+    "theme": "dark",
+    "landed": "/fa/onboarding/intention",
+    "shot": "S2-05-goal.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S2-06-cycle",
+    "theme": "dark",
+    "landed": "/fa/onboarding/cycle",
+    "shot": "S2-06-cycle.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S2-07-conditions",
+    "theme": "dark",
+    "landed": "/fa/onboarding/conditions",
+    "shot": "S2-07-conditions.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S2-08-health",
+    "theme": "dark",
+    "landed": "/fa/onboarding/health",
+    "shot": "S2-08-health.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S2-09-ready",
+    "theme": "dark",
+    "landed": "/fa/onboarding/setting-up",
+    "shot": "S2-09-ready.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S2-10-landing",
+    "theme": "dark",
+    "landed": "/fa/home",
+    "shot": "S2-10-landing.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S3-01-signup",
+    "theme": "light",
+    "landed": "/fa/signup",
+    "shot": "S3-01-signup.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S3-02-otp",
+    "theme": "light",
+    "landed": "/fa/otp",
+    "shot": "S3-02-otp.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S3-03-name",
+    "theme": "light",
+    "landed": "/fa/onboarding/name",
+    "shot": "S3-03-name.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S3-04-gender",
+    "theme": "light",
+    "landed": "/fa/onboarding/gender",
+    "shot": "S3-04-gender.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S3-05-goal",
+    "theme": "light",
+    "landed": "/fa/onboarding/intention",
+    "shot": "S3-05-goal.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S3-06-pregnancy",
+    "theme": "light",
+    "landed": "/fa/onboarding/pregnancy-basis",
+    "shot": "S3-06-pregnancy.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S3-07-conditions",
+    "theme": "light",
+    "landed": "/fa/onboarding/conditions",
+    "shot": "S3-07-conditions.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S3-08-health",
+    "theme": "light",
+    "landed": "/fa/onboarding/health",
+    "shot": "S3-08-health.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S3-09-ready",
+    "theme": "light",
+    "landed": "/fa/onboarding/setting-up",
+    "shot": "S3-09-ready.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S3-10-landing",
+    "theme": "light",
+    "landed": "/fa/pregnancy",
+    "shot": "S3-10-landing.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S4-01-signup",
+    "theme": "dark",
+    "landed": "/fa/signup",
+    "shot": "S4-01-signup.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S4-02-otp",
+    "theme": "dark",
+    "landed": "/fa/otp",
+    "shot": "S4-02-otp.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S4-03-name",
+    "theme": "dark",
+    "landed": "/fa/onboarding/name",
+    "shot": "S4-03-name.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S4-04-gender",
+    "theme": "dark",
+    "landed": "/fa/onboarding/gender",
+    "shot": "S4-04-gender.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S4-05-goal",
+    "theme": "dark",
+    "landed": "/fa/onboarding/intention",
+    "shot": "S4-05-goal.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S4-06-menopause",
+    "theme": "dark",
+    "landed": "/fa/onboarding/menopause",
+    "shot": "S4-06-menopause.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S4-07-conditions",
+    "theme": "dark",
+    "landed": "/fa/onboarding/conditions",
+    "shot": "S4-07-conditions.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S4-08-health",
+    "theme": "dark",
+    "landed": "/fa/onboarding/health",
+    "shot": "S4-08-health.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S4-09-ready",
+    "theme": "dark",
+    "landed": "/fa/onboarding/setting-up",
+    "shot": "S4-09-ready.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S4-10-landing",
+    "theme": "dark",
+    "landed": "/fa/home",
+    "shot": "S4-10-landing.dark.png",
+    "network": [
+      "400 /api/v1/messages/daily"
+    ],
+    "console": []
+  },
+  {
+    "route": "S5-01-signup",
+    "theme": "light",
+    "landed": "/fa/signup",
+    "shot": "S5-01-signup.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S5-02-otp",
+    "theme": "light",
+    "landed": "/fa/otp",
+    "shot": "S5-02-otp.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S5-03-name",
+    "theme": "light",
+    "landed": "/fa/onboarding/name",
+    "shot": "S5-03-name.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S5-04-gender",
+    "theme": "light",
+    "landed": "/fa/onboarding/gender",
+    "shot": "S5-04-gender.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S5-05-partner",
+    "theme": "light",
+    "landed": "/fa/onboarding/partner",
+    "shot": "S5-05-partner.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S5-09-ready",
+    "theme": "light",
+    "landed": "/fa/onboarding/setting-up",
+    "shot": "S5-09-ready.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "S5-10-landing",
+    "theme": "light",
+    "landed": "/fa/home",
+    "shot": "S5-10-landing.light.png",
+    "network": [
+      "400 /api/v1/messages/daily"
+    ],
+    "console": []
+  },
+  {
+    "route": "M1-mode-cycle",
+    "theme": "light",
+    "landed": "/fa/profile/mode",
+    "shot": "M1-mode-cycle.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "M1-mode-menopause-saved",
+    "theme": "light",
+    "landed": "/fa/profile/mode",
+    "shot": "M1-mode-menopause-saved.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "M1-home-menopause",
+    "theme": "light",
+    "landed": "/fa/home",
+    "shot": "M1-home-menopause.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "M1-home-teen",
+    "theme": "light",
+    "landed": "/fa/home",
+    "shot": "M1-home-teen.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "M1-profile-teen",
+    "theme": "light",
+    "landed": "/fa/profile",
+    "shot": "M1-profile-teen.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "M1-home-cycle-back",
+    "theme": "light",
+    "landed": "/fa/home",
+    "shot": "M1-home-cycle-back.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "M1-mode-pregnancy-confirm",
+    "theme": "light",
+    "landed": "/fa/profile/mode",
+    "shot": "M1-mode-pregnancy-confirm.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "M1-pregnancy-setup-1",
+    "theme": "light",
+    "landed": "/fa/pregnancy/setup",
+    "shot": "M1-pregnancy-setup-1.light.png",
+    "network": [
+      "404 /api/v1/pregnancy/profile"
+    ],
+    "console": []
+  },
+  {
+    "route": "M1-pregnancy-setup-2",
+    "theme": "light",
+    "landed": "/fa/pregnancy/setup",
+    "shot": "M1-pregnancy-setup-2.light.png",
+    "network": [
+      "404 /api/v1/pregnancy/profile"
+    ],
+    "console": []
+  },
+  {
+    "route": "M1-pregnancy-setup-3",
+    "theme": "light",
+    "landed": "/fa/pregnancy/setup",
+    "shot": "M1-pregnancy-setup-3.light.png",
+    "network": [
+      "404 /api/v1/pregnancy/profile"
+    ],
+    "console": []
+  },
+  {
+    "route": "M1-pregnancy-setup-4",
+    "theme": "light",
+    "landed": "/fa/pregnancy/setup",
+    "shot": "M1-pregnancy-setup-4.light.png",
+    "network": [
+      "404 /api/v1/pregnancy/profile"
+    ],
+    "console": []
+  },
+  {
+    "route": "M1-pregnancy-after-setup",
+    "theme": "light",
+    "landed": "/fa/pregnancy",
+    "shot": "M1-pregnancy-after-setup.light.png",
+    "network": [
+      "404 /api/v1/pregnancy/profile"
+    ],
+    "console": []
+  },
+  {
+    "route": "M1-mode-in-pregnancy",
+    "theme": "light",
+    "landed": "/fa/profile/mode",
+    "shot": "M1-mode-in-pregnancy.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "M1-mode-leave-confirm",
+    "theme": "light",
+    "landed": "/fa/profile/mode",
+    "shot": "M1-mode-leave-confirm.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "M1-mode-after-leave",
+    "theme": "light",
+    "landed": "/fa/home",
+    "shot": "M1-mode-after-leave.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "M1-home-after-leave",
+    "theme": "light",
+    "landed": "/fa/home",
+    "shot": "M1-home-after-leave.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "M2-mode-ttc",
+    "theme": "dark",
+    "landed": "/fa/profile/mode",
+    "shot": "M2-mode-ttc.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "M2-home-menopause",
+    "theme": "dark",
+    "landed": "/fa/home",
+    "shot": "M2-home-menopause.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "M2-mode-teen",
+    "theme": "dark",
+    "landed": "/fa/profile/mode",
+    "shot": "M2-mode-teen.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "M2-home-teen",
+    "theme": "dark",
+    "landed": "/fa/home",
+    "shot": "M2-home-teen.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "M2-profile-teen",
+    "theme": "dark",
+    "landed": "/fa/profile",
+    "shot": "M2-profile-teen.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "M2-home-cycle",
+    "theme": "dark",
+    "landed": "/fa/home",
+    "shot": "M2-home-cycle.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "M2-home-ttc-back",
+    "theme": "dark",
+    "landed": "/fa/home",
+    "shot": "M2-home-ttc-back.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "M3-pregnancy-home",
+    "theme": "dark",
+    "landed": "/fa/pregnancy",
+    "shot": "M3-pregnancy-home.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "M3-mode-pregnancy",
+    "theme": "dark",
+    "landed": "/fa/profile/mode",
+    "shot": "M3-mode-pregnancy.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "M3-loss",
+    "theme": "dark",
+    "landed": "/fa/profile/mode/loss",
+    "shot": "M3-loss.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "M3-loss-done",
+    "theme": "dark",
+    "landed": "/fa/profile/mode/loss",
+    "shot": "M3-loss-done.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "M3-home-after-loss",
+    "theme": "dark",
+    "landed": "/fa/home",
+    "shot": "M3-home-after-loss.dark.png",
+    "network": [
+      "400 /api/v1/messages/daily"
+    ],
+    "console": []
+  },
+  {
+    "route": "M3-loss-not-pregnant",
+    "theme": "dark",
+    "landed": "/fa/profile/mode/loss",
+    "shot": "M3-loss-not-pregnant.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "P1-profile-free",
+    "theme": "light",
+    "landed": "/fa/profile",
+    "shot": "P1-profile-free.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "P1-paywall",
+    "theme": "light",
+    "landed": "/fa/plus",
+    "shot": "P1-paywall.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "P1-trial-started",
+    "theme": "light",
+    "landed": "/fa/plus/success?trial=1",
+    "shot": "P1-trial-started.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "P1-home-trial-banner",
+    "theme": "light",
+    "landed": "/fa/home",
+    "shot": "P1-home-trial-banner.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "P1-home-trial-full",
+    "theme": "light",
+    "landed": "/fa/home",
+    "shot": "P1-home-trial-full.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "P1-trial-sheet",
+    "theme": "light",
+    "landed": "/fa/home",
+    "shot": "P1-trial-sheet.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "ADM-discount-new-filled",
+    "theme": "light",
+    "landed": "/panel/plus/discount-codes/new",
+    "shot": "ADM-discount-new-filled.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "ADM-discount-codes-list",
+    "theme": "light",
+    "landed": "/panel/plus/discount-codes",
+    "shot": "ADM-discount-codes-list.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "P1-plans",
+    "theme": "light",
+    "landed": "/fa/plus/plans",
+    "shot": "P1-plans.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "P1-checkout",
+    "theme": "light",
+    "landed": "/fa/plus/checkout?plan=2",
+    "shot": "P1-checkout.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "P1-checkout-code-applied",
+    "theme": "light",
+    "landed": "/fa/plus/checkout?plan=2",
+    "shot": "P1-checkout-code-applied.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "P1-fake-gateway",
+    "theme": "light",
+    "landed": "/api/v1/payments/fake/pay/FAKE-RPMMNSYXYTBWEJEHU7",
+    "shot": "P1-fake-gateway.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "P1-after-gateway",
+    "theme": "light",
+    "landed": "/fa/plus/return?authority=FAKE-RPMMNSYXYTBWEJEHU7&reference=RPMMNSYXYTBWEJEHU7&status=OK",
+    "shot": "P1-after-gateway.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "P2-paywall",
+    "theme": "dark",
+    "landed": "/fa/plus",
+    "shot": "P2-paywall.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "P2-plans",
+    "theme": "dark",
+    "landed": "/fa/plus/plans",
+    "shot": "P2-plans.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "P2-checkout",
+    "theme": "dark",
+    "landed": "/fa/plus/checkout?plan=2",
+    "shot": "P2-checkout.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "P2-checkout-code-applied",
+    "theme": "dark",
+    "landed": "/fa/plus/checkout?plan=2",
+    "shot": "P2-checkout-code-applied.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "P2-fake-gateway",
+    "theme": "dark",
+    "landed": "/api/v1/payments/fake/pay/FAKE-RP45CE2E3OKSSTSVBE",
+    "shot": "P2-fake-gateway.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "P2-success",
+    "theme": "dark",
+    "landed": "/fa/plus/return?authority=FAKE-RP45CE2E3OKSSTSVBE&reference=RP45CE2E3OKSSTSVBE&status=OK",
+    "shot": "P2-success.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "P4-checkout-nocode",
+    "theme": "light",
+    "landed": "/fa/plus/checkout?plan=1",
+    "shot": "P4-checkout-nocode.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "P4-gateway-failed",
+    "theme": "light",
+    "landed": "/fa/plus/return?authority=FAKE-RPY6LRMM6N5T6AQGJ4&reference=RPY6LRMM6N5T6AQGJ4&status=NOK",
+    "shot": "P4-gateway-failed.light.png",
+    "network": [
+      "422 /api/v1/plus/verify"
+    ],
+    "console": []
+  },
+  {
+    "route": "P4-fake-gateway",
+    "theme": "light",
+    "landed": "/api/v1/payments/fake/pay/FAKE-RPFERHIWCMKWANPLQF",
+    "shot": "P4-fake-gateway.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "P4-success",
+    "theme": "light",
+    "landed": "/fa/plus/return?authority=FAKE-RPFERHIWCMKWANPLQF&reference=RPFERHIWCMKWANPLQF&status=OK",
+    "shot": "P4-success.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "P4-manage",
+    "theme": "light",
+    "landed": "/fa/plus/manage",
+    "shot": "P4-manage.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "P4-profile-plus",
+    "theme": "light",
+    "landed": "/fa/profile",
+    "shot": "P4-profile-plus.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "P4-home-menopause-plus",
+    "theme": "light",
+    "landed": "/fa/home",
+    "shot": "P4-home-menopause-plus.light.png",
+    "network": [
+      "400 /api/v1/messages/daily"
+    ],
+    "console": []
+  },
+  {
+    "route": "P1-manage",
+    "theme": "light",
+    "landed": "/fa/plus/manage",
+    "shot": "P1-manage.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "P1-history",
+    "theme": "light",
+    "landed": "/fa/plus/manage",
+    "shot": "P1-history.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "P1-cancel-confirm",
+    "theme": "light",
+    "landed": "/fa/plus/manage",
+    "shot": "P1-cancel-confirm.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "P1-manage-cancelled",
+    "theme": "light",
+    "landed": "/fa/plus/manage",
+    "shot": "P1-manage-cancelled.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "P1-home-after-purchase",
+    "theme": "light",
+    "landed": "/fa/home",
+    "shot": "P1-home-after-purchase.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "P2-manage",
+    "theme": "dark",
+    "landed": "/fa/plus/manage",
+    "shot": "P2-manage.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "P2-cancel-confirm",
+    "theme": "dark",
+    "landed": "/fa/plus/manage",
+    "shot": "P2-cancel-confirm.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "P2-manage-cancelled",
+    "theme": "dark",
+    "landed": "/fa/plus/manage",
+    "shot": "P2-manage-cancelled.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "P2-profile-plus",
+    "theme": "dark",
+    "landed": "/fa/profile",
+    "shot": "P2-profile-plus.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/plus/subscriptions",
+    "theme": "light",
+    "landed": "/panel/plus/subscriptions",
+    "shot": "ADM-plus_subscriptions.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/plus/payments",
+    "theme": "light",
+    "landed": "/panel/plus/payments",
+    "shot": "ADM-plus_payments.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/plus/payments/1",
+    "theme": "light",
+    "landed": "/panel/plus/payments/1",
+    "shot": "ADM-plus_payments_1.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/plus/plans",
+    "theme": "light",
+    "landed": "/panel/plus/plans",
+    "shot": "ADM-plus_plans.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/plus/plans/2",
+    "theme": "light",
+    "landed": "/panel/plus/plans/2",
+    "shot": "ADM-plus_plans_2.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/plus/discount-codes",
+    "theme": "light",
+    "landed": "/panel/plus/discount-codes",
+    "shot": "ADM-plus_discount-codes.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/plus/settings",
+    "theme": "light",
+    "landed": "/panel/plus/settings",
+    "shot": "ADM-plus_settings.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/plus/subscriptions",
+    "theme": "dark",
+    "landed": "/panel/plus/subscriptions",
+    "shot": "ADM-plus_subscriptions.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/plus/payments",
+    "theme": "dark",
+    "landed": "/panel/plus/payments",
+    "shot": "ADM-plus_payments.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/plus/payments/1",
+    "theme": "dark",
+    "landed": "/panel/plus/payments/1",
+    "shot": "ADM-plus_payments_1.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/plus/plans",
+    "theme": "dark",
+    "landed": "/panel/plus/plans",
+    "shot": "ADM-plus_plans.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/plus/plans/2",
+    "theme": "dark",
+    "landed": "/panel/plus/plans/2",
+    "shot": "ADM-plus_plans_2.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/plus/discount-codes",
+    "theme": "dark",
+    "landed": "/panel/plus/discount-codes",
+    "shot": "ADM-plus_discount-codes.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/plus/settings",
+    "theme": "dark",
+    "landed": "/panel/plus/settings",
+    "shot": "ADM-plus_settings.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "ADM-discount-deactivate-confirm",
+    "theme": "light",
+    "landed": "/panel/plus/discount-codes",
+    "shot": "ADM-discount-deactivate-confirm.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "ADM-discount-codes-after-deactivate",
+    "theme": "light",
+    "landed": "/panel/plus/discount-codes",
+    "shot": "ADM-discount-codes-after-deactivate.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/home",
+    "theme": "light",
+    "landed": "/fa/home",
+    "shot": "R1-fa_home.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/calendar",
+    "theme": "light",
+    "landed": "/fa/calendar",
+    "shot": "R1-fa_calendar.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/cycle/settings",
+    "theme": "light",
+    "landed": "/fa/cycle/settings",
+    "shot": "R1-fa_cycle_settings.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/profile/notifications",
+    "theme": "light",
+    "landed": "/fa/profile/notifications",
+    "shot": "R1-fa_profile_notifications.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/profile/privacy",
+    "theme": "light",
+    "landed": "/fa/profile/privacy",
+    "shot": "R1-fa_profile_privacy.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/profile/mode",
+    "theme": "light",
+    "landed": "/fa/profile/mode",
+    "shot": "R1-fa_profile_mode.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/plus/manage",
+    "theme": "light",
+    "landed": "/fa/plus/manage",
+    "shot": "R1-fa_plus_manage.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/home",
+    "theme": "dark",
+    "landed": "/fa/home",
+    "shot": "R1-fa_home.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/calendar",
+    "theme": "dark",
+    "landed": "/fa/calendar",
+    "shot": "R1-fa_calendar.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/cycle/settings",
+    "theme": "dark",
+    "landed": "/fa/cycle/settings",
+    "shot": "R1-fa_cycle_settings.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/profile/notifications",
+    "theme": "dark",
+    "landed": "/fa/profile/notifications",
+    "shot": "R1-fa_profile_notifications.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/profile/privacy",
+    "theme": "dark",
+    "landed": "/fa/profile/privacy",
+    "shot": "R1-fa_profile_privacy.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/profile/mode",
+    "theme": "dark",
+    "landed": "/fa/profile/mode",
+    "shot": "R1-fa_profile_mode.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/plus/manage",
+    "theme": "dark",
+    "landed": "/fa/plus/manage",
+    "shot": "R1-fa_plus_manage.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/home",
+    "theme": "light",
+    "landed": "/fa/home",
+    "shot": "R4-fa_home.light.png",
+    "network": [
+      "400 /api/v1/messages/daily"
+    ],
+    "console": []
+  },
+  {
+    "route": "/fa/cycle/symptoms",
+    "theme": "light",
+    "landed": "/fa/cycle/symptoms",
+    "shot": "R4-fa_cycle_symptoms.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/profile",
+    "theme": "light",
+    "landed": "/fa/profile",
+    "shot": "R4-fa_profile.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/home",
+    "theme": "dark",
+    "landed": "/fa/home",
+    "shot": "R4-fa_home.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/cycle/symptoms",
+    "theme": "dark",
+    "landed": "/fa/cycle/symptoms",
+    "shot": "R4-fa_cycle_symptoms.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/profile",
+    "theme": "dark",
+    "landed": "/fa/profile",
+    "shot": "R4-fa_profile.dark.png",
+    "network": [],
+    "console": []
+  }
+]
