@@ -777,7 +777,12 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
     : [];
   // Today's anchored schedule (not the tapped day's): the window it gives the
   // current and predicted cycles must not move when another day is selected.
-  const markOf = useDayMarks([...weekDays, ...ringDates], schedule ?? selectedSchedule, periodLength);
+  const rawMarkOf = useDayMarks([...weekDays, ...ringDates], schedule ?? selectedSchedule, periodLength);
+  // Teen (B-N2-10 audit): no fertile-window / ovulation dots on the ring or the week strip either.
+  const markOf = (date: Date): CycleDayMarker | null => {
+    const mark = rawMarkOf(date);
+    return teen && (mark === 'fertile' || mark === 'ovulation') ? null : mark;
+  };
   const ringDays = ringDates.map(date => ({
     marker: markOf(date),
     ahead: diffInDays(date, base) > 0,

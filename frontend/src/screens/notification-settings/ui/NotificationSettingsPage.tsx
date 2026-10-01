@@ -18,8 +18,8 @@ import {
   Switch,
 } from '@/shared/ui';
 
-import { useNotificationSettings, useUpdateNotificationSettings } from '../api/settings';
-import { displayClock, isClock, type NotificationSettings, type SettingsPatch } from '../model/settings';
+import { useNotificationSettings, usePmsReminderDay, useUpdateNotificationSettings } from '../api/settings';
+import { type CategoryCode, displayClock, isClock, type NotificationSettings, type SettingsPatch } from '../model/settings';
 
 function LoadingState({ label }: { label: string }) {
   return (
@@ -51,8 +51,17 @@ interface BodyProps {
 
 function SettingsBody({ settings, save }: BodyProps) {
   const t = useTranslations('me.notifSettings');
+  const tc = useTranslations('me.cycleSettings');
   const loc = useLocale() as Locale;
   const [editing, setEditing] = useState(false);
+  // PMS row: the real reminder day from cycle settings, as `/cycle/settings` shows it (n1-stage B-1).
+  const pmsDay = usePmsReminderDay().data ?? null;
+  const subOf = (code: CategoryCode) =>
+    code === 'pms'
+      ? pmsDay
+        ? tc('reminders.items.pms.sub', { day: formatNumber(pmsDay, loc) })
+        : tc('reminders.items.pms.subUnknown')
+      : t(`items.${code}.sub`);
   const editorId = useId();
   const { quietHours: quiet } = settings;
 
@@ -74,7 +83,7 @@ function SettingsBody({ settings, save }: BodyProps) {
                 key={item.code}
                 id={`ntf-${item.code}`}
                 title={t(`items.${item.code}.title`)}
-                description={t(`items.${item.code}.sub`)}
+                description={subOf(item.code)}
                 trailing={
                   <Switch
                     checked={item.enabled}

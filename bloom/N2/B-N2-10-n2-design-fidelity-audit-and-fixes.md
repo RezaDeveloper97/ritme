@@ -3,7 +3,7 @@ id: B-N2-10
 title: N2 design-fidelity audit and fixes
 milestone: N2
 type: frontend
-status: todo
+status: done
 depends_on: [B-N2-02,B-N2-03,B-N2-07,B-N2-08]
 parallel_group: N2-J
 touches: [docs/night-bloom/audit-n2.md,frontend/src,frontend/messages]

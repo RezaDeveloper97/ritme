@@ -25,7 +25,7 @@ export function MarkDoneToast() {
       role="status"
       className={clsx(
         'fixed inset-x-4 bottom-[calc(24px+env(safe-area-inset-bottom,0px))] z-50 rounded-2xl px-4 py-3 text-start text-[13px] font-bold shadow-lg',
-        tone === 'ok' ? 'bg-(--ink) text-(--surface)' : 'bg-(--danger) text-(--on-accent)',
+        tone === 'ok' ? 'bg-(--ink) text-(--surface)' : 'bg-(--danger) text-(--on-danger)',
       )}
       onClick={clear}
     >

@@ -1,6 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { z } from 'zod';
 
 import { type ApiEnvelope, apiClient } from '@/shared/api';
 import { isAuthenticated } from '@/shared/session';
@@ -61,5 +62,33 @@ export function useUpdateNotificationSettings() {
       // so an older response never undoes a newer optimistic flip.
       if (queryClient.isMutating({ mutationKey: [...key, 'update'] }) <= 1) queryClient.setQueryData(key, saved);
     },
+  });
+}
+
+const pmsDaySchema = z
+  .object({
+    reminders: z
+      .array(z.object({ code: z.string(), cycle_day: z.number().int().nullable().optional() }).passthrough())
+      .default([]),
+  })
+  .passthrough()
+  .transform((raw) => raw.reminders.find((r) => r.code === 'pms')?.cycle_day ?? null);
+
+/**
+ * The PMS reminder's cycle day from GET /profile/cycle-settings — the value
+ * `/cycle/settings` shows (n1-stage B-1), so both screens name the same day.
+ * Its own key under the sibling slice's literal `cycle-settings` prefix: a save
+ * there invalidates `['cycle-settings']` and repaints this row too.
+ */
+export function usePmsReminderDay() {
+  return useQuery({
+    queryKey: ['cycle-settings', 'pms-day'] as const,
+    queryFn: async (): Promise<number | null> => {
+      const { data } = await apiClient.get<ApiEnvelope<unknown>>('/profile/cycle-settings');
+      return pmsDaySchema.parse(data.data);
+    },
+    enabled: isAuthenticated(),
+    staleTime: 60_000,
+    retry: 1,
   });
 }

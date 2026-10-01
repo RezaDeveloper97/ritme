@@ -306,6 +306,7 @@ const PAIRS = [
   ['--brand', '--pink-bg', 3.0, 'brand glyph on its own soft tint'],
   ['--brand-strong', '--surface', 4.5, 'strongest brand text'],
   ['--on-brand', '--brand-fill', 4.5, 'label on a primary fill (CTA, FAB, selected chip)'],
+  ['--on-danger', '--danger', 4.5, 'label on a danger fill (delete confirm, error toast)'],
   ['--on-accent', '--success-fill', 4.5, 'white label on a success fill («ذخیره شد»)'],
   ['--on-accent', '--splash-to', 4.5, 'white label on the splash fill'],
   ['--on-accent', '--preg-hero-start', 4.5, 'white text on the pregnancy hero'],

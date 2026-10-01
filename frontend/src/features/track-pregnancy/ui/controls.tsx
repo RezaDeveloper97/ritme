@@ -69,7 +69,7 @@ export function Chip({
       onClick={onClick}
       style={
         on && danger
-          ? { background: 'var(--danger)', borderColor: 'var(--danger)', color: 'var(--on-accent)' }
+          ? { background: 'var(--danger)', borderColor: 'var(--danger)', color: 'var(--on-danger)' }
           : danger
             ? { borderColor: 'var(--danger-line)', color: 'var(--danger-deep)' }
             : undefined

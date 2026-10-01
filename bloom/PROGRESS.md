@@ -491,3 +491,12 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   `widgets/plus-trial-sheet` (usage list, featured plan with offer price, CTA → `/plus/checkout?plan=`). Wired into cycle
   home (not teen) and menopause home via `screens/home/ui/PlusTrialOffer.tsx`.
 - Screenshots `docs/qa/bloom/B-N2-08/`. QUESTIONS #78.
+
+## B-N2-10 — N2 design-fidelity audit and fixes
+
+- `docs/night-bloom/audit-n2.md`: N2 screens 0 high, 2 med, 6 low; fixed 2 med + 2 low (Plus manage ring side, teen
+  home fertility/ovulation markers removed, trial-sheet compare link `--brand`). 4 N2 lows + 5 N1 lows open.
+- Leftovers: new `--on-danger` token (light/dark, contrast pair in `check-dark-mode.mjs`, used on every text-on-danger),
+  banner slide dropped on image `onError`, `/profile/notifications` PMS subtitle reads the real `cycle_day`
+  (`usePmsReminderDay` via `/profile/cycle-settings`).
+- Screenshots `docs/qa/bloom/B-N2-10/`. QUESTIONS #79.

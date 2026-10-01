@@ -29,7 +29,11 @@ interface Props {
  */
 export function BannerSlideshow({ position }: Props) {
   const t = useTranslations('banners');
-  const banners = useBanners(position);
+  const allBanners = useBanners(position);
+  // A slide whose image fails to load (missing upload, dead CDN link) is dropped
+  // instead of showing a broken-image box with its alt text (audit-n1 H5).
+  const [failed, setFailed] = useState<ReadonlySet<(typeof allBanners)[number]['id']>>(() => new Set());
+  const banners = failed.size ? allBanners.filter((b) => !failed.has(b.id)) : allBanners;
   const count = banners.length;
 
   const [index, setIndex] = useState(0);
@@ -139,6 +143,7 @@ export function BannerSlideshow({ position }: Props) {
                     alt={banner.title ?? ''}
                     draggable={false}
                     className="bs-img"
+                    onError={() => setFailed((prev) => new Set(prev).add(banner.id))}
                   />
                 </BannerLink>
               </div>

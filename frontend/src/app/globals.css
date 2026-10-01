@@ -82,6 +82,7 @@
   --danger:       #C42D57;  /* errors, destructive text — the design's rose ramp */
   --danger-deep:  #A8234A;  /* error text on --danger-soft */
   --danger-soft:  #FDE4EB;
+  --on-danger:    #FFFFFF;  /* label on a --danger fill — FLIPS like --on-brand (B-N2-10) */
   --caution-soft: #FEF3C6;  /* «ارزش پیگیری» boxes */
 
   --scrim:        rgba(0, 0, 0, .35);  /* behind sheets / dialogs */
@@ -302,6 +303,7 @@
   --danger:       #FF8FA3;
   --danger-deep:  #FFB3C1;
   --danger-soft:  #5A2A3D;
+  --on-danger:    #17112B;  /* dark label on the light rose fill at night */
   --caution-soft: #3A2F14;
 
   --scrim:        rgba(0, 0, 0, .6);
@@ -1434,7 +1436,7 @@ body {
 .cal-toast {
   position: fixed; inset-inline-start: 16px; inset-inline-end: 16px; z-index: var(--z-toast);
   bottom: calc(88px + env(safe-area-inset-bottom, 0px));
-  background: var(--danger); color: var(--on-brand);
+  background: var(--danger); color: var(--on-danger);
   border-radius: 14px; padding: 12px 16px;
   font-size: 13px; font-weight: 700; line-height: 1.6; text-align: start;
   box-shadow: 0 12px 28px -10px rgba(214, 69, 69, .6);
@@ -4573,7 +4575,7 @@ body.pwa-locked { overflow: hidden; }
 .svc-sos-call {
   flex-shrink: 0; min-width: 56px; height: 44px; padding: 0 14px; border-radius: 22px;
   display: inline-flex; align-items: center; justify-content: center;
-  background: var(--danger); color: var(--on-brand); font-family: var(--font-display); font-size: 18px;
+  background: var(--danger); color: var(--on-danger); font-family: var(--font-display); font-size: 18px;
   text-decoration: none;
 }
 .svc-sos-call:focus-visible { outline: 2px solid var(--danger); outline-offset: 2px; }
@@ -4597,7 +4599,7 @@ body.pwa-locked { overflow: hidden; }
 .nb-hbtn.is-on { color: var(--brand); }
 .nb-hbtn:disabled { opacity: .5; cursor: default; }
 /* Destructive confirm (delete medication) on the solid pill geometry. */
-.nb-btn.is-primary.rmd-danger-btn { background: var(--danger); color: var(--on-brand); box-shadow: none; }
+.nb-btn.is-primary.rmd-danger-btn { background: var(--danger); color: var(--on-danger); box-shadow: none; }
 /* Skeletons keep the geometry of the rows they stand in for. */
 .rmd-doses.nb-skel-group { flex-direction: row; }
 .nb-skel.rmd-dose-skel { flex-shrink: 0; width: 174px; height: 76px; border-radius: 18px; }
@@ -5168,7 +5170,7 @@ html[data-motion="reduce"] *::after {
 .pgn-tile-badge {
   position: absolute; top: 6px; inset-inline-end: 6px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px;
   display: inline-flex; align-items: center; justify-content: center;
-  background: var(--danger); color: var(--on-accent); font-size: 10.5px; font-weight: 800;
+  background: var(--danger); color: var(--on-danger); font-size: 10.5px; font-weight: 800;
 }
 .nb-card.pgn-tip { background: linear-gradient(135deg, color-mix(in srgb, var(--brand) 16%, transparent), var(--surface) 70%); gap: 8px; }
 
@@ -6153,7 +6155,7 @@ html[data-app-locked] .app-shell > :not(.lk-page):not(.app-veil) { visibility: h
   width: 100%; min-height: var(--h-btn); padding: 0 16px; border-radius: var(--r-pill);
   font: inherit; font-size: 14px; font-weight: 800; cursor: pointer;
 }
-.del-confirm { border: 0; background: var(--danger); color: var(--on-accent); }
+.del-confirm { border: 0; background: var(--danger); color: var(--on-danger); }
 .del-cancel { border: 1.5px solid var(--line-strong); background: transparent; color: var(--text-1); }
 .del-confirm:disabled, .del-cancel:disabled { opacity: .65; cursor: default; }
 .del-confirm:focus-visible, .del-cancel:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
@@ -6799,6 +6801,8 @@ html[data-app-locked] .app-shell > :not(.lk-page):not(.app-veil) { visibility: h
 .plus-ring-num { font-family: var(--font-display); font-size: 28px; line-height: 1; color: var(--text-1); }
 .plus-ring-cap { margin-top: 2px; font-size: var(--fs-sm); font-weight: 700; color: var(--text-2); }
 .plus-status-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; text-align: start; }
+/* B-N2-10: Prem_Manage draws the days ring at the start (right in RTL), the text after it. */
+.plus-status-card > .plus-ring { order: -1; }
 .plus-status-title { margin: 0; display: flex; align-items: center; gap: 8px; font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); }
 .plus-status-crown { flex-shrink: 0; color: var(--warm); }
 .plus-status-sub { margin: 0; font-size: 13px; font-weight: 700; color: var(--text-2); }
@@ -6907,7 +6911,7 @@ button.me-plus:focus-visible { outline: none; box-shadow: var(--ring); }
 .plus-tsheet-note { margin: 0; font-size: var(--fs-sm); font-weight: 600; color: var(--text-2); text-align: start; }
 .plus-tsheet-compare {
   display: flex; align-items: center; justify-content: center; min-height: 44px;
-  font-size: 13px; font-weight: 800; color: var(--brand-strong); text-decoration: none;
+  font-size: 13px; font-weight: 800; color: var(--brand); text-decoration: none;
 }
 .plus-tsheet-compare:focus-visible { outline: none; box-shadow: var(--ring); border-radius: 12px; }
 .nb-card.plus-tsheet-free {
