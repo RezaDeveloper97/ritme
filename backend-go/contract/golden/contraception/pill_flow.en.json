@@ -1,0 +1,995 @@
+{
+  "case": "contraception/pill_flow.en",
+  "steps": [
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/contraception/method",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "method": "combined_pill",
+          "pack_type": "21_7",
+          "pack_started_on": "2026-09-16",
+          "packs_left": 1,
+          "reminder_time": "21:00"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "Your contraception method has been saved",
+        "data": {
+          "tracking": true,
+          "method": {
+            "method": "combined_pill",
+            "pack_type": "21_7",
+            "pack_started_on": "2026-09-16",
+            "packs_left": 1,
+            "reminder": {
+              "enabled": true,
+              "time": "21:00"
+            },
+            "inserted_on": null,
+            "iud_lifetime_years": null,
+            "followup_on": null,
+            "followup_done": false,
+            "iud_replace_on": null,
+            "injected_on": null,
+            "next_injection_on": null,
+            "replace_on": null
+          },
+          "pill": {
+            "pack_number": 1,
+            "pack_day": 8,
+            "pack_week": 2,
+            "pack_length": 28,
+            "active_days": 21,
+            "today": {
+              "date": "2026-09-23",
+              "kind": "active",
+              "status": "pending"
+            },
+            "days": [
+              {
+                "day": 1,
+                "date": "2026-09-16",
+                "kind": "active",
+                "status": "untracked"
+              },
+              {
+                "day": 2,
+                "date": "2026-09-17",
+                "kind": "active",
+                "status": "untracked"
+              },
+              {
+                "day": 3,
+                "date": "2026-09-18",
+                "kind": "active",
+                "status": "untracked"
+              },
+              {
+                "day": 4,
+                "date": "2026-09-19",
+                "kind": "active",
+                "status": "untracked"
+              },
+              {
+                "day": 5,
+                "date": "2026-09-20",
+                "kind": "active",
+                "status": "untracked"
+              },
+              {
+                "day": 6,
+                "date": "2026-09-21",
+                "kind": "active",
+                "status": "untracked"
+              },
+              {
+                "day": 7,
+                "date": "2026-09-22",
+                "kind": "active",
+                "status": "untracked"
+              },
+              {
+                "day": 8,
+                "date": "2026-09-23",
+                "kind": "active",
+                "status": "pending"
+              },
+              {
+                "day": 9,
+                "date": "2026-09-24",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 10,
+                "date": "2026-09-25",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 11,
+                "date": "2026-09-26",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 12,
+                "date": "2026-09-27",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 13,
+                "date": "2026-09-28",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 14,
+                "date": "2026-09-29",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 15,
+                "date": "2026-09-30",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 16,
+                "date": "2026-10-01",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 17,
+                "date": "2026-10-02",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 18,
+                "date": "2026-10-03",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 19,
+                "date": "2026-10-04",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 20,
+                "date": "2026-10-05",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 21,
+                "date": "2026-10-06",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 22,
+                "date": "2026-10-07",
+                "kind": "break",
+                "status": null
+              },
+              {
+                "day": 23,
+                "date": "2026-10-08",
+                "kind": "break",
+                "status": null
+              },
+              {
+                "day": 24,
+                "date": "2026-10-09",
+                "kind": "break",
+                "status": null
+              },
+              {
+                "day": 25,
+                "date": "2026-10-10",
+                "kind": "break",
+                "status": null
+              },
+              {
+                "day": 26,
+                "date": "2026-10-11",
+                "kind": "break",
+                "status": null
+              },
+              {
+                "day": 27,
+                "date": "2026-10-12",
+                "kind": "break",
+                "status": null
+              },
+              {
+                "day": 28,
+                "date": "2026-10-13",
+                "kind": "break",
+                "status": null
+              }
+            ],
+            "streak_days": 0,
+            "missed_count": 0,
+            "next_pack_on": "2026-10-14",
+            "packs_left": 1,
+            "runs_out_on": "2026-11-11",
+            "refill_on": "2026-11-06"
+          },
+          "reminders": [
+            {
+              "kind": "pill_refill",
+              "reminder_id": 101805,
+              "type": "custom",
+              "title": "Buy your next pill pack",
+              "due_on": "2026-11-06",
+              "scheduled_at": "2026-11-06 09:00:00",
+              "recurrence": "none",
+              "is_active": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/contraception/pills",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {}
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "message": "Pill logged",
+        "data": {
+          "tracking": true,
+          "method": {
+            "method": "combined_pill",
+            "pack_type": "21_7",
+            "pack_started_on": "2026-09-16",
+            "packs_left": 1,
+            "reminder": {
+              "enabled": true,
+              "time": "21:00"
+            },
+            "inserted_on": null,
+            "iud_lifetime_years": null,
+            "followup_on": null,
+            "followup_done": false,
+            "iud_replace_on": null,
+            "injected_on": null,
+            "next_injection_on": null,
+            "replace_on": null
+          },
+          "pill": {
+            "pack_number": 1,
+            "pack_day": 8,
+            "pack_week": 2,
+            "pack_length": 28,
+            "active_days": 21,
+            "today": {
+              "date": "2026-09-23",
+              "kind": "active",
+              "status": "taken"
+            },
+            "days": [
+              {
+                "day": 1,
+                "date": "2026-09-16",
+                "kind": "active",
+                "status": "untracked"
+              },
+              {
+                "day": 2,
+                "date": "2026-09-17",
+                "kind": "active",
+                "status": "untracked"
+              },
+              {
+                "day": 3,
+                "date": "2026-09-18",
+                "kind": "active",
+                "status": "untracked"
+              },
+              {
+                "day": 4,
+                "date": "2026-09-19",
+                "kind": "active",
+                "status": "untracked"
+              },
+              {
+                "day": 5,
+                "date": "2026-09-20",
+                "kind": "active",
+                "status": "untracked"
+              },
+              {
+                "day": 6,
+                "date": "2026-09-21",
+                "kind": "active",
+                "status": "untracked"
+              },
+              {
+                "day": 7,
+                "date": "2026-09-22",
+                "kind": "active",
+                "status": "untracked"
+              },
+              {
+                "day": 8,
+                "date": "2026-09-23",
+                "kind": "active",
+                "status": "taken"
+              },
+              {
+                "day": 9,
+                "date": "2026-09-24",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 10,
+                "date": "2026-09-25",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 11,
+                "date": "2026-09-26",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 12,
+                "date": "2026-09-27",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 13,
+                "date": "2026-09-28",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 14,
+                "date": "2026-09-29",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 15,
+                "date": "2026-09-30",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 16,
+                "date": "2026-10-01",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 17,
+                "date": "2026-10-02",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 18,
+                "date": "2026-10-03",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 19,
+                "date": "2026-10-04",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 20,
+                "date": "2026-10-05",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 21,
+                "date": "2026-10-06",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 22,
+                "date": "2026-10-07",
+                "kind": "break",
+                "status": null
+              },
+              {
+                "day": 23,
+                "date": "2026-10-08",
+                "kind": "break",
+                "status": null
+              },
+              {
+                "day": 24,
+                "date": "2026-10-09",
+                "kind": "break",
+                "status": null
+              },
+              {
+                "day": 25,
+                "date": "2026-10-10",
+                "kind": "break",
+                "status": null
+              },
+              {
+                "day": 26,
+                "date": "2026-10-11",
+                "kind": "break",
+                "status": null
+              },
+              {
+                "day": 27,
+                "date": "2026-10-12",
+                "kind": "break",
+                "status": null
+              },
+              {
+                "day": 28,
+                "date": "2026-10-13",
+                "kind": "break",
+                "status": null
+              }
+            ],
+            "streak_days": 1,
+            "missed_count": 0,
+            "next_pack_on": "2026-10-14",
+            "packs_left": 1,
+            "runs_out_on": "2026-11-11",
+            "refill_on": "2026-11-06"
+          },
+          "reminders": [
+            {
+              "kind": "pill_refill",
+              "reminder_id": 101805,
+              "type": "custom",
+              "title": "Buy your next pill pack",
+              "due_on": "2026-11-06",
+              "scheduled_at": "2026-11-06 09:00:00",
+              "recurrence": "none",
+              "is_active": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/contraception",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "tracking": true,
+          "method": {
+            "method": "combined_pill",
+            "pack_type": "21_7",
+            "pack_started_on": "2026-09-16",
+            "packs_left": 1,
+            "reminder": {
+              "enabled": true,
+              "time": "21:00"
+            },
+            "inserted_on": null,
+            "iud_lifetime_years": null,
+            "followup_on": null,
+            "followup_done": false,
+            "iud_replace_on": null,
+            "injected_on": null,
+            "next_injection_on": null,
+            "replace_on": null
+          },
+          "pill": {
+            "pack_number": 1,
+            "pack_day": 8,
+            "pack_week": 2,
+            "pack_length": 28,
+            "active_days": 21,
+            "today": {
+              "date": "2026-09-23",
+              "kind": "active",
+              "status": "taken"
+            },
+            "days": [
+              {
+                "day": 1,
+                "date": "2026-09-16",
+                "kind": "active",
+                "status": "untracked"
+              },
+              {
+                "day": 2,
+                "date": "2026-09-17",
+                "kind": "active",
+                "status": "untracked"
+              },
+              {
+                "day": 3,
+                "date": "2026-09-18",
+                "kind": "active",
+                "status": "untracked"
+              },
+              {
+                "day": 4,
+                "date": "2026-09-19",
+                "kind": "active",
+                "status": "untracked"
+              },
+              {
+                "day": 5,
+                "date": "2026-09-20",
+                "kind": "active",
+                "status": "untracked"
+              },
+              {
+                "day": 6,
+                "date": "2026-09-21",
+                "kind": "active",
+                "status": "untracked"
+              },
+              {
+                "day": 7,
+                "date": "2026-09-22",
+                "kind": "active",
+                "status": "untracked"
+              },
+              {
+                "day": 8,
+                "date": "2026-09-23",
+                "kind": "active",
+                "status": "taken"
+              },
+              {
+                "day": 9,
+                "date": "2026-09-24",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 10,
+                "date": "2026-09-25",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 11,
+                "date": "2026-09-26",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 12,
+                "date": "2026-09-27",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 13,
+                "date": "2026-09-28",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 14,
+                "date": "2026-09-29",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 15,
+                "date": "2026-09-30",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 16,
+                "date": "2026-10-01",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 17,
+                "date": "2026-10-02",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 18,
+                "date": "2026-10-03",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 19,
+                "date": "2026-10-04",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 20,
+                "date": "2026-10-05",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 21,
+                "date": "2026-10-06",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 22,
+                "date": "2026-10-07",
+                "kind": "break",
+                "status": null
+              },
+              {
+                "day": 23,
+                "date": "2026-10-08",
+                "kind": "break",
+                "status": null
+              },
+              {
+                "day": 24,
+                "date": "2026-10-09",
+                "kind": "break",
+                "status": null
+              },
+              {
+                "day": 25,
+                "date": "2026-10-10",
+                "kind": "break",
+                "status": null
+              },
+              {
+                "day": 26,
+                "date": "2026-10-11",
+                "kind": "break",
+                "status": null
+              },
+              {
+                "day": 27,
+                "date": "2026-10-12",
+                "kind": "break",
+                "status": null
+              },
+              {
+                "day": 28,
+                "date": "2026-10-13",
+                "kind": "break",
+                "status": null
+              }
+            ],
+            "streak_days": 1,
+            "missed_count": 0,
+            "next_pack_on": "2026-10-14",
+            "packs_left": 1,
+            "runs_out_on": "2026-11-11",
+            "refill_on": "2026-11-06"
+          },
+          "reminders": [
+            {
+              "kind": "pill_refill",
+              "reminder_id": 101805,
+              "type": "custom",
+              "title": "Buy your next pill pack",
+              "due_on": "2026-11-06",
+              "scheduled_at": "2026-11-06 09:00:00",
+              "recurrence": "none",
+              "is_active": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/contraception/pills/2026-09-23",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57"
+      },
+      "body": {
+        "success": true,
+        "message": "Pill log removed",
+        "data": {
+          "tracking": true,
+          "method": {
+            "method": "combined_pill",
+            "pack_type": "21_7",
+            "pack_started_on": "2026-09-16",
+            "packs_left": 1,
+            "reminder": {
+              "enabled": true,
+              "time": "21:00"
+            },
+            "inserted_on": null,
+            "iud_lifetime_years": null,
+            "followup_on": null,
+            "followup_done": false,
+            "iud_replace_on": null,
+            "injected_on": null,
+            "next_injection_on": null,
+            "replace_on": null
+          },
+          "pill": {
+            "pack_number": 1,
+            "pack_day": 8,
+            "pack_week": 2,
+            "pack_length": 28,
+            "active_days": 21,
+            "today": {
+              "date": "2026-09-23",
+              "kind": "active",
+              "status": "pending"
+            },
+            "days": [
+              {
+                "day": 1,
+                "date": "2026-09-16",
+                "kind": "active",
+                "status": "untracked"
+              },
+              {
+                "day": 2,
+                "date": "2026-09-17",
+                "kind": "active",
+                "status": "untracked"
+              },
+              {
+                "day": 3,
+                "date": "2026-09-18",
+                "kind": "active",
+                "status": "untracked"
+              },
+              {
+                "day": 4,
+                "date": "2026-09-19",
+                "kind": "active",
+                "status": "untracked"
+              },
+              {
+                "day": 5,
+                "date": "2026-09-20",
+                "kind": "active",
+                "status": "untracked"
+              },
+              {
+                "day": 6,
+                "date": "2026-09-21",
+                "kind": "active",
+                "status": "untracked"
+              },
+              {
+                "day": 7,
+                "date": "2026-09-22",
+                "kind": "active",
+                "status": "untracked"
+              },
+              {
+                "day": 8,
+                "date": "2026-09-23",
+                "kind": "active",
+                "status": "pending"
+              },
+              {
+                "day": 9,
+                "date": "2026-09-24",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 10,
+                "date": "2026-09-25",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 11,
+                "date": "2026-09-26",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 12,
+                "date": "2026-09-27",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 13,
+                "date": "2026-09-28",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 14,
+                "date": "2026-09-29",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 15,
+                "date": "2026-09-30",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 16,
+                "date": "2026-10-01",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 17,
+                "date": "2026-10-02",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 18,
+                "date": "2026-10-03",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 19,
+                "date": "2026-10-04",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 20,
+                "date": "2026-10-05",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 21,
+                "date": "2026-10-06",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 22,
+                "date": "2026-10-07",
+                "kind": "break",
+                "status": null
+              },
+              {
+                "day": 23,
+                "date": "2026-10-08",
+                "kind": "break",
+                "status": null
+              },
+              {
+                "day": 24,
+                "date": "2026-10-09",
+                "kind": "break",
+                "status": null
+              },
+              {
+                "day": 25,
+                "date": "2026-10-10",
+                "kind": "break",
+                "status": null
+              },
+              {
+                "day": 26,
+                "date": "2026-10-11",
+                "kind": "break",
+                "status": null
+              },
+              {
+                "day": 27,
+                "date": "2026-10-12",
+                "kind": "break",
+                "status": null
+              },
+              {
+                "day": 28,
+                "date": "2026-10-13",
+                "kind": "break",
+                "status": null
+              }
+            ],
+            "streak_days": 0,
+            "missed_count": 0,
+            "next_pack_on": "2026-10-14",
+            "packs_left": 1,
+            "runs_out_on": "2026-11-11",
+            "refill_on": "2026-11-06"
+          },
+          "reminders": [
+            {
+              "kind": "pill_refill",
+              "reminder_id": 101805,
+              "type": "custom",
+              "title": "Buy your next pill pack",
+              "due_on": "2026-11-06",
+              "scheduled_at": "2026-11-06 09:00:00",
+              "recurrence": "none",
+              "is_active": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/contraception/method",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "56"
+      },
+      "body": {
+        "success": true,
+        "message": "Contraception tracking has been turned off",
+        "data": {
+          "tracking": false,
+          "method": null,
+          "pill": null,
+          "reminders": []
+        }
+      }
+    }
+  ]
+}

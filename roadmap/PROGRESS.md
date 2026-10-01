@@ -74,3 +74,11 @@ TODO (ask user):
 - NumericScale: >7 steps wrap to rows (0–10 → 6+5, cells 54×48 px at 390); `solid` limited to brand/danger/success (AA with `--on-brand`).
 - Verify: fsd:lint ✔, lint:styles ✔, lint:dark ✔, shared/ui tests 65/65 ✔; typecheck / lint / build / 1 test red **only** in bloom's in-flight B-N1-10/14/15 files (pregnancy*, checkup*, profile/account) — re-run full verify in the next frontend task after they land.
 - TODO (ask user): 0–10 as two rows OK? `period` solid (3.8:1 light) dropped — use danger, or add a `--on-period` pair later.
+
+## CB-CONTRA-01 — Contraception backend: method, pill pack, streak, long-acting reminders
+- Routes (Go-only, auth:api, throttled writes): `GET /api/v1/contraception`, `PUT|DELETE /api/v1/contraception/method`, `POST /api/v1/contraception/pills`, `DELETE /api/v1/contraception/pills/{date}`. OpenAPI tag `Contraception`, contract `cases/contraception.yaml` (19 goldens), deviation D-36.
+- Migration `00017_contraception` (+ Laravel twin `2026_10_01_000008`): `contraception_methods`, `contraception_pill_logs`, `contraception_reminders` (→ `reminders`, cascade) + catalog group `missed_pill_rules` (4 items, needs_review). 00016 intentionally unused (reserved by bloom B-N2-05, no migration).
+- One switch / one schedule (C5): method save/stop drives bloom's `user_life_profiles.track_contraception`; the pill reminder is B-N1-09's `notification_preferences` `pill` category. Long-acting (IUD 6-week check, string check monthly, replacement, injection +12 w, implant, pack refill −5 d) are ordinary care `reminders` rows.
+- Built in a worktree, landed on top of bloom B-N2-06 (sqlc regenerated). Verify: sqlc, vet, unit, int, golangci-lint 0 issues, schema-diff OK (67 tables), OpenAPI test, `make contract ROUTES=all` 1130 passed / 0 failed.
+- Open: future push sender must skip break days and respect `track_contraception`; `PUT /profile/life-stage` turning the flag off doesn't disable the pill pref (profile code — follow-up); admin hints.ts add `methods` meta key; contraception not in `/profile/export`.
+- TODO (ask user): days before setup = `untracked` (not missed) OK? export inclusion? clinical review of `missed_pill_rules` [needs clinical review]. Defaults: 28-day packs, streak includes break days, method reminders 09:00 Tehran, stop keeps pill history.

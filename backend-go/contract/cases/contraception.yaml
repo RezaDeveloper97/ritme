@@ -1,0 +1,112 @@
+# Contraception (/api/v1/contraception*) — Go only (CB-CONTRA-01, deviations.md D-36): there is no Laravel route, so
+# these goldens were recorded from the Go server and reviewed by hand (new-endpoint skill, step 8).
+# The fixture dump carries the contraception_* tables (goose 00017 / Laravel 2026_10_01_000008, no rows) and
+# catalog_items with the rows 00017 seeds (missed_pill_rules) — added by hand, the DDL/rows a full re-record
+# reproduces. No persona has a method, so the write cases save one first (every case runs on a fresh dump). Streak,
+# missed-count, refill and reminder-sync edge cases and user isolation are covered by internal/contraception tests.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: contraception
+defaults:
+  persona: regular
+  locales: [none, en]
+cases:
+  - name: show_empty
+    doc: No method → tracking false, method/pill null, no reminders
+    method: GET
+    path: /api/v1/contraception
+    status: 200
+  - name: show_anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/contraception
+    status: 401
+
+  - name: pill_flow
+    doc: Combined 21+7 pack started a week ago (board «روز ۸»), 1 spare pack → refill reminder; log today, undo; stop
+    steps:
+      - method: PUT
+        path: /api/v1/contraception/method
+        body: {method: combined_pill, pack_type: "21_7", pack_started_on: "2026-09-16", packs_left: 1, reminder_time: "21:00"}
+        status: 200
+      - method: POST
+        path: /api/v1/contraception/pills
+        body: {}
+        status: 200
+      - method: GET
+        path: /api/v1/contraception
+        status: 200
+      - method: DELETE
+        path: /api/v1/contraception/pills/2026-09-23
+        status: 200
+      - method: DELETE
+        path: /api/v1/contraception/method
+        status: 200
+  - name: iud_flow
+    doc: Copper IUD → monthly string check, 6-week visit and replacement as care reminders; visit done drops it
+    steps:
+      - method: PUT
+        path: /api/v1/contraception/method
+        body: {method: copper_iud, inserted_on: "2026-09-01", iud_lifetime_years: 10}
+        status: 200
+      - method: PUT
+        path: /api/v1/contraception/method
+        body: {method: copper_iud, inserted_on: "2026-09-01", iud_lifetime_years: 10, followup_done: true}
+        status: 200
+  - name: injection
+    doc: Next injection 12 weeks after the last (board «تزریق بعدی …»)
+    method: PUT
+    path: /api/v1/contraception/method
+    body: {method: injection, injected_on: "2026-08-04"}
+    status: 200
+  - name: method_invalid
+    method: PUT
+    path: /api/v1/contraception/method
+    body: {method: combined_pill, pack_type: "30", pack_started_on: "2026-09-24", reminder_time: "9pm"}
+    status: 422
+  - name: method_anon
+    persona: anon
+    locales: none
+    method: PUT
+    path: /api/v1/contraception/method
+    status: 401
+  - name: stop_anon
+    persona: anon
+    locales: none
+    method: DELETE
+    path: /api/v1/contraception/method
+    status: 401
+
+  - name: pill_without_method
+    method: POST
+    path: /api/v1/contraception/pills
+    body: {}
+    status: 422
+  - name: pill_break_day
+    locales: en
+    steps:
+      - method: PUT
+        path: /api/v1/contraception/method
+        body: {method: combined_pill, pack_type: "21_7", pack_started_on: "2026-09-01"}
+        status: 200
+      - method: POST
+        path: /api/v1/contraception/pills
+        body: {date: "2026-09-22"}
+        status: 422
+  - name: pill_anon
+    persona: anon
+    locales: none
+    method: POST
+    path: /api/v1/contraception/pills
+    status: 401
+  - name: unpill_bad_date
+    locales: en
+    method: DELETE
+    path: /api/v1/contraception/pills/23-09-2026
+    status: 422
+  - name: unpill_anon
+    persona: anon
+    locales: none
+    method: DELETE
+    path: /api/v1/contraception/pills/2026-09-23
+    status: 401

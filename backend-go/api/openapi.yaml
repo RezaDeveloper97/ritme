@@ -33,6 +33,7 @@ tags:
   - {name: Checkups, description: "Periodic checkups (Go only): the screening plan, records, custom checkups, per-type settings"}
   - {name: Catalog, description: "Admin-editable content catalog (Go only): one localized group of items (FAQs, warning signs, kit items, …)"}
   - {name: Pelvic, description: "Pelvic floor program (Go only): 8-week Kegel plan, trained days, bladder diary"}
+  - {name: Contraception, description: "Contraception (Go only): method, pill pack (day, placebo/break days, streak, refill), pill log and the care reminders of long-acting methods"}
   - {name: Plus, description: "Ritme Plus (Go only): plans, trial, checkout through the payment port, verify, cancel, restore, history, entitlements and usage. Amounts are integer rials"}
   - {name: Payments, description: "Payment gateway adapter (Go only): browser return hop and the fake provider's TEST page. PAYMENT_PROVIDER = fake (default outside production) | zarinpal | none. Café Bazaar / Myket billing is Android-only and out of scope"}
   - {name: Daily Health Log, description: "One log per day: symptoms, mood, vitals, lifestyle"}
@@ -2119,6 +2120,195 @@ paths:
                   data: {$ref: "#/components/schemas/PelvicDiaryDay"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '422': {$ref: "#/components/responses/PelvicValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/contraception:
+    get:
+      tags: [Contraception]
+      summary: The contraception screen
+      description: |
+        `tracking` is the B-N2-01 «track contraception» switch (`user_life_profiles.track_contraception`, also on
+        `GET|PUT /profile/life-stage`). `method` is null without a saved method; `pill` is the pack as of today (Tehran)
+        for pill methods, else null; `reminders` are the care reminders the method created (rows in `reminders`, also
+        listed by `/care/appointments` and `GET /reminders`), as the user left them. Missed-pill guidance is the catalog
+        group `missed_pill_rules` (`GET /catalog/missed_pill_rules`). Health data: only the caller's own rows.
+      operationId: getContraception
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The screen
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/ContraceptionOverview"}
+              example:
+                success: true
+                data:
+                  tracking: true
+                  method: {method: combined_pill, pack_type: "21_7", pack_started_on: "2026-09-16", packs_left: 1, reminder: {enabled: true, time: "21:00"}, inserted_on: null, iud_lifetime_years: null, followup_on: null, followup_done: false, iud_replace_on: null, injected_on: null, next_injection_on: null, replace_on: null}
+                  pill:
+                    pack_number: 1
+                    pack_day: 8
+                    pack_week: 2
+                    pack_length: 28
+                    active_days: 21
+                    today: {date: "2026-09-23", kind: active, status: pending}
+                    days: [{day: 1, date: "2026-09-16", kind: active, status: taken}]
+                    streak_days: 7
+                    missed_count: 0
+                    next_pack_on: "2026-10-14"
+                    packs_left: 1
+                    runs_out_on: "2026-11-11"
+                    refill_on: "2026-11-06"
+                  reminders: [{kind: pill_refill, reminder_id: 12, type: custom, title: خرید بسته بعدی قرص, due_on: "2026-11-06", scheduled_at: "2026-11-06 09:00:00", recurrence: none, is_active: true}]
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/contraception/method:
+    put:
+      tags: [Contraception]
+      summary: Save the contraception method
+      description: |
+        A full replace of the user's one method; fields that do not belong to the chosen method are ignored and stored
+        empty. In one transaction it also switches «track contraception» on, sets the **one** pill reminder — the
+        B-N1-09 `pill` notification category and time, the same schedule `/profile/cycle-settings` edits: on (unless
+        `reminder_enabled: false`) for a pill method, its time changed only when `reminder_time` is sent; off for
+        every other method — and syncs the method's care reminders: `pill_refill` (custom, 5 days before the counted
+        packs run out), `iud_string_check` (custom, monthly from a month after insertion), `iud_followup` (appointment
+        6 weeks after insertion, until `followup_done`), `iud_replacement` (appointment, insertion + lifetime),
+        `injection_next` (appointment, last injection + 12 weeks), `implant_replacement` (appointment on `replace_on`).
+        Kept reminders get their new date; the user's switch, notes and appointment details stay. `packs_left` is the
+        number of unopened packs today (GET answers the current count, so sending it back keeps the stock).
+      operationId: putContraceptionMethod
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [method]
+              properties:
+                method: {$ref: "#/components/schemas/ContraceptionMethodCode"}
+                pack_type: {type: [string, "null"], enum: ["21_7", "28", "24_4", null], description: "required for combined_pill"}
+                pack_started_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}], description: "first day of the current pack, not in the future; required for pill methods"}
+                packs_left: {type: [integer, "null"], minimum: 0, maximum: 24}
+                reminder_time: {type: [string, "null"], pattern: "^\\d{2}:\\d{2}$", description: "HH:MM, Tehran"}
+                reminder_enabled: {type: boolean}
+                inserted_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}], description: "required for IUDs (optional for the implant), not in the future"}
+                iud_lifetime_years: {type: [integer, "null"], minimum: 1, maximum: 12, description: "required for IUDs"}
+                followup_done: {type: boolean, description: "IUD: the 6-week check-up visit is done"}
+                injected_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}], description: "last injection, required for injection, not in the future"}
+                replace_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}], description: "implant removal or replacement date"}
+            example: {method: combined_pill, pack_type: "21_7", pack_started_on: "2026-09-16", packs_left: 1, reminder_time: "21:00"}
+      responses:
+        '200':
+          description: Saved; the screen
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/ContraceptionOverview"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ContraceptionValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+    delete:
+      tags: [Contraception]
+      summary: Stop tracking contraception
+      description: "The method and its care reminders are deleted, «track contraception» and the pill reminder are switched off. The pill log stays. Idempotent."
+      operationId: deleteContraceptionMethod
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Stopped; the screen
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/ContraceptionOverview"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/contraception/pills:
+    post:
+      tags: [Contraception]
+      summary: Log a pill day
+      description: |
+        `date` defaults to today and must not be in the future; `status` defaults to `taken`. One log per day (a second
+        POST replaces it). 422 on `method` without a pill method, on `date` before the pack start or on a break day of
+        a 21+7 pack. Responds with the screen.
+      operationId: logContraceptionPill
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                date: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+                status: {type: [string, "null"], enum: [taken, missed, null]}
+            example: {date: "2026-09-23", status: taken}
+      responses:
+        '200':
+          description: Logged; the screen
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/ContraceptionOverview"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ContraceptionValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/contraception/pills/{date}:
+    delete:
+      tags: [Contraception]
+      summary: Remove a pill log (undo)
+      description: "Any well-formed date; a day without a log is a no-op. Malformed → 422 on `date`. Responds with the screen."
+      operationId: deleteContraceptionPill
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: date, in: path, required: true, schema: {$ref: "#/components/schemas/Date"}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Removed; the screen
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/ContraceptionOverview"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ContraceptionValidationFailed"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/checkups:
     get:
@@ -9891,6 +10081,23 @@ components:
             success: false
             message: اطلاعات واردشده نامعتبر است
             errors: {program: [اول برنامهٔ تمرین کف لگن را شروع کنید.]}
+    ContraceptionValidationFailed:
+      description: "Contraception validation failed (controller 422 `{success: false, message, errors}`, message and field errors in the request language). `POST /contraception/pills` without a pill method answers `errors.method`; before the pack start or on a break day `errors.date`."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, errors]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              errors:
+                type: object
+                additionalProperties: {type: array, items: {type: string}}
+          example:
+            success: false
+            message: اطلاعات واردشده نامعتبر است
+            errors: {date: [در روزهای استراحت قرصی خورده نمی‌شود.]}
     CheckupValidationFailed:
       description: "Checkups validation failed (controller 422 `{success: false, message, errors}`, message and field errors in the request language)"
       content:
@@ -10567,6 +10774,93 @@ components:
             start: {type: string, pattern: "^[0-2][0-9]:[0-5][0-9]$"}
             end: {type: string, pattern: "^[0-2][0-9]:[0-5][0-9]$"}
         neutral_copy: {type: boolean}
+    ContraceptionMethodCode:
+      type: string
+      enum: [combined_pill, progestin_pill, copper_iud, hormonal_iud, injection, implant, condom, other]
+    ContraceptionOverview:
+      type: object
+      description: "The contraception screen (`GET /contraception` and every write)."
+      required: [tracking, method, pill, reminders]
+      properties:
+        tracking: {type: boolean, description: "The «track contraception» switch (B-N2-01)"}
+        method:
+          oneOf:
+            - {type: "null"}
+            - type: object
+              required: [method, pack_type, pack_started_on, packs_left, reminder, inserted_on, iud_lifetime_years, followup_on, followup_done, iud_replace_on, injected_on, next_injection_on, replace_on]
+              properties:
+                method: {$ref: "#/components/schemas/ContraceptionMethodCode"}
+                pack_type: {type: [string, "null"], enum: ["21_7", "28", "24_4", null]}
+                pack_started_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+                packs_left: {type: [integer, "null"], minimum: 0, description: "unopened packs today; null when never counted"}
+                reminder:
+                  description: "The one pill reminder (B-N1-09 `pill` category + time); null for non-pill methods"
+                  oneOf:
+                    - {type: "null"}
+                    - type: object
+                      required: [enabled, time]
+                      properties:
+                        enabled: {type: boolean}
+                        time: {type: string, pattern: "^\\d{2}:\\d{2}$"}
+                inserted_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+                iud_lifetime_years: {type: [integer, "null"]}
+                followup_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}], description: "IUD: insertion + 6 weeks"}
+                followup_done: {type: boolean}
+                iud_replace_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}], description: "IUD: insertion + lifetime"}
+                injected_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+                next_injection_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}], description: "last injection + 12 weeks"}
+                replace_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+        pill:
+          description: "The pack today falls in (packs follow each other every 28 days from pack_started_on); null for non-pill methods."
+          oneOf:
+            - {type: "null"}
+            - type: object
+              required: [pack_number, pack_day, pack_week, pack_length, active_days, today, days, streak_days, missed_count, next_pack_on, packs_left, runs_out_on, refill_on]
+              properties:
+                pack_number: {type: integer, minimum: 1, description: "1 = the pack that starts on pack_started_on"}
+                pack_day: {type: integer, minimum: 1, maximum: 28}
+                pack_week: {type: integer, minimum: 1, maximum: 4}
+                pack_length: {type: integer, const: 28}
+                active_days: {type: integer, description: "hormone pills per pack (21, 24; 28 for the progestogen-only pill)"}
+                today: {$ref: "#/components/schemas/ContraceptionPillDay"}
+                days:
+                  type: array
+                  minItems: 28
+                  maxItems: 28
+                  items:
+                    allOf:
+                      - {$ref: "#/components/schemas/ContraceptionPillDay"}
+                      - type: object
+                        required: [day]
+                        properties:
+                          day: {type: integer, minimum: 1, maximum: 28}
+                streak_days: {type: integer, minimum: 0, description: "calendar days back from today without a missed pill (break days count; a pending today neither counts nor breaks)"}
+                missed_count: {type: integer, minimum: 0, description: "hormone pills missed in a row most recently (Contra_Missed «۱ قرص / ۲ قرص یا بیشتر»)"}
+                next_pack_on: {$ref: "#/components/schemas/Date"}
+                packs_left: {type: [integer, "null"], minimum: 0}
+                runs_out_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}], description: "first day without a pack"}
+                refill_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}], description: "5 days before runs_out_on"}
+        reminders:
+          type: array
+          items:
+            type: object
+            required: [kind, reminder_id, type, title, due_on, scheduled_at, recurrence, is_active]
+            properties:
+              kind: {type: string, enum: [pill_refill, iud_string_check, iud_followup, iud_replacement, injection_next, implant_replacement]}
+              reminder_id: {type: integer, description: "The `reminders` row (care reminders)"}
+              type: {type: string, enum: [appointment, custom]}
+              title: {type: string}
+              due_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}], description: "scheduled day, or the first day of a monthly reminder"}
+              scheduled_at: {type: [string, "null"], description: "Tehran wall-clock Y-m-d H:i:s; null for a monthly reminder"}
+              recurrence: {type: string, enum: [none, daily, weekly, monthly]}
+              is_active: {type: boolean}
+    ContraceptionPillDay:
+      type: object
+      required: [date, kind, status]
+      properties:
+        date: {$ref: "#/components/schemas/Date"}
+        kind: {type: string, enum: [active, placebo, break]}
+        status: {type: [string, "null"], enum: [taken, missed, pending, upcoming, untracked, null], description: "null on break days; an earlier pill day without a log is missed, or untracked when it predates the method setup"}
     PelvicOverview:
       type: object
       description: "The plan screen (`GET /pelvic` and every program/session write)."

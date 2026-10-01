@@ -1,0 +1,38 @@
+{
+    "messages": {
+        "validation_failed": "اطلاعات واردشده نامعتبر است",
+        "method_saved": "روش پیشگیری ذخیره شد",
+        "method_removed": "پیگیری روش پیشگیری خاموش شد",
+        "pill_saved": "قرص ثبت شد",
+        "pill_removed": "ثبت قرص حذف شد"
+    },
+    "validation": {
+        "date_future": "این تاریخ نمی‌تواند در آینده باشد.",
+        "date_before_pack": "این روز قبل از شروع بسته است.",
+        "pill_method_required": "اول قرص را به‌عنوان روش پیشگیری انتخاب کن.",
+        "break_day": "در روزهای استراحت قرصی خورده نمی‌شود."
+    },
+    "reminders": {
+        "pill_refill": "خرید بسته بعدی قرص",
+        "iud_string_check": "چک کردن نخ آی‌یو‌دی",
+        "iud_followup": "ویزیت کنترل آی‌یو‌دی",
+        "iud_replacement": "تعویض آی‌یو‌دی",
+        "injection_next": "آمپول سه‌ماهه بعدی",
+        "implant_replacement": "برداشتن یا تعویض کاشتنی"
+    },
+    "attributes": {
+        "method": "روش",
+        "pack_type": "نوع بسته",
+        "pack_started_on": "شروع بسته فعلی",
+        "packs_left": "بسته‌های باقی‌مانده",
+        "reminder_time": "ساعت یادآور",
+        "reminder_enabled": "یادآور قرص",
+        "inserted_on": "تاریخ گذاشتن",
+        "iud_lifetime_years": "طول عمر آی‌یو‌دی",
+        "followup_done": "ویزیت کنترل",
+        "injected_on": "تاریخ آخرین تزریق",
+        "replace_on": "تاریخ برداشتن یا تعویض",
+        "date": "تاریخ",
+        "status": "وضعیت"
+    }
+}

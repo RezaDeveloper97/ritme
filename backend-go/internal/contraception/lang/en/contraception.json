@@ -1,0 +1,38 @@
+{
+    "messages": {
+        "validation_failed": "Validation failed",
+        "method_saved": "Your contraception method has been saved",
+        "method_removed": "Contraception tracking has been turned off",
+        "pill_saved": "Pill logged",
+        "pill_removed": "Pill log removed"
+    },
+    "validation": {
+        "date_future": "This date cannot be in the future.",
+        "date_before_pack": "This day is before the start of your pack.",
+        "pill_method_required": "Choose a pill as your method first.",
+        "break_day": "There is no pill on a break day."
+    },
+    "reminders": {
+        "pill_refill": "Buy your next pill pack",
+        "iud_string_check": "Check your IUD strings",
+        "iud_followup": "IUD check-up visit",
+        "iud_replacement": "IUD replacement",
+        "injection_next": "Next contraceptive injection",
+        "implant_replacement": "Implant removal or replacement"
+    },
+    "attributes": {
+        "method": "method",
+        "pack_type": "pack type",
+        "pack_started_on": "current pack start",
+        "packs_left": "packs left",
+        "reminder_time": "reminder time",
+        "reminder_enabled": "pill reminder",
+        "inserted_on": "insertion date",
+        "iud_lifetime_years": "IUD lifetime",
+        "followup_done": "check-up visit",
+        "injected_on": "last injection date",
+        "replace_on": "removal or replacement date",
+        "date": "date",
+        "status": "status"
+    }
+}

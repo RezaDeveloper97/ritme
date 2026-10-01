@@ -1,0 +1,58 @@
+{
+  "case": "contraception/injection.none",
+  "steps": [
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/contraception/method",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "method": "injection",
+          "injected_on": "2026-08-04"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "روش پیشگیری ذخیره شد",
+        "data": {
+          "tracking": true,
+          "method": {
+            "method": "injection",
+            "pack_type": null,
+            "pack_started_on": null,
+            "packs_left": null,
+            "reminder": null,
+            "inserted_on": null,
+            "iud_lifetime_years": null,
+            "followup_on": null,
+            "followup_done": false,
+            "iud_replace_on": null,
+            "injected_on": "2026-08-04",
+            "next_injection_on": "2026-10-27",
+            "replace_on": null
+          },
+          "pill": null,
+          "reminders": [
+            {
+              "kind": "injection_next",
+              "reminder_id": 101805,
+              "type": "appointment",
+              "title": "آمپول سه‌ماهه بعدی",
+              "due_on": "2026-10-27",
+              "scheduled_at": "2026-10-27 09:00:00",
+              "recurrence": "none",
+              "is_active": true
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

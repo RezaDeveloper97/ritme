@@ -153,6 +153,42 @@ type CheckupType struct {
 	UpdatedAt         sql.NullTime
 }
 
+type ContraceptionMethod struct {
+	ID               uint64
+	UserID           uint64
+	Method           string
+	PackType         sql.NullString
+	PackStartedOn    civildate.NullDate
+	PacksLeft        sql.NullInt16
+	PacksCountedOn   civildate.NullDate
+	InsertedOn       civildate.NullDate
+	IudLifetimeYears sql.NullInt16
+	FollowupDone     bool
+	InjectedOn       civildate.NullDate
+	ReplaceOn        civildate.NullDate
+	CreatedAt        sql.NullTime
+	UpdatedAt        sql.NullTime
+}
+
+type ContraceptionPillLog struct {
+	ID        uint64
+	UserID    uint64
+	LogDate   civildate.Date
+	Status    string
+	LoggedAt  time.Time
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
+type ContraceptionReminder struct {
+	ID         uint64
+	UserID     uint64
+	Kind       string
+	ReminderID uint64
+	CreatedAt  sql.NullTime
+	UpdatedAt  sql.NullTime
+}
+
 type CycleHistory struct {
 	ID               uint64
 	UserID           uint64

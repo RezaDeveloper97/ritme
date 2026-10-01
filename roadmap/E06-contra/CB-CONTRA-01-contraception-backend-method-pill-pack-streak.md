@@ -3,7 +3,7 @@ id: CB-CONTRA-01
 title: Contraception backend: method, pill pack, streak, long-acting reminders
 epic: CONTRA
 type: backend
-status: todo
+status: done
 depends_on: [B-N2-03, CB-CORE-03, B-N1-09]
 parallel_group: CONTRA-A
 touches: [backend-go/internal/contraception, backend-go/internal/http/routes_contraception.go, backend-go/db/queries/contraception, backend-go/api/openapi.yaml, backend-go/contract, backend-go/resources/translations, backend-go/db/migrations, backend/database/migrations, docs/go-migration/deviations.md]

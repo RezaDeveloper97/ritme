@@ -176,7 +176,7 @@ CREATE TABLE `catalog_items` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `catalog_items_group_code_unique` (`group`,`code`),
   KEY `catalog_items_group_is_active_sort_order_index` (`group`,`is_active`,`sort_order`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 LOCK TABLES `catalog_items` WRITE;
@@ -187,7 +187,11 @@ INSERT INTO `catalog_items` VALUES
 (3,'pelvic_levels','level_3',3,1,NULL,'{\"fa\":\"سطح ۳\",\"en\":\"Level 3\"}','{\"fa\":\"عضلاتی را منقبض کن که با آن جلوی ادرار را می‌گیری. شکم، باسن و ران‌ها شل بمانند و نفست را حبس نکن.\",\"en\":\"Squeeze the muscles you use to stop the flow of urine. Keep your belly, buttocks and thighs relaxed and don\'t hold your breath.\"}','{\"week_from\":5,\"hold_sec\":8,\"rest_sec\":8,\"reps\":10,\"sets\":3}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
 (4,'pelvic_levels','level_4',4,1,NULL,'{\"fa\":\"سطح ۴\",\"en\":\"Level 4\"}','{\"fa\":\"عضلاتی را منقبض کن که با آن جلوی ادرار را می‌گیری. شکم، باسن و ران‌ها شل بمانند و نفست را حبس نکن.\",\"en\":\"Squeeze the muscles you use to stop the flow of urine. Keep your belly, buttocks and thighs relaxed and don\'t hold your breath.\"}','{\"week_from\":7,\"hold_sec\":10,\"rest_sec\":10,\"reps\":10,\"sets\":3}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
 (5,'pelvic_alerts','uti_warning',1,1,NULL,'{\"fa\":\"اگر تب، لرز یا درد پهلو داری، زودتر به پزشک مراجعه کن.\",\"en\":\"If you have a fever, chills or pain in your side, see a doctor soon.\"}',NULL,'{\"severity\":\"urgent\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
-(6,'pelvic_alerts','program_suitability',2,1,NULL,'{\"fa\":\"مناسب بعد از زایمان، یائسگی و هر وقت نشت ادرار داری. اگر درد لگن یا سنگینی داری، اول با پزشک یا فیزیوتراپ لگن مشورت کن.\",\"en\":\"Suited to after childbirth, menopause and any time you leak urine. If you have pelvic pain or heaviness, talk to a doctor or pelvic physiotherapist first.\"}',NULL,'{\"severity\":\"info\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00');
+(6,'pelvic_alerts','program_suitability',2,1,NULL,'{\"fa\":\"مناسب بعد از زایمان، یائسگی و هر وقت نشت ادرار داری. اگر درد لگن یا سنگینی داری، اول با پزشک یا فیزیوتراپ لگن مشورت کن.\",\"en\":\"Suited to after childbirth, menopause and any time you leak urine. If you have pelvic pain or heaviness, talk to a doctor or pelvic physiotherapist first.\"}',NULL,'{\"severity\":\"info\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(7,'missed_pill_rules','combined_one',1,1,NULL,'{\"fa\":\"۱ قرص (کمتر از ۴۸ ساعت دیر)\",\"en\":\"1 pill (less than 48 hours late)\"}','{\"fa\":\"این راهنمای عمومی قرص ترکیبی است. در صورت شک با پزشک یا داروساز صحبت کن.\",\"en\":\"This is general guidance for the combined pill. If in doubt, talk to a doctor or pharmacist.\"}','{\"methods\":[\"combined_pill\"],\"missed\":1,\"severity\":\"caution\",\"steps\":[{\"fa\":\"قرص جاافتاده را همین حالا بخور، حتی اگر یعنی امروز دو قرص بخوری.\",\"en\":\"Take the missed pill now, even if it means taking two pills today.\"},{\"fa\":\"بقیه قرص‌ها را طبق معمول ادامه بده.\",\"en\":\"Carry on with the rest of the pack as usual.\"}]}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(8,'missed_pill_rules','combined_two_plus',2,1,NULL,'{\"fa\":\"۲ قرص یا بیشتر\",\"en\":\"2 or more pills\"}','{\"fa\":\"این راهنمای عمومی قرص ترکیبی است. در صورت شک با پزشک یا داروساز صحبت کن.\",\"en\":\"This is general guidance for the combined pill. If in doubt, talk to a doctor or pharmacist.\"}','{\"methods\":[\"combined_pill\"],\"missed\":2,\"severity\":\"caution\",\"steps\":[{\"fa\":\"آخرین قرص جاافتاده را همین حالا بخور، حتی اگر یعنی امروز دو قرص بخوری.\",\"en\":\"Take the last missed pill now, even if it means taking two pills today.\"},{\"fa\":\"بقیه قرص‌ها را طبق معمول ادامه بده.\",\"en\":\"Carry on with the rest of the pack as usual.\"},{\"fa\":\"تا ۷ روز پشت سر هم قرص نخورده‌ای، از کاندوم استفاده کن.\",\"en\":\"Use condoms until you have taken 7 pills in a row.\"},{\"fa\":\"اگر در ۷ روز آخر قرص‌های فعال هستی، بعد از تمام شدنشان روزهای استراحت را حذف کن و بسته بعد را مستقیم شروع کن.\",\"en\":\"If you are in the last 7 active pills, skip the break after them and start the next pack straight away.\"}]}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(9,'missed_pill_rules','week1_unprotected',3,1,NULL,'{\"fa\":\"اگر در هفته اول بسته رابطه محافظت‌نشده داشتی\",\"en\":\"If you had unprotected sex in the first week of the pack\"}','{\"fa\":\"ممکن است به پیشگیری اضطراری نیاز داشته باشی. هر چه زودتر با پزشک یا داروساز مشورت کن.\",\"en\":\"You may need emergency contraception. Talk to a doctor or pharmacist as soon as possible.\"}','{\"methods\":[\"combined_pill\"],\"severity\":\"urgent\",\"pack_week\":1}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(10,'missed_pill_rules','progestin_note',4,1,NULL,'{\"fa\":\"قرص تک‌هورمونی\",\"en\":\"Progestogen-only pill\"}','{\"fa\":\"برای قرص تک‌هورمونی قواعد فرق دارد و به نوع قرص بستگی دارد؛ در صورت شک با پزشک یا داروساز صحبت کن.\",\"en\":\"The rules differ for the progestogen-only pill and depend on the type of pill; if in doubt, talk to a doctor or pharmacist.\"}','{\"methods\":[\"progestin_pill\"],\"severity\":\"caution\",\"steps\":[{\"fa\":\"قرص جاافتاده را به محض یادآوری بخور و قرص بعدی را سر ساعت همیشگی بخور.\",\"en\":\"Take the missed pill as soon as you remember and the next one at the usual time.\"},{\"fa\":\"اگر بیشتر از زمان مجاز نوع قرصت دیر کردی، تا ۲ روز از کاندوم استفاده کن.\",\"en\":\"If you are later than your pill type allows, use condoms for the next 2 days.\"}]}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00');
 /*!40000 ALTER TABLE `catalog_items` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `challenges`;
@@ -240,6 +244,77 @@ INSERT INTO `challenges` VALUES
 (24,'magnesium-before-period','{\"fa\":\"\\u0645\\u0646\\u06cc\\u0632\\u06cc\\u0645 \\u0642\\u0628\\u0644 \\u0627\\u0632 \\u067e\\u0631\\u06cc\\u0648\\u062f\",\"en\":\"Magnesium before your period\"}','{\"fa\":\"\\u062e\\u0648\\u0631\\u0627\\u06a9\\u06cc\\u200c\\u0647\\u0627\\u06cc \\u067e\\u0631\\u0645\\u0646\\u06cc\\u0632\\u06cc\\u0645 \\u0645\\u062b\\u0644 \\u0628\\u0627\\u062f\\u0627\\u0645 \\u0648 \\u0634\\u06a9\\u0644\\u0627\\u062a \\u062a\\u0644\\u062e \\u0628\\u0647 \\u0633\\u0646\\u062f\\u0631\\u0645 \\u067e\\u06cc\\u0634 \\u0627\\u0632 \\u0642\\u0627\\u0639\\u062f\\u06af\\u06cc \\u06a9\\u0645\\u06a9 \\u0645\\u06cc\\u200c\\u06a9\\u0646\\u0646\\u062f\",\"en\":\"Magnesium-rich foods like almonds and dark chocolate help with PMS\"}',20,28,'nutrition',1,24,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
 (25,'gentle-with-yourself-pms','{\"fa\":\"\\u0628\\u0627 \\u062e\\u0648\\u062f\\u062a \\u0645\\u0647\\u0631\\u0628\\u0627\\u0646 \\u0628\\u0627\\u0634\",\"en\":\"Be gentle with yourself\"}','{\"fa\":\"\\u0631\\u0648\\u0632\\u0647\\u0627\\u06cc \\u067e\\u06cc\\u0634 \\u0627\\u0632 \\u0642\\u0627\\u0639\\u062f\\u06af\\u06cc \\u0646\\u0648\\u0633\\u0627\\u0646 \\u062e\\u0644\\u0642 \\u0637\\u0628\\u06cc\\u0639\\u06cc \\u0627\\u0633\\u062a\\u061b \\u0627\\u0645\\u0631\\u0648\\u0632 \\u06cc\\u06a9 \\u06a9\\u0627\\u0631 \\u0622\\u0631\\u0627\\u0645\\u200c\\u0628\\u062e\\u0634 \\u0628\\u0631\\u0627\\u06cc \\u062e\\u0648\\u062f\\u062a \\u0628\\u06a9\\u0646\",\"en\":\"Mood swings before your period are normal \\u2014 do one calming thing for yourself today\"}',24,35,'mindfulness',1,25,'2026-09-23 09:00:00','2026-09-23 09:00:00');
 /*!40000 ALTER TABLE `challenges` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `contraception_methods`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `contraception_methods` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `method` varchar(32) NOT NULL,
+  `pack_type` varchar(8) DEFAULT NULL,
+  `pack_started_on` date DEFAULT NULL,
+  `packs_left` tinyint(3) unsigned DEFAULT NULL,
+  `packs_counted_on` date DEFAULT NULL,
+  `inserted_on` date DEFAULT NULL,
+  `iud_lifetime_years` tinyint(3) unsigned DEFAULT NULL,
+  `followup_done` tinyint(1) NOT NULL DEFAULT 0,
+  `injected_on` date DEFAULT NULL,
+  `replace_on` date DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `contraception_methods_user_id_unique` (`user_id`),
+  CONSTRAINT `contraception_methods_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `contraception_methods` WRITE;
+/*!40000 ALTER TABLE `contraception_methods` DISABLE KEYS */;
+/*!40000 ALTER TABLE `contraception_methods` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `contraception_pill_logs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `contraception_pill_logs` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `log_date` date NOT NULL,
+  `status` varchar(8) NOT NULL,
+  `logged_at` datetime NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `contraception_pill_logs_user_id_log_date_unique` (`user_id`,`log_date`),
+  CONSTRAINT `contraception_pill_logs_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `contraception_pill_logs` WRITE;
+/*!40000 ALTER TABLE `contraception_pill_logs` DISABLE KEYS */;
+/*!40000 ALTER TABLE `contraception_pill_logs` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `contraception_reminders`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `contraception_reminders` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `kind` varchar(32) NOT NULL,
+  `reminder_id` bigint(20) unsigned NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `contraception_reminders_user_id_kind_unique` (`user_id`,`kind`),
+  KEY `contraception_reminders_reminder_id_foreign` (`reminder_id`),
+  CONSTRAINT `contraception_reminders_reminder_id_foreign` FOREIGN KEY (`reminder_id`) REFERENCES `reminders` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `contraception_reminders_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `contraception_reminders` WRITE;
+/*!40000 ALTER TABLE `contraception_reminders` DISABLE KEYS */;
+/*!40000 ALTER TABLE `contraception_reminders` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `cycle_histories`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
