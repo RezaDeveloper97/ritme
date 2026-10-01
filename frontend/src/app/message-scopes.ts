@@ -36,12 +36,9 @@ export const SHELL_NAMESPACES = [
   'reminders',
 ] as const satisfies readonly MessageNamespace[];
 
-const ONBOARDING = ['common', 'onboarding'] as const satisfies readonly MessageNamespace[];
-const ONBOARDING_WITH_PROFILE = [
-  'common',
-  'onboarding',
-  'profileEdit',
-] as const satisfies readonly MessageNamespace[];
+// B-N2-02: every onboarding route mounts the one onboarding-flow screen slice
+// (`profileEdit` comes with the birthday wheels of features/edit-profile).
+const ONBOARDING = ['common', 'onboarding', 'profileEdit'] as const satisfies readonly MessageNamespace[];
 const AUTH = ['auth', 'common'] as const satisfies readonly MessageNamespace[];
 const PREGNANCY = ['common', 'nav', 'pregnancy'] as const satisfies readonly MessageNamespace[];
 
@@ -62,6 +59,8 @@ export const ROUTE_NAMESPACES = {
   profileSupport: ['common', 'me'], // B-N1-12 /profile/support
   profileAbout: ['common', 'me'], // B-N1-12 /profile/about
   profileLegal: ['common', 'me'], // B-N1-12 /profile/legal
+  profileMode: ['common', 'me'], // B-N2-03 /profile/mode (copy under me.mode)
+  profileModeLoss: ['common', 'me'], // B-N2-03 /profile/mode/loss
   pregnancy: ['care', 'common', 'nav', 'pregnancyV2'],
   pregnancyLog: [...PREGNANCY, 'pregnancyV2'],
   pregnancyWeek: ['common', 'nav', 'pregnancyV2'],
@@ -80,17 +79,16 @@ export const ROUTE_NAMESPACES = {
   signup: AUTH,
   otp: AUTH,
   welcome: ['common', 'welcome'],
-  onboardingBirthday: ONBOARDING,
-  onboardingConditions: ONBOARDING,
-  onboardingCycleDuration: ONBOARDING,
-  onboardingCycleLen: ONBOARDING,
-  onboardingHeight: ONBOARDING,
-  onboardingIntention: ONBOARDING,
   onboardingName: ONBOARDING,
-  onboardingPeriodLen: ONBOARDING,
-  onboardingWeight: ONBOARDING,
-  onboardingPregnancyBasis: ONBOARDING_WITH_PROFILE,
-  onboardingSettingUp: ONBOARDING_WITH_PROFILE,
+  onboardingGender: ONBOARDING,
+  onboardingIntention: ONBOARDING,
+  onboardingCycle: ONBOARDING,
+  onboardingPregnancyBasis: ONBOARDING,
+  onboardingMenopause: ONBOARDING,
+  onboardingConditions: ONBOARDING,
+  onboardingHealth: ONBOARDING,
+  onboardingPartner: ONBOARDING,
+  onboardingSettingUp: ONBOARDING,
 } as const satisfies Record<string, readonly MessageNamespace[]>;
 
 export type MessageRoute = keyof typeof ROUTE_NAMESPACES;

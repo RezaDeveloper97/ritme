@@ -77,6 +77,7 @@ func setup(t *testing.T) *env {
 	app.Put("/api/v1/onboarding/steps/:step", guard.RequireUser, ob.UpdateStep)
 	app.Get("/api/v1/profile/life-stage", guard.RequireUser, ob.ShowLifeStage)
 	app.Put("/api/v1/profile/life-stage", guard.RequireUser, ob.UpdateLifeStage)
+	app.Get("/api/v1/profile/life-stage/loss-copy", guard.RequireUser, ob.ShowLossCopy) // B-N2-03
 	return &env{db: db, app: app, iss: passport.NewIssuer(key, q, clock.Real{}, 365), storage: storage}
 }
 

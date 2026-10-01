@@ -17,7 +17,8 @@ export type IconName =
   | 'faceGreat' | 'faceGood' | 'faceOkay' | 'faceLow' | 'faceHard'
   | 'lock' | 'minus' | 'arrowR'
   | 'users' | 'gradCap' | 'todo' | 'box' | 'watch' | 'help' | 'chat' | 'crown' | 'smartphone' | 'modeRing'
-  | 'symptom' | 'star';
+  | 'symptom' | 'star' | 'sprout'
+  | 'female' | 'male' | 'cake';
 
 const PATHS: Record<IconName, string> = {
   bell:         '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
@@ -128,6 +129,12 @@ const PATHS: Record<IconName, string> = {
   crown:        '<path d="M3 8l4 4 5-7 5 7 4-4-2 11H5z"/>',
   smartphone:   '<rect x="7" y="3" width="10" height="18" rx="2.5"/><path d="M11 18h2"/>',
   modeRing:     '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>',
+  // B-N2-02: onboarding gender cards + birthday / due-date rows (nbl_Onb_Gender, _Health, _Preg)
+  female:       '<circle cx="12" cy="9" r="5"/><path d="M12 14v7M9 18h6"/>',
+  male:         '<circle cx="10" cy="14" r="5"/><path d="M13.5 10.5L20 4M15 4h5v5"/>',
+  cake:         '<path d="M4 20h16v-6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2z"/><path d="M4 16c1.5 1 3 1 4 0s2.5-1 4 0 2.5 1 4 0 2.5-1 4 0"/><path d="M8 12V9M12 12V9M16 12V9"/>',
+  // B-N2-03: teen mode (nbl_Me_Mode)
+  sprout:       '<path d="M12 21v-8"/><path d="M12 13c0-4-3-6-7-6 0 4 3 6 7 6zM12 11c0-4 3-6 7-6 0 4-3 6-7 6z"/>',
 };
 
 interface IconProps {

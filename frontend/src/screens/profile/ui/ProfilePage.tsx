@@ -3,7 +3,6 @@
 import { useLocale, useTranslations } from 'next-intl';
 
 import { useUserMode } from '@/entities/message';
-import { useDeactivatePregnancy } from '@/entities/pregnancy';
 import { useUserProfile } from '@/entities/user';
 import { useAppLock } from '@/features/app-lock';
 import { useLogout } from '@/features/auth';
@@ -27,7 +26,7 @@ import {
   type IconName,
   type Tone,
 } from '@/shared/ui';
-import { BottomNav, resolveNavMode } from '@/widgets/bottom-nav';
+import { BottomNav, useNavMode } from '@/widgets/bottom-nav';
 
 import { MeErrorCard } from './MeErrorCard';
 import { firstLetter, localizeDigits, maskMobile, MODE_TONE } from './me-format';
@@ -64,7 +63,6 @@ export function ProfilePage() {
   const mounted = useMounted();
   const profileQuery = useUserProfile();
   const { data: userMode } = useUserMode();
-  const deactivatePregnancy = useDeactivatePregnancy();
   const logout = useLogout();
   const { exportData, isPending: exporting, isError: exportFailed } = useExportData();
   const { locale, languages } = useSwitchLocale();
@@ -72,9 +70,9 @@ export function ProfilePage() {
   const appLock = useAppLock();
 
   const profile = profileQuery.data;
-  const navMode = resolveNavMode({ mode: userMode?.mode, isTtc: userMode?.isTtc ?? false });
+  // Life-stage mode (B-N2-03) — menopause/teen/postpartum exist only there; falls back to /messages/mode.
+  const navMode = useNavMode().mode ?? 'cycle';
   const modeName = t(`modes.${navMode}`);
-  const isPregnancy = navMode === 'pregnancy';
   const languageName = languages.find((l) => l.code === locale)?.name ?? locale;
   const calendarName = t(`calendars.${calendarSystem(loc)}`);
   const soon = <StatusPill tone="neutral">{t('soon')}</StatusPill>;
@@ -93,13 +91,6 @@ export function ProfilePage() {
     });
   };
 
-  // App mode (CLAUDE.md §1) until the mode switcher (B-N2-03, /profile/mode):
-  // cycle → pregnancy setup; pregnancy → confirm, then back to cycle.
-  const onModeRow = () => {
-    if (!isPregnancy) return router.push('/pregnancy/setup');
-    if (deactivatePregnancy.isPending || !window.confirm(t('rows.confirmToCycle'))) return;
-    deactivatePregnancy.mutate(undefined, { onSuccess: () => router.replace('/home') });
-  };
 
   return (
     <div className="view me-page">
@@ -145,15 +136,18 @@ export function ProfilePage() {
           </div>
         )}
 
-        {/* Plus status. Plans/payment arrive with N2 (B-N2-05+); until then a static card. */}
-        <div className="me-plus">
-          <IconCircle icon="sparkle" tone="brand" size="md" />
-          <span className="nb-row-text">
-            <span className="nb-row-title">{userMode?.isPremium ? t('plus.active') : t('plus.title')}</span>
-            <span className="nb-row-desc">{userMode?.isPremium ? t('plus.activeSub') : t('plus.soonSub')}</span>
-          </span>
-          {userMode?.isPremium ? null : soon}
-        </div>
+        {/* Plus status. Plans/payment arrive with N2 (B-N2-05+); until then a static card.
+            Teen mode never shows a Plus upsell (B-N2-03, gaps.md #3). */}
+        {navMode === 'teen' ? null : (
+          <div className="me-plus">
+            <IconCircle icon="sparkle" tone="brand" size="md" />
+            <span className="nb-row-text">
+              <span className="nb-row-title">{userMode?.isPremium ? t('plus.active') : t('plus.title')}</span>
+              <span className="nb-row-desc">{userMode?.isPremium ? t('plus.activeSub') : t('plus.soonSub')}</span>
+            </span>
+            {userMode?.isPremium ? null : soon}
+          </div>
+        )}
 
         <section className="me-sec" aria-labelledby="me-g-family">
           <SectionTitle id="me-g-family" title={t('groups.family')} />
@@ -162,12 +156,8 @@ export function ProfilePage() {
               icon="modeRing"
               iconTone={MODE_TONE[navMode]}
               title={t('rows.mode')}
-              description={
-                deactivatePregnancy.isPending
-                  ? t('rows.modeSwitching')
-                  : t(isPregnancy ? 'rows.modeToCycle' : 'rows.modeToPregnancy', { mode: modeName })
-              }
-              onClick={onModeRow}
+              description={t('rows.modeSub', { mode: modeName })}
+              onClick={() => router.push('/profile/mode')}
             />
             {FAMILY_SOON.map((row) => (
               <ListRow key={row.key} icon={row.icon} iconTone={row.tone} title={t(`rows.${row.key}`)} trailing={soon} />

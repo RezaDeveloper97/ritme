@@ -307,5 +307,31 @@
       "basis": "Based on your last {n} cycles · see analysis",
       "basisBasic": "Based on your past cycles · see analysis"
     }
+  },
+  "life": {
+    "menopause": {
+      "overline": "Menopause",
+      "title": "How are you today?",
+      "body": "Log hot flashes, sleep and mood to see how your symptoms change.",
+      "tilesTitle": "Quick log for today",
+      "hotFlash": "Hot flash",
+      "hotFlashAdd": "Log it",
+      "hotFlashOn": "Logged",
+      "hotFlashUndo": "Remove today’s hot flash",
+      "sleep": "Sleep",
+      "mood": "Mood",
+      "logged": "Logged",
+      "notLogged": "Not logged",
+      "trendTitle": "Symptom trends",
+      "trendSub": "The pattern of what you’ve logged",
+      "logToday": "Log today",
+      "saveError": "Couldn’t save. Please try again."
+    },
+    "postpartum": {
+      "title": "Postpartum home is coming soon",
+      "body": "Recovery, breastfeeding and baby’s growth will live here soon. Until then you’ll see cycle tracking.",
+      "action": "Life stage"
+    },
+    "modeChip": "Life stage: {mode}"
   }
 }

@@ -4,8 +4,9 @@ import { isNavRootPath } from '@/shared/config';
 
 import { activeTabKey, navConfig, resolveNavMode, type NavMode } from './nav-items';
 
-const keys = (mode: NavMode, childIds?: string[]) => {
-  const c = navConfig(mode, { childIds });
+const READY = { postpartum: true, analysis: true };
+const keys = (mode: NavMode, childIds?: string[], ready: Partial<typeof READY> = READY) => {
+  const c = navConfig(mode, { childIds, ready });
   return [...c.before.map((t) => `${t.key}:${t.href}`), c.fab ? 'FAB' : null, ...c.after.map((t) => t.key)].filter(
     Boolean,
   );
@@ -20,6 +21,14 @@ describe('resolveNavMode', () => {
     expect(resolveNavMode({ mode: 'menopause' })).toBe('menopause');
     expect(resolveNavMode({ mode: 'weird' })).toBe('cycle');
     expect(resolveNavMode({})).toBe('cycle');
+  });
+
+  it('prefers the life-stage mode (B-N2-03)', () => {
+    expect(resolveNavMode({ lifeMode: 'menopause', mode: 'cycle', isTtc: true })).toBe('menopause');
+    expect(resolveNavMode({ lifeMode: 'teen', mode: 'cycle' })).toBe('teen');
+    expect(resolveNavMode({ lifeMode: 'ttc' })).toBe('ttc');
+    expect(resolveNavMode({ lifeMode: 'nope', mode: 'pregnancy' })).toBe('pregnancy');
+    expect(resolveNavMode({ lifeMode: null, mode: 'cycle', isTtc: true })).toBe('ttc');
   });
 });
 
@@ -36,6 +45,12 @@ describe('navConfig (nav.md per-mode table)', () => {
     expect(keys('postpartum', ['7'])[1]).toBe('child:/children/7');
     expect(keys('postpartum', [])[1]).toBe('child:/children');
     expect(keys('postpartum', ['1', '2'])[1]).toBe('child:/children');
+  });
+
+  it('uses interim targets until the postpartum and analysis screens exist (QUESTIONS #60)', () => {
+    expect(keys('postpartum', ['7'], {})).toEqual(['today:/home', 'calendar:/calendar', 'FAB', 'services', 'me']);
+    expect(keys('menopause', undefined, {})).toEqual(['today:/home', 'symptoms:/cycle/symptoms', 'FAB', 'services', 'me']);
+    expect(activeTabKey(navConfig('menopause', { ready: {} }), '/cycle/symptoms')).toBe('symptoms');
   });
 
   it('companion has no mode tab and no FAB', () => {

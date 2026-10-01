@@ -35,3 +35,16 @@ export {
   userKeys,
 } from './api/queries';
 export { authUserSchema, userProfileSchema } from './api/schema';
+export {
+  fetchLifeStage,
+  fetchLossCopy,
+  lifeStageKeys,
+  lifeStageSchema,
+  lossCopySchema,
+  toLifeStageBody,
+  useLifeStage,
+  useLossCopy,
+  useUpdateLifeStage,
+} from './api/life-stage';
+export { isLifeMode, LIFE_MODES, type LifeMode, type LifeStage, type LifeStageUpdate, type LossCopy } from './model/life-stage';
+export { readLifeModeHint, writeLifeModeHint } from './model/life-hint';

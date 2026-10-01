@@ -403,3 +403,19 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
 - **Security tests:** amount tampering, replayed/concurrent verify (row lock), reused bank ref, trial race, IDOR,
   discount caps under concurrency (fixed a REPEATABLE READ bug → READ COMMITTED). Contract group `plus` (25 goldens).
 - **Open:** QUESTIONS #64–#67. B-N2-05 must add `PLUS_*` to `.env.stage.example`.
+
+## B-N2-03 — Life-stage mode switcher (6 modes) and minimal menopause/teen homes
+
+- **Backend:** `GET /api/v1/profile/life-stage/loss-copy` (admin `message_contents` `pregnancy_setup/loss_exit`, 7 keys,
+  null → bundled fallback; `loss_exit` registered in the admin messages registry). Reuses `GET|PUT /profile/life-stage`;
+  pregnancy coordination in the client (enter: PUT mode → `/pregnancy/setup`; exit: `POST /pregnancy/deactivate` → PUT).
+- **Frontend:** `entities/user` life-stage hooks (`useLifeStage`, optimistic `useUpdateLifeStage`, `useLossCopy`, local
+  hint cleared on logout); `screens/mode` at `/profile/mode` (6 radio cards, IVF/IUI + contraception switches, confirm
+  sheets, calm loss exit at `/profile/mode/loss` → cycle mode, no celebration). Bottom nav reads the life-stage mode
+  (`useNavMode`, `NAV_READY` flags: postpartum → `/home` + calendar tab; menopause «علائم» → `/cycle/symptoms` until
+  B-N3-08). Home is mode-aware: pregnancy → `/pregnancy` (stage bug B-2), `MenopauseHome`, teen = cycle home without
+  banners/fertility/PMS, postpartum = cycle home + «به‌زودی» card. Me hub mode row + pill, Plus card hidden for teen;
+  cycle-settings mode rows wired; pregnancy setup guard (stage bug B-3). Missing-artboard decisions in
+  `docs/night-bloom/README.md`.
+- **Screenshots:** `docs/qa/bloom/B-N2-03/` (menopause 0990…81, teen 0990…82, cycle 04, ttc 12, pregnancy 15).
+- **Open:** QUESTIONS #68–#70. No contract golden for loss-copy (Go-only; int + OpenAPI tests).

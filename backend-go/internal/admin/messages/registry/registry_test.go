@@ -30,7 +30,7 @@ func TestGroups(t *testing.T) {
 	assert.Equal(t, []string{"vomiting_streak", "severe_symptom_count", "critical_symptom", "weight_missing_week",
 		"week_entered", "bp_high", "sugar_high", "fetal_movement", "legend"}, alert)
 	assert.Equal(t, []string{"welcome", "dating", "source_lmp", "source_ultrasound", "source_manual", "history",
-		"result", "due_disclaimer", "calendar_note"}, registry.Keys(registry.SetupGroup))
+		"result", "due_disclaimer", "calendar_note", "loss_exit"}, registry.Keys(registry.SetupGroup))
 
 	it, ok := registry.Lookup(registry.AlertGroup, "bp_high")
 	require.True(t, ok)

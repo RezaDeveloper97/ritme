@@ -2,12 +2,12 @@
 
 import { useTranslations } from 'next-intl';
 
-import { useUserMode } from '@/entities/message';
 import { useRouter } from '@/shared/i18n';
 import { openSheet } from '@/shared/sheet';
 import { SkeletonGroup, Skeleton, TileButton, type IconName, type Tone } from '@/shared/ui';
 
-import { resolveNavMode, type NavMode } from '../model/nav-items';
+import { type NavMode } from '../model/nav-items';
+import { useNavMode } from '../model/use-nav-mode';
 
 type EntryKey = 'daily' | 'fertility' | 'bbt' | 'pregDaily' | 'pregWeekly' | 'pregMovement' | 'checkup' | 'reminder';
 
@@ -59,9 +59,9 @@ export function LogSheetTitle() {
 export function LogSheet() {
   const t = useTranslations('nav');
   const router = useRouter();
-  const modeQuery = useUserMode();
+  const navMode = useNavMode();
 
-  if (modeQuery.isPending && modeQuery.fetchStatus !== 'idle') {
+  if (navMode.pending) {
     return (
       <SkeletonGroup label={t('logSheet.loading')} className="nblog-grid">
         <Skeleton shape="card" />
@@ -71,9 +71,7 @@ export function LogSheet() {
     );
   }
 
-  const mode = modeQuery.data
-    ? resolveNavMode({ mode: modeQuery.data.mode, isTtc: modeQuery.data.isTtc })
-    : 'cycle';
+  const mode = navMode.mode ?? 'cycle';
 
   return (
     <div className="nblog">

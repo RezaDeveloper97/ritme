@@ -23,6 +23,7 @@ import (
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/platform/validation"
 	"github.com/ritme/backend-go/internal/platform/validation/phpval"
+	pregstore "github.com/ritme/backend-go/internal/pregnancy/store"
 	"github.com/ritme/backend-go/internal/profile/model"
 	"github.com/ritme/backend-go/internal/profile/store"
 )
@@ -34,6 +35,7 @@ import (
 //	POST /api/v1/onboarding/complete        «ورود به ریتمی» (idempotent: the first completion time is kept)
 //	GET  /api/v1/profile/life-stage         effective mode + stored mode + the IVF/IUI and contraception switches
 //	PUT  /api/v1/profile/life-stage         partial update of the three
+//	GET  /api/v1/profile/life-stage/loss-copy  admin-edited copy of the calm pregnancy exit (B-N2-03)
 //
 // What the legacy profile already holds stays there (users.name; user_profiles birthday / height / weight / last
 // period / lengths / user_goal) and is written through Service.Save, so the cycle side effects (onboarding period
@@ -89,6 +91,7 @@ type LifeProfileStore interface {
 // OnboardingHandlers serve the onboarding and life-stage endpoints. Mount behind locale + auth RequireUser.
 type OnboardingHandlers struct {
 	q     LifeProfileStore
+	pq    pregstore.Querier // admin-edited copy (message_contents) of the calm pregnancy exit
 	svc   *Service
 	clock clock.Clock
 }
@@ -99,7 +102,7 @@ func NewOnboardingHandlers(d *sql.DB, base clock.Clock) *OnboardingHandlers {
 	if base == nil {
 		base = clock.Real{}
 	}
-	return &OnboardingHandlers{q: q, svc: &Service{DB: d, Q: q}, clock: base}
+	return &OnboardingHandlers{q: q, pq: pregstore.New(d), svc: &Service{DB: d, Q: q}, clock: base}
 }
 
 func (h *OnboardingHandlers) now(c fiber.Ctx) time.Time {

@@ -68,32 +68,34 @@
     "tagline": "Know your body's rhythm",
     "loading": "Loading"
    },
-   "signup": {
-    "title": "Join Ritme today",
-    "subtitle": "Enter your mobile number to sign in or register",
-    "phoneLabel": "Mobile number",
-    "phonePlaceholder": "09123456789",
-    "privacyNote": "Your information is secure and will never be shared.",
-    "terms": "By registering you accept the {link} and privacy policy.",
-    "termsLink": "Terms & Conditions",
-    "submit": "Get verification code",
-    "sending": "Sending code…",
-    "invalidPhone": "Please enter a valid mobile number"
-   },
-   "otp": {
-    "title": "One-time code 🔐",
-    "subtitle": "A one-time code was sent to {phone}",
-    "editPhone": "Edit mobile number",
-    "resendTimer": "Resend code in {time}",
-    "resend": "Resend code",
-    "submit": "Verify code",
-    "verifying": "Verifying…"
-   },
    "errors": {
     "invalidCode": "The code is incorrect or has expired",
     "tooMany": "Too many attempts. Please try again in a moment",
     "network": "Couldn't connect. Please check your internet connection",
     "generic": "Something went wrong. Please try again"
+   },
+   "phone": {
+    "title": "Your mobile number",
+    "subtitle": "We'll text you a {count, number}-digit code. Your number is never shown to anyone.",
+    "label": "Mobile number",
+    "consentTitle": "Your body, your data",
+    "terms": "I accept Ritme's <terms>terms</terms> and <privacy>privacy policy</privacy>.",
+    "healthData": "I agree that Ritme processes the health data I enter myself to provide its services.",
+    "submit": "Get code",
+    "sending": "Sending code…",
+    "invalid": "This mobile number isn't valid"
+   },
+   "code": {
+    "title": "Verification code",
+    "subtitle": "Enter the {count, number}-digit code sent to <phone>{number}</phone>.",
+    "boxesLabel": "Verification code",
+    "digitLabel": "Digit {n}",
+    "editPhone": "Change number",
+    "resendIn": "Resend in",
+    "resend": "Resend code",
+    "autoRead": "The code is read from the SMS automatically.",
+    "submit": "Verify",
+    "verifying": "Checking…"
    }
   },
   "banners": {
@@ -750,6 +752,12 @@
     "digits": "{count, plural, one {# digit} other {# digits}}",
     "localNote": "The passcode is kept only on this phone, encrypted, and is never sent to the server.",
     "lockedOut": "Too many wrong passcodes. To protect your data you are being signed out; sign in again with the SMS code."
+   },
+   "onbFrame": {
+    "back": "Back",
+    "skip": "Skip",
+    "progress": "Step {step, number} of {total, number}",
+    "privacy": "Your information stays confidential with Ritme and is never shared with anyone."
    }
   },
   "cycle": {
@@ -1427,6 +1435,32 @@
      "basis": "Based on your last {n} cycles · see analysis",
      "basisBasic": "Based on your past cycles · see analysis"
     }
+   },
+   "life": {
+    "menopause": {
+     "overline": "Menopause",
+     "title": "How are you today?",
+     "body": "Log hot flashes, sleep and mood to see how your symptoms change.",
+     "tilesTitle": "Quick log for today",
+     "hotFlash": "Hot flash",
+     "hotFlashAdd": "Log it",
+     "hotFlashOn": "Logged",
+     "hotFlashUndo": "Remove today’s hot flash",
+     "sleep": "Sleep",
+     "mood": "Mood",
+     "logged": "Logged",
+     "notLogged": "Not logged",
+     "trendTitle": "Symptom trends",
+     "trendSub": "The pattern of what you’ve logged",
+     "logToday": "Log today",
+     "saveError": "Couldn’t save. Please try again."
+    },
+    "postpartum": {
+     "title": "Postpartum home is coming soon",
+     "body": "Recovery, breastfeeding and baby’s growth will live here soon. Until then you’ll see cycle tracking.",
+     "action": "Life stage"
+    },
+    "modeChip": "Life stage: {mode}"
    }
   },
   "log": {
@@ -1747,6 +1781,7 @@
    },
    "rows": {
     "mode": "App mode",
+    "modeSub": "{mode} · change life stage",
     "modeToPregnancy": "{mode} · switch to pregnancy",
     "modeToCycle": "{mode} · back to cycle mode",
     "modeSwitching": "Switching…",
@@ -2095,6 +2130,99 @@
      "body": "Check your connection and try again.",
      "retry": "Try again"
     }
+   },
+   "mode": {
+    "title": "Life stage",
+    "subtitle": "Your tabs and Today screen follow it",
+    "back": "Back",
+    "loading": "Loading your life stage…",
+    "saving": "Saving…",
+    "saved": "“{mode}” is on",
+    "saveError": "Couldn’t save. Please try again.",
+    "error": {
+     "title": "Couldn’t load your life stage",
+     "body": "Check your connection and try again.",
+     "retry": "Try again"
+    },
+    "cards": {
+     "cycle": {
+      "title": "Cycle tracking",
+      "desc": "Period predictions, symptoms and insights",
+      "tab": "Tab: Calendar",
+      "log": "Log: period and symptoms"
+     },
+     "ttc": {
+      "title": "Trying to conceive",
+      "desc": "Fertile window, LH and BBT",
+      "tab": "Tab: Fertility",
+      "log": "Log: LH and temperature"
+     },
+     "pregnancy": {
+      "title": "Pregnancy",
+      "desc": "Week by week, visits and symptoms",
+      "tab": "Tab: Pregnancy",
+      "log": "Log: kicks and contractions"
+     },
+     "postpartum": {
+      "title": "Postpartum & baby",
+      "desc": "Recovery, breastfeeding and baby’s growth",
+      "tab": "Tab: Baby",
+      "log": "Log: feeding and diapers"
+     },
+     "menopause": {
+      "title": "Menopause",
+      "desc": "Hot flashes, sleep and symptom trends",
+      "tab": "Tab: Symptoms",
+      "log": "Log: hot flashes"
+     },
+     "teen": {
+      "title": "Teen",
+      "desc": "First periods, simple and educational",
+      "tab": "Tab: Calendar",
+      "log": "No shop or ads"
+     }
+    },
+    "ivf": "I’m having fertility treatment (IVF/IUI)",
+    "contraception": {
+     "title": "Also track contraception",
+     "desc": "Pill or other method reminders, alongside any mode"
+    },
+    "dataKept": "Your earlier data is kept in every mode. If your pregnancy doesn’t continue, a calm, separate path opens from inside pregnancy mode.",
+    "confirm": {
+     "pregnancyTitle": "Switch to pregnancy",
+     "pregnancyBody": "We’ll ask a few short questions about your pregnancy dates so weeks and the estimated due date are right. Your cycle data is kept.",
+     "pregnancyGo": "Continue",
+     "leaveTitle": "Leave pregnancy mode",
+     "leaveBody": "Pregnancy mode turns off and you move to “{mode}”. Your pregnancy data isn’t deleted.",
+     "leaveGo": "Switch mode",
+     "cancel": "Cancel"
+    },
+    "loss": {
+     "row": "My pregnancy didn’t continue",
+     "rowSub": "A calm, separate path",
+     "screenTitle": "A calm path",
+     "back": "Back",
+     "loading": "Loading…",
+     "title": "We’re here with you",
+     "body": "We’re so sorry. Whenever you’re ready, we’ll close pregnancy mode and take you back to cycle tracking. Nothing is deleted, and pregnancy content stops.",
+     "confirm": "Close pregnancy mode",
+     "cancel": "Not now",
+     "closing": "Closing…",
+     "doneTitle": "Pregnancy mode is closed",
+     "doneBody": "Give yourself time. If you have severe pain, heavy bleeding or a fever, contact your doctor; in an emergency call 115.",
+     "doneAction": "Go to Today",
+     "notPregnant": {
+      "title": "Pregnancy mode isn’t on",
+      "body": "This path opens only from inside pregnancy mode.",
+      "action": "Life stage"
+     },
+     "error": {
+      "title": "Couldn’t load",
+      "body": "Check your connection and try again.",
+      "retry": "Try again",
+      "save": "That didn’t work. Please try again."
+     }
+    }
    }
   },
   "nav": {
@@ -2165,93 +2293,6 @@
    }
   },
   "onboarding": {
-   "stepOf": "{step} / 8",
-   "continue": "Continue",
-   "finish": "Finish",
-   "helper": "Help us get to know you better",
-   "name": {
-    "title": "What should we call you on Ritme?",
-    "subtitle": "You'll see this name in the app and we'll use it to address you",
-    "label": "Display name",
-    "placeholder": "e.g. Sameh",
-    "terms": "By continuing you accept the <link>Terms & Conditions</link> and privacy policy."
-   },
-   "birthday": {
-    "title": "What is your date of birth?",
-    "subtitle": "Help us get to know you better"
-   },
-   "weight": {
-    "title": "What is your weight?",
-    "subtitle": "Help us get to know you better",
-    "helper": "This is used for weight and general-health analysis, and it is confidential."
-   },
-   "height": {
-    "title": "What is your height?",
-    "subtitle": "Help us get to know you better",
-    "helper": "This is used for weight and general-health analysis, and it is confidential."
-   },
-   "intention": {
-    "title": "Where are you with pregnancy right now?",
-    "subtitle": "We'll personalise your plan based on your answer",
-    "options": {
-     "avoiding": "Not planning a pregnancy right now",
-     "pregnant": "I am pregnant",
-     "trying": "I'm trying to conceive",
-     "unsure": "Not sure yet"
-    }
-   },
-   "pregnancyBasis": {
-    "title": "How should we date your pregnancy?",
-    "subtitle": "Choose one of the methods below",
-    "source": {
-     "lmp": "First day of last period",
-     "ultrasound": "Ultrasound",
-     "manual": "Enter the week manually"
-    },
-    "sourceHint": {
-     "lmp": "If you know your last period date, this is the simple accurate option.",
-     "ultrasound": "Based on your ultrasound result; the most accurate method.",
-     "manual": "If you know your pregnancy week from your doctor."
-    },
-    "weeks": "Weeks",
-    "days": "Days",
-    "note": "During pregnancy, Ritme focuses more on your mood, sleep and general care, and period tracking is turned off.",
-    "selectSource": "Please choose a method",
-    "fillRequired": "Please enter the week"
-   },
-   "periodLen": {
-    "title": "How many days does your period usually last?",
-    "subtitle": "Help us get to know you better",
-    "unit": "days"
-   },
-   "cycleDuration": {
-    "title": "How long is your cycle, usually?",
-    "subtitle": "The gap between the start of two periods; if unsure, 28 days is typical",
-    "unit": "days"
-   },
-   "cycleLen": {
-    "title": "When did your last period start?",
-    "subtitle": "Help us get to know you better",
-    "hint": "Select the day your last period began"
-   },
-   "conditions": {
-    "title": "Do you have any chronic conditions?",
-    "subtitle": "This section is optional — share as much as you like to make your recommendations more accurate.",
-    "items": {
-     "pcos": "Polycystic ovary syndrome (PCOS)",
-     "hypothyroidism": "Hypothyroidism",
-     "hyperthyroidism": "Hyperthyroidism",
-     "hypertension": "High blood pressure",
-     "heart_disease": "Heart disease",
-     "diabetes": "Diabetes (type 1, 2 or gestational)"
-    }
-   },
-   "settingUp": {
-    "title": "We are setting up your personalised calendar…",
-    "subtitle": "Help us get to know you better",
-    "wait": "Please wait a few seconds…",
-    "disclaimer": "Ritme is not a substitute for a doctor or counsellor visit. The information you enter is used to personalise recommendations and help you understand your own body. If you have severe or worrying symptoms, be sure to contact a health professional."
-   },
    "enums": {
     "gender": {
      "female": "Female",
@@ -2299,7 +2340,150 @@
      "hormonal_medication": "Hormonal medication"
     }
    },
-   "dayCount": "{days, plural, one {# day} other {# days}}"
+   "dayCount": "{days, plural, one {# day} other {# days}}",
+   "flow": {
+    "continue": "Continue",
+    "notNow": "Not now",
+    "retry": "Try again",
+    "loading": "Loading",
+    "saveError": "Couldn't save. Please try again.",
+    "loadError": {
+     "title": "Couldn't load your answers",
+     "body": "Check your connection and try again."
+    },
+    "decrease": "Decrease",
+    "increase": "Increase",
+    "unitDay": "days",
+    "calendar": {
+     "prev": "Previous month",
+     "next": "Next month"
+    },
+    "name": {
+     "title": "What's your name?",
+     "subtitle": "Ritme will call you by this name.",
+     "label": "Name",
+     "placeholder": "e.g. Sara",
+     "hint": "You can change it later in settings."
+    },
+    "gender": {
+     "title": "What's your gender?",
+     "subtitle": "We'll set up the right path for you based on your answer.",
+     "maleNote": "If you're a man, Ritme Companion helps you stand by your partner."
+    },
+    "goal": {
+     "title": "Why did you install Ritme?",
+     "subtitle": "You can change it any time in settings.",
+     "desc": {
+      "cycle": "Period predictions, symptoms and knowing my body",
+      "ttc": "Fertile window, ovulation and the best days",
+      "pregnancy": "Week-by-week baby growth and caring for myself",
+      "menopause": "Perimenopause and beyond: symptoms, check-ups and a report for your doctor"
+     }
+    },
+    "cycle": {
+     "title": "When did your last period start?",
+     "unsure": "I don't remember exactly",
+     "periodLabel": "Period length",
+     "periodDesc": "How many days do you usually bleed?",
+     "cycleLabel": "Cycle length",
+     "cycleDesc": "From the start of one period to the next",
+     "note": "Not sure? Keep the defaults; Ritme refines them after a few cycles."
+    },
+    "pregnancy": {
+     "title": "Congratulations! How should we date your pregnancy?",
+     "subtitle": "Pick the most accurate basis; an early ultrasound is usually the most accurate.",
+     "basisLabel": "Dating basis",
+     "basis": {
+      "lmp": "Last period",
+      "ultrasound": "Ultrasound",
+      "due": "Due date",
+      "week": "Current week"
+     },
+     "panel": {
+      "lmp": "First day of your last period",
+      "ultrasound": "Ultrasound details",
+      "due": "Due date from your doctor",
+      "week": "Current week of pregnancy"
+     },
+     "lmpDate": "Period start date",
+     "scanDate": "Ultrasound date",
+     "dueDate": "Due date",
+     "pickDate": "Pick a date",
+     "weeks": "Weeks",
+     "days": "Days",
+     "scanNote": "The gestational age written in the ultrasound report.",
+     "today": "Today",
+     "ga": "{weeks} weeks and {days} days",
+     "due": "Estimated due date"
+    },
+    "menopause": {
+     "title": "Where are you on the menopause path?",
+     "subtitle": "We'll tailor symptoms, check-ups and content to your stage.",
+     "desc": {
+      "peri": "I still have periods, but they've become irregular or I have new symptoms",
+      "meno": "I haven't had a period for 12 months or more",
+      "post": "It's been a few years since my last period",
+      "unsure": "A few questions will help you find your stage"
+     },
+     "lastPeriod": "Last period",
+     "about": "Around {month}",
+     "notSet": "Not set",
+     "surgical": "Was your menopause caused by surgery or treatment (e.g. ovary removal)?",
+     "hrt": "Are you taking hormone therapy or menopause medication now?",
+     "yes": "Yes",
+     "no": "No"
+    },
+    "conditions": {
+     "title": "Do you have any conditions?",
+     "subtitle": "You can pick several. This is taken into account in predictions and suggestions.",
+     "chronic": "Chronic conditions",
+     "gyn": "Gynaecological conditions",
+     "meds": "Regular medication or contraception",
+     "none": "None",
+     "noMeds": "None",
+     "disclaimer": "Ritme doesn't diagnose; this only makes predictions and content more accurate and can be deleted any time."
+    },
+    "health": {
+     "title": "A little about you",
+     "subtitle": "Your age, height and weight personalise suggestions; they're saved to your account only.",
+     "birthday": "Date of birth",
+     "pickBirthday": "Pick your date of birth",
+     "age": "{age} years",
+     "height": "Height",
+     "weight": "Weight",
+     "cm": "cm",
+     "kg": "kg",
+     "optional": "You can leave any of these empty."
+    },
+    "ready": {
+     "title": "Your Ritme is ready",
+     "subtitle": "Get to know your body's rhythm with Ritme",
+     "nextPeriod": "Next period",
+     "about": "Around {date}",
+     "fertile": "Fertile window",
+     "range": "{from} to {to}",
+     "mode": "Mode",
+     "partnerMode": "Companion",
+     "reminder": "Reminder before your period",
+     "reminderDesc": "We'll let you know {days, plural, one {# day} other {# days}} before",
+     "enter": "Enter Ritme"
+    },
+    "partner": {
+     "title": "Companion code",
+     "subtitle": "If your partner added you as their companion, enter the code they gave you to see what they share with you.",
+     "soon": "Linking with a companion code is coming soon. Enter Ritme for now; you can link later.",
+     "seesTitle": "What do you see with this code?",
+     "sees": {
+      "phase": "Current phase and next period",
+      "fertile": "Fertile window (if your partner wants)",
+      "tips": "\"How to support her\" tips",
+      "private": "Symptoms, notes and medical data"
+     },
+     "revoke": "Your partner can revoke access at any time.",
+     "connect": "Connect",
+     "later": "I'll connect later"
+    }
+   }
   },
   "phase-details": {
    "title": "Phase details",

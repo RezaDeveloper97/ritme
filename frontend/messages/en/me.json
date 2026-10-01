@@ -35,6 +35,7 @@
   },
   "rows": {
     "mode": "App mode",
+    "modeSub": "{mode} · change life stage",
     "modeToPregnancy": "{mode} · switch to pregnancy",
     "modeToCycle": "{mode} · back to cycle mode",
     "modeSwitching": "Switching…",
@@ -382,6 +383,99 @@
       "title": "Couldn't load cycle settings",
       "body": "Check your connection and try again.",
       "retry": "Try again"
+    }
+  },
+  "mode": {
+    "title": "Life stage",
+    "subtitle": "Your tabs and Today screen follow it",
+    "back": "Back",
+    "loading": "Loading your life stage…",
+    "saving": "Saving…",
+    "saved": "“{mode}” is on",
+    "saveError": "Couldn’t save. Please try again.",
+    "error": {
+      "title": "Couldn’t load your life stage",
+      "body": "Check your connection and try again.",
+      "retry": "Try again"
+    },
+    "cards": {
+      "cycle": {
+        "title": "Cycle tracking",
+        "desc": "Period predictions, symptoms and insights",
+        "tab": "Tab: Calendar",
+        "log": "Log: period and symptoms"
+      },
+      "ttc": {
+        "title": "Trying to conceive",
+        "desc": "Fertile window, LH and BBT",
+        "tab": "Tab: Fertility",
+        "log": "Log: LH and temperature"
+      },
+      "pregnancy": {
+        "title": "Pregnancy",
+        "desc": "Week by week, visits and symptoms",
+        "tab": "Tab: Pregnancy",
+        "log": "Log: kicks and contractions"
+      },
+      "postpartum": {
+        "title": "Postpartum & baby",
+        "desc": "Recovery, breastfeeding and baby’s growth",
+        "tab": "Tab: Baby",
+        "log": "Log: feeding and diapers"
+      },
+      "menopause": {
+        "title": "Menopause",
+        "desc": "Hot flashes, sleep and symptom trends",
+        "tab": "Tab: Symptoms",
+        "log": "Log: hot flashes"
+      },
+      "teen": {
+        "title": "Teen",
+        "desc": "First periods, simple and educational",
+        "tab": "Tab: Calendar",
+        "log": "No shop or ads"
+      }
+    },
+    "ivf": "I’m having fertility treatment (IVF/IUI)",
+    "contraception": {
+      "title": "Also track contraception",
+      "desc": "Pill or other method reminders, alongside any mode"
+    },
+    "dataKept": "Your earlier data is kept in every mode. If your pregnancy doesn’t continue, a calm, separate path opens from inside pregnancy mode.",
+    "confirm": {
+      "pregnancyTitle": "Switch to pregnancy",
+      "pregnancyBody": "We’ll ask a few short questions about your pregnancy dates so weeks and the estimated due date are right. Your cycle data is kept.",
+      "pregnancyGo": "Continue",
+      "leaveTitle": "Leave pregnancy mode",
+      "leaveBody": "Pregnancy mode turns off and you move to “{mode}”. Your pregnancy data isn’t deleted.",
+      "leaveGo": "Switch mode",
+      "cancel": "Cancel"
+    },
+    "loss": {
+      "row": "My pregnancy didn’t continue",
+      "rowSub": "A calm, separate path",
+      "screenTitle": "A calm path",
+      "back": "Back",
+      "loading": "Loading…",
+      "title": "We’re here with you",
+      "body": "We’re so sorry. Whenever you’re ready, we’ll close pregnancy mode and take you back to cycle tracking. Nothing is deleted, and pregnancy content stops.",
+      "confirm": "Close pregnancy mode",
+      "cancel": "Not now",
+      "closing": "Closing…",
+      "doneTitle": "Pregnancy mode is closed",
+      "doneBody": "Give yourself time. If you have severe pain, heavy bleeding or a fever, contact your doctor; in an emergency call 115.",
+      "doneAction": "Go to Today",
+      "notPregnant": {
+        "title": "Pregnancy mode isn’t on",
+        "body": "This path opens only from inside pregnancy mode.",
+        "action": "Life stage"
+      },
+      "error": {
+        "title": "Couldn’t load",
+        "body": "Check your connection and try again.",
+        "retry": "Try again",
+        "save": "That didn’t work. Please try again."
+      }
     }
   }
 }

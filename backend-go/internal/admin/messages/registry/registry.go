@@ -185,6 +185,12 @@ func setupGroup() Group {
 		{"calendar_note", []Field{
 			text("plan_note", 500), text("basis_lmp", 500), text("basis_ultrasound", 500), text("basis_manual", 500),
 		}, nil},
+		// The calm pregnancy exit of the mode switcher (B-N2-03, GET /profile/life-stage/loss-copy): the confirm
+		// step, then the closing note. Unseeded — the app falls back to its bundle until an admin writes it.
+		{"loss_exit", []Field{
+			text("title", 255), text("body", 2000), text("confirm", 120), text("cancel", 120),
+			text("done_title", 255), text("done_body", 2000), text("done_action", 120),
+		}, nil},
 	}
 	g := Group{Name: SetupGroup}
 	for _, it := range items {

@@ -24,6 +24,7 @@ func init() {
 		r.Post("/api/v1/onboarding/complete", locale, guard, writes, h.Complete)
 		r.Put("/api/v1/onboarding/steps/:step", locale, guard, writes, h.UpdateStep)
 		r.Get("/api/v1/profile/life-stage", locale, guard, h.ShowLifeStage)
+		r.Get("/api/v1/profile/life-stage/loss-copy", locale, guard, h.ShowLossCopy) // B-N2-03
 		r.Put("/api/v1/profile/life-stage", locale, guard, writes, h.UpdateLifeStage)
 	})
 }

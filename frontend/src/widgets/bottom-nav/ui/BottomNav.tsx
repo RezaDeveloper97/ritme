@@ -3,7 +3,6 @@
 import { clsx } from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
 
-import { useUserMode } from '@/entities/message';
 import { isNavRootPath } from '@/shared/config';
 import { Link, usePathname, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
@@ -13,11 +12,11 @@ import { openSheet } from '@/shared/sheet';
 import {
   activeTabKey,
   navConfig,
-  resolveNavMode,
   type NavKey,
   type NavMode,
   type NavTab,
 } from '../model/nav-items';
+import { useNavMode } from '../model/use-nav-mode';
 import { NavIcon } from './NavIcon';
 
 export interface BottomNavProps {
@@ -41,7 +40,7 @@ export function BottomNav({ badges, mode: forcedMode }: BottomNavProps) {
   const t = useTranslations('nav');
   const locale = useLocale() as Locale;
   const pathname = usePathname();
-  const modeQuery = useUserMode();
+  const navMode = useNavMode();
   // The mode query is gated on the token in localStorage (off during SSR), so
   // the mode tab is a placeholder until hydration — both renders then match.
   const mounted = useMounted();
@@ -50,14 +49,9 @@ export function BottomNav({ badges, mode: forcedMode }: BottomNavProps) {
 
   // While the mode is unknown the pathname is a safe hint for pregnancy; any
   // other mode tab renders as a placeholder so it never flashes the wrong one.
-  const pending =
-    !forcedMode && (!mounted || (modeQuery.isPending && modeQuery.fetchStatus !== 'idle'));
+  const pending = !forcedMode && (!mounted || navMode.pending);
   const hinted: NavMode | null = pathname.startsWith('/pregnancy') ? 'pregnancy' : null;
-  const mode: NavMode =
-    forcedMode ??
-    (modeQuery.data
-      ? resolveNavMode({ mode: modeQuery.data.mode, isTtc: modeQuery.data.isTtc })
-      : (hinted ?? 'cycle'));
+  const mode: NavMode = forcedMode ?? navMode.mode ?? hinted ?? 'cycle';
   const config = navConfig(mode);
   const active = activeTabKey(config, pathname);
   const placeholderMode = pending && !hinted;

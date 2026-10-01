@@ -3,7 +3,7 @@ id: B-N2-03
 title: Life-stage mode switcher (6 modes) and minimal menopause/teen homes
 milestone: N2
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N2-01,B-N1-10]
 parallel_group: N2-C
 touches: [frontend/src/screens/mode,frontend/src/entities/user,frontend/src/screens/home,backend-go/internal/profile,backend-go/internal/home,backend-go/api]

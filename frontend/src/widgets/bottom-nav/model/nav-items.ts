@@ -36,15 +36,22 @@ export interface NavConfig {
 }
 
 export interface NavModeInput {
-  /** `mode` from `/messages/mode` (`cycle` | `pregnancy` today; future modes pass through). */
+  /**
+   * The effective life-stage mode of `GET /profile/life-stage` (B-N2-01/03) —
+   * the source of truth when present (it already folds in the TTC goal and an
+   * active pregnancy profile).
+   */
+  lifeMode?: string | null;
+  /** `mode` from `/messages/mode` (`cycle` | `pregnancy` | `postpartum`): the fallback where life-stage is missing. */
   mode?: string | null;
   isTtc?: boolean;
 }
 
 const KNOWN: readonly NavMode[] = ['cycle', 'ttc', 'pregnancy', 'postpartum', 'menopause', 'teen', 'companion'];
 
-/** Map the API's mode + TTC flag onto a nav mode; unknown or missing → `cycle`. */
-export function resolveNavMode({ mode, isTtc }: NavModeInput): NavMode {
+/** Map the life-stage mode (else the API's message mode + TTC flag) onto a nav mode; unknown or missing → `cycle`. */
+export function resolveNavMode({ lifeMode, mode, isTtc }: NavModeInput): NavMode {
+  if (lifeMode && (KNOWN as readonly string[]).includes(lifeMode)) return lifeMode as NavMode;
   if (mode === 'pregnancy') return 'pregnancy';
   if (mode && mode !== 'cycle' && (KNOWN as readonly string[]).includes(mode)) return mode as NavMode;
   return isTtc ? 'ttc' : 'cycle';
@@ -56,13 +63,33 @@ export interface NavOptions {
    * page, zero or several → the children list. Unknown until N5 → the list.
    */
   childIds?: readonly (string | number)[];
+  /** Override {@link NAV_READY} (tests). */
+  ready?: Partial<NavReady>;
 }
+
+export interface NavReady {
+  /** `/postpartum` + `/children` exist (B-N5-01/05). */
+  postpartum: boolean;
+  /** `/analysis/symptoms` exists (B-N3-08). */
+  analysis: boolean;
+}
+
+/**
+ * Which nav targets of the per-mode table already have screens. Until they do,
+ * a mode whose tab would 404 gets the interim target (B-N2-03, QUESTIONS #60):
+ * postpartum → امروز `/home` (cycle home + a "coming soon" note) and the
+ * «تقویم» tab; menopause «علائم» → the symptom pattern `/cycle/symptoms`.
+ * The owning tasks flip their flag — nothing else changes.
+ */
+export const NAV_READY: NavReady = { postpartum: false, analysis: false };
 
 const SERVICES: NavTab = { key: 'services', href: '/services', icon: 'services' };
 const ME: NavTab = { key: 'me', href: '/profile', icon: 'me' };
 
 /** The second tab, whose label and target follow the mode. */
 export function modeTab(mode: NavMode, options: NavOptions = {}): NavTab | null {
+  const ready = { ...NAV_READY, ...options.ready };
+  if (mode === 'postpartum' && !ready.postpartum) return modeTab('cycle', options);
   switch (mode) {
     case 'cycle':
     case 'teen':
@@ -92,19 +119,24 @@ export function modeTab(mode: NavMode, options: NavOptions = {}): NavTab | null 
       };
     }
     case 'menopause':
-      return { key: 'symptoms', href: '/analysis/symptoms', icon: 'symptoms', alsoActive: ['/analysis', '/analysis/'] };
+      return {
+        key: 'symptoms',
+        href: ready.analysis ? '/analysis/symptoms' : '/cycle/symptoms',
+        icon: 'symptoms',
+        alsoActive: ['/analysis', '/analysis/', '/cycle/symptoms'],
+      };
     case 'companion':
       return null;
   }
 }
 
 /** «امروز» target per mode. */
-export function todayHref(mode: NavMode): string {
+export function todayHref(mode: NavMode, ready: Partial<NavReady> = {}): string {
   switch (mode) {
     case 'pregnancy':
       return '/pregnancy';
     case 'postpartum':
-      return '/postpartum';
+      return { ...NAV_READY, ...ready }.postpartum ? '/postpartum' : '/home';
     case 'companion':
       return '/companion';
     default:
@@ -114,7 +146,7 @@ export function todayHref(mode: NavMode): string {
 
 /** Every tab + FAB presence for `mode`. */
 export function navConfig(mode: NavMode, options: NavOptions = {}): NavConfig {
-  const today: NavTab = { key: 'today', href: todayHref(mode), icon: 'home' };
+  const today: NavTab = { key: 'today', href: todayHref(mode, options.ready), icon: 'home' };
   const second = modeTab(mode, options);
   return {
     before: second ? [today, second] : [today],

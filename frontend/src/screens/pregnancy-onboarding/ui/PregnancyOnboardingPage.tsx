@@ -1,16 +1,18 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import {
   useActivatePregnancy,
   useCompleteOnboarding,
   useDatingPreview,
+  usePregnancyProfile,
   useSetupCopy,
 } from '@/entities/pregnancy';
 import { useRouter, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
+import { useMounted } from '@/shared/lib/use-mounted';
 import {
   Card,
   IconCircle,
@@ -65,6 +67,24 @@ export function PregnancyOnboardingPage() {
   const onboard = useCompleteOnboarding();
   const submitting = activate.isPending || onboard.isPending;
 
+  // Already pregnant (an active, onboarded pregnancy profile): this wizard would
+  // re-date a running pregnancy, so it hands over to `/pregnancy` (stage smoke
+  // B-3). Decided once, on the first answer — never mid-wizard, where «تمومه»
+  // itself activates the profile before submitting the new dates.
+  const existing = usePregnancyProfile();
+  // The profile query is token-gated (off on the server): decide only after
+  // mount so the server and first client render agree (no hydration mismatch).
+  const mounted = useMounted();
+  const guard = useRef<'pending' | 'stay' | 'leave'>('pending');
+  if (mounted && guard.current === 'pending' && (existing.data !== undefined || existing.isError || existing.fetchStatus === 'idle')) {
+    const p = existing.data?.profile;
+    guard.current = p?.pregnancyMode && p.onboardingCompleted ? 'leave' : 'stay';
+  }
+  const leaving = guard.current === 'leave';
+  useEffect(() => {
+    if (leaving) router.replace('/pregnancy');
+  }, [leaving, router]);
+
   const back = () => {
     setError(null);
     if (step === 1) router.push('/profile');
@@ -89,6 +109,14 @@ export function PregnancyOnboardingPage() {
       setError(t('submitError'));
     }
   };
+
+  if (guard.current === 'pending' || leaving) {
+    return (
+      <div className="view pon-page pgn-screen">
+        <SkyLayer />
+      </div>
+    );
+  }
 
   const stepText = t('stepOf', { step: formatNumber(step, loc), total: formatNumber(TOTAL, loc) });
   const benefits = copy?.welcome.benefits.length ? copy.welcome.benefits : BENEFITS.map((k) => t(`benefits.${k}`));

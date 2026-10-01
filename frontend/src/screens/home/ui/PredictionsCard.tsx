@@ -41,6 +41,7 @@ export function PredictionsCard({
   ovulation,
   length,
   footer,
+  hideFertility = false,
 }: {
   nextPeriod: PredictionSlot | null;
   pms: PredictionSlot | null;
@@ -49,6 +50,8 @@ export function PredictionsCard({
   length: CycleLengthSummary | null;
   /** Optional extra (the profile-vs-recent-cycles sync nudge). */
   footer?: ReactNode;
+  /** Teen mode (B-N2-03): no fertile-window / ovulation rows. */
+  hideFertility?: boolean;
 }) {
   const t = useTranslations('home.nb.predictions');
   const tHome = useTranslations('home');
@@ -64,7 +67,7 @@ export function PredictionsCard({
     return slot.endIn >= 0 ? t('ongoing') : null;
   };
 
-  const rows = [
+  const allRows = [
     { key: 'period', label: t('nextPeriod'), value: nextPeriod?.text ?? dash, rel: when(nextPeriod, false) },
     { key: 'pms', label: t('pms'), value: pms?.text ?? dash, rel: when(pms, true) },
     { key: 'fertile', label: t('window'), value: window?.text ?? dash, rel: when(window, true) },
@@ -75,6 +78,7 @@ export function PredictionsCard({
       rel: ovulation ? t('estimated') : null,
     },
   ];
+  const rows = hideFertility ? allRows.filter((r) => r.key !== 'fertile' && r.key !== 'ovulation') : allRows;
 
   const reg = length?.regularity ? REGULARITY[length.regularity] : undefined;
 

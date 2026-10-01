@@ -38,3 +38,16 @@ data. Queue rules: `bloom/README.md`.
 | B-N1-04 shell/nav | nav.md, routes.md intro, gaps.md #14 #15 #17 |
 | B-N1-05 … B-N1-15 screens | routes.md rows for the task id, components.md |
 | B-N1-16 fidelity audit | routes.md (L/D column = which artboards to compare), tokens.md §1 (dialect rule) |
+
+## Decision: menopause / teen / postpartum homes without artboards (B-N2-03)
+
+The canvas has `Me_Mode` (all six modes) but no home for menopause, teen or postpartum (gaps.md #3). Built for now:
+
+| Mode | Home (`/home`, mode-aware via `GET /profile/life-stage`) | Nav mode tab | Replaced by |
+|---|---|---|---|
+| menopause | `screens/home/ui/MenopauseHome`: cycle-home header + hero card with menopause copy, three quick tiles (گرگرفتگی = one-tap log of `hot_flashes` today; خواب / حال → `/log`), «روند علائم» → `/cycle/symptoms`, reminders · checkups · challenge. No ring, predictions or fertility content. | «علائم» → `/cycle/symptoms` until `/analysis/symptoms` exists (`NAV_READY.analysis`, B-N3-08) | roadmap CB-MENO-05 |
+| teen | the cycle home minus banners (ads), fertility level, fertile window / ovulation rows and the PMS insight; Me hides the Plus card | «تقویم» | roadmap E09-teen |
+| postpartum | the cycle home with a «صفحه پس از زایمان به‌زودی» note on top (QUESTIONS #60) | «تقویم», امروز → `/home` until `/postpartum` + `/children` exist (`NAV_READY.postpartum`, B-N5) | B-N5 |
+| pregnancy | `/home` deep links redirect to `/pregnancy` | «بارداری» | — |
+
+Copy lives in `home.life.*` (fa/en + backend seed); everything uses existing tokens, light + dark.

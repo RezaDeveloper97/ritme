@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 
 import { useUserMode } from '@/entities/message';
+import { useLifeStage } from '@/entities/user';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import {
@@ -19,7 +20,6 @@ import {
   Skeleton,
   SkeletonGroup,
   SkyLayer,
-  StatusPill,
   Switch,
   type Tone,
 } from '@/shared/ui';
@@ -307,15 +307,25 @@ const MODES: readonly { key: ModeKey; icon: IconName; tone: Tone }[] = [
 ];
 
 /**
- * The life-stage modes. The full switcher is B-N2-03 (/profile/mode); until
- * then the pregnancy row reuses the existing pregnancy setup and the other
- * targets are shown as «به‌زودی».
+ * The life-stage modes. Picking another one opens the switcher (B-N2-03,
+ * `/profile/mode`), which coordinates pregnancy with its setup / deactivate
+ * and offers the three other modes (postpartum, menopause, teen) too.
  */
 function ModesCard() {
   const t = useTranslations('me.cycleSettings');
   const router = useRouter();
+  const lifeStage = useLifeStage();
   const { data } = useUserMode();
-  const current: ModeKey = data?.mode === 'pregnancy' ? 'pregnancy' : data?.isTtc ? 'ttc' : 'cycle';
+  const life = lifeStage.data?.mode;
+  const current: ModeKey | null = life
+    ? life === 'cycle' || life === 'ttc' || life === 'pregnancy'
+      ? life
+      : null
+    : data?.mode === 'pregnancy'
+      ? 'pregnancy'
+      : data?.isTtc
+        ? 'ttc'
+        : 'cycle';
   return (
     <ListGroup title={t('modes.title')} className="cys-card">
       {MODES.map((m) => {
@@ -338,19 +348,6 @@ function ModesCard() {
             />
           );
         }
-        if (m.key === 'pregnancy' && current !== 'pregnancy') {
-          return (
-            <ListRow
-              key={m.key}
-              icon={m.icon}
-              iconTone={m.tone}
-              iconOutlined
-              title={title}
-              description={t('modes.switch')}
-              onClick={() => router.push('/pregnancy/setup')}
-            />
-          );
-        }
         return (
           <ListRow
             key={m.key}
@@ -359,7 +356,7 @@ function ModesCard() {
             iconOutlined
             title={title}
             description={t('modes.switch')}
-            trailing={<StatusPill tone="neutral">{t('modes.soon')}</StatusPill>}
+            onClick={() => router.push('/profile/mode')}
           />
         );
       })}

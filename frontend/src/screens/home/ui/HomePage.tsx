@@ -30,11 +30,17 @@ import {
   type CycleSchedule,
 } from '@/entities/cycle';
 import { useFertilityToday } from '@/entities/fertility';
-import { useDailyMessage, type DailyMessage } from '@/entities/message';
-import { useUserProfile } from '@/entities/user';
+import { useDailyMessage, useUserMode, type DailyMessage } from '@/entities/message';
+import {
+  readLifeModeHint,
+  useLifeStage,
+  useUserProfile,
+  writeLifeModeHint,
+  type LifeMode,
+} from '@/entities/user';
 import { QuickEditSheet } from '@/features/edit-profile';
 import { PeriodDateEditor, useEndPeriod, useStartPeriod } from '@/features/log-period';
-import { Link, type Locale } from '@/shared/i18n';
+import { Link, useRouter, type Locale } from '@/shared/i18n';
 import {
   addDays,
   currentHour,
@@ -81,6 +87,7 @@ import { dismissPrompt, isPromptDismissed } from '../model/prompt-dismiss';
 import { readTtcHint, writeTtcHint } from '../model/ttc-hint';
 
 import { PmsInsightCard, PredictionsCard, type PredictionSlot } from './PredictionsCard';
+import { MenopauseHome } from './MenopauseHome';
 import { TodayLogCard } from './TodayLogCard';
 
 const FA = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
@@ -536,9 +543,20 @@ interface TimelineSlot {
   days: number;
 }
 
-// ── Main export ────────────────────────────────────────────────
-export function HomePage() {
+// ── Cycle-engine home ──────────────────────────────────────────
+/**
+ * The cycle-engine home: cycle, TTC (`v19_Main`), teen (simplified) and the
+ * interim postpartum home. `lifeMode` is the effective life-stage mode
+ * (B-N2-03); `null` = unknown / no life-stage route → the legacy layout.
+ */
+function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
   const t = useTranslations('home');
+  // Teen (gaps.md #3): simplified cycle home — no ads (banners), no fertility
+  // read-outs, no PMS insight. Postpartum runs the cycle home until B-N5 with a
+  // "coming soon" note on top (QUESTIONS #60).
+  const teen = lifeMode === 'teen';
+  const postpartum = lifeMode === 'postpartum';
+  const ttcAllowed = lifeMode === null || lifeMode === 'ttc' || lifeMode === 'cycle';
   // Chance labels and the TTC home copy live with the fertility screens, so the
   // home and «ثبت روز» say the same word for the same level (audit #1).
   const tf = useTranslations('fertility');
@@ -567,9 +585,9 @@ export function HomePage() {
   const ttcHint = useMemo(() => (mounted ? readTtcHint() : null), [mounted]);
   // TTC home (`v19_Main`): only while trying to conceive; pregnancy mode never matches.
   // The fresh profile wins; until it lands, the remembered layout stands in.
-  const isTtc = profileQuery.data
-    ? profileQuery.data.health?.pregnancyIntention === 'trying'
-    : ttcHint === true;
+  const isTtc =
+    ttcAllowed &&
+    (profileQuery.data ? profileQuery.data.health?.pregnancyIntention === 'trying' : ttcHint === true);
   useEffect(() => {
     if (profileQuery.data) writeTtcHint(isTtc);
   }, [profileQuery.data, isTtc]);
@@ -697,7 +715,7 @@ export function HomePage() {
   // daily card's legacy calendar mapping; `unknown` shows no pill (audit #1).
   const infoFertilityLevel = infoView?.fertilityLevel ?? null;
   const infoFertilityLabel =
-    infoFertilityLevel && infoFertilityLevel !== 'unknown'
+    !teen && infoFertilityLevel && infoFertilityLevel !== 'unknown'
       ? tf(`chance.levels.${infoFertilityLevel}`)
       : null;
   const infoPhaseDesc =
@@ -1098,7 +1116,8 @@ export function HomePage() {
         ) : (
           <div className="ch-feed">
             {/* Admin-managed promo slot — renders nothing until a banner is active */}
-            <BannerSlideshow position="home_top" />
+            {postpartum && <PostpartumNotice />}
+            {!teen && <BannerSlideshow position="home_top" />}
             {/* «یادآورهای امروز» — today's doses + next appointment (M3, /care/today),
                 right under the hero like the reminders artboard (T-M3-10 audit L-6). */}
             <TodayRemindersCard />
@@ -1108,8 +1127,9 @@ export function HomePage() {
               <PredictionsCard
                 nextPeriod={toPrediction(nextPeriodSlot)}
                 pms={toPrediction(pmsSlot)}
-                window={toPrediction(windowSlot)}
-                ovulation={ovulationDate}
+                window={teen ? null : toPrediction(windowSlot)}
+                ovulation={teen ? null : ovulationDate}
+                hideFertility={teen}
                 length={cycleLengthSummary}
                 footer={syncNudge}
               />
@@ -1122,13 +1142,13 @@ export function HomePage() {
               dos={dos}
               phase={todayPhase}
             />
-            <BannerSlideshow position="home_middle" />
+            {!teen && <BannerSlideshow position="home_middle" />}
             <TodayChallengeCard />
-            {!noPeriodData && !loadFailed && (
+            {!noPeriodData && !loadFailed && !teen && (
               <PmsInsightCard pms={toPrediction(pmsSlot)} basedOnCycles={overview?.cycleLength.basedOnCycles ?? null} />
             )}
             <Articles t={t} locale={loc} />
-            <BannerSlideshow position="home_bottom" />
+            {!teen && <BannerSlideshow position="home_bottom" />}
           </div>
         )}
         <div className="page-tail" />
@@ -1154,4 +1174,73 @@ export function HomePage() {
       <BottomNav />
     </div>
   );
+}
+
+/** Interim postpartum note (QUESTIONS #60): the B-N5 home replaces this whole layout. */
+function PostpartumNotice() {
+  const t = useTranslations('home.life.postpartum');
+  return (
+    <Card as="section" className="life-note" aria-labelledby="life-pp-title">
+      <IconCircle icon="heart" tone="data" size="lg" />
+      <span className="life-note-text">
+        <b id="life-pp-title" className="life-note-title">
+          {t('title')}
+        </b>
+        <span className="life-note-body">{t('body')}</span>
+        <Link href="/profile/mode" className="life-note-link">
+          {t('action')}
+        </Link>
+      </span>
+    </Card>
+  );
+}
+
+function LifeHomeHeader() {
+  const t = useTranslations('home');
+  const loc = useLocale() as Locale;
+  return <HomeHeader t={t} loc={loc} />;
+}
+
+/** The legacy mode where `/profile/life-stage` is missing (production on Laravel). */
+function legacyLifeMode(mode: string | undefined, isTtc: boolean | undefined): LifeMode {
+  if (mode === 'pregnancy' || mode === 'postpartum') return mode;
+  return isTtc ? 'ttc' : 'cycle';
+}
+
+// ── Main export ────────────────────────────────────────────────
+/**
+ * `/home` — mode-aware (B-N2-03): the effective life-stage mode picks the home.
+ * Pregnancy never shows the cycle home — a deep link to `/home` goes to
+ * `/pregnancy` (stage smoke B-2); menopause gets its own minimal home; every
+ * other mode runs the cycle-engine home. A remembered mode (wiped at sign-out)
+ * lets a cold load start on the right layout; the fresh value always wins.
+ */
+export function HomePage() {
+  const router = useRouter();
+  const mounted = useMounted();
+  const life = useLifeStage();
+  const legacy = useUserMode();
+  const hint = useMemo(() => (mounted ? readLifeModeHint() : null), [mounted]);
+  const fresh: LifeMode | null =
+    life.data?.mode ?? (life.isError && legacy.data ? legacyLifeMode(legacy.data.mode, legacy.data.isTtc) : null);
+  // Both reads settled without an answer: don't trust the hint (a stale
+  // «pregnancy» would hold the backdrop forever) — fall back to the cycle home.
+  const unresolved = life.isError && !legacy.data && !(legacy.isPending && legacy.fetchStatus !== 'idle');
+  const mode = fresh ?? (unresolved ? null : hint);
+
+  useEffect(() => {
+    if (fresh) writeLifeModeHint(fresh);
+    if (fresh === 'pregnancy') router.replace('/pregnancy');
+  }, [fresh, router]);
+
+  // Server pass, first client render, and the pregnancy hand-off: backdrop only.
+  if (!mounted || mode === 'pregnancy') {
+    return (
+      <div className="view">
+        <div className="home-grad home-grad-fill" />
+      </div>
+    );
+  }
+  if (mode === 'menopause') return <MenopauseHome header={<LifeHomeHeader />} />;
+  return <CycleHome lifeMode={mode} />;
 }
