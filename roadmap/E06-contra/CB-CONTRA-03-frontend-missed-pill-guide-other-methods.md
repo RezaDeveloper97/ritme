@@ -3,7 +3,7 @@ id: CB-CONTRA-03
 title: Frontend: missed-pill guide + other methods
 epic: CONTRA
 type: frontend
-status: in_progress
+status: done
 depends_on: [CB-CONTRA-02]
 parallel_group: CONTRA-C
 touches: [frontend/src/screens/contraception-missed, frontend/src/screens/contraception-other, frontend/src/app/[locale]/contraception/missed, frontend/src/app/[locale]/contraception/other, frontend/src/entities/contraception, frontend/messages/fa/contraception.json, frontend/messages/en/contraception.json, backend-go/resources/translations/fa/contraception.json, backend-go/resources/translations/en/contraception.json, backend-go/internal/i18n/testdata, frontend/src/app/message-scopes.ts, frontend/src/app/globals.css, docs/qa/canvas/contra.md, docs/qa/canvas/contra]

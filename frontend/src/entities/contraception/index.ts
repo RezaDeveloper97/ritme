@@ -1,4 +1,4 @@
-// Public API of the `contraception` entity (CB-CONTRA-01/02). Import only from here (CLAUDE.md §3.3).
+// Public API of the `contraception` entity (CB-CONTRA-01/02/03). Import only from here (CLAUDE.md §3.3).
 
 // ── Model ──────────────────────────────────────────────────────
 export {
@@ -9,6 +9,7 @@ export {
   type ContraceptionOverview,
   type MethodPayload,
   type MethodReminder,
+  type MethodReminderKind,
   type PackDay,
   type PackType,
   type PillDay,
@@ -27,14 +28,26 @@ export {
   type PackCellState,
 } from './model/pack';
 export { METHOD_LOOK } from './model/look';
+export {
+  daysUntil,
+  INJECTION_DONE_WINDOW,
+  INJECTION_WEEKS,
+  methodReminder,
+  missedGuide,
+  type MissedGuide,
+  type MissedPillRule,
+  type MissedRuleSeverity,
+} from './model/missed';
 
 // ── API ────────────────────────────────────────────────────────
 export { contraceptionKeys } from './api/keys';
-export { contraceptionOverviewSchema } from './api/schema';
+export { contraceptionOverviewSchema, missedRulesSchema } from './api/schema';
 export {
   fetchContraception,
+  fetchMissedPillRules,
   useContraception,
   useLogPill,
+  useMissedPillRules,
   useSaveContraceptionMethod,
   useStopContraception,
   useUndoPill,

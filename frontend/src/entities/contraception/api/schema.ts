@@ -10,6 +10,7 @@ import {
   type PillDay,
   type PillPack,
 } from '../model/types';
+import type { MissedPillRule } from '../model/missed';
 
 /*
  * Boundary parsers for `/api/v1/contraception` (CLAUDE.md §10 — zod at the
@@ -144,3 +145,53 @@ export const contraceptionOverviewSchema = z
       reminders: o.reminders,
     }),
   );
+
+/*
+ * `GET /catalog/missed_pill_rules` (CB-CORE-03 catalog, CB-CONTRA-01 seed).
+ * The server picks `{fa, en}` objects inside `meta` for the request locale, so
+ * a step is normally a string; a still-unpicked object falls back to its first
+ * non-empty value. Unknown severities read as `info`.
+ */
+const localized = z.union([z.string(), z.record(z.string(), z.unknown())]).transform((v) => {
+  if (typeof v === 'string') return v;
+  const first = Object.values(v).find((x) => typeof x === 'string' && x.trim() !== '');
+  return typeof first === 'string' ? first : '';
+});
+
+const missedMetaSchema = z
+  .object({
+    methods: z.array(z.string()).nullable().optional(),
+    missed: z.number().int().nullable().optional(),
+    severity: z.string().optional(),
+    steps: z.array(localized).nullable().optional(),
+    pack_week: z.number().int().nullable().optional(),
+  })
+  .passthrough();
+
+const missedItemSchema = z
+  .object({
+    code: z.string(),
+    title: z.string().nullable(),
+    body: z.string().nullable(),
+    meta: missedMetaSchema.nullable().optional(),
+    needs_review: z.boolean().optional(),
+  })
+  .transform((item): MissedPillRule => {
+    const meta = item.meta ?? {};
+    const severity = meta.severity === 'urgent' || meta.severity === 'caution' ? meta.severity : 'info';
+    return {
+      code: item.code,
+      title: item.title,
+      body: item.body,
+      methods: meta.methods ?? null,
+      missed: meta.missed ?? null,
+      severity,
+      steps: (meta.steps ?? []).filter((s) => s.trim() !== ''),
+      packWeek: meta.pack_week ?? null,
+      needsReview: item.needs_review ?? false,
+    };
+  });
+
+export const missedRulesSchema = z
+  .object({ items: z.array(missedItemSchema).default([]) })
+  .transform((g): MissedPillRule[] => g.items);

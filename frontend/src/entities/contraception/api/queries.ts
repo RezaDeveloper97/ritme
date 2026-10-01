@@ -5,9 +5,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { type ApiEnvelope, apiClient } from '@/shared/api';
 import { isAuthenticated } from '@/shared/session';
 
+import type { MissedPillRule } from '../model/missed';
 import type { ContraceptionOverview, MethodPayload } from '../model/types';
 import { contraceptionKeys } from './keys';
-import { contraceptionOverviewSchema } from './schema';
+import { contraceptionOverviewSchema, missedRulesSchema } from './schema';
 
 /*
  * `/api/v1/contraception` (CB-CONTRA-01, Go only). Every write responds with
@@ -76,4 +77,24 @@ export function useUndoPill() {
   return useOverviewWrite((date: string) =>
     parse(apiClient.delete<ApiEnvelope<unknown>>(`${PATH}/pills/${encodeURIComponent(date)}`)),
   );
+}
+
+/**
+ * GET /catalog/missed_pill_rules — the missed-pill guidance (admin-editable,
+ * localized by `Accept-Language`, hence the locale in the key). Content, not
+ * health data; cached for the session.
+ */
+export async function fetchMissedPillRules(): Promise<MissedPillRule[]> {
+  const { data } = await apiClient.get<ApiEnvelope<unknown>>('/catalog/missed_pill_rules');
+  return missedRulesSchema.parse(data.data);
+}
+
+export function useMissedPillRules(locale: string) {
+  return useQuery({
+    queryKey: contraceptionKeys.missedRules(locale),
+    queryFn: fetchMissedPillRules,
+    enabled: isAuthenticated(),
+    staleTime: 10 * 60_000,
+    retry: 1,
+  });
 }

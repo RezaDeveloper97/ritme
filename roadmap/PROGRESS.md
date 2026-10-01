@@ -90,3 +90,10 @@ TODO (ask user):
 - Verify: typecheck, lint, fsd:lint, lint:styles (651), lint:dark, 939 tests, build — green. Fidelity `docs/qa/canvas/contra.md`: Setup ✔, Pill ~ (settings button in header for the unlabelled board link; legend says «تیک‌دار» not «سبز»; hormonal IUD `warm` tone).
 - Open: `/contraception/other` + `/missed` links 404 until CB-CONTRA-03; no Home entry point yet (CB-CONTRA-04); i18n goldens need re-recording once bloom's message changes land.
 - TODO (ask user): switch OFF deletes the method — OK? IUD default lifetime copper 10 y / hormonal 5 y [needs clinical review]; start date defaults to today.
+
+## CB-CONTRA-03 — Frontend: missed-pill guide + other methods
+- `/contraception/missed`: count chips → numbered steps, urgent rule as bloom's UrgentCard, general-guidance note — all from catalog `missed_pill_rules` (no hard-coded clinical copy); progestin pill shows `progestin_note`; non-pill users get an empty state.
+- `/contraception/other`: only the user's own method — IUD (monthly string-check switch via `PUT /reminders/{id}`, replacement year, 6-week check «انجام شد» via `PUT /contraception/method followup_done`), injection (countdown + «امروز تزریق کردم» from 21 days before due), implant (date sheet → `replace_on`). No new endpoints.
+- Entity: `missedGuide`, `methodReminder`, `useMissedPillRules`. Scopes `contraceptionMissed`, `contraceptionOther`. i18n goldens updated (contraception only).
+- Verify: typecheck, lint, fsd:lint, lint:styles (669), lint:dark, 954 tests, build — green; `go test ./internal/i18n` ok. Fidelity `docs/qa/canvas/contra.md` both ✔ (board shows all three methods stacked; real data shows the user's own).
+- TODO (ask user): «انجام شد» via followup_done (not appointments) OK? injection button from 21 days before? default missed chip «۱ قرص»? neutral note copy for injection/implant [needs clinical review].

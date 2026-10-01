@@ -6,4 +6,6 @@
 export const contraceptionKeys = {
   all: ['contraception'] as const,
   overview: () => [...contraceptionKeys.all, 'overview'] as const,
+  /** Catalog `missed_pill_rules`, localized server-side → keyed by locale. */
+  missedRules: (locale: string) => [...contraceptionKeys.all, 'missed-rules', locale] as const,
 };

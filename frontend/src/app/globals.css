@@ -5963,6 +5963,48 @@ html[data-motion="reduce"] *::after {
 .mode-contra .nb-row + .nb-row { border-top: 1px solid var(--line); border-radius: 0; }
 /* ═══ end CB-CONTRA-02 ═══ */
 
+/* ═══ CB-CONTRA-03 — missed-pill guide + long-acting reminders (nbl_Contra_Missed, nbl_Contra_Other) ═══ */
+/* Missed pill */
+.nb-card.ctrm-count { display: flex; flex-direction: column; gap: 14px; padding: 18px 16px; }
+.ctrm-count-title { margin: 0; font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); text-align: start; }
+.ctrm-chips { gap: 8px; }
+.ctrm-steps-wrap { display: flex; flex-direction: column; gap: 10px; }
+.nb-card.ctrm-steps-card { padding: 6px 16px; }
+.ctrm-steps { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; }
+.ctrm-step { display: flex; align-items: flex-start; gap: 12px; padding-block: 10px; }
+.ctrm-step-num {
+  flex-shrink: 0; inline-size: 28px; block-size: 28px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--brand-soft); color: var(--brand-ink); font-size: 13px; font-weight: 800;
+}
+.ctrm-step-text { flex: 1; min-width: 0; font-size: 13.5px; font-weight: 700; line-height: 1.85; color: var(--text-1); text-align: start; }
+.nb-note.ctrm-note, .nb-note.ctro-note { background: var(--surface); border: 1px solid var(--line); }
+
+/* Long-acting method reminders */
+.ctro-section { display: flex; flex-direction: column; gap: 10px; }
+.nb-card.ctro-list { padding: 6px 16px; }
+.ctro-list .nb-row { padding-block: 12px; }
+.ctro-list .nb-row + .nb-row { border-top: 1px solid var(--line); border-radius: 0; }
+.ctro-tag {
+  flex-shrink: 0; display: inline-flex; align-items: center; block-size: 32px; padding: 0 12px;
+  border-radius: var(--r-pill); border: 1px solid var(--brand); color: var(--brand-strong);
+  font-size: 12.5px; font-weight: 800;
+}
+.ctro-act {
+  flex-shrink: 0; block-size: 40px; padding: 0 14px; border-radius: var(--r-pill);
+  border: 1.5px solid var(--nb-tone); background: color-mix(in srgb, var(--nb-tone) 8%, transparent);
+  color: var(--nb-tone-ink); font-family: inherit; font-size: 12.5px; font-weight: 800; cursor: pointer;
+}
+.ctro-act:disabled { opacity: .6; cursor: default; }
+.ctro-act:focus-visible { outline: none; box-shadow: var(--ring); }
+.nb-card.ctro-inj { display: flex; flex-direction: column; gap: 14px; padding: 18px 16px; }
+.ctro-inj-head { display: flex; align-items: center; gap: 14px; }
+.ctro-inj-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; text-align: start; }
+.ctro-inj-cap { margin: 0; font-size: 12px; font-weight: 700; color: var(--text-2); }
+.ctro-inj-num { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: var(--fs-num-m); line-height: 1.15; color: var(--text-1); }
+.ctro-inj-num.is-late { color: var(--warm-deep); }
+.ctro-inj-sub { margin: 0; font-size: var(--fs-sm); font-weight: 700; color: var(--text-2); }
+/* ═══ end CB-CONTRA-03 ═══ */
 /* ── Notification settings (B-N1-11, nbl_/nbd_Me_Notifications) ── */
 .ntf-page { background: var(--page); }
 .ntf-scroll { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 16px; padding-bottom: 40px; }

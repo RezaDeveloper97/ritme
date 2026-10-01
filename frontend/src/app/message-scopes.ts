@@ -77,6 +77,8 @@ export const ROUTE_NAMESPACES = {
   checkups: ['checkups', 'common'],
   contraception: ['common', 'contraception'], // CB-CONTRA-02 /contraception (pill pack)
   contraceptionSetup: ['common', 'contraception'], // CB-CONTRA-02 /contraception/setup
+  contraceptionMissed: ['common', 'contraception'], // CB-CONTRA-03 /contraception/missed
+  contraceptionOther: ['common', 'contraception'], // CB-CONTRA-03 /contraception/other
   uiKit: ['common'], // dev-only /dev/ui-kit showcase (B-N1-03)
   services: ['common', 'nav', 'services'], // «خدمات» tab (B-N1-04)
   fertilityLog: ['common', 'fertility'],

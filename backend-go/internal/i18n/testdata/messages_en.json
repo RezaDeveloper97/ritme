@@ -853,7 +853,52 @@
     "current": "Your current method",
     "change": "Change method",
     "reminders": "Method reminders",
-    "remindersSub": "Dates and reminders for this method"
+    "remindersSub": "Dates and reminders for this method",
+    "title": "Contraception reminders",
+    "back": "Back",
+    "loading": "Loading your method reminders",
+    "saveError": "Could not save. Please try again.",
+    "days": {
+     "left": "{count, plural, one {{n} day left} other {{n} days left}}",
+     "today": "Today",
+     "ago": "{count, plural, one {{n} day ago} other {{n} days ago}}"
+    },
+    "iud": {
+     "string": "Check your IUD strings",
+     "stringSub": "Monthly, after your period",
+     "replace": "Replacement date",
+     "replaceSub": "Inserted {year} + {years}-year IUD lifetime",
+     "replaceYear": "Replacement year: {year}",
+     "followup": "Check-up visit",
+     "followupSub": "6 weeks after insertion · {date}",
+     "followupMark": "Done",
+     "followupMarkLabel": "I had my check-up visit",
+     "followupDone": "Done",
+     "setInserted": "Add the insertion date",
+     "setInsertedSub": "So we can work out the replacement and check-up dates",
+     "note": "If you cannot feel your IUD strings, or you have pain and a fever, see a doctor."
+    },
+    "injection": {
+     "next": "Next injection",
+     "sub": "{date} · usually every {weeks} weeks",
+     "done": "I had my injection today",
+     "set": "Add your last injection date",
+     "setSub": "So we can remind you of the next one"
+    },
+    "implant": {
+     "replace": "Removal or replacement date",
+     "replaceSub": "Set it by your implant type and your doctor’s advice",
+     "replaceOn": "{date} · {left}",
+     "set": "Set",
+     "change": "Change",
+     "setLabel": "Set the removal or replacement date"
+    },
+    "note": "Agree the dates with your doctor or midwife, and update them here whenever they change.",
+    "noReminders": {
+     "title": "This method has no separate reminders",
+     "body": "Reminders for the IUD, the 3-month injection and the implant show up here.",
+     "cta": "Change method"
+    }
    },
    "empty": {
     "title": "No method yet",
@@ -869,6 +914,23 @@
    "mode": {
     "manage": "Method & pill pack",
     "manageDesc": "Method, reminder and current pack"
+   },
+   "missed": {
+    "title": "Missed pill",
+    "back": "Back",
+    "countTitle": "How many pills did you miss?",
+    "stepsTitle": "What should I do?",
+    "stepsLabel": "What to do",
+    "loading": "Loading the missed-pill guide",
+    "notPill": {
+     "title": "This guide is for the pill",
+     "body": "Your current method is not a pill, so this guide does not apply to you.",
+     "cta": "Back to contraception"
+    },
+    "unavailable": {
+     "title": "The guide is not available right now",
+     "body": "If in doubt, talk to a doctor or pharmacist."
+    }
    }
   },
   "cycle": {
