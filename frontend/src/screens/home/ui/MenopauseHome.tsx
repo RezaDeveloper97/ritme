@@ -13,6 +13,8 @@ import { CheckupsCard } from '@/widgets/checkups-card';
 import { TodayChallengeCard } from '@/widgets/today-challenge';
 import { TodayRemindersCard } from '@/widgets/today-reminders';
 
+import { PlusTrialOffer } from './PlusTrialOffer';
+
 interface TileProps {
   icon: IconName;
   tone: Tone;
@@ -130,6 +132,7 @@ export function MenopauseHome({ header }: { header: ReactNode }) {
         </div>
         <div className="page-tail" />
       </div>
+      <PlusTrialOffer />
       <BottomNav />
     </div>
   );

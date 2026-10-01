@@ -5,8 +5,8 @@ import { useQuery } from '@tanstack/react-query';
 import { type ApiEnvelope, apiClient } from '@/shared/api';
 import { isAuthenticated } from '@/shared/session';
 
-import type { PlusCatalog, PlusInvoice, PlusQuote, PlusStatus } from '../model/types';
-import { catalogSchema, historySchema, quoteEnvelopeSchema, statusSchema } from './schema';
+import type { PlusCatalog, PlusInvoice, PlusQuote, PlusStatus, PlusTrialSheet } from '../model/types';
+import { catalogSchema, historySchema, quoteEnvelopeSchema, statusSchema, trialSheetSchema } from './schema';
 
 /** Query-key factory for Ritme Plus (CLAUDE.md §8). */
 export const plusKeys = {
@@ -14,6 +14,7 @@ export const plusKeys = {
   plans: () => [...plusKeys.all, 'plans'] as const,
   status: () => [...plusKeys.all, 'status'] as const,
   history: () => [...plusKeys.all, 'history'] as const,
+  trial: () => [...plusKeys.all, 'trial'] as const,
   quote: (planId: number, code: string | null) => [...plusKeys.all, 'quote', planId, code ?? ''] as const,
 };
 
@@ -49,6 +50,12 @@ export async function fetchPlusQuote(planId: number, code: string | null): Promi
   return quoteEnvelopeSchema.parse(data.data);
 }
 
+/** GET /plus/trial — the trial sheet: trial, offer, plans at the offer price, Plus usage since the trial began. */
+export async function fetchPlusTrial(): Promise<PlusTrialSheet> {
+  const { data } = await apiClient.get<ApiEnvelope<unknown>>('/plus/trial');
+  return trialSheetSchema.parse(data.data);
+}
+
 export function usePlusPlans() {
   return useQuery({ queryKey: plusKeys.plans(), queryFn: fetchPlusPlans, staleTime: 10 * 60_000 });
 }
@@ -79,5 +86,15 @@ export function usePlusQuote(planId: number | null, code: string | null = null) 
     enabled: planId !== null && isAuthenticated(),
     staleTime: 60_000,
     retry: false,
+  });
+}
+
+/** The trial sheet (B-N2-08); fetched only while the sheet is open. */
+export function usePlusTrial(enabled = true) {
+  return useQuery({
+    queryKey: plusKeys.trial(),
+    queryFn: fetchPlusTrial,
+    enabled: enabled && isAuthenticated(),
+    staleTime: 30_000,
   });
 }

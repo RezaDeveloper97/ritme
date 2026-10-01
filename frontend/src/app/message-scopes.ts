@@ -44,14 +44,14 @@ const PREGNANCY = ['common', 'nav', 'pregnancy'] as const satisfies readonly Mes
 
 /** Per route: the namespaces its screen (and everything it imports) uses. */
 export const ROUTE_NAMESPACES = {
-  home: ['articles', 'banners', 'care', 'challenge', 'checkups', 'common', 'fertility', 'home', 'log', 'logPeriod', 'nav', 'profileEdit'],
+  home: ['articles', 'banners', 'care', 'challenge', 'checkups', 'common', 'fertility', 'home', 'log', 'logPeriod', 'nav', 'plus', 'profileEdit'], // B-N2-08 trial banner + sheet
   calendar: ['calendar', 'common', 'log', 'logPeriod', 'nav'],
   log: ['common', 'log', 'nav'],
   cycle: ['common', 'cycle', 'logPeriod'], // B-N1-08 cycle history (back header, no nav)
   cycleSymptoms: ['common', 'cycle', 'logPeriod'], // B-N1-08 /cycle/symptoms (screen slice shares the editor)
   cycleSettings: ['common', 'me'], // B-N1-09 /cycle/settings (copy lives under me.cycleSettings)
-  profile: ['account', 'common', 'me', 'nav', 'profile', 'profileEdit'],
-  profileAccount: ['account', 'common', 'me', 'nav', 'profile', 'profileEdit'], // B-N1-10 /profile/account
+  profile: ['account', 'common', 'me', 'nav', 'plus', 'profile', 'profileEdit'], // B-N2-08: entities/plus (Me Plus card) carries the PlusFeatureGate copy
+  profileAccount: ['account', 'common', 'me', 'nav', 'plus', 'profile', 'profileEdit'], // B-N1-10 /profile/account (+ plus: same Me hub slice)
   profileAppearance: ['common', 'me'], // B-N1-10 /profile/appearance
   profileLanguage: ['common', 'me'], // B-N1-10 /profile/language
   profileNotifications: ['common', 'me'], // B-N1-11 /profile/notifications

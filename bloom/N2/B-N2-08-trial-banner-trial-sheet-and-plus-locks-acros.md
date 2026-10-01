@@ -3,7 +3,7 @@ id: B-N2-08
 title: Trial banner, trial sheet and Plus locks across the app
 milestone: N2
 type: frontend
-status: todo
+status: done
 depends_on: [B-N2-06,B-N2-07,B-N1-06]
 parallel_group: N2-H
 touches: [frontend/src/widgets/plus-trial-banner,frontend/src/widgets/plus-trial-sheet,frontend/src/shared/ui/plus-gate,frontend/src/screens/home]

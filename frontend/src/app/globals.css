@@ -6785,3 +6785,105 @@ html[data-app-locked] .app-shell > :not(.lk-page):not(.app-veil) { visibility: h
 button.me-plus { font-family: inherit; color: inherit; text-align: start; cursor: pointer; }
 button.me-plus:focus-visible { outline: none; box-shadow: var(--ring); }
 /* ═══ end B-N2-07 ═══ */
+
+/* ═══ B-N2-08 — Plus trial banner, trial sheet, PlusGate (nbl_/nbd_Prem_TrialHome, Prem_TrialSheet) ═══ */
+/* Banner: floats 12px above the bottom nav, a direct child of `.view` (like `.nbnav`). */
+.plus-tbanner {
+  position: absolute; z-index: var(--z-tabbar); inset-inline: 14px;
+  bottom: calc(24px + var(--h-nav) + 12px + env(safe-area-inset-bottom, 0px));
+  display: flex; align-items: center; gap: 12px; min-height: 61px; padding: 12px 14px; box-sizing: border-box;
+  border-radius: 22px; border: 1px solid color-mix(in srgb, var(--warm) 33%, transparent);
+  background: var(--surface); box-shadow: var(--shadow-float); color: var(--text-1);
+  font-family: inherit; text-align: start; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  animation: plusTbannerIn .36s cubic-bezier(.22,.61,.36,1);
+}
+@keyframes plusTbannerIn { from { opacity: 0; transform: translateY(12px); } }
+@media (prefers-reduced-motion: reduce) { .plus-tbanner { animation: none; } }
+.plus-tbanner:focus-visible { outline: none; box-shadow: var(--ring), var(--shadow-float); }
+.plus-tbanner:active { transform: scale(.985); }
+/* The scroll tail clears the nav *and* the banner. */
+.view:has(> .plus-tbanner) > .scroll::after { height: calc(var(--h-nav) + 40px + 73px); }
+.plus-tbanner-icon {
+  flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; inline-size: 40px; block-size: 40px;
+  border-radius: 50%; background: color-mix(in srgb, var(--warm) 13%, transparent); color: var(--warm);
+}
+.plus-tbanner-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.plus-tbanner-title { font-size: 13px; font-weight: 800; }
+.plus-tbanner-sub { font-size: 11px; font-weight: 700; color: var(--text-2); }
+.plus-tbanner-hl { color: var(--warm-deep); }
+.plus-tbanner-clock { flex-shrink: 0; display: flex; gap: 4px; }
+.plus-tbanner-cell {
+  display: flex; flex-direction: column; align-items: center; min-inline-size: 30px; padding: 4px 0; border-radius: 10px;
+  background: color-mix(in srgb, var(--warm) 13%, transparent);
+}
+.plus-tbanner-cell b { font-size: 14px; line-height: 1.1; font-weight: 800; color: var(--warm-deep); }
+.plus-tbanner-cell span { font-size: 8.5px; font-weight: 700; color: var(--text-2); }
+
+/* Trial sheet — page canvas with white cards, like the artboard. */
+.osheet.plus-tsheet-panel { background: var(--page); }
+.plus-tsheet-panel .osheet-hdr { flex-direction: row-reverse; justify-content: space-between; }
+.plus-tsheet-panel .osheet-title { flex: 0 1 auto; display: inline-flex; }
+.plus-tsheet-days {
+  display: inline-flex; align-items: center; block-size: 28px; padding: 0 11px; border-radius: 14px;
+  background: var(--surface-2); border: 1px solid var(--warm); color: var(--warm-deep);
+  font-size: var(--fs-sm); font-weight: 800; white-space: nowrap;
+}
+.plus-tsheet { display: flex; flex-direction: column; gap: 14px; padding-bottom: 24px; }
+.nb-card.plus-tsheet-hero {
+  display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 20px 16px; text-align: center;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--warm) 18%, var(--surface)), var(--surface) 70%);
+}
+.plus-tsheet-crown { color: var(--warm); }
+.plus-tsheet-title { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 26px; line-height: 1.1; color: var(--text-1); }
+.plus-tsheet-lead { margin: 0; font-size: var(--fs-md); line-height: 1.8; font-weight: 600; color: var(--text-2); }
+.plus-tsheet-hl { color: var(--warm-deep); font-weight: 800; }
+.plus-tsheet-clock { display: flex; gap: 8px; }
+.plus-tsheet-cell {
+  display: flex; flex-direction: column; align-items: center; min-inline-size: 62px; padding: 8px 0; border-radius: 16px;
+  background: var(--surface); border: 1px solid color-mix(in srgb, var(--warm) 33%, transparent);
+}
+.plus-tsheet-cell b { font-family: var(--font-display); font-weight: 400; font-size: 28px; line-height: 1; color: var(--warm-deep); }
+.plus-tsheet-cell span { font-size: var(--fs-xs); font-weight: 700; color: var(--text-2); }
+.plus-tsheet-caption { font-size: 11px; font-weight: 700; color: var(--text-2); }
+.nb-card.plus-tsheet-usage { display: flex; flex-direction: column; gap: 4px; padding: 16px; }
+.plus-tsheet-h { margin: 0 0 4px; font-size: 15px; font-weight: 800; color: var(--text-1); text-align: start; }
+.plus-tsheet-rows { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; }
+.plus-tsheet-row { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 10px 0; }
+.plus-tsheet-row + .plus-tsheet-row { border-top: 1px solid var(--line); }
+.plus-tsheet-row .nb-icircle { inline-size: 36px; block-size: 36px; }
+.plus-tsheet-row-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; text-align: start; }
+.plus-tsheet-row-text b { font-size: var(--fs-base); font-weight: 800; color: var(--text-1); }
+.plus-tsheet-row-text span { font-size: var(--fs-sm); font-weight: 600; color: var(--text-2); }
+.plus-tsheet-row-value { flex-shrink: 0; font-size: 11px; font-weight: 800; color: var(--nb-tone-ink); white-space: nowrap; }
+.nb-card.plus-tsheet-plan { display: flex; flex-direction: column; gap: 10px; padding: 16px; }
+.plus-tsheet-plan-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.plus-tsheet-plan-title { margin: 0; font-size: 14px; font-weight: 800; color: var(--text-1); }
+.plus-tsheet-prices { display: flex; align-items: baseline; flex-wrap: wrap; gap: 10px; }
+.plus-tsheet-was { font-size: 14px; font-weight: 700; color: var(--text-2); }
+.plus-tsheet-now { font-family: var(--font-display); font-weight: 400; font-size: 26px; line-height: 1; color: var(--text-1); }
+.plus-tsheet-note { margin: 0; font-size: var(--fs-sm); font-weight: 600; color: var(--text-2); text-align: start; }
+.plus-tsheet-compare {
+  display: flex; align-items: center; justify-content: center; min-height: 44px;
+  font-size: 13px; font-weight: 800; color: var(--brand-strong); text-decoration: none;
+}
+.plus-tsheet-compare:focus-visible { outline: none; box-shadow: var(--ring); border-radius: 12px; }
+.nb-card.plus-tsheet-free {
+  display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px;
+  border-color: color-mix(in srgb, var(--data) 33%, transparent);
+}
+.plus-tsheet-free-icon { flex-shrink: 0; color: var(--data); }
+.plus-tsheet-free > span { display: flex; flex-direction: column; gap: 2px; text-align: start; }
+.plus-tsheet-free b { font-size: var(--fs-base); font-weight: 800; color: var(--text-1); }
+.plus-tsheet-free > span > span { font-size: 12px; line-height: 1.8; font-weight: 600; color: var(--text-2); }
+.plus-tsheet-foot { margin: 0; font-size: var(--fs-sm); line-height: 1.8; font-weight: 600; color: var(--text-2); text-align: center; }
+.plus-tsheet .nb-skel.plus-tsheet-skel-hero { block-size: 230px; }
+.plus-tsheet .nb-skel.plus-tsheet-skel-list { block-size: 320px; }
+
+/* PlusGate (shared/ui/plus-gate) — badge + spent-quota note; the lock itself is `.nb-lock`. */
+.plus-badge { flex-shrink: 0; }
+.plus-gate-note {
+  margin: 0 0 10px; display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 14px;
+  background: var(--warm-soft); color: var(--warm-deep); font-size: var(--fs-md); font-weight: 700; text-align: start;
+}
+.plus-gate-note > svg { flex-shrink: 0; }
+/* ═══ end B-N2-08 ═══ */

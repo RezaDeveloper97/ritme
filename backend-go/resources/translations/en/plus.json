@@ -137,5 +137,73 @@
     "noneTitle": "You have no active subscription",
     "noneBody": "Get full analysis, a health assistant and doctor reports with Ritme Plus.",
     "noneCta": "See plans"
+  },
+  "trialBanner": {
+    "title": "Ritme Plus is open for you",
+    "offer": "Until this offer ends, buy at <hl>{percent}% off</hl>",
+    "aria": "Ritme Plus, {days} days left",
+    "days": "days",
+    "hours": "hours",
+    "minutes": "min"
+  },
+  "trialSheet": {
+    "label": "Ritme Plus",
+    "daysLeft": "{days} days left",
+    "title": "Ritme Plus is open for you",
+    "lead": "You have every Plus feature free for {days} days. Buy within this window and you pay <hl>{discount}</hl>.",
+    "half": "half price",
+    "percentCheaper": "{percent}% less",
+    "countdownLabel": "Time left",
+    "countdownCaption": "until free access and the discount end",
+    "usageTitle": "How you've used Plus so far",
+    "features": {
+      "deepAnalysis": {
+        "title": "Deep analysis",
+        "sub": "Symptom patterns, correlations, mood by phase",
+        "used": "Viewed {count}×"
+      },
+      "labAi": {
+        "title": "AI lab-result analysis",
+        "sub": "Up to {limit} analyses a month",
+        "subUnlimited": "AI analysis of your lab results",
+        "used": "{count} used"
+      },
+      "assistant": {
+        "title": "Unlimited health assistant",
+        "sub": "Ask without limits",
+        "used": "{count} messages"
+      },
+      "pdfShare": {
+        "title": "PDF report for your doctor",
+        "sub": "With a 7-day share link",
+        "used": "{count} reports"
+      },
+      "visitDiscount": {
+        "title": "Online visit discount",
+        "sub": "On every doctor visit"
+      }
+    },
+    "notYet": "Not yet",
+    "notAvailable": "—",
+    "notAvailableLabel": "Coming soon",
+    "planTitle": "{plan} · {badge}",
+    "percentOff": "{percent}% off",
+    "was": "{amount}K",
+    "now": "{amount}K toman",
+    "perMonth": "About {amount}K a month · the discount ends after {days} days",
+    "ctaHalf": "Buy at half price",
+    "ctaPercent": "Buy at {percent}% off",
+    "compare": "Full Free vs Plus comparison",
+    "freeTitle": "The core is always free",
+    "freeBody": "Cycle, pregnancy, menopause and child tracking will never cost money. That is Ritme's social commitment; Plus is only for extras.",
+    "keepData": "If you don't buy, you go back to the free version after {days} days and lose no data.",
+    "endedTitle": "The discount window has ended",
+    "endedBody": "You can still get Ritme Plus at the regular price.",
+    "endedCta": "See plans"
+  },
+  "gate": {
+    "label": "Plus",
+    "lockedText": "This opens with Ritme Plus",
+    "exhausted": "This month's allowance is used up; it renews on {date}."
   }
 }

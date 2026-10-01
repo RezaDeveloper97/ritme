@@ -479,3 +479,15 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
 - Orchestrator: removed the artboard placeholder testimonial («سارا» + stars); fixed i18n goldens (`me`, `plus`, and the
   stale `care` namespace that made `TestBundle_MatchesLaravelGoldens` red at HEAD).
 - Local dev needs `PAYMENT_CALLBACK_BASE_URL=http://127.0.0.1:8020` (APP_URL has no port). QUESTIONS #77.
+
+## B-N2-08 — Trial banner, trial sheet and Plus locks across the app
+
+- `entities/plus` extended: trial-offer / trial-sheet schemas + `usePlusTrial`, `formatTomanThousands`,
+  `useServerCountdown` (from server `seconds_left`, minute re-render, `onExpire`), `PlusFeatureGate` (entitlements from
+  `/plus/status`, unlock → `/plus`), `usePlusLocked`.
+- `shared/ui/plus-gate`: `plusDenialOf(error)` (402 `plus_required` → locked|quota, 429 → exhausted), `upgradeHelps`,
+  `<PlusBadge>`, `<PlusGate locked|denial …>` (blurred teaser + unlock). Any route using it needs the `plus` namespace.
+- `widgets/plus-trial-banner` (floating above the nav, live countdown, invalidates `plusKeys.all` at zero) and
+  `widgets/plus-trial-sheet` (usage list, featured plan with offer price, CTA → `/plus/checkout?plan=`). Wired into cycle
+  home (not teen) and menopause home via `screens/home/ui/PlusTrialOffer.tsx`.
+- Screenshots `docs/qa/bloom/B-N2-08/`. QUESTIONS #78.

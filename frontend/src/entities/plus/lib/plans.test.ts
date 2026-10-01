@@ -56,6 +56,7 @@ describe('membershipOf', () => {
     periodStart: '',
     resetsAt: '',
     entitlements: [],
+    trialOffer: null,
   };
   it('prefers a running subscription, then a running trial', () => {
     expect(membershipOf(base).kind).toBe('none');

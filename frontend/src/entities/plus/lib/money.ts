@@ -16,3 +16,16 @@ export function formatToman(rials: number, locale: Locale): string {
   const text = locale === 'fa' ? grouped.replace(/,/g, '٬') : grouped;
   return formatNumber(text, locale);
 }
+
+/**
+ * A rial amount as thousands of toman with at most one decimal, in the locale's
+ * digits and without the unit — the trial sheet's «۲۳۷» / «۱۱۸٫۵» (the message
+ * adds «هزار تومان»). fa uses the Arabic decimal separator «٫» (CLAUDE.md §6.1).
+ */
+export function formatTomanThousands(rials: number, locale: Locale): string {
+  const thousands = Math.round(rialsToToman(Math.abs(rials)) / 100) / 10;
+  const [int, frac] = thousands.toFixed(1).split('.');
+  const grouped = int.replace(/\B(?=(\d{3})+(?!\d))/g, locale === 'fa' ? '٬' : ',');
+  const text = frac === '0' ? grouped : `${grouped}${locale === 'fa' ? '٫' : '.'}${frac}`;
+  return formatNumber(text, locale);
+}

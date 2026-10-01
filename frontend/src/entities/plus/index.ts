@@ -4,14 +4,17 @@ export {
   fetchPlusPlans,
   fetchPlusQuote,
   fetchPlusStatus,
+  fetchPlusTrial,
   plusKeys,
   usePlusHistory,
   usePlusPlans,
   usePlusQuote,
   usePlusStatus,
+  usePlusTrial,
 } from './api/queries';
 export { checkoutSchema, restoreSchema, statusSchema, verificationSchema } from './api/schema';
-export { formatToman, rialsToToman } from './lib/money';
+export { splitSeconds, secondsRemaining, useServerCountdown, type CountdownParts } from './lib/countdown';
+export { formatToman, formatTomanThousands, rialsToToman } from './lib/money';
 export {
   defaultPlan,
   membershipOf,
@@ -23,12 +26,14 @@ export {
   type PlusMembership,
 } from './lib/plans';
 export { PlusCrown } from './ui/PlusCrown';
+export { entitlementOf, PlusFeatureGate, usePlusLocked } from './ui/PlusFeatureGate';
 export type {
   PlusCatalog,
   PlusCheckout,
   PlusDiscountSource,
   PlusEntitlement,
   PlusInvoice,
+  PlusOfferPlan,
   PlusPayment,
   PlusPlan,
   PlusPlanRef,
@@ -39,5 +44,8 @@ export type {
   PlusSubscription,
   PlusTier,
   PlusTrial,
+  PlusTrialOffer,
+  PlusTrialSheet,
+  PlusTrialUsage,
   PlusVerification,
 } from './model/types';

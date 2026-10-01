@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatToman, rialsToToman } from './money';
+import { formatToman, formatTomanThousands, rialsToToman } from './money';
 
 describe('rialsToToman', () => {
   it('divides by ten and rounds', () => {
@@ -25,5 +25,14 @@ describe('formatToman', () => {
 
   it('prints the magnitude only (the caller adds the minus sign of a discount)', () => {
     expect(formatToman(-237000, 'en')).toBe('23,700');
+  });
+});
+
+describe('formatTomanThousands', () => {
+  it('shows thousands of toman with one optional decimal', () => {
+    expect(formatTomanThousands(2370000, 'fa')).toBe('۲۳۷');
+    expect(formatTomanThousands(1185000, 'fa')).toBe('۱۱۸٫۵');
+    expect(formatTomanThousands(395000, 'en')).toBe('39.5');
+    expect(formatTomanThousands(123450000, 'en')).toBe('12,345');
   });
 });

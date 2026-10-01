@@ -216,6 +216,12 @@ export default defineConfig([
     rules: { 'fsd/insignificant-slice': 'off' },
   },
   {
+    // B-N2-08: the trial banner + sheet are mounted by the home screen (cycle +
+    // menopause homes) — references FROM `screens` are invisible to steiger.
+    files: ['./src/widgets/plus-trial-banner/**', './src/widgets/plus-trial-sheet/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
     // CB-CONTRA-02: `entities/contraception` is consumed by the contraception
     // screens and the mode screen — references FROM `screens` are invisible to steiger.
     files: ['./src/entities/contraception/**'],

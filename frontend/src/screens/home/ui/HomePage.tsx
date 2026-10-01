@@ -88,6 +88,7 @@ import { readTtcHint, writeTtcHint } from '../model/ttc-hint';
 
 import { PmsInsightCard, PredictionsCard, type PredictionSlot } from './PredictionsCard';
 import { MenopauseHome } from './MenopauseHome';
+import { PlusTrialOffer } from './PlusTrialOffer';
 import { TodayLogCard } from './TodayLogCard';
 
 const FA = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
@@ -1171,6 +1172,8 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
           whole screen. */}
       <PeriodDateEditor open={dateEditorOpen} onClose={() => setDateEditorOpen(false)} />
 
+      {/* B-N2-08: trial-offer banner + sheet — never for teen (QUESTIONS #70/#72). */}
+      {!teen && <PlusTrialOffer />}
       <BottomNav />
     </div>
   );

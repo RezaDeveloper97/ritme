@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { catalogSchema, checkoutSchema, quoteEnvelopeSchema, statusSchema } from './schema';
+import { catalogSchema, checkoutSchema, quoteEnvelopeSchema, statusSchema, trialSheetSchema } from './schema';
 
 /** Boundary contract for the B-N2-04 `/plus/*` payloads (backend-go/internal/plus/view.go). */
 describe('plus schemas', () => {
@@ -105,5 +105,48 @@ describe('plus schemas', () => {
     });
     expect(pending.payment?.redirectUrl).toContain('/payments/fake/pay/');
     expect(checkoutSchema.parse({ invoice: { ...invoice, status: 'paid' }, payment: null }).payment).toBeNull();
+  });
+});
+
+const offer = {
+  percent: 50,
+  ends_at: '2026-10-08T10:00:00+03:30',
+  seconds_left: 483720,
+  days_left: 6,
+  countdown: { days: 5, hours: 14, minutes: 22 },
+  currency: 'IRR',
+  plan: {
+    id: 2, code: 'plus_3m', title: '۳ ماهه', badge: 'محبوب‌ترین', duration_months: 3, price: 2370000,
+    monthly_price: 790000, savings_percent: 20, is_highlighted: true, offer_price: 1185000, offer_monthly_price: 395000,
+  },
+};
+
+describe('trial offer schemas (B-N2-06)', () => {
+  it('maps status.trial_offer and defaults it to null', () => {
+    const s = statusSchema.parse({ tier: 'trial', is_plus: true, trial_offer: offer });
+    expect(s.trialOffer).toMatchObject({ percent: 50, secondsLeft: 483720, plan: { id: 2, offerPrice: 1185000, offerMonthlyPrice: 395000 } });
+    expect(statusSchema.parse({ tier: 'free', is_plus: false }).trialOffer).toBeNull();
+  });
+
+  it('maps the trial sheet', () => {
+    const sheet = trialSheetSchema.parse({
+      tier: 'trial',
+      trial: { started_at: '2026-10-01T10:00:00+03:30', ends_at: '2026-10-08T10:00:00+03:30', is_active: true, days_left: 6, seconds_left: 483720 },
+      trial_available: false,
+      offer,
+      currency: 'IRR',
+      plans: [{ ...offer.plan }, { ...offer.plan, id: 1, offer_price: null, offer_monthly_price: null }],
+      usage: {
+        since: '2026-10-01',
+        features: [
+          { key: 'plus.lab_ai', used: 1, unlimited: false, plus_limit: 10 },
+          { key: 'plus.pdf_share', used: 0, unlimited: true, plus_limit: null },
+        ],
+      },
+    });
+    expect(sheet.trial).toMatchObject({ isActive: true, secondsLeft: 483720 });
+    expect(sheet.plans[1].offerPrice).toBeNull();
+    expect(sheet.usage.features[0]).toEqual({ key: 'plus.lab_ai', used: 1, unlimited: false, plusLimit: 10 });
+    expect(trialSheetSchema.parse({ tier: 'free' })).toMatchObject({ trial: null, offer: null, plans: [], usage: { features: [] } });
   });
 });

@@ -76,6 +76,51 @@ export interface PlusStatus {
   periodStart: string;
   resetsAt: string;
   entitlements: PlusEntitlement[];
+  /** The running trial offer (B-N2-06), null when none runs. */
+  trialOffer: PlusTrialOffer | null;
+}
+
+/** A plan card with its trial-offer prices (B-N2-06); null offer prices = no offer running. */
+export interface PlusOfferPlan extends PlusPlan {
+  /** Plan price at the offer, rials (before VAT, like `price`). */
+  offerPrice: number | null;
+  offerMonthlyPrice: number | null;
+}
+
+/**
+ * The trial offer (B-N2-06): while a trial runs, every plan is `percent` off
+ * until `endsAt` (= the trial's end). `secondsLeft` is measured on the server
+ * clock — a live countdown starts from it, never from the device clock.
+ */
+export interface PlusTrialOffer {
+  percent: number;
+  endsAt: string;
+  secondsLeft: number;
+  daysLeft: number;
+  currency: string;
+  /** The featured plan (the highlighted one) with its offer price. */
+  plan: PlusOfferPlan;
+}
+
+/** One «این روزها از پلاس استفاده کردی» line of the trial sheet. */
+export interface PlusTrialUsage {
+  /** Entitlement key, e.g. `plus.lab_ai`. */
+  key: string;
+  used: number;
+  unlimited: boolean;
+  /** Monthly Plus allowance (null = unlimited / not counted). */
+  plusLimit: number | null;
+}
+
+/** GET /plus/trial — the trial sheet (nbl_Prem_TrialSheet). */
+export interface PlusTrialSheet {
+  tier: PlusTier;
+  trial: (PlusTrial & { secondsLeft: number }) | null;
+  trialAvailable: boolean;
+  offer: PlusTrialOffer | null;
+  currency: string;
+  plans: PlusOfferPlan[];
+  usage: { since: string; features: PlusTrialUsage[] };
 }
 
 /** Where a discount came from: a typed code or the trial offer (B-N2-06); null = none. */

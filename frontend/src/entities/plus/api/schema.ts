@@ -6,12 +6,16 @@ import type {
   PlusDiscountSource,
   PlusEntitlement,
   PlusInvoice,
+  PlusOfferPlan,
   PlusPlan,
   PlusPlanRef,
   PlusQuote,
   PlusRestore,
   PlusStatus,
   PlusTier,
+  PlusTrialOffer,
+  PlusTrialSheet,
+  PlusTrialUsage,
   PlusVerification,
 } from '../model/types';
 
@@ -25,31 +29,63 @@ import type {
 const money = z.number().int().nonnegative();
 const iso = z.string();
 
-export const planSchema = z
+const planShape = z.object({
+  id: z.number(),
+  code: z.string(),
+  title: z.string(),
+  badge: z.string().nullable().optional(),
+  duration_months: z.number(),
+  price: money,
+  monthly_price: money.optional(),
+  savings_percent: z.number().optional(),
+  is_highlighted: z.boolean().optional(),
+});
+
+function toPlan(p: z.infer<typeof planShape>): PlusPlan {
+  return {
+    id: p.id,
+    code: p.code,
+    title: p.title,
+    badge: p.badge ?? null,
+    durationMonths: p.duration_months,
+    price: p.price,
+    monthlyPrice: p.monthly_price ?? Math.round(p.price / Math.max(1, p.duration_months)),
+    savingsPercent: p.savings_percent ?? 0,
+    isHighlighted: p.is_highlighted ?? false,
+  };
+}
+
+export const planSchema = planShape.transform(toPlan);
+
+/** A plan card with its trial-offer prices (`OfferPlanJSON`, B-N2-06). */
+export const offerPlanSchema = planShape
+  .extend({ offer_price: money.nullable().default(null), offer_monthly_price: money.nullable().default(null) })
+  .transform(
+    (p): PlusOfferPlan => ({ ...toPlan(p), offerPrice: p.offer_price, offerMonthlyPrice: p.offer_monthly_price }),
+  );
+
+/** `TrialOfferJSON` — the home banner, `/plus/status.trial_offer` and the trial sheet's offer (null = none). */
+export const trialOfferSchema = z
   .object({
-    id: z.number(),
-    code: z.string(),
-    title: z.string(),
-    badge: z.string().nullable().optional(),
-    duration_months: z.number(),
-    price: money,
-    monthly_price: money.optional(),
-    savings_percent: z.number().optional(),
-    is_highlighted: z.boolean().optional(),
+    percent: z.number(),
+    ends_at: iso,
+    seconds_left: z.number().nonnegative(),
+    days_left: z.number().default(0),
+    currency: z.string().default('IRR'),
+    plan: offerPlanSchema,
   })
   .transform(
-    (p): PlusPlan => ({
-      id: p.id,
-      code: p.code,
-      title: p.title,
-      badge: p.badge ?? null,
-      durationMonths: p.duration_months,
-      price: p.price,
-      monthlyPrice: p.monthly_price ?? Math.round(p.price / Math.max(1, p.duration_months)),
-      savingsPercent: p.savings_percent ?? 0,
-      isHighlighted: p.is_highlighted ?? false,
+    (o): PlusTrialOffer => ({
+      percent: o.percent,
+      endsAt: o.ends_at,
+      secondsLeft: o.seconds_left,
+      daysLeft: o.days_left,
+      currency: o.currency,
+      plan: o.plan,
     }),
-  );
+  )
+  .nullable()
+  .default(null);
 
 export const catalogSchema = z
   .object({
@@ -81,6 +117,10 @@ const entitlementSchema = z
 
 const TIERS: readonly PlusTier[] = ['free', 'trial', 'plus'];
 
+function tierOf(raw: string, isPlus: boolean): PlusTier {
+  return (TIERS as readonly string[]).includes(raw) ? (raw as PlusTier) : isPlus ? 'plus' : 'free';
+}
+
 export const statusSchema = z
   .object({
     tier: z.string(),
@@ -107,10 +147,11 @@ export const statusSchema = z
     period_start: z.string().default(''),
     resets_at: z.string().default(''),
     entitlements: z.array(entitlementSchema).default([]),
+    trial_offer: trialOfferSchema,
   })
   .transform(
     (s): PlusStatus => ({
-      tier: (TIERS as readonly string[]).includes(s.tier) ? (s.tier as PlusTier) : s.is_plus ? 'plus' : 'free',
+      tier: tierOf(s.tier, s.is_plus),
       isPlus: s.is_plus,
       subscription: s.subscription
         ? {
@@ -137,6 +178,7 @@ export const statusSchema = z
       periodStart: s.period_start,
       resetsAt: s.resets_at,
       entitlements: s.entitlements,
+      trialOffer: s.trial_offer,
     }),
   );
 
@@ -245,3 +287,54 @@ export const verificationSchema = z
 export const restoreSchema = z
   .object({ restored: z.number().default(0), status: statusSchema })
   .transform((r): PlusRestore => r);
+
+const trialUsageSchema = z
+  .object({
+    key: z.string(),
+    used: z.number().default(0),
+    unlimited: z.boolean().default(false),
+    plus_limit: z.number().nullable().default(null),
+  })
+  .transform((u): PlusTrialUsage => ({ key: u.key, used: u.used, unlimited: u.unlimited, plusLimit: u.plus_limit }));
+
+/** GET /plus/trial (`TrialSheetJSON`, B-N2-06). */
+export const trialSheetSchema = z
+  .object({
+    tier: z.string(),
+    trial: z
+      .object({
+        started_at: iso,
+        ends_at: iso,
+        is_active: z.boolean(),
+        days_left: z.number(),
+        seconds_left: z.number().nonnegative().default(0),
+      })
+      .nullable()
+      .default(null),
+    trial_available: z.boolean().default(false),
+    offer: trialOfferSchema,
+    currency: z.string().default('IRR'),
+    plans: z.array(offerPlanSchema).default([]),
+    usage: z
+      .object({ since: z.string().default(''), features: z.array(trialUsageSchema).default([]) })
+      .default({ since: '', features: [] }),
+  })
+  .transform(
+    (t): PlusTrialSheet => ({
+      tier: tierOf(t.tier, false),
+      trial: t.trial
+        ? {
+            startedAt: t.trial.started_at,
+            endsAt: t.trial.ends_at,
+            isActive: t.trial.is_active,
+            daysLeft: t.trial.days_left,
+            secondsLeft: t.trial.seconds_left,
+          }
+        : null,
+      trialAvailable: t.trial_available,
+      offer: t.offer,
+      currency: t.currency,
+      plans: t.plans,
+      usage: t.usage,
+    }),
+  );
