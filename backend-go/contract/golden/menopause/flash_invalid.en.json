@@ -1,0 +1,43 @@
+{
+  "case": "menopause/flash_invalid.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/menopause/hot-flashes",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "started_at": "2026-09-23 12:00",
+          "duration_s": 0,
+          "severity": "extreme",
+          "triggers": [
+            "wine"
+          ]
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errors": {
+          "duration_s": [
+            "The duration field must be at least 1."
+          ],
+          "severity": [
+            "The selected severity is invalid."
+          ],
+          "triggers.0": [
+            "The selected trigger is invalid."
+          ]
+        }
+      }
+    }
+  ]
+}

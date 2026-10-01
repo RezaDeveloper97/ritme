@@ -13,6 +13,12 @@ type Querier interface {
 	// (CB-MENO-02 hot flashes + score, CB-MENO-03 treatment). Health data: every statement is scoped by user_id in the
 	// statement itself. Profile = user_life_profiles.menopause_* (B-N2-01); daily symptoms = health_log_entries (B-N3-01).
 	CreateHotFlash(ctx context.Context, arg CreateHotFlashParams) (int64, error)
+	GetHotFlash(ctx context.Context, arg GetHotFlashParams) (HotFlash, error)
+	// CB-MENO-02 — the menopause API (profile, today, hot-flash timer, monthly score, patterns).
+	// The menopause answers of bloom's life profile (B-N2-01 columns; no menopause profile table).
+	GetMenopauseProfile(ctx context.Context, userID uint64) (GetMenopauseProfileRow, error)
+	// The latest questionnaire before month (the delta's baseline).
+	GetPreviousMenopauseScore(ctx context.Context, arg GetPreviousMenopauseScoreParams) (MenopauseScore, error)
 	// The timer still running (duration_s NULL), newest first.
 	GetRunningHotFlash(ctx context.Context, userID uint64) (HotFlash, error)
 	// started_at in [from, to).
@@ -23,6 +29,11 @@ type Querier interface {
 	// intake_date in [from, to].
 	ListTreatmentIntakesInRange(ctx context.Context, arg ListTreatmentIntakesInRangeParams) ([]TreatmentIntake, error)
 	ListTreatmentItems(ctx context.Context, userID uint64) ([]TreatmentItem, error)
+	// The stop / edit of one flash (the service computes every column).
+	UpdateHotFlash(ctx context.Context, arg UpdateHotFlashParams) error
+	// Writes only the four menopause columns (mode, onboarding and conditions are untouched; a user without a row gets
+	// one with the column defaults).
+	UpsertMenopauseProfile(ctx context.Context, arg UpsertMenopauseProfileParams) error
 	// One questionnaire per (user, month); filling it again replaces the answers.
 	UpsertMenopauseScore(ctx context.Context, arg UpsertMenopauseScoreParams) error
 }

@@ -1,0 +1,46 @@
+{
+    "messages": {
+        "validation_failed": "Validation failed",
+        "profile_saved": "Your menopause stage was saved",
+        "flash_started": "Hot flash timer started",
+        "flash_running": "The hot flash timer is already running",
+        "flash_logged": "Hot flash logged",
+        "flash_saved": "Hot flash saved",
+        "flash_not_found": "Hot flash not found",
+        "score_saved": "This month's questionnaire was saved"
+    },
+    "validation": {
+        "date_future": "You cannot log a future time.",
+        "started_too_old": "You can log a hot flash from the last 7 days only.",
+        "answers_missing": "Answer every question."
+    },
+    "patterns": {
+        "needs_review": true,
+        "trigger_flashes": {
+            "more": "On days you logged :trigger, you had more hot flashes.",
+            "less": "On days you logged :trigger, you had fewer hot flashes."
+        },
+        "night_sweats_fatigue": {
+            "more": "After nights with night sweats, you felt more tired the next day.",
+            "less": "After nights with night sweats, you felt less tired the next day."
+        }
+    },
+    "attributes": {
+        "stage": "stage",
+        "last_period": "last period",
+        "surgical": "surgical menopause",
+        "hrt": "hormone therapy",
+        "date": "date",
+        "started_at": "start time",
+        "duration_s": "duration",
+        "severity": "severity",
+        "night": "night",
+        "sweat": "sweating",
+        "triggers": "triggers",
+        "triggers.*": "trigger",
+        "month": "month",
+        "months": "months",
+        "answers": "answers",
+        "answers.*": "answer"
+    }
+}

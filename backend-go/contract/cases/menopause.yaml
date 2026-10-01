@@ -1,0 +1,213 @@
+# Menopause mode (/api/v1/menopause*) — Go only (CB-MENO-02, deviations.md D-42): there is no Laravel route, so these
+# goldens were recorded from the Go server and reviewed by hand (new-endpoint skill, step 8).
+# The fixture dump carries the menopause tables (goose 00022 / Laravel 2026_10_01_000022, no rows) with the 00022
+# catalog rows (meno_score_items, meno_score_bands, meno_alerts, meno_tips, meno_checkup_groups) and the checkup
+# tables + default catalog (goose 00003/00007 / Laravel 2026_09_24_000001; the home lists upcoming checkups) —
+# re-exported with mariadb-dump after applying those migrations to the committed dump, timestamps pinned.
+# Fixture day 2026-09-23 = 1 Mehr 1405. No persona has menopause answers, so the write cases set them first (every
+# case runs on a fresh dump). Stage-rule edges, the forgotten timer, patterns with enough data and user isolation are
+# covered by internal/menopause tests.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: menopause
+defaults:
+  persona: regular
+  locales: [none, en]
+cases:
+  # ---------------- profile ----------------
+  - name: profile_show
+    doc: No menopause answers yet → needs_stage
+    method: GET
+    path: /api/v1/menopause/profile
+    status: 200
+  - name: profile_anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/menopause/profile
+    status: 401
+  - name: profile_flow
+    doc: Board Meno_Stage — «مطمئن نیستم», last period ~Mordad 1404, HRT yes → meno (13 months); then peri + HRT cleared → meno suggested
+    steps:
+      - method: PUT
+        path: /api/v1/menopause/profile
+        body: {stage: unsure, last_period: "2025-08-01", surgical: false, hrt: true}
+        status: 200
+      - method: PUT
+        path: /api/v1/menopause/profile
+        body: {stage: peri, hrt: ~}
+        status: 200
+      - method: GET
+        path: /api/v1/menopause/profile
+        status: 200
+  - name: profile_invalid
+    method: PUT
+    path: /api/v1/menopause/profile
+    body: {stage: later, last_period: "2026-09-24", hrt: maybe}
+    status: 422
+  - name: profile_save_anon
+    persona: anon
+    locales: none
+    method: PUT
+    path: /api/v1/menopause/profile
+    status: 401
+
+  # ---------------- today ----------------
+  - name: today_empty
+    doc: Home without answers, flashes or scores (checkups from the default plan)
+    method: GET
+    path: /api/v1/menopause/today
+    status: 200
+  - name: today_flow
+    doc: Stage meno, a sweaty night flash and a day flash, this month's score, then the home
+    steps:
+      - method: PUT
+        path: /api/v1/menopause/profile
+        body: {stage: meno, last_period: "2025-08-01"}
+        status: 200
+      - method: POST
+        path: /api/v1/menopause/hot-flashes
+        body: {started_at: "2026-09-23 03:20", duration_s: 180, severity: moderate, sweat: true}
+        status: 201
+      - method: POST
+        path: /api/v1/menopause/hot-flashes
+        body: {started_at: "2026-09-23 09:30", duration_s: 120, triggers: [caffeine]}
+        status: 201
+      - method: POST
+        path: /api/v1/menopause/scores
+        body:
+          answers: {hot_flashes: 3, heart_discomfort: 1, sleep_problems: 2, joint_muscle: 1, depressive_mood: 1,
+                    irritability: 1, anxiety: 1, exhaustion: 1, sexual_problems: 1, bladder_problems: 0, vaginal_dryness: 2}
+        status: 200
+      - method: GET
+        path: /api/v1/menopause/today
+        status: 200
+  - name: today_anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/menopause/today
+    status: 401
+
+  # ---------------- hot flashes ----------------
+  - name: flashes_empty
+    method: GET
+    path: /api/v1/menopause/hot-flashes
+    status: 200
+  - name: flashes_anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/menopause/hot-flashes
+    status: 401
+  - name: flash_flow
+    doc: Board Meno_HotFlash — start, tap again while running, stop after 1:42 with severity/sweat/triggers, the day
+    steps:
+      - method: POST
+        path: /api/v1/menopause/hot-flashes
+        body: {}
+        status: 201
+        capture: {id: data.id}
+      - method: POST
+        path: /api/v1/menopause/hot-flashes
+        now: "2026-09-23T10:01:00+03:30"
+        body: {}
+        status: 200
+      - method: POST
+        path: /api/v1/menopause/hot-flashes/{{id}}/stop
+        now: "2026-09-23T10:01:42+03:30"
+        body: {severity: severe, sweat: true, triggers: [warm_room, caffeine]}
+        status: 200
+      - method: GET
+        path: /api/v1/menopause/hot-flashes
+        query: {date: "2026-09-23"}
+        now: "2026-09-23T10:05:00+03:30"
+        status: 200
+  - name: flash_invalid
+    method: POST
+    path: /api/v1/menopause/hot-flashes
+    body: {started_at: "2026-09-23 12:00", duration_s: 0, severity: extreme, triggers: [wine]}
+    status: 422
+  - name: flash_list_invalid
+    locales: en
+    method: GET
+    path: /api/v1/menopause/hot-flashes
+    query: {date: yesterday}
+    status: 422
+  - name: flash_start_anon
+    persona: anon
+    locales: none
+    method: POST
+    path: /api/v1/menopause/hot-flashes
+    status: 401
+  - name: flash_stop_missing
+    method: POST
+    path: /api/v1/menopause/hot-flashes/999/stop
+    body: {severity: mild}
+    status: 404
+  - name: flash_stop_anon
+    persona: anon
+    locales: none
+    method: POST
+    path: /api/v1/menopause/hot-flashes/1/stop
+    status: 401
+
+  # ---------------- scores ----------------
+  - name: scores_empty
+    method: GET
+    path: /api/v1/menopause/scores
+    status: 200
+  - name: scores_anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/menopause/scores
+    status: 401
+  - name: score_flow
+    doc: Board Meno_Score — Shahrivar 18 (severe), Mehr 14 of 44 (moderate, 4 better), then the 6-month history
+    steps:
+      - method: POST
+        path: /api/v1/menopause/scores
+        body:
+          month: "2026-09-01"
+          answers: {hot_flashes: 4, heart_discomfort: 2, sleep_problems: 3, joint_muscle: 2, depressive_mood: 1,
+                    irritability: 1, anxiety: 1, exhaustion: 1, sexual_problems: 1, bladder_problems: 0, vaginal_dryness: 2}
+        status: 200
+      - method: POST
+        path: /api/v1/menopause/scores
+        body:
+          answers: {hot_flashes: 3, heart_discomfort: 1, sleep_problems: 2, joint_muscle: 1, depressive_mood: 1,
+                    irritability: 1, anxiety: 1, exhaustion: 1, sexual_problems: 1, bladder_problems: 0, vaginal_dryness: 2}
+        status: 200
+      - method: GET
+        path: /api/v1/menopause/scores
+        status: 200
+  - name: score_invalid
+    method: POST
+    path: /api/v1/menopause/scores
+    body: {month: "2026-10-01", answers: {hot_flashes: 5, wine: 1}}
+    status: 422
+  - name: scores_months_invalid
+    locales: en
+    method: GET
+    path: /api/v1/menopause/scores
+    query: {months: "25"}
+    status: 422
+  - name: score_save_anon
+    persona: anon
+    locales: none
+    method: POST
+    path: /api/v1/menopause/scores
+    status: 401
+
+  # ---------------- patterns ----------------
+  - name: patterns
+    doc: Not enough data yet (regular persona has 4 logged days); disclaimer from the catalog
+    method: GET
+    path: /api/v1/menopause/patterns
+    status: 200
+  - name: patterns_anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/menopause/patterns
+    status: 401

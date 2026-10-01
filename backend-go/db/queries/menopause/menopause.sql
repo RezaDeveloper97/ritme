@@ -56,3 +56,44 @@ ORDER BY intake_date, treatment_item_id;
 SELECT * FROM `side_effect_logs`
 WHERE user_id = sqlc.arg(user_id) AND log_date >= sqlc.arg(from_date) AND log_date <= sqlc.arg(to_date)
 ORDER BY log_date, code;
+
+-- CB-MENO-02 — the menopause API (profile, today, hot-flash timer, monthly score, patterns).
+
+-- name: GetMenopauseProfile :one
+-- The menopause answers of bloom's life profile (B-N2-01 columns; no menopause profile table).
+SELECT menopause_stage, menopause_last_period, menopause_surgical, menopause_hrt
+FROM `user_life_profiles`
+WHERE user_id = ?
+LIMIT 1;
+
+-- name: UpsertMenopauseProfile :exec
+-- Writes only the four menopause columns (mode, onboarding and conditions are untouched; a user without a row gets
+-- one with the column defaults).
+INSERT INTO `user_life_profiles`
+  (user_id, menopause_stage, menopause_last_period, menopause_surgical, menopause_hrt, created_at, updated_at)
+VALUES
+  (sqlc.arg(user_id), sqlc.narg(menopause_stage), sqlc.narg(menopause_last_period), sqlc.narg(menopause_surgical),
+   sqlc.narg(menopause_hrt), sqlc.arg(now), sqlc.arg(now))
+ON DUPLICATE KEY UPDATE
+  menopause_stage = VALUES(menopause_stage),
+  menopause_last_period = VALUES(menopause_last_period),
+  menopause_surgical = VALUES(menopause_surgical),
+  menopause_hrt = VALUES(menopause_hrt),
+  updated_at = VALUES(updated_at);
+
+-- name: GetHotFlash :one
+SELECT * FROM `hot_flashes` WHERE id = sqlc.arg(id) AND user_id = sqlc.arg(user_id) LIMIT 1;
+
+-- name: UpdateHotFlash :exec
+-- The stop / edit of one flash (the service computes every column).
+UPDATE `hot_flashes`
+SET duration_s = sqlc.narg(duration_s), severity = sqlc.narg(severity), night = sqlc.arg(night),
+    sweat = sqlc.arg(sweat), triggers = sqlc.narg(triggers), updated_at = sqlc.arg(now)
+WHERE id = sqlc.arg(id) AND user_id = sqlc.arg(user_id);
+
+-- name: GetPreviousMenopauseScore :one
+-- The latest questionnaire before month (the delta's baseline).
+SELECT * FROM `menopause_scores`
+WHERE user_id = sqlc.arg(user_id) AND month < sqlc.arg(month)
+ORDER BY month DESC
+LIMIT 1;

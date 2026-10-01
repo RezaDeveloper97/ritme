@@ -54,6 +54,93 @@ func (q *Queries) CreateHotFlash(ctx context.Context, arg CreateHotFlashParams) 
 	return result.LastInsertId()
 }
 
+const getHotFlash = `-- name: GetHotFlash :one
+SELECT id, user_id, started_at, duration_s, severity, night, sweat, triggers, created_at, updated_at FROM ` + "`" + `hot_flashes` + "`" + ` WHERE id = ? AND user_id = ? LIMIT 1
+`
+
+type GetHotFlashParams struct {
+	ID     uint64
+	UserID uint64
+}
+
+func (q *Queries) GetHotFlash(ctx context.Context, arg GetHotFlashParams) (HotFlash, error) {
+	row := q.db.QueryRowContext(ctx, getHotFlash, arg.ID, arg.UserID)
+	var i HotFlash
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.StartedAt,
+		&i.DurationS,
+		&i.Severity,
+		&i.Night,
+		&i.Sweat,
+		&i.Triggers,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getMenopauseProfile = `-- name: GetMenopauseProfile :one
+
+SELECT menopause_stage, menopause_last_period, menopause_surgical, menopause_hrt
+FROM ` + "`" + `user_life_profiles` + "`" + `
+WHERE user_id = ?
+LIMIT 1
+`
+
+type GetMenopauseProfileRow struct {
+	MenopauseStage      sql.NullString
+	MenopauseLastPeriod civildate.NullDate
+	MenopauseSurgical   sql.NullBool
+	MenopauseHrt        sql.NullBool
+}
+
+// CB-MENO-02 — the menopause API (profile, today, hot-flash timer, monthly score, patterns).
+// The menopause answers of bloom's life profile (B-N2-01 columns; no menopause profile table).
+func (q *Queries) GetMenopauseProfile(ctx context.Context, userID uint64) (GetMenopauseProfileRow, error) {
+	row := q.db.QueryRowContext(ctx, getMenopauseProfile, userID)
+	var i GetMenopauseProfileRow
+	err := row.Scan(
+		&i.MenopauseStage,
+		&i.MenopauseLastPeriod,
+		&i.MenopauseSurgical,
+		&i.MenopauseHrt,
+	)
+	return i, err
+}
+
+const getPreviousMenopauseScore = `-- name: GetPreviousMenopauseScore :one
+SELECT id, user_id, month, answers, total, somatic, psychological, urogenital, created_at, updated_at FROM ` + "`" + `menopause_scores` + "`" + `
+WHERE user_id = ? AND month < ?
+ORDER BY month DESC
+LIMIT 1
+`
+
+type GetPreviousMenopauseScoreParams struct {
+	UserID uint64
+	Month  civildate.Date
+}
+
+// The latest questionnaire before month (the delta's baseline).
+func (q *Queries) GetPreviousMenopauseScore(ctx context.Context, arg GetPreviousMenopauseScoreParams) (MenopauseScore, error) {
+	row := q.db.QueryRowContext(ctx, getPreviousMenopauseScore, arg.UserID, arg.Month)
+	var i MenopauseScore
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Month,
+		&i.Answers,
+		&i.Total,
+		&i.Somatic,
+		&i.Psychological,
+		&i.Urogenital,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getRunningHotFlash = `-- name: GetRunningHotFlash :one
 SELECT id, user_id, started_at, duration_s, severity, night, sweat, triggers, created_at, updated_at FROM ` + "`" + `hot_flashes` + "`" + `
 WHERE user_id = ? AND duration_s IS NULL
@@ -304,6 +391,77 @@ func (q *Queries) ListTreatmentItems(ctx context.Context, userID uint64) ([]Trea
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateHotFlash = `-- name: UpdateHotFlash :exec
+UPDATE ` + "`" + `hot_flashes` + "`" + `
+SET duration_s = ?, severity = ?, night = ?,
+    sweat = ?, triggers = ?, updated_at = ?
+WHERE id = ? AND user_id = ?
+`
+
+type UpdateHotFlashParams struct {
+	DurationS sql.NullInt32
+	Severity  sql.NullInt16
+	Night     bool
+	Sweat     bool
+	Triggers  db.NullRawJSON
+	Now       sql.NullTime
+	ID        uint64
+	UserID    uint64
+}
+
+// The stop / edit of one flash (the service computes every column).
+func (q *Queries) UpdateHotFlash(ctx context.Context, arg UpdateHotFlashParams) error {
+	_, err := q.db.ExecContext(ctx, updateHotFlash,
+		arg.DurationS,
+		arg.Severity,
+		arg.Night,
+		arg.Sweat,
+		arg.Triggers,
+		arg.Now,
+		arg.ID,
+		arg.UserID,
+	)
+	return err
+}
+
+const upsertMenopauseProfile = `-- name: UpsertMenopauseProfile :exec
+INSERT INTO ` + "`" + `user_life_profiles` + "`" + `
+  (user_id, menopause_stage, menopause_last_period, menopause_surgical, menopause_hrt, created_at, updated_at)
+VALUES
+  (?, ?, ?, ?,
+   ?, ?, ?)
+ON DUPLICATE KEY UPDATE
+  menopause_stage = VALUES(menopause_stage),
+  menopause_last_period = VALUES(menopause_last_period),
+  menopause_surgical = VALUES(menopause_surgical),
+  menopause_hrt = VALUES(menopause_hrt),
+  updated_at = VALUES(updated_at)
+`
+
+type UpsertMenopauseProfileParams struct {
+	UserID              uint64
+	MenopauseStage      sql.NullString
+	MenopauseLastPeriod civildate.NullDate
+	MenopauseSurgical   sql.NullBool
+	MenopauseHrt        sql.NullBool
+	Now                 sql.NullTime
+}
+
+// Writes only the four menopause columns (mode, onboarding and conditions are untouched; a user without a row gets
+// one with the column defaults).
+func (q *Queries) UpsertMenopauseProfile(ctx context.Context, arg UpsertMenopauseProfileParams) error {
+	_, err := q.db.ExecContext(ctx, upsertMenopauseProfile,
+		arg.UserID,
+		arg.MenopauseStage,
+		arg.MenopauseLastPeriod,
+		arg.MenopauseSurgical,
+		arg.MenopauseHrt,
+		arg.Now,
+		arg.Now,
+	)
+	return err
 }
 
 const upsertMenopauseScore = `-- name: UpsertMenopauseScore :exec

@@ -95,3 +95,16 @@ search's checkup source) shows a shared row only when `audiences` is NULL or lis
 `user_goal`); outside the audience a type id answers 404. The admin checkup-types API reads/writes `audiences`
 (validated against the life modes, `options.audiences`); the admin-web form field is CB-MENO-04. Goose
 `00024_activate_menopause_checkups` sets the nine rows `is_active = 1` (data only, no Laravel twin).
+
+## 7. API (CB-MENO-02)
+
+Go-only, `/api/v1/menopause/*` (deviation D-42, OpenAPI tag `Menopause`, contract group `menopause`), package
+`internal/menopause`. All rules are named constants there and [needs clinical review].
+
+| Route | What |
+|---|---|
+| `GET\|PUT /menopause/profile` | §2 stage rule on the life-profile columns; PUT writes only the four menopause columns (partial, null clears) |
+| `GET /menopause/today` | home: flashes today + running timer, last night's sweats ([yesterday 22:00, 06:00) sweaty flashes, else the log), sleep (today's log, else yesterday), latest score + 6-month trend, ≤ 3 upcoming checkups of `meno_checkup_groups`, active treatment with last-7-days adherence, bleeding flag (30 days, stage meno/post) |
+| `GET /menopause/hot-flashes?date=` · `POST /menopause/hot-flashes` · `POST /menopause/hot-flashes/{id}/stop` | timer: start (running one returned, forgotten ≥ 1 h closed at 3600 s), log a finished flash (`duration_s`, ≤ 7 days back), stop/edit; night by default 22:00–06:00 |
+| `GET\|POST /menopause/scores` | one questionnaire per Jalali month (refill replaces), total/domains/band/delta, history `?months=` (1–24) with the HRT annotation |
+| `GET /menopause/patterns` | 90-day φ cards via bloom's `analysis.Binary` (min 20 days / 5 per group / 3 outcomes): each logged trigger × more flashes than her median day, night sweats × fatigue; `not_a_diagnosis`, sentences in `internal/menopause/lang` (needs review) |

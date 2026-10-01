@@ -1,0 +1,411 @@
+{
+  "case": "menopause/today_flow.none",
+  "steps": [
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/menopause/profile",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "stage": "meno",
+          "last_period": "2025-08-01"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "مرحله یائسگی ذخیره شد",
+        "data": {
+          "stage": "meno",
+          "stored_stage": "meno",
+          "last_period": "2025-08-01",
+          "surgical": null,
+          "hrt": null,
+          "months_without_period": 13,
+          "suggested_stage": null,
+          "needs_stage": false,
+          "post_menopausal": true,
+          "tip": {
+            "code": "stage_meno",
+            "title": "یائسگی",
+            "body": "از ۱۲ ماه گذشته، یعنی وارد یائسگی شده‌ای. از این به بعد هر خونریزی یا لکه‌بینی را ثبت کن و به پزشک خبر بده.",
+            "meta": {
+              "placement": "home",
+              "stages": [
+                "meno"
+              ]
+            },
+            "audiences": [
+              "menopause"
+            ],
+            "needs_review": true
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/menopause/hot-flashes",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "started_at": "2026-09-23 03:20",
+          "duration_s": 180,
+          "severity": "moderate",
+          "sweat": true
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "message": "گرگرفتگی ثبت شد",
+        "data": {
+          "id": 1,
+          "started_at": "2026-09-23T03:20:00+03:30",
+          "running": false,
+          "duration_s": 180,
+          "elapsed_s": 180,
+          "severity": "moderate",
+          "night": true,
+          "sweat": true,
+          "triggers": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/menopause/hot-flashes",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "started_at": "2026-09-23 09:30",
+          "duration_s": 120,
+          "triggers": [
+            "caffeine"
+          ]
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57"
+      },
+      "body": {
+        "success": true,
+        "message": "گرگرفتگی ثبت شد",
+        "data": {
+          "id": 2,
+          "started_at": "2026-09-23T09:30:00+03:30",
+          "running": false,
+          "duration_s": 120,
+          "elapsed_s": 120,
+          "severity": null,
+          "night": false,
+          "sweat": false,
+          "triggers": [
+            "caffeine"
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/menopause/scores",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "answers": {
+            "hot_flashes": 3,
+            "heart_discomfort": 1,
+            "sleep_problems": 2,
+            "joint_muscle": 1,
+            "depressive_mood": 1,
+            "irritability": 1,
+            "anxiety": 1,
+            "exhaustion": 1,
+            "sexual_problems": 1,
+            "bladder_problems": 0,
+            "vaginal_dryness": 2
+          }
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "56"
+      },
+      "body": {
+        "success": true,
+        "message": "پرسشنامه این ماه ذخیره شد",
+        "data": {
+          "month": "2026-09-23",
+          "jalali_year": 1405,
+          "jalali_month": 7,
+          "total": 14,
+          "max": 44,
+          "band": {
+            "code": "moderate",
+            "title": "متوسط",
+            "min": 9,
+            "max": 16
+          },
+          "domains": [
+            {
+              "code": "somatic",
+              "score": 7,
+              "max": 16
+            },
+            {
+              "code": "psychological",
+              "score": 4,
+              "max": 16
+            },
+            {
+              "code": "urogenital",
+              "score": 3,
+              "max": 12
+            }
+          ],
+          "answers": {
+            "hot_flashes": 3,
+            "heart_discomfort": 1,
+            "sleep_problems": 2,
+            "joint_muscle": 1,
+            "depressive_mood": 1,
+            "irritability": 1,
+            "anxiety": 1,
+            "exhaustion": 1,
+            "sexual_problems": 1,
+            "bladder_problems": 0,
+            "vaginal_dryness": 2
+          },
+          "delta": null,
+          "previous_month": null
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/menopause/today",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "date": "2026-09-23",
+          "profile": {
+            "stage": "meno",
+            "stored_stage": "meno",
+            "last_period": "2025-08-01",
+            "surgical": null,
+            "hrt": null,
+            "months_without_period": 13,
+            "suggested_stage": null,
+            "needs_stage": false,
+            "post_menopausal": true,
+            "tip": {
+              "code": "stage_meno",
+              "title": "یائسگی",
+              "body": "از ۱۲ ماه گذشته، یعنی وارد یائسگی شده‌ای. از این به بعد هر خونریزی یا لکه‌بینی را ثبت کن و به پزشک خبر بده.",
+              "meta": {
+                "placement": "home",
+                "stages": [
+                  "meno"
+                ]
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            }
+          },
+          "hot_flashes": {
+            "count": 2,
+            "night_count": 1,
+            "avg_duration_s": 150,
+            "running": null
+          },
+          "night_sweats": {
+            "count": 1,
+            "level": null
+          },
+          "sleep": null,
+          "score": {
+            "max": 44,
+            "latest": {
+              "month": "2026-09-23",
+              "jalali_year": 1405,
+              "jalali_month": 7,
+              "total": 14,
+              "max": 44,
+              "band": {
+                "code": "moderate",
+                "title": "متوسط",
+                "min": 9,
+                "max": 16
+              },
+              "domains": [
+                {
+                  "code": "somatic",
+                  "score": 7,
+                  "max": 16
+                },
+                {
+                  "code": "psychological",
+                  "score": 4,
+                  "max": 16
+                },
+                {
+                  "code": "urogenital",
+                  "score": 3,
+                  "max": 12
+                }
+              ],
+              "answers": {
+                "hot_flashes": 3,
+                "heart_discomfort": 1,
+                "sleep_problems": 2,
+                "joint_muscle": 1,
+                "depressive_mood": 1,
+                "irritability": 1,
+                "anxiety": 1,
+                "exhaustion": 1,
+                "sexual_problems": 1,
+                "bladder_problems": 0,
+                "vaginal_dryness": 2
+              },
+              "delta": null,
+              "previous_month": null
+            },
+            "trend": [
+              {
+                "month": "2026-04-21",
+                "jalali_year": 1405,
+                "jalali_month": 2,
+                "total": null,
+                "band": null
+              },
+              {
+                "month": "2026-05-22",
+                "jalali_year": 1405,
+                "jalali_month": 3,
+                "total": null,
+                "band": null
+              },
+              {
+                "month": "2026-06-22",
+                "jalali_year": 1405,
+                "jalali_month": 4,
+                "total": null,
+                "band": null
+              },
+              {
+                "month": "2026-07-23",
+                "jalali_year": 1405,
+                "jalali_month": 5,
+                "total": null,
+                "band": null
+              },
+              {
+                "month": "2026-08-23",
+                "jalali_year": 1405,
+                "jalali_month": 6,
+                "total": null,
+                "band": null
+              },
+              {
+                "month": "2026-09-23",
+                "jalali_year": 1405,
+                "jalali_month": 7,
+                "total": 14,
+                "band": "moderate"
+              }
+            ]
+          },
+          "checkups": [
+            {
+              "id": 3,
+              "key": "pap_smear",
+              "title": "پاپ‌اسمیر / HPV",
+              "subtitle": "غربالگری دهانه رحم",
+              "category": "multi_year",
+              "section": "this_month",
+              "status": "due",
+              "icon": "shield",
+              "tone": "violet",
+              "interval_label": "هر ۳ سال",
+              "timing_label": "روز ۱۰ تا ۲۰ سیکل",
+              "last_done_on": null,
+              "next_due_on": null,
+              "next_due_label": "زمانش رسیده",
+              "is_custom": false
+            },
+            {
+              "id": 5,
+              "key": "dentist",
+              "title": "دندان‌پزشکی",
+              "subtitle": "معاینه و جرم‌گیری",
+              "category": "six_monthly",
+              "section": "six_monthly",
+              "status": "due",
+              "icon": "tooth",
+              "tone": "green",
+              "interval_label": "هر ۶ ماه",
+              "timing_label": null,
+              "last_done_on": null,
+              "next_due_on": null,
+              "next_due_label": "زمانش رسیده",
+              "is_custom": false
+            }
+          ],
+          "treatment": [],
+          "bleeding": {
+            "alert": true,
+            "last_on": "2026-09-15",
+            "window_days": 30,
+            "alert_item": {
+              "code": "postmenopausal_bleeding",
+              "title": "خونریزی بعد از یائسگی",
+              "body": "هر خونریزی یا لکه‌بینی، حتی کم، بعد از ۱۲ ماه قطع پریود باید بررسی شود. بیشتر وقت‌ها علت ساده‌ای دارد، اما بررسی زودهنگام مهم است.",
+              "meta": {
+                "severity": "urgent",
+                "primary": true,
+                "stages": [
+                  "meno",
+                  "post"
+                ],
+                "cta": "این مورد را به پزشک بگو"
+              },
+              "audiences": [
+                "menopause"
+              ],
+              "needs_review": true
+            }
+          }
+        }
+      }
+    }
+  ]
+}

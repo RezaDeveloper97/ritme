@@ -1,0 +1,46 @@
+{
+    "messages": {
+        "validation_failed": "اطلاعات واردشده نامعتبر است",
+        "profile_saved": "مرحله یائسگی ذخیره شد",
+        "flash_started": "زمان‌سنج گرگرفتگی شروع شد",
+        "flash_running": "زمان‌سنج گرگرفتگی در حال اجراست",
+        "flash_logged": "گرگرفتگی ثبت شد",
+        "flash_saved": "گرگرفتگی ذخیره شد",
+        "flash_not_found": "گرگرفتگی پیدا نشد",
+        "score_saved": "پرسشنامه این ماه ذخیره شد"
+    },
+    "validation": {
+        "date_future": "ثبت برای زمان آینده ممکن نیست.",
+        "started_too_old": "فقط گرگرفتگی‌های ۷ روز گذشته را می‌توانی ثبت کنی.",
+        "answers_missing": "به همه سؤال‌ها جواب بده."
+    },
+    "patterns": {
+        "needs_review": true,
+        "trigger_flashes": {
+            "more": "در روزهایی که :trigger ثبت کردی، گرگرفتگی بیشتری داشتی.",
+            "less": "در روزهایی که :trigger ثبت کردی، گرگرفتگی کمتری داشتی."
+        },
+        "night_sweats_fatigue": {
+            "more": "شب‌هایی که تعریق شبانه داشتی، روز بعد خستگی‌ات بیشتر بوده.",
+            "less": "شب‌هایی که تعریق شبانه داشتی، روز بعد خستگی‌ات کمتر بوده."
+        }
+    },
+    "attributes": {
+        "stage": "مرحله",
+        "last_period": "آخرین پریود",
+        "surgical": "یائسگی جراحی",
+        "hrt": "هورمون‌درمانی",
+        "date": "تاریخ",
+        "started_at": "زمان شروع",
+        "duration_s": "مدت",
+        "severity": "شدت",
+        "night": "شبانه",
+        "sweat": "تعریق",
+        "triggers": "علت‌ها",
+        "triggers.*": "علت",
+        "month": "ماه",
+        "months": "تعداد ماه",
+        "answers": "جواب‌ها",
+        "answers.*": "جواب"
+    }
+}

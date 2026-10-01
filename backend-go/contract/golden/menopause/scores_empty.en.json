@@ -1,0 +1,98 @@
+{
+  "case": "menopause/scores_empty.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/menopause/scores",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "months": 6,
+          "max": 44,
+          "bands": [
+            {
+              "code": "none",
+              "title": "No symptoms",
+              "min": 0,
+              "max": 4
+            },
+            {
+              "code": "mild",
+              "title": "Mild",
+              "min": 5,
+              "max": 8
+            },
+            {
+              "code": "moderate",
+              "title": "Moderate",
+              "min": 9,
+              "max": 16
+            },
+            {
+              "code": "severe",
+              "title": "Severe",
+              "min": 17,
+              "max": 44
+            }
+          ],
+          "latest": null,
+          "trend": [
+            {
+              "month": "2026-04-21",
+              "jalali_year": 1405,
+              "jalali_month": 2,
+              "total": null,
+              "band": null
+            },
+            {
+              "month": "2026-05-22",
+              "jalali_year": 1405,
+              "jalali_month": 3,
+              "total": null,
+              "band": null
+            },
+            {
+              "month": "2026-06-22",
+              "jalali_year": 1405,
+              "jalali_month": 4,
+              "total": null,
+              "band": null
+            },
+            {
+              "month": "2026-07-23",
+              "jalali_year": 1405,
+              "jalali_month": 5,
+              "total": null,
+              "band": null
+            },
+            {
+              "month": "2026-08-23",
+              "jalali_year": 1405,
+              "jalali_month": 6,
+              "total": null,
+              "band": null
+            },
+            {
+              "month": "2026-09-23",
+              "jalali_year": 1405,
+              "jalali_month": 7,
+              "total": null,
+              "band": null
+            }
+          ],
+          "items": [],
+          "hrt": null
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "case": "menopause/patterns.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/menopause/patterns",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "from": "2026-06-26",
+          "to": "2026-09-23",
+          "window_days": 90,
+          "days_logged": 4,
+          "min_days": 20,
+          "min_group_days": 5,
+          "min_outcome": 3,
+          "found": 0,
+          "not_a_diagnosis": true,
+          "not_causal": true,
+          "disclaimer": {
+            "code": "patterns_disclaimer",
+            "title": "Patterns we noticed",
+            "body": "Based on your own logs · not a medical diagnosis",
+            "meta": {
+              "placement": "score"
+            },
+            "audiences": [
+              "menopause"
+            ],
+            "needs_review": true
+          },
+          "items": [
+            {
+              "key": "night_sweats_fatigue",
+              "trigger": null,
+              "status": "not_enough_data",
+              "found": false,
+              "direction": null,
+              "statistic": "phi",
+              "value": null,
+              "strength": null,
+              "n": 4,
+              "groups": [
+                {
+                  "key": "without",
+                  "days": 4,
+                  "hits": 0,
+                  "pct": 0
+                },
+                {
+                  "key": "with",
+                  "days": 0,
+                  "hits": 0,
+                  "pct": 0
+                }
+              ],
+              "ratio": null,
+              "text": null,
+              "needs_review": true,
+              "not_causal": true,
+              "not_a_diagnosis": true
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

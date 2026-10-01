@@ -108,6 +108,10 @@ func binary(key string, unexposed, exposed Group) Correlation {
 	return c
 }
 
+// Binary is binary for other domains (CB-MENO-02 menopause patterns): the same φ, minimum-data rules
+// (CorrMinDays, CorrMinGroupDays, CorrMinOutcome), strengths and ratio as the correlations screen.
+func Binary(key string, unexposed, exposed Group) Correlation { return binary(key, unexposed, exposed) }
+
 // byPhase builds a Cramér's V card from per-phase groups.
 func byPhase(key string, groups []Group) Correlation {
 	c := Correlation{Key: key, Statistic: StatCramersV}

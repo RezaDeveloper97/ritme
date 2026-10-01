@@ -38,6 +38,7 @@ tags:
   - {name: Search, description: "Global search (Go only, CB-NAV-01): grouped hits over the caller's logs and reminders, care programs, education and services; shop excluded"}
   - {name: Contraception, description: "Contraception (Go only): method, pill pack (day, placebo/break days, streak, refill), pill log and the care reminders of long-acting methods"}
   - {name: Conditions, description: "Condition programs (Go only): enrolment (endometriosis, PMDD, heavy bleeding, PCOS), pain diary on the log taxonomy, PMDD questionnaire + cycle chart, PBAC pad chart"}
+  - {name: Menopause, description: "Menopause mode (Go only, CB-MENO-02): stage profile on bloom's life profile, home read model, hot-flash timer, monthly symptom score with domains and deltas, patterns in her own logs (not a diagnosis)"}
   - {name: Plus, description: "Ritme Plus (Go only): plans, trial, checkout through the payment port, verify, cancel, restore, history, entitlements and usage. Amounts are integer rials"}
   - {name: Payments, description: "Payment gateway adapter (Go only): browser return hop and the fake provider's TEST page. PAYMENT_PROVIDER = fake (default outside production) | zarinpal | none. Café Bazaar / Myket billing is Android-only and out of scope"}
   - {name: Daily Health Log, description: "One log per day: symptoms, mood, vitals, lifestyle"}
@@ -3637,6 +3638,315 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '422': {$ref: "#/components/responses/ConditionsValidationFailed"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/menopause/profile:
+    get:
+      tags: [Menopause]
+      summary: The menopause stage profile
+      description: |
+        The caller's menopause answers (bloom's `user_life_profiles.menopause_*` columns, also written by onboarding
+        step `menopause`) with the stage rule applied (docs/canvas-build/menopause.md §2, computed, never stored):
+        `stage` is the effective stage — stored peri / meno / post as answered; unsure or no answer → meno at 12+
+        whole months since `last_period`, else peri; surgical menopause → meno (post stays post); null when neither a
+        usable answer nor a last period exists (`needs_stage`). `suggested_stage` = meno when she answered peri but
+        her last period is 12+ months ago. `post_menopausal` = any bleeding now raises the alert. `tip` is the catalog
+        `meno_tips` item `stage_<stage>` (needs review). Health data: only the caller's own row.
+      operationId: getMenopauseProfile
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The profile
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/MenopauseProfile"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+    put:
+      tags: [Menopause]
+      summary: Save the stage answers (Meno_Stage)
+      description: |
+        Partial update of `{stage, last_period, surgical, hrt}`: keys not sent stay, `null` clears last_period /
+        surgical / hrt (`stage`, when sent, is required). `last_period` is the approximate last period (the first
+        day of the month the picker chose), not in the future. Only the four menopause columns are written — the
+        mode, onboarding and condition answers are untouched (the mode switch is `PUT /profile/life-stage`).
+      operationId: saveMenopauseProfile
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                stage: {type: string, enum: [peri, meno, post, unsure]}
+                last_period: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+                surgical: {type: [boolean, "null"]}
+                hrt: {type: [boolean, "null"]}
+            example: {stage: unsure, last_period: "2025-08-01", surgical: false, hrt: true}
+      responses:
+        '200':
+          description: Saved; the profile
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/MenopauseProfile"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/MenopauseValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/menopause/today:
+    get:
+      tags: [Menopause]
+      summary: The menopause home (Meno_Home / Main)
+      description: |
+        One read model for the home: the stage profile; today's hot flashes (count, night count, mean length of the
+        finished ones, the running timer); last night's sweats (sweaty flashes started in [yesterday 22:00, today
+        06:00), else 1 when `symptoms.general.night_sweats` is logged today; `level` = that log level); last night's
+        sleep (`sleep.duration` logged today, else yesterday; `hours` = bucket midpoint); the latest monthly score with
+        its band and delta plus the 6-month trend; up to 3 upcoming checkups of her M4 plan (the `meno_checkup_groups`
+        checkups and her custom ones that are overdue, due, soon or never done — the M4 item shape); the active
+        treatment items with the last 7 days' intakes (read only, CB-MENO-03 owns the treatment endpoints); and the
+        bleeding flag: `last_on` = the latest bleeding or spotting logged in the last `window_days` days
+        (`bleeding.presence` ≠ none, `bleeding.flow`, `bleeding.spotting` = yes), `alert` = that while the stage is
+        meno or post, with the catalog `meno_alerts` item `postmenopausal_bleeding`. Window and rules are
+        [needs clinical review]. Health data: only the caller's own rows.
+      operationId: getMenopauseToday
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The home
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/MenopauseToday"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/menopause/hot-flashes:
+    get:
+      tags: [Menopause]
+      summary: One day of the hot-flash timer screen
+      description: "The day's flashes (newest first), the tiles (count, night count, mean length of the finished ones) and the timer still running (any day; a timer forgotten for an hour or more is not shown). `date` defaults to today (Tehran)."
+      operationId: listMenopauseHotFlashes
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: date, in: query, required: false, schema: {$ref: "#/components/schemas/Date"}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The day
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/MenopauseFlashDay"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/MenopauseValidationFailed"}
+    post:
+      tags: [Menopause]
+      summary: Start the hot-flash timer, or log a finished flash
+      description: |
+        Without `duration_s`: starts the timer at `started_at` (default now) → 201. While a timer runs the same timer
+        comes back → 200 (`elapsed_s` grows); a timer left running for an hour or more is first closed at 3600 s.
+        With `duration_s` (1–3600): logs a finished flash (default start = now − duration) → 201. `started_at` is a
+        date-time (Tehran without an offset) within the last 7 days, not in the future. `night` defaults to a start in
+        [22:00, 06:00). Triggers: the log taxonomy's `menopause.triggers` options plus `unknown`.
+      operationId: startMenopauseHotFlash
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                started_at: {type: [string, "null"], example: "2026-09-23 03:20"}
+                duration_s: {type: [integer, "null"], minimum: 1, maximum: 3600}
+                severity: {type: [string, "null"], enum: [mild, moderate, severe, very_severe, null]}
+                night: {type: [boolean, "null"]}
+                sweat: {type: [boolean, "null"]}
+                triggers:
+                  oneOf:
+                    - {type: "null"}
+                    - {type: array, items: {type: string, enum: [caffeine, spicy_food, stress, exercise, warm_room, hot_drink, unknown]}}
+            example: {}
+      responses:
+        '200':
+          description: The timer already running
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/MenopauseFlashEnvelope"}
+        '201':
+          description: Timer started, or a finished flash logged
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/MenopauseFlashEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/MenopauseValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/menopause/hot-flashes/{id}/stop:
+    post:
+      tags: [Menopause]
+      summary: Stop the timer and save the details
+      description: "Stops a running timer (duration = now − start, 1–3600 s) and applies the details sent; on a stopped flash it only edits them (the duration stays). Keys not sent stay; `null` clears severity / triggers. Another user's or a missing id → 404."
+      operationId: stopMenopauseHotFlash
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer, minimum: 1}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                severity: {type: [string, "null"], enum: [mild, moderate, severe, very_severe, null]}
+                night: {type: [boolean, "null"]}
+                sweat: {type: [boolean, "null"]}
+                triggers:
+                  oneOf:
+                    - {type: "null"}
+                    - {type: array, items: {type: string, enum: [caffeine, spicy_food, stress, exercise, warm_room, hot_drink, unknown]}}
+            example: {severity: severe, sweat: true, triggers: [warm_room, caffeine]}
+      responses:
+        '200':
+          description: Saved; the flash
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/MenopauseFlashEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/MenopauseNotFound"}
+        '422': {$ref: "#/components/responses/MenopauseValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/menopause/scores:
+    get:
+      tags: [Menopause]
+      summary: Monthly score history (Meno_Score)
+      description: |
+        The last `months` Jalali months (current included, default 6, max 24): `trend` one point per month (oldest
+        first, `total` null = not filled), `items` the filled months newest first (each with band, domains and the
+        delta to the questionnaire before it), the catalog bands (`meno_score_bands`) and `hrt` — the board's
+        annotation for the earliest active HRT treatment item with a start date: the latest score against the last
+        one before the start month (`change` null while either is missing).
+      operationId: getMenopauseScores
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: months, in: query, required: false, schema: {type: integer, minimum: 1, maximum: 24}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The history
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/MenopauseScoreHistory"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/MenopauseValidationFailed"}
+    post:
+      tags: [Menopause]
+      summary: Submit the monthly questionnaire
+      description: |
+        Every active `meno_score_items` question answered 0–max (meta.max, 4 for the seeded 11); unknown keys → 422.
+        `month` = any day of a past or the current month (default today) and is stored as the first day of its Jalali
+        month; filling a month again replaces it. Total and the domain subtotals (meta.domain somatic /
+        psychological / urogenital) are computed here. Responds with the score, its band and the delta to the
+        previous questionnaire.
+      operationId: saveMenopauseScore
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [answers]
+              properties:
+                month: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+                answers:
+                  type: object
+                  additionalProperties: {type: integer, minimum: 0}
+            example:
+              answers: {hot_flashes: 3, heart_discomfort: 1, sleep_problems: 2, joint_muscle: 1, depressive_mood: 1, irritability: 1, anxiety: 1, exhaustion: 1, sexual_problems: 1, bladder_problems: 0, vaginal_dryness: 2}
+      responses:
+        '200':
+          description: Saved; the score
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/MenopauseScore"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/MenopauseValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/menopause/patterns:
+    get:
+      tags: [Menopause]
+      summary: Patterns in her own logs (not a diagnosis)
+      description: |
+        φ cards from bloom's analysis engine over the last 90 days of logged days: one `trigger_flashes` card per
+        `menopause.triggers` option she logged at least once (exposed = the trigger logged that day; outcome = more
+        flashes than her usual, the median of her logged days, counting timer flashes or 1 for a logged hot-flash
+        day), then `night_sweats_fatigue` (exposed = night sweats logged that day or a sweaty flash the night before;
+        outcome = fatigue logged that day). Minimum data: `min_days` paired days, `min_group_days` per group,
+        `min_outcome` outcome days — else `not_enough_data`. `text` (found cards only) is a needs-review sentence in
+        the request language; every card is `not_causal` and `not_a_diagnosis`. `disclaimer` = catalog `meno_tips`
+        `patterns_disclaimer`.
+      operationId: getMenopausePatterns
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The patterns
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/MenopausePatterns"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
   /api/v1/checkups:
     get:
       tags: [Checkups]
@@ -11515,6 +11825,34 @@ components:
             success: false
             message: اطلاعات واردشده نامعتبر است
             errors: {program: [اول به این برنامه بپیوند.]}
+    MenopauseValidationFailed:
+      description: "Menopause validation failed (controller 422 `{success: false, message, errors}`, message and field errors in the request language)."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, errors]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              errors:
+                type: object
+                additionalProperties: {type: array, items: {type: string}}
+          example:
+            success: false
+            message: اطلاعات واردشده نامعتبر است
+            errors: {last_period: [ثبت برای زمان آینده ممکن نیست.]}
+    MenopauseNotFound:
+      description: "No hot flash with that id for the caller (`{success: false, message}` in the request language)."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+          example: {success: false, message: گرگرفتگی پیدا نشد}
     ContraceptionValidationFailed:
       description: "Contraception validation failed (controller 422 `{success: false, message, errors}`, message and field errors in the request language). `POST /contraception/pills` without a pill method answers `errors.method`; before the pack start or on a break day `errors.date`."
       content:
@@ -12694,6 +13032,230 @@ components:
         meta: {}
         audiences: {oneOf: [{type: "null"}, {type: array, items: {type: string}}]}
         needs_review: {type: boolean}
+    MenopauseCatalogItem:
+      type: object
+      description: "A `meno_*` catalog item (CB-MENO-01 seeds, needs review), title/body/meta picked for the request locale."
+      required: [code, title, body, meta, audiences, needs_review]
+      properties:
+        code: {type: string}
+        title: {type: [string, "null"]}
+        body: {type: [string, "null"]}
+        meta: {}
+        audiences: {oneOf: [{type: "null"}, {type: array, items: {type: string}}]}
+        needs_review: {type: boolean}
+    MenopauseProfile:
+      type: object
+      required: [stage, stored_stage, last_period, surgical, hrt, months_without_period, suggested_stage, needs_stage, post_menopausal, tip]
+      properties:
+        stage: {type: [string, "null"], enum: [peri, meno, post, null], description: "Effective stage (stage rule); null = ask"}
+        stored_stage: {type: [string, "null"], enum: [peri, meno, post, unsure, null]}
+        last_period: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+        surgical: {type: [boolean, "null"]}
+        hrt: {type: [boolean, "null"]}
+        months_without_period: {type: [integer, "null"], minimum: 0}
+        suggested_stage: {type: [string, "null"], enum: [meno, null]}
+        needs_stage: {type: boolean}
+        post_menopausal: {type: boolean}
+        tip: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/MenopauseCatalogItem"}]}
+    MenopauseFlash:
+      type: object
+      required: [id, started_at, running, duration_s, elapsed_s, severity, night, sweat, triggers]
+      properties:
+        id: {type: integer}
+        started_at: {$ref: "#/components/schemas/IsoDateTime"}
+        running: {type: boolean}
+        duration_s: {type: [integer, "null"], minimum: 1, maximum: 3600}
+        elapsed_s: {type: integer, minimum: 0, maximum: 3600, description: "The timer's length now (capped), or the duration once stopped"}
+        severity: {type: [string, "null"], enum: [mild, moderate, severe, very_severe, null]}
+        night: {type: boolean}
+        sweat: {type: boolean}
+        triggers: {type: array, items: {type: string}}
+    MenopauseFlashEnvelope:
+      type: object
+      required: [success, message, data]
+      properties:
+        success: {type: boolean}
+        message: {type: string}
+        data: {$ref: "#/components/schemas/MenopauseFlash"}
+    MenopauseFlashDay:
+      type: object
+      required: [date, count, night_count, avg_duration_s, running, items]
+      properties:
+        date: {$ref: "#/components/schemas/Date"}
+        count: {type: integer}
+        night_count: {type: integer}
+        avg_duration_s: {type: [integer, "null"]}
+        running: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/MenopauseFlash"}]}
+        items: {type: array, items: {$ref: "#/components/schemas/MenopauseFlash"}}
+    MenopauseScoreBand:
+      type: object
+      required: [code, title, min, max]
+      properties:
+        code: {type: string, description: "meno_score_bands code (none, mild, moderate, severe)"}
+        title: {type: [string, "null"]}
+        min: {type: integer}
+        max: {type: integer}
+    MenopauseScore:
+      type: object
+      required: [month, jalali_year, jalali_month, total, max, band, domains, answers, delta, previous_month]
+      properties:
+        month: {$ref: "#/components/schemas/Date"}
+        jalali_year: {type: integer}
+        jalali_month: {type: integer, minimum: 1, maximum: 12}
+        total: {type: integer}
+        max: {type: integer}
+        band: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/MenopauseScoreBand"}]}
+        domains:
+          type: array
+          items:
+            type: object
+            required: [code, score, max]
+            properties:
+              code: {type: string, enum: [somatic, psychological, urogenital]}
+              score: {type: integer}
+              max: {type: integer}
+        answers: {type: object, additionalProperties: {type: integer}}
+        delta: {type: [integer, "null"], description: "total − the previous questionnaire's total (negative = fewer symptoms)"}
+        previous_month: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+    MenopauseTrendPoint:
+      type: object
+      required: [month, jalali_year, jalali_month, total, band]
+      properties:
+        month: {$ref: "#/components/schemas/Date"}
+        jalali_year: {type: integer}
+        jalali_month: {type: integer}
+        total: {type: [integer, "null"]}
+        band: {type: [string, "null"]}
+    MenopauseScoreHistory:
+      type: object
+      required: [months, max, bands, latest, trend, items, hrt]
+      properties:
+        months: {type: integer}
+        max: {type: integer}
+        bands: {type: array, items: {$ref: "#/components/schemas/MenopauseScoreBand"}}
+        latest: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/MenopauseScore"}]}
+        trend: {type: array, items: {$ref: "#/components/schemas/MenopauseTrendPoint"}}
+        items: {type: array, items: {$ref: "#/components/schemas/MenopauseScore"}}
+        hrt:
+          oneOf:
+            - {type: "null"}
+            - type: object
+              required: [started_on, baseline_month, baseline_total, latest_month, latest_total, change]
+              properties:
+                started_on: {$ref: "#/components/schemas/Date"}
+                baseline_month: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+                baseline_total: {type: [integer, "null"]}
+                latest_month: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+                latest_total: {type: [integer, "null"]}
+                change: {type: [integer, "null"]}
+    MenopauseTreatmentToday:
+      type: object
+      required: [id, kind, name, dose, schedule, taken_today, days_taken, days, adherence_pct, weekly_goal, goal_unit, amount, review_on]
+      properties:
+        id: {type: integer}
+        kind: {type: string, enum: [hrt, supplement, lifestyle]}
+        name: {type: string}
+        dose: {type: [string, "null"]}
+        schedule: {type: [string, "null"]}
+        taken_today: {type: boolean}
+        days_taken: {type: integer, description: "Intake days in the last 7 days"}
+        days: {type: integer, description: "Days of the window (fewer for an item started inside it)"}
+        adherence_pct: {type: [integer, "null"], description: "Daily items only"}
+        weekly_goal: {type: [integer, "null"]}
+        goal_unit: {type: [string, "null"]}
+        amount: {type: integer, description: "Minutes (goal_unit minutes) or sessions in the window"}
+        review_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+    MenopauseToday:
+      type: object
+      required: [date, profile, hot_flashes, night_sweats, sleep, score, checkups, treatment, bleeding]
+      properties:
+        date: {$ref: "#/components/schemas/Date"}
+        profile: {$ref: "#/components/schemas/MenopauseProfile"}
+        hot_flashes:
+          type: object
+          required: [count, night_count, avg_duration_s, running]
+          properties:
+            count: {type: integer}
+            night_count: {type: integer}
+            avg_duration_s: {type: [integer, "null"]}
+            running: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/MenopauseFlash"}]}
+        night_sweats:
+          type: object
+          required: [count, level]
+          properties:
+            count: {type: integer}
+            level: {type: [string, "null"]}
+        sleep:
+          oneOf:
+            - {type: "null"}
+            - type: object
+              required: [date, code, hours]
+              properties:
+                date: {$ref: "#/components/schemas/Date"}
+                code: {type: string, enum: [0_3, 3_6, 6_9, 9_plus]}
+                hours: {type: number}
+        score:
+          type: object
+          required: [max, latest, trend]
+          properties:
+            max: {type: integer}
+            latest: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/MenopauseScore"}]}
+            trend: {type: array, items: {$ref: "#/components/schemas/MenopauseTrendPoint"}}
+        checkups: {type: array, maxItems: 3, items: {$ref: "#/components/schemas/CheckupItem"}}
+        treatment: {type: array, items: {$ref: "#/components/schemas/MenopauseTreatmentToday"}}
+        bleeding:
+          type: object
+          required: [alert, last_on, window_days, alert_item]
+          properties:
+            alert: {type: boolean}
+            last_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+            window_days: {type: integer}
+            alert_item: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/MenopauseCatalogItem"}]}
+    MenopausePattern:
+      type: object
+      required: [key, trigger, status, found, direction, statistic, value, strength, n, groups, ratio, text, needs_review, not_causal, not_a_diagnosis]
+      properties:
+        key: {type: string, enum: [trigger_flashes, night_sweats_fatigue]}
+        trigger: {type: [string, "null"]}
+        status: {type: string, enum: [ready, not_enough_data, no_association]}
+        found: {type: boolean}
+        direction: {type: [string, "null"], enum: [more, less, null]}
+        statistic: {type: string, const: phi}
+        value: {type: [number, "null"]}
+        strength: {type: [string, "null"], enum: [strong, medium, weak, null]}
+        n: {type: integer}
+        groups:
+          type: array
+          items:
+            type: object
+            required: [key, days, hits, pct]
+            properties:
+              key: {type: string, enum: [without, with]}
+              days: {type: integer}
+              hits: {type: integer}
+              pct: {type: integer}
+              mean_flashes: {type: number}
+        ratio: {type: [number, "null"]}
+        text: {type: [string, "null"]}
+        needs_review: {type: boolean, const: true}
+        not_causal: {type: boolean, const: true}
+        not_a_diagnosis: {type: boolean, const: true}
+    MenopausePatterns:
+      type: object
+      required: [from, to, window_days, days_logged, min_days, min_group_days, min_outcome, found, not_a_diagnosis, not_causal, disclaimer, items]
+      properties:
+        from: {$ref: "#/components/schemas/Date"}
+        to: {$ref: "#/components/schemas/Date"}
+        window_days: {type: integer}
+        days_logged: {type: integer}
+        min_days: {type: integer}
+        min_group_days: {type: integer}
+        min_outcome: {type: integer}
+        found: {type: integer}
+        not_a_diagnosis: {type: boolean, const: true}
+        not_causal: {type: boolean, const: true}
+        disclaimer: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/MenopauseCatalogItem"}]}
+        items: {type: array, items: {$ref: "#/components/schemas/MenopausePattern"}}
     FertilityDay:
       type: object
       required: [date, cycle_day, lh, mucus, bbt, bbt_time, intercourse, symptoms, note, chance]

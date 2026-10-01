@@ -1,0 +1,33 @@
+{
+  "case": "menopause/profile_show.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/menopause/profile",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "stage": null,
+          "stored_stage": null,
+          "last_period": null,
+          "surgical": null,
+          "hrt": null,
+          "months_without_period": null,
+          "suggested_stage": null,
+          "needs_stage": true,
+          "post_menopausal": false,
+          "tip": null
+        }
+      }
+    }
+  ]
+}

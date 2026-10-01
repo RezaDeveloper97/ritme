@@ -161,3 +161,9 @@ TODO (ask user):
 - Also fixed stale `TestMissingAndRegistry` count (9 → 10, red since `loss_exit`).
 - Verify: vet, messages + admin/messages tests, int conditionnudges + http, golangci-lint 0, OpenAPI, contract all (1253 passed) — green.
 - Open: a later heavy-flow day starts a new period → cycle window resets and earlier heavy days stop counting (by design; review). Frontend card = CB-COND-02.
+
+## CB-MENO-02 — Menopause API: profile, today, hot flashes, score, patterns
+- Routes (Go-only, auth:api, throttled writes; D-42; OpenAPI tag `Menopause`; contract `cases/menopause.yaml`, 37 goldens): `GET|PUT /api/v1/menopause/profile` (stage rule computed from bloom's `user_life_profiles.menopause_*`; `suggested_stage`, `needs_stage`, stage tip), `GET /menopause/today` (flashes + running timer, last night's sweats/sleep, latest score + band + delta + 6-month trend, ≤3 upcoming checkups, treatment adherence 7 days read-only, bleeding alert flag), `GET|POST /menopause/hot-flashes` + `POST /hot-flashes/{id}/stop` (1 h cap, 7-day backfill), `GET|POST /menopause/scores` (Jalali month, domains, band, delta, HRT note), `GET /menopause/patterns` (90-day φ via bloom's `analysis.Binary` wrapper; not_a_diagnosis / not_causal / needs_review).
+- Contract fixture dump.sql now has the checkup + menopause tables (additions only). Doc `docs/canvas-build/menopause.md` §7.
+- Verify (landed on top of CB-MENO-01b): sqlc, vet, go test ./..., golangci-lint 0, int menopause, contract all 1290 passed — green.
+- TODO (ask user): bleeding alert also for older period logs within 30 days after switching to menopause? score delta vs previous filled questionnaire; upcoming checkups include never-done; pattern sentences in package lang. Clinical constants (12 months, 30-day bleeding window, night 22–06, patterns) [needs clinical review].

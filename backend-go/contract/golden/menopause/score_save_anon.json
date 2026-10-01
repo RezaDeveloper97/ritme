@@ -1,0 +1,21 @@
+{
+  "case": "menopause/score_save_anon",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/menopause/scores",
+        "persona": "anon",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 401,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "Unauthenticated.",
+        "error_code": "unauthenticated"
+      }
+    }
+  ]
+}

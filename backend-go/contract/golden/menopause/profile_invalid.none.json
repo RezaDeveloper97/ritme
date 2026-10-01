@@ -1,0 +1,39 @@
+{
+  "case": "menopause/profile_invalid.none",
+  "steps": [
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/menopause/profile",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "stage": "later",
+          "last_period": "2026-09-24",
+          "hrt": "maybe"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": false,
+        "message": "اطلاعات واردشده نامعتبر است",
+        "errors": {
+          "stage": [
+            "مرحله انتخاب‌شده معتبر نیست."
+          ],
+          "last_period": [
+            "ثبت برای زمان آینده ممکن نیست."
+          ],
+          "hrt": [
+            "فیلد هورمون‌درمانی باید درست یا نادرست باشد."
+          ]
+        }
+      }
+    }
+  ]
+}
