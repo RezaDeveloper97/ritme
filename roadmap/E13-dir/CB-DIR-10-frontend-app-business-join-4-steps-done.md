@@ -6,7 +6,7 @@ type: frontend
 status: todo
 depends_on: [CB-DIR-04, CB-DIR-06]
 parallel_group: DIR-G
-touches: [frontend/src/screens/city-services-join, frontend/src/app/[locale]/(app)/services/mother-child/join]
+touches: [frontend/src/screens/city-services-join, frontend/src/app/[locale]/services/mother-child/join]
 skills: [new-fsd-slice]
 boards: [nbl_Dir_Join.dc.html, nbl_Dir_JoinForm.dc.html, nbl_Dir_JoinDocs.dc.html, nbl_Dir_JoinDone.dc.html]
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && npm run build

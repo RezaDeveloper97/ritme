@@ -6,7 +6,7 @@ type: frontend
 status: todo
 depends_on: [CB-DIR-06]
 parallel_group: DIR-F
-touches: [frontend/src/screens/city-services-place, frontend/src/app/[locale]/(app)/services/mother-child/place]
+touches: [frontend/src/screens/city-services-place, frontend/src/app/[locale]/services/mother-child/place]
 skills: [new-fsd-slice]
 boards: [nbl_Dir_Place.dc.html]
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && npm run build

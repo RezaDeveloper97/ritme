@@ -6,7 +6,7 @@ type: frontend
 status: todo
 depends_on: [CB-IVF-02]
 parallel_group: IVF-C
-touches: [frontend/src/screens/ivf-scan, frontend/src/app/[locale]/(app)/ivf/scan]
+touches: [frontend/src/screens/ivf-scan, frontend/src/app/[locale]/ivf/scan]
 skills: [new-fsd-slice]
 boards: [nbl_IVF_Scan.dc.html]
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && npm run build

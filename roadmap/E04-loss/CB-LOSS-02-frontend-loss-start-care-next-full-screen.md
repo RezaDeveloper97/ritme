@@ -6,7 +6,7 @@ type: frontend
 status: todo
 depends_on: [CB-LOSS-01, CB-CORE-02]
 parallel_group: LOSS-B
-touches: [frontend/src/screens/loss-start, frontend/src/screens/loss-care, frontend/src/screens/loss-next, frontend/src/entities/loss, frontend/messages/fa/loss.json, frontend/messages/en/loss.json, frontend/src/app/[locale]/(app)/loss, frontend/src/app/message-scopes.ts, frontend/src/screens/pregnancy, frontend/src/screens/mode]
+touches: [frontend/src/screens/loss-start, frontend/src/screens/loss-care, frontend/src/screens/loss-next, frontend/src/entities/loss, frontend/messages/fa/loss.json, frontend/messages/en/loss.json, frontend/src/app/[locale]/loss, frontend/src/app/message-scopes.ts, frontend/src/screens/pregnancy, frontend/src/screens/mode]
 skills: [new-fsd-slice]
 boards: [nbl_Loss_Start.dc.html, nbl_Loss_Care.dc.html, nbl_Loss_Next.dc.html]
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && npm run build

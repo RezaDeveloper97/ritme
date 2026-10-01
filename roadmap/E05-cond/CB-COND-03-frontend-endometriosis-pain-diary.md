@@ -6,7 +6,7 @@ type: frontend
 status: todo
 depends_on: [CB-COND-02, B-N3-03, CB-CORE-02]
 parallel_group: COND-C
-touches: [frontend/src/screens/pain-diary, frontend/src/app/[locale]/(app)/programs/pain]
+touches: [frontend/src/screens/pain-diary, frontend/src/app/[locale]/programs/pain]
 skills: [new-fsd-slice]
 boards: [nbl_Cond_Endo.dc.html]
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && npm run build

@@ -6,7 +6,7 @@ type: frontend
 status: todo
 depends_on: [CB-REC-03, CB-REC-04]
 parallel_group: REC-D
-touches: [frontend/src/screens/record-share, frontend/src/screens/record-emergency, frontend/src/screens/doctor-view, frontend/src/app/[locale]/(app)/record/share, frontend/src/app/[locale]/(app)/record/emergency, frontend/src/app/[locale]/(web)/d]
+touches: [frontend/src/screens/record-share, frontend/src/screens/record-emergency, frontend/src/screens/doctor-view, frontend/src/app/[locale]/record/share, frontend/src/app/[locale]/record/emergency, frontend/src/app/[locale]/(web)/d]
 skills: [new-fsd-slice]
 boards: [nbl_Rec_Share.dc.html, nbl_Rec_Emergency.dc.html]
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && npm run build

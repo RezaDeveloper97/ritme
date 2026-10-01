@@ -6,7 +6,7 @@ type: frontend
 status: todo
 depends_on: [CB-DIR-08, CB-DIR-03]
 parallel_group: DIR-G
-touches: [frontend/src/screens/city-services-book, frontend/src/screens/city-services-booked, frontend/src/screens/my-bookings, frontend/src/app/[locale]/(app)/services/mother-child/book, frontend/src/app/[locale]/(app)/profile/bookings]
+touches: [frontend/src/screens/city-services-book, frontend/src/screens/city-services-booked, frontend/src/screens/my-bookings, frontend/src/app/[locale]/services/mother-child/book, frontend/src/app/[locale]/profile/bookings]
 skills: [new-fsd-slice]
 boards: [nbl_Dir_Book.dc.html, nbl_Dir_Booked.dc.html, nbl_Dir_MyBookings.dc.html]
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && npm run build

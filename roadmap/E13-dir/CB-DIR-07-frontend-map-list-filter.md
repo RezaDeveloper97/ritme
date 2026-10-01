@@ -6,7 +6,7 @@ type: frontend
 status: todo
 depends_on: [CB-DIR-06, CB-CORE-06]
 parallel_group: DIR-F
-touches: [frontend/next.config.ts, frontend/src/screens/city-services-map, frontend/src/screens/city-services-list, frontend/src/app/[locale]/(app)/services/mother-child/map, frontend/src/app/[locale]/(app)/services/mother-child/list]
+touches: [frontend/next.config.ts, frontend/src/screens/city-services-map, frontend/src/screens/city-services-list, frontend/src/app/[locale]/services/mother-child/map, frontend/src/app/[locale]/services/mother-child/list]
 skills: [new-fsd-slice]
 boards: [nbl_Dir_Map.dc.html, nbl_Dir_List.dc.html]
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && npm run build

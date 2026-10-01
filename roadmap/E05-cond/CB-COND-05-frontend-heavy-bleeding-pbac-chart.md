@@ -6,7 +6,7 @@ type: frontend
 status: todo
 depends_on: [CB-COND-02]
 parallel_group: COND-C
-touches: [frontend/src/screens/pbac, frontend/src/app/[locale]/(app)/programs/bleeding]
+touches: [frontend/src/screens/pbac, frontend/src/app/[locale]/programs/bleeding]
 skills: [new-fsd-slice]
 boards: [nbl_Cond_Bleed.dc.html]
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && npm run build

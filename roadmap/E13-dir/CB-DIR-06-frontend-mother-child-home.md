@@ -6,7 +6,7 @@ type: frontend
 status: todo
 depends_on: [CB-DIR-02, B-N7-01]
 parallel_group: DIR-E
-touches: [frontend/src/screens/city-services, frontend/src/entities/city-service, frontend/messages/fa/city-services.json, frontend/messages/en/city-services.json, frontend/src/app/[locale]/(app)/services/mother-child, frontend/src/app/message-scopes.ts]
+touches: [frontend/src/screens/city-services, frontend/src/entities/city-service, frontend/messages/fa/city-services.json, frontend/messages/en/city-services.json, frontend/src/app/[locale]/services/mother-child, frontend/src/app/message-scopes.ts]
 skills: [new-fsd-slice]
 boards: [nbl_Dir_Home.dc.html]
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && npm run build

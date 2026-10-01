@@ -6,7 +6,7 @@ type: frontend
 status: todo
 depends_on: [CB-NAV-01, B-N1-06]
 parallel_group: NAV-B
-touches: [frontend/src/screens/search, frontend/src/entities/search, frontend/messages/fa/search.json, frontend/messages/en/search.json, frontend/src/app/[locale]/(app)/search, frontend/src/app/message-scopes.ts, frontend/src/screens/home]
+touches: [frontend/src/screens/search, frontend/src/entities/search, frontend/messages/fa/search.json, frontend/messages/en/search.json, frontend/src/app/[locale]/search, frontend/src/app/message-scopes.ts, frontend/src/screens/home]
 skills: [new-fsd-slice]
 boards: [nbd_Nav_Search.dc.html, nbd_Nav_Today.dc.html]
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && npm run build

@@ -6,7 +6,7 @@ type: frontend
 status: todo
 depends_on: [CB-SHOP-06, CB-SHOP-04]
 parallel_group: SHOP-F
-touches: [frontend/src/screens/shop-checklist, frontend/src/app/[locale]/(app)/services/shop/checklist]
+touches: [frontend/src/screens/shop-checklist, frontend/src/app/[locale]/services/shop/checklist]
 skills: [new-fsd-slice]
 boards: [nbd_Shop_Checklist.dc.html]
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && npm run build

@@ -3,10 +3,10 @@ id: CB-CONTRA-03
 title: Frontend: missed-pill guide + other methods
 epic: CONTRA
 type: frontend
-status: todo
+status: in_progress
 depends_on: [CB-CONTRA-02]
 parallel_group: CONTRA-C
-touches: [frontend/src/screens/contraception-missed, frontend/src/screens/contraception-other, frontend/src/app/[locale]/contraception/missed, frontend/src/app/[locale]/(app)/contraception/other]
+touches: [frontend/src/screens/contraception-missed, frontend/src/screens/contraception-other, frontend/src/app/[locale]/contraception/missed, frontend/src/app/[locale]/contraception/other, frontend/src/entities/contraception, frontend/messages/fa/contraception.json, frontend/messages/en/contraception.json, backend-go/resources/translations/fa/contraception.json, backend-go/resources/translations/en/contraception.json, backend-go/internal/i18n/testdata, frontend/src/app/message-scopes.ts, frontend/src/app/globals.css, docs/qa/canvas/contra.md, docs/qa/canvas/contra]
 skills: [new-fsd-slice]
 boards: [nbl_Contra_Missed.dc.html, nbl_Contra_Other.dc.html]
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && npm run build

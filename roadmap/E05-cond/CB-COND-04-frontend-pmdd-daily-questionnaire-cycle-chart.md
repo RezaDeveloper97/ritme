@@ -6,7 +6,7 @@ type: frontend
 status: todo
 depends_on: [CB-COND-02, CB-CORE-02]
 parallel_group: COND-C
-touches: [frontend/src/screens/pmdd, frontend/src/app/[locale]/(app)/programs/pmdd]
+touches: [frontend/src/screens/pmdd, frontend/src/app/[locale]/programs/pmdd]
 skills: [new-fsd-slice]
 boards: [nbl_Cond_PMDD.dc.html]
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && npm run build

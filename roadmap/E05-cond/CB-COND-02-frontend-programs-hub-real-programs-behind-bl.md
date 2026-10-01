@@ -6,7 +6,7 @@ type: frontend
 status: todo
 depends_on: [CB-COND-01, B-N7-01]
 parallel_group: COND-B
-touches: [frontend/src/screens/conditions, frontend/src/entities/condition, frontend/messages/fa/conditions.json, frontend/messages/en/conditions.json, frontend/src/app/[locale]/(app)/programs, frontend/src/app/message-scopes.ts, frontend/src/screens/services]
+touches: [frontend/src/screens/conditions, frontend/src/entities/condition, frontend/messages/fa/conditions.json, frontend/messages/en/conditions.json, frontend/src/app/[locale]/programs, frontend/src/app/message-scopes.ts, frontend/src/screens/services]
 skills: [new-fsd-slice]
 boards: [nbl_Cond_Hub.dc.html]
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && npm run build

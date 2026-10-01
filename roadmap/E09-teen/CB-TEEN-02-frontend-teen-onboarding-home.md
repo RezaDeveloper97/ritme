@@ -6,7 +6,7 @@ type: frontend
 status: todo
 depends_on: [CB-TEEN-01]
 parallel_group: TEEN-B
-touches: [frontend/src/screens/teen, frontend/src/screens/teen-onboarding, frontend/src/entities/teen, frontend/messages/fa/teen.json, frontend/messages/en/teen.json, frontend/src/app/[locale]/(app)/teen, frontend/src/app/message-scopes.ts, frontend/src/screens/home]
+touches: [frontend/src/screens/teen, frontend/src/screens/teen-onboarding, frontend/src/entities/teen, frontend/messages/fa/teen.json, frontend/messages/en/teen.json, frontend/src/app/[locale]/teen, frontend/src/app/message-scopes.ts, frontend/src/screens/home]
 skills: [new-fsd-slice]
 boards: [nbl_Teen_Onb.dc.html, nbl_Teen_Home.dc.html]
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && npm run build

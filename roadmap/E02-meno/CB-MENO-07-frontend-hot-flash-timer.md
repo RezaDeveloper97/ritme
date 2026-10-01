@@ -6,7 +6,7 @@ type: frontend
 status: todo
 depends_on: [CB-MENO-05, CB-CORE-02]
 parallel_group: MENO-D
-touches: [frontend/src/screens/menopause-hot-flash, frontend/src/app/[locale]/(app)/menopause/hot-flash]
+touches: [frontend/src/screens/menopause-hot-flash, frontend/src/app/[locale]/menopause/hot-flash]
 skills: [new-fsd-slice]
 boards: [nbl_Meno_HotFlash.dc.html]
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && npm run build

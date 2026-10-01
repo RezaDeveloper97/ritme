@@ -6,7 +6,7 @@ type: frontend
 status: todo
 depends_on: [CB-IVF-01, CB-CORE-02, B-N1-04]
 parallel_group: IVF-B
-touches: [frontend/src/screens/ivf, frontend/src/entities/ivf, frontend/messages/fa/ivf.json, frontend/messages/en/ivf.json, frontend/src/app/[locale]/(app)/ivf, frontend/src/app/message-scopes.ts, frontend/src/widgets/bottom-nav, frontend/src/screens/home]
+touches: [frontend/src/screens/ivf, frontend/src/entities/ivf, frontend/messages/fa/ivf.json, frontend/messages/en/ivf.json, frontend/src/app/[locale]/ivf, frontend/src/app/message-scopes.ts, frontend/src/widgets/bottom-nav, frontend/src/screens/home]
 skills: [new-fsd-slice]
 boards: [nbl_IVF_Home.dc.html]
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && npm run build

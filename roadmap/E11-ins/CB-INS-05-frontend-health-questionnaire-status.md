@@ -6,7 +6,7 @@ type: frontend
 status: todo
 depends_on: [CB-INS-03]
 parallel_group: INS-D
-touches: [frontend/src/screens/insurance-questionnaire, frontend/src/screens/insurance-status, frontend/src/app/[locale]/(app)/insurance/questionnaire, frontend/src/app/[locale]/(app)/insurance/status]
+touches: [frontend/src/screens/insurance-questionnaire, frontend/src/screens/insurance-status, frontend/src/app/[locale]/insurance/questionnaire, frontend/src/app/[locale]/insurance/status]
 skills: [new-fsd-slice]
 boards: [nbl_Ins_Health.dc.html, nbl_Ins_Status.dc.html]
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && npm run build

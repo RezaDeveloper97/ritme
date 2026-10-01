@@ -6,7 +6,7 @@ type: frontend
 status: todo
 depends_on: [CB-SHOP-07, CB-SHOP-03]
 parallel_group: SHOP-G
-touches: [frontend/src/screens/shop-cart, frontend/src/screens/shop-checkout, frontend/src/screens/shop-order, frontend/src/screens/my-orders, frontend/src/app/[locale]/(app)/services/shop/cart, frontend/src/app/[locale]/(app)/services/shop/checkout, frontend/src/app/[locale]/(app)/profile/orders]
+touches: [frontend/src/screens/shop-cart, frontend/src/screens/shop-checkout, frontend/src/screens/shop-order, frontend/src/screens/my-orders, frontend/src/app/[locale]/services/shop/cart, frontend/src/app/[locale]/services/shop/checkout, frontend/src/app/[locale]/profile/orders]
 skills: [new-fsd-slice]
 boards: [nbd_Shop_Cart.dc.html, nbd_Shop_Checkout.dc.html, nbd_Shop_Order.dc.html]
 verify: cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test && npm run build
