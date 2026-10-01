@@ -362,3 +362,17 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   committed — regenerate with `shot.mjs --files`).
 - Env: `ritme_dev` was missing tables of goose 00002/00003/00005 (+ data of 00007/00008) despite goose rows; Up applied
   by hand (dev only).
+
+## B-N2-01 — Profile & onboarding schema v2 and extended life-stage modes
+
+- **Migration** `00014_life_profiles` (+ Laravel `2026_10_01_000005_…`): `user_life_profiles` (gender, life_mode
+  cycle|ttc|pregnancy|postpartum|menopause|teen, `ivf_iui`, `track_contraception`, JSON `chronic_illnesses` /
+  `gyn_conditions` / `medications` (NULL = skipped, [] = none), menopause stage/last period/surgical/HRT, onboarding
+  started/completed). `user_profiles` untouched; no backfill — users without a row resolve exactly as before
+  (`enums.ResolveLifeMode`: active pregnancy → stored postpartum/menopause/teen → user_goal ttc → cycle).
+- **Endpoints (Go-only):** `GET /onboarding`, idempotent `PUT /onboarding/steps/{name|gender|goal|cycle|menopause|conditions|health}`,
+  `POST /onboarding/complete` (422 lists missing steps), `GET|PUT /profile/life-stage` (B-N2-03 must reuse it).
+  Export gains `life_profile` — **D-34 proposed**. Message engine: postpartum → empty, menopause/teen → cycle, non-TTC.
+- Contract group `onboarding` (20 Go-recorded goldens), existing goldens byte-identical (`ROUTES=all` 1081 passed).
+  fa/en enum labels `onboarding.enums.*` in seed + frontend messages + goldens.
+- **Open:** QUESTIONS #59–#61.

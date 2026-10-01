@@ -1,0 +1,55 @@
+{
+  "case": "onboarding/show_new_user",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/onboarding",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "name": null,
+          "gender": null,
+          "goal": null,
+          "life_stage": {
+            "mode": "cycle",
+            "stored_mode": null,
+            "ivf_iui": false,
+            "track_contraception": false
+          },
+          "cycle": {
+            "last_period_start": null,
+            "period_duration": null,
+            "cycle_duration": null
+          },
+          "menopause": {
+            "stage": null,
+            "last_period": null,
+            "surgical": null,
+            "hrt": null
+          },
+          "conditions": {
+            "chronic_illnesses": null,
+            "gyn_conditions": null,
+            "medications": null
+          },
+          "health": {
+            "birthday": null,
+            "height": null,
+            "weight": null
+          },
+          "started_at": null,
+          "completed_at": null,
+          "completed": false
+        }
+      }
+    }
+  ]
+}

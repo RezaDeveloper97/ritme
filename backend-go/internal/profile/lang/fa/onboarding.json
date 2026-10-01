@@ -1,0 +1,38 @@
+{
+    "messages": {
+        "validation_failed": "اطلاعات واردشده نامعتبر است",
+        "saved": "ذخیره شد",
+        "completed": "ریتمیت آماده است",
+        "life_stage_saved": "مرحله زندگی ذخیره شد",
+        "incomplete": "چند مرحله از شروع هنوز پاسخ داده نشده است.",
+        "step_missing": {
+            "name": "لطفاً اسمت را وارد کن.",
+            "gender": "لطفاً جنسیتت را انتخاب کن.",
+            "goal": "لطفاً انتخاب کن چرا ریتمی را نصب کردی."
+        }
+    },
+    "attributes": {
+        "name": "نام",
+        "gender": "جنسیت",
+        "goal": "هدف",
+        "last_period_start": "شروع آخرین پریود",
+        "period_duration": "طول پریود",
+        "cycle_duration": "طول سیکل",
+        "stage": "مرحله یائسگی",
+        "last_period": "آخرین پریود",
+        "surgical": "یائسگی به‌دلیل جراحی یا درمان",
+        "hrt": "هورمون‌درمانی",
+        "chronic_illnesses": "بیماری‌های مزمن",
+        "chronic_illnesses.*": "بیماری مزمن",
+        "gyn_conditions": "بیماری‌ها و شرایط زنان",
+        "gyn_conditions.*": "بیماری یا شرایط زنان",
+        "medications": "داروی دائمی یا روش پیشگیری",
+        "medications.*": "دارو",
+        "birthday": "تاریخ تولد",
+        "height": "قد",
+        "weight": "وزن",
+        "mode": "مرحله زندگی",
+        "ivf_iui": "درمان ناباروری (IVF/IUI)",
+        "track_contraception": "پیگیری روش پیشگیری"
+    }
+}

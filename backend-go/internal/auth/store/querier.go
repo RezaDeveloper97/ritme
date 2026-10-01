@@ -42,7 +42,8 @@ type Querier interface {
 	RevokeAccessToken(ctx context.Context, arg RevokeAccessTokenParams) (int64, error)
 	// $user->tokens()->update(['revoked' => true]) — admin block / account deletion.
 	RevokeUserAccessTokens(ctx context.Context, arg RevokeUserAccessTokensParams) (int64, error)
-	// $user->profile()->exists().
+	// $user->profile()->exists(). B-N2-01: a v2 onboarding that was started and not completed (user_life_profiles)
+	// counts as no profile yet; users without that row (everyone created before it) keep the Laravel rule.
 	UserHasProfile(ctx context.Context, userID uint64) (bool, error)
 }
 

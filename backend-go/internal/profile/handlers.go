@@ -282,6 +282,13 @@ func (h *Handlers) Export(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	var life *store.UserLifeProfile
+	switch lp, err := q.GetLifeProfile(ctx, u.ID); {
+	case err == nil:
+		life = &lp
+	case !errors.Is(err, sql.ErrNoRows):
+		return fmt.Errorf("profile: export life profile: %w", err)
+	}
 
 	var createdAt any
 	if u.CreatedAt.Valid {
@@ -312,6 +319,8 @@ func (h *Handlers) Export(c fiber.Ctx) error {
 		"consents", privacy.consents,
 		"support_reports", privacy.reports,
 		"notification_settings", privacy.notifications,
+		// B-N2-01 (Go only, D-34): onboarding v2 answers and the life-stage mode.
+		"life_profile", LifeProfileExportJSON(life),
 	))
 }
 

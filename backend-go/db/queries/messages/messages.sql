@@ -28,3 +28,7 @@ WHERE user_id = sqlc.arg(user_id) AND DATE(log_date) = sqlc.arg(log_date) LIMIT 
 SELECT id, log_date, energy_level, sleep_quality FROM `daily_health_logs`
 WHERE user_id = sqlc.arg(user_id) AND log_date >= sqlc.arg(date_from) AND log_date <= sqlc.arg(date_to)
 ORDER BY log_date DESC;
+
+-- name: GetMessageLifeMode :one
+-- B-N2-01: the stored life-stage mode (user_life_profiles.life_mode; no row / NULL = legacy detection).
+SELECT life_mode FROM `user_life_profiles` WHERE user_id = ? LIMIT 1;

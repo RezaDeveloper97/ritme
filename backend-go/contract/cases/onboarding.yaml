@@ -1,0 +1,143 @@
+# Onboarding v2 + life-stage modes (/api/v1/onboarding*, /api/v1/profile/life-stage) — Go only (B-N2-01): there is
+# no Laravel route, so these goldens were recorded from the Go server and reviewed by hand (new-endpoint skill,
+# step 8). The fixture dump carries the empty `user_life_profiles` table (goose 00014 / Laravel
+# 2026_10_01_000005), added by hand — the DDL a full re-record reproduces. No persona has a row, so every persona
+# resolves its legacy mode (cycle / ttc / pregnancy) — the "existing users unchanged" acceptance.
+# Idempotency, the legacy-user completion stamp, profile_completed gating, the export row and user isolation are
+# covered by internal/profile/onboarding_int_test.go; the engine defaults by internal/enums and
+# internal/messages/manager tests.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: onboarding
+defaults:
+  persona: no_profile
+  locales: [none, en]
+cases:
+  - name: show_new_user
+    doc: Fresh verified user (no name, no profile) → nothing answered, legacy cycle mode, not started
+    locales: none
+    method: GET
+    path: /api/v1/onboarding
+    status: 200
+  - name: show_anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/onboarding
+    status: 401
+
+  - name: women_menopause_flow
+    doc: Name → gender → goal menopause → Meno → Conditions → Health → complete; then the life stage
+    steps:
+      - method: PUT
+        path: /api/v1/onboarding/steps/name
+        body: {name: "سارا"}
+        status: 200
+      - method: PUT
+        path: /api/v1/onboarding/steps/gender
+        body: {gender: female}
+        status: 200
+      - method: PUT
+        path: /api/v1/onboarding/steps/goal
+        body: {goal: menopause}
+        status: 200
+      - method: PUT
+        path: /api/v1/onboarding/steps/menopause
+        body: {stage: peri, last_period: "2025-08-01", surgical: false, hrt: null}
+        status: 200
+      - method: PUT
+        path: /api/v1/onboarding/steps/conditions
+        body: {chronic_illnesses: [migraine, diabetes], gyn_conditions: [], medications: null}
+        status: 200
+      - method: PUT
+        path: /api/v1/onboarding/steps/health
+        body: {birthday: "1975-03-05", height: 164, weight: 58.5}
+        status: 200
+      - method: POST
+        path: /api/v1/onboarding/complete
+        status: 200
+      - method: GET
+        path: /api/v1/profile/life-stage
+        status: 200
+  - name: cycle_step
+    doc: The Cycle step writes the profile like POST /profile (seeds the onboarding period); a repeat is idempotent
+    locales: none
+    steps:
+      - method: PUT
+        path: /api/v1/onboarding/steps/cycle
+        body: {last_period_start: "2026-09-12", period_duration: 5, cycle_duration: 29}
+        status: 200
+      - method: PUT
+        path: /api/v1/onboarding/steps/cycle
+        body: {last_period_start: "2026-09-12", period_duration: 5, cycle_duration: 29}
+        status: 200
+  - name: step_invalid
+    doc: Controller-style 422 with localized attribute names
+    locales: [none, fa, en]
+    method: PUT
+    path: /api/v1/onboarding/steps/conditions
+    body: {chronic_illnesses: [pcos], medications: iud}
+    status: 422
+  - name: step_unknown
+    locales: none
+    method: PUT
+    path: /api/v1/onboarding/steps/nope
+    body: {}
+    status: 404
+  - name: step_anon
+    persona: anon
+    locales: none
+    method: PUT
+    path: /api/v1/onboarding/steps/gender
+    body: {gender: female}
+    status: 401
+  - name: complete_incomplete
+    doc: Nothing answered → 422 keyed by the missing steps
+    locales: [none, fa, en]
+    method: POST
+    path: /api/v1/onboarding/complete
+    status: 422
+
+  - name: life_stage_legacy
+    doc: Existing users without a row keep their legacy mode
+    locales: none
+    steps:
+      - as: regular
+        method: GET
+        path: /api/v1/profile/life-stage
+        status: 200
+      - as: ttc
+        method: GET
+        path: /api/v1/profile/life-stage
+        status: 200
+      - as: pregnant_lmp_w8
+        method: GET
+        path: /api/v1/profile/life-stage
+        status: 200
+  - name: life_stage_update
+    doc: Partial PUTs (teen + contraception, then the IVF switch) keep the other values
+    persona: regular
+    steps:
+      - method: PUT
+        path: /api/v1/profile/life-stage
+        body: {mode: teen, track_contraception: true}
+        status: 200
+      - method: PUT
+        path: /api/v1/profile/life-stage
+        body: {ivf_iui: true}
+        status: 200
+      - method: GET
+        path: /api/v1/profile/life-stage
+        status: 200
+  - name: life_stage_invalid
+    persona: regular
+    locales: [none, fa, en]
+    method: PUT
+    path: /api/v1/profile/life-stage
+    body: {mode: retired, ivf_iui: "x"}
+    status: 422
+  - name: life_stage_anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/profile/life-stage
+    status: 401

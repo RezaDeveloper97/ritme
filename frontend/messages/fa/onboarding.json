@@ -86,5 +86,52 @@
     "wait": "چند ثانیه صبر کن…",
     "disclaimer": "ریتمی جای ویزیت پزشک یا مشاور رو نمی‌گیره. چیزهایی که وارد می‌کنی فقط برای شخصی‌سازی توصیه‌ها و شناخت بهتر بدن خودت استفاده می‌شه. اگه علائم شدید یا نگران‌کننده داری، حتماً با یه متخصص سلامت تماس بگیر."
   },
+  "enums": {
+    "gender": {
+      "female": "زن",
+      "male": "مرد"
+    },
+    "goal": {
+      "cycle": "پیگیری سیکل",
+      "ttc": "اقدام به بارداری",
+      "pregnancy": "باردارم",
+      "menopause": "یائسگی"
+    },
+    "lifeMode": {
+      "cycle": "پیگیری چرخه",
+      "ttc": "اقدام به بارداری",
+      "pregnancy": "بارداری",
+      "postpartum": "پس از زایمان و کودک",
+      "menopause": "یائسگی",
+      "teen": "نوجوان"
+    },
+    "menopauseStage": {
+      "peri": "پیش‌یائسگی",
+      "meno": "یائسگی",
+      "post": "پس از یائسگی",
+      "unsure": "مطمئن نیستم"
+    },
+    "chronicIllness": {
+      "diabetes": "دیابت",
+      "hypertension": "فشار خون",
+      "thyroid": "تیروئید",
+      "asthma": "آسم",
+      "anemia": "کم‌خونی",
+      "migraine": "میگرن",
+      "other": "سایر"
+    },
+    "gynCondition": {
+      "pcos": "سندرم تخمدان پلی‌کیستیک",
+      "endometriosis": "اندومتریوز",
+      "fibroids": "فیبروم رحم",
+      "recurrent_infections": "عفونت‌های مکرر",
+      "other": "سایر"
+    },
+    "medication": {
+      "contraceptive_pill": "قرص پیشگیری",
+      "iud": "آی‌یو‌دی",
+      "hormonal_medication": "داروی هورمونی"
+    }
+  },
   "dayCount": "{days, plural, other {# روز}}"
 }

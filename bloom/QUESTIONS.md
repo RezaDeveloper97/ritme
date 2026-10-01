@@ -63,3 +63,6 @@ default taken so work could continue. Review at the end of the run.
 | 56 | B-N1-16 | Timeline axes in `/cycle` and symptom pattern made LTR like every chart artboard (and the BBT chart). Keep LTR or RTL? | LTR |
 | 57 | B-N1-16 | All sheet backgrounds → `--surface` (artboards + tokens.md), overriding the B-N1-03 `--page` choice. | `--surface` |
 | 58 | B-N1-16 | `--danger` fills keep white text (low contrast on `#FF8FA3` in dark). Add an `--on-danger` token — folded into the N2 fidelity audit (B-N2-10). | queued |
+| 59 | B-N2-01 | Deviation **D-34** proposed: Go-only onboarding v2 endpoints, `life_profile` in export, `profile_completed` false while onboarding v2 is started but unfinished. Approve? | applied, allow-listed |
+| 60 | B-N2-01 | Stored `postpartum` → message engine returns empty (PHP behaviour) while home still shows cycle until B-N5. Menopause/teen run the cycle engine, never TTC. | as described |
+| 61 | B-N2-01 | New condition lists (`chronic_illnesses`, `gyn_conditions`, `medications`) are separate from legacy `chronic_conditions`; «سایر» has no free text (artboard has none). Choosing pill/IUD does not auto-enable `track_contraception` (left to canvas CB-CONTRA). | as described |

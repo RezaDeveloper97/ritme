@@ -41,6 +41,9 @@ type Querier interface {
 	// times live on the B-N1-11 `notification_preferences` row (categories + schedule); the «خودکار از داده‌ها»
 	// flag in `cycle_preferences`. Every statement is scoped by user_id.
 	GetCyclePreferences(ctx context.Context, userID uint64) (CyclePreference, error)
+	// Profile & onboarding v2 (B-N2-01, goose 00014): GET/PUT /onboarding*, GET/PUT /profile/life-stage, Go only.
+	// One `user_life_profiles` row per user; every statement is scoped by user_id.
+	GetLifeProfile(ctx context.Context, userID uint64) (UserLifeProfile, error)
 	// MessageContentRepository::payload(): a live (active + approved) row's raw JSON payload.
 	GetLiveMessagePayload(ctx context.Context, arg GetLiveMessagePayloadParams) (json.RawMessage, error)
 	// Notification settings (B-N1-11, goose 00011): one row per user, Go only. Read by
@@ -69,6 +72,8 @@ type Querier interface {
 	ListUserSupportScreenshots(ctx context.Context, userID uint64) ([]sql.NullString, error)
 	// UserProfile::markRecalculated(): one atomic increment, so concurrent writes never lose a bump.
 	MarkProfileRecalculated(ctx context.Context, arg MarkProfileRecalculatedParams) error
+	// The legacy mode authority: an active pregnancy profile (pregnancy_mode = 1) wins over the stored life mode.
+	PregnancyModeActive(ctx context.Context, userID uint64) (bool, error)
 	// A withdrawal keeps granted_at (the last grant) and stamps revoked_at; revoking what was never granted stores
 	// an explicit «no» without a revoked_at.
 	RevokeUserConsent(ctx context.Context, arg RevokeUserConsentParams) error
@@ -80,6 +85,9 @@ type Querier interface {
 	// $user->update(['name' => …]) when the name is dirty.
 	UpdateUserName(ctx context.Context, arg UpdateUserNameParams) error
 	UpsertCyclePreferences(ctx context.Context, arg UpsertCyclePreferencesParams) error
+	// Writes the whole row (the service loads it, applies one step, writes it back). started/completed keep their
+	// first value.
+	UpsertLifeProfile(ctx context.Context, arg UpsertLifeProfileParams) error
 	UpsertNotificationPreferences(ctx context.Context, arg UpsertNotificationPreferencesParams) error
 	// Writes the category switches and the schedule; on first save the other columns take the loaded values
 	// (the defaults), and an existing row keeps its quiet hours / neutral copy.

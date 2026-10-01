@@ -71,6 +71,12 @@ func setup(t *testing.T) *env {
 	cs := profile.NewCycleSettingsHandlers(db, clock.Real{}) // B-N1-09
 	app.Get("/api/v1/profile/cycle-settings", guard.RequireUser, cs.Show)
 	app.Put("/api/v1/profile/cycle-settings", guard.RequireUser, cs.Update)
+	ob := profile.NewOnboardingHandlers(db, clock.Real{}) // B-N2-01
+	app.Get("/api/v1/onboarding", guard.RequireUser, ob.Show)
+	app.Post("/api/v1/onboarding/complete", guard.RequireUser, ob.Complete)
+	app.Put("/api/v1/onboarding/steps/:step", guard.RequireUser, ob.UpdateStep)
+	app.Get("/api/v1/profile/life-stage", guard.RequireUser, ob.ShowLifeStage)
+	app.Put("/api/v1/profile/life-stage", guard.RequireUser, ob.UpdateLifeStage)
 	return &env{db: db, app: app, iss: passport.NewIssuer(key, q, clock.Real{}, 365), storage: storage}
 }
 

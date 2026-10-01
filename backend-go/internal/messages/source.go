@@ -32,6 +32,8 @@ type StoreSource struct {
 	profileLoaded bool
 	preg          *pstore.PregnancyProfile
 	pregLoaded    bool
+	lifeMode      string
+	lifeLoaded    bool
 	engine        *legacy.Engine
 }
 
@@ -67,6 +69,18 @@ func (s *StoreSource) Profile(ctx context.Context) (*manager.Profile, error) {
 		SubscriptionType:   row.SubscriptionType,
 		HasLastPeriodStart: row.LastPeriodStart.Valid,
 	}, nil
+}
+
+// LifeMode implements manager.LifeModeSource (B-N2-01): the stored life-stage mode, "" when none.
+func (s *StoreSource) LifeMode(ctx context.Context) (string, error) {
+	if !s.lifeLoaded {
+		v, err := s.q.GetMessageLifeMode(ctx, s.userID)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return "", fmt.Errorf("messages: life mode: %w", err)
+		}
+		s.lifeMode, s.lifeLoaded = v.String, true
+	}
+	return s.lifeMode, nil
 }
 
 // PregnancyProfile implements manager.Source.

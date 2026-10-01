@@ -788,6 +788,26 @@ type UserConsent struct {
 	UpdatedAt sql.NullTime
 }
 
+type UserLifeProfile struct {
+	ID                    uint64
+	UserID                uint64
+	Gender                sql.NullString
+	LifeMode              sql.NullString
+	IvfIui                bool
+	TrackContraception    bool
+	ChronicIllnesses      db.NullRawJSON
+	GynConditions         db.NullRawJSON
+	Medications           db.NullRawJSON
+	MenopauseStage        sql.NullString
+	MenopauseLastPeriod   civildate.NullDate
+	MenopauseSurgical     sql.NullBool
+	MenopauseHrt          sql.NullBool
+	OnboardingStartedAt   sql.NullTime
+	OnboardingCompletedAt sql.NullTime
+	CreatedAt             sql.NullTime
+	UpdatedAt             sql.NullTime
+}
+
 type UserNotification struct {
 	ID        uint64
 	UserID    uint64

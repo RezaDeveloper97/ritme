@@ -77,10 +77,15 @@ func (q *Queries) GetUserByMobile(ctx context.Context, mobile sql.NullString) (U
 }
 
 const userHasProfile = `-- name: UserHasProfile :one
-SELECT EXISTS(SELECT 1 FROM ` + "`" + `user_profiles` + "`" + ` WHERE user_id = ?) AS has_profile
+SELECT EXISTS(
+  SELECT 1 FROM ` + "`" + `user_profiles` + "`" + ` p
+  LEFT JOIN ` + "`" + `user_life_profiles` + "`" + ` l ON l.user_id = p.user_id
+  WHERE p.user_id = ? AND (l.id IS NULL OR l.onboarding_started_at IS NULL OR l.onboarding_completed_at IS NOT NULL)
+) AS has_profile
 `
 
-// $user->profile()->exists().
+// $user->profile()->exists(). B-N2-01: a v2 onboarding that was started and not completed (user_life_profiles)
+// counts as no profile yet; users without that row (everyone created before it) keep the Laravel rule.
 func (q *Queries) UserHasProfile(ctx context.Context, userID uint64) (bool, error) {
 	row := q.db.QueryRowContext(ctx, userHasProfile, userID)
 	var has_profile bool

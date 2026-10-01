@@ -67,6 +67,24 @@ type PregnancySymptomSource interface {
 	PregnancySymptoms(ctx context.Context, date civildate.Date) ([]string, error)
 }
 
+// LifeModeSource is an optional Source extension (B-N2-01): the stored life-stage mode
+// (user_life_profiles.life_mode; "" = none, i.e. every user created before it). A stored postpartum mode
+// picks the engine-less postpartum mode in DetectMode; menopause and teen run on the cycle engine with the
+// safe defaults of enums.LifeMode.AllowsFertilityContent (never TTC content, whatever user_goal says).
+type LifeModeSource interface {
+	LifeMode(ctx context.Context) (string, error)
+}
+
+// storedLifeMode is the source's stored life mode ("" when the source has none or does not know it).
+func (m *Manager) storedLifeMode(ctx context.Context) (enums.LifeMode, error) {
+	ls, ok := m.src.(LifeModeSource)
+	if !ok {
+		return "", nil
+	}
+	v, err := ls.LifeMode(ctx)
+	return enums.LifeMode(v), err
+}
+
 // Manager is one MessageManager (user + locale). Today is the request's Tehran day: the
 // pregnancy context is computed for today whatever date is asked (PregnancyCalculationService
 // uses Carbon::today()).
@@ -92,6 +110,15 @@ func (m *Manager) DetectMode(ctx context.Context) (enums.MessageMode, error) {
 	if p != nil && p.PregnancyMode {
 		return enums.MessageModePregnancy, nil
 	}
+	// B-N2-01: a stored postpartum mode has the PHP enum's (engine-less) postpartum mode; every other stored
+	// mode runs on the cycle engine. No stored mode = Laravel's detection.
+	lm, err := m.storedLifeMode(ctx)
+	if err != nil {
+		return "", err
+	}
+	if lm == enums.LifeModePostpartum {
+		return enums.MessageModePostpartum, nil
+	}
 	return enums.MessageModeCycle, nil
 }
 
@@ -111,6 +138,13 @@ func (m *Manager) BuildContext(ctx context.Context, date civildate.Date, force e
 	mc := &Context{Locale: m.locale, Date: date, Mode: mode, UserGoal: "non_ttc", SubscriptionType: "free"}
 	if profile != nil {
 		mc.UserGoal, mc.SubscriptionType = profile.UserGoal, profile.SubscriptionType
+	}
+	lm, err := m.storedLifeMode(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if lm != "" && !lm.AllowsFertilityContent() { // B-N2-01: menopause / teen never get TTC content
+		mc.UserGoal = string(enums.UserGoalNonTtc)
 	}
 	if mc.DailyLog, err = m.src.DailyLog(ctx, date); err != nil {
 		return nil, err

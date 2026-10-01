@@ -1,0 +1,68 @@
+{
+  "case": "onboarding/life_stage_legacy",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/profile/life-stage",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "cycle",
+          "stored_mode": null,
+          "ivf_iui": false,
+          "track_contraception": false
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/profile/life-stage",
+        "persona": "ttc",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "ttc",
+          "stored_mode": null,
+          "ivf_iui": false,
+          "track_contraception": false
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/profile/life-stage",
+        "persona": "pregnant_lmp_w8",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "pregnancy",
+          "stored_mode": null,
+          "ivf_iui": false,
+          "track_contraception": false
+        }
+      }
+    }
+  ]
+}

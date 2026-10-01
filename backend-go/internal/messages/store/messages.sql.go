@@ -45,6 +45,18 @@ func (q *Queries) GetMessageDailyLog(ctx context.Context, arg GetMessageDailyLog
 	return i, err
 }
 
+const getMessageLifeMode = `-- name: GetMessageLifeMode :one
+SELECT life_mode FROM ` + "`" + `user_life_profiles` + "`" + ` WHERE user_id = ? LIMIT 1
+`
+
+// B-N2-01: the stored life-stage mode (user_life_profiles.life_mode; no row / NULL = legacy detection).
+func (q *Queries) GetMessageLifeMode(ctx context.Context, userID uint64) (sql.NullString, error) {
+	row := q.db.QueryRowContext(ctx, getMessageLifeMode, userID)
+	var life_mode sql.NullString
+	err := row.Scan(&life_mode)
+	return life_mode, err
+}
+
 const getMessageProfile = `-- name: GetMessageProfile :one
 SELECT id, birthday, period_duration, cycle_duration, last_period_start, user_goal, subscription_type
 FROM ` + "`" + `user_profiles` + "`" + ` WHERE user_id = ? ORDER BY id LIMIT 1

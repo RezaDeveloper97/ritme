@@ -1,0 +1,31 @@
+{
+  "case": "onboarding/complete_incomplete.none",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/onboarding/complete",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": false,
+        "message": "چند مرحله از شروع هنوز پاسخ داده نشده است.",
+        "errors": {
+          "name": [
+            "لطفاً اسمت را وارد کن."
+          ],
+          "gender": [
+            "لطفاً جنسیتت را انتخاب کن."
+          ]
+        }
+      }
+    }
+  ]
+}

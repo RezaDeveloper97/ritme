@@ -45,3 +45,9 @@ entries:
     where: data.notification_settings
     deviation: D-33
     reason: Go-only notification settings in the data export
+
+  # D-34 (task B-N2-01): the export also carries the Go-only onboarding v2 / life-stage row (null when none).
+  - case: "export*"
+    where: data.life_profile
+    deviation: D-34
+    reason: Go-only user_life_profiles row in the data export

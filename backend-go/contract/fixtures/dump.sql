@@ -1628,6 +1628,37 @@ LOCK TABLES `user_consents` WRITE;
 /*!40000 ALTER TABLE `user_consents` DISABLE KEYS */;
 /*!40000 ALTER TABLE `user_consents` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `user_life_profiles`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `user_life_profiles` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `gender` varchar(16) DEFAULT NULL,
+  `life_mode` varchar(32) DEFAULT NULL,
+  `ivf_iui` tinyint(1) NOT NULL DEFAULT 0,
+  `track_contraception` tinyint(1) NOT NULL DEFAULT 0,
+  `chronic_illnesses` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`chronic_illnesses`)),
+  `gyn_conditions` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`gyn_conditions`)),
+  `medications` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`medications`)),
+  `menopause_stage` varchar(16) DEFAULT NULL,
+  `menopause_last_period` date DEFAULT NULL,
+  `menopause_surgical` tinyint(1) DEFAULT NULL,
+  `menopause_hrt` tinyint(1) DEFAULT NULL,
+  `onboarding_started_at` timestamp NULL DEFAULT NULL,
+  `onboarding_completed_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `user_life_profiles_user_id_unique` (`user_id`),
+  CONSTRAINT `user_life_profiles_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `user_life_profiles` WRITE;
+/*!40000 ALTER TABLE `user_life_profiles` DISABLE KEYS */;
+/*!40000 ALTER TABLE `user_life_profiles` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `user_notifications`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;

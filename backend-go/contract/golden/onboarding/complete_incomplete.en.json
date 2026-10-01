@@ -1,0 +1,32 @@
+{
+  "case": "onboarding/complete_incomplete.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/onboarding/complete",
+        "persona": "no_profile",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": false,
+        "message": "A few onboarding steps are still unanswered.",
+        "errors": {
+          "name": [
+            "Please tell us your name."
+          ],
+          "gender": [
+            "Please choose your gender."
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -6976,6 +6976,153 @@ paths:
           description: Privacy sections
           content:
             application/json: {schema: {$ref: "#/components/schemas/InfoResponse"}}
+  /api/v1/onboarding:
+    get:
+      tags: [Profile]
+      summary: Onboarding v2 state
+      description: |
+        Go only (B-N2-01). The answers of the v2 onboarding so far (nbl_Onb_* screens), for resuming: name (users),
+        gender, goal (= the stored life mode), the effective life stage, the Cycle and Health answers (the legacy
+        profile columns), the Meno and Conditions answers, and the progress (`started_at` / `completed_at`). Lists
+        are `null` when the step was skipped and `[]` for «هیچ‌کدام». The Pregnancy branch is
+        `POST /pregnancy/onboarding`; the phone-screen consents are `PUT /profile/consents`. While onboarding is
+        started and not completed, the auth responses report `profile_completed: false`.
+      operationId: getOnboarding
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The state
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/OnboardingState"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/onboarding/steps/{step}:
+    put:
+      tags: [Profile]
+      summary: Save one onboarding step
+      description: |
+        Idempotent: every step replaces its own answers, so repeating a request gives the same state. Bodies:
+        `name` {name}; `gender` {gender}; `goal` {goal} (sets the life mode and keeps `user_goal` /
+        `pregnancy_intention` in step: only ttc is TTC); `cycle` {last_period_start?, period_duration?,
+        cycle_duration?} and `health` {birthday?, height?, weight?} write the profile like `POST /profile`
+        (null / absent = keep; «دقیق یادم نیست» = no last_period_start); `menopause` {stage, last_period?, surgical?,
+        hrt?}; `conditions` {chronic_illnesses?, gyn_conditions?, medications?} (lists stored deduplicated in
+        screen order; null / absent = skipped, [] = «هیچ‌کدام»). The first step stamps `started_at` (a user who
+        already finished the legacy onboarding is stamped completed too). Responds with the full state.
+        Per-user write throttle. An unknown step is a 404.
+      operationId: updateOnboardingStep
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - name: step
+          in: path
+          required: true
+          schema: {type: string, enum: [name, gender, goal, cycle, menopause, conditions, health]}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: {type: string, maxLength: 255}
+                gender: {type: string, enum: [female, male]}
+                goal: {type: string, enum: [cycle, ttc, pregnancy, menopause]}
+                last_period_start: {oneOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
+                period_duration: {type: [integer, "null"], minimum: 1, maximum: 15}
+                cycle_duration: {type: [integer, "null"], minimum: 15, maximum: 60}
+                stage: {type: string, enum: [peri, meno, post, unsure]}
+                last_period: {oneOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}], description: "approximate; the client sends any day of the chosen month"}
+                surgical: {type: [boolean, "null"]}
+                hrt: {type: [boolean, "null"]}
+                chronic_illnesses: {type: [array, "null"], items: {type: string, enum: [diabetes, hypertension, thyroid, asthma, anemia, migraine, other]}}
+                gyn_conditions: {type: [array, "null"], items: {type: string, enum: [pcos, endometriosis, fibroids, recurrent_infections, other]}}
+                medications: {type: [array, "null"], items: {type: string, enum: [contraceptive_pill, iud, hormonal_medication]}}
+                birthday: {oneOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
+                height: {type: [integer, "null"], minimum: 50, maximum: 250}
+                weight: {type: [number, "null"], minimum: 20, maximum: 300}
+            example: {stage: peri, last_period: "2025-08-01", surgical: false, hrt: null}
+      responses:
+        '200':
+          description: Saved; the state
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/OnboardingState"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404':
+          description: Unknown step (framework 404)
+          content:
+            application/json:
+              schema: {type: object, properties: {message: {type: string}}}
+        '422':
+          description: "Validation failed (controller 422 `{success: false, message, errors}`, request language)"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, errors]
+                properties:
+                  success: {type: boolean, const: false}
+                  message: {type: string}
+                  errors:
+                    type: object
+                    additionalProperties: {type: array, items: {type: string}}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/onboarding/complete:
+    post:
+      tags: [Profile]
+      summary: Finish onboarding
+      description: |
+        «ورود به ریتمی». Needs a name and a gender and, for a woman, the goal; otherwise a 422 whose `errors` are
+        keyed by the missing step (`name`, `gender`, `goal`). Creates the profile row if no step did and stamps
+        `completed_at` once (repeating keeps the first time). Afterwards `profile_completed` is true.
+      operationId: completeOnboarding
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Completed; the state
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/OnboardingState"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422':
+          description: "Validation failed (controller 422 `{success: false, message, errors}`, request language)"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, errors]
+                properties:
+                  success: {type: boolean, const: false}
+                  message: {type: string}
+                  errors:
+                    type: object
+                    additionalProperties: {type: array, items: {type: string}}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/profile:
     get:
       tags: [Profile]
@@ -7431,6 +7578,83 @@ paths:
                     type: object
                     additionalProperties: {type: array, items: {type: string}}
         '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/profile/life-stage:
+    get:
+      tags: [Profile]
+      summary: Life-stage mode
+      description: |
+        Go only (B-N2-01). `mode` is the effective mode: an active pregnancy profile → pregnancy; a stored
+        postpartum / menopause / teen → that; otherwise `user_goal` ttc → ttc, else cycle (users without a stored
+        mode — everyone before B-N2-01 — resolve exactly as before). `stored_mode` is the user's choice (null =
+        none). `ivf_iui` / `track_contraception` are the mode screen's switches (nbl_Me_Mode).
+      operationId: getLifeStage
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The life stage
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/LifeStage"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+    put:
+      tags: [Profile]
+      summary: Update the life-stage mode
+      description: |
+        Partial update {mode?, ivf_iui?, track_contraception?}. A mode keeps `user_goal` / `pregnancy_intention`
+        in step (only ttc is TTC; pregnancy → intention pregnant) and never deletes data. Pregnancy itself is
+        switched by the pregnancy endpoints: while a pregnancy profile is active the effective mode stays
+        pregnancy. Per-user write throttle.
+      operationId: updateLifeStage
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mode: {type: string, enum: [cycle, ttc, pregnancy, postpartum, menopause, teen]}
+                ivf_iui: {type: boolean}
+                track_contraception: {type: boolean}
+            example: {mode: ttc, ivf_iui: true}
+      responses:
+        '200':
+          description: Saved; the life stage
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/LifeStage"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422':
+          description: "Validation failed (controller 422 `{success: false, message, errors}`, request language)"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, errors]
+                properties:
+                  success: {type: boolean, const: false}
+                  message: {type: string}
+                  errors:
+                    type: object
+                    additionalProperties: {type: array, items: {type: string}}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/profile/consents:
     get:
       tags: [Profile]
@@ -7599,7 +7823,7 @@ paths:
     get:
       tags: [Profile]
       summary: Export all personal data
-      description: "Returns a full JSON export of the authenticated user's data (account, profile, health logs, cycle history, pregnancy data, reminders; in Go also consents, support reports and notification settings, D-33) for data-portability."
+      description: "Returns a full JSON export of the authenticated user's data (account, profile, health logs, cycle history, pregnancy data, reminders; in Go also consents, support reports and notification settings, D-33, and the life profile, D-34) for data-portability."
       operationId: getProfileExport
       security:
         - {bearerAuth: []}
@@ -7938,6 +8162,28 @@ paths:
                       notification_settings:
                         description: "Go only (B-N1-11/12, D-33): the effective notification settings."
                         $ref: "#/components/schemas/NotificationSettings"
+                      life_profile:
+                        description: "Go only (B-N2-01, D-34): the onboarding v2 answers and the stored life-stage mode; null when the user has no row."
+                        oneOf:
+                          - type: "null"
+                          - type: object
+                            required: [gender, life_mode, ivf_iui, track_contraception, chronic_illnesses, gyn_conditions, medications, menopause_stage, menopause_last_period, menopause_surgical, menopause_hrt, onboarding_started_at, onboarding_completed_at, created_at, updated_at]
+                            properties:
+                              gender: {type: [string, "null"], enum: [female, male, null]}
+                              life_mode: {type: [string, "null"], enum: [cycle, ttc, pregnancy, postpartum, menopause, teen, null]}
+                              ivf_iui: {type: boolean}
+                              track_contraception: {type: boolean}
+                              chronic_illnesses: {type: [array, "null"], items: {type: string}}
+                              gyn_conditions: {type: [array, "null"], items: {type: string}}
+                              medications: {type: [array, "null"], items: {type: string}}
+                              menopause_stage: {type: [string, "null"]}
+                              menopause_last_period: {oneOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
+                              menopause_surgical: {type: [boolean, "null"]}
+                              menopause_hrt: {type: [boolean, "null"]}
+                              onboarding_started_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
+                              onboarding_completed_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
+                              created_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
+                              updated_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
         '401': {$ref: "#/components/responses/Unauthenticated"}
   /api/v1/reminders:
     get:
@@ -9483,6 +9729,54 @@ components:
                 oneOf:
                   - {$ref: "#/components/schemas/IsoDateTime"}
                   - {type: "null"}
+    LifeStage:
+      type: object
+      required: [mode, stored_mode, ivf_iui, track_contraception]
+      properties:
+        mode: {type: string, enum: [cycle, ttc, pregnancy, postpartum, menopause, teen], description: effective mode}
+        stored_mode: {type: [string, "null"], enum: [cycle, ttc, pregnancy, postpartum, menopause, teen, null]}
+        ivf_iui: {type: boolean}
+        track_contraception: {type: boolean}
+    OnboardingState:
+      type: object
+      required: [name, gender, goal, life_stage, cycle, menopause, conditions, health, started_at, completed_at, completed]
+      properties:
+        name: {type: [string, "null"]}
+        gender: {type: [string, "null"], enum: [female, male, null]}
+        goal: {type: [string, "null"], description: "the stored life mode (cycle / ttc / pregnancy / menopause from the Goal step)"}
+        life_stage: {$ref: "#/components/schemas/LifeStage"}
+        cycle:
+          type: object
+          required: [last_period_start, period_duration, cycle_duration]
+          properties:
+            last_period_start: {oneOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
+            period_duration: {type: [integer, "null"]}
+            cycle_duration: {type: [integer, "null"]}
+        menopause:
+          type: object
+          required: [stage, last_period, surgical, hrt]
+          properties:
+            stage: {type: [string, "null"], enum: [peri, meno, post, unsure, null]}
+            last_period: {oneOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
+            surgical: {type: [boolean, "null"]}
+            hrt: {type: [boolean, "null"]}
+        conditions:
+          type: object
+          required: [chronic_illnesses, gyn_conditions, medications]
+          properties:
+            chronic_illnesses: {type: [array, "null"], items: {type: string}}
+            gyn_conditions: {type: [array, "null"], items: {type: string}}
+            medications: {type: [array, "null"], items: {type: string}}
+        health:
+          type: object
+          required: [birthday, height, weight]
+          properties:
+            birthday: {oneOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
+            height: {type: [integer, "null"]}
+            weight: {type: [number, "null"]}
+        started_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
+        completed_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
+        completed: {type: boolean}
     CycleSettings:
       type: object
       required: [lengths, reminders]

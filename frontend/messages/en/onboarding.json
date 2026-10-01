@@ -86,5 +86,52 @@
     "wait": "Please wait a few seconds…",
     "disclaimer": "Ritme is not a substitute for a doctor or counsellor visit. The information you enter is used to personalise recommendations and help you understand your own body. If you have severe or worrying symptoms, be sure to contact a health professional."
   },
+  "enums": {
+    "gender": {
+      "female": "Female",
+      "male": "Male"
+    },
+    "goal": {
+      "cycle": "Track my cycle",
+      "ttc": "Trying to conceive",
+      "pregnancy": "I'm pregnant",
+      "menopause": "Menopause"
+    },
+    "lifeMode": {
+      "cycle": "Cycle tracking",
+      "ttc": "Trying to conceive",
+      "pregnancy": "Pregnancy",
+      "postpartum": "Postpartum & baby",
+      "menopause": "Menopause",
+      "teen": "Teen"
+    },
+    "menopauseStage": {
+      "peri": "Perimenopause",
+      "meno": "Menopause",
+      "post": "Postmenopause",
+      "unsure": "Not sure"
+    },
+    "chronicIllness": {
+      "diabetes": "Diabetes",
+      "hypertension": "High blood pressure",
+      "thyroid": "Thyroid",
+      "asthma": "Asthma",
+      "anemia": "Anemia",
+      "migraine": "Migraine",
+      "other": "Other"
+    },
+    "gynCondition": {
+      "pcos": "Polycystic ovary syndrome (PCOS)",
+      "endometriosis": "Endometriosis",
+      "fibroids": "Uterine fibroids",
+      "recurrent_infections": "Recurrent infections",
+      "other": "Other"
+    },
+    "medication": {
+      "contraceptive_pill": "Birth control pill",
+      "iud": "IUD",
+      "hormonal_medication": "Hormonal medication"
+    }
+  },
   "dayCount": "{days, plural, one {# day} other {# days}}"
 }

@@ -1,0 +1,38 @@
+{
+    "messages": {
+        "validation_failed": "The given data was invalid.",
+        "saved": "Saved",
+        "completed": "Your Ritme is ready",
+        "life_stage_saved": "Life stage saved",
+        "incomplete": "A few onboarding steps are still unanswered.",
+        "step_missing": {
+            "name": "Please tell us your name.",
+            "gender": "Please choose your gender.",
+            "goal": "Please choose why you use Ritme."
+        }
+    },
+    "attributes": {
+        "name": "name",
+        "gender": "gender",
+        "goal": "goal",
+        "last_period_start": "last period start",
+        "period_duration": "period length",
+        "cycle_duration": "cycle length",
+        "stage": "menopause stage",
+        "last_period": "last period",
+        "surgical": "surgical or treatment-induced menopause",
+        "hrt": "hormone therapy",
+        "chronic_illnesses": "chronic conditions",
+        "chronic_illnesses.*": "chronic condition",
+        "gyn_conditions": "gynecologic conditions",
+        "gyn_conditions.*": "gynecologic condition",
+        "medications": "ongoing medication or contraception",
+        "medications.*": "medication",
+        "birthday": "date of birth",
+        "height": "height",
+        "weight": "weight",
+        "mode": "life stage",
+        "ivf_iui": "IVF/IUI treatment",
+        "track_contraception": "contraception tracking"
+    }
+}

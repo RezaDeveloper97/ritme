@@ -6,12 +6,15 @@ package store
 
 import (
 	"context"
+	"database/sql"
 )
 
 type Querier interface {
 	// HealthDataEngine::dailyLogFor(): $user->dailyHealthLogs()->whereDate('log_date', $date)->first().
 	// Only the columns MessageManager::extractSymptoms can read exist here (see messages/manager).
 	GetMessageDailyLog(ctx context.Context, arg GetMessageDailyLogParams) (GetMessageDailyLogRow, error)
+	// B-N2-01: the stored life-stage mode (user_life_profiles.life_mode; no row / NULL = legacy detection).
+	GetMessageLifeMode(ctx context.Context, userID uint64) (sql.NullString, error)
 	// $user->profile (hasOne: the first row in index order) — the columns the message system and
 	// the legacy HealthDataEngine read.
 	GetMessageProfile(ctx context.Context, userID uint64) (GetMessageProfileRow, error)
