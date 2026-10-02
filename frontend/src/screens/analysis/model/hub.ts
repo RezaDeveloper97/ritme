@@ -36,8 +36,9 @@ const CARD_GROUP: Record<HubCard, HubGroup> = {
 
 /**
  * Which life-stage hub `/analysis` shows. cycle / teen / menopause use this
- * hub (An_Hub); ttc, postpartum and the companion fall back to it until their
- * own hubs land (B-N3-11 An_Hub_TTC, B-N5-07 An_Hub_Post); pregnancy has no
+ * hub (An_Hub); ttc gets An_Hub_TTC through AnalysisPage's `ttcHub` slot
+ * (B-N3-11), postpartum and the companion fall back to this one until B-N5-07
+ * (An_Hub_Post); pregnancy has no
  * cycle data, so it gets a placeholder until B-N3-12 (An_Hub_Preg).
  */
 export type HubVariant = 'cycle' | 'teen' | 'menopause' | 'pregnancy';

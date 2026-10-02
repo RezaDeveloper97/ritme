@@ -3,7 +3,7 @@ id: B-N3-12
 title: Pregnancy analysis hub and weight-gain screen
 milestone: N3
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N3-08]
 parallel_group: N3-L
 touches: [frontend/src/screens/analysis-pregnancy,backend-go/internal/pregnancy,backend-go/internal/analysis,backend-go/api]

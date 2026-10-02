@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import type { ReactNode } from 'react';
 
 import { useRouter } from '@/shared/i18n';
 import { useMounted } from '@/shared/lib/use-mounted';
@@ -13,9 +14,12 @@ import { AnalysisHub } from './AnalysisHub';
 /**
  * `/analysis` (B-N3-08). No nav tab of its own: it lives under the mode tab,
  * which the bottom nav lights here (docs/night-bloom/nav.md). The life-stage
- * mode picks the hub — see {@link hubVariant}.
+ * mode picks the hub — see {@link hubVariant}. `ttcHub` is the TTC hub
+ * (screens/analysis-ttc, B-N3-11), composed in by the route so the two screen
+ * slices never import each other. `pregnancyHub` is the pregnancy hub
+ * (screens/analysis-pregnancy, B-N3-12), composed in the same way.
  */
-export function AnalysisPage() {
+export function AnalysisPage({ ttcHub, pregnancyHub }: { ttcHub?: ReactNode; pregnancyHub?: ReactNode } = {}) {
   const t = useTranslations('analysis.hub');
   const router = useRouter();
   const mounted = useMounted();
@@ -30,8 +34,12 @@ export function AnalysisPage() {
         <Skeleton shape="card" />
       </SkeletonGroup>
     );
+  } else if (mode === 'ttc' && ttcHub) {
+    content = ttcHub;
+  } else if (variant === 'pregnancy' && pregnancyHub) {
+    content = pregnancyHub;
   } else if (variant === 'pregnancy') {
-    // B-N3-12 builds the pregnancy hub (An_Hub_Preg).
+    // Fallback when the route composes no pregnancy hub.
     content = (
       <div className="an-hub">
         <h1 className="an-title">{t('title')}</h1>

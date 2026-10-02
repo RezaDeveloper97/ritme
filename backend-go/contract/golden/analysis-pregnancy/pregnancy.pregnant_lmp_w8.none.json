@@ -1,0 +1,202 @@
+{
+  "case": "analysis-pregnancy/pregnancy.pregnant_lmp_w8.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/analysis/pregnancy",
+        "persona": "pregnant_lmp_w8",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "pregnancy": {
+            "week": 8,
+            "weeks": 7,
+            "days": 3,
+            "trimester": 1,
+            "due_date": "2027-05-09",
+            "start_date": "2026-08-02"
+          },
+          "sections": {
+            "weight_gain": {
+              "plus": false,
+              "locked": false,
+              "ready": false,
+              "data": {
+                "missing": "weights",
+                "baseline": {
+                  "weight": 60.5,
+                  "source": "profile",
+                  "date": null
+                },
+                "height_cm": 165,
+                "bmi": 22.2,
+                "bmi_category": "normal",
+                "target": {
+                  "min": 11.5,
+                  "max": 16
+                },
+                "status": null,
+                "current": null,
+                "recent_4w": null,
+                "points": [],
+                "band": [
+                  {
+                    "ga_weeks": 0,
+                    "min": 0,
+                    "max": 0
+                  },
+                  {
+                    "ga_weeks": 13,
+                    "min": 0.5,
+                    "max": 2
+                  },
+                  {
+                    "ga_weeks": 40,
+                    "min": 11.5,
+                    "max": 16
+                  }
+                ],
+                "iom_table": [
+                  {
+                    "category": "underweight",
+                    "bmi_min": null,
+                    "bmi_max": 18.4,
+                    "gain_min": 12.5,
+                    "gain_max": 18
+                  },
+                  {
+                    "category": "normal",
+                    "bmi_min": 18.5,
+                    "bmi_max": 24.9,
+                    "gain_min": 11.5,
+                    "gain_max": 16
+                  },
+                  {
+                    "category": "overweight",
+                    "bmi_min": 25,
+                    "bmi_max": 29.9,
+                    "gain_min": 7,
+                    "gain_max": 11.5
+                  },
+                  {
+                    "category": "obese",
+                    "bmi_min": 30,
+                    "bmi_max": null,
+                    "gain_min": 5,
+                    "gain_max": 9
+                  }
+                ],
+                "singleton_only": true,
+                "source": "IOM 2009"
+              }
+            },
+            "blood_pressure": {
+              "plus": false,
+              "locked": false,
+              "ready": false,
+              "data": {
+                "readings_count": 0,
+                "high_count": 0,
+                "severe_count": 0,
+                "status": null,
+                "latest": null,
+                "readings": [],
+                "threshold": {
+                  "systolic": 140,
+                  "diastolic": 90
+                },
+                "severe_threshold": {
+                  "systolic": 160,
+                  "diastolic": 110
+                },
+                "source": "ACOG"
+              }
+            },
+            "glucose": {
+              "plus": true,
+              "locked": true,
+              "ready": false,
+              "data": null
+            },
+            "kicks": {
+              "plus": false,
+              "locked": false,
+              "ready": false,
+              "data": {
+                "days": [
+                  {
+                    "date": "2026-09-17",
+                    "count": null,
+                    "minutes_to_target": null
+                  },
+                  {
+                    "date": "2026-09-18",
+                    "count": null,
+                    "minutes_to_target": null
+                  },
+                  {
+                    "date": "2026-09-19",
+                    "count": null,
+                    "minutes_to_target": null
+                  },
+                  {
+                    "date": "2026-09-20",
+                    "count": null,
+                    "minutes_to_target": null
+                  },
+                  {
+                    "date": "2026-09-21",
+                    "count": null,
+                    "minutes_to_target": null
+                  },
+                  {
+                    "date": "2026-09-22",
+                    "count": null,
+                    "minutes_to_target": null
+                  },
+                  {
+                    "date": "2026-09-23",
+                    "count": null,
+                    "minutes_to_target": null
+                  }
+                ],
+                "sessions": 0,
+                "timed_sessions": 0,
+                "low_count_days": 0,
+                "all_within_window": null,
+                "target": 10,
+                "window_minutes": 120,
+                "from_week": 28,
+                "current_week": 8
+              }
+            },
+            "symptoms": {
+              "plus": true,
+              "locked": true,
+              "ready": false,
+              "data": null
+            },
+            "visits": {
+              "plus": false,
+              "locked": false,
+              "ready": false,
+              "data": {
+                "done": 0,
+                "upcoming": 0,
+                "next": null,
+                "latest_result": null
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

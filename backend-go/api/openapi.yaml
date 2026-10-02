@@ -479,6 +479,243 @@ paths:
                                 active_days: {type: integer}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '422': {$ref: "#/components/responses/ValidationFailed"}
+  /api/v1/analysis/ttc:
+    get:
+      tags: [Analysis]
+      summary: TTC analysis hub — cycles trying, BBT confirmation, LH, timing / mucus / luteal (Plus), regularity
+      description: |
+        Go only (B-N3-11, An_Hub_TTC). Reads BBT and intercourse from the taxonomy v2 day log and LH tests / cervical
+        mucus from both fertility_logs and the v2 log (merged: stronger LH result, more fertile mucus per day).
+        `trying.since` = start of the cycle holding the first TTC log (BBT, LH, pregnancy test or a fertility_logs
+        row; null before any); `cycles` counts every cycle from there (never capped), the report analyses the newest
+        13 (or the newest 6 cycles before any TTC log). Ovulation per cycle: `bbt` = the three-over-six shift (the
+        /fertility/bbt rule: coverline = highest of the 6 readings before; the first high reading ≥ coverline +
+        0.20 °C and it and the next two all above it; ovulation = the day before), else `lh` = the day after the first
+        positive LH test, else `estimate` (next start − 14). `trying.referral`: general advice (ASRM 2020 / ACOG 781),
+        12 months under 35, 6 months from 35 (unknown age → 12), `due` when `months` ≥ the threshold; `summary` and
+        `advice` are localized sentences, never a diagnosis. Plus (`plus.deep_analysis`): `timing` (unprotected
+        intercourse days in the fertile window), `mucus` (egg-white days before ovulation), `luteal` (median BBT
+        luteal length; ≤ 10 d short, 11–17 usual, ≥ 18 long) — `locked: true, data: null` for a free user.
+      operationId: getAnalysisTtc
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The TTC hub
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [trying, bbt, lh, timing, mucus, luteal, regularity, cycles]
+                    properties:
+                      trying:
+                        type: object
+                        required: [since, cycles, months, confirmed_cycles, age, referral, summary, advice]
+                        properties:
+                          since: {oneOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
+                          cycles: {type: integer, minimum: 0}
+                          months: {type: integer, minimum: 0}
+                          confirmed_cycles: {type: integer, minimum: 0}
+                          age: {type: [integer, "null"]}
+                          referral:
+                            type: object
+                            required: [age_band, threshold_months, due]
+                            properties:
+                              age_band: {type: string, enum: [under_35, from_35, unknown]}
+                              threshold_months: {type: integer, enum: [6, 12]}
+                              due: {type: boolean}
+                          summary: {$ref: "#/components/schemas/AnalysisPhrase"}
+                          advice: {$ref: "#/components/schemas/AnalysisPhrase"}
+                      bbt: {$ref: "#/components/schemas/AnalysisSection"}
+                      lh: {$ref: "#/components/schemas/AnalysisSection"}
+                      timing: {$ref: "#/components/schemas/AnalysisSection"}
+                      mucus: {$ref: "#/components/schemas/AnalysisSection"}
+                      luteal: {$ref: "#/components/schemas/AnalysisSection"}
+                      regularity: {$ref: "#/components/schemas/AnalysisSection"}
+                      cycles:
+                        type: array
+                        items:
+                          type: object
+                          required: [index, start, end, current, length, ovulation_day, ovulation_source, lh_day, luteal_days]
+                          properties:
+                            index: {type: integer, minimum: 1}
+                            start: {$ref: "#/components/schemas/Date"}
+                            end: {$ref: "#/components/schemas/Date"}
+                            current: {type: boolean}
+                            length: {type: [integer, "null"]}
+                            ovulation_day: {type: [integer, "null"]}
+                            ovulation_source: {type: [string, "null"], enum: [bbt, lh, estimate, null]}
+                            lh_day: {type: [integer, "null"]}
+                            luteal_days: {type: [integer, "null"]}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/analysis/fertility:
+    get:
+      tags: [Analysis]
+      summary: BBT and ovulation of one cycle — chart, three-over-six confirmation, LH, luteal (Plus)
+      description: |
+        Go only (B-N3-11, An_Fertility). `cycle` = the start date of one of the cycles listed by GET /analysis/ttc
+        (default: the newest). `chart.points` are the cycle's BBT readings (decimal strings, °C) by cycle day,
+        `coverline` the highest of the 6 readings before the shift (provisional without one), `high_days` the three
+        readings that confirmed it. `ovulation.source` as in /analysis/ttc; `explanation` («چطور تأیید شد؟») and
+        `tip` are localized sentences. `luteal` is a Plus section. 404 when the user has no cycle at all; 422 for a
+        malformed date or a date that is not one of the listed cycle starts.
+      operationId: getAnalysisFertility
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - name: cycle
+          in: query
+          required: false
+          schema: {$ref: "#/components/schemas/Date"}
+      responses:
+        '200':
+          description: The cycle
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [cycle, prev_start, next_start, chart, period_days, fertile_window, ovulation, lh, intercourse_days, luteal, explanation, tip]
+                    properties:
+                      cycle:
+                        type: object
+                        required: [index, total, start, end, current, length, days, span]
+                        properties:
+                          index: {type: integer, minimum: 1}
+                          total: {type: integer, minimum: 1}
+                          start: {$ref: "#/components/schemas/Date"}
+                          end: {$ref: "#/components/schemas/Date"}
+                          current: {type: boolean}
+                          length: {type: [integer, "null"]}
+                          days: {type: integer}
+                          span: {type: integer}
+                      prev_start: {oneOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
+                      next_start: {oneOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
+                      chart:
+                        type: object
+                        required: [points, coverline, shift_day, high_days, confirmed]
+                        properties:
+                          points:
+                            type: array
+                            items:
+                              type: object
+                              required: [day, date, value]
+                              properties:
+                                day: {type: integer}
+                                date: {$ref: "#/components/schemas/Date"}
+                                value: {$ref: "#/components/schemas/DecimalString"}
+                          coverline: {oneOf: [{$ref: "#/components/schemas/DecimalString"}, {type: "null"}]}
+                          shift_day: {type: [integer, "null"]}
+                          high_days: {type: array, items: {type: integer}}
+                          confirmed: {type: boolean}
+                      period_days: {type: integer}
+                      fertile_window:
+                        oneOf:
+                          - {type: "null"}
+                          - type: object
+                            required: [from, to]
+                            properties: {from: {type: integer}, to: {type: integer}}
+                      ovulation:
+                        type: object
+                        required: [day, source, confirmed]
+                        properties:
+                          day: {type: [integer, "null"]}
+                          source: {type: [string, "null"], enum: [bbt, lh, estimate, null]}
+                          confirmed: {type: boolean}
+                      lh:
+                        type: object
+                        required: [tests, positive_day, days_before_ovulation]
+                        properties:
+                          tests:
+                            type: array
+                            items:
+                              type: object
+                              required: [day, value]
+                              properties: {day: {type: integer}, value: {type: string, enum: [negative, faint, positive]}}
+                          positive_day: {type: [integer, "null"]}
+                          days_before_ovulation: {type: [integer, "null"]}
+                      intercourse_days: {type: array, items: {type: integer}}
+                      luteal: {$ref: "#/components/schemas/AnalysisSection"}
+                      explanation: {$ref: "#/components/schemas/AnalysisPhrase"}
+                      tip: {$ref: "#/components/schemas/AnalysisPhrase"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/RouteNotFound"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
+  /api/v1/analysis/pregnancy:
+    get:
+      tags: [Analysis]
+      summary: Pregnancy analysis hub — weight gain vs IOM, blood pressure, GDM glucose (Plus), kicks, symptoms by trimester (Plus), visits
+      description: |
+        Go only (B-N3-12, An_Hub_Preg + An_PregWeight; one payload for the hub and the weight-gain screen). Thresholds
+        are named constants in internal/analysis/pregnancy_thresholds.go and are echoed in the payload. Descriptive,
+        never diagnostic.
+        `weight_gain`: weights from the pregnancy weekly log and the taxonomy v2 day log (the day log wins on the same
+        day), one point per gestational week (its last weight). `baseline` = the latest weight in the 90 days before
+        the pregnancy start (`before_pregnancy`), else the earliest first-trimester weight (`first_trimester`), else
+        user_profiles.weight (`profile`). BMI = baseline / height²; IOM 2009 singleton totals (under 18.5: 12.5–18 kg,
+        18.5–24.9: 11.5–16, 25–29.9: 7–11.5, ≥ 30: 5–9). `band` is piecewise linear: 0 at week 0, 0.5–2 kg at week 13,
+        the total at week 40. `status` compares the latest gain with the band at its gestational age; `missing` =
+        baseline | height | weights when not ready. `recent_4w` = latest weight − the one logged 28–42 days earlier.
+        `blood_pressure`: ≥ 140 systolic or ≥ 90 diastolic counts as high, ≥ 160 / ≥ 110 as severe (ACOG PB 222);
+        the latest 12 readings for the chart. `glucose` (Plus): ADA 2024 GDM targets — fasting < 95, 1 h < 140,
+        2 h < 120 mg/dL; the weekly log's post-meal value is the 1-hour slot. `kicks`: the last 7 days of fetal-movement
+        counts, minutes from the first to the 10th movement (target 10 in 120 min, from week 28). `symptoms` (Plus): the
+        top 3 symptoms per trimester (v1 symptom log, v2 extras, weekly swelling and the day log's symptoms; moods and
+        alert symptoms excluded), labelled in the request language. `visits`: the M3 appointments since the start.
+        A locked section is `locked: true, data: null` (nothing computed).
+      operationId: getAnalysisPregnancy
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The pregnancy analysis
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [pregnancy, sections]
+                    properties:
+                      pregnancy:
+                        type: object
+                        required: [week, weeks, days, trimester, due_date, start_date]
+                        properties:
+                          week: {type: integer, minimum: 1, maximum: 42}
+                          weeks: {type: integer, minimum: 0}
+                          days: {type: integer, minimum: 0, maximum: 6}
+                          trimester: {type: integer, enum: [1, 2, 3]}
+                          due_date: {$ref: "#/components/schemas/Date"}
+                          start_date: {$ref: "#/components/schemas/Date"}
+                      sections:
+                        type: object
+                        required: [weight_gain, blood_pressure, glucose, kicks, symptoms, visits]
+                        properties:
+                          weight_gain: {$ref: "#/components/schemas/AnalysisSection"}
+                          blood_pressure: {$ref: "#/components/schemas/AnalysisSection"}
+                          glucose: {$ref: "#/components/schemas/AnalysisSection"}
+                          kicks: {$ref: "#/components/schemas/AnalysisSection"}
+                          symptoms: {$ref: "#/components/schemas/AnalysisSection"}
+                          visits: {$ref: "#/components/schemas/AnalysisSection"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '409': {$ref: "#/components/responses/PregnancyNotActive"}
   /api/v1/analysis/monthly/{ym}:
     get:
       tags: [Analysis]

@@ -1,0 +1,22 @@
+{
+  "case": "analysis-pregnancy/pregnancy_not_active",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/analysis/pregnancy",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 409,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "حالت بارداری فعال نیست.",
+        "error_code": "pregnancy_not_active"
+      }
+    }
+  ]
+}

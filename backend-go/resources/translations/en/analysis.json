@@ -481,5 +481,147 @@
       "locked": "Lab trends are part of Ritme Plus.",
       "note": "Each value is rated against the reference range on its own lab report; a trend shows only once a marker appears in at least 2 reports."
     }
+  },
+  "ttc": {
+    "summary": {
+      "none": "You haven't logged a basal temperature, LH test or mucus yet. Log daily and your trying-to-conceive analysis builds up here.",
+      "confirmed": "Cycles with ovulation confirmed by basal temperature: {cycles}.",
+      "not_confirmed": "Ovulation hasn’t been confirmed by basal temperature in any cycle yet."
+    },
+    "advice": {
+      "general": "If you're under {age} and {under} months pass without a pregnancy, or {age} or older and {over} months, talk to a doctor.",
+      "due_under_35": "You've been trying for about {months} months. Under {age}, seeing a gynaecologist after {threshold} months without a pregnancy is recommended. This is general advice, not a diagnosis.",
+      "due_from_35": "You've been trying for about {months} months. From {age}, seeing a gynaecologist after {threshold} months without a pregnancy is recommended. This is general advice, not a diagnosis."
+    },
+    "lh": {
+      "positive": "Positive on day {day} · ovulation likely {min}–{max} hours later",
+      "faint": "Faint on day {day} · keep testing daily until it turns positive",
+      "negative": "Negative tests this cycle: {count}",
+      "none": "No LH test logged this cycle yet."
+    },
+    "mucus": {
+      "none": "No “egg-white” mucus logged near ovulation yet.",
+      "same_day": "Cycles with “egg-white” mucus on the estimated ovulation day: {cycles}.",
+      "one": "Cycles with “egg-white” mucus {min} day(s) before estimated ovulation: {cycles}.",
+      "up_to": "Cycles with “egg-white” mucus up to {max} day(s) before estimated ovulation: {cycles}.",
+      "range": "Cycles with “egg-white” mucus {min}–{max} days before estimated ovulation: {cycles}."
+    },
+    "fertility": {
+      "how": {
+        "confirmed": "Days {from}–{to} were all above the highest temperature of the {baseline} days before (“three over six”), so ovulation on day {day} is confirmed. Basal temperature confirms ovulation after it happens; it doesn’t predict it.",
+        "few": "The “three over six” rule needs at least {need} morning temperatures in the cycle; {count} logged so far.",
+        "lh": "Basal temperature hasn’t confirmed ovulation yet; day {day} is estimated from the positive LH test on day {lh}.",
+        "waiting": "Three temperatures in a row above the highest of the previous {baseline} haven’t been logged yet, so ovulation isn’t confirmed this cycle."
+      },
+      "tip": "Take your temperature in the morning before getting up, after at least 3 hours of unbroken sleep; fever, alcohol and poor sleep shift the result."
+    },
+    "ui": {
+      "modeChip": "Trying to conceive",
+      "trying": {
+        "title": "{n, plural, one {# cycle trying} other {# cycles trying}}",
+        "unit": "cycles",
+        "ring": "{n} cycles trying since {since}",
+        "startTitle": "Trying-to-conceive analysis"
+      },
+      "bbt": {
+        "title": "Basal temperature & ovulation",
+        "sub": "This cycle",
+        "confirmed": "Confirmed by “three over six”: day {day}",
+        "waiting": "Not confirmed yet",
+        "notReady": "At least 2 basal temperatures this cycle are needed to draw the chart.",
+        "chart": "Basal temperature this cycle, {n} days logged, from {min} to {max} degrees"
+      },
+      "lh": {
+        "title": "LH test",
+        "strip": "LH tests this cycle: {list}",
+        "item": "day {day} {value}",
+        "values": {
+          "negative": "negative",
+          "faint": "faint",
+          "positive": "positive"
+        }
+      },
+      "timing": {
+        "title": "Intercourse timing",
+        "of": "{n} of {total}",
+        "unit": "fertile-window days",
+        "notReady": "This cycle's fertile window isn't known yet.",
+        "chart": "Cycle days: period, fertile window days {from}–{to} and intercourse on {n} of them",
+        "source": {
+          "bbt": "Window from ovulation confirmed by basal temperature",
+          "lh": "Window from a positive LH test",
+          "estimate": "Window estimated from cycle length"
+        }
+      },
+      "mucus": {
+        "title": "Cervical mucus"
+      },
+      "luteal": {
+        "title": "Luteal phase length",
+        "unit": "days (from BBT)",
+        "status": {
+          "normal": "In the usual range",
+          "short": "Shorter than usual",
+          "long": "Longer than usual"
+        },
+        "notReady": "Once ovulation in a completed cycle is confirmed by basal temperature, your luteal phase shows here."
+      },
+      "regularity": {
+        "title": "Cycle length & regularity",
+        "chart": "Length of your trying cycles, oldest first: {list} days",
+        "current": "Current cycle so far",
+        "status": {
+          "regular": "{days, plural, one {Regular · varies by # day} other {Regular · varies by # days}}",
+          "irregular": "{days, plural, one {Irregular · varies by # day} other {Irregular · varies by # days}}",
+          "not_enough_data": "At least 3 complete cycles are needed to judge regularity."
+        },
+        "notReady": "At least 2 complete cycles are needed to compare cycle lengths."
+      },
+      "empty": {
+        "title": "Nothing to analyse yet",
+        "body": "Log your period, basal temperature and LH tests to build your trying-to-conceive analysis.",
+        "cta": "Log today"
+      },
+      "detail": {
+        "title": "Basal temperature & ovulation",
+        "sub": "Cycle {index} · {from} to {to}",
+        "today": "today",
+        "nav": "Cycle {index} of {total}",
+        "prev": "Previous cycle",
+        "next": "Next cycle",
+        "chart": "Basal temperature chart of cycle {index}: {n} days logged",
+        "noReadings": "No basal temperature logged in this cycle.",
+        "ovulation": "Ovulation",
+        "coverline": "Coverline",
+        "rows": {
+          "period": "Period",
+          "lh": "LH",
+          "sex": "Sex"
+        },
+        "colDay": "Cycle day",
+        "colTemp": "Temp (°C)",
+        "tiles": {
+          "label": "Cycle summary",
+          "ovulation": "Ovulation",
+          "lh": "LH positive",
+          "luteal": "Luteal",
+          "day": "Day {day}",
+          "days": "days",
+          "lhBefore": "{n, plural, one {# day before} other {# days before}}",
+          "none": "—",
+          "source": {
+            "bbt": "Confirmed (BBT)",
+            "lh": "Estimated (LH)",
+            "estimate": "Calendar estimate"
+          },
+          "lutealLocked": "Plus"
+        },
+        "how": "How was it confirmed?",
+        "empty": {
+          "title": "No cycle logged yet",
+          "body": "Log your first period to build the basal temperature chart."
+        }
+      }
+    }
   }
 }

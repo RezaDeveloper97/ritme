@@ -1,0 +1,215 @@
+{
+  "pregnancy": {
+    "week": 6,
+    "weeks": 5,
+    "days": 5,
+    "trimester": 1,
+    "due_date": "2027-05-21",
+    "start_date": "2026-08-14"
+  },
+  "sections": {
+    "weight_gain": {
+      "plus": false,
+      "locked": false,
+      "ready": false,
+      "data": {
+        "missing": "baseline",
+        "baseline": null,
+        "height_cm": null,
+        "bmi": null,
+        "bmi_category": null,
+        "target": null,
+        "status": null,
+        "current": null,
+        "recent_4w": null,
+        "points": [],
+        "band": null,
+        "iom_table": [
+          {
+            "category": "underweight",
+            "bmi_min": null,
+            "bmi_max": 18.4,
+            "gain_min": 12.5,
+            "gain_max": 18
+          },
+          {
+            "category": "normal",
+            "bmi_min": 18.5,
+            "bmi_max": 24.9,
+            "gain_min": 11.5,
+            "gain_max": 16
+          },
+          {
+            "category": "overweight",
+            "bmi_min": 25,
+            "bmi_max": 29.9,
+            "gain_min": 7,
+            "gain_max": 11.5
+          },
+          {
+            "category": "obese",
+            "bmi_min": 30,
+            "bmi_max": null,
+            "gain_min": 5,
+            "gain_max": 9
+          }
+        ],
+        "singleton_only": true,
+        "source": "IOM 2009"
+      }
+    },
+    "blood_pressure": {
+      "plus": false,
+      "locked": false,
+      "ready": false,
+      "data": {
+        "readings_count": 0,
+        "high_count": 0,
+        "severe_count": 0,
+        "status": null,
+        "latest": null,
+        "readings": [],
+        "threshold": {
+          "systolic": 140,
+          "diastolic": 90
+        },
+        "severe_threshold": {
+          "systolic": 160,
+          "diastolic": 110
+        },
+        "source": "ACOG"
+      }
+    },
+    "glucose": {
+      "plus": true,
+      "locked": false,
+      "ready": false,
+      "data": {
+        "slots": [
+          {
+            "slot": "fasting",
+            "target_max": 95,
+            "avg": null,
+            "within_target": null,
+            "readings": 0,
+            "in_target": 0,
+            "latest": null
+          },
+          {
+            "slot": "one_hour",
+            "target_max": 140,
+            "avg": null,
+            "within_target": null,
+            "readings": 0,
+            "in_target": 0,
+            "latest": null
+          },
+          {
+            "slot": "two_hour",
+            "target_max": 120,
+            "avg": null,
+            "within_target": null,
+            "readings": 0,
+            "in_target": 0,
+            "latest": null
+          }
+        ],
+        "unit": "mg_dl",
+        "source": "ADA 2024"
+      }
+    },
+    "kicks": {
+      "plus": false,
+      "locked": false,
+      "ready": false,
+      "data": {
+        "days": [
+          {
+            "date": "2026-09-17",
+            "count": null,
+            "minutes_to_target": null
+          },
+          {
+            "date": "2026-09-18",
+            "count": null,
+            "minutes_to_target": null
+          },
+          {
+            "date": "2026-09-19",
+            "count": null,
+            "minutes_to_target": null
+          },
+          {
+            "date": "2026-09-20",
+            "count": null,
+            "minutes_to_target": null
+          },
+          {
+            "date": "2026-09-21",
+            "count": null,
+            "minutes_to_target": null
+          },
+          {
+            "date": "2026-09-22",
+            "count": null,
+            "minutes_to_target": null
+          },
+          {
+            "date": "2026-09-23",
+            "count": null,
+            "minutes_to_target": null
+          }
+        ],
+        "sessions": 0,
+        "timed_sessions": 0,
+        "low_count_days": 0,
+        "all_within_window": null,
+        "target": 10,
+        "window_minutes": 120,
+        "from_week": 28,
+        "current_week": 6
+      }
+    },
+    "symptoms": {
+      "plus": true,
+      "locked": false,
+      "ready": false,
+      "data": {
+        "trimesters": [
+          {
+            "trimester": 1,
+            "is_current": true,
+            "is_future": false,
+            "logged_days": 0,
+            "items": []
+          },
+          {
+            "trimester": 2,
+            "is_current": false,
+            "is_future": true,
+            "logged_days": 0,
+            "items": []
+          },
+          {
+            "trimester": 3,
+            "is_current": false,
+            "is_future": true,
+            "logged_days": 0,
+            "items": []
+          }
+        ]
+      }
+    },
+    "visits": {
+      "plus": false,
+      "locked": false,
+      "ready": false,
+      "data": {
+        "done": 0,
+        "upcoming": 0,
+        "next": null,
+        "latest_result": null
+      }
+    }
+  }
+}

@@ -1,0 +1,135 @@
+{
+  "symptom_names": {
+    "pain": {
+      "location": {
+        "abdomen": "Lower belly pain"
+      }
+    },
+    "pregnancy": {
+      "symptoms": {
+        "vomiting": "Vomiting",
+        "cramping": "Cramping",
+        "pelvic_pressure": "Pelvic pressure",
+        "shortness_of_breath": "Shortness of breath"
+      }
+    }
+  },
+  "hub": {
+    "title": "Analysis",
+    "week": "Week {n}",
+    "loading": "Loading your pregnancy analysis",
+    "error": {
+      "title": "Couldn't load the analysis",
+      "body": "Check your connection and try again.",
+      "retry": "Try again"
+    },
+    "inactive": {
+      "title": "Pregnancy isn't set up yet",
+      "body": "Add your pregnancy dates first to see your weight, blood pressure and baby movement trends.",
+      "cta": "Set up pregnancy"
+    },
+    "listSeparator": ", ",
+    "dot": " · ",
+    "none": "—",
+    "footnote": "These trends are for tracking, not a medical diagnosis. Bring any concern to your doctor or midwife.",
+    "weight": {
+      "title": "Weight gain",
+      "sub": "Pre-pregnancy BMI {bmi} · total target {min}–{max} kg (IOM)",
+      "until": "kg by week {n}",
+      "status": {
+        "below": "Below the recommended range",
+        "within": "In the recommended range",
+        "above": "Above the recommended range"
+      },
+      "missing": {
+        "baseline": "We don't have your pre-pregnancy weight. Add your weight in your profile or daily log to see your gain.",
+        "height": "Add your height in your profile to work out your BMI and recommended range.",
+        "weights": "You haven't logged a weight during pregnancy yet. Log one and the trend shows here."
+      }
+    },
+    "bp": {
+      "title": "Blood pressure",
+      "below": "All readings under {sys}/{dia} (the pregnancy blood pressure threshold, ACOG)",
+      "high": "{n} readings were {sys}/{dia} or higher. This isn't a diagnosis — talk to your doctor or midwife.",
+      "severe": "A reading of {sys}/{dia} or more was logged. Call your doctor or midwife today.",
+      "empty": "No blood pressure logged yet. If you have a monitor, add readings from the daily log.",
+      "chart": "Blood pressure, last {n} readings: {list}",
+      "colDate": "Date",
+      "colValue": "Pressure (mmHg)"
+    },
+    "glucose": {
+      "title": "Blood sugar (gestational diabetes)",
+      "sub": "ADA targets for gestational diabetes",
+      "slots": {
+        "fasting": "Fasting",
+        "one_hour": "1 hour",
+        "two_hour": "2 hours"
+      },
+      "target": "Target <{n}",
+      "above": "Talk to your doctor about an average above target.",
+      "empty": "No blood sugar logged yet. If your doctor asked you to check it, add readings from the daily log.",
+      "label": "{slot}: average {avg}, target under {target} mg/dL"
+    },
+    "kicks": {
+      "title": "Baby movements",
+      "caption": "Minutes to reach {n} movements",
+      "allWithin": "all under {h} hours",
+      "notAll": "Some days took over {h} hours or had fewer than {n} movements. If movements slow down, call your doctor or midwife.",
+      "empty": "Kick counting usually starts around week {week}. No count logged in the last 7 days.",
+      "chart": "Minutes to {n} movements over the last 7 days: {list}",
+      "colDay": "Day",
+      "colMinutes": "Minutes",
+      "noTime": "no time",
+      "count": "{n} movements"
+    },
+    "symptoms": {
+      "title": "Symptoms by trimester",
+      "trimesters": {
+        "1": "First",
+        "2": "Second",
+        "3": "Third"
+      },
+      "future": "Not yet",
+      "nothing": "Nothing logged",
+      "empty": "The symptoms you log are grouped by trimester here."
+    },
+    "visits": {
+      "title": "Visits and tests",
+      "done": "{n} visits done",
+      "next": "Next: {title}, week {week}",
+      "result": "{title}: {note}",
+      "empty": "No visits yet. Add them from your pregnancy calendar."
+    }
+  },
+  "weight": {
+    "title": "Pregnancy weight gain",
+    "sub": "Week {n}",
+    "back": "Back",
+    "loading": "Loading your weight gain",
+    "tilesLabel": "Weight gain summary",
+    "toDate": "So far",
+    "target": "Total target",
+    "recent": "Last 4 weeks",
+    "unit": "kg",
+    "unitIom": "kg (IOM)",
+    "range": "{min}–{max}",
+    "legendYou": "Your weight",
+    "legendBand": "Recommended range",
+    "chart": "Weight gain by week {week}: {gain} kg; recommended range this week {min}–{max} kg",
+    "colWeek": "Week",
+    "colGain": "Gain (kg)",
+    "tableBmi": "Pre-pregnancy BMI",
+    "tableGain": "Recommended total gain",
+    "bmiUnder": "Under {n}",
+    "bmiRange": "{min}–{max}",
+    "bmiOver": "{n} and over",
+    "gainRange": "{min}–{max} kg",
+    "yours": "Your group",
+    "baseline": {
+      "before_pregnancy": "Starting weight {w} kg, your last weight logged before pregnancy.",
+      "first_trimester": "Starting weight {w} kg, your first first-trimester weight (an estimate).",
+      "profile": "Starting weight {w} kg, from your profile (an estimate)."
+    },
+    "footnote": "Ranges are for a singleton pregnancy (IOM 2009). Tell your doctor about any sudden gain or loss, especially with swelling of the face and hands."
+  }
+}

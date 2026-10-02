@@ -1,5 +1,6 @@
 import type enAccount from '../messages/en/account.json';
 import type enAnalysis from '../messages/en/analysis.json';
+import type enAnalysisPregnancy from '../messages/en/analysis-pregnancy.json';
 import type enArticles from '../messages/en/articles.json';
 import type enAuth from '../messages/en/auth.json';
 import type enBanners from '../messages/en/banners.json';
@@ -69,6 +70,7 @@ type Messages = {
   notifications: typeof enNotifications;
   account: typeof enAccount;
   analysis: typeof enAnalysis;
+  analysisPregnancy: typeof enAnalysisPregnancy;
   log: typeof enLog;
   logPeriod: typeof enLogPeriod;
   logCustomize: typeof enLogCustomize;

@@ -1,0 +1,209 @@
+{
+  "pregnancy": {
+    "week": 22,
+    "weeks": 21,
+    "days": 3,
+    "trimester": 2,
+    "due_date": "2027-01-31",
+    "start_date": "2026-04-26"
+  },
+  "sections": {
+    "weight_gain": {
+      "plus": false,
+      "locked": false,
+      "ready": false,
+      "data": {
+        "missing": "height",
+        "baseline": {
+          "weight": 72,
+          "source": "profile",
+          "date": null
+        },
+        "height_cm": null,
+        "bmi": null,
+        "bmi_category": null,
+        "target": null,
+        "status": null,
+        "current": {
+          "date": "2026-09-21",
+          "ga_days": 148,
+          "week": 22,
+          "weight": 77,
+          "gain": 5,
+          "recommended": null
+        },
+        "recent_4w": 1.5,
+        "points": [
+          {
+            "date": "2026-08-24",
+            "ga_days": 120,
+            "week": 18,
+            "weight": 75.5,
+            "gain": 3.5
+          },
+          {
+            "date": "2026-09-08",
+            "ga_days": 135,
+            "week": 20,
+            "weight": 76.2,
+            "gain": 4.2
+          },
+          {
+            "date": "2026-09-21",
+            "ga_days": 148,
+            "week": 22,
+            "weight": 77,
+            "gain": 5
+          }
+        ],
+        "band": null,
+        "iom_table": [
+          {
+            "category": "underweight",
+            "bmi_min": null,
+            "bmi_max": 18.4,
+            "gain_min": 12.5,
+            "gain_max": 18
+          },
+          {
+            "category": "normal",
+            "bmi_min": 18.5,
+            "bmi_max": 24.9,
+            "gain_min": 11.5,
+            "gain_max": 16
+          },
+          {
+            "category": "overweight",
+            "bmi_min": 25,
+            "bmi_max": 29.9,
+            "gain_min": 7,
+            "gain_max": 11.5
+          },
+          {
+            "category": "obese",
+            "bmi_min": 30,
+            "bmi_max": null,
+            "gain_min": 5,
+            "gain_max": 9
+          }
+        ],
+        "singleton_only": true,
+        "source": "IOM 2009"
+      }
+    },
+    "blood_pressure": {
+      "plus": false,
+      "locked": false,
+      "ready": true,
+      "data": {
+        "readings_count": 2,
+        "high_count": 1,
+        "severe_count": 0,
+        "status": "high",
+        "latest": {
+          "date": "2026-09-21",
+          "systolic": 145,
+          "diastolic": 92
+        },
+        "readings": [
+          {
+            "date": "2026-08-24",
+            "systolic": 122,
+            "diastolic": 80,
+            "high": false
+          },
+          {
+            "date": "2026-09-21",
+            "systolic": 145,
+            "diastolic": 92,
+            "high": true
+          }
+        ],
+        "threshold": {
+          "systolic": 140,
+          "diastolic": 90
+        },
+        "severe_threshold": {
+          "systolic": 160,
+          "diastolic": 110
+        },
+        "source": "ACOG"
+      }
+    },
+    "glucose": {
+      "plus": true,
+      "locked": true,
+      "ready": false,
+      "data": null
+    },
+    "kicks": {
+      "plus": false,
+      "locked": false,
+      "ready": true,
+      "data": {
+        "days": [
+          {
+            "date": "2026-09-17",
+            "count": null,
+            "minutes_to_target": null
+          },
+          {
+            "date": "2026-09-18",
+            "count": null,
+            "minutes_to_target": null
+          },
+          {
+            "date": "2026-09-19",
+            "count": null,
+            "minutes_to_target": null
+          },
+          {
+            "date": "2026-09-20",
+            "count": null,
+            "minutes_to_target": null
+          },
+          {
+            "date": "2026-09-21",
+            "count": null,
+            "minutes_to_target": null
+          },
+          {
+            "date": "2026-09-22",
+            "count": 6,
+            "minutes_to_target": null
+          },
+          {
+            "date": "2026-09-23",
+            "count": null,
+            "minutes_to_target": null
+          }
+        ],
+        "sessions": 1,
+        "timed_sessions": 0,
+        "low_count_days": 1,
+        "all_within_window": null,
+        "target": 10,
+        "window_minutes": 120,
+        "from_week": 28,
+        "current_week": 22
+      }
+    },
+    "symptoms": {
+      "plus": true,
+      "locked": true,
+      "ready": false,
+      "data": null
+    },
+    "visits": {
+      "plus": false,
+      "locked": false,
+      "ready": false,
+      "data": {
+        "done": 0,
+        "upcoming": 0,
+        "next": null,
+        "latest_result": null
+      }
+    }
+  }
+}

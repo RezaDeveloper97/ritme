@@ -1,0 +1,39 @@
+# Pregnancy analysis (/api/v1/analysis/pregnancy) — Go only (B-N3-12): there is no Laravel route, so these goldens
+# were recorded from the Go server and reviewed by hand (new-endpoint skill, step 8). pregnant_ultrasound_w26 has
+# weekly logs (weeks 24–26: weight, BP 142/92 → high, fasting sugar), fetal movements and symptom logs but no
+# height / pre-pregnancy weight (→ weight_gain missing); pregnant_lmp_w8 has almost nothing. Free personas get the
+# Plus sections locked; a started trial opens them. The statistics on rich pregnancies are golden-tested in
+# internal/analysis/testdata/golden/preg_*.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: analysis-pregnancy
+defaults:
+  persona: pregnant_ultrasound_w26
+  locales: none
+cases:
+  - name: pregnancy
+    doc: Week 26 with weekly logs — BP high, glucose and symptoms locked (free), labels in the request language
+    persona: [pregnant_ultrasound_w26, pregnant_lmp_w8]
+    locales: [none, en]
+    method: GET
+    path: /api/v1/analysis/pregnancy
+    status: 200
+  - name: pregnancy_trial
+    doc: Start the trial → glucose targets and symptoms by trimester open
+    steps:
+      - method: POST
+        path: /api/v1/plus/trial/start
+        status: 200
+      - method: GET
+        path: /api/v1/analysis/pregnancy
+        status: 200
+  - name: pregnancy_not_active
+    doc: Not in pregnancy mode → 409 pregnancy_not_active
+    persona: regular
+    method: GET
+    path: /api/v1/analysis/pregnancy
+    status: 409
+  - name: pregnancy_anon
+    persona: anon
+    method: GET
+    path: /api/v1/analysis/pregnancy
+    status: 401

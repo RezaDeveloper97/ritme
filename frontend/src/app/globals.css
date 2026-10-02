@@ -8076,3 +8076,139 @@ button.ch-log-row { width: 100%; background: none; border: 0; font-family: inher
 .alb-cta:focus-visible { outline: none; box-shadow: var(--ring); }
 .alb-plus { margin: 0; display: inline-flex; align-items: center; flex-wrap: wrap; justify-content: center; gap: 8px; font-size: 12px; font-weight: 600; color: var(--text-2); }
 /* ═══ end B-N3-10 ═══ */
+
+/* ═══ B-N3-06 — pregnancy / postpartum log sheet presets (features/log-day ModePreset, nbl_/nbd_Log_Sheet_Preg|Post) ═══ */
+.mpre { display: flex; flex-direction: column; gap: 14px; }
+.mpre-sec { display: flex; flex-direction: column; gap: 6px; }
+.mpre-sec-title { margin: 0; padding: 0 4px; font-size: 11.5px; font-weight: 800; letter-spacing: .08em; color: var(--text-2); }
+.mpre-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); padding: 0 14px; }
+.mpre-card > * + * { border-block-start: 1px solid var(--line); }
+.mpre-row, .mpre-daily, .mpre-alert {
+  width: 100%; display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 0;
+  background: none; border: 0; color: var(--text-1); font-family: inherit; text-align: start; text-decoration: none; cursor: pointer;
+}
+.mpre-row.is-soon { cursor: default; }
+.mpre-row-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.mpre-row-title { font-size: 13.5px; font-weight: 800; color: var(--text-1); }
+.mpre-row-desc { font-size: 11px; font-weight: 600; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mpre-row-desc.is-logged { color: var(--brand-strong); font-weight: 700; }
+.mpre-plus, .mpre-chev { flex: none; color: var(--text-2); }
+.mpre-count {
+  flex: none; min-width: 22px; height: 22px; padding: 0 6px; border-radius: var(--r-pill); display: inline-flex; align-items: center;
+  justify-content: center; background: var(--brand-soft); color: var(--brand-ink); font-size: var(--fs-xs); font-weight: 800;
+}
+.mpre-group-body { display: flex; flex-direction: column; gap: 12px; padding: 4px 0 14px; }
+.mpre-sev .nb-scale-label { margin-block-end: 8px; font-size: 13px; }
+.mpre-sev + .mpre-sev { padding-block-start: 12px; border-block-start: 1px solid var(--line); }
+.mpre-more {
+  align-self: flex-start; display: inline-flex; align-items: center; min-height: 44px; padding: 0 2px; background: none; border: 0;
+  color: var(--brand-strong); font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer;
+}
+.mpre-alert {
+  padding: 12px 14px; border-radius: var(--r-card); border: 1px solid var(--period-line);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--period) 15%, transparent), var(--surface) 70%);
+}
+.mpre-alert-icon, .mpre-alert-plus { flex: none; color: var(--period); }
+.mpre-daily { padding: 10px 14px; border-radius: var(--r-card); border: 1px solid var(--line); background: var(--surface); }
+.mpre-row:focus-visible, .mpre-daily:focus-visible, .mpre-alert:focus-visible, .mpre-more:focus-visible {
+  outline: none; box-shadow: var(--ring); border-radius: 14px;
+}
+/* ═══ end B-N3-06 ═══ */
+
+/* ═══ B-N3-11 — TTC analysis hub + fertility detail (screens/analysis-ttc, An_Hub_TTC / An_Fertility).
+   Cards reuse the B-N3-08 `.an-*` card styles; `ttc-an-` = hub, `ttc-fx-` = /analysis/fertility. ═══ */
+.ttc-an-mode.nb-pill { min-block-size: 32px; padding-inline: 14px; border: 1.5px solid var(--warm); background: transparent; color: var(--warm-deep); font-size: 12px; font-weight: 800; }
+.ttc-an-hero {
+  display: flex; align-items: center; gap: 14px; padding: 18px 16px; border-radius: var(--r-card); border: 1px solid var(--line);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--warm) 18%, transparent), var(--surface) 70%);
+}
+.ttc-an-hero-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.ttc-an-hero-title { margin: 0; font-size: 15px; font-weight: 800; color: var(--text-1); }
+.ttc-an-hero-body { margin: 0; font-size: 12.5px; line-height: 1.9; font-weight: 600; color: var(--text-2); }
+.ttc-an-hero.is-due .ttc-an-hero-body { color: var(--text-1); }
+.ttc-an-ring { flex-shrink: 0; }
+.ttc-an-ring-num { display: block; font-family: var(--font-display); font-size: 30px; line-height: 1; color: var(--text-1); }
+.ttc-an-ring-unit { display: block; font-size: 11px; font-weight: 700; color: var(--text-2); }
+.ttc-an-spark { display: block; inline-size: 100%; }
+.ttc-an-pill.nb-pill { align-self: center; min-block-size: 32px; padding-inline: 14px; font-size: 12px; font-weight: 800; }
+.ttc-an-lh { display: flex; gap: 6px; direction: ltr; }
+.ttc-an-lh-cell { flex: 1 1 0; block-size: 28px; border-radius: 8px; background: var(--track); }
+.ttc-an-lh-cell.is-negative { background: color-mix(in srgb, var(--warm) 28%, var(--surface)); }
+.ttc-an-lh-cell.is-faint { background: color-mix(in srgb, var(--warm) 58%, var(--surface)); }
+.ttc-an-lh-cell.is-positive { background: var(--warm); }
+.an-strip-dots.ttc-an-dots { grid-template-columns: repeat(var(--an-days, 28), minmax(0, 1fr)); gap: 3px; max-inline-size: 100%; }
+.an-dot.ttc-an-sex { box-shadow: 0 0 0 2px var(--surface), 0 0 0 3.5px var(--brand); }
+.an-bars.ttc-an-bars .an-bars-row { block-size: 64px; }
+.ttc-an-teaser { display: flex; flex-direction: column; gap: 10px; min-block-size: 72px; }
+.an-stat.ttc-an-teaser { flex-direction: row; align-items: center; }
+.an-bars.ttc-an-bars .an-bars-labels > span { font-size: 11px; }
+
+.ttc-fx-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.ttc-fx-nav-title { font-size: 15px; font-weight: 800; color: var(--text-1); }
+.ttc-fx-step {
+  display: inline-flex; align-items: center; justify-content: center; inline-size: 44px; block-size: 44px; border-radius: 50%;
+  border: 1px solid var(--line); background: var(--surface-2); color: var(--text-1); cursor: pointer;
+}
+.ttc-fx-step:disabled { opacity: .4; cursor: default; }
+.ttc-fx-step:focus-visible { outline: none; box-shadow: var(--ring); }
+.ttc-fx-card.nb-card { padding: 14px 12px; }
+.ttc-fx-svg text { font-family: inherit; font-size: 9.5px; font-weight: 700; fill: var(--text-2); }
+.ttc-fx-grid { stroke: var(--line); stroke-width: 1; }
+.ttc-fx-band { fill: var(--warm-soft); }
+.ttc-fx-ov { stroke: var(--warm); stroke-width: 2; }
+.ttc-fx-svg .ttc-fx-ov-label { fill: var(--warm-deep); font-weight: 800; }
+.ttc-fx-cover { stroke: var(--data); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.ttc-fx-svg .ttc-fx-cover-label { fill: var(--data-deep); font-weight: 800; }
+.ttc-fx-line { fill: none; stroke: var(--brand); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.ttc-fx-pt { fill: var(--brand); }
+.ttc-fx-pt.is-high { fill: var(--data); stroke: var(--surface); stroke-width: 1.5; }
+.ttc-fx-cell { fill: var(--track); }
+.ttc-fx-cell.is-period { fill: var(--period); }
+.ttc-fx-cell.is-faint { fill: color-mix(in srgb, var(--warm) 55%, var(--surface)); }
+.ttc-fx-cell.is-positive { fill: var(--warm); }
+.ttc-fx-sex { fill: var(--bloom); }
+.ttc-fx-how { margin: 0; font-size: 13px; line-height: 2; font-weight: 600; color: var(--text-2); }
+/* ═══ end B-N3-11 ═══ */
+
+/* ═══ B-N3-12 — pregnancy analysis hub + weight gain (screens/analysis-pregnancy `apg-`) ═══ */
+.apg-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.apg-week {
+  display: inline-flex; align-items: center; min-block-size: 32px; padding: 0 14px; border-radius: 16px;
+  border: 1.5px solid var(--bloom); color: var(--bloom-deep); font-size: 12.5px; font-weight: 800; white-space: nowrap;
+}
+.apg-gain-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; }
+.apg-gain-num { font-family: var(--font-display); font-size: 36px; line-height: 1; color: var(--text-1); }
+.apg-gain-band { fill: color-mix(in srgb, var(--data) 22%, transparent); }
+.apg-line { margin: 0; font-size: 12.5px; line-height: 1.9; font-weight: 600; color: var(--text-2); }
+.apg-line.is-alert { color: var(--warm-deep); font-weight: 700; }
+.apg-tiles { margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.apg-tile {
+  display: flex; flex-direction: column; align-items: center; gap: 4px; min-block-size: 76px; padding: 10px 6px;
+  border-radius: 16px; text-align: center;
+}
+.apg-tile.is-data { background: var(--data-soft); }
+.apg-tile.is-warm { background: var(--warm-soft); }
+.apg-tile.is-plain { align-items: flex-start; text-align: start; border: 1px solid var(--line); padding: 10px 12px; }
+.apg-tile.is-plain.is-current { border-color: var(--brand); }
+.apg-tile dd { margin: 0; }
+.apg-tile-label { font-size: 11px; font-weight: 700; color: var(--text-2); }
+.apg-tile-value { font-size: 18px; font-weight: 800; color: var(--text-1); }
+.apg-tile-sub { font-size: 10.5px; font-weight: 700; color: var(--text-2); }
+.apg-tile-item { font-size: 12.5px; font-weight: 800; line-height: 1.6; color: var(--text-1); }
+.apg-tile-muted { font-size: 11.5px; font-weight: 600; color: var(--text-3); }
+.apg-tile.apg-teaser { background: var(--surface-3); }
+.apg-chart-card.nb-card { gap: 10px; }
+.apg-legend { justify-content: flex-start; gap: 6px 16px; }
+.apg-legend > li { color: var(--nb-tone-ink); }
+.apg-legend-bar { inline-size: 14px; block-size: 6px; border-radius: 3px; background: var(--nb-tone); }
+.apg-table-card.nb-card { padding: 6px 16px; }
+.apg-table { inline-size: 100%; border-collapse: collapse; }
+.apg-table th, .apg-table td { padding: 0; text-align: start; }
+.apg-table thead th { block-size: 52px; font-size: 12px; font-weight: 700; color: var(--text-2); border-block-end: 1px solid var(--line); }
+.apg-table tbody tr + tr > * { border-block-start: 1px solid var(--line); }
+.apg-table tbody > tr > * { block-size: 54px; font-size: 13.5px; font-weight: 700; color: var(--text-1); }
+.apg-table tbody > tr.is-mine > * { color: var(--data-deep); font-weight: 800; }
+.apg-baseline { padding-inline: 4px; }
+.apg-bp-threshold { stroke: var(--warm); stroke-width: 1.5; stroke-dasharray: 5 4; opacity: .8; }
+.apg-bp-high { fill: var(--warm); stroke: var(--surface); stroke-width: 2; }
+/* ═══ end B-N3-12 ═══ */

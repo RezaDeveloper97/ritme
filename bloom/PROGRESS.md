@@ -653,3 +653,22 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
 - `internal/companion` service: CreateInvite / RenewInvite / Accept / Revoke / SetGrants / SetSharedChildren / List* /
   Level / CanRead / CanWrite / Audit — unit + int tests (expiry, one-time + concurrent accept, grant matrix, revoke).
   No HTTP yet (B-N4-02). D-47 proposed. QUESTIONS #91.
+
+## B-N3-12 — Pregnancy analysis hub and weight-gain screen
+
+- `GET /api/v1/analysis/pregnancy` (409 `pregnancy_not_active` outside pregnancy): sections weight_gain (IOM 2009
+  singleton bands by pre-pregnancy BMI, weekly piecewise band, estimated baseline with source), blood_pressure
+  (≥140/90 high, ≥160/110 severe — ACOG PB 222), glucose (Plus; ADA 2024 targets), kicks (10 in 120 min from week 28),
+  symptoms by trimester (Plus), visits. Thresholds with sources in `internal/analysis/pregnancy_thresholds.go`, echoed
+  in the payload. Engine + contract goldens; D-46 proposed.
+- Frontend `screens/analysis-pregnancy` (hub + `/analysis/pregnancy-weight`), wired into `/analysis` for pregnancy
+  mode; namespace `analysis-pregnancy`. Screenshots `docs/qa/bloom/B-N3-12/` (QA user 09900000121). QUESTIONS #92.
+
+## B-N3-11 — TTC analysis hub and BBT/ovulation confirmation
+
+- `GET /api/v1/analysis/ttc` (trying cycles/months, referral by age ASRM 2020 / ACOG 781, free bbt/lh/regularity,
+  Plus timing/mucus/luteal) and `GET /api/v1/analysis/fertility[?cycle=]` (chart, coverline, three-over-six highs via
+  the existing `internal/fertility/bbt`, window, ovulation source, LH, intercourse, luteal). LH/mucus merged from
+  `fertility_logs` + `health_log_entries`. 11 engine + 17 contract goldens; D-45 proposed.
+- Frontend `screens/analysis-ttc` (TTC hub via `AnalysisPage` `ttcHub` slot, `/analysis/fertility` with BBT chart).
+  Screenshots `docs/qa/bloom/B-N3-11/`. persona 12 got 71 days of TTC logs on ritme_dev. QUESTIONS #93.

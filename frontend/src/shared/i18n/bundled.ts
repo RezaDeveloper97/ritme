@@ -2,6 +2,7 @@ import type { AbstractIntlMessages } from 'next-intl';
 
 import enAccount from '../../../messages/en/account.json';
 import enAnalysis from '../../../messages/en/analysis.json';
+import enAnalysisPregnancy from '../../../messages/en/analysis-pregnancy.json';
 import enArticles from '../../../messages/en/articles.json';
 import enAuth from '../../../messages/en/auth.json';
 import enBanners from '../../../messages/en/banners.json';
@@ -40,6 +41,7 @@ import enSearch from '../../../messages/en/search.json';
 import enPlus from '../../../messages/en/plus.json';
 import faAccount from '../../../messages/fa/account.json';
 import faAnalysis from '../../../messages/fa/analysis.json';
+import faAnalysisPregnancy from '../../../messages/fa/analysis-pregnancy.json';
 import faArticles from '../../../messages/fa/articles.json';
 import faAuth from '../../../messages/fa/auth.json';
 import faBanners from '../../../messages/fa/banners.json';
@@ -142,6 +144,7 @@ const bundled = {
     notifications: faNotifications,
     account: faAccount,
     analysis: faAnalysis,
+    analysisPregnancy: faAnalysisPregnancy,
     log: faLog,
     logPeriod: faLogPeriod,
     logCustomize: faLogCustomize,
@@ -182,6 +185,7 @@ const bundled = {
     notifications: enNotifications,
     account: enAccount,
     analysis: enAnalysis,
+    analysisPregnancy: enAnalysisPregnancy,
     log: enLog,
     logPeriod: enLogPeriod,
     logCustomize: enLogCustomize,

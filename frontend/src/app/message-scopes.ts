@@ -71,7 +71,7 @@ export const ROUTE_NAMESPACES = {
   plusSuccess: ['common', 'plus'], // B-N2-07 /plus/success + gateway return /plus/return
   plusManage: ['common', 'plus'], // B-N2-07 /plus/manage
   pregnancy: ['care', 'common', 'nav', 'pregnancyV2', 'search'], // CB-NAV-02 header search button
-  pregnancyLog: [...PREGNANCY, 'pregnancyV2'],
+  pregnancyLog: [...PREGNANCY, 'logSheet', 'plus', 'pregnancyV2', 'voiceLog'], // B-N3-06: default tab = log sheet v2 (pregnancy preset)
   pregnancyWeek: ['common', 'nav', 'pregnancyV2'],
   pregnancyAlerts: ['common', 'nav', 'pregnancyV2'],
   pregnancyCalendar: ['care', 'common', 'nav', 'pregnancyV2'],
@@ -93,6 +93,8 @@ export const ROUTE_NAMESPACES = {
   menopauseScore: ['common', 'menopause', 'nav'], // CB-MENO-08 /menopause/score (menopause tab «علائم», bottom nav)
   menopauseScoreQuestionnaire: ['common', 'menopause', 'nav'], // CB-MENO-08 /menopause/score/questionnaire (form, no nav; same screen slice as /menopause/score)
   analysis: ['analysis', 'common', 'nav', 'plus'], // B-N3-08 /analysis hub + /analysis/* stubs (one screen slice; PlusGate copy = plus.gate)
+  analysisHub: ['analysis', 'analysisPregnancy', 'common', 'nav', 'plus'], // B-N3-12 /analysis itself: + the pregnancy hub (screens/analysis-pregnancy)
+  analysisPregnancyWeight: ['analysisPregnancy', 'common', 'nav', 'plus'], // B-N3-12 /analysis/pregnancy-weight (An_PregWeight; the slice's hub cards carry plus.gate)
   analysisReport: ['analysis', 'common', 'nav'], // B-N3-09 /analysis/{cycle,period,symptoms,body} (no Plus gate; correlations keeps `analysis`)
   fertilityLog: ['common', 'fertility'],
   fertilityBbt: ['common', 'fertility'],
