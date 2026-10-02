@@ -1,0 +1,20 @@
+{
+    "messages": {
+        "validation_failed": "اطلاعات وارد شده معتبر نیست",
+        "profile_saved": "ذخیره شد. جواب‌هایت مال خودت است.",
+        "note_saved": "یادداشتت ذخیره شد",
+        "kit_saved": "فهرست کیفت به‌روز شد",
+        "kit_item_not_found": "این مورد کیف پیدا نشد",
+        "profile_required": "اول به سؤال‌های اول جواب بده."
+    },
+    "validation": {
+        "age_band_invalid": "سنت را انتخاب کن.",
+        "menarche_invalid": "یک گزینه را انتخاب کن."
+    },
+    "attributes": {
+        "age_band": "سن",
+        "menarche": "اولین پریود",
+        "note": "یادداشت",
+        "checked": "انتخاب"
+    }
+}

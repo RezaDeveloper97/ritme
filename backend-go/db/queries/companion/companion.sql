@@ -107,8 +107,9 @@ WHERE c.companion_user_id = ? AND c.status = 'active'
 ORDER BY g.id;
 
 -- name: GetAccess :one
--- The viewer's level on one section of the owner's data through an active link (no row = none).
-SELECT c.id AS companion_id, g.level FROM `companions` c
+-- The viewer's level on one section of the owner's data through an active link (no row = none), with the link type
+-- (Go refuses a section the type may not hold — CB-TEEN-01 parent links).
+SELECT c.id AS companion_id, c.type, g.level FROM `companions` c
 JOIN `companion_grants` g ON g.companion_id = c.id AND g.section = sqlc.arg(section)
 WHERE c.owner_id = sqlc.arg(owner_id) AND c.companion_user_id = sqlc.arg(viewer_id) AND c.status = 'active'
 ORDER BY c.id
@@ -176,3 +177,7 @@ WHERE c.owner_id = sqlc.arg(owner_id) AND n.`type` = 'companion'
 INSERT INTO `user_notifications` (user_id, type, title, body, action_url, data, created_at, updated_at)
 VALUES (sqlc.arg(user_id), sqlc.arg(type), sqlc.arg(title), sqlc.arg(body), sqlc.arg(action_url), sqlc.arg(data),
   sqlc.arg(now), sqlc.arg(now));
+
+-- name: GetUserLifeMode :one
+-- The owner's stored life-stage mode (CB-TEEN-01: only a teen invites a parent, a teen invites nobody else).
+SELECT life_mode FROM `user_life_profiles` WHERE user_id = ? LIMIT 1;

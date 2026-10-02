@@ -1,0 +1,20 @@
+{
+    "messages": {
+        "validation_failed": "Validation failed",
+        "profile_saved": "Saved. Your answers stay yours.",
+        "note_saved": "Your note was saved",
+        "kit_saved": "Your kit list was updated",
+        "kit_item_not_found": "This kit item was not found",
+        "profile_required": "Answer the first questions first."
+    },
+    "validation": {
+        "age_band_invalid": "Choose your age.",
+        "menarche_invalid": "Choose an answer."
+    },
+    "attributes": {
+        "age_band": "age",
+        "menarche": "first period",
+        "note": "note",
+        "checked": "checked"
+    }
+}

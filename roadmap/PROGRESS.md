@@ -264,3 +264,12 @@ TODO (ask user):
 - Verify: sqlc, vet, go test ./..., golangci-lint 0, int loss/pregnancy/messages/companion/care/http/profile/migrations, OpenAPI, contract all, schema-diff OK.
 - Open: `/pregnancy/status` and `/pregnancy/content/{week}` still answer (Laravel parity); no push sender; admin hints for loss_*; no docs/canvas-build/loss.md; not in export; private follow-ups stay in her care list after DELETE /loss.
 - TODO (ask user): see QUESTIONS (always stop content; meds paused vs visits cancelled; next step "nothing" → cycle; companion notice needs pregnancy grant; all clinical copy [needs clinical review]).
+
+## CB-TEEN-01 — Teen backend: profile, kit, content, parent grant type
+- Routes (Go-only, auth:api, throttled writes; D-53; OpenAPI tag `Teen`): `GET|PUT /api/v1/teen/profile` (age band 10_12|13_15|16_17, menarche), `GET /teen/today` (readiness, signs, when-to-talk, kit, FAQ, parent preview, links), `PUT /teen/kit/{code}`, `PUT /teen/parent-note` (≤280), `GET /teen/linked` (parent's read-only cards). Parent invite/grants/revoke via bloom's `/companions` with `type: parent`.
+- Goose `00029_teen` (+ twin `2026_10_02_000029`): `teen_profiles`, `teen_kit_checks`; catalog `teen_signs` 8, `teen_faq` 5, `teen_kit_items` 4 (audience teen, needs_review).
+- Parent grant (companion package extended, no schema change): only a teen-mode owner may invite, only a parent, phone required; parent link holds only `teen_period_week` (bucket, never a date; overdue >3 days rolls forward — no lateness leak), `teen_kit`, `teen_notes` (teen-written note only), view-only; section/delegated-care paths 404/refused for parent links; tampered grants ignored; rule re-checked on Accept/RenewInvite; cards only while the owner is still teen. Teen accounts: no banners, Plus `trial_offer` null, trial/start + checkout 403 `teen_commercial_blocked`.
+- security-auditor: 1 High (lateness leak), 1 Medium (Plus for teens), 3 Low — all fixed in the landing commit; L4 (audit-row growth) and L5 (GetAccess LIMIT 1 before type filter) left as notes.
+- Verify: sqlc, vet, go test ./..., golangci-lint 0, int teen/companion/plus/http/content/home/migrations, OpenAPI, contract all, schema-diff OK.
+- Open: admin hints for teen_signs meta; teen data not in export; frontend must PUT /profile/life-stage before teen onboarding.
+- TODO (ask user): auto-revoke partner/spouse links when switching to teen? commercial gate keyed on mode not age band; «مادرت یا پزشک» wording; all 17 catalog rows [needs clinical review].

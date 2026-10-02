@@ -1,0 +1,121 @@
+{
+  "case": "teen/today_no_profile.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/teen/today",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "profile": null,
+          "needs_onboarding": true,
+          "is_teen_mode": false,
+          "allows": {
+            "shop": true,
+            "banners": true,
+            "ads": true,
+            "plus_upsell": true,
+            "commercial_recommendations": true
+          },
+          "readiness": null,
+          "signs": [],
+          "talk_note": {
+            "code": "when_to_talk",
+            "title": "کی با مادرت یا پزشک صحبت کنی",
+            "body": "اگر تا ۱۵ سالگی پریود نشدی، یا درد و خونریزی خیلی زیاد داری، با مادرت یا پزشک صحبت کن.",
+            "meta": {
+              "kind": "talk"
+            },
+            "needs_review": true
+          },
+          "kit": {
+            "items": [
+              {
+                "code": "pads",
+                "title": "۲ نوار بهداشتی",
+                "body": null,
+                "needs_review": true,
+                "checked": false
+              },
+              {
+                "code": "underwear",
+                "title": "یک لباس زیر اضافه",
+                "body": null,
+                "needs_review": true,
+                "checked": false
+              },
+              {
+                "code": "wipes",
+                "title": "دستمال مرطوب",
+                "body": null,
+                "needs_review": true,
+                "checked": false
+              },
+              {
+                "code": "pouch",
+                "title": "کیسه کوچک",
+                "body": null,
+                "needs_review": true,
+                "checked": false
+              }
+            ],
+            "checked_count": 0,
+            "total": 4,
+            "ready": false
+          },
+          "faq": [
+            {
+              "code": "irregular",
+              "title": "پریودم نامنظم است، مشکلی دارد؟",
+              "body": "در ۱ تا ۲ سال اول نامنظم بودن خیلی شایع و طبیعی است.",
+              "meta": null,
+              "needs_review": true
+            },
+            {
+              "code": "how_much_bleeding",
+              "title": "چقدر خونریزی طبیعی است؟",
+              "body": "معمولاً ۳ تا ۷ روز. اگر هر ساعت نوار پر می‌شود، به مادرت یا پزشک بگو.",
+              "meta": null,
+              "needs_review": true
+            },
+            {
+              "code": "period_pain",
+              "title": "درد پریود چه کنم؟",
+              "body": "گرما روی شکم، کمی تحرک و مسکن ساده با اجازه بزرگ‌ترها کمک می‌کند.",
+              "meta": null,
+              "needs_review": true
+            },
+            {
+              "code": "pad_change",
+              "title": "هر چند وقت نوار را عوض کنم؟",
+              "body": "معمولاً هر ۴ تا ۶ ساعت، یا زودتر اگر پر شده است.",
+              "meta": null,
+              "needs_review": true
+            },
+            {
+              "code": "sports",
+              "title": "در پریود می‌توانم ورزش کنم؟",
+              "body": "بله. ورزش سبک حتی ممکن است درد را کمتر کند.",
+              "meta": null,
+              "needs_review": true
+            }
+          ],
+          "parent_preview": {
+            "next_period_week": "unknown",
+            "kit_ready": false,
+            "note": null
+          },
+          "parent_links": []
+        }
+      }
+    }
+  ]
+}

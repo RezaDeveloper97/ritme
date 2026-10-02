@@ -29,6 +29,12 @@ const (
 	ErrorCodeSpouseExists     = "spouse_exists"
 	ErrorCodeNotPending       = "not_pending"
 	ErrorCodeTooManyAttempts  = "too_many_requests"
+	// ErrorCodeParentNeedsTeen: a parent invite from an owner who is not in teen mode (CB-TEEN-01).
+	ErrorCodeParentNeedsTeen = "parent_needs_teen"
+	// ErrorCodeTeenParentOnly: a teen-mode owner tried to invite a partner or spouse (CB-TEEN-01).
+	ErrorCodeTeenParentOnly = "teen_parent_only"
+	// ErrorCodeInviteNotAllowed: accept refused because the owner's life mode no longer allows the link type.
+	ErrorCodeInviteNotAllowed = "invite_not_allowed"
 )
 
 // MaxAuditEntries caps GET /companions/audit.
@@ -179,7 +185,7 @@ func (h *Handlers) Store(c fiber.Ctx) error {
 		return failValidation(locale, v.ErrorBag())
 	}
 	in := InviteInput{Type: Type(str(body, "type")), DisplayName: str(body, "display_name"), Phone: str(body, "phone")}
-	if in.Grants, err = parseGrants(locale, body); err != nil {
+	if in.Grants, err = parseGrants(locale, body, in.Type); err != nil {
 		return err
 	}
 	if in.ChildIDs, err = h.childIDs(c, ownerID, body); err != nil {
@@ -257,11 +263,15 @@ func (h *Handlers) UpdateGrants(c fiber.Ctx) error {
 	if v.Fails() {
 		return failValidation(locale, v.ErrorBag())
 	}
-	grants, err := parseGrants(locale, body)
+	svc := h.svc(c)
+	cur, err := svc.OwnerLink(c.Context(), ownerID, id)
+	if err != nil {
+		return mapError(locale, err)
+	}
+	grants, err := parseGrants(locale, body, cur.Type)
 	if err != nil {
 		return err
 	}
-	svc := h.svc(c)
 	if _, err := svc.SetGrants(c.Context(), ownerID, id, grants); err != nil {
 		return mapError(locale, err)
 	}
@@ -400,6 +410,11 @@ func (h *Handlers) Accept(c fiber.Ctx) error {
 	}
 	svc := h.svc(c)
 	link, err := svc.Accept(c.Context(), viewerID, str(body, "code"))
+	if errors.Is(err, ErrInviteNotAllowed) {
+		msg := T("messages.invite_not_allowed", locale)
+		return httpx.Fail(fiber.StatusUnprocessableEntity, msg, "errors", jsonx.Obj("code", []string{msg}),
+			"error_code", ErrorCodeInviteNotAllowed)
+	}
 	if err != nil {
 		if isInviteRefusal(err) {
 			msg := T("messages.invite_invalid", locale)
@@ -468,8 +483,10 @@ func (h *Handlers) Leave(c fiber.Ctx) error {
 }
 
 // Section is GET /companions/links/{id}/sections/{section}: the access-filtered view of one section of the owner's
-// data. 404 when the caller is not the active companion of that link (or the section is unknown), 403
-// section_not_shared without a view/edit grant. Every successful read is audited before the data is built.
+// data. 404 when the caller is not the active companion of that link (or the section is unknown, or not one the link
+// type may hold), 403 section_not_shared without a view/edit grant. A parent link (CB-TEEN-01) has no section reads
+// at all: its only view is the teen card (GET /teen/linked). Every successful read is audited before the data is
+// built.
 func (h *Handlers) Section(c fiber.Ctx) error {
 	viewerID, err := currentUser(c)
 	if err != nil {
@@ -485,6 +502,9 @@ func (h *Handlers) Section(c fiber.Ctx) error {
 	link, err := svc.CompanionLink(c.Context(), viewerID, id)
 	if err != nil {
 		return mapError(locale, err)
+	}
+	if link.Type == TypeParent || !section.AllowedFor(link.Type) {
+		return notFoundErr(locale)
 	}
 	level, err := svc.Level(c.Context(), link.OwnerID, viewerID, section)
 	if err != nil {
@@ -573,8 +593,10 @@ func (h *Handlers) childIDs(c fiber.Ctx, ownerID uint64, body phpval.Map) ([]uin
 	return ids, nil
 }
 
-// parseGrants reads {grants: {section: none|view|edit}}. Unknown sections or levels are a 422 on grants.<key>.
-func parseGrants(locale string, body phpval.Map) (Grants, error) {
+// parseGrants reads {grants: {section: none|view|edit}} for a link of type t. Unknown sections, sections the type may
+// not hold (a parent link: only the teen sections; others: never them) and levels the section does not permit (teen
+// sections: view only) are a 422 on grants.<key>.
+func parseGrants(locale string, body phpval.Map, t Type) (Grants, error) {
 	out := Grants{}
 	raw, _ := body.Get("grants")
 	if raw == nil {
@@ -583,13 +605,16 @@ func parseGrants(locale string, body phpval.Map) (Grants, error) {
 	keys, vals := phpval.Entries(raw)
 	for i, k := range keys {
 		s := Section(k)
-		if !s.Valid() {
+		if !s.AllowedFor(t) {
 			return nil, fieldError(locale, "grants."+k, T("validation.section_invalid", locale))
 		}
 		lv, isStr := vals[i].(string)
 		l := Level(lv)
 		if !isStr || !l.Valid() {
 			return nil, fieldError(locale, "grants."+k, T("validation.level_invalid", locale))
+		}
+		if !s.Permits(l) {
+			return nil, fieldError(locale, "grants."+k, T("validation.level_view_only", locale))
 		}
 		if l != LevelNone {
 			out[s] = l
@@ -617,6 +642,8 @@ func mapError(locale string, err error) error {
 		return fieldError(locale, "type", T("validation.type_invalid", locale))
 	case errors.Is(err, ErrInvalidPhone):
 		return fieldError(locale, "phone", T("validation.phone_invalid", locale))
+	case errors.Is(err, ErrPhoneRequired):
+		return fieldError(locale, "phone", T("validation.phone_required_parent", locale))
 	case errors.Is(err, ErrInvalidName):
 		return fieldError(locale, "display_name", T("validation.name_too_long", locale))
 	case errors.Is(err, ErrInvalidSection), errors.Is(err, ErrInvalidLevel):
@@ -631,6 +658,10 @@ func mapError(locale string, err error) error {
 		return coded(locale, "messages.spouse_exists", ErrorCodeSpouseExists)
 	case errors.Is(err, ErrNotPending):
 		return coded(locale, "messages.not_pending", ErrorCodeNotPending)
+	case errors.Is(err, ErrParentNeedsTeen):
+		return coded(locale, "messages.parent_needs_teen", ErrorCodeParentNeedsTeen)
+	case errors.Is(err, ErrTeenParentOnly):
+		return coded(locale, "messages.teen_parent_only", ErrorCodeTeenParentOnly)
 	}
 	return err
 }
@@ -703,9 +734,10 @@ func MaskMobile(m string) string {
 	return m[:4] + "****" + m[len(m)-3:]
 }
 
-func grantsJSON(g Grants) *jsonx.OrderedMap {
+// grantsJSON lists every section the link type may hold (partner / spouse: the regular five; parent: the teen three).
+func grantsJSON(g Grants, t Type) *jsonx.OrderedMap {
 	out := jsonx.NewObject()
-	for _, s := range Sections {
+	for _, s := range SectionsFor(t) {
 		out.Set(string(s), string(g.Of(s)))
 	}
 	return out
@@ -740,7 +772,7 @@ func ownerLinkJSON(l Link, names map[uint64]string) *jsonx.OrderedMap {
 		"name", nullable(name),
 		"invited_at", isoTime(l.InvitedAt),
 		"accepted_at", isoTime(l.AcceptedAt),
-		"grants", grantsJSON(l.Grants),
+		"grants", grantsJSON(l.Grants, l.Type),
 		"invite", invite,
 		"family", family,
 	)
@@ -767,7 +799,7 @@ func companionLinkJSON(l Link, names map[uint64]string) *jsonx.OrderedMap {
 		"type", string(l.Type),
 		"owner", jsonx.Obj("id", l.OwnerID, "name", nullable(names[l.OwnerID])),
 		"accepted_at", isoTime(l.AcceptedAt),
-		"grants", grantsJSON(l.Grants),
+		"grants", grantsJSON(l.Grants, l.Type),
 		"can_record_for", recordFor,
 		"family", family,
 	)

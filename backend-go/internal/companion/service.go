@@ -14,6 +14,7 @@ import (
 	"github.com/go-sql-driver/mysql"
 
 	"github.com/ritme/backend-go/internal/companion/store"
+	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/clock"
 )
@@ -178,6 +179,9 @@ func validateInput(in *InviteInput) error {
 	if utf8.RuneCountInString(in.DisplayName) > maxDisplayName {
 		return ErrInvalidName
 	}
+	if in.Type == TypeParent && strings.TrimSpace(in.Phone) == "" {
+		return ErrPhoneRequired // a minor's card goes only to the account with that number
+	}
 	if in.Phone != "" {
 		m, ok := NormalizeMobile(in.Phone)
 		if !ok {
@@ -185,7 +189,7 @@ func validateInput(in *InviteInput) error {
 		}
 		in.Phone = m
 	}
-	if err := in.Grants.Validate(); err != nil {
+	if err := in.Grants.ValidateFor(in.Type); err != nil {
 		return err
 	}
 	if len(in.ChildIDs) > 0 && in.Type != TypeSpouse {
@@ -204,6 +208,9 @@ func (s *Service) CreateInvite(ctx context.Context, ownerID uint64, in InviteInp
 	var out CreatedInvite
 	err := s.inTx(ctx, func(q *store.Queries) error {
 		if err := lockOwner(ctx, q, ownerID); err != nil {
+			return err
+		}
+		if err := checkTeenRule(ctx, q, ownerID, in.Type); err != nil {
 			return err
 		}
 		if in.Phone != "" {
@@ -238,7 +245,7 @@ func (s *Service) CreateInvite(ctx context.Context, ownerID uint64, in InviteInp
 			return fmt.Errorf("companion: create: %w", err)
 		}
 		cid := uint64(id) //nolint:gosec // AUTO_INCREMENT ids are positive
-		if err := writeGrants(ctx, q, cid, in.Grants, now); err != nil {
+		if err := writeGrants(ctx, q, cid, in.Type, in.Grants, now); err != nil {
 			return err
 		}
 		if in.Type == TypeSpouse {
@@ -292,6 +299,9 @@ func (s *Service) RenewInvite(ctx context.Context, ownerID, companionID uint64, 
 		}
 		if Status(c.Status) != StatusInvited {
 			return ErrNotPending
+		}
+		if err := checkTeenRule(ctx, q, ownerID, Type(c.Type)); err != nil {
+			return err // the owner's mode changed since the invite (CB-TEEN-01)
 		}
 		if phone == "" {
 			phone, err = latestPhone(ctx, q, ownerID, companionID)
@@ -404,6 +414,11 @@ func (s *Service) Accept(ctx context.Context, viewerID uint64, typed string) (Li
 		if Status(c.Status) != StatusInvited {
 			return ErrInviteUsed
 		}
+		if err := checkTeenRule(ctx, q, inv.OwnerID, Type(c.Type)); err != nil {
+			// The owner's mode changed since the invite (CB-TEEN-01): a partner / spouse invite of an owner now in
+			// teen mode, or a parent invite of one who left it, cannot be accepted. Not a failed attempt.
+			return ErrInviteNotAllowed
+		}
 		linked, err := q.CountOpenLinks(ctx, store.CountOpenLinksParams{OwnerID: inv.OwnerID, CompanionUserID: nid(viewerID)})
 		if err != nil {
 			return fmt.Errorf("companion: links: %w", err)
@@ -492,7 +507,8 @@ func (s *Service) Revoke(ctx context.Context, actorID, companionID uint64) error
 }
 
 // SetGrants replaces the grants of an owner's invited or active link: sections missing from grants (or set to none)
-// lose access.
+// lose access. The grants must fit the link type (Grants.ValidateFor: a parent link holds only view grants on the
+// teen sections).
 func (s *Service) SetGrants(ctx context.Context, ownerID, companionID uint64, grants Grants) (Link, error) {
 	if err := grants.Validate(); err != nil {
 		return Link{}, err
@@ -507,10 +523,13 @@ func (s *Service) SetGrants(ctx context.Context, ownerID, companionID uint64, gr
 		if err != nil || c.OwnerID != ownerID || Status(c.Status) == StatusRevoked {
 			return notFound(err)
 		}
+		if err := grants.ValidateFor(Type(c.Type)); err != nil {
+			return err
+		}
 		if err := q.DeleteGrants(ctx, c.ID); err != nil {
 			return fmt.Errorf("companion: delete grants: %w", err)
 		}
-		if err := writeGrants(ctx, q, c.ID, grants, now); err != nil {
+		if err := writeGrants(ctx, q, c.ID, Type(c.Type), grants, now); err != nil {
 			return err
 		}
 		if err := audit(ctx, q, ownerID, ownerID, c.ID, "", ActionGrantsChanged, now); err != nil {
@@ -634,10 +653,14 @@ func (s *Service) access(ctx context.Context, ownerID, viewerID uint64, section 
 	if err != nil {
 		return LevelNone, 0, fmt.Errorf("companion: access: %w", err)
 	}
-	if l := Level(row.Level); l.Valid() {
-		return l, row.CompanionID, nil
+	l := Level(row.Level)
+	if !l.Valid() || !section.AllowedFor(Type(row.Type)) {
+		return LevelNone, 0, nil // defence in depth: a grant the link type may not hold is no grant
 	}
-	return LevelNone, 0, nil
+	if !section.Permits(l) {
+		l = section.MaxLevel() // a teen section is never writable, whatever is stored
+	}
+	return l, row.CompanionID, nil
 }
 
 // CanRead reports whether viewerID may read the section of ownerID's data.
@@ -693,8 +716,25 @@ func audit(ctx context.Context, q *store.Queries, ownerID, actorID, companionID 
 	return nil
 }
 
-func writeGrants(ctx context.Context, q *store.Queries, companionID uint64, grants Grants, now time.Time) error {
-	for _, sec := range Sections { // stable order
+// checkTeenRule enforces the teen ↔ parent rule (CB-TEEN-01) under the owner lock: only an owner whose stored life mode
+// is teen may invite a parent, and such an owner (a minor) may invite nobody else.
+func checkTeenRule(ctx context.Context, q *store.Queries, ownerID uint64, t Type) error {
+	mode, err := q.GetUserLifeMode(ctx, ownerID)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("companion: life mode: %w", err)
+	}
+	teen := mode.Valid && mode.String == string(enums.LifeModeTeen)
+	switch {
+	case t == TypeParent && !teen:
+		return ErrParentNeedsTeen
+	case t != TypeParent && teen:
+		return ErrTeenParentOnly
+	}
+	return nil
+}
+
+func writeGrants(ctx context.Context, q *store.Queries, companionID uint64, t Type, grants Grants, now time.Time) error {
+	for _, sec := range SectionsFor(t) { // stable order; grants were validated for the type
 		l := grants.Of(sec)
 		if l == LevelNone {
 			continue
@@ -720,7 +760,7 @@ func toLink(c store.Companion, grants []store.CompanionGrant) Link {
 		InvitedAt: c.InvitedAt.Time, AcceptedAt: c.AcceptedAt.Time, Grants: Grants{},
 	}
 	for _, g := range grants {
-		if g.CompanionID == c.ID && Section(g.Section).Valid() && Level(g.Level).Valid() {
+		if g.CompanionID == c.ID && Section(g.Section).AllowedFor(l.Type) && Level(g.Level).Valid() {
 			l.Grants[Section(g.Section)] = Level(g.Level)
 		}
 	}

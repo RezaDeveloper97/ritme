@@ -16,6 +16,7 @@ import (
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/httpx"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
+	"github.com/ritme/backend-go/internal/teen"
 )
 
 const (
@@ -119,7 +120,8 @@ func (o CycleOverview) JSON() *jsonx.OrderedMap {
 }
 
 // CycleOverview is GET /home/cycle-overview: the current user's own rows only (no id parameter), plus the Ritme
-// Plus trial banner (`plus_trial_offer`, null when no trial offer runs; B-N2-06).
+// Plus trial banner (`plus_trial_offer`, null when no trial offer runs; B-N2-06; always null for a teen-mode account,
+// CB-TEEN-01).
 func (h *Handlers) CycleOverview(c fiber.Ctx) error {
 	user, err := currentUser(c)
 	if err != nil {
@@ -138,7 +140,7 @@ func (h *Handlers) CycleOverview(c fiber.Ctx) error {
 		dates = append(dates, r.LogDate)
 	}
 	var banner any
-	if h.deps.Plus != nil {
+	if h.deps.Plus != nil && teen.AllowsCommercial(sn.LifeMode) { // CB-TEEN-01: no Plus upsell for a teen-mode account
 		if banner, err = h.deps.Plus.TrialBannerJSON(c.Context(), user.ID, h.now(c), i18n.Locale(c), i18n.LanguagesOf(c).DefaultCode()); err != nil {
 			return err
 		}

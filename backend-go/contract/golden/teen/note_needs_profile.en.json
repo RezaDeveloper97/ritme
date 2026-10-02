@@ -1,0 +1,28 @@
+{
+  "case": "teen/note_needs_profile.en",
+  "steps": [
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/teen/parent-note",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "note": "hi"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": false,
+        "message": "Answer the first questions first.",
+        "error_code": "teen_profile_required"
+      }
+    }
+  ]
+}

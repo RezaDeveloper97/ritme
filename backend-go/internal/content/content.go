@@ -34,6 +34,12 @@ type Querier interface {
 	ListRelatedArticles(ctx context.Context, arg store.ListRelatedArticlesParams) ([]store.ListRelatedArticlesRow, error)
 }
 
+// CommercialPolicy decides whether an account may see commercial content (internal/teen.Policy: no banners for a
+// teen-mode account, CB-TEEN-01). nil = everyone may.
+type CommercialPolicy interface {
+	AllowsCommercial(ctx context.Context, userID uint64) (bool, error)
+}
+
 // Deps wires the handlers.
 type Deps struct {
 	Queries      Querier
@@ -42,6 +48,7 @@ type Deps struct {
 	StoragePath  string // STORAGE_PATH; files are served from STORAGE_PATH/app/public
 	Clock        clock.Clock
 	Logger       *slog.Logger
+	Commercial   CommercialPolicy
 }
 
 // Handlers are the content controllers.
@@ -53,6 +60,7 @@ type Handlers struct {
 	clock    clock.Clock
 	logger   *slog.Logger
 	fileRoot fileRoot
+	policy   CommercialPolicy
 }
 
 // New builds the handlers.
@@ -68,7 +76,7 @@ func New(d Deps) *Handlers {
 		public = strings.TrimRight(d.StoragePath, "/") + "/app/public"
 	}
 	return &Handlers{q: d.Queries, tr: d.Translations, appURL: d.AppURL, public: public,
-		clock: d.Clock, logger: d.Logger, fileRoot: fileRoot{dir: public}}
+		clock: d.Clock, logger: d.Logger, fileRoot: fileRoot{dir: public}, policy: d.Commercial}
 }
 
 func (h *Handlers) now(c fiber.Ctx) time.Time { return clock.FromContext(c, h.clock).Now() }

@@ -176,7 +176,7 @@ CREATE TABLE `catalog_items` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `catalog_items_group_code_unique` (`group`,`code`),
   KEY `catalog_items_group_is_active_sort_order_index` (`group`,`is_active`,`sort_order`)
-) ENGINE=InnoDB AUTO_INCREMENT=142 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=159 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 LOCK TABLES `catalog_items` WRITE;
@@ -322,7 +322,24 @@ INSERT INTO `catalog_items` VALUES
 (138,'loss_support','companion_notice',4,1,NULL,'{\"fa\":\"{name} خبر داد که بارداری ادامه ندارد.\",\"en\":\"{name} let you know that the pregnancy is not continuing.\"}',NULL,'{\"someone\":{\"fa\":\"همراهت\",\"en\":\"Your partner\"}}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
 (139,'loss_next_steps','cycle',1,1,NULL,'{\"fa\":\"فعلاً فقط پیگیری سیکل\",\"en\":\"Just track my cycle for now\"}','{\"fa\":\"اولین پریود معمولاً ۴ تا ۶ هفته بعد می‌آید\",\"en\":\"The first period usually comes 4 to 6 weeks later\"}','{\"life_mode\":\"cycle\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
 (140,'loss_next_steps','ttc',2,1,NULL,'{\"fa\":\"دوباره اقدام به بارداری\",\"en\":\"Try to conceive again\"}','{\"fa\":\"زمان مناسب را با پزشکت هماهنگ کن\",\"en\":\"Agree on the right time with your doctor\"}','{\"life_mode\":\"ttc\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
-(141,'loss_next_steps','nothing',3,1,NULL,'{\"fa\":\"فعلاً هیچ‌چیز\",\"en\":\"Nothing for now\"}','{\"fa\":\"فقط یادآور پیگیری‌های پزشکی می‌ماند\",\"en\":\"Only the medical follow-up reminders stay\"}','{\"life_mode\":\"cycle\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00');
+(141,'loss_next_steps','nothing',3,1,NULL,'{\"fa\":\"فعلاً هیچ‌چیز\",\"en\":\"Nothing for now\"}','{\"fa\":\"فقط یادآور پیگیری‌های پزشکی می‌ماند\",\"en\":\"Only the medical follow-up reminders stay\"}','{\"life_mode\":\"cycle\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(142,'teen_signs','approaching_signs',1,1,'[\"teen\"]','{\"fa\":\"نشانه‌های نزدیک شدن اولین پریود\",\"en\":\"Signs your first period is getting close\"}','{\"fa\":\"معمولاً حدود ۲ سال بعد از شروع رشد سینه‌ها. ترشح سفید یا شفاف از چند ماه قبل هم طبیعی است.\",\"en\":\"It usually comes about 2 years after your breasts start to develop. White or clear discharge for a few months before is normal too.\"}','{\"kind\":\"sign\",\"menarche\":[\"not_yet\"]}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(143,'teen_signs','growth_spurt',2,1,'[\"teen\"]','{\"fa\":\"جهش قد\",\"en\":\"A growth spurt\"}','{\"fa\":\"رشد ناگهانی قد و رویش مو زیر بغل معمولاً قبل از اولین پریود شروع می‌شود.\",\"en\":\"A sudden growth spurt and underarm hair usually start before the first period.\"}','{\"kind\":\"sign\",\"menarche\":[\"not_yet\"]}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(144,'teen_signs','estimate_year_or_two',3,1,'[\"teen\"]','{\"fa\":\"بر اساس جواب‌هایت: احتمالاً در یکی دو سال آینده\",\"en\":\"Based on your answers: probably within the next year or two\"}','{\"fa\":\"هر بدنی زمان خودش را دارد. وقتی کیف اضطراری آماده باشد، غافلگیر نمی‌شوی.\",\"en\":\"Every body has its own timing. With your emergency kit ready, you won\'t be caught off guard.\"}','{\"kind\":\"estimate\",\"menarche\":[\"not_yet\"],\"age_bands\":[\"10_12\"]}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(145,'teen_signs','estimate_coming_months',4,1,'[\"teen\"]','{\"fa\":\"بر اساس جواب‌هایت: احتمالاً در ماه‌های آینده\",\"en\":\"Based on your answers: probably in the coming months\"}','{\"fa\":\"هر بدنی زمان خودش را دارد. وقتی کیف اضطراری آماده باشد، غافلگیر نمی‌شوی.\",\"en\":\"Every body has its own timing. With your emergency kit ready, you won\'t be caught off guard.\"}','{\"kind\":\"estimate\",\"menarche\":[\"not_yet\"],\"age_bands\":[\"13_15\"]}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(146,'teen_signs','estimate_talk',5,1,'[\"teen\"]','{\"fa\":\"بهتر است با مادرت یا پزشک صحبت کنی\",\"en\":\"It\'s a good idea to talk to your mother or a doctor\"}','{\"fa\":\"بیشتر دخترها تا ۱۵ سالگی پریود می‌شوند. صحبت با پزشک کمک می‌کند مطمئن شوی همه چیز روبه‌راه است.\",\"en\":\"Most girls get their first period by 15. A doctor can help make sure everything is okay.\"}','{\"kind\":\"estimate\",\"menarche\":[\"not_yet\"],\"age_bands\":[\"16_17\"],\"severity\":\"caution\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(147,'teen_signs','estimate_first_year',6,1,'[\"teen\"]','{\"fa\":\"سال اول: نامنظم بودن طبیعی است\",\"en\":\"The first year: irregular is normal\"}','{\"fa\":\"در ۱ تا ۲ سال اول فاصله پریودها ممکن است خیلی فرق کند. ثبت کردن کمک می‌کند الگوی خودت را ببینی.\",\"en\":\"In the first 1–2 years the gap between periods can vary a lot. Logging helps you see your own pattern.\"}','{\"kind\":\"estimate\",\"menarche\":[\"under_1y\"]}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(148,'teen_signs','estimate_settling',7,1,'[\"teen\"]','{\"fa\":\"چرخه‌ات در حال منظم شدن است\",\"en\":\"Your cycle is settling\"}','{\"fa\":\"ثبت کردن کمک می‌کند زمان پریود بعدی را زودتر بدانی و کیفت آماده باشد.\",\"en\":\"Logging helps you know when your next period is coming so your kit is ready.\"}','{\"kind\":\"estimate\",\"menarche\":[\"over_1y\"]}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(149,'teen_signs','when_to_talk',8,1,'[\"teen\"]','{\"fa\":\"کی با مادرت یا پزشک صحبت کنی\",\"en\":\"When to talk to your mother or a doctor\"}','{\"fa\":\"اگر تا ۱۵ سالگی پریود نشدی، یا درد و خونریزی خیلی زیاد داری، با مادرت یا پزشک صحبت کن.\",\"en\":\"If you haven\'t had a period by 15, or you have a lot of pain or very heavy bleeding, talk to your mother or a doctor.\"}','{\"kind\":\"talk\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(150,'teen_faq','irregular',1,1,'[\"teen\"]','{\"fa\":\"پریودم نامنظم است، مشکلی دارد؟\",\"en\":\"My period is irregular — is something wrong?\"}','{\"fa\":\"در ۱ تا ۲ سال اول نامنظم بودن خیلی شایع و طبیعی است.\",\"en\":\"In the first 1–2 years irregular periods are very common and normal.\"}',NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(151,'teen_faq','how_much_bleeding',2,1,'[\"teen\"]','{\"fa\":\"چقدر خونریزی طبیعی است؟\",\"en\":\"How much bleeding is normal?\"}','{\"fa\":\"معمولاً ۳ تا ۷ روز. اگر هر ساعت نوار پر می‌شود، به مادرت یا پزشک بگو.\",\"en\":\"Usually 3 to 7 days. If you soak a pad every hour, tell your mother or a doctor.\"}',NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(152,'teen_faq','period_pain',3,1,'[\"teen\"]','{\"fa\":\"درد پریود چه کنم؟\",\"en\":\"What can I do about period pain?\"}','{\"fa\":\"گرما روی شکم، کمی تحرک و مسکن ساده با اجازه بزرگ‌ترها کمک می‌کند.\",\"en\":\"Warmth on your tummy, some gentle movement and a simple painkiller with an adult\'s OK can help.\"}',NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(153,'teen_faq','pad_change',4,1,'[\"teen\"]','{\"fa\":\"هر چند وقت نوار را عوض کنم؟\",\"en\":\"How often should I change my pad?\"}','{\"fa\":\"معمولاً هر ۴ تا ۶ ساعت، یا زودتر اگر پر شده است.\",\"en\":\"Usually every 4 to 6 hours, or sooner if it is full.\"}',NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(154,'teen_faq','sports',5,1,'[\"teen\"]','{\"fa\":\"در پریود می‌توانم ورزش کنم؟\",\"en\":\"Can I do sports during my period?\"}','{\"fa\":\"بله. ورزش سبک حتی ممکن است درد را کمتر کند.\",\"en\":\"Yes. Gentle exercise may even ease cramps.\"}',NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(155,'teen_kit_items','pads',1,1,'[\"teen\"]','{\"fa\":\"۲ نوار بهداشتی\",\"en\":\"2 sanitary pads\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(156,'teen_kit_items','underwear',2,1,'[\"teen\"]','{\"fa\":\"یک لباس زیر اضافه\",\"en\":\"A spare pair of underwear\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(157,'teen_kit_items','wipes',3,1,'[\"teen\"]','{\"fa\":\"دستمال مرطوب\",\"en\":\"Wet wipes\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(158,'teen_kit_items','pouch',4,1,'[\"teen\"]','{\"fa\":\"کیسه کوچک\",\"en\":\"A small pouch\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00');
 /*!40000 ALTER TABLE `catalog_items` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `challenges`;
@@ -2901,6 +2918,46 @@ INSERT INTO `task_templates` VALUES
 (4,'walk_30','{\"fa\":\"\\u06f3\\u06f0 \\u062f\\u0642\\u06cc\\u0642\\u0647 \\u067e\\u06cc\\u0627\\u062f\\u0647\\u200c\\u0631\\u0648\\u06cc\",\"en\":\"30 minutes walking\"}','{\"fa\":\"\\u06cc\\u06a9 \\u067e\\u06cc\\u0627\\u062f\\u0647\\u200c\\u0631\\u0648\\u06cc \\u0633\\u0628\\u06a9 \\u06f3\\u06f0 \\u062f\\u0642\\u06cc\\u0642\\u0647\\u200c\\u0627\\u06cc \\u062f\\u0627\\u0634\\u062a\\u0647 \\u0628\\u0627\\u0634\",\"en\":\"Take a light 30-minute walk\"}','exercise',NULL,NULL,1,4,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
 (5,'breathing_5','{\"fa\":\"\\u06f5 \\u062f\\u0642\\u06cc\\u0642\\u0647 \\u062a\\u0646\\u0641\\u0633 \\u0639\\u0645\\u06cc\\u0642\",\"en\":\"5 minutes of deep breathing\"}','{\"fa\":\"\\u0628\\u0631\\u0627\\u06cc \\u0622\\u0631\\u0627\\u0645\\u0634 \\u0630\\u0647\\u0646\\u060c \\u062a\\u0645\\u0631\\u06cc\\u0646 \\u062a\\u0646\\u0641\\u0633 \\u0639\\u0645\\u06cc\\u0642 \\u0627\\u0646\\u062c\\u0627\\u0645 \\u0628\\u062f\\u0647\",\"en\":\"Practice deep breathing to calm your mind\"}','mindfulness',NULL,NULL,1,5,'2026-09-23 09:00:00','2026-09-23 09:00:00');
 /*!40000 ALTER TABLE `task_templates` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `teen_kit_checks`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `teen_kit_checks` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `item_code` varchar(64) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `teen_kit_checks_user_id_item_code_unique` (`user_id`,`item_code`),
+  CONSTRAINT `teen_kit_checks_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `teen_kit_checks` WRITE;
+/*!40000 ALTER TABLE `teen_kit_checks` DISABLE KEYS */;
+/*!40000 ALTER TABLE `teen_kit_checks` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `teen_profiles`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `teen_profiles` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `age_band` varchar(8) NOT NULL,
+  `menarche` varchar(16) NOT NULL,
+  `parent_note` varchar(280) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `teen_profiles_user_id_unique` (`user_id`),
+  CONSTRAINT `teen_profiles_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `teen_profiles` WRITE;
+/*!40000 ALTER TABLE `teen_profiles` DISABLE KEYS */;
+/*!40000 ALTER TABLE `teen_profiles` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `treatment_intakes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

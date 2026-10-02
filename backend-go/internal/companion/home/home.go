@@ -92,9 +92,17 @@ func (h *Handlers) build(ctx context.Context, u *auth.User, locale, deflt string
 	now := clk.Now()
 	svc := companion.NewService(h.conn, clk, companion.Options{})
 	q := store.New(h.conn)
-	links, err := svc.ListForCompanion(ctx, u.ID)
+	all, err := svc.ListForCompanion(ctx, u.ID)
 	if err != nil {
 		return nil, err
+	}
+	// A parent link (CB-TEEN-01) is not a partner: its only view is the teen card (GET /teen/linked), never the
+	// partner sections, phase tips or reading here.
+	links := make([]companion.Link, 0, len(all))
+	for _, l := range all {
+		if l.Type != companion.TypeParent {
+			links = append(links, l)
+		}
 	}
 	ownerIDs := make([]uint64, 0, len(links))
 	for _, l := range links {

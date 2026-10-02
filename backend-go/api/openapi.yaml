@@ -45,6 +45,7 @@ tags:
   - {name: Plus, description: "Ritme Plus (Go only): plans, trial, checkout through the payment port, verify, cancel, restore, history, entitlements and usage. Amounts are integer rials"}
   - {name: Payments, description: "Payment gateway adapter (Go only): browser return hop and the fake provider's TEST page. PAYMENT_PROVIDER = fake (default outside production) | zarinpal | none. Café Bazaar / Myket billing is Android-only and out of scope"}
   - {name: Companion, description: "Companion «همدم» & family (Go only, B-N4-02): owner invites (SMS adapter or shared code), access per section, revoke, audit trail; companion accept, links, leave and the access-filtered section reads. «ثبت برای …» = `for_user_id` on the care routes"}
+  - {name: Teen, description: "Teen mode (Go only, CB-TEEN-01): onboarding answers, school-kit checklist, readiness / signs / FAQ from the catalog, the parent note, and the parent's read-only card (companion type `parent`, teen sections only). No commercial surface for teen accounts"}
   - {name: Daily Health Log, description: "One log per day: symptoms, mood, vitals, lifestyle"}
   - {name: Cycle, description: "Cycle engine: today, a date, a month, recalculation"}
   - {name: Period Log, description: "Start, end, add, edit and delete periods"}
@@ -2271,7 +2272,8 @@ paths:
         `entitlements` is every Plus feature for this month (Tehran calendar month from `period_start`, resetting at
         `resets_at`): `limit`/`remaining` are null when unlimited and 0 when locked. Trials get the Plus quotas.
         `trial_offer` is the running trial offer (B-N2-06; null unless the trial runs, the user has no subscription and
-        the admin percent is above 0) — the same object as the home banner.
+        the admin percent is above 0) — the same object as the home banner. Always null for a teen-mode account
+        (CB-TEEN-01: no Plus upsell for minors).
       operationId: getPlusStatus
       security:
         - {bearerAuth: []}
@@ -2343,7 +2345,8 @@ paths:
         `offer_price` / `offer_monthly_price` (rials, before VAT; null when no offer runs). `usage.features` are the
         «این روزها از پلاس استفاده کردی» lines in display order: uses summed over the quota months since the trial's
         start month (`usage.since`; this month without a trial), `plus_limit` = the Plus monthly quota (null =
-        unlimited). Checkout applies the same offer server-side.
+        unlimited). Checkout applies the same offer server-side. For a teen-mode account `offer` and every offer
+        price are null (CB-TEEN-01).
       operationId: getPlusTrialSheet
       security:
         - {bearerAuth: []}
@@ -2367,7 +2370,7 @@ paths:
       summary: Start the free trial
       description: |
         Once per user, ever (enforced by a unique key, so concurrent starts cannot both win), and only before any
-        subscription. Responds with the status.
+        subscription. Responds with the status. **403** `teen_commercial_blocked` for a teen-mode account (CB-TEEN-01).
       operationId: startPlusTrial
       security:
         - {bearerAuth: []}
@@ -2386,6 +2389,7 @@ paths:
                   message: {type: string}
                   data: {$ref: "#/components/schemas/PlusStatus"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/TeenCommercialBlocked"}
         '422': {$ref: "#/components/responses/PlusFailed"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/plus/checkout:
@@ -2404,7 +2408,7 @@ paths:
           `reference`, `authority`, `status`). A 100 % discount is settled at once: invoice `paid`, `payment` null.
 
         503 `payment_unavailable` when no payment provider is configured (production until B-N2-05) or the provider
-        failed.
+        failed. **403** `teen_commercial_blocked` for a teen-mode account, preview included (CB-TEEN-01).
       operationId: plusCheckout
       security:
         - {bearerAuth: []}
@@ -2445,6 +2449,7 @@ paths:
                           invoice: {$ref: "#/components/schemas/PlusInvoice"}
                           payment: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/PlusPayment"}]}
         '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/TeenCommercialBlocked"}
         '422': {$ref: "#/components/responses/PlusFailed"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
         '503': {$ref: "#/components/responses/PlusPaymentUnavailable"}
@@ -13384,6 +13389,12 @@ paths:
         none in production unless set to gateway); `sms_sent` says whether it went out.
         Caps: 10 open companions, one spouse (422 `limit_reached` / `spouse_exists`). `child_ids` must be the owner's
         children — refused (422) until the children table exists (bloom B-N5-02).
+        Teen ↔ parent (CB-TEEN-01): `type: parent` only from an owner whose stored life mode is teen (else 422
+        `parent_needs_teen`), and a teen-mode owner may invite only a parent (422 `teen_parent_only`). A parent invite
+        must carry the parent's `phone` (422 on `phone`): only that account can accept it. A parent link
+        holds only the teen sections `teen_period_week` | `teen_kit` | `teen_notes`, level `view` only (a regular
+        section or `edit` → 422 on `grants.<section>`); nothing is shared by default. Its only read is
+        `GET /teen/linked`.
         Throttles: the shared write budget (60/min) and 20 invites + renewals per hour (429). 503
         `companion_unavailable` in production without `COMPANION_CODE_PEPPER`.
       operationId: postCompanions
@@ -13398,7 +13409,7 @@ paths:
               type: object
               required: [type]
               properties:
-                type: {type: string, enum: [partner, spouse]}
+                type: {type: string, enum: [partner, spouse, parent], description: "parent (CB-TEEN-01): only a teen-mode owner, who may invite nobody else"}
                 display_name: {type: [string, "null"], maxLength: 100, description: "«اسمش» — the owner's label for this companion"}
                 phone: {type: [string, "null"], description: "Mobile (09xxxxxxxxx; Persian digits and +98 accepted). Binds the invite and sends the SMS."}
                 grants: {$ref: "#/components/schemas/CompanionGrantsInput"}
@@ -13458,7 +13469,10 @@ paths:
         link becomes active with the grants the owner chose; a spouse joins her family; the owner gets an in-app
         notification. Every refusal — unknown, expired, used, renewed, locked, bound to another number, the owner's own
         code, an already linked account — is the **same** 422 `invite_invalid`, so the answer never reveals whether a
-        code exists. Throttled per account (10/hour) and per client IP (30/hour): **429**.
+        code exists. Throttled per account (10/hour) and per client IP (30/hour): **429**. One exception (CB-TEEN-01):
+        a valid invite whose owner's life mode changed since and no longer allows its type (a partner / spouse invite
+        of an owner now in teen mode, a parent invite of one who left it) is 422 `invite_not_allowed` — not a failed
+        attempt; the owner may invite again.
       operationId: postCompanionsAccept
       security:
         - {bearerAuth: []}
@@ -13537,6 +13551,7 @@ paths:
         `pregnancy` — week, trimester, due date (`is_active: false` outside pregnancy).
         **404** when the caller is not the active companion of the link (another owner's link, a revoked or pending
         one) or the section is unknown; **403** `section_not_shared` when the section is not granted (view or edit).
+        A parent link (CB-TEEN-01) has no section reads at all (404 for every section): its card is `GET /teen/linked`.
       operationId: getCompanionsLinksSection
       security:
         - {bearerAuth: []}
@@ -13653,7 +13668,7 @@ paths:
     put:
       tags: [Companion]
       summary: Change a companion's access (owner)
-      description: "Replaces the grants (Hamdam_Access): every section missing from `grants` or set to `none` loses access. Takes effect on the companion's next request."
+      description: "Replaces the grants (Hamdam_Access): every section missing from `grants` or set to `none` loses access. Takes effect on the companion's next request. A parent link (CB-TEEN-01) takes only the teen sections at none | view."
       operationId: putCompanionsGrants
       security:
         - {bearerAuth: []}
@@ -13722,6 +13737,196 @@ paths:
         '404': {$ref: "#/components/responses/CompanionNotFound"}
         '422': {$ref: "#/components/responses/CompanionFailed"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/teen/profile:
+    get:
+      tags: [Teen]
+      summary: The teen onboarding answers
+      description: |
+        The caller's Teen_Onb answers (`profile`, null before onboarding → `needs_onboarding`), whether her stored
+        life mode is teen (`is_teen_mode`; the switch itself is `PUT /profile/life-stage`) and the commercial flags
+        (`allows`: all false for a teen-mode account — no shop, ads / banners, Plus upsell or commercial
+        recommendations; the server also empties `GET /banners` and the home's Plus trial banner for her). Minors'
+        data: only the caller's own row.
+      operationId: getTeenProfile
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The profile
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/TeenProfileEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+    put:
+      tags: [Teen]
+      summary: Save the teen onboarding answers (Teen_Onb)
+      description: "Stores `{age_band, menarche}` (both required); the parent note is kept. «جواب‌هایت مال خودت است»: nothing is shared unless she grants it on a parent link."
+      operationId: saveTeenProfile
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [age_band, menarche]
+              properties:
+                age_band: {type: string, enum: ["10_12", "13_15", "16_17"]}
+                menarche: {type: string, enum: [not_yet, under_1y, over_1y]}
+            example: {age_band: "13_15", menarche: not_yet}
+      responses:
+        '200':
+          description: Saved; the profile
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/TeenProfileEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/TeenValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/teen/today:
+    get:
+      tags: [Teen]
+      summary: The teen home (Teen_Home)
+      description: |
+        One read model: the profile and flags of `GET /teen/profile`; `readiness` = the first active `teen_signs`
+        catalog item of kind `estimate` matching her answers (null before onboarding); `signs` (kind `sign`, filtered
+        by her answers — the approach signs only before the first period); `talk_note` (kind `talk`); the school-kit
+        checklist (`teen_kit_items` + her ticks; `ready` = every active item ticked); `faq` (`teen_faq`);
+        `parent_preview` = what a parent would see with every teen section granted (the live preview of
+        Teen_Parent; the client masks it with each link's grants); `parent_links` = her invited / active parent
+        links with their grants. Catalog copy is admin-editable fa + en and flagged `needs_review`.
+      operationId: getTeenToday
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The teen home
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/TeenToday"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/teen/kit/{code}:
+    put:
+      tags: [Teen]
+      summary: Tick or untick a school-kit item
+      description: "`checked` true ticks, false unticks (idempotent). 404 for a code that is not an active `teen_kit_items` item."
+      operationId: putTeenKitItem
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: code, in: path, required: true, schema: {type: string}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [checked]
+              properties:
+                checked: {type: boolean}
+            example: {checked: true}
+      responses:
+        '200':
+          description: The checklist
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/TeenKit"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/TeenNotFound"}
+        '422': {$ref: "#/components/responses/TeenValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/teen/parent-note:
+    put:
+      tags: [Teen]
+      summary: The note for her parent
+      description: "«علائم و یادداشت‌ها»: the note (≤ 280 characters, trimmed; null or empty clears it) a parent sees only while the teen grants `teen_notes`. 422 `teen_profile_required` before the onboarding answers."
+      operationId: putTeenParentNote
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [note]
+              properties:
+                note: {type: [string, "null"], maxLength: 280}
+            example: {note: کیفم آماده است}
+      responses:
+        '200':
+          description: Saved; the profile
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/TeenProfileEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/TeenValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/teen/linked:
+    get:
+      tags: [Teen]
+      summary: The read-only cards of the teens I am a parent of
+      description: |
+        One card per active companion link of type `parent` in which the caller is the parent (Teen_Parent «مادرت
+        این را می‌بیند»). Only the parts the teen grants are filled — `next_period_week` (this_week | next_week |
+        later | unknown: a week bucket, never a date, cycle day or lateness), `kit_ready`, `note` — each re-checked
+        against the live grant and audited (companion `read`) before it is built; an ungranted part is null and never
+        read. Read only: a parent link has no section reads and no writes. `[]` when the caller is nobody's parent.
+      operationId: getTeenLinked
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The cards
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {type: array, items: {$ref: "#/components/schemas/TeenParentCard"}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
 components:
   securitySchemes:
     bearerAuth:
@@ -13836,7 +14041,7 @@ components:
               error_code: {type: string, const: companion_forbidden}
           example: {success: false, message: اجازه این کار را برای این حساب نداری., error_code: companion_forbidden}
     CompanionFailed:
-      description: "Companion validation or business refusal (controller 422 `{success: false, message, errors?, error_code?}` in the request language): field errors, `invite_invalid` (every accept refusal), `limit_reached`, `spouse_exists`, `not_pending`"
+      description: "Companion validation or business refusal (controller 422 `{success: false, message, errors?, error_code?}` in the request language): field errors, `invite_invalid` (every accept refusal), `limit_reached`, `spouse_exists`, `not_pending`, `parent_needs_teen` / `teen_parent_only` (CB-TEEN-01), `invite_not_allowed` (accept: the owner's life mode changed since the invite and no longer allows its type)"
       content:
         application/json:
           schema:
@@ -13848,7 +14053,7 @@ components:
               errors:
                 type: object
                 additionalProperties: {type: array, items: {type: string}}
-              error_code: {type: string, enum: [invite_invalid, limit_reached, spouse_exists, not_pending]}
+              error_code: {type: string, enum: [invite_invalid, limit_reached, spouse_exists, not_pending, parent_needs_teen, teen_parent_only, invite_not_allowed]}
           example: {success: false, message: این کد معتبر نیست یا منقضی شده است. یک کد تازه بخواه., errors: {code: [این کد معتبر نیست یا منقضی شده است. یک کد تازه بخواه.]}, error_code: invite_invalid}
     CompanionNotFound:
       description: "No such companion link for the caller (another owner's, a revoked one, not the active companion, a malformed id or unknown section) — existence is never revealed"
@@ -14205,6 +14410,47 @@ components:
             success: false
             message: اطلاعات واردشده نامعتبر است
             errors: {last_period: [ثبت برای زمان آینده ممکن نیست.]}
+    TeenValidationFailed:
+      description: "Teen validation failed (controller 422 `{success: false, message, errors}` in the request language), or `error_code: teen_profile_required` (`{success: false, message, error_code}`) when the parent note comes before the onboarding answers."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              errors:
+                type: object
+                additionalProperties: {type: array, items: {type: string}}
+              error_code: {type: string, const: teen_profile_required}
+          example:
+            success: false
+            message: اطلاعات وارد شده معتبر نیست
+            errors: {age_band: [سنت را انتخاب کن.]}
+    TeenCommercialBlocked:
+      description: "A teen-mode account cannot start a Plus trial or check out (CB-TEEN-01: no commercial surface for minors)."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, const: teen_commercial_blocked}
+          example: {success: false, message: ریتمی پلاس در حالت نوجوان در دسترس نیست., error_code: teen_commercial_blocked}
+    TeenNotFound:
+      description: "Not an active `teen_kit_items` code (`{success: false, message}` in the request language)."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+          example: {success: false, message: این مورد کیف پیدا نشد}
     MenopauseNotFound:
       description: "No hot flash with that id for the caller (`{success: false, message}` in the request language)."
       content:
@@ -14466,19 +14712,131 @@ components:
           properties:
             title: {type: string}
             body: {type: string}
+    TeenProfile:
+      type: [object, "null"]
+      required: [age_band, menarche, parent_note, updated_at]
+      properties:
+        age_band: {type: string, enum: ["10_12", "13_15", "16_17"]}
+        menarche: {type: string, enum: [not_yet, under_1y, over_1y]}
+        parent_note: {type: [string, "null"]}
+        updated_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
+    TeenAllows:
+      type: object
+      description: "Commercial surfaces this account may see (all false in teen mode)"
+      required: [shop, banners, ads, plus_upsell, commercial_recommendations]
+      properties:
+        shop: {type: boolean}
+        banners: {type: boolean}
+        ads: {type: boolean}
+        plus_upsell: {type: boolean}
+        commercial_recommendations: {type: boolean}
+    TeenProfileEnvelope:
+      type: object
+      required: [profile, needs_onboarding, is_teen_mode, allows]
+      properties:
+        profile: {$ref: "#/components/schemas/TeenProfile"}
+        needs_onboarding: {type: boolean}
+        is_teen_mode: {type: boolean}
+        allows: {$ref: "#/components/schemas/TeenAllows"}
+    TeenCatalogItem:
+      type: object
+      required: [code, title, body, meta, needs_review]
+      properties:
+        code: {type: string}
+        title: {type: [string, "null"]}
+        body: {type: [string, "null"]}
+        meta: {description: "Catalog meta (teen_signs: kind, menarche, age_bands, severity)"}
+        needs_review: {type: boolean}
+    TeenKit:
+      type: object
+      required: [items, checked_count, total, ready]
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            required: [code, title, body, needs_review, checked]
+            properties:
+              code: {type: string}
+              title: {type: [string, "null"]}
+              body: {type: [string, "null"]}
+              needs_review: {type: boolean}
+              checked: {type: boolean}
+        checked_count: {type: integer}
+        total: {type: integer}
+        ready: {type: boolean}
+    TeenParentView:
+      type: object
+      required: [next_period_week, kit_ready, note]
+      properties:
+        next_period_week: {type: [string, "null"], enum: [this_week, next_week, later, unknown, null]}
+        kit_ready: {type: [boolean, "null"]}
+        note: {type: [string, "null"]}
+    TeenToday:
+      type: object
+      required: [profile, needs_onboarding, is_teen_mode, allows, readiness, signs, talk_note, kit, faq, parent_preview, parent_links]
+      properties:
+        profile: {$ref: "#/components/schemas/TeenProfile"}
+        needs_onboarding: {type: boolean}
+        is_teen_mode: {type: boolean}
+        allows: {$ref: "#/components/schemas/TeenAllows"}
+        readiness: {oneOf: [{$ref: "#/components/schemas/TeenCatalogItem"}, {type: "null"}]}
+        signs: {type: array, items: {$ref: "#/components/schemas/TeenCatalogItem"}}
+        talk_note: {oneOf: [{$ref: "#/components/schemas/TeenCatalogItem"}, {type: "null"}]}
+        kit: {$ref: "#/components/schemas/TeenKit"}
+        faq: {type: array, items: {$ref: "#/components/schemas/TeenCatalogItem"}}
+        parent_preview: {$ref: "#/components/schemas/TeenParentView"}
+        parent_links:
+          type: array
+          items:
+            type: object
+            required: [id, status, display_name, accepted_at, grants]
+            properties:
+              id: {type: integer}
+              status: {type: string, enum: [invited, active]}
+              display_name: {type: [string, "null"]}
+              accepted_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
+              grants: {$ref: "#/components/schemas/CompanionTeenGrants"}
+    TeenParentCard:
+      type: object
+      required: [link_id, teen, accepted_at, grants, next_period_week, kit_ready, note, read_only]
+      properties:
+        link_id: {type: integer}
+        teen:
+          type: object
+          required: [id, name]
+          properties:
+            id: {type: integer}
+            name: {type: [string, "null"]}
+        accepted_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
+        grants: {$ref: "#/components/schemas/CompanionTeenGrants"}
+        next_period_week: {type: [string, "null"], enum: [this_week, next_week, later, unknown, null], description: "null = not granted"}
+        kit_ready: {type: [boolean, "null"], description: "null = not granted"}
+        note: {type: [string, "null"], description: "null = not granted or empty"}
+        read_only: {type: boolean, const: true}
     CompanionGrants:
       type: object
-      description: "Level per section, every section present (`none` = not shared)"
+      description: "Level per section of a partner / spouse link, every section present (`none` = not shared)"
       required: [cycle, symptoms, meds, appointments, pregnancy]
+      additionalProperties: false
       properties:
         cycle: {type: string, enum: [none, view, edit]}
         symptoms: {type: string, enum: [none, view, edit]}
         meds: {type: string, enum: [none, view, edit]}
         appointments: {type: string, enum: [none, view, edit]}
         pregnancy: {type: string, enum: [none, view, edit]}
+    CompanionTeenGrants:
+      type: object
+      description: "A parent link's level per teen section (CB-TEEN-01), every teen section present; view only"
+      required: [teen_period_week, teen_kit, teen_notes]
+      additionalProperties: false
+      properties:
+        teen_period_week: {type: string, enum: [none, view], description: "Next period as a week bucket only"}
+        teen_kit: {type: string, enum: [none, view], description: "Whether the school kit is ready"}
+        teen_notes: {type: string, enum: [none, view], description: "The note the teen wrote for her parent"}
     CompanionGrantsInput:
       type: [object, "null"]
-      description: "Section → none | view | edit; missing sections are none. Unknown sections / levels → 422 on `grants.<section>`."
+      description: "Section → none | view | edit; missing sections are none. Unknown sections / levels → 422 on `grants.<section>`. A parent link takes only the teen sections, none | view."
       additionalProperties: {type: string, enum: [none, view, edit]}
     CompanionFamily:
       type: [object, "null"]
@@ -14491,13 +14849,13 @@ components:
       required: [id, type, status, display_name, name, invited_at, accepted_at, grants, invite, family]
       properties:
         id: {type: integer}
-        type: {type: string, enum: [partner, spouse]}
+        type: {type: string, enum: [partner, spouse, parent]}
         status: {type: string, enum: [invited, active]}
         display_name: {type: [string, "null"]}
         name: {type: [string, "null"], description: "display_name, else the companion account's name"}
         invited_at: {$ref: "#/components/schemas/IsoDateTime"}
         accepted_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
-        grants: {$ref: "#/components/schemas/CompanionGrants"}
+        grants: {oneOf: [{$ref: "#/components/schemas/CompanionGrants"}, {$ref: "#/components/schemas/CompanionTeenGrants"}]}
         invite:
           type: [object, "null"]
           description: "The open invite of a pending link"
@@ -14511,7 +14869,7 @@ components:
       required: [id, type, owner, accepted_at, grants, can_record_for, family]
       properties:
         id: {type: integer}
-        type: {type: string, enum: [partner, spouse]}
+        type: {type: string, enum: [partner, spouse, parent]}
         owner:
           type: object
           required: [id, name]
@@ -14519,7 +14877,7 @@ components:
             id: {type: integer, description: "Pass as `for_user_id` on the care routes"}
             name: {type: [string, "null"]}
         accepted_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
-        grants: {$ref: "#/components/schemas/CompanionGrants"}
+        grants: {oneOf: [{$ref: "#/components/schemas/CompanionGrants"}, {$ref: "#/components/schemas/CompanionTeenGrants"}]}
         can_record_for: {type: array, items: {type: string, enum: [meds, appointments]}}
         family: {$ref: "#/components/schemas/CompanionFamily"}
     CompanionInvite:
@@ -14536,7 +14894,7 @@ components:
       properties:
         id: {type: integer}
         action: {type: string, enum: [read, write, invited, accepted, revoked, grants_changed]}
-        section: {type: [string, "null"], enum: [cycle, symptoms, meds, appointments, pregnancy, null]}
+        section: {type: [string, "null"], enum: [cycle, symptoms, meds, appointments, pregnancy, teen_period_week, teen_kit, teen_notes, null]}
         companion_id: {type: [integer, "null"]}
         actor:
           type: [object, "null"]

@@ -3,7 +3,7 @@ id: CB-TEEN-01
 title: Teen backend: profile, kit, content, parent grant type
 epic: TEEN
 type: backend
-status: todo
+status: done
 depends_on: [B-N2-03, B-N4-02, CB-CORE-03]
 parallel_group: TEEN-A
 touches: [backend-go/internal/teen, backend-go/internal/http/routes_teen.go, backend-go/db/queries/teen, backend-go/api/openapi.yaml, backend-go/contract, backend-go/resources/translations, backend-go/db/migrations, backend/database/migrations, docs/go-migration/deviations.md, backend-go/internal/companion]

@@ -1235,6 +1235,24 @@ type TaskTemplate struct {
 	UpdatedAt   sql.NullTime
 }
 
+type TeenKitCheck struct {
+	ID        uint64
+	UserID    uint64
+	ItemCode  string
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
+type TeenProfile struct {
+	ID         uint64
+	UserID     uint64
+	AgeBand    string
+	Menarche   string
+	ParentNote sql.NullString
+	CreatedAt  sql.NullTime
+	UpdatedAt  sql.NullTime
+}
+
 type TreatmentIntake struct {
 	ID              uint64
 	UserID          uint64

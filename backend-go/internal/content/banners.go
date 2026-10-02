@@ -7,6 +7,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
+	"github.com/ritme/backend-go/internal/auth"
 	"github.com/ritme/backend-go/internal/content/store"
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/i18n"
@@ -17,7 +18,8 @@ import (
 
 // Banners is GET /banners (BannerController::index): the active, in-window banners of
 // every slot (or only ?position= when it is a valid slot), grouped by slot in enum order;
-// empty slots come back as [].
+// empty slots come back as []. A teen-mode account (CB-TEEN-01, CommercialPolicy) gets every
+// slot empty: no ads or banners for minors.
 func (h *Handlers) Banners(c fiber.Ctx) error {
 	locale := i18n.ResolveLocale(c, "")
 	def := i18n.LanguagesOf(c).DefaultCode()
@@ -36,6 +38,17 @@ func (h *Handlers) Banners(c fiber.Ctx) error {
 	rows, err := h.q.ListActiveBanners(c, store.ListActiveBannersParams{Now: sql.NullTime{Time: now, Valid: true}})
 	if err != nil {
 		return fmt.Errorf("content: banners: %w", err)
+	}
+	if h.policy != nil {
+		if userID, ok := auth.CurrentUserID(c); ok {
+			allowed, err := h.policy.AllowsCommercial(c, userID)
+			if err != nil {
+				return fmt.Errorf("content: banners policy: %w", err)
+			}
+			if !allowed {
+				rows = nil
+			}
+		}
 	}
 
 	grouped := jsonx.NewObject()

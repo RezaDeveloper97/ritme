@@ -1,0 +1,439 @@
+{
+  "case": "teen/onboarding_kit_note.en",
+  "steps": [
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/profile/life-stage",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "mode": "teen"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "Life stage saved",
+        "data": {
+          "mode": "teen",
+          "stored_mode": "teen",
+          "ivf_iui": false,
+          "track_contraception": false
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/teen/profile",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "age_band": "13_15",
+          "menarche": "over_1y"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "message": "Saved. Your answers stay yours.",
+        "data": {
+          "profile": {
+            "age_band": "13_15",
+            "menarche": "over_1y",
+            "parent_note": null,
+            "updated_at": "2026-09-23T10:00:00+03:30"
+          },
+          "needs_onboarding": false,
+          "is_teen_mode": true,
+          "allows": {
+            "shop": false,
+            "banners": false,
+            "ads": false,
+            "plus_upsell": false,
+            "commercial_recommendations": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/teen/kit/pads",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "checked": true
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57"
+      },
+      "body": {
+        "success": true,
+        "message": "Your kit list was updated",
+        "data": {
+          "items": [
+            {
+              "code": "pads",
+              "title": "2 sanitary pads",
+              "body": null,
+              "needs_review": true,
+              "checked": true
+            },
+            {
+              "code": "underwear",
+              "title": "A spare pair of underwear",
+              "body": null,
+              "needs_review": true,
+              "checked": false
+            },
+            {
+              "code": "wipes",
+              "title": "Wet wipes",
+              "body": null,
+              "needs_review": true,
+              "checked": false
+            },
+            {
+              "code": "pouch",
+              "title": "A small pouch",
+              "body": null,
+              "needs_review": true,
+              "checked": false
+            }
+          ],
+          "checked_count": 1,
+          "total": 4,
+          "ready": false
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/teen/kit/wipes",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "checked": true
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "56"
+      },
+      "body": {
+        "success": true,
+        "message": "Your kit list was updated",
+        "data": {
+          "items": [
+            {
+              "code": "pads",
+              "title": "2 sanitary pads",
+              "body": null,
+              "needs_review": true,
+              "checked": true
+            },
+            {
+              "code": "underwear",
+              "title": "A spare pair of underwear",
+              "body": null,
+              "needs_review": true,
+              "checked": false
+            },
+            {
+              "code": "wipes",
+              "title": "Wet wipes",
+              "body": null,
+              "needs_review": true,
+              "checked": true
+            },
+            {
+              "code": "pouch",
+              "title": "A small pouch",
+              "body": null,
+              "needs_review": true,
+              "checked": false
+            }
+          ],
+          "checked_count": 2,
+          "total": 4,
+          "ready": false
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/teen/kit/wipes",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "checked": false
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "55"
+      },
+      "body": {
+        "success": true,
+        "message": "Your kit list was updated",
+        "data": {
+          "items": [
+            {
+              "code": "pads",
+              "title": "2 sanitary pads",
+              "body": null,
+              "needs_review": true,
+              "checked": true
+            },
+            {
+              "code": "underwear",
+              "title": "A spare pair of underwear",
+              "body": null,
+              "needs_review": true,
+              "checked": false
+            },
+            {
+              "code": "wipes",
+              "title": "Wet wipes",
+              "body": null,
+              "needs_review": true,
+              "checked": false
+            },
+            {
+              "code": "pouch",
+              "title": "A small pouch",
+              "body": null,
+              "needs_review": true,
+              "checked": false
+            }
+          ],
+          "checked_count": 1,
+          "total": 4,
+          "ready": false
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/teen/parent-note",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "note": "  کیفم آماده است  "
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "54"
+      },
+      "body": {
+        "success": true,
+        "message": "Your note was saved",
+        "data": {
+          "profile": {
+            "age_band": "13_15",
+            "menarche": "over_1y",
+            "parent_note": "کیفم آماده است",
+            "updated_at": "2026-09-23T10:00:00+03:30"
+          },
+          "needs_onboarding": false,
+          "is_teen_mode": true,
+          "allows": {
+            "shop": false,
+            "banners": false,
+            "ads": false,
+            "plus_upsell": false,
+            "commercial_recommendations": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/teen/today",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "profile": {
+            "age_band": "13_15",
+            "menarche": "over_1y",
+            "parent_note": "کیفم آماده است",
+            "updated_at": "2026-09-23T10:00:00+03:30"
+          },
+          "needs_onboarding": false,
+          "is_teen_mode": true,
+          "allows": {
+            "shop": false,
+            "banners": false,
+            "ads": false,
+            "plus_upsell": false,
+            "commercial_recommendations": false
+          },
+          "readiness": {
+            "code": "estimate_settling",
+            "title": "Your cycle is settling",
+            "body": "Logging helps you know when your next period is coming so your kit is ready.",
+            "meta": {
+              "kind": "estimate",
+              "menarche": [
+                "over_1y"
+              ]
+            },
+            "needs_review": true
+          },
+          "signs": [],
+          "talk_note": {
+            "code": "when_to_talk",
+            "title": "When to talk to your mother or a doctor",
+            "body": "If you haven't had a period by 15, or you have a lot of pain or very heavy bleeding, talk to your mother or a doctor.",
+            "meta": {
+              "kind": "talk"
+            },
+            "needs_review": true
+          },
+          "kit": {
+            "items": [
+              {
+                "code": "pads",
+                "title": "2 sanitary pads",
+                "body": null,
+                "needs_review": true,
+                "checked": true
+              },
+              {
+                "code": "underwear",
+                "title": "A spare pair of underwear",
+                "body": null,
+                "needs_review": true,
+                "checked": false
+              },
+              {
+                "code": "wipes",
+                "title": "Wet wipes",
+                "body": null,
+                "needs_review": true,
+                "checked": false
+              },
+              {
+                "code": "pouch",
+                "title": "A small pouch",
+                "body": null,
+                "needs_review": true,
+                "checked": false
+              }
+            ],
+            "checked_count": 1,
+            "total": 4,
+            "ready": false
+          },
+          "faq": [
+            {
+              "code": "irregular",
+              "title": "My period is irregular — is something wrong?",
+              "body": "In the first 1–2 years irregular periods are very common and normal.",
+              "meta": null,
+              "needs_review": true
+            },
+            {
+              "code": "how_much_bleeding",
+              "title": "How much bleeding is normal?",
+              "body": "Usually 3 to 7 days. If you soak a pad every hour, tell your mother or a doctor.",
+              "meta": null,
+              "needs_review": true
+            },
+            {
+              "code": "period_pain",
+              "title": "What can I do about period pain?",
+              "body": "Warmth on your tummy, some gentle movement and a simple painkiller with an adult's OK can help.",
+              "meta": null,
+              "needs_review": true
+            },
+            {
+              "code": "pad_change",
+              "title": "How often should I change my pad?",
+              "body": "Usually every 4 to 6 hours, or sooner if it is full.",
+              "meta": null,
+              "needs_review": true
+            },
+            {
+              "code": "sports",
+              "title": "Can I do sports during my period?",
+              "body": "Yes. Gentle exercise may even ease cramps.",
+              "meta": null,
+              "needs_review": true
+            }
+          ],
+          "parent_preview": {
+            "next_period_week": "later",
+            "kit_ready": false,
+            "note": "کیفم آماده است"
+          },
+          "parent_links": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/banners",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "positions": {
+            "home_top": [],
+            "home_middle": [],
+            "home_bottom": []
+          }
+        }
+      }
+    }
+  ]
+}

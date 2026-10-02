@@ -1,0 +1,239 @@
+# Teen mode (/api/v1/teen/*, parent links on /api/v1/companions) — Go only (CB-TEEN-01, deviations D-53): there is no
+# Laravel route, so these goldens were recorded from the Go server and reviewed by hand (new-endpoint skill, step 8).
+# Personas: `regular` (1004) is the teen once a step switches her life mode to teen (PUT /profile/life-stage), the
+# owner of the parent link; `no_profile` (1001) the parent; `ttc` (1012) an unrelated account. Invite codes are random,
+# so they are pattern-checked and passed between steps with capture.
+# Teen A vs teen B isolation, parent-without-grant-gets-nothing, view-only / no-write, live grant changes, revoke and
+# the no-banner / no-Plus-upsell rule are covered by internal/http/routes_teen_int_test.go,
+# internal/teen/teen_int_test.go and internal/companion/parent_int_test.go.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: teen
+defaults:
+  persona: regular
+  locales: none
+  patterns:
+    data.invite.code: '^[A-HJ-NP-Z2-9]{6}$'
+cases:
+  - name: profile_empty
+    doc: No answers yet → profile null, needs_onboarding; not in teen mode → every commercial flag true
+    locales: [none, en]
+    method: GET
+    path: /api/v1/teen/profile
+    status: 200
+  - name: profile_anon
+    persona: anon
+    method: GET
+    path: /api/v1/teen/profile
+    status: 401
+  - name: profile_invalid
+    doc: Unknown age band / first-period answer → controller 422 in the request language
+    locales: [none, en, fa]
+    method: PUT
+    path: /api/v1/teen/profile
+    body: {age_band: "18_99", menarche: maybe}
+    status: 422
+  - name: today_no_profile
+    doc: Teen home before onboarding (no estimate, unfiltered signs only, empty kit ticks, unknown period week)
+    locales: [none, en]
+    method: GET
+    path: /api/v1/teen/today
+    status: 200
+  - name: kit_unknown_item
+    method: PUT
+    path: /api/v1/teen/kit/lipstick
+    body: {checked: true}
+    status: 404
+  - name: kit_invalid
+    method: PUT
+    path: /api/v1/teen/kit/pads
+    body: {}
+    status: 422
+  - name: note_needs_profile
+    doc: The parent note before the onboarding answers → 422 teen_profile_required
+    locales: [none, en]
+    method: PUT
+    path: /api/v1/teen/parent-note
+    body: {note: hi}
+    status: 422
+  - name: linked_empty
+    doc: Nobody's parent → []
+    persona: no_profile
+    method: GET
+    path: /api/v1/teen/linked
+    status: 200
+  - name: parent_needs_teen
+    doc: A parent invite from an owner who is not in teen mode → 422 parent_needs_teen
+    locales: [none, en]
+    method: POST
+    path: /api/v1/companions
+    body: {type: parent, phone: "09900000001"}
+    status: 422
+
+  - name: onboarding_kit_note
+    doc: |
+      Switch to teen mode → answers (13–15, first period over a year ago) → tick two kit items, untick one → parent
+      note → teen home (readiness «settling», no approach signs, period week from her cycles, preview) → no banners
+    locales: [none, en]
+    steps:
+      - method: PUT
+        path: /api/v1/profile/life-stage
+        body: {mode: teen}
+        status: 200
+      - method: PUT
+        path: /api/v1/teen/profile
+        body: {age_band: "13_15", menarche: over_1y}
+        status: 200
+      - method: PUT
+        path: /api/v1/teen/kit/pads
+        body: {checked: true}
+        status: 200
+      - method: PUT
+        path: /api/v1/teen/kit/wipes
+        body: {checked: true}
+        status: 200
+      - method: PUT
+        path: /api/v1/teen/kit/wipes
+        body: {checked: false}
+        status: 200
+      - method: PUT
+        path: /api/v1/teen/parent-note
+        body: {note: "  کیفم آماده است  "}
+        status: 200
+      - method: GET
+        path: /api/v1/teen/today
+        status: 200
+      - method: GET
+        path: /api/v1/banners
+        status: 200
+
+  - name: parent_link_card
+    doc: |
+      Teen mode → a partner invite is refused (teen_parent_only), a regular section or edit on a parent link too →
+      invite her mother sharing the period week + kit → mother accepts → reads the card (no note) → section reads
+      are 404 for a parent → an unrelated account gets [] → the teen narrows to the note only → the card follows →
+      the teen revokes → []
+    steps:
+      - method: PUT
+        path: /api/v1/profile/life-stage
+        body: {mode: teen}
+        status: 200
+      - method: POST
+        path: /api/v1/companions
+        body: {type: partner}
+        status: 422
+      - method: POST
+        path: /api/v1/companions
+        body: {type: parent, phone: "09900000001", grants: {cycle: view}}
+        status: 422
+      - method: POST
+        path: /api/v1/companions
+        body: {type: parent, phone: "09900000001", grants: {teen_kit: edit}}
+        status: 422
+      - method: PUT
+        path: /api/v1/teen/profile
+        body: {age_band: "13_15", menarche: over_1y}
+        status: 200
+      - method: PUT
+        path: /api/v1/teen/parent-note
+        body: {note: Cramps today}
+        status: 200
+      - method: POST
+        path: /api/v1/companions
+        body: {type: parent, display_name: Mom, phone: "09900000001", grants: {teen_period_week: view, teen_kit: view}}
+        status: 201
+        capture: {code: data.invite.code, id: data.companion.id}
+      - as: no_profile
+        method: POST
+        path: /api/v1/companions/accept
+        body: {code: "{{code}}"}
+        status: 200
+      - as: no_profile
+        method: GET
+        path: /api/v1/teen/linked
+        status: 200
+      - as: no_profile
+        method: GET
+        path: "/api/v1/companions/links/{{id}}/sections/cycle"
+        status: 404
+      - as: no_profile
+        method: GET
+        path: "/api/v1/companions/links/{{id}}/sections/teen_kit"
+        status: 404
+      - as: ttc
+        method: GET
+        path: /api/v1/teen/linked
+        status: 200
+      - method: PUT
+        path: "/api/v1/companions/{{id}}/grants"
+        body: {grants: {teen_notes: view}}
+        status: 200
+      - as: no_profile
+        method: GET
+        path: /api/v1/teen/linked
+        status: 200
+      - method: GET
+        path: /api/v1/teen/today
+        status: 200
+      - method: DELETE
+        path: "/api/v1/companions/{{id}}"
+        status: 200
+      - as: no_profile
+        method: GET
+        path: /api/v1/teen/linked
+        status: 200
+
+  - name: parent_needs_phone
+    doc: A parent invite must be bound to the parent's number → 422 on phone
+    locales: [none, en]
+    steps:
+      - method: PUT
+        path: /api/v1/profile/life-stage
+        body: {mode: teen}
+        status: 200
+      - method: POST
+        path: /api/v1/companions
+        body: {type: parent, grants: {teen_kit: view}}
+        status: 422
+
+  - name: accept_after_mode_change
+    doc: A partner invite made before switching to teen mode can no longer be accepted → 422 invite_not_allowed
+    locales: [none, en]
+    steps:
+      - method: POST
+        path: /api/v1/companions
+        body: {type: partner, phone: "09900000001", grants: {cycle: view}}
+        status: 201
+        capture: {code: data.invite.code}
+      - method: PUT
+        path: /api/v1/profile/life-stage
+        body: {mode: teen}
+        status: 200
+      - as: no_profile
+        method: POST
+        path: /api/v1/companions/accept
+        body: {code: "{{code}}"}
+        status: 422
+
+  - name: plus_blocked
+    doc: |
+      Teen mode → no trial offer on the status / trial sheet; trial start and checkout (preview included) → 403
+      teen_commercial_blocked
+    locales: [none, en]
+    steps:
+      - method: PUT
+        path: /api/v1/profile/life-stage
+        body: {mode: teen}
+        status: 200
+      - method: GET
+        path: /api/v1/plus/status
+        status: 200
+      - method: GET
+        path: /api/v1/plus/trial
+        status: 200
+      - method: POST
+        path: /api/v1/plus/trial/start
+        status: 403
+      - method: POST
+        path: /api/v1/plus/checkout
+        body: {plan_id: 1, preview: true}
+        status: 403

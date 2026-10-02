@@ -193,3 +193,9 @@ sql:
       go:
         <<: *go
         out: internal/loss/store
+  - <<: *pkg
+    queries: db/queries/teen
+    gen:
+      go:
+        <<: *go
+        out: internal/teen/store

@@ -247,7 +247,7 @@ func (q *Queries) DeletePregnancyNoticesForOwner(ctx context.Context, ownerID ui
 }
 
 const getAccess = `-- name: GetAccess :one
-SELECT c.id AS companion_id, g.level FROM ` + "`" + `companions` + "`" + ` c
+SELECT c.id AS companion_id, c.type, g.level FROM ` + "`" + `companions` + "`" + ` c
 JOIN ` + "`" + `companion_grants` + "`" + ` g ON g.companion_id = c.id AND g.section = ?
 WHERE c.owner_id = ? AND c.companion_user_id = ? AND c.status = 'active'
 ORDER BY c.id
@@ -262,14 +262,16 @@ type GetAccessParams struct {
 
 type GetAccessRow struct {
 	CompanionID uint64
+	Type        string
 	Level       string
 }
 
-// The viewer's level on one section of the owner's data through an active link (no row = none).
+// The viewer's level on one section of the owner's data through an active link (no row = none), with the link type
+// (Go refuses a section the type may not hold — CB-TEEN-01 parent links).
 func (q *Queries) GetAccess(ctx context.Context, arg GetAccessParams) (GetAccessRow, error) {
 	row := q.db.QueryRowContext(ctx, getAccess, arg.Section, arg.OwnerID, arg.ViewerID)
 	var i GetAccessRow
-	err := row.Scan(&i.CompanionID, &i.Level)
+	err := row.Scan(&i.CompanionID, &i.Type, &i.Level)
 	return i, err
 }
 
@@ -361,6 +363,18 @@ func (q *Queries) GetInviteByHash(ctx context.Context, codeHash string) (Compani
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const getUserLifeMode = `-- name: GetUserLifeMode :one
+SELECT life_mode FROM ` + "`" + `user_life_profiles` + "`" + ` WHERE user_id = ? LIMIT 1
+`
+
+// The owner's stored life-stage mode (CB-TEEN-01: only a teen invites a parent, a teen invites nobody else).
+func (q *Queries) GetUserLifeMode(ctx context.Context, userID uint64) (sql.NullString, error) {
+	row := q.db.QueryRowContext(ctx, getUserLifeMode, userID)
+	var life_mode sql.NullString
+	err := row.Scan(&life_mode)
+	return life_mode, err
 }
 
 const getUserMobile = `-- name: GetUserMobile :one

@@ -28,7 +28,8 @@ type Querier interface {
 	DeletePregnancyNoticesForLink(ctx context.Context, companionID int64) error
 	// CB-LOSS-01: every such notice about the owner (all her links) — her account deletion and DELETE /loss.
 	DeletePregnancyNoticesForOwner(ctx context.Context, ownerID uint64) error
-	// The viewer's level on one section of the owner's data through an active link (no row = none).
+	// The viewer's level on one section of the owner's data through an active link (no row = none), with the link type
+	// (Go refuses a section the type may not hold — CB-TEEN-01 parent links).
 	GetAccess(ctx context.Context, arg GetAccessParams) (GetAccessRow, error)
 	GetCompanion(ctx context.Context, id uint64) (Companion, error)
 	GetFamilyByCompanion(ctx context.Context, companionID uint64) (Family, error)
@@ -38,6 +39,8 @@ type Querier interface {
 	// user_life_profiles.gender of one account (onboarding v2 Gender step; no row / NULL = never asked → a woman's
 	// account, the legacy default). male = a companion account.
 	GetUserGender(ctx context.Context, userID uint64) (sql.NullString, error)
+	// The owner's stored life-stage mode (CB-TEEN-01: only a teen invites a parent, a teen invites nobody else).
+	GetUserLifeMode(ctx context.Context, userID uint64) (sql.NullString, error)
 	GetUserMobile(ctx context.Context, id uint64) (sql.NullString, error)
 	// Display names of the other party in link lists (users.name; NULL when the account never set one).
 	GetUserNames(ctx context.Context, ids []uint64) ([]GetUserNamesRow, error)

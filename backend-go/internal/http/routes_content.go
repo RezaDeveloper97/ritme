@@ -10,6 +10,7 @@ import (
 	contentstore "github.com/ritme/backend-go/internal/content/store"
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
+	"github.com/ritme/backend-go/internal/teen"
 	"github.com/ritme/backend-go/resources/translations"
 )
 
@@ -32,6 +33,7 @@ func init() {
 			AppURL:       d.Config.App.URL,
 			StoragePath:  d.Config.StoragePath,
 			Logger:       d.Logger,
+			Commercial:   teen.NewPolicy(d.DB), // CB-TEEN-01: no banners for a teen-mode account
 		})
 
 		// Public.

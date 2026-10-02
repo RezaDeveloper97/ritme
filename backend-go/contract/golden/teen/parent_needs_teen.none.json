@@ -1,0 +1,28 @@
+{
+  "case": "teen/parent_needs_teen.none",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/companions",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "type": "parent",
+          "phone": "09900000001"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": false,
+        "message": "فقط در حالت نوجوان می‌توانی مادر یا والد را دعوت کنی.",
+        "error_code": "parent_needs_teen"
+      }
+    }
+  ]
+}

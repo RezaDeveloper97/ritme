@@ -5,6 +5,7 @@
         "invite_created": "Invite created.",
         "invite_renewed": "A new invite code was created.",
         "invite_invalid": "This code is not valid or has expired. Ask for a new code.",
+        "invite_not_allowed": "This invite can no longer be accepted. Ask for a new one.",
         "accepted": "You are now connected.",
         "revoked": "Companion removed.",
         "left": "You left this companion link.",
@@ -17,6 +18,8 @@
         "spouse_exists": "You already have a spouse companion.",
         "self_invite": "You cannot invite your own number.",
         "not_pending": "This companion has already accepted the invite.",
+        "parent_needs_teen": "Only a teen account can invite a parent.",
+        "teen_parent_only": "In teen mode you can only invite your mother or a parent.",
         "children_no_spouse": "Shared children are only for a spouse.",
         "companion_account": "This is a companion account with no cycle of its own. Open the companion home.",
         "not_companion_account": "The companion home is only for companion accounts."
@@ -24,10 +27,12 @@
     "validation": {
         "type_invalid": "The selected type is invalid.",
         "phone_invalid": "Enter a valid mobile number (09xxxxxxxxx).",
+        "phone_required_parent": "Enter your mother's or parent's mobile number so only she can accept.",
         "name_too_long": "The name may not be greater than 100 characters.",
         "grants_invalid": "Access must map each section to none, view or edit.",
         "section_invalid": "Unknown section.",
         "level_invalid": "The access level must be none, view or edit.",
+        "level_view_only": "A parent can only see this, never change it.",
         "code_required": "Enter the companion code.",
         "child_invalid": "This child is not yours.",
         "children_invalid": "Children must be a list of ids."

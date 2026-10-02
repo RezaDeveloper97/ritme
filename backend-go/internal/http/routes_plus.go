@@ -9,6 +9,7 @@ import (
 	"github.com/ritme/backend-go/internal/payments"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/plus"
+	"github.com/ritme/backend-go/internal/teen"
 )
 
 // Ritme Plus (B-N2-04, gating/trial offer B-N2-06), Go only — no Laravel counterpart (deviations.md D-35). /plus/plans is public (the paywall
@@ -25,7 +26,8 @@ func init() {
 		if gw := payments.New(paymentDeps(d)); gw != nil { // a nil *Gateway must stay a nil interface
 			gateway = gw
 		}
-		h := plus.NewHandlers(plus.NewService(d.DB, d.Config.Plus, gateway, d.Logger), clock.Real{})
+		h := plus.NewHandlers(plus.NewService(d.DB, d.Config.Plus, gateway, d.Logger), clock.Real{}).
+			WithCommercial(teen.NewPolicy(d.DB)) // CB-TEEN-01: no offer, trial or checkout for a teen-mode account
 		writes := writeThrottle(d)
 
 		r.Get("/api/v1/plus/plans", locale, h.Plans)

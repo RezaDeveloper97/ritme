@@ -104,7 +104,8 @@ func TestLevelsAndGrants(t *testing.T) {
 	require.ErrorIs(t, Grants{SectionCycle: "admin"}.Validate(), ErrInvalidLevel)
 
 	assert.True(t, TypeSpouse.Valid())
-	assert.False(t, Type("parent").Valid(), "parent arrives with CB-TEEN-01")
+	assert.True(t, TypeParent.Valid(), "parent (CB-TEEN-01)")
+	assert.False(t, Type("friend").Valid())
 }
 
 func TestValidateInput(t *testing.T) {
@@ -118,4 +119,8 @@ func TestValidateInput(t *testing.T) {
 	require.ErrorIs(t, validateInput(&InviteInput{Type: TypePartner, DisplayName: strings.Repeat("ن", 101)}), ErrInvalidName)
 	require.ErrorIs(t, validateInput(&InviteInput{Type: TypePartner, ChildIDs: []uint64{1}}), ErrChildrenNoSpouse)
 	require.ErrorIs(t, validateInput(&InviteInput{Type: TypeSpouse, Grants: Grants{SectionCycle: "all"}}), ErrInvalidLevel)
+	require.ErrorIs(t, validateInput(&InviteInput{Type: TypeParent, Phone: "09121234567", Grants: Grants{SectionCycle: LevelView}}), ErrInvalidSection)
+	require.ErrorIs(t, validateInput(&InviteInput{Type: TypeParent, Phone: "09121234567", Grants: Grants{SectionTeenKit: LevelEdit}}), ErrInvalidLevel)
+	require.ErrorIs(t, validateInput(&InviteInput{Type: TypeParent, Phone: "09121234567", ChildIDs: []uint64{1}}), ErrChildrenNoSpouse)
+	require.ErrorIs(t, validateInput(&InviteInput{Type: TypeParent}), ErrPhoneRequired, "a parent invite is bound to a number")
 }

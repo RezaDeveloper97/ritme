@@ -1,6 +1,7 @@
 package plus
 
 import (
+	"context"
 	"errors"
 	"time"
 
@@ -15,15 +16,52 @@ import (
 	"github.com/ritme/backend-go/internal/platform/validation"
 )
 
+// ErrorCodeTeenCommercialBlocked is the 403 of a trial start / checkout by a teen-mode account (CB-TEEN-01).
+const ErrorCodeTeenCommercialBlocked = "teen_commercial_blocked"
+
+// CommercialPolicy decides whether an account may be sold to (internal/teen.Policy: never a teen-mode account).
+type CommercialPolicy interface {
+	AllowsCommercial(ctx context.Context, userID uint64) (bool, error)
+}
+
 // Handlers are the /api/v1/plus actions. Mount them behind the locale middleware; everything but /plans needs
 // auth RequireUser.
 type Handlers struct {
-	svc   *Service
-	clock clock.Clock
+	svc    *Service
+	clock  clock.Clock
+	policy CommercialPolicy
 }
 
 // NewHandlers wires the handlers; base is the fallback clock (X-Test-Now pins it per request in tests).
 func NewHandlers(svc *Service, base clock.Clock) *Handlers { return &Handlers{svc: svc, clock: base} }
+
+// WithCommercial sets the commercial policy (CB-TEEN-01): for an account it refuses, the trial offer is never shown
+// (status / trial sheet) and starting a trial or checking out answers 403 teen_commercial_blocked. nil = everyone.
+func (h *Handlers) WithCommercial(p CommercialPolicy) *Handlers {
+	h.policy = p
+	return h
+}
+
+// commercialAllowed reports whether userID may see offers and buy.
+func (h *Handlers) commercialAllowed(c fiber.Ctx, userID uint64) (bool, error) {
+	if h.policy == nil {
+		return true, nil
+	}
+	return h.policy.AllowsCommercial(c, userID)
+}
+
+// refuseBlocked is the 403 for an account that may not buy (nil when it may).
+func (h *Handlers) refuseBlocked(c fiber.Ctx, userID uint64) error {
+	ok, err := h.commercialAllowed(c, userID)
+	if err != nil {
+		return err
+	}
+	if ok {
+		return nil
+	}
+	return httpx.Fail(fiber.StatusForbidden, T("errors.teen_commercial_blocked", i18n.Locale(c)),
+		"error_code", ErrorCodeTeenCommercialBlocked)
+}
 
 func (h *Handlers) user(c fiber.Ctx) (uint64, error) {
 	id, ok := auth.CurrentUserID(c)
@@ -89,6 +127,13 @@ func (h *Handlers) status(c fiber.Ctx, userID uint64, now time.Time, msg ...stri
 	if err != nil {
 		return err
 	}
+	ok, err := h.commercialAllowed(c, userID)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		st.Offer = nil // no trial offer for a teen-mode account (CB-TEEN-01)
+	}
 	return httpx.OK(c, StatusJSON(st, localizer(c)), msg...)
 }
 
@@ -135,6 +180,9 @@ func (h *Handlers) StartTrial(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	if err := h.refuseBlocked(c, userID); err != nil {
+		return err
+	}
 	locale, now := i18n.Locale(c), h.now(c)
 	if err := h.svc.StartTrial(c, userID, now); err != nil {
 		return fail(err, locale)
@@ -148,6 +196,9 @@ func (h *Handlers) StartTrial(c fiber.Ctx) error {
 func (h *Handlers) Checkout(c fiber.Ctx) error {
 	userID, err := h.user(c)
 	if err != nil {
+		return err
+	}
+	if err := h.refuseBlocked(c, userID); err != nil {
 		return err
 	}
 	locale, now := i18n.Locale(c), h.now(c)
@@ -283,6 +334,13 @@ func (h *Handlers) TrialSheet(c fiber.Ctx) error {
 	sh, err := h.svc.TrialSheet(c, userID, h.now(c))
 	if err != nil {
 		return err
+	}
+	ok, err := h.commercialAllowed(c, userID)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		sh.Offer, sh.State.Offer = nil, nil // no trial offer (or offer prices) for a teen-mode account
 	}
 	return httpx.OK(c, TrialSheetJSON(sh, localizer(c)))
 }
