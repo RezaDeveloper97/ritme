@@ -3,7 +3,7 @@ id: B-N3-14
 title: N3 rollout — stage deploy and e2e
 milestone: N3
 type: release
-status: todo
+status: done
 depends_on: [B-N3-13]
 parallel_group: N3-N
 touches: [docs/qa/bloom,bloom/PROGRESS.md]

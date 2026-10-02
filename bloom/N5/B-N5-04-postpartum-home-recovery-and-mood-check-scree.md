@@ -24,6 +24,8 @@ v15 screens.
 ## Scope
 - Home (week ring, today's state chips, bleeding/feeds/sleep tiles, upcoming visits incl. child vaccines, «کی فوراً تماس بگیرم؟», weekly tip), Recovery form, Mood check (3 questions, non-diagnostic copy, safety path).
 
+- From the N3 stage smoke (B-4): postpartum users currently see the cycle home with «تأخیر پریود ۱۰ روز» — the postpartum home must replace it.
+
 ## Out of scope
 - Android (android-shell/, application/, twa/) — never.
 - Anything owned by another bloom task.

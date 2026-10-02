@@ -732,3 +732,10 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   upsell, life-stage and cycle settings; adds «کد همدم». `entities/companion` companion-side hooks + code helpers;
   `LifeStage.companion` flag. Namespace `companionHome`.
 - Screenshots `docs/qa/bloom/B-N4-05/`. Test users 09900000551 (linked to p04) / 552 (no link). QUESTIONS #96.
+
+## B-N3-14 — N3 rollout — stage deploy and e2e
+
+- verify green on HEAD (worktree); `stage` 201eafa pushed + deployed (goose 26). Smoke: 41 checks — 35 pass, 6 warn,
+  0 fail; no 5xx / console errors. Report `docs/qa/bloom/n3-stage.md`, shots `docs/qa/bloom/n3-stage/`.
+- Bugs: B-1 (high, past-day bleeding splits periods), B-2/B-3 (medium), B-5..B-9 (low) → new task B-N3-14b;
+  B-4 (postpartum home shows cycle home) → B-N5-04 scope.

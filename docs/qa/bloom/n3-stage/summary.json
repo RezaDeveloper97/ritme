@@ -430,5 +430,671 @@
     "shot": "T-log-02-lh-bbt.dark.png",
     "network": [],
     "console": []
+  },
+  {
+    "route": "/fa/log (TTC) saved",
+    "theme": "dark",
+    "landed": "/fa/log",
+    "shot": "T-log-03-saved.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/home (TTC)",
+    "theme": "dark",
+    "landed": "/fa/home",
+    "shot": "T-home.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/calendar (TTC)",
+    "theme": "dark",
+    "landed": "/fa/calendar",
+    "shot": "T-calendar.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/signup",
+    "theme": "light",
+    "landed": "/fa/signup",
+    "shot": "N-01-signup.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/otp",
+    "theme": "light",
+    "landed": "/fa/otp",
+    "shot": "N-02-otp.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "onboarding first step",
+    "theme": "light",
+    "landed": "/fa/onboarding/name",
+    "shot": "N-03-onboarding-first.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/onboarding/gender",
+    "theme": "light",
+    "landed": "/fa/onboarding/gender",
+    "shot": "N-04-name.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/onboarding/intention",
+    "theme": "light",
+    "landed": "/fa/onboarding/intention",
+    "shot": "N-05-gender.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/onboarding/pregnancy-basis",
+    "theme": "light",
+    "landed": "/fa/onboarding/pregnancy-basis",
+    "shot": "N-06-goal.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/onboarding/conditions",
+    "theme": "light",
+    "landed": "/fa/onboarding/conditions",
+    "shot": "N-07-pregnancy-basis.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/onboarding/health",
+    "theme": "light",
+    "landed": "/fa/onboarding/health",
+    "shot": "N-08-conditions.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/onboarding/setting-up",
+    "theme": "light",
+    "landed": "/fa/onboarding/setting-up",
+    "shot": "N-09-health.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/pregnancy",
+    "theme": "light",
+    "landed": "/fa/pregnancy",
+    "shot": "N-10-landing.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/analysis",
+    "theme": "light",
+    "landed": "/fa/analysis",
+    "shot": "A-analysis.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/analysis/cycle",
+    "theme": "light",
+    "landed": "/fa/analysis/cycle",
+    "shot": "A-analysis_cycle.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/analysis/period",
+    "theme": "light",
+    "landed": "/fa/analysis/period",
+    "shot": "A-analysis_period.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/analysis/symptoms",
+    "theme": "light",
+    "landed": "/fa/analysis/symptoms",
+    "shot": "A-analysis_symptoms.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/analysis/correlations",
+    "theme": "light",
+    "landed": "/fa/analysis/correlations",
+    "shot": "A-analysis_correlations.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/analysis/body",
+    "theme": "light",
+    "landed": "/fa/analysis/body",
+    "shot": "A-analysis_body.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/analysis/labs",
+    "theme": "light",
+    "landed": "/fa/analysis/labs",
+    "shot": "A-analysis_labs.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/analysis/monthly/1405-06?calendar=jalali",
+    "theme": "light",
+    "landed": "/fa/analysis/monthly/1405-06?calendar=jalali",
+    "shot": "A-analysis_monthly_1405-06_calendar_jalali.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/analysis/monthly/1405-07?calendar=jalali",
+    "theme": "light",
+    "landed": "/fa/analysis/monthly/1405-07?calendar=jalali",
+    "shot": "A-analysis_monthly_1405-07_calendar_jalali.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/analysis",
+    "theme": "dark",
+    "landed": "/fa/analysis",
+    "shot": "A-analysis.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/analysis/cycle",
+    "theme": "dark",
+    "landed": "/fa/analysis/cycle",
+    "shot": "A-analysis_cycle.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/analysis/period",
+    "theme": "dark",
+    "landed": "/fa/analysis/period",
+    "shot": "A-analysis_period.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/analysis/symptoms",
+    "theme": "dark",
+    "landed": "/fa/analysis/symptoms",
+    "shot": "A-analysis_symptoms.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/analysis/correlations",
+    "theme": "dark",
+    "landed": "/fa/analysis/correlations",
+    "shot": "A-analysis_correlations.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/analysis/body",
+    "theme": "dark",
+    "landed": "/fa/analysis/body",
+    "shot": "A-analysis_body.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/log",
+    "theme": "dark",
+    "landed": "/fa/log",
+    "shot": "MN-log.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/analysis",
+    "theme": "dark",
+    "landed": "/fa/analysis",
+    "shot": "MN-analysis.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/analysis/symptoms",
+    "theme": "dark",
+    "landed": "/fa/analysis/symptoms",
+    "shot": "MN-analysis_symptoms.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/analysis/body",
+    "theme": "dark",
+    "landed": "/fa/analysis/body",
+    "shot": "MN-analysis_body.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/home",
+    "theme": "dark",
+    "landed": "/fa/home",
+    "shot": "MN-home.dark.png",
+    "network": [
+      "400 /api/v1/messages/daily"
+    ],
+    "console": []
+  },
+  {
+    "route": "/fa/analysis",
+    "theme": "light",
+    "landed": "/fa/analysis",
+    "shot": "AF-analysis.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/analysis/correlations",
+    "theme": "light",
+    "landed": "/fa/analysis/correlations",
+    "shot": "AF-analysis_correlations.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/analysis/symptoms",
+    "theme": "light",
+    "landed": "/fa/analysis/symptoms",
+    "shot": "AF-analysis_symptoms.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/analysis/monthly/1405-06?calendar=jalali",
+    "theme": "light",
+    "landed": "/fa/analysis/monthly/1405-06?calendar=jalali",
+    "shot": "AF-analysis_monthly_1405-06_calendar_jalali.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/plus",
+    "theme": "light",
+    "landed": "/fa/plus",
+    "shot": "AF-plus.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/plus/checkout?plan=2",
+    "theme": "light",
+    "landed": "/fa/plus/checkout?plan=2",
+    "shot": "AF-plus_checkout_plan_2.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/analysis",
+    "theme": "dark",
+    "landed": "/fa/analysis",
+    "shot": "AF-analysis.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/analysis/correlations",
+    "theme": "dark",
+    "landed": "/fa/analysis/correlations",
+    "shot": "AF-analysis_correlations.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/analysis/symptoms",
+    "theme": "dark",
+    "landed": "/fa/analysis/symptoms",
+    "shot": "AF-analysis_symptoms.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/analysis/monthly/1405-06?calendar=jalali",
+    "theme": "dark",
+    "landed": "/fa/analysis/monthly/1405-06?calendar=jalali",
+    "shot": "AF-analysis_monthly_1405-06_calendar_jalali.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/plus",
+    "theme": "dark",
+    "landed": "/fa/plus",
+    "shot": "AF-plus.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/plus/checkout?plan=2",
+    "theme": "dark",
+    "landed": "/fa/plus/checkout?plan=2",
+    "shot": "AF-plus_checkout_plan_2.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "FAIL-pick",
+    "theme": "light",
+    "landed": "/fa/pregnancy/log",
+    "shot": "FAIL-pick.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/pregnancy/log tiles open",
+    "theme": "light",
+    "landed": "/fa/pregnancy/log",
+    "shot": "PG-sheet-open.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/pregnancy/log saved",
+    "theme": "light",
+    "landed": "/fa/pregnancy",
+    "shot": "PG-sheet-saved.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "FAIL-tile_",
+    "theme": "dark",
+    "landed": "/fa/pregnancy/log",
+    "shot": "FAIL-tile_.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/pregnancy/log tiles open",
+    "theme": "dark",
+    "landed": "/fa/pregnancy/log",
+    "shot": "PG-sheet-open.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "FAIL-pick",
+    "theme": "dark",
+    "landed": "/fa/pregnancy/log",
+    "shot": "FAIL-pick.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/pregnancy/log saved",
+    "theme": "dark",
+    "landed": "/fa/pregnancy/log",
+    "shot": "PG-sheet-saved.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/analysis",
+    "theme": "light",
+    "landed": "/fa/analysis",
+    "shot": "TN-analysis.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/analysis/cycle",
+    "theme": "light",
+    "landed": "/fa/analysis/cycle",
+    "shot": "TN-analysis_cycle.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/analysis/correlations",
+    "theme": "light",
+    "landed": "/fa/analysis/correlations",
+    "shot": "TN-analysis_correlations.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/log",
+    "theme": "light",
+    "landed": "/fa/log",
+    "shot": "TN-log.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/analysis",
+    "theme": "dark",
+    "landed": "/fa/analysis",
+    "shot": "TN-analysis.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/analysis/cycle",
+    "theme": "dark",
+    "landed": "/fa/analysis/cycle",
+    "shot": "TN-analysis_cycle.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/analysis/correlations",
+    "theme": "dark",
+    "landed": "/fa/analysis/correlations",
+    "shot": "TN-analysis_correlations.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/log",
+    "theme": "dark",
+    "landed": "/fa/log",
+    "shot": "TN-log.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/home",
+    "theme": "light",
+    "landed": "/fa/home",
+    "shot": "PP-home.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/home?sheet=log",
+    "theme": "light",
+    "landed": "/fa/home?sheet=log",
+    "shot": "PP-home_sheet_log.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/log",
+    "theme": "light",
+    "landed": "/fa/log",
+    "shot": "PP-log.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/analysis",
+    "theme": "light",
+    "landed": "/fa/analysis",
+    "shot": "PP-analysis.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/home",
+    "theme": "dark",
+    "landed": "/fa/home",
+    "shot": "PP-home.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/home?sheet=log",
+    "theme": "dark",
+    "landed": "/fa/home?sheet=log",
+    "shot": "PP-home_sheet_log.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/log",
+    "theme": "dark",
+    "landed": "/fa/log",
+    "shot": "PP-log.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/analysis",
+    "theme": "dark",
+    "landed": "/fa/analysis",
+    "shot": "PP-analysis.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/log (postpartum) lochia panel",
+    "theme": "light",
+    "landed": "/fa/log",
+    "shot": "PP-lochia-panel.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/log (postpartum) saved",
+    "theme": "light",
+    "landed": "/fa/log",
+    "shot": "PP-log-saved.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/log (postpartum) lochia panel",
+    "theme": "dark",
+    "landed": "/fa/log",
+    "shot": "PP-lochia-panel.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/log (postpartum) saved",
+    "theme": "dark",
+    "landed": "/fa/log",
+    "shot": "PP-log-saved.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/signup",
+    "theme": "dark",
+    "landed": "/fa/signup",
+    "shot": "N-signup.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/home",
+    "theme": "dark",
+    "landed": "/fa/home",
+    "shot": "R-home.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/calendar",
+    "theme": "dark",
+    "landed": "/fa/calendar",
+    "shot": "R-calendar.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/plus",
+    "theme": "dark",
+    "landed": "/fa/plus",
+    "shot": "R-plus.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/plus/plans",
+    "theme": "dark",
+    "landed": "/fa/plus/plans",
+    "shot": "R-plus_plans.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/profile",
+    "theme": "dark",
+    "landed": "/fa/profile",
+    "shot": "R-profile.dark.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/home",
+    "theme": "light",
+    "landed": "/fa/home",
+    "shot": "R-home.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/calendar",
+    "theme": "light",
+    "landed": "/fa/calendar",
+    "shot": "R-calendar.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/plus",
+    "theme": "light",
+    "landed": "/fa/plus",
+    "shot": "R-plus.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/plus/plans",
+    "theme": "light",
+    "landed": "/fa/plus/plans",
+    "shot": "R-plus_plans.light.png",
+    "network": [],
+    "console": []
+  },
+  {
+    "route": "/fa/profile",
+    "theme": "light",
+    "landed": "/fa/profile",
+    "shot": "R-profile.light.png",
+    "network": [],
+    "console": []
   }
 ]
