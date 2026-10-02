@@ -1,0 +1,91 @@
+# Companion panel home and the male account path (/api/v1/companion/home; 409 companion_account on the women's
+# /home and /messages endpoints) — Go only (bloom B-N4-03, deviations D-49): there is no Laravel route, so these
+# goldens were recorded from the Go server and reviewed by hand (new-endpoint skill, step 8). Personas: `regular`
+# (1004) is the owner, `no_profile` (1001, mobile 09900000001) answers the Gender step with male and becomes the
+# companion. Every access combination (no grant, revoked link, another male, admin tip rows) is covered by
+# internal/http/routes_companion_home_int_test.go.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: companion-home
+defaults:
+  persona: regular
+  locales: none
+  patterns:
+    data.invite.code: '^[A-HJ-NP-Z2-9]{6}$'
+cases:
+  - name: home_anon
+    persona: anon
+    method: GET
+    path: /api/v1/companion/home
+    status: 401
+  - name: home_woman_forbidden
+    doc: A woman's (or never-asked) account → 403 not_companion_account
+    locales: [none, en, fa]
+    method: GET
+    path: /api/v1/companion/home
+    status: 403
+
+  - name: male_path_empty_state
+    doc: |
+      Gender male → life stage `companion` (PUT mode refused) → the women's cycle home / cycle overview / daily
+      messages answer 409 companion_account → the companion home is the empty state (enter the companion code)
+    persona: no_profile
+    locales: [none, en]
+    steps:
+      - method: PUT
+        path: /api/v1/onboarding/steps/gender
+        body: {gender: male}
+        status: 200
+      - method: GET
+        path: /api/v1/profile/life-stage
+        status: 200
+      - method: PUT
+        path: /api/v1/profile/life-stage
+        body: {mode: cycle}
+        status: 422
+      - method: GET
+        path: /api/v1/home
+        status: 409
+      - method: GET
+        path: /api/v1/home/cycle-overview
+        status: 409
+      - method: GET
+        path: /api/v1/messages/daily
+        status: 409
+      - method: GET
+        path: /api/v1/companion/home
+        status: 200
+
+  - name: linked_granted_then_revoked
+    doc: |
+      The owner invites the male account (cycle view, meds edit) → he accepts → his home shows her cycle and meds
+      (appointments / symptoms / pregnancy null), tips for her phase → the owner revokes → empty state again
+    steps:
+      - as: no_profile
+        method: PUT
+        path: /api/v1/onboarding/steps/gender
+        body: {gender: male}
+        status: 200
+      - method: POST
+        path: /api/v1/companions
+        body: {type: partner, grants: {cycle: view, meds: edit}}
+        status: 201
+        capture: {code: data.invite.code, id: data.companion.id}
+      - as: no_profile
+        method: POST
+        path: /api/v1/companions/accept
+        body: {code: "{{code}}"}
+        status: 200
+      - as: no_profile
+        method: GET
+        path: /api/v1/companion/home
+        status: 200
+      - method: GET
+        path: /api/v1/companions/audit
+        status: 200
+      - method: DELETE
+        path: "/api/v1/companions/{{id}}"
+        status: 200
+      - as: no_profile
+        method: GET
+        path: /api/v1/companion/home
+        status: 200

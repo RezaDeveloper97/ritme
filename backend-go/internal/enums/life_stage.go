@@ -19,6 +19,20 @@ const (
 	LifeModeTeen       LifeMode = "teen"
 )
 
+// LifeModeCompanion is the effective mode of a male account (gender = male, bloom B-N4-03): a companion «همدم» with
+// no cycle engine of his own. It is resolved from the gender, never stored and never selectable (not in
+// LifeModeValues), so PUT /profile/life-stage and the onboarding Goal step keep refusing it.
+const LifeModeCompanion LifeMode = "companion"
+
+// ResolveAccountMode is ResolveLifeMode with the gender first: a male account is always LifeModeCompanion
+// (whatever a stale stored mode, user_goal or pregnancy row says); everyone else resolves as before.
+func ResolveAccountMode(gender, stored string, pregnancyActive bool, userGoal string) LifeMode {
+	if gender == string(GenderMale) {
+		return LifeModeCompanion
+	}
+	return ResolveLifeMode(stored, pregnancyActive, userGoal)
+}
+
 var lifeModeCases = []LifeMode{
 	LifeModeCycle, LifeModeTTC, LifeModePregnancy, LifeModePostpartum, LifeModeMenopause, LifeModeTeen,
 }
@@ -44,13 +58,13 @@ func (e LifeMode) MessageMode() MessageMode {
 
 // TracksCycle is false for the mode without a menstrual cycle to time things by (menopause, B-N2-11b):
 // e.g. a checkup's «روز ۷ تا ۱۰ سیکل» window does not apply.
-func (e LifeMode) TracksCycle() bool { return e != LifeModeMenopause }
+func (e LifeMode) TracksCycle() bool { return e != LifeModeMenopause && e != LifeModeCompanion }
 
 // AllowsFertilityContent is false for the modes that must never get conception / fertile-window targeted
 // content (TTC copy, "best days" nudges): menopause and teen. The engines treat such a user as non-TTC whatever
 // user_goal says.
 func (e LifeMode) AllowsFertilityContent() bool {
-	return e != LifeModeMenopause && e != LifeModeTeen
+	return e != LifeModeMenopause && e != LifeModeTeen && e != LifeModeCompanion
 }
 
 // LegacyUserGoal is the user_profiles.user_goal kept in step with the mode (only ttc is TTC).

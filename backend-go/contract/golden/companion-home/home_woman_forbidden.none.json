@@ -1,0 +1,22 @@
+{
+  "case": "companion-home/home_woman_forbidden.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/companion/home",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 403,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "خانه همدم فقط برای حساب‌های همدم است.",
+        "error_code": "not_companion_account"
+      }
+    }
+  ]
+}

@@ -3,7 +3,7 @@ id: B-N4-03
 title: Male account path and companion home aggregate
 milestone: N4
 type: backend
-status: todo
+status: done
 depends_on: [B-N4-02,B-N2-01]
 parallel_group: N4-C
 touches: [backend-go/internal/companion,backend-go/internal/profile,backend-go/internal/home,backend-go/api]

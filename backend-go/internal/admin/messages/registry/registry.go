@@ -72,7 +72,7 @@ func Keys(group string) []string {
 var groups = buildGroups()
 
 func buildGroups() []Group {
-	out := []Group{weekTipGroup(), alertGroup(), setupGroup(), conditionNudgeGroup(), menopauseMessageGroup()}
+	out := []Group{weekTipGroup(), alertGroup(), setupGroup(), conditionNudgeGroup(), menopauseMessageGroup(), companionTipGroup()}
 	defaults, _ := phpval.Decode(content.DefaultsJSON())
 	for _, name := range content.Groups() {
 		if slices.ContainsFunc(out, func(g Group) bool { return g.Name == name }) {
@@ -251,6 +251,39 @@ func conditionNudgeGroup() Group {
 		g.Items = append(g.Items, Item{
 			Group: ConditionNudgeGroup, Key: k, Fields: fields, Placeholders: []string{"days"}, Typed: true,
 		})
+	}
+	return g
+}
+
+// ---------------------------------------------------------------------------
+// Companion «همدم» (bloom N4)
+
+// CompanionTipGroup is the copy of the companion panel home (B-N4-03, internal/companion/home: TipGroup, TipKeys —
+// kept equal by its tests): per phase of the partner (or her pregnancy, or general when nothing is shared) one
+// `<phase>_note` line under the cycle card and three «امروز چه کار کنی؟» tips `<phase>_tip_<n>`. Unseeded: the home
+// falls back to its embedded fa/en copy until an admin writes a row of that language (or the default language); a
+// written row is used as is, so an empty title hides that tip and an empty body hides the note. `{name}` is the partner's name. B-N4-07 builds the dedicated admin screen.
+const CompanionTipGroup = "companion_tip"
+
+// CompanionTipPhases are the phases of CompanionTipGroup in display order.
+var CompanionTipPhases = []string{"menstrual", "follicular", "fertile", "luteal", "pregnancy", "general"}
+
+// CompanionTipsPerPhase is how many tip slots each phase has.
+const CompanionTipsPerPhase = 3
+
+func companionTipGroup() Group {
+	g := Group{Name: CompanionTipGroup}
+	ph := []string{"name"}
+	for _, phase := range CompanionTipPhases {
+		g.Items = append(g.Items, Item{
+			Group: CompanionTipGroup, Key: phase + "_note", Fields: []Field{optText("body", 500)}, Placeholders: ph, Typed: true,
+		})
+		for i := 1; i <= CompanionTipsPerPhase; i++ {
+			g.Items = append(g.Items, Item{
+				Group: CompanionTipGroup, Key: phase + "_tip_" + strconv.Itoa(i),
+				Fields: []Field{optText("title", 255), optText("body", 1000)}, Placeholders: ph, Typed: true,
+			})
+		}
 	}
 	return g
 }

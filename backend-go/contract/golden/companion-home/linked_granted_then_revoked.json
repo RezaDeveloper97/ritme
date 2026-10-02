@@ -1,0 +1,366 @@
+{
+  "case": "companion-home/linked_granted_then_revoked",
+  "steps": [
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/onboarding/steps/gender",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "gender": "male"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "ذخیره شد",
+        "data": {
+          "name": null,
+          "gender": "male",
+          "goal": null,
+          "life_stage": {
+            "mode": "companion",
+            "stored_mode": null,
+            "ivf_iui": false,
+            "track_contraception": false
+          },
+          "cycle": {
+            "last_period_start": null,
+            "period_duration": null,
+            "cycle_duration": null
+          },
+          "menopause": {
+            "stage": null,
+            "last_period": null,
+            "surgical": null,
+            "hrt": null
+          },
+          "conditions": {
+            "chronic_illnesses": null,
+            "gyn_conditions": null,
+            "medications": null
+          },
+          "health": {
+            "birthday": null,
+            "height": null,
+            "weight": null
+          },
+          "started_at": "2026-09-23T10:00:00+03:30",
+          "completed_at": null,
+          "completed": false
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/companions",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "type": "partner",
+          "grants": {
+            "cycle": "view",
+            "meds": "edit"
+          }
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "دعوت ساخته شد.",
+        "data": {
+          "companion": {
+            "id": 1,
+            "type": "partner",
+            "status": "invited",
+            "display_name": null,
+            "name": null,
+            "invited_at": "2026-09-23T10:00:00+03:30",
+            "accepted_at": null,
+            "grants": {
+              "cycle": "view",
+              "symptoms": "none",
+              "meds": "edit",
+              "appointments": "none",
+              "pregnancy": "none"
+            },
+            "invite": {
+              "expires_at": "2026-09-24T10:00:00+03:30",
+              "phone": null
+            },
+            "family": null
+          },
+          "invite": {
+            "code": "<pattern:^[A-HJ-NP-Z2-9]{6}$>",
+            "expires_at": "2026-09-24T10:00:00+03:30",
+            "phone": null,
+            "sms_sent": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/companions/accept",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "code": "{{code}}"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "30",
+        "x-ratelimit-remaining": "29"
+      },
+      "body": {
+        "success": true,
+        "message": "به هم وصل شدید.",
+        "data": {
+          "id": 1,
+          "type": "partner",
+          "owner": {
+            "id": 1004,
+            "name": "Contract regular"
+          },
+          "accepted_at": "2026-09-23T10:00:00+03:30",
+          "grants": {
+            "cycle": "view",
+            "symptoms": "none",
+            "meds": "edit",
+            "appointments": "none",
+            "pregnancy": "none"
+          },
+          "can_record_for": [
+            "meds"
+          ],
+          "family": null
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/companion/home",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "companion",
+          "viewer": {
+            "id": 1001,
+            "name": null
+          },
+          "has_partners": true,
+          "partners": [
+            {
+              "link": {
+                "id": 1,
+                "type": "partner",
+                "owner": {
+                  "id": 1004,
+                  "name": "Contract regular"
+                },
+                "accepted_at": "2026-09-23T10:00:00+03:30",
+                "grants": {
+                  "cycle": "view",
+                  "symptoms": "none",
+                  "meds": "edit",
+                  "appointments": "none",
+                  "pregnancy": "none"
+                },
+                "can_record_for": [
+                  "meds"
+                ],
+                "family": null
+              },
+              "partner_name": "Contract regular",
+              "cycle": {
+                "date": "2026-09-23",
+                "has_data": true,
+                "cycle_day": 10,
+                "cycle_length": 28,
+                "main_phase": "fertile",
+                "days_to_period": 19,
+                "days_late": 0,
+                "predicted_next_period_start": "2026-10-12",
+                "confidence": "high"
+              },
+              "pregnancy": null,
+              "symptoms": null,
+              "meds": [],
+              "appointments": null,
+              "phase": "fertile",
+              "note": "این روزها معمولاً پرانرژی‌ترین روزهای سیکل Contract regular است.",
+              "tips": [
+                {
+                  "key": "fertile_tip_1",
+                  "title": "یک وقت آرام و دونفره بساز",
+                  "body": "یک شام ساده یا گفت‌وگوی بی‌عجله کافی است."
+                },
+                {
+                  "key": "fertile_tip_2",
+                  "title": "از برنامه‌هایش بپرس",
+                  "body": "علاقه نشان‌دادن به کارها و برنامه‌هایش اثر زیادی دارد."
+                },
+                {
+                  "key": "fertile_tip_3",
+                  "title": "با هم بیرون بروید",
+                  "body": "هوای تازه و حرکت برای هر دوی شما خوب است."
+                }
+              ],
+              "child": null
+            }
+          ],
+          "empty_state": null,
+          "articles": [
+            {
+              "id": 4,
+              "slug": "ovulation-signs",
+              "title": "نشانه‌های تخمک‌گذاری را بشناس",
+              "excerpt": "تغییرات ترشحات، دمای بدن و علائمی که تخمک‌گذاری را نشان می‌دهند",
+              "read_time_minutes": 4,
+              "image_url": null,
+              "category": "fertility"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/companions/audit",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": [
+          {
+            "id": 4,
+            "action": "read",
+            "section": "meds",
+            "companion_id": 1,
+            "actor": {
+              "id": 1001,
+              "name": null,
+              "is_me": false
+            },
+            "at": "2026-09-23T10:00:00+03:30"
+          },
+          {
+            "id": 3,
+            "action": "read",
+            "section": "cycle",
+            "companion_id": 1,
+            "actor": {
+              "id": 1001,
+              "name": null,
+              "is_me": false
+            },
+            "at": "2026-09-23T10:00:00+03:30"
+          },
+          {
+            "id": 2,
+            "action": "accepted",
+            "section": null,
+            "companion_id": 1,
+            "actor": {
+              "id": 1001,
+              "name": null,
+              "is_me": false
+            },
+            "at": "2026-09-23T10:00:00+03:30"
+          },
+          {
+            "id": 1,
+            "action": "invited",
+            "section": null,
+            "companion_id": 1,
+            "actor": {
+              "id": 1004,
+              "name": "Contract regular",
+              "is_me": true
+            },
+            "at": "2026-09-23T10:00:00+03:30"
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/companions/1",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "message": "همدم حذف شد.",
+        "data": null
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/companion/home",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "companion",
+          "viewer": {
+            "id": 1001,
+            "name": null
+          },
+          "has_partners": false,
+          "partners": [],
+          "empty_state": {
+            "title": "هنوز به کسی وصل نیستی",
+            "body": "کد همدمی را که برایت فرستاده شده وارد کن تا چیزهایی را که با تو به اشتراک می‌گذارد ببینی.",
+            "action": "enter_code",
+            "action_label": "کد همدم را وارد کن"
+          },
+          "articles": []
+        }
+      }
+    }
+  ]
+}

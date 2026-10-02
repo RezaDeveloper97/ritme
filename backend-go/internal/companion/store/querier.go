@@ -29,11 +29,25 @@ type Querier interface {
 	GetFamilyByCompanion(ctx context.Context, companionID uint64) (Family, error)
 	GetInvite(ctx context.Context, id uint64) (CompanionInvite, error)
 	GetInviteByHash(ctx context.Context, codeHash string) (CompanionInvite, error)
+	// Companion account and panel home (bloom B-N4-03). Read-only.
+	// user_life_profiles.gender of one account (onboarding v2 Gender step; no row / NULL = never asked → a woman's
+	// account, the legacy default). male = a companion account.
+	GetUserGender(ctx context.Context, userID uint64) (sql.NullString, error)
 	GetUserMobile(ctx context.Context, id uint64) (sql.NullString, error)
+	// Display names of the other party in link lists (users.name; NULL when the account never set one).
+	GetUserNames(ctx context.Context, ids []uint64) ([]GetUserNamesRow, error)
 	IncrementInviteAttempts(ctx context.Context, arg IncrementInviteAttemptsParams) error
 	InsertAudit(ctx context.Context, arg InsertAuditParams) error
+	// Owner inbox row (accept / companion write, B-N4-02): title/body are {lang: text} JSON without any health payload.
+	InsertUserNotification(ctx context.Context, arg InsertUserNotificationParams) error
+	// «برای خواندن» on the companion home: published articles of category `companion`, then articles tagged with the
+	// partner's phase (has_phases = 0 skips them); untagged general articles are not companion reading.
+	ListCompanionArticles(ctx context.Context, arg ListCompanionArticlesParams) ([]ListCompanionArticlesRow, error)
 	// The active links in which the user is the companion, oldest first.
 	ListCompanionLinks(ctx context.Context, companionUserID sql.NullInt64) ([]Companion, error)
+	// The live admin copy of the «امروز چه کار کنی؟» tips (message_contents group companion_tip) in the given locales
+	// (request locale + default language). Not user data.
+	ListCompanionTipContents(ctx context.Context, locales []string) ([]ListCompanionTipContentsRow, error)
 	// Grants of every active link in which the user is the companion.
 	ListCompanionUserGrants(ctx context.Context, companionUserID sql.NullInt64) ([]CompanionGrant, error)
 	ListFamilyChildIDs(ctx context.Context, familyID uint64) ([]uint64, error)

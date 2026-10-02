@@ -1,0 +1,34 @@
+{
+    "someone": "your partner",
+    "empty": {
+        "title": "You are not connected to anyone yet",
+        "body": "Enter the companion code you were sent to see what she shares with you.",
+        "action": "Enter the companion code"
+    },
+    "tips": {
+        "menstrual_note": "{name} may feel more tired or be in pain these days. Rest, warmth and help with daily chores matter most.",
+        "menstrual_tip_1": {"title": "Make her a warm drink", "body": "A herbal tea or a glass of warm water can feel comforting."},
+        "menstrual_tip_2": {"title": "Take over one chore", "body": "Fewer daily tasks give her room to rest."},
+        "menstrual_tip_3": {"title": "Ask what she needs", "body": "Sometimes listening and being there is enough."},
+        "follicular_note": "{name}'s energy usually rises in these days. A good time for plans together.",
+        "follicular_tip_1": {"title": "Plan an outing together", "body": "A walk, a film or seeing friends — something you both enjoy."},
+        "follicular_tip_2": {"title": "Back her new plans", "body": "If she has a new goal, cheer her on and help."},
+        "follicular_tip_3": {"title": "20 minutes of exercise together", "body": "Light movement lifts both of you."},
+        "fertile_note": "These are usually the most energetic days of {name}'s cycle.",
+        "fertile_tip_1": {"title": "Make calm time for two", "body": "A simple dinner or an unhurried talk is enough."},
+        "fertile_tip_2": {"title": "Ask about her plans", "body": "Showing interest in what she does means a lot."},
+        "fertile_tip_3": {"title": "Go out together", "body": "Fresh air and movement are good for you both."},
+        "luteal_note": "{name} may feel more tired or sensitive these days. Patience and help with daily chores matter most.",
+        "luteal_tip_1": {"title": "Cook a light, warm dinner", "body": "Warm, low-salt food helps her feel better these days."},
+        "luteal_tip_2": {"title": "Take a 20-minute walk together", "body": "Light movement helps with cramps and stress."},
+        "luteal_tip_3": {"title": "Be patient and listen", "body": "If she is short-tempered, do not take it personally; ask how you can help."},
+        "pregnancy_note": "{name} is pregnant. Coming along to appointments and easing daily chores help most.",
+        "pregnancy_tip_1": {"title": "Join her next appointment", "body": "Being there at visits reassures her."},
+        "pregnancy_tip_2": {"title": "Do the heavy lifting", "body": "Take over shopping, carrying and tiring chores."},
+        "pregnancy_tip_3": {"title": "Prepare a healthy snack", "body": "Keep fruit, water and a light snack within her reach."},
+        "general_note": "Whatever {name} shares with you shows up here.",
+        "general_tip_1": {"title": "Check in on her", "body": "A short message during the day shows you are thinking of her."},
+        "general_tip_2": {"title": "Take over one task", "body": "Lightening the daily load always helps."},
+        "general_tip_3": {"title": "Make time for two", "body": "Even 20 minutes of talking or walking together counts."}
+    }
+}

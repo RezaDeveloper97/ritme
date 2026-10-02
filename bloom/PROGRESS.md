@@ -679,3 +679,25 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   body-map pin positions/labels), 6 low open (pregnancy sheet CTA copy, panel gear, trimester ring, analysis share
   buttons, phase-bar legend dots, IOM row height). Gear sits inside the sheet `h2` until `AppSheet` gets an `action` slot.
 - Screenshots `docs/qa/bloom/B-N3-13/` (personas p04/p06/p12/p121/p063/p081/p082, side-by-side for the two meds).
+
+## B-N4-02 — Invite, accept, revoke and access-filtered companion APIs
+
+- Owner routes `GET/POST /api/v1/companions`, `GET/DELETE /companions/{id}`, `POST /companions/{id}/renew`,
+  `PUT /companions/{id}/grants`, `PUT /companions/{id}/children` (422 until B-N5-02), `GET /companions/audit`; companion
+  routes `POST /companions/accept`, `GET /companions/links`, `DELETE /companions/links/{id}`,
+  `GET /companions/links/{id}/sections/{cycle|symptoms|meds|appointments|pregnancy}` (minimised views via
+  `companion/shared`). `for_user_id` on care medication/appointment show/create/update (view/edit; prep stays owner-only).
+- Security: uniform 404/422, accept throttle 10/h user + 30/h IP, invite SMS gates (2 min resend gap, 3/24 h per
+  recipient hash, 5/24 h per owner, 20/h create+renew), audit written before every delegated read/write (fail closed),
+  owner inbox notices (logged on failure), prod 503 without `COMPANION_CODE_PEPPER`, fake SMS refused in prod.
+- `internal/sms` adapter (none/fake/gateway=Kavenegar `KAVENEGAR_TEMPLATE_COMPANION_INVITE`). Env in
+  `.env.stage.example` + compose. Contract `companion` 16; D-48 proposed. QUESTIONS #94.
+
+## B-N4-03 — Male account path and companion home aggregate
+
+- `GET /api/v1/companion/home` (male companion only; 403 otherwise): per active link partner name + granted section
+  views via `companion/shared` (null without grant, audited before build), phase (pregnancy → cycle phase → general),
+  tips per phase from `message_contents` `companion_tip` (registered in the admin registry; embedded fa/en fallback),
+  up to 4 articles; empty state with `enter_code` when no links.
+- `enums.ResolveAccountMode` → `companion` for gender=male; `PUT /profile/life-stage` mode 422; `/home*`,
+  `/messages/daily|mode` → 409 `companion_account`. Contract `companion-home` 7; existing goldens unchanged. D-49.

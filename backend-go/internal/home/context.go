@@ -43,6 +43,14 @@ type Deps struct {
 	Logger *slog.Logger
 	// Plus renders the Ritme Plus trial banner of /home/cycle-overview (nil = always null).
 	Plus TrialBanner
+	// Accounts tells a companion (male) account apart (bloom B-N4-03): /home, /home/sections/{section} and
+	// /home/cycle-overview answer him 409 companion_account instead of a cycle built from defaults (nil = no check).
+	Accounts AccountKind
+}
+
+// AccountKind is the companion-account port of the home (internal/companion.Accounts).
+type AccountKind interface {
+	IsCompanion(ctx context.Context, userID uint64) (bool, error)
 }
 
 // TrialBanner is the Plus port of the home (internal/plus.Service): the trial-offer banner of the user at now,

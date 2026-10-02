@@ -4,6 +4,7 @@
         "saved": "Saved",
         "completed": "Your Ritme is ready",
         "life_stage_saved": "Life stage saved",
+        "companion_no_mode": "A companion account has no life stage to change.",
         "incomplete": "A few onboarding steps are still unanswered.",
         "step_missing": {
             "name": "Please tell us your name.",

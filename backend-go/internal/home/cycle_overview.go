@@ -125,6 +125,9 @@ func (h *Handlers) CycleOverview(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	if err := h.refuseCompanion(c); err != nil {
+		return err
+	}
 	today := civildate.InTehran(h.now(c))
 	sn, err := h.cycle.Load(c.Context(), user.ID, today.AddDays(-streakWindowDays), today, today)
 	if err != nil {

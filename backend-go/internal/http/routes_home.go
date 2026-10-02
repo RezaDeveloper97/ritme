@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/ritme/backend-go/internal/auth"
+	"github.com/ritme/backend-go/internal/companion"
 	cycleservice "github.com/ritme/backend-go/internal/cycle/service"
 	"github.com/ritme/backend-go/internal/home"
 	homestore "github.com/ritme/backend-go/internal/home/store"
@@ -28,6 +29,7 @@ func init() {
 			AppURL:    d.Config.App.URL,
 			Logger:    d.Logger,
 			Plus:      plus.NewService(d.DB, d.Config.Plus, nil, d.Logger), // trial banner only: no gateway needed
+			Accounts:  companion.NewAccounts(d.DB),                         // B-N4-03: 409 companion_account for a male account
 		}, cycleservice.New(d.DB, nil), clock.Real{})
 
 		g := r.Group("/api/v1/home")

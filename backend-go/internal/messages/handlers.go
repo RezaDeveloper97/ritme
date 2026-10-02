@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/ritme/backend-go/internal/auth"
+	"github.com/ritme/backend-go/internal/companion"
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/i18n"
 	"github.com/ritme/backend-go/internal/i18n/lang"
@@ -24,14 +25,15 @@ import (
 // Handlers are the MessageController actions. Mount them behind auth RequireUser and the
 // locale middleware.
 type Handlers struct {
-	q     *store.Queries
-	pq    *pstore.Queries
-	clock clock.Clock
+	q        *store.Queries
+	pq       *pstore.Queries
+	clock    clock.Clock
+	accounts *companion.Accounts // B-N4-03: a companion (male) account has no daily cycle messages → 409
 }
 
 // NewHandlers wires the handlers; base is the fallback clock.
 func NewHandlers(db store.DBTX, base clock.Clock) *Handlers {
-	return &Handlers{q: store.New(db), pq: pstore.New(db), clock: base}
+	return &Handlers{q: store.New(db), pq: pstore.New(db), clock: base, accounts: companion.NewAccounts(db)}
 }
 
 // request is one request's manager and its source.
@@ -39,6 +41,13 @@ func (h *Handlers) request(c fiber.Ctx) (*manager.Manager, *StoreSource, string,
 	uid, ok := auth.CurrentUserID(c)
 	if !ok {
 		return nil, nil, "", civildate.Date{}, &auth.UnauthenticatedError{Code: auth.CodeUnauthenticated}
+	}
+	is, err := h.accounts.IsCompanion(c.Context(), uid)
+	if err != nil {
+		return nil, nil, "", civildate.Date{}, err
+	}
+	if is { // bloom B-N4-03: no cycle engine for a companion account
+		return nil, nil, "", civildate.Date{}, companion.AccountConflict(i18n.Locale(c))
 	}
 	locale := i18n.ResolveLocale(c, "")
 	today := civildate.Today(clock.FromContext(c, h.clock))

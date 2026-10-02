@@ -15,6 +15,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/ritme/backend-go/internal/auth"
+	"github.com/ritme/backend-go/internal/companion"
 	cycleservice "github.com/ritme/backend-go/internal/cycle/service"
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/home/store"
@@ -112,8 +113,30 @@ func (h *Handlers) newContext(ctx context.Context, user *auth.User, date, today 
 	return hc, nil
 }
 
+// refuseCompanion is the 409 companion_account of a male account (bloom B-N4-03): his home is GET /companion/home.
+func (h *Handlers) refuseCompanion(c fiber.Ctx) error {
+	if h.deps.Accounts == nil {
+		return nil
+	}
+	uid, ok := auth.CurrentUserID(c)
+	if !ok {
+		return nil // the guard answers 401 first
+	}
+	is, err := h.deps.Accounts.IsCompanion(c.Context(), uid)
+	if err != nil {
+		return err
+	}
+	if is {
+		return companion.AccountConflict(i18n.Locale(c))
+	}
+	return nil
+}
+
 // Index is GET /home.
 func (h *Handlers) Index(c fiber.Ctx) error {
+	if err := h.refuseCompanion(c); err != nil {
+		return err
+	}
 	hc, err := h.buildContext(c)
 	if err != nil {
 		return err
@@ -138,6 +161,9 @@ func (h *Handlers) Section(c fiber.Ctx) error {
 			msg = "بخش موردنظر یافت نشد"
 		}
 		return httpx.Fail(fiber.StatusNotFound, msg, "available_sections", h.page.Keys())
+	}
+	if err := h.refuseCompanion(c); err != nil {
+		return err
 	}
 	hc, err := h.buildContext(c)
 	if err != nil {

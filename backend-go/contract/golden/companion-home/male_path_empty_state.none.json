@@ -1,0 +1,196 @@
+{
+  "case": "companion-home/male_path_empty_state.none",
+  "steps": [
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/onboarding/steps/gender",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "gender": "male"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "ذخیره شد",
+        "data": {
+          "name": null,
+          "gender": "male",
+          "goal": null,
+          "life_stage": {
+            "mode": "companion",
+            "stored_mode": null,
+            "ivf_iui": false,
+            "track_contraception": false
+          },
+          "cycle": {
+            "last_period_start": null,
+            "period_duration": null,
+            "cycle_duration": null
+          },
+          "menopause": {
+            "stage": null,
+            "last_period": null,
+            "surgical": null,
+            "hrt": null
+          },
+          "conditions": {
+            "chronic_illnesses": null,
+            "gyn_conditions": null,
+            "medications": null
+          },
+          "health": {
+            "birthday": null,
+            "height": null,
+            "weight": null
+          },
+          "started_at": "2026-09-23T10:00:00+03:30",
+          "completed_at": null,
+          "completed": false
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/profile/life-stage",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "companion",
+          "stored_mode": null,
+          "ivf_iui": false,
+          "track_contraception": false
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/profile/life-stage",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "mode": "cycle"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": false,
+        "message": "اطلاعات واردشده نامعتبر است",
+        "errors": {
+          "mode": [
+            "حساب همدم مرحله زندگی برای تغییر ندارد."
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/home",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 409,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "این حساب همدم است و سیکل ندارد. خانه همدم را باز کن.",
+        "error_code": "companion_account",
+        "mode": "companion",
+        "home": "/companion"
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/home/cycle-overview",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 409,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "این حساب همدم است و سیکل ندارد. خانه همدم را باز کن.",
+        "error_code": "companion_account",
+        "mode": "companion",
+        "home": "/companion"
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/messages/daily",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 409,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "این حساب همدم است و سیکل ندارد. خانه همدم را باز کن.",
+        "error_code": "companion_account",
+        "mode": "companion",
+        "home": "/companion"
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/companion/home",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "companion",
+          "viewer": {
+            "id": 1001,
+            "name": null
+          },
+          "has_partners": false,
+          "partners": [],
+          "empty_state": {
+            "title": "هنوز به کسی وصل نیستی",
+            "body": "کد همدمی را که برایت فرستاده شده وارد کن تا چیزهایی را که با تو به اشتراک می‌گذارد ببینی.",
+            "action": "enter_code",
+            "action_label": "کد همدم را وارد کن"
+          },
+          "articles": []
+        }
+      }
+    }
+  ]
+}

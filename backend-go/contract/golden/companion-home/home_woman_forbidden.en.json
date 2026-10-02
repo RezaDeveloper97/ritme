@@ -1,0 +1,23 @@
+{
+  "case": "companion-home/home_woman_forbidden.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/companion/home",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 403,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "The companion home is only for companion accounts.",
+        "error_code": "not_companion_account"
+      }
+    }
+  ]
+}

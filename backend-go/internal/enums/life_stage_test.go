@@ -78,3 +78,18 @@ func TestOnboardingEnumValues(t *testing.T) {
 	assert.Len(t, GynConditionValues(), 5)
 	assert.Len(t, MedicationValues(), 3)
 }
+
+func TestResolveAccountMode(t *testing.T) {
+	// A male account is a companion whatever else is stored (B-N4-03).
+	assert.Equal(t, LifeModeCompanion, ResolveAccountMode("male", "ttc", true, "ttc"))
+	assert.Equal(t, LifeModeCompanion, ResolveAccountMode("male", "", false, ""))
+	// Women and never-asked accounts resolve exactly as ResolveLifeMode.
+	assert.Equal(t, LifeModePregnancy, ResolveAccountMode("female", "", true, ""))
+	assert.Equal(t, LifeModeTTC, ResolveAccountMode("", "", false, "ttc"))
+	assert.Equal(t, LifeModeCycle, ResolveAccountMode("", "", false, "non_ttc"))
+	// Never selectable, no cycle, no fertility copy.
+	assert.False(t, LifeModeCompanion.IsValid())
+	assert.NotContains(t, LifeModeValues(), "companion")
+	assert.False(t, LifeModeCompanion.TracksCycle())
+	assert.False(t, LifeModeCompanion.AllowsFertilityContent())
+}

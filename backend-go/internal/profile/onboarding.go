@@ -151,7 +151,7 @@ func (st lifeState) lifeRow(userID uint64) store.UserLifeProfile {
 	return store.UserLifeProfile{UserID: userID}
 }
 
-// mode is the effective life mode (enums.ResolveLifeMode).
+// mode is the effective life mode (enums.ResolveAccountMode: a male account is a companion, B-N4-03).
 func (st lifeState) mode() enums.LifeMode {
 	stored, goal := "", ""
 	if st.life != nil && st.life.LifeMode.Valid {
@@ -160,7 +160,15 @@ func (st lifeState) mode() enums.LifeMode {
 	if st.profile != nil {
 		goal = st.profile.UserGoal
 	}
-	return enums.ResolveLifeMode(stored, st.pregnancy, goal)
+	return enums.ResolveAccountMode(st.gender(), stored, st.pregnancy, goal)
+}
+
+// gender is the stored gender ("" = not asked yet).
+func (st lifeState) gender() string {
+	if st.life != nil && st.life.Gender.Valid {
+		return st.life.Gender.String
+	}
+	return ""
 }
 
 func nullStrAny(s sql.NullString) any {
@@ -643,7 +651,11 @@ func (h *OnboardingHandlers) UpdateLifeStage(c fiber.Ctx) error {
 		return err
 	}
 	l := st.lifeRow(u.ID)
-	if m, ok := pickString(body, "mode"); ok {
+	if m, ok := pickString(body, "mode"); ok && st.mode() == enums.LifeModeCompanion {
+		// B-N4-03: a companion (male) account has no life stage to switch (no cycle, no pregnancy of his own).
+		return httpx.Fail(fiber.StatusUnprocessableEntity, OT("messages.validation_failed", locale),
+			"errors", jsonx.Obj("mode", []string{OT("messages.companion_no_mode", locale)}))
+	} else if ok {
 		l.LifeMode = sql.NullString{String: m, Valid: true}
 		if err := h.syncLegacyGoal(ctx, u, st, enums.LifeMode(m), now); err != nil {
 			return err

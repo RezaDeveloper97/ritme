@@ -41,6 +41,7 @@ tags:
   - {name: Menopause, description: "Menopause mode (Go only, CB-MENO-02): stage profile on bloom's life profile, home read model, hot-flash timer, monthly symptom score with domains and deltas, patterns in her own logs (not a diagnosis)"}
   - {name: Plus, description: "Ritme Plus (Go only): plans, trial, checkout through the payment port, verify, cancel, restore, history, entitlements and usage. Amounts are integer rials"}
   - {name: Payments, description: "Payment gateway adapter (Go only): browser return hop and the fake provider's TEST page. PAYMENT_PROVIDER = fake (default outside production) | zarinpal | none. Café Bazaar / Myket billing is Android-only and out of scope"}
+  - {name: Companion, description: "Companion «همدم» & family (Go only, B-N4-02): owner invites (SMS adapter or shared code), access per section, revoke, audit trail; companion accept, links, leave and the access-filtered section reads. «ثبت برای …» = `for_user_id` on the care routes"}
   - {name: Daily Health Log, description: "One log per day: symptoms, mood, vitals, lifestyle"}
   - {name: Cycle, description: "Cycle engine: today, a date, a month, recalculation"}
   - {name: Period Log, description: "Start, end, add, edit and delete periods"}
@@ -1445,6 +1446,7 @@ paths:
                   message: {type: string}
                   data: {$ref: "#/components/schemas/Medication"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/CompanionForbidden"}
         '422': {$ref: "#/components/responses/CareValidationFailed"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/care/medications/{id}:
@@ -1456,6 +1458,7 @@ paths:
         - {bearerAuth: []}
       parameters:
         - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/ForUserId"}
         - {$ref: "#/components/parameters/AcceptLanguage"}
       responses:
         '200':
@@ -1469,6 +1472,7 @@ paths:
                   success: {type: boolean}
                   data: {$ref: "#/components/schemas/Medication"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/CompanionForbidden"}
         '404': {$ref: "#/components/responses/CareNotFound"}
     put:
       tags: [Care]
@@ -1499,6 +1503,7 @@ paths:
                   message: {type: string}
                   data: {$ref: "#/components/schemas/Medication"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/CompanionForbidden"}
         '404': {$ref: "#/components/responses/CareNotFound"}
         '422': {$ref: "#/components/responses/CareValidationFailed"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
@@ -1674,6 +1679,7 @@ paths:
                   message: {type: string}
                   data: {$ref: "#/components/schemas/Appointment"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/CompanionForbidden"}
         '422': {$ref: "#/components/responses/CareValidationFailed"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/care/appointments/{id}:
@@ -1685,6 +1691,7 @@ paths:
         - {bearerAuth: []}
       parameters:
         - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/ForUserId"}
         - {$ref: "#/components/parameters/AcceptLanguage"}
       responses:
         '200':
@@ -1698,6 +1705,7 @@ paths:
                   success: {type: boolean}
                   data: {$ref: "#/components/schemas/Appointment"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/CompanionForbidden"}
         '404': {$ref: "#/components/responses/CareAppointmentNotFound"}
     put:
       tags: [Care]
@@ -1732,6 +1740,7 @@ paths:
                   message: {type: string}
                   data: {$ref: "#/components/schemas/Appointment"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/CompanionForbidden"}
         '404': {$ref: "#/components/responses/CareAppointmentNotFound"}
         '422': {$ref: "#/components/responses/CareValidationFailed"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
@@ -6599,6 +6608,7 @@ paths:
                             meta:
                               description: "Only `null` was recorded in the contract goldens; type not pinned."
         '401': {$ref: "#/components/responses/Unauthenticated"}
+        '409': {$ref: "#/components/responses/CompanionAccount"}
         '422': {$ref: "#/components/responses/ValidationFailed"}
   /api/v1/home/challenges/{challenge}/toggle:
     post:
@@ -6700,6 +6710,7 @@ paths:
                   cycle_length: {median: 28, source: recent_valid_cycles, based_on_cycles: 5, spread_days: 1, regularity: relatively_regular}
                   plus_trial_offer: null
         '401': {$ref: "#/components/responses/Unauthenticated"}
+        '409': {$ref: "#/components/responses/CompanionAccount"}
   /api/v1/home/notifications:
     get:
       tags: [Notifications]
@@ -6952,6 +6963,7 @@ paths:
                       is_completed: false
                     meta: null
         '401': {$ref: "#/components/responses/Unauthenticated"}
+        '409': {$ref: "#/components/responses/CompanionAccount"}
         '404':
           description: Unknown section key
           content:
@@ -7396,6 +7408,7 @@ paths:
                 properties: {success: {type: boolean}, message: {type: string}}
               example: {success: false, message: Please complete pregnancy onboarding first}
         '401': {$ref: "#/components/responses/Unauthenticated"}
+        '409': {$ref: "#/components/responses/CompanionAccount"}
         '422':
           description: Validation failed
           content:
@@ -7453,6 +7466,7 @@ paths:
                   is_ttc: false
                   is_premium: false
         '401': {$ref: "#/components/responses/Unauthenticated"}
+        '409': {$ref: "#/components/responses/CompanionAccount"}
   /api/v1/messages/nudges:
     get:
       tags: [Messages]
@@ -12156,6 +12170,480 @@ paths:
                       visit_note: {type: [string, "null"]}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/ModelNotFound"}
+  /api/v1/companion/home:
+    get:
+      tags: [Companion]
+      summary: Companion panel home (male account)
+      description: |
+        Go only (bloom B-N4-03, `nbl_Hamdam_Home`). The home of a companion (male) account — **403**
+        `not_companion_account` for any other account. One `partners` entry per active link where the caller is the
+        companion (oldest first): `link` (the `GET /companions/links` item), the owner's shared section views —
+        `cycle`, `pregnancy`, `symptoms`, `meds`, `appointments`, each the same view as
+        `GET /companions/links/{id}/sections/{section}` and **null without a view/edit grant** (every view returned
+        is audited as a read first) — the tip `phase` (`pregnancy` when a shared pregnancy is active, else the shared
+        cycle's phase, `general` without cycle data or grant), the phase `note`, up to 3 «امروز چه کار کنی؟» `tips`
+        (admin content: `message_contents` group `companion_tip`, items `<phase>_note` / `<phase>_tip_<n>`, `{name}`
+        = partner name; embedded fa/en fallback) and `child` (null until bloom B-N5). Revoked or pending links never
+        appear. Without links `has_partners` is false, `partners` empty and `empty_state` points to the companion code
+        entry (`action: enter_code`). `articles`: up to 4 published articles, category `companion` first, then ones
+        tagged with the first shared phase.
+      operationId: getCompanionHome
+      security:
+        - {bearerAuth: []}
+      parameters: [{$ref: "#/components/parameters/AcceptLanguage"}]
+      responses:
+        '200':
+          description: Companion home
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [mode, viewer, has_partners, partners, empty_state, articles]
+                    properties:
+                      mode: {type: string, const: companion}
+                      viewer:
+                        type: object
+                        required: [id, name]
+                        properties:
+                          id: {type: integer}
+                          name: {type: [string, "null"]}
+                      has_partners: {type: boolean}
+                      partners:
+                        type: array
+                        items:
+                          type: object
+                          required: [link, partner_name, cycle, pregnancy, symptoms, meds, appointments, phase, note, tips, child]
+                          properties:
+                            link: {$ref: "#/components/schemas/CompanionLink"}
+                            partner_name: {type: [string, "null"]}
+                            cycle:
+                              description: "Shared cycle view (null without grant)"
+                              type: [object, "null"]
+                            pregnancy:
+                              description: "Shared pregnancy view (null without grant)"
+                              type: [object, "null"]
+                            symptoms:
+                              description: "Shared last-7-days symptoms view (null without grant)"
+                              type: [object, "null"]
+                            meds:
+                              description: "Shared active medications (null without grant)"
+                              type: [array, "null"]
+                            appointments:
+                              description: "Shared upcoming appointments (null without grant)"
+                              type: [array, "null"]
+                            phase: {type: string, enum: [menstrual, follicular, fertile, luteal, pregnancy, general]}
+                            note: {type: [string, "null"]}
+                            tips:
+                              type: array
+                              items:
+                                type: object
+                                required: [key, title, body]
+                                properties:
+                                  key: {type: string, examples: [luteal_tip_1]}
+                                  title: {type: string}
+                                  body: {type: [string, "null"]}
+                            child: {type: "null", description: "Shared child card — bloom B-N5"}
+                      empty_state:
+                        oneOf:
+                          - type: "null"
+                          - type: object
+                            required: [title, body, action, action_label]
+                            properties:
+                              title: {type: string}
+                              body: {type: string}
+                              action: {type: string, const: enter_code}
+                              action_label: {type: string}
+                      articles:
+                        type: array
+                        items:
+                          type: object
+                          required: [id, slug, title, excerpt, read_time_minutes, image_url, category]
+                          properties:
+                            id: {type: integer}
+                            slug: {type: string}
+                            title: {type: [string, "null"]}
+                            excerpt: {type: [string, "null"]}
+                            read_time_minutes: {type: [integer, "null"]}
+                            image_url: {type: [string, "null"]}
+                            category: {type: [string, "null"]}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/NotCompanionAccount"}
+  /api/v1/companions:
+    get:
+      tags: [Companion]
+      summary: List my companions (owner)
+      description: "The caller's invited and active companions (Hamdam_List), oldest first, with grants per section, the open invite (masked phone, expiry) and the spouse family. Revoked links are not listed."
+      operationId: getCompanions
+      security:
+        - {bearerAuth: []}
+      parameters: [{$ref: "#/components/parameters/AcceptLanguage"}]
+      responses:
+        '200':
+          description: Companions retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {type: array, items: {$ref: "#/components/schemas/CompanionOwnerLink"}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+    post:
+      tags: [Companion]
+      summary: Invite a companion (owner)
+      description: |
+        Creates a pending companion with the chosen type, grants (missing sections = none) and — spouse only — shared
+        children, plus a one-time 6-character code valid 24 h (stored only as an HMAC under `COMPANION_CODE_PEPPER`).
+        Returns **201** with the plain code (the only place it ever appears) so the owner can copy/share it. With a
+        `phone` the invite is bound to that number (another account entering the code counts a failed attempt, 5 lock
+        it) and the code is also sent by SMS through the adapter (`COMPANION_SMS_PROVIDER`: fake outside production,
+        none in production unless set to gateway); `sms_sent` says whether it went out.
+        Caps: 10 open companions, one spouse (422 `limit_reached` / `spouse_exists`). `child_ids` must be the owner's
+        children — refused (422) until the children table exists (bloom B-N5-02).
+        Throttles: the shared write budget (60/min) and 20 invites + renewals per hour (429). 503
+        `companion_unavailable` in production without `COMPANION_CODE_PEPPER`.
+      operationId: postCompanions
+      security:
+        - {bearerAuth: []}
+      parameters: [{$ref: "#/components/parameters/AcceptLanguage"}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type]
+              properties:
+                type: {type: string, enum: [partner, spouse]}
+                display_name: {type: [string, "null"], maxLength: 100, description: "«اسمش» — the owner's label for this companion"}
+                phone: {type: [string, "null"], description: "Mobile (09xxxxxxxxx; Persian digits and +98 accepted). Binds the invite and sends the SMS."}
+                grants: {$ref: "#/components/schemas/CompanionGrantsInput"}
+                child_ids: {type: [array, "null"], maxItems: 20, items: {type: integer, minimum: 1}}
+            example: {type: spouse, display_name: علی, phone: "09121234567", grants: {meds: edit, appointments: edit, cycle: view, pregnancy: view}}
+      responses:
+        '201':
+          description: Invite created
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data:
+                    type: object
+                    required: [companion, invite]
+                    properties:
+                      companion: {$ref: "#/components/schemas/CompanionOwnerLink"}
+                      invite: {$ref: "#/components/schemas/CompanionInvite"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/CompanionFailed"}
+        '429': {$ref: "#/components/responses/CompanionThrottled"}
+        '503': {$ref: "#/components/responses/CompanionUnavailable"}
+  /api/v1/companions/audit:
+    get:
+      tags: [Companion]
+      summary: Companion audit trail (owner)
+      description: "Who of the caller's companions read or wrote which section of her data, and the link lifecycle (invited, accepted, revoked, grants_changed), newest first. Never a health payload."
+      operationId: getCompanionsAudit
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: limit, in: query, required: false, schema: {type: integer, minimum: 1, maximum: 200, default: 50}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Audit entries
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {type: array, items: {$ref: "#/components/schemas/CompanionAuditEntry"}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/CompanionFailed"}
+  /api/v1/companions/accept:
+    post:
+      tags: [Companion]
+      summary: Accept an invite code (companion)
+      description: |
+        Redeems a code at sign-up or later (spaces, dashes, lower case and Persian digits are normalized). The pending
+        link becomes active with the grants the owner chose; a spouse joins her family; the owner gets an in-app
+        notification. Every refusal — unknown, expired, used, renewed, locked, bound to another number, the owner's own
+        code, an already linked account — is the **same** 422 `invite_invalid`, so the answer never reveals whether a
+        code exists. Throttled per account (10/hour) and per client IP (30/hour): **429**.
+      operationId: postCompanionsAccept
+      security:
+        - {bearerAuth: []}
+      parameters: [{$ref: "#/components/parameters/AcceptLanguage"}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code: {type: string, maxLength: 32, examples: [RT7K2M]}
+      responses:
+        '200':
+          description: Linked
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/CompanionLink"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/CompanionFailed"}
+        '429': {$ref: "#/components/responses/CompanionThrottled"}
+        '503': {$ref: "#/components/responses/CompanionUnavailable"}
+  /api/v1/companions/links:
+    get:
+      tags: [Companion]
+      summary: Links where I am the companion
+      description: "The active links in which the caller is the companion: whose data, which sections at which level, and `can_record_for` (sections with edit where «ثبت برای …» applies)."
+      operationId: getCompanionsLinks
+      security:
+        - {bearerAuth: []}
+      parameters: [{$ref: "#/components/parameters/AcceptLanguage"}]
+      responses:
+        '200':
+          description: Links retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {type: array, items: {$ref: "#/components/schemas/CompanionLink"}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/companions/links/{id}:
+    delete:
+      tags: [Companion]
+      summary: Leave a link (companion)
+      description: "The companion ends the link; grants and the spouse family are deleted at once. 404 for anyone who is not the active companion of that link."
+      operationId: deleteCompanionsLinksById
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200': {$ref: "#/components/responses/CompanionDone"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CompanionNotFound"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/companions/links/{id}/sections/{section}:
+    get:
+      tags: [Companion]
+      summary: Read a shared section of the owner's data (companion)
+      description: |
+        The access-filtered view of one section, built by the owning domain and audited (read) before it is returned:
+        `cycle` — today's cycle day, phase and next-period prediction; `symptoms` — the last 7 days of the day log
+        limited to pain, mood, symptoms, sleep, energy/appetite and skin & hair (never sex, discharge, urogenital,
+        measurements or notes); `meds` — active medication reminders; `appointments` — upcoming appointments;
+        `pregnancy` — week, trimester, due date (`is_active: false` outside pregnancy).
+        **404** when the caller is not the active companion of the link (another owner's link, a revoked or pending
+        one) or the section is unknown; **403** `section_not_shared` when the section is not granted (view or edit).
+      operationId: getCompanionsLinksSection
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {name: section, in: path, required: true, schema: {type: string, enum: [cycle, symptoms, meds, appointments, pregnancy]}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Section view
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [companion_id, owner_id, section, level, data]
+                    properties:
+                      companion_id: {type: integer}
+                      owner_id: {type: integer}
+                      section: {type: string, enum: [cycle, symptoms, meds, appointments, pregnancy]}
+                      level: {type: string, enum: [view, edit]}
+                      data:
+                        description: "cycle/symptoms/pregnancy: an object; meds: Medication[]; appointments: Appointment[]"
+                        oneOf:
+                          - {type: object}
+                          - {type: array, items: {type: object}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/CompanionSectionNotShared"}
+        '404': {$ref: "#/components/responses/CompanionNotFound"}
+  /api/v1/companions/{id}:
+    get:
+      tags: [Companion]
+      summary: Get one of my companions (owner)
+      operationId: getCompanionsById
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Companion retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/CompanionOwnerLink"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CompanionNotFound"}
+    delete:
+      tags: [Companion]
+      summary: Remove a companion (owner)
+      description: "Revokes a pending or active companion: open invites, grants and the spouse family are deleted and access ends on the companion's next request. The link row is kept as revoked for the audit trail. 404 for anyone but the owner."
+      operationId: deleteCompanionsById
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200': {$ref: "#/components/responses/CompanionDone"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CompanionNotFound"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/companions/{id}/renew:
+    post:
+      tags: [Companion]
+      summary: Renew a pending invite (owner)
+      description: "Revokes the open code of a pending companion and issues a fresh 24-hour code (SMS again when bound to a phone). `phone` omitted keeps the previous binding. 422 `not_pending` once accepted."
+      operationId: postCompanionsRenew
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone: {type: [string, "null"]}
+      responses:
+        '200':
+          description: New code
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data:
+                    type: object
+                    required: [companion, invite]
+                    properties:
+                      companion: {$ref: "#/components/schemas/CompanionOwnerLink"}
+                      invite: {$ref: "#/components/schemas/CompanionInvite"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CompanionNotFound"}
+        '422': {$ref: "#/components/responses/CompanionFailed"}
+        '429': {$ref: "#/components/responses/CompanionThrottled"}
+        '503': {$ref: "#/components/responses/CompanionUnavailable"}
+  /api/v1/companions/{id}/grants:
+    put:
+      tags: [Companion]
+      summary: Change a companion's access (owner)
+      description: "Replaces the grants (Hamdam_Access): every section missing from `grants` or set to `none` loses access. Takes effect on the companion's next request."
+      operationId: putCompanionsGrants
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [grants]
+              properties:
+                grants: {$ref: "#/components/schemas/CompanionGrantsInput"}
+            example: {grants: {meds: view, cycle: view}}
+      responses:
+        '200':
+          description: Access updated
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/CompanionOwnerLink"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CompanionNotFound"}
+        '422': {$ref: "#/components/responses/CompanionFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/companions/{id}/children:
+    put:
+      tags: [Companion]
+      summary: Change shared children of a spouse (owner)
+      description: "Replaces the spouse family's shared children (Hamdam_Children). Every id must be one of the owner's children; until the children table exists (bloom B-N5-02) only an empty list is accepted. 422 for a partner link."
+      operationId: putCompanionsChildren
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [child_ids]
+              properties:
+                child_ids: {type: array, maxItems: 20, items: {type: integer, minimum: 1}}
+      responses:
+        '200':
+          description: Shared children updated
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/CompanionOwnerLink"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CompanionNotFound"}
+        '422': {$ref: "#/components/responses/CompanionFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
 components:
   securitySchemes:
     bearerAuth:
@@ -12164,6 +12652,12 @@ components:
       bearerFormat: JWT
       description: "Passport access token from `POST /api/v1/auth/verify-otp`."
   parameters:
+    ForUserId:
+      name: for_user_id
+      in: query
+      required: false
+      description: "«ثبت برای …» (B-N4-02): read the record of this owner as her companion (needs a view or edit grant on the section; 403 `companion_forbidden` otherwise). Omitted or the caller's own id = own data."
+      schema: {type: integer, minimum: 1}
     AnalysisRange:
       name: range
       in: query
@@ -12190,6 +12684,119 @@ components:
       description: "Overrides `Accept-Language`. Some endpoints clamp to the languages they have content for."
       schema: {type: string}
   responses:
+    CompanionAccount:
+      description: "Bloom B-N4-03: the caller is a companion (male) account — no cycle engine of his own, so the women's home and daily messages are refused; his home is `GET /companion/home` (web `/companion`)."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code, mode, home]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, const: companion_account}
+              mode: {type: string, const: companion}
+              home: {type: string, const: /companion}
+          example: {success: false, message: این حساب همدم است و سیکل ندارد. خانه همدم را باز کن., error_code: companion_account, mode: companion, home: /companion}
+    NotCompanionAccount:
+      description: "Bloom B-N4-03: the companion panel home is only for a companion (male) account; a woman reads what is shared with her through `GET /companions/links` and its sections."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, const: not_companion_account}
+          example: {success: false, message: خانه همدم فقط برای حساب‌های همدم است., error_code: not_companion_account}
+    CompanionForbidden:
+      description: "`for_user_id` names an account whose section the caller holds no (sufficient) companion grant on — view for reads, edit for writes. Same answer for an unknown account."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, const: companion_forbidden}
+          example: {success: false, message: اجازه این کار را برای این حساب نداری., error_code: companion_forbidden}
+    CompanionFailed:
+      description: "Companion validation or business refusal (controller 422 `{success: false, message, errors?, error_code?}` in the request language): field errors, `invite_invalid` (every accept refusal), `limit_reached`, `spouse_exists`, `not_pending`"
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              errors:
+                type: object
+                additionalProperties: {type: array, items: {type: string}}
+              error_code: {type: string, enum: [invite_invalid, limit_reached, spouse_exists, not_pending]}
+          example: {success: false, message: این کد معتبر نیست یا منقضی شده است. یک کد تازه بخواه., errors: {code: [این کد معتبر نیست یا منقضی شده است. یک کد تازه بخواه.]}, error_code: invite_invalid}
+    CompanionNotFound:
+      description: "No such companion link for the caller (another owner's, a revoked one, not the active companion, a malformed id or unknown section) — existence is never revealed"
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message]
+            properties: {success: {type: boolean, const: false}, message: {type: string}}
+          example: {success: false, message: همدم پیدا نشد.}
+    CompanionSectionNotShared:
+      description: "The owner has not granted this section (view or edit)"
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, const: section_not_shared}
+          example: {success: false, message: این بخش با تو به اشتراک گذاشته نشده است., error_code: section_not_shared}
+    CompanionDone:
+      description: "Done (`data: null`)"
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, data]
+            properties:
+              success: {type: boolean}
+              message: {type: string}
+              data: {type: "null"}
+    CompanionThrottled:
+      description: "Companion throttles: accept 10/hour per account + 30/hour per client IP; invite + renew 20/hour per account (and the shared write budget). Localized controller envelope."
+      headers:
+        Retry-After: {schema: {type: integer}}
+        X-RateLimit-Limit: {schema: {type: integer}}
+        X-RateLimit-Remaining: {schema: {type: integer}}
+        X-RateLimit-Reset: {schema: {type: integer}}
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, const: too_many_requests}
+              retry_after: {type: integer, minimum: 0}
+    CompanionUnavailable:
+      description: "Production without `COMPANION_CODE_PEPPER`: invites cannot be created, renewed or accepted (fail closed)"
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, const: companion_unavailable}
     PlusFailed:
       description: "Plus business failure (controller body `{success: false, message, error_code?, errors?}`): `trial_used`, `trial_unavailable`, `no_subscription`, `invoice_not_found` (404), `invoice_closed`, `authority_mismatch`, `payment_failed`, `amount_mismatch`, `discount_*`, or field validation (`errors`)"
       content:
@@ -12511,6 +13118,86 @@ components:
             properties: {success: {type: boolean, const: false}, message: {type: string}}
           example: {success: false, message: نوبت پیدا نشد}
   schemas:
+    CompanionGrants:
+      type: object
+      description: "Level per section, every section present (`none` = not shared)"
+      required: [cycle, symptoms, meds, appointments, pregnancy]
+      properties:
+        cycle: {type: string, enum: [none, view, edit]}
+        symptoms: {type: string, enum: [none, view, edit]}
+        meds: {type: string, enum: [none, view, edit]}
+        appointments: {type: string, enum: [none, view, edit]}
+        pregnancy: {type: string, enum: [none, view, edit]}
+    CompanionGrantsInput:
+      type: [object, "null"]
+      description: "Section → none | view | edit; missing sections are none. Unknown sections / levels → 422 on `grants.<section>`."
+      additionalProperties: {type: string, enum: [none, view, edit]}
+    CompanionFamily:
+      type: [object, "null"]
+      required: [id, shared_child_ids]
+      properties:
+        id: {type: integer}
+        shared_child_ids: {type: array, items: {type: integer}}
+    CompanionOwnerLink:
+      type: object
+      required: [id, type, status, display_name, name, invited_at, accepted_at, grants, invite, family]
+      properties:
+        id: {type: integer}
+        type: {type: string, enum: [partner, spouse]}
+        status: {type: string, enum: [invited, active]}
+        display_name: {type: [string, "null"]}
+        name: {type: [string, "null"], description: "display_name, else the companion account's name"}
+        invited_at: {$ref: "#/components/schemas/IsoDateTime"}
+        accepted_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
+        grants: {$ref: "#/components/schemas/CompanionGrants"}
+        invite:
+          type: [object, "null"]
+          description: "The open invite of a pending link"
+          required: [expires_at, phone]
+          properties:
+            expires_at: {$ref: "#/components/schemas/IsoDateTime"}
+            phone: {type: [string, "null"], description: "Masked: 0912****567", examples: ["0912****567"]}
+        family: {$ref: "#/components/schemas/CompanionFamily"}
+    CompanionLink:
+      type: object
+      required: [id, type, owner, accepted_at, grants, can_record_for, family]
+      properties:
+        id: {type: integer}
+        type: {type: string, enum: [partner, spouse]}
+        owner:
+          type: object
+          required: [id, name]
+          properties:
+            id: {type: integer, description: "Pass as `for_user_id` on the care routes"}
+            name: {type: [string, "null"]}
+        accepted_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
+        grants: {$ref: "#/components/schemas/CompanionGrants"}
+        can_record_for: {type: array, items: {type: string, enum: [meds, appointments]}}
+        family: {$ref: "#/components/schemas/CompanionFamily"}
+    CompanionInvite:
+      type: object
+      required: [code, expires_at, phone, sms_sent]
+      properties:
+        code: {type: string, description: "6 characters from A–Z and 2–9 without I, O, 0, 1 (the plain code; shown only here)", examples: [RT7K2M]}
+        expires_at: {$ref: "#/components/schemas/IsoDateTime"}
+        phone: {type: [string, "null"], description: "Masked bound number"}
+        sms_sent: {type: boolean, description: "false: no phone, the none provider, a send limit (3 invite SMS per number per 24 h from all owners, 5 per owner per 24 h, a renew re-sends to the same number only after 2 min) or the gateway failed — share the code"}
+    CompanionAuditEntry:
+      type: object
+      required: [id, action, section, companion_id, actor, at]
+      properties:
+        id: {type: integer}
+        action: {type: string, enum: [read, write, invited, accepted, revoked, grants_changed]}
+        section: {type: [string, "null"], enum: [cycle, symptoms, meds, appointments, pregnancy, null]}
+        companion_id: {type: [integer, "null"]}
+        actor:
+          type: [object, "null"]
+          required: [id, name, is_me]
+          properties:
+            id: {type: integer}
+            name: {type: [string, "null"]}
+            is_me: {type: boolean}
+        at: {$ref: "#/components/schemas/IsoDateTime"}
     AnalysisRange:
       type: object
       required: [key, from, to, days]
@@ -13131,7 +13818,7 @@ components:
       type: object
       required: [mode, stored_mode, ivf_iui, track_contraception]
       properties:
-        mode: {type: string, enum: [cycle, ttc, pregnancy, postpartum, menopause, teen], description: effective mode}
+        mode: {type: string, enum: [cycle, ttc, pregnancy, postpartum, menopause, teen, companion], description: "effective mode; `companion` for a male account (B-N4-03: resolved from the gender, never stored or selectable — PUT `mode` answers 422 for him)"}
         stored_mode: {type: [string, "null"], enum: [cycle, ttc, pregnancy, postpartum, menopause, teen, null]}
         ivf_iui: {type: boolean}
         track_contraception: {type: boolean}
@@ -14317,6 +15004,7 @@ components:
       description: "Medication fields. POST requires `title`, `form`, `times`; PUT sends any subset."
       properties:
         title: {type: string, maxLength: 255, examples: [فولیک اسید]}
+        for_user_id: {type: integer, minimum: 1, description: "«ثبت برای …» (B-N4-02): record / edit in this owner's list as her companion with an edit grant on meds (403 `companion_forbidden` otherwise; the owner gets an in-app notice, the write is audited). Omitted or own id = own list."}
         dose: {type: [string, number, "null"], description: "Free text (≤ 50); a number is stored as its string.", examples: ["400"]}
         unit: {type: [string, number, "null"], description: "One of `mg|mcg|ml|iu|drop` (labelled) or free text (≤ 50).", examples: [mcg]}
         form: {type: string, enum: [tablet, capsule, syrup, injection, drops]}
@@ -14417,6 +15105,7 @@ components:
       type: object
       description: "Flat body (no `meta` wrapper)."
       properties:
+        for_user_id: {type: integer, minimum: 1, description: "«ثبت برای …» (B-N4-02): record / edit in this owner's list as her companion with an edit grant on appointments (403 `companion_forbidden` otherwise; audited, owner notified)."}
         kind: {type: string, enum: [in_person, phone, online]}
         with: {type: [string, "null"], maxLength: 255}
         specialty: {type: [string, "null"], maxLength: 255}
