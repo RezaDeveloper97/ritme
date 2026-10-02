@@ -6465,6 +6465,8 @@ html[data-motion="reduce"] *::after {
 }
 .vlog-saved-title { margin: 0; font-size: 26px; font-weight: 800; color: var(--text-1); }
 .vlog-saved-body { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+/* CB-VOICE-03: straight 1px dividers like the board (entry «ثبت‌های امروز» + saved list; the row's own radius bent the border-top into an arc) */
+.vlog-today .nb-list-rows > * + *, .vlog-saved-list .nb-list-rows > * + * { border-radius: 0; }
 .nb-card.vlog-remind { display: flex; align-items: center; gap: 12px; padding: 16px; }
 .vlog-remind-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .vlog-remind-title { margin: 0; font-size: var(--fs-base); font-weight: 800; color: var(--text-1); }

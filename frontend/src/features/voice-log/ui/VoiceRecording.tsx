@@ -83,6 +83,13 @@ export function VoiceRecording({ elapsedMs, paused, processing, requesting, canP
       </section>
 
       <div className="vlog-controls">
+        {/* board order: cancel at the start edge, stop in the middle, pause at the end edge */}
+        <button type="button" className="vlog-ctl vlog-ctl-text" disabled={processing} onClick={onCancel}>
+          {t('cancel')}
+        </button>
+        <button type="button" className="vlog-stop" aria-label={t('stop')} disabled={processing || requesting} onClick={onStop}>
+          {processing || requesting ? <Icon name="loader" size={30} className="vlog-spin" /> : <span className="vlog-stop-glyph" aria-hidden />}
+        </button>
         <button
           type="button"
           className="vlog-ctl"
@@ -91,12 +98,6 @@ export function VoiceRecording({ elapsedMs, paused, processing, requesting, canP
           onClick={paused ? onResume : onPause}
         >
           {paused ? <Icon name="mic" size={22} /> : <span className="vlog-pause-glyph" aria-hidden />}
-        </button>
-        <button type="button" className="vlog-stop" aria-label={t('stop')} disabled={processing || requesting} onClick={onStop}>
-          {processing || requesting ? <Icon name="loader" size={30} className="vlog-spin" /> : <span className="vlog-stop-glyph" aria-hidden />}
-        </button>
-        <button type="button" className="vlog-ctl vlog-ctl-text" disabled={processing} onClick={onCancel}>
-          {t('cancel')}
         </button>
       </div>
     </div>

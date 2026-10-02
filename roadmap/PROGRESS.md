@@ -232,3 +232,9 @@ TODO (ask user):
 - Verify: typecheck, lint, fsd:lint, lint:styles (826), lint:dark, 1116 tests, build; i18n Go tests — green. Fidelity `docs/qa/canvas/voice.md` 4 × ✔ (Chrome fake mic, test user 09120005055 with a Plus trial).
 - Open: unused bloom `.vlog-*` rules; diary items can't be edited (keep/remove only); «چیزی جا افتاده؟» drops unsaved diary items; offline-queued day save makes the diary commit fail (error shown); «یک نکته» copy [needs clinical review].
 - TODO (ask user): 21:00 reminder riding on `daily_log` (default 22:00) or a separate category? per-item quote from the backend (CB-VOICE-01 follow-up)?
+
+## CB-VOICE-03 — VOICE QA
+- Fidelity: Entry / Record / Review / Saved light + dark ✔ (fixed record control order cancel · stop · pause; straight dividers in «ثبت‌های امروز» and the saved list). Menopause path incl. bladder diary re-shot (`docs/qa/canvas/voice/CB-VOICE-03/`).
+- Accuracy (fake rule-based parser, 10 Persian fixtures, pinned in `internal/voicelog/accuracy_int_test.go`): recall 22/27 (81%), precision 22/26 (85%), 4/10 sentences exact, target always right, every save 200, ambiguity chooser shown for «بی‌حوصله». Gemini not tested (no keys).
+- Verify: frontend full chain (1116 tests, build) + go vet, ai/voicelog unit + int, lint — green.
+- Follow-ups: CB-VOICE-03b (fake-parser gaps: bleeding phrases, intensity adverb inside a phrase, «N بار», «حواسم پرت», «ساعت دو» afternoon, whole-word matching); optional Gemini run on stage once keys are allowed.

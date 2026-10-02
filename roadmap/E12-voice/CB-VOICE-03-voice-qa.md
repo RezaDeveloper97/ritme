@@ -3,7 +3,7 @@ id: CB-VOICE-03
 title: VOICE QA
 epic: VOICE
 type: qa
-status: todo
+status: done
 depends_on: [CB-VOICE-02]
 parallel_group: VOICE-C
 touches: [docs/qa/canvas]
