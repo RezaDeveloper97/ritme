@@ -8212,3 +8212,17 @@ button.ch-log-row { width: 100%; background: none; border: 0; font-family: inher
 .apg-bp-threshold { stroke: var(--warm); stroke-width: 1.5; stroke-dasharray: 5 4; opacity: .8; }
 .apg-bp-high { fill: var(--warm); stroke: var(--surface); stroke-width: 2; }
 /* ═══ end B-N3-12 ═══ */
+
+/* ═══ B-N3-13 — N3 fidelity fixes ═══ */
+/* Log sheet heading: title centred between the × and the customise gear (nbl_Log_Sheet_*). */
+.osheet-title:has(.lday-ttl-row) { padding-inline-end: 0; }
+.lday-ttl-row { display: flex; align-items: center; gap: 10px; }
+.lday-ttl-row > .lday-ttl { flex: 1; min-width: 0; }
+/* Body map: 30px pins spaced like nbl_Log_Pain so no label sits on a neighbouring pin. */
+.bmap-pin { transform: translate(-50%, -20px); }
+.bmap-dot { width: 30px; height: 30px; }
+.bmap-pin.is-breast  { top: 41%; }
+.bmap-pin.is-abdomen { top: 57%; }
+.bmap-pin.is-ovary   { inset-inline-start: 28%; top: 68%; }
+.bmap-pin.is-pelvis  { top: 74%; }
+/* ═══ end B-N3-13 ═══ */

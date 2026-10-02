@@ -477,10 +477,14 @@ function CustomizeButton() {
 export function LogDaySheetTitle({ mode }: { mode?: string }) {
   const date = useLogDayStore((s) => s.date);
   const heading = useLogDayHeading(date, mode);
+  // B-N3-13: the gear sits opposite the × like the page header (nbl_Log_Sheet_Cycle / _Preg / _Post).
   return (
-    <span className="lday-ttl">
-      <span className="lday-ttl-main">{heading.title}</span>
-      <span className="lday-ttl-sub">{heading.subtitle}</span>
+    <span className="lday-ttl-row">
+      <span className="lday-ttl">
+        <span className="lday-ttl-main">{heading.title}</span>
+        <span className="lday-ttl-sub">{heading.subtitle}</span>
+      </span>
+      <CustomizeButton />
     </span>
   );
 }

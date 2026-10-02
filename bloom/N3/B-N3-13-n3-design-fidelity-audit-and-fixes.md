@@ -3,7 +3,7 @@ id: B-N3-13
 title: N3 design-fidelity audit and fixes
 milestone: N3
 type: frontend
-status: todo
+status: done
 depends_on: [B-N3-04,B-N3-05,B-N3-06,B-N3-09,B-N3-10,B-N3-11,B-N3-12]
 parallel_group: N3-M
 touches: [docs/night-bloom/audit-n3.md,frontend/src,frontend/messages]

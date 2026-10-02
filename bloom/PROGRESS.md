@@ -672,3 +672,10 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   `fertility_logs` + `health_log_entries`. 11 engine + 17 contract goldens; D-45 proposed.
 - Frontend `screens/analysis-ttc` (TTC hub via `AnalysisPage` `ttcHub` slot, `/analysis/fertility` with BBT chart).
   Screenshots `docs/qa/bloom/B-N3-11/`. persona 12 got 71 days of TTC logs on ritme_dev. QUESTIONS #93.
+
+## B-N3-13 — N3 design-fidelity audit and fixes
+
+- `docs/night-bloom/audit-n3.md`: 0 high, 2 med (fixed: log sheet header gear → `/log/customize` on every mode;
+  body-map pin positions/labels), 6 low open (pregnancy sheet CTA copy, panel gear, trimester ring, analysis share
+  buttons, phase-bar legend dots, IOM row height). Gear sits inside the sheet `h2` until `AppSheet` gets an `action` slot.
+- Screenshots `docs/qa/bloom/B-N3-13/` (personas p04/p06/p12/p121/p063/p081/p082, side-by-side for the two meds).
