@@ -632,3 +632,24 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   deployed with `./deploy-stage.sh` (all checks ok; goose at 24; frontend rev db481a2; backend-go image unchanged from
   the 2026-10-01 build of the same tree — `/logs/voice`, `/analysis/*`, `/search` routes answer). No e2e smoke run for
   the N3 work (B-N3-14 release task still todo). Next runnable bloom tasks: B-N3-06, B-N3-11, B-N3-12.
+
+## B-N3-06 — Pregnancy and postpartum log sheets on the new taxonomy
+
+- `features/log-day` mode presets (`model/mode-presets.ts` + tests, `ui/presets/ModePreset.tsx`, kick count sub-label):
+  pregnancy sheet (week/trimester heading, 8 tiles, bleeding alert row, inline symptom groups, measurements, meds; kicks →
+  `/pregnancy/log?tab=movement` with today's count; contractions «به‌زودی») and postpartum sheet (mother: lochia-first
+  bleeding panel, pain & stitches with body map, breasts, mood; baby feed/sleep/diapers «به‌زودی» until B-N5-07).
+- `/pregnancy/log` default = v2 sheet page; `?tab=day|focus` = old pregnancy day log (still the only path that raises
+  pregnancy alerts — linked from the sheet; `pregnancy-alerts` `log_symptoms` → `?tab=day`). Postpartum uses `?sheet=log`.
+- Screenshots `docs/qa/bloom/B-N3-06/`. QUESTIONS #90. Test user 09900000063 (postpartum) on ritme_dev.
+
+## B-N4-01 — Companion & family schema
+
+- **Migration** `00026_companions` (+ Laravel `2026_10_02_000026_…`; 00025 intentionally unused): `companions`
+  (owner, companion user, type partner|spouse, status invited|active|revoked, revoked_by), `companion_invites` (HMAC
+  code hash, optional bound phone, attempts lock at 5, 24 h expiry), `companion_grants` (cycle|symptoms|meds|
+  appointments|pregnancy × view|edit; no row = none), `families` + `family_children` (child FK added in B-N5-02),
+  `companion_audit_logs` (no health payload). Codes are varchar validated in Go (extensible for teen/IVF/loss).
+- `internal/companion` service: CreateInvite / RenewInvite / Accept / Revoke / SetGrants / SetSharedChildren / List* /
+  Level / CanRead / CanWrite / Audit — unit + int tests (expiry, one-time + concurrent accept, grant matrix, revoke).
+  No HTTP yet (B-N4-02). D-47 proposed. QUESTIONS #91.
