@@ -74,7 +74,7 @@ export function PartnerLinkedStep() {
       <div className="cmh-linked-hero">
         <div className="cmh-linked-pair" aria-hidden>
           <span className="cmh-linked-av is-me">
-            <Icon name="user" size={34} />
+            <Icon name="male" size={34} />
           </span>
           <span className="cmh-linked-line" />
           <span className="cmh-linked-av is-her">{name ? firstLetter(name) : <Icon name="heart" size={32} />}</span>
