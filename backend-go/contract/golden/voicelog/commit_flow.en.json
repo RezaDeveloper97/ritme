@@ -1,0 +1,642 @@
+{
+  "case": "voicelog/commit_flow.en",
+  "steps": [
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/profile/life-stage",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "mode": "menopause"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "Life stage saved",
+        "data": {
+          "mode": "menopause",
+          "stored_mode": "menopause",
+          "ivf_iui": false,
+          "track_contraception": false
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/conditions/enrolments",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "program": "endo",
+          "enrolled_on": "2026-09-01"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "message": "You joined the program",
+        "data": {
+          "programs": [
+            {
+              "code": "endo",
+              "enrolled": true,
+              "enrolled_on": "2026-09-01"
+            },
+            {
+              "code": "pmdd",
+              "enrolled": false,
+              "enrolled_on": null
+            },
+            {
+              "code": "heavy_bleeding",
+              "enrolled": false,
+              "enrolled_on": null
+            },
+            {
+              "code": "pcos",
+              "enrolled": false,
+              "enrolled_on": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/contraception/method",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "method": "combined_pill",
+          "pack_type": "21_7",
+          "pack_started_on": "2026-09-16",
+          "packs_left": 1,
+          "reminder_time": "21:00"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57"
+      },
+      "body": {
+        "success": true,
+        "message": "Your contraception method has been saved",
+        "data": {
+          "tracking": true,
+          "method": {
+            "method": "combined_pill",
+            "pack_type": "21_7",
+            "pack_started_on": "2026-09-16",
+            "packs_left": 1,
+            "reminder": {
+              "enabled": true,
+              "time": "21:00"
+            },
+            "inserted_on": null,
+            "iud_lifetime_years": null,
+            "followup_on": null,
+            "followup_done": false,
+            "iud_replace_on": null,
+            "injected_on": null,
+            "next_injection_on": null,
+            "replace_on": null
+          },
+          "pill": {
+            "pack_number": 1,
+            "pack_day": 8,
+            "pack_week": 2,
+            "pack_length": 28,
+            "active_days": 21,
+            "today": {
+              "date": "2026-09-23",
+              "kind": "active",
+              "status": "pending"
+            },
+            "days": [
+              {
+                "day": 1,
+                "date": "2026-09-16",
+                "kind": "active",
+                "status": "untracked"
+              },
+              {
+                "day": 2,
+                "date": "2026-09-17",
+                "kind": "active",
+                "status": "untracked"
+              },
+              {
+                "day": 3,
+                "date": "2026-09-18",
+                "kind": "active",
+                "status": "untracked"
+              },
+              {
+                "day": 4,
+                "date": "2026-09-19",
+                "kind": "active",
+                "status": "untracked"
+              },
+              {
+                "day": 5,
+                "date": "2026-09-20",
+                "kind": "active",
+                "status": "untracked"
+              },
+              {
+                "day": 6,
+                "date": "2026-09-21",
+                "kind": "active",
+                "status": "untracked"
+              },
+              {
+                "day": 7,
+                "date": "2026-09-22",
+                "kind": "active",
+                "status": "untracked"
+              },
+              {
+                "day": 8,
+                "date": "2026-09-23",
+                "kind": "active",
+                "status": "pending"
+              },
+              {
+                "day": 9,
+                "date": "2026-09-24",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 10,
+                "date": "2026-09-25",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 11,
+                "date": "2026-09-26",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 12,
+                "date": "2026-09-27",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 13,
+                "date": "2026-09-28",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 14,
+                "date": "2026-09-29",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 15,
+                "date": "2026-09-30",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 16,
+                "date": "2026-10-01",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 17,
+                "date": "2026-10-02",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 18,
+                "date": "2026-10-03",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 19,
+                "date": "2026-10-04",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 20,
+                "date": "2026-10-05",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 21,
+                "date": "2026-10-06",
+                "kind": "active",
+                "status": "upcoming"
+              },
+              {
+                "day": 22,
+                "date": "2026-10-07",
+                "kind": "break",
+                "status": null
+              },
+              {
+                "day": 23,
+                "date": "2026-10-08",
+                "kind": "break",
+                "status": null
+              },
+              {
+                "day": 24,
+                "date": "2026-10-09",
+                "kind": "break",
+                "status": null
+              },
+              {
+                "day": 25,
+                "date": "2026-10-10",
+                "kind": "break",
+                "status": null
+              },
+              {
+                "day": 26,
+                "date": "2026-10-11",
+                "kind": "break",
+                "status": null
+              },
+              {
+                "day": 27,
+                "date": "2026-10-12",
+                "kind": "break",
+                "status": null
+              },
+              {
+                "day": 28,
+                "date": "2026-10-13",
+                "kind": "break",
+                "status": null
+              }
+            ],
+            "streak_days": 0,
+            "missed_count": 0,
+            "next_pack_on": "2026-10-14",
+            "packs_left": 1,
+            "runs_out_on": "2026-11-11",
+            "refill_on": "2026-11-06"
+          },
+          "reminders": [
+            {
+              "kind": "pill_refill",
+              "reminder_id": 101805,
+              "type": "custom",
+              "title": "Buy your next pill pack",
+              "due_on": "2026-11-06",
+              "scheduled_at": "2026-11-06 09:00:00",
+              "recurrence": "none",
+              "is_active": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/logs/days/2026-09-23",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "categories": {
+            "pain": {
+              "location": {
+                "abdomen": "moderate"
+              }
+            }
+          },
+          "voice_params": [
+            "pain.location"
+          ]
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "56"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "date": "2026-09-23",
+          "categories": {
+            "pain": {
+              "location": {
+                "abdomen": {
+                  "level": "moderate",
+                  "score": null
+                }
+              }
+            },
+            "mood": {
+              "moods": [
+                "happy",
+                "calm"
+              ]
+            },
+            "appetite_energy": {
+              "energy": "medium"
+            },
+            "measurements": {
+              "weight": 61.5
+            },
+            "note": {
+              "text": "contract"
+            }
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/logs/voice/commit",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "date": "2026-09-23",
+          "items": [
+            {
+              "category": "hot_flash",
+              "param": "count",
+              "value": 3
+            },
+            {
+              "category": "hot_flash",
+              "param": "night",
+              "value": true
+            },
+            {
+              "category": "pain_diary",
+              "param": "score",
+              "value": 6
+            },
+            {
+              "category": "pain_diary",
+              "param": "analgesic",
+              "value": "ibuprofen"
+            },
+            {
+              "category": "pain_diary",
+              "param": "analgesic_time",
+              "value": "10:00"
+            },
+            {
+              "category": "pain_diary",
+              "param": "analgesic_effect",
+              "value": "a_little"
+            },
+            {
+              "category": "pill",
+              "param": "status",
+              "value": "taken"
+            },
+            {
+              "category": "bladder",
+              "param": "leak",
+              "value": "cough"
+            },
+            {
+              "category": "bladder",
+              "param": "night_voids",
+              "value": 2
+            }
+          ]
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "55"
+      },
+      "body": {
+        "success": true,
+        "message": "9 items saved.",
+        "data": {
+          "date": "2026-09-23",
+          "saved": [
+            {
+              "target": "hot_flash",
+              "category": "hot_flash",
+              "param": "count",
+              "item": null,
+              "value": 3,
+              "label": "Hot flashes · 3"
+            },
+            {
+              "target": "hot_flash",
+              "category": "hot_flash",
+              "param": "night",
+              "item": null,
+              "value": true,
+              "label": "Night-time hot flashes"
+            },
+            {
+              "target": "pain_diary",
+              "category": "pain_diary",
+              "param": "score",
+              "item": null,
+              "value": 6,
+              "label": "Pain score · 6 of 10"
+            },
+            {
+              "target": "pain_diary",
+              "category": "pain_diary",
+              "param": "analgesic",
+              "item": null,
+              "value": "ibuprofen",
+              "label": "Painkiller · ibuprofen"
+            },
+            {
+              "target": "pain_diary",
+              "category": "pain_diary",
+              "param": "analgesic_time",
+              "item": null,
+              "value": "10:00",
+              "label": "Painkiller at 10:00"
+            },
+            {
+              "target": "pain_diary",
+              "category": "pain_diary",
+              "param": "analgesic_effect",
+              "item": null,
+              "value": "a_little",
+              "label": "Painkiller effect · Helped a little"
+            },
+            {
+              "target": "pill",
+              "category": "pill",
+              "param": "status",
+              "item": null,
+              "value": "taken",
+              "label": "Today's pill · Taken"
+            },
+            {
+              "target": "bladder",
+              "category": "bladder",
+              "param": "leak",
+              "item": null,
+              "value": "cough",
+              "label": "Leak · With a cough or sneeze"
+            },
+            {
+              "target": "bladder",
+              "category": "bladder",
+              "param": "night_voids",
+              "item": null,
+              "value": 2,
+              "label": "Times up at night to pee · 2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/menopause/hot-flashes",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "date": "2026-09-23",
+          "count": 3,
+          "night_count": 3,
+          "avg_duration_s": 180,
+          "running": null,
+          "items": [
+            {
+              "id": 3,
+              "started_at": "2026-09-23T03:00:00+03:30",
+              "running": false,
+              "duration_s": 180,
+              "elapsed_s": 180,
+              "severity": null,
+              "night": true,
+              "sweat": false,
+              "triggers": []
+            },
+            {
+              "id": 2,
+              "started_at": "2026-09-23T02:56:00+03:30",
+              "running": false,
+              "duration_s": 180,
+              "elapsed_s": 180,
+              "severity": null,
+              "night": true,
+              "sweat": false,
+              "triggers": []
+            },
+            {
+              "id": 1,
+              "started_at": "2026-09-23T02:52:00+03:30",
+              "running": false,
+              "duration_s": 180,
+              "elapsed_s": 180,
+              "severity": null,
+              "night": true,
+              "sweat": false,
+              "triggers": []
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/conditions/pain/2026-09-23",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "date": "2026-09-23",
+          "score": 6,
+          "locations": [
+            "abdomen"
+          ],
+          "relief": [],
+          "types": [],
+          "associated": [],
+          "missed_activity": null,
+          "analgesic": "ibuprofen",
+          "analgesic_time": "10:00",
+          "analgesic_effect": "a_little"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/pelvic/diary/2026-09-23",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "date": "2026-09-23",
+          "leak": "cough",
+          "night_voids": 2,
+          "uti_symptoms": [],
+          "uti_alert": false
+        }
+      }
+    }
+  ]
+}

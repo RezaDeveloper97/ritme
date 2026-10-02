@@ -182,3 +182,11 @@ TODO (ask user):
 - Verify: typecheck, lint, fsd:lint, lint:styles (727), lint:dark, build green; 1050 tests (on top of bloom batch faba825). Fidelity `docs/qa/canvas/nav.md` ✔ (chip «خدمات» instead of «پزشک» until doctors exist).
 - Open: add /programs/pelvic, doctors (B-N7), courses (B-N8), condition programs to the whitelist when they ship; drop /analysis/* if B-N3-08 doesn't land.
 - TODO (ask user): «خدمات» vs «پزشک» chip; cycle count on the analysis row needs CB-NAV-01 meta; on-device recents OK for privacy?
+
+## CB-VOICE-01 — Voice parser coverage for canvas-v1 items
+- `internal/ai`: `Candidate.Alternatives` (ambiguity, e.g. «بی‌حوصله» → sad / fatigue), vocab types `text` + `time`; Gemini prompt/parse updated; fake fixtures fa+en for menopause, pain diary, pill, pelvic; number words → digits; pain score → level.
+- `POST /logs/voice` suggestions now carry `target` (log | hot_flash | pain_diary | pill | bladder) + `options[]`; diary items only when eligible (menopause mode / endo enrolment / pill method / everyone for bladder).
+- New `POST /api/v1/logs/voice/commit` (auth + write throttle, not Plus-gated — no AI; within D-44's voice group): validates all items first, then writes through `menopause.Service.StartFlash`, `conditions.Service.SavePain`, `contraception.Service.LogPill`, `pelvic.Service.SaveDiary`. Log items still go through `PUT /logs/days`.
+- Verify: sqlc, vet, go test ./..., golangci-lint 0, int voicelog, OpenAPI, contract all 1325 passed — green. No migration.
+- Open: pain score >0 needs a location saved first (client: PUT /logs/days before commit); writes across 4 services not one transaction; default flash 3 min, start 03:00 / noon [needs clinical review]; frontend VOICE-02/03 to use commit + options; per-item quote not produced.
+- TODO (ask user): bladder diary for everyone or only pelvic/menopause? commit also accept log items (one call)? Plus-gate commit? keep 3-min default?

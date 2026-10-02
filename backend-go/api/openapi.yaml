@@ -2905,7 +2905,17 @@ paths:
         are dropped; at most 20). **Nothing is saved**: the client reviews the suggestions, merges them into its draft
         and saves through `PUT /logs/days/{date}` with `voice_params`. Suggestion `value` per param type: `single` →
         option code, `multi` → `true` (the item is `item`), `items` → level code, `number` / `integer` → number,
-        `bool` → boolean. The recording is held only in memory and zeroed right after transcription; transcript and
+        `bool` → boolean.
+
+        **Canvas items (CB-VOICE-01).** Beyond the log taxonomy, a suggestion may fill a field of another diary;
+        its `target` then names it (and equals `category`; `item` is null): `hot_flash` (count 1–10, severity
+        mild/moderate/severe/very_severe, night, sweat, duration 1–60 min — menopause mode only), `pain_diary` (score
+        0–10, missed_activity, analgesic ≤ 100 characters, analgesic_time `HH:MM`, analgesic_effect no/a_little/helped
+        — while enrolled in the endometriosis program), `pill` (status taken/missed — with a pill method), `bladder`
+        (leak none/cough/urgency/unexplained, night_voids 0–20 — everyone). They are saved through
+        `POST /logs/voice/commit`; log suggestions have `target: log`. `options` lists other log slots the same
+        words may mean (the review's «مطمئن نیستیم» chooser, at most 4, each with the value it would get); empty
+        when unambiguous. The recording is held only in memory and zeroed right after transcription; transcript and
         values are never stored or logged. Plus-gated (`plus.voice_log`; free users get 402 before anything is read);
         one use is counted only when something was heard (empty transcript → no suggestions, no use). Per-user
         throttles: 6 per minute and 60 per hour.
@@ -2946,14 +2956,28 @@ paths:
                         maxItems: 20
                         items:
                           type: object
-                          required: [category, param, item, value, confidence, label]
+                          required: [target, category, param, item, value, confidence, label, options]
                           properties:
+                            target: {type: string, enum: [log, hot_flash, pain_diary, pill, bladder], description: "log → PUT /logs/days; else POST /logs/voice/commit"}
                             category: {type: string}
                             param: {type: string}
                             item: {type: [string, "null"], description: "multi / items params: the option or item code (custom items `custom_<id>`)"}
                             value: {type: [string, number, boolean]}
                             confidence: {type: number, minimum: 0.5, maximum: 1}
                             label: {type: string, description: "chip text in the request language («درد شکم · متوسط»)"}
+                            options:
+                              type: array
+                              maxItems: 4
+                              description: other log slots the words may mean (ambiguity chooser)
+                              items:
+                                type: object
+                                required: [category, param, item, value, label]
+                                properties:
+                                  category: {type: string}
+                                  param: {type: string}
+                                  item: {type: [string, "null"]}
+                                  value: {type: [string, number, boolean]}
+                                  label: {type: string}
               example:
                 success: true
                 data:
@@ -2961,9 +2985,18 @@ paths:
                   language: fa
                   mode: cycle
                   suggestions:
-                    - {category: pain, param: location, item: abdomen, value: moderate, confidence: 0.9, label: "درد شکم · متوسط"}
-                    - {category: symptoms, param: digestive, item: bloating, value: "yes", confidence: 0.9, label: "نفخ"}
-                    - {category: mood, param: moods, item: bored, value: true, confidence: 0.9, label: "بی‌حوصله"}
+                    - {target: log, category: pain, param: location, item: abdomen, value: moderate, confidence: 0.9, label: "درد شکم · متوسط", options: []}
+                    - {target: log, category: symptoms, param: digestive, item: bloating, value: "yes", confidence: 0.9, label: "نفخ", options: []}
+                    - target: log
+                      category: mood
+                      param: moods
+                      item: bored
+                      value: true
+                      confidence: 0.9
+                      label: "بی‌حوصله"
+                      options:
+                        - {category: mood, param: moods, item: sad, value: true, label: "غمگین"}
+                        - {category: symptoms, param: general, item: fatigue, value: "yes", label: "خستگی"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '402': {$ref: "#/components/responses/PlusRequired"}
         '422': {$ref: "#/components/responses/ValidationFailed"}
@@ -3003,6 +3036,91 @@ paths:
                   message: {type: string}
                   error_code: {type: string, enum: [ai_unavailable, ai_failed]}
               example: {success: false, message: "We couldn't understand the recording. Try again or log by hand.", error_code: ai_failed}
+  /api/v1/logs/voice/commit:
+    post:
+      tags: [Log Taxonomy]
+      summary: Save reviewed voice canvas items through their diaries
+      description: |
+        CB-VOICE-01 (boards nbl_Voice_Review → nbl_Voice_Saved). Saves the reviewed canvas suggestions of one recording
+        (`target` ≠ `log` in `POST /logs/voice`) through each domain's own service: `hot_flash` → the hot-flash diary
+        (`count` finished flashes, each `duration` minutes or 3 min by default, the latest at 03:00 of `date` when
+        `night` is true, else at noon — or ending now when that is still ahead — each earlier one a minute before
+        the next), `pain_diary` → `PUT /conditions/pain/{date}` semantics (a score above 0 needs a pain location
+        that day: save the log suggestions with `PUT /logs/days/{date}` first), `pill` → `POST /contraception/pills`,
+        `bladder` → `PUT /pelvic/diary/{date}`. Log taxonomy items are not accepted here. Every item is checked
+        against what the caller may log (menopause mode, the endometriosis program, a pill method) and the pain /
+        pill rules are pre-checked before anything is written; a duplicate field keeps the first. Not Plus-gated
+        (no AI runs); per-user write throttle. 422 errors are keyed `items.<n>.category|param|value`.
+      operationId: postLogVoiceCommit
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [date, items]
+              properties:
+                date: {$ref: "#/components/schemas/Date", description: "today or up to 7 days back"}
+                items:
+                  type: array
+                  minItems: 1
+                  maxItems: 20
+                  items:
+                    type: object
+                    required: [category, param, value]
+                    properties:
+                      category: {type: string, enum: [hot_flash, pain_diary, pill, bladder]}
+                      param: {type: string}
+                      value: {type: [string, number, boolean]}
+            example:
+              date: "2026-09-23"
+              items:
+                - {category: hot_flash, param: count, value: 3}
+                - {category: hot_flash, param: night, value: true}
+                - {category: pill, param: status, value: taken}
+      responses:
+        '200':
+          description: The saved items with their chip labels
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean, const: true}
+                  message: {type: string}
+                  data:
+                    type: object
+                    required: [date, saved]
+                    properties:
+                      date: {$ref: "#/components/schemas/Date"}
+                      saved:
+                        type: array
+                        items:
+                          type: object
+                          required: [target, category, param, item, value, label]
+                          properties:
+                            target: {type: string, enum: [hot_flash, pain_diary, pill, bladder]}
+                            category: {type: string}
+                            param: {type: string}
+                            item: {type: "null"}
+                            value: {type: [string, number, boolean]}
+                            label: {type: string}
+              example:
+                success: true
+                message: "2 مورد ثبت شد."
+                data:
+                  date: "2026-09-23"
+                  saved:
+                    - {target: hot_flash, category: hot_flash, param: count, item: null, value: 3, label: "گرگرفتگی · 3 بار"}
+                    - {target: hot_flash, category: hot_flash, param: night, item: null, value: true, label: "گرگرفتگی شبانه"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
   /api/v1/logs/preferences:
     get:
       tags: [Log Taxonomy]

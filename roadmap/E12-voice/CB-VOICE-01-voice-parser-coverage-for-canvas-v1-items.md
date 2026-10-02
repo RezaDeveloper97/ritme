@@ -3,7 +3,7 @@ id: CB-VOICE-01
 title: Voice parser coverage for canvas-v1 items
 epic: VOICE
 type: backend
-status: todo
+status: done
 depends_on: [B-N3-05, CB-MENO-02, CB-COND-01, CB-CONTRA-01]
 parallel_group: VOICE-A
 touches: [backend-go/internal/voicelog, backend-go/api/openapi.yaml]

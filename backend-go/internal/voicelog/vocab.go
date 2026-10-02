@@ -45,6 +45,7 @@ type vocabulary struct {
 	entries []ai.VocabEntry
 	slots   map[string]slot
 	custom  taxonomy.CustomItems
+	canvas  map[string]canvasField // CB-VOICE-01 items the user may log (addCanvas)
 }
 
 // buildVocabulary lists the slots of mode; custom are the user's active custom items.

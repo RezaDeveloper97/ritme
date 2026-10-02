@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"mime"
 	"mime/multipart"
@@ -19,10 +20,13 @@ import (
 	"github.com/ritme/backend-go/internal/healthlog"
 	"github.com/ritme/backend-go/internal/i18n"
 	"github.com/ritme/backend-go/internal/i18n/lang"
+	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/httpx"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/platform/ratelimit"
+	"github.com/ritme/backend-go/internal/platform/validation"
+	"github.com/ritme/backend-go/internal/platform/validation/phpval"
 	"github.com/ritme/backend-go/internal/plus"
 )
 
@@ -66,7 +70,8 @@ func NewHandlers(svc *Service, plusSvc *plus.Service, gate *plus.Gate, bundles *
 
 // Voice is POST /logs/voice (multipart: audio file ≤ 2 MB, optional duration_ms ≤ 60000). Plus-gated by the
 // route (plus.voice_log); one use is counted only after a non-empty transcript was understood. Returns
-// {transcript, language, mode, suggestions:[{category, param, item, value, confidence, label}]}; never saves.
+// {transcript, language, mode, suggestions:[{target, category, param, item, value, confidence, label, options}]};
+// never saves.
 func (h *Handlers) Voice(c fiber.Ctx) error {
 	userID, ok := auth.CurrentUserID(c)
 	if !ok {
@@ -90,7 +95,8 @@ func (h *Handlers) Voice(c fiber.Ctx) error {
 	// One bound for transcription + parsing, below the client's 45 s upload budget (features/voice-log).
 	ctx, cancel := context.WithTimeout(c.Context(), ProcessTimeout)
 	defer cancel()
-	res, err := h.svc.Process(ctx, userID, locale, ns, audio)
+	now := clock.FromContext(c, h.clock).Now()
+	res, err := h.svc.Process(ctx, userID, locale, ns, audio, now)
 	switch {
 	case errors.Is(err, ai.ErrUnavailable):
 		return httpx.Fail(fiber.StatusServiceUnavailable, T("messages.ai_unavailable", locale, nil), "error_code", CodeAIUnavailable)
@@ -101,7 +107,6 @@ func (h *Handlers) Voice(c fiber.Ctx) error {
 		return err
 	}
 	if res.Transcript != "" {
-		now := clock.FromContext(c, h.clock).Now()
 		if e, err := h.plus.Consume(c.Context(), userID, plus.VoiceLog, now); err != nil {
 			return h.gate.GateError(c, err, e)
 		}
@@ -116,6 +121,76 @@ func (h *Handlers) Voice(c fiber.Ctx) error {
 		"mode", res.Mode,
 		"suggestions", list,
 	))
+}
+
+// MaxCommitItems caps one commit (one recording's suggestions).
+const MaxCommitItems = MaxSuggestions
+
+// Commit is POST /logs/voice/commit {date, items:[{category, param, value}]} (CB-VOICE-01): saves the reviewed
+// canvas suggestions of one recording through their own services (hot flashes, pain diary, pill, bladder diary).
+// Taxonomy suggestions are not accepted here (PUT /logs/days/{date} with voice_params). Not Plus-gated: it runs no
+// AI. Returns {date, saved:[{target, category, param, item, value, label}]}.
+func (h *Handlers) Commit(c fiber.Ctx) error {
+	userID, ok := auth.CurrentUserID(c)
+	if !ok {
+		return &auth.UnauthenticatedError{Code: auth.CodeUnauthenticated}
+	}
+	locale := i18n.Locale(c)
+	now := clock.FromContext(c, h.clock).Now()
+	today := civildate.InTehran(now)
+	F := validation.F
+	v := validation.Make(lang.Default(), locale, validation.Input(c), validation.Rules{
+		F("date", "required", "date_format:Y-m-d", "before_or_equal:"+today.String(),
+			"after_or_equal:"+today.AddDays(-MaxCommitDays).String()),
+		F("items", "required", "array", "min:1", "max:"+strconv.Itoa(MaxCommitItems)),
+		F("items.*", "array"),
+		F("items.*.category", "required", "string"),
+		F("items.*.param", "required", "string"),
+		F("items.*.value", "present"),
+	}, validation.Now(now), validation.Attributes(attributes(locale)...))
+	if v.Fails() {
+		return v.Errors()
+	}
+	data := v.Validated()
+	raw, _ := data.Get("date")
+	date, err := civildate.Parse(phpval.ToString(raw))
+	if err != nil {
+		return fmt.Errorf("voicelog: date: %w", err)
+	}
+	list, _ := data.Get("items")
+	_, rows := phpval.Entries(list)
+	items := make([]CommitItem, 0, len(rows))
+	for _, r := range rows {
+		cat, _ := phpval.Get(r, "category")
+		param, _ := phpval.Get(r, "param")
+		value, _ := phpval.Get(r, "value")
+		items = append(items, CommitItem{Category: phpval.ToString(cat), Param: phpval.ToString(param), Value: CommitValue(value)})
+	}
+	saved, err := h.svc.Commit(c, userID, date, items, locale, now)
+	var ie *ItemError
+	if errors.As(err, &ie) {
+		e := httpx.NewValidationError()
+		e.Add("items."+strconv.Itoa(ie.Index)+"."+ie.Field, ie.Message)
+		return e
+	}
+	if err != nil {
+		return err
+	}
+	out := make([]*jsonx.OrderedMap, 0, len(saved))
+	for _, s := range saved {
+		out = append(out, s.JSON())
+	}
+	return httpx.OK(c, jsonx.Obj("date", date.String(), "saved", out),
+		T("messages.committed", locale, map[string]string{"count": strconv.Itoa(len(saved))}))
+}
+
+// attributes are the commit's validation attribute names in locale.
+func attributes(locale string) []string {
+	out := []string{}
+	for _, k := range []string{"date", "items", "items.*", "items.*.category", "items.*.param", "items.*.value"} {
+		out = append(out, k, T("attributes."+strings.ReplaceAll(strings.ReplaceAll(k, ".*", "_each"), ".", "_"), locale, nil))
+	}
+	return out
 }
 
 func fail(locale, field, key string, params map[string]string) error {

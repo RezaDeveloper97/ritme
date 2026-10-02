@@ -70,14 +70,18 @@ type Transcriber interface {
 
 // VocabEntry is one loggable slot the parser may answer with: "category.param" or "category.param.item".
 type VocabEntry struct {
-	Key   string // "pain.location.abdomen"
-	Type  string // taxonomy param type: single | multi | items | number | integer | bool
+	Key string // "pain.location.abdomen", or a canvas field "pain_diary.score" (CB-VOICE-01)
+	// Type is the taxonomy param type (single | multi | items | number | integer | bool) or, for canvas fields,
+	// text (a short free string as said, ≤ MaxLen runes) | time (24 h "HH:MM").
+	Type  string
 	Label string // human label in the request language ("درد › محل درد › شکم")
 	// Values are the accepted codes with their labels: single → options, items → levels.
 	Values []VocabValue
 	// Min / Max / Unit describe number and integer slots.
 	Min, Max float64
 	Unit     string
+	// MaxLen bounds a text slot.
+	MaxLen int
 }
 
 // VocabValue is one accepted value code with its label.
@@ -94,12 +98,15 @@ type LogParseRequest struct {
 }
 
 // Candidate is one slot the parser believes the text mentions. Value follows the slot type: single → option
-// code (string), multi → true, items → level code (string), number/integer → float64, bool → bool. Callers
-// must validate candidates against the taxonomy: a provider is never trusted.
+// code (string), multi → true, items → level code (string), number/integer → float64, bool → bool, text → string,
+// time → "HH:MM". Callers must validate candidates against the taxonomy: a provider is never trusted.
 type Candidate struct {
 	Key        string
 	Value      any
 	Confidence float64 // 0–1
+	// Alternatives are other slot keys the same words may just as well mean («بی‌حوصله» → bored, sad or tired):
+	// the review shows a chooser (nbl_Voice_Review «مطمئن نیستیم»). Key stays the provider's best guess.
+	Alternatives []string
 }
 
 // LogParser maps free text to log taxonomy slots.

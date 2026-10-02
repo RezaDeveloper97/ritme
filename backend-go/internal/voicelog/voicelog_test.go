@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/stretchr/testify/assert"
@@ -120,7 +121,7 @@ func TestValidate(t *testing.T) {
 
 	raw, err := json.Marshal(got[0].JSON())
 	require.NoError(t, err)
-	assert.JSONEq(t, `{"category":"pain","param":"location","item":"abdomen","value":"moderate","confidence":0.93,"label":"درد شکم · متوسط"}`, string(raw))
+	assert.JSONEq(t, `{"target":"log","category":"pain","param":"location","item":"abdomen","value":"moderate","confidence":0.93,"label":"درد شکم · متوسط","options":[]}`, string(raw))
 	raw, _ = json.Marshal(got[4].JSON())
 	assert.Contains(t, string(raw), `"item":null,"value":58.46`)
 }
@@ -175,7 +176,7 @@ func TestProcess_AudioWipedAfterTranscription(t *testing.T) {
 			buf := make([]byte, 64, 128)
 			copy(buf, webm(""))
 			audio := &ai.Audio{Data: buf, MIME: "audio/webm"}
-			res, err := svc.Process(context.Background(), 1, "fa", ns(t, "fa"), audio)
+			res, err := svc.Process(context.Background(), 1, "fa", ns(t, "fa"), audio, time.Now())
 			require.NotEmpty(t, spy.seen)
 			assert.True(t, allZero(spy.seen), "the recording buffer is zeroed right after transcription")
 			assert.True(t, allZero(buf[:cap(buf)]))
@@ -196,7 +197,7 @@ func TestProcess_AudioWipedAfterTranscription(t *testing.T) {
 
 func TestProcess_Unavailable(t *testing.T) {
 	audio := &ai.Audio{Data: webm("")}
-	_, err := NewService(nil, stubLogs{mode: "cycle"}).Process(context.Background(), 1, "fa", nil, audio)
+	_, err := NewService(nil, stubLogs{mode: "cycle"}).Process(context.Background(), 1, "fa", nil, audio, time.Now())
 	require.ErrorIs(t, err, ai.ErrUnavailable)
 	assert.Nil(t, audio.Data)
 }

@@ -1,12 +1,11 @@
 {
-  "case": "voicelog/voice_trial.en",
+  "case": "voicelog/voice_menopause.none",
   "steps": [
     {
       "request": {
         "method": "POST",
         "url": "/api/v1/plus/trial/start",
         "persona": "regular",
-        "accept_language": "en",
         "now": "2026-09-23T10:00:00+03:30"
       },
       "status": 200,
@@ -17,7 +16,7 @@
       },
       "body": {
         "success": true,
-        "message": "Your free Ritme Plus trial has started",
+        "message": "دوره رایگان ریتمی پلاس شروع شد",
         "data": {
           "tier": "trial",
           "is_plus": true,
@@ -95,8 +94,8 @@
             "plan": {
               "id": 2,
               "code": "plus_3m",
-              "title": "3 months",
-              "badge": "Most popular",
+              "title": "۳ ماهه",
+              "badge": "محبوب‌ترین",
               "duration_months": 3,
               "price": 2370000,
               "monthly_price": 790000,
@@ -111,12 +110,38 @@
     },
     {
       "request": {
+        "method": "PUT",
+        "url": "/api/v1/profile/life-stage",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "mode": "menopause"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "message": "مرحله زندگی ذخیره شد",
+        "data": {
+          "mode": "menopause",
+          "stored_mode": "menopause",
+          "ivf_iui": false,
+          "track_contraception": false
+        }
+      }
+    },
+    {
+      "request": {
         "method": "POST",
         "url": "/api/v1/logs/voice",
         "persona": "regular",
-        "accept_language": "en",
         "now": "2026-09-23T10:00:00+03:30",
-        "raw_body": "--ritmeB\r\nContent-Disposition: form-data; name=\"duration_ms\"\r\n\r\n7000\r\n--ritmeB\r\nContent-Disposition: form-data; name=\"audio\"; filename=\"voice.ogg\"\r\nContent-Type: audio/ogg\r\n\r\nOggS\u0000\u0002 RITME-FAKE:default\r\n--ritmeB--\r\n"
+        "raw_body": "--ritmeB\r\nContent-Disposition: form-data; name=\"audio\"; filename=\"voice.ogg\"\r\n\r\nOggS\u0000\u0002 RITME-FAKE:menopause\r\n--ritmeB--\r\n"
       },
       "status": 200,
       "headers": {
@@ -127,54 +152,59 @@
       "body": {
         "success": true,
         "data": {
-          "transcript": "My belly has been hurting since this morning, moderate, I'm a bit bloated and feeling bored",
-          "language": "en",
-          "mode": "cycle",
+          "transcript": "دیشب سه بار گرگرفتگی داشتم با عرق شبانه، امروز هم ذهنم مه‌آلوده و یه قهوه خوردم",
+          "language": "fa",
+          "mode": "menopause",
           "suggestions": [
             {
-              "target": "log",
-              "category": "pain",
-              "param": "location",
-              "item": "abdomen",
-              "value": "moderate",
+              "target": "hot_flash",
+              "category": "hot_flash",
+              "param": "count",
+              "item": null,
+              "value": 3,
               "confidence": 0.9,
-              "label": "Abdomen pain · Moderate",
+              "label": "گرگرفتگی · 3 بار",
+              "options": []
+            },
+            {
+              "target": "hot_flash",
+              "category": "hot_flash",
+              "param": "night",
+              "item": null,
+              "value": true,
+              "confidence": 0.85,
+              "label": "گرگرفتگی شبانه",
               "options": []
             },
             {
               "target": "log",
               "category": "symptoms",
-              "param": "digestive",
-              "item": "bloating",
+              "param": "general",
+              "item": "night_sweats",
               "value": "yes",
               "confidence": 0.9,
-              "label": "Bloating",
+              "label": "تعریق شبانه",
               "options": []
             },
             {
               "target": "log",
-              "category": "mood",
-              "param": "moods",
-              "item": "bored",
+              "category": "symptoms",
+              "param": "general",
+              "item": "brain_fog",
+              "value": "yes",
+              "confidence": 0.9,
+              "label": "مه مغزی",
+              "options": []
+            },
+            {
+              "target": "log",
+              "category": "menopause",
+              "param": "triggers",
+              "item": "caffeine",
               "value": true,
               "confidence": 0.9,
-              "label": "Unmotivated",
-              "options": [
-                {
-                  "category": "mood",
-                  "param": "moods",
-                  "item": "sad",
-                  "value": true,
-                  "label": "Sad"
-                },
-                {
-                  "category": "symptoms",
-                  "param": "general",
-                  "item": "fatigue",
-                  "value": "yes",
-                  "label": "Fatigue"
-                }
-              ]
+              "label": "قهوه یا چای پررنگ",
+              "options": []
             }
           ]
         }

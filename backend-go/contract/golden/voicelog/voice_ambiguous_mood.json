@@ -1,5 +1,5 @@
 {
-  "case": "voicelog/voice_trial.en",
+  "case": "voicelog/voice_ambiguous_mood",
   "steps": [
     {
       "request": {
@@ -116,7 +116,7 @@
         "persona": "regular",
         "accept_language": "en",
         "now": "2026-09-23T10:00:00+03:30",
-        "raw_body": "--ritmeB\r\nContent-Disposition: form-data; name=\"duration_ms\"\r\n\r\n7000\r\n--ritmeB\r\nContent-Disposition: form-data; name=\"audio\"; filename=\"voice.ogg\"\r\nContent-Type: audio/ogg\r\n\r\nOggS\u0000\u0002 RITME-FAKE:default\r\n--ritmeB--\r\n"
+        "raw_body": "--ritmeB\r\nContent-Disposition: form-data; name=\"audio\"; filename=\"voice.ogg\"\r\n\r\nOggS\u0000\u0002 RITME-FAKE:default\r\n--ritmeB--\r\n"
       },
       "status": 200,
       "headers": {

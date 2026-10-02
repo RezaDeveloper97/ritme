@@ -2,16 +2,77 @@
     "messages": {
         "ai_unavailable": "ثبت با صدا الان در دسترس نیست. کمی بعد دوباره امتحان کن یا دستی ثبت کن.",
         "ai_failed": "نتوانستیم صدایت را بفهمیم. دوباره امتحان کن یا دستی ثبت کن.",
-        "too_many": "چند بار پشت سر هم ضبط کردی. کمی صبر کن و دوباره امتحان کن."
+        "too_many": "چند بار پشت سر هم ضبط کردی. کمی صبر کن و دوباره امتحان کن.",
+        "committed": ":count مورد ثبت شد.",
+        "invalid_item": "این مورد با صدا ثبت نمی‌شود.",
+        "invalid_value": "مقدار این مورد معتبر نیست.",
+        "unavailable_hot_flash": "گرگرفتگی فقط در حالت یائسگی ثبت می‌شود.",
+        "unavailable_pain_diary": "برای دفتر درد، اول به برنامه اندومتریوز بپیوند.",
+        "unavailable_pill": "اول قرص را به‌عنوان روش پیشگیری انتخاب کن.",
+        "unavailable_bladder": "دفتر مثانه الان در دسترس نیست."
     },
     "attributes": {
         "audio": "فایل صدا",
-        "duration_ms": "مدت ضبط"
+        "duration_ms": "مدت ضبط",
+        "date": "تاریخ",
+        "items": "موارد",
+        "items_each": "مورد",
+        "items_each_category": "دسته",
+        "items_each_param": "مورد",
+        "items_each_value": "مقدار"
     },
     "labels": {
         "pain_location": "درد :item",
         "graded": ":item · :level",
         "single": ":category · :param: :option",
         "number": ":param · :value :unit"
+    },
+    "fields": {
+        "hot_flash_count": "گرگرفتگی › تعداد دفعات",
+        "hot_flash_severity": "گرگرفتگی › شدت",
+        "hot_flash_night": "گرگرفتگی › شبانه (دیشب)",
+        "hot_flash_sweat": "گرگرفتگی › همراه با تعریق",
+        "hot_flash_duration": "گرگرفتگی › مدت هر بار (دقیقه)",
+        "pain_diary_score": "دفتر درد › شدت درد از ۰ تا ۱۰",
+        "pain_diary_missed_activity": "دفتر درد › نرفتن سر کار یا درس",
+        "pain_diary_analgesic": "دفتر درد › نام مسکن",
+        "pain_diary_analgesic_time": "دفتر درد › ساعت مصرف مسکن",
+        "pain_diary_analgesic_effect": "دفتر درد › اثر مسکن",
+        "pill_status": "قرص پیشگیری امروز",
+        "bladder_leak": "دفتر مثانه › نشت ادرار",
+        "bladder_night_voids": "دفتر مثانه › دفعات بیدار شدن شبانه برای ادرار"
+    },
+    "options": {
+        "hot_flash_severity_mild": "خفیف",
+        "hot_flash_severity_moderate": "متوسط",
+        "hot_flash_severity_severe": "شدید",
+        "hot_flash_severity_very_severe": "خیلی شدید",
+        "pain_diary_analgesic_effect_no": "کمکی نکرد",
+        "pain_diary_analgesic_effect_a_little": "کمی کمک کرد",
+        "pain_diary_analgesic_effect_helped": "کمک کرد",
+        "pill_status_taken": "خورده شد",
+        "pill_status_missed": "جا ماند",
+        "bladder_leak_none": "نشتی نبود",
+        "bladder_leak_cough": "با سرفه یا عطسه",
+        "bladder_leak_urgency": "با فوریت",
+        "bladder_leak_unexplained": "بی‌دلیل"
+    },
+    "chips": {
+        "hot_flash_count": "گرگرفتگی · :value بار",
+        "hot_flash_severity": "شدت گرگرفتگی · :option",
+        "hot_flash_night_true": "گرگرفتگی شبانه",
+        "hot_flash_night_false": "گرگرفتگی روزانه",
+        "hot_flash_sweat_true": "گرگرفتگی با تعریق",
+        "hot_flash_sweat_false": "گرگرفتگی بدون تعریق",
+        "hot_flash_duration": "هر گرگرفتگی · :value دقیقه",
+        "pain_diary_score": "شدت درد · :value از 10",
+        "pain_diary_missed_activity_true": "سر کار یا درس نرفتم",
+        "pain_diary_missed_activity_false": "سر کار یا درس رفتم",
+        "pain_diary_analgesic": "مسکن · :value",
+        "pain_diary_analgesic_time": "ساعت مسکن · :value",
+        "pain_diary_analgesic_effect": "اثر مسکن · :option",
+        "pill_status": "قرص امروز · :option",
+        "bladder_leak": "نشت ادرار · :option",
+        "bladder_night_voids": "بیدار شدن شبانه برای ادرار · :value بار"
     }
 }

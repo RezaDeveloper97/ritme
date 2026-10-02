@@ -236,3 +236,110 @@ func mustJSON(t *testing.T, v any) string {
 	require.NoError(t, err)
 	return string(b)
 }
+
+// canvasVocab is a menopause-mode vocabulary with every canvas field (CB-VOICE-01) and the menopause items.
+func canvasVocab() []VocabEntry {
+	pain := []VocabValue{{"mild", "کم"}, {"moderate", "متوسط"}, {"severe", "شدید"}}
+	sym := []VocabValue{{"yes", "دارم"}, {"no", "ندارم"}, {"mild", "کم"}, {"moderate", "متوسط"}, {"severe", "شدید"}}
+	return []VocabEntry{
+		{Key: "pain.location.abdomen", Type: "items", Label: "درد › محل درد › شکم", Values: pain},
+		{Key: "pain.relief.painkiller", Type: "multi", Label: "درد › تسکین › مسکن"},
+		{Key: "symptoms.general.hot_flashes", Type: "items", Label: "علائم › عمومی › گرگرفتگی", Values: sym},
+		{Key: "symptoms.general.night_sweats", Type: "items", Label: "علائم › عمومی › تعریق شبانه", Values: sym},
+		{Key: "symptoms.general.brain_fog", Type: "items", Label: "علائم › عمومی › مه مغزی", Values: sym},
+		{Key: "symptoms.general.fatigue", Type: "items", Label: "علائم › عمومی › خستگی", Values: sym},
+		{Key: "urogenital.symptoms.leakage", Type: "items", Label: "ادراری › علائم › نشت ادرار", Values: sym},
+		{Key: "menopause.triggers.caffeine", Type: "multi", Label: "یائسگی › محرک\u200cها › کافئین"},
+		{Key: "mood.moods.bored", Type: "multi", Label: "حال › حال و روحیه › بی\u200cحوصله"},
+		{Key: "mood.moods.sad", Type: "multi", Label: "حال › حال و روحیه › غمگین"},
+		{Key: "hot_flash.count", Type: "integer", Label: "گرگرفتگی › تعداد", Min: 1, Max: 10},
+		{Key: "hot_flash.night", Type: "bool", Label: "گرگرفتگی › شبانه"},
+		{Key: "pain_diary.score", Type: "integer", Label: "دفتر درد › شدت", Min: 0, Max: 10},
+		{Key: "pain_diary.analgesic", Type: "text", Label: "دفتر درد › مسکن", MaxLen: 100},
+		{Key: "pain_diary.analgesic_time", Type: "time", Label: "دفتر درد › ساعت مسکن"},
+		{Key: "pain_diary.analgesic_effect", Type: "single", Label: "دفتر درد › اثر مسکن",
+			Values: []VocabValue{{"no", "نه"}, {"a_little", "کمی"}, {"helped", "کمک کرد"}}},
+		{Key: "pain_diary.missed_activity", Type: "bool", Label: "دفتر درد › نرفتن سر کار"},
+		{Key: "pill.status", Type: "single", Label: "قرص › وضعیت", Values: []VocabValue{{"taken", "خورده شد"}, {"missed", "جا ماند"}}},
+		{Key: "bladder.leak", Type: "single", Label: "مثانه › نشت",
+			Values: []VocabValue{{"none", "نه"}, {"cough", "سرفه"}, {"urgency", "فوریت"}, {"unexplained", "بی\u200cدلیل"}}},
+		{Key: "bladder.night_voids", Type: "integer", Label: "مثانه › بیدار شدن شبانه", Min: 0, Max: 20},
+	}
+}
+
+func TestFake_ParseLog_CanvasFixtures(t *testing.T) {
+	f := NewFake()
+	parse := func(text string, v []VocabEntry) map[string]any {
+		cs, _, err := f.ParseLog(context.Background(), LogParseRequest{Text: text, Vocabulary: v})
+		require.NoError(t, err)
+		return keys(cs)
+	}
+	for _, lang := range []string{"fa", "en"} {
+		t.Run(lang, func(t *testing.T) {
+			assert.Equal(t, map[string]any{
+				"hot_flash.count":               3.0,
+				"hot_flash.night":               true,
+				"symptoms.general.night_sweats": "yes",
+				"symptoms.general.brain_fog":    "yes",
+				"menopause.triggers.caffeine":   true,
+			}, parse(FakeTranscripts["menopause"][lang], canvasVocab()), "hot flashes go to the diary, not the symptom item")
+
+			assert.Equal(t, map[string]any{
+				"pain.location.abdomen":       "moderate", // 6 of 10 → moderate, whatever «کمی» says
+				"pain.relief.painkiller":      true,
+				"pain_diary.score":            6.0,
+				"pain_diary.analgesic":        map[string]string{"fa": "ایبوپروفن", "en": "ibuprofen"}[lang],
+				"pain_diary.analgesic_time":   "10:00",
+				"pain_diary.analgesic_effect": "a_little",
+				"pain_diary.missed_activity":  true,
+			}, parse(FakeTranscripts["pain_diary"][lang], canvasVocab()))
+
+			assert.Equal(t, map[string]any{"pill.status": "taken"}, parse(FakeTranscripts["pill"][lang], canvasVocab()))
+
+			assert.Equal(t, map[string]any{"bladder.leak": "cough", "bladder.night_voids": 2.0},
+				parse(FakeTranscripts["pelvic"][lang], canvasVocab()), "a leak goes to the bladder diary, not the symptom item")
+		})
+	}
+	// missed pill; an iron pill is not the contraceptive pill
+	assert.Equal(t, map[string]any{"pill.status": "missed"}, parse("دیروز قرصم یادم رفت", canvasVocab()))
+	assert.Equal(t, map[string]any{"pill.status": "missed"}, parse("I forgot my pill", canvasVocab()))
+	assert.Empty(t, parse("ساعت ۹ قرص آهنم رو خوردم", canvasVocab()))
+	// urgency leak; no canvas field in the vocabulary → the log symptom / nothing
+	assert.Equal(t, map[string]any{"bladder.leak": "urgency"}, parse("یهو ادرارم نشت کرد، فوری بود", canvasVocab()))
+	assert.Equal(t, map[string]any{"symptoms.general.hot_flashes": "yes"},
+		parse(FakeTranscripts["menopause"]["fa"], canvasVocab()[2:3]), "cycle mode: the symptom item")
+	assert.Empty(t, parse(FakeTranscripts["pill"]["fa"], vocab()))
+}
+
+func TestFake_ParseLog_Alternatives(t *testing.T) {
+	cs, _, err := NewFake().ParseLog(context.Background(), LogParseRequest{Text: FakeTranscripts["default"]["fa"], Vocabulary: canvasVocab()})
+	require.NoError(t, err)
+	var bored Candidate
+	for _, c := range cs {
+		if c.Key == "mood.moods.bored" {
+			bored = c
+		}
+	}
+	assert.Equal(t, []string{"mood.moods.sad", "symptoms.general.fatigue"}, bored.Alternatives)
+	cs, _, _ = NewFake().ParseLog(context.Background(), LogParseRequest{Text: FakeTranscripts["default"]["fa"], Vocabulary: vocab()})
+	for _, c := range cs {
+		assert.Empty(t, c.Alternatives, "alternatives outside the vocabulary are dropped")
+	}
+}
+
+func TestGemini_ParseLog_CanvasSchema(t *testing.T) {
+	var seen map[string]any
+	var h http.Header
+	srv := geminiServer(t, 200, `{"items":[{"key":"mood.moods.bored","value":true,"confidence":0.7,"alternatives":["mood.moods.sad"]},{"key":"pain_diary.analgesic_time","value":"10:00","confidence":0.8}]}`, &seen, &h)
+	defer srv.Close()
+	g := NewGemini(config.Gemini{APIKey: "k", Model: "test-model", BaseURL: srv.URL}, srv.Client())
+	cs, _, err := g.ParseLog(context.Background(), LogParseRequest{Text: "x", Language: "fa", Vocabulary: canvasVocab()})
+	require.NoError(t, err)
+	require.Len(t, cs, 2)
+	assert.Equal(t, []string{"mood.moods.sad"}, cs[0].Alternatives)
+	assert.Equal(t, "10:00", cs[1].Value)
+	body := mustJSON(t, seen)
+	assert.Contains(t, body, "pain_diary.analgesic | text | دفتر درد › مسکن | ≤ 100 characters")
+	assert.Contains(t, body, "pain_diary.analgesic_time | time | دفتر درد › ساعت مسکن | HH:MM")
+	assert.Contains(t, body, "alternatives")
+}

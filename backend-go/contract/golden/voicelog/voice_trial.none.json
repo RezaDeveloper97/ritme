@@ -130,28 +130,49 @@
           "mode": "cycle",
           "suggestions": [
             {
+              "target": "log",
               "category": "pain",
               "param": "location",
               "item": "abdomen",
               "value": "moderate",
               "confidence": 0.9,
-              "label": "درد شکم · متوسط"
+              "label": "درد شکم · متوسط",
+              "options": []
             },
             {
+              "target": "log",
               "category": "symptoms",
               "param": "digestive",
               "item": "bloating",
               "value": "yes",
               "confidence": 0.9,
-              "label": "نفخ"
+              "label": "نفخ",
+              "options": []
             },
             {
+              "target": "log",
               "category": "mood",
               "param": "moods",
               "item": "bored",
               "value": true,
               "confidence": 0.9,
-              "label": "بی‌حوصله"
+              "label": "بی‌حوصله",
+              "options": [
+                {
+                  "category": "mood",
+                  "param": "moods",
+                  "item": "sad",
+                  "value": true,
+                  "label": "غمگین"
+                },
+                {
+                  "category": "symptoms",
+                  "param": "general",
+                  "item": "fatigue",
+                  "value": "yes",
+                  "label": "خستگی"
+                }
+              ]
             }
           ]
         }

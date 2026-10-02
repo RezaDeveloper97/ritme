@@ -2,16 +2,77 @@
     "messages": {
         "ai_unavailable": "Voice logging isn't available right now. Try again later or log by hand.",
         "ai_failed": "We couldn't understand the recording. Try again or log by hand.",
-        "too_many": "You recorded several times in a row. Wait a moment and try again."
+        "too_many": "You recorded several times in a row. Wait a moment and try again.",
+        "committed": ":count items saved.",
+        "invalid_item": "This item can't be logged by voice.",
+        "invalid_value": "This item's value isn't valid.",
+        "unavailable_hot_flash": "Hot flashes are logged in menopause mode only.",
+        "unavailable_pain_diary": "Join the endometriosis program to use the pain diary.",
+        "unavailable_pill": "Choose the pill as your birth control method first.",
+        "unavailable_bladder": "The bladder diary isn't available right now."
     },
     "attributes": {
         "audio": "audio file",
-        "duration_ms": "recording length"
+        "duration_ms": "recording length",
+        "date": "date",
+        "items": "items",
+        "items_each": "item",
+        "items_each_category": "category",
+        "items_each_param": "item",
+        "items_each_value": "value"
     },
     "labels": {
         "pain_location": ":item pain",
         "graded": ":item · :level",
         "single": ":category · :param: :option",
         "number": ":param · :value :unit"
+    },
+    "fields": {
+        "hot_flash_count": "Hot flashes › how many",
+        "hot_flash_severity": "Hot flashes › severity",
+        "hot_flash_night": "Hot flashes › at night (last night)",
+        "hot_flash_sweat": "Hot flashes › with sweating",
+        "hot_flash_duration": "Hot flashes › length of each (minutes)",
+        "pain_diary_score": "Pain diary › pain score from 0 to 10",
+        "pain_diary_missed_activity": "Pain diary › missed work or school",
+        "pain_diary_analgesic": "Pain diary › painkiller name",
+        "pain_diary_analgesic_time": "Pain diary › time the painkiller was taken",
+        "pain_diary_analgesic_effect": "Pain diary › painkiller effect",
+        "pill_status": "Birth control pill today",
+        "bladder_leak": "Bladder diary › urine leak",
+        "bladder_night_voids": "Bladder diary › times up at night to pee"
+    },
+    "options": {
+        "hot_flash_severity_mild": "Mild",
+        "hot_flash_severity_moderate": "Moderate",
+        "hot_flash_severity_severe": "Severe",
+        "hot_flash_severity_very_severe": "Very severe",
+        "pain_diary_analgesic_effect_no": "Didn't help",
+        "pain_diary_analgesic_effect_a_little": "Helped a little",
+        "pain_diary_analgesic_effect_helped": "Helped",
+        "pill_status_taken": "Taken",
+        "pill_status_missed": "Missed",
+        "bladder_leak_none": "No leak",
+        "bladder_leak_cough": "With a cough or sneeze",
+        "bladder_leak_urgency": "With urgency",
+        "bladder_leak_unexplained": "Unexplained"
+    },
+    "chips": {
+        "hot_flash_count": "Hot flashes · :value",
+        "hot_flash_severity": "Hot flash severity · :option",
+        "hot_flash_night_true": "Night-time hot flashes",
+        "hot_flash_night_false": "Daytime hot flashes",
+        "hot_flash_sweat_true": "Hot flashes with sweating",
+        "hot_flash_sweat_false": "Hot flashes without sweating",
+        "hot_flash_duration": "Each hot flash · :value min",
+        "pain_diary_score": "Pain score · :value of 10",
+        "pain_diary_missed_activity_true": "Missed work or school",
+        "pain_diary_missed_activity_false": "Went to work or school",
+        "pain_diary_analgesic": "Painkiller · :value",
+        "pain_diary_analgesic_time": "Painkiller at :value",
+        "pain_diary_analgesic_effect": "Painkiller effect · :option",
+        "pill_status": "Today's pill · :option",
+        "bladder_leak": "Leak · :option",
+        "bladder_night_voids": "Times up at night to pee · :value"
     }
 }

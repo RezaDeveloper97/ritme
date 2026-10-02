@@ -3,6 +3,9 @@
 # (new-endpoint skill, step 8). The recording is a hand-written multipart body: an Ogg page header (sniffed
 # server-side) followed by the fake's fixture marker (RITME-FAKE:<key>, internal/ai/fake.go). The audio wipe, temp
 # files, per-user custom items, throttles and the voice_params source marking are covered by internal/voicelog tests.
+# CB-VOICE-01 adds the canvas items (target hot_flash / pain_diary / pill / bladder, offered per eligibility), the
+# ambiguity options (mood) and POST /api/v1/logs/voice/commit, also Go only and recorded from Go: the commit_flow case
+# reads the saved rows back through the menopause / conditions / contraception / pelvic routes.
 # Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
 group: voicelog
 defaults:
@@ -73,4 +76,157 @@ cases:
     path: /api/v1/logs/voice
     content_type: multipart/form-data; boundary=ritmeB
     raw_body: "--ritmeB--\r\n"
+    status: 401
+  # ---------------- CB-VOICE-01: canvas items ----------------
+  - name: voice_menopause
+    doc: Menopause mode — 3 night hot flashes go to the hot-flash diary (target hot_flash); night sweats, brain fog, coffee are log items
+    steps:
+      - method: POST
+        path: /api/v1/plus/trial/start
+        status: 200
+      - method: PUT
+        path: /api/v1/profile/life-stage
+        body: {mode: menopause}
+        status: 200
+      - method: POST
+        path: /api/v1/logs/voice
+        content_type: multipart/form-data; boundary=ritmeB
+        raw_body: "--ritmeB\r\nContent-Disposition: form-data; name=\"audio\"; filename=\"voice.ogg\"\r\n\r\nOggS\0\x02 RITME-FAKE:menopause\r\n--ritmeB--\r\n"
+        status: 200
+  - name: voice_menopause_cycle
+    locales: none
+    doc: The same words in cycle mode — only the log's hot-flash symptom (no diary target)
+    steps:
+      - method: POST
+        path: /api/v1/plus/trial/start
+        status: 200
+      - method: POST
+        path: /api/v1/logs/voice
+        content_type: multipart/form-data; boundary=ritmeB
+        raw_body: "--ritmeB\r\nContent-Disposition: form-data; name=\"audio\"; filename=\"voice.ogg\"\r\n\r\nOggS\0\x02 RITME-FAKE:menopause\r\n--ritmeB--\r\n"
+        status: 200
+  - name: voice_pain_diary
+    doc: Enrolled in the endometriosis program — score 6/10, ibuprofen at 10:00, helped a little, missed work (target pain_diary) next to the log's abdomen pain
+    steps:
+      - method: POST
+        path: /api/v1/plus/trial/start
+        status: 200
+      - method: POST
+        path: /api/v1/conditions/enrolments
+        body: {program: endo, enrolled_on: "2026-09-01"}
+        status: 200
+      - method: POST
+        path: /api/v1/logs/voice
+        content_type: multipart/form-data; boundary=ritmeB
+        raw_body: "--ritmeB\r\nContent-Disposition: form-data; name=\"audio\"; filename=\"voice.ogg\"\r\n\r\nOggS\0\x02 RITME-FAKE:pain_diary\r\n--ritmeB--\r\n"
+        status: 200
+  - name: voice_pill
+    doc: A pill method — «قرصم رو خوردم» → pill taken (target pill)
+    steps:
+      - method: POST
+        path: /api/v1/plus/trial/start
+        status: 200
+      - method: PUT
+        path: /api/v1/contraception/method
+        body: {method: combined_pill, pack_type: "21_7", pack_started_on: "2026-09-16", packs_left: 1, reminder_time: "21:00"}
+        status: 200
+      - method: POST
+        path: /api/v1/logs/voice
+        content_type: multipart/form-data; boundary=ritmeB
+        raw_body: "--ritmeB\r\nContent-Disposition: form-data; name=\"audio\"; filename=\"voice.ogg\"\r\n\r\nOggS\0\x02 RITME-FAKE:pill\r\n--ritmeB--\r\n"
+        status: 200
+  - name: voice_pelvic
+    doc: Leak with a cough and 2 night voids → bladder diary (target bladder, offered to everyone)
+    steps:
+      - method: POST
+        path: /api/v1/plus/trial/start
+        status: 200
+      - method: POST
+        path: /api/v1/logs/voice
+        content_type: multipart/form-data; boundary=ritmeB
+        raw_body: "--ritmeB\r\nContent-Disposition: form-data; name=\"audio\"; filename=\"voice.ogg\"\r\n\r\nOggS\0\x02 RITME-FAKE:pelvic\r\n--ritmeB--\r\n"
+        status: 200
+  - name: voice_ambiguous_mood
+    locales: en
+    doc: «بی‌حوصله» / bored — the mood suggestion carries options (sad, tired) for the review's chooser
+    steps:
+      - method: POST
+        path: /api/v1/plus/trial/start
+        status: 200
+      - method: POST
+        path: /api/v1/logs/voice
+        content_type: multipart/form-data; boundary=ritmeB
+        raw_body: "--ritmeB\r\nContent-Disposition: form-data; name=\"audio\"; filename=\"voice.ogg\"\r\n\r\nOggS\0\x02 RITME-FAKE:default\r\n--ritmeB--\r\n"
+        status: 200
+  - name: commit_flow
+    doc: Board Voice_Review → Voice_Saved — the client saves the log items (PUT /logs/days, voice_params), commits the canvas items, and each diary shows them
+    steps:
+      - method: PUT
+        path: /api/v1/profile/life-stage
+        body: {mode: menopause}
+        status: 200
+      - method: POST
+        path: /api/v1/conditions/enrolments
+        body: {program: endo, enrolled_on: "2026-09-01"}
+        status: 200
+      - method: PUT
+        path: /api/v1/contraception/method
+        body: {method: combined_pill, pack_type: "21_7", pack_started_on: "2026-09-16", packs_left: 1, reminder_time: "21:00"}
+        status: 200
+      - method: PUT
+        path: /api/v1/logs/days/2026-09-23
+        body: {categories: {pain: {location: {abdomen: moderate}}}, voice_params: [pain.location]}
+        status: 200
+      - method: POST
+        path: /api/v1/logs/voice/commit
+        body:
+          date: "2026-09-23"
+          items:
+            - {category: hot_flash, param: count, value: 3}
+            - {category: hot_flash, param: night, value: true}
+            - {category: pain_diary, param: score, value: 6}
+            - {category: pain_diary, param: analgesic, value: ibuprofen}
+            - {category: pain_diary, param: analgesic_time, value: "10:00"}
+            - {category: pain_diary, param: analgesic_effect, value: a_little}
+            - {category: pill, param: status, value: taken}
+            - {category: bladder, param: leak, value: cough}
+            - {category: bladder, param: night_voids, value: 2}
+        status: 200
+      - method: GET
+        path: /api/v1/menopause/hot-flashes
+        status: 200
+      - method: GET
+        path: /api/v1/conditions/pain/2026-09-23
+        status: 200
+      - method: GET
+        path: /api/v1/pelvic/diary/2026-09-23
+        status: 200
+  - name: commit_invalid
+    doc: 422s — a future date and no items; a hot flash outside menopause mode; a log slot (PUT /logs/days); a bad value; a pain score without the program
+    steps:
+      - method: POST
+        path: /api/v1/logs/voice/commit
+        body: {date: "2026-09-24", items: []}
+        status: 422
+      - method: POST
+        path: /api/v1/logs/voice/commit
+        body: {date: "2026-09-23", items: [{category: hot_flash, param: count, value: 2}]}
+        status: 422
+      - method: POST
+        path: /api/v1/logs/voice/commit
+        body: {date: "2026-09-23", items: [{category: pain, param: location, value: mild}]}
+        status: 422
+      - method: POST
+        path: /api/v1/logs/voice/commit
+        body: {date: "2026-09-23", items: [{category: bladder, param: night_voids, value: 40}]}
+        status: 422
+      - method: POST
+        path: /api/v1/logs/voice/commit
+        body: {date: "2026-09-23", items: [{category: pain_diary, param: score, value: 3}]}
+        status: 422
+  - name: commit_anon
+    persona: anon
+    locales: none
+    method: POST
+    path: /api/v1/logs/voice/commit
     status: 401

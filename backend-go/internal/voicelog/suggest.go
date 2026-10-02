@@ -3,6 +3,7 @@ package voicelog
 import (
 	"encoding/json"
 	"math"
+	"slices"
 	"strconv"
 
 	"github.com/ritme/backend-go/internal/ai"
@@ -19,27 +20,57 @@ const (
 	MaxSuggestions = 20
 )
 
-// Suggestion is one reviewed-before-saving item: the PUT /logs/days/{date} slot it fills and its value.
+// Suggestion is one reviewed-before-saving item: the PUT /logs/days/{date} slot it fills (target "log") or the
+// canvas item it fills (target = its category, saved by POST /logs/voice/commit), and its value.
 type Suggestion struct {
+	Target                string
 	Category, Param, Item string
-	// Value: single → option code, multi → true, items → level code, number/integer → float64, bool → bool.
+	// Value: single → option code, multi → true, items → level code, number/integer → float64, bool → bool,
+	// text → string, time → "HH:MM".
 	Value      any
 	Confidence float64
 	Label      string
+	// Options are the other slots the same words may mean (the review's chooser); empty when unambiguous.
+	Options []Option
 }
 
-// JSON is the wire shape {category, param, item|null, value, confidence, label}.
+// Option is one alternative reading of a suggestion: a log slot with the value it would get.
+type Option struct {
+	Category, Param, Item string
+	Value                 any
+	Label                 string
+}
+
+func wireValue(v any) any {
+	if f, ok := v.(float64); ok {
+		return jsonx.Float(f)
+	}
+	return v
+}
+
+func wireItem(item string) any {
+	if item == "" {
+		return nil
+	}
+	return item
+}
+
+// JSON is the wire shape {target, category, param, item|null, value, confidence, label, options[]}.
 func (s Suggestion) JSON() *jsonx.OrderedMap {
-	var item any
-	if s.Item != "" {
-		item = s.Item
+	opts := make([]*jsonx.OrderedMap, 0, len(s.Options))
+	for _, o := range s.Options {
+		opts = append(opts, jsonx.Obj("category", o.Category, "param", o.Param, "item", wireItem(o.Item),
+			"value", wireValue(o.Value), "label", o.Label))
 	}
-	value := s.Value
-	if f, ok := value.(float64); ok {
-		value = jsonx.Float(f)
-	}
-	return jsonx.Obj("category", s.Category, "param", s.Param, "item", item, "value", value,
-		"confidence", jsonx.Float(math.Round(s.Confidence*100)/100), "label", s.Label)
+	return jsonx.Obj("target", s.Target, "category", s.Category, "param", s.Param, "item", wireItem(s.Item),
+		"value", wireValue(s.Value), "confidence", jsonx.Float(math.Round(s.Confidence*100)/100), "label", s.Label,
+		"options", opts)
+}
+
+// JSON is the wire shape of a committed item {target, category, param, item: null, value, label}.
+func (s Saved) JSON() *jsonx.OrderedMap {
+	return jsonx.Obj("target", s.Target, "category", s.Target, "param", s.Param, "item", nil,
+		"value", wireValue(s.Value), "label", s.Label)
 }
 
 // validate keeps the candidates that are real, available slots for the user with a valid value, in the
@@ -52,20 +83,83 @@ func (v *vocabulary) validate(cands []ai.Candidate, mode, locale string) []Sugge
 		if len(out) >= MaxSuggestions {
 			break
 		}
-		s, ok := v.slots[c.Key]
-		if !ok || seen[c.Key] || math.IsNaN(c.Confidence) || c.Confidence < MinConfidence {
+		if seen[c.Key] || math.IsNaN(c.Confidence) || c.Confidence < MinConfidence {
 			continue
 		}
 		conf := math.Min(c.Confidence, 1)
+		if f, ok := v.canvas[c.Key]; ok {
+			value, ok := normalizeCanvas(f, c.Value)
+			if !ok {
+				continue
+			}
+			seen[c.Key] = true
+			out = append(out, Suggestion{Target: f.target, Category: f.target, Param: f.param, Value: value,
+				Confidence: conf, Label: canvasLabel(f, value, locale), Options: []Option{}})
+			continue
+		}
+		s, ok := v.slots[c.Key]
+		if !ok {
+			continue
+		}
 		value, body, ok := normalize(s, c.Value)
 		if !ok || !v.parses(s, body, mode, locale) {
 			continue
 		}
 		seen[c.Key] = true
-		out = append(out, Suggestion{Category: s.cat.Code, Param: s.param.Code, Item: s.item, Value: value,
-			Confidence: conf, Label: label(s, value, locale)})
+		out = append(out, Suggestion{Target: TargetLog, Category: s.cat.Code, Param: s.param.Code, Item: s.item,
+			Value: value, Confidence: conf, Label: label(s, value, locale),
+			Options: v.options(c, value, mode, locale)})
 	}
 	return out
+}
+
+// MaxOptions caps the alternatives of one suggestion.
+const MaxOptions = 4
+
+// options are the valid alternatives of a log suggestion: other log slots of the multi / items / bool kind (their
+// value follows from the suggestion's: true, the same level when the slot has it, else "yes" / its default).
+func (v *vocabulary) options(c ai.Candidate, value any, mode, locale string) []Option {
+	out := []Option{}
+	done := map[string]bool{c.Key: true}
+	for _, key := range c.Alternatives {
+		if len(out) >= MaxOptions {
+			break
+		}
+		s, ok := v.slots[key]
+		if !ok || done[key] {
+			continue
+		}
+		raw, ok := altValue(s, value)
+		if !ok {
+			continue
+		}
+		val, body, ok := normalize(s, raw)
+		if !ok || !v.parses(s, body, mode, locale) {
+			continue
+		}
+		done[key] = true
+		out = append(out, Option{Category: s.cat.Code, Param: s.param.Code, Item: s.item, Value: val,
+			Label: label(s, val, locale)})
+	}
+	return out
+}
+
+// altValue is the value an alternative slot takes for the suggestion's value.
+func altValue(s slot, value any) (any, bool) {
+	switch s.param.Type {
+	case taxonomy.Multi, taxonomy.Bool:
+		return true, true
+	case taxonomy.Items:
+		if level, ok := value.(string); ok && level != taxonomy.No && slices.Contains(s.param.Levels, level) {
+			return level, true
+		}
+		for _, l := range []string{taxonomy.Yes, "moderate"} {
+			if slices.Contains(s.param.Levels, l) {
+				return l, true
+			}
+		}
+	}
+	return nil, false
 }
 
 // normalize checks the candidate value against the slot type and returns it plus its PUT body value.
@@ -92,6 +186,8 @@ func normalize(s slot, raw any) (any, any, bool) {
 		case float64:
 			n = x
 		case int:
+			n = float64(x)
+		case int64:
 			n = float64(x)
 		case string:
 			f, err := strconv.ParseFloat(x, 64)

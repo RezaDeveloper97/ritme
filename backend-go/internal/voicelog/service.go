@@ -1,7 +1,8 @@
 // Package voicelog is «ثبت با صدا» (B-N3-05, Plus): a short recording is transcribed and mapped to log
 // taxonomy suggestions through the AI adapter (internal/ai). Nothing is saved here — the client reviews the
 // suggestions, merges them into its draft and saves through PUT /logs/days/{date} (voice_params marks them
-// source=voice).
+// source=voice). Canvas items (CB-VOICE-01: hot flashes, pain diary, pill, bladder diary — canvas.go) are saved
+// through POST /logs/voice/commit, which writes through each domain's own service.
 //
 // Privacy: the recording lives only in one request-scoped buffer (never on disk: the multipart body is parsed
 // by hand, so no temp file is ever created) and is zeroed right after transcription, together with the raw
@@ -12,6 +13,7 @@ package voicelog
 import (
 	"context"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	"github.com/ritme/backend-go/internal/ai"
@@ -37,19 +39,28 @@ type Logs interface {
 
 // Service runs speech-to-text and parsing for a user.
 type Service struct {
-	ai   *ai.Client
-	logs Logs
+	ai      *ai.Client
+	logs    Logs
+	writers Writers
 }
 
-// NewService wires the service; client may be nil (AI unavailable → ai.ErrUnavailable).
+// NewService wires the service; client may be nil (AI unavailable → ai.ErrUnavailable). Without WithWriters only
+// taxonomy slots are understood.
 func NewService(client *ai.Client, logs Logs) *Service {
 	return &Service{ai: client, logs: logs}
 }
 
+// WithWriters turns the canvas items on: the services they are saved through (a nil one stays off).
+func (s *Service) WithWriters(w Writers) *Service {
+	s.writers = w
+	return s
+}
+
 // Process transcribes audio (wiping it as soon as the provider answered, success or not) and maps the
 // transcript to suggestions valid for the user's mode and custom items. ns is the `log-taxonomy` namespace
-// for the request language (labels). An empty transcript is a valid result without suggestions.
-func (s *Service) Process(ctx context.Context, userID uint64, locale string, ns any, audio *ai.Audio) (Result, error) {
+// for the request language (labels); now is the request time (who may log what today). An empty transcript is a
+// valid result without suggestions.
+func (s *Service) Process(ctx context.Context, userID uint64, locale string, ns any, audio *ai.Audio, now time.Time) (Result, error) {
 	t, err := s.ai.Transcribe(ctx, ai.FeatureVoiceLog, ai.TranscribeRequest{Audio: *audio, Language: locale})
 	audio.Wipe()
 	if err != nil {
@@ -72,7 +83,12 @@ func (s *Service) Process(ctx context.Context, userID uint64, locale string, ns 
 	if err != nil {
 		return Result{}, err
 	}
+	el, err := s.eligible(ctx, userID, mode, now)
+	if err != nil {
+		return Result{}, err
+	}
 	v := buildVocabulary(mode, ns, custom)
+	v.addCanvas(el.targets, locale)
 	cands, err := s.ai.ParseLog(ctx, ai.FeatureVoiceLog, ai.LogParseRequest{Text: text, Language: lang, Vocabulary: v.entries})
 	if err != nil {
 		return Result{}, err

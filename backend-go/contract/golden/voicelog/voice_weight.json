@@ -132,20 +132,24 @@
           "mode": "cycle",
           "suggestions": [
             {
+              "target": "log",
               "category": "sleep",
               "param": "quality",
               "item": null,
               "value": "good",
               "confidence": 0.9,
-              "label": "Sleep · Quality: Good"
+              "label": "Sleep · Quality: Good",
+              "options": []
             },
             {
+              "target": "log",
               "category": "measurements",
               "param": "weight",
               "item": null,
               "value": 58.5,
               "confidence": 0.85,
-              "label": "Weight · 58.5 kg"
+              "label": "Weight · 58.5 kg",
+              "options": []
             }
           ]
         }

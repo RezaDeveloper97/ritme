@@ -2,7 +2,9 @@ package voicelog_test
 
 // POST /api/v1/logs/voice end to end against MariaDB with the fake AI provider: Plus gate, quota counting
 // only after success, provider errors, custom items per user, no health rows written, and the follow-up
-// PUT /logs/days with voice_params storing source=voice.
+// PUT /logs/days with voice_params storing source=voice. CB-VOICE-01: canvas suggestions per eligibility and
+// POST /logs/voice/commit writing hot flashes, the pain diary, the pill and the bladder diary through their
+// services, user-scoped.
 
 import (
 	"bytes"
@@ -28,9 +30,17 @@ import (
 	"github.com/ritme/backend-go/internal/auth"
 	"github.com/ritme/backend-go/internal/auth/passport"
 	authstore "github.com/ritme/backend-go/internal/auth/store"
+	"github.com/ritme/backend-go/internal/catalog"
+	catalogstore "github.com/ritme/backend-go/internal/catalog/store"
+	"github.com/ritme/backend-go/internal/conditions"
+	"github.com/ritme/backend-go/internal/contraception"
 	"github.com/ritme/backend-go/internal/healthlog"
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
+	"github.com/ritme/backend-go/internal/menopause"
+	"github.com/ritme/backend-go/internal/pelvic"
+	pelvicstore "github.com/ritme/backend-go/internal/pelvic/store"
+	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/config"
 	"github.com/ritme/backend-go/internal/platform/db/testdb"
@@ -46,9 +56,11 @@ const (
 )
 
 type voiceEnv struct {
-	db  *sql.DB
-	app *fiber.App
-	iss *passport.Issuer
+	db    *sql.DB
+	app   *fiber.App
+	iss   *passport.Issuer
+	conds *conditions.Service
+	contr *contraception.Service
 }
 
 // countingTranscriber wraps the fake and counts provider calls.
@@ -80,14 +92,20 @@ func setupVoice(t *testing.T, client func(*countingTranscriber) *ai.Client) (*vo
 	plusSvc := plus.NewService(db, config.Plus{TrialDays: 7}, nil, quiet)
 	gate := plus.NewGate(plusSvc, clock.Real{})
 	spy := &countingTranscriber{Transcriber: ai.NewFake()}
-	h := voicelog.NewHandlers(voicelog.NewService(client(spy), logs), plusSvc, gate, bundles, languages, clock.Real{})
+	cat := catalog.NewReader(catalogstore.New(db), nil, 0, quiet)
+	conds, contr := conditions.NewService(db, cat), contraception.NewService(db)
+	svc := voicelog.NewService(client(spy), logs).WithWriters(voicelog.Writers{
+		Flashes: menopause.NewService(db, cat), Pain: conds, Pills: contr, Bladder: pelvic.NewService(pelvicstore.New(db), cat),
+	})
+	h := voicelog.NewHandlers(svc, plusSvc, gate, bundles, languages, clock.Real{})
 	lh := healthlog.NewLogHandlers(logs, clock.Real{}, bundles, languages)
 
 	app := fiber.New(fiber.Config{ErrorHandler: httpx.ErrorHandler(quiet)})
 	app.Use(clock.Middleware(clock.Real{}, true))
 	app.Post("/api/v1/logs/voice", locale, guard, gate.Require(plus.VoiceLog), h.Voice)
 	app.Put("/api/v1/logs/days/:date", locale, guard, lh.Save)
-	return &voiceEnv{db: db, app: app, iss: passport.NewIssuer(key, q, clock.Real{}, 365)}, spy
+	app.Post("/api/v1/logs/voice/commit", locale, guard, h.Commit)
+	return &voiceEnv{db: db, app: app, iss: passport.NewIssuer(key, q, clock.Real{}, 365), conds: conds, contr: contr}, spy
 }
 
 func fakeClient(spy *countingTranscriber) *ai.Client {
@@ -201,9 +219,11 @@ func TestVoice_TrialUser(t *testing.T) {
 	assert.Equal(t, ai.FakeTranscripts["default"]["fa"], r.data()["transcript"])
 	assert.Equal(t, "cycle", r.data()["mode"])
 	assert.JSONEq(t, `[
-		{"category":"pain","param":"location","item":"abdomen","value":"moderate","confidence":0.9,"label":"درد شکم · متوسط"},
-		{"category":"symptoms","param":"digestive","item":"bloating","value":"yes","confidence":0.9,"label":"نفخ"},
-		{"category":"mood","param":"moods","item":"bored","value":true,"confidence":0.9,"label":"بی\u200cحوصله"}
+		{"target":"log","category":"pain","param":"location","item":"abdomen","value":"moderate","confidence":0.9,"label":"درد شکم · متوسط","options":[]},
+		{"target":"log","category":"symptoms","param":"digestive","item":"bloating","value":"yes","confidence":0.9,"label":"نفخ","options":[]},
+		{"target":"log","category":"mood","param":"moods","item":"bored","value":true,"confidence":0.9,"label":"بی\u200cحوصله","options":[
+			{"category":"mood","param":"moods","item":"sad","value":true,"label":"غمگین"},
+			{"category":"symptoms","param":"general","item":"fatigue","value":"yes","label":"خستگی"}]}
 	]`, mustJSON(t, r.data()["suggestions"]))
 	assert.Equal(t, 1, spy.calls)
 	assert.Equal(t, 1, e.used(t, uid), "one use counted after success")
@@ -276,6 +296,153 @@ func TestVoice_ValidationAndSave(t *testing.T) {
 	assert.Equal(t, 1, e.count(t, `SELECT COUNT(*) FROM health_log_entries WHERE user_id = ? AND source = 'manual' AND category = 'sleep'`, uid))
 	assert.Equal(t, 1, e.count(t, `SELECT COUNT(*) FROM health_log_entries WHERE user_id = ? AND source = 'manual' AND category = 'note'`, uid),
 		"free text never carries source=voice")
+}
+
+func (e *voiceEnv) commit(t *testing.T, token, lang, body string) resp {
+	t.Helper()
+	return e.do(t, "POST", "/api/v1/logs/voice/commit", token, lang, "application/json", strings.NewReader(body))
+}
+
+func suggestionKeys(t *testing.T, r resp) map[string]any {
+	t.Helper()
+	out := map[string]any{}
+	list, _ := r.data()["suggestions"].([]any)
+	for _, x := range list {
+		m := x.(map[string]any)
+		item, _ := m["item"].(string)
+		out[m["target"].(string)+":"+m["category"].(string)+"."+m["param"].(string)+"."+item] = m["value"]
+	}
+	return out
+}
+
+func TestVoice_CanvasMenopauseHotFlashes(t *testing.T) {
+	e, _ := setupVoice(t, fakeClient)
+	a, tokA := e.user(t, "09120000201", true)
+	b, tokB := e.user(t, "09120000202", true)
+	_, err := e.db.Exec(`INSERT INTO user_life_profiles (user_id, life_mode, gender, created_at, updated_at) VALUES (?, 'menopause', 'female', NOW(), NOW())`, a)
+	require.NoError(t, err)
+
+	r := e.voice(t, tokA, "fa", "menopause")
+	require.Equal(t, 200, r.status, r.raw)
+	assert.Equal(t, "menopause", r.data()["mode"])
+	assert.Equal(t, map[string]any{
+		"hot_flash:hot_flash.count.":        3.0,
+		"hot_flash:hot_flash.night.":        true,
+		"log:symptoms.general.night_sweats": "yes",
+		"log:symptoms.general.brain_fog":    "yes",
+		"log:menopause.triggers.caffeine":   true,
+	}, suggestionKeys(t, r))
+	// cycle mode: the same words are the hot-flash symptom of the log, nothing for the diary
+	rb := e.voice(t, tokB, "fa", "menopause")
+	require.Equal(t, 200, rb.status, rb.raw)
+	assert.Equal(t, map[string]any{"log:symptoms.general.hot_flashes": "yes"}, suggestionKeys(t, rb))
+
+	c := e.commit(t, tokA, "fa", `{"date":"2026-09-23","items":[{"category":"hot_flash","param":"count","value":3},{"category":"hot_flash","param":"night","value":true}]}`)
+	require.Equal(t, 200, c.status, c.raw)
+	assert.Equal(t, "2 مورد ثبت شد.", c.body["message"])
+	assert.JSONEq(t, `{"date":"2026-09-23","saved":[
+		{"target":"hot_flash","category":"hot_flash","param":"count","item":null,"value":3,"label":"گرگرفتگی · 3 بار"},
+		{"target":"hot_flash","category":"hot_flash","param":"night","item":null,"value":true,"label":"گرگرفتگی شبانه"}]}`, mustJSON(t, c.data()))
+	assert.Equal(t, 3, e.count(t, `SELECT COUNT(*) FROM hot_flashes WHERE user_id = ? AND night = 1 AND duration_s = ?
+		AND started_at BETWEEN '2026-09-23 02:50:00' AND '2026-09-23 03:00:00'`, a, voicelog.DefaultFlashSeconds))
+	assert.Zero(t, e.count(t, `SELECT COUNT(*) FROM hot_flashes WHERE user_id = ?`, b), "user-scoped")
+
+	// B is not in menopause mode: the same commit is refused and writes nothing
+	cb := e.commit(t, tokB, "en", `{"date":"2026-09-23","items":[{"category":"hot_flash","param":"count","value":3}]}`)
+	require.Equal(t, 422, cb.status, cb.raw)
+	assert.Equal(t, "Hot flashes are logged in menopause mode only.", cb.body["message"])
+	assert.Contains(t, cb.body["errors"], "items.0.category")
+	assert.Zero(t, e.count(t, `SELECT COUNT(*) FROM hot_flashes WHERE user_id = ?`, b))
+	assert.Equal(t, 3, e.count(t, `SELECT COUNT(*) FROM hot_flashes WHERE user_id = ?`, a))
+}
+
+func TestVoice_CanvasPainPillBladder(t *testing.T) {
+	e, _ := setupVoice(t, fakeClient)
+	a, tok := e.user(t, "09120000203", true)
+	other, _ := e.user(t, "09120000204", true)
+	ctx := context.Background()
+	now := time.Date(2026, 9, 23, 10, 0, 0, 0, civildate.Tehran)
+
+	// not enrolled, no pill method: only the bladder diary is offered
+	r := e.voice(t, tok, "en", "pain_diary")
+	require.Equal(t, 200, r.status, r.raw)
+	assert.NotContains(t, r.raw, `"target":"pain_diary"`)
+	assert.NotContains(t, e.voice(t, tok, "en", "pill").raw, `"target":"pill"`)
+
+	require.NoError(t, e.conds.Enrol(ctx, a, conditions.ProgramEndo, civildate.MustParse("2026-09-01"), now))
+	require.NoError(t, e.contr.SaveMethod(ctx, a, contraception.Input{Method: contraception.MethodCombinedPill,
+		PackType: "21_7", PackStartedOn: civildate.MustParse("2026-09-16")}, now, "en"))
+
+	r = e.voice(t, tok, "en", "pain_diary")
+	require.Equal(t, 200, r.status, r.raw)
+	assert.Equal(t, map[string]any{
+		"log:pain.location.abdomen":               "moderate",
+		"log:pain.relief.painkiller":              true,
+		"pain_diary:pain_diary.score.":            6.0,
+		"pain_diary:pain_diary.analgesic.":        "ibuprofen",
+		"pain_diary:pain_diary.analgesic_time.":   "10:00",
+		"pain_diary:pain_diary.analgesic_effect.": "a_little",
+		"pain_diary:pain_diary.missed_activity.":  true,
+	}, suggestionKeys(t, r))
+	assert.Equal(t, map[string]any{"pill:pill.status.": "taken"}, suggestionKeys(t, e.voice(t, tok, "fa", "pill")))
+	assert.Equal(t, map[string]any{"bladder:bladder.leak.": "cough", "bladder:bladder.night_voids.": 2.0},
+		suggestionKeys(t, e.voice(t, tok, "fa", "pelvic")))
+
+	// a pain score needs a location that day: refused before anything is written
+	items := `[{"category":"pain_diary","param":"score","value":6},{"category":"pain_diary","param":"analgesic","value":"ibuprofen"},
+		{"category":"pain_diary","param":"analgesic_time","value":"10:00"},{"category":"pain_diary","param":"analgesic_effect","value":"a_little"},
+		{"category":"pain_diary","param":"missed_activity","value":true},{"category":"pill","param":"status","value":"taken"},
+		{"category":"bladder","param":"leak","value":"cough"},{"category":"bladder","param":"night_voids","value":2}]`
+	c := e.commit(t, tok, "en", `{"date":"2026-09-23","items":`+items+`}`)
+	require.Equal(t, 422, c.status, c.raw)
+	assert.Contains(t, c.body["errors"], "items.0.value")
+	assert.Zero(t, e.count(t, `SELECT COUNT(*) FROM contraception_pill_logs WHERE user_id = ?`, a), "nothing half-saved")
+	assert.Zero(t, e.count(t, `SELECT COUNT(*) FROM pelvic_bladder_logs WHERE user_id = ?`, a))
+
+	// the client saves the log suggestions first (PUT /logs/days), then commits the canvas ones
+	put := e.do(t, "PUT", "/api/v1/logs/days/2026-09-23", tok, "en", "application/json",
+		strings.NewReader(`{"categories":{"pain":{"location":{"abdomen":"moderate"}}},"voice_params":["pain.location"]}`))
+	require.Equal(t, 200, put.status, put.raw)
+	c = e.commit(t, tok, "en", `{"date":"2026-09-23","items":`+items+`}`)
+	require.Equal(t, 200, c.status, c.raw)
+	assert.Equal(t, "8 items saved.", c.body["message"])
+	assert.Equal(t, 1, e.count(t, `SELECT COUNT(*) FROM condition_pain_entries WHERE user_id = ? AND entry_date = '2026-09-23'
+		AND analgesic = 'ibuprofen' AND analgesic_time = '10:00' AND analgesic_effect = 'a_little' AND missed_activity = 1`, a))
+	assert.Equal(t, 1, e.count(t, `SELECT COUNT(*) FROM health_log_entries WHERE user_id = ? AND category = 'pain' AND param = 'location'
+		AND item = 'abdomen' AND value_num = 6`, a), "the score is written to the log through the pain diary")
+	assert.Equal(t, 1, e.count(t, `SELECT COUNT(*) FROM contraception_pill_logs WHERE user_id = ? AND log_date = '2026-09-23' AND status = 'taken'`, a))
+	assert.Equal(t, 1, e.count(t, `SELECT COUNT(*) FROM pelvic_bladder_logs WHERE user_id = ? AND log_date = '2026-09-23' AND leak = 'cough' AND night_voids = 2`, a))
+	for _, table := range []string{"condition_pain_entries", "contraception_pill_logs", "pelvic_bladder_logs", "health_log_entries"} {
+		assert.Zero(t, e.count(t, `SELECT COUNT(*) FROM `+table+` WHERE user_id = ?`, other), table)
+	}
+}
+
+func TestVoice_CommitValidation(t *testing.T) {
+	e, _ := setupVoice(t, fakeClient)
+	_, tok := e.user(t, "09120000205", false) // free user: committing runs no AI and is not Plus-gated
+
+	anon := e.commit(t, "", "en", `{}`)
+	assert.Equal(t, 401, anon.status)
+	assert.Equal(t, "unauthenticated", anon.body["error_code"])
+
+	r := e.commit(t, tok, "en", `{"date":"2026-09-24","items":[]}`)
+	require.Equal(t, 422, r.status, r.raw)
+	assert.Contains(t, r.body["errors"], "date")
+	assert.Contains(t, r.body["errors"], "items")
+	r = e.commit(t, tok, "en", `{"date":"2026-09-01","items":[{"category":"bladder"}]}`)
+	require.Equal(t, 422, r.status, r.raw)
+	assert.Contains(t, r.body["errors"], "date", "older than the 7-day window")
+	assert.Contains(t, r.body["errors"], "items.0.param")
+	r = e.commit(t, tok, "en", `{"date":"2026-09-23","items":[{"category":"pain","param":"location","value":"mild"}]}`)
+	require.Equal(t, 422, r.status, r.raw)
+	assert.Equal(t, "This item can't be logged by voice.", r.body["message"])
+	r = e.commit(t, tok, "fa", `{"date":"2026-09-23","items":[{"category":"bladder","param":"leak","value":["cough"]}]}`)
+	require.Equal(t, 422, r.status, r.raw)
+	assert.Equal(t, "مقدار این مورد معتبر نیست.", r.body["message"])
+
+	ok := e.commit(t, tok, "en", `{"date":"2026-09-22","items":[{"category":"bladder","param":"leak","value":"urgency"}]}`)
+	require.Equal(t, 200, ok.status, ok.raw)
+	assert.Contains(t, mustJSON(t, ok.data()), `"label":"Leak · With urgency"`)
 }
 
 func mustJSON(t *testing.T, v any) string {

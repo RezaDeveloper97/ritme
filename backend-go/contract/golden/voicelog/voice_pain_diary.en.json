@@ -1,5 +1,5 @@
 {
-  "case": "voicelog/voice_trial.en",
+  "case": "voicelog/voice_pain_diary.en",
   "steps": [
     {
       "request": {
@@ -112,11 +112,58 @@
     {
       "request": {
         "method": "POST",
+        "url": "/api/v1/conditions/enrolments",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "program": "endo",
+          "enrolled_on": "2026-09-01"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "message": "You joined the program",
+        "data": {
+          "programs": [
+            {
+              "code": "endo",
+              "enrolled": true,
+              "enrolled_on": "2026-09-01"
+            },
+            {
+              "code": "pmdd",
+              "enrolled": false,
+              "enrolled_on": null
+            },
+            {
+              "code": "heavy_bleeding",
+              "enrolled": false,
+              "enrolled_on": null
+            },
+            {
+              "code": "pcos",
+              "enrolled": false,
+              "enrolled_on": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
         "url": "/api/v1/logs/voice",
         "persona": "regular",
         "accept_language": "en",
         "now": "2026-09-23T10:00:00+03:30",
-        "raw_body": "--ritmeB\r\nContent-Disposition: form-data; name=\"duration_ms\"\r\n\r\n7000\r\n--ritmeB\r\nContent-Disposition: form-data; name=\"audio\"; filename=\"voice.ogg\"\r\nContent-Type: audio/ogg\r\n\r\nOggS\u0000\u0002 RITME-FAKE:default\r\n--ritmeB--\r\n"
+        "raw_body": "--ritmeB\r\nContent-Disposition: form-data; name=\"audio\"; filename=\"voice.ogg\"\r\n\r\nOggS\u0000\u0002 RITME-FAKE:pain_diary\r\n--ritmeB--\r\n"
       },
       "status": 200,
       "headers": {
@@ -127,10 +174,60 @@
       "body": {
         "success": true,
         "data": {
-          "transcript": "My belly has been hurting since this morning, moderate, I'm a bit bloated and feeling bored",
+          "transcript": "My lower belly has hurt since last night, about six out of ten. I took an ibuprofen at ten and it helped a little. I couldn't go to work",
           "language": "en",
           "mode": "cycle",
           "suggestions": [
+            {
+              "target": "pain_diary",
+              "category": "pain_diary",
+              "param": "score",
+              "item": null,
+              "value": 6,
+              "confidence": 0.9,
+              "label": "Pain score · 6 of 10",
+              "options": []
+            },
+            {
+              "target": "pain_diary",
+              "category": "pain_diary",
+              "param": "analgesic",
+              "item": null,
+              "value": "ibuprofen",
+              "confidence": 0.85,
+              "label": "Painkiller · ibuprofen",
+              "options": []
+            },
+            {
+              "target": "pain_diary",
+              "category": "pain_diary",
+              "param": "analgesic_time",
+              "item": null,
+              "value": "10:00",
+              "confidence": 0.8,
+              "label": "Painkiller at 10:00",
+              "options": []
+            },
+            {
+              "target": "pain_diary",
+              "category": "pain_diary",
+              "param": "analgesic_effect",
+              "item": null,
+              "value": "a_little",
+              "confidence": 0.8,
+              "label": "Painkiller effect · Helped a little",
+              "options": []
+            },
+            {
+              "target": "pain_diary",
+              "category": "pain_diary",
+              "param": "missed_activity",
+              "item": null,
+              "value": true,
+              "confidence": 0.85,
+              "label": "Missed work or school",
+              "options": []
+            },
             {
               "target": "log",
               "category": "pain",
@@ -143,38 +240,13 @@
             },
             {
               "target": "log",
-              "category": "symptoms",
-              "param": "digestive",
-              "item": "bloating",
-              "value": "yes",
-              "confidence": 0.9,
-              "label": "Bloating",
-              "options": []
-            },
-            {
-              "target": "log",
-              "category": "mood",
-              "param": "moods",
-              "item": "bored",
+              "category": "pain",
+              "param": "relief",
+              "item": "painkiller",
               "value": true,
               "confidence": 0.9,
-              "label": "Unmotivated",
-              "options": [
-                {
-                  "category": "mood",
-                  "param": "moods",
-                  "item": "sad",
-                  "value": true,
-                  "label": "Sad"
-                },
-                {
-                  "category": "symptoms",
-                  "param": "general",
-                  "item": "fatigue",
-                  "value": "yes",
-                  "label": "Fatigue"
-                }
-              ]
+              "label": "Painkiller",
+              "options": []
             }
           ]
         }
