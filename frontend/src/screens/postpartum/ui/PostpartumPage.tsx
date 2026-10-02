@@ -73,12 +73,12 @@ function TopBar({ t }: { t: T }) {
   const router = useRouter();
   return (
     <header className="pp-top">
-      <HeaderButton variant="soft" icon="user" label={t('home.profile')} onClick={() => router.push('/profile')} />
+      <HeaderButton variant="soft" icon="bell" label={t('home.notifications')} onClick={() => openSheet('notifications')} />
       <div className="pp-brand">
         <span className="pp-brand-name">{t('home.brand')}</span>
         <span className="pp-brand-mode">{t('home.modeLabel')}</span>
       </div>
-      <HeaderButton variant="soft" icon="bell" label={t('home.notifications')} onClick={() => openSheet('notifications')} />
+      <HeaderButton variant="soft" icon="user" label={t('home.profile')} onClick={() => router.push('/profile')} />
     </header>
   );
 }

@@ -8683,7 +8683,7 @@ button.ch-log-row { width: 100%; background: none; border: 0; font-family: inher
 .pp-hero-cta {
   display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0 var(--gutter);
   min-block-size: var(--h-btn); border-radius: var(--r-xl); background: var(--surface); border: 1px solid var(--line);
-  font-size: var(--fs-md); font-weight: 800; color: var(--brand-strong); text-decoration: none;
+  font-size: var(--fs-md); font-weight: 800; color: var(--brand); text-decoration: none;
 }
 .pp-hero-cta:focus-visible, .pp-alert-cta:focus-visible, .pp-mchip:focus-visible, .pp-tile:focus-visible,
 .pp-visit:focus-visible, .pp-visit-add:focus-visible { outline: none; box-shadow: var(--ring); }
@@ -8801,4 +8801,13 @@ button.ch-log-row { width: 100%; background: none; border: 0; font-family: inher
 .pgn-delivered-text { display: flex; flex-direction: column; gap: 4px; }
 .pgn-delivered-title { margin: 0; font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); }
 .pgn-delivered-body { margin: 0; font-size: 13px; font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+/* Fidelity (v15 screenshots): compact EPDS option rows with the radio at the start; tinted dark mood chips. */
+.pp-q-options { gap: 8px; }
+.pp-q-options .nb-rcard {
+  min-block-size: 52px; padding: 10px 16px; border-radius: var(--r-md); border-color: transparent; background: var(--surface-3);
+}
+.pp-q-options .nb-rcard[aria-checked="true"] { background: var(--brand-soft); border-color: transparent; }
+.pp-q-options .nb-rcard-dot { order: -1; }
+.pp-q-options .nb-rcard-title { font-size: var(--fs-md); }
+[data-theme="dark"] .pp-mchip { background: color-mix(in srgb, var(--nb-tone) 24%, var(--surface)); }
 /* ═══ end B-N5-04 ═══ */
