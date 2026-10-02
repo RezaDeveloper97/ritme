@@ -625,3 +625,10 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   `/analysis/labs` (`screens/analysis-labs`) empty state until B-N6-06 with Plus note. `entities/analysis` monthly
   schema tested against 8 Go goldens.
 - Screenshots `docs/qa/bloom/B-N3-10/`. QUESTIONS #88.
+
+## Run stop — stage deploy of db481a2 (2026-10-02)
+
+- Per user: finished in-flight tasks only, then stopped. `stage` = db481a2 (bloom faba825 + canvas CB-NAV-02 / CB-MENO-12)
+  deployed with `./deploy-stage.sh` (all checks ok; goose at 24; frontend rev db481a2; backend-go image unchanged from
+  the 2026-10-01 build of the same tree — `/logs/voice`, `/analysis/*`, `/search` routes answer). No e2e smoke run for
+  the N3 work (B-N3-14 release task still todo). Next runnable bloom tasks: B-N3-06, B-N3-11, B-N3-12.
