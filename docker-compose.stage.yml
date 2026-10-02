@@ -113,6 +113,12 @@ services:
       AI_HTTP_TIMEOUT_SECONDS: ${AI_HTTP_TIMEOUT_SECONDS:-30}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-flash-latest}
+      # Companion «همدم» (B-N4-02): invite SMS adapter — fake (logs a masked number, sends nothing) on stage. The
+      # invite-code pepper is a secret: from the server .env only (stage is not APP_ENV=production, so an empty value
+      # falls back to the dev pepper; set one anyway).
+      COMPANION_SMS_PROVIDER: ${COMPANION_SMS_PROVIDER:-fake}
+      COMPANION_CODE_PEPPER: ${COMPANION_CODE_PEPPER:-}
+      KAVENEGAR_TEMPLATE_COMPANION_INVITE: ${KAVENEGAR_TEMPLATE_COMPANION_INVITE:-companion-invite}
     ports: !override []
     networks:
       default:

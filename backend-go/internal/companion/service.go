@@ -611,23 +611,29 @@ func (s *Service) ListForCompanion(ctx context.Context, viewerID uint64) ([]Link
 // Level is viewerID's access to a section of ownerID's data: edit for the owner herself, the granted level through
 // an active link, none otherwise (also for an unknown section).
 func (s *Service) Level(ctx context.Context, ownerID, viewerID uint64, section Section) (Level, error) {
+	l, _, err := s.access(ctx, ownerID, viewerID, section)
+	return l, err
+}
+
+// access is Level plus the id of the active link that grants it (0 for the owner herself or none).
+func (s *Service) access(ctx context.Context, ownerID, viewerID uint64, section Section) (Level, uint64, error) {
 	if ownerID == 0 || viewerID == 0 || !section.Valid() {
-		return LevelNone, nil
+		return LevelNone, 0, nil
 	}
 	if ownerID == viewerID {
-		return LevelEdit, nil
+		return LevelEdit, 0, nil
 	}
 	row, err := store.New(s.conn).GetAccess(ctx, store.GetAccessParams{OwnerID: ownerID, ViewerID: nid(viewerID), Section: string(section)})
 	if errors.Is(err, sql.ErrNoRows) {
-		return LevelNone, nil
+		return LevelNone, 0, nil
 	}
 	if err != nil {
-		return LevelNone, fmt.Errorf("companion: access: %w", err)
+		return LevelNone, 0, fmt.Errorf("companion: access: %w", err)
 	}
 	if l := Level(row.Level); l.Valid() {
-		return l, nil
+		return l, row.CompanionID, nil
 	}
-	return LevelNone, nil
+	return LevelNone, 0, nil
 }
 
 // CanRead reports whether viewerID may read the section of ownerID's data.

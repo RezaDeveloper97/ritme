@@ -1,0 +1,588 @@
+{
+  "case": "companion/invite_accept_read_record_revoke",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/companions",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "type": "partner",
+          "display_name": "Ali",
+          "phone": "09900000001",
+          "grants": {
+            "cycle": "view",
+            "meds": "edit",
+            "appointments": "view",
+            "symptoms": "none"
+          }
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "دعوت ساخته شد.",
+        "data": {
+          "companion": {
+            "id": 1,
+            "type": "partner",
+            "status": "invited",
+            "display_name": "Ali",
+            "name": "Ali",
+            "invited_at": "2026-09-23T10:00:00+03:30",
+            "accepted_at": null,
+            "grants": {
+              "cycle": "view",
+              "symptoms": "none",
+              "meds": "edit",
+              "appointments": "view",
+              "pregnancy": "none"
+            },
+            "invite": {
+              "expires_at": "2026-09-24T10:00:00+03:30",
+              "phone": "0990****001"
+            },
+            "family": null
+          },
+          "invite": {
+            "code": "<pattern:^[A-HJ-NP-Z2-9]{6}$>",
+            "expires_at": "2026-09-24T10:00:00+03:30",
+            "phone": "0990****001",
+            "sms_sent": true
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/companions/accept",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "code": "{{code}}"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "30",
+        "x-ratelimit-remaining": "29"
+      },
+      "body": {
+        "success": true,
+        "message": "به هم وصل شدید.",
+        "data": {
+          "id": 1,
+          "type": "partner",
+          "owner": {
+            "id": 1004,
+            "name": "Contract regular"
+          },
+          "accepted_at": "2026-09-23T10:00:00+03:30",
+          "grants": {
+            "cycle": "view",
+            "symptoms": "none",
+            "meds": "edit",
+            "appointments": "view",
+            "pregnancy": "none"
+          },
+          "can_record_for": [
+            "meds"
+          ],
+          "family": null
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/companions/links",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": [
+          {
+            "id": 1,
+            "type": "partner",
+            "owner": {
+              "id": 1004,
+              "name": "Contract regular"
+            },
+            "accepted_at": "2026-09-23T10:00:00+03:30",
+            "grants": {
+              "cycle": "view",
+              "symptoms": "none",
+              "meds": "edit",
+              "appointments": "view",
+              "pregnancy": "none"
+            },
+            "can_record_for": [
+              "meds"
+            ],
+            "family": null
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/companions/links/1/sections/cycle",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "companion_id": 1,
+          "owner_id": 1004,
+          "section": "cycle",
+          "level": "view",
+          "data": {
+            "date": "2026-09-23",
+            "has_data": true,
+            "cycle_day": 10,
+            "cycle_length": 28,
+            "main_phase": "fertile",
+            "days_to_period": 19,
+            "days_late": 0,
+            "predicted_next_period_start": "2026-10-12",
+            "confidence": "high"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/companions/links/1/sections/symptoms",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 403,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "این بخش با تو به اشتراک گذاشته نشده است.",
+        "error_code": "section_not_shared"
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/companions/links/1/sections/cycle",
+        "persona": "ttc",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "همدم پیدا نشد."
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/care/medications",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "for_user_id": 1004,
+          "title": "Iron",
+          "form": "tablet",
+          "times": [
+            "21:00"
+          ]
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "یادآور دارو ذخیره شد",
+        "data": {
+          "id": 101805,
+          "type": "medication",
+          "title": "Iron",
+          "subtitle": null,
+          "notes": null,
+          "form": "tablet",
+          "dose": null,
+          "unit": null,
+          "times": [
+            "21:00"
+          ],
+          "weekdays": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "amount": 1,
+          "duration": "ongoing",
+          "notify": true,
+          "starts_on": "2026-09-23",
+          "ends_on": null,
+          "is_active": true,
+          "recurrence": "daily",
+          "recurrence_time": "21:00",
+          "created_at": "2026-09-23T06:30:00.000000Z",
+          "updated_at": "2026-09-23T06:30:00.000000Z"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/companions/links/1/sections/meds",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "companion_id": 1,
+          "owner_id": 1004,
+          "section": "meds",
+          "level": "edit",
+          "data": [
+            {
+              "id": 101805,
+              "type": "medication",
+              "title": "Iron",
+              "subtitle": null,
+              "notes": null,
+              "form": "tablet",
+              "dose": null,
+              "unit": null,
+              "times": [
+                "21:00"
+              ],
+              "weekdays": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ],
+              "amount": 1,
+              "duration": "ongoing",
+              "notify": true,
+              "starts_on": "2026-09-23",
+              "ends_on": null,
+              "is_active": true,
+              "recurrence": "daily",
+              "recurrence_time": "21:00",
+              "created_at": "2026-09-23T06:30:00.000000Z",
+              "updated_at": "2026-09-23T06:30:00.000000Z"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/care/appointments",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "for_user_id": 1004,
+          "kind": "in_person",
+          "topic": "ultrasound",
+          "scheduled_at": "2026-09-30 10:00"
+        }
+      },
+      "status": 403,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": false,
+        "message": "اجازه این کار را برای این حساب نداری.",
+        "error_code": "companion_forbidden"
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/companions",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": [
+          {
+            "id": 1,
+            "type": "partner",
+            "status": "active",
+            "display_name": "Ali",
+            "name": "Ali",
+            "invited_at": "2026-09-23T10:00:00+03:30",
+            "accepted_at": "2026-09-23T10:00:00+03:30",
+            "grants": {
+              "cycle": "view",
+              "symptoms": "none",
+              "meds": "edit",
+              "appointments": "view",
+              "pregnancy": "none"
+            },
+            "invite": null,
+            "family": null
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/companions/1",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "همدم پیدا نشد."
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/companions/1/grants",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "grants": {
+            "cycle": "view",
+            "meds": "view"
+          }
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "message": "دسترسی‌ها به‌روز شد.",
+        "data": {
+          "id": 1,
+          "type": "partner",
+          "status": "active",
+          "display_name": "Ali",
+          "name": "Ali",
+          "invited_at": "2026-09-23T10:00:00+03:30",
+          "accepted_at": "2026-09-23T10:00:00+03:30",
+          "grants": {
+            "cycle": "view",
+            "symptoms": "none",
+            "meds": "view",
+            "appointments": "none",
+            "pregnancy": "none"
+          },
+          "invite": null,
+          "family": null
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/care/medications",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "for_user_id": 1004,
+          "title": "Iron",
+          "form": "tablet",
+          "times": [
+            "21:00"
+          ]
+        }
+      },
+      "status": 403,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57"
+      },
+      "body": {
+        "success": false,
+        "message": "اجازه این کار را برای این حساب نداری.",
+        "error_code": "companion_forbidden"
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/companions/audit",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": [
+          {
+            "id": 6,
+            "action": "grants_changed",
+            "section": null,
+            "companion_id": 1,
+            "actor": {
+              "id": 1004,
+              "name": "Contract regular",
+              "is_me": true
+            },
+            "at": "2026-09-23T10:00:00+03:30"
+          },
+          {
+            "id": 5,
+            "action": "read",
+            "section": "meds",
+            "companion_id": 1,
+            "actor": {
+              "id": 1001,
+              "name": null,
+              "is_me": false
+            },
+            "at": "2026-09-23T10:00:00+03:30"
+          },
+          {
+            "id": 4,
+            "action": "write",
+            "section": "meds",
+            "companion_id": 1,
+            "actor": {
+              "id": 1001,
+              "name": null,
+              "is_me": false
+            },
+            "at": "2026-09-23T10:00:00+03:30"
+          },
+          {
+            "id": 3,
+            "action": "read",
+            "section": "cycle",
+            "companion_id": 1,
+            "actor": {
+              "id": 1001,
+              "name": null,
+              "is_me": false
+            },
+            "at": "2026-09-23T10:00:00+03:30"
+          },
+          {
+            "id": 2,
+            "action": "accepted",
+            "section": null,
+            "companion_id": 1,
+            "actor": {
+              "id": 1001,
+              "name": null,
+              "is_me": false
+            },
+            "at": "2026-09-23T10:00:00+03:30"
+          },
+          {
+            "id": 1,
+            "action": "invited",
+            "section": null,
+            "companion_id": 1,
+            "actor": {
+              "id": 1004,
+              "name": "Contract regular",
+              "is_me": true
+            },
+            "at": "2026-09-23T10:00:00+03:30"
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/companions/1",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57"
+      },
+      "body": {
+        "success": true,
+        "message": "همدم حذف شد.",
+        "data": null
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/companions/links/1/sections/cycle",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "همدم پیدا نشد."
+      }
+    }
+  ]
+}

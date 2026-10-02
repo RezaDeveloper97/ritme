@@ -1,0 +1,330 @@
+{
+  "case": "companion/spouse_renew_children_leave",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/companions",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "type": "spouse",
+          "grants": {
+            "pregnancy": "view"
+          }
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "دعوت ساخته شد.",
+        "data": {
+          "companion": {
+            "id": 1,
+            "type": "spouse",
+            "status": "invited",
+            "display_name": null,
+            "name": null,
+            "invited_at": "2026-09-23T10:00:00+03:30",
+            "accepted_at": null,
+            "grants": {
+              "cycle": "none",
+              "symptoms": "none",
+              "meds": "none",
+              "appointments": "none",
+              "pregnancy": "view"
+            },
+            "invite": {
+              "expires_at": "2026-09-24T10:00:00+03:30",
+              "phone": null
+            },
+            "family": {
+              "id": 1,
+              "shared_child_ids": []
+            }
+          },
+          "invite": {
+            "code": "<pattern:^[A-HJ-NP-Z2-9]{6}$>",
+            "expires_at": "2026-09-24T10:00:00+03:30",
+            "phone": null,
+            "sms_sent": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/companions/1/renew",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {}
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "message": "کد دعوت تازه ساخته شد.",
+        "data": {
+          "companion": {
+            "id": 1,
+            "type": "spouse",
+            "status": "invited",
+            "display_name": null,
+            "name": null,
+            "invited_at": "2026-09-23T10:00:00+03:30",
+            "accepted_at": null,
+            "grants": {
+              "cycle": "none",
+              "symptoms": "none",
+              "meds": "none",
+              "appointments": "none",
+              "pregnancy": "view"
+            },
+            "invite": {
+              "expires_at": "2026-09-24T10:00:00+03:30",
+              "phone": null
+            },
+            "family": {
+              "id": 1,
+              "shared_child_ids": []
+            }
+          },
+          "invite": {
+            "code": "<pattern:^[A-HJ-NP-Z2-9]{6}$>",
+            "expires_at": "2026-09-24T10:00:00+03:30",
+            "phone": null,
+            "sms_sent": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/companions/accept",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "code": "{{old}}"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "30",
+        "x-ratelimit-remaining": "29"
+      },
+      "body": {
+        "success": false,
+        "message": "این کد معتبر نیست یا منقضی شده است. یک کد تازه بخواه.",
+        "errors": {
+          "code": [
+            "این کد معتبر نیست یا منقضی شده است. یک کد تازه بخواه."
+          ]
+        },
+        "error_code": "invite_invalid"
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/companions/accept",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "code": "{{code}}"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "30",
+        "x-ratelimit-remaining": "28"
+      },
+      "body": {
+        "success": true,
+        "message": "به هم وصل شدید.",
+        "data": {
+          "id": 1,
+          "type": "spouse",
+          "owner": {
+            "id": 1004,
+            "name": "Contract regular"
+          },
+          "accepted_at": "2026-09-23T10:00:00+03:30",
+          "grants": {
+            "cycle": "none",
+            "symptoms": "none",
+            "meds": "none",
+            "appointments": "none",
+            "pregnancy": "view"
+          },
+          "can_record_for": [],
+          "family": {
+            "id": 1,
+            "shared_child_ids": []
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/companions/links/1/sections/pregnancy",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "companion_id": 1,
+          "owner_id": 1004,
+          "section": "pregnancy",
+          "level": "view",
+          "data": {
+            "is_active": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/companions/1/children",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "child_ids": []
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57"
+      },
+      "body": {
+        "success": true,
+        "message": "فرزندان مشترک به‌روز شد.",
+        "data": {
+          "id": 1,
+          "type": "spouse",
+          "status": "active",
+          "display_name": null,
+          "name": null,
+          "invited_at": "2026-09-23T10:00:00+03:30",
+          "accepted_at": "2026-09-23T10:00:00+03:30",
+          "grants": {
+            "cycle": "none",
+            "symptoms": "none",
+            "meds": "none",
+            "appointments": "none",
+            "pregnancy": "view"
+          },
+          "invite": null,
+          "family": {
+            "id": 1,
+            "shared_child_ids": []
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/companions/1/children",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "child_ids": [
+            5
+          ]
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "56"
+      },
+      "body": {
+        "success": false,
+        "message": "اطلاعات واردشده معتبر نیست.",
+        "errors": {
+          "child_ids": [
+            "این فرزند متعلق به تو نیست."
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/companions/1/renew",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {}
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "55"
+      },
+      "body": {
+        "success": false,
+        "message": "این همدم دعوت را قبلاً پذیرفته است.",
+        "error_code": "not_pending"
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/companions/links/1",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "از این همدمی خارج شدی.",
+        "data": null
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/companions",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": []
+      }
+    }
+  ]
+}

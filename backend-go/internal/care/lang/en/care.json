@@ -54,9 +54,11 @@
         "prep_item_not_found": "Checklist item not found",
         "medication_limit": "You have reached the maximum number of medication reminders. Delete one you no longer need to add a new one.",
         "appointment_limit": "You have reached the maximum number of appointments. Delete one you no longer need to add a new one.",
+        "companion_forbidden": "You don't have permission to do this for that account.",
         "too_many_writes": "Too many changes in the last minute. Wait a moment and save again."
     },
     "validation": {
+        "for_user_invalid": "The account id is invalid.",
         "ends_on_required": "The end date is required when the duration is until a date.",
         "slot_unknown": "This time is not one of the medication's dose times.",
         "date_not_scheduled": "This medication is not scheduled on that day.",

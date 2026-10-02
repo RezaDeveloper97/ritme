@@ -3,7 +3,7 @@ id: B-N4-02
 title: Invite, accept, revoke and access-filtered companion APIs
 milestone: N4
 type: backend
-status: todo
+status: done
 depends_on: [B-N4-01]
 parallel_group: N4-B
 touches: [backend-go/internal/companion,backend-go/internal/care,backend-go/internal/sms,backend-go/internal/http,backend-go/api]

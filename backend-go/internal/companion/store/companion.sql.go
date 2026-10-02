@@ -8,6 +8,10 @@ package store
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
+	"strings"
+
+	"github.com/ritme/backend-go/db"
 )
 
 const activateCompanion = `-- name: ActivateCompanion :execrows
@@ -344,6 +348,49 @@ func (q *Queries) GetUserMobile(ctx context.Context, id uint64) (sql.NullString,
 	return mobile, err
 }
 
+const getUserNames = `-- name: GetUserNames :many
+SELECT id, name FROM ` + "`" + `users` + "`" + ` WHERE id IN (/*SLICE:ids*/?)
+`
+
+type GetUserNamesRow struct {
+	ID   uint64
+	Name sql.NullString
+}
+
+// Display names of the other party in link lists (users.name; NULL when the account never set one).
+func (q *Queries) GetUserNames(ctx context.Context, ids []uint64) ([]GetUserNamesRow, error) {
+	query := getUserNames
+	var queryParams []interface{}
+	if len(ids) > 0 {
+		for _, v := range ids {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:ids*/?", strings.Repeat(",?", len(ids))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:ids*/?", "NULL", 1)
+	}
+	rows, err := q.db.QueryContext(ctx, query, queryParams...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetUserNamesRow{}
+	for rows.Next() {
+		var i GetUserNamesRow
+		if err := rows.Scan(&i.ID, &i.Name); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const incrementInviteAttempts = `-- name: IncrementInviteAttempts :exec
 UPDATE ` + "`" + `companion_invites` + "`" + ` SET attempts = attempts + 1, updated_at = ?
 WHERE id = ? AND attempts < 255
@@ -380,6 +427,37 @@ func (q *Queries) InsertAudit(ctx context.Context, arg InsertAuditParams) error 
 		arg.CompanionID,
 		arg.Section,
 		arg.Action,
+		arg.Now,
+	)
+	return err
+}
+
+const insertUserNotification = `-- name: InsertUserNotification :exec
+INSERT INTO ` + "`" + `user_notifications` + "`" + ` (user_id, type, title, body, action_url, data, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?, ?,
+  ?, ?)
+`
+
+type InsertUserNotificationParams struct {
+	UserID    uint64
+	Type      string
+	Title     json.RawMessage
+	Body      db.NullRawJSON
+	ActionUrl sql.NullString
+	Data      db.NullRawJSON
+	Now       sql.NullTime
+}
+
+// Owner inbox row (accept / companion write, B-N4-02): title/body are {lang: text} JSON without any health payload.
+func (q *Queries) InsertUserNotification(ctx context.Context, arg InsertUserNotificationParams) error {
+	_, err := q.db.ExecContext(ctx, insertUserNotification,
+		arg.UserID,
+		arg.Type,
+		arg.Title,
+		arg.Body,
+		arg.ActionUrl,
+		arg.Data,
+		arg.Now,
 		arg.Now,
 	)
 	return err

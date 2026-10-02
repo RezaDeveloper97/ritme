@@ -1,0 +1,187 @@
+# Companion «همدم» & family (/api/v1/companions/*, «ثبت برای …» on /api/v1/care/*) — Go only (bloom B-N4-02,
+# deviations D-48): there is no Laravel route, so these goldens were recorded from the Go server and reviewed by hand
+# (new-endpoint skill, step 8). The contract server runs with APP_ENV=contract → COMPANION_SMS_PROVIDER defaults to
+# the fake (sms_sent true for a phone-bound invite) and COMPANION_CODE_PEPPER is unset (dev pepper). Invite codes are
+# random, so they are pattern-checked and passed between steps with capture. Personas: `regular` (1004) is the owner,
+# `no_profile` (1001, mobile 09900000001) the companion, `ttc` (1012) an unrelated account.
+# IDOR on every route, view-cannot-write, revoke-ends-access-now, the accept throttles (per user + per IP), expiry and
+# the production 503 are covered by internal/http/routes_companion_int_test.go; the section views' privacy filter by
+# internal/companion/shared/shared_int_test.go; the domain rules by internal/companion/*_test.go.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: companion
+defaults:
+  persona: regular
+  locales: none
+  patterns:
+    data.invite.code: '^[A-HJ-NP-Z2-9]{6}$'
+cases:
+  - name: list_empty
+    doc: No companions yet
+    locales: [none, en]
+    method: GET
+    path: /api/v1/companions
+    status: 200
+  - name: list_anon
+    persona: anon
+    method: GET
+    path: /api/v1/companions
+    status: 401
+  - name: links_empty
+    persona: no_profile
+    method: GET
+    path: /api/v1/companions/links
+    status: 200
+
+  - name: invite_invalid
+    doc: Unknown type → controller 422 in the request language
+    locales: [none, en, fa]
+    method: POST
+    path: /api/v1/companions
+    body: {type: friend}
+    status: 422
+  - name: invite_unknown_section
+    locales: [none, en]
+    method: POST
+    path: /api/v1/companions
+    body: {type: partner, grants: {bank: view}}
+    status: 422
+  - name: invite_children_refused
+    doc: Shared children cannot be verified before the children table (B-N5-02) → 422 on child_ids
+    method: POST
+    path: /api/v1/companions
+    body: {type: spouse, child_ids: [7]}
+    status: 422
+  - name: accept_unknown_code
+    doc: Every refusal is the same generic 422 invite_invalid
+    persona: no_profile
+    locales: [none, en, fa]
+    method: POST
+    path: /api/v1/companions/accept
+    body: {code: ZZZZZZ}
+    status: 422
+  - name: section_unknown_link
+    persona: no_profile
+    method: GET
+    path: /api/v1/companions/links/999999/sections/cycle
+    status: 404
+
+  - name: invite_accept_read_record_revoke
+    doc: |
+      Owner invites a partner bound to the companion's number (cycle view, meds edit, appointments view) → companion
+      accepts → reads granted sections (403 for symptoms, 404 for an unrelated account) → records a medication in the
+      owner's list (appointments: view only → 403) → owner narrows meds to view (the next write is refused) → audit
+      trail → owner revokes → access ends at once
+    steps:
+      - method: POST
+        path: /api/v1/companions
+        body: {type: partner, display_name: Ali, phone: "09900000001", grants: {cycle: view, meds: edit, appointments: view, symptoms: none}}
+        status: 201
+        capture: {code: data.invite.code, id: data.companion.id}
+      - as: no_profile
+        method: POST
+        path: /api/v1/companions/accept
+        body: {code: "{{code}}"}
+        status: 200
+      - as: no_profile
+        method: GET
+        path: /api/v1/companions/links
+        status: 200
+      - as: no_profile
+        method: GET
+        path: "/api/v1/companions/links/{{id}}/sections/cycle"
+        status: 200
+      - as: no_profile
+        method: GET
+        path: "/api/v1/companions/links/{{id}}/sections/symptoms"
+        status: 403
+      - as: ttc
+        method: GET
+        path: "/api/v1/companions/links/{{id}}/sections/cycle"
+        status: 404
+      - as: no_profile
+        method: POST
+        path: /api/v1/care/medications
+        body: {for_user_id: 1004, title: Iron, form: tablet, times: ["21:00"]}
+        status: 201
+      - as: no_profile
+        method: GET
+        path: "/api/v1/companions/links/{{id}}/sections/meds"
+        status: 200
+      - as: no_profile
+        method: POST
+        path: /api/v1/care/appointments
+        body: {for_user_id: 1004, kind: in_person, topic: ultrasound, scheduled_at: "2026-09-30 10:00"}
+        status: 403
+      - method: GET
+        path: /api/v1/companions
+        status: 200
+      - as: no_profile
+        method: GET
+        path: /api/v1/companions/1
+        status: 404
+      - method: PUT
+        path: "/api/v1/companions/{{id}}/grants"
+        body: {grants: {cycle: view, meds: view}}
+        status: 200
+      - as: no_profile
+        method: POST
+        path: /api/v1/care/medications
+        body: {for_user_id: 1004, title: Iron, form: tablet, times: ["21:00"]}
+        status: 403
+      - method: GET
+        path: /api/v1/companions/audit
+        status: 200
+      - method: DELETE
+        path: "/api/v1/companions/{{id}}"
+        status: 200
+      - as: no_profile
+        method: GET
+        path: "/api/v1/companions/links/{{id}}/sections/cycle"
+        status: 404
+
+  - name: spouse_renew_children_leave
+    doc: Code-only spouse invite → renew (old code refused) → accept the new code → children [] ok, [5] refused → the companion leaves
+    steps:
+      - method: POST
+        path: /api/v1/companions
+        body: {type: spouse, grants: {pregnancy: view}}
+        status: 201
+        capture: {old: data.invite.code, id: data.companion.id}
+      - method: POST
+        path: "/api/v1/companions/{{id}}/renew"
+        body: {}
+        status: 200
+        capture: {code: data.invite.code}
+      - as: no_profile
+        method: POST
+        path: /api/v1/companions/accept
+        body: {code: "{{old}}"}
+        status: 422
+      - as: no_profile
+        method: POST
+        path: /api/v1/companions/accept
+        body: {code: "{{code}}"}
+        status: 200
+      - as: no_profile
+        method: GET
+        path: "/api/v1/companions/links/{{id}}/sections/pregnancy"
+        status: 200
+      - method: PUT
+        path: "/api/v1/companions/{{id}}/children"
+        body: {child_ids: []}
+        status: 200
+      - method: PUT
+        path: "/api/v1/companions/{{id}}/children"
+        body: {child_ids: [5]}
+        status: 422
+      - method: POST
+        path: "/api/v1/companions/{{id}}/renew"
+        body: {}
+        status: 422
+      - as: no_profile
+        method: DELETE
+        path: "/api/v1/companions/links/{{id}}"
+        status: 200
+      - method: GET
+        path: /api/v1/companions
+        status: 200

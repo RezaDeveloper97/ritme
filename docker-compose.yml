@@ -136,6 +136,10 @@ services:
       # Go's own Redis namespace: it never reads Laravel's PHP-serialized
       # cache/queue entries (ritme-cache-/ritme-database- prefixes).
       REDIS_PREFIX: "ritme-go:"
+      # Companion «همدم» (B-N4-02). COMPANION_CODE_PEPPER is a secret (server .env only, ≥ 32 bytes in production;
+      # empty in production = invites answer 503). COMPANION_SMS_PROVIDER: empty = fake outside production, none in it.
+      COMPANION_CODE_PEPPER: ${COMPANION_CODE_PEPPER:-}
+      COMPANION_SMS_PROVIDER: ${COMPANION_SMS_PROVIDER:-}
     # uid 33 = www-data in the PHP image: the Passport keys on backend-storage
     # are 0600 www-data. (The image already runs as 33; pinned here too so an
     # image change can't silently break key access.)

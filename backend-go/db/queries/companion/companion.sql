@@ -152,3 +152,13 @@ VALUES (sqlc.arg(owner_id), sqlc.arg(actor_id), sqlc.arg(companion_id), sqlc.arg
 -- name: ListOwnerAudit :many
 -- The owner's audit trail, newest first.
 SELECT * FROM `companion_audit_logs` WHERE owner_id = ? ORDER BY id DESC LIMIT ?;
+
+-- name: GetUserNames :many
+-- Display names of the other party in link lists (users.name; NULL when the account never set one).
+SELECT id, name FROM `users` WHERE id IN (sqlc.slice(ids));
+
+-- name: InsertUserNotification :exec
+-- Owner inbox row (accept / companion write, B-N4-02): title/body are {lang: text} JSON without any health payload.
+INSERT INTO `user_notifications` (user_id, type, title, body, action_url, data, created_at, updated_at)
+VALUES (sqlc.arg(user_id), sqlc.arg(type), sqlc.arg(title), sqlc.arg(body), sqlc.arg(action_url), sqlc.arg(data),
+  sqlc.arg(now), sqlc.arg(now));

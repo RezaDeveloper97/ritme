@@ -1,6 +1,7 @@
 package config
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -171,4 +172,44 @@ func TestLoad_AIProvider(t *testing.T) {
 	env["GEMINI_BASE_URL"] = "http://127.0.0.1:1"
 	_, err = LoadFrom(lookup(env))
 	require.NoError(t, err)
+}
+
+func TestLoad_Companion(t *testing.T) {
+	// Outside production: the fake invite SMS is the default, no pepper needed.
+	env := minimal()
+	env["APP_ENV"] = "local"
+	cfg, err := LoadFrom(lookup(env))
+	require.NoError(t, err)
+	assert.Equal(t, CompanionSMSFake, cfg.Companion.SMSProvider)
+	assert.Equal(t, "companion-invite", cfg.Companion.InviteTemplate)
+	assert.False(t, cfg.Companion.PepperMissing(cfg.App))
+
+	// Production: none by default; the missing pepper does not stop start-up but disables invites (fail closed).
+	cfg, err = LoadFrom(lookup(minimal()))
+	require.NoError(t, err)
+	assert.Equal(t, CompanionSMSNone, cfg.Companion.SMSProvider)
+	assert.True(t, cfg.Companion.PepperMissing(cfg.App))
+
+	env = minimal()
+	env["COMPANION_CODE_PEPPER"] = strings.Repeat("p", MinCompanionPepperLen)
+	env["COMPANION_SMS_PROVIDER"] = "gateway"
+	cfg, err = LoadFrom(lookup(env))
+	require.NoError(t, err)
+	assert.False(t, cfg.Companion.PepperMissing(cfg.App))
+	assert.Equal(t, CompanionSMSGateway, cfg.Companion.SMSProvider)
+
+	// Refused: the fake in production, a short pepper in production, an unknown provider.
+	env = minimal()
+	env["COMPANION_SMS_PROVIDER"] = "fake"
+	_, err = LoadFrom(lookup(env))
+	require.ErrorContains(t, err, "COMPANION_SMS_PROVIDER=fake")
+	env = minimal()
+	env["COMPANION_CODE_PEPPER"] = "short"
+	_, err = LoadFrom(lookup(env))
+	require.ErrorContains(t, err, "COMPANION_CODE_PEPPER")
+	env = minimal()
+	env["APP_ENV"] = "local"
+	env["COMPANION_SMS_PROVIDER"] = "pigeon"
+	_, err = LoadFrom(lookup(env))
+	require.ErrorContains(t, err, "COMPANION_SMS_PROVIDER")
 }

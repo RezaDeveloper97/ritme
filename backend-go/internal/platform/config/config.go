@@ -40,6 +40,8 @@ type Config struct {
 	Plus     Plus
 	Payment  Payment
 	AI       AI
+	// Companion is «همدم» (bloom B-N4-02): invite-code pepper and the invite SMS adapter.
+	Companion Companion
 	// StoragePath is the mounted Laravel storage/ directory (backend-storage volume):
 	// Passport keys, translations, public uploads.
 	StoragePath string
@@ -202,6 +204,33 @@ type Gemini struct {
 	BaseURL string // GEMINI_BASE_URL: override of the API origin (tests); default generativelanguage.googleapis.com
 }
 
+// Companion invite SMS provider ids accepted by COMPANION_SMS_PROVIDER (internal/sms implements them).
+const (
+	CompanionSMSNone    = "none"    // no SMS: the owner shares the code herself (sms_sent=false)
+	CompanionSMSFake    = "fake"    // logs a masked number, sends nothing (dev, tests, stage); never in production
+	CompanionSMSGateway = "gateway" // Kavenegar verify/lookup with the invite template (KAVENEGAR_* credentials)
+)
+
+// MinCompanionPepperLen is the shortest COMPANION_CODE_PEPPER accepted in production (bytes).
+const MinCompanionPepperLen = 32
+
+// Companion holds the «همدم» settings (B-N4-02).
+type Companion struct {
+	// CodePepper (COMPANION_CODE_PEPPER, secret) keys the HMAC of invite codes at rest. Required in production: when it
+	// is empty there, invite creation and acceptance answer 503 (fail closed) instead of hashing with the public dev
+	// default. Changing it invalidates the open (≤ 24 h) invites.
+	CodePepper string
+	// SMSProvider is COMPANION_SMS_PROVIDER: none | fake | gateway. Unset → fake outside production, none in
+	// production. fake with APP_ENV=production is refused at start-up (it claims an SMS went out).
+	SMSProvider string
+	// InviteTemplate (KAVENEGAR_TEMPLATE_COMPANION_INVITE, default companion-invite) is the gateway template whose
+	// single token is the invite code.
+	InviteTemplate string
+}
+
+// PepperMissing reports whether production runs without a pepper (companion invites are then disabled).
+func (c Companion) PepperMissing(app App) bool { return app.IsProduction() && c.CodePepper == "" }
+
 // Load reads the process environment.
 func Load() (*Config, error) { return LoadFrom(os.LookupEnv) }
 
@@ -287,6 +316,11 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 				BaseURL: strings.TrimRight(e.str("GEMINI_BASE_URL", ""), "/"),
 			},
 		},
+		Companion: Companion{
+			CodePepper:     e.str("COMPANION_CODE_PEPPER", ""),
+			SMSProvider:    strings.ToLower(e.str("COMPANION_SMS_PROVIDER", "")),
+			InviteTemplate: e.str("KAVENEGAR_TEMPLATE_COMPANION_INVITE", "companion-invite"),
+		},
 		StoragePath:   strings.TrimRight(e.required("STORAGE_PATH"), "/"),
 		RunMigrations: e.boolean("RUN_MIGRATIONS", false),
 	}
@@ -350,6 +384,19 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 			e.fail("GEMINI_BASE_URL %q: %v", u, err)
 		}
 	}
+	cfg.Companion.SMSProvider = DefaultCompanionSMSProvider(cfg.Companion.SMSProvider, cfg.App)
+	switch cfg.Companion.SMSProvider {
+	case CompanionSMSNone, CompanionSMSGateway:
+	case CompanionSMSFake:
+		if cfg.App.IsProduction() {
+			e.fail("COMPANION_SMS_PROVIDER=fake is not allowed when APP_ENV=production (it reports invites as sent)")
+		}
+	default:
+		e.fail("COMPANION_SMS_PROVIDER: %q is not one of none, fake, gateway", cfg.Companion.SMSProvider)
+	}
+	if p := cfg.Companion.CodePepper; p != "" && cfg.App.IsProduction() && len(p) < MinCompanionPepperLen {
+		e.fail("COMPANION_CODE_PEPPER: must be at least %d bytes in production", MinCompanionPepperLen)
+	}
 	if cfg.App.IsProduction() && cfg.App.Debug {
 		e.fail("APP_DEBUG must be false when APP_ENV=production")
 	}
@@ -381,6 +428,17 @@ func DefaultAIProvider(provider string, app App) string {
 		return AIProviderNone
 	}
 	return AIProviderFake
+}
+
+// DefaultCompanionSMSProvider resolves an unset COMPANION_SMS_PROVIDER: the fake outside production, none in production.
+func DefaultCompanionSMSProvider(provider string, app App) string {
+	if provider != "" {
+		return provider
+	}
+	if app.IsProduction() {
+		return CompanionSMSNone
+	}
+	return CompanionSMSFake
 }
 
 // checkPublicURL accepts an absolute http(s) URL with a host and no credentials; https only in production.

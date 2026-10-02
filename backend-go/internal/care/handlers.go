@@ -14,6 +14,7 @@ import (
 	rootdb "github.com/ritme/backend-go/db"
 	"github.com/ritme/backend-go/internal/auth"
 	"github.com/ritme/backend-go/internal/care/store"
+	"github.com/ritme/backend-go/internal/companion"
 	"github.com/ritme/backend-go/internal/i18n"
 	"github.com/ritme/backend-go/internal/i18n/lang"
 	"github.com/ritme/backend-go/internal/platform/civildate"
@@ -27,8 +28,9 @@ import (
 // Handlers are the /api/v1/care actions. Mount them behind the locale middleware and auth
 // RequireUser.
 type Handlers struct {
-	q     *store.Queries
-	clock clock.Clock
+	q          *store.Queries
+	clock      clock.Clock
+	delegation Delegation // «ثبت برای …» (B-N4-02); nil = own records only
 }
 
 // NewHandlers wires the handlers; base is the fallback clock (tests pin it per request).
@@ -74,9 +76,9 @@ func (h *Handlers) ListMedications(c fiber.Ctx) error {
 	return httpx.OK(c, out)
 }
 
-// ShowMedication is GET /care/medications/{id}.
+// ShowMedication is GET /care/medications/{id} (?for_user_id=: a companion with view on the owner's meds).
 func (h *Handlers) ShowMedication(c fiber.Ctx) error {
-	userID, err := h.user(c)
+	userID, actorID, err := h.subject(c, companion.SectionMeds, false)
 	if err != nil {
 		return err
 	}
@@ -84,12 +86,16 @@ func (h *Handlers) ShowMedication(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	if err := h.delegated(c, userID, actorID, companion.SectionMeds, false, false); err != nil {
+		return err
+	}
 	return httpx.OK(c, m.JSON(i18n.Locale(c)))
 }
 
-// StoreMedication is POST /care/medications: 201 with the medication.
+// StoreMedication is POST /care/medications: 201 with the medication ({for_user_id}: a companion with edit on the
+// owner's meds records it in the owner's list).
 func (h *Handlers) StoreMedication(c fiber.Ctx) error {
-	userID, err := h.user(c)
+	userID, actorID, err := h.subject(c, companion.SectionMeds, true)
 	if err != nil {
 		return err
 	}
@@ -122,14 +128,17 @@ func (h *Handlers) StoreMedication(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	if err := h.delegated(c, userID, actorID, companion.SectionMeds, true, true); err != nil {
+		return err
+	}
 	return httpx.Created(c, m.JSON(locale), T("messages.medication_created", locale))
 }
 
 // UpdateMedication is PUT /care/medications/{id}: a partial update (only the keys sent
 // change; `{"is_active": false}` is the list switch). The merged medication is validated
-// as a whole.
+// as a whole. {for_user_id}: a companion with edit on the owner's meds.
 func (h *Handlers) UpdateMedication(c fiber.Ctx) error {
-	userID, err := h.user(c)
+	userID, actorID, err := h.subject(c, companion.SectionMeds, true)
 	if err != nil {
 		return err
 	}
@@ -140,7 +149,10 @@ func (h *Handlers) UpdateMedication(c fiber.Ctx) error {
 	locale, now := i18n.Locale(c), h.now(c)
 	body := validation.Input(c)
 	if switchesOnly(body) {
-		return h.updateSwitches(c, m, body, locale, now)
+		if err := h.updateSwitches(c, m, body, locale, now); err != nil {
+			return err
+		}
+		return h.delegated(c, userID, actorID, companion.SectionMeds, true, false)
 	}
 	data := pickMedication(storedMedication(m), body)
 	in, err := validateMedication(locale, data, now)
@@ -160,6 +172,9 @@ func (h *Handlers) UpdateMedication(c fiber.Ctx) error {
 	}
 	fresh, err := h.load(c, m.Row.ID, userID)
 	if err != nil {
+		return err
+	}
+	if err := h.delegated(c, userID, actorID, companion.SectionMeds, true, false); err != nil {
 		return err
 	}
 	return httpx.OK(c, fresh.JSON(locale), T("messages.medication_updated", locale))

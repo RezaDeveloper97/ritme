@@ -12,6 +12,7 @@ import (
 
 	rootdb "github.com/ritme/backend-go/db"
 	"github.com/ritme/backend-go/internal/care/store"
+	"github.com/ritme/backend-go/internal/companion"
 	"github.com/ritme/backend-go/internal/i18n"
 	"github.com/ritme/backend-go/internal/i18n/lang"
 	"github.com/ritme/backend-go/internal/platform/httpx"
@@ -71,9 +72,9 @@ func (h *Handlers) ListAppointments(c fiber.Ctx) error {
 	return httpx.OK(c, out)
 }
 
-// ShowAppointment is GET /care/appointments/{id}.
+// ShowAppointment is GET /care/appointments/{id} (?for_user_id=: a companion with view on the owner's appointments).
 func (h *Handlers) ShowAppointment(c fiber.Ctx) error {
-	userID, err := h.user(c)
+	userID, actorID, err := h.subject(c, companion.SectionAppointments, false)
 	if err != nil {
 		return err
 	}
@@ -81,12 +82,16 @@ func (h *Handlers) ShowAppointment(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	if err := h.delegated(c, userID, actorID, companion.SectionAppointments, false, false); err != nil {
+		return err
+	}
 	return httpx.OK(c, a.JSON(h.now(c)))
 }
 
-// StoreAppointment is POST /care/appointments: 201 with the appointment.
+// StoreAppointment is POST /care/appointments: 201 with the appointment ({for_user_id}: a companion with edit on
+// the owner's appointments records it in the owner's list).
 func (h *Handlers) StoreAppointment(c fiber.Ctx) error {
-	userID, err := h.user(c)
+	userID, actorID, err := h.subject(c, companion.SectionAppointments, true)
 	if err != nil {
 		return err
 	}
@@ -116,14 +121,18 @@ func (h *Handlers) StoreAppointment(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	if err := h.delegated(c, userID, actorID, companion.SectionAppointments, true, true); err != nil {
+		return err
+	}
 	return httpx.Created(c, a.JSON(now), T("messages.appointment_created", locale))
 }
 
 // UpdateAppointment is PUT /care/appointments/{id}: a partial update (only the keys sent
 // change; `{"is_active": false}` is the reminder switch, `{"prep": […]}` the checklist).
-// The merged appointment is validated as a whole; the status is kept.
+// The merged appointment is validated as a whole; the status is kept. {for_user_id}: a companion with edit on the
+// owner's appointments.
 func (h *Handlers) UpdateAppointment(c fiber.Ctx) error {
-	userID, err := h.user(c)
+	userID, actorID, err := h.subject(c, companion.SectionAppointments, true)
 	if err != nil {
 		return err
 	}
@@ -133,6 +142,9 @@ func (h *Handlers) UpdateAppointment(c fiber.Ctx) error {
 	}
 	locale, now := i18n.Locale(c), h.now(c)
 	body := validation.Input(c)
+	if userID != actorID {
+		body.Delete("prep") // the prep checklist stays owner-only (delegation.go)
+	}
 	data := pickAppointment(storedAppointment(a, locale), body)
 	in, err := validateAppointment(locale, data, now, a.Meta.Prep, a.Meta.Status)
 	if err != nil {
@@ -144,6 +156,9 @@ func (h *Handlers) UpdateAppointment(c fiber.Ctx) error {
 	}
 	fresh, err := h.saveAppointment(c, a.Row.ID, userID, in, now)
 	if err != nil {
+		return err
+	}
+	if err := h.delegated(c, userID, actorID, companion.SectionAppointments, true, false); err != nil {
 		return err
 	}
 	return httpx.OK(c, fresh.JSON(now), T("messages.appointment_updated", locale))
