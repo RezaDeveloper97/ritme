@@ -15,6 +15,7 @@ const ROUTED = [
   /^\/menopause\/score$/,
   /^\/menopause\/alert$/,
   /^\/menopause\/hot-flash$/,
+  /^\/menopause\/log$/,
 ];
 
 export function routedLink(link: string | null): string | null {

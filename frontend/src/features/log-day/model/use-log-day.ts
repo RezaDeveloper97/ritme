@@ -1,21 +1,27 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useMemo, useState } from 'react';
 
 import { useMedications } from '@/entities/care-reminder';
 import {
+  healthLogKeys,
+  logKeys,
   useLogDay,
   useLogPreferences,
   useLogTaxonomy,
   type LogCategory,
+  type LogDay,
   type LogDayValues,
   type LogOption,
   type LogParamValue,
 } from '@/entities/health-log';
 import type { Locale } from '@/shared/i18n';
 import { formatDecimal } from '@/shared/lib/date';
+import { useOutboxReplay } from '@/shared/lib/outbox';
 
+import { isOfflineError, queueLogDay, sendQueuedEntry, type QueuedLogDay } from '../api/outbox';
 import { useSaveLogDay } from '../api/save';
 import { dayEntries, diffDay, hasChanges, setValue, type LabelContext, type LogEntry } from './draft';
 
@@ -41,6 +47,8 @@ export interface LogDayController {
   saving: boolean;
   saveError: boolean;
   justSaved: boolean;
+  /** Saved offline: waiting in the outbox, sent on reconnect (CB-MENO-06). */
+  queued: boolean;
   loading: boolean;
   error: boolean;
   retry: () => void;
@@ -61,6 +69,16 @@ export function useLogDayController(date: string, modeOverride?: string): LogDay
   const [drafts, setDrafts] = useState<Record<string, LogDayValues>>({});
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [voiceKeys, setVoiceKeys] = useState<Record<string, string[]>>({});
+  const [queuedAt, setQueuedAt] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+
+  // Days saved offline replay on mount and on every `online` event.
+  useOutboxReplay(sendQueuedEntry, (sent) => {
+    if (!sent.some((e) => e.key.startsWith('log-day:'))) return;
+    setQueuedAt(null);
+    void queryClient.invalidateQueries({ queryKey: logKeys.all });
+    void queryClient.invalidateQueries({ queryKey: healthLogKeys.all });
+  });
 
   const saved = day.data?.categories ?? EMPTY;
   const values = drafts[date] ?? saved;
@@ -160,26 +178,50 @@ export function useLogDayController(date: string, modeOverride?: string): LogDay
       const v = changes[cat]?.[param];
       return v !== undefined && v !== null;
     });
+    const clearDraft = () => {
+      setDrafts((all) => {
+        const next = { ...all };
+        delete next[date];
+        return next;
+      });
+      setVoiceKeys((all) => {
+        const next = { ...all };
+        delete next[date];
+        return next;
+      });
+    };
+    // No network: the day waits in bloom's outbox and the sheet shows it as saved-offline.
+    const queue = async () => {
+      const body: QueuedLogDay = voiceParams.length ? { categories: changes, voice_params: voiceParams } : { categories: changes };
+      try {
+        await queueLogDay(date, body);
+      } catch {
+        return;
+      }
+      save.reset();
+      queryClient.setQueryData<LogDay>(logKeys.day(date), { date, categories: draft });
+      clearDraft();
+      setQueuedAt(date);
+      onDone?.();
+    };
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      void queue();
+      return;
+    }
     save.mutate(
       { date, changes, draft, voiceParams },
       {
         onSuccess: () => {
-          setDrafts((all) => {
-            const next = { ...all };
-            delete next[date];
-            return next;
-          });
-          setVoiceKeys((all) => {
-            const next = { ...all };
-            delete next[date];
-            return next;
-          });
+          clearDraft();
           setSavedAt(date);
           onDone?.();
         },
+        onError: (error) => {
+          if (isOfflineError(error)) void queue();
+        },
       },
     );
-  }, [dirty, save, values, date, changes, voiceKeys]);
+  }, [dirty, save, values, date, changes, voiceKeys, queryClient]);
 
   return {
     mode,
@@ -196,6 +238,7 @@ export function useLogDayController(date: string, modeOverride?: string): LogDay
     saving: save.isPending,
     saveError: save.isError,
     justSaved: savedAt === date && !dirty,
+    queued: queuedAt === date && !dirty,
     loading: taxonomy.isPending || prefs.isPending || day.isPending,
     error: taxonomy.isError || day.isError,
     retry: () => {

@@ -15,7 +15,6 @@ import {
 } from '@/entities/menopause';
 import { Link, type Locale, useRouter } from '@/shared/i18n';
 import { formatDayMonth, formatDecimal, formatNumber, fromApiDate, monthName, toParts } from '@/shared/lib/date';
-import { openSheet } from '@/shared/sheet';
 import {
   Card,
   EmptyState,
@@ -268,7 +267,8 @@ function QuickActions({ data, fetchedAt }: { data: MenopauseToday; fetchedAt: nu
     <section className="mh-sec" aria-label={t('label')}>
       <div className="mh-quick">
         {hotFlash}
-        <TileButton layout="card" tone="brand" icon="note" className="mh-qa" label={t('logToday')} onClick={() => openSheet('log')} />
+        {/* Board: «ثبت علائم امروز» → Meno_Log (CB-MENO-06). */}
+        <TileButton layout="card" tone="brand" icon="note" className="mh-qa" label={t('logToday')} onClick={() => router.push('/menopause/log')} />
         {/* Board: «خونریزی یا لکه» → Meno_Alert (what to log, when to see a doctor). */}
         <TileButton layout="card" tone="period" icon="drop" className="mh-qa" label={t('bleeding')} onClick={() => router.push('/menopause/alert')} />
       </div>
@@ -292,11 +292,12 @@ function Stat({ value, label, tone }: { value: string; label: string; tone: Tone
 
 function TodayStats({ data }: { data: MenopauseToday }) {
   const t = useTranslations('menopause.home.today');
+  const router = useRouter();
   const locale = useLocale() as Locale;
   const sleep = data.sleep ? t('hours', { hours: formatDecimal(data.sleep.hours, locale) }) : t('empty');
   return (
     <section className="mh-sec" aria-labelledby="mh-today">
-      <SectionTitle id="mh-today" title={t('title')} actionLabel={t('log')} onAction={() => openSheet('log')} />
+      <SectionTitle id="mh-today" title={t('title')} actionLabel={t('log')} onAction={() => router.push('/menopause/log')} />
       <Card className="mh-stats" padding="sm">
         <Stat value={formatNumber(data.hotFlashes.count, locale)} label={t('flashes')} tone="period" />
         <Stat value={formatNumber(data.nightSweats.count, locale)} label={t('sweats')} tone="brand" />

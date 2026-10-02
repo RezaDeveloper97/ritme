@@ -12,11 +12,13 @@ interface SummaryFooterProps {
   saving: boolean;
   saveError: boolean;
   justSaved: boolean;
+  /** Saved without a network — waiting in the outbox (CB-MENO-06). */
+  queued?: boolean;
   onSave: () => void;
 }
 
 /** Sticky «۴ مورد ثبت شده · گرفتگی شکم، زودرنج…» + «ذخیره» (nbl_Log_Sheet_Cycle footer). */
-export function SummaryFooter({ entries, dirty, saving, saveError, justSaved, onSave }: SummaryFooterProps) {
+export function SummaryFooter({ entries, dirty, saving, saveError, justSaved, queued, onSave }: SummaryFooterProps) {
   const t = useTranslations('logSheet');
   const count = entries.length;
   const list = entries.map((e) => e.label).join(t('separator'));
@@ -24,7 +26,7 @@ export function SummaryFooter({ entries, dirty, saving, saveError, justSaved, on
     <div className="lday-foot">
       <div className="lday-foot-text" aria-live="polite">
         <span className="lday-foot-count">
-          {saveError ? t('footer.error') : justSaved ? t('footer.saved') : t('footer.count', { count })}
+          {saveError ? t('footer.error') : queued ? t('footer.queued') : justSaved ? t('footer.saved') : t('footer.count', { count })}
         </span>
         {list && !saveError ? <span className="lday-foot-list">{list}</span> : null}
       </div>

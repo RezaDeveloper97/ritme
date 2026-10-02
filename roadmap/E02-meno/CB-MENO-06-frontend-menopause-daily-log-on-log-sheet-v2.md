@@ -3,7 +3,7 @@ id: CB-MENO-06
 title: Frontend: menopause daily log on log sheet v2
 epic: MENO
 type: frontend
-status: todo
+status: done
 depends_on: [CB-MENO-05, B-N3-03]
 parallel_group: MENO-D
 touches: [frontend/src/screens/menopause-log, frontend/src/app/[locale]/menopause/log, frontend/src/screens/log]

@@ -222,5 +222,9 @@
       "lastOn": "Last logged: {date}",
       "more": "Learn more"
     }
+  },
+  "log": {
+    "title": "Log symptoms",
+    "today": "Today · {date}"
   }
 }

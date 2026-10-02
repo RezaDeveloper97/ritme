@@ -216,3 +216,11 @@ TODO (ask user):
 - One commit for the three tasks: their hunks share `menopause.json`, `message-scopes.ts`, `globals.css` and `entities/menopause`, built in parallel in one tree. Go copies of `menopause.json` / `checkups.json` and i18n goldens synced on landing; home links wired on landing (`routedLink` allows /menopause/score|alert|hot-flash).
 - Verify on the combined tree: typecheck, lint, fsd:lint, lint:styles (813), lint:dark, 1101 tests, build; `go test ./internal/i18n ./resources/...` — green.
 - TODO (ask user): trigger labels short vs taxonomy; keep «با تعریق»; band marker/tinted pill; Plus-gate patterns; filter «زودتر بگو» by stage; hide «افزودن چکاپ سفارشی» in menopause until labs upload exists.
+
+## CB-MENO-06 — Frontend: menopause daily log on log sheet v2
+- Extends bloom's log sheet (`features/log-day` LogDay): menopause layout when the taxonomy mode is `menopause` — «با صدا بگو» card (bloom voice tab), 5 board groups / 13 SeverityScale rows, bleeding نداشتم/لکه‌بینی/خونریزی with the post-menopause note (+ «راهنمایی» → save → /menopause/alert), trigger chips; bloom's full list stays below under «موارد دیگر» in the sheet. `/menopause/log` = board-only full page (`?date=`, back header, no nav). Home «ثبت علائم امروز» and «امروز · ثبت» → /menopause/log.
+- `MenopausePreset` mirrored client-side (`features/log-day/model/menopause-preset.ts`) — the API doesn't expose `taxonomy.MenopausePreset()`.
+- Offline save via `shared/lib/outbox` (`log-day:<date>`, merged partial saves, replay on reconnect, footer «در صف ارسال») — applies to the log sheet in every mode; unit-tested, not exercised in a browser.
+- Strings in `log-sheet.json` `presets.menopause.*` (shell namespace) + `menopause.log.*`; Go copies + i18n goldens synced.
+- Verify: typecheck, lint, fsd:lint, lint:styles (819), lint:dark, 1112 tests, build; i18n Go tests — green. Fidelity ✔ (footer is bloom's summary footer; Plus badge on voice when locked). Test user 09120005055 has a test log on 2026-10-02.
+- TODO (ask user): «موارد دیگر» on /menopause/log too? bleeding note only for meno/post? outbox for every mode OK? Expose MenopausePreset from the API later (CB-MENO follow-up).

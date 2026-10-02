@@ -86,7 +86,8 @@
     "save": "Save",
     "saving": "Saving…",
     "saved": "Saved",
-    "error": "Couldn't save. Please try again."
+    "error": "Couldn't save. Please try again.",
+    "queued": "Saved offline; it will sync when you're back online."
   },
   "loading": "Loading the log…",
   "error": {
@@ -131,5 +132,51 @@
     "tests": "Tests",
     "testNone": "Not logged",
     "other": "Other measures"
+  },
+  "presets": {
+    "menopause": {
+      "back": "Back",
+      "more": "Other items",
+      "voice": {
+        "title": "Say it out loud",
+        "body": "Tell us how you feel and we'll fill these in for you",
+        "back": "Log by hand",
+        "plus": "Plus"
+      },
+      "groups": {
+        "vasomotor": "Hot flashes & heart",
+        "sleep": "Sleep",
+        "mind": "Mood & mind",
+        "body": "Body",
+        "urogenital": "Bladder & vaginal",
+        "bleeding": "Bleeding or spotting",
+        "triggers": "What did you have today?"
+      },
+      "rows": {
+        "hot_flashes": "Hot flashes",
+        "night_sweats": "Night sweats",
+        "palpitations": "Palpitations",
+        "insomnia": "Trouble sleeping or waking at night",
+        "anxiety": "Anxiety or restlessness",
+        "irritability": "Irritability",
+        "low_mood": "Sadness or low mood",
+        "brain_fog": "Forgetfulness and poor focus",
+        "joints": "Joint and muscle pain",
+        "fatigue": "Tiredness and low energy",
+        "vaginal_dryness": "Vaginal dryness or burning",
+        "bladder_symptoms": "Frequent urination or leaks",
+        "low_libido": "Lower sex drive"
+      },
+      "levels": {
+        "no": "None",
+        "mild": "Mild",
+        "moderate": "Moderate",
+        "severe": "Severe"
+      },
+      "bleeding": {
+        "note": "After menopause, any bleeding should be mentioned to a doctor; if you log it, we'll guide you.",
+        "help": "See guidance"
+      }
+    }
   }
 }

@@ -6307,6 +6307,35 @@ html[data-motion="reduce"] *::after {
   background: var(--surface); font-size: var(--fs-xs); font-weight: 800; color: var(--nb-tone-ink); white-space: nowrap;
 }
 /* ═══ end CB-MENO-09 ═══ */
+/* ═══ CB-MENO-06 · menopause daily log (nbl_Meno_Log): log sheet v2 preset (features/log-day, `mlog-`) + /menopause/log ═══ */
+.mlog { display: flex; flex-direction: column; gap: 14px; }
+.mlog-voice {
+  display: flex; align-items: center; gap: 12px; inline-size: 100%; padding: 14px; text-align: start;
+  border-radius: var(--r-card); border: 1.5px solid var(--brand); background: var(--brand-soft);
+  color: var(--text-1); font-family: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.mlog-voice:focus-visible { outline: none; box-shadow: var(--ring); }
+.mlog-voice-mic {
+  flex: none; display: inline-flex; align-items: center; justify-content: center;
+  inline-size: 48px; block-size: 48px; border-radius: 50%; background: var(--brand-fill); color: var(--on-brand);
+}
+.mlog-voice-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.mlog-voice-title { display: flex; align-items: center; gap: 6px; font-size: var(--fs-lg); font-weight: 800; color: var(--brand-ink); }
+.mlog-voice-body { font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+.mlog-voice-chev { flex: none; color: var(--brand); }
+[dir="ltr"] .mlog-voice-chev, [dir="ltr"] .mlog-manual-chev { transform: scaleX(-1); }
+.nb-card.mlog-card { display: flex; flex-direction: column; gap: 12px; padding: 16px 14px; }
+.mlog-head { margin: 0; display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 800; color: var(--text-1); }
+.mlog-row .nb-scale-label { margin-block-end: 8px; }
+.mlog-row + .mlog-row { padding-block-start: 12px; border-block-start: 1px solid var(--line); }
+.mlog-note { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+.mlog-link, .mlog-manual {
+  padding: 0; border: 0; background: none; font-family: inherit; font-weight: 800; color: var(--brand); cursor: pointer;
+}
+.mlog-link { font-size: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.mlog-manual { align-self: flex-start; display: inline-flex; align-items: center; gap: 4px; min-height: 44px; font-size: var(--fs-base); }
+.mlog-link:focus-visible, .mlog-manual:focus-visible { outline: none; box-shadow: var(--ring); border-radius: var(--r-xs); }
+/* ═══ end CB-MENO-06 ═══ */
 /* ── Notification settings (B-N1-11, nbl_/nbd_Me_Notifications) ── */
 .ntf-page { background: var(--page); }
 .ntf-scroll { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 16px; padding-bottom: 40px; }

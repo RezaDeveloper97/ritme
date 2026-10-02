@@ -9,6 +9,7 @@ import { toApiDate, today } from '@/shared/lib/date';
 import {
   EmptyState,
   HeaderButton,
+  Icon,
   ScreenHeader,
   SearchField,
   SecondaryButton,
@@ -19,6 +20,7 @@ import {
 import { PlusBadge } from '@/shared/ui/plus-gate';
 
 import { matchesSearch } from '../model/draft';
+import { isMenopausePreset } from '../model/menopause-preset';
 import { categoryLook, type PanelKind } from '../model/presentation';
 import { useLogDayStore } from '../model/store';
 import { useLogDayHeading } from '../model/use-heading';
@@ -29,6 +31,7 @@ import { BleedingPanel } from './panels/BleedingPanel';
 import { DetailPanel } from './panels/DetailPanel';
 import { MeasurePanel } from './panels/MeasurePanel';
 import { PainPanel, type BodyMapSlot } from './panels/PainPanel';
+import { MenopausePreset } from './presets/MenopausePreset';
 import { QuickTiles } from './QuickTiles';
 import { SummaryFooter } from './SummaryFooter';
 import { VOICE_FEATURE, VoiceTab, type VoiceLogSlot } from './VoiceTab';
@@ -38,6 +41,9 @@ import { VOICE_FEATURE, VoiceTab, type VoiceLogSlot } from './VoiceTab';
  * header keeps a spacer so the title stays centred.
  */
 export const LOG_CUSTOMIZE_HREF: string | null = '/log/customize';
+
+/** Where a logged post-menopause bleeding leads (CB-MENO-09, nbl_Meno_Alert). */
+const MENOPAUSE_ALERT_HREF = '/menopause/alert';
 
 export interface LogDayProps {
   /** `sheet` = content of the `?sheet=log` panel (the host draws the title); `page` = the `/log` route. */
@@ -52,6 +58,15 @@ export interface LogDayProps {
   VoiceLog?: VoiceLogSlot;
   /** Page variant: the header's ×. */
   onClose?: () => void;
+  /**
+   * Mode presets (CB-MENO-06): a menopause day opens on the board's grouped rows (nbl_Meno_Log) above
+   * the full category list. `false` keeps bloom's quick tiles + accordion for every mode.
+   */
+  preset?: boolean;
+  /** Page variant: own title/subtitle and a back arrow instead of «ثبت امروز» + × + gear (`/menopause/log`). */
+  pageHeader?: { title: string; subtitle: string };
+  /** The date strip above the tabs (off on `/menopause/log`, whose day comes from `?date=`). */
+  dateStrip?: boolean;
   /** After a successful save (the sheet closes itself). */
   onSaved?: () => void;
 }
@@ -70,8 +85,20 @@ type Tab = 'manual' | 'voice';
  * panels (bleeding, pain + body map, weight/BBT/tests) and a summary footer that saves the day in one PUT.
  * Mode-agnostic: the pregnancy and postpartum sheets (B-N3-06) reuse it with their `mode`.
  */
-export function LogDay({ variant, initialDate, mode: modeOverride, BodyMap, VoiceLog, onClose, onSaved }: LogDayProps) {
+export function LogDay({
+  variant,
+  initialDate,
+  mode: modeOverride,
+  BodyMap,
+  VoiceLog,
+  onClose,
+  onSaved,
+  preset = true,
+  pageHeader,
+  dateStrip = true,
+}: LogDayProps) {
   const t = useTranslations('logSheet');
+  const router = useRouter();
   const locale = useLocale() as Locale;
   const [date, setDate] = useState(() => validDate(initialDate));
   const [tab, setTab] = useState<Tab>('manual');
@@ -89,6 +116,7 @@ export function LogDay({ variant, initialDate, mode: modeOverride, BodyMap, Voic
 
   const c = useLogDayController(date, modeOverride);
   const heading = useLogDayHeading(date, modeOverride);
+  const menopause = preset && !c.loading && !c.error && isMenopausePreset(c.mode);
 
   useEffect(() => {
     if (!saveQueued) return;
@@ -140,7 +168,14 @@ export function LogDay({ variant, initialDate, mode: modeOverride, BodyMap, Voic
   const measurements = category('measurements');
 
   const header =
-    variant === 'page' ? (
+    variant === 'page' && pageHeader ? (
+      <ScreenHeader
+        title={pageHeader.title}
+        subtitle={pageHeader.subtitle}
+        onBack={onClose}
+        backLabel={t('presets.menopause.back')}
+      />
+    ) : variant === 'page' ? (
       <ScreenHeader
         title={heading.title}
         subtitle={heading.subtitle}
@@ -181,83 +216,106 @@ export function LogDay({ variant, initialDate, mode: modeOverride, BodyMap, Voic
   } else {
     body = (
       <>
-        <QuickTiles
-          tiles={c.tiles}
-          categories={c.categories}
-          values={c.values}
-          labels={c.labels}
-          openCategory={query ? null : openCat}
-          onOpen={(code) => (openCat === code && !query ? setOpenCat(null) : openSection(code))}
-        />
-        <section className="lday-all" aria-labelledby="lday-all-title">
-          <h3 id="lday-all-title" className="lday-sec-title">
-            {t('all')}
-          </h3>
-          <div ref={searchRef}>
-            <SearchField
-              value={query}
-              onValueChange={setQuery}
-              label={t('search.label')}
-              clearLabel={t('search.clear')}
-              placeholder={t('search.placeholder')}
-            />
-          </div>
-          {visible.length ? (
-            visible.map((cat) => (
-              <CategorySection
-                key={cat.code}
-                ref={(el) => {
-                  if (el) sectionRefs.current.set(cat.code, el);
-                  else sectionRefs.current.delete(cat.code);
-                }}
-                category={cat}
-                values={c.values}
-                setParam={c.setParam}
-                extraOptions={c.extraOptions}
-                mode={c.mode}
-                labels={c.labels}
-                locale={locale}
-                open={query ? true : openCat === cat.code}
-                onOpenChange={(open) => {
-                  if (query) return;
-                  setOpenCat(open ? cat.code : null);
-                }}
-                onOpenPanel={setPanel}
+        {menopause ? (
+          <MenopausePreset
+            categories={c.categories}
+            values={c.values}
+            setParam={c.setParam}
+            onVoice={() => setTab('voice')}
+            voiceLocked={voiceLocked}
+            onBleedingHelp={() => (c.dirty ? c.save(() => router.push(MENOPAUSE_ALERT_HREF)) : router.push(MENOPAUSE_ALERT_HREF))}
+          />
+        ) : (
+          <QuickTiles
+            tiles={c.tiles}
+            categories={c.categories}
+            values={c.values}
+            labels={c.labels}
+            openCategory={query ? null : openCat}
+            onOpen={(code) => (openCat === code && !query ? setOpenCat(null) : openSection(code))}
+          />
+        )}
+        {/* The full page (/menopause/log) is the board alone; the sheet keeps every category below the preset. */}
+        {menopause && pageHeader ? null : (
+          <section className="lday-all" aria-labelledby="lday-all-title">
+            <h3 id="lday-all-title" className="lday-sec-title">
+              {menopause ? t('presets.menopause.more') : t('all')}
+            </h3>
+            <div ref={searchRef}>
+              <SearchField
+                value={query}
+                onValueChange={setQuery}
+                label={t('search.label')}
+                clearLabel={t('search.clear')}
+                placeholder={t('search.placeholder')}
               />
-            ))
-          ) : (
-            <EmptyState icon="search" title={t('search.emptyTitle')} body={t('search.emptyBody')} className="lday-empty" />
-          )}
-        </section>
+            </div>
+            {visible.length ? (
+              visible.map((cat) => (
+                <CategorySection
+                  key={cat.code}
+                  ref={(el) => {
+                    if (el) sectionRefs.current.set(cat.code, el);
+                    else sectionRefs.current.delete(cat.code);
+                  }}
+                  category={cat}
+                  values={c.values}
+                  setParam={c.setParam}
+                  extraOptions={c.extraOptions}
+                  mode={c.mode}
+                  labels={c.labels}
+                  locale={locale}
+                  open={query ? true : openCat === cat.code}
+                  onOpenChange={(open) => {
+                    if (query) return;
+                    setOpenCat(open ? cat.code : null);
+                  }}
+                  onOpenPanel={setPanel}
+                />
+              ))
+            ) : (
+              <EmptyState icon="search" title={t('search.emptyTitle')} body={t('search.emptyBody')} className="lday-empty" />
+            )}
+          </section>
+        )}
       </>
     );
   }
 
   const content = (
     <div className="lday" data-variant={variant}>
-      <LogDateStrip date={date} onSelect={setDate} />
-      <SegmentedTabs<Tab>
-        tabs={[
-          { value: 'manual', label: t('tabs.manual') },
-          {
-            value: 'voice',
-            icon: 'mic',
-            label: (
-              <>
-                {t('tabs.voice')}
-                {voiceLocked ? <PlusBadge label={t('tabs.plus')} className="lday-tab-plus" /> : null}
-              </>
-            ),
-          },
-        ]}
-        value={tab}
-        onChange={setTab}
-        label={t('tabs.label')}
-        panelId={(v) => `${tabsId}-${v}`}
-        track="surface"
-        className="lday-tabs"
-      />
-      <div id={`${tabsId}-${tab}`} role="tabpanel" className="lday-panelwrap">
+      {dateStrip ? <LogDateStrip date={date} onSelect={setDate} /> : null}
+      {menopause ? (
+        tab === 'voice' ? (
+          <button type="button" className="mlog-manual" onClick={() => setTab('manual')}>
+            <Icon name="chevronRight" size={18} className="mlog-manual-chev" />
+            {t('presets.menopause.voice.back')}
+          </button>
+        ) : null
+      ) : (
+        <SegmentedTabs<Tab>
+          tabs={[
+            { value: 'manual', label: t('tabs.manual') },
+            {
+              value: 'voice',
+              icon: 'mic',
+              label: (
+                <>
+                  {t('tabs.voice')}
+                  {voiceLocked ? <PlusBadge label={t('tabs.plus')} className="lday-tab-plus" /> : null}
+                </>
+              ),
+            },
+          ]}
+          value={tab}
+          onChange={setTab}
+          label={t('tabs.label')}
+          panelId={(v) => `${tabsId}-${v}`}
+          track="surface"
+          className="lday-tabs"
+        />
+      )}
+      <div id={`${tabsId}-${tab}`} role={menopause ? undefined : 'tabpanel'} className="lday-panelwrap">
         {tab === 'voice' ? (
           <VoiceTab onManual={() => setTab('manual')}>
             {VoiceLog && !c.loading && !c.error ? (
@@ -293,6 +351,7 @@ export function LogDay({ variant, initialDate, mode: modeOverride, BodyMap, Voic
           saving={c.saving}
           saveError={c.saveError}
           justSaved={c.justSaved}
+          queued={c.queued}
           onSave={() => c.save(onSaved)}
         />
       ) : null}
