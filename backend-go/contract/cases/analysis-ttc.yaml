@@ -1,0 +1,73 @@
+# TTC analysis (/api/v1/analysis/ttc, /api/v1/analysis/fertility) — Go only (B-N3-11): there is no Laravel route, so
+# these goldens were recorded from the Go server and reviewed by hand (new-endpoint skill, step 8). The ttc persona
+# (4 logged periods, last start 2026-09-11) has cycles but no TTC log in the dump; `ttc_logged` writes BBT, LH,
+# mucus and intercourse through PUT /fertility/days (LH + mucus land in fertility_logs, BBT + intercourse in the
+# taxonomy v2 rows) and reads them back merged. Rich histories are golden-tested in internal/analysis/testdata
+# (ttc_*.json). A separate file from analysis.yaml so the analysis tasks never edit the same case file.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: analysis-ttc
+defaults:
+  persona: ttc
+  locales: none
+cases:
+  - name: ttc
+    doc: The hub before any TTC log — recent-cycles fallback, trying.since null, Plus cards locked
+    persona: [ttc, regular, no_profile]
+    locales: [none, en]
+    method: GET
+    path: /api/v1/analysis/ttc
+    status: 200
+  - name: ttc_logged
+    doc: BBT / LH / mucus / intercourse logged in the current cycle → trying since its start, LH day, BBT line
+    steps:
+      - {method: PUT, path: /api/v1/fertility/days/2026-09-18, body: {bbt: "36.30"}, status: 200}
+      - {method: PUT, path: /api/v1/fertility/days/2026-09-19, body: {bbt: "36.35", lh: faint, mucus: creamy}, status: 200}
+      - {method: PUT, path: /api/v1/fertility/days/2026-09-20, body: {bbt: "36.25", lh: positive, mucus: egg_white, intercourse: unprotected}, status: 200}
+      - {method: PUT, path: /api/v1/fertility/days/2026-09-22, body: {bbt: "36.70", intercourse: protected}, status: 200}
+      - {method: GET, path: /api/v1/analysis/ttc, status: 200}
+      - {method: GET, path: /api/v1/analysis/fertility, status: 200}
+  - name: ttc_trial
+    doc: A started trial opens the timing / mucus / luteal cards (no BBT-confirmed cycle → luteal not ready)
+    steps:
+      - {method: POST, path: /api/v1/plus/trial/start, status: 200}
+      - {method: GET, path: /api/v1/analysis/ttc, status: 200}
+  - name: ttc_anon
+    persona: anon
+    method: GET
+    path: /api/v1/analysis/ttc
+    status: 401
+
+  - name: fertility
+    doc: The newest cycle's chart (no readings) with prev/next navigation
+    locales: [none, en]
+    method: GET
+    path: /api/v1/analysis/fertility
+    status: 200
+  - name: fertility_cycle
+    method: GET
+    path: /api/v1/analysis/fertility
+    query: {cycle: "2026-09-11"}
+    status: 200
+  - name: fertility_unknown_cycle
+    doc: A date that is not one of the listed cycle starts
+    locales: [none, en]
+    method: GET
+    path: /api/v1/analysis/fertility
+    query: {cycle: "2026-09-12"}
+    status: 422
+  - name: fertility_bad_date
+    method: GET
+    path: /api/v1/analysis/fertility
+    query: {cycle: "11-09-2026"}
+    status: 422
+  - name: fertility_no_cycles
+    doc: A user without any cycle → 404
+    persona: no_profile
+    method: GET
+    path: /api/v1/analysis/fertility
+    status: 404
+  - name: fertility_anon
+    persona: anon
+    method: GET
+    path: /api/v1/analysis/fertility
+    status: 401

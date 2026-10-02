@@ -1,0 +1,76 @@
+{
+  "case": "analysis-ttc/fertility.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/analysis/fertility",
+        "persona": "ttc",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "cycle": {
+            "index": 4,
+            "total": 4,
+            "start": "2026-09-11",
+            "end": "2026-09-23",
+            "current": true,
+            "length": null,
+            "days": 13,
+            "span": 28
+          },
+          "prev_start": "2026-08-14",
+          "next_start": null,
+          "chart": {
+            "points": [],
+            "coverline": null,
+            "shift_day": null,
+            "high_days": [],
+            "confirmed": false
+          },
+          "period_days": 5,
+          "fertile_window": {
+            "from": 10,
+            "to": 15
+          },
+          "ovulation": {
+            "day": 15,
+            "source": "estimate",
+            "confirmed": false
+          },
+          "lh": {
+            "tests": [],
+            "positive_day": null,
+            "days_before_ovulation": null
+          },
+          "intercourse_days": [],
+          "luteal": {
+            "plus": true,
+            "locked": true,
+            "ready": false,
+            "data": null
+          },
+          "explanation": {
+            "key": "ttc.fertility.how.few",
+            "params": {
+              "need": 9,
+              "count": 0
+            },
+            "text": "برای قاعده «سه بالای شش» دست‌کم ۹ دمای صبحگاهی در سیکل لازم است؛ تا امروز ۰ دما ثبت شده."
+          },
+          "tip": {
+            "key": "ttc.fertility.tip",
+            "params": {},
+            "text": "دمای پایه را صبح، قبل از بلند شدن و بعد از حداقل ۳ ساعت خواب پیوسته اندازه بگیر؛ تب، الکل و بی‌خوابی نتیجه را جابه‌جا می‌کنند."
+          }
+        }
+      }
+    }
+  ]
+}

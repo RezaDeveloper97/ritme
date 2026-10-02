@@ -1,0 +1,86 @@
+{
+  "case": "analysis-ttc/ttc.no_profile.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/analysis/ttc",
+        "persona": "no_profile",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "trying": {
+            "since": null,
+            "cycles": 0,
+            "months": 0,
+            "confirmed_cycles": 0,
+            "age": null,
+            "referral": {
+              "age_band": "unknown",
+              "threshold_months": 12,
+              "due": false
+            },
+            "summary": {
+              "key": "ttc.summary.none",
+              "params": {},
+              "text": "You haven't logged a basal temperature, LH test or mucus yet. Log daily and your trying-to-conceive analysis builds up here."
+            },
+            "advice": {
+              "key": "ttc.advice.general",
+              "params": {
+                "age": 35,
+                "under": 12,
+                "over": 6
+              },
+              "text": "If you're under 35 and 12 months pass without a pregnancy, or 35 or older and 6 months, talk to a doctor."
+            }
+          },
+          "bbt": {
+            "plus": false,
+            "locked": false,
+            "ready": false,
+            "data": null
+          },
+          "lh": {
+            "plus": false,
+            "locked": false,
+            "ready": false,
+            "data": null
+          },
+          "timing": {
+            "plus": true,
+            "locked": true,
+            "ready": false,
+            "data": null
+          },
+          "mucus": {
+            "plus": true,
+            "locked": true,
+            "ready": false,
+            "data": null
+          },
+          "luteal": {
+            "plus": true,
+            "locked": true,
+            "ready": false,
+            "data": null
+          },
+          "regularity": {
+            "plus": false,
+            "locked": false,
+            "ready": false,
+            "data": null
+          },
+          "cycles": []
+        }
+      }
+    }
+  ]
+}

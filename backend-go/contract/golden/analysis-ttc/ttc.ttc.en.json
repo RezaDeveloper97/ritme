@@ -1,0 +1,178 @@
+{
+  "case": "analysis-ttc/ttc.ttc.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/analysis/ttc",
+        "persona": "ttc",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "trying": {
+            "since": null,
+            "cycles": 0,
+            "months": 0,
+            "confirmed_cycles": 0,
+            "age": 30,
+            "referral": {
+              "age_band": "under_35",
+              "threshold_months": 12,
+              "due": false
+            },
+            "summary": {
+              "key": "ttc.summary.none",
+              "params": {},
+              "text": "You haven't logged a basal temperature, LH test or mucus yet. Log daily and your trying-to-conceive analysis builds up here."
+            },
+            "advice": {
+              "key": "ttc.advice.general",
+              "params": {
+                "age": 35,
+                "under": 12,
+                "over": 6
+              },
+              "text": "If you're under 35 and 12 months pass without a pregnancy, or 35 or older and 6 months, talk to a doctor."
+            }
+          },
+          "bbt": {
+            "plus": false,
+            "locked": false,
+            "ready": false,
+            "data": {
+              "cycle_start": "2026-09-11",
+              "points": [],
+              "coverline": null,
+              "shift_day": null,
+              "ovulation_day": null,
+              "confirmed": false
+            }
+          },
+          "lh": {
+            "plus": false,
+            "locked": false,
+            "ready": false,
+            "data": {
+              "cycle_start": "2026-09-11",
+              "tests": [],
+              "positive_day": null,
+              "text": {
+                "key": "ttc.lh.none",
+                "params": {},
+                "text": "No LH test logged this cycle yet."
+              }
+            }
+          },
+          "timing": {
+            "plus": true,
+            "locked": true,
+            "ready": false,
+            "data": null
+          },
+          "mucus": {
+            "plus": true,
+            "locked": true,
+            "ready": false,
+            "data": null
+          },
+          "luteal": {
+            "plus": true,
+            "locked": true,
+            "ready": false,
+            "data": null
+          },
+          "regularity": {
+            "plus": false,
+            "locked": false,
+            "ready": true,
+            "data": {
+              "cycles": [
+                {
+                  "index": 1,
+                  "start": "2026-06-19",
+                  "length": 27,
+                  "current": false
+                },
+                {
+                  "index": 2,
+                  "start": "2026-07-16",
+                  "length": 29,
+                  "current": false
+                },
+                {
+                  "index": 3,
+                  "start": "2026-08-14",
+                  "length": 28,
+                  "current": false
+                },
+                {
+                  "index": 4,
+                  "start": "2026-09-11",
+                  "length": 13,
+                  "current": true
+                }
+              ],
+              "median": 28,
+              "variation": 2,
+              "limit": 7,
+              "status": "regular"
+            }
+          },
+          "cycles": [
+            {
+              "index": 1,
+              "start": "2026-06-19",
+              "end": "2026-07-15",
+              "current": false,
+              "length": 27,
+              "ovulation_day": 14,
+              "ovulation_source": "estimate",
+              "lh_day": null,
+              "luteal_days": null
+            },
+            {
+              "index": 2,
+              "start": "2026-07-16",
+              "end": "2026-08-13",
+              "current": false,
+              "length": 29,
+              "ovulation_day": 16,
+              "ovulation_source": "estimate",
+              "lh_day": null,
+              "luteal_days": null
+            },
+            {
+              "index": 3,
+              "start": "2026-08-14",
+              "end": "2026-09-10",
+              "current": false,
+              "length": 28,
+              "ovulation_day": 15,
+              "ovulation_source": "estimate",
+              "lh_day": null,
+              "luteal_days": null
+            },
+            {
+              "index": 4,
+              "start": "2026-09-11",
+              "end": "2026-09-23",
+              "current": true,
+              "length": null,
+              "ovulation_day": 15,
+              "ovulation_source": "estimate",
+              "lh_day": null,
+              "luteal_days": null
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

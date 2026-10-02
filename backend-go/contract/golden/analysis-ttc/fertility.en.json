@@ -1,0 +1,77 @@
+{
+  "case": "analysis-ttc/fertility.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/analysis/fertility",
+        "persona": "ttc",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "cycle": {
+            "index": 4,
+            "total": 4,
+            "start": "2026-09-11",
+            "end": "2026-09-23",
+            "current": true,
+            "length": null,
+            "days": 13,
+            "span": 28
+          },
+          "prev_start": "2026-08-14",
+          "next_start": null,
+          "chart": {
+            "points": [],
+            "coverline": null,
+            "shift_day": null,
+            "high_days": [],
+            "confirmed": false
+          },
+          "period_days": 5,
+          "fertile_window": {
+            "from": 10,
+            "to": 15
+          },
+          "ovulation": {
+            "day": 15,
+            "source": "estimate",
+            "confirmed": false
+          },
+          "lh": {
+            "tests": [],
+            "positive_day": null,
+            "days_before_ovulation": null
+          },
+          "intercourse_days": [],
+          "luteal": {
+            "plus": true,
+            "locked": true,
+            "ready": false,
+            "data": null
+          },
+          "explanation": {
+            "key": "ttc.fertility.how.few",
+            "params": {
+              "need": 9,
+              "count": 0
+            },
+            "text": "The “three over six” rule needs at least 9 morning temperatures in the cycle; 0 logged so far."
+          },
+          "tip": {
+            "key": "ttc.fertility.tip",
+            "params": {},
+            "text": "Take your temperature in the morning before getting up, after at least 3 hours of unbroken sleep; fever, alcohol and poor sleep shift the result."
+          }
+        }
+      }
+    }
+  ]
+}

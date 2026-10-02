@@ -1,0 +1,208 @@
+{
+  "cycle": {
+    "index": 1,
+    "total": 4,
+    "start": "2026-06-17",
+    "end": "2026-07-14",
+    "current": false,
+    "length": 28,
+    "days": 28,
+    "span": 28
+  },
+  "prev_start": null,
+  "next_start": "2026-07-15",
+  "chart": {
+    "points": [
+      {
+        "day": 1,
+        "date": "2026-06-17",
+        "value": "36.35"
+      },
+      {
+        "day": 2,
+        "date": "2026-06-18",
+        "value": "36.30"
+      },
+      {
+        "day": 3,
+        "date": "2026-06-19",
+        "value": "36.25"
+      },
+      {
+        "day": 4,
+        "date": "2026-06-20",
+        "value": "36.20"
+      },
+      {
+        "day": 5,
+        "date": "2026-06-21",
+        "value": "36.35"
+      },
+      {
+        "day": 6,
+        "date": "2026-06-22",
+        "value": "36.30"
+      },
+      {
+        "day": 7,
+        "date": "2026-06-23",
+        "value": "36.25"
+      },
+      {
+        "day": 8,
+        "date": "2026-06-24",
+        "value": "36.20"
+      },
+      {
+        "day": 10,
+        "date": "2026-06-26",
+        "value": "36.30"
+      },
+      {
+        "day": 11,
+        "date": "2026-06-27",
+        "value": "36.25"
+      },
+      {
+        "day": 12,
+        "date": "2026-06-28",
+        "value": "36.20"
+      },
+      {
+        "day": 13,
+        "date": "2026-06-29",
+        "value": "36.35"
+      },
+      {
+        "day": 14,
+        "date": "2026-06-30",
+        "value": "36.30"
+      },
+      {
+        "day": 15,
+        "date": "2026-07-01",
+        "value": "36.80"
+      },
+      {
+        "day": 16,
+        "date": "2026-07-02",
+        "value": "36.65"
+      },
+      {
+        "day": 17,
+        "date": "2026-07-03",
+        "value": "36.70"
+      },
+      {
+        "day": 19,
+        "date": "2026-07-05",
+        "value": "36.80"
+      },
+      {
+        "day": 20,
+        "date": "2026-07-06",
+        "value": "36.65"
+      },
+      {
+        "day": 21,
+        "date": "2026-07-07",
+        "value": "36.70"
+      },
+      {
+        "day": 22,
+        "date": "2026-07-08",
+        "value": "36.75"
+      },
+      {
+        "day": 23,
+        "date": "2026-07-09",
+        "value": "36.80"
+      },
+      {
+        "day": 24,
+        "date": "2026-07-10",
+        "value": "36.65"
+      },
+      {
+        "day": 25,
+        "date": "2026-07-11",
+        "value": "36.70"
+      },
+      {
+        "day": 26,
+        "date": "2026-07-12",
+        "value": "36.75"
+      },
+      {
+        "day": 28,
+        "date": "2026-07-14",
+        "value": "36.65"
+      }
+    ],
+    "coverline": "36.35",
+    "shift_day": 15,
+    "high_days": [
+      15,
+      16,
+      17
+    ],
+    "confirmed": true
+  },
+  "period_days": 5,
+  "fertile_window": {
+    "from": 9,
+    "to": 14
+  },
+  "ovulation": {
+    "day": 14,
+    "source": "bbt",
+    "confirmed": true
+  },
+  "lh": {
+    "tests": [
+      {
+        "day": 11,
+        "value": "negative"
+      },
+      {
+        "day": 12,
+        "value": "faint"
+      },
+      {
+        "day": 13,
+        "value": "positive"
+      }
+    ],
+    "positive_day": 13,
+    "days_before_ovulation": 1
+  },
+  "intercourse_days": [
+    11,
+    13,
+    15
+  ],
+  "luteal": {
+    "plus": true,
+    "locked": false,
+    "ready": true,
+    "data": {
+      "days": 14,
+      "status": "normal"
+    }
+  },
+  "explanation": {
+    "key": "ttc.fertility.how.confirmed",
+    "params": {
+      "from": 15,
+      "to": 17,
+      "baseline": 6,
+      "day": 14
+    },
+    "text": "Days 15–17 were all above the highest temperature of the 6 days before (“three over six”), so ovulation on day 14 is confirmed. Basal temperature confirms ovulation after it happens; it doesn’t predict it."
+  },
+  "tip": {
+    "key": "ttc.fertility.tip",
+    "params": {},
+    "text": "Take your temperature in the morning before getting up, after at least 3 hours of unbroken sleep; fever, alcohol and poor sleep shift the result."
+  }
+}

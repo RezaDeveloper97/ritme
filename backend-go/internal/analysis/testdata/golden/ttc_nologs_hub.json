@@ -1,0 +1,157 @@
+{
+  "trying": {
+    "since": null,
+    "cycles": 0,
+    "months": 0,
+    "confirmed_cycles": 0,
+    "age": null,
+    "referral": {
+      "age_band": "unknown",
+      "threshold_months": 12,
+      "due": false
+    },
+    "summary": {
+      "key": "ttc.summary.none",
+      "params": {},
+      "text": "هنوز دمای پایه، تست LH یا ترشحاتی ثبت نکرده‌ای. با ثبت روزانه، تحلیل اقدام به بارداری اینجا ساخته می‌شود."
+    },
+    "advice": {
+      "key": "ttc.advice.general",
+      "params": {
+        "age": 35,
+        "under": 12,
+        "over": 6
+      },
+      "text": "اگر زیر ۳۵ سالی و ۱۲ ماه بدون نتیجه گذشت، یا بالای ۳۵ و ۶ ماه، با پزشک مشورت کن."
+    }
+  },
+  "bbt": {
+    "plus": false,
+    "locked": false,
+    "ready": false,
+    "data": {
+      "cycle_start": "2026-09-09",
+      "points": [],
+      "coverline": null,
+      "shift_day": null,
+      "ovulation_day": null,
+      "confirmed": false
+    }
+  },
+  "lh": {
+    "plus": false,
+    "locked": false,
+    "ready": false,
+    "data": {
+      "cycle_start": "2026-09-09",
+      "tests": [],
+      "positive_day": null,
+      "text": {
+        "key": "ttc.lh.none",
+        "params": {},
+        "text": "هنوز تست LH در این سیکل ثبت نشده."
+      }
+    }
+  },
+  "timing": {
+    "plus": true,
+    "locked": true,
+    "ready": false,
+    "data": null
+  },
+  "mucus": {
+    "plus": true,
+    "locked": true,
+    "ready": false,
+    "data": null
+  },
+  "luteal": {
+    "plus": true,
+    "locked": true,
+    "ready": false,
+    "data": null
+  },
+  "regularity": {
+    "plus": false,
+    "locked": false,
+    "ready": true,
+    "data": {
+      "cycles": [
+        {
+          "index": 1,
+          "start": "2026-06-15",
+          "length": 29,
+          "current": false
+        },
+        {
+          "index": 2,
+          "start": "2026-07-14",
+          "length": 27,
+          "current": false
+        },
+        {
+          "index": 3,
+          "start": "2026-08-10",
+          "length": 30,
+          "current": false
+        },
+        {
+          "index": 4,
+          "start": "2026-09-09",
+          "length": 15,
+          "current": true
+        }
+      ],
+      "median": 29,
+      "variation": 3,
+      "limit": 7,
+      "status": "regular"
+    }
+  },
+  "cycles": [
+    {
+      "index": 1,
+      "start": "2026-06-15",
+      "end": "2026-07-13",
+      "current": false,
+      "length": 29,
+      "ovulation_day": 16,
+      "ovulation_source": "estimate",
+      "lh_day": null,
+      "luteal_days": null
+    },
+    {
+      "index": 2,
+      "start": "2026-07-14",
+      "end": "2026-08-09",
+      "current": false,
+      "length": 27,
+      "ovulation_day": 14,
+      "ovulation_source": "estimate",
+      "lh_day": null,
+      "luteal_days": null
+    },
+    {
+      "index": 3,
+      "start": "2026-08-10",
+      "end": "2026-09-08",
+      "current": false,
+      "length": 30,
+      "ovulation_day": 17,
+      "ovulation_source": "estimate",
+      "lh_day": null,
+      "luteal_days": null
+    },
+    {
+      "index": 4,
+      "start": "2026-09-09",
+      "end": "2026-09-23",
+      "current": true,
+      "length": null,
+      "ovulation_day": 16,
+      "ovulation_source": "estimate",
+      "lh_day": null,
+      "luteal_days": null
+    }
+  ]
+}

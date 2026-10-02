@@ -6,10 +6,17 @@ package store
 
 import (
 	"context"
+
+	"github.com/ritme/backend-go/internal/platform/civildate"
 )
 
 type Querier interface {
 	DeleteFertilityLog(ctx context.Context, arg DeleteFertilityLogParams) error
+	// The user's first taxonomy v2 day with a TTC measurement (BBT, LH or pregnancy test; legacy BBT is
+	// synced into these rows). No row when none.
+	FirstFertilityEntryDate(ctx context.Context, userID uint64) ([]civildate.Date, error)
+	// The user's first fertility_logs day (no row when none).
+	FirstFertilityLogDate(ctx context.Context, userID uint64) ([]civildate.Date, error)
 	GetFertilityLog(ctx context.Context, arg GetFertilityLogParams) (FertilityLog, error)
 	// Fertility day log (T-M5-01, docs/fertility-ttc/README.md). Every query is scoped by user_id.
 	// The merged day in one statement: the day's daily_health_logs columns the fertility screens use
@@ -19,6 +26,10 @@ type Querier interface {
 	// The user's basal-temperature readings from `from` to `to` (inclusive), oldest first.
 	// The value is decimal(4,2) text ("36.55").
 	ListBBTReadings(ctx context.Context, arg ListBBTReadingsParams) ([]ListBBTReadingsRow, error)
+	// TTC analysis (B-N3-11, internal/analysis ttc.go). Every query is scoped by user_id.
+	// The user's fertility_logs LH tests and cervical mucus from `from` to `to` (inclusive), oldest first.
+	// (QUESTIONS #80: fertility_logs is not synced into health_log_entries; the TTC analysis merges both.)
+	ListFertilitySignals(ctx context.Context, arg ListFertilitySignalsParams) ([]ListFertilitySignalsRow, error)
 	// Fertility insights (T-M5-03, docs/fertility-ttc/README.md). Every query is scoped by user_id.
 	// The user's LH test results from `from` to `to` (inclusive), oldest first.
 	ListLHTests(ctx context.Context, arg ListLHTestsParams) ([]ListLHTestsRow, error)

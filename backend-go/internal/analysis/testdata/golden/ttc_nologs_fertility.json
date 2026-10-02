@@ -1,0 +1,56 @@
+{
+  "cycle": {
+    "index": 4,
+    "total": 4,
+    "start": "2026-09-09",
+    "end": "2026-09-23",
+    "current": true,
+    "length": null,
+    "days": 15,
+    "span": 29
+  },
+  "prev_start": "2026-08-10",
+  "next_start": null,
+  "chart": {
+    "points": [],
+    "coverline": null,
+    "shift_day": null,
+    "high_days": [],
+    "confirmed": false
+  },
+  "period_days": 5,
+  "fertile_window": {
+    "from": 11,
+    "to": 16
+  },
+  "ovulation": {
+    "day": 16,
+    "source": "estimate",
+    "confirmed": false
+  },
+  "lh": {
+    "tests": [],
+    "positive_day": null,
+    "days_before_ovulation": null
+  },
+  "intercourse_days": [],
+  "luteal": {
+    "plus": true,
+    "locked": true,
+    "ready": false,
+    "data": null
+  },
+  "explanation": {
+    "key": "ttc.fertility.how.few",
+    "params": {
+      "need": 9,
+      "count": 0
+    },
+    "text": "برای قاعده «سه بالای شش» دست‌کم ۹ دمای صبحگاهی در سیکل لازم است؛ تا امروز ۰ دما ثبت شده."
+  },
+  "tip": {
+    "key": "ttc.fertility.tip",
+    "params": {},
+    "text": "دمای پایه را صبح، قبل از بلند شدن و بعد از حداقل ۳ ساعت خواب پیوسته اندازه بگیر؛ تب، الکل و بی‌خوابی نتیجه را جابه‌جا می‌کنند."
+  }
+}

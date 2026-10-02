@@ -1,0 +1,533 @@
+{
+  "trying": {
+    "since": "2025-12-31",
+    "cycles": 10,
+    "months": 8,
+    "confirmed_cycles": 2,
+    "age": 37,
+    "referral": {
+      "age_band": "from_35",
+      "threshold_months": 6,
+      "due": true
+    },
+    "summary": {
+      "key": "ttc.summary.confirmed",
+      "params": {
+        "cycles": 2
+      },
+      "text": "در ۲ سیکل تخمک‌گذاری با دمای پایه تأیید شده."
+    },
+    "advice": {
+      "key": "ttc.advice.due_from_35",
+      "params": {
+        "months": 8,
+        "threshold": 6,
+        "age": 35
+      },
+      "text": "حدود ۸ ماه است که اقدام می‌کنی. از ۳۵ سالگی، بعد از ۶ ماه بدون نتیجه، مشورت با پزشک زنان توصیه می‌شود. این یک توصیه عمومی است، نه تشخیص."
+    }
+  },
+  "bbt": {
+    "plus": false,
+    "locked": false,
+    "ready": true,
+    "data": {
+      "cycle_start": "2026-09-09",
+      "points": [
+        {
+          "day": 1,
+          "value": "36.35"
+        },
+        {
+          "day": 2,
+          "value": "36.30"
+        },
+        {
+          "day": 3,
+          "value": "36.25"
+        },
+        {
+          "day": 4,
+          "value": "36.20"
+        },
+        {
+          "day": 5,
+          "value": "36.35"
+        },
+        {
+          "day": 6,
+          "value": "36.30"
+        },
+        {
+          "day": 7,
+          "value": "36.25"
+        },
+        {
+          "day": 8,
+          "value": "36.20"
+        },
+        {
+          "day": 10,
+          "value": "36.30"
+        },
+        {
+          "day": 11,
+          "value": "36.25"
+        },
+        {
+          "day": 12,
+          "value": "36.20"
+        },
+        {
+          "day": 13,
+          "value": "36.35"
+        },
+        {
+          "day": 14,
+          "value": "36.30"
+        },
+        {
+          "day": 15,
+          "value": "36.80"
+        }
+      ],
+      "coverline": "36.35",
+      "shift_day": null,
+      "ovulation_day": null,
+      "confirmed": false
+    }
+  },
+  "lh": {
+    "plus": false,
+    "locked": false,
+    "ready": true,
+    "data": {
+      "cycle_start": "2026-09-09",
+      "tests": [
+        {
+          "day": 11,
+          "value": "negative"
+        },
+        {
+          "day": 12,
+          "value": "faint"
+        },
+        {
+          "day": 13,
+          "value": "positive"
+        }
+      ],
+      "positive_day": 13,
+      "text": {
+        "key": "ttc.lh.positive",
+        "params": {
+          "day": 13,
+          "min": 24,
+          "max": 36
+        },
+        "text": "مثبت روز ۱۳ · تخمک‌گذاری احتمالاً ۲۴ تا ۳۶ ساعت بعد"
+      }
+    }
+  },
+  "timing": {
+    "plus": true,
+    "locked": false,
+    "ready": true,
+    "data": {
+      "cycle_start": "2026-09-09",
+      "window_from": 9,
+      "window_to": 14,
+      "window_days": 6,
+      "window_source": "lh",
+      "in_window": 2,
+      "days": [
+        {
+          "day": 1,
+          "phase": "period",
+          "intercourse": false,
+          "future": false
+        },
+        {
+          "day": 2,
+          "phase": "period",
+          "intercourse": false,
+          "future": false
+        },
+        {
+          "day": 3,
+          "phase": "period",
+          "intercourse": false,
+          "future": false
+        },
+        {
+          "day": 4,
+          "phase": "period",
+          "intercourse": false,
+          "future": false
+        },
+        {
+          "day": 5,
+          "phase": "period",
+          "intercourse": false,
+          "future": false
+        },
+        {
+          "day": 6,
+          "phase": "other",
+          "intercourse": false,
+          "future": false
+        },
+        {
+          "day": 7,
+          "phase": "other",
+          "intercourse": false,
+          "future": false
+        },
+        {
+          "day": 8,
+          "phase": "other",
+          "intercourse": false,
+          "future": false
+        },
+        {
+          "day": 9,
+          "phase": "fertile",
+          "intercourse": false,
+          "future": false
+        },
+        {
+          "day": 10,
+          "phase": "fertile",
+          "intercourse": false,
+          "future": false
+        },
+        {
+          "day": 11,
+          "phase": "fertile",
+          "intercourse": true,
+          "future": false
+        },
+        {
+          "day": 12,
+          "phase": "fertile",
+          "intercourse": false,
+          "future": false
+        },
+        {
+          "day": 13,
+          "phase": "fertile",
+          "intercourse": true,
+          "future": false
+        },
+        {
+          "day": 14,
+          "phase": "ovulation",
+          "intercourse": false,
+          "future": false
+        },
+        {
+          "day": 15,
+          "phase": "other",
+          "intercourse": true,
+          "future": false
+        },
+        {
+          "day": 16,
+          "phase": "other",
+          "intercourse": false,
+          "future": true
+        },
+        {
+          "day": 17,
+          "phase": "other",
+          "intercourse": false,
+          "future": true
+        },
+        {
+          "day": 18,
+          "phase": "other",
+          "intercourse": false,
+          "future": true
+        },
+        {
+          "day": 19,
+          "phase": "other",
+          "intercourse": false,
+          "future": true
+        },
+        {
+          "day": 20,
+          "phase": "other",
+          "intercourse": false,
+          "future": true
+        },
+        {
+          "day": 21,
+          "phase": "other",
+          "intercourse": false,
+          "future": true
+        },
+        {
+          "day": 22,
+          "phase": "other",
+          "intercourse": false,
+          "future": true
+        },
+        {
+          "day": 23,
+          "phase": "other",
+          "intercourse": false,
+          "future": true
+        },
+        {
+          "day": 24,
+          "phase": "other",
+          "intercourse": false,
+          "future": true
+        },
+        {
+          "day": 25,
+          "phase": "other",
+          "intercourse": false,
+          "future": true
+        },
+        {
+          "day": 26,
+          "phase": "other",
+          "intercourse": false,
+          "future": true
+        },
+        {
+          "day": 27,
+          "phase": "other",
+          "intercourse": false,
+          "future": true
+        },
+        {
+          "day": 28,
+          "phase": "other",
+          "intercourse": false,
+          "future": true
+        }
+      ]
+    }
+  },
+  "mucus": {
+    "plus": true,
+    "locked": false,
+    "ready": true,
+    "data": {
+      "cycles_with_egg_white": 4,
+      "cycles_analysed": 10,
+      "lead_min": 1,
+      "lead_max": 1,
+      "text": {
+        "key": "ttc.mucus.one",
+        "params": {
+          "cycles": 4,
+          "min": 1,
+          "max": 1
+        },
+        "text": "«سفیده تخم‌مرغی» در ۴ سیکل، ۱ روز قبل از تخمک‌گذاری تخمینی ثبت شده."
+      }
+    }
+  },
+  "luteal": {
+    "plus": true,
+    "locked": false,
+    "ready": true,
+    "data": {
+      "days": 14,
+      "status": "normal",
+      "cycles": 2,
+      "source": "bbt",
+      "usual_min": 11,
+      "usual_max": 17
+    }
+  },
+  "regularity": {
+    "plus": false,
+    "locked": false,
+    "ready": true,
+    "data": {
+      "cycles": [
+        {
+          "index": 1,
+          "start": "2025-12-31",
+          "length": 28,
+          "current": false
+        },
+        {
+          "index": 2,
+          "start": "2026-01-28",
+          "length": 28,
+          "current": false
+        },
+        {
+          "index": 3,
+          "start": "2026-02-25",
+          "length": 28,
+          "current": false
+        },
+        {
+          "index": 4,
+          "start": "2026-03-25",
+          "length": 28,
+          "current": false
+        },
+        {
+          "index": 5,
+          "start": "2026-04-22",
+          "length": 28,
+          "current": false
+        },
+        {
+          "index": 6,
+          "start": "2026-05-20",
+          "length": 28,
+          "current": false
+        },
+        {
+          "index": 7,
+          "start": "2026-06-17",
+          "length": 28,
+          "current": false
+        },
+        {
+          "index": 8,
+          "start": "2026-07-15",
+          "length": 28,
+          "current": false
+        },
+        {
+          "index": 9,
+          "start": "2026-08-12",
+          "length": 28,
+          "current": false
+        },
+        {
+          "index": 10,
+          "start": "2026-09-09",
+          "length": 15,
+          "current": true
+        }
+      ],
+      "median": 28,
+      "variation": 0,
+      "limit": 7,
+      "status": "regular"
+    }
+  },
+  "cycles": [
+    {
+      "index": 1,
+      "start": "2025-12-31",
+      "end": "2026-01-27",
+      "current": false,
+      "length": 28,
+      "ovulation_day": 15,
+      "ovulation_source": "estimate",
+      "lh_day": null,
+      "luteal_days": null
+    },
+    {
+      "index": 2,
+      "start": "2026-01-28",
+      "end": "2026-02-24",
+      "current": false,
+      "length": 28,
+      "ovulation_day": 15,
+      "ovulation_source": "estimate",
+      "lh_day": null,
+      "luteal_days": null
+    },
+    {
+      "index": 3,
+      "start": "2026-02-25",
+      "end": "2026-03-24",
+      "current": false,
+      "length": 28,
+      "ovulation_day": 15,
+      "ovulation_source": "estimate",
+      "lh_day": null,
+      "luteal_days": null
+    },
+    {
+      "index": 4,
+      "start": "2026-03-25",
+      "end": "2026-04-21",
+      "current": false,
+      "length": 28,
+      "ovulation_day": 15,
+      "ovulation_source": "estimate",
+      "lh_day": null,
+      "luteal_days": null
+    },
+    {
+      "index": 5,
+      "start": "2026-04-22",
+      "end": "2026-05-19",
+      "current": false,
+      "length": 28,
+      "ovulation_day": 15,
+      "ovulation_source": "estimate",
+      "lh_day": null,
+      "luteal_days": null
+    },
+    {
+      "index": 6,
+      "start": "2026-05-20",
+      "end": "2026-06-16",
+      "current": false,
+      "length": 28,
+      "ovulation_day": 15,
+      "ovulation_source": "estimate",
+      "lh_day": null,
+      "luteal_days": null
+    },
+    {
+      "index": 7,
+      "start": "2026-06-17",
+      "end": "2026-07-14",
+      "current": false,
+      "length": 28,
+      "ovulation_day": 14,
+      "ovulation_source": "bbt",
+      "lh_day": 13,
+      "luteal_days": 14
+    },
+    {
+      "index": 8,
+      "start": "2026-07-15",
+      "end": "2026-08-11",
+      "current": false,
+      "length": 28,
+      "ovulation_day": 14,
+      "ovulation_source": "lh",
+      "lh_day": 13,
+      "luteal_days": null
+    },
+    {
+      "index": 9,
+      "start": "2026-08-12",
+      "end": "2026-09-08",
+      "current": false,
+      "length": 28,
+      "ovulation_day": 14,
+      "ovulation_source": "bbt",
+      "lh_day": 13,
+      "luteal_days": 14
+    },
+    {
+      "index": 10,
+      "start": "2026-09-09",
+      "end": "2026-09-23",
+      "current": true,
+      "length": null,
+      "ovulation_day": 14,
+      "ovulation_source": "lh",
+      "lh_day": 13,
+      "luteal_days": null
+    }
+  ]
+}

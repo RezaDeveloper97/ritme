@@ -1,0 +1,26 @@
+{
+  "case": "analysis-ttc/fertility_unknown_cycle.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/analysis/fertility?cycle=2026-09-12",
+        "persona": "ttc",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "The selected cycle is invalid.",
+        "errors": {
+          "cycle": [
+            "The selected cycle is invalid."
+          ]
+        }
+      }
+    }
+  ]
+}

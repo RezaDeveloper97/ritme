@@ -3,7 +3,7 @@ id: B-N3-11
 title: TTC analysis hub and BBT/ovulation confirmation
 milestone: N3
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N3-08]
 parallel_group: N3-K
 touches: [frontend/src/screens/analysis-ttc,backend-go/internal/fertility,backend-go/internal/analysis,backend-go/api]

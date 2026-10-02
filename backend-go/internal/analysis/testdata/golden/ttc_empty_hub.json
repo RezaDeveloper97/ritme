@@ -1,0 +1,65 @@
+{
+  "trying": {
+    "since": null,
+    "cycles": 0,
+    "months": 0,
+    "confirmed_cycles": 0,
+    "age": null,
+    "referral": {
+      "age_band": "unknown",
+      "threshold_months": 12,
+      "due": false
+    },
+    "summary": {
+      "key": "ttc.summary.none",
+      "params": {},
+      "text": "هنوز دمای پایه، تست LH یا ترشحاتی ثبت نکرده‌ای. با ثبت روزانه، تحلیل اقدام به بارداری اینجا ساخته می‌شود."
+    },
+    "advice": {
+      "key": "ttc.advice.general",
+      "params": {
+        "age": 35,
+        "under": 12,
+        "over": 6
+      },
+      "text": "اگر زیر ۳۵ سالی و ۱۲ ماه بدون نتیجه گذشت، یا بالای ۳۵ و ۶ ماه، با پزشک مشورت کن."
+    }
+  },
+  "bbt": {
+    "plus": false,
+    "locked": false,
+    "ready": false,
+    "data": null
+  },
+  "lh": {
+    "plus": false,
+    "locked": false,
+    "ready": false,
+    "data": null
+  },
+  "timing": {
+    "plus": true,
+    "locked": true,
+    "ready": false,
+    "data": null
+  },
+  "mucus": {
+    "plus": true,
+    "locked": true,
+    "ready": false,
+    "data": null
+  },
+  "luteal": {
+    "plus": true,
+    "locked": true,
+    "ready": false,
+    "data": null
+  },
+  "regularity": {
+    "plus": false,
+    "locked": false,
+    "ready": false,
+    "data": null
+  },
+  "cycles": []
+}

@@ -1,0 +1,147 @@
+{
+  "cycle": {
+    "index": 4,
+    "total": 4,
+    "start": "2026-09-09",
+    "end": "2026-09-23",
+    "current": true,
+    "length": null,
+    "days": 15,
+    "span": 28
+  },
+  "prev_start": "2026-08-12",
+  "next_start": null,
+  "chart": {
+    "points": [
+      {
+        "day": 1,
+        "date": "2026-09-09",
+        "value": "36.35"
+      },
+      {
+        "day": 2,
+        "date": "2026-09-10",
+        "value": "36.30"
+      },
+      {
+        "day": 3,
+        "date": "2026-09-11",
+        "value": "36.25"
+      },
+      {
+        "day": 4,
+        "date": "2026-09-12",
+        "value": "36.20"
+      },
+      {
+        "day": 5,
+        "date": "2026-09-13",
+        "value": "36.35"
+      },
+      {
+        "day": 6,
+        "date": "2026-09-14",
+        "value": "36.30"
+      },
+      {
+        "day": 7,
+        "date": "2026-09-15",
+        "value": "36.25"
+      },
+      {
+        "day": 8,
+        "date": "2026-09-16",
+        "value": "36.20"
+      },
+      {
+        "day": 10,
+        "date": "2026-09-18",
+        "value": "36.30"
+      },
+      {
+        "day": 11,
+        "date": "2026-09-19",
+        "value": "36.25"
+      },
+      {
+        "day": 12,
+        "date": "2026-09-20",
+        "value": "36.20"
+      },
+      {
+        "day": 13,
+        "date": "2026-09-21",
+        "value": "36.35"
+      },
+      {
+        "day": 14,
+        "date": "2026-09-22",
+        "value": "36.30"
+      },
+      {
+        "day": 15,
+        "date": "2026-09-23",
+        "value": "36.80"
+      }
+    ],
+    "coverline": "36.35",
+    "shift_day": null,
+    "high_days": [],
+    "confirmed": false
+  },
+  "period_days": 5,
+  "fertile_window": {
+    "from": 9,
+    "to": 14
+  },
+  "ovulation": {
+    "day": 14,
+    "source": "lh",
+    "confirmed": false
+  },
+  "lh": {
+    "tests": [
+      {
+        "day": 11,
+        "value": "negative"
+      },
+      {
+        "day": 12,
+        "value": "faint"
+      },
+      {
+        "day": 13,
+        "value": "positive"
+      }
+    ],
+    "positive_day": 13,
+    "days_before_ovulation": 1
+  },
+  "intercourse_days": [
+    11,
+    13,
+    15
+  ],
+  "luteal": {
+    "plus": true,
+    "locked": false,
+    "ready": false,
+    "data": {
+      "days": null,
+      "status": null
+    }
+  },
+  "explanation": {
+    "key": "ttc.fertility.how.lh",
+    "params": {
+      "day": 14,
+      "lh": 13
+    },
+    "text": "دمای پایه هنوز تخمک‌گذاری را تأیید نکرده؛ روز ۱۴ از تست LH مثبت روز ۱۳ تخمین زده شده است."
+  },
+  "tip": {
+    "key": "ttc.fertility.tip",
+    "params": {},
+    "text": "دمای پایه را صبح، قبل از بلند شدن و بعد از حداقل ۳ ساعت خواب پیوسته اندازه بگیر؛ تب، الکل و بی‌خوابی نتیجه را جابه‌جا می‌کنند."
+  }
+}
