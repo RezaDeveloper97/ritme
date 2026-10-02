@@ -68,8 +68,10 @@ export interface NavOptions {
 }
 
 export interface NavReady {
-  /** `/postpartum` + `/children` exist (B-N5-01/05). */
+  /** `/postpartum` (the postpartum «امروز», B-N5-04) exists. */
   postpartum: boolean;
+  /** `/children` (the «کودک» tab, B-N5-05) exists; until then postpartum keeps the «تقویم» tab. */
+  children: boolean;
   /** `/analysis/*` exists (B-N3-09 — on). The menopause tab no longer depends on it (CB-MENO-08). */
   analysis: boolean;
 }
@@ -77,11 +79,11 @@ export interface NavReady {
 /**
  * Which nav targets of the per-mode table already have screens. Until they do,
  * a mode whose tab would 404 gets the interim target (B-N2-03, QUESTIONS #60):
- * postpartum → امروز `/home` (cycle home + a "coming soon" note) and the
- * «تقویم» tab.
+ * postpartum → امروز `/home` until `/postpartum` (B-N5-04, on) and the «تقویم»
+ * tab until `/children` (B-N5-05).
  * The owning tasks flip their flag — nothing else changes.
  */
-export const NAV_READY: NavReady = { postpartum: false, analysis: true };
+export const NAV_READY: NavReady = { postpartum: true, children: false, analysis: true };
 
 const SERVICES: NavTab = { key: 'services', href: '/services', icon: 'services' };
 const ME: NavTab = { key: 'me', href: '/profile', icon: 'me' };
@@ -89,7 +91,7 @@ const ME: NavTab = { key: 'me', href: '/profile', icon: 'me' };
 /** The second tab, whose label and target follow the mode. */
 export function modeTab(mode: NavMode, options: NavOptions = {}): NavTab | null {
   const ready = { ...NAV_READY, ...options.ready };
-  if (mode === 'postpartum' && !ready.postpartum) return modeTab('cycle', options);
+  if (mode === 'postpartum' && !ready.children) return modeTab('cycle', options);
   switch (mode) {
     case 'cycle':
     case 'teen':

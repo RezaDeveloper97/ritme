@@ -131,6 +131,11 @@
     "careEmpty": "Nothing planned for this week.",
     "disclaimerTitle": "Your due date is an estimate.",
     "disclaimerBody": "Based on your current data, most babies are born between {from} and {to}. Adding your ultrasound result narrows this range.",
+    "delivered": {
+      "title": "Had your baby?",
+      "body": "Turn on after-birth mode to follow your recovery and mood.",
+      "cta": "I've given birth"
+    },
     "setupCta": "Set up pregnancy mode",
     "ringLabel": "Week {week, number} of {total, number}, {days, number} days to go",
     "daysToBirth": "days to go",

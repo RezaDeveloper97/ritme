@@ -283,4 +283,10 @@ export default defineConfig([
     files: ['./src/features', './src/features/**'],
     rules: { 'fsd/excessive-slicing': 'off' },
   },
+  {
+    // B-N5-04: `entities/postpartum` (the B-N5-01 API) is consumed by screens/postpartum, -recovery and -mood —
+    // references FROM `screens` are invisible to steiger.
+    files: ['./src/entities/postpartum/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
 ]);

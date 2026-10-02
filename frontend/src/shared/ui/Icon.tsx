@@ -23,7 +23,8 @@ export type IconName =
   | 'syringe' | 'implant'
   | 'mic' | 'gut' | 'dropLine' | 'bed' | 'urine' | 'run' | 'scaleSquare'
   | 'grip' | 'pin' | 'chevronUp'
-  | 'copy' | 'share' | 'send';
+  | 'copy' | 'share' | 'send'
+  | 'bottle' | 'sleep' | 'mother';
 
 const PATHS: Record<IconName, string> = {
   bell:         '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
@@ -161,6 +162,10 @@ const PATHS: Record<IconName, string> = {
   copy:         '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 012-2h9"/>',
   share:        '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/>',
   send:         '<path d="M4 12l16-8-6 16-3-7z"/>',
+  // B-N5-04 (nbl_v15_Main): feeding tile/chip, sleep tile, «ثبت وضعیت امروز».
+  bottle:       '<path d="M10 3h4v3h-4zM9 6h6l1 3v10a2 2 0 01-2 2h-4a2 2 0 01-2-2V9z"/><path d="M9 13h6"/>',
+  sleep:        '<path d="M20 14.5A8 8 0 019.5 4 8 8 0 1020 14.5z"/><path d="M15 3h4l-4 4h4"/>',
+  mother:       '<circle cx="12" cy="7" r="3.5"/><path d="M6 21c0-4 2.5-7 6-7s6 3 6 7"/><path d="M9 13.5c-1 2-1 5-1 7.5"/>',
 };
 
 interface IconProps {

@@ -1252,10 +1252,12 @@ export function HomePage() {
     }
     if (fresh) writeLifeModeHint(fresh);
     if (fresh === 'pregnancy') router.replace('/pregnancy');
+    // B-N5-04 (N3 stage bug B-4): postpartum has its own home — never the cycle home.
+    if (fresh === 'postpartum') router.replace('/postpartum');
   }, [companion, fresh, router]);
 
-  // Server pass, first client render, and the pregnancy / companion hand-off: backdrop only.
-  if (!mounted || mode === 'pregnancy' || companion) {
+  // Server pass, first client render, and the pregnancy / postpartum / companion hand-off: backdrop only.
+  if (!mounted || mode === 'pregnancy' || mode === 'postpartum' || companion) {
     return (
       <div className="view">
         <div className="home-grad home-grad-fill" />

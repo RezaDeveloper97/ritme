@@ -30,6 +30,7 @@ import enOnboarding from '../../../messages/en/onboarding.json';
 import enPhaseDetails from '../../../messages/en/phase-details.json';
 import enPregnancy from '../../../messages/en/pregnancy.json';
 import enPregnancyV2 from '../../../messages/en/pregnancy-v2.json';
+import enPostpartum from '../../../messages/en/postpartum.json';
 import enProfile from '../../../messages/en/profile.json';
 import enProfileEdit from '../../../messages/en/profile-edit.json';
 import enProfileInfo from '../../../messages/en/profile-info.json';
@@ -71,6 +72,7 @@ import faOnboarding from '../../../messages/fa/onboarding.json';
 import faPhaseDetails from '../../../messages/fa/phase-details.json';
 import faPregnancy from '../../../messages/fa/pregnancy.json';
 import faPregnancyV2 from '../../../messages/fa/pregnancy-v2.json';
+import faPostpartum from '../../../messages/fa/postpartum.json';
 import faProfile from '../../../messages/fa/profile.json';
 import faProfileEdit from '../../../messages/fa/profile-edit.json';
 import faProfileInfo from '../../../messages/fa/profile-info.json';
@@ -131,6 +133,7 @@ const bundled = {
     phaseDetails: faPhaseDetails,
     pregnancy: faPregnancy,
     pregnancyV2: faPregnancyV2,
+    postpartum: faPostpartum,
     me: faMe,
     menopause: faMenopause,
     nav: faNav,
@@ -174,6 +177,7 @@ const bundled = {
     phaseDetails: enPhaseDetails,
     pregnancy: enPregnancy,
     pregnancyV2: enPregnancyV2,
+    postpartum: enPostpartum,
     me: enMe,
     menopause: enMenopause,
     nav: enNav,

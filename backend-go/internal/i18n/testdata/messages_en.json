@@ -61,7 +61,8 @@
      "mid_day": "{symptom} came back in {cycles} of {total} cycles, around cycle day {start}."
     },
     "not_enough_data": "Log {needed} more cycles to see your patterns.",
-    "no_data": "Nothing to analyse yet. Start with a daily log."
+    "no_data": "Nothing to analyse yet. Start with a daily log.",
+    "keep_logging": "Keep logging daily; after a few weeks of data your symptom patterns will show here."
    },
    "correlations": {
     "sleep_mood": {
@@ -173,6 +174,7 @@
      },
      "count": "{n} days",
      "notReady": "Log {n} more cycles to see a pattern.",
+     "notReadyNoCycle": "Keep logging symptoms and their pattern will show here.",
      "none": "No symptoms logged in this range yet."
     },
     "mood": {
@@ -681,6 +683,7 @@
      "title": "Weight gain",
      "sub": "Pre-pregnancy BMI {bmi} · total target {min}–{max} kg (IOM)",
      "until": "kg by week {n}",
+     "untilDate": "kg by the last weigh-in ({date})",
      "status": {
       "below": "Below the recommended range",
       "within": "In the recommended range",
@@ -5211,6 +5214,194 @@
     "exhausted": "This month's allowance is used up; it renews on {date}."
    }
   },
+  "postpartum": {
+   "common": {
+    "loading": "Loading",
+    "loadError": "Couldn't load this.",
+    "retry": "Try again",
+    "back": "Back"
+   },
+   "home": {
+    "brand": "Ritme",
+    "modeLabel": "After birth",
+    "notifications": "Notifications",
+    "profile": "Profile",
+    "today": "Today · {date}",
+    "weekChip": "Week {week} after birth",
+    "durationWeeksDays": "{weeks} wk {days} d",
+    "durationWeeks": "{weeks} weeks",
+    "durationDays": "{days} days",
+    "ringLabel": "Days of the postpartum period",
+    "ringValue": "Day {day} of {total}",
+    "ringCaption": "Day",
+    "ringOf": "of {weeks} weeks",
+    "feedingChip": "Feeding",
+    "babiesChip": "{count} babies",
+    "heroNote": "Bleeding after birth usually lasts 4 to 6 weeks and slowly gets lighter. If it suddenly gets heavy or you pass a large clot, call your doctor.",
+    "logToday": "Log today's recovery",
+    "mood": {
+     "title": "How are you feeling today?",
+     "log": "Log",
+     "good": "Good",
+     "tired": "Tired",
+     "restless": "Restless",
+     "sad": "Sad",
+     "note": "Mood swings are common in the first weeks. If they last more than 2 weeks, talking to a doctor or counsellor helps.",
+     "saveError": "Not saved. Please try again."
+    },
+    "tiles": {
+     "bleeding": "Bleeding",
+     "feeds": "Feeding",
+     "sleep": "Sleep",
+     "notLogged": "Not logged",
+     "feedsValue": "{count} times today",
+     "sleepValue": "{hours} h",
+     "bleedingValue": "{amount} · {color}"
+    },
+    "visits": {
+     "title": "Upcoming visits",
+     "all": "All",
+     "sixWeek": "6-week postpartum check",
+     "sixWeekSub": "Around {date} · book it",
+     "vaccines": "Baby's vaccines",
+     "vaccinesSub": "Coming soon · after adding your child's profile",
+     "soon": "Soon",
+     "empty": "No visits booked.",
+     "add": "Add a visit"
+    },
+    "callWhen": {
+     "hotlines": "Help lines",
+     "emergency": "Emergency"
+    },
+    "tipTitle": "This week's tip",
+    "moodCheck": {
+     "title": "Mood check-in",
+     "lastResult": "Last check-in: {band}",
+     "start": "Start"
+    },
+    "setup": {
+     "title": "Enter your birth date",
+     "body": "With the birth date we set up your recovery days, a tip each week and the mood check-in.",
+     "cta": "Start after-birth mode"
+    },
+    "inactive": {
+     "title": "After-birth mode is off",
+     "body": "If you have given birth, enter the date to turn this page on."
+    }
+   },
+   "setup": {
+    "title": "Start after-birth mode",
+    "subtitle": "A few short questions",
+    "birthDate": "Birth date",
+    "pickDate": "Pick a date",
+    "deliveryType": "Type of birth",
+    "deliveryHint": "Tunes the recovery tips · optional",
+    "vaginal": "Vaginal",
+    "cesarean": "Caesarean",
+    "noSay": "Prefer not to say",
+    "babyCount": "Number of babies",
+    "decrease": "Decrease",
+    "increase": "Increase",
+    "submit": "Turn on",
+    "future": "The birth date can't be in the future.",
+    "tooOld": "The birth date must be within the last year.",
+    "saveError": "Not saved. Please try again.",
+    "fromPregnancy": "Your current pregnancy will be closed as delivered and the app switches to after-birth mode.",
+    "privacy": "This is only used to set up this page."
+   },
+   "recovery": {
+    "title": "Today's recovery",
+    "subtitle": "Recovery after birth · day {day}",
+    "lochia": "Bleeding (lochia)",
+    "color": "Colour",
+    "pain": "Pain",
+    "painLocation": "Where it hurts",
+    "painLocationRequired": "Choose where it hurts.",
+    "feeds": "Feeds today",
+    "times": "times",
+    "breasts": "Breasts",
+    "normal": "Normal",
+    "sleep": "Sleep (total)",
+    "hours": "hours",
+    "sleepHint": "Count short naps too",
+    "decrease": "Decrease",
+    "increase": "Increase",
+    "save": "Save",
+    "saveError": "Not saved. Please try again.",
+    "notActive": "After-birth mode is off.",
+    "goHome": "Go to the after-birth page",
+    "visitTitle": "6-week postpartum check",
+    "visitBody": "Recovery, stitches, contraception and mood",
+    "visitBook": "Book it",
+    "amounts": {
+     "none": "None",
+     "spotting": "Spotting",
+     "light": "Light",
+     "medium": "Medium",
+     "heavy": "Heavy"
+    },
+    "colors": {
+     "red": "Bright red",
+     "pink_brown": "Pink/brown",
+     "yellow_white": "Yellow/white"
+    },
+    "colorsShort": {
+     "red": "red",
+     "pink_brown": "lighter",
+     "yellow_white": "yellow/white"
+    },
+    "painLevels": {
+     "none": "None",
+     "mild": "Mild",
+     "moderate": "Moderate",
+     "severe": "Severe"
+    },
+    "painLocations": {
+     "stitches": "Stitches",
+     "abdomen": "Belly",
+     "breast": "Breast",
+     "back": "Back",
+     "head": "Head"
+    },
+    "breastSymptoms": {
+     "engorgement": "Engorged",
+     "nipple_pain": "Sore nipple",
+     "redness": "Red and painful"
+    }
+   },
+   "mood": {
+    "title": "Mood",
+    "subtitle": "Week {week} · {count} short questions",
+    "subtitleNoWeek": "{count} short questions",
+    "questions": "Questions",
+    "continue": "Continue",
+    "submit": "See result",
+    "previous": "Previous questions",
+    "notNow": "Not now",
+    "page": "Page {page} of {pages}",
+    "saveError": "Your answers weren't saved. Please try again.",
+    "result": {
+     "title": "Check-in result",
+     "score": "{total} of {max}",
+     "note": "This number is not a diagnosis; it only helps you see how you feel over the coming weeks.",
+     "nextDue": "Next check-in: {date}",
+     "home": "Back to home",
+     "talk": "If you're worried, talking to a doctor, midwife or counsellor is always a good option."
+    },
+    "safety": {
+     "title": "Please talk to someone right now",
+     "body": "You're not alone and help is available. If you have thoughts of harming yourself or your baby, call now or go to the nearest hospital.",
+     "hotlines": "Help lines",
+     "emergency": "Emergency 115",
+     "social": "Social emergency 123",
+     "counsel": "Counselling line 1480",
+     "call": "Call",
+     "notSaved": "Your answers weren't saved, but help is available right now.",
+     "retrySave": "Try saving again",
+     "home": "Back to home"
+    }
+   }
+  },
   "pregnancy": {
    "title": "Pregnancy",
    "subtitle": "Week by week, with you and your baby",
@@ -5563,6 +5754,11 @@
     "careEmpty": "Nothing planned for this week.",
     "disclaimerTitle": "Your due date is an estimate.",
     "disclaimerBody": "Based on your current data, most babies are born between {from} and {to}. Adding your ultrasound result narrows this range.",
+    "delivered": {
+     "title": "Had your baby?",
+     "body": "Turn on after-birth mode to follow your recovery and mood.",
+     "cta": "I've given birth"
+    },
     "setupCta": "Set up pregnancy mode",
     "ringLabel": "Week {week, number} of {total, number}, {days, number} days to go",
     "daysToBirth": "days to go",

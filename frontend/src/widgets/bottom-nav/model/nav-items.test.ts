@@ -4,7 +4,7 @@ import { isNavRootPath } from '@/shared/config';
 
 import { activeTabKey, navConfig, resolveNavMode, type NavMode } from './nav-items';
 
-const READY = { postpartum: true, analysis: true };
+const READY = { postpartum: true, children: true, analysis: true };
 const keys = (mode: NavMode, childIds?: string[], ready: Partial<typeof READY> = READY) => {
   const c = navConfig(mode, { childIds, ready });
   return [...c.before.map((t) => `${t.key}:${t.href}`), c.fab ? 'FAB' : null, ...c.after.map((t) => t.key)].filter(
@@ -48,7 +48,15 @@ describe('navConfig (nav.md per-mode table)', () => {
   });
 
   it('uses interim targets until the postpartum and analysis screens exist (QUESTIONS #60)', () => {
-    expect(keys('postpartum', ['7'], {})).toEqual(['today:/home', 'calendar:/calendar', 'FAB', 'services', 'me']);
+    expect(keys('postpartum', ['7'], { postpartum: false, children: false })).toEqual([
+      'today:/home',
+      'calendar:/calendar',
+      'FAB',
+      'services',
+      'me',
+    ]);
+    // B-N5-04: the postpartum home is live; «کودک» waits for /children (B-N5-05).
+    expect(keys('postpartum', ['7'], {})).toEqual(['today:/postpartum', 'calendar:/calendar', 'FAB', 'services', 'me']);
     // CB-MENO-08: «علائم» always opens the monthly score; the symptom report keeps the tab lit.
     expect(keys('menopause', undefined, { analysis: false })[1]).toBe('symptoms:/menopause/score');
     expect(activeTabKey(navConfig('menopause'), '/menopause/score')).toBe('symptoms');

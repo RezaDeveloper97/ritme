@@ -767,3 +767,34 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   Release blockers CMP-H1 (pregnancy/postpartum leak via cycle/symptoms views) and CMP-M1 (teen owner with adult
   partner; fertile phase sent) plus CMP-M2/M3/L1/L5/L6 → follow-up **B-N4-08b** (runs after canvas CB-TEEN-01/LOSS-01
   land in internal/companion). B-N4-10 now depends on B-N4-08b.
+
+## B-N4-09 — N4 design-fidelity audit and fixes
+
+- `docs/night-bloom/audit-n4.md`: 0 high, 1 med (companion home phase/access pills → taller outlined pills), 7 low
+  (1 fixed: male avatar icon on the linked screen; W5, P2, M2, R2 + 2 open). Compared against the B-N4-04..07
+  screenshots (UI unchanged since) because the dev API was held down during the migration-order freeze; after-fix
+  shots pending.
+
+## B-N3-14b — N3 stage smoke follow-ups
+
+- B-1: `checkAndUpdatePeriodStart` rewritten — bleeding inside/≤2 days after a period extends it (end never shrinks),
+  ≤2 days before the next start moves that start back, true new periods get non-negative `cycle_length`, back-dated
+  rows between periods become closed 1-day periods, LMP moves only for the newest row; repro + 3 scenario int tests;
+  Laravel side-effect golden rewritten via documented `applyD55` (D-55 proposed).
+- B-2: `PromoteLoggedStart` — the newest unconfirmed `user_logged` row counts as confirmed in the engine (cache schema 3).
+- B-3: fertility reads LH / mucus merged from `fertility_logs` + `health_log_entries` (strongest LH, most fertile
+  mucus); BBT via existing write-back; tests. Chance of pregnancy is engine-based (unchanged).
+- Lows: menopause `keep_logging` finding (no «log 3 cycles»), pregnancy weight «until date», fertility subtitle bidi
+  isolation, Persian digits in fa voice labels, teen voice tab hidden; TTC int test expectation fixed. QUESTIONS #99.
+
+## B-N5-04 — Postpartum home, recovery and mood check screens
+
+- `entities/postpartum` (schemas tested against contract goldens; safety payload never dropped; EPDS submit kept out of
+  the mutation cache), screens `postpartum` (`/postpartum` home: hero with completed weeks + day X/42 ring, alerts,
+  mood chips saved to taxonomy rows, bleeding/feeds/sleep tiles → postpartum log sheet, upcoming visits incl. 6-week
+  suggestion and vaccines placeholder, «کی فوراً تماس بگیرم؟», week tip; `/postpartum/setup` activation),
+  `postpartum-recovery` (partial PUT, bleeding alert card), `postpartum-mood` (EPDS flow from API; result or safety
+  screen with call buttons first, local safety fallback with 115/123/1480 on request failure).
+- Home redirects postpartum users to `/postpartum` (N3 stage bug B-4); nav «امروز» → `/postpartum`
+  (`NAV_READY.children` false until B-N5-05); pregnancy «زایمان کردم» card from week 20.
+- Screenshots pending (dev API held during the migration-order freeze). QUESTIONS #100.

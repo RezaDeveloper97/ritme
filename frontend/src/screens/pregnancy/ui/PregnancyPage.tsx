@@ -231,6 +231,26 @@ function NextVisitCard({ visit, t }: { visit: NextVisit; t: T }) {
 }
 
 // ── Smart tip ──────────────────────────────────────────────────
+/** From week 20 the home offers «زایمان کردم» → postpartum activation (B-N5-04; closes the pregnancy as delivered). */
+const DELIVERED_FROM_WEEK = 20;
+
+function DeliveredCard({ t }: { t: T }) {
+  return (
+    <Card as="section" className="pgn-delivered" aria-labelledby="pgn-delivered-title">
+      <IconCircle icon="heart" tone="bloom" size="lg" />
+      <div className="pgn-delivered-text">
+        <h2 id="pgn-delivered-title" className="pgn-delivered-title">
+          {t('today.delivered.title')}
+        </h2>
+        <p className="pgn-delivered-body">{t('today.delivered.body')}</p>
+      </div>
+      <Link href="/postpartum/setup" className="nb-btn is-outline is-block">
+        {t('today.delivered.cta')}
+      </Link>
+    </Card>
+  );
+}
+
 function TipCard({ tip, week, t }: { tip: WeekTip; week: number; t: T }) {
   const isRtl = useDirection() === 'rtl';
   const tipWeek = tip.week ?? week;
@@ -336,6 +356,7 @@ export function PregnancyPage() {
       {data.nextVisit && <NextVisitCard visit={data.nextVisit} t={t} />}
       {data.tip && <TipCard tip={data.tip} week={data.progress.week} t={t} />}
       <PregnancyCareChecklist week={data.progress.week} tasks={data.tasks} />
+      {data.progress.week >= DELIVERED_FROM_WEEK && <DeliveredCard t={t} />}
     </Shell>
   );
 }
