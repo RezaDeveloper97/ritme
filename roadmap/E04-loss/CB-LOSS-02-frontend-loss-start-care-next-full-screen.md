@@ -3,7 +3,7 @@ id: CB-LOSS-02
 title: Frontend: loss start → care → next (full-screen)
 epic: LOSS
 type: frontend
-status: todo
+status: done
 depends_on: [CB-LOSS-01, CB-CORE-02]
 parallel_group: LOSS-B
 touches: [frontend/src/screens/loss-start, frontend/src/screens/loss-care, frontend/src/screens/loss-next, frontend/src/entities/loss, frontend/messages/fa/loss.json, frontend/messages/en/loss.json, frontend/src/app/[locale]/loss, frontend/src/app/message-scopes.ts, frontend/src/screens/pregnancy, frontend/src/screens/mode]
