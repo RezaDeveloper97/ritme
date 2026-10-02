@@ -106,7 +106,10 @@
     "plusPayments": "پرداخت‌ها",
     "plusPlans": "پلن‌ها",
     "plusDiscounts": "کدهای تخفیف",
-    "plusSettings": "تنظیمات پلاس"
+    "plusSettings": "تنظیمات پلاس",
+    "groupCompanions": "همدم",
+    "companionTips": "نکته‌های همدم",
+    "companionLinks": "اتصال‌های همدم"
   },
   "dashboard": {
     "title": "داشبورد",
@@ -1275,6 +1278,108 @@
       "note": "یادداشت",
       "noteManualHint": "کجا و چطور برگردانده شد (الزامی)؛ در لاگ ثبت می‌شود.",
       "noteHint": "اختیاری؛ در لاگ ثبت می‌شود."
+    }
+  },
+  "companions": {
+    "tips": {
+      "title": "نکته‌های همدم",
+      "phases": "فازها",
+      "phase": {
+        "menstrual": "پریود",
+        "follicular": "فولیکولار",
+        "fertile": "باروری",
+        "luteal": "لوتئال",
+        "pregnancy": "بارداری",
+        "general": "عمومی"
+      },
+      "phaseTitle": "فاز {phase}",
+      "customized": "سفارشی‌شده",
+      "notCustomized": "متن پیش‌فرض",
+      "intro": "این متن‌ها در خانهٔ پنل همدم زیر کارت چرخه و در بخش «امروز چه کار کنی؟» نمایش داده می‌شوند. هر فاز یک یادداشت و حداکثر سه نکته دارد.",
+      "placeholders": "جای‌گذاری",
+      "languages": "زبان‌ها",
+      "unsaved": "تغییرات ذخیره‌نشده",
+      "note": "یادداشت فاز",
+      "noteHint": "یک خط زیر کارت چرخه. خالی بگذارید تا نمایش داده نشود.",
+      "now": "متن فعلی:",
+      "tipsLabel": "نکته‌ها",
+      "countOf": "{count} از {max}",
+      "noTips": "برای این فاز نکته‌ای نمایش داده نمی‌شود.",
+      "tipN": "نکته {n}",
+      "moveUp": "انتقال به بالا",
+      "moveDown": "انتقال به پایین",
+      "remove": "حذف",
+      "tipTitle": "عنوان",
+      "tipBody": "توضیح",
+      "addTip": "افزودن نکته",
+      "discard": "لغو تغییرات",
+      "reset": "بازگشت به متن پیش‌فرض",
+      "resetConfirm": "متن‌های سفارشی این فاز به زبان {language} حذف شوند؟ پنل دوباره متن پیش‌فرض را نشان می‌دهد.",
+      "resetDone": "متن پیش‌فرض برگشت.",
+      "saveHint": "ذخیره، همهٔ زبان‌های تغییرکردهٔ همین فاز را ثبت می‌کند و بلافاصله در اپ دیده می‌شود.",
+      "preview": "پیش‌نمایش",
+      "previewHint": "'{name}' با نام نمونه پر می‌شود؛ در اپ نام همراه کاربر جای آن می‌نشیند.",
+      "sampleName": "نام نمونه",
+      "sampleNameDefault": "سارا",
+      "previewHeading": "امروز چه کار کنی؟",
+      "previewNoNote": "یادداشتی نمایش داده نمی‌شود.",
+      "previewNoTips": "نکته‌ای نمایش داده نمی‌شود.",
+      "theme": {
+        "light": "روشن",
+        "dark": "تیره"
+      },
+      "source": {
+        "locale": "سفارشی این زبان",
+        "default_language": "از زبان پیش‌فرض",
+        "built_in": "متن داخلی اپ"
+      }
+    },
+    "links": {
+      "title": "اتصال‌های همدم",
+      "owner": "صاحب حساب",
+      "companion": "همدم",
+      "notJoined": "هنوز وصل نشده",
+      "userNumber": "کاربر #{id}",
+      "labelAs": "ذخیره‌شده با نام {label}",
+      "type": "نوع",
+      "types": {
+        "partner": "همراه",
+        "spouse": "همسر"
+      },
+      "allTypes": "همه نوع‌ها",
+      "status": {
+        "invited": "دعوت‌شده",
+        "active": "فعال",
+        "revoked": "لغوشده"
+      },
+      "filter": {
+        "all": "همه",
+        "invited": "دعوت‌شده",
+        "active": "فعال",
+        "revoked": "لغوشده"
+      },
+      "inviteUntil": "دعوت تا {date}",
+      "inviteExpired": "دعوت منقضی شده",
+      "revokedBy": {
+        "owner": "لغو توسط صاحب حساب",
+        "companion": "لغو توسط همدم"
+      },
+      "grants": "دسترسی‌ها",
+      "grantsCount": "{count, plural, =0 {بدون دسترسی} other {# بخش}}",
+      "dates": "تاریخ‌ها",
+      "invitedOn": "دعوت: {date}",
+      "acceptedOn": "پذیرش: {date}",
+      "revokedOn": "لغو: {date}",
+      "maskNote": "نام‌ها و شماره‌ها پوشانده شده‌اند. کد دعوت، بخش‌های به‌اشتراک‌گذاشته و هیچ دادهٔ سلامتی اینجا نمایش داده نمی‌شود.",
+      "empty": "هنوز هیچ اتصال همدمی ساخته نشده است.",
+      "emptyFiltered": "اتصالی با این فیلترها پیدا نشد.",
+      "count": {
+        "all": "همهٔ اتصال‌ها",
+        "active": "فعال",
+        "invited": "در انتظار پذیرش",
+        "revoked": "لغوشده"
+      },
+      "countSub": "همراه {partner} · همسر {spouse}"
     }
   }
 }

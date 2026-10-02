@@ -106,7 +106,10 @@
     "plusPayments": "Payments",
     "plusPlans": "Plans",
     "plusDiscounts": "Discount codes",
-    "plusSettings": "Plus settings"
+    "plusSettings": "Plus settings",
+    "groupCompanions": "Companion",
+    "companionTips": "Companion tips",
+    "companionLinks": "Companion links"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -1275,6 +1278,108 @@
       "note": "Note",
       "noteManualHint": "Where and how it was returned (required); it is logged.",
       "noteHint": "Optional; it is logged."
+    }
+  },
+  "companions": {
+    "tips": {
+      "title": "Companion tips",
+      "phases": "Phases",
+      "phase": {
+        "menstrual": "Period",
+        "follicular": "Follicular",
+        "fertile": "Fertile",
+        "luteal": "Luteal",
+        "pregnancy": "Pregnancy",
+        "general": "General"
+      },
+      "phaseTitle": "{phase} phase",
+      "customized": "Customized",
+      "notCustomized": "Default copy",
+      "intro": "Shown on the companion panel home, under the cycle card and in “What can you do today?”. Each phase has one note and up to three tips.",
+      "placeholders": "Placeholders",
+      "languages": "Languages",
+      "unsaved": "Unsaved changes",
+      "note": "Phase note",
+      "noteHint": "One line under the cycle card. Leave empty to hide it.",
+      "now": "Current text:",
+      "tipsLabel": "Tips",
+      "countOf": "{count} of {max}",
+      "noTips": "No tips are shown for this phase.",
+      "tipN": "Tip {n}",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "remove": "Remove",
+      "tipTitle": "Title",
+      "tipBody": "Description",
+      "addTip": "Add tip",
+      "discard": "Discard changes",
+      "reset": "Back to default copy",
+      "resetConfirm": "Delete this phase's custom {language} copy? The panel shows the default copy again.",
+      "resetDone": "Default copy restored.",
+      "saveHint": "Saving stores every changed language of this phase; the app shows it right away.",
+      "preview": "Preview",
+      "previewHint": "'{name}' is filled with the sample name; in the app it is the partner's name.",
+      "sampleName": "Sample name",
+      "sampleNameDefault": "Sara",
+      "previewHeading": "What can you do today?",
+      "previewNoNote": "No note is shown.",
+      "previewNoTips": "No tips are shown.",
+      "theme": {
+        "light": "Light",
+        "dark": "Dark"
+      },
+      "source": {
+        "locale": "Custom for this language",
+        "default_language": "From the default language",
+        "built_in": "Built-in app copy"
+      }
+    },
+    "links": {
+      "title": "Companion links",
+      "owner": "Account owner",
+      "companion": "Companion",
+      "notJoined": "Not joined yet",
+      "userNumber": "User #{id}",
+      "labelAs": "Saved as {label}",
+      "type": "Type",
+      "types": {
+        "partner": "Partner",
+        "spouse": "Spouse"
+      },
+      "allTypes": "All types",
+      "status": {
+        "invited": "Invited",
+        "active": "Active",
+        "revoked": "Revoked"
+      },
+      "filter": {
+        "all": "All",
+        "invited": "Invited",
+        "active": "Active",
+        "revoked": "Revoked"
+      },
+      "inviteUntil": "Invite until {date}",
+      "inviteExpired": "Invite expired",
+      "revokedBy": {
+        "owner": "Revoked by the owner",
+        "companion": "Revoked by the companion"
+      },
+      "grants": "Access",
+      "grantsCount": "{count, plural, =0 {No access} one {# section} other {# sections}}",
+      "dates": "Dates",
+      "invitedOn": "Invited: {date}",
+      "acceptedOn": "Accepted: {date}",
+      "revokedOn": "Revoked: {date}",
+      "maskNote": "Names and numbers are masked. Invite codes, shared sections and health data are never shown here.",
+      "empty": "No companion links yet.",
+      "emptyFiltered": "No links match these filters.",
+      "count": {
+        "all": "All links",
+        "active": "Active",
+        "invited": "Awaiting acceptance",
+        "revoked": "Revoked"
+      },
+      "countSub": "Partner {partner} · Spouse {spouse}"
     }
   }
 }

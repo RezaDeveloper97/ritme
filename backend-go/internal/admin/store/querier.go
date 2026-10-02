@@ -102,6 +102,7 @@ type Querier interface {
 	// Challenges (ChallengeController::filtered). day = 0: no cycle-day filter; otherwise
 	// Challenge::scopeForCycleDay (untargeted rows match every day).
 	CountAdminChallenges(ctx context.Context, arg CountAdminChallengesParams) (int64, error)
+	CountAdminCompanionLinks(ctx context.Context, arg CountAdminCompanionLinksParams) (int64, error)
 	// ---------------------------------------------------------------------------
 	// Info sections (InfoSection::inGroup($group)->ordered())
 	CountAdminInfoSections(ctx context.Context, group string) (int64, error)
@@ -114,6 +115,7 @@ type Querier interface {
 	// Task templates
 	CountAdminTaskTemplates(ctx context.Context) (int64, error)
 	CountAdmins(ctx context.Context) (int64, error)
+	CountCompanionLinksByTypeStatus(ctx context.Context) ([]CountCompanionLinksByTypeStatusRow, error)
 	CountCompletionsOn(ctx context.Context, completionDate civildate.Date) (int64, error)
 	// Admin support reports inbox (B-N1-12b): «گزارش مشکل» rows from POST /api/v1/support/reports, newest first.
 	// The status filter is a LIKE pattern ('%' = all, 'open' / 'resolved' = exact), like the other admin lists.
@@ -147,6 +149,7 @@ type Querier interface {
 	DeleteArticle(ctx context.Context, id uint64) (sql.Result, error)
 	DeleteBanner(ctx context.Context, id uint64) (sql.Result, error)
 	DeleteChallenge(ctx context.Context, id uint64) (sql.Result, error)
+	DeleteCompanionTipRows(ctx context.Context, arg DeleteCompanionTipRowsParams) (sql.Result, error)
 	DeleteInfoSection(ctx context.Context, id uint64) (sql.Result, error)
 	DeleteLanguage(ctx context.Context, id uint64) (sql.Result, error)
 	DeleteMessageContentsForLocale(ctx context.Context, locale string) error
@@ -179,6 +182,7 @@ type Querier interface {
 	GetUserDetail(ctx context.Context, id uint64) (GetUserDetailRow, error)
 	// unique:info_sections,key per group (the (group, key) unique index; NULL keys never collide).
 	InfoSectionKeyTaken(ctx context.Context, arg InfoSectionKeyTakenParams) (bool, error)
+	InsertCompanionTipRow(ctx context.Context, arg InsertCompanionTipRowParams) error
 	// ---------------------------------------------------------------------------
 	// Ledger
 	InsertPlusAdminAction(ctx context.Context, arg InsertPlusAdminActionParams) error
@@ -188,6 +192,7 @@ type Querier interface {
 	ListAdminArticles(ctx context.Context, arg ListAdminArticlesParams) ([]Article, error)
 	ListAdminBanners(ctx context.Context, arg ListAdminBannersParams) ([]Banner, error)
 	ListAdminChallenges(ctx context.Context, arg ListAdminChallengesParams) ([]Challenge, error)
+	ListAdminCompanionLinks(ctx context.Context, arg ListAdminCompanionLinksParams) ([]ListAdminCompanionLinksRow, error)
 	ListAdminInfoSections(ctx context.Context, arg ListAdminInfoSectionsParams) ([]InfoSection, error)
 	ListAdminMessages(ctx context.Context, arg ListAdminMessagesParams) ([]MessageContent, error)
 	ListAdminRecommendations(ctx context.Context, arg ListAdminRecommendationsParams) ([]Recommendation, error)
@@ -200,6 +205,11 @@ type Querier interface {
 	ListAllLanguages(ctx context.Context) ([]Language, error)
 	// Challenge::orderBy('sort_order')->orderBy('id')->get(['id', 'title']) (report filter).
 	ListChallengeTitles(ctx context.Context) ([]ListChallengeTitlesRow, error)
+	// Admin companion «همدم» module (B-N4-07): the companion tips copy (message_contents group companion_tip, fixed slots
+	// of internal/admin/messages/registry) and a read-only overview of companion links. The overview selects link
+	// metadata and the people's name / mobile only (masked in Go): never an invite code hash, never grants' data, never
+	// anything of the owner's health records. Status / type filters are LIKE patterns ('%' = all).
+	ListCompanionTipRows(ctx context.Context) ([]MessageContent, error)
 	ListCompletions(ctx context.Context, arg ListCompletionsParams) ([]ListCompletionsRow, error)
 	// ---------------------------------------------------------------------------
 	// Smart messages (message_contents). group/locale patterns: '%' = all.
@@ -223,6 +233,8 @@ type Querier interface {
 	// User::latest()->take(8).
 	RecentUsers(ctx context.Context, limit int32) ([]RecentUsersRow, error)
 	SetArticlePublished(ctx context.Context, arg SetArticlePublishedParams) error
+	// An editor save makes the row live again (active + approved): the tips page is the copy the panel shows.
+	SetCompanionTipRow(ctx context.Context, arg SetCompanionTipRowParams) error
 	SetLanguageActive(ctx context.Context, arg SetLanguageActiveParams) error
 	SetLanguageDefault(ctx context.Context, arg SetLanguageDefaultParams) error
 	SetSupportReportStatus(ctx context.Context, arg SetSupportReportStatusParams) (sql.Result, error)

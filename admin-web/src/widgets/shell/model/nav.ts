@@ -43,6 +43,14 @@ export const NAV: readonly NavGroup[] = [
     ],
   },
   {
+    // «همدم» (B-N4-07): tips are content (editor + super); the links overview is masked and read-only.
+    key: 'groupCompanions',
+    items: [
+      { key: 'companionTips', href: '/companions/tips', icon: 'heart', ready: true },
+      { key: 'companionLinks', href: '/companions/links', icon: 'link', ready: true },
+    ],
+  },
+  {
     key: 'groupContent',
     items: [
       { key: 'articles', href: '/articles', icon: 'article', ready: true },

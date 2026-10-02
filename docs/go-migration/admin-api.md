@@ -552,3 +552,39 @@ the public `GET /api/v1/plus/plans` read it at request time; every invoice keeps
 Ledger actions: `plan.create|update|delete|deactivate`, `discount.create|update|delete|deactivate`, `settings.update`,
 `invoice.refund`, `invoice.refund_manual`, `subscription.extend`. Error codes: `invoice_not_refundable`,
 `refund_not_supported`, `refund_rejected`, `refund_failed`, `subscription_not_active` (+ the generic ones of §2).
+
+## 16. Companion «همدم» — tips and link overview (B-N4-07)
+
+Package `internal/admin/companions`, routes `routes_admin_companions.go`. Every route: any active admin (**A**);
+mutations pass the CSRF check (419 without the token) and write the slog `admin audit` line. No migration.
+
+**Tips** are the companion panel's «امروز چه کار کنی؟» copy (`GET /api/v1/companion/home`, B-N4-03): per partner phase
+(`menstrual, follicular, fertile, luteal, pregnancy, general`) one note under the cycle card and up to three tips, per
+language. Stored as the fixed `message_contents` slots of group `companion_tip` (registry `CompanionTipGroup`, also
+editable row by row in `/messages`): `<phase>_note` `{body}` and `<phase>_tip_1..3` `{title, body}`, placeholder
+`{name}` (the partner's name). The panel resolves each slot as: live (active + approved) row of the request language →
+live row of the default language → built-in copy (`internal/companion/home/lang`). An empty title hides a tip, an
+empty body hides the note.
+
+| Method | Path | Role | Body / query | `data` |
+|---|---|---|---|---|
+| GET | `/companions/tips` | A | — | `{items: [PhaseTips] (display order), phases[], tips_per_phase: 3, placeholders: ["name"], limits{note: 500, title: 255, body: 1000}, default_locale}` |
+| GET | `/companions/tips/:phase` | A | — | `{tips: PhaseTips}`; unknown phase → 404 |
+| PUT | `/companions/tips/:phase` | A | `texts` (req, object): `{code: {note?: string\|null ≤ 500, tips?: [{title (req, ≤ 255), body? ≤ 1000}] ≤ 3}}` over active languages (an unknown code → 422 on `texts.<code>`; at least one non-null) | `{tips: PhaseTips}`, message `Companion tips saved.` — for each sent language all four slots are written in one transaction (created when missing, set live): the note (`""` when absent) and the tips in the sent order, unused slots emptied |
+| DELETE | `/companions/tips/:phase` | A | `locale` (query, req, active code) | `{tips: PhaseTips}`, message `Companion tips reset.` — the language's rows of the phase are deleted (back to the default language / built-in copy) |
+
+`PhaseTips` = `{phase, texts: {code: {customized (the language has rows of its own for the phase), note: {body, source},
+tips: [{slot, title, body, source}] ×3}}, rows: [{id, item_key, locale, is_active, is_approved, updated_at}],
+updated_at}` — the texts are what the panel shows **now** (placeholders not filled); `source` ∈ `locale |
+default_language | built_in`. Audit lines: `companion_tip.update` (attrs `phase`, `locales`, `rows_created`),
+`companion_tip.reset` (`phase`, `locale`, `rows_deleted`).
+
+**Link overview** (read-only):
+
+| Method | Path | Role | Query | `data` |
+|---|---|---|---|---|
+| GET | `/companions/links` | A | `status=all\|invited\|active\|revoked`, `type=all\|partner\|spouse` (unknown → `all`), `page`, `per_page` | list, newest first (`created_at DESC, id DESC`), items `{id, type, status, label, owner{id, name, mobile}, companion{id, name, mobile}\|null, invite{phone, expires_at, expired}\|null (status invited only), grants_count, invited_at, accepted_at, revoked_at, revoked_by, created_at}` + `filters{status, type}` + `counts{by_status{all, invited, active, revoked}, by_type{partner{…, all}, spouse{…, all}}}` (over every link, not the filter) + `statuses[]` + `types[]` |
+
+Masking: names and the owner's label keep the first letter (`س•••`), mobiles and the invite phone keep 4 + 4 digits
+(`0912•••4567`). Never sent: invite codes or their hash, attempts, which sections are shared (only `grants_count`),
+anything of the owner's health data. The full mobile stays on `/users/:id`.

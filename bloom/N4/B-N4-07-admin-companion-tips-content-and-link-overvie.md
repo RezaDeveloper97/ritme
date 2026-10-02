@@ -3,7 +3,7 @@ id: B-N4-07
 title: Admin — companion tips content and link overview
 milestone: N4
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N4-03]
 parallel_group: N4-G
 touches: [admin-web/src,backend-go/internal/admin,backend-go/api]
