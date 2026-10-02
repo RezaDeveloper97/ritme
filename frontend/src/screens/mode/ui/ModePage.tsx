@@ -50,7 +50,7 @@ function radioStep(key: string, index: number, count: number, rtl: boolean): num
  * inside the TTC card, «track contraception» and the «data kept» note. Reads and
  * writes `GET|PUT /profile/life-stage`; pregnancy goes through the pregnancy
  * endpoints (setup to enter, deactivate to leave). In pregnancy mode a calm exit
- * row opens the separate loss path (`/profile/mode/loss`).
+ * row opens the loss path (`/loss`, CB-LOSS-02).
  */
 export function ModePage() {
   const t = useTranslations('me.mode');
@@ -225,7 +225,7 @@ function ModeBody({ stage }: { stage: LifeStage }) {
               </div>
             ) : null}
             {card.key === 'pregnancy' && current === 'pregnancy' ? (
-              <button type="button" className="mode-loss" onClick={() => router.push('/profile/mode/loss')}>
+              <button type="button" className="mode-loss" onClick={() => router.push('/loss')}>
                 <span className="mode-loss-text">
                   <b>{t('loss.row')}</b>
                   <span>{t('loss.rowSub')}</span>

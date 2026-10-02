@@ -4055,6 +4055,156 @@
     }
    }
   },
+  "loss": {
+   "common": {
+    "back": "Back",
+    "continue": "Continue",
+    "save": "Save",
+    "cancel": "Cancel",
+    "loading": "Loading",
+    "loadError": "This couldn't be loaded.",
+    "retry": "Try again",
+    "saveError": "Not saved. Check your connection and try again.",
+    "listSeparator": ", ",
+    "noLoss": {
+     "title": "Nothing recorded",
+     "body": "You can start whenever you like.",
+     "action": "Start"
+    }
+   },
+   "start": {
+    "screenTitle": "We're here with you",
+    "title": "We're so sorry you went through this",
+    "lead": "Go on whenever you're ready. Skip anything you'd rather not answer.",
+    "question": "What happened?",
+    "types": {
+     "early_miscarriage": "Miscarriage in the first 3 months",
+     "late_miscarriage": "Miscarriage after the first 3 months",
+     "ectopic": "Ectopic pregnancy",
+     "chemical": "Chemical pregnancy or a brief positive test",
+     "unspecified": "I'd rather not say"
+    },
+    "date": "Approximate date",
+    "dateNone": "Not set",
+    "dateSheet": "Approximate date",
+    "dateClear": "No date",
+    "dateFuture": "This date can't be in the future.",
+    "dateTooOld": "Please pick a date within the past year.",
+    "stopTitle": "Stop pregnancy content and reminders",
+    "stopSub": "You won't see pregnancy weeks or baby growth any more",
+    "stopFixed": "This is always on",
+    "companionTitle": "Let my companion know too",
+    "companionSub": "Only that the pregnancy is not continuing",
+    "companionSent": "Your companion has been told",
+    "saving": "Saving"
+   },
+   "care": {
+    "title": "Taking care of yourself",
+    "warnTitle": "Get help right away for these signs",
+    "warnFallback": "Very heavy bleeding, a fever, severe pain in the abdomen, dizziness or fainting, or foul-smelling discharge.",
+    "call": "Call {name}",
+    "callFallback": "Emergency {number}",
+    "physical": "Physical follow-up",
+    "bleeding": {
+     "title": "Bleeding today",
+     "sub": "Log it every day until it stops",
+     "action": "Log",
+     "notLogged": "Not logged today",
+     "levels": {
+      "spotting": "Spotting",
+      "light": "Light",
+      "medium": "Medium",
+      "heavy": "Heavy",
+      "very_heavy": "Very heavy"
+     },
+     "stopped": "Stopped · {date}",
+     "sheetTitle": "Bleeding",
+     "sheetBody": "Log the bleeding each day in your daily log until it stops. When it has stopped, mark it here.",
+     "logToday": "Log today's bleeding",
+     "markStopped": "The bleeding has stopped",
+     "markOngoing": "It's still going on"
+    },
+    "beta": {
+     "title": "Beta hCG test until negative",
+     "sub": "Plan the repeat tests with your doctor",
+     "next": "Next: {date}",
+     "negative": "Negative · {date}",
+     "action": "Remind me",
+     "sheetTitle": "Next beta test",
+     "sheetBody": "Pick the day of your next test and we'll remind you the day before.",
+     "setReminder": "Save reminder",
+     "clearReminder": "Remove reminder",
+     "markNegative": "The result was negative",
+     "datePast": "Please pick today or a later day."
+    },
+    "visit": {
+     "title": "Follow-up visit",
+     "sub": "Book one for about 2 weeks later",
+     "suggested": "Suggested: around {date}",
+     "booked": "{date} · {time}",
+     "action": "Book",
+     "change": "Change",
+     "sheetTitle": "Follow-up visit",
+     "sheetBody": "Add the day and time of your appointment. Only you can see it.",
+     "time": "Time",
+     "save": "Save appointment",
+     "clear": "Remove appointment",
+     "pickTime": "Pick a time.",
+     "timePast": "Please pick a time that hasn't passed yet."
+    },
+    "done": "Done",
+    "feelings": "How you feel",
+    "moodQuestion": "How are you today?",
+    "moods": {
+     "sad": "Sad",
+     "numb": "Numb",
+     "angry": "Angry",
+     "a_bit_better": "A bit better"
+    },
+    "moodSupport": "Sadness, guilt or numbness after a pregnancy loss is natural, and it is not your fault.",
+    "moodSaved": "Saved",
+    "note": {
+     "title": "Private note",
+     "sub": "A place to write, just for you",
+     "saved": "You have a note · just for you",
+     "sheetTitle": "Private note",
+     "label": "Note",
+     "placeholder": "Write whatever you'd like…",
+     "privacy": "It's stored encrypted and no one but you can see it, not even your companion.",
+     "save": "Save note",
+     "delete": "Delete note",
+     "unavailable": "Private notes aren't available right now. Please try again a little later.",
+     "unreadable": "This note can't be opened any more. You can delete it and write a new one.",
+     "tooLong": "A note can be up to {max} characters."
+    },
+    "crisisFallback": "If the sadness feels too heavy or you are thinking about hurting yourself, call the 1480 counselling line or the 123 social emergency line right now.",
+    "crisisTitle": "If things feel too heavy",
+    "hotlines": "Helplines",
+    "hotlineFallback": "Call"
+   },
+   "next": {
+    "screenTitle": "Whenever you're ready",
+    "title": "From here on",
+    "lead": "There's no rush. You can change this in settings any time.",
+    "steps": {
+     "cycle": {
+      "title": "Just track my cycle for now",
+      "body": "The first period usually comes 4 to 6 weeks later"
+     },
+     "ttc": {
+      "title": "Try to conceive again",
+      "body": "Agree on the right time with your doctor"
+     },
+     "nothing": {
+      "title": "Nothing for now",
+      "body": "Only the medical follow-up reminders stay"
+     }
+    },
+    "recurrentFallback": "If this was a second or third loss, talk with your doctor about tests to look for a cause.",
+    "pick": "Pick one.",
+    "save": "Save"
+   }
+  },
   "me": {
    "title": "Me",
    "settings": "Settings",

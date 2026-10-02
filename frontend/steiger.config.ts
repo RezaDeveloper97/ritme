@@ -301,4 +301,10 @@ export default defineConfig([
     files: ['./src/entities/ivf/**'],
     rules: { 'fsd/insignificant-slice': 'off' },
   },
+  {
+    // CB-LOSS-02: `entities/loss` (the CB-LOSS-01 API) is consumed by screens/loss-start, -care and -next —
+    // references FROM `screens` are invisible to steiger.
+    files: ['./src/entities/loss/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
 ]);

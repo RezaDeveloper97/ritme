@@ -20,6 +20,7 @@ import type enLogCustomize from '../messages/en/log-customize.json';
 import type enLogSheet from '../messages/en/log-sheet.json';
 import type enVoiceLog from '../messages/en/voice-log.json';
 import type enLogTaxonomy from '../messages/en/log-taxonomy.json';
+import type enLoss from '../messages/en/loss.json';
 import type enMe from '../messages/en/me.json';
 import type enIvf from '../messages/en/ivf.json'; // CB-IVF-02
 import type enMenopause from '../messages/en/menopause.json';
@@ -62,6 +63,7 @@ type Messages = {
   pregnancyV2: typeof enPregnancyV2;
   postpartum: typeof enPostpartum;
   pwa: typeof enPwa;
+  loss: typeof enLoss;
   me: typeof enMe;
   menopause: typeof enMenopause;
   ivf: typeof enIvf;

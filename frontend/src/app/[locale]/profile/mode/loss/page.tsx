@@ -1,20 +1,15 @@
-import { setRequestLocale } from 'next-intl/server';
-
-import { PregnancyLossPage } from '@/screens/mode';
-
-import { RouteMessages } from '../../../../RouteMessages';
+import { redirect } from 'next/navigation';
 
 interface Props {
   params: Promise<{ locale: string }>;
 }
 
-/** `/profile/mode/loss` — the calm pregnancy exit (B-N2-03; CB-LOSS-02 later moves it to `/loss`). */
+/**
+ * `/profile/mode/loss` — bloom's calm pregnancy exit (B-N2-03) now opens the
+ * full loss path (CB-LOSS-02) instead of a second, shorter exit; kept as a
+ * redirect so an old link still lands on `/loss`.
+ */
 export default async function ProfileModeLossRoute({ params }: Props) {
   const { locale } = await params;
-  setRequestLocale(locale);
-  return (
-    <RouteMessages route="profileModeLoss">
-      <PregnancyLossPage />
-    </RouteMessages>
-  );
+  redirect(`/${locale}/loss`);
 }

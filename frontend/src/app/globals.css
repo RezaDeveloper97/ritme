@@ -8938,3 +8938,81 @@ button.ch-log-row { width: 100%; background: none; border: 0; font-family: inher
 .ivf-action svg { color: var(--brand); }
 .ivf-action:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 /* ═══ end CB-IVF-02 ═══ */
+
+/* ═══ CB-LOSS-02 · loss path: start / care / next (nbl_Loss_*, screens/loss-start `lst-`, loss-care `lsc-`, loss-next `lnx-`) ═══ */
+.lst-page, .lsc-page, .lnx-page { background: var(--page); }
+.lst-scroll, .lsc-scroll, .lnx-scroll { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 16px; min-block-size: 100%; }
+.lst-scroll > :not(.nb-hdr):not(.lst-footer),
+.lsc-scroll > :not(.nb-hdr):not(.lsc-footer),
+.lnx-scroll > :not(.nb-hdr):not(.lnx-footer) { margin-inline: var(--gutter); }
+.lst-skel, .lsc-skel, .lnx-skel { display: flex; flex-direction: column; gap: 12px; }
+.lst-skel-card, .lnx-skel-card { block-size: 84px; border-radius: var(--r-card); }
+.lst-footer, .lsc-footer, .lnx-footer {
+  position: sticky; bottom: 0; z-index: 2; margin-top: auto; display: flex; flex-direction: column; gap: 8px;
+  padding: 12px var(--gutter) max(14px, env(safe-area-inset-bottom));
+  background: var(--surface-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+.lst-error, .lsc-error, .lnx-error { margin: 0; font-size: var(--fs-md); font-weight: 700; color: var(--danger-deep); }
+.lst-intro, .lnx-intro { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.lst-title, .lnx-title { margin: 0; font-size: 24px; line-height: 1.5; font-weight: 900; color: var(--text-1); }
+.lst-lead, .lnx-lead { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+
+/* Start */
+.nb-card.lst-card { display: flex; flex-direction: column; gap: 12px; padding: 16px; }
+.lst-card-title { margin: 0; font-size: 14.5px; font-weight: 800; color: var(--text-1); }
+.nb-card.lst-settings { gap: 0; padding: 4px 16px; }
+.lst-settings > * + * { border-top: 1px solid var(--line); }
+.lst-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-block-size: 64px; padding-block: 10px; }
+.lst-date { width: 100%; border: 0; background: none; font: inherit; color: inherit; text-align: start; cursor: pointer; }
+.lst-date:focus-visible { outline: none; box-shadow: var(--ring); border-radius: 12px; }
+.lst-row-label { font-size: 13px; font-weight: 700; color: var(--text-2); }
+.lst-date-value { font-size: 14.5px; font-weight: 800; color: var(--text-1); }
+.lst-row-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.lst-row-title { font-size: 13.5px; font-weight: 800; color: var(--text-1); }
+.lst-row-sub { font-size: var(--fs-sm); font-weight: 600; color: var(--text-2); }
+/* The stop-content switch is a fixed ON state (CB-LOSS-01 always stops), not a dimmed control. */
+.nb-switch.lst-fixed:disabled { opacity: 1; }
+.lst-sheet-btns { display: flex; gap: 10px; }
+.lst-sheet-btns > * { flex: 1 1 0; }
+
+/* Care */
+.lsc-danger-body { margin: 0; }
+.nb-btn.is-primary.lsc-call { gap: 8px; background: var(--danger); color: var(--on-danger); box-shadow: none; text-decoration: none; }
+.lsc-sec { display: flex; flex-direction: column; gap: 10px; }
+.lsc-sec-title { margin: 0; font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); }
+.lsc-link {
+  flex-shrink: 0; min-block-size: 44px; padding-inline: 8px; border: 0; background: none; cursor: pointer;
+  font: inherit; font-size: 13px; font-weight: 800; color: var(--brand-strong);
+}
+.lsc-pill {
+  flex-shrink: 0; min-block-size: 36px; padding-inline: 12px; border-radius: var(--r-pill); cursor: pointer;
+  border: 1px solid var(--line); background: var(--surface); color: var(--text-1);
+  font: inherit; font-size: 12px; font-weight: 800;
+}
+.lsc-pill.is-brand { border-color: var(--brand); color: var(--brand-strong); }
+.lsc-link:focus-visible, .lsc-pill:focus-visible { outline: none; box-shadow: var(--ring); border-radius: var(--r-pill); }
+.lsc-done { display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; font-size: 12px; font-weight: 800; color: var(--text-2); }
+.nb-card.lsc-mood { display: flex; flex-direction: column; gap: 12px; padding: 16px; }
+.lsc-mood-q { margin: 0; font-size: 14px; font-weight: 800; color: var(--text-1); }
+.lsc-mood-note { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+.lsc-status { margin: 0; font-size: var(--fs-sm); font-weight: 700; color: var(--text-3); }
+.lsc-status:empty { display: none; }
+.nb-urgent.is-note.lsc-crisis { background: transparent; border-color: transparent; padding-inline: 4px; }
+.lsc-sheet { display: flex; flex-direction: column; gap: 12px; }
+.lsc-sheet-body { margin: 0; font-size: 13px; font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+.lsc-sheet-hint { margin: 0; font-size: var(--fs-sm); font-weight: 600; line-height: 1.8; color: var(--text-3); }
+.lsc-sheet-label { margin: 0; font-size: 13px; font-weight: 800; color: var(--text-1); }
+.lsc-sheet-actions { display: flex; flex-direction: column; gap: 4px; }
+.lsc-sheet-btns { display: flex; gap: 10px; }
+.lsc-sheet-btns > * { flex: 1 1 0; }
+.lsc-times .nb-chip { font-variant-numeric: tabular-nums; }
+.lsc-note {
+  width: 100%; min-height: 180px; resize: vertical; border-radius: 20px; border: 1px solid var(--line);
+  background: var(--surface-2); padding: 14px 16px; text-align: start;
+  font-family: inherit; font-size: var(--fs-base); line-height: 1.9; color: var(--text-1); outline: none;
+}
+.lsc-note:focus-visible { box-shadow: var(--ring); }
+
+/* Next */
+.lnx-note { margin-top: 4px; }
+/* ═══ end CB-LOSS-02 ═══ */

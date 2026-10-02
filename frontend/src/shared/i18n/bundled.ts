@@ -22,6 +22,7 @@ import enLogCustomize from '../../../messages/en/log-customize.json';
 import enLogSheet from '../../../messages/en/log-sheet.json';
 import enVoiceLog from '../../../messages/en/voice-log.json';
 import enLogTaxonomy from '../../../messages/en/log-taxonomy.json';
+import enLoss from '../../../messages/en/loss.json';
 import enMe from '../../../messages/en/me.json';
 import enIvf from '../../../messages/en/ivf.json'; // CB-IVF-02
 import enMenopause from '../../../messages/en/menopause.json';
@@ -66,6 +67,7 @@ import faLogCustomize from '../../../messages/fa/log-customize.json';
 import faLogSheet from '../../../messages/fa/log-sheet.json';
 import faVoiceLog from '../../../messages/fa/voice-log.json';
 import faLogTaxonomy from '../../../messages/fa/log-taxonomy.json';
+import faLoss from '../../../messages/fa/loss.json';
 import faMe from '../../../messages/fa/me.json';
 import faIvf from '../../../messages/fa/ivf.json'; // CB-IVF-02
 import faMenopause from '../../../messages/fa/menopause.json';
@@ -138,6 +140,7 @@ const bundled = {
     pregnancy: faPregnancy,
     pregnancyV2: faPregnancyV2,
     postpartum: faPostpartum,
+    loss: faLoss,
     me: faMe,
     menopause: faMenopause,
     ivf: faIvf,
@@ -184,6 +187,7 @@ const bundled = {
     pregnancy: enPregnancy,
     pregnancyV2: enPregnancyV2,
     postpartum: enPostpartum,
+    loss: enLoss,
     me: enMe,
     menopause: enMenopause,
     ivf: enIvf,

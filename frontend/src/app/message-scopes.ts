@@ -70,7 +70,6 @@ export const ROUTE_NAMESPACES = {
   profileAbout: ['common', 'me'], // B-N1-12 /profile/about
   profileLegal: ['common', 'me'], // B-N1-12 /profile/legal
   profileMode: ['common', 'contraception', 'me'], // B-N2-03 /profile/mode (copy under me.mode; CB-CONTRA-02 manage row)
-  profileModeLoss: ['common', 'contraception', 'me'], // B-N2-03 /profile/mode/loss (same screen slice as /profile/mode)
   plusPaywall: ['common', 'nav', 'plus'], // B-N2-07 /plus (teen guard reads widgets/bottom-nav)
   plusPlans: ['common', 'nav', 'plus'], // B-N2-07 /plus/plans
   plusCheckout: ['common', 'nav', 'plus'], // B-N2-07 /plus/checkout
@@ -104,6 +103,9 @@ export const ROUTE_NAMESPACES = {
   postpartumRecovery: ['common', 'postpartum'], // B-N5-04 /postpartum/recovery (v15_Recovery, back header)
   postpartumMood: ['common', 'postpartum'], // B-N5-04 /postpartum/mood (v15_MoodCheck, EPDS + safety)
   ivf: ['common', 'ivf', 'nav'], // CB-IVF-02 /ivf (nbl_IVF_Home, TTC IVF sub-mode home)
+  lossStart: ['common', 'companions', 'loss'], // CB-LOSS-02 /loss (Loss_Start, full screen, no nav; companions = entities/companion barrel)
+  lossCare: ['common', 'loss'], // CB-LOSS-02 /loss/care (Loss_Care; «ثبت» opens the shell's log sheet)
+  lossNext: ['common', 'loss'], // CB-LOSS-02 /loss/next (Loss_Next)
   analysis: ['analysis', 'common', 'nav', 'plus'], // B-N3-08 /analysis hub + /analysis/* stubs (one screen slice; PlusGate copy = plus.gate)
   analysisHub: ['analysis', 'analysisPregnancy', 'common', 'nav', 'plus'], // B-N3-12 /analysis itself: + the pregnancy hub (screens/analysis-pregnancy)
   analysisPregnancyWeight: ['analysisPregnancy', 'common', 'nav', 'plus'], // B-N3-12 /analysis/pregnancy-weight (An_PregWeight; the slice's hub cards carry plus.gate)
