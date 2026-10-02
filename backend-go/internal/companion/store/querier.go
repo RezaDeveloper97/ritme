@@ -23,6 +23,11 @@ type Querier interface {
 	DeleteFamilyChildren(ctx context.Context, familyID uint64) error
 	DeleteGrant(ctx context.Context, arg DeleteGrantParams) error
 	DeleteGrants(ctx context.Context, companionID uint64) error
+	// CB-LOSS-01: the one-line «بارداری ادامه ندارد» notices a link's companion got (data.event pregnancy_not_continuing)
+	// go when the link is revoked.
+	DeletePregnancyNoticesForLink(ctx context.Context, companionID int64) error
+	// CB-LOSS-01: every such notice about the owner (all her links) — her account deletion and DELETE /loss.
+	DeletePregnancyNoticesForOwner(ctx context.Context, ownerID uint64) error
 	// The viewer's level on one section of the owner's data through an active link (no row = none).
 	GetAccess(ctx context.Context, arg GetAccessParams) (GetAccessRow, error)
 	GetCompanion(ctx context.Context, id uint64) (Companion, error)

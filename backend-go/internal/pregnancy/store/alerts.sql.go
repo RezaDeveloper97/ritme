@@ -61,6 +61,32 @@ func (q *Queries) DismissAlert(ctx context.Context, arg DismissAlertParams) erro
 	return err
 }
 
+const dismissOpenAlerts = `-- name: DismissOpenAlerts :execrows
+UPDATE ` + "`" + `pregnancy_alerts` + "`" + `
+SET is_read = 1, read_at = COALESCE(read_at, ?), is_dismissed = 1, dismissed_at = ?,
+    updated_at = ?
+WHERE user_id = ? AND is_dismissed = 0
+`
+
+type DismissOpenAlertsParams struct {
+	Now    sql.NullTime
+	UserID uint64
+}
+
+// A pregnancy loss (CB-LOSS-01) closes every open alert (v1 and v2): none may resurface as a badge or nudge.
+func (q *Queries) DismissOpenAlerts(ctx context.Context, arg DismissOpenAlertsParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, dismissOpenAlerts,
+		arg.Now,
+		arg.Now,
+		arg.Now,
+		arg.UserID,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
 const getAlert = `-- name: GetAlert :one
 SELECT id, user_id, alert_level, alert_type, title, message, pregnancy_week, trigger_symptoms, medical_history_flags, is_read, is_dismissed, read_at, dismissed_at, recommended_actions, created_at, updated_at FROM ` + "`" + `pregnancy_alerts` + "`" + ` WHERE user_id = ? AND id = ? LIMIT 1
 `

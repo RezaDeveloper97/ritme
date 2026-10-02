@@ -1,0 +1,83 @@
+{
+  "case": "loss/record_minimal.none",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/loss",
+        "persona": "ttc",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "ثبت شد. محتوا و یادآورهای بارداری متوقف شد.",
+        "data": {
+          "loss": {
+            "id": 1,
+            "type": "unspecified",
+            "occurred_on": null,
+            "notify_companion": false,
+            "companion_notified": false,
+            "content_stopped": true,
+            "next_step": null,
+            "created_at": "2026-09-23T10:00:00+03:30"
+          },
+          "losses_count": 1,
+          "recurrent_hint": false,
+          "followup": {
+            "bleeding": {
+              "stopped": false,
+              "stopped_on": null,
+              "today": null
+            },
+            "beta": {
+              "negative": false,
+              "negative_on": null,
+              "next_on": null,
+              "appointment": null
+            },
+            "visit": {
+              "suggested_on": "2026-10-07",
+              "appointment": null
+            }
+          },
+          "mood": {
+            "today": null,
+            "recent": []
+          },
+          "note": {
+            "has_note": false,
+            "updated_at": null
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/profile/life-stage",
+        "persona": "ttc",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "mode": "ttc",
+          "stored_mode": null,
+          "ivf_iui": false,
+          "track_contraception": false
+        }
+      }
+    }
+  ]
+}

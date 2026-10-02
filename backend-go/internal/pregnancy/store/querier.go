@@ -28,6 +28,8 @@ type Querier interface {
 	// new booking).
 	DeleteUnlinkedCareItem(ctx context.Context, id uint64) (int64, error)
 	DismissAlert(ctx context.Context, arg DismissAlertParams) error
+	// A pregnancy loss (CB-LOSS-01) closes every open alert (v1 and v2): none may resurface as a badge or nudge.
+	DismissOpenAlerts(ctx context.Context, arg DismissOpenAlertsParams) (int64, error)
 	GetAlert(ctx context.Context, arg GetAlertParams) (PregnancyAlert, error)
 	GetCareItem(ctx context.Context, id uint64) (PregnancyCareItem, error)
 	GetCareItemByKey(ctx context.Context, key string) (PregnancyCareItem, error)

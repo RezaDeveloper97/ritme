@@ -971,6 +971,38 @@ type PregnancyFetalMovement struct {
 	UpdatedAt         sql.NullTime
 }
 
+type PregnancyLoss struct {
+	ID                  uint64
+	UserID              uint64
+	LossType            string
+	OccurredOn          civildate.NullDate
+	NotifyCompanion     bool
+	CompanionNotifiedAt sql.NullTime
+	ContentStoppedAt    sql.NullTime
+	PausedReminders     db.NullRawJSON
+	BleedingStoppedOn   civildate.NullDate
+	BetaNextOn          civildate.NullDate
+	BetaNegativeOn      civildate.NullDate
+	BetaReminderID      sql.NullInt64
+	VisitReminderID     sql.NullInt64
+	NextStep            sql.NullString
+	NextStepAt          sql.NullTime
+	PrivateNote         sql.NullString
+	NoteUpdatedAt       sql.NullTime
+	CreatedAt           sql.NullTime
+	UpdatedAt           sql.NullTime
+}
+
+type PregnancyLossMood struct {
+	ID        uint64
+	UserID    uint64
+	LossID    uint64
+	LogDate   civildate.Date
+	Mood      string
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
 type PregnancyProfile struct {
 	ID                      uint64
 	UserID                  uint64

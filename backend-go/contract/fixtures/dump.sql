@@ -176,7 +176,7 @@ CREATE TABLE `catalog_items` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `catalog_items_group_code_unique` (`group`,`code`),
   KEY `catalog_items_group_is_active_sort_order_index` (`group`,`is_active`,`sort_order`)
-) ENGINE=InnoDB AUTO_INCREMENT=115 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=142 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 LOCK TABLES `catalog_items` WRITE;
@@ -295,7 +295,34 @@ INSERT INTO `catalog_items` VALUES
 (111,'ivf_guidance','tww_feelings',4,1,'[\"ttc\"]','{\"fa\":\"هر حسی داری طبیعی است\",\"en\":\"Whatever you feel is normal\"}','{\"fa\":\"هر حسی داری طبیعی است. تست خانگی زودتر از موعد می‌تواند گمراه‌کننده باشد.\",\"en\":\"Whatever you feel is normal. A home test taken too early can be misleading.\"}','{\"placement\":\"tww\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
 (112,'ivf_guidance','early_test',5,1,'[\"ttc\"]','{\"fa\":\"تست خانگی زودهنگام\",\"en\":\"Testing early at home\"}','{\"fa\":\"داروهای تریگر و پروژسترون می‌توانند جواب تست خانگی را در روزهای اول اشتباه نشان دهند؛ منتظر آزمایش خون بتا بمان.\",\"en\":\"Trigger and progesterone medicines can make an early home test misleading; wait for the beta blood test.\"}','{\"placement\":\"tww\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
 (113,'ivf_danger_signs','ohss',1,1,'[\"ttc\"]','{\"fa\":\"اگر این‌ها را داشتی فوراً به پزشک خبر بده\",\"en\":\"Tell your doctor straight away if you have\"}','{\"fa\":\"نفخ شدید و سریع شکم، تنگی نفس، کم شدن ادرار، درد شدید شکم، یا خونریزی زیاد.\",\"en\":\"Severe or fast-growing bloating, shortness of breath, passing much less urine, severe tummy pain, or heavy bleeding.\"}','{\"severity\":\"urgent\",\"placement\":[\"home\",\"tww\"],\"hotlines\":[\"115\"]}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
-(114,'ivf_danger_signs','fever_after_procedure',2,1,'[\"ttc\"]','{\"fa\":\"تب بعد از تخمک‌کشی یا انتقال\",\"en\":\"Fever after retrieval or transfer\"}','{\"fa\":\"تب، لرز یا ترشح بدبو بعد از تخمک‌کشی یا انتقال جنین را همان روز به کلینیک بگو.\",\"en\":\"Report a fever, chills or smelly discharge after the retrieval or transfer to your clinic the same day.\"}','{\"severity\":\"urgent\",\"placement\":[\"home\",\"tww\"],\"hotlines\":[\"115\"]}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00');
+(114,'ivf_danger_signs','fever_after_procedure',2,1,'[\"ttc\"]','{\"fa\":\"تب بعد از تخمک‌کشی یا انتقال\",\"en\":\"Fever after retrieval or transfer\"}','{\"fa\":\"تب، لرز یا ترشح بدبو بعد از تخمک‌کشی یا انتقال جنین را همان روز به کلینیک بگو.\",\"en\":\"Report a fever, chills or smelly discharge after the retrieval or transfer to your clinic the same day.\"}','{\"severity\":\"urgent\",\"placement\":[\"home\",\"tww\"],\"hotlines\":[\"115\"]}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(115,'loss_types','early_miscarriage',1,1,NULL,'{\"fa\":\"سقط در ۳ ماه اول\",\"en\":\"Miscarriage in the first 3 months\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(116,'loss_types','late_miscarriage',2,1,NULL,'{\"fa\":\"سقط بعد از ۳ ماه اول\",\"en\":\"Miscarriage after the first 3 months\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(117,'loss_types','ectopic',3,1,NULL,'{\"fa\":\"حاملگی خارج از رحم\",\"en\":\"Ectopic pregnancy\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(118,'loss_types','chemical',4,1,NULL,'{\"fa\":\"بارداری شیمیایی یا تست مثبت کوتاه\",\"en\":\"Chemical pregnancy or a brief positive test\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(119,'loss_types','unspecified',5,1,NULL,'{\"fa\":\"ترجیح می‌دهم نگویم\",\"en\":\"I\'d rather not say\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(120,'loss_warning_signs','heavy_bleeding',1,1,NULL,'{\"fa\":\"خونریزی خیلی زیاد\",\"en\":\"Very heavy bleeding\"}','{\"fa\":\"پر شدن ۲ نوار در ساعت، ۲ ساعت پشت سر هم\",\"en\":\"Soaking 2 pads an hour, 2 hours in a row\"}','{\"severity\":\"urgent\",\"hotline\":\"115\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(121,'loss_warning_signs','fever',2,1,NULL,'{\"fa\":\"تب ۳۸ درجه یا بیشتر\",\"en\":\"A fever of 38 °C or higher\"}',NULL,'{\"severity\":\"urgent\",\"hotline\":\"115\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(122,'loss_warning_signs','severe_pain',3,1,NULL,'{\"fa\":\"درد شدید شکم\",\"en\":\"Severe pain in the abdomen\"}',NULL,'{\"severity\":\"urgent\",\"hotline\":\"115\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(123,'loss_warning_signs','dizziness_fainting',4,1,NULL,'{\"fa\":\"سرگیجه یا غش\",\"en\":\"Dizziness or fainting\"}',NULL,'{\"severity\":\"urgent\",\"hotline\":\"115\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(124,'loss_warning_signs','foul_discharge',5,1,NULL,'{\"fa\":\"ترشح بدبو\",\"en\":\"Foul-smelling discharge\"}',NULL,'{\"severity\":\"urgent\",\"hotline\":\"115\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(125,'loss_hotlines','emergency',1,1,NULL,'{\"fa\":\"اورژانس ۱۱۵\",\"en\":\"Emergency 115\"}','{\"fa\":\"برای علائم خطر جسمی، همین حالا تماس بگیر\",\"en\":\"For any of the warning signs, call now\"}','{\"number\":\"115\",\"kind\":\"medical\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(126,'loss_hotlines','counselling',2,1,NULL,'{\"fa\":\"صدای مشاور ۱۴۸۰\",\"en\":\"Counselling line 1480\"}','{\"fa\":\"مشاوره تلفنی برای وقتی که حالت سنگین است\",\"en\":\"Phone counselling for when things feel heavy\"}','{\"number\":\"1480\",\"kind\":\"mental_health\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(127,'loss_hotlines','social_emergency',3,1,NULL,'{\"fa\":\"اورژانس اجتماعی ۱۲۳\",\"en\":\"Social emergency 123\"}','{\"fa\":\"اگر به آسیب زدن به خودت فکر می‌کنی\",\"en\":\"If you are thinking about hurting yourself\"}','{\"number\":\"123\",\"kind\":\"crisis\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(128,'loss_followups','bleeding',1,1,NULL,'{\"fa\":\"خونریزی\",\"en\":\"Bleeding\"}','{\"fa\":\"ثبت روزانه تا قطع شدن\",\"en\":\"Log it every day until it stops\"}',NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(129,'loss_followups','beta',2,1,NULL,'{\"fa\":\"آزمایش بتا تا منفی شدن\",\"en\":\"Beta hCG test until negative\"}','{\"fa\":\"تکرار آزمایش را با پزشکت هماهنگ کن\",\"en\":\"Plan the repeat tests with your doctor\"}',NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(130,'loss_followups','visit',3,1,NULL,'{\"fa\":\"ویزیت پیگیری\",\"en\":\"Follow-up visit\"}','{\"fa\":\"حدود ۲ هفته بعد نوبت بگیر\",\"en\":\"Book one for about 2 weeks later\"}',NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(131,'loss_moods','sad',1,1,NULL,'{\"fa\":\"غمگین\",\"en\":\"Sad\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(132,'loss_moods','numb',2,1,NULL,'{\"fa\":\"بی‌حس\",\"en\":\"Numb\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(133,'loss_moods','angry',3,1,NULL,'{\"fa\":\"عصبانی\",\"en\":\"Angry\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(134,'loss_moods','a_bit_better',4,1,NULL,'{\"fa\":\"کمی بهتر\",\"en\":\"A bit better\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(135,'loss_support','mood_support',1,1,NULL,'{\"fa\":\"حال دلت\",\"en\":\"How you feel\"}','{\"fa\":\"غم، احساس گناه یا بی‌حسی بعد از سقط طبیعی است و تقصیر تو نیست.\",\"en\":\"Sadness, guilt or numbness after a pregnancy loss is natural, and it is not your fault.\"}',NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(136,'loss_support','crisis',2,1,NULL,'{\"fa\":\"اگر غم خیلی سنگین است\",\"en\":\"If the sadness feels too heavy\"}','{\"fa\":\"اگر غم خیلی سنگین است یا به آسیب زدن به خودت فکر می‌کنی، همین حالا با صدای مشاور ۱۴۸۰ یا اورژانس اجتماعی ۱۲۳ تماس بگیر.\",\"en\":\"If the sadness feels too heavy or you are thinking about hurting yourself, call the 1480 counselling line or the 123 social emergency line right now.\"}','{\"severity\":\"urgent\",\"hotlines\":[{\"number\":\"1480\",\"label\":{\"fa\":\"صدای مشاور\",\"en\":\"Counselling line\"}},{\"number\":\"123\",\"label\":{\"fa\":\"اورژانس اجتماعی\",\"en\":\"Social emergency\"}}]}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(137,'loss_support','recurrent_hint',3,1,NULL,'{\"fa\":\"اگر سقط دوم یا سوم بود\",\"en\":\"If this was a second or third loss\"}','{\"fa\":\"اگر سقط دوم یا سوم بود، درباره آزمایش‌های بررسی علت با پزشکت صحبت کن.\",\"en\":\"If this was a second or third loss, talk with your doctor about tests to look for a cause.\"}',NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(138,'loss_support','companion_notice',4,1,NULL,'{\"fa\":\"{name} خبر داد که بارداری ادامه ندارد.\",\"en\":\"{name} let you know that the pregnancy is not continuing.\"}',NULL,'{\"someone\":{\"fa\":\"همراهت\",\"en\":\"Your partner\"}}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(139,'loss_next_steps','cycle',1,1,NULL,'{\"fa\":\"فعلاً فقط پیگیری سیکل\",\"en\":\"Just track my cycle for now\"}','{\"fa\":\"اولین پریود معمولاً ۴ تا ۶ هفته بعد می‌آید\",\"en\":\"The first period usually comes 4 to 6 weeks later\"}','{\"life_mode\":\"cycle\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(140,'loss_next_steps','ttc',2,1,NULL,'{\"fa\":\"دوباره اقدام به بارداری\",\"en\":\"Try to conceive again\"}','{\"fa\":\"زمان مناسب را با پزشکت هماهنگ کن\",\"en\":\"Agree on the right time with your doctor\"}','{\"life_mode\":\"ttc\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(141,'loss_next_steps','nothing',3,1,NULL,'{\"fa\":\"فعلاً هیچ‌چیز\",\"en\":\"Nothing for now\"}','{\"fa\":\"فقط یادآور پیگیری‌های پزشکی می‌ماند\",\"en\":\"Only the medical follow-up reminders stay\"}','{\"life_mode\":\"cycle\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00');
 /*!40000 ALTER TABLE `catalog_items` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `challenges`;
@@ -2363,6 +2390,11 @@ CREATE TABLE `pregnancy_daily_extras` (
   CONSTRAINT `pregnancy_daily_extras_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `pregnancy_daily_extras` WRITE;
+/*!40000 ALTER TABLE `pregnancy_daily_extras` DISABLE KEYS */;
+/*!40000 ALTER TABLE `pregnancy_daily_extras` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `pregnancy_fetal_movements`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -2391,6 +2423,66 @@ INSERT INTO `pregnancy_fetal_movements` VALUES
 (101502,1015,'2026-09-22',26,'normal',10,'08:15:00','21:40:00',NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00'),
 (101503,1015,'2026-09-23',26,'reduced',3,'08:15:00','21:40:00',NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00');
 /*!40000 ALTER TABLE `pregnancy_fetal_movements` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `pregnancy_loss_moods`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `pregnancy_loss_moods` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `loss_id` bigint(20) unsigned NOT NULL,
+  `log_date` date NOT NULL,
+  `mood` varchar(16) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `pregnancy_loss_moods_loss_id_log_date_unique` (`loss_id`,`log_date`),
+  KEY `pregnancy_loss_moods_user_id_log_date_index` (`user_id`,`log_date`),
+  CONSTRAINT `pregnancy_loss_moods_loss_id_foreign` FOREIGN KEY (`loss_id`) REFERENCES `pregnancy_losses` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `pregnancy_loss_moods_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `pregnancy_loss_moods` WRITE;
+/*!40000 ALTER TABLE `pregnancy_loss_moods` DISABLE KEYS */;
+/*!40000 ALTER TABLE `pregnancy_loss_moods` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `pregnancy_losses`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `pregnancy_losses` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `loss_type` varchar(32) NOT NULL DEFAULT 'unspecified',
+  `occurred_on` date DEFAULT NULL,
+  `notify_companion` tinyint(1) NOT NULL DEFAULT 0,
+  `companion_notified_at` timestamp NULL DEFAULT NULL,
+  `content_stopped_at` timestamp NULL DEFAULT NULL,
+  `paused_reminders` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`paused_reminders`)),
+  `bleeding_stopped_on` date DEFAULT NULL,
+  `beta_next_on` date DEFAULT NULL,
+  `beta_negative_on` date DEFAULT NULL,
+  `beta_reminder_id` bigint(20) unsigned DEFAULT NULL,
+  `visit_reminder_id` bigint(20) unsigned DEFAULT NULL,
+  `next_step` varchar(16) DEFAULT NULL,
+  `next_step_at` timestamp NULL DEFAULT NULL,
+  `private_note` text DEFAULT NULL,
+  `note_updated_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `pregnancy_losses_beta_reminder_id_foreign` (`beta_reminder_id`),
+  KEY `pregnancy_losses_visit_reminder_id_foreign` (`visit_reminder_id`),
+  KEY `pregnancy_losses_user_id_created_at_index` (`user_id`,`created_at`),
+  CONSTRAINT `pregnancy_losses_beta_reminder_id_foreign` FOREIGN KEY (`beta_reminder_id`) REFERENCES `reminders` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `pregnancy_losses_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `pregnancy_losses_visit_reminder_id_foreign` FOREIGN KEY (`visit_reminder_id`) REFERENCES `reminders` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `pregnancy_losses` WRITE;
+/*!40000 ALTER TABLE `pregnancy_losses` DISABLE KEYS */;
+/*!40000 ALTER TABLE `pregnancy_losses` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `pregnancy_profiles`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

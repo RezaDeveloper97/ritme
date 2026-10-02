@@ -675,3 +675,22 @@ func (h *OnboardingHandlers) UpdateLifeStage(c fiber.Ctx) error {
 	}
 	return httpx.OK(c, LifeStageJSON(st), OT("messages.life_stage_saved", locale))
 }
+
+// SwitchLifeMode stores mode as u's life-stage mode the way PUT /profile/life-stage {mode} does (user_goal and
+// pregnancy_intention kept in step), for another domain acting on the user's behalf — the pregnancy loss path
+// (CB-LOSS-01) leaves pregnancy for cycle and applies the chosen next step. A companion account is left alone.
+func (h *OnboardingHandlers) SwitchLifeMode(ctx context.Context, u *auth.User, mode enums.LifeMode, now time.Time) error {
+	st, err := h.load(ctx, u.ID)
+	if err != nil {
+		return err
+	}
+	if st.mode() == enums.LifeModeCompanion {
+		return nil
+	}
+	l := st.lifeRow(u.ID)
+	l.LifeMode = sql.NullString{String: string(mode), Valid: true}
+	if err := h.syncLegacyGoal(ctx, u, st, mode, now); err != nil {
+		return err
+	}
+	return h.save(ctx, l, now)
+}

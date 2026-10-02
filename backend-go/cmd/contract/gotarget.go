@@ -199,6 +199,9 @@ func (g *GoServer) startServer(ctx context.Context, cfg *mysql.Config) error {
 		"REDIS_HOST": redisHost, "REDIS_PORT": redisPort, "REDIS_PASSWORD": "", "REDIS_PREFIX": g.redisPrefix(),
 		"STORAGE_PATH": storage, "SMS_PROVIDER": "log", "QUEUE_CONNECTION": "sync",
 		"TELEGRAM_BOT_TOKEN": "", "TELEGRAM_CHAT_ID": "",
+		// Contract-only private-note key (base64 of "contract-only-note-key-not-secret"[:32]); APP_ENV=contract gets no
+		// development key, and the loss note goldens need the routes up. Never a real secret.
+		"PRIVATE_NOTE_KEY": "Y29udHJhY3Qtb25seS1ub3RlLWtleS1ub3Qtc2VjcmU=",
 	}
 	g.logPath = filepath.Join(g.workDir, "api.log")
 	logFile, err := os.Create(g.logPath)

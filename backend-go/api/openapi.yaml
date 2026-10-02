@@ -41,6 +41,7 @@ tags:
   - {name: Conditions, description: "Condition programs (Go only): enrolment (endometriosis, PMDD, heavy bleeding, PCOS), pain diary on the log taxonomy, PMDD questionnaire + cycle chart, PBAC pad chart"}
   - {name: Menopause, description: "Menopause mode (Go only, CB-MENO-02): stage profile on bloom's life profile, home read model, hot-flash timer, monthly symptom score with domains and deltas, patterns in her own logs (not a diagnosis)"}
   - {name: Postpartum, description: "Postpartum mode (Go only, bloom B-N5-01): activation from pregnancy or directly, time since the birth, the recovery log on log taxonomy v2, EPDS mood checks (weekly EPDS-3, full every two weeks) with the urgent safety path (item 10 > 0 or total ≥ 13 → call 115 / 123 / 1480). EPDS answers are never logged or shared"}
+  - {name: Loss, description: "Pregnancy loss path (Go only, CB-LOSS-01): record a loss (stops pregnancy content durably), physical follow-up as care appointments, mood check-ins, an encrypted private note, the next step. Owner-only; a companion gets one line at most"}
   - {name: Plus, description: "Ritme Plus (Go only): plans, trial, checkout through the payment port, verify, cancel, restore, history, entitlements and usage. Amounts are integer rials"}
   - {name: Payments, description: "Payment gateway adapter (Go only): browser return hop and the fake provider's TEST page. PAYMENT_PROVIDER = fake (default outside production) | zarinpal | none. Café Bazaar / Myket billing is Android-only and out of scope"}
   - {name: Companion, description: "Companion «همدم» & family (Go only, B-N4-02): owner invites (SMS adapter or shared code), access per section, revoke, audit trail; companion accept, links, leave and the access-filtered section reads. «ثبت برای …» = `for_user_id` on the care routes"}
@@ -4299,6 +4300,289 @@ paths:
                   data: {$ref: "#/components/schemas/IvfTwwView"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '422': {$ref: "#/components/responses/IvfValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/loss:
+    get:
+      tags: [Loss]
+      summary: The newest pregnancy loss with its follow-up, moods and note flag
+      description: |
+        The caller's newest recorded loss (CB-LOSS-01, boards nbl_Loss_Care / nbl_Loss_Next) — codes and dates only;
+        every label comes from the catalog (`loss_types`, `loss_followups`, `loss_moods`, `loss_support`,
+        `loss_next_steps`, `loss_warning_signs`, `loss_hotlines` via `GET /catalog/{group}`). `followup.bleeding.today`
+        is today's bleeding from the day log (`/logs/days`); `followup.visit.suggested_on` = loss date (else the record
+        day) + 14 days; the dated follow-ups are M3 care appointments (shown while scheduled). `recurrent_hint` is true
+        from the second recorded loss (`loss_support/recurrent_hint`). Without a loss every key is null and
+        `losses_count` is 0. Only the caller's own data; never shared with a companion.
+      operationId: getLoss
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The loss state
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/LossState"}
+              example:
+                success: true
+                data: {loss: null, losses_count: 0, recurrent_hint: false, followup: null, mood: null, note: null}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+    post:
+      tags: [Loss]
+      summary: Record a pregnancy loss and stop pregnancy content
+      description: |
+        Board nbl_Loss_Start. Every field is optional («هر چیزی را که نمی‌خواهی جواب نده»): `type` defaults to
+        `unspecified`, `occurred_on` is approximate (not in the future, within the past year). In one transaction:
+        pregnancy mode goes off (as `POST /pregnancy/deactivate`) so home, Today, weeks, calendar, day log, analysis,
+        the daily messages and the companion pregnancy views stop; every open pregnancy alert is closed; medications
+        «تا پایان بارداری» are switched off and upcoming pregnancy visits cancelled (ids kept on the loss). Then the
+        life-stage mode leaves pregnancy (→ cycle). With `notify_companion`, each active companion holding the
+        pregnancy grant gets one inbox line (`loss_support/companion_notice`) — no type, date or follow-up — once per
+        loss. A second POST the same Tehran day corrects that record (200) instead of recording another loss (201);
+        concurrent POSTs are serialised per user. A new loss on a later day clears the earlier record's private note.
+      operationId: storeLoss
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type: {type: [string, "null"], enum: [early_miscarriage, late_miscarriage, ectopic, chemical, unspecified, null]}
+                occurred_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+                notify_companion: {type: boolean}
+            example: {type: early_miscarriage, occurred_on: "2026-09-20", notify_companion: true}
+      responses:
+        '201':
+          description: Recorded; the loss state
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/LossStateEnvelope"}
+        '200':
+          description: Today's record corrected; the loss state
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/LossStateEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/LossValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+    delete:
+      tags: [Loss]
+      summary: Erase the newest loss record
+      description: |
+        Erases the caller's newest loss with its mood check-ins and encrypted note, and removes the one-line notices
+        her companions got. Pregnancy content stays stopped (pregnancy mode stays off, closed alerts and paused
+        reminders stay as they are; a forced pregnancy message mode keys on the ended pregnancy, not on this record).
+        Her private follow-up appointments stay in her own care list. Answers the remaining state (an earlier loss,
+        else all null).
+      operationId: destroyLoss
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Erased; the remaining loss state
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/LossStateEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/LossNotFound"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/loss/followup:
+    put:
+      tags: [Loss]
+      summary: Update the physical follow-up
+      description: |
+        Board nbl_Loss_Care «پیگیری جسمی», on the newest loss; every key optional, null clears. `bleeding_stopped`
+        (true = stopped today); `beta_next_on` (today or later) creates or moves a care appointment (topic `lab`, 09:00,
+        neutral title «آزمایش» / "Lab test"), null cancels it; `beta_negative` (true = negative today, clears the next test and
+        cancels its upcoming appointment); `visit_at` (`Y-m-d H:i[:s]`, not past) creates or moves the visit appointment
+        (topic `checkup`, «ویزیت پزشک» / "Doctor visit"), null cancels it. The user's own edits of those appointments are
+        kept. Both are private (`meta.private`): never shown to a companion — not in the shared appointments section,
+        the companion home or «ثبت برای …» show / update (404).
+      operationId: updateLossFollowup
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bleeding_stopped: {type: boolean}
+                beta_next_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+                beta_negative: {type: boolean}
+                visit_at: {type: [string, "null"], examples: ["2026-10-07 11:30"]}
+            example: {beta_next_on: "2026-09-30", visit_at: "2026-10-07 11:30"}
+      responses:
+        '200':
+          description: Saved; the loss state
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/LossStateEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/LossNotFound"}
+        '422': {$ref: "#/components/responses/LossValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/loss/moods:
+    post:
+      tags: [Loss]
+      summary: Record today's mood check-in
+      description: "«امروز چطوری؟» on the newest loss: one per day (the last answer wins); `date` defaults to today (not in the future, within the last 14 days)."
+      operationId: storeLossMood
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [mood]
+              properties:
+                mood: {type: string, enum: [sad, numb, angry, a_bit_better]}
+                date: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+            example: {mood: numb}
+      responses:
+        '200':
+          description: Saved; the loss state
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/LossStateEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/LossNotFound"}
+        '422': {$ref: "#/components/responses/LossValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/loss/note:
+    get:
+      tags: [Loss]
+      summary: The private note
+      description: "«یادداشت خصوصی» of the newest loss, decrypted for its owner only (AES-256-GCM at rest with PRIVATE_NOTE_KEY, stored as `v1:<key id>:…` and bound to the user and the record; PRIVATE_NOTE_KEY_PREVIOUS still opens older notes). Never shared. 503 `note_unavailable` without a key outside local / testing; 409 `note_unreadable` when no configured key opens it."
+      operationId: getLossNote
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The note (null when none)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/LossNote"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/LossNotFound"}
+        '409': {$ref: "#/components/responses/LossNoteUnreadable"}
+        '503': {$ref: "#/components/responses/LossNoteUnavailable"}
+    put:
+      tags: [Loss]
+      summary: Write or clear the private note
+      description: "`note` is required as a key: a string up to 5000 characters, trimmed; null or blank clears it."
+      operationId: updateLossNote
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [note]
+              properties:
+                note: {type: [string, "null"], maxLength: 5000}
+            example: {note: "..."}
+      responses:
+        '200':
+          description: Saved (or cleared); the note
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/LossNote"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/LossNotFound"}
+        '422': {$ref: "#/components/responses/LossValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+        '503': {$ref: "#/components/responses/LossNoteUnavailable"}
+    delete:
+      tags: [Loss]
+      summary: Erase the private note
+      description: "Erases the newest loss's private note. Works while notes are switched off and for a note that no longer decrypts (nothing is decrypted)."
+      operationId: destroyLossNote
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Erased; the (empty) note
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/LossNote"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/LossNotFound"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/loss/next-step:
+    put:
+      tags: [Loss]
+      summary: Choose the next step
+      description: "Board nbl_Loss_Next: `cycle` (life-stage mode cycle), `ttc` (mode ttc) or `nothing` (mode cycle; only the medical follow-up reminders remain). Copy: catalog `loss_next_steps` (meta `life_mode`). Never re-opens pregnancy content; changeable later in settings."
+      operationId: updateLossNextStep
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [choice]
+              properties:
+                choice: {type: string, enum: [cycle, ttc, nothing]}
+            example: {choice: cycle}
+      responses:
+        '200':
+          description: Saved; the loss state
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/LossStateEnvelope"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/LossNotFound"}
+        '422': {$ref: "#/components/responses/LossValidationFailed"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/conditions:
     get:
@@ -13853,6 +14137,57 @@ components:
             success: false
             message: اطلاعات واردشده نامعتبر است
             errors: {program: [اول به این برنامه بپیوند.]}
+    LossValidationFailed:
+      description: "Loss-path validation failed (controller 422 `{success: false, message, errors}`, message and field errors in the request language)."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, errors]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              errors:
+                type: object
+                additionalProperties: {type: array, items: {type: string}}
+          example:
+            success: false
+            message: لطفاً موارد مشخص‌شده را بررسی کن
+            errors: {occurred_on: [این تاریخ نمی‌تواند در آینده باشد.]}
+    LossNotFound:
+      description: "No loss recorded for the caller (another user's record is never reachable)."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, const: loss_not_found}
+          example: {success: false, message: هنوز چیزی اینجا نیست., error_code: loss_not_found}
+    LossNoteUnreadable:
+      description: "The stored note does not decrypt with any configured key (PRIVATE_NOTE_KEY / PRIVATE_NOTE_KEY_PREVIOUS); she may delete it."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, const: note_unreadable}
+    LossNoteUnavailable:
+      description: "Private notes are switched off (PRIVATE_NOTE_KEY unset outside a local / testing environment)."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, const: note_unavailable}
     MenopauseValidationFailed:
       description: "Menopause validation failed (controller 422 `{success: false, message, errors}`, message and field errors in the request language)."
       content:
@@ -15472,6 +15807,91 @@ components:
           type: array
           items: {type: string, enum: [burning, frequency, cloudy_odor]}
         uti_alert: {type: boolean, description: "Any UTI symptom logged → show the `pelvic_alerts` / `uti_warning` catalog item"}
+    LossStateEnvelope:
+      type: object
+      required: [success, message, data]
+      properties:
+        success: {type: boolean}
+        message: {type: string}
+        data: {$ref: "#/components/schemas/LossState"}
+    LossState:
+      type: object
+      description: "GET /loss (CB-LOSS-01). Codes and dates only; labels are catalog content. All null without a recorded loss."
+      required: [loss, losses_count, recurrent_hint, followup, mood, note]
+      properties:
+        loss:
+          oneOf:
+            - {type: "null"}
+            - type: object
+              required: [id, type, occurred_on, notify_companion, companion_notified, content_stopped, next_step, created_at]
+              properties:
+                id: {type: integer}
+                type: {type: string, enum: [early_miscarriage, late_miscarriage, ectopic, chemical, unspecified]}
+                occurred_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+                notify_companion: {type: boolean}
+                companion_notified: {type: boolean}
+                content_stopped: {type: boolean}
+                next_step: {type: [string, "null"], enum: [cycle, ttc, nothing, null]}
+                created_at: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/IsoDateTime"}]}
+        losses_count: {type: integer, minimum: 0}
+        recurrent_hint: {type: boolean, description: "true from the second recorded loss (loss_support/recurrent_hint)."}
+        followup:
+          oneOf:
+            - {type: "null"}
+            - type: object
+              required: [bleeding, beta, visit]
+              properties:
+                bleeding:
+                  type: object
+                  required: [stopped, stopped_on, today]
+                  properties:
+                    stopped: {type: boolean}
+                    stopped_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+                    today: {type: [string, "null"], description: "Today's logged bleeding: flow level (light|medium|heavy|very_heavy) or spotting."}
+                beta:
+                  type: object
+                  required: [negative, negative_on, next_on, appointment]
+                  properties:
+                    negative: {type: boolean}
+                    negative_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+                    next_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+                    appointment: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Appointment"}]}
+                visit:
+                  type: object
+                  required: [suggested_on, appointment]
+                  properties:
+                    suggested_on: {$ref: "#/components/schemas/Date"}
+                    appointment: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Appointment"}]}
+        mood:
+          oneOf:
+            - {type: "null"}
+            - type: object
+              required: [today, recent]
+              properties:
+                today: {type: [string, "null"], enum: [sad, numb, angry, a_bit_better, null]}
+                recent:
+                  type: array
+                  description: The last 14 days, newest first.
+                  items:
+                    type: object
+                    required: [date, mood]
+                    properties:
+                      date: {$ref: "#/components/schemas/Date"}
+                      mood: {type: string, enum: [sad, numb, angry, a_bit_better]}
+        note:
+          oneOf:
+            - {type: "null"}
+            - type: object
+              required: [has_note, updated_at]
+              properties:
+                has_note: {type: boolean}
+                updated_at: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/IsoDateTime"}]}
+    LossNote:
+      type: object
+      required: [note, updated_at]
+      properties:
+        note: {type: [string, "null"]}
+        updated_at: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/IsoDateTime"}]}
     ConditionsOverview:
       type: object
       required: [programs]

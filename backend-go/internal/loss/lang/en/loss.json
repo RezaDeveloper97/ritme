@@ -1,0 +1,38 @@
+{
+    "messages": {
+        "validation_failed": "Please check the highlighted fields",
+        "recorded": "Saved. Pregnancy content and reminders are stopped.",
+        "followup_saved": "Follow-up saved",
+        "mood_saved": "Saved",
+        "note_saved": "Your note is saved, only for you",
+        "note_cleared": "Your note is cleared",
+        "next_step_saved": "Saved. You can change this any time in settings.",
+        "not_found": "There is nothing here yet.",
+        "note_unavailable": "Private notes are not available right now. Please try again later.",
+        "note_unreadable": "This note can no longer be opened. You can delete it and write a new one.",
+        "erased": "Erased."
+    },
+    "appointments": {
+        "beta": "Lab test",
+        "visit": "Doctor visit"
+    },
+    "validation": {
+        "date_future": "This date cannot be in the future.",
+        "date_too_old": "Please choose a date within the past year.",
+        "date_past": "Please choose today or a later day.",
+        "datetime_past": "Please choose a time that has not passed yet."
+    },
+    "attributes": {
+        "type": "what happened",
+        "occurred_on": "date",
+        "notify_companion": "tell my companion",
+        "bleeding_stopped": "bleeding stopped",
+        "beta_next_on": "next beta test",
+        "beta_negative": "beta test negative",
+        "visit_at": "follow-up visit",
+        "mood": "mood",
+        "date": "date",
+        "note": "note",
+        "choice": "next step"
+    }
+}

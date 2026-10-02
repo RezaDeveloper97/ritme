@@ -1,0 +1,317 @@
+# Pregnancy loss path (/api/v1/loss*) — Go only (CB-LOSS-01, deviations.md D-52): there is no Laravel route, so these
+# goldens were recorded from the Go server and reviewed by hand (new-endpoint skill, step 8).
+# The fixture dump carries the pregnancy_losses / pregnancy_loss_moods tables (goose 00028 / Laravel
+# 2026_10_02_000028, no rows) and catalog_items with the rows 00028 seeds (loss_types, loss_warning_signs,
+# loss_hotlines, loss_followups, loss_moods, loss_support, loss_next_steps), timestamps pinned to the fixture's.
+# Every case runs on a fresh dump; `pregnant_lmp_w8` (1014, week 8) is the pregnant persona, `regular` (1004) has no
+# loss. The flows show the pregnancy surfaces closing after the loss (status, Today 409, messages mode, life stage).
+# Paused reminders, alerts, the companion notice and user isolation are covered by internal/loss and
+# internal/http (routes_loss_int_test.go) integration tests.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: loss
+defaults:
+  persona: regular
+  locales: [none, en]
+cases:
+  - name: show_empty
+    doc: No loss recorded — every key null
+    method: GET
+    path: /api/v1/loss
+    status: 200
+  - name: show_anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/loss
+    status: 401
+
+  - name: record_flow
+    doc: Board Loss_Start — early miscarriage on an approximate date stops pregnancy content; a same-day POST corrects it
+    persona: pregnant_lmp_w8
+    steps:
+      - method: POST
+        path: /api/v1/loss
+        body: {type: early_miscarriage, occurred_on: "2026-09-20"}
+        status: 201
+      - method: GET
+        path: /api/v1/pregnancy/status
+        status: 200
+      - method: GET
+        path: /api/v1/pregnancy/v2/today
+        status: 409
+      - method: GET
+        path: /api/v1/messages/mode
+        status: 200
+      - method: GET
+        path: /api/v1/profile/life-stage
+        status: 200
+      - method: POST
+        path: /api/v1/loss
+        body: {type: unspecified}
+        status: 200
+      - method: GET
+        path: /api/v1/loss
+        status: 200
+  - name: record_minimal
+    doc: Nothing answered («هر چیزی را که نمی‌خواهی جواب نده») — type unspecified, no date, mode untouched without a pregnancy
+    persona: ttc
+    steps:
+      - method: POST
+        path: /api/v1/loss
+        status: 201
+      - method: GET
+        path: /api/v1/profile/life-stage
+        status: 200
+  - name: record_invalid
+    method: POST
+    path: /api/v1/loss
+    body: {type: other, occurred_on: "2026-09-24", notify_companion: maybe}
+    status: 422
+  - name: record_future
+    locales: en
+    method: POST
+    path: /api/v1/loss
+    body: {occurred_on: "2026-09-24"}
+    status: 422
+  - name: record_anon
+    persona: anon
+    locales: none
+    method: POST
+    path: /api/v1/loss
+    status: 401
+
+  - name: followup_flow
+    doc: Board Loss_Care — beta next week + a visit (care appointments), then beta negative and bleeding stopped
+    persona: pregnant_lmp_w8
+    steps:
+      - method: POST
+        path: /api/v1/loss
+        body: {type: early_miscarriage}
+        status: 201
+      - method: PUT
+        path: /api/v1/loss/followup
+        body: {beta_next_on: "2026-09-30", visit_at: "2026-10-07 11:30"}
+        status: 200
+      - method: PUT
+        path: /api/v1/loss/followup
+        body: {beta_negative: true, bleeding_stopped: true}
+        status: 200
+      - method: GET
+        path: /api/v1/care/appointments
+        status: 200
+  - name: followup_invalid
+    persona: pregnant_lmp_w8
+    steps:
+      - method: POST
+        path: /api/v1/loss
+        status: 201
+      - method: PUT
+        path: /api/v1/loss/followup
+        body: {beta_next_on: "2026-09-01", visit_at: tomorrow, bleeding_stopped: x}
+        status: 422
+  - name: followup_no_loss
+    method: PUT
+    path: /api/v1/loss/followup
+    body: {bleeding_stopped: true}
+    status: 404
+  - name: followup_anon
+    persona: anon
+    locales: none
+    method: PUT
+    path: /api/v1/loss/followup
+    status: 401
+
+  - name: mood_flow
+    doc: «امروز چطوری؟» — one check-in per day, the last answer wins; yesterday's answer kept
+    persona: pregnant_lmp_w8
+    steps:
+      - method: POST
+        path: /api/v1/loss
+        status: 201
+      - method: POST
+        path: /api/v1/loss/moods
+        body: {mood: sad, date: "2026-09-22"}
+        status: 200
+      - method: POST
+        path: /api/v1/loss/moods
+        body: {mood: numb}
+        status: 200
+      - method: POST
+        path: /api/v1/loss/moods
+        body: {mood: a_bit_better}
+        status: 200
+  - name: mood_invalid
+    persona: pregnant_lmp_w8
+    steps:
+      - method: POST
+        path: /api/v1/loss
+        status: 201
+      - method: POST
+        path: /api/v1/loss/moods
+        body: {mood: happy, date: "2026-09-24"}
+        status: 422
+  - name: mood_no_loss
+    method: POST
+    path: /api/v1/loss/moods
+    body: {mood: sad}
+    status: 404
+  - name: mood_anon
+    persona: anon
+    locales: none
+    method: POST
+    path: /api/v1/loss/moods
+    status: 401
+
+  - name: note_flow
+    doc: «یادداشت خصوصی» — write, read back (decrypted for the owner only), clear
+    persona: pregnant_lmp_w8
+    steps:
+      - method: POST
+        path: /api/v1/loss
+        status: 201
+      - method: GET
+        path: /api/v1/loss/note
+        status: 200
+      - method: PUT
+        path: /api/v1/loss/note
+        body: {note: "  It was the hardest week.  "}
+        status: 200
+      - method: GET
+        path: /api/v1/loss/note
+        status: 200
+      - method: PUT
+        path: /api/v1/loss/note
+        body: {note: ~}
+        status: 200
+  - name: note_invalid
+    persona: pregnant_lmp_w8
+    steps:
+      - method: POST
+        path: /api/v1/loss
+        status: 201
+      - method: PUT
+        path: /api/v1/loss/note
+        body: {}
+        status: 422
+  - name: note_no_loss
+    method: GET
+    path: /api/v1/loss/note
+    status: 404
+  - name: note_anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/loss/note
+    status: 401
+  - name: note_put_anon
+    persona: anon
+    locales: none
+    method: PUT
+    path: /api/v1/loss/note
+    status: 401
+
+  - name: next_step_flow
+    doc: Board Loss_Next — try again (TTC mode), then «فعلاً هیچ‌چیز» (cycle); pregnancy content stays stopped
+    persona: pregnant_lmp_w8
+    steps:
+      - method: POST
+        path: /api/v1/loss
+        status: 201
+      - method: PUT
+        path: /api/v1/loss/next-step
+        body: {choice: ttc}
+        status: 200
+      - method: GET
+        path: /api/v1/profile/life-stage
+        status: 200
+      - method: PUT
+        path: /api/v1/loss/next-step
+        body: {choice: nothing}
+        status: 200
+      - method: GET
+        path: /api/v1/pregnancy/v2/today
+        status: 409
+  - name: next_step_invalid
+    persona: pregnant_lmp_w8
+    steps:
+      - method: POST
+        path: /api/v1/loss
+        status: 201
+      - method: PUT
+        path: /api/v1/loss/next-step
+        body: {choice: pregnancy}
+        status: 422
+  - name: next_step_no_loss
+    method: PUT
+    path: /api/v1/loss/next-step
+    body: {choice: cycle}
+    status: 404
+  - name: next_step_anon
+    persona: anon
+    locales: none
+    method: PUT
+    path: /api/v1/loss/next-step
+    status: 401
+
+  - name: note_delete_flow
+    doc: Erase the private note (security audit MEDIUM-2)
+    persona: pregnant_lmp_w8
+    steps:
+      - method: POST
+        path: /api/v1/loss
+        status: 201
+      - method: PUT
+        path: /api/v1/loss/note
+        body: {note: "only for me"}
+        status: 200
+      - method: DELETE
+        path: /api/v1/loss/note
+        status: 200
+      - method: GET
+        path: /api/v1/loss/note
+        status: 200
+  - name: note_delete_no_loss
+    method: DELETE
+    path: /api/v1/loss/note
+    status: 404
+  - name: note_delete_anon
+    persona: anon
+    locales: none
+    method: DELETE
+    path: /api/v1/loss/note
+    status: 401
+
+  - name: delete_flow
+    doc: Erase the loss record (moods, note); pregnancy content stays stopped
+    persona: pregnant_lmp_w8
+    steps:
+      - method: POST
+        path: /api/v1/loss
+        body: {type: ectopic}
+        status: 201
+      - method: POST
+        path: /api/v1/loss/moods
+        body: {mood: sad}
+        status: 200
+      - method: DELETE
+        path: /api/v1/loss
+        status: 200
+      - method: GET
+        path: /api/v1/pregnancy/v2/today
+        status: 409
+      - method: GET
+        path: /api/v1/messages/mode
+        status: 200
+      - method: DELETE
+        path: /api/v1/loss
+        status: 404
+  - name: delete_no_loss
+    method: DELETE
+    path: /api/v1/loss
+    status: 404
+  - name: delete_anon
+    persona: anon
+    locales: none
+    method: DELETE
+    path: /api/v1/loss
+    status: 401

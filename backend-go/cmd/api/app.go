@@ -62,7 +62,7 @@ func accessLog(logger *slog.Logger) fiber.Handler {
 		}
 		attrs := []slog.Attr{
 			slog.String("method", c.Method()),
-			slog.String("path", c.Path()),
+			slog.String("path", httpx.LogPath(c.Path())),
 			slog.Int("status", status),
 			slog.Float64("duration_ms", float64(time.Since(start).Microseconds())/1000),
 			slog.String("ip", c.IP()),

@@ -10,6 +10,7 @@
 package config
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"net/url"
@@ -42,6 +43,8 @@ type Config struct {
 	AI       AI
 	// Companion is «همدم» (bloom B-N4-02): invite-code pepper and the invite SMS adapter.
 	Companion Companion
+	// PrivateNotes is the key of the encrypted private notes (CB-LOSS-01 loss path).
+	PrivateNotes PrivateNotes
 	// StoragePath is the mounted Laravel storage/ directory (backend-storage volume):
 	// Passport keys, translations, public uploads.
 	StoragePath string
@@ -231,6 +234,26 @@ type Companion struct {
 // PepperMissing reports whether production runs without a pepper (companion invites are then disabled).
 func (c Companion) PepperMissing(app App) bool { return app.IsProduction() && c.CodePepper == "" }
 
+// PrivateNoteKeyLen is the decoded length of PRIVATE_NOTE_KEY (AES-256).
+const PrivateNoteKeyLen = 32
+
+// PrivateNotes holds PRIVATE_NOTE_KEY (CB-LOSS-01): the AES-256-GCM key of the private notes stored at rest (the
+// loss path's «یادداشت خصوصی»). A secret: base64 of 32 random bytes (openssl rand -base64 32), server .env only.
+type PrivateNotes struct {
+	// Key is the decoded key; empty → a public development key only when APP_ENV is local or testing, anywhere else
+	// the note routes answer 503 (fail closed) instead of encrypting with it.
+	Key []byte
+	// PreviousKeys (PRIVATE_NOTE_KEY_PREVIOUS, comma-separated base64) still open notes sealed before a rotation;
+	// new notes are always sealed with Key.
+	PreviousKeys [][]byte
+}
+
+// devNoteEnvs are the APP_ENV values in which the public development key may stand in for PRIVATE_NOTE_KEY.
+var devNoteEnvs = map[string]bool{"local": true, "testing": true}
+
+// Missing reports whether the private notes are unavailable: no key outside a local / testing environment.
+func (p PrivateNotes) Missing(app App) bool { return len(p.Key) == 0 && !devNoteEnvs[app.Env] }
+
 // Load reads the process environment.
 func Load() (*Config, error) { return LoadFrom(os.LookupEnv) }
 
@@ -396,6 +419,25 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 	}
 	if p := cfg.Companion.CodePepper; p != "" && cfg.App.IsProduction() && len(p) < MinCompanionPepperLen {
 		e.fail("COMPANION_CODE_PEPPER: must be at least %d bytes in production", MinCompanionPepperLen)
+	}
+	if raw := e.str("PRIVATE_NOTE_KEY", ""); raw != "" {
+		key, err := base64.StdEncoding.DecodeString(raw)
+		if err != nil || len(key) != PrivateNoteKeyLen {
+			e.fail("PRIVATE_NOTE_KEY: must be the base64 encoding of %d bytes", PrivateNoteKeyLen)
+		} else {
+			cfg.PrivateNotes.Key = key
+		}
+	}
+	for _, raw := range strings.Split(e.str("PRIVATE_NOTE_KEY_PREVIOUS", ""), ",") {
+		if raw = strings.TrimSpace(raw); raw == "" {
+			continue
+		}
+		key, err := base64.StdEncoding.DecodeString(raw)
+		if err != nil || len(key) != PrivateNoteKeyLen {
+			e.fail("PRIVATE_NOTE_KEY_PREVIOUS: every entry must be the base64 encoding of %d bytes", PrivateNoteKeyLen)
+			continue
+		}
+		cfg.PrivateNotes.PreviousKeys = append(cfg.PrivateNotes.PreviousKeys, key)
 	}
 	if cfg.App.IsProduction() && cfg.App.Debug {
 		e.fail("APP_DEBUG must be false when APP_ENV=production")

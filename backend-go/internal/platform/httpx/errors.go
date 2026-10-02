@@ -258,7 +258,7 @@ func ErrorHandler(logger *slog.Logger) fiber.ErrorHandler {
 		}
 		if logger != nil {
 			logger.ErrorContext(c.Context(), "unhandled error",
-				slog.String("method", c.Method()), slog.String("path", c.Path()), slog.String("error", err.Error()))
+				slog.String("method", c.Method()), slog.String("path", LogPath(c.Path())), slog.String("error", err.Error()))
 		}
 		return ServerError().Render(c)
 	}

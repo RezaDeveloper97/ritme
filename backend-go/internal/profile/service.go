@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/ritme/backend-go/internal/auth"
+	companionstore "github.com/ritme/backend-go/internal/companion/store"
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/notify"
 	"github.com/ritme/backend-go/internal/platform/civildate"
@@ -154,6 +155,10 @@ func (s *Service) DeleteAccount(ctx context.Context, userID uint64) (err error) 
 	}
 	if err = q.DeleteUserAccessTokens(ctx, uid); err != nil {
 		return fmt.Errorf("profile: delete access tokens: %w", err)
+	}
+	// CB-LOSS-01: the pregnancy notices her companions got live in their inboxes (no FK to her): remove them.
+	if err = companionstore.New(tx).DeletePregnancyNoticesForOwner(ctx, userID); err != nil {
+		return fmt.Errorf("profile: delete companion notices: %w", err)
 	}
 	if _, err = q.DeleteUser(ctx, userID); err != nil {
 		return fmt.Errorf("profile: delete user: %w", err)

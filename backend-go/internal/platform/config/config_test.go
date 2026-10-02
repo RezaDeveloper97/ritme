@@ -23,6 +23,45 @@ func minimal() map[string]string {
 	}
 }
 
+// CB-LOSS-01: PRIVATE_NOTE_KEY is base64 of 32 bytes; missing in production disables the private notes.
+func TestLoad_PrivateNoteKey(t *testing.T) {
+	cfg, err := LoadFrom(lookup(minimal()))
+	require.NoError(t, err)
+	assert.Empty(t, cfg.PrivateNotes.Key)
+	assert.True(t, cfg.PrivateNotes.Missing(cfg.App))
+
+	env := minimal()
+	env["PRIVATE_NOTE_KEY"] = "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=" // 32 bytes
+	cfg, err = LoadFrom(lookup(env))
+	require.NoError(t, err)
+	assert.Len(t, cfg.PrivateNotes.Key, PrivateNoteKeyLen)
+	assert.False(t, cfg.PrivateNotes.Missing(cfg.App))
+
+	for envName, missing := range map[string]bool{"local": false, "testing": false, "staging": true, "contract": true} {
+		env = minimal()
+		env["APP_ENV"] = envName
+		cfg, err = LoadFrom(lookup(env))
+		require.NoError(t, err)
+		assert.Equal(t, missing, cfg.PrivateNotes.Missing(cfg.App), "the development key only in local/testing: "+envName)
+	}
+
+	env = minimal()
+	env["PRIVATE_NOTE_KEY_PREVIOUS"] = "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=, YWJjZGVmMDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODk="
+	cfg, err = LoadFrom(lookup(env))
+	require.NoError(t, err)
+	assert.Len(t, cfg.PrivateNotes.PreviousKeys, 2)
+	env["PRIVATE_NOTE_KEY_PREVIOUS"] = "c2hvcnQ="
+	_, err = LoadFrom(lookup(env))
+	require.ErrorContains(t, err, "PRIVATE_NOTE_KEY_PREVIOUS")
+
+	for _, bad := range []string{"not base64!", "c2hvcnQ="} {
+		env = minimal()
+		env["PRIVATE_NOTE_KEY"] = bad
+		_, err = LoadFrom(lookup(env))
+		require.ErrorContains(t, err, "PRIVATE_NOTE_KEY", bad)
+	}
+}
+
 func TestLoad_Defaults(t *testing.T) {
 	cfg, err := LoadFrom(lookup(minimal()))
 	require.NoError(t, err)

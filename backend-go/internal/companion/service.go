@@ -483,6 +483,10 @@ func (s *Service) Revoke(ctx context.Context, actorID, companionID uint64) error
 		if err := q.DeleteFamilyByCompanion(ctx, c.ID); err != nil {
 			return fmt.Errorf("companion: delete family: %w", err)
 		}
+		// CB-LOSS-01: the one-line pregnancy notice the companion got does not outlive the link.
+		if err := q.DeletePregnancyNoticesForLink(ctx, int64(c.ID)); err != nil { //nolint:gosec // auto-increment id
+			return fmt.Errorf("companion: delete notices: %w", err)
+		}
 		return audit(ctx, q, c.OwnerID, actorID, c.ID, "", ActionRevoked, now)
 	})
 }

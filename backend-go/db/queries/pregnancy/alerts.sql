@@ -40,3 +40,10 @@ UPDATE `pregnancy_alerts` SET is_dismissed = 1, dismissed_at = ?, updated_at = ?
 
 -- name: MarkAllAlertsRead :execrows
 UPDATE `pregnancy_alerts` SET is_read = 1, read_at = ?, updated_at = ? WHERE user_id = ? AND is_read = 0;
+
+-- name: DismissOpenAlerts :execrows
+-- A pregnancy loss (CB-LOSS-01) closes every open alert (v1 and v2): none may resurface as a badge or nudge.
+UPDATE `pregnancy_alerts`
+SET is_read = 1, read_at = COALESCE(read_at, sqlc.arg(now)), is_dismissed = 1, dismissed_at = sqlc.arg(now),
+    updated_at = sqlc.arg(now)
+WHERE user_id = sqlc.arg(user_id) AND is_dismissed = 0;

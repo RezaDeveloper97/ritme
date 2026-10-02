@@ -82,6 +82,9 @@ func (h *Handlers) ShowAppointment(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	if a.HiddenFrom(userID, actorID) {
+		return appointmentNotFound(c)
+	}
 	if err := h.delegated(c, userID, actorID, companion.SectionAppointments, false, false); err != nil {
 		return err
 	}
@@ -140,6 +143,9 @@ func (h *Handlers) UpdateAppointment(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	if a.HiddenFrom(userID, actorID) {
+		return appointmentNotFound(c)
+	}
 	locale, now := i18n.Locale(c), h.now(c)
 	body := validation.Input(c)
 	if userID != actorID {
@@ -150,6 +156,7 @@ func (h *Handlers) UpdateAppointment(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	in.Meta.Private = a.Meta.Private // never changed by a request (CB-LOSS-01)
 	// A cancelled visit keeps its reminder off (D-29); the other fields stay editable.
 	if on, sent := body.Get("is_active"); sent && a.Meta.Status == StatusCancelled && phpval.Truthy(on) {
 		return fieldError(locale, "is_active", CancelledReminderMessage(locale))

@@ -1,0 +1,32 @@
+{
+  "case": "loss/record_future",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/loss",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "occurred_on": "2026-09-24"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": false,
+        "message": "Please check the highlighted fields",
+        "errors": {
+          "occurred_on": [
+            "This date cannot be in the future."
+          ]
+        }
+      }
+    }
+  ]
+}

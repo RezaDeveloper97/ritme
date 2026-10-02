@@ -8,7 +8,7 @@
 //     energy/appetite, skin & hair) — never sex, discharge, urogenital, measurements, bleeding detail or free-text
 //     notes;
 //   - meds: the owner's active medication reminders (the /care resource);
-//   - appointments: the owner's upcoming appointments (the /care resource);
+//   - appointments: the owner's upcoming appointments (the /care resource) except private ones (loss follow-ups);
 //   - pregnancy: the pregnancy status (week, due date, trimester) or is_active=false.
 package shared
 
@@ -150,7 +150,7 @@ func (r *Reader) appointmentsView(ctx context.Context, ownerID uint64, now time.
 	}
 	out := make([]*jsonx.OrderedMap, 0, len(rows))
 	for _, row := range rows {
-		if a := care.ParseAppointment(row); a.Upcoming(now) {
+		if a := care.ParseAppointment(row); a.Upcoming(now) && !a.Meta.Private { // CB-LOSS-01: owner-only follow-ups
 			out = append(out, a.JSON(now))
 		}
 	}

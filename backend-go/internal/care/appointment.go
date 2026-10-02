@@ -61,6 +61,10 @@ type AppointmentMeta struct {
 	CareItemKey *string `json:"care_item_key,omitempty"`
 	Stage       *string `json:"stage,omitempty"`
 	ResultNote  *string `json:"result_note,omitempty"`
+	// Private (CB-LOSS-01) marks an owner-only appointment — the pregnancy-loss follow-ups (beta test, visit): never
+	// shown to a companion (companion/shared, «ثبت برای …» show/update answer 404). Set by internal/loss, never by a
+	// request; kept across the owner's edits. Omitted when false, so other rows stay byte-identical.
+	Private bool `json:"private,omitempty"`
 }
 
 // Subtitle is the legacy reminders.subtitle "with · specialty" (the parts that are set);
@@ -178,6 +182,11 @@ func ParseAppointment(r store.Reminder) Appointment {
 		m.Stage = nil
 	}
 	return Appointment{Row: r, Meta: m}
+}
+
+// HiddenFrom reports whether actorID may not see ownerID's appointment: a private one, to anyone but her.
+func (a Appointment) HiddenFrom(ownerID, actorID uint64) bool {
+	return a.Meta.Private && ownerID != actorID
 }
 
 // Upcoming reports whether the appointment is still ahead: scheduled (not cancelled) and at

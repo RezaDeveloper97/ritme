@@ -3,7 +3,7 @@ id: CB-LOSS-01
 title: Loss path backend: event, stop pregnancy content, follow-up, mood, next step
 epic: LOSS
 type: backend
-status: todo
+status: done
 depends_on: [B-N2-03, B-N4-02, CB-CORE-03]
 parallel_group: LOSS-A
 touches: [backend-go/internal/loss, backend-go/internal/http/routes_loss.go, backend-go/db/queries/loss, backend-go/api/openapi.yaml, backend-go/contract, backend-go/resources/translations, backend-go/db/migrations, backend/database/migrations, docs/go-migration/deviations.md, backend-go/internal/pregnancy, backend-go/internal/messages]

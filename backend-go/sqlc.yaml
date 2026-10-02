@@ -187,3 +187,9 @@ sql:
       go:
         <<: *go
         out: internal/ivf/store
+  - <<: *pkg
+    queries: db/queries/loss
+    gen:
+      go:
+        <<: *go
+        out: internal/loss/store

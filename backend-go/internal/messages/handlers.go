@@ -94,6 +94,11 @@ func (h *Handlers) Daily(c fiber.Ctx) error {
 	if raw, _ := query.Get("mode"); phpval.Truthy(raw) {
 		force = enums.MessageMode(phpval.ToString(raw))
 	}
+	if force == enums.MessageModePregnancy {
+		if force, err = h.pregnancyEnded(c, src, force); err != nil {
+			return err
+		}
+	}
 
 	detected := force
 	if detected == "" {
@@ -129,6 +134,18 @@ func (h *Handlers) Daily(c fiber.Ctx) error {
 		return err
 	}
 	return httpx.OK(c, res.JSON())
+}
+
+// pregnancyEnded drops a forced ?mode=pregnancy when her pregnancy has ended (a pregnancy profile with pregnancy mode
+// off — a pregnancy loss, CB-LOSS-01, or a deactivation), so the detected mode answers instead: no pregnancy message
+// reaches her after the pregnancy, durably (it does not depend on the loss record, which she may erase). Without any
+// pregnancy profile Laravel's 400 «complete pregnancy onboarding first» is kept.
+func (h *Handlers) pregnancyEnded(c fiber.Ctx, src *StoreSource, force enums.MessageMode) (enums.MessageMode, error) {
+	p, err := src.PregnancyProfile(c)
+	if err != nil || p == nil || p.PregnancyMode {
+		return force, err
+	}
+	return "", nil
 }
 
 // Mode is MessageController::mode.

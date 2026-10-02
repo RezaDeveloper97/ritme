@@ -1,0 +1,29 @@
+{
+  "case": "loss/show_empty.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/loss",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "loss": null,
+          "losses_count": 0,
+          "recurrent_hint": false,
+          "followup": null,
+          "mood": null,
+          "note": null
+        }
+      }
+    }
+  ]
+}

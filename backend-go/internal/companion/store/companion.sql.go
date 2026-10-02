@@ -220,6 +220,32 @@ func (q *Queries) DeleteGrants(ctx context.Context, companionID uint64) error {
 	return err
 }
 
+const deletePregnancyNoticesForLink = `-- name: DeletePregnancyNoticesForLink :exec
+DELETE FROM ` + "`" + `user_notifications` + "`" + `
+WHERE ` + "`" + `type` + "`" + ` = 'companion' AND JSON_UNQUOTE(JSON_EXTRACT(data, '$.event')) = 'pregnancy_not_continuing'
+  AND CAST(JSON_EXTRACT(data, '$.companion_id') AS UNSIGNED) = CAST(? AS UNSIGNED)
+`
+
+// CB-LOSS-01: the one-line «بارداری ادامه ندارد» notices a link's companion got (data.event pregnancy_not_continuing)
+// go when the link is revoked.
+func (q *Queries) DeletePregnancyNoticesForLink(ctx context.Context, companionID int64) error {
+	_, err := q.db.ExecContext(ctx, deletePregnancyNoticesForLink, companionID)
+	return err
+}
+
+const deletePregnancyNoticesForOwner = `-- name: DeletePregnancyNoticesForOwner :exec
+DELETE n FROM ` + "`" + `user_notifications` + "`" + ` n
+JOIN ` + "`" + `companions` + "`" + ` c ON c.id = CAST(JSON_EXTRACT(n.data, '$.companion_id') AS UNSIGNED)
+WHERE c.owner_id = ? AND n.` + "`" + `type` + "`" + ` = 'companion'
+  AND JSON_UNQUOTE(JSON_EXTRACT(n.data, '$.event')) = 'pregnancy_not_continuing'
+`
+
+// CB-LOSS-01: every such notice about the owner (all her links) — her account deletion and DELETE /loss.
+func (q *Queries) DeletePregnancyNoticesForOwner(ctx context.Context, ownerID uint64) error {
+	_, err := q.db.ExecContext(ctx, deletePregnancyNoticesForOwner, ownerID)
+	return err
+}
+
 const getAccess = `-- name: GetAccess :one
 SELECT c.id AS companion_id, g.level FROM ` + "`" + `companions` + "`" + ` c
 JOIN ` + "`" + `companion_grants` + "`" + ` g ON g.companion_id = c.id AND g.section = ?

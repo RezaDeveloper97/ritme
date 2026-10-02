@@ -92,6 +92,11 @@ const (
 	NoticeUpdatedAppointment  Notice = "updated_appointments"
 )
 
+// EventPregnancyNotContinuing is data.event of the one-line notice a companion with the pregnancy grant gets after a
+// pregnancy loss (CB-LOSS-01, written by internal/loss). The queries DeletePregnancyNoticesFor* key on it; it is
+// removed on revoke, on the owner's account deletion and when she erases the loss.
+const EventPregnancyNotContinuing = "pregnancy_not_continuing"
+
 // NotificationType is the user_notifications.type of every companion notice.
 const NotificationType = "companion"
 

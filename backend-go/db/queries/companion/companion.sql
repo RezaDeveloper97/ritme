@@ -157,6 +157,20 @@ SELECT * FROM `companion_audit_logs` WHERE owner_id = ? ORDER BY id DESC LIMIT ?
 -- Display names of the other party in link lists (users.name; NULL when the account never set one).
 SELECT id, name FROM `users` WHERE id IN (sqlc.slice(ids));
 
+-- name: DeletePregnancyNoticesForLink :exec
+-- CB-LOSS-01: the one-line «بارداری ادامه ندارد» notices a link's companion got (data.event pregnancy_not_continuing)
+-- go when the link is revoked.
+DELETE FROM `user_notifications`
+WHERE `type` = 'companion' AND JSON_UNQUOTE(JSON_EXTRACT(data, '$.event')) = 'pregnancy_not_continuing'
+  AND CAST(JSON_EXTRACT(data, '$.companion_id') AS UNSIGNED) = CAST(sqlc.arg(companion_id) AS UNSIGNED);
+
+-- name: DeletePregnancyNoticesForOwner :exec
+-- CB-LOSS-01: every such notice about the owner (all her links) — her account deletion and DELETE /loss.
+DELETE n FROM `user_notifications` n
+JOIN `companions` c ON c.id = CAST(JSON_EXTRACT(n.data, '$.companion_id') AS UNSIGNED)
+WHERE c.owner_id = sqlc.arg(owner_id) AND n.`type` = 'companion'
+  AND JSON_UNQUOTE(JSON_EXTRACT(n.data, '$.event')) = 'pregnancy_not_continuing';
+
 -- name: InsertUserNotification :exec
 -- Owner inbox row (accept / companion write, B-N4-02): title/body are {lang: text} JSON without any health payload.
 INSERT INTO `user_notifications` (user_id, type, title, body, action_url, data, created_at, updated_at)

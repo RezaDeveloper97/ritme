@@ -19,6 +19,7 @@ import (
 	"github.com/ritme/backend-go/internal/admin/store"
 	"github.com/ritme/backend-go/internal/auth"
 	authstore "github.com/ritme/backend-go/internal/auth/store"
+	companionstore "github.com/ritme/backend-go/internal/companion/store"
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/i18n"
 	"github.com/ritme/backend-go/internal/platform/civildate"
@@ -345,6 +346,10 @@ func (h *Handlers) Destroy(c fiber.Ctx) error {
 			return err
 		}
 		revoked = n
+		// CB-LOSS-01: the pregnancy notices her companions got (their inboxes, no FK to her).
+		if err := companionstore.New(tx).DeletePregnancyNoticesForOwner(c.Context(), id); err != nil {
+			return err
+		}
 		res, err := q.DeleteUser(c.Context(), id)
 		if err != nil {
 			return err
