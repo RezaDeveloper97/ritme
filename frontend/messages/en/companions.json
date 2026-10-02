@@ -1,0 +1,183 @@
+{
+  "back": "Back",
+  "unnamed": "Invited companion",
+  "types": {
+    "partner": "Partner",
+    "spouse": "Spouse"
+  },
+  "typeDesc": {
+    "partner": "Sees what you choose and, if you allow it, logs things for you.",
+    "spouse": "Like a partner, plus your children are shared and you become one family."
+  },
+  "status": {
+    "invited": "Waiting to accept",
+    "active": "Active"
+  },
+  "statusLine": "{type} · {status}",
+  "sections": {
+    "cycle": "Period & cycle",
+    "symptoms": "Symptoms & daily mood",
+    "meds": "Medications",
+    "appointments": "Doctor appointments",
+    "pregnancy": "Pregnancy"
+  },
+  "sectionsShort": {
+    "cycle": "Period",
+    "symptoms": "Symptoms",
+    "meds": "Meds",
+    "appointments": "Appointments",
+    "pregnancy": "Pregnancy"
+  },
+  "levels": {
+    "none": "Hidden",
+    "view": "View only",
+    "edit": "View & edit"
+  },
+  "chipLevels": {
+    "view": "view only",
+    "edit": "edit"
+  },
+  "chip": "{section}: {level}",
+  "listSeparator": ", ",
+  "nothingShared": "Nothing shared yet",
+  "family": {
+    "title": "Your family",
+    "you": "You",
+    "pending": "Once {name} accepts, your family is created.",
+    "childrenSoon": "Shared children appear here once the children section is available."
+  },
+  "list": {
+    "title": "Companions",
+    "heading": "The people beside you",
+    "lead": "Each companion only sees what you have allowed.",
+    "add": "Add a companion",
+    "loading": "Loading companions",
+    "emptyTitle": "No companions yet",
+    "emptyBody": "Invite your spouse or partner. They only see what you allow, and you can remove them any time.",
+    "errorTitle": "Couldn't load companions",
+    "errorBody": "Check your connection and try again.",
+    "retry": "Try again",
+    "expiresIn": "Invite valid for {hours} more hours",
+    "expired": "Invite expired · make a new code"
+  },
+  "flow": {
+    "title": "Add a companion",
+    "step": "Step {current} of {total}",
+    "stepSpouse": "Step {current} of {total} · spouse only",
+    "steps": "Steps to add a companion",
+    "next": "Continue",
+    "type": {
+      "question": "Who is this companion?",
+      "label": "Relationship"
+    },
+    "access": {
+      "question": "What should they have access to?",
+      "lead": "Pick one for each item. Change it whenever you like.",
+      "note": "With «view & edit» for medications or appointments, your companion can choose to log for themselves or for you.",
+      "levelLabel": "Access to {section}"
+    },
+    "children": {
+      "question": "Which child is shared?",
+      "lead": "The child you pick is added to both of your panels and you become one family.",
+      "soonTitle": "Children are coming soon",
+      "soonBody": "Once you add your children in Ritme, you can pick the shared ones here. For now, continue without it.",
+      "add": "Add a child",
+      "soon": "Soon",
+      "partnerNote": "If your companion is a partner, this step is skipped."
+    },
+    "invite": {
+      "title": "Invite a companion",
+      "heading": "Invite them",
+      "lead": "Send an invite to their mobile number or give them the companion code. They see nothing until they accept.",
+      "name": "Their name",
+      "namePlaceholder": "The name you'll see in Ritme",
+      "phone": "Mobile number",
+      "phonePlaceholder": "09xx xxx xxxx",
+      "phoneInvalid": "The mobile number must start with 09 and have 11 digits.",
+      "or": "or",
+      "codeTitle": "Companion code",
+      "codeLead": "Give this code to your companion to enter when signing up to Ritme.",
+      "codeHidden": "The code appears here once the invite is created.",
+      "makeCode": "Just make a code",
+      "summary": "Summary",
+      "edit": "Edit",
+      "relation": "Relationship",
+      "children": "Shared child",
+      "none": "None",
+      "send": "Send invite",
+      "smsSent": "Invite SMS sent to <ltr>{phone}</ltr>.",
+      "smsNotSent": "The SMS wasn't sent — send them the code yourself.",
+      "codeOnly": "Code created — send it to your companion.",
+      "finish": "Continue",
+      "error": "Couldn't create the invite. Try again."
+    },
+    "done": {
+      "titleSent": "Invite sent to {name}",
+      "titleSentUnnamed": "Invite sent",
+      "titleCode": "{name}'s invite code is ready",
+      "titleCodeUnnamed": "Invite code is ready",
+      "leadSpouse": "Once they accept, your family is created.",
+      "leadPartner": "Once they accept, they only see what you allowed.",
+      "note": "Change access or remove the companion any time from the companions page.",
+      "back": "Back to companions"
+    }
+  },
+  "code": {
+    "label": "Invite code {code}",
+    "copy": "Copy code",
+    "copied": "Copied",
+    "share": "Send",
+    "shared": "Sent",
+    "shareTitle": "Ritme companion invite",
+    "shareText": "My Ritme companion code: {code}",
+    "failed": "Couldn't copy — write the code down from the screen.",
+    "validity": "Single use · valid for {hours} hours",
+    "once": "This code is shown only now."
+  },
+  "detail": {
+    "title": "Companion",
+    "loading": "Loading companion",
+    "notFoundTitle": "Companion not found",
+    "notFoundBody": "They may have been removed already.",
+    "toList": "Back to companions",
+    "since": "Companion since {date}",
+    "invitedOn": "Invited on {date}",
+    "accessTitle": "Access",
+    "accessLead": "Changes apply the next time your companion opens the app.",
+    "save": "Save access",
+    "saved": "Access saved.",
+    "saveError": "Couldn't save. Try again.",
+    "pendingTitle": "Invite waiting to be accepted",
+    "sentTo": "Sent to <ltr>{phone}</ltr>",
+    "expiresIn": "Valid for {hours} more hours",
+    "expired": "This invite has expired.",
+    "renew": "Make a new code",
+    "renewNote": "A new code stops the previous one from working.",
+    "renewError": "Couldn't make a new code. Try again.",
+    "childrenTitle": "Shared child",
+    "activity": "Recent activity",
+    "activityEmpty": "No activity yet.",
+    "actions": {
+      "read": "Viewed",
+      "write": "Logged",
+      "invited": "Invited",
+      "accepted": "Accepted",
+      "revoked": "Removed",
+      "grants_changed": "Access changed"
+    },
+    "activityLine": "{action} · {section}",
+    "byYou": "by you",
+    "remove": "Remove companion",
+    "removeTitle": "Remove {name}?",
+    "removeBody": "Their access ends right now and they won't see anything of yours. To add them back you'll need to invite them again.",
+    "removeConfirm": "Yes, remove",
+    "cancel": "Cancel",
+    "removeError": "Couldn't remove. Try again."
+  },
+  "privacy": {
+    "manage": "Manage companions",
+    "pending": "{count, plural, one {# invite waiting} other {# invites waiting}}",
+    "loading": "Loading companions",
+    "error": "Couldn't load companions"
+  }
+}

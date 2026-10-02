@@ -3,7 +3,7 @@ id: B-N4-04
 title: Owner flow — companions list, type, access, shared children, invite, done
 milestone: N4
 type: frontend
-status: todo
+status: done
 depends_on: [B-N4-02,B-N1-10]
 parallel_group: N4-D
 touches: [frontend/src/screens/companion-*,frontend/src/entities/companion,frontend/src/features/invite-companion]

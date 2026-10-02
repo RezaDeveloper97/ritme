@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
+import { companionName, sharedSections, useCompanions } from '@/entities/companion';
 import {
   getLockController,
   isBiometricAvailable,
@@ -14,7 +15,7 @@ import {
 } from '@/features/app-lock';
 import { DeleteAccountConfirm, useExportData, useExportPdf } from '@/features/manage-account';
 import { type Locale, useDirection, useRouter } from '@/shared/i18n';
-import { formatDayMonth, formatLongDate, today } from '@/shared/lib/date';
+import { formatDayMonth, formatLongDate, formatNumber, today } from '@/shared/lib/date';
 import {
   ListGroup,
   ListRow,
@@ -201,6 +202,67 @@ function ConsentSection() {
 }
 
 /**
+ * «ریتمی همراه» rows (B-N4-04): one per active companion with what it sees
+ * («علی · پریود، داروها»), then «مدیریت همدم‌ها» → /companions. With no
+ * companion yet it is the single «هنوز با کسی به اشتراک نگذاشته‌ای» row.
+ */
+function CompanionRows() {
+  const t = useTranslations('me.privacy');
+  const tc = useTranslations('companions');
+  const router = useRouter();
+  const loc = useLocale() as Locale;
+  const query = useCompanions();
+  const companions = query.data ?? [];
+  const active = companions.filter((c) => c.status === 'active');
+  const pending = companions.length - active.length;
+
+  if (query.isPending) {
+    return (
+      <SkeletonGroup label={tc('privacy.loading')} className="prv-cmp-skel">
+        <Skeleton width="medium" />
+      </SkeletonGroup>
+    );
+  }
+  if (query.isError || companions.length === 0) {
+    return (
+      <ListRow
+        icon="users"
+        iconTone="data"
+        title={t('access.companion')}
+        description={query.isError ? tc('privacy.error') : t('access.companionSub')}
+        onClick={() => router.push('/companions')}
+      />
+    );
+  }
+  return (
+    <>
+      {active.map((c) => {
+        const shared = sharedSections(c.grants).map(({ section }) => tc(`sectionsShort.${section}`));
+        const name = companionName(c) ?? tc('unnamed');
+        return (
+          <ListRow
+            key={c.id}
+            icon="users"
+            iconTone="data"
+            title={t('access.companion')}
+            description={`${name} · ${shared.length ? shared.join(tc('listSeparator')) : tc('nothingShared')}`}
+            onClick={() => router.push(`/companions/${c.id}`)}
+          />
+        );
+      })}
+      <ListRow
+        icon="cog"
+        iconTone="brand"
+        title={tc('privacy.manage')}
+        description={pending > 0 ? tc('privacy.pending', { count: pending }) : undefined}
+        value={pending > 0 ? undefined : formatNumber(companions.length, loc)}
+        onClick={() => router.push('/companions')}
+      />
+    </>
+  );
+}
+
+/**
  * Privacy & security (B-N1-12, `nbl_Me_Privacy` / `nbd_Me_Privacy`) at
  * `/profile/privacy`: the device-local app lock, the server-side consents,
  * «دسترسی دیگران» (companion + doctor links arrive with B-N4 / B-N6), export
@@ -239,13 +301,7 @@ export function PrivacyPage() {
         <section className="prv-sec" aria-labelledby="prv-g-access">
           <SectionLabel id="prv-g-access">{t('groups.access')}</SectionLabel>
           <ListGroup className="prv-list">
-            <ListRow
-              icon="users"
-              iconTone="data"
-              title={t('access.companion')}
-              description={t('access.companionSub')}
-              trailing={<StatusPill tone="neutral">{soon}</StatusPill>}
-            />
+            <CompanionRows />
             <ListRow
               icon="stetho"
               iconTone="brand"
