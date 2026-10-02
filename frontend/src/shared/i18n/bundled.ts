@@ -22,6 +22,7 @@ import enLogSheet from '../../../messages/en/log-sheet.json';
 import enVoiceLog from '../../../messages/en/voice-log.json';
 import enLogTaxonomy from '../../../messages/en/log-taxonomy.json';
 import enMe from '../../../messages/en/me.json';
+import enMenopause from '../../../messages/en/menopause.json';
 import enNav from '../../../messages/en/nav.json';
 import enNotifications from '../../../messages/en/notifications.json';
 import enOnboarding from '../../../messages/en/onboarding.json';
@@ -59,6 +60,7 @@ import faLogSheet from '../../../messages/fa/log-sheet.json';
 import faVoiceLog from '../../../messages/fa/voice-log.json';
 import faLogTaxonomy from '../../../messages/fa/log-taxonomy.json';
 import faMe from '../../../messages/fa/me.json';
+import faMenopause from '../../../messages/fa/menopause.json';
 import faNav from '../../../messages/fa/nav.json';
 import faNotifications from '../../../messages/fa/notifications.json';
 import faOnboarding from '../../../messages/fa/onboarding.json';
@@ -124,6 +126,7 @@ const bundled = {
     pregnancy: faPregnancy,
     pregnancyV2: faPregnancyV2,
     me: faMe,
+    menopause: faMenopause,
     nav: faNav,
     calendar: faCalendar,
     cycle: faCycle,
@@ -163,6 +166,7 @@ const bundled = {
     pregnancy: enPregnancy,
     pregnancyV2: enPregnancyV2,
     me: enMe,
+    menopause: enMenopause,
     nav: enNav,
     calendar: enCalendar,
     cycle: enCycle,

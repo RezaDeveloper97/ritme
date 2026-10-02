@@ -1,0 +1,101 @@
+{
+  "stages": {
+    "peri": "Perimenopause",
+    "meno": "Menopause",
+    "post": "Postmenopause",
+    "unsure": "Not sure"
+  },
+  "stage": {
+    "title": "Menopause mode",
+    "back": "Back",
+    "question": "Where are you on this path?",
+    "lead": "Based on your answer, we'll tailor symptoms, reminders and content to your stage.",
+    "desc": {
+      "peri": "I still have periods, but they've become irregular or I have new symptoms",
+      "meno": "I haven't had a period for 12 months or more",
+      "post": "It's been a few years since my last period",
+      "unsure": "A few questions will help you find your stage"
+    },
+    "details": "Stage details",
+    "lastPeriod": "Last period",
+    "about": "Around {month}",
+    "notSet": "Not set",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "surgical": "Was your menopause caused by surgery or treatment (e.g. ovary removal)?",
+    "hrt": "Are you taking hormone therapy or menopause medication now?",
+    "yes": "Yes",
+    "no": "No",
+    "start": "Start",
+    "save": "Save",
+    "pickStage": "Choose one of the stages.",
+    "saveError": "Couldn't save. Please try again.",
+    "loading": "Loading your stage",
+    "loadError": "Couldn't load your stage.",
+    "retry": "Try again"
+  },
+  "home": {
+    "loading": "Loading today",
+    "loadError": "Couldn't load today.",
+    "loadErrorBody": "Check your connection and try again.",
+    "retry": "Try again",
+    "hero": {
+      "overline": "Without a period",
+      "months": "{months} months",
+      "stageChip": "Stage: {stage}, change stage",
+      "needsOverline": "Menopause mode",
+      "needsTitle": "Tell us your stage",
+      "needsBody": "A few short questions let us tailor symptoms, reminders and content to your stage.",
+      "needsAction": "Choose my stage",
+      "suggest": "It's been more than 12 months since your last period; you may have reached menopause.",
+      "suggestAction": "Update my stage"
+    },
+    "quick": {
+      "label": "Quick log",
+      "hotFlash": "Hot flash now",
+      "hotFlashRunning": "Hot flash · {time}",
+      "hotFlashStop": "Over? Tap again",
+      "hotFlashStopLabel": "End the hot flash and save its length ({time})",
+      "logToday": "Log today's symptoms",
+      "bleeding": "Bleeding or spotting",
+      "error": "Couldn't save. Please try again."
+    },
+    "today": {
+      "title": "Today",
+      "log": "Log",
+      "flashes": "Hot flashes so far",
+      "sweats": "Night sweats",
+      "sleep": "Sleep last night",
+      "hours": "{hours} h",
+      "empty": "—",
+      "notLogged": "Not logged"
+    },
+    "score": {
+      "title": "Symptom score",
+      "sub": "Monthly 11-question check-in",
+      "of": "of {max}",
+      "better": "{points} points better than last month",
+      "worse": "{points} points higher than last month",
+      "same": "Same as last month",
+      "chart": "Symptom score over the last 6 months",
+      "empty": "You haven't filled in the monthly check-in yet. Once you do, your score and 6-month trend show up here."
+    },
+    "checkups": {
+      "title": "Upcoming checkups",
+      "all": "All"
+    },
+    "treatment": {
+      "title": "Treatment",
+      "takenToday": "Taken today",
+      "notToday": "Not logged today",
+      "week": "{taken} of {days} days this week",
+      "review": "Doctor review: {month}"
+    },
+    "messages": {
+      "title": "For you"
+    },
+    "alert": {
+      "lastOn": "Last logged: {date}"
+    }
+  }
+}

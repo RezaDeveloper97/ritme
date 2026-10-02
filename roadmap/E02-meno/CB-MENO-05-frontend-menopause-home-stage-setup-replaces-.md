@@ -3,7 +3,7 @@ id: CB-MENO-05
 title: Frontend: menopause home + stage setup (replaces bloom's minimal home)
 epic: MENO
 type: frontend
-status: todo
+status: done
 depends_on: [CB-MENO-02, B-N2-03]
 parallel_group: MENO-C
 touches: [frontend/src/screens/menopause, frontend/src/screens/menopause-stage, frontend/src/entities/menopause, frontend/messages/fa/menopause.json, frontend/messages/en/menopause.json, frontend/src/app/[locale]/menopause, frontend/src/app/message-scopes.ts, frontend/src/screens/home]

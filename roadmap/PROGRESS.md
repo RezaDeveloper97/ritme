@@ -190,3 +190,11 @@ TODO (ask user):
 - Verify: sqlc, vet, go test ./..., golangci-lint 0, int voicelog, OpenAPI, contract all 1325 passed — green. No migration.
 - Open: pain score >0 needs a location saved first (client: PUT /logs/days before commit); writes across 4 services not one transaction; default flash 3 min, start 03:00 / noon [needs clinical review]; frontend VOICE-02/03 to use commit + options; per-item quote not produced.
 - TODO (ask user): bladder diary for everyone or only pelvic/menopause? commit also accept log items (one call)? Plus-gate commit? keep 3-min default?
+
+## CB-MENO-05 — Frontend: menopause home + stage setup
+- `/menopause/stage` (4 radio cards, Jalali last-period month picker, surgical, HRT → PUT /menopause/profile; «شروع» first time, then «ذخیره»; no bottom nav). All 4 stages re-tested end-to-end via the UI.
+- Menopause home replaces bloom's minimal `MenopauseHome` under the shared Today header (search button kept): months-without-period hero + stage chip, quick actions (hot flash timer start/stop, log today → `?sheet=log`, bleeding/spotting), today stats, score card + 6-month sparkline + delta, 3 upcoming checkups, treatment card, `/messages/menopause` cards (bleeding via UrgentCard). Links to routes that don't exist yet (score details, treatment, doctor report, /menopause/alert) are hidden.
+- `entities/menopause` (schema, queries, hot-flash timer). steiger `excessive-slicing` turned off for entities (21st slice) + `insignificant-slice` off for entities/menopause. Messages `menopause.json` (+ Go copy + i18n goldens).
+- Verify: typecheck, lint, fsd:lint, lint:styles (792), lint:dark, 1064 tests, build — green. Fidelity `docs/qa/canvas/meno.md` (Stage, Home, Main) — no ✘. Test user 09120005055 (menopause; one HRT row inserted directly in ritme_dev).
+- Open: mode switcher doesn't open the stage screen (screens/mode outside touches); bleeding tile has no log-sheet section preset; dead bloom keys `home.life.menopause.*` / `.meno-*` CSS; wire hot-flash tile → /menopause/hot-flash (CB-MENO-07), score details (08), treatment (10), report (11). Pre-existing: `/messages/daily` 400 in menopause mode.
+- TODO (ask user): steiger rule vs slice groups; sparkline direction.
