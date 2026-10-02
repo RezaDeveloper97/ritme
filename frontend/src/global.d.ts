@@ -34,6 +34,7 @@ import type enProfile from '../messages/en/profile.json';
 import type enProfileEdit from '../messages/en/profile-edit.json';
 import type enProfileInfo from '../messages/en/profile-info.json';
 import type enReminders from '../messages/en/reminders.json';
+import type enTeen from '../messages/en/teen.json'; // CB-TEEN-02
 import type enWelcome from '../messages/en/welcome.json';
 import type enServices from '../messages/en/services.json';
 import type enSearch from '../messages/en/search.json';
@@ -81,6 +82,7 @@ type Messages = {
   logSheet: typeof enLogSheet;
   voiceLog: typeof enVoiceLog; // B-N3-05 features/voice-log
   logTaxonomy: typeof enLogTaxonomy;
+  teen: typeof enTeen;
   welcome: typeof enWelcome;
   services: typeof enServices;
   search: typeof enSearch;

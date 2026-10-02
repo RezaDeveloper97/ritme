@@ -48,7 +48,7 @@ const PREGNANCY = ['common', 'nav', 'pregnancy'] as const satisfies readonly Mes
 
 /** Per route: the namespaces its screen (and everything it imports) uses. */
 export const ROUTE_NAMESPACES = {
-  home: ['articles', 'banners', 'care', 'challenge', 'checkups', 'common', 'fertility', 'home', 'log', 'logPeriod', 'menopause', 'nav', 'plus', 'profileEdit', 'search'], // B-N2-08 trial banner + sheet; CB-NAV-02 header search button; CB-MENO-05 menopause home
+  home: ['articles', 'banners', 'care', 'challenge', 'checkups', 'common', 'fertility', 'home', 'log', 'logPeriod', 'menopause', 'nav', 'plus', 'profileEdit', 'search', 'teen'], // B-N2-08 trial banner + sheet; CB-NAV-02 header search button; CB-MENO-05 menopause home; CB-TEEN-02 teen home
   calendar: ['calendar', 'common', 'log', 'logPeriod', 'nav'],
   log: ['common', 'logSheet', 'nav', 'plus', 'voiceLog'], // B-N3-03: /log renders the log sheet v2 as a page
   logCustomize: ['common', 'logCustomize', 'logSheet', 'plus'], // B-N3-04 /log/customize (the log sheet's gear; categoryLook comes via features/log-day)
@@ -107,6 +107,7 @@ export const ROUTE_NAMESPACES = {
   analysisHub: ['analysis', 'analysisPregnancy', 'common', 'nav', 'plus'], // B-N3-12 /analysis itself: + the pregnancy hub (screens/analysis-pregnancy)
   analysisPregnancyWeight: ['analysisPregnancy', 'common', 'nav', 'plus'], // B-N3-12 /analysis/pregnancy-weight (An_PregWeight; the slice's hub cards carry plus.gate)
   analysisReport: ['analysis', 'common', 'nav'], // B-N3-09 /analysis/{cycle,period,symptoms,body} (no Plus gate; correlations keeps `analysis`)
+  teenOnboarding: ['common', 'teen'], // CB-TEEN-02 /teen/onboarding (nbl_Teen_Onb, form — no nav)
   fertilityLog: ['common', 'fertility'],
   fertilityBbt: ['common', 'fertility'],
   fertilityInsights: ['common', 'fertility'],

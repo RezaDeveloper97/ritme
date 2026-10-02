@@ -8811,3 +8811,78 @@ button.ch-log-row { width: 100%; background: none; border: 0; font-family: inher
 .pp-q-options .nb-rcard-title { font-size: var(--fs-md); }
 [data-theme="dark"] .pp-mchip { background: color-mix(in srgb, var(--nb-tone) 24%, var(--surface)); }
 /* ═══ end B-N5-04 ═══ */
+/* ═══ CB-TEEN-02 · teen onboarding (nbl_Teen_Onb, `tob-`) + teen home (nbl_Teen_Home, widgets/teen-home `tnh-`) ═══ */
+.tob-page { background: var(--page); }
+.tob-scroll { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 16px; min-block-size: 100%; }
+.tob-scroll > :not(.nb-hdr):not(.tob-footer) { margin-inline: var(--gutter); }
+.tob-skel { display: flex; flex-direction: column; gap: 14px; }
+.tob-skel-card { block-size: 104px; border-radius: var(--r-card); }
+.tob-skel-card.is-tall { block-size: 280px; }
+.tob-intro { display: flex; flex-direction: column; gap: 8px; }
+.tob-title { margin: 0; font-size: 26px; line-height: 1.45; font-weight: 900; color: var(--text-1); }
+.tob-lead { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+.nb-card.tob-card { display: flex; flex-direction: column; gap: 14px; padding: 18px 16px; }
+.tob-q { margin: 0; font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); }
+.tob-ages { gap: 8px; }
+.tob-ages .nb-chip { min-inline-size: 64px; justify-content: center; }
+.tob-error, .tnh-error { margin: 0; font-size: var(--fs-md); font-weight: 700; color: var(--danger-deep); }
+.tob-footer {
+  position: sticky; bottom: 0; z-index: 2; margin-top: auto; display: flex; flex-direction: column; gap: 8px;
+  padding: 12px var(--gutter) max(14px, env(safe-area-inset-bottom));
+  background: var(--surface-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+.tnh-page { display: flex; flex-direction: column; gap: 18px; padding: 4px var(--gutter) 0; }
+.tnh-skel { display: flex; flex-direction: column; gap: 14px; }
+.tnh-skel-card { block-size: 150px; border-radius: var(--r-card); }
+.tnh-hdr { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 12px; }
+.tnh-hdr-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.tnh-eyebrow { font-size: var(--fs-sm); font-weight: 700; color: var(--text-3); }
+.tnh-hello { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 30px; line-height: 1.25; color: var(--text-1); }
+.tnh-sec { display: flex; flex-direction: column; gap: 10px; }
+.tnh-sec-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.tnh-sec-head .nb-sect { flex: 1; }
+.tnh-count { font-size: var(--fs-sm); font-weight: 700; color: var(--text-3); font-variant-numeric: tabular-nums; }
+/* Signs card + estimate */
+.nb-card.tnh-signs { display: flex; flex-direction: column; gap: 10px; padding: 18px; }
+.nb-card.tnh-signs.is-caution { border-color: var(--warm); background: linear-gradient(135deg, var(--warm-soft) 15%, var(--surface) 70%); }
+.tnh-signs-title { margin: 0; font-size: var(--fs-lg); font-weight: 800; line-height: 1.6; color: var(--text-1); }
+.tnh-signs-body, .tnh-signs-extra { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+.tnh-signs-extra b { font-weight: 800; color: var(--text-1); }
+.tnh-bar { position: relative; block-size: 10px; margin-top: 4px; border-radius: var(--r-pill); background: var(--track); overflow: hidden; }
+.tnh-bar-fill { position: absolute; inset-block: 0; inset-inline-start: 0; border-radius: var(--r-pill); background: var(--data); }
+.tnh-estimate { margin: 0; font-size: var(--fs-sm); font-weight: 700; line-height: var(--lh-body); color: var(--text-2); }
+.nb-card.tnh-signs.is-caution .tnh-estimate { color: var(--warm-deep); }
+.tnh-link {
+  display: inline-flex; align-items: center; align-self: flex-start; min-block-size: 32px;
+  font-size: var(--fs-md); font-weight: 800; color: var(--brand-strong); text-decoration: none; border-radius: 8px;
+}
+.tnh-link:focus-visible, .tnh-parent:focus-visible, .tnh-faq-q:focus-visible { outline: none; box-shadow: var(--ring); }
+/* School kit */
+.nb-card.tnh-kit { display: flex; flex-direction: column; padding: 8px 18px; }
+.tnh-kit-ready {
+  display: flex; align-items: center; gap: 6px; margin: 0; padding-block: 10px; border-top: 1px solid var(--line);
+  font-size: var(--fs-md); font-weight: 800; color: var(--success);
+}
+/* «طبیعی است؟» */
+.nb-card.tnh-faq { display: flex; flex-direction: column; padding: 4px 18px; }
+.tnh-faq-item + .tnh-faq-item { border-top: 1px solid var(--line); }
+.tnh-faq-q {
+  display: flex; align-items: center; gap: 10px; min-block-size: 52px; padding-block: 10px; cursor: pointer; list-style: none;
+  font-size: var(--fs-base); font-weight: 800; line-height: 1.6; color: var(--text-1); border-radius: 8px;
+}
+.tnh-faq-q::-webkit-details-marker { display: none; }
+.tnh-faq-chev { flex-shrink: 0; color: var(--text-3); transition: transform .2s ease; }
+.tnh-faq-item[open] .tnh-faq-chev { transform: rotate(180deg); }
+.tnh-faq-a { margin: 0; padding-block-end: 12px; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+.nb-note.tnh-talk { border: 1px solid var(--line); background: var(--surface); color: var(--text-2); }
+/* «همراهی مادر» */
+.tnh-parent {
+  display: flex; align-items: center; justify-content: center; gap: 8px; min-block-size: 54px; padding: 10px 16px;
+  border-radius: var(--r-card); border: 1px solid var(--line); background: var(--surface-3); text-decoration: none;
+}
+.tnh-parent-icon { flex-shrink: 0; color: var(--brand); }
+.tnh-parent-text { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.tnh-parent-label { font-size: var(--fs-base); font-weight: 800; color: var(--text-1); }
+.tnh-parent-status { font-size: var(--fs-sm); font-weight: 700; color: var(--text-3); }
+@media (prefers-reduced-motion: reduce) { .tnh-faq-chev { transition: none; } }
+/* ═══ end CB-TEEN-02 ═══ */

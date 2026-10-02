@@ -273,3 +273,8 @@ TODO (ask user):
 - Verify: sqlc, vet, go test ./..., golangci-lint 0, int teen/companion/plus/http/content/home/migrations, OpenAPI, contract all, schema-diff OK.
 - Open: admin hints for teen_signs meta; teen data not in export; frontend must PUT /profile/life-stage before teen onboarding.
 - TODO (ask user): auto-revoke partner/spouse links when switching to teen? commercial gate keyed on mode not age band; «مادرت یا پزشک» wording; all 17 catalog rows [needs clinical review].
+
+## CB-TEEN-02 — Frontend: teen onboarding + home
+- `/teen/onboarding` (age chips, menarche radio cards, privacy line; «ادامه» → `PUT /profile/life-stage {teen}` then `PUT /teen/profile` → /home; prefilled; no nav). `widgets/teen-home` replaces bloom's minimal teen home (HomePage `mode === 'teen'` branch): signs card + estimate (bar for the two pre-menarche estimates, caution tint for «talk»), school-kit checklist (optimistic `PUT /teen/kit/{code}`, «۲ از ۴»), FAQ accordion, when-to-talk note, «همراهی مادر» row; no banners / Plus / shop / fertility copy; missing answers → onboarding. `entities/teen`; messages `teen.json` (+ Go copy + i18n goldens).
+- Verify (combined tree): typecheck, lint, fsd:lint, lint:styles (924), lint:dark, 1246 tests, build; i18n Go tests — green. Fidelity `docs/qa/canvas/teen.md` both ✔ (shared primitives' selected states; all 5 FAQ rows). Test user 09120007702 (نیلا, teen).
+- Open: «همراهی مادر» → `/companions` until CB-TEEN-03 (bloom's invite wizard has no `parent` type — starting it there gets 422 `teen_parent_only`); `/messages/daily` 400 flash on teen /home (pre-existing HomePage behaviour); 16–17 not_yet shows only the caution title, not its body.

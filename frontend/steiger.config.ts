@@ -289,4 +289,10 @@ export default defineConfig([
     files: ['./src/entities/postpartum/**'],
     rules: { 'fsd/insignificant-slice': 'off' },
   },
+  {
+    // CB-TEEN-02: `entities/teen` is consumed by screens/teen-onboarding and widgets/teen-home, which screens/home
+    // mounts — references FROM `screens` are invisible to steiger.
+    files: ['./src/entities/teen/**', './src/widgets/teen-home/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
 ]);

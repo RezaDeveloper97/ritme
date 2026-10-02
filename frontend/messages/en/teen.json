@@ -1,0 +1,61 @@
+{
+  "onboarding": {
+    "title": "Hi! Tell us a little about you",
+    "privacy": "Your answers are yours and are never shared with anyone without your permission.",
+    "back": "Back",
+    "age": "How old are you?",
+    "ages": {
+      "10_12": "10 to 12",
+      "13_15": "13 to 15",
+      "16_17": "16 to 17"
+    },
+    "menarche": "Have you had your period?",
+    "menarcheOptions": {
+      "not_yet": {
+        "title": "Not yet",
+        "description": "We'll help you get ready"
+      },
+      "under_1y": {
+        "title": "It just started",
+        "description": "Less than a year ago"
+      },
+      "over_1y": {
+        "title": "More than a year ago"
+      }
+    },
+    "continue": "Continue",
+    "pickAge": "Choose your age.",
+    "pickMenarche": "Choose one of the answers.",
+    "saveError": "Couldn't save. Please try again in a moment.",
+    "loading": "Getting things ready…"
+  },
+  "home": {
+    "eyebrow": "Ritme Teen",
+    "hello": "Hi {name}",
+    "helloNoName": "Hi!",
+    "settings": "App mode",
+    "loading": "Loading your Today page…",
+    "loadError": "Your Today page didn't open.",
+    "retry": "Try again",
+    "signs": {
+      "title": "Getting ready for your period",
+      "estimate": "An estimate based on your answers",
+      "calendar": "Open the calendar and log a period"
+    },
+    "kit": {
+      "title": "School emergency kit",
+      "count": "{checked} of {total}",
+      "ready": "Your kit is ready",
+      "saveError": "Couldn't save that tick. Please try again."
+    },
+    "faq": {
+      "title": "Is it normal?"
+    },
+    "talk": "When to talk to your mother or a doctor",
+    "parent": {
+      "link": "Sharing with mom",
+      "invited": "Invite sent",
+      "active": "Your mom is connected"
+    }
+  }
+}

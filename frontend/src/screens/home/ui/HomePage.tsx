@@ -79,6 +79,7 @@ import {
   TtcPhasePills,
   ttcPhase,
 } from '@/widgets/fertility-tiles';
+import { TeenHome } from '@/widgets/teen-home';
 import { TodayChallengeCard } from '@/widgets/today-challenge';
 import { TodayRemindersCard } from '@/widgets/today-reminders';
 
@@ -1265,5 +1266,18 @@ export function HomePage() {
     );
   }
   if (mode === 'menopause') return <MenopauseHome header={<LifeHomeHeader />} />;
+  // CB-TEEN-02: the canvas teen home (nbl_Teen_Home) replaces the simplified cycle home.
+  if (mode === 'teen') {
+    return (
+      <div className="view">
+        <div className="home-grad home-grad-fill" />
+        <div className="scroll page-scroll">
+          <TeenHome />
+          <div className="page-tail" />
+        </div>
+        <BottomNav />
+      </div>
+    );
+  }
   return <CycleHome lifeMode={mode} />;
 }

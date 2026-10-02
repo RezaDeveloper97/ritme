@@ -3,7 +3,7 @@ id: CB-TEEN-02
 title: Frontend: teen onboarding + home
 epic: TEEN
 type: frontend
-status: todo
+status: done
 depends_on: [CB-TEEN-01]
 parallel_group: TEEN-B
 touches: [frontend/src/screens/teen, frontend/src/screens/teen-onboarding, frontend/src/entities/teen, frontend/messages/fa/teen.json, frontend/messages/en/teen.json, frontend/src/app/[locale]/teen, frontend/src/app/message-scopes.ts, frontend/src/screens/home]

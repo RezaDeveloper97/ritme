@@ -36,6 +36,7 @@ import enProfileEdit from '../../../messages/en/profile-edit.json';
 import enProfileInfo from '../../../messages/en/profile-info.json';
 import enPwa from '../../../messages/en/pwa.json';
 import enReminders from '../../../messages/en/reminders.json';
+import enTeen from '../../../messages/en/teen.json'; // CB-TEEN-02
 import enWelcome from '../../../messages/en/welcome.json';
 import enServices from '../../../messages/en/services.json';
 import enSearch from '../../../messages/en/search.json';
@@ -78,6 +79,7 @@ import faProfileEdit from '../../../messages/fa/profile-edit.json';
 import faProfileInfo from '../../../messages/fa/profile-info.json';
 import faPwa from '../../../messages/fa/pwa.json';
 import faReminders from '../../../messages/fa/reminders.json';
+import faTeen from '../../../messages/fa/teen.json'; // CB-TEEN-02
 import faWelcome from '../../../messages/fa/welcome.json';
 import faServices from '../../../messages/fa/services.json';
 import faSearch from '../../../messages/fa/search.json';
@@ -158,6 +160,7 @@ const bundled = {
     logSheet: faLogSheet,
     voiceLog: faVoiceLog,
     logTaxonomy: faLogTaxonomy,
+    teen: faTeen,
     welcome: faWelcome,
     services: faServices,
     search: faSearch,
@@ -202,6 +205,7 @@ const bundled = {
     logSheet: enLogSheet,
     voiceLog: enVoiceLog,
     logTaxonomy: enLogTaxonomy,
+    teen: enTeen,
     welcome: enWelcome,
     services: enServices,
     search: enSearch,
