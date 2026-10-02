@@ -1,0 +1,342 @@
+# IVF (/api/v1/ivf*) — Go only (CB-IVF-01, deviations.md D-51): there is no Laravel route, so these goldens were
+# recorded from the Go server and reviewed by hand (new-endpoint skill, step 8).
+# The fixture dump carries the ivf_* tables (goose 00027 / Laravel 2026_10_02_000027, no rows) and catalog_items with
+# the 36 rows 00027 seeds (ivf_* groups) — added by hand, the DDL/rows a full re-record reproduces. No persona has a
+# cycle, so the write cases open one first (every case runs on a fresh dump). Inventory, site rotation, stage-order
+# and companion edge cases and user isolation are covered by internal/ivf tests.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: ivf
+defaults:
+  persona: ttc
+  locales: [none, en]
+cases:
+  - name: home_empty
+    doc: No cycle → switch off, cycle null, no doses
+    method: GET
+    path: /api/v1/ivf
+    status: 200
+  - name: home_anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/ivf
+    status: 401
+
+  - name: cycle_flow
+    doc: Board «روز ۷ تحریک» (antagonist, stimulation from 17 Sep); next scan tomorrow 09:00 + beta → care appointments
+    steps:
+      - method: POST
+        path: /api/v1/ivf/cycles
+        body: {protocol: antagonist, started_on: "2026-09-10", stage: stim, stim_started_on: "2026-09-17"}
+        status: 201
+      - method: PUT
+        path: /api/v1/ivf/cycles/current
+        body: {next_scan_at: "2026-09-24 09:00", beta_on: "2026-10-10"}
+        status: 200
+      - method: GET
+        path: /api/v1/ivf
+        status: 200
+  - name: cycle_invalid
+    method: POST
+    path: /api/v1/ivf/cycles
+    body: {protocol: nope, stage: freezing, started_on: "2026-09-30"}
+    status: 422
+  - name: cycle_twice
+    doc: One open cycle per user
+    steps:
+      - method: POST
+        path: /api/v1/ivf/cycles
+        body: {}
+        status: 201
+      - method: POST
+        path: /api/v1/ivf/cycles
+        body: {}
+        status: 422
+  - name: cycle_anon
+    persona: anon
+    locales: none
+    method: POST
+    path: /api/v1/ivf/cycles
+    body: {}
+    status: 401
+  - name: update_without_cycle
+    method: PUT
+    path: /api/v1/ivf/cycles/current
+    body: {stage: stim}
+    status: 422
+  - name: update_order
+    doc: The beta test cannot be before the transfer
+    steps:
+      - method: POST
+        path: /api/v1/ivf/cycles
+        body: {started_on: "2026-09-10"}
+        status: 201
+      - method: PUT
+        path: /api/v1/ivf/cycles/current
+        body: {transfer_at: "2026-09-29 10:00", beta_on: "2026-09-28"}
+        status: 422
+
+  - name: outcome_negative
+    doc: Negative → loss path or a new cycle; the medicine reminder is switched off
+    steps:
+      - method: POST
+        path: /api/v1/ivf/cycles
+        body: {started_on: "2026-09-10", stage: tww}
+        status: 201
+      - method: POST
+        path: /api/v1/ivf/meds
+        body: {name: FSH, role: stimulation, route: subcutaneous, times: ["20:00"], starts_on: "2026-09-17"}
+        status: 201
+      - method: POST
+        path: /api/v1/ivf/cycles/current/outcome
+        body: {result: negative}
+        status: 200
+      - method: GET
+        path: /api/v1/ivf
+        status: 200
+  - name: outcome_positive
+    doc: Positive → pregnancy setup
+    steps:
+      - method: POST
+        path: /api/v1/ivf/cycles
+        body: {started_on: "2026-09-01", stage: test}
+        status: 201
+      - method: POST
+        path: /api/v1/ivf/cycles/current/outcome
+        body: {result: positive, date: "2026-09-22"}
+        status: 200
+  - name: outcome_invalid
+    method: POST
+    path: /api/v1/ivf/cycles/current/outcome
+    body: {result: maybe}
+    status: 422
+  - name: outcome_without_cycle
+    method: POST
+    path: /api/v1/ivf/cycles/current/outcome
+    body: {result: negative}
+    status: 422
+
+  - name: meds_empty
+    doc: No cycle → no schedule; the 8 sites are still listed
+    method: GET
+    path: /api/v1/ivf/meds
+    status: 200
+  - name: meds_flow
+    doc: Board nbl_IVF_Meds — FSH 150 IU at 20:00 with 3 pens (low), antagonist at 08:00, trigger on Friday 22:30; log the antagonist in the right abdomen, change the FSH dose, undo, remove
+    steps:
+      - method: POST
+        path: /api/v1/ivf/cycles
+        body: {started_on: "2026-09-10", stage: stim, stim_started_on: "2026-09-17"}
+        status: 201
+      - method: POST
+        path: /api/v1/ivf/meds
+        body: {name: FSH, role: stimulation, route: subcutaneous, dose: 150, unit: iu, times: ["20:00"], starts_on: "2026-09-17", stock_units: 3, stock_unit: pen}
+        status: 201
+        capture: {fsh: data.meds.0.id}
+      - method: POST
+        path: /api/v1/ivf/meds
+        body: {name: Antagonist, role: suppression, route: subcutaneous, times: ["08:00"], starts_on: "2026-09-21", stock_units: 5, stock_unit: prefilled_syringe}
+        status: 201
+        capture: {anta: data.meds.1.id}
+      - method: POST
+        path: /api/v1/ivf/meds
+        body: {name: hCG, role: trigger, route: subcutaneous, dose: "10000", unit: iu, trigger_at: "2026-09-25 22:30"}
+        status: 201
+      - method: POST
+        path: /api/v1/ivf/meds/{{anta}}/doses
+        body: {slot: "08:00", site: abdomen_upper_right}
+        status: 200
+      - method: GET
+        path: /api/v1/ivf/meds
+        status: 200
+      - method: PUT
+        path: /api/v1/ivf/meds/{{fsh}}
+        body: {name: FSH, role: stimulation, route: subcutaneous, dose: "225", unit: iu, times: ["20:00"], starts_on: "2026-09-17", stock_units: 3, stock_unit: pen}
+        status: 200
+      - method: DELETE
+        path: /api/v1/ivf/meds/{{anta}}/doses
+        body: {date: "2026-09-23", slot: "08:00"}
+        status: 200
+      - method: DELETE
+        path: /api/v1/ivf/meds/{{fsh}}
+        status: 200
+  - name: med_invalid
+    steps:
+      - method: POST
+        path: /api/v1/ivf/cycles
+        body: {}
+        status: 201
+      - method: POST
+        path: /api/v1/ivf/meds
+        body: {name: "", role: hormone, route: nasal, times: ["8pm"], stock_units: -1}
+        status: 422
+      - method: POST
+        path: /api/v1/ivf/meds
+        body: {name: FSH, role: stimulation, route: subcutaneous}
+        status: 422
+      - method: POST
+        path: /api/v1/ivf/meds
+        body: {name: hCG, role: trigger, route: subcutaneous}
+        status: 422
+  - name: med_without_cycle
+    method: POST
+    path: /api/v1/ivf/meds
+    body: {name: FSH, role: stimulation, route: subcutaneous, times: ["20:00"]}
+    status: 422
+  - name: med_not_found
+    doc: Unknown (or another user's) medicine id → 404
+    steps:
+      - method: PUT
+        path: /api/v1/ivf/meds/999
+        body: {name: FSH, role: stimulation, route: subcutaneous, times: ["20:00"]}
+        status: 404
+      - method: DELETE
+        path: /api/v1/ivf/meds/999
+        status: 404
+      - method: POST
+        path: /api/v1/ivf/meds/999/doses
+        body: {slot: "08:00"}
+        status: 404
+      - method: DELETE
+        path: /api/v1/ivf/meds/999/doses
+        body: {date: "2026-09-23", slot: "08:00"}
+        status: 404
+  - name: dose_invalid
+    doc: Unknown slot, unknown site, a future day
+    steps:
+      - method: POST
+        path: /api/v1/ivf/cycles
+        body: {}
+        status: 201
+      - method: POST
+        path: /api/v1/ivf/meds
+        body: {name: Antagonist, role: suppression, route: subcutaneous, times: ["08:00"]}
+        status: 201
+        capture: {id: data.meds.0.id}
+      - method: POST
+        path: /api/v1/ivf/meds/{{id}}/doses
+        body: {slot: "09:00"}
+        status: 422
+      - method: POST
+        path: /api/v1/ivf/meds/{{id}}/doses
+        body: {slot: "08:00", site: elbow}
+        status: 422
+      - method: POST
+        path: /api/v1/ivf/meds/{{id}}/doses
+        body: {slot: "08:00", date: "2026-09-24"}
+        status: 422
+  - name: meds_anon
+    persona: anon
+    locales: none
+    method: PUT
+    path: /api/v1/ivf/meds/1
+    body: {}
+    status: 401
+
+  - name: scans_empty
+    method: GET
+    path: /api/v1/ivf/scans
+    status: 200
+  - name: scans_flow
+    doc: Board nbl_IVF_Scan — stimulation day 7, right 3/4/2/0, left 2/5/3/1, endometrium 8.5 mm, E2
+    steps:
+      - method: POST
+        path: /api/v1/ivf/cycles
+        body: {started_on: "2026-09-10", stage: stim, stim_started_on: "2026-09-17"}
+        status: 201
+      - method: PUT
+        path: /api/v1/ivf/scans/2026-09-21
+        body: {right: {lt_10: 5, "10_14": 2}, left: {lt_10: 4, "10_14": 3}, endometrium_mm: 6.2}
+        status: 200
+      - method: PUT
+        path: /api/v1/ivf/scans/2026-09-23
+        body: {right: {lt_10: 3, "10_14": 4, "15_17": 2, "18_plus": 0}, left: {lt_10: 2, "10_14": 5, "15_17": 3, "18_plus": 1}, endometrium_mm: 8.5, e2: 1250}
+        status: 200
+      - method: GET
+        path: /api/v1/ivf/scans
+        status: 200
+      - method: DELETE
+        path: /api/v1/ivf/scans/2026-09-21
+        status: 200
+  - name: scan_invalid
+    steps:
+      - method: POST
+        path: /api/v1/ivf/cycles
+        body: {started_on: "2026-09-10"}
+        status: 201
+      - method: PUT
+        path: /api/v1/ivf/scans/2026-09-24
+        body: {}
+        status: 422
+      - method: PUT
+        path: /api/v1/ivf/scans/2026-09-23
+        body: {right: {lt_10: 99}, endometrium_mm: abc, e2_unit: mg}
+        status: 422
+      - method: PUT
+        path: /api/v1/ivf/scans/2026-09-01
+        body: {}
+        status: 422
+  - name: scan_without_cycle
+    method: DELETE
+    path: /api/v1/ivf/scans/2026-09-23
+    status: 422
+  - name: scans_anon
+    persona: anon
+    locales: none
+    method: PUT
+    path: /api/v1/ivf/scans/2026-09-23
+    body: {}
+    status: 401
+
+  - name: tww_empty
+    method: GET
+    path: /api/v1/ivf/tww
+    status: 200
+  - name: tww_flow
+    doc: Board nbl_IVF_TWW — transfer 21 Sep, beta in 9 days, «امیدوار», progesterone morning and night («۱ از ۲»)
+    steps:
+      - method: POST
+        path: /api/v1/ivf/cycles
+        body: {started_on: "2026-09-01", stage: stim, stim_started_on: "2026-09-03"}
+        status: 201
+      - method: PUT
+        path: /api/v1/ivf/cycles/current
+        body: {stage: tww, retrieval_at: "2026-09-16 08:00", transfer_at: "2026-09-21 11:00", beta_on: "2026-10-02"}
+        status: 200
+      - method: POST
+        path: /api/v1/ivf/meds
+        body: {name: Progesterone, role: luteal_support, route: vaginal, dose: "400", unit: mg, times: ["08:00", "20:00"], starts_on: "2026-09-16"}
+        status: 201
+        capture: {id: data.meds.0.id}
+      - method: POST
+        path: /api/v1/ivf/meds/{{id}}/doses
+        body: {slot: "08:00"}
+        status: 200
+      - method: PUT
+        path: /api/v1/ivf/tww/2026-09-23
+        body: {mood: hopeful}
+        status: 200
+      - method: GET
+        path: /api/v1/ivf/tww
+        status: 200
+  - name: tww_invalid
+    steps:
+      - method: POST
+        path: /api/v1/ivf/cycles
+        body: {}
+        status: 201
+      - method: PUT
+        path: /api/v1/ivf/tww/2026-09-23
+        body: {mood: ecstatic}
+        status: 422
+      - method: PUT
+        path: /api/v1/ivf/tww/2026-09-24
+        body: {mood: calm}
+        status: 422
+  - name: tww_anon
+    persona: anon
+    locales: none
+    method: PUT
+    path: /api/v1/ivf/tww/2026-09-23
+    body: {mood: calm}
+    status: 401

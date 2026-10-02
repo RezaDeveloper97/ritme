@@ -37,6 +37,7 @@ tags:
   - {name: Analysis, description: "Analysis tab (Go only, B-N3-07): hub, cycle, period, symptoms, correlations (Plus), body, monthly report — FIGO 2018 ranges, min-data rules, never causal"}
   - {name: Search, description: "Global search (Go only, CB-NAV-01): grouped hits over the caller's logs and reminders, care programs, education and services; shop excluded"}
   - {name: Contraception, description: "Contraception (Go only): method, pill pack (day, placebo/break days, streak, refill), pill log and the care reminders of long-acting methods"}
+  - {name: IVF, description: "IVF treatment (Go only): cycles and six stages, injection schedule (trigger time, 8-site rotation, inventory), ultrasound scans, two-week wait and outcome — medicines and appointments are care reminders"}
   - {name: Conditions, description: "Condition programs (Go only): enrolment (endometriosis, PMDD, heavy bleeding, PCOS), pain diary on the log taxonomy, PMDD questionnaire + cycle chart, PBAC pad chart"}
   - {name: Menopause, description: "Menopause mode (Go only, CB-MENO-02): stage profile on bloom's life profile, home read model, hot-flash timer, monthly symptom score with domains and deltas, patterns in her own logs (not a diagnosis)"}
   - {name: Postpartum, description: "Postpartum mode (Go only, bloom B-N5-01): activation from pregnancy or directly, time since the birth, the recovery log on log taxonomy v2, EPDS mood checks (weekly EPDS-3, full every two weeks) with the urgent safety path (item 10 > 0 or total ≥ 13 → call 115 / 123 / 1480). EPDS answers are never logged or shared"}
@@ -3763,6 +3764,541 @@ paths:
                   data: {$ref: "#/components/schemas/ContraceptionOverview"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '422': {$ref: "#/components/responses/ContraceptionValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/ivf:
+    get:
+      tags: [IVF]
+      summary: The IVF home (Today in IVF)
+      description: |
+        nbl_IVF_Home. `enabled` is bloom's «IVF/IUI» switch (`user_life_profiles.ivf_iui`, B-N2-03; starting a cycle
+        switches it on). `cycle` is the open cycle (null when none) with its six-stage timeline, `stage_day`
+        («روز ۷ تحریک») and `days_to_beta`; `today.doses` are today's scheduled doses of the cycle's medicines
+        (care medication reminders; `taken` = a care intake exists); `next_appointment` is the earliest upcoming care
+        appointment the cycle dates created; `companion` says whether an active «همدم» link exists (`linked`, the
+        reminder toggle is hidden without it), whether the cycle asked for companion reminders (`notify`) and whether
+        any linked companion may see the medicines / appointments through the B-N4-02 grants. Stage titles, danger
+        signs and notes are catalog groups `ivf_stages`, `ivf_danger_signs`, `ivf_guidance`
+        (`GET /catalog/{group}`). Health data: only the caller's own rows.
+      operationId: getIvf
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The home
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/IvfHome"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/ivf/cycles:
+    post:
+      tags: [IVF]
+      summary: Start a treatment cycle
+      description: |
+        Opens a cycle (one open cycle per user — 422 on `cycle` otherwise) and switches «IVF/IUI» on. `number`
+        defaults to the user's highest + 1, `started_on` to today (not in the future), `stage` to `prep`. `protocol`
+        is an active `ivf_protocols` catalog code. `notify_companion: true` needs an active companion link (422).
+        **201** with the home.
+      operationId: startIvfCycle
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                number: {type: [integer, "null"], minimum: 1, maximum: 50}
+                protocol: {type: [string, "null"], maxLength: 32, description: "catalog `ivf_protocols` code"}
+                stage: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/IvfStage"}]}
+                started_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+                stim_started_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+                notify_companion: {type: boolean}
+            example: {protocol: antagonist, started_on: "2026-09-10", stage: stim, stim_started_on: "2026-09-17"}
+      responses:
+        '201':
+          description: Started; the home
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/IvfHome"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/IvfValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/ivf/cycles/current:
+    put:
+      tags: [IVF]
+      summary: Update the open cycle
+      description: |
+        Partial update: only the keys sent change; `null` clears an optional date. Dates must not be before the cycle
+        start, the transfer not before the retrieval, `beta_on` not before the transfer (422 on the field). Datetimes
+        are Tehran wall-clock `Y-m-d H:i[:s]`. In the same transaction the cycle's care appointments are synced: one
+        per kind — `scan` (next_scan_at, topic ultrasound), `retrieval`, `transfer` (topic other), `beta` (beta_on at
+        08:00, topic lab) — created in person, reminded a day before and titled in the request language; a changed
+        date moves the same reminder (the user's own edits stay), a cleared one deletes it. 422 on `cycle` without an
+        open cycle. Responds with the home.
+      operationId: updateIvfCycle
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                number: {type: integer, minimum: 1, maximum: 50}
+                protocol: {type: [string, "null"], maxLength: 32}
+                stage: {$ref: "#/components/schemas/IvfStage"}
+                started_on: {$ref: "#/components/schemas/Date"}
+                stim_started_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+                retrieval_at: {type: [string, "null"], description: "Y-m-d H:i[:s], Tehran"}
+                transfer_at: {type: [string, "null"], description: "Y-m-d H:i[:s], Tehran"}
+                beta_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+                next_scan_at: {type: [string, "null"], description: "Y-m-d H:i[:s], Tehran"}
+                notify_companion: {type: boolean}
+            example: {stage: stim, next_scan_at: "2026-09-24 09:00", beta_on: "2026-10-10"}
+      responses:
+        '200':
+          description: Saved; the home
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/IvfHome"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/IvfValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/ivf/cycles/current/outcome:
+    post:
+      tags: [IVF]
+      summary: Record the cycle's result
+      description: |
+        Closes the open cycle with `result` on `date` (default today, not in the future, not before the cycle start).
+        Upcoming linked appointments are deleted; after `negative` / `cancelled` the cycle's medicine reminders are
+        switched off (a positive result keeps them — the doctor decides when luteal support stops). `next_steps`:
+        positive → `pregnancy_setup` (bloom's pregnancy setup), negative → `loss` (the loss path) or `new_cycle`,
+        cancelled → `new_cycle`. 422 on `cycle` without an open cycle.
+      operationId: recordIvfOutcome
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [result]
+              properties:
+                result: {type: string, enum: [positive, negative, cancelled]}
+                date: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+            example: {result: negative}
+      responses:
+        '200':
+          description: Closed
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data:
+                    type: object
+                    required: [cycle, next_steps]
+                    properties:
+                      cycle: {$ref: "#/components/schemas/IvfCycle"}
+                      next_steps:
+                        type: array
+                        items: {type: string, enum: [pregnancy_setup, loss, new_cycle]}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/IvfValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/ivf/meds:
+    get:
+      tags: [IVF]
+      summary: The injection schedule
+      description: |
+        nbl_IVF_Meds (stage tab «درمان»): the trigger card (the cycle's latest trigger medicine with its exact time and
+        whether it was taken), today's and tomorrow's doses, the 8-site rotation — `sites.codes` are the active
+        `ivf_injection_sites` catalog codes in rotation order, `last` the most recent logged site (across cycles),
+        `suggested` the next one (never used yet in rotation order, else the least recently used) — and every medicine
+        with its inventory: `doses_left` = counted units × doses per unit − doses taken since the count,
+        `days_left` at today's doses per day (null when not scheduled today), `low` when it lasts 3 days or fewer and
+        runs out before the medicine's end date [needs clinical review]. Without an open cycle: `cycle`/`trigger`
+        null, empty lists, sites still listed. Presets for «افزودن دارو از روی نسخه» are the catalog group
+        `ivf_med_presets`.
+      operationId: getIvfMeds
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The schedule
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/IvfMedsView"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+    post:
+      tags: [IVF]
+      summary: Add a medicine to the open cycle
+      description: |
+        The medicine IS a care medication reminder (`reminders` type medication: name = title, dose/unit/times in the
+        care meta, form injection for subcutaneous/intramuscular, tablet otherwise, every weekday, ongoing or until
+        `ends_on`), so its injection reminder, `GET /care/today` and the companion `meds` section include it; it
+        counts against care's medication cap (422 `error_code: limit_reached`). A trigger (`role: trigger`) is one dose
+        at `trigger_at` (required); every other medicine needs 1–4 `times`, starts today by default. The stock (if
+        `stock_units` is sent) is counted now; `stock_unit` defaults to `other`, `doses_per_unit` to 1. 422 on `cycle`
+        without an open cycle. **201** with the schedule.
+      operationId: addIvfMed
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/IvfMedInput"}
+            example: {name: FSH, role: stimulation, route: subcutaneous, dose: "150", unit: iu, times: ["20:00"], stock_units: 3, stock_unit: pen}
+      responses:
+        '201':
+          description: Added; the schedule
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/IvfMedsView"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/IvfValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/ivf/meds/{id}:
+    put:
+      tags: [IVF]
+      summary: Replace a medicine
+      description: |
+        A full replace with the POST body. The care reminder's switch (`is_active`) stays as the user left it. The stock
+        keeps its count when `stock_units` equals today's `units_left` with the same unit and doses per unit (sending
+        GET's values back changes nothing); otherwise it is recounted now. Another user's id or a malformed id → 404.
+      operationId: updateIvfMed
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/IvfMedInput"}
+      responses:
+        '200':
+          description: Saved; the schedule
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/IvfMedsView"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/IvfMedNotFound"}
+        '422': {$ref: "#/components/responses/IvfValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+    delete:
+      tags: [IVF]
+      summary: Remove a medicine
+      description: "Deletes the care reminder; its IVF row, intakes and injection sites go with it. 404 for another user's id."
+      operationId: deleteIvfMed
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Removed; the schedule
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/IvfMedsView"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/IvfMedNotFound"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/ivf/meds/{id}/doses:
+    post:
+      tags: [IVF]
+      summary: Log a dose (with its injection site)
+      description: |
+        Marks the dose taken — a care intake (`reminder_intakes`, so `/care/today` agrees; idempotent) — and stores the
+        injection site. `date` defaults to today (not in the future); `slot` must be one of the medicine's times and
+        the medicine scheduled on `date` (422 on `slot` / `date`); `site` is an active `ivf_injection_sites` code and
+        only goes with an injected medicine (422 on `site`). Responds with the schedule.
+      operationId: logIvfDose
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [slot]
+              properties:
+                date: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+                slot: {type: string, pattern: "^\\d{2}:\\d{2}$"}
+                site: {type: [string, "null"], maxLength: 32}
+            example: {slot: "08:00", site: abdomen_upper_left}
+      responses:
+        '200':
+          description: Logged; the schedule
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/IvfMedsView"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/IvfMedNotFound"}
+        '422': {$ref: "#/components/responses/IvfValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+    delete:
+      tags: [IVF]
+      summary: Undo a dose
+      description: "Removes the care intake and the injection site of {date, slot}; a dose not taken is a no-op."
+      operationId: unlogIvfDose
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [date, slot]
+              properties:
+                date: {$ref: "#/components/schemas/Date"}
+                slot: {type: string, pattern: "^\\d{2}:\\d{2}$"}
+      responses:
+        '200':
+          description: Undone; the schedule
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/IvfMedsView"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/IvfMedNotFound"}
+        '422': {$ref: "#/components/responses/IvfValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/ivf/scans:
+    get:
+      tags: [IVF]
+      summary: The open cycle's scans and follicle growth
+      description: |
+        nbl_IVF_Scan: scans oldest first (`stim_day` = stimulation day of the scan) and the growth chart's two series
+        per scan (follicles 10–14 mm and ≥ 15 mm, both ovaries). Interpretation is the doctor's (catalog
+        `ivf_guidance` / `scan_interpretation`). Without an open cycle: `cycle` null, empty lists.
+      operationId: getIvfScans
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The scans
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/IvfScansView"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/ivf/scans/{date}:
+    put:
+      tags: [IVF]
+      summary: Save the scan of a day
+      description: |
+        One scan per cycle day (saving again replaces it). Follicles per ovary per bin (`lt_10`, `10_14`, `15_17`,
+        `18_plus`, 0–60, missing = 0), `endometrium_mm` (0–40, stored to 1 decimal), `e2` (stored to 2 decimals) with
+        `e2_unit` (`pg_ml` default, `pmol_l`), notes. `date` not in the future and not before the cycle start (422 on
+        `date`); 422 on `cycle` without an open cycle. Responds with the scans.
+      operationId: saveIvfScan
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: date, in: path, required: true, schema: {$ref: "#/components/schemas/Date"}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                right: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/IvfOvaryInput"}]}
+                left: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/IvfOvaryInput"}]}
+                endometrium_mm: {type: [number, string, "null"]}
+                e2: {type: [number, string, "null"]}
+                e2_unit: {type: [string, "null"], enum: [pg_ml, pmol_l, null]}
+                notes: {type: [string, "null"], maxLength: 500}
+            example: {right: {lt_10: 3, "10_14": 4, "15_17": 2, "18_plus": 0}, left: {lt_10: 2, "10_14": 5, "15_17": 3, "18_plus": 1}, endometrium_mm: 8.5}
+      responses:
+        '200':
+          description: Saved; the scans
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/IvfScansView"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/IvfValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+    delete:
+      tags: [IVF]
+      summary: Remove the scan of a day
+      description: "No-op when the day has no scan; 422 on `cycle` without an open cycle, on `date` when malformed."
+      operationId: deleteIvfScan
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: date, in: path, required: true, schema: {$ref: "#/components/schemas/Date"}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Removed; the scans
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/IvfScansView"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/IvfValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/ivf/tww:
+    get:
+      tags: [IVF]
+      summary: The two-week wait
+      description: |
+        nbl_IVF_TWW: transfer day, beta day, `days_since_transfer`, `days_to_beta` (countdown; negative once past),
+        today's mood and every mood check-in of the cycle, and today's luteal-support doses per medicine (`taken` of
+        `total` — «۱ از ۲»). Feelings / early-test notes and the OHSS danger card are catalog groups `ivf_guidance`
+        (placement tww) and `ivf_danger_signs`. Without an open cycle: `cycle` and the dates null, empty lists.
+      operationId: getIvfTww
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The two-week wait
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/IvfTwwView"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/ivf/tww/{date}:
+    put:
+      tags: [IVF]
+      summary: Save the day's mood
+      description: "`mood` is a chip (`calm`, `hopeful`, `worried`, `tired`) or null to clear. `date` not in the future and not before the cycle start. Responds with the two-week wait."
+      operationId: saveIvfMood
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: date, in: path, required: true, schema: {$ref: "#/components/schemas/Date"}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [mood]
+              properties:
+                mood: {type: [string, "null"], enum: [calm, hopeful, worried, tired, null]}
+            example: {mood: hopeful}
+      responses:
+        '200':
+          description: Saved; the two-week wait
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/IvfTwwView"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/IvfValidationFailed"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/conditions:
     get:
@@ -13362,6 +13898,33 @@ components:
             success: false
             message: اطلاعات واردشده نامعتبر است
             errors: {date: [در روزهای استراحت قرصی خورده نمی‌شود.]}
+    IvfValidationFailed:
+      description: "IVF validation failed (controller 422 `{success: false, message, errors}`, message and field errors in the request language). Without an open cycle (or with one already open on POST /ivf/cycles) the error is on `cycle`; care's medication cap answers `error_code: limit_reached` with `errors.limit`."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, errors]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              errors:
+                type: object
+                additionalProperties: {type: array, items: {type: string}}
+              error_code: {type: string, enum: [limit_reached]}
+          example:
+            success: false
+            message: اطلاعات واردشده نامعتبر است
+            errors: {cycle: [اول یک سیکل درمان شروع کن.]}
+    IvfMedNotFound:
+      description: "Not the user's IVF medicine (another user's id or a malformed id)"
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message]
+            properties: {success: {type: boolean, const: false}, message: {type: string}}
+          example: {success: false, message: دارو پیدا نشد}
     CheckupValidationFailed:
       description: "Checkups validation failed (controller 422 `{success: false, message, errors}`, message and field errors in the request language)"
       content:
@@ -14575,6 +15138,272 @@ components:
               scheduled_at: {type: [string, "null"], description: "Tehran wall-clock Y-m-d H:i:s; null for a monthly reminder"}
               recurrence: {type: string, enum: [none, daily, weekly, monthly]}
               is_active: {type: boolean}
+    IvfStage:
+      type: string
+      enum: [prep, stim, retrieval, transfer, tww, test]
+      description: "Cycle stage (catalog `ivf_stages` holds the titles)"
+    IvfWallClock:
+      type: [string, "null"]
+      pattern: "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$"
+      description: "Tehran wall-clock Y-m-d H:i:s"
+    IvfCycle:
+      type: object
+      required: [id, number, protocol, stage, status, started_on, stim_started_on, retrieval_at, transfer_at, beta_on, next_scan_at, notify_companion, outcome, outcome_on, stage_day, days_to_beta, timeline]
+      properties:
+        id: {type: integer}
+        number: {type: integer, minimum: 1, description: "«سیکل اول» = 1"}
+        protocol: {type: [string, "null"], description: "catalog `ivf_protocols` code"}
+        stage: {$ref: "#/components/schemas/IvfStage"}
+        status: {type: string, enum: [open, closed]}
+        started_on: {$ref: "#/components/schemas/Date"}
+        stim_started_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+        retrieval_at: {$ref: "#/components/schemas/IvfWallClock"}
+        transfer_at: {$ref: "#/components/schemas/IvfWallClock"}
+        beta_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+        next_scan_at: {$ref: "#/components/schemas/IvfWallClock"}
+        notify_companion: {type: boolean, description: "«همدمت هم در جریان باشد» as stored"}
+        outcome: {type: [string, "null"], enum: [positive, negative, cancelled, null]}
+        outcome_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+        stage_day: {type: [integer, "null"], description: "day number within the current stage (open cycle, stage start known and not after today)"}
+        days_to_beta: {type: [integer, "null"], description: "days from today to beta_on (open cycle)"}
+        timeline:
+          type: array
+          minItems: 6
+          maxItems: 6
+          items:
+            type: object
+            required: [stage, status, date]
+            properties:
+              stage: {$ref: "#/components/schemas/IvfStage"}
+              status: {type: string, enum: [done, current, todo]}
+              date: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}], description: "the stage's start when known"}
+    IvfDose:
+      type: object
+      required: [med_id, reminder_id, name, dose, unit, route, role, is_trigger, date, slot, taken, site]
+      properties:
+        med_id: {type: integer}
+        reminder_id: {type: integer, description: "the care medication reminder"}
+        name: {type: string}
+        dose: {type: [string, "null"]}
+        unit: {type: [string, "null"]}
+        route: {$ref: "#/components/schemas/IvfRoute"}
+        role: {$ref: "#/components/schemas/IvfRole"}
+        is_trigger: {type: boolean}
+        date: {$ref: "#/components/schemas/Date"}
+        slot: {type: string, pattern: "^\\d{2}:\\d{2}$"}
+        taken: {type: boolean}
+        site: {type: [string, "null"], description: "catalog `ivf_injection_sites` code"}
+    IvfDoseDay:
+      type: object
+      required: [date, doses]
+      properties:
+        date: {$ref: "#/components/schemas/Date"}
+        doses: {type: array, items: {$ref: "#/components/schemas/IvfDose"}}
+    IvfRoute:
+      type: string
+      enum: [subcutaneous, intramuscular, oral, vaginal, other]
+    IvfRole:
+      type: string
+      enum: [stimulation, suppression, trigger, luteal_support, other]
+    IvfHome:
+      type: object
+      required: [enabled, cycle, cycles_count, today, next_appointment, latest_scan, companion]
+      properties:
+        enabled: {type: boolean, description: "bloom's «IVF/IUI» switch"}
+        cycle: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/IvfCycle"}]}
+        cycles_count: {type: integer, minimum: 0}
+        today: {$ref: "#/components/schemas/IvfDoseDay"}
+        next_appointment:
+          oneOf:
+            - {type: "null"}
+            - type: object
+              required: [kind, appointment]
+              properties:
+                kind: {type: string, enum: [scan, retrieval, transfer, beta]}
+                appointment: {$ref: "#/components/schemas/Appointment"}
+        latest_scan: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/IvfScan"}]}
+        companion:
+          type: object
+          required: [linked, notify, shares_meds, shares_appointments]
+          properties:
+            linked: {type: boolean, description: "an active companion link exists (show the toggle)"}
+            notify: {type: boolean, description: "the open cycle asked for companion reminders and a link exists"}
+            shares_meds: {type: boolean, description: "a linked companion has view/edit on `meds`"}
+            shares_appointments: {type: boolean, description: "a linked companion has view/edit on `appointments`"}
+    IvfMedInput:
+      type: object
+      required: [name, role, route]
+      properties:
+        name: {type: string, maxLength: 100}
+        role: {$ref: "#/components/schemas/IvfRole"}
+        route: {$ref: "#/components/schemas/IvfRoute"}
+        dose: {type: [string, number, "null"], description: "max 50 chars"}
+        unit: {type: [string, "null"], maxLength: 50}
+        times: {type: [array, "null"], maxItems: 4, items: {type: string, pattern: "^\\d{2}:\\d{2}$"}, description: "required (1–4) unless role is trigger"}
+        trigger_at: {type: [string, "null"], description: "required for the trigger; Y-m-d H:i[:s], Tehran"}
+        starts_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+        ends_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+        notes: {type: [string, "null"], maxLength: 2000}
+        stock_units: {type: [integer, "null"], minimum: 0, maximum: 999}
+        stock_unit: {type: [string, "null"], enum: [pen, vial, ampoule, prefilled_syringe, box, other, null]}
+        doses_per_unit: {type: [integer, "null"], minimum: 1, maximum: 100}
+    IvfMed:
+      type: object
+      required: [id, reminder_id, name, role, route, is_trigger, trigger_at, dose, unit, times, starts_on, ends_on, is_active, notes, inventory]
+      properties:
+        id: {type: integer}
+        reminder_id: {type: integer}
+        name: {type: string}
+        role: {$ref: "#/components/schemas/IvfRole"}
+        route: {$ref: "#/components/schemas/IvfRoute"}
+        is_trigger: {type: boolean}
+        trigger_at: {$ref: "#/components/schemas/IvfWallClock"}
+        dose: {type: [string, "null"]}
+        unit: {type: [string, "null"]}
+        times: {type: array, items: {type: string}}
+        starts_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+        ends_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+        is_active: {type: boolean, description: "the care reminder's switch"}
+        notes: {type: [string, "null"]}
+        inventory:
+          oneOf:
+            - {type: "null"}
+            - type: object
+              required: [stock_units, stock_unit, doses_per_unit, counted_at, doses_left, units_left, days_left, runs_out_on, low]
+              properties:
+                stock_units: {type: integer, description: "as counted"}
+                stock_unit: {type: string}
+                doses_per_unit: {type: integer}
+                counted_at: {$ref: "#/components/schemas/IvfWallClock"}
+                doses_left: {type: integer, minimum: 0}
+                units_left: {type: integer, minimum: 0}
+                days_left: {type: [integer, "null"]}
+                runs_out_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+                low: {type: boolean}
+    IvfMedsView:
+      type: object
+      required: [cycle, trigger, today, tomorrow, sites, meds]
+      properties:
+        cycle: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/IvfCycle"}]}
+        trigger:
+          oneOf:
+            - {type: "null"}
+            - type: object
+              required: [med_id, name, dose, unit, trigger_at, taken]
+              properties:
+                med_id: {type: integer}
+                name: {type: string}
+                dose: {type: [string, "null"]}
+                unit: {type: [string, "null"]}
+                trigger_at: {$ref: "#/components/schemas/IvfWallClock"}
+                taken: {type: boolean}
+        today: {$ref: "#/components/schemas/IvfDoseDay"}
+        tomorrow: {$ref: "#/components/schemas/IvfDoseDay"}
+        sites:
+          type: object
+          required: [codes, last, suggested]
+          properties:
+            codes: {type: array, items: {type: string}, description: "active `ivf_injection_sites` codes, rotation order"}
+            last:
+              oneOf:
+                - {type: "null"}
+                - type: object
+                  required: [site, date, slot]
+                  properties:
+                    site: {type: string}
+                    date: {$ref: "#/components/schemas/Date"}
+                    slot: {type: string}
+            suggested: {type: [string, "null"]}
+        meds: {type: array, items: {$ref: "#/components/schemas/IvfMed"}}
+    IvfOvaryInput:
+      type: object
+      properties:
+        lt_10: {type: [integer, "null"], minimum: 0, maximum: 60}
+        "10_14": {type: [integer, "null"], minimum: 0, maximum: 60}
+        "15_17": {type: [integer, "null"], minimum: 0, maximum: 60}
+        "18_plus": {type: [integer, "null"], minimum: 0, maximum: 60}
+    IvfOvary:
+      type: object
+      required: [lt_10, "10_14", "15_17", "18_plus", total]
+      properties:
+        lt_10: {type: integer}
+        "10_14": {type: integer}
+        "15_17": {type: integer}
+        "18_plus": {type: integer}
+        total: {type: integer}
+    IvfScan:
+      type: object
+      required: [date, stim_day, right, left, total, endometrium_mm, e2, e2_unit, notes]
+      properties:
+        date: {$ref: "#/components/schemas/Date"}
+        stim_day: {type: [integer, "null"]}
+        right: {$ref: "#/components/schemas/IvfOvary"}
+        left: {$ref: "#/components/schemas/IvfOvary"}
+        total: {$ref: "#/components/schemas/IvfOvary"}
+        endometrium_mm: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/DecimalString"}]}
+        e2: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/DecimalString"}]}
+        e2_unit: {type: [string, "null"], enum: [pg_ml, pmol_l, null]}
+        notes: {type: [string, "null"]}
+    IvfScansView:
+      type: object
+      required: [cycle, scans, growth]
+      properties:
+        cycle: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/IvfCycle"}]}
+        scans: {type: array, items: {$ref: "#/components/schemas/IvfScan"}}
+        growth:
+          type: array
+          items:
+            type: object
+            required: [date, stim_day, follicles_10_14, follicles_15_plus]
+            properties:
+              date: {$ref: "#/components/schemas/Date"}
+              stim_day: {type: [integer, "null"]}
+              follicles_10_14: {type: integer}
+              follicles_15_plus: {type: integer}
+    IvfTwwView:
+      type: object
+      required: [cycle, transfer_on, beta_on, days_since_transfer, days_to_beta, today, moods, luteal_support]
+      properties:
+        cycle: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/IvfCycle"}]}
+        transfer_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+        beta_on: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/Date"}]}
+        days_since_transfer: {type: [integer, "null"]}
+        days_to_beta: {type: [integer, "null"]}
+        today:
+          type: object
+          required: [date, mood]
+          properties:
+            date: {$ref: "#/components/schemas/Date"}
+            mood: {type: [string, "null"], enum: [calm, hopeful, worried, tired, null]}
+        moods:
+          type: array
+          items:
+            type: object
+            required: [date, mood]
+            properties:
+              date: {$ref: "#/components/schemas/Date"}
+              mood: {type: string, enum: [calm, hopeful, worried, tired]}
+        luteal_support:
+          type: array
+          items:
+            type: object
+            required: [med_id, name, dose, unit, route, doses, taken, total]
+            properties:
+              med_id: {type: integer}
+              name: {type: string}
+              dose: {type: [string, "null"]}
+              unit: {type: [string, "null"]}
+              route: {$ref: "#/components/schemas/IvfRoute"}
+              doses:
+                type: array
+                items:
+                  type: object
+                  required: [slot, taken]
+                  properties:
+                    slot: {type: string}
+                    taken: {type: boolean}
+              taken: {type: integer}
+              total: {type: integer}
     ContraceptionPillDay:
       type: object
       required: [date, kind, status]

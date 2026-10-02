@@ -244,3 +244,11 @@ TODO (ask user):
 - Accuracy fixtures: recall 22/27 → 27/27, precision 22/26 → 27/27, 10/10 sentences exact (tuned on these 10 — not a general quality claim). No golden changes (contract voicelog 24 passed).
 - Verify: go vet, ai + voicelog unit + int, golangci-lint 0 — green.
 - TODO (ask user): unstated bleeding amount → medium (or no suggestion)? bare clock 1–6 = afternoon rule OK?
+
+## CB-IVF-01 — IVF backend: stages, injections, sites, inventory, scans, TWW
+- 15 routes (Go-only, auth:api, throttled writes; D-51; OpenAPI tag `IVF`; contract `ivf`, 51 goldens): `GET /api/v1/ivf`, `POST /ivf/cycles`, `PUT /ivf/cycles/current`, `POST /ivf/cycles/current/outcome`, `GET|POST /ivf/meds`, `PUT|DELETE /ivf/meds/{id}`, `POST|DELETE /ivf/meds/{id}/doses`, `GET /ivf/scans`, `PUT|DELETE /ivf/scans/{date}`, `GET /ivf/tww`, `PUT /ivf/tww/{date}`.
+- Goose `00027_ivf` (+ twin `2026_10_02_000027`): `ivf_cycles` (one open per user), `ivf_meds`, `ivf_dose_logs`, `ivf_scans`, `ivf_tww_logs`, `ivf_reminders`. Built on bloom/care: starting a cycle sets `user_life_profiles.ivf_iui`; each IVF med IS a care medication reminder (doses = care intakes + site); scan/retrieval/transfer/beta dates are care appointments; companion sharing via B-N4-02 `meds`/`appointments` grants; `notify_companion` consent flag (needs an active link).
+- Catalog (audience ttc, needs_review): `ivf_stages` 6, `ivf_protocols` 6, `ivf_injection_sites` 8 (rotation order), `ivf_med_presets` 9 (classes, no brands), `ivf_guidance` 5, `ivf_danger_signs` 2 (OHSS, fever; 115).
+- Verify: sqlc, vet, go test ./..., golangci-lint 0, int ivf + migrations + care + companion + http, OpenAPI, contract all, schema-diff OK. Pre-existing red: internal/catalog admin tests (count 114).
+- Open: no push sender (notify_companion stored only); IUI stages not modelled; beta date not suggested; not in /profile/export; admin hints for ivf_* missing; no docs/canvas-build/ivf.md.
+- TODO (ask user): TWW mood stored in ivf_tww_logs (mirror calm/anxious into healthlog?); site rotation across all cycles; med reminders keep running after a positive outcome; all catalog rows + low-stock rule + beta 08:00 [needs clinical review].

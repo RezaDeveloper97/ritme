@@ -1,0 +1,782 @@
+{
+  "case": "ivf/tww_flow.none",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/ivf/cycles",
+        "persona": "ttc",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "started_on": "2026-09-01",
+          "stage": "stim",
+          "stim_started_on": "2026-09-03"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "سیکل درمان شروع شد",
+        "data": {
+          "enabled": true,
+          "cycle": {
+            "id": 1,
+            "number": 1,
+            "protocol": null,
+            "stage": "stim",
+            "status": "open",
+            "started_on": "2026-09-01",
+            "stim_started_on": "2026-09-03",
+            "retrieval_at": null,
+            "transfer_at": null,
+            "beta_on": null,
+            "next_scan_at": null,
+            "notify_companion": false,
+            "outcome": null,
+            "outcome_on": null,
+            "stage_day": 21,
+            "days_to_beta": null,
+            "timeline": [
+              {
+                "stage": "prep",
+                "status": "done",
+                "date": "2026-09-01"
+              },
+              {
+                "stage": "stim",
+                "status": "current",
+                "date": "2026-09-03"
+              },
+              {
+                "stage": "retrieval",
+                "status": "todo",
+                "date": null
+              },
+              {
+                "stage": "transfer",
+                "status": "todo",
+                "date": null
+              },
+              {
+                "stage": "tww",
+                "status": "todo",
+                "date": null
+              },
+              {
+                "stage": "test",
+                "status": "todo",
+                "date": null
+              }
+            ]
+          },
+          "cycles_count": 1,
+          "today": {
+            "date": "2026-09-23",
+            "doses": []
+          },
+          "next_appointment": null,
+          "latest_scan": null,
+          "companion": {
+            "linked": false,
+            "notify": false,
+            "shares_meds": false,
+            "shares_appointments": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/ivf/cycles/current",
+        "persona": "ttc",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "stage": "tww",
+          "retrieval_at": "2026-09-16 08:00",
+          "transfer_at": "2026-09-21 11:00",
+          "beta_on": "2026-10-02"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "message": "سیکل درمان ذخیره شد",
+        "data": {
+          "enabled": true,
+          "cycle": {
+            "id": 1,
+            "number": 1,
+            "protocol": null,
+            "stage": "tww",
+            "status": "open",
+            "started_on": "2026-09-01",
+            "stim_started_on": "2026-09-03",
+            "retrieval_at": "2026-09-16 08:00:00",
+            "transfer_at": "2026-09-21 11:00:00",
+            "beta_on": "2026-10-02",
+            "next_scan_at": null,
+            "notify_companion": false,
+            "outcome": null,
+            "outcome_on": null,
+            "stage_day": 3,
+            "days_to_beta": 9,
+            "timeline": [
+              {
+                "stage": "prep",
+                "status": "done",
+                "date": "2026-09-01"
+              },
+              {
+                "stage": "stim",
+                "status": "done",
+                "date": "2026-09-03"
+              },
+              {
+                "stage": "retrieval",
+                "status": "done",
+                "date": "2026-09-16"
+              },
+              {
+                "stage": "transfer",
+                "status": "done",
+                "date": "2026-09-21"
+              },
+              {
+                "stage": "tww",
+                "status": "current",
+                "date": "2026-09-21"
+              },
+              {
+                "stage": "test",
+                "status": "todo",
+                "date": "2026-10-02"
+              }
+            ]
+          },
+          "cycles_count": 1,
+          "today": {
+            "date": "2026-09-23",
+            "doses": []
+          },
+          "next_appointment": {
+            "kind": "beta",
+            "appointment": {
+              "id": 101807,
+              "type": "appointment",
+              "title": "آزمایش خون بارداری (بتا)",
+              "subtitle": null,
+              "notes": null,
+              "kind": "in_person",
+              "with": null,
+              "specialty": null,
+              "topic": "lab",
+              "location": null,
+              "scheduled_at": "2026-10-02 08:00:00",
+              "remind_before": "1d",
+              "remind_at": "2026-10-01 08:00:00",
+              "days_until": 9,
+              "add_to_calendar": false,
+              "prep": [],
+              "status": "scheduled",
+              "care_item_key": null,
+              "stage": null,
+              "result_note": null,
+              "is_active": true,
+              "created_at": "2026-09-23T06:30:00.000000Z",
+              "updated_at": "2026-09-23T06:30:00.000000Z"
+            }
+          },
+          "latest_scan": null,
+          "companion": {
+            "linked": false,
+            "notify": false,
+            "shares_meds": false,
+            "shares_appointments": false
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/ivf/meds",
+        "persona": "ttc",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "name": "Progesterone",
+          "role": "luteal_support",
+          "route": "vaginal",
+          "dose": "400",
+          "unit": "mg",
+          "times": [
+            "08:00",
+            "20:00"
+          ],
+          "starts_on": "2026-09-16"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57"
+      },
+      "body": {
+        "success": true,
+        "message": "دارو اضافه شد",
+        "data": {
+          "cycle": {
+            "id": 1,
+            "number": 1,
+            "protocol": null,
+            "stage": "tww",
+            "status": "open",
+            "started_on": "2026-09-01",
+            "stim_started_on": "2026-09-03",
+            "retrieval_at": "2026-09-16 08:00:00",
+            "transfer_at": "2026-09-21 11:00:00",
+            "beta_on": "2026-10-02",
+            "next_scan_at": null,
+            "notify_companion": false,
+            "outcome": null,
+            "outcome_on": null,
+            "stage_day": 3,
+            "days_to_beta": 9,
+            "timeline": [
+              {
+                "stage": "prep",
+                "status": "done",
+                "date": "2026-09-01"
+              },
+              {
+                "stage": "stim",
+                "status": "done",
+                "date": "2026-09-03"
+              },
+              {
+                "stage": "retrieval",
+                "status": "done",
+                "date": "2026-09-16"
+              },
+              {
+                "stage": "transfer",
+                "status": "done",
+                "date": "2026-09-21"
+              },
+              {
+                "stage": "tww",
+                "status": "current",
+                "date": "2026-09-21"
+              },
+              {
+                "stage": "test",
+                "status": "todo",
+                "date": "2026-10-02"
+              }
+            ]
+          },
+          "trigger": null,
+          "today": {
+            "date": "2026-09-23",
+            "doses": [
+              {
+                "med_id": 1,
+                "reminder_id": 101808,
+                "name": "Progesterone",
+                "dose": "400",
+                "unit": "mg",
+                "route": "vaginal",
+                "role": "luteal_support",
+                "is_trigger": false,
+                "date": "2026-09-23",
+                "slot": "08:00",
+                "taken": false,
+                "site": null
+              },
+              {
+                "med_id": 1,
+                "reminder_id": 101808,
+                "name": "Progesterone",
+                "dose": "400",
+                "unit": "mg",
+                "route": "vaginal",
+                "role": "luteal_support",
+                "is_trigger": false,
+                "date": "2026-09-23",
+                "slot": "20:00",
+                "taken": false,
+                "site": null
+              }
+            ]
+          },
+          "tomorrow": {
+            "date": "2026-09-24",
+            "doses": [
+              {
+                "med_id": 1,
+                "reminder_id": 101808,
+                "name": "Progesterone",
+                "dose": "400",
+                "unit": "mg",
+                "route": "vaginal",
+                "role": "luteal_support",
+                "is_trigger": false,
+                "date": "2026-09-24",
+                "slot": "08:00",
+                "taken": false,
+                "site": null
+              },
+              {
+                "med_id": 1,
+                "reminder_id": 101808,
+                "name": "Progesterone",
+                "dose": "400",
+                "unit": "mg",
+                "route": "vaginal",
+                "role": "luteal_support",
+                "is_trigger": false,
+                "date": "2026-09-24",
+                "slot": "20:00",
+                "taken": false,
+                "site": null
+              }
+            ]
+          },
+          "sites": {
+            "codes": [
+              "abdomen_upper_right",
+              "abdomen_upper_left",
+              "thigh_right",
+              "thigh_left",
+              "abdomen_lower_right",
+              "abdomen_lower_left",
+              "arm_right",
+              "arm_left"
+            ],
+            "last": null,
+            "suggested": "abdomen_upper_right"
+          },
+          "meds": [
+            {
+              "id": 1,
+              "reminder_id": 101808,
+              "name": "Progesterone",
+              "role": "luteal_support",
+              "route": "vaginal",
+              "is_trigger": false,
+              "trigger_at": null,
+              "dose": "400",
+              "unit": "mg",
+              "times": [
+                "08:00",
+                "20:00"
+              ],
+              "starts_on": "2026-09-16",
+              "ends_on": null,
+              "is_active": true,
+              "notes": null,
+              "inventory": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/ivf/meds/1/doses",
+        "persona": "ttc",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "slot": "08:00"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "56"
+      },
+      "body": {
+        "success": true,
+        "message": "تزریق ثبت شد",
+        "data": {
+          "cycle": {
+            "id": 1,
+            "number": 1,
+            "protocol": null,
+            "stage": "tww",
+            "status": "open",
+            "started_on": "2026-09-01",
+            "stim_started_on": "2026-09-03",
+            "retrieval_at": "2026-09-16 08:00:00",
+            "transfer_at": "2026-09-21 11:00:00",
+            "beta_on": "2026-10-02",
+            "next_scan_at": null,
+            "notify_companion": false,
+            "outcome": null,
+            "outcome_on": null,
+            "stage_day": 3,
+            "days_to_beta": 9,
+            "timeline": [
+              {
+                "stage": "prep",
+                "status": "done",
+                "date": "2026-09-01"
+              },
+              {
+                "stage": "stim",
+                "status": "done",
+                "date": "2026-09-03"
+              },
+              {
+                "stage": "retrieval",
+                "status": "done",
+                "date": "2026-09-16"
+              },
+              {
+                "stage": "transfer",
+                "status": "done",
+                "date": "2026-09-21"
+              },
+              {
+                "stage": "tww",
+                "status": "current",
+                "date": "2026-09-21"
+              },
+              {
+                "stage": "test",
+                "status": "todo",
+                "date": "2026-10-02"
+              }
+            ]
+          },
+          "trigger": null,
+          "today": {
+            "date": "2026-09-23",
+            "doses": [
+              {
+                "med_id": 1,
+                "reminder_id": 101808,
+                "name": "Progesterone",
+                "dose": "400",
+                "unit": "mg",
+                "route": "vaginal",
+                "role": "luteal_support",
+                "is_trigger": false,
+                "date": "2026-09-23",
+                "slot": "08:00",
+                "taken": true,
+                "site": null
+              },
+              {
+                "med_id": 1,
+                "reminder_id": 101808,
+                "name": "Progesterone",
+                "dose": "400",
+                "unit": "mg",
+                "route": "vaginal",
+                "role": "luteal_support",
+                "is_trigger": false,
+                "date": "2026-09-23",
+                "slot": "20:00",
+                "taken": false,
+                "site": null
+              }
+            ]
+          },
+          "tomorrow": {
+            "date": "2026-09-24",
+            "doses": [
+              {
+                "med_id": 1,
+                "reminder_id": 101808,
+                "name": "Progesterone",
+                "dose": "400",
+                "unit": "mg",
+                "route": "vaginal",
+                "role": "luteal_support",
+                "is_trigger": false,
+                "date": "2026-09-24",
+                "slot": "08:00",
+                "taken": false,
+                "site": null
+              },
+              {
+                "med_id": 1,
+                "reminder_id": 101808,
+                "name": "Progesterone",
+                "dose": "400",
+                "unit": "mg",
+                "route": "vaginal",
+                "role": "luteal_support",
+                "is_trigger": false,
+                "date": "2026-09-24",
+                "slot": "20:00",
+                "taken": false,
+                "site": null
+              }
+            ]
+          },
+          "sites": {
+            "codes": [
+              "abdomen_upper_right",
+              "abdomen_upper_left",
+              "thigh_right",
+              "thigh_left",
+              "abdomen_lower_right",
+              "abdomen_lower_left",
+              "arm_right",
+              "arm_left"
+            ],
+            "last": null,
+            "suggested": "abdomen_upper_right"
+          },
+          "meds": [
+            {
+              "id": 1,
+              "reminder_id": 101808,
+              "name": "Progesterone",
+              "role": "luteal_support",
+              "route": "vaginal",
+              "is_trigger": false,
+              "trigger_at": null,
+              "dose": "400",
+              "unit": "mg",
+              "times": [
+                "08:00",
+                "20:00"
+              ],
+              "starts_on": "2026-09-16",
+              "ends_on": null,
+              "is_active": true,
+              "notes": null,
+              "inventory": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/ivf/tww/2026-09-23",
+        "persona": "ttc",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "mood": "hopeful"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "55"
+      },
+      "body": {
+        "success": true,
+        "message": "حالت امروز ثبت شد",
+        "data": {
+          "cycle": {
+            "id": 1,
+            "number": 1,
+            "protocol": null,
+            "stage": "tww",
+            "status": "open",
+            "started_on": "2026-09-01",
+            "stim_started_on": "2026-09-03",
+            "retrieval_at": "2026-09-16 08:00:00",
+            "transfer_at": "2026-09-21 11:00:00",
+            "beta_on": "2026-10-02",
+            "next_scan_at": null,
+            "notify_companion": false,
+            "outcome": null,
+            "outcome_on": null,
+            "stage_day": 3,
+            "days_to_beta": 9,
+            "timeline": [
+              {
+                "stage": "prep",
+                "status": "done",
+                "date": "2026-09-01"
+              },
+              {
+                "stage": "stim",
+                "status": "done",
+                "date": "2026-09-03"
+              },
+              {
+                "stage": "retrieval",
+                "status": "done",
+                "date": "2026-09-16"
+              },
+              {
+                "stage": "transfer",
+                "status": "done",
+                "date": "2026-09-21"
+              },
+              {
+                "stage": "tww",
+                "status": "current",
+                "date": "2026-09-21"
+              },
+              {
+                "stage": "test",
+                "status": "todo",
+                "date": "2026-10-02"
+              }
+            ]
+          },
+          "transfer_on": "2026-09-21",
+          "beta_on": "2026-10-02",
+          "days_since_transfer": 2,
+          "days_to_beta": 9,
+          "today": {
+            "date": "2026-09-23",
+            "mood": "hopeful"
+          },
+          "moods": [
+            {
+              "date": "2026-09-23",
+              "mood": "hopeful"
+            }
+          ],
+          "luteal_support": [
+            {
+              "med_id": 1,
+              "name": "Progesterone",
+              "dose": "400",
+              "unit": "mg",
+              "route": "vaginal",
+              "doses": [
+                {
+                  "slot": "08:00",
+                  "taken": true
+                },
+                {
+                  "slot": "20:00",
+                  "taken": false
+                }
+              ],
+              "taken": 1,
+              "total": 2
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/ivf/tww",
+        "persona": "ttc",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "cycle": {
+            "id": 1,
+            "number": 1,
+            "protocol": null,
+            "stage": "tww",
+            "status": "open",
+            "started_on": "2026-09-01",
+            "stim_started_on": "2026-09-03",
+            "retrieval_at": "2026-09-16 08:00:00",
+            "transfer_at": "2026-09-21 11:00:00",
+            "beta_on": "2026-10-02",
+            "next_scan_at": null,
+            "notify_companion": false,
+            "outcome": null,
+            "outcome_on": null,
+            "stage_day": 3,
+            "days_to_beta": 9,
+            "timeline": [
+              {
+                "stage": "prep",
+                "status": "done",
+                "date": "2026-09-01"
+              },
+              {
+                "stage": "stim",
+                "status": "done",
+                "date": "2026-09-03"
+              },
+              {
+                "stage": "retrieval",
+                "status": "done",
+                "date": "2026-09-16"
+              },
+              {
+                "stage": "transfer",
+                "status": "done",
+                "date": "2026-09-21"
+              },
+              {
+                "stage": "tww",
+                "status": "current",
+                "date": "2026-09-21"
+              },
+              {
+                "stage": "test",
+                "status": "todo",
+                "date": "2026-10-02"
+              }
+            ]
+          },
+          "transfer_on": "2026-09-21",
+          "beta_on": "2026-10-02",
+          "days_since_transfer": 2,
+          "days_to_beta": 9,
+          "today": {
+            "date": "2026-09-23",
+            "mood": "hopeful"
+          },
+          "moods": [
+            {
+              "date": "2026-09-23",
+              "mood": "hopeful"
+            }
+          ],
+          "luteal_support": [
+            {
+              "med_id": 1,
+              "name": "Progesterone",
+              "dose": "400",
+              "unit": "mg",
+              "route": "vaginal",
+              "doses": [
+                {
+                  "slot": "08:00",
+                  "taken": true
+                },
+                {
+                  "slot": "20:00",
+                  "taken": false
+                }
+              ],
+              "taken": 1,
+              "total": 2
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

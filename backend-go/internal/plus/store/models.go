@@ -468,6 +468,95 @@ type InfoSection struct {
 	UpdatedAt sql.NullTime
 }
 
+type IvfCycle struct {
+	ID              uint64
+	UserID          uint64
+	ActiveUserID    sql.NullInt64
+	Number          uint8
+	Protocol        sql.NullString
+	Stage           string
+	StartedOn       civildate.Date
+	StimStartedOn   civildate.NullDate
+	RetrievalAt     sql.NullTime
+	TransferAt      sql.NullTime
+	BetaOn          civildate.NullDate
+	NextScanAt      sql.NullTime
+	NotifyCompanion bool
+	Outcome         sql.NullString
+	OutcomeOn       civildate.NullDate
+	ClosedAt        sql.NullTime
+	CreatedAt       sql.NullTime
+	UpdatedAt       sql.NullTime
+}
+
+type IvfDoseLog struct {
+	ID        uint64
+	UserID    uint64
+	IvfMedID  uint64
+	DoseDate  civildate.Date
+	Slot      string
+	Site      sql.NullString
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
+type IvfMed struct {
+	ID             uint64
+	UserID         uint64
+	CycleID        uint64
+	ReminderID     uint64
+	Role           string
+	Route          string
+	TriggerAt      sql.NullTime
+	StockUnits     sql.NullInt16
+	StockUnit      sql.NullString
+	DosesPerUnit   uint16
+	StockCountedAt sql.NullTime
+	CreatedAt      sql.NullTime
+	UpdatedAt      sql.NullTime
+}
+
+type IvfReminder struct {
+	ID         uint64
+	UserID     uint64
+	CycleID    uint64
+	Kind       string
+	ReminderID uint64
+	CreatedAt  sql.NullTime
+	UpdatedAt  sql.NullTime
+}
+
+type IvfScan struct {
+	ID            uint64
+	UserID        uint64
+	CycleID       uint64
+	ScanDate      civildate.Date
+	RightLt10     uint8
+	Right1014     uint8
+	Right1517     uint8
+	Right18Plus   uint8
+	LeftLt10      uint8
+	Left1014      uint8
+	Left1517      uint8
+	Left18Plus    uint8
+	EndometriumMm sql.NullString
+	E2            sql.NullString
+	E2Unit        sql.NullString
+	Notes         sql.NullString
+	CreatedAt     sql.NullTime
+	UpdatedAt     sql.NullTime
+}
+
+type IvfTwwLog struct {
+	ID        uint64
+	UserID    uint64
+	CycleID   uint64
+	LogDate   civildate.Date
+	Mood      string
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
 type Job struct {
 	ID          uint64
 	Queue       string

@@ -1,0 +1,36 @@
+{
+  "case": "ivf/cycle_invalid.none",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/ivf/cycles",
+        "persona": "ttc",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "protocol": "nope",
+          "stage": "freezing",
+          "started_on": "2026-09-30"
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": false,
+        "message": "اطلاعات واردشده نامعتبر است",
+        "errors": {
+          "stage": [
+            "مرحله انتخاب‌شده معتبر نیست."
+          ],
+          "started_on": [
+            "این تاریخ نمی‌تواند در آینده باشد."
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -3,7 +3,7 @@ id: CB-IVF-01
 title: IVF backend: stages, injections, sites, inventory, scans, TWW
 epic: IVF
 type: backend
-status: todo
+status: done
 depends_on: [B-N2-03, B-N4-02]
 parallel_group: IVF-A
 touches: [backend-go/internal/ivf, backend-go/internal/http/routes_ivf.go, backend-go/db/queries/ivf, backend-go/api/openapi.yaml, backend-go/contract, backend-go/resources/translations, backend-go/db/migrations, backend/database/migrations, docs/go-migration/deviations.md]

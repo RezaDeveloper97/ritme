@@ -181,3 +181,9 @@ sql:
       go:
         <<: *go
         out: internal/postpartum/store
+  - <<: *pkg
+    queries: db/queries/ivf
+    gen:
+      go:
+        <<: *go
+        out: internal/ivf/store
