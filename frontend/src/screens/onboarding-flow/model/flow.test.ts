@@ -39,6 +39,9 @@ describe('onboarding v2 flow', () => {
     expect(landingRoute('pregnancy', true)).toBe('/pregnancy');
     expect(landingRoute('pregnancy', false)).toBe('/pregnancy/onboarding');
     expect(landingRoute(null, false)).toBe('/home');
+    expect(landingRoute(null, false, 'male')).toBe('/companion');
+    expect(landingRoute('cycle', false, 'male')).toBe('/companion');
+    expect(landingRoute('cycle', false, 'female')).toBe('/home');
   });
 
   it('maps every screen to a resume key the middleware understands', () => {

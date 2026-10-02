@@ -138,7 +138,7 @@ function ReadyView({ ctx }: { ctx: StepContext }) {
     clearOnboardingPending();
     const token = getAuthToken();
     if (token) setAuthToken(token);
-    window.location.replace(`/${locale}${landingRoute(isMale ? null : goal, mode === 'pregnancy')}`);
+    window.location.replace(`/${locale}${landingRoute(isMale ? null : goal, mode === 'pregnancy', isMale ? 'male' : null)}`);
   };
 
   return (

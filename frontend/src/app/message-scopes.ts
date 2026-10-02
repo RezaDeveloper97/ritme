@@ -40,8 +40,9 @@ export const SHELL_NAMESPACES = [
 ] as const satisfies readonly MessageNamespace[];
 
 // B-N2-02: every onboarding route mounts the one onboarding-flow screen slice
-// (`profileEdit` comes with the birthday wheels of features/edit-profile).
-const ONBOARDING = ['common', 'onboarding', 'profileEdit'] as const satisfies readonly MessageNamespace[];
+// (`profileEdit` comes with the birthday wheels of features/edit-profile; `companions` with the
+// entities/companion barrel the partner step imports for the code field, B-N4-05).
+const ONBOARDING = ['common', 'companions', 'onboarding', 'profileEdit'] as const satisfies readonly MessageNamespace[];
 const AUTH = ['auth', 'common'] as const satisfies readonly MessageNamespace[];
 const PREGNANCY = ['common', 'nav', 'pregnancy'] as const satisfies readonly MessageNamespace[];
 
@@ -54,12 +55,17 @@ export const ROUTE_NAMESPACES = {
   cycle: ['common', 'cycle', 'logPeriod'], // B-N1-08 cycle history (back header, no nav)
   cycleSymptoms: ['common', 'cycle', 'logPeriod'], // B-N1-08 /cycle/symptoms (screen slice shares the editor)
   cycleSettings: ['common', 'me'], // B-N1-09 /cycle/settings (copy lives under me.cycleSettings)
-  profile: ['account', 'common', 'me', 'nav', 'plus', 'profile', 'profileEdit'], // B-N2-08: entities/plus (Me Plus card) carries the PlusFeatureGate copy
-  profileAccount: ['account', 'common', 'me', 'nav', 'plus', 'profile', 'profileEdit'], // B-N1-10 /profile/account (+ plus: same Me hub slice)
+  profile: ['account', 'common', 'companions', 'me', 'nav', 'plus', 'profile', 'profileEdit'], // B-N2-08: entities/plus (Me Plus card) carries the PlusFeatureGate copy; B-N4-04 entities/companion (Me row)
+  profileAccount: ['account', 'common', 'companions', 'me', 'nav', 'plus', 'profile', 'profileEdit'], // B-N1-10 /profile/account (+ plus: same Me hub slice)
   profileAppearance: ['common', 'me'], // B-N1-10 /profile/appearance
   profileLanguage: ['common', 'me'], // B-N1-10 /profile/language
   profileNotifications: ['common', 'me'], // B-N1-11 /profile/notifications
-  profilePrivacy: ['account', 'common', 'me'], // B-N1-12 /profile/privacy (DeleteAccountConfirm = account)
+  profilePrivacy: ['account', 'common', 'companions', 'me'], // B-N1-12 /profile/privacy (DeleteAccountConfirm = account; B-N4-04 companions section)
+  companions: ['common', 'companions'], // B-N4-04 /companions (Hamdam_List)
+  companionsNew: ['common', 'companions'], // B-N4-04 /companions/new (Hamdam_Type → Access → Children → Invite → Done)
+  companionDetail: ['common', 'companions'], // B-N4-04 /companions/[id] (grants, renew, revoke)
+  companion: ['common', 'companionHome', 'companions', 'nav'], // B-N4-05 /companion (Hamdam_Home, companion nav; companions = entities/companion barrel)
+  companionLinks: ['common', 'companionHome', 'companions', 'nav'], // B-N4-05 /companion/links (code entry + leave a link, Me «کد همدم»)
   profileSupport: ['common', 'me'], // B-N1-12 /profile/support
   profileAbout: ['common', 'me'], // B-N1-12 /profile/about
   profileLegal: ['common', 'me'], // B-N1-12 /profile/legal
@@ -112,6 +118,7 @@ export const ROUTE_NAMESPACES = {
   onboardingConditions: ONBOARDING,
   onboardingHealth: ONBOARDING,
   onboardingPartner: ONBOARDING,
+  onboardingPartnerLinked: ONBOARDING, // B-N4-05
   onboardingSettingUp: ONBOARDING,
 } as const satisfies Record<string, readonly MessageNamespace[]>;
 

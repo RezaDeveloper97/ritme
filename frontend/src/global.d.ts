@@ -37,6 +37,8 @@ import type enWelcome from '../messages/en/welcome.json';
 import type enServices from '../messages/en/services.json';
 import type enSearch from '../messages/en/search.json';
 import type enPlus from '../messages/en/plus.json';
+import type enCompanions from '../messages/en/companions.json';
+import type enCompanionHome from '../messages/en/companion-home.json';
 
 // English is the reference locale for key completeness; next-intl uses this
 // to type translation keys and ICU params (a wrong key becomes a compile
@@ -81,6 +83,8 @@ type Messages = {
   services: typeof enServices;
   search: typeof enSearch;
   plus: typeof enPlus;
+  companions: typeof enCompanions;
+  companionHome: typeof enCompanionHome;
   articles: typeof enArticles;
 };
 

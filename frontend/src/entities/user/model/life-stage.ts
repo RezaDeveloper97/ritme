@@ -15,6 +15,11 @@ export function isLifeMode(value: unknown): value is LifeMode {
 export interface LifeStage {
   /** The effective mode: an active pregnancy profile always wins (the pregnancy domain owns that switch). */
   mode: LifeMode;
+  /**
+   * A male companion account (effective mode `companion`, B-N4-03): no cycle of
+   * its own, home is `/companion`, `mode` then reads `cycle`.
+   */
+  companion?: boolean;
   /** What the user picked; `null` = never chose (legacy derivation from `user_goal`). */
   storedMode: LifeMode | null;
   /** «درمان ناباروری (IVF/IUI) دارم» — the TTC card's switch. Nothing behind it yet (roadmap E03-ivf). */

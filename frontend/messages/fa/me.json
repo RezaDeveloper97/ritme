@@ -63,7 +63,9 @@
     "cycleSettings": "تنظیمات سیکل",
     "cycleSettingsSub": "طول سیکل، پریود و یادآورها",
     "analysis": "تحلیل و گزارش‌ها",
-    "analysisSub": "سیکل، علائم، حال و بدن"
+    "analysisSub": "سیکل، علائم، حال و بدن",
+    "companionCode": "کد همدم",
+    "companionCodeSub": "وصل شدن به شریک یا خروج از اتصال"
   },
   "logout": "خروج از حساب",
   "loggingOut": "در حال خروج…",

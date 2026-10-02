@@ -18,14 +18,18 @@ export const lifeStageKeys = {
 
 export const lifeStageSchema = z
   .object({
-    mode: z.enum(LIFE_MODES),
+    // B-N4-03: a male account's effective mode is `companion` (never stored).
+    mode: z.enum([...LIFE_MODES, 'companion']),
     stored_mode: z.enum(LIFE_MODES).nullable().catch(null),
     ivf_iui: z.boolean().catch(false),
     track_contraception: z.boolean().catch(false),
   })
   .transform(
     (d): LifeStage => ({
-      mode: d.mode,
+      // A companion has no life stage of its own: callers that only know the six
+      // modes read the neutral `cycle`; `companion` marks the account (B-N4-05).
+      mode: d.mode === 'companion' ? 'cycle' : d.mode,
+      companion: d.mode === 'companion',
       storedMode: d.stored_mode,
       ivfIui: d.ivf_iui,
       trackContraception: d.track_contraception,

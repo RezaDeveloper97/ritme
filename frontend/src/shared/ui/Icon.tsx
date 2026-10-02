@@ -22,7 +22,8 @@ export type IconName =
   | 'card'
   | 'syringe' | 'implant'
   | 'mic' | 'gut' | 'dropLine' | 'bed' | 'urine' | 'run' | 'scaleSquare'
-  | 'grip' | 'pin' | 'chevronUp';
+  | 'grip' | 'pin' | 'chevronUp'
+  | 'copy' | 'share' | 'send';
 
 const PATHS: Record<IconName, string> = {
   bell:         '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
@@ -156,6 +157,10 @@ const PATHS: Record<IconName, string> = {
   grip:         '<path d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01"/>',
   pin:          '<path d="M9 3h6l-1 6 4 4H6l4-4z"/><path d="M12 13v8"/>',
   chevronUp:    '<path d="M18 15l-6-6-6 6"/>',
+  // B-N4-04 (nbl_Hamdam_Invite): copy code, share, send invite.
+  copy:         '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 012-2h9"/>',
+  share:        '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/>',
+  send:         '<path d="M4 12l16-8-6 16-3-7z"/>',
 };
 
 interface IconProps {

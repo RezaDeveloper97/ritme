@@ -272,4 +272,15 @@ export default defineConfig([
     files: ['./src/entities', './src/entities/**'],
     rules: { 'fsd/excessive-slicing': 'off' },
   },
+  {
+    // B-N4-04: the companion «همدم» owner slices are consumed by screens/companion-*, screens/privacy and
+    // screens/profile — references FROM `screens` are invisible to steiger. invite-companion is the 21st feature:
+    // the 20-slice guideline is lifted for `features` as it already is for `entities`.
+    files: ['./src/entities/companion/**', './src/features/invite-companion/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
+    files: ['./src/features', './src/features/**'],
+    rules: { 'fsd/excessive-slicing': 'off' },
+  },
 ]);

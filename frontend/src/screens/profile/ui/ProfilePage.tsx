@@ -2,6 +2,7 @@
 
 import { useLocale, useTranslations } from 'next-intl';
 
+import { companionName, useCompanions } from '@/entities/companion';
 import { useUserMode } from '@/entities/message';
 import { usePlusStatus } from '@/entities/plus';
 import { useUserProfile } from '@/entities/user';
@@ -41,7 +42,6 @@ interface SoonRow {
 }
 
 const FAMILY_SOON: readonly SoonRow[] = [
-  { key: 'companions', icon: 'users', tone: 'brand' }, // B-N4
   { key: 'children', icon: 'user', tone: 'bloom' }, // B-N5
 ];
 const TASK_ROWS: readonly SoonRow[] = [
@@ -75,6 +75,9 @@ export function ProfilePage() {
   const profile = profileQuery.data;
   // Life-stage mode (B-N2-03) — menopause/teen/postpartum exist only there; falls back to /messages/mode.
   const navMode = useNavMode().mode ?? 'cycle';
+  // B-N4-04: «همدم‌ها و خانواده» → /companions; the row lists who is there («علی · مادر»).
+  const { data: companions } = useCompanions(navMode !== 'companion');
+  const companionNames = (companions ?? []).map((c) => companionName(c)).filter(Boolean).join(' · ');
   const modeName = t(`modes.${navMode}`);
   const languageName = languages.find((l) => l.code === locale)?.name ?? locale;
   const calendarName = t(`calendars.${calendarSystem(loc)}`);
@@ -141,7 +144,8 @@ export function ProfilePage() {
 
         {/* Plus status → /plus (paywall) or /plus/manage (B-N2-07).
             Teen mode never shows a Plus upsell (B-N2-03, gaps.md #3). */}
-        {navMode === 'teen' ? null : (
+        {/* B-N4-05: a companion account has no cycle features to upsell either. */}
+        {navMode === 'teen' || navMode === 'companion' ? null : (
           <button
             type="button"
             className="me-plus"
@@ -159,13 +163,34 @@ export function ProfilePage() {
         <section className="me-sec" aria-labelledby="me-g-family">
           <SectionTitle id="me-g-family" title={t('groups.family')} />
           <ListGroup>
-            <ListRow
-              icon="modeRing"
-              iconTone={MODE_TONE[navMode]}
-              title={t('rows.mode')}
-              description={t('rows.modeSub', { mode: modeName })}
-              onClick={() => router.push('/profile/mode')}
-            />
+            {/* B-N4-05: a companion has no life stage to switch (PUT /profile/life-stage → 422);
+                his row is «کد همدم» — link another partner or leave a link. */}
+            {navMode === 'companion' ? (
+              <ListRow
+                icon="users"
+                iconTone="brand"
+                title={t('rows.companionCode')}
+                description={t('rows.companionCodeSub')}
+                onClick={() => router.push('/companion/links')}
+              />
+            ) : (
+              <ListRow
+                icon="modeRing"
+                iconTone={MODE_TONE[navMode]}
+                title={t('rows.mode')}
+                description={t('rows.modeSub', { mode: modeName })}
+                onClick={() => router.push('/profile/mode')}
+              />
+            )}
+            {navMode !== 'companion' ? (
+              <ListRow
+                icon="users"
+                iconTone="brand"
+                title={t('rows.companions')}
+                description={companionNames || undefined}
+                onClick={() => router.push('/companions')}
+              />
+            ) : null}
             {FAMILY_SOON.map((row) => (
               <ListRow key={row.key} icon={row.icon} iconTone={row.tone} title={t(`rows.${row.key}`)} trailing={soon} />
             ))}
@@ -225,14 +250,16 @@ export function ProfilePage() {
               title={t('rows.notifications')}
               onClick={() => router.push('/profile/notifications')}
             />
-            {/* B-N1-09: cycle length + cycle reminders. */}
-            <ListRow
-              icon="drop"
-              iconTone="period"
-              title={t('rows.cycleSettings')}
-              description={t('rows.cycleSettingsSub')}
-              onClick={() => router.push('/cycle/settings')}
-            />
+            {/* B-N1-09: cycle length + cycle reminders — not for a companion account (B-N4-05). */}
+            {navMode !== 'companion' ? (
+              <ListRow
+                icon="drop"
+                iconTone="period"
+                title={t('rows.cycleSettings')}
+                description={t('rows.cycleSettingsSub')}
+                onClick={() => router.push('/cycle/settings')}
+              />
+            ) : null}
             <ListRow
               icon="moon"
               title={t('rows.appearance')}

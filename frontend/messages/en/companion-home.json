@@ -1,0 +1,126 @@
+{
+  "greeting": "Hi {name}",
+  "greetingNoName": "Hi",
+  "companionOf": "{name}'s companion",
+  "someone": "your partner",
+  "partners": "Partners",
+  "loading": "Loading the companion panel",
+  "error": {
+    "title": "Couldn't load the companion panel",
+    "body": "Check your connection and try again.",
+    "retry": "Try again"
+  },
+  "cycle": {
+    "overline": "{name}'s cycle · today",
+    "day": "Day {day} of {length}",
+    "dayOnly": "Day {day}",
+    "phase": "{phase} phase",
+    "nextPeriod": "Next period in about {days, plural, =0 {today} one {# day} other {# days}}",
+    "late": "Period is {days, plural, one {# day} other {# days}} later than predicted",
+    "noData": "{name} hasn't logged a cycle in Ritme yet.",
+    "bar": {
+      "period": "Period",
+      "fertile": "Fertile",
+      "luteal": "Luteal"
+    },
+    "barLabel": "Day {day} of a {length}-day cycle"
+  },
+  "pregnancy": {
+    "overline": "{name}'s pregnancy",
+    "week": "Week {week}",
+    "trimester": "Trimester {n}"
+  },
+  "phases": {
+    "menstrual": "Period",
+    "follicular": "Follicular",
+    "fertile": "Fertile",
+    "luteal": "Luteal",
+    "pregnancy": "Pregnancy",
+    "general": "Companion"
+  },
+  "generalOverline": "Today",
+  "shared": {
+    "title": "{name} shares with you",
+    "meds": "{name}'s medications",
+    "appointments": "{name}'s appointments",
+    "cycle": "Period & cycle",
+    "pregnancy": "Pregnancy",
+    "aboveCard": "The card above",
+    "symptoms": "Symptoms & daily mood",
+    "symptomDays": "{days, plural, =0 {Nothing logged this week} one {# day logged this week} other {# days logged this week}}",
+    "noMeds": "No active medication",
+    "noAppointments": "No upcoming appointment",
+    "line": "{title} · {when}",
+    "more": "{title} and {count, plural, one {# more} other {# more}}",
+    "view": "View only",
+    "edit": "Can edit",
+    "notShared": "{items} not shared with you.",
+    "nothing": "{name} hasn't shared anything with you yet. She can grant access from her companions screen whenever she wants.",
+    "sections": {
+      "cycle": "Cycle",
+      "symptoms": "Symptoms & daily mood",
+      "meds": "Medications",
+      "appointments": "Appointments",
+      "pregnancy": "Pregnancy"
+    }
+  },
+  "tips": {
+    "title": "What can you do today?",
+    "done": "Done",
+    "doneOn": "Done"
+  },
+  "articles": {
+    "title": "To read",
+    "all": "All",
+    "readTime": "Article · {minutes, plural, one {# min} other {# min}}",
+    "article": "Article"
+  },
+  "child": {
+    "title": "Child",
+    "soon": "Child profile coming soon",
+    "soonSub": "When a child profile is created and shared with you, you'll see it here."
+  },
+  "empty": {
+    "title": "You are not connected to anyone yet",
+    "body": "Enter the companion code you were sent to see what she shares with you.",
+    "action": "Enter the companion code"
+  },
+  "code": {
+    "label": "6-character companion code",
+    "hint": "Your partner sends you the 6-character code from the \"Invite a companion\" screen.",
+    "connect": "Connect",
+    "connecting": "Connecting…",
+    "success": "You're connected to {name}.",
+    "successNoName": "You're connected.",
+    "errors": {
+      "invalid": "This code is not valid or has expired. Ask your partner for a new code.",
+      "throttled": "Too many tries in a row. Please try again in a little while.",
+      "generic": "Could not connect. Please try again."
+    }
+  },
+  "links": {
+    "title": "Companion code",
+    "subtitle": "Enter the code your partner sent you from the \"Invite a companion\" screen to connect.",
+    "back": "Back",
+    "linkedTitle": "You're connected to",
+    "since": "Since {date}",
+    "leave": "Leave",
+    "leaveLabel": "Stop being {name}'s companion",
+    "leaveConfirmTitle": "Stop being {name}'s companion?",
+    "leaveConfirmBody": "You won't see anything from {name} any more. To connect again you'll need a new code.",
+    "leaveConfirm": "Leave",
+    "cancel": "Cancel",
+    "leaveError": "Could not leave. Please try again.",
+    "none": "You are not connected to anyone yet.",
+    "loadError": "Couldn't load your connections.",
+    "retry": "Try again",
+    "toHome": "Go to the companion panel"
+  },
+  "invite": {
+    "title": "My partner doesn't have Ritme yet",
+    "sub": "Send them an invite link",
+    "shareTitle": "Ritme",
+    "shareText": "I installed Ritme. Install it too and send me a companion code from the \"Invite a companion\" screen: {url}",
+    "copied": "Invite link copied."
+  }
+}

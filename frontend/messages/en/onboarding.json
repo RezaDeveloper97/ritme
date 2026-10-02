@@ -177,7 +177,6 @@
     "partner": {
       "title": "Companion code",
       "subtitle": "If your partner added you as their companion, enter the code they gave you to see what they share with you.",
-      "soon": "Linking with a companion code is coming soon. Enter Ritme for now; you can link later.",
       "seesTitle": "What do you see with this code?",
       "sees": {
         "phase": "Current phase and next period",
@@ -187,7 +186,39 @@
       },
       "revoke": "Your partner can revoke access at any time.",
       "connect": "Connect",
-      "later": "I'll connect later"
+      "later": "I'll connect later",
+      "codeLabel": "6-character companion code",
+      "hint": "Your partner sends you the 6-character code from the \"Invite a companion\" screen.",
+      "connecting": "Connecting…",
+      "errors": {
+        "invalid": "This code is not valid or has expired. Ask your partner for a new code.",
+        "throttled": "Too many tries in a row. Please try again in a little while.",
+        "generic": "Could not connect. Please try again."
+      },
+      "inviteTitle": "My partner doesn't have Ritme yet",
+      "inviteSub": "Send them an invite link",
+      "inviteShareTitle": "Ritme",
+      "inviteShareText": "I installed Ritme. Install it too and send me a companion code from the \"Invite a companion\" screen: {url}",
+      "inviteCopied": "Invite link copied."
+    },
+    "partnerLinked": {
+      "title": "You're connected to {name}",
+      "titleNoName": "You're connected",
+      "body": "From now on you'll see {name}'s cycle summary and tips for each phase on your home.",
+      "bodyNoName": "From now on you'll see what your partner shares and tips for each phase on your home.",
+      "today": "{name} today",
+      "todayNoName": "Today",
+      "nextPeriod": "Next period in about {days, plural, =0 {today} one {# day} other {# days}}.",
+      "phases": {
+        "menstrual": "Period",
+        "follicular": "Follicular",
+        "fertile": "Fertile",
+        "luteal": "Luteal",
+        "pregnancy": "Pregnancy",
+        "general": "Companion"
+      },
+      "enter": "Open the companion panel",
+      "loading": "Preparing the companion panel"
     }
   }
 }

@@ -3,8 +3,8 @@
  * one leads. Pure so the branching is unit-tested (`flow.test.ts`).
  *
  * Phone → OTP → Name → Gender → (woman) Goal → Cycle | Preg | Meno →
- * Conditions → Health → Ready. A man goes Gender → Partner (stub until
- * B-N4-05) → Ready.
+ * Conditions → Health → Ready. A man goes Gender → Partner (companion code,
+ * B-N4-05) → Linked → companion panel, or «بعداً» → Ready → companion panel.
  */
 
 export type OnboardingGoal = 'cycle' | 'ttc' | 'pregnancy' | 'menopause';
@@ -139,12 +139,21 @@ export function flowStepFromPath(pathname: string): FlowStep | null {
   return hit?.[0] ?? null;
 }
 
+/** The «به … وصل شدی» screen after a code was accepted (nbl_Onb_PartnerLinked). */
+export const PARTNER_LINKED_ROUTE = '/onboarding/partner/linked';
+
 /**
- * Where «ورود به ریتمی» lands: each mode's home. A pregnant user who skipped
+ * Where «ورود به ریتمی» lands: each mode's home; a man's is `/companion`. A pregnant user who skipped
  * the dating screen has no active pregnancy yet, so she finishes it on the
  * pregnancy onboarding screen instead of an empty pregnancy home.
  */
-export function landingRoute(goal: OnboardingGoal | null, pregnancyActive: boolean): string {
+export function landingRoute(
+  goal: OnboardingGoal | null,
+  pregnancyActive: boolean,
+  gender: OnboardingGender | null = null,
+): string {
+  // A man has no cycle of his own: his home is the companion panel (B-N4-05, N2 stage bug B-1).
+  if (gender === 'male') return '/companion';
   if (goal === 'pregnancy') return pregnancyActive ? '/pregnancy' : '/pregnancy/onboarding';
   return '/home';
 }

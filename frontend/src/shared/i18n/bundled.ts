@@ -39,6 +39,8 @@ import enWelcome from '../../../messages/en/welcome.json';
 import enServices from '../../../messages/en/services.json';
 import enSearch from '../../../messages/en/search.json';
 import enPlus from '../../../messages/en/plus.json';
+import enCompanions from '../../../messages/en/companions.json';
+import enCompanionHome from '../../../messages/en/companion-home.json';
 import faAccount from '../../../messages/fa/account.json';
 import faAnalysis from '../../../messages/fa/analysis.json';
 import faAnalysisPregnancy from '../../../messages/fa/analysis-pregnancy.json';
@@ -78,6 +80,8 @@ import faWelcome from '../../../messages/fa/welcome.json';
 import faServices from '../../../messages/fa/services.json';
 import faSearch from '../../../messages/fa/search.json';
 import faPlus from '../../../messages/fa/plus.json';
+import faCompanions from '../../../messages/fa/companions.json';
+import faCompanionHome from '../../../messages/fa/companion-home.json';
 
 /**
  * The locales compiled into the bundle, and their strings.
@@ -155,6 +159,8 @@ const bundled = {
     services: faServices,
     search: faSearch,
     plus: faPlus,
+    companions: faCompanions,
+    companionHome: faCompanionHome,
     pwa: faPwa,
     articles: faArticles,
   },
@@ -196,6 +202,8 @@ const bundled = {
     services: enServices,
     search: enSearch,
     plus: enPlus,
+    companions: enCompanions,
+    companionHome: enCompanionHome,
     pwa: enPwa,
     articles: enArticles,
   },

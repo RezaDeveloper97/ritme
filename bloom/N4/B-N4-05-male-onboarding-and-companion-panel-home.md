@@ -3,7 +3,7 @@ id: B-N4-05
 title: Male onboarding and companion panel home
 milestone: N4
 type: frontend
-status: todo
+status: done
 depends_on: [B-N4-03,B-N2-02]
 parallel_group: N4-E
 touches: [frontend/src/screens/onboarding-partner,frontend/src/screens/companion-home,frontend/src/widgets/bottom-nav]

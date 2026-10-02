@@ -40,6 +40,7 @@ import {
 } from '@/entities/user';
 import { QuickEditSheet } from '@/features/edit-profile';
 import { PeriodDateEditor, useEndPeriod, useStartPeriod } from '@/features/log-period';
+import { getApiErrorCode } from '@/shared/api';
 import { Link, useRouter, type Locale } from '@/shared/i18n';
 import {
   addDays,
@@ -1240,14 +1241,21 @@ export function HomePage() {
   // «pregnancy» would hold the backdrop forever) — fall back to the cycle home.
   const unresolved = life.isError && !legacy.data && !(legacy.isPending && legacy.fetchStatus !== 'idle');
   const mode = fresh ?? (unresolved ? null : hint);
+  // B-N4-05 (N2 stage bug B-1): a male companion account has no cycle home —
+  // `/home*` answers 409 `companion_account` — so it goes to the companion panel.
+  const companion = Boolean(life.data?.companion) || getApiErrorCode(legacy.error) === 'companion_account';
 
   useEffect(() => {
+    if (companion) {
+      router.replace('/companion');
+      return;
+    }
     if (fresh) writeLifeModeHint(fresh);
     if (fresh === 'pregnancy') router.replace('/pregnancy');
-  }, [fresh, router]);
+  }, [companion, fresh, router]);
 
-  // Server pass, first client render, and the pregnancy hand-off: backdrop only.
-  if (!mounted || mode === 'pregnancy') {
+  // Server pass, first client render, and the pregnancy / companion hand-off: backdrop only.
+  if (!mounted || mode === 'pregnancy' || companion) {
     return (
       <div className="view">
         <div className="home-grad home-grad-fill" />

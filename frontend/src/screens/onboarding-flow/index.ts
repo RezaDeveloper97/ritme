@@ -9,5 +9,6 @@ export { MenopauseStep } from './ui/MenopauseStep';
 export { ConditionsStep } from './ui/ConditionsStep';
 export { HealthStep } from './ui/HealthStep';
 export { PartnerStep } from './ui/PartnerStep';
+export { PartnerLinkedStep } from './ui/PartnerLinkedStep';
 export { ReadyStep } from './ui/ReadyStep';
 export { FlowResumeTracker } from './ui/FlowResumeTracker';

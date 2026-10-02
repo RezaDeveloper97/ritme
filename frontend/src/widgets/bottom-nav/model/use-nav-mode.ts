@@ -2,6 +2,7 @@
 
 import { useUserMode } from '@/entities/message';
 import { useLifeStage } from '@/entities/user';
+import { getApiErrorCode } from '@/shared/api';
 
 import { resolveNavMode, type NavMode } from './nav-items';
 
@@ -20,10 +21,13 @@ export interface NavModeState {
 export function useNavMode(): NavModeState {
   const life = useLifeStage();
   const legacy = useUserMode();
+  // B-N4-05: a male companion account gets the companion nav (امروز · خدمات · من, no FAB).
+  if (life.data?.companion) return { mode: 'companion', pending: false };
   if (life.data) return { mode: resolveNavMode({ lifeMode: life.data.mode }), pending: false };
   const lifePending = life.isPending && life.fetchStatus !== 'idle';
   const legacyPending = legacy.isPending && legacy.fetchStatus !== 'idle';
   if (lifePending) return { mode: null, pending: true };
+  if (getApiErrorCode(legacy.error) === 'companion_account') return { mode: 'companion', pending: false };
   if (legacy.data) return { mode: resolveNavMode({ mode: legacy.data.mode, isTtc: legacy.data.isTtc }), pending: false };
   return { mode: null, pending: legacyPending };
 }

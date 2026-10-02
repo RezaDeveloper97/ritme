@@ -63,7 +63,9 @@
     "cycleSettings": "Cycle settings",
     "cycleSettingsSub": "Cycle, period length and reminders",
     "analysis": "Analysis & reports",
-    "analysisSub": "Cycle, symptoms, mood and body"
+    "analysisSub": "Cycle, symptoms, mood and body",
+    "companionCode": "Companion code",
+    "companionCodeSub": "Connect to a partner or leave a link"
   },
   "logout": "Log out",
   "loggingOut": "Logging out…",

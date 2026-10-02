@@ -701,3 +701,34 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   up to 4 articles; empty state with `enter_code` when no links.
 - `enums.ResolveAccountMode` → `companion` for gender=male; `PUT /profile/life-stage` mode 422; `/home*`,
   `/messages/daily|mode` → 409 `companion_account`. Contract `companion-home` 7; existing goldens unchanged. D-49.
+
+## B-N4-04 — Owner flow — companions list, type, access, shared children, invite, done
+
+- `entities/companion` (schemas, hooks + key factory, create/grants/renew/revoke mutations, grant helpers,
+  CompanionCard/FamilyStrip/PersonBubble), `features/invite-companion` (wizard Type → Access (default none) → Children
+  (spouse; «به‌زودی» until B-N5-02) → Invite by phone/SMS or code-only with copy/Web Share → Done; phone normalisation
+  mirrors Go), screens `companion-list|invite|detail` at `/companions`, `/companions/new`, `/companions/[id]` (grants
+  editor, renew shows a new code once, last 5 audit entries, revoke confirm). Codes live only in component state.
+- Me hub row «همدم‌ها و خانواده» (hidden in companion mode) and privacy «ریتمی همراه» rows per active companion.
+- Screenshots `docs/qa/bloom/B-N4-04/`. persona 04 has an active spouse (persona 12) on ritme_dev.
+
+## B-N4-07 — Admin — companion tips content and link overview
+
+- Admin API `/api/admin/v1/companions/tips[/:phase]` (GET/PUT/DELETE reset per locale; fixed `companion_tip` slots
+  note + ≤3 tips per phase, fallback row → default locale → embedded copy, `source` per slot; audit) and
+  `/companions/links` (read-only, masked names/phones, counts by status/type, `grants_count` only — no codes, no
+  section names). Any active admin. Docs `admin-api.md` §16; int tests. No migration, no deviation.
+- admin-web «همدم» group: «نکته‌های همدم» (phase/locale tabs, reorder, preview card) and «اتصال‌ها» (counts, filters).
+- Screenshots `docs/qa/bloom/B-N4-07/`.
+
+## B-N4-05 — Male onboarding and companion panel home
+
+- Onboarding partner step = real 6-char code entry (`CompanionCodeField`, paste/IME, Persian digits) → accept →
+  `/onboarding/partner/linked` → `/companion`; `landingRoute(…, gender)` sends males to `/companion` (stage bug B-1).
+- `screens/companion-home`: `/companion` (partner card day/phase/next period or pregnancy week, shared sections with
+  access level, tips, articles, child placeholder, partner chips, empty state with code entry; women redirected to
+  `/home`) and `/companion/links` (enter code, links, leave). Companion nav امروز · خدمات · من (no FAB/mode tab) via
+  `use-nav-mode` (`companion` or 409 `companion_account`); `HomePage` redirects males. Me hub for males hides Plus
+  upsell, life-stage and cycle settings; adds «کد همدم». `entities/companion` companion-side hooks + code helpers;
+  `LifeStage.companion` flag. Namespace `companionHome`.
+- Screenshots `docs/qa/bloom/B-N4-05/`. Test users 09900000551 (linked to p04) / 552 (no link). QUESTIONS #96.
