@@ -4,7 +4,8 @@ package voicelog_test
 // through POST /logs/voice with the fake provider (transcript injected via the RITME-FAKE marker), then saved the way
 // the client does — log items through PUT /logs/days with voice_params, diary items through POST /logs/voice/commit.
 // "want" is what a careful human would log from the sentence; "miss" / "extra" pin the fake parser's known gaps so
-// the table in docs/qa/canvas/voice.md stays honest. The real Gemini provider is never called.
+// the table in docs/qa/canvas/voice.md stays honest (CB-VOICE-03b closed the CB-VOICE-03 gaps: 27/27, no extras).
+// The real Gemini provider is never called.
 
 import (
 	"context"
@@ -32,13 +33,11 @@ type accuracyCase struct {
 
 var accuracyCases = []accuracyCase{
 	{id: "c1", mode: "cycle", text: "امروز پریودم شروع شد، خونریزیم زیاده و دلم خیلی درد می\u200cکنه",
-		want: map[string]any{"log:bleeding.flow.": "heavy", "log:pain.location.abdomen": "severe"},
-		miss: []string{"log:bleeding.flow.", "log:pain.location.abdomen"}},
+		want: map[string]any{"log:bleeding.flow.": "heavy", "log:pain.location.abdomen": "severe"}},
 	{id: "c2", mode: "cycle", text: "از صبح کمرم درد می\u200cکنه، هفت از ده. ساعت دو یه ژلوفن خوردم ولی اثر نکرد",
 		want: map[string]any{"log:pain.location.back": "severe", "log:pain.relief.painkiller": true,
 			"pain_diary:pain_diary.score.": 7.0, "pain_diary:pain_diary.analgesic.": "ژلوفن",
-			"pain_diary:pain_diary.analgesic_time.": "14:00", "pain_diary:pain_diary.analgesic_effect.": "no"},
-		miss: []string{"pain_diary:pain_diary.analgesic_time."}},
+			"pain_diary:pain_diary.analgesic_time.": "14:00", "pain_diary:pain_diary.analgesic_effect.": "no"}},
 	{id: "c3", mode: "cycle", text: "قرص ضد بارداریم رو امروز صبح خوردم، یه کم هم سرم درد می\u200cکنه",
 		want: map[string]any{"pill:pill.status.": "taken", "log:pain.location.head": "mild"}},
 	{id: "c4", mode: "cycle", text: "امروز وقتی عطسه کردم یه کم ادرارم نشت کرد، شب هم سه بار برای دستشویی بیدار شدم",
@@ -46,20 +45,16 @@ var accuracyCases = []accuracyCase{
 	{id: "c5", mode: "cycle", text: "امروز خیلی بی\u200cحوصله\u200cام و نفخ دارم، دیشب هم بد خوابیدم",
 		want: map[string]any{"log:mood.moods.bored": true, "log:symptoms.digestive.bloating": "yes", "log:sleep.quality.": "poor"}},
 	{id: "m1", mode: "menopause", text: "امروز پنج بار گرگرفتگی داشتم، بیشترش بعد از چای داغ",
-		want:  map[string]any{"hot_flash:hot_flash.count.": 5.0, "log:menopause.triggers.hot_drink": true},
-		extra: []string{"log:appetite_energy.cravings.sour"}},
+		want: map[string]any{"hot_flash:hot_flash.count.": 5.0, "log:menopause.triggers.hot_drink": true}},
 	{id: "m2", mode: "menopause", text: "دیشب دو بار با گرگرفتگی و عرق شبانه از خواب پریدم و بی\u200cخوابی داشتم",
 		want: map[string]any{"hot_flash:hot_flash.count.": 2.0, "hot_flash:hot_flash.night.": true,
-			"log:symptoms.general.night_sweats": "yes", "log:symptoms.general.insomnia": "yes"},
-		miss: []string{"hot_flash:hot_flash.count."}},
+			"log:symptoms.general.night_sweats": "yes", "log:symptoms.general.insomnia": "yes"}},
 	{id: "m3", mode: "menopause", text: "زانوهام درد می\u200cکنه، حدود پنج از ده، یه استامینوفن خوردم و کمک کرد",
 		want: map[string]any{"log:pain.location.joints": "moderate", "log:pain.relief.painkiller": true}},
 	{id: "m4", mode: "menopause", text: "وقتی خندیدم یه کم ادرارم چکه کرد و خشکی واژن هم اذیتم می\u200cکنه",
-		want:  map[string]any{"bladder:bladder.leak.": "cough", "log:urogenital.symptoms.vaginal_dryness": "yes"},
-		extra: []string{"log:sex.symptoms.dryness"}},
+		want: map[string]any{"bladder:bladder.leak.": "cough", "log:urogenital.symptoms.vaginal_dryness": "yes"}},
 	{id: "m5", mode: "menopause", text: "امروز بی\u200cحوصله\u200cام، تمرکز ندارم و حواسم پرته",
-		want: map[string]any{"log:mood.moods.bored": true, "log:symptoms.general.brain_fog": "yes"},
-		miss: []string{"log:symptoms.general.brain_fog"}},
+		want: map[string]any{"log:mood.moods.bored": true, "log:symptoms.general.brain_fog": "yes"}},
 }
 
 type accSuggestion struct {
@@ -88,7 +83,7 @@ func TestVoice_AccuracyFixtures(t *testing.T) {
 	ctx := context.Background()
 	now := time.Date(2026, 9, 23, 10, 0, 0, 0, civildate.Tehran)
 
-	totalWant, totalHit, exact := 0, 0, 0
+	totalWant, totalHit, totalGot, exact := 0, 0, 0, 0
 	for i, c := range accuracyCases {
 		key := "acc_" + string(rune('a'+i))
 		ai.FakeTranscripts[key] = map[string]string{"fa": c.text}
@@ -127,6 +122,7 @@ func TestVoice_AccuracyFixtures(t *testing.T) {
 			}
 		}
 		totalWant += len(c.want)
+		totalGot += len(gotMap)
 		sort.Strings(misses)
 		sort.Strings(extras)
 		wantMiss := append([]string{}, c.miss...)
@@ -191,10 +187,12 @@ func TestVoice_AccuracyFixtures(t *testing.T) {
 		t.Logf("ACC %s | %s | got: %s | miss: %v | extra: %v | PUT %s | commit %s",
 			c.id, c.mode, strings.Join(gotKeys, ", "), misses, extras, logOK, commitOK)
 	}
-	assert.Equal(t, 22, totalHit, "wanted items found")
+	assert.Equal(t, 27, totalHit, "wanted items found")
 	assert.Equal(t, 27, totalWant)
-	t.Logf("ACC total: %d/%d wanted items (%.0f%%), %d/%d sentences exact",
-		totalHit, totalWant, 100*float64(totalHit)/float64(totalWant), exact, len(accuracyCases))
+	assert.Equal(t, 27, totalGot, "suggestions made")
+	t.Logf("ACC total: recall %d/%d (%.0f%%), precision %d/%d (%.0f%%), %d/%d sentences exact",
+		totalHit, totalWant, 100*float64(totalHit)/float64(totalWant),
+		totalHit, totalGot, 100*float64(totalHit)/float64(totalGot), exact, len(accuracyCases))
 }
 
 func nilIfEmpty(s []string) []string {

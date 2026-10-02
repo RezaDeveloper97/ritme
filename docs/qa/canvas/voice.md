@@ -89,3 +89,24 @@ Gemini prompt and needs its own run with keys.
 - Carried from CB-VOICE-01/02: per-item quote, live transcript (streaming), diary items not editable, «چیزی جا افتاده؟»
   drops unsaved diary items, offline-queued day save fails the diary commit, «یک نکته» copy [needs clinical review],
   21:00 reminder riding on `daily_log`.
+
+## CB-VOICE-03b — fake parser gaps closed
+
+Same 10 fixtures, same test (`TestVoice_AccuracyFixtures`, `make test-int PKG=./internal/voicelog/...`), fake provider
+only (no Gemini call). The pinned miss / extra lists are now empty and the test asserts 27 hits out of 27 suggestions.
+
+| # | Was (CB-VOICE-03) | Now | Rule added in `internal/ai/fake.go` |
+|---|---|---|---|
+| c1 | nothing | log: bleeding flow = **heavy** · abdomen = **severe** (PUT 200) | bleeding lexicon (`fakeBleeding`): «پریود / خونریزی / قاعدگی», amount word after it → flow (زیاد → heavy, خیلی زیاد → very_heavy, کم → light, متوسط → medium; none said → medium, conf 0.6); menopause → presence bleeding; «ندارم / دیر کرده» → no flow (presence none). Pain phrases accept up to 2 adverbs between body part and «درد» («دلم **خیلی** درد») |
+| c2 | time 02:00 | time **14:00** | `clockHour`: a bare 1–6 (no part-of-day word) is afternoon (13–18), bare 7–12 as said; «صبح / am» keeps, «ظهر / عصر / pm» +12, «شب» +12 for 6–11 (1–5 stays after midnight, 12 → 00); the word may be right before «ساعت» or right after the time |
+| m1 | + cravings «ترش» | no extra | labels match as whole words (known suffixes «م / ش / ی / ها …» allowed): «ترش» ∉ «بیشترش», «ترشی» ✓ |
+| m2 | count 1 | count **2** | «N بار [با / از / دچار / هم …] گرگرفتگی» and «N بار گر گرفتم» |
+| m4 | + sex › dryness | no extra | label matching skips words a lexicon rule already read (when that rule's slot is in the user's vocabulary — in cycle mode, with no vaginal-dryness slot, «خشکی» still reads as sex › dryness) |
+| m5 | no brain fog | brain fog | «حواسم پرت», «تمرکز ندارم / کمه», «نمی‌تونم تمرکز», "can't concentrate" |
+
+**Result:** 27 / 27 expected items — **100 % recall** (was 81 %); 27 / 27 suggestions correct — **100 % precision**
+(was 85 %); 10 / 10 sentences exact (was 4). Saves: 9 `PUT /logs/days` 200 + 6 `POST /logs/voice/commit` 200 (c1 now
+saves). Existing fake fixtures (fa / en default, weight, headache, custom, menopause, pain diary, pill, pelvic) and
+`make contract ROUTES=voicelog` (24 passed) unchanged. Unit tests: `TestFake_ParseLog_QAGaps`, `TestClockHour`.
+Still only the **fake** parser — 100 % on the 10 sentences it was tuned on is not a quality claim; the Gemini run
+with keys remains open.

@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"strings"
 	"testing"
 
@@ -342,4 +343,122 @@ func TestGemini_ParseLog_CanvasSchema(t *testing.T) {
 	assert.Contains(t, body, "pain_diary.analgesic | text | دفتر درد › مسکن | ≤ 100 characters")
 	assert.Contains(t, body, "pain_diary.analgesic_time | time | دفتر درد › ساعت مسکن | HH:MM")
 	assert.Contains(t, body, "alternatives")
+}
+
+// gapVocab adds the CB-VOICE-03b slots (bleeding, cravings «ترش», sex «خشکی», vaginal dryness) to the canvas one.
+func gapVocab() []VocabEntry {
+	sym := []VocabValue{{"yes", "دارم"}, {"no", "ندارم"}, {"mild", "کم"}, {"moderate", "متوسط"}, {"severe", "شدید"}}
+	return append(canvasVocab(),
+		VocabEntry{Key: "bleeding.flow", Type: "single", Label: "خونریزی › میزان",
+			Values: []VocabValue{{"light", "کم"}, {"medium", "متوسط"}, {"heavy", "زیاد"}, {"very_heavy", "خیلی زیاد"}}},
+		VocabEntry{Key: "bleeding.presence", Type: "single", Label: "خونریزی › وضعیت",
+			Values: []VocabValue{{"none", "نداشتم"}, {"spotting", "لکه\u200cبینی"}, {"bleeding", "خونریزی"}}},
+		VocabEntry{Key: "pain.location.back", Type: "items", Label: "درد › محل درد › کمر", Values: sym[2:]},
+		VocabEntry{Key: "pain.location.joints", Type: "items", Label: "درد › محل درد › مفاصل", Values: sym[2:]},
+		VocabEntry{Key: "appetite_energy.cravings.sour", Type: "multi", Label: "اشتها › هوس › ترش"},
+		VocabEntry{Key: "sex.symptoms.dryness", Type: "multi", Label: "رابطه › علائم › خشکی"},
+		VocabEntry{Key: "urogenital.symptoms.vaginal_dryness", Type: "items", Label: "ادراری › علائم › خشکی واژن", Values: sym},
+		VocabEntry{Key: "menopause.triggers.hot_drink", Type: "multi", Label: "یائسگی › محرک\u200cها › نوشیدنی داغ"},
+	)
+}
+
+// TestFake_ParseLog_QAGaps pins the CB-VOICE-03b fixes (gaps found by the CB-VOICE-03 accuracy fixtures).
+func TestFake_ParseLog_QAGaps(t *testing.T) {
+	parse := func(text string, v []VocabEntry) map[string]any {
+		cs, _, err := NewFake().ParseLog(context.Background(), LogParseRequest{Text: text, Vocabulary: v})
+		require.NoError(t, err)
+		return keys(cs)
+	}
+	without := func(v []VocabEntry, drop ...string) []VocabEntry {
+		var out []VocabEntry
+		for _, e := range v {
+			if !slices.Contains(drop, e.Key) {
+				out = append(out, e)
+			}
+		}
+		return out
+	}
+	cycle := without(gapVocab(), "bleeding.presence")
+	meno := without(gapVocab(), "bleeding.flow")
+
+	t.Run("bleeding", func(t *testing.T) {
+		assert.Equal(t, "heavy", parse("خونریزیم زیاده", cycle)["bleeding.flow"])
+		assert.Equal(t, "very_heavy", parse("پریودم خیلی زیاده", cycle)["bleeding.flow"])
+		assert.Equal(t, "light", parse("خونریزیم کمه", cycle)["bleeding.flow"])
+		assert.Equal(t, "medium", parse("امروز پریودم شروع شد", cycle)["bleeding.flow"], "amount not said → medium")
+		assert.Equal(t, "heavy", parse("I have a heavy period today", cycle)["bleeding.flow"])
+		assert.Equal(t, "light", parse("my bleeding is light", cycle)["bleeding.flow"])
+		assert.Empty(t, parse("پریودم دیر کرده", cycle), "a late period is no bleeding")
+		assert.Empty(t, parse("خونریزی ندارم", cycle))
+		assert.Equal(t, map[string]any{"bleeding.presence": "bleeding"}, parse("امروز خونریزی داشتم", meno))
+		assert.Equal(t, map[string]any{"bleeding.presence": "none"}, parse("خونریزی نداشتم", meno))
+		assert.Equal(t, map[string]any{"bleeding.presence": "spotting"}, parse("یه کم لکه بینی داشتم", meno))
+		assert.Empty(t, parse("از خواب پریدم", cycle), "«پریدم» is not «پریود»")
+	})
+
+	t.Run("adverb inside a pain phrase", func(t *testing.T) {
+		assert.Equal(t, map[string]any{"pain.location.abdomen": "severe"}, parse("دلم خیلی درد می\u200cکنه", cycle))
+		assert.Equal(t, map[string]any{"pain.location.back": "mild"}, parse("کمرم یه کم درد میکنه", cycle))
+		assert.Equal(t, map[string]any{"pain.location.joints": "severe"}, parse("زانوهام هم خیلی درد میکنه", meno))
+		assert.Equal(t, map[string]any{"pain.location.back": "moderate"}, parse("my back really hurts", cycle), "«really» is not a level word")
+	})
+
+	t.Run("N times with a hot flash", func(t *testing.T) {
+		got := parse("دیشب دو بار با گرگرفتگی از خواب پریدم", meno)
+		assert.Equal(t, 2.0, got["hot_flash.count"])
+		assert.Equal(t, true, got["hot_flash.night"])
+		assert.Equal(t, 4.0, parse("امروز چهار بار گر گرفتم", meno)["hot_flash.count"])
+		assert.Equal(t, 1.0, parse("دو بار رفتم دستشویی و یه گرگرفتگی داشتم", meno)["hot_flash.count"],
+			"a count of something else is not the flash count")
+	})
+
+	t.Run("brain fog", func(t *testing.T) {
+		for _, s := range []string{"حواسم پرته", "تمرکز ندارم", "نمی\u200cتونم تمرکز کنم", "I can't concentrate"} {
+			assert.Equal(t, map[string]any{"symptoms.general.brain_fog": "yes"}, parse(s, meno), s)
+		}
+	})
+
+	t.Run("clock without am/pm", func(t *testing.T) {
+		at := func(text string) any { return parse(text, cycle)["pain_diary.analgesic_time"] }
+		assert.Equal(t, "14:00", at("ساعت دو یه ژلوفن خوردم"), "bare 1–6 → afternoon")
+		assert.Equal(t, "18:30", at("ساعت 6:30 یه ژلوفن خوردم"))
+		assert.Equal(t, "10:00", at("ساعت ده یه ژلوفن خوردم"), "bare 7–12 → as said")
+		assert.Equal(t, "12:00", at("ساعت دوازده یه ژلوفن خوردم"))
+		assert.Equal(t, "02:00", at("ساعت دو شب یه ژلوفن خوردم"), "night 1–5 → after midnight")
+		assert.Equal(t, "22:00", at("ساعت ده شب یه ژلوفن خوردم"))
+		assert.Equal(t, "05:00", at("صبح ساعت پنج یه ژلوفن خوردم"))
+		assert.Equal(t, "15:00", at("ساعت سه بعدازظهر یه ژلوفن خوردم"))
+		assert.Equal(t, "02:00", at("I took an ibuprofen at 2 am"))
+		assert.Equal(t, "20:00", at("I took an ibuprofen at 8 pm"))
+		assert.Equal(t, "16:00", at("I took an ibuprofen at four"))
+		assert.Equal(t, "17:00", at("ساعت 17 یه ژلوفن خوردم"))
+		assert.Nil(t, at("ساعت 30 یه ژلوفن خوردم"))
+	})
+
+	t.Run("whole-word labels", func(t *testing.T) {
+		assert.Equal(t, map[string]any{"hot_flash.count": 5.0, "menopause.triggers.hot_drink": true},
+			parse("امروز پنج بار گرگرفتگی داشتم، بیشترش بعد از چای داغ", meno), "no «ترش» inside «بیشترش»")
+		assert.Equal(t, map[string]any{"appetite_energy.cravings.sour": true}, parse("هوس ترشی کردم", meno), "suffix allowed")
+		assert.Equal(t, map[string]any{"urogenital.symptoms.vaginal_dryness": "yes"},
+			parse("خشکی واژن اذیتم میکنه", meno), "the lexicon's words are not read again as «رابطه › خشکی»")
+		assert.Equal(t, map[string]any{"sex.symptoms.dryness": true},
+			parse("موقع رابطه خشکی داشتم", meno), "the label alone still matches")
+		assert.Equal(t, map[string]any{"sex.symptoms.dryness": true},
+			parse("خشکی واژن دارم", without(cycle, "urogenital.symptoms.vaginal_dryness")),
+			"cycle mode: no vaginal-dryness slot, so the sex item is the reading")
+	})
+}
+
+func TestClockHour(t *testing.T) {
+	for _, c := range []struct {
+		h    int
+		part string
+		want int
+	}{
+		{2, "", 14}, {6, "", 18}, {7, "", 7}, {12, "", 12}, {0, "", 0}, {13, "", 13}, {24, "", -1},
+		{12, "am", 0}, {9, "صبح", 9}, {12, "شب", 0}, {3, "شب", 3}, {9, "شب", 21}, {1, "ظهر", 13}, {12, "ظهر", 12},
+		{5, "عصر", 17}, {11, "pm", 23},
+	} {
+		assert.Equal(t, c.want, clockHour(c.h, c.part), "%d %s", c.h, c.part)
+	}
 }

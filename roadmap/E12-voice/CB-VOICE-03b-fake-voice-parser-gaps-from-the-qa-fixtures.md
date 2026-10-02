@@ -3,7 +3,7 @@ id: CB-VOICE-03b
 title: Fake voice parser gaps from the QA fixtures
 epic: VOICE
 type: backend
-status: todo
+status: done
 depends_on: [CB-VOICE-03]
 parallel_group: VOICE-C
 touches: [backend-go/internal/ai,backend-go/internal/voicelog]

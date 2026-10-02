@@ -8,6 +8,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"unicode"
 	"unicode/utf8"
 )
 
@@ -21,7 +22,8 @@ import (
 // ParseLog is a small rule-based matcher: a colloquial lexicon for the artboard phrases (pain locations and
 // intensity, weight, sleep, menopause symptoms and triggers) plus label matching of the vocabulary's item / multi
 // labels, so custom items work too, plus the canvas fields (CB-VOICE-01: hot flashes, pain-diary score / analgesic,
-// pill taken / missed, bladder leak / night voids) and the mood ambiguity chooser. Same input → same output.
+// pill taken / missed, bladder leak / night voids) and the mood ambiguity chooser, plus bleeding flow / presence
+// (CB-VOICE-03b). Labels match as whole words outside the phrases the lexicon already read. Same input → same output.
 type Fake struct{}
 
 // NewFake builds the fake provider.
@@ -108,10 +110,17 @@ type lexRule struct {
 	alts []string
 }
 
+// painAdverbs are the intensity / filler words said between a body part and «درد» («دلم خیلی درد میکنه»); the
+// sentence-wide level words still decide the level.
+const (
+	painAdverbs   = `(?:(?:خیلی|یه ?کم|یکم|کمی|یکمی|شدید|بدجور|هم|باز|هنوز|یه ذره) ){0,2}`
+	painAdverbsEn = `(?:(?:really|so|very|still|a bit|a little|kind of) ){0,2}`
+)
+
 var fakeLexicon = []lexRule{
-	{regexp.MustCompile(`دلم درد|دل ?درد|شکمم درد|درد شکم|دل پیچه|belly|stomach ?ache|abdomen|cramp`), "pain.location.abdomen", nil, nil},
-	{regexp.MustCompile(`سرم درد|سر ?درد|headache`), "pain.location.head", nil, nil},
-	{regexp.MustCompile(`کمرم درد|کمر ?درد|back ?pain|backache`), "pain.location.back", nil, nil},
+	{regexp.MustCompile(`(?:دلم|شکمم) ` + painAdverbs + `درد|دل ?درد|درد شکم|دل پیچه|belly|stomach ?ache|abdomen|cramp`), "pain.location.abdomen", nil, nil},
+	{regexp.MustCompile(`سرم ` + painAdverbs + `درد|سر ?درد|headache|head ` + painAdverbsEn + `(?:hurts|aches)`), "pain.location.head", nil, nil},
+	{regexp.MustCompile(`کمرم ` + painAdverbs + `درد|کمر ?درد|back ?pain|backache|back ` + painAdverbsEn + `(?:hurts|aches)`), "pain.location.back", nil, nil},
 	{regexp.MustCompile(`نفخ|bloat`), "symptoms.digestive.bloating", nil, nil},
 	{regexp.MustCompile(`تهوع|nause`), "symptoms.digestive.nausea", nil, nil},
 	{regexp.MustCompile(`خستگی|خسته\x{200c}?ام|tired|fatigue`), "symptoms.general.fatigue", nil, nil},
@@ -123,11 +132,11 @@ var fakeLexicon = []lexRule{
 	{regexp.MustCompile(`بد خوابیدم|slept badly|slept poorly`), "sleep.quality", "poor", nil},
 	// menopause symptoms and triggers (CB-MENO-01 taxonomy items; only offered in menopause mode)
 	{regexp.MustCompile(`عرق شبانه|تعریق شبانه|night ?sweat`), "symptoms.general.night_sweats", nil, nil},
-	{regexp.MustCompile(`مه ?آلود|حواس ?پرت|فراموشکار|brain ?fog|foggy`), "symptoms.general.brain_fog", nil, nil},
+	{regexp.MustCompile(`مه ?آلود|حواس\S* ?پرت|فراموشکار|تمرکز\S* (?:ندارم|نداشتم|کمه|کم شده)|نمی ?تونم تمرکز|brain ?fog|foggy|can'?t (?:concentrate|focus)|trouble (?:concentrating|focusing)`), "symptoms.general.brain_fog", nil, nil},
 	{regexp.MustCompile(`تپش ?قلب|palpitation`), "symptoms.general.palpitations", nil, nil},
 	{regexp.MustCompile(`افسرده|دلمرده|low mood|depressed`), "symptoms.general.low_mood", nil, nil},
 	{regexp.MustCompile(`بیخوابی|خوابم نبرد|insomnia|couldn'?t sleep`), "symptoms.general.insomnia", nil, nil},
-	{regexp.MustCompile(`درد مفاصل|مفاصلم درد|زانوهام درد|joint ?pain|joints? (?:hurt|ache)`), "pain.location.joints", nil, nil},
+	{regexp.MustCompile(`درد مفاصل|(?:مفاصلم|زانوهام|زانوم) ` + painAdverbs + `درد|joint ?pain|joints? (?:hurt|ache)`), "pain.location.joints", nil, nil},
 	{regexp.MustCompile(`خشکی واژن|vaginal dryness`), "urogenital.symptoms.vaginal_dryness", nil, nil},
 	{regexp.MustCompile(`میل جنسی\S* کم|بیمیل|low libido|no sex drive`), "urogenital.symptoms.low_libido", nil, nil},
 	{regexp.MustCompile(`لکه ?بینی|spotting`), "bleeding.presence", "spotting", nil},
@@ -216,11 +225,20 @@ func (f *Fake) ParseLog(_ context.Context, req LogParseRequest) ([]Candidate, Us
 	// Canvas fields first: a hot flash / a leak said in so many words goes to its diary, and the matching log
 	// symptom is then not suggested a second time.
 	fakeCanvas(text, numbered, score, add, seen)
+	// used are the spans the lexicon understood: label matching below does not read them again («خشکی واژن» is
+	// vaginal dryness, not also «رابطه › خشکی»). Only rules whose slot the user has claim their words.
+	var used [][2]int
 	for _, r := range fakeLexicon {
 		if r.pattern.MatchString(text) {
 			add(r.key, r.value, 0.9, r.alts...)
+			if _, ok := vocab[r.key]; ok {
+				for _, m := range r.pattern.FindAllStringIndex(text, -1) {
+					used = append(used, [2]int{m[0], m[1]})
+				}
+			}
 		}
 	}
+	fakeBleeding(text, add)
 	if m := fakeWeight.FindStringSubmatch(text); m != nil {
 		if n, err := strconv.ParseFloat(m[1], 64); err == nil {
 			add("measurements.weight", n, 0.85)
@@ -233,7 +251,7 @@ func (f *Fake) ParseLog(_ context.Context, req LogParseRequest) ([]Candidate, Us
 			continue
 		}
 		label := NormalizeText(lastLabel(v.Label))
-		if utf8.RuneCountInString(label) < 3 || !strings.Contains(text, label) {
+		if utf8.RuneCountInString(label) < 3 || !wordAt(text, label, used) {
 			continue
 		}
 		if v.Type == "multi" {
@@ -246,15 +264,107 @@ func (f *Fake) ParseLog(_ context.Context, req LogParseRequest) ([]Candidate, Us
 	return out, u, nil
 }
 
+// Bleeding (CB-VOICE-03b): «پریودم شروع شد», «خونریزیم زیاده», "heavy period". Cycle mode logs bleeding.flow (the
+// amount said, else medium), menopause mode bleeding.presence = bleeding; «خونریزی ندارم» logs presence none
+// (menopause) and no flow, as does a late period («پریودم دیر کرده»). Spotting is the lexicon's.
+var (
+	fakeBleed     = regexp.MustCompile(`پریود|خونریزی|قاعدگی|قاعده شدم|عادت ماهانه|period|bleeding|menstruat`)
+	fakeBleedNone = regexp.MustCompile(`(?:خونریزی|پریود)\S* (?:\S+ )?(?:ندارم|نداشتم|نشدم|نشده|نیستم|نکردم|نیومده|نیامده|دیر کرده|عقب افتاده)` +
+		`|no (?:bleeding|period)|not bleeding|didn'?t bleed|period (?:is |was )?late|late period|missed (?:my )?period` +
+		`|period (?:hasn'?t|didn'?t|has not|did not) (?:started|come)`)
+	fakeBleedAmt = regexp.MustCompile(`(?:خونریزی|پریود|قاعدگی)\S* (?:\S+ ){0,2}?(خیلی زیاد|خیلی شدید|خیلی کم|زیاد|شدید|سنگین|متوسط|معمولی|کم|خفیف)(?:ه|ی)?(?:[\s،.؛!?]|$)` +
+		`|(?:period|bleeding|flow) (?:is |was |has been )?(?:\S+ ){0,1}?(very heavy|heavy|medium|moderate|normal|light)\b` +
+		`|\b(very heavy|heavy|medium|moderate|normal|light) (?:period|bleeding|flow)`)
+	fakeFlowCode = map[string]string{
+		"خیلی زیاد": "very_heavy", "خیلی شدید": "very_heavy", "very heavy": "very_heavy",
+		"زیاد": "heavy", "شدید": "heavy", "سنگین": "heavy", "heavy": "heavy",
+		"متوسط": "medium", "معمولی": "medium", "medium": "medium", "moderate": "medium", "normal": "medium",
+		"خیلی کم": "light", "کم": "light", "خفیف": "light", "light": "light",
+	}
+)
+
+func fakeBleeding(text string, add func(string, any, float64, ...string) bool) {
+	if !fakeBleed.MatchString(text) {
+		return
+	}
+	if fakeBleedNone.MatchString(text) {
+		add("bleeding.presence", "none", 0.85)
+		return
+	}
+	add("bleeding.presence", "bleeding", 0.9)
+	if m := fakeBleedAmt.FindStringSubmatch(text); m != nil {
+		add("bleeding.flow", fakeFlowCode[firstNonEmpty(m[1:])], 0.85)
+		return
+	}
+	add("bleeding.flow", "medium", 0.6) // «پریودم شروع شد»: a period, amount not said
+}
+
+func firstNonEmpty(groups []string) string {
+	for _, g := range groups {
+		if g != "" {
+			return g
+		}
+	}
+	return ""
+}
+
+// labelSuffixes are the Persian / English endings a label may carry and still be the same word («دلتنگم», «ترشی»).
+var labelSuffixes = []string{"هایم", "هام", "های", "ها", "مون", "تون", "شون", "یم", "ام", "م", "ت", "ش", "ه", "ی", "ing", "es", "ed", "s"}
+
+// wordAt reports whether label occurs in text as a whole word (a known suffix allowed), outside the used spans:
+// «ترش» is not in «بیشترش».
+func wordAt(text, label string, used [][2]int) bool {
+	for from := 0; ; {
+		i := strings.Index(text[from:], label)
+		if i < 0 {
+			return false
+		}
+		start, end := from+i, from+i+len(label)
+		from = start + 1
+		if r, _ := utf8.DecodeLastRuneInString(text[:start]); start > 0 && isWordRune(r) {
+			continue
+		}
+		rest := text[end:]
+		for _, suf := range labelSuffixes {
+			if strings.HasPrefix(rest, suf) {
+				if r, _ := utf8.DecodeRuneInString(rest[len(suf):]); rest[len(suf):] == "" || !isWordRune(r) {
+					rest = rest[len(suf):]
+					break
+				}
+			}
+		}
+		if r, _ := utf8.DecodeRuneInString(rest); rest != "" && isWordRune(r) {
+			continue
+		}
+		overlaps := false
+		for _, u := range used {
+			if start < u[1] && end > u[0] {
+				overlaps = true
+				break
+			}
+		}
+		if !overlaps {
+			return true
+		}
+	}
+}
+
+func isWordRune(r rune) bool {
+	return unicode.IsLetter(r) || unicode.IsDigit(r) || unicode.Is(unicode.Mn, r)
+}
+
 // Canvas phrases (CB-VOICE-01). Counts, scores and clock times are read from the text with number words turned
 // into digits (numberWords).
 var (
-	fakeFlash      = regexp.MustCompile(`گرگرفتگی|گر گرفتم|hot ?flash`)
-	fakeFlashCount = regexp.MustCompile(`(\d{1,2}) ?(?:بار|تا|دفعه) ?گرگرفتگی|(\d{1,2}) hot ?flash|hot ?flash\S* (\d{1,2}) times`)
+	fakeFlash = regexp.MustCompile(`گرگرفتگی|گر گرفتم|hot ?flash`)
+	// «N بار گرگرفتگی», also with a connector between («دو بار با گرگرفتگی … پریدم», «سه بار دچار گرگرفتگی شدم»)
+	fakeFlashCount = regexp.MustCompile(`(\d{1,2}) ?(?:بار|تا|دفعه) ?(?:(?:با|از|هم|دیگه|دچار|بخاطر|به خاطر) )?(?:گرگرفتگی|گر ?گرفتم)|(\d{1,2}) hot ?flash|hot ?flash\S* (\d{1,2}) times`)
 	fakeFlashNight = regexp.MustCompile(`دیشب|نصف ?شب|نیمه ?شب|last night|at night|during the night`)
 	fakeScore      = regexp.MustCompile(`(\d{1,2}) ?(?:از|out of|/) ?10`)
 	fakeAnalgesic  = regexp.MustCompile(`ایبوپروفن|استامینوفن|ژلوفن|مفنامیک|ناپروکسن|ibuprofen|paracetamol|acetaminophen|naproxen|mefenamic`)
-	fakeClock      = regexp.MustCompile(`(?:ساعت|\bat) (\d{1,2})(?:[:.](\d{2}))?`)
+	// a clock time with an optional part-of-day word right before «ساعت» or right after the time (clockHour)
+	fakeClock = regexp.MustCompile(`(?:(صبح|بامداد|ظهر|بعد ?از ?ظهر|عصر|شب|نصف ?شب) )?(?:ساعت|\bat) (\d{1,2})(?:[:.](\d{2}))?` +
+		`(?: (صبح|بامداد|ظهر|بعد ?از ?ظهر|عصر|شب|نصف ?شب|am|pm|a\.m\.|p\.m\.|in the morning|in the afternoon|in the evening|at night|tonight)(?:[\s،.؛!?]|$))?`)
 	fakeEffectNo   = regexp.MustCompile(`کمک نکرد|اثر نکرد|اثری نداشت|didn'?t help|did not help|no help`)
 	fakeEffectBit  = regexp.MustCompile(`(?:کمی|یه ?کم|یک کم) (?:کمک|اثر)|helped (?:a little|a bit|somewhat)`)
 	fakeEffectYes  = regexp.MustCompile(`کمک کرد|اثر کرد|بهتر شدم|helped|it worked`)
@@ -286,12 +396,12 @@ func fakeCanvas(text, numbered string, score int, add func(string, any, float64,
 	}
 	if m := fakeAnalgesic.FindString(text); m != "" && add("pain_diary.analgesic", m, 0.85) {
 		if c := fakeClock.FindStringSubmatch(numbered); c != nil {
-			h, _ := strconv.Atoi(c[1])
+			h, _ := strconv.Atoi(c[2])
 			mm := "00"
-			if c[2] != "" {
-				mm = c[2]
+			if c[3] != "" {
+				mm = c[3]
 			}
-			if h <= 23 {
+			if h = clockHour(h, c[1]+c[4]); h >= 0 {
 				add("pain_diary.analgesic_time", fmt.Sprintf("%02d:%s", h, mm), 0.8)
 			}
 		}
@@ -328,6 +438,50 @@ func fakeCanvas(text, numbered string, score int, add func(string, any, float64,
 	if m := fakeNightVoids.FindStringSubmatch(numbered); m != nil {
 		add("bladder.night_voids", float64(firstInt(m[1:])), 0.85)
 	}
+}
+
+// Part-of-day words of a clock time (fakeClock).
+var (
+	partMorning   = regexp.MustCompile(`صبح|بامداد|am|a\.m\.|morning`)
+	partAfternoon = regexp.MustCompile(`ظهر|عصر|pm|p\.m\.|afternoon|evening`)
+	partNight     = regexp.MustCompile(`شب|night|tonight`)
+)
+
+// clockHour turns a spoken hour into 0–23 (−1 when it is not one). part is the part-of-day word said with it.
+//
+// Rule (CB-VOICE-03b): «ساعت دو» / "at two" without a part-of-day word is a pain-diary time said during the day,
+// so a bare 1–6 is read as the afternoon (13:00–18:00) — people are awake and taking painkillers then far more than
+// at 01:00–06:00 — while a bare 7–12 stays as said (07:00 … 12:00, the morning dose). A part-of-day word wins:
+// morning keeps the hour (12 am → 00), afternoon / evening adds 12 to 1–11, night adds 12 to 6–11 and makes
+// 12 → 00 (1–5 «شب» stays after midnight). Hours 13–23 are already unambiguous.
+func clockHour(h int, part string) int {
+	switch {
+	case h > 23:
+		return -1
+	case h > 12:
+		return h
+	case partNight.MatchString(part):
+		if h == 12 {
+			return 0
+		}
+		if h >= 6 {
+			return h + 12
+		}
+		return h
+	case partAfternoon.MatchString(part):
+		if h < 12 {
+			return h + 12
+		}
+		return h
+	case partMorning.MatchString(part):
+		if h == 12 {
+			return 0
+		}
+		return h
+	case h >= 1 && h <= 6:
+		return h + 12
+	}
+	return h
 }
 
 func firstInt(groups []string) int {

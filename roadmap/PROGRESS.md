@@ -238,3 +238,9 @@ TODO (ask user):
 - Accuracy (fake rule-based parser, 10 Persian fixtures, pinned in `internal/voicelog/accuracy_int_test.go`): recall 22/27 (81%), precision 22/26 (85%), 4/10 sentences exact, target always right, every save 200, ambiguity chooser shown for «بی‌حوصله». Gemini not tested (no keys).
 - Verify: frontend full chain (1116 tests, build) + go vet, ai/voicelog unit + int, lint — green.
 - Follow-ups: CB-VOICE-03b (fake-parser gaps: bleeding phrases, intensity adverb inside a phrase, «N بار», «حواسم پرت», «ساعت دو» afternoon, whole-word matching); optional Gemini run on stage once keys are allowed.
+
+## CB-VOICE-03b — Fake voice parser gaps from the QA fixtures
+- `internal/ai` fake parser: bleeding/period phrases (`fakeBleeding`; negations, menopause `bleeding.presence`, unstated amount → medium @0.6), intensity adverbs inside pain phrases, «N بار … گرگرفتگی» counts, «حواسم پرت / تمرکز ندارم» → brain_fog, `clockHour` (bare 1–6 → afternoon; صبح/ظهر/عصر/شب qualifiers), whole-word label matching (`wordAt`; lexicon-consumed words not re-matched).
+- Accuracy fixtures: recall 22/27 → 27/27, precision 22/26 → 27/27, 10/10 sentences exact (tuned on these 10 — not a general quality claim). No golden changes (contract voicelog 24 passed).
+- Verify: go vet, ai + voicelog unit + int, golangci-lint 0 — green.
+- TODO (ask user): unstated bleeding amount → medium (or no suggestion)? bare clock 1–6 = afternoon rule OK?
