@@ -3,7 +3,7 @@ id: B-N4-01
 title: Companion & family schema
 milestone: N4
 type: backend
-status: todo
+status: done
 depends_on: [B-N3-14]
 parallel_group: N4-A
 touches: [backend-go/db,backend-go/internal/companion]

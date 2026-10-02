@@ -169,3 +169,9 @@ sql:
       go:
         <<: *go
         out: internal/conditions/store
+  - <<: *pkg
+    queries: db/queries/companion
+    gen:
+      go:
+        <<: *go
+        out: internal/companion/store

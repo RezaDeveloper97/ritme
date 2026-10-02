@@ -154,6 +154,55 @@ type CheckupType struct {
 	Audiences         db.NullRawJSON
 }
 
+type Companion struct {
+	ID              uint64
+	OwnerID         uint64
+	CompanionUserID sql.NullInt64
+	Type            string
+	Status          string
+	DisplayName     sql.NullString
+	InvitedAt       sql.NullTime
+	AcceptedAt      sql.NullTime
+	RevokedAt       sql.NullTime
+	RevokedBy       sql.NullString
+	CreatedAt       sql.NullTime
+	UpdatedAt       sql.NullTime
+}
+
+type CompanionAuditLog struct {
+	ID          uint64
+	OwnerID     uint64
+	ActorID     sql.NullInt64
+	CompanionID sql.NullInt64
+	Section     sql.NullString
+	Action      string
+	CreatedAt   sql.NullTime
+}
+
+type CompanionGrant struct {
+	ID          uint64
+	CompanionID uint64
+	Section     string
+	Level       string
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+}
+
+type CompanionInvite struct {
+	ID          uint64
+	CompanionID uint64
+	OwnerID     uint64
+	Phone       sql.NullString
+	CodeHash    string
+	Attempts    uint8
+	ExpiresAt   sql.NullTime
+	UsedAt      sql.NullTime
+	UsedByID    sql.NullInt64
+	RevokedAt   sql.NullTime
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+}
+
 type ConditionEnrolment struct {
 	ID         uint64
 	UserID     uint64
@@ -312,6 +361,23 @@ type FailedJob struct {
 	Payload    string
 	Exception  string
 	FailedAt   time.Time
+}
+
+type Family struct {
+	ID           uint64
+	OwnerID      uint64
+	SpouseUserID sql.NullInt64
+	CompanionID  uint64
+	CreatedAt    sql.NullTime
+	UpdatedAt    sql.NullTime
+}
+
+type FamilyChild struct {
+	ID        uint64
+	FamilyID  uint64
+	ChildID   uint64
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
 }
 
 type FertilityLog struct {

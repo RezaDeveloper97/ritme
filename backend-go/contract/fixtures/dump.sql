@@ -399,6 +399,110 @@ INSERT INTO `checkup_types` VALUES
 (15,'meno_eye_exam',NULL,'annual','{\"fa\":\"معاینه چشم\",\"en\":\"Eye exam\"}','{\"fa\":\"سالانه\",\"en\":\"Yearly\"}','{\"fa\":\"معاینه منظم چشم تغییرات بینایی و بیماری‌هایی مثل آب سیاه را زود نشان می‌دهد.\",\"en\":\"A regular eye exam shows vision changes and conditions such as glaucoma early.\"}','doctor','stetho','green',12,NULL,NULL,NULL,NULL,NULL,30,NULL,NULL,NULL,1,'[\"menopause\"]',0,109,'Menopause catalog (CB-MENO-01). [needs clinical review]','2026-09-23 06:30:00','2026-09-23 06:30:00');
 /*!40000 ALTER TABLE `checkup_types` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `companion_audit_logs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `companion_audit_logs` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `owner_id` bigint(20) unsigned NOT NULL,
+  `actor_id` bigint(20) unsigned DEFAULT NULL,
+  `companion_id` bigint(20) unsigned DEFAULT NULL,
+  `section` varchar(32) DEFAULT NULL,
+  `action` varchar(32) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `companion_audit_logs_actor_id_foreign` (`actor_id`),
+  KEY `companion_audit_logs_companion_id_foreign` (`companion_id`),
+  KEY `companion_audit_logs_owner_id_created_at_index` (`owner_id`,`created_at`),
+  CONSTRAINT `companion_audit_logs_actor_id_foreign` FOREIGN KEY (`actor_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `companion_audit_logs_companion_id_foreign` FOREIGN KEY (`companion_id`) REFERENCES `companions` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `companion_audit_logs_owner_id_foreign` FOREIGN KEY (`owner_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `companion_audit_logs` WRITE;
+/*!40000 ALTER TABLE `companion_audit_logs` DISABLE KEYS */;
+/*!40000 ALTER TABLE `companion_audit_logs` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `companion_grants`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `companion_grants` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `companion_id` bigint(20) unsigned NOT NULL,
+  `section` varchar(32) NOT NULL,
+  `level` varchar(8) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `companion_grants_companion_id_section_unique` (`companion_id`,`section`),
+  CONSTRAINT `companion_grants_companion_id_foreign` FOREIGN KEY (`companion_id`) REFERENCES `companions` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `companion_grants` WRITE;
+/*!40000 ALTER TABLE `companion_grants` DISABLE KEYS */;
+/*!40000 ALTER TABLE `companion_grants` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `companion_invites`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `companion_invites` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `companion_id` bigint(20) unsigned NOT NULL,
+  `owner_id` bigint(20) unsigned NOT NULL,
+  `phone` varchar(11) DEFAULT NULL,
+  `code_hash` char(64) NOT NULL,
+  `attempts` tinyint(3) unsigned NOT NULL DEFAULT 0,
+  `expires_at` timestamp NULL DEFAULT NULL,
+  `used_at` timestamp NULL DEFAULT NULL,
+  `used_by_id` bigint(20) unsigned DEFAULT NULL,
+  `revoked_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `companion_invites_code_hash_unique` (`code_hash`),
+  KEY `companion_invites_companion_id_foreign` (`companion_id`),
+  KEY `companion_invites_used_by_id_foreign` (`used_by_id`),
+  KEY `companion_invites_owner_id_created_at_index` (`owner_id`,`created_at`),
+  CONSTRAINT `companion_invites_companion_id_foreign` FOREIGN KEY (`companion_id`) REFERENCES `companions` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `companion_invites_owner_id_foreign` FOREIGN KEY (`owner_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `companion_invites_used_by_id_foreign` FOREIGN KEY (`used_by_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `companion_invites` WRITE;
+/*!40000 ALTER TABLE `companion_invites` DISABLE KEYS */;
+/*!40000 ALTER TABLE `companion_invites` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `companions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `companions` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `owner_id` bigint(20) unsigned NOT NULL,
+  `companion_user_id` bigint(20) unsigned DEFAULT NULL,
+  `type` varchar(16) NOT NULL,
+  `status` varchar(16) NOT NULL DEFAULT 'invited',
+  `display_name` varchar(100) DEFAULT NULL,
+  `invited_at` timestamp NULL DEFAULT NULL,
+  `accepted_at` timestamp NULL DEFAULT NULL,
+  `revoked_at` timestamp NULL DEFAULT NULL,
+  `revoked_by` varchar(16) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `companions_owner_id_status_index` (`owner_id`,`status`),
+  KEY `companions_companion_user_id_status_index` (`companion_user_id`,`status`),
+  CONSTRAINT `companions_companion_user_id_foreign` FOREIGN KEY (`companion_user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `companions_owner_id_foreign` FOREIGN KEY (`owner_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `companions` WRITE;
+/*!40000 ALTER TABLE `companions` DISABLE KEYS */;
+/*!40000 ALTER TABLE `companions` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `condition_enrolments`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -738,6 +842,50 @@ CREATE TABLE `failed_jobs` (
 LOCK TABLES `failed_jobs` WRITE;
 /*!40000 ALTER TABLE `failed_jobs` DISABLE KEYS */;
 /*!40000 ALTER TABLE `failed_jobs` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `families`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `families` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `owner_id` bigint(20) unsigned NOT NULL,
+  `spouse_user_id` bigint(20) unsigned DEFAULT NULL,
+  `companion_id` bigint(20) unsigned NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `families_companion_id_unique` (`companion_id`),
+  KEY `families_owner_id_foreign` (`owner_id`),
+  KEY `families_spouse_user_id_foreign` (`spouse_user_id`),
+  CONSTRAINT `families_companion_id_foreign` FOREIGN KEY (`companion_id`) REFERENCES `companions` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `families_owner_id_foreign` FOREIGN KEY (`owner_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `families_spouse_user_id_foreign` FOREIGN KEY (`spouse_user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `families` WRITE;
+/*!40000 ALTER TABLE `families` DISABLE KEYS */;
+/*!40000 ALTER TABLE `families` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `family_children`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `family_children` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `family_id` bigint(20) unsigned NOT NULL,
+  `child_id` bigint(20) unsigned NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `family_children_family_id_child_id_unique` (`family_id`,`child_id`),
+  KEY `family_children_child_id_index` (`child_id`),
+  CONSTRAINT `family_children_family_id_foreign` FOREIGN KEY (`family_id`) REFERENCES `families` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `family_children` WRITE;
+/*!40000 ALTER TABLE `family_children` DISABLE KEYS */;
+/*!40000 ALTER TABLE `family_children` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `fertility_logs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -1939,6 +2087,25 @@ INSERT INTO `pregnancy_alerts` VALUES
 (101503,1015,'info','routine','یادآوری مراقبت Rh منفی','با پزشک درباره‌ی تزریق روگام صحبت کنید.',26,'[]','{\"rh_negative\":true}',1,1,'2026-09-22 10:00:00','2026-09-22 10:05:00','[\"contact_doctor\"]','2026-09-23 09:00:00','2026-09-23 09:00:00');
 /*!40000 ALTER TABLE `pregnancy_alerts` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `pregnancy_daily_extras`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `pregnancy_daily_extras` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `log_date` date NOT NULL,
+  `mood` tinyint(3) unsigned DEFAULT NULL,
+  `water_glasses` tinyint(3) unsigned DEFAULT NULL,
+  `heartburn_severity` varchar(10) DEFAULT NULL,
+  `constipation_severity` varchar(10) DEFAULT NULL,
+  `visit_note` text DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `pregnancy_daily_extras_user_id_log_date_unique` (`user_id`,`log_date`),
+  CONSTRAINT `pregnancy_daily_extras_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `pregnancy_fetal_movements`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
