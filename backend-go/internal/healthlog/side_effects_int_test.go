@@ -4,7 +4,8 @@ package healthlog_test
 // through the Go validation + service on the contract fixtures, and the resulting
 // cycle_histories / user_profiles / daily_health_logs rows (snapshot.sql) plus each step's
 // status and warning must equal what the same steps did on the Laravel contract stack
-// (laravel.jsonl, recorded by capture_laravel.sh).
+// (laravel.jsonl, recorded by capture_laravel.sh) — after applyD55, the documented Go fix of the
+// period reconciliation for back-dated and in-period bleeding days (deviations.md D-55, B-N3-14b).
 
 import (
 	"bufio"
@@ -86,11 +87,46 @@ func TestStoreSideEffectsMatchLaravel(t *testing.T) {
 		}()
 	}
 
-	want := readLines(t, filepath.Join(dir, "laravel.jsonl"))
+	want := applyD55(t, readLines(t, filepath.Join(dir, "laravel.jsonl")))
 	require.Len(t, got, len(want))
 	for i := range want {
 		assert.Equal(t, normJSON(t, want[i]), normJSON(t, got[i]), "line %d", i+1)
 	}
+}
+
+// d55 maps the Laravel lines D-55 changes to Go's ("" = the row no longer exists):
+//   - step 4 (regular, back-dated 09-01 between the 08-17 and 09-14 periods): a closed one-day period with a
+//     positive cycle_length (15) instead of an open row with −20, and the LMP stays on the latest start (09-21)
+//     instead of moving back to 09-01;
+//   - step 3 (regular, new period 09-21): the confirmed 09-14..09-18 period keeps its logged end (Laravel cut
+//     it to the last bleeding log, 09-16);
+//   - step 7 (open_period_day3, bleeding 09-22 inside the open period started 09-21): no new 1-day period,
+//     the LMP stays 09-21.
+var d55 = map[string]string{
+	`["cycle_histories", 101808, 1004, "2026-09-01", null, -20, null, 0, 0, "user_logged", null, "2026-09-23 10:00:00", "2026-09-23 10:00:00"]`:               `["cycle_histories", 101808, 1004, "2026-09-01", "2026-09-01", 15, 1, 0, 0, "user_logged", null, "2026-09-23 10:00:00", "2026-09-23 10:00:00"]`,
+	`["cycle_histories", 100406, 1004, "2026-09-14", "2026-09-16", null, 3, 1, 0, "user_logged", null, "2026-09-23 09:00:00", "2026-09-23 10:20:00"]`:         `["cycle_histories", 100406, 1004, "2026-09-14", "2026-09-18", null, 5, 1, 0, "user_logged", null, "2026-09-23 09:00:00", "2026-09-23 09:00:00"]`,
+	`["cycle_histories", 101810, 1007, "2026-09-22", null, 1, null, 0, 0, "user_logged", null, "2026-09-23 10:00:00", "2026-09-23 10:00:00"]`:                 "",
+	`["user_profiles", 1004, 1004, "2026-09-01", "completed", "2026-09-23 10:00:00", "2026-09-23 10:00:00", 4, "2026-09-23 09:00:00", "2026-09-23 10:00:00"]`: `["user_profiles", 1004, 1004, "2026-09-21", "completed", "2026-09-23 10:00:00", "2026-09-23 10:00:00", 4, "2026-09-23 09:00:00", "2026-09-23 10:00:00"]`,
+	`["user_profiles", 1007, 1007, "2026-09-22", "completed", "2026-09-23 11:00:00", "2026-09-23 11:00:00", 4, "2026-09-23 09:00:00", "2026-09-23 11:00:00"]`: `["user_profiles", 1007, 1007, "2026-09-21", "completed", "2026-09-23 11:00:00", "2026-09-23 11:00:00", 4, "2026-09-23 09:00:00", "2026-09-23 11:00:00"]`,
+}
+
+func applyD55(t *testing.T, lines []string) []string {
+	t.Helper()
+	out := make([]string, 0, len(lines))
+	seen := 0
+	for _, l := range lines {
+		repl, ok := d55[l]
+		if !ok {
+			out = append(out, l)
+			continue
+		}
+		seen++
+		if repl != "" {
+			out = append(out, repl)
+		}
+	}
+	require.Equal(t, len(d55), seen, "every D-55 line is in laravel.jsonl")
+	return out
 }
 
 func readLines(t *testing.T, path string) []string {

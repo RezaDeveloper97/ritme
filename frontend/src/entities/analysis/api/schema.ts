@@ -55,6 +55,7 @@ const topFindingSchema: Parser<TopFinding> = z.object({
     'cycle_regular',
     'pattern',
     'not_enough_data',
+    'keep_logging',
     'no_data',
   ]),
   parts: z.array(phraseSchema),

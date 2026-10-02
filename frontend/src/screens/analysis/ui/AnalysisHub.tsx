@@ -21,7 +21,7 @@ import {
   SkeletonGroup,
 } from '@/shared/ui';
 
-import { availableCategories, groupCards, visibleCards, type HubCard, type HubCategory, type HubVariant } from '../model/hub';
+import { asksForCycles, availableCategories, groupCards, visibleCards, type HubCard, type HubCategory, type HubVariant } from '../model/hub';
 import {
   CycleCard,
   LabsCard,
@@ -74,7 +74,7 @@ function renderCard(card: HubCard, summary: AnalysisSummary, variant: HubVariant
     case 'recentCycles':
       return <RecentCyclesCard key={card} section={s.recentCycles} hideFertility={variant !== 'cycle'} />;
     case 'symptoms':
-      return <SymptomsCard key={card} section={s.symptoms} />;
+      return <SymptomsCard key={card} section={s.symptoms} cycleNudge={asksForCycles(variant)} />;
     case 'moodByPhase':
       return <MoodPhaseCard key={card} section={s.moodByPhase} />;
     case 'sleepMood':

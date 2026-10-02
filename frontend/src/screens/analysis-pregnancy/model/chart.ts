@@ -138,3 +138,11 @@ export function bpChart(
   });
   return { line, end, thresholdY: y(threshold), highs };
 }
+
+/**
+ * Whether the weight card can say «تا هفته N» (B-N3-14b): only when the last weigh-in falls in the
+ * same 1-based week as today's header chip (or carries no week); otherwise it is named by its date.
+ */
+export function gainUntilWeek(weighInWeek: number, todayWeek: number): boolean {
+  return !weighInWeek || weighInWeek === todayWeek;
+}

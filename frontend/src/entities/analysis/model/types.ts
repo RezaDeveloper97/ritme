@@ -51,6 +51,7 @@ export type TopFindingKind =
   | 'cycle_regular'
   | 'pattern'
   | 'not_enough_data'
+  | 'keep_logging'
   | 'no_data';
 
 export interface TopFinding {

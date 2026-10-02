@@ -12,6 +12,37 @@ import (
 	"github.com/ritme/backend-go/internal/platform/civildate"
 )
 
+const getCycleHistoryAfter = `-- name: GetCycleHistoryAfter :one
+SELECT id, user_id, period_start_date, period_end_date, cycle_length, bleeding_length, is_confirmed, is_estimated, source, data_quality_flags, created_at, updated_at FROM ` + "`" + `cycle_histories` + "`" + ` WHERE user_id = ? AND period_start_date > ?
+ORDER BY period_start_date ASC LIMIT 1
+`
+
+type GetCycleHistoryAfterParams struct {
+	UserID    uint64
+	AfterDate civildate.Date
+}
+
+// B-N3-14b (D-55): the first period that starts after a bleeding day (it may start a day or two later).
+func (q *Queries) GetCycleHistoryAfter(ctx context.Context, arg GetCycleHistoryAfterParams) (CycleHistory, error) {
+	row := q.db.QueryRowContext(ctx, getCycleHistoryAfter, arg.UserID, arg.AfterDate)
+	var i CycleHistory
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.PeriodStartDate,
+		&i.PeriodEndDate,
+		&i.CycleLength,
+		&i.BleedingLength,
+		&i.IsConfirmed,
+		&i.IsEstimated,
+		&i.Source,
+		&i.DataQualityFlags,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getCycleHistoryByStart = `-- name: GetCycleHistoryByStart :one
 SELECT id, user_id, period_start_date, period_end_date, cycle_length, bleeding_length, is_confirmed, is_estimated, source, data_quality_flags, created_at, updated_at FROM ` + "`" + `cycle_histories` + "`" + ` WHERE user_id = ? AND period_start_date = ? LIMIT 1
 `
@@ -23,6 +54,37 @@ type GetCycleHistoryByStartParams struct {
 
 func (q *Queries) GetCycleHistoryByStart(ctx context.Context, arg GetCycleHistoryByStartParams) (CycleHistory, error) {
 	row := q.db.QueryRowContext(ctx, getCycleHistoryByStart, arg.UserID, arg.PeriodStartDate)
+	var i CycleHistory
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.PeriodStartDate,
+		&i.PeriodEndDate,
+		&i.CycleLength,
+		&i.BleedingLength,
+		&i.IsConfirmed,
+		&i.IsEstimated,
+		&i.Source,
+		&i.DataQualityFlags,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getCycleHistoryOnOrBefore = `-- name: GetCycleHistoryOnOrBefore :one
+SELECT id, user_id, period_start_date, period_end_date, cycle_length, bleeding_length, is_confirmed, is_estimated, source, data_quality_flags, created_at, updated_at FROM ` + "`" + `cycle_histories` + "`" + ` WHERE user_id = ? AND period_start_date <= ?
+ORDER BY period_start_date DESC LIMIT 1
+`
+
+type GetCycleHistoryOnOrBeforeParams struct {
+	UserID uint64
+	OnDate civildate.Date
+}
+
+// B-N3-14b (D-55): the period that starts on or before a back-dated bleeding day (it may contain the day).
+func (q *Queries) GetCycleHistoryOnOrBefore(ctx context.Context, arg GetCycleHistoryOnOrBeforeParams) (CycleHistory, error) {
+	row := q.db.QueryRowContext(ctx, getCycleHistoryOnOrBefore, arg.UserID, arg.OnDate)
 	var i CycleHistory
 	err := row.Scan(
 		&i.ID,
@@ -170,6 +232,28 @@ type UpdateCycleHistoryEndParams struct {
 func (q *Queries) UpdateCycleHistoryEnd(ctx context.Context, arg UpdateCycleHistoryEndParams) error {
 	_, err := q.db.ExecContext(ctx, updateCycleHistoryEnd,
 		arg.PeriodEndDate,
+		arg.BleedingLength,
+		arg.UpdatedAt,
+		arg.ID,
+	)
+	return err
+}
+
+const updateCycleHistoryStart = `-- name: UpdateCycleHistoryStart :exec
+UPDATE ` + "`" + `cycle_histories` + "`" + ` SET period_start_date = ?, bleeding_length = ?, updated_at = ? WHERE id = ?
+`
+
+type UpdateCycleHistoryStartParams struct {
+	PeriodStartDate civildate.Date
+	BleedingLength  sql.NullInt32
+	UpdatedAt       sql.NullTime
+	ID              uint64
+}
+
+// B-N3-14b (D-55): a bleeding day logged right before a period moves its start back.
+func (q *Queries) UpdateCycleHistoryStart(ctx context.Context, arg UpdateCycleHistoryStartParams) error {
+	_, err := q.db.ExecContext(ctx, updateCycleHistoryStart,
+		arg.PeriodStartDate,
 		arg.BleedingLength,
 		arg.UpdatedAt,
 		arg.ID,

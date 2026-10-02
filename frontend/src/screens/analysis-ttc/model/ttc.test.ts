@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { fertilityCycleSchema, ttcHubSchema } from '../api/ttc';
-import { barShares, dayX, lhCells, linePath, tempScale, tempY, tryingShare, type ChartBox } from './ttc';
+import { barShares, dayX, isolate, lhCells, linePath, tempScale, tempY, tryingShare, type ChartBox } from './ttc';
 
 const golden = (name: string): unknown =>
   JSON.parse(readFileSync(resolve(__dirname, '../../../../../backend-go/internal/analysis/testdata/golden', `${name}.json`), 'utf8'));
@@ -89,5 +89,11 @@ describe('chart geometry', () => {
     expect(barShares([28, 14])).toEqual([1, 0.5]);
     expect(tryingShare(3, 12)).toBe(0.25);
     expect(tryingShare(20, 6)).toBe(1);
+  });
+});
+
+describe('isolate', () => {
+  it('wraps a value in first-strong isolate marks (B-N3-14b)', () => {
+    expect(isolate('۵')).toBe('⁨۵⁩');
   });
 });

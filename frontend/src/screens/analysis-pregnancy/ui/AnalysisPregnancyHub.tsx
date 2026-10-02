@@ -11,7 +11,7 @@ import { ColumnChart } from '@/widgets/charts';
 
 import { isPregnancyInactive, usePregnancyAnalysis } from '../api/queries';
 import type { PregnancySections } from '../api/schema';
-import { tileItems, weekdayKeyOf } from '../model/chart';
+import { gainUntilWeek, tileItems, weekdayKeyOf } from '../model/chart';
 import { BpChartView } from './BpChartView';
 import { GainChartView } from './GainChartView';
 import { PregCard } from './PregCard';
@@ -42,8 +42,14 @@ function TeaserTiles() {
 }
 
 function WeightCard({ s, t, week }: { s: PregnancySections['weightGain']; t: T; week: number }) {
-  const { num, dec, signed } = useFmt();
+  const { loc, num, dec, signed } = useFmt();
   const w = s.data;
+  // B-N3-14b (N3 stage smoke B-6): the header chip is today's week; a weigh-in from an earlier week is
+  // named by its date so the card never reads «هفته ۲۳» next to «تا هفته ۲۲».
+  const gainUntil = (cur: { date: string; week: number }, today: number) =>
+    gainUntilWeek(cur.week, today)
+      ? t('weight.until', { n: num(cur.week || today) })
+      : t('weight.untilDate', { date: formatDayMonth(fromApiDate(cur.date), loc) });
   const statusTone = w?.status === 'within' ? 'data' : 'warm';
   return (
     <PregCard
@@ -61,7 +67,7 @@ function WeightCard({ s, t, week }: { s: PregnancySections['weightGain']; t: T; 
             <span className="apg-gain-num">
               <bdi dir="ltr">{signed(w.current.gain)}</bdi>
             </span>
-            <span className="an-stat-unit">{t('weight.until', { n: num(w.current.week || week) })}</span>
+            <span className="an-stat-unit">{gainUntil(w.current, week)}</span>
             {w.status ? (
               <StatusPill tone={statusTone} className="an-stat-pill">
                 {t(`weight.status.${w.status}`)}

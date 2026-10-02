@@ -21,7 +21,11 @@ type Querier interface {
 	DeleteLogEntryParam(ctx context.Context, arg DeleteLogEntryParamParams) error
 	DeleteLogEntrySlot(ctx context.Context, arg DeleteLogEntrySlotParams) error
 	DeleteLogPreferences(ctx context.Context, arg DeleteLogPreferencesParams) error
+	// B-N3-14b (D-55): the first period that starts after a bleeding day (it may start a day or two later).
+	GetCycleHistoryAfter(ctx context.Context, arg GetCycleHistoryAfterParams) (CycleHistory, error)
 	GetCycleHistoryByStart(ctx context.Context, arg GetCycleHistoryByStartParams) (CycleHistory, error)
+	// B-N3-14b (D-55): the period that starts on or before a back-dated bleeding day (it may contain the day).
+	GetCycleHistoryOnOrBefore(ctx context.Context, arg GetCycleHistoryOnOrBeforeParams) (CycleHistory, error)
 	// Daily health logs (App\Models\DailyHealthLog, DailyHealthLogController).
 	//
 	// Date filters that Laravel passes through as raw request strings (whereDate with a query or
@@ -70,6 +74,8 @@ type Querier interface {
 	RenameLogCustomItem(ctx context.Context, arg RenameLogCustomItemParams) error
 	SoftDeleteLogCustomItem(ctx context.Context, arg SoftDeleteLogCustomItemParams) error
 	UpdateCycleHistoryEnd(ctx context.Context, arg UpdateCycleHistoryEndParams) error
+	// B-N3-14b (D-55): a bleeding day logged right before a period moves its start back.
+	UpdateCycleHistoryStart(ctx context.Context, arg UpdateCycleHistoryStartParams) error
 	// fill($validated)->save() when an attribute is dirty (the full row is written back).
 	UpdateDailyHealthLog(ctx context.Context, arg UpdateDailyHealthLogParams) error
 	// CycleHistoryService::updateProfileLMP ($profile->update(['last_period_start' => …]) when dirty).

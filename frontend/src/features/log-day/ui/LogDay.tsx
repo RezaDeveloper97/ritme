@@ -22,6 +22,7 @@ import { PlusBadge } from '@/shared/ui/plus-gate';
 import { matchesSearch } from '../model/draft';
 import { isMenopausePreset } from '../model/menopause-preset';
 import { modePresetOf } from '../model/mode-presets';
+import { voiceTabHidden } from '../model/voice-tab';
 import { categoryLook, type PanelKind } from '../model/presentation';
 import { useLogDayStore } from '../model/store';
 import { useLogDayHeading } from '../model/use-heading';
@@ -133,6 +134,8 @@ export function LogDay({
   const menopause = preset && !c.loading && !c.error && isMenopausePreset(c.mode);
   // B-N3-06: pregnancy / postpartum days open on the board's grouped cards under the quick tiles.
   const modePreset = preset && !c.loading && !c.error ? modePresetOf(c.mode) : null;
+  const noVoice = !c.loading && voiceTabHidden(c.mode, voiceLocked);
+  const shownTab: Tab = noVoice ? 'manual' : tab;
 
   useEffect(() => {
     if (!saveQueued) return;
@@ -321,7 +324,7 @@ export function LogDay({
   const content = (
     <div className="lday" data-variant={variant}>
       {dateStrip && !(immersive && tab === 'voice') ? <LogDateStrip date={date} onSelect={setDate} /> : null}
-      {immersive && tab === 'voice' ? null : menopause ? (
+      {immersive && tab === 'voice' ? null : noVoice ? null : menopause ? (
         tab === 'voice' ? (
           <button type="button" className="mlog-manual" onClick={() => setTab('manual')}>
             <Icon name="chevronRight" size={18} className="mlog-manual-chev" />
@@ -351,8 +354,8 @@ export function LogDay({
           className="lday-tabs"
         />
       )}
-      <div id={`${tabsId}-${tab}`} role={menopause ? undefined : 'tabpanel'} className="lday-panelwrap">
-        {tab === 'voice' ? (
+      <div id={`${tabsId}-${shownTab}`} role={menopause || noVoice ? undefined : 'tabpanel'} className="lday-panelwrap">
+        {shownTab === 'voice' ? (
           <VoiceTab onManual={() => setTab('manual')}>
             {VoiceLog && !c.loading && !c.error ? (
               <VoiceLog

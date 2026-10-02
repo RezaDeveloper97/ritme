@@ -3,7 +3,7 @@ id: B-N3-14b
 title: N3 stage smoke follow-ups (past-day bleeding period split, late-period hero, LH/BBT sync, small UI)
 milestone: N3
 type: fullstack
-status: todo
+status: done
 depends_on: [B-N3-14]
 parallel_group: N3-O2
 touches: [backend-go/internal/healthlog,backend-go/internal/cycle,backend-go/internal/fertility,backend-go/internal/analysis,backend-go/internal/voicelog,frontend/src/screens/analysis,frontend/src/screens/analysis-ttc,frontend/src/screens/analysis-pregnancy,frontend/src/features/log-day]

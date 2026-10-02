@@ -19,6 +19,9 @@ type Input struct {
 	HeightCM int
 	Birthday civildate.Date
 	Days     map[civildate.Date]*Day
+	// NoCycleNudge is a life-stage mode without cycle tracking (menopause): the top finding never asks
+	// for more cycles (B-N3-14b, N3 stage smoke B-5).
+	NoCycleNudge bool
 	// DeepAnalysis is the plus.deep_analysis entitlement (Plus or a running trial).
 	DeepAnalysis bool
 	// Copy renders the localized sentences (nil → keys only, text "").

@@ -65,7 +65,7 @@
         "hot_flash_sweat_true": "گرگرفتگی با تعریق",
         "hot_flash_sweat_false": "گرگرفتگی بدون تعریق",
         "hot_flash_duration": "هر گرگرفتگی · :value دقیقه",
-        "pain_diary_score": "شدت درد · :value از 10",
+        "pain_diary_score": "شدت درد · :value از ۱۰",
         "pain_diary_missed_activity_true": "سر کار یا درس نرفتم",
         "pain_diary_missed_activity_false": "سر کار یا درس رفتم",
         "pain_diary_analgesic": "مسکن · :value",

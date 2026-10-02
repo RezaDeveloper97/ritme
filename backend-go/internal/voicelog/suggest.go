@@ -255,7 +255,7 @@ func label(s slot, value any, locale string) string {
 		return l("single", map[string]string{"category": s.catLabel, "param": s.paramLabel, "option": or(s.options[code], code)})
 	case taxonomy.Number, taxonomy.Integer:
 		n, _ := value.(float64)
-		return l("number", map[string]string{"param": s.paramLabel, "value": strconv.FormatFloat(n, 'f', -1, 64), "unit": s.unit})
+		return l("number", map[string]string{"param": s.paramLabel, "value": num(n, locale), "unit": s.unit})
 	default:
 		return s.paramLabel
 	}

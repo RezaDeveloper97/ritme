@@ -10,6 +10,7 @@ import (
 
 	"github.com/ritme/backend-go/internal/auth"
 	cycleservice "github.com/ritme/backend-go/internal/cycle/service"
+	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/healthlog"
 	"github.com/ritme/backend-go/internal/i18n"
 	"github.com/ritme/backend-go/internal/i18n/lang"
@@ -83,6 +84,7 @@ func (h *Handlers) load(c fiber.Ctx, rng func(today civildate.Date) Range, logsF
 		return nil, err
 	}
 	in.Histories, in.Profile = sn.Histories, sn.EngineProfile()
+	in.NoCycleNudge = sn.LifeMode == enums.LifeModeMenopause
 	if p := sn.Profile; p != nil {
 		if p.Height.Valid {
 			in.HeightCM = int(p.Height.Int16)

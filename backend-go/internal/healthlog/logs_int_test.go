@@ -25,6 +25,7 @@ import (
 	"github.com/ritme/backend-go/internal/auth"
 	"github.com/ritme/backend-go/internal/auth/passport"
 	authstore "github.com/ritme/backend-go/internal/auth/store"
+	"github.com/ritme/backend-go/internal/cycle/periods"
 	"github.com/ritme/backend-go/internal/healthlog"
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
@@ -79,6 +80,8 @@ func setupLogs(t *testing.T) *logsEnv {
 	app.Post("/api/v1/health-logs", locale, guard, old.Store)
 	app.Get("/api/v1/health-logs/:date", locale, guard, old.Show)
 	app.Delete("/api/v1/health-logs/:date", locale, guard, old.Destroy)
+	periodH := periods.NewHandlers(periods.NewService(db), clock.Real{}) // B-N3-14b: the period log the repro starts from
+	app.Post("/api/v1/cycle/period", locale, guard, periodH.Store)
 	return &logsEnv{db: db, app: app, iss: passport.NewIssuer(key, q, clock.Real{}, 365)}
 }
 

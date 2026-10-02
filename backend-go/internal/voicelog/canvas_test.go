@@ -72,7 +72,7 @@ func TestValidate_CanvasFixtures(t *testing.T) {
 	}{
 		{"menopause", "menopause", map[string]map[string]string{
 			"fa": {
-				"hot_flash:hot_flash.count.":        "گرگرفتگی · 3 بار",
+				"hot_flash:hot_flash.count.":        "گرگرفتگی · ۳ بار",
 				"hot_flash:hot_flash.night.":        "گرگرفتگی شبانه",
 				"log:symptoms.general.night_sweats": "تعریق شبانه",
 				"log:symptoms.general.brain_fog":    "مه مغزی",
@@ -90,9 +90,9 @@ func TestValidate_CanvasFixtures(t *testing.T) {
 			"fa": {
 				"log:pain.location.abdomen":               "درد شکم · متوسط",
 				"log:pain.relief.painkiller":              "مسکن",
-				"pain_diary:pain_diary.score.":            "شدت درد · 6 از 10",
+				"pain_diary:pain_diary.score.":            "شدت درد · ۶ از ۱۰",
 				"pain_diary:pain_diary.analgesic.":        "مسکن · ایبوپروفن",
-				"pain_diary:pain_diary.analgesic_time.":   "ساعت مسکن · 10:00",
+				"pain_diary:pain_diary.analgesic_time.":   "ساعت مسکن · ۱۰:۰۰",
 				"pain_diary:pain_diary.analgesic_effect.": "اثر مسکن · کمی کمک کرد",
 				"pain_diary:pain_diary.missed_activity.":  "سر کار یا درس نرفتم",
 			},
@@ -111,7 +111,7 @@ func TestValidate_CanvasFixtures(t *testing.T) {
 			"en": {"pill:pill.status.": "Today's pill · Taken"},
 		}},
 		{"pelvic", "cycle", map[string]map[string]string{
-			"fa": {"bladder:bladder.leak.": "نشت ادرار · با سرفه یا عطسه", "bladder:bladder.night_voids.": "بیدار شدن شبانه برای ادرار · 2 بار"},
+			"fa": {"bladder:bladder.leak.": "نشت ادرار · با سرفه یا عطسه", "bladder:bladder.night_voids.": "بیدار شدن شبانه برای ادرار · ۲ بار"},
 			"en": {"bladder:bladder.leak.": "Leak · With a cough or sneeze", "bladder:bladder.night_voids.": "Times up at night to pee · 2"},
 		}},
 	}
@@ -150,7 +150,7 @@ func TestValidate_CanvasValues(t *testing.T) {
 
 	raw, err := json.Marshal(got[0].JSON())
 	require.NoError(t, err)
-	assert.JSONEq(t, `{"target":"hot_flash","category":"hot_flash","param":"count","item":null,"value":2,"confidence":0.9,"label":"گرگرفتگی · 2 بار","options":[]}`, string(raw))
+	assert.JSONEq(t, `{"target":"hot_flash","category":"hot_flash","param":"count","item":null,"value":2,"confidence":0.9,"label":"گرگرفتگی · ۲ بار","options":[]}`, string(raw))
 
 	// a canvas field the user may not log is dropped like an unknown slot
 	plain := vocabFor(t, "menopause", "fa")
@@ -258,7 +258,7 @@ func TestCommit_WritesThroughServices(t *testing.T) {
 	}, "fa", commitNow)
 	require.NoError(t, err)
 	require.Len(t, saved, 8)
-	assert.Equal(t, "گرگرفتگی · 3 بار", saved[0].Label)
+	assert.Equal(t, "گرگرفتگی · ۳ بار", saved[0].Label)
 
 	// three finished night flashes, 03:00 and the two before it, 3 minutes each
 	require.Len(t, w.flashes, 3)

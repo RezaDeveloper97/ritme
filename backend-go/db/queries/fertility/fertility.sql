@@ -1,8 +1,10 @@
 -- Fertility day log (T-M5-01, docs/fertility-ttc/README.md). Every query is scoped by user_id.
 
 -- name: GetMergedDay :one
--- The merged day in one statement: the day's daily_health_logs columns the fertility screens use
--- and its fertility_logs row, either or both missing (all NULL).
+-- The merged day in one statement: the day's daily_health_logs columns the fertility screens use,
+-- its fertility_logs row and the log sheet's (taxonomy v2) LH test and mucus consistency, any of
+-- them missing (all NULL). B-N3-14b: the v2 values are not synced into fertility_logs, so the day
+-- merges both like the TTC analysis does (QUESTIONS #80).
 SELECT
   d.basal_body_temperature,
   d.intercourse_type,
@@ -13,10 +15,16 @@ SELECT
   d.notes,
   f.lh_test,
   f.cervical_mucus,
-  f.bbt_time
+  f.bbt_time,
+  el.value_code AS entry_lh_test,
+  em.value_code AS entry_mucus
 FROM (SELECT 1 AS one) AS day
 LEFT JOIN `daily_health_logs` d ON d.user_id = sqlc.arg(user_id) AND d.log_date = sqlc.arg(log_date)
-LEFT JOIN `fertility_logs` f ON f.user_id = sqlc.arg(user_id) AND f.log_date = sqlc.arg(log_date);
+LEFT JOIN `fertility_logs` f ON f.user_id = sqlc.arg(user_id) AND f.log_date = sqlc.arg(log_date)
+LEFT JOIN `health_log_entries` el ON el.user_id = sqlc.arg(user_id) AND el.log_date = sqlc.arg(log_date)
+  AND el.category = 'measurements' AND el.param = 'lh_test' AND el.item = ''
+LEFT JOIN `health_log_entries` em ON em.user_id = sqlc.arg(user_id) AND em.log_date = sqlc.arg(log_date)
+  AND em.category = 'discharge' AND em.param = 'consistency' AND em.item = '';
 
 -- name: GetFertilityLog :one
 SELECT * FROM `fertility_logs` WHERE user_id = ? AND log_date = ?;

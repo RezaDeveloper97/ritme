@@ -106,6 +106,9 @@ func BuildSummary(in *Input) Summary {
 		s.Correlations = &r
 	}
 	s.Finding = BuildTopFinding(s.Cycle, s.Symptoms)
+	if in.NoCycleNudge {
+		s.Finding = s.Finding.withoutCycleNudge()
+	}
 	return s
 }
 

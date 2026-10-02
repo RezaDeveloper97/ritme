@@ -17,6 +17,7 @@ const (
 	FindingPattern         = "pattern"
 	FindingNotEnoughData   = "not_enough_data"
 	FindingNoData          = "no_data"
+	FindingKeepLogging     = "keep_logging" // the not-enough-data nudge of a mode without cycle tracking
 )
 
 // TopFinding is «مهم‌ترین یافته»: up to two sentences — the cycle verdict and the strongest symptom
@@ -96,6 +97,14 @@ func BuildTopFinding(cr CycleReport, sr SymptomsReport) TopFinding {
 	}
 	return TopFinding{Kind: FindingNotEnoughData, Parts: []Phrase{{Key: "findings.not_enough_data", Args: []Arg{
 		Num("needed", max(1, MinPatternCycles-cr.BasedOn))}}}}
+}
+
+// withoutCycleNudge swaps the «log N more cycles» nudge for a plain keep-logging one (menopause).
+func (f TopFinding) withoutCycleNudge() TopFinding {
+	if f.Kind != FindingNotEnoughData {
+		return f
+	}
+	return TopFinding{Kind: FindingKeepLogging, Parts: []Phrase{{Key: "findings.keep_logging"}}}
 }
 
 // JSON is {kind, parts: [{key, params, text}], text}.

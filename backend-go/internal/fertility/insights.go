@@ -2,6 +2,7 @@ package fertility
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"slices"
 
@@ -146,17 +147,22 @@ func (s *Service) Insights(ctx context.Context, userID uint64, today civildate.D
 	return in.insights(cycles, readings, tests, today), nil
 }
 
-// lhTests are the user's LH tests from `from` to `to` (inclusive), oldest first.
+// lhTests are the user's LH tests from `from` to `to` (inclusive), oldest first, one per day.
 func (s *Service) lhTests(ctx context.Context, userID uint64, from, to civildate.Date) ([]LHTest, error) {
 	rows, err := store.New(s.db).ListLHTests(ctx, store.ListLHTestsParams{UserID: userID, FromDate: from, ToDate: to})
 	if err != nil {
 		return nil, fmt.Errorf("fertility: load lh tests: %w", err)
 	}
 	out := make([]LHTest, 0, len(rows))
-	for _, r := range rows {
-		if r.LhTest.Valid {
-			out = append(out, LHTest{Date: r.LogDate, Value: r.LhTest.String})
+	for _, r := range rows { // oldest first; a day from both logs keeps the stronger result (B-N3-14b)
+		if _, ok := lhRank[r.LhTest.String]; !ok || !r.LhTest.Valid {
+			continue
 		}
+		if n := len(out); n > 0 && out[n-1].Date == r.LogDate {
+			out[n-1].Value = strongerLH(sql.NullString{String: out[n-1].Value, Valid: true}, r.LhTest).String
+			continue
+		}
+		out = append(out, LHTest{Date: r.LogDate, Value: r.LhTest.String})
 	}
 	return out, nil
 }

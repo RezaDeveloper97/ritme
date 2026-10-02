@@ -60,7 +60,8 @@ type Day struct {
 // DayFromRow builds the day from the merged-day query.
 func DayFromRow(date civildate.Date, r store.GetMergedDayRow) Day {
 	d := Day{
-		Date: date, LH: r.LhTest, Mucus: r.CervicalMucus, BBT: r.BasalBodyTemperature,
+		Date: date, LH: strongerLH(r.LhTest, r.EntryLhTest), Mucus: moreFertileMucus(r.CervicalMucus, entryMucus(r.EntryMucus)),
+		BBT:     r.BasalBodyTemperature,
 		BBTTime: r.BbtTime, Intercourse: r.IntercourseType, Note: r.Notes, Symptoms: []string{},
 	}
 	intensity := map[string]sql.NullString{
@@ -80,6 +81,45 @@ func DayFromRow(date civildate.Date, r store.GetMergedDayRow) Day {
 		}
 	}
 	return d
+}
+
+// The log sheet (taxonomy v2: measurements.lh_test, discharge.consistency) and the /fertility log
+// (fertility_logs) are not synced (QUESTIONS #80); a day merges both like the TTC analysis does
+// (internal/analysis TTCSignals): the stronger LH result and the more fertile mucus win (B-N3-14b).
+var (
+	lhRank    = map[string]int{"negative": 0, "faint": 1, "positive": 2}
+	mucusRank = map[string]int{"dry": 0, "sticky": 1, "creamy": 2, "egg_white": 3}
+)
+
+// strongerLH is the stronger of two LH results (an unknown value never wins).
+func strongerLH(a, b sql.NullString) sql.NullString { return stronger(lhRank, a, b) }
+
+// moreFertileMucus is the more fertile of two mucus values.
+func moreFertileMucus(a, b sql.NullString) sql.NullString { return stronger(mucusRank, a, b) }
+
+func stronger(rank map[string]int, a, b sql.NullString) sql.NullString {
+	ra, okA := rank[a.String]
+	rb, okB := rank[b.String]
+	okA, okB = okA && a.Valid, okB && b.Valid
+	switch {
+	case okA && okB && rb > ra, !okA && okB:
+		return b
+	case okA:
+		return a
+	}
+	return sql.NullString{}
+}
+
+// entryMucus maps the log sheet's discharge consistency onto the /fertility mucus values: none → dry;
+// watery has no /fertility value (the day's PUT accepts only CervicalMucus) and is left out.
+func entryMucus(v sql.NullString) sql.NullString {
+	if v.Valid && v.String == "none" {
+		return sql.NullString{String: "dry", Valid: true}
+	}
+	if _, ok := mucusRank[v.String]; v.Valid && ok {
+		return v
+	}
+	return sql.NullString{}
 }
 
 // Chance is the chance card: the cycle view's fertility_level as a level, label and 0–5 bars.

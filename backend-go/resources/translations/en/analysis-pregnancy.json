@@ -36,6 +36,7 @@
       "title": "Weight gain",
       "sub": "Pre-pregnancy BMI {bmi} · total target {min}–{max} kg (IOM)",
       "until": "kg by week {n}",
+      "untilDate": "kg by the last weigh-in ({date})",
       "status": {
         "below": "Below the recommended range",
         "within": "In the recommended range",

@@ -261,7 +261,7 @@ func canvasLabel(f canvasField, value any, locale string) string {
 	switch f.typ {
 	case fieldInteger:
 		n, _ := value.(float64)
-		return T("chips."+f.code(), locale, map[string]string{"value": strconv.FormatFloat(n, 'f', -1, 64)})
+		return T("chips."+f.code(), locale, map[string]string{"value": num(n, locale)})
 	case fieldSingle:
 		code, _ := value.(string)
 		return T("chips."+f.code(), locale, map[string]string{"option": T("options."+f.code()+"_"+code, locale, nil)})
@@ -270,6 +270,9 @@ func canvasLabel(f canvasField, value any, locale string) string {
 		return T("chips."+f.code()+"_"+strconv.FormatBool(b), locale, nil)
 	default:
 		s, _ := value.(string)
+		if f.typ == fieldTime {
+			s = digits(s, locale)
+		}
 		return T("chips."+f.code(), locale, map[string]string{"value": s})
 	}
 }

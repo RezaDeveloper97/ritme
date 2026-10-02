@@ -12,6 +12,7 @@ import { BottomNav } from '@/widgets/bottom-nav';
 import { ChartCard, ReportFrame, StatTiles, type StatTile } from '@/widgets/charts';
 
 import { useFertilityCycle } from '../api/ttc';
+import { isolate } from '../model/ttc';
 import { BbtChart } from './BbtChart';
 
 const SOURCE_TONE: Record<string, Tone> = { bbt: 'data', lh: 'warm', estimate: 'neutral' };
@@ -56,7 +57,13 @@ export function AnalysisFertilityPage() {
     );
   } else if (f) {
     const c = f.cycle;
-    subtitle = t('sub', { index: num(c.index), from: date(c.start), to: c.current ? t('today') : date(c.end) });
+    // B-N3-14b (N3 stage smoke B-7): each value is bidi-isolated (the string form of <bdi>), so the «·» and
+    // the day numbers keep their places in an RTL line.
+    subtitle = t('sub', {
+      index: isolate(num(c.index)),
+      from: isolate(date(c.start)),
+      to: isolate(c.current ? t('today') : date(c.end)),
+    });
     const ov = f.ovulation;
     const lutealLocked = f.luteal.locked;
     const tiles: StatTile[] = [

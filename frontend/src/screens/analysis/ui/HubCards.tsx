@@ -142,7 +142,7 @@ export function RecentCyclesCard({
 const SYMPTOM_TONES = ['bloom', 'brand', 'warm'] as const;
 
 /** «الگوی علائم»: the strongest pattern sentence + the top 3 symptoms as bars. */
-export function SymptomsCard({ section }: { section: AnalysisSection<HubSymptoms> }) {
+export function SymptomsCard({ section, cycleNudge = true }: { section: AnalysisSection<HubSymptoms>; cycleNudge?: boolean }) {
   const { t, num } = useHub();
   const s = section.data;
   const top = s?.top ?? [];
@@ -173,7 +173,7 @@ export function SymptomsCard({ section }: { section: AnalysisSection<HubSymptoms
           })}
         </p>
       ) : missing > 0 ? (
-        <NotReady>{t('symptoms.notReady', { n: num(missing) })}</NotReady>
+        <NotReady>{cycleNudge ? t('symptoms.notReady', { n: num(missing) }) : t('symptoms.notReadyNoCycle')}</NotReady>
       ) : null}
       {top.length ? (
         <ul className="an-hbars">

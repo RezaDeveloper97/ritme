@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { AnalysisSection, AnalysisSummary } from '@/entities/analysis';
 
-import { availableCategories, groupCards, hubVariant, signedDecimal, visibleCards } from './hub';
+import { asksForCycles, availableCategories, groupCards, hubVariant, signedDecimal, visibleCards } from './hub';
 
 const open = <T,>(data: T, ready = true): AnalysisSection<T> => ({ plus: false, locked: false, ready, data });
 const locked: AnalysisSection<never> = { plus: true, locked: true, ready: false, data: null };
@@ -39,6 +39,13 @@ describe('analysis hub model', () => {
     ]);
     expect(visibleCards(summary(), 'teen')).toEqual(['cycle', 'symptoms', 'weight', 'vitals']);
     expect(availableCategories(visibleCards(summary(), 'teen'))).toEqual(['all', 'cycle', 'symptoms', 'body']);
+  });
+
+  it('never asks a menopause user for cycles (B-N3-14b)', () => {
+    expect(visibleCards(summary(), 'menopause')).toEqual(['symptoms', 'sleepMood', 'weight', 'vitals', 'labs']);
+    expect(visibleCards(summary({ cycle: open(null as never, true) }), 'menopause')).toContain('cycle');
+    expect(asksForCycles('menopause')).toBe(false);
+    expect(asksForCycles('teen')).toBe(true);
   });
 
   it('groups cards under their headings for a category', () => {

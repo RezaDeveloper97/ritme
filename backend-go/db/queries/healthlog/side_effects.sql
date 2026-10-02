@@ -35,3 +35,17 @@ VALUES (?, ?, ?, 0, ?, ?);
 
 -- name: UpdateCycleHistoryEnd :exec
 UPDATE `cycle_histories` SET period_end_date = ?, bleeding_length = ?, updated_at = ? WHERE id = ?;
+
+-- name: GetCycleHistoryOnOrBefore :one
+-- B-N3-14b (D-55): the period that starts on or before a back-dated bleeding day (it may contain the day).
+SELECT * FROM `cycle_histories` WHERE user_id = sqlc.arg(user_id) AND period_start_date <= sqlc.arg(on_date)
+ORDER BY period_start_date DESC LIMIT 1;
+
+-- name: GetCycleHistoryAfter :one
+-- B-N3-14b (D-55): the first period that starts after a bleeding day (it may start a day or two later).
+SELECT * FROM `cycle_histories` WHERE user_id = sqlc.arg(user_id) AND period_start_date > sqlc.arg(after_date)
+ORDER BY period_start_date ASC LIMIT 1;
+
+-- name: UpdateCycleHistoryStart :exec
+-- B-N3-14b (D-55): a bleeding day logged right before a period moves its start back.
+UPDATE `cycle_histories` SET period_start_date = ?, bleeding_length = ?, updated_at = ? WHERE id = ?;

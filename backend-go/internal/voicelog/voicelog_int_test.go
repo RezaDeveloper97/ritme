@@ -341,7 +341,7 @@ func TestVoice_CanvasMenopauseHotFlashes(t *testing.T) {
 	require.Equal(t, 200, c.status, c.raw)
 	assert.Equal(t, "2 مورد ثبت شد.", c.body["message"])
 	assert.JSONEq(t, `{"date":"2026-09-23","saved":[
-		{"target":"hot_flash","category":"hot_flash","param":"count","item":null,"value":3,"label":"گرگرفتگی · 3 بار"},
+		{"target":"hot_flash","category":"hot_flash","param":"count","item":null,"value":3,"label":"گرگرفتگی · ۳ بار"},
 		{"target":"hot_flash","category":"hot_flash","param":"night","item":null,"value":true,"label":"گرگرفتگی شبانه"}]}`, mustJSON(t, c.data()))
 	assert.Equal(t, 3, e.count(t, `SELECT COUNT(*) FROM hot_flashes WHERE user_id = ? AND night = 1 AND duration_s = ?
 		AND started_at BETWEEN '2026-09-23 02:50:00' AND '2026-09-23 03:00:00'`, a, voicelog.DefaultFlashSeconds))

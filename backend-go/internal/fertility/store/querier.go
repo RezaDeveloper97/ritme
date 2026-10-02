@@ -19,8 +19,10 @@ type Querier interface {
 	FirstFertilityLogDate(ctx context.Context, userID uint64) ([]civildate.Date, error)
 	GetFertilityLog(ctx context.Context, arg GetFertilityLogParams) (FertilityLog, error)
 	// Fertility day log (T-M5-01, docs/fertility-ttc/README.md). Every query is scoped by user_id.
-	// The merged day in one statement: the day's daily_health_logs columns the fertility screens use
-	// and its fertility_logs row, either or both missing (all NULL).
+	// The merged day in one statement: the day's daily_health_logs columns the fertility screens use,
+	// its fertility_logs row and the log sheet's (taxonomy v2) LH test and mucus consistency, any of
+	// them missing (all NULL). B-N3-14b: the v2 values are not synced into fertility_logs, so the day
+	// merges both like the TTC analysis does (QUESTIONS #80).
 	GetMergedDay(ctx context.Context, arg GetMergedDayParams) (GetMergedDayRow, error)
 	// BBT chart (T-M5-02, docs/fertility-ttc/README.md). Every query is scoped by user_id.
 	// The user's basal-temperature readings from `from` to `to` (inclusive), oldest first.
@@ -31,7 +33,9 @@ type Querier interface {
 	// (QUESTIONS #80: fertility_logs is not synced into health_log_entries; the TTC analysis merges both.)
 	ListFertilitySignals(ctx context.Context, arg ListFertilitySignalsParams) ([]ListFertilitySignalsRow, error)
 	// Fertility insights (T-M5-03, docs/fertility-ttc/README.md). Every query is scoped by user_id.
-	// The user's LH test results from `from` to `to` (inclusive), oldest first.
+	// The user's LH test results from `from` to `to` (inclusive), oldest first: the /fertility log's
+	// (fertility_logs) and the log sheet's (health_log_entries measurements.lh_test, B-N3-14b); a day
+	// logged in both comes twice and the service keeps the stronger result.
 	ListLHTests(ctx context.Context, arg ListLHTestsParams) ([]ListLHTestsRow, error)
 	// One row per (user_id, log_date); created_at is kept on update.
 	UpsertFertilityLog(ctx context.Context, arg UpsertFertilityLogParams) error

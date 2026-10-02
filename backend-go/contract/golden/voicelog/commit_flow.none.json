@@ -452,7 +452,7 @@
               "param": "count",
               "item": null,
               "value": 3,
-              "label": "گرگرفتگی · 3 بار"
+              "label": "گرگرفتگی · ۳ بار"
             },
             {
               "target": "hot_flash",
@@ -468,7 +468,7 @@
               "param": "score",
               "item": null,
               "value": 6,
-              "label": "شدت درد · 6 از 10"
+              "label": "شدت درد · ۶ از ۱۰"
             },
             {
               "target": "pain_diary",
@@ -484,7 +484,7 @@
               "param": "analgesic_time",
               "item": null,
               "value": "10:00",
-              "label": "ساعت مسکن · 10:00"
+              "label": "ساعت مسکن · ۱۰:۰۰"
             },
             {
               "target": "pain_diary",
@@ -516,7 +516,7 @@
               "param": "night_voids",
               "item": null,
               "value": 2,
-              "label": "بیدار شدن شبانه برای ادرار · 2 بار"
+              "label": "بیدار شدن شبانه برای ادرار · ۲ بار"
             }
           ]
         }

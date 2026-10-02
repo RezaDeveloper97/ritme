@@ -95,3 +95,8 @@ export function linePath(points: readonly BbtPoint[], span: number, scale: TempS
     })
     .join('');
 }
+
+/** Bidi-isolates an interpolated value (FSI … PDI, the string form of `<bdi>`), B-N3-14b. */
+export function isolate(value: string): string {
+  return `⁨${value}⁩`;
+}

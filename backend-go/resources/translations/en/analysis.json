@@ -43,7 +43,8 @@
       "mid_day": "{symptom} came back in {cycles} of {total} cycles, around cycle day {start}."
     },
     "not_enough_data": "Log {needed} more cycles to see your patterns.",
-    "no_data": "Nothing to analyse yet. Start with a daily log."
+    "no_data": "Nothing to analyse yet. Start with a daily log.",
+    "keep_logging": "Keep logging daily; after a few weeks of data your symptom patterns will show here."
   },
   "correlations": {
     "sleep_mood": {
@@ -155,6 +156,7 @@
       },
       "count": "{n} days",
       "notReady": "Log {n} more cycles to see a pattern.",
+      "notReadyNoCycle": "Keep logging symptoms and their pattern will show here.",
       "none": "No symptoms logged in this range yet."
     },
     "mood": {

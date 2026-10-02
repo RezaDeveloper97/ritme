@@ -109,7 +109,7 @@ func TestValidate(t *testing.T) {
 		"symptoms.digestive.bloating": "نفخ",
 		"mood.moods.bored":            "بی\u200cحوصله",
 		"mood.moods.custom_7":         "دلتنگ",
-		"measurements.weight.":        "وزن · 58.46 کیلوگرم",
+		"measurements.weight.":        "وزن · ۵۸٫۴۶ کیلوگرم",
 		"sleep.quality.":              "خواب · کیفیت: خوب",
 	}, labels)
 	assert.InDelta(t, 58.46, values["measurements.weight."], 0.0001)

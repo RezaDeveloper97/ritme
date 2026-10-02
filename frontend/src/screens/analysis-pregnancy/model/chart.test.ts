@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { bandAt, bpChart, gainChart, isUserRow, tileItems, weekdayKeyOf } from './chart';
+import { bandAt, bpChart, gainChart, gainUntilWeek, isUserRow, tileItems, weekdayKeyOf } from './chart';
 
 const band = [
   { gaWeeks: 0, min: 0, max: 0 },
@@ -73,5 +73,13 @@ describe('bpChart', () => {
     const ys = flat.line.match(/ (\d+(\.\d+)?)/g)?.map(Number) ?? [];
     expect(Math.abs(ys[0] - ys[1])).toBeLessThan(5);
     expect(flat.thresholdY).toBeLessThan(ys[0]);
+  });
+});
+
+describe('gainUntilWeek', () => {
+  it('names the week only when the weigh-in is in today\'s week (B-N3-14b)', () => {
+    expect(gainUntilWeek(23, 23)).toBe(true);
+    expect(gainUntilWeek(22, 23)).toBe(false);
+    expect(gainUntilWeek(0, 23)).toBe(true);
   });
 });

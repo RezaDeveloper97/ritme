@@ -140,7 +140,7 @@ func TestTTC_HubOwnDataAndPlus(t *testing.T) {
 	require.Equal(t, 200, r.status, r.raw)
 	assert.InDelta(t, 14, path(r.data(), "luteal", "data", "days"), 0)
 	assert.InDelta(t, 2, path(r.data(), "mucus", "data", "cycles_with_egg_white"), 0)
-	assert.Contains(t, path(r.data(), "trying", "summary", "text"), "Ovulation confirmed")
+	assert.Contains(t, path(r.data(), "trying", "summary", "text"), "ovulation confirmed by basal temperature")
 
 	// B: own data only (one cycle, no trying history from A).
 	rb := e.get(t, "/api/v1/analysis/ttc", tokB, "")

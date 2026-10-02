@@ -182,7 +182,7 @@
               "item": null,
               "value": 6,
               "confidence": 0.9,
-              "label": "شدت درد · 6 از 10",
+              "label": "شدت درد · ۶ از ۱۰",
               "options": []
             },
             {
@@ -202,7 +202,7 @@
               "item": null,
               "value": "10:00",
               "confidence": 0.8,
-              "label": "ساعت مسکن · 10:00",
+              "label": "ساعت مسکن · ۱۰:۰۰",
               "options": []
             },
             {

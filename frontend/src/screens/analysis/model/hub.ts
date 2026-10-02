@@ -50,16 +50,24 @@ export function hubVariant(mode: string | null): HubVariant {
 
 /**
  * Cards a variant shows. Teens get no Plus upsell (B-N2-03 hides the Plus card
- * for them), so locked Plus cards are dropped; the rest always render — a card
- * without enough data explains what is missing instead of disappearing.
+ * for them), so locked Plus cards are dropped; menopause drops the cycle cards
+ * that only ask for cycles; the rest always render — a card without enough data
+ * explains what is missing instead of disappearing.
  */
 export function visibleCards(summary: AnalysisSummary, variant: HubVariant): HubCard[] {
   return HUB_CARDS.filter((card) => {
     const section = summary.sections[card];
     if (card === 'recentCycles' && !section.ready) return false;
     if (variant === 'teen' && section.locked) return false;
+    // Menopause tracks no cycles (B-N3-14b): no «۲ سیکل کامل لازم است» card, no mood-by-phase.
+    if (variant === 'menopause' && (card === 'moodByPhase' || (card === 'cycle' && !section.ready))) return false;
     return true;
   });
+}
+
+/** Whether a card's empty state may ask for more cycles (not in a mode without cycle tracking). */
+export function asksForCycles(variant: HubVariant): boolean {
+  return variant !== 'menopause';
 }
 
 /** Chips worth offering: «همه» plus every category that has a visible card. */

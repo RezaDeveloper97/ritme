@@ -43,12 +43,14 @@ func HistoryFromRow(r store.CycleHistory) model.History {
 	return h
 }
 
-// HistoriesFromRows maps rows in their order.
+// HistoriesFromRows maps rows in their order; the newest row, when the bleeding log created it, counts
+// as confirmed (model.PromoteLoggedStart, B-N3-14b / D-55).
 func HistoriesFromRows(rows []store.CycleHistory) []model.History {
 	out := make([]model.History, len(rows))
 	for i, r := range rows {
 		out[i] = HistoryFromRow(r)
 	}
+	model.PromoteLoggedStart(out)
 	return out
 }
 
