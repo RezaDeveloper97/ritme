@@ -198,3 +198,21 @@ TODO (ask user):
 - Verify: typecheck, lint, fsd:lint, lint:styles (792), lint:dark, 1064 tests, build — green. Fidelity `docs/qa/canvas/meno.md` (Stage, Home, Main) — no ✘. Test user 09120005055 (menopause; one HRT row inserted directly in ritme_dev).
 - Open: mode switcher doesn't open the stage screen (screens/mode outside touches); bleeding tile has no log-sheet section preset; dead bloom keys `home.life.menopause.*` / `.meno-*` CSS; wire hot-flash tile → /menopause/hot-flash (CB-MENO-07), score details (08), treatment (10), report (11). Pre-existing: `/messages/daily` 400 in menopause mode.
 - TODO (ask user): steiger rule vs slice groups; sparkline direction.
+
+## CB-MENO-07 — Frontend: hot-flash timer
+- `/menopause/hot-flash` (flow, no nav): CountdownRing timer started/stopped server-side and resumed after reload, severity chips, trigger chips (board labels; caffeine, stress, spicy_food, warm_room, hot_drink, exercise, unknown) + «با تعریق», today tiles (count, avg duration, night), today list, breathing tip from catalog `meno_tips/hot_flash_breathing` (fallback copy [needs clinical review]). `entities/menopause`: flash details, `useHotFlashDay`, `useMenopauseTips`; `useHotFlashTimer` start/stop with details. Home «گرگرفتگی الان» tile now opens this screen (inline running tile still stops).
+- Fidelity idle / running / stopped, light + dark — ✔. Open: chip edits after stop = one POST each (no debounce); `flashElapsedSeconds` duplicated in two screens.
+
+## CB-MENO-08 — Frontend: monthly score + patterns (stage tab «علائم»)
+- `/menopause/score` (band bar + marker, domain breakdown, 6-month chart, HRT annotation, patterns + not-a-diagnosis disclaimer, link to bloom's /analysis/symptoms) and `/menopause/score/questionnaire` (11 catalog items, 0–4 NumericScale, prefilled when this month's exists). Menopause bottom-nav tab «علائم» → /menopause/score (`alsoActive` keeps /analysis + /cycle/symptoms); `/menopause/score` added to `NAV_ROOT_PATHS`. Home score card «جزئیات» → this screen.
+- Fidelity ✔ (marker dot + tinted band pill are additions). Open: docs/night-bloom/nav.md (bloom doc) still lists /analysis/symptoms for the menopause tab; patterns not Plus-gated.
+
+## CB-MENO-09 — Frontend: bleeding alert + menopause checkups
+- `/menopause/alert`: catalog-driven danger card, «گرفتن نوبت پزشک زنان» → M3 appointment form (`/reminders/appointment/new?kind=in_person`), «زودتر بگو» list (6 catalog items, chest pain → tel:115); prepare-report CTA hidden until CB-MENO-11. Home bleeding UrgentCard «بیشتر بدان» and the «خونریزی یا لکه» tile → this screen (board link).
+- Checkups for menopause users: `MenopausePlan` grouped by `meno_checkup_groups` with board chips + intro; other rows under «موارد دیگر برنامه»; «افزودن نتیجه آزمایش» hidden until B-N6-07. Non-menopause users unchanged.
+- Fidelity ✔ (light/dark, en). Open: chip mapping for `due` approximate (no performer field); catalog reads live in screen `api/` (could merge into entities/menopause later).
+
+### Landing notes (07 + 08 + 09 together)
+- One commit for the three tasks: their hunks share `menopause.json`, `message-scopes.ts`, `globals.css` and `entities/menopause`, built in parallel in one tree. Go copies of `menopause.json` / `checkups.json` and i18n goldens synced on landing; home links wired on landing (`routedLink` allows /menopause/score|alert|hot-flash).
+- Verify on the combined tree: typecheck, lint, fsd:lint, lint:styles (813), lint:dark, 1101 tests, build; `go test ./internal/i18n ./resources/...` — green.
+- TODO (ask user): trigger labels short vs taxonomy; keep «با تعریق»; band marker/tinted pill; Plus-gate patterns; filter «زودتر بگو» by stage; hide «افزودن چکاپ سفارشی» in menopause until labs upload exists.

@@ -162,6 +162,9 @@ function BleedingAlert({ data, message }: { data: MenopauseToday; message: Menop
       {data.bleeding.lastOn ? (
         <p className="mh-alert-meta">{t('alert.lastOn', { date: formatDayMonth(fromApiDate(data.bleeding.lastOn), locale) })}</p>
       ) : null}
+      <Link href="/menopause/alert" className="mh-link">
+        {t('alert.more')}
+      </Link>
     </UrgentCard>
   );
 }
@@ -227,6 +230,7 @@ function RunningClock({ baseS, children }: { baseS: number; children: (time: str
 
 function QuickActions({ data, fetchedAt }: { data: MenopauseToday; fetchedAt: number }) {
   const t = useTranslations('menopause.home.quick');
+  const router = useRouter();
   const { start, stop } = useHotFlashTimer();
   const running = data.hotFlashes.running;
   const busy = start.isPending || stop.isPending;
@@ -256,7 +260,7 @@ function QuickActions({ data, fetchedAt }: { data: MenopauseToday; fetchedAt: nu
       className="mh-qa"
       disabled={busy}
       label={t('hotFlash')}
-      onClick={() => start.mutate()}
+      onClick={() => router.push('/menopause/hot-flash')}
     />
   );
 
@@ -265,8 +269,8 @@ function QuickActions({ data, fetchedAt }: { data: MenopauseToday; fetchedAt: nu
       <div className="mh-quick">
         {hotFlash}
         <TileButton layout="card" tone="brand" icon="note" className="mh-qa" label={t('logToday')} onClick={() => openSheet('log')} />
-        {/* No bleeding preset in the log sheet yet (features/log-day): opens today's log, where bleeding is a section. */}
-        <TileButton layout="card" tone="period" icon="drop" className="mh-qa" label={t('bleeding')} onClick={() => openSheet('log')} />
+        {/* Board: «خونریزی یا لکه» → Meno_Alert (what to log, when to see a doctor). */}
+        <TileButton layout="card" tone="period" icon="drop" className="mh-qa" label={t('bleeding')} onClick={() => router.push('/menopause/alert')} />
       </div>
       {start.isError || stop.isError ? (
         <p className="mh-error" role="alert">
@@ -305,6 +309,7 @@ function TodayStats({ data }: { data: MenopauseToday }) {
 function ScoreCard({ data }: { data: MenopauseToday }) {
   const t = useTranslations('menopause.home.score');
   const locale = useLocale() as Locale;
+  const router = useRouter();
   const latest = data.score.latest;
   // Oldest → newest left to right, like the board (the chart is `direction: ltr` in both locales).
   const series = data.score.trend;
@@ -314,7 +319,7 @@ function ScoreCard({ data }: { data: MenopauseToday }) {
   return (
     <section className="mh-sec" aria-labelledby="mh-score">
       <div className="mh-sect-head">
-        <SectionTitle id="mh-score" title={t('title')} />
+        <SectionTitle id="mh-score" title={t('title')} actionLabel={t('details')} onAction={() => router.push('/menopause/score')} />
         <p className="mh-sect-sub">{t('sub')}</p>
       </div>
       <Card className="mh-score">

@@ -34,3 +34,41 @@ export {
   useMenopauseToday,
   useSaveMenopauseProfile,
 } from './api/queries';
+
+// CB-MENO-08 — monthly score + patterns.
+export {
+  MENOPAUSE_SCORE_DOMAINS,
+  type MenopausePattern,
+  type MenopausePatterns,
+  type MenopauseScoreBand,
+  type MenopauseScoreDomain,
+  type MenopauseScoreEntry,
+  type MenopauseScoreHistory,
+  type MenopauseScoreQuestion,
+} from './model/score';
+export {
+  menopausePatternsSchema,
+  menopauseScoreHistorySchema,
+  menopauseScoreQuestionsSchema,
+  useMenopausePatterns,
+  useMenopauseScoreQuestions,
+  useMenopauseScores,
+  useSaveMenopauseScore,
+} from './api/score';
+
+// CB-MENO-07 — hot-flash timer screen.
+export {
+  HOT_FLASH_SEVERITIES,
+  HOT_FLASH_TRIGGERS,
+  type HotFlashDetails,
+  type HotFlashSeverity,
+  type HotFlashTrigger,
+  type MenopauseFlashDay,
+} from './model/types';
+export {
+  fetchHotFlashDay,
+  menopauseFlashDaySchema,
+  toHotFlashDetailsBody,
+  useHotFlashDay,
+  useMenopauseTips,
+} from './api/hot-flashes';

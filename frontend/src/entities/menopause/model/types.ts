@@ -51,6 +51,38 @@ export interface MenopauseFlash {
   durationS: number | null;
   /** The timer's length when the response was made (capped at an hour), or the duration once stopped. */
   elapsedS: number;
+  /** CB-MENO-07: the details saved with the flash (`null` severity = not set). */
+  severity: HotFlashSeverity | null;
+  night: boolean;
+  sweat: boolean;
+  triggers: HotFlashTrigger[];
+}
+
+/** Hot-flash intensity (nbl_Meno_HotFlash «شدت»), API order. */
+export const HOT_FLASH_SEVERITIES = ['mild', 'moderate', 'severe', 'very_severe'] as const;
+export type HotFlashSeverity = (typeof HOT_FLASH_SEVERITIES)[number];
+
+/** `menopause.triggers` taxonomy options + `unknown` (docs/canvas-build/menopause.md §4), board order first. */
+export const HOT_FLASH_TRIGGERS = ['caffeine', 'stress', 'spicy_food', 'warm_room', 'hot_drink', 'exercise', 'unknown'] as const;
+export type HotFlashTrigger = (typeof HOT_FLASH_TRIGGERS)[number];
+
+/** What the timer screen sends on start / stop / edit. */
+export interface HotFlashDetails {
+  severity: HotFlashSeverity | null;
+  sweat: boolean;
+  triggers: HotFlashTrigger[];
+}
+
+/** GET /menopause/hot-flashes — one day of the timer screen. */
+export interface MenopauseFlashDay {
+  date: string;
+  count: number;
+  nightCount: number;
+  /** Mean length of the day's finished flashes; `null` = none finished. */
+  avgDurationS: number | null;
+  running: MenopauseFlash | null;
+  /** Newest first. */
+  items: MenopauseFlash[];
 }
 
 export interface MenopauseTrendPoint {

@@ -6147,6 +6147,166 @@ html[data-motion="reduce"] *::after {
   background: var(--surface-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
 }
 /* ═══ end CB-MENO-05 ═══ */
+/* ═══ CB-MENO-07 · hot-flash timer (nbl_Meno_HotFlash, screens/menopause-hot-flash `mhf-`) ═══ */
+.mhf-page { background: var(--page); }
+.mhf-scroll { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 16px; padding-bottom: 32px; }
+.mhf-scroll > :not(.nb-hdr) { margin-inline: var(--gutter); }
+.mhf-skel { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.mhf-skel > * { align-self: stretch; }
+.mhf-skel > .mhf-skel-ring { align-self: center; inline-size: 220px; block-size: 220px; border-radius: 50%; }
+.mhf-timer { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.mhf-ring-btn {
+  display: inline-flex; padding: 0; border: 0; border-radius: 50%; background: none; color: inherit; cursor: pointer;
+  -webkit-tap-highlight-color: transparent; transition: transform .15s ease;
+}
+.mhf-ring-btn:active:not(:disabled) { transform: scale(.97); }
+.mhf-ring-btn:disabled { cursor: progress; }
+.mhf-ring-btn:focus-visible { outline: none; box-shadow: var(--ring); }
+.mhf-ring-btn:not(.is-running) .nb-countdown-value { color: var(--text-2); }
+/* The arc laps once a minute while the timer runs; idle / saved show the bare disc (no stray round cap). */
+.mhf-ring-btn:not(.is-running) .nb-ring-arc { display: none; }
+.mhf-ring-cap { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.mhf-ring-icon { color: var(--bloom-deep); }
+.mhf-hint { margin: 0; text-align: center; font-size: var(--fs-md); font-weight: 700; line-height: var(--lh-body); color: var(--text-2); }
+.mhf-error { margin: 0; text-align: center; font-size: var(--fs-md); font-weight: 700; color: var(--danger-deep); }
+.nb-card.mhf-card { display: flex; flex-direction: column; gap: 14px; }
+.mhf-causes { display: flex; flex-direction: column; gap: 10px; }
+.mhf-label { margin: 0; font-size: var(--fs-base); font-weight: 800; color: var(--text-1); }
+.mhf-sec { display: flex; flex-direction: column; gap: 10px; }
+.nb-card.mhf-today { display: flex; flex-direction: column; gap: 4px; }
+.mhf-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding-bottom: 8px; }
+.mhf-tile {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  min-block-size: 84px; padding: 10px 4px; border-radius: var(--r-xl); border: 1px solid var(--line); background: var(--surface-2);
+  text-align: center;
+}
+.mhf-tile-value { font-family: var(--font-display); font-weight: 400; font-size: 24px; line-height: 1.1; white-space: nowrap; color: var(--nb-tone-ink); }
+.mhf-tile-label { font-size: var(--fs-sm); font-weight: 700; color: var(--text-2); }
+.mhf-empty { margin: 0; padding: 14px 4px 8px; text-align: center; font-size: var(--fs-md); font-weight: 600; color: var(--text-3); }
+.mhf-list { list-style: none; margin: 0; padding: 0 4px; }
+.mhf-row { display: flex; align-items: center; gap: 12px; min-block-size: 64px; padding-block: 10px; border-top: 1px solid var(--line); }
+.mhf-time {
+  flex-shrink: 0; min-inline-size: 3.2em; font-family: var(--font-display); font-weight: 400; font-size: var(--fs-lg);
+  color: var(--text-1); font-variant-numeric: tabular-nums;
+}
+.mhf-dot { flex-shrink: 0; inline-size: 10px; block-size: 10px; border-radius: 50%; background: var(--nb-tone); }
+.mhf-row-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; text-align: start; }
+.mhf-row-title { font-size: var(--fs-base); font-weight: 800; line-height: 1.6; color: var(--text-1); }
+.mhf-row-sub { font-size: var(--fs-sm); font-weight: 600; color: var(--text-3); }
+/* ═══ end CB-MENO-07 ═══ */
+/* ═══ CB-MENO-08 · monthly score + patterns (nbl_Meno_Score, `msc-`) + questionnaire (`msq-`) ═══ */
+.msc-page, .msq-page { background: var(--page); }
+.msc-scroll { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 16px; padding-bottom: 24px; }
+.msc-scroll > :not(.nb-hdr) { margin-inline: var(--gutter); }
+.msc-skel { display: flex; flex-direction: column; gap: 12px; }
+.msc-body { display: flex; flex-direction: column; gap: 20px; }
+.msc-sec { display: flex; flex-direction: column; gap: 10px; }
+.msc-sect-head { display: flex; flex-direction: column; gap: 2px; }
+.msc-sect-sub { margin: 0; font-size: var(--fs-sm); font-weight: 600; color: var(--text-3); }
+.nb-card.msc-head { display: flex; flex-direction: column; gap: 14px; }
+.msc-head-top { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
+.msc-head-num { display: flex; flex-direction: column; gap: 4px; }
+.msc-head-month { font-size: var(--fs-sm); font-weight: 700; color: var(--text-2); }
+.msc-head-score { display: flex; align-items: baseline; gap: 6px; margin: 0; }
+.msc-total { font-family: var(--font-display); font-weight: 400; font-size: var(--fs-num-l); line-height: 1; color: var(--text-1); }
+.msc-of { font-size: var(--fs-md); font-weight: 700; color: var(--text-2); }
+.nb-pill.msc-band-pill { height: 30px; padding: 0 14px; font-size: var(--fs-sm); }
+.msc-bands { display: flex; flex-direction: column; gap: 8px; }
+.msc-band-bar { position: relative; display: flex; gap: 2px; block-size: 8px; }
+.msc-band-seg { flex-basis: 0; min-width: 6px; border-radius: 4px; background: var(--nb-tone); opacity: .55; }
+.msc-band-seg.is-on { opacity: 1; }
+.msc-band-marker {
+  position: absolute; inset-block-start: 50%; inline-size: 14px; block-size: 14px; border-radius: 50%;
+  background: var(--surface); border: 3px solid var(--text-1); transform: translate(-50%, -50%);
+}
+[dir="rtl"] .msc-band-marker { transform: translate(50%, -50%); }
+.msc-band-labels { display: flex; justify-content: space-between; gap: 6px; }
+.msc-band-label { font-size: var(--fs-xs); font-weight: 700; color: var(--text-3); }
+.msc-band-label.is-on { font-weight: 800; color: var(--text-1); }
+.nb-card.msc-domains { display: flex; flex-direction: column; gap: 16px; }
+.nb-card.msc-trend { display: flex; flex-direction: column; gap: 12px; }
+.msc-hrt { margin: 0; font-size: var(--fs-md); font-weight: 700; line-height: var(--lh-body); color: var(--text-1); }
+.nb-card.msc-patterns { display: flex; flex-direction: column; gap: 14px; }
+.msc-pat { display: flex; align-items: flex-start; gap: 12px; }
+.msc-pat-text { margin: 0; flex: 1; min-width: 0; font-size: var(--fs-md); font-weight: 700; line-height: var(--lh-body); color: var(--text-1); }
+.msc-pat-note { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+.msc-analysis {
+  display: flex; align-items: center; gap: 10px; min-block-size: 44px; padding-block-start: 12px;
+  border-top: 1px solid var(--line); color: var(--brand-strong); font-size: var(--fs-md); font-weight: 800; text-decoration: none;
+}
+.msc-analysis-label { flex: 1; }
+.msc-analysis:focus-visible { outline: none; box-shadow: var(--ring); border-radius: var(--r-xs); }
+.nb-card.msc-empty { padding: 8px; }
+/* Questionnaire */
+.msq-scroll { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 16px; min-block-size: 100%; }
+.msq-scroll > :not(.nb-hdr):not(.msq-footer) { margin-inline: var(--gutter); }
+.msq-skel { display: flex; flex-direction: column; gap: 12px; }
+.msq-intro { display: flex; flex-direction: column; gap: 12px; }
+.msq-lead { margin: 0; font-size: var(--fs-base); font-weight: 700; line-height: var(--lh-body); color: var(--text-1); }
+.msq-group { display: flex; flex-direction: column; gap: 10px; }
+.msq-group-title { margin: 0; font-size: 15px; font-weight: 800; color: var(--text-1); }
+.nb-card.msq-card { display: flex; flex-direction: column; padding-block: 4px; }
+.msq-q { padding-block: 14px; }
+.msq-q + .msq-q { border-top: 1px solid var(--line); }
+.msq-q-label { display: flex; flex-direction: column; gap: 2px; }
+.msq-q-title { font-weight: 800; color: var(--text-1); }
+.msq-q-body { font-size: var(--fs-sm); font-weight: 600; line-height: 1.7; color: var(--text-3); }
+.msq-progress { margin: 0; text-align: center; font-size: var(--fs-sm); font-weight: 700; color: var(--text-2); }
+.msq-error { margin: 0; font-size: var(--fs-md); font-weight: 700; color: var(--danger-deep); }
+.msq-footer {
+  position: sticky; bottom: 0; z-index: 2; margin-top: auto; display: flex; flex-direction: column; gap: 8px;
+  padding: 12px var(--gutter) max(14px, env(safe-area-inset-bottom));
+  background: var(--surface-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+/* ═══ end CB-MENO-08 ═══ */
+/* ═══ CB-MENO-09 · bleeding alert (nbl_Meno_Alert, `mal-`) + menopause checkups (nbl_Meno_Checkups, `mck-`) ═══ */
+.mal-page { background: var(--page); }
+.mal-scroll { position: relative; z-index: 1; display: flex; flex-direction: column; min-block-size: 100%; }
+.mal-body { display: flex; flex-direction: column; gap: 16px; padding: 4px var(--gutter) 40px; }
+.nb-urgent.mal-card { padding: 18px; border-color: color-mix(in srgb, var(--danger) 55%, transparent); }
+.mal-card .nb-urgent-title { font-size: var(--fs-xl); }
+.mal-card-body { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-1); }
+.mal-actions { display: flex; flex-direction: column; gap: 10px; }
+.nb-btn.is-primary.mal-book { background: var(--danger); color: var(--on-danger); box-shadow: none; text-decoration: none; }
+.nb-btn.is-primary.mal-book:focus-visible { box-shadow: var(--ring); }
+.mal-sec { display: flex; flex-direction: column; gap: 10px; }
+.mal-sec-title { margin: 0; font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); }
+.nb-list.mal-list { padding: 14px 16px; }
+.mal-list .nb-row { align-items: flex-start; }
+.mal-list .nb-list-rows > * + * { border-radius: 0; }
+.mal-list .nb-row-desc { line-height: 1.7; }
+.nb-hotline.mal-call { flex-shrink: 0; min-block-size: 40px; padding-inline: 12px; }
+.nb-hotline.mal-call:focus-visible { outline: none; box-shadow: var(--ring); }
+.nb-card.mal-error { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 16px; }
+.mal-error-text { margin: 0; font-size: var(--fs-md); font-weight: 700; color: var(--danger-deep); }
+/* Checkups in menopause mode */
+.nb-card.mck-intro {
+  display: flex; align-items: flex-start; gap: 10px; margin: 0; padding: 14px 16px;
+  font-size: var(--fs-sm); font-weight: 600; line-height: 1.8; color: var(--text-2);
+}
+.mck-intro-icon { flex-shrink: 0; margin-top: 3px; color: var(--data-deep); }
+.mck-sec { display: flex; flex-direction: column; gap: 8px; }
+.mck-sec-title { margin: 6px 0 0; font-size: 15px; font-weight: 800; color: var(--text-1); }
+.nb-card.mck-list { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; overflow: hidden; }
+.mck-list > li + li { border-top: 1px solid var(--line); }
+.mck-row {
+  display: flex; align-items: center; gap: 12px; padding: 14px 16px; text-align: start;
+  color: var(--text-1); text-decoration: none;
+}
+.mck-row:focus-visible { outline: none; background: var(--surface-2); box-shadow: inset var(--ring); }
+.mck-row-icon {
+  display: grid; place-items: center; flex-shrink: 0; inline-size: 44px; block-size: 44px;
+  border-radius: 50%; background: var(--ck-soft); color: var(--ck-ink);
+}
+.mck-row-text { display: flex; flex: 1; flex-direction: column; gap: 3px; min-width: 0; }
+.mck-row-title { font-size: 14px; font-weight: 800; color: var(--text-1); }
+.mck-row-meta { font-size: var(--fs-sm); font-weight: 600; line-height: 1.7; color: var(--text-3); }
+.mck-chip {
+  display: inline-flex; align-items: center; flex-shrink: 0; min-block-size: 28px; padding: 0 12px;
+  border-radius: var(--r-pill); border: 1.5px solid color-mix(in srgb, var(--nb-tone) 55%, transparent);
+  background: var(--surface); font-size: var(--fs-xs); font-weight: 800; color: var(--nb-tone-ink); white-space: nowrap;
+}
+/* ═══ end CB-MENO-09 ═══ */
 /* ── Notification settings (B-N1-11, nbl_/nbd_Me_Notifications) ── */
 .ntf-page { background: var(--page); }
 .ntf-scroll { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 16px; padding-bottom: 40px; }

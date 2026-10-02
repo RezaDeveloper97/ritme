@@ -70,7 +70,7 @@ export interface NavOptions {
 export interface NavReady {
   /** `/postpartum` + `/children` exist (B-N5-01/05). */
   postpartum: boolean;
-  /** `/analysis/symptoms` exists (B-N3-09 — on). */
+  /** `/analysis/*` exists (B-N3-09 — on). The menopause tab no longer depends on it (CB-MENO-08). */
   analysis: boolean;
 }
 
@@ -78,7 +78,7 @@ export interface NavReady {
  * Which nav targets of the per-mode table already have screens. Until they do,
  * a mode whose tab would 404 gets the interim target (B-N2-03, QUESTIONS #60):
  * postpartum → امروز `/home` (cycle home + a "coming soon" note) and the
- * «تقویم» tab; menopause «علائم» → the symptom pattern `/cycle/symptoms`.
+ * «تقویم» tab.
  * The owning tasks flip their flag — nothing else changes.
  */
 export const NAV_READY: NavReady = { postpartum: false, analysis: true };
@@ -119,9 +119,11 @@ export function modeTab(mode: NavMode, options: NavOptions = {}): NavTab | null 
       };
     }
     case 'menopause':
+      // CB-MENO-08 (CB-CORE-01 C3): «علائم» = the monthly score (nbl_Meno_Score); bloom's symptom
+      // analysis stays reachable from that screen and keeps the tab lit.
       return {
         key: 'symptoms',
-        href: ready.analysis ? '/analysis/symptoms' : '/cycle/symptoms',
+        href: '/menopause/score',
         icon: 'symptoms',
         alsoActive: ['/analysis', '/analysis/', '/cycle/symptoms'],
       };

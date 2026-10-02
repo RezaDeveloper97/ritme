@@ -38,7 +38,7 @@ describe('navConfig (nav.md per-mode table)', () => {
     expect(keys('teen')).toEqual(['today:/home', 'calendar:/calendar', 'FAB', 'services', 'me']);
     expect(keys('ttc')).toEqual(['today:/home', 'fertility:/calendar', 'FAB', 'services', 'me']);
     expect(keys('pregnancy')).toEqual(['today:/pregnancy', 'pregnancy:/pregnancy/weeks', 'FAB', 'services', 'me']);
-    expect(keys('menopause')).toEqual(['today:/home', 'symptoms:/analysis/symptoms', 'FAB', 'services', 'me']);
+    expect(keys('menopause')).toEqual(['today:/home', 'symptoms:/menopause/score', 'FAB', 'services', 'me']);
   });
 
   it('postpartum «کودک» targets the only child, else the list (gaps.md #15)', () => {
@@ -49,10 +49,10 @@ describe('navConfig (nav.md per-mode table)', () => {
 
   it('uses interim targets until the postpartum and analysis screens exist (QUESTIONS #60)', () => {
     expect(keys('postpartum', ['7'], {})).toEqual(['today:/home', 'calendar:/calendar', 'FAB', 'services', 'me']);
-    expect(keys('menopause', undefined, { analysis: false })).toEqual(['today:/home', 'symptoms:/cycle/symptoms', 'FAB', 'services', 'me']);
-    expect(activeTabKey(navConfig('menopause', { ready: { analysis: false } }), '/cycle/symptoms')).toBe('symptoms');
-    // B-N3-09: the analysis screens exist, so the default flags send «علائم» to the symptom report.
-    expect(keys('menopause', undefined, {})[1]).toBe('symptoms:/analysis/symptoms');
+    // CB-MENO-08: «علائم» always opens the monthly score; the symptom report keeps the tab lit.
+    expect(keys('menopause', undefined, { analysis: false })[1]).toBe('symptoms:/menopause/score');
+    expect(activeTabKey(navConfig('menopause'), '/menopause/score')).toBe('symptoms');
+    expect(activeTabKey(navConfig('menopause'), '/analysis/symptoms')).toBe('symptoms');
   });
 
   it('companion has no mode tab and no FAB', () => {

@@ -4,4 +4,12 @@ export const menopauseKeys = {
   profile: () => [...menopauseKeys.all, 'profile'] as const,
   today: () => [...menopauseKeys.all, 'today'] as const,
   messages: () => [...menopauseKeys.all, 'messages'] as const,
+  // CB-MENO-07 hot-flash timer (`date` null = today) + the `meno_tips` catalog.
+  hotFlashes: () => [...menopauseKeys.all, 'hot-flashes'] as const,
+  hotFlashDay: (date: string | null) => [...menopauseKeys.hotFlashes(), date ?? 'today'] as const,
+  tips: (locale: string) => [...menopauseKeys.all, 'tips', locale] as const,
+  // CB-MENO-08 monthly score + patterns.
+  scores: (months: number) => [...menopauseKeys.all, 'scores', months] as const,
+  scoreQuestions: () => [...menopauseKeys.all, 'score-questions'] as const,
+  patterns: () => [...menopauseKeys.all, 'patterns'] as const,
 };

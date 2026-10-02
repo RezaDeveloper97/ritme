@@ -3,7 +3,7 @@ id: CB-MENO-07
 title: Frontend: hot-flash timer
 epic: MENO
 type: frontend
-status: todo
+status: done
 depends_on: [CB-MENO-05, CB-CORE-02]
 parallel_group: MENO-D
 touches: [frontend/src/screens/menopause-hot-flash, frontend/src/app/[locale]/menopause/hot-flash]

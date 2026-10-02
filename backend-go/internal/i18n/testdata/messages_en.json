@@ -1198,6 +1198,22 @@
     "subtitle": "Remove checkups you don't want from your plan, or turn their reminders off.",
     "enabled": "In my plan",
     "remind": "Reminder"
+   },
+   "meno": {
+    "title": "Checkups and tests",
+    "more": "More in your plan",
+    "separator": " · ",
+    "last": "Last: {date}",
+    "next": "Due: {date}",
+    "never": "Not done yet",
+    "chips": {
+     "log": "Log it",
+     "ask": "Ask",
+     "soon": "Soon",
+     "up_to_date": "Up to date",
+     "overdue": "Overdue",
+     "disabled": "Off"
+    }
    }
   },
   "common": {
@@ -3646,6 +3662,129 @@
    }
   },
   "menopause": {
+   "hotFlash": {
+    "title": "Hot flash",
+    "back": "Back",
+    "loading": "Loading today's hot flashes",
+    "loadError": "Today's hot flashes didn't load.",
+    "retry": "Try again",
+    "error": "Not saved. Check your connection and try again.",
+    "ring": {
+     "label": "Hot flash time",
+     "idleCaption": "Having one",
+     "runningCaption": "Having one now",
+     "savedCaption": "Saved",
+     "startLabel": "Start the hot flash timer",
+     "stopLabel": "End the hot flash and save its length ({time})",
+     "idleHint": "Tap when a hot flash starts",
+     "runningHint": "Tap again when it's over to save how long it lasted",
+     "savedHint": "Its length is saved; you can still change the intensity and causes."
+    },
+    "detailsLabel": "Hot flash details",
+    "severity": {
+     "title": "Intensity",
+     "mild": "Mild",
+     "moderate": "Moderate",
+     "severe": "Severe",
+     "very_severe": "Very severe"
+    },
+    "sweatLabel": "Sweating",
+    "sweat": "With sweating",
+    "triggers": {
+     "title": "Maybe because of…",
+     "caffeine": "Coffee",
+     "stress": "Stress",
+     "spicy_food": "Spicy food",
+     "warm_room": "Heat",
+     "hot_drink": "Hot drink",
+     "exercise": "Exercise",
+     "unknown": "Not sure"
+    },
+    "today": {
+     "title": "Today",
+     "count": "times",
+     "avg": "average length",
+     "night": "at night",
+     "noValue": "—",
+     "minutes": "{n} min",
+     "seconds": "{n} s",
+     "listLabel": "Today's hot flashes",
+     "empty": "No hot flashes logged today yet.",
+     "running": "In progress",
+     "withSweat": "with sweating",
+     "nightTag": "Night",
+     "noDetails": "No details"
+    },
+    "tipFallback": "Slow, deep breathing (6 breaths a minute) and cooling your wrists and neck help in the moment."
+   },
+   "alert": {
+    "title": "Bleeding after menopause",
+    "back": "Back",
+    "cardTitle": "Tell your doctor about this",
+    "cardBody": "Any bleeding or spotting, even a little, 12 months or more after your last period should be checked. Usually the cause is simple, but an early check matters.",
+    "book": "Book a gynaecologist",
+    "tellEarly": "Report these early too",
+    "call": "Call emergency services",
+    "loading": "Loading",
+    "loadError": "The list couldn't be loaded.",
+    "retry": "Try again"
+   },
+   "score": {
+    "title": "Symptom score",
+    "sub": "Monthly questionnaire",
+    "back": "Back",
+    "loading": "Loading your symptom score",
+    "loadError": "Couldn't load your symptom score.",
+    "retry": "Try again",
+    "of": "of {max}",
+    "bandBar": "Score ranges",
+    "marker": "Your score: {total} of {max}, {band}",
+    "domainsTitle": "Breakdown",
+    "domains": {
+     "somatic": "Physical (hot flashes, sleep, joints, heart)",
+     "psychological": "Emotional (mood, anxiety, mental fatigue)",
+     "urogenital": "Urinary and genital"
+    },
+    "domainValue": "{score} of {max}",
+    "chartTitle": "Last {months} months",
+    "chartLabel": "Symptom score over the last {months} months",
+    "chartTableMonth": "Month",
+    "chartTableScore": "Score",
+    "chartNoValue": "Not filled",
+    "hrt": {
+     "less": "Since you started hormone therapy ({month}), your score is {points} points lower.",
+     "more": "Since you started hormone therapy ({month}), your score is {points} points higher.",
+     "same": "Since you started hormone therapy ({month}), your score hasn't changed."
+    },
+    "patterns": {
+     "title": "Patterns we noticed",
+     "disclaimer": "Based on your own logs · not a medical diagnosis",
+     "notEnough": "Patterns need more logs: {days} of {min} days in the last 90 days.",
+     "none": "No clear pattern in your logs yet.",
+     "error": "Patterns aren't available right now."
+    },
+    "analysis": "Logged symptoms analysis",
+    "fill": "Fill in this month's questionnaire",
+    "refill": "Fill in this month's questionnaire again",
+    "empty": {
+     "title": "No questionnaire yet",
+     "body": "11 short questions about this month's symptoms. Your score and trend show up here once you fill it in."
+    },
+    "questionnaire": {
+     "title": "Monthly questionnaire",
+     "back": "Back",
+     "lead": "How much has each of these bothered you this month?",
+     "scaleMin": "None",
+     "scaleMax": "Very severe",
+     "progress": "{done} of {total} answered",
+     "submit": "Save questionnaire",
+     "saveError": "Couldn't save the questionnaire. Try again.",
+     "note": "This questionnaire helps you track your own symptoms. It isn't a medical diagnosis.",
+     "loading": "Loading the questions",
+     "loadError": "Couldn't load the questions.",
+     "retry": "Try again"
+    }
+   },
    "stages": {
     "peri": "Perimenopause",
     "meno": "Menopause",
@@ -3725,7 +3864,8 @@
      "worse": "{points} points higher than last month",
      "same": "Same as last month",
      "chart": "Symptom score over the last 6 months",
-     "empty": "You haven't filled in the monthly check-in yet. Once you do, your score and 6-month trend show up here."
+     "empty": "You haven't filled in the monthly check-in yet. Once you do, your score and 6-month trend show up here.",
+     "details": "Details"
     },
     "checkups": {
      "title": "Upcoming checkups",
@@ -3742,7 +3882,8 @@
      "title": "For you"
     },
     "alert": {
-     "lastOn": "Last logged: {date}"
+     "lastOn": "Last logged: {date}",
+     "more": "Learn more"
     }
    }
   },

@@ -15,6 +15,7 @@ import {
   formatCheckupMonth,
   useCheckups,
 } from '@/entities/checkup';
+import { useLifeStage } from '@/entities/user';
 import { type Locale, Link, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import {
@@ -36,6 +37,7 @@ import {
   rowMeta,
   worstStatus,
 } from '../model/view';
+import { MenopausePlan } from './MenopausePlan';
 import { PlanSettingsSheet } from './PlanSettingsSheet';
 
 const PANEL_ID = 'ck-panel';
@@ -131,6 +133,8 @@ function CheckupRow({ item }: { item: CheckupItem }) {
  * Checkups (`v14_Checkups`): the age-based screening plan — summary card,
  * URL-synced tabs (`?filter=`), sections in server order, and the custom-checkup
  * entry. Personal health data (§11): display only, never logged.
+ * In menopause mode (CB-MENO-09) the body is {@link MenopausePlan} instead:
+ * the board's groups and chips, no summary or tabs.
  */
 export function CheckupsPage({ initialFilter }: { initialFilter?: string }) {
   const t = useTranslations('checkups');
@@ -141,6 +145,11 @@ export function CheckupsPage({ initialFilter }: { initialFilter?: string }) {
   const query = useCheckups(filter);
   // The settings sheet always lists the whole plan, whatever the tab.
   const all = useCheckups('all');
+  const life = useLifeStage();
+  const meno = life.data?.mode === 'menopause';
+  // Don't flash the cycle layout while the mode is still loading. Plain
+  // `isPending` (not fetchStatus) so the server pass and hydration agree.
+  const modePending = life.isPending;
 
   const select = (next: CheckupListFilter) => {
     if (next === filter) return;
@@ -159,8 +168,8 @@ export function CheckupsPage({ initialFilter }: { initialFilter?: string }) {
       <div className="scroll rmd-screen">
         <SkyLayer />
         <ScreenHeader
-          title={t('title')}
-          subtitle={age !== null ? t('list.ageBasis', { age: formatNumber(age, locale) }) : undefined}
+          title={meno ? t('meno.title') : t('title')}
+          subtitle={!meno && age !== null ? t('list.ageBasis', { age: formatNumber(age, locale) }) : undefined}
           onBack={() => router.push('/home')}
           backLabel={t('back')}
           action={
@@ -169,58 +178,69 @@ export function CheckupsPage({ initialFilter }: { initialFilter?: string }) {
         />
 
         <div className="rmd-body flex flex-col gap-3 pb-8">
-          {summary && summary.total > 0 && <SummaryCard summary={summary} />}
+          {modePending ? (
+            <SkeletonGroup label={t('loading')} className="rmd-form-skel">
+              <Skeleton shape="card" />
+              <Skeleton shape="card" />
+            </SkeletonGroup>
+          ) : meno ? (
+            <MenopausePlan />
+          ) : (
+            <>
+              {summary && summary.total > 0 && <SummaryCard summary={summary} />}
 
-          <SegmentedTabs
-            tabs={CHECKUP_LIST_FILTERS.map((key) => ({ value: key, label: t(`list.tabs.${key}`) }))}
-            value={filter}
-            onChange={select}
-            label={t('title')}
-            panelId={() => PANEL_ID}
-          />
+              <SegmentedTabs
+                tabs={CHECKUP_LIST_FILTERS.map((key) => ({ value: key, label: t(`list.tabs.${key}`) }))}
+                value={filter}
+                onChange={select}
+                label={t('title')}
+                panelId={() => PANEL_ID}
+              />
 
-          <div id={PANEL_ID} role="tabpanel" aria-label={t(`list.tabs.${filter}`)} className="flex flex-col gap-4">
-            {query.isPending ? (
-              <SkeletonGroup label={t('loading')} className="rmd-form-skel">
-                <Skeleton shape="card" />
-                <Skeleton shape="card" />
-                <Skeleton shape="card" />
-              </SkeletonGroup>
-            ) : query.isError ? (
-              <div className="rmd-state" role="alert">
-                <p>{t('loadError')}</p>
-                <button type="button" className="rmd-retry" onClick={() => void query.refetch()}>
-                  {t('retry')}
-                </button>
+              <div id={PANEL_ID} role="tabpanel" aria-label={t(`list.tabs.${filter}`)} className="flex flex-col gap-4">
+                {query.isPending ? (
+                  <SkeletonGroup label={t('loading')} className="rmd-form-skel">
+                    <Skeleton shape="card" />
+                    <Skeleton shape="card" />
+                    <Skeleton shape="card" />
+                  </SkeletonGroup>
+                ) : query.isError ? (
+                  <div className="rmd-state" role="alert">
+                    <p>{t('loadError')}</p>
+                    <button type="button" className="rmd-retry" onClick={() => void query.refetch()}>
+                      {t('retry')}
+                    </button>
+                  </div>
+                ) : groups.length === 0 ? (
+                  <EmptyState icon="stetho" title={emptyText} className="card" />
+                ) : (
+                  groups.map((group) => (
+                    <section key={group.section} aria-labelledby={`ck-sec-${group.section}`}>
+                      <h2
+                        id={`ck-sec-${group.section}`}
+                        className="mb-2 text-start text-[15px] font-extrabold text-(--ink)"
+                      >
+                        {t(`section.${group.section}`)}
+                      </h2>
+                      {/* One card per section, rows split by hairlines (v14_Checkups «سالانه»). */}
+                      <ul className="card flex flex-col divide-y divide-(--line) overflow-hidden p-0">
+                        {group.items.map((item) => (
+                          <CheckupRow key={item.id} item={item} />
+                        ))}
+                      </ul>
+                    </section>
+                  ))
+                )}
               </div>
-            ) : groups.length === 0 ? (
-              <EmptyState icon="stetho" title={emptyText} className="card" />
-            ) : (
-              groups.map((group) => (
-                <section key={group.section} aria-labelledby={`ck-sec-${group.section}`}>
-                  <h2
-                    id={`ck-sec-${group.section}`}
-                    className="mb-2 text-start text-[15px] font-extrabold text-(--ink)"
-                  >
-                    {t(`section.${group.section}`)}
-                  </h2>
-                  {/* One card per section, rows split by hairlines (v14_Checkups «سالانه»). */}
-                  <ul className="card flex flex-col divide-y divide-(--line) overflow-hidden p-0">
-                    {group.items.map((item) => (
-                      <CheckupRow key={item.id} item={item} />
-                    ))}
-                  </ul>
-                </section>
-              ))
-            )}
-          </div>
 
-          <p className="card flex items-start gap-3 p-4 text-start text-[12px] leading-relaxed text-(--ink-2)">
-            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-(--pink-bg) text-(--brand-strong)" aria-hidden>
-              <Icon name="info" size={17} />
-            </span>
-            {t('list.infoNote')}
-          </p>
+              <p className="card flex items-start gap-3 p-4 text-start text-[12px] leading-relaxed text-(--ink-2)">
+                <span className="grid size-9 shrink-0 place-items-center rounded-full bg-(--pink-bg) text-(--brand-strong)" aria-hidden>
+                  <Icon name="info" size={17} />
+                </span>
+                {t('list.infoNote')}
+              </p>
+            </>
+          )}
 
           <Link href="/checkups/custom/new" className="nb-btn is-outline is-block">
             <Icon name="plus" size={16} strokeWidth={2.2} />

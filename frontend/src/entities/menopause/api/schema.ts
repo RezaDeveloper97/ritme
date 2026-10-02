@@ -1,7 +1,10 @@
 import { z } from 'zod';
 
 import {
+  HOT_FLASH_SEVERITIES,
+  HOT_FLASH_TRIGGERS,
   MENOPAUSE_STAGE_ANSWERS,
+  type HotFlashTrigger,
   type MenopauseCatalogItem,
   type MenopauseFlash,
   type MenopauseMessage,
@@ -24,7 +27,7 @@ const nullableDate = z
   .nullable()
   .catch(null);
 
-const catalogItemSchema = z
+export const catalogItemSchema = z
   .object({
     code: z.string(),
     title: nullableText,
@@ -70,6 +73,13 @@ export const menopauseFlashSchema = z
     running: z.boolean(),
     duration_s: nullableInt,
     elapsed_s: z.number().int().catch(0),
+    severity: z.enum(HOT_FLASH_SEVERITIES).nullable().catch(null),
+    night: z.boolean().catch(false),
+    sweat: z.boolean().catch(false),
+    triggers: z
+      .array(z.unknown())
+      .catch([])
+      .transform((codes) => codes.filter((c): c is HotFlashTrigger => (HOT_FLASH_TRIGGERS as readonly unknown[]).includes(c))),
   })
   .transform(
     (d): MenopauseFlash => ({
@@ -78,6 +88,10 @@ export const menopauseFlashSchema = z
       running: d.running,
       durationS: d.duration_s,
       elapsedS: d.elapsed_s,
+      severity: d.severity,
+      night: d.night,
+      sweat: d.sweat,
+      triggers: d.triggers,
     }),
   );
 

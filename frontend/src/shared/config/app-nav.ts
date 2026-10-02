@@ -20,6 +20,7 @@ export const NAV_ROOT_PATHS: readonly string[] = [
   '/children',
   '/companion',
   '/analysis',
+  '/menopause/score', // CB-MENO-08: menopause mode tab «علائم» (nbl_Meno_Score)
   // Transitional (B-N1-04): these screens have no back button yet, so hiding
   // the nav would strand the user. Their restyle tasks add a ScreenHeader and
   // drop them from this list: /log (B-N3-03),

@@ -6,12 +6,15 @@ import { type ApiEnvelope, apiClient } from '@/shared/api';
 import { isAuthenticated } from '@/shared/session';
 
 import type {
+  HotFlashDetails,
   MenopauseFlash,
+  MenopauseFlashDay,
   MenopauseMessage,
   MenopauseProfile,
   MenopauseProfileUpdate,
   MenopauseToday,
 } from '../model/types';
+import { toHotFlashDetailsBody } from './hot-flashes';
 import { menopauseKeys } from './keys';
 import {
   menopauseFlashSchema,
@@ -100,25 +103,35 @@ export function useSaveMenopauseProfile() {
 }
 
 /**
- * The hot-flash timer from the home: `start` = POST /menopause/hot-flashes
- * without a duration (the running one comes back if there is one), `stop` =
- * POST /menopause/hot-flashes/{id}/stop. Both refresh the home.
+ * The hot-flash timer (home tile + `/menopause/hot-flash`): `start` = POST
+ * /menopause/hot-flashes without a duration (the running one comes back if
+ * there is one; details may ride along), `stop` = POST
+ * /menopause/hot-flashes/{id}/stop — on a stopped flash the same call only
+ * edits its details (CB-MENO-07). Both refresh the home and the day list; the
+ * day cache gets the flash at once so the ring never waits for the refetch.
  */
 export function useHotFlashTimer() {
   const queryClient = useQueryClient();
-  const refresh = () => {
+  const refresh = (flash: MenopauseFlash) => {
+    queryClient.setQueryData<MenopauseFlashDay>(menopauseKeys.hotFlashDay(null), (day) =>
+      day ? { ...day, running: flash.running ? flash : null } : day,
+    );
     void queryClient.invalidateQueries({ queryKey: menopauseKeys.today() });
+    void queryClient.invalidateQueries({ queryKey: menopauseKeys.hotFlashes() });
   };
-  const start = useMutation<MenopauseFlash, unknown, void>({
-    mutationFn: async () => {
-      const { data } = await apiClient.post<ApiEnvelope<unknown>>('/menopause/hot-flashes', {});
+  const start = useMutation<MenopauseFlash, unknown, HotFlashDetails | void>({
+    mutationFn: async (details) => {
+      const body = details ? toHotFlashDetailsBody(details) : {};
+      const { data } = await apiClient.post<ApiEnvelope<unknown>>('/menopause/hot-flashes', body);
       return menopauseFlashSchema.parse(data.data);
     },
     onSuccess: refresh,
   });
-  const stop = useMutation<MenopauseFlash, unknown, number>({
-    mutationFn: async (id) => {
-      const { data } = await apiClient.post<ApiEnvelope<unknown>>(`/menopause/hot-flashes/${id}/stop`, {});
+  const stop = useMutation<MenopauseFlash, unknown, number | { id: number; details: HotFlashDetails }>({
+    mutationFn: async (target) => {
+      const id = typeof target === 'number' ? target : target.id;
+      const body = typeof target === 'number' ? {} : toHotFlashDetailsBody(target.details);
+      const { data } = await apiClient.post<ApiEnvelope<unknown>>(`/menopause/hot-flashes/${id}/stop`, body);
       return menopauseFlashSchema.parse(data.data);
     },
     onSuccess: refresh,

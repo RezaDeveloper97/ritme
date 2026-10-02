@@ -6,8 +6,9 @@ describe('menopause home helpers', () => {
   it('keeps only links whose screen exists', () => {
     expect(routedLink('/checkups/3')).toBe('/checkups/3');
     expect(routedLink('/checkups')).toBe('/checkups');
-    expect(routedLink('/menopause/score')).toBeNull();
-    expect(routedLink('/menopause/alert')).toBeNull();
+    expect(routedLink('/menopause/score')).toBe('/menopause/score');
+    expect(routedLink('/menopause/alert')).toBe('/menopause/alert');
+    expect(routedLink('/menopause/treatment')).toBeNull();
     expect(routedLink('https://example.com/checkups/3')).toBeNull();
     expect(routedLink(null)).toBeNull();
   });

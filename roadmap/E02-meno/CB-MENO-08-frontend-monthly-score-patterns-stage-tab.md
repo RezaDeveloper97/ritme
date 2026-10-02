@@ -3,7 +3,7 @@ id: CB-MENO-08
 title: Frontend: monthly score + patterns (stage tab 'علائم')
 epic: MENO
 type: frontend
-status: todo
+status: done
 depends_on: [CB-MENO-05, B-N1-04]
 parallel_group: MENO-D
 touches: [frontend/src/screens/menopause-score, frontend/src/app/[locale]/menopause/score, frontend/src/widgets/bottom-nav]

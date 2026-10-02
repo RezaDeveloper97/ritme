@@ -207,5 +207,21 @@
     "subtitle": "Remove checkups you don't want from your plan, or turn their reminders off.",
     "enabled": "In my plan",
     "remind": "Reminder"
+  },
+  "meno": {
+    "title": "Checkups and tests",
+    "more": "More in your plan",
+    "separator": " · ",
+    "last": "Last: {date}",
+    "next": "Due: {date}",
+    "never": "Not done yet",
+    "chips": {
+      "log": "Log it",
+      "ask": "Ask",
+      "soon": "Soon",
+      "up_to_date": "Up to date",
+      "overdue": "Overdue",
+      "disabled": "Off"
+    }
   }
 }
