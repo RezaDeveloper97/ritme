@@ -760,3 +760,10 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   `sleep.hours`, `baby.feeds_count`), `GET /postpartum/epds/questions`, `POST|GET /postpartum/epds` (Q10>0 or full ≥13 →
   urgent safety with 115/123/1480; answers never returned or logged). `/messages/daily` for postpartum now gives the
   week tip with alert overrides (admin groups registered). 32 contract goldens; D-54 proposed. QUESTIONS #97.
+
+## B-N4-08 — Companion security review
+
+- `docs/security/bloom-companion.md`: threat model + findings. Earlier M-1/M-2 fixes hold; no IDOR/escalation found.
+  Release blockers CMP-H1 (pregnancy/postpartum leak via cycle/symptoms views) and CMP-M1 (teen owner with adult
+  partner; fertile phase sent) plus CMP-M2/M3/L1/L5/L6 → follow-up **B-N4-08b** (runs after canvas CB-TEEN-01/LOSS-01
+  land in internal/companion). B-N4-10 now depends on B-N4-08b.

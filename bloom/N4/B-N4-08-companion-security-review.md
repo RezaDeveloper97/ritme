@@ -3,7 +3,7 @@ id: B-N4-08
 title: Companion security review
 milestone: N4
 type: investigate
-status: todo
+status: done
 depends_on: [B-N4-04,B-N4-05,B-N4-06]
 parallel_group: N4-H
 touches: [docs/security/bloom-companion.md]

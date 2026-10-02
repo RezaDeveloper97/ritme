@@ -4,7 +4,7 @@ title: N4 rollout — stage deploy and two-account e2e
 milestone: N4
 type: release
 status: todo
-depends_on: [B-N4-07,B-N4-09]
+depends_on: [B-N4-07,B-N4-09,B-N4-08b]
 parallel_group: N4-J
 touches: [docs/qa/bloom,bloom/PROGRESS.md]
 skills: [verify-all,deploy-stage]
