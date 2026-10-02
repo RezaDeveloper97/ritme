@@ -3,18 +3,41 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 
+import { contraceptionKeys } from '@/entities/contraception';
+import { menopauseKeys } from '@/entities/menopause';
 import { plusKeys } from '@/entities/plus';
 import { type ApiEnvelope, apiClient } from '@/shared/api';
 import { plusDenialOf } from '@/shared/ui/plus-gate';
 
-/** One reviewed-before-saving suggestion (`POST /logs/voice`, backend-go/internal/voicelog). */
-export const voiceSuggestionSchema = z.object({
+const valueSchema = z.union([z.string(), z.number(), z.boolean()]);
+
+/**
+ * Where a suggestion is saved (CB-VOICE-01): `log` → the day's `PUT /logs/days` (with `voice_params`); the
+ * diary targets → `POST /logs/voice/commit`.
+ */
+export const VOICE_TARGETS = ['log', 'hot_flash', 'pain_diary', 'pill', 'bladder'] as const;
+export type VoiceTarget = (typeof VOICE_TARGETS)[number];
+export type VoiceDiaryTarget = Exclude<VoiceTarget, 'log'>;
+
+/** Another reading of an ambiguous word («بی‌حوصله» → sad / fatigue), same target as its suggestion. */
+export const voiceOptionSchema = z.object({
   category: z.string(),
   param: z.string(),
   item: z.string().nullable(),
-  value: z.union([z.string(), z.number(), z.boolean()]),
+  value: valueSchema,
+  label: z.string(),
+});
+
+/** One reviewed-before-saving suggestion (`POST /logs/voice`, backend-go/internal/voicelog). */
+export const voiceSuggestionSchema = z.object({
+  target: z.enum(VOICE_TARGETS).catch('log').default('log'),
+  category: z.string(),
+  param: z.string(),
+  item: z.string().nullable(),
+  value: valueSchema,
   confidence: z.number(),
   label: z.string(),
+  options: z.array(voiceOptionSchema).default([]),
 });
 
 export const voiceResultSchema = z.object({
@@ -25,6 +48,7 @@ export const voiceResultSchema = z.object({
 });
 
 export type VoiceSuggestion = z.infer<typeof voiceSuggestionSchema>;
+export type VoiceOption = z.infer<typeof voiceOptionSchema>;
 export type VoiceResult = z.infer<typeof voiceResultSchema>;
 
 /** Speech-to-text can take a while: more than the default 15 s, and above the server's 40 s AI bound. */
@@ -62,6 +86,50 @@ export function useVoiceLog() {
     retry: false,
     onError: (error) => {
       if (plusDenialOf(error)) void queryClient.invalidateQueries({ queryKey: plusKeys.all });
+    },
+  });
+}
+
+/** One diary item for `POST /logs/voice/commit` (hot flash, pain diary, pill, bladder). */
+export interface VoiceCommitItem {
+  category: VoiceDiaryTarget;
+  param: string;
+  value: string | number | boolean;
+}
+
+export const voiceCommitSchema = z.object({
+  date: z.string(),
+  saved: z.array(
+    z.object({
+      target: z.string(),
+      category: z.string(),
+      param: z.string(),
+      value: valueSchema,
+      label: z.string(),
+    }),
+  ),
+});
+
+export type VoiceCommitResult = z.infer<typeof voiceCommitSchema>;
+
+/**
+ * POST /logs/voice/commit — writes the confirmed diary items through their own services (CB-VOICE-01). Runs
+ * after the day's PUT: a pain-diary score needs the pain location saved first.
+ */
+export async function postVoiceCommit(body: { date: string; items: VoiceCommitItem[] }): Promise<VoiceCommitResult> {
+  const { data } = await apiClient.post<ApiEnvelope<unknown>>('/logs/voice/commit', body);
+  return voiceCommitSchema.parse(data.data);
+}
+
+/** The diary commit; refreshes the menopause (hot flashes) and contraception (pill) caches it wrote to. */
+export function useVoiceCommit() {
+  const queryClient = useQueryClient();
+  return useMutation<VoiceCommitResult, unknown, { date: string; items: VoiceCommitItem[] }>({
+    mutationFn: postVoiceCommit,
+    retry: false,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: menopauseKeys.all });
+      void queryClient.invalidateQueries({ queryKey: contraceptionKeys.all });
     },
   });
 }

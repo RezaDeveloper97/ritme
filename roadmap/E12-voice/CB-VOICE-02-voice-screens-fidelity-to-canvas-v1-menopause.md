@@ -3,7 +3,7 @@ id: CB-VOICE-02
 title: Voice screens fidelity to canvas-v1 + menopause entry
 epic: VOICE
 type: frontend
-status: todo
+status: done
 depends_on: [CB-VOICE-01, CB-MENO-06]
 parallel_group: VOICE-B
 touches: [frontend/src/features/voice-log, frontend/src/screens/log, frontend/src/screens/menopause-log]

@@ -112,7 +112,9 @@ export function LogDay({
   const voiceLocked = usePlusLocked(VOICE_FEATURE);
   // A voice «ذخیره» merges suggestions with setParam and saves in the same event: the save runs on the
   // next render, once the merged draft is in the controller.
-  const [saveQueued, setSaveQueued] = useState(false);
+  const [saveQueued, setSaveQueued] = useState<{ onDone?: () => void } | null>(null);
+  // Voice record / review / saved hide the strip and tabs (CB-VOICE-02).
+  const [immersive, setImmersive] = useState(false);
 
   const c = useLogDayController(date, modeOverride);
   const heading = useLogDayHeading(date, modeOverride);
@@ -120,8 +122,9 @@ export function LogDay({
 
   useEffect(() => {
     if (!saveQueued) return;
-    setSaveQueued(false);
-    c.save(onSaved);
+    setSaveQueued(null);
+    if (saveQueued.onDone && !c.dirty) saveQueued.onDone();
+    else c.save(saveQueued.onDone ?? onSaved);
   }, [saveQueued, c, onSaved]);
 
   useEffect(() => {
@@ -284,8 +287,8 @@ export function LogDay({
 
   const content = (
     <div className="lday" data-variant={variant}>
-      {dateStrip ? <LogDateStrip date={date} onSelect={setDate} /> : null}
-      {menopause ? (
+      {dateStrip && !(immersive && tab === 'voice') ? <LogDateStrip date={date} onSelect={setDate} /> : null}
+      {immersive && tab === 'voice' ? null : menopause ? (
         tab === 'voice' ? (
           <button type="button" className="mlog-manual" onClick={() => setTab('manual')}>
             <Icon name="chevronRight" size={18} className="mlog-manual-chev" />
@@ -331,10 +334,14 @@ export function LogDay({
                   openSection(code);
                 }}
                 toneOf={(code) => categoryLook(code).tone}
-                save={() => setSaveQueued(true)}
+                iconOf={(code) => categoryLook(code).icon}
+                entries={c.entries}
+                save={(onDone) => setSaveQueued({ onDone })}
                 saving={c.saving}
                 saveError={c.saveError}
                 onManual={() => setTab('manual')}
+                onDone={() => (onSaved ?? onClose)?.()}
+                onImmersive={setImmersive}
               />
             ) : VoiceLog ? (
               body

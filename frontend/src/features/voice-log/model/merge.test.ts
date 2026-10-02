@@ -38,7 +38,7 @@ const categories = [
 ];
 
 function s(category: string, p: string, item: string | null, value: VoiceSuggestion['value']): VoiceSuggestion {
-  return { category, param: p, item, value, confidence: 0.9, label: `${category}.${p}` };
+  return { target: 'log', category, param: p, item, value, confidence: 0.9, label: `${category}.${p}`, options: [] };
 }
 
 describe('voice merge', () => {

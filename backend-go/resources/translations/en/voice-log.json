@@ -1,36 +1,80 @@
 {
-  "title": "Tell me how you are today",
-  "example": "e.g. “My belly has hurt since this morning, moderate, I’m a bit bloated and feeling bored”",
-  "plus": "Plus",
+  "title": "Tell us how today went",
+  "lead": "Talk like you would to a friend. We pick out pain, bleeding, sleep, mood and medicines from what you say and show you before anything is saved.",
   "start": "Start recording",
-  "stop": "Stop recording",
-  "idle": "Tap the microphone to start",
+  "startHint": "Tap to start · up to one minute",
   "requesting": "Waiting for microphone permission…",
-  "listening": "Listening · {time}",
-  "maxHint": "Up to 60 seconds",
-  "uploading": "Understanding what you said…",
-  "heard": "We heard: “{text}”",
+  "examples": {
+    "title": "For example, say",
+    "pain": "“I had a really bad headache today”",
+    "pill": "“I took my iron pill at 9”",
+    "flash": "“I had three hot flashes last night”"
+  },
+  "today": {
+    "title": "Today’s logs",
+    "empty": "Not logged yet"
+  },
+  "record": {
+    "title": "Listening",
+    "recording": "Recording",
+    "paused": "Paused",
+    "processing": "Understanding what you said…",
+    "liveTitle": "Live text",
+    "livePending": "Your words appear here once you stop recording. When you’re done, tap stop.",
+    "listensTitle": "What we listen for",
+    "listens": {
+      "pain": "Pain",
+      "bleeding": "Bleeding",
+      "sleep": "Sleep",
+      "meds": "Medicines",
+      "mood": "Mood",
+      "other": "Other symptoms"
+    },
+    "stop": "Stop and review",
+    "pause": "Pause",
+    "resume": "Resume recording",
+    "cancel": "Cancel"
+  },
   "review": {
     "title": "Here’s what we understood",
-    "hint": "Check before saving",
-    "help": "Tap an item to open its section in “Manual” and adjust it.",
-    "open": "{label}, open in manual logging"
+    "sub": "Is this right?",
+    "summary": "Summary",
+    "transcript": "Everything you said",
+    "unsure": "Not sure",
+    "which": "Which did you mean?",
+    "edit": "Edit {label} in manual logging",
+    "help": "Tap an item to leave it out of this log; tap again to bring it back.",
+    "add": "Missed something? Add it",
+    "noteTitle": "A note",
+    "noteBody": "If heavy bleeding with strong pain keeps going or makes you dizzy, tell a doctor.",
+    "confirm": "{count, plural, =0 {Nothing selected} one {Confirm and save # item} other {Confirm and save # items}}",
+    "saving": "Saving…",
+    "again": "Say it again",
+    "error": "Couldn’t save; try again."
   },
+  "targets": {
+    "hot_flash": "Hot flashes",
+    "pain_diary": "Pain diary",
+    "pill": "Pill",
+    "bladder": "Bladder diary"
+  },
+  "saved": {
+    "title": "{count, plural, one {# item saved} other {# items saved}}",
+    "body": "Everything is in today’s log and you can edit it any time.",
+    "reminderTitle": "Faster next time",
+    "reminderBody": "Send a reminder to log your day every night at 21:00?",
+    "reminderError": "Couldn’t save the reminder; try again.",
+    "done": "Back to home"
+  },
+  "heard": "We heard: “{text}”",
   "empty": {
     "title": "Nothing to log found",
     "body": "Try again a little more clearly — say the symptom and how strong it is. Or log by hand.",
     "silentTitle": "We didn’t hear anything",
     "silentBody": "Hold the microphone closer and try again."
   },
-  "again": "Record again",
   "manual": "Log manually",
-  "privacy": "Your recording is sent to an external AI service to be turned into text, then deleted — Ritme doesn't keep it. Voice logging is part of Ritme Plus.",
-  "footer": {
-    "count": "{count, plural, =0 {Nothing from your voice} one {# item from your voice} other {# items from your voice}}",
-    "save": "Save",
-    "saving": "Saving…",
-    "error": "Couldn't save. Please try again."
-  },
+  "privacy": "Your voice is sent to an AI service only to turn it into text and is deleted after processing; Ritme doesn’t keep it.",
   "error": {
     "deniedTitle": "Microphone permission denied",
     "deniedBody": "To log by voice, allow microphone access for Ritme in your browser settings. Until then you can log by hand.",

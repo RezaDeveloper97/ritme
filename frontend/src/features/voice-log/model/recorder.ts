@@ -28,7 +28,7 @@ export function formatElapsed(ms: number): string {
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
 }
 
-export type RecorderStatus = 'idle' | 'requesting' | 'recording' | 'denied' | 'unsupported' | 'nomic' | 'tooShort' | 'error';
+export type RecorderStatus = 'idle' | 'requesting' | 'recording' | 'paused' | 'denied' | 'unsupported' | 'nomic' | 'tooShort' | 'error';
 
 /** Maps a getUserMedia / MediaRecorder failure to what the user can do about it. */
 export function recorderFailure(error: unknown): RecorderStatus {
@@ -56,6 +56,11 @@ export interface VoiceRecorder {
   start: () => void;
   /** Stops and hands the recording to `onComplete` (unless it was too short). */
   stop: () => void;
+  /** Pauses / resumes the clip (nbl_Voice_Record «II»); the timer holds while paused. */
+  pause: () => void;
+  resume: () => void;
+  /** «لغو»: stops the microphone and drops the clip — nothing is uploaded. */
+  cancel: () => void;
   /** Back to idle (after an error). */
   reset: () => void;
 }
@@ -72,6 +77,9 @@ export function useVoiceRecorder(onComplete: (audio: Blob, durationMs: number) =
   const stream = useRef<MediaStream | null>(null);
   const chunks = useRef<Blob[]>([]);
   const startedAt = useRef(0);
+  /** Paused time so far, and when the current pause began (0 = not paused). */
+  const pausedMs = useRef(0);
+  const pausedAt = useRef(0);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
   const discard = useRef(false);
   const complete = useRef(onComplete);
@@ -85,10 +93,43 @@ export function useVoiceRecorder(onComplete: (audio: Blob, durationMs: number) =
     recorder.current = null;
   }, []);
 
+  /** Recorded time without the pauses. */
+  const activeMs = useCallback(() => {
+    const now = performance.now();
+    const pausing = pausedAt.current ? now - pausedAt.current : 0;
+    return now - startedAt.current - pausedMs.current - pausing;
+  }, []);
+
   const stop = useCallback(() => {
     const r = recorder.current;
     if (r && r.state !== 'inactive') r.stop();
   }, []);
+
+  const pause = useCallback(() => {
+    const r = recorder.current;
+    if (!r || r.state !== 'recording' || typeof r.pause !== 'function') return;
+    r.pause();
+    pausedAt.current = performance.now();
+    setStatus('paused');
+  }, []);
+
+  const resume = useCallback(() => {
+    const r = recorder.current;
+    if (!r || r.state !== 'paused') return;
+    r.resume();
+    pausedMs.current += performance.now() - pausedAt.current;
+    pausedAt.current = 0;
+    setStatus('recording');
+  }, []);
+
+  const cancel = useCallback(() => {
+    discard.current = true;
+    const r = recorder.current;
+    if (r && r.state !== 'inactive') r.stop();
+    else release();
+    setStatus('idle');
+    setElapsedMs(0);
+  }, [release]);
 
   const start = useCallback(() => {
     if (recorder.current) return;
@@ -115,7 +156,7 @@ export function useVoiceRecorder(onComplete: (audio: Blob, durationMs: number) =
           if (event.data.size > 0) chunks.current.push(event.data);
         };
         r.onstop = () => {
-          const duration = performance.now() - startedAt.current;
+          const duration = activeMs();
           const blob = new Blob(chunks.current, { type: r.mimeType || mimeType || 'audio/webm' });
           chunks.current = [];
           release();
@@ -133,10 +174,12 @@ export function useVoiceRecorder(onComplete: (audio: Blob, durationMs: number) =
           setStatus('error');
         };
         startedAt.current = performance.now();
+        pausedMs.current = 0;
+        pausedAt.current = 0;
         r.start(1000);
         setStatus('recording');
         timer.current = setInterval(() => {
-          const elapsed = performance.now() - startedAt.current;
+          const elapsed = activeMs();
           setElapsedMs(elapsed);
           if (elapsed >= maxMs) stop();
         }, 250);
@@ -145,7 +188,7 @@ export function useVoiceRecorder(onComplete: (audio: Blob, durationMs: number) =
         release();
         setStatus(recorderFailure(error));
       });
-  }, [maxMs, release, stop]);
+  }, [activeMs, maxMs, release, stop]);
 
   const reset = useCallback(() => {
     setStatus('idle');
@@ -163,5 +206,5 @@ export function useVoiceRecorder(onComplete: (audio: Blob, durationMs: number) =
     [release],
   );
 
-  return { status, elapsedMs, start, stop, reset };
+  return { status, elapsedMs, start, stop, pause, resume, cancel, reset };
 }

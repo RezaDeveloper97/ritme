@@ -6336,6 +6336,144 @@ html[data-motion="reduce"] *::after {
 .mlog-manual { align-self: flex-start; display: inline-flex; align-items: center; gap: 4px; min-height: 44px; font-size: var(--fs-base); }
 .mlog-link:focus-visible, .mlog-manual:focus-visible { outline: none; box-shadow: var(--ring); border-radius: var(--r-xs); }
 /* ═══ end CB-MENO-06 ═══ */
+/* ═══ CB-VOICE-02 · voice logging screens (nbl_Voice_Entry / Record / Review / Saved): features/voice-log, `vlog-` ═══ */
+.vlog-sec { display: flex; flex-direction: column; gap: 10px; }
+.vlog-sec-title { margin: 0; font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); }
+.nb-card.vlog-hero { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px 18px 20px; text-align: center; }
+.vlog-hero-title { margin: 0; font-size: 22px; font-weight: 800; color: var(--text-1); }
+.vlog-lead { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+.vlog-halo {
+  display: inline-flex; align-items: center; justify-content: center; margin-block: 6px;
+  padding: 12px; border-radius: 50%; background: var(--brand-soft);
+  box-shadow: 0 0 0 12px color-mix(in srgb, var(--brand-soft) 55%, transparent);
+}
+.vlog-go {
+  display: flex; align-items: center; justify-content: center; inline-size: 112px; block-size: 112px;
+  border: 0; border-radius: 50%; background: var(--brand-fill); color: var(--on-brand); cursor: pointer;
+  box-shadow: var(--shadow-cta); transition: transform .15s ease; -webkit-tap-highlight-color: transparent;
+}
+.vlog-go:active { transform: scale(.96); }
+.vlog-go:focus-visible { outline: none; box-shadow: var(--ring); }
+.vlog-hint { margin: 0; min-block-size: 20px; font-size: var(--fs-sm); font-weight: 700; color: var(--text-2); }
+.vlog-exs { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.vlog-ex {
+  padding: 9px 14px; border-radius: var(--r-pill); border: 1px solid var(--line-strong); background: var(--surface);
+  font-size: var(--fs-md); font-weight: 700; line-height: 1.6; color: var(--text-2);
+}
+/* Recording */
+.vlog-recording { align-items: center; text-align: center; }
+.vlog-step-head { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; }
+.vlog-step-title { margin: 0; font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); }
+.vlog-step-sub { margin: 0; font-size: var(--fs-sm); font-weight: 700; color: var(--text-3); }
+.vlog-rec-state { display: inline-flex; align-items: center; gap: 8px; margin-block-start: 8px; font-size: var(--fs-sm); font-weight: 800; color: var(--text-2); }
+.vlog-dot { inline-size: 10px; block-size: 10px; border-radius: 50%; background: var(--period); }
+.vlog-dot.is-live { animation: vlogBlink 1.2s ease-in-out infinite; }
+@keyframes vlogBlink { 50% { opacity: .3; } }
+.vlog-timer { margin: 0; font-family: var(--font-display); font-size: var(--fs-num-l); line-height: 1.1; color: var(--text-1); }
+.vlog-wv { display: flex; align-items: center; justify-content: center; gap: 4px; block-size: 64px; }
+.vlog-wv-bar { inline-size: 4px; block-size: 22px; border-radius: 2px; background: var(--brand); opacity: .5; }
+.vlog-wv-bar:nth-child(5n + 1) { block-size: 14px; }
+.vlog-wv-bar:nth-child(5n + 2) { block-size: 40px; }
+.vlog-wv-bar:nth-child(5n + 3) { block-size: 28px; }
+.vlog-wv-bar:nth-child(5n + 4) { block-size: 56px; }
+.vlog-wv-bar:nth-child(7n) { block-size: 34px; }
+.vlog-wv.is-live .vlog-wv-bar { opacity: 1; animation: vlogWave 1s ease-in-out infinite alternate; }
+.vlog-wv.is-live .vlog-wv-bar:nth-child(3n) { animation-delay: -.3s; }
+.vlog-wv.is-live .vlog-wv-bar:nth-child(3n + 1) { animation-delay: -.6s; }
+.nb-card.vlog-live { align-self: stretch; display: flex; flex-direction: column; gap: 8px; padding: 16px; text-align: start; }
+.vlog-live-title { margin: 0; font-size: var(--fs-sm); font-weight: 700; color: var(--text-3); }
+.vlog-live-text { margin: 0; font-size: var(--fs-base); font-weight: 700; line-height: 1.9; color: var(--text-1); }
+.vlog-caret {
+  display: inline-block; inline-size: 2px; block-size: 1.1em; margin-inline-start: 4px; vertical-align: middle;
+  background: var(--brand); animation: vlogBlink 1s step-end infinite;
+}
+.vlog-recording .vlog-sec { align-self: stretch; text-align: start; }
+.vlog-listens { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
+.vlog-listen {
+  padding: 7px 14px; border-radius: var(--r-pill); border: 1.5px solid var(--line-strong); background: var(--surface);
+  font-size: var(--fs-sm); font-weight: 800; color: var(--text-2);
+}
+.vlog-controls { align-self: stretch; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-block-start: 12px; }
+.vlog-ctl {
+  display: flex; align-items: center; justify-content: center; inline-size: 64px; block-size: 64px; border-radius: 50%;
+  border: 1px solid var(--line); background: var(--surface); color: var(--text-1); cursor: pointer;
+  font-family: inherit; font-size: var(--fs-md); font-weight: 800;
+}
+.vlog-ctl:disabled, .vlog-stop:disabled { cursor: default; opacity: .55; }
+.vlog-ctl:focus-visible, .vlog-stop:focus-visible { outline: none; box-shadow: var(--ring); }
+.vlog-pause-glyph { inline-size: 14px; block-size: 18px; border-inline: 4px solid currentColor; }
+.vlog-stop {
+  display: flex; align-items: center; justify-content: center; inline-size: 88px; block-size: 88px; border-radius: 50%;
+  border: 0; background: var(--period); color: var(--on-accent); cursor: pointer;
+  box-shadow: 0 0 0 10px color-mix(in srgb, var(--period) 18%, transparent);
+}
+.vlog-stop-glyph { inline-size: 26px; block-size: 26px; border-radius: 7px; background: currentColor; }
+/* Review */
+.nb-card.vlog-summary { display: flex; flex-direction: column; gap: 8px; padding: 16px; }
+.vlog-summary-title { margin: 0; display: flex; align-items: center; gap: 6px; font-size: var(--fs-base); font-weight: 800; color: var(--text-1); }
+.vlog-summary-icon { color: var(--brand); }
+.vlog-summary-text { margin: 0; font-size: var(--fs-md); font-weight: 700; line-height: 1.9; color: var(--text-1); overflow-wrap: anywhere; }
+.vlog-transcript summary { min-block-size: 32px; display: flex; align-items: center; font-size: var(--fs-sm); font-weight: 800; color: var(--brand); cursor: pointer; }
+.vlog-transcript summary:focus-visible { outline: none; box-shadow: var(--ring); border-radius: var(--r-xs); }
+.vlog-transcript-text { margin: 4px 0 0; font-size: var(--fs-sm); font-weight: 600; line-height: 1.9; color: var(--text-2); overflow-wrap: anywhere; }
+.nb-card.vlog-groups { display: flex; flex-direction: column; padding: 4px 16px 14px; }
+.vlog-group { display: flex; flex-direction: column; gap: 10px; padding-block: 14px; }
+.vlog-group + .vlog-group { border-block-start: 1px solid var(--line); }
+.vlog-group-head { display: flex; align-items: center; gap: 10px; }
+.vlog-group-title { margin: 0; flex: 1; min-width: 0; font-size: var(--fs-base); font-weight: 800; color: var(--text-1); }
+.vlog-unsure {
+  padding: 3px 10px; border-radius: var(--r-pill); border: 1px solid var(--period-line); background: var(--period-soft);
+  font-size: var(--fs-xs); font-weight: 800; color: var(--period-deep); white-space: nowrap;
+}
+.vlog-edit {
+  flex: none; display: flex; align-items: center; justify-content: center; inline-size: 40px; block-size: 40px;
+  border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--text-1); cursor: pointer;
+}
+.vlog-edit:focus-visible { outline: none; box-shadow: var(--ring); }
+.vlog-choose { display: flex; flex-direction: column; gap: 8px; }
+.vlog-which { margin: 0; font-size: var(--fs-md); font-weight: 800; color: var(--text-1); }
+.vlog-seg { display: flex; gap: 4px; padding: 4px; border-radius: var(--r-md); border: 1px solid var(--line); background: var(--surface-3); }
+.vlog-seg-opt {
+  flex: 1 1 0; min-block-size: 40px; border: 1.5px solid transparent; border-radius: var(--r-sm); background: none;
+  font-family: inherit; font-size: var(--fs-md); font-weight: 700; color: var(--text-2); cursor: pointer;
+}
+.vlog-seg-opt[aria-checked="true"] { border-color: var(--period); background: var(--period-soft); color: var(--period-deep); font-weight: 800; }
+.vlog-seg-opt:focus-visible { outline: none; box-shadow: var(--ring); }
+.vlog-add {
+  display: flex; align-items: center; justify-content: center; gap: 8px; min-block-size: 56px; border-radius: var(--r-card);
+  border: 1.5px dashed var(--line-strong); background: none; font-family: inherit; font-size: var(--fs-base); font-weight: 800;
+  color: var(--brand); cursor: pointer;
+}
+.vlog-add:focus-visible { outline: none; box-shadow: var(--ring); }
+.vlog-alert {
+  display: flex; align-items: flex-start; gap: 12px; padding: 16px; border-radius: var(--r-card);
+  border: 1.5px solid var(--period-line); background: var(--period-soft);
+}
+.vlog-alert-title { margin: 0 0 4px; font-size: var(--fs-base); font-weight: 800; color: var(--text-1); }
+.vlog-alert-body { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+.vlog-cta {
+  position: sticky; inset-block-end: 0; z-index: 2; display: flex; flex-direction: column; align-items: stretch; gap: 4px;
+  margin-inline: calc(-1 * var(--gutter)); padding: 12px var(--gutter); background: var(--surface-glass);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+}
+.vlog-error { margin: 0; font-size: var(--fs-sm); font-weight: 700; color: var(--danger-deep); text-align: center; }
+/* Saved */
+.vlog-saved-head { display: flex; flex-direction: column; align-items: center; gap: 10px; padding-block: 20px 6px; text-align: center; }
+.vlog-saved-check {
+  display: flex; align-items: center; justify-content: center; inline-size: 90px; block-size: 90px; border-radius: 50%;
+  border: 1.5px solid var(--data); background: var(--data-soft); color: var(--data-deep);
+}
+.vlog-saved-title { margin: 0; font-size: 26px; font-weight: 800; color: var(--text-1); }
+.vlog-saved-body { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+.nb-card.vlog-remind { display: flex; align-items: center; gap: 12px; padding: 16px; }
+.vlog-remind-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.vlog-remind-title { margin: 0; font-size: var(--fs-base); font-weight: 800; color: var(--text-1); }
+.vlog-remind-body { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+@media (prefers-reduced-motion: reduce) {
+  .vlog-dot.is-live, .vlog-caret, .vlog-wv.is-live .vlog-wv-bar { animation: none; }
+  .vlog-go { transition: none; }
+}
+/* ═══ end CB-VOICE-02 ═══ */
 /* ── Notification settings (B-N1-11, nbl_/nbd_Me_Notifications) ── */
 .ntf-page { background: var(--page); }
 .ntf-scroll { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 16px; padding-bottom: 40px; }

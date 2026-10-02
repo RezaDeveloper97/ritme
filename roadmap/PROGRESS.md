@@ -224,3 +224,11 @@ TODO (ask user):
 - Strings in `log-sheet.json` `presets.menopause.*` (shell namespace) + `menopause.log.*`; Go copies + i18n goldens synced.
 - Verify: typecheck, lint, fsd:lint, lint:styles (819), lint:dark, 1112 tests, build; i18n Go tests — green. Fidelity ✔ (footer is bloom's summary footer; Plus badge on voice when locked). Test user 09120005055 has a test log on 2026-10-02.
 - TODO (ask user): «موارد دیگر» on /menopause/log too? bleeding note only for meno/post? outbox for every mode OK? Expose MenopausePreset from the API later (CB-MENO follow-up).
+
+## CB-VOICE-02 — Voice screens fidelity to canvas-v1 + menopause entry
+- `features/voice-log` rebuilt to the 4 boards: `VoiceEntry` (examples, today's status per mode, 21:00 reminder opt-in), `VoiceRecording` (pause/resume/cancel, timer stops on pause), `VoiceReview` (grouped by category / diary, ambiguity chooser from `options[]`, value edits, «چیزی جا افتاده؟» → manual), `VoiceSaved`. Save order: `PUT /logs/days` then `POST /logs/voice/commit` for diary items (refreshes menopause + contraception caches). Menopause «با صدا بگو» card opens the voice panel. Small slot additions in bloom's `features/log-day` (VoiceTab/LogDay: `onDone`, `onImmersive`, `save(onDone?)`; date strip + tabs hidden while recording/reviewing/saved).
+- Reminder opt-in = existing `daily_log` reminder in `/profile/cycle-settings` set to 21:00 (no new backend).
+- Deliberate gaps (no fake data): no live transcript / «تا الان فهمیدیم» (API is one-shot); no per-item quote (API doesn't return it); «خلاصه» = confirmed labels; max 1 minute (backend `MaxDurationMs`).
+- Verify: typecheck, lint, fsd:lint, lint:styles (826), lint:dark, 1116 tests, build; i18n Go tests — green. Fidelity `docs/qa/canvas/voice.md` 4 × ✔ (Chrome fake mic, test user 09120005055 with a Plus trial).
+- Open: unused bloom `.vlog-*` rules; diary items can't be edited (keep/remove only); «چیزی جا افتاده؟» drops unsaved diary items; offline-queued day save makes the diary commit fail (error shown); «یک نکته» copy [needs clinical review].
+- TODO (ask user): 21:00 reminder riding on `daily_log` (default 22:00) or a separate category? per-item quote from the backend (CB-VOICE-01 follow-up)?

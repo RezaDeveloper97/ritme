@@ -1,30 +1,31 @@
 'use client';
 
-import { clsx } from 'clsx';
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 
 import type { LogCategory, LogDayValues, LogParamValue } from '@/entities/health-log';
 import { getApiErrorMessage } from '@/shared/api';
-import type { Locale } from '@/shared/i18n';
-import { formatDecimal, formatNumber } from '@/shared/lib/date';
-import {
-  ChipGroup,
-  EmptyState,
-  Icon,
-  InfoNote,
-  PillChip,
-  PrimaryButton,
-  SecondaryButton,
-  Skeleton,
-  SkeletonGroup,
-  type Tone,
-} from '@/shared/ui';
-import { PlusBadge, plusDenialOf } from '@/shared/ui/plus-gate';
+import { EmptyState, type IconName, SecondaryButton, type Tone } from '@/shared/ui';
+import { plusDenialOf } from '@/shared/ui/plus-gate';
 
-import { useVoiceLog, type VoiceResult, type VoiceSuggestion } from '../api/voice';
+import { useVoiceCommit, useVoiceLog, type VoiceResult, type VoiceSuggestion } from '../api/voice';
 import { mergeSuggestions, paramKey } from '../model/merge';
-import { formatElapsed, useVoiceRecorder, type RecorderStatus } from '../model/recorder';
+import { useVoiceRecorder, type RecorderStatus } from '../model/recorder';
+import {
+  chooseItem,
+  commitItems,
+  isDiaryTarget,
+  logSuggestions,
+  revalueItem,
+  reviewItems,
+  toggleItem,
+  type ReviewItem,
+  type SavedRow,
+} from '../model/review';
+import { VoiceEntry } from './VoiceEntry';
+import { VoiceRecording } from './VoiceRecording';
+import { VoiceReview } from './VoiceReview';
+import { VoiceSaved } from './VoiceSaved';
 
 /**
  * What the log sheet hands the recorder — structurally the `VoiceLogSlotProps` of `features/log-day`
@@ -39,13 +40,15 @@ export interface VoiceLogPanelProps {
   markVoice: (keys: readonly string[]) => void;
   openSection: (category: string) => void;
   toneOf: (category: string) => Tone;
-  save: () => void;
+  iconOf: (category: string) => IconName;
+  entries: readonly { key: string; label: string; summary: string }[];
+  save: (onDone?: () => void) => void;
   saving: boolean;
   saveError: boolean;
   onManual: () => void;
+  onDone: () => void;
+  onImmersive?: (on: boolean) => void;
 }
-
-const WAVE_BARS = 17;
 
 type Blocking = Extract<RecorderStatus, 'denied' | 'unsupported' | 'nomic' | 'error'>;
 
@@ -54,95 +57,213 @@ function isBlocking(status: RecorderStatus): status is Blocking {
 }
 
 /**
- * «ثبت با صدا» (nbl_/nbd_Log_Day, B-N3-05): record up to 60 s → upload → the server transcribes and maps
- * the words to log items → «این‌ها را فهمیدیم» review chips. Tapping a chip merges the suggestions into the
- * sheet's draft and opens that section in «ثبت دستی» to adjust; «ذخیره» merges and runs the sheet's normal
- * save. Nothing is saved without that tap. The recording lives only in memory for the upload.
+ * «با صدا» (B-N3-05, canvas-v1 nbl_Voice_Entry / Record / Review / Saved — CB-VOICE-02): entry with examples
+ * and today's status → recording → the server transcribes and maps the words → review (drop, re-pick an
+ * ambiguous word, re-value) → «تأیید و ثبت»: log items merge into the sheet's draft and go out in its one
+ * PUT (`voice_params`), then diary items (hot flash, pain diary, pill, bladder) go to
+ * `POST /logs/voice/commit` — in that order, a pain score needs its location saved first → saved list +
+ * nightly reminder. Nothing is saved without that tap; the recording lives only in memory for the upload.
  */
 export function VoiceLogPanel({
   date,
+  mode,
   categories,
   values,
   setParam,
   markVoice,
   openSection,
   toneOf,
+  iconOf,
+  entries,
   save,
   saving,
   saveError,
   onManual,
+  onDone,
+  onImmersive,
 }: VoiceLogPanelProps) {
   const t = useTranslations('voiceLog');
-  const locale = useLocale() as Locale;
   const upload = useVoiceLog();
+  const commit = useVoiceCommit();
   const [result, setResult] = useState<VoiceResult | null>(null);
+  const [items, setItems] = useState<ReviewItem[]>([]);
+  const [saved, setSaved] = useState<SavedRow[] | null>(null);
+  const [confirming, setConfirming] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  const onResult = (r: VoiceResult) => {
+    setResult(r);
+    setItems(reviewItems(r, categories));
+  };
   const recorder = useVoiceRecorder((audio, durationMs) => {
     setResult(null);
-    upload.mutate({ audio, durationMs }, { onSuccess: setResult });
+    upload.mutate({ audio, durationMs }, { onSuccess: onResult });
   });
 
   // Another day picked in the strip: the review belonged to the previous one.
   const { reset: resetUpload } = upload;
   useEffect(() => {
     setResult(null);
+    setItems([]);
+    setSaved(null);
     resetUpload();
   }, [date, resetUpload]);
 
-  // After «ذخیره» went through, the review is done.
-  const savingRef = useRef(false);
-  const [saveRequested, setSaveRequested] = useState(false);
+  // The day's PUT failed (the sheet's save reports through `saving` / `saveError`).
+  const sawSaving = useRef(false);
   useEffect(() => {
-    if (saving) savingRef.current = true;
-    else if (savingRef.current && saveRequested) {
-      savingRef.current = false;
-      setSaveRequested(false);
-      if (!saveError) setResult(null);
+    if (!confirming) {
+      sawSaving.current = false;
+      return;
     }
-  }, [saving, saveError, saveRequested]);
+    if (saving) sawSaving.current = true;
+    else if (sawSaving.current && saveError) {
+      sawSaving.current = false;
+      setConfirming(false);
+      setError(t('review.error'));
+    }
+  }, [confirming, saving, saveError, t]);
 
-  const shown = (result?.suggestions ?? []).filter((s) =>
-    categories.some((c) => c.code === s.category && c.params.some((p) => p.code === s.param)),
-  );
+  const recording = recorder.status === 'recording' || recorder.status === 'paused';
+  const requesting = recorder.status === 'requesting';
+  const phase = saved
+    ? 'saved'
+    : recording || requesting || upload.isPending
+      ? 'record'
+      : result && items.length > 0
+        ? 'review'
+        : 'entry';
 
-  const mergeAll = () => {
-    const merged = mergeSuggestions(values, shown, categories);
+  const lastPhase = useRef(phase);
+  useEffect(() => {
+    onImmersive?.(phase !== 'entry');
+    if (lastPhase.current === phase) return;
+    lastPhase.current = phase;
+    rootRef.current?.scrollIntoView({ block: 'start' });
+  }, [phase, onImmersive]);
+  useEffect(() => () => onImmersive?.(false), [onImmersive]);
+
+  const mergeLogs = (): VoiceSuggestion[] => {
+    const logs = logSuggestions(items);
+    const merged = mergeSuggestions(values, logs, categories);
     for (const m of merged) setParam(m.category, m.param, m.value);
     markVoice(merged.map(paramKey));
-  };
-
-  const onChip = (s: VoiceSuggestion) => {
-    mergeAll();
-    openSection(s.category);
-  };
-
-  const onSave = () => {
-    mergeAll();
-    setSaveRequested(true);
-    save();
+    return logs;
   };
 
   const startRecording = () => {
     setResult(null);
+    setItems([]);
+    setError(null);
     upload.reset();
     recorder.start();
   };
 
   const retryUpload = () => {
-    if (upload.variables) upload.mutate(upload.variables, { onSuccess: setResult });
+    if (upload.variables) upload.mutate(upload.variables, { onSuccess: onResult });
   };
 
-  const recording = recorder.status === 'recording';
-  const busy = recorder.status === 'requesting' || upload.isPending;
-  const label = (s: VoiceSuggestion) => formatDecimal(s.label, locale);
+  const onConfirm = () => {
+    setError(null);
+    const logs = mergeLogs();
+    const diary = commitItems(items);
+    const logRows: SavedRow[] = logs.map((s, i) => ({
+      key: `log:${i}`,
+      category: s.category,
+      label: s.label,
+      group: categories.find((c) => c.code === s.category)?.label,
+    }));
+    setConfirming(true);
+    const finish = (rows: SavedRow[]) => {
+      setConfirming(false);
+      setSaved(rows);
+    };
+    const sendDiary = () => {
+      if (!diary.length) {
+        finish(logRows);
+        return;
+      }
+      commit.mutate(
+        { date, items: diary },
+        {
+          onSuccess: (r) =>
+            finish([
+              ...logRows,
+              ...r.saved.map((s, i) => ({
+                key: `diary:${i}`,
+                category: s.target,
+                label: s.label,
+                group: isDiaryTarget(s.target) ? t(`targets.${s.target}`) : undefined,
+              })),
+            ]),
+          onError: (e) => {
+            setConfirming(false);
+            setError(getApiErrorMessage(e) ?? t('review.error'));
+          },
+        },
+      );
+    };
+    if (logs.length) save(sendDiary);
+    else sendDiary();
+  };
 
-  let status: string;
-  if (recording) status = t('listening', { time: formatNumber(formatElapsed(recorder.elapsedMs), locale) });
-  else if (recorder.status === 'requesting') status = t('requesting');
-  else if (upload.isPending) status = t('uploading');
-  else if (recorder.status === 'tooShort') status = t('error.tooShort');
-  else status = result ? '' : t('idle');
+  if (phase === 'saved' && saved) {
+    return (
+      <div ref={rootRef}>
+        <VoiceSaved rows={saved} iconOf={iconOf} toneOf={toneOf} onDone={onDone} />
+      </div>
+    );
+  }
 
-  let review = null;
+  if (phase === 'record') {
+    return (
+      <div ref={rootRef}>
+        <VoiceRecording
+          elapsedMs={recorder.elapsedMs}
+          paused={recorder.status === 'paused'}
+          processing={upload.isPending}
+          requesting={requesting}
+          canPause={typeof window !== 'undefined' && typeof window.MediaRecorder?.prototype?.pause === 'function'}
+          onStop={recorder.stop}
+          onPause={recorder.pause}
+          onResume={recorder.resume}
+          onCancel={recorder.cancel}
+        />
+      </div>
+    );
+  }
+
+  if (phase === 'review' && result) {
+    return (
+      <div ref={rootRef}>
+        <VoiceReview
+          items={items}
+          transcript={result.transcript}
+          categories={categories}
+          iconOf={iconOf}
+          toneOf={toneOf}
+          onToggle={(id) => setItems((all) => toggleItem(all, id))}
+          onChoose={(id, index) => setItems((all) => chooseItem(all, id, index))}
+          onRevalue={(id, value, label) => setItems((all) => revalueItem(all, id, value, label))}
+          onEdit={(category) => {
+            mergeLogs();
+            openSection(category);
+          }}
+          onAdd={() => {
+            mergeLogs();
+            onManual();
+          }}
+          onConfirm={onConfirm}
+          onAgain={startRecording}
+          saving={confirming}
+          error={error}
+        />
+      </div>
+    );
+  }
+
+  let notice = null;
   if (isBlocking(recorder.status)) {
     const copy = {
       denied: [t('error.deniedTitle'), t('error.deniedBody')],
@@ -150,7 +271,7 @@ export function VoiceLogPanel({
       nomic: [t('error.noMicTitle'), t('error.noMicBody')],
       error: [t('error.uploadTitle'), t('error.uploadBody')],
     }[recorder.status];
-    review = (
+    notice = (
       <section className="nb-card vlog-card">
         <EmptyState
           icon={recorder.status === 'denied' ? 'lock' : 'warning'}
@@ -171,23 +292,9 @@ export function VoiceLogPanel({
         />
       </section>
     );
-  } else if (upload.isPending) {
-    review = (
-      <section className="nb-card vlog-card" aria-busy="true">
-        <SkeletonGroup label={t('uploading')} className="vlog-skel">
-          <Skeleton width="medium" />
-          <div className="vlog-skel-chips">
-            <Skeleton shape="block" />
-            <Skeleton shape="block" />
-            <Skeleton shape="block" />
-          </div>
-          <Skeleton width="short" />
-        </SkeletonGroup>
-      </section>
-    );
   } else if (upload.isError) {
     const denial = plusDenialOf(upload.error);
-    review = (
+    notice = (
       <section className="nb-card vlog-card">
         <EmptyState
           icon="warning"
@@ -208,9 +315,9 @@ export function VoiceLogPanel({
         />
       </section>
     );
-  } else if (result && shown.length === 0) {
+  } else if (result) {
     const silent = result.transcript.trim() === '';
-    review = (
+    notice = (
       <section className="nb-card vlog-card">
         {silent ? null : <p className="vlog-heard">{t('heard', { text: result.transcript })}</p>}
         <EmptyState
@@ -225,83 +332,21 @@ export function VoiceLogPanel({
         />
       </section>
     );
-  } else if (result) {
-    review = (
-      <section className="nb-card vlog-card" aria-labelledby="vlog-review-title">
-        <div className="vlog-review-head">
-          <h3 id="vlog-review-title" className="vlog-review-title">
-            {t('review.title')}
-          </h3>
-          <span className="vlog-review-hint">{t('review.hint')}</span>
-        </div>
-        <p className="vlog-heard">{t('heard', { text: result.transcript })}</p>
-        <ChipGroup label={t('review.title')}>
-          {shown.map((s) => (
-            <PillChip
-              key={`${s.category}.${s.param}.${s.item ?? ''}`}
-              pressed
-              mode="multi"
-              tone={toneOf(s.category)}
-              className="vlog-chip"
-              aria-label={t('review.open', { label: label(s) })}
-              onClick={() => onChip(s)}
-            >
-              {label(s)}
-            </PillChip>
-          ))}
-        </ChipGroup>
-        <p className="vlog-help">{t('review.help')}</p>
-      </section>
-    );
   }
 
   return (
-    <div className="vlog">
-      <section className="nb-card vlog-rec">
-        <PlusBadge label={t('plus')} />
-        <h3 className="vlog-title">{t('title')}</h3>
-        <p className="vlog-example">{t('example')}</p>
-        <div className={clsx('vlog-wave', recording && 'is-live')} aria-hidden>
-          {Array.from({ length: WAVE_BARS }, (_, i) => (
-            <span key={i} className="vlog-bar" />
-          ))}
-        </div>
-        <button
-          type="button"
-          className={clsx('vlog-mic', recording && 'is-recording')}
-          aria-label={recording ? t('stop') : t('start')}
-          aria-pressed={recording}
-          disabled={busy}
-          onClick={recording ? recorder.stop : startRecording}
-        >
-          {busy ? <Icon name="loader" size={30} className="vlog-spin" /> : <Icon name="mic" size={34} strokeWidth={2} />}
-        </button>
-        <p className="vlog-status" aria-live="polite">
-          {status}
-        </p>
-        {!recording && !busy && !result ? <p className="vlog-max">{t('maxHint')}</p> : null}
-        {result && !recording && !busy ? (
-          <SecondaryButton block={false} variant="text" icon="refresh" onClick={startRecording}>
-            {t('again')}
-          </SecondaryButton>
-        ) : null}
-      </section>
-
-      {review}
-
-      <InfoNote className="vlog-privacy">{t('privacy')}</InfoNote>
-
-      {result && shown.length > 0 && !upload.isPending ? (
-        <div className="lday-foot">
-          <div className="lday-foot-text" aria-live="polite">
-            <span className="lday-foot-count">{saveError ? t('footer.error') : t('footer.count', { count: shown.length })}</span>
-            {saveError ? null : <span className="lday-foot-list">{shown.map(label).join(t('separator'))}</span>}
-          </div>
-          <PrimaryButton block={false} className="lday-foot-save" onClick={onSave} loading={saving}>
-            {saving ? t('footer.saving') : t('footer.save')}
-          </PrimaryButton>
-        </div>
-      ) : null}
+    <div ref={rootRef}>
+      <VoiceEntry
+        mode={mode}
+        categories={categories}
+        entries={entries}
+        iconOf={iconOf}
+        toneOf={toneOf}
+        status={recorder.status === 'tooShort' ? t('error.tooShort') : null}
+        onStart={startRecording}
+        openSection={openSection}
+        notice={notice}
+      />
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 
 import type { LogCategory, LogDayValues, LogParamValue } from '@/entities/health-log';
 import { PlusFeatureGate } from '@/entities/plus';
-import { Icon, SecondaryButton, type Tone } from '@/shared/ui';
+import { Icon, type IconName, SecondaryButton, type Tone } from '@/shared/ui';
 
 /** The Plus entitlement of voice logging (backend-go/internal/plus/entitlements.go). */
 export const VOICE_FEATURE = 'plus.voice_log';
@@ -27,11 +27,22 @@ export interface VoiceLogSlotProps {
   openSection: (category: string) => void;
   /** Accent of a category (review chips use the log sheet's colours). */
   toneOf: (category: string) => Tone;
-  /** Saves the draft (after the merges of the same event have landed). */
-  save: () => void;
+  /** Icon of a category (CB-VOICE-02 review groups, saved list, today's status). */
+  iconOf: (category: string) => IconName;
+  /** What is logged on the day (label + summary per entry, keyed `category.param[.item]`). */
+  entries: readonly { key: string; label: string; summary: string }[];
+  /**
+   * Saves the draft (after the merges of the same event have landed). With `onDone` it runs that instead of
+   * the sheet's `onSaved` — also at once when nothing changed (CB-VOICE-02: the diary commit follows).
+   */
+  save: (onDone?: () => void) => void;
   saving: boolean;
   saveError: boolean;
   onManual: () => void;
+  /** Leaves the flow from «برگشت به خانه» (closes the sheet / goes home). */
+  onDone: () => void;
+  /** Record / review / saved are full-height steps: the sheet hides its date strip and tabs meanwhile. */
+  onImmersive?: (on: boolean) => void;
 }
 
 export type VoiceLogSlot = ComponentType<VoiceLogSlotProps>;
