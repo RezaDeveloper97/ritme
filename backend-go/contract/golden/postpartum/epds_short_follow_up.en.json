@@ -1,0 +1,162 @@
+{
+  "case": "postpartum/epds_short_follow_up.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/postpartum/activate",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "birth_date": "2026-09-16"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "Postpartum mode is on",
+        "data": {
+          "active": true,
+          "mode": "postpartum",
+          "setup_required": false,
+          "profile": {
+            "birth_date": "2026-09-16",
+            "delivery_type": null,
+            "delivery_type_label": null,
+            "baby_count": 1,
+            "source": "direct",
+            "pregnancy_closed_at": null,
+            "updated_at": "2026-09-23T06:30:00.000000Z"
+          },
+          "status": {
+            "days_since_birth": 7,
+            "weeks": 1,
+            "days": 0,
+            "week": 2,
+            "phase": "puerperium",
+            "phase_label": "Puerperium · recovery",
+            "puerperium_days": 42,
+            "puerperium_days_left": 35,
+            "progress": 0.17
+          },
+          "checkin": {
+            "due": "short",
+            "next_due_on": "2026-09-23",
+            "last": null
+          },
+          "today": {
+            "date": "2026-09-23",
+            "lochia_amount": null,
+            "lochia_color": null,
+            "pain_level": null,
+            "pain_locations": [],
+            "breasts": null,
+            "feeds_count": null,
+            "sleep_hours": null,
+            "alerts": []
+          },
+          "alerts": [
+            {
+              "key": "checkin_short",
+              "level": "info",
+              "title": "Weekly mood check-in",
+              "body": "Three short questions; it takes less than a minute.",
+              "action_label": "Start",
+              "action": {
+                "type": "open_check",
+                "kind": "short"
+              }
+            }
+          ],
+          "week_tip": {
+            "week": 2,
+            "key": "2",
+            "title": "Week 2: a little movement",
+            "body": "In the second week, short walks and plenty of water help. You can gently start pelvic floor (Kegel) exercises."
+          },
+          "call_when": {
+            "title": "When should I call right away?",
+            "body": "Fever above 38 °C, heavy bleeding (a pad an hour), severe belly or chest pain, shortness of breath, or thoughts of harming yourself or your baby."
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/postpartum/epds",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "kind": "short",
+          "answers": {
+            "q3": 2,
+            "q4": 2,
+            "q5": 2
+          }
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "message": "Your answers were saved",
+        "data": {
+          "check": {
+            "id": 1,
+            "kind": "short",
+            "taken_on": "2026-09-23",
+            "week": 2,
+            "total": 6,
+            "max": 9,
+            "band": "elevated",
+            "band_label": "A little higher than usual",
+            "urgent": false,
+            "self_harm": null
+          },
+          "safety": {
+            "level": "follow_up",
+            "reasons": [],
+            "title": "A fuller check-in can help",
+            "body": "This week's answers suggest you may not be feeling well. Answer 10 short questions to get a clearer picture.",
+            "actions": [
+              {
+                "type": "open_check",
+                "kind": "full",
+                "label": "Full check-in"
+              }
+            ]
+          },
+          "follow_up": "full",
+          "checkin": {
+            "due": "full",
+            "next_due_on": "2026-09-23",
+            "last": {
+              "id": 1,
+              "kind": "short",
+              "taken_on": "2026-09-23",
+              "week": 2,
+              "total": 6,
+              "max": 9,
+              "band": "elevated",
+              "band_label": "A little higher than usual",
+              "urgent": false,
+              "self_harm": null
+            }
+          }
+        }
+      }
+    }
+  ]
+}

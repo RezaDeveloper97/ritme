@@ -74,7 +74,7 @@ func TestParse_NullCategoryClearsEveryStorableParam(t *testing.T) {
 		keys = append(keys, ch.Key())
 		assert.Empty(t, ch.Entries)
 	}
-	assert.Equal(t, []string{"sleep.duration", "sleep.quality"}, keys, "link params are never stored")
+	assert.Equal(t, []string{"sleep.duration", "sleep.quality", "sleep.hours"}, keys, "link params are never stored")
 }
 
 func TestParse_RangesAndTypes(t *testing.T) {

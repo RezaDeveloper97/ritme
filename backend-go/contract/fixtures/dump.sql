@@ -823,6 +823,31 @@ INSERT INTO `daily_health_logs` VALUES
 (101801,1018,'2026-09-23',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'[\"happy\"]',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'high',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2026-09-23 09:00:00','2026-09-23 09:00:00');
 /*!40000 ALTER TABLE `daily_health_logs` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `epds_checks`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `epds_checks` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `kind` varchar(8) NOT NULL,
+  `taken_on` date NOT NULL,
+  `answers` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`answers`)),
+  `total` tinyint(3) unsigned NOT NULL,
+  `self_harm` tinyint(3) unsigned DEFAULT NULL,
+  `urgent` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `epds_checks_user_id_kind_taken_on_unique` (`user_id`,`kind`,`taken_on`),
+  KEY `epds_checks_user_id_taken_on_index` (`user_id`,`taken_on`),
+  CONSTRAINT `epds_checks_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `epds_checks` WRITE;
+/*!40000 ALTER TABLE `epds_checks` DISABLE KEYS */;
+/*!40000 ALTER TABLE `epds_checks` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `failed_jobs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -2051,6 +2076,32 @@ CREATE TABLE `pmdd_entries` (
 LOCK TABLES `pmdd_entries` WRITE;
 /*!40000 ALTER TABLE `pmdd_entries` DISABLE KEYS */;
 /*!40000 ALTER TABLE `pmdd_entries` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `postpartum_profiles`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `postpartum_profiles` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `birth_date` date NOT NULL,
+  `delivery_type` varchar(16) DEFAULT NULL,
+  `baby_count` tinyint(3) unsigned NOT NULL DEFAULT 1,
+  `source` varchar(16) NOT NULL DEFAULT 'direct',
+  `pregnancy_profile_id` bigint(20) unsigned DEFAULT NULL,
+  `pregnancy_closed_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `postpartum_profiles_user_id_unique` (`user_id`),
+  KEY `postpartum_profiles_pregnancy_profile_id_foreign` (`pregnancy_profile_id`),
+  CONSTRAINT `postpartum_profiles_pregnancy_profile_id_foreign` FOREIGN KEY (`pregnancy_profile_id`) REFERENCES `pregnancy_profiles` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `postpartum_profiles_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `postpartum_profiles` WRITE;
+/*!40000 ALTER TABLE `postpartum_profiles` DISABLE KEYS */;
+/*!40000 ALTER TABLE `postpartum_profiles` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `pregnancy_alerts`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

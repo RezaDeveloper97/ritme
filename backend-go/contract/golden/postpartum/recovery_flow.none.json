@@ -1,0 +1,216 @@
+{
+  "case": "postpartum/recovery_flow.none",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/postpartum/activate",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "birth_date": "2026-09-06"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "حالت بعد از زایمان فعال شد",
+        "data": {
+          "active": true,
+          "mode": "postpartum",
+          "setup_required": false,
+          "profile": {
+            "birth_date": "2026-09-06",
+            "delivery_type": null,
+            "delivery_type_label": null,
+            "baby_count": 1,
+            "source": "direct",
+            "pregnancy_closed_at": null,
+            "updated_at": "2026-09-23T06:30:00.000000Z"
+          },
+          "status": {
+            "days_since_birth": 17,
+            "weeks": 2,
+            "days": 3,
+            "week": 3,
+            "phase": "puerperium",
+            "phase_label": "دوره نفاس · بهبودی",
+            "puerperium_days": 42,
+            "puerperium_days_left": 25,
+            "progress": 0.4
+          },
+          "checkin": {
+            "due": "full",
+            "next_due_on": "2026-09-23",
+            "last": null
+          },
+          "today": {
+            "date": "2026-09-23",
+            "lochia_amount": null,
+            "lochia_color": null,
+            "pain_level": null,
+            "pain_locations": [],
+            "breasts": null,
+            "feeds_count": null,
+            "sleep_hours": null,
+            "alerts": []
+          },
+          "alerts": [
+            {
+              "key": "checkin_full",
+              "level": "info",
+              "title": "چک‌این کامل حال روحی",
+              "body": "۱۰ سؤال کوتاه، هر دو هفته یک بار، تا روند حالت را ببینی.",
+              "action_label": "شروع",
+              "action": {
+                "type": "open_check",
+                "kind": "full"
+              }
+            }
+          ],
+          "week_tip": {
+            "week": 3,
+            "key": "3",
+            "title": "خون‌ریزی روشن‌تر می‌شود",
+            "body": "معمولاً خون‌ریزی صورتی یا قهوه‌ای و کمتر شده است. نوسان حال در هفته‌های اول رایج است؛ اگر غم یا بی‌قراری بیش از ۲ هفته ادامه داشت، با پزشک یا مشاور صحبت کن."
+          },
+          "call_when": {
+            "title": "کی فوراً تماس بگیرم؟",
+            "body": "تب بالای ۳۸، خون‌ریزی شدید (یک پد در ساعت)، درد شدید شکم یا سینه، تنگی نفس، یا افکار آسیب به خود یا نوزاد."
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/postpartum/recovery",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "lochia_amount": "heavy",
+          "lochia_color": "red",
+          "pain_level": "moderate",
+          "pain_locations": [
+            "stitches",
+            "abdomen"
+          ],
+          "breasts": [
+            "engorgement"
+          ],
+          "feeds_count": 8,
+          "sleep_hours": 4.5
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "message": "وضعیت امروز ذخیره شد",
+        "data": {
+          "date": "2026-09-23",
+          "lochia_amount": "heavy",
+          "lochia_color": "red",
+          "pain_level": "moderate",
+          "pain_locations": [
+            "stitches",
+            "abdomen"
+          ],
+          "breasts": [
+            "engorgement"
+          ],
+          "feeds_count": 8,
+          "sleep_hours": 4.5,
+          "alerts": [
+            {
+              "key": "heavy_bleeding",
+              "level": "warning",
+              "title": "خون‌ریزی زیاد ثبت کردی",
+              "body": "اگر در یک ساعت یک پد کامل خیس می‌شود یا خون‌ریزی ناگهان بیشتر شده، همین حالا با پزشک تماس بگیر یا با ۱۱۵ تماس بگیر.",
+              "action_label": "تماس با ۱۱۵",
+              "action": {
+                "type": "call",
+                "number": "115"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/postpartum/recovery",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "lochia_amount": "light",
+          "breasts": [],
+          "sleep_hours": null
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57"
+      },
+      "body": {
+        "success": true,
+        "message": "وضعیت امروز ذخیره شد",
+        "data": {
+          "date": "2026-09-23",
+          "lochia_amount": "light",
+          "lochia_color": "red",
+          "pain_level": "moderate",
+          "pain_locations": [
+            "stitches",
+            "abdomen"
+          ],
+          "breasts": [],
+          "feeds_count": 8,
+          "sleep_hours": null,
+          "alerts": []
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/postpartum/recovery?date=2026-09-23",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "date": "2026-09-23",
+          "lochia_amount": "light",
+          "lochia_color": "red",
+          "pain_level": "moderate",
+          "pain_locations": [
+            "stitches",
+            "abdomen"
+          ],
+          "breasts": [],
+          "feeds_count": 8,
+          "sleep_hours": null,
+          "alerts": []
+        }
+      }
+    }
+  ]
+}

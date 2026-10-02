@@ -1,0 +1,98 @@
+{
+  "case": "postpartum/questions_short.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/postpartum/epds/questions",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "kind": "short",
+          "intro": "In the past 7 days",
+          "disclaimer": "These few questions are only for you to see how your mood is going. Ritme does not diagnose; if you are worried, talking to a doctor or counsellor is always a good option.",
+          "max": 9,
+          "items": [
+            {
+              "code": "q3",
+              "number": 3,
+              "text": "I have blamed myself unnecessarily when things went wrong",
+              "options": [
+                {
+                  "score": 3,
+                  "label": "Yes, most of the time"
+                },
+                {
+                  "score": 2,
+                  "label": "Yes, some of the time"
+                },
+                {
+                  "score": 1,
+                  "label": "Not very often"
+                },
+                {
+                  "score": 0,
+                  "label": "No, never"
+                }
+              ]
+            },
+            {
+              "code": "q4",
+              "number": 4,
+              "text": "I have been anxious or worried for no good reason",
+              "options": [
+                {
+                  "score": 0,
+                  "label": "No, not at all"
+                },
+                {
+                  "score": 1,
+                  "label": "Hardly ever"
+                },
+                {
+                  "score": 2,
+                  "label": "Yes, sometimes"
+                },
+                {
+                  "score": 3,
+                  "label": "Yes, very often"
+                }
+              ]
+            },
+            {
+              "code": "q5",
+              "number": 5,
+              "text": "I have felt scared or panicky for no very good reason",
+              "options": [
+                {
+                  "score": 3,
+                  "label": "Yes, quite a lot"
+                },
+                {
+                  "score": 2,
+                  "label": "Yes, sometimes"
+                },
+                {
+                  "score": 1,
+                  "label": "No, not much"
+                },
+                {
+                  "score": 0,
+                  "label": "No, not at all"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

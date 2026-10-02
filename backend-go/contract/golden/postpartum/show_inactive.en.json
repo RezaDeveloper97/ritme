@@ -1,0 +1,36 @@
+{
+  "case": "postpartum/show_inactive.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/postpartum",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "active": false,
+          "mode": "cycle",
+          "setup_required": false,
+          "profile": null,
+          "status": null,
+          "checkin": null,
+          "today": null,
+          "alerts": [],
+          "week_tip": null,
+          "call_when": {
+            "title": "When should I call right away?",
+            "body": "Fever above 38 °C, heavy bleeding (a pad an hour), severe belly or chest pain, shortness of breath, or thoughts of harming yourself or your baby."
+          }
+        }
+      }
+    }
+  ]
+}

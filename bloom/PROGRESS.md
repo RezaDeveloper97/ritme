@@ -749,3 +749,14 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   view-only message, 403 → back to self + refetch links, «برای {name} ثبت شد» panel; companion home «افزودن … برای
   {name}» entries. Scope `reminderForm`.
 - Screenshots `docs/qa/bloom/B-N4-06/`. Appointment detail page doesn't support delegation (success panel instead).
+
+## B-N5-01 — Postpartum mode backend — activation, recovery log, EPDS
+
+- **Migration** `00030_postpartum` (+ Laravel twin; must be applied after canvas 00027–00029): `postpartum_profiles`
+  (one per user) and `epds_checks` (unique user+kind+day).
+- `GET /api/v1/postpartum` (status: days/weeks since birth, phase, 6-week countdown, check-in due, today's recovery,
+  alerts, week tip, call-when), `POST /postpartum/activate` (closes an active pregnancy as delivered; life mode
+  postpartum), `GET|PUT /postpartum/recovery` (view over taxonomy v2 rows; taxonomy gained lochia none/spotting,
+  `sleep.hours`, `baby.feeds_count`), `GET /postpartum/epds/questions`, `POST|GET /postpartum/epds` (Q10>0 or full ≥13 →
+  urgent safety with 115/123/1480; answers never returned or logged). `/messages/daily` for postpartum now gives the
+  week tip with alert overrides (admin groups registered). 32 contract goldens; D-54 proposed. QUESTIONS #97.

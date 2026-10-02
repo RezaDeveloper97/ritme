@@ -175,3 +175,9 @@ sql:
       go:
         <<: *go
         out: internal/companion/store
+  - <<: *pkg
+    queries: db/queries/postpartum
+    gen:
+      go:
+        <<: *go
+        out: internal/postpartum/store

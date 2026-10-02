@@ -20,7 +20,9 @@
     "min": "min",
     "bpm": "bpm",
     "mmhg": "mmHg",
-    "mg_dl": "mg/dL"
+    "mg_dl": "mg/dL",
+    "hours": "h",
+    "times": "times"
   },
   "conditions": {
     "after_6_weeks": "After 6 weeks",
@@ -85,6 +87,8 @@
         "lochia_amount": {
           "title": "Postpartum bleeding",
           "options": {
+            "none": "None",
+            "spotting": "Spotting",
             "light": "Light",
             "medium": "Medium",
             "heavy": "Heavy"
@@ -259,6 +263,9 @@
             "fair": "Fair",
             "poor": "Poor"
           }
+        },
+        "hours": {
+          "title": "Total sleep (hours)"
         }
       }
     },
@@ -514,6 +521,9 @@
         },
         "baby_sleep": {
           "title": "Baby's sleep"
+        },
+        "feeds_count": {
+          "title": "Feeds"
         }
       }
     },

@@ -1603,7 +1603,9 @@
      "meds": "Medications",
      "appointments": "Appointments",
      "pregnancy": "Pregnancy"
-    }
+    },
+    "addMed": "Add a medication for {name}",
+    "addAppointment": "Add an appointment for {name}"
    },
    "tips": {
     "title": "What can you do today?",
@@ -1846,6 +1848,42 @@
     "pending": "{count, plural, one {# invite waiting} other {# invites waiting}}",
     "loading": "Loading companions",
     "error": "Couldn't load companions"
+   },
+   "recordFor": {
+    "title": "Who are you adding this for?",
+    "self": "Me",
+    "someone": "your partner",
+    "selfDesc": {
+     "meds": "Goes into your own medication plan",
+     "appointments": "Goes into your own appointments"
+    },
+    "ownerDesc": {
+     "meds": "{name} lets you edit her medications",
+     "appointments": "{name} lets you edit her appointments"
+    },
+    "note": "Only people who gave you “view and edit” access to this section appear here.",
+    "confirmFor": "Add for {name}",
+    "confirmSelf": "Add for me",
+    "rowLabel": "Adding for",
+    "change": "Change",
+    "editingLabel": {
+     "meds": "Editing with her permission",
+     "appointments": "Editing with her permission"
+    },
+    "editingFor": {
+     "meds": "{name}'s medication",
+     "appointments": "{name}'s appointment"
+    },
+    "savedFor": "Saved for {name}",
+    "savedBody": {
+     "meds": "{name} sees this medication in her plan and gets a notice about it.",
+     "appointments": "{name} sees this appointment in her list and gets a notice about it."
+    },
+    "back": "Back",
+    "backToCompanion": "Back to companion panel",
+    "revoked": "You no longer have edit access to this section, so nothing was saved. Your access list has been refreshed.",
+    "forbidden": "You don't have access to this item. Your access may have changed.",
+    "viewOnly": "You can only view this section, so changes can't be saved."
    }
   },
   "contraception": {
@@ -3373,7 +3411,9 @@
     "min": "min",
     "bpm": "bpm",
     "mmhg": "mmHg",
-    "mg_dl": "mg/dL"
+    "mg_dl": "mg/dL",
+    "hours": "h",
+    "times": "times"
    },
    "conditions": {
     "after_6_weeks": "After 6 weeks",
@@ -3438,6 +3478,8 @@
       "lochia_amount": {
        "title": "Postpartum bleeding",
        "options": {
+        "none": "None",
+        "spotting": "Spotting",
         "light": "Light",
         "medium": "Medium",
         "heavy": "Heavy"
@@ -3612,6 +3654,9 @@
         "fair": "Fair",
         "poor": "Poor"
        }
+      },
+      "hours": {
+       "title": "Total sleep (hours)"
       }
      }
     },
@@ -3867,6 +3912,9 @@
       },
       "baby_sleep": {
        "title": "Baby's sleep"
+      },
+      "feeds_count": {
+       "title": "Feeds"
       }
      }
     },

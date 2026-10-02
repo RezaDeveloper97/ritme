@@ -39,6 +39,7 @@ tags:
   - {name: Contraception, description: "Contraception (Go only): method, pill pack (day, placebo/break days, streak, refill), pill log and the care reminders of long-acting methods"}
   - {name: Conditions, description: "Condition programs (Go only): enrolment (endometriosis, PMDD, heavy bleeding, PCOS), pain diary on the log taxonomy, PMDD questionnaire + cycle chart, PBAC pad chart"}
   - {name: Menopause, description: "Menopause mode (Go only, CB-MENO-02): stage profile on bloom's life profile, home read model, hot-flash timer, monthly symptom score with domains and deltas, patterns in her own logs (not a diagnosis)"}
+  - {name: Postpartum, description: "Postpartum mode (Go only, bloom B-N5-01): activation from pregnancy or directly, time since the birth, the recovery log on log taxonomy v2, EPDS mood checks (weekly EPDS-3, full every two weeks) with the urgent safety path (item 10 > 0 or total ≥ 13 → call 115 / 123 / 1480). EPDS answers are never logged or shared"}
   - {name: Plus, description: "Ritme Plus (Go only): plans, trial, checkout through the payment port, verify, cancel, restore, history, entitlements and usage. Amounts are integer rials"}
   - {name: Payments, description: "Payment gateway adapter (Go only): browser return hop and the fake provider's TEST page. PAYMENT_PROVIDER = fake (default outside production) | zarinpal | none. Café Bazaar / Myket billing is Android-only and out of scope"}
   - {name: Companion, description: "Companion «همدم» & family (Go only, B-N4-02): owner invites (SMS adapter or shared code), access per section, revoke, audit trail; companion accept, links, leave and the access-filtered section reads. «ثبت برای …» = `for_user_id` on the care routes"}
@@ -4121,6 +4122,263 @@ paths:
                   data: {$ref: "#/components/schemas/ConditionPbacDay"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '422': {$ref: "#/components/responses/ConditionsValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/postpartum:
+    get:
+      tags: [Postpartum]
+      summary: Postpartum home read model (v15 Main)
+      description: |
+        The effective mode, the stored birth, the time since it (completed `weeks` + `days`, 1-based `week`, phase
+        puerperium (days 0–41) | recovery (weeks 6–25) | late, the 6-week puerperium countdown), the EPDS check-in
+        schedule with the latest check (totals only), today's recovery log with its alerts, the alerts (bleeding with a
+        call action, the due check-in), the week's tip and «کی فوراً تماس بگیرم؟» — admin `message_contents`
+        (`postpartum_week_tip`, `postpartum_alert`) with an embedded fa/en fallback. Outside postpartum mode `active`
+        is false and the time-based blocks are null; `setup_required` = postpartum mode chosen without a birth date.
+      operationId: getPostpartum
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The overview
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/PostpartumOverview"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/postpartum/activate:
+    post:
+      tags: [Postpartum]
+      summary: Activate postpartum mode (from pregnancy or directly)
+      description: |
+        Stores the birth (`birth_date` in the last 365 days, not in the future; `delivery_type` vaginal | cesarean |
+        null; `baby_count` 1–4, default 1) and sets the life mode to postpartum. An active pregnancy is closed as
+        delivered (pregnancy_mode off like `POST /pregnancy/deactivate`; `source: pregnancy` and the closed pregnancy
+        profile are recorded — a pregnancy loss is a separate path). Calling it again edits the birth. user_goal /
+        pregnancy_intention follow (non-TTC). Answers the `GET /postpartum` payload. A companion (male) account → 409.
+      operationId: activatePostpartum
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [birth_date]
+              properties:
+                birth_date: {$ref: "#/components/schemas/Date"}
+                delivery_type: {type: [string, "null"], enum: [vaginal, cesarean, null]}
+                baby_count: {type: [integer, "null"], minimum: 1, maximum: 4}
+            example: {birth_date: "2026-09-14", delivery_type: vaginal, baby_count: 1}
+      responses:
+        '200':
+          description: Activated; the overview
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/PostpartumOverview"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '409': {$ref: "#/components/responses/CompanionAccount"}
+        '422': {$ref: "#/components/responses/PostpartumValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/postpartum/recovery:
+    get:
+      tags: [Postpartum]
+      summary: A day's recovery log (v15 Recovery)
+      description: |
+        A view over log taxonomy v2 slots (the same rows the postpartum log sheet writes through `PUT /logs/days`):
+        lochia amount / colour, pain level (none, or the highest location level) and locations, breasts (null = not
+        logged, [] = normal), feeds count, total sleep hours; `alerts` for heavy bleeding / large clots with a call
+        action. `date` defaults to today. 409 outside postpartum mode or without a birth date.
+      operationId: getPostpartumRecovery
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: date, in: query, required: false, schema: {$ref: "#/components/schemas/Date"}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The day
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/PostpartumRecovery"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '409': {$ref: "#/components/responses/PostpartumNotActive"}
+        '422': {$ref: "#/components/responses/PostpartumValidationFailed"}
+    put:
+      tags: [Postpartum]
+      summary: Save a day's recovery log (partial)
+      description: |
+        Keys not sent stay, null clears. Pain is one value: a level mild | moderate | severe needs at least one
+        location (the stored half fills a half not sent); `none` clears the locations. `breasts: []` = normal (every
+        symptom stored as no). `sleep_hours` 0–24 in half hours also sets the `sleep.duration` bucket. Written through
+        the taxonomy v2 storage (and its legacy write-back) in one transaction.
+      operationId: savePostpartumRecovery
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                date: {$ref: "#/components/schemas/Date"}
+                lochia_amount: {type: [string, "null"], enum: [none, spotting, light, medium, heavy, null]}
+                lochia_color: {type: [string, "null"], enum: [red, pink_brown, yellow_white, null]}
+                pain_level: {type: [string, "null"], enum: [none, mild, moderate, severe, null]}
+                pain_locations:
+                  type: [array, "null"]
+                  items: {type: string, enum: [stitches, abdomen, breast, back, head]}
+                breasts:
+                  type: [array, "null"]
+                  items: {type: string, enum: [engorgement, nipple_pain, redness]}
+                feeds_count: {type: [integer, "null"], minimum: 0, maximum: 30}
+                sleep_hours: {type: [number, "null"], minimum: 0, maximum: 24, multipleOf: 0.5}
+            example: {lochia_amount: light, lochia_color: pink_brown, pain_level: mild, pain_locations: [stitches], breasts: [], feeds_count: 8, sleep_hours: 4.5}
+      responses:
+        '200':
+          description: Saved; the day
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/PostpartumRecovery"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '409': {$ref: "#/components/responses/PostpartumNotActive"}
+        '422': {$ref: "#/components/responses/PostpartumValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/postpartum/epds/questions:
+    get:
+      tags: [Postpartum]
+      summary: EPDS questionnaire (v15 MoodCheck)
+      description: |
+        `kind` short (the weekly EPDS-3: items 3, 4, 5) or full (10 items, every two weeks); default short. Each item
+        lists its four options in questionnaire order with the score the client sends back. Non-diagnostic disclaimer
+        from admin copy (`postpartum_safety/disclaimer`). Wording [needs clinical review].
+      operationId: getEpdsQuestions
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: kind, in: query, required: false, schema: {type: string, enum: [short, full]}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The questionnaire
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/EpdsQuestions"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/PostpartumValidationFailed"}
+  /api/v1/postpartum/epds:
+    get:
+      tags: [Postpartum]
+      summary: EPDS check history
+      description: |
+        The caller's checks, newest first (`limit` 1–52, default 26): kind, day, week since the birth, total / max,
+        band (short: low | elevated ≥ 6; full: low | possible 10–12 | likely ≥ 13), urgent, self_harm (full only,
+        item 10 > 0). Never the answers. `thresholds` echoes the cut-offs.
+      operationId: getEpdsHistory
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: limit, in: query, required: false, schema: {type: integer, minimum: 1, maximum: 52}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The history
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [checks, thresholds]
+                    properties:
+                      checks: {type: array, items: {$ref: "#/components/schemas/EpdsCheck"}}
+                      thresholds:
+                        type: object
+                        required: [short_elevated, full_possible, full_likely]
+                        properties:
+                          short_elevated: {type: integer}
+                          full_possible: {type: integer}
+                          full_likely: {type: integer}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/PostpartumValidationFailed"}
+    post:
+      tags: [Postpartum]
+      summary: Submit an EPDS check
+      description: |
+        `answers` = the score (0–3) of the chosen option of every item of the kind, no other key. Scored here and
+        stored for today (the same kind again today replaces it); the answers are never logged or shown again.
+        `safety`: **urgent** when item 10 (self-harm) scores above 0 or a full total is ≥ 13 — title/body from admin
+        copy and call actions 115 (emergency), 123 (social emergency), 1480 (counselling line); **advice** for a full
+        10–12; **follow_up** to the full check for a short ≥ 6; null otherwise. 409 outside postpartum mode.
+      operationId: saveEpdsCheck
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [kind, answers]
+              properties:
+                kind: {type: string, enum: [short, full]}
+                answers:
+                  type: object
+                  additionalProperties: {type: integer, minimum: 0, maximum: 3}
+            example: {kind: short, answers: {q3: 1, q4: 2, q5: 0}}
+      responses:
+        '200':
+          description: Saved; the scored check
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/EpdsResult"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '409': {$ref: "#/components/responses/PostpartumNotActive"}
+        '422': {$ref: "#/components/responses/PostpartumValidationFailed"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/menopause/profile:
     get:
@@ -12684,6 +12942,41 @@ components:
       description: "Overrides `Accept-Language`. Some endpoints clamp to the languages they have content for."
       schema: {type: string}
   responses:
+    PostpartumValidationFailed:
+      description: "Postpartum validation failed (controller 422 `{success: false, message, errors}`, message and field errors in the request language)."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, errors]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              errors:
+                type: object
+                additionalProperties: {type: array, items: {type: string}}
+          example: {success: false, message: اطلاعات واردشده معتبر نیست, errors: {birth_date: [تاریخ زایمان نمی‌تواند در آینده باشد.]}}
+    PostpartumNotActive:
+      description: "Bloom B-N5-01: postpartum mode is not active (or has no birth date yet) — activate it first; a companion (male) account gets `companion_account` instead."
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - type: object
+                required: [success, message, error_code]
+                properties:
+                  success: {type: boolean, const: false}
+                  message: {type: string}
+                  error_code: {type: string, const: postpartum_not_active}
+              - type: object
+                required: [success, message, error_code, mode, home]
+                properties:
+                  success: {type: boolean, const: false}
+                  message: {type: string}
+                  error_code: {type: string, const: companion_account}
+                  mode: {type: string}
+                  home: {type: string}
+          example: {success: false, message: Postpartum mode is not active, error_code: postpartum_not_active}
     CompanionAccount:
       description: "Bloom B-N4-03: the caller is a companion (male) account — no cycle engine of his own, so the women's home and daily messages are refused; his home is `GET /companion/home` (web `/companion`)."
       content:
@@ -13118,6 +13411,163 @@ components:
             properties: {success: {type: boolean, const: false}, message: {type: string}}
           example: {success: false, message: نوبت پیدا نشد}
   schemas:
+    PostpartumAlert:
+      type: object
+      required: [key, level, title, body, action_label, action]
+      properties:
+        key: {type: string, enum: [heavy_bleeding, large_clots, checkin_short, checkin_full]}
+        level: {type: string, enum: [warning, info]}
+        title: {type: string}
+        body: {type: string}
+        action_label: {type: [string, "null"]}
+        action:
+          type: object
+          description: "`{type: call, number}` or `{type: open_check, kind}`"
+          required: [type]
+          properties:
+            type: {type: string, enum: [call, open_check]}
+            number: {type: string}
+            kind: {type: string, enum: [short, full]}
+    PostpartumRecovery:
+      type: object
+      required: [date, lochia_amount, lochia_color, pain_level, pain_locations, breasts, feeds_count, sleep_hours, alerts]
+      properties:
+        date: {$ref: "#/components/schemas/Date"}
+        lochia_amount: {type: [string, "null"], enum: [none, spotting, light, medium, heavy, null]}
+        lochia_color: {type: [string, "null"], enum: [red, pink_brown, yellow_white, null]}
+        pain_level: {type: [string, "null"], enum: [none, mild, moderate, severe, null]}
+        pain_locations: {type: array, items: {type: string}}
+        breasts: {type: [array, "null"], items: {type: string}}
+        feeds_count: {type: [integer, "null"]}
+        sleep_hours: {type: [number, "null"]}
+        alerts: {type: array, items: {$ref: "#/components/schemas/PostpartumAlert"}}
+    EpdsCheck:
+      type: object
+      required: [id, kind, taken_on, week, total, max, band, band_label, urgent, self_harm]
+      properties:
+        id: {type: integer}
+        kind: {type: string, enum: [short, full]}
+        taken_on: {$ref: "#/components/schemas/Date"}
+        week: {type: [integer, "null"], description: 1-based week since the birth}
+        total: {type: integer}
+        max: {type: integer}
+        band: {type: string, enum: [low, elevated, possible, likely]}
+        band_label: {type: [string, "null"]}
+        urgent: {type: boolean}
+        self_harm: {type: [boolean, "null"], description: "item 10 > 0 (full checks only)"}
+    EpdsSchedule:
+      type: object
+      required: [due, next_due_on, last]
+      properties:
+        due: {type: [string, "null"], enum: [short, full, null]}
+        next_due_on: {$ref: "#/components/schemas/Date"}
+        last: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/EpdsCheck"}]}
+    EpdsQuestions:
+      type: object
+      required: [kind, intro, disclaimer, max, items]
+      properties:
+        kind: {type: string, enum: [short, full]}
+        intro: {type: string}
+        disclaimer: {type: string}
+        max: {type: integer}
+        items:
+          type: array
+          items:
+            type: object
+            required: [code, number, text, options]
+            properties:
+              code: {type: string}
+              number: {type: integer}
+              text: {type: string}
+              options:
+                type: array
+                items:
+                  type: object
+                  required: [score, label]
+                  properties:
+                    score: {type: integer, minimum: 0, maximum: 3}
+                    label: {type: string}
+    EpdsResult:
+      type: object
+      required: [check, safety, follow_up, checkin]
+      properties:
+        check: {$ref: "#/components/schemas/EpdsCheck"}
+        safety:
+          oneOf:
+            - type: "null"
+            - type: object
+              required: [level, reasons, title, body, actions]
+              properties:
+                level: {type: string, enum: [urgent, advice, follow_up]}
+                reasons: {type: array, items: {type: string, enum: [self_harm, score]}}
+                title: {type: string}
+                body: {type: string}
+                actions:
+                  type: array
+                  items:
+                    type: object
+                    required: [type, label]
+                    properties:
+                      type: {type: string, enum: [call, open_check]}
+                      number: {type: string, enum: ["115", "123", "1480"]}
+                      kind: {type: string}
+                      label: {type: string}
+        follow_up: {type: [string, "null"], enum: [full, null]}
+        checkin: {$ref: "#/components/schemas/EpdsSchedule"}
+    PostpartumOverview:
+      type: object
+      required: [active, mode, setup_required, profile, status, checkin, today, alerts, week_tip, call_when]
+      properties:
+        active: {type: boolean}
+        mode: {type: string}
+        setup_required: {type: boolean}
+        profile:
+          oneOf:
+            - type: "null"
+            - type: object
+              required: [birth_date, delivery_type, delivery_type_label, baby_count, source, pregnancy_closed_at, updated_at]
+              properties:
+                birth_date: {$ref: "#/components/schemas/Date"}
+                delivery_type: {type: [string, "null"], enum: [vaginal, cesarean, null]}
+                delivery_type_label: {type: [string, "null"]}
+                baby_count: {type: integer}
+                source: {type: string, enum: [pregnancy, direct]}
+                pregnancy_closed_at: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/LaravelDateTime"}]}
+                updated_at: {$ref: "#/components/schemas/LaravelDateTime"}
+        status:
+          oneOf:
+            - type: "null"
+            - type: object
+              required: [days_since_birth, weeks, days, week, phase, phase_label, puerperium_days, puerperium_days_left, progress]
+              properties:
+                days_since_birth: {type: integer}
+                weeks: {type: integer}
+                days: {type: integer}
+                week: {type: integer}
+                phase: {type: string, enum: [puerperium, recovery, late]}
+                phase_label: {type: [string, "null"]}
+                puerperium_days: {type: integer}
+                puerperium_days_left: {type: integer}
+                progress: {type: number}
+        checkin: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/EpdsSchedule"}]}
+        today: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/PostpartumRecovery"}]}
+        alerts: {type: array, items: {$ref: "#/components/schemas/PostpartumAlert"}}
+        week_tip:
+          oneOf:
+            - type: "null"
+            - type: object
+              required: [week, key, title, body]
+              properties:
+                week: {type: integer}
+                key: {type: string}
+                title: {type: string}
+                body: {type: string}
+        call_when:
+          type: object
+          required: [title, body]
+          properties:
+            title: {type: string}
+            body: {type: string}
     CompanionGrants:
       type: object
       description: "Level per section, every section present (`none` = not shared)"

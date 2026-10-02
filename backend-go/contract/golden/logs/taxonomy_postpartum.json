@@ -141,6 +141,18 @@
                   "alert": false,
                   "options": [
                     {
+                      "value": "none",
+                      "label": "None",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
+                      "value": "spotting",
+                      "label": "Spotting",
+                      "modes": null,
+                      "legacy_only": false
+                    },
+                    {
                       "value": "light",
                       "label": "Light",
                       "modes": null,
@@ -802,6 +814,31 @@
                   "range": null,
                   "scale": null,
                   "unit": null,
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
+                },
+                {
+                  "code": "hours",
+                  "type": "number",
+                  "label": "Total sleep (hours)",
+                  "modes": [
+                    "postpartum"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [],
+                  "levels": [],
+                  "score": null,
+                  "range": {
+                    "min": 0,
+                    "max": 24
+                  },
+                  "scale": 1,
+                  "unit": {
+                    "value": "hours",
+                    "label": "h"
+                  },
                   "max_length": null,
                   "dynamic": false,
                   "source": null
@@ -2000,6 +2037,31 @@
                   "max_length": null,
                   "dynamic": false,
                   "source": "baby_sleep"
+                },
+                {
+                  "code": "feeds_count",
+                  "type": "integer",
+                  "label": "Feeds",
+                  "modes": [
+                    "postpartum"
+                  ],
+                  "detail": false,
+                  "alert": false,
+                  "options": [],
+                  "levels": [],
+                  "score": null,
+                  "range": {
+                    "min": 0,
+                    "max": 30
+                  },
+                  "scale": null,
+                  "unit": {
+                    "value": "times",
+                    "label": "times"
+                  },
+                  "max_length": null,
+                  "dynamic": false,
+                  "source": null
                 }
               ]
             },

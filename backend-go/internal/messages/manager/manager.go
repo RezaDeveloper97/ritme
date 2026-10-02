@@ -275,9 +275,11 @@ func (m *Manager) Generate(ctx context.Context, date civildate.Date, force enums
 		eng = cycleEngine{content: m.content, locale: m.locale}
 	case enums.MessageModePregnancy:
 		eng = pregnancyEngine{content: m.content, locale: m.locale}
+	case enums.MessageModePostpartum: // bloom B-N5-01 (D-54): Go's postpartum engine, see postpartum_engine.go
+		return m.postpartum(ctx, date)
 	default:
-		// No engine (postpartum): MessageResult::empty(). buildContext has no observable
-		// effect for this mode, so it is skipped.
+		// No engine (a mode without one): MessageResult::empty(). buildContext has no observable
+		// effect for such a mode, so it is skipped.
 		msg := "Message engine not found for this mode"
 		if m.locale == "fa" {
 			msg = "موتور پیام برای این حالت یافت نشد"

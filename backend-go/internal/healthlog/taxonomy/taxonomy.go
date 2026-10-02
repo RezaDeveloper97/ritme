@@ -171,7 +171,8 @@ var registry = []Category{
 		{Code: "clot_size", Type: Single, Detail: true, Modes: modes(cycleish, post),
 			Options: join(opts("small", "large"), legacy("none", "medium"))},
 		{Code: "odor", Type: Single, Detail: true, Options: odorOptions, Modes: modes(cycleish, post)},
-		{Code: "lochia_amount", Type: Single, Options: opts("light", "medium", "heavy"), Modes: post},
+		// B-N5-01: none / spotting added for the Recovery form (nbl_v15_Recovery «هیچ · لکه‌بینی · کم · متوسط · زیاد»).
+		{Code: "lochia_amount", Type: Single, Options: opts("none", "spotting", "light", "medium", "heavy"), Modes: post},
 		{Code: "lochia_color", Type: Single, Options: opts("red", "pink_brown", "yellow_white"), Modes: post},
 	}},
 	{Code: "pain", Group: "body", Modes: all, Params: []Param{
@@ -212,6 +213,9 @@ var registry = []Category{
 	{Code: "sleep", Group: "lifestyle", Modes: all, Params: []Param{
 		{Code: "duration", Type: Single, Options: opts("0_3", "3_6", "6_9", "9_plus")},
 		{Code: "quality", Type: Single, Options: opts("great", "good", "fair", "poor")},
+		// B-N5-01: the Recovery form's total sleep in hours (naps included); duration is kept in step by the
+		// postpartum recovery log so the analysis engine keeps reading the bucket.
+		{Code: "hours", Type: Number, Range: &Range{0, 24}, Scale: 1, Unit: "hours", Modes: post},
 	}},
 	{Code: "appetite_energy", Group: "mind", Modes: all, Params: []Param{
 		{Code: "energy", Type: Single, Options: join(opts("low", "medium", "high"), legacy("very_low", "very_high"))},
@@ -274,6 +278,8 @@ var registry = []Category{
 		{Code: "pumping", Type: Link, Source: "feeding"},
 		{Code: "diapers", Type: Link, Source: "diapers"},
 		{Code: "baby_sleep", Type: Link, Source: "baby_sleep"},
+		// B-N5-01: the Recovery form's «شیردهی امروز» count (manual; feeding sessions arrive with B-N5-03).
+		{Code: "feeds_count", Type: Integer, Range: &Range{0, 30}, Unit: "times"},
 	}},
 	{Code: "note", Group: "other", Modes: all, Params: []Param{
 		{Code: "text", Type: Text, MaxLen: 2000},

@@ -1,0 +1,259 @@
+{
+  "case": "postpartum/questions_full",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/postpartum/epds/questions?kind=full",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "kind": "full",
+          "intro": "In the past 7 days",
+          "disclaimer": "These few questions are only for you to see how your mood is going. Ritme does not diagnose; if you are worried, talking to a doctor or counsellor is always a good option.",
+          "max": 30,
+          "items": [
+            {
+              "code": "q1",
+              "number": 1,
+              "text": "I have been able to laugh and see the funny side of things",
+              "options": [
+                {
+                  "score": 0,
+                  "label": "As much as I always could"
+                },
+                {
+                  "score": 1,
+                  "label": "Not quite so much now"
+                },
+                {
+                  "score": 2,
+                  "label": "Definitely not so much now"
+                },
+                {
+                  "score": 3,
+                  "label": "Not at all"
+                }
+              ]
+            },
+            {
+              "code": "q2",
+              "number": 2,
+              "text": "I have looked forward with enjoyment to things",
+              "options": [
+                {
+                  "score": 0,
+                  "label": "As much as I ever did"
+                },
+                {
+                  "score": 1,
+                  "label": "Rather less than I used to"
+                },
+                {
+                  "score": 2,
+                  "label": "Definitely less than I used to"
+                },
+                {
+                  "score": 3,
+                  "label": "Hardly at all"
+                }
+              ]
+            },
+            {
+              "code": "q3",
+              "number": 3,
+              "text": "I have blamed myself unnecessarily when things went wrong",
+              "options": [
+                {
+                  "score": 3,
+                  "label": "Yes, most of the time"
+                },
+                {
+                  "score": 2,
+                  "label": "Yes, some of the time"
+                },
+                {
+                  "score": 1,
+                  "label": "Not very often"
+                },
+                {
+                  "score": 0,
+                  "label": "No, never"
+                }
+              ]
+            },
+            {
+              "code": "q4",
+              "number": 4,
+              "text": "I have been anxious or worried for no good reason",
+              "options": [
+                {
+                  "score": 0,
+                  "label": "No, not at all"
+                },
+                {
+                  "score": 1,
+                  "label": "Hardly ever"
+                },
+                {
+                  "score": 2,
+                  "label": "Yes, sometimes"
+                },
+                {
+                  "score": 3,
+                  "label": "Yes, very often"
+                }
+              ]
+            },
+            {
+              "code": "q5",
+              "number": 5,
+              "text": "I have felt scared or panicky for no very good reason",
+              "options": [
+                {
+                  "score": 3,
+                  "label": "Yes, quite a lot"
+                },
+                {
+                  "score": 2,
+                  "label": "Yes, sometimes"
+                },
+                {
+                  "score": 1,
+                  "label": "No, not much"
+                },
+                {
+                  "score": 0,
+                  "label": "No, not at all"
+                }
+              ]
+            },
+            {
+              "code": "q6",
+              "number": 6,
+              "text": "Things have been getting on top of me",
+              "options": [
+                {
+                  "score": 3,
+                  "label": "Yes, most of the time I haven't been able to cope at all"
+                },
+                {
+                  "score": 2,
+                  "label": "Yes, sometimes I haven't been coping as well as usual"
+                },
+                {
+                  "score": 1,
+                  "label": "No, most of the time I have coped quite well"
+                },
+                {
+                  "score": 0,
+                  "label": "No, I have been coping as well as ever"
+                }
+              ]
+            },
+            {
+              "code": "q7",
+              "number": 7,
+              "text": "I have been so unhappy that I have had difficulty sleeping",
+              "options": [
+                {
+                  "score": 3,
+                  "label": "Yes, most of the time"
+                },
+                {
+                  "score": 2,
+                  "label": "Yes, sometimes"
+                },
+                {
+                  "score": 1,
+                  "label": "Not very often"
+                },
+                {
+                  "score": 0,
+                  "label": "No, not at all"
+                }
+              ]
+            },
+            {
+              "code": "q8",
+              "number": 8,
+              "text": "I have felt sad or miserable",
+              "options": [
+                {
+                  "score": 3,
+                  "label": "Yes, most of the time"
+                },
+                {
+                  "score": 2,
+                  "label": "Yes, quite often"
+                },
+                {
+                  "score": 1,
+                  "label": "Not very often"
+                },
+                {
+                  "score": 0,
+                  "label": "No, not at all"
+                }
+              ]
+            },
+            {
+              "code": "q9",
+              "number": 9,
+              "text": "I have been so unhappy that I have been crying",
+              "options": [
+                {
+                  "score": 3,
+                  "label": "Yes, most of the time"
+                },
+                {
+                  "score": 2,
+                  "label": "Yes, quite often"
+                },
+                {
+                  "score": 1,
+                  "label": "Only occasionally"
+                },
+                {
+                  "score": 0,
+                  "label": "No, never"
+                }
+              ]
+            },
+            {
+              "code": "q10",
+              "number": 10,
+              "text": "The thought of harming myself has occurred to me",
+              "options": [
+                {
+                  "score": 3,
+                  "label": "Yes, quite often"
+                },
+                {
+                  "score": 2,
+                  "label": "Sometimes"
+                },
+                {
+                  "score": 1,
+                  "label": "Hardly ever"
+                },
+                {
+                  "score": 0,
+                  "label": "Never"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

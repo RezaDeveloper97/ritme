@@ -1,0 +1,168 @@
+# Postpartum mode (/api/v1/postpartum*) — Go only (bloom B-N5-01, deviations.md D-54): there is no Laravel route, so
+# these goldens were recorded from the Go server and reviewed by hand (new-endpoint skill, step 8).
+# The fixture dump carries the empty postpartum tables (goose 00030 / Laravel 2026_10_02_000030), added by hand. No
+# persona is in postpartum mode, so every flow activates first (every case runs on a fresh dump). Fixture day
+# 2026-09-23. The schedule maths, the EPDS scoring edges, user isolation and the taxonomy storage are covered by
+# internal/postpartum tests.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: postpartum
+defaults:
+  persona: regular
+  locales: [none, en]
+cases:
+  # ---------------- overview / activation ----------------
+  - name: show_inactive
+    doc: A cycle user — active false, the call-when card only
+    method: GET
+    path: /api/v1/postpartum
+    status: 200
+  - name: show_anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/postpartum
+    status: 401
+  - name: activate_from_pregnancy
+    doc: Pregnant persona (week 26) gives birth — the pregnancy is closed as delivered, mode postpartum, day 14 → full check due
+    persona: pregnant_ultrasound_w26
+    steps:
+      - method: POST
+        path: /api/v1/postpartum/activate
+        body: {birth_date: "2026-09-09", delivery_type: cesarean, baby_count: 1}
+        status: 200
+      - method: GET
+        path: /api/v1/postpartum
+        status: 200
+  - name: activate_direct
+    doc: nbl_v15_Main — 17 days after a vaginal birth («۲ هفته و ۳ روز»), week 3 tip
+    locales: fa
+    method: POST
+    path: /api/v1/postpartum/activate
+    body: {birth_date: "2026-09-06", delivery_type: vaginal}
+    status: 200
+  - name: activate_invalid
+    method: POST
+    path: /api/v1/postpartum/activate
+    body: {birth_date: "2026-09-24", delivery_type: natural, baby_count: 9}
+    status: 422
+  - name: activate_too_old
+    locales: en
+    method: POST
+    path: /api/v1/postpartum/activate
+    body: {birth_date: "2025-09-01"}
+    status: 422
+  - name: activate_anon
+    persona: anon
+    locales: none
+    method: POST
+    path: /api/v1/postpartum/activate
+    status: 401
+
+  # ---------------- recovery ----------------
+  - name: recovery_not_active
+    method: GET
+    path: /api/v1/postpartum/recovery
+    status: 409
+  - name: recovery_flow
+    doc: nbl_v15_Recovery — heavy bleeding raises the alert with a call action; then a partial save
+    steps:
+      - method: POST
+        path: /api/v1/postpartum/activate
+        body: {birth_date: "2026-09-06"}
+        status: 200
+      - method: PUT
+        path: /api/v1/postpartum/recovery
+        body: {lochia_amount: heavy, lochia_color: red, pain_level: moderate, pain_locations: [stitches, abdomen], breasts: [engorgement], feeds_count: 8, sleep_hours: 4.5}
+        status: 200
+      - method: PUT
+        path: /api/v1/postpartum/recovery
+        body: {lochia_amount: light, breasts: [], sleep_hours: ~}
+        status: 200
+      - method: GET
+        path: /api/v1/postpartum/recovery
+        query: {date: "2026-09-23"}
+        status: 200
+  - name: recovery_invalid
+    steps:
+      - method: POST
+        path: /api/v1/postpartum/activate
+        body: {birth_date: "2026-09-06"}
+        status: 200
+      - method: PUT
+        path: /api/v1/postpartum/recovery
+        body: {pain_level: severe, feeds_count: 40, sleep_hours: 3.3}
+        status: 422
+  - name: recovery_anon
+    persona: anon
+    locales: none
+    method: PUT
+    path: /api/v1/postpartum/recovery
+    status: 401
+
+  # ---------------- EPDS ----------------
+  - name: questions_short
+    method: GET
+    path: /api/v1/postpartum/epds/questions
+    status: 200
+  - name: questions_full
+    locales: en
+    method: GET
+    path: /api/v1/postpartum/epds/questions
+    query: {kind: full}
+    status: 200
+  - name: questions_invalid
+    locales: none
+    method: GET
+    path: /api/v1/postpartum/epds/questions
+    query: {kind: monthly}
+    status: 422
+  - name: epds_not_active
+    method: POST
+    path: /api/v1/postpartum/epds
+    body: {kind: short, answers: {q3: 0, q4: 0, q5: 0}}
+    status: 409
+  - name: epds_urgent_self_harm
+    doc: Item 10 positive at a low total → urgent safety message with 115 / 123 / 1480; the history shows the total only
+    steps:
+      - method: POST
+        path: /api/v1/postpartum/activate
+        body: {birth_date: "2026-09-01"}
+        status: 200
+      - method: POST
+        path: /api/v1/postpartum/epds
+        body: {kind: full, answers: {q1: 0, q2: 0, q3: 1, q4: 0, q5: 0, q6: 0, q7: 0, q8: 0, q9: 0, q10: 1}}
+        status: 200
+      - method: GET
+        path: /api/v1/postpartum/epds
+        status: 200
+  - name: epds_short_follow_up
+    doc: EPDS-3 total 6 → follow-up to the full check (never urgent)
+    steps:
+      - method: POST
+        path: /api/v1/postpartum/activate
+        body: {birth_date: "2026-09-16"}
+        status: 200
+      - method: POST
+        path: /api/v1/postpartum/epds
+        body: {kind: short, answers: {q3: 2, q4: 2, q5: 2}}
+        status: 200
+  - name: epds_invalid
+    steps:
+      - method: POST
+        path: /api/v1/postpartum/activate
+        body: {birth_date: "2026-09-16"}
+        status: 200
+      - method: POST
+        path: /api/v1/postpartum/epds
+        body: {kind: short, answers: {q3: 2, q4: 5, q10: 1}}
+        status: 422
+  - name: history_empty
+    method: GET
+    path: /api/v1/postpartum/epds
+    status: 200
+  - name: epds_anon
+    persona: anon
+    locales: none
+    method: POST
+    path: /api/v1/postpartum/epds
+    status: 401

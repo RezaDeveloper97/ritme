@@ -353,6 +353,19 @@ type DailyHealthLog struct {
 	UpdatedAt                  sql.NullTime
 }
 
+type EpdsCheck struct {
+	ID        uint64
+	UserID    uint64
+	Kind      string
+	TakenOn   civildate.Date
+	Answers   json.RawMessage
+	Total     uint8
+	SelfHarm  sql.NullInt16
+	Urgent    bool
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
 type FailedJob struct {
 	ID         uint64
 	Uuid       string
@@ -793,6 +806,19 @@ type PmddEntry struct {
 	Scores    json.RawMessage
 	CreatedAt sql.NullTime
 	UpdatedAt sql.NullTime
+}
+
+type PostpartumProfile struct {
+	ID                 uint64
+	UserID             uint64
+	BirthDate          civildate.Date
+	DeliveryType       sql.NullString
+	BabyCount          uint8
+	Source             string
+	PregnancyProfileID sql.NullInt64
+	PregnancyClosedAt  sql.NullTime
+	CreatedAt          sql.NullTime
+	UpdatedAt          sql.NullTime
 }
 
 type PregnancyAlert struct {

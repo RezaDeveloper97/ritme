@@ -19,6 +19,7 @@ import (
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/platform/validation"
 	"github.com/ritme/backend-go/internal/platform/validation/phpval"
+	"github.com/ritme/backend-go/internal/postpartum"
 	pstore "github.com/ritme/backend-go/internal/pregnancy/store"
 )
 
@@ -29,11 +30,12 @@ type Handlers struct {
 	pq       *pstore.Queries
 	clock    clock.Clock
 	accounts *companion.Accounts // B-N4-03: a companion (male) account has no daily cycle messages → 409
+	pp       PostpartumSignals   // B-N5-01: the postpartum engine's facts
 }
 
 // NewHandlers wires the handlers; base is the fallback clock.
 func NewHandlers(db store.DBTX, base clock.Clock) *Handlers {
-	return &Handlers{q: store.New(db), pq: pstore.New(db), clock: base, accounts: companion.NewAccounts(db)}
+	return &Handlers{q: store.New(db), pq: pstore.New(db), clock: base, accounts: companion.NewAccounts(db), pp: postpartum.NewService(db)}
 }
 
 // request is one request's manager and its source.
@@ -52,7 +54,7 @@ func (h *Handlers) request(c fiber.Ctx) (*manager.Manager, *StoreSource, string,
 	locale := i18n.ResolveLocale(c, "")
 	today := civildate.Today(clock.FromContext(c, h.clock))
 	src := NewStoreSource(h.q, h.pq, uid, today)
-	return manager.New(src, content.NewRepository(h.q), locale, today), src, locale, today, nil
+	return manager.New(WithPostpartum(src, h.pp), content.NewRepository(h.q), locale, today), src, locale, today, nil
 }
 
 func pick(locale, fa, en string) string {

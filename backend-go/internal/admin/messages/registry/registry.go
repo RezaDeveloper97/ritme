@@ -6,6 +6,7 @@ import (
 
 	"github.com/ritme/backend-go/internal/messages/content"
 	"github.com/ritme/backend-go/internal/platform/validation/phpval"
+	"github.com/ritme/backend-go/internal/postpartum/guide"
 )
 
 // Item is one registered (group, item_key) with its payload schema.
@@ -73,6 +74,7 @@ var groups = buildGroups()
 
 func buildGroups() []Group {
 	out := []Group{weekTipGroup(), alertGroup(), setupGroup(), conditionNudgeGroup(), menopauseMessageGroup(), companionTipGroup()}
+	out = append(out, postpartumGroups()...)
 	defaults, _ := phpval.Decode(content.DefaultsJSON())
 	for _, name := range content.Groups() {
 		if slices.ContainsFunc(out, func(g Group) bool { return g.Name == name }) {
@@ -286,4 +288,32 @@ func companionTipGroup() Group {
 		}
 	}
 	return g
+}
+
+// ---------------------------------------------------------------------------
+// Postpartum (bloom N5)
+
+// postpartumGroups are the postpartum copy groups (B-N5-01, internal/postpartum/guide: TipGroup — the tip of each week
+// since the birth, "1".."12" then "late" —, AlertGroup — «کی فوراً تماس بگیرم؟», the bleeding alerts and the mood
+// check-in prompts — and SafetyGroup — the EPDS result messages; the urgent one's call numbers 115 / 123 / 1480 are
+// fixed, its labels are copy). Unseeded: the API and the postpartum message engine fall back to the embedded fa/en copy
+// until an admin writes a row of that language (or the default language); a written row is used as is.
+func postpartumGroups() []Group {
+	var out []Group
+	for _, s := range guide.Slots() {
+		if len(out) == 0 || out[len(out)-1].Name != s.Group {
+			out = append(out, Group{Name: s.Group})
+		}
+		fields := make([]Field, 0, len(s.Fields))
+		for _, f := range s.Fields {
+			if f == "body" {
+				fields = append(fields, text(f, 2000))
+			} else {
+				fields = append(fields, text(f, 255))
+			}
+		}
+		g := &out[len(out)-1]
+		g.Items = append(g.Items, Item{Group: s.Group, Key: s.Key, Fields: fields, Typed: true})
+	}
+	return out
 }

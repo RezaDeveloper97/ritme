@@ -3,7 +3,7 @@ id: B-N5-01
 title: Postpartum mode backend — activation, recovery log, EPDS
 milestone: N5
 type: backend
-status: todo
+status: done
 depends_on: [B-N4-10]
 parallel_group: N5-A
 touches: [backend-go/db,backend-go/internal/postpartum,backend-go/internal/messages,backend-go/internal/pregnancy,backend-go/api]

@@ -1,0 +1,26 @@
+{
+  "case": "postpartum/questions_invalid",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/postpartum/epds/questions?kind=monthly",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "اطلاعات واردشده معتبر نیست",
+        "errors": {
+          "kind": [
+            "نوع چک‌این انتخاب‌شده معتبر نیست."
+          ]
+        }
+      }
+    }
+  ]
+}

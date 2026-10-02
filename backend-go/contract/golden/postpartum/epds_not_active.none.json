@@ -1,0 +1,32 @@
+{
+  "case": "postpartum/epds_not_active.none",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/postpartum/epds",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "kind": "short",
+          "answers": {
+            "q3": 0,
+            "q4": 0,
+            "q5": 0
+          }
+        }
+      },
+      "status": 409,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": false,
+        "message": "حالت بعد از زایمان فعال نیست",
+        "error_code": "postpartum_not_active"
+      }
+    }
+  ]
+}

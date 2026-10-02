@@ -203,16 +203,6 @@ func TestEmptyCalculationUsesDefaultMessage(t *testing.T) {
 	assert.Equal(t, false, ci["is_fertile_window"])
 }
 
-func TestPostpartumIsEmptyResult(t *testing.T) {
-	res, err := New(&fakeSource{}, defaultsContent{}, "en", day).Generate(context.Background(), day, enums.MessageModePostpartum)
-	require.NoError(t, err)
-	b, err := json.Marshal(res.JSON())
-	require.NoError(t, err)
-	assert.JSONEq(t, `{"mode":"postpartum","date":"2026-09-23","user_goal":"non_ttc","subscription_type":"free",
-		"context_info":{"error":"Message engine not found for this mode"},"primary_message":[],"correlations":[],
-		"patterns":[],"supplements":{"nutrition":[],"sleep":[],"exercise":[]},"tips":[]}`, string(b))
-}
-
 // TestWeekMilestones covers getWeekSpecificMessage: the first closest milestone within ±2
 // weeks, otherwise a generated line; the 0-based week 0 gets the default message.
 func TestWeekMilestones(t *testing.T) {

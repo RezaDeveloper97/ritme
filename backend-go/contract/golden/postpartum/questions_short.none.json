@@ -1,0 +1,97 @@
+{
+  "case": "postpartum/questions_short.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/postpartum/epds/questions",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "kind": "short",
+          "intro": "در ۷ روز گذشته",
+          "disclaimer": "این چند سؤال فقط برای این است که خودت روند حالت را ببینی. ریتمی تشخیص نمی‌دهد؛ اگر نگران بودی، صحبت با پزشک یا مشاور همیشه گزینه خوبی است.",
+          "max": 9,
+          "items": [
+            {
+              "code": "q3",
+              "number": 3,
+              "text": "وقتی کارها خراب شده، بی‌دلیل خودم را سرزنش کرده‌ام",
+              "options": [
+                {
+                  "score": 3,
+                  "label": "بله، بیشتر وقت‌ها"
+                },
+                {
+                  "score": 2,
+                  "label": "بله، گاهی"
+                },
+                {
+                  "score": 1,
+                  "label": "نه خیلی"
+                },
+                {
+                  "score": 0,
+                  "label": "نه، هرگز"
+                }
+              ]
+            },
+            {
+              "code": "q4",
+              "number": 4,
+              "text": "بی‌دلیل احساس نگرانی یا اضطراب داشته‌ام",
+              "options": [
+                {
+                  "score": 0,
+                  "label": "اصلاً"
+                },
+                {
+                  "score": 1,
+                  "label": "به‌ندرت"
+                },
+                {
+                  "score": 2,
+                  "label": "گاهی"
+                },
+                {
+                  "score": 3,
+                  "label": "بیشتر وقت‌ها"
+                }
+              ]
+            },
+            {
+              "code": "q5",
+              "number": 5,
+              "text": "بی‌دلیل احساس ترس یا وحشت کرده‌ام",
+              "options": [
+                {
+                  "score": 3,
+                  "label": "بله، زیاد"
+                },
+                {
+                  "score": 2,
+                  "label": "بله، گاهی"
+                },
+                {
+                  "score": 1,
+                  "label": "نه، زیاد نه"
+                },
+                {
+                  "score": 0,
+                  "label": "نه، اصلاً"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

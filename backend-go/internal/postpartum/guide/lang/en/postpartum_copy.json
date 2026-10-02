@@ -1,0 +1,31 @@
+{
+    "needs_review": "[needs clinical review] Every text in this file is a default; admins can replace it in the messages module.",
+    "postpartum_week_tip": {
+        "1": {"title": "Week 1: rest comes first", "body": "Sleep whenever you can and hand the housework to others. Bleeding is red and fairly heavy these days and slowly eases. Drink plenty of water and empty your bladder every 2–3 hours."},
+        "2": {"title": "Week 2: a little movement", "body": "In the second week, short walks and plenty of water help. You can gently start pelvic floor (Kegel) exercises."},
+        "3": {"title": "Bleeding gets lighter", "body": "Bleeding is usually pink or brown and lighter by now. Mood swings are common in the first weeks; if sadness or restlessness lasts more than 2 weeks, talk to a doctor or counsellor."},
+        "4": {"title": "Ask for help", "body": "Tiredness is normal in these weeks. Hand one or two specific tasks to your partner or family and eat iron- and protein-rich food."},
+        "5": {"title": "Sleep in shifts", "body": "If you can, take turns with your partner on night feeds or settling so each of you gets a few hours in a row. Keep up your daily Kegels."},
+        "6": {"title": "Your 6-week postpartum visit", "body": "It is time for the postpartum check: healing and stitches, contraception, feeding and mood. Write your questions down beforehand."},
+        "7": {"title": "Ease back into exercise", "body": "Once your doctor says it is fine, start with brisk walks and light moves. Stop and ask if you notice pain, leaking urine or new bleeding."},
+        "8": {"title": "Think about contraception", "body": "You can get pregnant again even before your first period. Breastfeeding alone is not a reliable method; talk to your doctor about what suits you."},
+        "9": {"title": "Be kind to yourself", "body": "Your body changed for months during pregnancy and needs time to recover. Comparing yourself with others does not help; notice the small steps."},
+        "10": {"title": "Look after your back", "body": "Bend your knees when you lift your baby and hold them close to your body. Keep your back straight with a pillow while feeding."},
+        "11": {"title": "A little time for you", "body": "Even 20 minutes a day for something you enjoy helps your mood. Ask the people close to you to make that time possible."},
+        "12": {"title": "Three months in", "body": "Hair shedding around months 3–4 is common and usually temporary. If you are not breastfeeding, your period may be back. Keep following your mood with the weekly check-in."},
+        "late": {"title": "Keep going with your recovery", "body": "Keep up pelvic floor exercise, enough sleep and nourishing food. If tiredness, low mood or pain continue, talking to a doctor is always a good option."}
+    },
+    "postpartum_alert": {
+        "call_when": {"title": "When should I call right away?", "body": "Fever above 38 °C, heavy bleeding (a pad an hour), severe belly or chest pain, shortness of breath, or thoughts of harming yourself or your baby."},
+        "heavy_bleeding": {"title": "You logged heavy bleeding", "body": "If you soak a full pad in an hour or the bleeding suddenly gets heavier, call your doctor or 115 now.", "action": "Call 115"},
+        "large_clots": {"title": "You logged large clots", "body": "Tell your doctor about large clots (bigger than a walnut) after the first days. If they come with heavy bleeding or dizziness, call now.", "action": "Call 115"},
+        "checkin_short": {"title": "Weekly mood check-in", "body": "Three short questions; it takes less than a minute.", "action": "Start"},
+        "checkin_full": {"title": "Full mood check-in", "body": "10 short questions every two weeks, so you can see how you are doing over time.", "action": "Start"}
+    },
+    "postpartum_safety": {
+        "urgent": {"title": "Please talk to someone now", "body": "Your answers show these days are very hard for you. You are not alone and help is available. If you have thoughts of harming yourself or your baby, call emergency 115 or the social emergency line 123 now, or go to the nearest hospital.", "emergency_label": "Emergency 115", "social_label": "Social emergency 123", "counsel_label": "Counselling line 1480"},
+        "advice": {"title": "Talking to a doctor or counsellor helps", "body": "Your score is a little higher than usual. This is not a diagnosis, but talking to a doctor, midwife or counsellor can help."},
+        "short_elevated": {"title": "A fuller check-in can help", "body": "This week's answers suggest you may not be feeling well. Answer 10 short questions to get a clearer picture.", "action": "Full check-in"},
+        "disclaimer": {"body": "These few questions are only for you to see how your mood is going. Ritme does not diagnose; if you are worried, talking to a doctor or counsellor is always a good option."}
+    }
+}
