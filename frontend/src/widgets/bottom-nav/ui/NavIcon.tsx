@@ -3,12 +3,14 @@ import type { NavIconName } from '../model/nav-items';
 /**
  * Nav glyphs copied from the Night & Bloom artboards (24-grid, stroke 1.8,
  * drawn at 22px): Cycle_Home (home, calendar, grid, person), PregFull_Main
- * (drop), v19_Main (target), v16_ChildHome (child), nbl_Meno_Score (symptoms bars).
+ * (drop), v19_Main (target), v16_ChildHome (child), nbl_Meno_Score (symptoms bars), nbl_IVF_Home
+ * (syringe — the same glyph as `shared/ui` Icon `syringe`, CB-CONTRA-04b).
  */
 const PATHS: Record<NavIconName, string> = {
   home: '<path d="M4 11l8-7 8 7v9a1 1 0 01-1 1h-5v-6h-4v6H5a1 1 0 01-1-1z"/>',
   calendar: '<rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/>',
   fertility: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>',
+  treatment: '<path d="M18 2l4 4M20 4l-9 9M13 7l4 4M4 20l3-3M7 17l-2-2 8-8 4 4-8 8z"/>',
   pregnancy: '<path d="M12 3c-4 0-7 6-7 10a7 7 0 0014 0c0-4-3-10-7-10z"/>',
   child: '<circle cx="12" cy="8" r="4"/><path d="M6 21c0-4 2.5-6 6-6s6 2 6 6"/>',
   symptoms: '<path d="M5 19V11M12 19V5M19 19v-6"/>',

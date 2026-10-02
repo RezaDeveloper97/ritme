@@ -13,9 +13,27 @@
  */
 export type NavMode = 'cycle' | 'ttc' | 'pregnancy' | 'postpartum' | 'menopause' | 'teen' | 'companion';
 
-export type NavKey = 'today' | 'calendar' | 'fertility' | 'pregnancy' | 'child' | 'symptoms' | 'services' | 'me';
+export type NavKey =
+  | 'today'
+  | 'calendar'
+  | 'fertility'
+  | 'treatment'
+  | 'pregnancy'
+  | 'child'
+  | 'symptoms'
+  | 'services'
+  | 'me';
 
-export type NavIconName = 'home' | 'calendar' | 'fertility' | 'pregnancy' | 'child' | 'symptoms' | 'services' | 'me';
+export type NavIconName =
+  | 'home'
+  | 'calendar'
+  | 'fertility'
+  | 'treatment'
+  | 'pregnancy'
+  | 'child'
+  | 'symptoms'
+  | 'services'
+  | 'me';
 
 export interface NavTab {
   /** Stable key; also the label's message key under the `nav` i18n namespace. */
@@ -63,6 +81,12 @@ export interface NavOptions {
    * page, zero or several → the children list. Unknown until N5 → the list.
    */
   childIds?: readonly (string | number)[];
+  /**
+   * CB-IVF-02 (CB-CORE-01 C3): IVF is a TTC sub-mode — bloom's «IVF/IUI»
+   * switch (`ivf_iui`) on a `ttc` user gives امروز → `/ivf` and the stage tab
+   * «درمان». Ignored for every other mode; off → the plain TTC nav.
+   */
+  ivf?: boolean;
   /** Override {@link NAV_READY} (tests). */
   ready?: Partial<NavReady>;
 }
@@ -74,6 +98,11 @@ export interface NavReady {
   children: boolean;
   /** `/analysis/*` exists (B-N3-09 — on). The menopause tab no longer depends on it (CB-MENO-08). */
   analysis: boolean;
+  /**
+   * `/ivf/meds` (the injection schedule, CB-IVF-03) exists. Until then «درمان»
+   * opens the IVF home at its «تزریق‌های امروز» section ({@link IVF_TREATMENT_FALLBACK}).
+   */
+  ivfMeds: boolean;
 }
 
 /**
@@ -83,7 +112,10 @@ export interface NavReady {
  * tab until `/children` (B-N5-05).
  * The owning tasks flip their flag — nothing else changes.
  */
-export const NAV_READY: NavReady = { postpartum: true, children: false, analysis: true };
+export const NAV_READY: NavReady = { postpartum: true, children: false, analysis: true, ivfMeds: false };
+
+/** «درمان» before CB-IVF-03: the IVF home's today-injections section (`id="ivf-doses"`), never a 404. */
+export const IVF_TREATMENT_FALLBACK = '/ivf#ivf-doses';
 
 const SERVICES: NavTab = { key: 'services', href: '/services', icon: 'services' };
 const ME: NavTab = { key: 'me', href: '/profile', icon: 'me' };
@@ -92,6 +124,15 @@ const ME: NavTab = { key: 'me', href: '/profile', icon: 'me' };
 export function modeTab(mode: NavMode, options: NavOptions = {}): NavTab | null {
   const ready = { ...NAV_READY, ...options.ready };
   if (mode === 'postpartum' && !ready.children) return modeTab('cycle', options);
+  if (mode === 'ttc' && options.ivf) {
+    // CB-IVF-02: the IVF stage tab «درمان» (syringe) → the injection schedule.
+    return {
+      key: 'treatment',
+      href: ready.ivfMeds ? '/ivf/meds' : IVF_TREATMENT_FALLBACK,
+      icon: 'treatment',
+      alsoActive: ['/ivf/'],
+    };
+  }
   switch (mode) {
     case 'cycle':
     case 'teen':
@@ -134,8 +175,9 @@ export function modeTab(mode: NavMode, options: NavOptions = {}): NavTab | null 
   }
 }
 
-/** «امروز» target per mode. */
-export function todayHref(mode: NavMode, ready: Partial<NavReady> = {}): string {
+/** «امروز» target per mode (`ivf` = the TTC IVF sub-mode, CB-IVF-02). */
+export function todayHref(mode: NavMode, ready: Partial<NavReady> = {}, ivf = false): string {
+  if (mode === 'ttc' && ivf) return '/ivf';
   switch (mode) {
     case 'pregnancy':
       return '/pregnancy';
@@ -150,7 +192,7 @@ export function todayHref(mode: NavMode, ready: Partial<NavReady> = {}): string 
 
 /** Every tab + FAB presence for `mode`. */
 export function navConfig(mode: NavMode, options: NavOptions = {}): NavConfig {
-  const today: NavTab = { key: 'today', href: todayHref(mode, options.ready), icon: 'home' };
+  const today: NavTab = { key: 'today', href: todayHref(mode, options.ready, options.ivf), icon: 'home' };
   const second = modeTab(mode, options);
   return {
     before: second ? [today, second] : [today],

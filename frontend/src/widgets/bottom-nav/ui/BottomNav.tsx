@@ -27,6 +27,8 @@ export interface BottomNavProps {
   badges?: Partial<Record<NavKey, number | boolean>>;
   /** Override the mode (tests, the dev ui-kit); otherwise read from the API. */
   mode?: NavMode;
+  /** With a forced `ttc` mode: the IVF sub-mode nav (CB-IVF-02). */
+  ivf?: boolean;
 }
 
 /**
@@ -36,7 +38,7 @@ export interface BottomNavProps {
  * mounting it and it simply stays out. The FAB opens the mode's log sheet
  * (`?sheet=log`) over the current screen instead of navigating.
  */
-export function BottomNav({ badges, mode: forcedMode }: BottomNavProps) {
+export function BottomNav({ badges, mode: forcedMode, ivf: forcedIvf }: BottomNavProps) {
   const t = useTranslations('nav');
   const locale = useLocale() as Locale;
   const pathname = usePathname();
@@ -50,9 +52,12 @@ export function BottomNav({ badges, mode: forcedMode }: BottomNavProps) {
   // While the mode is unknown the pathname is a safe hint for pregnancy; any
   // other mode tab renders as a placeholder so it never flashes the wrong one.
   const pending = !forcedMode && (!mounted || navMode.pending);
-  const hinted: NavMode | null = pathname.startsWith('/pregnancy') ? 'pregnancy' : null;
+  // `/ivf` only exists for the TTC IVF sub-mode (CB-IVF-02).
+  const ivfPath = pathname === '/ivf' || pathname.startsWith('/ivf/');
+  const hinted: NavMode | null = pathname.startsWith('/pregnancy') ? 'pregnancy' : ivfPath ? 'ttc' : null;
   const mode: NavMode = forcedMode ?? navMode.mode ?? hinted ?? 'cycle';
-  const config = navConfig(mode);
+  const ivf = forcedMode ? Boolean(forcedIvf) : navMode.mode ? navMode.ivf : ivfPath;
+  const config = navConfig(mode, { ivf });
   const active = activeTabKey(config, pathname);
   const placeholderMode = pending && !hinted;
 

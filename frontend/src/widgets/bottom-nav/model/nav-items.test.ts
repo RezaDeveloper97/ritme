@@ -4,7 +4,7 @@ import { isNavRootPath } from '@/shared/config';
 
 import { activeTabKey, navConfig, resolveNavMode, type NavMode } from './nav-items';
 
-const READY = { postpartum: true, children: true, analysis: true };
+const READY = { postpartum: true, children: true, analysis: true, ivfMeds: false };
 const keys = (mode: NavMode, childIds?: string[], ready: Partial<typeof READY> = READY) => {
   const c = navConfig(mode, { childIds, ready });
   return [...c.before.map((t) => `${t.key}:${t.href}`), c.fab ? 'FAB' : null, ...c.after.map((t) => t.key)].filter(
@@ -61,6 +61,24 @@ describe('navConfig (nav.md per-mode table)', () => {
     expect(keys('menopause', undefined, { analysis: false })[1]).toBe('symptoms:/menopause/score');
     expect(activeTabKey(navConfig('menopause'), '/menopause/score')).toBe('symptoms');
     expect(activeTabKey(navConfig('menopause'), '/analysis/symptoms')).toBe('symptoms');
+  });
+
+  it('IVF sub-mode (CB-IVF-02): ttc + ivf → امروز /ivf and «درمان»; off → plain ttc', () => {
+    const ivf = navConfig('ttc', { ivf: true });
+    expect([...ivf.before, ...ivf.after].map((t) => `${t.key}:${t.href}`)).toEqual([
+      'today:/ivf',
+      'treatment:/ivf#ivf-doses',
+      'services:/services',
+      'me:/profile',
+    ]);
+    expect(ivf.before[1]?.icon).toBe('treatment');
+    expect(navConfig('ttc', { ivf: true, ready: { ivfMeds: true } }).before[1]?.href).toBe('/ivf/meds');
+    expect(keys('ttc')).toEqual(['today:/home', 'fertility:/calendar', 'FAB', 'services', 'me']);
+    // The flag only means something for ttc.
+    expect(navConfig('cycle', { ivf: true }).before.map((t) => t.key)).toEqual(['today', 'calendar']);
+    expect(activeTabKey(ivf, '/ivf')).toBe('today');
+    expect(activeTabKey(navConfig('ttc', { ivf: true, ready: { ivfMeds: true } }), '/ivf/meds')).toBe('treatment');
+    expect(activeTabKey(ivf, '/ivf/scan')).toBe('treatment');
   });
 
   it('companion has no mode tab and no FAB', () => {

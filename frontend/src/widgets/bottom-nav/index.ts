@@ -4,6 +4,7 @@ export { LogSheet, LogSheetTitle } from './ui/LogSheet';
 export { useNavMode, type NavModeState } from './model/use-nav-mode';
 export {
   activeTabKey,
+  IVF_TREATMENT_FALLBACK,
   modeTab,
   NAV_READY,
   navConfig,

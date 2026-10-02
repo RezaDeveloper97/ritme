@@ -3,7 +3,7 @@ id: CB-IVF-02
 title: Frontend: IVF home = stage tab 'درمان'
 epic: IVF
 type: frontend
-status: todo
+status: done
 depends_on: [CB-IVF-01, CB-CORE-02, B-N1-04]
 parallel_group: IVF-B
 touches: [frontend/src/screens/ivf, frontend/src/entities/ivf, frontend/messages/fa/ivf.json, frontend/messages/en/ivf.json, frontend/src/app/[locale]/ivf, frontend/src/app/message-scopes.ts, frontend/src/widgets/bottom-nav, frontend/src/screens/home]

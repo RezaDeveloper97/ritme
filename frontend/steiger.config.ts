@@ -295,4 +295,10 @@ export default defineConfig([
     files: ['./src/entities/teen/**', './src/widgets/teen-home/**'],
     rules: { 'fsd/insignificant-slice': 'off' },
   },
+  {
+    // CB-IVF-02: `entities/ivf` (the CB-IVF-01 API) is consumed by screens/ivf now and by the CB-IVF-03..05
+    // screens next — references FROM `screens` are invisible to steiger.
+    files: ['./src/entities/ivf/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
 ]);

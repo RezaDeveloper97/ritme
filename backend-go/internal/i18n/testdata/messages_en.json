@@ -2765,6 +2765,111 @@
     "modeChip": "Life stage: {mode}"
    }
   },
+  "ivf": {
+   "home": {
+    "eyebrow": "Fertility treatment",
+    "title": "IVF · {cycle}",
+    "titleBare": "IVF",
+    "cycle": "{n, selectordinal, one {#st cycle} two {#nd cycle} few {#rd cycle} other {#th cycle}}",
+    "loading": "Loading",
+    "loadError": "Your treatment couldn't be loaded.",
+    "retry": "Try again"
+   },
+   "timeline": {
+    "title": "Current stage",
+    "label": "Treatment stages",
+    "stageDay": "{stage} day {day}",
+    "state": {
+     "done": "done",
+     "current": "current stage",
+     "todo": "upcoming"
+    }
+   },
+   "stages": {
+    "prep": {
+     "title": "Preparation",
+     "hint": "Tests and a baseline scan",
+     "short": "Preparation"
+    },
+    "stim": {
+     "title": "Ovarian stimulation",
+     "hint": "Daily injections · about 10 to 12 days",
+     "short": "Stimulation"
+    },
+    "retrieval": {
+     "title": "Egg retrieval",
+     "hint": "As your clinic schedules it",
+     "short": "Retrieval"
+    },
+    "transfer": {
+     "title": "Embryo transfer",
+     "hint": "Your clinic sets the date",
+     "short": "Transfer"
+    },
+    "tww": {
+     "title": "Two-week wait",
+     "hint": "Keep taking your medicines as prescribed",
+     "short": "Wait"
+    },
+    "test": {
+     "title": "Pregnancy test",
+     "hint": "A beta blood test",
+     "short": "Test"
+    }
+   },
+   "doses": {
+    "title": "Today's injections",
+    "plan": "Schedule",
+    "empty": "No medicines are scheduled for today.",
+    "done": "Done",
+    "log": "Log",
+    "logLabel": "Log {name} at {time}",
+    "undoLabel": "{name} at {time} is done; tap to undo",
+    "meta": "{time} · {route}",
+    "metaDose": "{time} · {route} · {dose}",
+    "error": "Couldn't save. Please try again.",
+    "route": {
+     "subcutaneous": "Subcutaneous",
+     "intramuscular": "Intramuscular",
+     "oral": "Oral",
+     "vaginal": "Vaginal",
+     "other": "Other"
+    },
+    "unit": {
+     "iu": "{dose} IU",
+     "mg": "{dose} mg",
+     "mcg": "{dose} mcg",
+     "ml": "{dose} ml",
+     "other": "{dose} {unit}"
+    }
+   },
+   "next": {
+    "title": "Next appointment",
+    "today": "Today {time}",
+    "tomorrow": "Tomorrow {time}",
+    "date": "{date} · {time}",
+    "withPrep": "{when} · {prep}",
+    "open": "Appointment details: {title}"
+   },
+   "companion": {
+    "title": "Keep your companion in the loop",
+    "body": "Send injection and appointment reminders to them too",
+    "error": "Couldn't save the change. Please try again."
+   },
+   "actions": {
+    "scan": "Log scan result",
+    "tww": "Two-week wait"
+   },
+   "empty": {
+    "offTitle": "Fertility treatment tracking is off",
+    "offBody": "To see your treatment stages and injections, turn on “Fertility treatment (IVF/IUI)” in your life stage.",
+    "offCta": "Life stage",
+    "startTitle": "Follow your treatment cycle here",
+    "startBody": "Starting a cycle begins the stages at “Preparation”, and you can add your medicines and appointments.",
+    "startCta": "Start a treatment cycle",
+    "startError": "The cycle couldn't be started. Please try again."
+   }
+  },
   "log": {
    "title": "Daily log",
    "subtitle": "Record what you felt today so Ritme gets to know you better.",
@@ -4675,6 +4780,7 @@
    "profile": "Profile",
    "log": "Log",
    "fertility": "Fertility",
+   "treatment": "Treatment",
    "child": "Child",
    "symptoms": "Symptoms",
    "services": "Services",

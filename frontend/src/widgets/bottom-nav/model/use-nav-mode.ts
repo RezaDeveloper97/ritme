@@ -10,6 +10,11 @@ export interface NavModeState {
   /** `null` while unknown (loading, or both reads failed → callers treat it as `cycle`). */
   mode: NavMode | null;
   pending: boolean;
+  /**
+   * CB-IVF-02: a `ttc` user with bloom's «IVF/IUI» switch on — the IVF sub-mode
+   * nav (امروز → `/ivf`, «درمان»). Only the life-stage read knows it.
+   */
+  ivf: boolean;
 }
 
 /**
@@ -22,12 +27,17 @@ export function useNavMode(): NavModeState {
   const life = useLifeStage();
   const legacy = useUserMode();
   // B-N4-05: a male companion account gets the companion nav (امروز · خدمات · من, no FAB).
-  if (life.data?.companion) return { mode: 'companion', pending: false };
-  if (life.data) return { mode: resolveNavMode({ lifeMode: life.data.mode }), pending: false };
+  if (life.data?.companion) return { mode: 'companion', pending: false, ivf: false };
+  if (life.data) {
+    const mode = resolveNavMode({ lifeMode: life.data.mode });
+    return { mode, pending: false, ivf: mode === 'ttc' && life.data.ivfIui };
+  }
   const lifePending = life.isPending && life.fetchStatus !== 'idle';
   const legacyPending = legacy.isPending && legacy.fetchStatus !== 'idle';
-  if (lifePending) return { mode: null, pending: true };
-  if (getApiErrorCode(legacy.error) === 'companion_account') return { mode: 'companion', pending: false };
-  if (legacy.data) return { mode: resolveNavMode({ mode: legacy.data.mode, isTtc: legacy.data.isTtc }), pending: false };
-  return { mode: null, pending: legacyPending };
+  if (lifePending) return { mode: null, pending: true, ivf: false };
+  if (getApiErrorCode(legacy.error) === 'companion_account') return { mode: 'companion', pending: false, ivf: false };
+  if (legacy.data) {
+    return { mode: resolveNavMode({ mode: legacy.data.mode, isTtc: legacy.data.isTtc }), pending: false, ivf: false };
+  }
+  return { mode: null, pending: legacyPending, ivf: false };
 }

@@ -23,6 +23,7 @@ Implemented by **B-N1-04** (`frontend/src/widgets/bottom-nav`). Source artboards
 |---|---|---|---|---|---|
 | cycle | `/home` | تقویم → `/calendar` | `?sheet=log` (Log_Sheet_Cycle) | `/services` | `/profile` |
 | ttc | `/home` (TTC tiles) | باروری → `/calendar` (TTC variant) | `?sheet=log` (cycle sheet, TTC tiles) | `/services` | `/profile` |
+| ttc + «IVF/IUI» on *(canvas `nbl_IVF_Home`, CB-IVF-02)* | `/ivf` (`/home` redirects) | درمان (syringe) → `/ivf/meds` (CB-IVF-03; until then `/ivf#ivf-doses`) | `?sheet=log` (as ttc) | `/services` | `/profile` |
 | pregnancy | `/pregnancy` | بارداری → `/pregnancy/weeks` | `?sheet=log` (Log_Sheet_Preg) | `/services` | `/profile` |
 | postpartum | `/postpartum` | کودک → `/children/[id]` (1 child) or `/children` | `?sheet=log` (Log_Sheet_Post) | `/services` | `/profile` |
 | menopause *(no artboard)* | `/home` (menopause copy) | علائم → `/analysis/symptoms` | `?sheet=log` (cycle sheet, menopause tiles) | `/services` | `/profile` |

@@ -103,6 +103,7 @@ export const ROUTE_NAMESPACES = {
   postpartumSetup: ['common', 'logSheet', 'nav', 'plus', 'postpartum'], // B-N5-04 /postpartum/setup (same screen slice as /postpartum)
   postpartumRecovery: ['common', 'postpartum'], // B-N5-04 /postpartum/recovery (v15_Recovery, back header)
   postpartumMood: ['common', 'postpartum'], // B-N5-04 /postpartum/mood (v15_MoodCheck, EPDS + safety)
+  ivf: ['common', 'ivf', 'nav'], // CB-IVF-02 /ivf (nbl_IVF_Home, TTC IVF sub-mode home)
   analysis: ['analysis', 'common', 'nav', 'plus'], // B-N3-08 /analysis hub + /analysis/* stubs (one screen slice; PlusGate copy = plus.gate)
   analysisHub: ['analysis', 'analysisPregnancy', 'common', 'nav', 'plus'], // B-N3-12 /analysis itself: + the pregnancy hub (screens/analysis-pregnancy)
   analysisPregnancyWeight: ['analysisPregnancy', 'common', 'nav', 'plus'], // B-N3-12 /analysis/pregnancy-weight (An_PregWeight; the slice's hub cards carry plus.gate)

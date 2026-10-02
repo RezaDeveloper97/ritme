@@ -8886,3 +8886,55 @@ button.ch-log-row { width: 100%; background: none; border: 0; font-family: inher
 .tnh-parent-status { font-size: var(--fs-sm); font-weight: 700; color: var(--text-3); }
 @media (prefers-reduced-motion: reduce) { .tnh-faq-chev { transition: none; } }
 /* ═══ end CB-TEEN-02 ═══ */
+
+/* ═══ CB-IVF-02 — IVF home (nbl_IVF_Home) ═══ */
+.ivf-screen .scroll { position: relative; }
+.ivf-body { display: flex; flex-direction: column; gap: 18px; padding: 8px var(--gutter) 0; }
+.ivf-skel-timeline { min-block-size: 360px; }
+.ivf-hub { padding-block-start: 10px; }
+.ivf-hub .nb-hub-greeting { font-family: var(--font-display); font-size: 26px; font-weight: 400; line-height: 1.25; }
+.ivf-state { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px 16px; text-align: center; }
+.ivf-state-text { margin: 0; font-size: var(--fs-md); font-weight: 700; color: var(--text-2); }
+.ivf-error { margin: 0; font-size: var(--fs-sm); font-weight: 700; color: var(--danger-deep); }
+.ivf-muted { margin: 0; font-size: var(--fs-md); font-weight: 600; color: var(--text-2); }
+.ivf-section { display: flex; flex-direction: column; gap: 10px; scroll-margin-block-start: 16px; }
+
+/* Current stage card: title + «روز ۷ تحریک» chip, then the StepTimeline */
+.ivf-timeline { display: flex; flex-direction: column; gap: 6px; }
+.ivf-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-block-end: 4px; }
+.ivf-card-title { margin: 0; font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); }
+.ivf-day-chip {
+  display: inline-flex; align-items: center; height: 28px; padding: 0 12px; border-radius: var(--r-pill);
+  border: 1px solid var(--line-strong); background: var(--surface); font-size: var(--fs-sm); font-weight: 800;
+  color: var(--text-1); white-space: nowrap;
+}
+
+/* Today's injections: done = turquoise pill, to log = brand outline */
+.ivf-dose .nb-row-title { font-size: var(--fs-base); }
+.ivf-dose-btn {
+  flex-shrink: 0; min-inline-size: 64px; height: 36px; padding: 0 14px; border-radius: var(--r-pill);
+  border: 1.5px solid var(--brand); background: transparent; color: var(--brand-strong);
+  font-family: inherit; font-size: var(--fs-md); font-weight: 800; cursor: pointer;
+}
+.ivf-dose-btn.is-done {
+  border: 1px solid color-mix(in srgb, var(--data) 45%, transparent);
+  background: var(--data-soft); color: var(--data-deep);
+}
+.ivf-dose-btn:disabled { cursor: progress; opacity: 0.7; }
+.ivf-dose-btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.ivf-empty-line { padding: 16px; }
+
+.ivf-next .nb-row.is-action { inline-size: 100%; }
+.ivf-companion .nb-row-desc { line-height: var(--lh-body); }
+.ivf-companion .ivf-error { margin-block-start: 8px; }
+
+/* Scan result / two-week wait (shown once CB-IVF-04/05 routes exist) */
+.ivf-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ivf-action {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 52px; padding: 0 12px;
+  border-radius: var(--r-pill); border: 1px solid var(--line); background: var(--surface);
+  font-size: var(--fs-base); font-weight: 800; color: var(--text-1); text-decoration: none;
+}
+.ivf-action svg { color: var(--brand); }
+.ivf-action:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+/* ═══ end CB-IVF-02 ═══ */

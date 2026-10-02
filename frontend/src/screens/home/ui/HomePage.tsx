@@ -1245,6 +1245,8 @@ export function HomePage() {
   // B-N4-05 (N2 stage bug B-1): a male companion account has no cycle home —
   // `/home*` answers 409 `companion_account` — so it goes to the companion panel.
   const companion = Boolean(life.data?.companion) || getApiErrorCode(legacy.error) === 'companion_account';
+  // CB-IVF-02: TTC with bloom's «IVF/IUI» switch on → the IVF home is «امروز».
+  const ivf = fresh === 'ttc' && Boolean(life.data?.ivfIui);
 
   useEffect(() => {
     if (companion) {
@@ -1255,10 +1257,11 @@ export function HomePage() {
     if (fresh === 'pregnancy') router.replace('/pregnancy');
     // B-N5-04 (N3 stage bug B-4): postpartum has its own home — never the cycle home.
     if (fresh === 'postpartum') router.replace('/postpartum');
-  }, [companion, fresh, router]);
+    if (ivf) router.replace('/ivf');
+  }, [companion, fresh, ivf, router]);
 
-  // Server pass, first client render, and the pregnancy / postpartum / companion hand-off: backdrop only.
-  if (!mounted || mode === 'pregnancy' || mode === 'postpartum' || companion) {
+  // Server pass, first client render, and the pregnancy / postpartum / IVF / companion hand-off: backdrop only.
+  if (!mounted || mode === 'pregnancy' || mode === 'postpartum' || ivf || companion) {
     return (
       <div className="view">
         <div className="home-grad home-grad-fill" />
