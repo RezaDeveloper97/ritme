@@ -8591,3 +8591,42 @@ button.ch-log-row { width: 100%; background: none; border: 0; font-family: inher
 .cmh-confirm-actions { display: flex; flex-direction: column; gap: 6px; }
 .cmh-confirm-body { margin: 0; font-size: var(--fs-base); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); text-align: start; }
 /* ═══ end B-N4-05 ═══ */
+
+/* ═══ B-N4-06 — «ثبت برای چه کسی؟» (nbl_/nbd_Hamdam_RecordFor) ═══ */
+.rcf-body { display: flex; flex-direction: column; gap: 14px; padding-block-end: 4px; }
+.rcf-options { gap: 12px; }
+.rcf-option { min-block-size: 76px; }
+.rcf-option .cmp-bubble { inline-size: 42px; block-size: 42px; }
+.rcf-note.nb-note {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); padding: 14px 16px;
+  font-size: var(--fs-sm); line-height: 1.9; color: var(--text-2);
+}
+.rcf-error {
+  margin: 0; display: flex; align-items: center; gap: 8px; font-size: var(--fs-md); font-weight: 700;
+  line-height: var(--lh-body); color: var(--danger-deep); text-align: start;
+}
+.rcf-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; min-block-size: 68px; }
+.rcf-row-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; text-align: start; }
+.rcf-row-label { font-size: var(--fs-sm); font-weight: 700; color: var(--text-2); }
+.rcf-row-name { font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rcf-change {
+  flex-shrink: 0; min-block-size: 44px; min-inline-size: 64px; padding: 0 16px; border-radius: var(--r-pill);
+  border: 1px solid var(--line-strong); background: var(--surface); font-family: inherit; font-size: 13px;
+  font-weight: 800; color: var(--brand-strong); cursor: pointer;
+}
+.rcf-change:focus-visible, .cmh-add:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.rcf-done { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 28px 20px 20px; text-align: center; }
+.rcf-done-icon {
+  display: inline-flex; align-items: center; justify-content: center; inline-size: 60px; block-size: 60px;
+  border-radius: 50%; background: var(--success-soft); color: var(--success);
+}
+.rcf-done-title { margin: 0; font-size: var(--fs-xl); font-weight: 800; color: var(--text-1); }
+.rcf-done-body { margin: 0 0 6px; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+
+/* Companion home: «افزودن برای سارا» under a shared section with edit */
+.cmh-shared-add { display: flex; padding-block: 0 10px; padding-inline-start: 52px; }
+.cmh-add {
+  display: inline-flex; align-items: center; gap: 6px; min-block-size: 44px; padding: 0 14px; border-radius: var(--r-pill);
+  background: var(--brand-soft); color: var(--brand-ink); font-size: 12.5px; font-weight: 800; text-decoration: none;
+}
+/* ═══ end B-N4-06 ═══ */

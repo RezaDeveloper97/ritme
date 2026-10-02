@@ -6,16 +6,17 @@ import { RouteMessages } from '../../../../RouteMessages';
 
 interface Props {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ from?: string }>;
+  // `for`: the owner a companion records for / whose record this is (B-N4-06).
+  searchParams: Promise<{ from?: string; for?: string }>;
 }
 
 export default async function NewMedicationRoute({ params, searchParams }: Props) {
   const { locale } = await params;
-  const { from } = await searchParams;
+  const { from, for: forParam } = await searchParams;
   setRequestLocale(locale);
   return (
-    <RouteMessages route="reminders">
-      <MedicationFormPage from={from} />
+    <RouteMessages route="reminderForm">
+      <MedicationFormPage from={from} forParam={forParam} />
     </RouteMessages>
   );
 }

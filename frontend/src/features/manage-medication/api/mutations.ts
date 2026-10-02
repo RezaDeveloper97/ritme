@@ -6,7 +6,7 @@ import { type ApiEnvelope, apiClient } from '@/shared/api';
 import { careKeys, type Medication, medicationSchema } from '@/entities/care-reminder';
 import { reminderKeys } from '@/entities/reminder';
 
-import { type MedicationInput, type MedicationPatch, toMedicationBody } from '../model/body';
+import { type MedicationInput, type MedicationPatch, toMedicationBody, withForUser } from '../model/body';
 
 /*
  * Create / update / delete / switch a medication reminder (v13_AddMedication,
@@ -24,14 +24,19 @@ function invalidate(queryClient: QueryClient, id?: number): void {
   void queryClient.invalidateQueries({ queryKey: reminderKeys.all });
 }
 
-/** POST /care/medications → 201. */
+/** «ثبت برای …» (B-N4-06): the owner a companion with edit records for; omitted = own record. */
+export interface ForUser {
+  forUserId?: number | null;
+}
+
+/** POST /care/medications → 201 (`forUserId`: into that owner's list, edit grant required, else 403). */
 export function useCreateMedication() {
   const queryClient = useQueryClient();
-  return useMutation<Medication, unknown, MedicationInput>({
-    mutationFn: async (input) => {
+  return useMutation<Medication, unknown, MedicationInput & ForUser>({
+    mutationFn: async ({ forUserId, ...input }) => {
       const { data } = await apiClient.post<ApiEnvelope<unknown>>(
         '/care/medications',
-        toMedicationBody(input),
+        withForUser(toMedicationBody(input), forUserId),
       );
       return medicationSchema.parse(data.data);
     },
@@ -39,19 +44,19 @@ export function useCreateMedication() {
   });
 }
 
-export interface UpdateMedicationVars {
+export interface UpdateMedicationVars extends ForUser {
   id: number;
   patch: MedicationPatch;
 }
 
-/** PUT /care/medications/{id} — partial. */
+/** PUT /care/medications/{id} — partial (`forUserId`: the owner's record, edit grant required). */
 export function useUpdateMedication() {
   const queryClient = useQueryClient();
   return useMutation<Medication, unknown, UpdateMedicationVars>({
-    mutationFn: async ({ id, patch }) => {
+    mutationFn: async ({ id, patch, forUserId }) => {
       const { data } = await apiClient.put<ApiEnvelope<unknown>>(
         `/care/medications/${id}`,
-        toMedicationBody(patch),
+        withForUser(toMedicationBody(patch), forUserId),
       );
       return medicationSchema.parse(data.data);
     },

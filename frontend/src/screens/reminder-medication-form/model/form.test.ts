@@ -145,6 +145,8 @@ describe('navigation + durations', () => {
   it('returns to the origin', () => {
     expect(returnHref('home')).toBe('/home');
     expect(returnHref(undefined)).toBe('/reminders');
+    expect(returnHref('companion')).toBe('/companion');
+    expect(returnHref('https://evil.example')).toBe('/reminders');
   });
 
   it('offers «until end of pregnancy» only in pregnancy mode', () => {

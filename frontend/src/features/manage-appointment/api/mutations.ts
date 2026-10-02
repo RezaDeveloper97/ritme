@@ -11,6 +11,7 @@ import {
   type AppointmentPatch,
   setPrepItemDone,
   toAppointmentBody,
+  withForUser,
 } from '../model/body';
 
 /*
@@ -29,14 +30,19 @@ function invalidate(queryClient: QueryClient, id?: number): void {
   void queryClient.invalidateQueries({ queryKey: reminderKeys.all });
 }
 
-/** POST /care/appointments → 201. */
+/** «ثبت برای …» (B-N4-06): the owner a companion with edit records for; omitted = own record. */
+export interface ForUser {
+  forUserId?: number | null;
+}
+
+/** POST /care/appointments → 201 (`forUserId`: into that owner's list, edit grant required, else 403). */
 export function useCreateAppointment() {
   const queryClient = useQueryClient();
-  return useMutation<Appointment, unknown, AppointmentInput>({
-    mutationFn: async (input) => {
+  return useMutation<Appointment, unknown, AppointmentInput & ForUser>({
+    mutationFn: async ({ forUserId, ...input }) => {
       const { data } = await apiClient.post<ApiEnvelope<unknown>>(
         '/care/appointments',
-        toAppointmentBody(input),
+        withForUser(toAppointmentBody(input), forUserId),
       );
       return appointmentSchema.parse(data.data);
     },
@@ -44,19 +50,19 @@ export function useCreateAppointment() {
   });
 }
 
-export interface UpdateAppointmentVars {
+export interface UpdateAppointmentVars extends ForUser {
   id: number;
   patch: AppointmentPatch;
 }
 
-/** PUT /care/appointments/{id} — partial (also the reminder switch: `{isActive}`). */
+/** PUT /care/appointments/{id} — partial (also the reminder switch: `{isActive}`; `forUserId`: the owner's record). */
 export function useUpdateAppointment() {
   const queryClient = useQueryClient();
   return useMutation<Appointment, unknown, UpdateAppointmentVars>({
-    mutationFn: async ({ id, patch }) => {
+    mutationFn: async ({ id, patch, forUserId }) => {
       const { data } = await apiClient.put<ApiEnvelope<unknown>>(
         `/care/appointments/${id}`,
-        toAppointmentBody(patch),
+        withForUser(toAppointmentBody(patch), forUserId),
       );
       return appointmentSchema.parse(data.data);
     },

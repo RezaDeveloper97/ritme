@@ -48,3 +48,11 @@ export function toMedicationBody(input: MedicationPatch): Record<string, unknown
   if (input.isActive !== undefined) body.is_active = input.isActive;
   return body;
 }
+
+/**
+ * «ثبت برای …» (B-N4-06): names the owner a companion with edit records for
+ * (`for_user_id`, B-N4-02). null/undefined = the viewer's own record, body unchanged.
+ */
+export function withForUser(body: Record<string, unknown>, forUserId: number | null | undefined): Record<string, unknown> {
+  return forUserId ? { ...body, for_user_id: forUserId } : body;
+}

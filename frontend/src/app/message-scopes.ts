@@ -84,6 +84,7 @@ export const ROUTE_NAMESPACES = {
   pregnancyOnboarding: ['common', 'pregnancy', 'pregnancyV2', 'profileEdit'],
   pregnancySetup: ['common', 'pregnancy', 'pregnancyV2', 'profileEdit'],
   reminders: ['care', 'common'],
+  reminderForm: ['care', 'common', 'companions'], // B-N4-06 medication / appointment forms: «ثبت برای چه کسی؟» (entities/companion barrel)
   checkups: ['checkups', 'common'],
   contraception: ['common', 'contraception'], // CB-CONTRA-02 /contraception (pill pack)
   contraceptionSetup: ['common', 'contraception'], // CB-CONTRA-02 /contraception/setup

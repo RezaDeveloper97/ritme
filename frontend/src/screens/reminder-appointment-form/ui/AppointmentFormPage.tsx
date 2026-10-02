@@ -12,10 +12,18 @@ import {
   REMIND_BEFORE,
   type Appointment,
   type AppointmentKind,
-  useAppointment,
 } from '@/entities/care-reminder';
+import {
+  isCompanionForbidden,
+  parseForUserId,
+  RecordedFor,
+  RecordForRow,
+  RecordForSheet,
+  useRecordFor,
+} from '@/entities/companion';
 import { pregnancyKeys } from '@/entities/pregnancy';
-import { useCreateAppointment, useUpdateAppointment } from '@/features/manage-appointment';
+import { useCurrentUser } from '@/entities/user';
+import { useAppointmentFor, useCreateAppointment, useUpdateAppointment } from '@/features/manage-appointment';
 import { getApiErrorStatus, getApiSaveErrorMessage } from '@/shared/api';
 import { type Locale, useRouter } from '@/shared/i18n';
 import {
@@ -71,34 +79,70 @@ interface Props {
   id?: number;
 }
 
+/** Where a companion goes back to (`?from=companion`, B-N4-06), else null. */
+function companionReturn(from: string | null): '/companion' | null {
+  return from === 'companion' ? '/companion' : null;
+}
+
 /**
  * Add / edit appointment (`v13_AddAppointment`): kind, who, specialty, topic,
  * short description, date + time (locale calendar), place, remind-before,
  * add-to-calendar and the prep list (one line = one checklist item).
  *
+ * «ثبت برای چه کسی؟» (B-N4-06, Hamdam_RecordFor): a companion with edit on an
+ * owner's appointments picks «خودم» or her before saving a new visit (`?for=`
+ * preselects her); `/reminders/appointment/[id]/edit?for=<ownerId>` edits her
+ * record (`for_user_id`). The prep list and care-plan link stay owner-only.
+ *
  * Privacy (§11): nothing typed here is logged; it goes to `/care/appointments` only.
  */
 export function AppointmentFormPage({ prefill, id }: Props) {
-  const existing = useAppointment(id ?? null);
+  const searchParams = useSearchParams();
+  const forUserId = parseForUserId(searchParams.get('for'));
+  const existing = useAppointmentFor(id ?? null, id === undefined ? null : forUserId);
   if (id !== undefined && !existing.data) {
-    return <FormShell id={id} status={existing.isError ? 'error' : 'loading'} onRetry={() => void existing.refetch()} />;
+    const forbidden = forUserId !== null && isCompanionForbidden(existing.error);
+    const backHref =
+      forUserId !== null
+        ? (companionReturn(searchParams.get('from')) ?? '/reminders?tab=appointments')
+        : `/reminders/appointment/${id}`;
+    return (
+      <FormShell
+        backHref={backHref}
+        status={existing.isError ? (forbidden ? 'forbidden' : 'error') : 'loading'}
+        onRetry={() => void existing.refetch()}
+      />
+    );
   }
-  return <AppointmentForm key={id ?? 'new'} prefill={prefill} existing={existing.data ?? null} />;
+  return <AppointmentForm key={id ?? 'new'} prefill={prefill} existing={existing.data ?? null} forUserId={forUserId} />;
 }
 
-function FormShell({ id, status, onRetry }: { id: number; status: 'loading' | 'error'; onRetry: () => void }) {
+function FormShell({
+  backHref,
+  status,
+  onRetry,
+}: {
+  backHref: string;
+  status: 'loading' | 'error' | 'forbidden';
+  onRetry: () => void;
+}) {
   const t = useTranslations('care');
+  const tr = useTranslations('companions.recordFor');
   return (
     <div className="view rmd-page">
       <div className="scroll rmd-screen">
         <SkyLayer />
-        <FormHeader title={t('appointmentForm.editTitle')} backHref={`/reminders/appointment/${id}`} />
+        <FormHeader title={t('appointmentForm.editTitle')} backHref={backHref} />
         <div className="rmd-body">
           {status === 'loading' ? (
             <SkeletonGroup label={t('loading')} className="rmd-form-skel">
               <Skeleton shape="card" />
               <Skeleton shape="card" />
             </SkeletonGroup>
+          ) : status === 'forbidden' ? (
+            <div className="rmd-state">
+              <p className="rmd-empty">{tr('forbidden')}</p>
+            </div>
           ) : (
             <div className="rmd-state">
               <p className="rmd-empty">{t('loadError')}</p>
@@ -119,15 +163,32 @@ function FormHeader({ title, backHref, sub }: { title: string; backHref: string;
   return <ScreenHeader title={title} subtitle={sub} onBack={() => router.push(backHref)} backLabel={t('back')} />;
 }
 
-function AppointmentForm({ prefill, existing }: { prefill?: AppointmentPrefill; existing: Appointment | null }) {
+function AppointmentForm({
+  prefill,
+  existing,
+  forUserId,
+}: {
+  prefill?: AppointmentPrefill;
+  existing: Appointment | null;
+  /** `?for=`: preselected owner (new) or the owner whose record this is (edit). */
+  forUserId: number | null;
+}) {
   const t = useTranslations('care.appointmentForm');
   const tc = useTranslations('care');
+  const tr = useTranslations('companions.recordFor');
   const locale = useLocale() as Locale;
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const create = useCreateAppointment();
   const update = useUpdateAppointment();
+  // Editing an owner's record: the target is fixed to her (no picker, no prep list).
+  const delegatedEdit = existing !== null && forUserId !== null;
+  const recordFor = useRecordFor('appointments', forUserId, delegatedEdit);
+  const selfName = useCurrentUser().data?.name ?? null;
+  const [recordSheet, setRecordSheet] = useState(false);
+  const [savedFor, setSavedFor] = useState<{ name: string | null } | null>(null);
+  const forOwner = delegatedEdit || (!existing && recordFor.target !== null);
 
   const [form, setForm] = useState<AppointmentFormState>(() =>
     existing ? formFromAppointment(existing) : formFromPrefill(prefill ?? {}, isoDay(new Date())),
@@ -167,6 +228,7 @@ function AppointmentForm({ prefill, existing }: { prefill?: AppointmentPrefill; 
 
   // `?return_to=` (allow-listed) or a care-plan booking → back to that screen after saving (9b).
   const returnTo = returnPathFor(searchParams.get('return_to'), !existing, form.careItemKey);
+  const companionBack = companionReturn(searchParams.get('from'));
   const pending = create.isPending || update.isPending;
   const dateParts = form.date ? toParts(fromApiDate(form.date), locale) : null;
   const placeLabel =
@@ -178,13 +240,21 @@ function AppointmentForm({ prefill, existing }: { prefill?: AppointmentPrefill; 
         ? t('placePhonePlaceholder')
         : t('placePlaceholder');
 
-  const submit = () => {
+  const submit = (confirmed = false) => {
     const problem = validateForm(form);
     if (problem) {
       setError(problem);
+      setRecordSheet(false);
       return;
     }
     setSaveError(null);
+    // A new visit with someone to record for: ask «برای چه کسی؟» first; the
+    // sheet's CTA comes back here confirmed.
+    if (!existing && recordFor.showPicker && !confirmed) {
+      setRecordSheet(true);
+      return;
+    }
+    const target = delegatedEdit ? forUserId : existing ? null : recordFor.target;
     const input = {
       kind: form.kind,
       withWhom: form.withWhom,
@@ -202,15 +272,30 @@ function AppointmentForm({ prefill, existing }: { prefill?: AppointmentPrefill; 
     };
     // A per-user cap (422 limit_reached) or the write limit (429) shows the server's
     // localized message; a 429 without one still says «wait a moment», not «couldn't save».
-    const onError = (error: unknown) =>
+    const onError = (error: unknown) => {
+      // The owner revoked the grant meanwhile: say so and refresh the links.
+      if (target && isCompanionForbidden(error)) {
+        recordFor.onRevoked();
+        setRecordSheet(false);
+        setSaveError(tr('revoked'));
+        return;
+      }
       setSaveError(
         getApiSaveErrorMessage(
           error,
           getApiErrorStatus(error) === 429 ? tc('tooManyRequests') : tc('saveError'),
         ),
       );
+    };
     const done = (detailHref: string) => {
       clearHandoff();
+      // An owner's visit: «برای سارا ثبت شد» — her detail page is hers, not ours.
+      if (target) {
+        recordFor.onSaved();
+        setRecordSheet(false);
+        setSavedFor({ name: recordFor.chosen?.name ?? null });
+        return;
+      }
       if (!returnTo) return router.push(detailHref);
       // The calendar and Today show this visit (booked care-plan state, next visit).
       void queryClient.invalidateQueries({ queryKey: pregnancyKeys.v2.calendarAll() });
@@ -219,26 +304,46 @@ function AppointmentForm({ prefill, existing }: { prefill?: AppointmentPrefill; 
     };
     if (existing) {
       update.mutate(
-        { id: existing.id, patch: input },
+        { id: existing.id, patch: input, forUserId: target },
         { onSuccess: () => done(`/reminders/appointment/${existing.id}`), onError },
       );
     } else {
-      create.mutate(input, {
+      create.mutate({ ...input, forUserId: target }, {
         onSuccess: (created) => done(`/reminders/appointment/${created.id}`),
         onError,
       });
     }
   };
 
+  const backHref =
+    companionBack ??
+    returnTo ??
+    (existing && !delegatedEdit ? `/reminders/appointment/${existing.id}` : '/reminders?tab=appointments');
+
+  if (savedFor) {
+    return (
+      <div className="view rmd-page">
+        <div className="scroll rmd-screen">
+          <SkyLayer />
+          <FormHeader title={existing ? t('editTitle') : t('title')} sub={t('subtitle')} backHref={backHref} />
+          <div className="rmd-body">
+            <RecordedFor
+              section="appointments"
+              name={savedFor.name}
+              onDone={() => router.push(backHref)}
+              doneLabel={companionBack ? tr('backToCompanion') : tr('back')}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="view rmd-page">
       <div className="scroll rmd-screen">
         <SkyLayer />
-        <FormHeader
-          title={existing ? t('editTitle') : t('title')}
-          sub={t('subtitle')}
-          backHref={returnTo ?? (existing ? `/reminders/appointment/${existing.id}` : '/reminders?tab=appointments')}
-        />
+        <FormHeader title={existing ? t('editTitle') : t('title')} sub={t('subtitle')} backHref={backHref} />
 
         <form
           className="rmd-body"
@@ -248,6 +353,20 @@ function AppointmentForm({ prefill, existing }: { prefill?: AppointmentPrefill; 
             submit();
           }}
         >
+          {delegatedEdit ? (
+            <RecordForRow section="appointments" target={recordFor.chosen} selfName={selfName} />
+          ) : recordFor.showPicker && !existing ? (
+            <RecordForRow
+              section="appointments"
+              target={recordFor.chosen}
+              selfName={selfName}
+              onChange={() => setRecordSheet(true)}
+            />
+          ) : null}
+          {delegatedEdit && !recordFor.canEdit && (
+            <p className="cfm-error is-center" role="alert">{tr('viewOnly')}</p>
+          )}
+
           <div className="cfm-kinds" role="radiogroup" aria-label={t('subtitle')}>
             {APPOINTMENT_KINDS.map((kind) => (
               <button
@@ -408,27 +527,45 @@ function AppointmentForm({ prefill, existing }: { prefill?: AppointmentPrefill; 
                 onCheckedChange={(next) => set('addToCalendar', next)}
               />
             </div>
-            <label className="cfm-group">
-              <span className="cfm-label">{t('prep')}</span>
-              <textarea
-                className="cfm-textarea"
-                rows={3}
-                value={form.prepText}
-                placeholder={t('prepPlaceholder')}
-                aria-describedby="apf-prep-hint"
-                onChange={(e) => set('prepText', e.target.value)}
-              />
-              <span className="cfm-caption" id="apf-prep-hint">{t('prepHint')}</span>
-            </label>
+            {/* The prep checklist stays the owner's own (B-N4-02). */}
+            {!forOwner && (
+              <label className="cfm-group">
+                <span className="cfm-label">{t('prep')}</span>
+                <textarea
+                  className="cfm-textarea"
+                  rows={3}
+                  value={form.prepText}
+                  placeholder={t('prepPlaceholder')}
+                  aria-describedby="apf-prep-hint"
+                  onChange={(e) => set('prepText', e.target.value)}
+                />
+                <span className="cfm-caption" id="apf-prep-hint">{t('prepHint')}</span>
+              </label>
+            )}
           </section>
 
           {saveError && <p className="cfm-error is-center" role="alert">{saveError}</p>}
 
-          <PrimaryButton type="submit" loading={pending}>
+          <PrimaryButton type="submit" loading={pending} disabled={delegatedEdit && !recordFor.canEdit}>
             {pending ? t('saving') : t('save')}
           </PrimaryButton>
         </form>
       </div>
+
+      {recordFor.showPicker && !existing && (
+        <RecordForSheet
+          open={recordSheet}
+          onClose={() => setRecordSheet(false)}
+          section="appointments"
+          targets={recordFor.targets}
+          selfName={selfName}
+          value={recordFor.target}
+          onChange={recordFor.setTarget}
+          onConfirm={() => submit(true)}
+          pending={pending}
+          error={saveError}
+        />
+      )}
 
       <AppSheet
         open={picker === 'date'}

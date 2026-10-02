@@ -70,3 +70,16 @@ export {
 } from './model/companion-side';
 export { CompanionCodeField } from './ui/CompanionCodeField';
 export { appInviteUrl, shareAppInvite, type InviteShareOutcome } from './lib/share-invite';
+// B-N4-06: «ثبت برای چه کسی؟» — who a companion with edit may record meds / appointments for.
+export {
+  canRecordFor,
+  initialRecordTarget,
+  isCompanionForbidden,
+  parseForUserId,
+  recordTargets,
+  showRecordForPicker,
+  type RecordSection,
+  type RecordTarget,
+} from './lib/record-for';
+export { RecordedFor, RecordForRow, RecordForSheet } from './ui/RecordForSheet';
+export { type RecordForState, useRecordFor } from './api/record-for';

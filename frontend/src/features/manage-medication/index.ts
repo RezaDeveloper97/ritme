@@ -6,5 +6,8 @@ export {
   useUpdateMedication,
   type ToggleMedicationVars,
   type UpdateMedicationVars,
+  type ForUser,
 } from './api/mutations';
-export { toMedicationBody, type MedicationInput, type MedicationPatch } from './model/body';
+export { toMedicationBody, withForUser, type MedicationInput, type MedicationPatch } from './model/body';
+// B-N4-06: an owner's record opened by a companion (`?for=` → `for_user_id`).
+export { delegatedMedicationKeys, fetchMedicationFor, useMedicationFor } from './api/queries';

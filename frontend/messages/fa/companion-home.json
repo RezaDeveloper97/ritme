@@ -62,7 +62,9 @@
       "meds": "داروها",
       "appointments": "نوبت‌ها",
       "pregnancy": "بارداری"
-    }
+    },
+    "addMed": "افزودن دارو برای {name}",
+    "addAppointment": "افزودن نوبت برای {name}"
   },
   "tips": {
     "title": "امروز چه کار کنی؟",

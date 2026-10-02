@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { setPrepItemDone, toAppointmentBody } from './body';
+import { setPrepItemDone, toAppointmentBody, withForUser } from './body';
 
 describe('toAppointmentBody', () => {
   it('serialises the form in the README meta shape', () => {
@@ -64,5 +64,32 @@ describe('toAppointmentBody — pregnancy fields', () => {
     });
     expect(toAppointmentBody({ careItemKey: '', resultNote: '' })).toEqual({ care_item_key: null, result_note: null });
     expect(toAppointmentBody({ stage: 'done' })).toEqual({ stage: 'done' });
+  });
+});
+
+describe('withForUser (B-N4-06)', () => {
+  const body = toAppointmentBody({
+    kind: 'in_person',
+    withWhom: 'دکتر',
+    topic: 'checkup',
+    date: '2026-10-10',
+    time: '10:00',
+    remindBefore: '1d',
+    addToCalendar: false,
+    prep: [{ id: 'a', text: 'آزمایش', done: false }],
+    careItemKey: 'nt_scan',
+  });
+
+  it('names the owner and drops the owner-only prep list and care-plan link', () => {
+    const out = withForUser(body, 7);
+    expect(out.for_user_id).toBe(7);
+    expect(out).not.toHaveProperty('prep');
+    expect(out).not.toHaveProperty('care_item_key');
+    expect(out.with).toBe('دکتر');
+  });
+
+  it('leaves an own record untouched', () => {
+    expect(withForUser(body, null)).toBe(body);
+    expect(body).toHaveProperty('prep');
   });
 });

@@ -17,7 +17,7 @@ export default async function NewAppointmentRoute({ params, searchParams }: Prop
   const { kind } = await searchParams;
   setRequestLocale(locale);
   return (
-    <RouteMessages route="reminders">
+    <RouteMessages route="reminderForm">
       <AppointmentFormPage prefill={{ kind }} />
     </RouteMessages>
   );

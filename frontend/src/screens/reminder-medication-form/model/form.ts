@@ -301,8 +301,11 @@ export function mapServerErrors(body: unknown): { fields: FieldErrors; unknown: 
 // ── Navigation ───────────────────────────────────────────────────
 
 /** Where save/delete return to: the home card or the reminders hub (default). */
-export function returnHref(from: string | undefined): '/home' | '/reminders' {
-  return from === 'home' ? '/home' : '/reminders';
+export function returnHref(from: string | undefined): '/home' | '/reminders' | '/companion' {
+  if (from === 'home') return '/home';
+  // B-N4-06: «افزودن برای …» on the companion panel home.
+  if (from === 'companion') return '/companion';
+  return '/reminders';
 }
 
 /** Durations offered: «تا پایان بارداری» only in pregnancy mode (or if already stored). */

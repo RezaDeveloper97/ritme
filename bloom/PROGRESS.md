@@ -739,3 +739,13 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   0 fail; no 5xx / console errors. Report `docs/qa/bloom/n3-stage.md`, shots `docs/qa/bloom/n3-stage/`.
 - Bugs: B-1 (high, past-day bleeding splits periods), B-2/B-3 (medium), B-5..B-9 (low) → new task B-N3-14b;
   B-4 (postpartum home shows cycle home) → B-N5-04 scope.
+
+## B-N4-06 — «ثبت برای چه کسی؟» in medication and appointment forms
+
+- `entities/companion` record-for logic (`recordTargets`, `showRecordForPicker`, `canRecordFor`, `useRecordFor`,
+  `RecordForSheet` / `RecordForRow` / `RecordedFor`) + tests; manage-medication/appointment mutations take
+  `forUserId` (prep and care_item_key stripped for owner records), `useMedicationFor` / `useAppointmentFor` show via
+  `?for_user_id=`. Forms: picker only with edit on that section, `?for=` preselect, delegated edit hides delete/prep,
+  view-only message, 403 → back to self + refetch links, «برای {name} ثبت شد» panel; companion home «افزودن … برای
+  {name}» entries. Scope `reminderForm`.
+- Screenshots `docs/qa/bloom/B-N4-06/`. Appointment detail page doesn't support delegation (success panel instead).

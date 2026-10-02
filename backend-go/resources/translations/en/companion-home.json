@@ -62,7 +62,9 @@
       "meds": "Medications",
       "appointments": "Appointments",
       "pregnancy": "Pregnancy"
-    }
+    },
+    "addMed": "Add a medication for {name}",
+    "addAppointment": "Add an appointment for {name}"
   },
   "tips": {
     "title": "What can you do today?",

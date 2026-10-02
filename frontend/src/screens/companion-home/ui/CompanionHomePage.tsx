@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 import {
+  canRecordFor,
   COMPANION_SECTIONS,
   type CompanionArticle,
   type CompanionPartner,
@@ -14,7 +15,7 @@ import {
 } from '@/entities/companion';
 import { useLifeStage } from '@/entities/user';
 import { getApiErrorStatus } from '@/shared/api';
-import { type Locale, useRouter } from '@/shared/i18n';
+import { Link, type Locale, useRouter } from '@/shared/i18n';
 import { formatDayMonth, formatNumber, formatWeekday, fromApiDate } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
 import { openSheet } from '@/shared/sheet';
@@ -162,10 +163,23 @@ function SharedRow({ icon, tone, title, sub, level, t }: { icon: IconName; tone:
   );
 }
 
+/** «افزودن برای سارا» (B-N4-06): opens the form with her preselected in «برای چه کسی؟». */
+function AddForRow({ href, label }: { href: string; label: string }) {
+  return (
+    <li className="cmh-shared-add">
+      <Link href={href} className="cmh-add">
+        <Icon name="plus" size={16} strokeWidth={2.2} />
+        {label}
+      </Link>
+    </li>
+  );
+}
+
 function SharedSection({ partner, name, t, locale }: { partner: CompanionPartner; name: string; t: T; locale: Locale }) {
   const grants = partner.link.grants;
   const level = (s: CompanionSection) => (grants[s] === 'edit' ? 'edit' : 'view') as 'view' | 'edit';
   const rows: React.ReactNode[] = [];
+  const ownerId = partner.link.owner.id;
 
   if (partner.meds) {
     const first = partner.meds[0];
@@ -177,6 +191,11 @@ function SharedSection({ partner, name, t, locale }: { partner: CompanionPartner
           ? t('shared.line', { title: first.title, when: clock(first.times[0], locale) })
           : first.title;
     rows.push(<SharedRow key="meds" icon="pill" tone="data" title={t('shared.meds', { name })} sub={sub} level={level('meds')} t={t} />);
+    if (canRecordFor(partner.link, 'meds')) {
+      rows.push(
+        <AddForRow key="meds-add" href={`/reminders/medication/new?for=${ownerId}&from=companion`} label={t('shared.addMed', { name })} />,
+      );
+    }
   }
   if (partner.appointments) {
     const first = partner.appointments[0];
@@ -185,6 +204,15 @@ function SharedSection({ partner, name, t, locale }: { partner: CompanionPartner
     rows.push(
       <SharedRow key="appts" icon="calendar" tone="brand" title={t('shared.appointments', { name })} sub={sub} level={level('appointments')} t={t} />,
     );
+    if (canRecordFor(partner.link, 'appointments')) {
+      rows.push(
+        <AddForRow
+          key="appts-add"
+          href={`/reminders/appointment/new?for=${ownerId}&from=companion`}
+          label={t('shared.addAppointment', { name })}
+        />,
+      );
+    }
   }
   if (partner.cycle) {
     rows.push(<SharedRow key="cycle" icon="drop" tone="period" title={t('shared.cycle')} sub={t('shared.aboveCard')} level={level('cycle')} t={t} />);

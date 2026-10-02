@@ -3,7 +3,7 @@ id: B-N4-06
 title: «ثبت برای چه کسی؟» in medication and appointment forms
 milestone: N4
 type: frontend
-status: todo
+status: done
 depends_on: [B-N4-05]
 parallel_group: N4-F
 touches: [frontend/src/screens/reminder-medication-form,frontend/src/screens/reminder-appointment-form,frontend/src/features/manage-medication,frontend/src/features/manage-appointment]

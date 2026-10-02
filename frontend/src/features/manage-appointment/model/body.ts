@@ -69,3 +69,17 @@ export function toAppointmentBody(input: AppointmentPatch): Record<string, unkno
 export function setPrepItemDone(prep: PrepItem[], itemId: string, done: boolean): PrepItem[] {
   return prep.map((item) => (item.id === itemId ? { ...item, done } : item));
 }
+
+/**
+ * «ثبت برای …» (B-N4-06): names the owner a companion with edit records for
+ * (`for_user_id`, B-N4-02). The prep checklist and the care-plan link stay
+ * owner-only, so a delegated body never carries them (the server drops `prep`
+ * on a delegated update anyway). null/undefined = own record, body unchanged.
+ */
+export function withForUser(body: Record<string, unknown>, forUserId: number | null | undefined): Record<string, unknown> {
+  if (!forUserId) return body;
+  const out: Record<string, unknown> = { ...body, for_user_id: forUserId };
+  delete out.prep;
+  delete out.care_item_key;
+  return out;
+}

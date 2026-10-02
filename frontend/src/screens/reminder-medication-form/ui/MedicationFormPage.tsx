@@ -10,12 +10,21 @@ import {
   type Medication,
   type MedicationDuration,
   type MedicationUnit,
-  useMedication,
 } from '@/entities/care-reminder';
+import {
+  isCompanionForbidden,
+  parseForUserId,
+  RecordedFor,
+  RecordForRow,
+  RecordForSheet,
+  useRecordFor,
+} from '@/entities/companion';
 import { useUserMode } from '@/entities/message';
+import { useCurrentUser } from '@/entities/user';
 import {
   useCreateMedication,
   useDeleteMedication,
+  useMedicationFor,
   useUpdateMedication,
 } from '@/features/manage-medication';
 import { ApiError, getApiErrorStatus, getApiLimitMessage } from '@/shared/api';
@@ -69,6 +78,7 @@ type OpenSheet =
   | { kind: 'start' }
   | { kind: 'duration' }
   | { kind: 'delete' }
+  | { kind: 'recordFor' }
   | null;
 
 const isKnownUnit = (u: string): u is MedicationUnit =>
@@ -101,15 +111,22 @@ function Switch({ on, label, onClick }: { on: boolean; label: string; onClick: (
  * Add / edit medication (`v13_AddMedication`), routes
  * `/reminders/medication/new` and `/reminders/medication/[id]`.
  * Save goes through `manage-medication`; on success (or delete) the user is
- * sent back to where they came from (`?from=home`, else the reminders hub).
+ * sent back to where they came from (`?from=home|companion`, else the reminders hub).
+ *
+ * «ثبت برای چه کسی؟» (B-N4-06, Hamdam_RecordFor): a companion with edit on an
+ * owner's meds picks «خودم» or her before saving a new medication (`?for=`
+ * preselects her); `/reminders/medication/[id]?for=<ownerId>` edits her record
+ * (`for_user_id`), without the owner-only delete.
  *
  * Privacy (§11): names, doses and notes are shown and sent, never logged.
  */
-export function MedicationFormPage({ id, from }: { id?: number; from?: string }) {
+export function MedicationFormPage({ id, from, forParam }: { id?: number; from?: string; forParam?: string }) {
+  const forUserId = parseForUserId(forParam);
   const t = useTranslations('care');
-  const query = useMedication(id ?? null);
+  const tr = useTranslations('companions.recordFor');
+  const query = useMedicationFor(id ?? null, id === undefined ? null : forUserId);
 
-  if (id === undefined) return <MedicationForm from={from} />;
+  if (id === undefined) return <MedicationForm from={from} forUserId={forUserId} />;
   if (query.isPending) {
     return (
       <Shell from={from} edit>
@@ -122,10 +139,13 @@ export function MedicationFormPage({ id, from }: { id?: number; from?: string })
   }
   if (query.isError || !query.data) {
     const notFound = getApiErrorStatus(query.error) === 404;
+    const forbidden = forUserId !== null && isCompanionForbidden(query.error);
     return (
       <Shell from={from} edit>
-        <p className="rmd-state">{notFound ? t('medicationForm.notFound') : t('loadError')}</p>
-        {!notFound && (
+        <p className="rmd-state">
+          {forbidden ? tr('forbidden') : notFound ? t('medicationForm.notFound') : t('loadError')}
+        </p>
+        {!notFound && !forbidden && (
           <button type="button" className="rmd-retry" onClick={() => void query.refetch()}>
             {t('retry')}
           </button>
@@ -133,7 +153,7 @@ export function MedicationFormPage({ id, from }: { id?: number; from?: string })
       </Shell>
     );
   }
-  return <MedicationForm key={query.data.id} medication={query.data} from={from} />;
+  return <MedicationForm key={query.data.id} medication={query.data} from={from} forUserId={forUserId} />;
 }
 
 function Shell({ from, edit, children }: { from?: string; edit: boolean; children: ReactNode }) {
@@ -155,14 +175,29 @@ function Shell({ from, edit, children }: { from?: string; edit: boolean; childre
   );
 }
 
-function MedicationForm({ medication, from }: { medication?: Medication; from?: string }) {
+function MedicationForm({
+  medication,
+  from,
+  forUserId,
+}: {
+  medication?: Medication;
+  from?: string;
+  /** `?for=`: preselected owner (new) or the owner whose record this is (edit). */
+  forUserId: number | null;
+}) {
   const t = useTranslations('care');
   const tf = useTranslations('care.medicationForm');
+  const tr = useTranslations('companions.recordFor');
   const locale = useLocale() as Locale;
   const router = useRouter();
   const mode = useUserMode();
   const pregnancy = mode.data?.mode === 'pregnancy';
   const edit = medication !== undefined;
+  // Editing an owner's record: the target is fixed to her (no picker, no delete).
+  const delegatedEdit = edit && forUserId !== null;
+  const recordFor = useRecordFor('meds', forUserId, delegatedEdit);
+  const selfName = useCurrentUser().data?.name ?? null;
+  const [savedFor, setSavedFor] = useState<{ name: string | null } | null>(null);
 
   const todayApi = toApiDate(today());
   const [state, setState] = useState<MedicationFormState>(() =>
@@ -200,7 +235,7 @@ function MedicationForm({ medication, from }: { medication?: Medication; from?: 
   const close = () => setSheet(null);
   const back = () => router.push(returnHref(from));
 
-  const onSave = () => {
+  const onSave = (confirmed = false) => {
     setFormError(null);
     const result = validateForm(state);
     if (!result.ok) {
@@ -212,7 +247,27 @@ function MedicationForm({ medication, from }: { medication?: Medication; from?: 
       return;
     }
     setErrors({});
+    // A new medication with someone to record for: ask «برای چه کسی؟» first;
+    // the sheet's CTA comes back here confirmed.
+    if (!edit && recordFor.showPicker && !confirmed) {
+      openSheet({ kind: 'recordFor' });
+      return;
+    }
+    const target = delegatedEdit ? forUserId : edit ? null : recordFor.target;
+    const targetName = recordFor.chosen?.name ?? null;
+    const onSaved = () => {
+      if (!target) return back();
+      recordFor.onSaved();
+      setSavedFor({ name: targetName });
+    };
     const onError = (error: unknown) => {
+      // The owner revoked the grant meanwhile: say so and refresh the links.
+      if (target && isCompanionForbidden(error)) {
+        recordFor.onRevoked();
+        setFormError(tr('revoked'));
+        close();
+        return;
+      }
       // A per-user cap (422 limit_reached) shows the server's localized message.
       const limit = getApiLimitMessage(error);
       if (limit) {
@@ -234,14 +289,14 @@ function MedicationForm({ medication, from }: { medication?: Medication; from?: 
       setFormError(t('saveError'));
     };
     if (medication) {
-      update.mutate({ id: medication.id, patch: result.input }, { onSuccess: back, onError });
+      update.mutate({ id: medication.id, patch: result.input, forUserId: target }, { onSuccess: onSaved, onError });
     } else {
-      create.mutate(result.input, { onSuccess: back, onError });
+      create.mutate({ ...result.input, forUserId: target }, { onSuccess: onSaved, onError });
     }
   };
 
   const onDelete = () => {
-    if (!medication) return;
+    if (!medication || delegatedEdit) return;
     remove.mutate(medication.id, { onSuccess: back });
   };
 
@@ -268,8 +323,37 @@ function MedicationForm({ medication, from }: { medication?: Medication; from?: 
     : [state.unit, ...MEDICATION_UNITS];
   const described = (field: FormField) => (errors[field] ? `med-err-${field}` : undefined);
 
+  if (savedFor) {
+    return (
+      <Shell from={from} edit={edit}>
+        <RecordedFor
+          section="meds"
+          name={savedFor.name}
+          onDone={back}
+          doneLabel={from === 'companion' ? tr('backToCompanion') : tr('back')}
+        />
+      </Shell>
+    );
+  }
+
   return (
     <Shell from={from} edit={edit}>
+      {delegatedEdit ? (
+        <RecordForRow section="meds" target={recordFor.chosen} selfName={selfName} />
+      ) : recordFor.showPicker ? (
+        <RecordForRow
+          section="meds"
+          target={recordFor.chosen}
+          selfName={selfName}
+          onChange={() => openSheet({ kind: 'recordFor' })}
+        />
+      ) : null}
+      {delegatedEdit && !recordFor.canEdit && (
+        <p role="alert" className="cfm-error is-center">
+          {tr('viewOnly')}
+        </p>
+      )}
+
       {/* ── Card 1: what ── */}
       <Card>
         <label className="cfm-group">
@@ -495,10 +579,10 @@ function MedicationForm({ medication, from }: { medication?: Medication; from?: 
         </p>
       )}
 
-      <PrimaryButton loading={saving} onClick={onSave}>
+      <PrimaryButton loading={saving} disabled={delegatedEdit && !recordFor.canEdit} onClick={() => onSave()}>
         {saving ? tf('saving') : tf('save')}
       </PrimaryButton>
-      {edit && (
+      {edit && !delegatedEdit && (
         <button type="button" className="cfm-delete" onClick={() => openSheet({ kind: 'delete' })}>
           <Icon name="trash" size={16} />
           {tf('delete')}
@@ -544,6 +628,21 @@ function MedicationForm({ medication, from }: { medication?: Medication; from?: 
             setErrors((e) => ({ ...e, duration: undefined, endsOn: undefined }));
             close();
           }}
+        />
+      )}
+      {sheet?.kind === 'recordFor' && (
+        <RecordForSheet
+          key={sheetKey}
+          open
+          onClose={close}
+          section="meds"
+          targets={recordFor.targets}
+          selfName={selfName}
+          value={recordFor.target}
+          onChange={recordFor.setTarget}
+          onConfirm={() => onSave(true)}
+          pending={saving}
+          error={formError}
         />
       )}
       {sheet?.kind === 'delete' && (

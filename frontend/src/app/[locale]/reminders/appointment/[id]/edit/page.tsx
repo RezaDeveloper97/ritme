@@ -12,7 +12,7 @@ export default async function EditAppointmentRoute({ params }: Props) {
   const { locale, id } = await params;
   setRequestLocale(locale);
   return (
-    <RouteMessages route="reminders">
+    <RouteMessages route="reminderForm">
       <AppointmentFormPage id={Number(id)} />
     </RouteMessages>
   );
