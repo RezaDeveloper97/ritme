@@ -177,6 +177,95 @@
         "note": "After menopause, any bleeding should be mentioned to a doctor; if you log it, we'll guide you.",
         "help": "See guidance"
       }
+    },
+    "levels": {
+      "no": "None",
+      "mild": "Mild",
+      "moderate": "Moderate",
+      "severe": "Severe"
+    },
+    "openSection": "Log {name}",
+    "pregnancy": {
+      "cards": {
+        "symptoms": "Pregnancy symptoms",
+        "measure": "Measurements"
+      },
+      "rows": {
+        "digestive": {
+          "title": "Digestion"
+        },
+        "body": {
+          "title": "Body"
+        },
+        "urogenital": {
+          "title": "Urinary & vaginal"
+        },
+        "weight": {
+          "title": "Weight",
+          "desc": "Today's weight"
+        },
+        "vitals": {
+          "title": "Blood pressure & sugar",
+          "desc": "Today's pressure and sugar"
+        },
+        "meds": {
+          "title": "Medicines & supplements",
+          "desc": "Iron, folic acid and supplements"
+        }
+      },
+      "bleeding": {
+        "title": "Bleeding or spotting",
+        "note": "In pregnancy, always talk it over with your doctor"
+      },
+      "daily": {
+        "title": "Daily pregnancy log",
+        "desc": "Water, mood and symptoms, with pregnancy alerts"
+      },
+      "kicksToday": "{count} today",
+      "kicksDay": "{count} moves"
+    },
+    "postpartum": {
+      "cards": {
+        "mother": "You",
+        "baby": "Baby"
+      },
+      "rows": {
+        "lochia": {
+          "title": "Bleeding after birth",
+          "desc": "Amount, colour, clots"
+        },
+        "pain": {
+          "title": "Pain & stitches",
+          "desc": "Stitches, belly, breasts, back"
+        },
+        "breasts": {
+          "title": "Breasts"
+        },
+        "mood": {
+          "title": "Mood",
+          "desc": "Short weekly check-in"
+        },
+        "feeding": {
+          "title": "Breast / bottle feeding"
+        },
+        "baby_sleep": {
+          "title": "Baby sleep"
+        },
+        "diapers": {
+          "title": "Diapers"
+        }
+      }
+    }
+  },
+  "heading": {
+    "today": "How's today?",
+    "pregnancy": "Week {week} · {trimester}",
+    "pregnancyDay": "{date} · week {week}",
+    "postpartum": "After birth · {date}",
+    "trimester": {
+      "1": "First trimester",
+      "2": "Second trimester",
+      "3": "Third trimester"
     }
   }
 }

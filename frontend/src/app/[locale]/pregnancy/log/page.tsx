@@ -6,16 +6,16 @@ import { RouteMessages } from '../../../RouteMessages';
 
 interface Props {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ tab?: string; date?: string }>;
+  searchParams: Promise<{ tab?: string; date?: string; focus?: string }>;
 }
 
 export default async function PregnancyLogPageRoute({ params, searchParams }: Props) {
   const { locale } = await params;
-  const { tab, date } = await searchParams;
+  const { tab, date, focus } = await searchParams;
   setRequestLocale(locale);
   return (
     <RouteMessages route="pregnancyLog">
-      <PregnancyLogRoute tab={tab} date={date} />
+      <PregnancyLogRoute tab={tab} date={date} focus={focus} />
     </RouteMessages>
   );
 }

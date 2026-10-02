@@ -66,8 +66,27 @@ export function BleedingPanel({ category, values, setParam, extraOptions, mode, 
     setParam(cat, 'clot_size', state === 'none' ? null : state);
   };
 
+  // Mode params (lochia amount / colour after birth). Without a flow (postpartum) they lead the panel (B-N3-06).
+  const restBlock = rest.length ? (
+    <section className="nb-card lday-pcard">
+      {rest.map((p) => (
+        <ParamField
+          key={p.code}
+          param={p}
+          value={v[p.code]}
+          onChange={(next) => setParam(cat, p.code, next)}
+          mode={mode}
+          tone="period"
+          locale={locale}
+          extraOptions={extraOptions(cat, p.code)}
+        />
+      ))}
+    </section>
+  ) : null;
+
   return (
     <>
+      {flow ? null : restBlock}
       {flow ? (
         <PanelCard title={t('bleeding.intensity')} icon="drop" tone="period">
           <div className="lday-flow" role="group" aria-label={t('bleeding.intensity')}>
@@ -155,22 +174,7 @@ export function BleedingPanel({ category, values, setParam, extraOptions, mode, 
         </PanelCard>
       ) : null}
 
-      {rest.length ? (
-        <section className="nb-card lday-pcard">
-          {rest.map((p) => (
-            <ParamField
-              key={p.code}
-              param={p}
-              value={v[p.code]}
-              onChange={(next) => setParam(cat, p.code, next)}
-              mode={mode}
-              tone="period"
-              locale={locale}
-              extraOptions={extraOptions(cat, p.code)}
-            />
-          ))}
-        </section>
-      ) : null}
+      {flow ? restBlock : null}
 
       <InfoNote icon="info" className="lday-warn">
         {t('bleeding.warn')}

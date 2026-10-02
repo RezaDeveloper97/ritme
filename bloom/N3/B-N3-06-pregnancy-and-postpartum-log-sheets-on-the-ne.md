@@ -3,7 +3,7 @@ id: B-N3-06
 title: Pregnancy and postpartum log sheets on the new taxonomy
 milestone: N3
 type: frontend
-status: todo
+status: done
 depends_on: [B-N3-03]
 parallel_group: N3-F
 touches: [frontend/src/screens/pregnancy-log,frontend/src/screens/postpartum-log,frontend/src/features/log-day]

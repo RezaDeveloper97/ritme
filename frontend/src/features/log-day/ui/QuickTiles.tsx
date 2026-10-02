@@ -3,10 +3,11 @@
 import { useTranslations } from 'next-intl';
 
 import type { LogCategory, LogDayValues } from '@/entities/health-log';
+import { useRouter } from '@/shared/i18n';
 import { TileButton } from '@/shared/ui';
 
 import { categoryEntries, paramEntries, parseTileKey, type LabelContext } from '../model/draft';
-import { tileLook } from '../model/presentation';
+import { linkHref, tileLook } from '../model/presentation';
 
 interface QuickTilesProps {
   tiles: readonly string[];
@@ -15,14 +16,17 @@ interface QuickTilesProps {
   labels: LabelContext;
   openCategory: string | null;
   onOpen: (category: string) => void;
+  /** Captions fed by another feature, by tile key («۸ امروز» on «حرکات جنین», B-N3-06). */
+  subs?: Readonly<Record<string, string>>;
 }
 
 /**
  * «ثبت سریع» (nbl_Log_Sheet_Cycle): up to 8 pinned tiles from `/logs/preferences`, 4 per row. A tile
  * opens its accordion section below; its caption shows what is logged, or «باز است» while open.
  */
-export function QuickTiles({ tiles, categories, values, labels, openCategory, onOpen }: QuickTilesProps) {
+export function QuickTiles({ tiles, categories, values, labels, openCategory, onOpen, subs }: QuickTilesProps) {
   const t = useTranslations('logSheet');
+  const router = useRouter();
   if (!tiles.length) return null;
   return (
     <section className="lday-quick" aria-labelledby="lday-quick-title">
@@ -46,6 +50,24 @@ export function QuickTiles({ tiles, categories, values, labels, openCategory, on
             : categoryEntries(category, values, labels);
           const open = openCategory === code;
           const look = tileLook(key);
+          // A `link` tile (kick counter, contraction timer, feeding…) opens its feature; until that feature
+          // exists it opens its section, whose link row says «به‌زودی» (B-N3-06).
+          const href = param?.type === 'link' ? linkHref(param.source) : null;
+          const soon = param?.type === 'link' && !href;
+          if (href) {
+            return (
+              <TileButton
+                key={key}
+                layout="card"
+                icon={look.icon}
+                tone={look.tone}
+                label={label}
+                sub={subs?.[key]}
+                onClick={() => router.push(href)}
+                className="lday-tile"
+              />
+            );
+          }
           return (
             <TileButton
               key={key}
@@ -53,7 +75,7 @@ export function QuickTiles({ tiles, categories, values, labels, openCategory, on
               icon={look.icon}
               tone={look.tone}
               label={label}
-              sub={open ? t('quick.open') : param ? logged[0]?.summary : logged[0]?.label}
+              sub={open ? t('quick.open') : soon ? t('link.soon') : (subs?.[key] ?? (param ? logged[0]?.summary : logged[0]?.label))}
               pressed={open}
               aria-controls={`lday-cat-${code}`}
               onClick={() => onOpen(code)}

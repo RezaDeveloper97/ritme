@@ -110,7 +110,7 @@ export function DayLogPage({ date: rawDate }: { date?: string }) {
     const next = toApiDate(partsToDate(parts, locale));
     if (next > toApiDate(today())) return;
     setPicking(false);
-    router.replace(`/pregnancy/log?date=${next}`, { scroll: false });
+    router.replace(`/pregnancy/log?tab=day&date=${next}`, { scroll: false });
   };
 
   // «queued» is only on the device: the button stays a save button until the

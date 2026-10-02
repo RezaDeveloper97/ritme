@@ -21,6 +21,7 @@ import { PlusBadge } from '@/shared/ui/plus-gate';
 
 import { matchesSearch } from '../model/draft';
 import { isMenopausePreset } from '../model/menopause-preset';
+import { modePresetOf } from '../model/mode-presets';
 import { categoryLook, type PanelKind } from '../model/presentation';
 import { useLogDayStore } from '../model/store';
 import { useLogDayHeading } from '../model/use-heading';
@@ -31,7 +32,9 @@ import { BleedingPanel } from './panels/BleedingPanel';
 import { DetailPanel } from './panels/DetailPanel';
 import { MeasurePanel } from './panels/MeasurePanel';
 import { PainPanel, type BodyMapSlot } from './panels/PainPanel';
+import { KickCountSub } from './presets/KickCountSub';
 import { MenopausePreset } from './presets/MenopausePreset';
+import { ModePreset } from './presets/ModePreset';
 import { QuickTiles } from './QuickTiles';
 import { SummaryFooter } from './SummaryFooter';
 import { VOICE_FEATURE, VoiceTab, type VoiceLogSlot } from './VoiceTab';
@@ -41,6 +44,12 @@ import { VOICE_FEATURE, VoiceTab, type VoiceLogSlot } from './VoiceTab';
  * header keeps a spacer so the title stays centred.
  */
 export const LOG_CUSTOMIZE_HREF: string | null = '/log/customize';
+
+/**
+ * The v2 pregnancy day log (T-M7-12, pregnancy endpoints + pregnancy alerts) linked from the pregnancy
+ * preset (B-N3-06): `/pregnancy/log` itself now opens this sheet, the day log moved to `?tab=day`.
+ */
+export const PREGNANCY_DAY_LOG_HREF = '/pregnancy/log?tab=day';
 
 /** Where a logged post-menopause bleeding leads (CB-MENO-09, nbl_Meno_Alert). */
 const MENOPAUSE_ALERT_HREF = '/menopause/alert';
@@ -69,6 +78,8 @@ export interface LogDayProps {
   dateStrip?: boolean;
   /** After a successful save (the sheet closes itself). */
   onSaved?: () => void;
+  /** Pregnancy preset: the «ثبت روزانه بارداری» row (`null` hides it — the day log links back itself). */
+  pregnancyDayHref?: string | null;
 }
 
 function validDate(value: string | null | undefined): string {
@@ -96,6 +107,7 @@ export function LogDay({
   preset = true,
   pageHeader,
   dateStrip = true,
+  pregnancyDayHref = PREGNANCY_DAY_LOG_HREF,
 }: LogDayProps) {
   const t = useTranslations('logSheet');
   const router = useRouter();
@@ -119,6 +131,8 @@ export function LogDay({
   const c = useLogDayController(date, modeOverride);
   const heading = useLogDayHeading(date, modeOverride);
   const menopause = preset && !c.loading && !c.error && isMenopausePreset(c.mode);
+  // B-N3-06: pregnancy / postpartum days open on the board's grouped cards under the quick tiles.
+  const modePreset = preset && !c.loading && !c.error ? modePresetOf(c.mode) : null;
 
   useEffect(() => {
     if (!saveQueued) return;
@@ -189,6 +203,18 @@ export function LogDay({
       />
     ) : null;
 
+  const quickTiles = (subs?: Readonly<Record<string, string>>) => (
+    <QuickTiles
+      tiles={c.tiles}
+      categories={c.categories}
+      values={c.values}
+      labels={c.labels}
+      openCategory={query ? null : openCat}
+      onOpen={(code) => (openCat === code && !query ? setOpenCat(null) : openSection(code))}
+      subs={subs}
+    />
+  );
+
   let body;
   if (c.loading) {
     body = (
@@ -228,16 +254,23 @@ export function LogDay({
             voiceLocked={voiceLocked}
             onBleedingHelp={() => (c.dirty ? c.save(() => router.push(MENOPAUSE_ALERT_HREF)) : router.push(MENOPAUSE_ALERT_HREF))}
           />
+        ) : modePreset === 'pregnancy' ? (
+          <KickCountSub date={date}>{(subs) => quickTiles(subs)}</KickCountSub>
         ) : (
-          <QuickTiles
-            tiles={c.tiles}
+          quickTiles()
+        )}
+        {modePreset ? (
+          <ModePreset
+            kind={modePreset}
             categories={c.categories}
             values={c.values}
+            setParam={c.setParam}
             labels={c.labels}
-            openCategory={query ? null : openCat}
-            onOpen={(code) => (openCat === code && !query ? setOpenCat(null) : openSection(code))}
+            onPanel={setPanel}
+            onSection={openSection}
+            dailyHref={pregnancyDayHref}
           />
-        )}
+        ) : null}
         {/* The full page (/menopause/log) is the board alone; the sheet keeps every category below the preset. */}
         {menopause && pageHeader ? null : (
           <section className="lday-all" aria-labelledby="lday-all-title">
@@ -367,7 +400,7 @@ export function LogDay({
         <DetailPanel
           open={panel === 'bleeding'}
           onClose={() => setPanel(null)}
-          title={bleeding.label}
+          title={modePreset === 'postpartum' ? t('presets.postpartum.rows.lochia.title') : bleeding.label}
           subtitle={heading.panelSub}
           action="confirm"
           onAction={() => setPanel(null)}

@@ -78,7 +78,7 @@ export function resolveAlertAction(action: AlertActionV2, alert: PregnancyAlertV
     case 'log_weight':
       return { kind: 'link', key: 'log_weight', href: '/pregnancy/log?focus=weight' };
     case 'log_symptoms':
-      return { kind: 'link', key: 'log_symptoms', href: '/pregnancy/log' };
+      return { kind: 'link', key: 'log_symptoms', href: '/pregnancy/log?tab=day' }; // B-N3-06: the day log (raises alerts)
     case 'open_week':
       return { kind: 'link', key: 'open_week', href: '/pregnancy/weeks' };
     case 'call': {
