@@ -3,7 +3,7 @@ id: CB-IVF-06
 title: IVF QA
 epic: IVF
 type: qa
-status: todo
+status: done
 depends_on: [CB-IVF-03, CB-IVF-04, CB-IVF-05]
 parallel_group: IVF-D
 touches: [docs/qa/canvas]

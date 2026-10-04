@@ -19,7 +19,7 @@ import {
   useUnlogIvfScheduleDose,
 } from '@/entities/ivf';
 import { Link, type Locale, useDirection, useRouter } from '@/shared/i18n';
-import { formatDayMonth, formatNumber, formatWeekday, fromApiDate } from '@/shared/lib/date';
+import { formatDayMonth, formatDecimal, formatNumber, formatWeekday, fromApiDate } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
 import {
   Card,
@@ -308,7 +308,7 @@ function DoseRow({
   const locale = useLocale() as Locale;
   const time = formatNumber(dose.slot, locale);
   const amount = dose.dose?.trim()
-    ? t(`doses.unit.${unitKey(dose.unit)}`, { dose: formatNumber(dose.dose, locale), unit: dose.unit ?? '' }).trim()
+    ? t(`doses.unit.${unitKey(dose.unit)}`, { dose: formatDecimal(dose.dose, locale), unit: dose.unit ?? '' }).trim()
     : null;
   const title = amount ? `${isolate(dose.name)} · ${amount}` : dose.name;
   const meta = time;

@@ -8898,6 +8898,8 @@ button.ch-log-row { width: 100%; background: none; border: 0; font-family: inher
 .ivf-error { margin: 0; font-size: var(--fs-sm); font-weight: 700; color: var(--danger-deep); }
 .ivf-muted { margin: 0; font-size: var(--fs-md); font-weight: 600; color: var(--text-2); }
 .ivf-section { display: flex; flex-direction: column; gap: 10px; scroll-margin-block-start: 16px; }
+/* CB-IVF-06: straight hairlines between list rows (the shared .nb-row radius bent the border-top at both ends) */
+.ivf-screen .nb-list-rows > * + * { border-radius: 0; }
 
 /* Current stage card: title + «روز ۷ تحریک» chip, then the StepTimeline */
 .ivf-timeline { display: flex; flex-direction: column; gap: 6px; }

@@ -339,3 +339,9 @@ TODO (ask user):
 - Verify: go vet, golangci-lint 0, int loss, contract loss, i18n Go tests; frontend typecheck, lint, fsd:lint, lint:styles (1014), lint:dark, 1363 tests, build — green. Fidelity (no board; flat-card style) `docs/qa/canvas/loss.md` § CB-LOSS-03b ✔.
 - Open: orphan follow-ups from losses erased before this fix (needs a cleanup migration if stage has any); `loss` namespace now ships on home + /profile/mode (~8 KB); no erase button in the app; hidden state per device; back from /loss/care always → /home.
 - TODO (ask user): 60-day window OK? keep the /profile/mode row while any loss exists?
+
+## CB-IVF-06 — IVF QA
+- Journey ✔ (16 steps): ttc → IVF switch → /home → /ivf → start cycle → meds via presets → injections with rotating sites → scans + chart → TWW (mood, «۱ از ۲») → negative (calm, cycle closed, med reminders off, /loss link) / positive (/pregnancy/setup) / cancelled (/ivf); companion sees IVF meds + appointments view-only; notify toggle only with an accepted link; «درمان» → /ivf/meds; switch off → ttc nav.
+- Fidelity: Home / Meds / Scan / TWW light + dark ✔. Fixes: straight row hairlines (CB-IVF-02 block), Persian decimal doses (`formatDecimal`), no «کافی تا…» when stock is 0.
+- Follow-up CB-IVF-06b (most important): no UI edits stage/dates, cycle setup uses defaults, stimulation meds stay active (no `is_active` in the form) — a real user never reaches TWW.
+- Other notes: /loss after a negative IVF offers only pregnancy-loss types (add «انتقال ناموفق»? [clinical]); companion home prints Latin decimals (bloom care formatting); male companion /home fires three 409s before redirect (bloom).

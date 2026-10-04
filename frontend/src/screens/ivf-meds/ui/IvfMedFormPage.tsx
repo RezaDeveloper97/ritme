@@ -19,7 +19,7 @@ import {
 } from '@/entities/ivf';
 import { getApiSaveErrorMessage } from '@/shared/api';
 import { type Locale, useRouter } from '@/shared/i18n';
-import { formatDayMonth, formatNumber, fromApiDate, toApiDate, today } from '@/shared/lib/date';
+import { formatDayMonth, formatDecimal, formatNumber, fromApiDate, toApiDate, today } from '@/shared/lib/date';
 import { toAsciiDigits } from '@/shared/lib/phone';
 import { useMounted } from '@/shared/lib/use-mounted';
 import {
@@ -232,7 +232,7 @@ function MedForm({ med }: { med?: IvfMed }) {
             <span className="ivfm-field">
               <input
                 // Shown in the locale's digits; stored and sent as ASCII.
-                value={formatNumber(draft.dose, locale)}
+                value={formatDecimal(draft.dose, locale)}
                 inputMode="decimal"
                 maxLength={50}
                 dir="ltr"

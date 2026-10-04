@@ -60,6 +60,7 @@ describe('inventory', () => {
     expect(runsOutLabel(inv({ runsOutOn: '2026-10-05' }), '2026-09-23')).toEqual({ kind: 'date', on: '2026-10-05' });
     expect(runsOutLabel(inv({ daysLeft: null }), '2026-09-23')).toBeNull();
     expect(runsOutLabel(null, '2026-09-23')).toBeNull();
+    expect(runsOutLabel(inv({ dosesLeft: 0, unitsLeft: 0, daysLeft: 0, runsOutOn: '2026-09-23' }), '2026-09-23')).toBeNull();
   });
 
   it('lists low stock first, untracked last', () => {

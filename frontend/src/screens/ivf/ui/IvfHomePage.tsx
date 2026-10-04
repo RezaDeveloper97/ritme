@@ -18,7 +18,7 @@ import {
 } from '@/entities/ivf';
 import { lifeStageKeys } from '@/entities/user';
 import { Link, type Locale, useRouter } from '@/shared/i18n';
-import { formatDayMonth, formatNumber, fromApiDate } from '@/shared/lib/date';
+import { formatDayMonth, formatDecimal, formatNumber, fromApiDate } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
 import {
   Card,
@@ -296,7 +296,7 @@ function DoseRow({ dose, busy, onToggle, t }: { dose: IvfDose; busy: boolean; on
   const time = formatNumber(dose.slot, locale);
   const route = t(`doses.route.${dose.route}`);
   const amount = hasAmount(dose)
-    ? t(`doses.unit.${unitKey(dose.unit)}`, { dose: formatNumber(dose.dose ?? '', locale), unit: dose.unit ?? '' }).trim()
+    ? t(`doses.unit.${unitKey(dose.unit)}`, { dose: formatDecimal(dose.dose ?? '', locale), unit: dose.unit ?? '' }).trim()
     : null;
   return (
     <ListRow

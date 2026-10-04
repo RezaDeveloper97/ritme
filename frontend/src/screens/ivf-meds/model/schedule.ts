@@ -87,6 +87,8 @@ export function stockState(inventory: IvfInventory | null): StockState {
  */
 export function runsOutLabel(inventory: IvfInventory | null, today: string): { kind: 'weekday' | 'date'; on: string } | null {
   if (!inventory?.runsOutOn || inventory.daysLeft === null) return null;
+  // Nothing left: «enough until today» would contradict «0 left» — the «low» pill says it alone (CB-IVF-06).
+  if (inventory.dosesLeft <= 0) return null;
   const days = diffInDays(fromApiDate(inventory.runsOutOn), fromApiDate(today));
   if (Number.isNaN(days) || days < 0) return null;
   return { kind: days <= 6 ? 'weekday' : 'date', on: inventory.runsOutOn };

@@ -16,7 +16,7 @@ import {
   useSetIvfTwwMood,
 } from '@/entities/ivf';
 import { type Locale, useRouter } from '@/shared/i18n';
-import { formatDayMonth, formatNumber, fromApiDate } from '@/shared/lib/date';
+import { formatDayMonth, formatDecimal, formatNumber, fromApiDate } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
 import { openSheet } from '@/shared/sheet';
 import {
@@ -279,8 +279,8 @@ function LutealMeds({ meds, t }: { meds: readonly IvfLutealMed[]; t: T }) {
     const unit = med.unit?.trim().toLowerCase() ?? '';
     const known = (KNOWN_UNITS as readonly string[]).includes(unit) ? (unit as (typeof KNOWN_UNITS)[number]) : null;
     const dose = known
-      ? t(`doses.unit.${known}`, { dose: formatNumber(amount, locale) })
-      : t('doses.unit.other', { dose: formatNumber(amount, locale), unit: med.unit ?? '' });
+      ? t(`doses.unit.${known}`, { dose: formatDecimal(amount, locale) })
+      : t('doses.unit.other', { dose: formatDecimal(amount, locale), unit: med.unit ?? '' });
     return t('tww.meds.metaDose', { times, dose: dose.trim() });
   };
   return (
