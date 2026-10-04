@@ -400,3 +400,20 @@ One section per finished task (appended by `/site-task`).
   stacking, design's red callout not in seeded body); article region 1440 1.73% / 390 3.46%.
 - Views counted on MISS only → **L4-03b** (beacon, share copy module, UI copy to lang).
 - Orchestrator: `RoutingTest` seeds `BlogSeeder` for `blog.show`; slug-case test asserts "no 301" instead of 200.
+
+## L3-08 — About, social responsibility, privacy (+ terms) pages
+- Controllers/views/lang for `/about` (AboutPage), `/social-responsibility`, `/privacy` (full policy in `<details
+  id="policy">`, no-JS), `/terms` (dark header via controller); dates from `privacy.updated_at` / `terms.updated_at`
+  → `dateModified`; DPO + support email and emergency number from settings; donation card → contact CTA (no gateway);
+  transparency link hidden while empty; `#review-policy` anchor on the scientific council box. `InfoPagesTest` (10).
+- Policy text states only what the site does (no trackers/external requests, newsletter double opt-in, contact form,
+  session/CSRF cookies, order/booking data sharing, user rights). `seo:audit` 0 errors on all four.
+- Diff body-above-footer: about 390 2.69% / 1440 2.09%; privacy 2.78% / 1.92%; social 13.27% / 4.73% (hidden store
+  badges with NULL app links, donation amounts replaced by CTA per AUDIT §8). Whole page +5–8% from the shorter footer.
+- **Legal/product placeholders to fill**: company legal name/registration/address; age + parental consent; app data
+  inventory + retention; host/server location; SMS + email providers; legal-request process; backup purge window;
+  message + server-log retention; response deadline; governing law; account suspension terms; IP owner; republishing
+  policy; refund policy; shipping/returns; provider liability; dispute resolution; `data_protection_email`,
+  `support_email`; about: founder story, mission, stats, team, council names, careers URL; social: programmes,
+  founder quote, transparency period + URL.
+- Open: move `*_updated_at` + transparency URL into `LegalSettings`; editorial review policy text not written yet.

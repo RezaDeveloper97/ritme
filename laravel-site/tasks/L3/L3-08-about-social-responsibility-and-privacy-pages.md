@@ -3,7 +3,7 @@ id: L3-08
 title: About, social responsibility and privacy pages
 milestone: L3
 type: frontend
-status: todo
+status: done
 depends_on: [L3-01,L1-04]
 parallel_group: L3-D
 touches: [resources/views/pages/about.blade.php,resources/views/pages/social-responsibility.blade.php,resources/views/pages/privacy.blade.php,app/Http/Controllers/AboutController.php,app/Http/Controllers/SocialResponsibilityController.php,app/Http/Controllers/PrivacyController.php,lang/fa/about.php,lang/fa/social.php,lang/fa/privacy.php,tests/Feature/Pages/InfoPagesTest.php]

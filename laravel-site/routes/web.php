@@ -2,15 +2,19 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\AboutController;
 use App\Http\Controllers\Blog\BlogListingController;
 use App\Http\Controllers\Blog\NewsletterController;
 use App\Http\Controllers\Blog\ShowPostController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PlaceholderPageController;
+use App\Http\Controllers\PrivacyController;
 use App\Http\Controllers\Seo\RobotsTxtController;
 use App\Http\Controllers\Seo\SitemapController;
 use App\Http\Controllers\Seo\SitemapIndexController;
+use App\Http\Controllers\SocialResponsibilityController;
 use App\Http\Controllers\StagePageController;
+use App\Http\Controllers\TermsController;
 use App\Http\Controllers\ToolsController;
 use App\Http\Middleware\PageCache;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -41,10 +45,10 @@ Route::name('stage.')->group(function (): void {
 Route::get('/services', PlaceholderPageController::class)->name('services');                       // L3-06
 Route::get('/plus', PlaceholderPageController::class)->name('plus');                               // L3-06
 Route::get('/tools', ToolsController::class)->name('tools');                                     // L3-07
-Route::get('/about', PlaceholderPageController::class)->name('about');                             // L3-08
-Route::get('/social-responsibility', PlaceholderPageController::class)->name('social-responsibility'); // L3-08
-Route::get('/privacy', PlaceholderPageController::class)->name('privacy');                         // L3-08
-Route::get('/terms', PlaceholderPageController::class)->name('terms');                             // L3-08
+Route::get('/about', AboutController::class)->name('about');                                     // L3-08
+Route::get('/social-responsibility', SocialResponsibilityController::class)->name('social-responsibility'); // L3-08
+Route::get('/privacy', PrivacyController::class)->name('privacy');                               // L3-08
+Route::get('/terms', TermsController::class)->name('terms');                                     // L3-08
 Route::get('/faq', PlaceholderPageController::class)->name('faq');                                 // L3-09
 Route::get('/contact', PlaceholderPageController::class)->name('contact');                         // L3-10
 
