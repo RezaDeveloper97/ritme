@@ -3,7 +3,7 @@ id: CB-LOSS-03
 title: LOSS QA + tone review
 epic: LOSS
 type: qa
-status: todo
+status: done
 depends_on: [CB-LOSS-02]
 parallel_group: LOSS-C
 touches: [docs/qa/canvas]

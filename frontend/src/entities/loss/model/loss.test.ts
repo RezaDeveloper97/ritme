@@ -53,6 +53,12 @@ describe('warningSignParts', () => {
       'تب',
     ]);
   });
+
+  it('drops the stand-alone capitals inside the joined English sentence', () => {
+    expect(
+      warningSignParts([item('a', 'Very heavy bleeding', 'Soaking 2 pads'), item('b', 'A fever'), item('c', 'hCG still high'), item('d', 'IVF')]),
+    ).toEqual(['Very heavy bleeding (soaking 2 pads)', 'a fever', 'hCG still high', 'IVF']);
+  });
 });
 
 describe('crisisHotlines', () => {

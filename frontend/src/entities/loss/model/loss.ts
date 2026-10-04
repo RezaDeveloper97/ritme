@@ -27,12 +27,23 @@ export function emergencyNumber(warningSigns: readonly LossCatalogItem[], hotlin
   return phone(emergency?.meta?.number) ?? '115';
 }
 
+/** Lower-cases a leading capital that starts an ordinary word («Severe» → «severe»; «hCG», «IVF», Persian unchanged). */
+function midSentence(text: string): string {
+  return /^\p{Lu}(?:\p{Ll}|\s)/u.test(text) ? text.charAt(0).toLowerCase() + text.slice(1) : text;
+}
+
 /**
  * The warning signs as one sentence part each: «خونریزی خیلی زیاد (پر شدن ۲ نوار …)».
- * Items without a title are skipped.
+ * Catalog titles are written to stand alone («A fever of 38 °C»), so inside the joined sentence every part but the
+ * first, and every detail in brackets, drops its leading capital. Items without a title are skipped.
  */
 export function warningSignParts(warningSigns: readonly LossCatalogItem[]): string[] {
-  return warningSigns.flatMap((s) => (s.title ? [s.body ? `${s.title} (${s.body})` : s.title] : []));
+  return warningSigns
+    .filter((s) => s.title)
+    .map((s, i) => {
+      const title = i === 0 ? (s.title as string) : midSentence(s.title as string);
+      return s.body ? `${title} (${midSentence(s.body)})` : title;
+    });
 }
 
 /**

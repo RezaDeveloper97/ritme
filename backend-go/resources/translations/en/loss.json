@@ -34,7 +34,7 @@
     "dateFuture": "This date can't be in the future.",
     "dateTooOld": "Please pick a date within the past year.",
     "stopTitle": "Stop pregnancy content and reminders",
-    "stopSub": "You won't see pregnancy weeks or baby growth any more",
+    "stopSub": "You won't see pregnancy weeks or the baby's growth any more",
     "stopFixed": "This is always on",
     "companionTitle": "Let my companion know too",
     "companionSub": "Only that the pregnancy is not continuing",
@@ -62,7 +62,7 @@
       },
       "stopped": "Stopped · {date}",
       "sheetTitle": "Bleeding",
-      "sheetBody": "Log the bleeding each day in your daily log until it stops. When it has stopped, mark it here.",
+      "sheetBody": "While the bleeding goes on, log it each day in your daily log. When it has stopped, mark it here.",
       "logToday": "Log today's bleeding",
       "markStopped": "The bleeding has stopped",
       "markOngoing": "It's still going on"
@@ -82,7 +82,7 @@
     },
     "visit": {
       "title": "Follow-up visit",
-      "sub": "Book one for about 2 weeks later",
+      "sub": "If your doctor wants to see you again, add it here",
       "suggested": "Suggested: around {date}",
       "booked": "{date} · {time}",
       "action": "Book",
@@ -104,7 +104,7 @@
       "angry": "Angry",
       "a_bit_better": "A bit better"
     },
-    "moodSupport": "Sadness, guilt or numbness after a pregnancy loss is natural, and it is not your fault.",
+    "moodSupport": "Sadness, guilt or numbness after this is natural, and it is not your fault.",
     "moodSaved": "Saved",
     "note": {
       "title": "Private note",
@@ -143,7 +143,7 @@
         "body": "Only the medical follow-up reminders stay"
       }
     },
-    "recurrentFallback": "If this was a second or third loss, talk with your doctor about tests to look for a cause.",
+    "recurrentFallback": "If this wasn't the first time, you can talk with your doctor about tests that look for a cause.",
     "pick": "Pick one.",
     "save": "Save"
   }
