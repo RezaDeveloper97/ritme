@@ -3,7 +3,7 @@ id: L0-07
 title: Icon sprite and illustration pipeline
 milestone: L0
 type: frontend
-status: todo
+status: done
 depends_on: [L0-04]
 parallel_group: L0-B
 touches: [resources/svg,resources/views/components/icon.blade.php,tools/build-sprite.mjs,app/View/Components/Icon.php,vite.config.js]

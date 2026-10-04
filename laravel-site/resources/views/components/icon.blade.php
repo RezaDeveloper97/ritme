@@ -1,0 +1,3 @@
+{{-- Rendered by App\View\Components\Icon. Stroke styling lives here; sprite symbols carry geometry only. --}}
+@php($labelled = $label !== null && $label !== '')
+<svg {{ $attributes->except(['aria-hidden', 'role', 'focusable', 'viewBox'])->merge(['width' => $size, 'height' => $size]) }} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="{{ $stroke }}" stroke-linecap="round" stroke-linejoin="round" focusable="false" @if ($labelled) role="img" aria-label="{{ $label }}" @else aria-hidden="true" @endif>@if ($labelled)<title>{{ $label }}</title>@endif{!! $spriteHref !== '' ? '<use href="'.e($spriteHref).'"/>' : $paths !!}</svg>

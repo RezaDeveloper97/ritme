@@ -76,3 +76,14 @@ One section per finished task (appended by `/site-task`).
 - Tests: 53 new; SEO + arch suites green. Missing og:image is a warning until L2 binds a real resolver.
 - Open: noindex route patterns / feed route are constants in `SeoManager` (config/ not in touches); real `seo:audit` on
   `/` fails until the layout (L1-02) + routes (L1-05) exist.
+
+## L0-07 — Icon sprite and illustration pipeline
+- `tools/build-sprite.mjs` (`--extract` from design HTML, `--optimize` via SVGO, size report; rejects `style=""` and
+  external refs). Package added: `svgo@^4` (dev).
+- `resources/svg/icons/` 76 icons → Vite-emitted hashed sprite (`resources/svg/sprite.svg` manifest key), 9.0 KB /
+  2.4 KB gzip; `resources/svg/illustrations/` 28 SVGO-optimised files (build fails if not optimised).
+- `<x-icon>` (`App\View\Components\Icon`: same-origin `<use>`, `label`/`stroke`/`size`, inline fallback without a build)
+  and `<x-illustration>` (`Illustration`: inlined, width/height from viewBox, cached via CacheAside `media` ns).
+- `docs/AUDIT.md` §4.3 added; `tests/Feature/View/SvgComponentsTest.php` (12 tests). No sprite preload (reason in tool header).
+- Orchestrator placed `Illustration.php`, its test and AUDIT §4.3 (outside touches). Pest 171 passed.
+- Note: illustrations keep their multi-colour hex fills (SVG artwork, not CSS) — deliberate exception to the hex rule.

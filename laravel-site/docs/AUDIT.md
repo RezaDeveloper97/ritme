@@ -337,6 +337,18 @@ stage gradient is the fallback when a post has no cover.
 
 ---
 
+### 4.3 Pipeline result (L0-07)
+
+- `resources/svg/icons/`: **76** icons (77 shapes, `cart-alt` merged into `cart`), extracted by
+  `node tools/build-sprite.mjs --extract`. Sprite `resources/svg/sprite.svg` (Vite asset, hashed):
+  **9.0 KB raw / 2.4 KB gzip**, one request per page, immutable cache. No preload (see tools/build-sprite.mjs header).
+- `resources/svg/illustrations/`: **28** SVGO-optimised files (names as §4.2: `hero-orbit`, `chart-sparkline`,
+  `chart-growth`, `map-{directory,place,join,checkout}`, `place-cover-{pool,massage,movement,yoga,playhouse,music}`,
+  `product-{bodysuit,sleepsuit,pad,socks,hat,blanket,shampoo,cup,bottle,serum,sunscreen,lipstick}`,
+  `category-{stroller,crib,bath}`). The build fails if one is not optimised.
+- Usage: `<x-icon name="drop" class="size-5" />` (`label`, `stroke`, `size` props) and
+  `<x-illustration name="hero-orbit" />` (`width`, `height`, `label`).
+
 ## 5. Dynamic data vs static copy; placeholders
 
 ### 5.1 Per-page data source

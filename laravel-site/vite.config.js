@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import tailwindcss from '@tailwindcss/vite';
+import { buildSprite, ICON_DIR, ILLUSTRATION_DIR, SPRITE_MANIFEST_KEY, unoptimizedIllustrations } from './tools/build-sprite.mjs';
 
 // Tailwind v4 baseline (Safari 16.4 / Chrome 111 / Firefox 128). Lightning CSS encodes versions as
 // (major << 16) | (minor << 8).
@@ -12,6 +13,35 @@ const cssTargets = {
     ios_saf: (16 << 16) | (4 << 8),
 };
 
+/**
+ * Icon sprite (L0-07): SVGO-optimised resources/svg/icons/*.svg → one <symbol> per icon, emitted as a hashed asset
+ * under the manifest key "resources/svg/sprite.svg" (read by App\\View\\Components\\Icon via Vite::asset()).
+ * Also fails the build when an illustration on disk is not SVGO-optimised (they are inlined as-is).
+ */
+function svgSprite() {
+    return {
+        name: 'ritme-svg-sprite',
+        apply: 'build',
+        buildStart() {
+            this.addWatchFile(ICON_DIR);
+            this.addWatchFile(ILLUSTRATION_DIR);
+            const stale = unoptimizedIllustrations();
+            if (stale.length > 0) {
+                this.error(`Unoptimised illustrations (run "node tools/build-sprite.mjs --optimize"): ${stale.join(', ')}`);
+            }
+        },
+        generateBundle() {
+            const { sprite } = buildSprite();
+            this.emitFile({
+                type: 'asset',
+                name: 'sprite.svg',
+                originalFileName: SPRITE_MANIFEST_KEY,
+                source: sprite,
+            });
+        },
+    };
+}
+
 export default defineConfig(({ mode }) => ({
     plugins: [
         laravel({
@@ -19,6 +49,7 @@ export default defineConfig(({ mode }) => ({
             refresh: true,
         }),
         tailwindcss(),
+        svgSprite(),
     ],
     css: {
         lightningcss: { targets: cssTargets },
