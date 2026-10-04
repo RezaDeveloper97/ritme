@@ -3,7 +3,7 @@ id: L2-01b
 title: Versioned media variant URLs (cache-busting under immutable caching)
 milestone: L2
 type: backend
-status: todo
+status: done
 depends_on: [L2-01,L1-07]
 parallel_group: L2-A
 touches: [app/Domain/Media,tests/Feature/Media,tests/Unit/Media]

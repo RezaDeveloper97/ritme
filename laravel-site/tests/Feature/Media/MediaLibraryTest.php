@@ -2,13 +2,16 @@
 
 declare(strict_types=1);
 
+use App\Domain\Media\Actions\GenerateMediaVariants;
 use App\Domain\Media\Actions\StoreMedia;
+use App\Domain\Media\Actions\UpdateMediaDetails;
 use App\Domain\Media\Contracts\MediaRepository;
 use App\Domain\Media\Data\MediaUpload;
 use App\Domain\Media\Models\Media;
 use App\Domain\Media\Repositories\CachedMediaRepository;
 use App\Domain\Seo\Contracts\OgImageResolver;
 use App\Support\Cache\NamespaceVersions;
+use App\View\Components\Picture;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Tests\Feature\Media\MediaFixtures;
@@ -76,9 +79,9 @@ it('returns DTOs with resolved URLs, srcsets and LQIP', function (): void {
         ->and($data->optimized)->toBeTrue()
         ->and($data->formats())->toBe(['avif', 'webp', 'jpg'])
         ->and($data->fallbackFormat())->toBe('jpg')
-        ->and($data->url('desktop_1280', 'avif'))->toEndWith('-desktop_1280.avif')
-        ->and($data->url('thumb'))->toEndWith('-thumb.jpg')
-        ->and($data->srcset('webp'))->toMatch('/-mobile_480\.webp 480w, .*-mobile_768\.webp 768w, .*-desktop_1280\.webp 1280w, .*-desktop_1920\.webp 1920w$/')
+        ->and($data->url('desktop_1280', 'avif'))->toMatch('/-desktop_1280\.[0-9a-f]{10}\.avif$/')
+        ->and($data->url('thumb'))->toMatch('/-thumb\.[0-9a-f]{10}\.jpg$/')
+        ->and($data->srcset('webp'))->toMatch('/-mobile_480\.[0-9a-f]{10}\.webp 480w, .*-mobile_768\.[0-9a-f]{10}\.webp 768w, .*-desktop_1280\.[0-9a-f]{10}\.webp 1280w, .*-desktop_1920\.[0-9a-f]{10}\.webp 1920w$/')
         ->and($data->srcset('jpg'))->toEndWith('.jpg 2000w')
         ->and($data->lqip)->toStartWith('data:image/webp;base64,');
 });
@@ -130,7 +133,7 @@ it('resolves OG images from the og variant with an absolute URL', function (): v
 
     expect($image)->not->toBeNull()
         ->and($image->url)->toStartWith('http')
-        ->and($image->url)->toEndWith('-og.jpg')
+        ->and($image->url)->toMatch('/-og\.[0-9a-f]{10}\.jpg$/')
         ->and([$image->width, $image->height])->toBe([1200, 630])
         ->and($image->type)->toBe('image/jpeg')
         ->and($image->alt)->toBe('عنوان صفحه');
@@ -178,6 +181,92 @@ it('regenerates everything and removes files that are no longer produced', funct
         ->and(array_keys($variants['mobile_480']))->toBe(['webp', 'jpg']);
     Storage::disk('public')->assertMissing($squarePath);
     expect(collect(Storage::disk('public')->allFiles())->filter(fn (string $p): bool => str_ends_with($p, '.avif'))->all())->toBe([]);
+});
+
+it('versions every variant file name with a hash of its content', function (): void {
+    $media = libraryMedia(MediaFixtures::jpeg(1300, 900));
+    $disk = Storage::disk('public');
+
+    foreach ($media->variants as $name => $formats) {
+        foreach ($formats as $format => $file) {
+            $version = GenerateMediaVariants::version((string) $disk->get($file['path']));
+            expect($file['path'])->toBe("{$media->directory}/".pathinfo($media->filename, PATHINFO_FILENAME)."-{$name}.{$version}.{$format}");
+        }
+    }
+});
+
+it('gives focal crops new URLs after a focal change, removes the old files and bumps the caches', function (): void {
+    $media = libraryMedia(MediaFixtures::jpeg(1600, 800));
+    $disk = Storage::disk('public');
+    $repository = app(MediaRepository::class);
+    $resolver = app(OgImageResolver::class);
+    $versions = app(NamespaceVersions::class);
+
+    $before = $media->variants;
+    $thumbUrl = $repository->find($media->id)?->url('thumb', 'webp');
+    $ogUrl = $resolver->resolve($media->id, 'x')?->url;
+    $pictureOg = Picture::mediaUrl($media->id, 'og');
+    $namespaces = [$versions->version('media'), $versions->version('seo'), $versions->version('pages')];
+
+    app(UpdateMediaDetails::class)->handle($media, 'تصویر', null, null, 0.0, 0.5);
+
+    $after = $media->refresh()->variants;
+    $data = $repository->find($media->id);
+
+    foreach (['thumb', 'og'] as $crop) {
+        foreach ($before[$crop] as $format => $file) {
+            expect($after[$crop][$format]['path'])->not->toBe($file['path']);
+            $disk->assertMissing($file['path']);
+            $disk->assertExists($after[$crop][$format]['path']);
+        }
+    }
+
+    // Responsive widths are not focal-cropped: same bytes, same URLs, files kept.
+    expect($after['desktop_1280'])->toBe($before['desktop_1280']);
+    $disk->assertExists($before['desktop_1280']['webp']['path']);
+
+    expect($data?->url('thumb', 'webp'))->not->toBe($thumbUrl)
+        ->and($data?->url('thumb', 'webp'))->toEndWith($after['thumb']['webp']['path'])
+        ->and($resolver->resolve($media->id, 'x')?->url)->not->toBe($ogUrl)
+        ->and($resolver->resolve($media->id, 'x')?->url)->toEndWith($after['og']['jpg']['path'])
+        ->and(Picture::mediaUrl($media->id, 'og'))->not->toBe($pictureOg)
+        ->and(Picture::mediaUrl($media->id, 'og'))->toEndWith($after['og']['jpg']['path'])
+        ->and($versions->version('media'))->toBeGreaterThan($namespaces[0])
+        ->and($versions->version('seo'))->toBeGreaterThan($namespaces[1])
+        ->and($versions->version('pages'))->toBeGreaterThan($namespaces[2]);
+});
+
+it('moves rows generated before versioning onto versioned files on regenerate', function (): void {
+    $media = libraryMedia(MediaFixtures::jpeg(1300, 900));
+    $disk = Storage::disk('public');
+    $stem = pathinfo($media->filename, PATHINFO_FILENAME);
+
+    // Rewrite the row as the pre-versioning pipeline stored it: {stem}-{variant}.{ext}.
+    $legacy = [];
+    foreach ($media->variants as $name => $formats) {
+        foreach ($formats as $format => $file) {
+            $path = "{$media->directory}/{$stem}-{$name}.{$format}";
+            $disk->move($file['path'], $path);
+            $legacy[$name][$format] = [...$file, 'path' => $path];
+        }
+    }
+    $media->forceFill(['variants' => $legacy])->save();
+
+    // Legacy rows keep working as they are.
+    expect(app(MediaRepository::class)->find($media->id)?->url('thumb'))->toEndWith('-thumb.jpg');
+
+    $this->artisan('media:regenerate', ['--id' => [$media->id]])->assertSuccessful();
+
+    $variants = $media->refresh()->variants;
+    expect($variants['thumb']['jpg']['path'])->toMatch('/-thumb\.[0-9a-f]{10}\.jpg$/');
+    foreach ($legacy as $formats) {
+        foreach ($formats as $file) {
+            $disk->assertMissing($file['path']);
+        }
+    }
+    foreach ($media->allPaths() as $path) {
+        $disk->assertExists($path);
+    }
 });
 
 it('rejects unknown presets in media:regenerate', function (): void {

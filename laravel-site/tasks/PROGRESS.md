@@ -274,3 +274,9 @@ One section per finished task (appended by `/site-task`).
 - Open: Persian digits / Jalali / Toman helpers not built (app/Support outside touches) → follow-up **L3-01b**;
   components use `Footer::persianDigits()` and an inline Toman formatter meanwhile. app-cta aside built as the design's
   night card (AUDIT said white).
+
+## L2-01b — Versioned media variant URLs
+- Variant files are named `{stem}-{variant}.{hash10}.{ext}` (xxh128 of the encoded bytes,
+  `GenerateMediaVariants::version()`): changed pixels → new URL, identical bytes → same name (safe under immutable cache).
+  New set written before stale files are deleted; observer bumps media/seo (+pages). No migration; legacy unversioned
+  rows keep working until their next regenerate. 3 new tests in `MediaLibraryTest`.

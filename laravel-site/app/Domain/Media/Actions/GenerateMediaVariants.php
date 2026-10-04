@@ -21,10 +21,18 @@ use Intervention\Image\Interfaces\ImageInterface;
  * Writes the variants of one media item from its stored original: responsive widths (mobile/desktop), focal crops
  * (thumb/og/square) in avif/webp/fallback, or a poster + thumb for animated GIFs. With `$presets` only those presets
  * are (re)generated and merged into the existing set; otherwise every automatic preset replaces the old set.
- * Files no longer referenced are deleted.
+ *
+ * `/media` is served `immutable` for a year (L1-07), so a file name must never be reused for different bytes: every
+ * variant file name carries a short hash of its encoded content (`{stem}-{variant}.{version}.{ext}`). A regenerate
+ * that changes the pixels (e.g. a moved focal point) yields new URLs; an identical result keeps the same URL. The
+ * new set is written first, then files no longer referenced are deleted. Saving the row bumps `media`, `seo` and
+ * `pages` (MediaObserver), so cached DTOs, OG tags and full pages pick up the new URLs. Rows generated before
+ * versioning keep their stored unversioned paths until they are regenerated.
  */
 final class GenerateMediaVariants
 {
+    public const VERSION_LENGTH = 10;
+
     public function __construct(
         private readonly ImageManager $images,
         private readonly VariantPlanner $planner,
@@ -78,8 +86,9 @@ final class GenerateMediaVariants
 
             foreach ($spec->formats as $format) {
                 $encoded = $this->encoder->encode($resized, $format);
-                $path = "{$media->directory}/{$stem}-{$spec->name}.{$format->value}";
-                $disk->put($path, $encoded->toString());
+                $bytes = $encoded->toString();
+                $path = ltrim("{$media->directory}/{$stem}-{$spec->name}.".self::version($bytes).".{$format->value}", '/');
+                $disk->put($path, $bytes);
 
                 $variants[$spec->name][$format->value] = ['w' => $resized->width(), 'h' => $resized->height(), 'path' => $path, 'size' => $encoded->size()];
             }
@@ -90,6 +99,14 @@ final class GenerateMediaVariants
         $media->forceFill(['variants' => $variants, 'optimized_at' => now()])->save();
 
         return $media;
+    }
+
+    /**
+     * Short content hash used as the variant's version segment (cache-busting under immutable caching).
+     */
+    public static function version(string $bytes): string
+    {
+        return substr(hash('xxh128', $bytes), 0, self::VERSION_LENGTH);
     }
 
     private function transform(ImageInterface $image, VariantSpec $spec, Media $media): ImageInterface
