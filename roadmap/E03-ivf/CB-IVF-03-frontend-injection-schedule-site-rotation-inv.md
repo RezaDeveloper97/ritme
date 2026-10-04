@@ -3,7 +3,7 @@ id: CB-IVF-03
 title: Frontend: injection schedule, site rotation, inventory
 epic: IVF
 type: frontend
-status: todo
+status: done
 depends_on: [CB-IVF-02]
 parallel_group: IVF-C
 touches: [frontend/src/screens/ivf-meds, frontend/src/app/[locale]/ivf/meds]

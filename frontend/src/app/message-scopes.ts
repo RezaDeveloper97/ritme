@@ -106,6 +106,8 @@ export const ROUTE_NAMESPACES = {
   lossStart: ['common', 'companions', 'loss'], // CB-LOSS-02 /loss (Loss_Start, full screen, no nav; companions = entities/companion barrel)
   lossCare: ['common', 'loss'], // CB-LOSS-02 /loss/care (Loss_Care; «ثبت» opens the shell's log sheet)
   lossNext: ['common', 'loss'], // CB-LOSS-02 /loss/next (Loss_Next)
+  ivfMeds: ['common', 'ivf', 'nav'], // CB-IVF-03 /ivf/meds (nbl_IVF_Meds, IVF stage tab «درمان»)
+  ivfMedForm: ['common', 'ivf', 'nav'], // CB-IVF-03 /ivf/meds/new, /ivf/meds/[id] (form, no nav; same screen slice as /ivf/meds)
   analysis: ['analysis', 'common', 'nav', 'plus'], // B-N3-08 /analysis hub + /analysis/* stubs (one screen slice; PlusGate copy = plus.gate)
   analysisHub: ['analysis', 'analysisPregnancy', 'common', 'nav', 'plus'], // B-N3-12 /analysis itself: + the pregnancy hub (screens/analysis-pregnancy)
   analysisPregnancyWeight: ['analysisPregnancy', 'common', 'nav', 'plus'], // B-N3-12 /analysis/pregnancy-weight (An_PregWeight; the slice's hub cards carry plus.gate)

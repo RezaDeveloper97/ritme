@@ -22,6 +22,7 @@ export const NAV_ROOT_PATHS: readonly string[] = [
   '/analysis',
   '/menopause/score', // CB-MENO-08: menopause mode tab «علائم» (nbl_Meno_Score)
   '/ivf', // CB-IVF-02: IVF «امروز» (nbl_IVF_Home, TTC + «IVF/IUI»)
+  '/ivf/meds', // CB-IVF-03: IVF stage tab «درمان» (nbl_IVF_Meds)
   // Transitional (B-N1-04): these screens have no back button yet, so hiding
   // the nav would strand the user. Their restyle tasks add a ScreenHeader and
   // drop them from this list: /log (B-N3-03),

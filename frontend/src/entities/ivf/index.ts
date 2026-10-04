@@ -30,3 +30,40 @@ export {
   useStartIvfCycle,
   useUnlogIvfDose,
 } from './api/queries';
+
+// CB-IVF-03 — the injection schedule (`/ivf/meds`): meds CRUD, doses with a site, catalog sites/presets/guidance.
+export {
+  IVF_INJECTED_ROUTES,
+  IVF_MAX_TIMES,
+  IVF_STOCK_UNITS,
+  type IvfGuidance,
+  type IvfInjectionSite,
+  type IvfInventory,
+  type IvfMed,
+  type IvfMedInput,
+  type IvfMedPreset,
+  type IvfMedsView,
+  type IvfSites,
+  type IvfSiteUse,
+  type IvfStockUnit,
+  type IvfTrigger,
+} from './model/meds';
+export {
+  ivfGuidanceSchema,
+  ivfInjectionSitesSchema,
+  ivfMedPresetsSchema,
+  ivfMedsViewSchema,
+  toIvfMedBody,
+} from './api/meds-schema';
+export {
+  fetchIvfMeds,
+  useAddIvfMed,
+  useDeleteIvfMed,
+  useIvfGuidance,
+  useIvfInjectionSites,
+  useIvfMedPresets,
+  useIvfMeds,
+  useLogIvfScheduleDose,
+  useUnlogIvfScheduleDose,
+  useUpdateIvfMed,
+} from './api/meds-queries';

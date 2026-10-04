@@ -67,12 +67,12 @@ describe('navConfig (nav.md per-mode table)', () => {
     const ivf = navConfig('ttc', { ivf: true });
     expect([...ivf.before, ...ivf.after].map((t) => `${t.key}:${t.href}`)).toEqual([
       'today:/ivf',
-      'treatment:/ivf#ivf-doses',
+      'treatment:/ivf/meds', // CB-IVF-03 flipped NAV_READY.ivfMeds
       'services:/services',
       'me:/profile',
     ]);
     expect(ivf.before[1]?.icon).toBe('treatment');
-    expect(navConfig('ttc', { ivf: true, ready: { ivfMeds: true } }).before[1]?.href).toBe('/ivf/meds');
+    expect(navConfig('ttc', { ivf: true, ready: { ivfMeds: false } }).before[1]?.href).toBe('/ivf#ivf-doses');
     expect(keys('ttc')).toEqual(['today:/home', 'fertility:/calendar', 'FAB', 'services', 'me']);
     // The flag only means something for ttc.
     expect(navConfig('cycle', { ivf: true }).before.map((t) => t.key)).toEqual(['today', 'calendar']);

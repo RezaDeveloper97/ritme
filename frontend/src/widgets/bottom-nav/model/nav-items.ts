@@ -112,7 +112,7 @@ export interface NavReady {
  * tab until `/children` (B-N5-05).
  * The owning tasks flip their flag — nothing else changes.
  */
-export const NAV_READY: NavReady = { postpartum: true, children: false, analysis: true, ivfMeds: false };
+export const NAV_READY: NavReady = { postpartum: true, children: false, analysis: true, ivfMeds: true };
 
 /** «درمان» before CB-IVF-03: the IVF home's today-injections section (`id="ivf-doses"`), never a 404. */
 export const IVF_TREATMENT_FALLBACK = '/ivf#ivf-doses';

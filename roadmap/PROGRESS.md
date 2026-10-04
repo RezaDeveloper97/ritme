@@ -291,3 +291,8 @@ TODO (ask user):
 - Verify (combined tree): typecheck, lint, fsd:lint, lint:styles (949), lint:dark, 1274 tests, build; i18n Go tests — green. Fidelity `docs/qa/canvas/loss.md` ✔. Test user 09120005402 (one older loss row inserted directly for the recurrent note).
 - Open: no way back into /loss/care after leaving (no home card/menu row); CB-IVF-05 negative result must point at /loss; bloom's `useLossCopy` / `me.mode.loss.*` now unused; 503 note path not exercised live.
 - TODO (ask user): preselect type/date as on the board, or keep empty (privacy)?
+
+## CB-IVF-03 — Frontend: injection schedule, site rotation, inventory
+- `/ivf/meds` (stage tab «درمان», nav shown): trigger card (catalog `ivf_guidance.trigger_timing` + exact time), today (log/undo) and tomorrow lists, 8-site picker (API `sites.suggested` preselected, «دفعه قبل» label, per-site catalog guidance; `site` sent on injection logs), inventory with «کم است» / «کافی تا …», «افزودن دارو از روی نسخه». `/ivf/meds/new` + `/ivf/meds/[id]` forms (presets from `ivf_med_presets`, type/route/dose/unit, 1–4 times or exact trigger date-time, Jalali start/end, optional stock, note, delete with confirm). `NAV_READY.ivfMeds` + `IVF_SCREENS_READY.meds` on.
+- Verify (combined tree): typecheck, lint, fsd:lint, lint:styles (961), lint:dark, 1297 tests, build; i18n Go tests — green. Fidelity `docs/qa/canvas/ivf.md` ✔ (8 sites vs board's 4; form has no board — minimal per DECISIONS #8). Test user 09900002021 now has 3 meds + one logged injection.
+- Open: IVF home dose log still sends no site; no `is_active` switch in the form; low-stock threshold + catalog copy [needs clinical review].

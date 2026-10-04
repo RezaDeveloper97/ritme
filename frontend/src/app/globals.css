@@ -9016,3 +9016,138 @@ button.ch-log-row { width: 100%; background: none; border: 0; font-family: inher
 /* Next */
 .lnx-note { margin-top: 4px; }
 /* ═══ end CB-LOSS-02 ═══ */
+
+/* ═══ CB-IVF-03 — IVF injection schedule + medicine form (nbl_IVF_Meds) ═══ */
+.ivfm-skel-sites { min-block-size: 180px; }
+.ivfm-day-title { margin: 0; font-size: var(--fs-md); font-weight: 800; color: var(--text-3); }
+.ivfm-section-title { margin: 0; font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); }
+
+/* Trigger card: bloom tint, exact time line */
+.ivfm-trigger {
+  display: flex; align-items: flex-start; gap: 12px; padding: 16px; border-radius: var(--r-card);
+  border: 1px solid color-mix(in srgb, var(--bloom) 45%, transparent);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--bloom) 18%, transparent), var(--surface) 70%);
+}
+.ivfm-trigger.is-done { border-color: var(--line); }
+.ivfm-trigger-text { display: flex; flex-direction: column; gap: 4px; min-inline-size: 0; flex: 1; }
+.ivfm-trigger-title { margin: 0; font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); }
+.ivfm-trigger-body { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+.ivfm-trigger-when {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 4px 0 0;
+  font-size: var(--fs-base); font-weight: 800; color: var(--bloom-deep);
+}
+
+/* Status pills (inventory + trigger done) */
+.ivfm-pill {
+  display: inline-flex; align-items: center; flex-shrink: 0; height: 30px; padding: 0 12px; border-radius: var(--r-pill);
+  font-size: var(--fs-sm); font-weight: 800; white-space: nowrap; background: var(--surface);
+}
+.ivfm-pill.is-ok { border: 1px solid color-mix(in srgb, var(--data) 50%, transparent); color: var(--data-deep); }
+.ivfm-pill.is-low { border: 1px solid color-mix(in srgb, var(--danger) 55%, transparent); color: var(--danger-deep); background: var(--danger-soft); }
+
+/* 8-site rotation picker: 2-column radio tiles, selected = brand soft + outline */
+.ivfm-sites { display: flex; flex-direction: column; gap: 12px; }
+.ivfm-site-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ivfm-site {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  min-block-size: 44px; padding: 6px 10px; border-radius: var(--r-md); box-sizing: border-box; cursor: pointer;
+  border: 1px solid var(--line-strong); background: var(--surface); color: var(--text-2);
+  font-family: inherit; font-size: var(--fs-md); font-weight: 700; text-align: center;
+}
+.ivfm-site[aria-checked="true"] { border: 1.5px solid var(--brand); background: var(--brand-soft); color: var(--brand-ink); font-weight: 800; }
+.ivfm-site:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.ivfm-site-tag { display: inline-flex; align-items: center; gap: 3px; font-size: var(--fs-xs); font-weight: 700; color: var(--text-3); }
+.ivfm-site-note { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+
+/* Inventory + add button */
+.ivfm-stock .nb-row-title { font-size: var(--fs-base); }
+.ivfm-add {
+  display: flex; align-items: center; justify-content: center; gap: 8px; min-block-size: 56px; padding: 0 16px;
+  border-radius: var(--r-card); border: 1.5px dashed var(--line-strong); background: transparent;
+  font-size: var(--fs-base); font-weight: 800; color: var(--brand-strong); text-decoration: none;
+}
+.ivfm-add:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+/* Medicine form (no nav) */
+.ivfm-form { display: flex; flex-direction: column; gap: 14px; padding: 8px var(--gutter-form) 32px; }
+.ivfm-card { display: flex; flex-direction: column; gap: 16px; }
+.ivfm-block { display: flex; flex-direction: column; gap: 8px; }
+.ivfm-block-title { margin: 0; font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); }
+.ivfm-block-hint { margin: 0; font-size: var(--fs-sm); font-weight: 600; line-height: 1.6; color: var(--text-3); }
+.ivfm-group { display: flex; flex-direction: column; gap: 8px; min-inline-size: 0; }
+.ivfm-label { font-size: var(--fs-base); font-weight: 800; color: var(--text-1); text-align: start; }
+.ivfm-optional { font-size: var(--fs-sm); font-weight: 600; color: var(--text-3); }
+.ivfm-two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: start; }
+.ivfm-dose { display: flex; flex-direction: column; gap: 16px; }
+.ivfm-chips { gap: 8px; }
+.ivfm-field {
+  display: flex; align-items: center; gap: 10px; box-sizing: border-box; height: 50px; padding: 0 14px;
+  border-radius: var(--r-lg); background: var(--surface-2); border: 1.5px solid transparent; color: var(--text-3);
+}
+.ivfm-field:focus-within { border-color: var(--brand); }
+.ivfm-field:has([aria-invalid="true"]) { border-color: var(--danger); }
+.ivfm-field input {
+  flex: 1; min-inline-size: 0; inline-size: 100%; border: 0; outline: 0; background: transparent;
+  font-family: inherit; font-size: var(--fs-lg); font-weight: 700; color: var(--text-1); text-align: start;
+}
+.ivfm-field input::placeholder { color: var(--text-4); }
+.ivfm-textarea {
+  box-sizing: border-box; inline-size: 100%; min-block-size: 72px; resize: none; padding: 12px 14px;
+  border-radius: var(--r-lg); border: 1.5px solid transparent; outline: 0; background: var(--surface-2); color: var(--text-1);
+  font-family: inherit; font-size: var(--fs-base); line-height: var(--lh-body); text-align: start;
+}
+.ivfm-textarea:focus { border-color: var(--brand); }
+.ivfm-error { margin: 0; font-size: var(--fs-sm); font-weight: 700; color: var(--danger-deep); text-align: start; }
+
+/* Dose times: chips with a remove ×, plus «افزودن ساعت» */
+.ivfm-times { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.ivfm-time {
+  display: inline-flex; align-items: center; height: 44px; border-radius: var(--r-pill);
+  border: 1.5px solid var(--brand); background: var(--brand-soft);
+}
+.ivfm-time-value, .ivfm-time-remove, .ivfm-time-add {
+  border: 0; background: transparent; cursor: pointer; font-family: inherit; color: var(--brand-ink);
+}
+.ivfm-time-value { height: 100%; padding: 0 14px; font-size: var(--fs-lg); font-weight: 800; }
+.ivfm-time-remove {
+  display: inline-flex; align-items: center; justify-content: center; inline-size: 32px; block-size: 32px;
+  margin-inline-end: 6px; border-radius: var(--r-pill);
+}
+.ivfm-time-add {
+  display: inline-flex; align-items: center; gap: 6px; height: 44px; padding: 0 14px; border-radius: var(--r-pill);
+  border: 1.5px dashed var(--line-strong); color: var(--brand-strong); font-size: var(--fs-md); font-weight: 800;
+}
+.ivfm-time-value:focus-visible, .ivfm-time-remove:focus-visible, .ivfm-time-add:focus-visible {
+  outline: 2px solid var(--brand); outline-offset: 2px;
+}
+
+/* Date / time fields that open a sheet */
+.ivfm-pick { position: relative; display: flex; align-items: stretch; }
+.ivfm-pick-btn {
+  flex: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-block-size: 58px;
+  padding: 8px 14px; border-radius: var(--r-lg); border: 1.5px solid transparent; background: var(--surface-2);
+  cursor: pointer; font-family: inherit; text-align: start;
+}
+.ivfm-pick.is-invalid .ivfm-pick-btn { border-color: var(--danger); }
+.ivfm-pick-btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.ivfm-pick-label { font-size: var(--fs-sm); font-weight: 700; color: var(--text-3); }
+.ivfm-pick-value { font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); }
+.ivfm-pick-clear {
+  position: absolute; inset-inline-end: 6px; inset-block-start: 50%; transform: translateY(-50%);
+  display: inline-flex; align-items: center; justify-content: center; inline-size: 32px; block-size: 32px;
+  border: 0; border-radius: var(--r-pill); background: var(--surface); color: var(--text-2); cursor: pointer;
+}
+.ivfm-pick-clear:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+.ivfm-switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.ivfm-switch-text { display: flex; flex-direction: column; gap: 2px; }
+.ivfm-footer { display: flex; flex-direction: column; gap: 10px; }
+.ivfm-delete { color: var(--danger-deep); }
+
+/* Sheets */
+.ivfm-sheet-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ivfm-wheels { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.ivfm-wheels-sep { font-family: var(--font-display); font-size: 28px; color: var(--text-2); }
+.ivfm-sheet-body { margin: 0 0 12px; font-size: var(--fs-base); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+.nb-btn.ivfm-danger-btn { background: var(--danger-soft); color: var(--danger-deep); border: 1.5px solid var(--danger); box-shadow: none; }
+/* ═══ end CB-IVF-03 ═══ */
