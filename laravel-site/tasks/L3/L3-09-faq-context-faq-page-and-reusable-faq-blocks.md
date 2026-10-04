@@ -3,7 +3,7 @@ id: L3-09
 title: FAQ context, /faq page and reusable FAQ blocks + admin
 milestone: L3
 type: fullstack
-status: todo
+status: done
 depends_on: [L3-01,L1-04,L1-08]
 parallel_group: L3-E
 touches: [resources/views/pages/home.blade.php,resources/views/pages/plus.blade.php,app/Domain/Faq,database/migrations,database/seeders/FaqSeeder.php,resources/views/pages/faq.blade.php,resources/views/components/faq,app/Http/Controllers/FaqController.php,app/Filament/Resources/Faq,tests/Feature/Faq]

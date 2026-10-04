@@ -3,8 +3,9 @@
       $staticSections HtmlString — pages/home/static.blade.php pre-rendered and cached (`pages` namespace)
       $readings       list<PostCardData> — newest posts; the block renders nothing while the magazine is empty
       $appLinks       AppLinksSettings, $qrUrl string — the #download card
+      $faq            FaqGroupData|null — FAQ group `home`, from the FaqServiceProvider view composer (L3-09)
     Copy: lang/fa/home.php. Sections: hero (dark block, the LCP is the h1 — text, nothing lazy) → static sections →
-    readings → FAQ «قبل از نصب» (L3-09 slot) → #download → promise banner.
+    readings → FAQ «قبل از نصب» (x-faq, group `home`) → #download → promise banner.
 --}}
 @extends('layouts.app')
 
@@ -25,10 +26,9 @@
         bg="surface"
     />
 
-    {{-- ===== L3-09 SLOT: FAQ «قبل از نصب» (design: eyebrow «سؤال‌های رایج», centred h2, 4 items, first open) =====
-         L3-09 owns the FAQ data (group `home`) and its FAQPage JSON-LD. Replace this comment with its block, e.g.
-         <x-faq group="home" eyebrow="سؤال‌های رایج" title="قبل از نصب" align="center"/>
-         Until then nothing renders here: no hard-coded FAQ copy and no empty shell. ===== --}}
+    {{-- FAQ «قبل از نصب» (L3-09): group `home` from the FaqServiceProvider composer ($faq, null → nothing renders);
+         its questions are already in the page's FAQPage JSON-LD. The h2 is the group title (admin-editable). --}}
+    <x-faq :faq="$faq ?? null" eyebrow="سؤال‌های رایج" :title="($faq ?? null)?->title" align="center" heading-id="home-faq-title"/>
 
     <x-ui.app-cta
         :title="__('home.app_cta.title')"

@@ -14,6 +14,7 @@ use App\Domain\Content\Stages\Data\StageFeatureData;
 use App\Domain\Content\Stages\Data\StageFloatCardData;
 use App\Domain\Content\Stages\Data\StageHeroData;
 use App\Domain\Content\Stages\Data\StagePageData;
+use App\Domain\Faq\Contracts\FaqRepository;
 use App\Domain\Seo\Schema\Data\FaqItem;
 use App\Domain\Settings\Contracts\SettingsRepository;
 use Illuminate\Contracts\Translation\Translator;
@@ -38,6 +39,7 @@ final class StagePageBuilder
         private readonly PostRepository $posts,
         private readonly SettingsRepository $settings,
         private readonly UrlGenerator $url,
+        private readonly FaqRepository $faqs,
     ) {}
 
     public function build(StageDefinition $definition): StagePageData
@@ -64,7 +66,7 @@ final class StagePageBuilder
             readingsMoreUrl: $this->navigation->url(StaticPage::Blog),
             faqGroup: $definition->faqGroup(),
             faqTitle: $this->text($group, 'faq.title'),
-            faq: $this->faq($group),
+            faq: $this->faq($group, $definition->faqGroup()),
             appCtaTitle: $this->text($group, 'app_cta.title'),
             appCtaLead: $this->optional($group, 'app_cta.lead'),
             appLinks: $settings->appLinks,
@@ -184,10 +186,18 @@ final class StagePageBuilder
     }
 
     /**
+     * Published items of the stage's FAQ group (`stage-<slug>`, cached `faq` ns, admin-edited); the lang copy only
+     * while the group is not seeded. A seeded group with nothing published shows no FAQ.
+     *
      * @return list<FaqItem>
      */
-    private function faq(string $group): array
+    private function faq(string $group, string $faqGroup): array
     {
+        $seeded = $this->faqs->group($faqGroup);
+        if ($seeded !== null) {
+            return $seeded->schemaItems();
+        }
+
         $items = $this->translator->get("{$group}.faq.items");
         if (! is_array($items)) {
             throw new LogicException("Missing translation [{$group}.faq.items].");

@@ -6,6 +6,7 @@ use App\Http\Controllers\AboutController;
 use App\Http\Controllers\Blog\BlogListingController;
 use App\Http\Controllers\Blog\NewsletterController;
 use App\Http\Controllers\Blog\ShowPostController;
+use App\Http\Controllers\FaqController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PlaceholderPageController;
 use App\Http\Controllers\PrivacyController;
@@ -49,7 +50,7 @@ Route::get('/about', AboutController::class)->name('about');                    
 Route::get('/social-responsibility', SocialResponsibilityController::class)->name('social-responsibility'); // L3-08
 Route::get('/privacy', PrivacyController::class)->name('privacy');                               // L3-08
 Route::get('/terms', TermsController::class)->name('terms');                                     // L3-08
-Route::get('/faq', PlaceholderPageController::class)->name('faq');                                 // L3-09
+Route::get('/faq', FaqController::class)->name('faq');                                           // L3-09
 Route::get('/contact', PlaceholderPageController::class)->name('contact');                         // L3-10
 
 Route::prefix('blog')->name('blog.')->group(function (): void {

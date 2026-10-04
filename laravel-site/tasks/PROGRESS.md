@@ -417,3 +417,20 @@ One section per finished task (appended by `/site-task`).
   `support_email`; about: founder story, mission, stats, team, council names, careers URL; social: programmes,
   founder quote, transparency period + URL.
 - Open: move `*_updated_at` + transparency URL into `LegalSettings`; editorial review policy text not written yet.
+
+## L3-09 — FAQ context, /faq page and reusable FAQ blocks + admin
+- Migrations `2026_10_04_001900` (faq_groups: slug, title, is_listed, sort_order) + `001910` (faq_items, cascade FK).
+- `app/Domain/Faq`: models, DTOs, cached repo (`faq` ns, all groups in one entry), `FaqObserver` (bumps faq + pages,
+  sanitises answers, wraps plain text), `PageFaq` (one FAQPage node per page from visible Q&As only), `InvalidateFaqCache`
+  (drag-sort/seeder). `FaqServiceProvider` view composer gives `$faq` + JSON-LD to `pages.home`→home, `pages.plus`→plus,
+  `pages.contact`→contact, `pages.directory.business`→directory-business — those views MUST render `$faq`.
+- `/faq` (`FaqController`, sidebar anchors, `faq-filter` data-module search), `x-faq` (list/grid, bare, slot), home FAQ
+  slot filled, stage pages read `stage-<slug>` groups (lang fallback kept). Filament `FaqGroupResource` + items relation
+  manager (drag-sort, publish toggles, preview, local RichEditor), `FaqPolicy` (Editor + super-admin).
+- `FaqSeeder` (idempotent; 15 groups / 45 items, stage groups seeded from lang) called from `DatabaseSeeder`. `FaqTest` (11).
+- Diff /faq: NULL app links 390 16.2% / 1440 8.51%; links filled 3.93% / 2.81%. Home 1440 dropped 19.58% → 6.99%.
+  `seo:audit` 0 errors (title lengthened to ≥30 chars).
+- Plus usage: `<x-faq :faq="$faq" variant="grid" eyebrow="قبل از خرید" :title="$faq?->title" bg="surface"/>`.
+- Open: /faq copy in Blade/controller (move to `lang/fa/faq.php`); design placeholders seeded verbatim for editors;
+  blog `CategoryResource` drag-sort doesn't bump cache; controllers holding request-scoped SchemaGraph/SeoManager in
+  constructors keep stale graphs across multiple requests within one test.
