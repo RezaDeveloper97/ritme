@@ -201,3 +201,21 @@ One section per finished task (appended by `/site-task`).
   (controllers get DTOs); media delete via FK null doesn't bump `blog`; sitemap URLs need https in production.
 - Incident: the agent's `migrate:fresh --env=testing` wiped the dev SQLite DB (no `.env.testing`); re-seeded settings
   + roles. Recreate the admin with `php artisan admin:create`.
+
+## L1-05 — Routing, clean URLs, legacy 301s, trailing slash, error pages
+- `routes/web.php`: all 29 AUDIT §7 routes + `/terms`, named (see table below), no closures, owner task commented per
+  line; every page currently served by the final invokable `PlaceholderPageController` (one h1, registry breadcrumbs,
+  noindex) — each page task swaps its own line. Preview route kept.
+- `CanonicalizeUrl` global middleware (one 301 hop, query kept): collapse/strip slashes, `*.html`, `/ritme-static/*.html`,
+  WordPress slugs → new routes (`App\Domain\Content\LegacyUrlMap`), lowercase static paths only, 410 for
+  `/ritme-static/assets/*` + `/wp-content/uploads/ritme/*`, optional scheme/host redirect via `app.canonical_redirect`
+  (not yet in config — off), sub-folder base URL aware.
+- Error views: 404/410/419/429 on `errors/shell` (site layout, noindex, popular links; 404 zero queries warm),
+  500/503 on `errors/standalone` (no DB/settings/cache). Laravel's `errors::minimal` deliberately not overridden.
+- Tests: `tests/Feature/Routing/{Routing,ErrorPages}Test.php` (134, driven by the AUDIT urlmap). `route:cache` works.
+- Route names: `home`, `stage.{cycle,ttc,pregnancy,postpartum,menopause,teen}`, `services`, `plus`, `tools`, `about`,
+  `social-responsibility`, `privacy`, `terms`, `faq`, `contact`, `blog.index`, `blog.show`, `directory.{index,business,
+  join,join.done,place,booked}`, `shop.{index,category,product,cart,checkout,order}`; `{code}` = `[A-Za-z0-9-]+`.
+- Open: add `canonical_redirect` (`APP_CANONICAL_REDIRECT`) to config/app.php + .env.example (L1-07/L10); L5-02 must
+  register `/directory/{city}[/{category}]` after the fixed directory routes; L7-03 DB redirects go before LegacyUrlMap;
+  `welcome.blade.php` unused.

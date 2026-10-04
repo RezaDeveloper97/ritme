@@ -3,7 +3,7 @@ id: L1-05
 title: Routing, clean URLs, legacy 301s, trailing slash, error pages
 milestone: L1
 type: backend
-status: todo
+status: done
 depends_on: [L1-02,L1-03]
 parallel_group: L1-D
 touches: [routes/web.php,app/Http/Controllers,app/Http/Middleware,resources/views/errors,bootstrap/app.php,tests/Feature/Routing]
