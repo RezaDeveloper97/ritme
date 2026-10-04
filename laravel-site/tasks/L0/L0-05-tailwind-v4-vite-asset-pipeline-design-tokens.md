@@ -3,7 +3,7 @@ id: L0-05
 title: Tailwind v4 + Vite asset pipeline, design tokens, self-hosted fonts
 milestone: L0
 type: frontend
-status: todo
+status: done
 depends_on: [L0-04]
 parallel_group: L0-C
 touches: [vite.config.js,package.json,resources/css,resources/js,resources/fonts,tailwind.config.js,postcss.config.js]

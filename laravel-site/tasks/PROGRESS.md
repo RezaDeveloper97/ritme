@@ -51,3 +51,13 @@ One section per finished task (appended by `/site-task`).
 - Cache namespaces: `settings`, `seo`, `pages`. Tests: 13 new, pest 105 passed. 1 query cold, 0 warm.
 - Open: composer lives in `app/Domain/Settings/View` (ARCHITECTURE says `App\Http\View`) — move when touching app/Http;
   L1-02 must strip enamad HTML to allowed tags; real enamad badge is external (conflicts with no-externals rule).
+
+## L0-05 — Tailwind v4 + Vite asset pipeline, design tokens, self-hosted fonts
+- `resources/css/app.css`: Tailwind v4 with `source(none)` + explicit sources; one `@theme` with all AUDIT §3 tokens
+  (default palette removed), breakpoints sm 701 / lg 1025 / xl 1181 so `max-*` match the design's 700/1024/1180,
+  display scale stepping down by media query, base layer, `bg-hero-glow`, `.rt-prose`.
+- `resources/css/fonts.css` + 12 self-hosted woff2 (Vazirmatn 400–800, Lalezar 400; Arabic/Latin unicode-range, swap).
+- `resources/js/app.js`: lazy `data-module` loader (`import.meta.glob`), `resources/js/modules/`.
+- `vite.config.js`: manifest, hashed names, lightningcss minify, es2022 targets. CSS 2.96 KB gzip.
+- Orchestrator added CLAUDE.md token/JS docs and `tests/Feature/Frontend/ViteAssetsTest.php` (scope items outside touches).
+- Open: `lightningcss` only present transitively — pin it in package.json when the lockfile is next touched.

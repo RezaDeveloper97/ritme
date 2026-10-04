@@ -16,6 +16,12 @@ Work is driven by the `/site-task` skill and the queue in `tasks/`. **`tasks/REA
   cache namespaces they affect (incl. `pages` for the full-page cache).
 - Frontend: Blade + Tailwind v4 via Vite. No inline `style=""`, no raw hex outside `@theme`, RTL logical utilities
   (`ps-/pe-/ms-/me-/start/end`). JS only as lazy `data-module` ES modules. Images only through `<x-picture>`.
+- Tokens: add colours/sizes/radii/shadows only in `resources/css/app.css` `@theme`, then use the generated utility
+  (`bg-primary`, `text-on-night-muted`, `bg-stage-ttc/10`) or `var(--color-*)`. Tailwind's default palette is removed.
+  Desktop-first breakpoints: `max-xl:` (≤1180), `max-lg:` (≤1024), `max-sm:` (≤700); display sizes step down by
+  themselves. RTL: logical utilities only (`ps-/pe-/ms-/me-/start-/end-`, `text-start/end`, `rounded-s/e`).
+- JS: add `resources/js/modules/<name>.js` (default export `(el) => void`) and mark the element
+  `data-module="<name>"`; `resources/js/app.js` lazy-imports it. Fonts are self-hosted from `resources/fonts`.
 - **No external requests** from public pages (no CDN, web fonts, maps, analytics, captcha).
 - Every public page: SEO via `SeoManager` (title, description, canonical, robots, OG/Twitter, JSON-LD graph,
   breadcrumbs), one `<h1>`, alt + width + height on images.
