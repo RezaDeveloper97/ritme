@@ -266,5 +266,109 @@
     "delete": "Delete this day's result",
     "deleted": "This day's result was deleted",
     "deleteError": "Couldn't delete. Please try again."
+  },
+  "tww": {
+    "title": "Two-week wait",
+    "back": "Back to treatment",
+    "transfer": "Embryo transfer: {date}",
+    "loading": "Loading",
+    "loadError": "The two-week wait couldn't be loaded.",
+    "retry": "Try again",
+    "noCycleTitle": "No open treatment cycle",
+    "noCycleBody": "The two-week wait after an embryo transfer shows up in an open treatment cycle.",
+    "noCycleCta": "Back to treatment",
+    "ring": {
+      "label": "Two-week wait until the beta blood test",
+      "days": "{n, plural, one {{num} day} other {{num} days}}",
+      "toBeta": "until the blood test (beta)",
+      "today": "Today",
+      "todayCaption": "is your beta blood test day",
+      "passed": "Test day is here",
+      "passedCaption": "Record the result whenever you're ready",
+      "sinceTransfer": "Day {num}",
+      "sinceCaption": "after the embryo transfer",
+      "noDate": "Your clinic sets the beta test date"
+    },
+    "mood": {
+      "title": "How are you feeling today?",
+      "label": "Today's mood",
+      "options": {
+        "calm": "Calm",
+        "hopeful": "Hopeful",
+        "worried": "Worried",
+        "tired": "Tired"
+      },
+      "note": "Whatever you feel is normal. A home test taken too early can be misleading.",
+      "error": "Couldn't save. Please try again.",
+      "symptoms": "Log today's symptoms"
+    },
+    "earlyTest": {
+      "title": "Testing early at home",
+      "body": "Trigger and progesterone medicines can make an early home test misleading; wait for the beta blood test."
+    },
+    "meds": {
+      "title": "This cycle's medicines",
+      "meta": "{times} · as prescribed",
+      "metaDose": "{times} · {dose}",
+      "count": "{taken} of {total}",
+      "countLabel": "{taken} of {total} doses logged today",
+      "empty": "No luteal-support medicine (such as progesterone) added for this cycle yet.",
+      "add": "Add a medicine"
+    },
+    "danger": {
+      "title": "Tell your doctor straight away if you have",
+      "body": "Severe or fast-growing bloating, shortness of breath, passing much less urine, severe tummy pain, or heavy bleeding.",
+      "hotlines": "Help line",
+      "emergency": "Emergency"
+    },
+    "result": {
+      "title": "Test result",
+      "positive": "Positive result",
+      "negative": "Negative result",
+      "cancelled": "The cycle was cancelled"
+    },
+    "confirm": {
+      "title": {
+        "positive": "Record a positive result",
+        "negative": "Record a negative result",
+        "cancelled": "Record a cancelled cycle"
+      },
+      "body": {
+        "positive": "This treatment cycle will be closed. Medicine reminders keep running; check with your doctor about continuing or stopping them.",
+        "negative": "This treatment cycle will be closed and its medicine reminders turned off. Check with your doctor before stopping any medicine.",
+        "cancelled": "This treatment cycle will be closed and its medicine reminders turned off. Check with your doctor before stopping any medicine."
+      },
+      "save": "Save",
+      "cancel": "Cancel",
+      "error": "Couldn't save. Please try again."
+    },
+    "outcome": {
+      "positive": {
+        "title": "Positive result saved",
+        "body": "Plan your next steps with your clinic. Whenever you like, you can start pregnancy tracking from here.",
+        "note": "Keep taking your support medicines for as long as your doctor says.",
+        "cta": "Start pregnancy tracking",
+        "later": "Later"
+      },
+      "negative": {
+        "title": "We're sorry you got this result",
+        "body": "Whatever you're feeling is normal, and you don't have to decide anything right now.",
+        "note": "This cycle's medicine reminders are off. Check with your doctor before stopping any medicine."
+      },
+      "cancelled": {
+        "title": "This cycle has stopped",
+        "body": "Treatment plans sometimes change. Whenever you're ready, record your next cycle.",
+        "note": "This cycle's medicine reminders are off. Check with your doctor before stopping any medicine."
+      },
+      "options": "If you'd like",
+      "loss": {
+        "title": "Care and support",
+        "body": "If this feels like a loss to you, this gentle path is here for you."
+      },
+      "newCycle": {
+        "title": "Back to treatment",
+        "body": "Whenever you're ready, start your next cycle."
+      }
+    }
   }
 }

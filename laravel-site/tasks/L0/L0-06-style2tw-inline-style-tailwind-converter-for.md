@@ -3,7 +3,7 @@ id: L0-06
 title: style2tw: inline-style → Tailwind converter for design pages
 milestone: L0
 type: frontend
-status: todo
+status: done
 depends_on: [L0-05]
 parallel_group: L0-C
 touches: [tools/style2tw.mjs,tools/README.md,tests/tools]

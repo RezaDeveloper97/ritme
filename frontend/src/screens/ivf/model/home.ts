@@ -10,7 +10,7 @@ import type { IvfCycle, IvfDose, IvfStage, IvfStageInfo, IvfTimelineStep } from 
  * and -05 (`/ivf/tww`) flip their flag; until then the home hides the link
  * (the «برنامه» link scrolls to today's injections instead) — never a 404.
  */
-export const IVF_SCREENS_READY = { meds: true, scan: true, tww: false } as const;
+export const IVF_SCREENS_READY = { meds: true, scan: true, tww: true } as const;
 
 /** Anchor of «تزریق‌های امروز» — the bottom-nav «درمان» placeholder target (IVF_TREATMENT_FALLBACK). */
 export const DOSES_ANCHOR = 'ivf-doses';

@@ -9501,3 +9501,65 @@ button.ch-log-row { width: 100%; background: none; border: 0; font-family: inher
 .cmh-child { color: var(--text-1); text-decoration: none; }
 .cmh-child + .cmh-child { margin-block-start: 10px; }
 /* ═══ end B-N5-05 ═══ */
+
+/* ═══ CB-IVF-05 — IVF two-week wait + outcome (nbl_IVF_TWW, screens/ivf-tww `tww-`) ═══ */
+.tww-body { gap: 16px; padding-block-end: 32px; }
+.tww-skel-ring.nb-skel.is-circle { width: 184px; height: 184px; align-self: center; }
+.tww-card-title, .tww-section-title { margin: 0; font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); }
+.tww-section-title.is-quiet { font-size: var(--fs-md); color: var(--text-2); }
+
+/* Countdown ring: thick brand arc, Lalezar «۹ روز» + caption */
+.tww-ring-wrap { display: flex; justify-content: center; padding-block: 4px 2px; }
+.tww-ring .nb-ring-center { gap: 2px; padding-inline: 28px; }
+.tww-ring-value { font-family: var(--font-display); font-size: 34px; font-weight: 400; line-height: 1.2; color: var(--text-1); }
+.tww-ring-value.is-text { font-size: 24px; }
+.tww-ring-caption { font-size: var(--fs-sm); font-weight: 700; line-height: var(--lh-body); color: var(--text-2); }
+
+/* Mood check-in */
+.tww-mood { display: flex; flex-direction: column; gap: 12px; }
+.tww-note { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+.tww-link {
+  display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; min-block-size: 44px; padding-inline: 4px;
+  border: 0; background: none; cursor: pointer; font: inherit; font-size: var(--fs-md); font-weight: 800; color: var(--brand-strong);
+}
+.tww-link.is-quiet { align-self: center; color: var(--text-2); font-weight: 700; }
+.tww-link:focus-visible { outline: none; box-shadow: var(--ring); border-radius: var(--r-pill); }
+.tww-early-title { font-weight: 800; color: var(--text-1); }
+
+/* Luteal support: «۱ از ۲» count pill */
+.tww-count {
+  display: inline-flex; align-items: center; flex-shrink: 0; height: 30px; padding: 0 12px; border-radius: var(--r-pill);
+  border: 1px solid color-mix(in srgb, var(--period) 55%, transparent); background: var(--surface);
+  font-size: var(--fs-sm); font-weight: 800; color: var(--period-deep); white-space: nowrap;
+}
+.tww-count.is-done { border-color: color-mix(in srgb, var(--data) 50%, transparent); background: var(--data-soft); color: var(--data-deep); }
+
+/* Danger note (OHSS / fever, 115) */
+.tww-danger-body { margin: 0; line-height: var(--lh-body); }
+.tww-danger-body + .tww-danger-body { margin-block-start: 6px; }
+
+/* Result buttons: positive = turquoise outline, negative = neutral surface (never celebratory) */
+.tww-results { display: flex; flex-direction: column; gap: 4px; }
+.tww-result-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tww-result {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-block-size: 52px; padding: 6px 12px;
+  border-radius: var(--r-pill); border: 1px solid var(--line); background: var(--surface); cursor: pointer;
+  font: inherit; font-size: var(--fs-base); font-weight: 800; color: var(--text-1); text-align: center;
+}
+.tww-result svg { flex-shrink: 0; color: var(--brand); }
+.tww-result.is-positive { border: 1.5px solid var(--data); }
+.tww-result.is-positive svg { color: var(--data-deep); }
+.tww-result:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+/* Confirm sheet */
+.tww-sheet-body { margin: 0 0 12px; font-size: var(--fs-base); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+.tww-sheet-actions { display: flex; flex-direction: column; gap: 4px; }
+
+/* After the result: calm, centred head + follow-ups */
+.tww-outcome { gap: 18px; padding-block: 16px 32px; }
+.tww-outcome-head { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; padding-inline: 8px; }
+.tww-outcome-title { margin: 0; font-size: var(--fs-xl); font-weight: 800; color: var(--text-1); }
+.tww-outcome-title:focus { outline: none; }
+.tww-outcome-body { margin: 0; font-size: var(--fs-base); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+.tww-outcome-actions { display: flex; flex-direction: column; gap: 6px; }
+/* ═══ end CB-IVF-05 ═══ */

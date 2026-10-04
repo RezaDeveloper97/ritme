@@ -98,3 +98,14 @@ One section per finished task (appended by `/site-task`).
   requirements per builder). Tests incl. snapshot `tests/Unit/Seo/Schema/snapshots/sample-graph.json`.
 - Open: legacy `@stack('seo.jsonld')` kept (L1-03 test); breadcrumbs must be registered before the head renders
   (L1-02 breadcrumbs component → `SchemaGraph::breadcrumbs()`); Organization logo waits for L2's OgImageResolver.
+
+## L0-06 — style2tw: inline-style → Tailwind converter for design pages
+- `tools/style2tw.mjs` (Node built-ins only): reads `@theme` tokens from `app.css`, maps declarations (alpha →
+  opacity modifier, 2px spacing grid, `size-*`, `rounded-full`, palette gradients, `bg-hero-glow`, shadows), RTL logical
+  mapping, responsive variants parsed from `ritme.css` `[style*=…]` rules (+4 hand-written structural ones), links →
+  `route()` via the AUDIT §7 urlmap, inline SVG → `<x-icon>`, `--section N`, stderr report of unmapped/arbitrary/links.
+- `tools/README.md`, `tests/tools/style2tw.test.mjs` (27 node:test cases incl. Tailwind validity of all 29 pages).
+- All 29 design pages convert with zero `style=`.
+- Open: legacy `rt-*` classes kept for L1-02 to replace; substring logic reproduces the design's real rendering
+  (e.g. hero `max-lg:py-8`), `max-lg:flex-wrap` is broad; sprite icons use one stroke width (design had 1.8/2.2);
+  fake QR stays arbitrary until `x-ui.qr`.
