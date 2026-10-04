@@ -6,6 +6,11 @@ checkout / done routes, filtered listings). `<x-seo.head/>` renders the result; 
 rendered pages (`Audit/`). JSON-LD: request-scoped `Schema\SchemaGraph` (pages add nodes), node builders in
 `Schema/Nodes`, rendered once by `Schema\PageGraph` in the head — see `docs/SEO.md`.
 
+Static-pages SEO manager (L7-01): `Actions/ListStaticPageSeo` (registry pages + effective title/description and
+checks), `SaveStaticPageSeo` / `ResetStaticPageSeo` (the page's `seo_meta` row by route name),
+`StaticPages/StaticPageSeoDefaults` (each page controller's lang default; pinned by `StaticPageSeoTest`). A new
+static page controller must keep its default copy in sync there.
+
 Folders: `Models/`, `Data/`, `Contracts/`, `Repositories/` (Eloquent + Cached, `seo` namespace), `Observers/`,
 `Support/` (Robots, CanonicalUrl, DescriptionText), `Audit/`. Bindings live in `App\Providers\Domain\SeoServiceProvider`.
 See `docs/ARCHITECTURE.md`.

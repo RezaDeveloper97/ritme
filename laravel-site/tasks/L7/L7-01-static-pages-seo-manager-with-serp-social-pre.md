@@ -3,7 +3,7 @@ id: L7-01
 title: Static pages SEO manager with SERP + social previews
 milestone: L7
 type: admin
-status: todo
+status: done
 depends_on: [L4-05,L3-11]
 parallel_group: L7-A
 touches: [app/Filament/Resources/Seo/StaticPageSeo,app/Domain/Seo,tests/Feature/Admin/StaticPageSeoTest.php]

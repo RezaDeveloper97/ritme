@@ -689,3 +689,14 @@ One section per finished task (appended by `/site-task`).
   price inputs instead of slider, NULL app links, design's 390 `mx-30` app cards fixed).
 - Open: L6-04 must write `ritme_cart_count` (plain, not HttpOnly, excluded from EncryptCookies); header cart badge
   (layout); «۷ روز بازگشت» / IRC copy to confirm; breadcrumbs link colour vs design.
+
+## L7-01 — Static pages SEO manager with SERP + social previews
+- `app/Domain/Seo/Actions/{ListStaticPageSeo,SaveStaticPageSeo,ResetStaticPageSeo}` (20 indexable registry pages even
+  without a row; effective title/description = admin text with template vs controller lang default; checks: length
+  30–60 / 70–160, uniqueness, own OG image, indexable; saves by `route_name` via `SeoMetaObserver` → seo/sitemap/pages),
+  `StaticPages/StaticPageSeoDefaults` (copy of each controller's default; render test catches drift), DTOs.
+- Filament `/admin/seo/static-pages` (`StaticPageSeoResource` custom-data table, live view, reset to default logged;
+  `EditStaticPageSeo` with defaults panel + `SeoFields::standalone()`), `StaticPageSeoPolicy` (SeoManager + super-admin).
+  `SeoFields::standalone()` + `->fallbackTitleIsComplete()`; OG preview gained Telegram + WhatsApp cards.
+- Tests: `StaticPageSeoTest` (9) incl. edit → new `<title>` through the page cache. Pest 1116 passed.
+- Follow-ups added to L9-05: per-method SeoManager/SchemaGraph resolution; controllers reading `StaticPageSeoDefaults`.

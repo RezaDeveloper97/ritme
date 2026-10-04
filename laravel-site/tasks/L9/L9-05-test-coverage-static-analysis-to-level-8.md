@@ -22,5 +22,9 @@ verify: composer verify
 - Test memory: `phpunit.xml` memory_limit was raised 512M → 1G in L6-01 because `tests/Arch/LayersTest` (Pest arch
   expectations scanning all of `app/`) adds ~214 MB. Slim/split the arch tests so the suite fits in 512M again.
 
+- Request-scoped services: controllers that take `SeoManager` / `SchemaGraph` in the constructor (Home, Stage, other
+  page controllers) keep a stale instance across requests inside one test (and would under Octane). Resolve them per
+  method; let page controllers read defaults from `App\Domain\Seo\StaticPages\StaticPageSeoDefaults` (L7-01).
+
 ## Acceptance
 - `composer verify` green at the new levels; coverage numbers in PROGRESS.

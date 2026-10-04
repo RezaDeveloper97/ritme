@@ -13,6 +13,7 @@ use App\Domain\Faq\Models\FaqGroup;
 use App\Domain\Faq\Models\FaqItem;
 use App\Domain\Media\Models\Media;
 use App\Domain\Newsletter\Models\Subscriber;
+use App\Domain\Seo\Models\SeoMeta;
 use App\Domain\Settings\Contracts\SettingsRepository;
 use App\Domain\Settings\Data\GeneralSettings;
 use App\Domain\Settings\Enums\SettingGroup;
@@ -32,6 +33,7 @@ use App\Filament\Resources\ContactMessages\ContactMessagePolicy;
 use App\Filament\Resources\Faq\FaqPolicy;
 use App\Filament\Resources\Media\MediaPolicy;
 use App\Filament\Resources\Newsletter\SubscriberPolicy;
+use App\Filament\Resources\Seo\StaticPageSeo\StaticPageSeoPolicy;
 use App\Filament\Widgets\AdminOverview;
 use App\Models\User;
 use Filament\Auth\MultiFactor\App\AppAuthentication;
@@ -86,6 +88,7 @@ final class AdminPanelProvider extends PanelProvider
         Gate::policy(FaqItem::class, FaqPolicy::class);
         Gate::policy(Subscriber::class, SubscriberPolicy::class);
         Gate::policy(ContactMessage::class, ContactMessagePolicy::class);
+        Gate::policy(SeoMeta::class, StaticPageSeoPolicy::class);
 
         Event::listen(Login::class, RecordLastLogin::class);
     }

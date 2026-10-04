@@ -43,6 +43,10 @@ use Throwable;
  *     ]),
  *
  * Inside the closures `$get('field')` reads the parent form (the SEO fields themselves live under `seoMeta.*`).
+ *
+ * Records without a model (static pages, L7-01) use `SeoFields::standalone()`: same fields under `seoMeta.*`, no
+ * relationship — the page reads `seoMeta` from its form state, runs `dehydrateRobots()` and saves through an action.
+ * `->fallbackTitleIsComplete()` marks a fallback title that already carries the brand (no title template).
  */
 final class SeoFields extends Group
 {
@@ -58,17 +62,46 @@ final class SeoFields extends Group
 
     private ?Closure $urlResolver = null;
 
+    private bool|Closure $fallbackTitleIsComplete = false;
+
+    private bool $standalone = false;
+
+    /**
+     * Without the `seoMeta` relationship: the fields live under `$statePath.*` of the parent form and the caller
+     * fills (`fillRobots()`) and saves (`dehydrateRobots()` + an action) them itself.
+     */
+    public static function standalone(string $statePath = 'seoMeta'): static
+    {
+        $static = app(self::class, ['schema' => []]);
+        $static->standalone = true;
+        $static->configure();
+
+        return $static->statePath($statePath);
+    }
+
     protected function setUp(): void
     {
         parent::setUp();
 
         ViewFactory::replaceNamespace(self::VIEW_NAMESPACE, __DIR__.'/views');
 
-        $this->relationship('seoMeta');
-        $this->mutateRelationshipDataBeforeFillUsing(static fn (array $data): array => self::fillRobots($data));
-        $this->mutateRelationshipDataBeforeSaveUsing(static fn (array $data): array => self::dehydrateRobots($data));
-        $this->mutateRelationshipDataBeforeCreateUsing(static fn (array $data): array => self::dehydrateRobots($data));
+        if (! $this->standalone) {
+            $this->relationship('seoMeta');
+            $this->mutateRelationshipDataBeforeFillUsing(static fn (array $data): array => self::fillRobots($data));
+            $this->mutateRelationshipDataBeforeSaveUsing(static fn (array $data): array => self::dehydrateRobots($data));
+            $this->mutateRelationshipDataBeforeCreateUsing(static fn (array $data): array => self::dehydrateRobots($data));
+        }
         $this->schema(fn (): array => $this->fields());
+    }
+
+    /**
+     * The fallback title is a complete <title> (already branded): shown and measured verbatim, without the template.
+     */
+    public function fallbackTitleIsComplete(bool|Closure $condition = true): static
+    {
+        $this->fallbackTitleIsComplete = $condition;
+
+        return $this;
     }
 
     public function titleFrom(string|Closure|null $source): static
@@ -233,6 +266,9 @@ final class SeoFields extends Group
     private function fullTitle(?string $seoTitle): string
     {
         $title = trim((string) $seoTitle);
+        if ($title === '' && $this->evaluate($this->fallbackTitleIsComplete) === true && $this->fallbackTitle() !== null) {
+            return (string) $this->fallbackTitle();
+        }
 
         return $this->settings()?->seo->title($title !== '' ? $title : $this->fallbackTitle()) ?? $title;
     }
@@ -293,6 +329,7 @@ final class SeoFields extends Group
         }
 
         return [
+            'site' => $this->settings()?->general->siteName ?? 'ریتمی',
             'host' => (string) (parse_url($this->pageUrl($get('canonical_url')), PHP_URL_HOST) ?? ''),
             'title' => mb_strimwidth($title, 0, 90, '…'),
             'description' => mb_strimwidth($description, 0, 160, '…'),
