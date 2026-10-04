@@ -61,9 +61,9 @@ export const ROUTE_NAMESPACES = {
   profileLanguage: ['common', 'me'], // B-N1-10 /profile/language
   profileNotifications: ['common', 'me'], // B-N1-11 /profile/notifications
   profilePrivacy: ['account', 'common', 'companions', 'me'], // B-N1-12 /profile/privacy (DeleteAccountConfirm = account; B-N4-04 companions section)
-  companions: ['common', 'companions', 'teen'], // B-N4-04 /companions (Hamdam_List); CB-TEEN-03 parent code card (widgets/linked-teen-card)
-  companionsNew: ['common', 'companions'], // B-N4-04 /companions/new (Hamdam_Type → Access → Children → Invite → Done)
-  companionDetail: ['common', 'companions'], // B-N4-04 /companions/[id] (grants, renew, revoke)
+  companions: ['children', 'common', 'companions', 'teen'], // B-N4-10b family strip children (features/invite-companion → entities/child); B-N4-04 /companions (Hamdam_List); CB-TEEN-03 parent code card (widgets/linked-teen-card)
+  companionsNew: ['children', 'common', 'companions'], // B-N4-10b ChildrenPicker (entities/child); B-N4-04 /companions/new (Hamdam_Type → Access → Children → Invite → Done)
+  companionDetail: ['children', 'common', 'companions'], // B-N4-10b children editor (entities/child); B-N4-04 /companions/[id] (grants, renew, revoke)
   companion: ['children', 'common', 'companionHome', 'companions', 'nav', 'teen'], // B-N4-05 /companion (Hamdam_Home, companion nav; companions = entities/companion barrel); CB-TEEN-03 linked teen cards
   companionLinks: ['children', 'common', 'companionHome', 'companions', 'nav', 'teen'], // B-N4-05 /companion/links (code entry + leave a link, Me «کد همدم»); CB-TEEN-03 same slice as /companion
   profileSupport: ['common', 'me'], // B-N1-12 /profile/support
@@ -79,6 +79,8 @@ export const ROUTE_NAMESPACES = {
   pregnancyLog: [...PREGNANCY, 'logSheet', 'plus', 'pregnancyV2', 'voiceLog'], // B-N3-06: default tab = log sheet v2 (pregnancy preset)
   pregnancyWeek: ['common', 'nav', 'pregnancyV2'],
   pregnancyAlerts: ['common', 'nav', 'pregnancyV2'],
+  pregnancyKicks: ['common', 'pregnancyTools'], // B-N5-08 /pregnancy/kicks (Log_Kick)
+  pregnancyContractions: ['common', 'pregnancyTools'], // B-N5-08 /pregnancy/contractions (Log_Contraction)
   pregnancyCalendar: ['care', 'common', 'nav', 'pregnancyV2'],
   pregnancyOnboarding: ['common', 'pregnancy', 'pregnancyV2', 'profileEdit'],
   pregnancySetup: ['common', 'pregnancy', 'pregnancyV2', 'profileEdit'],
@@ -104,8 +106,9 @@ export const ROUTE_NAMESPACES = {
   postpartumMood: ['common', 'postpartum'], // B-N5-04 /postpartum/mood (v15_MoodCheck, EPDS + safety)
   children: ['children', 'common', 'nav'], // B-N5-05 /children (v15_Children; «کودک» tab for 0 / ≥2 children)
   childForm: ['children', 'common'], // B-N5-05 /children/new + /children/[id]/edit (v15_AddChild, form, no nav)
-  childHome: ['children', 'common', 'nav'], // B-N5-05 /children/[id] (v16_ChildHome, «کودک» tab root)
-  childSection: ['children', 'common', 'nav'], // B-N5-05 interim /children/[id]/{growth,vaccines,milestones,learn} until B-N5-06 (same slice as the child home)
+  childHome: ['babyLog', 'children', 'common', 'nav'], // B-N5-05 /children/[id] (v16_ChildHome, «کودک» tab root); B-N5-07 «امروز» rows (features/baby-log)
+  logFeed: ['babyLog', 'children', 'common'], // B-N5-07 /children/[id]/feeding + /children/feeding (nbl_Log_Feed, close header, no nav; children = entities/child barrel)
+  childSection: ['babyLog', 'children', 'common', 'nav'], // B-N5-05 interim /children/[id]/{growth,vaccines,milestones,learn} until B-N5-06 (same slice as the child home; babyLog = its «امروز» rows, B-N5-07)
   ivf: ['common', 'ivf', 'nav'], // CB-IVF-02 /ivf (nbl_IVF_Home, TTC IVF sub-mode home)
   ivfScan: ['common', 'ivf'], // CB-IVF-04 /ivf/scan (nbl_IVF_Scan, back header, no nav)
   lossStart: ['common', 'companions', 'loss'], // CB-LOSS-02 /loss (Loss_Start, full screen, no nav; companions = entities/companion barrel)
@@ -115,11 +118,11 @@ export const ROUTE_NAMESPACES = {
   ivfMedForm: ['common', 'ivf', 'nav'], // CB-IVF-03 /ivf/meds/new, /ivf/meds/[id] (form, no nav; same screen slice as /ivf/meds)
   ivfTww: ['common', 'ivf'], // CB-IVF-05 /ivf/tww (nbl_IVF_TWW; back button, no nav — sensitive; «ثبت علائم» opens the global log sheet)
   analysis: ['analysis', 'common', 'nav', 'plus'], // B-N3-08 /analysis hub + /analysis/* stubs (one screen slice; PlusGate copy = plus.gate)
-  analysisHub: ['analysis', 'analysisPregnancy', 'common', 'nav', 'plus'], // B-N3-12 /analysis itself: + the pregnancy hub (screens/analysis-pregnancy)
+  analysisHub: ['analysis', 'analysisPostpartum', 'analysisPregnancy', 'babyLog', 'children', 'common', 'nav', 'plus'], // B-N3-12 /analysis itself: + the pregnancy hub (screens/analysis-pregnancy); B-N5-07 + the postpartum hub (screens/analysis-postpartum, features/baby-log, entities/child)
   analysisPregnancyWeight: ['analysisPregnancy', 'common', 'nav', 'plus'], // B-N3-12 /analysis/pregnancy-weight (An_PregWeight; the slice's hub cards carry plus.gate)
   analysisReport: ['analysis', 'common', 'nav'], // B-N3-09 /analysis/{cycle,period,symptoms,body} (no Plus gate; correlations keeps `analysis`)
   teenOnboarding: ['common', 'teen'], // CB-TEEN-02 /teen/onboarding (nbl_Teen_Onb, form — no nav)
-  teenParent: ['common', 'companions', 'teen'], // CB-TEEN-03 /teen/parent (nbl_Teen_Parent, flow — no nav; companions = InviteCodeCard + entities/companion)
+  teenParent: ['children', 'common', 'companions', 'teen'], // B-N4-10b features/invite-companion barrel pulls entities/child; CB-TEEN-03 /teen/parent (nbl_Teen_Parent, flow — no nav; companions = InviteCodeCard + entities/companion)
   fertilityLog: ['common', 'fertility'],
   fertilityBbt: ['common', 'fertility'],
   fertilityInsights: ['common', 'fertility'],

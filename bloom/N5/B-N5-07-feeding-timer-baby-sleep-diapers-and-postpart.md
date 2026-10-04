@@ -3,7 +3,7 @@ id: B-N5-07
 title: Feeding timer, baby sleep/diapers and postpartum analysis hub
 milestone: N5
 type: frontend
-status: todo
+status: done
 depends_on: [B-N5-03,B-N3-08]
 parallel_group: N5-G
 touches: [frontend/src/screens/log-feed,frontend/src/screens/analysis-postpartum,frontend/src/features/baby-log]

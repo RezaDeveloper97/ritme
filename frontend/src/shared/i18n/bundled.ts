@@ -3,6 +3,8 @@ import type { AbstractIntlMessages } from 'next-intl';
 import enAccount from '../../../messages/en/account.json';
 import enAnalysis from '../../../messages/en/analysis.json';
 import enAnalysisPregnancy from '../../../messages/en/analysis-pregnancy.json';
+import enAnalysisPostpartum from '../../../messages/en/analysis-postpartum.json'; // B-N5-07
+import enBabyLog from '../../../messages/en/baby-log.json'; // B-N5-07
 import enArticles from '../../../messages/en/articles.json';
 import enAuth from '../../../messages/en/auth.json';
 import enBanners from '../../../messages/en/banners.json';
@@ -34,6 +36,7 @@ import enPhaseDetails from '../../../messages/en/phase-details.json';
 import enPregnancy from '../../../messages/en/pregnancy.json';
 import enPregnancyV2 from '../../../messages/en/pregnancy-v2.json';
 import enPostpartum from '../../../messages/en/postpartum.json';
+import enPregnancyTools from '../../../messages/en/pregnancy-tools.json'; // B-N5-08
 import enProfile from '../../../messages/en/profile.json';
 import enProfileEdit from '../../../messages/en/profile-edit.json';
 import enProfileInfo from '../../../messages/en/profile-info.json';
@@ -49,6 +52,8 @@ import enCompanionHome from '../../../messages/en/companion-home.json';
 import faAccount from '../../../messages/fa/account.json';
 import faAnalysis from '../../../messages/fa/analysis.json';
 import faAnalysisPregnancy from '../../../messages/fa/analysis-pregnancy.json';
+import faAnalysisPostpartum from '../../../messages/fa/analysis-postpartum.json'; // B-N5-07
+import faBabyLog from '../../../messages/fa/baby-log.json'; // B-N5-07
 import faArticles from '../../../messages/fa/articles.json';
 import faAuth from '../../../messages/fa/auth.json';
 import faBanners from '../../../messages/fa/banners.json';
@@ -80,6 +85,7 @@ import faPhaseDetails from '../../../messages/fa/phase-details.json';
 import faPregnancy from '../../../messages/fa/pregnancy.json';
 import faPregnancyV2 from '../../../messages/fa/pregnancy-v2.json';
 import faPostpartum from '../../../messages/fa/postpartum.json';
+import faPregnancyTools from '../../../messages/fa/pregnancy-tools.json'; // B-N5-08
 import faProfile from '../../../messages/fa/profile.json';
 import faProfileEdit from '../../../messages/fa/profile-edit.json';
 import faProfileInfo from '../../../messages/fa/profile-info.json';
@@ -142,6 +148,7 @@ const bundled = {
     pregnancy: faPregnancy,
     pregnancyV2: faPregnancyV2,
     postpartum: faPostpartum,
+    pregnancyTools: faPregnancyTools,
     loss: faLoss,
     me: faMe,
     menopause: faMenopause,
@@ -163,6 +170,8 @@ const bundled = {
     account: faAccount,
     analysis: faAnalysis,
     analysisPregnancy: faAnalysisPregnancy,
+    analysisPostpartum: faAnalysisPostpartum,
+    babyLog: faBabyLog,
     log: faLog,
     logPeriod: faLogPeriod,
     logCustomize: faLogCustomize,
@@ -190,6 +199,7 @@ const bundled = {
     pregnancy: enPregnancy,
     pregnancyV2: enPregnancyV2,
     postpartum: enPostpartum,
+    pregnancyTools: enPregnancyTools,
     loss: enLoss,
     me: enMe,
     menopause: enMenopause,
@@ -211,6 +221,8 @@ const bundled = {
     account: enAccount,
     analysis: enAnalysis,
     analysisPregnancy: enAnalysisPregnancy,
+    analysisPostpartum: enAnalysisPostpartum,
+    babyLog: enBabyLog,
     log: enLog,
     logPeriod: enLogPeriod,
     logCustomize: enLogCustomize,

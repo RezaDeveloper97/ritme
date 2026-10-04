@@ -870,3 +870,43 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   groups answer 401 unauthenticated). Two-account e2e: 24 checks — 22 pass, 1 fail (B-1: no UI to share children),
   1 API-only; 0 5xx / console errors. CMP-H1 neutral view, grant change within 1 s, revoke, uniform 422 codes verified.
 - Report `docs/qa/bloom/n4-stage.md`, shots `docs/qa/bloom/n4-stage/`. Follow-ups → **B-N4-10b**. QUESTIONS #104b.
+
+## B-N5-08 — Kick counter and contraction timer
+
+- `features/pregnancy-tools` (queries/mutations under `pregnancyKeys`, server-skew-corrected timing, queued taps/undo,
+  haptics, 17 timing tests), screens `log-kick` (`/pregnancy/kicks`: tap target, ring to 10, elapsed, 2-hour guidance,
+  low-count card with call CTA, history, today total) and `log-contraction` (`/pregnancy/contractions`: waiting /
+  between / contracting states, 60-min averages from the server, start·duration·interval table, admin-parameterised
+  guidance, 5-1-1 alert card with call + ack, persistent «الگوی تماس» after reload). Sessions restored from the server.
+  Log sheet tiles now link here. Namespace `pregnancyTools`.
+- Screenshots `docs/qa/bloom/B-N5-08/` (test user 09900000058). QUESTIONS #105.
+
+## B-N4-10b — N4 stage smoke follow-ups
+
+- B-1: spouse wizard children picker (`ChildrenPicker`, `child_ids` on create) + «فرزند مشترک» editor on
+  `/companions/[id]` (`useUpdateCompanionChildren` → `PUT /companions/{id}/children`); family strip shows children.
+- B-2 male Ready copy; B-3 pregnancy mode saved only at the end of setup (`finishPregnancySetup`); B-4 Persian list
+  join without «، و»; B-6 resume cookie cleared on onboarding complete; B-7 admin «پارتنر»; I-1 invite hours rounding.
+- Screenshots `docs/qa/bloom/B-N4-10b/`.
+
+## B-N5-07 — Feeding timer, baby sleep/diapers and postpartum analysis hub
+
+- `features/baby-log` (schemas/queries, live timer from the server's active feed, L/R switching, bottle/pump ml,
+  manual entry, sleep start/stop/manual across midnight, one-tap diapers, today list), `screens/log-feed`
+  (`/children/[id]/feeding`, resolver `/children/feeding?section=` for log sheet tiles, child picker, spouse read-only),
+  `screens/analysis-postpartum` (EPDS bands trend, lochia strip, feeds L/R, Plus mother/baby sleep, percentile chips,
+  weight since birth) via the `postpartumHub` slot. Child home «امروز» rows show real values. Namespaces `babyLog`,
+  `analysisPostpartum`.
+- Screenshots `docs/qa/bloom/B-N5-07/` (QA user 09900000171). QUESTIONS #106.
+
+## B-N6-05b — AI platform security fixes
+
+- H1/H2: `Client.Chat` returns `*ai.ChatStream{Events, Close(), Wait()}` with its own ≤120 s context; usage always
+  recorded (cumulative Gemini usage or conservative estimate, `Usage.Estimated`), Plus quota reserved first;
+  `ProviderHTTPClient` with dial/TLS/header/idle timeouts. M1: thoughts/tool-use tokens counted, thinkingBudget 0 +
+  maxOutputTokens for parse/extract/transcribe. M2: `AI_USER_DAILY_COST_CAP_USD` (429 `ai_user_budget_exhausted`),
+  per-feature throttles in `Guard.Chain`. M3: throttle → Plus → consent → reserve (refund on failure), per-user
+  semaphore (429 `ai_busy`); voice wired. M4: normalised PII matching, separator-tolerant digit runs, Latin↔Persian
+  names, identity keys rejected in extraction schemas (lab fixture key `name` → `marker`). M5: `/profile/consents`
+  version-aware, AI grants need `versions.<code>`, export carries versions + `ai_usage`. L2/L3/L4/L5 done (usage
+  `user_id` anonymised after 90 days on write). Privacy screen sends versions. QUESTIONS #107.

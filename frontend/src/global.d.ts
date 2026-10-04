@@ -1,6 +1,8 @@
 import type enAccount from '../messages/en/account.json';
 import type enAnalysis from '../messages/en/analysis.json';
 import type enAnalysisPregnancy from '../messages/en/analysis-pregnancy.json';
+import type enAnalysisPostpartum from '../messages/en/analysis-postpartum.json'; // B-N5-07
+import type enBabyLog from '../messages/en/baby-log.json'; // B-N5-07
 import type enArticles from '../messages/en/articles.json';
 import type enAuth from '../messages/en/auth.json';
 import type enBanners from '../messages/en/banners.json';
@@ -32,6 +34,7 @@ import type enPhaseDetails from '../messages/en/phase-details.json';
 import type enPregnancy from '../messages/en/pregnancy.json';
 import type enPregnancyV2 from '../messages/en/pregnancy-v2.json';
 import type enPostpartum from '../messages/en/postpartum.json';
+import type enPregnancyTools from '../messages/en/pregnancy-tools.json'; // B-N5-08
 import type enPwa from '../messages/en/pwa.json';
 import type enProfile from '../messages/en/profile.json';
 import type enProfileEdit from '../messages/en/profile-edit.json';
@@ -64,6 +67,7 @@ type Messages = {
   pregnancy: typeof enPregnancy;
   pregnancyV2: typeof enPregnancyV2;
   postpartum: typeof enPostpartum;
+  pregnancyTools: typeof enPregnancyTools; // B-N5-08 features/pregnancy-tools
   pwa: typeof enPwa;
   loss: typeof enLoss;
   me: typeof enMe;
@@ -82,6 +86,8 @@ type Messages = {
   account: typeof enAccount;
   analysis: typeof enAnalysis;
   analysisPregnancy: typeof enAnalysisPregnancy;
+  analysisPostpartum: typeof enAnalysisPostpartum; // B-N5-07 screens/analysis-postpartum
+  babyLog: typeof enBabyLog; // B-N5-07 features/baby-log
   log: typeof enLog;
   logPeriod: typeof enLogPeriod;
   logCustomize: typeof enLogCustomize;

@@ -44,7 +44,8 @@
     "title": "Your family",
     "you": "You",
     "pending": "Once {name} accepts, your family is created.",
-    "childrenSoon": "Shared children appear here once the children section is available."
+    "childrenShared": "{names} {count, plural, one {is your shared child} other {are your shared children}} and {count, plural, one {appears} other {appear}} in both panels.",
+    "childrenNone": "No child is shared yet. You can pick shared children on your spouse's page."
   },
   "list": {
     "title": "Companions",
@@ -79,10 +80,12 @@
     "children": {
       "question": "Which child is shared?",
       "lead": "The child you pick is added to both of your panels and you become one family.",
-      "soonTitle": "Children are coming soon",
-      "soonBody": "Once you add your children in Ritme, you can pick the shared ones here. For now, continue without it.",
+      "loading": "Loading your children",
+      "emptyTitle": "You haven't added a child yet",
+      "emptyBody": "Add your child in the «Child» section; then you can share them from your spouse's page. For now, continue without it.",
+      "errorBody": "Couldn't load your children.",
+      "retry": "Try again",
       "add": "Add a child",
-      "soon": "Soon",
       "partnerNote": "If your companion is a partner, this step is skipped."
     },
     "invite": {
@@ -155,6 +158,10 @@
     "renewNote": "A new code stops the previous one from working.",
     "renewError": "Couldn't make a new code. Try again.",
     "childrenTitle": "Shared child",
+    "childrenLead": "The children you pick show up in your spouse's panel, view only.",
+    "childrenSave": "Save shared children",
+    "childrenSaved": "Shared children saved.",
+    "childrenSaveError": "Couldn't save. Try again.",
     "activity": "Recent activity",
     "activityEmpty": "No activity yet.",
     "actions": {

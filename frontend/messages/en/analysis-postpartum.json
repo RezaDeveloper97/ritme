@@ -1,0 +1,92 @@
+{
+  "hub": {
+    "title": "Analysis",
+    "week": "Week {n} after birth",
+    "loading": "Loading analysis",
+    "cardError": "This section couldn't load.",
+    "none": "—",
+    "dot": " · ",
+    "listSeparator": ", ",
+    "footnote": "These summaries are descriptive and don't replace a check-up with your doctor or midwife.",
+    "error": {
+      "title": "Couldn't load the analysis",
+      "body": "Check your connection and try again.",
+      "retry": "Try again"
+    },
+    "inactive": {
+      "title": "Postpartum mode is off",
+      "body": "Add your birth date to see your recovery, mood and baby here.",
+      "cta": "Turn on"
+    },
+    "epds": {
+      "title": "Mood (EPDS)",
+      "sub": "Edinburgh screening, every 2 weeks",
+      "week": "Week {n}",
+      "down": "{week}: score {score} (above {th}); it has come down since.",
+      "high": "Your latest score is {score} (above {th}); talk to your doctor or midwife about it.",
+      "low": "Latest score {score} of {max}.",
+      "rule": "A score of {likely} or more, or any thought of self-harm → call your doctor right away.",
+      "empty": "You haven't done a mood screening yet.",
+      "chart": "EPDS scores: {list}",
+      "colWeek": "Week",
+      "colScore": "Score"
+    },
+    "bleeding": {
+      "title": "Bleeding after birth",
+      "trend": {
+        "decreasing": "Decreasing over {n} weeks",
+        "steady": "About the same over {n} weeks",
+        "increasing": "Increasing; talk to your doctor if it continues"
+      },
+      "few": "Log a few more days to see the trend",
+      "noClots": "no large clots",
+      "clots": "large clots logged; talk to your doctor",
+      "empty": "You haven't logged any bleeding yet.",
+      "chart": "Bleeding over the last {n} days: {list}",
+      "amounts": {
+        "none": "none",
+        "spotting": "spotting",
+        "light": "light",
+        "medium": "medium",
+        "heavy": "heavy",
+        "unlogged": "not logged"
+      }
+    },
+    "feeds": {
+      "title": "Feeding",
+      "avg": "Average {n} times a day",
+      "split": "left {l}% / right {r}%",
+      "empty": "No feeds logged this week.",
+      "chart": "Feeds over the last 7 days: {list}",
+      "colDay": "Day",
+      "colCount": "Feeds",
+      "noChild": "Add your child to see feeds and baby sleep.",
+      "addChild": "Add a child"
+    },
+    "sleep": {
+      "title": "Your sleep and baby's",
+      "you": "You",
+      "baby": "Baby",
+      "hours": "hours",
+      "note": "Daily average of the last 7 days"
+    },
+    "growth": {
+      "title": "{name}'s growth",
+      "titleNoName": "Baby's growth",
+      "weight": "Weight: percentile {n}",
+      "length": "Length: percentile {n}",
+      "head": "Head: percentile {n}",
+      "who": "WHO growth curves",
+      "empty": "No measurements yet."
+    },
+    "weight": {
+      "title": "Recovery and weight",
+      "change": "kg since week {n}",
+      "one": "First weight logged ({kg} kg); log again to see the trend.",
+      "empty": "Log your weight in the daily log to see your recovery trend.",
+      "chart": "Weight after birth: {list}",
+      "colDate": "Date",
+      "colKg": "kg"
+    }
+  }
+}

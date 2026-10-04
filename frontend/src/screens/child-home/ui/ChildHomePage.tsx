@@ -13,6 +13,7 @@ import {
   useChildren,
   useDueText,
 } from '@/entities/child';
+import { BabyTodayList } from '@/features/baby-log';
 import { getApiErrorStatus } from '@/shared/api';
 import { Link, type Locale, useDirection, useRouter } from '@/shared/i18n';
 import { formatDecimal, formatLongDate, formatNumber, fromApiDate, monthName, toParts } from '@/shared/lib/date';
@@ -82,7 +83,7 @@ function TopBar({ title, eyebrow, onEdit, t }: { title?: string; eyebrow?: strin
  * `/children/[id]` — the child home (nbl_v16_ChildHome): age, latest
  * measurements with WHO percentile chips, next vaccine visit, tiles to growth /
  * vaccines / milestones / learn (B-N5-06), «این هفته {name}» and today's
- * feeds / sleep / diapers («به‌زودی» until B-N5-03/07). A spouse sees a shared
+ * feeds / sleep / diapers (links into the feeding screen, B-N5-07). A spouse sees a shared
  * child read-only (no edit, no «ثبت اندازه»). The «کودک» tab root.
  */
 export function ChildHomePage({ id }: { id: number }) {
@@ -154,7 +155,7 @@ export function ChildHomePage({ id }: { id: number }) {
         <NextVaccineCard child={child} t={t} />
         <Tiles child={child} t={t} />
         <ThisWeekCard child={child} t={t} />
-        <TodayCard t={t} />
+        <TodayCard child={child} t={t} />
       </div>
     </Shell>
   );
@@ -351,27 +352,14 @@ function ThisWeekCard({ child, t }: { child: ChildHome; t: T }) {
   );
 }
 
-// ── Today (B-N5-03 / B-N5-07 fill it) ──────────────────────────
-function TodayCard({ t }: { t: T }) {
-  const rows: { key: 'feeding' | 'sleep' | 'diapers'; icon: IconName; tone: Tone }[] = [
-    { key: 'feeding', icon: 'bottle', tone: 'data' },
-    { key: 'sleep', icon: 'sleep', tone: 'brand' },
-    { key: 'diapers', icon: 'drop', tone: 'warm' },
-  ];
+// ── Today (B-N5-03 data, rows by features/baby-log, B-N5-07) ──
+function TodayCard({ child, t }: { child: ChildHome; t: T }) {
   return (
     <Card as="section" className="chd-today" aria-labelledby="chd-today-title">
       <h2 id="chd-today-title" className="chd-card-title">
         {t('home.today')}
       </h2>
-      <ul className="chd-today-list">
-        {rows.map((r) => (
-          <li key={r.key} className="chd-today-row">
-            <IconCircle icon={r.icon} tone={r.tone} size="sm" />
-            <span className="chd-today-label">{t(`home.${r.key}`)}</span>
-            <span className="chd-soon">{t('home.soon')}</span>
-          </li>
-        ))}
-      </ul>
+      <BabyTodayList childId={child.id} today={child.today} />
     </Card>
   );
 }

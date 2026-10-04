@@ -319,4 +319,16 @@ export default defineConfig([
     files: ['./src/entities/child/**'],
     rules: { 'fsd/insignificant-slice': 'off' },
   },
+  {
+    // B-N5-08: `features/pregnancy-tools` is mounted by screens/log-kick and screens/log-contraction —
+    // references FROM `screens` are invisible to steiger.
+    files: ['./src/features/pregnancy-tools/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
+    // B-N5-07: `features/baby-log` is mounted by screens/log-feed, screens/child-home and
+    // screens/analysis-postpartum — references FROM `screens` are invisible to steiger.
+    files: ['./src/features/baby-log/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
 ]);

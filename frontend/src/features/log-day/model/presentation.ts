@@ -64,12 +64,20 @@ export function panelOf(category: string): PanelKind | null {
 
 /**
  * Where a `link` param (a tile fed by another feature) opens. `null` = that feature is not built yet
- * (contraction timer B-N5-08, feeding/diapers B-N5-07, postpartum check-in) → «به‌زودی».
+ * (postpartum check-in) → «به‌زودی».
  */
 export function linkHref(source: string | null): string | null {
   switch (source) {
     case 'kick_counter':
-      return '/pregnancy/log?tab=movement';
+      return '/pregnancy/kicks'; // B-N5-08 (the v2 log's movement tab stays at /pregnancy/log?tab=movement)
+    case 'contraction_timer':
+      return '/pregnancy/contractions'; // B-N5-08
+    case 'feeding':
+      return '/children/feeding'; // B-N5-07: opens the first own child's feed timer (or «add a child»)
+    case 'baby_sleep':
+      return '/children/feeding?section=sleep'; // B-N5-07
+    case 'diapers':
+      return '/children/feeding?section=diapers'; // B-N5-07
     default:
       return null;
   }

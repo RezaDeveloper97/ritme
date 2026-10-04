@@ -17,9 +17,14 @@ import { AnalysisHub } from './AnalysisHub';
  * mode picks the hub — see {@link hubVariant}. `ttcHub` is the TTC hub
  * (screens/analysis-ttc, B-N3-11), composed in by the route so the two screen
  * slices never import each other. `pregnancyHub` is the pregnancy hub
- * (screens/analysis-pregnancy, B-N3-12), composed in the same way.
+ * (screens/analysis-pregnancy, B-N3-12), composed in the same way, and
+ * `postpartumHub` the postpartum hub (screens/analysis-postpartum, B-N5-07).
  */
-export function AnalysisPage({ ttcHub, pregnancyHub }: { ttcHub?: ReactNode; pregnancyHub?: ReactNode } = {}) {
+export function AnalysisPage({
+  ttcHub,
+  pregnancyHub,
+  postpartumHub,
+}: { ttcHub?: ReactNode; pregnancyHub?: ReactNode; postpartumHub?: ReactNode } = {}) {
   const t = useTranslations('analysis.hub');
   const router = useRouter();
   const mounted = useMounted();
@@ -36,6 +41,8 @@ export function AnalysisPage({ ttcHub, pregnancyHub }: { ttcHub?: ReactNode; pre
     );
   } else if (mode === 'ttc' && ttcHub) {
     content = ttcHub;
+  } else if (mode === 'postpartum' && postpartumHub) {
+    content = postpartumHub;
   } else if (variant === 'pregnancy' && pregnancyHub) {
     content = pregnancyHub;
   } else if (variant === 'pregnancy') {
