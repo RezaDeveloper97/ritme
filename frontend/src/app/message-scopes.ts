@@ -48,7 +48,7 @@ const PREGNANCY = ['common', 'nav', 'pregnancy'] as const satisfies readonly Mes
 
 /** Per route: the namespaces its screen (and everything it imports) uses. */
 export const ROUTE_NAMESPACES = {
-  home: ['articles', 'banners', 'care', 'challenge', 'checkups', 'common', 'companions', 'fertility', 'home', 'log', 'logPeriod', 'menopause', 'nav', 'plus', 'profileEdit', 'search', 'teen'], // B-N2-08 trial banner + sheet; CB-NAV-02 header search button; CB-MENO-05 menopause home; CB-TEEN-02 teen home; CB-TEEN-03 widgets/linked-teen-card (entities/companion barrel)
+  home: ['articles', 'banners', 'care', 'challenge', 'checkups', 'common', 'companions', 'fertility', 'home', 'log', 'logPeriod', 'loss', 'menopause', 'nav', 'plus', 'profileEdit', 'search', 'teen'], // B-N2-08 trial banner + sheet; CB-NAV-02 header search button; CB-MENO-05 menopause home; CB-TEEN-02 teen home; CB-TEEN-03 widgets/linked-teen-card (entities/companion barrel); CB-LOSS-03b care re-entry row (entities/loss)
   calendar: ['calendar', 'common', 'log', 'logPeriod', 'nav'],
   log: ['common', 'logSheet', 'nav', 'plus', 'voiceLog'], // B-N3-03: /log renders the log sheet v2 as a page
   logCustomize: ['common', 'logCustomize', 'logSheet', 'plus'], // B-N3-04 /log/customize (the log sheet's gear; categoryLook comes via features/log-day)
@@ -69,7 +69,7 @@ export const ROUTE_NAMESPACES = {
   profileSupport: ['common', 'me'], // B-N1-12 /profile/support
   profileAbout: ['common', 'me'], // B-N1-12 /profile/about
   profileLegal: ['common', 'me'], // B-N1-12 /profile/legal
-  profileMode: ['common', 'contraception', 'me'], // B-N2-03 /profile/mode (copy under me.mode; CB-CONTRA-02 manage row)
+  profileMode: ['common', 'contraception', 'loss', 'me'], // B-N2-03 /profile/mode (copy under me.mode; CB-CONTRA-02 manage row; CB-LOSS-03b care re-entry row)
   plusPaywall: ['common', 'nav', 'plus'], // B-N2-07 /plus (teen guard reads widgets/bottom-nav)
   plusPlans: ['common', 'nav', 'plus'], // B-N2-07 /plus/plans
   plusCheckout: ['common', 'nav', 'plus'], // B-N2-07 /plus/checkout

@@ -30,6 +30,7 @@ import {
   type CycleSchedule,
 } from '@/entities/cycle';
 import { useFertilityToday } from '@/entities/fertility';
+import { LossCareReturn } from '@/entities/loss';
 import { useDailyMessage, useUserMode, type DailyMessage } from '@/entities/message';
 import {
   readLifeModeHint,
@@ -1131,6 +1132,8 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
           <div className="ch-feed">
             {/* Admin-managed promo slot — renders nothing until a banner is active */}
             {postpartum && <PostpartumNotice />}
+            {/* CB-LOSS-03b: a quiet, dismissible way back into /loss/care for 60 days after a loss. */}
+            {!teen && <LossCareReturn variant="home" />}
             {/* CB-TEEN-03: a parent's read-only teen cards (nothing for everyone else). */}
             {!teen && <LinkedTeenCards />}
             {!teen && <BannerSlideshow position="home_top" />}

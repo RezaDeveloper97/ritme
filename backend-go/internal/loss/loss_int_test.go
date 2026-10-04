@@ -380,14 +380,27 @@ func TestLoss_EraseAndConcurrency(t *testing.T) {
 	require.Equal(t, http.StatusCreated, r.status, r.raw)
 	assert.EqualValues(t, 0, e.scalar(t, `SELECT COUNT(*) FROM pregnancy_losses WHERE user_id = ? AND private_note IS NOT NULL`, uid))
 	require.Equal(t, http.StatusOK, e.do(t, http.MethodPost, "/api/v1/loss/moods", tok, `{"mood":"sad"}`, "2026-09-30T10:00:00+03:30").status)
+	r = e.do(t, http.MethodPut, "/api/v1/loss/followup", tok, `{"beta_next_on":"2026-10-02","visit_at":"2026-10-14 09:00"}`, "2026-09-30T10:00:00+03:30")
+	require.Equal(t, http.StatusOK, r.status, r.raw)
+	followups := `SELECT COUNT(*) FROM reminders WHERE user_id = ? AND type = 'appointment' AND JSON_EXTRACT(meta, '$.private') = true`
+	assert.EqualValues(t, 3, e.scalar(t, followups, uid), "first loss: visit; second loss: beta + visit")
 
-	// Erase the newest: its moods go, the earlier record becomes the newest, pregnancy stays stopped.
+	// Erase the newest: its moods and its private follow-ups go, the earlier record (with its own visit) becomes the
+	// newest, pregnancy stays stopped.
 	r = e.do(t, http.MethodDelete, "/api/v1/loss", tok, "", "2026-09-30T10:00:00+03:30")
 	require.Equal(t, http.StatusOK, r.status, r.raw)
 	assert.EqualValues(t, 1, r.data()["losses_count"])
 	assert.Equal(t, "early_miscarriage", r.obj("loss")["type"])
 	assert.EqualValues(t, 0, e.scalar(t, `SELECT COUNT(*) FROM pregnancy_loss_moods WHERE user_id = ?`, uid))
-	require.Equal(t, http.StatusOK, e.do(t, http.MethodDelete, "/api/v1/loss", tok, "").status)
+	assert.EqualValues(t, 1, e.scalar(t, followups, uid), "only the earlier loss's visit is left")
+	visit, _ := r.obj("followup", "visit")["appointment"].(map[string]any)
+	require.NotNil(t, visit, r.raw)
+	assert.Equal(t, "2026-10-07 11:30:00", visit["scheduled_at"])
+
+	// Erase the last one (its visit is already in the past: it goes too). Her own appointments stay.
+	require.Equal(t, http.StatusOK, e.do(t, http.MethodDelete, "/api/v1/loss", tok, "", "2026-10-08T10:00:00+03:30").status)
+	assert.EqualValues(t, 0, e.scalar(t, followups, uid), "erase leaves nothing loss-related in care")
+	assert.EqualValues(t, 2, e.scalar(t, `SELECT COUNT(*) FROM reminders WHERE user_id = ? AND type = 'appointment' AND title IN ('NT scan', 'Dentist')`, uid))
 	assert.Nil(t, e.do(t, http.MethodGet, "/api/v1/loss", tok, "").data()["loss"])
 	assert.EqualValues(t, 0, e.scalar(t, `SELECT pregnancy_mode FROM pregnancy_profiles WHERE user_id = ?`, uid))
 	assert.EqualValues(t, 0, e.scalar(t, `SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ? AND is_dismissed = 0`, uid))

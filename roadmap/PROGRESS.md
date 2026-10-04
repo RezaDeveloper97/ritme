@@ -332,3 +332,10 @@ TODO (ask user):
 - Frontend: calendar in teen/menopause drops fertile/ovulation markers + uses `NO_FERTILITY_LEGEND`; home waits for life-stage before mounting (no stray `/messages/daily`); teen profile names the parent link, hides «کارها و خریدها».
 - Verify (combined tree): vet, go test ./..., golangci-lint 0, int cycle/messages/teen/healthlog/http, OpenAPI, contract all 1588/0; frontend lint, styles (1056), dark, 1424 tests, build — green. Screenshots `docs/qa/canvas/teen/CB-TEEN-04b/` ✔.
 - Open: numeric/enum fertility fields still in payloads (UI hides them) — scrub too?
+
+## CB-LOSS-03b — Loss care re-entry and follow-up cleanup
+- `DELETE /api/v1/loss` also deletes the loss's private beta + visit appointments (same tx, user-scoped); int test (earlier loss keeps its own; her other appointments untouched). Responses unchanged (contract loss 50/0).
+- `entities/loss` `LossCareReturn`: quiet home card (cycle + TTC homes, not teen; dismissible, hidden id in `localStorage['ritme_care_return_hidden']`) and a non-dismissible row in `/profile/mode`; shown 60 days from the recorded day (`LOSS_CARE_WINDOW_DAYS`) or until erased; copy never names the loss («مراقبت از خودت · پیگیری‌ها و حال دلت، هر وقت خواستی»).
+- Verify: go vet, golangci-lint 0, int loss, contract loss, i18n Go tests; frontend typecheck, lint, fsd:lint, lint:styles (1014), lint:dark, 1363 tests, build — green. Fidelity (no board; flat-card style) `docs/qa/canvas/loss.md` § CB-LOSS-03b ✔.
+- Open: orphan follow-ups from losses erased before this fix (needs a cleanup migration if stage has any); `loss` namespace now ships on home + /profile/mode (~8 KB); no erase button in the app; hidden state per device; back from /loss/care always → /home.
+- TODO (ask user): 60-day window OK? keep the /profile/mode row while any loss exists?

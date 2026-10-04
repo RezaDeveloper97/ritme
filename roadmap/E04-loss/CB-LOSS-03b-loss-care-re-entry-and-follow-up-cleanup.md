@@ -3,7 +3,7 @@ id: CB-LOSS-03b
 title: Loss care re-entry and follow-up cleanup
 epic: LOSS
 type: frontend
-status: todo
+status: done
 depends_on: [CB-LOSS-03]
 parallel_group: LOSS-D
 touches: [frontend/src/screens/loss-care,frontend/src/screens/home,frontend/src/screens/profile,frontend/src/entities/loss,frontend/messages,backend-go/internal/loss,backend-go/contract,backend-go/resources/translations,backend-go/internal/i18n/testdata,docs/qa/canvas]

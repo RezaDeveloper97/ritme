@@ -146,5 +146,12 @@
     "recurrentFallback": "If this wasn't the first time, you can talk with your doctor about tests that look for a cause.",
     "pick": "Pick one.",
     "save": "Save"
+  },
+  "return": {
+    "title": "Caring for yourself",
+    "sub": "Your follow-ups and how you feel, whenever you like",
+    "rowSub": "Follow-ups, how you feel and your private note",
+    "hide": "Hide",
+    "hidden": "Hidden. You can come back from Me → Life stage too."
   }
 }

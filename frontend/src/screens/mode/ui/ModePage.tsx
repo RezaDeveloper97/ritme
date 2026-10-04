@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { useId, useRef, useState, type KeyboardEvent } from 'react';
 
 import { useStopContraception } from '@/entities/contraception';
+import { LossCareReturn } from '@/entities/loss';
 import { useDeactivatePregnancy } from '@/entities/pregnancy';
 import {
   lifeStageKeys,
@@ -235,6 +236,9 @@ function ModeBody({ stage }: { stage: LifeStage }) {
           </ModeCard>
         ))}
       </div>
+
+      {/* CB-LOSS-03b: the quiet way back into «مراقبت از خودت» while a recent loss exists. */}
+      <LossCareReturn variant="row" />
 
       <div className="mode-contra">
         <ListRow

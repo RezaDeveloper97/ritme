@@ -244,13 +244,22 @@ func (s *Service) DeleteNote(ctx context.Context, userID uint64, now time.Time) 
 // Delete erases the newest loss record with its moods (FK cascade) and encrypted note, and the one-line notices her
 // companions got about it. It never resurrects pregnancy content: pregnancy mode stays off, closed alerts stay closed
 // and paused reminders stay paused (the forced pregnancy message mode keys on the ended pregnancy, not on this row).
-// Her follow-up appointments stay in her own care list (private). An earlier loss, if any, becomes the newest.
+// The private follow-up appointments it created (beta, visit) go too — past or upcoming — so nothing loss-related
+// stays in her care list. An earlier loss, if any, becomes the newest (with its own follow-ups).
 func (s *Service) Delete(ctx context.Context, userID uint64) error {
 	return s.inTx(ctx, func(tx *sql.Tx) error {
-		q := store.New(tx)
+		q, cq := store.New(tx), carestore.New(tx)
 		cur, err := latest(ctx, q, userID)
 		if err != nil {
 			return err
+		}
+		for _, id := range []sql.NullInt64{cur.BetaReminderID, cur.VisitReminderID} {
+			if !id.Valid {
+				continue
+			}
+			if _, err := cq.DeleteAppointment(ctx, carestore.DeleteAppointmentParams{ID: uint64(id.Int64), UserID: userID}); err != nil { //nolint:gosec // positive id
+				return fmt.Errorf("loss: delete follow-up: %w", err)
+			}
 		}
 		if _, err := q.DeleteLoss(ctx, store.DeleteLossParams{ID: cur.ID, UserID: userID}); err != nil {
 			return fmt.Errorf("loss: delete: %w", err)

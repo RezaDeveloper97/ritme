@@ -9824,3 +9824,27 @@ button.ch-log-row { width: 100%; background: none; border: 0; font-family: inher
 }
 .anp-chip.is-check { border-color: var(--warm); color: var(--warm-deep); }
 /* ═══ end B-N5-07 ═══ */
+
+/* ═══ CB-LOSS-03b — calm way back into /loss/care (home row + /profile/mode row) ═══ */
+.lcr-card {
+  display: flex; align-items: center; gap: 4px; padding: 4px; border-radius: var(--r-card, 24px);
+  background: var(--surface); border: 1px solid var(--line);
+}
+.lcr-main {
+  flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 8px 10px;
+  border-radius: 20px; color: var(--text-1); text-decoration: none; text-align: start;
+}
+.lcr-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.lcr-text b { font-size: 13.5px; font-weight: 800; color: var(--text-1); }
+.lcr-text span { font-size: 12px; font-weight: 600; line-height: 1.6; color: var(--text-2); }
+.lcr-chev { flex-shrink: 0; color: var(--text-3); }
+.lcr-hide {
+  flex-shrink: 0; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; margin: 0;
+  border: 0; border-radius: 50%; background: transparent; color: var(--text-3); cursor: pointer;
+}
+.lcr-main:focus-visible, .lcr-hide:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.lcr-hide:hover { background: var(--surface-2); color: var(--text-2); }
+.lcr-hidden { margin: 0; padding-inline: 4px; font-size: 12px; font-weight: 600; line-height: 1.7; color: var(--text-2); }
+.lcr-group { padding: 2px 16px; border-radius: var(--r-card, 24px); background: var(--surface); border: 1px solid var(--line); }
+.lcr-group .nb-row { padding-block: 12px; min-height: 56px; }
+/* ═══ end CB-LOSS-03b ═══ */

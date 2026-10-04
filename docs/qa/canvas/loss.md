@@ -102,3 +102,30 @@ continuing." is calm and shares nothing else — ✔ (en shows the owner's Persi
 - **P4:** apply the catalog rewrites above (admin edit or an `UPDATE` seed migration) — content owner + clinical review.
 
 No ✘ left.
+
+## CB-LOSS-03b — care re-entry + follow-up cleanup on erase
+
+Run 2026-10-04 against a worktree Go API :8202 (`APP_ENV=local`) + Next dev :3112, 390 px, headless Chrome over CDP
+(`bloom/bin/shot.mjs --token`). Shots in `loss/CB-LOSS-03b/`. Test user **`09120005403`** (CB-LOSS-03; cycle mode,
+one loss recorded today).
+
+**Default window (documented in `entities/loss/model/care-return.ts`):** the re-entry shows for
+`LOSS_CARE_WINDOW_DAYS` = **60 days** from the Tehran day she recorded the loss (`created_at`, else the approximate
+`occurred_on`), and ends earlier when she erases the record (`DELETE /loss`). Home row: dismissible per loss
+(«پنهان کردن» keeps only the loss row id in `localStorage['ritme_care_return_hidden']`, neutral key; a newer loss
+shows it again). `/profile/mode` row: not dismissible — the way back after hiding the home row. Copy never names
+the loss («مراقبت از خودت · پیگیری‌ها و حال دلت، هر وقت خواستی»), no celebratory tone, no red. Companions never
+see it (they don't load her home/profile; `GET /loss` answers only for her).
+
+| Board | Route | Light | Dark | Verdict | Fix / note |
+|---|---|---|---|---|---|
+| `nbl_Loss_Care` (entry) | `/home` (cycle/TTC) | [row](loss/CB-LOSS-03b/fa_home.light.png) · [hidden](loss/CB-LOSS-03b/fa_home.hidden.light.png) · [en](loss/CB-LOSS-03b/en_home.light.png) · [erased](loss/CB-LOSS-03b/fa_home.erased.light.png) | [row](loss/CB-LOSS-03b/fa_home.dark.png) · [hidden, after reload](loss/CB-LOSS-03b/fa_home.hidden-persisted.dark.png) · [en](loss/CB-LOSS-03b/en_home.dark.png) · [erased](loss/CB-LOSS-03b/fa_home.erased.dark.png) | ✔ | No board for the entry (the canvas has no way back) — styled as a quiet flat card (surface + 1px line, brand heart disc, chevron, 44px × hide). First item of the feed, under the phase card; not for teen. After «پنهان کردن» one calm status line points to «من ← مرحله زندگی»; the row stays hidden after reload. Gone after `DELETE /loss`. |
+| `nbl_Loss_Care` (entry) | `/profile/mode` | [row](loss/CB-LOSS-03b/fa_profile_mode.light.png) · [erased](loss/CB-LOSS-03b/fa_profile_mode.erased.light.png) | [row](loss/CB-LOSS-03b/fa_profile_mode.dark.png) · [erased](loss/CB-LOSS-03b/fa_profile_mode.erased.dark.png) | ✔ | A `ListRow` card between the mode cards and the contraception card, same shape as the contraception card; → `/loss/care`. |
+
+**Erase (backend):** `DELETE /loss` now also deletes the private beta + visit care appointments linked to that loss
+(past or upcoming), in the same transaction. Live: follow-ups set (lab 2026-10-11, checkup 2026-10-20 11:00 → care ids
+39, 40) → `DELETE /loss` 200 «پاک شد.» → `/care/appointments` no longer lists 39/40. Ids 4/5 (lab 10 Oct, checkup
+18 Oct) are orphans from losses erased **before** this fix (CB-LOSS-03 P3) and stay — no backfill. Int test
+`TestLoss_EraseAndConcurrency` covers newest-only removal, the earlier loss keeping its visit, and her own
+appointments staying. Contract `loss` 50/50 unchanged (the DELETE response shape didn't change). Test user left with
+one fresh loss (re-recorded after the erase check).

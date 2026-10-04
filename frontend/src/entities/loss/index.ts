@@ -28,6 +28,13 @@ export {
   visitAt,
   warningSignParts,
 } from './model/loss';
+export {
+  LOSS_CARE_WINDOW_DAYS,
+  hideLossCareRow,
+  isLossCareOpen,
+  isLossCareRowHidden,
+} from './model/care-return';
+export { LossCareReturn } from './ui/LossCareReturn';
 export { lossKeys } from './api/keys';
 export { lossCatalogSchema, lossNoteSchema, lossStateSchema } from './api/schema';
 export {
