@@ -712,3 +712,18 @@ One section per finished task (appended by `/site-task`).
   `analysisType()`, `cornerstone()`); appears automatically on Blog + static-page SEO tabs. `SerpMeasure` → `TextWidth`
   + `PersianDigits`. 53 tests (incl. < 150 ms for ~3000 words).
 - Follow-up moved to L7-06: persist score + cornerstone flag for list columns / «نیاز به کار» filter.
+
+## L6-03 — Product page: gallery, variants, specs, size chart, reviews, Product schema
+- `ProductController` (`show`: slug-history 301, 404, review pagination, admin meta wins, demo noindex; `storeReview`:
+  `shop.product.review`, `throttle:3,10`, honeypot `company_url`, pending via new `SubmitProductReview` (hashed IP)).
+  View `pages/shop/product` (subnav, breadcrumbs, gallery reusing `gallery.js`, buy box, specs + description, size
+  chart, reviews + form, «معمولاً با این می‌خرند», `product:price:*` meta), `components/shop/{gallery,review-form}`,
+  lazy `product.js` (per-colour sold-out sizes, price, stock badge, size hint, chart row, qty limits). Variant picker
+  works without JS (radios). Add-to-cart form has `data-cart-slot` + disabled button until `shop.cart.add` exists.
+- Schema: Product (images, sku, brand) + AggregateOffer with one Offer per variant (IRR, availability per variant,
+  priceValidUntil +30 d, Organization seller) via `ProductData::offersNode()`; rating/reviews only from real approved
+  reviews; ItemPage + BreadcrumbList; og:type product. `ProductTest` (13). `seo:audit` 0 errors on product pages.
+- Diff 1440 15.46% / 390 16.79% (single demo illustration → no thumbnail column, no fake rating/sales/«فروشنده بررسی‌شده»,
+  added stock badge/description/demo notes/review form, different preselected size, NULL app links).
+- Open: L6-04 adds `shop.cart.add` (posts product/color/size/quantity; resolve with `variantFor`, re-check stock);
+  delivery/returns copy to confirm; shared default throttle key with place reviews.

@@ -86,7 +86,7 @@ it('serves every audit page under its route name as a noindex placeholder with o
     if ($name === 'directory.place') {
         $this->seed(DirectorySeeder::class);
     }
-    if ($name === 'shop.category') {
+    if (in_array($name, ['shop.category', 'shop.product'], true)) {
         $this->seed(ShopSeeder::class);
     }
     if ($name === 'directory.booked') {

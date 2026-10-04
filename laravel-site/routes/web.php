@@ -27,6 +27,7 @@ use App\Http\Controllers\Seo\SitemapController;
 use App\Http\Controllers\Seo\SitemapIndexController;
 use App\Http\Controllers\ServicesController;
 use App\Http\Controllers\Shop\CategoryController;
+use App\Http\Controllers\Shop\ProductController;
 use App\Http\Controllers\Shop\ShopHomeController;
 use App\Http\Controllers\SocialResponsibilityController;
 use App\Http\Controllers\StagePageController;
@@ -124,7 +125,10 @@ Route::prefix('directory')->name('directory.')->group(function (): void {
 Route::prefix('shop')->name('shop.')->group(function (): void {
     Route::get('/', ShopHomeController::class)->name('index');                                     // L6-02
     Route::get('/category/{slug}', CategoryController::class)->name('category');                   // L6-02
-    Route::get('/product/{slug}', PlaceholderPageController::class)->name('product');              // L6-03
+    Route::get('/product/{slug}', [ProductController::class, 'show'])->name('product');             // L6-03
+    // Review form (L6-03): moderated (stored as pending), rate limited per IP, honeypot answered like a real submit.
+    Route::post('/product/{slug}/reviews', [ProductController::class, 'storeReview'])
+        ->middleware('throttle:'.ProductController::REVIEWS_PER_10_MINUTES.',10')->name('product.review');
     Route::get('/cart', PlaceholderPageController::class)->name('cart');                           // L6-04
     Route::get('/checkout', PlaceholderPageController::class)->name('checkout');                   // L6-05
     Route::get('/order/{code}', PlaceholderPageController::class)->where('code', '[A-Za-z0-9-]+')->name('order'); // L6-05

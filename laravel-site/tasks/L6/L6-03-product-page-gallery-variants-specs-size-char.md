@@ -3,7 +3,7 @@ id: L6-03
 title: Product page: gallery, variants, specs, size chart, reviews, Product schema
 milestone: L6
 type: frontend
-status: todo
+status: done
 depends_on: [L6-02]
 parallel_group: L6-B
 touches: [resources/views/pages/shop/product.blade.php,app/Http/Controllers/Shop/ProductController.php,resources/js/modules/product.js,tests/Feature/Shop/ProductTest.php]

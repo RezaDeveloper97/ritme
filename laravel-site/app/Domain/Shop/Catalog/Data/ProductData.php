@@ -219,6 +219,54 @@ final readonly class ProductData
     }
 
     /**
+     * schema.org `offers` of the Product node (L6-03). Without variants: one Offer (product price + stock status).
+     * With variants: an AggregateOffer (lowPrice / highPrice / offerCount, availability of the product) holding one
+     * Offer per active variant — its sku, label, effective price and availability from the variant's own stock
+     * (pre-order / back-order products keep that status). Prices in rials (IRR).
+     *
+     * @param  array<string, mixed>|null  $seller  e.g. a reference to the site Organization (single seller)
+     * @return array<string, mixed>
+     */
+    public function offersNode(string $url, ?string $priceValidUntil = null, ?array $seller = null): array
+    {
+        $offer = static fn (Money $price, StockStatus|bool $stock, array $extra = []): array => array_filter([
+            '@type' => 'Offer',
+            ...$extra,
+            'price' => $price->rial,
+            'priceCurrency' => Money::CURRENCY,
+            'availability' => ($stock instanceof StockStatus ? $stock : ($stock ? StockStatus::InStock : StockStatus::OutOfStock))->availability()->uri(),
+            'itemCondition' => 'https://schema.org/NewCondition',
+            'url' => $url,
+            'priceValidUntil' => $priceValidUntil,
+            'seller' => $seller,
+        ], static fn (mixed $value): bool => $value !== null && $value !== '');
+
+        if (! $this->hasVariants()) {
+            return $offer($this->price, $this->stockStatus);
+        }
+
+        $manual = $this->stockStatus === StockStatus::PreOrder || $this->stockStatus === StockStatus::BackOrder;
+        $offers = array_map(fn (VariantData $v): array => $offer(
+            $v->price,
+            $manual ? $this->stockStatus : $v->isInStock(),
+            ['sku' => $v->sku, 'name' => trim($this->title.' — '.$v->label(), ' —')],
+        ), $this->variants);
+        $prices = array_map(static fn (VariantData $v): Money => $v->price, $this->variants);
+
+        return array_filter([
+            '@type' => 'AggregateOffer',
+            'lowPrice' => Money::min(...$prices)->rial,
+            'highPrice' => Money::max(...$prices)->rial,
+            'offerCount' => count($offers),
+            'priceCurrency' => Money::CURRENCY,
+            'availability' => $this->stockStatus->availability()->uri(),
+            'url' => $url,
+            'seller' => $seller,
+            'offers' => $offers,
+        ], static fn (mixed $value): bool => $value !== null);
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function toArray(): array
