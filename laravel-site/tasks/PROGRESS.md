@@ -151,3 +151,19 @@ One section per finished task (appended by `/site-task`).
 - Open: queue worker schedule belongs to L10-01 (until then variants need `media:regenerate` when queue≠sync);
   `seo_meta.og_media_id` FK to media not added; duplicate upload ignores new alt; focal change must trigger
   regenerate (L2-03); memory raised to 512M while processing.
+
+## L1-02 — Base layout, header/nav, mobile menu, footer, breadcrumbs
+- `app/Domain/Content`: `StaticPage` registry (24 parameterless pages: route, path, label, nav item, breadcrumb parent,
+  header variant (10 dark), `#download`, indexable, sitemap priority/changefreq), `NavItem`, `HeaderVariant`, DTOs,
+  `SiteNavigation` (falls back to registry path until routes exist), `AllowedHtml` (enamad sanitiser; external images dropped).
+- `app/View/Components/Layout/{Header,Footer,Assets}` (header/footer HTML fragment-cached in `menu` ns, key includes
+  `settings` ns version + Vite manifest hash), `Ui/Breadcrumbs` (registers into `SchemaGraph` in the constructor).
+- `layouts/app.blade.php` (skip link, `main#main`, dark header/hero shared background via subgrid), components
+  `layout/*`, `ui/{button,badge,section,container,breadcrumbs}`, `resources/js/modules/menu.js` (0.34 KB gz).
+- Non-production preview route `/_preview/layout/{dark|light}` (`preview.layout`) in `routes/web.php`.
+- Diff (header / footer regions): dark 1440 0.70/1.74%, 390 1.71/1.45%; light 1440 0.50/0.94%, 390 0.81/2.74%.
+  Whole-page diff meaningless (empty demo body). Shots in `docs/qa/L1-02/`.
+- Tests: `tests/Unit/Content`, `tests/Feature/Layout` (47 tests). Pest 327 passed.
+- Open: `SettingObserver` doesn't bump `menu` (settings version is in the fragment key instead); shop/social/login
+  links hidden while settings empty; labels in enum (no `lang/` yet); real enamad badge is an external image → stripped
+  (owner decision); `/` still the welcome view until L3-02.

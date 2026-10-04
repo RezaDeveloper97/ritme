@@ -3,7 +3,7 @@ id: L1-02
 title: Base layout, header/nav, mobile menu, footer, breadcrumbs
 milestone: L1
 type: frontend
-status: todo
+status: done
 depends_on: [L0-06,L0-07,L1-01]
 parallel_group: L1-B
 touches: [resources/views/layouts,resources/views/components/layout,resources/views/components/ui,resources/js/modules/menu.js,app/View,app/Domain/Content]
