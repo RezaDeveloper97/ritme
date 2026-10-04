@@ -21,6 +21,11 @@ verify: composer verify && node tools/shot.mjs --design faq.html --route /faq
   once per page from all visible items.
 - Swap the static FAQ placeholders in L3-02/L3-06 for the component.
 - Filament: groups + items with drag-sort, publish toggle, preview.
+- Audit corrections (`docs/AUDIT.md` §2.2): also seed the **six stage FAQ groups** (`stage-cycle`, `stage-ttc`,
+  `stage-pregnancy`, `stage-postpartum`, `stage-menopause`, `stage-teen`, 3 items each) and wire them into the stage
+  template (L3-03..05). The plus FAQ is a 2-column card grid, not `details`: `x-faq` gets `variant="grid"`. The
+  `/faq` search box becomes a real input with a tiny `faq-filter` module (no-JS shows everything); the side nav
+  links to category anchors.
 
 ## Acceptance
 - Diff < 3%; FAQ schema valid; editing an item in admin updates `/faq` (cache bumped); tests green.

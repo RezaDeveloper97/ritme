@@ -23,6 +23,13 @@ cycle, ttc, pregnancy, postpartum, menopause and teen share one skeleton (hero, 
 - Implement **cycle** fully; template ready for the others.
 - SEO: title/description from design, WebPage + BreadcrumbList (خانه › مرحله‌ها › پیگیری چرخه), FAQ schema only if
   the page has visible FAQs; internal links to tools/blog category for the stage.
+- Audit corrections (`docs/AUDIT.md` §2.4, §6): the template also renders `x-layout.stage-nav` (6 stage pills,
+  active in the stage color), `x-ui.alert-emergency`, the stage FAQ (3 items, FAQ group `stage-<slug>`; h2 must be
+  descriptive, e.g. «سؤال‌های رایج درباره پیگیری چرخه», not the bare stage name) and `x-mock.phone` + float cards
+  with screen partials in `mock/screens/*` (fragment-cached, `aria-hidden`). The hero «چطور کار می‌کند؟» links to
+  `#how`, so the first feature section gets `id="how"`. teen has no «وقتی کمک بیشتری لازم داری» block (template
+  flag). Stage colors: cycle `#B82A52`, ttc `#8A5A00`, pregnancy `#D9447F`, postpartum `#0A7390`, menopause
+  `#6E54F0`, teen `#0C7064` (as theme tokens).
 
 ## Acceptance
 - `/cycle` diff < 3% at 390/1440; `seo:audit` passes; tests green.

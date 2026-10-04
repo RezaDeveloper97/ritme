@@ -25,6 +25,11 @@ verify: composer verify
 - Cached repos (`shop` ns), query objects (`ProductsInCategory` with filters/sort, `BestSellers`,
   `FrequentlyBoughtWith`), observers bump `shop`, `pages`, `sitemap`; sitemap providers; search provider.
 - Demo seeder from design (بادی آستین‌بلند نخی ۳ عدد …).
+- Audit finding (`docs/AUDIT.md` §8): the design is **multi-seller**. Product cards show a seller («پوشاک
+  پنبه‌ریز», «بهداشتی بانو», «خانه سیسمونی ماه‌نو») and «فروشنده بررسی‌شده», and cart/checkout/done group lines per
+  seller with their own delivery estimates and status. Confirm with the user, then add a minimal `Seller` (name, slug,
+  is_verified, shipping_days_min/max; products belong to one seller), or simplify to single-seller and drop the
+  per-seller grouping in L6-04/05.
 
 ## Acceptance
 - Factories/tests for Money, filters, variants stock; `composer verify` green.

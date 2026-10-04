@@ -3,7 +3,7 @@ id: L0-04
 title: HTML design audit: components, tokens, content, SEO gaps, URL map
 milestone: L0
 type: investigate
-status: todo
+status: done
 depends_on: [L0-01]
 parallel_group: L0-B
 touches: [docs/AUDIT.md]

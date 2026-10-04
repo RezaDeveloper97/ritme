@@ -28,6 +28,11 @@ without JS for crawlers and slow phones.
 - Consider separate indexable landing URLs `/tools/due-date` and `/tools/fertility-window` with their own titles
   (anchors on the same template) — implement if the audit confirms the design supports it; otherwise note for later.
 - SEO: `WebApplication` schema (free, no ratings), FAQ if visible.
+- Audit decision on landing URLs (`docs/AUDIT.md` §8): the design is one page with both calculators, 3 checklists
+  and 4 guides. Ship stable anchors `#due-date`, `#fertility`, `#hospital-bag`, `#sisemoni` (footer links target
+  them) and defer separate `/tools/due-date` / `/tools/fertility-window` URLs to a later SEO task. Remove the
+  design's English `aria-label="lmp"/"cycle"`; inputs get proper Persian `<label>`s. Checklists are non-persistent
+  checkboxes (no storage).
 
 ## Acceptance
 - Same output in JS and PHP for the shared vectors; works with JS disabled; diff < 3%; tests green.

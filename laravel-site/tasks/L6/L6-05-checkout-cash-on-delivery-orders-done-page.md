@@ -21,6 +21,10 @@ verify: composer verify && node tools/shot.mjs --design shop-checkout.html --rou
   (admin mail, customer SMS via `SmsSender` log driver).
 - `/shop/order/{code}` done page (noindex, unguessable code + session check) matching `shop-done.html`.
 - Idempotency: double-submit protection (token), rate limit.
+- Audit correction (`docs/AUDIT.md` §8): the checkout design offers «درگاه بانکی» and «پرداخت در محل». Render only
+  COD (no disabled gateway option). Keep the design's per-seller delivery slots (date + time window), the «بسته‌بندی
+  ساده» (discreet packaging: no product name on box/invoice) toggle stored on the order, and the COD cap
+  `[سقف مبلغ]` → `ShopSettings.cod_max_amount` (orders above it are rejected with a Persian message).
 
 ## Acceptance
 - Concurrent stock test (two orders, one unit) → one succeeds; diffs < 3%; tests green.

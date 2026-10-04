@@ -25,6 +25,13 @@ Page tasks must assemble pages from components, not paste converter output, to s
 - `docs/COMPONENTS.md`: name, props, example, which design pages use it.
 - A hidden `/_components` route (local only) rendering every component for review + screenshots.
 - Persian digits helper (`fa_digits()`), Jalali date helper (`App\Support\Jalali`, tested) for dates in cards.
+- Audit corrections (`docs/AUDIT.md` §2): the design has **no JS tabs**. Every tab-like UI (blog/directory categories,
+  shop sort, shop subnav, faq side nav, contact topics) is a link list, so build `x-ui.chip-nav` (links, no JS)
+  instead of a tabs module. Also build: `x-ui.alert-emergency` (۱۱۵ as `tel:`), `x-ui.qr` (server-side SVG QR of the
+  app link via a local PHP library, cached; never an external QR service), `x-ui.success-hero`, `x-ui.stepper`,
+  `x-ui.timeline`, `x-ui.toggle-row`, `x-ui.promise-banner`, `x-ui.app-cta` (+ aside variant), `x-ui.page-intro`,
+  `x-ui.promo-split`, `x-cards.value`, `x-cards.review`. Single-use blocks (quote, pricing, team, checklist,
+  category tile) stay with their page tasks.
 
 ## Acceptance
 - `/_components` renders all components; spot-checked against design; no inline styles; tests for helpers.

@@ -29,6 +29,12 @@ Every page shares the shell; getting it right once (semantics, a11y, performance
 - Menu JS module (< 1 KB) loaded via `data-module="menu"`; works without JS (nav links in footer remain).
 - Header/footer HTML is cached as a fragment (cache-aside `menu` ns) keyed by variant + active route.
 - Visual fidelity vs `design/html/index.html` header/footer at 390 and 1440 (`tools/shot.mjs`).
+- Audit corrections (`docs/AUDIT.md` §2.1, §6): dark header on index, cycle, ttc, pregnancy, postpartum, menopause,
+  teen, about, privacy, social-responsibility; light on the other 19. Active nav: stage pages → «مرحله‌ها», directory*
+  → «خدمات», shop* → «فروشگاه», article → «مجله»; none on contact/faq/plus/privacy/social-responsibility. The
+  «مرحله‌ها» chevron is decorative (no dropdown). «ورود» → `AppLinksSettings` web-app URL; «دانلود اپ» → `#download`
+  when the page renders the app CTA, else `/#download`. Footer «ابزارها» links → `/tools#due-date|#fertility|
+  #hospital-bag|#sisemoni`; footer columns are `<nav aria-label>` lists; «شرایط استفاده» → `/terms`.
 
 ## Out of scope
 - Page bodies, SEO tags (L1-03).

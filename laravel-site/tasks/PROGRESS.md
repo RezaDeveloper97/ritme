@@ -32,3 +32,11 @@ One section per finished task (appended by `/site-task`).
 - `php artisan cache:ns {list|bump ns...|bump-all}`.
 - Tests on array/file/database stores; pest 92 passed. Coverage driver not installed → 100% coverage not measured.
 - Open: `BumpsCacheNamespaces` model trait dropped (phpstan trait.unused); add it with its first user if wanted.
+
+## L0-04 — HTML design audit: components, tokens, content, SEO gaps, URL map
+- `docs/AUDIT.md` (8 sections): page table (29 pages), component inventory with Blade names + owning tasks, tokens
+  (colours, stage colours, alpha→opacity map, Lalezar + Vazirmatn 400–800, radii, shadows, gradients, breakpoints
+  1180/1024/700), 76 icons + 28 illustrations, SEO/a11y gaps, URL map with a machine-readable ```json urlmap``` block.
+- Audit corrections added to the Scope of L1-02, L3-01, L3-03, L3-07, L3-08, L3-09, L5-02, L6-01, L6-05.
+- Open (user decisions): multi-seller vs single-seller shop (L6-01), real copy for `[...]` placeholders + legal texts,
+  hide donations until a gateway exists, show Plus prices on site, demo slugs English vs Persian.
