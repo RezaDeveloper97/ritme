@@ -1,25 +1,165 @@
+# -----------------------------------------------------------------------------
+# Ritme — Apache / LiteSpeed rules for cPanel (L1-07)
+#
+# Works with this folder deployed as public_html (or any document root): no
+# absolute paths, no rewrite base, every module guarded by <IfModule>, so a host
+# without a module simply skips that block instead of answering 500.
+# HTML caching, ETag/304, CSP and HSTS are sent by Laravel (config/pagecache.php);
+# this file only covers static files, compression and URL plumbing.
+# Apache does not allow comments at the end of a directive line, so every
+# directive is explained on the comment line(s) right above it.
+# -----------------------------------------------------------------------------
+
+# --- Rewriting ---------------------------------------------------------------
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
+        # No content negotiation (/about must not match about.php) and no folder listings.
         Options -MultiViews -Indexes
     </IfModule>
 
+    # Turn the rewrite engine on for this directory.
     RewriteEngine On
 
-    # Handle Authorization Header
+    # Force https — uncomment on hosts where Laravel's APP_CANONICAL_REDIRECT is not used.
+    # Skip when TLS is already on, or when a proxy/CDN terminated TLS and says so.
+    # RewriteCond %{HTTPS} !=on
+    # RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+    # 301 to the same host and path over https.
+    # RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # Refuse dotfiles and dot-folders (.env, .git/…) except /.well-known (ACME / AutoSSL).
+    RewriteRule (^|/)\.(?!well-known(/|$)) - [F,L]
+
+    # Hashed Vite build files and generated media variants get the immutable cache header below.
+    RewriteRule ^(build|media)/ - [E=RT_IMMUTABLE:1]
+
+    # Pass the Authorization header through to PHP (CGI/FastCGI drop it otherwise) …
     RewriteCond %{HTTP:Authorization} .
+    # … by copying it into an environment variable Laravel reads.
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
-    # Handle X-XSRF-Token Header
+    # Same for the X-XSRF-Token header …
     RewriteCond %{HTTP:x-xsrf-token} .
+    # … used by JavaScript requests (Livewire / admin).
     RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
 
-    # Redirect Trailing Slashes If Not A Folder...
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteCond %{REQUEST_URI} (.+)/$
-    RewriteRule ^ %1 [L,R=301]
+    # No Apache trailing-slash redirect here: App\Http\Middleware\CanonicalizeUrl does
+    # slashes, *.html, case and legacy URLs in one single 301 hop.
 
-    # Send Requests To Front Controller...
+    # Anything that is not an existing folder …
     RewriteCond %{REQUEST_FILENAME} !-d
+    # … nor an existing file …
     RewriteCond %{REQUEST_FILENAME} !-f
+    # … goes to Laravel's front controller.
     RewriteRule ^ index.php [L]
+</IfModule>
+
+# --- Deny dotfiles (second line of defence when mod_rewrite is missing) -------
+<FilesMatch "^\.">
+    <IfModule mod_authz_core.c>
+        # Apache 2.4 / LiteSpeed syntax.
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        # Apache 2.2 syntax: evaluate allow before deny …
+        Order allow,deny
+        # … and deny everyone.
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# --- MIME types (some cPanel servers ship an old mime.types) ------------------
+<IfModule mod_mime.c>
+    # Web fonts.
+    AddType font/woff2 .woff2
+    # Next-gen images produced by the media pipeline.
+    AddType image/avif .avif
+    # WebP variants.
+    AddType image/webp .webp
+    # SVG sprite and illustrations.
+    AddType image/svg+xml .svg
+    # PWA manifest.
+    AddType application/manifest+json .webmanifest
+    # ES modules (Vite chunks, service worker).
+    AddType text/javascript .js .mjs
+    # Declare UTF-8 for text assets so Persian text never renders as mojibake.
+    AddCharset utf-8 .css .js .mjs .json .svg .webmanifest .txt .xml
+</IfModule>
+
+# --- Compression: brotli when the module exists, gzip otherwise --------------
+<IfModule mod_filter.c>
+    <IfModule mod_brotli.c>
+        # Brotli for clients that accept br; DEFLATE in the chain serves gzip to the rest.
+        AddOutputFilterByType BROTLI_COMPRESS;DEFLATE text/html text/plain text/css text/xml text/javascript application/javascript application/json application/ld+json application/xml application/rss+xml application/atom+xml application/manifest+json image/svg+xml font/ttf font/otf
+    </IfModule>
+    <IfModule !mod_brotli.c>
+        <IfModule mod_deflate.c>
+            # gzip the same text types (woff2, avif, webp, jpg, png are already compressed).
+            AddOutputFilterByType DEFLATE text/html text/plain text/css text/xml text/javascript application/javascript application/json application/ld+json application/xml application/rss+xml application/atom+xml application/manifest+json image/svg+xml font/ttf font/otf
+        </IfModule>
+    </IfModule>
+</IfModule>
+
+# --- Browser caching of static files -----------------------------------------
+<IfModule mod_expires.c>
+    # Send Expires / max-age for the types listed below.
+    ExpiresActive On
+    # Fonts never change under the same URL (they live in /build with a hash).
+    ExpiresByType font/woff2 "access plus 1 year"
+    # Images: build assets and media variants are hashed / immutable.
+    ExpiresByType image/avif "access plus 1 year"
+    # WebP.
+    ExpiresByType image/webp "access plus 1 year"
+    # JPEG.
+    ExpiresByType image/jpeg "access plus 1 year"
+    # PNG.
+    ExpiresByType image/png "access plus 1 year"
+    # GIF.
+    ExpiresByType image/gif "access plus 1 year"
+    # SVG.
+    ExpiresByType image/svg+xml "access plus 1 year"
+    # Favicon.
+    ExpiresByType image/x-icon "access plus 1 week"
+    # CSS: Vite files are hashed, Filament files carry ?v=.
+    ExpiresByType text/css "access plus 1 year"
+    # JavaScript: same as CSS (sw.js is overridden below).
+    ExpiresByType text/javascript "access plus 1 year"
+    # JavaScript (older MIME name).
+    ExpiresByType application/javascript "access plus 1 year"
+    # The PWA manifest may change with a release: one hour.
+    ExpiresByType application/manifest+json "access plus 1 hour"
+</IfModule>
+
+<IfModule mod_headers.c>
+    # /build/* and /media/* (flag set by the rewrite rule above): cache for a year, never revalidate.
+    Header set Cache-Control "public, max-age=31536000, immutable" env=RT_IMMUTABLE
+
+    # Self-hosted fonts outside /build (Filament) are immutable too.
+    <FilesMatch "\.(woff2?|ttf|otf)$">
+        # One year, no revalidation.
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+
+    # The service worker must be re-checked on every navigation so updates ship at once.
+    <Files "sw.js">
+        # Browsers may store it but must revalidate first.
+        Header set Cache-Control "public, max-age=0, must-revalidate"
+    </Files>
+
+    # The manifest is fetched rarely; keep it short so icon/name changes appear the same day.
+    <Files "manifest.webmanifest">
+        # One hour.
+        Header set Cache-Control "public, max-age=3600"
+    </Files>
+
+    # Compressible files: tell caches the body depends on Accept-Encoding (merge = no duplicates).
+    <FilesMatch "\.(html|css|js|mjs|json|svg|xml|txt|webmanifest)$">
+        # Vary on the compression the client accepts.
+        Header merge Vary Accept-Encoding
+    </FilesMatch>
+
+    # Do not advertise the PHP version.
+    Header always unset X-Powered-By
+    # Some handlers add it after "always"; remove the normal copy too.
+    Header unset X-Powered-By
 </IfModule>

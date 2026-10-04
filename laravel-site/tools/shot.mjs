@@ -395,6 +395,8 @@ async function capture(cdp, url, width) {
         await s('Fetch.enable', { patterns: [{ urlPattern: '*' }] });
         await Promise.all([s('Network.enable'), s('Page.enable'), s('Runtime.enable'), s('Log.enable')]);
         await s('Network.setCacheDisabled', { cacheDisabled: true });
+        // The site's strict CSP (L1-07) would block the tool's injected animation-off <style>; CSP is not under test here.
+        await s('Page.setBypassCSP', { enabled: true });
         await s('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }, { name: 'prefers-color-scheme', value: 'light' }] });
         const mobile = width < 768;
         await s('Emulation.setDeviceMetricsOverride', { width, height: mobile ? 844 : 900, deviceScaleFactor: 1, mobile });

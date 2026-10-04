@@ -3,7 +3,7 @@ id: L1-07
 title: Performance core: page cache, HTTP caching, minify, security headers, .htaccess
 milestone: L1
 type: backend
-status: todo
+status: done
 depends_on: [L1-05,L0-03]
 parallel_group: L1-E
 touches: [app/Http/Middleware,public/.htaccess,config/pagecache.php,tests/Feature/Http]

@@ -57,6 +57,12 @@ return [
     'url' => env('APP_URL', 'http://localhost'),
 
     /*
+    | 301 every request to the scheme + host of APP_URL (App\Http\Middleware\CanonicalizeUrl): https and
+    | the canonical host in production. Off by default (local, tests, CLI audits).
+    */
+    'canonical_redirect' => (bool) env('APP_CANONICAL_REDIRECT', false),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------

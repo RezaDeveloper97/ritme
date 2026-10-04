@@ -243,3 +243,22 @@ One section per finished task (appended by `/site-task`).
 - New contexts register: `$this->app->tag([XSitemapProvider::class], SitemapRegistry::TAG);` + bump `sitemap` in observers.
 - Open: placeholder pages are noindex but listed until real pages land; static lastmod omitted; robots rules
   hard-coded until L7-04 rebinds `RobotsRules`.
+
+## L1-07 — Performance core: page cache, HTTP caching, minify, security headers, .htaccess
+- Middleware: `SecurityHeaders` (outermost; strict all-`'self'` CSP for public pages, relaxed but still same-origin for
+  /admin + Livewire; HSTS in production https; nosniff, Referrer/Permissions-Policy, XFO, COOP; opt-in nonce),
+  `HttpCacheHeaders` (cookie-free first visits `public, max-age=0, s-maxage=300, swr=60`, else `private, no-cache`;
+  weak ETag + 304 ignoring nonce), `PageCache` (guest GET/HEAD 200 HTML via CacheAside `pages` ns, key includes Vite
+  manifest hash; bypasses admin/livewire/filament/preview/transactional routes, logged-in, remember/cart cookies,
+  flash/errors, no-cache, non-`page` queries; CSRF token placeholder swapped per visitor; `X-Page-Cache` header),
+  `MinifyHtml` (−16% raw), `AdminPaths`. `config/pagecache.php`.
+- `public/.htaccess` rewritten (public_html-safe, immutable `/build` + `/media`, brotli/gzip, MIME, dotfiles 403,
+  short cache for sw.js/manifest, every directive commented; Apache trailing-slash redirect removed). Tested on Apache 2.4.
+- `config/app.php` `canonical_redirect` (closes L1-05 item). Env: `APP_CANONICAL_REDIRECT`, `PAGE_CACHE_ENABLED`,
+  `PAGE_CACHE_TTL`, `PAGE_CACHE_MINIFY`, `HTTP_CACHE_S_MAXAGE`, `HTTP_CACHE_SWR`, `SECURITY_HEADERS`, `SECURITY_HSTS`,
+  `SECURITY_HSTS_SUBDOMAINS`, `SECURITY_CSP_NONCE`.
+- Tests: `tests/Feature/Http` (44). Second anonymous `/` request is a HIT with 0 queries.
+- Orchestrator: `tools/shot.mjs` now calls `Page.setBypassCSP` (strict CSP blocked its injected style). Media variant
+  versioning split out as **L2-01b** (immutable cache vs same-name regenerated variants).
+- Open: deploys should `php artisan cache:ns bump pages`; cookie-free public responses still write a session file
+  (keep file sessions in production); use sha256 hashes, not nonces, for any future inline script.
