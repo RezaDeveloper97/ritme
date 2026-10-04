@@ -19,6 +19,8 @@ Milestone audit.
 ## Scope
 - As B-N1-16.
 
+- From canvas QA (CB-LOSS-03): after a pregnancy loss `/pregnancy` shows a big «راه‌اندازی حالت بارداری» CTA — redirect to home or show one calm line without CTA. Companion home shows «بارداری · همین کارت بالا» when there is no card above — hide/fix the hint.
+
 ## Out of scope
 - Android (android-shell/, application/, twa/) — never.
 - Anything owned by another bloom task.
