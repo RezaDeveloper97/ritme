@@ -1,0 +1,12 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    # Raised to 8 in L9-05.
+    level: 6
+    paths:
+        - app
+        - config
+        - database
+        - routes
+    tmpDir: storage/framework/cache/phpstan

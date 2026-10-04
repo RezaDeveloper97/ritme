@@ -1,0 +1,10 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+/* Design tokens + self-hosted fonts land in L0-05. */
+@theme {
+    --font-sans: Vazirmatn, Tahoma, ui-sans-serif, system-ui, sans-serif;
+}
