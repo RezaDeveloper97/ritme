@@ -528,3 +528,18 @@ One section per finished task (appended by `/site-task`).
 - Chrome DevTools: no manifest/installability errors, no external requests.
 - Orchestrator: `source` added to `SeoManager::TRACKING_PARAMS` so PWA launches hit the page cache.
 - Open: seeded `pwa.name` is still «ریتمی» until saved in admin; mask-icon stays the default vector with raster logos.
+
+## L5-02 — Directory listing + city/category SEO landing pages
+- `ListPlacesController` (one invokable for `/directory`, `/directory/{city}`, `/directory/{city}/{category}` — routes
+  `directory.index|city|category`, landings registered after the fixed directory paths): GET filters (q, district,
+  age, open, amenity[], sort without "nearest", page); every non-canonical query 301s to one canonical form (form
+  fields → path, sorted amenities, `?page=1` dropped, tracking kept); filter combos `noindex,follow` with canonical on
+  the nearest landing; pagination self-canonical; unknown city/category/page → 404. Copy from `LandingCopy` + admin
+  `directory_landings` rows; CollectionPage + ItemList + BreadcrumbList. "Open now" pill only if open for the whole
+  1 h page-cache TTL. Category illustrations as covers for places without photos.
+- Views `pages/directory/index` + partials (intro, toolbar, pagination, areas, business): native `<details>` filter
+  panel, no JS; map column replaced by a decorative local illustration + crawlable city/district/landing links.
+  `lang/fa/directory.php`; `ListingTest` (10). `seo:audit` 0 errors on the three URL shapes.
+- Diff 1440 26.12% / 390 49.15%: height (NULL app links, 6 demo places vs 4-page mock pagination, no fake ratings or
+  distances, areas panel instead of the map, design's broken 390 search form fixed). Top section matches visually.
+- Open: demo-only lists are noindex (incl. /directory in dev); booking slots (L5-04); bookmark button inert.

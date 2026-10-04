@@ -3,7 +3,7 @@ id: L5-02
 title: Directory listing + city/category SEO landing pages
 milestone: L5
 type: frontend
-status: todo
+status: done
 depends_on: [L5-01,L3-01]
 parallel_group: L5-B
 touches: [resources/views/pages/directory/index.blade.php,resources/views/pages/directory/partials,app/Http/Controllers/Directory/ListPlacesController.php,lang/fa/directory.php,tests/Feature/Directory/ListingTest.php]

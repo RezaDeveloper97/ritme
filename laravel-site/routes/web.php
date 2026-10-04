@@ -7,6 +7,7 @@ use App\Http\Controllers\Blog\BlogListingController;
 use App\Http\Controllers\Blog\NewsletterController;
 use App\Http\Controllers\Blog\PostViewController;
 use App\Http\Controllers\Blog\ShowPostController;
+use App\Http\Controllers\Directory\ListPlacesController;
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\FeedController;
 use App\Http\Controllers\HomeController;
@@ -92,12 +93,15 @@ Route::prefix('newsletter')->name('newsletter.')->group(function (): void {
 });
 
 Route::prefix('directory')->name('directory.')->group(function (): void {
-    Route::get('/', PlaceholderPageController::class)->name('index');                              // L5-02
+    Route::get('/', ListPlacesController::class)->name('index');                                   // L5-02
     Route::get('/business', PlaceholderPageController::class)->name('business');                   // L5-05
     Route::get('/join', PlaceholderPageController::class)->name('join');                           // L5-05
     Route::get('/join/done', PlaceholderPageController::class)->name('join.done');                 // L5-05
     Route::get('/place/{slug}', PlaceholderPageController::class)->name('place');                  // L5-03
     Route::get('/booked/{code}', PlaceholderPageController::class)->where('code', '[A-Za-z0-9-]+')->name('booked'); // L5-04
+    // City / city × category landings (L5-02): after the fixed paths above, so `business`, `join` … never match a city.
+    Route::get('/{city}', ListPlacesController::class)->name('city');                              // L5-02
+    Route::get('/{city}/{category}', ListPlacesController::class)->name('category');               // L5-02
 });
 
 Route::prefix('shop')->name('shop.')->group(function (): void {
