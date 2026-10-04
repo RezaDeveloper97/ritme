@@ -167,3 +167,18 @@ One section per finished task (appended by `/site-task`).
 - Open: `SettingObserver` doesn't bump `menu` (settings version is in the fragment key instead); shop/social/login
   links hidden while settings empty; labels in enum (no `lang/` yet); real enamad badge is an external image → stripped
   (owner decision); `/` still the welcome view until L3-02.
+
+## L2-03 — Admin media library + reusable media picker
+- `app/Filament/Resources/Media/*`: grid with thumb, missing-alt badge, size/savings, search + alt filter, bulk "delete
+  unused", multi-upload (≤20, shared alt), edit (alt required, title, caption, focal point, variants panel, usages),
+  regenerate/usages/delete actions, deny-by-default `MediaPolicy` (Editor, SeoManager, ShopManager, DirectoryManager, super-admin).
+- Reusable fields: `MediaPicker` (Select of media ids, search with thumbs, upload in modal via `StoreMedia`,
+  `->mobileOverride()`), `FocalPointPicker` (SVG, keyboard). View namespace `ritme-admin-forms`.
+- Domain actions: `UpdateMediaDetails` (focal change regenerates existing crop presets only), `RegenerateMediaVariants`,
+  `FindMediaUsages` (settings `*media_id`, `seo_meta.og_media_id`, registered columns), `DeleteUnusedMedia`.
+  Duplicate upload now fills a missing alt/title on the existing record.
+- **Every context with a media FK must register it**: `FindMediaUsages::column('blog_posts', 'featured_media_id', 'تصویر شاخص مقاله', 'title');`
+  in its provider `boot()`, otherwise bulk "delete unused" may remove it.
+- Tests: `tests/Feature/Admin/MediaTest.php` (8). One 403 test depended on the in-progress L1-05 error page at commit time.
+- Open: Livewire temp upload cap is 12 MB vs media 15 MB (publish livewire config later); picker search queries
+  Eloquent directly (Filament-style); savings % is vs the stored (already capped) original.

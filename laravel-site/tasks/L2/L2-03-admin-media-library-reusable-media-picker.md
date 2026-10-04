@@ -3,7 +3,7 @@ id: L2-03
 title: Admin media library + reusable media picker
 milestone: L2
 type: admin
-status: todo
+status: done
 depends_on: [L2-01,L1-08]
 parallel_group: L2-C
 touches: [app/Filament/Resources/Media,app/Filament/Forms/Components,tests/Feature/Admin/MediaTest.php]

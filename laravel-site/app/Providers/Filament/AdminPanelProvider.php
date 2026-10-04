@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers\Filament;
 
+use App\Domain\Media\Models\Media;
 use App\Domain\Settings\Contracts\SettingsRepository;
 use App\Domain\Settings\Data\GeneralSettings;
 use App\Domain\Settings\Enums\SettingGroup;
@@ -14,6 +15,7 @@ use App\Filament\Http\Middleware\RequireMultiFactorForRoles;
 use App\Filament\Listeners\RecordLastLogin;
 use App\Filament\Policies\ActivityPolicy;
 use App\Filament\Policies\UserPolicy;
+use App\Filament\Resources\Media\MediaPolicy;
 use App\Filament\Widgets\AdminOverview;
 use App\Models\User;
 use Filament\Auth\MultiFactor\App\AppAuthentication;
@@ -58,6 +60,7 @@ final class AdminPanelProvider extends PanelProvider
     {
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Activity::class, ActivityPolicy::class);
+        Gate::policy(Media::class, MediaPolicy::class);
 
         Event::listen(Login::class, RecordLastLogin::class);
     }
