@@ -3,7 +3,7 @@ id: L4-05b
 title: Admin newsletter subscribers + media usage scan of rich bodies
 milestone: L4
 type: admin
-status: todo
+status: done
 depends_on: [L4-02,L4-05]
 parallel_group: L4-D
 touches: [app/Filament/Resources/Newsletter,app/Domain/Media/Actions/FindMediaUsages.php,app/Providers/Domain/BlogServiceProvider.php,tests/Feature/Admin/NewsletterAdminTest.php,tests/Feature/Admin/MediaTest.php]

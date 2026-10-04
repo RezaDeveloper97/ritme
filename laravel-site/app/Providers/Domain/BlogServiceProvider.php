@@ -78,6 +78,7 @@ final class BlogServiceProvider extends DomainServiceProvider
         FindMediaUsages::column('blog_posts', 'cover_media_id', 'تصویر شاخص مقاله', 'title');
         FindMediaUsages::column('blog_posts', 'cover_mobile_media_id', 'تصویر شاخص موبایل مقاله', 'title');
         FindMediaUsages::column('blog_authors', 'avatar_media_id', 'تصویر نویسنده', 'name');
+        FindMediaUsages::html('blog_posts', 'body', 'تصویر داخل متن مقاله', 'title');
 
         if ($this->app->runningInConsole()) {
             $this->commands([PublishScheduledPostsCommand::class, FlushPostViewsCommand::class]);

@@ -504,3 +504,13 @@ One section per finished task (appended by `/site-task`).
 - Open: L5-02 route names assumed `directory.city`, `directory.category` (city slugs reserved vs fixed routes);
   `LandingCopy` templates hard-coded; L5-03 must noindex demo places, label demo reviews «نمونه», show the pool health
   note; Neshan/Balad URL formats unverified; LIKE normalisation duplicated with `SearchPosts` (candidate for app/Support).
+
+## L4-05b — Admin newsletter subscribers + media usage scan of rich bodies
+- `app/Filament/Resources/Newsletter/SubscriberResource` (read-only list: email, status badge, source, Jalali dates;
+  status filter; header "CSV" link carrying filter + search), `SubscriberPolicy` (Editor + super-admin; `export`
+  ability), `ExportSubscribersController` (separate streamed route, `private, no-store`, noindex),
+  `App\Domain\Newsletter\Actions\ExportSubscribers` (UTF-8 BOM, Persian headers, Jalali Tehran dates with Latin digits,
+  email/status/dates only, `lazyById(500)`, formula-injection guard, activity log `newsletter.exported`).
+- `FindMediaUsages::html($table, $column, $label, $titleColumn)` scans rich HTML for `data-media-id="N"` (chunked);
+  `blog_posts.body` registered → body-only images survive "delete unused". Tests: `NewsletterAdminTest` (4) + 1 media test.
+- Open: Activity filter lacks a `newsletter` option; no subscriber delete action (data-erasure requests).

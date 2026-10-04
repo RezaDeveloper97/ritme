@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Blog\Models\Post;
 use App\Domain\Media\Actions\FindMediaUsages;
 use App\Domain\Media\Actions\StoreMedia;
 use App\Domain\Media\Data\MediaUpload;
@@ -213,6 +214,33 @@ it('bulk-deletes only unused media and keeps the files of used ones', function (
         ->callAction('delete')
         ->assertNotified('این تصویر در سایت استفاده شده و حذف نشد.');
     expect(Media::query()->whereKey($used->id)->exists())->toBeTrue();
+});
+
+it('counts an image used only inside a post body as used and keeps it on bulk delete', function (): void {
+    $inBody = libraryItem(800, 800);
+    $other = libraryItem(1000, 900);
+
+    $post = Post::factory()->create([
+        'title' => 'مقاله با تصویر',
+        'body' => '<p>متن</p><figure><img data-media-id="'.$inBody->id.'" src="/media/'.$inBody->path().'" alt="تصویر"></figure>',
+    ]);
+    // A body that mentions the attribute without the id we look for must not match by prefix (id 1 vs 12…).
+    Post::factory()->create(['body' => '<p><img data-media-id="'.$other->id.'9" alt="x"></p>']);
+
+    expect($post->refresh()->body)->toContain('data-media-id="'.$inBody->id.'"');
+
+    $usages = app(FindMediaUsages::class)->handle([$inBody->id, $other->id]);
+    expect($usages[$inBody->id] ?? [])->toContain('تصویر داخل متن مقاله: مقاله با تصویر')
+        ->and($usages)->not->toHaveKey($other->id);
+
+    $this->actingAs(mediaAdmin());
+    Livewire::test(ListMedia::class)
+        ->callTableBulkAction('deleteUnused', [$inBody, $other])
+        ->assertNotified();
+
+    expect(Media::query()->whereKey($inBody->id)->exists())->toBeTrue()
+        ->and(Media::query()->whereKey($other->id)->exists())->toBeFalse();
+    Storage::disk('public')->assertExists($inBody->path());
 });
 
 it('provides a reusable media picker that selects existing media and uploads new ones', function (): void {
