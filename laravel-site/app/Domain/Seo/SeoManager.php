@@ -49,7 +49,7 @@ final class SeoManager
     /** Query parameters that never make a URL a different page (dropped from canonicals, ignored as filters). */
     public const TRACKING_PARAMS = [
         'utm_*', 'gclid', 'gbraid', 'wbraid', 'dclid', 'fbclid', 'msclkid', 'yclid', 'twclid', 'igshid', 'srsltid',
-        '_ga', '_gl', 'mc_cid', 'mc_eid', 'ref',
+        '_ga', '_gl', 'mc_cid', 'mc_eid', 'ref', 'source',
     ];
 
     /** Verification setting key => meta name. Unknown keys are used as the meta name verbatim. */

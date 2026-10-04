@@ -13,6 +13,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PlaceholderPageController;
 use App\Http\Controllers\PlusController;
 use App\Http\Controllers\PrivacyController;
+use App\Http\Controllers\Pwa\ManifestController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\Seo\RobotsTxtController;
 use App\Http\Controllers\Seo\SitemapController;
@@ -117,6 +118,11 @@ Route::withoutMiddleware([EncryptCookies::class, AddQueuedCookiesToResponse::cla
         Route::permanentRedirect('/sitemap_index.xml', '/sitemap.xml'); // old WordPress (Yoast) index
         Route::permanentRedirect('/wp-sitemap.xml', '/sitemap.xml');    // old WordPress core index
     });
+
+// Web app manifest (L8-01): cached JSON, no session or cookies (like the crawler files above).
+Route::get('/manifest.webmanifest', ManifestController::class)
+    ->withoutMiddleware([EncryptCookies::class, AddQueuedCookiesToResponse::class, StartSession::class, ShareErrorsFromSession::class, ValidateCsrfToken::class])
+    ->name('pwa.manifest');
 
 // L1-02 shell preview for fidelity screenshots (tools/shot.mjs); never registered in production.
 if (! app()->isProduction()) {

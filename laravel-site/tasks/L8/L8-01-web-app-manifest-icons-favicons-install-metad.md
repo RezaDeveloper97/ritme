@@ -3,7 +3,7 @@ id: L8-01
 title: Web app manifest, icons, favicons, install metadata
 milestone: L8
 type: fullstack
-status: todo
+status: done
 depends_on: [L2-01,L1-08]
 parallel_group: L8-A
 touches: [app/Domain/Pwa,app/Http/Controllers/Pwa,resources/views/components/pwa,app/Filament/Pages/Settings/PwaSettings.php,routes/web.php,public/icons,tests/Feature/Pwa/ManifestTest.php]

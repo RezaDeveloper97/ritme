@@ -84,3 +84,12 @@ also fails on console errors, uncaught exceptions, failed requests or HTTP ≥ 4
 (the same for the design page are printed but do not fail). `--base` must itself be a local origin.
 
 Exit codes: `0` ok · `1` external request, page error or tool error · `2` above threshold with `--strict`.
+
+## pwa-icons.mjs — default PWA icons, favicons, screenshots (L8-01)
+
+```bash
+node tools/pwa-icons.mjs                 # public/icons/*.png|svg + public/favicon.ico from the drop icon + primary token
+node tools/pwa-icons.mjs --screenshots   # also public/icons/screenshot-{mobile,desktop}.webp from a running local site
+```
+
+Rasterised by headless Chrome (no npm deps, local files/origins only); WebP conversion via PHP GD.

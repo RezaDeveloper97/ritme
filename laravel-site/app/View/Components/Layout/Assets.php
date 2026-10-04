@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace App\View\Components\Layout;
 
-use App\Domain\Settings\Contracts\SettingsRepository;
+use App\Domain\Pwa\Data\InstallMetadata;
+use App\Domain\Pwa\Manifest\WebManifest;
 use Illuminate\Contracts\View\View;
 use Illuminate\Foundation\Vite;
 use Illuminate\View\Component;
 use Throwable;
 
 /**
- * <x-layout.assets /> — the layout's non-SEO head tags: theme-color (PWA settings), preloads for the two
+ * <x-layout.assets /> — the layout's non-SEO head tags: PWA install metadata (manifest link, theme-color, icons —
+ * <x-pwa.head>, one cache read), preloads for the two
  * above-the-fold font files (Lalezar for the logo/h1, Vazirmatn 600 for nav and body copy) and the Vite entries.
  * Everything else (other weights, Latin subsets) loads on demand through unicode-range.
  */
@@ -25,7 +27,7 @@ final class Assets extends Component
     /** @var list<string> */
     public readonly array $fonts;
 
-    public readonly ?string $themeColor;
+    public readonly InstallMetadata $pwa;
 
     public function __construct(?Vite $vite = null)
     {
@@ -45,8 +47,7 @@ final class Assets extends Component
         }
         $this->fonts = $fonts;
 
-        $color = app(SettingsRepository::class)->all()->pwa->themeColor;
-        $this->themeColor = preg_match('/^#[0-9a-f]{3,8}$/i', $color) === 1 ? $color : null;
+        $this->pwa = app(WebManifest::class)->installMetadata();
     }
 
     public function render(): View

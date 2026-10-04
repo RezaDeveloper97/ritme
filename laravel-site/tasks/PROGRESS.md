@@ -514,3 +514,17 @@ One section per finished task (appended by `/site-task`).
 - `FindMediaUsages::html($table, $column, $label, $titleColumn)` scans rich HTML for `data-media-id="N"` (chunked);
   `blog_posts.body` registered → body-only images survive "delete unused". Tests: `NewsletterAdminTest` (4) + 1 media test.
 - Open: Activity filter lacks a `newsletter` option; no subscriber delete action (data-erasure requests).
+
+## L8-01 — Web app manifest, icons, favicons, install metadata
+- `app/Domain/Pwa`: `WebManifest` (cache-aside in `settings` ns + media version; id `/`, fa/rtl, `start_url /?source=pwa`,
+  standalone, colours from settings, categories, icons, screenshots with form_factor, shortcuts tools/blog/shop),
+  `IconSetResolver`, `GeneratePwaIcons` (from an uploaded raster logo ≥512 px: any 96/192/512, maskable, monochrome,
+  apple-touch 180, favicon png/ico into versioned `pwa/{id}-{hash}/` on the media disk), `PwaIconFiles` (`?v=` hashes).
+- `ManifestController` `/manifest.webmanifest` (`pwa.manifest`, `application/manifest+json`, 1 h + ETag/304, no session).
+  `<x-pwa.head>` (manifest, light/dark theme-color, apple meta, favicon.ico + SVG, apple-touch, mask-icon) replaces the
+  old theme-color in `Layout/Assets`. Filament `PwaSettings` page (auto-discovered; regenerates icons on save).
+  `PwaSettings` DTO gained `icon_media_id`. Default assets in `public/icons/` + real `public/favicon.ico`;
+  `tools/pwa-icons.mjs` (brand mark via headless Chrome, ICO packing, `--screenshots`). `ManifestTest` (8).
+- Chrome DevTools: no manifest/installability errors, no external requests.
+- Orchestrator: `source` added to `SeoManager::TRACKING_PARAMS` so PWA launches hit the page cache.
+- Open: seeded `pwa.name` is still «ریتمی» until saved in admin; mask-icon stays the default vector with raster logos.
