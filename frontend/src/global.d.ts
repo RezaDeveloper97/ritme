@@ -13,6 +13,7 @@ import type enDayTasks from '../messages/en/day-tasks.json';
 import type enHome from '../messages/en/home.json';
 import type enCare from '../messages/en/care.json';
 import type enCheckups from '../messages/en/checkups.json';
+import type enChildren from '../messages/en/children.json';
 import type enFertility from '../messages/en/fertility.json';
 import type enLog from '../messages/en/log.json';
 import type enLogPeriod from '../messages/en/log-period.json';
@@ -54,6 +55,7 @@ type Messages = {
   home: typeof enHome;
   care: typeof enCare;
   checkups: typeof enCheckups;
+  children: typeof enChildren;
   fertility: typeof enFertility;
   auth: typeof enAuth;
   banners: typeof enBanners;

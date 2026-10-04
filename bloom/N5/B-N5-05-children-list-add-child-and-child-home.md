@@ -3,7 +3,7 @@ id: B-N5-05
 title: Children list, add child and child home
 milestone: N5
 type: frontend
-status: todo
+status: done
 depends_on: [B-N5-02]
 parallel_group: N5-E
 touches: [frontend/src/screens/children,frontend/src/screens/child-add,frontend/src/screens/child-home,frontend/src/entities/child]

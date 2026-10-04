@@ -32,10 +32,20 @@ export const NAV_ROOT_PATHS: readonly string[] = [
 ];
 
 /** Prefixes whose sub-paths also show the nav (`/pregnancy/weeks/12`, `/analysis/symptoms`). */
-export const NAV_ROOT_PREFIXES: readonly string[] = ['/pregnancy/weeks/', '/analysis/', '/children/'];
+export const NAV_ROOT_PREFIXES: readonly string[] = ['/pregnancy/weeks/', '/analysis/'];
+
+/**
+ * Path patterns that show the nav: the child home `/children/<id>` (v16_ChildHome, the «کودک» tab, B-N5-05) —
+ * but not `/children/new`, `/children/<id>/edit` or the growth/vaccines/… sub-screens (back headers).
+ */
+export const NAV_ROOT_PATTERNS: readonly RegExp[] = [/^\/children\/\d+$/];
 
 /** Should the bottom nav render on `pathname` (locale already stripped)? */
 export function isNavRootPath(pathname: string): boolean {
   const path = pathname.length > 1 && pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
-  return NAV_ROOT_PATHS.includes(path) || NAV_ROOT_PREFIXES.some((p) => path.startsWith(p));
+  return (
+    NAV_ROOT_PATHS.includes(path) ||
+    NAV_ROOT_PREFIXES.some((p) => path.startsWith(p)) ||
+    NAV_ROOT_PATTERNS.some((re) => re.test(path))
+  );
 }

@@ -55,8 +55,8 @@ describe('navConfig (nav.md per-mode table)', () => {
       'services',
       'me',
     ]);
-    // B-N5-04: the postpartum home is live; «کودک» waits for /children (B-N5-05).
-    expect(keys('postpartum', ['7'], {})).toEqual(['today:/postpartum', 'calendar:/calendar', 'FAB', 'services', 'me']);
+    // B-N5-05: /children is live — «کودک» opens the only child, else the list.
+    expect(keys('postpartum', ['7'], {})).toEqual(['today:/postpartum', 'child:/children/7', 'FAB', 'services', 'me']);
     // CB-MENO-08: «علائم» always opens the monthly score; the symptom report keeps the tab lit.
     expect(keys('menopause', undefined, { analysis: false })[1]).toBe('symptoms:/menopause/score');
     expect(activeTabKey(navConfig('menopause'), '/menopause/score')).toBe('symptoms');

@@ -64,8 +64,8 @@ export const ROUTE_NAMESPACES = {
   companions: ['common', 'companions', 'teen'], // B-N4-04 /companions (Hamdam_List); CB-TEEN-03 parent code card (widgets/linked-teen-card)
   companionsNew: ['common', 'companions'], // B-N4-04 /companions/new (Hamdam_Type → Access → Children → Invite → Done)
   companionDetail: ['common', 'companions'], // B-N4-04 /companions/[id] (grants, renew, revoke)
-  companion: ['common', 'companionHome', 'companions', 'nav', 'teen'], // B-N4-05 /companion (Hamdam_Home, companion nav; companions = entities/companion barrel); CB-TEEN-03 linked teen cards
-  companionLinks: ['common', 'companionHome', 'companions', 'nav', 'teen'], // B-N4-05 /companion/links (code entry + leave a link, Me «کد همدم»); CB-TEEN-03 same slice as /companion
+  companion: ['children', 'common', 'companionHome', 'companions', 'nav', 'teen'], // B-N4-05 /companion (Hamdam_Home, companion nav; companions = entities/companion barrel); CB-TEEN-03 linked teen cards
+  companionLinks: ['children', 'common', 'companionHome', 'companions', 'nav', 'teen'], // B-N4-05 /companion/links (code entry + leave a link, Me «کد همدم»); CB-TEEN-03 same slice as /companion
   profileSupport: ['common', 'me'], // B-N1-12 /profile/support
   profileAbout: ['common', 'me'], // B-N1-12 /profile/about
   profileLegal: ['common', 'me'], // B-N1-12 /profile/legal
@@ -98,10 +98,14 @@ export const ROUTE_NAMESPACES = {
   menopauseLog: ['common', 'logSheet', 'menopause', 'plus', 'voiceLog'], // CB-MENO-06 /menopause/log (log sheet v2 menopause preset as a page, no nav)
   menopauseScore: ['common', 'menopause', 'nav'], // CB-MENO-08 /menopause/score (menopause tab «علائم», bottom nav)
   menopauseScoreQuestionnaire: ['common', 'menopause', 'nav'], // CB-MENO-08 /menopause/score/questionnaire (form, no nav; same screen slice as /menopause/score)
-  postpartum: ['common', 'logSheet', 'nav', 'plus', 'postpartum'], // B-N5-04 /postpartum (v15_Main; mood chips save through features/log-day)
-  postpartumSetup: ['common', 'logSheet', 'nav', 'plus', 'postpartum'], // B-N5-04 /postpartum/setup (same screen slice as /postpartum)
+  postpartum: ['children', 'common', 'logSheet', 'nav', 'plus', 'postpartum'], // B-N5-04 /postpartum (v15_Main; mood chips save through features/log-day); B-N5-05 hero children row + child vaccines (entities/child)
+  postpartumSetup: ['children', 'common', 'logSheet', 'nav', 'plus', 'postpartum'], // B-N5-04 /postpartum/setup (same screen slice as /postpartum)
   postpartumRecovery: ['common', 'postpartum'], // B-N5-04 /postpartum/recovery (v15_Recovery, back header)
   postpartumMood: ['common', 'postpartum'], // B-N5-04 /postpartum/mood (v15_MoodCheck, EPDS + safety)
+  children: ['children', 'common', 'nav'], // B-N5-05 /children (v15_Children; «کودک» tab for 0 / ≥2 children)
+  childForm: ['children', 'common'], // B-N5-05 /children/new + /children/[id]/edit (v15_AddChild, form, no nav)
+  childHome: ['children', 'common', 'nav'], // B-N5-05 /children/[id] (v16_ChildHome, «کودک» tab root)
+  childSection: ['children', 'common', 'nav'], // B-N5-05 interim /children/[id]/{growth,vaccines,milestones,learn} until B-N5-06 (same slice as the child home)
   ivf: ['common', 'ivf', 'nav'], // CB-IVF-02 /ivf (nbl_IVF_Home, TTC IVF sub-mode home)
   ivfScan: ['common', 'ivf'], // CB-IVF-04 /ivf/scan (nbl_IVF_Scan, back header, no nav)
   lossStart: ['common', 'companions', 'loss'], // CB-LOSS-02 /loss (Loss_Start, full screen, no nav; companions = entities/companion barrel)

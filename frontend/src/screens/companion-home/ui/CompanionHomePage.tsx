@@ -13,9 +13,10 @@ import {
   type SharedAppointment,
   useCompanionHome,
 } from '@/entities/companion';
+import { ChildAvatar, parseCompanionChildren } from '@/entities/child';
 import { useLifeStage } from '@/entities/user';
 import { getApiErrorStatus } from '@/shared/api';
-import { Link, type Locale, useRouter } from '@/shared/i18n';
+import { Link, type Locale, useDirection, useRouter } from '@/shared/i18n';
 import { formatDayMonth, formatNumber, formatWeekday, fromApiDate } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
 import { openSheet } from '@/shared/sheet';
@@ -327,18 +328,30 @@ function Articles({ articles, t }: { articles: CompanionArticle[]; t: T }) {
   );
 }
 
-// ── Child (B-N5 fills it) ─────────────────────────────────────────────────
-function ChildPlaceholder({ t }: { t: T }) {
+// ── Child (B-N5-05: the shared children of a spouse link, read-only) ─────
+function SharedChildren({ raw }: { raw: unknown }) {
+  const tc = useTranslations('children');
+  const locale = useLocale() as Locale;
+  const rtl = useDirection() === 'rtl';
+  const kids = parseCompanionChildren(raw);
+  if (kids.length === 0) return null;
   return (
     <section className="cmh-sec" aria-labelledby="cmh-child">
-      <SectionTitle id="cmh-child" title={t('child.title')} />
-      <div className="nb-card cmh-child">
-        <IconCircle icon="sprout" tone="bloom" size="lg" />
-        <span className="cmh-child-text">
-          <b className="cmh-child-title">{t('child.soon')}</b>
-          <span className="cmh-child-sub">{t('child.soonSub')}</span>
-        </span>
-      </div>
+      <SectionTitle id="cmh-child" title={tc('companion.title')} />
+      {kids.map((c) => (
+        <Link key={c.id} href={`/children/${c.id}`} className="nb-card cmh-child" aria-label={tc('companion.open', { name: c.name })}>
+          <ChildAvatar id={c.id} name={c.name} initial={c.initial} sex={c.sex} size={48} />
+          <span className="cmh-child-text">
+            <b className="cmh-child-title">{c.name}</b>
+            <span className="cmh-child-sub">
+              {[c.ageLabel, c.nextVaccine ? tc('companion.nextVaccine', { date: formatDayMonth(fromApiDate(c.nextVaccine.dueDate), locale) }) : null]
+                .filter(Boolean)
+                .join(' · ')}
+            </span>
+          </span>
+          <Icon name={rtl ? 'chevronLeft' : 'chevronRight'} size={18} />
+        </Link>
+      ))}
     </section>
   );
 }
@@ -359,7 +372,7 @@ function HomeSkeleton({ t }: { t: T }) {
  * `/companion` — the companion panel home (B-N4-05, nbl_Hamdam_Home): per
  * linked partner her cycle/pregnancy card, what she shares (meds, appointments,
  * cycle, symptoms with the access level), «امروز چه کار کنی؟» tips, reading
- * suggestions and the child card (placeholder until B-N5). With no link the
+ * suggestions and the shared children card (B-N5-05). With no link the
  * empty state carries the code entry. Its own nav: امروز · خدمات · من.
  */
 export function CompanionHomePage() {
@@ -432,7 +445,7 @@ export function CompanionHomePage() {
         <SharedSection partner={partner} name={name} t={t} locale={locale} />
         <Tips key={partner.link.id} partner={partner} t={t} />
         <Articles articles={data.articles} t={t} />
-        <ChildPlaceholder t={t} />
+        <SharedChildren raw={partner.child} />
       </>
     );
   }

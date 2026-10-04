@@ -1496,6 +1496,166 @@
     }
    }
   },
+  "children": {
+   "common": {
+    "loading": "Loading",
+    "loadError": "Couldn't load the data.",
+    "retry": "Try again",
+    "back": "Back",
+    "soon": "Soon"
+   },
+   "due": {
+    "overdue": "Overdue",
+    "today": "Today",
+    "days": "in {n} days",
+    "months": "in {n} months"
+   },
+   "chips": {
+    "vaccine": "{label} vaccines · {due}",
+    "vaccinesComplete": "Vaccines: complete",
+    "growth": "Growth: {label}"
+   },
+   "strip": {
+    "title": "Children",
+    "add": "Add a child"
+   },
+   "list": {
+    "title": "My children",
+    "count": "{count} children",
+    "add": "Add a child",
+    "open": "{name}'s profile",
+    "sharedBy": "From {name} · view only",
+    "limit": "You can add up to {max} children.",
+    "emptyTitle": "No children added yet",
+    "emptyBody": "Add a child to keep their vaccine schedule, growth and milestones in one place.",
+    "emptySharedTitle": "No child is shared with you",
+    "emptySharedBody": "When your spouse shares a child's profile with you, it shows up here."
+   },
+   "form": {
+    "title": "Add a child",
+    "titleEdit": "Edit {name}",
+    "subtitle": "Basic details",
+    "photo": "Photo",
+    "photoAdd": "Add a photo",
+    "photoChange": "Change photo",
+    "photoRemove": "Remove photo",
+    "photoHint": "Optional · only on your phone",
+    "photoPrivacy": "The photo stays on this phone only and is never sent to Ritme's servers. It is removed when you sign out.",
+    "photoErrors": {
+     "too_large": "The photo is too large (10 MB max).",
+     "unsupported_type": "This file type isn't supported. Pick a JPG, PNG or HEIC photo.",
+     "unavailable": "This browser doesn't allow saving photos on the device.",
+     "store_full": "Photo storage is full.",
+     "quota": "Not enough storage on this device.",
+     "failed": "The photo wasn't saved."
+    },
+    "name": "Name",
+    "namePlaceholder": "Name or nickname",
+    "birthDate": "Date of birth",
+    "pickDate": "Pick a date",
+    "sex": "Sex",
+    "girl": "Girl",
+    "boy": "Boy",
+    "sexNoSay": "Prefer not to say",
+    "birthWeight": "Birth weight",
+    "birthLength": "Birth length",
+    "birthHead": "Head at birth",
+    "kg": "kg",
+    "cm": "cm",
+    "delivery": "Delivery type",
+    "deliveryHint": "Tunes the mother's recovery tips · optional",
+    "vaginal": "Vaginal",
+    "cesarean": "C-section",
+    "deliveryNoSay": "Prefer not to say",
+    "scheduleTitle": "National vaccine schedule",
+    "scheduleSub": "Built from the date of birth",
+    "remindersTitle": "Vaccine and growth reminders",
+    "remindersSub": "3 days before each visit",
+    "included": "On",
+    "submit": "Add child",
+    "save": "Save changes",
+    "saveError": "Couldn't save. Please try again.",
+    "errors": {
+     "nameRequired": "Enter a name.",
+     "nameTooLong": "The name can be at most {max} characters.",
+     "dateRequired": "Pick the date of birth.",
+     "future": "The date of birth can't be in the future.",
+     "tooOld": "The date of birth must be within the last {years} years.",
+     "range": "Enter a number between {min} and {max}."
+    },
+    "limitReached": "You've reached the limit of {max} children.",
+    "readOnly": "This profile is shared with you and is view only.",
+    "delete": "Delete child",
+    "deleteTitle": "Delete {name}?",
+    "deleteBody": "All of {name}'s measurements, vaccine doses and milestones are deleted too. This can't be undone.",
+    "deleteConfirm": "Delete",
+    "cancel": "Cancel",
+    "deleteError": "Couldn't delete. Please try again."
+   },
+   "home": {
+    "eyebrow": "Child profile",
+    "edit": "Edit",
+    "age": "Age",
+    "born": "Born {date}",
+    "weight": "Weight",
+    "length": "Length",
+    "head": "Head",
+    "kg": "kg",
+    "cm": "cm",
+    "percentile": "P{p}",
+    "outOfBand": "Outside range",
+    "noValue": "—",
+    "measuredOn": "Last measured · {date}",
+    "fromBirth": "Birth measurements",
+    "addMeasurement": "Add a measurement",
+    "viewGrowth": "Growth chart",
+    "vaccineTitle": "{label} vaccines",
+    "details": "Details",
+    "vaccinesDone": "Every scheduled vaccine is recorded",
+    "vaccinesDoneSub": "{given} of {total} doses",
+    "tiles": {
+     "vaccines": "Vaccines",
+     "vaccinesNext": "Next: {label} · {due}",
+     "vaccinesComplete": "Schedule complete",
+     "growth": "Growth",
+     "milestones": "Milestones",
+     "milestonesSub": "{checked} of {total} at {label}",
+     "milestonesNone": "Things to watch for by age",
+     "learn": "Learn & tips",
+     "learnSub": "Sleep, feeding, play"
+    },
+    "thisWeek": "{name} this week",
+    "weeks": "{n} weeks",
+    "milestonesLink": "Milestones at {label}",
+    "today": "Today",
+    "feeding": "Feeding",
+    "sleep": "Sleep",
+    "diapers": "Diapers",
+    "soon": "Soon",
+    "sharedBy": "From {name}",
+    "readOnly": "View only",
+    "notFoundTitle": "Profile not found",
+    "notFoundBody": "It may have been deleted or is no longer shared with you.",
+    "toList": "My children"
+   },
+   "section": {
+    "growth": "{name}'s growth",
+    "vaccines": "{name}'s vaccines",
+    "milestones": "Milestones",
+    "learn": "Learn & tips",
+    "soonTitle": "Coming soon",
+    "soonBody": "This page is being built and will be added soon.",
+    "toChild": "Back to the profile"
+   },
+   "companion": {
+    "title": "Child",
+    "nextVaccine": "Next vaccine: {date}",
+    "open": "{name}'s profile"
+   },
+   "visits": {
+    "vaccine": "{name}'s {label} vaccines"
+   }
+  },
   "common": {
    "appName": "Ritme",
    "actions": {
@@ -5718,7 +5878,7 @@
      "sixWeek": "6-week postpartum check",
      "sixWeekSub": "Around {date} · book it",
      "vaccines": "Baby's vaccines",
-     "vaccinesSub": "Coming soon · after adding your child's profile",
+     "vaccinesSub": "Built once you add your child's profile",
      "soon": "Soon",
      "empty": "No visits booked.",
      "add": "Add a visit"

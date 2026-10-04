@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useRef } from 'react';
 
 import { type Appointment, useAppointments } from '@/entities/care-reminder';
+import { ChildrenStrip, useChildren, useDueText } from '@/entities/child';
 import { useLogDay } from '@/entities/health-log';
 import {
   type PostpartumAlert,
@@ -60,11 +61,13 @@ const CHIP_LOOK: Record<MoodChip, { icon: IconName; tone: Tone }> = {
 };
 
 function Shell({ children }: { children: React.ReactNode }) {
+  // B-N5-05: «کودک» opens the only child directly.
+  const kids = useChildren();
   return (
     <div className="view pp-screen">
       <SkyLayer />
       <div className="scroll">{children}</div>
-      <BottomNav />
+      <BottomNav childIds={kids.data?.children.map((c) => c.id)} />
     </div>
   );
 }
@@ -204,6 +207,7 @@ function Hero({ data, status, t }: { data: PostpartumOverview; status: Postpartu
   return (
     <section className="pp-hero" aria-labelledby="pp-duration">
       <TopBar t={t} />
+      <HeroChildren />
       <div className="pp-hero-chips">
         <span className="pp-hchip">
           <Icon name="calendar" size={14} />
@@ -255,6 +259,13 @@ function Hero({ data, status, t }: { data: PostpartumOverview; status: Postpartu
       </Link>
     </section>
   );
+}
+
+/** B-N5-05: the hero «فرزندان» row (avatars → child home, «+» → add). */
+function HeroChildren() {
+  const kids = useChildren();
+  if (!kids.data) return null;
+  return <ChildrenStrip items={kids.data.children} canAdd={kids.data.canAdd} className="pp-children" />;
 }
 
 // ── Alerts (server copy) ───────────────────────────────────────
@@ -472,17 +483,7 @@ function VisitsCard({ status, birthDate, t }: { status: PostpartumStatus; birthD
             </Link>
           </li>
         )}
-        {/* Child vaccines arrive with the children profiles (B-N5-02 / B-N5-05). */}
-        <li>
-          <div className="pp-visit is-soon" aria-disabled="true">
-            <IconCircle icon="syringe" tone="bloom" />
-            <span className="pp-visit-text">
-              <span className="pp-visit-title">{t('home.visits.vaccines')}</span>
-              <span className="pp-visit-sub">{t('home.visits.vaccinesSub')}</span>
-            </span>
-            <span className="pp-soon">{t('home.visits.soon')}</span>
-          </div>
-        </li>
+        <ChildVaccineRows t={t} />
       </ul>
       {!appointments.isPending && list.length === 0 && !showSixWeek && (
         <Link href="/reminders/appointment/new" className="pp-visit-add">
@@ -491,6 +492,49 @@ function VisitsCard({ status, birthDate, t }: { status: PostpartumStatus; birthD
         </Link>
       )}
     </Card>
+  );
+}
+
+/** B-N5-05: each child's next vaccine visit (→ its vaccines page); no child yet → add one. */
+function ChildVaccineRows({ t }: { t: T }) {
+  const tc = useTranslations('children');
+  const due = useDueText();
+  const kids = useChildren();
+  if (!kids.data) return null;
+  const rows = kids.data.children.filter((c) => c.vaccines.next).slice(0, 3);
+  if (kids.data.children.length === 0) {
+    return (
+      <li>
+        <Link href="/children/new" className="pp-visit">
+          <IconCircle icon="syringe" tone="bloom" />
+          <span className="pp-visit-text">
+            <span className="pp-visit-title">{t('home.visits.vaccines')}</span>
+            <span className="pp-visit-sub">{t('home.visits.vaccinesSub')}</span>
+          </span>
+          <Chevron />
+        </Link>
+      </li>
+    );
+  }
+  return (
+    <>
+      {rows.map((c) => {
+        const next = c.vaccines.next;
+        if (!next) return null;
+        return (
+          <li key={c.id}>
+            <Link href={`/children/${c.id}/vaccines`} className="pp-visit">
+              <DateBadge date={fromApiDate(next.dueDate)} tone="bloom" />
+              <span className="pp-visit-text">
+                <span className="pp-visit-title">{tc('visits.vaccine', { label: next.label, name: c.name })}</span>
+                <span className="pp-visit-sub">{due(next.daysLeft, next.statusLabel)}</span>
+              </span>
+              <Chevron />
+            </Link>
+          </li>
+        );
+      })}
+    </>
   );
 }
 

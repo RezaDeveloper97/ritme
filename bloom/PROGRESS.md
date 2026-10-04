@@ -852,3 +852,14 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
   5-1-1 = alert engine rule `contractions_511` (admin-editable, 9 rules now).
 - 21 Go-recorded goldens (`babylog`, `pregnancy-tools`) + `children/child_home` re-recorded; D-60 proposed.
   QUESTIONS #104. Frontend B-N5-07/08: flip the «به‌زودی» tiles (feeding/diapers/baby sleep/contractions).
+
+## B-N5-05 — Children list, add child and child home
+
+- `entities/child` (schemas tested on contract goldens, hooks, mutations, local-only photos in IndexedDB — never
+  uploaded, wiped on logout/delete; `ChildAvatar`, `ChildStatusChips`, `ChildrenStrip`), screens `children`
+  (`/children`, shared child «فقط مشاهده»), `child-add` (`/children/new`, `/children/[id]/edit`, prefilled from the
+  postpartum profile, 422 mapping, delete confirm), `child-home` (`/children/[id]`: age hero, measurements with
+  percentile chips, next vaccine, tiles, «این هفته {name}», today row «به‌زودی»; stubs for growth/vaccines/milestones/
+  learn until B-N5-06). Nav «کودک» tab live (`NAV_READY.children`, `childIds` prop); postpartum hero children row +
+  real vaccine rows; companion home shared-children card. Namespace `children`.
+- Screenshots `docs/qa/bloom/B-N5-05/`. Test users 09900005501/02/03 on ritme_dev.

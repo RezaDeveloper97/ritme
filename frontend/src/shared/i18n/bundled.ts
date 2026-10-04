@@ -10,6 +10,7 @@ import enCalendar from '../../../messages/en/calendar.json';
 import enCare from '../../../messages/en/care.json';
 import enChallenge from '../../../messages/en/challenge.json';
 import enCheckups from '../../../messages/en/checkups.json';
+import enChildren from '../../../messages/en/children.json'; // B-N5-05
 import enCommon from '../../../messages/en/common.json';
 import enContraception from '../../../messages/en/contraception.json';
 import enCycle from '../../../messages/en/cycle.json';
@@ -55,6 +56,7 @@ import faCalendar from '../../../messages/fa/calendar.json';
 import faCare from '../../../messages/fa/care.json';
 import faChallenge from '../../../messages/fa/challenge.json';
 import faCheckups from '../../../messages/fa/checkups.json';
+import faChildren from '../../../messages/fa/children.json'; // B-N5-05
 import faCommon from '../../../messages/fa/common.json';
 import faContraception from '../../../messages/fa/contraception.json';
 import faCycle from '../../../messages/fa/cycle.json';
@@ -155,6 +157,7 @@ const bundled = {
     reminders: faReminders,
     care: faCare,
     checkups: faCheckups,
+    children: faChildren,
     fertility: faFertility,
     notifications: faNotifications,
     account: faAccount,
@@ -202,6 +205,7 @@ const bundled = {
     reminders: enReminders,
     care: enCare,
     checkups: enCheckups,
+    children: enChildren,
     fertility: enFertility,
     notifications: enNotifications,
     account: enAccount,

@@ -313,4 +313,10 @@ export default defineConfig([
     files: ['./src/widgets/linked-teen-card/**'],
     rules: { 'fsd/insignificant-slice': 'off' },
   },
+  {
+    // B-N5-05: `entities/child` (the B-N5-02 API) is consumed by screens/children, child-add, child-home,
+    // postpartum and companion-home — references FROM `screens` are invisible to steiger.
+    files: ['./src/entities/child/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
 ]);

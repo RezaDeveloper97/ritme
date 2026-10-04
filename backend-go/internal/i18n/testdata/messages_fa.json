@@ -1496,6 +1496,166 @@
     }
    }
   },
+  "children": {
+   "common": {
+    "loading": "در حال بارگذاری",
+    "loadError": "اطلاعات بارگذاری نشد.",
+    "retry": "تلاش دوباره",
+    "back": "بازگشت",
+    "soon": "به‌زودی"
+   },
+   "due": {
+    "overdue": "عقب افتاده",
+    "today": "امروز",
+    "days": "{n} روز دیگر",
+    "months": "{n} ماه دیگر"
+   },
+   "chips": {
+    "vaccine": "واکسن {label} · {due}",
+    "vaccinesComplete": "واکسن‌ها: کامل",
+    "growth": "رشد: {label}"
+   },
+   "strip": {
+    "title": "فرزندان",
+    "add": "افزودن فرزند"
+   },
+   "list": {
+    "title": "فرزندان من",
+    "count": "{count} فرزند",
+    "add": "افزودن فرزند",
+    "open": "پروفایل {name}",
+    "sharedBy": "از طرف {name} · فقط مشاهده",
+    "limit": "حداکثر {max} فرزند می‌توانی ثبت کنی.",
+    "emptyTitle": "هنوز فرزندی ثبت نکرده‌ای",
+    "emptyBody": "با ثبت فرزند، برنامه واکسن، پایش رشد و مراحل رشد او را یک‌جا داری.",
+    "emptySharedTitle": "فرزندی با تو به اشتراک گذاشته نشده",
+    "emptySharedBody": "وقتی همسرت پروفایل فرزندی را با تو به اشتراک بگذارد، اینجا دیده می‌شود."
+   },
+   "form": {
+    "title": "افزودن فرزند",
+    "titleEdit": "ویرایش {name}",
+    "subtitle": "اطلاعات پایه",
+    "photo": "عکس",
+    "photoAdd": "افزودن عکس",
+    "photoChange": "تغییر عکس",
+    "photoRemove": "حذف عکس",
+    "photoHint": "اختیاری · فقط روی گوشی تو",
+    "photoPrivacy": "عکس فقط روی همین گوشی نگه داشته می‌شود و هیچ‌وقت به سرور ریتمی فرستاده نمی‌شود. با خروج از حساب پاک می‌شود.",
+    "photoErrors": {
+     "too_large": "حجم عکس زیاد است (حداکثر ۱۰ مگابایت).",
+     "unsupported_type": "این نوع فایل پشتیبانی نمی‌شود. یک عکس JPG، PNG یا HEIC انتخاب کن.",
+     "unavailable": "این مرورگر اجازه ذخیره عکس روی گوشی را نمی‌دهد.",
+     "store_full": "فضای ذخیره عکس‌ها پر است.",
+     "quota": "فضای ذخیره‌سازی گوشی کافی نیست.",
+     "failed": "عکس ذخیره نشد."
+    },
+    "name": "نام",
+    "namePlaceholder": "نام یا اسم خودمانی",
+    "birthDate": "تاریخ تولد",
+    "pickDate": "انتخاب تاریخ",
+    "sex": "جنسیت",
+    "girl": "دختر",
+    "boy": "پسر",
+    "sexNoSay": "ترجیح می‌دهم نگویم",
+    "birthWeight": "وزن تولد",
+    "birthLength": "قد تولد",
+    "birthHead": "دور سر تولد",
+    "kg": "کیلوگرم",
+    "cm": "سانتی‌متر",
+    "delivery": "نوع زایمان",
+    "deliveryHint": "برای تنظیم نکات بهبودی مادر · اختیاری",
+    "vaginal": "طبیعی",
+    "cesarean": "سزارین",
+    "deliveryNoSay": "نمی‌گویم",
+    "scheduleTitle": "برنامه واکسن کشوری",
+    "scheduleSub": "بر اساس تاریخ تولد ساخته می‌شود",
+    "remindersTitle": "یادآور واکسن و پایش رشد",
+    "remindersSub": "۳ روز قبل از هر مراجعه",
+    "included": "فعال",
+    "submit": "ثبت فرزند",
+    "save": "ذخیره تغییرات",
+    "saveError": "ذخیره نشد. دوباره تلاش کن.",
+    "errors": {
+     "nameRequired": "نام را بنویس.",
+     "nameTooLong": "نام حداکثر {max} حرف است.",
+     "dateRequired": "تاریخ تولد را انتخاب کن.",
+     "future": "تاریخ تولد نمی‌تواند در آینده باشد.",
+     "tooOld": "تاریخ تولد باید در {years} سال گذشته باشد.",
+     "range": "عددی بین {min} و {max} بنویس."
+    },
+    "limitReached": "به حداکثر {max} فرزند رسیده‌ای.",
+    "readOnly": "این پروفایل با تو به اشتراک گذاشته شده و فقط می‌توانی آن را ببینی.",
+    "delete": "حذف فرزند",
+    "deleteTitle": "حذف {name}؟",
+    "deleteBody": "همه اندازه‌ها، نوبت‌های واکسن و مراحل رشد ثبت‌شده‌ی {name} هم پاک می‌شود. این کار برگشت‌پذیر نیست.",
+    "deleteConfirm": "حذف",
+    "cancel": "انصراف",
+    "deleteError": "حذف نشد. دوباره تلاش کن."
+   },
+   "home": {
+    "eyebrow": "پروفایل فرزند",
+    "edit": "ویرایش",
+    "age": "سن",
+    "born": "تولد {date}",
+    "weight": "وزن",
+    "length": "قد",
+    "head": "دور سر",
+    "kg": "کیلوگرم",
+    "cm": "سانتی‌متر",
+    "percentile": "صدک {p}",
+    "outOfBand": "خارج از بازه",
+    "noValue": "—",
+    "measuredOn": "آخرین ثبت · {date}",
+    "fromBirth": "اندازه‌های تولد",
+    "addMeasurement": "ثبت اندازه جدید",
+    "viewGrowth": "نمودار رشد",
+    "vaccineTitle": "واکسن {label}",
+    "details": "جزئیات",
+    "vaccinesDone": "همه واکسن‌های برنامه ثبت شده",
+    "vaccinesDoneSub": "{given} از {total} نوبت",
+    "tiles": {
+     "vaccines": "واکسن‌ها",
+     "vaccinesNext": "بعدی: {label} · {due}",
+     "vaccinesComplete": "برنامه کامل شده",
+     "growth": "رشد",
+     "milestones": "مراحل رشد",
+     "milestonesSub": "{checked} از {total} مورد {label}",
+     "milestonesNone": "فهرست مشاهده بر اساس سن",
+     "learn": "آموزش و نکات",
+     "learnSub": "خواب، تغذیه، بازی"
+    },
+    "thisWeek": "این هفته {name}",
+    "weeks": "{n} هفته",
+    "milestonesLink": "مراحل رشد {label}",
+    "today": "امروز",
+    "feeding": "شیردهی",
+    "sleep": "خواب",
+    "diapers": "پوشک",
+    "soon": "به‌زودی",
+    "sharedBy": "از طرف {name}",
+    "readOnly": "فقط مشاهده",
+    "notFoundTitle": "این پروفایل پیدا نشد",
+    "notFoundBody": "ممکن است حذف شده باشد یا دیگر با تو به اشتراک گذاشته نشده باشد.",
+    "toList": "فرزندان من"
+   },
+   "section": {
+    "growth": "رشد {name}",
+    "vaccines": "واکسن‌های {name}",
+    "milestones": "مراحل رشد",
+    "learn": "آموزش و نکات",
+    "soonTitle": "این بخش به‌زودی",
+    "soonBody": "این صفحه در حال ساخت است و به‌زودی اضافه می‌شود.",
+    "toChild": "بازگشت به پروفایل"
+   },
+   "companion": {
+    "title": "فرزند",
+    "nextVaccine": "واکسن بعدی: {date}",
+    "open": "پروفایل {name}"
+   },
+   "visits": {
+    "vaccine": "واکسن {label} {name}"
+   }
+  },
   "common": {
    "appName": "ریتمی",
    "actions": {
@@ -5718,7 +5878,7 @@
      "sixWeek": "ویزیت ۶ هفته بعد از زایمان",
      "sixWeekSub": "حدود {date} · نوبتش را ثبت کن",
      "vaccines": "واکسن‌های نوزاد",
-     "vaccinesSub": "به‌زودی · بعد از افزودن پروفایل فرزند",
+     "vaccinesSub": "برنامه واکسن بعد از افزودن پروفایل فرزند ساخته می‌شود",
      "soon": "به‌زودی",
      "empty": "مراجعه‌ای ثبت نشده است.",
      "add": "افزودن مراجعه"

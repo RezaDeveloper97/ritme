@@ -29,6 +29,11 @@ export interface BottomNavProps {
   mode?: NavMode;
   /** With a forced `ttc` mode: the IVF sub-mode nav (CB-IVF-02). */
   ivf?: boolean;
+  /**
+   * B-N5-05: the user's child ids, from screens that already read `/children`
+   * — postpartum «کودک» then opens the only child directly; otherwise the list.
+   */
+  childIds?: readonly number[];
 }
 
 /**
@@ -38,7 +43,7 @@ export interface BottomNavProps {
  * mounting it and it simply stays out. The FAB opens the mode's log sheet
  * (`?sheet=log`) over the current screen instead of navigating.
  */
-export function BottomNav({ badges, mode: forcedMode, ivf: forcedIvf }: BottomNavProps) {
+export function BottomNav({ badges, mode: forcedMode, ivf: forcedIvf, childIds }: BottomNavProps) {
   const t = useTranslations('nav');
   const locale = useLocale() as Locale;
   const pathname = usePathname();
@@ -57,7 +62,7 @@ export function BottomNav({ badges, mode: forcedMode, ivf: forcedIvf }: BottomNa
   const hinted: NavMode | null = pathname.startsWith('/pregnancy') ? 'pregnancy' : ivfPath ? 'ttc' : null;
   const mode: NavMode = forcedMode ?? navMode.mode ?? hinted ?? 'cycle';
   const ivf = forcedMode ? Boolean(forcedIvf) : navMode.mode ? navMode.ivf : ivfPath;
-  const config = navConfig(mode, { ivf });
+  const config = navConfig(mode, { ivf, childIds });
   const active = activeTabKey(config, pathname);
   const placeholderMode = pending && !hinted;
 
