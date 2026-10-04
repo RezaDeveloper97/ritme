@@ -5,7 +5,7 @@
 --}}
 @props(['href' => null, 'icon', 'color' => 'primary', 'title', 'text' => null, 'where' => null, 'as' => 'h3'])
 @php($tag = $href ? 'a' : 'div')
-<{{ $tag }} @if ($href) href="{{ $href }}" @endif {{ $attributes->class(['flex items-start gap-3.5 rounded-4xl border border-line bg-surface p-5.5 text-ink', 'transition-shadow hover:text-ink hover:shadow-card' => $href]) }}>
+<{{ $tag }} @if ($href) href="{{ $href }}" @endif {{ $attributes->class(['flex items-start gap-3.5 rounded-4xl border border-line bg-surface p-5.5 text-ink max-lg:flex-wrap', 'transition-shadow hover:text-ink hover:shadow-card' => $href]) }}>
     <x-ui.icon-tile :icon="$icon" :color="$color" size="sm"/>
     <span class="flex flex-col gap-1">
         <{{ $as }} class="m-0 text-xl font-bold">{{ $title }}</{{ $as }}>

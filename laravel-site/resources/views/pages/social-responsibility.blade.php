@@ -69,13 +69,13 @@
 
     <x-ui.section as="div" class="flex flex-col gap-10">
         <div class="flex gap-6 max-lg:flex-wrap">
-            <section aria-labelledby="support-title" class="flex flex-1 flex-col gap-3.5 rounded-6xl bg-lavender p-9 max-lg:basis-75 max-sm:basis-full">
+            <section aria-labelledby="support-title" class="flex flex-1 flex-col gap-3.5 rounded-6xl bg-lavender p-9 max-lg:basis-93 max-sm:basis-full">
                 <x-icon name="heart" class="size-9 text-stage-cycle"/>
                 <h2 id="support-title" class="m-0 font-display text-[30px] leading-heading font-normal text-ink">{{ __('social.support.title') }}</h2>
                 <p class="m-0 text-lg leading-loose font-medium text-muted">{{ __('social.support.text') }}</p>
                 <a href="{{ route('contact') }}" class="{{ $outlineButton }} bg-surface"><x-icon name="arrow-left" class="size-4.5"/>{{ __('social.support.cta') }}</a>
             </section>
-            <section aria-labelledby="partner-title" class="flex flex-1 flex-col gap-3.5 rounded-6xl border border-line bg-surface p-9 max-lg:basis-75 max-sm:basis-full">
+            <section aria-labelledby="partner-title" class="flex flex-1 flex-col gap-3.5 rounded-6xl border border-line bg-surface p-9 max-lg:basis-93.5 max-sm:basis-full">
                 <x-icon name="users" class="size-9 text-stage-postpartum"/>
                 <h2 id="partner-title" class="m-0 font-display text-[30px] leading-heading font-normal text-ink">{{ __('social.partner.title') }}</h2>
                 <p class="m-0 text-lg leading-loose font-medium text-muted">{{ __('social.partner.text') }}</p>

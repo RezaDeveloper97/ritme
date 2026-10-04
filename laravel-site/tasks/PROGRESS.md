@@ -640,3 +640,20 @@ One section per finished task (appended by `/site-task`).
   `composer verify` green: 1054 tests.
 - Open: L6-02/03 noindex demo products, label demo reviews, render `color_hex` swatches without inline style (SVG fill);
   L6-04/05 re-check stock with AdjustStock, fill `sales_count` + `is_verified_purchase`; no material filter; admin L6-06.
+
+## L3-11 — Marketing pages fidelity + SEO sweep
+- Two full sweeps (`shot.mjs --all` at 390/768/1440) with app/social links NULL and temporarily filled (restored to
+  NULL, verified). Report + table: `docs/qa/L3/README.md`.
+- Fixed: content-box vs border-box `flex-basis` at ≤1024 (cards with padding now `basis-93`/`93.5`/… so they stack at
+  768 like the design; promo-split variants), `x-cards.feature` `max-lg:flex-wrap`, `/search` title length.
+  768 (filled) before→after: cycle 3.99→1.24, ttc 3.93→1.31, pregnancy 9.87→1.79, postpartum 6.78→2.45, menopause
+  6.44→2.03, teen 3.91→1.40, services 24.89→11.93, plus 46.31→13.59, tools 35.83→7.94, about 9.49→2.10, social
+  15.11→1.57, privacy 14.30→7.47; home 768/1440 1.57/1.03; faq < 3% at all widths.
+- Documented as intentional: home 390 `#how` margin fix, real readings posts, design's tick-icon wrap bug, removed
+  plus placeholder rows, longer real privacy copy, donation CTA, demo/no-fake-rating directory + blog differences.
+  Shop pages are still L6 placeholders.
+- `seo:audit`: 0 errors on every marketing route (+ article, place, landing, blog category); og:image warning only.
+  Separate crawl: 23 pages / 65 internal URLs + fragment ids all resolve, zero `href="#"`, one h1 each, store/social
+  links only from settings, zero external requests.
+- Orchestrator: `/offline` title/description lengthened (audit green).
+- Before go-live: fill `app_links` + `social` settings and upload a default OG image.

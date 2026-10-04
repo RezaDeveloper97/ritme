@@ -15,7 +15,7 @@
         ['icon' => 'heart', 'color' => 'cycle'],
         ['icon' => 'lock', 'color' => 'postpartum'],
     ];
-    $cardLink = 'flex flex-1 flex-col gap-2.5 rounded-5xl border border-line bg-surface p-7 text-ink max-lg:basis-75 max-sm:basis-full';
+    $cardLink = 'flex flex-1 flex-col gap-2.5 rounded-5xl border border-line bg-surface p-7 text-ink max-lg:basis-89.5 max-sm:basis-full';
 @endphp
 
 @section('hero')

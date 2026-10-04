@@ -25,7 +25,7 @@
     <x-ui.section aria-label="{{ __('privacy.principles.label') }}" class="flex flex-col gap-10">
         <div class="flex gap-5 max-lg:flex-wrap">
             @foreach (['do' => ['check', 'bg-success-soft', 'text-stage-teen'], 'dont' => ['x', 'bg-danger-soft', 'text-stage-cycle']] as $kind => [$icon, $tileBg, $iconColor])
-                <div class="flex flex-1 flex-col gap-3 rounded-5xl border border-line bg-surface p-7 max-lg:basis-75 max-sm:basis-full">
+                <div class="flex flex-1 flex-col gap-3 rounded-5xl border border-line bg-surface p-7 max-lg:basis-89.5 max-sm:basis-full">
                     <h2 class="m-0 font-sans text-3xl leading-normal font-bold">{{ __("privacy.principles.{$kind}.title") }}</h2>
                     <ul class="m-0 flex list-none flex-col gap-3 p-0">
                         @foreach (__("privacy.principles.{$kind}.items") as $item)

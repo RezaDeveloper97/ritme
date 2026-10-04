@@ -18,9 +18,19 @@
                 default => 'bg-lavender',
             };
             $wide = ! empty($item['illustration']);
+            $dashed = ($item['tone'] ?? '') === 'dashed';
+            // The design is content-box: its ≤1024 `flex-basis:300px` excludes padding (+ the dashed border), so the
+            // border-box basis is 300 + 2×padding (+ 2×1.5px border). Keeps the design's stacking at tablet widths.
+            $basis = match (true) {
+                $wide && $dashed => 'max-lg:basis-[383px]',
+                $wide => 'max-lg:basis-95',
+                $dashed => 'max-lg:basis-[375px]',
+                default => 'max-lg:basis-93',
+            };
         @endphp
         <a href="{{ $item['href'] }}" @class([
-            'flex flex-1 overflow-hidden text-ink transition-shadow hover:text-ink hover:shadow-card max-lg:basis-75 max-sm:basis-full',
+            'flex flex-1 overflow-hidden text-ink transition-shadow hover:text-ink hover:shadow-card max-sm:basis-full',
+            $basis,
             $toneClasses,
             'items-center gap-6 rounded-[36px] p-10 max-lg:flex-wrap max-sm:p-6' => $wide,
             'flex-col gap-3.5 rounded-6xl p-9 max-sm:p-6' => ! $wide,

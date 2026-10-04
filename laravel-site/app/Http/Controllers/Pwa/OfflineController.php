@@ -21,8 +21,8 @@ final class OfflineController
 
     public function __invoke(): View
     {
-        $this->seo->title('اتصال برقرار نیست')
-            ->description('ریتمی بدون اینترنت: صفحه‌هایی که قبلاً دیده‌ای در دسترس می‌مانند.')
+        $this->seo->title('اتصال به اینترنت برقرار نیست — ریتمی آفلاین')
+            ->description('ریتمی بدون اینترنت هم کنارت است: صفحه‌هایی که قبلاً دیده‌ای در دسترس می‌مانند و با برگشت اتصال، بقیه هم باز می‌شوند.')
             ->noindex();
 
         return $this->views->make('pages.offline');

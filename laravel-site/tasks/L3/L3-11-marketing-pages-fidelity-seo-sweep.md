@@ -3,7 +3,7 @@ id: L3-11
 title: Marketing pages fidelity + SEO sweep
 milestone: L3
 type: quality
-status: todo
+status: done
 depends_on: [L3-02,L3-03,L3-04,L3-05,L3-06,L3-07,L3-08,L3-09,L3-10]
 parallel_group: L3-F
 touches: [docs/qa/L3,resources/views,resources/css,lang/fa]

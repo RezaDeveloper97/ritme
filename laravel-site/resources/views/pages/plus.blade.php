@@ -15,7 +15,7 @@
         <ul class="m-0 flex list-none items-stretch gap-5 p-0 max-lg:flex-wrap">
             @foreach ($plans as $plan)
                 <li @class([
-                    'flex flex-1 flex-col gap-4 rounded-6xl border p-8 max-lg:basis-75 max-sm:basis-full',
+                    'flex flex-1 flex-col gap-4 rounded-6xl border p-8 max-lg:basis-91.5 max-sm:basis-full',
                     'border-night-line bg-night text-on-night' => $plan['featured'],
                     'border-line bg-surface text-ink' => ! $plan['featured'],
                 ])>

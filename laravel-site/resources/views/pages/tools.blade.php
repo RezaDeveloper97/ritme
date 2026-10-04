@@ -62,7 +62,7 @@
                     data-kind="{{ $form->kind->value }}"
                     data-text="{{ json_encode($templates, JSON_UNESCAPED_UNICODE) }}"
                     data-errors="{{ json_encode($errorsText, JSON_UNESCAPED_UNICODE) }}"
-                    class="flex flex-1 scroll-mt-6 flex-col gap-4.5 rounded-6xl border border-line bg-surface p-8 max-lg:basis-75 max-sm:basis-full"
+                    class="flex flex-1 scroll-mt-6 flex-col gap-4.5 rounded-6xl border border-line bg-surface p-8 max-lg:basis-91.5 max-sm:basis-full"
                 >
                     <input type="hidden" name="calc" value="{{ $form->kind->value }}">
                     <div class="flex items-center gap-3.5">

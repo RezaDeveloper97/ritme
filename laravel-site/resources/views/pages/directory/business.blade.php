@@ -56,7 +56,7 @@
                     @endforeach
                 </ul>
             </div>
-            <div class="flex flex-1 flex-col gap-3.5 rounded-6xl border border-line bg-surface p-8 max-lg:basis-75 max-sm:basis-full">
+            <div class="flex flex-1 flex-col gap-3.5 rounded-6xl border border-line bg-surface p-8 max-lg:basis-91.5 max-sm:basis-full">
                 <h2 class="m-0 font-display text-[30px] leading-heading font-normal text-ink">{{ __($t.'terms.title') }}</h2>
                 <p class="m-0 text-lg leading-loose font-medium text-muted">{{ __($t.'terms.text') }}</p>
                 <p class="m-0 flex items-start gap-2.5 text-base leading-relaxed font-semibold text-muted"><x-icon name="info" class="size-4.5 shrink-0 text-primary"/>{{ __($t.'terms.note') }}</p>

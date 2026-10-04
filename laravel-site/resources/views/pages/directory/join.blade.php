@@ -63,7 +63,7 @@
                 <p class="m-0 mt-5 rounded-3xl bg-lavender p-4 text-sm-plus leading-relaxed font-semibold text-muted">{{ __($t.'note') }}</p>
             </div>
 
-            <div class="flex flex-1 flex-col gap-5.5 rounded-6xl border border-line bg-surface p-9 max-lg:basis-75 max-sm:basis-full max-sm:p-5.5">
+            <div class="flex flex-1 flex-col gap-5.5 rounded-6xl border border-line bg-surface p-9 max-lg:basis-93.5 max-sm:basis-full max-sm:p-5.5">
                 @if ($errors->any())
                     <div role="alert" class="rounded-[22px] border border-danger-line bg-danger-soft p-4.5 text-md leading-relaxed font-semibold text-ink">
                         <b class="block text-base">{{ __($t.'errors_title') }}</b>

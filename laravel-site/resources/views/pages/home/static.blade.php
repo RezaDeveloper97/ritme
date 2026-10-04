@@ -45,7 +45,7 @@
     <p class="m-0 text-xl leading-loose font-medium text-on-night-muted">{{ __('home.how.lead') }}</p>
     <ul class="m-0 flex list-none gap-3.5 p-0 max-lg:flex-wrap">
         @foreach ($howTiles as $tileKey => $tileIcon)
-            <li class="flex flex-1 flex-col gap-2.5 rounded-4xl border border-night-line bg-surface/6 p-5.5 max-lg:basis-75 max-sm:basis-full">
+            <li class="flex flex-1 flex-col gap-2.5 rounded-4xl border border-night-line bg-surface/6 p-5.5 max-lg:basis-86.5 max-sm:basis-full">
                 <x-ui.icon-tile :icon="$tileIcon" color="lilac" size="sm" shape="circle"/>
                 <h3 class="m-0 text-2xl font-bold text-on-night">{{ __("home.how.items.{$tileKey}.title") }}</h3>
                 <span class="text-base leading-relaxed font-medium text-on-night-muted">{{ __("home.how.items.{$tileKey}.text") }}</span>
