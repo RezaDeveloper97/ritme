@@ -230,3 +230,16 @@ One section per finished task (appended by `/site-task`).
 - Usage: `<x-picture :media="$page->hero" :mobile="$page->heroMobile" sizes="(max-width: 768px) 100vw, 50vw" priority />`.
   Pass `MediaData` DTOs prepared with `findMany` on list pages. Use `priority` only inside page sections (not cached fragments).
 - Open: global `media_url()` helper needs composer autoload files; Lighthouse check with the first page task.
+
+## L1-06 — Sitemaps index + robots.txt (cached)
+- `app/Domain/Seo/Sitemap/`: `SitemapProvider` contract (`key/count/entries(page, perPage)`), `SitemapEntryData`,
+  `SitemapRegistry` (tag `seo.sitemap.providers`, key validation), `PagesSitemapProvider` (indexable `StaticPage`s,
+  honours `seo_meta.sitemap_include` + noindex), `SitemapXml` (index/urlset + `image:image`), `Sitemaps` (cache-aside
+  `sitemap` ns, 5000/file, `pages.xml`, `posts-2.xml`…), `SitemapUrl` (absolute https on app.url via `CanonicalUrl`),
+  `RobotsRules` → `DefaultRobotsRules`, `RobotsTxt` (non-production: `Disallow: /`; production: rules + Sitemap line).
+- Routes `robots`, `sitemap.index`, `sitemap.file` (`/sitemaps/{file}.xml`) without session/cookies/CSRF; 301 from
+  `/sitemap_index.xml` + `/wp-sitemap.xml`. Static `public/robots.txt` removed. Blog providers implement the contract
+  (old `Blog\Data\SitemapEntryData` removed). 18 tests; warm requests run zero queries.
+- New contexts register: `$this->app->tag([XSitemapProvider::class], SitemapRegistry::TAG);` + bump `sitemap` in observers.
+- Open: placeholder pages are noindex but listed until real pages land; static lastmod omitted; robots rules
+  hard-coded until L7-04 rebinds `RobotsRules`.

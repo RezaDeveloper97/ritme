@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Blog\Sitemap;
 
-use App\Domain\Blog\Data\SitemapEntryData;
 use App\Domain\Blog\Queries\SitemapCategories;
 use App\Domain\Blog\Support\BlogUrls;
+use App\Domain\Seo\Sitemap\SitemapEntryData;
+use App\Domain\Seo\Sitemap\SitemapProvider;
 use App\Support\Cache\CacheAside;
 use App\Support\Cache\CacheKey;
 use Carbon\CarbonImmutable;
@@ -17,7 +18,7 @@ use Carbon\CarbonImmutable;
  *
  * @phpstan-import-type SitemapCategoryRow from SitemapCategories
  */
-final class CategorySitemapProvider
+final class CategorySitemapProvider implements SitemapProvider
 {
     public const KEY = 'blog-categories';
 

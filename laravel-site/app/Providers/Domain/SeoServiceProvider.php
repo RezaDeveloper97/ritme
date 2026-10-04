@@ -13,6 +13,10 @@ use App\Domain\Seo\Repositories\CachedSeoMetaRepository;
 use App\Domain\Seo\Repositories\EloquentSeoMetaRepository;
 use App\Domain\Seo\Schema\SchemaGraph;
 use App\Domain\Seo\SeoManager;
+use App\Domain\Seo\Sitemap\DefaultRobotsRules;
+use App\Domain\Seo\Sitemap\PagesSitemapProvider;
+use App\Domain\Seo\Sitemap\RobotsRules;
+use App\Domain\Seo\Sitemap\SitemapRegistry;
 use App\Providers\DomainServiceProvider;
 use Illuminate\Contracts\Foundation\Application;
 
@@ -29,6 +33,8 @@ final class SeoServiceProvider extends DomainServiceProvider
     /** @var array<class-string, class-string> */
     public array $singletons = [
         OgImageResolver::class => MediaOgImageResolver::class, // og variant of the media library (L2-01)
+        RobotsRules::class => DefaultRobotsRules::class,       // admin-edited rules in L7-04
+        SitemapRegistry::class => SitemapRegistry::class,
     ];
 
     public function register(): void
@@ -44,5 +50,8 @@ final class SeoServiceProvider extends DomainServiceProvider
             $app->forgetInstance(SeoManager::class);
             $app->forgetInstance(SchemaGraph::class);
         });
+
+        // Sitemap files (L1-06). Other contexts tag their own providers the same way in their service provider.
+        $this->app->tag([PagesSitemapProvider::class], SitemapRegistry::TAG);
     }
 }

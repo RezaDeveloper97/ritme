@@ -3,7 +3,15 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\PlaceholderPageController;
+use App\Http\Controllers\Seo\RobotsTxtController;
+use App\Http\Controllers\Seo\SitemapController;
+use App\Http\Controllers\Seo\SitemapIndexController;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use Illuminate\Cookie\Middleware\EncryptCookies;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 /*
  * Public pages — docs/AUDIT.md §7 (route names are the StaticPage registry values). No closures: route:cache must
@@ -55,6 +63,16 @@ Route::prefix('shop')->name('shop.')->group(function (): void {
     Route::get('/checkout', PlaceholderPageController::class)->name('checkout');                   // L6-05
     Route::get('/order/{code}', PlaceholderPageController::class)->where('code', '[A-Za-z0-9-]+')->name('order'); // L6-05
 });
+
+// Crawler files (L1-06): cached documents, no session or cookies so they stay cacheable by proxies and the server.
+Route::withoutMiddleware([EncryptCookies::class, AddQueuedCookiesToResponse::class, StartSession::class, ShareErrorsFromSession::class, ValidateCsrfToken::class])
+    ->group(function (): void {
+        Route::get('/robots.txt', RobotsTxtController::class)->name('robots');
+        Route::get('/sitemap.xml', SitemapIndexController::class)->name('sitemap.index');
+        Route::get('/sitemaps/{file}.xml', SitemapController::class)->where('file', '[a-z][a-z0-9-]*')->name('sitemap.file');
+        Route::permanentRedirect('/sitemap_index.xml', '/sitemap.xml'); // old WordPress (Yoast) index
+        Route::permanentRedirect('/wp-sitemap.xml', '/sitemap.xml');    // old WordPress core index
+    });
 
 // L1-02 shell preview for fidelity screenshots (tools/shot.mjs); never registered in production.
 if (! app()->isProduction()) {

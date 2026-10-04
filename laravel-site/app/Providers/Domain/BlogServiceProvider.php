@@ -24,8 +24,11 @@ use App\Domain\Blog\Repositories\EloquentAuthorRepository;
 use App\Domain\Blog\Repositories\EloquentCategoryRepository;
 use App\Domain\Blog\Repositories\EloquentPostRepository;
 use App\Domain\Blog\Repositories\EloquentTagRepository;
+use App\Domain\Blog\Sitemap\CategorySitemapProvider;
+use App\Domain\Blog\Sitemap\PostSitemapProvider;
 use App\Domain\Blog\Support\PostContent;
 use App\Domain\Media\Actions\FindMediaUsages;
+use App\Domain\Seo\Sitemap\SitemapRegistry;
 use App\Providers\DomainServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\Foundation\Application;
@@ -52,6 +55,9 @@ final class BlogServiceProvider extends DomainServiceProvider
         parent::register();
 
         $this->app->singleton(PostContent::class, static fn (Application $app): PostContent => PostContent::fromConfig($app['config']));
+
+        // `/sitemaps/posts.xml`, `/sitemaps/blog-categories.xml` (L1-06).
+        $this->app->tag([PostSitemapProvider::class, CategorySitemapProvider::class], SitemapRegistry::TAG);
     }
 
     public function boot(): void

@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Domain\Blog\Sitemap;
 
-use App\Domain\Blog\Data\SitemapEntryData;
 use App\Domain\Blog\Queries\SitemapPosts;
 use App\Domain\Blog\Support\BlogUrls;
 use App\Domain\Media\Contracts\MediaRepository;
+use App\Domain\Seo\Sitemap\SitemapEntryData;
+use App\Domain\Seo\Sitemap\SitemapProvider;
 use App\Support\Cache\CacheAside;
 use App\Support\Cache\CacheKey;
 use Carbon\CarbonImmutable;
@@ -15,11 +16,11 @@ use Carbon\CarbonImmutable;
 /**
  * Sitemap `posts`: every indexable published post with lastmod (content date) and its cover as image:image.
  * Rows are cached in the `sitemap` namespace (bumped by post and seo_meta changes); cover URLs come from the cached
- * MediaRepository at build time. L1-06 registers this provider behind its SitemapProvider interface.
+ * MediaRepository at build time.
  *
  * @phpstan-import-type SitemapPostRow from SitemapPosts
  */
-final class PostSitemapProvider
+final class PostSitemapProvider implements SitemapProvider
 {
     public const KEY = 'posts';
 

@@ -3,7 +3,7 @@ id: L1-06
 title: Sitemaps index + robots.txt (cached)
 milestone: L1
 type: backend
-status: todo
+status: done
 depends_on: [L1-05]
 parallel_group: L1-D
 touches: [app/Domain/Seo/Sitemap,app/Http/Controllers/Seo,routes/web.php,tests/Feature/Seo/SitemapTest.php]
