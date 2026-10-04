@@ -3,7 +3,7 @@ id: L2-02
 title: <x-picture> responsive image component with art direction
 milestone: L2
 type: frontend
-status: todo
+status: done
 depends_on: [L2-01,L1-02]
 parallel_group: L2-B
 touches: [app/View/Components/Picture.php,resources/views/components/picture.blade.php,tests/Feature/View/PictureTest.php]

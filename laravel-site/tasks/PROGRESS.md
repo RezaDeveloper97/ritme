@@ -219,3 +219,14 @@ One section per finished task (appended by `/site-task`).
 - Open: add `canonical_redirect` (`APP_CANONICAL_REDIRECT`) to config/app.php + .env.example (L1-07/L10); L5-02 must
   register `/directory/{city}[/{category}]` after the fixed directory routes; L7-03 DB redirects go before LegacyUrlMap;
   `welcome.blade.php` unused.
+
+## L2-02 — <x-picture> responsive image component with art direction
+- `App\View\Components\Picture` + `components/picture.blade.php`: accepts `MediaData` or id (cached `MediaRepository`),
+  `<source>` per format (avif when encoded, webp) over mobile_480/768 + desktop_1280/1920, fallback `<img>` with
+  width/height always, `decoding=async`, lazy by default; `mobile` art direction (`max-width: 767px`); alt required
+  unless `decorative` (throws outside production); `priority` → eager + fetchpriority high + `@pushOnce('head')` preload.
+  Opaque images get `bg-lavender`; LQIP/dominant colour deliberately not emitted (would need inline style).
+  `Picture::mediaUrl($media, 'og')` for absolute URLs. 12 tests.
+- Usage: `<x-picture :media="$page->hero" :mobile="$page->heroMobile" sizes="(max-width: 768px) 100vw, 50vw" priority />`.
+  Pass `MediaData` DTOs prepared with `findMany` on list pages. Use `priority` only inside page sections (not cached fragments).
+- Open: global `media_url()` helper needs composer autoload files; Lighthouse check with the first page task.
