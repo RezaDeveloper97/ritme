@@ -30,10 +30,18 @@ use App\Domain\Media\Actions\FindMediaUsages;
 use App\Domain\Search\Support\SearchRegistry;
 use App\Domain\Seo\Sitemap\SitemapRegistry;
 use App\Providers\DomainServiceProvider;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 
 final class DirectoryServiceProvider extends DomainServiceProvider
 {
+    /** Join form posts per IP (route middleware `throttle:directory-join`, L5-05); no captcha or external service. */
+    public const JOIN_PER_10_MINUTES = 3;
+
+    public const JOIN_PER_DAY = 10;
+
     protected array $repositories = [
         PlaceRepository::class => [EloquentPlaceRepository::class, CachedPlaceRepository::class],
         TaxonomyRepository::class => [EloquentTaxonomyRepository::class, CachedTaxonomyRepository::class],
@@ -71,5 +79,15 @@ final class DirectoryServiceProvider extends DomainServiceProvider
         // Media in use must never be offered for bulk deletion (admin media library, L2-03).
         FindMediaUsages::column('directory_places', 'cover_media_id', 'تصویر کاور مجموعه', 'name');
         FindMediaUsages::column('directory_place_media', 'media_id', 'گالری مجموعه', 'place_id');
+        FindMediaUsages::column('directory_join_request_media', 'media_id', 'عکس درخواست ثبت مجموعه', 'join_request_id');
+
+        RateLimiter::for('directory-join', static function (Request $request): array {
+            $ip = (string) $request->ip();
+
+            return [
+                Limit::perMinutes(10, self::JOIN_PER_10_MINUTES)->by('directory-join:m:'.$ip),
+                Limit::perDay(self::JOIN_PER_DAY)->by('directory-join:d:'.$ip),
+            ];
+        });
     }
 }

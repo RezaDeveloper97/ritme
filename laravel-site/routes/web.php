@@ -8,6 +8,7 @@ use App\Http\Controllers\Blog\NewsletterController;
 use App\Http\Controllers\Blog\PostViewController;
 use App\Http\Controllers\Blog\ShowPostController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\Directory\JoinController;
 use App\Http\Controllers\Directory\ListPlacesController;
 use App\Http\Controllers\Directory\ShowPlaceController;
 use App\Http\Controllers\FaqController;
@@ -100,9 +101,11 @@ Route::prefix('newsletter')->name('newsletter.')->group(function (): void {
 
 Route::prefix('directory')->name('directory.')->group(function (): void {
     Route::get('/', ListPlacesController::class)->name('index');                                   // L5-02
-    Route::get('/business', PlaceholderPageController::class)->name('business');                   // L5-05
-    Route::get('/join', PlaceholderPageController::class)->name('join');                           // L5-05
-    Route::get('/join/done', PlaceholderPageController::class)->name('join.done');                 // L5-05
+    Route::get('/business', [JoinController::class, 'business'])->name('business');                // L5-05
+    Route::get('/join', [JoinController::class, 'create'])->name('join');                          // L5-05
+    // Join form (L5-05): PRG, rate limited per IP (no captcha); honeypot + time trap answered like a real submit.
+    Route::post('/join', [JoinController::class, 'store'])->middleware('throttle:directory-join')->name('join.store');
+    Route::get('/join/done', [JoinController::class, 'done'])->name('join.done');                  // L5-05
     Route::get('/place/{slug}', [ShowPlaceController::class, 'show'])->name('place');               // L5-03
     // Review form (L5-03): moderated (stored as pending), rate limited per IP, honeypot answered like a real submit.
     Route::post('/place/{slug}/reviews', [ShowPlaceController::class, 'storeReview'])

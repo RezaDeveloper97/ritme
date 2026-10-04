@@ -593,3 +593,20 @@ One section per finished task (appended by `/site-task`).
   stacked, booking widget is L5-04, no fake rating bars, 9 vs 8 amenities, NULL app links.
 - Orchestrator: `RoutingTest` seeds `DirectorySeeder` for `directory.place`.
 - Open: og:image empty for photo-less places; Neshan/Balad URL formats unverified.
+
+## L5-05 — Business landing + multi-step join form + join-done page
+- Migrations `2026_10_04_002150` (directory_join_requests: code, status pending, place/category/city/district, one
+  contact person, address, landline, lat/lng, about, age_groups, amenity_ids, opening_hours, services, booking_mode,
+  terms_accepted_at; no IP/UA) + `002160` (join request media). `app/Domain/Directory/Join` (model, enums AgeGroup /
+  BookingMode / status, DTO, `JoinForm` limits from ini, `SubmitJoinRequest`: photos via `StoreMedia`, one transaction,
+  6-digit code, queued `JoinRequestReceived` notification to the partnership mailbox).
+- `JoinController` (business/create/store/done), `JoinRequest` form request (honeypot + `FormTimer`, Persian messages,
+  Persian digits, field→step map), routes business/join/join.store (`throttle:directory-join` 3/10 min, 10/day)/join.done.
+  Views business (FAQ group `directory-business`), join (one long form without JS; `stepper.js` turns it into steps,
+  per-step validation, client photo checks, district filter by city), join-done. join + done noindex + no-store.
+  Media usages registered for join photos. `JoinTest` (9).
+- Diff (NULL app links): business 25.81/14.36%, join (step 1) 67/68% — step 2 (as designed) 33.9/21.59%, done
+  14.89/21.92%: footer height, no fake rating, design's 390 CTA margin bug fixed, map picker → address + lat/lng text,
+  no sample photos. `seo:audit` 0 errors.
+- Open: `[زمان بررسی]` + partnership terms copy still placeholders (→ DirectorySettings); review/approve → Place is L5-06;
+  pending photos are public under /media; dev `upload_max_filesize=2M` (check on cPanel); queue worker needed (L10-01).

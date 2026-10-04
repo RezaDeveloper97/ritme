@@ -3,7 +3,7 @@ id: L5-05
 title: Business landing + multi-step join form + join-done page
 milestone: L5
 type: fullstack
-status: todo
+status: done
 depends_on: [L5-01,L3-09,L3-01]
 parallel_group: L5-C
 touches: [resources/views/pages/directory/business.blade.php,resources/views/pages/directory/join.blade.php,resources/views/pages/directory/join-done.blade.php,app/Domain/Directory/Join,database/migrations,app/Http/Controllers/Directory/JoinController.php,app/Http/Requests/JoinRequest.php,resources/js/modules/stepper.js,tests/Feature/Directory/JoinTest.php]
