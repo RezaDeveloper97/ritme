@@ -326,3 +326,9 @@ TODO (ask user):
 - Fidelity: Onb / Home / Parent light + dark ✔ (divider fix in the CB-TEEN-03 block). Copy: three strings no longer assume a mother («بزرگ‌تر مورد اعتماد», «مثلاً مامان یا خاله»).
 - ~ (→ CB-TEEN-04b): teen calendar shows fertile legend/ovulation; `/messages/daily` + `/cycle/today` return fertility copy to teens; teen profile rows (partner name, orders, BBT).
 - Verify: frontend full chain (1317) + teen/i18n Go tests, vet, lint — green. Catalog rewrite proposals (00029_teen.sql) in docs/qa/canvas/teen.md — content + clinical review.
+
+## CB-TEEN-04b — Teen mode fertility copy leaks and profile rows
+- Backend (extends bloom B-N2-11b NoFertilityCopy — teen + menopause): `legacy.NeutralPhase` (ovulation → follicular before / luteal from the ovulation day), `Calculation.WithoutFertilityCopy()` (drops fertility text flags + fertility tip) applied in `/cycle/today|date|month` (cache key `no_fertility_copy.v2`); daily card fertility → «نامشخص»; `/messages/daily` `Context.withoutFertility()` (no «در اوج انرژی و جذابیت…»); log taxonomy `mode_titles` (teen measurements = «وزن»). OpenAPI nullables; contract `teen/no_fertility_copy`; int tests compare teen vs cycle on the ovulation day.
+- Frontend: calendar in teen/menopause drops fertile/ovulation markers + uses `NO_FERTILITY_LEGEND`; home waits for life-stage before mounting (no stray `/messages/daily`); teen profile names the parent link, hides «کارها و خریدها».
+- Verify (combined tree): vet, go test ./..., golangci-lint 0, int cycle/messages/teen/healthlog/http, OpenAPI, contract all 1588/0; frontend lint, styles (1056), dark, 1424 tests, build — green. Screenshots `docs/qa/canvas/teen/CB-TEEN-04b/` ✔.
+- Open: numeric/enum fertility fields still in payloads (UI hides them) — scrub too?

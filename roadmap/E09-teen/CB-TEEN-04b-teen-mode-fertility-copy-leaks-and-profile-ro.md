@@ -3,7 +3,7 @@ id: CB-TEEN-04b
 title: Teen mode fertility copy leaks and profile rows
 epic: TEEN
 type: fullstack
-status: todo
+status: done
 depends_on: [CB-TEEN-04]
 parallel_group: TEEN-E
 touches: [frontend/src/screens/calendar,frontend/src/screens/profile,frontend/src/screens/home,frontend/src/features/log-day,backend-go/internal/messages,backend-go/internal/cycle,backend-go/contract,frontend/messages,backend-go/resources/translations,backend-go/internal/i18n/testdata,docs/qa/canvas]
