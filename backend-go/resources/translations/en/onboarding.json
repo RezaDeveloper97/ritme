@@ -164,6 +164,8 @@
     "ready": {
       "title": "Your Ritme is ready",
       "subtitle": "Get to know your body's rhythm with Ritme",
+      "titleMale": "Your companion panel is ready",
+      "subtitleMale": "When your partner sends you an invite code, connect from «Me» and be there for her.",
       "nextPeriod": "Next period",
       "about": "Around {date}",
       "fertile": "Fertile window",

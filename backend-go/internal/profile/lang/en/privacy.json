@@ -11,6 +11,9 @@
         "consents.ai_lab_analysis": "AI lab analysis",
         "consents.assistant_profile": "health assistant using your profile",
         "consents.anonymous_stats": "helping improve Ritme",
+        "versions": "consent versions",
+        "versions.ai_lab_analysis": "AI lab analysis text version",
+        "versions.assistant_profile": "health assistant text version",
         "message": "report text",
         "screenshot": "screenshot",
         "app_version": "app version"

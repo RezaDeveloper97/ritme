@@ -3,7 +3,7 @@ id: B-N6-05b
 title: AI platform security fixes (stream cost, cancellation, thinking tokens, per-user cap, reserve-first, PII, consent)
 milestone: N6
 type: backend
-status: in_progress
+status: done
 depends_on: [B-N6-05]
 parallel_group: N6-E2
 touches: [backend-go/internal/ai,backend-go/internal/consent,backend-go/internal/profile,backend-go/internal/voicelog,backend-go/internal/http,backend-go/internal/platform/config,backend-go/api]

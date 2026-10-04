@@ -3,6 +3,7 @@ package ai
 import (
 	"context"
 	"log/slog"
+	"net"
 	"net/http"
 	"time"
 
@@ -19,6 +20,13 @@ type Recorder interface {
 // cost cap is spent — and also when the spend cannot be read (fail closed).
 type Limiter interface {
 	Allow(ctx context.Context) error
+}
+
+// UserLimiter is the per-user spend guard (B-N6-05b, internal/ai/usage.Budget): AllowUser returns
+// ErrUserBudgetExceeded once the user's daily cost cap is spent — and also when her spend cannot be read (fail
+// closed). The Client checks it when its Limiter implements it and the context carries a Subject.
+type UserLimiter interface {
+	AllowUser(ctx context.Context, userID uint64) error
 }
 
 // LogRecorder writes one structured slog line per call: provider, model, feature, op, token counts, sizes,
@@ -60,6 +68,7 @@ type Client struct {
 	recorder    Recorder
 	limiter     Limiter
 	pricer      Pricer
+	chatMax     time.Duration
 	now         func() time.Time
 }
 
@@ -73,12 +82,15 @@ type Options struct {
 	Recorder    Recorder
 	Limiter     Limiter // nil = no cap (tests); New always sets the DB budget when one is given in Deps
 	Pricer      Pricer
+	// ChatMaxDuration overrides MaxChatDuration (tests).
+	ChatMaxDuration time.Duration
 }
 
 // NewClientWith builds a client from o.
 func NewClientWith(o Options) *Client {
 	return &Client{provider: o.Provider, transcriber: o.Transcriber, logParser: o.LogParser, chatter: o.Chatter,
-		extractor: o.Extractor, recorder: o.Recorder, limiter: o.Limiter, pricer: o.Pricer, now: time.Now}
+		extractor: o.Extractor, recorder: o.Recorder, limiter: o.Limiter, pricer: o.Pricer, chatMax: o.ChatMaxDuration,
+		now: time.Now}
 }
 
 // NewClient wires a speech + parse client (B-N3-05 tests; production code uses New).
@@ -99,12 +111,20 @@ func (c *Client) External() bool {
 	return c != nil && c.provider != config.AIProviderFake
 }
 
-// allow checks the global daily budget.
+// allow checks the global daily budget, then the user's own (when the limiter has one and ctx names the user).
 func (c *Client) allow(ctx context.Context) error {
 	if c.limiter == nil {
 		return nil
 	}
-	return c.limiter.Allow(ctx)
+	if err := c.limiter.Allow(ctx); err != nil {
+		return err
+	}
+	if ul, ok := c.limiter.(UserLimiter); ok {
+		if id := SubjectFrom(ctx).UserID; id > 0 {
+			return ul.AllowUser(ctx, id)
+		}
+	}
+	return nil
 }
 
 // Transcribe runs speech-to-text for feature. A nil client or a provider without the capability is ErrUnavailable.
@@ -156,6 +176,29 @@ func (c *Client) record(ctx context.Context, u Usage, start time.Time) {
 	}
 }
 
+// DefaultCallTimeout bounds one non-streaming provider call when AI_HTTP_TIMEOUT_SECONDS is not set.
+const DefaultCallTimeout = 30 * time.Second
+
+// ProviderHTTPClient is the HTTP client of real providers (B-N6-05b). It has no total http.Client.Timeout — that
+// would cut every streamed chat at the same 30 s — but transport timeouts: connect / TLS handshake, the wait for
+// the response headers (timeout) and idle keep-alive connections. Each non-streaming call is bounded by its own
+// context (Gemini.WithCallTimeout); a stream by MaxChatDuration (Client.Chat) and an idle-read timeout
+// (GeminiStreamIdleTimeout). Redirects are never followed (the key header must not travel elsewhere).
+func ProviderHTTPClient(timeout time.Duration) *http.Client {
+	tr, _ := http.DefaultTransport.(*http.Transport)
+	if tr == nil {
+		tr = &http.Transport{}
+	} else {
+		tr = tr.Clone()
+	}
+	tr.DialContext = (&net.Dialer{Timeout: 10 * time.Second, KeepAlive: 30 * time.Second}).DialContext
+	tr.TLSHandshakeTimeout = 10 * time.Second
+	tr.ResponseHeaderTimeout = timeout
+	tr.ExpectContinueTimeout = time.Second
+	tr.IdleConnTimeout = 90 * time.Second
+	return &http.Client{Transport: tr, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
+}
+
 // Deps are what New needs.
 type Deps struct {
 	App    config.App
@@ -203,15 +246,15 @@ func New(d Deps) *Client {
 			logger.Error("ai: AI_PROVIDER=gemini but GEMINI_API_KEY is empty; AI unavailable")
 			return nil
 		}
+		timeout := d.Config.Timeout
+		if timeout <= 0 {
+			timeout = DefaultCallTimeout
+		}
 		client := d.HTTPClient
 		if client == nil {
-			timeout := d.Config.Timeout
-			if timeout <= 0 {
-				timeout = 30 * time.Second
-			}
-			client = &http.Client{Timeout: timeout, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
+			client = ProviderHTTPClient(timeout)
 		}
-		return opts(config.AIProviderGemini, NewGemini(d.Config.Gemini, client))
+		return opts(config.AIProviderGemini, NewGemini(d.Config.Gemini, client).WithCallTimeout(timeout))
 	default:
 		return nil
 	}

@@ -23,7 +23,21 @@ type Gemini struct {
 	model   string
 	baseURL string
 	http    *http.Client
+	// callTimeout bounds one non-streaming call (generateContent); streamIdle the silence allowed between two
+	// lines of a streamed answer (B-N6-05b: the HTTP client has no total timeout, see ProviderHTTPClient).
+	callTimeout time.Duration
+	streamIdle  time.Duration
 }
+
+// GeminiStreamIdleTimeout is the longest silence between two lines of a streamed answer before it is abandoned.
+const GeminiStreamIdleTimeout = 30 * time.Second
+
+// Output caps of the non-chat calls (B-N6-05b, M1): with thinking off these bound what one call can cost.
+const (
+	GeminiTranscribeMaxOutputTokens = 2048  // MaxTranscriptRunes of speech fits easily
+	GeminiParseMaxOutputTokens      = 2048  // ≤ MaxSuggestions candidates
+	GeminiExtractMaxOutputTokens    = 12288 // DefaultMaxItems rows of a lab sheet
+)
 
 // GeminiDefaultBaseURL is the public API origin.
 const GeminiDefaultBaseURL = "https://generativelanguage.googleapis.com"
@@ -41,7 +55,44 @@ func NewGemini(cfg config.Gemini, client *http.Client) *Gemini {
 	if model == "" {
 		model = "gemini-flash-latest"
 	}
-	return &Gemini{key: cfg.APIKey, model: model, baseURL: base, http: client}
+	return &Gemini{key: cfg.APIKey, model: model, baseURL: base, http: client, callTimeout: DefaultCallTimeout,
+		streamIdle: GeminiStreamIdleTimeout}
+}
+
+// WithCallTimeout sets the bound of one non-streaming call (≤ 0 keeps the current one).
+func (g *Gemini) WithCallTimeout(d time.Duration) *Gemini {
+	if d > 0 {
+		g.callTimeout = d
+	}
+	return g
+}
+
+// WithStreamIdleTimeout sets the longest silence between two lines of a stream (≤ 0 keeps the current one).
+func (g *Gemini) WithStreamIdleTimeout(d time.Duration) *Gemini {
+	if d > 0 {
+		g.streamIdle = d
+	}
+	return g
+}
+
+// thinkingBudget is the smallest thinking budget the model accepts: 0 (off) for flash models, 128 for the pro
+// models that cannot turn thinking off. Parse / extract / transcribe need no reasoning tokens (B-N6-05b, M1).
+func (g *Gemini) thinkingBudget() int {
+	if strings.Contains(strings.ToLower(g.model), "-pro") {
+		return 128
+	}
+	return 0
+}
+
+// taskConfig is the generationConfig of a deterministic task call: temperature 0, minimal thinking and an
+// output cap, plus extra keys (responseMimeType).
+func (g *Gemini) taskConfig(maxOutput int, extra map[string]any) map[string]any {
+	cfg := map[string]any{"temperature": 0, "maxOutputTokens": maxOutput,
+		"thinkingConfig": map[string]any{"thinkingBudget": g.thinkingBudget()}}
+	for k, v := range extra {
+		cfg[k] = v
+	}
+	return cfg
 }
 
 type gPart struct {
@@ -79,17 +130,31 @@ type gResponse struct {
 }
 
 type gUsage struct {
-	PromptTokenCount     int `json:"promptTokenCount"`
-	CandidatesTokenCount int `json:"candidatesTokenCount"`
-	PromptTokensDetails  []struct {
+	PromptTokenCount        int `json:"promptTokenCount"`
+	CandidatesTokenCount    int `json:"candidatesTokenCount"`
+	ThoughtsTokenCount      int `json:"thoughtsTokenCount"`      // thinking: billed at the output rate
+	ToolUsePromptTokenCount int `json:"toolUsePromptTokenCount"` // tool results fed back: billed as input
+	TotalTokenCount         int `json:"totalTokenCount"`
+	PromptTokensDetails     []struct {
 		Modality   string `json:"modality"`
 		TokenCount int    `json:"tokenCount"`
 	} `json:"promptTokensDetails"`
 }
 
-// apply copies the token counts into u (audio tokens priced separately).
+// known reports whether the metadata carries any count.
+func (m gUsage) known() bool {
+	return m.PromptTokenCount > 0 || m.CandidatesTokenCount > 0 || m.ThoughtsTokenCount > 0 || m.TotalTokenCount > 0
+}
+
+// apply copies the token counts into u (audio tokens priced separately). Thinking tokens are output; tool-use
+// prompt tokens are input; whatever totalTokenCount holds beyond the known parts (a count added to the API later)
+// is billed as output — the most expensive kind, so it can never look cheaper than it was (B-N6-05b, M1).
 func (m gUsage) apply(u *Usage) {
-	u.InputTokens, u.OutputTokens = m.PromptTokenCount, m.CandidatesTokenCount
+	u.InputTokens = m.PromptTokenCount + m.ToolUsePromptTokenCount
+	u.OutputTokens = m.CandidatesTokenCount + m.ThoughtsTokenCount
+	if extra := m.TotalTokenCount - u.InputTokens - u.OutputTokens; extra > 0 {
+		u.OutputTokens += extra
+	}
 	u.AudioTokens = 0
 	for _, d := range m.PromptTokensDetails {
 		if d.Modality == "AUDIO" {
@@ -101,6 +166,11 @@ func (m gUsage) apply(u *Usage) {
 // generate posts raw (a generateContent body the caller owns and wipes afterwards).
 func (g *Gemini) generate(ctx context.Context, raw []byte) (string, Usage, error) {
 	u := Usage{Provider: config.AIProviderGemini, Model: g.model}
+	if g.callTimeout > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, g.callTimeout)
+		defer cancel()
+	}
 	endpoint := g.baseURL + "/v1beta/models/" + url.PathEscape(g.model) + ":generateContent"
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(raw))
 	if err != nil {
@@ -151,17 +221,20 @@ Return only the transcript text: no quotes, no translation, no commentary. If no
 func (g *Gemini) Transcribe(ctx context.Context, req TranscribeRequest) (Transcript, Usage, error) {
 	prompt, _ := json.Marshal(fmt.Sprintf(geminiTranscribePrompt, req.Language))
 	mimeType, _ := json.Marshal(req.Audio.MIME)
+	genCfg, _ := json.Marshal(g.taskConfig(GeminiTranscribeMaxOutputTokens, nil))
 	b64 := make([]byte, base64.StdEncoding.EncodedLen(len(req.Audio.Data)))
 	base64.StdEncoding.Encode(b64, req.Audio.Data)
 	var buf bytes.Buffer
-	buf.Grow(len(b64) + len(prompt) + 256)
+	buf.Grow(len(b64) + len(prompt) + len(genCfg) + 256)
 	buf.WriteString(`{"contents":[{"role":"user","parts":[{"text":`)
 	buf.Write(prompt)
 	buf.WriteString(`},{"inline_data":{"mime_type":`)
 	buf.Write(mimeType)
 	buf.WriteString(`,"data":"`)
 	buf.Write(b64) // base64 alphabet: no JSON escaping needed
-	buf.WriteString(`"}}]}],"generationConfig":{"temperature":0}}`)
+	buf.WriteString(`"}}]}],"generationConfig":`)
+	buf.Write(genCfg)
+	buf.WriteString(`}`)
 	raw := buf.Bytes()
 	text, u, err := g.generate(ctx, raw)
 	clear(b64)
@@ -211,7 +284,7 @@ func (g *Gemini) ParseLog(ctx context.Context, req LogParseRequest) ([]Candidate
 		SystemInstruction: &gContent{Parts: []gPart{{Text: geminiParseInstruction}}},
 		Contents: []gContent{{Role: "user", Parts: []gPart{{Text: "LANGUAGE: " + req.Language +
 			"\nVOCABULARY:\n" + vb.String() + "TEXT:\n<<<\n" + req.Text + "\n>>>"}}}},
-		GenerationConfig: map[string]any{"temperature": 0, "responseMimeType": "application/json"},
+		GenerationConfig: g.taskConfig(GeminiParseMaxOutputTokens, map[string]any{"responseMimeType": "application/json"}),
 	}
 	raw, err := json.Marshal(body)
 	if err != nil {

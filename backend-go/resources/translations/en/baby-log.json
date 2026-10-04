@@ -1,0 +1,119 @@
+{
+  "title": "{name}'s feeding",
+  "titleNoName": "Feeding",
+  "close": "Close",
+  "info": "How it works",
+  "infoBody": "Tap the side you are feeding on to start the timer. Tap the other side to switch, or the same side again to pause. The timer is saved to your account, so closing the screen or the phone doesn't stop it.",
+  "picker": "Choose a child",
+  "loading": "Loading",
+  "readOnly": "This child is shared with you — you can only view.",
+  "dot": " · ",
+  "types": {
+    "label": "Feeding type",
+    "breast": "Breast",
+    "bottle": "Bottle",
+    "pump": "Pump"
+  },
+  "side": {
+    "left": "Left",
+    "right": "Right"
+  },
+  "units": {
+    "ml": "ml"
+  },
+  "feed": {
+    "region": "Feeding timer",
+    "state": {
+      "running": "Feeding",
+      "pumping": "Pumping",
+      "paused": "Paused",
+      "idle": "Start",
+      "suggested": "Start here"
+    },
+    "sideAria": "{side}, {time}, {state}",
+    "startTimer": "Start timer",
+    "amount": "Amount",
+    "amountLess": "10 ml less",
+    "amountMore": "10 ml more",
+    "typeLocked": "Finish the running feed before changing its type.",
+    "last": "Last time",
+    "lastBreast": "{time} · {side} · {min} min",
+    "lastAmount": "{time} · {type} · {ml} ml",
+    "lastTimed": "{time} · {type} · {min} min",
+    "lastNone": "Nothing logged yet",
+    "today": "Today",
+    "todayValue": "{count} times · {min} min",
+    "todayBottle": "bottle {ml} ml",
+    "todayPump": "pump {ml} ml",
+    "todayNone": "No feeds logged yet",
+    "finish": "Finish and save",
+    "hintBreast": "Tap a side to start.",
+    "hintTimer": "Tap “Start timer” to begin.",
+    "discard": "Cancel this feed"
+  },
+  "manual": {
+    "open": "Add manually",
+    "time": "Start time",
+    "left": "Left side (min)",
+    "right": "Right side (min)",
+    "minutes": "Duration (min)",
+    "ml": "Amount (ml)",
+    "needMinutes": "Enter the minutes of at least one side.",
+    "needTime": "Enter a valid time.",
+    "save": "Save"
+  },
+  "sleep": {
+    "title": "{name}'s sleep",
+    "since": "Asleep since {time}",
+    "today": "Today {count} times · {hours} h",
+    "none": "No sleep logged today",
+    "start": "Fell asleep",
+    "stop": "Woke up",
+    "manual": "Add a sleep manually",
+    "from": "From",
+    "to": "To",
+    "needTimes": "Enter the start and end times."
+  },
+  "diapers": {
+    "title": "Diapers",
+    "kinds": {
+      "wet": "Wet",
+      "dirty": "Dirty",
+      "both": "Both"
+    },
+    "today": "Today {count} times · wet {wet} · dirty {dirty}",
+    "none": "No diapers logged today",
+    "list": "Today's changes",
+    "delete": "Delete the {kind} change at {time}"
+  },
+  "today": {
+    "labels": {
+      "feeding": "Feeding",
+      "sleep": "Sleep",
+      "diapers": "Diapers"
+    },
+    "feedingNow": "Feeding now",
+    "sleepingNow": "Asleep",
+    "feeds": "{count} times",
+    "feedsLast": "{count} times · last {time}",
+    "sleepHours": "{hours} h",
+    "diaperCount": "{count} times",
+    "add": "Log"
+  },
+  "noChild": {
+    "title": "Add your child first",
+    "body": "Feeds, sleep and diapers are logged per child.",
+    "cta": "Add a child"
+  },
+  "notFound": {
+    "title": "Child not found",
+    "body": "It may have been removed or is no longer shared with you.",
+    "cta": "Children"
+  },
+  "errors": {
+    "loadTitle": "Couldn't load",
+    "load": "Couldn't load the data.",
+    "retry": "Try again",
+    "save": "Couldn't save. Try again."
+  }
+}

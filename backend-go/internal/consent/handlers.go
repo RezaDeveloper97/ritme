@@ -86,6 +86,17 @@ func toInt(v any) int {
 	return 0
 }
 
+// Stale is the 409 of a grant naming a version that is not the one in force:
+//
+//	{success:false, message, error_code:"consent_version_stale", consent:"<code>", version:<in force>}
+func Stale(code, locale string) error {
+	return httpx.Fail(fiber.StatusConflict, T("version_stale", locale),
+		"error_code", CodeVersionStale, "consent", code, "version", CurrentVersion(code))
+}
+
+// ToInt is a validated `integer` input as an int (see toInt).
+func ToInt(v any) int { return toInt(v) }
+
 // stateJSON is one consent: {code, version, title, body, points, granted, accepted_version, needs_consent, reason,
 // granted_at, revoked_at}. `granted` is true only while the text in force is accepted.
 func stateJSON(st State, locale string) *jsonx.OrderedMap {
@@ -188,8 +199,7 @@ func (h *Handlers) Update(c fiber.Ctx) error {
 		raw, _ := phpval.Get(body, "version")
 		err = h.svc.Accept(c, id, code, toInt(raw), now)
 		if errors.Is(err, ErrStaleVersion) {
-			return httpx.Fail(fiber.StatusConflict, T("version_stale", locale),
-				"error_code", CodeVersionStale, "consent", code, "version", CurrentVersion(code))
+			return Stale(code, locale)
 		}
 		msg = "saved"
 	} else {

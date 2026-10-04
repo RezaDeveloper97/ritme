@@ -10,10 +10,15 @@ import (
 )
 
 type Querier interface {
+	// B-N6-05b (L5): rows older than the retention window lose their user (the cost history stays for the caps and
+	// the admin aggregates). Bounded batch so one run never locks the table for long.
+	AnonymizeUsageBefore(ctx context.Context, before sql.NullTime) (int64, error)
 	// AI usage + cost log (B-N6-05, goose 00032): one row per provider call. No content, no PII.
 	InsertUsage(ctx context.Context, arg InsertUsageParams) error
 	// The global daily cap: the estimated cost of every call since `since` (start of the Tehran day).
 	SumCostSince(ctx context.Context, createdAt sql.NullTime) (int64, error)
+	// B-N6-05b: the per-user daily cap — one user's estimated cost since `since` (index user_id, created_at).
+	SumUserCostSince(ctx context.Context, arg SumUserCostSinceParams) (int64, error)
 	// Admin aggregates: per Tehran day in [from, to).
 	UsageByDay(ctx context.Context, arg UsageByDayParams) ([]UsageByDayRow, error)
 	UsageByFeature(ctx context.Context, arg UsageByFeatureParams) ([]UsageByFeatureRow, error)

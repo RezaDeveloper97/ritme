@@ -2,7 +2,7 @@
 -- Read and written by GET/PUT /profile/consents. Always scoped by user_id.
 
 -- name: ListUserConsents :many
-SELECT consent, granted, granted_at, revoked_at FROM `user_consents` WHERE user_id = ? ORDER BY id;
+SELECT consent, granted, version, granted_at, revoked_at FROM `user_consents` WHERE user_id = ? ORDER BY id;
 
 -- name: GrantUserConsent :exec
 -- A grant keeps revoked_at (the last withdrawal), stamps granted_at and the version of the consent text in force

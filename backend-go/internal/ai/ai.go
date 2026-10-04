@@ -45,6 +45,9 @@ var (
 	ErrUpstream = errors.New("ai: provider error")
 	// ErrBudgetExceeded: the global daily cost cap is spent, or the budget could not be read (fail closed).
 	ErrBudgetExceeded = errors.New("ai: daily cost cap reached")
+	// ErrUserBudgetExceeded: this user's daily cost cap is spent, or her spend could not be read (fail closed;
+	// B-N6-05b). Answered 429: other users are not affected.
+	ErrUserBudgetExceeded = errors.New("ai: user daily cost cap reached")
 	// ErrInvalidRequest: the request breaks a platform limit (size, type, message count). A caller bug or a
 	// client the handler should have refused first; never sent to a provider.
 	ErrInvalidRequest = errors.New("ai: invalid request")
@@ -141,6 +144,9 @@ type Usage struct {
 	Latency      time.Duration
 	OK           bool
 	UserID       uint64
+	// Estimated: the provider reported no usage (a stream cut short, a missing usageMetadata), so the token
+	// counts are the Client's conservative estimate from the request and the text delivered (B-N6-05b).
+	Estimated bool
 }
 
 // Ops.

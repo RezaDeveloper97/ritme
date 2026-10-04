@@ -22,6 +22,9 @@ type Querier interface {
 	DeleteUserAccessTokens(ctx context.Context, userID sql.NullInt64) error
 	// DELETE /account (D-25, T-M2-34): the refresh tokens of the user's access tokens (no FK, no user_id).
 	DeleteUserRefreshTokens(ctx context.Context, userID sql.NullInt64) error
+	// B-N6-05b (L5): the user's AI usage rows still linked to her (ai_usage_logs keeps user_id for 90 days, then
+	// internal/ai/usage anonymizes them) — counts, sizes, cost and outcome only, there is no content to export.
+	ExportAIUsage(ctx context.Context, userID sql.NullInt64) ([]ExportAIUsageRow, error)
 	// ProfileController::export: the raw models, in the order Laravel reads them.
 	ExportDailyHealthLogs(ctx context.Context, userID uint64) ([]DailyHealthLog, error)
 	// $user->pregnancyFetalMovements()->get() has no ORDER BY; MariaDB answers in the
@@ -35,7 +38,7 @@ type Querier interface {
 	ExportReminders(ctx context.Context, userID uint64) ([]Reminder, error)
 	// B-N1-12: the user's support reports — no file path, only whether a screenshot was attached.
 	ExportSupportReports(ctx context.Context, userID uint64) ([]ExportSupportReportsRow, error)
-	// B-N1-12: the consents with their timestamps.
+	// B-N1-12: the consents with their timestamps; B-N6-05b: and the version of the text accepted.
 	ExportUserConsents(ctx context.Context, userID uint64) ([]ExportUserConsentsRow, error)
 	// Cycle settings (B-N1-09, goose 00013): GET/PUT /profile/cycle-settings, Go only. The reminder switches and
 	// times live on the B-N1-11 `notification_preferences` row (categories + schedule); the «خودکار از داده‌ها»

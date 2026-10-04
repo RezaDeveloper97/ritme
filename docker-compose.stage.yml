@@ -113,6 +113,8 @@ services:
       AI_HTTP_TIMEOUT_SECONDS: ${AI_HTTP_TIMEOUT_SECONDS:-30}
       # B-N6-05: global daily cost cap (USD, fail closed) and the price table of the cost estimate.
       AI_DAILY_COST_CAP_USD: ${AI_DAILY_COST_CAP_USD:-5}
+      # B-N6-05b: per-user daily cost cap (USD, fail closed).
+      AI_USER_DAILY_COST_CAP_USD: ${AI_USER_DAILY_COST_CAP_USD:-0.25}
       AI_PRICES: ${AI_PRICES:-gemini-flash-latest=0.30/2.50/1.00,gemini-2.5-flash=0.30/2.50/1.00,gemini-2.5-pro=1.25/10.00/1.25}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-flash-latest}

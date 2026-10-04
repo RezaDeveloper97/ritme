@@ -287,6 +287,22 @@ func (s *Service) Consume(ctx context.Context, userID uint64, key Key, now time.
 	return Entitlement{}, ErrUnknownFeature
 }
 
+// Refund gives back one use of key that Consume counted at reservedAt (B-N6-05b: AI features reserve their use at
+// the gate, before the provider runs, and give it back only when the provider failed). It decrements the counter
+// of reservedAt's period, never below zero, so a refund can never create a free use.
+func (s *Service) Refund(ctx context.Context, userID uint64, key Key, reservedAt, now time.Time) error {
+	if _, ok := Lookup(key); !ok {
+		return ErrUnknownFeature
+	}
+	_, err := s.q.DecrementUsage(ctx, store.DecrementUsageParams{
+		Now: sql.NullTime{Time: now, Valid: true}, UserID: userID, Feature: string(key), PeriodStart: PeriodStart(reservedAt),
+	})
+	if err != nil {
+		return fmt.Errorf("plus: refund %s: %w", key, err)
+	}
+	return nil
+}
+
 // ---------------------------------------------------------------------------
 // Trial
 

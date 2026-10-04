@@ -23,11 +23,18 @@ SELECT * FROM `pregnancy_fetal_movements` WHERE user_id = ? ORDER BY log_date, i
 SELECT * FROM `reminders` WHERE user_id = ? ORDER BY type, is_active, id;
 
 -- name: ExportUserConsents :many
--- B-N1-12: the consents with their timestamps.
-SELECT consent, granted, granted_at, revoked_at, created_at, updated_at
+-- B-N1-12: the consents with their timestamps; B-N6-05b: and the version of the text accepted.
+SELECT consent, granted, version, granted_at, revoked_at, created_at, updated_at
 FROM `user_consents` WHERE user_id = ? ORDER BY id;
 
 -- name: ExportSupportReports :many
 -- B-N1-12: the user's support reports — no file path, only whether a screenshot was attached.
 SELECT id, message, status, CAST(screenshot_path IS NOT NULL AS SIGNED) AS has_screenshot, created_at
 FROM `support_reports` WHERE user_id = ? ORDER BY id;
+
+-- name: ExportAIUsage :many
+-- B-N6-05b (L5): the user's AI usage rows still linked to her (ai_usage_logs keeps user_id for 90 days, then
+-- internal/ai/usage anonymizes them) — counts, sizes, cost and outcome only, there is no content to export.
+SELECT feature, op, provider, model, input_tokens, output_tokens, audio_bytes, image_bytes, cost_micros, latency_ms,
+  ok, created_at
+FROM `ai_usage_logs` WHERE user_id = ? ORDER BY id;

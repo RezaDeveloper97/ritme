@@ -10,15 +10,19 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"database/sql"
+	"encoding/hex"
 	"encoding/json"
 	"io"
 	"log/slog"
 	"net/http/httptest"
+	"os"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -31,10 +35,12 @@ import (
 	"github.com/ritme/backend-go/internal/consent"
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
+	"github.com/ritme/backend-go/internal/platform/cache"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/config"
 	"github.com/ritme/backend-go/internal/platform/db/testdb"
 	"github.com/ritme/backend-go/internal/platform/httpx"
+	"github.com/ritme/backend-go/internal/platform/ratelimit"
 	"github.com/ritme/backend-go/internal/plus"
 	"github.com/ritme/backend-go/internal/profile"
 	profilestore "github.com/ritme/backend-go/internal/profile/store"
@@ -47,15 +53,30 @@ const (
 	testNow  = "2026-10-03T10:00:00+03:30"
 )
 
-// spyChat records what reached the provider.
+// spyChat records what reached the provider; with block set, every call waits for it to close first.
 type spyChat struct {
 	*ai.Fake
-	got []ai.ChatRequest
+	mu      sync.Mutex
+	got     []ai.ChatRequest
+	block   chan struct{}
+	started chan struct{}
 }
 
 func (s *spyChat) ChatStream(ctx context.Context, req ai.ChatRequest) (<-chan ai.ChatChunk, error) {
+	s.mu.Lock()
 	s.got = append(s.got, req)
+	s.mu.Unlock()
+	if s.block != nil {
+		s.started <- struct{}{}
+		<-s.block
+	}
 	return s.Fake.ChatStream(ctx, req)
+}
+
+func (s *spyChat) calls() int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return len(s.got)
 }
 
 type env struct {
@@ -67,6 +88,25 @@ type env struct {
 }
 
 func setup(t *testing.T, provider string, capUSD float64) *env {
+	t.Helper()
+	return setupWith(t, provider, capUSD, capUSD, 0)
+}
+
+// testLimiter is a ratelimit.Limiter on the test Redis under a unique prefix (nil without TEST_REDIS_ADDR).
+func testLimiter(t *testing.T) *ratelimit.Limiter {
+	t.Helper()
+	addr := os.Getenv("TEST_REDIS_ADDR")
+	if addr == "" {
+		return nil
+	}
+	b := make([]byte, 4)
+	_, _ = rand.Read(b)
+	c := cache.NewFromClient(redis.NewClient(&redis.Options{Addr: addr}), "ritme-go-test-"+hex.EncodeToString(b)+":")
+	t.Cleanup(func() { _ = c.Close() })
+	return ratelimit.New(c, clock.Real{})
+}
+
+func setupWith(t *testing.T, provider string, capUSD, userCapUSD float64, maxConcurrent int) *env {
 	t.Helper()
 	quiet := slog.New(slog.NewTextHandler(io.Discard, nil))
 	db := testdb.New(t)
@@ -81,13 +121,14 @@ func setup(t *testing.T, provider string, capUSD float64) *env {
 
 	plusSvc := plus.NewService(db, config.Plus{TrialDays: 7}, nil, quiet)
 	gate := plus.NewGate(plusSvc, clock.Real{})
-	budget := usage.NewBudget(db, capUSD, clock.Real{}, quiet)
+	budget := usage.NewBudget(db, capUSD, clock.Real{}, quiet).WithUserCap(userCapUSD)
 	spy := &spyChat{Fake: ai.NewFake()}
 	client := ai.NewClientWith(ai.Options{Provider: provider, Chatter: spy, Extractor: ai.NewFake(),
 		Recorder: usage.NewRecorder(db, clock.Real{}, quiet), Limiter: budget,
 		Pricer: ai.NewPricer(map[string]config.AIPrice{ai.FakeChatModel: {InputPerMTok: 1, OutputPerMTok: 1, AudioPerMTok: 1}})})
 	consents := consent.NewService(db)
-	g := access.NewGuard(access.Options{Client: client, Consents: consents, Budget: budget, Gate: gate})
+	g := access.NewGuard(access.Options{Client: client, Consents: consents, Budget: budget, Gate: gate, Plus: plusSvc,
+		Limiter: testLimiter(t), Logger: quiet, MaxConcurrent: maxConcurrent})
 
 	app := fiber.New(fiber.Config{ErrorHandler: httpx.ErrorHandler(quiet)})
 	app.Use(clock.Middleware(clock.Real{}, true))
@@ -101,13 +142,14 @@ func setup(t *testing.T, provider string, capUSD float64) *env {
 	// A minimal feature route: the gate, then a chat through the client with the request context.
 	chat := func(feature ai.Feature) fiber.Handler {
 		return func(c fiber.Ctx) error {
-			ev, err := client.Chat(c.Context(), feature, ai.ChatRequest{
+			st, err := client.Chat(c.Context(), feature, ai.ChatRequest{
 				Messages: []ai.ChatMessage{{Role: ai.RoleUser, Text: string(c.Body())}}, Language: i18n.Locale(c)})
 			if err != nil {
 				return access.Error(err, i18n.Locale(c))
 			}
+			defer st.Close()
 			var sb strings.Builder
-			for e := range ev {
+			for e := range st.Events {
 				if e.Err != nil {
 					return access.Error(e.Err, i18n.Locale(c))
 				}
@@ -245,7 +287,14 @@ func TestProfileToggleGrantsVersionInForce(t *testing.T) {
 	assert.Equal(t, 403, r.status, r.raw)
 	assert.Equal(t, "outdated", r.body["reason"])
 
+	// B-N6-05b (M5): an AI grant through the toggles needs the version the client showed
 	r = e.do(t, "PUT", "/api/v1/profile/consents", tok, "fa", `{"consents":{"ai_lab_analysis":true}}`)
+	require.Equal(t, 422, r.status, r.raw)
+	assert.Contains(t, r.raw, "versions.ai_lab_analysis")
+	r = e.do(t, "PUT", "/api/v1/profile/consents", tok, "fa", `{"consents":{"ai_lab_analysis":true},"versions":{"ai_lab_analysis":2}}`)
+	require.Equal(t, 409, r.status, r.raw)
+	assert.Equal(t, "consent_version_stale", r.body["error_code"])
+	r = e.do(t, "PUT", "/api/v1/profile/consents", tok, "fa", `{"consents":{"ai_lab_analysis":true},"versions":{"ai_lab_analysis":1}}`)
 	require.Equal(t, 200, r.status, r.raw)
 	assert.Equal(t, 1, e.count(t, "SELECT COUNT(*) FROM user_consents WHERE user_id = ? AND consent = 'ai_lab_analysis' AND version = 1", uid))
 	r = e.do(t, "POST", "/test/lab", tok, "fa", "hi")
@@ -265,7 +314,7 @@ func TestGate_ConsentPlusAndUsageLog(t *testing.T) {
 	assert.Equal(t, "ai_assistant", r.body["consent"])
 	assert.InDelta(t, 1, r.body["version"], 0)
 	assert.Equal(t, "missing", r.body["reason"])
-	assert.Empty(t, e.spy.got, "no provider call without consent")
+	assert.Zero(t, e.spy.calls(), "no provider call without consent")
 
 	require.Equal(t, 200, e.do(t, "PUT", "/api/v1/consents/ai_assistant", tok, "fa", `{"granted":true,"version":1}`).status)
 	r = e.do(t, "POST", "/test/assistant", tok, "fa", "من سارا هستم، شماره\u200cام 09121234567 است و دلم درد می\u200cکند")
@@ -330,11 +379,11 @@ func TestGate_DailyCostCapFailsClosed(t *testing.T) {
 	_, err = e.db.Exec(`INSERT INTO ai_usage_logs (feature, op, provider, model, cost_micros, ok, created_at)
 		VALUES ('lab_analysis', 'extract', 'gemini', 'm', 10000, 1, NOW())`)
 	require.NoError(t, err)
-	calls := len(e.spy.got)
+	calls := e.spy.calls()
 	r := e.do(t, "POST", "/test/assistant", tok, "en", "hi")
 	assert.Equal(t, 503, r.status, r.raw)
 	assert.Equal(t, "ai_budget_exhausted", r.body["error_code"])
-	assert.Len(t, e.spy.got, calls, "no provider call once the cap is spent")
+	assert.Equal(t, calls, e.spy.calls(), "no provider call once the cap is spent")
 
 	// cap 0 refuses everything
 	z := setup(t, "fake", 0)
@@ -357,4 +406,110 @@ func TestUsageRecorder_NoContentColumns(t *testing.T) {
 	require.NoError(t, rows.Err())
 	assert.Equal(t, []string{"id", "user_id", "feature", "op", "provider", "model", "input_tokens", "output_tokens",
 		"audio_bytes", "image_bytes", "cost_micros", "latency_ms", "ok", "created_at"}, cols)
+}
+
+func (e *env) used(t *testing.T, userID uint64, feature string) int {
+	t.Helper()
+	var n sql.NullInt64
+	err := e.db.QueryRow(`SELECT used FROM plus_usage_counters WHERE user_id = ? AND feature = ?`, userID, feature).Scan(&n)
+	if err == sql.ErrNoRows {
+		return 0
+	}
+	require.NoError(t, err)
+	return int(n.Int64)
+}
+
+// B-N6-05b (M3): the Plus use is reserved before the provider runs — parallel requests never exceed the quota —
+// and refunded only when the call failed.
+func TestGate_ReserveFirstQuota(t *testing.T) {
+	e := setupWith(t, "fake", 5, 5, 100)                // no concurrency limit: the quota alone must hold
+	uid, tok := e.user(t, "09120000009", "Sara", false) // free: assistant 5 per month
+	require.Equal(t, 200, e.do(t, "PUT", "/api/v1/consents/ai_assistant", tok, "fa", `{"granted":true,"version":1}`).status)
+
+	r := e.do(t, "POST", "/test/assistant", tok, "fa", "RITME-FAKE:error")
+	require.Equal(t, 503, r.status, r.raw)
+	assert.Zero(t, e.used(t, uid, "plus.assistant_unlimited"), "a provider failure gives the use back")
+
+	var wg sync.WaitGroup
+	statuses := make(chan int, 8)
+	for range 8 { // 1 + 8 stays under the assistant burst throttle (10/min)
+		wg.Go(func() { statuses <- e.do(t, "POST", "/test/assistant", tok, "fa", "hi").status })
+	}
+	wg.Wait()
+	close(statuses)
+	ok, refused := 0, 0
+	for s := range statuses {
+		switch s {
+		case 200:
+			ok++
+		case 402:
+			refused++
+		default:
+			t.Errorf("unexpected status %d", s)
+		}
+	}
+	assert.Equal(t, 5, ok, "never more than the quota, however parallel")
+	assert.Equal(t, 3, refused)
+	assert.Equal(t, 5, e.used(t, uid, "plus.assistant_unlimited"))
+	assert.Equal(t, 5+1, e.spy.calls(), "refused requests never reach the provider")
+}
+
+// B-N6-05b (M3): one user may run at most MaxConcurrent AI requests at once.
+func TestGate_ConcurrencyPerUser(t *testing.T) {
+	e := setupWith(t, "fake", 5, 5, 1)
+	e.spy.block, e.spy.started = make(chan struct{}), make(chan struct{}, 4)
+	_, tok := e.user(t, "09120000010", "Sara", true)
+	_, tok2 := e.user(t, "09120000011", "Mina", true)
+	for _, k := range []string{tok, tok2} {
+		require.Equal(t, 200, e.do(t, "PUT", "/api/v1/consents/ai_assistant", k, "fa", `{"granted":true,"version":1}`).status)
+	}
+	first := make(chan resp, 1)
+	go func() { first <- e.do(t, "POST", "/test/assistant", tok, "fa", "hi") }()
+	<-e.spy.started // the first request is inside the provider
+	r := e.do(t, "POST", "/test/assistant", tok, "fa", "hi")
+	assert.Equal(t, 429, r.status, r.raw)
+	assert.Equal(t, "ai_busy", r.body["error_code"])
+	other := make(chan resp, 1)
+	go func() { other <- e.do(t, "POST", "/test/assistant", tok2, "fa", "hi") }()
+	<-e.spy.started // another user is not blocked
+	close(e.spy.block)
+	assert.Equal(t, 200, (<-first).status)
+	assert.Equal(t, 200, (<-other).status)
+	assert.Equal(t, 200, e.do(t, "POST", "/test/assistant", tok, "fa", "hi").status, "the slot is released")
+}
+
+// B-N6-05b (M2): the per-user daily cost cap answers 429 for that user only.
+func TestGate_UserDailyCostCap(t *testing.T) {
+	e := setupWith(t, "gemini", 5, 0.01, 0) // 10 000 micro-USD per user
+	uid, tok := e.user(t, "09120000012", "Sara", true)
+	_, tok2 := e.user(t, "09120000013", "Mina", true)
+	for _, k := range []string{tok, tok2} {
+		require.Equal(t, 200, e.do(t, "PUT", "/api/v1/consents/ai_assistant", k, "en", `{"granted":true,"version":1}`).status)
+	}
+	require.Equal(t, 200, e.do(t, "POST", "/test/assistant", tok, "en", "hi").status)
+	_, err := e.db.Exec(`INSERT INTO ai_usage_logs (user_id, feature, op, provider, model, cost_micros, ok, created_at)
+		VALUES (?, 'assistant', 'chat', 'gemini', 'm', 10000, 1, NOW())`, uid)
+	require.NoError(t, err)
+	calls := e.spy.calls()
+	r := e.do(t, "POST", "/test/assistant", tok, "en", "hi")
+	assert.Equal(t, 429, r.status, r.raw)
+	assert.Equal(t, "ai_user_budget_exhausted", r.body["error_code"])
+	assert.Equal(t, calls, e.spy.calls())
+	assert.Equal(t, 200, e.do(t, "POST", "/test/assistant", tok2, "en", "hi").status, "other users keep going")
+}
+
+// B-N6-05b (L2 / M2): the feature throttles run right after auth — before the Plus check and the consent.
+func TestGate_ThrottleBeforeGate(t *testing.T) {
+	if os.Getenv("TEST_REDIS_ADDR") == "" {
+		t.Skip("TEST_REDIS_ADDR not set (run `make test-int`)")
+	}
+	e := setup(t, "fake", 5)
+	_, tok := e.user(t, "09120000014", "Sara", false)
+	for range 4 { // ai-lab-burst
+		r := e.do(t, "POST", "/test/lab", tok, "fa", "hi")
+		require.Equal(t, 402, r.status, r.raw)
+	}
+	r := e.do(t, "POST", "/test/lab", tok, "fa", "hi")
+	assert.Equal(t, 429, r.status, r.raw)
+	assert.Equal(t, "too_many_requests", r.body["error_code"])
 }

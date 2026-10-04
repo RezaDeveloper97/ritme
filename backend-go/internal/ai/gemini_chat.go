@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -29,12 +28,17 @@ Reply in the language with code %q unless the user writes in another language.
 Placeholders like [name], [phone], [id], [number] and [email] stand for details removed for privacy: never ask for them.`
 
 // ChatStream implements Chatter over streamGenerateContent (server-sent events). Images travel inline; the
-// request body is zeroed once sent.
+// request body is zeroed once sent. Every chunk carries the latest cumulative usageMetadata seen (B-N6-05b), so a
+// stream cut short still reports what was billed so far. ctx bounds the whole stream (Client.Chat owns it); a
+// silence longer than streamIdle between two lines abandons it too.
 func (g *Gemini) ChatStream(ctx context.Context, req ChatRequest) (<-chan ChatChunk, error) {
 	u := Usage{Provider: config.AIProviderGemini, Model: g.model}
 	body := gRequest{
 		SystemInstruction: &gContent{Parts: []gPart{{Text: req.System + fmt.Sprintf(geminiChatSuffix, req.Language)}}},
-		GenerationConfig:  map[string]any{"temperature": 0.4, "maxOutputTokens": req.MaxOutputTokens},
+		// Thinking at the model's minimum (B-N6-05b, M1): reasoning tokens are billed as output and are not bounded
+		// by what the user sees; B-N7-06 may raise the budget deliberately (it is counted either way).
+		GenerationConfig: map[string]any{"temperature": 0.4, "maxOutputTokens": req.MaxOutputTokens,
+			"thinkingConfig": map[string]any{"thinkingBudget": g.thinkingBudget()}},
 	}
 	for _, m := range req.Messages {
 		role := "user"
@@ -58,8 +62,11 @@ func (g *Gemini) ChatStream(ctx context.Context, req ChatRequest) (<-chan ChatCh
 		return nil, fmt.Errorf("%w: encode request", ErrUpstream)
 	}
 	endpoint := g.baseURL + "/v1beta/models/" + url.PathEscape(g.model) + ":streamGenerateContent?alt=sse"
-	hreq, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(raw))
+	// sctx is cancelled by the idle timer (or when the stream goroutine ends); ctx stays the caller's.
+	sctx, scancel := context.WithCancel(ctx)
+	hreq, err := http.NewRequestWithContext(sctx, http.MethodPost, endpoint, bytes.NewReader(raw))
 	if err != nil {
+		scancel()
 		clear(raw)
 		return nil, fmt.Errorf("%w: build request", ErrUpstream)
 	}
@@ -70,15 +77,24 @@ func (g *Gemini) ChatStream(ctx context.Context, req ChatRequest) (<-chan ChatCh
 	res, err := g.http.Do(hreq) //nolint:bodyclose // closed by the stream goroutine below (or right away on a non-200)
 	clear(raw)
 	if err != nil {
+		scancel()
 		return nil, fmt.Errorf("%w: request failed", ErrUpstream)
 	}
 	if res.StatusCode != http.StatusOK {
 		_ = res.Body.Close()
+		scancel()
 		return nil, fmt.Errorf("%w: status %d", ErrUpstream, res.StatusCode)
 	}
+	idle := g.streamIdle
+	if idle <= 0 {
+		idle = GeminiStreamIdleTimeout
+	}
+	idleTimer := time.AfterFunc(idle, scancel)
 	out := make(chan ChatChunk)
 	go func() {
 		defer close(out)
+		defer scancel()
+		defer idleTimer.Stop()
 		defer func() { _ = res.Body.Close() }()
 		emit := func(c ChatChunk) bool {
 			select {
@@ -96,6 +112,7 @@ func (g *Gemini) ChatStream(ctx context.Context, req ChatRequest) (<-chan ChatCh
 		sc.Buffer(make([]byte, 0, 64<<10), maxGeminiLine)
 		finish, gotText := "", false
 		for sc.Scan() {
+			idleTimer.Reset(idle)
 			line := sc.Bytes()
 			if !bytes.HasPrefix(line, []byte("data:")) {
 				continue
@@ -105,8 +122,8 @@ func (g *Gemini) ChatStream(ctx context.Context, req ChatRequest) (<-chan ChatCh
 				fail("decode stream")
 				return
 			}
-			if chunk.UsageMetadata.PromptTokenCount > 0 || chunk.UsageMetadata.CandidatesTokenCount > 0 {
-				chunk.UsageMetadata.apply(&u)
+			if chunk.UsageMetadata.known() {
+				chunk.UsageMetadata.apply(&u) // cumulative: the last one seen is the call's usage so far
 			}
 			if chunk.PromptFeedback != nil && chunk.PromptFeedback.BlockReason != "" {
 				finish = FinishSafety
@@ -121,7 +138,7 @@ func (g *Gemini) ChatStream(ctx context.Context, req ChatRequest) (<-chan ChatCh
 					continue
 				}
 				gotText = true
-				if !emit(ChatChunk{Delta: p.Text}) {
+				if !emit(ChatChunk{Delta: p.Text, Usage: u}) {
 					return
 				}
 			}
@@ -130,7 +147,11 @@ func (g *Gemini) ChatStream(ctx context.Context, req ChatRequest) (<-chan ChatCh
 			}
 		}
 		if err := sc.Err(); err != nil {
-			if errors.Is(err, context.Canceled) || ctx.Err() != nil {
+			if ctx.Err() != nil {
+				return // the consumer cancelled or the stream's time ran out: nobody is reading
+			}
+			if sctx.Err() != nil {
+				fail("stream idle")
 				return
 			}
 			fail("read stream")

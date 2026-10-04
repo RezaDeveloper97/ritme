@@ -645,6 +645,98 @@
     }
    }
   },
+  "analysis-postpartum": {
+   "hub": {
+    "title": "Analysis",
+    "week": "Week {n} after birth",
+    "loading": "Loading analysis",
+    "cardError": "This section couldn't load.",
+    "none": "—",
+    "dot": " · ",
+    "listSeparator": ", ",
+    "footnote": "These summaries are descriptive and don't replace a check-up with your doctor or midwife.",
+    "error": {
+     "title": "Couldn't load the analysis",
+     "body": "Check your connection and try again.",
+     "retry": "Try again"
+    },
+    "inactive": {
+     "title": "Postpartum mode is off",
+     "body": "Add your birth date to see your recovery, mood and baby here.",
+     "cta": "Turn on"
+    },
+    "epds": {
+     "title": "Mood (EPDS)",
+     "sub": "Edinburgh screening, every 2 weeks",
+     "week": "Week {n}",
+     "down": "{week}: score {score} (above {th}); it has come down since.",
+     "high": "Your latest score is {score} (above {th}); talk to your doctor or midwife about it.",
+     "low": "Latest score {score} of {max}.",
+     "rule": "A score of {likely} or more, or any thought of self-harm → call your doctor right away.",
+     "empty": "You haven't done a mood screening yet.",
+     "chart": "EPDS scores: {list}",
+     "colWeek": "Week",
+     "colScore": "Score"
+    },
+    "bleeding": {
+     "title": "Bleeding after birth",
+     "trend": {
+      "decreasing": "Decreasing over {n} weeks",
+      "steady": "About the same over {n} weeks",
+      "increasing": "Increasing; talk to your doctor if it continues"
+     },
+     "few": "Log a few more days to see the trend",
+     "noClots": "no large clots",
+     "clots": "large clots logged; talk to your doctor",
+     "empty": "You haven't logged any bleeding yet.",
+     "chart": "Bleeding over the last {n} days: {list}",
+     "amounts": {
+      "none": "none",
+      "spotting": "spotting",
+      "light": "light",
+      "medium": "medium",
+      "heavy": "heavy",
+      "unlogged": "not logged"
+     }
+    },
+    "feeds": {
+     "title": "Feeding",
+     "avg": "Average {n} times a day",
+     "split": "left {l}% / right {r}%",
+     "empty": "No feeds logged this week.",
+     "chart": "Feeds over the last 7 days: {list}",
+     "colDay": "Day",
+     "colCount": "Feeds",
+     "noChild": "Add your child to see feeds and baby sleep.",
+     "addChild": "Add a child"
+    },
+    "sleep": {
+     "title": "Your sleep and baby's",
+     "you": "You",
+     "baby": "Baby",
+     "hours": "hours",
+     "note": "Daily average of the last 7 days"
+    },
+    "growth": {
+     "title": "{name}'s growth",
+     "titleNoName": "Baby's growth",
+     "weight": "Weight: percentile {n}",
+     "length": "Length: percentile {n}",
+     "head": "Head: percentile {n}",
+     "who": "WHO growth curves",
+     "empty": "No measurements yet."
+    },
+    "weight": {
+     "title": "Recovery and weight",
+     "change": "kg since week {n}",
+     "one": "First weight logged ({kg} kg); log again to see the trend.",
+     "empty": "Log your weight in the daily log to see your recovery trend.",
+     "chart": "Weight after birth: {list}",
+     "colDate": "Date",
+     "colKg": "kg"
+    }
+   }
+  },
   "analysis-pregnancy": {
    "symptom_names": {
     "pain": {
@@ -861,6 +953,125 @@
     "autoRead": "The code is read from the SMS automatically.",
     "submit": "Verify",
     "verifying": "Checking…"
+   }
+  },
+  "baby-log": {
+   "title": "{name}'s feeding",
+   "titleNoName": "Feeding",
+   "close": "Close",
+   "info": "How it works",
+   "infoBody": "Tap the side you are feeding on to start the timer. Tap the other side to switch, or the same side again to pause. The timer is saved to your account, so closing the screen or the phone doesn't stop it.",
+   "picker": "Choose a child",
+   "loading": "Loading",
+   "readOnly": "This child is shared with you — you can only view.",
+   "dot": " · ",
+   "types": {
+    "label": "Feeding type",
+    "breast": "Breast",
+    "bottle": "Bottle",
+    "pump": "Pump"
+   },
+   "side": {
+    "left": "Left",
+    "right": "Right"
+   },
+   "units": {
+    "ml": "ml"
+   },
+   "feed": {
+    "region": "Feeding timer",
+    "state": {
+     "running": "Feeding",
+     "pumping": "Pumping",
+     "paused": "Paused",
+     "idle": "Start",
+     "suggested": "Start here"
+    },
+    "sideAria": "{side}, {time}, {state}",
+    "startTimer": "Start timer",
+    "amount": "Amount",
+    "amountLess": "10 ml less",
+    "amountMore": "10 ml more",
+    "typeLocked": "Finish the running feed before changing its type.",
+    "last": "Last time",
+    "lastBreast": "{time} · {side} · {min} min",
+    "lastAmount": "{time} · {type} · {ml} ml",
+    "lastTimed": "{time} · {type} · {min} min",
+    "lastNone": "Nothing logged yet",
+    "today": "Today",
+    "todayValue": "{count} times · {min} min",
+    "todayBottle": "bottle {ml} ml",
+    "todayPump": "pump {ml} ml",
+    "todayNone": "No feeds logged yet",
+    "finish": "Finish and save",
+    "hintBreast": "Tap a side to start.",
+    "hintTimer": "Tap “Start timer” to begin.",
+    "discard": "Cancel this feed"
+   },
+   "manual": {
+    "open": "Add manually",
+    "time": "Start time",
+    "left": "Left side (min)",
+    "right": "Right side (min)",
+    "minutes": "Duration (min)",
+    "ml": "Amount (ml)",
+    "needMinutes": "Enter the minutes of at least one side.",
+    "needTime": "Enter a valid time.",
+    "save": "Save"
+   },
+   "sleep": {
+    "title": "{name}'s sleep",
+    "since": "Asleep since {time}",
+    "today": "Today {count} times · {hours} h",
+    "none": "No sleep logged today",
+    "start": "Fell asleep",
+    "stop": "Woke up",
+    "manual": "Add a sleep manually",
+    "from": "From",
+    "to": "To",
+    "needTimes": "Enter the start and end times."
+   },
+   "diapers": {
+    "title": "Diapers",
+    "kinds": {
+     "wet": "Wet",
+     "dirty": "Dirty",
+     "both": "Both"
+    },
+    "today": "Today {count} times · wet {wet} · dirty {dirty}",
+    "none": "No diapers logged today",
+    "list": "Today's changes",
+    "delete": "Delete the {kind} change at {time}"
+   },
+   "today": {
+    "labels": {
+     "feeding": "Feeding",
+     "sleep": "Sleep",
+     "diapers": "Diapers"
+    },
+    "feedingNow": "Feeding now",
+    "sleepingNow": "Asleep",
+    "feeds": "{count} times",
+    "feedsLast": "{count} times · last {time}",
+    "sleepHours": "{hours} h",
+    "diaperCount": "{count} times",
+    "add": "Log"
+   },
+   "noChild": {
+    "title": "Add your child first",
+    "body": "Feeds, sleep and diapers are logged per child.",
+    "cta": "Add a child"
+   },
+   "notFound": {
+    "title": "Child not found",
+    "body": "It may have been removed or is no longer shared with you.",
+    "cta": "Children"
+   },
+   "errors": {
+    "loadTitle": "Couldn't load",
+    "load": "Couldn't load the data.",
+    "retry": "Try again",
+    "save": "Couldn't save. Try again."
    }
   },
   "banners": {
@@ -1876,7 +2087,8 @@
     "title": "Your family",
     "you": "You",
     "pending": "Once {name} accepts, your family is created.",
-    "childrenSoon": "Shared children appear here once the children section is available."
+    "childrenShared": "{names} {count, plural, one {is your shared child} other {are your shared children}} and {count, plural, one {appears} other {appear}} in both panels.",
+    "childrenNone": "No child is shared yet. You can pick shared children on your spouse's page."
    },
    "list": {
     "title": "Companions",
@@ -1911,10 +2123,12 @@
     "children": {
      "question": "Which child is shared?",
      "lead": "The child you pick is added to both of your panels and you become one family.",
-     "soonTitle": "Children are coming soon",
-     "soonBody": "Once you add your children in Ritme, you can pick the shared ones here. For now, continue without it.",
+     "loading": "Loading your children",
+     "emptyTitle": "You haven't added a child yet",
+     "emptyBody": "Add your child in the «Child» section; then you can share them from your spouse's page. For now, continue without it.",
+     "errorBody": "Couldn't load your children.",
+     "retry": "Try again",
      "add": "Add a child",
-     "soon": "Soon",
      "partnerNote": "If your companion is a partner, this step is skipped."
     },
     "invite": {
@@ -1987,6 +2201,10 @@
     "renewNote": "A new code stops the previous one from working.",
     "renewError": "Couldn't make a new code. Try again.",
     "childrenTitle": "Shared child",
+    "childrenLead": "The children you pick show up in your spouse's panel, view only.",
+    "childrenSave": "Save shared children",
+    "childrenSaved": "Shared children saved.",
+    "childrenSaveError": "Couldn't save. Try again.",
     "activity": "Recent activity",
     "activityEmpty": "No activity yet.",
     "actions": {
@@ -5617,6 +5835,8 @@
     "ready": {
      "title": "Your Ritme is ready",
      "subtitle": "Get to know your body's rhythm with Ritme",
+     "titleMale": "Your companion panel is ready",
+     "subtitleMale": "When your partner sends you an invite code, connect from «Me» and be there for her.",
      "nextPeriod": "Next period",
      "about": "Around {date}",
      "fertile": "Fertile window",
@@ -6337,6 +6557,87 @@
      "trackingFrom": "Counting fetal movements usually matters from week 24.",
      "notYet": "A little early — you'll feel your baby move soon."
     }
+   }
+  },
+  "pregnancy-tools": {
+   "common": {
+    "close": "Close",
+    "help": "How it works",
+    "loading": "Loading",
+    "loadError": "Couldn't load this",
+    "retry": "Try again",
+    "error": "Not saved — please try again.",
+    "notPregnantTitle": "This tool works in pregnancy mode",
+    "notPregnantBody": "To use it, first add your pregnancy and its dates in Ritme.",
+    "setup": "Set up pregnancy",
+    "hours": "{n, plural, one {# hour} other {# hours}}",
+    "minutes": "{n, plural, one {# minute} other {# minutes}}",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "dateTime": "{date} · {time}"
+   },
+   "kick": {
+    "title": "Kick counter",
+    "lead": "Lie on your left side and tap the button for every movement (kick, roll, flutter).",
+    "ofTarget": "of {target} movements",
+    "tapToStart": "Tap at the first movement",
+    "tapLabel": "Log a movement; {count} of {target}",
+    "live": "{count} of {target} movements",
+    "elapsed": "Elapsed",
+    "started": "Started",
+    "undo": "Take one back",
+    "guidance": "If you feel fewer than {target} movements in {hours}, or the pattern slows down, call your doctor or midwife.",
+    "reached": "{target} movements in {time}",
+    "reachedBody": "You reached the target. You can finish and save the count.",
+    "lowTitle": "Fewer than {target} movements in {hours}",
+    "lowBody": "This alone is not a diagnosis, but it is worth talking to your doctor or midwife today. If you can't feel the baby move at all, don't wait.",
+    "call": "Call your doctor or midwife",
+    "stop": "Finish and save",
+    "saved": "Saved: {count} movements in {time}",
+    "todayTotal": "{count} movements today",
+    "history": "Previous counts",
+    "historyEmpty": "No saved counts yet. Each count you finish shows up here.",
+    "historyCount": "{count} of {target} movements",
+    "historyReached": "{target} movements in {time}",
+    "historyLength": "Took {time}",
+    "helpTitle": "How does kick counting work?",
+    "helpBody": "Pick a time when your baby is usually active, for example after a meal. Lie on your side and tap once for each kick, roll or flutter. Most people feel 10 movements well within 2 hours. What matters more than the number is a change in your baby's usual pattern.",
+    "helpNote": "This tool does not replace a check-up."
+   },
+   "contraction": {
+    "title": "Contraction timer",
+    "running": "Contraction in progress",
+    "tapToEnd": "Tap to end",
+    "ready": "Contraction starting?",
+    "tapToStart": "Tap to start",
+    "sinceLast": "Since the last one started",
+    "startAria": "Start a contraction",
+    "endAria": "End the contraction; {time}",
+    "liveStarted": "Contraction started",
+    "liveEnded": "Contraction ended; it lasted {time}",
+    "avgDuration": "Average length",
+    "avgInterval": "Average interval",
+    "window": "last {run}",
+    "colStart": "Start",
+    "colDuration": "Length",
+    "colInterval": "Interval",
+    "tableLabel": "Contractions in this session",
+    "empty": "No contractions yet. Tap the button when one starts and again when it ends.",
+    "guidance": "If contractions come every {interval} minutes, each lasting about 1 minute, for {run}, or your waters break, call your maternity unit.",
+    "metTitle": "Your contractions reached the call-the-unit pattern",
+    "metBody": "This is worked out from the times you logged, and only an exam can confirm that labour has started. It is time to call your maternity unit or midwife.",
+    "seeAlerts": "See it in alerts",
+    "call": "Call the maternity unit",
+    "ack": "Got it, thanks",
+    "finish": "Stop and save",
+    "saved": "Saved: {count} contractions",
+    "history": "Previous sessions",
+    "historyCount": "{count} contractions",
+    "historyAvg": "{interval} apart · {duration} long",
+    "met": "Call pattern",
+    "helpTitle": "How does the contraction timer work?",
+    "helpBody": "Tap the button when a contraction starts and again when it ends. The length, the time since the previous one started and the averages over the last hour are worked out for you.",
+    "helpNote": "If you are bleeding, have constant pain or the baby moves less, don't wait for the pattern — call."
    }
   },
   "pregnancy-v2": {

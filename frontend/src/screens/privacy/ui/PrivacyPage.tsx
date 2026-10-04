@@ -181,7 +181,7 @@ function ConsentSection() {
           <Switch
             checked={c.granted}
             labelledBy={`prv-c-${c.code}-title`}
-            onCheckedChange={(granted) => update.mutate({ code: c.code, granted })}
+            onCheckedChange={(granted) => update.mutate({ code: c.code, granted, version: c.version })}
           />
         }
       />

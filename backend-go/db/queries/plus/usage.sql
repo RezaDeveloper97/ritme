@@ -25,3 +25,9 @@ ON DUPLICATE KEY UPDATE
 SELECT feature, CAST(SUM(used) AS UNSIGNED) AS used FROM plus_usage_counters
 WHERE user_id = sqlc.arg(user_id) AND period_start >= sqlc.arg(since)
 GROUP BY feature;
+
+-- name: DecrementUsage :execrows
+-- B-N6-05b: give back one reserved use (an AI call reserved at the gate whose provider failed before answering).
+-- Never below zero; the period is the one the reservation counted in.
+UPDATE plus_usage_counters SET updated_at = sqlc.arg(now), used = used - 1
+WHERE user_id = sqlc.arg(user_id) AND feature = sqlc.arg(feature) AND period_start = sqlc.arg(period_start) AND used > 0;

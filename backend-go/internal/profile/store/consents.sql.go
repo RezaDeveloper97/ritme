@@ -43,12 +43,13 @@ func (q *Queries) GrantUserConsent(ctx context.Context, arg GrantUserConsentPara
 
 const listUserConsents = `-- name: ListUserConsents :many
 
-SELECT consent, granted, granted_at, revoked_at FROM ` + "`" + `user_consents` + "`" + ` WHERE user_id = ? ORDER BY id
+SELECT consent, granted, version, granted_at, revoked_at FROM ` + "`" + `user_consents` + "`" + ` WHERE user_id = ? ORDER BY id
 `
 
 type ListUserConsentsRow struct {
 	Consent   string
 	Granted   bool
+	Version   sql.NullInt16
 	GrantedAt sql.NullTime
 	RevokedAt sql.NullTime
 }
@@ -67,6 +68,7 @@ func (q *Queries) ListUserConsents(ctx context.Context, userID uint64) ([]ListUs
 		if err := rows.Scan(
 			&i.Consent,
 			&i.Granted,
+			&i.Version,
 			&i.GrantedAt,
 			&i.RevokedAt,
 		); err != nil {

@@ -13,7 +13,7 @@ defaults:
   locales: [none, en]
 cases:
   - name: voice_locked
-    doc: A free user → 402 plus_required (locked) before the recording is read
+    doc: A free user → 402 plus_required (locked) before the recording is read (B-N6-05b — the throttles run first, so the 402 carries the burst headers)
     method: POST
     path: /api/v1/logs/voice
     content_type: multipart/form-data; boundary=ritmeB

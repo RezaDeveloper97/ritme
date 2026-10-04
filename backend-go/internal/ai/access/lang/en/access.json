@@ -2,5 +2,8 @@
     "ai_unavailable": "This AI feature is not available right now. Please try again later.",
     "ai_failed": "The AI service did not answer just now. Please try again in a moment.",
     "ai_budget_exhausted": "AI features have reached today's usage limit. Please try again tomorrow.",
-    "ai_invalid_request": "This request is not valid for the AI service."
+    "ai_invalid_request": "This request is not valid for the AI service.",
+    "ai_user_budget_exhausted": "You have reached today's AI usage limit. Please try again tomorrow.",
+    "ai_busy": "Your previous AI request is still running. Please wait a moment and try again.",
+    "too_many_requests": "Too many requests. Please wait a little and try again."
 }

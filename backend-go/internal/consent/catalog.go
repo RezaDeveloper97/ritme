@@ -26,16 +26,19 @@ const (
 type Definition struct {
 	Code    string
 	Version int
+	// AI marks a consent that lets data reach an AI provider. Granting it always names the version of the text the
+	// client showed (B-N6-05b, M5): PUT /consents/{code} {version} and PUT /profile/consents {versions: {code: n}}.
+	AI bool
 }
 
 // catalog is the single source of consent codes and versions, in display order.
 var catalog = []Definition{
-	{Code: AILabAnalysis, Version: 1},
-	{Code: AssistantProfile, Version: 1},
+	{Code: AILabAnalysis, Version: 1, AI: true},
+	{Code: AssistantProfile, Version: 1, AI: true},
 	{Code: AnonymousStats, Version: 1},
-	{Code: AIAssistant, Version: 1},
-	{Code: AIVoiceLog, Version: 1},
-	{Code: AIDocuments, Version: 1},
+	{Code: AIAssistant, Version: 1, AI: true},
+	{Code: AIVoiceLog, Version: 1, AI: true},
+	{Code: AIDocuments, Version: 1, AI: true},
 }
 
 // Catalog returns a copy of the definitions in display order.
@@ -49,6 +52,12 @@ func Lookup(code string) (Definition, bool) {
 		}
 	}
 	return Definition{}, false
+}
+
+// IsAI reports whether code is an AI consent (granting it needs an explicit version).
+func IsAI(code string) bool {
+	d, _ := Lookup(code)
+	return d.AI
 }
 
 // CurrentVersion is the version in force of code (0 for an unknown code).

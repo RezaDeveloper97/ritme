@@ -10,6 +10,21 @@ import (
 	"database/sql"
 )
 
+const anonymizeUsageBefore = `-- name: AnonymizeUsageBefore :execrows
+UPDATE ` + "`" + `ai_usage_logs` + "`" + ` SET user_id = NULL WHERE user_id IS NOT NULL AND created_at < ?
+ORDER BY id LIMIT 5000
+`
+
+// B-N6-05b (L5): rows older than the retention window lose their user (the cost history stays for the caps and
+// the admin aggregates). Bounded batch so one run never locks the table for long.
+func (q *Queries) AnonymizeUsageBefore(ctx context.Context, before sql.NullTime) (int64, error) {
+	result, err := q.db.ExecContext(ctx, anonymizeUsageBefore, before)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
 const insertUsage = `-- name: InsertUsage :exec
 
 INSERT INTO ` + "`" + `ai_usage_logs` + "`" + ` (user_id, feature, op, provider, model, input_tokens, output_tokens, audio_bytes,
@@ -60,6 +75,24 @@ SELECT CAST(COALESCE(SUM(cost_micros), 0) AS UNSIGNED) AS total FROM ` + "`" + `
 // The global daily cap: the estimated cost of every call since `since` (start of the Tehran day).
 func (q *Queries) SumCostSince(ctx context.Context, createdAt sql.NullTime) (int64, error) {
 	row := q.db.QueryRowContext(ctx, sumCostSince, createdAt)
+	var total int64
+	err := row.Scan(&total)
+	return total, err
+}
+
+const sumUserCostSince = `-- name: SumUserCostSince :one
+SELECT CAST(COALESCE(SUM(cost_micros), 0) AS UNSIGNED) AS total FROM ` + "`" + `ai_usage_logs` + "`" + `
+WHERE user_id = ? AND created_at >= ?
+`
+
+type SumUserCostSinceParams struct {
+	UserID sql.NullInt64
+	Since  sql.NullTime
+}
+
+// B-N6-05b: the per-user daily cap — one user's estimated cost since `since` (index user_id, created_at).
+func (q *Queries) SumUserCostSince(ctx context.Context, arg SumUserCostSinceParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, sumUserCostSince, arg.UserID, arg.Since)
 	var total int64
 	err := row.Scan(&total)
 	return total, err

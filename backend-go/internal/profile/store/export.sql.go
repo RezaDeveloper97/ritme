@@ -10,6 +10,65 @@ import (
 	"database/sql"
 )
 
+const exportAIUsage = `-- name: ExportAIUsage :many
+SELECT feature, op, provider, model, input_tokens, output_tokens, audio_bytes, image_bytes, cost_micros, latency_ms,
+  ok, created_at
+FROM ` + "`" + `ai_usage_logs` + "`" + ` WHERE user_id = ? ORDER BY id
+`
+
+type ExportAIUsageRow struct {
+	Feature      string
+	Op           string
+	Provider     string
+	Model        string
+	InputTokens  uint32
+	OutputTokens uint32
+	AudioBytes   uint32
+	ImageBytes   uint32
+	CostMicros   uint64
+	LatencyMs    uint32
+	Ok           bool
+	CreatedAt    sql.NullTime
+}
+
+// B-N6-05b (L5): the user's AI usage rows still linked to her (ai_usage_logs keeps user_id for 90 days, then
+// internal/ai/usage anonymizes them) — counts, sizes, cost and outcome only, there is no content to export.
+func (q *Queries) ExportAIUsage(ctx context.Context, userID sql.NullInt64) ([]ExportAIUsageRow, error) {
+	rows, err := q.db.QueryContext(ctx, exportAIUsage, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ExportAIUsageRow{}
+	for rows.Next() {
+		var i ExportAIUsageRow
+		if err := rows.Scan(
+			&i.Feature,
+			&i.Op,
+			&i.Provider,
+			&i.Model,
+			&i.InputTokens,
+			&i.OutputTokens,
+			&i.AudioBytes,
+			&i.ImageBytes,
+			&i.CostMicros,
+			&i.LatencyMs,
+			&i.Ok,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const exportDailyHealthLogs = `-- name: ExportDailyHealthLogs :many
 
 SELECT id, user_id, log_date, bleeding_intensity, blood_color, has_clots, clots_amount, spotting, bleeding_smell, headache_intensity, stomach_ache_intensity, pelvic_pain_intensity, breast_pain_intensity, back_pain_intensity, ovarian_pain_intensity, nausea_intensity, bloating_intensity, diarrhea, constipation, appetite_change, food_craving, breast_sensitivity_intensity, vaginal_dryness, vaginal_burning, vaginal_burning_intensity, vaginal_itching, vaginal_itching_intensity, vaginal_smell_change, urination_change, urination_burning_intensity, acne, oily_skin, hair_loss, swelling, fatigue, dizziness, hot_flashes, chills, moods, sleep_duration, sleep_quality, exercise_type, exercise_duration, exercise_intensity, sexual_activities, sexual_desire, intercourse_type, weight, basal_body_temperature, heart_rate, systolic_pressure, diastolic_pressure, blood_sugar, energy_level, discharge_color, discharge_texture, discharge_amount, discharge_smell, discharge_itching, discharge_burning, frequent_urination, medications, notes, created_at, updated_at FROM ` + "`" + `daily_health_logs` + "`" + ` WHERE user_id = ? ORDER BY log_date, id
@@ -389,20 +448,21 @@ func (q *Queries) ExportSupportReports(ctx context.Context, userID uint64) ([]Ex
 }
 
 const exportUserConsents = `-- name: ExportUserConsents :many
-SELECT consent, granted, granted_at, revoked_at, created_at, updated_at
+SELECT consent, granted, version, granted_at, revoked_at, created_at, updated_at
 FROM ` + "`" + `user_consents` + "`" + ` WHERE user_id = ? ORDER BY id
 `
 
 type ExportUserConsentsRow struct {
 	Consent   string
 	Granted   bool
+	Version   sql.NullInt16
 	GrantedAt sql.NullTime
 	RevokedAt sql.NullTime
 	CreatedAt sql.NullTime
 	UpdatedAt sql.NullTime
 }
 
-// B-N1-12: the consents with their timestamps.
+// B-N1-12: the consents with their timestamps; B-N6-05b: and the version of the text accepted.
 func (q *Queries) ExportUserConsents(ctx context.Context, userID uint64) ([]ExportUserConsentsRow, error) {
 	rows, err := q.db.QueryContext(ctx, exportUserConsents, userID)
 	if err != nil {
@@ -415,6 +475,7 @@ func (q *Queries) ExportUserConsents(ctx context.Context, userID uint64) ([]Expo
 		if err := rows.Scan(
 			&i.Consent,
 			&i.Granted,
+			&i.Version,
 			&i.GrantedAt,
 			&i.RevokedAt,
 			&i.CreatedAt,

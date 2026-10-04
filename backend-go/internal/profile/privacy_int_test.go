@@ -59,10 +59,12 @@ func TestConsents_DefaultsGrantRevokeAndIsolation(t *testing.T) {
 		assert.Nil(t, c["granted_at"], code)
 	}
 
-	r = e.do(t, "PUT", "/api/v1/profile/consents", alice, `{"consents":{"ai_lab_analysis":true,"anonymous_stats":false,"unknown":true}}`)
+	r = e.do(t, "PUT", "/api/v1/profile/consents", alice, `{"consents":{"ai_lab_analysis":true,"anonymous_stats":false,"unknown":true},"versions":{"ai_lab_analysis":1}}`)
 	require.Equal(t, 200, r.status, r.raw)
 	ai := consentByCode(t, r, "ai_lab_analysis")
 	assert.Equal(t, true, ai["granted"])
+	assert.InDelta(t, 1, ai["version"], 0)
+	assert.InDelta(t, 1, ai["accepted_version"], 0)
 	assert.Equal(t, "2026-09-23T10:00:00+03:30", ai["granted_at"])
 	assert.Nil(t, ai["revoked_at"])
 	stats := consentByCode(t, r, "anonymous_stats")
@@ -83,6 +85,46 @@ func TestConsents_DefaultsGrantRevokeAndIsolation(t *testing.T) {
 	var n int
 	require.NoError(t, e.db.QueryRow(`SELECT COUNT(*) FROM user_consents WHERE consent = 'unknown'`).Scan(&n))
 	assert.Zero(t, n, "unknown codes are ignored")
+}
+
+// B-N6-05b (M5): AI grants name the version shown; `granted` holds only for the version in force; the export
+// carries the versions.
+func TestConsents_VersionAware(t *testing.T) {
+	e, _ := privacyEnv(t)
+	uid, tok := e.user(t, "09120000004")
+
+	r := e.do(t, "PUT", "/api/v1/profile/consents", tok, `{"consents":{"assistant_profile":true}}`)
+	assert.Equal(t, 422, r.status, r.raw)
+	assert.Contains(t, r.body["errors"], "versions.assistant_profile")
+	r = e.do(t, "PUT", "/api/v1/profile/consents", tok, `{"consents":{"assistant_profile":true},"versions":{"assistant_profile":"x"}}`)
+	assert.Equal(t, 422, r.status, r.raw)
+	r = e.do(t, "PUT", "/api/v1/profile/consents", tok, `{"consents":{"assistant_profile":true,"anonymous_stats":true},"versions":{"assistant_profile":7}}`)
+	assert.Equal(t, 409, r.status, r.raw)
+	assert.Equal(t, "consent_version_stale", r.body["error_code"])
+	assert.Equal(t, "assistant_profile", r.body["consent"])
+	var n int
+	require.NoError(t, e.db.QueryRow(`SELECT COUNT(*) FROM user_consents WHERE user_id = ?`, uid).Scan(&n))
+	assert.Zero(t, n, "nothing is saved when one grant is stale")
+
+	// a non-AI consent and a withdrawal need no version
+	r = e.do(t, "PUT", "/api/v1/profile/consents", tok, `{"consents":{"anonymous_stats":true,"ai_lab_analysis":false}}`)
+	require.Equal(t, 200, r.status, r.raw)
+	assert.Equal(t, true, consentByCode(t, r, "anonymous_stats")["granted"])
+
+	// a grant of an older text (or one made before versioning) is not «granted» any more
+	_, err := e.db.Exec(`INSERT INTO user_consents (user_id, consent, granted, version, granted_at, created_at, updated_at)
+		VALUES (?, 'assistant_profile', 1, NULL, '2026-09-01 10:00:00', '2026-09-01 10:00:00', '2026-09-01 10:00:00')`, uid)
+	require.NoError(t, err)
+	r = e.do(t, "GET", "/api/v1/profile/consents", tok, "")
+	require.Equal(t, 200, r.status, r.raw)
+	c := consentByCode(t, r, "assistant_profile")
+	assert.Equal(t, false, c["granted"])
+	assert.Nil(t, c["accepted_version"])
+	assert.InDelta(t, 1, c["version"], 0)
+
+	r = e.do(t, "PUT", "/api/v1/profile/consents", tok, `{"consents":{"assistant_profile":true},"versions":{"assistant_profile":1}}`)
+	require.Equal(t, 200, r.status, r.raw)
+	assert.Equal(t, true, consentByCode(t, r, "assistant_profile")["granted"])
 }
 
 func TestConsents_ValidationAnd401(t *testing.T) {
@@ -231,8 +273,15 @@ func TestSupportReport_UndecodableAndHugeScreenshotsAre422(t *testing.T) {
 
 func TestExport_IncludesConsentsReportsAndNotificationSettings(t *testing.T) {
 	e, _ := privacyEnv(t)
-	_, tok := e.user(t, "09120000008")
+	uid, tok := e.user(t, "09120000008")
+	_, other := e.user(t, "09120000009")
 	require.Equal(t, 200, e.do(t, "PUT", "/api/v1/profile/consents", tok, `{"consents":{"anonymous_stats":true}}`).status)
+	// B-N6-05b (L5): the AI usage rows still linked to the user (another user's and anonymized rows never)
+	_, err := e.db.Exec(`INSERT INTO ai_usage_logs (user_id, feature, op, provider, model, input_tokens, output_tokens, cost_micros, latency_ms, ok, created_at)
+		VALUES (?, 'voice_log', 'transcribe', 'gemini', 'gemini-2.5-flash', 900, 12, 930, 1400, 1, '2026-09-22 09:30:00'),
+		       (NULL, 'voice_log', 'parse_log', 'gemini', 'gemini-2.5-flash', 10, 10, 30, 10, 1, '2026-06-01 09:30:00')`, uid)
+	require.NoError(t, err)
+	_ = other
 	r := e.multipart(t, tok, map[string]string{"message": "تقویم بعد از آپدیت باز نمی شود"}, pngBytes(t), "shot.png")
 	require.Equal(t, 201, r.status, r.raw)
 
@@ -242,6 +291,18 @@ func TestExport_IncludesConsentsReportsAndNotificationSettings(t *testing.T) {
 	consents := data["consents"].([]any)
 	require.Len(t, consents, 1)
 	assert.Equal(t, "anonymous_stats", consents[0].(map[string]any)["code"])
+	assert.InDelta(t, 1, consents[0].(map[string]any)["version"], 0, "B-N6-05b: the version accepted")
+	usage := data["ai_usage"].([]any)
+	require.Len(t, usage, 1)
+	row := usage[0].(map[string]any)
+	assert.Equal(t, "voice_log", row["feature"])
+	assert.Equal(t, "transcribe", row["op"])
+	assert.InDelta(t, 930, row["cost_micros"], 0)
+	assert.Equal(t, "2026-09-22T09:30:00+03:30", row["created_at"])
+	assert.NotContains(t, row, "user_id")
+	r2 := e.do(t, "GET", "/api/v1/profile/export", other, "")
+	require.Equal(t, 200, r2.status)
+	assert.Empty(t, r2.body["data"].(map[string]any)["ai_usage"], "never another user's rows")
 	reports := data["support_reports"].([]any)
 	require.Len(t, reports, 1)
 	report := reports[0].(map[string]any)

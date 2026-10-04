@@ -40,12 +40,12 @@ cases:
         body: {granted: false}
         status: 200
   - name: toggle_grants_version
-    doc: A B-N1-12 privacy toggle grants the version in force (granted true in the versioned view)
+    doc: A B-N1-12 privacy toggle grants the version it names (B-N6-05b; granted true in the versioned view)
     locales: none
     steps:
       - method: PUT
         path: /api/v1/profile/consents
-        body: {consents: {ai_lab_analysis: true}}
+        body: {consents: {ai_lab_analysis: true}, versions: {ai_lab_analysis: 1}}
         status: 200
       - method: GET
         path: /api/v1/consents/ai_lab_analysis

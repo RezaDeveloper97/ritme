@@ -31,3 +31,14 @@ SELECT feature, provider, model, COUNT(*) AS calls,
   COUNT(DISTINCT user_id) AS users
 FROM `ai_usage_logs` WHERE created_at >= sqlc.arg(from_at) AND created_at < sqlc.arg(to_at)
 GROUP BY feature, provider, model ORDER BY cost_micros DESC, feature, provider, model;
+
+-- name: SumUserCostSince :one
+-- B-N6-05b: the per-user daily cap — one user's estimated cost since `since` (index user_id, created_at).
+SELECT CAST(COALESCE(SUM(cost_micros), 0) AS UNSIGNED) AS total FROM `ai_usage_logs`
+WHERE user_id = sqlc.arg(user_id) AND created_at >= sqlc.arg(since);
+
+-- name: AnonymizeUsageBefore :execrows
+-- B-N6-05b (L5): rows older than the retention window lose their user (the cost history stays for the caps and
+-- the admin aggregates). Bounded batch so one run never locks the table for long.
+UPDATE `ai_usage_logs` SET user_id = NULL WHERE user_id IS NOT NULL AND created_at < sqlc.arg(before)
+ORDER BY id LIMIT 5000;

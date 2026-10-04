@@ -257,6 +257,7 @@ func TestLoad_AICostCapAndPrices(t *testing.T) {
 	cfg, err := LoadFrom(lookup(minimal()))
 	require.NoError(t, err)
 	assert.InDelta(t, 5.0, cfg.AI.DailyCostCapUSD, 1e-9)
+	assert.InDelta(t, 0.25, cfg.AI.UserDailyCostCapUSD, 1e-9, "B-N6-05b per-user cap default")
 	require.Contains(t, cfg.AI.Prices, "gemini-flash-latest")
 	assert.Equal(t, AIPrice{InputPerMTok: 0.30, OutputPerMTok: 2.50, AudioPerMTok: 1.00}, cfg.AI.Prices["gemini-flash-latest"])
 
@@ -272,6 +273,7 @@ func TestLoad_AICostCapAndPrices(t *testing.T) {
 	for _, bad := range []map[string]string{
 		{"AI_DAILY_COST_CAP_USD": "-1"},
 		{"AI_DAILY_COST_CAP_USD": "lots"},
+		{"AI_USER_DAILY_COST_CAP_USD": "-0.1"},
 		{"AI_PRICES": "m1"},
 		{"AI_PRICES": "m1=1"},
 		{"AI_PRICES": "m1=a/b"},

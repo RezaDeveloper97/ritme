@@ -70,7 +70,10 @@ func NewHandlers(svc *Service, plusSvc *plus.Service, gate *plus.Gate, bundles *
 }
 
 // Voice is POST /logs/voice (multipart: audio file ≤ 2 MB, optional duration_ms ≤ 60000). Plus-gated by the
-// route (plus.voice_log); one use is counted only after a non-empty transcript was understood. Returns
+// route (plus.voice_log). B-N6-05b: the use is reserved by the AI gate before the handler runs (access.Guard.Chain,
+// reserve-first) and given back when this handler fails; a silent recording (empty transcript) keeps it — the
+// provider was paid for it. Without a reservation on the context (a route mounted without the gate) the use is
+// counted here after success, as before. Returns
 // {transcript, language, mode, suggestions:[{target, category, param, item, value, confidence, label, options}]};
 // never saves.
 func (h *Handlers) Voice(c fiber.Ctx) error {
@@ -104,12 +107,12 @@ func (h *Handlers) Voice(c fiber.Ctx) error {
 	case errors.Is(err, ai.ErrUpstream), errors.Is(err, context.DeadlineExceeded):
 		return httpx.Fail(fiber.StatusServiceUnavailable, T("messages.ai_failed", locale, nil), "error_code", CodeAIFailed).
 			WithHeader("Retry-After", "10")
-	case errors.Is(err, ai.ErrBudgetExceeded), errors.Is(err, ai.ErrInvalidRequest):
-		return access.Error(err, locale) // B-N6-05: daily cost cap reached between the gate and the call
+	case errors.Is(err, ai.ErrBudgetExceeded), errors.Is(err, ai.ErrUserBudgetExceeded), errors.Is(err, ai.ErrInvalidRequest):
+		return access.Error(err, locale) // B-N6-05: a cost cap reached between the gate and the call
 	case err != nil:
 		return err
 	}
-	if res.Transcript != "" {
+	if access.ReservationFrom(c.Context()) == nil {
 		if e, err := h.plus.Consume(c.Context(), userID, plus.VoiceLog, now); err != nil {
 			return h.gate.GateError(c, err, e)
 		}
@@ -322,10 +325,11 @@ func Sniff(data []byte) string {
 	return ""
 }
 
-// Throttles of POST /logs/voice per user (cost control on top of Plus): a burst limit and an hourly one.
+// Throttles of POST /logs/voice per user (cost control on top of Plus): a burst limit and an hourly one. They are
+// mounted by the AI gate right after auth (access policy of ai.FeatureVoiceLog, B-N6-05b) with Throttled as the 429.
 const (
-	BurstMax  = 6  // per minute
-	HourlyMax = 60 // per hour
+	BurstMax  = access.VoiceBurstMax  // per minute
+	HourlyMax = access.VoiceHourlyMax // per hour
 )
 
 // ErrorCodeTooMany is the throttle 429's error_code (distinct from plus_quota_exceeded).

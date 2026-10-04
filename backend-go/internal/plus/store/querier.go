@@ -16,6 +16,9 @@ type Querier interface {
 	CountUserDiscountRedemptions(ctx context.Context, arg CountUserDiscountRedemptionsParams) (int64, error)
 	// The period that covers `now` (canceled = auto-renew off, still valid); the latest-ending one wins.
 	CurrentSubscription(ctx context.Context, arg CurrentSubscriptionParams) (PlusSubscription, error)
+	// B-N6-05b: give back one reserved use (an AI call reserved at the gate whose provider failed before answering).
+	// Never below zero; the period is the one the reservation counted in.
+	DecrementUsage(ctx context.Context, arg DecrementUsageParams) (int64, error)
 	// Clears an override so the code / env default applies again.
 	DeleteSetting(ctx context.Context, key string) error
 	GetActivePlan(ctx context.Context, id uint64) (PlusPlan, error)

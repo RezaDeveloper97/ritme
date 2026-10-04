@@ -11,7 +11,9 @@
       },
       "status": 402,
       "headers": {
-        "content-type": "application/json"
+        "content-type": "application/json",
+        "x-ratelimit-limit": "6",
+        "x-ratelimit-remaining": "5"
       },
       "body": {
         "success": false,

@@ -76,3 +76,54 @@ func TestRecorderBudgetAndAdminUsage(t *testing.T) {
 		assert.Equal(t, "validation_failed", r.Code(), q)
 	}
 }
+
+// B-N6-05b (M2): the per-user daily cap counts only that user's calls of the Tehran day and fails closed.
+func TestBudget_PerUserCap(t *testing.T) {
+	e := admintest.New(t)
+	budget := usage.NewBudget(e.DB, 5, fixed, admintest.Quiet).WithUserCap(0.01) // 10 000 micro-USD per user
+	rec := usage.NewRecorder(e.DB, fixed, admintest.Quiet)
+	a, err := e.Exec("INSERT INTO users (mobile, name, created_at, updated_at) VALUES ('09120000011', 'A', NOW(), NOW())").LastInsertId()
+	require.NoError(t, err)
+	b, err := e.Exec("INSERT INTO users (mobile, name, created_at, updated_at) VALUES ('09120000012', 'B', NOW(), NOW())").LastInsertId()
+	require.NoError(t, err)
+	ua, ub := uint64(a), uint64(b) //nolint:gosec // test ids
+	ctx := context.Background()
+	assert.Equal(t, uint64(10000), budget.UserCapMicros())
+	require.NoError(t, budget.AllowUser(ctx, ua))
+	rec.Record(ctx, ai.Usage{Provider: "gemini", Model: "m", Feature: ai.FeatureVoiceLog, Op: ai.OpTranscribe, CostMicros: 6000, UserID: ua})
+	require.NoError(t, budget.AllowUser(ctx, ua))
+	rec.Record(ctx, ai.Usage{Provider: "gemini", Model: "m", Feature: ai.FeatureVoiceLog, Op: ai.OpParseLog, CostMicros: 4000, UserID: ua})
+	require.ErrorIs(t, budget.AllowUser(ctx, ua), ai.ErrUserBudgetExceeded, "10 000 ≥ 10 000")
+	require.NoError(t, budget.AllowUser(ctx, ub), "another user is not affected")
+	require.NoError(t, budget.Allow(ctx), "the global cap is far away")
+	// yesterday's spend does not count
+	e.Exec(`INSERT INTO ai_usage_logs (user_id, feature, op, provider, model, cost_micros, ok, created_at) VALUES (?, 'voice_log', 'transcribe', 'gemini', 'm', 99999, 1, '2026-10-02 23:59:00')`, ub)
+	require.NoError(t, budget.AllowUser(ctx, ub))
+
+	zero := usage.NewBudget(e.DB, 5, fixed, admintest.Quiet).WithUserCap(0)
+	require.ErrorIs(t, zero.AllowUser(ctx, ub), ai.ErrUserBudgetExceeded, "0 refuses (fail closed)")
+}
+
+// B-N6-05b (L5): rows older than 90 days lose their user; newer rows and the cost history stay.
+func TestRecorder_AnonymizesAfterRetention(t *testing.T) {
+	e := admintest.New(t)
+	uid, err := e.Exec("INSERT INTO users (mobile, name, created_at, updated_at) VALUES ('09120000021', 'A', NOW(), NOW())").LastInsertId()
+	require.NoError(t, err)
+	for _, at := range []string{"2026-07-04 11:59:00", "2026-07-05 12:30:00", "2026-10-01 10:00:00"} {
+		e.Exec(`INSERT INTO ai_usage_logs (user_id, feature, op, provider, model, cost_micros, ok, created_at) VALUES (?, 'assistant', 'chat', 'gemini', 'm', 10, 1, ?)`, uid, at)
+	}
+	rec := usage.NewRecorder(e.DB, fixed, admintest.Quiet)
+	n, err := rec.Anonymize(context.Background())
+	require.NoError(t, err)
+	assert.Equal(t, int64(1), n, "only the row before 2026-07-05 12:00 (90 days before the clock)")
+	assert.Equal(t, 2, e.Int("SELECT COUNT(*) FROM ai_usage_logs WHERE user_id IS NOT NULL"))
+	assert.Equal(t, 30, e.Int("SELECT CAST(SUM(cost_micros) AS SIGNED) FROM ai_usage_logs"), "the cost history stays")
+
+	// Record runs the clean-up in the background (at most once per hour)
+	e.Exec(`INSERT INTO ai_usage_logs (user_id, feature, op, provider, model, cost_micros, ok, created_at) VALUES (?, 'assistant', 'chat', 'gemini', 'm', 10, 1, '2026-01-01 00:00:00')`, uid)
+	rec2 := usage.NewRecorder(e.DB, fixed, admintest.Quiet)
+	rec2.Record(context.Background(), ai.Usage{Provider: "gemini", Model: "m", Feature: ai.FeatureAssistant, Op: ai.OpChat, UserID: uint64(uid)}) //nolint:gosec // test id
+	require.Eventually(t, func() bool {
+		return e.Int("SELECT COUNT(*) FROM ai_usage_logs WHERE user_id IS NOT NULL AND created_at < '2026-07-05'") == 0
+	}, 5*time.Second, 20*time.Millisecond)
+}

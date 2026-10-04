@@ -94,8 +94,10 @@ func (s *spyExtract) Extract(ctx context.Context, req ExtractRequest) (Extractio
 	return s.Fake.Extract(ctx, req)
 }
 
-func collect(t *testing.T, ch <-chan ChatEvent) (string, ChatEvent) {
+func collect(t *testing.T, st *ChatStream) (string, ChatEvent) {
 	t.Helper()
+	defer st.Close()
+	ch := st.Events
 	var sb strings.Builder
 	var last ChatEvent
 	timeout := time.After(5 * time.Second)
@@ -203,6 +205,13 @@ func TestClient_ChatLimitsAndBudget(t *testing.T) {
 		{Messages: []ChatMessage{{Role: RoleUser, Text: strings.Repeat("a", MaxChatTextRunes+1)}}},
 		{Messages: []ChatMessage{{Role: RoleAssistant, Text: "x", Images: []Image{{Data: []byte("x"), MIME: "image/png"}}}}},
 		{Messages: []ChatMessage{{Role: RoleUser, Images: []Image{{Data: []byte("x"), MIME: "image/gif"}}}}},
+		{Messages: []ChatMessage{{Role: RoleUser, Images: []Image{{Data: []byte("GIF89a"), MIME: "image/png"}}}}}, // L3
+		{Messages: []ChatMessage{{Role: RoleUser, Images: []Image{
+			{Data: append([]byte(pngMagic), make([]byte, MaxImageBytes-8)...), MIME: "image/png"},
+			{Data: append([]byte(pngMagic), make([]byte, MaxImageBytes-8)...), MIME: "image/png"},
+			{Data: append([]byte(pngMagic), make([]byte, MaxImageBytes-8)...), MIME: "image/png"},
+			{Data: append([]byte(pngMagic), make([]byte, MaxImageBytes-8)...), MIME: "image/png"},
+		}}}}, // over MaxChatImageBytes together
 		{Messages: []ChatMessage{{Role: RoleUser, Images: make([]Image, MaxChatImages+1)}}},
 	}
 	for i, req := range bad {
@@ -219,7 +228,7 @@ func TestClient_ChatLimitsAndBudget(t *testing.T) {
 	require.ErrorIs(t, err, ErrBudgetExceeded)
 	_, err = c.ParseLog(context.Background(), FeatureVoiceLog, LogParseRequest{Text: "x"})
 	require.ErrorIs(t, err, ErrBudgetExceeded)
-	_, err = c.Extract(context.Background(), FeatureLabAnalysis, ExtractRequest{Document: Document{Data: []byte("x"), MIME: "image/png"}, Schema: labSchema()})
+	_, err = c.Extract(context.Background(), FeatureLabAnalysis, ExtractRequest{Document: Document{Data: []byte(pngMagic), MIME: "image/png"}, Schema: labSchema()})
 	require.ErrorIs(t, err, ErrBudgetExceeded)
 }
 
@@ -228,20 +237,22 @@ func TestClient_ChatCancelStopsGoroutines(t *testing.T) {
 	c := NewClientWith(Options{Provider: "fake", Chatter: NewFake()})
 	for range 20 {
 		ctx, cancel := context.WithCancel(context.Background())
-		ch, err := c.Chat(ctx, FeatureAssistant, ChatRequest{Messages: []ChatMessage{{Role: RoleUser, Text: "hi"}}, Language: "en"})
+		st, err := c.Chat(ctx, FeatureAssistant, ChatRequest{Messages: []ChatMessage{{Role: RoleUser, Text: "hi"}}, Language: "en"})
 		require.NoError(t, err)
-		<-ch // one word, then the client goes away
+		<-st.Events // one word, then the client goes away
 		cancel()
 	}
 	require.Eventually(t, func() bool { return runtime.NumGoroutine() <= before+2 }, 2*time.Second, 10*time.Millisecond)
 }
+
+const pngMagic = "\x89PNG\r\n\x1a\n"
 
 func labSchema() ExtractSchema {
 	return ExtractSchema{
 		Name:   "lab_panel",
 		Fields: []FieldSpec{{Key: "date", Type: FieldDate, Description: "sample date"}},
 		Items: []FieldSpec{
-			{Key: "name", Type: FieldString, Description: "marker name as printed"},
+			{Key: "marker", Type: FieldString, Description: "marker name as printed"},
 			{Key: "value", Type: FieldNumber, Description: "result"},
 			{Key: "unit", Type: FieldString, Description: "unit"},
 			{Key: "ref_low", Type: FieldNumber, Description: "lower reference"},
@@ -260,19 +271,19 @@ func TestClient_ExtractFakeFixtures(t *testing.T) {
 	require.Len(t, out.Fields, 1, "lab_name is not in the schema")
 	assert.Equal(t, "2026-09-20", out.Fields[0].Value)
 	require.Len(t, out.Items, 5)
-	assert.Equal(t, []string{"name", "value", "unit", "ref_low", "ref_high"}, fieldKeys(out.Items[0]), "ref_text dropped, schema order")
+	assert.Equal(t, []string{"marker", "value", "unit", "ref_low", "ref_high"}, fieldKeys(out.Items[0]), "ref_text dropped, schema order")
 	assert.InDelta(t, 11.4, out.Items[0][1].Value, 1e-9)
 	require.Len(t, rec.got, 1)
 	assert.Equal(t, OpExtract, rec.got[0].Op)
 	assert.Equal(t, len(doc.Data), rec.got[0].ImageBytes)
 	assert.Equal(t, uint64(42), rec.got[0].UserID)
 
-	blurry := Document{Data: []byte("\x89PNG RITME-FAKE:blurry"), MIME: "image/png"}
+	blurry := Document{Data: []byte("\x89PNG\r\n\x1a\n RITME-FAKE:blurry"), MIME: "image/png"}
 	out, err = c.Extract(context.Background(), FeatureLabAnalysis, ExtractRequest{Document: blurry, Schema: labSchema()})
 	require.NoError(t, err)
 	assert.InDelta(t, 0.3, out.Items[0][0].Confidence, 1e-9)
 
-	_, err = c.Extract(context.Background(), FeatureLabAnalysis, ExtractRequest{Document: Document{Data: []byte("RITME-FAKE:error"), MIME: "image/png"}, Schema: labSchema()})
+	_, err = c.Extract(context.Background(), FeatureLabAnalysis, ExtractRequest{Document: Document{Data: []byte(pngMagic + "RITME-FAKE:error"), MIME: "image/png"}, Schema: labSchema()})
 	require.ErrorIs(t, err, ErrUpstream)
 
 	imaging := ExtractSchema{Name: "imaging", Fields: []FieldSpec{
@@ -304,7 +315,7 @@ func TestClient_ExtractSanitizesProviderAnswer(t *testing.T) {
 			{Key: "patient_name", Value: "Sara Ahmadi", Confidence: 0.9}, // not asked → dropped
 		},
 		Items: [][]ExtractedField{
-			{{Key: "name", Value: "Hb for Sara Ahmadi 09121234567", Confidence: -1}, {Key: "value", Value: "۱۱٫۴", Confidence: 0.9}},
+			{{Key: "marker", Value: "Hb for Sara Ahmadi 09121234567", Confidence: -1}, {Key: "value", Value: "۱۱٫۴", Confidence: 0.9}},
 			{{Key: "value", Value: "high"}}, // not a number → row empty → dropped
 			{{Key: "unit", Value: strings.Repeat("x", 900)}},
 		},
@@ -312,7 +323,7 @@ func TestClient_ExtractSanitizesProviderAnswer(t *testing.T) {
 	spy := &spyExtract{Fake: NewFake(), reply: &reply}
 	c := NewClientWith(Options{Provider: "fake", Extractor: spy})
 	out, err := c.Extract(userCtx(), FeatureLabAnalysis, ExtractRequest{
-		Document: Document{Data: []byte("x"), MIME: "image/webp"}, Schema: labSchema(), Hint: "for Sara Ahmadi",
+		Document: Document{Data: []byte("RIFF\x00\x00\x00\x00WEBPVP8 "), MIME: "image/webp"}, Schema: labSchema(), Hint: "for Sara Ahmadi",
 	})
 	require.NoError(t, err)
 	assert.Equal(t, "for [name]", spy.got.Hint)
@@ -328,12 +339,16 @@ func TestClient_ExtractSanitizesProviderAnswer(t *testing.T) {
 	bad := []ExtractRequest{
 		{Document: Document{MIME: "image/png"}, Schema: labSchema()},
 		{Document: Document{Data: []byte("x"), MIME: "text/html"}, Schema: labSchema()},
+		{Document: Document{Data: []byte("<html><body>"), MIME: "image/png"}, Schema: labSchema()}, // L3: bytes ≠ claim
+		{Document: Document{Data: []byte(pngMagic), MIME: "application/pdf"}, Schema: labSchema()},
+		{Document: Document{Data: []byte(pngMagic), MIME: "image/png"}, Schema: ExtractSchema{Items: []FieldSpec{{Key: "name", Type: FieldString}}}},
+		{Document: Document{Data: []byte(pngMagic), MIME: "image/png"}, Schema: ExtractSchema{Fields: []FieldSpec{{Key: "patient_id", Type: FieldString}}}},
 		{Document: Document{Data: make([]byte, MaxDocumentBytes+1), MIME: "application/pdf"}, Schema: labSchema()},
-		{Document: Document{Data: []byte("x"), MIME: "image/png"}, Schema: ExtractSchema{}},
-		{Document: Document{Data: []byte("x"), MIME: "image/png"}, Schema: ExtractSchema{Fields: []FieldSpec{{Key: "Bad Key", Type: FieldString}}}},
-		{Document: Document{Data: []byte("x"), MIME: "image/png"}, Schema: ExtractSchema{Fields: []FieldSpec{{Key: "k", Type: FieldEnum}}}},
-		{Document: Document{Data: []byte("x"), MIME: "image/png"}, Schema: ExtractSchema{Fields: []FieldSpec{{Key: "k", Type: "blob"}}}},
-		{Document: Document{Data: []byte("x"), MIME: "image/png"}, Schema: ExtractSchema{Fields: []FieldSpec{{Key: "k", Type: FieldString}, {Key: "k", Type: FieldString}}}},
+		{Document: Document{Data: []byte(pngMagic), MIME: "image/png"}, Schema: ExtractSchema{}},
+		{Document: Document{Data: []byte(pngMagic), MIME: "image/png"}, Schema: ExtractSchema{Fields: []FieldSpec{{Key: "Bad Key", Type: FieldString}}}},
+		{Document: Document{Data: []byte(pngMagic), MIME: "image/png"}, Schema: ExtractSchema{Fields: []FieldSpec{{Key: "k", Type: FieldEnum}}}},
+		{Document: Document{Data: []byte(pngMagic), MIME: "image/png"}, Schema: ExtractSchema{Fields: []FieldSpec{{Key: "k", Type: "blob"}}}},
+		{Document: Document{Data: []byte(pngMagic), MIME: "image/png"}, Schema: ExtractSchema{Fields: []FieldSpec{{Key: "k", Type: FieldString}, {Key: "k", Type: FieldString}}}},
 	}
 	for i, req := range bad {
 		_, err := c.Extract(context.Background(), FeatureLabAnalysis, req)
@@ -406,7 +421,7 @@ func TestGemini_ChatStream(t *testing.T) {
 		Messages: []ChatMessage{
 			{Role: RoleUser, Text: "hi, I'm Sara"},
 			{Role: RoleAssistant, Text: "Hello!"},
-			{Role: RoleUser, Text: "look", Images: []Image{{Data: []byte("img"), MIME: "image/jpeg"}}},
+			{Role: RoleUser, Text: "look", Images: []Image{{Data: []byte("\xff\xd8\xffimg"), MIME: "image/jpeg"}}},
 		},
 		Language: "fa", MaxOutputTokens: 300,
 	})
@@ -420,14 +435,17 @@ func TestGemini_ChatStream(t *testing.T) {
 	assert.Equal(t, "model", contents[1].(map[string]any)["role"])
 	assert.Equal(t, "hi, I'm [name]", contents[0].(map[string]any)["parts"].([]any)[0].(map[string]any)["text"])
 	inline := contents[2].(map[string]any)["parts"].([]any)[1].(map[string]any)["inline_data"].(map[string]any)
-	assert.Equal(t, base64.StdEncoding.EncodeToString([]byte("img")), inline["data"])
+	assert.Equal(t, base64.StdEncoding.EncodeToString([]byte("\xff\xd8\xffimg")), inline["data"])
 	assert.Contains(t, mustJSON(t, seen["system_instruction"]), `\"fa\"`)
 	assert.InDelta(t, 300, seen["generationConfig"].(map[string]any)["maxOutputTokens"], 0)
 	require.Eventually(t, func() bool { return len(rec.got) == 1 }, time.Second, 5*time.Millisecond)
 	assert.Equal(t, 50, rec.got[0].InputTokens)
 	assert.Equal(t, 3, rec.got[0].OutputTokens)
 	assert.Equal(t, uint64(50+30), rec.got[0].CostMicros)
-	assert.Equal(t, 3, rec.got[0].ImageBytes)
+	assert.Equal(t, 6, rec.got[0].ImageBytes)
+	assert.False(t, rec.got[0].Estimated, "a finished stream keeps the reported usage")
+	gc := seen["generationConfig"].(map[string]any)
+	assert.InDelta(t, 0, gc["thinkingConfig"].(map[string]any)["thinkingBudget"], 0, "chat thinks at the model's minimum")
 }
 
 func TestGemini_ChatStreamFinishAndErrors(t *testing.T) {
@@ -466,13 +484,13 @@ func TestGemini_ChatStreamFinishAndErrors(t *testing.T) {
 func TestGemini_Extract(t *testing.T) {
 	var seen map[string]any
 	var h http.Header
-	answer := `{"fields":[{"key":"date","value":"2026-09-20","confidence":0.9}],"items":[[{"key":"name","value":"TSH","confidence":0.8},{"key":"value","value":2.1,"confidence":0.8}]]}`
+	answer := `{"fields":[{"key":"date","value":"2026-09-20","confidence":0.9}],"items":[[{"key":"marker","value":"TSH","confidence":0.8},{"key":"value","value":2.1,"confidence":0.8}]]}`
 	srv := geminiServer(t, 200, answer, &seen, &h)
 	defer srv.Close()
 	g := NewGemini(config.Gemini{APIKey: "test-key", Model: "test-model", BaseURL: srv.URL}, srv.Client())
 	c := NewClientWith(Options{Provider: "gemini", Extractor: g})
 	out, err := c.Extract(userCtx(), FeatureLabAnalysis, ExtractRequest{
-		Document: Document{Data: []byte("%PDF"), MIME: "application/pdf"}, Schema: labSchema(), Language: "fa", Hint: "Sara Ahmadi's CBC",
+		Document: Document{Data: []byte("%PDF-1"), MIME: "application/pdf"}, Schema: labSchema(), Language: "fa", Hint: "Sara Ahmadi's CBC",
 	})
 	require.NoError(t, err)
 	assert.Equal(t, "2026-09-20", out.Fields[0].Value)
@@ -485,13 +503,13 @@ func TestGemini_Extract(t *testing.T) {
 	assert.NotContains(t, prompt, "Sara")
 	inline := parts[1].(map[string]any)["inline_data"].(map[string]any)
 	assert.Equal(t, "application/pdf", inline["mime_type"])
-	assert.Equal(t, base64.StdEncoding.EncodeToString([]byte("%PDF")), inline["data"])
+	assert.Equal(t, base64.StdEncoding.EncodeToString([]byte("%PDF-1")), inline["data"])
 	assert.Equal(t, "application/json", seen["generationConfig"].(map[string]any)["responseMimeType"])
 
 	srv2 := geminiServer(t, 200, "not json", &seen, &h)
 	defer srv2.Close()
 	g2 := NewGemini(config.Gemini{APIKey: "test-key", Model: "test-model", BaseURL: srv2.URL}, srv2.Client())
-	_, _, err = g2.Extract(context.Background(), ExtractRequest{Document: Document{Data: []byte("x"), MIME: "image/png"}, Schema: labSchema()})
+	_, _, err = g2.Extract(context.Background(), ExtractRequest{Document: Document{Data: []byte(pngMagic), MIME: "image/png"}, Schema: labSchema()})
 	require.ErrorIs(t, err, ErrUpstream)
 }
 
@@ -529,7 +547,7 @@ func TestLogRecorder_NoKeyNoContent(t *testing.T) {
 	defer srv.Close()
 	c := New(Deps{App: config.App{Env: "staging"}, Logger: logger, HTTPClient: srv.Client(),
 		Config: config.AI{Provider: "gemini", Gemini: config.Gemini{APIKey: "test-key", Model: "test-model", BaseURL: srv.URL}}})
-	_, err := c.Extract(context.Background(), FeatureLabAnalysis, ExtractRequest{Document: Document{Data: []byte("my belly hurts"), MIME: "image/png"}, Schema: labSchema(), Hint: "my belly hurts"})
+	_, err := c.Extract(context.Background(), FeatureLabAnalysis, ExtractRequest{Document: Document{Data: []byte(pngMagic + "my belly hurts"), MIME: "image/png"}, Schema: labSchema(), Hint: "my belly hurts"})
 	require.ErrorIs(t, err, ErrUpstream)
 	mu.Lock()
 	defer mu.Unlock()

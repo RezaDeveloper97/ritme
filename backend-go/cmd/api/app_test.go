@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/ritme/backend-go/internal/ai"
 	apihttp "github.com/ritme/backend-go/internal/http"
 	"github.com/ritme/backend-go/internal/platform/config"
 	"github.com/ritme/backend-go/internal/platform/db"
@@ -180,6 +181,7 @@ func TestBodyLimit(t *testing.T) {
 		r.Post("/upload", func(c fiber.Ctx) error { return c.SendString("ok") })
 	})
 	app := newApp(reg, testDeps())
+	assert.Equal(t, ai.RequestBodyLimit, bodyLimit, "B-N6-05b: the AI upload limits are sized against this body limit")
 
 	// Exactly 25 MB is accepted.
 	req := httptest.NewRequest(fiber.MethodPost, "/upload", strings.NewReader(strings.Repeat("a", bodyLimit)))

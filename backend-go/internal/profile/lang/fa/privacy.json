@@ -11,6 +11,9 @@
         "consents.ai_lab_analysis": "تحلیل آزمایش با هوش مصنوعی",
         "consents.assistant_profile": "استفاده دستیار سلامت از پروفایل",
         "consents.anonymous_stats": "کمک به بهبود ریتمی",
+        "versions": "نسخه متن رضایت‌ها",
+        "versions.ai_lab_analysis": "نسخه متن تحلیل آزمایش با هوش مصنوعی",
+        "versions.assistant_profile": "نسخه متن استفاده دستیار سلامت از پروفایل",
         "message": "متن گزارش",
         "screenshot": "اسکرین‌شات",
         "app_version": "نسخه اپ"

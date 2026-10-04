@@ -3178,9 +3178,11 @@ paths:
         `POST /logs/voice/commit`; log suggestions have `target: log`. `options` lists other log slots the same
         words may mean (the review's «مطمئن نیستیم» chooser, at most 4, each with the value it would get); empty
         when unambiguous. The recording is held only in memory and zeroed right after transcription; transcript and
-        values are never stored or logged. Plus-gated (`plus.voice_log`; free users get 402 before anything is read);
-        one use is counted only when something was heard (empty transcript → no suggestions, no use). Per-user
-        throttles: 6 per minute and 60 per hour.
+        values are never stored or logged. Per-user throttles first, right after auth (6 per minute and 60 per hour,
+        B-N6-05b), then Plus-gated (`plus.voice_log`; free users get 402 before anything is read), then the AI gate
+        (consent while the provider is external, global and per-user daily cost caps, at most 2 AI requests of one
+        user at once). The Plus use is reserved before the recording is processed and given back when the request
+        fails; a silent recording (empty transcript, no suggestions) keeps it — the provider was paid for it.
       operationId: postLogVoice
       security:
         - {bearerAuth: []}
@@ -3264,8 +3266,10 @@ paths:
         '422': {$ref: "#/components/responses/ValidationFailed"}
         '429':
           description: |
-            Throttled (`error_code: too_many_requests`, `retry_after` seconds, 6/minute and 60/hour per user) or a
-            monthly Plus quota spent (`plus_quota_exceeded`, see PlusQuotaExceeded; voice logging is unlimited today).
+            Throttled (`error_code: too_many_requests`, `retry_after` seconds, 6/minute and 60/hour per user), a
+            monthly Plus quota spent (`plus_quota_exceeded`, see PlusQuotaExceeded; voice logging is unlimited today),
+            the user's daily AI cost cap spent (`ai_user_budget_exhausted`, B-N6-05b; resets at Tehran midnight) or
+            another AI request of the user still running (`ai_busy`, `Retry-After: 5`).
           headers:
             Retry-After: {schema: {type: integer}}
           content:
@@ -3276,7 +3280,7 @@ paths:
                 properties:
                   success: {type: boolean, const: false}
                   message: {type: string}
-                  error_code: {type: string, enum: [too_many_requests, plus_quota_exceeded]}
+                  error_code: {type: string, enum: [too_many_requests, plus_quota_exceeded, ai_user_budget_exhausted, ai_busy]}
                   retry_after: {type: integer}
                   feature: {type: string}
                   reason: {type: string}
@@ -3285,7 +3289,8 @@ paths:
         '503':
           description: |
             `ai_unavailable` — no AI provider is configured; `ai_failed` — the provider failed or timed out
-            (`Retry-After: 10`). The recording is discarded either way and no use is counted.
+            (`Retry-After: 10`); `ai_budget_exhausted` — the global daily cost cap is spent. The recording is discarded
+            either way and the reserved use is given back.
           headers:
             Retry-After: {schema: {type: integer}}
           content:
@@ -13181,7 +13186,9 @@ paths:
         Go only (B-N1-12). The consents of the Privacy screen in screen order: `ai_lab_analysis` (lab results may
         be read by the AI analysis), `assistant_profile` (the health assistant may use age, mode and medications),
         `anonymous_stats` (anonymous usage statistics). Every consent is opt-in: never answered = `granted: false`.
-        `granted_at` / `revoked_at` are the last grant / withdrawal (null when never).
+        `granted_at` / `revoked_at` are the last grant / withdrawal (null when never). B-N6-05b (D-58): `version` is
+        the version of the text in force, `accepted_version` the one accepted last (null = none, or granted before
+        texts were versioned), and `granted` is true only while the version in force is accepted.
       operationId: getConsents
       security:
         - {bearerAuth: []}
@@ -13202,17 +13209,20 @@ paths:
                 success: true
                 data:
                   consents:
-                    - {code: ai_lab_analysis, granted: true, granted_at: "2026-09-23T10:00:00+03:30", revoked_at: null}
-                    - {code: assistant_profile, granted: false, granted_at: null, revoked_at: null}
-                    - {code: anonymous_stats, granted: false, granted_at: null, revoked_at: null}
+                    - {code: ai_lab_analysis, granted: true, version: 1, accepted_version: 1, granted_at: "2026-09-23T10:00:00+03:30", revoked_at: null}
+                    - {code: assistant_profile, granted: false, version: 1, accepted_version: null, granted_at: null, revoked_at: null}
+                    - {code: anonymous_stats, granted: false, version: 1, accepted_version: null, granted_at: null, revoked_at: null}
         '401': {$ref: "#/components/responses/Unauthenticated"}
     put:
       tags: [Profile]
       summary: Update privacy consents
       description: |
-        Partial update `{consents: {<code>: bool}}`: omitted codes keep their answer, unknown codes are ignored.
-        A change is stamped with the request time (grant → `granted_at`, withdrawal of a grant → `revoked_at`).
-        Responds with all consents. Per-user write throttle.
+        Partial update `{consents: {<code>: bool}, versions: {<code>: int}}`: omitted codes keep their answer, unknown
+        codes are ignored. A change is stamped with the request time (grant → `granted_at`, withdrawal of a grant →
+        `revoked_at`). Granting an AI consent (`ai_lab_analysis`, `assistant_profile`) names the version of the text
+        the client showed in `versions.<code>` (B-N6-05b, D-58): 422 when missing, 409 `consent_version_stale` for any
+        version other than the one in force — nothing is saved then. Withdrawals and `anonymous_stats` need no
+        version. Responds with all consents. Per-user write throttle.
       operationId: updateConsents
       security:
         - {bearerAuth: []}
@@ -13232,7 +13242,13 @@ paths:
                     ai_lab_analysis: {type: boolean}
                     assistant_profile: {type: boolean}
                     anonymous_stats: {type: boolean}
-            example: {consents: {ai_lab_analysis: true, anonymous_stats: false}}
+                versions:
+                  type: object
+                  description: "the version shown, required when granting an AI consent"
+                  properties:
+                    ai_lab_analysis: {type: integer, minimum: 1}
+                    assistant_profile: {type: integer, minimum: 1}
+            example: {consents: {ai_lab_analysis: true, anonymous_stats: false}, versions: {ai_lab_analysis: 1}}
       responses:
         '200':
           description: Saved; the consents
@@ -13259,6 +13275,19 @@ paths:
                   errors:
                     type: object
                     additionalProperties: {type: array, items: {type: string}}
+        '409':
+          description: "An AI grant named a version that is not the one in force (`consent_version_stale`, `version` = in force)"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, error_code, consent, version]
+                properties:
+                  success: {type: boolean, const: false}
+                  message: {type: string}
+                  error_code: {type: string, const: consent_version_stale}
+                  consent: {type: string}
+                  version: {type: integer}
         '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/consents:
     get:
@@ -13269,8 +13298,8 @@ paths:
         version in force in the request language: `ai_lab_analysis`, `assistant_profile`, `anonymous_stats`,
         `ai_assistant`, `ai_voice_log`, `ai_documents`. `granted` is true only while the version in force is accepted;
         `accepted_version` is the version accepted last (kept after a withdrawal), `reason` why consent is needed
-        (`missing` | `outdated`, null when granted). Same table as the B-N1-12 toggles: a toggle grants the version
-        in force.
+        (`missing` | `outdated`, null when granted). Same table as the B-N1-12 toggles, which grant only the version
+        they name (B-N6-05b).
       operationId: listVersionedConsents
       security:
         - {bearerAuth: []}
@@ -13485,7 +13514,7 @@ paths:
     get:
       tags: [Profile]
       summary: Export all personal data
-      description: "Returns a full JSON export of the authenticated user's data (account, profile, health logs, cycle history, pregnancy data, reminders; in Go also consents, support reports and notification settings, D-33, and the life profile, D-34) for data-portability."
+      description: "Returns a full JSON export of the authenticated user's data (account, profile, health logs, cycle history, pregnancy data, reminders; in Go also consents (with the version accepted, B-N6-05b), support reports and notification settings, D-33, the life profile, D-34, and `ai_usage` — the AI usage rows still linked to the user, kept 90 days: feature, op, provider, model, token counts, byte sizes, cost_micros, latency_ms, ok, created_at; no content, D-58) for data-portability."
       operationId: getProfileExport
       security:
         - {bearerAuth: []}
@@ -15966,7 +15995,8 @@ components:
       description: |
         AI platform (B-N6-05): `ai_unavailable` (no provider configured), `ai_budget_exhausted` (the global daily
         cost cap is spent, or could not be read — fail closed; resets at Tehran midnight) or `ai_failed` (provider
-        error, retry later).
+        error, retry later). The per-user cap (`ai_user_budget_exhausted`) and a running request (`ai_busy`) answer
+        429 (B-N6-05b).
       content:
         application/json:
           schema:
@@ -17907,10 +17937,12 @@ components:
           type: array
           items:
             type: object
-            required: [code, granted, granted_at, revoked_at]
+            required: [code, granted, version, accepted_version, granted_at, revoked_at]
             properties:
               code: {type: string, enum: [ai_lab_analysis, assistant_profile, anonymous_stats]}
-              granted: {type: boolean}
+              granted: {type: boolean, description: "true only while the version in force is accepted (B-N6-05b)"}
+              version: {type: integer, description: "version of the text in force"}
+              accepted_version: {type: [integer, "null"], description: "version accepted last; null = none / before versioning"}
               granted_at:
                 oneOf:
                   - {$ref: "#/components/schemas/IsoDateTime"}

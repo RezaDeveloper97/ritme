@@ -83,15 +83,38 @@ type Extractor interface {
 
 // Extraction limits enforced by the Client (ErrInvalidRequest).
 const (
-	MaxDocumentBytes  = 10 << 20
+	MaxDocumentBytes  = 10 << 20 // well inside RequestBodyLimit with multipart overhead
 	MaxSchemaFields   = 40
 	DefaultMaxItems   = 80
 	MaxExtractedRunes = 500
 )
 
-var documentMIME = map[string]bool{"image/jpeg": true, "image/png": true, "image/webp": true, "application/pdf": true}
-
 var reKey = regexp.MustCompile(`^[a-z][a-z0-9_]{0,47}$`)
+
+// identityKey reports whether a schema key asks for the person rather than the document (B-N6-05b, M4): a key
+// with a patient / national-id / phone / address / e-mail / insurance segment, or a person's name ("name",
+// "first_name", "full_name", "surname", …). Schemas name what they read precisely instead ("marker", "test",
+// "lab_name", "centre", "doctor" are fine: an institution or a printed role, never the user).
+func identityKey(key string) bool {
+	parts := strings.Split(key, "_")
+	for _, p := range parts {
+		switch p {
+		case "patient", "national", "nid", "ssn", "phone", "mobile", "tel", "address", "email", "insurance",
+			"passport", "birthdate", "dob", "surname", "lastname", "firstname", "fullname", "father":
+			return true
+		}
+	}
+	if parts[0] == "name" { // "name", "name_fa"
+		return true
+	}
+	if parts[len(parts)-1] == "name" && len(parts) >= 2 {
+		switch parts[len(parts)-2] {
+		case "first", "last", "full", "given", "family", "middle", "person", "user", "my", "her", "maiden":
+			return true
+		}
+	}
+	return false
+}
 
 func validateSchema(s ExtractSchema) error {
 	if len(s.Fields)+len(s.Items) == 0 || len(s.Fields)+len(s.Items) > MaxSchemaFields || s.MaxItems < 0 {
@@ -100,7 +123,7 @@ func validateSchema(s ExtractSchema) error {
 	for _, list := range [][]FieldSpec{s.Fields, s.Items} {
 		seen := map[string]bool{}
 		for _, f := range list {
-			if !reKey.MatchString(f.Key) || seen[f.Key] {
+			if !reKey.MatchString(f.Key) || seen[f.Key] || identityKey(f.Key) {
 				return ErrInvalidRequest
 			}
 			switch f.Type {
@@ -123,7 +146,9 @@ func (c *Client) Extract(ctx context.Context, feature Feature, req ExtractReques
 	if c == nil || c.extractor == nil {
 		return Extraction{}, ErrUnavailable
 	}
-	if len(req.Document.Data) == 0 || len(req.Document.Data) > MaxDocumentBytes || !documentMIME[req.Document.MIME] {
+	// L3: the bytes must be the type claimed (SniffDocument, sniff.go): image/jpeg | png | webp | application/pdf.
+	if len(req.Document.Data) == 0 || len(req.Document.Data) > MaxDocumentBytes || req.Document.MIME == "" ||
+		SniffDocument(req.Document.Data) != req.Document.MIME {
 		return Extraction{}, ErrInvalidRequest
 	}
 	if err := validateSchema(req.Schema); err != nil {

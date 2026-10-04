@@ -27,7 +27,7 @@ cases:
     steps:
       - method: PUT
         path: /api/v1/profile/consents
-        body: {consents: {ai_lab_analysis: true, anonymous_stats: false, unknown: true}}
+        body: {consents: {ai_lab_analysis: true, anonymous_stats: false, unknown: true}, versions: {ai_lab_analysis: 1}}
         status: 200
       - method: PUT
         path: /api/v1/profile/consents
@@ -43,6 +43,21 @@ cases:
     path: /api/v1/profile/consents
     body: {consents: {assistant_profile: "maybe"}}
     status: 422
+  - name: consents_ai_needs_version
+    doc: "B-N6-05b: an AI grant names the version shown — missing → 422, not in force → 409, nothing saved"
+    locales: [none, en]
+    steps:
+      - method: PUT
+        path: /api/v1/profile/consents
+        body: {consents: {assistant_profile: true}}
+        status: 422
+      - method: PUT
+        path: /api/v1/profile/consents
+        body: {consents: {assistant_profile: true, anonymous_stats: true}, versions: {assistant_profile: 2}}
+        status: 409
+      - method: GET
+        path: /api/v1/profile/consents
+        status: 200
   - name: consents_anon_update
     persona: anon
     locales: none

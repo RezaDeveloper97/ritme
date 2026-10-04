@@ -15,6 +15,8 @@ export interface Consent {
   granted: boolean;
   /** ISO 8601 (+03:30) of the last grant, or null. */
   grantedAt: string | null;
+  /** Version of the consent text in force; a grant sends it back (B-N6-05b). */
+  version: number;
 }
 
 const isKnown = (code: string): code is ConsentCode => (KNOWN_CONSENTS as readonly string[]).includes(code);
@@ -27,12 +29,23 @@ export const consentsSchema = z
         granted: z.boolean(),
         granted_at: z.string().nullable(),
         revoked_at: z.string().nullable().optional(),
+        version: z.number().int().positive().optional(),
       }),
     ),
   })
   .transform((v): Consent[] =>
-    v.consents.flatMap((c) => (isKnown(c.code) ? [{ code: c.code, granted: c.granted, grantedAt: c.granted_at }] : [])),
+    v.consents.flatMap((c) =>
+      isKnown(c.code) ? [{ code: c.code, granted: c.granted, grantedAt: c.granted_at, version: c.version ?? 1 }] : [],
+    ),
   );
+
+/**
+ * PUT /profile/consents body for one switch. A grant names the version of the
+ * text shown (the server refuses AI grants without it, B-N6-05b).
+ */
+export function consentChangeBody(code: ConsentCode, granted: boolean, version: number) {
+  return granted ? { consents: { [code]: true }, versions: { [code]: version } } : { consents: { [code]: false } };
+}
 
 /** The optimistic copy after flipping one consent (the server stamps the real time). */
 export function applyConsent(list: readonly Consent[], code: ConsentCode, granted: boolean, nowIso: string): Consent[] {

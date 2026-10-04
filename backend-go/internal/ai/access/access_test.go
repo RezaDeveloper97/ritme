@@ -28,6 +28,25 @@ func TestPoliciesComplete(t *testing.T) {
 	}
 	assert.Panics(t, func() { NewGuard(Options{}).Require("nope") })
 	assert.Len(t, Policies(), 4)
+	for _, p := range Policies() {
+		assert.NotEmpty(t, p.Throttles, "%s: every AI feature is throttled (B-N6-05b)", p.Feature)
+	}
+}
+
+func TestInflight(t *testing.T) {
+	f := &inflight{max: 2, n: map[uint64]int{}}
+	assert.True(t, f.acquire(1))
+	assert.True(t, f.acquire(1))
+	assert.False(t, f.acquire(1), "a third parallel request of the same user")
+	assert.True(t, f.acquire(2), "other users are independent")
+	f.release(1)
+	assert.True(t, f.acquire(1))
+	f.release(1)
+	f.release(1)
+	f.release(2)
+	assert.Empty(t, f.n, "no entry left behind")
+	var r *Reservation
+	assert.NotPanics(t, func() { r.Refund(t.Context()) }, "a nil reservation refunds nothing")
 }
 
 func TestErrorMapping(t *testing.T) {
@@ -47,6 +66,7 @@ func TestErrorMapping(t *testing.T) {
 		{fmt.Errorf("x: %w", ai.ErrBudgetExceeded), 503, CodeBudgetExhausted},
 		{fmt.Errorf("%w: status 500", ai.ErrUpstream), 503, CodeFailed},
 		{ai.ErrInvalidRequest, 422, CodeInvalidRequest},
+		{fmt.Errorf("x: %w", ai.ErrUserBudgetExceeded), 429, CodeUserBudgetExhausted},
 	}
 	for _, tc := range cases {
 		s, c := status(Error(tc.err, "fa"))
@@ -55,7 +75,7 @@ func TestErrorMapping(t *testing.T) {
 	}
 	other := errors.New("db")
 	assert.Equal(t, other, Error(other, "fa"))
-	for _, k := range []string{CodeUnavailable, CodeFailed, CodeBudgetExhausted, CodeInvalidRequest} {
+	for _, k := range []string{CodeUnavailable, CodeFailed, CodeBudgetExhausted, CodeInvalidRequest, CodeUserBudgetExhausted, CodeBusy, CodeTooMany} {
 		assert.NotEqual(t, k, T(k, "fa"))
 		assert.NotEqual(t, T(k, "en"), T(k, "fa"))
 		assert.Equal(t, T(k, "en"), T(k, "xx"))

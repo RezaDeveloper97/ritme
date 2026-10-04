@@ -1,7 +1,7 @@
 package voicelog_test
 
-// POST /api/v1/logs/voice end to end against MariaDB with the fake AI provider: Plus gate, quota counting
-// only after success, provider errors, custom items per user, no health rows written, and the follow-up
+// POST /api/v1/logs/voice end to end against MariaDB with the fake AI provider: Plus gate, reserve-first quota
+// (B-N6-05b: refunded on failure, kept for a silent recording), provider errors, custom items per user, no health rows written, and the follow-up
 // PUT /logs/days with voice_params storing source=voice. CB-VOICE-01: canvas suggestions per eligibility and
 // POST /logs/voice/commit writing hot flashes, the pain diary, the pill and the bladder diary through their
 // services, user-scoped.
@@ -27,12 +27,14 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/ritme/backend-go/internal/ai"
+	"github.com/ritme/backend-go/internal/ai/access"
 	"github.com/ritme/backend-go/internal/auth"
 	"github.com/ritme/backend-go/internal/auth/passport"
 	authstore "github.com/ritme/backend-go/internal/auth/store"
 	"github.com/ritme/backend-go/internal/catalog"
 	catalogstore "github.com/ritme/backend-go/internal/catalog/store"
 	"github.com/ritme/backend-go/internal/conditions"
+	"github.com/ritme/backend-go/internal/consent"
 	"github.com/ritme/backend-go/internal/contraception"
 	"github.com/ritme/backend-go/internal/healthlog"
 	"github.com/ritme/backend-go/internal/i18n"
@@ -94,7 +96,8 @@ func setupVoice(t *testing.T, client func(*countingTranscriber) *ai.Client) (*vo
 	spy := &countingTranscriber{Transcriber: ai.NewFake()}
 	cat := catalog.NewReader(catalogstore.New(db), nil, 0, quiet)
 	conds, contr := conditions.NewService(db, cat), contraception.NewService(db)
-	svc := voicelog.NewService(client(spy), logs).WithWriters(voicelog.Writers{
+	aiClient := client(spy)
+	svc := voicelog.NewService(aiClient, logs).WithWriters(voicelog.Writers{
 		Flashes: menopause.NewService(db, cat), Pain: conds, Pills: contr, Bladder: pelvic.NewService(pelvicstore.New(db), cat),
 	})
 	h := voicelog.NewHandlers(svc, plusSvc, gate, bundles, languages, clock.Real{})
@@ -102,7 +105,9 @@ func setupVoice(t *testing.T, client func(*countingTranscriber) *ai.Client) (*vo
 
 	app := fiber.New(fiber.Config{ErrorHandler: httpx.ErrorHandler(quiet)})
 	app.Use(clock.Middleware(clock.Real{}, true))
-	app.Post("/api/v1/logs/voice", locale, guard, gate.Require(plus.VoiceLog), h.Voice)
+	// B-N6-05b: the production chain — Plus check, gate, reserve-first use (no throttles: no cache here).
+	g := access.NewGuard(access.Options{Client: aiClient, Consents: consent.NewService(db), Gate: gate, Plus: plusSvc, Logger: quiet})
+	app.Post("/api/v1/logs/voice", locale, append(append([]any{guard}, g.Chain(ai.FeatureVoiceLog)...), h.Voice)...)
 	app.Put("/api/v1/logs/days/:date", locale, guard, lh.Save)
 	app.Post("/api/v1/logs/voice/commit", locale, guard, h.Commit)
 	return &voiceEnv{db: db, app: app, iss: passport.NewIssuer(key, q, clock.Real{}, 365), conds: conds, contr: contr}, spy
@@ -234,19 +239,19 @@ func TestVoice_TrialUser(t *testing.T) {
 	assert.Contains(t, mustJSON(t, en.data()), `"label":"Weight · 58.5 kg"`)
 	assert.Equal(t, 2, e.used(t, uid))
 
-	// nothing said → no suggestions, no use counted
+	// nothing said → no suggestions; B-N6-05b: the use still counts (the provider was paid for the recording)
 	s := e.voice(t, tok, "fa", "silence")
 	require.Equal(t, 200, s.status, s.raw)
 	assert.Equal(t, "", s.data()["transcript"])
 	assert.Equal(t, []any{}, s.data()["suggestions"])
-	assert.Equal(t, 2, e.used(t, uid))
+	assert.Equal(t, 3, e.used(t, uid))
 
-	// provider failure → 503 ai_failed, nothing counted
+	// provider failure → 503 ai_failed, the reserved use is given back
 	f := e.voice(t, tok, "fa", "error")
 	require.Equal(t, 503, f.status, f.raw)
 	assert.Equal(t, "ai_failed", f.body["error_code"])
 	assert.Equal(t, false, f.body["success"])
-	assert.Equal(t, 2, e.used(t, uid))
+	assert.Equal(t, 3, e.used(t, uid))
 }
 
 func TestVoice_Unavailable(t *testing.T) {

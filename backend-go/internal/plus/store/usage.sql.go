@@ -12,6 +12,33 @@ import (
 	"github.com/ritme/backend-go/internal/platform/civildate"
 )
 
+const decrementUsage = `-- name: DecrementUsage :execrows
+UPDATE plus_usage_counters SET updated_at = ?, used = used - 1
+WHERE user_id = ? AND feature = ? AND period_start = ? AND used > 0
+`
+
+type DecrementUsageParams struct {
+	Now         sql.NullTime
+	UserID      uint64
+	Feature     string
+	PeriodStart civildate.Date
+}
+
+// B-N6-05b: give back one reserved use (an AI call reserved at the gate whose provider failed before answering).
+// Never below zero; the period is the one the reservation counted in.
+func (q *Queries) DecrementUsage(ctx context.Context, arg DecrementUsageParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, decrementUsage,
+		arg.Now,
+		arg.UserID,
+		arg.Feature,
+		arg.PeriodStart,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
 const incrementUsage = `-- name: IncrementUsage :exec
 INSERT INTO plus_usage_counters (user_id, feature, period_start, used, created_at, updated_at)
 VALUES (?, ?, ?, 1, ?, ?)

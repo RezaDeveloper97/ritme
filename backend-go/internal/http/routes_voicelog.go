@@ -1,8 +1,6 @@
 package http
 
 import (
-	"time"
-
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/ritme/backend-go/internal/ai"
@@ -24,8 +22,9 @@ import (
 	"github.com/ritme/backend-go/resources/translations"
 )
 
-// Voice logging (B-N3-05, internal/voicelog), Go only — no Laravel route. auth:api, localized, Plus-gated
-// (plus.voice_log: 402 for free users before anything is read), then per-user burst + hourly throttles.
+// Voice logging (B-N3-05, internal/voicelog), Go only — no Laravel route. auth:api, localized, then the AI gate
+// (B-N6-05b order): per-user burst + hourly throttles right after auth, the Plus check (plus.voice_log: 402 for
+// free users before anything is read), consent / cost caps / concurrency, and the reserved Plus use.
 // The AI provider comes from AI_PROVIDER (internal/ai; fake outside production, none in production).
 // CB-VOICE-01: the canvas items (hot flashes, pain diary, pill, bladder diary) are understood too and saved by
 // POST /logs/voice/commit through each domain's own service (no AI there: auth + write throttle only).
@@ -38,7 +37,7 @@ func init() {
 		gate := plus.NewGate(plusSvc, clock.Real{})
 		// B-N6-05: usage + cost log, daily cost cap and the consent gate (ai_voice_log, only while the provider
 		// is external — the voice UI has no consent sheet yet; the fake keeps everything in-process).
-		platform := newAIPlatform(d, gate)
+		platform := newAIPlatform(d, gate, plusSvc, map[ai.Feature]ratelimit.Reject{ai.FeatureVoiceLog: voicelog.Throttled})
 		client := platform.client
 		cat := catalog.NewReader(catalogstore.New(d.DB), d.Cache, 0, d.Logger)
 		svc := voicelog.NewService(client, healthlog.NewService(d.DB)).WithWriters(voicelog.Writers{
@@ -50,14 +49,7 @@ func init() {
 		h := voicelog.NewHandlers(svc, plusSvc, gate,
 			i18n.NewTranslationStore(translations.FS, d.Config.StoragePath), languages, clock.Real{})
 
-		throttles := []any{}
-		if d.Cache != nil {
-			l := ratelimit.New(d.Cache, clock.Real{})
-			throttles = append(throttles,
-				l.NamedWith("voice-burst", voicelog.BurstMax, time.Minute, auth.ThrottleIdentity, voicelog.Throttled),
-				l.NamedWith("voice-hourly", voicelog.HourlyMax, time.Hour, auth.ThrottleIdentity, voicelog.Throttled))
-		}
-		handlers := append(append([]any{guard}, platform.guard.Chain(ai.FeatureVoiceLog)...), throttles...)
+		handlers := append([]any{guard}, platform.guard.Chain(ai.FeatureVoiceLog)...)
 		r.Post("/api/v1/logs/voice", locale, append(handlers, h.Voice)...)
 		r.Post("/api/v1/logs/voice/commit", locale, guard, writeThrottle(d), h.Commit)
 	})

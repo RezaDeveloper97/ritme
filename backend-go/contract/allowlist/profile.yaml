@@ -46,6 +46,13 @@ entries:
     deviation: D-33
     reason: Go-only notification settings in the data export
 
+  # D-58 (task B-N6-05b, security review L5): the export also carries the Go-only AI usage rows still linked to the
+  # user (ai_usage_logs, 90-day retention; no content). The consent rows (D-33 above) now carry `version` too.
+  - case: "export*"
+    where: data.ai_usage
+    deviation: D-58
+    reason: Go-only ai_usage_logs rows (counts and cost only) in the data export
+
   # D-34 (task B-N2-01): the export also carries the Go-only onboarding v2 / life-stage row (null when none).
   - case: "export*"
     where: data.life_profile

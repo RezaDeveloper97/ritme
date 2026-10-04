@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { type ApiEnvelope, apiClient } from '@/shared/api';
 import { isAuthenticated } from '@/shared/session';
 
-import { applyConsent, type Consent, type ConsentCode, consentsSchema } from '../model/consents';
+import { applyConsent, type Consent, type ConsentCode, consentChangeBody, consentsSchema } from '../model/consents';
 
 /** Query-key factory (CLAUDE.md §8). */
 export const consentKeys = {
@@ -31,6 +31,8 @@ export function useConsents() {
 interface ConsentChange {
   code: ConsentCode;
   granted: boolean;
+  /** Version of the text shown (from GET). */
+  version: number;
 }
 
 /** PUT /profile/consents for one switch; optimistic, rolled back on failure. */
@@ -39,8 +41,8 @@ export function useUpdateConsent() {
   const key = consentKeys.all;
   return useMutation<Consent[], unknown, ConsentChange, { previous?: Consent[] }>({
     mutationKey: [...key, 'update'],
-    mutationFn: async ({ code, granted }) => {
-      const { data } = await apiClient.put<ApiEnvelope<unknown>>(PATH, { consents: { [code]: granted } });
+    mutationFn: async ({ code, granted, version }) => {
+      const { data } = await apiClient.put<ApiEnvelope<unknown>>(PATH, consentChangeBody(code, granted, version));
       return consentsSchema.parse(data.data);
     },
     onMutate: async ({ code, granted }) => {

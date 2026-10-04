@@ -196,12 +196,17 @@ type AI struct {
 	// Provider is AI_PROVIDER: none | fake | gemini. Unset → fake outside production, none in production.
 	// AI_PROVIDER=fake with APP_ENV=production is refused at start-up (it would invent health data).
 	Provider string
-	// Timeout (AI_HTTP_TIMEOUT_SECONDS, default 30) bounds every provider call.
+	// Timeout (AI_HTTP_TIMEOUT_SECONDS, default 30) bounds every non-streaming provider call and the wait for the
+	// response headers of a stream (a streamed chat is bounded by ai.MaxChatDuration and an idle timeout instead).
 	Timeout time.Duration
 	// DailyCostCapUSD (AI_DAILY_COST_CAP_USD, default 5) is the global budget of one Tehran calendar day: once the
 	// estimated cost of the day's calls (ai_usage_logs) reaches it, every AI feature answers 503
 	// ai_budget_exhausted until midnight. 0 refuses every call (fail closed); it is never «unlimited» (B-N6-05).
 	DailyCostCapUSD float64
+	// UserDailyCostCapUSD (AI_USER_DAILY_COST_CAP_USD, default 0.25) is the per-user budget of one Tehran day
+	// (B-N6-05b): once one user's calls cost that much, her AI features answer 429 ai_user_budget_exhausted until
+	// midnight, so one account cannot spend the global cap alone. 0 refuses every call (fail closed).
+	UserDailyCostCapUSD float64
 	// Prices (AI_PRICES) is the price table the cost estimate uses: comma-separated
 	// `model=input/output[/audio]` in USD per 1M tokens (audio = audio input tokens; default = input). A model
 	// missing from the table is priced at the table's highest rates (never free). The fake is always free.
@@ -390,6 +395,8 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 			Provider:        strings.ToLower(e.str("AI_PROVIDER", "")),
 			Timeout:         time.Duration(e.integer("AI_HTTP_TIMEOUT_SECONDS", 30)) * time.Second,
 			DailyCostCapUSD: e.float("AI_DAILY_COST_CAP_USD", 5),
+			// B-N6-05b: per-user daily cost cap.
+			UserDailyCostCapUSD: e.float("AI_USER_DAILY_COST_CAP_USD", 0.25),
 			Gemini: Gemini{
 				APIKey:  e.str("GEMINI_API_KEY", ""),
 				Model:   e.str("GEMINI_MODEL", "gemini-flash-latest"),
@@ -461,6 +468,9 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 	}
 	if cfg.AI.DailyCostCapUSD < 0 {
 		e.fail("AI_DAILY_COST_CAP_USD: must be 0 or more")
+	}
+	if cfg.AI.UserDailyCostCapUSD < 0 {
+		e.fail("AI_USER_DAILY_COST_CAP_USD: must be 0 or more")
 	}
 	if prices, err := ParseAIPrices(e.str("AI_PRICES", DefaultAIPrices)); err != nil {
 		e.fail("AI_PRICES: %v", err)

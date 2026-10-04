@@ -57,7 +57,7 @@ func (g *Gemini) Extract(ctx context.Context, req ExtractRequest) (Extraction, U
 			{Text: sb.String()},
 			{InlineData: &gInline{MimeType: req.Document.MIME, Data: req.Document.Data}},
 		}}},
-		GenerationConfig: map[string]any{"temperature": 0, "responseMimeType": "application/json"},
+		GenerationConfig: g.taskConfig(GeminiExtractMaxOutputTokens, map[string]any{"responseMimeType": "application/json"}),
 	}
 	raw, err := json.Marshal(body)
 	if err != nil {

@@ -319,6 +319,8 @@ func (h *Handlers) Export(c fiber.Ctx) error {
 		"consents", privacy.consents,
 		"support_reports", privacy.reports,
 		"notification_settings", privacy.notifications,
+		// B-N6-05b (Go only, D-58): the AI usage rows still linked to the user.
+		"ai_usage", privacy.aiUsage,
 		// B-N2-01 (Go only, D-34): onboarding v2 answers and the life-stage mode.
 		"life_profile", LifeProfileExportJSON(life),
 	))

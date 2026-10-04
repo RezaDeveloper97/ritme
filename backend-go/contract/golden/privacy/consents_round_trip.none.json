@@ -12,6 +12,9 @@
             "ai_lab_analysis": true,
             "anonymous_stats": false,
             "unknown": true
+          },
+          "versions": {
+            "ai_lab_analysis": 1
           }
         }
       },
@@ -29,18 +32,24 @@
             {
               "code": "ai_lab_analysis",
               "granted": true,
+              "version": 1,
+              "accepted_version": 1,
               "granted_at": "2026-09-23T10:00:00+03:30",
               "revoked_at": null
             },
             {
               "code": "assistant_profile",
               "granted": false,
+              "version": 1,
+              "accepted_version": null,
               "granted_at": null,
               "revoked_at": null
             },
             {
               "code": "anonymous_stats",
               "granted": false,
+              "version": 1,
+              "accepted_version": null,
               "granted_at": null,
               "revoked_at": null
             }
@@ -74,18 +83,24 @@
             {
               "code": "ai_lab_analysis",
               "granted": false,
+              "version": 1,
+              "accepted_version": 1,
               "granted_at": "2026-09-23T10:00:00+03:30",
               "revoked_at": "2026-09-23T10:00:00+03:30"
             },
             {
               "code": "assistant_profile",
               "granted": false,
+              "version": 1,
+              "accepted_version": null,
               "granted_at": null,
               "revoked_at": null
             },
             {
               "code": "anonymous_stats",
               "granted": false,
+              "version": 1,
+              "accepted_version": null,
               "granted_at": null,
               "revoked_at": null
             }
@@ -111,18 +126,24 @@
             {
               "code": "ai_lab_analysis",
               "granted": false,
+              "version": 1,
+              "accepted_version": 1,
               "granted_at": "2026-09-23T10:00:00+03:30",
               "revoked_at": "2026-09-23T10:00:00+03:30"
             },
             {
               "code": "assistant_profile",
               "granted": false,
+              "version": 1,
+              "accepted_version": null,
               "granted_at": null,
               "revoked_at": null
             },
             {
               "code": "anonymous_stats",
               "granted": false,
+              "version": 1,
+              "accepted_version": null,
               "granted_at": null,
               "revoked_at": null
             }

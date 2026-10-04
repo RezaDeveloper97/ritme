@@ -12,8 +12,10 @@ import (
 // Only the keys the caller's schema asks for come back (the Client drops the rest), so downstream schemas use the
 // fixture keys below to get values:
 //
-//	lab_panel fields: date, lab_name                       items: name, value, unit, ref_low, ref_high, ref_text
+//	lab_panel fields: date, lab_name                       items: marker, value, unit, ref_low, ref_high, ref_text
 //	imaging   fields: kind, date, centre, doctor, ga_weeks, ga_days, edd, findings
+//
+// (B-N6-05b: "name" is an identity key the Client refuses in schemas, so the marker column is "marker".)
 var FakeExtractions = map[string]Extraction{
 	"lab_panel": {
 		Fields: []ExtractedField{
@@ -43,9 +45,9 @@ var FakeExtractions = map[string]Extraction{
 	"blank": {},
 }
 
-func labRow(name string, value float64, unit string, low, high, conf float64) []ExtractedField {
+func labRow(marker string, value float64, unit string, low, high, conf float64) []ExtractedField {
 	return []ExtractedField{
-		{Key: "name", Value: name, Confidence: conf},
+		{Key: "marker", Value: marker, Confidence: conf},
 		{Key: "value", Value: value, Confidence: conf},
 		{Key: "unit", Value: unit, Confidence: conf},
 		{Key: "ref_low", Value: low, Confidence: conf},
