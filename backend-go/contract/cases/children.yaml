@@ -1,0 +1,238 @@
+# Children (/api/v1/children*) — Go only (bloom B-N5-02, deviations.md D-56): there is no Laravel route, so these
+# goldens were recorded from the Go server and reviewed by hand (new-endpoint skill, step 8).
+# The fixture dump carries the empty children tables, the family_children → children FK and the 132 child_* catalog
+# rows (goose 00031 / Laravel 2026_10_03_000031), added by hand. No persona has a child, so every flow creates one
+# (every writing case runs on a fresh dump). Fixture day 2026-09-23. `regular` (1004) is the owner; `no_profile`
+# (1001) answers the Gender step with male and becomes the spouse. The WHO LMS maths, the schedule edges, IDOR on every
+# route and the family-sharing matrix are covered by internal/children and internal/http tests.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: children
+defaults:
+  persona: regular
+  locales: none
+  patterns:
+    data.invite.code: '^[A-HJ-NP-Z2-9]{6}$'
+cases:
+  - name: index_empty
+    locales: [none, en]
+    method: GET
+    path: /api/v1/children
+    status: 200
+  - name: index_anon
+    persona: anon
+    method: GET
+    path: /api/v1/children
+    status: 401
+  - name: show_anon
+    persona: anon
+    method: GET
+    path: /api/v1/children/1
+    status: 401
+  - name: show_missing
+    locales: [none, en]
+    method: GET
+    path: /api/v1/children/999
+    status: 404
+  - name: create_invalid
+    locales: [fa, en]
+    method: POST
+    path: /api/v1/children
+    body: {birth_date: "2026-09-24", sex: x, birth_weight_kg: 12, delivery_type: natural}
+    status: 422
+
+  - name: child_home
+    doc: nbl_v15_AddChild → nbl_v15_Children → nbl_v16_ChildHome — a girl born 2026-06-12 (3 months and 11 days)
+    locales: [fa, en]
+    steps:
+      - method: POST
+        path: /api/v1/children
+        body: {name: آوا, birth_date: "2026-06-12", sex: girl, birth_weight_kg: 3.2, birth_length_cm: 50, delivery_type: vaginal}
+        status: 201
+        capture: {id: data.id}
+      - method: GET
+        path: /api/v1/children
+        status: 200
+      - method: GET
+        path: "/api/v1/children/{{id}}"
+        status: 200
+      - method: PUT
+        path: "/api/v1/children/{{id}}"
+        body: {name: Ava, birth_head_cm: 34}
+        status: 200
+
+  - name: growth
+    doc: nbl_v16_Growth — measurements placed on the WHO standard, the weight chart and a sex-unknown child's length chart
+    locales: [fa, en]
+    steps:
+      - method: POST
+        path: /api/v1/children
+        body: {name: آوا, birth_date: "2026-06-12", sex: girl, birth_weight_kg: 3.2, birth_length_cm: 50}
+        status: 201
+        capture: {id: data.id}
+      - method: POST
+        path: "/api/v1/children/{{id}}/measurements"
+        body: {measured_on: "2026-08-12", weight_kg: 5.0, length_cm: 57}
+        status: 201
+      - method: POST
+        path: "/api/v1/children/{{id}}/measurements"
+        body: {measured_on: "2026-09-23", weight_kg: 6.1, length_cm: 61, head_cm: 40.5}
+        status: 201
+        capture: {mid: data.id}
+      - method: PUT
+        path: "/api/v1/children/{{id}}/measurements/{{mid}}"
+        body: {head_cm: 40}
+        status: 200
+      - method: GET
+        path: "/api/v1/children/{{id}}/measurements"
+        status: 200
+      - method: GET
+        path: "/api/v1/children/{{id}}/growth"
+        query: {indicator: weight}
+        status: 200
+      - method: POST
+        path: "/api/v1/children/{{id}}/measurements"
+        body: {measured_on: "2026-06-01", weight_kg: 3}
+        status: 422
+      - method: PUT
+        path: "/api/v1/children/{{id}}"
+        body: {sex: null}
+        status: 200
+      - method: GET
+        path: "/api/v1/children/{{id}}/growth"
+        query: {indicator: length}
+        status: 200
+      - method: DELETE
+        path: "/api/v1/children/{{id}}/measurements/{{mid}}"
+        status: 200
+
+  - name: vaccines
+    doc: nbl_v16_Vaccines — the national schedule from the birth date, a visit marked given, one dose marked and undone, the reminder due list
+    locales: [fa, en]
+    steps:
+      - method: POST
+        path: /api/v1/children
+        body: {name: سام, birth_date: "2026-05-26", sex: boy}
+        status: 201
+        capture: {id: data.id}
+      - method: GET
+        path: "/api/v1/children/{{id}}/vaccines"
+        status: 200
+      - method: POST
+        path: "/api/v1/children/{{id}}/vaccines/visits/birth"
+        body: {given_on: "2026-05-26"}
+        status: 200
+      - method: POST
+        path: "/api/v1/children/{{id}}/vaccines/visits/m2"
+        body: {given_on: "2026-07-27", note: تب خفیف}
+        status: 200
+      - method: PUT
+        path: "/api/v1/children/{{id}}/vaccines/penta_2"
+        body: {}
+        status: 200
+      - method: DELETE
+        path: "/api/v1/children/{{id}}/vaccines/penta_2"
+        status: 200
+      - method: GET
+        path: /api/v1/children/reminders
+        status: 200
+      - method: PUT
+        path: "/api/v1/children/{{id}}/vaccines/nope"
+        body: {}
+        status: 422
+
+  - name: milestones_and_learn
+    doc: nbl_v16_Milestones and nbl_v16_Learn — the current band, a milestone checked, another month, the age-based tips
+    locales: [fa, en]
+    steps:
+      - method: POST
+        path: /api/v1/children
+        body: {name: آوا, birth_date: "2026-06-12", sex: girl}
+        status: 201
+        capture: {id: data.id}
+      - method: GET
+        path: "/api/v1/children/{{id}}/milestones"
+        status: 200
+      - method: PUT
+        path: "/api/v1/children/{{id}}/milestones/m3_social_smile"
+        body: {checked: true}
+        status: 200
+      - method: GET
+        path: "/api/v1/children/{{id}}/milestones"
+        query: {month: "6"}
+        status: 200
+      - method: GET
+        path: "/api/v1/children/{{id}}/learn"
+        status: 200
+      - method: GET
+        path: "/api/v1/children/{{id}}/learn"
+        query: {topic: feeding}
+        status: 200
+
+  - name: shared_with_spouse
+    doc: |
+      Hamdam_Children → the owner shares a child with her spouse link; the spouse lists and reads it (read-only:
+      a write is 403 child_read_only) and the companion home shows the child card; another account gets 404
+    steps:
+      - method: POST
+        path: /api/v1/children
+        body: {name: آوا, birth_date: "2026-06-12", sex: girl}
+        status: 201
+        capture: {child: data.id}
+      - as: no_profile
+        method: PUT
+        path: /api/v1/onboarding/steps/gender
+        body: {gender: male}
+        status: 200
+      - method: POST
+        path: /api/v1/companions
+        body: {type: spouse, child_ids: ["{{child}}"]}
+        status: 201
+        capture: {code: data.invite.code, link: data.companion.id}
+      - as: no_profile
+        method: POST
+        path: /api/v1/companions/accept
+        body: {code: "{{code}}"}
+        status: 200
+      - as: no_profile
+        method: GET
+        path: /api/v1/children
+        status: 200
+      - as: no_profile
+        method: GET
+        path: "/api/v1/children/{{child}}/vaccines"
+        status: 200
+      - as: no_profile
+        method: POST
+        path: "/api/v1/children/{{child}}/measurements"
+        body: {weight_kg: 6}
+        status: 403
+      - as: no_profile
+        method: GET
+        path: /api/v1/companion/home
+        status: 200
+      - as: pregnant_ultrasound_w26
+        method: GET
+        path: "/api/v1/children/{{child}}"
+        status: 404
+      - method: PUT
+        path: "/api/v1/companions/{{link}}/children"
+        body: {child_ids: []}
+        status: 200
+      - as: no_profile
+        method: GET
+        path: "/api/v1/children/{{child}}"
+        status: 404
+
+  - name: delete
+    steps:
+      - method: POST
+        path: /api/v1/children
+        body: {name: Kid, birth_date: "2025-01-10"}
+        status: 201
+        capture: {id: data.id}
+      - method: DELETE
+        path: "/api/v1/children/{{id}}"
+        status: 200
+      - method: GET
+        path: "/api/v1/children/{{id}}"
+        status: 404

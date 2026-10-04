@@ -3,7 +3,7 @@ id: B-N5-02
 title: Children — profiles, WHO growth percentiles, vaccines, milestones
 milestone: N5
 type: backend
-status: todo
+status: done
 depends_on: [B-N5-01,B-N4-01]
 parallel_group: N5-B
 touches: [backend-go/db,backend-go/internal/children,backend-go/internal/companion,backend-go/api,backend-go/seeds]

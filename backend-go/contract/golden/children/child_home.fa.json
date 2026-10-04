@@ -1,0 +1,362 @@
+{
+  "case": "children/child_home.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/children",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "name": "آوا",
+          "birth_date": "2026-06-12",
+          "sex": "girl",
+          "birth_weight_kg": 3.2,
+          "birth_length_cm": 50,
+          "delivery_type": "vaginal"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "فرزند ثبت شد",
+        "data": {
+          "id": 1,
+          "name": "آوا",
+          "initial": "آ",
+          "birth_date": "2026-06-12",
+          "sex": "girl",
+          "sex_label": "دختر",
+          "delivery_type": "vaginal",
+          "delivery_type_label": "طبیعی",
+          "birth": {
+            "weight_kg": 3.2,
+            "length_cm": 50,
+            "head_cm": null
+          },
+          "age": {
+            "days": 103,
+            "weeks": 14,
+            "months": 3,
+            "years": 0,
+            "days_in_month": 11,
+            "label": "۳ ماه و ۱۱ روز"
+          },
+          "role": "owner",
+          "can_edit": true,
+          "owner_name": null,
+          "vaccines": {
+            "given": 0,
+            "total": 21,
+            "completed_visits": 0,
+            "up_to_date": false,
+            "complete": false,
+            "next": {
+              "code": "birth",
+              "age_months": 0,
+              "label": "بدو تولد",
+              "due_date": "2026-06-12",
+              "remind_on": "2026-06-09",
+              "days_left": -103,
+              "status": "overdue",
+              "status_label": "عقب افتاده",
+              "given": 0,
+              "total": 3,
+              "dose_names": [
+                "ب.ث.ژ (BCG)",
+                "هپاتیت B نوبت اول",
+                "فلج اطفال خوراکی"
+              ]
+            }
+          },
+          "growth": {
+            "status": "normal",
+            "label": "در بازه طبیعی"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/children",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "children": [
+            {
+              "id": 1,
+              "name": "آوا",
+              "initial": "آ",
+              "birth_date": "2026-06-12",
+              "sex": "girl",
+              "sex_label": "دختر",
+              "delivery_type": "vaginal",
+              "delivery_type_label": "طبیعی",
+              "birth": {
+                "weight_kg": 3.2,
+                "length_cm": 50,
+                "head_cm": null
+              },
+              "age": {
+                "days": 103,
+                "weeks": 14,
+                "months": 3,
+                "years": 0,
+                "days_in_month": 11,
+                "label": "۳ ماه و ۱۱ روز"
+              },
+              "role": "owner",
+              "can_edit": true,
+              "owner_name": null,
+              "vaccines": {
+                "given": 0,
+                "total": 21,
+                "completed_visits": 0,
+                "up_to_date": false,
+                "complete": false,
+                "next": {
+                  "code": "birth",
+                  "age_months": 0,
+                  "label": "بدو تولد",
+                  "due_date": "2026-06-12",
+                  "remind_on": "2026-06-09",
+                  "days_left": -103,
+                  "status": "overdue",
+                  "status_label": "عقب افتاده",
+                  "given": 0,
+                  "total": 3,
+                  "dose_names": [
+                    "ب.ث.ژ (BCG)",
+                    "هپاتیت B نوبت اول",
+                    "فلج اطفال خوراکی"
+                  ]
+                }
+              },
+              "growth": {
+                "status": "normal",
+                "label": "در بازه طبیعی"
+              }
+            }
+          ],
+          "count": 1,
+          "owned_count": 1,
+          "max_children": 10,
+          "can_add": true,
+          "sharing_note": "اطلاعات هر فرزند جدا نگه داشته می‌شود و می‌توانی آن را با «ریتمی همراه» به اشتراک بگذاری."
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/children/1",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "id": 1,
+          "name": "آوا",
+          "initial": "آ",
+          "birth_date": "2026-06-12",
+          "sex": "girl",
+          "sex_label": "دختر",
+          "delivery_type": "vaginal",
+          "delivery_type_label": "طبیعی",
+          "birth": {
+            "weight_kg": 3.2,
+            "length_cm": 50,
+            "head_cm": null
+          },
+          "age": {
+            "days": 103,
+            "weeks": 14,
+            "months": 3,
+            "years": 0,
+            "days_in_month": 11,
+            "label": "۳ ماه و ۱۱ روز"
+          },
+          "role": "owner",
+          "can_edit": true,
+          "owner_name": null,
+          "vaccines": {
+            "given": 0,
+            "total": 21,
+            "completed_visits": 0,
+            "up_to_date": false,
+            "complete": false,
+            "next": {
+              "code": "birth",
+              "age_months": 0,
+              "label": "بدو تولد",
+              "due_date": "2026-06-12",
+              "remind_on": "2026-06-09",
+              "days_left": -103,
+              "status": "overdue",
+              "status_label": "عقب افتاده",
+              "given": 0,
+              "total": 3,
+              "dose_names": [
+                "ب.ث.ژ (BCG)",
+                "هپاتیت B نوبت اول",
+                "فلج اطفال خوراکی"
+              ]
+            }
+          },
+          "growth": {
+            "status": "normal",
+            "label": "در بازه طبیعی"
+          },
+          "latest": {
+            "id": null,
+            "source": "birth",
+            "measured_on": "2026-06-12",
+            "age": {
+              "days": 0,
+              "months": 0,
+              "label": "امروز به دنیا آمده"
+            },
+            "weight": {
+              "value": 3.2,
+              "percentile": 47.2,
+              "z": -0.07,
+              "in_band": true
+            },
+            "length": {
+              "value": 50,
+              "percentile": 67.6,
+              "z": 0.46,
+              "in_band": true
+            },
+            "head": null
+          },
+          "milestones": {
+            "band_months": 3,
+            "label": "۳ ماهگی",
+            "checked": 0,
+            "total": 7
+          },
+          "this_week": {
+            "weeks": 14,
+            "months": 3,
+            "body": "بیشتر نوزادها در این سن سرشان را موقع دمر خوابیدن بالا نگه می‌دارند، به صداها می‌خندند و دست‌ها را به دهان می‌برند. اگر هنوز نه، عجله نکن؛ بازه طبیعی وسیع است."
+          },
+          "learn": {
+            "count": 6,
+            "featured": {
+              "code": "night_sleep_3m",
+              "topic": "sleep",
+              "topic_label": "خواب",
+              "title": "خواب شبانه از ۳ ماهگی",
+              "body": "چطور روتین ملایم بسازیم: حمام، شیر، نور کم، همان ترتیب هر شب. بدون روش‌های گریه‌درمانی.",
+              "minutes": 4,
+              "featured": true,
+              "from_months": 3,
+              "to_months": 6,
+              "article": null
+            }
+          },
+          "today": null
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/children/1",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "name": "Ava",
+          "birth_head_cm": 34
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "message": "اطلاعات فرزند ذخیره شد",
+        "data": {
+          "id": 1,
+          "name": "Ava",
+          "initial": "A",
+          "birth_date": "2026-06-12",
+          "sex": "girl",
+          "sex_label": "دختر",
+          "delivery_type": "vaginal",
+          "delivery_type_label": "طبیعی",
+          "birth": {
+            "weight_kg": 3.2,
+            "length_cm": 50,
+            "head_cm": 34
+          },
+          "age": {
+            "days": 103,
+            "weeks": 14,
+            "months": 3,
+            "years": 0,
+            "days_in_month": 11,
+            "label": "۳ ماه و ۱۱ روز"
+          },
+          "role": "owner",
+          "can_edit": true,
+          "owner_name": null,
+          "vaccines": {
+            "given": 0,
+            "total": 21,
+            "completed_visits": 0,
+            "up_to_date": false,
+            "complete": false,
+            "next": {
+              "code": "birth",
+              "age_months": 0,
+              "label": "بدو تولد",
+              "due_date": "2026-06-12",
+              "remind_on": "2026-06-09",
+              "days_left": -103,
+              "status": "overdue",
+              "status_label": "عقب افتاده",
+              "given": 0,
+              "total": 3,
+              "dose_names": [
+                "ب.ث.ژ (BCG)",
+                "هپاتیت B نوبت اول",
+                "فلج اطفال خوراکی"
+              ]
+            }
+          },
+          "growth": {
+            "status": "normal",
+            "label": "در بازه طبیعی"
+          }
+        }
+      }
+    }
+  ]
+}

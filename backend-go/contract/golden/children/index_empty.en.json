@@ -1,0 +1,29 @@
+{
+  "case": "children/index_empty.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/children",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "children": [],
+          "count": 0,
+          "owned_count": 0,
+          "max_children": 10,
+          "can_add": true,
+          "sharing_note": "Each child's data is kept separately and you can share it with a Ritme companion."
+        }
+      }
+    }
+  ]
+}

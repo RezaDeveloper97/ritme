@@ -4,6 +4,9 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/ritme/backend-go/internal/auth"
+	"github.com/ritme/backend-go/internal/catalog"
+	catalogstore "github.com/ritme/backend-go/internal/catalog/store"
+	"github.com/ritme/backend-go/internal/children"
 	companionhome "github.com/ritme/backend-go/internal/companion/home"
 	"github.com/ritme/backend-go/internal/companion/shared"
 	"github.com/ritme/backend-go/internal/i18n"
@@ -22,7 +25,9 @@ func init() {
 			Reader: shared.NewReader(d.DB),
 			AppURL: d.Config.App.URL,
 			Logger: d.Logger,
+			// shared children card (bloom B-N5-02)
+			Children: children.NewService(d.DB, catalog.NewReader(catalogstore.New(d.DB), d.Cache, 0, d.Logger)),
 		})
-		r.Get("/api/v1/companion/home", locale, guard, h.Show)
+		r.Get("/api/v1/companion/home", locale, guard, companionReadThrottle(d), h.Show) // CMP-L1
 	})
 }

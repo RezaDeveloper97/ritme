@@ -1,0 +1,2140 @@
+{
+  "case": "children/vaccines.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/children",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "name": "سام",
+          "birth_date": "2026-05-26",
+          "sex": "boy"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "Child added",
+        "data": {
+          "id": 1,
+          "name": "سام",
+          "initial": "س",
+          "birth_date": "2026-05-26",
+          "sex": "boy",
+          "sex_label": "Boy",
+          "delivery_type": null,
+          "delivery_type_label": null,
+          "birth": {
+            "weight_kg": null,
+            "length_cm": null,
+            "head_cm": null
+          },
+          "age": {
+            "days": 120,
+            "weeks": 17,
+            "months": 3,
+            "years": 0,
+            "days_in_month": 28,
+            "label": "3 months and 28 days"
+          },
+          "role": "owner",
+          "can_edit": true,
+          "owner_name": null,
+          "vaccines": {
+            "given": 0,
+            "total": 21,
+            "completed_visits": 0,
+            "up_to_date": false,
+            "complete": false,
+            "next": {
+              "code": "birth",
+              "age_months": 0,
+              "label": "At birth",
+              "due_date": "2026-05-26",
+              "remind_on": "2026-05-23",
+              "days_left": -120,
+              "status": "overdue",
+              "status_label": "Overdue",
+              "given": 0,
+              "total": 3,
+              "dose_names": [
+                "BCG",
+                "Hepatitis B, dose 1",
+                "Oral polio (OPV)"
+              ]
+            }
+          },
+          "growth": {
+            "status": "unknown",
+            "label": "No measurements yet"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/children/1/vaccines",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "summary": {
+            "given": 0,
+            "total": 21,
+            "completed_visits": 0,
+            "up_to_date": false,
+            "complete": false,
+            "next": {
+              "code": "birth",
+              "age_months": 0,
+              "label": "At birth",
+              "due_date": "2026-05-26",
+              "remind_on": "2026-05-23",
+              "days_left": -120,
+              "status": "overdue",
+              "status_label": "Overdue",
+              "given": 0,
+              "total": 3,
+              "dose_names": [
+                "BCG",
+                "Hepatitis B, dose 1",
+                "Oral polio (OPV)"
+              ]
+            }
+          },
+          "visits": [
+            {
+              "code": "birth",
+              "age_months": 0,
+              "label": "At birth",
+              "due_date": "2026-05-26",
+              "remind_on": "2026-05-23",
+              "days_left": -120,
+              "status": "overdue",
+              "status_label": "Overdue",
+              "given": 0,
+              "total": 3,
+              "dose_names": [
+                "BCG",
+                "Hepatitis B, dose 1",
+                "Oral polio (OPV)"
+              ],
+              "doses": [
+                {
+                  "code": "bcg",
+                  "title": "BCG",
+                  "protects_against": "Tuberculosis",
+                  "status": "overdue",
+                  "status_label": "Overdue",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "hepb_1",
+                  "title": "Hepatitis B, dose 1",
+                  "protects_against": "Hepatitis B",
+                  "status": "overdue",
+                  "status_label": "Overdue",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "opv_0",
+                  "title": "Oral polio (OPV)",
+                  "protects_against": "Polio",
+                  "status": "overdue",
+                  "status_label": "Overdue",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                }
+              ]
+            },
+            {
+              "code": "m2",
+              "age_months": 2,
+              "label": "2 months",
+              "due_date": "2026-07-26",
+              "remind_on": "2026-07-23",
+              "days_left": -59,
+              "status": "overdue",
+              "status_label": "Overdue",
+              "given": 0,
+              "total": 4,
+              "dose_names": [
+                "Pentavalent, dose 1",
+                "Polio (oral + injectable)",
+                "Pneumococcal, dose 1",
+                "Rotavirus, dose 1"
+              ],
+              "doses": [
+                {
+                  "code": "penta_1",
+                  "title": "Pentavalent, dose 1",
+                  "protects_against": "Diphtheria, tetanus, whooping cough, hepatitis B and Hib",
+                  "status": "overdue",
+                  "status_label": "Overdue",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "polio_m2",
+                  "title": "Polio (oral + injectable)",
+                  "protects_against": "Polio",
+                  "status": "overdue",
+                  "status_label": "Overdue",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "pcv_1",
+                  "title": "Pneumococcal, dose 1",
+                  "protects_against": "Pneumococcal disease (pneumonia, meningitis, ear infections)",
+                  "status": "overdue",
+                  "status_label": "Overdue",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "rota_1",
+                  "title": "Rotavirus, dose 1",
+                  "protects_against": "Severe rotavirus diarrhoea",
+                  "status": "overdue",
+                  "status_label": "Overdue",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                }
+              ]
+            },
+            {
+              "code": "m4",
+              "age_months": 4,
+              "label": "4 months",
+              "due_date": "2026-09-26",
+              "remind_on": "2026-09-23",
+              "days_left": 3,
+              "status": "soon",
+              "status_label": "Soon",
+              "given": 0,
+              "total": 4,
+              "dose_names": [
+                "Pentavalent, dose 2",
+                "Oral polio (OPV)",
+                "Pneumococcal, dose 2",
+                "Rotavirus, dose 2"
+              ],
+              "doses": [
+                {
+                  "code": "penta_2",
+                  "title": "Pentavalent, dose 2",
+                  "protects_against": "Diphtheria, tetanus, whooping cough, hepatitis B and Hib",
+                  "status": "soon",
+                  "status_label": "Soon",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "opv_m4",
+                  "title": "Oral polio (OPV)",
+                  "protects_against": "Polio",
+                  "status": "soon",
+                  "status_label": "Soon",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "pcv_2",
+                  "title": "Pneumococcal, dose 2",
+                  "protects_against": "Pneumococcal disease (pneumonia, meningitis, ear infections)",
+                  "status": "soon",
+                  "status_label": "Soon",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "rota_2",
+                  "title": "Rotavirus, dose 2",
+                  "protects_against": "Severe rotavirus diarrhoea",
+                  "status": "soon",
+                  "status_label": "Soon",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                }
+              ]
+            },
+            {
+              "code": "m6",
+              "age_months": 6,
+              "label": "6 months",
+              "due_date": "2026-11-26",
+              "remind_on": "2026-11-23",
+              "days_left": 64,
+              "status": "upcoming",
+              "status_label": "Upcoming",
+              "given": 0,
+              "total": 3,
+              "dose_names": [
+                "Pentavalent, dose 3",
+                "Polio (oral + injectable)",
+                "Pneumococcal, dose 3"
+              ],
+              "doses": [
+                {
+                  "code": "penta_3",
+                  "title": "Pentavalent, dose 3",
+                  "protects_against": "Diphtheria, tetanus, whooping cough, hepatitis B and Hib",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "polio_m6",
+                  "title": "Polio (oral + injectable)",
+                  "protects_against": "Polio",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "pcv_3",
+                  "title": "Pneumococcal, dose 3",
+                  "protects_against": "Pneumococcal disease (pneumonia, meningitis, ear infections)",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                }
+              ]
+            },
+            {
+              "code": "m12",
+              "age_months": 12,
+              "label": "12 months",
+              "due_date": "2027-05-26",
+              "remind_on": "2027-05-23",
+              "days_left": 245,
+              "status": "upcoming",
+              "status_label": "Upcoming",
+              "given": 0,
+              "total": 2,
+              "dose_names": [
+                "MMR, dose 1",
+                "Pneumococcal booster"
+              ],
+              "doses": [
+                {
+                  "code": "mmr_1",
+                  "title": "MMR, dose 1",
+                  "protects_against": "Measles, mumps and rubella",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "pcv_booster",
+                  "title": "Pneumococcal booster",
+                  "protects_against": "Pneumococcal disease (pneumonia, meningitis, ear infections)",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                }
+              ]
+            },
+            {
+              "code": "m18",
+              "age_months": 18,
+              "label": "18 months",
+              "due_date": "2027-11-26",
+              "remind_on": "2027-11-23",
+              "days_left": 429,
+              "status": "upcoming",
+              "status_label": "Upcoming",
+              "given": 0,
+              "total": 3,
+              "dose_names": [
+                "DTP booster",
+                "Polio booster",
+                "MMR, dose 2"
+              ],
+              "doses": [
+                {
+                  "code": "dtp_booster_1",
+                  "title": "DTP booster",
+                  "protects_against": "Diphtheria, tetanus and whooping cough",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "opv_booster_1",
+                  "title": "Polio booster",
+                  "protects_against": "Polio",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "mmr_2",
+                  "title": "MMR, dose 2",
+                  "protects_against": "Measles, mumps and rubella",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                }
+              ]
+            },
+            {
+              "code": "y6",
+              "age_months": 72,
+              "label": "6 years",
+              "due_date": "2032-05-26",
+              "remind_on": "2032-05-23",
+              "days_left": 2072,
+              "status": "upcoming",
+              "status_label": "Upcoming",
+              "given": 0,
+              "total": 2,
+              "dose_names": [
+                "DTP second booster",
+                "Polio second booster"
+              ],
+              "doses": [
+                {
+                  "code": "dtp_booster_2",
+                  "title": "DTP second booster",
+                  "protects_against": "Diphtheria, tetanus and whooping cough",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "opv_booster_2",
+                  "title": "Polio second booster",
+                  "protects_against": "Polio",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                }
+              ]
+            }
+          ],
+          "reminders": {
+            "days_before": 3,
+            "label": "Vaccine reminder 3 days before each visit"
+          },
+          "note": "The schedule follows the national immunisation table and may change. The vaccination card and the health centre are the final reference."
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/children/1/vaccines/visits/birth",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "given_on": "2026-05-26"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "message": "Vaccine visit recorded",
+        "data": {
+          "summary": {
+            "given": 3,
+            "total": 21,
+            "completed_visits": 1,
+            "up_to_date": false,
+            "complete": false,
+            "next": {
+              "code": "m2",
+              "age_months": 2,
+              "label": "2 months",
+              "due_date": "2026-07-26",
+              "remind_on": "2026-07-23",
+              "days_left": -59,
+              "status": "overdue",
+              "status_label": "Overdue",
+              "given": 0,
+              "total": 4,
+              "dose_names": [
+                "Pentavalent, dose 1",
+                "Polio (oral + injectable)",
+                "Pneumococcal, dose 1",
+                "Rotavirus, dose 1"
+              ]
+            }
+          },
+          "visits": [
+            {
+              "code": "birth",
+              "age_months": 0,
+              "label": "At birth",
+              "due_date": "2026-05-26",
+              "remind_on": "2026-05-23",
+              "days_left": -120,
+              "status": "done",
+              "status_label": "Up to date",
+              "given": 3,
+              "total": 3,
+              "dose_names": [
+                "BCG",
+                "Hepatitis B, dose 1",
+                "Oral polio (OPV)"
+              ],
+              "doses": [
+                {
+                  "code": "bcg",
+                  "title": "BCG",
+                  "protects_against": "Tuberculosis",
+                  "status": "done",
+                  "status_label": "Up to date",
+                  "given_on": "2026-05-26",
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "hepb_1",
+                  "title": "Hepatitis B, dose 1",
+                  "protects_against": "Hepatitis B",
+                  "status": "done",
+                  "status_label": "Up to date",
+                  "given_on": "2026-05-26",
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "opv_0",
+                  "title": "Oral polio (OPV)",
+                  "protects_against": "Polio",
+                  "status": "done",
+                  "status_label": "Up to date",
+                  "given_on": "2026-05-26",
+                  "note": null,
+                  "needs_review": true
+                }
+              ]
+            },
+            {
+              "code": "m2",
+              "age_months": 2,
+              "label": "2 months",
+              "due_date": "2026-07-26",
+              "remind_on": "2026-07-23",
+              "days_left": -59,
+              "status": "overdue",
+              "status_label": "Overdue",
+              "given": 0,
+              "total": 4,
+              "dose_names": [
+                "Pentavalent, dose 1",
+                "Polio (oral + injectable)",
+                "Pneumococcal, dose 1",
+                "Rotavirus, dose 1"
+              ],
+              "doses": [
+                {
+                  "code": "penta_1",
+                  "title": "Pentavalent, dose 1",
+                  "protects_against": "Diphtheria, tetanus, whooping cough, hepatitis B and Hib",
+                  "status": "overdue",
+                  "status_label": "Overdue",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "polio_m2",
+                  "title": "Polio (oral + injectable)",
+                  "protects_against": "Polio",
+                  "status": "overdue",
+                  "status_label": "Overdue",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "pcv_1",
+                  "title": "Pneumococcal, dose 1",
+                  "protects_against": "Pneumococcal disease (pneumonia, meningitis, ear infections)",
+                  "status": "overdue",
+                  "status_label": "Overdue",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "rota_1",
+                  "title": "Rotavirus, dose 1",
+                  "protects_against": "Severe rotavirus diarrhoea",
+                  "status": "overdue",
+                  "status_label": "Overdue",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                }
+              ]
+            },
+            {
+              "code": "m4",
+              "age_months": 4,
+              "label": "4 months",
+              "due_date": "2026-09-26",
+              "remind_on": "2026-09-23",
+              "days_left": 3,
+              "status": "soon",
+              "status_label": "Soon",
+              "given": 0,
+              "total": 4,
+              "dose_names": [
+                "Pentavalent, dose 2",
+                "Oral polio (OPV)",
+                "Pneumococcal, dose 2",
+                "Rotavirus, dose 2"
+              ],
+              "doses": [
+                {
+                  "code": "penta_2",
+                  "title": "Pentavalent, dose 2",
+                  "protects_against": "Diphtheria, tetanus, whooping cough, hepatitis B and Hib",
+                  "status": "soon",
+                  "status_label": "Soon",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "opv_m4",
+                  "title": "Oral polio (OPV)",
+                  "protects_against": "Polio",
+                  "status": "soon",
+                  "status_label": "Soon",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "pcv_2",
+                  "title": "Pneumococcal, dose 2",
+                  "protects_against": "Pneumococcal disease (pneumonia, meningitis, ear infections)",
+                  "status": "soon",
+                  "status_label": "Soon",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "rota_2",
+                  "title": "Rotavirus, dose 2",
+                  "protects_against": "Severe rotavirus diarrhoea",
+                  "status": "soon",
+                  "status_label": "Soon",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                }
+              ]
+            },
+            {
+              "code": "m6",
+              "age_months": 6,
+              "label": "6 months",
+              "due_date": "2026-11-26",
+              "remind_on": "2026-11-23",
+              "days_left": 64,
+              "status": "upcoming",
+              "status_label": "Upcoming",
+              "given": 0,
+              "total": 3,
+              "dose_names": [
+                "Pentavalent, dose 3",
+                "Polio (oral + injectable)",
+                "Pneumococcal, dose 3"
+              ],
+              "doses": [
+                {
+                  "code": "penta_3",
+                  "title": "Pentavalent, dose 3",
+                  "protects_against": "Diphtheria, tetanus, whooping cough, hepatitis B and Hib",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "polio_m6",
+                  "title": "Polio (oral + injectable)",
+                  "protects_against": "Polio",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "pcv_3",
+                  "title": "Pneumococcal, dose 3",
+                  "protects_against": "Pneumococcal disease (pneumonia, meningitis, ear infections)",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                }
+              ]
+            },
+            {
+              "code": "m12",
+              "age_months": 12,
+              "label": "12 months",
+              "due_date": "2027-05-26",
+              "remind_on": "2027-05-23",
+              "days_left": 245,
+              "status": "upcoming",
+              "status_label": "Upcoming",
+              "given": 0,
+              "total": 2,
+              "dose_names": [
+                "MMR, dose 1",
+                "Pneumococcal booster"
+              ],
+              "doses": [
+                {
+                  "code": "mmr_1",
+                  "title": "MMR, dose 1",
+                  "protects_against": "Measles, mumps and rubella",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "pcv_booster",
+                  "title": "Pneumococcal booster",
+                  "protects_against": "Pneumococcal disease (pneumonia, meningitis, ear infections)",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                }
+              ]
+            },
+            {
+              "code": "m18",
+              "age_months": 18,
+              "label": "18 months",
+              "due_date": "2027-11-26",
+              "remind_on": "2027-11-23",
+              "days_left": 429,
+              "status": "upcoming",
+              "status_label": "Upcoming",
+              "given": 0,
+              "total": 3,
+              "dose_names": [
+                "DTP booster",
+                "Polio booster",
+                "MMR, dose 2"
+              ],
+              "doses": [
+                {
+                  "code": "dtp_booster_1",
+                  "title": "DTP booster",
+                  "protects_against": "Diphtheria, tetanus and whooping cough",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "opv_booster_1",
+                  "title": "Polio booster",
+                  "protects_against": "Polio",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "mmr_2",
+                  "title": "MMR, dose 2",
+                  "protects_against": "Measles, mumps and rubella",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                }
+              ]
+            },
+            {
+              "code": "y6",
+              "age_months": 72,
+              "label": "6 years",
+              "due_date": "2032-05-26",
+              "remind_on": "2032-05-23",
+              "days_left": 2072,
+              "status": "upcoming",
+              "status_label": "Upcoming",
+              "given": 0,
+              "total": 2,
+              "dose_names": [
+                "DTP second booster",
+                "Polio second booster"
+              ],
+              "doses": [
+                {
+                  "code": "dtp_booster_2",
+                  "title": "DTP second booster",
+                  "protects_against": "Diphtheria, tetanus and whooping cough",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "opv_booster_2",
+                  "title": "Polio second booster",
+                  "protects_against": "Polio",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                }
+              ]
+            }
+          ],
+          "reminders": {
+            "days_before": 3,
+            "label": "Vaccine reminder 3 days before each visit"
+          },
+          "note": "The schedule follows the national immunisation table and may change. The vaccination card and the health centre are the final reference."
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/children/1/vaccines/visits/m2",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "given_on": "2026-07-27",
+          "note": "تب خفیف"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57"
+      },
+      "body": {
+        "success": true,
+        "message": "Vaccine visit recorded",
+        "data": {
+          "summary": {
+            "given": 7,
+            "total": 21,
+            "completed_visits": 2,
+            "up_to_date": true,
+            "complete": false,
+            "next": {
+              "code": "m4",
+              "age_months": 4,
+              "label": "4 months",
+              "due_date": "2026-09-26",
+              "remind_on": "2026-09-23",
+              "days_left": 3,
+              "status": "soon",
+              "status_label": "Soon",
+              "given": 0,
+              "total": 4,
+              "dose_names": [
+                "Pentavalent, dose 2",
+                "Oral polio (OPV)",
+                "Pneumococcal, dose 2",
+                "Rotavirus, dose 2"
+              ]
+            }
+          },
+          "visits": [
+            {
+              "code": "birth",
+              "age_months": 0,
+              "label": "At birth",
+              "due_date": "2026-05-26",
+              "remind_on": "2026-05-23",
+              "days_left": -120,
+              "status": "done",
+              "status_label": "Up to date",
+              "given": 3,
+              "total": 3,
+              "dose_names": [
+                "BCG",
+                "Hepatitis B, dose 1",
+                "Oral polio (OPV)"
+              ],
+              "doses": [
+                {
+                  "code": "bcg",
+                  "title": "BCG",
+                  "protects_against": "Tuberculosis",
+                  "status": "done",
+                  "status_label": "Up to date",
+                  "given_on": "2026-05-26",
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "hepb_1",
+                  "title": "Hepatitis B, dose 1",
+                  "protects_against": "Hepatitis B",
+                  "status": "done",
+                  "status_label": "Up to date",
+                  "given_on": "2026-05-26",
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "opv_0",
+                  "title": "Oral polio (OPV)",
+                  "protects_against": "Polio",
+                  "status": "done",
+                  "status_label": "Up to date",
+                  "given_on": "2026-05-26",
+                  "note": null,
+                  "needs_review": true
+                }
+              ]
+            },
+            {
+              "code": "m2",
+              "age_months": 2,
+              "label": "2 months",
+              "due_date": "2026-07-26",
+              "remind_on": "2026-07-23",
+              "days_left": -59,
+              "status": "done",
+              "status_label": "Up to date",
+              "given": 4,
+              "total": 4,
+              "dose_names": [
+                "Pentavalent, dose 1",
+                "Polio (oral + injectable)",
+                "Pneumococcal, dose 1",
+                "Rotavirus, dose 1"
+              ],
+              "doses": [
+                {
+                  "code": "penta_1",
+                  "title": "Pentavalent, dose 1",
+                  "protects_against": "Diphtheria, tetanus, whooping cough, hepatitis B and Hib",
+                  "status": "done",
+                  "status_label": "Up to date",
+                  "given_on": "2026-07-27",
+                  "note": "تب خفیف",
+                  "needs_review": true
+                },
+                {
+                  "code": "polio_m2",
+                  "title": "Polio (oral + injectable)",
+                  "protects_against": "Polio",
+                  "status": "done",
+                  "status_label": "Up to date",
+                  "given_on": "2026-07-27",
+                  "note": "تب خفیف",
+                  "needs_review": true
+                },
+                {
+                  "code": "pcv_1",
+                  "title": "Pneumococcal, dose 1",
+                  "protects_against": "Pneumococcal disease (pneumonia, meningitis, ear infections)",
+                  "status": "done",
+                  "status_label": "Up to date",
+                  "given_on": "2026-07-27",
+                  "note": "تب خفیف",
+                  "needs_review": true
+                },
+                {
+                  "code": "rota_1",
+                  "title": "Rotavirus, dose 1",
+                  "protects_against": "Severe rotavirus diarrhoea",
+                  "status": "done",
+                  "status_label": "Up to date",
+                  "given_on": "2026-07-27",
+                  "note": "تب خفیف",
+                  "needs_review": true
+                }
+              ]
+            },
+            {
+              "code": "m4",
+              "age_months": 4,
+              "label": "4 months",
+              "due_date": "2026-09-26",
+              "remind_on": "2026-09-23",
+              "days_left": 3,
+              "status": "soon",
+              "status_label": "Soon",
+              "given": 0,
+              "total": 4,
+              "dose_names": [
+                "Pentavalent, dose 2",
+                "Oral polio (OPV)",
+                "Pneumococcal, dose 2",
+                "Rotavirus, dose 2"
+              ],
+              "doses": [
+                {
+                  "code": "penta_2",
+                  "title": "Pentavalent, dose 2",
+                  "protects_against": "Diphtheria, tetanus, whooping cough, hepatitis B and Hib",
+                  "status": "soon",
+                  "status_label": "Soon",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "opv_m4",
+                  "title": "Oral polio (OPV)",
+                  "protects_against": "Polio",
+                  "status": "soon",
+                  "status_label": "Soon",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "pcv_2",
+                  "title": "Pneumococcal, dose 2",
+                  "protects_against": "Pneumococcal disease (pneumonia, meningitis, ear infections)",
+                  "status": "soon",
+                  "status_label": "Soon",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "rota_2",
+                  "title": "Rotavirus, dose 2",
+                  "protects_against": "Severe rotavirus diarrhoea",
+                  "status": "soon",
+                  "status_label": "Soon",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                }
+              ]
+            },
+            {
+              "code": "m6",
+              "age_months": 6,
+              "label": "6 months",
+              "due_date": "2026-11-26",
+              "remind_on": "2026-11-23",
+              "days_left": 64,
+              "status": "upcoming",
+              "status_label": "Upcoming",
+              "given": 0,
+              "total": 3,
+              "dose_names": [
+                "Pentavalent, dose 3",
+                "Polio (oral + injectable)",
+                "Pneumococcal, dose 3"
+              ],
+              "doses": [
+                {
+                  "code": "penta_3",
+                  "title": "Pentavalent, dose 3",
+                  "protects_against": "Diphtheria, tetanus, whooping cough, hepatitis B and Hib",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "polio_m6",
+                  "title": "Polio (oral + injectable)",
+                  "protects_against": "Polio",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "pcv_3",
+                  "title": "Pneumococcal, dose 3",
+                  "protects_against": "Pneumococcal disease (pneumonia, meningitis, ear infections)",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                }
+              ]
+            },
+            {
+              "code": "m12",
+              "age_months": 12,
+              "label": "12 months",
+              "due_date": "2027-05-26",
+              "remind_on": "2027-05-23",
+              "days_left": 245,
+              "status": "upcoming",
+              "status_label": "Upcoming",
+              "given": 0,
+              "total": 2,
+              "dose_names": [
+                "MMR, dose 1",
+                "Pneumococcal booster"
+              ],
+              "doses": [
+                {
+                  "code": "mmr_1",
+                  "title": "MMR, dose 1",
+                  "protects_against": "Measles, mumps and rubella",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "pcv_booster",
+                  "title": "Pneumococcal booster",
+                  "protects_against": "Pneumococcal disease (pneumonia, meningitis, ear infections)",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                }
+              ]
+            },
+            {
+              "code": "m18",
+              "age_months": 18,
+              "label": "18 months",
+              "due_date": "2027-11-26",
+              "remind_on": "2027-11-23",
+              "days_left": 429,
+              "status": "upcoming",
+              "status_label": "Upcoming",
+              "given": 0,
+              "total": 3,
+              "dose_names": [
+                "DTP booster",
+                "Polio booster",
+                "MMR, dose 2"
+              ],
+              "doses": [
+                {
+                  "code": "dtp_booster_1",
+                  "title": "DTP booster",
+                  "protects_against": "Diphtheria, tetanus and whooping cough",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "opv_booster_1",
+                  "title": "Polio booster",
+                  "protects_against": "Polio",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "mmr_2",
+                  "title": "MMR, dose 2",
+                  "protects_against": "Measles, mumps and rubella",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                }
+              ]
+            },
+            {
+              "code": "y6",
+              "age_months": 72,
+              "label": "6 years",
+              "due_date": "2032-05-26",
+              "remind_on": "2032-05-23",
+              "days_left": 2072,
+              "status": "upcoming",
+              "status_label": "Upcoming",
+              "given": 0,
+              "total": 2,
+              "dose_names": [
+                "DTP second booster",
+                "Polio second booster"
+              ],
+              "doses": [
+                {
+                  "code": "dtp_booster_2",
+                  "title": "DTP second booster",
+                  "protects_against": "Diphtheria, tetanus and whooping cough",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "opv_booster_2",
+                  "title": "Polio second booster",
+                  "protects_against": "Polio",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                }
+              ]
+            }
+          ],
+          "reminders": {
+            "days_before": 3,
+            "label": "Vaccine reminder 3 days before each visit"
+          },
+          "note": "The schedule follows the national immunisation table and may change. The vaccination card and the health centre are the final reference."
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/children/1/vaccines/penta_2",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {}
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "56"
+      },
+      "body": {
+        "success": true,
+        "message": "Vaccine recorded",
+        "data": {
+          "summary": {
+            "given": 8,
+            "total": 21,
+            "completed_visits": 2,
+            "up_to_date": true,
+            "complete": false,
+            "next": {
+              "code": "m4",
+              "age_months": 4,
+              "label": "4 months",
+              "due_date": "2026-09-26",
+              "remind_on": "2026-09-23",
+              "days_left": 3,
+              "status": "soon",
+              "status_label": "Soon",
+              "given": 1,
+              "total": 4,
+              "dose_names": [
+                "Pentavalent, dose 2",
+                "Oral polio (OPV)",
+                "Pneumococcal, dose 2",
+                "Rotavirus, dose 2"
+              ]
+            }
+          },
+          "visits": [
+            {
+              "code": "birth",
+              "age_months": 0,
+              "label": "At birth",
+              "due_date": "2026-05-26",
+              "remind_on": "2026-05-23",
+              "days_left": -120,
+              "status": "done",
+              "status_label": "Up to date",
+              "given": 3,
+              "total": 3,
+              "dose_names": [
+                "BCG",
+                "Hepatitis B, dose 1",
+                "Oral polio (OPV)"
+              ],
+              "doses": [
+                {
+                  "code": "bcg",
+                  "title": "BCG",
+                  "protects_against": "Tuberculosis",
+                  "status": "done",
+                  "status_label": "Up to date",
+                  "given_on": "2026-05-26",
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "hepb_1",
+                  "title": "Hepatitis B, dose 1",
+                  "protects_against": "Hepatitis B",
+                  "status": "done",
+                  "status_label": "Up to date",
+                  "given_on": "2026-05-26",
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "opv_0",
+                  "title": "Oral polio (OPV)",
+                  "protects_against": "Polio",
+                  "status": "done",
+                  "status_label": "Up to date",
+                  "given_on": "2026-05-26",
+                  "note": null,
+                  "needs_review": true
+                }
+              ]
+            },
+            {
+              "code": "m2",
+              "age_months": 2,
+              "label": "2 months",
+              "due_date": "2026-07-26",
+              "remind_on": "2026-07-23",
+              "days_left": -59,
+              "status": "done",
+              "status_label": "Up to date",
+              "given": 4,
+              "total": 4,
+              "dose_names": [
+                "Pentavalent, dose 1",
+                "Polio (oral + injectable)",
+                "Pneumococcal, dose 1",
+                "Rotavirus, dose 1"
+              ],
+              "doses": [
+                {
+                  "code": "penta_1",
+                  "title": "Pentavalent, dose 1",
+                  "protects_against": "Diphtheria, tetanus, whooping cough, hepatitis B and Hib",
+                  "status": "done",
+                  "status_label": "Up to date",
+                  "given_on": "2026-07-27",
+                  "note": "تب خفیف",
+                  "needs_review": true
+                },
+                {
+                  "code": "polio_m2",
+                  "title": "Polio (oral + injectable)",
+                  "protects_against": "Polio",
+                  "status": "done",
+                  "status_label": "Up to date",
+                  "given_on": "2026-07-27",
+                  "note": "تب خفیف",
+                  "needs_review": true
+                },
+                {
+                  "code": "pcv_1",
+                  "title": "Pneumococcal, dose 1",
+                  "protects_against": "Pneumococcal disease (pneumonia, meningitis, ear infections)",
+                  "status": "done",
+                  "status_label": "Up to date",
+                  "given_on": "2026-07-27",
+                  "note": "تب خفیف",
+                  "needs_review": true
+                },
+                {
+                  "code": "rota_1",
+                  "title": "Rotavirus, dose 1",
+                  "protects_against": "Severe rotavirus diarrhoea",
+                  "status": "done",
+                  "status_label": "Up to date",
+                  "given_on": "2026-07-27",
+                  "note": "تب خفیف",
+                  "needs_review": true
+                }
+              ]
+            },
+            {
+              "code": "m4",
+              "age_months": 4,
+              "label": "4 months",
+              "due_date": "2026-09-26",
+              "remind_on": "2026-09-23",
+              "days_left": 3,
+              "status": "soon",
+              "status_label": "Soon",
+              "given": 1,
+              "total": 4,
+              "dose_names": [
+                "Pentavalent, dose 2",
+                "Oral polio (OPV)",
+                "Pneumococcal, dose 2",
+                "Rotavirus, dose 2"
+              ],
+              "doses": [
+                {
+                  "code": "penta_2",
+                  "title": "Pentavalent, dose 2",
+                  "protects_against": "Diphtheria, tetanus, whooping cough, hepatitis B and Hib",
+                  "status": "done",
+                  "status_label": "Up to date",
+                  "given_on": "2026-09-23",
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "opv_m4",
+                  "title": "Oral polio (OPV)",
+                  "protects_against": "Polio",
+                  "status": "soon",
+                  "status_label": "Soon",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "pcv_2",
+                  "title": "Pneumococcal, dose 2",
+                  "protects_against": "Pneumococcal disease (pneumonia, meningitis, ear infections)",
+                  "status": "soon",
+                  "status_label": "Soon",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "rota_2",
+                  "title": "Rotavirus, dose 2",
+                  "protects_against": "Severe rotavirus diarrhoea",
+                  "status": "soon",
+                  "status_label": "Soon",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                }
+              ]
+            },
+            {
+              "code": "m6",
+              "age_months": 6,
+              "label": "6 months",
+              "due_date": "2026-11-26",
+              "remind_on": "2026-11-23",
+              "days_left": 64,
+              "status": "upcoming",
+              "status_label": "Upcoming",
+              "given": 0,
+              "total": 3,
+              "dose_names": [
+                "Pentavalent, dose 3",
+                "Polio (oral + injectable)",
+                "Pneumococcal, dose 3"
+              ],
+              "doses": [
+                {
+                  "code": "penta_3",
+                  "title": "Pentavalent, dose 3",
+                  "protects_against": "Diphtheria, tetanus, whooping cough, hepatitis B and Hib",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "polio_m6",
+                  "title": "Polio (oral + injectable)",
+                  "protects_against": "Polio",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "pcv_3",
+                  "title": "Pneumococcal, dose 3",
+                  "protects_against": "Pneumococcal disease (pneumonia, meningitis, ear infections)",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                }
+              ]
+            },
+            {
+              "code": "m12",
+              "age_months": 12,
+              "label": "12 months",
+              "due_date": "2027-05-26",
+              "remind_on": "2027-05-23",
+              "days_left": 245,
+              "status": "upcoming",
+              "status_label": "Upcoming",
+              "given": 0,
+              "total": 2,
+              "dose_names": [
+                "MMR, dose 1",
+                "Pneumococcal booster"
+              ],
+              "doses": [
+                {
+                  "code": "mmr_1",
+                  "title": "MMR, dose 1",
+                  "protects_against": "Measles, mumps and rubella",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "pcv_booster",
+                  "title": "Pneumococcal booster",
+                  "protects_against": "Pneumococcal disease (pneumonia, meningitis, ear infections)",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                }
+              ]
+            },
+            {
+              "code": "m18",
+              "age_months": 18,
+              "label": "18 months",
+              "due_date": "2027-11-26",
+              "remind_on": "2027-11-23",
+              "days_left": 429,
+              "status": "upcoming",
+              "status_label": "Upcoming",
+              "given": 0,
+              "total": 3,
+              "dose_names": [
+                "DTP booster",
+                "Polio booster",
+                "MMR, dose 2"
+              ],
+              "doses": [
+                {
+                  "code": "dtp_booster_1",
+                  "title": "DTP booster",
+                  "protects_against": "Diphtheria, tetanus and whooping cough",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "opv_booster_1",
+                  "title": "Polio booster",
+                  "protects_against": "Polio",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "mmr_2",
+                  "title": "MMR, dose 2",
+                  "protects_against": "Measles, mumps and rubella",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                }
+              ]
+            },
+            {
+              "code": "y6",
+              "age_months": 72,
+              "label": "6 years",
+              "due_date": "2032-05-26",
+              "remind_on": "2032-05-23",
+              "days_left": 2072,
+              "status": "upcoming",
+              "status_label": "Upcoming",
+              "given": 0,
+              "total": 2,
+              "dose_names": [
+                "DTP second booster",
+                "Polio second booster"
+              ],
+              "doses": [
+                {
+                  "code": "dtp_booster_2",
+                  "title": "DTP second booster",
+                  "protects_against": "Diphtheria, tetanus and whooping cough",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "opv_booster_2",
+                  "title": "Polio second booster",
+                  "protects_against": "Polio",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                }
+              ]
+            }
+          ],
+          "reminders": {
+            "days_before": 3,
+            "label": "Vaccine reminder 3 days before each visit"
+          },
+          "note": "The schedule follows the national immunisation table and may change. The vaccination card and the health centre are the final reference."
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/children/1/vaccines/penta_2",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "55"
+      },
+      "body": {
+        "success": true,
+        "message": "Vaccine record removed",
+        "data": {
+          "summary": {
+            "given": 7,
+            "total": 21,
+            "completed_visits": 2,
+            "up_to_date": true,
+            "complete": false,
+            "next": {
+              "code": "m4",
+              "age_months": 4,
+              "label": "4 months",
+              "due_date": "2026-09-26",
+              "remind_on": "2026-09-23",
+              "days_left": 3,
+              "status": "soon",
+              "status_label": "Soon",
+              "given": 0,
+              "total": 4,
+              "dose_names": [
+                "Pentavalent, dose 2",
+                "Oral polio (OPV)",
+                "Pneumococcal, dose 2",
+                "Rotavirus, dose 2"
+              ]
+            }
+          },
+          "visits": [
+            {
+              "code": "birth",
+              "age_months": 0,
+              "label": "At birth",
+              "due_date": "2026-05-26",
+              "remind_on": "2026-05-23",
+              "days_left": -120,
+              "status": "done",
+              "status_label": "Up to date",
+              "given": 3,
+              "total": 3,
+              "dose_names": [
+                "BCG",
+                "Hepatitis B, dose 1",
+                "Oral polio (OPV)"
+              ],
+              "doses": [
+                {
+                  "code": "bcg",
+                  "title": "BCG",
+                  "protects_against": "Tuberculosis",
+                  "status": "done",
+                  "status_label": "Up to date",
+                  "given_on": "2026-05-26",
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "hepb_1",
+                  "title": "Hepatitis B, dose 1",
+                  "protects_against": "Hepatitis B",
+                  "status": "done",
+                  "status_label": "Up to date",
+                  "given_on": "2026-05-26",
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "opv_0",
+                  "title": "Oral polio (OPV)",
+                  "protects_against": "Polio",
+                  "status": "done",
+                  "status_label": "Up to date",
+                  "given_on": "2026-05-26",
+                  "note": null,
+                  "needs_review": true
+                }
+              ]
+            },
+            {
+              "code": "m2",
+              "age_months": 2,
+              "label": "2 months",
+              "due_date": "2026-07-26",
+              "remind_on": "2026-07-23",
+              "days_left": -59,
+              "status": "done",
+              "status_label": "Up to date",
+              "given": 4,
+              "total": 4,
+              "dose_names": [
+                "Pentavalent, dose 1",
+                "Polio (oral + injectable)",
+                "Pneumococcal, dose 1",
+                "Rotavirus, dose 1"
+              ],
+              "doses": [
+                {
+                  "code": "penta_1",
+                  "title": "Pentavalent, dose 1",
+                  "protects_against": "Diphtheria, tetanus, whooping cough, hepatitis B and Hib",
+                  "status": "done",
+                  "status_label": "Up to date",
+                  "given_on": "2026-07-27",
+                  "note": "تب خفیف",
+                  "needs_review": true
+                },
+                {
+                  "code": "polio_m2",
+                  "title": "Polio (oral + injectable)",
+                  "protects_against": "Polio",
+                  "status": "done",
+                  "status_label": "Up to date",
+                  "given_on": "2026-07-27",
+                  "note": "تب خفیف",
+                  "needs_review": true
+                },
+                {
+                  "code": "pcv_1",
+                  "title": "Pneumococcal, dose 1",
+                  "protects_against": "Pneumococcal disease (pneumonia, meningitis, ear infections)",
+                  "status": "done",
+                  "status_label": "Up to date",
+                  "given_on": "2026-07-27",
+                  "note": "تب خفیف",
+                  "needs_review": true
+                },
+                {
+                  "code": "rota_1",
+                  "title": "Rotavirus, dose 1",
+                  "protects_against": "Severe rotavirus diarrhoea",
+                  "status": "done",
+                  "status_label": "Up to date",
+                  "given_on": "2026-07-27",
+                  "note": "تب خفیف",
+                  "needs_review": true
+                }
+              ]
+            },
+            {
+              "code": "m4",
+              "age_months": 4,
+              "label": "4 months",
+              "due_date": "2026-09-26",
+              "remind_on": "2026-09-23",
+              "days_left": 3,
+              "status": "soon",
+              "status_label": "Soon",
+              "given": 0,
+              "total": 4,
+              "dose_names": [
+                "Pentavalent, dose 2",
+                "Oral polio (OPV)",
+                "Pneumococcal, dose 2",
+                "Rotavirus, dose 2"
+              ],
+              "doses": [
+                {
+                  "code": "penta_2",
+                  "title": "Pentavalent, dose 2",
+                  "protects_against": "Diphtheria, tetanus, whooping cough, hepatitis B and Hib",
+                  "status": "soon",
+                  "status_label": "Soon",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "opv_m4",
+                  "title": "Oral polio (OPV)",
+                  "protects_against": "Polio",
+                  "status": "soon",
+                  "status_label": "Soon",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "pcv_2",
+                  "title": "Pneumococcal, dose 2",
+                  "protects_against": "Pneumococcal disease (pneumonia, meningitis, ear infections)",
+                  "status": "soon",
+                  "status_label": "Soon",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "rota_2",
+                  "title": "Rotavirus, dose 2",
+                  "protects_against": "Severe rotavirus diarrhoea",
+                  "status": "soon",
+                  "status_label": "Soon",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                }
+              ]
+            },
+            {
+              "code": "m6",
+              "age_months": 6,
+              "label": "6 months",
+              "due_date": "2026-11-26",
+              "remind_on": "2026-11-23",
+              "days_left": 64,
+              "status": "upcoming",
+              "status_label": "Upcoming",
+              "given": 0,
+              "total": 3,
+              "dose_names": [
+                "Pentavalent, dose 3",
+                "Polio (oral + injectable)",
+                "Pneumococcal, dose 3"
+              ],
+              "doses": [
+                {
+                  "code": "penta_3",
+                  "title": "Pentavalent, dose 3",
+                  "protects_against": "Diphtheria, tetanus, whooping cough, hepatitis B and Hib",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "polio_m6",
+                  "title": "Polio (oral + injectable)",
+                  "protects_against": "Polio",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "pcv_3",
+                  "title": "Pneumococcal, dose 3",
+                  "protects_against": "Pneumococcal disease (pneumonia, meningitis, ear infections)",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                }
+              ]
+            },
+            {
+              "code": "m12",
+              "age_months": 12,
+              "label": "12 months",
+              "due_date": "2027-05-26",
+              "remind_on": "2027-05-23",
+              "days_left": 245,
+              "status": "upcoming",
+              "status_label": "Upcoming",
+              "given": 0,
+              "total": 2,
+              "dose_names": [
+                "MMR, dose 1",
+                "Pneumococcal booster"
+              ],
+              "doses": [
+                {
+                  "code": "mmr_1",
+                  "title": "MMR, dose 1",
+                  "protects_against": "Measles, mumps and rubella",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "pcv_booster",
+                  "title": "Pneumococcal booster",
+                  "protects_against": "Pneumococcal disease (pneumonia, meningitis, ear infections)",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                }
+              ]
+            },
+            {
+              "code": "m18",
+              "age_months": 18,
+              "label": "18 months",
+              "due_date": "2027-11-26",
+              "remind_on": "2027-11-23",
+              "days_left": 429,
+              "status": "upcoming",
+              "status_label": "Upcoming",
+              "given": 0,
+              "total": 3,
+              "dose_names": [
+                "DTP booster",
+                "Polio booster",
+                "MMR, dose 2"
+              ],
+              "doses": [
+                {
+                  "code": "dtp_booster_1",
+                  "title": "DTP booster",
+                  "protects_against": "Diphtheria, tetanus and whooping cough",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "opv_booster_1",
+                  "title": "Polio booster",
+                  "protects_against": "Polio",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "mmr_2",
+                  "title": "MMR, dose 2",
+                  "protects_against": "Measles, mumps and rubella",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                }
+              ]
+            },
+            {
+              "code": "y6",
+              "age_months": 72,
+              "label": "6 years",
+              "due_date": "2032-05-26",
+              "remind_on": "2032-05-23",
+              "days_left": 2072,
+              "status": "upcoming",
+              "status_label": "Upcoming",
+              "given": 0,
+              "total": 2,
+              "dose_names": [
+                "DTP second booster",
+                "Polio second booster"
+              ],
+              "doses": [
+                {
+                  "code": "dtp_booster_2",
+                  "title": "DTP second booster",
+                  "protects_against": "Diphtheria, tetanus and whooping cough",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                },
+                {
+                  "code": "opv_booster_2",
+                  "title": "Polio second booster",
+                  "protects_against": "Polio",
+                  "status": "upcoming",
+                  "status_label": "Upcoming",
+                  "given_on": null,
+                  "note": null,
+                  "needs_review": true
+                }
+              ]
+            }
+          ],
+          "reminders": {
+            "days_before": 3,
+            "label": "Vaccine reminder 3 days before each visit"
+          },
+          "note": "The schedule follows the national immunisation table and may change. The vaccination card and the health centre are the final reference."
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/children/reminders",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "reminders": [
+            {
+              "child": {
+                "id": 1,
+                "name": "سام",
+                "initial": "س",
+                "role": "owner"
+              },
+              "visit": {
+                "code": "m4",
+                "age_months": 4,
+                "label": "4 months",
+                "due_date": "2026-09-26",
+                "remind_on": "2026-09-23",
+                "days_left": 3,
+                "status": "soon",
+                "status_label": "Soon",
+                "given": 0,
+                "total": 4,
+                "dose_names": [
+                  "Pentavalent, dose 2",
+                  "Oral polio (OPV)",
+                  "Pneumococcal, dose 2",
+                  "Rotavirus, dose 2"
+                ]
+              },
+              "days_left": 3
+            }
+          ],
+          "days_before": 3
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/children/1/vaccines/nope",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {}
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "54"
+      },
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errors": {
+          "code": [
+            "This vaccine is not in the schedule."
+          ]
+        }
+      }
+    }
+  ]
+}

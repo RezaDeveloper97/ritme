@@ -1,0 +1,118 @@
+{
+    "digits": "0123456789",
+    "messages": {
+        "validation_failed": "Validation failed",
+        "not_found": "Child not found",
+        "read_only": "This child is shared with you; you can only view it",
+        "created": "Child added",
+        "updated": "Child saved",
+        "deleted": "Child removed",
+        "too_many": "You can add at most :max children",
+        "measurement_saved": "Measurements saved",
+        "measurement_deleted": "Measurement removed",
+        "measurement_not_found": "Measurement not found",
+        "dose_saved": "Vaccine recorded",
+        "dose_removed": "Vaccine record removed",
+        "visit_saved": "Vaccine visit recorded",
+        "milestone_saved": "Saved"
+    },
+    "validation": {
+        "birth_date_future": "The birth date cannot be in the future.",
+        "birth_date_too_old": "The birth date must be within the last 18 years.",
+        "measured_before_birth": "The measurement date cannot be before the birth.",
+        "measured_future": "The measurement date cannot be in the future.",
+        "measurement_empty": "Enter at least one of weight, length or head circumference.",
+        "measured_on_taken": "There is already a measurement for this day.",
+        "given_before_birth": "The vaccination date cannot be before the birth.",
+        "unknown_dose": "This vaccine is not in the schedule.",
+        "unknown_visit": "This visit is not in the schedule.",
+        "unknown_milestone": "This item is not in the list."
+    },
+    "attributes": {
+        "name": "name",
+        "birth_date": "birth date",
+        "sex": "sex",
+        "birth_weight_kg": "birth weight",
+        "birth_length_cm": "birth length",
+        "birth_head_cm": "birth head circumference",
+        "delivery_type": "delivery type",
+        "measured_on": "measurement date",
+        "weight_kg": "weight",
+        "length_cm": "length",
+        "head_cm": "head circumference",
+        "given_on": "vaccination date",
+        "note": "note",
+        "checked": "seen",
+        "indicator": "indicator",
+        "topic": "topic",
+        "month": "month"
+    },
+    "age": {
+        "newborn": "Born today",
+        "days": ":d days",
+        "months": ":m months",
+        "months_days": ":m months and :d days",
+        "years": ":y years",
+        "years_months": ":y years and :m months"
+    },
+    "visits": {
+        "birth": "At birth",
+        "months": ":n months",
+        "years": ":n years"
+    },
+    "vaccine_status": {
+        "done": "Up to date",
+        "partial": "Incomplete",
+        "due": "Due",
+        "overdue": "Overdue",
+        "soon": "Soon",
+        "upcoming": "Upcoming"
+    },
+    "growth": {
+        "normal": "Within the normal range",
+        "check": "Outside the usual range; mention it at the next visit",
+        "unknown": "No measurements yet",
+        "disclaimer": "Percentiles are estimated from the WHO growth curves and do not replace a doctor's assessment.",
+        "median": {
+            "girl": "Girls' median",
+            "boy": "Boys' median"
+        },
+        "band": "Normal range (3rd to 97th percentile)"
+    },
+    "indicators": {
+        "weight": "Weight",
+        "length": "Length",
+        "head": "Head circumference"
+    },
+    "units": {
+        "kg": "kg",
+        "cm": "cm"
+    },
+    "sexes": {
+        "girl": "Girl",
+        "boy": "Boy"
+    },
+    "delivery_types": {
+        "vaginal": "Vaginal",
+        "cesarean": "Caesarean"
+    },
+    "topics": {
+        "all": "All",
+        "sleep": "Sleep",
+        "feeding": "Feeding",
+        "play": "Play & development",
+        "health": "Health",
+        "mother": "Mum"
+    },
+    "notes": {
+        "sharing": "Each child's data is kept separately and you can share it with a Ritme companion.",
+        "vaccines": "The schedule follows the national immunisation table and may change. The vaccination card and the health centre are the final reference.",
+        "milestones": "Every child has their own rhythm; this list is for noticing, not scoring.",
+        "learn": "This is general information and does not replace advice from your child's doctor.",
+        "reminders": "Vaccine reminder 3 days before each visit"
+    },
+    "reminder": {
+        "title": "Vaccine reminder for :name",
+        "body": ":name's :visit vaccines are in :days days (:date)."
+    }
+}

@@ -3,7 +3,7 @@
 // period, pregnancy, symptoms, medications and appointments, each only with a view or edit grant and each read
 // audited (companion.Service.Audit) before it is built through the access-filtered section views of
 // internal/companion/shared — plus «امروز چه کار کنی؟» tips for her phase (admin content, tips.go), reading
-// suggestions and the shared child card (null until bloom B-N5). A companion without links gets an empty state that
+// suggestions and the shared children card (spouse links, bloom B-N5-02). A companion without links gets an empty state that
 // points to «کد همدم را وارد کن»; a woman's account gets 403 not_companion_account.
 package companionhome
 
@@ -43,6 +43,13 @@ type Options struct {
 	Reader companion.SectionReader // internal/companion/shared
 	AppURL string                  // APP_URL (article image URLs)
 	Logger *slog.Logger
+	// Children builds the shared-children card of a spouse link (children.Service, bloom B-N5-02); nil = no card.
+	Children ChildCards
+}
+
+// ChildCards is the shared-children card source; it audits the read itself.
+type ChildCards interface {
+	CompanionCard(ctx context.Context, viewerID, ownerID, companionID uint64, locale string, now time.Time) (any, error)
 }
 
 // Handlers serve GET /companion/home. Mount behind the locale middleware and auth RequireUser.
@@ -53,12 +60,13 @@ type Handlers struct {
 	appURL   string
 	accounts *companion.Accounts
 	logger   *slog.Logger
+	children ChildCards
 }
 
 // NewHandlers wires the handlers; base is the fallback clock (tests and the contract suite pin it per request).
 func NewHandlers(conn companion.Conn, base clock.Clock, opt Options) *Handlers {
 	h := &Handlers{conn: conn, base: base, reader: opt.Reader, appURL: opt.AppURL,
-		accounts: companion.NewAccounts(conn), logger: opt.Logger}
+		accounts: companion.NewAccounts(conn), logger: opt.Logger, children: opt.Children}
 	if h.logger == nil {
 		h.logger = slog.Default()
 	}
@@ -169,7 +177,7 @@ func (h *Handlers) partner(ctx context.Context, svc *companion.Service, tc *tipC
 		if err := svc.Audit(ctx, l.OwnerID, viewerID, l.ID, s, companion.ActionRead); err != nil {
 			return nil, "", err
 		}
-		v, err := h.reader.Read(ctx, l.OwnerID, s, locale, now)
+		v, err := h.reader.ReadFor(ctx, l, s, locale, now)
 		if err != nil {
 			return nil, "", err
 		}
@@ -185,6 +193,13 @@ func (h *Handlers) partner(ctx context.Context, svc *companion.Service, tc *tipC
 	for _, t := range tc.tips(phase, shownName) {
 		tips = append(tips, jsonx.Obj("key", t.Key, "title", t.Title, "body", nullable(t.Body)))
 	}
+	var child any
+	if h.children != nil && l.Type == companion.TypeSpouse && len(l.SharedChildIDs) > 0 {
+		var err error
+		if child, err = h.children.CompanionCard(ctx, viewerID, l.OwnerID, l.ID, locale, now); err != nil {
+			return nil, "", err
+		}
+	}
 	return jsonx.Obj(
 		"link", companion.ViewerLinkJSON(l, names),
 		"partner_name", nullable(name),
@@ -196,7 +211,7 @@ func (h *Handlers) partner(ctx context.Context, svc *companion.Service, tc *tipC
 		"phase", phase,
 		"note", nullable(tc.note(phase, shownName)),
 		"tips", tips,
-		"child", nil, // shared child card: bloom B-N5 (children)
+		"child", child, // shared children card (spouse links, bloom B-N5-02)
 	), phase, nil
 }
 

@@ -7,6 +7,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/ritme/backend-go/internal/auth"
+	"github.com/ritme/backend-go/internal/children"
 	"github.com/ritme/backend-go/internal/companion"
 	"github.com/ritme/backend-go/internal/companion/shared"
 	"github.com/ritme/backend-go/internal/i18n"
@@ -50,9 +51,11 @@ func init() {
 			Service:  companion.Options{CodePepper: []byte(d.Config.Companion.CodePepper)},
 			SMS:      sender,
 			Reader:   shared.NewReader(d.DB),
+			Children: children.NewService(d.DB, nil), // spouse shared children: owner's own children only (B-N5-02)
 			Disabled: disabled,
 			Logger:   d.Logger,
 			SendGate: companionSendGate(d),
+			Breaker:  companionAcceptBreaker(d), // CMP-M3 (companion_guards.go)
 		})
 		acceptUser := companionThrottle(d, "companion-accept", CompanionAcceptPerUser, auth.ThrottleIdentity)
 		acceptIP := companionThrottle(d, "companion-accept-ip", CompanionAcceptPerIP, nil)
@@ -65,7 +68,7 @@ func init() {
 		r.Post(c+"/accept", locale, guard, acceptIP, acceptUser, h.Accept)
 		r.Get(c+"/links", locale, guard, h.Links)
 		r.Delete(c+"/links/:id", locale, guard, writes, h.Leave)
-		r.Get(c+"/links/:id/sections/:section", locale, guard, h.Section)
+		r.Get(c+"/links/:id/sections/:section", locale, guard, companionReadThrottle(d), h.Section)
 		r.Get(c+"/:id", locale, guard, h.Show)
 		r.Delete(c+"/:id", locale, guard, writes, h.Destroy)
 		r.Post(c+"/:id/renew", locale, guard, writes, invites, h.Renew)

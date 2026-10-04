@@ -46,12 +46,13 @@ type InviteSMS interface {
 	SendInvite(ctx context.Context, mobile, code string) error
 }
 
-// SectionReader builds the access-filtered view of one section of an owner's data (internal/companion/shared).
+// SectionReader builds the access-filtered view of one section of an owner's data (internal/companion/shared). The
+// link's grants make the view mode-aware: without the pregnancy grant no pregnancy signal leaves (CMP-H1).
 type SectionReader interface {
-	Read(ctx context.Context, ownerID uint64, section Section, locale string, now time.Time) (any, error)
+	ReadFor(ctx context.Context, link Link, section Section, locale string, now time.Time) (any, error)
 }
 
-// ChildOwnership verifies that child ids belong to the owner. Until the children table exists (bloom B-N5-02) the
+// ChildOwnership verifies that child ids belong to the owner (children.Service, bloom B-N5-02). Without one the
 // default owns nothing, so a non-empty shared-children list is refused instead of linking ids nobody checked.
 type ChildOwnership interface {
 	OwnsChildren(ctx context.Context, ownerID uint64, childIDs []uint64) (bool, error)
@@ -68,12 +69,14 @@ type HandlerOptions struct {
 	Service  Options
 	SMS      InviteSMS
 	Reader   SectionReader
-	Children ChildOwnership // nil = no children yet (B-N5-02)
+	Children ChildOwnership // children.Service; nil = refuse every child id
 	// Disabled answers 503 on invite creation / renewal / acceptance (production without COMPANION_CODE_PEPPER).
 	Disabled bool
 	Logger   *slog.Logger
 	// SendGate rate-limits invite SMS (per recipient, per owner per day, per link resend); nil = no limits (tests).
 	SendGate SendGate
+	// Breaker is the global failed-accept circuit breaker (CMP-M3); nil = none (tests).
+	Breaker AcceptBreaker
 }
 
 // Handlers are the /api/v1/companions actions. Mount them behind the locale middleware and auth RequireUser.
@@ -337,7 +340,9 @@ func (h *Handlers) Destroy(c fiber.Ctx) error {
 	return httpx.OK(c, nil, T("messages.revoked", locale))
 }
 
-// Audit is GET /companions/audit?limit=: who of the owner's companions read or wrote what, and when (no payload).
+// Audit is GET /companions/audit?limit=&before_id=&action=: who of the owner's companions read or wrote what, and
+// when (no payload), newest first. before_id pages back (the id of the last entry of the previous page); action keeps
+// one kind of entry, so write and lifecycle rows stay reachable however many reads there are (CMP-L1).
 func (h *Handlers) Audit(c fiber.Ctx) error {
 	ownerID, err := currentUser(c)
 	if err != nil {
@@ -347,6 +352,8 @@ func (h *Handlers) Audit(c fiber.Ctx) error {
 	q := validation.Query(c)
 	v := validation.Make(lang.Default(), locale, q, validation.Rules{
 		validation.F("limit", "nullable", "integer", "min:1", "max:"+strconv.Itoa(MaxAuditEntries)),
+		validation.F("before_id", "nullable", "integer", "min:1"),
+		validation.F("action", "nullable", "string", validation.In(auditActionStrings()...)),
 	}, validation.Now(h.now(c)))
 	if v.Fails() {
 		return failValidation(locale, v.ErrorBag())
@@ -355,8 +362,14 @@ func (h *Handlers) Audit(c fiber.Ctx) error {
 	if raw := str(q, "limit"); raw != "" {
 		limit, _ = strconv.Atoi(raw)
 	}
+	var before uint64
+	if raw := str(q, "before_id"); raw != "" {
+		if before, err = strconv.ParseUint(raw, 10, 64); err != nil {
+			return fieldError(locale, "before_id", T("messages.validation_failed", locale))
+		}
+	}
 	svc := h.svc(c)
-	entries, err := svc.AuditTrail(c.Context(), ownerID, limit)
+	entries, err := svc.AuditPage(c.Context(), ownerID, before, Action(str(q, "action")), limit)
 	if err != nil {
 		return err
 	}
@@ -400,6 +413,9 @@ func (h *Handlers) Accept(c fiber.Ctx) error {
 	if h.opt.Disabled {
 		return unavailable(locale)
 	}
+	if err := h.acceptPaused(c, locale); err != nil {
+		return err
+	}
 	body := validation.Input(c)
 	v := validation.Make(lang.Default(), locale, body, validation.Rules{
 		validation.F("code", "required", "string", "max:32"),
@@ -417,6 +433,7 @@ func (h *Handlers) Accept(c fiber.Ctx) error {
 	}
 	if err != nil {
 		if isInviteRefusal(err) {
+			h.acceptRefused(c)
 			msg := T("messages.invite_invalid", locale)
 			return httpx.Fail(fiber.StatusUnprocessableEntity, msg, "errors", jsonx.Obj("code", []string{msg}),
 				"error_code", ErrorCodeInviteInvalid)
@@ -516,7 +533,7 @@ func (h *Handlers) Section(c fiber.Ctx) error {
 	if err := svc.Audit(c.Context(), link.OwnerID, viewerID, link.ID, section, ActionRead); err != nil {
 		return err
 	}
-	data, err := h.opt.Reader.Read(c.Context(), link.OwnerID, section, locale, h.now(c))
+	data, err := h.opt.Reader.ReadFor(c.Context(), link, section, locale, h.now(c))
 	if err != nil {
 		return err
 	}

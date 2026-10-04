@@ -66,6 +66,9 @@ type Querier interface {
 	ListOpenInvitesForOwner(ctx context.Context, arg ListOpenInvitesForOwnerParams) ([]CompanionInvite, error)
 	// The owner's audit trail, newest first.
 	ListOwnerAudit(ctx context.Context, arg ListOwnerAuditParams) ([]CompanionAuditLog, error)
+	// One page of the owner's audit trail, newest first: rows older than before_id (0 = from the newest), optionally
+	// of one action (empty = every action).
+	ListOwnerAuditPage(ctx context.Context, arg ListOwnerAuditPageParams) ([]CompanionAuditLog, error)
 	// The owner's invited and active links, oldest first.
 	ListOwnerCompanions(ctx context.Context, ownerID uint64) ([]Companion, error)
 	// Grants of every non-revoked link of an owner.
@@ -78,6 +81,10 @@ type Querier interface {
 	LockOwner(ctx context.Context, id uint64) (uint64, error)
 	// One-time: only an unused, unrevoked invite flips.
 	MarkInviteUsed(ctx context.Context, arg MarkInviteUsedParams) (int64, error)
+	// The newest `read` row of this actor on this section of the owner's data through this link since `since`: a
+	// companion read within the coalescing window is not written again (a reload must not flood the owner's trail;
+	// B-N4-08b, CMP-L1).
+	RecentReadAudit(ctx context.Context, arg RecentReadAuditParams) (uint64, error)
 	RevokeCompanion(ctx context.Context, arg RevokeCompanionParams) (int64, error)
 	RevokeOpenInvites(ctx context.Context, arg RevokeOpenInvitesParams) error
 	SetFamilySpouse(ctx context.Context, arg SetFamilySpouseParams) error

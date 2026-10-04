@@ -1,0 +1,116 @@
+{
+  "case": "children/delete",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/children",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "name": "Kid",
+          "birth_date": "2025-01-10"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "فرزند ثبت شد",
+        "data": {
+          "id": 1,
+          "name": "Kid",
+          "initial": "K",
+          "birth_date": "2025-01-10",
+          "sex": null,
+          "sex_label": null,
+          "delivery_type": null,
+          "delivery_type_label": null,
+          "birth": {
+            "weight_kg": null,
+            "length_cm": null,
+            "head_cm": null
+          },
+          "age": {
+            "days": 621,
+            "weeks": 88,
+            "months": 20,
+            "years": 1,
+            "days_in_month": 13,
+            "label": "۱ سال و ۸ ماه"
+          },
+          "role": "owner",
+          "can_edit": true,
+          "owner_name": null,
+          "vaccines": {
+            "given": 0,
+            "total": 21,
+            "completed_visits": 0,
+            "up_to_date": false,
+            "complete": false,
+            "next": {
+              "code": "birth",
+              "age_months": 0,
+              "label": "بدو تولد",
+              "due_date": "2025-01-10",
+              "remind_on": "2025-01-07",
+              "days_left": -621,
+              "status": "overdue",
+              "status_label": "عقب افتاده",
+              "given": 0,
+              "total": 3,
+              "dose_names": [
+                "ب.ث.ژ (BCG)",
+                "هپاتیت B نوبت اول",
+                "فلج اطفال خوراکی"
+              ]
+            }
+          },
+          "growth": {
+            "status": "unknown",
+            "label": "هنوز اندازه‌ای ثبت نشده"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/children/1",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "message": "فرزند حذف شد"
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/children/1",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "فرزند پیدا نشد",
+        "error_code": "child_not_found"
+      }
+    }
+  ]
+}

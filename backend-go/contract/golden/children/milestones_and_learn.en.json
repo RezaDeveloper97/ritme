@@ -1,0 +1,698 @@
+{
+  "case": "children/milestones_and_learn.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/children",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "name": "آوا",
+          "birth_date": "2026-06-12",
+          "sex": "girl"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "Child added",
+        "data": {
+          "id": 1,
+          "name": "آوا",
+          "initial": "آ",
+          "birth_date": "2026-06-12",
+          "sex": "girl",
+          "sex_label": "Girl",
+          "delivery_type": null,
+          "delivery_type_label": null,
+          "birth": {
+            "weight_kg": null,
+            "length_cm": null,
+            "head_cm": null
+          },
+          "age": {
+            "days": 103,
+            "weeks": 14,
+            "months": 3,
+            "years": 0,
+            "days_in_month": 11,
+            "label": "3 months and 11 days"
+          },
+          "role": "owner",
+          "can_edit": true,
+          "owner_name": null,
+          "vaccines": {
+            "given": 0,
+            "total": 21,
+            "completed_visits": 0,
+            "up_to_date": false,
+            "complete": false,
+            "next": {
+              "code": "birth",
+              "age_months": 0,
+              "label": "At birth",
+              "due_date": "2026-06-12",
+              "remind_on": "2026-06-09",
+              "days_left": -103,
+              "status": "overdue",
+              "status_label": "Overdue",
+              "given": 0,
+              "total": 3,
+              "dose_names": [
+                "BCG",
+                "Hepatitis B, dose 1",
+                "Oral polio (OPV)"
+              ]
+            }
+          },
+          "growth": {
+            "status": "unknown",
+            "label": "No measurements yet"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/children/1/milestones",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "bands": [
+            {
+              "months": 2,
+              "label": "2 months",
+              "current": false
+            },
+            {
+              "months": 3,
+              "label": "3 months",
+              "current": true
+            },
+            {
+              "months": 4,
+              "label": "4 months",
+              "current": false
+            },
+            {
+              "months": 6,
+              "label": "6 months",
+              "current": false
+            },
+            {
+              "months": 9,
+              "label": "9 months",
+              "current": false
+            },
+            {
+              "months": 12,
+              "label": "12 months",
+              "current": false
+            },
+            {
+              "months": 18,
+              "label": "18 months",
+              "current": false
+            },
+            {
+              "months": 24,
+              "label": "2 years",
+              "current": false
+            },
+            {
+              "months": 36,
+              "label": "3 years",
+              "current": false
+            },
+            {
+              "months": 48,
+              "label": "4 years",
+              "current": false
+            },
+            {
+              "months": 60,
+              "label": "5 years",
+              "current": false
+            }
+          ],
+          "band": {
+            "months": 3,
+            "label": "3 months",
+            "checked": 0,
+            "total": 7,
+            "items": [
+              {
+                "code": "m3_social_smile",
+                "title": "Gives a social smile",
+                "domain": "social",
+                "checked": false,
+                "checked_on": null
+              },
+              {
+                "code": "m3_head_up_tummy",
+                "title": "Holds head up during tummy time",
+                "domain": "motor",
+                "checked": false,
+                "checked_on": null
+              },
+              {
+                "code": "m3_reacts_to_sounds",
+                "title": "Reacts to sounds",
+                "domain": "language",
+                "checked": false,
+                "checked_on": null
+              },
+              {
+                "code": "m3_hands_to_mouth",
+                "title": "Brings hands to mouth",
+                "domain": "motor",
+                "checked": false,
+                "checked_on": null
+              },
+              {
+                "code": "m3_coos_vowels",
+                "title": "Makes “ah” and “oo” sounds",
+                "domain": "language",
+                "checked": false,
+                "checked_on": null
+              },
+              {
+                "code": "m3_tracks_objects",
+                "title": "Follows things with the eyes",
+                "domain": "cognitive",
+                "checked": false,
+                "checked_on": null
+              },
+              {
+                "code": "m3_hands_together",
+                "title": "Brings hands together in front of the face",
+                "domain": "motor",
+                "checked": false,
+                "checked_on": null
+              }
+            ],
+            "activities": [
+              {
+                "code": "m3_tummy_time",
+                "title": "Tummy time",
+                "body": "A few times a day, 3 to 5 minutes on the tummy; it strengthens neck and shoulders."
+              },
+              {
+                "code": "m3_sound_talk",
+                "title": "Sound conversations",
+                "body": "Repeat their sounds and wait for a reply; it is the root of language."
+              }
+            ],
+            "doctor_note": "If by 4 months they don't react to sounds, hold up their head or smile, mention it at the next visit."
+          },
+          "intro": "Every child has their own rhythm; this list is for noticing, not scoring."
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/children/1/milestones/m3_social_smile",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "checked": true
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "message": "Saved",
+        "data": {
+          "bands": [
+            {
+              "months": 2,
+              "label": "2 months",
+              "current": false
+            },
+            {
+              "months": 3,
+              "label": "3 months",
+              "current": true
+            },
+            {
+              "months": 4,
+              "label": "4 months",
+              "current": false
+            },
+            {
+              "months": 6,
+              "label": "6 months",
+              "current": false
+            },
+            {
+              "months": 9,
+              "label": "9 months",
+              "current": false
+            },
+            {
+              "months": 12,
+              "label": "12 months",
+              "current": false
+            },
+            {
+              "months": 18,
+              "label": "18 months",
+              "current": false
+            },
+            {
+              "months": 24,
+              "label": "2 years",
+              "current": false
+            },
+            {
+              "months": 36,
+              "label": "3 years",
+              "current": false
+            },
+            {
+              "months": 48,
+              "label": "4 years",
+              "current": false
+            },
+            {
+              "months": 60,
+              "label": "5 years",
+              "current": false
+            }
+          ],
+          "band": {
+            "months": 3,
+            "label": "3 months",
+            "checked": 1,
+            "total": 7,
+            "items": [
+              {
+                "code": "m3_social_smile",
+                "title": "Gives a social smile",
+                "domain": "social",
+                "checked": true,
+                "checked_on": "2026-09-23"
+              },
+              {
+                "code": "m3_head_up_tummy",
+                "title": "Holds head up during tummy time",
+                "domain": "motor",
+                "checked": false,
+                "checked_on": null
+              },
+              {
+                "code": "m3_reacts_to_sounds",
+                "title": "Reacts to sounds",
+                "domain": "language",
+                "checked": false,
+                "checked_on": null
+              },
+              {
+                "code": "m3_hands_to_mouth",
+                "title": "Brings hands to mouth",
+                "domain": "motor",
+                "checked": false,
+                "checked_on": null
+              },
+              {
+                "code": "m3_coos_vowels",
+                "title": "Makes “ah” and “oo” sounds",
+                "domain": "language",
+                "checked": false,
+                "checked_on": null
+              },
+              {
+                "code": "m3_tracks_objects",
+                "title": "Follows things with the eyes",
+                "domain": "cognitive",
+                "checked": false,
+                "checked_on": null
+              },
+              {
+                "code": "m3_hands_together",
+                "title": "Brings hands together in front of the face",
+                "domain": "motor",
+                "checked": false,
+                "checked_on": null
+              }
+            ],
+            "activities": [
+              {
+                "code": "m3_tummy_time",
+                "title": "Tummy time",
+                "body": "A few times a day, 3 to 5 minutes on the tummy; it strengthens neck and shoulders."
+              },
+              {
+                "code": "m3_sound_talk",
+                "title": "Sound conversations",
+                "body": "Repeat their sounds and wait for a reply; it is the root of language."
+              }
+            ],
+            "doctor_note": "If by 4 months they don't react to sounds, hold up their head or smile, mention it at the next visit."
+          },
+          "intro": "Every child has their own rhythm; this list is for noticing, not scoring."
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/children/1/milestones?month=6",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "bands": [
+            {
+              "months": 2,
+              "label": "2 months",
+              "current": false
+            },
+            {
+              "months": 3,
+              "label": "3 months",
+              "current": true
+            },
+            {
+              "months": 4,
+              "label": "4 months",
+              "current": false
+            },
+            {
+              "months": 6,
+              "label": "6 months",
+              "current": false
+            },
+            {
+              "months": 9,
+              "label": "9 months",
+              "current": false
+            },
+            {
+              "months": 12,
+              "label": "12 months",
+              "current": false
+            },
+            {
+              "months": 18,
+              "label": "18 months",
+              "current": false
+            },
+            {
+              "months": 24,
+              "label": "2 years",
+              "current": false
+            },
+            {
+              "months": 36,
+              "label": "3 years",
+              "current": false
+            },
+            {
+              "months": 48,
+              "label": "4 years",
+              "current": false
+            },
+            {
+              "months": 60,
+              "label": "5 years",
+              "current": false
+            }
+          ],
+          "band": {
+            "months": 6,
+            "label": "6 months",
+            "checked": 0,
+            "total": 5,
+            "items": [
+              {
+                "code": "m6_knows_familiar",
+                "title": "Knows familiar people",
+                "domain": "social",
+                "checked": false,
+                "checked_on": null
+              },
+              {
+                "code": "m6_takes_turns_sounds",
+                "title": "Takes turns making sounds with you",
+                "domain": "language",
+                "checked": false,
+                "checked_on": null
+              },
+              {
+                "code": "m6_rolls_over",
+                "title": "Rolls from tummy to back",
+                "domain": "motor",
+                "checked": false,
+                "checked_on": null
+              },
+              {
+                "code": "m6_reaches_toy",
+                "title": "Reaches for a toy",
+                "domain": "motor",
+                "checked": false,
+                "checked_on": null
+              },
+              {
+                "code": "m6_sits_with_support",
+                "title": "Leans on the hands to sit",
+                "domain": "motor",
+                "checked": false,
+                "checked_on": null
+              }
+            ],
+            "activities": [
+              {
+                "code": "m6_peekaboo",
+                "title": "Peekaboo",
+                "body": "Hide your face and show it again; they laugh and wait for it."
+              },
+              {
+                "code": "m6_supported_sitting",
+                "title": "Supported sitting",
+                "body": "Surround them with cushions and let them practise sitting."
+              }
+            ],
+            "doctor_note": "If by 6 months they don't reach for things or respond to familiar people, talk to the doctor."
+          },
+          "intro": "Every child has their own rhythm; this list is for noticing, not scoring."
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/children/1/learn",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "age_months": 3,
+          "age_label": "3 months and 11 days",
+          "topics": [
+            {
+              "code": "all",
+              "label": "All"
+            },
+            {
+              "code": "sleep",
+              "label": "Sleep"
+            },
+            {
+              "code": "feeding",
+              "label": "Feeding"
+            },
+            {
+              "code": "play",
+              "label": "Play & development"
+            },
+            {
+              "code": "health",
+              "label": "Health"
+            },
+            {
+              "code": "mother",
+              "label": "Mum"
+            }
+          ],
+          "topic": null,
+          "featured": {
+            "code": "night_sleep_3m",
+            "topic": "sleep",
+            "topic_label": "Sleep",
+            "title": "Night sleep from 3 months",
+            "body": "Building a gentle routine: bath, feed, dim light, the same order every night. No cry-it-out methods.",
+            "minutes": 4,
+            "featured": true,
+            "from_months": 3,
+            "to_months": 6,
+            "article": null
+          },
+          "tips": [
+            {
+              "code": "breastfeeding_supply",
+              "topic": "feeding",
+              "topic_label": "Feeding",
+              "title": "Breastfeeding and milk supply",
+              "body": "Feeding on demand, a good latch and rest matter most.",
+              "minutes": 6,
+              "featured": false,
+              "from_months": 0,
+              "to_months": 6,
+              "article": null
+            },
+            {
+              "code": "evening_crying",
+              "topic": "health",
+              "topic_label": "Health",
+              "title": "Why babies cry in the evening",
+              "body": "Evening fussiness is common in the first weeks and usually eases by 3 or 4 months.",
+              "minutes": 5,
+              "featured": false,
+              "from_months": 0,
+              "to_months": 4,
+              "article": null
+            },
+            {
+              "code": "vaccine_4m",
+              "topic": "health",
+              "topic_label": "Health",
+              "title": "The 4-month vaccines: what to expect",
+              "body": "A mild fever and fussiness for a day or two are normal; call the doctor for a high fever.",
+              "minutes": 3,
+              "featured": false,
+              "from_months": 3,
+              "to_months": 5,
+              "article": null
+            },
+            {
+              "code": "neck_play",
+              "topic": "play",
+              "topic_label": "Play & development",
+              "title": "Simple games for neck strength",
+              "body": "Short, frequent tummy time with a bright toy in front of their face.",
+              "minutes": 4,
+              "featured": false,
+              "from_months": 2,
+              "to_months": 5,
+              "article": null
+            },
+            {
+              "code": "mother_self_care",
+              "topic": "mother",
+              "topic_label": "Mum",
+              "title": "Looking after yourself in the first months",
+              "body": "Naps whenever you can, accepting help and talking about how you feel are part of caring for your baby.",
+              "minutes": 7,
+              "featured": false,
+              "from_months": 0,
+              "to_months": 12,
+              "article": null
+            }
+          ],
+          "disclaimer": "This is general information and does not replace advice from your child's doctor."
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/children/1/learn?topic=feeding",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "age_months": 3,
+          "age_label": "3 months and 11 days",
+          "topics": [
+            {
+              "code": "all",
+              "label": "All"
+            },
+            {
+              "code": "sleep",
+              "label": "Sleep"
+            },
+            {
+              "code": "feeding",
+              "label": "Feeding"
+            },
+            {
+              "code": "play",
+              "label": "Play & development"
+            },
+            {
+              "code": "health",
+              "label": "Health"
+            },
+            {
+              "code": "mother",
+              "label": "Mum"
+            }
+          ],
+          "topic": "feeding",
+          "featured": null,
+          "tips": [
+            {
+              "code": "breastfeeding_supply",
+              "topic": "feeding",
+              "topic_label": "Feeding",
+              "title": "Breastfeeding and milk supply",
+              "body": "Feeding on demand, a good latch and rest matter most.",
+              "minutes": 6,
+              "featured": false,
+              "from_months": 0,
+              "to_months": 6,
+              "article": null
+            }
+          ],
+          "disclaimer": "This is general information and does not replace advice from your child's doctor."
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,736 @@
+{
+  "case": "children/growth.fa",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/children",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "name": "آوا",
+          "birth_date": "2026-06-12",
+          "sex": "girl",
+          "birth_weight_kg": 3.2,
+          "birth_length_cm": 50
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "فرزند ثبت شد",
+        "data": {
+          "id": 1,
+          "name": "آوا",
+          "initial": "آ",
+          "birth_date": "2026-06-12",
+          "sex": "girl",
+          "sex_label": "دختر",
+          "delivery_type": null,
+          "delivery_type_label": null,
+          "birth": {
+            "weight_kg": 3.2,
+            "length_cm": 50,
+            "head_cm": null
+          },
+          "age": {
+            "days": 103,
+            "weeks": 14,
+            "months": 3,
+            "years": 0,
+            "days_in_month": 11,
+            "label": "۳ ماه و ۱۱ روز"
+          },
+          "role": "owner",
+          "can_edit": true,
+          "owner_name": null,
+          "vaccines": {
+            "given": 0,
+            "total": 21,
+            "completed_visits": 0,
+            "up_to_date": false,
+            "complete": false,
+            "next": {
+              "code": "birth",
+              "age_months": 0,
+              "label": "بدو تولد",
+              "due_date": "2026-06-12",
+              "remind_on": "2026-06-09",
+              "days_left": -103,
+              "status": "overdue",
+              "status_label": "عقب افتاده",
+              "given": 0,
+              "total": 3,
+              "dose_names": [
+                "ب.ث.ژ (BCG)",
+                "هپاتیت B نوبت اول",
+                "فلج اطفال خوراکی"
+              ]
+            }
+          },
+          "growth": {
+            "status": "normal",
+            "label": "در بازه طبیعی"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/children/1/measurements",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "measured_on": "2026-08-12",
+          "weight_kg": 5.0,
+          "length_cm": 57
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "message": "اندازه‌ها ثبت شد",
+        "data": {
+          "id": 1,
+          "source": "measurement",
+          "measured_on": "2026-08-12",
+          "age": {
+            "days": 61,
+            "months": 2,
+            "label": "۲ ماه"
+          },
+          "weight": {
+            "value": 5,
+            "percentile": 42.1,
+            "z": -0.2,
+            "in_band": true
+          },
+          "length": {
+            "value": 57,
+            "percentile": 48.4,
+            "z": -0.04,
+            "in_band": true
+          },
+          "head": null
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/children/1/measurements",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "measured_on": "2026-09-23",
+          "weight_kg": 6.1,
+          "length_cm": 61,
+          "head_cm": 40.5
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57"
+      },
+      "body": {
+        "success": true,
+        "message": "اندازه‌ها ثبت شد",
+        "data": {
+          "id": 2,
+          "source": "measurement",
+          "measured_on": "2026-09-23",
+          "age": {
+            "days": 103,
+            "months": 3.4,
+            "label": "۳ ماه و ۱۱ روز"
+          },
+          "weight": {
+            "value": 6.1,
+            "percentile": 51,
+            "z": 0.02,
+            "in_band": true
+          },
+          "length": {
+            "value": 61,
+            "percentile": 55.1,
+            "z": 0.13,
+            "in_band": true
+          },
+          "head": {
+            "value": 40.5,
+            "percentile": 66.7,
+            "z": 0.43,
+            "in_band": true
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/children/1/measurements/2",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "head_cm": 40
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "56"
+      },
+      "body": {
+        "success": true,
+        "message": "اندازه‌ها ثبت شد",
+        "data": {
+          "id": 2,
+          "source": "measurement",
+          "measured_on": "2026-09-23",
+          "age": {
+            "days": 103,
+            "months": 3.4,
+            "label": "۳ ماه و ۱۱ روز"
+          },
+          "weight": {
+            "value": 6.1,
+            "percentile": 51,
+            "z": 0.02,
+            "in_band": true
+          },
+          "length": {
+            "value": 61,
+            "percentile": 55.1,
+            "z": 0.13,
+            "in_band": true
+          },
+          "head": {
+            "value": 40,
+            "percentile": 51.3,
+            "z": 0.03,
+            "in_band": true
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/children/1/measurements",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "measurements": [
+            {
+              "id": 2,
+              "source": "measurement",
+              "measured_on": "2026-09-23",
+              "age": {
+                "days": 103,
+                "months": 3.4,
+                "label": "۳ ماه و ۱۱ روز"
+              },
+              "weight": {
+                "value": 6.1,
+                "percentile": 51,
+                "z": 0.02,
+                "in_band": true
+              },
+              "length": {
+                "value": 61,
+                "percentile": 55.1,
+                "z": 0.13,
+                "in_band": true
+              },
+              "head": {
+                "value": 40,
+                "percentile": 51.3,
+                "z": 0.03,
+                "in_band": true
+              }
+            },
+            {
+              "id": 1,
+              "source": "measurement",
+              "measured_on": "2026-08-12",
+              "age": {
+                "days": 61,
+                "months": 2,
+                "label": "۲ ماه"
+              },
+              "weight": {
+                "value": 5,
+                "percentile": 42.1,
+                "z": -0.2,
+                "in_band": true
+              },
+              "length": {
+                "value": 57,
+                "percentile": 48.4,
+                "z": -0.04,
+                "in_band": true
+              },
+              "head": null
+            },
+            {
+              "id": null,
+              "source": "birth",
+              "measured_on": "2026-06-12",
+              "age": {
+                "days": 0,
+                "months": 0,
+                "label": "امروز به دنیا آمده"
+              },
+              "weight": {
+                "value": 3.2,
+                "percentile": 47.2,
+                "z": -0.07,
+                "in_band": true
+              },
+              "length": {
+                "value": 50,
+                "percentile": 67.6,
+                "z": 0.46,
+                "in_band": true
+              },
+              "head": null
+            }
+          ],
+          "verdict": {
+            "status": "normal",
+            "label": "در بازه طبیعی"
+          },
+          "disclaimer": "صدک‌ها بر اساس منحنی‌های رشد WHO تخمین زده می‌شوند و جای ارزیابی پزشک را نمی‌گیرند.",
+          "source": "WHO Child Growth Standards (WHO Multicentre Growth Reference Study Group, 2006/2007), expanded daily LMS tables, https://www.who.int/tools/child-growth-standards/standards"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/children/1/growth?indicator=weight",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "indicator": "weight",
+          "label": "وزن",
+          "unit": "kg",
+          "unit_label": "کیلوگرم",
+          "sex": "girl",
+          "available": true,
+          "reason": null,
+          "range": {
+            "from_month": 0,
+            "to_month": 12
+          },
+          "band": {
+            "low_percentile": 3,
+            "high_percentile": 97,
+            "label": "بازه طبیعی (صدک ۳ تا ۹۷)"
+          },
+          "median_label": "میانه رشد دختران",
+          "reference": [
+            {
+              "month": 0,
+              "day": 0,
+              "p3": 2.44,
+              "p15": 2.779,
+              "p50": 3.232,
+              "p85": 3.729,
+              "p97": 4.166
+            },
+            {
+              "month": 1,
+              "day": 30,
+              "p3": 3.203,
+              "p15": 3.612,
+              "p50": 4.172,
+              "p85": 4.802,
+              "p97": 5.371
+            },
+            {
+              "month": 2,
+              "day": 61,
+              "p3": 4.007,
+              "p15": 4.481,
+              "p50": 5.132,
+              "p85": 5.866,
+              "p97": 6.534
+            },
+            {
+              "month": 3,
+              "day": 91,
+              "p3": 4.6,
+              "p15": 5.121,
+              "p50": 5.839,
+              "p85": 6.653,
+              "p97": 7.395
+            },
+            {
+              "month": 4,
+              "day": 122,
+              "p3": 5.091,
+              "p15": 5.653,
+              "p50": 6.428,
+              "p85": 7.31,
+              "p97": 8.118
+            },
+            {
+              "month": 5,
+              "day": 152,
+              "p3": 5.481,
+              "p15": 6.074,
+              "p50": 6.896,
+              "p85": 7.834,
+              "p97": 8.697
+            },
+            {
+              "month": 6,
+              "day": 183,
+              "p3": 5.816,
+              "p15": 6.438,
+              "p50": 7.302,
+              "p85": 8.291,
+              "p97": 9.204
+            },
+            {
+              "month": 7,
+              "day": 213,
+              "p3": 6.094,
+              "p15": 6.741,
+              "p50": 7.642,
+              "p85": 8.677,
+              "p97": 9.635
+            },
+            {
+              "month": 8,
+              "day": 244,
+              "p3": 6.346,
+              "p15": 7.017,
+              "p50": 7.953,
+              "p85": 9.033,
+              "p97": 10.036
+            },
+            {
+              "month": 9,
+              "day": 274,
+              "p3": 6.565,
+              "p15": 7.258,
+              "p50": 8.226,
+              "p85": 9.346,
+              "p97": 10.389
+            },
+            {
+              "month": 10,
+              "day": 304,
+              "p3": 6.766,
+              "p15": 7.478,
+              "p50": 8.477,
+              "p85": 9.635,
+              "p97": 10.717
+            },
+            {
+              "month": 11,
+              "day": 335,
+              "p3": 6.96,
+              "p15": 7.693,
+              "p50": 8.721,
+              "p85": 9.916,
+              "p97": 11.036
+            },
+            {
+              "month": 12,
+              "day": 365,
+              "p3": 7.14,
+              "p15": 7.891,
+              "p50": 8.946,
+              "p85": 10.176,
+              "p97": 11.331
+            }
+          ],
+          "points": [
+            {
+              "id": null,
+              "measured_on": "2026-06-12",
+              "age_days": 0,
+              "age_months": 0,
+              "value": 3.2,
+              "percentile": 47.2,
+              "in_band": true
+            },
+            {
+              "id": 1,
+              "measured_on": "2026-08-12",
+              "age_days": 61,
+              "age_months": 2,
+              "value": 5,
+              "percentile": 42.1,
+              "in_band": true
+            },
+            {
+              "id": 2,
+              "measured_on": "2026-09-23",
+              "age_days": 103,
+              "age_months": 3.4,
+              "value": 6.1,
+              "percentile": 51,
+              "in_band": true
+            }
+          ],
+          "latest": {
+            "id": 2,
+            "measured_on": "2026-09-23",
+            "age_days": 103,
+            "age_months": 3.4,
+            "value": 6.1,
+            "percentile": 51,
+            "in_band": true
+          },
+          "verdict": {
+            "status": "normal",
+            "label": "در بازه طبیعی"
+          },
+          "disclaimer": "صدک‌ها بر اساس منحنی‌های رشد WHO تخمین زده می‌شوند و جای ارزیابی پزشک را نمی‌گیرند.",
+          "source": "WHO Child Growth Standards (WHO Multicentre Growth Reference Study Group, 2006/2007), expanded daily LMS tables, https://www.who.int/tools/child-growth-standards/standards"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/children/1/measurements",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "measured_on": "2026-06-01",
+          "weight_kg": 3
+        }
+      },
+      "status": 422,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "55"
+      },
+      "body": {
+        "success": false,
+        "message": "اطلاعات واردشده معتبر نیست",
+        "errors": {
+          "measured_on": [
+            "تاریخ اندازه‌گیری نمی‌تواند قبل از تولد باشد."
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/children/1",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "sex": null
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "54"
+      },
+      "body": {
+        "success": true,
+        "message": "اطلاعات فرزند ذخیره شد",
+        "data": {
+          "id": 1,
+          "name": "آوا",
+          "initial": "آ",
+          "birth_date": "2026-06-12",
+          "sex": null,
+          "sex_label": null,
+          "delivery_type": null,
+          "delivery_type_label": null,
+          "birth": {
+            "weight_kg": 3.2,
+            "length_cm": 50,
+            "head_cm": null
+          },
+          "age": {
+            "days": 103,
+            "weeks": 14,
+            "months": 3,
+            "years": 0,
+            "days_in_month": 11,
+            "label": "۳ ماه و ۱۱ روز"
+          },
+          "role": "owner",
+          "can_edit": true,
+          "owner_name": null,
+          "vaccines": {
+            "given": 0,
+            "total": 21,
+            "completed_visits": 0,
+            "up_to_date": false,
+            "complete": false,
+            "next": {
+              "code": "birth",
+              "age_months": 0,
+              "label": "بدو تولد",
+              "due_date": "2026-06-12",
+              "remind_on": "2026-06-09",
+              "days_left": -103,
+              "status": "overdue",
+              "status_label": "عقب افتاده",
+              "given": 0,
+              "total": 3,
+              "dose_names": [
+                "ب.ث.ژ (BCG)",
+                "هپاتیت B نوبت اول",
+                "فلج اطفال خوراکی"
+              ]
+            }
+          },
+          "growth": {
+            "status": "unknown",
+            "label": "هنوز اندازه‌ای ثبت نشده"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/children/1/growth?indicator=length",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "indicator": "length",
+          "label": "قد",
+          "unit": "cm",
+          "unit_label": "سانتی‌متر",
+          "sex": null,
+          "available": false,
+          "reason": "sex_unknown",
+          "range": {
+            "from_month": 0,
+            "to_month": 12
+          },
+          "band": {
+            "low_percentile": 3,
+            "high_percentile": 97,
+            "label": "بازه طبیعی (صدک ۳ تا ۹۷)"
+          },
+          "median_label": null,
+          "reference": [],
+          "points": [
+            {
+              "id": null,
+              "measured_on": "2026-06-12",
+              "age_days": 0,
+              "age_months": 0,
+              "value": 50,
+              "percentile": null,
+              "in_band": null
+            },
+            {
+              "id": 1,
+              "measured_on": "2026-08-12",
+              "age_days": 61,
+              "age_months": 2,
+              "value": 57,
+              "percentile": null,
+              "in_band": null
+            },
+            {
+              "id": 2,
+              "measured_on": "2026-09-23",
+              "age_days": 103,
+              "age_months": 3.4,
+              "value": 61,
+              "percentile": null,
+              "in_band": null
+            }
+          ],
+          "latest": {
+            "id": 2,
+            "measured_on": "2026-09-23",
+            "age_days": 103,
+            "age_months": 3.4,
+            "value": 61,
+            "percentile": null,
+            "in_band": null
+          },
+          "verdict": {
+            "status": "unknown",
+            "label": "هنوز اندازه‌ای ثبت نشده"
+          },
+          "disclaimer": "صدک‌ها بر اساس منحنی‌های رشد WHO تخمین زده می‌شوند و جای ارزیابی پزشک را نمی‌گیرند.",
+          "source": "WHO Child Growth Standards (WHO Multicentre Growth Reference Study Group, 2006/2007), expanded daily LMS tables, https://www.who.int/tools/child-growth-standards/standards"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "url": "/api/v1/children/1/measurements/2",
+        "persona": "regular",
+        "accept_language": "fa",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "53"
+      },
+      "body": {
+        "success": true,
+        "message": "اندازه حذف شد"
+      }
+    }
+  ]
+}

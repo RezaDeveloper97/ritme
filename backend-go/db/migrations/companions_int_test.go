@@ -49,7 +49,10 @@ func TestCompanionsMigration_UpDown(t *testing.T) {
 	require.NoError(t, err)
 	fid, err := res.LastInsertId()
 	require.NoError(t, err)
-	_, err = db.ExecContext(ctx, `INSERT INTO family_children (family_id, child_id) VALUES (?, 42)`, fid) // no children FK until B-N5-02
+	// family_children.child_id references children since B-N5-02 (00031).
+	_, err = db.ExecContext(ctx, `INSERT INTO children (id, owner_id, name, birth_date) VALUES (42, ?, 'Child', '2026-01-01')`, owner)
+	require.NoError(t, err)
+	_, err = db.ExecContext(ctx, `INSERT INTO family_children (family_id, child_id) VALUES (?, 42)`, fid)
 	require.NoError(t, err)
 	_, err = db.ExecContext(ctx, `INSERT INTO companion_audit_logs (owner_id, actor_id, companion_id, action, created_at) VALUES (?, ?, ?, 'invited', NOW())`, owner, owner, cid)
 	require.NoError(t, err)

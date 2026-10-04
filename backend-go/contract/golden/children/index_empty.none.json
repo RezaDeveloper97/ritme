@@ -1,0 +1,28 @@
+{
+  "case": "children/index_empty.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/children",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "children": [],
+          "count": 0,
+          "owned_count": 0,
+          "max_children": 10,
+          "can_add": true,
+          "sharing_note": "اطلاعات هر فرزند جدا نگه داشته می‌شود و می‌توانی آن را با «ریتمی همراه» به اشتراک بگذاری."
+        }
+      }
+    }
+  ]
+}

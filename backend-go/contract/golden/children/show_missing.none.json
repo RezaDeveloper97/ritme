@@ -1,0 +1,22 @@
+{
+  "case": "children/show_missing.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/children/999",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 404,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": false,
+        "message": "فرزند پیدا نشد",
+        "error_code": "child_not_found"
+      }
+    }
+  ]
+}

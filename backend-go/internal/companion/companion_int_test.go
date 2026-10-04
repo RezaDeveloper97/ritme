@@ -434,6 +434,12 @@ func TestSpouse_FamilyAndSharedChildren(t *testing.T) {
 	e := setup(t)
 	owner := e.user(t, "09120000001")
 	ali := e.user(t, "09120000002")
+	// family_children.child_id references children (B-N5-02): the owner's children 3, 7 and 9.
+	for _, id := range []int{3, 7, 9} {
+		_, err := e.db.Exec(`INSERT INTO children (id, owner_id, name, birth_date, created_at, updated_at)
+			VALUES (?, ?, 'Child', '2026-01-01', NOW(), NOW())`, id, owner)
+		require.NoError(t, err)
+	}
 
 	inv, err := e.svc.CreateInvite(ctx, owner, companion.InviteInput{Type: companion.TypeSpouse, ChildIDs: []uint64{7, 3, 7}})
 	require.NoError(t, err)

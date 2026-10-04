@@ -46,7 +46,7 @@ cases:
     body: {type: partner, grants: {bank: view}}
     status: 422
   - name: invite_children_refused
-    doc: Shared children cannot be verified before the children table (B-N5-02) → 422 on child_ids
+    doc: A child id the owner does not own (no child exists in the fixtures; B-N5-02 checks ownership) → 422 on child_ids
     method: POST
     path: /api/v1/companions
     body: {type: spouse, child_ids: [7]}
@@ -184,4 +184,63 @@ cases:
         status: 200
       - method: GET
         path: /api/v1/companions
+        status: 200
+
+  - name: audit_filter_cursor_and_history_404
+    doc: |
+      B-N4-08b (docs/security/bloom-companion.md CMP-L1 / CMP-M2): two section reads within 15 minutes are one read
+      row; the audit trail filters by action (write stays reachable) and pages back with before_id; an unknown action
+      is 422; a paused medication is 404 for the companion (outside the meds view) but not for the owner. Section and
+      delegated GETs carry the companion throttles' X-RateLimit headers.
+    steps:
+      - method: POST
+        path: /api/v1/companions
+        body: {type: partner, grants: {cycle: view, meds: edit}}
+        status: 201
+        capture: {code: data.invite.code, id: data.companion.id}
+      - as: no_profile
+        method: POST
+        path: /api/v1/companions/accept
+        body: {code: "{{code}}"}
+        status: 200
+      - as: no_profile
+        method: GET
+        path: "/api/v1/companions/links/{{id}}/sections/cycle"
+        status: 200
+      - as: no_profile
+        method: GET
+        path: "/api/v1/companions/links/{{id}}/sections/cycle"
+        status: 200
+      - as: no_profile
+        method: POST
+        path: /api/v1/care/medications
+        body: {for_user_id: 1004, title: Iron, form: tablet, times: ["21:00"]}
+        status: 201
+        capture: {med: data.id}
+      - method: GET
+        path: /api/v1/companions/audit?action=read
+        status: 200
+      - method: GET
+        path: /api/v1/companions/audit?action=write
+        status: 200
+      - method: GET
+        path: /api/v1/companions/audit?limit=2
+        status: 200
+        capture: {cursor: "data[1].id"}
+      - method: GET
+        path: "/api/v1/companions/audit?limit=2&before_id={{cursor}}"
+        status: 200
+      - method: GET
+        path: /api/v1/companions/audit?action=delete
+        status: 422
+      - method: PUT
+        path: "/api/v1/care/medications/{{med}}"
+        body: {is_active: false}
+        status: 200
+      - as: no_profile
+        method: GET
+        path: "/api/v1/care/medications/{{med}}?for_user_id=1004"
+        status: 404
+      - method: GET
+        path: "/api/v1/care/medications/{{med}}"
         status: 200

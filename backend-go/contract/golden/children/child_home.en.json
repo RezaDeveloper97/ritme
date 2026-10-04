@@ -1,0 +1,362 @@
+{
+  "case": "children/child_home.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/children",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "name": "آوا",
+          "birth_date": "2026-06-12",
+          "sex": "girl",
+          "birth_weight_kg": 3.2,
+          "birth_length_cm": 50,
+          "delivery_type": "vaginal"
+        }
+      },
+      "status": 201,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "Child added",
+        "data": {
+          "id": 1,
+          "name": "آوا",
+          "initial": "آ",
+          "birth_date": "2026-06-12",
+          "sex": "girl",
+          "sex_label": "Girl",
+          "delivery_type": "vaginal",
+          "delivery_type_label": "Vaginal",
+          "birth": {
+            "weight_kg": 3.2,
+            "length_cm": 50,
+            "head_cm": null
+          },
+          "age": {
+            "days": 103,
+            "weeks": 14,
+            "months": 3,
+            "years": 0,
+            "days_in_month": 11,
+            "label": "3 months and 11 days"
+          },
+          "role": "owner",
+          "can_edit": true,
+          "owner_name": null,
+          "vaccines": {
+            "given": 0,
+            "total": 21,
+            "completed_visits": 0,
+            "up_to_date": false,
+            "complete": false,
+            "next": {
+              "code": "birth",
+              "age_months": 0,
+              "label": "At birth",
+              "due_date": "2026-06-12",
+              "remind_on": "2026-06-09",
+              "days_left": -103,
+              "status": "overdue",
+              "status_label": "Overdue",
+              "given": 0,
+              "total": 3,
+              "dose_names": [
+                "BCG",
+                "Hepatitis B, dose 1",
+                "Oral polio (OPV)"
+              ]
+            }
+          },
+          "growth": {
+            "status": "normal",
+            "label": "Within the normal range"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/children",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "children": [
+            {
+              "id": 1,
+              "name": "آوا",
+              "initial": "آ",
+              "birth_date": "2026-06-12",
+              "sex": "girl",
+              "sex_label": "Girl",
+              "delivery_type": "vaginal",
+              "delivery_type_label": "Vaginal",
+              "birth": {
+                "weight_kg": 3.2,
+                "length_cm": 50,
+                "head_cm": null
+              },
+              "age": {
+                "days": 103,
+                "weeks": 14,
+                "months": 3,
+                "years": 0,
+                "days_in_month": 11,
+                "label": "3 months and 11 days"
+              },
+              "role": "owner",
+              "can_edit": true,
+              "owner_name": null,
+              "vaccines": {
+                "given": 0,
+                "total": 21,
+                "completed_visits": 0,
+                "up_to_date": false,
+                "complete": false,
+                "next": {
+                  "code": "birth",
+                  "age_months": 0,
+                  "label": "At birth",
+                  "due_date": "2026-06-12",
+                  "remind_on": "2026-06-09",
+                  "days_left": -103,
+                  "status": "overdue",
+                  "status_label": "Overdue",
+                  "given": 0,
+                  "total": 3,
+                  "dose_names": [
+                    "BCG",
+                    "Hepatitis B, dose 1",
+                    "Oral polio (OPV)"
+                  ]
+                }
+              },
+              "growth": {
+                "status": "normal",
+                "label": "Within the normal range"
+              }
+            }
+          ],
+          "count": 1,
+          "owned_count": 1,
+          "max_children": 10,
+          "can_add": true,
+          "sharing_note": "Each child's data is kept separately and you can share it with a Ritme companion."
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/children/1",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "id": 1,
+          "name": "آوا",
+          "initial": "آ",
+          "birth_date": "2026-06-12",
+          "sex": "girl",
+          "sex_label": "Girl",
+          "delivery_type": "vaginal",
+          "delivery_type_label": "Vaginal",
+          "birth": {
+            "weight_kg": 3.2,
+            "length_cm": 50,
+            "head_cm": null
+          },
+          "age": {
+            "days": 103,
+            "weeks": 14,
+            "months": 3,
+            "years": 0,
+            "days_in_month": 11,
+            "label": "3 months and 11 days"
+          },
+          "role": "owner",
+          "can_edit": true,
+          "owner_name": null,
+          "vaccines": {
+            "given": 0,
+            "total": 21,
+            "completed_visits": 0,
+            "up_to_date": false,
+            "complete": false,
+            "next": {
+              "code": "birth",
+              "age_months": 0,
+              "label": "At birth",
+              "due_date": "2026-06-12",
+              "remind_on": "2026-06-09",
+              "days_left": -103,
+              "status": "overdue",
+              "status_label": "Overdue",
+              "given": 0,
+              "total": 3,
+              "dose_names": [
+                "BCG",
+                "Hepatitis B, dose 1",
+                "Oral polio (OPV)"
+              ]
+            }
+          },
+          "growth": {
+            "status": "normal",
+            "label": "Within the normal range"
+          },
+          "latest": {
+            "id": null,
+            "source": "birth",
+            "measured_on": "2026-06-12",
+            "age": {
+              "days": 0,
+              "months": 0,
+              "label": "Born today"
+            },
+            "weight": {
+              "value": 3.2,
+              "percentile": 47.2,
+              "z": -0.07,
+              "in_band": true
+            },
+            "length": {
+              "value": 50,
+              "percentile": 67.6,
+              "z": 0.46,
+              "in_band": true
+            },
+            "head": null
+          },
+          "milestones": {
+            "band_months": 3,
+            "label": "3 months",
+            "checked": 0,
+            "total": 7
+          },
+          "this_week": {
+            "weeks": 14,
+            "months": 3,
+            "body": "Most babies this age hold their head up during tummy time, laugh at sounds and bring their hands to the mouth. If not yet, no rush; the normal range is wide."
+          },
+          "learn": {
+            "count": 6,
+            "featured": {
+              "code": "night_sleep_3m",
+              "topic": "sleep",
+              "topic_label": "Sleep",
+              "title": "Night sleep from 3 months",
+              "body": "Building a gentle routine: bath, feed, dim light, the same order every night. No cry-it-out methods.",
+              "minutes": 4,
+              "featured": true,
+              "from_months": 3,
+              "to_months": 6,
+              "article": null
+            }
+          },
+          "today": null
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/children/1",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "name": "Ava",
+          "birth_head_cm": 34
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "message": "Child saved",
+        "data": {
+          "id": 1,
+          "name": "Ava",
+          "initial": "A",
+          "birth_date": "2026-06-12",
+          "sex": "girl",
+          "sex_label": "Girl",
+          "delivery_type": "vaginal",
+          "delivery_type_label": "Vaginal",
+          "birth": {
+            "weight_kg": 3.2,
+            "length_cm": 50,
+            "head_cm": 34
+          },
+          "age": {
+            "days": 103,
+            "weeks": 14,
+            "months": 3,
+            "years": 0,
+            "days_in_month": 11,
+            "label": "3 months and 11 days"
+          },
+          "role": "owner",
+          "can_edit": true,
+          "owner_name": null,
+          "vaccines": {
+            "given": 0,
+            "total": 21,
+            "completed_visits": 0,
+            "up_to_date": false,
+            "complete": false,
+            "next": {
+              "code": "birth",
+              "age_months": 0,
+              "label": "At birth",
+              "due_date": "2026-06-12",
+              "remind_on": "2026-06-09",
+              "days_left": -103,
+              "status": "overdue",
+              "status_label": "Overdue",
+              "given": 0,
+              "total": 3,
+              "dose_names": [
+                "BCG",
+                "Hepatitis B, dose 1",
+                "Oral polio (OPV)"
+              ]
+            }
+          },
+          "growth": {
+            "status": "normal",
+            "label": "Within the normal range"
+          }
+        }
+      }
+    }
+  ]
+}
