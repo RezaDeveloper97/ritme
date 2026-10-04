@@ -577,3 +577,19 @@ One section per finished task (appended by `/site-task`).
   `min_build_id`, `update_message`. Tests: `ServiceWorkerTest` (6), `tests/js` 16. Verified offline/toast/forced in Chromium.
 - Open: deploy package must ship `public/sw.js` + `public/build/build-id.json`; generated logo icons not precached;
   `pwa.js` 3.6 kB gz on every page.
+
+## L5-03 — Place page with gallery, services, hours, reviews, LocalBusiness schema
+- `ShowPlaceController` (`show`: slug-history 301 keeping query, 404 unknown/unpublished, `?page` review pagination;
+  `storeReview`: `directory.place.review`, `throttle:3,10`, honeypot `company_url`, pending via `SubmitPlaceReview`,
+  Persian errors). SeoManager/SchemaGraph injected per method (constructor injection goes stale across requests in tests).
+- Views `pages/directory/show` + `components/directory/{section,header,gallery,hours,rating-summary,review-form,
+  address,booking}`; `gallery.js` (lazy `<dialog>` lightbox with RTL keys; `<details>` fallback). Demo places noindex +
+  «مجموعه نمونه»; demo reviews labelled; rating only from real approved reviews. "Open until" pill / today row only
+  if stable for the whole page-cache TTL. No map embed: `map-place` illustration + geo:/Neshan/Balad/Google links.
+  Pool health note for the pool category. Booking CTAs → `#book` aside with a marked `data-booking-slot` for L5-04.
+- JSON-LD ItemPage + LocalBusiness subtype (PostalAddress, geo, openingHoursSpecification, priceRange, image,
+  aggregateRating/reviews only if real) + BreadcrumbList. `PlaceTest` (14). `seo:audit` 0 errors.
+- Diff 1440 14.04% (body 13.07%, header region 3.75%) / 390 46.73%: kit mobile gallery is one tile vs design's five
+  stacked, booking widget is L5-04, no fake rating bars, 9 vs 8 amenities, NULL app links.
+- Orchestrator: `RoutingTest` seeds `DirectorySeeder` for `directory.place`.
+- Open: og:image empty for photo-less places; Neshan/Balad URL formats unverified.

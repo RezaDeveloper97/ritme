@@ -3,7 +3,7 @@ id: L5-03
 title: Place page with gallery, services, hours, reviews, LocalBusiness schema
 milestone: L5
 type: frontend
-status: todo
+status: done
 depends_on: [L5-02]
 parallel_group: L5-B
 touches: [resources/views/pages/directory/show.blade.php,resources/views/components/directory,app/Http/Controllers/Directory/ShowPlaceController.php,resources/js/modules/gallery.js,tests/Feature/Directory/PlaceTest.php]

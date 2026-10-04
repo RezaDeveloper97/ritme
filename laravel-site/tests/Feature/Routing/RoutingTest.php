@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\PlaceholderPageController;
 use Database\Seeders\BlogSeeder;
+use Database\Seeders\DirectorySeeder;
 use Database\Seeders\SettingsSeeder;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\Request;
@@ -79,6 +80,9 @@ it('serves every audit page under its route name as a noindex placeholder with o
     // Real content pages need their demo rows (pages are swapped from the placeholder task by task).
     if ($name === 'blog.show') {
         $this->seed(BlogSeeder::class);
+    }
+    if ($name === 'directory.place') {
+        $this->seed(DirectorySeeder::class);
     }
 
     $url = concreteUrl($route);
