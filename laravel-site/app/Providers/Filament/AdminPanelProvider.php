@@ -9,6 +9,15 @@ use App\Domain\Blog\Models\Category;
 use App\Domain\Blog\Models\Post;
 use App\Domain\Blog\Models\Tag;
 use App\Domain\Contact\Models\ContactMessage;
+use App\Domain\Directory\Booking\Models\BookingRequest;
+use App\Domain\Directory\Join\Models\JoinRequest;
+use App\Domain\Directory\Models\Amenity;
+use App\Domain\Directory\Models\City;
+use App\Domain\Directory\Models\District;
+use App\Domain\Directory\Models\Landing;
+use App\Domain\Directory\Models\Place;
+use App\Domain\Directory\Models\PlaceCategory;
+use App\Domain\Directory\Models\PlaceReview;
 use App\Domain\Faq\Models\FaqGroup;
 use App\Domain\Faq\Models\FaqItem;
 use App\Domain\Media\Models\Media;
@@ -30,6 +39,10 @@ use App\Filament\Resources\Blog\Posts\PostPolicy;
 use App\Filament\Resources\Blog\Posts\PostPreviewController;
 use App\Filament\Resources\Blog\Tags\TagPolicy;
 use App\Filament\Resources\ContactMessages\ContactMessagePolicy;
+use App\Filament\Resources\Directory\BookingRequestPolicy;
+use App\Filament\Resources\Directory\DirectoryPolicy;
+use App\Filament\Resources\Directory\JoinRequestPolicy;
+use App\Filament\Resources\Directory\PlaceReviewPolicy;
 use App\Filament\Resources\Faq\FaqPolicy;
 use App\Filament\Resources\Media\MediaPolicy;
 use App\Filament\Resources\Newsletter\SubscriberPolicy;
@@ -89,6 +102,12 @@ final class AdminPanelProvider extends PanelProvider
         Gate::policy(Subscriber::class, SubscriberPolicy::class);
         Gate::policy(ContactMessage::class, ContactMessagePolicy::class);
         Gate::policy(SeoMeta::class, StaticPageSeoPolicy::class);
+        foreach ([Place::class, PlaceCategory::class, City::class, District::class, Amenity::class, Landing::class] as $model) {
+            Gate::policy($model, DirectoryPolicy::class);
+        }
+        Gate::policy(PlaceReview::class, PlaceReviewPolicy::class);
+        Gate::policy(BookingRequest::class, BookingRequestPolicy::class);
+        Gate::policy(JoinRequest::class, JoinRequestPolicy::class);
 
         Event::listen(Login::class, RecordLastLogin::class);
     }

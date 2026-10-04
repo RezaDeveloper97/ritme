@@ -3,7 +3,7 @@ id: L5-06
 title: Admin: directory resources, reviews moderation, bookings, join requests
 milestone: L5
 type: admin
-status: todo
+status: done
 depends_on: [L5-04,L5-05,L2-03,L4-05]
 parallel_group: L5-D
 touches: [app/Filament/Resources/Directory,tests/Feature/Admin/DirectoryAdminTest.php]

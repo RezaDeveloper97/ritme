@@ -56,6 +56,7 @@ final class BookingController
     public function store(BookingForm $request, CreateBookingRequest $create): RedirectResponse
     {
         $place = $request->place();
+        abort_if($place->phoneOnly, 404); // phone-only places show their number instead of the form
 
         if ($request->isSpam()) {
             $code = BookingCode::generate();

@@ -727,3 +727,20 @@ One section per finished task (appended by `/site-task`).
   added stock badge/description/demo notes/review form, different preselected size, NULL app links).
 - Open: L6-04 adds `shop.cart.add` (posts product/color/size/quantity; resolve with `variantFor`, re-check stock);
   delivery/returns copy to confirm; shared default throttle key with place reviews.
+
+## L5-06 — Admin: directory resources, reviews moderation, bookings, join requests
+- `app/Filament/Resources/Directory/`: policies (DirectoryManager + super-admin; reviews/bookings/join no create;
+  bookings `export`), `DirectoryAdmin` helpers (nav group, jdate, local sprite icon picker, opening-hours editor ⇄ JSON),
+  Places (info / location / services repeater / hours / gallery with MediaPicker / SEO via `SeoFields`; amenities,
+  booking_mode; publish/draft/suspend; view on site; saved via `SavePlace`), Categories, Cities (+districts), Amenities,
+  Landings (per city or city×category copy), Reviews (tabs + single/bulk approve/reject), Bookings (status board with
+  counts, place + Jalali date filters, masked mobile in list, full number + tel: only on view, status flow, CSV),
+  Join requests (full review page, «تبدیل به پیش‌نویس مجموعه» → draft Place, reject).
+- Actions: `SavePlace` (never writes status/rating/price), `ChangePlaceStatus`, `ChangeBookingStatus`
+  (new→confirmed|cancelled, confirmed→done|cancelled), `ExportBookingRequests` (BOM, Jalali, masked, no notes, formula
+  guard), `ApproveJoinRequest` (draft place + amenities + photos + services; contact person not copied),
+  `RejectJoinRequest`; `ModeratePlaceReviews` gained an optional causer; `Support/DirectoryActivity` (log `directory`).
+- Migration `2026_10_04_002180_add_booking_mode_to_directory_places_table` (default online); phone-only places hide the
+  booking form and POST book → 404. `DirectoryAdminTest` (7). Pest 1189 passed.
+- Open: Activity filter lacks `directory`; booking status changes don't notify the parent (no SMS driver yet);
+  join request has no `place_id` column; `BookingMode` lives in `Join\Enums`; retention for bookings/join requests.

@@ -6,7 +6,8 @@
     note → POST BookingController@store. No fake availability: days come from the opening hours only, and the place
     confirms the time by phone. Works on page-cache HITs: `@csrf` is swapped per visitor by PageCache, the FormTimer
     token is the cache-store time (see App\Http\Requests\BookingRequest), and errors / old input come back as flash
-    data in the `booking` bag, which bypasses the page cache. Without `form` the panel shows how to reach the place.
+    data in the `booking` bag, which bypasses the page cache. Without `form` the panel shows how to reach the place;
+    `:form="false"` marks a phone-only place (BookingMode::Phone): the same panel without the «online booking soon» note.
 --}}
 @props(['priceFrom' => null, 'unit' => null, 'phone' => null, 'form' => null])
 @php
@@ -101,7 +102,9 @@
         </form>
     @else
         <div data-booking-slot class="flex flex-col gap-4.5">
-            <p class="m-0 rounded-2xl bg-lavender px-4 py-3.5 text-[14.5px] leading-loose font-semibold text-ink">{{ __('directory.place.booking.soon') }}</p>
+            @if ($form !== false)
+                <p class="m-0 rounded-2xl bg-lavender px-4 py-3.5 text-[14.5px] leading-loose font-semibold text-ink">{{ __('directory.place.booking.soon') }}</p>
+            @endif
             @if ($phone)
                 <x-ui.button :href="'tel:'.$phone" size="2xl" icon="phone" class="w-full justify-center">{{ __('directory.place.booking.call') }}</x-ui.button>
             @endif

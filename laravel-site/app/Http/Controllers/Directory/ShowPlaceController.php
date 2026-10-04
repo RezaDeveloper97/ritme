@@ -164,7 +164,8 @@ final class ShowPlaceController
                 'priceFrom' => $place->priceFrom,
                 'priceUnit' => $this->priceUnit($place),
                 'phone' => $place->phones[0] ?? null,
-                'form' => $this->bookingForm($place),
+                // false = phone-only place (BookingMode::Phone): no form, no «online booking soon» note, just the number.
+                'form' => $place->phoneOnly ? false : $this->bookingForm($place),
             ],
             'navRoute' => 'directory.index',
         ]);

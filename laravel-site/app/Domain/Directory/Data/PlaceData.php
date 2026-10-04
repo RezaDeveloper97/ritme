@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Directory\Data;
 
+use App\Domain\Directory\Join\Enums\BookingMode;
 use App\Domain\Directory\Models\Place;
 use App\Domain\Directory\Support\AgeRange;
 use App\Domain\Directory\Support\MapLinks;
@@ -16,7 +17,8 @@ use Carbon\CarbonImmutable;
 
 /**
  * A published place for its page (L5-03). Media are ids for <x-picture>: `coverMediaId` then the ordered gallery.
- * `ratingAvg`/`ratingCount` come from real approved reviews only; `isDemo` marks placeholder businesses.
+ * `ratingAvg`/`ratingCount` come from real approved reviews only; `isDemo` marks placeholder businesses; `phoneOnly`
+ * places (BookingMode::Phone) take no booking requests — the page shows their number instead of the form.
  */
 final readonly class PlaceData
 {
@@ -57,6 +59,7 @@ final readonly class PlaceData
         public int $ratingCount,
         public ?int $priceFrom,
         public CarbonImmutable $updatedAt,
+        public bool $phoneOnly = false,
     ) {}
 
     /**
@@ -94,6 +97,7 @@ final readonly class PlaceData
             ratingCount: $place->rating_count,
             priceFrom: $place->price_from,
             updatedAt: ($place->updated_at ?? $place->created_at ?? now())->toImmutable(),
+            phoneOnly: $place->booking_mode === BookingMode::Phone,
         );
     }
 
@@ -208,6 +212,7 @@ final readonly class PlaceData
             'isVerified' => $this->isVerified, 'isDemo' => $this->isDemo,
             'ratingAvg' => $this->ratingAvg, 'ratingCount' => $this->ratingCount, 'priceFrom' => $this->priceFrom,
             'updatedAt' => $this->updatedAt->toIso8601String(),
+            'phoneOnly' => $this->phoneOnly,
         ];
     }
 
@@ -260,6 +265,7 @@ final readonly class PlaceData
             ratingCount: (int) $data['ratingCount'],
             priceFrom: $int('priceFrom'),
             updatedAt: CarbonImmutable::parse((string) $data['updatedAt']),
+            phoneOnly: (bool) ($data['phoneOnly'] ?? false),
         );
     }
 }

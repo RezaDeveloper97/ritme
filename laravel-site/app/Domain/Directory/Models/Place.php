@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Directory\Models;
 
 use App\Domain\Directory\Enums\PlaceStatus;
+use App\Domain\Directory\Join\Enums\BookingMode;
 use App\Domain\Directory\Support\AgeRange;
 use App\Domain\Directory\Support\OpeningHours;
 use App\Domain\Media\Models\Media;
@@ -45,6 +46,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $rules
  * @property string|null $cancellation_policy
  * @property int|null $cover_media_id
+ * @property BookingMode $booking_mode online booking form, or phone only (the place page hides the form)
  * @property PlaceStatus $status
  * @property bool $is_verified
  * @property bool $is_demo
@@ -73,11 +75,12 @@ final class Place extends Model
     protected $fillable = [
         'name', 'slug', 'category_id', 'city_id', 'district_id', 'summary', 'description', 'address', 'postal_code',
         'latitude', 'longitude', 'phones', 'website', 'age_min_months', 'age_max_months', 'opening_hours', 'rules',
-        'cancellation_policy', 'cover_media_id', 'status', 'is_verified', 'is_demo',
+        'cancellation_policy', 'booking_mode', 'cover_media_id', 'status', 'is_verified', 'is_demo',
     ];
 
     protected $attributes = [
         'status' => 'draft',
+        'booking_mode' => 'online',
         'is_verified' => false,
         'is_demo' => false,
         'rating_avg' => 0,
@@ -91,6 +94,7 @@ final class Place extends Model
     {
         return [
             'status' => PlaceStatus::class,
+            'booking_mode' => BookingMode::class,
             'category_id' => 'integer',
             'city_id' => 'integer',
             'district_id' => 'integer',
