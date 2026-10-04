@@ -3,7 +3,7 @@ id: L0-08
 title: Fidelity screenshot + diff tool (design HTML vs Laravel route)
 milestone: L0
 type: quality
-status: todo
+status: done
 depends_on: [L0-05]
 parallel_group: L0-D
 touches: [tools/shot.mjs,tools/README.md]

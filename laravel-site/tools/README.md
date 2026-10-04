@@ -46,3 +46,41 @@ Known limits (fix by hand in the page task):
   even where AUDIT §3.4 describes the intent differently; the max-lg `flex-wrap` lands on every non-column flex
   row, including inline ones where it changes nothing.
 - Repeated markup is not turned into components, and copy is not moved into lang files or settings.
+
+## shot.mjs — fidelity screenshots + pixel diff (L0-08)
+
+Proves a converted page still looks like its design page. Drives headless Chrome over the DevTools protocol with
+Node's built-in `WebSocket` (no npm deps). Chrome comes from `/Applications/Google Chrome.app`; set `CHROME_PATH`
+to use another binary. The Laravel app must be running (`php artisan serve` → `http://127.0.0.1:8000`).
+
+```bash
+node tools/shot.mjs --design cycle.html --route /cycle --out docs/qa/L3-03              # 390 + 1440 (default)
+node tools/shot.mjs --design cycle.html --route /cycle --widths 390,768,1440 --out docs/qa/L3-03
+node tools/shot.mjs --design shop-done.html --route /shop/order/R-1001 --out docs/qa/L6-05   # parameter routes
+node tools/shot.mjs --all --out docs/qa/L3-11                                           # every converted page
+node tools/shot.mjs --all --only L3-05 --strict --json /tmp/shot.json                   # owner task / name / file
+```
+
+For each page and width it writes `<slug>-<w>-design.png` (the `design/html/<file>` page over `file://`),
+`<slug>-<w>-route.png` (`<base><route>`) and `<slug>-<w>-diff.png` to `--out` (default `docs/qa/adhoc`; PNGs under
+`docs/qa/` are git-ignored, so keep `--json` reports outside the repo or delete them). Pages are captured full height
+(the viewport is grown to the page, so lazy images load), with animations/transitions off,
+`prefers-reduced-motion: reduce`, light colour scheme and device scale 1; widths under 768 use mobile emulation.
+
+`--all` reads the ```` ```json urlmap ```` block of `docs/AUDIT.md` §7 and skips routes that do not answer 2xx yet
+(not converted) or that contain a `{parameter}` — run those one by one with a real value.
+
+**Diff number.** Share of pixels where any channel differs by more than 32/255, over the larger of the two canvases.
+Height mismatches count fully (shown magenta in the diff PNG; changed pixels red over the faded design), so a page
+that is a few hundred pixels taller or shorter scores high even when the sections match — fix the height first.
+
+**Thresholds.** Target **< 3 % per width**. Above that the run still exits 0 (prints `!`), unless `--strict`
+(exit 2). Every width above 3 % needs an explanation in the task's `tasks/PROGRESS.md` entry (e.g. real content in
+place of design placeholders, `<x-picture>` crops, sprite icon stroke widths, intentional fixes listed in AUDIT §8).
+
+**Hard failures (exit 1).** Every request to a non-local origin is blocked and fails the run — the "no external
+requests" rule; local means `file:`, `data:`, `blob:`, `about:` and `http(s)://127.0.0.1 | localhost | [::1]`. The run
+also fails on console errors, uncaught exceptions, failed requests or HTTP ≥ 400 responses **of the Laravel page**
+(the same for the design page are printed but do not fail). `--base` must itself be a local origin.
+
+Exit codes: `0` ok · `1` external request, page error or tool error · `2` above threshold with `--strict`.

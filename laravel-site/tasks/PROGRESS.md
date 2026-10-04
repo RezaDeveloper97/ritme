@@ -109,3 +109,13 @@ One section per finished task (appended by `/site-task`).
 - Open: legacy `rt-*` classes kept for L1-02 to replace; substring logic reproduces the design's real rendering
   (e.g. hero `max-lg:py-8`), `max-lg:flex-wrap` is broad; sprite icons use one stroke width (design had 1.8/2.2);
   fake QR stays arbitrary until `x-ui.qr`.
+
+## L0-08 — Fidelity screenshot + diff tool (design HTML vs Laravel route)
+- `tools/shot.mjs` (no packages: system Chrome via CDP over Node `WebSocket`, zlib PNG codec): full-page shots at
+  390/1440 (configurable `--widths`), reduced motion, mobile emulation <768, pixel diff (>32/255) + diff PNG,
+  `--strict` (exit 2 over 3%), `--all` from the AUDIT §7 urlmap, `--only`, `--json`. Any non-local request is blocked
+  and fails the run (exit 1); console errors / ≥400 on the Laravel side fail too. `CHROME_PATH` env override.
+- Usage for page tasks (with `php artisan serve` running):
+  `node tools/shot.mjs --design <page>.html --route <route> --out docs/qa/<TASK-ID>`.
+- Open: parameterised routes need an explicit `--route`; height mismatches count fully in the diff; unit tests for the
+  exported helpers not added (tests/tools not in touches).
