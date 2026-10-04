@@ -23,8 +23,9 @@ export const MODE_CARDS: readonly ModeCardDef[] = [
  * pregnancy domain (an active pregnancy profile keeps the effective mode on
  * pregnancy whatever is stored), so the switcher coordinates with it:
  *
- * - `enterPregnancy` — store the choice, then the pregnancy setup activates the
- *   profile (`/pregnancy/setup`, which already skips itself when one is active);
+ * - `enterPregnancy` — open the pregnancy setup (`/pregnancy/setup`, which skips
+ *   itself when one is active); it activates the profile and stores the mode
+ *   only on its final step, so leaving it changes nothing (stage B-3);
  * - `leavePregnancy` — `POST /pregnancy/deactivate` first, then store the mode;
  * - `store` — just `PUT /profile/life-stage {mode}`.
  */

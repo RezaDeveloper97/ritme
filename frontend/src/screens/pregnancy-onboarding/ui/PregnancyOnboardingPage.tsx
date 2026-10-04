@@ -1,5 +1,6 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 
@@ -10,6 +11,7 @@ import {
   usePregnancyProfile,
   useSetupCopy,
 } from '@/entities/pregnancy';
+import { useUpdateLifeStage, writeLifeModeHint } from '@/entities/user';
 import { useRouter, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
@@ -27,6 +29,7 @@ import { WelcomePregnancy } from '@/shared/ui/illustrations';
 import {
   EMPTY_DATING,
   EMPTY_HISTORY,
+  finishPregnancySetup,
   isDatingComplete,
   toOnboardingInput,
   toPreviewInput,
@@ -45,8 +48,8 @@ const BENEFITS = ['1', '2', '3'] as const;
 /**
  * Pregnancy Setup v2 (`/pregnancy/setup`, PregFull_Setup): welcome → dating
  * basis → optional history → result from `dating-preview`. «تمومه» activates
- * pregnancy mode, submits the v1 `/pregnancy/onboarding` body, then lands on
- * `/pregnancy`. Sensitive data only leaves the form in those requests (§11).
+ * pregnancy mode, submits the v1 `/pregnancy/onboarding` body, stores the
+ * life-stage mode (only here — stage B-3), then lands on `/pregnancy`. Sensitive data only leaves the form in those requests (§11).
  * Copy: the admin-edited `pregnancy_setup` texts (`GET /pregnancy/v2/setup-copy`)
  * win; the bundle is the fallback while they load or where a text is missing.
  */
@@ -65,7 +68,9 @@ export function PregnancyOnboardingPage() {
   const preview = useDatingPreview(step === 4 ? toPreviewInput(dating, loc) : null);
   const activate = useActivatePregnancy();
   const onboard = useCompleteOnboarding();
-  const submitting = activate.isPending || onboard.isPending;
+  const storeMode = useUpdateLifeStage();
+  const queryClient = useQueryClient();
+  const submitting = activate.isPending || onboard.isPending || storeMode.isPending;
 
   // Already pregnant (an active, onboarded pregnancy profile): this wizard would
   // re-date a running pregnancy, so it hands over to `/pregnancy` (stage smoke
@@ -102,8 +107,14 @@ export function PregnancyOnboardingPage() {
     if (!body || submitting) return;
     setError(null);
     try {
-      await activate.mutateAsync();
-      await onboard.mutateAsync(body);
+      await finishPregnancySetup({
+        activate: () => activate.mutateAsync(),
+        onboard: () => onboard.mutateAsync(body),
+        storeMode: () => storeMode.mutateAsync({ mode: 'pregnancy' }),
+      });
+      // A mode reshapes the whole app (nav, home, messages): refetch everything.
+      writeLifeModeHint('pregnancy');
+      void queryClient.invalidateQueries();
       router.replace('/pregnancy');
     } catch {
       setError(t('submitError'));

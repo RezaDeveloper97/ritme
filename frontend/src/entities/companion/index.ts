@@ -12,6 +12,7 @@ export {
   useCreateCompanion,
   useRenewCompanionInvite,
   useRevokeCompanion,
+  useUpdateCompanionChildren,
   useUpdateCompanionGrants,
 } from './api/queries';
 export {

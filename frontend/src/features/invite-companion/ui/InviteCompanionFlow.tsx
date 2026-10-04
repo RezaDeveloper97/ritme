@@ -24,7 +24,6 @@ import {
   ScreenHeader,
   SecondaryButton,
   SkyLayer,
-  StatusPill,
 } from '@/shared/ui';
 
 import {
@@ -38,6 +37,7 @@ import {
   previousStep,
 } from '../model/draft';
 import { AccessEditor } from './AccessEditor';
+import { ChildrenPicker, useChildNames } from './ChildrenPicker';
 import { InviteCodeCard } from './InviteCodeCard';
 
 interface InviteCompanionFlowProps {
@@ -54,7 +54,8 @@ function createErrorText(error: unknown, fallback: string): string {
 
 /**
  * «افزودن همدم» (`/companions/new`, B-N4-04): Hamdam_Type → Hamdam_Access →
- * Hamdam_Children (spouse only) → Hamdam_Invite → Hamdam_Done. The invite is
+ * Hamdam_Children (spouse only, the owner's children picker — B-N4-10b) →
+ * Hamdam_Invite → Hamdam_Done. The invite is
  * created on the invite step (POST /companions); its one-time code is shown
  * there and lives only in this component's state.
  */
@@ -110,7 +111,9 @@ export function InviteCompanionFlow({ onExit }: InviteCompanionFlowProps) {
         {step === 'access' ? (
           <AccessStep draft={draft} setDraft={setDraft} onNext={() => setStep(nextStep('access', draft.type))} />
         ) : null}
-        {step === 'children' ? <ChildrenStep onNext={() => setStep('invite')} /> : null}
+        {step === 'children' ? (
+          <ChildrenStep draft={draft} setDraft={setDraft} onNext={() => setStep(nextStep('children', draft.type))} />
+        ) : null}
         {step === 'invite' ? (
           <InviteStepView
             draft={draft}
@@ -184,8 +187,12 @@ function AccessStep({ draft, setDraft, onNext }: StepProps) {
   );
 }
 
-/** Spouse only. Children arrive with B-N5-02 — until then the step explains and moves on. */
-function ChildrenStep({ onNext }: { onNext: () => void }) {
+/**
+ * Spouse only (nbl_Hamdam_Children): pick which of her children become shared
+ * (`child_ids` on create). Optional — none picked shares nothing; it can be
+ * changed later on the companion detail page.
+ */
+function ChildrenStep({ draft, setDraft, onNext }: StepProps) {
   const t = useTranslations('companions');
   return (
     <>
@@ -194,20 +201,7 @@ function ChildrenStep({ onNext }: { onNext: () => void }) {
           <h2 className="cmp-question">{t('flow.children.question')}</h2>
           <p className="cmp-lead">{t('flow.children.lead')}</p>
         </div>
-        <div className="nb-card cmp-soon">
-          <span className="cmp-soon-icon" aria-hidden>
-            <Icon name="sprout" size={22} />
-          </span>
-          <div className="cmp-soon-text">
-            <b className="cmp-soon-title">{t('flow.children.soonTitle')}</b>
-            <p className="cmp-soon-body">{t('flow.children.soonBody')}</p>
-          </div>
-        </div>
-        <button type="button" className="cmp-add-child" disabled aria-disabled>
-          <Icon name="plus" size={18} />
-          {t('flow.children.add')}
-          <StatusPill tone="neutral">{t('flow.children.soon')}</StatusPill>
-        </button>
+        <ChildrenPicker value={draft.childIds} onChange={(childIds) => setDraft((d) => ({ ...d, childIds }))} />
         <InfoNote className="cmp-note">{t('flow.children.partnerNote')}</InfoNote>
       </div>
       <div className="cmp-footer">
@@ -238,6 +232,7 @@ function InviteStepView({ draft, setDraft, created, pending, error, onEdit, onCr
   const showPhoneError = badPhone && touched;
   const locked = created !== null || pending;
   const { edit, view } = grantsByLevel(draft.grants);
+  const kids = useChildNames(draft.type === 'spouse' ? draft.childIds : []);
   const list = (sections: CompanionSection[]) =>
     sections.length ? sections.map((s) => t(`sectionsShort.${s}`)).join(t('listSeparator')) : t('flow.invite.none');
 
@@ -362,7 +357,7 @@ function InviteStepView({ draft, setDraft, created, pending, error, onEdit, onCr
             {draft.type === 'spouse' ? (
               <div className="cmp-summary-row">
                 <dt>{t('flow.invite.children')}</dt>
-                <dd>{t('flow.invite.none')}</dd>
+                <dd>{kids.length ? kids.map((k) => k.name).join(t('listSeparator')) : t('flow.invite.none')}</dd>
               </div>
             ) : null}
           </dl>
@@ -385,6 +380,7 @@ function DoneStep({ created, onExit }: { created: CreatedCompanion; onExit: () =
   const t = useTranslations('companions');
   const profile = useUserProfile();
   const { companion, invite } = created;
+  const kids = useChildNames(companion.family?.sharedChildIds ?? []);
   const name = companionName(companion);
   const sent = invite.smsSent;
   let title: string;
@@ -402,7 +398,12 @@ function DoneStep({ created, onExit }: { created: CreatedCompanion; onExit: () =
           {companion.type === 'spouse' ? t('flow.done.leadSpouse') : t('flow.done.leadPartner')}
         </p>
         {companion.type === 'spouse' ? (
-          <FamilyStrip size="lg" selfName={profile.data?.name ?? null} companionName={name ?? t('unnamed')} />
+          <FamilyStrip
+            size="lg"
+            selfName={profile.data?.name ?? null}
+            companionName={name ?? t('unnamed')}
+            kids={kids}
+          />
         ) : null}
         <InfoNote className="cmp-note">{t('flow.done.note')}</InfoNote>
       </div>

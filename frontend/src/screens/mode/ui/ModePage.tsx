@@ -129,10 +129,9 @@ function ModeBody({ stage }: { stage: LifeStage }) {
     setSavedMode(null);
     try {
       if (plan.kind === 'enterPregnancy') {
-        // Stored as the choice; the setup activates the pregnancy profile (and
-        // skips itself when one is already active).
-        await update.mutateAsync({ mode: 'pregnancy' });
-        afterModeChange('pregnancy');
+        // Nothing is stored yet: the setup activates the pregnancy profile and
+        // stores the mode on its last step, so leaving it half-way keeps the
+        // current mode (stage B-3). It skips itself when one is already active.
         router.push('/pregnancy/setup');
       } else if (plan.kind === 'leavePregnancy') {
         await deactivate.mutateAsync();

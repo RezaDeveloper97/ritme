@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 
 import { CompanionCard, companionName, FamilyStrip, familySpouse, useCompanions } from '@/entities/companion';
 import { useUserProfile } from '@/entities/user';
+import { useChildNames } from '@/features/invite-companion';
 import { useRouter } from '@/shared/i18n';
 import { EmptyState, PrimaryButton, ScreenHeader, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
 import { ParentCodeCard } from '@/widgets/linked-teen-card';
@@ -20,6 +21,7 @@ export function CompanionsPage() {
   const profile = useUserProfile();
   const companions = query.data ?? [];
   const spouse = familySpouse(companions);
+  const kids = useChildNames(spouse?.family?.sharedChildIds ?? []);
 
   let body;
   if (query.isPending) {
@@ -46,6 +48,14 @@ export function CompanionsPage() {
     body = <EmptyState icon="users" title={t('list.emptyTitle')} body={t('list.emptyBody')} className="cmp-empty" />;
   } else {
     const spouseName = spouse ? (companionName(spouse) ?? t('unnamed')) : '';
+    let familyNote: string;
+    if (spouse?.status === 'invited') familyNote = t('family.pending', { name: spouseName });
+    else if (kids.length) {
+      familyNote = t('family.childrenShared', {
+        names: kids.map((k) => k.name).join(t('listSeparator')),
+        count: kids.length,
+      });
+    } else familyNote = t('family.childrenNone');
     body = (
       <>
         <ul className="cmp-list">
@@ -59,7 +69,8 @@ export function CompanionsPage() {
           <FamilyStrip
             selfName={profile.data?.name ?? null}
             companionName={spouseName}
-            note={spouse.status === 'invited' ? t('family.pending', { name: spouseName }) : t('family.childrenSoon')}
+            kids={kids}
+            note={familyNote}
           />
         ) : null}
       </>

@@ -113,3 +113,26 @@ export function toOnboardingInput(
   if (h.rhFactor) body.rh_factor = h.rhFactor;
   return body;
 }
+
+/** The three writes of «تمومه», injected so the order is unit-tested without a server. */
+export interface SetupFinishSteps {
+  /** POST /pregnancy/activate. */
+  activate: () => Promise<unknown>;
+  /** POST /pregnancy/onboarding with the dating (+ history) body. */
+  onboard: () => Promise<unknown>;
+  /** PUT /profile/life-stage {mode: 'pregnancy'} — the stored mode. */
+  storeMode: () => Promise<unknown>;
+}
+
+/**
+ * Finishes the setup: activate → onboarding → store the mode. The mode page no
+ * longer stores `pregnancy` before the wizard, so nothing is half-switched when
+ * the user leaves it early (stage B-3); the stored mode follows only once the
+ * pregnancy profile exists. A failure stops the chain (the caller shows the
+ * error and «تمومه» can be pressed again — activate is idempotent).
+ */
+export async function finishPregnancySetup(steps: SetupFinishSteps): Promise<void> {
+  await steps.activate();
+  await steps.onboard();
+  await steps.storeMode();
+}

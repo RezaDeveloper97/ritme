@@ -1343,7 +1343,7 @@
       "labelAs": "ذخیره‌شده با نام {label}",
       "type": "نوع",
       "types": {
-        "partner": "همراه",
+        "partner": "پارتنر",
         "spouse": "همسر"
       },
       "allTypes": "همه نوع‌ها",
@@ -1379,7 +1379,7 @@
         "invited": "در انتظار پذیرش",
         "revoked": "لغوشده"
       },
-      "countSub": "همراه {partner} · همسر {spouse}"
+      "countSub": "پارتنر {partner} · همسر {spouse}"
     }
   }
 }

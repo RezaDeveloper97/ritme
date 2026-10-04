@@ -38,14 +38,16 @@ interface FamilyStripProps {
   /** The owner's own name, for her initial; the label is always «تو». */
   selfName: string | null;
   companionName: string;
+  /** Shared children (spouse family), after the two adults. */
+  kids?: ReadonlyArray<{ id: number; name: string }>;
   /** The line under the strip (children note / pending note). */
   note?: ReactNode;
   size?: 'md' | 'lg';
   className?: string;
 }
 
-/** «خانواده شما»: you + spouse (+ shared children once B-N5 lands) as initials with names. */
-export function FamilyStrip({ selfName, companionName, note, size = 'md', className }: FamilyStripProps) {
+/** «خانواده شما»: you + spouse + shared children as initials with names. */
+export function FamilyStrip({ selfName, companionName, kids = [], note, size = 'md', className }: FamilyStripProps) {
   const t = useTranslations('companions.family');
   return (
     <section className={clsx('nb-card cmp-family', size === 'lg' && 'is-lg', className)} aria-labelledby="cmp-family-title">
@@ -62,6 +64,12 @@ export function FamilyStrip({ selfName, companionName, note, size = 'md', classN
           <PersonBubble name={companionName} tone="companion" size={size} />
           <span className="cmp-family-name">{companionName}</span>
         </li>
+        {kids.map((kid) => (
+          <li key={kid.id} className="cmp-family-member">
+            <PersonBubble name={kid.name} tone="child" size={size} />
+            <span className="cmp-family-name">{kid.name}</span>
+          </li>
+        ))}
       </ul>
       {note ? <p className="cmp-family-note">{note}</p> : null}
     </section>

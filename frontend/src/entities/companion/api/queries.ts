@@ -111,6 +111,17 @@ export function useUpdateCompanionGrants(id: number) {
   });
 }
 
+/**
+ * PUT /companions/{id}/children — replaces the owner's children shared with a spouse (an empty list
+ * stops sharing). The spouse sees them read-only on the next request.
+ */
+export function useUpdateCompanionChildren(id: number) {
+  return useCompanionWrite(async (childIds: number[]) => {
+    const { data } = await apiClient.put<ApiEnvelope<unknown>>(`/companions/${id}/children`, { child_ids: childIds });
+    return ownerCompanionSchema.parse(data.data);
+  });
+}
+
 /** POST /companions — see {@link createCompanion}. */
 export function useCreateCompanion() {
   const queryClient = useQueryClient();

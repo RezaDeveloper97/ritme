@@ -79,6 +79,9 @@ describe('grant helpers', () => {
     expect(hoursUntil('2026-10-02T10:00:00Z', now)).toBe(24);
     expect(hoursUntil('2026-10-01T09:00:00Z', now)).toBe(0);
     expect(hoursUntil('nope', now)).toBe(0);
+    // A device clock 75 s behind the server must not show «۲۵ ساعت» for a 24 h code (stage I-1).
+    expect(hoursUntil('2026-10-02T10:01:15Z', now)).toBe(24);
+    expect(hoursUntil('2026-10-01T10:20:00Z', now)).toBe(1);
   });
 
   it('picks the active spouse for the family', () => {

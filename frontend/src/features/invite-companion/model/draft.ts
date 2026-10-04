@@ -19,10 +19,22 @@ export interface InviteDraft {
   grants: CompanionGrants;
   name: string;
   phone: string;
+  /** The owner's own children to share (spouse only, `child_ids` on create). */
+  childIds: number[];
 }
 
 export function initialDraft(): InviteDraft {
-  return { type: null, grants: emptyGrants(), name: '', phone: '' };
+  return { type: null, grants: emptyGrants(), name: '', phone: '', childIds: [] };
+}
+
+/** Add / remove one child id (order kept, no duplicates). */
+export function toggleChildId(ids: readonly number[], id: number): number[] {
+  return ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id];
+}
+
+/** Same set of ids, order ignored (children editor «dirty» check). */
+export function sameChildIds(a: readonly number[], b: readonly number[]): boolean {
+  return a.length === b.length && a.every((id) => b.includes(id));
 }
 
 /** The numbered steps for a type: the children step exists only for a spouse. */
@@ -97,5 +109,7 @@ export function draftToInput(draft: InviteDraft, withPhone: boolean): CreateComp
     grants: draft.grants,
     ...(draft.name.trim() ? { displayName: draft.name.trim().slice(0, 100) } : {}),
     ...(phone ? { phone } : {}),
+    // Only a spouse shares children; a partner draft that went back from the children step drops them.
+    ...(draft.type === 'spouse' && draft.childIds.length ? { childIds: [...draft.childIds] } : {}),
   };
 }

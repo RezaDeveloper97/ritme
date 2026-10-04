@@ -3,7 +3,7 @@ id: B-N4-10b
 title: N4 stage smoke follow-ups (share children UI, male ready copy, pregnancy half-switch, list comma, admin label)
 milestone: N4
 type: frontend
-status: todo
+status: done
 depends_on: [B-N4-10,B-N5-05]
 parallel_group: N4-K2
 touches: [frontend/src/features/invite-companion,frontend/src/screens/companion-detail,frontend/src/screens/onboarding-flow,frontend/src/screens/mode,frontend/src/screens/pregnancy-onboarding,frontend/src/screens/companion-home,admin-web/src/screens/companions]

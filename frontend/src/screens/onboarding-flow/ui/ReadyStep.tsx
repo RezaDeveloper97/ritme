@@ -1,9 +1,11 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 
 import { deriveCycleSchedule, hasFertileWindow, useCycleToday } from '@/entities/cycle';
+import { userKeys } from '@/entities/user';
 import { getApiErrorStatus } from '@/shared/api';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatDayMonth } from '@/shared/lib/date';
@@ -92,6 +94,7 @@ function ReadyView({ ctx }: { ctx: StepContext }) {
   const locale = useLocale() as Locale;
   const router = useRouter();
   const finish = useFinishOnboarding();
+  const queryClient = useQueryClient();
   const started = useRef(false);
   const [leaving, setLeaving] = useState(false);
   // Tracked locally rather than through the mutation's observer: under
@@ -107,7 +110,14 @@ function ReadyView({ ctx }: { ctx: StepContext }) {
     setResult({ status: 'pending' });
     finish
       .mutateAsync()
-      .then((state) => setResult({ status: 'done', state }))
+      .then((state) => {
+        // Registration is complete on the server: drop the resume marker now, not only on «ورود», so
+        // opening another app route from here isn't sent back to the flow by the middleware (stage
+        // B-6), and refetch the cached user (name / gender / completed) the app guards read.
+        clearOnboardingPending();
+        void queryClient.invalidateQueries({ queryKey: userKeys.all });
+        setResult({ status: 'done', state });
+      })
       .catch((error: unknown) => {
         const route = getApiErrorStatus(error) === 422 ? missingStepRoute(error) : null;
         if (route) router.replace(route);
@@ -155,8 +165,8 @@ function ReadyView({ ctx }: { ctx: StepContext }) {
       <div className="onb2-ready-ring" aria-hidden>
         <Icon name="check" size={56} strokeWidth={2.6} />
       </div>
-      <h1 className="onb2-title is-center">{t('ready.title')}</h1>
-      <p className="onb2-sub is-center">{t('ready.subtitle')}</p>
+      <h1 className="onb2-title is-center">{t(isMale ? 'ready.titleMale' : 'ready.title')}</h1>
+      <p className="onb2-sub is-center">{t(isMale ? 'ready.subtitleMale' : 'ready.subtitle')}</p>
 
       <div className="nb-card onb2-ready-card">
         {cycleLike ? <CycleRows /> : null}

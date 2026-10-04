@@ -36,6 +36,7 @@ import {
 import { BottomNav } from '@/widgets/bottom-nav';
 import { LinkedTeenCards } from '@/widgets/linked-teen-card';
 
+import { joinList } from '../model/list';
 import { phaseBar } from '../model/phase-bar';
 import { CodeEntry } from './CodeEntry';
 
@@ -239,7 +240,7 @@ function SharedSection({ partner, name, t, locale }: { partner: CompanionPartner
   }
 
   const hidden = COMPANION_SECTIONS.filter((s) => grants[s] === 'none').map((s) => t(`shared.sections.${s}`));
-  const hiddenText = hidden.length ? new Intl.ListFormat(locale, { type: 'conjunction' }).format(hidden) : null;
+  const hiddenText = hidden.length ? joinList(hidden, locale) : null;
 
   return (
     <section className="cmh-sec" aria-labelledby={`cmh-shared-${partner.link.id}`}>

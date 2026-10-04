@@ -38,11 +38,17 @@ export function companionName(c: Pick<OwnerCompanion, 'name' | 'displayName'>): 
   return name || null;
 }
 
-/** Whole hours until an ISO instant, never below 0 (invite validity «تا ۲۴ ساعت معتبر»). */
+/**
+ * Whole hours until an ISO instant (invite validity «تا ۲۴ ساعت معتبر»): rounded to the nearest hour so a
+ * device clock a minute behind the server doesn't read a 24 h code as «۲۵ ساعت» (stage I-1); at least 1
+ * while any time is left, 0 once it has passed.
+ */
 export function hoursUntil(iso: string, now: Date = new Date()): number {
   const t = Date.parse(iso);
   if (Number.isNaN(t)) return 0;
-  return Math.max(0, Math.ceil((t - now.getTime()) / 3_600_000));
+  const ms = t - now.getTime();
+  if (ms <= 0) return 0;
+  return Math.max(1, Math.round(ms / 3_600_000));
 }
 
 /** The spouse that forms the owner's family: the active one first, else a pending invite. */

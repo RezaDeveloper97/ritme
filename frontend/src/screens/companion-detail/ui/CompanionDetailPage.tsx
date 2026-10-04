@@ -16,9 +16,10 @@ import {
   useCompanionAudit,
   useRenewCompanionInvite,
   useRevokeCompanion,
+  useUpdateCompanionChildren,
   useUpdateCompanionGrants,
 } from '@/entities/companion';
-import { AccessEditor, InviteCodeCard } from '@/features/invite-companion';
+import { AccessEditor, ChildrenPicker, InviteCodeCard, sameChildIds } from '@/features/invite-companion';
 import { getApiErrorMessage, getApiErrorStatus } from '@/shared/api';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatLongDate, formatNumber } from '@/shared/lib/date';
@@ -33,7 +34,6 @@ import {
   Skeleton,
   SkeletonGroup,
   SkyLayer,
-  StatusPill,
 } from '@/shared/ui';
 
 const ACTIVITY_LIMIT = 5;
@@ -48,7 +48,8 @@ function apiText(error: unknown, fallback: string): string {
 /**
  * One companion (`/companions/[id]`, B-N4-04): who they are, the per-section
  * access editor (PUT /companions/{id}/grants), a fresh code for a pending
- * invite (POST …/renew, shown once), recent activity from the audit trail and
+ * invite (POST …/renew, shown once), the shared children of a spouse (PUT
+ * …/children, B-N4-10b), recent activity from the audit trail and
  * «حذف همدم» behind a confirmation (DELETE /companions/{id}).
  */
 export function CompanionDetailPage({ id }: { id: number }) {
@@ -142,17 +143,7 @@ function DetailBody({ companion, onRemoved }: { companion: OwnerCompanion; onRem
 
       <GrantsSection companion={companion} />
 
-      {companion.type === 'spouse' ? (
-        <section className="cmp-sec" aria-labelledby="cmp-children-title">
-          <SectionTitle id="cmp-children-title" title={t('detail.childrenTitle')} />
-          <div className="nb-card cmp-soon">
-            <div className="cmp-soon-text">
-              <p className="cmp-soon-body">{t('family.childrenSoon')}</p>
-            </div>
-            <StatusPill tone="neutral">{t('flow.children.soon')}</StatusPill>
-          </div>
-        </section>
-      ) : null}
+      {companion.type === 'spouse' ? <ChildrenSection companion={companion} /> : null}
 
       <Activity companionId={companion.id} />
 
@@ -250,6 +241,58 @@ function GrantsSection({ companion }: { companion: OwnerCompanion }) {
       {save.isError ? (
         <p className="cmp-error" role="alert">
           {apiText(save.error, t('detail.saveError'))}
+        </p>
+      ) : null}
+    </section>
+  );
+}
+
+/** Spouse only: which of her children are shared (PUT /companions/{id}/children; empty = none). */
+function ChildrenSection({ companion }: { companion: OwnerCompanion }) {
+  const t = useTranslations('companions');
+  const save = useUpdateCompanionChildren(companion.id);
+  const shared = companion.family?.sharedChildIds ?? [];
+  // null = untouched: the picker shows the server's list.
+  const [draft, setDraft] = useState<number[] | null>(null);
+  const [saved, setSaved] = useState(false);
+  const value = draft ?? shared;
+  const dirty = draft !== null && !sameChildIds(draft, shared);
+
+  const onSave = () => {
+    if (!draft || save.isPending) return;
+    save.mutate(draft, {
+      onSuccess: () => {
+        setDraft(null);
+        setSaved(true);
+      },
+    });
+  };
+
+  return (
+    <section className="cmp-sec" aria-labelledby="cmp-children-title">
+      <SectionTitle id="cmp-children-title" title={t('detail.childrenTitle')} />
+      <p className="cmp-lead">{t('detail.childrenLead')}</p>
+      <ChildrenPicker
+        value={value}
+        disabled={save.isPending}
+        onChange={(ids) => {
+          setSaved(false);
+          setDraft(ids);
+        }}
+      />
+      {dirty ? (
+        <PrimaryButton loading={save.isPending} onClick={onSave}>
+          {t('detail.childrenSave')}
+        </PrimaryButton>
+      ) : null}
+      {saved && !dirty ? (
+        <p className="cmp-status" role="status">
+          {t('detail.childrenSaved')}
+        </p>
+      ) : null}
+      {save.isError ? (
+        <p className="cmp-error" role="alert">
+          {apiText(save.error, t('detail.childrenSaveError'))}
         </p>
       ) : null}
     </section>

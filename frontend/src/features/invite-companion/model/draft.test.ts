@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest';
 
-import { draftToInput, initialDraft, nextStep, normalizeMobile, numberedSteps, phoneProblem, previousStep } from './draft';
+import {
+  draftToInput,
+  initialDraft,
+  nextStep,
+  normalizeMobile,
+  numberedSteps,
+  phoneProblem,
+  previousStep,
+  sameChildIds,
+  toggleChildId,
+} from './draft';
 
 describe('invite wizard steps', () => {
   it('skips children for a partner', () => {
@@ -48,7 +58,27 @@ describe('draftToInput', () => {
     expect(draftToInput(draft, false)).not.toHaveProperty('phone');
   });
 
+  it('shares the picked children only with a spouse', () => {
+    expect(draftToInput({ ...draft, childIds: [3, 1] }, false)).toMatchObject({ childIds: [3, 1] });
+    expect(draftToInput({ ...draft, childIds: [] }, false)).not.toHaveProperty('childIds');
+    expect(draftToInput({ ...draft, type: 'partner', childIds: [3] }, false)).not.toHaveProperty('childIds');
+  });
+
   it('needs a type', () => {
     expect(draftToInput(initialDraft(), true)).toBeNull();
+  });
+});
+
+describe('child selection', () => {
+  it('toggles ids', () => {
+    expect(toggleChildId([], 4)).toEqual([4]);
+    expect(toggleChildId([4, 2], 4)).toEqual([2]);
+    expect(toggleChildId([2], 4)).toEqual([2, 4]);
+  });
+
+  it('compares sets regardless of order', () => {
+    expect(sameChildIds([1, 2], [2, 1])).toBe(true);
+    expect(sameChildIds([1], [1, 2])).toBe(false);
+    expect(sameChildIds([], [])).toBe(true);
   });
 });
