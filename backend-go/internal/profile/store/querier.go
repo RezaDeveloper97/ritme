@@ -56,7 +56,8 @@ type Querier interface {
 	// ProfileController (backend/app/Http/Controllers/Api/V1/ProfileController.php) and UserProfile.
 	// $user->fresh().
 	GetUser(ctx context.Context, id uint64) (User, error)
-	// A grant keeps revoked_at (the last withdrawal) and stamps granted_at; a repeated grant leaves the row untouched.
+	// A grant keeps revoked_at (the last withdrawal), stamps granted_at and the version of the consent text in force
+	// (B-N6-05, internal/consent); a repeated grant of the same version leaves the row untouched.
 	GrantUserConsent(ctx context.Context, arg GrantUserConsentParams) error
 	InsertOnboardingCycleHistory(ctx context.Context, arg InsertOnboardingCycleHistoryParams) error
 	// new UserProfile(['user_id' => …])->save(): the row starts with the DB defaults; the

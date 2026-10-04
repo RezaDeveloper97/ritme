@@ -62,6 +62,31 @@ INSERT INTO `affirmations` VALUES
 (7,'{\"fa\":\"\\u0645\\u0631\\u0627\\u0642\\u0628\\u062a \\u0627\\u0632 \\u062e\\u0648\\u062f\\u0645 \\u06cc\\u06a9 \\u0627\\u0646\\u062a\\u062e\\u0627\\u0628 \\u0642\\u062f\\u0631\\u062a\\u0645\\u0646\\u062f \\u0627\\u0633\\u062a.\",\"en\":\"Caring for myself is a powerful choice.\"}',NULL,1,7,'2026-09-23 09:00:00','2026-09-23 09:00:00');
 /*!40000 ALTER TABLE `affirmations` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `ai_usage_logs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `ai_usage_logs` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned DEFAULT NULL,
+  `feature` varchar(32) NOT NULL,
+  `op` varchar(32) NOT NULL,
+  `provider` varchar(16) NOT NULL,
+  `model` varchar(64) NOT NULL,
+  `input_tokens` int(10) unsigned NOT NULL DEFAULT 0,
+  `output_tokens` int(10) unsigned NOT NULL DEFAULT 0,
+  `audio_bytes` int(10) unsigned NOT NULL DEFAULT 0,
+  `image_bytes` int(10) unsigned NOT NULL DEFAULT 0,
+  `cost_micros` bigint(20) unsigned NOT NULL DEFAULT 0,
+  `latency_ms` int(10) unsigned NOT NULL DEFAULT 0,
+  `ok` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `ai_usage_logs_created_at_index` (`created_at`),
+  KEY `ai_usage_logs_user_id_created_at_index` (`user_id`,`created_at`),
+  KEY `ai_usage_logs_feature_created_at_index` (`feature`,`created_at`),
+  CONSTRAINT `ai_usage_logs_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `articles`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -176,7 +201,7 @@ CREATE TABLE `catalog_items` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `catalog_items_group_code_unique` (`group`,`code`),
   KEY `catalog_items_group_is_active_sort_order_index` (`group`,`is_active`,`sort_order`)
-) ENGINE=InnoDB AUTO_INCREMENT=159 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=291 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 LOCK TABLES `catalog_items` WRITE;
@@ -339,7 +364,139 @@ INSERT INTO `catalog_items` VALUES
 (155,'teen_kit_items','pads',1,1,'[\"teen\"]','{\"fa\":\"۲ نوار بهداشتی\",\"en\":\"2 sanitary pads\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
 (156,'teen_kit_items','underwear',2,1,'[\"teen\"]','{\"fa\":\"یک لباس زیر اضافه\",\"en\":\"A spare pair of underwear\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
 (157,'teen_kit_items','wipes',3,1,'[\"teen\"]','{\"fa\":\"دستمال مرطوب\",\"en\":\"Wet wipes\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
-(158,'teen_kit_items','pouch',4,1,'[\"teen\"]','{\"fa\":\"کیسه کوچک\",\"en\":\"A small pouch\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00');
+(158,'teen_kit_items','pouch',4,1,'[\"teen\"]','{\"fa\":\"کیسه کوچک\",\"en\":\"A small pouch\"}',NULL,NULL,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(159,'child_vaccines','bcg',1,1,NULL,'{\"fa\":\"ب.ث.ژ (BCG)\",\"en\":\"BCG\"}','{\"fa\":\"سل\",\"en\":\"Tuberculosis\"}','{\"visit\":\"birth\",\"age_months\":0}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(160,'child_vaccines','hepb_1',2,1,NULL,'{\"fa\":\"هپاتیت B نوبت اول\",\"en\":\"Hepatitis B, dose 1\"}','{\"fa\":\"هپاتیت B\",\"en\":\"Hepatitis B\"}','{\"visit\":\"birth\",\"age_months\":0}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(161,'child_vaccines','opv_0',3,1,NULL,'{\"fa\":\"فلج اطفال خوراکی\",\"en\":\"Oral polio (OPV)\"}','{\"fa\":\"فلج اطفال\",\"en\":\"Polio\"}','{\"visit\":\"birth\",\"age_months\":0}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(162,'child_vaccines','penta_1',4,1,NULL,'{\"fa\":\"پنتاوالان نوبت اول\",\"en\":\"Pentavalent, dose 1\"}','{\"fa\":\"دیفتری، کزاز، سیاه‌سرفه، هپاتیت B و هموفیلوس آنفلوانزای نوع b\",\"en\":\"Diphtheria, tetanus, whooping cough, hepatitis B and Hib\"}','{\"visit\":\"m2\",\"age_months\":2}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(163,'child_vaccines','polio_m2',5,1,NULL,'{\"fa\":\"فلج اطفال (خوراکی + تزریقی)\",\"en\":\"Polio (oral + injectable)\"}','{\"fa\":\"فلج اطفال\",\"en\":\"Polio\"}','{\"visit\":\"m2\",\"age_months\":2}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(164,'child_vaccines','pcv_1',6,1,NULL,'{\"fa\":\"پنوموکوک نوبت اول\",\"en\":\"Pneumococcal, dose 1\"}','{\"fa\":\"عفونت‌های پنوموکوکی (ذات‌الریه، مننژیت، عفونت گوش)\",\"en\":\"Pneumococcal disease (pneumonia, meningitis, ear infections)\"}','{\"visit\":\"m2\",\"age_months\":2}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(165,'child_vaccines','rota_1',7,1,NULL,'{\"fa\":\"روتاویروس نوبت اول\",\"en\":\"Rotavirus, dose 1\"}','{\"fa\":\"اسهال شدید روتاویروسی\",\"en\":\"Severe rotavirus diarrhoea\"}','{\"visit\":\"m2\",\"age_months\":2}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(166,'child_vaccines','penta_2',8,1,NULL,'{\"fa\":\"پنتاوالان نوبت دوم\",\"en\":\"Pentavalent, dose 2\"}','{\"fa\":\"دیفتری، کزاز، سیاه‌سرفه، هپاتیت B و هموفیلوس آنفلوانزای نوع b\",\"en\":\"Diphtheria, tetanus, whooping cough, hepatitis B and Hib\"}','{\"visit\":\"m4\",\"age_months\":4}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(167,'child_vaccines','opv_m4',9,1,NULL,'{\"fa\":\"فلج اطفال خوراکی\",\"en\":\"Oral polio (OPV)\"}','{\"fa\":\"فلج اطفال\",\"en\":\"Polio\"}','{\"visit\":\"m4\",\"age_months\":4}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(168,'child_vaccines','pcv_2',10,1,NULL,'{\"fa\":\"پنوموکوک نوبت دوم\",\"en\":\"Pneumococcal, dose 2\"}','{\"fa\":\"عفونت‌های پنوموکوکی (ذات‌الریه، مننژیت، عفونت گوش)\",\"en\":\"Pneumococcal disease (pneumonia, meningitis, ear infections)\"}','{\"visit\":\"m4\",\"age_months\":4}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(169,'child_vaccines','rota_2',11,1,NULL,'{\"fa\":\"روتاویروس نوبت دوم\",\"en\":\"Rotavirus, dose 2\"}','{\"fa\":\"اسهال شدید روتاویروسی\",\"en\":\"Severe rotavirus diarrhoea\"}','{\"visit\":\"m4\",\"age_months\":4}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(170,'child_vaccines','penta_3',12,1,NULL,'{\"fa\":\"پنتاوالان نوبت سوم\",\"en\":\"Pentavalent, dose 3\"}','{\"fa\":\"دیفتری، کزاز، سیاه‌سرفه، هپاتیت B و هموفیلوس آنفلوانزای نوع b\",\"en\":\"Diphtheria, tetanus, whooping cough, hepatitis B and Hib\"}','{\"visit\":\"m6\",\"age_months\":6}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(171,'child_vaccines','polio_m6',13,1,NULL,'{\"fa\":\"فلج اطفال (خوراکی + تزریقی)\",\"en\":\"Polio (oral + injectable)\"}','{\"fa\":\"فلج اطفال\",\"en\":\"Polio\"}','{\"visit\":\"m6\",\"age_months\":6}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(172,'child_vaccines','pcv_3',14,1,NULL,'{\"fa\":\"پنوموکوک نوبت سوم\",\"en\":\"Pneumococcal, dose 3\"}','{\"fa\":\"عفونت‌های پنوموکوکی (ذات‌الریه، مننژیت، عفونت گوش)\",\"en\":\"Pneumococcal disease (pneumonia, meningitis, ear infections)\"}','{\"visit\":\"m6\",\"age_months\":6}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(173,'child_vaccines','mmr_1',15,1,NULL,'{\"fa\":\"MMR نوبت اول\",\"en\":\"MMR, dose 1\"}','{\"fa\":\"سرخک، اوریون و سرخجه\",\"en\":\"Measles, mumps and rubella\"}','{\"visit\":\"m12\",\"age_months\":12}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(174,'child_vaccines','pcv_booster',16,1,NULL,'{\"fa\":\"پنوموکوک یادآور\",\"en\":\"Pneumococcal booster\"}','{\"fa\":\"عفونت‌های پنوموکوکی (ذات‌الریه، مننژیت، عفونت گوش)\",\"en\":\"Pneumococcal disease (pneumonia, meningitis, ear infections)\"}','{\"visit\":\"m12\",\"age_months\":12}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(175,'child_vaccines','dtp_booster_1',17,1,NULL,'{\"fa\":\"سه‌گانه یادآور\",\"en\":\"DTP booster\"}','{\"fa\":\"دیفتری، کزاز و سیاه‌سرفه\",\"en\":\"Diphtheria, tetanus and whooping cough\"}','{\"visit\":\"m18\",\"age_months\":18}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(176,'child_vaccines','opv_booster_1',18,1,NULL,'{\"fa\":\"فلج اطفال یادآور\",\"en\":\"Polio booster\"}','{\"fa\":\"فلج اطفال\",\"en\":\"Polio\"}','{\"visit\":\"m18\",\"age_months\":18}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(177,'child_vaccines','mmr_2',19,1,NULL,'{\"fa\":\"MMR نوبت دوم\",\"en\":\"MMR, dose 2\"}','{\"fa\":\"سرخک، اوریون و سرخجه\",\"en\":\"Measles, mumps and rubella\"}','{\"visit\":\"m18\",\"age_months\":18}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(178,'child_vaccines','dtp_booster_2',20,1,NULL,'{\"fa\":\"سه‌گانه یادآور دوم\",\"en\":\"DTP second booster\"}','{\"fa\":\"دیفتری، کزاز و سیاه‌سرفه\",\"en\":\"Diphtheria, tetanus and whooping cough\"}','{\"visit\":\"y6\",\"age_months\":72}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(179,'child_vaccines','opv_booster_2',21,1,NULL,'{\"fa\":\"فلج اطفال یادآور دوم\",\"en\":\"Polio second booster\"}','{\"fa\":\"فلج اطفال\",\"en\":\"Polio\"}','{\"visit\":\"y6\",\"age_months\":72}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(180,'child_milestones','m2_smiles_back',1,1,NULL,'{\"fa\":\"وقتی با او حرف می‌زنی لبخند می‌زند\",\"en\":\"Smiles when you talk to or smile at them\"}',NULL,'{\"age_months\":2,\"domain\":\"social\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(181,'child_milestones','m2_looks_at_face',2,1,NULL,'{\"fa\":\"به صورتت نگاه می‌کند\",\"en\":\"Looks at your face\"}',NULL,'{\"age_months\":2,\"domain\":\"social\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(182,'child_milestones','m2_coos',3,1,NULL,'{\"fa\":\"صداهایی غیر از گریه درمی‌آورد\",\"en\":\"Makes sounds other than crying\"}',NULL,'{\"age_months\":2,\"domain\":\"language\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(183,'child_milestones','m2_lifts_head',4,1,NULL,'{\"fa\":\"روی شکم، سرش را کمی بالا می‌آورد\",\"en\":\"Lifts head a little during tummy time\"}',NULL,'{\"age_months\":2,\"domain\":\"motor\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(184,'child_milestones','m2_moves_limbs',5,1,NULL,'{\"fa\":\"هر دو دست و هر دو پا را حرکت می‌دهد\",\"en\":\"Moves both arms and both legs\"}',NULL,'{\"age_months\":2,\"domain\":\"motor\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(185,'child_milestones','m3_social_smile',6,1,NULL,'{\"fa\":\"لبخند اجتماعی می‌زند\",\"en\":\"Gives a social smile\"}',NULL,'{\"age_months\":3,\"domain\":\"social\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(186,'child_milestones','m3_head_up_tummy',7,1,NULL,'{\"fa\":\"سر را موقع دمر خوابیدن بالا می‌گیرد\",\"en\":\"Holds head up during tummy time\"}',NULL,'{\"age_months\":3,\"domain\":\"motor\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(187,'child_milestones','m3_reacts_to_sounds',8,1,NULL,'{\"fa\":\"به صداها واکنش نشان می‌دهد\",\"en\":\"Reacts to sounds\"}',NULL,'{\"age_months\":3,\"domain\":\"language\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(188,'child_milestones','m3_hands_to_mouth',9,1,NULL,'{\"fa\":\"دست‌ها را به دهان می‌برد\",\"en\":\"Brings hands to mouth\"}',NULL,'{\"age_months\":3,\"domain\":\"motor\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(189,'child_milestones','m3_coos_vowels',10,1,NULL,'{\"fa\":\"صداهای «آ» و «او» درمی‌آورد\",\"en\":\"Makes “ah” and “oo” sounds\"}',NULL,'{\"age_months\":3,\"domain\":\"language\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(190,'child_milestones','m3_tracks_objects',11,1,NULL,'{\"fa\":\"اشیا را با چشم دنبال می‌کند\",\"en\":\"Follows things with the eyes\"}',NULL,'{\"age_months\":3,\"domain\":\"cognitive\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(191,'child_milestones','m3_hands_together',12,1,NULL,'{\"fa\":\"دست‌ها را جلوی صورت به هم می‌رساند\",\"en\":\"Brings hands together in front of the face\"}',NULL,'{\"age_months\":3,\"domain\":\"motor\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(192,'child_milestones','m4_laughs',13,1,NULL,'{\"fa\":\"بلند می‌خندد\",\"en\":\"Laughs out loud\"}',NULL,'{\"age_months\":4,\"domain\":\"social\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(193,'child_milestones','m4_holds_head_steady',14,1,NULL,'{\"fa\":\"سرش را بدون کمک ثابت نگه می‌دارد\",\"en\":\"Holds head steady without support\"}',NULL,'{\"age_months\":4,\"domain\":\"motor\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(194,'child_milestones','m4_holds_toy',15,1,NULL,'{\"fa\":\"اسباب‌بازی را در دست نگه می‌دارد\",\"en\":\"Holds a toy put in the hand\"}',NULL,'{\"age_months\":4,\"domain\":\"motor\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(195,'child_milestones','m4_pushes_up_elbows',16,1,NULL,'{\"fa\":\"روی شکم، روی آرنج‌ها خودش را بالا می‌کشد\",\"en\":\"Pushes up onto elbows on the tummy\"}',NULL,'{\"age_months\":4,\"domain\":\"motor\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(196,'child_milestones','m4_turns_to_voice',17,1,NULL,'{\"fa\":\"به سمت صدای تو برمی‌گردد\",\"en\":\"Turns toward your voice\"}',NULL,'{\"age_months\":4,\"domain\":\"language\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(197,'child_milestones','m6_knows_familiar',18,1,NULL,'{\"fa\":\"آدم‌های آشنا را می‌شناسد\",\"en\":\"Knows familiar people\"}',NULL,'{\"age_months\":6,\"domain\":\"social\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(198,'child_milestones','m6_takes_turns_sounds',19,1,NULL,'{\"fa\":\"با تو نوبتی صدا درمی‌آورد\",\"en\":\"Takes turns making sounds with you\"}',NULL,'{\"age_months\":6,\"domain\":\"language\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(199,'child_milestones','m6_rolls_over',20,1,NULL,'{\"fa\":\"از شکم به پشت غلت می‌زند\",\"en\":\"Rolls from tummy to back\"}',NULL,'{\"age_months\":6,\"domain\":\"motor\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(200,'child_milestones','m6_reaches_toy',21,1,NULL,'{\"fa\":\"برای برداشتن اسباب‌بازی دست دراز می‌کند\",\"en\":\"Reaches for a toy\"}',NULL,'{\"age_months\":6,\"domain\":\"motor\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(201,'child_milestones','m6_sits_with_support',22,1,NULL,'{\"fa\":\"با تکیه به دست‌ها می‌نشیند\",\"en\":\"Leans on the hands to sit\"}',NULL,'{\"age_months\":6,\"domain\":\"motor\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(202,'child_milestones','m9_stranger_aware',23,1,NULL,'{\"fa\":\"با غریبه‌ها کمی خجالتی یا نگران است\",\"en\":\"Is shy or wary with strangers\"}',NULL,'{\"age_months\":9,\"domain\":\"social\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(203,'child_milestones','m9_responds_to_name',24,1,NULL,'{\"fa\":\"به اسمش واکنش نشان می‌دهد\",\"en\":\"Responds to their name\"}',NULL,'{\"age_months\":9,\"domain\":\"language\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(204,'child_milestones','m9_sits_alone',25,1,NULL,'{\"fa\":\"بدون کمک می‌نشیند\",\"en\":\"Sits without support\"}',NULL,'{\"age_months\":9,\"domain\":\"motor\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(205,'child_milestones','m9_passes_hands',26,1,NULL,'{\"fa\":\"اشیا را از یک دست به دست دیگر می‌دهد\",\"en\":\"Moves things from one hand to the other\"}',NULL,'{\"age_months\":9,\"domain\":\"motor\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(206,'child_milestones','m9_babbles_syllables',27,1,NULL,'{\"fa\":\"صداهایی مثل «ماماما» و «بابابا» درمی‌آورد\",\"en\":\"Babbles “mamama” and “bababa”\"}',NULL,'{\"age_months\":9,\"domain\":\"language\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(207,'child_milestones','m12_waves_bye',28,1,NULL,'{\"fa\":\"دست تکان می‌دهد (بای‌بای)\",\"en\":\"Waves bye-bye\"}',NULL,'{\"age_months\":12,\"domain\":\"social\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(208,'child_milestones','m12_says_mama_dada',29,1,NULL,'{\"fa\":\"«ماما» یا «بابا» را با معنی می‌گوید\",\"en\":\"Says “mama” or “dada” for a parent\"}',NULL,'{\"age_months\":12,\"domain\":\"language\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(209,'child_milestones','m12_pulls_to_stand',30,1,NULL,'{\"fa\":\"خودش را بالا می‌کشد و می‌ایستد\",\"en\":\"Pulls up to stand\"}',NULL,'{\"age_months\":12,\"domain\":\"motor\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(210,'child_milestones','m12_cruises',31,1,NULL,'{\"fa\":\"با گرفتن مبل راه می‌رود\",\"en\":\"Walks holding on to furniture\"}',NULL,'{\"age_months\":12,\"domain\":\"motor\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(211,'child_milestones','m12_pincer_grasp',32,1,NULL,'{\"fa\":\"چیزهای کوچک را با شست و انگشت اشاره برمی‌دارد\",\"en\":\"Picks things up between thumb and pointer finger\"}',NULL,'{\"age_months\":12,\"domain\":\"motor\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(212,'child_milestones','m18_walks_alone',33,1,NULL,'{\"fa\":\"بدون کمک چند قدم راه می‌رود\",\"en\":\"Walks a few steps alone\"}',NULL,'{\"age_months\":18,\"domain\":\"motor\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(213,'child_milestones','m18_points_to_show',34,1,NULL,'{\"fa\":\"برای نشان دادن چیزی به آن اشاره می‌کند\",\"en\":\"Points to show you something\"}',NULL,'{\"age_months\":18,\"domain\":\"social\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(214,'child_milestones','m18_says_words',35,1,NULL,'{\"fa\":\"چند کلمه غیر از ماما و بابا می‌گوید\",\"en\":\"Says a few words besides mama and dada\"}',NULL,'{\"age_months\":18,\"domain\":\"language\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(215,'child_milestones','m18_uses_spoon',36,1,NULL,'{\"fa\":\"سعی می‌کند با قاشق غذا بخورد\",\"en\":\"Tries to eat with a spoon\"}',NULL,'{\"age_months\":18,\"domain\":\"motor\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(216,'child_milestones','m18_scribbles',37,1,NULL,'{\"fa\":\"خط‌خطی می‌کند\",\"en\":\"Scribbles\"}',NULL,'{\"age_months\":18,\"domain\":\"motor\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(217,'child_milestones','m24_two_word_phrases',38,1,NULL,'{\"fa\":\"دو کلمه را با هم می‌گوید\",\"en\":\"Puts two words together\"}',NULL,'{\"age_months\":24,\"domain\":\"language\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(218,'child_milestones','m24_kicks_ball',39,1,NULL,'{\"fa\":\"به توپ ضربه می‌زند\",\"en\":\"Kicks a ball\"}',NULL,'{\"age_months\":24,\"domain\":\"motor\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(219,'child_milestones','m24_runs',40,1,NULL,'{\"fa\":\"می‌دود\",\"en\":\"Runs\"}',NULL,'{\"age_months\":24,\"domain\":\"motor\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(220,'child_milestones','m24_points_in_book',41,1,NULL,'{\"fa\":\"در کتاب به تصاویر اشاره می‌کند\",\"en\":\"Points to pictures in a book\"}',NULL,'{\"age_months\":24,\"domain\":\"cognitive\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(221,'child_milestones','m24_notices_feelings',42,1,NULL,'{\"fa\":\"متوجه ناراحتی دیگران می‌شود\",\"en\":\"Notices when others are upset\"}',NULL,'{\"age_months\":24,\"domain\":\"social\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(222,'child_milestones','m36_converses',43,1,NULL,'{\"fa\":\"در گفت‌وگو چند جمله رد و بدل می‌کند\",\"en\":\"Has a back-and-forth conversation\"}',NULL,'{\"age_months\":36,\"domain\":\"language\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(223,'child_milestones','m36_says_own_name',44,1,NULL,'{\"fa\":\"اسم کوچکش را می‌گوید\",\"en\":\"Says their first name\"}',NULL,'{\"age_months\":36,\"domain\":\"language\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(224,'child_milestones','m36_draws_circle',45,1,NULL,'{\"fa\":\"با دیدن نمونه دایره می‌کشد\",\"en\":\"Draws a circle after you show how\"}',NULL,'{\"age_months\":36,\"domain\":\"motor\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(225,'child_milestones','m36_dresses_partly',46,1,NULL,'{\"fa\":\"بعضی لباس‌ها را خودش می‌پوشد\",\"en\":\"Puts on some clothes alone\"}',NULL,'{\"age_months\":36,\"domain\":\"motor\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(226,'child_milestones','m36_plays_with_others',47,1,NULL,'{\"fa\":\"با بچه‌های دیگر بازی می‌کند\",\"en\":\"Plays with other children\"}',NULL,'{\"age_months\":36,\"domain\":\"social\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(227,'child_milestones','m48_tells_story',48,1,NULL,'{\"fa\":\"اتفاقی را که افتاده تعریف می‌کند\",\"en\":\"Tells what happened in a story or their day\"}',NULL,'{\"age_months\":48,\"domain\":\"language\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(228,'child_milestones','m48_names_colours',49,1,NULL,'{\"fa\":\"چند رنگ را نام می‌برد\",\"en\":\"Names a few colours\"}',NULL,'{\"age_months\":48,\"domain\":\"cognitive\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(229,'child_milestones','m48_pretend_play',50,1,NULL,'{\"fa\":\"بازی نقش‌آفرینی می‌کند\",\"en\":\"Plays pretend\"}',NULL,'{\"age_months\":48,\"domain\":\"social\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(230,'child_milestones','m48_catches_ball',51,1,NULL,'{\"fa\":\"توپ بزرگ را می‌گیرد\",\"en\":\"Catches a large ball\"}',NULL,'{\"age_months\":48,\"domain\":\"motor\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(231,'child_milestones','m48_comforts_others',52,1,NULL,'{\"fa\":\"دیگران را دلداری می‌دهد\",\"en\":\"Comforts others who are hurt or sad\"}',NULL,'{\"age_months\":48,\"domain\":\"social\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(232,'child_milestones','m60_counts_to_ten',53,1,NULL,'{\"fa\":\"تا ۱۰ می‌شمارد\",\"en\":\"Counts to 10\"}',NULL,'{\"age_months\":60,\"domain\":\"cognitive\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(233,'child_milestones','m60_hops_one_foot',54,1,NULL,'{\"fa\":\"روی یک پا لی‌لی می‌کند\",\"en\":\"Hops on one foot\"}',NULL,'{\"age_months\":60,\"domain\":\"motor\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(234,'child_milestones','m60_writes_letters',55,1,NULL,'{\"fa\":\"چند حرف از اسمش را می‌نویسد\",\"en\":\"Writes some letters of their name\"}',NULL,'{\"age_months\":60,\"domain\":\"motor\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(235,'child_milestones','m60_follows_rules',56,1,NULL,'{\"fa\":\"در بازی‌ها قانون را رعایت می‌کند\",\"en\":\"Follows rules in simple games\"}',NULL,'{\"age_months\":60,\"domain\":\"social\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(236,'child_milestones','m60_buttons',57,1,NULL,'{\"fa\":\"دکمه‌ها را باز و بسته می‌کند\",\"en\":\"Does and undoes buttons\"}',NULL,'{\"age_months\":60,\"domain\":\"motor\"}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(237,'child_milestone_activities','m2_face_time',1,1,NULL,'{\"fa\":\"صورت به صورت\",\"en\":\"Face to face\"}','{\"fa\":\"در فاصله ۲۰ تا ۳۰ سانتی صورتش با او حرف بزن و لبخند بزن.\",\"en\":\"Talk and smile 20–30 cm from their face.\"}','{\"age_months\":2}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(238,'child_milestone_activities','m2_tummy_time',2,1,NULL,'{\"fa\":\"وقت دمر (Tummy time)\",\"en\":\"Tummy time\"}','{\"fa\":\"روزی چند بار، هر بار یکی دو دقیقه وقتی بیدار است روی شکم بگذارش.\",\"en\":\"A few times a day, a minute or two on the tummy while awake.\"}','{\"age_months\":2}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(239,'child_milestone_activities','m3_tummy_time',3,1,NULL,'{\"fa\":\"وقت دمر (Tummy time)\",\"en\":\"Tummy time\"}','{\"fa\":\"روزی چند بار، هر بار ۳ تا ۵ دقیقه روی شکم؛ گردن و شانه قوی می‌شود.\",\"en\":\"A few times a day, 3 to 5 minutes on the tummy; it strengthens neck and shoulders.\"}','{\"age_months\":3}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(240,'child_milestone_activities','m3_sound_talk',4,1,NULL,'{\"fa\":\"گفت‌وگوی صدا\",\"en\":\"Sound conversations\"}','{\"fa\":\"صداهایش را تکرار کن و منتظر جوابش بمان؛ پایه زبان است.\",\"en\":\"Repeat their sounds and wait for a reply; it is the root of language.\"}','{\"age_months\":3}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(241,'child_milestone_activities','m4_rattle_reach',5,1,NULL,'{\"fa\":\"جغجغه در دسترس\",\"en\":\"Reach for the rattle\"}','{\"fa\":\"اسباب‌بازی را کمی دورتر بگیر تا برای گرفتنش تلاش کند.\",\"en\":\"Hold a toy just out of reach so they stretch for it.\"}','{\"age_months\":4}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(242,'child_milestone_activities','m4_mirror_play',6,1,NULL,'{\"fa\":\"بازی با آینه\",\"en\":\"Mirror play\"}','{\"fa\":\"جلوی آینه با او حرف بزن و چهره‌اش را نشانش بده.\",\"en\":\"Talk to them in front of a mirror and show them their face.\"}','{\"age_months\":4}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(243,'child_milestone_activities','m6_peekaboo',7,1,NULL,'{\"fa\":\"دالی‌موشه\",\"en\":\"Peekaboo\"}','{\"fa\":\"صورتت را بپوشان و دوباره نشان بده؛ می‌خندد و منتظر می‌ماند.\",\"en\":\"Hide your face and show it again; they laugh and wait for it.\"}','{\"age_months\":6}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(244,'child_milestone_activities','m6_supported_sitting',8,1,NULL,'{\"fa\":\"نشستن با تکیه\",\"en\":\"Supported sitting\"}','{\"fa\":\"با بالش دورش را امن کن و بگذار نشستن را تمرین کند.\",\"en\":\"Surround them with cushions and let them practise sitting.\"}','{\"age_months\":6}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(245,'child_milestone_activities','m9_name_things',9,1,NULL,'{\"fa\":\"اسم چیزها\",\"en\":\"Name things\"}','{\"fa\":\"به چیزهایی که نگاه می‌کند اشاره کن و اسمشان را بگو.\",\"en\":\"Point to what they look at and say its name.\"}','{\"age_months\":9}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(246,'child_milestone_activities','m9_crawl_course',10,1,NULL,'{\"fa\":\"مسیر چهاردست‌وپا\",\"en\":\"Crawling course\"}','{\"fa\":\"اسباب‌بازی را کمی دورتر بگذار تا به سمتش برود.\",\"en\":\"Put a toy a little further away so they move toward it.\"}','{\"age_months\":9}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(247,'child_milestone_activities','m12_stack_cups',11,1,NULL,'{\"fa\":\"لیوان‌های تودرتو\",\"en\":\"Stacking cups\"}','{\"fa\":\"لیوان‌ها را روی هم بچینید و خراب کنید.\",\"en\":\"Stack cups together and knock them down.\"}','{\"age_months\":12}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(248,'child_milestone_activities','m12_read_together',12,1,NULL,'{\"fa\":\"کتاب خواندن با هم\",\"en\":\"Read together\"}','{\"fa\":\"کتاب‌های تصویری بخوان و به تصویرها اشاره کن.\",\"en\":\"Read picture books and point to the pictures.\"}','{\"age_months\":12}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(249,'child_milestone_activities','m18_simple_tasks',13,1,NULL,'{\"fa\":\"کارهای کوچک\",\"en\":\"Little jobs\"}','{\"fa\":\"از او بخواه چیزی را بیاورد یا در سبد بگذارد.\",\"en\":\"Ask them to fetch something or put it in a basket.\"}','{\"age_months\":18}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(250,'child_milestone_activities','m24_pretend_kitchen',14,1,NULL,'{\"fa\":\"آشپزی خیالی\",\"en\":\"Pretend kitchen\"}','{\"fa\":\"با ظرف‌های پلاستیکی بازی آشپزی کنید و اسم غذاها را بگو.\",\"en\":\"Play cooking with plastic dishes and name the foods.\"}','{\"age_months\":24}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(251,'child_milestone_activities','m36_story_turns',15,1,NULL,'{\"fa\":\"قصه نوبتی\",\"en\":\"Story turns\"}','{\"fa\":\"یک جمله از قصه را تو بگو و جمله بعدی را او.\",\"en\":\"You say one sentence of a story and they say the next.\"}','{\"age_months\":36}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(252,'child_milestone_activities','m48_colour_hunt',16,1,NULL,'{\"fa\":\"رنگ‌یابی\",\"en\":\"Colour hunt\"}','{\"fa\":\"در خانه یا پارک دنبال چیزهای یک رنگ بگردید.\",\"en\":\"Look for things of one colour at home or in the park.\"}','{\"age_months\":48}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(253,'child_milestone_activities','m60_board_games',17,1,NULL,'{\"fa\":\"بازی‌های نوبتی\",\"en\":\"Turn-taking games\"}','{\"fa\":\"بازی‌های ساده با قانون، مثل مار و پله، صبر و شمردن را تمرین می‌دهد.\",\"en\":\"Simple rule games like snakes and ladders practise patience and counting.\"}','{\"age_months\":60}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(254,'child_milestone_notes','m2',1,1,NULL,'{\"fa\":\"مراحل رشد ۲ ماهگی\",\"en\":\"2-month milestones\"}','{\"fa\":\"اگر تا ۲ ماهگی به صداهای بلند واکنش نداد یا وقتی دمر است سرش را اصلاً بالا نیاورد، در مراجعه بعدی با پزشک در میان بگذار.\",\"en\":\"If by 2 months they don\'t react to loud sounds or never lift their head on the tummy, mention it at the next visit.\"}','{\"age_months\":2}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(255,'child_milestone_notes','m3',2,1,NULL,'{\"fa\":\"مراحل رشد ۳ ماهگی\",\"en\":\"3-month milestones\"}','{\"fa\":\"اگر تا ۴ ماهگی به صدا واکنش نداد، سر را بالا نگرفت یا لبخند نزد، در مراجعه بعدی با پزشک در میان بگذار.\",\"en\":\"If by 4 months they don\'t react to sounds, hold up their head or smile, mention it at the next visit.\"}','{\"age_months\":3}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(256,'child_milestone_notes','m4',3,1,NULL,'{\"fa\":\"مراحل رشد ۴ ماهگی\",\"en\":\"4-month milestones\"}','{\"fa\":\"اگر تا ۴ ماهگی سرش را ثابت نگه نمی‌دارد یا اشیا را با چشم دنبال نمی‌کند، با پزشک کودک صحبت کن.\",\"en\":\"If by 4 months they can\'t hold their head steady or follow things with the eyes, talk to the paediatrician.\"}','{\"age_months\":4}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(257,'child_milestone_notes','m6',4,1,NULL,'{\"fa\":\"مراحل رشد ۶ ماهگی\",\"en\":\"6-month milestones\"}','{\"fa\":\"اگر تا ۶ ماهگی برای گرفتن چیزی دست دراز نمی‌کند یا به آدم‌های آشنا واکنش نشان نمی‌دهد، با پزشک صحبت کن.\",\"en\":\"If by 6 months they don\'t reach for things or respond to familiar people, talk to the doctor.\"}','{\"age_months\":6}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(258,'child_milestone_notes','m9',5,1,NULL,'{\"fa\":\"مراحل رشد ۹ ماهگی\",\"en\":\"9-month milestones\"}','{\"fa\":\"اگر تا ۹ ماهگی با تکیه هم نمی‌نشیند یا به اسمش واکنشی ندارد، در مراجعه بعدی مطرح کن.\",\"en\":\"If by 9 months they can\'t sit even with support or don\'t respond to their name, raise it at the next visit.\"}','{\"age_months\":9}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(259,'child_milestone_notes','m12',6,1,NULL,'{\"fa\":\"مراحل رشد ۱۲ ماهگی\",\"en\":\"12-month milestones\"}','{\"fa\":\"اگر تا ۱۲ ماهگی هیچ کلمه یا اشاره‌ای ندارد یا مهارتی را که داشت از دست داده، با پزشک صحبت کن.\",\"en\":\"If by 12 months there are no words or gestures, or a skill they had is lost, talk to the doctor.\"}','{\"age_months\":12}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(260,'child_milestone_notes','m18',7,1,NULL,'{\"fa\":\"مراحل رشد ۱۸ ماهگی\",\"en\":\"18-month milestones\"}','{\"fa\":\"اگر تا ۱۸ ماهگی راه نمی‌رود یا چند کلمه نمی‌گوید، با پزشک کودک در میان بگذار.\",\"en\":\"If by 18 months they don\'t walk or say a few words, mention it to the paediatrician.\"}','{\"age_months\":18}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(261,'child_milestone_notes','m24',8,1,NULL,'{\"fa\":\"مراحل رشد ۲۴ ماهگی\",\"en\":\"24-month milestones\"}','{\"fa\":\"اگر تا ۲ سالگی دو کلمه را با هم نمی‌گوید یا کارهای ساده را تقلید نمی‌کند، با پزشک صحبت کن.\",\"en\":\"If by 2 years they don\'t put two words together or copy simple actions, talk to the doctor.\"}','{\"age_months\":24}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(262,'child_milestone_notes','m36',9,1,NULL,'{\"fa\":\"مراحل رشد ۳۶ ماهگی\",\"en\":\"36-month milestones\"}','{\"fa\":\"اگر تا ۳ سالگی جمله ساده نمی‌گوید یا با بچه‌های دیگر بازی نمی‌کند، با پزشک صحبت کن.\",\"en\":\"If by 3 years they don\'t speak in simple sentences or play with other children, talk to the doctor.\"}','{\"age_months\":36}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(263,'child_milestone_notes','m48',10,1,NULL,'{\"fa\":\"مراحل رشد ۴۸ ماهگی\",\"en\":\"48-month milestones\"}','{\"fa\":\"اگر تا ۴ سالگی حرفش برای غریبه‌ها قابل فهم نیست یا بازی خیالی ندارد، با پزشک صحبت کن.\",\"en\":\"If by 4 years strangers can\'t understand their speech or there is no pretend play, talk to the doctor.\"}','{\"age_months\":48}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(264,'child_milestone_notes','m60',11,1,NULL,'{\"fa\":\"مراحل رشد ۶۰ ماهگی\",\"en\":\"60-month milestones\"}','{\"fa\":\"اگر تا ۵ سالگی نمی‌تواند داستان کوتاهی تعریف کند یا مهارتی را از دست داده، با پزشک صحبت کن.\",\"en\":\"If by 5 years they can\'t tell a short story or a skill is lost, talk to the doctor.\"}','{\"age_months\":60}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(265,'child_age_notes','m0',1,1,NULL,'{\"fa\":\"نوزادی\",\"en\":\"Newborn\"}','{\"fa\":\"نوزادها بیشتر روز را می‌خوابند و هر ۲ تا ۳ ساعت شیر می‌خورند. نگاه کردن به صورت تو و شنیدن صدایت بهترین بازی این روزهاست.\",\"en\":\"Newborns sleep most of the day and feed every 2–3 hours. Looking at your face and hearing your voice is the best play right now.\"}','{\"age_months\":0}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(266,'child_age_notes','m2',2,1,NULL,'{\"fa\":\"۲ ماهگی\",\"en\":\"2 months\"}','{\"fa\":\"در این سن بیشتر نوزادها اولین لبخندهای اجتماعی را می‌زنند و صداهای نرم درمی‌آورند. هر بچه با سرعت خودش پیش می‌رود.\",\"en\":\"Around now most babies give their first social smiles and make soft cooing sounds. Every baby goes at their own pace.\"}','{\"age_months\":2}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(267,'child_age_notes','m3',3,1,NULL,'{\"fa\":\"۳ ماهگی\",\"en\":\"3 months\"}','{\"fa\":\"بیشتر نوزادها در این سن سرشان را موقع دمر خوابیدن بالا نگه می‌دارند، به صداها می‌خندند و دست‌ها را به دهان می‌برند. اگر هنوز نه، عجله نکن؛ بازه طبیعی وسیع است.\",\"en\":\"Most babies this age hold their head up during tummy time, laugh at sounds and bring their hands to the mouth. If not yet, no rush; the normal range is wide.\"}','{\"age_months\":3}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(268,'child_age_notes','m4',4,1,NULL,'{\"fa\":\"۴ ماهگی\",\"en\":\"4 months\"}','{\"fa\":\"خنده‌های بلند، گرفتن اسباب‌بازی و غلت‌های اول در این ماه‌ها شروع می‌شود. وقت دمر را ادامه بده.\",\"en\":\"Big laughs, holding toys and first rolls start around now. Keep up tummy time.\"}','{\"age_months\":4}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(269,'child_age_notes','m6',5,1,NULL,'{\"fa\":\"۶ ماهگی\",\"en\":\"6 months\"}','{\"fa\":\"بسیاری از بچه‌ها در حدود ۶ ماهگی آماده غذای کمکی می‌شوند و نشستن با تکیه را تمرین می‌کنند.\",\"en\":\"Many babies are ready for first foods around 6 months and practise sitting with support.\"}','{\"age_months\":6}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(270,'child_age_notes','m9',6,1,NULL,'{\"fa\":\"۹ ماهگی\",\"en\":\"9 months\"}','{\"fa\":\"نشستن بدون کمک، چهاردست‌وپا رفتن و غریبی کردن در این سن رایج است.\",\"en\":\"Sitting alone, crawling and being wary of strangers are common at this age.\"}','{\"age_months\":9}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(271,'child_age_notes','m12',7,1,NULL,'{\"fa\":\"۱۲ ماهگی\",\"en\":\"12 months\"}','{\"fa\":\"حدود یک‌سالگی خیلی از بچه‌ها با گرفتن مبل راه می‌روند و اولین کلمه‌ها را می‌گویند.\",\"en\":\"Around their first birthday many children cruise along furniture and say first words.\"}','{\"age_months\":12}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(272,'child_age_notes','m18',8,1,NULL,'{\"fa\":\"۱۸ ماهگی\",\"en\":\"18 months\"}','{\"fa\":\"نوپاها در این سن راه رفتن را تمرین می‌کنند، چند کلمه می‌گویند و دوست دارند کارها را خودشان انجام دهند.\",\"en\":\"Toddlers this age practise walking, say a handful of words and want to do things themselves.\"}','{\"age_months\":18}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(273,'child_age_notes','m24',9,1,NULL,'{\"fa\":\"۲۴ ماهگی\",\"en\":\"24 months\"}','{\"fa\":\"در دو سالگی جمله‌های دوکلمه‌ای، دویدن و بازی‌های تقلیدی رایج است.\",\"en\":\"At two, two-word phrases, running and copycat play are common.\"}','{\"age_months\":24}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(274,'child_age_notes','m36',10,1,NULL,'{\"fa\":\"۳۶ ماهگی\",\"en\":\"36 months\"}','{\"fa\":\"سه‌ساله‌ها جمله می‌سازند، سؤال زیاد می‌پرسند و با بچه‌های دیگر بازی می‌کنند.\",\"en\":\"Three-year-olds speak in sentences, ask lots of questions and play with other children.\"}','{\"age_months\":36}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(275,'child_age_notes','m48',11,1,NULL,'{\"fa\":\"۴۸ ماهگی\",\"en\":\"48 months\"}','{\"fa\":\"چهارساله‌ها قصه تعریف می‌کنند، رنگ‌ها را می‌شناسند و بازی‌های خیالی دارند.\",\"en\":\"Four-year-olds tell stories, know colours and love pretend play.\"}','{\"age_months\":48}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(276,'child_age_notes','m60',12,1,NULL,'{\"fa\":\"۶۰ ماهگی\",\"en\":\"60 months\"}','{\"fa\":\"پنج‌ساله‌ها می‌شمارند، چند حرف می‌نویسند و قانون بازی‌ها را رعایت می‌کنند.\",\"en\":\"Five-year-olds count, write some letters and follow the rules of games.\"}','{\"age_months\":60}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(277,'child_learn','newborn_safe_sleep',1,1,NULL,'{\"fa\":\"خواب امن نوزاد\",\"en\":\"Safe sleep for newborns\"}','{\"fa\":\"به پشت، روی سطح سفت و بدون بالش و پتوی شل؛ در اتاق خودت ولی در تخت جدا.\",\"en\":\"On the back, on a firm flat surface with no pillows or loose blankets; in your room but in their own cot.\"}','{\"topic\":\"sleep\",\"from_months\":0,\"to_months\":2,\"minutes\":4,\"featured\":true}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(278,'child_learn','night_sleep_3m',2,1,NULL,'{\"fa\":\"خواب شبانه از ۳ ماهگی\",\"en\":\"Night sleep from 3 months\"}','{\"fa\":\"چطور روتین ملایم بسازیم: حمام، شیر، نور کم، همان ترتیب هر شب. بدون روش‌های گریه‌درمانی.\",\"en\":\"Building a gentle routine: bath, feed, dim light, the same order every night. No cry-it-out methods.\"}','{\"topic\":\"sleep\",\"from_months\":3,\"to_months\":6,\"minutes\":4,\"featured\":true}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(279,'child_learn','toddler_sleep_routine',3,1,NULL,'{\"fa\":\"روتین خواب نوپا\",\"en\":\"Toddler bedtime routine\"}','{\"fa\":\"ساعت ثابت خواب، قصه کوتاه و صفحه‌نمایش خاموش از یک ساعت قبل.\",\"en\":\"A steady bedtime, a short story and screens off an hour before.\"}','{\"topic\":\"sleep\",\"from_months\":12,\"to_months\":60,\"minutes\":4,\"featured\":true}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(280,'child_learn','breastfeeding_supply',4,1,NULL,'{\"fa\":\"شیردهی و افزایش شیر\",\"en\":\"Breastfeeding and milk supply\"}','{\"fa\":\"شیردهی بر اساس تقاضا، وضعیت درست گرفتن سینه و استراحت، مهم‌ترین عامل‌ها هستند.\",\"en\":\"Feeding on demand, a good latch and rest matter most.\"}','{\"topic\":\"feeding\",\"from_months\":0,\"to_months\":6,\"minutes\":6,\"featured\":false}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(281,'child_learn','starting_solids',5,1,NULL,'{\"fa\":\"شروع غذای کمکی\",\"en\":\"Starting solid foods\"}','{\"fa\":\"از حدود ۶ ماهگی، با یک غذای ساده و نرم شروع کن و هر چند روز یک غذای تازه اضافه کن.\",\"en\":\"From about 6 months, start with one simple soft food and add a new one every few days.\"}','{\"topic\":\"feeding\",\"from_months\":5,\"to_months\":9,\"minutes\":5,\"featured\":true}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(282,'child_learn','picky_eating',6,1,NULL,'{\"fa\":\"بدغذایی نوپا\",\"en\":\"Picky eating in toddlers\"}','{\"fa\":\"غذای تازه را بارها و بدون اصرار پیشنهاد بده؛ سهم را بچه تعیین می‌کند.\",\"en\":\"Offer new foods many times without pressure; the child decides how much.\"}','{\"topic\":\"feeding\",\"from_months\":12,\"to_months\":60,\"minutes\":5,\"featured\":false}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(283,'child_learn','evening_crying',7,1,NULL,'{\"fa\":\"دلیل گریه‌های عصرگاهی\",\"en\":\"Why babies cry in the evening\"}','{\"fa\":\"گریه‌های عصر در هفته‌های اول رایج است و معمولاً تا ۳ یا ۴ ماهگی کم می‌شود.\",\"en\":\"Evening fussiness is common in the first weeks and usually eases by 3 or 4 months.\"}','{\"topic\":\"health\",\"from_months\":0,\"to_months\":4,\"minutes\":5,\"featured\":false}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(284,'child_learn','vaccine_4m',8,1,NULL,'{\"fa\":\"واکسن ۴ ماهگی: چه انتظاری داشته باشم\",\"en\":\"The 4-month vaccines: what to expect\"}','{\"fa\":\"تب خفیف و بی‌قراری یکی دو روز بعد از واکسن طبیعی است؛ در صورت تب بالا با پزشک تماس بگیر.\",\"en\":\"A mild fever and fussiness for a day or two are normal; call the doctor for a high fever.\"}','{\"topic\":\"health\",\"from_months\":3,\"to_months\":5,\"minutes\":3,\"featured\":false}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(285,'child_learn','teething',9,1,NULL,'{\"fa\":\"دندان درآوردن\",\"en\":\"Teething\"}','{\"fa\":\"آب دهان زیاد و جویدن رایج است؛ حلقه دندانی خنک کمک می‌کند. تب بالا ربطی به دندان ندارد.\",\"en\":\"Drooling and chewing are common; a cool teething ring helps. A high fever is not from teething.\"}','{\"topic\":\"health\",\"from_months\":5,\"to_months\":18,\"minutes\":4,\"featured\":false}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(286,'child_learn','neck_play',10,1,NULL,'{\"fa\":\"بازی‌های ساده برای تقویت گردن\",\"en\":\"Simple games for neck strength\"}','{\"fa\":\"وقت دمر کوتاه و مکرر، با اسباب‌بازی رنگی جلوی صورتش.\",\"en\":\"Short, frequent tummy time with a bright toy in front of their face.\"}','{\"topic\":\"play\",\"from_months\":2,\"to_months\":5,\"minutes\":4,\"featured\":false}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(287,'child_learn','crawling_play',11,1,NULL,'{\"fa\":\"بازی‌های حرکتی ۶ تا ۱۲ ماهگی\",\"en\":\"Movement play from 6 to 12 months\"}','{\"fa\":\"فضای امن روی زمین بهترین اسباب‌بازی برای غلت زدن و چهاردست‌وپا رفتن است.\",\"en\":\"A safe space on the floor is the best toy for rolling and crawling.\"}','{\"topic\":\"play\",\"from_months\":6,\"to_months\":12,\"minutes\":4,\"featured\":false}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(288,'child_learn','toddler_talking',12,1,NULL,'{\"fa\":\"کمک به حرف زدن نوپا\",\"en\":\"Helping toddlers talk\"}','{\"fa\":\"با او زیاد حرف بزن، کارهایت را توصیف کن و جمله‌هایش را کامل‌تر تکرار کن.\",\"en\":\"Talk a lot, describe what you are doing and repeat their words in fuller sentences.\"}','{\"topic\":\"play\",\"from_months\":12,\"to_months\":36,\"minutes\":5,\"featured\":false}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(289,'child_learn','mother_self_care',13,1,NULL,'{\"fa\":\"مراقبت از خودت در ماه‌های اول\",\"en\":\"Looking after yourself in the first months\"}','{\"fa\":\"خواب کوتاه هر وقت ممکن است، کمک گرفتن از اطرافیان و صحبت درباره حالت، بخشی از مراقبت از بچه است.\",\"en\":\"Naps whenever you can, accepting help and talking about how you feel are part of caring for your baby.\"}','{\"topic\":\"mother\",\"from_months\":0,\"to_months\":12,\"minutes\":7,\"featured\":false}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(290,'child_learn','mother_return_to_routine',14,1,NULL,'{\"fa\":\"برگشت به روال کار و زندگی\",\"en\":\"Getting back to work and routine\"}','{\"fa\":\"برنامه‌ریزی تدریجی، تقسیم کارها و زمان کوتاهی برای خودت کمک می‌کند.\",\"en\":\"A gradual plan, shared chores and a little time for yourself help.\"}','{\"topic\":\"mother\",\"from_months\":6,\"to_months\":60,\"minutes\":5,\"featured\":false}',1,'2026-09-23 06:30:00','2026-09-23 06:30:00');
 /*!40000 ALTER TABLE `catalog_items` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `challenges`;
@@ -478,6 +635,94 @@ INSERT INTO `checkup_types` VALUES
 (14,'meno_thyroid',NULL,'annual','{\"fa\":\"تیروئید (TSH)\",\"en\":\"Thyroid (TSH)\"}','{\"fa\":\"اگر خستگی یا تغییر وزن داری\",\"en\":\"If you have tiredness or weight change\"}','{\"fa\":\"مشکلات تیروئید در این سن شایع‌اند و علائمشان می‌تواند شبیه یائسگی باشد.\",\"en\":\"Thyroid problems are common at this age and can look like menopause symptoms.\"}','lab','flask','amber',12,NULL,NULL,NULL,NULL,NULL,14,NULL,NULL,NULL,1,'[\"menopause\"]',0,108,'Menopause catalog (CB-MENO-01). [needs clinical review]','2026-09-23 06:30:00','2026-09-23 06:30:00'),
 (15,'meno_eye_exam',NULL,'annual','{\"fa\":\"معاینه چشم\",\"en\":\"Eye exam\"}','{\"fa\":\"سالانه\",\"en\":\"Yearly\"}','{\"fa\":\"معاینه منظم چشم تغییرات بینایی و بیماری‌هایی مثل آب سیاه را زود نشان می‌دهد.\",\"en\":\"A regular eye exam shows vision changes and conditions such as glaucoma early.\"}','doctor','stetho','green',12,NULL,NULL,NULL,NULL,NULL,30,NULL,NULL,NULL,1,'[\"menopause\"]',0,109,'Menopause catalog (CB-MENO-01). [needs clinical review]','2026-09-23 06:30:00','2026-09-23 06:30:00');
 /*!40000 ALTER TABLE `checkup_types` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `child_measurements`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `child_measurements` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `child_id` bigint(20) unsigned NOT NULL,
+  `measured_on` date NOT NULL,
+  `weight_kg` decimal(5,3) DEFAULT NULL,
+  `length_cm` decimal(4,1) DEFAULT NULL,
+  `head_cm` decimal(4,1) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `child_measurements_child_id_measured_on_unique` (`child_id`,`measured_on`),
+  CONSTRAINT `child_measurements_child_id_foreign` FOREIGN KEY (`child_id`) REFERENCES `children` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `child_measurements` WRITE;
+/*!40000 ALTER TABLE `child_measurements` DISABLE KEYS */;
+/*!40000 ALTER TABLE `child_measurements` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `child_milestone_checks`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `child_milestone_checks` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `child_id` bigint(20) unsigned NOT NULL,
+  `milestone_code` varchar(64) NOT NULL,
+  `checked_on` date NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `child_milestone_checks_child_id_milestone_code_unique` (`child_id`,`milestone_code`),
+  CONSTRAINT `child_milestone_checks_child_id_foreign` FOREIGN KEY (`child_id`) REFERENCES `children` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `child_milestone_checks` WRITE;
+/*!40000 ALTER TABLE `child_milestone_checks` DISABLE KEYS */;
+/*!40000 ALTER TABLE `child_milestone_checks` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `child_vaccine_doses`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `child_vaccine_doses` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `child_id` bigint(20) unsigned NOT NULL,
+  `dose_code` varchar(64) NOT NULL,
+  `given_on` date NOT NULL,
+  `note` varchar(500) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `child_vaccine_doses_child_id_dose_code_unique` (`child_id`,`dose_code`),
+  CONSTRAINT `child_vaccine_doses_child_id_foreign` FOREIGN KEY (`child_id`) REFERENCES `children` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `child_vaccine_doses` WRITE;
+/*!40000 ALTER TABLE `child_vaccine_doses` DISABLE KEYS */;
+/*!40000 ALTER TABLE `child_vaccine_doses` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `children`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `children` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `owner_id` bigint(20) unsigned NOT NULL,
+  `name` varchar(64) NOT NULL,
+  `birth_date` date NOT NULL,
+  `sex` varchar(8) DEFAULT NULL,
+  `birth_weight_kg` decimal(5,3) DEFAULT NULL,
+  `birth_length_cm` decimal(4,1) DEFAULT NULL,
+  `birth_head_cm` decimal(4,1) DEFAULT NULL,
+  `delivery_type` varchar(16) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `children_owner_id_birth_date_index` (`owner_id`,`birth_date`),
+  CONSTRAINT `children_owner_id_foreign` FOREIGN KEY (`owner_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `children` WRITE;
+/*!40000 ALTER TABLE `children` DISABLE KEYS */;
+/*!40000 ALTER TABLE `children` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `companion_audit_logs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -984,6 +1229,7 @@ CREATE TABLE `family_children` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `family_children_family_id_child_id_unique` (`family_id`,`child_id`),
   KEY `family_children_child_id_index` (`child_id`),
+  CONSTRAINT `family_children_child_id_foreign` FOREIGN KEY (`child_id`) REFERENCES `children` (`id`) ON DELETE CASCADE,
   CONSTRAINT `family_children_family_id_foreign` FOREIGN KEY (`family_id`) REFERENCES `families` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -3072,6 +3318,7 @@ CREATE TABLE `user_consents` (
   `user_id` bigint(20) unsigned NOT NULL,
   `consent` varchar(64) NOT NULL,
   `granted` tinyint(1) NOT NULL DEFAULT 0,
+  `version` smallint(5) unsigned DEFAULT NULL,
   `granted_at` timestamp NULL DEFAULT NULL,
   `revoked_at` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,

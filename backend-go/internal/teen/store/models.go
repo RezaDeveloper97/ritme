@@ -36,6 +36,23 @@ type Affirmation struct {
 	UpdatedAt  sql.NullTime
 }
 
+type AiUsageLog struct {
+	ID           uint64
+	UserID       sql.NullInt64
+	Feature      string
+	Op           string
+	Provider     string
+	Model        string
+	InputTokens  uint32
+	OutputTokens uint32
+	AudioBytes   uint32
+	ImageBytes   uint32
+	CostMicros   uint64
+	LatencyMs    uint32
+	Ok           bool
+	CreatedAt    sql.NullTime
+}
+
 type Article struct {
 	ID              uint64
 	Slug            string
@@ -152,6 +169,50 @@ type CheckupType struct {
 	CreatedAt         sql.NullTime
 	UpdatedAt         sql.NullTime
 	Audiences         db.NullRawJSON
+}
+
+type Child struct {
+	ID            uint64
+	OwnerID       uint64
+	Name          string
+	BirthDate     civildate.Date
+	Sex           sql.NullString
+	BirthWeightKg sql.NullString
+	BirthLengthCm sql.NullString
+	BirthHeadCm   sql.NullString
+	DeliveryType  sql.NullString
+	CreatedAt     sql.NullTime
+	UpdatedAt     sql.NullTime
+}
+
+type ChildMeasurement struct {
+	ID         uint64
+	ChildID    uint64
+	MeasuredOn civildate.Date
+	WeightKg   sql.NullString
+	LengthCm   sql.NullString
+	HeadCm     sql.NullString
+	CreatedAt  sql.NullTime
+	UpdatedAt  sql.NullTime
+}
+
+type ChildMilestoneCheck struct {
+	ID            uint64
+	ChildID       uint64
+	MilestoneCode string
+	CheckedOn     civildate.Date
+	CreatedAt     sql.NullTime
+	UpdatedAt     sql.NullTime
+}
+
+type ChildVaccineDose struct {
+	ID        uint64
+	ChildID   uint64
+	DoseCode  string
+	GivenOn   civildate.Date
+	Note      sql.NullString
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
 }
 
 type Companion struct {
@@ -1325,6 +1386,7 @@ type UserConsent struct {
 	RevokedAt sql.NullTime
 	CreatedAt sql.NullTime
 	UpdatedAt sql.NullTime
+	Version   sql.NullInt16
 }
 
 type UserLifeProfile struct {

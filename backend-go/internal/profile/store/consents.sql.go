@@ -11,25 +11,29 @@ import (
 )
 
 const grantUserConsent = `-- name: GrantUserConsent :exec
-INSERT INTO ` + "`" + `user_consents` + "`" + ` (user_id, consent, granted, granted_at, revoked_at, created_at, updated_at)
-VALUES (?, ?, 1, ?, NULL, ?, ?)
+INSERT INTO ` + "`" + `user_consents` + "`" + ` (user_id, consent, granted, version, granted_at, revoked_at, created_at, updated_at)
+VALUES (?, ?, 1, ?, ?, NULL, ?, ?)
 ON DUPLICATE KEY UPDATE
-  granted_at = IF(granted = 1, granted_at, VALUES(granted_at)),
-  updated_at = IF(granted = 1, updated_at, VALUES(updated_at)),
+  granted_at = IF(granted = 1 AND version <=> VALUES(version), granted_at, VALUES(granted_at)),
+  updated_at = IF(granted = 1 AND version <=> VALUES(version), updated_at, VALUES(updated_at)),
+  version = VALUES(version),
   granted = 1
 `
 
 type GrantUserConsentParams struct {
 	UserID  uint64
 	Consent string
+	Version sql.NullInt16
 	Now     sql.NullTime
 }
 
-// A grant keeps revoked_at (the last withdrawal) and stamps granted_at; a repeated grant leaves the row untouched.
+// A grant keeps revoked_at (the last withdrawal), stamps granted_at and the version of the consent text in force
+// (B-N6-05, internal/consent); a repeated grant of the same version leaves the row untouched.
 func (q *Queries) GrantUserConsent(ctx context.Context, arg GrantUserConsentParams) error {
 	_, err := q.db.ExecContext(ctx, grantUserConsent,
 		arg.UserID,
 		arg.Consent,
+		arg.Version,
 		arg.Now,
 		arg.Now,
 		arg.Now,

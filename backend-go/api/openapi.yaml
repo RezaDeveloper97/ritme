@@ -24,6 +24,7 @@ servers: [{url: /, description: Same origin}]
 tags:
   - {name: Auth, description: OTP sign-in and the 365-day session token}
   - {name: Profile, description: "User profile, data export and account deletion"}
+  - {name: Consents, description: "Versioned consents (B-N6-05): texts per version, accept / withdraw; the AI feature gate answers 403 consent_required"}
   - {name: Languages, description: Language list and UI string bundles (public)}
   - {name: Info, description: "Help, privacy, terms and about screens (public)"}
   - {name: Content, description: "Banners, articles and cycle phase content"}
@@ -41,6 +42,7 @@ tags:
   - {name: Conditions, description: "Condition programs (Go only): enrolment (endometriosis, PMDD, heavy bleeding, PCOS), pain diary on the log taxonomy, PMDD questionnaire + cycle chart, PBAC pad chart"}
   - {name: Menopause, description: "Menopause mode (Go only, CB-MENO-02): stage profile on bloom's life profile, home read model, hot-flash timer, monthly symptom score with domains and deltas, patterns in her own logs (not a diagnosis)"}
   - {name: Postpartum, description: "Postpartum mode (Go only, bloom B-N5-01): activation from pregnancy or directly, time since the birth, the recovery log on log taxonomy v2, EPDS mood checks (weekly EPDS-3, full every two weeks) with the urgent safety path (item 10 > 0 or total ≥ 13 → call 115 / 123 / 1480). EPDS answers are never logged or shared"}
+  - {name: Children, description: "Children (Go only, bloom B-N5-02): profiles, measurements placed on the WHO Child Growth Standards (LMS percentiles / z-scores, 0–5 years), the Iran national immunisation schedule with per-child doses and 3-day reminders, milestones by age band, age-based learn tips. Owner read/write; an active spouse sees shared children read-only (audited). Child data is never logged"}
   - {name: Loss, description: "Pregnancy loss path (Go only, CB-LOSS-01): record a loss (stops pregnancy content durably), physical follow-up as care appointments, mood check-ins, an encrypted private note, the next step. Owner-only; a companion gets one line at most"}
   - {name: Plus, description: "Ritme Plus (Go only): plans, trial, checkout through the payment port, verify, cancel, restore, history, entitlements and usage. Amounts are integer rials"}
   - {name: Payments, description: "Payment gateway adapter (Go only): browser return hop and the fake provider's TEST page. PAYMENT_PROVIDER = fake (default outside production) | zarinpal | none. Café Bazaar / Myket billing is Android-only and out of scope"}
@@ -1457,6 +1459,7 @@ paths:
     get:
       tags: [Care]
       summary: Get a medication reminder
+      description: "With `for_user_id` (a companion with view/edit on the owner's meds) only what the meds section shows is reachable: a paused or ended medication is the same **404** as an unknown id (B-N4-08b, CMP-M2). Delegated GETs are throttled (120/hour per account, **429** `too_many_requests`)."
       operationId: getCareMedicationsById
       security:
         - {bearerAuth: []}
@@ -1478,6 +1481,7 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '403': {$ref: "#/components/responses/CompanionForbidden"}
         '404': {$ref: "#/components/responses/CareNotFound"}
+        '429': {$ref: "#/components/responses/CompanionThrottled"}
     put:
       tags: [Care]
       summary: Update a medication reminder
@@ -1690,6 +1694,7 @@ paths:
     get:
       tags: [Care]
       summary: Get an appointment
+      description: "With `for_user_id` (a companion with view/edit on the owner's appointments) only what the appointments section shows is reachable: a past, cancelled or private appointment is the same **404** as an unknown id (B-N4-08b, CMP-M2). Delegated GETs are throttled (120/hour per account, **429** `too_many_requests`)."
       operationId: getCareAppointmentsById
       security:
         - {bearerAuth: []}
@@ -1711,6 +1716,7 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '403': {$ref: "#/components/responses/CompanionForbidden"}
         '404': {$ref: "#/components/responses/CareAppointmentNotFound"}
+        '429': {$ref: "#/components/responses/CompanionThrottled"}
     put:
       tags: [Care]
       summary: Update an appointment
@@ -5205,6 +5211,525 @@ paths:
         '409': {$ref: "#/components/responses/PostpartumNotActive"}
         '422': {$ref: "#/components/responses/PostpartumValidationFailed"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/children:
+    get:
+      tags: [Children]
+      summary: My children (v15 Children)
+      description: |
+        The caller's children (youngest first) and then the children an owner shares with the caller through an active
+        spouse link's family (`role: shared`, `can_edit: false`, `owner_name`). Each card: profile, age, vaccine summary
+        with the next visit, growth verdict. Shared reads are written to the owner's companion audit trail
+        (section `children`).
+      operationId: listChildren
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The children
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/ChildrenList"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+    post:
+      tags: [Children]
+      summary: Add a child (v15 AddChild)
+      description: |
+        `name` (≤ 64), `birth_date` (not in the future, within 18 years), `sex` girl | boy | null (null = not told: no
+        WHO percentiles), birth weight 0.3–7 kg, length 20–70 cm, head 15–50 cm, `delivery_type` vaginal | cesarean |
+        null. The photo stays on the device. At most 10 children per owner (422 `children_limit`).
+      operationId: createChild
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/ChildInput"}
+            example: {name: آوا, birth_date: "2026-06-20", sex: girl, birth_weight_kg: 3.2, birth_length_cm: 50, delivery_type: vaginal}
+      responses:
+        '201':
+          description: Created; the child card
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/ChildCard"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ChildrenValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/children/reminders:
+    get:
+      tags: [Children]
+      summary: Vaccine visits to remind about today
+      description: |
+        Every visible child's vaccine visits that are not complete and whose reminder window is open today: from 3 days
+        before the due date until 30 days after it. Soonest (most overdue) first. The push sender plans the same visits
+        through `children.PlanReminders` (notification category `checkups`).
+      operationId: listChildReminders
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The due list
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [reminders, days_before]
+                    properties:
+                      days_before: {type: integer}
+                      reminders:
+                        type: array
+                        items:
+                          type: object
+                          required: [child, visit, days_left]
+                          properties:
+                            child:
+                              type: object
+                              required: [id, name, initial, role]
+                              properties:
+                                id: {type: integer}
+                                name: {type: string}
+                                initial: {type: string}
+                                role: {type: string, enum: [owner, shared]}
+                            visit: {$ref: "#/components/schemas/ChildVaccineVisit"}
+                            days_left: {type: integer}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/children/{id}:
+    get:
+      tags: [Children]
+      summary: Child home (v16 ChildHome)
+      description: |
+        The card plus the latest measurement placed on the WHO standard, the milestone band summary, «این هفته …»
+        (`this_week`, the age-band note), the learn teaser. `today` (feeds, sleep, diapers) is filled by the baby logs
+        (B-N5-03) and null here. Owner or shared spouse; anything else 404 `child_not_found`.
+      operationId: showChild
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/ChildId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The child home
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/ChildHome"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/ChildNotFound"}
+    put:
+      tags: [Children]
+      summary: Update a child
+      description: Partial update of the profile (keys not sent keep their value). Owner only; a shared spouse gets 403 `child_read_only`.
+      operationId: updateChild
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/ChildId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/ChildInput"}
+      responses:
+        '200':
+          description: Saved; the child card
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/ChildCard"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/ChildReadOnly"}
+        '404': {$ref: "#/components/responses/ChildNotFound"}
+        '422': {$ref: "#/components/responses/ChildrenValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+    delete:
+      tags: [Children]
+      summary: Remove a child
+      description: Deletes the child with its measurements, vaccine records, milestone checks and family shares. Owner only.
+      operationId: deleteChild
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/ChildId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200': {$ref: "#/components/responses/ChildMessage"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/ChildReadOnly"}
+        '404': {$ref: "#/components/responses/ChildNotFound"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/children/{id}/measurements:
+    get:
+      tags: [Children]
+      summary: Measurement history with WHO percentiles
+      description: |
+        Newest first; the birth values close the list as `source: birth` unless a measurement sits on the birth day.
+        Each indicator (weight kg, length/height cm, head circumference cm) carries `percentile` (0.1), `z` (0.01) and
+        `in_band` (P3–P97) from the WHO Child Growth Standards LMS tables by age in days — null when the sex is not told
+        or the child is older than 1856 days.
+      operationId: listChildMeasurements
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/ChildId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The history
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [measurements, verdict, disclaimer, source]
+                    properties:
+                      measurements: {type: array, items: {$ref: "#/components/schemas/ChildMeasurement"}}
+                      verdict: {$ref: "#/components/schemas/ChildGrowthVerdict"}
+                      disclaimer: {type: string}
+                      source: {type: string}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/ChildNotFound"}
+    post:
+      tags: [Children]
+      summary: Record a measurement
+      description: |
+        `measured_on` (default today; between the birth and today) and at least one of `weight_kg` (0.3–60),
+        `length_cm` (20–150), `head_cm` (15–70). One row per day: a second save of the same day merges (values sent
+        replace, values not sent stay). Owner only.
+      operationId: createChildMeasurement
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/ChildId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/ChildMeasurementInput"}
+            example: {measured_on: "2026-10-01", weight_kg: 6.1, length_cm: 61, head_cm: 40.5}
+      responses:
+        '201':
+          description: Saved; the row on the standard
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/ChildMeasurement"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/ChildReadOnly"}
+        '404': {$ref: "#/components/responses/ChildNotFound"}
+        '422': {$ref: "#/components/responses/ChildrenValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/children/{id}/measurements/{mid}:
+    put:
+      tags: [Children]
+      summary: Update a measurement
+      description: Partial update; moving it onto a day that already has a measurement is 422. Owner only.
+      operationId: updateChildMeasurement
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/ChildId"}
+        - {name: mid, in: path, required: true, schema: {type: integer, minimum: 1}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/ChildMeasurementInput"}
+      responses:
+        '200':
+          description: Saved
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/ChildMeasurement"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/ChildReadOnly"}
+        '404': {$ref: "#/components/responses/ChildNotFound"}
+        '422': {$ref: "#/components/responses/ChildrenValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+    delete:
+      tags: [Children]
+      summary: Delete a measurement
+      operationId: deleteChildMeasurement
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/ChildId"}
+        - {name: mid, in: path, required: true, schema: {type: integer, minimum: 1}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200': {$ref: "#/components/responses/ChildMessage"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/ChildReadOnly"}
+        '404': {$ref: "#/components/responses/ChildNotFound"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/children/{id}/growth:
+    get:
+      tags: [Children]
+      summary: Growth chart series (v16 Growth)
+      description: |
+        `indicator` weight | length | head (default weight). WHO reference curves P3 / P15 / P50 / P85 / P97 per month
+        for the child's sex (0 to max(12, age + 3) months, at most 60) and the child's points oldest first with
+        percentiles. Sex not told → `available: false`, `reason: sex_unknown`, no curves. Source: WHO Child Growth
+        Standards (2006/2007), expanded daily LMS tables.
+      operationId: getChildGrowth
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/ChildId"}
+        - {name: indicator, in: query, required: false, schema: {type: string, enum: [weight, length, head]}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The series
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/ChildGrowthSeries"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/ChildNotFound"}
+        '422': {$ref: "#/components/responses/ChildrenValidationFailed"}
+  /api/v1/children/{id}/vaccines:
+    get:
+      tags: [Children]
+      summary: Vaccine schedule (v16 Vaccines)
+      description: |
+        The Iran national immunisation schedule (admin catalog `child_vaccines`, [needs clinical review]) grouped by
+        visit, due dates from the birth date (+ age_months, clamped to month end), reminder day (due − 3). Visit status
+        done | due (≤ 30 days late) | overdue | soon (≤ 30 days ahead) | upcoming; dose status done or the visit's.
+      operationId: getChildVaccines
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/ChildId"}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The schedule
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/ChildVaccines"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/ChildNotFound"}
+  /api/v1/children/{id}/vaccines/visits/{visit}:
+    post:
+      tags: [Children]
+      summary: Mark a whole visit given («ثبت نوبت · تزریق شد»)
+      description: Every dose of the visit given on `given_on` (default today, not before the birth) with an optional `note` (≤ 500). Owner only. Answers the schedule.
+      operationId: markChildVaccineVisit
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/ChildId"}
+        - {name: visit, in: path, required: true, schema: {type: string}, example: m4}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/ChildDoseInput"}
+      responses:
+        '200': {$ref: "#/components/responses/ChildVaccinesSaved"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/ChildReadOnly"}
+        '404': {$ref: "#/components/responses/ChildNotFound"}
+        '422': {$ref: "#/components/responses/ChildrenValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/children/{id}/vaccines/{code}:
+    put:
+      tags: [Children]
+      summary: Mark one dose given
+      description: One dose (catalog code) given on `given_on` (default today) with an optional note; again = edit. Owner only.
+      operationId: markChildVaccineDose
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/ChildId"}
+        - {name: code, in: path, required: true, schema: {type: string}, example: penta_2}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/ChildDoseInput"}
+      responses:
+        '200': {$ref: "#/components/responses/ChildVaccinesSaved"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/ChildReadOnly"}
+        '404': {$ref: "#/components/responses/ChildNotFound"}
+        '422': {$ref: "#/components/responses/ChildrenValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+    delete:
+      tags: [Children]
+      summary: Remove a dose record
+      description: Undo a dose marked by mistake (no error when there was none). Owner only. Answers the schedule.
+      operationId: unmarkChildVaccineDose
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/ChildId"}
+        - {name: code, in: path, required: true, schema: {type: string}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200': {$ref: "#/components/responses/ChildVaccinesSaved"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/ChildReadOnly"}
+        '404': {$ref: "#/components/responses/ChildNotFound"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/children/{id}/milestones:
+    get:
+      tags: [Children]
+      summary: Milestones by month (v16 Milestones)
+      description: |
+        `month` = one of the band months (default: the latest band not after the child's age). Items (admin catalog
+        `child_milestones`, adapted from CDC «Learn the Signs. Act Early.» 2022, [needs clinical review]) with the
+        child's checks, the band's activities and when to mention it to the doctor. Observation, not scoring.
+      operationId: getChildMilestones
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/ChildId"}
+        - {name: month, in: query, required: false, schema: {type: integer, minimum: 0}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The band
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/ChildMilestones"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/ChildNotFound"}
+        '422': {$ref: "#/components/responses/ChildrenValidationFailed"}
+  /api/v1/children/{id}/milestones/{code}:
+    put:
+      tags: [Children]
+      summary: Mark a milestone seen (or not)
+      description: "`checked` boolean, `checked_on` (default today). Owner only. Answers the item's band."
+      operationId: checkChildMilestone
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/ChildId"}
+        - {name: code, in: path, required: true, schema: {type: string}, example: m3_social_smile}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [checked]
+              properties:
+                checked: {type: boolean}
+                checked_on: {anyOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
+      responses:
+        '200':
+          description: Saved; the band
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/ChildMilestones"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/ChildReadOnly"}
+        '404': {$ref: "#/components/responses/ChildNotFound"}
+        '422': {$ref: "#/components/responses/ChildrenValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/children/{id}/learn:
+    get:
+      tags: [Children]
+      summary: Learn tips for the child's age (v16 Learn)
+      description: |
+        Tips (admin catalog `child_learn`) whose month range covers the child's age, `topic` all | sleep | feeding |
+        play | health | mother. The first featured tip is `featured` («پیشنهاد این هفته»); a tip may link a published
+        article by slug.
+      operationId: getChildLearn
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/ChildId"}
+        - {name: topic, in: query, required: false, schema: {type: string, enum: [all, sleep, feeding, play, health, mother]}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The tips
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/ChildLearn"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/ChildNotFound"}
+        '422': {$ref: "#/components/responses/ChildrenValidationFailed"}
   /api/v1/menopause/profile:
     get:
       tags: [Menopause]
@@ -11793,6 +12318,150 @@ paths:
                     type: object
                     additionalProperties: {type: array, items: {type: string}}
         '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/consents:
+    get:
+      tags: [Consents]
+      summary: Versioned consents with their texts
+      description: |
+        Go only (B-N6-05, D-58). Every consent of the catalog (internal/consent) in display order with the text of the
+        version in force in the request language: `ai_lab_analysis`, `assistant_profile`, `anonymous_stats`,
+        `ai_assistant`, `ai_voice_log`, `ai_documents`. `granted` is true only while the version in force is accepted;
+        `accepted_version` is the version accepted last (kept after a withdrawal), `reason` why consent is needed
+        (`missing` | `outdated`, null when granted). Same table as the B-N1-12 toggles: a toggle grants the version
+        in force.
+      operationId: listVersionedConsents
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The consents
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [consents]
+                    properties:
+                      consents: {type: array, items: {$ref: "#/components/schemas/VersionedConsent"}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/consents/{code}:
+    get:
+      tags: [Consents]
+      summary: One consent with its text
+      description: The consent asked for by a `403 consent_required` (its `consent` field). 404 for an unknown code.
+      operationId: showVersionedConsent
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: code, in: path, required: true, schema: {type: string}, example: ai_assistant}
+      responses:
+        '200':
+          description: The consent
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [consent]
+                    properties:
+                      consent: {$ref: "#/components/schemas/VersionedConsent"}
+              example:
+                success: true
+                data:
+                  consent:
+                    code: ai_assistant
+                    version: 1
+                    title: "گفت‌وگو با دستیار هوش مصنوعی"
+                    body: "پیام‌ها و تصویرهایی که در گفت‌وگو می‌فرستی برای پاسخ‌گویی به یک سرویس هوش مصنوعی فرستاده می‌شود."
+                    points: ["نام، شماره موبایل و کد ملی پیش از ارسال از پیام‌ها حذف می‌شود."]
+                    granted: false
+                    accepted_version: null
+                    needs_consent: true
+                    reason: missing
+                    granted_at: null
+                    revoked_at: null
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/ConsentNotFound"}
+    put:
+      tags: [Consents]
+      summary: Accept or withdraw a consent
+      description: |
+        `{granted: true, version: <n>}` accepts the text the client showed — only the version in force (409
+        `consent_version_stale` otherwise, with the current `version`); `{granted: false}` withdraws. A repeated
+        accept of the same version changes nothing. Per-user write throttle.
+      operationId: updateVersionedConsent
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: code, in: path, required: true, schema: {type: string}, example: ai_assistant}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [granted]
+              properties:
+                granted: {type: boolean}
+                version: {type: integer, minimum: 1, description: "required when granted is true"}
+            example: {granted: true, version: 1}
+      responses:
+        '200':
+          description: Saved; the consent
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data:
+                    type: object
+                    required: [consent]
+                    properties:
+                      consent: {$ref: "#/components/schemas/VersionedConsent"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/ConsentNotFound"}
+        '409':
+          description: The version is not the one in force (the client showed an old text)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, error_code, consent, version]
+                properties:
+                  success: {type: boolean, const: false}
+                  message: {type: string}
+                  error_code: {type: string, const: consent_version_stale}
+                  consent: {type: string}
+                  version: {type: integer}
+        '422':
+          description: "Validation failed (controller 422 `{success: false, message, errors}`, request language)"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, errors]
+                properties:
+                  success: {type: boolean, const: false}
+                  message: {type: string}
+                  errors:
+                    type: object
+                    additionalProperties: {type: array, items: {type: string}}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
   /api/v1/support/reports:
     post:
       tags: [Profile]
@@ -13270,6 +13939,9 @@ paths:
         appear. Without links `has_partners` is false, `partners` empty and `empty_state` points to the companion code
         entry (`action: enter_code`). `articles`: up to 4 published articles, category `companion` first, then ones
         tagged with the first shared phase.
+        B-N4-08b: the views are mode-aware (see the section route); a partner / spouse link of an owner in teen mode
+        shows no section at all (every view null) until she leaves teen mode; reads are audited once per section per
+        15 minutes; throttled 300/hour per account (**429** `too_many_requests`).
       operationId: getCompanionHome
       security:
         - {bearerAuth: []}
@@ -13330,7 +14002,38 @@ paths:
                                   key: {type: string, examples: [luteal_tip_1]}
                                   title: {type: string}
                                   body: {type: [string, "null"]}
-                            child: {type: "null", description: "Shared child card — bloom B-N5"}
+                            child:
+                              description: "Shared children card (spouse links with shared children, bloom B-N5-02); null otherwise"
+                              anyOf:
+                                - type: "null"
+                                - type: object
+                                  required: [count, items]
+                                  properties:
+                                    count: {type: integer}
+                                    items:
+                                      type: array
+                                      items:
+                                        type: object
+                                        required: [id, name, initial, sex, age, next_vaccine]
+                                        properties:
+                                          id: {type: integer}
+                                          name: {type: string}
+                                          initial: {type: string}
+                                          sex: {type: [string, "null"]}
+                                          age:
+                                            type: object
+                                            properties:
+                                              months: {type: integer}
+                                              years: {type: integer}
+                                              label: {type: string}
+                                          next_vaccine:
+                                            type: [object, "null"]
+                                            properties:
+                                              code: {type: string}
+                                              label: {type: string}
+                                              due_date: {$ref: "#/components/schemas/Date"}
+                                              days_left: {type: integer}
+                                              status: {type: string}
                       empty_state:
                         oneOf:
                           - type: "null"
@@ -13356,6 +14059,7 @@ paths:
                             category: {type: [string, "null"]}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '403': {$ref: "#/components/responses/NotCompanionAccount"}
+        '429': {$ref: "#/components/responses/CompanionThrottled"}
   /api/v1/companions:
     get:
       tags: [Companion]
@@ -13440,12 +14144,14 @@ paths:
     get:
       tags: [Companion]
       summary: Companion audit trail (owner)
-      description: "Who of the caller's companions read or wrote which section of her data, and the link lifecycle (invited, accepted, revoked, grants_changed), newest first. Never a health payload."
+      description: "Who of the caller's companions read or wrote which section of her data, and the link lifecycle (invited, accepted, revoked, grants_changed), newest first. Never a health payload. Reads are recorded once per companion, section and link per 15 minutes. Pages back with `before_id` (the id of the last entry of the previous page; a page shorter than `limit` is the last) and filters by `action` (B-N4-08b, CMP-L1)."
       operationId: getCompanionsAudit
       security:
         - {bearerAuth: []}
       parameters:
         - {name: limit, in: query, required: false, schema: {type: integer, minimum: 1, maximum: 200, default: 50}}
+        - {name: before_id, in: query, required: false, description: "Cursor: only entries with a smaller id", schema: {type: integer, minimum: 1}}
+        - {name: action, in: query, required: false, schema: {type: string, enum: [read, write, invited, accepted, revoked, grants_changed]}}
         - {$ref: "#/components/parameters/AcceptLanguage"}
       responses:
         '200':
@@ -13473,6 +14179,9 @@ paths:
         a valid invite whose owner's life mode changed since and no longer allows its type (a partner / spouse invite
         of an owner now in teen mode, a parent invite of one who left it) is 422 `invite_not_allowed` — not a failed
         attempt; the owner may invite again.
+        Global failed-accept circuit breaker (B-N4-08b, CMP-M3): 30 refused accepts within a minute or 200 within an
+        hour, across all callers, pause accepts for everyone for 15 minutes — the same **429** `too_many_requests`,
+        even for a valid code.
       operationId: postCompanionsAccept
       security:
         - {bearerAuth: []}
@@ -13552,6 +14261,13 @@ paths:
         **404** when the caller is not the active companion of the link (another owner's link, a revoked or pending
         one) or the section is unknown; **403** `section_not_shared` when the section is not granted (view or edit).
         A parent link (CB-TEEN-01) has no section reads at all (404 for every section): its card is `GET /teen/linked`.
+        Mode-aware (B-N4-08b, CMP-H1 / CMP-M1): an owner in pregnancy or postpartum whose link has no `pregnancy` grant,
+        and every owner in menopause, gets the neutral `cycle` view (`has_data: false`, every number and `main_phase`
+        null); `days_late` (and `cycle_day`) are null past 14 days late for everyone; `fertile` is shown as
+        `follicular` for an owner whose mode gets no fertility copy (teen); `symptoms` keeps only options of the cycle
+        mode (plus the owner's pregnancy / postpartum options with the `pregnancy` grant). A partner / spouse link of
+        an owner in teen mode grants nothing (**403** `section_not_shared` for every section; not revoked). Reads are
+        audited once per section per 15 minutes; throttled 300/hour per account (**429**).
       operationId: getCompanionsLinksSection
       security:
         - {bearerAuth: []}
@@ -13585,6 +14301,7 @@ paths:
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '403': {$ref: "#/components/responses/CompanionSectionNotShared"}
         '404': {$ref: "#/components/responses/CompanionNotFound"}
+        '429': {$ref: "#/components/responses/CompanionThrottled"}
   /api/v1/companions/{id}:
     get:
       tags: [Companion]
@@ -13935,6 +14652,12 @@ components:
       bearerFormat: JWT
       description: "Passport access token from `POST /api/v1/auth/verify-otp`."
   parameters:
+    ChildId:
+      name: id
+      in: path
+      required: true
+      description: Child id (own or shared through a family)
+      schema: {type: integer, minimum: 1}
     ForUserId:
       name: for_user_id
       in: query
@@ -13967,6 +14690,71 @@ components:
       description: "Overrides `Accept-Language`. Some endpoints clamp to the languages they have content for."
       schema: {type: string}
   responses:
+    ChildrenValidationFailed:
+      description: "Children validation failed (controller 422 `{success: false, message, errors}`), or `children_limit` (`{success: false, message, error_code}`)."
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - type: object
+                required: [success, message, errors]
+                properties:
+                  success: {type: boolean, const: false}
+                  message: {type: string}
+                  errors:
+                    type: object
+                    additionalProperties: {type: array, items: {type: string}}
+              - type: object
+                required: [success, message, error_code]
+                properties:
+                  success: {type: boolean, const: false}
+                  message: {type: string}
+                  error_code: {type: string, const: children_limit}
+          example: {success: false, message: اطلاعات واردشده معتبر نیست, errors: {birth_date: [تاریخ تولد نمی‌تواند در آینده باشد.]}}
+    ChildNotFound:
+      description: "Bloom B-N5-02: the child (or measurement) does not exist or is not the caller's / not shared with the caller — one uniform answer."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, enum: [child_not_found, measurement_not_found]}
+          example: {success: false, message: Child not found, error_code: child_not_found}
+    ChildReadOnly:
+      description: "Bloom B-N5-02: the child is shared with the caller through a family (spouse) — view only."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, const: child_read_only}
+    ChildMessage:
+      description: Done (message only)
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message]
+            properties:
+              success: {type: boolean}
+              message: {type: string}
+    ChildVaccinesSaved:
+      description: Saved; the schedule
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, data]
+            properties:
+              success: {type: boolean}
+              message: {type: string}
+              data: {$ref: "#/components/schemas/ChildVaccines"}
     PostpartumValidationFailed:
       description: "Postpartum validation failed (controller 422 `{success: false, message, errors}`, message and field errors in the request language)."
       content:
@@ -14088,7 +14876,7 @@ components:
               message: {type: string}
               data: {type: "null"}
     CompanionThrottled:
-      description: "Companion throttles: accept 10/hour per account + 30/hour per client IP; invite + renew 20/hour per account (and the shared write budget). Localized controller envelope."
+      description: "Companion throttles: accept 10/hour per account + 30/hour per client IP + the global failed-accept circuit breaker; invite + renew 20/hour per account (and the shared write budget); section reads and the companion home 300/hour per account; delegated `for_user_id` GETs 120/hour per account. Localized controller envelope."
       headers:
         Retry-After: {schema: {type: integer}}
         X-RateLimit-Limit: {schema: {type: integer}}
@@ -14130,6 +14918,47 @@ components:
                 additionalProperties: {type: array, items: {type: string}}
               error_code: {type: string}
           example: {success: false, message: You have already used your free trial., error_code: trial_used}
+    ConsentNotFound:
+      description: Unknown consent code
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, const: consent_not_found}
+    ConsentRequired:
+      description: |
+        AI platform gate (B-N6-05): the feature's consent is missing or accepted for an older text. Fetch
+        `GET /consents/{consent}`, show it, accept with `PUT /consents/{consent}` `{granted: true, version}`.
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code, consent, version, reason]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, const: consent_required}
+              consent: {type: string}
+              version: {type: integer}
+              reason: {type: string, enum: [missing, outdated]}
+    AIUnavailable:
+      description: |
+        AI platform (B-N6-05): `ai_unavailable` (no provider configured), `ai_budget_exhausted` (the global daily
+        cost cap is spent, or could not be read — fail closed; resets at Tehran midnight) or `ai_failed` (provider
+        error, retry later).
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string, enum: [ai_unavailable, ai_budget_exhausted, ai_failed]}
     PlusRequired:
       description: |
         The feature needs Ritme Plus (B-N2-06 gate, `error_code: plus_required`): `reason` `locked` = not in the free
@@ -14555,6 +15384,317 @@ components:
             properties: {success: {type: boolean, const: false}, message: {type: string}}
           example: {success: false, message: نوبت پیدا نشد}
   schemas:
+    ChildInput:
+      type: object
+      properties:
+        name: {type: string, maxLength: 64}
+        birth_date: {$ref: "#/components/schemas/Date"}
+        sex: {type: [string, "null"], enum: [girl, boy, null]}
+        birth_weight_kg: {type: [number, "null"], minimum: 0.3, maximum: 7}
+        birth_length_cm: {type: [number, "null"], minimum: 20, maximum: 70}
+        birth_head_cm: {type: [number, "null"], minimum: 15, maximum: 50}
+        delivery_type: {type: [string, "null"], enum: [vaginal, cesarean, null]}
+    ChildMeasurementInput:
+      type: object
+      properties:
+        measured_on: {anyOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
+        weight_kg: {type: [number, "null"], minimum: 0.3, maximum: 60}
+        length_cm: {type: [number, "null"], minimum: 20, maximum: 150}
+        head_cm: {type: [number, "null"], minimum: 15, maximum: 70}
+    ChildDoseInput:
+      type: object
+      properties:
+        given_on: {anyOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
+        note: {type: [string, "null"], maxLength: 500}
+    ChildProfile:
+      type: object
+      required: [id, name, initial, birth_date, sex, birth, age, role, can_edit, owner_name]
+      properties:
+        id: {type: integer}
+        name: {type: string}
+        initial: {type: string}
+        birth_date: {$ref: "#/components/schemas/Date"}
+        sex: {type: [string, "null"], enum: [girl, boy, null]}
+        sex_label: {type: [string, "null"]}
+        delivery_type: {type: [string, "null"]}
+        delivery_type_label: {type: [string, "null"]}
+        birth:
+          type: object
+          properties:
+            weight_kg: {type: [number, "null"]}
+            length_cm: {type: [number, "null"]}
+            head_cm: {type: [number, "null"]}
+        age:
+          type: object
+          required: [days, weeks, months, years, days_in_month, label]
+          properties:
+            days: {type: integer}
+            weeks: {type: integer}
+            months: {type: integer}
+            years: {type: integer}
+            days_in_month: {type: integer}
+            label: {type: string}
+        role: {type: string, enum: [owner, shared]}
+        can_edit: {type: boolean}
+        owner_name: {type: [string, "null"]}
+    ChildGrowthVerdict:
+      type: object
+      required: [status, label]
+      properties:
+        status: {type: string, enum: [normal, check, unknown]}
+        label: {type: string}
+    ChildVaccineVisit:
+      type: object
+      required: [code, age_months, label, due_date, remind_on, days_left, status, status_label, given, total, dose_names]
+      properties:
+        code: {type: string}
+        age_months: {type: integer}
+        label: {type: string}
+        due_date: {$ref: "#/components/schemas/Date"}
+        remind_on: {$ref: "#/components/schemas/Date"}
+        days_left: {type: integer}
+        status: {type: string, enum: [done, due, overdue, soon, upcoming]}
+        status_label: {type: string}
+        given: {type: integer}
+        total: {type: integer}
+        dose_names: {type: array, items: {type: [string, "null"]}}
+        doses:
+          type: array
+          items:
+            type: object
+            required: [code, title, status, given_on, note]
+            properties:
+              code: {type: string}
+              title: {type: [string, "null"]}
+              protects_against: {type: [string, "null"]}
+              status: {type: string}
+              status_label: {type: string}
+              given_on: {anyOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
+              note: {type: [string, "null"]}
+              needs_review: {type: boolean}
+    ChildVaccineSummary:
+      type: object
+      required: [given, total, completed_visits, up_to_date, complete, next]
+      properties:
+        given: {type: integer}
+        total: {type: integer}
+        completed_visits: {type: integer}
+        up_to_date: {type: boolean}
+        complete: {type: boolean}
+        next: {anyOf: [{$ref: "#/components/schemas/ChildVaccineVisit"}, {type: "null"}]}
+    ChildCard:
+      allOf:
+        - {$ref: "#/components/schemas/ChildProfile"}
+        - type: object
+          required: [vaccines, growth]
+          properties:
+            vaccines: {$ref: "#/components/schemas/ChildVaccineSummary"}
+            growth: {$ref: "#/components/schemas/ChildGrowthVerdict"}
+    ChildrenList:
+      type: object
+      required: [children, count, owned_count, max_children, can_add, sharing_note]
+      properties:
+        children: {type: array, items: {$ref: "#/components/schemas/ChildCard"}}
+        count: {type: integer}
+        owned_count: {type: integer}
+        max_children: {type: integer}
+        can_add: {type: boolean}
+        sharing_note: {type: string}
+    ChildIndicatorValue:
+      type: [object, "null"]
+      required: [value, percentile, z, in_band]
+      properties:
+        value: {type: number}
+        percentile: {type: [number, "null"]}
+        z: {type: [number, "null"]}
+        in_band: {type: [boolean, "null"]}
+    ChildMeasurement:
+      type: object
+      required: [id, source, measured_on, age, weight, length, head]
+      properties:
+        id: {type: [integer, "null"]}
+        source: {type: string, enum: [measurement, birth]}
+        measured_on: {$ref: "#/components/schemas/Date"}
+        age:
+          type: object
+          required: [days, months, label]
+          properties:
+            days: {type: integer}
+            months: {type: number}
+            label: {type: string}
+        weight: {$ref: "#/components/schemas/ChildIndicatorValue"}
+        length: {$ref: "#/components/schemas/ChildIndicatorValue"}
+        head: {$ref: "#/components/schemas/ChildIndicatorValue"}
+    ChildHome:
+      allOf:
+        - {$ref: "#/components/schemas/ChildCard"}
+        - type: object
+          required: [latest, milestones, this_week, learn, today]
+          properties:
+            latest: {anyOf: [{$ref: "#/components/schemas/ChildMeasurement"}, {type: "null"}]}
+            milestones:
+              type: [object, "null"]
+              properties:
+                band_months: {type: integer}
+                label: {type: string}
+                checked: {type: integer}
+                total: {type: integer}
+            this_week:
+              type: [object, "null"]
+              properties:
+                weeks: {type: integer}
+                months: {type: integer}
+                body: {type: [string, "null"]}
+            learn:
+              type: object
+              required: [count, featured]
+              properties:
+                count: {type: integer}
+                featured: {anyOf: [{$ref: "#/components/schemas/ChildLearnTip"}, {type: "null"}]}
+            today: {type: "null"}
+    ChildGrowthSeries:
+      type: object
+      required: [indicator, unit, sex, available, reason, range, band, reference, points, latest, verdict, disclaimer, source]
+      properties:
+        indicator: {type: string, enum: [weight, length, head]}
+        label: {type: string}
+        unit: {type: string, enum: [kg, cm]}
+        unit_label: {type: string}
+        sex: {type: [string, "null"]}
+        available: {type: boolean}
+        reason: {type: [string, "null"], enum: [sex_unknown, null]}
+        range:
+          type: object
+          properties:
+            from_month: {type: integer}
+            to_month: {type: integer}
+        band:
+          type: object
+          properties:
+            low_percentile: {type: number}
+            high_percentile: {type: number}
+            label: {type: string}
+        median_label: {type: [string, "null"]}
+        reference:
+          type: array
+          items:
+            type: object
+            required: [month, day, p3, p15, p50, p85, p97]
+            properties:
+              month: {type: integer}
+              day: {type: integer}
+              p3: {type: number}
+              p15: {type: number}
+              p50: {type: number}
+              p85: {type: number}
+              p97: {type: number}
+        points:
+          type: array
+          items: {$ref: "#/components/schemas/ChildGrowthPoint"}
+        latest: {anyOf: [{$ref: "#/components/schemas/ChildGrowthPoint"}, {type: "null"}]}
+        verdict: {$ref: "#/components/schemas/ChildGrowthVerdict"}
+        disclaimer: {type: string}
+        source: {type: string}
+    ChildGrowthPoint:
+      type: object
+      required: [id, measured_on, age_days, age_months, value, percentile, in_band]
+      properties:
+        id: {type: [integer, "null"]}
+        measured_on: {$ref: "#/components/schemas/Date"}
+        age_days: {type: integer}
+        age_months: {type: number}
+        value: {type: number}
+        percentile: {type: [number, "null"]}
+        in_band: {type: [boolean, "null"]}
+    ChildVaccines:
+      type: object
+      required: [summary, visits, reminders, note]
+      properties:
+        summary: {$ref: "#/components/schemas/ChildVaccineSummary"}
+        visits: {type: array, items: {$ref: "#/components/schemas/ChildVaccineVisit"}}
+        reminders:
+          type: object
+          properties:
+            days_before: {type: integer}
+            label: {type: string}
+        note: {type: string}
+    ChildMilestones:
+      type: object
+      required: [bands, band, intro]
+      properties:
+        bands:
+          type: array
+          items:
+            type: object
+            required: [months, label, current]
+            properties:
+              months: {type: integer}
+              label: {type: string}
+              current: {type: boolean}
+        band:
+          type: [object, "null"]
+          required: [months, label, checked, total, items, activities, doctor_note]
+          properties:
+            months: {type: integer}
+            label: {type: string}
+            checked: {type: integer}
+            total: {type: integer}
+            items:
+              type: array
+              items:
+                type: object
+                required: [code, title, domain, checked, checked_on]
+                properties:
+                  code: {type: string}
+                  title: {type: [string, "null"]}
+                  domain: {type: string}
+                  checked: {type: boolean}
+                  checked_on: {anyOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
+            activities:
+              type: array
+              items:
+                type: object
+                properties:
+                  code: {type: string}
+                  title: {type: [string, "null"]}
+                  body: {type: [string, "null"]}
+            doctor_note: {type: [string, "null"]}
+        intro: {type: string}
+    ChildLearnTip:
+      type: object
+      required: [code, topic, topic_label, title, body, minutes, featured, from_months, to_months, article]
+      properties:
+        code: {type: string}
+        topic: {type: string, enum: [sleep, feeding, play, health, mother]}
+        topic_label: {type: string}
+        title: {type: [string, "null"]}
+        body: {type: [string, "null"]}
+        minutes: {type: integer}
+        featured: {type: boolean}
+        from_months: {type: integer}
+        to_months: {type: integer}
+        article:
+          type: [object, "null"]
+          properties:
+            id: {type: integer}
+            slug: {type: string}
+    ChildLearn:
+      type: object
+      required: [age_months, age_label, topics, topic, featured, tips, disclaimer]
+      properties:
+        age_months: {type: integer}
+        age_label: {type: string}
+        topics:
+          type: array
+          items:
+            type: object
+            properties:
+              code: {type: string}
+              label: {type: string}
+        topic: {type: [string, "null"]}
+        featured: {anyOf: [{$ref: "#/components/schemas/ChildLearnTip"}, {type: "null"}]}
+        tips: {type: array, items: {$ref: "#/components/schemas/ChildLearnTip"}}
+        disclaimer: {type: string}
     PostpartumAlert:
       type: object
       required: [key, level, title, body, action_label, action]
@@ -15520,6 +16660,28 @@ components:
                 oneOf:
                   - {$ref: "#/components/schemas/IsoDateTime"}
                   - {type: "null"}
+    VersionedConsent:
+      type: object
+      description: "One consent of the catalog (B-N6-05) with the text of the version in force."
+      required: [code, version, title, body, points, granted, accepted_version, needs_consent, reason, granted_at, revoked_at]
+      properties:
+        code: {type: string, enum: [ai_lab_analysis, assistant_profile, anonymous_stats, ai_assistant, ai_voice_log, ai_documents]}
+        version: {type: integer, description: version in force}
+        title: {type: string}
+        body: {type: string}
+        points: {type: array, items: {type: string}}
+        granted: {type: boolean, description: the version in force is accepted}
+        accepted_version: {type: [integer, "null"]}
+        needs_consent: {type: boolean}
+        reason: {type: [string, "null"], enum: [missing, outdated, null]}
+        granted_at:
+          oneOf:
+            - {$ref: "#/components/schemas/IsoDateTime"}
+            - {type: "null"}
+        revoked_at:
+          oneOf:
+            - {$ref: "#/components/schemas/IsoDateTime"}
+            - {type: "null"}
     LifeStage:
       type: object
       required: [mode, stored_mode, ivf_iui, track_contraception]

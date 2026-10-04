@@ -111,6 +111,9 @@ services:
       # AI adapter (B-N3-05): fake fixtures on stage; the Gemini key (if any) comes from the server .env only.
       AI_PROVIDER: ${AI_PROVIDER:-fake}
       AI_HTTP_TIMEOUT_SECONDS: ${AI_HTTP_TIMEOUT_SECONDS:-30}
+      # B-N6-05: global daily cost cap (USD, fail closed) and the price table of the cost estimate.
+      AI_DAILY_COST_CAP_USD: ${AI_DAILY_COST_CAP_USD:-5}
+      AI_PRICES: ${AI_PRICES:-gemini-flash-latest=0.30/2.50/1.00,gemini-2.5-flash=0.30/2.50/1.00,gemini-2.5-pro=1.25/10.00/1.25}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-flash-latest}
       # Companion «همدم» (B-N4-02): invite SMS adapter — fake (logs a masked number, sends nothing) on stage. The

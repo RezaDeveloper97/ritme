@@ -9,13 +9,20 @@ import (
 	"github.com/ritme/backend-go/internal/platform/config"
 )
 
-// Recorder receives the Usage of every call (B-N6-05 adds a DB recorder for the per-call usage + cost log).
+// Recorder receives the Usage of every call: the slog line (LogRecorder) and the ai_usage_logs row
+// (internal/ai/usage.Recorder). Record must not fail the call; it gets a context that outlives the request.
 type Recorder interface {
 	Record(ctx context.Context, u Usage)
 }
 
-// LogRecorder writes one structured slog line per call: provider, model, feature, op, token counts, audio
-// size, latency and outcome. Never the payload, never who asked.
+// Limiter is the global spend guard (internal/ai/usage.Budget): Allow returns ErrBudgetExceeded once the daily
+// cost cap is spent — and also when the spend cannot be read (fail closed).
+type Limiter interface {
+	Allow(ctx context.Context) error
+}
+
+// LogRecorder writes one structured slog line per call: provider, model, feature, op, token counts, sizes,
+// cost, latency and outcome. Never the payload, never who asked.
 type LogRecorder struct{ Logger *slog.Logger }
 
 // Record implements Recorder.
@@ -26,21 +33,57 @@ func (r LogRecorder) Record(ctx context.Context, u Usage) {
 	r.Logger.LogAttrs(ctx, slog.LevelInfo, "ai: call",
 		slog.String("provider", u.Provider), slog.String("model", u.Model), slog.String("feature", string(u.Feature)),
 		slog.String("op", u.Op), slog.Int("input_tokens", u.InputTokens), slog.Int("output_tokens", u.OutputTokens),
-		slog.Int("audio_bytes", u.AudioBytes), slog.Int64("latency_ms", u.Latency.Milliseconds()), slog.Bool("ok", u.OK))
+		slog.Int("audio_bytes", u.AudioBytes), slog.Int("image_bytes", u.ImageBytes), slog.Uint64("cost_micros", u.CostMicros),
+		slog.Int64("latency_ms", u.Latency.Milliseconds()), slog.Bool("ok", u.OK))
 }
 
-// Client is the AI layer a domain holds: the configured provider's capabilities plus usage metering.
+// Recorders fans a usage out to several recorders.
+type Recorders []Recorder
+
+// Record implements Recorder.
+func (rs Recorders) Record(ctx context.Context, u Usage) {
+	for _, r := range rs {
+		if r != nil {
+			r.Record(ctx, u)
+		}
+	}
+}
+
+// Client is the AI layer a domain holds: the configured provider's capabilities plus budget, PII filter and
+// usage metering.
 type Client struct {
 	provider    string
 	transcriber Transcriber
 	logParser   LogParser
+	chatter     Chatter
+	extractor   Extractor
 	recorder    Recorder
+	limiter     Limiter
+	pricer      Pricer
 	now         func() time.Time
 }
 
-// NewClient wires a client from capabilities (tests; production code uses New).
+// Options wires a Client from capabilities (tests and New). A nil capability answers ErrUnavailable.
+type Options struct {
+	Provider    string
+	Transcriber Transcriber
+	LogParser   LogParser
+	Chatter     Chatter
+	Extractor   Extractor
+	Recorder    Recorder
+	Limiter     Limiter // nil = no cap (tests); New always sets the DB budget when one is given in Deps
+	Pricer      Pricer
+}
+
+// NewClientWith builds a client from o.
+func NewClientWith(o Options) *Client {
+	return &Client{provider: o.Provider, transcriber: o.Transcriber, logParser: o.LogParser, chatter: o.Chatter,
+		extractor: o.Extractor, recorder: o.Recorder, limiter: o.Limiter, pricer: o.Pricer, now: time.Now}
+}
+
+// NewClient wires a speech + parse client (B-N3-05 tests; production code uses New).
 func NewClient(provider string, t Transcriber, p LogParser, rec Recorder) *Client {
-	return &Client{provider: provider, transcriber: t, logParser: p, recorder: rec, now: time.Now}
+	return NewClientWith(Options{Provider: provider, Transcriber: t, LogParser: p, Recorder: rec})
 }
 
 // Provider is the configured provider id ("fake", "gemini"); "" for a nil client.
@@ -51,27 +94,48 @@ func (c *Client) Provider() string {
 	return c.provider
 }
 
+// External reports whether calls leave the server (a real provider, not the in-process fake).
+func (c *Client) External() bool {
+	return c != nil && c.provider != config.AIProviderFake
+}
+
+// allow checks the global daily budget.
+func (c *Client) allow(ctx context.Context) error {
+	if c.limiter == nil {
+		return nil
+	}
+	return c.limiter.Allow(ctx)
+}
+
 // Transcribe runs speech-to-text for feature. A nil client or a provider without the capability is ErrUnavailable.
+// Audio cannot be redacted; the transcript is (by ParseLog) before any further call.
 func (c *Client) Transcribe(ctx context.Context, feature Feature, req TranscribeRequest) (Transcript, error) {
 	if c == nil || c.transcriber == nil {
 		return Transcript{}, ErrUnavailable
 	}
+	if err := c.allow(ctx); err != nil {
+		return Transcript{}, err
+	}
 	start := c.now()
 	size := len(req.Audio.Data)
 	t, u, err := c.transcriber.Transcribe(ctx, req)
-	u.Feature, u.Op, u.AudioBytes, u.OK = feature, "transcribe", size, err == nil
+	u.Feature, u.Op, u.AudioBytes, u.OK = feature, OpTranscribe, size, err == nil
 	c.record(ctx, u, start)
 	return t, err
 }
 
-// ParseLog maps text to taxonomy candidates for feature.
+// ParseLog maps text to taxonomy candidates for feature. The text is redacted before the provider sees it.
 func (c *Client) ParseLog(ctx context.Context, feature Feature, req LogParseRequest) ([]Candidate, error) {
 	if c == nil || c.logParser == nil {
 		return nil, ErrUnavailable
 	}
+	if err := c.allow(ctx); err != nil {
+		return nil, err
+	}
+	req.Text = redactCtx(ctx, req.Text)
 	start := c.now()
 	out, u, err := c.logParser.ParseLog(ctx, req)
-	u.Feature, u.Op, u.OK = feature, "parse_log", err == nil
+	u.Feature, u.Op, u.OK = feature, OpParseLog, err == nil
 	c.record(ctx, u, start)
 	return out, err
 }
@@ -83,8 +147,12 @@ func (c *Client) record(ctx context.Context, u Usage, start time.Time) {
 	if u.Latency == 0 {
 		u.Latency = c.now().Sub(start)
 	}
+	if u.UserID == 0 {
+		u.UserID = SubjectFrom(ctx).UserID
+	}
+	u.CostMicros = c.pricer.Cost(u)
 	if c.recorder != nil {
-		c.recorder.Record(ctx, u)
+		c.recorder.Record(context.WithoutCancel(ctx), u)
 	}
 }
 
@@ -95,8 +163,10 @@ type Deps struct {
 	Logger *slog.Logger
 	// HTTPClient overrides the provider HTTP client (tests).
 	HTTPClient *http.Client
-	// Recorder overrides the usage recorder (default LogRecorder on Logger).
+	// Recorder is the durable usage recorder (internal/ai/usage.Recorder); the slog line is always written too.
 	Recorder Recorder
+	// Limiter is the global daily cost cap (internal/ai/usage.Budget). nil = no cap: only tests and tools.
+	Limiter Limiter
 }
 
 // New builds the Client for the configured provider, or nil when AI is unavailable (provider none, or a real
@@ -107,9 +177,19 @@ func New(d Deps) *Client {
 	if logger == nil {
 		logger = slog.Default()
 	}
-	rec := d.Recorder
-	if rec == nil {
-		rec = LogRecorder{Logger: logger}
+	rec := Recorders{LogRecorder{Logger: logger}}
+	if d.Recorder != nil {
+		rec = append(rec, d.Recorder)
+	}
+	opts := func(provider string, all interface {
+		Transcriber
+		LogParser
+		Chatter
+		Extractor
+	},
+	) *Client {
+		return NewClientWith(Options{Provider: provider, Transcriber: all, LogParser: all, Chatter: all, Extractor: all,
+			Recorder: rec, Limiter: d.Limiter, Pricer: NewPricer(d.Config.Prices)})
 	}
 	switch config.DefaultAIProvider(d.Config.Provider, d.App) {
 	case config.AIProviderFake:
@@ -117,8 +197,7 @@ func New(d Deps) *Client {
 			logger.Error("ai: the fake provider is disabled in production; AI unavailable")
 			return nil
 		}
-		f := NewFake()
-		return NewClient(config.AIProviderFake, f, f, rec)
+		return opts(config.AIProviderFake, NewFake())
 	case config.AIProviderGemini:
 		if d.Config.Gemini.APIKey == "" {
 			logger.Error("ai: AI_PROVIDER=gemini but GEMINI_API_KEY is empty; AI unavailable")
@@ -132,8 +211,7 @@ func New(d Deps) *Client {
 			}
 			client = &http.Client{Timeout: timeout, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
 		}
-		g := NewGemini(d.Config.Gemini, client)
-		return NewClient(config.AIProviderGemini, g, g, rec)
+		return opts(config.AIProviderGemini, NewGemini(d.Config.Gemini, client))
 	default:
 		return nil
 	}

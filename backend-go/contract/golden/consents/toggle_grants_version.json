@@ -1,0 +1,86 @@
+{
+  "case": "consents/toggle_grants_version",
+  "steps": [
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/profile/consents",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "consents": {
+            "ai_lab_analysis": true
+          }
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "رضایت‌ها ذخیره شد",
+        "data": {
+          "consents": [
+            {
+              "code": "ai_lab_analysis",
+              "granted": true,
+              "granted_at": "2026-09-23T10:00:00+03:30",
+              "revoked_at": null
+            },
+            {
+              "code": "assistant_profile",
+              "granted": false,
+              "granted_at": null,
+              "revoked_at": null
+            },
+            {
+              "code": "anonymous_stats",
+              "granted": false,
+              "granted_at": null,
+              "revoked_at": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/consents/ai_lab_analysis",
+        "persona": "regular",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "consent": {
+            "code": "ai_lab_analysis",
+            "version": 1,
+            "title": "تحلیل آزمایش با هوش مصنوعی",
+            "body": "برای خواندن و توضیح برگه آزمایش، تصویر یا PDF آن به یک سرویس هوش مصنوعی فرستاده می‌شود.",
+            "points": [
+              "فقط فایل آزمایش و اطلاعات لازم برای توضیح (سن، حالت زندگی، داروها) فرستاده می‌شود؛ نام، شماره موبایل و کد ملی از متن‌ها حذف می‌شود.",
+              "اگر نام یا اطلاعات شخصی روی برگه چاپ شده، بهتر است پیش از ارسال آن قسمت را بپوشانی.",
+              "سرویس‌دهنده اجازه ندارد این داده‌ها را برای آموزش مدل خود استفاده کند.",
+              "نتیجه جایگزین نظر پزشک نیست.",
+              "هر وقت بخواهی می‌توانی این رضایت را از «حریم خصوصی» پس بگیری."
+            ],
+            "granted": true,
+            "accepted_version": 1,
+            "needs_consent": false,
+            "reason": null,
+            "granted_at": "2026-09-23T10:00:00+03:30",
+            "revoked_at": null
+          }
+        }
+      }
+    }
+  ]
+}

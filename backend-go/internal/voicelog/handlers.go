@@ -16,6 +16,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/ritme/backend-go/internal/ai"
+	"github.com/ritme/backend-go/internal/ai/access"
 	"github.com/ritme/backend-go/internal/auth"
 	"github.com/ritme/backend-go/internal/healthlog"
 	"github.com/ritme/backend-go/internal/i18n"
@@ -103,6 +104,8 @@ func (h *Handlers) Voice(c fiber.Ctx) error {
 	case errors.Is(err, ai.ErrUpstream), errors.Is(err, context.DeadlineExceeded):
 		return httpx.Fail(fiber.StatusServiceUnavailable, T("messages.ai_failed", locale, nil), "error_code", CodeAIFailed).
 			WithHeader("Retry-After", "10")
+	case errors.Is(err, ai.ErrBudgetExceeded), errors.Is(err, ai.ErrInvalidRequest):
+		return access.Error(err, locale) // B-N6-05: daily cost cap reached between the gate and the call
 	case err != nil:
 		return err
 	}

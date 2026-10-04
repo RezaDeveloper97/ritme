@@ -1,19 +1,23 @@
 // Package ai is the AI adapter layer (bloom decision: every external AI service sits behind a port with a
 // deterministic `fake` provider as the default outside production).
 //
-// B-N3-05 needs speech-to-text and free text → log taxonomy NLU (voice logging); B-N6-05 extends this same
-// package with streaming chat, vision / document extraction, consent records and a durable usage + cost log.
-// The shape that stays stable for that:
+// B-N3-05 added speech-to-text and free text → log taxonomy NLU (voice logging); B-N6-05 made it the platform
+// every AI feature uses (voice log, lab analysis B-N6-06, assistant B-N7-06, document extraction CB-REC-02):
 //
-//   - one small interface per capability (Transcriber, LogParser; later Chat, Vision),
-//   - providers implement any subset (Fake and Gemini implement both today),
-//   - Client is what domains hold: it picks the configured provider (New), labels every call with the
-//     Feature that made it and reports a Usage to the Recorder (a slog line today, a DB row in B-N6-05),
-//   - provider errors surface as ErrUpstream / ErrUnavailable so handlers map them to one envelope.
+//   - one small interface per capability: Transcriber, LogParser, Chatter (streaming chat, chat.go) and
+//     Extractor (image / PDF → structured fields with confidence, extract.go),
+//   - providers implement any subset (Fake and Gemini implement all four),
+//   - Client is what domains hold: it picks the configured provider (New), refuses calls once the global daily
+//     cost cap is spent (Limiter → ErrBudgetExceeded), strips PII from outgoing text (pii.go), validates what
+//     comes back (extraction), labels every call with the Feature that made it and reports a Usage with its
+//     estimated cost (pricing.go) to the Recorder (slog line + the ai_usage_logs row, internal/ai/usage),
+//   - provider errors surface as ErrUpstream / ErrUnavailable so handlers map them to one envelope,
+//   - consent and Plus quota are checked before a feature runs by internal/ai/access (HTTP middleware).
 //
-// Privacy: requests carry only what the capability needs (the audio, the transcript, the taxonomy vocabulary,
-// a language hint). Never a name, phone, user id or other account field. Neither the Client nor a provider
-// logs payloads: the Recorder sees counts, durations and the outcome only.
+// Privacy: requests carry only what the capability needs (the audio, the text, the document, the schema, a
+// language hint). Never a user id or account field; names, phone numbers, national ids, card numbers and e-mail
+// addresses are redacted from every outgoing text (the Subject on the context names the user's own). Neither the
+// Client nor a provider logs payloads: the Recorder sees counts, sizes, durations, cost and the outcome only.
 package ai
 
 import (
@@ -27,7 +31,10 @@ type Feature string
 
 // Features.
 const (
-	FeatureVoiceLog Feature = "voice_log" // B-N3-05
+	FeatureVoiceLog    Feature = "voice_log"    // B-N3-05
+	FeatureLabAnalysis Feature = "lab_analysis" // B-N6-06: lab sheet extraction + interpretation
+	FeatureAssistant   Feature = "assistant"    // B-N7-06: assistant clinic chat
+	FeatureDocExtract  Feature = "doc_extract"  // CB-REC-02: non-lab medical document extraction
 )
 
 // Errors every provider maps its failures to.
@@ -36,6 +43,11 @@ var (
 	ErrUnavailable = errors.New("ai: no provider configured")
 	// ErrUpstream: the provider failed, timed out or answered something unusable. Safe to retry later.
 	ErrUpstream = errors.New("ai: provider error")
+	// ErrBudgetExceeded: the global daily cost cap is spent, or the budget could not be read (fail closed).
+	ErrBudgetExceeded = errors.New("ai: daily cost cap reached")
+	// ErrInvalidRequest: the request breaks a platform limit (size, type, message count). A caller bug or a
+	// client the handler should have refused first; never sent to a provider.
+	ErrInvalidRequest = errors.New("ai: invalid request")
 )
 
 // Audio is a recording held in memory only. The owner wipes it (Wipe) as soon as it has been transcribed.
@@ -114,15 +126,27 @@ type LogParser interface {
 	ParseLog(ctx context.Context, req LogParseRequest) ([]Candidate, Usage, error)
 }
 
-// Usage is the metering of one call. No payload, no user data.
+// Usage is the metering of one call. No payload; UserID only for the per-user usage log (0 = system job).
 type Usage struct {
 	Provider     string
 	Model        string
 	Feature      Feature
-	Op           string // "transcribe" | "parse_log"
-	InputTokens  int
+	Op           string // OpTranscribe | OpParseLog | OpChat | OpExtract
+	InputTokens  int    // every prompt token, audio included
 	OutputTokens int
+	AudioTokens  int // the audio part of InputTokens when the provider reports it (priced separately)
 	AudioBytes   int
+	ImageBytes   int // images and documents sent (chat photos, extraction files)
+	CostMicros   uint64
 	Latency      time.Duration
 	OK           bool
+	UserID       uint64
 }
+
+// Ops.
+const (
+	OpTranscribe = "transcribe"
+	OpParseLog   = "parse_log"
+	OpChat       = "chat"
+	OpExtract    = "extract"
+)

@@ -1,0 +1,71 @@
+# Versioned consents (B-N6-05, D-58) — Go only: /api/v1/consents and /api/v1/consents/{code}. No Laravel route, so
+# these goldens were recorded from the Go server and reviewed by hand (new-endpoint skill, step 8). The fixture dump
+# carries `user_consents.version` and the empty `ai_usage_logs` table (goose 00032 / Laravel 2026_10_03_000032),
+# added by hand. The AI feature gate (403 consent_required, 503 ai_budget_exhausted) and user isolation are covered
+# by internal/ai/access integration tests (no AI feature route exists yet besides voice log on the fake).
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: consents
+defaults:
+  persona: regular
+  locales: [none, en]
+cases:
+  - name: list_defaults
+    doc: Never answered → every consent off with its text in force, reason missing
+    locales: [none, fa, en]
+    method: GET
+    path: /api/v1/consents
+    status: 200
+  - name: list_anon
+    persona: anon
+    locales: none
+    method: GET
+    path: /api/v1/consents
+    status: 401
+  - name: show_unknown
+    method: GET
+    path: /api/v1/consents/nope
+    status: 404
+  - name: accept_and_withdraw
+    doc: Accept the version in force, read it back, withdraw (accepted_version kept); the privacy toggle list agrees
+    steps:
+      - method: PUT
+        path: /api/v1/consents/ai_assistant
+        body: {granted: true, version: 1}
+        status: 200
+      - method: GET
+        path: /api/v1/consents/ai_assistant
+        status: 200
+      - method: PUT
+        path: /api/v1/consents/ai_assistant
+        body: {granted: false}
+        status: 200
+  - name: toggle_grants_version
+    doc: A B-N1-12 privacy toggle grants the version in force (granted true in the versioned view)
+    locales: none
+    steps:
+      - method: PUT
+        path: /api/v1/profile/consents
+        body: {consents: {ai_lab_analysis: true}}
+        status: 200
+      - method: GET
+        path: /api/v1/consents/ai_lab_analysis
+        status: 200
+  - name: stale_version
+    method: PUT
+    path: /api/v1/consents/ai_assistant
+    body: {granted: true, version: 2}
+    status: 409
+  - name: invalid
+    doc: Granting needs the version shown; granted must be a boolean
+    locales: [none, fa, en]
+    method: PUT
+    path: /api/v1/consents/ai_assistant
+    body: {granted: true}
+    status: 422
+  - name: update_anon
+    persona: anon
+    locales: none
+    method: PUT
+    path: /api/v1/consents/ai_assistant
+    body: {granted: true, version: 1}
+    status: 401

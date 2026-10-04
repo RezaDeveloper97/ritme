@@ -798,3 +798,41 @@ One `## B-Nx-NN` section per finished task: what shipped, commands/env vars, mig
 - Home redirects postpartum users to `/postpartum` (N3 stage bug B-4); nav «امروز» → `/postpartum`
   (`NAV_READY.children` false until B-N5-05); pregnancy «زایمان کردم» card from week 20.
 - Screenshots pending (dev API held during the migration-order freeze). QUESTIONS #100.
+
+## B-N4-08b — Companion security fixes
+
+- CMP-H1: `shared.Reader.ReadFor` mode-aware (pregnancy/postpartum without pregnancy grant and menopause → neutral cycle
+  view; symptoms limited to cycle-mode options unless pregnancy granted; days_late/cycle_day null past 14 d).
+- CMP-M1: fertile → follicular for NoFertilityCopy owners; teen-mode owner's partner/spouse links grant nothing while
+  she is teen (`teen_guard.go`, no revoke; `parent` links unaffected).
+- CMP-M2: delegated GET/PUT only for active meds / upcoming non-private appointments (404 otherwise), 120/h throttle.
+- CMP-M3: global failed-accept circuit breaker (Redis; 30/min or 200/h → 15 min pause, fail closed).
+- CMP-L1: read audits coalesced per 15 min, audit cursor + action filter, home/section throttle 300/h. CMP-L5 notice
+  name sanitising. CMP-L6 admin links overview super-only, no user ids, 2-digit mask.
+- `docs/security/bloom-companion.md` statuses updated. QUESTIONS #101.
+
+## B-N5-02 — Children — profiles, WHO growth percentiles, vaccines, milestones
+
+- **Migration** `00031_children` (+ Laravel twin): children, measurements, vaccine doses, milestone checks; FK
+  `family_children_child_id_foreign`; 132 catalog seed rows (`child_vaccines` 21, `child_milestones` 57, activities,
+  notes, age notes, learn — all `needs_review`). WHO LMS tables (0–1856 days, weight/length/head, boys/girls) embedded
+  in `backend-go/seeds/who`, LMS maths in `internal/children/growth` (restricted method beyond ±3 SD), golden-tested
+  against WHO P3/P50/P97 + SD columns.
+- `/api/v1/children/*`: list/create (≤10)/show(home)/update/delete, measurements CRUD with percentile/z/in_band, growth
+  reference curves, vaccines (mark visit / dose), milestones by month, learn, `/children/reminders` (3 days before →
+  30 after). Spouse access via family_children, read-only, audited before build. Companion invite/children endpoints
+  accept the owner's own children; companion home `child` card filled. 18 contract goldens; D-56 proposed.
+- QUESTIONS #102.
+
+## B-N6-05 — AI adapter platform — providers, consent, usage and cost
+
+- **Migration** `00032_ai_platform` (renumbered from 00033 so the sequence has no gap; + Laravel twin):
+  `user_consents.version`, `ai_usage_logs` (no content; user SET NULL on delete).
+- `internal/ai`: `Chatter` (streaming over a channel, SSE-ready) and `Extractor` (image/PDF → schema fields with
+  confidence) ports + fake fixtures + Gemini (httptest only); PII filter (email, Iranian mobiles, national id, long
+  digit runs, the user's name) on prompts and outputs; pricing table; `internal/ai/usage` (DB usage log, fail-closed
+  daily budget, admin aggregates `GET /api/admin/v1/ai/usage`); `internal/ai/access` gate (versioned consent + Plus
+  key per feature → 403 `consent_required`, 503 `ai_budget_exhausted`).
+- `internal/consent`: versioned consent catalog + `GET /api/v1/consents`, `GET|PUT /consents/{code}` (409 stale);
+  `/profile/consents` unchanged in shape. Voice logging goes through the gate. Env `AI_DAILY_COST_CAP_USD`,
+  `AI_PRICES`. 15 contract goldens; D-58 proposed. QUESTIONS #103. Security review pending.

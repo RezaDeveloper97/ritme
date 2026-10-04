@@ -13,6 +13,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/ritme/backend-go/internal/auth"
+	"github.com/ritme/backend-go/internal/consent"
 	"github.com/ritme/backend-go/internal/i18n"
 	"github.com/ritme/backend-go/internal/i18n/lang"
 	"github.com/ritme/backend-go/internal/notifications"
@@ -26,11 +27,12 @@ import (
 )
 
 // Consent codes of the Privacy screen (B-N1-12, `nbl_Me_Privacy` «داده‌ها و هوش مصنوعی»), in screen order.
-// Every consent is opt-in: no row, or a row with granted = 0, means «no».
+// Every consent is opt-in: no row, or a row with granted = 0, means «no». The codes and the version of each text
+// live in internal/consent (B-N6-05): a toggle here grants the version in force.
 const (
-	ConsentAILabAnalysis    = "ai_lab_analysis"   // lab results may be read by the AI analysis (B-N6)
-	ConsentAssistantProfile = "assistant_profile" // the health assistant may use age, mode and medications (B-N7)
-	ConsentAnonymousStats   = "anonymous_stats"   // anonymous, aggregated usage statistics
+	ConsentAILabAnalysis    = consent.AILabAnalysis    // lab results may be read by the AI analysis (B-N6)
+	ConsentAssistantProfile = consent.AssistantProfile // the health assistant may use age, mode and medications (B-N7)
+	ConsentAnonymousStats   = consent.AnonymousStats   // anonymous, aggregated usage statistics
 )
 
 // ConsentCodes is the screen order of the consents.
@@ -202,7 +204,8 @@ func (h *PrivacyHandlers) UpdateConsents(c fiber.Ctx) error {
 			continue
 		}
 		if phpval.Truthy(val) {
-			err = h.q.GrantUserConsent(c, store.GrantUserConsentParams{UserID: id, Consent: code, Now: at})
+			err = h.q.GrantUserConsent(c, store.GrantUserConsentParams{UserID: id, Consent: code, Now: at,
+				Version: sql.NullInt16{Int16: int16(consent.CurrentVersion(code)), Valid: true}}) //nolint:gosec // G115: small catalog version
 		} else {
 			err = h.q.RevokeUserConsent(c, store.RevokeUserConsentParams{UserID: id, Consent: code, Now: at})
 		}

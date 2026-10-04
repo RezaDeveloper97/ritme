@@ -252,3 +252,38 @@ func TestLoad_Companion(t *testing.T) {
 	_, err = LoadFrom(lookup(env))
 	require.ErrorContains(t, err, "COMPANION_SMS_PROVIDER")
 }
+
+func TestLoad_AICostCapAndPrices(t *testing.T) {
+	cfg, err := LoadFrom(lookup(minimal()))
+	require.NoError(t, err)
+	assert.InDelta(t, 5.0, cfg.AI.DailyCostCapUSD, 1e-9)
+	require.Contains(t, cfg.AI.Prices, "gemini-flash-latest")
+	assert.Equal(t, AIPrice{InputPerMTok: 0.30, OutputPerMTok: 2.50, AudioPerMTok: 1.00}, cfg.AI.Prices["gemini-flash-latest"])
+
+	env := minimal()
+	env["AI_DAILY_COST_CAP_USD"] = "0"
+	env["AI_PRICES"] = "m1=1/2, m2=0.5/4/3"
+	cfg, err = LoadFrom(lookup(env))
+	require.NoError(t, err)
+	assert.Zero(t, cfg.AI.DailyCostCapUSD, "0 is allowed: every call refused (fail closed)")
+	assert.Equal(t, AIPrice{InputPerMTok: 1, OutputPerMTok: 2, AudioPerMTok: 1}, cfg.AI.Prices["m1"], "audio defaults to input")
+	assert.Equal(t, AIPrice{InputPerMTok: 0.5, OutputPerMTok: 4, AudioPerMTok: 3}, cfg.AI.Prices["m2"])
+
+	for _, bad := range []map[string]string{
+		{"AI_DAILY_COST_CAP_USD": "-1"},
+		{"AI_DAILY_COST_CAP_USD": "lots"},
+		{"AI_PRICES": "m1"},
+		{"AI_PRICES": "m1=1"},
+		{"AI_PRICES": "m1=a/b"},
+		{"AI_PRICES": "m1=-1/2"},
+		{"AI_PRICES": "=1/2"},
+		{"AI_PRICES": ","},
+	} {
+		env := minimal()
+		for k, v := range bad {
+			env[k] = v
+		}
+		_, err := LoadFrom(lookup(env))
+		require.Error(t, err, bad)
+	}
+}

@@ -3,7 +3,7 @@ id: B-N6-05
 title: AI adapter platform — providers, consent, usage and cost
 milestone: N6
 type: backend
-status: todo
+status: done
 depends_on: [B-N5-11]
 parallel_group: N6-E
 touches: [backend-go/internal/ai,backend-go/internal/consent,backend-go/db,backend-go/config,.env.stage.example]

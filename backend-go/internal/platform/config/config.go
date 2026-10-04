@@ -13,6 +13,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"math"
 	"net/url"
 	"os"
 	"strconv"
@@ -197,7 +198,62 @@ type AI struct {
 	Provider string
 	// Timeout (AI_HTTP_TIMEOUT_SECONDS, default 30) bounds every provider call.
 	Timeout time.Duration
-	Gemini  Gemini
+	// DailyCostCapUSD (AI_DAILY_COST_CAP_USD, default 5) is the global budget of one Tehran calendar day: once the
+	// estimated cost of the day's calls (ai_usage_logs) reaches it, every AI feature answers 503
+	// ai_budget_exhausted until midnight. 0 refuses every call (fail closed); it is never «unlimited» (B-N6-05).
+	DailyCostCapUSD float64
+	// Prices (AI_PRICES) is the price table the cost estimate uses: comma-separated
+	// `model=input/output[/audio]` in USD per 1M tokens (audio = audio input tokens; default = input). A model
+	// missing from the table is priced at the table's highest rates (never free). The fake is always free.
+	Prices map[string]AIPrice
+	Gemini Gemini
+}
+
+// AIPrice is one model's rates in USD per 1M tokens.
+type AIPrice struct {
+	InputPerMTok  float64
+	OutputPerMTok float64
+	AudioPerMTok  float64 // audio input tokens (Gemini bills them at a higher rate than text)
+}
+
+// DefaultAIPrices is the AI_PRICES default (Gemini paid tier list prices, 2026; check before going live).
+const DefaultAIPrices = "gemini-flash-latest=0.30/2.50/1.00,gemini-2.5-flash=0.30/2.50/1.00,gemini-2.5-pro=1.25/10.00/1.25"
+
+// ParseAIPrices parses an AI_PRICES value.
+func ParseAIPrices(v string) (map[string]AIPrice, error) {
+	out := map[string]AIPrice{}
+	for _, part := range strings.Split(v, ",") {
+		part = strings.TrimSpace(part)
+		if part == "" {
+			continue
+		}
+		model, rates, ok := strings.Cut(part, "=")
+		model = strings.TrimSpace(model)
+		if !ok || model == "" {
+			return nil, fmt.Errorf("%q is not model=input/output[/audio]", part)
+		}
+		fields := strings.Split(rates, "/")
+		if len(fields) < 2 || len(fields) > 3 {
+			return nil, fmt.Errorf("%q is not model=input/output[/audio]", part)
+		}
+		nums := make([]float64, len(fields))
+		for i, f := range fields {
+			n, err := strconv.ParseFloat(strings.TrimSpace(f), 64)
+			if err != nil || n < 0 || n > 1000 {
+				return nil, fmt.Errorf("%q: rate %q is not a number between 0 and 1000", part, f)
+			}
+			nums[i] = n
+		}
+		p := AIPrice{InputPerMTok: nums[0], OutputPerMTok: nums[1], AudioPerMTok: nums[0]}
+		if len(nums) == 3 {
+			p.AudioPerMTok = nums[2]
+		}
+		out[model] = p
+	}
+	if len(out) == 0 {
+		return nil, fmt.Errorf("no model prices")
+	}
+	return out, nil
 }
 
 // Gemini holds GEMINI_* (empty key = provider disabled, AI features answer 503).
@@ -331,8 +387,9 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 			},
 		},
 		AI: AI{
-			Provider: strings.ToLower(e.str("AI_PROVIDER", "")),
-			Timeout:  time.Duration(e.integer("AI_HTTP_TIMEOUT_SECONDS", 30)) * time.Second,
+			Provider:        strings.ToLower(e.str("AI_PROVIDER", "")),
+			Timeout:         time.Duration(e.integer("AI_HTTP_TIMEOUT_SECONDS", 30)) * time.Second,
+			DailyCostCapUSD: e.float("AI_DAILY_COST_CAP_USD", 5),
 			Gemini: Gemini{
 				APIKey:  e.str("GEMINI_API_KEY", ""),
 				Model:   e.str("GEMINI_MODEL", "gemini-flash-latest"),
@@ -401,6 +458,14 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 	}
 	if cfg.AI.Timeout < time.Second {
 		e.fail("AI_HTTP_TIMEOUT_SECONDS: must be at least 1")
+	}
+	if cfg.AI.DailyCostCapUSD < 0 {
+		e.fail("AI_DAILY_COST_CAP_USD: must be 0 or more")
+	}
+	if prices, err := ParseAIPrices(e.str("AI_PRICES", DefaultAIPrices)); err != nil {
+		e.fail("AI_PRICES: %v", err)
+	} else {
+		cfg.AI.Prices = prices
 	}
 	if u := cfg.AI.Gemini.BaseURL; u != "" {
 		if err := checkPublicURL(u, cfg.App.IsProduction()); err != nil {
@@ -548,6 +613,19 @@ func (e *env) integer(key string, def int) int {
 	n, err := strconv.Atoi(v)
 	if err != nil {
 		e.fail("%s: %q is not an integer", key, v)
+		return def
+	}
+	return n
+}
+
+func (e *env) float(key string, def float64) float64 {
+	v := e.raw(key)
+	if v == "" {
+		return def
+	}
+	n, err := strconv.ParseFloat(v, 64)
+	if err != nil || math.IsNaN(n) || math.IsInf(n, 0) {
+		e.fail("%s: %q is not a number", key, v)
 		return def
 	}
 	return n

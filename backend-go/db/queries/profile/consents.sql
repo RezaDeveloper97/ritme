@@ -5,12 +5,14 @@
 SELECT consent, granted, granted_at, revoked_at FROM `user_consents` WHERE user_id = ? ORDER BY id;
 
 -- name: GrantUserConsent :exec
--- A grant keeps revoked_at (the last withdrawal) and stamps granted_at; a repeated grant leaves the row untouched.
-INSERT INTO `user_consents` (user_id, consent, granted, granted_at, revoked_at, created_at, updated_at)
-VALUES (sqlc.arg(user_id), sqlc.arg(consent), 1, sqlc.arg(now), NULL, sqlc.arg(now), sqlc.arg(now))
+-- A grant keeps revoked_at (the last withdrawal), stamps granted_at and the version of the consent text in force
+-- (B-N6-05, internal/consent); a repeated grant of the same version leaves the row untouched.
+INSERT INTO `user_consents` (user_id, consent, granted, version, granted_at, revoked_at, created_at, updated_at)
+VALUES (sqlc.arg(user_id), sqlc.arg(consent), 1, sqlc.arg(version), sqlc.arg(now), NULL, sqlc.arg(now), sqlc.arg(now))
 ON DUPLICATE KEY UPDATE
-  granted_at = IF(granted = 1, granted_at, VALUES(granted_at)),
-  updated_at = IF(granted = 1, updated_at, VALUES(updated_at)),
+  granted_at = IF(granted = 1 AND version <=> VALUES(version), granted_at, VALUES(granted_at)),
+  updated_at = IF(granted = 1 AND version <=> VALUES(version), updated_at, VALUES(updated_at)),
+  version = VALUES(version),
   granted = 1;
 
 -- name: RevokeUserConsent :exec

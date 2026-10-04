@@ -1,0 +1,31 @@
+{
+  "case": "consents/stale_version.en",
+  "steps": [
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/consents/ai_assistant",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "granted": true,
+          "version": 2
+        }
+      },
+      "status": 409,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": false,
+        "message": "This version of the consent is no longer current. Please read the new text and accept it again.",
+        "error_code": "consent_version_stale",
+        "consent": "ai_assistant",
+        "version": 1
+      }
+    }
+  ]
+}

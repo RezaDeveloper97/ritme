@@ -45,7 +45,15 @@ func NewGemini(cfg config.Gemini, client *http.Client) *Gemini {
 }
 
 type gPart struct {
-	Text string `json:"text,omitempty"`
+	Text       string   `json:"text,omitempty"`
+	InlineData *gInline `json:"inline_data,omitempty"`
+}
+
+// gInline is a file sent inline; Data is base64-encoded by encoding/json straight into the request buffer
+// (which the caller zeroes after the call).
+type gInline struct {
+	MimeType string `json:"mime_type"`
+	Data     []byte `json:"data"`
 }
 
 type gContent struct {
@@ -67,10 +75,27 @@ type gResponse struct {
 	PromptFeedback *struct {
 		BlockReason string `json:"blockReason"`
 	} `json:"promptFeedback"`
-	UsageMetadata struct {
-		PromptTokenCount     int `json:"promptTokenCount"`
-		CandidatesTokenCount int `json:"candidatesTokenCount"`
-	} `json:"usageMetadata"`
+	UsageMetadata gUsage `json:"usageMetadata"`
+}
+
+type gUsage struct {
+	PromptTokenCount     int `json:"promptTokenCount"`
+	CandidatesTokenCount int `json:"candidatesTokenCount"`
+	PromptTokensDetails  []struct {
+		Modality   string `json:"modality"`
+		TokenCount int    `json:"tokenCount"`
+	} `json:"promptTokensDetails"`
+}
+
+// apply copies the token counts into u (audio tokens priced separately).
+func (m gUsage) apply(u *Usage) {
+	u.InputTokens, u.OutputTokens = m.PromptTokenCount, m.CandidatesTokenCount
+	u.AudioTokens = 0
+	for _, d := range m.PromptTokensDetails {
+		if d.Modality == "AUDIO" {
+			u.AudioTokens += d.TokenCount
+		}
+	}
 }
 
 // generate posts raw (a generateContent body the caller owns and wipes afterwards).
@@ -102,7 +127,7 @@ func (g *Gemini) generate(ctx context.Context, raw []byte) (string, Usage, error
 	if err := json.Unmarshal(data, &out); err != nil {
 		return "", u, fmt.Errorf("%w: decode response", ErrUpstream)
 	}
-	u.InputTokens, u.OutputTokens = out.UsageMetadata.PromptTokenCount, out.UsageMetadata.CandidatesTokenCount
+	out.UsageMetadata.apply(&u)
 	if out.PromptFeedback != nil && out.PromptFeedback.BlockReason != "" {
 		return "", u, fmt.Errorf("%w: blocked", ErrUpstream)
 	}

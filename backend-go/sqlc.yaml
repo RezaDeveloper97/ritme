@@ -199,3 +199,21 @@ sql:
       go:
         <<: *go
         out: internal/teen/store
+  - <<: *pkg
+    queries: db/queries/children
+    gen:
+      go:
+        <<: *go
+        out: internal/children/store
+  - <<: *pkg
+    queries: db/queries/consent
+    gen:
+      go:
+        <<: *go
+        out: internal/consent/store
+  - <<: *pkg
+    queries: db/queries/ai
+    gen:
+      go:
+        <<: *go
+        out: internal/ai/store

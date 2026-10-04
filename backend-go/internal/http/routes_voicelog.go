@@ -36,7 +36,10 @@ func init() {
 		locale := i18n.Middleware(languages)
 		plusSvc := plus.NewService(d.DB, d.Config.Plus, nil, d.Logger) // entitlements + counters only
 		gate := plus.NewGate(plusSvc, clock.Real{})
-		client := ai.New(ai.Deps{App: d.Config.App, Config: d.Config.AI, Logger: d.Logger})
+		// B-N6-05: usage + cost log, daily cost cap and the consent gate (ai_voice_log, only while the provider
+		// is external — the voice UI has no consent sheet yet; the fake keeps everything in-process).
+		platform := newAIPlatform(d, gate)
+		client := platform.client
 		cat := catalog.NewReader(catalogstore.New(d.DB), d.Cache, 0, d.Logger)
 		svc := voicelog.NewService(client, healthlog.NewService(d.DB)).WithWriters(voicelog.Writers{
 			Flashes: menopause.NewService(d.DB, cat),
@@ -54,7 +57,7 @@ func init() {
 				l.NamedWith("voice-burst", voicelog.BurstMax, time.Minute, auth.ThrottleIdentity, voicelog.Throttled),
 				l.NamedWith("voice-hourly", voicelog.HourlyMax, time.Hour, auth.ThrottleIdentity, voicelog.Throttled))
 		}
-		handlers := append([]any{guard, gate.Require(plus.VoiceLog)}, throttles...)
+		handlers := append(append([]any{guard}, platform.guard.Chain(ai.FeatureVoiceLog)...), throttles...)
 		r.Post("/api/v1/logs/voice", locale, append(handlers, h.Voice)...)
 		r.Post("/api/v1/logs/voice/commit", locale, guard, writeThrottle(d), h.Commit)
 	})

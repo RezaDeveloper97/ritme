@@ -1,0 +1,130 @@
+{
+  "case": "consents/list_defaults.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/consents",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "consents": [
+            {
+              "code": "ai_lab_analysis",
+              "version": 1,
+              "title": "AI lab analysis",
+              "body": "To read and explain a lab sheet, its photo or PDF is sent to an AI service.",
+              "points": [
+                "Only the lab file and what the explanation needs (age, life stage, medications) are sent; names, mobile numbers and national IDs are removed from text.",
+                "If your name or other personal details are printed on the sheet, it is best to cover them before uploading.",
+                "The provider may not use this data to train its models.",
+                "The result is not a substitute for a doctor's opinion.",
+                "You can withdraw this consent at any time in Privacy."
+              ],
+              "granted": false,
+              "accepted_version": null,
+              "needs_consent": true,
+              "reason": "missing",
+              "granted_at": null,
+              "revoked_at": null
+            },
+            {
+              "code": "assistant_profile",
+              "version": 1,
+              "title": "Assistant using your profile",
+              "body": "For more accurate answers, the health assistant may see your age, life stage and medications.",
+              "points": [
+                "Your name, mobile number and national ID are never sent.",
+                "You can chat with the assistant without this consent; answers are just more general.",
+                "You can withdraw this consent at any time."
+              ],
+              "granted": false,
+              "accepted_version": null,
+              "needs_consent": true,
+              "reason": "missing",
+              "granted_at": null,
+              "revoked_at": null
+            },
+            {
+              "code": "anonymous_stats",
+              "version": 1,
+              "title": "Help improve Ritme",
+              "body": "Anonymous, aggregated statistics on how the app is used help us improve Ritme.",
+              "points": [
+                "These statistics contain no health data and nothing that identifies you.",
+                "You can withdraw this consent at any time."
+              ],
+              "granted": false,
+              "accepted_version": null,
+              "needs_consent": true,
+              "reason": "missing",
+              "granted_at": null,
+              "revoked_at": null
+            },
+            {
+              "code": "ai_assistant",
+              "version": 1,
+              "title": "Chat with the AI assistant",
+              "body": "The messages and photos you send in a chat are sent to an AI service to answer you.",
+              "points": [
+                "Names, mobile numbers and national IDs are removed from messages before they are sent.",
+                "The provider may not use this data to train its models.",
+                "The assistant is not a doctor and does not diagnose; in an emergency call 115.",
+                "You can withdraw this consent at any time in Privacy."
+              ],
+              "granted": false,
+              "accepted_version": null,
+              "needs_consent": true,
+              "reason": "missing",
+              "granted_at": null,
+              "revoked_at": null
+            },
+            {
+              "code": "ai_voice_log",
+              "version": 1,
+              "title": "Voice logging",
+              "body": "Your recording is sent to an AI service to be turned into text and is deleted right after.",
+              "points": [
+                "Neither the audio nor its transcript is stored; only what you confirm is logged.",
+                "The provider may not use this data to train its models.",
+                "You can withdraw this consent at any time."
+              ],
+              "granted": false,
+              "accepted_version": null,
+              "needs_consent": true,
+              "reason": "missing",
+              "granted_at": null,
+              "revoked_at": null
+            },
+            {
+              "code": "ai_documents",
+              "version": 1,
+              "title": "AI reading of medical documents",
+              "body": "To fill in a document's fields automatically (such as date, centre and gestational age), its photo or PDF is sent to an AI service.",
+              "points": [
+                "If your name or other personal details are printed on the document, it is best to cover them before uploading.",
+                "Fields read from the document are not saved until you confirm them.",
+                "The provider may not use this data to train its models.",
+                "You can withdraw this consent at any time."
+              ],
+              "granted": false,
+              "accepted_version": null,
+              "needs_consent": true,
+              "reason": "missing",
+              "granted_at": null,
+              "revoked_at": null
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

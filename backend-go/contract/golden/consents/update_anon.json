@@ -1,0 +1,25 @@
+{
+  "case": "consents/update_anon",
+  "steps": [
+    {
+      "request": {
+        "method": "PUT",
+        "url": "/api/v1/consents/ai_assistant",
+        "persona": "anon",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "granted": true,
+          "version": 1
+        }
+      },
+      "status": 401,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "message": "Unauthenticated.",
+        "error_code": "unauthenticated"
+      }
+    }
+  ]
+}
