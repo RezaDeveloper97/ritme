@@ -6,6 +6,7 @@
     $appCta (bool: the page renders the #download app CTA). Defaults come from the StaticPage registry.
     SEO tags come from <x-seo.head/>; breadcrumbs (<x-ui.breadcrumbs/>) belong in a section so they register
     their JSON-LD before the head renders. Scripts: lazy data-module ES modules via app.js; @stack('scripts') last.
+    body[data-module=pwa]: service worker, two-tier update toast / forced screen, install prompt (L8-02).
 
     Dark pages: header, mobile menu and hero share ONE night/glow background (a grid layer under rows 1–3; the
     hero row reaches the layer through `grid-rows-subgrid` on <main>, so the hero stays inside the main landmark).
@@ -29,7 +30,7 @@
     <x-seo.head/>
     @stack('head')
 </head>
-<body class="antialiased">
+<body class="antialiased" data-module="pwa">
     <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:start-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-primary focus:px-5 focus:py-3 focus:text-base focus:font-extrabold focus:text-white">رفتن به محتوای اصلی</a>
     <div class="relative mx-auto grid w-full max-w-page grid-cols-1 overflow-hidden bg-canvas">
         @if ($layoutVariant->isDark())

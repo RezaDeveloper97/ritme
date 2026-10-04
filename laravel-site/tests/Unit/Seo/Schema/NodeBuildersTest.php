@@ -28,7 +28,6 @@ use App\Domain\Seo\Schema\Nodes\OrganizationNode;
 use App\Domain\Seo\Schema\Nodes\ProductNode;
 use App\Domain\Seo\Schema\Nodes\WebPageNode;
 use App\Domain\Seo\Schema\Nodes\WebSiteNode;
-use App\Domain\Settings\Contracts\SettingsRepository;
 use Tests\Unit\Seo\Schema\SchemaFixtures;
 
 const SCHEMA_SITE = SchemaFixtures::SITE;

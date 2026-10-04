@@ -3,7 +3,7 @@ id: L8-02
 title: Service worker (build-generated), offline page, two-tier update, install prompt
 milestone: L8
 type: frontend
-status: todo
+status: done
 depends_on: [L8-01,L1-07]
 parallel_group: L8-B
 touches: [resources/js/sw,resources/js/modules/pwa.js,vite.config.js,tools/build-sw.mjs,resources/views/pages/offline.blade.php,app/Http/Controllers/Pwa,app/Filament/Pages/Settings/PwaSettings.php,tests/Feature/Pwa,tests/js]

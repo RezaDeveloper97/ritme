@@ -7,5 +7,9 @@ Web app manifest, install metadata and icons (L8-01); service worker versioning 
 - `Manifest/IconSetResolver` — generated set from the admin logo (`icon_media_id`) or the defaults in `public/icons`.
 - `Actions/GeneratePwaIcons` — builds the set from a raster logo (≥ 512 px) into `pwa/{id}-{version}/` on the media disk.
 - `Support/PwaIconFiles` — file names, sizes, screenshots. Defaults are regenerated with `node tools/pwa-icons.mjs`.
+- `Version/BuildInfo` — deployed build id from `public/build/build-id.json` (written by `vite build`).
+- `Version/AppVersion` → `Data/VersionInfo` — `/pwa/version.json` (`build_id`, `min_build_id` from `PwaSettings`, capped
+  at the deployed build, `message`). Service worker source: `resources/js/sw/` → generated `public/sw.js`
+  (`tools/build-sw.mjs`, never hand-edited); client: `resources/js/modules/pwa.js` (soft toast / forced screen / install).
 
 Bindings live in `App\Providers\Domain\PwaServiceProvider` (none needed yet). See `docs/ARCHITECTURE.md`.

@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import tailwindcss from '@tailwindcss/vite';
 import { buildSprite, ICON_DIR, ILLUSTRATION_DIR, SPRITE_MANIFEST_KEY, unoptimizedIllustrations } from './tools/build-sprite.mjs';
+import { BUILD_ID_FILE, resolveBuildId } from './tools/build-sw.mjs';
 
 // Tailwind v4 baseline (Safari 16.4 / Chrome 111 / Firefox 128). Lightning CSS encodes versions as
 // (major << 16) | (minor << 8).
@@ -42,36 +43,59 @@ function svgSprite() {
     };
 }
 
-export default defineConfig(({ mode }) => ({
-    plugins: [
-        laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js', 'resources/css/filament/admin/theme.css'],
-            refresh: true,
-        }),
-        tailwindcss(),
-        svgSprite(),
-    ],
-    css: {
-        lightningcss: { targets: cssTargets },
-    },
-    build: {
-        // public/build/manifest.json — read by @vite; every file name carries a content hash.
-        manifest: 'manifest.json',
-        target: ['es2022', 'chrome111', 'edge111', 'firefox128', 'safari16.4'],
-        cssMinify: 'lightningcss',
-        sourcemap: mode !== 'production',
-        assetsInlineLimit: 2048,
-        rollupOptions: {
-            output: {
-                entryFileNames: 'assets/[name]-[hash].js',
-                chunkFileNames: 'assets/[name]-[hash].js',
-                assetFileNames: 'assets/[name]-[hash][extname]',
+/**
+ * PWA build id (L8-02): `YYYYMMDDHHmmss-<git sha>`, baked into the bundle as `__BUILD_ID__` (the `pwa` module) and
+ * written to public/build/build-id.json, which tools/build-sw.mjs stamps into public/sw.js and Laravel serves as
+ * `build_id` from /pwa/version.json. One id per `vite build`; `BUILD_ID=… npm run build` overrides it.
+ */
+function pwaBuildId(id) {
+    return {
+        name: 'ritme-pwa-build-id',
+        apply: 'build',
+        generateBundle() {
+            this.emitFile({ type: 'asset', fileName: BUILD_ID_FILE, source: `${JSON.stringify({ build_id: id })}\n` });
+        },
+    };
+}
+
+export default defineConfig(({ command, mode }) => {
+    const buildId = command === 'build' ? resolveBuildId() : 'dev';
+
+    return {
+        define: {
+            __BUILD_ID__: JSON.stringify(buildId),
+        },
+        plugins: [
+            laravel({
+                input: ['resources/css/app.css', 'resources/js/app.js', 'resources/css/filament/admin/theme.css'],
+                refresh: true,
+            }),
+            tailwindcss(),
+            svgSprite(),
+            pwaBuildId(buildId),
+        ],
+        css: {
+            lightningcss: { targets: cssTargets },
+        },
+        build: {
+            // public/build/manifest.json — read by @vite; every file name carries a content hash.
+            manifest: 'manifest.json',
+            target: ['es2022', 'chrome111', 'edge111', 'firefox128', 'safari16.4'],
+            cssMinify: 'lightningcss',
+            sourcemap: mode !== 'production',
+            assetsInlineLimit: 2048,
+            rollupOptions: {
+                output: {
+                    entryFileNames: 'assets/[name]-[hash].js',
+                    chunkFileNames: 'assets/[name]-[hash].js',
+                    assetFileNames: 'assets/[name]-[hash][extname]',
+                },
             },
         },
-    },
-    server: {
-        watch: {
-            ignored: ['**/storage/framework/views/**'],
+        server: {
+            watch: {
+                ignored: ['**/storage/framework/views/**'],
+            },
         },
-    },
-}));
+    };
+});

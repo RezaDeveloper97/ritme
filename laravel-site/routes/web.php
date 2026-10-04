@@ -16,6 +16,8 @@ use App\Http\Controllers\PlaceholderPageController;
 use App\Http\Controllers\PlusController;
 use App\Http\Controllers\PrivacyController;
 use App\Http\Controllers\Pwa\ManifestController;
+use App\Http\Controllers\Pwa\OfflineController;
+use App\Http\Controllers\Pwa\VersionController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\Seo\RobotsTxtController;
 use App\Http\Controllers\Seo\SitemapController;
@@ -130,6 +132,13 @@ Route::withoutMiddleware([EncryptCookies::class, AddQueuedCookiesToResponse::cla
 Route::get('/manifest.webmanifest', ManifestController::class)
     ->withoutMiddleware([EncryptCookies::class, AddQueuedCookiesToResponse::class, StartSession::class, ShareErrorsFromSession::class, ValidateCsrfToken::class])
     ->name('pwa.manifest');
+
+// Service worker (L8-02): public/sw.js is a generated static file (tools/build-sw.mjs). Two-tier update source of
+// truth — never cached, no session or cookies; /offline is the precached fallback page (noindex).
+Route::get('/pwa/version.json', VersionController::class)
+    ->withoutMiddleware([EncryptCookies::class, AddQueuedCookiesToResponse::class, StartSession::class, ShareErrorsFromSession::class, ValidateCsrfToken::class])
+    ->name('pwa.version');
+Route::get('/offline', OfflineController::class)->name('pwa.offline');
 
 // L1-02 shell preview for fidelity screenshots (tools/shot.mjs); never registered in production.
 if (! app()->isProduction()) {

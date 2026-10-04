@@ -560,3 +560,20 @@ One section per finished task (appended by `/site-task`).
 - Orchestrator: `OrganizationNode` drops `[placeholder]` values and invalid emails from contactPoint/legalName on
   every page (+ `OrganizationPlaceholdersTest`).
 - Open: queue worker/cron needed for notifications (L10-01); message retention/prune policy undefined.
+
+## L8-02 — Service worker (build-generated), offline page, two-tier update, install prompt
+- `npm run build` = `vite build && node tools/build-sw.mjs` → generated `public/sw.js` (gitignored; never hand-edited):
+  precache hashed build assets (minus admin theme/maps/json) + `/offline` + `public/icons/*`; pages network-first
+  (3 s) → cache → `/offline`; `/build` + icons cache-first; `/media` SWR capped at 60. Never cached: admin (incl. custom
+  `ADMIN_PATH`), Livewire/Filament, non-GET, Range, foreign origins, cart/checkout/order/done/booked, search,
+  newsletter, `/pwa`, sw.js, manifest, previews, non-200/redirect/no-store/admin-CSP responses. Per-build caches,
+  old ones deleted on activate; new SW waits for SKIP_WAITING.
+- Build id `YYYYMMDDHHmmss-sha` (`BUILD_ID=` override) baked as `__BUILD_ID__` + `public/build/build-id.json`;
+  `/pwa/version.json` (no-store, no session) via `App\Domain\Pwa\Version\{BuildInfo,AppVersion}` (caps a min newer
+  than deployed). `resources/js/modules/pwa.js` on `<body data-module="pwa">` (layouts/app): registers in production,
+  polls on load/focus/15 min, soft toast «نسخه جدید آماده است», forced blocking screen when `min_build_id` > build,
+  install prompt (Chromium + iOS hint, not on first view, 30-day dismissal). `/offline` page (noindex).
+- Filament PwaSettings «به‌روزرسانی اپ» section + confirmed «اجبار به به‌روزرسانی» action (activity log); DTO keys
+  `min_build_id`, `update_message`. Tests: `ServiceWorkerTest` (6), `tests/js` 16. Verified offline/toast/forced in Chromium.
+- Open: deploy package must ship `public/sw.js` + `public/build/build-id.json`; generated logo icons not precached;
+  `pwa.js` 3.6 kB gz on every page.
