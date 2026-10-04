@@ -7,9 +7,9 @@
 @props([
     'stage' => null,
     'href',
-    'title' => 'ثبت علائم در ریتمی',
-    'lead' => 'شدت و زمان علائم را ثبت کن و گزارشی ساده برای گفت‌وگو با پزشک بساز.',
-    'cta' => 'دانلود رایگان',
+    'title' => __('blog.article.app_card.title'),
+    'lead' => __('blog.article.app_card.lead'),
+    'cta' => __('blog.article.app_card.cta'),
     'id' => 'download',
 ])
 @php

@@ -209,12 +209,13 @@ it('links the previous and next article of the same category and offers plain sh
     expect(app(PostRepository::class)->adjacentInCategory(Post::query()->where('slug', 'older')->value('id'))['previous'])->toBeNull();
 });
 
-it('records a view when the page is rendered and serves cache hits without queries', function (): void {
+it('leaves view counting to the beacon and serves cache hits without queries', function (): void {
     $author = Author::factory()->create();
     $post = Post::factory()->published()->create(['slug' => 'counted', 'author_id' => $author->id]);
 
-    $this->get('/blog/counted')->assertOk()->assertHeader('X-Page-Cache', 'MISS');
-    expect(app(ViewCounter::class)->pending($post->id))->toBe(1);
+    $this->get('/blog/counted')->assertOk()->assertHeader('X-Page-Cache', 'MISS')
+        ->assertSee('data-module="view-beacon"', false);
+    expect(app(ViewCounter::class)->pending($post->id))->toBe(0); // counted by PostViewController (L4-03b)
 
     DB::enableQueryLog();
     $this->get('/blog/counted')->assertOk()->assertHeader('X-Page-Cache', 'HIT');

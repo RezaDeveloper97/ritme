@@ -3,7 +3,7 @@ id: L4-03b
 title: Article view beacon on page-cache hits, share copy module, blog UI copy to lang
 milestone: L4
 type: fullstack
-status: todo
+status: done
 depends_on: [L4-03]
 parallel_group: L4-B
 touches: [resources/js/modules/share.js,resources/js/modules/view-beacon.js,app/Http/Controllers/Blog/PostViewController.php,resources/views/components/blog,lang/fa/blog.php,tests/Feature/Blog/ViewBeaconTest.php]

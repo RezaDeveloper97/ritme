@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Blog;
 
-use App\Domain\Blog\Actions\RecordPostView;
 use App\Domain\Blog\Contracts\PostRepository;
 use App\Domain\Blog\Data\AuthorData;
 use App\Domain\Blog\Data\TagData;
@@ -37,9 +36,8 @@ use Illuminate\Http\Request;
  * reviewedBy + lastReviewed), BlogPosting (author Person, publisher, articleSection, keywords), BreadcrumbList
  * (registered by <x-ui.breadcrumbs> in the view).
  *
- * Views: RecordPostView runs whenever the page is rendered, i.e. on a page-cache MISS only. A cache HIT never
- * reaches the controller, so counts are a lower bound until a cache-safe hit counter exists (deferred; see the
- * L4-03 notes in tasks/PROGRESS.md) — the page cache is worth more than exact counts.
+ * Views are not counted here (a page-cache HIT never reaches the controller): the page's view beacon
+ * (`data-module="view-beacon"` on <x-blog.meta>) posts to PostViewController once per visit (L4-03b).
  */
 final class ShowPostController
 {
@@ -50,7 +48,6 @@ final class ShowPostController
         private readonly SeoMetaRepository $seoMeta,
         private readonly OgImageResolver $ogImages,
         private readonly SchemaGraph $graph,
-        private readonly RecordPostView $recordView,
         private readonly Config $config,
     ) {}
 
@@ -71,7 +68,6 @@ final class ShowPostController
 
         $page = $this->builder->build($post);
         $this->describe($page);
-        $this->recordView->handle($post->id);
 
         return view('pages.blog.show', ['page' => $page, 'navRoute' => 'blog.index', 'appCta' => true]);
     }

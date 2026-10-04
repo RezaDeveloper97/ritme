@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\AboutController;
 use App\Http\Controllers\Blog\BlogListingController;
 use App\Http\Controllers\Blog\NewsletterController;
+use App\Http\Controllers\Blog\PostViewController;
 use App\Http\Controllers\Blog\ShowPostController;
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\FeedController;
@@ -70,6 +71,11 @@ Route::prefix('blog')->name('blog.')->group(function (): void {
         ->withoutMiddleware([EncryptCookies::class, AddQueuedCookiesToResponse::class, StartSession::class, ShareErrorsFromSession::class, ValidateCsrfToken::class])
         ->name('feed');
     Route::get('/{slug}', ShowPostController::class)->name('show');                                // L4-03
+    // View beacon (L4-03b): counts page-cache hits too; no session, cookies or CSRF, rate limited per IP.
+    Route::post('/{slug}/view', PostViewController::class)
+        ->withoutMiddleware([EncryptCookies::class, AddQueuedCookiesToResponse::class, StartSession::class, ShareErrorsFromSession::class, ValidateCsrfToken::class])
+        ->middleware('throttle:'.PostViewController::PER_MINUTE.',1')
+        ->name('view');
 });
 
 // Newsletter (L4-02): double opt-in. POST is rate limited (no captcha); token pages are never page-cached; the

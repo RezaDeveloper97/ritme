@@ -398,7 +398,7 @@ One section per finished task (appended by `/site-task`).
   `ArticleTest` (10). `seo:audit` 0 errors.
 - Diff whole page 1440 18.16% / 390 27.41% (height: hidden store badges/login with NULL app links, mobile sidebar
   stacking, design's red callout not in seeded body); article region 1440 1.73% / 390 3.46%.
-- Views counted on MISS only → **L4-03b** (beacon, share copy module, UI copy to lang).
+- Views counted on MISS only → superseded by **L4-03b** (view beacon counts cache HITs).
 - Orchestrator: `RoutingTest` seeds `BlogSeeder` for `blog.show`; slug-case test asserts "no 301" instead of 200.
 
 ## L3-08 — About, social responsibility, privacy (+ terms) pages
@@ -478,3 +478,12 @@ One section per finished task (appended by `/site-task`).
   into the L3-06 commit `d64f67c5`; this commit restores consistency).
 - Orchestrator: `HomeController::templateVersion()` also watches `pages/stages/mock/screens/*`.
 - Diff (NULL links) unchanged or better on all pages; hero regions improved (ttc 1440 3.69→2.64%, pregnancy 4.85→2.49%).
+
+## L4-03b — Article view beacon, share copy module, blog UI copy to lang
+- `POST /blog/{slug}/view` (`blog.view`, `PostViewController`, 204 + no-store, no session/cookies/CSRF, `throttle:30,1`,
+  id must match the published post; bots/empty UA/Save-Data/prefetch/prerender/cross-site ignored with 204) →
+  `RecordPostView`. `ShowPostController` no longer counts (no double counts; no-JS visitors are not counted).
+- `resources/js/modules/view-beacon.js` (sendBeacon / keepalive fetch, once per post per tab session, waits for
+  visibility), `share.js` (copy-link button revealed by JS, Clipboard API + fallback, Persian aria-live status).
+- `components/blog/*` strings moved to `lang/fa/blog.php` (`article.*`). `ViewBeaconTest` (16); CSP unchanged.
+- Open: `ShareLinks` labels + two headings in `pages/blog/show.blade.php` still inline.

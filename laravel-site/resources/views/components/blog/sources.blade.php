@@ -6,7 +6,7 @@
 <div {{ $attributes->class('flex flex-col border-t border-t-line pt-5 text-base leading-loose text-muted') }}>
     @if ($sources)
         <div class="flex flex-wrap items-baseline gap-x-1.5">
-            <span>منابع:</span>
+            <span>{{ __('blog.article.sources') }}</span>
             <div class="rt-sources">{!! $sources !!}</div>
         </div>
     @endif

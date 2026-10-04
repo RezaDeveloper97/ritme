@@ -3,7 +3,7 @@
     The first entry carries the design's highlighted state (the reader starts at the top; no scroll-spy JS).
     Renders nothing without headings.
 --}}
-@props(['outline' => [], 'title' => 'در این مقاله'])
+@props(['outline' => [], 'title' => __('blog.article.toc')])
 @if ($outline !== [])
 <nav aria-label="{{ $title }}" {{ $attributes->class('flex flex-col gap-1') }}>
     <b class="mb-2 text-md">{{ $title }}</b>
