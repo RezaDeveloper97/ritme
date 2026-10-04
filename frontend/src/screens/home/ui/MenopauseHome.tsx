@@ -34,6 +34,7 @@ import {
   useTimer,
 } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
+import { LinkedTeenCards } from '@/widgets/linked-teen-card';
 
 import { flashElapsedSeconds, listedMessages, routedLink, scoreTrend } from '../model/menopause';
 import { PlusTrialOffer } from './PlusTrialOffer';
@@ -104,6 +105,8 @@ export function MenopauseHome({ header }: { header: ReactNode }) {
         <div className="mh-page">
           {header}
           {body}
+          {/* CB-TEEN-03: a parent's read-only teen cards (nothing for everyone else). */}
+          <LinkedTeenCards />
         </div>
         <div className="page-tail" />
       </div>

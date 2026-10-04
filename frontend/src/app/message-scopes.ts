@@ -48,7 +48,7 @@ const PREGNANCY = ['common', 'nav', 'pregnancy'] as const satisfies readonly Mes
 
 /** Per route: the namespaces its screen (and everything it imports) uses. */
 export const ROUTE_NAMESPACES = {
-  home: ['articles', 'banners', 'care', 'challenge', 'checkups', 'common', 'fertility', 'home', 'log', 'logPeriod', 'menopause', 'nav', 'plus', 'profileEdit', 'search', 'teen'], // B-N2-08 trial banner + sheet; CB-NAV-02 header search button; CB-MENO-05 menopause home; CB-TEEN-02 teen home
+  home: ['articles', 'banners', 'care', 'challenge', 'checkups', 'common', 'companions', 'fertility', 'home', 'log', 'logPeriod', 'menopause', 'nav', 'plus', 'profileEdit', 'search', 'teen'], // B-N2-08 trial banner + sheet; CB-NAV-02 header search button; CB-MENO-05 menopause home; CB-TEEN-02 teen home; CB-TEEN-03 widgets/linked-teen-card (entities/companion barrel)
   calendar: ['calendar', 'common', 'log', 'logPeriod', 'nav'],
   log: ['common', 'logSheet', 'nav', 'plus', 'voiceLog'], // B-N3-03: /log renders the log sheet v2 as a page
   logCustomize: ['common', 'logCustomize', 'logSheet', 'plus'], // B-N3-04 /log/customize (the log sheet's gear; categoryLook comes via features/log-day)
@@ -61,11 +61,11 @@ export const ROUTE_NAMESPACES = {
   profileLanguage: ['common', 'me'], // B-N1-10 /profile/language
   profileNotifications: ['common', 'me'], // B-N1-11 /profile/notifications
   profilePrivacy: ['account', 'common', 'companions', 'me'], // B-N1-12 /profile/privacy (DeleteAccountConfirm = account; B-N4-04 companions section)
-  companions: ['common', 'companions'], // B-N4-04 /companions (Hamdam_List)
+  companions: ['common', 'companions', 'teen'], // B-N4-04 /companions (Hamdam_List); CB-TEEN-03 parent code card (widgets/linked-teen-card)
   companionsNew: ['common', 'companions'], // B-N4-04 /companions/new (Hamdam_Type → Access → Children → Invite → Done)
   companionDetail: ['common', 'companions'], // B-N4-04 /companions/[id] (grants, renew, revoke)
-  companion: ['common', 'companionHome', 'companions', 'nav'], // B-N4-05 /companion (Hamdam_Home, companion nav; companions = entities/companion barrel)
-  companionLinks: ['common', 'companionHome', 'companions', 'nav'], // B-N4-05 /companion/links (code entry + leave a link, Me «کد همدم»)
+  companion: ['common', 'companionHome', 'companions', 'nav', 'teen'], // B-N4-05 /companion (Hamdam_Home, companion nav; companions = entities/companion barrel); CB-TEEN-03 linked teen cards
+  companionLinks: ['common', 'companionHome', 'companions', 'nav', 'teen'], // B-N4-05 /companion/links (code entry + leave a link, Me «کد همدم»); CB-TEEN-03 same slice as /companion
   profileSupport: ['common', 'me'], // B-N1-12 /profile/support
   profileAbout: ['common', 'me'], // B-N1-12 /profile/about
   profileLegal: ['common', 'me'], // B-N1-12 /profile/legal
@@ -113,6 +113,7 @@ export const ROUTE_NAMESPACES = {
   analysisPregnancyWeight: ['analysisPregnancy', 'common', 'nav', 'plus'], // B-N3-12 /analysis/pregnancy-weight (An_PregWeight; the slice's hub cards carry plus.gate)
   analysisReport: ['analysis', 'common', 'nav'], // B-N3-09 /analysis/{cycle,period,symptoms,body} (no Plus gate; correlations keeps `analysis`)
   teenOnboarding: ['common', 'teen'], // CB-TEEN-02 /teen/onboarding (nbl_Teen_Onb, form — no nav)
+  teenParent: ['common', 'companions', 'teen'], // CB-TEEN-03 /teen/parent (nbl_Teen_Parent, flow — no nav; companions = InviteCodeCard + entities/companion)
   fertilityLog: ['common', 'fertility'],
   fertilityBbt: ['common', 'fertility'],
   fertilityInsights: ['common', 'fertility'],

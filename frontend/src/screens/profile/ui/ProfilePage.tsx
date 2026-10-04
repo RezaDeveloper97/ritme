@@ -188,7 +188,8 @@ export function ProfilePage() {
                 iconTone="brand"
                 title={t('rows.companions')}
                 description={companionNames || undefined}
-                onClick={() => router.push('/companions')}
+                // CB-TEEN-03: a teen shares with a parent only — her family row is «همراهی مادر».
+                onClick={() => router.push(navMode === 'teen' ? '/teen/parent' : '/companions')}
               />
             ) : null}
             {FAMILY_SOON.map((row) => (

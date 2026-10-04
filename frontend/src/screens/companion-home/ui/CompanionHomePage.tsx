@@ -33,6 +33,7 @@ import {
   type Tone,
 } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
+import { LinkedTeenCards } from '@/widgets/linked-teen-card';
 
 import { phaseBar } from '../model/phase-bar';
 import { CodeEntry } from './CodeEntry';
@@ -449,7 +450,11 @@ export function CompanionHomePage() {
             {viewer ? firstLetter(viewer) : <Icon name="user" size={20} />}
           </span>
         </header>
-        <div className="cmh-body">{body}</div>
+        <div className="cmh-body">
+          {/* CB-TEEN-03: a father's read-only teen cards (parent links never appear as partners). */}
+          <LinkedTeenCards />
+          {body}
+        </div>
       </div>
       <BottomNav mode="companion" />
     </div>

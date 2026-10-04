@@ -3,7 +3,7 @@ id: CB-TEEN-03
 title: Frontend: mother sharing (teen) + read-only card (mother)
 epic: TEEN
 type: frontend
-status: todo
+status: done
 depends_on: [CB-TEEN-02, B-N4-04]
 parallel_group: TEEN-C
 touches: [frontend/src/screens/teen-parent, frontend/src/app/[locale]/teen/parent, frontend/src/widgets/linked-teen-card, frontend/src/screens/home]

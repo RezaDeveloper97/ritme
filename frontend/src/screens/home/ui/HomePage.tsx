@@ -72,6 +72,7 @@ import {
 import { BannerSlideshow } from '@/widgets/banner-slideshow';
 import { BottomNav } from '@/widgets/bottom-nav';
 import { CheckupsCard } from '@/widgets/checkups-card';
+import { LinkedTeenCards } from '@/widgets/linked-teen-card';
 import {
   FertilityChanceCard,
   FertilityTiles,
@@ -1130,6 +1131,8 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
           <div className="ch-feed">
             {/* Admin-managed promo slot — renders nothing until a banner is active */}
             {postpartum && <PostpartumNotice />}
+            {/* CB-TEEN-03: a parent's read-only teen cards (nothing for everyone else). */}
+            {!teen && <LinkedTeenCards />}
             {!teen && <BannerSlideshow position="home_top" />}
             {/* «یادآورهای امروز» — today's doses + next appointment (M3, /care/today),
                 right under the hero like the reminders artboard (T-M3-10 audit L-6). */}

@@ -61,7 +61,17 @@ export const ownerCompanionSchema = ownerLinkShape.transform(
   }),
 );
 
-export const ownerCompanionListSchema = z.array(ownerCompanionSchema);
+/**
+ * GET /companions — partner / spouse rows. A row this client can't show (a
+ * teen's `parent` link, CB-TEEN-01, managed on `/teen/parent`; a newer type) is
+ * skipped instead of failing the whole list.
+ */
+export const ownerCompanionListSchema = z.array(z.unknown()).transform((rows) =>
+  rows.flatMap((row) => {
+    const parsed = ownerCompanionSchema.safeParse(row);
+    return parsed.success ? [parsed.data] : [];
+  }),
+);
 
 export const inviteSchema = z
   .object({

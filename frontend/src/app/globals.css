@@ -9151,3 +9151,70 @@ button.ch-log-row { width: 100%; background: none; border: 0; font-family: inher
 .ivfm-sheet-body { margin: 0 0 12px; font-size: var(--fs-base); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
 .nb-btn.ivfm-danger-btn { background: var(--danger-soft); color: var(--danger-deep); border: 1.5px solid var(--danger); box-shadow: none; }
 /* ═══ end CB-IVF-03 ═══ */
+
+/* ═══ CB-TEEN-03 · mother sharing (nbl_Teen_Parent, screens/teen-parent `tnp-`) + parent's teen card (widgets/linked-teen-card `ltc-`) ═══ */
+.tnp-page { background: var(--page); }
+.tnp-scroll { position: relative; z-index: 1; display: flex; flex-direction: column; min-block-size: 100%; }
+.tnp-scroll > .nb-empty, .tnp-skel { margin-inline: var(--gutter); }
+.tnp-skel { display: flex; flex-direction: column; gap: 14px; padding-top: 8px; }
+.tnp-skel-card { block-size: 200px; border-radius: var(--r-card); }
+.tnp-skel-card.is-short { block-size: 110px; }
+.tnp-body { display: flex; flex-direction: column; gap: 16px; padding: 4px var(--gutter) 24px; }
+.tnp-intro { display: flex; flex-direction: column; gap: 6px; }
+.tnp-title { margin: 0; font-size: 24px; line-height: 1.5; font-weight: 900; color: var(--text-1); }
+.tnp-lead { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+.tnp-sec { display: flex; flex-direction: column; gap: 10px; }
+.tnp-error { margin: 0; font-size: var(--fs-md); font-weight: 700; color: var(--danger-deep); }
+.tnp-ok { display: flex; align-items: center; gap: 6px; margin: 0; font-size: var(--fs-md); font-weight: 800; color: var(--success); }
+/* Note editor under «علائم و یادداشت‌ها» */
+.tnp-note { display: flex; flex-direction: column; gap: 8px; }
+.tnp-note-label { font-size: 13px; font-weight: 700; color: var(--text-2); }
+.tnp-note-input {
+  inline-size: 100%; min-block-size: 88px; padding: 12px 14px; resize: vertical; border-radius: 16px;
+  border: 1px solid var(--line); background: var(--surface-3); font-family: inherit; font-size: 15px; font-weight: 600;
+  line-height: 1.8; color: var(--text-1); text-align: start;
+}
+.tnp-note-input::placeholder { color: var(--text-4); }
+.tnp-note-input:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.tnp-note-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.tnp-note-count { font-size: var(--fs-sm); font-weight: 700; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.tnp-note-save { min-block-size: 40px; padding-inline: 16px; }
+/* Link status */
+.nb-card.tnp-status { display: flex; align-items: center; gap: 12px; padding: 14px 16px; }
+.tnp-status-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.tnp-status-title { font-size: var(--fs-base); font-weight: 800; color: var(--text-1); }
+.tnp-status-sub { font-size: var(--fs-sm); font-weight: 600; line-height: 1.7; color: var(--text-2); }
+.tnp-status-btn { flex-shrink: 0; }
+/* The read-only card — the teen's dashed preview and the parent's own card */
+.nb-card.tnp-view { display: flex; flex-direction: column; gap: 8px; padding: 16px 18px; }
+.nb-card.tnp-view.is-preview { border-style: dashed; border-color: var(--line-strong); background: var(--surface-2); }
+.tnp-view-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.tnp-view-name { font-size: var(--fs-base); font-weight: 800; color: var(--text-1); }
+.tnp-view-facts, .tnp-view-empty { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+.tnp-view-note { margin: 0; display: flex; flex-wrap: wrap; gap: 4px; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-1); }
+.tnp-view-note-label { font-weight: 800; color: var(--text-2); }
+.tnp-view-foot { margin: 0; padding-top: 8px; border-top: 1px solid var(--line); font-size: var(--fs-sm); font-weight: 600; color: var(--text-3); }
+.nb-note.tnp-safe { border: 1px solid var(--line); background: var(--surface); color: var(--text-2); }
+.nb-note.tnp-safe .nb-note-icon { color: var(--data-deep); }
+.tnp-revoke {
+  align-self: center; min-block-size: 44px; padding-inline: 18px; border: 0; border-radius: var(--r-pill); background: none;
+  font-family: inherit; font-size: 14px; font-weight: 800; color: var(--danger-deep); cursor: pointer;
+}
+.tnp-revoke:focus-visible { outline: none; box-shadow: var(--ring); }
+.tnp-footer {
+  position: sticky; bottom: 0; z-index: 2; margin-top: auto; display: flex; flex-direction: column; gap: 8px;
+  padding: 12px var(--gutter) max(14px, env(safe-area-inset-bottom));
+  background: var(--surface-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+.tnp-sheet { display: flex; flex-direction: column; gap: 14px; }
+.tnp-sheet-lead { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+/* Parent side */
+.ltc-sec { display: flex; flex-direction: column; gap: 10px; }
+.nb-card.ltc-code { display: flex; flex-direction: column; gap: 14px; padding: 18px 16px; }
+.ltc-code-text { display: flex; flex-direction: column; gap: 4px; }
+.ltc-code-title { margin: 0; font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); }
+.ltc-code-lead { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+.ltc-code-msg { margin: 0; font-size: var(--fs-md); font-weight: 700; text-align: center; }
+.ltc-code-msg.is-error { color: var(--danger-deep); }
+.ltc-code-msg.is-success { color: var(--success); }
+/* ═══ end CB-TEEN-03 ═══ */

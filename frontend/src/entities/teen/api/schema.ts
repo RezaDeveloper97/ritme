@@ -7,7 +7,10 @@ import {
   type TeenAllows,
   type TeenCatalogItem,
   type TeenGrantLevel,
+  type TeenGrants,
   type TeenKit,
+  type TeenParentCard,
+  type TeenParentInvite,
   type TeenParentLink,
   type TeenProfile,
   type TeenProfileState,
@@ -152,3 +155,55 @@ export const teenTodaySchema = z
       parentLinks: d.parent_links,
     }),
   );
+
+/** `data` of GET /teen/linked — one read-only card per teen the caller is a parent of. */
+export const teenLinkedSchema = rows(
+  z
+    .object({
+      link_id: z.number().int(),
+      teen: z.object({ name: text }).catch({ name: null }),
+      grants: grantsSchema,
+      next_period_week: z.enum(TEEN_PERIOD_WEEKS).nullable().catch(null),
+      kit_ready: z.boolean().nullable().catch(null),
+      note: text,
+    })
+    .transform(
+      (c): TeenParentCard => ({
+        linkId: c.link_id,
+        teenName: c.teen.name,
+        grants: c.grants,
+        nextPeriodWeek: c.next_period_week,
+        kitReady: c.kit_ready,
+        note: c.note,
+      }),
+    ),
+);
+
+/** The parent link inside a companions write (POST /companions, PUT …/grants, POST …/renew). */
+export const teenParentLinkSchema = parentLinkSchema;
+
+/** `data` of POST /companions {type: parent} and POST /companions/{id}/renew. */
+export const teenParentCreatedSchema = z
+  .object({
+    companion: parentLinkSchema,
+    invite: z.object({
+      code: z.string(),
+      expires_at: z.string(),
+      phone: z.string().nullable().optional(),
+      sms_sent: z.boolean().catch(false),
+    }),
+  })
+  .transform((v): { link: TeenParentLink; invite: TeenParentInvite } => ({
+    link: v.companion,
+    invite: {
+      code: v.invite.code,
+      expiresAt: v.invite.expires_at,
+      phone: v.invite.phone ?? null,
+      smsSent: v.invite.sms_sent,
+    },
+  }));
+
+/** API body of the teen grants (only `none` | `view`; a parent can never edit). */
+export function teenGrantsBody(g: TeenGrants): Record<string, 'none' | 'view'> {
+  return { teen_period_week: g.teenPeriodWeek, teen_kit: g.teenKit, teen_notes: g.teenNotes };
+}

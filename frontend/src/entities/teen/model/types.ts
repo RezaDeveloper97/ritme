@@ -71,6 +71,13 @@ export interface TeenParentLink {
   grants: TeenGrants;
 }
 
+/** The teen sections a parent link can see, in the board's order (Teen_Parent). */
+export const TEEN_SHARE_KEYS = ['teenPeriodWeek', 'teenKit', 'teenNotes'] as const;
+export type TeenShareKey = (typeof TEEN_SHARE_KEYS)[number];
+
+/** Nothing shared — the default of a new parent invite (most private). */
+export const NO_TEEN_GRANTS: TeenGrants = { teenPeriodWeek: 'none', teenKit: 'none', teenNotes: 'none' };
+
 export interface TeenParentView {
   nextPeriodWeek: TeenPeriodWeek | null;
   kitReady: boolean | null;
@@ -90,4 +97,26 @@ export interface TeenToday extends TeenProfileState {
 export interface TeenProfileInput {
   ageBand: TeenAgeBand;
   menarche: TeenMenarche;
+}
+
+/** One read-only card of GET /teen/linked (the parent's side). Ungranted parts are null. */
+export interface TeenParentCard extends TeenParentView {
+  linkId: number;
+  teenName: string | null;
+  grants: TeenGrants;
+}
+
+/** The one-time invite of POST /companions {type: parent} / renew. Keep in component state only. */
+export interface TeenParentInvite {
+  code: string;
+  expiresAt: string;
+  /** Masked bound number, e.g. 0912****567. */
+  phone: string | null;
+  smsSent: boolean;
+}
+
+export interface TeenParentInviteInput {
+  phone: string;
+  displayName?: string;
+  grants: TeenGrants;
 }

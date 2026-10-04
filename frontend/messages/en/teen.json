@@ -57,5 +57,114 @@
       "invited": "Invite sent",
       "active": "Your mom is connected"
     }
+  },
+  "parent": {
+    "title": "Sharing with mom",
+    "back": "Back",
+    "heading": "What would you like to share with your mom?",
+    "lead": "You choose, and you can stop sharing whenever you want.",
+    "loading": "Getting ready…",
+    "loadError": "This page didn't open.",
+    "retry": "Try again",
+    "notTeen": "Sharing with mom is part of teen mode.",
+    "share": {
+      "periodWeek": {
+        "title": "When your next period might come",
+        "desc": "Only “this week” or “next week”"
+      },
+      "kit": {
+        "title": "Emergency kit reminder"
+      },
+      "notes": {
+        "title": "Symptoms & notes",
+        "desc": "Only the note you write yourself"
+      },
+      "saveError": "That change wasn't saved. Try again."
+    },
+    "note": {
+      "label": "A note for your mom",
+      "placeholder": "e.g. I have a bit of a tummy ache today",
+      "count": "{count, number} of {max, number}",
+      "save": "Save note",
+      "saved": "Your note is saved",
+      "error": "The note wasn't saved. Try again."
+    },
+    "preview": {
+      "title": "This is what your mom sees"
+    },
+    "readOnly": "Nothing more than this is shown. Your mom can't change anything.",
+    "status": {
+      "invited": "Invite sent",
+      "invitedSub": "Once your mom enters the code in Ritme, you'll be connected.",
+      "active": "{name} is with you",
+      "activeNoName": "Your mom is with you",
+      "activeSub": "Any switch you change applies for her right away.",
+      "linked": "Connected",
+      "renew": "New code",
+      "renewError": "A new code wasn't made. Try again."
+    },
+    "invite": {
+      "cta": "Send invite",
+      "sheetTitle": "Invite your mom",
+      "lead": "Enter your mom's mobile number. She'll get a code by SMS that only works with this number.",
+      "phone": "Your mom's mobile number",
+      "phonePlaceholder": "09121234567",
+      "phoneRequired": "Enter your mom's mobile number.",
+      "phoneInvalid": "That number doesn't look right. Write it like 09121234567.",
+      "name": "Her name (optional)",
+      "namePlaceholder": "e.g. Mom",
+      "send": "Send invite",
+      "error": "The invite wasn't sent. Try again in a little while.",
+      "codeTitle": "Invite sent",
+      "codeCardTitle": "Sharing code",
+      "codeLead": "Your mom enters this code in Ritme under “Me › Companions & family”.",
+      "smsSent": "The code was texted to <ltr>{phone}</ltr>.",
+      "smsNotSent": "The SMS wasn't sent — send her the code yourself.",
+      "done": "Done"
+    },
+    "revoke": {
+      "cta": "Stop sharing",
+      "title": "Stop sharing?",
+      "body": "From now on your mom sees nothing. You can invite her again whenever you want.",
+      "confirm": "Stop sharing",
+      "cancelInvite": "Cancel invite",
+      "cancelTitle": "Cancel the invite?",
+      "cancelBody": "The code you sent stops working. You can send a new invite whenever you want.",
+      "cancelConfirm": "Cancel invite",
+      "cancel": "Keep it",
+      "error": "That didn't work. Try again."
+    },
+    "view": {
+      "you": "You",
+      "week": {
+        "this_week": "Her next period will probably come this week.",
+        "next_week": "Her next period will probably come next week.",
+        "later": "Her next period is probably a few weeks away.",
+        "unknown": "The timing of her next period isn't known yet."
+      },
+      "kitReady": "Her school kit is ready.",
+      "kitNotReady": "Her school kit isn't complete yet.",
+      "noteLabel": "Note:",
+      "nothing": "Nothing is shared for now — she only sees that you're connected."
+    },
+    "linked": {
+      "title": "Your child",
+      "someone": "Your child",
+      "readOnly": "View only",
+      "footer": "{name} chooses what you can see."
+    },
+    "code": {
+      "title": "Got a sharing code from your child?",
+      "lead": "Enter the 6-character code you received by SMS and their card will appear on your Today.",
+      "label": "6-character sharing code",
+      "connect": "Connect",
+      "success": "You're connected to {name}.",
+      "successNoName": "You're connected.",
+      "errors": {
+        "invalid": "This code isn't right, has expired, or is for another number. Ask for a new one.",
+        "throttled": "Too many tries in a row. Try again in a little while.",
+        "generic": "Couldn't connect. Try again."
+      }
+    }
   }
 }

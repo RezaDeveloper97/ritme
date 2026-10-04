@@ -198,12 +198,8 @@ function KitCard({ kit }: { kit: TeenKit }) {
   );
 }
 
-/**
- * «همراهی مادر». bloom's invite wizard (B-N4-04) has no `parent` type, so this
- * is a minimal entry into the companions list; CB-TEEN-03 owns the real
- * sharing screen (`/teen/parent`) and repoints it there.
- */
-const PARENT_HREF = '/companions';
+/** «همراهی مادر» → the mother-sharing screen (CB-TEEN-03, nbl_Teen_Parent). */
+const PARENT_HREF = '/teen/parent';
 
 function ParentEntry({ links }: { links: TeenParentLink[] }) {
   const t = useTranslations('teen.home.parent');

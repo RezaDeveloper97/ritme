@@ -6,6 +6,7 @@ import { CompanionCard, companionName, FamilyStrip, familySpouse, useCompanions 
 import { useUserProfile } from '@/entities/user';
 import { useRouter } from '@/shared/i18n';
 import { EmptyState, PrimaryButton, ScreenHeader, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
+import { ParentCodeCard } from '@/widgets/linked-teen-card';
 
 /**
  * «همدم‌ها» (`/companions`, B-N4-04, nbl_Hamdam_List / nbd_Hamdam_List): the
@@ -76,6 +77,8 @@ export function CompanionsPage() {
             <p className="cmp-lead">{t('list.lead')}</p>
           </div>
           {body}
+          {/* CB-TEEN-03: where a mother accepts her teen's sharing code. */}
+          <ParentCodeCard />
         </div>
         <div className="cmp-footer">
           <PrimaryButton icon="plus" onClick={() => router.push('/companions/new')}>

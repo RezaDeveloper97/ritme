@@ -307,4 +307,10 @@ export default defineConfig([
     files: ['./src/entities/loss/**'],
     rules: { 'fsd/insignificant-slice': 'off' },
   },
+  {
+    // CB-TEEN-03: `widgets/linked-teen-card` is mounted by screens/home, screens/companion-home and
+    // screens/companion-list — references FROM `screens` are invisible to steiger.
+    files: ['./src/widgets/linked-teen-card/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
 ]);
