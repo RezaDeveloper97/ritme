@@ -3,7 +3,7 @@ id: L0-02
 title: DDD architecture skeleton, service providers and arch tests
 milestone: L0
 type: backend
-status: todo
+status: done
 depends_on: [L0-01]
 parallel_group: L0-A
 touches: [app/Domain,app/Support,app/Providers,tests/Arch,docs/ARCHITECTURE.md]
