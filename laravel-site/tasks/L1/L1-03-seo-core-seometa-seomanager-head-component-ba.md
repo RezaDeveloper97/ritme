@@ -3,7 +3,7 @@ id: L1-03
 title: SEO core: SeoMeta, SeoManager, head component, basic seo:audit
 milestone: L1
 type: backend
-status: todo
+status: done
 depends_on: [L1-01]
 parallel_group: L1-C
 touches: [app/Domain/Seo,resources/views/components/seo,database/migrations,app/Console/Commands/SeoAudit.php,tests/Feature/Seo,tests/Unit/Seo]

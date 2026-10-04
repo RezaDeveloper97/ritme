@@ -61,3 +61,18 @@ One section per finished task (appended by `/site-task`).
 - `vite.config.js`: manifest, hashed names, lightningcss minify, es2022 targets. CSS 2.96 KB gzip.
 - Orchestrator added CLAUDE.md token/JS docs and `tests/Feature/Frontend/ViteAssetsTest.php` (scope items outside touches).
 - Open: `lightningcss` only present transitively — pin it in package.json when the lockfile is next touched.
+
+## L1-03 — SEO core: SeoMeta, SeoManager, head component, basic seo:audit
+- Migration `2026_10_04_000300_create_seo_meta_table` (morph `seoable_*` unique or `route_name` unique; `og_media_id`
+  without FK until L2).
+- `app/Domain/Seo`: `SeoManager` (scoped; layers settings defaults → static page meta → model meta → controller
+  override), `SeoMeta` model + `HasSeo` trait, DTOs (`SeoMetaData`, `SeoHead`, `SeoImage`, `PageContext`), cached repo
+  (`seo` ns, caches misses), `SeoMetaObserver` (bumps `seo`, `sitemap`, `pages`), `Robots`, `CanonicalUrl`
+  (https, app.url host, no trailing slash, allow-listed query: `page`>1), `DescriptionText` (Persian-aware trim),
+  `NullOgImageResolver` behind `OgImageResolver`, audit engine (`SeoAuditor`, `PageAudit`, `AuditIssue`, `Severity`).
+- `<x-seo.head/>` (title, description, canonical, robots, OG, Twitter, verification, RSS when `blog.feed` exists;
+  `@stack('seo.jsonld')` for L1-04). Auto-noindex: non-production, search/cart/checkout/order/done/booked, filtered lists.
+- `php artisan seo:audit {--path=*} {--strict}` (in-process render of parameterless GET routes).
+- Tests: 53 new; SEO + arch suites green. Missing og:image is a warning until L2 binds a real resolver.
+- Open: noindex route patterns / feed route are constants in `SeoManager` (config/ not in touches); real `seo:audit` on
+  `/` fails until the layout (L1-02) + routes (L1-05) exist.
