@@ -19,5 +19,8 @@ verify: composer verify
 - Raise Larastan to level 8 (or max feasible, documented), fix findings; coverage report (pcov/xdebug if available)
   with a floor of 80% for `app/Domain` and `app/Support`.
 
+- Test memory: `phpunit.xml` memory_limit was raised 512M → 1G in L6-01 because `tests/Arch/LayersTest` (Pest arch
+  expectations scanning all of `app/`) adds ~214 MB. Slim/split the arch tests so the suite fits in 512M again.
+
 ## Acceptance
 - `composer verify` green at the new levels; coverage numbers in PROGRESS.
