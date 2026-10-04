@@ -3,7 +3,7 @@ id: L1-01
 title: Settings context: typed, cached site settings
 milestone: L1
 type: backend
-status: todo
+status: done
 depends_on: [L0-03]
 parallel_group: L1-A
 touches: [app/Domain/Settings,database/migrations,database/seeders/SettingsSeeder.php,tests/Feature/Settings]
