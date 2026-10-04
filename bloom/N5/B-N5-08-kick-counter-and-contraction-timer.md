@@ -3,7 +3,7 @@ id: B-N5-08
 title: Kick counter and contraction timer
 milestone: N5
 type: frontend
-status: todo
+status: done
 depends_on: [B-N5-03]
 parallel_group: N5-H
 touches: [frontend/src/screens/log-kick,frontend/src/screens/log-contraction,frontend/src/features/pregnancy-tools]
