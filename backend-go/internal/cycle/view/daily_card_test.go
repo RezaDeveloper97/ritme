@@ -285,11 +285,17 @@ func TestDailyCardNoFertilityCopy(t *testing.T) {
 			assert.NotEqual(t, withFertility.Title, c.Title, "%s case %d: the regular card talks about fertility", locale, i)
 			assert.Equal(t, withFertility.DataStatus, c.DataStatus)
 			assert.Equal(t, withFertility.PrimaryAction, c.PrimaryAction)
+			// CB-TEEN-04b: no fertility read-out either («اوج» / "Peak").
+			assert.Equal(t, enums.FertilityLevelUnknown, c.FertilityLevel, "%s case %d", locale, i)
+			assert.Equal(t, enums.FertilityLevelUnknown.Label(locale), c.FertilityLabel, "%s case %d", locale, i)
 		}
 	}
-	// The flag changes nothing on a day without fertility copy (the period countdown).
+	// On a day without fertility copy (the period countdown) only the read-out changes.
 	o := cardOpts{cycleDay: 24, nextStart: "2026-07-20", ovulation: "2026-07-06", subphase: enums.CycleSubphaseLateLuteal}
 	regular := card(o)
 	o.noFertility = true
-	assert.Equal(t, regular, card(o))
+	teen := card(o)
+	assert.Equal(t, enums.FertilityLevelUnknown, teen.FertilityLevel)
+	teen.FertilityLevel, teen.FertilityLabel = regular.FertilityLevel, regular.FertilityLabel
+	assert.Equal(t, regular, teen)
 }

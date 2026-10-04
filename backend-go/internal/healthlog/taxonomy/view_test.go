@@ -66,3 +66,18 @@ func TestCategoriesJSON_ModeFilterAndLabels(t *testing.T) {
 	bare := marshal(t, taxonomy.CategoriesJSON(taxonomy.ModeCycle, taxonomy.NewLabels(nil)))
 	assert.Contains(t, bare, `{"code":"bleeding","label":"bleeding"`)
 }
+
+// CB-TEEN-04b: teen has no BBT param, so its measurements category is titled «وزن», not «وزن و دمای پایه»;
+// every other mode (and the all-modes listing) keeps the category title.
+func TestCategoriesJSON_ModeTitle(t *testing.T) {
+	store := i18n.NewTranslationStore(translations.FS, "")
+	for locale, want := range map[string][2]string{"fa": {"وزن", "وزن و دمای پایه"}, "en": {"Weight", "Weight & BBT"}} {
+		l := taxonomy.NewLabels(store.NamespaceMessages(locale, "log-taxonomy", "fa"))
+		teen := marshal(t, taxonomy.CategoriesJSON(taxonomy.ModeTeen, l))
+		assert.Contains(t, teen, `{"code":"measurements","label":"`+want[0]+`"`, locale)
+		assert.NotContains(t, teen, `"code":"bbt"`, locale)
+		for _, mode := range []string{taxonomy.ModeCycle, taxonomy.ModeTTC, ""} {
+			assert.Contains(t, marshal(t, taxonomy.CategoriesJSON(mode, l)), `{"code":"measurements","label":"`+want[1]+`"`, "%s %q", locale, mode)
+		}
+	}
+}

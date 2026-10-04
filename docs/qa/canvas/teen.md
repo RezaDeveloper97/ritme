@@ -112,3 +112,28 @@ changed here):
    surface — hide in teen mode. The log sheet's «وزن و دمای پایه» could drop BBT for teens.
 4. Product decision (CB-TEEN-01 TODO): a partner link from before the switch stays `active` (grants nothing while
    teen, but resumes when she leaves teen mode) — auto-revoke or pause on entering teen mode?
+
+## CB-TEEN-04b — teen mode outside the teen screens
+
+Worktree Go API :8203 + Next dev :3113, 390 px, fa. Test user **`09120007704`** «آوا» (teen, cycle day 15 on
+2026-10-04 = the engine's ovulation day); a parent link «مامان» → **`09120007705`** was invited and accepted through
+the API for the profile row (link #8, left active). Her pre-teen partner link to «سام» is untouched (product decision).
+
+| Board | Route | Light | Dark | Verdict | Fix / note |
+|---|---|---|---|---|---|
+| `nbl_Teen_Home` (no fertility copy) | `/calendar` (teen) | [calendar](teen/CB-TEEN-04b/fa_calendar.light.png) | [calendar](teen/CB-TEEN-04b/fa_calendar.dark.png) | ✔ | No amber fertile band / ovulation dot, legend «پریود · پریود تخمینی · PMS» (no «پنجره باروری»), the ovulation day's phase pill reads «لوتئال» (follicular before the estimated ovulation day, luteal from it); never the TTC layout. Same rule for menopause. |
+| `nbl_Teen_Home` | `/profile` (teen) | [me hub](teen/CB-TEEN-04b/fa_profile.light.png) | [me hub](teen/CB-TEEN-04b/fa_profile.dark.png) | ✔ | «همدم‌ها و خانواده» names the parent link («مامان», from `/teen/today`), not the dormant partner «سام»; the «کارها و خریدها» group (orders, bookings…) is gone. |
+| `nbl_Teen_Home` | `/home?sheet=log` (teen) | [log sheet](teen/CB-TEEN-04b/fa_home_sheet_log.log-sheet.light.png) | [log sheet](teen/CB-TEEN-04b/fa_home_sheet_log.log-sheet.dark.png) | ✔ | Measurements category reads «وزن» (`log-taxonomy` `categories.measurements.mode_titles.teen`); BBT / LH / pregnancy test were already teen-less in the taxonomy. |
+
+**Backend (extends bloom B-N2-11b's `NoFertilityCopy`, teen + menopause):**
+- `/cycle/today`, `/cycle/date`, `/cycle/month` (full): `calculation.text_flags` drop `fertility_status` and
+  `probability_message`, `phase_info` names the neutral phase without the sub-phase; the `fertility` daily tip is
+  dropped; `cycle_view.daily_card.fertility_level` / `fertility_label` = `unknown` / «نامشخص». Numbers and enum
+  fields stay (data). Cache key input `no_fertility_copy.v2`.
+- `/messages/daily`: the ovulation phase reads follicular / luteal, fertility-worded sub-phases are null, no fertile
+  window or ovulation day — so the non-TTC ovulation message «در اوج انرژی و جذابیت هستی!» and the ovulation
+  nutrition / sleep / exercise copy never reach her (live check: «وقت تمرکز روی خودت و کارهای نیمه‌تمام»).
+- Contract case `teen/no_fertility_copy` (fa, en; Go-recorded, reviewed by hand); unit + int tests.
+
+**Frontend:** the teen home no longer mounts the cycle home while the mode is unknown (no `/messages/daily` call:
+API log during the teen screenshots shows none).

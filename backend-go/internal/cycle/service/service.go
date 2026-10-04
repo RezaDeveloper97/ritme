@@ -154,17 +154,27 @@ func (sn *Snapshot) Day(ctx context.Context, date civildate.Date, locale string)
 		return legacy.Calculation{}, view.CycleView{}, err
 	}
 	calc = calc.Localize(locale)
-	return calc, view.Build(sn.Histories, sn.EngineProfile(), date, sn.Today, locale, calc), nil
+	profile := sn.EngineProfile()
+	cv := view.Build(sn.Histories, profile, date, sn.Today, locale, calc)
+	if profile != nil && profile.NoFertilityCopy { // CB-TEEN-04b: built from the full calculation, served without its copy
+		calc = calc.WithoutFertilityCopy()
+	}
+	return calc, cv, nil
 }
 
 // Month calculates every day of year-month (full or calendar mode) and its summary.
 func (sn *Snapshot) Month(ctx context.Context, year, month int, withContent bool) ([]legacy.Calculation, legacy.MonthSummary, error) {
 	start, end := MonthRange(year, month)
 	calcs := make([]legacy.Calculation, 0, 31)
+	profile := sn.EngineProfile()
+	noFertility := profile != nil && profile.NoFertilityCopy
 	for d := start; !d.After(end); d = d.AddDays(1) {
 		c, err := sn.Engine().CalculateForDate(ctx, d, withContent)
 		if err != nil {
 			return nil, legacy.MonthSummary{}, err
+		}
+		if noFertility { // CB-TEEN-04b
+			c = c.WithoutFertilityCopy()
 		}
 		calcs = append(calcs, c)
 	}
@@ -192,7 +202,7 @@ func (sn *Snapshot) cacheKey(ctx context.Context, locale, scope string, withCont
 		inputs = append(inputs, "lengths_manual")
 	}
 	if sn.LifeMode != "" && !sn.LifeMode.AllowsFertilityContent() { // B-N2-11b: the day copy differs; others keep their key
-		inputs = append(inputs, "no_fertility_copy")
+		inputs = append(inputs, "no_fertility_copy.v2") // v2: CB-TEEN-04b also drops the calculation's copy
 	}
 	return cache.Key{
 		UserID:  sn.UserID,

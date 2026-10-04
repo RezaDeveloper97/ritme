@@ -1,6 +1,25 @@
 import { describe, expect, it } from 'vitest';
 
-import { bandEdges, dayTone } from './tones';
+import { bandEdges, dayTone, NO_FERTILITY_LEGEND, withoutFertility } from './tones';
+
+describe('withoutFertility (CB-TEEN-04b)', () => {
+  it('turns the fertile window and ovulation into plain days', () => {
+    expect(withoutFertility('fertile')).toBeNull();
+    expect(withoutFertility('ovulation')).toBeNull();
+    expect(dayTone(withoutFertility('ovulation'), false)).toBeNull();
+  });
+
+  it('keeps period and PMS days', () => {
+    expect(withoutFertility('period')).toBe('period');
+    expect(withoutFertility('pms')).toBe('pms');
+    expect(withoutFertility(null)).toBeNull();
+  });
+
+  it('has no fertile or ovulation legend chip', () => {
+    expect(NO_FERTILITY_LEGEND).not.toContain('fertile');
+    expect(NO_FERTILITY_LEGEND).not.toContain('ovulation');
+  });
+});
 
 describe('dayTone', () => {
   it('splits logged and predicted periods', () => {

@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { companionName, useCompanions } from '@/entities/companion';
 import { useUserMode } from '@/entities/message';
 import { usePlusStatus } from '@/entities/plus';
+import { primaryParentLink, useTeenToday } from '@/entities/teen';
 import { useUserProfile } from '@/entities/user';
 import { useAppLock } from '@/features/app-lock';
 import { useLogout } from '@/features/auth';
@@ -74,10 +75,18 @@ export function ProfilePage() {
 
   const profile = profileQuery.data;
   // Life-stage mode (B-N2-03) — menopause/teen/postpartum exist only there; falls back to /messages/mode.
-  const navMode = useNavMode().mode ?? 'cycle';
+  const navState = useNavMode();
+  const navMode = navState.mode ?? 'cycle';
   // B-N4-04: «همدم‌ها و خانواده» → /companions; the row lists who is there («علی · مادر»).
-  const { data: companions } = useCompanions(navMode !== 'companion');
-  const companionNames = (companions ?? []).map((c) => companionName(c)).filter(Boolean).join(' · ');
+  // CB-TEEN-04b: a teen's row opens /teen/parent, so it names her parent link — never a partner link
+  // from before teen mode (dormant while she is a teen); the partner list waits until the mode is known.
+  const teen = navMode === 'teen';
+  const { data: companions } = useCompanions(!navState.pending && navMode !== 'companion' && !teen);
+  const { data: teenToday } = useTeenToday(teen);
+  const parentLink = teen ? primaryParentLink(teenToday?.parentLinks ?? []) : null;
+  const companionNames = teen
+    ? (parentLink?.displayName ?? '')
+    : (companions ?? []).map((c) => companionName(c)).filter(Boolean).join(' · ');
   const modeName = t(`modes.${navMode}`);
   const languageName = languages.find((l) => l.code === locale)?.name ?? locale;
   const calendarName = t(`calendars.${calendarSystem(loc)}`);
@@ -145,7 +154,7 @@ export function ProfilePage() {
         {/* Plus status → /plus (paywall) or /plus/manage (B-N2-07).
             Teen mode never shows a Plus upsell (B-N2-03, gaps.md #3). */}
         {/* B-N4-05: a companion account has no cycle features to upsell either. */}
-        {navMode === 'teen' || navMode === 'companion' ? null : (
+        {teen || navMode === 'companion' ? null : (
           <button
             type="button"
             className="me-plus"
@@ -189,7 +198,7 @@ export function ProfilePage() {
                 title={t('rows.companions')}
                 description={companionNames || undefined}
                 // CB-TEEN-03: a teen shares with a parent only — her family row is «همراهی مادر».
-                onClick={() => router.push(navMode === 'teen' ? '/teen/parent' : '/companions')}
+                onClick={() => router.push(teen ? '/teen/parent' : '/companions')}
               />
             ) : null}
             {FAMILY_SOON.map((row) => (
@@ -198,14 +207,17 @@ export function ProfilePage() {
           </ListGroup>
         </section>
 
-        <section className="me-sec" aria-labelledby="me-g-tasks">
-          <SectionTitle id="me-g-tasks" title={t('groups.tasks')} />
-          <ListGroup>
-            {TASK_ROWS.map((row) => (
-              <ListRow key={row.key} icon={row.icon} iconTone={row.tone} title={t(`rows.${row.key}`)} trailing={soon} />
-            ))}
-          </ListGroup>
-        </section>
+        {/* CB-TEEN-04b: «کارها و خریدها» (orders, bookings…) is a commercial surface — not for teens. */}
+        {teen ? null : (
+          <section className="me-sec" aria-labelledby="me-g-tasks">
+            <SectionTitle id="me-g-tasks" title={t('groups.tasks')} />
+            <ListGroup>
+              {TASK_ROWS.map((row) => (
+                <ListRow key={row.key} icon={row.icon} iconTone={row.tone} title={t(`rows.${row.key}`)} trailing={soon} />
+              ))}
+            </ListGroup>
+          </section>
+        )}
 
         <section className="me-sec" aria-labelledby="me-g-data">
           <SectionTitle id="me-g-data" title={t('groups.data')} />

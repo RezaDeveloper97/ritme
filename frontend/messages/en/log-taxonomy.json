@@ -400,6 +400,9 @@
     },
     "measurements": {
       "title": "Weight & BBT",
+      "mode_titles": {
+        "teen": "Weight"
+      },
       "params": {
         "weight": {
           "title": "Weight"

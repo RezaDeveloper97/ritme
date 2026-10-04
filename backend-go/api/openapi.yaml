@@ -9534,13 +9534,15 @@ paths:
                         properties:
                           phase: {type: string}
                           phase_label: {type: string}
-                          subphase: {type: string}
-                          subphase_label: {type: string}
+                          subphase:
+                            type: [string, "null"]
+                            description: "null when the engine has none, or for a mode without fertility content (teen, menopause — CB-TEEN-04b) on a fertility-worded sub-phase"
+                          subphase_label: {type: [string, "null"]}
                           cycle_day: {type: integer}
                           cycle_length: {type: number}
-                          is_fertile_window: {type: boolean}
+                          is_fertile_window: {type: boolean, description: "always false for teen / menopause (CB-TEEN-04b)"}
                           is_pms_window: {type: boolean}
-                          estimated_ovulation_day: {type: integer}
+                          estimated_ovulation_day: {type: [integer, "null"], description: "null for teen / menopause (CB-TEEN-04b)"}
                           week: {type: integer}
                           day: {type: integer}
                           trimester: {type: number}

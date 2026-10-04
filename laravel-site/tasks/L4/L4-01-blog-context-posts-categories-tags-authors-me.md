@@ -3,7 +3,7 @@ id: L4-01
 title: Blog context: posts, categories, tags, authors, medical reviewers
 milestone: L4
 type: backend
-status: todo
+status: done
 depends_on: [L2-01,L1-03]
 parallel_group: L4-A
 touches: [app/Domain/Blog,database/migrations,database/factories,database/seeders/BlogSeeder.php,app/Support/Html,tests/Feature/Blog,tests/Unit/Blog]

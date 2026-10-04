@@ -237,3 +237,32 @@ cases:
         path: /api/v1/plus/checkout
         body: {plan_id: 1, preview: true}
         status: 403
+
+  - name: no_fertility_copy
+    doc: |
+      CB-TEEN-04b: `regular` (cycle day 10, in the fertile window; estimated ovulation 2026-09-27) switches to teen
+      mode → /cycle/today and /cycle/date on the ovulation day keep their data but drop the fertility / pregnancy-
+      chance text flags and the fertility tip, the daily card's fertility read-out is `unknown`, phase_info names
+      the neutral phase; /messages/daily (today and the ovulation day) reads follicular / luteal with no fertile
+      window or ovulation day; the log taxonomy's measurements category is «وزن» (no BBT)
+    locales: [fa, en]
+    steps:
+      - method: PUT
+        path: /api/v1/profile/life-stage
+        body: {mode: teen}
+        status: 200
+      - method: GET
+        path: /api/v1/cycle/today
+        status: 200
+      - method: GET
+        path: /api/v1/cycle/date/2026-09-27
+        status: 200
+      - method: GET
+        path: /api/v1/messages/daily
+        status: 200
+      - method: GET
+        path: /api/v1/messages/daily?date=2026-09-27
+        status: 200
+      - method: GET
+        path: /api/v1/logs/taxonomy
+        status: 200

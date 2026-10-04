@@ -12,6 +12,13 @@ export type LegendKey = DayTone | 'ovulation';
 
 export const CYCLE_LEGEND: readonly LegendKey[] = ['period', 'predicted', 'fertile', 'pms'];
 export const TTC_LEGEND: readonly LegendKey[] = ['period', 'predicted', 'fertile', 'ovulation', 'pms'];
+/** Teen / menopause (CB-TEEN-04b): no fertile window or ovulation anywhere on the calendar. */
+export const NO_FERTILITY_LEGEND: readonly LegendKey[] = ['period', 'predicted', 'pms'];
+
+/** A marker as a mode without fertility content sees it: the fertile window and ovulation are plain days. */
+export function withoutFertility(marker: CycleDayMarker | null): CycleDayMarker | null {
+  return marker === 'fertile' || marker === 'ovulation' ? null : marker;
+}
 
 /** Paint of a day, from its engine marker and whether the user actually logged the bleed. */
 export function dayTone(marker: CycleDayMarker | null, logged: boolean): DayTone | null {

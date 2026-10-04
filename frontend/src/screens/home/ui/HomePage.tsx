@@ -1245,6 +1245,10 @@ export function HomePage() {
   // «pregnancy» would hold the backdrop forever) — fall back to the cycle home.
   const unresolved = life.isError && !legacy.data && !(legacy.isPending && legacy.fetchStatus !== 'idle');
   const mode = fresh ?? (unresolved ? null : hint);
+  // CB-TEEN-04b: with no remembered mode, wait for `/profile/life-stage` instead of mounting the cycle home
+  // for a moment — it fires the cycle-only reads (`/messages/daily`, which 400s without period data) at a
+  // teen whose home never shows them.
+  const waiting = !fresh && !hint && life.isPending && life.fetchStatus !== 'idle';
   // B-N4-05 (N2 stage bug B-1): a male companion account has no cycle home —
   // `/home*` answers 409 `companion_account` — so it goes to the companion panel.
   const companion = Boolean(life.data?.companion) || getApiErrorCode(legacy.error) === 'companion_account';
@@ -1263,8 +1267,9 @@ export function HomePage() {
     if (ivf) router.replace('/ivf');
   }, [companion, fresh, ivf, router]);
 
-  // Server pass, first client render, and the pregnancy / postpartum / IVF / companion hand-off: backdrop only.
-  if (!mounted || mode === 'pregnancy' || mode === 'postpartum' || ivf || companion) {
+  // Server pass, first client render, an unknown mode, and the pregnancy / postpartum / IVF / companion
+  // hand-off: backdrop only.
+  if (!mounted || waiting || mode === 'pregnancy' || mode === 'postpartum' || ivf || companion) {
     return (
       <div className="view">
         <div className="home-grad home-grad-fill" />

@@ -182,3 +182,22 @@ One section per finished task (appended by `/site-task`).
 - Tests: `tests/Feature/Admin/MediaTest.php` (8). One 403 test depended on the in-progress L1-05 error page at commit time.
 - Open: Livewire temp upload cap is 12 MB vs media 15 MB (publish livewire config later); picker search queries
   Eloquent directly (Filament-style); savings % is vs the stored (already capped) original.
+
+## L4-01 — Blog context: posts, categories, tags, authors, medical reviewers
+- Migrations `2026_10_04_001400`–`001450`: blog_authors, blog_categories (parent, label, life_stage), blog_tags,
+  blog_posts (sources, cover + mobile cover media FKs nullOnDelete, reviewer_id/reviewed_at, updated_content_at,
+  reading_time, word_count, views), blog_post_tag, blog_post_slugs (slug history; Persian slugs, 191 chars).
+- `app/Domain/Blog`: models (+`HasSeo`, factories), DTOs (`PostData`, `PostCardData`, `PostPage`, `AuthorData::toPerson()`
+  …), Eloquent + Cached repos (`blog` ns; sitemap rows in `sitemap` ns), queries (Latest, ByCategory incl. children,
+  Related scoring, Sitemap*), observers (bump blog + sitemap + pages; `SyncPostTags` bumps for pivot changes), actions
+  (PublishScheduledPosts, SyncPostTags, RecordPostView, FlushPostViews), `blog:publish-scheduled` (every minute),
+  `blog:flush-views` (every 5 min), sitemap providers `posts` / `blog-categories` (`key/count/entries` for L1-06),
+  morph map `blog_*`, media usages registered for covers + author avatar.
+- `app/Support/Html`: `RichHtmlSanitizer` (symfony/html-sanitizer; images only `data-media-id` or `/media/`),
+  `ExternalLinks`, `HeadingAnchors` (+outline for TOC), `HtmlText` (Persian word count, 200 wpm), `TextSlug`, `HtmlFragment`.
+- `BlogSeeder` (idempotent, `--class=BlogSeeder`, not in DatabaseSeeder): «درد پریود» `period-pain` (old slug
+  `dard-period` in history) + 5 posts + 7 categories; reviewer placeholder `[نام متخصص]`; red lines tested. 62 tests.
+- Open: L1-06 must define `SitemapProvider` matching the Blog providers; L4-03 needs a SeoManager lookup by morph/id
+  (controllers get DTOs); media delete via FK null doesn't bump `blog`; sitemap URLs need https in production.
+- Incident: the agent's `migrate:fresh --env=testing` wiped the dev SQLite DB (no `.env.testing`); re-seeded settings
+  + roles. Recreate the admin with `php artisan admin:create`.

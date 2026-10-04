@@ -93,3 +93,58 @@ func TestLifeMode_NoFertilityCopyInFertileWindow(t *testing.T) {
 		}
 	}
 }
+
+// CB-TEEN-04b (CB-TEEN-04 QA): the non-TTC ovulation message («در اوج انرژی و جذابیت هستی!» / "peak energy
+// and attractiveness") and the ovulation supplements never reach a teen / menopause account: the ovulation
+// phase reads as follicular before the estimated ovulation day and luteal from it, the fertility-worded
+// sub-phase is null and context_info has no fertile window or ovulation day. A cycle user keeps all of it.
+func TestLifeMode_NoOvulationPhaseCopy(t *testing.T) {
+	calc := func(day int) legacy.Calculation {
+		return legacy.Calculation{
+			Complete: true, Day: day, Phase: enums.CyclePhaseOvulation, CurrentSubphase: enums.CycleSubphaseOvulationLikely,
+			CycleLength: 28, OvulationDay: 14, IsFertileWindow: true,
+		}
+	}
+	generate := func(mode, locale string, c legacy.Calculation) map[string]any {
+		src := &lifeSource{
+			fakeSource: fakeSource{profile: &Profile{UserGoal: "non_ttc", SubscriptionType: "premium", HasLastPeriodStart: true}, calc: c},
+			mode:       mode,
+		}
+		res, err := New(src, defaultsContent{}, locale, day).Generate(context.Background(), day, "")
+		require.NoError(t, err, mode)
+		return toJSON(t, res.JSON())
+	}
+	copyText := func(m map[string]any) string {
+		b, err := json.Marshal([]any{m["primary_message"], m["supplements"], m["correlations"], m["patterns"]})
+		require.NoError(t, err)
+		info := m["context_info"].(map[string]any)
+		return strings.ToLower(string(b) + " " + toString(info["phase_label"]) + " " + toString(info["subphase_label"]))
+	}
+	words := []string{"جذابیت", "تخمک", "باروری", "باردار", "attractive", "ovulat", "fertil", "conceive"}
+
+	for _, locale := range []string{"fa", "en"} {
+		cycle := generate("cycle", locale, calc(14))
+		assert.Equal(t, "ovulation", cycle["context_info"].(map[string]any)["phase"], "a cycle user keeps the ovulation phase")
+		assert.Contains(t, copyText(cycle), map[string]string{"fa": "جذابیت", "en": "attractive"}[locale])
+
+		for _, mode := range []string{"teen", "menopause"} {
+			for day, phase := range map[int]string{13: "follicular", 14: "luteal", 15: "luteal"} {
+				m := generate(mode, locale, calc(day))
+				info := m["context_info"].(map[string]any)
+				assert.Equal(t, phase, info["phase"], "%s %s day %d", mode, locale, day)
+				assert.Nil(t, info["subphase"], "%s %s", mode, locale)
+				assert.Equal(t, false, info["is_fertile_window"], "%s %s", mode, locale)
+				assert.Nil(t, info["estimated_ovulation_day"], "%s %s", mode, locale)
+				text := copyText(m)
+				for _, w := range words {
+					assert.NotContains(t, text, w, "%s %s day %d", mode, locale, day)
+				}
+			}
+		}
+	}
+}
+
+func toString(v any) string {
+	s, _ := v.(string)
+	return s
+}

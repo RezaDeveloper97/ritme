@@ -55,14 +55,16 @@ import {
   SkyLayer,
   StatusPill,
 } from '@/shared/ui';
-import { BottomNav } from '@/widgets/bottom-nav';
+import { BottomNav, useNavMode } from '@/widgets/bottom-nav';
 import {
   CalendarLegend,
   CYCLE_LEGEND,
   MonthCard,
+  NO_FERTILITY_LEGEND,
   TTC_LEGEND,
   YearView,
   dayTone,
+  withoutFertility,
   type CalendarDayInfo,
   type LegendKey,
 } from '@/widgets/cycle-calendar';
@@ -127,7 +129,11 @@ export function CalendarPage() {
   const router = useRouter();
   const isRtl = useDirection() === 'rtl';
   const modeQuery = useUserMode();
-  const isTtc = modeQuery.data?.isTtc ?? false;
+  // CB-TEEN-04b: teen and menopause see no fertile window, ovulation or fertile phase anywhere on the
+  // calendar (the home does the same with `hideFertility`) — and never the TTC layout.
+  const navMode = useNavMode();
+  const hideFertility = navMode.mode === 'teen' || navMode.mode === 'menopause';
+  const isTtc = !hideFertility && (modeQuery.data?.isTtc ?? false);
   // Queries are gated on the token (client-only): hold the skeleton until mount so
   // the first client render matches the server HTML, and until the mode is known
   // so a TTC user never sees the cycle layout flash first.
@@ -184,7 +190,8 @@ export function CalendarPage() {
   const loading =
     !mounted ||
     (!loadedOnce && calc.pending) ||
-    (modeQuery.isPending && modeQuery.fetchStatus !== 'idle');
+    (modeQuery.isPending && modeQuery.fetchStatus !== 'idle') ||
+    navMode.pending;
 
   useEffect(() => {
     if (!overlay) return;
@@ -211,7 +218,8 @@ export function CalendarPage() {
     if (overlay?.paint.has(iso)) return 'period';
     if (overlay?.clear.has(iso)) return null;
     const c = calcMap.get(iso);
-    return c ? dayMarker(c) : null;
+    const marker = c ? dayMarker(c) : null;
+    return hideFertility ? withoutFertility(marker) : marker;
   };
 
   const effectiveEndOf = (p: LoggedPeriod): string =>
@@ -555,7 +563,11 @@ export function CalendarPage() {
           {body}
 
           {!calc.error && !loading ? (
-            <CalendarLegend items={isTtc ? TTC_LEGEND : CYCLE_LEGEND} label={legendLabel} title={tn('legendTitle')} />
+            <CalendarLegend
+              items={isTtc ? TTC_LEGEND : hideFertility ? NO_FERTILITY_LEGEND : CYCLE_LEGEND}
+              label={legendLabel}
+              title={tn('legendTitle')}
+            />
           ) : null}
 
           {noHistory && !loading ? (

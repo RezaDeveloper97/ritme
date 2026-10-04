@@ -4579,6 +4579,9 @@
     },
     "measurements": {
      "title": "وزن و دمای پایه",
+     "mode_titles": {
+      "teen": "وزن"
+     },
      "params": {
       "weight": {
        "title": "وزن"

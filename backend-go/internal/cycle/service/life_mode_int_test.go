@@ -1,8 +1,9 @@
 package service_test
 
-// B-N2-11b (N2 stage smoke B-3): a stored teen / menopause life mode keeps /cycle/today|date's
-// daily card off the fertile window — no «پنجره باروری» / ovulation copy on any day of the cycle —
-// while the same user without a stored mode still gets it (contract payloads unchanged).
+// B-N2-11b (N2 stage smoke B-3) + CB-TEEN-04b: a stored teen / menopause life mode keeps /cycle/today|date
+// off the fertile window — no «پنجره باروری» / ovulation / pregnancy-chance copy in the daily card, the
+// text flags or the daily tips on any day of the cycle — while the same user without a stored mode still
+// gets it (contract payloads unchanged).
 
 import (
 	"context"
@@ -28,21 +29,47 @@ func TestDayJSON_NoFertilityCopyForTeenAndMenopause(t *testing.T) {
 	const uid = 1004 // regular
 	today := civildate.MustParse("2026-09-01")
 
+	// copyOf is the day's user-facing copy: the daily card, the calculation's text flags and daily tips
+	// (CB-TEEN-04b) — enum values and numbers are data, not copy.
+	copyOf := func(raw []byte) string {
+		var body struct {
+			Calc struct {
+				Flags map[string]any `json:"text_flags"`
+				Tips  []struct {
+					Type  string `json:"type"`
+					Text  string `json:"text"`
+					Title string `json:"title"`
+				} `json:"daily_tips"`
+			} `json:"calculation"`
+			View struct {
+				Card struct {
+					Title          string   `json:"title"`
+					Subtitle       string   `json:"subtitle"`
+					FertilityLabel string   `json:"fertility_label"`
+					Badges         []string `json:"badges"`
+				} `json:"daily_card"`
+			} `json:"cycle_view"`
+		}
+		require.NoError(t, json.Unmarshal(raw, &body), string(raw))
+		parts := []string{body.View.Card.Title, body.View.Card.Subtitle, body.View.Card.FertilityLabel}
+		parts = append(parts, body.View.Card.Badges...)
+		for _, v := range body.Calc.Flags {
+			if s, ok := v.(string); ok {
+				parts = append(parts, s)
+			}
+		}
+		for _, tip := range body.Calc.Tips {
+			parts = append(parts, tip.Type, tip.Title, tip.Text)
+		}
+		return strings.ToLower(strings.Join(parts, " "))
+	}
+	fertilityWords := []string{"باروری", "تخمک", "بارداری", "اوج", "fertil", "ovulat", "pregnan", "conceive", "peak"}
 	mentionsFertility := func(locale string) bool {
 		for d := today; d.Compare(today.AddDays(35)) < 0; d = d.AddDays(1) {
 			p, err := svc.DayJSON(ctx, uid, d, today, locale)
 			require.NoError(t, err)
-			var body struct {
-				View struct {
-					Card struct {
-						Title    string `json:"title"`
-						Subtitle string `json:"subtitle"`
-					} `json:"daily_card"`
-				} `json:"cycle_view"`
-			}
-			require.NoError(t, json.Unmarshal(p.JSON, &body), string(p.JSON))
-			text := strings.ToLower(body.View.Card.Title + " " + body.View.Card.Subtitle)
-			for _, w := range []string{"باروری", "تخمک", "fertil", "ovulat"} {
+			text := copyOf(p.JSON)
+			for _, w := range fertilityWords {
 				if strings.Contains(text, w) {
 					return true
 				}

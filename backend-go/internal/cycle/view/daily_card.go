@@ -82,7 +82,17 @@ func (b cardBuilder) action(typ, fa, en string) *Action {
 }
 
 // BuildDailyCard is DailyCardBuilder::build: title chain actual > incomplete > needs_confirmation > predicted.
+// With NoFertilityCopy the card's fertility read-out is `unknown` (CB-TEEN-04b): no «اوج» / "Peak" label.
 func BuildDailyCard(in CardInput) DailyCard {
+	card := buildDailyCard(in)
+	if in.NoFertilityCopy {
+		card.FertilityLevel = enums.FertilityLevelUnknown
+		card.FertilityLabel = enums.FertilityLevelUnknown.Label(in.Locale)
+	}
+	return card
+}
+
+func buildDailyCard(in CardInput) DailyCard {
 	b := cardBuilder{locale: in.Locale}
 	sel, ref := in.Selected, in.Today
 	isFuture := sel.After(ref)

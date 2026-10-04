@@ -183,7 +183,7 @@ func CategoriesJSON(mode string, l Labels) []*jsonx.OrderedMap {
 		}
 		out = append(out, jsonx.Obj(
 			"code", c.Code,
-			"label", l.get("categories."+c.Code+".title", c.Code),
+			"label", categoryLabel(c.Code, mode, l),
 			"group", jsonx.Obj("value", c.Group, "label", l.get("groups."+c.Group, c.Group)),
 			"modes", c.Modes,
 			"conditions", conds,
@@ -191,6 +191,16 @@ func CategoriesJSON(mode string, l Labels) []*jsonx.OrderedMap {
 		))
 	}
 	return out
+}
+
+// categoryLabel is the category title; a mode may override it with `categories.<code>.mode_titles.<mode>`
+// (CB-TEEN-04b: teen's «وزن و دمای پایه» is just «وزن» — BBT is a fertile-modes-only param).
+func categoryLabel(code, mode string, l Labels) string {
+	title := l.get("categories."+code+".title", code)
+	if mode == "" {
+		return title
+	}
+	return l.get("categories."+code+".mode_titles."+mode, title)
 }
 
 func paramJSON(c *Category, p *Param, mode string, l Labels) *jsonx.OrderedMap {

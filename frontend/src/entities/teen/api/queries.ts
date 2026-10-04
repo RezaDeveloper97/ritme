@@ -35,12 +35,12 @@ export async function fetchTeenToday(): Promise<TeenToday> {
   return teenTodaySchema.parse(data.data);
 }
 
-/** GET /teen/today — the teen home read model. */
-export function useTeenToday() {
+/** GET /teen/today — the teen home read model (`enabled` false: not a teen, so don't ask). */
+export function useTeenToday(enabled = true) {
   return useQuery({
     queryKey: teenKeys.today(),
     queryFn: fetchTeenToday,
-    enabled: isAuthenticated(),
+    enabled: enabled && isAuthenticated(),
     staleTime: 30_000,
     retry: 1,
   });

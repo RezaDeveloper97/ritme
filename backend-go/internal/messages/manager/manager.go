@@ -18,6 +18,7 @@ package manager
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	"github.com/ritme/backend-go/internal/cycle/legacy"
 	"github.com/ritme/backend-go/internal/enums"
@@ -168,7 +169,34 @@ func (m *Manager) BuildContext(ctx context.Context, date civildate.Date, force e
 		}
 		return mc, m.pregnancyContext(ctx, mc)
 	}
-	return mc, m.cycleContext(ctx, mc)
+	if err := m.cycleContext(ctx, mc); err != nil {
+		return mc, err
+	}
+	if lm != "" && !lm.AllowsFertilityContent() { // CB-TEEN-04b: no ovulation / fertile-window message either
+		mc.withoutFertility()
+	}
+	return mc, nil
+}
+
+// fertileSubphases are the sub-phases whose labels name fertility or ovulation.
+var fertileSubphases = []enums.CycleSubphase{
+	enums.CycleSubphaseFertileRising, enums.CycleSubphaseHighFertility,
+	enums.CycleSubphaseOvulationLikely, enums.CycleSubphasePostOvulation,
+}
+
+// withoutFertility (CB-TEEN-04b, extends B-N2-11b's NoFertilityCopy) is the day as a mode without fertility
+// content (teen, menopause) reads it: the ovulation phase is the neutral follicular / luteal phase (so the
+// base message and the nutrition / sleep / exercise modules never pick their ovulation copy), a
+// fertility-worded sub-phase is null, and there is no fertile window or ovulation day.
+func (mc *Context) withoutFertility() {
+	if mc.CycleDay != nil && mc.EstimatedOvulationDay != nil {
+		mc.CyclePhase = string(legacy.NeutralPhase(enums.CyclePhase(mc.CyclePhase), *mc.CycleDay, *mc.EstimatedOvulationDay))
+	}
+	if slices.Contains(fertileSubphases, enums.CycleSubphase(mc.CycleSubphase)) {
+		mc.CycleSubphase = ""
+	}
+	mc.IsFertileWindow = false
+	mc.EstimatedOvulationDay = nil
 }
 
 // cycleContext is buildCycleContext: the legacy engine's day.

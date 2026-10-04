@@ -6,7 +6,7 @@ Modules are added by the task that first needs them (YAGNI):
 | Namespace | Purpose | Owner task |
 |---|---|---|
 | `App\Support\Cache` | `CacheAside` + versioned namespaces for cached repository decorators | L0-03 |
-| `App\Support\Html` | small HTML/attribute helpers for Blade components | first user |
+| `App\Support\Html` | rich-HTML sanitiser, external links, Persian heading anchors/TOC, word count + reading time, slugs | L4-01 |
 | `App\Support\Jalali` | Jalali (Shamsi) date formatting / parsing | first user |
 | `App\Support\Money` | Toman/Rial value object + Persian formatting | L6 |
 | `App\Support\Text` | Persian text helpers (digits, slugs, excerpts) | first user |
