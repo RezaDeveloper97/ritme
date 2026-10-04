@@ -93,3 +93,13 @@ node tools/pwa-icons.mjs --screenshots   # also public/icons/screenshot-{mobile,
 ```
 
 Rasterised by headless Chrome (no npm deps, local files/origins only); WebP conversion via PHP GD.
+
+## pwa-check.mjs — automated PWA verification (L8-03)
+
+`node tools/pwa-check.mjs [--build] [--base http://127.0.0.1:PORT] [--out docs/qa/L8] [--keep-min]`
+
+Runs a production build check against system Chrome over CDP (no npm packages): manifest + installability, SW
+registration and precache contents, offline navigation (visited page from cache, unvisited → `/offline`), never-cache
+routes (admin, cart, version.json), install prompt, soft update (new SW + polling channel), forced screen
+(`min_build_id`, restored to null afterwards), zero external requests and zero CSP violations. Starts and stops its own
+`php -S` server unless `--base` is given. Writes `pwa-check.json` + 390 px screenshots to `--out`. Exit 1 on any failure.

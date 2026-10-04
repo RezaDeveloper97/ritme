@@ -112,7 +112,9 @@ async function page(event) {
 }
 
 async function cacheFirst(request) {
-    const cached = await caches.match(request);
+    // Icons are requested with a `?v=` content hash but precached without it; build assets are hashed by name.
+    const ignoreSearch = new URL(request.url).pathname.startsWith('/icons/');
+    const cached = await caches.match(request, { ignoreSearch });
     if (cached) return cached;
 
     const response = await fetch(request);

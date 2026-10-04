@@ -1,0 +1,225 @@
+{
+  "tool": "pwa-check",
+  "date": "2026-10-04T15:48:05.002Z",
+  "build": "20261004154741-ec752f00",
+  "counts": {
+    "pass": 23,
+    "fail": 0,
+    "warn": 0
+  },
+  "results": [
+    {
+      "id": "build",
+      "status": "pass",
+      "title": "production build present: no public/hot, public/sw.js stamped with build-id.json",
+      "evidence": [
+        "build-id.json 20261004154741-ec752f00, sw.js 20261004154741-ec752f00, hot: false, 33 precache URLs expected"
+      ]
+    },
+    {
+      "id": "http",
+      "status": "pass",
+      "title": "/manifest.webmanifest answers 200 application/manifest+json with JSON",
+      "evidence": [
+        "200 application/manifest+json; charset=UTF-8"
+      ]
+    },
+    {
+      "id": "http",
+      "status": "pass",
+      "title": "/pwa/version.json is no-store, cookie-free and reports the deployed build id",
+      "evidence": [
+        "200 cache-control: max-age=0, no-store, private",
+        "body: {\"build_id\":\"20261004154741-ec752f00\",\"min_build_id\":null,\"message\":\"\"}"
+      ]
+    },
+    {
+      "id": "http",
+      "status": "pass",
+      "title": "/sw.js is served as JavaScript and carries the deployed build id",
+      "evidence": [
+        "200 application/javascript, 4.7 kB, cache-control: null"
+      ]
+    },
+    {
+      "id": "http",
+      "status": "pass",
+      "title": "/offline answers 200, noindex, with the retry button",
+      "evidence": [
+        "200, robots noindex: true"
+      ]
+    },
+    {
+      "id": "sw",
+      "status": "pass",
+      "title": "service worker registers (scope /), activates and controls the page",
+      "evidence": [
+        "registration: {\"scope\":\"http://127.0.0.1:60516/\",\"active\":\"activated\",\"script\":\"http://127.0.0.1:60516/sw.js\",\"waiting\":false,\"installing\":false,\"updateViaCache\":\"none\"}",
+        "controller: true"
+      ]
+    },
+    {
+      "id": "manifest",
+      "status": "pass",
+      "title": "Page.getAppManifest: no errors; name, short_name, id, start_url, standalone, colours, 192/512 + maskable icons",
+      "evidence": [
+        "url: http://127.0.0.1:60516/manifest.webmanifest",
+        "errors: []",
+        "members: ok",
+        "name «ریتمی», start_url /?source=pwa, display standalone, 5 icons"
+      ]
+    },
+    {
+      "id": "manifest",
+      "status": "pass",
+      "title": "Page.getInstallabilityErrors is empty (installable)",
+      "evidence": [
+        "[]"
+      ]
+    },
+    {
+      "id": "precache",
+      "status": "pass",
+      "title": "ritme-shell-20261004154741-ec752f00 holds every precache URL tools/build-sw.mjs derives (incl. /offline + icons), no admin assets",
+      "evidence": [
+        "caches: ritme-shell-20261004154741-ec752f00, ritme-pages-20261004154741-ec752f00",
+        "shell 35 entries (expected 33), missing 0, extra 2 (runtime cache-first): /icons/screenshot-desktop.webp?v=015b484e, /build/assets/theme-X5EeFRda.css",
+        "offline page precached: true"
+      ]
+    },
+    {
+      "id": "sw",
+      "status": "pass",
+      "title": "visited pages are stored in ritme-pages-20261004154741-ec752f00",
+      "evidence": [
+        "ritme-pages-20261004154741-ec752f00: [\"/\",\"/cycle\"]",
+        "/cycle online: 200, «پیگیری چرخه و پریود با پیش‌بینی و سطح اطمینان — ریتمی»"
+      ]
+    },
+    {
+      "id": "never",
+      "status": "pass",
+      "title": "never-cache routes (/admin/login, /shop/cart, /pwa/version.json) bypass the worker and are in no ritme-* cache",
+      "evidence": [
+        "/admin/login: 200 fromServiceWorker=false",
+        "/shop/cart: 200 fromServiceWorker=false",
+        "cached never-cache URLs: none"
+      ]
+    },
+    {
+      "id": "offline",
+      "status": "pass",
+      "title": "offline: visited /cycle is served from the page cache",
+      "evidence": [
+        "navigation error: none, status 200, fromServiceWorker=true",
+        "title «پیگیری چرخه و پریود با پیش‌بینی و سطح اطمینان — ریتمی» (online «پیگیری چرخه و پریود با پیش‌بینی و سطح اطمینان — ریتمی»)"
+      ]
+    },
+    {
+      "id": "offline",
+      "status": "pass",
+      "title": "offline: unvisited /about falls back to the precached /offline page",
+      "evidence": [
+        "navigation error: none, status 200, fromServiceWorker=true",
+        "title «اتصال برقرار نیست — ریتمی», retry button visible: true"
+      ]
+    },
+    {
+      "id": "offline",
+      "status": "pass",
+      "title": "offline: never-cache routes (/admin/login, /shop/cart) are not answered by the worker (browser network error, no cached copy, no /offline)",
+      "evidence": [
+        "/admin/login: net::ERR_INTERNET_DISCONNECTED, fromServiceWorker=false, offline page=false",
+        "/shop/cart: net::ERR_INTERNET_DISCONNECTED, fromServiceWorker=false, offline page=false"
+      ]
+    },
+    {
+      "id": "install",
+      "status": "pass",
+      "title": "beforeinstallprompt → own install banner «ریتمی را روی صفحه اصلی داشته باش» on a later page view",
+      "evidence": [
+        "ریتمی را روی صفحه اصلی داشته باشنصب سبک است و بدون فروشگاه برنامه، با یک لمس باز می‌شود.نصبنه، ممنون"
+      ]
+    },
+    {
+      "id": "soft",
+      "status": "pass",
+      "title": "service-worker channel: a redeployed (byte-changed) sw.js installs, waits for SKIP_WAITING, and the toast appears",
+      "evidence": [
+        "registration.update(): true",
+        "waiting worker: true",
+        "toast: shown"
+      ]
+    },
+    {
+      "id": "soft",
+      "status": "pass",
+      "title": "toast «به‌روزرسانی» activates the waiting worker (SKIP_WAITING) and reloads exactly once",
+      "evidence": [
+        "reloaded: true, extra reloads: 0, waiting after: false, active: activated, toast after reload: false"
+      ]
+    },
+    {
+      "id": "soft",
+      "status": "pass",
+      "title": "polling channel: running build 20000101000000-pwacheck < deployed 20261004154741-ec752f00 → toast «نسخه جدید آماده است» (non-blocking)",
+      "evidence": [
+        "bundle rewritten on the wire: /build/assets/pwa-DKuNMhJU.js",
+        "toast: نسخه جدید آماده استبرای دیدن آخرین تغییرها صفحه را تازه کن.به‌روزرسانیبعداً"
+      ]
+    },
+    {
+      "id": "soft",
+      "status": "pass",
+      "title": "soft toast is dismissible («بعداً») and never blocks the page",
+      "evidence": [
+        "dismissed: true, page inert: false"
+      ]
+    },
+    {
+      "id": "forced",
+      "status": "pass",
+      "title": "min_build_id = deployed build → blocking screen «این نسخه دیگر پشتیبانی نمی‌شود» for build 20000101000000-pwacheck; Escape/Back cannot leave",
+      "evidence": [
+        "/pwa/version.json after bump: {\"build_id\":\"20261004154741-ec752f00\",\"min_build_id\":\"20261004154741-ec752f00\",\"message\":\"\"}",
+        "screen: این نسخه دیگر پشتیبانی نمی‌شودبرای ادامه، ریتمی را به‌روزرسانی کن. چند ثانیه بیشتر طول نمی",
+        "after Escape: still shown, after Back: still shown",
+        "rest of page inert: true, focus inside screen: true",
+        "«به‌روزرسانی» reloaded: true; still-old build after reload → screen again: true"
+      ]
+    },
+    {
+      "id": "external",
+      "status": "pass",
+      "title": "no request to a non-local origin from any page or service worker",
+      "evidence": [
+        "0 external requests"
+      ]
+    },
+    {
+      "id": "csp",
+      "status": "pass",
+      "title": "no Content-Security-Policy violation on any page",
+      "evidence": [
+        "0 violations"
+      ]
+    },
+    {
+      "id": "forced",
+      "status": "pass",
+      "title": "min_build_id restored to null",
+      "evidence": [
+        "now: null"
+      ]
+    }
+  ],
+  "screenshots": [
+    "home-390.png",
+    "offline-visited-390.png",
+    "offline-unvisited-390.png",
+    "install-banner-390.png",
+    "soft-sw-channel-390.png",
+    "soft-toast-390.png",
+    "forced-390.png"
+  ]
+}

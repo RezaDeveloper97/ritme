@@ -610,3 +610,13 @@ One section per finished task (appended by `/site-task`).
   no sample photos. `seo:audit` 0 errors.
 - Open: `[زمان بررسی]` + partnership terms copy still placeholders (→ DirectorySettings); review/approve → Place is L5-06;
   pending photos are public under /media; dev `upload_max_filesize=2M` (check on cPanel); queue worker needed (L10-01).
+
+## L8-03 — PWA verification (offline, update tiers, installability)
+- `tools/pwa-check.mjs` (repeatable; system Chrome via CDP, own `php -S` server, `--build/--base/--out/--keep-min`):
+  23 checks — build id consistency, manifest + installability (`[]` errors), SW active with scope `/`, all 33
+  precached URLs, offline (visited from SW, unvisited → /offline, admin/cart not served), never-cache online, install
+  prompt, soft update via new SW + via polling, forced screen (Escape/Back blocked, focus trapped, restored to null),
+  zero external requests, zero CSP violations. Result: **23 passed, 0 failed**. Report `docs/qa/L8/README.md` + JSON.
+- Orchestrator: SW `cacheFirst` matches `/icons/*` with `ignoreSearch` (precache has no `?v=`), tool documented in
+  `tools/README.md`; re-run green.
+- Note: admin `theme-*.css` lands in the shell cache when /admin is opened (hashed, harmless).

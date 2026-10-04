@@ -3,7 +3,7 @@ id: L8-03
 title: PWA verification (offline, update tiers, installability)
 milestone: L8
 type: quality
-status: todo
+status: done
 depends_on: [L8-02]
 parallel_group: L8-C
 touches: [docs/qa/L8,tools/pwa-check.mjs]
