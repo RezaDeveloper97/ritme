@@ -8,9 +8,6 @@ declare(strict_types=1);
  * `mock` is the copy of the decorative phone screen mock/screens/menopause-status (demo values, aria-hidden).
  * Red lines: no diagnosis claims, no «حتماً/قطعاً/دقیق‌ترین/تضمینی», no sales pressure; treatment decisions stay
  * with the user and her doctor.
- *
- * Hero: the design highlights «فصل تازه» in the middle of the h1; the shared hero renders the highlight first,
- * so the highlight carries the opening words to keep the sentence order (reported in L3-05).
  */
 
 return [
@@ -23,8 +20,9 @@ return [
 
     'hero' => [
         'eyebrow' => 'یائسگی',
-        'highlight' => 'یائسگی، فصل تازه؛',
-        'title' => 'نه پایان راه',
+        // h1 = title with the lilac `highlight` phrase in place of :highlight (design wording).
+        'highlight' => 'فصل تازه',
+        'title' => 'یائسگی، :highlight؛ نه پایان راه',
         'lead' => 'گرگرفتگی، خواب، حال و خونریزی‌های غیرمنتظره را ثبت کن؛ روند علائمت را ببین و با گزارشی روشن پیش پزشک برو.',
         'float' => [
             'hot-flash' => ['title' => 'گرگرفتگی امروز', 'text' => '۴ بار · ۲ کمتر از دیروز'],
@@ -94,7 +92,7 @@ return [
     ],
 
     'mock' => [
-        'status' => [
+        'menopause_status' => [
             'label' => 'حالت یائسگی',
             'title' => '۱۴ ماه بدون پریود',
             'stats' => [

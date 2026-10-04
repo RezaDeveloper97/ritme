@@ -18,9 +18,9 @@ return [
 
     'hero' => [
         'eyebrow' => 'اقدام به بارداری',
-        // Design: «روزهای باروری را بشناس، <با آرامش>» — the shared hero puts the highlight first (reported in L3-04).
+        // h1 = title with the lilac `highlight` phrase in place of :highlight (design wording).
         'highlight' => 'با آرامش',
-        'title' => 'روزهای باروری را بشناس',
+        'title' => 'روزهای باروری را بشناس، :highlight',
         'lead' => 'تقویم باروری، تست LH و دمای پایه در یک جا؛ و اگر درمان ناباروری داری، برنامه تزریق و نوبت‌ها.',
         'float' => [
             'next' => ['title' => 'پریود بعدی', 'text' => '۱۴ روز دیگر'],

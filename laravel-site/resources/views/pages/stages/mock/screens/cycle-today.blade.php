@@ -1,4 +1,4 @@
-{{-- Mock screen «cycle today» (AUDIT §2.4: index, cycle, ttc, teen): phase ring + fertile window + check-in. $data: stages/common.mock.cycle_today. --}}
+{{-- Mock screen «cycle today» (AUDIT §2.4: index, cycle, ttc, teen): phase ring + fertile window + check-in. $data: stages/common.mock.cycle_today, or a stage's own `<stage>.mock.cycle_today` (teen: the school kit instead of the fertile window). --}}
 <div class="flex flex-col items-center gap-3.5 px-4 py-6.5">
     <span class="text-xs font-bold text-on-night-muted">{{ $data['day'] ?? '' }}</span>
     <div class="flex size-45 items-center justify-center rounded-full bg-[conic-gradient(var(--color-stage-cycle)_0_17%,var(--color-lilac)_17%_45%,var(--color-phase-fertile)_45%_60%,var(--color-phase-luteal)_60%_100%)]">

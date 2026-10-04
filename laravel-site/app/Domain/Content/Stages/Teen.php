@@ -7,10 +7,10 @@ namespace App\Domain\Content\Stages;
 use App\Domain\Blog\Enums\LifeStage;
 
 /**
- * /teen — «نوجوان و والدین» (design/html/teen.html). Copy: lang/fa/stages/teen.php (mock-screen copy under its
- * `mock` key, read by mock/screens/teen-*). The teen version has no shop or services, so there is no help block
+ * /teen — «نوجوان و والدین» (design/html/teen.html). Copy: lang/fa/stages/teen.php (its `mock` key overrides the
+ * shared cycle-today and companion screens' copy). The teen version has no shop or services, so there is no help block
  * (help() stays empty — AUDIT §1); the second split is the parent section «مادر در جریان است، نه ناظر».
- * Mock screens are teen-specific on purpose: no fertile window, no partner copy.
+ * Mock copy is teen-specific on purpose: no fertile window, no partner copy.
  */
 final class Teen extends StageDefinition
 {
@@ -22,8 +22,8 @@ final class Teen extends StageDefinition
     public function features(): array
     {
         return [
-            new FeatureSpec('simple', screen: 'teen-today'),
-            new FeatureSpec('mother', screen: 'teen-mother'),
+            new FeatureSpec('simple', screen: 'cycle-today'),
+            new FeatureSpec('mother', screen: 'companion'),
         ];
     }
 
@@ -38,7 +38,7 @@ final class Teen extends StageDefinition
 
     public function heroScreen(): string
     {
-        return 'teen-today';
+        return 'cycle-today';
     }
 
     public function floatCards(): array

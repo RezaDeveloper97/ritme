@@ -32,6 +32,8 @@ final class StagePageBuilder
 
     private const COMMON = 'stages/common';
 
+    private const HIGHLIGHT = ':highlight';
+
     public function __construct(
         private readonly Translator $translator,
         private readonly SiteNavigation $navigation,
@@ -87,17 +89,19 @@ final class StagePageBuilder
     private function hero(StageDefinition $definition): StageHeroData
     {
         $group = $definition->langGroup();
+        [$titleBefore, $titleAfter] = $this->splitTitle($this->text($group, 'hero.title'));
 
         return new StageHeroData(
             eyebrow: $this->text($group, 'hero.eyebrow'),
             eyebrowIcon: $definition->eyebrowIcon(),
+            titleBefore: $titleBefore,
             highlight: $this->text($group, 'hero.highlight'),
-            title: $this->text($group, 'hero.title'),
+            titleAfter: $titleAfter,
             lead: $this->text($group, 'hero.lead'),
             downloadLabel: $this->text(self::COMMON, 'hero.download'),
             howLabel: $this->text(self::COMMON, 'hero.how'),
             screen: $definition->heroScreen(),
-            screenData: $this->screenCopy($definition->heroScreen()),
+            screenData: $this->screenCopy($group, $definition->heroScreen()),
             floatCards: array_map(fn (FloatCardSpec $card): StageFloatCardData => new StageFloatCardData(
                 icon: $card->icon,
                 tint: $card->tint,
@@ -138,7 +142,7 @@ final class StagePageBuilder
                         'tint' => $spec->tint,
                         'cta' => $this->text(self::COMMON, 'mock.continue'),
                     ]
-                    : $this->screenCopy($spec->screen),
+                    : $this->screenCopy($group, $spec->screen),
                 mediaFirst: $index % 2 === 1,
                 surface: $index % 2 === 1,
             );
@@ -214,15 +218,40 @@ final class StagePageBuilder
     }
 
     /**
-     * Copy of a shared mock screen (`stages/common.mock.<screen>`), keys as strings.
+     * `hero.title` carries a `:highlight` placeholder where the lilac phrase sits in the design's h1; without one the
+     * phrase leads the title. Returns the text before and after the phrase (spacing as written in the lang file).
      *
-     * @return array<string, string>
+     * @return array{0: string, 1: string}
      */
-    private function screenCopy(string $screen): array
+    private function splitTitle(string $title): array
     {
-        $copy = $this->translator->get(self::COMMON.'.mock.'.str_replace('-', '_', $screen));
+        if (! str_contains($title, self::HIGHLIGHT)) {
+            return ['', ' '.$title];
+        }
 
-        return is_array($copy) ? array_filter($copy, 'is_string') : [];
+        [$before, $after] = explode(self::HIGHLIGHT, $title, 2);
+
+        return [$before, $after];
+    }
+
+    /**
+     * Copy of a mock screen: the stage's own `<stage>.mock.<screen>` first, then the shared
+     * `stages/common.mock.<screen>` (dashes → underscores). Values may be nested lists (stats, rows). The phone
+     * partial keys its fragment cache by this array, so lang edits show up without a cache bump.
+     *
+     * @return array<string, mixed>
+     */
+    private function screenCopy(string $group, string $screen): array
+    {
+        $key = 'mock.'.str_replace('-', '_', $screen);
+        foreach ([$group, self::COMMON] as $source) {
+            $copy = $this->translator->get("{$source}.{$key}");
+            if (is_array($copy)) {
+                return array_filter($copy, static fn (mixed $value, mixed $name): bool => is_string($name) && (is_string($value) || is_array($value)), ARRAY_FILTER_USE_BOTH);
+            }
+        }
+
+        return [];
     }
 
     private function text(string $group, string $key): string

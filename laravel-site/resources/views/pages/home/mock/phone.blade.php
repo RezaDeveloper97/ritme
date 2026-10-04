@@ -1,7 +1,8 @@
 {{--
     @include('pages.home.mock.phone', ['size' => 'hero|split', 'screen' => 'cycle-today|companion'])
     CSS phone mockup (AUDIT §2.4 x-mock.phone): hero 300×620 (border 10, content at 1.0), feature splits 255×527
-    (border 8, content scaled .85). Decorative: aria-hidden, the words are lang/fa/home.php `mock.*`.
+    (border 8, content scaled .85). Decorative: aria-hidden, the words are lang/fa/home.php `mock.*`; «همدم» is the
+    screen shared with the stage pages (pages/stages/mock/screens/companion) fed with `home.mock.companion`.
 --}}
 @php($hero = ($size ?? 'split') === 'hero')
 <div aria-hidden="true" @class([
@@ -13,6 +14,10 @@
         <span @class(['rounded-md bg-night-deep', 'h-5.5 w-22.5' => $hero, 'h-4.5 w-19' => ! $hero])></span>
     </div>
     <div @class(['mx-auto w-70 origin-top max-sm:scale-none', 'scale-85' => ! $hero])>
-        @include('pages.home.mock.'.$screen)
+        @if ($screen === 'companion')
+            @include('pages.stages.mock.screens.companion', ['data' => __('home.mock.companion')])
+        @else
+            @include('pages.home.mock.'.$screen)
+        @endif
     </div>
 </div>

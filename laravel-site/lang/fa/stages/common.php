@@ -38,7 +38,8 @@ return [
         'eyebrow' => 'سؤال‌های رایج',
     ],
 
-    // Phone mock-up screens (decorative, aria-hidden): resources/views/pages/stages/mock/screens/*.
+    // Phone mock-up screens (decorative, aria-hidden): resources/views/pages/stages/mock/screens/*. Keys = screen
+    // name with underscores; a stage file's own `mock.<screen>` wins over these.
     'mock' => [
         'cycle_today' => [
             'day' => 'امروز · روز ۱۴',
@@ -47,6 +48,16 @@ return [
             'fertile' => 'پنجره باروری',
             'fertile_value' => 'امروز',
             'checkin' => 'امروز چطور بودی؟',
+        ],
+        // mock/screens/companion — shared with the home page «همدم» split; a stage may override it.
+        'companion' => [
+            'eyebrow' => 'همدم سارا',
+            'title' => 'سلام علی',
+            'card_label' => 'سیکل سارا',
+            'card_value' => 'روز ۲۲ · لوتئال',
+            'tip' => 'امروز: یک شام سبک و گرم آماده کن',
+            'row_label' => 'قرص آهن سارا',
+            'row_value' => '۲۱:۰۰',
         ],
         'continue' => 'ادامه',
     ],

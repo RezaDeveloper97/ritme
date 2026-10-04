@@ -8,7 +8,7 @@ use App\Domain\Blog\Enums\LifeStage;
 
 /**
  * /postpartum — «پس از زایمان و کودک» (design/html/postpartum.html). Copy: lang/fa/stages/postpartum.php
- * (mock-screen copy under its `mock` key, read by mock/screens/postpartum-*).
+ * (mock-screen copy under its `mock` key; the family split uses the shared companion screen).
  */
 final class Postpartum extends StageDefinition
 {
@@ -22,7 +22,7 @@ final class Postpartum extends StageDefinition
         return [
             new FeatureSpec('recovery', screen: 'postpartum-baby'),
             new FeatureSpec('baby', screen: 'checklist', tint: 'fertile'),
-            new FeatureSpec('family', screen: 'postpartum-partner'),
+            new FeatureSpec('family', screen: 'companion'),
         ];
     }
 

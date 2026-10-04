@@ -20,7 +20,7 @@ final class Ttc extends StageDefinition
     {
         return [
             new FeatureSpec('fertility', screen: 'cycle-today'),
-            new FeatureSpec('companion', screen: 'ttc-companion'),
+            new FeatureSpec('companion', screen: 'companion'),
             // Design accent #FFB86B is a rare one-off (AUDIT §3.1) → nearest token, phase-luteal.
             new FeatureSpec('treatment', screen: 'checklist', tint: 'luteal'),
         ];

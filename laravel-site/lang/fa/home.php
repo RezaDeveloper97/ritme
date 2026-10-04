@@ -130,12 +130,16 @@ return [
         'fertile_window' => 'پنجره باروری',
         'fertile_when' => 'امروز',
         'how_was_today' => 'امروز چطور بودی؟',
-        'companion_of' => 'همدم سارا',
-        'greeting' => 'سلام علی',
-        'cycle_of' => 'سیکل سارا',
-        'cycle_day' => 'روز ۲۲ · لوتئال',
-        'suggestion' => 'امروز: یک شام سبک و گرم آماده کن',
-        'reminder' => 'قرص آهن سارا',
-        'reminder_time' => '۲۱:۰۰',
+        // Copy of the shared «همدم» screen (pages/stages/mock/screens/companion, same keys as
+        // stages/common.mock.companion). Kept here so the home fragment cache key (this file's mtime) covers it.
+        'companion' => [
+            'eyebrow' => 'همدم سارا',
+            'title' => 'سلام علی',
+            'card_label' => 'سیکل سارا',
+            'card_value' => 'روز ۲۲ · لوتئال',
+            'tip' => 'امروز: یک شام سبک و گرم آماده کن',
+            'row_label' => 'قرص آهن سارا',
+            'row_value' => '۲۱:۰۰',
+        ],
     ],
 ];

@@ -112,6 +112,7 @@ final class HomeController
             glob(resource_path('views/pages/home/*.blade.php')) ?: [],
             glob(resource_path('views/pages/home/*/*.blade.php')) ?: [],
             glob(resource_path('views/components/*/*.blade.php')) ?: [],
+            glob(resource_path('views/pages/stages/mock/screens/*.blade.php')) ?: [], // shared phone screens
             [lang_path('fa/home.php')],
         );
         $mtime = max(array_map(static fn (string $file): int => is_file($file) ? (int) filemtime($file) : 0, $files));

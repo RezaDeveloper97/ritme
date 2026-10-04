@@ -6,13 +6,10 @@ declare(strict_types=1);
  * /teen — design/html/teen.html. Structure (icons, colours, links, mock screens) lives in
  * App\Domain\Content\Stages\Teen; the keys of `features`, `tools` and `hero.float` match its specs. No `help`
  * block: the teen version has no shop or services.
- * `mock` is the copy of the decorative phone screens mock/screens/teen-* (aria-hidden). They replace the design's
- * shared screens on purpose: no fertile window and no partner copy on a page for young teens.
+ * `mock` overrides the copy of the shared decorative phone screens cycle-today and companion (aria-hidden),
+ * departing from the design on purpose: no fertile window and no partner copy on a page for young teens.
  * Red lines: age-appropriate, no diagnosis claims, no «حتماً/قطعاً/دقیق‌ترین/تضمینی», no sales pressure; the mother
  * sees only what the teen allows.
- *
- * Hero: the design highlights «بدون ترس» in the middle of the h1; the shared hero renders the highlight first, so
- * the highlight carries the opening words to keep the sentence order (reported in L3-05).
  */
 
 return [
@@ -25,8 +22,9 @@ return [
 
     'hero' => [
         'eyebrow' => 'نوجوان و والدین',
-        'highlight' => 'اولین پریود، بدون ترس',
-        'title' => 'و خجالت',
+        // h1 = title with the lilac `highlight` phrase in place of :highlight (design wording).
+        'highlight' => 'بدون ترس',
+        'title' => 'اولین پریود، :highlight و خجالت',
         'lead' => 'نسخه ساده و آموزشی ریتمی برای دخترهای نوجوان؛ بدون فروشگاه و تبلیغ، با امکان همراهی مادر.',
         'float' => [
             'next' => ['title' => 'پریود بعدی', 'text' => '۱۴ روز دیگر'],
@@ -84,8 +82,8 @@ return [
     ],
 
     'mock' => [
-        // Same keys as stages/common.mock.cycle_today (the screen reuses mock/screens/cycle-today).
-        'today' => [
+        // Overrides stages/common.mock.cycle_today (same keys) — no fertile window for teens.
+        'cycle_today' => [
             'day' => 'امروز · روز ۱۴',
             'countdown' => '۱۴ روز',
             'countdown_label' => 'تا پریود بعدی',
@@ -93,8 +91,8 @@ return [
             'fertile_value' => 'آماده',
             'checkin' => 'امروز چطور بودی؟',
         ],
-        // Same keys as stages/postpartum.mock.partner (the screen reuses mock/screens/postpartum-partner).
-        'mother' => [
+        // Overrides stages/common.mock.companion (same keys) — the mother's view, no partner copy for teens.
+        'companion' => [
             'eyebrow' => 'همراهی مادر',
             'title' => 'سلام مادر',
             'card_label' => 'با اجازه دخترت',

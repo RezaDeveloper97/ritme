@@ -1,10 +1,9 @@
 {{--
     Mock screen «pregnancy week 24» (AUDIT §2.4, /pregnancy hero + «هفته‌به‌هفته» split): glowing egg medallion,
-    size comparison, 2×2 stat tiles. Copy: stages/pregnancy.mock.week. Decorative; $data is unused.
+    size comparison, 2×2 stat tiles. $data: stages/pregnancy.mock.pregnancy_week. Decorative.
 --}}
 @php
-    $week = __('stages/pregnancy.mock.week');
-    $week = is_array($week) ? $week : [];
+    $week = $data ?? [];
 @endphp
 <div class="flex flex-col items-center gap-3.5 px-4 py-6.5">
     <span class="text-xs font-bold text-on-night-muted">{{ $week['label'] ?? '' }}</span>

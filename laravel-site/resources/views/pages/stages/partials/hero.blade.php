@@ -1,12 +1,12 @@
 {{--
     Stage hero (AUDIT §2.4 `x-stage.hero`), inside the dark header block. $hero: StageHeroData. The single h1 of the
-    page; the phone, orbit and float cards are decorative (aria-hidden). «چطور کار می‌کند؟» targets the first
+    page (the lilac phrase sits where `:highlight` stands in `hero.title`); the phone, orbit and float cards are decorative (aria-hidden). «چطور کار می‌کند؟» targets the first
     feature split (#how).
 --}}
 <section aria-labelledby="stage-hero-title" class="flex items-center gap-10 px-30 pt-8 pb-25 max-lg:flex-wrap max-lg:px-5 max-lg:py-8">
     <div class="flex flex-1 flex-col gap-6 max-lg:basis-75 max-sm:basis-full">
         <x-ui.eyebrow tone="dark" pill :icon="$hero->eyebrowIcon">{{ $hero->eyebrow }}</x-ui.eyebrow>
-        <h1 id="stage-hero-title" class="m-0 font-display text-d-3xl leading-display font-normal text-on-night"><span class="text-lilac">{{ $hero->highlight }}</span> {{ $hero->title }}</h1>
+        <h1 id="stage-hero-title" class="m-0 font-display text-d-3xl leading-display font-normal text-on-night">{{ $hero->titleBefore }}<span class="text-lilac">{{ $hero->highlight }}</span>{{ $hero->titleAfter }}</h1>
         <p class="m-0 max-w-140 text-2xl leading-loose font-medium text-on-night-muted max-sm:w-full max-sm:max-w-full">{{ $hero->lead }}</p>
         <div class="flex flex-wrap gap-3">
             <x-ui.button href="#download" tone="dark" size="xl" icon="download" class="box-content border-[1.5px] border-lilac">{{ $hero->downloadLabel }}</x-ui.button>

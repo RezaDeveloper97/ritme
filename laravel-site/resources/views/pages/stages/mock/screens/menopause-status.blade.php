@@ -1,9 +1,9 @@
 {{--
     Mock screen «menopause status» (menopause hero + first split): months without a period, three symptom counters,
-    symptom score with a trend line, «hot flash now» button. Copy: stages/menopause.mock.status.
+    symptom score with a trend line, «hot flash now» button. $data: stages/menopause.mock.menopause_status.
 --}}
 @php
-    $copy = __('stages/menopause.mock.status');
+    $copy = $data ?? [];
     $tints = ['period' => 'text-phase-period', 'lilac' => 'text-lilac', 'fertile' => 'text-phase-fertile'];
 @endphp
 <div class="flex flex-col gap-3 px-4 py-6.5">

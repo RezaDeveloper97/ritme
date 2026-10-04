@@ -1,9 +1,9 @@
 {{--
     Mock screen «baby today» (postpartum hero + first split): child age, weight growth chart, three status rows.
-    Copy: stages/postpartum.mock.baby (the shared builder only passes stages/common.mock.* to non-checklist screens).
+    $data: stages/postpartum.mock.postpartum_baby.
 --}}
 @php
-    $copy = __('stages/postpartum.mock.baby');
+    $copy = $data ?? [];
     $tints = ['luteal' => 'text-phase-luteal', 'fertile' => 'text-phase-fertile', 'lilac' => 'text-lilac'];
 @endphp
 <div class="flex flex-col gap-3 px-4 py-6.5">

@@ -18,8 +18,9 @@ return [
 
     'hero' => [
         'eyebrow' => 'پیگیری چرخه',
+        // h1 = title with the lilac `highlight` phrase in place of :highlight (design wording).
         'highlight' => 'الگوی بدن خودت',
-        'title' => 'را بشناس، نه میانگین دیگران',
+        'title' => ':highlight را بشناس، نه میانگین دیگران',
         'lead' => 'پیش‌بینی پریود و باروری با سطح اطمینان، ثبت ساده علائم و تحلیلی که از ثبت‌های خودت ساخته می‌شود.',
         'float' => [
             'next' => ['title' => 'پریود بعدی', 'text' => '۱۴ روز دیگر'],

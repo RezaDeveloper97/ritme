@@ -467,3 +467,14 @@ One section per finished task (appended by `/site-task`).
   placeholder rows + design's `max-lg:flex-wrap` render bug not reproduced) / 1440 1.16%. `seo:audit` 0 errors.
 - Open: owner decision on prices (move to a `PlusSettings` group); seeded FAQ answer still shows
   «[سیاست بازگشت وجه…]» on /plus; `promo-split` mobile padding (worked around with `max-sm:[&>a]:p-9`); `x-cards.pricing` not built.
+
+## L3-03b — Stage template hooks: inline h1 highlight, per-stage mock copy, shared companion screen
+- `hero.title` supports `:highlight` (split into `titleBefore`/`titleAfter`; no placeholder = old leading highlight).
+  All six stage h1s now match the design wording.
+- `StagePageBuilder::screenCopy($group, $screen)` reads `<stage>.mock.<screen>` then `stages/common.mock.<screen>`
+  (nested lists kept); stage screens read `$data` only, so the fragment key (md5 of data) follows lang changes.
+- One shared `mock/screens/companion` for home, ttc, postpartum, teen (teen: mother view, no partner content);
+  `teen-today` → `cycle-today` with teen copy. Five old screen views removed (the deletions were accidentally swept
+  into the L3-06 commit `d64f67c5`; this commit restores consistency).
+- Orchestrator: `HomeController::templateVersion()` also watches `pages/stages/mock/screens/*`.
+- Diff (NULL links) unchanged or better on all pages; hero regions improved (ttc 1440 3.69→2.64%, pregnancy 4.85→2.49%).

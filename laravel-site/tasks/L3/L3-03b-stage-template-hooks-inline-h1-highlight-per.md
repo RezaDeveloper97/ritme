@@ -3,7 +3,7 @@ id: L3-03b
 title: Stage template hooks: inline h1 highlight, per-stage mock copy, shared companion screen
 milestone: L3
 type: frontend
-status: todo
+status: done
 depends_on: [L3-04,L3-05]
 parallel_group: L3-C
 touches: [app/Domain/Content/Stages,resources/views/pages/stages,lang/fa/stages,lang/fa/home.php,resources/views/pages/home,tests/Feature/Pages]

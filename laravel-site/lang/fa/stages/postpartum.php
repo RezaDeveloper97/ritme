@@ -5,7 +5,8 @@ declare(strict_types=1);
 /*
  * /postpartum — design/html/postpartum.html. Structure (icons, colours, links, mock screens) lives in
  * App\Domain\Content\Stages\Postpartum; the keys of `features`, `tools`, `help` and `hero.float` match its specs.
- * `mock` is the copy of the decorative phone screens mock/screens/postpartum-* (demo values, aria-hidden).
+ * `mock` is the copy of the decorative phone screen mock/screens/postpartum-baby (demo values, aria-hidden); the
+ * family split uses the shared companion screen (stages/common.mock.companion).
  * Red lines: no diagnosis claims, no «حتماً/قطعاً/دقیق‌ترین/تضمینی», no sales pressure.
  */
 
@@ -19,8 +20,9 @@ return [
 
     'hero' => [
         'eyebrow' => 'پس از زایمان و کودک',
+        // h1 = title with the lilac `highlight` phrase in place of :highlight (design wording).
         'highlight' => 'حال خودت',
-        'title' => 'هم مهم است، نه فقط کودک',
+        'title' => ':highlight هم مهم است، نه فقط کودک',
         'lead' => 'بهبودی بعد از زایمان، شیردهی و خواب، و رشد، واکسن و نقاط عطف کودک؛ برای یک یا چند فرزند.',
         'float' => [
             'vaccine' => ['title' => 'واکسن ۴ ماهگی', 'text' => '۳ روز دیگر'],
@@ -89,7 +91,7 @@ return [
     ],
 
     'mock' => [
-        'baby' => [
+        'postpartum_baby' => [
             'label' => 'آوا · ۴ ماهه',
             'chart' => 'نمودار رشد · وزن',
             'rows' => [
@@ -97,15 +99,6 @@ return [
                 ['label' => 'شیر امروز', 'value' => '۶ بار', 'tint' => 'fertile'],
                 ['label' => 'خواب', 'value' => '۱۴ ساعت', 'tint' => 'lilac'],
             ],
-        ],
-        'partner' => [
-            'eyebrow' => 'همدم سارا',
-            'title' => 'سلام علی',
-            'card_label' => 'سیکل سارا',
-            'card_value' => 'روز ۲۲ · لوتئال',
-            'tip' => 'امروز: یک شام سبک و گرم آماده کن',
-            'row_label' => 'قرص آهن سارا',
-            'row_value' => '۲۱:۰۰',
         ],
     ],
 ];

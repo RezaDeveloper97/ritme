@@ -8,7 +8,7 @@ use App\Domain\Blog\Enums\LifeStage;
 
 /**
  * /menopause — «یائسگی» (design/html/menopause.html). Copy: lang/fa/stages/menopause.php (mock-screen copy under
- * its `mock` key, read by mock/screens/menopause-*).
+ * its `mock` key, `mock.menopause_status` for mock/screens/menopause-status).
  */
 final class Menopause extends StageDefinition
 {

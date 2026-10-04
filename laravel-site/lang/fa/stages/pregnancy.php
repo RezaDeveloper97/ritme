@@ -18,9 +18,9 @@ return [
 
     'hero' => [
         'eyebrow' => 'بارداری',
-        // Design: «۴۰ هفته، <قدم‌به‌قدم> کنارت» — the shared hero puts the highlight first (reported in L3-04).
+        // h1 = title with the lilac `highlight` phrase in place of :highlight (design wording).
         'highlight' => 'قدم‌به‌قدم',
-        'title' => 'کنارت، در ۴۰ هفته',
+        'title' => '۴۰ هفته، :highlight کنارت',
         'lead' => 'رشد جنین هفته‌به‌هفته، ویزیت‌ها و آزمایش‌ها، علائم خطر و ابزارهای آمادگی زایمان؛ ابزارهای پایه همیشه رایگان.',
         'float' => [
             'week' => ['title' => 'هفته ۲۴', 'text' => 'به اندازه یک ذرت'],
@@ -93,7 +93,7 @@ return [
 
     // Phone mock-up screen resources/views/pages/stages/mock/screens/pregnancy-week (decorative, aria-hidden).
     'mock' => [
-        'week' => [
+        'pregnancy_week' => [
             'label' => 'هفته ۲۴ بارداری',
             'size' => 'به اندازه یک ذرت',
             'stats' => [

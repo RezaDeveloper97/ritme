@@ -5,8 +5,11 @@ declare(strict_types=1);
 use App\Domain\Blog\Enums\LifeStage;
 use App\Domain\Blog\Models\Post;
 use App\Domain\Content\Stages\Cycle;
+use App\Domain\Content\Stages\Pregnancy;
 use App\Domain\Content\Stages\StagePageBuilder;
 use App\Domain\Content\Stages\StageRegistry;
+use App\Domain\Content\Stages\Teen;
+use App\Domain\Content\Stages\Ttc;
 use App\Domain\Seo\Models\SeoMeta;
 use Database\Seeders\SettingsSeeder;
 
@@ -144,5 +147,67 @@ it('keeps the stage copy inside the content red lines', function (): void {
         foreach (['حتماً', 'حتما ', 'قطعاً', 'دقیق‌ترین', 'تضمینی', 'تشخیص می‌دهیم'] as $word) {
             expect(str_contains($copy, $word))->toBeFalse("«{$word}» in ".basename($file));
         }
+    }
+});
+
+it('renders each stage h1 with the design wording and the lilac phrase in place', function (string $path, string $h1, string $highlight): void {
+    $html = $this->get($path)->assertOk()->getContent();
+
+    expect(preg_match('~<h1[^>]*>(.*?)</h1>~s', $html, $m))->toBe(1);
+    expect(trim(html_entity_decode(strip_tags($m[1]))))->toBe($h1)
+        ->and($m[1])->toContain('<span class="text-lilac">'.$highlight.'</span>')
+        ->and($m[1])->not->toContain(':highlight');
+})->with([
+    'cycle' => ['/cycle', 'الگوی بدن خودت را بشناس، نه میانگین دیگران', 'الگوی بدن خودت'],
+    'ttc' => ['/ttc', 'روزهای باروری را بشناس، با آرامش', 'با آرامش'],
+    'pregnancy' => ['/pregnancy', '۴۰ هفته، قدم‌به‌قدم کنارت', 'قدم‌به‌قدم'],
+    'postpartum' => ['/postpartum', 'حال خودت هم مهم است، نه فقط کودک', 'حال خودت'],
+    'menopause' => ['/menopause', 'یائسگی، فصل تازه؛ نه پایان راه', 'فصل تازه'],
+    'teen' => ['/teen', 'اولین پریود، بدون ترس و خجالت', 'بدون ترس'],
+]);
+
+it('puts the highlight first when the title has no :highlight placeholder', function (): void {
+    __('stages/cycle.name'); // load the group so addLines only overrides one line
+    app('translator')->addLines(['stages/cycle.hero.title' => 'را بشناس'], 'fa');
+
+    $hero = app(StagePageBuilder::class)->build(new Cycle)->hero;
+
+    expect($hero->titleBefore)->toBe('')
+        ->and($hero->highlight)->toBe('الگوی بدن خودت')
+        ->and($hero->titleAfter)->toBe(' را بشناس');
+});
+
+it('reads mock screen copy from the stage first, then the shared copy', function (): void {
+    $builder = app(StagePageBuilder::class);
+    $screen = static fn (object $page, string $key): array => collect($page->features)->firstWhere('key', $key)->screenData;
+
+    // ttc companion split → the shared stages/common.mock.companion
+    expect($screen($builder->build(new Ttc), 'companion')['title'] ?? null)->toBe('سلام علی');
+    // teen overrides both shared screens (no fertile window, no partner copy)
+    $teen = $builder->build(new Teen);
+    expect($screen($teen, 'mother')['title'] ?? null)->toBe('سلام مادر')
+        ->and($teen->hero->screenData['fertile'] ?? null)->toBe('کیف اضطراری مدرسه')
+        // nested lists survive (stat tiles)
+        ->and($builder->build(new Pregnancy)->hero->screenData['stats'] ?? null)->toBeArray()->not->toBeEmpty();
+});
+
+it('re-renders a cached mock screen when its stage copy changes', function (): void {
+    config(['pagecache.enabled' => false]); // only the mock fragment cache is under test
+    expect($this->get('/teen')->assertOk()->getContent())->toContain('سلام مادر');
+
+    app('translator')->addLines(['stages/teen.mock.companion.title' => 'سلام دوباره'], 'fa');
+
+    expect($this->get('/teen')->assertOk()->getContent())->toContain('سلام دوباره')->not->toContain('سلام مادر');
+});
+
+it('shares one companion screen between the home page and the stages', function (): void {
+    expect(view()->exists('pages.stages.mock.screens.companion'))->toBeTrue()
+        ->and(view()->exists('pages.home.mock.companion'))->toBeFalse()
+        ->and(view()->exists('pages.stages.mock.screens.ttc-companion'))->toBeFalse()
+        ->and(view()->exists('pages.stages.mock.screens.postpartum-partner'))->toBeFalse()
+        ->and(view()->exists('pages.stages.mock.screens.teen-mother'))->toBeFalse();
+
+    foreach (['/', '/ttc', '/postpartum'] as $path) {
+        expect($this->get($path)->assertOk()->getContent())->toContain('همدم سارا')->toContain('قرص آهن سارا');
     }
 });

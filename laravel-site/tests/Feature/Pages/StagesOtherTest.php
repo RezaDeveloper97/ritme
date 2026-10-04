@@ -59,9 +59,9 @@ it('renders each stage page with its own SEO, one h1 and the design sections', f
         ->and($graph)->toHaveKey('MobileApplication')
         ->and(end($graph['BreadcrumbList']['itemListElement'])['item'] ?? null)->toBe('https://ritme.test'.$path);
 })->with([
-    'postpartum' => ['/postpartum', 'پس از زایمان: بهبودی مادر، شیردهی و رشد کودک', 'حال خودت', 3, true, 'سؤال‌های رایج پس از زایمان'],
-    'menopause' => ['/menopause', 'یائسگی: ثبت گرگرفتگی، روند علائم و یادآور چکاپ', 'یائسگی، فصل تازه؛', 3, true, 'سؤال‌های رایج درباره یائسگی'],
-    'teen' => ['/teen', 'اولین پریود؛ تقویم ساده نوجوان با همراهی مادر', 'اولین پریود، بدون ترس', 2, false, 'سؤال‌های رایج نوجوان‌ها و والدین'],
+    'postpartum' => ['/postpartum', 'پس از زایمان: بهبودی مادر، شیردهی و رشد کودک', 'حال خودت</span> هم مهم است، نه فقط کودک', 3, true, 'سؤال‌های رایج پس از زایمان'],
+    'menopause' => ['/menopause', 'یائسگی: ثبت گرگرفتگی، روند علائم و یادآور چکاپ', 'فصل تازه</span>؛ نه پایان راه', 3, true, 'سؤال‌های رایج درباره یائسگی'],
+    'teen' => ['/teen', 'اولین پریود؛ تقویم ساده نوجوان با همراهی مادر', 'بدون ترس</span> و خجالت', 2, false, 'سؤال‌های رایج نوجوان‌ها و والدین'],
 ]);
 
 it('renders the stage-specific mock screens with their copy', function (): void {
