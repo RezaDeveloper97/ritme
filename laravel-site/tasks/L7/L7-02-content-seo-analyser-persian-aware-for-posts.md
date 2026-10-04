@@ -3,7 +3,7 @@ id: L7-02
 title: Content SEO analyser (Persian-aware) for posts, products, places, pages
 milestone: L7
 type: backend
-status: todo
+status: done
 depends_on: [L7-01]
 parallel_group: L7-B
 touches: [app/Domain/Seo/Analysis,app/Filament/Components/Seo,tests/Unit/Seo/Analysis]

@@ -20,5 +20,8 @@ verify: composer verify
 - Settings pages for `SeoDefaults` (title template, separator, default description, default OG image, twitter
   handle) and `OrganizationSettings` (legal name, logo, sameAs list, contact point, founding date) feeding JSON-LD.
 
+- From L7-02: store the analyser score (+ a `cornerstone` flag) on `seo_meta` so list tables can show an SEO score
+  column and a «نیاز به کار» filter; duplicate check for static pages by route_name.
+
 ## Acceptance
 - Bulk save of 50 rows in one action bumps caches once; tests green.

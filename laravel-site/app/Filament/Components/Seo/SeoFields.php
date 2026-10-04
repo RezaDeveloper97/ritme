@@ -4,13 +4,20 @@ declare(strict_types=1);
 
 namespace App\Filament\Components\Seo;
 
+use App\Domain\Seo\Analysis\AnalysisInput;
+use App\Domain\Seo\Analysis\ContentType;
+use App\Domain\Seo\Analysis\Queries\FindDuplicateSeoMeta;
+use App\Domain\Seo\Analysis\SeoAnalysis;
+use App\Domain\Seo\Analysis\SeoAnalyzer;
 use App\Domain\Seo\Contracts\OgImageResolver;
+use App\Domain\Seo\Models\SeoMeta;
 use App\Domain\Seo\Support\DescriptionText;
 use App\Domain\Seo\Support\Robots;
 use App\Domain\Settings\Contracts\SettingsRepository;
 use App\Domain\Settings\Data\SiteSettings;
 use App\Filament\Forms\Components\MediaPicker;
 use Closure;
+use Filament\Forms\Components\RichEditor\RichContentRenderer;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -47,6 +54,13 @@ use Throwable;
  * Records without a model (static pages, L7-01) use `SeoFields::standalone()`: same fields under `seoMeta.*`, no
  * relationship — the page reads `seoMeta` from its form state, runs `dehydrateRobots()` and saves through an action.
  * `->fallbackTitleIsComplete()` marks a fallback title that already carries the brand (no title template).
+ *
+ * Content analysis (L7-02): the "تحلیل سئو" section runs `App\Domain\Seo\Analysis\SeoAnalyzer` on every debounced
+ * change (title, description, focus keyword …) and when the tab scrolls into view, so body edits made in another tab
+ * are picked up. The body is the parent `body` / `content` / `description` field (rich-editor JSON or HTML or plain
+ * text), or `->contentFrom()`; the page kind (post / product / place / page / archive) comes from the resource model
+ * or `->analysisType()`; `->cornerstone()` applies the stricter cornerstone thresholds. Standalone pages are analysed
+ * without a body (their copy lives in the template).
  */
 final class SeoFields extends Group
 {
@@ -65,6 +79,15 @@ final class SeoFields extends Group
     private bool|Closure $fallbackTitleIsComplete = false;
 
     private bool $standalone = false;
+
+    /** Parent form fields tried, in order, as the analysed body when no `contentFrom()` is given. */
+    public const CONTENT_FIELDS = ['body', 'content', 'description'];
+
+    private string|Closure|null $contentSource = null;
+
+    private ContentType|Closure|null $analysisType = null;
+
+    private bool|Closure $cornerstone = false;
 
     /**
      * Without the `seoMeta` relationship: the fields live under `$statePath.*` of the parent form and the caller
@@ -126,6 +149,30 @@ final class SeoFields extends Group
     }
 
     /**
+     * The analysed body: a parent field name or a closure returning HTML / rich-editor JSON / plain text.
+     */
+    public function contentFrom(string|Closure|null $source): static
+    {
+        $this->contentSource = $source;
+
+        return $this;
+    }
+
+    public function analysisType(ContentType|Closure|null $type): static
+    {
+        $this->analysisType = $type;
+
+        return $this;
+    }
+
+    public function cornerstone(bool|Closure $condition = true): static
+    {
+        $this->cornerstone = $condition;
+
+        return $this;
+    }
+
+    /**
      * @param  Closure(Get, ?Model): string  $resolver  absolute URL of the page (shown in the SERP preview)
      */
     public function urlUsing(?Closure $resolver): static
@@ -164,9 +211,17 @@ final class SeoFields extends Group
                     TextInput::make('focus_keyword')
                         ->label('کلیدواژه کانونی')
                         ->maxLength(191)
+                        ->live(debounce: 500)
                         ->helperText('عبارتی که این صفحه برای آن نوشته شده است.'),
                     SerpPreview::make()
                         ->viewData(fn (Get $get): array => ['serp' => $this->serpPreview($get)]),
+                ]),
+            Section::make('تحلیل سئو')
+                ->description('بررسی زنده عنوان، توضیح، کلیدواژه، ساختار و خوانایی متن؛ هنگام تایپ به‌روز می‌شود.')
+                ->collapsible()
+                ->schema([
+                    SeoAnalysisPanel::make()
+                        ->viewData(fn (Get $get): array => ['analysis' => $this->analysis($get)]),
                 ]),
             Section::make('اشتراک‌گذاری در شبکه‌های اجتماعی')
                 ->description('Open Graph و کارت توییتر؛ خالی بماند، از عنوان و توضیح سئو استفاده می‌شود.')
@@ -335,6 +390,106 @@ final class SeoFields extends Group
             'description' => mb_strimwidth($description, 0, 160, '…'),
             'image' => $image?->url,
         ];
+    }
+
+    private function analysis(Get $get): ?SeoAnalysis
+    {
+        try {
+            $type = $this->contentType();
+            $seoTitle = trim((string) $get('title'));
+            $description = trim((string) $get('description'));
+            $duplicates = $this->duplicates($seoTitle, $description);
+            $url = $this->pageUrl($get('canonical_url'));
+
+            return app(SeoAnalyzer::class)->analyze(new AnalysisInput(
+                type: $type,
+                title: $this->fullTitle($seoTitle),
+                heading: $this->standalone ? '' : ($this->fallbackTitle() ?? ''),
+                description: $this->fullDescription($description),
+                slug: $this->slug($url),
+                focusKeyword: trim((string) $get('focus_keyword')),
+                contentHtml: $this->contentHtml($type),
+                ownHosts: array_values(array_unique(array_filter([
+                    (string) parse_url(url('/'), PHP_URL_HOST),
+                    (string) parse_url($url, PHP_URL_HOST),
+                ]))),
+                cornerstone: $this->evaluate($this->cornerstone) === true,
+                duplicateTitle: $duplicates['title'],
+                duplicateDescription: $duplicates['description'],
+            ));
+        } catch (Throwable) {
+            return null;
+        }
+    }
+
+    private function contentType(): ContentType
+    {
+        $type = $this->evaluate($this->analysisType);
+        if ($type instanceof ContentType) {
+            return $type;
+        }
+        if ($this->standalone) {
+            return ContentType::Page;
+        }
+
+        return match (class_basename((string) $this->getRootContainer()->getModel())) {
+            'Post' => ContentType::Post,
+            'Product' => ContentType::Product,
+            'Place' => ContentType::Place,
+            default => ContentType::Archive,
+        };
+    }
+
+    /**
+     * Body as HTML (rich-editor JSON rendered), null when the page has none to analyse.
+     */
+    private function contentHtml(ContentType $type): ?string
+    {
+        if ($this->contentSource instanceof Closure) {
+            $raw = $this->evaluate($this->contentSource);
+        } else {
+            $raw = null;
+            foreach ($this->contentSource !== null ? [$this->contentSource] : ($this->standalone ? [] : self::CONTENT_FIELDS) as $field) {
+                $raw = $this->makeGetUtility()($field);
+                if ($raw !== null && $raw !== '' && $raw !== []) {
+                    break;
+                }
+            }
+        }
+
+        $html = match (true) {
+            is_array($raw) => RichContentRenderer::make($raw)->toUnsafeHtml(), // analysed only, never rendered
+            is_scalar($raw) => trim((string) $raw),
+            default => '',
+        };
+
+        return $html === '' && in_array($type, [ContentType::Page, ContentType::Archive], true) ? null : $html;
+    }
+
+    private function slug(string $url): string
+    {
+        $slug = $this->standalone ? '' : $this->source('slug');
+        if ($slug !== '') {
+            return $slug;
+        }
+
+        $segments = explode('/', trim((string) parse_url($url, PHP_URL_PATH), '/'));
+
+        return (string) end($segments);
+    }
+
+    /**
+     * @return array{title: bool|null, description: bool|null}
+     */
+    private function duplicates(string $seoTitle, string $description): array
+    {
+        if ($this->standalone) {
+            return ['title' => null, 'description' => null]; // the page's own row is keyed by route, unknown here
+        }
+
+        $existing = $this->getCachedExistingRecord();
+
+        return app(FindDuplicateSeoMeta::class)->handle($seoTitle, $description, $existing instanceof SeoMeta ? $existing->id : null);
     }
 
     private function pageUrl(mixed $canonical): string

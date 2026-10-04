@@ -700,3 +700,15 @@ One section per finished task (appended by `/site-task`).
   `SeoFields::standalone()` + `->fallbackTitleIsComplete()`; OG preview gained Telegram + WhatsApp cards.
 - Tests: `StaticPageSeoTest` (9) incl. edit → new `<title>` through the page cache. Pest 1116 passed.
 - Follow-ups added to L9-05: per-method SeoManager/SchemaGraph resolution; controllers reading `StaticPageSeoDefaults`.
+
+## L7-02 — Content SEO analyser (Persian-aware) for posts, products, places, pages
+- `app/Domain/Seo/Analysis/`: pure deterministic `SeoAnalyzer` (25 checks → score 0–100 + checklist: title/description
+  length + pixel width via `TextWidth`, focus keyword in title/description/h1/slug/first paragraph/subheadings/alt,
+  density 0.5–2.5%, length by `ContentType` + cornerstone, single h1 = title, no skipped levels, alt coverage,
+  internal links, external `rel`, slug length/stopwords, Persian readability, duplicates, red-line words + diagnosis
+  claims as errors capping the score at 40), `PersianText` (reuses `SearchTerms::normalize`, «می‌شود/میشود/می شود»
+  one word, prefix-anchored keyword matching), `ContentDocument`, `RedLines` (word-boundary), `Queries/FindDuplicateSeoMeta`.
+- `SeoAnalysisPanel` in `SeoFields` (debounced live focus keyword, x-intersect refresh, «بررسی دوباره»; `contentFrom()`,
+  `analysisType()`, `cornerstone()`); appears automatically on Blog + static-page SEO tabs. `SerpMeasure` → `TextWidth`
+  + `PersianDigits`. 53 tests (incl. < 150 ms for ~3000 words).
+- Follow-up moved to L7-06: persist score + cornerstone flag for list columns / «نیاز به کار» filter.
