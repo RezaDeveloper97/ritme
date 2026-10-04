@@ -4,7 +4,7 @@ title: Lab analysis backend — upload, extraction, verify, interpretation, tren
 milestone: N6
 type: backend
 status: todo
-depends_on: [B-N6-05]
+depends_on: [B-N6-05,B-N6-05b]
 parallel_group: N6-F
 touches: [backend-go/internal/labs,backend-go/db,backend-go/api,backend-go/seeds]
 skills: [new-endpoint]
