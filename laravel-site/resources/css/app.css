@@ -14,6 +14,7 @@
    Only the paths below are scanned for class names. */
 @import 'tailwindcss' source(none);
 @import './fonts.css';
+@import './prose.css';
 
 @source '../views';
 @source '../js';

@@ -3,7 +3,7 @@ id: L4-03
 title: Article page: TOC, author/reviewer box, related posts, BlogPosting schema
 milestone: L4
 type: frontend
-status: todo
+status: done
 depends_on: [L4-02]
 parallel_group: L4-B
 touches: [resources/views/pages/blog/show.blade.php,resources/views/components/blog,app/Http/Controllers/Blog/ShowPostController.php,app/Domain/Blog/Rendering,resources/css/prose.css,tests/Feature/Blog/ArticleTest.php]

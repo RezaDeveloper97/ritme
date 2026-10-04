@@ -386,3 +386,17 @@ One section per finished task (appended by `/site-task`).
 - Copy changes: menopause insurance line adapted (design said maternity cover); teen age/consent placeholder answered
   by pointing to terms/privacy + parental involvement (legal text still owed); h1 highlight spans leading words until
   **L3-03b**.
+
+## L4-03 — Article page: TOC, author/reviewer box, related posts, BlogPosting schema
+- `ShowPostController` (slug history 301 keeping query, 404 for unknown/unpublished), `app/Domain/Blog/Rendering/`
+  (`ArticleBodyRenderer`: re-sanitise, `data-media-id` → `<x-picture>` (first eager if no cover), table scroll wrappers,
+  cached in `pages`; `ArticlePageBuilder`, `ShareLinks`), `pages/blog/show` + `components/blog/*` (meta, cover LCP
+  priority, toc, app-card, reviewer, share, adjacent, sources, disclaimer, body-image), `resources/css/prose.css`
+  (imported in app.css). `PostRepository::adjacentInCategory()` (cached).
+- SEO: BlogPosting (headline ≤110, dates +03:30, author, publisher, section, keywords, wordCount, OG crop image),
+  WebPage reviewedBy + lastReviewed, BreadcrumbList, `og:type article` + `article:*`, `max-image-preview:large`.
+  `ArticleTest` (10). `seo:audit` 0 errors.
+- Diff whole page 1440 18.16% / 390 27.41% (height: hidden store badges/login with NULL app links, mobile sidebar
+  stacking, design's red callout not in seeded body); article region 1440 1.73% / 390 3.46%.
+- Views counted on MISS only → **L4-03b** (beacon, share copy module, UI copy to lang).
+- Orchestrator: `RoutingTest` seeds `BlogSeeder` for `blog.show`; slug-case test asserts "no 301" instead of 200.

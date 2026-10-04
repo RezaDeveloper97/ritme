@@ -1,0 +1,217 @@
+/*
+ * Article body typography (L4-03) — `.rt-article` wraps the sanitised HTML of a magazine post
+ * (App\Domain\Blog\Rendering\ArticleBodyRenderer). Values follow design/html/article.html: 18px paragraphs with
+ * line-height 2.2, 26px/800 Vazirmatn section titles, 16px/600 list items with a teal check, 20px rhythm.
+ *
+ * Persian: no letter-spacing, justification or hyphenation (they break ZWNJ joins and kashida-less text), start
+ * alignment, long Latin URLs may wrap anywhere. Colours only through theme variables (no raw hex here).
+ * `.rt-prose` (app.css) stays the generic rich-text style for legal / place pages.
+ */
+@layer components {
+    .rt-article {
+        color: var(--color-ink);
+        font-size: var(--text-2xl);
+        font-weight: 400;
+        line-height: 2.2;
+        text-align: start;
+        letter-spacing: normal;
+        hyphens: none;
+        overflow-wrap: anywhere;
+
+        & > * {
+            margin-block: 0;
+        }
+
+        & > * + * {
+            margin-block-start: 1.25rem;
+        }
+
+        & > * + :is(h2, h3, h4) {
+            margin-block-start: 2rem;
+        }
+
+        & h2,
+        & h3,
+        & h4 {
+            font-family: var(--font-sans);
+            font-weight: 800;
+            line-height: var(--leading-normal);
+            color: var(--color-ink);
+            scroll-margin-block-start: 1.5rem;
+        }
+
+        & h2 {
+            font-size: 1.625rem; /* 26 */
+        }
+
+        & h3 {
+            font-size: var(--text-4xl);
+        }
+
+        & h4 {
+            font-size: var(--text-3xl);
+        }
+
+        & a {
+            color: var(--color-primary);
+            text-decoration: underline;
+            text-underline-offset: 4px;
+            text-decoration-thickness: 1px;
+        }
+
+        & a:hover {
+            color: var(--color-primary-hover);
+        }
+
+        & strong,
+        & b {
+            font-weight: 800;
+        }
+
+        /* Lists: 16px/600, line-height 1.9, 6px apart (design). Bulleted items get the check mark. */
+        & ul,
+        & ol {
+            padding: 0;
+            font-size: var(--text-lg);
+            font-weight: 600;
+            line-height: var(--leading-relaxed);
+        }
+
+        & ul {
+            list-style: none;
+        }
+
+        & ul > li {
+            position: relative;
+            padding-inline-start: 1.75rem;
+        }
+
+        & ul > li::before {
+            content: '';
+            position: absolute;
+            inset-inline-start: 0;
+            inset-block-start: 0.375rem;
+            width: 1.125rem;
+            height: 1.125rem;
+            background-color: var(--color-stage-postpartum);
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l4 4 10-10'/%3E%3C/svg%3E") center / contain no-repeat;
+        }
+
+        & ol {
+            list-style: decimal;
+            padding-inline-start: 1.75rem;
+        }
+
+        & ol > li::marker {
+            color: var(--color-primary);
+            font-weight: 800;
+        }
+
+        & li + li {
+            margin-block-start: 0.375rem;
+        }
+
+        & li > :is(ul, ol) {
+            margin-block-start: 0.375rem;
+        }
+
+        & blockquote {
+            border-inline-start: 4px solid var(--color-lilac);
+            background-color: var(--color-lavender);
+            border-radius: var(--radius-4xl);
+            padding: 1rem 1.5rem;
+            font-size: var(--text-lg);
+            line-height: var(--leading-loose);
+        }
+
+        & picture,
+        & img {
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+
+        & img {
+            border-radius: var(--radius-4xl);
+        }
+
+        & figcaption {
+            color: var(--color-muted);
+            font-size: var(--text-sm);
+            line-height: var(--leading-normal);
+            margin-block-start: 0.5rem;
+        }
+
+        & hr {
+            border: 0;
+            border-block-start: 1px solid var(--color-line);
+        }
+
+        /* Tables: horizontally scrollable, focusable region (keyboard users can scroll it). */
+        & .rt-table-scroll {
+            max-width: 100%;
+            overflow-x: auto;
+            border: 1px solid var(--color-line);
+            border-radius: var(--radius-xl);
+        }
+
+        & table {
+            width: 100%;
+            min-width: 30rem;
+            border-collapse: collapse;
+            font-size: var(--text-base);
+            line-height: var(--leading-normal);
+        }
+
+        & caption {
+            padding: 0.75rem 1rem;
+            color: var(--color-muted);
+            font-size: var(--text-sm);
+            text-align: start;
+        }
+
+        & th,
+        & td {
+            border-block-end: 1px solid var(--color-line);
+            padding: 0.625rem 1rem;
+            text-align: start;
+            vertical-align: top;
+        }
+
+        & th {
+            background-color: var(--color-canvas);
+            font-weight: 800;
+        }
+
+        & tr:last-child > :is(td, th) {
+            border-block-end: 0;
+        }
+    }
+
+    /* «منابع» under an article: compact references, links underlined. */
+    .rt-sources {
+        & > * {
+            margin: 0;
+        }
+
+        & ol,
+        & ul {
+            padding-inline-start: 1.25rem;
+        }
+
+        & ol {
+            list-style: decimal;
+        }
+
+        & ul {
+            list-style: disc;
+        }
+
+        & a {
+            color: var(--color-primary);
+            text-decoration: underline;
+            text-underline-offset: 3px;
+            overflow-wrap: anywhere;
+        }
+    }
+}

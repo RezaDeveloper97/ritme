@@ -88,6 +88,20 @@ final class CachedPostRepository extends CachedRepository implements PostReposit
         return array_map(PostCardData::fromArray(...), $data);
     }
 
+    public function adjacentInCategory(int $postId): array
+    {
+        /** @var array{previous: array<string, mixed>|null, next: array<string, mixed>|null} $data */
+        $data = $this->remember(['adjacent', $postId], fn (): array => array_map(
+            static fn (?PostCardData $card): ?array => $card?->toArray(),
+            $this->inner->adjacentInCategory($postId),
+        ));
+
+        return [
+            'previous' => $data['previous'] === null ? null : PostCardData::fromArray($data['previous']),
+            'next' => $data['next'] === null ? null : PostCardData::fromArray($data['next']),
+        ];
+    }
+
     /**
      * @param  list<string|int>  $key
      * @param  \Closure(): PostPage  $loader

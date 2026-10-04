@@ -43,4 +43,11 @@ interface PostRepository
      * @return list<PostCardData>
      */
     public function related(int $postId, int $limit = 3): array;
+
+    /**
+     * The published posts right before (older) and after (newer) the given one in its category (article prev/next).
+     *
+     * @return array{previous: PostCardData|null, next: PostCardData|null}
+     */
+    public function adjacentInCategory(int $postId): array;
 }

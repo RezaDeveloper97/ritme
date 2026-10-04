@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\PlaceholderPageController;
+use Database\Seeders\BlogSeeder;
 use Database\Seeders\SettingsSeeder;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\Request;
@@ -75,6 +76,11 @@ it('reads the full URL map from the audit', function (): void {
 });
 
 it('serves every audit page under its route name as a noindex placeholder with one h1', function (string $design, string $route, string $name): void {
+    // Real content pages need their demo rows (pages are swapped from the placeholder task by task).
+    if ($name === 'blog.show') {
+        $this->seed(BlogSeeder::class);
+    }
+
     $url = concreteUrl($route);
     $html = $this->get($url)->assertOk()->getContent();
 
@@ -157,7 +163,8 @@ it('lowercases static page paths with a 301', function (string $from, string $to
 ]);
 
 it('leaves the case of content slugs alone', function (string $url): void {
-    $this->get($url)->assertOk();
+    // No case-folding redirect; the content lookup itself decides between 200 and 404.
+    expect($this->get($url)->status())->not->toBe(301);
 })->with([
     '/blog/Period-Pain',
     '/blog/'.rawurlencode('درد-پریود'),

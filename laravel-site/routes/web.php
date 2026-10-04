@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Blog\BlogListingController;
 use App\Http\Controllers\Blog\NewsletterController;
+use App\Http\Controllers\Blog\ShowPostController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PlaceholderPageController;
 use App\Http\Controllers\Seo\RobotsTxtController;
@@ -52,7 +53,7 @@ Route::prefix('blog')->name('blog.')->group(function (): void {
     Route::get('/category/{slug}', [BlogListingController::class, 'category'])->name('category');  // L4-02
     Route::get('/tag/{slug}', [BlogListingController::class, 'tag'])->name('tag');                 // L4-02
     Route::get('/author/{slug}', [BlogListingController::class, 'author'])->name('author');        // L4-02
-    Route::get('/{slug}', PlaceholderPageController::class)->name('show');                         // L4-03
+    Route::get('/{slug}', ShowPostController::class)->name('show');                                // L4-03
 });
 
 // Newsletter (L4-02): double opt-in. POST is rate limited (no captcha); token pages are never page-cached; the

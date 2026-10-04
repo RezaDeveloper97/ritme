@@ -14,6 +14,7 @@ use App\Domain\Blog\Models\PostSlug;
 use App\Domain\Blog\Queries\LatestPosts;
 use App\Domain\Blog\Queries\PostsByCategory;
 use App\Domain\Blog\Queries\RelatedPosts;
+use Illuminate\Database\Eloquent\Builder;
 
 final class EloquentPostRepository implements PostRepository
 {
@@ -76,5 +77,34 @@ final class EloquentPostRepository implements PostRepository
     public function related(int $postId, int $limit = 3): array
     {
         return (new RelatedPosts($postId, $limit))->get();
+    }
+
+    public function adjacentInCategory(int $postId): array
+    {
+        $post = Post::query()->published()->whereKey($postId)->first(['id', 'category_id', 'published_at']);
+        if ($post === null || $post->category_id === null || $post->published_at === null) {
+            return ['previous' => null, 'next' => null];
+        }
+
+        $neighbour = static function (string $operator, string $direction) use ($post): ?PostCardData {
+            $found = Post::query()
+                ->published()
+                ->where('category_id', $post->category_id)
+                ->whereKeyNot($post->id)
+                ->where(static function (Builder $query) use ($post, $operator): void {
+                    $query->where('published_at', $operator, $post->published_at)
+                        ->orWhere(static fn (Builder $same): Builder => $same
+                            ->where('published_at', $post->published_at)
+                            ->where('id', $operator, $post->id));
+                })
+                ->with('category')
+                ->orderBy('published_at', $direction)
+                ->orderBy('id', $direction)
+                ->first();
+
+            return $found === null ? null : PostCardData::fromModel($found);
+        };
+
+        return ['previous' => $neighbour('<', 'desc'), 'next' => $neighbour('>', 'asc')];
     }
 }
