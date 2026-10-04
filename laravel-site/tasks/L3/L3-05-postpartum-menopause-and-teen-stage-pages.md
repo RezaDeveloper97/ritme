@@ -3,7 +3,7 @@ id: L3-05
 title: Postpartum, menopause and teen stage pages
 milestone: L3
 type: frontend
-status: todo
+status: done
 depends_on: [L3-03]
 parallel_group: L3-C
 touches: [lang/fa/stages/postpartum.php,lang/fa/stages/menopause.php,lang/fa/stages/teen.php,resources/views/pages/stages/partials/postpartum,resources/views/pages/stages/partials/menopause,resources/views/pages/stages/partials/teen,app/Domain/Content/Stages/Postpartum.php,app/Domain/Content/Stages/Menopause.php,app/Domain/Content/Stages/Teen.php,tests/Feature/Pages/StagesOtherTest.php]

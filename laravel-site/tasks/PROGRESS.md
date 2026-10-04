@@ -375,3 +375,14 @@ One section per finished task (appended by `/site-task`).
   by app-link settings being NULL in the dev DB (their seeded default).
 - Open: example dates (1405) in `lang/fa/tools.php` will age; `x-ui.warn` + checklist card inline (extract if reused);
   confirm wording «الان حدود N هفته و M روز…» (design was off by one week).
+
+## L3-05 — Postpartum, menopause and teen stage pages
+- `Stages/{Postpartum,Menopause,Teen}.php` (teen: no help block; «ساده» + «همراهی مادر» features), copy in
+  `lang/fa/stages/{postpartum,menopause,teen}.php` (+`mock` keys), screens `postpartum-baby`, `postpartum-partner`,
+  `menopause-status`, `teen-today`, `teen-mother` (no fertility/partner content for teens). `StagesOtherTest` (9).
+- Diff (links filled) 390 / 1440: postpartum 6.04 / 1.90%, menopause 6.41 / 3.92%, teen 4.95 / 0.95%; above the
+  readings block 390 is 1.18 / 1.62 / 1.46% — the overrun comes from real two-line article titles in the readings
+  block. `seo:audit` 0 errors.
+- Copy changes: menopause insurance line adapted (design said maternity cover); teen age/consent placeholder answered
+  by pointing to terms/privacy + parental involvement (legal text still owed); h1 highlight spans leading words until
+  **L3-03b**.
