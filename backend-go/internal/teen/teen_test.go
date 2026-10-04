@@ -48,6 +48,23 @@ func TestWeekBucket_OverdueRollsForward(t *testing.T) {
 	assert.Equal(t, WeekLater, WeekBucket(today.AddDays(-20), 28, today))            // rolled to 10-10
 	assert.Equal(t, WeekLater, WeekBucket(today.AddDays(-10), 28, today.AddDays(7))) // 10-20 seen from 10-09
 	assert.Equal(t, WeekNext, WeekBucket(today.AddDays(-20), 28, today.AddDays(7)))  // 10-10 seen from 10-09
+
+	// CB-TEEN-04: the grace never carries a prediction over a week boundary. Thursday 10-01 is «this week» on
+	// 09-27; on Sunday 10-04 (3 days late, new week) it rolls forward instead of reading «this week» again.
+	assert.Equal(t, WeekThis, WeekBucket(civildate.MustParse("2026-10-01"), 28, civildate.MustParse("2026-09-27")))
+	assert.Equal(t, WeekLater, WeekBucket(civildate.MustParse("2026-10-01"), 28, civildate.MustParse("2026-10-04")))
+	// Exhaustively: for any prediction and any day, «this week» never shows on that day and 7 days later.
+	base := civildate.MustParse("2026-09-01")
+	for p := 0; p < 60; p++ {
+		next := base.AddDays(p)
+		for d := 0; d < 90; d++ {
+			for _, cycleLen := range []int{21, 28, 35, 45} {
+				day := base.AddDays(d)
+				b1, b2 := WeekBucket(next, cycleLen, day), WeekBucket(next, cycleLen, day.AddDays(7))
+				assert.False(t, b1 == WeekThis && b2 == WeekThis, "prediction %s, day %s, cycle %d", next, day, cycleLen)
+			}
+		}
+	}
 }
 
 func TestAllowsFor(t *testing.T) {

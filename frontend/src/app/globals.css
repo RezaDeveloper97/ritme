@@ -9163,6 +9163,8 @@ button.ch-log-row { width: 100%; background: none; border: 0; font-family: inher
 .tnp-intro { display: flex; flex-direction: column; gap: 6px; }
 .tnp-title { margin: 0; font-size: 24px; line-height: 1.5; font-weight: 900; color: var(--text-1); }
 .tnp-lead { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+/* CB-TEEN-04: straight hairlines between the switch rows (the row's 12px radius bent the border-top at both ends). */
+.tnp-share .nb-list-rows > * + * { border-radius: 0; }
 .tnp-sec { display: flex; flex-direction: column; gap: 10px; }
 .tnp-error { margin: 0; font-size: var(--fs-md); font-weight: 700; color: var(--danger-deep); }
 .tnp-ok { display: flex; align-items: center; gap: 6px; margin: 0; font-size: var(--fs-md); font-weight: 800; color: var(--success); }

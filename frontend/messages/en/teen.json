@@ -51,7 +51,7 @@
     "faq": {
       "title": "Is it normal?"
     },
-    "talk": "When to talk to your mother or a doctor",
+    "talk": "When to talk to a trusted adult or a doctor",
     "parent": {
       "link": "Sharing with mom",
       "invited": "Invite sent",
@@ -106,13 +106,13 @@
     "invite": {
       "cta": "Send invite",
       "sheetTitle": "Invite your mom",
-      "lead": "Enter your mom's mobile number. She'll get a code by SMS that only works with this number.",
+      "lead": "Enter your mom's mobile number (or another adult you trust). They'll get a code by SMS that only works with this number.",
       "phone": "Your mom's mobile number",
       "phonePlaceholder": "09121234567",
       "phoneRequired": "Enter your mom's mobile number.",
       "phoneInvalid": "That number doesn't look right. Write it like 09121234567.",
       "name": "Her name (optional)",
-      "namePlaceholder": "e.g. Mom",
+      "namePlaceholder": "e.g. Mom or Auntie",
       "send": "Send invite",
       "error": "The invite wasn't sent. Try again in a little while.",
       "codeTitle": "Invite sent",

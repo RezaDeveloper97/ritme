@@ -265,15 +265,17 @@ func (s *Service) NextPeriodWeek(ctx context.Context, userID uint64, p *Profile,
 const OverdueGraceDays = 3
 
 // WeekBucket is the week of the predicted start next relative to today (zero next = unknown). Lateness is never
-// revealed: up to OverdueGraceDays overdue counts as today; beyond that the prediction is rolled forward by
-// cycleLen days until it is ≥ today (no usable cycle length → unknown), so a late period does not stay «this week».
+// revealed: up to OverdueGraceDays overdue counts as today — but only while the prediction is still in today's
+// week (CB-TEEN-04: a Thursday prediction seen on the next Sunday would otherwise read «this week» two weeks in a
+// row); otherwise the prediction is rolled forward by cycleLen days until it is ≥ today (no usable cycle length →
+// unknown), so a late period never stays «this week».
 func WeekBucket(next civildate.Date, cycleLen int, today civildate.Date) PeriodWeek {
 	if next.IsZero() {
 		return WeekUnknown
 	}
 	if next.Before(today) {
 		switch {
-		case next.DiffDays(today) <= OverdueGraceDays: // days overdue
+		case next.DiffDays(today) <= OverdueGraceDays && !next.Before(today.StartOfWeek()): // days overdue, same week
 			next = today
 		case cycleLen <= 0:
 			return WeekUnknown

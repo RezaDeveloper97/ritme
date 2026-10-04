@@ -319,3 +319,10 @@ TODO (ask user):
 - Fidelity: Start / Care / Next light + dark ✔; en warning-sign sentence casing fixed (`warningSignParts`).
 - Tone (loss.json + Go copy + goldens): bleeding sheet wording, visit row no longer a medical instruction («اگر پزشکت ویزیت پیگیری خواسته…»), «بعد از سقط» → «بعد از این اتفاق», recurrent note «اگر این اولین بار نبود…», en "the baby's growth". Catalog rewrite proposals (companion notice «Your partner» → «Someone close to you», etc.) in docs/qa/canvas/loss.md — need content + clinical review.
 - Follow-ups: CB-LOSS-03b (care re-entry, erase removes private follow-ups); bloom B-N5-10 takes the post-loss /pregnancy CTA and the companion-home pregnancy hint.
+
+## CB-TEEN-04 — TEEN QA
+- Two-account journey ✔ (onboarding → home → /teen/parent all-off → invite + code → mother accepts on /companions → read-only card → toggle off updates live → revoke). Mother's sections 404, /companion/home 403. Pre-teen partner link grants nothing while teen (bloom B-N4-08b). Commercial: /banners empty, trial/offer null, trial/start + checkout 403, /plus → /profile, /shop 404.
+- **Privacy fix:** `teen.WeekBucket` grace could cross the week boundary, so a Thursday/Friday prediction showed «این هفته» two weeks running (lateness leak). Grace now only within the current week; exhaustive unit test (60 predictions × 90 days × 4 cycle lengths).
+- Fidelity: Onb / Home / Parent light + dark ✔ (divider fix in the CB-TEEN-03 block). Copy: three strings no longer assume a mother («بزرگ‌تر مورد اعتماد», «مثلاً مامان یا خاله»).
+- ~ (→ CB-TEEN-04b): teen calendar shows fertile legend/ovulation; `/messages/daily` + `/cycle/today` return fertility copy to teens; teen profile rows (partner name, orders, BBT).
+- Verify: frontend full chain (1317) + teen/i18n Go tests, vet, lint — green. Catalog rewrite proposals (00029_teen.sql) in docs/qa/canvas/teen.md — content + clinical review.

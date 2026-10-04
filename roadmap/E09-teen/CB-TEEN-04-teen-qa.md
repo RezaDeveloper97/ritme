@@ -3,7 +3,7 @@ id: CB-TEEN-04
 title: TEEN QA
 epic: TEEN
 type: qa
-status: todo
+status: done
 depends_on: [CB-TEEN-03]
 parallel_group: TEEN-D
 touches: [docs/qa/canvas]
