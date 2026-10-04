@@ -3,3 +3,5 @@
 2026-10-04T10:08Z L0-02 -> in_progress
 2026-10-04T10:08Z L0-04 -> in_progress
 2026-10-04T10:11Z L0-02 -> done
+2026-10-04T10:11Z L0-03 -> in_progress
+2026-10-04T10:19Z L0-03 -> done

@@ -3,7 +3,7 @@ id: L0-03
 title: Cache-aside kernel with versioned namespaces
 milestone: L0
 type: backend
-status: todo
+status: done
 depends_on: [L0-02]
 parallel_group: L0-A
 touches: [app/Support/Cache,config/cacheaside.php,app/Console/Commands/CacheNamespaces.php,tests/Unit/Support/Cache]
