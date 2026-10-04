@@ -318,3 +318,21 @@ One section per finished task (appended by `/site-task`).
   (→ `max-sm:mx-5 max-sm:p-6`). Kit gaps: `cards/article` cover 180 vs 216 px, footer store badges stack vertically.
 - Open: L3-09 replaces the marked FAQ slot with `x-faq` group `home`; L3-07 must provide `/tools#due-date`, `#fertility`,
   `#hospital-bag`, `#sisemoni`; mockup demo names/numbers live in `lang/fa/home.php`; «۸۶ مورد» claim to confirm.
+
+## L3-03 — Life-stage page template + cycle page
+- Data-driven stage template: `app/Domain/Content/Stages/` (`StageDefinition` base, `Cycle`, `StageRegistry`,
+  `StagePageBuilder` (throws on missing copy), `StageNavigation`, specs + DTOs), `StagePageController`; copy in
+  `lang/fa/stages/{common,cycle}.php`; views `pages/stages/show` + partials (stage-nav, hero, feature, faq) + mock
+  screens (fragment-cached in `pages`). All six `stage.*` routes point to the controller; stages without a class fall
+  back to the noindex placeholder.
+- SEO: lang title/description unless admin `seo_meta` wins; WebPage + BreadcrumbList + FAQPage + MobileApplication;
+  descriptive FAQ h2; `#how` anchor fixed; emergency alert number from settings; readings = same-stage posts topped up
+  with latest. `StagesTest` (15; checks title 30–60 / description 70–160 for every defined stage).
+- Diff: with app/social links filled 390 2.33% / 1440 0.76%; with empty links (current dev DB) 7.47% / 4.84% (download
+  buttons, login and social links are hidden by design while settings are empty). `seo:audit --path=/cycle` 0 errors.
+- Orchestrator: `RoutingTest` placeholder check now picks any remaining placeholder route.
+- Add a stage (L3-04/05): `app/Domain/Content/Stages/<Studly>.php` extending `StageDefinition` + `lang/fa/stages/<slug>.php`
+  (same keys as cycle) + optional partials in `pages/stages/partials/<slug>/` and screens in `mock/screens/`.
+- Open: stage-nav/hero/faq/phone are includes under `pages/stages` (components dir was outside touches); FAQ copy in
+  lang until L3-09 wires group `stage-cycle`; `cards/article` cover worked around with `[&_a>span:first-child]:box-content`;
+  "all" readings link → `/blog` until category routes are wired.

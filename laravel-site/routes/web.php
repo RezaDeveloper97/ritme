@@ -7,6 +7,7 @@ use App\Http\Controllers\PlaceholderPageController;
 use App\Http\Controllers\Seo\RobotsTxtController;
 use App\Http\Controllers\Seo\SitemapController;
 use App\Http\Controllers\Seo\SitemapIndexController;
+use App\Http\Controllers\StagePageController;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
@@ -24,12 +25,12 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
 Route::get('/', HomeController::class)->name('home');                                            // L3-02
 
 Route::name('stage.')->group(function (): void {
-    Route::get('/cycle', PlaceholderPageController::class)->name('cycle');                         // L3-03
-    Route::get('/ttc', PlaceholderPageController::class)->name('ttc');                             // L3-04
-    Route::get('/pregnancy', PlaceholderPageController::class)->name('pregnancy');                 // L3-04
-    Route::get('/postpartum', PlaceholderPageController::class)->name('postpartum');               // L3-05
-    Route::get('/menopause', PlaceholderPageController::class)->name('menopause');                 // L3-05
-    Route::get('/teen', PlaceholderPageController::class)->name('teen');                           // L3-05
+    Route::get('/cycle', StagePageController::class)->name('cycle');                         // L3-03
+    Route::get('/ttc', StagePageController::class)->name('ttc');                             // L3-04
+    Route::get('/pregnancy', StagePageController::class)->name('pregnancy');                 // L3-04
+    Route::get('/postpartum', StagePageController::class)->name('postpartum');               // L3-05
+    Route::get('/menopause', StagePageController::class)->name('menopause');                 // L3-05
+    Route::get('/teen', StagePageController::class)->name('teen');                           // L3-05
 });
 
 Route::get('/services', PlaceholderPageController::class)->name('services');                       // L3-06

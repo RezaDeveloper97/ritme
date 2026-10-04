@@ -3,7 +3,7 @@ id: L3-03
 title: Life-stage page template + cycle page
 milestone: L3
 type: frontend
-status: todo
+status: done
 depends_on: [L3-01,L1-04]
 parallel_group: L3-B
 touches: [resources/views/pages/stages,app/Domain/Content/Stages,app/Http/Controllers/StagePageController.php,lang/fa/stages,tests/Feature/Pages/StagesTest.php]

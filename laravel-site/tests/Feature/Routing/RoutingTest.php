@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\PlaceholderPageController;
 use Database\Seeders\SettingsSeeder;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\Request;
@@ -91,7 +92,16 @@ it('serves /terms (added beyond the design)', function (): void {
 it('keeps the placeholder pages noindex even in production', function (): void {
     config(['app.env' => 'production']);
 
-    $this->get('/cycle')->assertOk()->assertSee('<meta name="robots" content="noindex', false);
+    // Any route still served by the placeholder (pages are swapped out task by task).
+    $route = collect(app('router')->getRoutes()->getRoutes())
+        ->first(fn ($r): bool => $r->getActionName() === PlaceholderPageController::class
+            && in_array('GET', $r->methods(), true) && $r->parameterNames() === []);
+
+    if ($route === null) {
+        $this->markTestSkipped('No placeholder pages left.');
+    }
+
+    $this->get('/'.ltrim($route->uri(), '/'))->assertOk()->assertSee('<meta name="robots" content="noindex', false);
 });
 
 it('redirects every old .html URL in one 301 hop to a page that answers 200', function (string $file, string $target): void {
