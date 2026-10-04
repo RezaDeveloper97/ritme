@@ -3,7 +3,7 @@ id: L6-01
 title: Shop catalog context: products, categories, brands, reviews, Money
 milestone: L6
 type: backend
-status: todo
+status: done
 depends_on: [L2-01,L1-03,L4-04]
 parallel_group: L6-A
 touches: [app/Domain/Shop/Catalog,app/Support/Money,database/migrations,database/factories,database/seeders/ShopSeeder.php,tests/Feature/Shop/Catalog,tests/Unit/Shop]
@@ -30,6 +30,9 @@ verify: composer verify
   seller with their own delivery estimates and status. Confirm with the user, then add a minimal `Seller` (name, slug,
   is_verified, shipping_days_min/max; products belong to one seller), or simplify to single-seller and drop the
   per-seller grouping in L6-04/05.
+- **Orchestrator default (2026-10-04, user not yet answered): single-seller.** Ritme is the seller; no `Seller`
+  model; product cards show the brand instead of a seller; L6-04/05 drop per-seller grouping. Keep it easy to add a
+  `seller_id` later (no seller assumptions baked into DTO names). Revisit if the user chooses multi-seller.
 
 ## Acceptance
 - Factories/tests for Money, filters, variants stock; `composer verify` green.

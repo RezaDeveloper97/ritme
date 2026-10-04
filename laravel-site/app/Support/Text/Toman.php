@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Support\Text;
 
+use App\Support\Money\Money;
+
 /**
- * Minimal Toman display formatter for integer amounts (the Money value object arrives with L6-01).
+ * Display shorthand for integer TOMAN amounts (Blade components, directory prices stored in tomans). Delegates to
+ * App\Support\Money\Money so every price on the site is formatted the same way.
  *
  *   Toman::format(485000)       →  ۴۸۵ هزار       (whole thousands read «… هزار», as in the design)
  *   Toman::format(12500)        →  ۱۲٬۵۰۰
@@ -14,15 +17,11 @@ namespace App\Support\Text;
  */
 final class Toman
 {
-    public const UNIT = 'تومان';
+    public const UNIT = Money::UNIT;
 
     public static function format(int $amount, bool $thousands = true): string
     {
-        if ($thousands && $amount >= 1000 && $amount % 1000 === 0) {
-            return PersianDigits::number(intdiv($amount, 1000)).' هزار';
-        }
-
-        return PersianDigits::number($amount);
+        return Money::fromToman($amount)->formatAmount($thousands);
     }
 
     public static function withUnit(int $amount, bool $thousands = true): string

@@ -620,3 +620,23 @@ One section per finished task (appended by `/site-task`).
 - Orchestrator: SW `cacheFirst` matches `/icons/*` with `ignoreSearch` (precache has no `?v=`), tool documented in
   `tools/README.md`; re-run green.
 - Note: admin `theme-*.css` lands in the shell cache when /admin is opened (hashed, harmless).
+
+## L6-01 — Shop catalog context: products, categories, brands, reviews, Money
+- **Single-seller** (orchestrator default; no Seller model, cards show the brand).
+- `App\Support\Money\{Money,MoneyCast}`: integer **rials**, `toToman()` half-away rounding, `format()` «۱۲۹٬۰۰۰ تومان»,
+  `formatShort()`, `percentOff()`, overflow-checked arithmetic, `parseRial()`; `Toman` delegates to Money.
+- Migration `2026_10_04_002200_create_shop_catalog_tables` (shop_brands, _categories, _products, _product_slugs,
+  _category_product, _product_media, _product_variants, _reviews, _product_cross_sells; unsigned bigint rials).
+- `app/Domain/Shop/Catalog`: models (Product/Category `HasSeo`, slug history, variants, reviews), enums (StockStatus →
+  schema availability, ProductSort, ReviewStatus), DTOs (`ProductData::toSchema()` IRR, rating only from real reviews),
+  Product + Catalog repos (Eloquent + Cached, `shop` ns), queries (ProductsInCategory with filters/facets/sold-out last,
+  BestSellers, FrequentlyBoughtWith, VisibleCategories, ProductCards, Sitemap*), observers (bump shop/sitemap/pages),
+  final actions (AdjustStock atomic no-oversell, RecalculateProductStock/Rating, Sync* categories/gallery/cross-sells),
+  ProductSlugger, ProductContent, ShopUrls; sitemap providers `shop-products`, `shop-categories`; search `products`;
+  media usages for 4 columns + description HTML.
+- `ShopSeeder` (idempotent, not in DatabaseSeeder): 11 demo products (bodysuit `long-sleeve-cotton-bodysuit-3`, 20
+  variants), 18 categories (`baby-clothes`), 4 brands; all `is_demo`; no fake ratings/sales; 3 demo reviews not counted.
+- Orchestrator: `phpunit.xml` memory_limit 512M → 1G (arch tests ~214 MB; slimming added to L9-05 scope). Dev DB migrated.
+  `composer verify` green: 1054 tests.
+- Open: L6-02/03 noindex demo products, label demo reviews, render `color_hex` swatches without inline style (SVG fill);
+  L6-04/05 re-check stock with AdjustStock, fill `sales_count` + `is_verified_purchase`; no material filter; admin L6-06.
