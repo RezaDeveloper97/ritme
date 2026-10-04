@@ -674,3 +674,18 @@ One section per finished task (appended by `/site-task`).
   cancel; masked parent row).
 - Open (L5-06): admin resource for bookings; `booking_mode` on places to hide the form for phone-only places;
   real SMS driver; retention policy; queue worker (L10-01).
+
+## L6-02 — Shop home + category listing with crawlable filters
+- `ShopHomeController` (per-department promo, ≤8 category tiles, 5 buyable picks from `BestSellers` titled «منتخب …»
+  until real `sales_count`; app cards for sisemoni/pre-period reminder without fake progress; trust bar incl. COD),
+  `CategoryController` (subcategory products, subnav, breadcrumbs, chip-nav sorts, GET filter form brand[]/size[]/
+  color[]/min/max (Toman)/stock, removable active chips, 24/page, one canonical query form via 301 incl. Persian digits
+  and min>max, tracking kept, invalid page 404). `components/shop/*` (product-card, category-tile, subnav, cart-link,
+  filters with SVG-fill swatches, pagination), `lang/fa/shop.php`, lazy `cart-badge.js` reads cookie `ritme_cart_count`.
+- SEO: CollectionPage + ItemList + BreadcrumbList; category + `?page=n` indexable; any filter/sort → noindex,follow with
+  canonical to the category; demo-only/empty lists noindex + «نمونه نمایشی» note; ratings only from real reviews.
+  Warm requests: 0 queries on `shop_` tables. `ListingTest` (27). `seo:audit` 0 errors.
+- Diff shop 1440 12.25% / 390 38.24%, shop-list 21.77% / 59.82% (5 demo products vs 12-card mock, no material filter,
+  price inputs instead of slider, NULL app links, design's 390 `mx-30` app cards fixed).
+- Open: L6-04 must write `ritme_cart_count` (plain, not HttpOnly, excluded from EncryptCookies); header cart badge
+  (layout); «۷ روز بازگشت» / IRC copy to confirm; breadcrumbs link colour vs design.

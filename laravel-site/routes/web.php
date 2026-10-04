@@ -26,6 +26,8 @@ use App\Http\Controllers\Seo\RobotsTxtController;
 use App\Http\Controllers\Seo\SitemapController;
 use App\Http\Controllers\Seo\SitemapIndexController;
 use App\Http\Controllers\ServicesController;
+use App\Http\Controllers\Shop\CategoryController;
+use App\Http\Controllers\Shop\ShopHomeController;
 use App\Http\Controllers\SocialResponsibilityController;
 use App\Http\Controllers\StagePageController;
 use App\Http\Controllers\TermsController;
@@ -120,8 +122,8 @@ Route::prefix('directory')->name('directory.')->group(function (): void {
 });
 
 Route::prefix('shop')->name('shop.')->group(function (): void {
-    Route::get('/', PlaceholderPageController::class)->name('index');                              // L6-02
-    Route::get('/category/{slug}', PlaceholderPageController::class)->name('category');            // L6-02
+    Route::get('/', ShopHomeController::class)->name('index');                                     // L6-02
+    Route::get('/category/{slug}', CategoryController::class)->name('category');                   // L6-02
     Route::get('/product/{slug}', PlaceholderPageController::class)->name('product');              // L6-03
     Route::get('/cart', PlaceholderPageController::class)->name('cart');                           // L6-04
     Route::get('/checkout', PlaceholderPageController::class)->name('checkout');                   // L6-05

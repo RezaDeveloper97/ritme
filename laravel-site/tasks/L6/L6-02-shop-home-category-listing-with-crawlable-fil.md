@@ -3,7 +3,7 @@ id: L6-02
 title: Shop home + category listing with crawlable filters
 milestone: L6
 type: frontend
-status: todo
+status: done
 depends_on: [L6-01,L3-01]
 parallel_group: L6-B
 touches: [resources/views/pages/shop/index.blade.php,resources/views/pages/shop/category.blade.php,resources/views/components/shop,app/Http/Controllers/Shop/ShopHomeController.php,app/Http/Controllers/Shop/CategoryController.php,lang/fa/shop.php,tests/Feature/Shop/ListingTest.php]
