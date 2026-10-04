@@ -3,7 +3,7 @@ id: L4-05
 title: Admin: posts editor with SEO tab, categories, tags, authors, newsletter
 milestone: L4
 type: admin
-status: todo
+status: done
 depends_on: [L4-01,L2-03,L1-08]
 parallel_group: L4-D
 touches: [app/Filament/Resources/Blog,app/Filament/Resources/Newsletter,app/Filament/Components/Seo,tests/Feature/Admin/BlogAdminTest.php]

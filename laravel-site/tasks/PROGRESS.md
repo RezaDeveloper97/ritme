@@ -280,3 +280,18 @@ One section per finished task (appended by `/site-task`).
   `GenerateMediaVariants::version()`): changed pixels → new URL, identical bytes → same name (safe under immutable cache).
   New set written before stale files are deleted; observer bumps media/seo (+pages). No migration; legacy unversioned
   rows keep working until their next regenerate. 3 new tests in `MediaLibraryTest`.
+
+## L4-05 — Admin: posts editor with SEO tab, categories, tags, authors (newsletter → L4-05b)
+- Reusable SEO tab `app/Filament/Components/Seo/SeoFields` (title/description counters with pixel width incl. title
+  template, focus keyword, SERP preview desktop/mobile, OG fields + card preview, canonical override, index/follow,
+  sitemap include/priority) for any `HasSeo` model: `SeoFields::make()->titleFrom('name')->descriptionFrom(...)
+  ->imageFrom('cover_media_id')->urlUsing(fn (Get $get) => route(...))`. Static pages (L7-01) need a route_name save path.
+- Blog resources: Posts (local TipTap editor, library image insert via `data-media-id`, sanitised on save, no h1,
+  status/schedule, featured, author + reviewer, life stage, inline category/tag creation, cover + mobile cover,
+  signed 24 h draft preview at `admin/blog/preview/{post}`, duplicate, revision trail in activity log, bulk
+  publish/unpublish), Categories (parent, label, life stage, reorder), Tags, Authors (credentials, sameAs, avatar,
+  reviewer flag). Policies: editors full; SEO managers SEO tab only (server-enforced, `SeoOnlyForSeoManagers`); others 403.
+- Domain actions: `SavePost`, `DuplicatePost`, `SetPostsStatus`, `FindOrCreateTag`. Tests: `BlogAdminTest` (12). Pest 632 passed.
+- Split out **L4-05b**: newsletter subscribers list/export (needs L4-02's Newsletter model) + media usage scan of post bodies.
+- Open: L4-03 renders body images by `data-media-id` via `<x-picture>`; tag/author URLs assumed `/blog/tag/{slug}`,
+  `/blog/author/{slug}` (L4-02 to confirm); admin date picker is Gregorian.

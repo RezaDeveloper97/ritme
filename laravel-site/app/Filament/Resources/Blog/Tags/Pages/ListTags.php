@@ -1,0 +1,19 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Filament\Resources\Blog\Tags\Pages;
+
+use App\Filament\Resources\Blog\Tags\TagResource;
+use Filament\Actions\CreateAction;
+use Filament\Resources\Pages\ListRecords;
+
+final class ListTags extends ListRecords
+{
+    protected static string $resource = TagResource::class;
+
+    protected function getHeaderActions(): array
+    {
+        return [CreateAction::make()->label('برچسب جدید')];
+    }
+}

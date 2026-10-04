@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Providers\Filament;
 
+use App\Domain\Blog\Models\Author;
+use App\Domain\Blog\Models\Category;
+use App\Domain\Blog\Models\Post;
+use App\Domain\Blog\Models\Tag;
 use App\Domain\Media\Models\Media;
 use App\Domain\Settings\Contracts\SettingsRepository;
 use App\Domain\Settings\Data\GeneralSettings;
@@ -15,6 +19,11 @@ use App\Filament\Http\Middleware\RequireMultiFactorForRoles;
 use App\Filament\Listeners\RecordLastLogin;
 use App\Filament\Policies\ActivityPolicy;
 use App\Filament\Policies\UserPolicy;
+use App\Filament\Resources\Blog\Authors\AuthorPolicy;
+use App\Filament\Resources\Blog\Categories\CategoryPolicy;
+use App\Filament\Resources\Blog\Posts\PostPolicy;
+use App\Filament\Resources\Blog\Posts\PostPreviewController;
+use App\Filament\Resources\Blog\Tags\TagPolicy;
 use App\Filament\Resources\Media\MediaPolicy;
 use App\Filament\Widgets\AdminOverview;
 use App\Models\User;
@@ -38,6 +47,7 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Route;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Spatie\Activitylog\Models\Activity;
 use Throwable;
@@ -61,6 +71,10 @@ final class AdminPanelProvider extends PanelProvider
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Activity::class, ActivityPolicy::class);
         Gate::policy(Media::class, MediaPolicy::class);
+        Gate::policy(Post::class, PostPolicy::class);
+        Gate::policy(Category::class, CategoryPolicy::class);
+        Gate::policy(Tag::class, TagPolicy::class);
+        Gate::policy(Author::class, AuthorPolicy::class);
 
         Event::listen(Login::class, RecordLastLogin::class);
     }
@@ -89,6 +103,12 @@ final class AdminPanelProvider extends PanelProvider
             ->spa(false)
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
+            // Draft preview: temporary signed URL, no admin login needed (shareable with a reviewer), noindex.
+            ->routes(static function (): void {
+                Route::get('blog/preview/{post}', PostPreviewController::class)
+                    ->middleware('signed')
+                    ->name(PostPreviewController::ROUTE);
+            })
             ->pages([
                 Dashboard::class,
             ])
