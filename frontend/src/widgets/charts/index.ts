@@ -3,6 +3,7 @@
 // hidden data table. Plots run left → right (day 1 / oldest first) in both directions.
 export { ChartFigure, type DataTable } from './ui/ChartFigure';
 export { ColumnChart, type Column } from './ui/ColumnChart';
+export { GroupedColumns, type ColumnGroup } from './ui/GroupedColumns';
 export { PhaseBar, type PhasePart } from './ui/PhaseBar';
 export { CycleDots, type CycleDotRow } from './ui/CycleDots';
 export { HeatGrid, type HeatLevel, type HeatRow } from './ui/HeatGrid';

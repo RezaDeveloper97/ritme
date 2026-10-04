@@ -103,6 +103,7 @@ export const ROUTE_NAMESPACES = {
   postpartumRecovery: ['common', 'postpartum'], // B-N5-04 /postpartum/recovery (v15_Recovery, back header)
   postpartumMood: ['common', 'postpartum'], // B-N5-04 /postpartum/mood (v15_MoodCheck, EPDS + safety)
   ivf: ['common', 'ivf', 'nav'], // CB-IVF-02 /ivf (nbl_IVF_Home, TTC IVF sub-mode home)
+  ivfScan: ['common', 'ivf'], // CB-IVF-04 /ivf/scan (nbl_IVF_Scan, back header, no nav)
   lossStart: ['common', 'companions', 'loss'], // CB-LOSS-02 /loss (Loss_Start, full screen, no nav; companions = entities/companion barrel)
   lossCare: ['common', 'loss'], // CB-LOSS-02 /loss/care (Loss_Care; «ثبت» opens the shell's log sheet)
   lossNext: ['common', 'loss'], // CB-LOSS-02 /loss/next (Loss_Next)

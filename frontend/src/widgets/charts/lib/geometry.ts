@@ -43,6 +43,28 @@ export function axisTicks(count: number): number[] {
   return [0, Math.floor((count - 1) / 2), count - 1];
 }
 
+/**
+ * Grouped columns (CB-IVF-04): `groups` equal bands across `width`; inside each band `series` bars at most
+ * `maxBar` wide with `inner` between them, centred on the band. Returns each band's centre and its bars.
+ */
+export function groupedSlots(
+  groups: number,
+  series: number,
+  width: number,
+  maxBar = 14,
+  inner = 3,
+): Array<{ center: number; bars: Array<{ x: number; w: number }> }> {
+  if (groups <= 0 || series <= 0) return [];
+  const band = width / groups;
+  const w = Math.max(1, Math.min(maxBar, (band * 0.7 - inner * (series - 1)) / series));
+  const span = w * series + inner * (series - 1);
+  return Array.from({ length: groups }, (_, g) => {
+    const center = band * g + band / 2;
+    const start = center - span / 2;
+    return { center, bars: Array.from({ length: series }, (_, s) => ({ x: start + s * (w + inner), w })) };
+  });
+}
+
 /** The maximum over every finite value (0 when none). */
 export function maxOf(values: ReadonlyArray<number | null>): number {
   let m = 0;

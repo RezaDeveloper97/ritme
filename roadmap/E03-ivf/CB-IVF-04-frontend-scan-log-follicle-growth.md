@@ -3,7 +3,7 @@ id: CB-IVF-04
 title: Frontend: scan log + follicle growth
 epic: IVF
 type: frontend
-status: todo
+status: done
 depends_on: [CB-IVF-02]
 parallel_group: IVF-C
 touches: [frontend/src/screens/ivf-scan, frontend/src/app/[locale]/ivf/scan]

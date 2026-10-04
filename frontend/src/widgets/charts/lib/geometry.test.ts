@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { axisTicks, cellOpacity, heightShare, maxOf, slot, stackSegments } from './geometry';
+import { axisTicks, cellOpacity, groupedSlots, heightShare, maxOf, slot, stackSegments } from './geometry';
 
 describe('chart geometry', () => {
   it('scales bar heights with a floor', () => {
@@ -33,5 +33,21 @@ describe('chart geometry', () => {
     expect(axisTicks(2)).toEqual([0, 1]);
     expect(axisTicks(0)).toEqual([]);
     expect(maxOf([null, 3, 7, Number.NaN])).toBe(7);
+  });
+
+  it('centres grouped bars in equal bands', () => {
+    const [first, second] = groupedSlots(2, 2, 200);
+    expect(first?.center).toBe(50);
+    expect(second?.center).toBe(150);
+    // 2 bars of 14 + a 3 gap = 31 wide, centred on 50.
+    expect(first?.bars).toEqual([
+      { x: 34.5, w: 14 },
+      { x: 51.5, w: 14 },
+    ]);
+    expect(groupedSlots(0, 2, 200)).toEqual([]);
+    // Narrow bands shrink the bars instead of overlapping.
+    const narrow = groupedSlots(10, 2, 100)[0];
+    expect(narrow?.bars[0]?.w).toBeLessThan(14);
+    expect((narrow?.bars[1]?.x ?? 0) + (narrow?.bars[1]?.w ?? 0)).toBeLessThanOrEqual(10);
   });
 });

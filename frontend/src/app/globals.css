@@ -9218,3 +9218,72 @@ button.ch-log-row { width: 100%; background: none; border: 0; font-family: inher
 .ltc-code-msg.is-error { color: var(--danger-deep); }
 .ltc-code-msg.is-success { color: var(--success); }
 /* ═══ end CB-TEEN-03 ═══ */
+
+/* ═══ CB-IVF-04 — IVF scan log + follicle growth (nbl_IVF_Scan, screens/ivf-scan `ivs-`) ═══ */
+.ivs-page { background: var(--page); }
+.ivs-scroll { position: relative; z-index: 1; display: flex; flex-direction: column; min-block-size: 100%; }
+.ivs-body { display: flex; flex-direction: column; gap: 18px; padding: 8px var(--gutter) 20px; }
+.nb-skel.ivs-skel-tall { block-size: 240px; }
+.ivs-section { display: flex; flex-direction: column; gap: 10px; }
+.ivs-head { display: flex; flex-direction: column; gap: 2px; }
+.ivs-title { margin: 0; font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); }
+.ivs-hint { margin: 0; font-size: var(--fs-sm); font-weight: 600; color: var(--text-2); }
+
+/* Two ovary columns of compact steppers (right first = the start side in RTL) */
+.nb-card.ivs-ovaries { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 14px; }
+.ivs-ovary { display: flex; flex-direction: column; min-width: 0; }
+.ivs-ovary-title { margin: 0 0 2px; font-size: var(--fs-base); font-weight: 800; color: var(--text-1); }
+.nb-stepper.ivs-stepper { gap: 6px; padding-block: 8px; border-bottom: 1px solid var(--line); }
+.ivs-stepper .nb-stepper-label { font-size: var(--fs-sm); font-weight: 700; line-height: 1.5; color: var(--text-2); }
+.ivs-stepper .nb-stepper-btn { width: 32px; height: 32px; border-width: 1px; }
+.ivs-stepper .nb-stepper-btn:focus-visible { outline: none; box-shadow: var(--ring); }
+.ivs-stepper .nb-stepper-value { min-width: 20px; }
+.ivs-stepper .nb-stepper-num { font-family: inherit; font-size: var(--fs-base); font-weight: 800; }
+
+/* Endometrium + E2 */
+.nb-card.ivs-labs { display: flex; flex-direction: column; padding: 4px 16px; }
+.ivs-lab + .ivs-lab { border-top: 1px solid var(--line); }
+.ivs-lab { padding-block: 10px; }
+.ivs-lab-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-block-size: 44px; }
+.ivs-lab-label { font-size: var(--fs-md); font-weight: 700; color: var(--text-2); }
+.ivs-lab-field { display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.ivs-lab-input {
+  inline-size: 104px; height: 40px; padding: 0 10px; border-radius: 12px; border: 1px solid var(--line);
+  background: var(--surface-2); color: var(--text-1); text-align: center;
+  font-family: inherit; font-size: var(--fs-base); font-weight: 800; outline: none;
+}
+.ivs-lab-input::placeholder { color: var(--text-4); font-size: var(--fs-sm); font-weight: 600; }
+.ivs-lab-input:focus-visible { box-shadow: var(--ring); }
+.ivs-lab-input[aria-invalid="true"] { border-color: var(--danger); }
+.ivs-unit { min-inline-size: 52px; font-size: var(--fs-sm); font-weight: 700; color: var(--text-2); }
+.ivs-unit-btn {
+  min-inline-size: 52px; height: 32px; padding: 0 8px; border-radius: var(--r-pill); cursor: pointer;
+  border: 1px solid var(--line-strong); background: var(--surface); color: var(--brand-strong);
+  font-family: inherit; font-size: var(--fs-xs); font-weight: 800; direction: ltr;
+}
+.ivs-unit-btn:focus-visible { outline: none; box-shadow: var(--ring); }
+
+/* Growth chart: grouped columns (widgets/charts GroupedColumns) + legend */
+.nb-card.ivs-growth { display: flex; flex-direction: column; gap: 12px; padding: 16px; }
+.ivs-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 18px; margin: 0; padding: 0; list-style: none; }
+.ivs-legend li { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-sm); font-weight: 700; color: var(--text-2); }
+.ivs-legend li::before { content: ''; inline-size: 10px; block-size: 10px; border-radius: 3px; background: var(--nb-tone); }
+.ivs-empty { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); text-align: center; }
+
+.nb-note.ivs-note { border: 1px solid var(--line); background: var(--surface); color: var(--text-2); }
+.ivs-delete {
+  align-self: center; min-block-size: 44px; padding-inline: 12px; border: 0; background: none; cursor: pointer;
+  font-family: inherit; font-size: var(--fs-md); font-weight: 800; color: var(--danger-deep);
+}
+.ivs-delete:disabled { opacity: .5; cursor: progress; }
+.ivs-delete:focus-visible { outline: none; box-shadow: var(--ring); border-radius: var(--r-pill); }
+
+.ivs-footer {
+  position: sticky; bottom: 0; z-index: 2; margin-top: auto; display: flex; flex-direction: column; gap: 8px;
+  padding: 12px var(--gutter) max(14px, env(safe-area-inset-bottom));
+  background: var(--surface-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+.ivs-status { margin: 0; text-align: center; font-size: var(--fs-sm); font-weight: 800; color: var(--success); }
+.ivs-status:empty { display: none; }
+.ivs-error { margin: 4px 0 0; font-size: var(--fs-sm); font-weight: 700; color: var(--danger-deep); }
+/* ═══ end CB-IVF-04 ═══ */

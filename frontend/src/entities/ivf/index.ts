@@ -67,3 +67,26 @@ export {
   useUnlogIvfScheduleDose,
   useUpdateIvfMed,
 } from './api/meds-queries';
+// Scan log (CB-IVF-04).
+export {
+  IVF_E2_UNITS,
+  IVF_FOLLICLE_BINS,
+  IVF_OVARIES,
+  IVF_SCAN_LIMITS,
+  type IvfE2Unit,
+  type IvfFollicleBin,
+  type IvfGrowthPoint,
+  type IvfOvary,
+  type IvfOvaryCounts,
+  type IvfScan,
+  type IvfScanInput,
+  type IvfScansView,
+} from './model/scan';
+export {
+  ivfScanErrorMessage,
+  ivfScansKey,
+  ivfScansSchema,
+  useDeleteIvfScan,
+  useIvfScans,
+  useSaveIvfScan,
+} from './api/scans';

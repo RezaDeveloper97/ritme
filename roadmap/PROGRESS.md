@@ -302,3 +302,9 @@ TODO (ask user):
 - Parent side: `widgets/linked-teen-card` (`GET /teen/linked`, «فقط دیدنی») on the cycle home, menopause home and male companion home; `ParentCodeCard` on `/companions` (women had no code-entry place before). `TeenHome` PARENT_HREF → /teen/parent; Profile «همدم‌ها و خانواده» → /teen/parent in teen mode; `GET /companions` schema skips unreadable rows (a parent link used to break the list).
 - Verify (combined tree): typecheck, lint, fsd:lint, lint:styles (970), lint:dark, 1307 tests, build; i18n Go tests — green. Fidelity `docs/qa/canvas/teen.md` ✔. Test users 09120007702 (teen) + 09120007703 (parent), unlinked at the end.
 - Open: one parent link per teen in the UI; home route also ships the `companions` namespace.
+
+## CB-IVF-04 — Frontend: scan log + follicle growth
+- `/ivf/scan[?date=]` (back header, no nav): per-ovary NumberSteppers for bins lt_10 / 10_14 / 15_17 / 18_plus, endometrium + E2 (pg/mL ↔ pmol/L), stim day, «تفسیر با پزشکت» note, delete-day button for saved days; growth chart via new `widgets/charts` `GroupedColumns` (+ `groupedSlots` geometry, screen-reader table). `entities/ivf/api/scans.ts`; `IVF_SCREENS_READY.scan` on. Messages `ivf.scan` (+ Go copy + goldens).
+- Verify (combined tree): typecheck, lint, lint:styles (983), lint:dark, 1327 tests, build; i18n Go tests — green. fsd:lint red only on bloom's untracked in-flight `src/entities/child` (not this task). Fidelity `docs/qa/canvas/ivf.md` ✔ (chart oldest → newest left to right; editable E2/endometrium).
+- Note: local ritme_dev was recreated after the MariaDB test stack restarted (tmpfs) — catalog/articles absent; test users re-created by agents (09900002021 with scans; 09900002022 partner gone).
+- Open / TODO (ask user): no date picker (past days only via ?date=); 32px stepper buttons (below 44px); bin labels + note are bundled copy [needs clinical review].

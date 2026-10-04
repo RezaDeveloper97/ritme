@@ -3004,6 +3004,68 @@
       "endsOn": "The end date must be after the start."
      }
     }
+   },
+   "scan": {
+    "title": "Log scan result",
+    "subtitle": "Stim day {day} · {date}",
+    "back": "Back",
+    "loading": "Loading",
+    "loadError": "Scan results couldn't be loaded.",
+    "retry": "Try again",
+    "noCycle": {
+     "title": "No open treatment cycle yet",
+     "body": "Start a cycle on the treatment screen first, then log your scan results here.",
+     "action": "Go to treatment"
+    },
+    "follicles": {
+     "title": "Follicles by size",
+     "hint": "Enter the numbers from your scan report"
+    },
+    "ovary": {
+     "right": "Right ovary",
+     "left": "Left ovary"
+    },
+    "bins": {
+     "lt_10": "Under 10 mm",
+     "10_14": "10–14",
+     "15_17": "15–17",
+     "18_plus": "18 and up"
+    },
+    "decrease": "Decrease: {ovary}, {bin}",
+    "increase": "Increase: {ovary}, {bin}",
+    "endometrium": {
+     "label": "Endometrial thickness",
+     "unit": "mm",
+     "placeholder": "e.g. 8.5",
+     "invalid": "Enter a number from 0 to 40."
+    },
+    "e2": {
+     "label": "Estradiol (E2)",
+     "placeholder": "Lab value",
+     "invalid": "Enter a valid number.",
+     "unitToggle": "Estradiol unit: {unit}. Tap to change.",
+     "units": {
+      "pg_ml": "pg/mL",
+      "pmol_l": "pmol/L"
+     }
+    },
+    "growth": {
+     "title": "Growth trend",
+     "label": "Follicle growth over the last {count} scans",
+     "caption": "Follicles per scan (both ovaries)",
+     "column": "Scan day",
+     "day": "Day {day}",
+     "mid": "10–14 mm",
+     "lead": "15 mm and up",
+     "empty": "Once you log your first scan, follicle growth shows up here."
+    },
+    "note": "Interpreting the results and timing the egg retrieval is your doctor's call. We just help keep everything in one place.",
+    "save": "Save",
+    "saved": "Saved",
+    "saveError": "Couldn't save. Please try again.",
+    "delete": "Delete this day's result",
+    "deleted": "This day's result was deleted",
+    "deleteError": "Couldn't delete. Please try again."
    }
   },
   "log": {
